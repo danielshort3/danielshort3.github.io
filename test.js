@@ -1395,9 +1395,31 @@ try {
   section('Chatbot demo manual warmup and views', () => {
     const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
     const vercel = fs.readFileSync('vercel.json', 'utf8');
-    assert(chatbotHtml.includes("const DEFAULT_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';"), 'chatbot-demo missing new API URL');
+    assert(chatbotHtml.includes("const DEFAULT_QWEN_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';"), 'chatbot-demo missing Qwen API URL');
+    assert(chatbotHtml.includes("const DEFAULT_BEDROCK_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod/bedrock';"), 'chatbot-demo missing Bedrock API URL');
+    assert(chatbotHtml.includes("const DEFAULT_BEDROCK_STREAM_URL = 'https://6i6akxbdxx5qexaajudxuayoey0iopga.lambda-url.us-east-2.on.aws/';"), 'chatbot-demo missing Bedrock stream URL');
+    assert(chatbotHtml.includes("const DEFAULT_BACKEND_ID = 'bedrock';"), 'chatbot-demo should default to Bedrock');
+    assert(chatbotHtml.includes("const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-05-06';"), 'chatbot-demo should version the Bedrock default migration');
+    assert(chatbotHtml.includes('let selectedBackendId = storedDefaultVersion === BACKEND_DEFAULT_VERSION'), 'chatbot-demo should use Bedrock until the default migration has run');
+    assert(chatbotHtml.includes('localStorage.setItem(BACKEND_DEFAULT_VERSION_KEY, BACKEND_DEFAULT_VERSION);'), 'chatbot-demo should record the Bedrock default migration');
+    assert(chatbotHtml.includes('if (!BACKENDS[selectedBackendId]) selectedBackendId = DEFAULT_BACKEND_ID;'), 'chatbot-demo should fall back to Bedrock for invalid stored backend');
     assert(!chatbotHtml.includes('ovodkr9oad'), 'chatbot-demo still references old API');
-    assert(chatbotHtml.includes("postJson(`${API_URL}/warmup`"), 'chatbot-demo missing warm-up API call');
+    assert(chatbotHtml.includes("postJson(backendUrl('/warmup'), {})"), 'chatbot-demo missing warm-up API call');
+    assert(chatbotHtml.includes('id="backend-select"'), 'chatbot-demo missing backend selector');
+    assert(chatbotHtml.includes('<option value="bedrock">Bedrock</option>'), 'chatbot-demo missing Bedrock backend option');
+    assert(chatbotHtml.includes('id="qwen-startup-notice"'), 'chatbot-demo should show Qwen cold-start notice when Qwen is selected');
+    assert(chatbotHtml.includes('function showQwenStartupNotice()'), 'chatbot-demo missing Qwen startup notice handler');
+    assert(chatbotHtml.includes("if (selectedBackendId === 'qwen-sagemaker') showQwenStartupNotice();"), 'chatbot-demo should show the startup notice when switching to Qwen');
+    assert(chatbotHtml.includes('Press Start server and allow up to about five minutes'), 'chatbot-demo Qwen notice should explain cold-start time');
+    assert(chatbotHtml.includes('alwaysOn: true'), 'chatbot-demo should treat Bedrock as always live');
+    assert(chatbotHtml.includes('streamUrl: (RUNTIME_CONFIG.bedrockStreamUrl || DEFAULT_BEDROCK_STREAM_URL).replace(/\\/$/, \'\')'), 'chatbot-demo should configure a Bedrock stream URL');
+    assert(chatbotHtml.includes('function submitBedrockStream(ctx, requestId, body, backend)'), 'chatbot-demo missing Bedrock streaming submit helper');
+    assert(chatbotHtml.includes("console.log('[chatbot-demo] bedrock:token', text);"), 'chatbot-demo should log Bedrock stream tokens to the console');
+    assert(chatbotHtml.includes('markAlwaysLiveBackend(`${activeBackend().label} is ready. No startup or shutdown timer is needed.`);'), 'chatbot-demo should mark Bedrock as always live without timers');
+    assert(chatbotHtml.includes('function normalizeAnswerLinks(container)'), 'chatbot-demo should normalize rendered answer links');
+    assert(chatbotHtml.includes("link.target = '_blank';"), 'chatbot-demo answer links should open outside the embedded frame');
+    assert(chatbotHtml.includes("link.rel = 'noopener noreferrer';"), 'chatbot-demo answer links should use safe external-link rel attributes');
+    assert(chatbotHtml.includes("localStorage.setItem(BACKEND_STORAGE_KEY, selectedBackendId);"), 'chatbot-demo should persist selected backend');
     assert(chatbotHtml.includes('let serverReady = false;'), 'chatbot-demo should gate sending on warm server state');
     assert(chatbotHtml.includes('function isStartupInProgressPayload(payload)'), 'chatbot-demo missing startup-in-progress status helper');
     assert(chatbotHtml.includes("createChatContext('regular')"), 'chatbot-demo missing regular chat context');
@@ -1463,9 +1485,10 @@ try {
     assert(chatbotHtml.includes('statusInfoFromPayload(result).shutdownSeconds'), 'chatbot-demo should use API shutdown estimates from completed jobs');
     assert(chatbotHtml.includes('if (duration <= 0) return;'), 'chatbot-demo ready timer should not loop when AWS reports zero seconds remaining');
     assert(!chatbotHtml.includes('status.shutdownSeconds || DEFAULT_WARM_HOLD_SEC'), 'chatbot-demo should not replace an accurate zero-second shutdown estimate');
-    assert(!chatbotHtml.includes('id="start-notice"'), 'chatbot-demo should not show startup modal on load');
+    assert(!chatbotHtml.includes('id="start-notice"'), 'chatbot-demo should not show the old startup modal on load');
     assert(!chatbotHtml.includes('chatbot-start-deadline'), 'chatbot-demo should not persist startup countdown deadlines');
     assert(vercel.includes('k8bys9gicf.execute-api.us-east-2.amazonaws.com'), 'vercel.json missing new chatbot API host');
+    assert(vercel.includes('6i6akxbdxx5qexaajudxuayoey0iopga.lambda-url.us-east-2.on.aws'), 'vercel.json missing Bedrock stream Function URL');
     assert(!vercel.includes('ovodkr9oad.execute-api.us-east-2.amazonaws.com'), 'vercel.json still allows old chatbot API host');
     const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
@@ -1477,21 +1500,23 @@ try {
     assert(passiveSection.includes('fetchStatusInfo()'), 'passive status should only fetch status');
     assert(passiveSection.includes("beginSharedStartup(status, 'passive-status')"), 'passive status should resume a warmup started elsewhere');
     assert(!passiveSection.includes('userStartedWarmup'), 'passive shared warmup pickup should not depend on this instance starting it');
-    assert(!passiveSection.includes("postJson(`${API_URL}/warmup`"), 'passive status must not initiate warmup');
+    assert(!passiveSection.includes("postJson(backendUrl('/warmup')"), 'passive status must not initiate warmup');
     assert(!passiveSection.includes('startWarmupTimer('), 'passive status must not start countdown timer');
 
     const sharedStart = chatbotHtml.indexOf('async function pollSharedStartupStatus()');
     const sharedEnd = chatbotHtml.indexOf('async function syncPassiveStatus()', sharedStart);
     const sharedSection = chatbotHtml.slice(sharedStart, sharedEnd);
     assert(sharedSection.includes('fetchStatusInfo()'), 'shared startup polling should use status endpoint');
-    assert(!sharedSection.includes("postJson(`${API_URL}/warmup`"), 'shared startup polling must not submit a warmup job');
+    assert(!sharedSection.includes("postJson(backendUrl('/warmup')"), 'shared startup polling must not submit a warmup job');
 
     const warmupStart = chatbotHtml.indexOf('async function warmupServer()');
     const warmupEnd = chatbotHtml.indexOf('async function pollWarmup', warmupStart);
     const warmupSection = chatbotHtml.slice(warmupStart, warmupEnd);
+    assert(warmupSection.includes('if (isAlwaysLiveBackend())'), 'Bedrock warmup button should run a status check only');
+    assert(warmupSection.includes('await checkAlwaysLiveBackend();'), 'Bedrock warmup button should check status without starting a timer');
     assert(warmupSection.includes('userStartedWarmup = true;'), 'warmup should be explicitly user initiated');
     assert(warmupSection.includes('startWarmupTimer({ durationSec: START_TIMEOUT_SEC, reason: \'manual-warmup\' });'), 'manual warmup should start countdown timer');
-    assert(warmupSection.includes("postJson(`${API_URL}/warmup`, {})"), 'manual warmup should call AWS warmup endpoint');
+    assert(warmupSection.includes("postJson(backendUrl('/warmup'), {})"), 'manual warmup should call AWS warmup endpoint');
 
     const startupSection = chatbotHtml.match(/\/\/ Startup status helpers[\s\S]*?\/\/ End startup status helpers/);
     assert(startupSection, 'chatbot-demo startup-in-progress helper section missing');
@@ -1680,8 +1705,21 @@ try {
       'stellar dogfight demo should load data script');
     assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-audio.js"></script>'),
       'stellar dogfight demo should load audio script');
+    assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-unlocks.js"></script>'),
+      'stellar dogfight demo should load unlock pacing script');
+    assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-art.js"></script>'),
+      'stellar dogfight demo should load art manifest script');
+    assert(!demoHtml.includes('<script src="js/vendor/pixi.min.js"></script>') &&
+           !demoHtml.includes('<script src="js/demos/stellar-dogfight-renderer-pixi.js"></script>'),
+      'stellar dogfight demo should not load the experimental Pixi renderer by default');
     assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-demo.js"></script>'),
       'stellar dogfight demo should load runtime script');
+    assert(demoHtml.indexOf('js/demos/stellar-dogfight-unlocks.js') < demoHtml.indexOf('js/demos/stellar-dogfight-demo.js'),
+      'stellar dogfight unlock pacing script should load before the runtime');
+    assert(demoHtml.indexOf('js/demos/stellar-dogfight-art.js') < demoHtml.indexOf('js/demos/stellar-dogfight-demo.js'),
+      'stellar dogfight art manifest should load before the runtime');
+    assert(demoHtml.includes('Space+Grotesk') && demoHtml.includes('Inter:wght'),
+      'stellar dogfight demo should load professional cockpit UI fonts');
     assert(demoHtml.includes('data-setting="audio"'),
       'stellar dogfight demo should expose audio settings');
     assert(demoHtml.includes('data-setting="hud-layout"'),
@@ -1692,8 +1730,16 @@ try {
       'stellar dogfight demo should expose target assist settings');
     assert(demoHtml.includes('data-setting="camera-mode"'),
       'stellar dogfight demo should expose camera mode settings');
-    assert(demoHtml.includes('class="mission-pill-row"') && demoHtml.includes('class="action-cluster"'),
-      'stellar dogfight demo should group highlights and actions for cleaner hierarchy');
+    assert(demoHtml.includes('class="mission-header mission-topbar"') &&
+           demoHtml.includes('data-role="topbar-summary"') &&
+           demoHtml.includes('data-action="command-menu"'),
+      'stellar dogfight demo should use a compact play-first top bar');
+    assert(demoHtml.includes('class="mission-sidebar command-drawer"') &&
+           demoHtml.includes('data-role="command-menu"') &&
+           demoHtml.includes('data-action="command-menu-close"'),
+      'stellar dogfight demo should move management panels behind a command drawer');
+    assert(!demoHtml.includes('mission-brief-grid') && !demoHtml.includes('mission-pill-row'),
+      'stellar dogfight first load should not include long explanatory header clutter');
     assert(demoHtml.includes('class="panel-subsection panel-disclosure"'),
       'stellar dogfight demo should collapse advanced sidebar sections to reduce clutter');
     assert(demoHtml.includes('class="hud-pill-group hud-pill-group-primary"') && demoHtml.includes('class="hud-pill-group hud-pill-group-meta"'),
@@ -1704,6 +1750,10 @@ try {
       'stellar dogfight demo should expose progress and settings guidance surfaces');
     assert(demoHtml.includes('data-panel-feature="premium"') && demoHtml.includes('data-settings-tier="2"'),
       'stellar dogfight demo should mark advanced panels and settings for progressive unlocking');
+    assert(demoHtml.includes('data-mode-feature="scoreMode"') && demoHtml.includes('data-mode-feature="frontierMode"'),
+      'stellar dogfight demo should gate advanced run modes behind progressive unlocks');
+    assert(demoHtml.includes('data-feature-reveal="scoreMode"') && demoHtml.includes('data-feature-reveal="premium"'),
+      'stellar dogfight demo should gate advanced details behind feature reveal attributes');
     assert(demoHtml.includes('data-action="help"'),
       'stellar dogfight demo should expose help action');
     assert(demoHtml.includes('data-action="preset-save"') && demoHtml.includes('data-action="preset-load"'),
@@ -1712,6 +1762,18 @@ try {
       'stellar dogfight demo should expose tutorial and glossary actions');
     assert(demoHtml.includes('data-action="replay-last-loadout"'),
       'stellar dogfight demo should expose replay-last-loadout action');
+    assert(demoHtml.includes('data-ui-icon="play"') &&
+           demoHtml.includes('data-ui-icon="menu"') &&
+           demoHtml.includes('data-tab-icon="ship"') &&
+           demoHtml.includes('data-icon-only="true"'),
+      'stellar dogfight demo should use compact SVG icon hooks for menus and shortcuts');
+    assert(demoHtml.includes('data-role="touch-controls"') &&
+           demoHtml.includes('data-touch-stick="move"') &&
+           demoHtml.includes('data-touch-stick="aim"') &&
+           demoHtml.includes('data-touch-action="boost"') &&
+           demoHtml.includes('data-touch-action="brake"') &&
+           demoHtml.includes('data-touch-action="pause"'),
+      'stellar dogfight demo should expose mobile twin-stick touch controls');
     assert(demoHtml.includes('data-tab-target="premium"') && demoHtml.includes('data-tab-panel="premium"'),
       'stellar dogfight demo should expose premium tab panel');
     assert(demoHtml.includes('data-role="premium-shop"'),
@@ -1728,8 +1790,14 @@ try {
       'stellar dogfight demo should expose weekly mutator and challenge seed stats');
     assert(demoHtml.includes('data-setting="palette"'),
       'stellar dogfight demo should expose palette settings');
+    assert(demoHtml.includes('<span class="panel-disclosure-title">Performance</span>') &&
+           demoHtml.includes('<span class="panel-disclosure-meta">Debug</span>') &&
+           demoHtml.includes('data-option="0.75"'),
+      'stellar dogfight demo should expose ungated performance diagnostics and sub-1 render scale');
     assert(demoHtml.includes('data-option="controller"'),
       'stellar dogfight demo should expose controller input mode');
+    assert(demoHtml.includes('Astralite Forge') && demoHtml.includes('data-option="score"') && demoHtml.includes('data-option="daily"') && demoHtml.includes('data-option="boss"'),
+      'stellar dogfight demo should expose Forge wording and quick-run modes');
     assert(!demoHtml.includes('const STORAGE_KEY = "stellarDogfightProgress";'),
       'stellar dogfight runtime should not be inline in HTML');
 
@@ -1740,16 +1808,47 @@ try {
       'stellar dogfight CSS should include HUD presentation variants');
     assert(demoCss.includes('.premium-card'),
       'stellar dogfight CSS should include premium card presentation');
-    assert(demoCss.includes('.mission-pill-row') && demoCss.includes('.action-cluster'),
-      'stellar dogfight CSS should style the streamlined header layout');
+    assert(demoCss.includes('.mission-title-compact') && demoCss.includes('.command-drawer') && demoCss.includes('body.is-command-menu-open'),
+      'stellar dogfight CSS should style the compact top bar and command drawer');
+    assert(demoCss.includes('.ui-icon') && demoCss.includes('.btn-icon-only') && demoCss.includes('.command-drawer .tab-btn-label'),
+      'stellar dogfight CSS should style concise SVG icon buttons and compact drawer tabs');
+    assert(demoCss.includes('.touch-controls') &&
+           demoCss.includes('.touch-stick') &&
+           demoCss.includes('.touch-action-btn') &&
+           demoCss.includes('body.is-touch-controls-active') &&
+           demoCss.includes('touch-action: none') &&
+           demoCss.includes('env(safe-area-inset-bottom)'),
+      'stellar dogfight CSS should style safe mobile tap controls');
+    assert(demoCss.includes('body.is-hangar') &&
+           demoCss.includes('height: var(--viewport-height);') &&
+           demoCss.includes('overflow: hidden;') &&
+           demoCss.includes('body.is-hangar .arena-frame'),
+      'stellar dogfight hangar should fit the initial game screen without document scrolling');
+    assert(demoCss.includes('body.is-playing .arena-frame') &&
+           demoCss.includes('aspect-ratio: auto;') &&
+           demoCss.includes('width: 100%;'),
+      'stellar dogfight playing arena should fit narrow mobile viewports without horizontal overflow');
+    assert(demoCss.includes('body.is-playing.is-performance-mode .arena-frame') &&
+           demoCss.includes('body.is-playing.is-performance-mode .perf-overlay') &&
+           demoCss.includes('backdrop-filter: none;'),
+      'stellar dogfight CSS should strip costly fullscreen chrome in performance mode');
+    assert(demoCss.includes('.pixi-stage') && demoCss.includes('body.is-pixi-renderer .arena-frame > canvas[data-role=') &&
+           demoCss.includes('pointer-events: none;'),
+      'stellar dogfight CSS should isolate the experimental WebGL renderer without stealing pointer input');
     assert(demoCss.includes('.panel-disclosure'),
       'stellar dogfight CSS should style disclosure sections for progressive disclosure');
     assert(demoCss.includes('.hud-pill-group-meta') && demoCss.includes('body.is-hud-focused'),
       'stellar dogfight CSS should support contextual combat HUD decluttering');
     assert(demoCss.includes('.tab-badge') && demoCss.includes('.debrief-grid'),
       'stellar dogfight CSS should style new-tab badges and post-run debrief cards');
+    assert(demoCss.includes('.result-rewards') && demoCss.includes('.result-details') && demoCss.includes('.overlay-card.is-result-card'),
+      'stellar dogfight CSS should style simplified result rewards and collapsible run details');
     assert(demoCss.includes('.progress-step[data-state="new"]'),
       'stellar dogfight CSS should style newly unlocked roadmap states');
+    assert(demoCss.includes('body.is-hangar .mission-main') && demoCss.includes('body.is-hangar .arena-frame'),
+      'stellar dogfight CSS should keep the playable arena visible in the hangar');
+    assert(demoCss.includes('.arena-frame::after') && demoCss.includes('rgba(151, 214, 255, 0.18)'),
+      'stellar dogfight CSS should include polished cockpit frame and HUD styling');
 
     const runtimeJs = fs.readFileSync('js/demos/stellar-dogfight-demo.js', 'utf8');
     assert(runtimeJs.includes('const DEFERRED_UI_FLUSH_MS = 220;'),
@@ -1762,14 +1861,26 @@ try {
       'stellar dogfight runtime missing deferred state flush helper');
     assert(/function updateHud\(\)\s*{\s*flushDeferredState\(\);/.test(runtimeJs),
       'stellar dogfight HUD should flush deferred state before HUD updates');
-    assert(runtimeJs.includes('const dpr = Math.max(1, state.renderScale || window.devicePixelRatio || 1);'),
-      'stellar dogfight minimap should use renderScale-aware DPR');
+    assert(runtimeJs.includes('const dpr = Math.max(AUTO_RENDER_MIN_SCALE, state.renderScale || window.devicePixelRatio || 1);'),
+      'stellar dogfight minimap should support sub-1 renderScale-aware DPR');
     assert(runtimeJs.includes('function getKeybindConflicts(targetAction, key) {'),
       'stellar dogfight runtime missing keybind conflict guard');
     assert(runtimeJs.includes('function saveLoadoutPreset(slot) {') && runtimeJs.includes('function loadLoadoutPreset(slot) {'),
       'stellar dogfight runtime should support loadout presets');
     assert(runtimeJs.includes('function syncHudPresentation() {'),
       'stellar dogfight runtime should support HUD presentation settings');
+    assert(runtimeJs.includes('const UI_ICON_PATHS = {') &&
+           runtimeJs.includes('function renderUiIcon(name) {') &&
+           runtimeJs.includes('function hydrateIconButtons(root = document) {') &&
+           runtimeJs.includes('function getTabIconName(target) {'),
+      'stellar dogfight runtime should render reusable SVG icons for menu shortcuts and options');
+    assert(runtimeJs.includes('function supportsTouchControls() {') &&
+           runtimeJs.includes('function setupTouchControls() {') &&
+           runtimeJs.includes('function syncTouchControls() {') &&
+           runtimeJs.includes('function handleTouchStickPointerDown(event) {') &&
+           runtimeJs.includes('input.touch.firing') &&
+           runtimeJs.includes('input.touch.moveX'),
+      'stellar dogfight runtime should map mobile touch controls into gameplay input');
     assert(runtimeJs.includes('document.body.classList.toggle("is-hud-compact"'),
       'stellar dogfight runtime should apply HUD compact class');
     assert(runtimeJs.includes('enabled: (progress.settings.audio || "on") !== "off"'),
@@ -1794,7 +1905,7 @@ try {
       'stellar dogfight runtime should build waves around role-based composition profiles');
     assert(runtimeJs.includes('const BOSS_PHASES = [') && runtimeJs.includes('function applyBossPhase(enemy, phaseIndex, options = {}) {') && runtimeJs.includes('function updateBossBehavior(enemy, delta) {'),
       'stellar dogfight runtime should support multi-phase boss behavior');
-    assert(runtimeJs.includes('const braking = isActionActive("brake") || input.padBrake;') && runtimeJs.includes('state.brakeTurnBoost') && runtimeJs.includes('state.brakeSpeedClamp'),
+    assert(runtimeJs.includes('const braking = isActionActive("brake") || input.padBrake || input.touch.brake;') && runtimeJs.includes('state.brakeTurnBoost') && runtimeJs.includes('state.brakeSpeedClamp'),
       'stellar dogfight runtime should apply air brake handling to player flight');
     assert(runtimeJs.includes('const BALANCE_TUNING = {'),
       'stellar dogfight runtime missing balance tuning constants');
@@ -1804,6 +1915,12 @@ try {
       'stellar dogfight runtime missing premium currency label');
     assert(runtimeJs.includes('const PREMIUM_DROP_RUN_CAP = 4;'),
       'stellar dogfight runtime missing premium drop cap');
+    assert(runtimeJs.includes('const UNLOCK_FEATURES = Array.isArray(UNLOCK_CONFIG.features)'),
+      'stellar dogfight runtime should consume data-driven unlock feature config');
+    assert(runtimeJs.includes('function shouldUnlockFeature(feature) {'),
+      'stellar dogfight runtime should evaluate configured unlock predicates');
+    assert(runtimeJs.includes('function syncModeOptions() {') && runtimeJs.includes('data-feature-reveal'),
+      'stellar dogfight runtime should sync progressive mode and feature visibility');
     assert(runtimeJs.includes('function renderPremiumShop() {') && runtimeJs.includes('function buyPremiumItem(itemId) {'),
       'stellar dogfight runtime missing premium shop handlers');
     assert(runtimeJs.includes('state.runPremiumDrops < PREMIUM_DROP_RUN_CAP'),
@@ -1812,6 +1929,14 @@ try {
       'stellar dogfight runtime missing premium currency drops');
     assert(runtimeJs.includes('function updateRunRecords(summary) {'),
       'stellar dogfight runtime missing run-record tracking');
+    assert(runtimeJs.includes('function isScoreAttackMode() {') && runtimeJs.includes('function finishQuickRun(reason) {') && runtimeJs.includes('const BOSS_RUSH_WAVES = 5;'),
+      'stellar dogfight runtime should include timed and boss quick-run modes');
+    assert(runtimeJs.includes('function unlockAchievement(id) {') && runtimeJs.includes('function noteTutorialGoal(goal) {'),
+      'stellar dogfight runtime should include achievements and live tutorial goals');
+    assert(runtimeJs.includes('function drawEnemyRoleLabel(enemy) {') && runtimeJs.includes('function drawEnemyShip(enemy) {'),
+      'stellar dogfight runtime should include enemy role readability helpers');
+    assert(runtimeJs.includes('function getUpgradeChoiceDescription(upgrade, nextLevel) {') && runtimeJs.includes('class="upgrade-synergy"'),
+      'stellar dogfight runtime should add readable upgrade-card descriptions and synergy hints');
     assert(runtimeJs.includes('function startTutorial() {') && runtimeJs.includes('function openGlossary() {'),
       'stellar dogfight runtime should include tutorial/glossary handlers');
     assert(runtimeJs.includes('function replayLastLoadout() {'),
@@ -1820,14 +1945,152 @@ try {
       'stellar dogfight runtime should include run analytics renderer');
     assert(runtimeJs.includes('function captureRunUnlockBaseline() {') && runtimeJs.includes('function buildRunDebrief(summary, telemetry, reason) {'),
       'stellar dogfight runtime should capture unlock baselines and build post-run debriefs');
+    assert(runtimeJs.includes('function openCommandMenu() {') &&
+           runtimeJs.includes('function closeCommandMenu(options = {}) {') &&
+           runtimeJs.includes('function syncTopbarSummary() {'),
+      'stellar dogfight runtime should manage the simplified command drawer and top bar');
+    assert(runtimeJs.includes('function buildRewardSummaryItems(rewards) {') &&
+           runtimeJs.includes('function getRunResultModel(mode) {') &&
+           runtimeJs.includes('function renderRunResultOverlay(mode) {'),
+      'stellar dogfight runtime should render simplified end-run result overlays');
+    assert(runtimeJs.includes('class="result-rewards"') &&
+           runtimeJs.includes('class="result-summary-strip"') &&
+           runtimeJs.includes('<details class="result-details">'),
+      'stellar dogfight result overlay should emphasize rewards and collapse detailed debriefs');
     assert(runtimeJs.includes('function updateTabBadges() {') && runtimeJs.includes('function markPanelSeen(target) {'),
       'stellar dogfight runtime should track first-visit UI badges');
     assert(runtimeJs.includes('function renderStatusIcons() {'),
       'stellar dogfight runtime should include status icon rendering');
     assert(runtimeJs.includes('setOverlay("choice-event");'),
       'stellar dogfight runtime should include milestone choice overlay flow');
-    assert(runtimeJs.includes('data-overlay-action="restart"'),
-      'stellar dogfight runtime missing gameover restart action');
+    assert(runtimeJs.includes('action: "restart"'),
+      'stellar dogfight runtime missing result replay action');
+    assert(runtimeJs.includes('const SPATIAL_GRID_CELL_SIZE = 240;') &&
+           runtimeJs.includes('enemyGrid: new Map()') &&
+           runtimeJs.includes('obstacleGrid: new Map()'),
+      'stellar dogfight runtime should maintain spatial grids for hot collision queries');
+    assert(runtimeJs.includes('function rebuildEnemySpatialGrid() {') &&
+           runtimeJs.includes('function forEachEnemyNear(origin, radius, callback) {') &&
+           runtimeJs.includes('forEachEnemyNear(bullet, bullet.radius + MAX_COLLISION_RADIUS'),
+      'stellar dogfight runtime should use spatial enemy queries for projectile collisions');
+    assert(runtimeJs.includes('function ensureObstacleSpatialGrid() {') &&
+           runtimeJs.includes('function forEachObstacleNear(origin, radius, callback) {') &&
+           runtimeJs.includes('forEachObstacleNear(point, buffer + MAX_COLLISION_RADIUS') &&
+           runtimeJs.includes('forEachObstacleNear(viewOrigin, viewRadius'),
+      'stellar dogfight runtime should use spatial obstacle queries for movement and shots');
+    assert(runtimeJs.includes('function removeArrayIndex(array, index) {') &&
+           runtimeJs.includes('removeArrayIndex(enemies, index);'),
+      'stellar dogfight runtime should use swap-remove helpers on hot entity arrays');
+    assert(runtimeJs.includes('const MINIMAP_RENDER_INTERVAL_MS = 125;') &&
+           runtimeJs.includes('now - state.minimapLastRenderAt < interval') &&
+           runtimeJs.includes('function queueMinimapRefresh() {'),
+      'stellar dogfight minimap should throttle redraws and support forced refreshes');
+    assert(runtimeJs.includes('const AUTO_RENDER_PIXEL_TIERS = [') &&
+           runtimeJs.includes('{ id: "emergency", label: "Emergency", pixels: 220000 }') &&
+           runtimeJs.includes('const WEBGL_RENDER_PIXEL_TIERS = [') &&
+           runtimeJs.includes('{ id: "emergency", label: "Emergency", pixels: 450000 }') &&
+           runtimeJs.includes('function getAutoRenderScaleInfo(baseDpr') &&
+           runtimeJs.includes('function getPerformanceQualityLevel() {') &&
+           runtimeJs.includes('AUTO_RENDER_MIN_SCALE') &&
+           runtimeJs.includes('state.renderScaleAutoCap'),
+      'stellar dogfight runtime should cap auto render scale through backend-aware performance-first backing-pixel tiers');
+    assert(runtimeJs.includes('function acquireEffect(pool) {') &&
+           runtimeJs.includes('function releaseEffect(pool, item) {') &&
+           runtimeJs.includes('releaseEffect(effectPools.particles, removeArrayIndex(particles, i))'),
+      'stellar dogfight runtime should pool short-lived visual effects');
+    assert(runtimeJs.includes('function updateAdaptiveQuality(rawDeltaMs) {') &&
+           runtimeJs.includes('function getAdaptiveRenderScaleCap() {') &&
+           runtimeJs.includes('function shouldDrawEnemyTelegraph(enemy) {'),
+      'stellar dogfight runtime should adapt render cost under frame pressure');
+    assert(runtimeJs.includes('function parsePerfQueryOverrides() {') &&
+           runtimeJs.includes('function markPerfBucket(kind, key, start) {') &&
+           runtimeJs.includes('Top Bottleneck') &&
+           runtimeJs.includes('Performance Mode') &&
+           runtimeJs.includes('RAF Wait') &&
+           runtimeJs.includes('update_ambient_ms') &&
+           runtimeJs.includes('render_background_ms'),
+      'stellar dogfight runtime should expose detailed optional performance diagnostics');
+    assert(runtimeJs.includes('function setCachedText(element, value) {') &&
+           runtimeJs.includes('function setCachedWidth(element, value) {') &&
+           runtimeJs.includes('setCachedWidth(meters.hull, hullPct);'),
+      'stellar dogfight HUD should avoid redundant DOM text and style writes');
+    assert(runtimeJs.includes('const ART_CONFIG = window.STELLAR_DOGFIGHT_ART || {};') &&
+           runtimeJs.includes('function loadGameArt() {') &&
+           runtimeJs.includes('function drawSprite(id, x, y') &&
+           runtimeJs.includes('function rasterizeArtEntry(entry) {') &&
+           runtimeJs.includes('function getCachedBackgroundSurface() {'),
+      'stellar dogfight runtime should load and cache manifest-driven art assets');
+    assert(runtimeJs.includes('function setupPixiRenderer() {') &&
+           runtimeJs.includes('function renderPixiFrame() {') &&
+           runtimeJs.includes('function buildPixiFrameSnapshot() {') &&
+           runtimeJs.includes('getRendererSetting() !== "pixi"') &&
+           runtimeJs.includes('function loadPixiRendererScripts() {') &&
+           runtimeJs.includes('state.renderBackend = "pixi";'),
+      'stellar dogfight runtime should keep Pixi/WebGL behind an explicit experimental renderer flag');
+    assert(runtimeJs.includes('image.src = definition.src;') &&
+           runtimeJs.includes('render_backend,webgl_px_w,webgl_px_h'),
+      'stellar dogfight runtime should keep Canvas on SVG art and log renderer backend diagnostics');
+    assert(runtimeJs.includes('function renderBackground() {') &&
+           runtimeJs.includes('function renderParticles() {') &&
+           runtimeJs.includes('function renderBullets() {') &&
+           runtimeJs.includes('function shouldUsePremiumVfx() {') &&
+           runtimeJs.includes('function isCircleInBounds(item') &&
+           runtimeJs.includes('function shouldDrawSecondaryCombatDetail() {'),
+      'stellar dogfight runtime should include polished adaptive VFX renderers');
+    assert(runtimeJs.includes('drawSprite("asteroidRock"') &&
+           runtimeJs.includes('drawSprite("pickupCore"') &&
+           runtimeJs.includes('drawShip(player.x, player.y, player.angle, player.radius, "#44d2c2", player.hitFlash > 0, player.thrusting, getPlayerArtId(player));'),
+      'stellar dogfight runtime should use art sprites for battlefield entities with procedural fallbacks');
+    assert(!runtimeJs.includes('forEachObstacleNear(entity, (entity.radius || 0) + MAX_COLLISION_RADIUS'),
+      'stellar dogfight obstacle renderer should not reference an undefined entity');
+
+    const unlockJs = fs.readFileSync('js/demos/stellar-dogfight-unlocks.js', 'utf8');
+    assert(unlockJs.includes('window.STELLAR_DOGFIGHT_UNLOCKS') && unlockJs.includes('id: "frontierMode"'),
+      'stellar dogfight unlock config should export late-game feature gates');
+    assert(unlockJs.includes('id: "score"') && unlockJs.includes('feature: "scoreMode"'),
+      'stellar dogfight unlock config should map run modes to feature gates');
+
+    const artJs = fs.readFileSync('js/demos/stellar-dogfight-art.js', 'utf8');
+    assert(artJs.includes('window.STELLAR_DOGFIGHT_ART') && artJs.includes('playerScout') && artJs.includes('enemyCommand'),
+      'stellar dogfight art manifest should export player and enemy sprite definitions');
+    assert(artJs.includes('rasterSrc') && artJs.includes('img/stellar-dogfight/raster/'),
+      'stellar dogfight art manifest should include pre-rendered PNG asset paths');
+    assert(fs.existsSync(path.join('js', 'vendor', 'pixi.min.js')),
+      'stellar dogfight Pixi vendor script should be vendored for static deployment');
+    assert(fs.existsSync(path.join('js', 'demos', 'stellar-dogfight-renderer-pixi.js')),
+      'stellar dogfight WebGL renderer module missing');
+    assert(fs.existsSync(path.join('build', 'build-stellar-dogfight-assets.js')),
+      'stellar dogfight raster art build script missing');
+    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    assert(packageJson.scripts && packageJson.scripts['build:stellar-dogfight-assets'],
+      'stellar dogfight raster art build script should be exposed through npm scripts');
+    assert(!packageJson.dependencies || !packageJson.dependencies['pixi.js'],
+      'experimental Pixi renderer should not be part of normal package dependencies');
+    const buildSiteJs = fs.readFileSync('build/build-site.js', 'utf8');
+    assert(!buildSiteJs.includes('dogfight-assets'),
+      'normal site build should not generate experimental Stellar Dogfight raster assets');
+    [
+      'ship-player-scout.svg',
+      'ship-player-heavy.svg',
+      'enemy-screen.svg',
+      'enemy-line.svg',
+      'enemy-interceptor.svg',
+      'enemy-support.svg',
+      'enemy-artillery.svg',
+      'enemy-siege.svg',
+      'enemy-brawler.svg',
+      'enemy-command.svg',
+      'helper-drone.svg',
+      'asteroid-rock.svg',
+      'obstacle-plate.svg',
+      'pickup-core.svg',
+      'mine-core.svg',
+      'vfx-burst.svg',
+      'vfx-shield-ripple.svg',
+      'background-nebula.svg'
+    ].forEach((asset) => {
+      assert(fs.existsSync(path.join('img', 'stellar-dogfight', asset)), `stellar dogfight art asset missing: ${asset}`);
+    });
 
     const trainingStart = runtimeJs.indexOf('function startTraining() {');
     const trainingEnd = runtimeJs.indexOf('function resetMission() {');

@@ -7,6 +7,9 @@
       const WORLD_WIDTH = 3200;
       const WORLD_HEIGHT = 1800;
       const LEVEL_WAVES = 10;
+      const SCORE_ATTACK_DURATION_SEC = 300;
+      const DAILY_SECTOR_DURATION_SEC = 360;
+      const BOSS_RUSH_WAVES = 5;
       const SKILL_LIMIT = 3;
       const HUD_UPDATE_INTERVAL_MS = 50;
       const DEFERRED_UI_FLUSH_MS = 220;
@@ -14,11 +17,66 @@
       const HUD_META_REVEAL_MS = 2200;
       const HUD_RECENT_DAMAGE_MS = 2600;
       const HUD_HOSTILE_BULLET_RANGE = 320;
+      const SPATIAL_GRID_CELL_SIZE = 240;
+      const MAX_COLLISION_RADIUS = 90;
+      const MINIMAP_RENDER_INTERVAL_MS = 125;
+      const MINIMAP_RENDER_INTERVAL_STRESSED_MS = 500;
+      const MINIMAP_RENDER_INTERVAL_EMERGENCY_MS = 1000;
+      const EFFECT_POOL_LIMIT = 360;
+      const ADAPTIVE_FRAME_TARGET_MS = 17;
+      const ADAPTIVE_FRAME_STRESS_MS = 22;
+      const AUTO_RENDER_PIXEL_TIERS = [
+        { id: "quality", label: "Quality", pixels: 1000000 },
+        { id: "balanced", label: "Balanced", pixels: 700000 },
+        { id: "performance", label: "Performance", pixels: 500000 },
+        { id: "fast", label: "Fast", pixels: 350000 },
+        { id: "emergency", label: "Emergency", pixels: 220000 }
+      ];
+      const WEBGL_RENDER_PIXEL_TIERS = [
+        { id: "quality", label: "Quality", pixels: 2000000 },
+        { id: "balanced", label: "Balanced", pixels: 1400000 },
+        { id: "performance", label: "Performance", pixels: 1000000 },
+        { id: "fast", label: "Fast", pixels: 700000 },
+        { id: "emergency", label: "Emergency", pixels: 450000 }
+      ];
+      const PIXI_VENDOR_SCRIPT = "js/vendor/pixi.min.js";
+      const PIXI_RENDERER_SCRIPT = "js/demos/stellar-dogfight-renderer-pixi.js";
+      const AUTO_RENDER_TARGET_PIXELS = AUTO_RENDER_PIXEL_TIERS[0].pixels;
+      const AUTO_RENDER_MIN_SCALE = 0.2;
+      const HIGH_PIXEL_PRESSURE_THRESHOLD = 0.8;
       const PREMIUM_CURRENCY_LABEL = "Astralite";
       const PREMIUM_DROP_RUN_CAP = 4;
       const DROP_PITY_THRESHOLDS = {
         key: 4,
         blueprint: 5
+      };
+      const UI_ICON_PATHS = {
+        play: '<path d="M8 5v14l11-7z"></path>',
+        menu: '<path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path>',
+        back: '<path d="M15 18l-6-6 6-6"></path><path d="M9 12h11"></path>',
+        next: '<path d="M9 18l6-6-6-6"></path><path d="M4 12h11"></path>',
+        close: '<path d="M6 6l12 12"></path><path d="M18 6L6 18"></path>',
+        settings: '<path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04-2.78 2.78-.04-.04A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1.5 1.6h-3a1.8 1.8 0 0 0-1.5-1.6 1.8 1.8 0 0 0-1.98.36l-.04.04-2.78-2.78.04-.04A1.8 1.8 0 0 0 4.6 15 1.8 1.8 0 0 0 3 13.5v-3A1.8 1.8 0 0 0 4.6 9a1.8 1.8 0 0 0-.36-1.98l-.04-.04L6.98 4.2l.04.04A1.8 1.8 0 0 0 9 4.6 1.8 1.8 0 0 0 10.5 3h3A1.8 1.8 0 0 0 15 4.6a1.8 1.8 0 0 0 1.98-.36l.04-.04 2.78 2.78-.04.04A1.8 1.8 0 0 0 19.4 9a1.8 1.8 0 0 0 1.6 1.5v3a1.8 1.8 0 0 0-1.6 1.5z"></path>',
+        help: '<circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.6 2.6 0 1 1 4.5 1.8c-.9.8-2 1.2-2 2.7"></path><path d="M12 17h.01"></path>',
+        ship: '<path d="M12 3l4 8-4 10-4-10 4-8z"></path><path d="M8 11H4l3 4"></path><path d="M16 11h4l-3 4"></path>',
+        progress: '<path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-7"></path>',
+        options: '<path d="M4 7h6"></path><path d="M14 7h6"></path><path d="M10 5v4"></path><path d="M4 17h10"></path><path d="M18 17h2"></path><path d="M14 15v4"></path>',
+        boosts: '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"></path>',
+        gear: '<path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-2.5 2.5-2.5-2.5 2.5-2.5z"></path>',
+        ships: '<path d="M5 19h14"></path><path d="M7 19V9l5-5 5 5v10"></path><path d="M10 19v-5h4v5"></path>',
+        tasks: '<path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M3.5 6l1 1 2-2"></path><path d="M3.5 12l1 1 2-2"></path><path d="M3.5 18l1 1 2-2"></path>',
+        forge: '<path d="M12 3l3 6 6 3-6 3-3 6-3-6-6-3 6-3 3-6z"></path>',
+        save: '<path d="M5 4h12l2 2v14H5z"></path><path d="M8 4v6h8V4"></path><path d="M8 16h8"></path>',
+        load: '<path d="M3 7h7l2 3h9v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M12 13v4"></path><path d="M9 14l3 3 3-3"></path>',
+        replay: '<path d="M4 12a8 8 0 1 0 2.3-5.7"></path><path d="M4 5v5h5"></path>',
+        tutorial: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
+        glossary: '<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><path d="M12 7h.01"></path>',
+        activity: '<path d="M3 12h4l2-6 4 12 2-6h6"></path>',
+        trash: '<path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M7 7l1 13h8l1-13"></path><path d="M10 11v5"></path><path d="M14 11v5"></path>',
+        practice: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M2 12h4"></path><path d="M18 12h4"></path>',
+        hangar: '<path d="M4 19V9l8-5 8 5v10"></path><path d="M8 19v-6h8v6"></path>',
+        reroll: '<path d="M20 7v5h-5"></path><path d="M4 17v-5h5"></path><path d="M19 12a7 7 0 0 0-12-5l-3 3"></path><path d="M5 12a7 7 0 0 0 12 5l3-3"></path>',
+        skip: '<path d="M5 5l8 7-8 7V5z"></path><path d="M19 5v14"></path>'
       };
       const BALANCE_TUNING = {
         playerEnergyCostScale: 0.9,
@@ -64,6 +122,87 @@
         ace: "interceptor",
         dreadnought: "command"
       };
+      const ENEMY_ROLE_LABELS = {
+        screen: "Screen",
+        line: "Line",
+        interceptor: "Chaser",
+        support: "Support",
+        artillery: "Sniper",
+        siege: "Siege",
+        brawler: "Ram",
+        command: "Boss"
+      };
+      const ENEMY_ROLE_MARKS = {
+        screen: "SCN",
+        line: "LINE",
+        interceptor: "CHASE",
+        support: "SUP",
+        artillery: "SNIPE",
+        siege: "BOMB",
+        brawler: "RAM",
+        command: "BOSS"
+      };
+      const ART_CONFIG = window.STELLAR_DOGFIGHT_ART || {};
+      const SHIP_ART_IDS = {
+        scout: "playerScout",
+        vanguard: "playerHeavy",
+        warden: "playerHeavy",
+        striker: "playerScout",
+        rift: "playerScout",
+        corsair: "playerScout",
+        specter: "playerScout",
+        titan: "playerHeavy",
+        tempest: "playerScout",
+        nexus: "playerHeavy",
+        helios: "playerScout",
+        sentinel: "playerHeavy",
+        valkyrie: "playerHeavy"
+      };
+      const ENEMY_ROLE_ART_IDS = {
+        screen: "enemyScreen",
+        line: "enemyLine",
+        interceptor: "enemyInterceptor",
+        support: "enemySupport",
+        artillery: "enemyArtillery",
+        siege: "enemySiege",
+        brawler: "enemyBrawler",
+        command: "enemyCommand"
+      };
+      const UNLOCK_CONFIG = window.STELLAR_DOGFIGHT_UNLOCKS || {};
+      const FALLBACK_UNLOCK_FEATURES = [
+        { id: "upgrades", label: "Wave Boosts", desc: "Pick one boost after each cleared wave.", hint: "Clear Wave 1 or fly for 45 seconds.", panel: "upgrades" },
+        { id: "ability", label: "Ship Ability", desc: "Your ship ability is now part of the combat loop.", hint: "Fly a little longer to unlock.", panel: "systems" },
+        { id: "secondary", label: "Secondary System", desc: "Secondary fire opens up more combat options.", hint: "Unlocks after abilities.", panel: "systems" },
+        { id: "hangar", label: "Hangar Boosts", desc: "Permanent hangar upgrades let you shape a long-term build.", hint: "Reach Rank 2 or complete a run.", panel: "upgrades" },
+        { id: "scoreMode", label: "Score Attack", desc: "Timed scoring runs are now available from Options.", hint: "Reach Rank 2 or Campaign Wave 3.", panel: "settings" },
+        { id: "armory", label: "Gear Locker", desc: "Weapons, attachments, and secondaries can now be compared and equipped.", hint: "Reach Rank 3 or destroy 20 enemies.", panel: "armory" },
+        { id: "shipyard", label: "Shipyard", desc: "New hulls unlock and expand your build identity.", hint: "Reach Rank 4 or find a blueprint.", panel: "shipyard" },
+        { id: "bossRush", label: "Boss Rush", desc: "Capital-wave challenge runs are now available from Options.", hint: "Reach Rank 5 or defeat a dreadnought.", panel: "settings" },
+        { id: "contracts", label: "Tasks Board", desc: "Optional objectives and faction reputation are now active.", hint: "Reach Rank 4 and Campaign Wave 5.", panel: "contracts" },
+        { id: "premium", label: "Astralite Forge", desc: "Astralite can now be spent on permanent account upgrades.", hint: "Reach Rank 5, Campaign Wave 7, or earn Astralite.", panel: "premium" },
+        { id: "dailySector", label: "Daily Sector", desc: "Daily seeded challenge runs are now available from Options.", hint: "Reach Rank 5 after unlocking Score Attack.", panel: "settings" },
+        { id: "salvage", label: "Salvage Cache", desc: "Keys can now be spent on salvage openings and rare gear rolls.", hint: "Unlock Gear, then find a salvage key.", panel: "armory" },
+        { id: "frontierMode", label: "Frontier", desc: "Long-form frontier patrols are now available from Options.", hint: "Reach Rank 6 with Shipyard online and Campaign Wave 8 cleared.", panel: "settings" }
+      ];
+      const FALLBACK_UNLOCK_MODES = [
+        { id: "arcade", label: "Campaign", feature: "always" },
+        { id: "score", label: "Score Attack", feature: "scoreMode" },
+        { id: "boss", label: "Boss Rush", feature: "bossRush" },
+        { id: "daily", label: "Daily Sector", feature: "dailySector" },
+        { id: "frontier", label: "Frontier", feature: "frontierMode" }
+      ];
+      const UNLOCK_FEATURES = Array.isArray(UNLOCK_CONFIG.features) && UNLOCK_CONFIG.features.length
+        ? UNLOCK_CONFIG.features
+        : FALLBACK_UNLOCK_FEATURES;
+      const UNLOCK_MODES = Array.isArray(UNLOCK_CONFIG.modes) && UNLOCK_CONFIG.modes.length
+        ? UNLOCK_CONFIG.modes
+        : FALLBACK_UNLOCK_MODES;
+      const UNLOCK_FEATURE_MAP = new Map(UNLOCK_FEATURES.map((feature) => [feature.id, feature]));
+      const UNLOCK_MODE_MAP = new Map(UNLOCK_MODES.map((mode) => [mode.id, mode]));
+      const RUN_MODE_LABELS = UNLOCK_MODES.reduce((labels, mode) => {
+        labels[mode.id] = mode.label;
+        return labels;
+      }, {});
       const WAVE_ROLE_PROFILES = [
         {
           id: "vanguard-screen",
@@ -276,24 +415,33 @@
       const TUTORIAL_STEPS = [
         {
           title: "Core Flight",
-          text: "Use WASD to move, mouse to aim, and Space or mouse press to fire. Hold Air Brake to bleed speed and pivot faster, and watch bracketed enemies for the lead pip."
+          text: "Use WASD to move, mouse to aim, and Space or mouse press to fire. Launch Practice from here to complete the live checklist."
         },
         {
-          title: "Energy Discipline",
-          text: "Weapons and boost spend energy. Keep Energy Sustain near neutral so you can keep firing under pressure."
+          title: "Boost and Brake",
+          text: "Boost breaks crossfire. Air Brake bleeds speed and pivots the ship faster so the lead pip settles before you fire."
         },
         {
-          title: "Wave Objectives",
-          text: "Each wave can require elimination, survival, or elite hunts. Watch the objective strip, enemy telegraphs, and the camera look-ahead to stay ahead of pressure."
+          title: "Enemy Roles",
+          text: "Enemy labels call out support, sniper, bomber, ram, and boss threats. Remove utility ships before chasing score."
         },
         {
-          title: "Build Identity",
-          text: "Pick one Build Identity in the Hangar and stack upgrades around it for stronger synergies."
+          title: "Run Goals",
+          text: "Campaign clears levels, Score Attack races the timer, Daily Sector gives a shared seed, and Boss Rush skips straight to heavy targets."
         },
         {
-          title: "Premium + Milestones",
-          text: "Elite and boss kills can drop Astralite. Milestone waves grant bonus loot and route choices."
+          title: "Astralite Forge",
+          text: "Elite and boss kills can drop Astralite. Spend it in the Forge for permanent account upgrades."
         }
+      ];
+      const ACHIEVEMENT_DEFS = [
+        { id: "first-sortie", title: "First Sortie", desc: "Launch a combat run." },
+        { id: "first-blood", title: "First Blood", desc: "Destroy an enemy." },
+        { id: "chain-five", title: "Hot Streak", desc: "Reach a five-kill chain." },
+        { id: "boss-down", title: "Capital Breaker", desc: "Destroy a dreadnought." },
+        { id: "score-attack", title: "Timer Tested", desc: "Finish a timed Score Attack or Daily Sector run." },
+        { id: "boss-rush-clear", title: "Boss Rush Clear", desc: "Clear Boss Rush." },
+        { id: "flight-school", title: "Flight School", desc: "Complete the live practice checklist." }
       ];
       const INVENTORY_LIMIT = 42;
       const ITEM_UPGRADE_SLOTS = {
@@ -565,7 +713,15 @@
         perfLogStatus: document.querySelector("[data-role='perf-log-status']"),
         statusIcons: document.querySelector("[data-role='status-icons']"),
         runAnalytics: document.querySelector("[data-role='run-analytics']"),
-        hudMeta: document.querySelector("[data-role='hud-meta']")
+        hudMeta: document.querySelector("[data-role='hud-meta']"),
+        commandMenu: document.querySelector("[data-role='command-menu']"),
+        commandBackdrop: document.querySelector("[data-role='command-backdrop']"),
+        topbarSummary: document.querySelector("[data-role='topbar-summary']"),
+        touchControls: document.querySelector("[data-role='touch-controls']"),
+        touchMove: document.querySelector("[data-touch-stick='move']"),
+        touchAim: document.querySelector("[data-touch-stick='aim']"),
+        touchMoveThumb: document.querySelector("[data-touch-thumb='move']"),
+        touchAimThumb: document.querySelector("[data-touch-thumb='aim']")
       };
       const settingsPanel = document.querySelector("[data-tab-panel='settings']");
       const settingsHome = settingsPanel ? settingsPanel.parentElement : null;
@@ -573,6 +729,8 @@
       let settingsOpen = false;
       let settingsReturnTab = "systems";
       let settingsResumeMode = null;
+      let commandMenuOpen = false;
+      let commandMenuLastFocus = null;
 
       const ctx = dom.canvas.getContext("2d", { alpha: false });
       const stats = {
@@ -652,7 +810,19 @@
         padMoveX: 0,
         padMoveY: 0,
         padAimX: 0,
-        padAimY: 0
+        padAimY: 0,
+        touch: {
+          supported: false,
+          movePointerId: null,
+          aimPointerId: null,
+          moveX: 0,
+          moveY: 0,
+          aimX: 0,
+          aimY: 0,
+          firing: false,
+          boost: false,
+          brake: false
+        }
       };
 
       const KEYBIND_LABELS = {
@@ -720,6 +890,20 @@
         lastHudScore: null,
         lastHudCredits: null,
         lastHudTier: null,
+        minimapLastRenderAt: 0,
+        minimapForceRender: true,
+        adaptiveQuality: {
+          level: 0,
+          pressure: 0,
+          recovery: 0
+        },
+        spatial: {
+          cellSize: SPATIAL_GRID_CELL_SIZE,
+          enemyGrid: new Map(),
+          obstacleGrid: new Map(),
+          queryStamp: 1,
+          obstacleDirty: true
+        },
         activeUpgradeKey: "",
         lastPlayerDamageAt: 0,
         lastHullHitAt: 0,
@@ -729,6 +913,12 @@
         worldWidth: WORLD_WIDTH,
         worldHeight: WORLD_HEIGHT,
         renderScale: 1,
+        renderScaleAutoCap: null,
+        renderScaleAutoReason: "",
+        renderScaleTier: 0,
+        renderScaleTierLabel: "Quality",
+        performanceMode: false,
+        renderBackend: "canvas",
         frameDelta: 1 / 60,
         camera: { x: 0, y: 0 },
         cameraTarget: { x: 0, y: 0 },
@@ -738,6 +928,9 @@
         lossRewards: null,
         levelRewards: null,
         salvageResults: null,
+        quickDuration: 0,
+        quickTimer: 0,
+        dailyChallenge: null,
         hazards: [],
         threatTier: THREAT_TIERS[0].id,
         waveObjective: null,
@@ -746,6 +939,8 @@
         routeBonus: null,
         milestoneRewardsClaimed: {},
         tutorialMode: false,
+        tutorialFlight: false,
+        tutorialGoals: {},
         tutorialStep: 0,
         tutorialComplete: false,
         overlayReturnMode: null,
@@ -771,7 +966,8 @@
         controllerConnected: false,
         controllerPrevButtons: [],
         telemetryRun: null,
-        targetAssist: null
+        targetAssist: null,
+        screenShake: 0
       };
 
       const BASE_PLAYER = {
@@ -899,9 +1095,11 @@
         BOSS_TYPE
       } = GAME_DB;
 
+      const perfQueryOverrides = parsePerfQueryOverrides();
       let progress = loadProgress();
       ensurePremiumState();
       setPerfMode(normalizePerfMode(progress.settings));
+      applyPerfQueryOverrides();
       syncProgressSelections();
       state.weekly = getWeeklyChallengeInfo();
       state.challengeSeed = state.weekly.seed;
@@ -922,7 +1120,32 @@
       let obstacles = [];
       let fieldDrops = [];
       let backgroundGradient = null;
+      let backgroundCache = {
+        canvas: null,
+        ctx: null,
+        width: 0,
+        height: 0,
+        quality: -1,
+        ready: false
+      };
       let minimapCtx = null;
+      let pixiRenderer = null;
+      let pixiRendererInitStarted = false;
+      let perfFrameActive = false;
+      const effectPools = {
+        particles: [],
+        pulses: [],
+        damageNumbers: []
+      };
+      const gameArt = {
+        entries: new Map(),
+        loading: false,
+        ready: false,
+        loaded: 0,
+        total: 0
+      };
+      const hudTextCache = new WeakMap();
+      const hudStyleCache = new WeakMap();
       const perfMetrics = {
         fps: 0,
         frameMs: 0,
@@ -947,6 +1170,18 @@
         hitchFrames: 0,
         slowRate: 0,
         hitchRate: 0,
+        rafWaitMs: 0,
+        avgRafWaitMs: 0,
+        longTaskDeltaCount: 0,
+        longTaskDeltaDuration: 0,
+        avgLongTaskDeltaDuration: 0,
+        lastLongTaskCount: 0,
+        lastLongTaskDuration: 0,
+        topBottleneck: "n/a",
+        updateBuckets: {},
+        avgUpdateBuckets: {},
+        renderBuckets: {},
+        avgRenderBuckets: {},
         frames: 0,
         lastFpsAt: performance.now(),
         lastOverlayUpdate: 0,
@@ -1199,7 +1434,7 @@
       function initRunTelemetry() {
         state.telemetryRun = {
           startedAt: Date.now(),
-          mode: state.training ? "training" : (isFrontierMode() ? "frontier" : "arcade"),
+          mode: state.training ? "training" : normalizeGameMode(state.gameMode),
           seed: state.challengeSeed || "",
           mutator: state.weekly?.mutator?.id || "none",
           ship: player?.ship?.id || progress.selectedShip,
@@ -1539,7 +1774,7 @@
           armory: "Open Gear and compare your strongest weapon and attachments before relaunching.",
           shipyard: "Visit Ships and compare the newly available hulls before committing to the next run.",
           contracts: "Visit Tasks and pin a bonus objective before the next launch.",
-          premium: `Visit Premium and decide whether to spend your ${PREMIUM_CURRENCY_LABEL} now or save it.`,
+          premium: `Visit Forge and decide whether to spend your ${PREMIUM_CURRENCY_LABEL} now or save it.`,
           salvage: "Open Gear and check Salvage Cache if you have keys ready."
         };
         return followups[feature] || "Review the new system before the next sortie.";
@@ -1695,8 +1930,12 @@
 
       function init() {
         setupTabs();
+        hydrateIconButtons();
+        setupTouchControls();
         setupArmoryNav();
         setupCanvas();
+        loadGameArt();
+        setupPixiRenderer();
         setupLongTaskObserver();
         attachEvents();
         applySettingsFromProgress();
@@ -1719,6 +1958,209 @@
         requestAnimationFrame(loop);
       }
 
+      function supportsTouchControls() {
+        return !!(
+          (window.matchMedia && window.matchMedia("(pointer: coarse)").matches)
+          || navigator.maxTouchPoints > 0
+        );
+      }
+
+      function setupTouchControls() {
+        if (!dom.touchControls) return;
+        input.touch.supported = supportsTouchControls();
+        document.body.classList.toggle("is-touch-controls-supported", input.touch.supported);
+        hydrateIconButtons(dom.touchControls);
+        if (!input.touch.supported) {
+          dom.touchControls.hidden = true;
+          dom.touchControls.setAttribute("aria-hidden", "true");
+          return;
+        }
+
+        [dom.touchMove, dom.touchAim].forEach((surface) => {
+          if (!surface) return;
+          surface.addEventListener("pointerdown", handleTouchStickPointerDown);
+          surface.addEventListener("pointermove", handleTouchStickPointerMove);
+          surface.addEventListener("pointerup", handleTouchStickPointerEnd);
+          surface.addEventListener("pointercancel", handleTouchStickPointerEnd);
+        });
+
+        dom.touchControls.querySelectorAll("[data-touch-action]").forEach((button) => {
+          button.addEventListener("pointerdown", handleTouchActionPointerDown);
+          button.addEventListener("pointerup", handleTouchActionPointerEnd);
+          button.addEventListener("pointercancel", handleTouchActionPointerEnd);
+          button.addEventListener("lostpointercapture", handleTouchActionPointerEnd);
+        });
+        window.addEventListener("resize", () => {
+          input.touch.supported = supportsTouchControls();
+          document.body.classList.toggle("is-touch-controls-supported", input.touch.supported);
+          syncTouchControls();
+        });
+        syncTouchControls();
+      }
+
+      function shouldShowTouchControls() {
+        return !!(
+          input.touch.supported
+          && dom.touchControls
+          && (state.mode === "flight" || state.mode === "training")
+          && !state.overlayMode
+          && !settingsOpen
+          && !commandMenuOpen
+        );
+      }
+
+      function syncTouchControls() {
+        if (!dom.touchControls) return;
+        const active = shouldShowTouchControls();
+        dom.touchControls.hidden = !active;
+        dom.touchControls.setAttribute("aria-hidden", active ? "false" : "true");
+        document.body.classList.toggle("is-touch-controls-active", active);
+        syncTouchActionButtons();
+        if (!active) {
+          resetTouchInput();
+        }
+      }
+
+      function syncTouchActionButtons() {
+        if (!dom.touchControls) return;
+        const rules = {
+          ability: isFeatureUnlocked("ability"),
+          secondary: isFeatureUnlocked("secondary"),
+          dock: isFrontierMode() && (state.mode === "flight" || state.mode === "training")
+        };
+        dom.touchControls.querySelectorAll("[data-touch-action]").forEach((button) => {
+          const action = button.dataset.touchAction;
+          if (Object.prototype.hasOwnProperty.call(rules, action)) {
+            button.hidden = !rules[action];
+          }
+        });
+      }
+
+      function resetTouchInput() {
+        input.touch.movePointerId = null;
+        input.touch.aimPointerId = null;
+        input.touch.moveX = 0;
+        input.touch.moveY = 0;
+        input.touch.aimX = 0;
+        input.touch.aimY = 0;
+        input.touch.firing = false;
+        input.touch.boost = false;
+        input.touch.brake = false;
+        resetTouchStick("move");
+        resetTouchStick("aim");
+        if (dom.touchControls) {
+          dom.touchControls.querySelectorAll(".is-active").forEach((element) => element.classList.remove("is-active"));
+        }
+      }
+
+      function resetTouchStick(kind) {
+        const stick = kind === "move" ? dom.touchMove : dom.touchAim;
+        const thumb = kind === "move" ? dom.touchMoveThumb : dom.touchAimThumb;
+        if (stick) stick.classList.remove("is-active");
+        if (thumb) {
+          thumb.style.setProperty("--touch-x", "0px");
+          thumb.style.setProperty("--touch-y", "0px");
+        }
+      }
+
+      function updateTouchStickVector(kind, event) {
+        const stick = kind === "move" ? dom.touchMove : dom.touchAim;
+        const thumb = kind === "move" ? dom.touchMoveThumb : dom.touchAimThumb;
+        if (!stick || !thumb) return;
+        const rect = stick.getBoundingClientRect();
+        const dx = event.clientX - rect.left - rect.width * 0.5;
+        const dy = event.clientY - rect.top - rect.height * 0.5;
+        const limit = Math.max(20, rect.width * 0.36);
+        const distance = Math.hypot(dx, dy);
+        const scale = distance > limit ? limit / distance : 1;
+        const thumbX = dx * scale;
+        const thumbY = dy * scale;
+        const deadzone = limit * 0.14;
+        const valueX = distance > deadzone ? clamp(dx / limit, -1, 1) : 0;
+        const valueY = distance > deadzone ? clamp(dy / limit, -1, 1) : 0;
+        thumb.style.setProperty("--touch-x", `${thumbX.toFixed(1)}px`);
+        thumb.style.setProperty("--touch-y", `${thumbY.toFixed(1)}px`);
+        stick.classList.add("is-active");
+        if (kind === "move") {
+          input.touch.moveX = valueX;
+          input.touch.moveY = valueY;
+        } else {
+          const aimDistance = Math.hypot(valueX, valueY);
+          input.touch.aimX = aimDistance > 0 ? valueX / aimDistance : 0;
+          input.touch.aimY = aimDistance > 0 ? valueY / aimDistance : 0;
+          input.touch.firing = true;
+        }
+      }
+
+      function handleTouchStickPointerDown(event) {
+        if (!shouldShowTouchControls()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        resumeAudio();
+        const kind = event.currentTarget.dataset.touchStick;
+        if (kind === "move") {
+          input.touch.movePointerId = event.pointerId;
+        } else if (kind === "aim") {
+          input.touch.aimPointerId = event.pointerId;
+        }
+        event.currentTarget.setPointerCapture(event.pointerId);
+        updateTouchStickVector(kind, event);
+      }
+
+      function handleTouchStickPointerMove(event) {
+        const kind = event.currentTarget.dataset.touchStick;
+        const activeId = kind === "move" ? input.touch.movePointerId : input.touch.aimPointerId;
+        if (activeId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        updateTouchStickVector(kind, event);
+      }
+
+      function handleTouchStickPointerEnd(event) {
+        const kind = event.currentTarget.dataset.touchStick;
+        const activeId = kind === "move" ? input.touch.movePointerId : input.touch.aimPointerId;
+        if (activeId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (kind === "move") {
+          input.touch.movePointerId = null;
+          input.touch.moveX = 0;
+          input.touch.moveY = 0;
+        } else {
+          input.touch.aimPointerId = null;
+          input.touch.aimX = 0;
+          input.touch.aimY = 0;
+          input.touch.firing = false;
+        }
+        resetTouchStick(kind);
+      }
+
+      function handleTouchActionPointerDown(event) {
+        if (!shouldShowTouchControls()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        resumeAudio();
+        const action = event.currentTarget.dataset.touchAction;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.classList.add("is-active");
+        if (action === "boost") input.touch.boost = true;
+        if (action === "brake") input.touch.brake = true;
+        if (action === "ability") activateAbility();
+        if (action === "secondary") activateSecondary();
+        if (action === "dock") toggleFrontierDock();
+        if (action === "pause") togglePause();
+        if (action === "help") toggleHelpOverlay();
+      }
+
+      function handleTouchActionPointerEnd(event) {
+        const action = event.currentTarget.dataset.touchAction;
+        event.preventDefault();
+        event.stopPropagation();
+        if (action === "boost") input.touch.boost = false;
+        if (action === "brake") input.touch.brake = false;
+        event.currentTarget.classList.remove("is-active");
+      }
+
       function setupCanvas() {
         resizeCanvas();
         resizeMinimap();
@@ -1731,6 +2173,92 @@
             updatePointerWorld();
           }
         });
+      }
+
+      function setupPixiRenderer() {
+        if (pixiRendererInitStarted || getRendererSetting() !== "pixi") {
+          document.body.classList.remove("is-pixi-renderer");
+          state.renderBackend = "canvas";
+          return;
+        }
+        const factory = window.STELLAR_DOGFIGHT_PIXI_RENDERER;
+        if (!window.PIXI || !factory || typeof factory.createRenderer !== "function") {
+          pixiRendererInitStarted = true;
+          loadPixiRendererScripts().then(() => {
+            pixiRendererInitStarted = false;
+            setupPixiRenderer();
+          }).catch(() => {
+            pixiRendererInitStarted = false;
+            state.renderBackend = "canvas";
+            document.body.classList.remove("is-pixi-renderer");
+            logEvent("Experimental WebGL renderer unavailable. Canvas active.");
+          });
+          return;
+        }
+        pixiRendererInitStarted = true;
+        pixiRenderer = factory.createRenderer({
+          PIXI: window.PIXI,
+          anchorCanvas: dom.canvas,
+          artConfig: ART_CONFIG,
+          getRenderScale: () => state.renderScale || getRenderScaleDpr()
+        });
+        pixiRenderer.init().then((ready) => {
+          if (!ready) {
+            state.renderBackend = "canvas";
+            pixiRenderer = null;
+            return;
+          }
+          state.renderBackend = "pixi";
+          resizeCanvas();
+          logEvent("Experimental WebGL renderer online.");
+        }).catch(() => {
+          state.renderBackend = "canvas";
+          document.body.classList.remove("is-pixi-renderer");
+          pixiRenderer = null;
+          logEvent("Experimental WebGL renderer unavailable. Canvas active.");
+        });
+      }
+
+      function loadPixiRendererScripts() {
+        return loadScriptOnce(PIXI_VENDOR_SCRIPT).then(() => loadScriptOnce(PIXI_RENDERER_SCRIPT));
+      }
+
+      function loadScriptOnce(src) {
+        if (!src) return Promise.reject(new Error("Missing script source"));
+        const existing = Array.from(document.scripts).find((script) => {
+          const scriptSrc = script.getAttribute("src") || "";
+          return scriptSrc === src || scriptSrc.endsWith(`/${src}`);
+        });
+        if (existing) {
+          return Promise.resolve(existing);
+        }
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.async = false;
+          script.dataset.experimentalRenderer = "pixi";
+          script.onload = () => resolve(script);
+          script.onerror = () => reject(new Error(`Unable to load ${src}`));
+          document.body.appendChild(script);
+        });
+      }
+
+      function isPixiRendererReady() {
+        return getRendererSetting() === "pixi" && !!(pixiRenderer && pixiRenderer.ready);
+      }
+
+      function getRendererInfo() {
+        if (pixiRenderer && typeof pixiRenderer.getInfo === "function") {
+          return pixiRenderer.getInfo();
+        }
+        return {
+          backend: perfQueryOverrides.renderer === "canvas" ? "Canvas forced" : "Canvas",
+          ready: false,
+          failed: false,
+          width: 0,
+          height: 0,
+          resolution: state.renderScale || 1
+        };
       }
 
       function resizeCanvas() {
@@ -1753,7 +2281,153 @@
         backgroundGradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
         backgroundGradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
         backgroundGradient.addColorStop(1, "rgba(5, 8, 14, 1)");
+        if (pixiRenderer && typeof pixiRenderer.resize === "function") {
+          pixiRenderer.resize(rect.width, rect.height);
+        }
+        markBackgroundCacheDirty();
         updateStarfield();
+      }
+
+      function markBackgroundCacheDirty() {
+        if (!backgroundCache) return;
+        backgroundCache.ready = false;
+        backgroundCache.width = 0;
+        backgroundCache.height = 0;
+      }
+
+      function getArtDefinitions() {
+        return {
+          ...(ART_CONFIG.sprites || {}),
+          ...(ART_CONFIG.effects || {}),
+          ...(ART_CONFIG.backgrounds || {})
+        };
+      }
+
+      function loadGameArt() {
+        if (gameArt.loading || gameArt.ready) return;
+        if (typeof Image === "undefined") return;
+        const definitions = getArtDefinitions();
+        const entries = Object.entries(definitions).filter(([, definition]) => definition && definition.src);
+        gameArt.loading = true;
+        gameArt.total = entries.length;
+        if (!entries.length) {
+          gameArt.ready = true;
+          return;
+        }
+        entries.forEach(([id, definition]) => {
+          const image = new Image();
+          const entry = {
+            ...definition,
+            id,
+            image,
+            loaded: false,
+            failed: false
+          };
+          gameArt.entries.set(id, entry);
+          image.onload = () => {
+            entry.loaded = true;
+            rasterizeArtEntry(entry);
+            if (id === "nebula") markBackgroundCacheDirty();
+            gameArt.loaded += 1;
+            gameArt.ready = gameArt.loaded >= gameArt.total;
+          };
+          image.onerror = () => {
+            entry.failed = true;
+            gameArt.loaded += 1;
+            gameArt.ready = gameArt.loaded >= gameArt.total;
+          };
+          image.src = definition.src;
+        });
+      }
+
+      function getArtEntry(id) {
+        const entry = id ? gameArt.entries.get(id) : null;
+        if (!entry || !entry.loaded || !entry.image) return null;
+        return entry;
+      }
+
+      function getArtDrawable(entry) {
+        return entry && entry.rasterSource ? entry.rasterSource : entry ? entry.image : null;
+      }
+
+      function rasterizeArtEntry(entry) {
+        if (!entry || !entry.image || typeof document === "undefined") return;
+        const frameWidth = entry.width || entry.image.naturalWidth || entry.image.width;
+        const frameHeight = entry.height || entry.image.naturalHeight || entry.image.height;
+        const frames = Math.max(1, entry.frames || 1);
+        if (!frameWidth || !frameHeight) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.floor(frameWidth * frames));
+        canvas.height = Math.max(1, Math.floor(frameHeight));
+        const rasterCtx = canvas.getContext("2d");
+        if (!rasterCtx) return;
+        try {
+          rasterCtx.drawImage(entry.image, 0, 0, canvas.width, canvas.height);
+          entry.rasterSource = canvas;
+        } catch (error) {
+          entry.rasterSource = null;
+        }
+      }
+
+      function drawSprite(id, x, y, angle = 0, width = 0, height = 0, options = {}) {
+        const entry = getArtEntry(id);
+        if (!entry) return false;
+        const source = getArtDrawable(entry);
+        if (!source) return false;
+        const frameWidth = entry.width || entry.image.naturalWidth || entry.image.width;
+        const frameHeight = entry.height || entry.image.naturalHeight || entry.image.height;
+        if (!frameWidth || !frameHeight) return false;
+        const frames = Math.max(1, entry.frames || 1);
+        const fps = Math.max(0, entry.fps || 0);
+        const frame = frames > 1 && fps > 0
+          ? Math.floor(performance.now() * 0.001 * fps) % frames
+          : 0;
+        const scale = Number.isFinite(options.scale) ? options.scale : (entry.scale || 1);
+        const drawWidth = width || frameWidth * scale;
+        const drawHeight = height || frameHeight * scale;
+        const anchorX = Number.isFinite(entry.anchorX) ? entry.anchorX : 0.5;
+        const anchorY = Number.isFinite(entry.anchorY) ? entry.anchorY : 0.5;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        if (Number.isFinite(options.alpha)) {
+          ctx.globalAlpha *= options.alpha;
+        }
+        if (options.composite) {
+          ctx.globalCompositeOperation = options.composite;
+        }
+        if (options.shadowBlur && shouldUsePremiumVfx()) {
+          ctx.shadowBlur = options.shadowBlur;
+          ctx.shadowColor = options.shadowColor || "#57e0ff";
+        }
+        try {
+          if (frames > 1) {
+            ctx.drawImage(
+              source,
+              frame * frameWidth,
+              0,
+              frameWidth,
+              frameHeight,
+              -drawWidth * anchorX,
+              -drawHeight * anchorY,
+              drawWidth,
+              drawHeight
+            );
+          } else {
+            ctx.drawImage(
+              source,
+              -drawWidth * anchorX,
+              -drawHeight * anchorY,
+              drawWidth,
+              drawHeight
+            );
+          }
+        } catch (error) {
+          ctx.restore();
+          return false;
+        }
+        ctx.restore();
+        return true;
       }
 
       function resizeMinimap() {
@@ -1767,6 +2441,7 @@
           minimapCtx = dom.minimap.getContext("2d");
         }
         minimapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        queueMinimapRefresh();
       }
 
       function setupLongTaskObserver() {
@@ -1788,22 +2463,81 @@
         }
       }
 
+      function setCommandMenuOpen(open, options = {}) {
+        commandMenuOpen = !!open;
+        document.body.classList.toggle("is-command-menu-open", commandMenuOpen);
+        if (dom.commandMenu) {
+          dom.commandMenu.setAttribute("aria-hidden", commandMenuOpen ? "false" : "true");
+          if ("inert" in dom.commandMenu) {
+            dom.commandMenu.inert = !commandMenuOpen;
+          } else {
+            dom.commandMenu.toggleAttribute("inert", !commandMenuOpen);
+          }
+        }
+        if (dom.commandBackdrop) {
+          dom.commandBackdrop.hidden = !commandMenuOpen;
+        }
+        document.querySelectorAll("[data-action='command-menu']").forEach((button) => {
+          button.setAttribute("aria-expanded", commandMenuOpen ? "true" : "false");
+        });
+        if (commandMenuOpen) {
+          commandMenuLastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          const focusTarget = dom.commandMenu?.querySelector("[data-tab-target].is-active:not([hidden])")
+            || dom.commandMenu?.querySelector("[data-action='command-menu-close']");
+          if (focusTarget) focusTarget.focus();
+        } else if (options.restoreFocus && commandMenuLastFocus && document.contains(commandMenuLastFocus)) {
+          commandMenuLastFocus.focus();
+        }
+      }
+
+      function openCommandMenu() {
+        if (!dom.commandMenu || commandMenuOpen) return;
+        if (settingsOpen) closeSettings(false);
+        renderProgressiveUi();
+        setCommandMenuOpen(true);
+      }
+
+      function closeCommandMenu(options = {}) {
+        if (!commandMenuOpen) return;
+        setCommandMenuOpen(false, options);
+      }
+
       function attachEvents() {
         document.addEventListener("click", (event) => {
           resumeAudio();
           const action = event.target.closest("[data-action]");
           if (!action) return;
           const actionName = action.dataset.action;
-          if (actionName === "launch") startMission();
-          if (actionName === "training") startTraining();
+          if (actionName === "command-menu") {
+            openCommandMenu();
+            return;
+          }
+          if (actionName === "command-menu-close") {
+            closeCommandMenu({ restoreFocus: true });
+            return;
+          }
+          if (actionName === "launch") {
+            closeCommandMenu();
+            startMission();
+          }
+          if (actionName === "training") {
+            closeCommandMenu();
+            startTraining();
+          }
           if (actionName === "tutorial") startTutorial();
           if (actionName === "replay-last-loadout") replayLastLoadout();
           if (actionName === "glossary") openGlossary();
           if (actionName === "dock") toggleFrontierDock();
           if (actionName === "pause") togglePause();
           if (actionName === "help") toggleHelpOverlay();
-          if (actionName === "reset") resetMission();
-          if (actionName === "settings") openSettings();
+          if (actionName === "reset") {
+            closeCommandMenu();
+            resetMission();
+          }
+          if (actionName === "settings") {
+            closeCommandMenu();
+            openSettings();
+          }
           if (actionName === "settings-close") closeSettings();
           if (actionName === "perf-log") togglePerfLog();
           if (actionName === "reset-progress") resetProgress();
@@ -1863,14 +2597,19 @@
             if (actionName === "tutorial-close") {
               state.tutorialMode = false;
               state.tutorialComplete = true;
+              if (!progress.tutorialCompleted) {
+                progress.tutorialCompleted = true;
+                saveProgress();
+              }
               restoreOverlayReturn();
             }
             if (actionName === "tutorial-training") {
               state.tutorialMode = false;
-              state.tutorialComplete = true;
               if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") {
                 resetMission();
               }
+              state.tutorialFlight = true;
+              state.tutorialGoals = getTutorialGoalTemplate();
               startTraining();
             }
             if (actionName === "glossary-close") {
@@ -2063,7 +2802,13 @@
           if (setting === "difficulty") {
             progress.settings.difficulty = option;
           } else if (setting === "game-mode") {
-            progress.settings.gameMode = option;
+            if (!isModeUnlocked(option)) {
+              const feature = getModeFeature(option);
+              showTip(`locked-mode-${option}`, `${getRunModeLabel(option)} locked`, getFeatureHint(feature), { kind: "lock" });
+              syncModeOptions();
+              return;
+            }
+            progress.settings.gameMode = normalizeGameMode(option);
             if (state.runActive) {
               logEvent("Mode change applies on the next launch.");
             }
@@ -2098,9 +2843,13 @@
           saveProgress();
           applySettingsFromProgress();
           renderSettings();
+          syncLaunchButtons();
           renderShipyard();
           renderPremiumShop();
           renderArmory();
+          if (setting === "game-mode" && state.mode === "hangar" && state.overlayMode === "start") {
+            setOverlay("start");
+          }
           logEvent(`Settings updated: ${setting.replace("-", " ")}.`);
         });
 
@@ -2128,6 +2877,11 @@
           if (key === "escape" && settingsOpen) {
             event.preventDefault();
             closeSettings();
+            return;
+          }
+          if (key === "escape" && commandMenuOpen) {
+            event.preventDefault();
+            closeCommandMenu({ restoreFocus: true });
             return;
           }
           if (input.capture) {
@@ -2321,6 +3075,7 @@
         document.body.classList.toggle("is-playing", playing);
         document.body.classList.toggle("is-hangar", !playing);
         syncContextualHudState();
+        syncTouchControls();
         resizeCanvas();
         resizeMinimap();
       }
@@ -2403,6 +3158,15 @@
         });
       }
 
+      function getDefaultFeatureUnlocks() {
+        return UNLOCK_FEATURES.reduce((defaults, feature) => {
+          if (feature && feature.id) {
+            defaults[feature.id] = feature.unlockedByDefault === true;
+          }
+          return defaults;
+        }, {});
+      }
+
       function loadProgress() {
         const fallback = {
           rank: 1,
@@ -2424,8 +3188,13 @@
           records: {
             bestScore: 0,
             bestKills: 0,
-            bestSurvivalSec: 0
+            bestSurvivalSec: 0,
+            bestScoreAttack: 0,
+            bestDailyScore: 0,
+            bestBossRushScore: 0
           },
+          achievements: {},
+          dailyRuns: [],
           runAnalytics: [],
           telemetry: {
             recent: []
@@ -2439,17 +3208,7 @@
           buildPath: "balanced",
           buildHistory: [],
           lastLoadout: null,
-          featureUnlocks: {
-            upgrades: false,
-            ability: false,
-            secondary: false,
-            hangar: false,
-            armory: false,
-            shipyard: false,
-            contracts: false,
-            premium: false,
-            salvage: false
-          },
+          featureUnlocks: getDefaultFeatureUnlocks(),
           onboarding: {
             flightSeconds: 0
           },
@@ -2458,6 +3217,7 @@
             features: {}
           },
           tipsSeen: {},
+          tutorialCompleted: false,
           selectedShip: "vanguard",
           selectedWeapon: "basic",
           selectedSecondary: "emp",
@@ -2613,6 +3373,10 @@
               ...fallback.records,
               ...(stored.records || {})
             },
+            achievements: {
+              ...fallback.achievements,
+              ...(stored.achievements || {})
+            },
             premiumShop: {
               ...fallback.premiumShop,
               ...(stored.premiumShop || {}),
@@ -2635,6 +3399,7 @@
             },
             runHistory: Array.isArray(stored.runHistory) ? stored.runHistory.slice(0, 8) : fallback.runHistory,
             runAnalytics: Array.isArray(stored.runAnalytics) ? stored.runAnalytics.slice(0, 10) : fallback.runAnalytics,
+            dailyRuns: Array.isArray(stored.dailyRuns) ? stored.dailyRuns.slice(0, 12) : fallback.dailyRuns,
             salvageHistory: Array.isArray(stored.salvageHistory) ? stored.salvageHistory.slice(0, 6) : fallback.salvageHistory,
             buildHistory: Array.isArray(stored.buildHistory) ? stored.buildHistory.slice(0, 10) : fallback.buildHistory,
             telemetry: {
@@ -2685,8 +3450,19 @@
             bestKills: Number.isFinite(merged.records?.bestKills) ? Math.max(0, merged.records.bestKills) : 0,
             bestSurvivalSec: Number.isFinite(merged.records?.bestSurvivalSec)
               ? Math.max(0, merged.records.bestSurvivalSec)
+              : 0,
+            bestScoreAttack: Number.isFinite(merged.records?.bestScoreAttack)
+              ? Math.max(0, merged.records.bestScoreAttack)
+              : 0,
+            bestDailyScore: Number.isFinite(merged.records?.bestDailyScore)
+              ? Math.max(0, merged.records.bestDailyScore)
+              : 0,
+            bestBossRushScore: Number.isFinite(merged.records?.bestBossRushScore)
+              ? Math.max(0, merged.records.bestBossRushScore)
               : 0
           };
+          merged.achievements = merged.achievements || {};
+          merged.tutorialCompleted = !!merged.tutorialCompleted;
           merged.premiumCurrency = Number.isFinite(merged.premiumCurrency)
             ? Math.max(0, Math.floor(merged.premiumCurrency))
             : 0;
@@ -2915,6 +3691,32 @@
         });
       }
 
+      function parsePerfQueryOverrides() {
+        const result = {};
+        try {
+          const params = new URLSearchParams(window.location.search || "");
+          const perfMode = params.get("perf");
+          const renderScale = params.get("renderScale") || params.get("scale");
+          const renderer = params.get("renderer") || params.get("backend");
+          if (perfMode === "off" || perfMode === "basic" || perfMode === "detail") {
+            result.perfMode = perfMode;
+          }
+          if (renderScale === "auto" || ["0.25", "0.35", "0.5", "0.75", "1", "1.25", "1.5", "2"].includes(renderScale || "")) {
+            result.renderScale = renderScale;
+          }
+          if (renderer === "auto" || renderer === "pixi" || renderer === "canvas") {
+            result.renderer = renderer;
+          }
+        } catch (error) {
+          return {};
+        }
+        return result;
+      }
+
+      function applyPerfQueryOverrides() {
+        // Query overrides are intentionally session-only; saved settings stay untouched.
+      }
+
       function normalizePerfMode(settings) {
         if (!settings) return "off";
         if (settings.perfMode === "basic" || settings.perfMode === "detail") {
@@ -2938,15 +3740,121 @@
       }
 
       function getPerfMode() {
-        return normalizePerfMode(progress.settings);
+        return perfQueryOverrides.perfMode || normalizePerfMode(progress.settings);
+      }
+
+      function getRenderScaleSetting() {
+        return perfQueryOverrides.renderScale || progress.settings.renderScale || "auto";
+      }
+
+      function getRendererSetting() {
+        return perfQueryOverrides.renderer === "pixi" ? "pixi" : "canvas";
+      }
+
+      function getCanvasCssSize() {
+        if (state.width && state.height) {
+          return { width: state.width, height: state.height };
+        }
+        if (!dom.canvas || typeof dom.canvas.getBoundingClientRect !== "function") {
+          return { width: 0, height: 0 };
+        }
+        const rect = dom.canvas.getBoundingClientRect();
+        return { width: rect.width || 0, height: rect.height || 0 };
+      }
+
+      function getCanvasMegapixels() {
+        if (!dom.canvas) return 0;
+        return (dom.canvas.width * dom.canvas.height) / 1000000;
+      }
+
+      function getRawAdaptiveQualityLevel() {
+        return state.adaptiveQuality ? state.adaptiveQuality.level || 0 : 0;
+      }
+
+      function getBaselineRenderTier(cssPixels, baseDpr) {
+        const nativePixels = cssPixels * baseDpr * baseDpr;
+        if (nativePixels >= 6500000 || cssPixels >= 2200000) return 2;
+        if (nativePixels >= 2800000 || cssPixels >= 1300000) return 1;
+        return 0;
+      }
+
+      function getPerformanceQualityLevel() {
+        const size = getCanvasCssSize();
+        const cssPixels = Math.max(0, size.width * size.height);
+        const baseDpr = Math.max(1, window.devicePixelRatio || 1);
+        return Math.max(getRawAdaptiveQualityLevel(), getBaselineRenderTier(cssPixels, baseDpr));
+      }
+
+      function getActiveRenderPixelTiers() {
+        const webglLikely = getRendererSetting() !== "canvas" && (
+          state.renderBackend === "pixi"
+          || !!(pixiRenderer && !pixiRenderer.failed)
+        );
+        return webglLikely ? WEBGL_RENDER_PIXEL_TIERS : AUTO_RENDER_PIXEL_TIERS;
+      }
+
+      function getActiveRenderTargetPixels() {
+        const tiers = getActiveRenderPixelTiers();
+        return tiers[0] ? tiers[0].pixels : AUTO_RENDER_TARGET_PIXELS;
+      }
+
+      function getAutoRenderPixelTier(level = getPerformanceQualityLevel()) {
+        const tiers = getActiveRenderPixelTiers();
+        const index = clamp(Math.round(level), 0, tiers.length - 1);
+        return {
+          ...tiers[index],
+          index
+        };
+      }
+
+      function getAutoRenderScaleInfo(baseDpr = Math.max(1, window.devicePixelRatio || 1)) {
+        const size = getCanvasCssSize();
+        const cssPixels = Math.max(0, size.width * size.height);
+        const tier = getAutoRenderPixelTier();
+        if (!cssPixels) {
+          return {
+            cap: Math.min(baseDpr, 1),
+            megapixels: 0,
+            targetMegapixels: tier.pixels / 1000000,
+            reason: "pending",
+            tier
+          };
+        }
+        const targetScale = Math.sqrt(tier.pixels / cssPixels);
+        const level = getPerformanceQualityLevel();
+        let cap = clamp(Math.min(baseDpr, targetScale), AUTO_RENDER_MIN_SCALE, baseDpr);
+        let reason = cap < baseDpr ? tier.id : "native";
+        if (level >= 3) {
+          reason = tier.id === "emergency" ? "emergency" : "stress high";
+        } else if (level === 2) {
+          reason = "stress";
+        }
+        cap = clamp(cap, AUTO_RENDER_MIN_SCALE, baseDpr);
+        return {
+          cap,
+          megapixels: (cssPixels * cap * cap) / 1000000,
+          targetMegapixels: tier.pixels / 1000000,
+          reason,
+          tier
+        };
       }
 
       function getRenderScaleCap() {
-        const value = progress.settings.renderScale || "auto";
-        if (value === "auto") return null;
+        const value = getRenderScaleSetting();
+        if (value === "auto") return getAdaptiveRenderScaleCap();
         const cap = parseFloat(value);
         if (!Number.isFinite(cap) || cap <= 0) return null;
         return cap;
+      }
+
+      function getAdaptiveRenderScaleCap() {
+        const baseDpr = Math.max(1, window.devicePixelRatio || 1);
+        const info = getAutoRenderScaleInfo(baseDpr);
+        state.renderScaleAutoCap = info.cap;
+        state.renderScaleAutoReason = info.reason;
+        state.renderScaleTier = info.tier ? info.tier.index : 0;
+        state.renderScaleTierLabel = info.tier ? info.tier.label : "Quality";
+        return info.cap;
       }
 
       function getRenderScaleDpr() {
@@ -2954,13 +3862,58 @@
         const cap = getRenderScaleCap();
         const dpr = cap ? Math.min(baseDpr, cap) : baseDpr;
         state.renderScale = dpr;
+        if (getRenderScaleSetting() !== "auto") {
+          state.renderScaleAutoCap = null;
+          state.renderScaleAutoReason = "manual";
+          state.renderScaleTier = 0;
+          state.renderScaleTierLabel = "Manual";
+        }
+        syncPerformanceModeClass();
         return dpr;
+      }
+
+      function isPerformanceModeActive() {
+        return state.runActive && (getPerformanceQualityLevel() >= 1 || isHighPixelPressure());
+      }
+
+      function syncPerformanceModeClass() {
+        const active = isPerformanceModeActive();
+        if (state.performanceMode === active && document.body.dataset.performanceTier === String(getPerformanceQualityLevel())) {
+          return;
+        }
+        state.performanceMode = active;
+        document.body.classList.toggle("is-performance-mode", active);
+        document.body.dataset.performanceTier = String(getPerformanceQualityLevel());
+      }
+
+      function normalizeGameMode(mode) {
+        return RUN_MODE_LABELS[mode] ? mode : "arcade";
+      }
+
+      function getModeFeature(mode) {
+        const definition = UNLOCK_MODE_MAP.get(normalizeGameMode(mode));
+        return definition ? definition.feature : "always";
+      }
+
+      function isModeUnlocked(mode) {
+        const feature = getModeFeature(mode);
+        return !feature || feature === "always" || isFeatureUnlocked(feature);
+      }
+
+      function getAvailableGameMode(mode) {
+        const normalized = normalizeGameMode(mode);
+        return isModeUnlocked(normalized) ? normalized : "arcade";
+      }
+
+      function getRunModeLabel(mode = state.gameMode) {
+        return RUN_MODE_LABELS[normalizeGameMode(mode)] || RUN_MODE_LABELS.arcade;
       }
 
       function applySettingsFromProgress() {
         state.difficulty = progress.settings.difficulty || "normal";
+        progress.settings.gameMode = getAvailableGameMode(progress.settings.gameMode || "arcade");
         if (!state.runActive || state.mode === "hangar" || state.mode === "gameover" || state.mode === "victory") {
-          state.gameMode = progress.settings.gameMode || "arcade";
+          state.gameMode = progress.settings.gameMode;
         }
         input.aimMode = progress.settings.inputMode || "hybrid";
         if (input.aimMode === "keyboard" || input.aimMode === "controller") {
@@ -3027,63 +3980,61 @@
         return !!(progress.featureUnlocks && progress.featureUnlocks[feature]);
       }
 
-      function getFeatureHint(feature) {
-        const hints = {
-          upgrades: "Win a wave to unlock.",
-          ability: "Play a little longer to unlock.",
-          secondary: "Unlocks after abilities.",
-          hangar: "Reach Rank 2 to open.",
-          armory: "Reach Rank 3 to open.",
-          shipyard: "Reach Rank 4 or find a blueprint.",
-          contracts: "Reach Wave 3 to open.",
-          premium: "Reach Wave 5, Rank 4, or earn Astralite to open.",
-          salvage: "Find a salvage key to open."
+      function getUnlockFeature(feature) {
+        return UNLOCK_FEATURE_MAP.get(feature) || null;
+      }
+
+      function getUnlockContext() {
+        const activeWave = isCampaignMode()
+          ? getGlobalWave(state.wave || 1)
+          : (state.wave || 1);
+        const waveProgress = Math.max(progress.bestWave || 1, activeWave);
+        return {
+          rank: Math.max(1, progress.rank || 1),
+          bestWave: Math.max(1, progress.bestWave || 1),
+          waveProgress,
+          flightSeconds: progress.onboarding?.flightSeconds || 0,
+          runHistoryCount: Array.isArray(progress.runHistory) ? progress.runHistory.length : 0,
+          totalKills: Math.max(0, progress.totalKills || 0),
+          blueprints: Math.max(0, progress.blueprints || 0),
+          salvageKeys: Math.max(0, progress.salvageKeys || 0),
+          premiumCurrency: Math.max(0, progress.premiumCurrency || 0),
+          achievements: progress.achievements || {},
+          records: progress.records || {},
+          abilityKey: formatKeybind(progress.keybinds.ability),
+          secondaryKey: formatKeybind(progress.keybinds.secondary),
+          unlocked: isFeatureUnlocked
         };
-        return hints[feature] || "Unlocks later.";
+      }
+
+      function resolveUnlockCopy(value, context = getUnlockContext()) {
+        return typeof value === "function" ? value(context) : value;
+      }
+
+      function shouldUnlockFeature(feature) {
+        if (!feature || isFeatureUnlocked(feature)) return false;
+        const definition = getUnlockFeature(feature);
+        if (!definition || typeof definition.unlocksWhen !== "function") return false;
+        try {
+          return definition.unlocksWhen(getUnlockContext()) === true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function getFeatureHint(feature) {
+        const definition = getUnlockFeature(feature);
+        return definition ? resolveUnlockCopy(definition.hint) : "Unlocks later.";
       }
 
       function getFeatureTip(feature) {
-        const abilityKey = formatKeybind(progress.keybinds.ability);
-        const secondaryKey = formatKeybind(progress.keybinds.secondary);
-        const tips = {
-          upgrades: {
-            title: "Boosts unlocked!",
-            message: "After each wave, pick one boost."
-          },
-          ability: {
-            title: "Ability ready!",
-            message: `Press ${abilityKey} to use it.`
-          },
-          secondary: {
-            title: "Secondary ready!",
-            message: `Press ${secondaryKey} to deploy it.`
-          },
-          hangar: {
-            title: "Hangar open!",
-            message: "Spend tech points in Boosts."
-          },
-          armory: {
-            title: "Gear locker open!",
-            message: "Swap weapons + parts in Gear."
-          },
-          shipyard: {
-            title: "Shipyard open!",
-            message: "Unlock new ships in Ships."
-          },
-          contracts: {
-            title: "Tasks unlocked!",
-            message: "Grab a task for bonus loot."
-          },
-          premium: {
-            title: "Premium shop online!",
-            message: "Spend Astralite on permanent upgrades."
-          },
-          salvage: {
-            title: "Caches unlocked!",
-            message: "Open salvage in Gear."
-          }
+        const definition = getUnlockFeature(feature);
+        if (!definition || !definition.tip) return null;
+        const context = getUnlockContext();
+        return {
+          title: resolveUnlockCopy(definition.tip.title, context),
+          message: resolveUnlockCopy(definition.tip.message, context)
         };
-        return tips[feature] || null;
       }
 
       function getTipIcon(kind) {
@@ -3102,19 +4053,68 @@
         progress.uiSeen.features = progress.uiSeen.features || {};
       }
 
-      function getFeaturePanelTarget(feature) {
-        const map = {
-          upgrades: "upgrades",
-          hangar: "upgrades",
-          ability: "systems",
-          secondary: "systems",
-          armory: "armory",
-          salvage: "armory",
-          shipyard: "shipyard",
-          contracts: "contracts",
-          premium: "premium"
+      function getAchievementDef(id) {
+        return ACHIEVEMENT_DEFS.find((achievement) => achievement.id === id) || null;
+      }
+
+      function getAchievementCount() {
+        progress.achievements = progress.achievements || {};
+        return ACHIEVEMENT_DEFS.filter((achievement) => progress.achievements[achievement.id]).length;
+      }
+
+      function unlockAchievement(id) {
+        const achievement = getAchievementDef(id);
+        if (!achievement) return false;
+        progress.achievements = progress.achievements || {};
+        if (progress.achievements[id]) return false;
+        progress.achievements[id] = Date.now();
+        state.runHighlights = state.runHighlights || [];
+        state.runHighlights.push(`Achievement: ${achievement.title}`);
+        showTip(null, achievement.title, achievement.desc, {
+          kind: "reward",
+          repeatable: true,
+          duration: 5200
+        });
+        queueProgressSave();
+        queueSidebarRefresh();
+        return true;
+      }
+
+      function getTutorialGoalTemplate() {
+        return {
+          move: false,
+          aim: false,
+          fire: false,
+          boost: false,
+          pickup: false,
+          kill: false
         };
-        return map[feature] || "progress";
+      }
+
+      function noteTutorialGoal(goal) {
+        if (!state.tutorialFlight || !state.training || !goal) return;
+        state.tutorialGoals = state.tutorialGoals || getTutorialGoalTemplate();
+        if (state.tutorialGoals[goal]) return;
+        state.tutorialGoals[goal] = true;
+        const completed = Object.values(state.tutorialGoals).filter(Boolean).length;
+        const total = Object.keys(state.tutorialGoals).length;
+        showTip(null, "Flight school", `${completed}/${total} checks complete.`, {
+          kind: "info",
+          repeatable: true,
+          duration: 3400
+        });
+        if (completed >= total) {
+          state.tutorialFlight = false;
+          progress.tutorialCompleted = true;
+          unlockAchievement("flight-school");
+          saveProgress();
+          logEvent("Flight school checklist complete.");
+        }
+      }
+
+      function getFeaturePanelTarget(feature) {
+        const definition = getUnlockFeature(feature);
+        return definition?.panel || "progress";
       }
 
       function getPanelDisplayLabel(target) {
@@ -3124,7 +4124,7 @@
           armory: "Gear",
           shipyard: "Ships",
           contracts: "Tasks",
-          premium: "Premium",
+          premium: "Forge",
           progress: "Progress",
           settings: "Options"
         };
@@ -3236,71 +4236,13 @@
       }
 
       function getProgressMilestones() {
-        return [
-          {
-            id: "upgrades",
-            label: "Wave Boosts",
-            desc: "Pick one boost after each cleared wave.",
-            hint: getFeatureHint("upgrades"),
-            unlocked: isFeatureUnlocked("upgrades")
-          },
-          {
-            id: "ability",
-            label: "Ship Ability",
-            desc: "Your ship ability is now part of the combat loop.",
-            hint: getFeatureHint("ability"),
-            unlocked: isFeatureUnlocked("ability")
-          },
-          {
-            id: "secondary",
-            label: "Secondary System",
-            desc: "Secondary fire opens up more combat options and cooldown management.",
-            hint: getFeatureHint("secondary"),
-            unlocked: isFeatureUnlocked("secondary")
-          },
-          {
-            id: "hangar",
-            label: "Hangar Boosts",
-            desc: "Permanent hangar upgrades let you shape a long-term build.",
-            hint: getFeatureHint("hangar"),
-            unlocked: isFeatureUnlocked("hangar")
-          },
-          {
-            id: "armory",
-            label: "Gear Locker",
-            desc: "Weapons, attachments, and secondaries can now be compared and equipped.",
-            hint: getFeatureHint("armory"),
-            unlocked: isFeatureUnlocked("armory")
-          },
-          {
-            id: "shipyard",
-            label: "Shipyard",
-            desc: "New hulls unlock and expand your build identity.",
-            hint: getFeatureHint("shipyard"),
-            unlocked: isFeatureUnlocked("shipyard")
-          },
-          {
-            id: "contracts",
-            label: "Tasks Board",
-            desc: "Optional objectives and faction reputation are now active.",
-            hint: getFeatureHint("contracts"),
-            unlocked: isFeatureUnlocked("contracts")
-          },
-          {
-            id: "premium",
-            label: "Premium Shop",
-            desc: "Astralite can now be spent on permanent account upgrades.",
-            hint: getFeatureHint("premium"),
-            unlocked: isFeatureUnlocked("premium")
-          },
-          {
-            id: "salvage",
-            label: "Salvage Cache",
-            desc: "Keys can now be spent on salvage openings and rare gear rolls.",
-            hint: getFeatureHint("salvage"),
-            unlocked: isFeatureUnlocked("salvage")
-          }
-        ];
+        return UNLOCK_FEATURES.map((feature) => ({
+          id: feature.id,
+          label: feature.label,
+          desc: resolveUnlockCopy(feature.desc),
+          hint: getFeatureHint(feature.id),
+          unlocked: isFeatureUnlocked(feature.id)
+        }));
       }
 
       function getNextLockedMilestone() {
@@ -3432,6 +4374,9 @@
         const phase = getUiPhaseSummary();
         const systemsOnline = milestones.filter((item) => item.unlocked).length;
         const bestWave = Math.max(1, progress.bestWave || 1);
+        const achievementCount = getAchievementCount();
+        const bestScoreAttack = Math.max(0, progress.records?.bestScoreAttack || 0);
+        const bestBossRush = Math.max(0, progress.records?.bestBossRushScore || 0);
         dom.progressOverview.innerHTML = `
           <div class="progress-highlight">
             <span class="progress-highlight-label">Current Track</span>
@@ -3440,6 +4385,9 @@
             <div class="select-pills">
               <span class="select-pill">Rank ${progress.rank}</span>
               <span class="select-pill">Best Wave ${bestWave}</span>
+              <span class="select-pill">Achievements ${achievementCount}/${ACHIEVEMENT_DEFS.length}</span>
+              ${bestScoreAttack ? `<span class="select-pill">Score Attack ${bestScoreAttack.toLocaleString()}</span>` : ""}
+              ${bestBossRush ? `<span class="select-pill">Boss Rush ${bestBossRush.toLocaleString()}</span>` : ""}
               <span class="select-pill">${systemsOnline}/${milestones.length} systems online</span>
               <span class="select-pill">${newUnlocked.length ? `New: ${newUnlocked[0].label}` : (next ? `Next: ${next.label}` : "All systems online")}</span>
             </div>
@@ -3460,8 +4408,8 @@
           pills = ["Camera", "HUD Layout", "Particles", "Tutorial"];
         } else if (tier >= 2) {
           title = "Full tuning online";
-          body = "Presets, keybinds, HUD sizing, palette, performance controls, and account actions are all available.";
-          pills = ["Presets", "Keybinds", "HUD Scale", "Performance"];
+          body = "Presets, keybinds, HUD sizing, palette, and advanced run setup are available as the command layer opens.";
+          pills = ["Presets", "Keybinds", "HUD Scale", "Palette"];
         }
         dom.settingsGuidance.innerHTML = `
           <div class="settings-guidance-card">
@@ -3487,15 +4435,59 @@
         });
       }
 
+      function syncLaunchButtons() {
+        document.querySelectorAll("[data-action='launch']").forEach((button) => {
+          const label = `Play ${getRunModeLabel(progress.settings.gameMode || state.gameMode)}`;
+          setIconButtonContent(button, button.dataset.uiIcon || "play", label, {
+            visibleLabel: button.dataset.compactLabel || label
+          });
+        });
+      }
+
+      function syncTopbarSummary() {
+        if (!dom.topbarSummary) return;
+        const level = Math.max(1, progress.campaignLevel || state.level || 1);
+        const bestWave = Math.max(1, progress.bestWave || 1);
+        const modeLabel = getRunModeLabel(progress.settings.gameMode || state.gameMode);
+        const progressLabel = isCampaignRunMode() || normalizeGameMode(progress.settings.gameMode || state.gameMode) === "arcade"
+          ? `Level ${level}`
+          : `Best Wave ${bestWave}`;
+        dom.topbarSummary.textContent = `${modeLabel} · Rank ${progress.rank} · ${progressLabel}`;
+      }
+
+      function syncModeOptions() {
+        const modeGroup = document.querySelector("[data-setting='game-mode']");
+        if (!modeGroup) return;
+        progress.settings.gameMode = getAvailableGameMode(progress.settings.gameMode || "arcade");
+        modeGroup.querySelectorAll("[data-option]").forEach((button) => {
+          const mode = normalizeGameMode(button.dataset.option);
+          const visible = isModeUnlocked(mode);
+          button.hidden = !visible;
+          button.disabled = !visible;
+          button.setAttribute("aria-disabled", visible ? "false" : "true");
+          button.classList.toggle("is-active", mode === progress.settings.gameMode);
+        });
+      }
+
+      function syncFeatureReveals() {
+        document.querySelectorAll("[data-feature-reveal]").forEach((element) => {
+          const features = (element.dataset.featureReveal || "").split(/[,\s]+/).filter(Boolean);
+          const visible = features.every((feature) => isFeatureUnlocked(feature));
+          element.hidden = !visible;
+        });
+      }
+
       function updateTabBadges() {
         const buttons = Array.from(document.querySelectorAll("[data-tab-group='sidebar'] [data-tab-target]"));
         buttons.forEach((button) => {
           const label = button.dataset.baseLabel || button.textContent.trim();
           button.dataset.baseLabel = label;
           const newFeatures = getNewFeaturesForTarget(button.dataset.tabTarget);
+          const icon = button.dataset.tabIcon || getTabIconName(button.dataset.tabTarget);
+          button.setAttribute("aria-label", newFeatures.length ? `${label}, new` : label);
           button.innerHTML = newFeatures.length
-            ? `<span class="tab-btn-label">${label}</span><span class="tab-badge">New</span>`
-            : `<span class="tab-btn-label">${label}</span>`;
+            ? `${renderUiIcon(icon)}<span class="tab-btn-label">${escapeHtml(label)}</span><span class="tab-badge">New</span>`
+            : `${renderUiIcon(icon)}<span class="tab-btn-label">${escapeHtml(label)}</span>`;
         });
       }
 
@@ -3554,10 +4546,15 @@
         renderProgressOverview();
         renderSettingsGuidance();
         syncUtilityActions();
+        syncModeOptions();
+        syncLaunchButtons();
+        syncTopbarSummary();
         syncSidebarPanels();
         updateTabBadges();
         syncSettingsVisibility();
+        syncFeatureReveals();
         syncHudMetaVisibility();
+        syncTouchControls();
         if (dom.commandRoadmap) {
           const nextIndex = milestones.findIndex((item) => !item.unlocked);
           let start = nextIndex === -1 ? Math.max(0, milestones.length - 3) : Math.max(0, nextIndex - 1);
@@ -3623,43 +4620,11 @@
       }
 
       function checkProgressionUnlocks() {
-        const flightSeconds = progress.onboarding?.flightSeconds || 0;
-        const activeWave = isCampaignMode()
-          ? getGlobalWave(state.wave || 1)
-          : (state.wave || 1);
-        const waveProgress = Math.max(progress.bestWave || 1, activeWave);
-
-        if (!isFeatureUnlocked("upgrades") && (flightSeconds >= 45 || waveProgress >= 2)) {
-          unlockFeature("upgrades");
-        }
-        if (isFeatureUnlocked("upgrades") && !isFeatureUnlocked("ability")
-          && (flightSeconds >= 90 || waveProgress >= 3 || progress.rank >= 2)) {
-          unlockFeature("ability");
-        }
-        if (isFeatureUnlocked("ability") && !isFeatureUnlocked("secondary")
-          && (flightSeconds >= 140 || waveProgress >= 4 || progress.rank >= 3)) {
-          unlockFeature("secondary");
-        }
-        if (!isFeatureUnlocked("hangar") && progress.rank >= 2) {
-          unlockFeature("hangar");
-        }
-        if (isFeatureUnlocked("hangar") && !isFeatureUnlocked("armory") && progress.rank >= 3) {
-          unlockFeature("armory");
-        }
-        if (!isFeatureUnlocked("shipyard") && (progress.rank >= 4 || progress.blueprints >= 1)) {
-          unlockFeature("shipyard");
-        }
-        if (!isFeatureUnlocked("contracts") && (progress.bestWave >= 3 || progress.runHistory.length > 0)) {
-          unlockFeature("contracts");
-        }
-        if (!isFeatureUnlocked("premium")
-          && (progress.bestWave >= 5 || progress.rank >= 4 || (progress.premiumCurrency || 0) > 0)) {
-          unlockFeature("premium");
-        }
-        if (isFeatureUnlocked("armory") && !isFeatureUnlocked("salvage")
-          && ((progress.salvageKeys || 0) >= 1 || progress.totalKills >= 12)) {
-          unlockFeature("salvage");
-        }
+        UNLOCK_FEATURES.forEach((feature) => {
+          if (feature && shouldUnlockFeature(feature.id)) {
+            unlockFeature(feature.id);
+          }
+        });
       }
 
       function updateParticleSettings() {
@@ -3669,9 +4634,10 @@
 
       function getParticleScale() {
         const setting = progress.settings.particles || "medium";
-        if (setting === "low") return 0.6;
-        if (setting === "high") return 1.4;
-        return 1;
+        const adaptiveScale = getAdaptiveParticleScale();
+        if (setting === "low") return 0.6 * adaptiveScale;
+        if (setting === "high") return 1.4 * adaptiveScale;
+        return adaptiveScale;
       }
 
       function getParticleCount(base) {
@@ -4115,6 +5081,7 @@
         state.worldHeight = WORLD_HEIGHT;
         state.cameraReady = false;
         obstacles = generateObstacles();
+        markObstacleSpatialDirty();
         updateStarfield();
         updateCamera();
         updatePointerWorld();
@@ -4141,7 +5108,8 @@
             x,
             y,
             radius,
-            shade: rand(0.3, 0.7)
+            shade: rand(0.3, 0.7),
+            rotation: rand(0, Math.PI * 2)
           });
         });
         const debrisSeeds = [
@@ -4159,7 +5127,8 @@
             y,
             width: seed.width,
             height: seed.height,
-            shade: rand(0.2, 0.6)
+            shade: rand(0.2, 0.6),
+            rotation: seed.width > seed.height ? 0 : Math.PI * 0.5
           });
         });
         for (let i = 0; i < 6; i += 1) {
@@ -4171,7 +5140,8 @@
             x,
             y,
             radius,
-            shade: rand(0.25, 0.55)
+            shade: rand(0.25, 0.55),
+            rotation: rand(0, Math.PI * 2)
           });
         }
         return obstacles.filter((obstacle) => !isObstacleNearPoint(obstacle, width * 0.5, height * 0.5, safeRadius));
@@ -4227,16 +5197,27 @@
       }
 
       function isPointInObstacle(point, buffer = 0) {
-        return obstacles.some((obstacle) => {
+        let blocked = false;
+        forEachObstacleNear(point, buffer + MAX_COLLISION_RADIUS, (obstacle) => {
           if (obstacle.kind === "rock") {
-            return distanceBetween(point, obstacle) <= obstacle.radius + buffer;
+            const radius = obstacle.radius + buffer;
+            if (distanceSquared(point, obstacle) <= radius * radius) {
+              blocked = true;
+              return true;
+            }
+            return false;
           }
           const halfWidth = obstacle.width * 0.5;
           const halfHeight = obstacle.height * 0.5;
           const insideX = point.x >= obstacle.x - halfWidth - buffer && point.x <= obstacle.x + halfWidth + buffer;
           const insideY = point.y >= obstacle.y - halfHeight - buffer && point.y <= obstacle.y + halfHeight + buffer;
-          return insideX && insideY;
+          if (insideX && insideY) {
+            blocked = true;
+            return true;
+          }
+          return false;
         });
+        return blocked;
       }
 
       function getViewportBounds() {
@@ -4386,6 +5367,16 @@
       }
 
       function maybeShowRunQuickTip() {
+        if (input.touch.supported) {
+          const parts = ["left stick move", "right stick aim/fire", "boost and brake buttons"];
+          if (isFeatureUnlocked("ability")) parts.push("ability button");
+          if (isFeatureUnlocked("secondary")) parts.push("secondary button");
+          showTip("quick-run-hint", "Touch controls", `${parts.join(", ")}.`, {
+            kind: "info",
+            duration: 6500
+          });
+          return;
+        }
         const helpKey = formatKeybind(progress.keybinds.help || "h");
         const abilityKey = formatKeybind(progress.keybinds.ability);
         const secondaryKey = formatKeybind(progress.keybinds.secondary);
@@ -4409,13 +5400,15 @@
 
       function startMission() {
         if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") return;
+        closeCommandMenu();
         applySettingsFromProgress();
-        state.level = isFrontierMode() ? 1 : Math.max(1, progress.campaignLevel || 1);
+        state.level = isCampaignRunMode() ? Math.max(1, progress.campaignLevel || 1) : 1;
         input.keys.clear();
         input.firing = false;
         input.padFiring = false;
         input.boost = false;
         input.padBrake = false;
+        resetTouchInput();
         checkProgressionUnlocks();
         enemies = [];
         bullets = [];
@@ -4434,6 +5427,10 @@
         state.lossRewards = null;
         state.levelRewards = null;
         state.salvageResults = null;
+        state.quickDuration = getRunTimeLimit();
+        state.quickTimer = state.quickDuration;
+        state.dailyChallenge = isDailyMode() ? getDailyChallengeInfo() : null;
+        state.challengeSeed = state.dailyChallenge ? state.dailyChallenge.seed : state.weekly.seed;
         state.blackHoles = [];
         state.hazards = [];
         state.waveObjective = null;
@@ -4450,6 +5447,9 @@
         state.sector = 1;
         state.sectorMod = rollSectorModifier();
         state.training = false;
+        state.tutorialMode = false;
+        state.tutorialFlight = false;
+        state.tutorialGoals = {};
         state.resumeMode = "flight";
         state.runActive = true;
         state.runBanked = false;
@@ -4472,6 +5472,7 @@
         state.runStart = performance.now();
         state.waveStart = performance.now();
         captureRunUnlockBaseline();
+        unlockAchievement("first-sortie");
         setupWorld();
         if (isFrontierMode()) {
           initFrontierRun();
@@ -4494,6 +5495,12 @@
         }
         if (isFrontierMode()) {
           logEvent("Frontier patrol launched. Upgrade at the dock.");
+        } else if (isScoreAttackMode()) {
+          logEvent(`Score Attack launched. ${formatDuration(state.quickDuration)} on the clock.`);
+        } else if (isDailyMode()) {
+          logEvent(`Daily Sector ${state.dailyChallenge?.date || ""} launched. Seed ${state.challengeSeed}.`);
+        } else if (isBossRushMode()) {
+          logEvent(`Boss Rush launched. Clear ${BOSS_RUSH_WAVES} capital waves.`);
         } else {
           logEvent(`Level ${state.level} launched. Wave 1 inbound.`);
         }
@@ -4502,13 +5509,16 @@
 
       function startTraining() {
         if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") return;
+        closeCommandMenu();
         applySettingsFromProgress();
+        const tutorialFlight = state.tutorialFlight === true;
         state.gameMode = "arcade";
         input.keys.clear();
         input.firing = false;
         input.padFiring = false;
         input.boost = false;
         input.padBrake = false;
+        resetTouchInput();
         checkProgressionUnlocks();
         state.frontier = null;
         enemies = [];
@@ -4528,6 +5538,10 @@
         state.lossRewards = null;
         state.levelRewards = null;
         state.salvageResults = null;
+        state.quickDuration = 0;
+        state.quickTimer = 0;
+        state.dailyChallenge = null;
+        state.challengeSeed = state.weekly.seed;
         state.blackHoles = [];
         state.hazards = [];
         state.waveObjective = null;
@@ -4545,6 +5559,8 @@
         state.sector = 1;
         state.sectorMod = rollSectorModifier();
         state.training = true;
+        state.tutorialFlight = tutorialFlight;
+        state.tutorialGoals = tutorialFlight ? getTutorialGoalTemplate() : {};
         state.resumeMode = "training";
         state.runActive = true;
         state.runBanked = false;
@@ -4583,6 +5599,9 @@
           logEvent(`Training sector: ${state.sectorMod.name}.`);
         }
         logEvent("Training session initiated. No rewards earned.");
+        if (state.tutorialFlight) {
+          logEvent("Flight school checklist active: move, aim, fire, boost, collect, destroy.");
+        }
         renderContracts();
       }
 
@@ -4612,6 +5631,10 @@
         state.lossRewards = null;
         state.levelRewards = null;
         state.salvageResults = null;
+        state.quickDuration = 0;
+        state.quickTimer = 0;
+        state.dailyChallenge = null;
+        state.challengeSeed = state.weekly.seed;
         state.blackHoles = [];
         state.hazards = [];
         state.waveObjective = null;
@@ -4621,7 +5644,7 @@
         state.milestoneRewardsClaimed = {};
         state.overlayReturnMode = null;
         state.fieldDropTimer = 0;
-        state.level = isFrontierMode() ? 1 : Math.max(1, progress.campaignLevel || 1);
+        state.level = isCampaignRunMode() ? Math.max(1, progress.campaignLevel || 1) : 1;
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -4630,6 +5653,8 @@
         state.sector = 1;
         state.sectorMod = null;
         state.training = false;
+        state.tutorialFlight = false;
+        state.tutorialGoals = {};
         state.runActive = false;
         state.runBanked = false;
         state.runEndedByAbort = false;
@@ -4649,6 +5674,7 @@
         input.padFiring = false;
         input.boost = false;
         input.padBrake = false;
+        resetTouchInput();
         setupWorld();
         player = createPlayer();
         setOverlay("start");
@@ -4666,6 +5692,9 @@
         if (mode === "hangar" && settingsOpen) {
           closeSettings(false);
         }
+        if (mode !== "hangar" && commandMenuOpen) {
+          closeCommandMenu();
+        }
         const labels = {
           hangar: "Hangar",
           flight: "In Flight",
@@ -4679,6 +5708,7 @@
         };
         stats.status.textContent = labels[mode] || "Hangar";
         updateLayout();
+        queueMinimapRefresh();
         if (audioController) {
           audioController.setMode(mode);
         }
@@ -4756,8 +5786,32 @@
         return state.gameMode === "frontier";
       }
 
+      function isScoreAttackMode() {
+        return state.gameMode === "score";
+      }
+
+      function isDailyMode() {
+        return state.gameMode === "daily";
+      }
+
+      function isBossRushMode() {
+        return state.gameMode === "boss";
+      }
+
+      function isTimedQuickMode() {
+        return isScoreAttackMode() || isDailyMode();
+      }
+
+      function isQuickRunMode() {
+        return isTimedQuickMode() || isBossRushMode();
+      }
+
+      function isCampaignRunMode(mode = state.gameMode) {
+        return normalizeGameMode(mode) === "arcade";
+      }
+
       function isCampaignMode() {
-        return !isFrontierMode() && !state.training;
+        return isCampaignRunMode() && !state.training;
       }
 
       function getGlobalWave(wave = state.wave) {
@@ -4769,6 +5823,24 @@
       function getWaveDisplay(wave = state.wave) {
         if (!isCampaignMode()) return `${wave}`;
         return `${wave}/${LEVEL_WAVES}`;
+      }
+
+      function getDailyChallengeInfo() {
+        const date = new Date().toISOString().slice(0, 10);
+        let hash = 0;
+        for (let i = 0; i < date.length; i += 1) {
+          hash = (hash * 31 + date.charCodeAt(i)) % 9973;
+        }
+        return {
+          date,
+          seed: `DS-${date.replace(/-/g, "")}-${String(hash).padStart(4, "0")}`
+        };
+      }
+
+      function getRunTimeLimit() {
+        if (isScoreAttackMode()) return SCORE_ATTACK_DURATION_SEC;
+        if (isDailyMode()) return DAILY_SECTOR_DURATION_SEC;
+        return 0;
       }
 
       function getActiveMutator() {
@@ -4932,8 +6004,10 @@
       function spawnWave(wave) {
         const globalWave = getGlobalWave(wave);
         const isHardWave = wave % 5 === 0;
-        const isBossWave = isCampaignMode() ? wave === LEVEL_WAVES : wave % 10 === 0;
-        const baseCount = Math.min(4 + Math.floor(globalWave * 0.95), 17);
+        const isBossWave = isBossRushMode() ? true : (isCampaignMode() ? wave === LEVEL_WAVES : wave % 10 === 0);
+        const baseCount = isBossRushMode()
+          ? Math.min(3 + wave, 8)
+          : Math.min(4 + Math.floor(globalWave * 0.95), 17);
         const difficulty = getDifficultySettings();
         const threatTier = resolveThreatTier(globalWave);
         state.threatTier = threatTier.id;
@@ -4952,6 +6026,9 @@
           + Math.max(0, globalWave - 12) * 0.009
           + Math.max(0, globalWave - 20) * 0.012;
         let enemyScale = waveRamp * difficulty.enemyScale * (1 + (frontierTier - 1) * 0.18) * threatTier.enemyScale;
+        if (isBossRushMode()) {
+          enemyScale *= 0.78 + wave * 0.08;
+        }
         if (isBossWave) {
           enemyScale *= 1.1;
         } else if (isHardWave) {
@@ -4959,13 +6036,13 @@
         }
         const densityScale = getWaveDensityScale(globalWave);
         const hardBonus = isHardWave && !isBossWave ? 2 : 0;
-        const bossBonus = isBossWave ? 3 : 0;
+        const bossBonus = isBossWave && !isBossRushMode() ? 3 : 0;
         const rawSpawnCount = baseCount
           + (wave % 3 === 0 ? 1 : 0)
           + hardBonus
           + bossBonus
           + (isFrontierMode() ? Math.max(0, Math.floor((frontierTier - 1) * 1.2)) : 0);
-        const spawnCap = isBossWave ? 20 : 18;
+        const spawnCap = isBossRushMode() ? 10 : (isBossWave ? 20 : 18);
         const spawnCount = clamp(Math.round(rawSpawnCount * densityScale), 3, spawnCap);
         const availableTypes = ENEMY_TYPES.filter((type) => {
           if (type.minWave && globalWave < type.minWave) return false;
@@ -4993,10 +6070,10 @@
           logEvent("Hard wave incoming. Enemy ace spotted.");
         }
         if (isBossWave) {
-          const boss = createEnemy(BOSS_TYPE, enemyScale + 0.5, difficulty, true);
+          const boss = createEnemy(BOSS_TYPE, enemyScale + (isBossRushMode() ? 0.18 : 0.5), difficulty, true);
           applyWaveEnemyModifiers(boss, BOSS_TYPE, mutatorWave, threatTier);
           enemies.push(boss);
-          logEvent("Boss wave: capital dreadnought detected.");
+          logEvent(isBossRushMode() ? `Boss Rush ${wave}/${BOSS_RUSH_WAVES}: dreadnought detected.` : "Boss wave: capital dreadnought detected.");
         }
         if (!isBossWave && globalWave >= 6 && (isHardWave || Math.random() < 0.22)) {
           const miniboss = createMiniBoss(enemyScale, difficulty, threatTier);
@@ -5013,6 +6090,8 @@
           }
         }
         updateObjectiveProgressLabel();
+        rebuildEnemySpatialGrid();
+        queueMinimapRefresh();
       }
 
       function createMiniBoss(scale, difficulty, threatTier) {
@@ -5458,12 +6537,16 @@
         const rawDeltaMs = Math.max(0, timestamp - state.lastTime || 0);
         const delta = Math.min(0.033, rawDeltaMs / 1000 || 0);
         state.lastTime = timestamp;
+        updateAdaptiveQuality(rawDeltaMs);
         if (shouldMeasure) {
+          perfFrameActive = true;
+          resetPerfBuckets("update");
+          resetPerfBuckets("render");
           const frameStart = performance.now();
           const updateStart = performance.now();
           update(delta);
           const updateEnd = performance.now();
-          render();
+          renderFrame();
           const renderEnd = performance.now();
           updateHud();
           const hudEnd = performance.now();
@@ -5475,22 +6558,27 @@
             rawDeltaMs,
             delta * 1000
           );
+          perfFrameActive = false;
         } else {
+          perfFrameActive = false;
           update(delta);
-          render();
+          renderFrame();
           updateHud();
         }
         requestAnimationFrame(loop);
       }
 
       function update(delta) {
+        let perfStart = perfFrameActive ? performance.now() : 0;
         state.frameDelta = delta;
         updateStars(delta);
         updateParticles(delta);
         updatePulses(delta);
         updateLootBursts(delta);
         updateDamageNumbers(delta);
+        updateScreenShake(delta);
         trackOnboarding(delta);
+        perfStart = markPerfBucket("update", "ambient", perfStart);
         if (state.mode !== "flight" && state.mode !== "training") {
           return;
         }
@@ -5500,11 +6588,16 @@
         updatePlayer(delta);
         updateDecoy(delta);
         updateFieldDrops(delta);
+        perfStart = markPerfBucket("update", "player", perfStart);
+        rebuildEnemySpatialGrid();
         updateHazards(delta);
         updateEnemies(delta);
+        rebuildEnemySpatialGrid();
+        perfStart = markPerfBucket("update", "enemies", perfStart);
         updateBlackHoles(delta);
         updateSkillSystems(delta);
         updateHelpers(delta);
+        perfStart = markPerfBucket("update", "systems", perfStart);
         updateBullets(delta);
         updateMines(delta);
         updateContracts(delta);
@@ -5512,12 +6605,26 @@
         updateTargetAssist();
         updateCombatMomentum(performance.now());
         maybeShowAdaptiveCoaching(delta);
+        perfStart = markPerfBucket("update", "collisions", perfStart);
         updateWaveObjective(delta);
+        if (updateQuickRunTimer(delta)) {
+          markPerfBucket("update", "wave", perfStart);
+          return;
+        }
         if (isFrontierMode()) {
           updateFrontierSpawner(delta);
         } else {
           checkWaveStatus();
         }
+        markPerfBucket("update", "wave", perfStart);
+      }
+
+      function updateQuickRunTimer(delta) {
+        if (!isTimedQuickMode() || state.training || !state.runActive) return false;
+        state.quickTimer = Math.max(0, (state.quickTimer || 0) - delta);
+        if (state.quickTimer > 0) return false;
+        finishQuickRun("time");
+        return true;
       }
 
       function trackOnboarding(delta) {
@@ -5599,7 +6706,7 @@
           const hazard = state.hazards[i];
           hazard.life -= delta;
           if (hazard.life <= 0) {
-            state.hazards.splice(i, 1);
+            removeArrayIndex(state.hazards, i);
             continue;
           }
           if (player && distanceBetween(player, hazard) <= hazard.radius + player.radius) {
@@ -5609,15 +6716,18 @@
               state.telemetryRun.hazardTicks += 1;
             }
           }
-          for (let j = enemies.length - 1; j >= 0; j -= 1) {
-            const enemy = enemies[j];
-            if (distanceBetween(enemy, hazard) > hazard.radius + enemy.radius) continue;
+          forEachEnemyNear(hazard, hazard.radius + MAX_COLLISION_RADIUS, (enemy) => {
+            if (!circlesOverlap(enemy, hazard)) return false;
             applyDamage(enemy, hazard.damagePerSec * delta * 0.75, { owner: "player" });
             enemy.slowTimer = Math.max(enemy.slowTimer || 0, 0.18);
             if (enemy.health <= 0) {
-              destroyEnemy(enemy, j);
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
             }
-          }
+            return false;
+          });
         }
       }
 
@@ -5667,7 +6777,7 @@
           particle.y += particle.vy * delta;
           particle.life -= delta;
           if (particle.life <= 0) {
-            particles.splice(i, 1);
+            releaseEffect(effectPools.particles, removeArrayIndex(particles, i));
           }
         }
       }
@@ -5678,7 +6788,7 @@
           pulse.life -= delta;
           pulse.radius = Math.min(pulse.maxRadius, pulse.radius + pulse.speed * delta);
           if (pulse.life <= 0) {
-            pulses.splice(i, 1);
+            releaseEffect(effectPools.pulses, removeArrayIndex(pulses, i));
           }
         }
       }
@@ -5689,25 +6799,28 @@
           const hole = state.blackHoles[i];
           hole.life -= delta;
           if (hole.life <= 0) {
-            state.blackHoles.splice(i, 1);
+            removeArrayIndex(state.blackHoles, i);
             continue;
           }
-          for (let j = enemies.length - 1; j >= 0; j -= 1) {
-            const enemy = enemies[j];
+          forEachEnemyNear(hole, hole.radius + MAX_COLLISION_RADIUS, (enemy) => {
             const dx = hole.x - enemy.x;
             const dy = hole.y - enemy.y;
             const dist = Math.hypot(dx, dy) || 1;
-            if (dist > hole.radius) continue;
+            if (dist > hole.radius) return false;
             const pull = (1 - dist / hole.radius) * hole.force;
             enemy.vx += (dx / dist) * pull * delta;
             enemy.vy += (dy / dist) * pull * delta;
             if (hole.damage > 0) {
               applyDamage(enemy, hole.damage * delta, { owner: "player" });
               if (enemy.health <= 0) {
-                destroyEnemy(enemy, j);
+                const index = enemies.indexOf(enemy);
+                if (index >= 0) {
+                  destroyEnemy(enemy, index);
+                }
               }
             }
-          }
+            return false;
+          });
         }
       }
 
@@ -5717,7 +6830,7 @@
           burst.life -= delta;
           burst.y += burst.vy * delta;
           if (burst.life <= 0) {
-            lootBursts.splice(i, 1);
+            removeArrayIndex(lootBursts, i);
           }
         }
       }
@@ -5729,9 +6842,33 @@
           burst.x += burst.vx * delta;
           burst.y += burst.vy * delta;
           if (burst.life <= 0) {
-            damageNumbers.splice(i, 1);
+            releaseEffect(effectPools.damageNumbers, removeArrayIndex(damageNumbers, i));
           }
         }
+      }
+
+      function prefersReducedMotion() {
+        return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      }
+
+      function addScreenShake(amount) {
+        if (prefersReducedMotion()) return;
+        state.screenShake = Math.min(18, Math.max(state.screenShake || 0, amount || 0));
+      }
+
+      function updateScreenShake(delta) {
+        if (!state.screenShake) return;
+        state.screenShake = Math.max(0, state.screenShake - delta * 34);
+      }
+
+      function getScreenShakeOffset() {
+        const amount = state.screenShake || 0;
+        if (!amount) return { x: 0, y: 0 };
+        const now = performance.now();
+        return {
+          x: Math.sin(now * 0.09) * amount,
+          y: Math.cos(now * 0.075) * amount * 0.72
+        };
       }
 
       function updatePlayer(delta) {
@@ -5744,14 +6881,23 @@
         const wasBraking = !!player.braking;
         const wasBoosting = !!player.boosting;
         const keyboardAim = getKeyboardAimVector();
-        if (keyboardAim.active) {
+        const touchAimActive = input.touch.firing && Math.hypot(input.touch.aimX || 0, input.touch.aimY || 0) > 0;
+        if (touchAimActive) {
+          input.aimAngle = Math.atan2(input.touch.aimY, input.touch.aimX);
+          input.aimSource = "touch";
+          noteTutorialGoal("aim");
+        } else if (keyboardAim.active) {
           input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
           input.aimSource = "keyboard";
+          noteTutorialGoal("aim");
         } else if (input.aimMode === "hybrid" && input.pointer.active) {
           input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
           input.aimSource = "mouse";
+          if (input.pointer.moved) {
+            noteTutorialGoal("aim");
+          }
         }
-        const braking = isActionActive("brake") || input.padBrake;
+        const braking = isActionActive("brake") || input.padBrake || input.touch.brake;
         player.braking = braking;
         if (state.telemetryRun) {
           if (braking) {
@@ -5800,9 +6946,9 @@
         const thrustBack = isActionActive("back") || (allowArrowThrust && hasKey("arrowdown"));
         const strafeLeft = isActionActive("left") || (allowArrowThrust && hasKey("arrowleft"));
         const strafeRight = isActionActive("right") || (allowArrowThrust && hasKey("arrowright"));
-        const padX = input.padMoveX || 0;
-        const padY = input.padMoveY || 0;
-        const boosting = (isActionActive("boost") || input.boost) && player.energy > player.boostCost * delta;
+        const padX = clamp((input.padMoveX || 0) + (input.touch.moveX || 0), -1, 1);
+        const padY = clamp((input.padMoveY || 0) + (input.touch.moveY || 0), -1, 1);
+        const boosting = (isActionActive("boost") || input.boost || input.touch.boost) && player.energy > player.boostCost * delta;
         player.boosting = boosting;
 
         if (state.telemetryRun) {
@@ -5815,6 +6961,7 @@
         }
 
         if (boosting) {
+          noteTutorialGoal("boost");
           player.energy = Math.max(0, player.energy - player.boostCost * delta);
         }
 
@@ -5850,6 +6997,9 @@
           ax += padX * accel * 0.9;
           ay += padY * accel * 0.9;
           player.thrusting = true;
+        }
+        if (player.thrusting) {
+          noteTutorialGoal("move");
         }
 
         player.vx += ax * delta;
@@ -5903,7 +7053,7 @@
           player.hitFlash = Math.max(0, player.hitFlash - delta);
         }
 
-        const firing = input.firing || input.padFiring || isActionActive("fire");
+        const firing = input.firing || input.padFiring || input.touch.firing || isActionActive("fire");
         const energyCost = player.energyCost * (playerMod.energyCost || 1) * BALANCE_TUNING.playerEnergyCostScale;
         if (firing && player.fireCooldown <= 0 && player.energy >= energyCost) {
           firePlayer();
@@ -5925,15 +7075,18 @@
         const interval = player.auraInterval || 0.45;
         player.auraTimer = interval;
         const damage = player.auraDamage * interval;
-        for (let i = enemies.length - 1; i >= 0; i -= 1) {
-          const enemy = enemies[i];
-          if (distanceBetween(player, enemy) <= player.auraRadius + enemy.radius) {
+        forEachEnemyNear(player, player.auraRadius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (circlesOverlap(player, enemy, player.auraRadius - (player.radius || 0))) {
             applyDamage(enemy, damage, { owner: "player" });
             if (enemy.health <= 0) {
-              destroyEnemy(enemy, i);
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
             }
           }
-        }
+          return false;
+        });
       }
 
       function updateMineDeployment(delta) {
@@ -5958,18 +7111,21 @@
         if (player.shockwaveTimer > 0) return;
         player.shockwaveTimer = player.shockwaveInterval;
         spawnPulse(player.x, player.y, "#7ca8ff", player.shockwaveRadius);
-        for (let i = enemies.length - 1; i >= 0; i -= 1) {
-          const enemy = enemies[i];
-          if (distanceBetween(player, enemy) <= player.shockwaveRadius + enemy.radius) {
+        forEachEnemyNear(player, player.shockwaveRadius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (circlesOverlap(player, enemy, player.shockwaveRadius - (player.radius || 0))) {
             applyDamage(enemy, player.shockwaveDamage, { owner: "player" });
             if (player.shockwaveSlow > 0) {
               enemy.slowTimer = Math.max(enemy.slowTimer || 0, player.shockwaveSlow);
             }
             if (enemy.health <= 0) {
-              destroyEnemy(enemy, i);
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
             }
           }
-        }
+          return false;
+        });
       }
 
       function updateMissiles(delta) {
@@ -6058,13 +7214,23 @@
 
       function getNearestEnemy(x, y, range) {
         let best = null;
-        let bestDist = range || Infinity;
-        for (let i = 0; i < enemies.length; i += 1) {
-          const enemy = enemies[i];
-          const distance = Math.hypot(enemy.x - x, enemy.y - y);
-          if (distance < bestDist) {
+        const origin = { x, y };
+        let bestDistSq = Number.isFinite(range) ? range * range : Infinity;
+        const consider = (enemy) => {
+          const distanceSq = distanceSquared(origin, enemy);
+          if (distanceSq < bestDistSq) {
             best = enemy;
-            bestDist = distance;
+            bestDistSq = distanceSq;
+          }
+        };
+        if (Number.isFinite(range)) {
+          forEachEnemyNear(origin, range + MAX_COLLISION_RADIUS, (enemy) => {
+            consider(enemy);
+            return false;
+          });
+        } else {
+          for (let i = 0; i < enemies.length; i += 1) {
+            consider(enemies[i]);
           }
         }
         return best;
@@ -6122,22 +7288,22 @@
         }
         const aimTarget = getAimTarget();
         const inputMode = progress.settings.inputMode || "hybrid";
-        const mouseAiming = inputMode === "hybrid" && input.pointer.active;
+        const mouseAiming = input.aimSource === "mouse" && inputMode === "hybrid" && input.pointer.active;
         const acquireRadius = mouseAiming ? 130 : 170;
         const stickyRadius = acquireRadius + 56;
         const maxAngle = mouseAiming ? 0.48 : 0.64;
         const maxDistance = mouseAiming ? 940 : 780;
         let best = null;
         let bestScore = Infinity;
-        enemies.forEach((enemy) => {
-          const distance = distanceBetween(player, enemy);
-          if (distance > maxDistance) return;
+        forEachEnemyNear(player, maxDistance + MAX_COLLISION_RADIUS, (enemy) => {
+          const distance = Math.sqrt(distanceSquared(player, enemy));
+          if (distance > maxDistance) return false;
           const aimDistance = Math.hypot(enemy.x - aimTarget.x, enemy.y - aimTarget.y);
           const angleToEnemy = Math.atan2(enemy.y - player.y, enemy.x - player.x);
           const angleDiff = Math.abs(normalizeAngle(angleToEnemy - player.angle));
           const sticky = previousTarget && enemy === previousTarget;
           const allowedAimDistance = sticky ? stickyRadius : acquireRadius;
-          if (aimDistance > allowedAimDistance && angleDiff > maxAngle) return;
+          if (aimDistance > allowedAimDistance && angleDiff > maxAngle) return false;
           const threatBonus = isPriorityEnemy(enemy) ? 82 : (enemy.baseDamage >= 14 ? 28 : 0);
           const stickyBonus = sticky ? 72 : 0;
           const score = aimDistance + angleDiff * 190 + distance * 0.03 - threatBonus - stickyBonus;
@@ -6150,6 +7316,7 @@
               angleDiff
             };
           }
+          return false;
         });
         if (!best) {
           return null;
@@ -6206,7 +7373,7 @@
         }
         state.targetAssist = assist;
         const inputMode = progress.settings.inputMode || "hybrid";
-        const mouseAiming = inputMode === "hybrid" && input.pointer.active;
+        const mouseAiming = input.aimSource === "mouse" && inputMode === "hybrid" && input.pointer.active;
         const maxAssistAngle = mouseAiming ? 0.07 : 0.13;
         const assistPull = mouseAiming ? 0.42 : 0.72;
         const angleDelta = normalizeAngle(assist.angle - player.angle);
@@ -6448,11 +7615,11 @@
           bullet.y += bullet.vy * delta;
           bullet.life -= delta;
           if (isPointInObstacle(bullet, bullet.radius + 2)) {
-            bullets.splice(i, 1);
+            removeArrayIndex(bullets, i);
             continue;
           }
           if (bullet.life <= 0 || isOutOfBounds(bullet)) {
-            bullets.splice(i, 1);
+            removeArrayIndex(bullets, i);
           }
         }
       }
@@ -6471,21 +7638,22 @@
           const mine = state.mines[i];
           mine.timer -= delta;
           if (mine.timer <= 0) {
-            state.mines.splice(i, 1);
+            removeArrayIndex(state.mines, i);
             continue;
           }
-          for (let j = enemies.length - 1; j >= 0; j -= 1) {
-            const enemy = enemies[j];
-            if (distanceBetween(mine, enemy) <= mine.radius + enemy.radius) {
-              applyDamage(enemy, mine.damage || 40, { owner: "player" });
-              spawnExplosion(mine.x, mine.y, "#f6c65f");
-              state.mines.splice(i, 1);
-              if (enemy.health <= 0) {
-                destroyEnemy(enemy, j);
+          forEachEnemyNear(mine, mine.radius + MAX_COLLISION_RADIUS, (enemy) => {
+            if (!circlesOverlap(mine, enemy)) return false;
+            applyDamage(enemy, mine.damage || 40, { owner: "player" });
+            spawnExplosion(mine.x, mine.y, "#f6c65f");
+            removeArrayIndex(state.mines, i);
+            if (enemy.health <= 0) {
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
               }
-              break;
             }
-          }
+            return true;
+          });
         }
       }
 
@@ -6530,6 +7698,7 @@
         if (!drop || !player) return;
         const def = getFieldDropDef(drop.typeId);
         if (!def) return;
+        noteTutorialGoal("pickup");
         if (def.id === "nova") {
           triggerNovaStrike(def);
           return;
@@ -6594,12 +7763,12 @@
           const drop = fieldDrops[i];
           drop.life -= delta;
           if (drop.life <= 0) {
-            fieldDrops.splice(i, 1);
+            removeArrayIndex(fieldDrops, i);
             continue;
           }
           if (player && distanceBetween(player, drop) <= (drop.radius || 16) + player.radius) {
             applyFieldDropEffect(drop);
-            fieldDrops.splice(i, 1);
+            removeArrayIndex(fieldDrops, i);
           }
         }
       }
@@ -6608,32 +7777,33 @@
         for (let i = bullets.length - 1; i >= 0; i -= 1) {
           const bullet = bullets[i];
           if (bullet.owner === "player") {
-            for (let j = enemies.length - 1; j >= 0; j -= 1) {
-              const enemy = enemies[j];
-              if (distanceBetween(bullet, enemy) <= bullet.radius + enemy.radius) {
-                if (state.telemetryRun) {
-                  state.telemetryRun.shotsHit += 1;
-                }
-                applyDamage(enemy, bullet.damage, bullet);
-                if (bullet.splashRadius && bullet.splashRadius > 0) {
-                  applySplashDamage(enemy, bullet);
-                }
-                triggerArcChain(enemy, bullet);
-                if (enemy.health <= 0) {
-                  destroyEnemy(enemy, j);
-                }
-                if (bullet.pierce && bullet.pierce > 0) {
-                  bullet.pierce -= 1;
-                } else {
-                  bullets.splice(i, 1);
-                }
-                break;
+            forEachEnemyNear(bullet, bullet.radius + MAX_COLLISION_RADIUS, (enemy) => {
+              if (!circlesOverlap(bullet, enemy)) return false;
+              if (state.telemetryRun) {
+                state.telemetryRun.shotsHit += 1;
               }
-            }
+              applyDamage(enemy, bullet.damage, bullet);
+              if (bullet.splashRadius && bullet.splashRadius > 0) {
+                applySplashDamage(enemy, bullet);
+              }
+              triggerArcChain(enemy, bullet);
+              if (enemy.health <= 0) {
+                const index = enemies.indexOf(enemy);
+                if (index >= 0) {
+                  destroyEnemy(enemy, index);
+                }
+              }
+              if (bullet.pierce && bullet.pierce > 0) {
+                bullet.pierce -= 1;
+              } else {
+                removeArrayIndex(bullets, i);
+              }
+              return true;
+            });
           } else if (bullet.owner === "enemy") {
-            if (player.invulnerable <= 0 && distanceBetween(bullet, player) <= bullet.radius + player.radius) {
+            if (player.invulnerable <= 0 && circlesOverlap(bullet, player)) {
               applyDamage(player, bullet.damage, bullet);
-              bullets.splice(i, 1);
+              removeArrayIndex(bullets, i);
               if (player.health <= 0) {
                 triggerGameOver();
               }
@@ -6646,30 +7816,34 @@
         const radius = bullet.splashRadius || 0;
         if (!radius) return;
         const splashDamage = bullet.damage * (bullet.splashDamage || 0.6);
-        for (let j = enemies.length - 1; j >= 0; j -= 1) {
-          const enemy = enemies[j];
-          if (enemy === primary) continue;
-          if (distanceBetween(primary, enemy) <= radius) {
+        const radiusSq = radius * radius;
+        forEachEnemyNear(primary, radius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (enemy === primary) return false;
+          if (distanceSquared(primary, enemy) <= radiusSq) {
             applyDamage(enemy, splashDamage, bullet);
             if (enemy.health <= 0) {
-              destroyEnemy(enemy, j);
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
             }
           }
-        }
+          return false;
+        });
       }
 
       function findArcTarget(primary, radius) {
         let target = null;
-        let closest = radius;
-        for (let i = 0; i < enemies.length; i += 1) {
-          const enemy = enemies[i];
-          if (enemy === primary) continue;
-          const distance = distanceBetween(primary, enemy);
-          if (distance <= closest) {
-            closest = distance;
+        let closestSq = radius * radius;
+        forEachEnemyNear(primary, radius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (enemy === primary) return false;
+          const distanceSq = distanceSquared(primary, enemy);
+          if (distanceSq <= closestSq) {
+            closestSq = distanceSq;
             target = enemy;
           }
-        }
+          return false;
+        });
         return target;
       }
 
@@ -6892,6 +8066,9 @@
           enemies = [];
         }
         if (enemies.length > 0) return;
+        if (!state.training) {
+          awardWaveTempoBonus(performance.now());
+        }
         if (state.training) {
           state.wave += 1;
           state.waveStart = performance.now();
@@ -6904,7 +8081,11 @@
         }
         const globalWave = getGlobalWave(state.wave);
         progress.bestWave = Math.max(progress.bestWave, globalWave);
-        if (MILESTONE_WAVES.includes(state.wave) && !state.milestoneRewardsClaimed[state.wave]) {
+        if (isBossRushMode() && state.wave >= BOSS_RUSH_WAVES) {
+          finishQuickRun("boss-rush");
+          return;
+        }
+        if (isCampaignMode() && MILESTONE_WAVES.includes(state.wave) && !state.milestoneRewardsClaimed[state.wave]) {
           state.milestoneRewardsClaimed[state.wave] = true;
           grantMilestoneRewards(state.wave);
           state.choiceEvent = buildChoiceEvent(state.wave);
@@ -6979,7 +8160,7 @@
           {
             id: "prospector",
             title: "Prospector Route",
-            desc: "Higher resource focus and premium pity acceleration.",
+            desc: "Higher resource focus and Astralite pity acceleration.",
             apply: () => {
               state.routeBonus = { id: "prospector", wavesRemaining: 3 };
               progress.salvageKeys += 1;
@@ -7165,6 +8346,7 @@
       }
 
       function firePlayer() {
+        noteTutorialGoal("fire");
         const playerMod = state.sectorMod ? state.sectorMod.player : {};
         const energyCost = player.energyCost * (playerMod.energyCost || 1);
         player.fireCooldown = 1 / player.fireRate;
@@ -7334,6 +8516,7 @@
           if (target === player) {
             state.lastHullHitAt = performance.now();
             resetNoDamageContracts();
+            addScreenShake(clamp(hullDamage * 0.08, 3, 11));
           }
         }
         if (target.health < 0) {
@@ -7418,9 +8601,9 @@
           spawnPulse(player.x, player.y, "#f6c65f", player.aegisPulseRadius);
         }
         if (player.aegisPulseDamage > 0 || player.aegisPulseSlow > 0) {
-          for (let i = enemies.length - 1; i >= 0; i -= 1) {
-            const enemy = enemies[i];
-            if (distanceBetween(player, enemy) <= player.aegisPulseRadius) {
+          const radiusSq = player.aegisPulseRadius * player.aegisPulseRadius;
+          forEachEnemyNear(player, player.aegisPulseRadius + MAX_COLLISION_RADIUS, (enemy) => {
+            if (distanceSquared(player, enemy) <= radiusSq) {
               if (player.aegisPulseDamage > 0) {
                 applyDamage(enemy, player.aegisPulseDamage, { owner: "player" });
               }
@@ -7428,18 +8611,23 @@
                 enemy.slowTimer = Math.max(enemy.slowTimer, player.aegisPulseSlow);
               }
               if (enemy.health <= 0) {
-                destroyEnemy(enemy, i);
+                const index = enemies.indexOf(enemy);
+                if (index >= 0) {
+                  destroyEnemy(enemy, index);
+                }
               }
             }
-          }
+            return false;
+          });
         }
         logEvent("Aegis Matrix surge activated.");
       }
 
       function destroyEnemy(enemy, index) {
-        enemies.splice(index, 1);
+        removeArrayIndex(enemies, index);
         state.score += enemy.score;
         state.kills += 1;
+        awardKillScoreBonuses(enemy, performance.now());
         if (state.waveObjective && state.waveObjective.id === "elite-hunt" && (enemy.elite || enemy.miniboss || enemy.id === "dreadnought" || enemy.id === "ace")) {
           state.waveObjective.progress = Math.min(
             state.waveObjective.target || 0,
@@ -7468,6 +8656,14 @@
           queueSidebarRefresh();
         }
         playAudioCue("enemy-down", { elite: !!enemy.elite || enemy.id === "dreadnought" || enemy.id === "ace" });
+        noteTutorialGoal("kill");
+        unlockAchievement("first-blood");
+        if (state.killChain >= 5) {
+          unlockAchievement("chain-five");
+        }
+        if (enemy.id === "dreadnought") {
+          unlockAchievement("boss-down");
+        }
         if (player.healOnKill > 0) {
           applyHullHeal(player, player.maxHealth * player.healOnKill);
         }
@@ -7523,7 +8719,7 @@
         return {
           ts: Date.now(),
           reason: reason || "unknown",
-          mode: isFrontierMode() ? "Frontier" : "Arcade",
+          mode: getRunModeLabel(),
           difficulty: difficultyLabel || (DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal).label,
           ship: state.runLoadout?.ship || player?.ship?.name || "Unknown",
           weapon: state.runLoadout?.weapon || player?.weapon?.name || "Unknown",
@@ -7555,7 +8751,10 @@
         progress.records = progress.records || {
           bestScore: 0,
           bestKills: 0,
-          bestSurvivalSec: 0
+          bestSurvivalSec: 0,
+          bestScoreAttack: 0,
+          bestDailyScore: 0,
+          bestBossRushScore: 0
         };
         const highlights = [];
         const score = Math.max(0, Math.round(summary.score || 0));
@@ -7572,6 +8771,31 @@
         if (survivalSec > (progress.records.bestSurvivalSec || 0)) {
           progress.records.bestSurvivalSec = survivalSec;
           highlights.push("Longest survival");
+        }
+        if (isScoreAttackMode() && score > (progress.records.bestScoreAttack || 0)) {
+          progress.records.bestScoreAttack = score;
+          highlights.push("Score Attack record");
+        }
+        if (isDailyMode()) {
+          if (score > (progress.records.bestDailyScore || 0)) {
+            progress.records.bestDailyScore = score;
+            highlights.push("Daily Sector record");
+          }
+          const daily = state.dailyChallenge || getDailyChallengeInfo();
+          progress.dailyRuns = [
+            {
+              date: daily.date,
+              seed: daily.seed,
+              score,
+              kills,
+              wave: summary.wave
+            },
+            ...(progress.dailyRuns || []).filter((run) => run.date !== daily.date)
+          ].slice(0, 12);
+        }
+        if (isBossRushMode() && score > (progress.records.bestBossRushScore || 0)) {
+          progress.records.bestBossRushScore = score;
+          highlights.push("Boss Rush record");
         }
         return highlights;
       }
@@ -7876,6 +9100,30 @@
         logEvent(`Level ${completedLevel} cleared. Rewards secured.`);
       }
 
+      function finishQuickRun(reason) {
+        if (!state.runActive || state.runBanked) return;
+        const finalReason = reason || (isBossRushMode() ? "boss-rush" : "time");
+        if (!state.training) {
+          progress.bestWave = Math.max(progress.bestWave, getGlobalWave(state.wave));
+          saveProgress();
+        }
+        endRun(finalReason);
+        state.lossRewards = buildLossRewards();
+        applyLossRewards(state.lossRewards);
+        if (isTimedQuickMode()) {
+          unlockAchievement("score-attack");
+        }
+        if (isBossRushMode()) {
+          unlockAchievement("boss-rush-clear");
+        }
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || getRunSummary(), state.lastRunTelemetry, finalReason);
+        renderProgressiveUi();
+        setMode("gameover");
+        setOverlay("gameover");
+        playAudioCue("victory");
+        logEvent(`${getRunModeLabel()} complete. Rewards secured.`);
+      }
+
       function endRun(reason) {
         if (!state.runActive || state.runBanked) return;
         state.runActive = false;
@@ -7896,7 +9144,8 @@
         const bankedCredits = Math.round(state.credits);
         progress.bankedCredits += bankedCredits;
         const difficultyLabel = (DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal).label;
-        state.runHighlights = updateRunRecords(summary);
+        const earnedHighlights = Array.isArray(state.runHighlights) ? state.runHighlights.slice(0, 5) : [];
+        state.runHighlights = [...updateRunRecords(summary), ...earnedHighlights].slice(0, 8);
         const entry = {
           wave: state.wave,
           level: summary.level,
@@ -7907,7 +9156,7 @@
           ship: state.runLoadout?.ship || player?.ship?.name || "Unknown",
           weapon: state.runLoadout?.weapon || player?.weapon?.name || "Unknown",
           difficulty: difficultyLabel,
-          mode: isFrontierMode() ? "Frontier" : "Arcade",
+          mode: getRunModeLabel(),
           threatTier: formatThreatTierLabel(state.threatTier),
           mutator: state.weekly?.mutator?.label || "None",
           seed: state.challengeSeed || "",
@@ -7972,6 +9221,109 @@
         logEvent("Run aborted. Returning to hangar.");
       }
 
+      function isCircleInBounds(item, radius = 16, bounds = getViewportBounds(), padding = 80) {
+        if (!item) return false;
+        return item.x + radius >= bounds.left - padding
+          && item.x - radius <= bounds.right + padding
+          && item.y + radius >= bounds.top - padding
+          && item.y - radius <= bounds.bottom + padding;
+      }
+
+      function shouldDrawSecondaryCombatDetail() {
+        return getPerformanceQualityLevel() < 3;
+      }
+
+      function renderBackground() {
+        const cached = getCachedBackgroundSurface();
+        if (cached) {
+          ctx.drawImage(cached, 0, 0, state.width, state.height);
+          return;
+        }
+        ctx.fillStyle = backgroundGradient || "#05090f";
+        ctx.fillRect(0, 0, state.width, state.height);
+        const nebula = getArtEntry("nebula");
+        if (nebula) {
+          const alpha = getPerformanceQualityLevel() >= 3 ? 0.18 : 0.34;
+          const parallaxX = -((state.camera.x || 0) * 0.018) % state.width;
+          const parallaxY = -((state.camera.y || 0) * 0.012) % state.height;
+          const source = getArtDrawable(nebula);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.globalCompositeOperation = "screen";
+          ctx.drawImage(source, parallaxX - state.width * 0.08, parallaxY - state.height * 0.08, state.width * 1.18, state.height * 1.18);
+          ctx.restore();
+        }
+        const vignette = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * 0.5,
+          Math.min(state.width, state.height) * 0.18,
+          state.width * 0.5,
+          state.height * 0.5,
+          Math.max(state.width, state.height) * 0.72
+        );
+        vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+        vignette.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, state.width, state.height);
+      }
+
+      function getCachedBackgroundSurface() {
+        const width = Math.max(1, Math.round(state.width));
+        const height = Math.max(1, Math.round(state.height));
+        if (!width || !height) return null;
+        const quality = getPerformanceQualityLevel();
+        if (backgroundCache.ready && backgroundCache.width === width && backgroundCache.height === height && backgroundCache.quality === quality) {
+          return backgroundCache.canvas;
+        }
+        const canvas = backgroundCache.canvas || document.createElement("canvas");
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
+        const cacheCtx = backgroundCache.ctx || canvas.getContext("2d", { alpha: false });
+        if (!cacheCtx) return null;
+        backgroundCache.canvas = canvas;
+        backgroundCache.ctx = cacheCtx;
+        cacheCtx.setTransform(1, 0, 0, 1, 0, 0);
+        const gradient = cacheCtx.createRadialGradient(
+          width * 0.5,
+          height * -0.2,
+          120,
+          width * 0.5,
+          height * 0.4,
+          width * 1.1
+        );
+        gradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
+        gradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
+        gradient.addColorStop(1, "rgba(5, 8, 14, 1)");
+        cacheCtx.fillStyle = gradient;
+        cacheCtx.fillRect(0, 0, width, height);
+        const nebula = getArtEntry("nebula");
+        const nebulaSource = getArtDrawable(nebula);
+        if (nebulaSource) {
+          cacheCtx.save();
+          cacheCtx.globalAlpha = quality >= 3 ? 0.16 : 0.3;
+          cacheCtx.globalCompositeOperation = "screen";
+          cacheCtx.drawImage(nebulaSource, -width * 0.08, -height * 0.08, width * 1.16, height * 1.16);
+          cacheCtx.restore();
+        }
+        const vignette = cacheCtx.createRadialGradient(
+          width * 0.5,
+          height * 0.5,
+          Math.min(width, height) * 0.18,
+          width * 0.5,
+          height * 0.5,
+          Math.max(width, height) * 0.72
+        );
+        vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+        vignette.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+        cacheCtx.fillStyle = vignette;
+        cacheCtx.fillRect(0, 0, width, height);
+        backgroundCache.width = width;
+        backgroundCache.height = height;
+        backgroundCache.quality = quality;
+        backgroundCache.ready = true;
+        return canvas;
+      }
+
       function renderLootBursts() {
         if (!lootBursts.length) return;
         ctx.save();
@@ -8017,12 +9369,24 @@
       function renderObstacles() {
         if (!obstacles.length) return;
         const bounds = getViewportBounds();
-        obstacles.forEach((obstacle) => {
+        const viewOrigin = {
+          x: bounds.left + (bounds.right - bounds.left) * 0.5,
+          y: bounds.top + (bounds.bottom - bounds.top) * 0.5
+        };
+        const viewRadius = Math.hypot(bounds.right - bounds.left, bounds.bottom - bounds.top) * 0.5 + 220;
+        forEachObstacleNear(viewOrigin, viewRadius, (obstacle) => {
           if (obstacle.kind === "rock") {
             const radius = obstacle.radius;
             if (obstacle.x + radius < bounds.left - 80 || obstacle.x - radius > bounds.right + 80
               || obstacle.y + radius < bounds.top - 80 || obstacle.y - radius > bounds.bottom + 80) {
-              return;
+              return false;
+            }
+            if (drawSprite("asteroidRock", obstacle.x, obstacle.y, obstacle.rotation || 0, radius * 2.12, radius * 2.12, {
+              alpha: 0.96,
+              shadowBlur: 10,
+              shadowColor: "rgba(140, 170, 195, 0.34)"
+            })) {
+              return false;
             }
             const gradient = ctx.createRadialGradient(
               obstacle.x - radius * 0.3,
@@ -8042,21 +9406,29 @@
             ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
             ctx.lineWidth = 1.5;
             ctx.stroke();
-            return;
+            return false;
           }
           const halfWidth = obstacle.width * 0.5;
           const halfHeight = obstacle.height * 0.5;
           if (obstacle.x + halfWidth < bounds.left - 80 || obstacle.x - halfWidth > bounds.right + 80
             || obstacle.y + halfHeight < bounds.top - 80 || obstacle.y - halfHeight > bounds.bottom + 80) {
-            return;
+            return false;
           }
           const x = obstacle.x - halfWidth;
           const y = obstacle.y - halfHeight;
+          if (drawSprite("obstaclePlate", obstacle.x, obstacle.y, obstacle.rotation || 0, obstacle.width, obstacle.height, {
+            alpha: 0.92,
+            shadowBlur: 8,
+            shadowColor: "rgba(124, 168, 255, 0.22)"
+          })) {
+            return false;
+          }
           ctx.fillStyle = `rgba(22, 34, 48, ${0.7 + (obstacle.shade || 0.3) * 0.2})`;
           ctx.fillRect(x, y, obstacle.width, obstacle.height);
           ctx.strokeStyle = "rgba(160, 190, 220, 0.12)";
           ctx.lineWidth = 1.5;
           ctx.strokeRect(x, y, obstacle.width, obstacle.height);
+          return false;
         });
       }
 
@@ -8090,6 +9462,15 @@
           ctx.arc(x, y, radius + 14, 0, Math.PI * 2);
           ctx.fill();
           ctx.globalAlpha = alpha;
+          if (drawSprite("pickupCore", x, y, now * 0.9 + drop.phase, radius * 2.55, radius * 2.55, {
+            alpha,
+            shadowBlur: 12,
+            shadowColor: color
+          })) {
+            ctx.fillStyle = color;
+            ctx.fillText(def.symbol || "DROP", x, y);
+            return;
+          }
           ctx.fillStyle = "rgba(8, 14, 24, 0.85)";
           ctx.strokeStyle = color;
           ctx.lineWidth = 2;
@@ -8133,6 +9514,120 @@
         });
       }
 
+      function renderParticles() {
+        if (!particles.length) return;
+        const premium = shouldUsePremiumVfx();
+        const bounds = getViewportBounds();
+        const level = getPerformanceQualityLevel();
+        ctx.save();
+        if (premium) {
+          ctx.globalCompositeOperation = "lighter";
+        }
+        particles.forEach((particle, index) => {
+          if (level >= 3 && index % 2 === 1) return;
+          if (!isCircleInBounds(particle, particle.size || 3, bounds, 90)) return;
+          const ratio = clamp(particle.life / particle.maxLife, 0, 1);
+          const alpha = easeOutCubic(ratio);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = particle.color;
+          ctx.strokeStyle = particle.color;
+          if (premium && particle.trail) {
+            ctx.lineWidth = Math.max(1, particle.size * 0.65);
+            ctx.beginPath();
+            ctx.moveTo(particle.x, particle.y);
+            ctx.lineTo(particle.x - particle.vx * 0.035, particle.y - particle.vy * 0.035);
+            ctx.stroke();
+          }
+          if (premium) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = particle.color;
+          }
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderPulses() {
+        if (!pulses.length) return;
+        const premium = shouldUsePremiumVfx();
+        const bounds = getViewportBounds();
+        const renderDetail = shouldDrawSecondaryCombatDetail();
+        ctx.save();
+        if (premium) {
+          ctx.globalCompositeOperation = "lighter";
+        }
+        pulses.forEach((pulse) => {
+          if (!isCircleInBounds(pulse, pulse.radius || 20, bounds, 120)) return;
+          const progress = 1 - clamp(pulse.life / pulse.maxLife, 0, 1);
+          const alpha = easeOutCubic(clamp(pulse.life / pulse.maxLife, 0, 1));
+          if (pulse.kind === "burst") {
+            drawSprite("burst", pulse.x, pulse.y, 0, pulse.radius * 2.2, pulse.radius * 2.2, {
+              alpha: alpha * 0.55,
+              composite: premium ? "lighter" : "",
+              shadowBlur: 12,
+              shadowColor: pulse.color
+            });
+          }
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = pulse.color;
+          ctx.lineWidth = 1.4 + (1 - progress) * 1.6;
+          if (premium) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = pulse.color;
+          }
+          ctx.beginPath();
+          ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = alpha * 0.28;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(pulse.x, pulse.y, pulse.radius * 0.72, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderBullets() {
+        if (!bullets.length) return;
+        const premium = shouldUsePremiumVfx();
+        const bounds = getViewportBounds();
+        ctx.save();
+        if (premium) {
+          ctx.globalCompositeOperation = "lighter";
+        }
+        bullets.forEach((bullet) => {
+          if (!isCircleInBounds(bullet, bullet.radius || 4, bounds, 80)) return;
+          let color = bullet.owner === "player" ? (bullet.crit ? "#f6c65f" : "#6ee7b7") : "#f06969";
+          if (bullet.tint) {
+            color = bullet.tint;
+          }
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          if (premium) {
+            const speed = Math.hypot(bullet.vx || 0, bullet.vy || 0) || 1;
+            const tail = clamp(speed * 0.035, 8, 24);
+            ctx.globalAlpha = 0.34;
+            ctx.lineWidth = Math.max(1, bullet.radius * 0.8);
+            ctx.beginPath();
+            ctx.moveTo(bullet.x, bullet.y);
+            ctx.lineTo(bullet.x - (bullet.vx / speed) * tail, bullet.y - (bullet.vy / speed) * tail);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = bullet.owner === "player" ? 9 : 7;
+            ctx.shadowColor = color;
+          }
+          ctx.beginPath();
+          ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
       function drawWorldBounds() {
         ctx.save();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
@@ -8141,9 +9636,21 @@
         ctx.restore();
       }
 
-      function renderMinimap() {
+      function renderMinimap(force = false) {
         if (!minimapCtx || !dom.minimap) return;
-        const dpr = Math.max(1, state.renderScale || window.devicePixelRatio || 1);
+        const now = performance.now();
+        const qualityLevel = getPerformanceQualityLevel();
+        const interval = qualityLevel >= 4
+          ? MINIMAP_RENDER_INTERVAL_EMERGENCY_MS
+          : qualityLevel >= 2 || isHighPixelPressure()
+          ? MINIMAP_RENDER_INTERVAL_STRESSED_MS
+          : MINIMAP_RENDER_INTERVAL_MS;
+        if (!force && !state.minimapForceRender && now - state.minimapLastRenderAt < interval) {
+          return;
+        }
+        state.minimapLastRenderAt = now;
+        state.minimapForceRender = false;
+        const dpr = Math.max(AUTO_RENDER_MIN_SCALE, state.renderScale || window.devicePixelRatio || 1);
         const width = dom.minimap.width / dpr;
         const height = dom.minimap.height / dpr;
         minimapCtx.clearRect(0, 0, width, height);
@@ -8225,13 +9732,77 @@
         minimapCtx.fill();
       }
 
+      function renderFrame() {
+        if (isPixiRendererReady()) {
+          renderPixiFrame();
+          return;
+        }
+        state.renderBackend = "canvas";
+        render();
+      }
+
+      function renderPixiFrame() {
+        state.renderBackend = "pixi";
+        const timings = pixiRenderer.renderFrame(buildPixiFrameSnapshot()) || {};
+        Object.keys(timings).forEach((key) => {
+          addPerfBucket("render", key, timings[key]);
+        });
+        const minimapStart = perfFrameActive ? performance.now() : 0;
+        renderMinimap();
+        if (perfFrameActive) {
+          addPerfBucket("render", "minimap", performance.now() - minimapStart);
+        }
+      }
+
+      function buildPixiFrameSnapshot() {
+        return {
+          width: state.width,
+          height: state.height,
+          renderScale: state.renderScale,
+          qualityLevel: getPerformanceQualityLevel(),
+          showDetail: shouldDrawSecondaryCombatDetail(),
+          premiumVfx: shouldUsePremiumVfx(),
+          nowSec: performance.now() * 0.001,
+          mode: state.mode,
+          camera: state.camera,
+          shake: getScreenShakeOffset(),
+          bounds: getViewportBounds(),
+          player,
+          enemies,
+          bullets,
+          particles,
+          pulses,
+          obstacles,
+          fieldDrops,
+          helpers,
+          mines: state.mines,
+          blackHoles: state.blackHoles,
+          hazards: state.hazards,
+          decoy: state.decoy,
+          aimTarget: getAimTarget(),
+          targetAssist: getActiveTargetAssist(),
+          playerArtId: getPlayerArtId(player),
+          getEnemyArtId,
+          getFieldDropDef,
+          getTierColor: (tier) => TIER_COLORS[tier] || "#ffffff",
+          shouldDrawEnemyTelegraph,
+          getEnemyAttackTelegraph,
+          isPriorityEnemy,
+          getPriorityEnemyColor
+        };
+      }
+
       function render() {
+        let perfStart = perfFrameActive ? performance.now() : 0;
         ctx.clearRect(0, 0, state.width, state.height);
-        ctx.fillStyle = backgroundGradient || "#05090f";
-        ctx.fillRect(0, 0, state.width, state.height);
+        renderBackground();
+        perfStart = markPerfBucket("render", "background", perfStart);
 
         const bounds = getViewportBounds();
+        const renderDetail = shouldDrawSecondaryCombatDetail();
         ctx.save();
+        const shake = getScreenShakeOffset();
+        ctx.translate(shake.x, shake.y);
         ctx.translate(-state.camera.x, -state.camera.y);
 
         ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
@@ -8246,36 +9817,24 @@
           ctx.fill();
         });
         ctx.globalAlpha = 1;
+        perfStart = markPerfBucket("render", "stars", perfStart);
 
         renderObstacles();
         renderFieldDrops();
         renderHazards();
-
-        particles.forEach((particle) => {
-          ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
-          ctx.fillStyle = particle.color;
-          ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-          ctx.fill();
-        });
-        ctx.globalAlpha = 1;
-
-        pulses.forEach((pulse) => {
-          ctx.globalAlpha = Math.max(0, pulse.life / pulse.maxLife);
-          ctx.strokeStyle = pulse.color;
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
-          ctx.stroke();
-        });
-        ctx.globalAlpha = 1;
+        perfStart = markPerfBucket("render", "world", perfStart);
+        renderParticles();
+        renderPulses();
 
         renderBlackHoles();
+        perfStart = markPerfBucket("render", "vfx", perfStart);
         enemies.forEach((enemy) => {
+          if (!isCircleInBounds(enemy, enemy.radius || 22, bounds, 160)) return;
+          if (!shouldDrawEnemyTelegraph(enemy)) return;
           drawEnemyAttackTelegraph(enemy);
         });
 
-        if (player) {
+        if (player && renderDetail) {
           drawAura();
         }
 
@@ -8288,44 +9847,57 @@
         }
 
         state.mines.forEach((mine) => {
+          if (!isCircleInBounds(mine, mine.radius || 14, bounds, 90)) return;
+          if (drawSprite("mineCore", mine.x, mine.y, performance.now() * 0.0018, mine.radius * 1.35, mine.radius * 1.35, {
+            alpha: 0.9,
+            shadowBlur: 10,
+            shadowColor: "#ffd166"
+          })) {
+            return;
+          }
           ctx.fillStyle = "rgba(246, 198, 95, 0.8)";
           ctx.beginPath();
           ctx.arc(mine.x, mine.y, mine.radius * 0.5, 0, Math.PI * 2);
           ctx.fill();
         });
+        renderBullets();
+        perfStart = markPerfBucket("render", "overlays", perfStart);
 
-        bullets.forEach((bullet) => {
-          let color = bullet.owner === "player" ? (bullet.crit ? "#f6c65f" : "#6ee7b7") : "#f06969";
-          if (bullet.tint) {
-            color = bullet.tint;
-          }
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
+        const drawRoleLabels = renderDetail && shouldDrawEnemyRoleLabels();
         enemies.forEach((enemy) => {
-          drawEnemyThreatHalo(enemy);
-          drawShip(enemy.x, enemy.y, enemy.angle, enemy.radius, enemy.color, enemy.hitFlash > 0);
-          drawShield(enemy);
-          drawEnemyVitals(enemy);
+          const priority = isPriorityEnemy(enemy);
+          if (!isCircleInBounds(enemy, enemy.radius || 22, bounds, priority ? 260 : 120)) return;
+          if (renderDetail || priority) {
+            drawEnemyThreatHalo(enemy);
+          }
+          drawEnemyShip(enemy);
+          if (renderDetail || priority) {
+            drawShield(enemy);
+            drawEnemyVitals(enemy);
+          }
+          if (drawRoleLabels || isPriorityEnemy(enemy)) {
+            drawEnemyRoleLabel(enemy);
+          }
         });
 
         if (player) {
-          drawShip(player.x, player.y, player.angle, player.radius, "#44d2c2", player.hitFlash > 0, player.thrusting);
+          drawShip(player.x, player.y, player.angle, player.radius, "#44d2c2", player.hitFlash > 0, player.thrusting, getPlayerArtId(player));
           drawShield(player);
         }
 
         renderHelpers();
-        renderLootBursts();
-        renderDamageNumbers();
-        drawWorldBounds();
+        perfStart = markPerfBucket("render", "entities", perfStart);
+        if (renderDetail) {
+          renderLootBursts();
+          renderDamageNumbers();
+          drawWorldBounds();
+        }
         drawCrosshair();
         ctx.restore();
 
         drawThreatIndicators();
         renderMinimap();
+        markPerfBucket("render", "minimap", perfStart);
       }
 
       function isPriorityEnemy(enemy) {
@@ -8503,9 +10075,22 @@
       function drawAura() {
         if (!player || player.auraRadius <= 0 || player.auraDamage <= 0) return;
         if (state.mode !== "flight" && state.mode !== "training") return;
+        const pulse = 0.5 + Math.sin(performance.now() * 0.004) * 0.5;
         ctx.save();
-        ctx.strokeStyle = "rgba(124, 168, 255, 0.4)";
-        ctx.lineWidth = 2;
+        const gradient = ctx.createRadialGradient(player.x, player.y, player.radius, player.x, player.y, player.auraRadius);
+        gradient.addColorStop(0, "rgba(124, 168, 255, 0.1)");
+        gradient.addColorStop(0.75, "rgba(124, 168, 255, 0.04)");
+        gradient.addColorStop(1, "rgba(124, 168, 255, 0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.auraRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = `rgba(124, 168, 255, ${0.24 + pulse * 0.22})`;
+        ctx.lineWidth = 1.5;
+        if (shouldUsePremiumVfx()) {
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = "#7ca8ff";
+        }
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.auraRadius, 0, Math.PI * 2);
         ctx.stroke();
@@ -8517,8 +10102,14 @@
         state.blackHoles.forEach((hole) => {
           const lifeRatio = hole.maxLife ? hole.life / hole.maxLife : 1;
           const alpha = clamp(0.2 + lifeRatio * 0.4, 0, 0.7);
+          const spin = performance.now() * 0.0015;
           ctx.save();
           ctx.globalAlpha = alpha;
+          if (shouldUsePremiumVfx()) {
+            ctx.globalCompositeOperation = "lighter";
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = "#9aa7ff";
+          }
           const gradient = ctx.createRadialGradient(hole.x, hole.y, hole.radius * 0.2, hole.x, hole.y, hole.radius);
           gradient.addColorStop(0, "rgba(16, 28, 46, 0.9)");
           gradient.addColorStop(0.45, "rgba(88, 122, 208, 0.45)");
@@ -8527,13 +10118,29 @@
           ctx.beginPath();
           ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
           ctx.fill();
+          ctx.translate(hole.x, hole.y);
+          ctx.rotate(spin);
+          ctx.strokeStyle = "rgba(218, 224, 255, 0.5)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, hole.radius * 0.62, hole.radius * 0.22, 0, 0, Math.PI * 2);
+          ctx.stroke();
           ctx.restore();
         });
       }
 
       function renderHelpers() {
         if (!helpers.length || (state.mode !== "flight" && state.mode !== "training")) return;
+        const bounds = getViewportBounds();
         helpers.forEach((helper) => {
+          if (!isCircleInBounds(helper, 18, bounds, 80)) return;
+          if (drawSprite("helperDrone", helper.x, helper.y, helper.angle || 0, 20, 20, {
+            alpha: 0.96,
+            shadowBlur: 8,
+            shadowColor: "#6ee7b7"
+          })) {
+            return;
+          }
           ctx.save();
           ctx.translate(helper.x, helper.y);
           ctx.fillStyle = "#6ee7b7";
@@ -8550,20 +10157,100 @@
         });
       }
 
-      function drawShip(x, y, angle, size, color, hitFlash, thrusting) {
+      function getEnemyRole(enemy) {
+        return enemy?.role || ENEMY_ROLE_MAP[enemy?.id] || "line";
+      }
+
+      function drawEnemyShip(enemy) {
+        if (!enemy) return;
+        const role = getEnemyRole(enemy);
+        drawShip(enemy.x, enemy.y, enemy.angle, enemy.radius, enemy.color, enemy.hitFlash > 0, false, getEnemyArtId(enemy));
+        ctx.save();
+        ctx.translate(enemy.x, enemy.y);
+        ctx.rotate(enemy.angle);
+        ctx.strokeStyle = enemy.hitFlash > 0 ? "#ffffff" : (enemy.bulletTint || getPriorityEnemyColor(enemy));
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.85;
+        if (role === "support") {
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.radius * 0.52, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-enemy.radius * 0.34, 0);
+          ctx.lineTo(enemy.radius * 0.34, 0);
+          ctx.moveTo(0, -enemy.radius * 0.34);
+          ctx.lineTo(0, enemy.radius * 0.34);
+          ctx.stroke();
+        } else if (role === "artillery") {
+          ctx.beginPath();
+          ctx.moveTo(enemy.radius * 0.25, 0);
+          ctx.lineTo(enemy.radius * 1.28, 0);
+          ctx.stroke();
+        } else if (role === "siege") {
+          ctx.strokeRect(-enemy.radius * 0.55, -enemy.radius * 0.45, enemy.radius * 0.55, enemy.radius * 0.9);
+        } else if (role === "brawler") {
+          ctx.beginPath();
+          ctx.moveTo(enemy.radius * 0.18, -enemy.radius * 0.52);
+          ctx.lineTo(enemy.radius * 0.78, 0);
+          ctx.lineTo(enemy.radius * 0.18, enemy.radius * 0.52);
+          ctx.stroke();
+        } else if (role === "interceptor") {
+          ctx.beginPath();
+          ctx.moveTo(-enemy.radius * 0.58, -enemy.radius * 0.78);
+          ctx.lineTo(-enemy.radius * 0.1, 0);
+          ctx.lineTo(-enemy.radius * 0.58, enemy.radius * 0.78);
+          ctx.stroke();
+        } else if (role === "command") {
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.radius * 0.78, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawShip(x, y, angle, size, color, hitFlash, thrusting, artId = "playerScout") {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(angle);
 
         if (thrusting) {
-          ctx.fillStyle = "rgba(246, 198, 95, 0.8)";
+          const flame = 0.8 + Math.sin(performance.now() * 0.03) * 0.2;
+          ctx.fillStyle = `rgba(246, 198, 95, ${0.62 + flame * 0.22})`;
+          if (shouldUsePremiumVfx()) {
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = "#ffd166";
+          }
           ctx.beginPath();
           ctx.moveTo(-size * 0.8, 0);
-          ctx.lineTo(-size * 1.4, size * 0.5);
-          ctx.lineTo(-size * 1.6, 0);
-          ctx.lineTo(-size * 1.4, -size * 0.5);
+          ctx.lineTo(-size * (1.38 + flame * 0.14), size * 0.48);
+          ctx.lineTo(-size * (1.64 + flame * 0.18), 0);
+          ctx.lineTo(-size * (1.38 + flame * 0.14), -size * 0.48);
           ctx.closePath();
           ctx.fill();
+        }
+
+        const spriteWidth = size * ((artId === "enemyCommand" || artId === "playerHeavy") ? 3.4 : 3.0);
+        const spriteHeight = size * ((artId === "enemyArtillery") ? 1.9 : 2.72);
+        const spriteDrawn = drawSprite(artId, 0, 0, 0, spriteWidth, spriteHeight, {
+          alpha: hitFlash ? 0.98 : 0.94,
+          shadowBlur: hitFlash ? 16 : 9,
+          shadowColor: hitFlash ? "#ffffff" : color
+        });
+        if (spriteDrawn) {
+          if (hitFlash && (progress.settings.hitFlash !== false)) {
+            ctx.globalAlpha = 0.55;
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(size, 0);
+            ctx.lineTo(-size * 0.7, size * 0.68);
+            ctx.lineTo(-size * 0.36, 0);
+            ctx.lineTo(-size * 0.7, -size * 0.68);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+          return;
         }
 
         ctx.fillStyle = hitFlash ? "#ffffff" : color;
@@ -8584,12 +10271,21 @@
       function drawShield(entity) {
         if (entity.maxShield <= 0 || entity.shield <= 0) return;
         const ratio = entity.shield / entity.maxShield;
+        const radius = entity.radius + 6;
         ctx.save();
         ctx.globalAlpha = 0.2 + ratio * 0.4;
         ctx.strokeStyle = entity === player ? "#57e0ff" : "#f6c65f";
         ctx.lineWidth = 2;
+        if (entity === player && drawSprite("shieldRipple", entity.x, entity.y, 0, radius * 2.3, radius * 2.3, {
+          alpha: 0.35 + ratio * 0.2,
+          composite: shouldUsePremiumVfx() ? "screen" : "",
+          shadowBlur: 10,
+          shadowColor: "#57e0ff"
+        })) {
+          ctx.globalAlpha = 0.18 + ratio * 0.28;
+        }
         ctx.beginPath();
-        ctx.arc(entity.x, entity.y, entity.radius + 6, 0, Math.PI * 2);
+        ctx.arc(entity.x, entity.y, radius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
       }
@@ -8617,6 +10313,41 @@
         const hullRatio = clamp(enemy.health / enemy.maxHealth, 0, 1);
         ctx.fillStyle = "#f06969";
         ctx.fillRect(x, y, barWidth * hullRatio, barHeight);
+        ctx.restore();
+      }
+
+      function shouldDrawEnemyRoleLabel(enemy) {
+        if (!enemy) return false;
+        const role = getEnemyRole(enemy);
+        return isPriorityEnemy(enemy)
+          || PRIORITY_KILL_ROLES.has(role)
+          || role === "brawler"
+          || role === "interceptor"
+          || getGlobalWave(state.wave || 1) <= 2;
+      }
+
+      function drawEnemyRoleLabel(enemy) {
+        if (!shouldDrawEnemyRoleLabel(enemy)) return;
+        const role = getEnemyRole(enemy);
+        const label = enemy.id === "dreadnought"
+          ? "BOSS"
+          : (ENEMY_ROLE_MARKS[role] || (ENEMY_ROLE_LABELS[role] || role).toUpperCase());
+        const width = Math.max(34, label.length * 7 + 12);
+        const x = enemy.x - width * 0.5;
+        const y = Math.max(8, enemy.y - enemy.radius - 32);
+        ctx.save();
+        ctx.font = "700 9px \"Space Grotesk\", \"Chakra Petch\", sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(5, 8, 14, 0.72)";
+        ctx.strokeStyle = getPriorityEnemyColor(enemy);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, 16, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#f5f9ff";
+        ctx.fillText(label, enemy.x, y + 8);
         ctx.restore();
       }
 
@@ -8699,64 +10430,53 @@
         const hullPct = clamp(player.health / player.maxHealth, 0, 1) * 100;
         const shieldPct = player.maxShield > 0 ? clamp(player.shield / player.maxShield, 0, 1) * 100 : 0;
         const energyPct = clamp(player.energy / player.maxEnergy, 0, 1) * 100;
-        meters.hull.style.width = `${hullPct}%`;
-        meters.shield.style.width = `${shieldPct}%`;
-        meters.energy.style.width = `${energyPct}%`;
-        if (hudMeters.hull) hudMeters.hull.style.width = `${hullPct}%`;
-        if (hudMeters.shield) hudMeters.shield.style.width = `${shieldPct}%`;
-        if (hudMeters.energy) hudMeters.energy.style.width = `${energyPct}%`;
+        setCachedWidth(meters.hull, hullPct);
+        setCachedWidth(meters.shield, shieldPct);
+        setCachedWidth(meters.energy, energyPct);
+        setCachedWidth(hudMeters.hull, hullPct);
+        setCachedWidth(hudMeters.shield, shieldPct);
+        setCachedWidth(hudMeters.energy, energyPct);
 
-        stats.hullText.textContent = `${Math.round(player.health)} / ${Math.round(player.maxHealth)}`;
-        stats.shieldText.textContent = player.maxShield > 0
+        setCachedText(stats.hullText, `${Math.round(player.health)} / ${Math.round(player.maxHealth)}`);
+        setCachedText(stats.shieldText, player.maxShield > 0
           ? `${Math.round(player.shield)} / ${Math.round(player.maxShield)}`
-          : "0 / 0";
-        stats.energyText.textContent = `${Math.round(player.energy)} / ${Math.round(player.maxEnergy)}`;
-        if (hudStats.hull) {
-          hudStats.hull.textContent = `${Math.round(player.health)}/${Math.round(player.maxHealth)}`;
-        }
-        if (hudStats.shield) {
-          hudStats.shield.textContent = player.maxShield > 0
-            ? `${Math.round(player.shield)}/${Math.round(player.maxShield)}`
-            : "0/0";
-        }
-        if (hudStats.energy) {
-          hudStats.energy.textContent = `${Math.round(player.energy)}/${Math.round(player.maxEnergy)}`;
-        }
+          : "0 / 0");
+        setCachedText(stats.energyText, `${Math.round(player.energy)} / ${Math.round(player.maxEnergy)}`);
+        setCachedText(hudStats.hull, `${Math.round(player.health)}/${Math.round(player.maxHealth)}`);
+        setCachedText(hudStats.shield, player.maxShield > 0
+          ? `${Math.round(player.shield)}/${Math.round(player.maxShield)}`
+          : "0/0");
+        setCachedText(hudStats.energy, `${Math.round(player.energy)}/${Math.round(player.maxEnergy)}`);
 
-        stats.wave.textContent = getWaveDisplay(state.wave);
-        stats.enemyCount.textContent = enemies.length;
+        setCachedText(stats.wave, getWaveDisplay(state.wave));
+        setCachedText(stats.enemyCount, enemies.length);
         const roundedScore = Math.round(state.score);
         const roundedCredits = Math.round(state.credits);
-        stats.score.textContent = roundedScore.toLocaleString();
-        stats.credits.textContent = roundedCredits.toLocaleString();
+        setCachedText(stats.score, roundedScore.toLocaleString());
+        setCachedText(stats.credits, roundedCredits.toLocaleString());
         if (roundedScore !== state.lastHudScore || roundedCredits !== state.lastHudCredits) {
           state.lastHudScore = roundedScore;
           state.lastHudCredits = roundedCredits;
           noteHudMetaReveal(now);
         }
         const threatLabel = formatThreatTierLabel(state.threatTier);
-        if (stats.threatTier) {
-          stats.threatTier.textContent = threatLabel;
-        }
-        if (stats.threatTierHud) {
-          stats.threatTierHud.textContent = threatLabel;
-        }
-        const objectiveText = state.waveObjective
+        setCachedText(stats.threatTier, threatLabel);
+        setCachedText(stats.threatTierHud, threatLabel);
+        const objectiveBase = state.waveObjective
           ? `${state.waveObjective.label}${state.waveObjective.complete ? " (Complete)" : ` • ${state.waveObjective.progressLabel || ""}`}`
           : "Eliminate hostiles";
-        if (stats.objective) {
-          stats.objective.textContent = objectiveText;
-        }
-        if (stats.objectiveHud) {
-          stats.objectiveHud.textContent = objectiveText;
-        }
+        const objectiveText = isTimedQuickMode()
+          ? `Time ${formatDuration(state.quickTimer || 0)} • ${objectiveBase}`
+          : objectiveBase;
+        setCachedText(stats.objective, objectiveText);
+        setCachedText(stats.objectiveHud, objectiveText);
         if (stats.modeLabel) {
           if (state.training) {
-            stats.modeLabel.textContent = "Training";
-          } else if (isFrontierMode()) {
-            stats.modeLabel.textContent = "Frontier";
+            setCachedText(stats.modeLabel, "Training");
+          } else if (isCampaignMode()) {
+            setCachedText(stats.modeLabel, `Campaign L${state.level || 1}`);
           } else {
-            stats.modeLabel.textContent = `Arcade L${state.level || 1}`;
+            setCachedText(stats.modeLabel, getRunModeLabel());
           }
         }
         if (dom.tierPill && stats.tier) {
@@ -8764,7 +10484,7 @@
           const tierValue = showTier ? (state.frontier.tier || 1) : null;
           dom.tierPill.hidden = !showTier;
           if (showTier) {
-            stats.tier.textContent = tierValue;
+            setCachedText(stats.tier, tierValue);
           }
           if (tierValue !== state.lastHudTier) {
             state.lastHudTier = tierValue;
@@ -8774,85 +10494,75 @@
           }
         }
 
-        stats.rank.textContent = progress.rank;
-        stats.xp.textContent = `${Math.round(progress.xp)} / ${xpToNext(progress.rank)}`;
-        stats.techPoints.textContent = progress.techPoints;
-        stats.bestWave.textContent = progress.campaignLevel || 1;
-        stats.totalKills.textContent = progress.totalKills;
-        stats.bankedCredits.textContent = `Credits ${Math.round(progress.bankedCredits)}`;
-        stats.bankedCreditsTotal.textContent = Math.round(progress.bankedCredits).toLocaleString();
-        if (stats.premiumCurrency) {
-          stats.premiumCurrency.textContent = `${PREMIUM_CURRENCY_LABEL} ${progress.premiumCurrency || 0}`;
-        }
-        if (stats.premiumCurrencyTotal) {
-          stats.premiumCurrencyTotal.textContent = Math.round(progress.premiumCurrency || 0).toLocaleString();
-        }
-        stats.blueprints.textContent = `Blueprints ${progress.blueprints}`;
-        stats.salvageKeys.textContent = `Keys ${progress.salvageKeys || 0}`;
+        setCachedText(stats.rank, progress.rank);
+        setCachedText(stats.xp, `${Math.round(progress.xp)} / ${xpToNext(progress.rank)}`);
+        setCachedText(stats.techPoints, progress.techPoints);
+        setCachedText(stats.bestWave, progress.campaignLevel || 1);
+        setCachedText(stats.totalKills, progress.totalKills);
+        setCachedText(stats.bankedCredits, `Credits ${Math.round(progress.bankedCredits)}`);
+        setCachedText(stats.bankedCreditsTotal, Math.round(progress.bankedCredits).toLocaleString());
+        setCachedText(stats.premiumCurrency, `${PREMIUM_CURRENCY_LABEL} ${progress.premiumCurrency || 0}`);
+        setCachedText(stats.premiumCurrencyTotal, Math.round(progress.premiumCurrency || 0).toLocaleString());
+        setCachedText(stats.blueprints, `Blueprints ${progress.blueprints}`);
+        setCachedText(stats.salvageKeys, `Keys ${progress.salvageKeys || 0}`);
 
-        stats.damage.textContent = Math.round(player.damage);
-        stats.fireRate.textContent = `${player.fireRate.toFixed(1)} / sec`;
-        stats.speed.textContent = Math.round(player.maxSpeed);
-        stats.shieldRegen.textContent = `${player.shieldRegen.toFixed(1)} / sec`;
-        stats.energyRegen.textContent = `${player.energyRegen.toFixed(1)} / sec`;
-        stats.crit.textContent = `${Math.round(player.critChance * 100)}%`;
+        setCachedText(stats.damage, Math.round(player.damage));
+        setCachedText(stats.fireRate, `${player.fireRate.toFixed(1)} / sec`);
+        setCachedText(stats.speed, Math.round(player.maxSpeed));
+        setCachedText(stats.shieldRegen, `${player.shieldRegen.toFixed(1)} / sec`);
+        setCachedText(stats.energyRegen, `${player.energyRegen.toFixed(1)} / sec`);
+        setCachedText(stats.crit, `${Math.round(player.critChance * 100)}%`);
         const derived = getDerivedCombatMetrics(player);
-        if (stats.dps) {
-          stats.dps.textContent = Math.round(derived.dps).toLocaleString();
-        }
-        if (stats.ehp) {
-          stats.ehp.textContent = Math.round(derived.ehp).toLocaleString();
-        }
+        setCachedText(stats.dps, Math.round(derived.dps).toLocaleString());
+        setCachedText(stats.ehp, Math.round(derived.ehp).toLocaleString());
         if (stats.energySustain) {
           const sustain = Number.isFinite(derived.sustain) ? derived.sustain : 0;
-          stats.energySustain.textContent = `${sustain >= 0 ? "+" : ""}${sustain.toFixed(1)} / sec`;
+          setCachedText(stats.energySustain, `${sustain >= 0 ? "+" : ""}${sustain.toFixed(1)} / sec`);
         }
 
-        stats.shipName.textContent = player.ship ? player.ship.name : "-";
-        stats.weaponName.textContent = player.weapon ? player.weapon.name : "-";
-        stats.secondaryName.textContent = isFeatureUnlocked("secondary")
+        setCachedText(stats.shipName, player.ship ? player.ship.name : "-");
+        setCachedText(stats.weaponName, player.weapon ? player.weapon.name : "-");
+        setCachedText(stats.secondaryName, isFeatureUnlocked("secondary")
           ? (player.secondary ? player.secondary.name : "-")
-          : "Locked";
-        stats.sector.textContent = `Sector ${state.sector.toString().padStart(2, "0")}`;
-        stats.sectorMod.textContent = state.sectorMod ? state.sectorMod.name : "Clear";
+          : "Locked");
+        setCachedText(stats.sector, `Sector ${state.sector.toString().padStart(2, "0")}`);
+        setCachedText(stats.sectorMod, state.sectorMod ? state.sectorMod.name : "Clear");
         if (!isFeatureUnlocked("contracts")) {
-          stats.contractStatus.textContent = "Locked";
+          setCachedText(stats.contractStatus, "Locked");
         } else if (!state.contracts.length) {
-          stats.contractStatus.textContent = "Offline";
+          setCachedText(stats.contractStatus, "Offline");
         } else {
           const activeCount = state.contracts.filter((contract) => !contract.complete).length;
-          stats.contractStatus.textContent = activeCount ? `${activeCount} Active` : "Complete";
+          setCachedText(stats.contractStatus, activeCount ? `${activeCount} Active` : "Complete");
         }
-        if (stats.weeklyMutator) {
-          stats.weeklyMutator.textContent = state.weekly?.mutator?.label || "None";
-        }
-        if (stats.challengeSeed) {
-          stats.challengeSeed.textContent = state.challengeSeed || "-";
-        }
-        if (progress.settings.inputMode === "keyboard") {
-          stats.controlMode.textContent = "Keyboard";
+        setCachedText(stats.weeklyMutator, state.weekly?.mutator?.label || "None");
+        setCachedText(stats.challengeSeed, state.challengeSeed || "-");
+        if (input.touch.supported) {
+          setCachedText(stats.controlMode, "Touch");
+        } else if (progress.settings.inputMode === "keyboard") {
+          setCachedText(stats.controlMode, "Keyboard");
         } else if (progress.settings.inputMode === "controller") {
-          stats.controlMode.textContent = state.controllerConnected ? "Controller" : "Controller (No Pad)";
+          setCachedText(stats.controlMode, state.controllerConnected ? "Controller" : "Controller (No Pad)");
         } else {
-          stats.controlMode.textContent = "Hybrid";
+          setCachedText(stats.controlMode, "Hybrid");
         }
 
         if (!isFeatureUnlocked("ability")) {
-          stats.abilityStatus.textContent = "Locked";
+          setCachedText(stats.abilityStatus, "Locked");
         } else {
           const abilityReady = player.abilityCooldown <= 0 && player.abilityTimer <= 0;
-          stats.abilityStatus.textContent = player.abilityTimer > 0
+          setCachedText(stats.abilityStatus, player.abilityTimer > 0
             ? "Active"
             : abilityReady
               ? "Ready"
-              : `CD ${Math.ceil(player.abilityCooldown)}s`;
+              : `CD ${Math.ceil(player.abilityCooldown)}s`);
         }
 
         if (!isFeatureUnlocked("secondary")) {
-          stats.secondaryStatus.textContent = "Locked";
+          setCachedText(stats.secondaryStatus, "Locked");
         } else {
           const secondaryReady = player.secondaryCooldown <= 0;
-          stats.secondaryStatus.textContent = secondaryReady ? "Ready" : `CD ${Math.ceil(player.secondaryCooldown)}s`;
+          setCachedText(stats.secondaryStatus, secondaryReady ? "Ready" : `CD ${Math.ceil(player.secondaryCooldown)}s`);
         }
 
         syncHudMetaVisibility();
@@ -8913,9 +10623,13 @@
         if (hiddenCount > 0) {
           display.push({ kind: "summary", label: `+${hiddenCount} more` });
         }
-        dom.statusIcons.innerHTML = display.map((chip) => `
+        const html = display.map((chip) => `
           <span class="status-chip" data-kind="${chip.kind}">${chip.label}</span>
         `).join("");
+        if (hudTextCache.get(dom.statusIcons) !== html) {
+          hudTextCache.set(dom.statusIcons, html);
+          dom.statusIcons.innerHTML = html;
+        }
       }
 
       function updatePerformanceOverlayVisibility() {
@@ -8929,6 +10643,86 @@
           dom.perfDetailOverlay.hidden = !showDetail;
         }
         renderPerformanceOverlays(performance.now(), true);
+      }
+
+      function resetPerfBuckets(kind) {
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        Object.keys(buckets).forEach((key) => {
+          buckets[key] = 0;
+        });
+      }
+
+      function markPerfBucket(kind, key, start) {
+        if (!perfFrameActive) return start;
+        const now = performance.now();
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        buckets[key] = (buckets[key] || 0) + Math.max(0, now - start);
+        return now;
+      }
+
+      function addPerfBucket(kind, key, value) {
+        if (!perfFrameActive || !Number.isFinite(value)) return;
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        buckets[key] = (buckets[key] || 0) + Math.max(0, value);
+      }
+
+      function smoothPerfBuckets(kind, smoothing) {
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        const averages = kind === "render" ? perfMetrics.avgRenderBuckets : perfMetrics.avgUpdateBuckets;
+        Object.keys(buckets).forEach((key) => {
+          const value = buckets[key] || 0;
+          averages[key] = averages[key]
+            ? averages[key] * (1 - smoothing) + value * smoothing
+            : value;
+        });
+      }
+
+      function formatPerfBucketRows(buckets, labels) {
+        return Object.keys(labels).map((key) => `
+          <div class="perf-row"><span class="perf-label">${labels[key]}</span><span class="perf-value">${formatPerfValue(buckets[key] || 0)} ms</span></div>
+        `).join("");
+      }
+
+      function getPerfBottleneckLabel() {
+        const canvasMp = getCanvasMegapixels();
+        const renderScaleSetting = getRenderScaleSetting();
+        if (renderScaleSetting === "auto" && canvasMp > (getActiveRenderTargetPixels() / 1000000) * 1.12 && perfMetrics.avgRafWaitMs > 8) {
+          return state.renderBackend === "pixi" ? "Renderer pixels" : "Canvas pixels";
+        }
+        if (perfMetrics.avgLongTaskDeltaDuration > 12) {
+          return "Browser long tasks";
+        }
+        const candidates = [
+          ["RAF/browser wait", perfMetrics.avgRafWaitMs],
+          ["Render JS", perfMetrics.avgRenderMs],
+          ["Update JS", perfMetrics.avgUpdateMs],
+          ["HUD DOM", perfMetrics.avgHudMs]
+        ];
+        const updateLabels = {
+          ambient: "Update ambient",
+          player: "Update player",
+          enemies: "Update enemies",
+          systems: "Update systems",
+          collisions: "Update collisions",
+          wave: "Update wave"
+        };
+        const renderLabels = {
+          background: "Render bg",
+          stars: "Render stars",
+          world: "Render world",
+          vfx: "Render VFX",
+          entities: "Render entities",
+          overlays: "Render overlays",
+          minimap: "Minimap"
+        };
+        Object.keys(perfMetrics.avgUpdateBuckets).forEach((key) => {
+          candidates.push([updateLabels[key] || `Update ${key}`, perfMetrics.avgUpdateBuckets[key] || 0]);
+        });
+        Object.keys(perfMetrics.avgRenderBuckets).forEach((key) => {
+          candidates.push([renderLabels[key] || `Render ${key}`, perfMetrics.avgRenderBuckets[key] || 0]);
+        });
+        candidates.sort((a, b) => b[1] - a[1]);
+        return candidates[0] && Number.isFinite(candidates[0][1]) ? candidates[0][0] : "n/a";
       }
 
       function formatPerfValue(value, digits = 1) {
@@ -8952,8 +10746,12 @@
       }
 
       function buildPerformanceBasicHtml() {
+        const rendererInfo = getRendererInfo();
         return `
           <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-row"><span class="perf-label">Bottleneck</span><span class="perf-value">${perfMetrics.topBottleneck}</span></div>
+          <div class="perf-row"><span class="perf-label">Backend</span><span class="perf-value">${rendererInfo.backend}</span></div>
+          <div class="perf-row"><span class="perf-label">Tier</span><span class="perf-value">${state.performanceMode ? state.renderScaleTierLabel : "Off"}</span></div>
           <div class="perf-row"><span class="perf-label">Frame</span><span class="perf-value">${formatPerfValue(perfMetrics.avgFrameMs)} ms</span></div>
           <div class="perf-row"><span class="perf-label">Update</span><span class="perf-value">${formatPerfValue(perfMetrics.avgUpdateMs)} ms</span></div>
           <div class="perf-row"><span class="perf-label">Render</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRenderMs)} ms</span></div>
@@ -8976,14 +10774,41 @@
         const visibility = document.visibilityState || "unknown";
         const dpr = window.devicePixelRatio || 1;
         const renderScale = state.renderScale || dpr;
+        const autoInfo = getAutoRenderScaleInfo(Math.max(1, dpr));
+        const canvasMegapixels = getCanvasMegapixels();
+        const pixelBudget = autoInfo.targetMegapixels || AUTO_RENDER_TARGET_PIXELS / 1000000;
+        const renderScaleSetting = getRenderScaleSetting();
+        const rendererInfo = getRendererInfo();
         const canvasPx = dom.canvas
           ? `${dom.canvas.width}x${dom.canvas.height}`
           : "--";
+        const webglPx = rendererInfo.width && rendererInfo.height
+          ? `${rendererInfo.width}x${rendererInfo.height}`
+          : "--";
         const longTaskSummary = longTaskMetrics.supported
-          ? `${longTaskMetrics.count} • ${formatPerfValue(longTaskMetrics.totalDuration)} ms`
+          ? `${longTaskMetrics.count} • ${formatPerfValue(longTaskMetrics.totalDuration)} ms (+${formatPerfValue(perfMetrics.longTaskDeltaDuration)} ms)`
           : "n/a";
+        const updateRows = formatPerfBucketRows(perfMetrics.avgUpdateBuckets, {
+          ambient: "Ambient",
+          player: "Player/Input",
+          enemies: "Enemies/Grid",
+          systems: "Skills/Helpers",
+          collisions: "Bullets/Collisions",
+          wave: "Wave/Contracts"
+        });
+        const renderRows = formatPerfBucketRows(perfMetrics.avgRenderBuckets, {
+          background: "Background",
+          stars: "Stars",
+          world: "World",
+          vfx: "VFX",
+          overlays: "Bullets/Telegraphs",
+          entities: "Ships/Labels",
+          minimap: "Minimap"
+        });
         return `
-          <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-row perf-headline"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-row perf-headline"><span class="perf-label">Top Bottleneck</span><span class="perf-value">${perfMetrics.topBottleneck}</span></div>
+          <div class="perf-section-label">Frame</div>
           <div class="perf-grid">
             <div class="perf-row"><span class="perf-label">Frame Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgFrameMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">Frame Max</span><span class="perf-value">${formatPerfValue(perfMetrics.maxFrameMs)} ms</span></div>
@@ -8992,18 +10817,32 @@
             <div class="perf-row"><span class="perf-label">HUD Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgHudMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">RAF Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRafIntervalMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">RAF Max</span><span class="perf-value">${formatPerfValue(perfMetrics.maxRafIntervalMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Wait</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRafWaitMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">RAF Hz</span><span class="perf-value">${formatPerfValue(rafHz, 1)}</span></div>
             <div class="perf-row"><span class="perf-label">Idle Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgIdleMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">Util Avg</span><span class="perf-value">${formatPerfPercent(busyPercent, 0)}</span></div>
             <div class="perf-row"><span class="perf-label">Delta Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgDeltaMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">33ms+ /s</span><span class="perf-value">${formatPerfValue(perfMetrics.slowRate, 1)}</span></div>
             <div class="perf-row"><span class="perf-label">50ms+ /s</span><span class="perf-value">${formatPerfValue(perfMetrics.hitchRate, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">Long Tasks</span><span class="perf-value">${longTaskSummary}</span></div>
+          </div>
+          <div class="perf-section-label">Update</div>
+          <div class="perf-grid">${updateRows}</div>
+          <div class="perf-section-label">Render</div>
+          <div class="perf-grid">${renderRows}</div>
+          <div class="perf-section-label">Renderer</div>
+          <div class="perf-grid">
             <div class="perf-row"><span class="perf-label">Mode</span><span class="perf-value">${state.mode}</span></div>
+            <div class="perf-row"><span class="perf-label">Backend</span><span class="perf-value">${rendererInfo.backend}</span></div>
             <div class="perf-row"><span class="perf-label">Visibility</span><span class="perf-value">${visibility}</span></div>
             <div class="perf-row"><span class="perf-label">Focus</span><span class="perf-value">${focusState}</span></div>
             <div class="perf-row"><span class="perf-label">DPR</span><span class="perf-value">${formatPerfValue(dpr, 2)}</span></div>
             <div class="perf-row"><span class="perf-label">Render Scale</span><span class="perf-value">${formatPerfValue(renderScale, 2)}</span></div>
-            <div class="perf-row"><span class="perf-label">Long Tasks</span><span class="perf-value">${longTaskSummary}</span></div>
+            <div class="perf-row"><span class="perf-label">WebGL Px</span><span class="perf-value">${webglPx}</span></div>
+            <div class="perf-row"><span class="perf-label">Scale Mode</span><span class="perf-value">${renderScaleSetting}</span></div>
+            <div class="perf-row"><span class="perf-label">Performance Mode</span><span class="perf-value">${state.performanceMode ? state.renderScaleTierLabel : "Off"}</span></div>
+            <div class="perf-row"><span class="perf-label">Auto Cap</span><span class="perf-value">${formatPerfValue(state.renderScaleAutoCap || autoInfo.cap, 2)} (${state.renderScaleAutoReason || autoInfo.reason})</span></div>
+            <div class="perf-row"><span class="perf-label">Canvas MP</span><span class="perf-value">${formatPerfValue(canvasMegapixels, 2)} / ${formatPerfValue(pixelBudget, 1)}</span></div>
             <div class="perf-row"><span class="perf-label">Enemies</span><span class="perf-value">${enemies.length}</span></div>
             <div class="perf-row"><span class="perf-label">Bullets</span><span class="perf-value">${bullets.length}</span></div>
             <div class="perf-row"><span class="perf-label">Particles</span><span class="perf-value">${particles.length}</span></div>
@@ -9028,7 +10867,8 @@
         const showSettings = !!(settingsPanel && !settingsPanel.hidden);
         const allowSettingsMetrics = perfMode !== "off";
         if (!showBasic && !showDetail && !showSettings) return;
-        if (!force && now - perfMetrics.lastOverlayUpdate < 250) return;
+        const overlayInterval = showDetail ? 1000 : 250;
+        if (!force && now - perfMetrics.lastOverlayUpdate < overlayInterval) return;
         perfMetrics.lastOverlayUpdate = now;
         const basicHtml = buildPerformanceBasicHtml();
         const detailHtml = (showDetail || (showSettings && perfMode === "detail"))
@@ -9076,16 +10916,22 @@
         const idleMs = perfMetrics.lastFrameEnd ? Math.max(0, frameStart - perfMetrics.lastFrameEnd) : 0;
         const frameMs = now - frameStart;
         const rafIntervalMs = Math.max(0, rafDeltaMs || 0);
+        const rafWaitMs = Math.max(0, rafIntervalMs - frameMs);
         const busyRatio = rafIntervalMs ? frameMs / rafIntervalMs : 0;
         const smoothing = 0.12;
+        const longTaskDeltaCount = Math.max(0, longTaskMetrics.count - perfMetrics.lastLongTaskCount);
+        const longTaskDeltaDuration = Math.max(0, longTaskMetrics.totalDuration - perfMetrics.lastLongTaskDuration);
         perfMetrics.frameMs = frameMs;
         perfMetrics.updateMs = updateMs;
         perfMetrics.renderMs = renderMs;
         perfMetrics.hudMs = hudMs;
         perfMetrics.rafIntervalMs = rafIntervalMs;
+        perfMetrics.rafWaitMs = rafWaitMs;
         perfMetrics.idleMs = idleMs;
         perfMetrics.busyRatio = busyRatio;
         perfMetrics.deltaMs = deltaMs;
+        perfMetrics.longTaskDeltaCount = longTaskDeltaCount;
+        perfMetrics.longTaskDeltaDuration = longTaskDeltaDuration;
         perfMetrics.avgFrameMs = perfMetrics.avgFrameMs
           ? perfMetrics.avgFrameMs * (1 - smoothing) + frameMs * smoothing
           : frameMs;
@@ -9101,6 +10947,9 @@
         perfMetrics.avgRafIntervalMs = perfMetrics.avgRafIntervalMs
           ? perfMetrics.avgRafIntervalMs * (1 - smoothing) + rafIntervalMs * smoothing
           : rafIntervalMs;
+        perfMetrics.avgRafWaitMs = perfMetrics.avgRafWaitMs
+          ? perfMetrics.avgRafWaitMs * (1 - smoothing) + rafWaitMs * smoothing
+          : rafWaitMs;
         perfMetrics.avgIdleMs = perfMetrics.avgIdleMs
           ? perfMetrics.avgIdleMs * (1 - smoothing) + idleMs * smoothing
           : idleMs;
@@ -9110,8 +10959,14 @@
         perfMetrics.avgDeltaMs = perfMetrics.avgDeltaMs
           ? perfMetrics.avgDeltaMs * (1 - smoothing) + deltaMs * smoothing
           : deltaMs;
+        perfMetrics.avgLongTaskDeltaDuration = perfMetrics.avgLongTaskDeltaDuration
+          ? perfMetrics.avgLongTaskDeltaDuration * (1 - smoothing) + longTaskDeltaDuration * smoothing
+          : longTaskDeltaDuration;
+        smoothPerfBuckets("update", smoothing);
+        smoothPerfBuckets("render", smoothing);
         perfMetrics.maxFrameMs = Math.max(perfMetrics.maxFrameMs, frameMs);
         perfMetrics.maxRafIntervalMs = Math.max(perfMetrics.maxRafIntervalMs, rafIntervalMs);
+        perfMetrics.topBottleneck = getPerfBottleneckLabel();
         perfMetrics.frames += 1;
         if (rafIntervalMs >= 33) perfMetrics.slowFrames += 1;
         if (rafIntervalMs >= 50) perfMetrics.hitchFrames += 1;
@@ -9128,13 +10983,18 @@
           perfMetrics.hitchFrames = 0;
         }
         perfMetrics.lastFrameEnd = now;
+        perfMetrics.lastLongTaskCount = longTaskMetrics.count;
+        perfMetrics.lastLongTaskDuration = longTaskMetrics.totalDuration;
         appendPerfLogSample(now);
         renderPerformanceOverlays(now);
       }
 
       function updatePerfLogUi() {
         if (dom.perfLogBtn) {
-          dom.perfLogBtn.textContent = perfLog.active ? "Stop & Download Log" : "Start Perf Log";
+          const label = perfLog.active ? "Stop and download performance log" : "Start performance log";
+          setIconButtonContent(dom.perfLogBtn, "activity", label, {
+            visibleLabel: perfLog.active ? "Stop" : "Log"
+          });
           dom.perfLogBtn.setAttribute("aria-pressed", perfLog.active ? "true" : "false");
         }
         if (dom.perfLogStatus) {
@@ -9169,7 +11029,7 @@
         perfLog.entries.push(`# Sample Interval: ${perfLog.sampleIntervalMs} ms`);
         perfLog.lastLongTaskCount = longTaskMetrics.count;
         perfLog.lastLongTaskDuration = longTaskMetrics.totalDuration;
-        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,idle_ms,busy_pct,delta_ms,enemies,bullets,particles,pulses,blackholes,mines,helpers,obstacles,stars,longtasks_total,longtasks_delta,longtask_ms_total,longtask_ms_delta,mode,visibility,focus,dpr,render_scale,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb");
+        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,raf_wait_ms,idle_ms,busy_pct,delta_ms,bottleneck,update_ambient_ms,update_player_ms,update_enemies_ms,update_systems_ms,update_collisions_ms,update_wave_ms,render_background_ms,render_stars_ms,render_world_ms,render_vfx_ms,render_overlays_ms,render_entities_ms,render_minimap_ms,enemies,bullets,particles,pulses,blackholes,mines,helpers,obstacles,stars,longtasks_total,longtasks_delta,longtask_ms_total,longtask_ms_delta,mode,visibility,focus,dpr,render_scale,render_scale_mode,auto_cap,canvas_mp,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb,render_backend,webgl_px_w,webgl_px_h");
         updatePerfLogUi();
         logEvent("Performance log recording started.");
       }
@@ -9197,8 +11057,12 @@
           : "n/a";
         const dpr = window.devicePixelRatio || 1;
         const renderScale = state.renderScale || dpr;
+        const renderScaleSetting = getRenderScaleSetting();
+        const autoInfo = getAutoRenderScaleInfo(Math.max(1, dpr));
         const canvasPxW = dom.canvas ? dom.canvas.width : 0;
         const canvasPxH = dom.canvas ? dom.canvas.height : 0;
+        const canvasMegapixels = canvasPxW && canvasPxH ? (canvasPxW * canvasPxH) / 1000000 : 0;
+        const rendererInfo = getRendererInfo();
         const longTaskCount = longTaskMetrics.count;
         const longTaskDuration = longTaskMetrics.totalDuration;
         const longTaskDelta = Math.max(0, longTaskCount - perfLog.lastLongTaskCount);
@@ -9211,9 +11075,24 @@
           formatPerfLogNumber(perfMetrics.renderMs, 2),
           formatPerfLogNumber(perfMetrics.hudMs, 2),
           formatPerfLogNumber(perfMetrics.rafIntervalMs, 2),
+          formatPerfLogNumber(perfMetrics.rafWaitMs, 2),
           formatPerfLogNumber(perfMetrics.idleMs, 2),
           formatPerfLogNumber(perfMetrics.busyRatio * 100, 1),
           formatPerfLogNumber(perfMetrics.deltaMs, 2),
+          perfMetrics.topBottleneck,
+          formatPerfLogNumber(perfMetrics.updateBuckets.ambient || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.player || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.enemies || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.systems || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.collisions || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.wave || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.background || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.stars || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.world || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.vfx || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.overlays || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.entities || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.minimap || 0, 2),
           enemies.length,
           bullets.length,
           particles.length,
@@ -9232,13 +11111,19 @@
           focusState,
           formatPerfLogNumber(dpr, 2),
           formatPerfLogNumber(renderScale, 2),
+          renderScaleSetting,
+          formatPerfLogNumber(state.renderScaleAutoCap || autoInfo.cap, 2),
+          formatPerfLogNumber(canvasMegapixels, 3),
           Math.round(state.width),
           Math.round(state.height),
           canvasPxW,
           canvasPxH,
           state.worldWidth,
           state.worldHeight,
-          memory !== null ? memory.toFixed(1) : ""
+          memory !== null ? memory.toFixed(1) : "",
+          rendererInfo.backend,
+          rendererInfo.width || 0,
+          rendererInfo.height || 0
         ].join(",");
         perfLog.lastLongTaskCount = longTaskCount;
         perfLog.lastLongTaskDuration = longTaskDuration;
@@ -10028,7 +11913,7 @@
           ? 1
           : (Number.isFinite(item.maxLevel) ? Math.max(1, item.maxLevel) : 1);
         if (currentLevel >= maxLevel) {
-          showTip(null, "Premium Shop", "Item already maxed.", { kind: "info", repeatable: true, duration: 3000 });
+          showTip(null, "Astralite Forge", "Item already maxed.", { kind: "info", repeatable: true, duration: 3000 });
           return;
         }
         const cost = getPremiumItemCost(item, currentLevel);
@@ -10059,23 +11944,23 @@
 
         const nextLevel = getPremiumItemLevel(item);
         const rankLabel = item.kind === "one-time" ? "unlocked" : `level ${nextLevel}/${maxLevel}`;
-        showTip(null, "Premium upgrade", `${item.name} ${rankLabel}.`, {
+        showTip(null, "Forge upgrade", `${item.name} ${rankLabel}.`, {
           kind: "reward",
           repeatable: true,
           duration: 5200
         });
-        logEvent(`Premium shop: ${item.name} ${rankLabel}.`);
+        logEvent(`Astralite Forge: ${item.name} ${rankLabel}.`);
       }
 
       function renderPremiumShop() {
         if (!dom.premiumShop) return;
         if (!isFeatureUnlocked("premium")) {
-          dom.premiumShop.innerHTML = renderLockedCard("Premium shop locked", getFeatureHint("premium"));
+          dom.premiumShop.innerHTML = renderLockedCard("Astralite Forge locked", getFeatureHint("premium"));
           return;
         }
         const items = Array.isArray(PREMIUM_SHOP_ITEMS) ? PREMIUM_SHOP_ITEMS : [];
         if (!items.length) {
-          dom.premiumShop.innerHTML = "<span class=\"select-meta\">Premium shop inventory unavailable.</span>";
+          dom.premiumShop.innerHTML = "<span class=\"select-meta\">Astralite Forge inventory unavailable.</span>";
           return;
         }
         ensurePremiumState();
@@ -10123,9 +12008,9 @@
         dom.premiumShop.innerHTML = `
           <div class="select-card is-static">
             <span class="select-title">${PREMIUM_CURRENCY_LABEL}: ${balance.toLocaleString()}</span>
-            <span class="select-meta">Premium upgrades are permanent and account-wide.</span>
+            <span class="select-meta">Forge upgrades are permanent and account-wide.</span>
             <span class="select-meta">Limited combat drops from elite and boss enemies, up to ${PREMIUM_DROP_RUN_CAP} per run.</span>
-            <span class="select-meta">Premium pity: ${Math.min(PREMIUM_DROP_PITY_THRESHOLD, progress.premiumDropPity || 0)} / ${PREMIUM_DROP_PITY_THRESHOLD}</span>
+            <span class="select-meta">Astralite pity: ${Math.min(PREMIUM_DROP_PITY_THRESHOLD, progress.premiumDropPity || 0)} / ${PREMIUM_DROP_PITY_THRESHOLD}</span>
           </div>
           <div class="tier-section">
             <div class="tier-header">
@@ -10423,6 +12308,7 @@
       }
 
       function renderSettings() {
+        syncModeOptions();
         const modeGroup = document.querySelector("[data-setting='game-mode']");
         const difficultyGroup = document.querySelector("[data-setting='difficulty']");
         const inputGroup = document.querySelector("[data-setting='input-mode']");
@@ -10450,7 +12336,7 @@
             : setting === "audio" ? (progress.settings.audio || "on")
             : setting === "palette" ? (progress.settings.palette || "default")
             : setting === "perf-mode" ? getPerfMode()
-            : setting === "render-scale" ? (progress.settings.renderScale || "auto")
+            : setting === "render-scale" ? getRenderScaleSetting()
             : progress.settings.hitFlash ? "on" : "off";
           group.querySelectorAll(".option-btn").forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.option === value);
@@ -10458,6 +12344,7 @@
         });
 
         syncSettingsVisibility();
+        syncFeatureReveals();
         renderKeybinds();
         renderPerformanceOverlays(performance.now(), true);
         updatePerfLogUi();
@@ -10486,7 +12373,7 @@
           const modeLabel = run.mode ? ` • ${run.mode}` : "";
           const score = Number.isFinite(run.score) ? Math.round(run.score).toLocaleString() : run.score;
           const credits = Number.isFinite(run.credits) ? Math.round(run.credits).toLocaleString() : run.credits;
-          const usesLevel = run.mode !== "Frontier" && Number.isFinite(run.level);
+          const usesLevel = run.mode === "Campaign" && Number.isFinite(run.level);
           const progressText = usesLevel
             ? `Level ${run.level} • Wave ${run.wave}/${LEVEL_WAVES}`
             : `Wave ${run.wave}`;
@@ -10529,7 +12416,7 @@
           return `
             <div class="history-entry">
               <strong>${entry.ship || "Unknown"} / ${entry.weapon || "Unknown"}</strong>
-              <span>${entry.waveDisplay || "Wave 1"} • ${entry.kills || 0} kills • Score ${score} • ${entry.mode || "Arcade"}</span>
+              <span>${entry.waveDisplay || "Wave 1"} • ${entry.kills || 0} kills • Score ${score} • ${entry.mode || "Campaign"}</span>
               <span>ACC ${accuracyPct} • DMG ${dealt}/${taken} • A${entry.abilityUses || 0} S${entry.secondaryUses || 0} O${entry.objectiveCompletions || 0}</span>
               <span>${mobility}</span>
               <span class="muted">${systems}${systems ? " • " : ""}${timestamp}</span>
@@ -10721,6 +12608,30 @@
         return glyphs.map((glyph) => `<span class="upgrade-glyph">${glyph}</span>`).join("");
       }
 
+      function getUpgradeChoiceDescription(upgrade, nextLevel) {
+        if (!upgrade) return "";
+        if (upgrade.desc) return upgrade.desc;
+        const glyphs = getUpgradeGlyphs(upgrade, nextLevel);
+        if (glyphs.length) {
+          return `Improves ${glyphs.map((glyph) => glyph.replace(/\s*[↑↓]$/u, "").toLowerCase()).join(", ")}.`;
+        }
+        return "Improves this run immediately.";
+      }
+
+      function getUpgradeSynergyHint(upgrade) {
+        if (!upgrade) return "";
+        const category = normalizeCategory(upgrade.category || "");
+        const pathId = progress.buildPath || "balanced";
+        if (pathId === "crit" && category === "offense") return "Fits Critical Overwatch.";
+        if (pathId === "drone" && /helper|escort|drone|wing/i.test(`${upgrade.id} ${upgrade.name}`)) return "Fits Drone Command.";
+        if (pathId === "singularity" && (category === "control" || /arc|black|slow|freeze/i.test(`${upgrade.id} ${upgrade.name}`))) {
+          return "Fits Singularity Doctrine.";
+        }
+        if (pathId === "brawler" && (category === "defense" || category === "mobility")) return "Fits Brawler Core.";
+        if (isSkillUpgrade(upgrade)) return `Uses one of ${SKILL_LIMIT} skill slots.`;
+        return "";
+      }
+
       function getRewardIcon(reward) {
         const icons = {
           credits: "🪙",
@@ -10748,6 +12659,86 @@
         return amount.toLocaleString();
       }
 
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function renderUiIcon(name) {
+        const paths = UI_ICON_PATHS[name] || UI_ICON_PATHS.menu;
+        return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths}</svg>`;
+      }
+
+      function renderIconLabel(icon, label, options = {}) {
+        const labelClass = options.iconOnly ? "btn-label" : (options.labelClass || "btn-label");
+        const visibleLabel = options.visibleLabel || label;
+        return `${renderUiIcon(icon)}<span class="${labelClass}">${escapeHtml(visibleLabel)}</span>`;
+      }
+
+      function setIconButtonContent(button, icon, label, options = {}) {
+        if (!button) return;
+        const visibleLabel = options.visibleLabel || button.dataset.compactLabel || label;
+        button.setAttribute("aria-label", label);
+        if (options.iconOnly || button.dataset.iconOnly === "true" || button.classList.contains("btn-icon-only")) {
+          button.title = label;
+        }
+        button.innerHTML = renderIconLabel(icon, label, {
+          iconOnly: options.iconOnly || button.dataset.iconOnly === "true" || button.classList.contains("btn-icon-only"),
+          visibleLabel
+        });
+      }
+
+      function hydrateIconButtons(root = document) {
+        root.querySelectorAll("[data-ui-icon]").forEach((button) => {
+          const label = button.dataset.uiLabel || button.getAttribute("aria-label") || button.textContent.trim();
+          setIconButtonContent(button, button.dataset.uiIcon, label);
+        });
+      }
+
+      function getTabIconName(target) {
+        const icons = {
+          systems: "ship",
+          progress: "progress",
+          settings: "options",
+          upgrades: "boosts",
+          armory: "gear",
+          shipyard: "ships",
+          contracts: "tasks",
+          premium: "forge"
+        };
+        return icons[target] || "menu";
+      }
+
+      function getOverlayActionIcon(action) {
+        const icons = {
+          launch: "play",
+          resume: "play",
+          restart: "replay",
+          reset: "hangar",
+          "next-level": "next",
+          help: "help",
+          training: "practice",
+          tutorial: "tutorial",
+          "command-menu": "menu",
+          "tutorial-prev": "back",
+          "tutorial-next": "next",
+          "tutorial-close": "close",
+          "tutorial-training": "practice",
+          "glossary-close": "close",
+          reroll: "reroll",
+          skip: "skip",
+          "dock-close": "play",
+          dock: "hangar",
+          "tier-up": "next",
+          "salvage-close": "gear"
+        };
+        return icons[action] || "menu";
+      }
+
       function sortRewardsByTier(rewards) {
         if (!Array.isArray(rewards)) return [];
         return rewards.slice().sort((a, b) => {
@@ -10757,6 +12748,282 @@
           if (diff !== 0) return diff;
           return (a && a.title ? a.title : "").localeCompare(b && b.title ? b.title : "");
         });
+      }
+
+      function buildRewardSummaryItems(rewards) {
+        if (!Array.isArray(rewards) || !rewards.length) return [];
+        const currencyTypes = new Set(["credits", "blueprints", "salvage"]);
+        const currencyLabels = {
+          credits: "Credits",
+          blueprints: "Blueprints",
+          salvage: "Salvage keys"
+        };
+        const currencies = new Map();
+        const gear = [];
+        rewards.filter(Boolean).forEach((reward) => {
+          if (currencyTypes.has(reward.type)) {
+            const current = currencies.get(reward.type) || {
+              type: reward.type,
+              amount: 0,
+              tier: reward.tier || "common",
+              label: currencyLabels[reward.type] || getRewardLabel(reward),
+              icon: getRewardIcon(reward)
+            };
+            current.amount += Number.isFinite(reward.amount) ? reward.amount : 1;
+            if (getTierIndex(reward.tier || "common") > getTierIndex(current.tier)) {
+              current.tier = reward.tier || current.tier;
+            }
+            currencies.set(reward.type, current);
+            return;
+          }
+          if (reward.type === "part" || reward.type === "weapon") {
+            gear.push(reward);
+          }
+        });
+        const sortedGear = gear
+          .slice()
+          .sort((a, b) => {
+            const tierDiff = getTierIndex(b.tier || "common") - getTierIndex(a.tier || "common");
+            if (tierDiff !== 0) return tierDiff;
+            return (a.title || getRewardLabel(a)).localeCompare(b.title || getRewardLabel(b));
+          });
+        const gearItems = sortedGear
+          .slice(0, 2)
+          .map((reward) => {
+            const tier = reward.tier || "common";
+            return {
+              type: reward.type,
+              tier,
+              icon: getRewardIcon(reward),
+              label: reward.title || getRewardLabel(reward),
+              value: formatTierLabel(tier)
+            };
+          });
+        if (gear.length > 2) {
+          gearItems.push({
+            type: "gear-more",
+            tier: sortedGear[2]?.tier || "common",
+            icon: "★",
+            label: "More gear",
+            value: `+${gear.length - 2}`
+          });
+        }
+        const currencyItems = Array.from(currencies.values())
+          .sort((a, b) => {
+            const order = { credits: 0, blueprints: 1, salvage: 2 };
+            return (order[a.type] ?? 9) - (order[b.type] ?? 9);
+          })
+          .map((reward) => ({
+            type: reward.type,
+            tier: reward.tier || "common",
+            icon: reward.icon,
+            label: reward.label,
+            value: `+${formatRewardValue(reward)}`
+          }));
+        return [...gearItems, ...currencyItems.slice(0, Math.max(0, 4 - gearItems.length))].slice(0, 4);
+      }
+
+      function renderSimpleRewardTiles(items, emptyCopy) {
+        if (!items.length) {
+          return `<div class="result-empty">${escapeHtml(emptyCopy || "No rewards recovered.")}</div>`;
+        }
+        return `
+          <div class="result-rewards" aria-label="Rewards won">
+            ${items.map((item) => `
+              <div class="result-reward-tile" data-tier="${item.tier || "common"}">
+                <span class="result-reward-icon" aria-hidden="true">${escapeHtml(item.icon || "★")}</span>
+                <strong class="result-reward-value">${escapeHtml(item.value || "")}</strong>
+                <span class="result-reward-label">${escapeHtml(item.label || "Reward")}</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function buildRunResultStats(summary, context) {
+        const stats = [];
+        if (context === "victory") {
+          stats.push({ label: "Level", value: summary.level || 1 });
+        } else if (context === "quick") {
+          stats.push({ label: "Mode", value: getRunModeLabel() });
+        } else {
+          stats.push({ label: "Wave", value: summary.waveDisplay || getWaveDisplay(summary.wave || state.wave) });
+        }
+        stats.push({ label: "Kills", value: Math.round(summary.kills || 0).toLocaleString() });
+        stats.push({ label: "Score", value: Math.round(summary.score || 0).toLocaleString() });
+        return stats.slice(0, 3);
+      }
+
+      function renderRunResultStats(stats) {
+        return `
+          <div class="result-summary-strip" aria-label="Run summary">
+            ${stats.map((stat) => `
+              <div class="result-summary-stat">
+                <span>${escapeHtml(stat.label)}</span>
+                <strong>${escapeHtml(stat.value)}</strong>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function getRunResultModel(mode) {
+        const victory = mode === "victory";
+        const aborted = mode === "gameover" && !!state.runEndedByAbort;
+        const quickComplete = mode === "gameover" && (state.lastRunReason === "time" || state.lastRunReason === "boss-rush");
+        const training = mode === "gameover" && !!state.training;
+        const result = victory ? state.levelRewards : state.lossRewards;
+        const summary = result ? result.summary : (state.lastRunSummary || getRunSummary());
+        const level = result && result.level ? result.level : summary.level;
+        const nextLevel = Math.max(progress.campaignLevel || level + 1, level + 1);
+        const rewards = training || aborted || !result ? [] : buildRewardSummaryItems(result.rewards || []);
+        const detailChips = [
+          `Time ${formatDuration(summary.durationSec || 0)}`,
+          `${summary.difficultyLabel || "Normal"} difficulty`,
+          `${Math.round(summary.credits || 0).toLocaleString()} credits banked`
+        ];
+        if (result && result.tier) {
+          detailChips.push(`${formatTierLabel(result.tier)} ${victory ? "rewards" : "performance"}`);
+        }
+        if (victory) {
+          return {
+            context: "victory",
+            eyebrow: `Level ${level} cleared`,
+            title: "Rewards secured",
+            copy: `Level rewards are banked. Launch Level ${nextLevel} or refit first.`,
+            emptyCopy: "No rewards recovered.",
+            rewards,
+            stats: buildRunResultStats(summary, "victory"),
+            details: {
+              chips: [`Level ${level}`, ...detailChips],
+              highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: `Launch Level ${nextLevel}`, action: "next-level" },
+            secondaryAction: { label: "Return to hangar", action: "reset" }
+          };
+        }
+        if (training) {
+          return {
+            context: "training",
+            eyebrow: "Practice done",
+            title: "Practice complete",
+            copy: "No rewards this time. Return to the hangar when ready.",
+            emptyCopy: "Practice has no loot.",
+            rewards,
+            stats: buildRunResultStats(summary, "training"),
+            details: {
+              chips: detailChips,
+              highlights: [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: "Return to hangar", action: "reset" },
+            secondaryAction: null
+          };
+        }
+        if (aborted) {
+          return {
+            context: "aborted",
+            eyebrow: "Run aborted",
+            title: "Mission aborted",
+            copy: "The sortie ended early. Return to the hangar to refit.",
+            emptyCopy: "No rewards recovered.",
+            rewards,
+            stats: buildRunResultStats(summary, "aborted"),
+            details: {
+              chips: detailChips,
+              highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: "Return to hangar", action: "reset" },
+            secondaryAction: null
+          };
+        }
+        if (quickComplete) {
+          return {
+            context: "quick",
+            eyebrow: `${getRunModeLabel()} complete`,
+            title: "Run complete",
+            copy: "Rewards are banked. Replay the mode or refit in the hangar.",
+            emptyCopy: "No rewards recovered.",
+            rewards,
+            stats: buildRunResultStats(summary, "quick"),
+            details: {
+              chips: detailChips,
+              highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: "Play again", action: "restart" },
+            secondaryAction: { label: "Return to hangar", action: "reset" }
+          };
+        }
+        return {
+          context: "loss",
+          eyebrow: "Run ended",
+          title: "Ship down",
+          copy: "Recovered rewards are banked. Return to the hangar to refit.",
+          emptyCopy: "No salvage recovered.",
+          rewards,
+          stats: buildRunResultStats(summary, "loss"),
+          details: {
+            chips: detailChips,
+            highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+            debrief: renderRunDebriefSection()
+          },
+          primaryAction: { label: "Return to hangar", action: "reset" },
+          secondaryAction: { label: "Play again", action: "restart" }
+        };
+      }
+
+      function renderRunResultDetails(model) {
+        const chips = model.details?.chips || [];
+        const highlights = model.details?.highlights || [];
+        const debrief = model.details?.debrief || "";
+        if (!chips.length && !highlights.length && !debrief) return "";
+        const chipList = chips.length
+          ? `<div class="chip-list">${chips.map((label) => `<span class="chip">${escapeHtml(label)}</span>`).join("")}</div>`
+          : "";
+        const highlightList = highlights.length
+          ? `<div class="chip-list">${highlights.map((label) => `<span class="chip" data-tier="legendary">${escapeHtml(label)}</span>`).join("")}</div>`
+          : "";
+        return `
+          <details class="result-details">
+            <summary>Run details</summary>
+            <div class="result-details-body">
+              ${chipList}
+              ${highlightList}
+              ${debrief}
+            </div>
+          </details>
+        `;
+      }
+
+      function renderRunResultAction(action, primary) {
+        if (!action) return "";
+        const buttonClass = primary ? "btn primary" : "btn ghost";
+        const icon = getOverlayActionIcon(action.action);
+        return `<button class="${buttonClass}" data-overlay-action="${escapeAttribute(action.action)}">${renderIconLabel(icon, action.label)}</button>`;
+      }
+
+      function renderRunResultOverlay(mode) {
+        const model = getRunResultModel(mode);
+        return `
+          <div class="overlay-header result-header">
+            <p class="eyebrow">${escapeHtml(model.eyebrow)}</p>
+            <h3>${escapeHtml(model.title)}</h3>
+            <p>${escapeHtml(model.copy)}</p>
+          </div>
+          <div class="result-section">
+            <span class="result-section-title">Rewards won</span>
+            ${renderSimpleRewardTiles(model.rewards, model.emptyCopy)}
+          </div>
+          ${renderRunResultStats(model.stats)}
+          ${renderRunResultDetails(model)}
+          <div class="overlay-actions result-actions">
+            ${renderRunResultAction(model.primaryAction, true)}
+            ${renderRunResultAction(model.secondaryAction, false)}
+          </div>
+        `;
       }
 
       function getSalvageRevealDelay(tier, index) {
@@ -10940,6 +13207,7 @@
 
       function setOverlay(mode) {
         state.overlayMode = mode;
+        dom.overlayContent.classList.toggle("is-result-card", mode === "gameover" || mode === "victory");
         if (mode === "start") {
           const fireKey = formatKeybind(progress.keybinds.fire);
           const boostKey = formatKeybind(progress.keybinds.boost);
@@ -10949,11 +13217,22 @@
           const helpKey = formatKeybind(progress.keybinds.help || "h");
           const brakeKey = formatKeybind(progress.keybinds.brake || "x");
           const level = Math.max(1, progress.campaignLevel || 1);
-          const modeLabel = isFrontierMode() ? "Frontier patrol" : `Level ${level}`;
-          const modeCopy = isFrontierMode()
-            ? "Survive as long as you can. Dock mid-run to boost."
-            : `Clear ${LEVEL_WAVES} waves. Boss on wave ${LEVEL_WAVES}.`;
-          const phase = getUiPhaseSummary();
+          let modeLabel = `Campaign Level ${level}`;
+          let modeCopy = `Clear ${LEVEL_WAVES} waves. Boss on wave ${LEVEL_WAVES}.`;
+          if (isFrontierMode()) {
+            modeLabel = "Frontier patrol";
+            modeCopy = "Survive as long as you can. Dock mid-run to boost.";
+          } else if (isScoreAttackMode()) {
+            modeLabel = "Score Attack";
+            modeCopy = `Score as high as possible in ${formatDuration(SCORE_ATTACK_DURATION_SEC)}.`;
+          } else if (isDailyMode()) {
+            const daily = getDailyChallengeInfo();
+            modeLabel = "Daily Sector";
+            modeCopy = `Shared daily seed ${daily.seed}. Timer: ${formatDuration(DAILY_SECTOR_DURATION_SEC)}.`;
+          } else if (isBossRushMode()) {
+            modeLabel = "Boss Rush";
+            modeCopy = `Clear ${BOSS_RUSH_WAVES} capital waves with shorter build-up.`;
+          }
           const next = getNextLockedMilestone();
           const aimKeys = [
             progress.keybinds.aimUp,
@@ -10961,22 +13240,38 @@
             progress.keybinds.aimDown,
             progress.keybinds.aimRight
           ].map(formatKeybind).join("/");
-          const controlLines = [
-            `Move: WASD. Aim: mouse or ${aimKeys}.`,
-            `Shoot: ${fireKey}. Boost: ${boostKey}.`,
-            `Pause: P or Esc. Help: ${helpKey}.`
-          ];
+          const controlLines = input.touch.supported
+            ? [
+              "Move: left stick.",
+              "Aim and fire: right stick.",
+              "Boost, brake, pause, and help: tap the on-screen buttons."
+            ]
+            : [
+              `Move: WASD. Aim: mouse or ${aimKeys}.`,
+              `Shoot: ${fireKey}. Boost: ${boostKey}.`,
+              `Pause: P or Esc. Help: ${helpKey}.`
+            ];
           if (isFeatureUnlocked("ability")) {
-            controlLines.splice(2, 0, `Ability: ${abilityKey}.`);
+            controlLines.splice(2, 0, input.touch.supported ? "Ability: tap the star action button." : `Ability: ${abilityKey}.`);
           }
           if (isFeatureUnlocked("secondary")) {
-            controlLines.splice(Math.min(controlLines.length, 3), 0, `Secondary: ${secondaryKey}.`);
+            controlLines.splice(
+              Math.min(controlLines.length, 3),
+              0,
+              input.touch.supported ? "Secondary: tap the gear action button." : `Secondary: ${secondaryKey}.`
+            );
           }
           if (getUiTierLevel() >= 1) {
-            controlLines.push(`Air Brake: ${brakeKey} for quick turns and target snaps.`);
+            controlLines.push(input.touch.supported
+              ? "Air Brake: hold the brake button for quick turns and target snaps."
+              : `Air Brake: ${brakeKey} for quick turns and target snaps.`);
           }
           if (isFrontierMode()) {
-            controlLines.push(`Dock: ${dockKey} for quick boosts.`);
+            controlLines.push(input.touch.supported ? "Dock: tap the hangar button for quick boosts." : `Dock: ${dockKey} for quick boosts.`);
+          } else if (isTimedQuickMode()) {
+            controlLines.push(`Timer ends the run automatically and banks rewards.`);
+          } else if (isBossRushMode()) {
+            controlLines.push(`Clear ${BOSS_RUSH_WAVES} boss waves to bank the rush.`);
           } else {
             controlLines.push(`Beat wave ${LEVEL_WAVES} to unlock the next level.`);
           }
@@ -10988,16 +13283,27 @@
             <div class="overlay-header">
               <p class="eyebrow">Ready to fly</p>
               <h3>${modeLabel}</h3>
-              <p>${modeCopy} ${phase.recommendation}</p>
+              <p>${modeCopy}</p>
             </div>
-            <ul class="overlay-list">
-              ${controlLines.map((line) => `<li>${line}</li>`).join("")}
-            </ul>
             <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="launch">Play Campaign</button>
-              <button class="btn ghost" data-action="training">Practice First</button>
-              <button class="btn ghost" data-action="tutorial">Tutorial</button>
+              <button class="btn primary" data-overlay-action="launch">${renderIconLabel("play", `Play ${getRunModeLabel()}`)}</button>
+              <button class="btn ghost" data-action="training">${renderIconLabel("practice", "Practice")}</button>
             </div>
+            <details class="panel-subsection panel-disclosure start-help">
+              <summary class="panel-disclosure-toggle">
+                <span class="panel-disclosure-title">How to play</span>
+                <span class="panel-disclosure-meta">Controls</span>
+              </summary>
+              <div class="panel-disclosure-body">
+                <ul class="overlay-list">
+                  ${controlLines.map((line) => `<li>${line}</li>`).join("")}
+                </ul>
+                <div class="overlay-actions">
+                  <button class="btn ghost btn-mini" type="button" data-action="tutorial">${renderIconLabel("tutorial", "Tutorial")}</button>
+                  <button class="btn ghost btn-mini" type="button" data-action="command-menu">${renderIconLabel("menu", "Menu")}</button>
+                </div>
+              </div>
+            </details>
           `;
         }
         if (mode === "paused") {
@@ -11008,9 +13314,9 @@
               <p>Press resume to keep flying.</p>
             </div>
             <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="resume">Resume</button>
-              <button class="btn ghost" data-action="help">Help</button>
-              <button class="btn ghost" data-overlay-action="reset">Exit</button>
+              <button class="btn primary" data-overlay-action="resume">${renderIconLabel("play", "Resume")}</button>
+              <button class="btn ghost" data-action="help">${renderIconLabel("help", "Help")}</button>
+              <button class="btn ghost" data-overlay-action="reset">${renderIconLabel("hangar", "Exit")}</button>
             </div>
           `;
         }
@@ -11022,24 +13328,32 @@
           const dockKey = formatKeybind(progress.keybinds.dock);
           const helpKey = formatKeybind(progress.keybinds.help || "h");
           const brakeKey = formatKeybind(progress.keybinds.brake || "x");
-          const helpLines = [
-            "Move with WASD and aim with mouse or arrow keys.",
-            `Shoot ${fireKey}. Boost ${boostKey}.`
-          ];
+          const helpLines = input.touch.supported
+            ? [
+              "Left stick moves the ship.",
+              "Right stick aims and fires while held.",
+              "Boost and Air Brake use the lower action buttons."
+            ]
+            : [
+              "Move with WASD and aim with mouse or arrow keys.",
+              `Shoot ${fireKey}. Boost ${boostKey}.`
+            ];
           if (isFeatureUnlocked("ability")) {
-            helpLines.push(`Use ability with ${abilityKey}.`);
+            helpLines.push(input.touch.supported ? "Tap the ability action button when it is ready." : `Use ability with ${abilityKey}.`);
           }
           if (isFeatureUnlocked("secondary")) {
-            helpLines.push(`Use secondary with ${secondaryKey}.`);
+            helpLines.push(input.touch.supported ? "Tap the secondary action button for missiles or EMP." : `Use secondary with ${secondaryKey}.`);
           }
           if (getUiTierLevel() >= 1) {
-            helpLines.push(`Air Brake ${brakeKey}. Dynamic Camera can be simplified in Options.`);
+            helpLines.push(input.touch.supported
+              ? "Hold Air Brake for fast turns. Dynamic Camera can be simplified in Options."
+              : `Air Brake ${brakeKey}. Dynamic Camera can be simplified in Options.`);
             helpLines.push("Bracketed enemies show a predictive lead pip when target assist is on.");
           }
           if (isFrontierMode()) {
-            helpLines.push(`Frontier dock: ${dockKey}.`);
+            helpLines.push(input.touch.supported ? "Frontier dock: tap the hangar action button." : `Frontier dock: ${dockKey}.`);
           }
-          helpLines.push(`Press ${helpKey} again to close help.`);
+          helpLines.push(input.touch.supported ? "Tap Resume to return to flight." : `Press ${helpKey} again to close help.`);
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">Quick guide</p>
@@ -11050,8 +13364,8 @@
               ${helpLines.map((line) => `<li>${line}</li>`).join("")}
             </ul>
             <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="resume">Resume</button>
-              <button class="btn ghost" data-overlay-action="reset">Exit</button>
+              <button class="btn primary" data-overlay-action="resume">${renderIconLabel("play", "Resume")}</button>
+              <button class="btn ghost" data-overlay-action="reset">${renderIconLabel("hangar", "Exit")}</button>
             </div>
           `;
         }
@@ -11062,7 +13376,7 @@
           const isFirst = stepIndex === 0;
           const isLast = stepIndex === TUTORIAL_STEPS.length - 1;
           const launchTraining = state.mode === "hangar"
-            ? "<button class=\"btn ghost\" data-overlay-action=\"tutorial-training\">Launch Practice</button>"
+            ? `<button class="btn ghost" data-overlay-action="tutorial-training">${renderIconLabel("practice", "Practice")}</button>`
             : "";
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
@@ -11072,11 +13386,11 @@
             </div>
             <ul class="overlay-list">
               <li>Keep objective, threat tier, and status chips in view before committing to fights.</li>
-              <li>Use route events and premium upgrades to shape long-run consistency, not just burst.</li>
+              <li>Use route events and Forge upgrades to shape long-run consistency, not just burst.</li>
             </ul>
             <div class="overlay-actions">
-              <button class="btn ghost" data-overlay-action="tutorial-prev" ${isFirst ? "disabled" : ""}>Back</button>
-              <button class="btn primary" data-overlay-action="${isLast ? "tutorial-close" : "tutorial-next"}">${isLast ? "Done" : "Next"}</button>
+              <button class="btn ghost" data-overlay-action="tutorial-prev" ${isFirst ? "disabled" : ""}>${renderIconLabel("back", "Back")}</button>
+              <button class="btn primary" data-overlay-action="${isLast ? "tutorial-close" : "tutorial-next"}">${renderIconLabel(isLast ? "close" : "next", isLast ? "Done" : "Next")}</button>
               ${launchTraining}
             </div>
           `;
@@ -11098,7 +13412,7 @@
               ${entries}
             </div>
             <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="glossary-close">Close</button>
+              <button class="btn primary" data-overlay-action="glossary-close">${renderIconLabel("close", "Close")}</button>
             </div>
           `;
         }
@@ -11144,6 +13458,8 @@
               const stackLabel = `Lv ${nextLevel}/${maxStacks}`;
               const kindLabel = isSkill ? "Skill" : "Boost";
               const glyphs = renderUpgradeGlyphs(getUpgradeGlyphs(upgrade, nextLevel));
+              const description = getUpgradeChoiceDescription(upgrade, nextLevel);
+              const synergy = getUpgradeSynergyHint(upgrade);
               return `
                 <button class="upgrade-card is-choice" data-tier="${tier}" data-kind="${isSkill ? "skill" : "stat"}" data-upgrade-id="${upgrade.id}">
                   <span class="upgrade-ribbon" data-tier="${tier}">${tierLabel}</span>
@@ -11151,6 +13467,8 @@
                   <span class="upgrade-icon" aria-hidden="true">${categoryIcon}</span>
                   <span class="upgrade-title">${upgrade.name}</span>
                   <div class="upgrade-glyphs">${glyphs}</div>
+                  <span class="upgrade-desc">${description}</span>
+                  ${synergy ? `<span class="upgrade-synergy">${synergy}</span>` : ""}
                   <span class="upgrade-kind">${kindLabel}</span>
                 </button>
               `;
@@ -11169,11 +13487,11 @@
           const rerollCopy = `Reroll grows each wave: ${rerollCost} coins.`;
           const upgradeActions = hasUpgrades
             ? `
-              <button class="btn ghost" data-overlay-action="reroll" ${canReroll ? "" : "disabled"}>Reroll (${rerollCost})</button>
-              <button class="btn ghost" data-overlay-action="skip">Skip</button>
+              <button class="btn ghost" data-overlay-action="reroll" ${canReroll ? "" : "disabled"}>${renderIconLabel("reroll", `Reroll (${rerollCost})`)}</button>
+              <button class="btn ghost" data-overlay-action="skip">${renderIconLabel("skip", "Skip")}</button>
             `
             : `
-              <button class="btn primary" data-overlay-action="skip">Launch next wave</button>
+              <button class="btn primary" data-overlay-action="skip">${renderIconLabel("play", "Next wave")}</button>
             `;
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
@@ -11225,8 +13543,8 @@
           const tierCost = getFrontierTierCost(tier);
           const canTierUp = nextShips.length && state.credits >= tierCost;
           const tierButton = nextShips.length
-            ? `<button class="btn primary" data-overlay-action="tier-up" ${canTierUp ? "" : "disabled"}>Tier up (${tierCost} credits)</button>`
-            : "<button class=\"btn ghost\" disabled>Max tier reached</button>";
+            ? `<button class="btn primary" data-overlay-action="tier-up" ${canTierUp ? "" : "disabled"}>${renderIconLabel("next", `Tier up (${tierCost})`)}</button>`
+            : `<button class="btn ghost" disabled>${renderIconLabel("ships", "Max tier")}</button>`;
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">Frontier dock</p>
@@ -11237,7 +13555,7 @@
               ${upgradesHtml}
             </div>
             <div class="overlay-actions">
-              <button class="btn ghost" data-overlay-action="dock-close">Resume patrol</button>
+              <button class="btn ghost" data-overlay-action="dock-close">${renderIconLabel("play", "Resume")}</button>
               ${tierButton}
             </div>
           `;
@@ -11271,7 +13589,7 @@
               ${shipCards || "<div class=\"select-meta\">No upgrades available.</div>"}
             </div>
             <div class="overlay-actions">
-              <button class="btn ghost" data-overlay-action="dock">Back to dock</button>
+              <button class="btn ghost" data-overlay-action="dock">${renderIconLabel("hangar", "Dock")}</button>
             </div>
           `;
         }
@@ -11308,158 +13626,25 @@
               ${rewardCards}
             </div>
             <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="salvage-close">Back to gear</button>
+              <button class="btn primary" data-overlay-action="salvage-close">${renderIconLabel("gear", "Gear")}</button>
             </div>
           `;
         }
         if (mode === "gameover") {
-          const aborted = !!state.runEndedByAbort;
-          const headerEyebrow = state.training ? "Practice done" : aborted ? "Run aborted" : "Crashed";
-          const headerTitle = state.training ? "Practice wrap" : aborted ? "Mission aborted" : "Ship down";
-          const headerCopy = state.training
-            ? "Practice gives no loot. Try again anytime."
-            : aborted
-              ? "Run ended early. Banked credits are secured."
-              : "Grab your rewards and refit in the hangar.";
-          const lossRewards = state.lossRewards;
-          const summary = lossRewards ? lossRewards.summary : getRunSummary();
-          const performanceTier = lossRewards ? lossRewards.tier : "common";
-          const performanceLabel = formatTierLabel(performanceTier);
-          const levelChip = isCampaignMode() ? `<span class="chip">Level ${summary.level}</span>` : "";
-          const debriefSection = renderRunDebriefSection();
-          const highlightSection = state.runHighlights && state.runHighlights.length
-            ? `
-              <div class="chip-list">
-                ${state.runHighlights.map((label) => `<span class="chip" data-tier="legendary">${label}</span>`).join("")}
-              </div>
-            `
-            : "";
-          const rewardCards = lossRewards && lossRewards.rewards.length
-            ? lossRewards.rewards.map((reward) => {
-              const tier = reward.tier || "common";
-              const icon = getRewardIcon(reward);
-              const label = getRewardLabel(reward);
-              const value = formatRewardValue(reward);
-              return `
-                <div class="reward-item" data-tier="${tier}">
-                  <span class="reward-icon" role="img" aria-label="${label} x${value}" title="${label} x${value}">${icon}</span>
-                  <span class="reward-value">${value}</span>
-                </div>
-              `;
-            }).join("")
-            : "<div class=\"select-meta\">No salvage recovered.</div>";
-          const rewardSection = (state.training || aborted) ? "" : `
-            <div class="panel-subsection">
-              <div class="reward-banner">
-                <span class="reward-line"></span>
-                <span class="reward-title">Rewards</span>
-                <span class="reward-line"></span>
-              </div>
-              <div class="chip-list">
-                <span class="chip" data-tier="${performanceTier}">${performanceLabel} performance</span>
-                <span class="chip">Survival ${formatDuration(summary.durationSec)}</span>
-                <span class="chip">${summary.difficultyLabel} difficulty</span>
-                ${levelChip}
-              </div>
-              <div class="reward-grid">
-                ${rewardCards}
-              </div>
-            </div>
-          `;
-          dom.overlayContent.innerHTML = `
-            <div class="overlay-header">
-              <p class="eyebrow">${headerEyebrow}</p>
-              <h3>${headerTitle}</h3>
-              <p>${headerCopy}</p>
-            </div>
-            <div class="progress-grid">
-              <div class="stat-tile"><span>Wave</span><strong>${summary.waveDisplay}</strong></div>
-              <div class="stat-tile"><span>Kills</span><strong>${summary.kills}</strong></div>
-              <div class="stat-tile"><span>Score</span><strong>${summary.score.toLocaleString()}</strong></div>
-              <div class="stat-tile"><span>Survival</span><strong>${formatDuration(summary.durationSec)}</strong></div>
-              <div class="stat-tile"><span>Credits</span><strong>${summary.credits.toLocaleString()}</strong></div>
-            </div>
-            ${highlightSection}
-            ${rewardSection}
-            ${debriefSection}
-            <div class="overlay-actions">
-              <button class="btn ghost" data-overlay-action="restart">Play again</button>
-              <button class="btn primary" data-overlay-action="reset">Return to hangar</button>
-            </div>
-          `;
+          dom.overlayContent.innerHTML = renderRunResultOverlay("gameover");
         }
         if (mode === "victory") {
-          const result = state.levelRewards;
-          const summary = result ? result.summary : getRunSummary();
-          const level = result ? result.level : summary.level;
-          const nextLevel = Math.max(progress.campaignLevel || level + 1, level + 1);
-          const rewardTier = result ? result.tier : "common";
-          const rewardLabel = formatTierLabel(rewardTier);
-          const debriefSection = renderRunDebriefSection();
-          const highlightSection = state.runHighlights && state.runHighlights.length
-            ? `
-              <div class="chip-list">
-                ${state.runHighlights.map((label) => `<span class="chip" data-tier="legendary">${label}</span>`).join("")}
-              </div>
-            `
-            : "";
-          const rewardCards = result && result.rewards.length
-            ? result.rewards.map((reward) => {
-              const tier = reward.tier || "common";
-              const icon = getRewardIcon(reward);
-              const label = getRewardLabel(reward);
-              const value = formatRewardValue(reward);
-              return `
-                <div class="reward-item" data-tier="${tier}">
-                  <span class="reward-icon" role="img" aria-label="${label} x${value}" title="${label} x${value}">${icon}</span>
-                  <span class="reward-value">${value}</span>
-                </div>
-              `;
-            }).join("")
-            : "<div class=\"select-meta\">No rewards recovered.</div>";
-          dom.overlayContent.innerHTML = `
-            <div class="overlay-header">
-              <p class="eyebrow">Level ${level} cleared</p>
-              <h3>You did it!</h3>
-              <p>Refit now or jump to Level ${nextLevel}.</p>
-            </div>
-            <div class="progress-grid">
-              <div class="stat-tile"><span>Wave</span><strong>${summary.waveDisplay}</strong></div>
-              <div class="stat-tile"><span>Kills</span><strong>${summary.kills}</strong></div>
-              <div class="stat-tile"><span>Score</span><strong>${summary.score.toLocaleString()}</strong></div>
-              <div class="stat-tile"><span>Survival</span><strong>${formatDuration(summary.durationSec)}</strong></div>
-              <div class="stat-tile"><span>Credits</span><strong>${summary.credits.toLocaleString()}</strong></div>
-            </div>
-            ${highlightSection}
-            <div class="panel-subsection">
-              <div class="reward-banner">
-                <span class="reward-line"></span>
-                <span class="reward-title">Rewards</span>
-                <span class="reward-line"></span>
-              </div>
-              <div class="chip-list">
-                <span class="chip">Level ${level}</span>
-                <span class="chip" data-tier="${rewardTier}">${rewardLabel} rewards</span>
-                <span class="chip">${summary.difficultyLabel} difficulty</span>
-              </div>
-              <div class="reward-grid">
-                ${rewardCards}
-              </div>
-            </div>
-            ${debriefSection}
-            <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="next-level">Launch Level ${nextLevel}</button>
-              <button class="btn ghost" data-overlay-action="reset">Return to hangar</button>
-            </div>
-          `;
+          dom.overlayContent.innerHTML = renderRunResultOverlay("victory");
         }
 
         dom.overlay.classList.add("is-visible");
+        syncTouchControls();
       }
 
       function hideOverlay() {
         state.overlayMode = null;
         dom.overlay.classList.remove("is-visible");
+        syncTouchControls();
       }
 
       function logEvent(message) {
@@ -11473,25 +13658,32 @@
       }
 
       function spawnExplosion(x, y, color, size = 18) {
+        addScreenShake(size >= 24 ? 9 : 4);
+        spawnPulse(x, y, color, Math.max(90, size * 5), "burst");
         const count = getParticleCount(14);
         for (let i = 0; i < count; i += 1) {
           const angle = Math.random() * Math.PI * 2;
           const speed = rand(60, 220);
-          particles.push({
+          const life = rand(0.4, 0.9);
+          const particle = acquireEffect(effectPools.particles);
+          Object.assign(particle, {
             x,
             y,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
-            life: rand(0.4, 0.9),
-            maxLife: 0.9,
+            life,
+            maxLife: life,
             size: rand(2, size / 6),
-            color
+            color,
+            trail: Math.random() > 0.35
           });
+          particles.push(particle);
         }
       }
 
-      function spawnPulse(x, y, color, maxRadius = 120) {
-        pulses.push({
+      function spawnPulse(x, y, color, maxRadius = 120, kind = "ring") {
+        const pulse = acquireEffect(effectPools.pulses);
+        Object.assign(pulse, {
           x,
           y,
           color,
@@ -11499,8 +13691,10 @@
           maxRadius,
           life: 0.6,
           maxLife: 0.6,
-          speed: (maxRadius - 10) / 0.6
+          speed: (maxRadius - 10) / 0.6,
+          kind
         });
+        pulses.push(pulse);
       }
 
       function spawnBlackHole(x, y, options = {}) {
@@ -11544,7 +13738,8 @@
         const prefix = options.prefix || "";
         const safeX = clamp(x, 16, state.worldWidth - 16);
         const safeY = clamp(y, 16, state.worldHeight - 16);
-        damageNumbers.push({
+        const burst = acquireEffect(effectPools.damageNumbers);
+        Object.assign(burst, {
           x: safeX,
           y: safeY,
           vx: rand(-10, 10),
@@ -11554,6 +13749,7 @@
           text: `${prefix}${Math.abs(value)}`,
           color: options.color || "#f06969"
         });
+        damageNumbers.push(burst);
       }
 
       function wrapEntity(entity) {
@@ -12036,10 +14232,10 @@
       }
 
       function getAimTarget() {
-        if (input.aimSource === "keyboard" && player) {
+        if ((input.aimSource === "keyboard" || input.aimSource === "touch") && player) {
           return {
-            x: player.x + Math.cos(player.angle) * 70,
-            y: player.y + Math.sin(player.angle) * 70
+            x: player.x + Math.cos(player.angle) * (input.aimSource === "touch" ? 180 : 70),
+            y: player.y + Math.sin(player.angle) * (input.aimSource === "touch" ? 180 : 70)
           };
         }
         if (input.pointer.active && Number.isFinite(input.pointer.x) && Number.isFinite(input.pointer.y)) {
@@ -12053,6 +14249,249 @@
 
       function distanceBetween(a, b) {
         return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function distanceSquared(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        return dx * dx + dy * dy;
+      }
+
+      function circlesOverlap(a, b, extra = 0) {
+        const radius = (a.radius || 0) + (b.radius || 0) + extra;
+        return distanceSquared(a, b) <= radius * radius;
+      }
+
+      function removeArrayIndex(array, index) {
+        const lastIndex = array.length - 1;
+        if (index < 0 || index > lastIndex) return null;
+        const removed = array[index];
+        if (index !== lastIndex) {
+          array[index] = array[lastIndex];
+        }
+        array.pop();
+        return removed;
+      }
+
+      function acquireEffect(pool) {
+        return pool.pop() || {};
+      }
+
+      function releaseEffect(pool, item) {
+        if (!item || pool.length >= EFFECT_POOL_LIMIT) return;
+        pool.push(item);
+      }
+
+      function getSpatialCell(value) {
+        return Math.floor(value / state.spatial.cellSize);
+      }
+
+      function getSpatialKey(cellX, cellY) {
+        return `${cellX}:${cellY}`;
+      }
+
+      function bumpSpatialQueryStamp() {
+        state.spatial.queryStamp = state.spatial.queryStamp >= 2147483000
+          ? 1
+          : state.spatial.queryStamp + 1;
+        return state.spatial.queryStamp;
+      }
+
+      function insertSpatialEntity(grid, entity, radius) {
+        if (!entity || !Number.isFinite(entity.x) || !Number.isFinite(entity.y)) return;
+        const safeRadius = Math.max(1, radius || entity.radius || 1);
+        const minCellX = getSpatialCell(entity.x - safeRadius);
+        const maxCellX = getSpatialCell(entity.x + safeRadius);
+        const minCellY = getSpatialCell(entity.y - safeRadius);
+        const maxCellY = getSpatialCell(entity.y + safeRadius);
+        for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
+          for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
+            const key = getSpatialKey(cellX, cellY);
+            let bucket = grid.get(key);
+            if (!bucket) {
+              bucket = [];
+              grid.set(key, bucket);
+            }
+            bucket.push(entity);
+          }
+        }
+      }
+
+      function getObstacleSpatialRadius(obstacle) {
+        if (!obstacle) return 1;
+        if (obstacle.kind === "rock") return obstacle.radius || 1;
+        return Math.hypot(obstacle.width || 1, obstacle.height || 1) * 0.5;
+      }
+
+      function markObstacleSpatialDirty() {
+        state.spatial.obstacleDirty = true;
+        state.minimapForceRender = true;
+      }
+
+      function rebuildEnemySpatialGrid() {
+        const grid = state.spatial.enemyGrid;
+        grid.clear();
+        enemies.forEach((enemy) => {
+          if (!enemy || enemy.health <= 0) return;
+          insertSpatialEntity(grid, enemy, Math.max(MAX_COLLISION_RADIUS, enemy.radius || 0));
+        });
+      }
+
+      function ensureObstacleSpatialGrid() {
+        if (!state.spatial.obstacleDirty) return;
+        const grid = state.spatial.obstacleGrid;
+        grid.clear();
+        obstacles.forEach((obstacle) => {
+          insertSpatialEntity(grid, obstacle, getObstacleSpatialRadius(obstacle));
+        });
+        state.spatial.obstacleDirty = false;
+      }
+
+      function forEachSpatialEntityNear(grid, origin, radius, markerKey, callback) {
+        if (!origin || !Number.isFinite(origin.x) || !Number.isFinite(origin.y)) return false;
+        const stamp = bumpSpatialQueryStamp();
+        const safeRadius = Math.max(1, radius || 1);
+        const minCellX = getSpatialCell(origin.x - safeRadius);
+        const maxCellX = getSpatialCell(origin.x + safeRadius);
+        const minCellY = getSpatialCell(origin.y - safeRadius);
+        const maxCellY = getSpatialCell(origin.y + safeRadius);
+        for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
+          for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
+            const bucket = grid.get(getSpatialKey(cellX, cellY));
+            if (!bucket) continue;
+            for (let i = 0; i < bucket.length; i += 1) {
+              const entity = bucket[i];
+              if (!entity || entity[markerKey] === stamp) continue;
+              entity[markerKey] = stamp;
+              if (callback(entity) === true) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function forEachEnemyNear(origin, radius, callback) {
+        return forEachSpatialEntityNear(state.spatial.enemyGrid, origin, radius, "_enemySpatialStamp", (enemy) => {
+          if (!enemy || enemy.health <= 0) return false;
+          return callback(enemy);
+        });
+      }
+
+      function forEachObstacleNear(origin, radius, callback) {
+        ensureObstacleSpatialGrid();
+        return forEachSpatialEntityNear(state.spatial.obstacleGrid, origin, radius, "_obstacleSpatialStamp", callback);
+      }
+
+      function setCachedText(element, value) {
+        if (!element) return;
+        const text = String(value);
+        if (hudTextCache.get(element) === text) return;
+        hudTextCache.set(element, text);
+        element.textContent = text;
+      }
+
+      function setCachedWidth(element, value) {
+        if (!element) return;
+        const width = `${value}%`;
+        if (hudStyleCache.get(element) === width) return;
+        hudStyleCache.set(element, width);
+        element.style.width = width;
+      }
+
+      function queueMinimapRefresh() {
+        state.minimapForceRender = true;
+      }
+
+      function getAdaptiveQualityLevel() {
+        return getRawAdaptiveQualityLevel();
+      }
+
+      function getAdaptiveParticleScale() {
+        const level = getPerformanceQualityLevel();
+        if (level >= 4) return 0.15;
+        if (level === 3) return 0.3;
+        if (level === 2) return 0.65;
+        if (level === 1) return 0.82;
+        return 1;
+      }
+
+      function isHighPixelPressure() {
+        return getCanvasMegapixels() >= HIGH_PIXEL_PRESSURE_THRESHOLD;
+      }
+
+      function shouldUsePremiumVfx() {
+        return getPerformanceQualityLevel() < 2 && !isHighPixelPressure() && (progress.settings.particles || "medium") !== "low";
+      }
+
+      function easeOutCubic(value) {
+        const t = clamp(value, 0, 1);
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      function easeInOutSine(value) {
+        const t = clamp(value, 0, 1);
+        return -(Math.cos(Math.PI * t) - 1) / 2;
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const t = clamp((value - edge0) / Math.max(0.0001, edge1 - edge0), 0, 1);
+        return t * t * (3 - 2 * t);
+      }
+
+      function updateAdaptiveQuality(rawDeltaMs) {
+        const quality = state.adaptiveQuality;
+        if (!quality || !Number.isFinite(rawDeltaMs)) return;
+        if (rawDeltaMs >= 50) {
+          quality.pressure += 8;
+          quality.recovery = 0;
+        } else if (rawDeltaMs >= 33) {
+          quality.pressure += 5;
+          quality.recovery = 0;
+        } else if (rawDeltaMs >= ADAPTIVE_FRAME_STRESS_MS) {
+          quality.pressure += 2.5;
+          quality.recovery = 0;
+        } else if (rawDeltaMs <= ADAPTIVE_FRAME_TARGET_MS) {
+          quality.recovery += 1;
+          quality.pressure = Math.max(0, quality.pressure - 1);
+        } else {
+          quality.pressure = Math.max(0, quality.pressure - 0.35);
+          quality.recovery = Math.max(0, quality.recovery - 0.35);
+        }
+        if (quality.pressure >= 6 && quality.level < AUTO_RENDER_PIXEL_TIERS.length - 1) {
+          quality.level += 1;
+          quality.pressure = 0;
+          markBackgroundCacheDirty();
+          resizeCanvas();
+          resizeMinimap();
+          queueMinimapRefresh();
+        } else if (quality.recovery >= 420 && quality.level > 0) {
+          quality.level -= 1;
+          quality.recovery = 0;
+          markBackgroundCacheDirty();
+          resizeCanvas();
+          resizeMinimap();
+          queueMinimapRefresh();
+        }
+        syncPerformanceModeClass();
+      }
+
+      function shouldDrawEnemyTelegraph(enemy) {
+        const level = getPerformanceQualityLevel();
+        return level < 2 || isPriorityEnemy(enemy);
+      }
+
+      function shouldDrawEnemyRoleLabels() {
+        return getPerformanceQualityLevel() < 3 && enemies.length <= 24;
+      }
+
+      function getPlayerArtId(ship = player) {
+        const shipId = ship?.ship?.id || progress.selectedShip || "scout";
+        return SHIP_ART_IDS[shipId] || "playerScout";
+      }
+
+      function getEnemyArtId(enemy) {
+        const role = getEnemyRole(enemy);
+        return ENEMY_ROLE_ART_IDS[role] || "enemyLine";
       }
 
       function normalizeAngle(angle) {

@@ -10,72 +10,56 @@
   <link rel="stylesheet" href="dist/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" />
   <link rel="stylesheet" href="css/components/stellar-dogfight.css" />
 </head>
 <body>
   <main class="mission-shell">
-    <header class="mission-header">
-      <div class="title-block">
-        <p class="eyebrow">Space blaster fun</p>
+    <header class="mission-header mission-topbar">
+      <div class="mission-title-compact">
+        <p class="eyebrow">Space blaster</p>
         <h1>Stellar Dogfight</h1>
-        <p class="mission-lead">Readable arcade dogfighting that starts with the basics, then reveals deeper ship systems as you earn them.</p>
-        <div class="mission-pill-row" aria-label="Mission highlights">
-          <span class="mission-pill">10-wave campaign runs</span>
-          <span class="mission-pill">Practice with no stakes</span>
-          <span class="mission-pill">Progressive unlocks</span>
-        </div>
-        <div class="mission-brief-grid">
-          <article class="mission-brief-card">
-            <span class="mission-brief-label">First sortie</span>
-            <strong>Learn move, aim, fire, and boost first.</strong>
-            <p>Advanced systems stay tucked away until you have enough flight time to need them.</p>
-          </article>
-          <article class="mission-brief-card">
-            <span class="mission-brief-label">How it grows</span>
-            <strong>Each run opens a little more.</strong>
-            <p>Wave boosts, abilities, gear, ship choices, tasks, and premium systems unlock in stages.</p>
-          </article>
-        </div>
-        <p class="mission-support">Move with WASD, aim with mouse, and click or Space to shoot. Shift boosts. The game surfaces only the essential controls at first, then expands the HUD, hangar, and tuning options as you progress.</p>
       </div>
-      <div class="action-stack">
-        <section class="action-cluster action-cluster-primary">
-          <p class="action-label">Sortie</p>
-          <button class="btn primary" data-action="launch">Play Campaign</button>
-          <button class="btn ghost" data-action="training">Practice First</button>
-          <button class="btn ghost" data-action="tutorial">Flight Tutorial</button>
-          <p class="cluster-note" data-role="launch-guidance">Start with a standard run. The hangar stays simple until you unlock more systems.</p>
-        </section>
-        <section class="action-cluster">
-          <p class="action-label">Command</p>
-          <div class="command-overview" data-role="command-overview"></div>
-        </section>
-        <section class="action-cluster">
-          <p class="action-label">Unlock Roadmap</p>
-          <div class="progress-roadmap progress-roadmap-compact" data-role="command-roadmap"></div>
-        </section>
-        <section class="action-cluster action-cluster-inline utility-cluster">
-          <p class="action-label">Utility</p>
-          <button class="btn ghost" data-action="replay-last-loadout">Replay Build</button>
-          <button class="btn ghost" data-action="glossary">Glossary</button>
-          <button class="btn ghost" data-action="settings">Options</button>
-        </section>
+      <p class="mission-topbar-summary" data-role="topbar-summary">Campaign · Rank 1</p>
+      <div class="mission-topbar-actions">
+        <button class="btn primary" data-action="launch" data-ui-icon="play" data-ui-label="Play Campaign" data-compact-label="Play">Play Campaign</button>
+        <button class="btn ghost btn-icon-only" type="button" data-action="command-menu" data-ui-icon="menu" data-ui-label="Open command menu" data-icon-only="true" aria-label="Open command menu" aria-controls="command-menu" aria-expanded="false">Menu</button>
       </div>
+      <p class="cluster-note mission-guidance" data-role="launch-guidance">Start a campaign run or open Menu for ship, progress, and options.</p>
     </header>
 
     <section class="mission-grid">
-      <div class="mission-sidebar">
+      <div class="command-backdrop" data-role="command-backdrop" data-action="command-menu-close" hidden></div>
+      <aside class="mission-sidebar command-drawer" id="command-menu" data-role="command-menu" aria-label="Command menu" aria-hidden="true" inert>
+        <div class="command-drawer-header">
+          <div>
+            <p class="eyebrow">Command</p>
+            <h2>Menu</h2>
+          </div>
+          <button class="btn ghost btn-mini" type="button" data-action="command-menu-close" data-ui-icon="back" data-ui-label="Back">Back</button>
+        </div>
+        <div class="command-drawer-summary">
+          <div class="command-overview" data-role="command-overview"></div>
+          <details class="panel-subsection panel-disclosure command-roadmap-disclosure">
+            <summary class="panel-disclosure-toggle">
+              <span class="panel-disclosure-title">Unlock Roadmap</span>
+              <span class="panel-disclosure-meta">Later</span>
+            </summary>
+            <div class="panel-disclosure-body">
+              <div class="progress-roadmap progress-roadmap-compact" data-role="command-roadmap"></div>
+            </div>
+          </details>
+        </div>
         <div class="tab-shell" data-tab-group="sidebar" data-tab-default="systems">
           <div class="tab-bar" role="tablist" aria-label="Ship panels">
-            <button class="tab-btn is-active" id="tab-btn-systems" type="button" data-tab-target="systems" data-panel-feature="always" role="tab" aria-controls="tab-systems" aria-selected="true" tabindex="0">Ship</button>
-            <button class="tab-btn" id="tab-btn-progress" type="button" data-tab-target="progress" data-panel-feature="always" role="tab" aria-controls="tab-progress" aria-selected="false" tabindex="-1">Progress</button>
-            <button class="tab-btn" id="tab-btn-settings" type="button" data-tab-target="settings" data-panel-feature="always" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1">Options</button>
-            <button class="tab-btn" id="tab-btn-upgrades" type="button" data-tab-target="upgrades" data-panel-feature="upgrades" role="tab" aria-controls="tab-upgrades" aria-selected="false" tabindex="-1">Boosts</button>
-            <button class="tab-btn" id="tab-btn-armory" type="button" data-tab-target="armory" data-panel-feature="armory" role="tab" aria-controls="tab-armory" aria-selected="false" tabindex="-1">Gear</button>
-            <button class="tab-btn" id="tab-btn-shipyard" type="button" data-tab-target="shipyard" data-panel-feature="shipyard" role="tab" aria-controls="tab-shipyard" aria-selected="false" tabindex="-1">Ships</button>
-            <button class="tab-btn" id="tab-btn-contracts" type="button" data-tab-target="contracts" data-panel-feature="contracts" role="tab" aria-controls="tab-contracts" aria-selected="false" tabindex="-1">Tasks</button>
-            <button class="tab-btn" id="tab-btn-premium" type="button" data-tab-target="premium" data-panel-feature="premium" role="tab" aria-controls="tab-premium" aria-selected="false" tabindex="-1">Premium</button>
+            <button class="tab-btn is-active" id="tab-btn-systems" type="button" data-tab-target="systems" data-tab-icon="ship" data-panel-feature="always" role="tab" aria-controls="tab-systems" aria-selected="true" tabindex="0">Ship</button>
+            <button class="tab-btn" id="tab-btn-progress" type="button" data-tab-target="progress" data-tab-icon="progress" data-panel-feature="always" role="tab" aria-controls="tab-progress" aria-selected="false" tabindex="-1">Progress</button>
+            <button class="tab-btn" id="tab-btn-settings" type="button" data-tab-target="settings" data-tab-icon="options" data-panel-feature="always" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1">Options</button>
+            <button class="tab-btn" id="tab-btn-upgrades" type="button" data-tab-target="upgrades" data-tab-icon="boosts" data-panel-feature="upgrades" role="tab" aria-controls="tab-upgrades" aria-selected="false" tabindex="-1">Boosts</button>
+            <button class="tab-btn" id="tab-btn-armory" type="button" data-tab-target="armory" data-tab-icon="gear" data-panel-feature="armory" role="tab" aria-controls="tab-armory" aria-selected="false" tabindex="-1">Gear</button>
+            <button class="tab-btn" id="tab-btn-shipyard" type="button" data-tab-target="shipyard" data-tab-icon="ships" data-panel-feature="shipyard" role="tab" aria-controls="tab-shipyard" aria-selected="false" tabindex="-1">Ships</button>
+            <button class="tab-btn" id="tab-btn-contracts" type="button" data-tab-target="contracts" data-tab-icon="tasks" data-panel-feature="contracts" role="tab" aria-controls="tab-contracts" aria-selected="false" tabindex="-1">Tasks</button>
+            <button class="tab-btn" id="tab-btn-premium" type="button" data-tab-target="premium" data-tab-icon="forge" data-panel-feature="premium" role="tab" aria-controls="tab-premium" aria-selected="false" tabindex="-1">Forge</button>
           </div>
           <div class="tab-panels">
             <section class="panel tab-panel is-active" id="tab-systems" data-tab-panel="systems" data-panel-feature="always" role="tabpanel" aria-labelledby="tab-btn-systems">
@@ -83,7 +67,7 @@
                 <h2>Ship</h2>
                 <div class="badge-group">
                   <span class="badge" data-stat="status">Hangar</span>
-                  <span class="badge" data-stat="mode-label">Arcade</span>
+                  <span class="badge" data-stat="mode-label">Campaign</span>
                   <span class="badge" data-stat="sector">Sector 01</span>
                 </div>
               </div>
@@ -198,7 +182,7 @@
 
             <section class="panel tab-panel" id="tab-premium" data-tab-panel="premium" data-panel-feature="premium" role="tabpanel" aria-labelledby="tab-btn-premium" hidden>
               <div class="panel-header">
-                <h2>Premium Shop</h2>
+                <h2>Astralite Forge</h2>
                 <span class="badge" data-stat="premium-currency">Astralite 0</span>
               </div>
               <p class="panel-note">High-impact permanent upgrades. Earn Astralite from elite and boss drops during runs.</p>
@@ -288,7 +272,7 @@
                   <span>Banked Credits</span>
                   <strong data-stat="banked-credits-total">0</strong>
                 </div>
-                <div class="stat-tile">
+                <div class="stat-tile" data-feature-reveal="premium">
                   <span>Astralite</span>
                   <strong data-stat="premium-currency-total">0</strong>
                 </div>
@@ -300,11 +284,11 @@
                   <span>Total Kills</span>
                   <strong data-stat="total-kills">0</strong>
                 </div>
-                <div class="stat-tile">
+                <div class="stat-tile" data-feature-reveal="scoreMode">
                   <span>Weekly Mutator</span>
                   <strong data-stat="weekly-mutator">None</strong>
                 </div>
-                <div class="stat-tile">
+                <div class="stat-tile" data-feature-reveal="dailySector">
                   <span>Challenge Seed</span>
                   <strong data-stat="challenge-seed">-</strong>
                 </div>
@@ -318,7 +302,7 @@
                   <div class="history-list" data-role="history"></div>
                 </div>
               </details>
-              <details class="panel-subsection panel-disclosure">
+              <details class="panel-subsection panel-disclosure" data-feature-reveal="scoreMode">
                 <summary class="panel-disclosure-toggle">
                   <span class="panel-disclosure-title">Run Analytics</span>
                   <span class="panel-disclosure-meta">Detailed breakdown</span>
@@ -350,8 +334,11 @@
                   <div class="setting-row" data-settings-tier="0">
                     <span>Run Type</span>
                     <div class="option-buttons" data-setting="game-mode">
-                      <button class="option-btn is-active" type="button" data-option="arcade">Arcade</button>
-                      <button class="option-btn" type="button" data-option="frontier">Frontier</button>
+                      <button class="option-btn is-active" type="button" data-option="arcade" data-mode-feature="always">Campaign</button>
+                      <button class="option-btn" type="button" data-option="score" data-mode-feature="scoreMode">Score Attack</button>
+                      <button class="option-btn" type="button" data-option="boss" data-mode-feature="bossRush">Boss Rush</button>
+                      <button class="option-btn" type="button" data-option="daily" data-mode-feature="dailySector">Daily Sector</button>
+                      <button class="option-btn" type="button" data-option="frontier" data-mode-feature="frontierMode">Frontier</button>
                     </div>
                   </div>
                 </div>
@@ -391,25 +378,25 @@
                   <div class="setting-row" data-settings-tier="2">
                     <span>Save Preset</span>
                     <div class="option-buttons">
-                      <button class="btn ghost btn-mini" type="button" data-action="preset-save" data-slot="a">Save A</button>
-                      <button class="btn ghost btn-mini" type="button" data-action="preset-save" data-slot="b">Save B</button>
-                      <button class="btn ghost btn-mini" type="button" data-action="preset-save" data-slot="c">Save C</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="preset-save" data-slot="a" data-ui-icon="save" data-ui-label="Save preset A" data-compact-label="A">Save A</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="preset-save" data-slot="b" data-ui-icon="save" data-ui-label="Save preset B" data-compact-label="B">Save B</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="preset-save" data-slot="c" data-ui-icon="save" data-ui-label="Save preset C" data-compact-label="C">Save C</button>
                     </div>
                   </div>
                   <div class="setting-row" data-settings-tier="2">
                     <span>Load Preset</span>
                     <div class="option-buttons">
-                      <button class="btn ghost btn-mini" type="button" data-action="preset-load" data-slot="a">Load A</button>
-                      <button class="btn ghost btn-mini" type="button" data-action="preset-load" data-slot="b">Load B</button>
-                      <button class="btn ghost btn-mini" type="button" data-action="preset-load" data-slot="c">Load C</button>
-                      <button class="btn ghost btn-mini" type="button" data-action="replay-last-loadout">Replay Last</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="preset-load" data-slot="a" data-ui-icon="load" data-ui-label="Load preset A" data-compact-label="A">Load A</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="preset-load" data-slot="b" data-ui-icon="load" data-ui-label="Load preset B" data-compact-label="B">Load B</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="preset-load" data-slot="c" data-ui-icon="load" data-ui-label="Load preset C" data-compact-label="C">Load C</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="replay-last-loadout" data-ui-icon="replay" data-ui-label="Replay last loadout" data-compact-label="Replay">Replay Last</button>
                     </div>
                   </div>
                   <div class="setting-row" data-settings-tier="1">
                     <span>Tutorial / Glossary</span>
                     <div class="option-buttons">
-                      <button class="btn ghost btn-mini" type="button" data-action="tutorial">Start Tutorial</button>
-                      <button class="btn ghost btn-mini" type="button" data-action="glossary">Stat Glossary</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="tutorial" data-ui-icon="tutorial" data-ui-label="Start tutorial" data-compact-label="Tutorial">Start Tutorial</button>
+                      <button class="btn ghost btn-mini" type="button" data-action="glossary" data-ui-icon="glossary" data-ui-label="Stat glossary" data-compact-label="Glossary">Stat Glossary</button>
                     </div>
                   </div>
                   <div class="keybind-list" data-role="keybinds" data-settings-tier="2"></div>
@@ -471,10 +458,10 @@
                   </div>
                 </div>
               </div>
-              <details class="panel-subsection panel-disclosure" data-settings-tier="2">
+              <details class="panel-subsection panel-disclosure">
                 <summary class="panel-disclosure-toggle">
                   <span class="panel-disclosure-title">Performance</span>
-                  <span class="panel-disclosure-meta">Advanced</span>
+                  <span class="panel-disclosure-meta">Debug</span>
                 </summary>
                 <div class="panel-disclosure-body">
                   <div class="setting-group">
@@ -490,6 +477,7 @@
                       <span>Render Scale</span>
                       <div class="option-buttons" data-setting="render-scale">
                         <button class="option-btn is-active" type="button" data-option="auto">Auto</button>
+                        <button class="option-btn" type="button" data-option="0.75">0.75x</button>
                         <button class="option-btn" type="button" data-option="1">1x</button>
                         <button class="option-btn" type="button" data-option="1.25">1.25x</button>
                         <button class="option-btn" type="button" data-option="1.5">1.5x</button>
@@ -499,7 +487,7 @@
                     <div class="setting-row">
                       <span>Performance Log</span>
                       <div class="option-buttons perf-log-actions">
-                        <button class="btn ghost btn-mini" type="button" data-action="perf-log" data-role="perf-log-btn">Start Perf Log</button>
+                        <button class="btn ghost btn-mini" type="button" data-action="perf-log" data-role="perf-log-btn" data-ui-icon="activity" data-ui-label="Start performance log" data-compact-label="Log">Start Perf Log</button>
                         <span class="perf-muted" data-role="perf-log-status">Idle</span>
                       </div>
                     </div>
@@ -523,7 +511,7 @@
                   <div class="setting-group">
                     <div class="setting-row">
                       <span>Reset Progress</span>
-                      <button class="btn danger btn-mini" type="button" data-action="reset-progress">Wipe Account</button>
+                      <button class="btn danger btn-mini" type="button" data-action="reset-progress" data-ui-icon="trash" data-ui-label="Wipe account" data-compact-label="Wipe">Wipe Account</button>
                     </div>
                     <p class="panel-note">Wipes all progress on this device.</p>
                   </div>
@@ -532,7 +520,7 @@
             </section>
           </div>
         </div>
-      </div>
+      </aside>
 
       <div class="mission-main">
         <div class="arena-frame">
@@ -542,8 +530,8 @@
           </div>
           <div class="arena-tips" data-role="tips" aria-live="polite"></div>
           <div class="arena-controls">
-            <button class="btn ghost btn-mini" type="button" data-action="settings">Settings</button>
-            <button class="btn ghost btn-mini" type="button" data-action="help">Help</button>
+            <button class="btn ghost btn-mini btn-icon-only" type="button" data-action="settings" data-ui-icon="settings" data-ui-label="Settings" data-icon-only="true" aria-label="Settings">Settings</button>
+            <button class="btn ghost btn-mini btn-icon-only" type="button" data-action="help" data-ui-icon="help" data-ui-label="Help" data-icon-only="true" aria-label="Help">Help</button>
           </div>
           <div class="arena-hud">
             <div class="hud-pill-group hud-pill-group-primary">
@@ -590,10 +578,43 @@
           <div class="arena-status-icons" data-role="status-icons" aria-live="polite"></div>
           <div class="perf-overlay is-compact" data-role="perf-overlay" hidden></div>
           <div class="perf-overlay perf-overlay--detail" data-role="perf-detail-overlay" hidden></div>
+          <div class="touch-controls" data-role="touch-controls" aria-hidden="true" hidden>
+            <div class="touch-stick touch-stick-move" data-touch-stick="move" aria-label="Move ship">
+              <span class="touch-stick-label">Move</span>
+              <span class="touch-stick-thumb" data-touch-thumb="move"></span>
+            </div>
+            <div class="touch-action-bar" aria-label="Touch actions">
+              <button class="touch-action-btn" type="button" data-touch-action="boost" aria-label="Boost" title="Boost" data-ui-icon="boosts">
+                <span class="touch-action-label">Boost</span>
+              </button>
+              <button class="touch-action-btn" type="button" data-touch-action="brake" aria-label="Air brake" title="Air brake" data-ui-icon="back">
+                <span class="touch-action-label">Brake</span>
+              </button>
+              <button class="touch-action-btn" type="button" data-touch-action="ability" aria-label="Ability" title="Ability" data-ui-icon="forge" hidden>
+                <span class="touch-action-label">Ability</span>
+              </button>
+              <button class="touch-action-btn" type="button" data-touch-action="secondary" aria-label="Secondary" title="Secondary" data-ui-icon="gear" hidden>
+                <span class="touch-action-label">Secondary</span>
+              </button>
+              <button class="touch-action-btn" type="button" data-touch-action="dock" aria-label="Dock" title="Dock" data-ui-icon="hangar" hidden>
+                <span class="touch-action-label">Dock</span>
+              </button>
+              <button class="touch-action-btn" type="button" data-touch-action="pause" aria-label="Pause" title="Pause" data-ui-icon="options">
+                <span class="touch-action-label">Pause</span>
+              </button>
+              <button class="touch-action-btn" type="button" data-touch-action="help" aria-label="Help" title="Help" data-ui-icon="help">
+                <span class="touch-action-label">Help</span>
+              </button>
+            </div>
+            <div class="touch-stick touch-stick-aim" data-touch-stick="aim" aria-label="Aim and fire">
+              <span class="touch-stick-label">Aim</span>
+              <span class="touch-stick-thumb" data-touch-thumb="aim"></span>
+            </div>
+          </div>
         </div>
         <div class="settings-overlay" data-role="settings-overlay" hidden>
           <div class="settings-shell">
-            <button class="btn ghost btn-mini settings-close" type="button" data-action="settings-close">Close</button>
+            <button class="btn ghost btn-mini btn-icon-only settings-close" type="button" data-action="settings-close" data-ui-icon="close" data-ui-label="Close settings" data-icon-only="true" aria-label="Close settings">Close</button>
             <div data-role="settings-body"></div>
           </div>
         </div>
@@ -603,6 +624,8 @@
 
   <script src="js/demos/stellar-dogfight-data.js"></script>
   <script src="js/demos/stellar-dogfight-audio.js"></script>
+  <script src="js/demos/stellar-dogfight-unlocks.js"></script>
+  <script src="js/demos/stellar-dogfight-art.js"></script>
   <script src="js/demos/stellar-dogfight-demo.js"></script>
 </body>
 </html>

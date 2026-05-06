@@ -102,7 +102,7 @@
 
     .demo-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
       align-items: center;
       gap: 12px;
       background: var(--panel);
@@ -156,6 +156,29 @@
       background: var(--accent-strong);
     }
 
+    .backend-select-wrap {
+      display: inline-grid;
+      gap: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .backend-select-wrap select {
+      min-height: 38px;
+      min-width: 150px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 10px;
+      color: var(--text);
+      background: var(--panel-soft);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: none;
+    }
+
     .warmup-button,
     .chat-send,
     .clear-button {
@@ -177,6 +200,47 @@
 
     .warmup-button.starting {
       background: #6b7280;
+    }
+
+    .startup-notice {
+      width: min(420px, calc(100vw - 32px));
+      border: 0;
+      border-radius: 8px;
+      padding: 0;
+      color: var(--text);
+      background: var(--panel);
+      box-shadow: 0 20px 48px rgba(15, 23, 42, 0.24);
+    }
+
+    .startup-notice::backdrop {
+      background: rgba(15, 23, 42, 0.42);
+    }
+
+    .startup-notice-panel {
+      display: grid;
+      gap: 14px;
+      padding: 20px;
+    }
+
+    .startup-notice-panel h2 {
+      margin: 0;
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .startup-notice-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .startup-notice-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
     }
 
     .clear-button {
@@ -790,6 +854,15 @@
         width: 100%;
       }
 
+      .backend-select-wrap,
+      .backend-select-wrap select {
+        width: 100%;
+      }
+
+      .startup-notice-actions {
+        display: grid;
+      }
+
       .warmup-button {
         width: 100%;
       }
@@ -900,6 +973,13 @@
         <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
         <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
       </div>
+      <label class="backend-select-wrap" for="backend-select">
+        Backend
+        <select id="backend-select" aria-label="Chat backend">
+          <option value="qwen-sagemaker">Qwen / SageMaker</option>
+          <option value="bedrock">Bedrock</option>
+        </select>
+      </label>
       <div class="server-control" id="server-control" role="status" aria-live="polite">
         <span class="server-dot off" id="server-dot" aria-hidden="true"></span>
         <button class="warmup-button" id="warmup-button" type="button">Start server</button>
@@ -922,6 +1002,17 @@
         </details>
       </div>
     </header>
+
+    <dialog class="startup-notice" id="qwen-startup-notice" aria-labelledby="qwen-startup-title">
+      <div class="startup-notice-panel">
+        <h2 id="qwen-startup-title">Qwen / SageMaker May Need a Few Minutes</h2>
+        <p>This backend can start from cold. Press Start server and allow up to about five minutes before the first answer is ready.</p>
+        <div class="startup-notice-actions">
+          <button class="clear-button" id="qwen-startup-close" type="button">OK</button>
+          <button class="warmup-button" id="qwen-startup-start" type="button">Start server</button>
+        </div>
+      </div>
+    </dialog>
 
     <main class="views">
       <section class="view-panel active" id="regular-view" role="tabpanel" aria-labelledby="regular-view-button">
@@ -988,12 +1079,48 @@
 
   <script src="js/demos/aws-client.js"></script>
   <script>
-    const DEFAULT_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';
-    const STORAGE_KEY = 'demo.endpoint.chatbot.markdown';
+    const DEFAULT_QWEN_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';
+    const DEFAULT_BEDROCK_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod/bedrock';
+    const DEFAULT_BEDROCK_STREAM_URL = 'https://6i6akxbdxx5qexaajudxuayoey0iopga.lambda-url.us-east-2.on.aws/';
+    const DEFAULT_BACKEND_ID = 'bedrock';
+    const BACKEND_STORAGE_KEY = 'demo.endpoint.chatbot.backend';
+    const BACKEND_DEFAULT_VERSION_KEY = 'demo.endpoint.chatbot.backend.defaultVersion';
+    const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-05-06';
     const { resolveEndpoint, getJson, postJson, retryRequest } = window.DemoAws;
-    const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
-    const API_URL = resolveEndpoint(endpointConfig).replace(/\/$/, '');
-    const STATUS_URL = `${API_URL}/status`;
+    const RUNTIME_CONFIG = window.VGJ_CHATBOT_CONFIG || {};
+    const BACKENDS = {
+      'qwen-sagemaker': {
+        id: 'qwen-sagemaker',
+        label: 'Qwen / SageMaker',
+        apiUrl: resolveEndpoint({
+          defaultUrl: RUNTIME_CONFIG.qwenApiUrl || DEFAULT_QWEN_API_URL,
+          storageKey: 'demo.endpoint.chatbot.markdown'
+        }).replace(/\/$/, ''),
+        billingModel: 'sagemaker_instance_hour',
+        alwaysOn: false
+      },
+      bedrock: {
+        id: 'bedrock',
+        label: 'Bedrock',
+        apiUrl: resolveEndpoint({
+          defaultUrl: RUNTIME_CONFIG.bedrockApiUrl || DEFAULT_BEDROCK_API_URL,
+          storageKey: 'demo.endpoint.chatbot.bedrock'
+        }).replace(/\/$/, ''),
+        streamUrl: (RUNTIME_CONFIG.bedrockStreamUrl || DEFAULT_BEDROCK_STREAM_URL).replace(/\/$/, ''),
+        billingModel: 'on_demand_tokens',
+        alwaysOn: true
+      }
+    };
+    const storedBackendId = localStorage.getItem(BACKEND_STORAGE_KEY);
+    const storedDefaultVersion = localStorage.getItem(BACKEND_DEFAULT_VERSION_KEY);
+    let selectedBackendId = storedDefaultVersion === BACKEND_DEFAULT_VERSION
+      ? (storedBackendId || DEFAULT_BACKEND_ID)
+      : DEFAULT_BACKEND_ID;
+    if (!BACKENDS[selectedBackendId]) selectedBackendId = DEFAULT_BACKEND_ID;
+    if (storedDefaultVersion !== BACKEND_DEFAULT_VERSION) {
+      localStorage.setItem(BACKEND_STORAGE_KEY, selectedBackendId);
+      localStorage.setItem(BACKEND_DEFAULT_VERSION_KEY, BACKEND_DEFAULT_VERSION);
+    }
     const START_TIMEOUT_SEC = 300;
     const DEFAULT_WARM_HOLD_SEC = 300;
     const STATUS_RETRY_OPTIONS = {
@@ -1007,6 +1134,7 @@
     const serverText = document.getElementById('server-text');
     const serverStage = document.getElementById('server-stage');
     const serverTimer = document.getElementById('server-timer');
+    const timerDetails = document.getElementById('timer-details');
     const serverTimerLabel = document.getElementById('server-timer-label');
     const serverTimerValue = document.getElementById('server-timer-value');
     const serverDetailEndpoint = document.getElementById('server-detail-endpoint');
@@ -1015,6 +1143,10 @@
     const serverDetailShutoff = document.getElementById('server-detail-shutoff');
     const serverDetailBasis = document.getElementById('server-detail-basis');
     const warmupButton = document.getElementById('warmup-button');
+    const backendSelect = document.getElementById('backend-select');
+    const qwenStartupNotice = document.getElementById('qwen-startup-notice');
+    const qwenStartupClose = document.getElementById('qwen-startup-close');
+    const qwenStartupStart = document.getElementById('qwen-startup-start');
     const popupLauncher = document.getElementById('popup-launcher');
     const popupWindow = document.getElementById('popup-window');
     const popupClose = document.getElementById('popup-close');
@@ -1039,6 +1171,19 @@
       createChatContext('regular'),
       createChatContext('popup')
     ];
+    if (backendSelect) backendSelect.value = selectedBackendId;
+
+    function activeBackend() {
+      return BACKENDS[selectedBackendId] || BACKENDS[DEFAULT_BACKEND_ID];
+    }
+
+    function isAlwaysLiveBackend(backend = activeBackend()) {
+      return Boolean(backend?.alwaysOn);
+    }
+
+    function backendUrl(path) {
+      return `${activeBackend().apiUrl}${path}`;
+    }
 
     function createChatContext(id) {
       return {
@@ -1116,6 +1261,12 @@
       serverTimer.setAttribute('aria-label', active ? `${label}: ${formatClock(remaining)}` : 'Server timer inactive');
     }
 
+    function setTimerPanelVisible(visible) {
+      if (!timerDetails) return;
+      timerDetails.hidden = !visible;
+      if (!visible) timerDetails.open = false;
+    }
+
     function detailClock(seconds) {
       const parsed = secondsFromEta(seconds);
       return parsed === null ? '--' : formatClock(parsed);
@@ -1128,16 +1279,27 @@
       const lifecycle = payload.lifecycle || {};
       const warmBasis = lifecycle.warm_hold || {};
       const status = payload.status || payload.state || (info?.online ? 'On' : 'Off');
-      const endpointName = payload.endpoint || endpoint.name || 'Unknown';
+      const endpointName = payload.endpoint || endpoint.name || activeBackend().label;
       const endpointStatus = endpoint.endpoint_status || status || 'Unknown';
       const current = Number(payload.current ?? endpoint.current ?? 0);
       const desired = Number(payload.desired ?? endpoint.desired ?? 0);
-      serverText.textContent = info?.online ? 'Server ready' : (info?.startupInProgress ? 'Starting server' : 'Server off');
-      serverStage.textContent = stageMessage(stage);
+      const alwaysLive = isAlwaysLiveBackend();
+      serverText.textContent = alwaysLive
+        ? `${activeBackend().label} live`
+        : (info?.online ? 'Server ready' : (info?.startupInProgress ? 'Starting server' : 'Server off'));
+      serverStage.textContent = alwaysLive
+        ? (stage.message || 'Serverless endpoint is always available.')
+        : stageMessage(stage);
       serverDetailEndpoint.textContent = `${endpointName} (${endpointStatus})`;
-      serverDetailInstances.textContent = `${Number.isFinite(current) ? current : 0} current / ${Number.isFinite(desired) ? desired : 0} desired`;
-      serverDetailWarm.textContent = detailClock(info?.warmSeconds ?? payload.eta?.to_warm_seconds);
-      serverDetailShutoff.textContent = detailClock(info?.shutdownSeconds ?? payload.eta?.to_scale_to_zero_seconds);
+      serverDetailInstances.textContent = alwaysLive
+        ? 'Serverless'
+        : `${Number.isFinite(current) ? current : 0} current / ${Number.isFinite(desired) ? desired : 0} desired`;
+      serverDetailWarm.textContent = alwaysLive
+        ? 'Always live'
+        : detailClock(info?.warmSeconds ?? payload.eta?.to_warm_seconds);
+      serverDetailShutoff.textContent = alwaysLive
+        ? 'No shutdown timer'
+        : detailClock(info?.shutdownSeconds ?? payload.eta?.to_scale_to_zero_seconds);
       serverDetailBasis.textContent = [
         basis,
         stage.name ? `stage: ${stage.name}` : '',
@@ -1189,12 +1351,12 @@
 
     async function fetchStatusInfo() {
       const payload = await retryRequest(
-        () => getJson(STATUS_URL, { cache: 'no-store' }),
+        () => getJson(backendUrl('/status'), { cache: 'no-store' }),
         STATUS_RETRY_OPTIONS
       );
       const info = statusInfoFromPayload(payload);
-      recordLog('status:payload', info);
-      updateTimerDetails(info, 'AWS status');
+      recordLog('status:payload', { backend: activeBackend().id, ...info });
+      updateTimerDetails(info, `${activeBackend().label} status`);
       return info;
     }
 
@@ -1209,33 +1371,35 @@
     }
 
     function updateSendButtons() {
+      const coldTitle = isAlwaysLiveBackend() ? '' : 'Start the server first.';
       contexts.forEach(ctx => {
         const active = Boolean(ctx.controller);
         ctx.prompt.disabled = active ? false : !serverReady;
         ctx.send.disabled = active ? false : !serverReady;
         ctx.send.textContent = active ? 'Stop' : 'Send';
         ctx.send.classList.toggle('stop', active);
-        ctx.send.title = serverReady ? '' : 'Start the server first.';
+        ctx.send.title = serverReady ? '' : coldTitle;
         [...ctx.suggestions, ...ctx.followups].forEach(button => {
           button.disabled = !serverReady;
-          button.title = serverReady ? '' : 'Start the server first.';
+          button.title = serverReady ? '' : coldTitle;
         });
       });
     }
 
     function setWarmupButtonState(state) {
+      const backend = activeBackend();
       if (state === 'ready') {
-        warmupButton.disabled = true;
-        warmupButton.textContent = 'Server ready';
+        warmupButton.disabled = !isAlwaysLiveBackend(backend);
+        warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Check Bedrock' : 'Server ready';
         return;
       }
       if (state === 'starting') {
         warmupButton.disabled = true;
-        warmupButton.textContent = 'Starting';
+        warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Checking' : 'Starting';
         return;
       }
       warmupButton.disabled = false;
-      warmupButton.textContent = 'Start server';
+      warmupButton.textContent = isAlwaysLiveBackend(backend) ? 'Check Bedrock' : 'Start server';
     }
 
     function stopSharedStatusPolling() {
@@ -1245,20 +1409,59 @@
       }
     }
 
+    function markAlwaysLiveBackend(stage = 'Serverless endpoint is always available.') {
+      serverReady = true;
+      warmupActive = false;
+      stopSharedStatusPolling();
+      stopStartupTimer();
+      stopReadyTimer();
+      setTimerDisplay({ mode: 'idle' });
+      setTimerPanelVisible(false);
+      setWarmupButtonState('ready');
+      setServerVisual('ready', `${activeBackend().label} live`, stage);
+      updateTimerDetails(
+        {
+          online: true,
+          warmSeconds: 0,
+          shutdownSeconds: null,
+          payload: {
+            status: 'READY',
+            endpoint: activeBackend().label,
+            stage: {
+              name: 'warm',
+              message: stage
+            }
+          }
+        },
+        `${activeBackend().label} always live`
+      );
+      updateSendButtons();
+    }
+
     function markServerCold(stage = 'Server starts only after you press Start server.') {
+      if (isAlwaysLiveBackend()) {
+        markAlwaysLiveBackend(stage);
+        return;
+      }
       serverReady = false;
       warmupActive = false;
       stopSharedStatusPolling();
       stopStartupTimer();
       stopReadyTimer();
+      setTimerPanelVisible(true);
       setWarmupButtonState('idle');
       setServerVisual('off', 'Server off', stage, '');
       updateSendButtons();
     }
 
     function markServerStarting(stage = 'Starting AWS model endpoint...') {
+      if (isAlwaysLiveBackend()) {
+        markAlwaysLiveBackend(stage);
+        return;
+      }
       serverReady = false;
       warmupActive = true;
+      setTimerPanelVisible(true);
       setWarmupButtonState('starting');
       const remaining = currentStartingRemaining();
       setServerVisual('starting', 'Starting server', stage);
@@ -1279,12 +1482,18 @@
     }
 
     function markServerOnline(source = 'status', warmHoldSeconds = DEFAULT_WARM_HOLD_SEC) {
+      if (isAlwaysLiveBackend()) {
+        recordLog('status:always-live', { source, backend: activeBackend().id });
+        markAlwaysLiveBackend(`${activeBackend().label} is ready. No startup or shutdown timer is needed.`);
+        return;
+      }
       const readySeconds = readySecondsFrom(warmHoldSeconds);
       recordLog('status:online', { source, warmHoldSeconds: readySeconds });
       serverReady = true;
       warmupActive = false;
       stopSharedStatusPolling();
       stopStartupTimer();
+      setTimerPanelVisible(true);
       setWarmupButtonState('ready');
       startReadyTimer(readySeconds);
       updateSendButtons();
@@ -1422,6 +1631,41 @@
       markServerCold('Server starts only after you press Start server.');
     }
 
+    function refreshSelectedBackendStatus(reason = 'backend-status') {
+      if (isAlwaysLiveBackend()) {
+        markAlwaysLiveBackend(`${activeBackend().label} is ready. No startup or shutdown timer is needed.`);
+        syncPassiveStatus().catch(err => {
+          recordLog(`${reason}:error`, { backend: activeBackend().id, error: describeError(err) }, 'error');
+          markAlwaysLiveBackend(`Status check failed: ${describeError(err)}`);
+        });
+        return;
+      }
+      markServerCold(`Checking ${activeBackend().label} status...`);
+      syncPassiveStatus().catch(err => {
+        recordLog(`${reason}:error`, { backend: activeBackend().id, error: describeError(err) }, 'error');
+        markServerCold('Status check failed. Start server can try again.');
+      });
+    }
+
+    function showQwenStartupNotice() {
+      if (activeBackend().id !== 'qwen-sagemaker') return;
+      recordLog('backend:qwen-startup-notice', { backend: activeBackend().id });
+      if (qwenStartupNotice?.showModal) {
+        qwenStartupNotice.showModal();
+        return;
+      }
+      window.alert('Qwen / SageMaker can start from cold. Press Start server and allow up to about five minutes before the first answer is ready.');
+    }
+
+    function switchBackend(nextBackendId) {
+      if (!BACKENDS[nextBackendId] || nextBackendId === selectedBackendId) return;
+      selectedBackendId = nextBackendId;
+      localStorage.setItem(BACKEND_STORAGE_KEY, selectedBackendId);
+      contexts.forEach(clearContext);
+      refreshSelectedBackendStatus('backend-switch');
+      if (selectedBackendId === 'qwen-sagemaker') showQwenStartupNotice();
+    }
+
     function stageMessage(stage) {
       const name = String(stage?.name || '').toLowerCase();
       if (name === 'queued') return 'Request queued. Waiting for AWS capacity.';
@@ -1431,7 +1675,27 @@
       return stage?.message || 'Starting AWS model endpoint...';
     }
 
+    async function checkAlwaysLiveBackend() {
+      if (warmupActive) return;
+      warmupActive = true;
+      setWarmupButtonState('starting');
+      setTimerPanelVisible(false);
+      setServerVisual('ready', `${activeBackend().label} live`, 'Checking Bedrock status...');
+      try {
+        const status = await fetchStatusInfo();
+        recordLog('bedrock:status-check', { backend: activeBackend().id, status: status.payload?.status || status.payload?.state });
+        markAlwaysLiveBackend(status.payload?.stage?.message || `${activeBackend().label} is ready. No startup or shutdown timer is needed.`);
+      } catch (err) {
+        recordLog('bedrock:status-check-error', { error: describeError(err) }, 'error');
+        markAlwaysLiveBackend(`Status check failed: ${describeError(err)}`);
+      }
+    }
+
     async function warmupServer() {
+      if (isAlwaysLiveBackend()) {
+        await checkAlwaysLiveBackend();
+        return;
+      }
       if (warmupActive || serverReady) return;
       userStartedWarmup = true;
       warmupActive = true;
@@ -1439,8 +1703,8 @@
       startWarmupTimer({ durationSec: START_TIMEOUT_SEC, reason: 'manual-warmup' });
       markServerStarting('Submitting warmup request to AWS...');
       try {
-        const submit = await postJson(`${API_URL}/warmup`, {});
-        recordLog('warmup:submit', { status: submit.status, jobId: submit.jobId, warm: submit.warm });
+        const submit = await postJson(backendUrl('/warmup'), {});
+        recordLog('warmup:submit', { backend: activeBackend().id, status: submit.status, jobId: submit.jobId, warm: submit.warm });
         const submitInfo = statusInfoFromPayload(submit);
         updateTimerDetails(submitInfo, 'Manual warmup submit');
         syncStartupEta(submitInfo.warmSeconds, 'warmup-submit');
@@ -1463,7 +1727,7 @@
         ? `jobId=${encodeURIComponent(submit.jobId)}`
         : `outputUri=${encodeURIComponent(submit.outputUri)}`;
       while (warmupActive) {
-        const result = await getJson(`${API_URL}/result?${query}`, { cache: 'no-store' });
+        const result = await getJson(`${backendUrl('/result')}?${query}`, { cache: 'no-store' });
         const stage = result.stage || {};
         recordLog('warmup:poll', { status: result.status, stage: stage.name });
         const resultInfo = statusInfoFromPayload(result);
@@ -1575,7 +1839,15 @@
       return true;
     }
 
+    function normalizeAnswerLinks(container) {
+      container.querySelectorAll('a[href]').forEach(link => {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      });
+    }
+
     function noteExistingLinks(container, state) {
+      normalizeAnswerLinks(container);
       container.querySelectorAll('a[href]').forEach(link => {
         const href = link.getAttribute('href');
         const key = sourceKey(href);
@@ -1591,7 +1863,7 @@
       const link = document.createElement('a');
       link.href = href;
       link.target = '_blank';
-      link.rel = 'noreferrer';
+      link.rel = 'noopener noreferrer';
       link.textContent = text;
       container.appendChild(link);
       return link;
@@ -1857,6 +2129,7 @@
       linkBareUrls(container, state);
       autoLinkSourcePhrases(container, links, state);
       appendSourceDropdown(container, links);
+      normalizeAnswerLinks(container);
     }
 
     function answerText(data) {
@@ -2074,16 +2347,108 @@
       textarea.style.height = `${Math.min(160, textarea.scrollHeight)}px`;
     }
 
+    async function submitBedrockStream(ctx, requestId, body, backend) {
+      if (!backend.streamUrl) {
+        throw new Error('Bedrock stream URL is not configured');
+      }
+      const response = await fetch(backend.streamUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: ctx.controller.signal
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Bedrock stream failed (${response.status})${text ? `: ${text.slice(0, 160)}` : ''}`);
+      }
+      if (!response.body) {
+        throw new Error('Bedrock stream is not readable in this browser');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let streamedAnswer = '';
+      let finalData = null;
+
+      const consumeLine = line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const event = JSON.parse(trimmed);
+        if (event.type === 'token') {
+          const text = String(event.text || '');
+          if (!text) return;
+          streamedAnswer += text;
+          try {
+            console.log('[chatbot-demo] bedrock:token', text);
+          } catch { /* console unavailable */ }
+          return;
+        }
+        if (event.type === 'meta') {
+          recordLog('bedrock:stream-meta', {
+            requestId,
+            model: event.model,
+            contextCount: event.context_count,
+            sourceCount: event.source_details?.length || 0
+          });
+          return;
+        }
+        if (event.type === 'done') {
+          finalData = event.data || event;
+          return;
+        }
+        if (event.type === 'error') {
+          throw new Error(event.error || 'Bedrock stream failed');
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+        const lines = buffer.split(/\n/);
+        buffer = lines.pop() || '';
+        lines.forEach(consumeLine);
+        if (done) break;
+      }
+      if (buffer.trim()) consumeLine(buffer);
+
+      if (finalData) return finalData;
+      const answer = streamedAnswer.trim();
+      if (answer) {
+        return {
+          backend: 'bedrock',
+          backend_label: 'Bedrock',
+          answer,
+          generated_text: answer,
+          source_details: [],
+          sources: [],
+          response_mode: 'stream_base_rag'
+        };
+      }
+      throw new Error('Bedrock stream ended without an answer');
+    }
+
     async function submitPrompt(ctx, prompt, followupContext = null) {
       const requestId = `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
       ctx.controller = new AbortController();
       updateSendButtons();
-      recordLog('submit:init', { requestId, prompt, hasFollowupContext: Boolean(followupContext) });
+      const backend = activeBackend();
+      recordLog('submit:init', { backend: backend.id, requestId, prompt, hasFollowupContext: Boolean(followupContext) });
 
       const body = { prompt };
       if (followupContext) body.followup_context = followupContext;
-      const submit = await postJson(`${API_URL}/submit`, body, { signal: ctx.controller.signal });
+      if (backend.id === 'bedrock' && backend.streamUrl) {
+        const data = await submitBedrockStream(ctx, requestId, body, backend);
+        markServerOnline('bedrock-stream-complete', null);
+        return data;
+      }
+      const submit = await postJson(backendUrl('/submit'), body, { signal: ctx.controller.signal });
       recordLog('submit:accepted', { requestId, jobId: submit.jobId, outputUri: submit.outputUri });
+      if (submit.status === 'READY' && (submit.data || submit.answer || submit.generated_text)) {
+        const readySeconds = statusInfoFromPayload(submit).shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC;
+        markServerOnline('request-complete', readySeconds);
+        return submit.data || submit;
+      }
       if (!submit.jobId && !submit.outputUri) {
         throw new Error('Server returned an invalid job response');
       }
@@ -2093,7 +2458,7 @@
         : `outputUri=${encodeURIComponent(submit.outputUri)}`;
 
       while (ctx.controller) {
-        const result = await getJson(`${API_URL}/result?${query}`, {
+        const result = await getJson(`${backendUrl('/result')}?${query}`, {
           cache: 'no-store',
           signal: ctx.controller.signal
         });
@@ -2188,12 +2553,18 @@
     popupLauncher.addEventListener('click', () => togglePopup());
     popupClose.addEventListener('click', () => togglePopup(false));
     warmupButton.addEventListener('click', warmupServer);
+    backendSelect?.addEventListener('change', () => switchBackend(backendSelect.value));
+    qwenStartupClose?.addEventListener('click', () => qwenStartupNotice?.close?.());
+    qwenStartupStart?.addEventListener('click', () => {
+      qwenStartupNotice?.close?.();
+      warmupServer();
+    });
+    qwenStartupNotice?.addEventListener('click', event => {
+      if (event.target === qwenStartupNotice) qwenStartupNotice.close();
+    });
     contexts.forEach(bindContext);
     updateSendButtons();
-    syncPassiveStatus().catch(err => {
-      recordLog('status:init-error', { error: describeError(err) }, 'error');
-      markServerCold('Status check failed. Start server can try again.');
-    });
+    refreshSelectedBackendStatus('status:init');
   </script>
 </body>
 </html>
