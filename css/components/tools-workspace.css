@@ -698,4 +698,90 @@
       position:static;
     }
   }
+
+  @media (max-width: 768px){
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ){
+      --tools-shell-width:100%;
+      --tools-shell-gap:12px;
+      --tools-pane-height:auto;
+      --tools-shell-top:calc(var(--nav-height, 72px) + 6px);
+    }
+
+    body[data-tools-layout="text"] #main,
+    body[data-tools-layout="media"] #main,
+    body[data-tools-layout="admin"] #main,
+    body[data-tools-layout="directory"] #main{
+      width:100%;
+      max-width:100%;
+    }
+
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ) .tools-hero{
+      padding:var(--mobile-section-y-tight) 0;
+      box-shadow:0 12px 26px rgba(0,0,0,.28);
+    }
+
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ) .tools-hero .wrapper,
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ) .tools-account-dock-inner{
+      padding-inline:var(--mobile-page-gutter);
+    }
+
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ) .tools-section{
+      padding:var(--mobile-section-y) 0;
+    }
+
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ) #main > .surface-band > .wrapper{
+      padding-inline:var(--mobile-page-gutter);
+    }
+
+    :is(body[data-tools-layout="text"], body[data-tools-layout="media"]) .tools-account-dock,
+    body[data-tools-layout="admin"] .tools-account-dock,
+    body[data-tools-layout="directory"] .tools-account-dock{
+      padding-top:6px;
+    }
+
+    :is(
+      body[data-tools-layout="text"],
+      body[data-tools-layout="media"],
+      body[data-tools-layout="admin"],
+      body[data-tools-layout="directory"]
+    ) .tools-account-bar,
+    .tools-resume-panel{
+      border-radius:10px;
+      box-shadow:none;
+    }
+
+    .tools-resume-panel{
+      padding:var(--mobile-card-pad);
+    }
+  }
 }

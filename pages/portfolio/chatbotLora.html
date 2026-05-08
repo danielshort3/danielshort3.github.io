@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/chatbotLora.png">
   <meta name="twitter:image:alt" content="Preview image for Chatbot (LoRA + RAG)">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.1c621b14.css">
+  <link rel="stylesheet" href="dist/styles.62652e51.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -256,7 +256,7 @@
         <li>Click a quick prompt, or type your own question in the chat box.</li>
         <li>Press Enter or click “Send” to submit.</li>
         <li>Use the citations in the response to jump to the referenced pages.</li>
-        <li>If the service is warming up after idle time, wait for status to turn ready and try again.</li>
+        <li>Bedrock is the default live backend; choose Qwen / SageMaker only when comparing cold-start behavior.</li>
       </ul>
             <div class="project-demo-actions">
               <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
@@ -267,7 +267,7 @@
 
         <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-chatbotLora-panel-demo" aria-labelledby="project-demo-chatbotLora-tab-demo" hidden>
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe">
+            <div class="project-media project-embed project-embed-iframe project-embed-chatbotlora" data-project-embed="chatbotLora">
         <iframe class="project-embed-frame" data-src="chatbot-demo.html" title="Chatbot (LoRA + RAG) interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
@@ -311,7 +311,7 @@
           <dt class="project-star-label">Result</dt>
           <dd class="project-star-value">
             <ul class="project-star-list">
-              <li>The demo answers with citations; the first request after downtime can be slower due to cold-starting the backend.</li>
+              <li>The demo defaults to a live Bedrock backend with citation links, while Qwen / SageMaker remains available for cold-start comparison.</li>
             </ul>
           </dd>
         </div>
@@ -458,7 +458,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.a5d45d92.js"></script>
+  <script defer src="dist/site-shell.f2b62a3d.js"></script>
   <script defer src="dist/site-consent.187c0851.js"></script>
 </body>
 </html>

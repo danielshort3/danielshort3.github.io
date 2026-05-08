@@ -385,6 +385,7 @@ try {
     const cmsSnapshotStore = readFile('api/_lib/cms-snapshot-store.js');
     const cmsWidgets = readFile('api/_lib/cms-widgets.js');
     const devJs = readFile('build/dev.js');
+    const localDevWsl = readFile('start-local-dev-wsl.bat');
     const copyJs = readFile('build/copy-to-public.js');
     const envExample = readFile('.env.example');
 
@@ -497,6 +498,16 @@ try {
       'dev server should route local CMS API and reload CMS modules');
     assert(devJs.includes('generate-project-pages.js'), 'dev server should reload project preview renderer changes');
     assert(devJs.includes('Local CMS available'), 'dev server should advertise local CMS URL');
+    assert(devJs.includes('MAX_PORT_SEARCH_ATTEMPTS') &&
+           devJs.includes("err.code === 'EADDRINUSE'") &&
+           devJs.includes('Port ${previousPort} is in use; trying ${candidatePort}...'),
+      'dev server should automatically try the next port when the requested port is in use');
+    assert(localDevWsl.includes('No available local port found') &&
+           localDevWsl.includes('Port %PORT% is already in use; using %LOCAL_DEV_PORT% instead.') &&
+           localDevWsl.includes('LOCAL_DEV_ENDPOINT') &&
+           localDevWsl.includes("Write-Output ($hostName + '|' + $p)") &&
+           localDevWsl.includes('npm run dev -- --host 0.0.0.0 --port %PORT%'),
+      'WSL local dev launcher should choose and open an available port for npm run dev');
     assert(!devJs.includes('vercel dev') && !devJs.includes('npx --yes vercel'), 'dev server should not launch Vercel CLI');
     assert(copyJs.includes("path.join(outDir, 'admin')") && !/const dirs = \[[^\]]*'admin'/s.test(copyJs),
       'copy-to-public.js should keep admin local-only');
@@ -861,17 +872,39 @@ try {
     assert(utilCss.includes('background:linear-gradient(90deg'), 'mobile divider gradient missing');
     assert(utilCss.includes('padding-top:var(--nav-height'), 'page offset for fixed header missing');
     assert(utilCss.includes('clip-path') && utilCss.includes('.nav-row.open'), 'mobile drawer clip-path reveal missing');
+    assert(utilCss.includes('padding-inline:var(--mobile-page-gutter);'), 'mobile wrapper should use compact page gutters');
+    assert(utilCss.includes('body .surface-band,\n  body .interest-pad'), 'mobile global sections should share compact vertical spacing');
+    assert(utilCss.includes('body:not([data-page="home"]):not(.home-pattern-page) .hero.hero--default'), 'mobile hero compacting should live in the utilities layer');
+    assert(utilCss.includes('#cta #cta-link'), 'mobile CTA shell should be compacted');
+    const helperCss = fs.readFileSync('css/utilities/helpers.css', 'utf8');
+    assert(helperCss.includes('.contact-big .contact-card') && helperCss.includes('padding:22px 16px;'), 'mobile contact cards should override utility padding');
   });
 
   section('CSS tokens, layers, and components', () => {
     const varsCss = fs.readFileSync('css/variables.css', 'utf8');
     assert(/--secondary\s*:\s*var\(--primary\)\s*;/.test(varsCss), 'variables.css --secondary not mapped to --primary');
+    assert(varsCss.includes('--mobile-page-gutter:clamp(12px,4vw,18px);'), 'variables.css missing mobile page gutter token');
+    assert(varsCss.includes('--mobile-section-y:clamp(1.55rem,5vw,2.25rem);'), 'variables.css missing compact mobile section token');
 
     const heroCss = fs.readFileSync('css/components/hero.css', 'utf8');
     assert(!heroCss.includes('var(--secondary)'), 'hero.css still references --secondary');
+    assert(heroCss.includes('body:not([data-page="home"]):not(.home-pattern-page) .hero.hero--default'), 'hero.css should flatten non-home default heroes on mobile');
     const modalCss = fs.readFileSync('css/components/modal.css', 'utf8');
     assert(!modalCss.includes('var(--secondary)'), 'modal.css still references --secondary');
     assert(modalCss.includes('.contact-form input') && modalCss.includes('.contact-form-status'), 'contact modal form styles missing');
+    assert(modalCss.includes('#contact-modal .modal-content') && modalCss.includes('width:calc(100vw - 12px);'), 'contact modal should use compact mobile viewport width');
+
+    const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
+    const toolsWorkspaceCss = fs.readFileSync('css/components/tools-workspace.css', 'utf8');
+    const toolThemeCss = fs.readFileSync('css/components/tool-theme.css', 'utf8');
+    const resumeCss = fs.readFileSync('css/components/resume.css', 'utf8');
+    const contactCardCss = fs.readFileSync('css/components/contact-card.css', 'utf8');
+    assert(projectCss.includes('--project-mobile-edge:calc(var(--mobile-page-gutter, 14px) * -1);'), 'project pages should flatten demo shells to mobile edges');
+    assert(projectCss.includes('margin-inline:var(--project-mobile-edge);'), 'project demo shell should consume redundant mobile wrapper gutters');
+    assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
+    assert(toolThemeCss.includes('body[data-page="text-compare"]') && toolThemeCss.includes('padding:var(--mobile-card-pad);'), 'tool pages should compact mobile cards');
+    assert(resumeCss.includes('.resume-paper') && resumeCss.includes('border-radius:12px;'), 'resume paper should use compact mobile card radius');
+    assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');
 
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
     assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
@@ -1394,6 +1427,10 @@ try {
 
   section('Chatbot demo manual warmup and views', () => {
     const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
+    const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
+    const commonJs = fs.readFileSync('js/common/common.js', 'utf8');
+    const projectGenerator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
+    const chatbotProject = JSON.parse(fs.readFileSync('content/projects/chatbotLora.json', 'utf8'));
     const vercel = fs.readFileSync('vercel.json', 'utf8');
     assert(chatbotHtml.includes("const DEFAULT_QWEN_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';"), 'chatbot-demo missing Qwen API URL');
     assert(chatbotHtml.includes("const DEFAULT_BEDROCK_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod/bedrock';"), 'chatbot-demo missing Bedrock API URL');
@@ -1407,6 +1444,28 @@ try {
     assert(chatbotHtml.includes("postJson(backendUrl('/warmup'), {})"), 'chatbot-demo missing warm-up API call');
     assert(chatbotHtml.includes('id="backend-select"'), 'chatbot-demo missing backend selector');
     assert(chatbotHtml.includes('<option value="bedrock">Bedrock</option>'), 'chatbot-demo missing Bedrock backend option');
+    assert(chatbotHtml.includes('<body data-chatbot-template="portfolio" data-mobile-layout="single-surface">'), 'chatbot-demo should identify the portfolio-aligned single-surface template');
+    assert(chatbotHtml.includes('color-scheme: dark;'), 'chatbot-demo should use the dark website-aligned color scheme');
+    assert(chatbotHtml.includes('--panel-raised: #1a2230;'), 'chatbot-demo missing raised panel token for website-aligned surfaces');
+    assert(chatbotHtml.includes('--chat-height: calc(100dvh - 96px);'), 'chatbot-demo mobile layout should reserve only compact toolbar height');
+    assert(chatbotHtml.includes('body[data-chatbot-template="portfolio"] {\n      padding-top: 0;') &&
+           chatbotHtml.includes('html[data-embedded="true"] body {\n      height: 100dvh;\n      overflow: hidden;') &&
+           chatbotHtml.includes('html[data-embedded="true"] .views,\n    html[data-embedded="true"] #regular-view'),
+      'embedded chatbot should reset site body offset and fill the iframe without document clipping');
+    assert(chatbotHtml.includes('.view-tabs {\n        display: none;'), 'chatbot-demo should hide nested view tabs on mobile');
+    assert(chatbotHtml.includes('#regular-view {\n        display: grid !important;'), 'chatbot-demo mobile layout should force the regular chat surface');
+    assert(chatbotHtml.includes('html[data-embedded="true"] .chat-stage {\n        height: 100%;'), 'embedded chatbot should size the chat stage to the iframe content area');
+    assert(projectGenerator.includes('project-embed-${embedProjectId.toLowerCase()}'), 'project generator should add project-specific embed classes');
+    assert(projectGenerator.includes('data-project-embed="${escapeHtml(embedProjectId)}"'), 'project generator should mark embeds with project ids');
+    assert(projectCss.includes('.project-demo-panel .project-embed-chatbotlora'), 'project CSS should target the chatbot embed without affecting all demos');
+    assert(projectCss.includes('.project-demo-shell:has(.project-embed-chatbotlora)') &&
+           projectCss.includes('height:clamp(500px, 64svh, 620px);'),
+      'chatbot embed should use a bounded mobile iframe height');
+    assert(commonJs.includes('shouldAutoResizeProjectEmbed') &&
+           commonJs.includes("!ifr.closest('.project-embed-chatbotlora')") &&
+           commonJs.includes("ifr.setAttribute('scrolling', 'auto');"),
+      'project iframe resizing should not auto-grow or disable scrolling on the chatbot embed');
+    assert(chatbotProject.demoInstructions.bullets.some((item) => item.includes('Bedrock is the default live backend')), 'chatbot project instructions should describe the current Bedrock default');
     assert(chatbotHtml.includes('id="qwen-startup-notice"'), 'chatbot-demo should show Qwen cold-start notice when Qwen is selected');
     assert(chatbotHtml.includes('function showQwenStartupNotice()'), 'chatbot-demo missing Qwen startup notice handler');
     assert(chatbotHtml.includes("if (selectedBackendId === 'qwen-sagemaker') showQwenStartupNotice();"), 'chatbot-demo should show the startup notice when switching to Qwen');

@@ -741,11 +741,14 @@ function renderProjectPage(project, options = {}) {
     if (!embed) return '';
     const lazy = options && options.lazy === true;
     const type = String(embed.type || '').trim();
+    const embedProjectId = toDomIdSafe(id);
+    const embedProjectClass = ` project-embed-${embedProjectId.toLowerCase()}`;
+    const embedProjectAttr = ` data-project-embed="${escapeHtml(embedProjectId)}"`;
     if (type === 'iframe') {
       const src = String(embed.url || '').trim();
       if (!src) return '';
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
-      return `<div class="project-media project-embed project-embed-iframe">
+      return `<div class="project-media project-embed project-embed-iframe${embedProjectClass}"${embedProjectAttr}>
         <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }
@@ -755,7 +758,7 @@ function renderProjectPage(project, options = {}) {
       const joiner = base.includes('?') ? '&' : '?';
       const src = `${base}${joiner}:showVizHome=no&:embed=y`;
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
-      return `<div class="project-media project-embed project-embed-tableau">
+      return `<div class="project-media project-embed project-embed-tableau${embedProjectClass}"${embedProjectAttr}>
         <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }

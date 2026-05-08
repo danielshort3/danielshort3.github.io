@@ -56,7 +56,7 @@ What `npm run dev` does:
 
 - Runs a full `build/build-site.js` pass first.
 - Watches key source folders/files and reruns that build whenever you change code/content.
-- Starts a repo-native Node server at `http://localhost:3000` for clean URLs, static output, and the local CMS file API.
+- Starts a repo-native Node server at `http://localhost:3000` for clean URLs, static output, and the local CMS file API. If the starting port is busy, it automatically tries the next open port and prints the final URL.
 
 Use a different port:
 

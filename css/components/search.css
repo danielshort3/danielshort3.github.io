@@ -183,8 +183,17 @@
   }
 
   @media (max-width: 768px){
+    .search-card{
+      padding:var(--mobile-card-pad);
+      border-radius:12px;
+      box-shadow:none;
+    }
     .search-form{ flex-direction:column; }
     .search-field{ flex-direction:column; }
     .search-actions{ justify-content:flex-start; }
+    .search-result{
+      padding:12px;
+      border-radius:12px;
+    }
   }
 }

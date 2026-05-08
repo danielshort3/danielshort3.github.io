@@ -249,6 +249,185 @@
     }
   }
 
+  @media (max-width: 768px) {
+    :is(
+      body[data-page="word-frequency"],
+      body[data-page="text-compare"],
+      body[data-page="point-of-view-checker"],
+      body[data-page="oxford-comma-checker"],
+      body[data-page="nbsp-cleaner"],
+      body[data-page="background-remover"],
+      body[data-page="image-optimizer"],
+      body[data-page="ocean-wave-simulation"],
+      body[data-page="qr-code-generator"],
+      body[data-page="utm-batch-builder"]
+    ) :is(
+      .bgtool-hero,
+      .imgopt-hero,
+      .wordfreq-top-panel,
+      .textcompare-top-panel,
+      .povcheck-top-panel,
+      .oxford-top-panel,
+      .nbsp-hero,
+      .ocean-wave-hero,
+      .qrtool-hero,
+      .utmtool-hero
+    ),
+    body[data-page="screen-recorder"] .screenrec-hero{
+      padding:var(--mobile-section-y-tight) 0;
+      box-shadow:0 12px 26px rgba(0,0,0,.28);
+    }
+
+    :is(
+      body[data-page="word-frequency"],
+      body[data-page="text-compare"],
+      body[data-page="point-of-view-checker"],
+      body[data-page="oxford-comma-checker"],
+      body[data-page="nbsp-cleaner"],
+      body[data-page="background-remover"],
+      body[data-page="image-optimizer"],
+      body[data-page="ocean-wave-simulation"],
+      body[data-page="qr-code-generator"],
+      body[data-page="utm-batch-builder"]
+    ) :is(
+      .bgtool-hero,
+      .imgopt-hero,
+      .wordfreq-top-panel,
+      .textcompare-top-panel,
+      .povcheck-top-panel,
+      .oxford-top-panel,
+      .nbsp-hero,
+      .ocean-wave-hero,
+      .qrtool-hero,
+      .utmtool-hero
+    ) .wrapper,
+    body[data-page="screen-recorder"] .screenrec-hero .wrapper{
+      gap:14px;
+      padding-inline:var(--mobile-page-gutter);
+    }
+
+    :is(
+      body[data-page="word-frequency"],
+      body[data-page="text-compare"],
+      body[data-page="point-of-view-checker"],
+      body[data-page="oxford-comma-checker"],
+      body[data-page="nbsp-cleaner"],
+      body[data-page="background-remover"],
+      body[data-page="image-optimizer"],
+      body[data-page="ocean-wave-simulation"],
+      body[data-page="qr-code-generator"],
+      body[data-page="utm-batch-builder"]
+    ) :is(
+      .bgtool-steps,
+      .imgopt-steps,
+      .wordfreq-steps,
+      .povcheck-steps,
+      .oxford-steps,
+      .nbsp-steps,
+      .ocean-wave-steps,
+      .qrtool-steps,
+      .utmtool-steps
+    ),
+    body[data-page="screen-recorder"] .screenrec-steps{
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+
+    :is(
+      body[data-page="word-frequency"],
+      body[data-page="text-compare"],
+      body[data-page="point-of-view-checker"],
+      body[data-page="oxford-comma-checker"],
+      body[data-page="nbsp-cleaner"],
+      body[data-page="background-remover"],
+      body[data-page="image-optimizer"],
+      body[data-page="ocean-wave-simulation"],
+      body[data-page="qr-code-generator"],
+      body[data-page="utm-batch-builder"]
+    ) :is(
+      .bgtool-step,
+      .imgopt-step,
+      .wordfreq-step,
+      .povcheck-step,
+      .oxford-step,
+      .nbsp-step,
+      .ocean-wave-step,
+      .qrtool-step,
+      .utmtool-step
+    ),
+    body[data-page="screen-recorder"] .screenrec-step{
+      padding:12px;
+      border-radius:12px;
+      box-shadow:none;
+    }
+
+    :is(
+      body[data-page="word-frequency"],
+      body[data-page="text-compare"],
+      body[data-page="point-of-view-checker"],
+      body[data-page="oxford-comma-checker"],
+      body[data-page="nbsp-cleaner"],
+      body[data-page="background-remover"],
+      body[data-page="image-optimizer"],
+      body[data-page="ocean-wave-simulation"],
+      body[data-page="qr-code-generator"],
+      body[data-page="utm-batch-builder"]
+    ) :is(
+      .bgtool-section,
+      .imgopt-section,
+      .wordfreq-section,
+      .textcompare-section,
+      .povcheck-section,
+      .oxford-section,
+      .nbsp-section,
+      .ocean-wave-section,
+      .qrtool-section,
+      .utmtool-section
+    ),
+    body[data-page="screen-recorder"] .screenrec-section{
+      padding:var(--mobile-section-y) 0;
+    }
+
+    :is(
+      body[data-page="word-frequency"],
+      body[data-page="text-compare"],
+      body[data-page="point-of-view-checker"],
+      body[data-page="oxford-comma-checker"],
+      body[data-page="nbsp-cleaner"],
+      body[data-page="background-remover"],
+      body[data-page="image-optimizer"],
+      body[data-page="ocean-wave-simulation"],
+      body[data-page="qr-code-generator"],
+      body[data-page="utm-batch-builder"]
+    ) :is(
+      .bgtool-card,
+      .imgopt-card,
+      .wordfreq-card,
+      .textcompare-card,
+      .povcheck-card,
+      .oxford-card,
+      .nbsp-card,
+      .ocean-wave-card,
+      .qrtool-card
+    ),
+    body[data-page="screen-recorder"] .screenrec-card{
+      padding:var(--mobile-card-pad);
+      border-radius:12px;
+      box-shadow:none;
+    }
+
+    body[data-page="text-compare"] .textcompare-textarea,
+    body[data-page="point-of-view-checker"] .povcheck-textarea,
+    body[data-page="oxford-comma-checker"] .oxford-textarea,
+    body[data-page="nbsp-cleaner"] .nbsp-textarea{
+      min-height:220px;
+    }
+
+    body[data-page="word-frequency"] .wordfreq-textarea{
+      min-height:240px;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :is(
       .bgtool-card,
