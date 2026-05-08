@@ -167,7 +167,7 @@ window.PROJECTS = [
         "Click a quick prompt, or type your own question in the chat box.",
         "Press Enter or click “Send” to submit.",
         "Use the citations in the response to jump to the referenced pages.",
-        "If the service is warming up after idle time, wait for status to turn ready and try again."
+        "Bedrock is the default live backend; choose Qwen / SageMaker only when comparing cold-start behavior."
       ]
     },
     "role": [
@@ -182,7 +182,7 @@ window.PROJECTS = [
       "Added Lambda endpoints so the website can talk to the model."
     ],
     "results": [
-      "The demo answers with citations; the first request after downtime can be slower due to cold-starting the backend."
+      "The demo defaults to a live Bedrock backend with citation links, while Qwen / SageMaker remains available for cold-start comparison."
     ],
     "caseStudy": [
       {

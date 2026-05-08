@@ -219,9 +219,18 @@
   }
 
   @media (max-width: 768px){
+    .sitemap-card{
+      padding:var(--mobile-card-pad);
+      border-radius:12px;
+      box-shadow:none;
+    }
     .sitemap-filter{ flex-direction:column; }
     .sitemap-meta{ flex-direction:column; align-items:flex-start; }
     .sitemap-section-title-row{ flex-direction:column; align-items:flex-start; gap:4px; }
     .sitemap-items{ grid-template-columns:1fr; }
+    .sitemap-section{
+      padding:12px;
+      border-radius:12px;
+    }
   }
 }

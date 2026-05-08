@@ -621,11 +621,29 @@
 
   /* Responsive adjustments */
   @media (max-width: 768px) {
+    .modal-content{
+      width:calc(100vw - 16px);
+      max-height:calc(100svh - 16px);
+      margin:8px;
+      padding:18px var(--mobile-card-pad);
+      border-radius:12px;
+    }
+    .modal-content::before{
+      border-radius:12px 12px 0 0;
+    }
+    .modal-title-strip{
+      padding:26px 16px 18px;
+    }
     .modal-header-details { flex-direction:column; align-items:center; }
     .modal-half { flex:1 1 auto; width:100%; }
     .modal-divider { position: static; width: 80%; height: 1px; margin: 12px 0; transform: none; }
-    .modal-body { padding:16px; }
-    #contact-modal .modal-body { padding:20px 16px 24px; }
+    .modal-body { padding:0 0 18px; gap:18px; }
+    #contact-modal .modal-content{
+      width:calc(100vw - 12px);
+      max-height:calc(100svh - 12px);
+      margin:6px;
+    }
+    #contact-modal .modal-body { padding:18px var(--mobile-card-pad) 22px; }
     .contact-form .form-actions{
       flex-direction:column;
       align-items:stretch;

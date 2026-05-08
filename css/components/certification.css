@@ -189,6 +189,12 @@
     box-sizing:border-box;
   }
   @media (max-width: 900px) {
+    .cert-band{
+      padding:var(--mobile-section-y) 0;
+    }
+    .cert-band-inner{
+      padding-inline:var(--mobile-page-gutter);
+    }
     .cert-modal-trigger{
       width:100%;
       min-width:0;
@@ -201,6 +207,9 @@
     .cert-modal-grid .cert-card{
       width:min(100%,420px);
       max-width:100%;
+      padding:var(--mobile-card-pad);
+      border-radius:12px;
+      box-shadow:none;
     }
     .cert-card-actions .btn-secondary{
       width:100%;

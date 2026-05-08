@@ -117,7 +117,7 @@
 
   @media (max-width: 640px) {
     .home-proof-band {
-      padding: 2rem 0 2.8rem;
+      padding: var(--mobile-section-y) 0;
     }
 
     .home-proof-head {
@@ -131,6 +131,8 @@
     .home-proof-card {
       min-height: 0;
       padding: 0;
+      border-radius: 14px;
+      box-shadow: none;
     }
 
     .home-proof-value {

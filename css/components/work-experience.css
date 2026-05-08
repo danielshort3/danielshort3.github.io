@@ -105,12 +105,26 @@
   }
 
   @media (max-width:640px){
+    .work-band{
+      padding:var(--mobile-section-y) 0;
+    }
+
     .work-grid{
       grid-template-columns:1fr;
+      gap:14px;
     }
 
     .work-card{
-      padding:20px;
+      padding:var(--mobile-card-pad);
+      border-radius:12px;
+      box-shadow:none;
+    }
+
+    .work-logo-shell{
+      height:72px;
+      min-width:72px;
+      border-radius:12px;
+      box-shadow:none;
     }
   }
 }

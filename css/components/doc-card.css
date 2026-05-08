@@ -234,11 +234,24 @@
   }
   /* mobile alignment for footer/content */
   @media (max-width:768px){
+    .contrib-divider{
+      padding:24px 0;
+    }
+    .contrib-section{
+      margin-top:18px;
+      margin-bottom:18px;
+    }
+    .docs-grid{
+      padding:14px 0;
+      gap:14px;
+    }
     /* stack cards so labels/roles never clash with the footer */
     .doc-card,
     .doc-card.featured-doc{
       position:static;
-      padding:26px 22px 32px;
+      padding:18px 16px 20px;
+      border-radius:12px;
+      box-shadow:none;
     }
     .doc-footer{
       position:static;
@@ -264,7 +277,10 @@
     .docs-grid{ grid-template-columns:1fr; }
 
     /* turn the previous reports timeline into distinct cards for readability */
-    .timeline-year{padding:16px 20px 18px;}
+    .timeline-year{
+      padding:14px;
+      border-radius:12px;
+    }
     .timeline-year::before,
     .timeline-year::after{display:none;}
     .timeline-year summary{

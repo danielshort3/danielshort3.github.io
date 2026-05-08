@@ -1072,9 +1072,12 @@
   });
 
   const PROJECT_EMBED_HEIGHT_BUFFER_PX = 2;
+  const shouldAutoResizeProjectEmbed = (ifr) => (
+    !!ifr && !ifr.closest('.project-embed-chatbotlora')
+  );
 
   const setProjectEmbedIframeHeight = (ifr, height) => {
-    if (!ifr) return;
+    if (!shouldAutoResizeProjectEmbed(ifr)) return;
     if (!Number.isFinite(height) || height <= 0) return;
     // Round up with a small buffer to avoid 1-2px inner scrollbars from sub-pixel layout.
     const next = `${Math.ceil(height + PROJECT_EMBED_HEIGHT_BUFFER_PX)}px`;
@@ -1083,7 +1086,7 @@
   };
 
   const resizeProjectEmbedIframe = (ifr) => {
-    if (!ifr) return;
+    if (!shouldAutoResizeProjectEmbed(ifr)) return;
     try {
       const doc = ifr.contentDocument || ifr.contentWindow?.document;
       if (!doc) return;
@@ -1101,7 +1104,7 @@
   };
 
   const observeProjectEmbedIframe = (ifr) => {
-    if (!ifr) return;
+    if (!shouldAutoResizeProjectEmbed(ifr)) return;
     if (typeof ResizeObserver !== 'function') return;
 
     try {
@@ -1141,6 +1144,11 @@
     document.querySelectorAll('.project-embed-frame').forEach((ifr) => {
       if (ifr._resizeBound) return;
       ifr._resizeBound = true;
+      if (!shouldAutoResizeProjectEmbed(ifr)) {
+        ifr.setAttribute('scrolling', 'auto');
+        ifr.style.removeProperty('overflow');
+        return;
+      }
       ifr.setAttribute('scrolling', 'no');
       ifr.style.overflow = 'hidden';
       ifr.addEventListener('load', () => {
@@ -1160,10 +1168,11 @@
   window.addEventListener('message', (event) => {
     const data = event && event.data || {};
     const type = typeof data?.type === 'string' ? data.type : '';
-    if (!/(pizza-demo-resize|retail-loss-sales-demo-resize|minesweeper-demo-resize)/.test(type)) return;
+    if (!/(chatbot-demo-resize|pizza-demo-resize|retail-loss-sales-demo-resize|minesweeper-demo-resize)/.test(type)) return;
     const ifrs = document.querySelectorAll('.project-embed-frame');
     for (const ifr of ifrs) {
       if (ifr.contentWindow === event.source) {
+        if (!shouldAutoResizeProjectEmbed(ifr)) break;
         const h = typeof data.height === 'number' && isFinite(data.height)
           ? Math.max(0, Math.ceil(data.height + PROJECT_EMBED_HEIGHT_BUFFER_PX))
           : null;

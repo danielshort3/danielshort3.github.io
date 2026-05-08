@@ -17,6 +17,7 @@ const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
 const adminDir = path.join(root, 'admin');
 const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
+const MAX_PORT_SEARCH_ATTEMPTS = 50;
 
 const WATCH_ROOTS = [
   'api',
@@ -81,6 +82,15 @@ function parsePort() {
   return '3000';
 }
 
+function normalizePort(value) {
+  const port = Number(String(value || '').trim());
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    log(`Invalid port: ${value}. Use a whole number between 1 and 65535.`);
+    process.exit(1);
+  }
+  return port;
+}
+
 function parseHost() {
   const args = process.argv.slice(2);
   const explicitHostIndex = args.indexOf('--host');
@@ -93,6 +103,46 @@ function parseHost() {
 
 function getDisplayHost(host) {
   return host === '0.0.0.0' || host === '::' ? 'localhost' : host;
+}
+
+function listenWithPortFallback(server, { host, startPort, onReady, onFatal }) {
+  let candidatePort = startPort;
+  let attemptCount = 0;
+
+  function tryListen() {
+    function handleListening() {
+      server.removeListener('error', handleError);
+      onReady(candidatePort);
+    }
+
+    function handleError(err) {
+      server.removeListener('listening', handleListening);
+
+      if (err && err.code === 'EADDRINUSE' && candidatePort < 65535 && attemptCount < MAX_PORT_SEARCH_ATTEMPTS) {
+        const previousPort = candidatePort;
+        candidatePort += 1;
+        attemptCount += 1;
+        log(`Port ${previousPort} is in use; trying ${candidatePort}...`);
+        setTimeout(tryListen, 0);
+        return;
+      }
+
+      if (err && err.code === 'EADDRINUSE') {
+        const exhausted = new Error(`No available dev port found from ${startPort} through ${candidatePort}.`);
+        exhausted.code = err.code;
+        onFatal(exhausted);
+        return;
+      }
+
+      onFatal(err);
+    }
+
+    server.once('listening', handleListening);
+    server.once('error', handleError);
+    server.listen(candidatePort, host);
+  }
+
+  tryListen();
 }
 
 function runSiteBuild({ exitOnFail }) {
@@ -451,7 +501,7 @@ function createLocalServer() {
 }
 
 function main() {
-  const port = parsePort();
+  const port = normalizePort(parsePort());
   const host = parseHost();
   const displayHost = getDisplayHost(host);
   const noWatch = hasFlag('--no-watch');
@@ -469,15 +519,19 @@ function main() {
   if (noWatch) log('Build watcher disabled (--no-watch).');
 
   const server = createLocalServer();
-  server.on('error', (err) => {
-    log(`Local server failed: ${err && err.message ? err.message : err}`);
-    if (watcher) watcher.close();
-    process.exit(1);
-  });
-  server.listen(Number(port), host, () => {
-    log(`Serving local site on http://${displayHost}:${port}`);
-    if (displayHost !== host) log(`Bound to ${host} for WSL/host access.`);
-    log(`Local CMS available at http://${displayHost}:${port}/admin`);
+  listenWithPortFallback(server, {
+    host,
+    startPort: port,
+    onReady: (selectedPort) => {
+      log(`Serving local site on http://${displayHost}:${selectedPort}`);
+      if (displayHost !== host) log(`Bound to ${host} for WSL/host access.`);
+      log(`Local CMS available at http://${displayHost}:${selectedPort}/admin`);
+    },
+    onFatal: (err) => {
+      log(`Local server failed: ${err && err.message ? err.message : err}`);
+      if (watcher) watcher.close();
+      process.exit(1);
+    }
   });
 
   function shutdown(exitCode) {

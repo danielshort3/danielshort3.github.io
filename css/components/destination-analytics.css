@@ -306,4 +306,54 @@
       letter-spacing: .14em;
     }
   }
+
+  @media (max-width: 640px) {
+    body[data-page="destination-analytics"] main > section.surface-band,
+    .transfer-band {
+      padding: var(--mobile-section-y) 0;
+    }
+
+    .hero-bullet-list {
+      gap: 10px;
+    }
+
+    .hero-bullet-list li,
+    .destination-card,
+    .destination-output-card,
+    .destination-link-card,
+    .who-i-work-with-card,
+    .destination-proof-link {
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .destination-grid,
+    .destination-output-grid,
+    .destination-link-grid,
+    .who-i-work-with-grid,
+    .destination-proof-grid,
+    .destination-metric-grid {
+      gap: 12px;
+    }
+
+    .transfer-head,
+    .destination-section-head {
+      margin-bottom: 18px;
+    }
+
+    .transfer-map {
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .transfer-map-cell {
+      padding: 14px 16px;
+    }
+
+    .destination-metric-pill {
+      padding: 12px;
+      border-radius: 12px;
+    }
+  }
 }

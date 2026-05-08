@@ -526,6 +526,66 @@
 	      align-items:flex-start;
 	    }
 	  }
+  @media (max-width: 640px){
+    .resume-section{
+      padding:var(--mobile-section-y-tight) 0;
+    }
+    .resume-section .wrapper{
+      padding-inline:var(--mobile-page-gutter);
+    }
+    .resume-paper{
+      padding:var(--mobile-card-pad);
+      border-radius:12px;
+      box-shadow:none;
+    }
+    .resume-paper::before{
+      height:4px;
+    }
+    .resume-top,
+    .resume-body{
+      gap:16px;
+    }
+    .resume-actions{
+      width:100%;
+    }
+    .resume-actions > *{
+      flex:1 1 100%;
+      justify-content:center;
+    }
+    .resume-contact-grid{
+      gap:8px;
+    }
+    .resume-contact-item,
+    .resume-highlight,
+    .resume-cert a,
+    .resume-education-item,
+    .resume-project{
+      border-radius:10px;
+      padding:10px 12px;
+    }
+    .resume-summary{
+      margin-top:14px;
+      line-height:1.6;
+    }
+    .resume-body{
+      margin-top:18px;
+    }
+    .resume-role + .resume-role{
+      margin-top:22px;
+      padding-top:22px;
+    }
+    .resume-role-list{
+      margin-left:18px;
+      font-size:1rem;
+    }
+    .resume-pdf{
+      margin-inline:calc(var(--mobile-page-gutter, 14px) * -1);
+      border-left:0;
+      border-right:0;
+      border-radius:0;
+      box-shadow:none;
+    }
+  }
   @media print{
     body{
       background:#fff;

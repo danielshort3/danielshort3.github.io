@@ -56,6 +56,12 @@
     --space-24:24px; --space-28:28px; --space-32:32px;
     --space-40:40px; --space-48:48px; --space-64:64px;
 
+    /* mobile layout density */
+    --mobile-page-gutter:clamp(12px,4vw,18px);
+    --mobile-section-y:clamp(1.55rem,5vw,2.25rem);
+    --mobile-section-y-tight:clamp(1rem,4vw,1.55rem);
+    --mobile-card-pad:clamp(1rem,4vw,1.25rem);
+
     /* radii */
     --radius-6:6px; --radius-8:8px; --radius-10:10px;
     --radius-12:12px; --radius-14:14px; --radius-16:16px;

@@ -63,6 +63,15 @@ if "%DISTRO%"=="" (
 )
 if not "%WSL_IP%"=="" echo [launcher-wsl] WSL IP fallback: %WSL_IP%
 
+set "LOCAL_DEV_PORT="
+for /f "usebackq delims=" %%P in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$start=[int]$env:PORT; $limit=[Math]::Min(65535,$start+50); for($p=$start; $p -le $limit; $p++){ $busy=$false; foreach($hostName in @('localhost','127.0.0.1')){ try { $client=New-Object Net.Sockets.TcpClient; $ar=$client.BeginConnect($hostName,$p,$null,$null); if($ar.AsyncWaitHandle.WaitOne(150)){ $client.EndConnect($ar); $busy=$true }; $client.Close() } catch {} if($busy){ break } }; if(-not $busy){ Write-Output $p; exit 0 } }; exit 1"`) do set "LOCAL_DEV_PORT=%%P"
+if "%LOCAL_DEV_PORT%"=="" (
+  echo [launcher-wsl] No available local port found from %PORT% through the next 50 ports.
+  goto :error
+)
+if not "%LOCAL_DEV_PORT%"=="%PORT%" echo [launcher-wsl] Port %PORT% is already in use; using %LOCAL_DEV_PORT% instead.
+set "PORT=%LOCAL_DEV_PORT%"
+
 set "WSL_SCRIPT=cd '%WSL_PATH%' && if [ ! -d node_modules ] || [ ! -d node_modules/@esbuild/linux-x64 ]; then echo '[launcher-wsl] Installing Linux deps...' && npm install; fi && CMS_ALLOW_PRIVATE_HOSTS=1 npm run dev -- --host 0.0.0.0 --port %PORT%; STATUS=$?; if [ $STATUS -ne 0 ]; then echo '[launcher-wsl] Dev command exited with code' $STATUS; echo '[launcher-wsl] Press Enter to close...'; read _; fi"
 
 echo [launcher-wsl] Starting WSL dev server on http://localhost:%PORT% ...
@@ -74,17 +83,21 @@ if "%DISTRO%"=="" (
 
 set "LOCAL_DEV_PORT=%PORT%"
 set "LOCAL_DEV_WSL_IP=%WSL_IP%"
-set "LOCAL_DEV_HOST="
-for /f "usebackq delims=" %%H in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$port=[int]$env:LOCAL_DEV_PORT; $hosts=@('localhost','127.0.0.1'); if($env:LOCAL_DEV_WSL_IP){ $hosts += $env:LOCAL_DEV_WSL_IP }; $deadline=(Get-Date).AddSeconds(120); while((Get-Date)-lt $deadline){ foreach($hostName in $hosts){ try { $client=New-Object Net.Sockets.TcpClient; $ar=$client.BeginConnect($hostName,$port,$null,$null); if($ar.AsyncWaitHandle.WaitOne(250)){ $client.EndConnect($ar); $client.Close(); Write-Output $hostName; exit 0 } $client.Close() } catch {} } Start-Sleep -Milliseconds 300 }; exit 1"`) do set "LOCAL_DEV_HOST=%%H"
+set "LOCAL_DEV_ENDPOINT="
+for /f "usebackq delims=" %%H in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$start=[int]$env:LOCAL_DEV_PORT; $limit=[Math]::Min(65535,$start+50); $hosts=@('localhost','127.0.0.1'); if($env:LOCAL_DEV_WSL_IP){ $hosts += $env:LOCAL_DEV_WSL_IP }; $deadline=(Get-Date).AddSeconds(120); while((Get-Date)-lt $deadline){ for($p=$start; $p -le $limit; $p++){ foreach($hostName in $hosts){ try { $client=New-Object Net.Sockets.TcpClient; $ar=$client.BeginConnect($hostName,$p,$null,$null); if($ar.AsyncWaitHandle.WaitOne(250)){ $client.EndConnect($ar); $client.Close(); Write-Output ($hostName + '|' + $p); exit 0 } $client.Close() } catch {} } } Start-Sleep -Milliseconds 300 }; exit 1"`) do set "LOCAL_DEV_ENDPOINT=%%H"
 
-if "%LOCAL_DEV_HOST%"=="" (
+if "%LOCAL_DEV_ENDPOINT%"=="" (
   echo [launcher-wsl] Server was not reachable within 120s.
   echo [launcher-wsl] Check the "WSL Local Website Dev Server" window for errors.
   goto :error
 )
+for /f "tokens=1,2 delims=|" %%A in ("%LOCAL_DEV_ENDPOINT%") do (
+  set "LOCAL_DEV_HOST=%%A"
+  set "LOCAL_DEV_PORT=%%B"
+)
 
 echo [launcher-wsl] Opening browser...
-start "" "http://%LOCAL_DEV_HOST%:%PORT%/"
+start "" "http://%LOCAL_DEV_HOST%:%LOCAL_DEV_PORT%/"
 goto :done
 
 :badport
@@ -102,6 +115,7 @@ echo   start-local-dev-wsl.bat 3000 Ubuntu
 echo.
 echo Notes:
 echo   - Runs the dev server inside WSL2.
+echo   - Uses the next available port if the requested port is busy.
 echo   - Opens localhost when Windows can reach it, otherwise opens the WSL IP.
 echo   - Installs Linux dependencies if needed.
 exit /b 0
