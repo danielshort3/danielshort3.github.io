@@ -395,6 +395,8 @@ try {
       'chatbot API should gate requests and verify Turnstile challenges');
     assert(api.includes('recordChatbotLog') && api.includes('suggestedLinksFromRetrieval') && api.includes('logId'),
       'chatbot API should record logs and return navigation suggestions');
+    assert(api.includes("boolEnv('CHATBOT_ENABLED', true)") && api.includes('retrievalOnlyAnswer') && api.includes("status: 'model_fallback'"),
+      'chatbot API should be enabled by default and fall back to retrieval-only answers when Bedrock is unavailable');
     assert(knowledgeLib.includes('loadKnowledge') && knowledgeLib.includes('scoreChunk') && knowledgeLib.includes('publicSources'),
       'chatbot knowledge helper should load, score, and expose sources');
     ['CHATBOT_DDB_TABLE', 'CHATBOT_HASH_SALT', 'CHATBOT_WINDOW_LIMIT', 'CHATBOT_DAILY_LIMIT', 'CHATBOT_GLOBAL_DAILY_LIMIT'].forEach((name) => {
@@ -407,6 +409,8 @@ try {
     });
     assert(rateLimit.includes('isProductionRuntime') && rateLimit.includes('memoryStore'),
       'chatbot rate limiter should have production guards and local fallback');
+    assert(rateLimit.includes("boolEnv('CHATBOT_REQUIRE_DDB', false)") && rateLimit.includes('requiresDdbRateLimit'),
+      'chatbot rate limiter should only require DynamoDB when explicitly configured');
     assert(logStore.includes('recordChatbotLog') && logStore.includes('listChatbotLogs') && logStore.includes('getChatbotLog'),
       'chatbot log store should record and read investigation logs');
     assert(logStore.includes('CHATBOT#LOGS') && logStore.includes('ttl') && logStore.includes('actorHash'),
@@ -1677,6 +1681,8 @@ try {
     });
     let vercelObj;
     try { vercelObj = JSON.parse(vercel); } catch {}
+    assert(vercelObj && vercelObj.env && vercelObj.env.CHATBOT_ENABLED === 'true' && vercelObj.env.CHATBOT_REQUIRE_DDB === 'false',
+      'vercel.json should enable the chatbot without requiring DynamoDB on Hobby deployments');
     const rewrites = (vercelObj && vercelObj.rewrites) || [];
     const redirects = (vercelObj && vercelObj.redirects) || [];
     assert(rewrites.length > 0, 'vercel.json missing rewrites');
