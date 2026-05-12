@@ -31,6 +31,13 @@ function pickEnv(keys) {
   return '';
 }
 
+function boolEnv(key, fallback = false) {
+  const raw = String(process.env[key] || '').trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(raw)) return true;
+  if (['0', 'false', 'no', 'off'].includes(raw)) return false;
+  return fallback;
+}
+
 function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
@@ -45,6 +52,16 @@ function getAwsCredentialsFromEnv() {
     secretAccessKey,
     ...(sessionToken ? { sessionToken } : {})
   };
+}
+
+function hasBedrockConfiguration() {
+  return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
+    'AWS_PROFILE',
+    'AWS_SHARED_CREDENTIALS_FILE',
+    'AWS_WEB_IDENTITY_TOKEN_FILE',
+    'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI',
+    'AWS_CONTAINER_CREDENTIALS_FULL_URI'
+  ]));
 }
 
 function getBedrockClient() {
@@ -91,7 +108,7 @@ async function readJson(req, maxBytes = 24_000) {
 }
 
 function isEnabled() {
-  return String(process.env.CHATBOT_ENABLED || '').trim().toLowerCase() === 'true';
+  return boolEnv('CHATBOT_ENABLED', true);
 }
 
 function getConfigPayload() {
@@ -202,6 +219,38 @@ function lowConfidenceAnswer(message, retrieval) {
     ok: true,
     answer: `I could not find enough support in the website content to answer that confidently. ${sourceHint}`,
     sources: fallbackSources,
+    suggestedLinks: suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true }),
+    confidence: retrieval.bestScore,
+    skippedModel: true,
+    messageEcho: message.slice(0, 120)
+  };
+}
+
+function summarizeChunk(chunk) {
+  const text = String(chunk && chunk.text ? chunk.text : '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  const sentence = text.match(/^.{80,260}?(?:[.!?](?:\s|$)|$)/);
+  return String(sentence ? sentence[0] : text.slice(0, 260)).trim();
+}
+
+function retrievalOnlyAnswer(message, retrieval) {
+  const sources = publicSources(retrieval.chunks, 5);
+  const highlights = (retrieval.chunks || [])
+    .slice(0, 3)
+    .map((chunk) => ({
+      title: String(chunk.title || 'Relevant site page').trim(),
+      summary: summarizeChunk(chunk)
+    }))
+    .filter((item) => item.summary);
+  const highlightsText = highlights.length
+    ? highlights.map((item, index) => `${index + 1}. ${item.title}: ${item.summary}`).join('\n')
+    : 'The closest related pages are linked below.';
+  return {
+    ok: true,
+    answer: `I can still point you to the closest supported website content. Here are the best matches from the site:\n\n${highlightsText}`,
+    sources,
     suggestedLinks: suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true }),
     confidence: retrieval.bestScore,
     skippedModel: true,
@@ -330,6 +379,12 @@ function extractAnswer(response) {
 }
 
 async function callBedrock(message, retrieval, pageContext) {
+  if (!hasBedrockConfiguration()) {
+    const err = new Error('Bedrock credentials are not configured.');
+    err.code = 'CHATBOT_BEDROCK_CREDENTIALS_MISSING';
+    throw err;
+  }
+
   const modelId = pickEnv(['CHATBOT_BEDROCK_MODEL_ID']) || DEFAULT_MODEL_ID;
   const maxTokens = Math.max(160, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 420));
   const context = buildContext(retrieval.chunks);
@@ -531,19 +586,20 @@ module.exports = async (req, res) => {
       limits: rateLimit.counts || null
     });
   } catch (err) {
-    const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true });
+    const fallback = retrievalOnlyAnswer(message, retrieval);
     const logId = await safeRecordChatbotLog(req, {
       req,
-      status: 'model_error',
+      status: 'model_fallback',
       actorHash: rateLimit.actorHash,
       conversationId,
       question: message,
-      answer: '',
+      answer: fallback.answer,
       error: err && err.message ? err.message : String(err || ''),
       pageContext,
-      sources: publicSources(retrieval.chunks, 5),
-      suggestedLinks,
+      sources: fallback.sources,
+      suggestedLinks: fallback.suggestedLinks,
       confidence: retrieval.bestScore,
+      skippedModel: true,
       rateLimit: rateLimit.counts || null,
       retrievalConfident: retrieval.confident,
       retrievalBestScore: retrieval.bestScore,
@@ -551,12 +607,12 @@ module.exports = async (req, res) => {
       retrievalChunks: retrievalLogChunks(retrieval),
       latencyMs: Date.now() - startedAt
     });
-    sendJson(res, 502, {
-      ok: false,
-      error: 'Chatbot model service is unavailable.',
-      suggestedLinks,
+    sendJson(res, 200, {
+      ...fallback,
       logId,
-      detail: !isProductionRuntime() ? String(err && err.message ? err.message : err) : undefined
+      conversationId,
+      modelUnavailable: true,
+      limits: rateLimit.counts || null
     });
   }
 };
@@ -567,6 +623,7 @@ module.exports._private = {
   isAllowedOrigin,
   lowConfidenceAnswer,
   normalizeMessage,
+  retrievalOnlyAnswer,
   suggestedLinksFromRetrieval,
   verifyTurnstile
 };

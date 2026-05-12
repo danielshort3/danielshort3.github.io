@@ -192,7 +192,7 @@
       setStatus('');
       if (!data.enabled) {
         setAvailability(false);
-        appendAssistant('The assistant is not enabled in this local environment yet. Use these shortcuts instead.', [], FALLBACK_LINKS);
+        appendAssistant('The assistant is not enabled right now. Use these shortcuts instead.', [], FALLBACK_LINKS);
         setDisabled(true);
         return;
       }

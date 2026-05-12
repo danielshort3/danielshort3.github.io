@@ -29,8 +29,19 @@ function getLimitConfig() {
   };
 }
 
+function boolEnv(key, fallback = false) {
+  const raw = String(process.env[key] || '').trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(raw)) return true;
+  if (['0', 'false', 'no', 'off'].includes(raw)) return false;
+  return fallback;
+}
+
 function isProductionRuntime() {
-  return process.env.VERCEL_ENV === 'production' || process.env.CHATBOT_REQUIRE_DDB === 'true';
+  return process.env.VERCEL_ENV === 'production';
+}
+
+function requiresDdbRateLimit() {
+  return boolEnv('CHATBOT_REQUIRE_DDB', false);
 }
 
 function pickEnv(keys) {
@@ -83,8 +94,8 @@ function getClientIp(req) {
 }
 
 function getActorHash(req, body = {}) {
-  const salt = pickEnv(['CHATBOT_HASH_SALT']);
-  if (!salt && isProductionRuntime()) {
+  const salt = pickEnv(['CHATBOT_HASH_SALT']) || pickEnv(['VERCEL_PROJECT_PRODUCTION_URL', 'VERCEL_URL']) || 'local-chatbot-salt';
+  if (!pickEnv(['CHATBOT_HASH_SALT']) && requiresDdbRateLimit()) {
     const err = new Error('CHATBOT_HASH_SALT is not configured');
     err.code = 'CHATBOT_HASH_SALT_MISSING';
     throw err;
@@ -196,7 +207,7 @@ function limitPayload(reason, retryAfter, config, challengeRequired = false) {
 async function checkChatbotRateLimit(req, body = {}, options = {}) {
   const config = getLimitConfig();
   const tableName = getRateLimitTable();
-  if (!tableName && isProductionRuntime()) {
+  if (!tableName && requiresDdbRateLimit()) {
     const err = new Error('CHATBOT_DDB_TABLE is not configured');
     err.code = 'CHATBOT_RATE_LIMIT_STORE_MISSING';
     throw err;
@@ -284,5 +295,6 @@ module.exports = {
   getLimitConfig,
   getRateLimitTable,
   isProductionRuntime,
+  requiresDdbRateLimit,
   _memoryStore: memoryStore
 };
