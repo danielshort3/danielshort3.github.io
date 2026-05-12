@@ -78,8 +78,20 @@ function ensureCleanDir(dir){
 }
 
 function copyFile(src, dest){
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.copyFileSync(src, dest);
+  const transientCodes = new Set(['EBUSY', 'ENOENT', 'EPERM']);
+  let lastError = null;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
+      return;
+    } catch (err) {
+      lastError = err;
+      if (!transientCodes.has(err && err.code)) throw err;
+      sleepSync(120 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }
 
 function shouldSkipPublicCopy(absPath) {

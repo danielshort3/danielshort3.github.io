@@ -402,9 +402,52 @@ try {
     const resumeRetrieval = retrieveKnowledge('Where is the best resume?', { url: '/analytics', title: 'Analytics' });
     assert(resumeRetrieval.chunks[0] && resumeRetrieval.chunks[0].url === '/resume-analytics',
       'chatbot retrieval should rank the analytics resume first for generic resume questions');
+    const dataScienceResumeRetrieval = retrieveKnowledge('Where is the best resume?', { url: '/data-science', title: 'Data Science', audience: 'data-science' });
+    assert(dataScienceResumeRetrieval.chunks[0] && dataScienceResumeRetrieval.chunks[0].url === '/resume-data-science',
+      'chatbot retrieval should keep generic resume questions scoped to the data science audience lens');
+    const tourismResumeRetrieval = retrieveKnowledge('Where is the best resume?', { url: '/tourism', title: 'Tourism', audience: 'tourism' });
+    assert(tourismResumeRetrieval.chunks[0] && tourismResumeRetrieval.chunks[0].url === '/resume-tourism',
+      'chatbot retrieval should keep generic resume questions scoped to the tourism audience lens');
     const projectRetrieval = retrieveKnowledge('What projects show SQL and Tableau experience?', { url: '/analytics', title: 'Analytics' });
     assert(projectRetrieval.chunks[0] && String(projectRetrieval.chunks[0].url || '').startsWith('/portfolio/'),
       'chatbot retrieval should keep project questions focused on portfolio projects');
+    const chatbotApiPrivate = require('./api/chatbot.js')._private;
+    const dataScienceLinks = chatbotApiPrivate.suggestedLinksFromRetrieval(
+      'Where is the best resume?',
+      { chunks: [], audience: 'data-science' },
+      { includeDefaults: true, pageContext: { audience: 'data-science' } }
+    );
+    assert(dataScienceLinks.some((link) => link.url === '/resume-data-science') &&
+      !dataScienceLinks.some((link) => link.url === '/resume-analytics'),
+      'chatbot suggested links should respect the active data science audience lens');
+    const tourismNavigation = chatbotApiPrivate.navigationAnswer(
+      'Which resume fits this role?',
+      { chunks: [], audience: 'tourism', bestScore: 0 },
+      { audience: 'tourism' }
+    );
+    assert(tourismNavigation && tourismNavigation.answer.includes('Tourism Resume') &&
+      tourismNavigation.answer.includes('[Tourism Resume](/resume-tourism)') &&
+      tourismNavigation.suggestedLinks.some((link) => link.url === '/resume-tourism'),
+      'chatbot navigation answers should advocate within the active tourism audience lens with inline links');
+    assert(chatbotApiPrivate.ensureInlineLinks('Daniel has strong analytics proof.', [{ title: 'Analytics Resume', url: '/resume-analytics' }]) ===
+      'Daniel has strong analytics proof.\n\nSee: [Analytics Resume](/resume-analytics).',
+      'chatbot API should add a concise inline link when a model answer omits one');
+    assert(chatbotApiPrivate.ensureInlineLinks(
+      'Review [Store-Level Loss & Sales ETL](/analytics).',
+      [{ title: 'Data Analytics', url: '/analytics' }, { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics' }]
+    ) === 'Review Store-Level Loss & Sales ETL.\n\nSee: [Data Analytics](/analytics) and [Analytics Portfolio](/portfolio?audience=analytics).',
+      'chatbot API should strip mismatched inline links and append accurate website links');
+    assert(chatbotApiPrivate.retrievalOnlyAnswer(
+      'Show analytics proof',
+      { chunks: [{ title: 'Analytics Resume', url: '/resume-analytics', category: 'Resume', text: 'Daniel built dashboards and automated reporting.' }], audience: 'analytics', bestScore: 8 },
+      { audience: 'analytics' }
+    ).answer.includes('[Analytics Resume](/resume-analytics)'),
+      'chatbot retrieval fallback should include inline website links');
+    assert(!chatbotApiPrivate.buildContext([{ title: 'Store-Level Loss & Sales ETL', url: '/portfolio/retailStore', category: 'Project', text: 'Project Overview' }]).includes('[1]') &&
+      chatbotApiPrivate.buildContext([{ title: 'Store-Level Loss & Sales ETL', url: '/portfolio/retailStore', category: 'Project', text: 'Project Overview' }]).includes('Source: Store-Level Loss & Sales ETL'),
+      'chatbot model context should not number source titles in a way that leaks citation markers into answers');
+    assert(chatbotApiPrivate.stripSourceCitations('Store-Level Loss & Sales ETL [3]\n- Project Overview') === 'Store-Level Loss & Sales ETL\n- Project Overview',
+      'chatbot API should remove bracketed numeric source citations from visible answers');
 
     const api = readFile('api/chatbot.js');
     const knowledgeLib = readFile('api/_lib/chatbot-knowledge.js');
@@ -420,6 +463,20 @@ try {
       'chatbot API should gate requests and verify Turnstile challenges');
     assert(api.includes('recordChatbotLog') && api.includes('suggestedLinksFromRetrieval') && api.includes('navigationAnswer') && api.includes('isLogsRoute') && api.includes('logId'),
       'chatbot API should record logs, serve the admin logs route, and return deterministic navigation suggestions');
+    assert(api.includes('stripSourceCitations') &&
+      api.includes('Do not include bracketed numeric citations') &&
+      api.includes('Source: ${chunk.title}') &&
+      !api.includes('Mention source numbers like [1]'),
+      'chatbot API should avoid source-number citations in model prompts and visible answers');
+    assert(api.includes('Be concise by default') &&
+      api.includes('one short paragraph or at most two bullets') &&
+      api.includes('include one or two inline markdown links') &&
+      api.includes('Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 180') &&
+      api.includes('ensureInlineLinks') &&
+      api.includes('sanitizeInlineLinks') &&
+      !api.includes('moderately detailed') &&
+      !api.includes('two to four short paragraphs'),
+      'chatbot API should keep default answers concise and inline-linked');
     assert(api.includes("boolEnv('CHATBOT_ENABLED', true)") && api.includes('retrievalOnlyAnswer') && api.includes("status: 'model_fallback'"),
       'chatbot API should be enabled by default and fall back to retrieval-only answers when Bedrock is unavailable');
     assert(api.includes('streamModelAnswer') &&
@@ -436,8 +493,8 @@ try {
       'chatbot API should use query embeddings with lexical fallback');
     assert(knowledgeLib.includes('loadKnowledge') && knowledgeLib.includes('scoreChunk') && knowledgeLib.includes('detectQueryIntent') &&
       knowledgeLib.includes('dotProduct') && knowledgeLib.includes('queryEmbedding') && knowledgeLib.includes("retrievalMode: canUseEmbedding ? 'embedding' : 'lexical'") &&
-      knowledgeLib.includes('publicSources'),
-      'chatbot knowledge helper should load, score, rank hybrid embedding results, and expose sources');
+      knowledgeLib.includes('publicSources') && knowledgeLib.includes('scoreAudienceBoost'),
+      'chatbot knowledge helper should load, score, rank hybrid embedding results, expose sources, and support audience boosts');
     ['CHATBOT_DDB_TABLE', 'CHATBOT_HASH_SALT', 'CHATBOT_WINDOW_LIMIT', 'CHATBOT_DAILY_LIMIT', 'CHATBOT_GLOBAL_DAILY_LIMIT'].forEach((name) => {
       assert(rateLimit.includes(name), `chatbot rate limiter missing ${name}`);
       assert(envExample.includes(name), `.env.example missing ${name}`);
@@ -471,8 +528,17 @@ try {
     assert(cssImports.includes('components/site-chatbot.css'), 'main stylesheet should import chatbot styles');
     assert(widget.includes("const API_PATH = '/api/chatbot'") && widget.includes('conversationId') && widget.includes('turnstile'),
       'chatbot widget should call the API, keep a conversation id, and handle challenges');
-    assert(widget.includes('data-chatbot-prompt') && widget.includes('suggestedLinks') && widget.includes('site-chatbot__nav-links'),
-      'chatbot widget should offer quick prompts and render suggested navigation links');
+    assert(widget.includes('data-chatbot-prompt') &&
+      widget.includes('suggestedLinks') &&
+      widget.includes('sourceLinks = normalizeLinks(sources, 5)') &&
+      !widget.includes("navList.className = 'site-chatbot__nav-links'") &&
+      !widget.includes('const navLinks = normalizeLinks(suggestedLinks'),
+      'chatbot widget should offer quick prompts and keep website links inline instead of rendering suggested-link chips');
+    assert(widget.includes("UI_VERSION = 'question-first-2026-05-12'") &&
+      widget.includes('root.dataset.chatbotVersion = UI_VERSION') &&
+      widget.includes('scheduleInitialNudge();') &&
+      widget.includes('if (!state.ready) loadConfig();'),
+      'chatbot widget should expose a current UI marker and preflight availability so nudge and prompts are not stale');
     assert(widget.includes("body.dataset.siteChatbotActive = 'true'"),
       'chatbot widget should mark chatbot pages so the bottom-right chatbot replaces the speed dial');
     assert(widget.includes('site-chatbot__header-expand') &&
@@ -504,9 +570,31 @@ try {
       widget.includes('chatbot_nudge_opened') &&
       widget.includes('chatbot_launcher_opened'), 'chatbot widget should track launcher and nudge events');
     assert(widget.includes('getQuickPrompts') &&
-      widget.includes('Summarize this project') &&
-      widget.includes('Which resume fits this role?') &&
-      widget.includes('Show portfolio proof for this resume'), 'chatbot widget should render page-aware quick prompts');
+      widget.includes('SQL proof') &&
+      widget.includes("What analytics projects prove Daniel's SQL and reporting strength?") &&
+      widget.includes('Model proof') &&
+      widget.includes("Which projects show Daniel's machine learning and Python skills?") &&
+      widget.includes('DMO fit') &&
+      !widget.includes('opener:') &&
+      !widget.includes('config.opener') &&
+      !widget.includes('Ask me about Daniel Short as'),
+      'chatbot widget should render three role-aware default questions without an intro paragraph');
+    assert(widget.includes('SESSION_STATE_KEY') &&
+      widget.includes('handleChatbotLinkClick') &&
+      widget.includes('restoreOpenAfterChatbotNavigation') &&
+      widget.includes('audience: state.audience ||') &&
+      widget.includes('hideAllChips') &&
+      widget.includes('site-chatbot__reset') &&
+      widget.includes('resetChat') &&
+      widget.includes('resetConversationId') &&
+      widget.includes('handleOutsidePointerDown') &&
+      widget.includes("document.addEventListener('pointerdown', handleOutsidePointerDown, true)") &&
+      widget.includes('DISPLAY_TRANSCRIPT_MAX_CHARS = 6000') &&
+      widget.includes('HISTORY_TRANSCRIPT_MAX_CHARS = 700') &&
+      widget.includes('normalizeTranscriptMarkdown') &&
+      widget.includes(".replace(/\\r\\n?/g, '\\n')") &&
+      widget.includes('apiTranscript'),
+      'chatbot widget should persist role context, stay open across internal chatbot navigation, hide all chips after a chip is chosen, reset conversations, close on outside clicks, and keep restored markdown transcripts readable');
     assert(widget.includes('new AbortController()') &&
       widget.includes("accept: 'application/x-ndjson, application/json'") &&
       widget.includes('submitStreamingRequest') &&
@@ -531,19 +619,31 @@ try {
       footerTemplate.includes('Ask the site assistant'), 'footer should expose a JS-enabled chatbot help entry');
     assert(css.includes('.site-chatbot__panel') && css.includes('@media (max-width: 640px)'),
       'chatbot CSS should include panel and mobile behavior');
-    assert(css.includes('gap: 0;') &&
+    assert(css.includes('.site-chatbot__input-shell') &&
+      css.includes('.site-chatbot__input-shell:focus-within') &&
+      css.includes('outline: 3px solid rgba(21, 101, 192, 0.16);') &&
+      css.includes('gap: 0;') &&
       css.includes('align-items: stretch;') &&
       css.includes('--site-chatbot-input-height: 64px;') &&
       css.includes('height: var(--site-chatbot-input-height);') &&
       css.includes('max-height: var(--site-chatbot-input-height);') &&
       css.includes('resize: none;') &&
-      css.includes('border-radius: 12px 0 0 12px;') &&
-      css.includes('border-radius: 0 12px 12px 0;'),
-      'chatbot input and send button should be a fixed two-line flush control');
+      css.includes('border-radius: 11px 0 0 11px;') &&
+      css.includes('border-radius: 0 10px 10px 0;') &&
+      css.includes('.site-chatbot__input:focus{\n    outline: none;'),
+      'chatbot input and send button should be a fixed two-line flush control with one shared focus ring');
     assert(css.includes('.site-chatbot__followups') &&
       css.includes('.site-chatbot__bubble ul') &&
-      css.includes('.site-chatbot__bubble a'),
-      'chatbot CSS should style markdown answers and follow-up chips');
+      css.includes('.site-chatbot__bubble a') &&
+      css.includes('overflow-wrap: anywhere;') &&
+      css.includes('overflow-x: hidden;') &&
+      css.includes('.site-chatbot__quick-prompts{\n    order: 1;\n    display: grid;') &&
+      css.includes('grid-template-columns: minmax(0, 1fr);') &&
+      css.includes('text-align: left;') &&
+      css.includes('white-space: normal;'),
+      'chatbot CSS should style markdown answers, list default questions, wrap long chatbot text, and avoid horizontal prompt scrolling');
+    assert(!css.includes('.site-chatbot[data-enabled="false"] .site-chatbot__quick-prompts,'),
+      'chatbot quick prompt chips should remain visible even when the assistant falls back');
     assert(css.includes('.site-chatbot[data-nudge="true"][data-state="closed"] .site-chatbot__nudge') &&
       css.includes('.site-chatbot__nudge-close') &&
       css.includes('pointer-events: auto;') &&
@@ -555,18 +655,25 @@ try {
       'chatbot CSS should replace the speed dial and animate the expanded panel');
     assert(css.includes('--site-chatbot-panel-max-height: min(520px') &&
       css.includes('--site-chatbot-center-height: clamp(180px') &&
+      css.includes('--site-chatbot-expanded-height: calc(') &&
+      css.includes('--site-chatbot-panel-max-height: var(--site-chatbot-expanded-height);') &&
+      css.includes('--site-chatbot-center-height: max(220px') &&
       css.includes('.site-chatbot__messages') &&
       css.includes('height: var(--site-chatbot-center-height);') &&
       css.includes('transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1);'),
-      'chatbot expansion should animate the center message pane while keeping header and input chrome fixed-size');
+      'chatbot expansion should use the available viewport height while keeping header and input chrome fixed-size');
     assert(css.includes('--site-chatbot-viewport-height') &&
       css.includes('.site-chatbot[data-keyboard="true"][data-state="open"] .site-chatbot__panel') &&
+      css.includes('var(--site-chatbot-consent-offset) - var(--site-chatbot-keyboard-offset)') &&
+      css.includes('var(--site-chatbot-keyboard-offset)') &&
+      css.includes('--site-chatbot-panel-max-height: max(260px') &&
       css.includes('-webkit-text-fill-color: #fff;'),
       'chatbot CSS should keep user text white and keep the mobile panel above the keyboard');
     assert(css.includes('.site-chatbot[data-expanded="false"] .site-chatbot__header') &&
       css.includes('.site-chatbot[data-expanded="true"] .site-chatbot__header-expand') &&
-      css.includes('.site-chatbot__header-toggle{'),
-      'chatbot CSS should distinguish expand-only header and explicit chevron controls');
+      css.includes('.site-chatbot__header-toggle{') &&
+      css.includes('.site-chatbot__reset'),
+      'chatbot CSS should distinguish expand-only header, reset, and explicit chevron controls');
     assert(css.includes('.site-chatbot__expand-icon svg') &&
       css.includes('transform: rotate(180deg);') &&
       css.includes('.site-chatbot[data-expanded="true"] .site-chatbot__expand-icon svg') &&
@@ -1289,7 +1396,9 @@ try {
       brandOverrideCss.includes('margin-inline: auto;'), 'analytics homepage section accents should align consistently');
     assert(brandOverrideCss.includes('body[data-page="analytics"] .hero .cta-group .btn-ghost') && brandOverrideCss.includes('background: #ffffff;'), 'analytics hero contact button should be opaque on desktop');
     assert(brandOverrideCss.includes('body[data-page="analytics"] .cert img,\n    body[data-page="analytics"] .cert-card-logo') &&
-      brandOverrideCss.includes('background: color-mix(in srgb, var(--brand-mist) 74%, var(--brand-signal-blue) 26%);'), 'certification logos should sit on tinted readable tiles');
+      brandOverrideCss.includes('background: #ffffff;') &&
+      brandOverrideCss.includes('img[src*="purdue_global"]') &&
+      brandOverrideCss.includes('background: var(--brand-midnight);'), 'certification logos should sit on neutral readable tiles with a dark tile for light artwork');
     assert(brandOverrideCss.includes('.skill-subtitle') && fs.readFileSync('css/components/core.css', 'utf8').includes('#about-me .skill-subtitle'), 'skills section subtitle should have matching brand styling');
     assert(brandOverrideCss.includes('font-family: var(--font-mono)'), 'brand overrides should reserve mono typography for labels and metrics');
     assert(!/\\.nav-project-rank,\\s*\\n\\s*\\.nav-dropdown-badge/.test(brandOverrideCss), 'portfolio dropdown ranks should not inherit copper badge styling');
@@ -1337,6 +1446,24 @@ try {
       assert(routeStyles['/data-science'].includes(stylePath), `/data-science route styles missing ${stylePath}`);
       assert(routeStyles['/tourism'].includes(stylePath), `/tourism route styles missing ${stylePath}`);
     });
+    const certCss = fs.readFileSync('css/components/certification.css', 'utf8');
+    assert(certCss.includes('background:#ffffff;') &&
+      certCss.includes('height:76px;') &&
+      certCss.includes('box-shadow:var(--shadow-sm);') &&
+      certCss.includes('.cert img[src*="purdue_global"]') &&
+      certCss.includes('background:var(--brand-midnight);') &&
+      certCss.includes('object-fit:contain;') &&
+      certCss.includes('box-sizing:content-box;') &&
+      !certCss.includes('transition:border-color .2s ease, box-shadow .2s ease, transform'),
+      'certification ticker logos should use stable neutral tiles without easing the JS-driven ticker transform');
+    const animationsJs = fs.readFileSync('js/animations/animations.js', 'utf8');
+    assert(animationsJs.includes('BASE=90') &&
+      !animationsJs.includes("track.addEventListener('focusin'") &&
+      !animationsJs.includes("track.addEventListener('focusout'"),
+      'certification ticker should keep the original scroll speed and hover pause behavior');
+    assert(brandOverrideCss.includes('body .cert-track') &&
+      brandOverrideCss.includes('height: 64px;'),
+      'mobile certification ticker should leave vertical room for readable logo tiles');
     assert(Array.isArray(routeStyles['/resume-analytics']), 'route styles manifest missing resume analytics entry');
     assert(Array.isArray(routeStyles['/search']), 'route styles manifest missing search entry');
     assert(Array.isArray(routeStyles['/portfolio/*']), 'route styles manifest missing portfolio wildcard entry');
@@ -1531,6 +1658,23 @@ try {
     checkFileContains('pages/resume-tourism.html', 'data-brand-tagline-primary="true">Tourism Analytics<');
     checkFileContains('pages/data-science.html', 'id="transferability"');
     checkFileContains('pages/tourism.html', 'id="transferability"');
+    const homeAccentCss = readFile('css/utilities/design-system-overrides.css');
+    ['--home-section-accent', '--home-section-accent-soft', '--home-section-accent-border', '--home-section-accent-strong'].forEach((token) => {
+      assert(homeAccentCss.includes(token), `audience home accent CSS missing ${token}`);
+    });
+    ['#project-examples', '#selected-outcomes', '#transferability', '#work-experience', '#about-me', '#certifications', '#cta'].forEach((selector) => {
+      assert(homeAccentCss.includes(selector), `audience home accent CSS missing ${selector}`);
+    });
+    ['.project-examples-card .project-text::before', '.home-proof-card::after', '.work-card::after', '.icon-info::before', '.cert-card-label', '.transfer-map-head .transfer-map-cell', '#cta #cta-link', '.jump-panel-link[href="#work-experience"]'].forEach((selector) => {
+      assert(homeAccentCss.includes(selector), `audience home visible accent CSS missing ${selector}`);
+    });
+    ['#2f9d58', '#4f73d9', '#5a78a8', 'var(--brand-action-copper)', '#5a7edb', 'var(--brand-deep-blue)'].forEach((color) => {
+      assert(homeAccentCss.includes(color), `audience home accent CSS missing artwork-derived color ${color}`);
+    });
+    assert(homeAccentCss.includes('section:not(.hero) *:is(.section-title'),
+      'audience home title accents should use minifier-safe descendant selectors');
+    assert(homeAccentCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page'),
+      'audience home accents should cover analytics, data science, and tourism homes');
     ['pages/analytics.html', 'pages/data-science.html', 'pages/tourism.html'].forEach((file) => {
       const html = readFile(file);
       const targetIndex = html.indexOf('<h3 class="work-company">Target</h3>');
