@@ -161,7 +161,7 @@
   }
   .imgopt-drop-title{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
   }
@@ -225,7 +225,7 @@
   }
   .imgopt-file-name{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -265,7 +265,7 @@
     align-items:center;
     gap:8px;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
   .imgopt-help{
     margin:0;
@@ -277,7 +277,7 @@
     color:var(--text-muted);
     font-size:.95rem;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
   .imgopt-select,
   .imgopt-text{
@@ -327,7 +327,7 @@
   }
   .imgopt-fieldset legend{
     padding:0 8px;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     color:color-mix(in srgb,var(--text-light) 96%, #fff 4%);
   }
@@ -497,7 +497,7 @@
   }
   .imgopt-output-name{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -522,7 +522,7 @@
   }
   .imgopt-srcset-label{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
   }
   .imgopt-srcset-text{

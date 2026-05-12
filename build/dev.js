@@ -17,7 +17,12 @@ const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
 const adminDir = path.join(root, 'admin');
 const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
+const aiPageApiPath = path.join(root, 'api', 'ai-page', '[...path].js');
+const chatbotApiPath = path.join(root, 'api', 'chatbot.js');
+const chatbotLogsApiPath = path.join(root, 'api', 'chatbot', 'logs.js');
+const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
 const MAX_PORT_SEARCH_ATTEMPTS = 50;
+const WATCH_POLL_INTERVAL_MS = 1000;
 
 const WATCH_ROOTS = [
   'api',
@@ -50,6 +55,7 @@ const MIME_TYPES = {
   '.gif': 'image/gif',
   '.html': 'text/html; charset=utf-8',
   '.ico': 'image/x-icon',
+  '.avif': 'image/avif',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.js': 'application/javascript; charset=utf-8',
@@ -184,15 +190,15 @@ function isIgnoredRelative(relativePath) {
   return IGNORED_PREFIXES.some((prefix) => normalized.startsWith(prefix));
 }
 
-function collectSnapshot(watchRoots) {
+async function collectSnapshotAsync(watchRoots) {
   const snapshot = new Map();
 
-  watchRoots.forEach((target) => {
+  for (const target of watchRoots) {
     const absoluteTarget = path.join(root, target);
     try {
-      fs.statSync(absoluteTarget);
+      await fs.promises.stat(absoluteTarget);
     } catch {
-      return;
+      continue;
     }
 
     const stack = [absoluteTarget];
@@ -203,7 +209,7 @@ function collectSnapshot(watchRoots) {
 
       let stat;
       try {
-        stat = fs.statSync(current);
+        stat = await fs.promises.stat(current);
       } catch {
         continue;
       }
@@ -211,7 +217,7 @@ function collectSnapshot(watchRoots) {
       if (stat.isDirectory()) {
         let entries;
         try {
-          entries = fs.readdirSync(current, { withFileTypes: true });
+          entries = await fs.promises.readdir(current, { withFileTypes: true });
         } catch {
           continue;
         }
@@ -224,7 +230,7 @@ function collectSnapshot(watchRoots) {
       if (!relFile || isIgnoredRelative(relFile)) continue;
       snapshot.set(normalizeRelative(relFile), `${stat.mtimeMs}:${stat.size}`);
     }
-  });
+  }
 
   return snapshot;
 }
@@ -253,11 +259,25 @@ function getSnapshotDelta(previousSnapshot, nextSnapshot) {
 function startBuildWatcher({ watchRoots, onChange }) {
   log(`Watching ${watchRoots.length} source target(s) for changes...`);
 
-  let snapshot = collectSnapshot(watchRoots);
+  let snapshot = null;
   let building = false;
   let queued = false;
+  let scanning = true;
+  let closed = false;
 
-  function rebuild() {
+  async function setBaselineSnapshot() {
+    snapshot = await collectSnapshotAsync(watchRoots);
+  }
+
+  setBaselineSnapshot()
+    .catch((err) => {
+      log(`Initial watch scan failed: ${err && err.message ? err.message : err}`);
+    })
+    .finally(() => {
+      scanning = false;
+    });
+
+  async function rebuild() {
     if (building) {
       queued = true;
       return;
@@ -265,27 +285,47 @@ function startBuildWatcher({ watchRoots, onChange }) {
 
     building = true;
     onChange();
-    snapshot = collectSnapshot(watchRoots);
+    try {
+      snapshot = await collectSnapshotAsync(watchRoots);
+    } catch (err) {
+      log(`Watch scan failed after rebuild: ${err && err.message ? err.message : err}`);
+    }
     building = false;
 
-    if (queued) {
+    if (queued && !closed) {
       queued = false;
-      rebuild();
+      await rebuild();
     }
   }
 
   const timer = setInterval(() => {
-    if (building) return;
-    const nextSnapshot = collectSnapshot(watchRoots);
-    if (snapshotsEqual(snapshot, nextSnapshot)) return;
-    const delta = getSnapshotDelta(snapshot, nextSnapshot);
-    snapshot = nextSnapshot;
-    log(`Source change detected (${delta}). Rebuilding...`);
-    rebuild();
-  }, 1000);
+    if (closed || building || scanning) return;
+
+    scanning = true;
+    collectSnapshotAsync(watchRoots)
+      .then((nextSnapshot) => {
+        if (!snapshot) {
+          snapshot = nextSnapshot;
+          return null;
+        }
+
+        if (snapshotsEqual(snapshot, nextSnapshot)) return null;
+        const delta = getSnapshotDelta(snapshot, nextSnapshot);
+        snapshot = nextSnapshot;
+        log(`Source change detected (${delta}). Rebuilding...`);
+        return rebuild();
+      })
+      .catch((err) => {
+        log(`Watch scan failed: ${err && err.message ? err.message : err}`);
+      })
+      .finally(() => {
+        scanning = false;
+      });
+  }, WATCH_POLL_INTERVAL_MS);
 
   return {
     close() {
+      closed = true;
       clearInterval(timer);
     }
   };
@@ -339,17 +379,64 @@ function compileRoute(source) {
 
 function compileRoutes(rules) {
   return (Array.isArray(rules) ? rules : [])
-    .filter((rule) => rule && !Object.prototype.hasOwnProperty.call(rule, 'has'))
+    .filter((rule) => rule && rule.source)
     .map((rule) => ({
       ...rule,
       compiled: compileRoute(rule.source)
     }));
 }
 
-function matchRule(pathname, rules) {
+function hasRegexMeta(value) {
+  return /[.*+?^${}()|[\]\\]/.test(String(value || ''));
+}
+
+function matchConditionValue(actual, expected) {
+  const value = String(actual || '');
+  if (typeof expected === 'undefined' || expected === null || expected === '') return !!value;
+  const pattern = String(expected);
+  if (!hasRegexMeta(pattern)) return value === pattern;
+  try {
+    return new RegExp(pattern, 'i').test(value);
+  } catch {
+    return value === pattern;
+  }
+}
+
+function getHeaderValue(req, key) {
+  if (!req || !req.headers || !key) return '';
+  const header = req.headers[String(key).toLowerCase()];
+  if (Array.isArray(header)) return header.join(', ');
+  return typeof header === 'string' ? header : '';
+}
+
+function hasConditionsMatch(rule, req, url) {
+  const conditions = Array.isArray(rule && rule.has) ? rule.has : [];
+  if (!conditions.length) return true;
+  return conditions.every((condition) => {
+    const type = String(condition && condition.type || '').toLowerCase();
+    const key = String(condition && condition.key || '').toLowerCase();
+    const expected = condition && condition.value;
+    if (type === 'host') {
+      const host = getHeaderValue(req, 'host').split(':')[0].trim().toLowerCase();
+      return matchConditionValue(host, expected);
+    }
+    if (type === 'header') {
+      return matchConditionValue(getHeaderValue(req, key), expected);
+    }
+    if (type === 'query') {
+      const params = url && url.searchParams ? url.searchParams : new URLSearchParams();
+      if (!params.has(key)) return false;
+      return matchConditionValue(params.get(key), expected);
+    }
+    return false;
+  });
+}
+
+function matchRule(pathname, rules, req, url) {
   for (const rule of rules) {
     const match = rule.compiled.regex.exec(pathname);
     if (!match) continue;
+    if (!hasConditionsMatch(rule, req, url)) continue;
     const params = {};
     rule.compiled.names.forEach((name, index) => {
       params[name] = match[index + 1] || '';
@@ -403,8 +490,14 @@ function resolveStaticFile(baseDir, pathname) {
 
 function sendFile(res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
+  const stat = fs.statSync(filePath);
   res.statusCode = 200;
   res.setHeader('Content-Type', MIME_TYPES[ext] || 'application/octet-stream');
+  res.setHeader('Content-Length', String(stat.size));
+  if (res.req && res.req.method === 'HEAD') {
+    res.end();
+    return;
+  }
   fs.createReadStream(filePath).pipe(res);
 }
 
@@ -440,6 +533,78 @@ function loadCmsApi() {
   return require(cmsApiPath);
 }
 
+function clearAiPageApiCache() {
+  const prefixes = [
+    aiPageApiPath,
+    path.join(root, 'api', 'ai-page')
+  ];
+  Object.keys(require.cache).forEach((modulePath) => {
+    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
+      delete require.cache[modulePath];
+    }
+  });
+}
+
+function loadAiPageApi() {
+  clearAiPageApiCache();
+  return require(aiPageApiPath);
+}
+
+function clearChatbotApiCache() {
+  const prefixes = [
+    chatbotApiPath,
+    path.join(root, 'api', 'chatbot'),
+    path.join(root, 'api', '_lib', 'chatbot')
+  ];
+  Object.keys(require.cache).forEach((modulePath) => {
+    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
+      delete require.cache[modulePath];
+    }
+  });
+}
+
+function loadChatbotApi() {
+  clearChatbotApiCache();
+  return require(chatbotApiPath);
+}
+
+function loadChatbotLogsApi() {
+  clearChatbotApiCache();
+  return require(chatbotLogsApiPath);
+}
+
+function clearSentenceDemoApiCache() {
+  const prefixes = [
+    sentenceDemoApiPath,
+    path.join(root, 'api', 'sentence-demo')
+  ];
+  Object.keys(require.cache).forEach((modulePath) => {
+    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
+      delete require.cache[modulePath];
+    }
+  });
+}
+
+function loadSentenceDemoApi() {
+  clearSentenceDemoApiCache();
+  return require(sentenceDemoApiPath);
+}
+
+function dispatchAiPageApi(req, res, rewrittenPath) {
+  const originalUrl = req.url;
+  req.query = Object.fromEntries(new URL(rewrittenPath || originalUrl, 'http://localhost').searchParams.entries());
+  try {
+    req.url = rewrittenPath || originalUrl;
+    loadAiPageApi()(req, res);
+  } catch (err) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end(err && err.message ? err.message : 'Local AI digest API failed to load');
+  } finally {
+    req.url = originalUrl;
+  }
+}
+
 function createLocalServer() {
   const vercelConfig = readVercelConfig();
   const redirects = compileRoutes(vercelConfig.redirects);
@@ -448,6 +613,27 @@ function createLocalServer() {
   return http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const pathname = url.pathname.replace(/\/+$/, '') || '/';
+
+    if (pathname === '/api/ai-page' || pathname.startsWith('/api/ai-page/')) {
+      dispatchAiPageApi(req, res, req.url);
+      return;
+    }
+
+    if (pathname === '/api/chatbot' || pathname === '/api/chatbot/logs') {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      try {
+        const handler = pathname === '/api/chatbot/logs' ? loadChatbotLogsApi() : loadChatbotApi();
+        handler(req, res);
+      } catch (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          ok: false,
+          error: err && err.message ? err.message : 'Local chatbot API failed to load'
+        }));
+      }
+      return;
+    }
 
     if (pathname.startsWith('/api/cms/')) {
       req.query = Object.fromEntries(url.searchParams.entries());
@@ -465,6 +651,25 @@ function createLocalServer() {
       return;
     }
 
+    if (pathname === '/api/sentence-demo' || pathname.startsWith('/api/sentence-demo/')) {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      const rawSlug = pathname.startsWith('/api/sentence-demo/')
+        ? pathname.slice('/api/sentence-demo/'.length)
+        : '';
+      req.query.slug = rawSlug ? rawSlug.split('/') : '';
+      try {
+        loadSentenceDemoApi()(req, res);
+      } catch (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          ok: false,
+          error: err && err.message ? err.message : 'Local sentence demo API failed to load'
+        }));
+      }
+      return;
+    }
+
     if (pathname === '/admin' || pathname.startsWith('/admin/')) {
       const adminPath = pathname === '/admin' ? '/index.html' : pathname.slice('/admin'.length);
       const filePath = resolveStaticFile(adminDir, adminPath);
@@ -476,7 +681,7 @@ function createLocalServer() {
       return;
     }
 
-    const redirectMatch = matchRule(pathname, redirects);
+    const redirectMatch = matchRule(pathname, redirects, req, url);
     if (redirectMatch) {
       const destination = applyParams(redirectMatch.rule.destination, redirectMatch.params);
       res.statusCode = redirectMatch.rule.permanent ? 308 : 307;
@@ -485,12 +690,19 @@ function createLocalServer() {
       return;
     }
 
-    const rewriteMatch = matchRule(pathname, rewrites);
+    const rewriteMatch = matchRule(pathname, rewrites, req, url);
     const rewrittenPath = rewriteMatch
       ? applyParams(rewriteMatch.rule.destination, rewriteMatch.params)
       : pathname;
 
-    const filePath = resolveStaticFile(publicDir, rewrittenPath);
+    const rewrittenUrl = new URL(rewrittenPath, 'http://localhost');
+    const rewrittenPathname = rewrittenUrl.pathname.replace(/\/+$/, '') || '/';
+    if (rewrittenPathname === '/api/ai-page' || rewrittenPathname.startsWith('/api/ai-page/')) {
+      dispatchAiPageApi(req, res, `${rewrittenUrl.pathname}${rewrittenUrl.search}`);
+      return;
+    }
+
+    const filePath = resolveStaticFile(publicDir, rewrittenPathname);
     if (filePath) {
       sendFile(res, filePath);
       return;

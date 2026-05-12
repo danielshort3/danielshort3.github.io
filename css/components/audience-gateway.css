@@ -74,7 +74,7 @@
   .audience-feature-card strong,
   .audience-fit-card strong {
     color: var(--text-light);
-    font-family: "Poppins";
+    font-family: "Inter";
     font-size: 1rem;
   }
 
@@ -100,7 +100,7 @@
   }
 
   .audience-proof-value {
-    font-family: "Poppins";
+    font-family: "Inter";
     font-size: clamp(1.55rem, 3vw, 2.1rem);
     color: color-mix(in srgb, var(--primary) 84%, #ffffff 16%);
   }

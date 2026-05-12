@@ -313,8 +313,16 @@
   }
   .nav-search{
     order:-1;
+    justify-self:stretch;
+    width:100%;
+    min-width:0;
   }
   .nav-search-field{
+    width:100%;
+    min-width:0;
+  }
+  .nav-search.nav-search-is-enhanced,
+  .nav-search.nav-search-is-enhanced.is-expanded{
     width:100%;
   }
   .nav-search-input{
@@ -326,6 +334,10 @@
     background:color-mix(in srgb,var(--surface) 86%, #020509 14%);
     box-shadow:0 16px 32px rgba(0,0,0,.28);
     font-size:1.02rem;
+  }
+  .nav-search.nav-search-is-enhanced:not(.is-expanded) .nav-search-input{
+    opacity:1;
+    pointer-events:auto;
   }
   .nav-search-button{
     right:10px;

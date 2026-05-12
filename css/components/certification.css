@@ -76,7 +76,7 @@
     padding:11px 22px;
     border-radius:999px;
     background:color-mix(in srgb,var(--surface) 82%, #000 18%);
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:500;
     font-size:.95rem;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
@@ -159,7 +159,7 @@
   .cert-card h4{
     margin:4px 0;
     font-size:1.05rem;
-    font-family:'Poppins';
+    font-family:'Inter';
     color:var(--text-light);
   }
   .cert-card-meta{

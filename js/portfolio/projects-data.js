@@ -164,8 +164,8 @@ window.PROJECTS = [
     "demoInstructions": {
       "lead": "Ask a question and get an answer grounded in the site content (with citations).",
       "bullets": [
-        "Click a quick prompt, or type your own question in the chat box.",
-        "Press Enter or click “Send” to submit.",
+        "Click a quick prompt to submit it automatically, or type your own question in the chat box.",
+        "Press Enter or click “Send” to submit custom questions.",
         "Use the citations in the response to jump to the referenced pages.",
         "Bedrock is the default live backend; choose Qwen / SageMaker only when comparing cold-start behavior."
       ]
@@ -588,50 +588,52 @@ window.PROJECTS = [
       "Built the Excel dashboard workflow (cleanup, drill-downs, and reporting)."
     ],
     "notes": "Employee and location identifiers are anonymized in the write-up.",
-    "problem": "Empty-package theft was rising, and leaders needed one view of trends and hotspots across locations and departments.",
+    "problem": "Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.",
     "actions": [
-      "Consolidated thousands of loss-prevention records (2021-2023).",
-      "Cleaned the data and anonymized employee IDs, DPCI codes, dates, locations, and retail values.",
-      "Built an interactive Excel dashboard with drill-downs by associate, department, and recovery location.",
-      "Summarized the findings in a short report."
+      "Cleaned and anonymized 2021-2023 loss-prevention records into a dashboard-ready dataset.",
+      "Built Excel drill-downs for location, department, associate, recovery location, date range, incident count, and retail value.",
+      "Added trend and forecasting views so stakeholders could spot acceleration, not just historical totals."
     ],
     "results": [
-      "Two recovery locations (anonymized) stood out as hotspots.",
-      "A small number of departments and associates drove a disproportionate share of recoveries (anonymized).",
-      "Quarterly trend views made it easy to spot rapid growth periods worth investigating."
+      "Identified a small set of locations, departments, and recovery paths driving disproportionate shrink.",
+      "Made growth periods and hotspots visible enough for targeted review instead of broad manual scanning.",
+      "Created a reusable BI workflow that can be refreshed and extended with anomaly alerts."
     ],
     "caseStudy": [
       {
-        "title": "Data Cleanup and Governance",
-        "lead": "I turned messy loss-prevention logs into a usable dashboard while keeping people and locations anonymous.",
+        "title": "Problem",
+        "lead": "The team needed one decision-ready view of empty-package activity instead of separate logs and manual pivots.",
         "bullets": [
-          "Consolidated thousands of records (2021-2023) and standardized dates, locations, departments, and retail values.",
-          "Anonymized employee and store identifiers so the write-up is shareable.",
-          "Added quarter fields so trends are easy to track over time."
+          "Hotspots were hard to compare across location, department, associate, and time.",
+          "Retail value and incident count told different stories and needed to be viewed together.",
+          "Public sharing required anonymization without losing the analytical pattern."
         ]
       },
       {
-        "title": "Dashboard and KPIs",
+        "title": "Method",
+        "lead": "I turned messy loss-prevention logs into a governed Excel BI workflow with drill-downs and trend logic.",
         "bullets": [
-          "Built pivot-based drill-downs by associate, department, and recovery location.",
-          "Tracked both retail value and item count to separate volume from severity.",
-          "Added trend views to spot fast growth (doubling patterns), not just totals."
+          "Standardized dates, locations, departments, retail values, and quarter fields.",
+          "Built pivot-based drill-downs for both value and volume.",
+          "Added filters and trend views to separate persistent hotspots from one-off spikes."
         ]
       },
       {
-        "title": "Key Findings",
+        "title": "Result",
+        "lead": "The dashboard made concentrated risk visible and gave leaders clearer places to start investigation or prevention work.",
         "bullets": [
-          "Recovered value rose significantly over time, with growth concentrated in a small number of hotspots.",
-          "Certain departments and time periods showed unusually rapid increases, prompting targeted follow-up.",
-          "A small set of associates and departments drove a disproportionate share of recoveries (anonymized)."
+          "Two anonymized recovery locations stood out as hotspots.",
+          "A small number of departments and associates drove a disproportionate share of recoveries.",
+          "Quarterly trend views showed rapid growth periods worth investigating."
         ]
       },
       {
-        "title": "What I'd Improve",
+        "title": "So What",
+        "lead": "This is a BI example of making recurring operational questions easier to answer with the same definitions every time.",
         "bullets": [
-          "Normalize by store traffic or shipments to separate growth from volume changes.",
-          "Add control charts or anomaly alerts to flag spikes automatically.",
-          "Automate refresh via scheduled exports so the dashboard stays current."
+          "Stakeholders can compare value, count, time, and category without rebuilding the analysis.",
+          "The same structure could support scheduled refreshes, control charts, and anomaly alerts.",
+          "Employee and location identifiers remain anonymized in the public write-up."
         ]
       }
     ],
@@ -1078,50 +1080,53 @@ window.PROJECTS = [
       "Led the analysis: SQL modeling/ETL, anomaly detection, and reporting."
     ],
     "notes": "Store, state, and employee identifiers are anonymized in the case study.",
-    "problem": "We didn't have a single view of security incidents, theft hotspots, and boycott-driven sales swings.",
+    "problem": "Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.",
     "actions": [
-      "Joined incident, sales, and HR tables in SQL and automated KPIs with views and stored procedures.",
-      "Built Python dashboards to compare theft vs. sales by format, state, and time.",
-      "Used anomaly detection to flag outlier stores and associates."
+      "Modeled incident, sales, and HR data in SQL so stores, regions, time periods, and risk measures use consistent definitions.",
+      "Built Python reporting views that separate frequency, severity, and sales context for faster investigation planning.",
+      "Used anomaly detection to flag outlier stores, regions, and associate patterns for review."
     ],
     "results": [
-      "Found a cluster of outlier stores with incident rates several times higher than typical peers.",
-      "Flagged regions and stores with substantially higher estimated loss rates (figures anonymized).",
-      "Measured year-over-year sales changes around boycott periods (exact figures anonymized).",
-      "Flagged a small set of high-risk associates and patterns using anomaly detection (identifiers anonymized)."
+      "Supported analytics-driven investigations that reduced inventory loss by 24%.",
+      "Improved theft reporting by 57.6% through clearer dashboards and workflow redesign.",
+      "Narrowed broad incident data into a short, explainable list of hotspots worth investigating.",
+      "Kept identifiers anonymized so the case study can show the workflow without exposing people or locations."
     ],
     "caseStudy": [
       {
-        "title": "Data Modeling and ETL",
-        "lead": "I built a SQL layer that joins incidents, theft, sales, and HR attributes so the team can slice risk by store, region, and time.",
+        "title": "Problem",
+        "lead": "Security, loss, and sales signals were spread across separate tables, which made it hard to see where action should start.",
         "bullets": [
-          "Joined incident, sales, and employee tables and created reusable KPI views.",
-          "Standardized date keys and dimensions (store format, region/state) so filters stay consistent.",
-          "Anonymized identifiers so insights can be shared safely."
+          "Incident volume alone hid severity differences.",
+          "Sales context mattered because high-volume stores can look risky without normalization.",
+          "Stakeholders needed a shortlist they could investigate, not another broad dashboard."
         ]
       },
       {
-        "title": "Analysis Workflow",
+        "title": "Method",
+        "lead": "I built the repeatable analytics layer first, then used dashboards and anomaly detection to turn the data into review queues.",
         "bullets": [
-          "Ran targeted queries to find high-incident formats, top-theft states, and high-risk associates.",
-          "Measured boycott impact with year-over-year comparisons around the timeline.",
-          "Used Python charts to highlight hotspots, trends, and outliers."
+          "Joined incident, sales, and employee tables in SQL and created reusable KPI views.",
+          "Standardized date, region, state, store format, and severity definitions across outputs.",
+          "Compared stores against peer baselines to separate normal volume from unusual risk."
         ]
       },
       {
-        "title": "Anomaly Detection",
+        "title": "Result",
+        "lead": "The output made hotspots easier to explain and helped direct investigations toward the most actionable patterns.",
         "bullets": [
-          "Flagged outlier stores and associates by comparing against peer baselines, not raw totals.",
-          "Separated 'high frequency' (incidents per store) from 'high severity' (value per item).",
-          "Kept the output focused on a short list people can investigate."
+          "Supported a 24% inventory loss reduction through analytics-driven follow-up.",
+          "Helped improve theft reporting by 57.6% after dashboard and workflow redesign.",
+          "Flagged outlier stores and patterns while keeping identifiers anonymized for public sharing."
         ]
       },
       {
-        "title": "What I'd Improve",
+        "title": "So What",
+        "lead": "The value was not just a dashboard; it was a repeatable operating workflow for turning loss signals into prioritized action.",
         "bullets": [
-          "Add automated weekly anomaly alerts and an audit trail for investigations.",
-          "Normalize by traffic or shipments to separate volume from risk changes.",
-          "Explore causal analysis for boycott drivers and mitigation tests."
+          "Leaders could compare risk by location, time, and severity with consistent definitions.",
+          "Investigations started with ranked evidence instead of manual table review.",
+          "Future versions could add weekly alerts, investigation status, and normalization by traffic or shipments."
         ]
       }
     ],
@@ -1380,47 +1385,52 @@ window.PROJECTS = [
     "role": [
       "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
     ],
-    "problem": "I wanted one dashboard to track earnings, compare delivery zones, and forecast tips.",
+    "problem": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
     "actions": [
-      "Reshaped ~12,000 rows for Tableau and built maps, histograms, and a 12-month forecast with date/zone filters.",
-      "Set it up so I can compare zones quickly during a shift."
+      "Reshaped about 12,000 delivery records into a Tableau-ready dataset with consistent dates, zones, housing categories, and tip KPIs.",
+      "Built map, distribution, filter, and 12-month forecast views for fast zone and timing comparison.",
+      "Designed the dashboard around decisions: where to work, what patterns explain tips, and how demand might change."
     ],
     "results": [
-      "Used it to compare zones and plan shifts based on tips and delivery time.",
-      "Helped identify opportunities to improve tips and reduce downtime between deliveries."
+      "Reduced delivery decision review from roughly five minutes to about one minute during planning.",
+      "Made zone, city, housing-type, tip-rate, and timing differences easier to compare in one view.",
+      "Added forecasting so the dashboard supports planning instead of only retrospective review."
     ],
     "caseStudy": [
       {
-        "title": "Data Shaping for Tableau",
-        "lead": "I built a Tableau-ready dataset so the dashboard stays fast and the filters work cleanly.",
+        "title": "Problem",
+        "lead": "The raw delivery history had useful signals, but it was too slow to compare zones, timing, and tip patterns during planning.",
         "bullets": [
-          "Reshaped ~12,000 rows into a tidy table with consistent dates, zones/cities, and housing types.",
-          "Defined KPIs (tip $, tip %, delivery time) that work across filters and aggregations.",
-          "Kept the layout simple enough to use mid-shift."
+          "Average tip alone did not explain whether a zone was efficient.",
+          "City, housing type, date, and timing all affected the decision.",
+          "The dashboard needed to stay simple enough to use before or during a shift."
         ]
       },
       {
-        "title": "Dashboard UX",
+        "title": "Method",
+        "lead": "I shaped the data for Tableau and built views around the practical comparisons that mattered most.",
         "bullets": [
-          "Maps to compare zones by average tip, tip %, and delivery time.",
-          "Histograms to understand distributions, not just averages.",
-          "Breakdowns by housing type and city to explain why zones differ."
+          "Reshaped about 12,000 rows into a tidy table with consistent dates, zones, cities, and housing types.",
+          "Defined KPIs for tip dollars, tip percentage, delivery time, and tip efficiency.",
+          "Added maps, distributions, filters, and a 12-month forecast to support both review and planning."
         ]
       },
       {
-        "title": "Forecasting",
+        "title": "Result",
+        "lead": "The dashboard made shift and zone review faster while giving enough context to explain why zones performed differently.",
         "bullets": [
-          "Added a 12-month tip forecast to see seasonal changes.",
-          "Used date/zone filters so forecasts and comparisons stay consistent.",
-          "Made it easy to compare 'tip per delivery' vs. 'tip per hour'."
+          "Cut delivery decision review from roughly five minutes to about one minute.",
+          "Made zone, city, and housing-type differences visible without switching files.",
+          "Supported planning with forecasted tip patterns and filterable comparisons."
         ]
       },
       {
-        "title": "What I'd Improve",
+        "title": "So What",
+        "lead": "The project demonstrates the analyst skill of turning personal operational data into a lightweight decision system.",
         "bullets": [
-          "Add distance/drive-time estimates to better model tips per hour in real conditions.",
-          "Track acceptance rates and deadhead time to capture full earnings efficiency.",
-          "Publish a mobile-first layout for on-shift use."
+          "The same pattern applies to staffing, demand, territory, and route-performance dashboards.",
+          "Future versions should add distance, drive time, acceptance rate, and deadhead time.",
+          "A mobile-first layout would make the dashboard stronger for on-shift use."
         ]
       }
     ],
@@ -1708,8 +1718,8 @@ window.PROJECTS = [
 
 window.FEATURED_IDS = [
   "retailStore",
-  "smartSentence",
+  "targetEmptyPackage",
   "pizzaDashboard",
-  "chatbotLora",
-  "shapeClassifier"
+  "deliveryTip",
+  "ufoDashboard"
 ];

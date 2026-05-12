@@ -97,7 +97,7 @@
     align-items:center;
     gap:6px;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
 
   .wordfreq-input-head{
@@ -221,7 +221,7 @@
   .wordfreq-settings > summary{
     cursor:pointer;
     list-style:none;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
@@ -389,7 +389,7 @@
     grid-template-columns:auto 1fr;
     align-items:center;
     gap:10px;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
   }

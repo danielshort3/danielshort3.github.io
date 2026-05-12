@@ -341,7 +341,7 @@
       cornerStyle: 'rounded',
       ecc: 'H',
       fg: '#EAF2FF',
-      bg: '#0D1117',
+      bg: '#091F3B',
       transparent: false,
     },
   });
@@ -1131,7 +1131,7 @@
     return { sizeModules: sizeAligned, paddingModules, boxModules };
   };
 
-  const FONT_STACK = "'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const FONT_STACK = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
   const CENTER_TEXT_LINE_HEIGHT = 1.12;
   const CAPTION_TEXT_LINE_HEIGHT = 1.22;
   const CAPTION_MAX_LINES = 3;

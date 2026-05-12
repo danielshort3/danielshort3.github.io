@@ -350,6 +350,165 @@ try {
     });
   });
 
+  section('Website chatbot contracts', () => {
+    const pkg = JSON.parse(readFile('package.json'));
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-bedrock-runtime'], 'package.json missing Bedrock Runtime dependency');
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-dynamodb'], 'package.json missing DynamoDB dependency');
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/lib-dynamodb'], 'package.json missing DynamoDB document client dependency');
+
+    const buildRunner = readFile('build/build-site.js');
+    const devServer = readFile('build/dev.js');
+    const copyPublic = readFile('build/copy-to-public.js');
+    const generator = readFile('build/generate-chatbot-knowledge.js');
+    assert(buildRunner.includes('generate-chatbot-knowledge.js'), 'build runner should generate chatbot knowledge');
+    assert(devServer.includes("pathname === '/api/chatbot'") && devServer.includes("pathname === '/api/chatbot/logs'") && devServer.includes('loadChatbotLogsApi'),
+      'local dev server should route the chatbot APIs');
+    assert(copyPublic.includes("'chatbot-knowledge.json'"), 'public copy should include chatbot knowledge JSON');
+    assert(generator.includes('excludedPathPatterns') && generator.includes('extractMainText') && generator.includes('chatbot-knowledge.json'),
+      'chatbot knowledge generator should extract scoped page content');
+
+    const knowledge = JSON.parse(readFile('dist/chatbot-knowledge.json'));
+    assert(knowledge.version === 1, 'chatbot knowledge should declare version 1');
+    assert(knowledge.origin === 'https://www.danielshort.me', 'chatbot knowledge should use the public site origin');
+    assert(Array.isArray(knowledge.pages) && knowledge.pages.length >= 8, 'chatbot knowledge should include public site pages');
+    assert(Array.isArray(knowledge.chunks) && knowledge.chunks.length >= knowledge.pages.length, 'chatbot knowledge should include page chunks');
+    const knowledgeUrls = new Set(knowledge.pages.map((page) => page && page.url));
+    ['/analytics', '/data-science', '/tourism', '/contact', '/portfolio', '/resume-analytics'].forEach((url) => {
+      assert(knowledgeUrls.has(url), `chatbot knowledge missing ${url}`);
+    });
+    ['/tools', '/games', '/privacy', '/destination-analytics', '/contributions', '/resume-analytics-pdf', '/chatbot-demo'].forEach((url) => {
+      assert(!knowledgeUrls.has(url), `chatbot knowledge should exclude ${url}`);
+    });
+    assert(knowledge.chunks.every((chunk) => chunk && chunk.id && chunk.url && chunk.title && chunk.text),
+      'chatbot knowledge chunks should be citeable');
+
+    const api = readFile('api/chatbot.js');
+    const knowledgeLib = readFile('api/_lib/chatbot-knowledge.js');
+    const rateLimit = readFile('api/_lib/chatbot-rate-limit.js');
+    const logStore = readFile('api/_lib/chatbot-logs.js');
+    const logApi = readFile('api/chatbot/logs.js');
+    const envExample = readFile('.env.example');
+    assert(api.includes("DEFAULT_MODEL_ID = 'amazon.nova-lite-v1:0'"), 'chatbot API should default to Nova Lite');
+    assert(api.includes('ConverseCommand') && api.includes('retrieveKnowledge') && api.includes('checkChatbotRateLimit'),
+      'chatbot API should use Bedrock, retrieval, and rate limiting');
+    assert(api.includes('verifyTurnstile') && api.includes('CHATBOT_TURNSTILE_SECRET_KEY') && api.includes('CHATBOT_ENABLED'),
+      'chatbot API should gate requests and verify Turnstile challenges');
+    assert(api.includes('recordChatbotLog') && api.includes('suggestedLinksFromRetrieval') && api.includes('logId'),
+      'chatbot API should record logs and return navigation suggestions');
+    assert(knowledgeLib.includes('loadKnowledge') && knowledgeLib.includes('scoreChunk') && knowledgeLib.includes('publicSources'),
+      'chatbot knowledge helper should load, score, and expose sources');
+    ['CHATBOT_DDB_TABLE', 'CHATBOT_HASH_SALT', 'CHATBOT_WINDOW_LIMIT', 'CHATBOT_DAILY_LIMIT', 'CHATBOT_GLOBAL_DAILY_LIMIT'].forEach((name) => {
+      assert(rateLimit.includes(name), `chatbot rate limiter missing ${name}`);
+      assert(envExample.includes(name), `.env.example missing ${name}`);
+    });
+    ['CHATBOT_LOG_TTL_DAYS', 'CHATBOT_ADMIN_TOKEN'].forEach((name) => {
+      assert(logStore.includes(name) || logApi.includes(name), `chatbot logging missing ${name}`);
+      assert(envExample.includes(name), `.env.example missing ${name}`);
+    });
+    assert(rateLimit.includes('isProductionRuntime') && rateLimit.includes('memoryStore'),
+      'chatbot rate limiter should have production guards and local fallback');
+    assert(logStore.includes('recordChatbotLog') && logStore.includes('listChatbotLogs') && logStore.includes('getChatbotLog'),
+      'chatbot log store should record and read investigation logs');
+    assert(logStore.includes('CHATBOT#LOGS') && logStore.includes('ttl') && logStore.includes('actorHash'),
+      'chatbot logs should be indexed with TTL and hashed actor metadata');
+    assert(!logStore.includes('x-forwarded-for') && !logStore.includes('remoteAddress'),
+      'chatbot logs should not store raw IP address headers');
+    assert(logApi.includes('CHATBOT_ADMIN_TOKEN') && logApi.includes('isAdminRequest') && logApi.includes('listChatbotLogs'),
+      'chatbot log API should be admin-token protected');
+
+    const widget = readFile('js/chatbot/site-chatbot.js');
+    const entry = readFile('build/entries/site-shell.entry.js');
+    const css = readFile('css/components/site-chatbot.css');
+    const cssImports = readFile('css/styles.css');
+    assert(entry.includes('../../js/chatbot/site-chatbot.js'), 'site shell should load chatbot widget');
+    assert(cssImports.includes('components/site-chatbot.css'), 'main stylesheet should import chatbot styles');
+    assert(widget.includes("const API_PATH = '/api/chatbot'") && widget.includes('conversationId') && widget.includes('turnstile'),
+      'chatbot widget should call the API, keep a conversation id, and handle challenges');
+    assert(widget.includes('data-chatbot-prompt') && widget.includes('suggestedLinks') && widget.includes('site-chatbot__nav-links'),
+      'chatbot widget should offer quick prompts and render suggested navigation links');
+    assert(widget.includes("body.dataset.siteChatbotActive = 'true'"),
+      'chatbot widget should mark chatbot pages so the bottom-right chatbot replaces the speed dial');
+    assert(widget.includes("'project'") && widget.includes("'resume-tourism'") && !widget.includes("'tools'") && !widget.includes("'games'"),
+      'chatbot widget should be scoped to public content pages');
+    assert(css.includes('.site-chatbot__panel') && css.includes('@media (max-width: 640px)'),
+      'chatbot CSS should include panel and mobile behavior');
+    assert(css.includes('body[data-site-chatbot-active="true"] .speed-dial') && css.includes('transform: translateY(18px) scale(0.96)'),
+      'chatbot CSS should replace the speed dial and animate the expanded panel');
+    assert(css.includes('--site-chatbot-panel-max-height: min(520px') &&
+      css.includes('--site-chatbot-center-height: clamp(180px') &&
+      css.includes('.site-chatbot__messages') &&
+      css.includes('height: var(--site-chatbot-center-height);') &&
+      css.includes('transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1);'),
+      'chatbot expansion should animate the center message pane while keeping header and input chrome fixed-size');
+    assert(css.includes('.site-chatbot__expand-icon svg') &&
+      css.includes('transform: rotate(180deg);') &&
+      css.includes('.site-chatbot[data-expanded="true"] .site-chatbot__expand-icon svg') &&
+      css.includes('transform: rotate(0deg);'),
+      'chatbot expand icon should point up before expanding and down before retracting');
+
+    const vercel = readFile('vercel.json');
+    assert(vercel.includes('https://challenges.cloudflare.com'), 'CSP should allow Cloudflare Turnstile');
+  });
+
+  section('AI digest contracts', () => {
+    const buildRunner = readFile('build/build-site.js');
+    const copyPublic = readFile('build/copy-to-public.js');
+    const devServer = readFile('build/dev.js');
+    const generator = readFile('build/generate-ai-digests.js');
+    const userAgents = readFile('build/lib/ai-bot-user-agents.js');
+    const api = readFile('api/ai-page/[...path].js');
+    const robots = readFile('robots.txt');
+    const vercelConfig = JSON.parse(readFile('vercel.json'));
+    const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
+
+    assert(buildRunner.includes('generate-ai-digests.js'), 'build runner should generate AI digests');
+    assert(copyPublic.includes("'ai-digest-manifest.json'") && copyPublic.includes("'dist', 'ai-pages'"),
+      'public copy should include AI digest artifacts');
+    assert(devServer.includes('aiPageApiPath') && devServer.includes('dispatchAiPageApi') && devServer.includes('hasConditionsMatch'),
+      'local dev server should route AI digest API and header-based rewrites');
+    assert(generator.includes('data-ai-digest') && generator.includes('ai-digest-manifest.json') && generator.includes('aiDigest'),
+      'AI digest generator should emit marked deterministic digests and support overrides');
+    assert(userAgents.includes('GPTBot') && userAgents.includes('ChatGPT-User') && userAgents.includes('ClaudeBot') && userAgents.includes('PerplexityBot'),
+      'AI user-agent matcher should include major AI retrieval bots');
+    assert(api.includes('X-AI-Digest') && api.includes('Vary') && api.includes('User-Agent') && api.includes('debug'),
+      'AI digest API should mark responses, vary by user agent, and support debug noindex');
+    assert(robots.includes('User-agent: GPTBot') && robots.includes('User-agent: ClaudeBot') && robots.includes('User-agent: PerplexityBot'),
+      'robots.txt should explicitly allow major AI bots');
+    assert(robots.includes('Disallow: /dist/ai-pages/') && robots.includes('Disallow: /ai/'),
+      'robots.txt should hide duplicate AI digest implementation paths');
+
+    assert(rewrites.some((rule) => rule.source === '/ai/:path*' && rule.destination === '/api/ai-page/:path*?debug=1'),
+      'vercel rewrites should expose /ai debug digests');
+    assert(rewrites.some((rule) => rule.source === '/analytics' && /user-agent/i.test(JSON.stringify(rule)) && rule.destination === '/api/ai-page/analytics?ai=1'),
+      'vercel rewrites should serve same-URL analytics digest to AI agents');
+    assert(rewrites.some((rule) => rule.source === '/portfolio/:project' && rule.destination === '/api/ai-page/portfolio/:project?ai=1'),
+      'vercel rewrites should serve portfolio project digests to AI agents');
+    assert(rewrites.some((rule) => rule.source === '/tools/:tool' && rule.destination === '/api/ai-page/tools/:tool?ai=1'),
+      'vercel rewrites should serve public tool digests to AI agents');
+
+    assert(fs.existsSync('dist/ai-digest-manifest.json'), 'AI digest manifest missing');
+    const manifest = JSON.parse(readFile('dist/ai-digest-manifest.json'));
+    assert(manifest.version === 1, 'AI digest manifest should declare version 1');
+    assert(manifest.origin === 'https://www.danielshort.me', 'AI digest manifest should use the public site origin');
+    assert(Array.isArray(manifest.pages) && manifest.pages.length >= 10, 'AI digest manifest should include public pages');
+    const urls = new Set(manifest.pages.map((page) => String(page && page.url || '').trim()));
+    ['/analytics', '/data-science', '/tourism', '/portfolio', '/resume-analytics', '/tools/text-compare'].forEach((url) => {
+      assert(urls.has(url), `AI digest manifest missing ${url}`);
+    });
+    ['/search', '/tools/dashboard', '/tools/short-links', '/resume-analytics-pdf'].forEach((url) => {
+      assert(!urls.has(url), `AI digest manifest should exclude ${url}`);
+    });
+
+    const analyticsDigest = readFile('dist/ai-pages/analytics.html');
+    assert(analyticsDigest.includes('data-ai-digest="true"'), 'analytics AI digest should be marked');
+    assert(analyticsDigest.includes('<link rel="canonical" href="https://www.danielshort.me/analytics">'),
+      'analytics AI digest should preserve canonical URL');
+    assert(!/<script\b/i.test(analyticsDigest), 'AI digest pages should not include scripts');
+    assert(!/<nav\b/i.test(analyticsDigest), 'AI digest pages should not include nav chrome');
+    assert(analyticsDigest.includes('Key Facts') && analyticsDigest.includes('Source Metadata'),
+      'AI digest pages should include key facts and source metadata');
+  });
+
   section('Local CMS contracts', () => {
     const pkg = JSON.parse(readFile('package.json'));
     assert(!pkg.devDependencies || !pkg.devDependencies.vercel, 'vercel should not be a devDependency');
@@ -842,6 +1001,8 @@ try {
     const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
     const footerTemplate = fs.readFileSync('build/templates/footer.partial.html', 'utf8');
     assert(headerTemplate.includes('class="brand-logo"'), 'nav markup missing brand-logo');
+    assert(headerTemplate.includes('img/brand/00-ds-logo-master-full-color.svg'), 'nav should use approved DS brand logo asset');
+    assert(!headerTemplate.includes('ds-decision-path-logo'), 'nav should not use the retired decision-path logo');
     assert(headerTemplate.includes('class="brand-name"'), 'nav markup missing brand-name');
     assert(headerTemplate.includes('class="brand-title"'), 'nav markup missing brand-title');
     assert(headerTemplate.includes('class="brand-divider"'), 'nav markup missing brand-divider');
@@ -853,9 +1014,14 @@ try {
     assert(!footerTemplate.includes('data-entry-home-link'), 'footer should not include entry-home markers');
     assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
+    assert(headerTemplate.includes('data-nav-search="collapsed"'), 'header search should expose collapsed state for compact expansion');
     assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
     assert(headerTemplate.includes('name="q"'), 'header search missing query param name="q"');
+    assert(headerTemplate.includes('aria-controls="nav-search-q" aria-expanded="false"'), 'header search button should control the expandable input');
     assert(!headerTemplate.includes('role="button"'), 'header nav links should not be forced to role="button"');
+    assert(headerTemplate.includes('class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume"'), 'resume dropdown should use the shared simple dropdown shell');
+    assert(headerTemplate.includes('class="nav-dropdown nav-dropdown-simple nav-dropdown-contact" id="nav-dropdown-contact"'), 'contact dropdown should use the shared simple dropdown shell');
+    assert((headerTemplate.match(/nav-dropdown-inner nav-dropdown-inner-simple/g) || []).length === 2, 'resume and contact dropdowns should share the same inner structure');
   });
 
   section('Navigation CSS and mobile layout', () => {
@@ -864,6 +1030,13 @@ try {
     assert(navCss.includes('.brand-divider'), 'nav.css missing brand-divider rules');
     assert(navCss.includes('.brand-tagline'), 'nav.css missing brand-tagline rules');
     assert(navCss.includes('flex-wrap:wrap;'), 'nav.css tagline should wrap whole chunks');
+    assert(navCss.includes('grid-template-columns:repeat(4, minmax(0, 1fr)) auto;'), 'desktop nav should reserve only compact space for search by default');
+    assert(navCss.includes('.nav-search.nav-search-is-enhanced.is-expanded') && navCss.includes('width:clamp(120px, 9vw, 132px);'), 'header search should expand to a compact desktop input width');
+    assert(navCss.includes('.nav-search.nav-search-is-enhanced:not(.is-expanded) .nav-search-input') && navCss.includes('pointer-events:none;'), 'collapsed desktop search input should not intercept pointer events');
+    assert(navCss.includes('grid-template-columns:30px 82px minmax(0, 1fr);'), 'portfolio dropdown project rows should use a compact rank/media/text grid');
+    assert(navCss.includes('.nav-project-card:nth-child(1) .nav-project-rank::before{content:"01";}'), 'portfolio dropdown rank labels should render as quiet numeric labels');
+    assert(navCss.includes('.nav-project-rank') && navCss.includes('background:transparent;'), 'portfolio dropdown rank labels should not use filled badges');
+    assert(navCss.includes('.nav-dropdown-inner.nav-dropdown-inner-simple'), 'simple dropdowns should have a shared one-column inner shell');
 
     const utilCss = fs.readFileSync('css/utilities/layout.css', 'utf8');
     assert(utilCss.includes('--brand-title-size'), 'utilities/layout.css missing mobile brand sizing overrides');
@@ -873,6 +1046,7 @@ try {
     assert(utilCss.includes('padding-top:var(--nav-height'), 'page offset for fixed header missing');
     assert(utilCss.includes('clip-path') && utilCss.includes('.nav-row.open'), 'mobile drawer clip-path reveal missing');
     assert(utilCss.includes('padding-inline:var(--mobile-page-gutter);'), 'mobile wrapper should use compact page gutters');
+    assert(utilCss.includes('.nav-search.nav-search-is-enhanced.is-expanded') && utilCss.includes('width:100%;'), 'mobile drawer search should stay full width even with enhanced search classes');
     assert(utilCss.includes('body .surface-band,\n  body .interest-pad'), 'mobile global sections should share compact vertical spacing');
     assert(utilCss.includes('body:not([data-page="home"]):not(.home-pattern-page) .hero.hero--default'), 'mobile hero compacting should live in the utilities layer');
     assert(utilCss.includes('#cta #cta-link'), 'mobile CTA shell should be compacted');
@@ -883,6 +1057,14 @@ try {
   section('CSS tokens, layers, and components', () => {
     const varsCss = fs.readFileSync('css/variables.css', 'utf8');
     assert(/--secondary\s*:\s*var\(--primary\)\s*;/.test(varsCss), 'variables.css --secondary not mapped to --primary');
+    assert(varsCss.includes('--brand-midnight:#091F3B;'), 'variables.css missing Logo Midnight token');
+    assert(varsCss.includes('--brand-signal-blue:#005FED;'), 'variables.css missing Signal Blue token');
+    assert(varsCss.includes('--brand-deep-blue:#0145C8;'), 'variables.css missing Deep Blue token');
+    assert(varsCss.includes('--brand-canvas:#F9F9FA;'), 'variables.css missing Canvas token');
+    assert(varsCss.includes('--brand-action-copper:#D97706;'), 'variables.css missing Action Copper token');
+    assert(varsCss.includes('--font-sans:"Inter"'), 'variables.css should define Inter as the primary font');
+    assert(varsCss.includes('--font-mono:"IBM Plex Mono"'), 'variables.css should define IBM Plex Mono for code/tool labels');
+    assert(!varsCss.includes('#06B6D4'), 'variables.css should not keep the old cyan palette value');
     assert(varsCss.includes('--mobile-page-gutter:clamp(12px,4vw,18px);'), 'variables.css missing mobile page gutter token');
     assert(varsCss.includes('--mobile-section-y:clamp(1.55rem,5vw,2.25rem);'), 'variables.css missing compact mobile section token');
 
@@ -895,19 +1077,115 @@ try {
     assert(modalCss.includes('#contact-modal .modal-content') && modalCss.includes('width:calc(100vw - 12px);'), 'contact modal should use compact mobile viewport width');
 
     const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
+    const brandOverrideCss = fs.readFileSync('css/utilities/design-system-overrides.css', 'utf8');
     const toolsWorkspaceCss = fs.readFileSync('css/components/tools-workspace.css', 'utf8');
+    const toolsAccountCss = fs.readFileSync('css/components/tools-account.css', 'utf8');
+    const siteChatbotCss = fs.readFileSync('css/components/site-chatbot.css', 'utf8');
+    const cookieSettingsCss = fs.readFileSync('css/components/cookie-settings.css', 'utf8');
+    const privacyCss = fs.readFileSync('css/privacy.css', 'utf8');
     const toolThemeCss = fs.readFileSync('css/components/tool-theme.css', 'utf8');
     const resumeCss = fs.readFileSync('css/components/resume.css', 'utf8');
     const contactCardCss = fs.readFileSync('css/components/contact-card.css', 'utf8');
+    const homeProofCss = fs.readFileSync('css/components/home-proof.css', 'utf8');
     assert(projectCss.includes('--project-mobile-edge:calc(var(--mobile-page-gutter, 14px) * -1);'), 'project pages should flatten demo shells to mobile edges');
     assert(projectCss.includes('margin-inline:var(--project-mobile-edge);'), 'project demo shell should consume redundant mobile wrapper gutters');
+    assert(projectCss.includes('.project-case-study') && projectCss.includes('.project-decision-flow'), 'project pages should include branded decision memo case-study styles');
+    assert(homeProofCss.includes('grid-auto-rows: 1fr;') &&
+      homeProofCss.includes('.home-proof-card') &&
+      homeProofCss.includes('box-sizing: border-box;') &&
+      homeProofCss.includes('width: 100%;'), 'home proof KPI cards should fill equal-height grid tracks without overlap');
+    assert(brandOverrideCss.includes('--hero-art-layer: url("../img/brand/23-hero-general-light.png");'), 'brand overrides should define the general alternate light hero raster');
+    assert(brandOverrideCss.includes('body[data-audience="analytics"]') &&
+      brandOverrideCss.includes('--hero-art-layer: url("../img/brand/24-hero-analytics-light.png");'), 'brand overrides should keep the analytics audience light hero raster available');
+    assert(brandOverrideCss.includes('body[data-page="analytics"]') &&
+      brandOverrideCss.includes('--hero-art-layer: url("../img/brand/07-website-hero-light-version.png");') &&
+      brandOverrideCss.includes('--hero-mobile-art-layer: url("../img/brand/27-hero-mobile-light.png");'), 'analytics homepage should use the main website hero raster on desktop and the portrait raster on mobile');
+    assert(brandOverrideCss.includes('--hero-art-layer: url("../img/brand/25-hero-data-science-light.png");'), 'brand overrides should define the data science alternate light hero raster');
+    assert(brandOverrideCss.includes('--hero-art-layer: url("../img/brand/26-hero-tourism-light.png");'), 'brand overrides should define the tourism alternate light hero raster');
+    assert(brandOverrideCss.includes('--hero-mobile-art-layer: url("../img/brand/27-hero-mobile-light.png");'), 'brand overrides should define the portrait mobile hero raster');
+    assert(brandOverrideCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat'), 'desktop audience hero should anchor the selected light hero raster to the bottom-right and fill the hero height');
+    assert(brandOverrideCss.includes('var(--hero-mobile-art-layer, var(--hero-art-layer, url("../img/brand/23-hero-general-light.png"))) center bottom / cover no-repeat'), 'mobile hero should use the portrait hero raster anchored to the bottom of the hero');
+    assert(brandOverrideCss.includes('body[data-page="portfolio"] .hero.hero--default') &&
+      brandOverrideCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat'), 'desktop portfolio hero should anchor the selected light hero raster to the bottom-right and fill the hero height');
+    [
+      'analytics-project-examples-bg.png',
+      'analytics-business-results-bg.png',
+      'analytics-work-experience-bg.png',
+      'analytics-skills-practice-bg.png',
+      'analytics-certifications-bg.png',
+      'analytics-contact-cta-bg.png'
+    ].forEach((file) => {
+      assert(brandOverrideCss.includes(`url("../img/brand/${file}")`), `analytics homepage section CSS should reference ${file}`);
+    });
+    [
+      'img1.png',
+      'img2.png',
+      'img3.png',
+      'img4.png',
+      'img5.png',
+      'img6.png',
+      'home-project-examples-bg.png',
+      'home-selected-outcomes-bg.png',
+      'home-work-experience-bg.png',
+      'home-about-me-bg.png',
+      'home-certifications-bg.png',
+      'home-analytics-cta-bg.png'
+    ].forEach((file) => {
+      assert(!brandOverrideCss.includes(`url("../img/brand/${file}")`), `analytics homepage section CSS should no longer reference ${file}`);
+    });
+    assert(brandOverrideCss.includes('background-image: var(--home-section-art);') &&
+      brandOverrideCss.includes('background-size: cover;'), 'analytics homepage section art should render unwashed at natural section heights');
+    assert(!brandOverrideCss.includes('--home-section-frame-height') &&
+      !brandOverrideCss.includes('height: var(--home-section-frame-height);') &&
+      !brandOverrideCss.includes('min-height: var(--home-section-frame-height);') &&
+      !brandOverrideCss.includes('scroll-snap-type: x proximity;'), 'analytics homepage sections should not force equal-height frames');
+    assert(!brandOverrideCss.includes('linear-gradient(90deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, .68))') &&
+      !brandOverrideCss.includes('linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .72))'), 'analytics homepage section art should not be lightened by white overlay gradients');
+    assert(brandOverrideCss.includes('var(--brand-action-copper)'), 'brand overrides should use restrained Action Copper accents');
+    assert(brandOverrideCss.includes('body[data-page="analytics"] #project-examples,\n    body[data-page="analytics"] #work-experience,\n    body[data-page="analytics"] #certifications') &&
+      brandOverrideCss.includes('body[data-page="analytics"] #selected-outcomes,\n    body[data-page="analytics"] #about-me,\n    body[data-page="analytics"] #cta'), 'analytics homepage sections should have explicit alternating desktop backgrounds');
+    assert(!brandOverrideCss.includes('color-mix(in srgb, var(--brand-navy) 94%, transparent)'), 'mobile homepage section bands should not use white-to-dark-blue gradients');
+    assert(brandOverrideCss.includes('body .project-examples-band,\n    body .home-proof-band,\n    body .cert-band,\n    body .portfolio-library-section') &&
+      brandOverrideCss.includes('background: var(--brand-mist);'), 'mobile homepage section bands should use a solid mist background');
+    assert(brandOverrideCss.includes('--home-section-pad: clamp(3.2rem, 5vw, 4.4rem);'), 'analytics homepage desktop sections should share a consistent vertical padding token');
+    assert(brandOverrideCss.includes('body[data-page="analytics"] .section-title::before,\n    body[data-page="analytics"] .project-examples-head h2::before') &&
+      brandOverrideCss.includes('margin-inline: auto;'), 'analytics homepage section accents should align consistently');
+    assert(brandOverrideCss.includes('body[data-page="analytics"] .hero .cta-group .btn-ghost') && brandOverrideCss.includes('background: #ffffff;'), 'analytics hero contact button should be opaque on desktop');
+    assert(brandOverrideCss.includes('body[data-page="analytics"] .cert img,\n    body[data-page="analytics"] .cert-card-logo') &&
+      brandOverrideCss.includes('background: color-mix(in srgb, var(--brand-mist) 74%, var(--brand-signal-blue) 26%);'), 'certification logos should sit on tinted readable tiles');
+    assert(brandOverrideCss.includes('.skill-subtitle') && fs.readFileSync('css/components/core.css', 'utf8').includes('#about-me .skill-subtitle'), 'skills section subtitle should have matching brand styling');
+    assert(brandOverrideCss.includes('font-family: var(--font-mono)'), 'brand overrides should reserve mono typography for labels and metrics');
+    assert(!/\\.nav-project-rank,\\s*\\n\\s*\\.nav-dropdown-badge/.test(brandOverrideCss), 'portfolio dropdown ranks should not inherit copper badge styling');
+    assert(brandOverrideCss.includes('.nav-dropdown-inner-simple') && brandOverrideCss.includes('grid-template-columns: minmax(0, 1fr);'), 'dropdown overrides should normalize simple dropdown inner structure');
+    assert(brandOverrideCss.includes('.nav-dropdown-list .nav-dropdown-link + .nav-dropdown-link') && brandOverrideCss.includes('margin-top: 0;'), 'dropdown list rows should use shared gap spacing instead of stacked margins');
+    assert(brandOverrideCss.includes('#nav-dropdown-resume,\n    #nav-dropdown-contact') && brandOverrideCss.includes('width: min(360px, 64vw);'), 'resume and contact dropdowns should share matching desktop width');
+    assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-project-rank') && brandOverrideCss.includes('color: color-mix(in srgb, var(--brand-slate) 82%, var(--brand-midnight) 18%);'), 'portfolio dropdown ranks should use restrained brand-neutral colors');
+    assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-footer-inline') && brandOverrideCss.includes('grid-template-columns: 1fr;'), 'portfolio dropdown footer should use a single full-width portfolio link');
+    assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-footer-inline::before') && brandOverrideCss.includes('background: var(--brand-action-copper);'), 'portfolio dropdown footer should use a restrained copper divider accent');
+    assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-all .nav-dropdown-subtitle') && brandOverrideCss.includes('display: block;'), 'portfolio dropdown footer link should show matching subtitle text');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar'), 'brand overrides should reveal restrained audience hero headshots');
+    assert(!/body:is\(\[data-page="data-science"\], \[data-page="tourism"\]\) \.hero-avatar\s*\{[^}]*display:\s*none/.test(brandOverrideCss), 'brand overrides should not hide data-science or tourism hero headshots');
+    assert(brandOverrideCss.includes('body[data-page="portfolio"] #projects.portfolio-library-grid'), 'brand overrides should contain mobile portfolio cards to the viewport');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card') && brandOverrideCss.includes('grid-template-rows: auto minmax(104px, auto);'), 'audience project cards should use the portfolio page media plus white text panel layout');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .overlay') && brandOverrideCss.includes('display: none;'), 'audience project cards should not depend on dark image overlays for readability');
     assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
+    assert(toolsAccountCss.includes('.tools-account-bar:empty'), 'empty tools account bars should not render as orphan containers');
+    assert(siteChatbotCss.includes('right: calc(100% + 8px);'), 'chatbot launcher tooltip should sit inward with a button gap');
+    assert(cookieSettingsCss.includes('left:calc(100% + 8px);'), 'cookie tooltip should sit inward with a button gap');
+    assert(privacyCss.includes('--pcz-surface: #ffffff;'), 'cookie consent popup should use a light readable surface');
+    assert(privacyCss.includes('--pcz-fg: var(--brand-midnight, #091f3b);'), 'cookie consent popup should use dark readable foreground text');
+    assert(privacyCss.includes('--pcz-link: var(--brand-signal-blue, #005fed);'), 'cookie consent links should use brand blue on light surfaces');
+    assert(privacyCss.includes('#pcz-modal .pref-toggle[aria-pressed="true"] .pref-state'), 'cookie consent active preference state should keep readable text on blue buttons');
     assert(toolThemeCss.includes('body[data-page="text-compare"]') && toolThemeCss.includes('padding:var(--mobile-card-pad);'), 'tool pages should compact mobile cards');
     assert(resumeCss.includes('.resume-paper') && resumeCss.includes('border-radius:12px;'), 'resume paper should use compact mobile card radius');
     assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');
 
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
     assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
+    ['css/base/base.css','css/components/buttons.css','css/layout/nav.css','css/utilities/design-system-overrides.css'].forEach((file) => {
+      assert(!fs.readFileSync(file, 'utf8').includes('Poppins'), `${file} should not reference Poppins`);
+    });
+    assert(!fs.readFileSync('pages/portfolio.html', 'utf8').includes('Poppins'), 'portfolio page should not preload legacy Poppins fonts');
     ['components/home-proof.css','components/jump-panel.css','components/work-experience.css','components/contact-card.css','components/search.css','components/project-page.css'].forEach((snippet) => {
       assert(!stylesCss.includes(snippet), `styles.css should not eagerly import ${snippet}`);
     });
@@ -1077,9 +1355,13 @@ try {
       checkFileContains(file, 'id="project-examples"');
       checkFileContains(file, 'id="work-experience"');
       checkFileContains(file, 'id="about-me"');
+      checkFileContains(file, 'class="skill-subtitle"');
+      checkFileContains(file, 'Examples of how the technical toolkit shows up in real projects');
       checkFileContains(file, 'id="certifications"');
       checkFileContains(file, 'id="cta"');
       checkFileContains(file, 'id="contact-modal"');
+      checkFileContains(file, 'data-cert-modal-open');
+      assert(htmlHasManagedBundle(html, 'site-home'), `${file} missing home bundle for certifications modal`);
       assert(!html.includes('audience-gateway-hero'), `${file} should not use audience gateway hero`);
       assert(!html.includes('this version'), `${file} should not mention "this version"`);
     });
@@ -1090,7 +1372,21 @@ try {
     checkFileContains('pages/data-science.html', 'home-proof-value">10x<');
     checkFileContains('pages/data-science.html', 'home-proof-value">98%<');
     checkFileContains('pages/data-science.html', 'home-proof-value">+14.13%<');
+    const analyticsHtml = readFile('pages/analytics.html');
+    const projectExamplesIndex = analyticsHtml.indexOf('id="project-examples"');
+    const selectedOutcomesIndex = analyticsHtml.indexOf('id="selected-outcomes"');
+    assert(projectExamplesIndex >= 0 && selectedOutcomesIndex >= 0 && projectExamplesIndex < selectedOutcomesIndex,
+      'analytics page should show project examples before the results snapshot');
+    checkFileContains('pages/analytics.html', '<h2 id="project-examples-title">Project Examples</h2>');
+    checkFileContains('pages/analytics.html', '<h2 id="selected-outcomes-title" class="section-title">Business-Facing Results</h2>');
     checkFileContains('pages/analytics.html', 'data-brand-tagline-primary="true">Data Analytics<');
+    ['pages/analytics.html', 'pages/data-science.html', 'pages/tourism.html'].forEach((file) => {
+      checkFileContains(file, 'class="hero-identity"');
+      checkFileContains(file, 'class="hero-avatar"');
+      checkFileContains(file, 'img/hero/head-avatar-192.jpg');
+      checkFileContains(file, 'sizes="(max-width: 768px) 72px, 96px"');
+      checkFileContains(file, 'contact#contact-modal');
+    });
     checkFileContains('pages/data-science.html', 'data-brand-tagline-primary="true">Data Science<');
     checkFileContains('pages/tourism.html', 'data-brand-tagline-primary="true">Tourism Analytics<');
     checkFileContains('pages/resume-analytics.html', 'data-brand-tagline-primary="true">Data Analytics<');
@@ -1110,6 +1406,49 @@ try {
         `${file} work cards should be in ascending chronological order`);
     });
     assert(!readFile('pages/analytics.html').includes('destinationReporting'), 'analytics page should not feature destinationReporting');
+    assert(!readFile('pages/data-science.html').includes('chevron-hint scroll-indicator'), 'data-science hero should match the shared audience hero without the old scroll hint');
+    assert(!readFile('pages/tourism.html').includes('chevron-hint scroll-indicator'), 'tourism hero should match the shared audience hero without the old scroll hint');
+  });
+
+  section('Project-first public copy', () => {
+    const publicHtmlFiles = [
+      'index.html',
+      '404.html',
+      'contact.html',
+      'privacy.html',
+      'resume.html',
+      'resume-pdf.html',
+      ...fs.readdirSync('pages')
+        .filter((name) => name.endsWith('.html'))
+        .map((name) => `pages/${name}`)
+    ];
+    const forbiddenPhrases = [
+      'Featured Analytics Proof',
+      'Featured Analytics Case Studies',
+      'Proof first',
+      'Decision-Ready Analytics Proof',
+      'business-facing analytics proof',
+      'Business proof,'
+    ];
+    publicHtmlFiles.forEach((file) => {
+      const html = readFile(file);
+      forbiddenPhrases.forEach((phrase) => {
+        assert(!html.includes(phrase), `${file} should not include proof-framed public copy: ${phrase}`);
+      });
+    });
+    const headerHtml = readFile('build/templates/header.partial.html');
+    const portfolioStart = headerHtml.indexOf('id="nav-dropdown-portfolio"');
+    const portfolioEnd = headerHtml.indexOf('<div class="nav-item nav-item-resume"');
+    const portfolioDropdown = portfolioStart >= 0 && portfolioEnd > portfolioStart
+      ? headerHtml.slice(portfolioStart, portfolioEnd)
+      : '';
+    assert(portfolioDropdown.includes('Featured Projects'), 'header portfolio dropdown should use project-first wording');
+    assert(!portfolioDropdown.includes('Technical depth'), 'portfolio dropdown should not include the technical depth shortcut');
+    assert(!portfolioDropdown.includes('Tools'), 'portfolio dropdown should not include tools shortcuts');
+    assert((portfolioDropdown.match(/class="nav-project-card"/g) || []).length === 5, 'portfolio dropdown should keep five featured project links');
+    assert((portfolioDropdown.match(/class="nav-dropdown-link nav-dropdown-all"/g) || []).length === 1, 'portfolio dropdown should have one footer portfolio link');
+    assert(portfolioDropdown.includes('View full portfolio'), 'portfolio dropdown should link to the full portfolio');
+    assert(portfolioDropdown.includes('Browse the complete project library'), 'portfolio dropdown footer should include descriptive subtext');
   });
 
   section('Internal site links stay in the same tab', () => {
@@ -1147,12 +1486,75 @@ try {
     assert(navCode.includes('[data-portfolio-home-link="true"]'), 'navigation missing portfolio home selector');
     assert(navCode.includes('[data-resume-home-link="true"]'), 'navigation missing resume home selector');
     assert(navCode.includes('[data-brand-tagline-primary="true"]'), 'navigation missing primary brand tagline selector');
+    assert(navCode.includes('setupHeaderSearch(host)'), 'navigation should initialize expandable header search');
+    assert(navCode.includes("form.classList.toggle('nav-search-is-enhanced'") && navCode.includes("form.classList.toggle('is-expanded'"), 'navigation should toggle compact and expanded search states');
+    assert(navCode.includes("form.dataset.navSearch = enhanced ? (nextExpanded ? 'expanded' : 'collapsed') : 'full';"), 'navigation should distinguish full mobile search from collapsed desktop search');
+    assert(navCode.includes("button.setAttribute('aria-label', enhanced && !nextExpanded ? 'Open search' : 'Search site');"), 'navigation should announce the visible mobile search button correctly');
+    assert(navCode.includes('input.tabIndex = enhanced && !nextExpanded ? -1 : 0;'), 'collapsed desktop search input should leave the tab order');
     assert(headerTemplate.includes('aria-controls="primary-menu"'), 'header missing aria-controls="primary-menu"');
     assert(headerTemplate.includes('id="primary-menu"'), 'header missing primary-menu');
     assert(navCode.includes("classList.toggle('menu-open'"), 'burger toggle missing body.menu-open');
     assert(navCode.includes('aria-expanded'), 'burger missing aria-expanded');
     assert(navCode.includes('aria-current'), 'active nav link missing aria-current');
     assert(navCode.includes('getBoundingClientRect'), 'setNavHeight missing measurement');
+  });
+
+  section('Brand assets and case-study rendering', () => {
+    [
+      'img/brand/00-ds-logo-master-full-color.svg',
+      'img/brand/04-ds-logo-reversed-white-blue.svg',
+      'img/brand/05-ds-favicon-small-icon.svg',
+      'img/brand/07-website-hero-light-version.png',
+      'img/brand/07-website-hero-light-version.svg',
+      'img/brand/23-hero-general-light.png',
+      'img/brand/24-hero-analytics-light.png',
+      'img/brand/25-hero-data-science-light.png',
+      'img/brand/26-hero-tourism-light.png',
+      'img/brand/27-hero-mobile-light.png',
+      'img/brand/analytics-project-examples-bg.png',
+      'img/brand/analytics-business-results-bg.png',
+      'img/brand/analytics-work-experience-bg.png',
+      'img/brand/analytics-skills-practice-bg.png',
+      'img/brand/analytics-certifications-bg.png',
+      'img/brand/analytics-contact-cta-bg.png',
+      'img/brand/13-case-study-diagram-question-to-decision.svg',
+      'img/brand/20-data-visualization-style-sample.svg'
+    ].forEach((file) => assert(fs.existsSync(file), `${file} missing`));
+    [
+      'img/brand/img1.png',
+      'img/brand/img2.png',
+      'img/brand/img3.png',
+      'img/brand/img4.png',
+      'img/brand/img5.png',
+      'img/brand/img6.png',
+      'img/brand/home-project-examples-bg.png',
+      'img/brand/home-selected-outcomes-bg.png',
+      'img/brand/home-work-experience-bg.png',
+      'img/brand/home-about-me-bg.png',
+      'img/brand/home-certifications-bg.png',
+      'img/brand/home-analytics-cta-bg.png'
+    ].forEach((file) => assert(!fs.existsSync(file), `${file} should be removed after section background rename`));
+
+    const generator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
+    assert(generator.includes('project-case-study'), 'project generator should render case-study content');
+    assert(generator.includes('Question to Decision'), 'project generator should label the decision memo section');
+    assert(generator.includes('13-case-study-diagram-question-to-decision.svg'), 'project generator should use approved case-study diagram asset');
+    assert(generator.includes('img/brand/05-ds-favicon-small-icon.svg'), 'project generator should include approved SVG favicon');
+
+    const portfolioJs = fs.readFileSync('js/portfolio/portfolio.js', 'utf8');
+    assert(!portfolioJs.includes('project-card-proof'), 'portfolio cards should not render proof/result lines');
+    assert(!portfolioJs.includes('card.target = "_blank"'), 'portfolio cards should keep internal project links in the same tab');
+
+    [
+      'css/components/projects.css',
+      'css/utilities/design-system-overrides.css',
+      'pages/portfolio.html',
+      'pages/analytics.html',
+      'pages/data-science.html',
+      'pages/tourism.html'
+    ].forEach((file) => {
+      assert(!fs.readFileSync(file, 'utf8').includes('project-card-proof'), `${file} should not include project-card-proof`);
+    });
   });
 
   section('Contributions interactions emit analytics', () => {
@@ -1447,13 +1849,13 @@ try {
     assert(chatbotHtml.includes('<body data-chatbot-template="portfolio" data-mobile-layout="single-surface">'), 'chatbot-demo should identify the portfolio-aligned single-surface template');
     assert(chatbotHtml.includes('color-scheme: dark;'), 'chatbot-demo should use the dark website-aligned color scheme');
     assert(chatbotHtml.includes('--panel-raised: #1a2230;'), 'chatbot-demo missing raised panel token for website-aligned surfaces');
-    assert(chatbotHtml.includes('--chat-height: calc(100dvh - 96px);'), 'chatbot-demo mobile layout should reserve only compact toolbar height');
+    assert(chatbotHtml.includes('--chat-height: 100%;'), 'chatbot-demo mobile layout should let the grid own the remaining viewport height');
     assert(chatbotHtml.includes('body[data-chatbot-template="portfolio"] {\n      padding-top: 0;') &&
            chatbotHtml.includes('html[data-embedded="true"] body {\n      height: 100dvh;\n      overflow: hidden;') &&
            chatbotHtml.includes('html[data-embedded="true"] .views,\n    html[data-embedded="true"] #regular-view'),
       'embedded chatbot should reset site body offset and fill the iframe without document clipping');
-    assert(chatbotHtml.includes('.view-tabs {\n        display: none;'), 'chatbot-demo should hide nested view tabs on mobile');
-    assert(chatbotHtml.includes('#regular-view {\n        display: grid !important;'), 'chatbot-demo mobile layout should force the regular chat surface');
+    assert(chatbotHtml.includes('.view-tabs {\n        display: grid;'), 'chatbot-demo should keep view tabs usable on mobile');
+    assert(chatbotHtml.includes('.view-panel.active {\n        display: grid !important;'), 'chatbot-demo mobile layout should render the active chat surface');
     assert(chatbotHtml.includes('html[data-embedded="true"] .chat-stage {\n        height: 100%;'), 'embedded chatbot should size the chat stage to the iframe content area');
     assert(projectGenerator.includes('project-embed-${embedProjectId.toLowerCase()}'), 'project generator should add project-specific embed classes');
     assert(projectGenerator.includes('data-project-embed="${escapeHtml(embedProjectId)}"'), 'project generator should mark embeds with project ids');
@@ -1472,8 +1874,11 @@ try {
     assert(chatbotHtml.includes('Press Start server and allow up to about five minutes'), 'chatbot-demo Qwen notice should explain cold-start time');
     assert(chatbotHtml.includes('alwaysOn: true'), 'chatbot-demo should treat Bedrock as always live');
     assert(chatbotHtml.includes('streamUrl: (RUNTIME_CONFIG.bedrockStreamUrl || DEFAULT_BEDROCK_STREAM_URL).replace(/\\/$/, \'\')'), 'chatbot-demo should configure a Bedrock stream URL');
-    assert(chatbotHtml.includes('function submitBedrockStream(ctx, requestId, body, backend)'), 'chatbot-demo missing Bedrock streaming submit helper');
+    assert(chatbotHtml.includes('function submitBedrockStream(ctx, requestId, body, backend, liveNode = null)'), 'chatbot-demo missing Bedrock streaming submit helper');
     assert(chatbotHtml.includes("console.log('[chatbot-demo] bedrock:token', text);"), 'chatbot-demo should log Bedrock stream tokens to the console');
+    assert(chatbotHtml.includes('renderAssistantAnswer(liveNode, streamedAnswer, liveLinks, {'), 'chatbot-demo should format streamed Bedrock tokens through the markdown renderer immediately');
+    assert(chatbotHtml.includes('liveLinks = sourceItems(event);'), 'chatbot-demo should use stream metadata while rendering live source links');
+    assert(!chatbotHtml.includes('window.setTimeout(renderLiveAnswer, 80)'), 'chatbot-demo should not batch visible Bedrock tokens behind a timer');
     assert(chatbotHtml.includes('markAlwaysLiveBackend(`${activeBackend().label} is ready. No startup or shutdown timer is needed.`);'), 'chatbot-demo should mark Bedrock as always live without timers');
     assert(chatbotHtml.includes('function normalizeAnswerLinks(container)'), 'chatbot-demo should normalize rendered answer links');
     assert(chatbotHtml.includes("link.target = '_blank';"), 'chatbot-demo answer links should open outside the embedded frame');
@@ -1517,9 +1922,10 @@ try {
     assert(chatbotHtml.includes('[...ctx.suggestions, ...ctx.followups].forEach(button =>'), 'chatbot-demo readiness updates should include shortcut and follow-up buttons');
     assert(chatbotHtml.includes('button.disabled = !serverReady;'), 'chatbot-demo shortcut buttons should be disabled until the server is ready');
     assert(chatbotHtml.includes('if (!serverReady) return;'), 'chatbot-demo shortcut click handlers should guard against cold server state');
+    assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text);'), 'chatbot-demo shortcut buttons should auto-submit through the guarded prompt flow');
     assert(chatbotHtml.includes('ctx.suggestions.push(button);'), 'chatbot-demo should register generated shortcut buttons');
     assert(chatbotHtml.includes('(data?.resource_suggestions || [])'), 'chatbot-demo should include API resource suggestions in source links');
-    assert(chatbotHtml.includes('function renderAssistantAnswer(container, text, links)'), 'chatbot-demo should render formatted assistant answers through one source-aware path');
+    assert(chatbotHtml.includes('function renderAssistantAnswer(container, text, links, options = {})'), 'chatbot-demo should render formatted assistant answers through one source-aware path');
     assert(chatbotHtml.includes('function renderFormattedAnswer(container, text, state)'), 'chatbot-demo should preserve markdown formatting before source linking');
     assert(chatbotHtml.includes('function appendInlineMarkdown(container, text, state'), 'chatbot-demo should preserve bold, italic, markdown links, and bare URL fallback formatting');
     assert(chatbotHtml.includes('function autoLinkSourcePhrases(container, links, state)'), 'chatbot-demo should link source phrases inside answers');
@@ -1533,9 +1939,10 @@ try {
     assert(chatbotHtml.includes("source: 'recommended_followup'"), 'chatbot-demo follow-up context should identify recommended follow-ups');
     assert(chatbotHtml.includes('body.followup_context = followupContext'), 'chatbot-demo should submit follow-up context to the API');
     assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text, followupContext'), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
-    assert(chatbotHtml.includes('Plan a red-rock first day in Grand Junction'), 'chatbot-demo default prompts should be on-brand for Grand Junction travel');
-    assert(chatbotHtml.includes('Build a weekend with downtown, trails, and wineries'), 'chatbot-demo default prompts should include a weekend planning prompt');
-    assert(chatbotHtml.includes('Find family-friendly stops near Colorado National Monument'), 'chatbot-demo default prompts should include a family-friendly Monument prompt');
+    assert(chatbotHtml.includes('Plan a Grand Junction first day with Colorado National Monument and downtown'), 'chatbot-demo default prompts should target indexed Colorado National Monument and downtown content from a Grand Junction base');
+    assert(chatbotHtml.includes('Build a Grand Junction weekend with Riverfront Trail, downtown, and local food'), 'chatbot-demo default prompts should target indexed Riverfront Trail, downtown, and restaurant content');
+    assert(chatbotHtml.includes('Create a Grand Junction base-camp day trip to Grand Mesa lakes'), 'chatbot-demo default prompts should target indexed Grand Mesa content from a Grand Junction base');
+    assert(!chatbotHtml.includes('Plan a red-rock first day in Grand Junction'), 'chatbot-demo should not use older broad default prompts');
     assert(!chatbotHtml.includes('Plan a scenic first day'), 'chatbot-demo should not use generic default prompts');
     assert(!chatbotHtml.includes('Find outdoor ideas'), 'chatbot-demo should not use generic default prompts');
     assert(chatbotHtml.includes('white-space: normal;'), 'chatbot-demo assistant markdown should not preserve extra source newlines as visual gaps');
@@ -1715,6 +2122,8 @@ try {
       'consent manager should render inline preference disclosures');
     assert(consentCode.includes("row.classList.toggle('is-expanded'"),
       'consent manager should toggle expanded preference rows');
+    assert(consentCode.includes('pcz-consent-critical-styles') && consentCode.includes('#pcz-banner .pcz-primary'),
+      'consent manager should inject critical readable banner styles before privacy.css loads');
     assert(privacyCss.includes('.pref-option-head'),
       'privacy.css missing aligned preference row layout');
     assert(privacyCss.includes('.pref-disclosure'),

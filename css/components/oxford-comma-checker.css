@@ -98,7 +98,7 @@
     align-items:center;
     gap:6px;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
   .oxford-input-head{
     display:flex;
@@ -268,7 +268,7 @@
     flex-wrap:wrap;
   }
   .oxford-legend-pill{
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
     font-size:.9rem;
@@ -412,7 +412,7 @@
   .oxford-details > summary{
     cursor:pointer;
     list-style:none;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);

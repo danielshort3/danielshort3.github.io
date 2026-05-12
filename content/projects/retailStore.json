@@ -59,50 +59,53 @@
     "Led the analysis: SQL modeling/ETL, anomaly detection, and reporting."
   ],
   "notes": "Store, state, and employee identifiers are anonymized in the case study.",
-  "problem": "We didn't have a single view of security incidents, theft hotspots, and boycott-driven sales swings.",
+  "problem": "Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.",
   "actions": [
-    "Joined incident, sales, and HR tables in SQL and automated KPIs with views and stored procedures.",
-    "Built Python dashboards to compare theft vs. sales by format, state, and time.",
-    "Used anomaly detection to flag outlier stores and associates."
+    "Modeled incident, sales, and HR data in SQL so stores, regions, time periods, and risk measures use consistent definitions.",
+    "Built Python reporting views that separate frequency, severity, and sales context for faster investigation planning.",
+    "Used anomaly detection to flag outlier stores, regions, and associate patterns for review."
   ],
   "results": [
-    "Found a cluster of outlier stores with incident rates several times higher than typical peers.",
-    "Flagged regions and stores with substantially higher estimated loss rates (figures anonymized).",
-    "Measured year-over-year sales changes around boycott periods (exact figures anonymized).",
-    "Flagged a small set of high-risk associates and patterns using anomaly detection (identifiers anonymized)."
+    "Supported analytics-driven investigations that reduced inventory loss by 24%.",
+    "Improved theft reporting by 57.6% through clearer dashboards and workflow redesign.",
+    "Narrowed broad incident data into a short, explainable list of hotspots worth investigating.",
+    "Kept identifiers anonymized so the case study can show the workflow without exposing people or locations."
   ],
   "caseStudy": [
     {
-      "title": "Data Modeling and ETL",
-      "lead": "I built a SQL layer that joins incidents, theft, sales, and HR attributes so the team can slice risk by store, region, and time.",
+      "title": "Problem",
+      "lead": "Security, loss, and sales signals were spread across separate tables, which made it hard to see where action should start.",
       "bullets": [
-        "Joined incident, sales, and employee tables and created reusable KPI views.",
-        "Standardized date keys and dimensions (store format, region/state) so filters stay consistent.",
-        "Anonymized identifiers so insights can be shared safely."
+        "Incident volume alone hid severity differences.",
+        "Sales context mattered because high-volume stores can look risky without normalization.",
+        "Stakeholders needed a shortlist they could investigate, not another broad dashboard."
       ]
     },
     {
-      "title": "Analysis Workflow",
+      "title": "Method",
+      "lead": "I built the repeatable analytics layer first, then used dashboards and anomaly detection to turn the data into review queues.",
       "bullets": [
-        "Ran targeted queries to find high-incident formats, top-theft states, and high-risk associates.",
-        "Measured boycott impact with year-over-year comparisons around the timeline.",
-        "Used Python charts to highlight hotspots, trends, and outliers."
+        "Joined incident, sales, and employee tables in SQL and created reusable KPI views.",
+        "Standardized date, region, state, store format, and severity definitions across outputs.",
+        "Compared stores against peer baselines to separate normal volume from unusual risk."
       ]
     },
     {
-      "title": "Anomaly Detection",
+      "title": "Result",
+      "lead": "The output made hotspots easier to explain and helped direct investigations toward the most actionable patterns.",
       "bullets": [
-        "Flagged outlier stores and associates by comparing against peer baselines, not raw totals.",
-        "Separated 'high frequency' (incidents per store) from 'high severity' (value per item).",
-        "Kept the output focused on a short list people can investigate."
+        "Supported a 24% inventory loss reduction through analytics-driven follow-up.",
+        "Helped improve theft reporting by 57.6% after dashboard and workflow redesign.",
+        "Flagged outlier stores and patterns while keeping identifiers anonymized for public sharing."
       ]
     },
     {
-      "title": "What I'd Improve",
+      "title": "So What",
+      "lead": "The value was not just a dashboard; it was a repeatable operating workflow for turning loss signals into prioritized action.",
       "bullets": [
-        "Add automated weekly anomaly alerts and an audit trail for investigations.",
-        "Normalize by traffic or shipments to separate volume from risk changes.",
-        "Explore causal analysis for boycott drivers and mitigation tests."
+        "Leaders could compare risk by location, time, and severity with consistent definitions.",
+        "Investigations started with ranked evidence instead of manual table review.",
+        "Future versions could add weekly alerts, investigation status, and normalization by traffic or shipments."
       ]
     }
   ],

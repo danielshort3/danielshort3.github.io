@@ -147,7 +147,7 @@ const getAudienceConfig = (value) => {
     key: 'analytics',
     featuredProjectIds: Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [],
     portfolioTitle: 'Analytics Portfolio',
-    portfolioDescription: 'Dashboarding, KPI design, SQL workflows, forecasting, and decision-ready reporting.'
+    portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.'
   };
 };
 const getPortfolioAudienceKey = () => {
@@ -171,7 +171,9 @@ const getFeaturedProjectIds = (audienceKey) => {
   return Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [];
 };
 const applyPortfolioAudienceContent = (audienceKey) => {
-  const config = audienceKey ? getAudienceConfig(audienceKey) : null;
+  const audienceApi = getAudienceApi();
+  const defaultAudience = audienceApi && audienceApi.defaultAudience ? audienceApi.defaultAudience : 'analytics';
+  const config = getAudienceConfig(audienceKey || defaultAudience);
   const title = document.getElementById('portfolio-hero-title');
   const tagline = document.getElementById('portfolio-hero-tagline');
   const eyebrow = document.getElementById('portfolio-hero-eyebrow');
@@ -182,22 +184,24 @@ const applyPortfolioAudienceContent = (audienceKey) => {
     if (eyebrow) eyebrow.textContent = 'Portfolio';
     if (title) title.textContent = 'Project Portfolio';
     if (tagline) {
-      tagline.textContent = 'Start with five featured case studies, then browse the rest of the published project library below.';
+      tagline.textContent = 'Start with featured analytics projects, then browse technical depth across the full project library.';
     }
     if (topHeading) topHeading.textContent = 'Top 5 Projects';
     if (allHeading) allHeading.textContent = 'Other Projects';
     if (allCopy) {
-      allCopy.textContent = 'This is the complete list of my other projects beyond the featured five above.';
+      allCopy.textContent = 'Technical depth and additional case studies beyond the featured business analytics work.';
     }
     return;
   }
-  if (eyebrow) eyebrow.textContent = config.label || config.shortLabel || 'Portfolio';
+  if (eyebrow) eyebrow.textContent = audienceKey ? (config.label || config.shortLabel || 'Portfolio') : 'Portfolio';
   if (title) title.textContent = config.portfolioTitle || 'Project Portfolio';
   if (tagline) tagline.textContent = config.portfolioDescription || '';
-  if (topHeading) topHeading.textContent = `Top 5 ${config.label || config.shortLabel || 'Portfolio'} Projects`;
+  if (topHeading) topHeading.textContent = config.key === 'analytics'
+    ? 'Featured Analytics Projects'
+    : `Top 5 ${config.label || config.shortLabel || 'Portfolio'} Projects`;
   if (allHeading) allHeading.textContent = 'Other Projects';
   if (allCopy) {
-    allCopy.textContent = 'This is the complete list of my other projects beyond the featured five above.';
+    allCopy.textContent = 'Technical depth and additional case studies beyond the featured business analytics work.';
   }
 };
 
@@ -304,8 +308,6 @@ function buildPortfolioCarousel() {
       card.type = "button";
     } else {
       card.href = `portfolio/${encodeURIComponent(p.id)}`;
-      card.target = "_blank";
-      card.rel = "noopener noreferrer";
     }
     card.className = "project-card carousel-card";
     card.id = `portfolio-carousel-slide-${i}`;
@@ -576,8 +578,6 @@ function buildPortfolio() {
       </div>
       ${mediaMarkup}`);
     card.href = `portfolio/${encodeURIComponent(project.id)}`;
-    card.target = "_blank";
-    card.rel = "noopener noreferrer";
     card.setAttribute("aria-label", `Read case study: ${project.title}`);
     card.dataset.index = index;
     setupPreviewVideo(card);

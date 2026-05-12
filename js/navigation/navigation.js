@@ -389,6 +389,7 @@
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
+    setupHeaderSearch(host);
 
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
     if (hoverMatcher.matches) {
@@ -470,8 +471,87 @@
 
     document.addEventListener(NAVIGATION_EVENT, () => {
       closeActiveDropdowns(null, { forceBlur: true });
+      closeHeaderSearch(host);
       closeMenu({ restoreFocus: false });
     });
+  }
+
+  function setupHeaderSearch(host) {
+    const form = host && host.querySelector('.nav-search');
+    if (!form || form.__navSearchReady) return;
+    const input = form.querySelector('.nav-search-input');
+    const button = form.querySelector('.nav-search-button');
+    if (!input || !button) return;
+    form.__navSearchReady = true;
+    const desktopMatcher = window.matchMedia('(min-width: 769px)');
+
+    const setExpanded = (expanded, options = {}) => {
+      const { focusInput = false, restoreButtonFocus = false } = options;
+      const enhanced = Boolean(desktopMatcher.matches);
+      const nextExpanded = enhanced && Boolean(expanded);
+      form.classList.toggle('nav-search-is-enhanced', enhanced);
+      form.classList.toggle('is-expanded', nextExpanded);
+      form.dataset.navSearch = enhanced ? (nextExpanded ? 'expanded' : 'collapsed') : 'full';
+      button.setAttribute('aria-expanded', String(nextExpanded));
+      button.setAttribute('aria-label', enhanced && !nextExpanded ? 'Open search' : 'Search site');
+      input.tabIndex = enhanced && !nextExpanded ? -1 : 0;
+      input.setAttribute('aria-hidden', enhanced && !nextExpanded ? 'true' : 'false');
+      if (focusInput && nextExpanded) {
+        requestAnimationFrame(() => input.focus());
+      } else if (restoreButtonFocus && enhanced && document.activeElement === input) {
+        button.focus();
+      }
+    };
+
+    form.__closeSearch = () => setExpanded(false);
+    setExpanded(false);
+
+    form.addEventListener('submit', (event) => {
+      if (!desktopMatcher.matches) return;
+      if (!form.classList.contains('is-expanded')) {
+        event.preventDefault();
+        closeActiveDropdowns(null, { forceBlur: true });
+        setExpanded(true, { focusInput: true });
+        return;
+      }
+      if (!input.value.trim()) {
+        event.preventDefault();
+        input.focus();
+      }
+    });
+
+    input.addEventListener('focus', () => {
+      if (desktopMatcher.matches && !form.classList.contains('is-expanded')) {
+        setExpanded(true);
+      }
+    });
+
+    form.addEventListener('keydown', (event) => {
+      if (!desktopMatcher.matches || event.key !== 'Escape') return;
+      if (!form.classList.contains('is-expanded')) return;
+      event.preventDefault();
+      setExpanded(false, { restoreButtonFocus: true });
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      if (!desktopMatcher.matches || !form.classList.contains('is-expanded')) return;
+      if (form.contains(event.target)) return;
+      setExpanded(false);
+    }, true);
+
+    const syncMode = () => setExpanded(false);
+    if (typeof desktopMatcher.addEventListener === 'function') {
+      desktopMatcher.addEventListener('change', syncMode);
+    } else if (typeof desktopMatcher.addListener === 'function') {
+      desktopMatcher.addListener(syncMode);
+    }
+  }
+
+  function closeHeaderSearch(host) {
+    const form = host && host.querySelector('.nav-search');
+    if (form && typeof form.__closeSearch === 'function') {
+      form.__closeSearch();
+    }
   }
 
   const closeActiveDropdowns = (excludeItem, options = {}) => {

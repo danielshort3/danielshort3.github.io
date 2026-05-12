@@ -285,13 +285,6 @@ function buildContributions(rootEl){
 
     wrap.appendChild(stack);
     root.appendChild(section);
-
-    if (index !== window.contributions.length - 1){
-      const divider = document.createElement('div');
-      divider.className = 'contrib-divider';
-      divider.setAttribute('aria-hidden', 'true');
-      root.appendChild(divider);
-    }
   });
 }
 

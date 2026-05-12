@@ -124,7 +124,7 @@
     border:0;
     border-radius:999px;
     padding:8px 14px;
-    font-family:'Poppins',sans-serif;
+    font-family:'Inter',sans-serif;
     font-weight:600;
     font-size:.9rem;
     color:var(--text-muted);
@@ -163,7 +163,7 @@
     border:0;
     border-radius:999px;
     padding:10px 14px;
-    font-family:'Poppins',sans-serif;
+    font-family:'Inter',sans-serif;
     font-weight:600;
     font-size:.95rem;
     color:var(--text-muted);
@@ -224,7 +224,7 @@
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
     background:color-mix(in srgb,var(--surface) 82%, #000 18%);
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
     font-size:.92rem;
@@ -358,7 +358,7 @@
     justify-content:space-between;
     gap:10px;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
   .qrtool-help{
     margin:0;
@@ -481,7 +481,7 @@
     mix-blend-mode:multiply;
   }
   .qrtool-template-name{
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
@@ -646,7 +646,7 @@
   }
   .qrtool-pane-title{
     margin:0;
-    font-family:'Poppins',sans-serif;
+    font-family:'Inter',sans-serif;
     font-size:.9rem;
     letter-spacing:.02em;
     text-transform:uppercase;

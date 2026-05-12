@@ -134,7 +134,7 @@
   }
   .bgtool-fieldset legend{
     padding:0 8px;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     color:color-mix(in srgb,var(--text) 90%, #ffffff 10%);
   }
@@ -154,7 +154,7 @@
     gap:8px;
     align-items:center;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
   .bgtool-value{
     margin-left:6px;
@@ -251,7 +251,7 @@
   }
   .bgtool-drop-title{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
   }
@@ -334,7 +334,7 @@
     min-width:0;
   }
   .bgtool-item-title{
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -559,7 +559,7 @@
     flex-wrap:wrap;
   }
   .bgtool-refine-title{
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
   }
 
@@ -646,7 +646,7 @@
   .bgtool-result-title{
     margin:0;
     font-size:1rem;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     overflow:hidden;
     text-overflow:ellipsis;

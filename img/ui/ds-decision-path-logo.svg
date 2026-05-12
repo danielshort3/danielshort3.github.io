@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">DS decision path mark</title>
+  <desc id="desc">A navy tile with connected decision path nodes forming a clean analyst mark.</desc>
+  <rect width="64" height="64" rx="12" fill="#0F172A"/>
+  <path d="M14 15h36M14 31h36M14 47h36M17 12v38M32 12v38M47 12v38" stroke="#334155" stroke-width="1.4" opacity=".52"/>
+  <path d="M17 47 32 31 47 17" fill="none" stroke="#06B6D4" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M17 29h15v2" fill="none" stroke="#2563EB" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="17" cy="47" r="5.6" fill="#F8FAFC"/>
+  <circle cx="32" cy="31" r="5.6" fill="#F8FAFC"/>
+  <circle cx="47" cy="17" r="5.6" fill="#F8FAFC"/>
+  <circle cx="17" cy="29" r="4.2" fill="#2563EB"/>
+  <circle cx="17" cy="47" r="2.2" fill="#2563EB"/>
+  <circle cx="32" cy="31" r="2.2" fill="#06B6D4"/>
+  <circle cx="47" cy="17" r="2.2" fill="#06B6D4"/>
+</svg>

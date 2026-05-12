@@ -52,7 +52,7 @@
   }
   .icon-info p{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     font-size:1.06rem;
     letter-spacing:.02em;
@@ -75,6 +75,14 @@
   #about-me.reveal.active .icon-info:nth-child(5){animation-delay:.32s}
   #about-me.reveal.active .icon-info:nth-child(6){animation-delay:.40s}
   #about-me .section-title{text-align:center}
+  #about-me .skill-subtitle{
+    margin:10px auto 0;
+    max-width:70ch;
+    color:var(--text-muted);
+    font-size:1.02rem;
+    line-height:1.7;
+    text-align:center;
+  }
 
   .skill-note{
     display:inline-flex;

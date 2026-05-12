@@ -521,7 +521,7 @@ function renderProjectPage(project, options = {}) {
   const description = toMetaDescription(project);
   const canonicalPath = `/portfolio/${encodeURIComponent(id)}`;
   const canonicalUrl = `${SITE_ORIGIN}${canonicalPath}`;
-  const ogImage = toAbsoluteUrl(project.image || 'img/hero/head.jpg');
+  const ogImage = toAbsoluteUrl(project.image || 'img/hero/head.png');
   const ogImageAlt = normalizeWhitespace(project.imageAlt || `Preview image for ${title}`);
 
   const tools = Array.isArray(project.tools) ? project.tools : [];
@@ -529,6 +529,7 @@ function renderProjectPage(project, options = {}) {
   const actions = Array.isArray(project.actions) ? project.actions : [];
   const results = Array.isArray(project.results) ? project.results : [];
   const resources = Array.isArray(project.resources) ? project.resources : [];
+  const caseStudy = Array.isArray(project.caseStudy) ? project.caseStudy : [];
   const role = project.role;
   const notes = normalizeWhitespace(project.notes || '');
   const audiences = Array.isArray(project.audiences) ? project.audiences : [];
@@ -633,6 +634,37 @@ function renderProjectPage(project, options = {}) {
     ? `<section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">${escapeHtml(notes)}</p>
+    </section>`
+    : '';
+
+  const safeCaseStudy = caseStudy.length
+    ? `<section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
+      <div class="project-case-study-head">
+        <p class="hero-eyebrow">Decision memo</p>
+        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
+        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
+      </div>
+      <div class="project-decision-flow" aria-hidden="true">
+        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
+      </div>
+      <div class="project-case-study-grid">
+        ${caseStudy.map((section) => {
+          const sectionTitle = normalizeWhitespace(section && section.title);
+          const lead = normalizeWhitespace(section && section.lead);
+          const bullets = normalizeTextArray(section && section.bullets);
+          const safeLead = lead ? `<p>${escapeHtml(lead)}</p>` : '';
+          const safeBullets = bullets.length
+            ? `<ul>
+          ${bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n          ')}
+        </ul>`
+            : '';
+          return `<article class="project-case-card">
+        <h3>${escapeHtml(sectionTitle || 'Analysis Step')}</h3>
+        ${safeLead}
+        ${safeBullets}
+      </article>`;
+        }).join('\n        ')}
+      </div>
     </section>`
     : '';
 
@@ -845,7 +877,7 @@ function renderProjectPage(project, options = {}) {
   <meta name="description" content="${escapeHtml(description)}">
 
   <meta property="og:title" content="${escapeHtml(title)} | Daniel Short">
-  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:site_name" content="Daniel Short - Data Analytics &amp; BI">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta property="og:image" content="${escapeHtml(ogImage)}">
@@ -855,10 +887,11 @@ ${ogImageDimensionsMeta}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
 
-  <meta name="theme-color" content="#0D1117">
+  <meta name="theme-color" content="#091F3B">
   <link rel="stylesheet" href="dist/styles.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
@@ -866,7 +899,7 @@ ${ogImageDimensionsMeta}
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
 ${tableauPreconnect}
 
-  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@500;600&display=swap -->
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
     ${ldJson}
@@ -893,6 +926,7 @@ ${tableauPreconnect}
 			    <section class="project-body">
 			      <div class="wrapper">
 			        ${demoTabs || media}
+			        ${safeCaseStudy}
 			        ${safeResources}
 			        ${starSummary}
 			        ${safeNotes}

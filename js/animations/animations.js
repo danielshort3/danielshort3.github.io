@@ -33,15 +33,61 @@
   window.addEventListener('orientationchange', setViewportVar);
 
   function initScrollProgress(){
+    const root = document.documentElement;
+    const body = document.body;
+    let ticking = false;
+    const largest = (...values) => Math.max(
+      0,
+      ...values.filter(value => Number.isFinite(value) && value > 0)
+    );
+    const getScrollTop = () => largest(
+      window.scrollY,
+      window.pageYOffset,
+      document.scrollingElement?.scrollTop,
+      root?.scrollTop,
+      body?.scrollTop
+    );
+    const getScrollHeight = () => largest(
+      document.scrollingElement?.scrollHeight,
+      root?.scrollHeight,
+      root?.offsetHeight,
+      root?.clientHeight,
+      body?.scrollHeight,
+      body?.offsetHeight,
+      body?.clientHeight
+    );
+    const getViewportHeight = () => largest(
+      window.visualViewport?.height,
+      window.innerHeight,
+      root?.clientHeight
+    );
     const update = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
-      const pct = Math.min(100, Math.max(0, (scrollTop / max) * 100));
-      document.documentElement.style.setProperty('--scroll-progress', pct.toFixed(2));
+      ticking = false;
+      const scrollTop = getScrollTop();
+      const max = Math.max(0, getScrollHeight() - getViewportHeight());
+      const remaining = max - scrollTop;
+      let pct = max > 0 ? (scrollTop / max) * 100 : 0;
+      if (max <= 0 || scrollTop <= 1) pct = 0;
+      else if (remaining <= 2) pct = 100;
+      const clamped = Math.min(100, Math.max(0, pct));
+      root.style.setProperty('--scroll-progress', clamped.toFixed(2));
+      root.style.setProperty('--scroll-progress-ratio', (clamped / 100).toFixed(4));
     };
-    update();
-    window.addEventListener('scroll', update, { passive:true });
-    window.addEventListener('resize', update);
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+    requestUpdate();
+    window.addEventListener('scroll', requestUpdate, { passive:true });
+    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('orientationchange', requestUpdate);
+    window.addEventListener('pageshow', requestUpdate);
+    document.addEventListener('navheightchange', requestUpdate);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', requestUpdate);
+      window.visualViewport.addEventListener('scroll', requestUpdate, { passive:true });
+    }
   }
 
   function initHeroParallax(){

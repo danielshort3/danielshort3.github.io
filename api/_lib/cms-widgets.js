@@ -94,7 +94,7 @@ function renderImageGallery(section) {
   const props = section.props || {};
   const images = Array.isArray(props.images) && props.images.length
     ? props.images
-    : [{ src: 'img/hero/head.jpg', alt: 'Gallery image', caption: 'Gallery image' }];
+    : [{ src: 'img/hero/head.png', alt: 'Gallery image', caption: 'Gallery image' }];
   const cards = images.map((image) => [
     '      <figure class="project-card">',
     `        <img src="${escapeHtml(image.src || '')}" alt="${escapeHtml(image.alt || '')}" loading="lazy" decoding="async">`,
@@ -288,7 +288,7 @@ function renderMediaShowcase(section) {
     `    <h2 class="section-title">${escapeHtml(props.title || 'Media showcase')}</h2>`,
     props.lead ? `    <p class="section-lead">${escapeHtml(props.lead)}</p>` : '',
     '    <figure class="project-card">',
-    `      <img src="${escapeHtml(props.src || 'img/hero/head.jpg')}" alt="${escapeHtml(props.alt || '')}" loading="lazy" decoding="async">`,
+    `      <img src="${escapeHtml(props.src || 'img/hero/head.png')}" alt="${escapeHtml(props.alt || '')}" loading="lazy" decoding="async">`,
     props.caption ? `      <figcaption class="project-text"><span>${escapeHtml(props.caption)}</span></figcaption>` : '',
     '    </figure>',
     '  </div>',
@@ -358,7 +358,7 @@ const WIDGETS = [
     label: 'Image Gallery',
     category: 'Media',
     description: 'Small image gallery section.',
-    defaultProps: { title: 'Image gallery', images: [{ src: 'img/hero/head.jpg', alt: 'Gallery image', caption: 'Gallery image' }] },
+    defaultProps: { title: 'Image gallery', images: [{ src: 'img/hero/head.png', alt: 'Gallery image', caption: 'Gallery image' }] },
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'images', label: 'Images', type: 'json' }
@@ -473,7 +473,7 @@ const WIDGETS = [
     label: 'Media Showcase',
     category: 'Media',
     description: 'Single visual proof image with caption.',
-    defaultProps: { kicker: 'Preview', title: 'Media showcase', lead: '', src: 'img/hero/head.jpg', alt: 'Showcase image', caption: 'Add a caption.' },
+    defaultProps: { kicker: 'Preview', title: 'Media showcase', lead: '', src: 'img/hero/head.png', alt: 'Showcase image', caption: 'Add a caption.' },
     fields: [
       { name: 'kicker', label: 'Kicker', type: 'text' },
       { name: 'title', label: 'Title', type: 'text' },

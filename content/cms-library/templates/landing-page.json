@@ -58,7 +58,7 @@
         "enabled": true,
         "variant": "default",
         "props": {
-          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><h2 class=\"section-title\">Featured visuals</h2><div class=\"project-examples-grid\" role=\"list\"><figure class=\"project-card\"><img src=\"img/hero/head.jpg\" alt=\"Gallery image\" loading=\"lazy\" decoding=\"async\"><figcaption class=\"project-text\"><span class=\"project-title\">Gallery image</span></figcaption></figure></div></div></section>"
+          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><h2 class=\"section-title\">Featured visuals</h2><div class=\"project-examples-grid\" role=\"list\"><figure class=\"project-card\"><img src=\"img/hero/head.png\" alt=\"Gallery image\" loading=\"lazy\" decoding=\"async\"><figcaption class=\"project-text\"><span class=\"project-title\">Gallery image</span></figcaption></figure></div></div></section>"
         }
       },
       {

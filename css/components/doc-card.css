@@ -1,43 +1,5 @@
 /* Contributions doc cards and carousel */
 @layer components {
-  /* row separator */
-  .contrib-divider{
-    width:100%;
-    padding:40px 0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    position:relative;
-    overflow:hidden;
-  }
-  .contrib-divider::before{
-    content:"";
-    display:block;
-    width:min(920px, calc(100% - 72px));
-    height:2px;
-    border-radius:999px;
-    background:linear-gradient(90deg,
-      transparent 0%,
-      color-mix(in srgb,var(--primary) 15%, transparent) 18%,
-      color-mix(in srgb,var(--primary) 85%, #fff 15%) 50%,
-      color-mix(in srgb,var(--primary) 15%, transparent) 82%,
-      transparent 100%);
-    box-shadow:0 0 32px color-mix(in srgb,var(--primary) 30%, transparent);
-  }
-  .contrib-divider::after{
-    content:"";
-    position:absolute;
-    width:18px;
-    height:18px;
-    border-radius:999px;
-    border:2px solid color-mix(in srgb,var(--primary) 65%, #fff 35%);
-    background:var(--surface);
-    box-shadow:0 0 24px color-mix(in srgb,var(--primary) 45%, transparent);
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%);
-  }
-
   .contributions-page #contrib-root,
   .contributions-page .contrib-section{
     scroll-margin-top: var(--nav-height, 72px);
@@ -79,7 +41,7 @@
   .doc-card:hover .doc-role,
   .doc-card:hover h3,
   .doc-card:hover .doc-label{color:var(--bg)}
-  .doc-body h3{margin:0 0 6px;font-family:'Poppins';font-size:1.05rem;font-weight:600}
+  .doc-body h3{margin:0 0 6px;font-family:'Inter';font-size:1.05rem;font-weight:600}
   .doc-role{margin:0;font-size:.85rem;color:var(--text-muted)}
   .doc-links{display:flex;gap:14px;margin-left:14px;}
   .doc-links-compact{gap:10px;margin-left:0;}
@@ -151,7 +113,7 @@
     align-items:center;
     justify-content:flex-start;
     gap:12px;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     font-size:1rem;
     padding:18px 0 8px 32px;
@@ -190,7 +152,7 @@
   .timeline-item:first-child{border-top:1px solid color-mix(in srgb,var(--border-subtle) 60%, transparent);}
   .timeline-item-card{ width:100%; }
   .timeline-item-text{flex:1;min-width:0;}
-  .timeline-item-title{display:block;font-weight:600;color:var(--text-light);font-family:'Poppins';}
+  .timeline-item-title{display:block;font-weight:600;color:var(--text-light);font-family:'Inter';}
   .timeline-item-role{display:block;font-size:.84rem;color:var(--text-muted);margin-top:4px;}
   .timeline-item .doc-links{margin-left:0;}
 
@@ -205,7 +167,7 @@
 
   /* additional layout helpers used by doc cards */
   .doc-layout{ display:flex; flex-direction:column; justify-content:flex-start; height:100%; }
-  .doc-title{ font-family:'Poppins'; font-size:1.1rem; font-weight:600; color:var(--text-light); margin-top:0; }
+  .doc-title{ font-family:'Inter'; font-size:1.1rem; font-weight:600; color:var(--text-light); margin-top:0; }
   .doc-footer{
     display:flex;
     align-items:flex-end;
@@ -234,9 +196,6 @@
   }
   /* mobile alignment for footer/content */
   @media (max-width:768px){
-    .contrib-divider{
-      padding:24px 0;
-    }
     .contrib-section{
       margin-top:18px;
       margin-bottom:18px;

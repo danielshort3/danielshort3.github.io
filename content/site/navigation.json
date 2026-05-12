@@ -1,38 +1,30 @@
 {
   "brand": {
     "homePath": "/analytics",
-    "defaultTagline": "Data Analytics",
-    "logoSrc": "img/ui/logo-64.png",
-    "logoSrcSet": "img/ui/logo-64.png 1x, img/ui/logo-192.png 3x",
-    "logoSizes": "64px",
-    "logoAlt": "DS logo",
-    "logoWidth": 64,
-    "logoHeight": 64
+    "defaultTagline": "Data Analytics, Made Actionable",
+    "logoSrc": "img/brand/00-ds-logo-master-full-color.svg",
+    "logoSrcSet": "img/brand/00-ds-logo-master-full-color.svg 1x",
+    "logoSizes": "56px",
+    "logoAlt": "Daniel Short DS logo",
+    "logoWidth": 381,
+    "logoHeight": 392
   },
   "portfolio": {
     "label": "Portfolio",
     "href": "portfolio",
-    "header": "Top 5 Projects",
+    "header": "Featured Projects",
     "featuredProjectIds": [
       "retailStore",
-      "smartSentence",
+      "targetEmptyPackage",
       "pizzaDashboard",
-      "chatbotLora",
-      "shapeClassifier"
+      "deliveryTip",
+      "ufoDashboard"
     ],
     "links": [
       {
-        "title": "View all projects",
-        "subtitle": "Browse the complete portfolio",
-        "href": "portfolio",
-        "dataAttributes": {
-          "data-portfolio-default-link": "true"
-        }
-      },
-      {
-        "title": "Tools",
-        "subtitle": "Browse all tools",
-        "href": "tools"
+        "title": "View full portfolio",
+        "subtitle": "Browse the complete project library",
+        "href": "portfolio"
       }
     ]
   },
@@ -43,25 +35,25 @@
     "header": "Resume shortcuts",
     "links": [
       {
-        "title": "View Digital Resume",
-        "subtitle": "Open the digital resume page",
-        "href": "resume",
+        "title": "Analytics Resume",
+        "subtitle": "BI, reporting, SQL, Tableau, and automation",
+        "href": "resume-analytics",
         "dataAttributes": {
           "data-resume-home-link": "true"
         }
       },
       {
         "title": "Preview PDF",
-        "subtitle": "Open the PDF resume page",
-        "href": "resume-pdf",
+        "subtitle": "Preview the analytics PDF resume",
+        "href": "resume-analytics-pdf",
         "dataAttributes": {
           "data-resume-preview-link": "true"
         }
       },
       {
         "title": "Download Resume",
-        "subtitle": "Save the latest PDF copy",
-        "href": "documents/Resume.pdf",
+        "subtitle": "Download the analytics PDF copy",
+        "href": "documents/Resume-Analytics.pdf",
         "download": true,
         "dataAttributes": {
           "data-resume-download-link": "true"
@@ -75,8 +67,8 @@
     "header": "Get in touch",
     "links": [
       {
-        "title": "Message through website",
-        "subtitle": "Send a message via website",
+        "title": "Message about a role",
+        "subtitle": "Best for analytics, BI, reporting, and automation work",
         "href": "contact#contact-modal",
         "badge": "Recommended",
         "dataAttributes": {

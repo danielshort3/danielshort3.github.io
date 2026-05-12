@@ -176,7 +176,18 @@ function main() {
     const searchIndexDetail = searchIndexStat ? `dist/search-index.json (${formatBytes(searchIndexStat.size)})` : 'dist/search-index.json';
     logStep('search-index', searchIndexStep.durationMs, searchIndexDetail);
 
-    // 7) Shortlinks destinations manifest (site HTML + vercel.json -> dist/)
+    // 7) Chatbot knowledge database (site HTML -> dist/)
+    const chatbotStep = runNodeScript(path.join('build', 'generate-chatbot-knowledge.js'), { verbose });
+    const chatbotKnowledgePath = path.join(root, 'dist', 'chatbot-knowledge.json');
+    const chatbotKnowledge = readJson(chatbotKnowledgePath);
+    const chatbotChunks = chatbotKnowledge && Array.isArray(chatbotKnowledge.chunks) ? chatbotKnowledge.chunks.length : null;
+    const chatbotStat = safeStat(chatbotKnowledgePath);
+    const chatbotDetailParts = ['dist/chatbot-knowledge.json'];
+    if (chatbotChunks != null) chatbotDetailParts.push(`(${chatbotChunks} chunks)`);
+    if (chatbotStat) chatbotDetailParts.push(`${formatBytes(chatbotStat.size)}`);
+    logStep('chatbot-knowledge', chatbotStep.durationMs, chatbotDetailParts.join(' '));
+
+    // 8) Shortlinks destinations manifest (site HTML + vercel.json -> dist/)
     const shortlinksStep = runNodeScript(path.join('build', 'generate-shortlinks-destinations.js'), { verbose });
     const destinationsPath = path.join(root, 'dist', 'shortlinks-destinations.json');
     const destinations = readJson(destinationsPath);
@@ -187,31 +198,42 @@ function main() {
     if (destinationsStat) destinationsDetailParts.push(`${formatBytes(destinationsStat.size)}`);
     logStep('shortlinks', shortlinksStep.durationMs, destinationsDetailParts.join(' '));
 
-    // 8) Shared header/nav (build-time injected)
+    // 9) Shared header/nav (build-time injected)
     const headerStep = runNodeScript(path.join('build', 'inject-header.js'), { verbose });
     logStep('header', headerStep.durationMs);
 
-    // 9) Shared footer (build-time injected)
+    // 10) Shared footer (build-time injected)
     const footerStep = runNodeScript(path.join('build', 'inject-footer.js'), { verbose });
     logStep('footer', footerStep.durationMs);
 
-    // 10) Shared head metadata (build-time injected)
+    // 11) Shared head metadata (build-time injected)
     const metaStep = runNodeScript(path.join('build', 'inject-head-metadata.js'), { verbose });
     logStep('head-metadata', metaStep.durationMs);
 
-    // 11) Shared script bundle references (build-time injected)
+    // 12) Shared script bundle references (build-time injected)
     const scriptsStep = runNodeScript(path.join('build', 'inject-script-bundles.js'), { verbose });
     logStep('script-bundles', scriptsStep.durationMs);
 
-    // 12) Internal same-site links should stay in the same tab
+    // 13) Internal same-site links should stay in the same tab
     const linksStep = runNodeScript(path.join('build', 'normalize-internal-links.js'), { verbose });
     logStep('internal-links', linksStep.durationMs);
 
-    // 13) Keep root HTML copies in sync with /pages
+    // 14) Keep root HTML copies in sync with /pages
     const syncStep = runNodeScript(path.join('build', 'sync-root-pages.js'), { verbose });
     logStep('sync-root-pages', syncStep.durationMs);
 
-    // 14) Public output (deployable mirror)
+    // 15) AI retrieval digests (final HTML -> dist/)
+    const aiDigestStep = runNodeScript(path.join('build', 'generate-ai-digests.js'), { verbose });
+    const aiDigestManifestPath = path.join(root, 'dist', 'ai-digest-manifest.json');
+    const aiDigestManifest = readJson(aiDigestManifestPath);
+    const aiDigestCount = aiDigestManifest && Array.isArray(aiDigestManifest.pages) ? aiDigestManifest.pages.length : null;
+    const aiDigestStat = safeStat(aiDigestManifestPath);
+    const aiDigestDetailParts = ['dist/ai-digest-manifest.json'];
+    if (aiDigestCount != null) aiDigestDetailParts.push(`(${aiDigestCount} pages)`);
+    if (aiDigestStat) aiDigestDetailParts.push(`${formatBytes(aiDigestStat.size)}`);
+    logStep('ai-digests', aiDigestStep.durationMs, aiDigestDetailParts.join(' '));
+
+    // 16) Public output (deployable mirror)
     const publicStep = runNodeScript(path.join('build', 'copy-to-public.js'), { verbose });
     const publicDir = path.join(root, 'public');
     const publicFiles = countFilesRecursive(publicDir);
