@@ -33,7 +33,6 @@ Disallow: /dist/ai-pages/
 
 User-agent: *
 Disallow: /pages/
-Disallow: /api/ai-page/
 Disallow: /ai/
 Disallow: /dist/ai-pages/
 Allow: /

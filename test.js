@@ -456,34 +456,39 @@ try {
     const devServer = readFile('build/dev.js');
     const generator = readFile('build/generate-ai-digests.js');
     const userAgents = readFile('build/lib/ai-bot-user-agents.js');
-    const api = readFile('api/ai-page/[...path].js');
     const robots = readFile('robots.txt');
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
+    const headers = Array.isArray(vercelConfig.headers) ? vercelConfig.headers : [];
 
     assert(buildRunner.includes('generate-ai-digests.js'), 'build runner should generate AI digests');
     assert(copyPublic.includes("'ai-digest-manifest.json'") && copyPublic.includes("'dist', 'ai-pages'"),
       'public copy should include AI digest artifacts');
-    assert(devServer.includes('aiPageApiPath') && devServer.includes('dispatchAiPageApi') && devServer.includes('hasConditionsMatch'),
-      'local dev server should route AI digest API and header-based rewrites');
+    assert(devServer.includes('hasConditionsMatch') && !devServer.includes('aiPageApiPath') && !devServer.includes('dispatchAiPageApi'),
+      'local dev server should test header-based static digest rewrites without an AI digest API');
     assert(generator.includes('data-ai-digest') && generator.includes('ai-digest-manifest.json') && generator.includes('aiDigest'),
       'AI digest generator should emit marked deterministic digests and support overrides');
     assert(userAgents.includes('GPTBot') && userAgents.includes('ChatGPT-User') && userAgents.includes('ClaudeBot') && userAgents.includes('PerplexityBot'),
       'AI user-agent matcher should include major AI retrieval bots');
-    assert(api.includes('X-AI-Digest') && api.includes('Vary') && api.includes('User-Agent') && api.includes('debug'),
-      'AI digest API should mark responses, vary by user agent, and support debug noindex');
+    assert(!fs.existsSync('api/ai-page/[...path].js') && !fs.existsSync('api/ai-page'),
+      'AI digest delivery should not add a Vercel serverless function');
     assert(robots.includes('User-agent: GPTBot') && robots.includes('User-agent: ClaudeBot') && robots.includes('User-agent: PerplexityBot'),
       'robots.txt should explicitly allow major AI bots');
     assert(robots.includes('Disallow: /dist/ai-pages/') && robots.includes('Disallow: /ai/'),
       'robots.txt should hide duplicate AI digest implementation paths');
+    assert(headers.some((rule) => rule.source === '/ai/(.*)' && JSON.stringify(rule.headers).includes('X-Robots-Tag')),
+      'debug AI digest paths should be noindex');
+    assert(headers.some((rule) => rule.source === '/dist/ai-pages/(.*)' && JSON.stringify(rule.headers).includes('X-Robots-Tag')),
+      'static AI digest implementation paths should be noindex');
+    assert(!JSON.stringify(rewrites).includes('/api/ai-page'), 'AI digest rewrites should not target serverless functions');
 
-    assert(rewrites.some((rule) => rule.source === '/ai/:path*' && rule.destination === '/api/ai-page/:path*?debug=1'),
+    assert(rewrites.some((rule) => rule.source === '/ai/:path*' && rule.destination === '/dist/ai-pages/:path*'),
       'vercel rewrites should expose /ai debug digests');
-    assert(rewrites.some((rule) => rule.source === '/analytics' && /user-agent/i.test(JSON.stringify(rule)) && rule.destination === '/api/ai-page/analytics?ai=1'),
+    assert(rewrites.some((rule) => rule.source === '/analytics' && /user-agent/i.test(JSON.stringify(rule)) && rule.destination === '/dist/ai-pages/analytics'),
       'vercel rewrites should serve same-URL analytics digest to AI agents');
-    assert(rewrites.some((rule) => rule.source === '/portfolio/:project' && rule.destination === '/api/ai-page/portfolio/:project?ai=1'),
+    assert(rewrites.some((rule) => rule.source === '/portfolio/:project' && rule.destination === '/dist/ai-pages/portfolio/:project'),
       'vercel rewrites should serve portfolio project digests to AI agents');
-    assert(rewrites.some((rule) => rule.source === '/tools/:tool' && rule.destination === '/api/ai-page/tools/:tool?ai=1'),
+    assert(rewrites.some((rule) => rule.source === '/tools/:tool' && rule.destination === '/dist/ai-pages/tools/:tool'),
       'vercel rewrites should serve public tool digests to AI agents');
 
     assert(fs.existsSync('dist/ai-digest-manifest.json'), 'AI digest manifest missing');
@@ -1666,6 +1671,10 @@ try {
     assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
     assert(vercel.includes('Strict-Transport-Security'), 'vercel.json missing HSTS');
     assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
+    const vercelIgnore = fs.readFileSync('.vercelignore', 'utf8');
+    ['/api/cms/', '/api/chatbot/logs.js', '/api/short-domain.js', '/api/short-links/test/'].forEach((entry) => {
+      assert(vercelIgnore.includes(entry), `.vercelignore should exclude ${entry} from Hobby deployments`);
+    });
     let vercelObj;
     try { vercelObj = JSON.parse(vercel); } catch {}
     const rewrites = (vercelObj && vercelObj.rewrites) || [];
