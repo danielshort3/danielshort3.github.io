@@ -17,7 +17,6 @@ const root = path.resolve(__dirname, '..');
 const publicDir = path.join(root, 'public');
 const adminDir = path.join(root, 'admin');
 const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
-const aiPageApiPath = path.join(root, 'api', 'ai-page', '[...path].js');
 const chatbotApiPath = path.join(root, 'api', 'chatbot.js');
 const chatbotLogsApiPath = path.join(root, 'api', 'chatbot', 'logs.js');
 const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
@@ -533,23 +532,6 @@ function loadCmsApi() {
   return require(cmsApiPath);
 }
 
-function clearAiPageApiCache() {
-  const prefixes = [
-    aiPageApiPath,
-    path.join(root, 'api', 'ai-page')
-  ];
-  Object.keys(require.cache).forEach((modulePath) => {
-    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
-      delete require.cache[modulePath];
-    }
-  });
-}
-
-function loadAiPageApi() {
-  clearAiPageApiCache();
-  return require(aiPageApiPath);
-}
-
 function clearChatbotApiCache() {
   const prefixes = [
     chatbotApiPath,
@@ -590,21 +572,6 @@ function loadSentenceDemoApi() {
   return require(sentenceDemoApiPath);
 }
 
-function dispatchAiPageApi(req, res, rewrittenPath) {
-  const originalUrl = req.url;
-  req.query = Object.fromEntries(new URL(rewrittenPath || originalUrl, 'http://localhost').searchParams.entries());
-  try {
-    req.url = rewrittenPath || originalUrl;
-    loadAiPageApi()(req, res);
-  } catch (err) {
-    res.statusCode = 500;
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end(err && err.message ? err.message : 'Local AI digest API failed to load');
-  } finally {
-    req.url = originalUrl;
-  }
-}
-
 function createLocalServer() {
   const vercelConfig = readVercelConfig();
   const redirects = compileRoutes(vercelConfig.redirects);
@@ -613,11 +580,6 @@ function createLocalServer() {
   return http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const pathname = url.pathname.replace(/\/+$/, '') || '/';
-
-    if (pathname === '/api/ai-page' || pathname.startsWith('/api/ai-page/')) {
-      dispatchAiPageApi(req, res, req.url);
-      return;
-    }
 
     if (pathname === '/api/chatbot' || pathname === '/api/chatbot/logs') {
       req.query = Object.fromEntries(url.searchParams.entries());
@@ -697,10 +659,6 @@ function createLocalServer() {
 
     const rewrittenUrl = new URL(rewrittenPath, 'http://localhost');
     const rewrittenPathname = rewrittenUrl.pathname.replace(/\/+$/, '') || '/';
-    if (rewrittenPathname === '/api/ai-page' || rewrittenPathname.startsWith('/api/ai-page/')) {
-      dispatchAiPageApi(req, res, `${rewrittenUrl.pathname}${rewrittenUrl.search}`);
-      return;
-    }
 
     const filePath = resolveStaticFile(publicDir, rewrittenPathname);
     if (filePath) {

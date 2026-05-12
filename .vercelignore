@@ -22,6 +22,9 @@ node_modules/
 
 # Local-only artifacts / large folders
 /api/cms/
+/api/chatbot/logs.js
+/api/short-domain.js
+/api/short-links/test/
 /go/
 /.short-links-generated
 /Slot-Machine-v4/
