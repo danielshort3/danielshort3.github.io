@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
@@ -18,6 +19,8 @@ const SITE_ORIGIN = 'https://www.danielshort.me';
 const MAX_CHUNK_CHARS = 900;
 const MIN_CHUNK_CHARS = 260;
 const MAX_PAGE_CHUNKS = 8;
+const DEFAULT_EMBED_MODEL_ID = 'amazon.titan-embed-text-v2:0';
+const DEFAULT_EMBED_DIMENSIONS = 512;
 
 const excludedPathPatterns = [
   /^\/(?:chatbot-demo|.*-demo)(?:\/|$)/i,
@@ -31,6 +34,61 @@ const excludedPathPatterns = [
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
+}
+
+function boolEnv(key, fallback = false) {
+  const raw = String(process.env[key] || '').trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(raw)) return true;
+  if (['0', 'false', 'no', 'off'].includes(raw)) return false;
+  return fallback;
+}
+
+function numberEnv(key, fallback) {
+  const value = Number(process.env[key]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function pickEnv(keys) {
+  for (const key of keys) {
+    const raw = process.env[key];
+    if (typeof raw === 'string' && raw.trim()) return raw.trim();
+  }
+  return '';
+}
+
+function getAwsCredentialsFromEnv() {
+  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
+  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
+  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
+  if (!accessKeyId || !secretAccessKey) return null;
+  return {
+    accessKeyId,
+    secretAccessKey,
+    ...(sessionToken ? { sessionToken } : {})
+  };
+}
+
+function hasBedrockBuildConfig() {
+  return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
+    'AWS_PROFILE',
+    'AWS_SHARED_CREDENTIALS_FILE',
+    'AWS_WEB_IDENTITY_TOKEN_FILE',
+    'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI',
+    'AWS_CONTAINER_CREDENTIALS_FULL_URI'
+  ]));
+}
+
+function getRegion() {
+  return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
+}
+
+function getEmbeddingConfig() {
+  return {
+    enabled: boolEnv('CHATBOT_EMBEDDINGS_ENABLED', true),
+    required: boolEnv('CHATBOT_EMBEDDINGS_REQUIRED', false),
+    modelId: pickEnv(['CHATBOT_BEDROCK_EMBED_MODEL_ID']) || DEFAULT_EMBED_MODEL_ID,
+    dimensions: numberEnv('CHATBOT_BEDROCK_EMBED_DIMENSIONS', DEFAULT_EMBED_DIMENSIONS)
+  };
 }
 
 function decodeHtml(value) {
@@ -182,6 +240,80 @@ function extractKeywords(html) {
   return [...new Set(keywords)].slice(0, 30);
 }
 
+function collectProjectText(value, out = [], key = '') {
+  if (value === null || value === undefined) return out;
+  if (typeof value === 'string') {
+    const text = value.trim();
+    if (!text || /^https?:\/\//i.test(text) || /\.(?:png|jpe?g|webp|webm|mp4|svg|gif)$/i.test(text)) return out;
+    out.push(text);
+    return out;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectProjectText(item, out, key));
+    return out;
+  }
+  if (typeof value === 'object') {
+    Object.entries(value).forEach(([childKey, childValue]) => {
+      if (/^(image|imageWidth|imageHeight|videoWebm|videoMp4|icon|url|order)$/i.test(childKey)) return;
+      collectProjectText(childValue, out, childKey);
+    });
+  }
+  return out;
+}
+
+function compactUnique(values, maxItems = 80) {
+  const seen = new Set();
+  return values
+    .map((item) => cleanText(item))
+    .filter(Boolean)
+    .filter((item) => {
+      const key = item.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, maxItems);
+}
+
+function projectKeywords(project) {
+  return compactUnique([
+    project.id,
+    project.title,
+    project.subtitle,
+    ...(Array.isArray(project.tools) ? project.tools : []),
+    ...(Array.isArray(project.concepts) ? project.concepts : []),
+    ...(Array.isArray(project.audiences) ? project.audiences : [])
+  ], 40);
+}
+
+function loadProjectMetadata() {
+  const dirPath = path.join(root, 'content', 'projects');
+  if (!fs.existsSync(dirPath)) return new Map();
+
+  const metadata = new Map();
+  fs.readdirSync(dirPath)
+    .filter((fileName) => fileName.endsWith('.json'))
+    .sort()
+    .forEach((fileName) => {
+      let project;
+      try {
+        project = JSON.parse(fs.readFileSync(path.join(dirPath, fileName), 'utf8'));
+      } catch {
+        return;
+      }
+      const id = String(project.id || fileName.replace(/\.json$/, '')).trim();
+      if (!id) return;
+      const url = `/portfolio/${encodeURIComponent(id)}`;
+      const text = compactUnique(collectProjectText(project), 140).join(' ');
+      metadata.set(url, {
+        description: cleanText(project.subtitle || project.notes || project.problem || ''),
+        keywords: projectKeywords(project),
+        text
+      });
+    });
+  return metadata;
+}
+
 function cleanText(value) {
   return decodeHtml(String(value || '')
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
@@ -239,6 +371,120 @@ function makeId(input) {
   return crypto.createHash('sha256').update(String(input || '')).digest('hex').slice(0, 16);
 }
 
+function vectorFromValue(value, dimensions) {
+  const vector = Array.isArray(value) ? value : [];
+  if (vector.length !== dimensions) return null;
+  const normalized = vector.map((item) => Number(item));
+  if (normalized.some((item) => !Number.isFinite(item))) return null;
+  return normalized.map((item) => Number(item.toFixed(6)));
+}
+
+function loadExistingEmbeddingCache(modelId, dimensions) {
+  if (!fs.existsSync(outPath)) return new Map();
+  try {
+    const previous = JSON.parse(fs.readFileSync(outPath, 'utf8'));
+    if (!previous || !previous.embeddings) return new Map();
+    if (previous.embeddings.modelId !== modelId || Number(previous.embeddings.dimensions) !== dimensions) return new Map();
+    const cache = new Map();
+    (Array.isArray(previous.chunks) ? previous.chunks : []).forEach((chunk) => {
+      const vector = vectorFromValue(chunk && chunk.embedding, dimensions);
+      if (chunk && chunk.id && vector) cache.set(chunk.id, vector);
+    });
+    return cache;
+  } catch {
+    return new Map();
+  }
+}
+
+function embeddingText(chunk) {
+  return [
+    chunk.title,
+    chunk.url,
+    chunk.category,
+    chunk.audience,
+    ...(Array.isArray(chunk.keywords) ? chunk.keywords : []),
+    chunk.text
+  ].filter(Boolean).join('\n').slice(0, 50_000);
+}
+
+async function embedText(client, modelId, dimensions, text) {
+  const command = new InvokeModelCommand({
+    modelId,
+    contentType: 'application/json',
+    accept: 'application/json',
+    body: JSON.stringify({
+      inputText: text,
+      dimensions,
+      normalize: true
+    })
+  });
+  const response = await client.send(command);
+  const raw = Buffer.from(response.body || []).toString('utf8');
+  const parsed = JSON.parse(raw || '{}');
+  const vector = vectorFromValue(parsed.embedding, dimensions);
+  if (!vector) throw new Error('Bedrock returned an invalid embedding vector');
+  return vector;
+}
+
+async function applyEmbeddings(knowledge) {
+  const config = getEmbeddingConfig();
+  const startedAt = Date.now();
+  knowledge.embeddings = {
+    enabled: config.enabled,
+    status: config.enabled ? 'pending' : 'disabled',
+    modelId: config.modelId,
+    dimensions: config.dimensions,
+    normalize: true,
+    chunkCount: 0,
+    generatedCount: 0,
+    reusedCount: 0,
+    failedCount: 0
+  };
+
+  if (!config.enabled) return knowledge;
+
+  if (!hasBedrockBuildConfig()) {
+    knowledge.embeddings.status = 'skipped';
+    knowledge.embeddings.reason = 'Bedrock credentials are not configured for build-time embeddings.';
+    if (config.required) throw new Error(knowledge.embeddings.reason);
+    return knowledge;
+  }
+
+  const credentials = getAwsCredentialsFromEnv();
+  const client = new BedrockRuntimeClient({
+    region: getRegion(),
+    credentials: credentials || undefined
+  });
+  const cache = loadExistingEmbeddingCache(config.modelId, config.dimensions);
+
+  for (const chunk of knowledge.chunks) {
+    const cached = cache.get(chunk.id);
+    if (cached) {
+      chunk.embedding = cached;
+      knowledge.embeddings.reusedCount += 1;
+      continue;
+    }
+
+    try {
+      chunk.embedding = await embedText(client, config.modelId, config.dimensions, embeddingText(chunk));
+      knowledge.embeddings.generatedCount += 1;
+    } catch (err) {
+      knowledge.embeddings.failedCount += 1;
+      knowledge.embeddings.reason = err && err.message ? err.message : String(err || 'Embedding generation failed');
+      if (config.required) throw err;
+      break;
+    }
+  }
+
+  knowledge.embeddings.chunkCount = knowledge.chunks.filter((chunk) => Array.isArray(chunk.embedding)).length;
+  knowledge.embeddings.status = knowledge.embeddings.failedCount
+    ? (knowledge.embeddings.chunkCount ? 'partial' : 'skipped')
+    : 'ready';
+  knowledge.embeddings.generatedAt = new Date().toISOString();
+  knowledge.embeddings.durationMs = Date.now() - startedAt;
+  return knowledge;
+}
+
 function isExcludedUrl(urlPath, noindexPathnames) {
   const normalized = normalizePathname(urlPath);
   if (!normalized) return true;
@@ -248,6 +494,7 @@ function isExcludedUrl(urlPath, noindexPathnames) {
 
 function buildKnowledge() {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
+  const projectMetadata = loadProjectMetadata();
   const files = [...listRootHtmlFiles(), ...walkHtmlFiles('pages')];
   const pagesByUrl = new Map();
 
@@ -265,8 +512,9 @@ function buildKnowledge() {
     if (isExcludedUrl(url, noindexPathnames)) return;
 
     const title = extractTitle(html) || url;
-    const description = extractDescription(html);
-    const text = extractMainText(html);
+    const metadata = projectMetadata.get(url) || null;
+    const description = metadata && metadata.description ? metadata.description : extractDescription(html);
+    const text = [extractMainText(html), metadata && metadata.text].filter(Boolean).join(' ');
     if (!text || text.length < 160) return;
 
     const entry = {
@@ -276,7 +524,7 @@ function buildKnowledge() {
       sourcePath,
       category: categoryForPath(url),
       audience: audienceForPath(url),
-      keywords: extractKeywords(html),
+      keywords: compactUnique([...extractKeywords(html), ...((metadata && metadata.keywords) || [])], 60),
       text
     };
 
@@ -312,11 +560,17 @@ function buildKnowledge() {
   };
 }
 
-function main() {
+async function main() {
   ensureDir(path.dirname(outPath));
-  const knowledge = buildKnowledge();
+  const knowledge = await applyEmbeddings(buildKnowledge());
   fs.writeFileSync(outPath, JSON.stringify(knowledge, null, 2) + '\n', 'utf8');
-  process.stdout.write(`[chatbot-knowledge] Wrote dist/chatbot-knowledge.json (${knowledge.pages.length} pages, ${knowledge.chunks.length} chunks)\n`);
+  const embeddingStatus = knowledge.embeddings && knowledge.embeddings.enabled
+    ? `, embeddings ${knowledge.embeddings.status} (${knowledge.embeddings.chunkCount || 0}/${knowledge.chunks.length})`
+    : '';
+  process.stdout.write(`[chatbot-knowledge] Wrote dist/chatbot-knowledge.json (${knowledge.pages.length} pages, ${knowledge.chunks.length} chunks${embeddingStatus})\n`);
 }
 
-main();
+main().catch((err) => {
+  console.error('[chatbot-knowledge] Failed:', err && err.stack ? err.stack : err);
+  process.exitCode = 1;
+});

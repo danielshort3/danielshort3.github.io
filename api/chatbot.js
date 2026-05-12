@@ -1,8 +1,14 @@
 'use strict';
 
 const crypto = require('crypto');
-const { BedrockRuntimeClient, ConverseCommand } = require('@aws-sdk/client-bedrock-runtime');
-const { publicSources, retrieveKnowledge } = require('./_lib/chatbot-knowledge');
+const {
+  BedrockRuntimeClient,
+  ConverseCommand,
+  ConverseStreamCommand,
+  InvokeModelCommand
+} = require('@aws-sdk/client-bedrock-runtime');
+const { loadKnowledge, publicSources, retrieveKnowledge } = require('./_lib/chatbot-knowledge');
+const chatbotLogsApi = require('./_lib/chatbot-logs-api');
 const { recordChatbotLog } = require('./_lib/chatbot-logs');
 const {
   checkChatbotRateLimit,
@@ -12,7 +18,9 @@ const {
 } = require('./_lib/chatbot-rate-limit');
 
 const SITE_ORIGIN = 'https://www.danielshort.me';
-const DEFAULT_MODEL_ID = 'amazon.nova-lite-v1:0';
+const DEFAULT_MODEL_ID = 'us.amazon.nova-lite-v1:0';
+const DEFAULT_EMBED_MODEL_ID = 'amazon.titan-embed-text-v2:0';
+const DEFAULT_EMBED_DIMENSIONS = 512;
 const MAX_CONTEXT_CHARS = 7000;
 const DEFAULT_SUGGESTED_LINKS = [
   { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics', reason: 'See analytics projects and case studies.' },
@@ -38,6 +46,11 @@ function boolEnv(key, fallback = false) {
   return fallback;
 }
 
+function numberEnv(key, fallback) {
+  const value = Number(process.env[key]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
 function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
@@ -55,6 +68,7 @@ function getAwsCredentialsFromEnv() {
 }
 
 function hasBedrockConfiguration() {
+  if (!isProductionRuntime()) return true;
   return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
     'AWS_PROFILE',
     'AWS_SHARED_CREDENTIALS_FILE',
@@ -111,12 +125,29 @@ function isEnabled() {
   return boolEnv('CHATBOT_ENABLED', true);
 }
 
+function isLogsRoute(req) {
+  try {
+    const url = new URL(req.url || '', SITE_ORIGIN);
+    const pathname = (url.pathname || '').replace(/\/+$/, '') || '/';
+    return pathname === '/api/chatbot/logs' || url.searchParams.get('__route') === 'logs';
+  } catch {
+    return false;
+  }
+}
+
 function getConfigPayload() {
   const limits = getLimitConfig();
   return {
     ok: true,
     enabled: isEnabled(),
     model: 'Amazon Nova Lite',
+    modelId: pickEnv(['CHATBOT_BEDROCK_MODEL_ID']) || DEFAULT_MODEL_ID,
+    streaming: true,
+    embeddings: {
+      enabled: boolEnv('CHATBOT_EMBEDDINGS_ENABLED', true),
+      modelId: pickEnv(['CHATBOT_BEDROCK_EMBED_MODEL_ID']) || DEFAULT_EMBED_MODEL_ID,
+      dimensions: numberEnv('CHATBOT_BEDROCK_EMBED_DIMENSIONS', DEFAULT_EMBED_DIMENSIONS)
+    },
     turnstileSiteKey: pickEnv(['CHATBOT_TURNSTILE_SITE_KEY']),
     limits: {
       minSecondsBetweenQueries: limits.minSecondsBetweenQueries,
@@ -180,6 +211,32 @@ function normalizePageContext(value) {
   };
 }
 
+function normalizeHistory(value) {
+  return (Array.isArray(value) ? value : [])
+    .map((turn) => ({
+      role: String(turn && turn.role || '').trim() === 'assistant' ? 'assistant' : 'user',
+      text: String(turn && turn.text || '').replace(/\s+/g, ' ').trim().slice(0, 700)
+    }))
+    .filter((turn) => turn.text)
+    .slice(-8);
+}
+
+function normalizeFollowupContext(value) {
+  const input = value && typeof value === 'object' ? value : {};
+  const sourceLabels = Array.isArray(input.source_labels) ? input.source_labels : [];
+  const sourceUrls = Array.isArray(input.source_urls) ? input.source_urls : [];
+  return {
+    source: String(input.source || '').slice(0, 80),
+    prompt: String(input.prompt || '').replace(/\s+/g, ' ').trim().slice(0, 240),
+    previousQuestion: String(input.previous_question || '').replace(/\s+/g, ' ').trim().slice(0, 300),
+    previousAnswer: String(input.previous_answer || '').replace(/\s+/g, ' ').trim().slice(0, 800),
+    previousIntent: String(input.previous_intent || '').slice(0, 80),
+    previousRoute: String(input.previous_route || '').slice(0, 120),
+    sourceLabels: sourceLabels.map((item) => String(item || '').trim()).filter(Boolean).slice(0, 8),
+    sourceUrls: sourceUrls.map((item) => String(item || '').trim()).filter(Boolean).slice(0, 8)
+  };
+}
+
 function makeConversationId(value) {
   const raw = String(value || '').trim();
   if (/^[a-zA-Z0-9_-]{12,80}$/.test(raw)) return raw;
@@ -221,6 +278,7 @@ function lowConfidenceAnswer(message, retrieval) {
     sources: fallbackSources,
     suggestedLinks: suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true }),
     confidence: retrieval.bestScore,
+    retrievalMode: retrieval.retrievalMode || 'lexical',
     skippedModel: true,
     messageEcho: message.slice(0, 120)
   };
@@ -253,6 +311,7 @@ function retrievalOnlyAnswer(message, retrieval) {
     sources,
     suggestedLinks: suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true }),
     confidence: retrieval.bestScore,
+    retrievalMode: retrieval.retrievalMode || 'lexical',
     skippedModel: true,
     messageEcho: message.slice(0, 120)
   };
@@ -327,6 +386,49 @@ function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
   return links.slice(0, 5);
 }
 
+function navigationAnswer(message, retrieval) {
+  const query = String(message || '').toLowerCase();
+  const sources = publicSources(retrieval && retrieval.chunks ? retrieval.chunks : [], 5);
+  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true });
+  const base = {
+    ok: true,
+    sources,
+    suggestedLinks,
+    confidence: retrieval && Number.isFinite(retrieval.bestScore) ? retrieval.bestScore : 0,
+    skippedModel: true,
+    messageEcho: String(message || '').slice(0, 120)
+  };
+
+  if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(query)) {
+    return {
+      ...base,
+      answer: 'Use the Contact page for the fastest path. It includes Daniel Short\'s email, LinkedIn, GitHub, and direct message options.'
+    };
+  }
+
+  if (/\b(resume|cv|work history|qualification|qualified)\b/.test(query)) {
+    let answer = 'Use the Analytics Resume for the broadest current resume view.';
+    if (/\b(tourism|destination|travel|visitor|grand junction)\b/.test(query)) {
+      answer = 'Use the Tourism Resume for destination analytics and visitor-focused work.';
+    } else if (/\b(data science|machine learning|ml|model|python|nlp)\b/.test(query)) {
+      answer = 'Use the Data Science Resume for machine learning, Python, and modeling-focused work.';
+    }
+    return {
+      ...base,
+      answer
+    };
+  }
+
+  if (/\bportfolio\b/.test(query) || /\b(show|see|browse|open|view|find)\b.*\b(project|projects|case stud|work sample)\b/.test(query)) {
+    return {
+      ...base,
+      answer: 'Start with the Portfolio page. From there, filter by analytics, data science, or tourism work depending on what you want to review.'
+    };
+  }
+
+  return null;
+}
+
 function retrievalLogChunks(retrieval) {
   return (retrieval && Array.isArray(retrieval.chunks) ? retrieval.chunks : [])
     .map((chunk) => ({
@@ -334,9 +436,81 @@ function retrievalLogChunks(retrieval) {
       title: chunk.title,
       url: chunk.url,
       category: chunk.category,
-      score: chunk.score
+      score: chunk.score,
+      lexicalScore: chunk.lexicalScore,
+      embeddingScore: chunk.embeddingScore
     }))
     .slice(0, 12);
+}
+
+function sendStreamHeaders(res) {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+}
+
+function writeStreamEvent(res, type, payload = {}) {
+  res.write(`${JSON.stringify({ type, ...payload })}\n`);
+}
+
+function sendStreamDone(res, payload) {
+  sendStreamHeaders(res);
+  writeStreamEvent(res, 'done', { data: payload });
+  res.end();
+}
+
+function vectorFromValue(value, dimensions) {
+  const vector = Array.isArray(value) ? value : [];
+  if (vector.length !== dimensions) return null;
+  const normalized = vector.map((item) => Number(item));
+  if (normalized.some((item) => !Number.isFinite(item))) return null;
+  return normalized;
+}
+
+function embeddingConfigForKnowledge(knowledge) {
+  const metadata = knowledge && knowledge.embeddings ? knowledge.embeddings : {};
+  return {
+    enabled: boolEnv('CHATBOT_EMBEDDINGS_ENABLED', true),
+    required: boolEnv('CHATBOT_EMBEDDINGS_REQUIRED', false),
+    modelId: pickEnv(['CHATBOT_BEDROCK_EMBED_MODEL_ID']) || metadata.modelId || DEFAULT_EMBED_MODEL_ID,
+    dimensions: numberEnv('CHATBOT_BEDROCK_EMBED_DIMENSIONS', Number(metadata.dimensions) || DEFAULT_EMBED_DIMENSIONS),
+    metadata
+  };
+}
+
+async function embedQuery(message, knowledge) {
+  const config = embeddingConfigForKnowledge(knowledge);
+  const metadata = config.metadata || {};
+  if (!config.enabled || !metadata.chunkCount || !['ready', 'partial'].includes(String(metadata.status || ''))) return null;
+  if (metadata.modelId && metadata.modelId !== config.modelId) return null;
+  if (metadata.dimensions && Number(metadata.dimensions) !== config.dimensions) return null;
+
+  try {
+    const command = new InvokeModelCommand({
+      modelId: config.modelId,
+      contentType: 'application/json',
+      accept: 'application/json',
+      body: JSON.stringify({
+        inputText: String(message || '').slice(0, 50_000),
+        dimensions: config.dimensions,
+        normalize: true
+      })
+    });
+    const response = await getBedrockClient().send(command);
+    const parsed = JSON.parse(Buffer.from(response.body || []).toString('utf8') || '{}');
+    const vector = vectorFromValue(parsed.embedding, config.dimensions);
+    if (!vector) throw new Error('Bedrock returned an invalid query embedding');
+    return {
+      vector,
+      modelId: config.modelId,
+      dimensions: config.dimensions
+    };
+  } catch (err) {
+    if (config.required) throw err;
+    return null;
+  }
 }
 
 async function safeRecordChatbotLog(req, input) {
@@ -371,6 +545,38 @@ function buildContext(chunks) {
   return lines.join('\n\n');
 }
 
+function formatHistory(history) {
+  if (!history.length) return 'No prior turns.';
+  return history.map((turn) => `${turn.role === 'assistant' ? 'Assistant' : 'Visitor'}: ${turn.text}`).join('\n');
+}
+
+function formatFollowupContext(followupContext) {
+  if (!followupContext || !followupContext.source) return 'No follow-up context.';
+  return [
+    `Source: ${followupContext.source}`,
+    followupContext.previousQuestion ? `Previous question: ${followupContext.previousQuestion}` : '',
+    followupContext.previousAnswer ? `Previous answer: ${followupContext.previousAnswer}` : '',
+    followupContext.sourceLabels.length ? `Previous sources: ${followupContext.sourceLabels.join(', ')}` : ''
+  ].filter(Boolean).join('\n');
+}
+
+function buildUserText(message, retrieval, pageContext, history = [], followupContext = null) {
+  return [
+    `Current page: ${pageContext.title || 'Unknown'} ${pageContext.url || ''}`.trim(),
+    '',
+    'Recent conversation:',
+    formatHistory(history),
+    '',
+    'Follow-up context:',
+    formatFollowupContext(followupContext),
+    '',
+    'Website sources:',
+    buildContext(retrieval.chunks),
+    '',
+    `Visitor question: ${message}`
+  ].join('\n');
+}
+
 function extractAnswer(response) {
   const parts = response && response.output && response.output.message && Array.isArray(response.output.message.content)
     ? response.output.message.content
@@ -378,7 +584,19 @@ function extractAnswer(response) {
   return parts.map((part) => part && part.text ? String(part.text) : '').join('').trim();
 }
 
-async function callBedrock(message, retrieval, pageContext) {
+function bedrockSystemPrompt() {
+  return [
+    'You are a concise website chatbot and navigation assistant for Daniel Short.',
+    'Answer only using the provided website sources and recent conversation.',
+    'If the sources do not support an answer, say you do not have enough information.',
+    'Do not invent credentials, experience, prices, contact details, or claims.',
+    'When helpful, guide the visitor to the most relevant page, resume, project, portfolio view, or contact path from the sources.',
+    'Use a helpful, direct tone. Keep answers short unless the visitor asks for detail.',
+    'Mention source numbers like [1] when a claim depends on a source.'
+  ].join(' ');
+}
+
+async function callBedrock(message, retrieval, pageContext, history = [], followupContext = null) {
   if (!hasBedrockConfiguration()) {
     const err = new Error('Bedrock credentials are not configured.');
     err.code = 'CHATBOT_BEDROCK_CREDENTIALS_MISSING';
@@ -387,29 +605,11 @@ async function callBedrock(message, retrieval, pageContext) {
 
   const modelId = pickEnv(['CHATBOT_BEDROCK_MODEL_ID']) || DEFAULT_MODEL_ID;
   const maxTokens = Math.max(160, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 420));
-  const context = buildContext(retrieval.chunks);
-  const system = [
-    'You are a concise website chatbot and navigation assistant for Daniel Short.',
-    'Answer only using the provided website sources.',
-    'If the sources do not support an answer, say you do not have enough information.',
-    'Do not invent credentials, experience, prices, contact details, or claims.',
-    'When helpful, guide the visitor to the most relevant page, resume, project, portfolio view, or contact path from the sources.',
-    'Use a helpful, direct tone. Keep answers short unless the visitor asks for detail.',
-    'Mention source numbers like [1] when a claim depends on a source.'
-  ].join(' ');
-
-  const userText = [
-    `Current page: ${pageContext.title || 'Unknown'} ${pageContext.url || ''}`.trim(),
-    '',
-    'Website sources:',
-    context,
-    '',
-    `Visitor question: ${message}`
-  ].join('\n');
+  const userText = buildUserText(message, retrieval, pageContext, history, followupContext);
 
   const command = new ConverseCommand({
     modelId,
-    system: [{ text: system }],
+    system: [{ text: bedrockSystemPrompt() }],
     messages: [
       {
         role: 'user',
@@ -431,8 +631,215 @@ async function callBedrock(message, retrieval, pageContext) {
   };
 }
 
+async function callBedrockStream(message, retrieval, pageContext, history, followupContext, onToken) {
+  if (!hasBedrockConfiguration()) {
+    const err = new Error('Bedrock credentials are not configured.');
+    err.code = 'CHATBOT_BEDROCK_CREDENTIALS_MISSING';
+    throw err;
+  }
+
+  const modelId = pickEnv(['CHATBOT_BEDROCK_MODEL_ID']) || DEFAULT_MODEL_ID;
+  const maxTokens = Math.max(160, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 420));
+  const command = new ConverseStreamCommand({
+    modelId,
+    system: [{ text: bedrockSystemPrompt() }],
+    messages: [
+      {
+        role: 'user',
+        content: [{ text: buildUserText(message, retrieval, pageContext, history, followupContext) }]
+      }
+    ],
+    inferenceConfig: {
+      maxTokens,
+      temperature: 0.2,
+      topP: 0.9
+    }
+  });
+
+  const response = await getBedrockClient().send(command);
+  let answer = '';
+  let usage = null;
+  for await (const event of response.stream || []) {
+    const text = event && event.contentBlockDelta && event.contentBlockDelta.delta
+      ? String(event.contentBlockDelta.delta.text || '')
+      : '';
+    if (text) {
+      answer += text;
+      onToken(text);
+    }
+    if (event && event.metadata && event.metadata.usage) usage = event.metadata.usage;
+  }
+
+  return { answer: answer.trim(), usage, modelId };
+}
+
+function normalizePrompt(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function makeFollowups(message, answer, retrieval, pageContext, history = [], suggestedLinks = []) {
+  const combined = [message, answer, pageContext && pageContext.title, ...(retrieval.queryTerms || [])].join(' ').toLowerCase();
+  const prior = new Set(history.filter((turn) => turn.role === 'user').map((turn) => normalizePrompt(turn.text)));
+  const seen = new Set();
+  const items = [];
+  const add = (text) => {
+    const normalized = normalizePrompt(text);
+    if (!normalized || seen.has(normalized) || prior.has(normalized)) return;
+    seen.add(normalized);
+    items.push(text);
+  };
+
+  if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(combined)) {
+    add('Which projects should I review first?');
+    add('Which resume is most relevant?');
+  }
+  if (/\bresume|cv|experience|qualified|work history\b/.test(combined)) {
+    add('Show portfolio proof for this resume');
+    add("Summarize Daniel's strongest fit");
+    add('How do I contact Daniel?');
+  }
+  if (/\bproject|portfolio|case study|dashboard|work sample\b/.test(combined)) {
+    add('Show similar projects');
+    add('Summarize the strongest project');
+    add('Which resume matches this work?');
+  }
+  if (/\btourism|destination|visitor|grand junction|lodging|travel\b/.test(combined)) {
+    add('Show tourism analytics examples');
+    add('Summarize destination analytics experience');
+  }
+  if (/\bdata science|machine learning|ml|python|nlp|rag|lora|model\b/.test(combined)) {
+    add('Show data science projects');
+    add('Explain the RAG chatbot project');
+  }
+  if (/\banalytics|bi|tableau|sql|reporting|dashboard|forecast\b/.test(combined)) {
+    add('Show analytics portfolio examples');
+    add('Summarize dashboard experience');
+  }
+
+  suggestedLinks.slice(0, 2).forEach((link) => {
+    if (link && link.title) add(`Open ${link.title}`);
+  });
+  add('What should I look at next?');
+  add('How do I contact Daniel?');
+  add('Which resume fits this role?');
+  return items.slice(0, 3);
+}
+
+function withFollowups(payload, message, answer, retrieval, pageContext, history) {
+  return {
+    ...payload,
+    retrievalMode: payload.retrievalMode || retrieval.retrievalMode || 'lexical',
+    embeddingModel: retrieval.embeddingModel || undefined,
+    followups: makeFollowups(message, answer || payload.answer, retrieval, pageContext, history, payload.suggestedLinks || [])
+  };
+}
+
+async function streamModelAnswer(req, res, input) {
+  const {
+    message,
+    retrieval,
+    pageContext,
+    history,
+    followupContext,
+    rateLimit,
+    startedAt,
+    conversationId
+  } = input;
+  const sources = publicSources(retrieval.chunks, 5);
+  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval);
+  sendStreamHeaders(res);
+  writeStreamEvent(res, 'meta', {
+    sources,
+    suggestedLinks,
+    retrievalMode: retrieval.retrievalMode || 'lexical',
+    embeddingModel: retrieval.embeddingModel || ''
+  });
+
+  let streamedAnswer = '';
+  try {
+    const modelResponse = await callBedrockStream(message, retrieval, pageContext, history, followupContext, (token) => {
+      streamedAnswer += token;
+      writeStreamEvent(res, 'token', { text: token });
+    });
+    const answer = modelResponse.answer || streamedAnswer.trim() || 'I found relevant site content, but I could not generate a useful answer.';
+    const payload = withFollowups({
+      ok: true,
+      answer,
+      sources,
+      suggestedLinks,
+      conversationId,
+      usage: modelResponse.usage,
+      model: modelResponse.modelId,
+      limits: rateLimit.counts || null
+    }, message, answer, retrieval, pageContext, history);
+    const logId = await safeRecordChatbotLog(req, {
+      req,
+      status: 'answered',
+      actorHash: rateLimit.actorHash,
+      conversationId,
+      question: message,
+      answer,
+      pageContext,
+      sources,
+      suggestedLinks,
+      confidence: retrieval.bestScore,
+      skippedModel: false,
+      model: modelResponse.modelId,
+      usage: modelResponse.usage,
+      rateLimit: rateLimit.counts || null,
+      retrievalConfident: retrieval.confident,
+      retrievalBestScore: retrieval.bestScore,
+      queryTerms: retrieval.queryTerms,
+      retrievalChunks: retrievalLogChunks(retrieval),
+      latencyMs: Date.now() - startedAt
+    });
+    writeStreamEvent(res, 'done', { data: { ...payload, logId } });
+  } catch (err) {
+    const fallback = withFollowups(retrievalOnlyAnswer(message, retrieval), message, '', retrieval, pageContext, history);
+    const logId = await safeRecordChatbotLog(req, {
+      req,
+      status: 'model_fallback',
+      actorHash: rateLimit.actorHash,
+      conversationId,
+      question: message,
+      answer: fallback.answer,
+      error: err && err.message ? err.message : String(err || ''),
+      pageContext,
+      sources: fallback.sources,
+      suggestedLinks: fallback.suggestedLinks,
+      confidence: retrieval.bestScore,
+      skippedModel: true,
+      rateLimit: rateLimit.counts || null,
+      retrievalConfident: retrieval.confident,
+      retrievalBestScore: retrieval.bestScore,
+      queryTerms: retrieval.queryTerms,
+      retrievalChunks: retrievalLogChunks(retrieval),
+      latencyMs: Date.now() - startedAt
+    });
+    if (streamedAnswer.trim()) {
+      writeStreamEvent(res, 'error', { error: 'The streamed model response stopped before the final answer.' });
+    }
+    writeStreamEvent(res, 'done', {
+      data: {
+        ...fallback,
+        logId,
+        conversationId,
+        modelUnavailable: true,
+        limits: rateLimit.counts || null
+      }
+    });
+  } finally {
+    res.end();
+  }
+}
+
 module.exports = async (req, res) => {
   const startedAt = Date.now();
+
+  if (isLogsRoute(req)) {
+    await chatbotLogsApi(req, res);
+    return;
+  }
 
   if (req.method === 'GET') {
     sendJson(res, 200, getConfigPayload());
@@ -477,6 +884,9 @@ module.exports = async (req, res) => {
   }
 
   const pageContext = normalizePageContext(body.pageContext);
+  const stream = body.stream === true;
+  const history = normalizeHistory(body.history);
+  const followupContext = normalizeFollowupContext(body.followupContext || body.followup_context);
   const conversationId = makeConversationId(body.conversationId);
   const challengePassed = await verifyTurnstile(body.challengeToken, req);
 
@@ -512,14 +922,60 @@ module.exports = async (req, res) => {
 
   let retrieval;
   try {
-    retrieval = retrieveKnowledge(message, pageContext);
+    const knowledge = loadKnowledge();
+    const queryEmbedding = await embedQuery(message, knowledge);
+    retrieval = retrieveKnowledge(message, pageContext, {
+      queryEmbedding: queryEmbedding && queryEmbedding.vector,
+      embeddingModel: queryEmbedding && queryEmbedding.modelId,
+      embeddingDimensions: queryEmbedding && queryEmbedding.dimensions
+    });
   } catch {
     sendJson(res, 503, { ok: false, error: 'Chatbot knowledge database is unavailable.' });
     return;
   }
 
+  const navigation = navigationAnswer(message, retrieval);
+  if (navigation) {
+    const payload = withFollowups(navigation, message, navigation.answer, retrieval, pageContext, history);
+    const logId = await safeRecordChatbotLog(req, {
+      req,
+      status: 'navigation_answer',
+      actorHash: rateLimit.actorHash,
+      conversationId,
+      question: message,
+      answer: navigation.answer,
+      pageContext,
+      sources: payload.sources,
+      suggestedLinks: payload.suggestedLinks,
+      confidence: retrieval.bestScore,
+      skippedModel: true,
+      rateLimit: rateLimit.counts || null,
+      retrievalConfident: retrieval.confident,
+      retrievalBestScore: retrieval.bestScore,
+      queryTerms: retrieval.queryTerms,
+      retrievalChunks: retrievalLogChunks(retrieval),
+      latencyMs: Date.now() - startedAt
+    });
+    if (stream) {
+      sendStreamDone(res, {
+        ...payload,
+        logId,
+        conversationId,
+        limits: rateLimit.counts || null
+      });
+      return;
+    }
+    sendJson(res, 200, {
+      ...payload,
+      logId,
+      conversationId,
+      limits: rateLimit.counts || null
+    });
+    return;
+  }
+
   if (!retrieval.confident) {
-    const fallback = lowConfidenceAnswer(message, retrieval);
+    const fallback = withFollowups(lowConfidenceAnswer(message, retrieval), message, '', retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
       req,
       status: 'low_confidence',
@@ -539,6 +995,15 @@ module.exports = async (req, res) => {
       retrievalChunks: retrievalLogChunks(retrieval),
       latencyMs: Date.now() - startedAt
     });
+    if (stream) {
+      sendStreamDone(res, {
+        ...fallback,
+        logId,
+        conversationId,
+        limits: rateLimit.counts || null
+      });
+      return;
+    }
     sendJson(res, 200, {
       ...fallback,
       logId,
@@ -548,11 +1013,34 @@ module.exports = async (req, res) => {
     return;
   }
 
+  if (stream) {
+    await streamModelAnswer(req, res, {
+      message,
+      retrieval,
+      pageContext,
+      history,
+      followupContext,
+      rateLimit,
+      startedAt,
+      conversationId
+    });
+    return;
+  }
+
   try {
-    const modelResponse = await callBedrock(message, retrieval, pageContext);
+    const modelResponse = await callBedrock(message, retrieval, pageContext, history, followupContext);
     const answer = modelResponse.answer || 'I found relevant site content, but I could not generate a useful answer.';
     const sources = publicSources(retrieval.chunks, 5);
     const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval);
+    const payload = withFollowups({
+      ok: true,
+      answer,
+      sources,
+      suggestedLinks,
+      usage: modelResponse.usage,
+      model: modelResponse.modelId,
+      limits: rateLimit.counts || null
+    }, message, answer, retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
       req,
       status: 'answered',
@@ -565,7 +1053,7 @@ module.exports = async (req, res) => {
       suggestedLinks,
       confidence: retrieval.bestScore,
       skippedModel: false,
-      model: 'Amazon Nova Lite',
+      model: modelResponse.modelId,
       usage: modelResponse.usage,
       rateLimit: rateLimit.counts || null,
       retrievalConfident: retrieval.confident,
@@ -575,18 +1063,13 @@ module.exports = async (req, res) => {
       latencyMs: Date.now() - startedAt
     });
     sendJson(res, 200, {
-      ok: true,
-      answer,
-      sources,
-      suggestedLinks,
+      ...payload,
       logId,
       conversationId,
-      usage: modelResponse.usage,
-      model: 'Amazon Nova Lite',
       limits: rateLimit.counts || null
     });
   } catch (err) {
-    const fallback = retrievalOnlyAnswer(message, retrieval);
+    const fallback = withFollowups(retrievalOnlyAnswer(message, retrieval), message, '', retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
       req,
       status: 'model_fallback',
@@ -621,7 +1104,9 @@ module.exports._private = {
   buildContext,
   getConfigPayload,
   isAllowedOrigin,
+  isLogsRoute,
   lowConfidenceAnswer,
+  navigationAnswer,
   normalizeMessage,
   retrievalOnlyAnswer,
   suggestedLinksFromRetrieval,

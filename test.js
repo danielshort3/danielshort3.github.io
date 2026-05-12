@@ -364,14 +364,25 @@ try {
     assert(devServer.includes("pathname === '/api/chatbot'") && devServer.includes("pathname === '/api/chatbot/logs'") && devServer.includes('loadChatbotLogsApi'),
       'local dev server should route the chatbot APIs');
     assert(copyPublic.includes("'chatbot-knowledge.json'"), 'public copy should include chatbot knowledge JSON');
-    assert(generator.includes('excludedPathPatterns') && generator.includes('extractMainText') && generator.includes('chatbot-knowledge.json'),
-      'chatbot knowledge generator should extract scoped page content');
+    assert(generator.includes('excludedPathPatterns') && generator.includes('extractMainText') && generator.includes('loadProjectMetadata') && generator.includes('chatbot-knowledge.json'),
+      'chatbot knowledge generator should extract scoped page content and project metadata');
+    assert(generator.includes('InvokeModelCommand') &&
+      generator.includes("DEFAULT_EMBED_MODEL_ID = 'amazon.titan-embed-text-v2:0'") &&
+      generator.includes('applyEmbeddings') &&
+      generator.includes('CHATBOT_EMBEDDINGS_REQUIRED') &&
+      generator.includes('loadExistingEmbeddingCache'),
+      'chatbot knowledge generator should support reusable build-time Bedrock embeddings');
 
     const knowledge = JSON.parse(readFile('dist/chatbot-knowledge.json'));
     assert(knowledge.version === 1, 'chatbot knowledge should declare version 1');
     assert(knowledge.origin === 'https://www.danielshort.me', 'chatbot knowledge should use the public site origin');
     assert(Array.isArray(knowledge.pages) && knowledge.pages.length >= 8, 'chatbot knowledge should include public site pages');
     assert(Array.isArray(knowledge.chunks) && knowledge.chunks.length >= knowledge.pages.length, 'chatbot knowledge should include page chunks');
+    assert(knowledge.embeddings &&
+      knowledge.embeddings.modelId === 'amazon.titan-embed-text-v2:0' &&
+      Number(knowledge.embeddings.dimensions) === 512 &&
+      ['ready', 'partial', 'skipped'].includes(knowledge.embeddings.status),
+      'chatbot knowledge should record Bedrock embedding metadata even when vectors are unavailable');
     const knowledgeUrls = new Set(knowledge.pages.map((page) => page && page.url));
     ['/analytics', '/data-science', '/tourism', '/contact', '/portfolio', '/resume-analytics'].forEach((url) => {
       assert(knowledgeUrls.has(url), `chatbot knowledge missing ${url}`);
@@ -381,30 +392,61 @@ try {
     });
     assert(knowledge.chunks.every((chunk) => chunk && chunk.id && chunk.url && chunk.title && chunk.text),
       'chatbot knowledge chunks should be citeable');
+    const { retrieveKnowledge } = require('./api/_lib/chatbot-knowledge');
+    const chatbotProjectRetrieval = retrieveKnowledge('Tell me about the Visit Grand Junction chatbot project', { url: '/analytics', title: 'Analytics' });
+    assert(chatbotProjectRetrieval.chunks[0] && chatbotProjectRetrieval.chunks[0].url === '/portfolio/chatbotLora',
+      'chatbot retrieval should rank the Visit Grand Junction chatbot project first for matching project questions');
+    const contactRetrieval = retrieveKnowledge('How do I contact Daniel?', { url: '/analytics', title: 'Analytics' });
+    assert(contactRetrieval.chunks[0] && contactRetrieval.chunks[0].url === '/contact',
+      'chatbot retrieval should rank the contact page first for contact questions');
+    const resumeRetrieval = retrieveKnowledge('Where is the best resume?', { url: '/analytics', title: 'Analytics' });
+    assert(resumeRetrieval.chunks[0] && resumeRetrieval.chunks[0].url === '/resume-analytics',
+      'chatbot retrieval should rank the analytics resume first for generic resume questions');
+    const projectRetrieval = retrieveKnowledge('What projects show SQL and Tableau experience?', { url: '/analytics', title: 'Analytics' });
+    assert(projectRetrieval.chunks[0] && String(projectRetrieval.chunks[0].url || '').startsWith('/portfolio/'),
+      'chatbot retrieval should keep project questions focused on portfolio projects');
 
     const api = readFile('api/chatbot.js');
     const knowledgeLib = readFile('api/_lib/chatbot-knowledge.js');
     const rateLimit = readFile('api/_lib/chatbot-rate-limit.js');
     const logStore = readFile('api/_lib/chatbot-logs.js');
-    const logApi = readFile('api/chatbot/logs.js');
+    const logApi = `${readFile('api/_lib/chatbot-logs-api.js')}\n${readFile('api/chatbot/logs.js')}`;
     const envExample = readFile('.env.example');
-    assert(api.includes("DEFAULT_MODEL_ID = 'amazon.nova-lite-v1:0'"), 'chatbot API should default to Nova Lite');
-    assert(api.includes('ConverseCommand') && api.includes('retrieveKnowledge') && api.includes('checkChatbotRateLimit'),
-      'chatbot API should use Bedrock, retrieval, and rate limiting');
+    assert(api.includes("DEFAULT_MODEL_ID = 'us.amazon.nova-lite-v1:0'"), 'chatbot API should default to the Nova Lite inference profile');
+    assert(api.includes('ConverseCommand') && api.includes('ConverseStreamCommand') && api.includes('InvokeModelCommand') &&
+      api.includes('retrieveKnowledge') && api.includes('checkChatbotRateLimit'),
+      'chatbot API should use Bedrock chat, streaming, embeddings, retrieval, and rate limiting');
     assert(api.includes('verifyTurnstile') && api.includes('CHATBOT_TURNSTILE_SECRET_KEY') && api.includes('CHATBOT_ENABLED'),
       'chatbot API should gate requests and verify Turnstile challenges');
-    assert(api.includes('recordChatbotLog') && api.includes('suggestedLinksFromRetrieval') && api.includes('logId'),
-      'chatbot API should record logs and return navigation suggestions');
+    assert(api.includes('recordChatbotLog') && api.includes('suggestedLinksFromRetrieval') && api.includes('navigationAnswer') && api.includes('isLogsRoute') && api.includes('logId'),
+      'chatbot API should record logs, serve the admin logs route, and return deterministic navigation suggestions');
     assert(api.includes("boolEnv('CHATBOT_ENABLED', true)") && api.includes('retrievalOnlyAnswer') && api.includes("status: 'model_fallback'"),
       'chatbot API should be enabled by default and fall back to retrieval-only answers when Bedrock is unavailable');
-    assert(knowledgeLib.includes('loadKnowledge') && knowledgeLib.includes('scoreChunk') && knowledgeLib.includes('publicSources'),
-      'chatbot knowledge helper should load, score, and expose sources');
+    assert(api.includes('streamModelAnswer') &&
+      api.includes("writeStreamEvent(res, 'token'") &&
+      api.includes('normalizeHistory') &&
+      api.includes('followupContext') &&
+      api.includes('makeFollowups') &&
+      api.includes('retrievalMode'),
+      'chatbot API should stream answers and return conversation-aware follow-up metadata');
+    assert(api.includes('embedQuery') &&
+      api.includes('CHATBOT_BEDROCK_EMBED_MODEL_ID') &&
+      api.includes('retrievalMode') &&
+      api.includes('CHATBOT_EMBEDDINGS_REQUIRED'),
+      'chatbot API should use query embeddings with lexical fallback');
+    assert(knowledgeLib.includes('loadKnowledge') && knowledgeLib.includes('scoreChunk') && knowledgeLib.includes('detectQueryIntent') &&
+      knowledgeLib.includes('dotProduct') && knowledgeLib.includes('queryEmbedding') && knowledgeLib.includes("retrievalMode: canUseEmbedding ? 'embedding' : 'lexical'") &&
+      knowledgeLib.includes('publicSources'),
+      'chatbot knowledge helper should load, score, rank hybrid embedding results, and expose sources');
     ['CHATBOT_DDB_TABLE', 'CHATBOT_HASH_SALT', 'CHATBOT_WINDOW_LIMIT', 'CHATBOT_DAILY_LIMIT', 'CHATBOT_GLOBAL_DAILY_LIMIT'].forEach((name) => {
       assert(rateLimit.includes(name), `chatbot rate limiter missing ${name}`);
       assert(envExample.includes(name), `.env.example missing ${name}`);
     });
     ['CHATBOT_LOG_TTL_DAYS', 'CHATBOT_ADMIN_TOKEN'].forEach((name) => {
       assert(logStore.includes(name) || logApi.includes(name), `chatbot logging missing ${name}`);
+      assert(envExample.includes(name), `.env.example missing ${name}`);
+    });
+    ['CHATBOT_EMBEDDINGS_ENABLED', 'CHATBOT_EMBEDDINGS_REQUIRED', 'CHATBOT_BEDROCK_EMBED_MODEL_ID', 'CHATBOT_BEDROCK_EMBED_DIMENSIONS'].forEach((name) => {
       assert(envExample.includes(name), `.env.example missing ${name}`);
     });
     assert(rateLimit.includes('isProductionRuntime') && rateLimit.includes('memoryStore'),
@@ -424,6 +466,7 @@ try {
     const entry = readFile('build/entries/site-shell.entry.js');
     const css = readFile('css/components/site-chatbot.css');
     const cssImports = readFile('css/styles.css');
+    const footerTemplate = readFile('build/templates/footer.partial.html');
     assert(entry.includes('../../js/chatbot/site-chatbot.js'), 'site shell should load chatbot widget');
     assert(cssImports.includes('components/site-chatbot.css'), 'main stylesheet should import chatbot styles');
     assert(widget.includes("const API_PATH = '/api/chatbot'") && widget.includes('conversationId') && widget.includes('turnstile'),
@@ -432,10 +475,82 @@ try {
       'chatbot widget should offer quick prompts and render suggested navigation links');
     assert(widget.includes("body.dataset.siteChatbotActive = 'true'"),
       'chatbot widget should mark chatbot pages so the bottom-right chatbot replaces the speed dial');
+    assert(widget.includes('site-chatbot__header-expand') &&
+      widget.includes("headerExpand.addEventListener('click', () => requestExpanded('header'))") &&
+      widget.includes("headerToggle.addEventListener('click', () => toggleExpanded('toggle'))") &&
+      widget.includes('function requestCollapsed') &&
+      widget.includes('if (!state.expanded) return;'),
+      'chatbot header should expand only while the chevron explicitly toggles expansion');
     assert(widget.includes("'project'") && widget.includes("'resume-tourism'") && !widget.includes("'tools'") && !widget.includes("'games'"),
       'chatbot widget should be scoped to public content pages');
+    assert(widget.includes('window.visualViewport') && widget.includes("root.dataset.keyboard") && widget.includes('--site-chatbot-keyboard-offset'),
+      'chatbot widget should track mobile keyboard viewport changes');
+    assert(widget.includes('NUDGE_STORAGE_KEY') &&
+      widget.includes('NUDGE_DESKTOP_DELAY_MS = 6000') &&
+      widget.includes('NUDGE_MOBILE_DELAY_MS = 10000') &&
+      widget.includes('NUDGE_AUTO_DISMISS_MS = 6000') &&
+      widget.includes('NUDGE_MOBILE_SCROLL_RATIO = 0.35') &&
+      widget.includes('localStorage.getItem(NUDGE_STORAGE_KEY)') &&
+      widget.includes('localStorage.setItem(NUDGE_STORAGE_KEY') &&
+      widget.includes('root.dataset.nudge') &&
+      widget.includes("root.dataset.enabled !== 'true'") &&
+      widget.includes('site-chatbot__nudge-action') &&
+      widget.includes('isConsentBannerOpen') &&
+      widget.includes('hasScrolledEnoughForNudge') &&
+      widget.includes('scheduleInitialNudge') &&
+      widget.includes('dismissNudge'), 'chatbot widget should show a targeted once-per-visitor launcher nudge');
+    assert(widget.includes('chatbot_nudge_shown') &&
+      widget.includes('chatbot_nudge_dismissed') &&
+      widget.includes('chatbot_nudge_opened') &&
+      widget.includes('chatbot_launcher_opened'), 'chatbot widget should track launcher and nudge events');
+    assert(widget.includes('getQuickPrompts') &&
+      widget.includes('Summarize this project') &&
+      widget.includes('Which resume fits this role?') &&
+      widget.includes('Show portfolio proof for this resume'), 'chatbot widget should render page-aware quick prompts');
+    assert(widget.includes('new AbortController()') &&
+      widget.includes("accept: 'application/x-ndjson, application/json'") &&
+      widget.includes('submitStreamingRequest') &&
+      widget.includes("event.type === 'token'") &&
+      widget.includes('abortActiveRequest') &&
+      widget.includes("sendButton.setAttribute('aria-label', state.sending ? 'Stop response' : 'Send question')"),
+      'chatbot widget should stream answers and let the send button stop an active response');
+    assert(widget.includes('state.transcript') &&
+      widget.includes('rememberTurn') &&
+      widget.includes('followupContext') &&
+      widget.includes("source: 'recommended_followup'") &&
+      widget.includes('site-chatbot__followups'),
+      'chatbot widget should keep recent history and render conversation-aware follow-up chips');
+    assert(widget.includes('renderMarkdown') &&
+      widget.includes('appendInlineMarkdown') &&
+      widget.includes('autoLinkSourcePhrases') &&
+      widget.includes('normalizeLinks(sources, 8)') &&
+      widget.includes('Sources (${sourceLinks.length})'),
+      'chatbot widget should render safe markdown and richer source links');
+    assert(widget.includes('[data-site-chatbot-open]') &&
+      footerTemplate.includes('data-site-chatbot-open hidden') &&
+      footerTemplate.includes('Ask the site assistant'), 'footer should expose a JS-enabled chatbot help entry');
     assert(css.includes('.site-chatbot__panel') && css.includes('@media (max-width: 640px)'),
       'chatbot CSS should include panel and mobile behavior');
+    assert(css.includes('gap: 0;') &&
+      css.includes('align-items: stretch;') &&
+      css.includes('--site-chatbot-input-height: 64px;') &&
+      css.includes('height: var(--site-chatbot-input-height);') &&
+      css.includes('max-height: var(--site-chatbot-input-height);') &&
+      css.includes('resize: none;') &&
+      css.includes('border-radius: 12px 0 0 12px;') &&
+      css.includes('border-radius: 0 12px 12px 0;'),
+      'chatbot input and send button should be a fixed two-line flush control');
+    assert(css.includes('.site-chatbot__followups') &&
+      css.includes('.site-chatbot__bubble ul') &&
+      css.includes('.site-chatbot__bubble a'),
+      'chatbot CSS should style markdown answers and follow-up chips');
+    assert(css.includes('.site-chatbot[data-nudge="true"][data-state="closed"] .site-chatbot__nudge') &&
+      css.includes('.site-chatbot__nudge-close') &&
+      css.includes('pointer-events: auto;') &&
+      css.includes('@keyframes site-chatbot-nudge-pulse') &&
+      css.includes('width: max-content;') &&
+      css.includes('bottom: calc(100% + 10px);') &&
+      css.includes('animation: none;'), 'chatbot CSS should style a responsive launcher nudge and respect reduced motion');
     assert(css.includes('body[data-site-chatbot-active="true"] .speed-dial') && css.includes('transform: translateY(18px) scale(0.96)'),
       'chatbot CSS should replace the speed dial and animate the expanded panel');
     assert(css.includes('--site-chatbot-panel-max-height: min(520px') &&
@@ -444,6 +559,14 @@ try {
       css.includes('height: var(--site-chatbot-center-height);') &&
       css.includes('transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1);'),
       'chatbot expansion should animate the center message pane while keeping header and input chrome fixed-size');
+    assert(css.includes('--site-chatbot-viewport-height') &&
+      css.includes('.site-chatbot[data-keyboard="true"][data-state="open"] .site-chatbot__panel') &&
+      css.includes('-webkit-text-fill-color: #fff;'),
+      'chatbot CSS should keep user text white and keep the mobile panel above the keyboard');
+    assert(css.includes('.site-chatbot[data-expanded="false"] .site-chatbot__header') &&
+      css.includes('.site-chatbot[data-expanded="true"] .site-chatbot__header-expand') &&
+      css.includes('.site-chatbot__header-toggle{'),
+      'chatbot CSS should distinguish expand-only header and explicit chevron controls');
     assert(css.includes('.site-chatbot__expand-icon svg') &&
       css.includes('transform: rotate(180deg);') &&
       css.includes('.site-chatbot[data-expanded="true"] .site-chatbot__expand-icon svg') &&
@@ -1144,6 +1267,11 @@ try {
     });
     assert(brandOverrideCss.includes('background-image: var(--home-section-art);') &&
       brandOverrideCss.includes('background-size: cover;'), 'analytics homepage section art should render unwashed at natural section heights');
+    assert(brandOverrideCss.includes('body[data-page="analytics"].home-pattern-page #cta #cta-link') &&
+      brandOverrideCss.includes('width: min(100%, 560px);') &&
+      brandOverrideCss.includes('background: #ffffff;') &&
+      brandOverrideCss.includes('body[data-page="analytics"].home-pattern-page #cta #cta-link p') &&
+      brandOverrideCss.includes('color: var(--brand-slate);'), 'analytics mobile CTA should keep readable foreground card on dark background art');
     assert(!brandOverrideCss.includes('--home-section-frame-height') &&
       !brandOverrideCss.includes('height: var(--home-section-frame-height);') &&
       !brandOverrideCss.includes('min-height: var(--home-section-frame-height);') &&
@@ -1681,11 +1809,18 @@ try {
     });
     let vercelObj;
     try { vercelObj = JSON.parse(vercel); } catch {}
-    assert(vercelObj && vercelObj.env && vercelObj.env.CHATBOT_ENABLED === 'true' && vercelObj.env.CHATBOT_REQUIRE_DDB === 'false',
-      'vercel.json should enable the chatbot without requiring DynamoDB on Hobby deployments');
+    assert(vercelObj && vercelObj.env && vercelObj.env.CHATBOT_ENABLED === 'true' &&
+           vercelObj.env.CHATBOT_REQUIRE_DDB === 'true' &&
+           vercelObj.env.CHATBOT_BEDROCK_MODEL_ID === 'us.amazon.nova-lite-v1:0' &&
+           vercelObj.env.CHATBOT_EMBEDDINGS_ENABLED === 'true' &&
+           vercelObj.env.CHATBOT_BEDROCK_EMBED_MODEL_ID === 'amazon.titan-embed-text-v2:0' &&
+           vercelObj.env.CHATBOT_BEDROCK_EMBED_DIMENSIONS === '512',
+      'vercel.json should enable the chatbot with durable DynamoDB protection, Nova Lite, and Bedrock embeddings');
     const rewrites = (vercelObj && vercelObj.rewrites) || [];
     const redirects = (vercelObj && vercelObj.redirects) || [];
     assert(rewrites.length > 0, 'vercel.json missing rewrites');
+    assert(rewrites.some(r => r.source === '/api/chatbot/logs' && r.destination === '/api/chatbot?__route=logs'),
+      'chatbot logs should route through the main chatbot function to stay under the Hobby function limit');
     const badDest = rewrites.filter(r => /\.html$/.test((r.destination||'')));
     assert(badDest.length === 0, 'rewrite destinations must be extensionless to avoid loops');
     const hasPortfolio = rewrites.some(r => r.source === '/portfolio' && r.destination === '/pages/portfolio');

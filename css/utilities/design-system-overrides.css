@@ -596,6 +596,25 @@
     body #cta #cta-link > div {
       gap: 10px;
     }
+
+    body[data-page="analytics"].home-pattern-page #cta #cta-link {
+      width: min(100%, 560px);
+      box-sizing: border-box;
+      margin-inline: auto;
+      padding: clamp(1.35rem, 5vw, 1.8rem) clamp(1rem, 4vw, 1.35rem);
+      border: 1px solid color-mix(in srgb, var(--brand-midnight) 12%, transparent);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    body[data-page="analytics"].home-pattern-page #cta #cta-link h2 {
+      color: var(--brand-midnight);
+    }
+
+    body[data-page="analytics"].home-pattern-page #cta #cta-link p {
+      color: var(--brand-slate);
+    }
   }
 
   /* Daniel Short brand system: light, analyst-focused, document-first */
@@ -1694,7 +1713,13 @@
   .site-chatbot__send,
   .site-chatbot__message--user .site-chatbot__bubble {
     background: var(--brand-signal-blue);
+  }
+
+  .site-chatbot__send,
+  .site-chatbot__message--user .site-chatbot__bubble,
+  .site-chatbot__message--user .site-chatbot__bubble p {
     color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
   }
 
   .site-chatbot__launcher:hover,
