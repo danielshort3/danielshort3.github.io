@@ -27,6 +27,68 @@ const DEFAULT_SUGGESTED_LINKS = [
   { title: 'Resume', url: '/resume-analytics', reason: 'Open the resume page.' },
   { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
 ];
+const AUDIENCE_PROFILES = {
+  analytics: {
+    label: 'Analytics',
+    roleLabel: 'analytics',
+    homeUrl: '/analytics',
+    portfolioUrl: '/portfolio?audience=analytics',
+    resumeUrl: '/resume-analytics',
+    resumeTitle: 'Analytics Resume',
+    portfolioTitle: 'Analytics Portfolio',
+    focus: 'SQL workflows, BI dashboards, reporting automation, forecasting, and stakeholder-ready business analysis',
+    defaults: [
+      { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics', reason: 'Review analytics projects, dashboards, SQL workflows, and reporting examples.' },
+      { title: 'Analytics Resume', url: '/resume-analytics', reason: 'Open the resume tailored to analytics, BI, SQL, and reporting work.' },
+      { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
+    ],
+    followups: [
+      'Show analytics proof a hiring manager should review',
+      'Which analytics resume sections matter most?',
+      'Why is Daniel a strong analytics hire?'
+    ]
+  },
+  'data-science': {
+    label: 'Data Science',
+    roleLabel: 'data science',
+    homeUrl: '/data-science',
+    portfolioUrl: '/portfolio?audience=data-science',
+    resumeUrl: '/resume-data-science',
+    resumeTitle: 'Data Science Resume',
+    portfolioTitle: 'Data Science Portfolio',
+    focus: 'machine learning, Python, NLP, evaluation, and deployment-minded data products',
+    defaults: [
+      { title: 'Data Science Portfolio', url: '/portfolio?audience=data-science', reason: 'Review machine learning, NLP, Python, and applied model projects.' },
+      { title: 'Data Science Resume', url: '/resume-data-science', reason: 'Open the resume tailored to data science and ML work.' },
+      { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
+    ],
+    followups: [
+      'Show data science proof a hiring manager should review',
+      'Which projects show applied ML depth?',
+      'Why is Daniel a strong data science hire?'
+    ]
+  },
+  tourism: {
+    label: 'Tourism Analytics',
+    roleLabel: 'tourism analytics',
+    homeUrl: '/tourism',
+    portfolioUrl: '/portfolio?audience=tourism',
+    resumeUrl: '/resume-tourism',
+    resumeTitle: 'Tourism Resume',
+    portfolioTitle: 'Tourism Portfolio',
+    focus: 'destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support',
+    defaults: [
+      { title: 'Tourism Portfolio', url: '/portfolio?audience=tourism', reason: 'Review destination analytics, visitor data, and stakeholder reporting examples.' },
+      { title: 'Tourism Resume', url: '/resume-tourism', reason: 'Open the resume tailored to tourism analytics and destination work.' },
+      { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
+    ],
+    followups: [
+      'Show tourism proof a hiring manager should review',
+      'Which projects connect to destination analytics?',
+      'Why is Daniel a strong tourism analytics hire?'
+    ]
+  }
+};
 
 let cachedBedrockClient = null;
 let cachedBedrockKey = '';
@@ -203,11 +265,38 @@ function normalizeMessage(value) {
   return message;
 }
 
+function normalizeAudience(value) {
+  const normalized = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+  if (normalized === 'data science' || normalized === 'datascience') return 'data-science';
+  return Object.prototype.hasOwnProperty.call(AUDIENCE_PROFILES, normalized) ? normalized : '';
+}
+
+function audienceProfile(audience) {
+  return AUDIENCE_PROFILES[normalizeAudience(audience)] || null;
+}
+
+function inferAudienceFromUrl(value) {
+  try {
+    const url = new URL(String(value || ''), SITE_ORIGIN);
+    const path = (url.pathname || '').replace(/\/+$/, '') || '/';
+    const queryAudience = normalizeAudience(url.searchParams.get('audience'));
+    if (queryAudience) return queryAudience;
+    if (path === '/analytics' || path === '/resume-analytics') return 'analytics';
+    if (path === '/data-science' || path === '/resume-data-science') return 'data-science';
+    if (path === '/tourism' || path === '/resume-tourism') return 'tourism';
+    return '';
+  } catch {
+    return '';
+  }
+}
+
 function normalizePageContext(value) {
   const input = value && typeof value === 'object' ? value : {};
+  const url = String(input.url || '').slice(0, 240);
   return {
-    url: String(input.url || '').slice(0, 240),
-    title: String(input.title || '').slice(0, 180)
+    url,
+    title: String(input.title || '').slice(0, 180),
+    audience: normalizeAudience(input.audience) || inferAudienceFromUrl(url)
   };
 }
 
@@ -267,16 +356,19 @@ async function verifyTurnstile(token, req) {
   }
 }
 
-function lowConfidenceAnswer(message, retrieval) {
-  const fallbackSources = publicSources(retrieval.chunks, 3);
-  const sourceHint = fallbackSources.length
-    ? 'The closest related pages I found are linked below.'
-    : 'Try asking about Daniel Short, his portfolio projects, resume, analytics work, tourism work, data science background, or contact options.';
+function lowConfidenceAnswer(message, retrieval, pageContext = {}) {
+  const profile = audienceProfile(pageContext.audience || retrieval.audience);
+  const fallbackSources = publicSourcesForAudience(retrieval.chunks, 3, pageContext.audience || retrieval.audience);
+  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true, pageContext });
+  const linkText = inlineLinkSentence(suggestedLinks, 'Best next step:');
+  const fallbackHint = profile
+    ? `Try asking about Daniel Short's ${profile.roleLabel} fit, relevant projects, resume, or contact options.`
+    : 'Try asking about Daniel Short, his projects, resume, or contact options.';
   return {
     ok: true,
-    answer: `I could not find enough support in the website content to answer that confidently. ${sourceHint}`,
+    answer: `I could not find enough support in the site content to answer that confidently. ${linkText || fallbackHint}`,
     sources: fallbackSources,
-    suggestedLinks: suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true }),
+    suggestedLinks,
     confidence: retrieval.bestScore,
     retrievalMode: retrieval.retrievalMode || 'lexical',
     skippedModel: true,
@@ -289,27 +381,31 @@ function summarizeChunk(chunk) {
     .replace(/\s+/g, ' ')
     .trim();
   if (!text) return '';
-  const sentence = text.match(/^.{80,260}?(?:[.!?](?:\s|$)|$)/);
-  return String(sentence ? sentence[0] : text.slice(0, 260)).trim();
+  const sentence = text.match(/^.{60,150}?(?:[.!?](?:\s|$)|$)/);
+  return String(sentence ? sentence[0] : text.slice(0, 150)).trim();
 }
 
-function retrievalOnlyAnswer(message, retrieval) {
-  const sources = publicSources(retrieval.chunks, 5);
+function retrievalOnlyAnswer(message, retrieval, pageContext = {}) {
+  const profile = audienceProfile(pageContext.audience || retrieval.audience);
+  const sources = publicSourcesForAudience(retrieval.chunks, 5, pageContext.audience || retrieval.audience);
+  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true, pageContext });
   const highlights = (retrieval.chunks || [])
-    .slice(0, 3)
+    .slice(0, 2)
     .map((chunk) => ({
-      title: String(chunk.title || 'Relevant site page').trim(),
+      title: markdownLink({ title: chunk.title || 'Relevant site page', url: chunk.url }) || String(chunk.title || 'Relevant site page').trim(),
       summary: summarizeChunk(chunk)
     }))
     .filter((item) => item.summary);
   const highlightsText = highlights.length
-    ? highlights.map((item, index) => `${index + 1}. ${item.title}: ${item.summary}`).join('\n')
-    : 'The closest related pages are linked below.';
+    ? highlights.map((item) => `- **${item.title}**: ${item.summary}`).join('\n')
+    : inlineLinkSentence(suggestedLinks, 'Closest pages:');
   return {
     ok: true,
-    answer: `I can still point you to the closest supported website content. Here are the best matches from the site:\n\n${highlightsText}`,
+    answer: profile
+      ? `Closest supported content for Daniel's ${profile.roleLabel} fit:\n\n${highlightsText}`
+      : `Closest supported content:\n\n${highlightsText}`,
     sources,
-    suggestedLinks: suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true }),
+    suggestedLinks,
     confidence: retrieval.bestScore,
     retrievalMode: retrieval.retrievalMode || 'lexical',
     skippedModel: true,
@@ -338,8 +434,91 @@ function addSuggestedLink(links, seen, item) {
   });
 }
 
+function markdownLink(item) {
+  const title = String(item && item.title ? item.title : '').trim();
+  const url = normalizePath(item && item.url);
+  if (!title || !url) return '';
+  return `[${title}](${url})`;
+}
+
+function normalizeLinkText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function linkLabelMatches(label, expectedTitle) {
+  const labelText = normalizeLinkText(label);
+  const titleText = normalizeLinkText(expectedTitle);
+  if (!labelText || !titleText) return false;
+  if (labelText.includes(titleText) || titleText.includes(labelText)) return true;
+  const genericTerms = ['portfolio', 'resume', 'contact'];
+  return genericTerms.some((term) => labelText.includes(term) && titleText.includes(term));
+}
+
+function sanitizeInlineLinks(answer, allowedLinks) {
+  const links = Array.isArray(allowedLinks) ? allowedLinks : [];
+  if (!links.length) return String(answer || '').trim();
+  return String(answer || '').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, label, rawUrl) => {
+    const normalizedUrl = normalizePath(rawUrl);
+    const matched = links.find((link) => normalizePath(link && link.url) === normalizedUrl);
+    if (!matched) return label;
+    return linkLabelMatches(label, matched.title) ? match : label;
+  }).trim();
+}
+
+function inlineLinkSentence(links, prefix = 'See:') {
+  const items = (Array.isArray(links) ? links : [])
+    .map(markdownLink)
+    .filter(Boolean)
+    .slice(0, 2);
+  if (!items.length) return '';
+  return `${prefix} ${items.join(' and ')}.`;
+}
+
+function answerHasInlineLink(value) {
+  return /\[[^\]]+\]\((?:https?:\/\/|\/)[^)]+\)|https?:\/\//i.test(String(value || ''));
+}
+
+function ensureInlineLinks(answer, suggestedLinks) {
+  const cleanAnswer = sanitizeInlineLinks(answer, suggestedLinks);
+  if (!cleanAnswer || answerHasInlineLink(cleanAnswer)) return cleanAnswer;
+  const linkText = inlineLinkSentence(suggestedLinks);
+  return linkText ? `${cleanAnswer}\n\n${linkText}` : cleanAnswer;
+}
+
+function pathOnly(value) {
+  return normalizePath(value).split('?')[0] || '/';
+}
+
+function defaultSuggestedLinksForAudience(audience) {
+  const profile = audienceProfile(audience);
+  return profile ? profile.defaults : DEFAULT_SUGGESTED_LINKS;
+}
+
+function sourceAllowedForAudience(source, audience) {
+  const profile = audienceProfile(audience);
+  if (!profile) return true;
+  const path = pathOnly(source && source.url);
+  const fullPath = normalizePath(source && source.url);
+  if (path === '/contact') return true;
+  if (path === profile.homeUrl || path === profile.resumeUrl) return true;
+  if (fullPath.startsWith('/portfolio?audience=')) return fullPath === profile.portfolioUrl;
+  if (fullPath === profile.portfolioUrl || path === '/portfolio' || path.startsWith('/portfolio/')) return true;
+  if (path === '/analytics' || path === '/data-science' || path === '/tourism') return false;
+  if (path === '/resume-analytics' || path === '/resume-data-science' || path === '/resume-tourism') return false;
+  return true;
+}
+
+function publicSourcesForAudience(chunks, maxSources, audience) {
+  return publicSources(chunks, maxSources).filter((source) => sourceAllowedForAudience(source, audience));
+}
+
 function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
   const query = String(message || '').toLowerCase();
+  const audience = normalizeAudience(options.audience || options.pageContext && options.pageContext.audience || retrieval && retrieval.audience);
+  const profile = audienceProfile(audience);
   const links = [];
   const seen = new Set();
 
@@ -347,7 +526,9 @@ function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
     addSuggestedLink(links, seen, { title: 'Contact Daniel', url: '/contact', reason: 'Use the contact page for email, LinkedIn, GitHub, and direct messages.' });
   }
   if (/\bresume|cv|experience|background|work history|qualification|qualified\b/.test(query)) {
-    if (/\btourism|destination|travel\b/.test(query)) {
+    if (profile) {
+      addSuggestedLink(links, seen, { title: profile.resumeTitle, url: profile.resumeUrl, reason: `Resume tailored to ${profile.focus}.` });
+    } else if (/\btourism|destination|travel\b/.test(query)) {
       addSuggestedLink(links, seen, { title: 'Tourism Resume', url: '/resume-tourism', reason: 'Resume tailored to tourism analytics and destination work.' });
     } else if (/\bdata science|machine learning|ml|model|python\b/.test(query)) {
       addSuggestedLink(links, seen, { title: 'Data Science Resume', url: '/resume-data-science', reason: 'Resume tailored to data science and ML work.' });
@@ -356,22 +537,28 @@ function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
     }
   }
   if (/\bportfolio|project|case stud|dashboard|example|work sample\b/.test(query)) {
-    addSuggestedLink(links, seen, { title: 'Portfolio', url: '/portfolio', reason: 'Browse projects and examples.' });
+    addSuggestedLink(links, seen, profile
+      ? { title: profile.portfolioTitle, url: profile.portfolioUrl, reason: `Browse projects most relevant to ${profile.roleLabel} roles.` }
+      : { title: 'Portfolio', url: '/portfolio', reason: 'Browse projects and examples.' });
   }
-  if (/\banalytics|bi|tableau|sql|reporting|dashboard\b/.test(query)) {
+  if (profile && /\b(home|overview|start|role|fit|candidate)\b/.test(query)) {
+    addSuggestedLink(links, seen, { title: `${profile.label} Home`, url: profile.homeUrl, reason: `Start with Daniel's ${profile.roleLabel} overview.` });
+  }
+  if (!profile && /\banalytics|bi|tableau|sql|reporting|dashboard\b/.test(query)) {
     addSuggestedLink(links, seen, { title: 'Analytics Home', url: '/analytics', reason: 'Start with the analytics-focused overview.' });
     addSuggestedLink(links, seen, { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics', reason: 'Filter portfolio work to analytics projects.' });
   }
-  if (/\bdata science|machine learning|ml|model|python|nlp\b/.test(query)) {
+  if (!profile && /\bdata science|machine learning|ml|model|python|nlp\b/.test(query)) {
     addSuggestedLink(links, seen, { title: 'Data Science Home', url: '/data-science', reason: 'Start with the data-science-focused overview.' });
     addSuggestedLink(links, seen, { title: 'Data Science Portfolio', url: '/portfolio?audience=data-science', reason: 'Filter portfolio work to data science projects.' });
   }
-  if (/\btourism|destination|travel|visitor|grand junction\b/.test(query)) {
+  if (!profile && /\btourism|destination|travel|visitor|grand junction\b/.test(query)) {
     addSuggestedLink(links, seen, { title: 'Tourism Analytics Home', url: '/tourism', reason: 'Start with the tourism analytics overview.' });
     addSuggestedLink(links, seen, { title: 'Tourism Portfolio', url: '/portfolio?audience=tourism', reason: 'Filter portfolio work to tourism and destination projects.' });
   }
 
   publicSources(retrieval && retrieval.chunks ? retrieval.chunks : [], 5).forEach((source) => {
+    if (!sourceAllowedForAudience(source, audience)) return;
     addSuggestedLink(links, seen, {
       title: source.title,
       url: source.url,
@@ -380,16 +567,20 @@ function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
   });
 
   if (!links.length && options.includeDefaults) {
-    DEFAULT_SUGGESTED_LINKS.forEach((item) => addSuggestedLink(links, seen, item));
+    defaultSuggestedLinksForAudience(audience).forEach((item) => addSuggestedLink(links, seen, item));
+  }
+  if (profile && links.length < 3) {
+    defaultSuggestedLinksForAudience(audience).forEach((item) => addSuggestedLink(links, seen, item));
   }
 
   return links.slice(0, 5);
 }
 
-function navigationAnswer(message, retrieval) {
+function navigationAnswer(message, retrieval, pageContext = {}) {
   const query = String(message || '').toLowerCase();
-  const sources = publicSources(retrieval && retrieval.chunks ? retrieval.chunks : [], 5);
-  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true });
+  const profile = audienceProfile(pageContext.audience || retrieval && retrieval.audience);
+  const sources = publicSourcesForAudience(retrieval && retrieval.chunks ? retrieval.chunks : [], 5, pageContext.audience || retrieval && retrieval.audience);
+  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true, pageContext });
   const base = {
     ok: true,
     sources,
@@ -402,16 +593,20 @@ function navigationAnswer(message, retrieval) {
   if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(query)) {
     return {
       ...base,
-      answer: 'Use the Contact page for the fastest path. It includes Daniel Short\'s email, LinkedIn, GitHub, and direct message options.'
+      answer: profile
+        ? `Use [Contact Daniel](/contact) for the fastest path. For a ${profile.roleLabel} hiring conversation, review the [${profile.resumeTitle}](${profile.resumeUrl}) and [${profile.portfolioTitle}](${profile.portfolioUrl}).`
+        : 'Use [Contact Daniel](/contact) for email, LinkedIn, GitHub, and direct message options.'
     };
   }
 
   if (/\b(resume|cv|work history|qualification|qualified)\b/.test(query)) {
-    let answer = 'Use the Analytics Resume for the broadest current resume view.';
-    if (/\b(tourism|destination|travel|visitor|grand junction)\b/.test(query)) {
-      answer = 'Use the Tourism Resume for destination analytics and visitor-focused work.';
-    } else if (/\b(data science|machine learning|ml|model|python|nlp)\b/.test(query)) {
-      answer = 'Use the Data Science Resume for machine learning, Python, and modeling-focused work.';
+    let answer = profile
+      ? `Use the [${profile.resumeTitle}](${profile.resumeUrl}); it frames Daniel around ${profile.focus}.`
+      : 'Use the [Analytics Resume](/resume-analytics) for the broadest current resume view.';
+    if (!profile && /\b(tourism|destination|travel|visitor|grand junction)\b/.test(query)) {
+      answer = 'Use the [Tourism Resume](/resume-tourism) for destination analytics and visitor-focused work.';
+    } else if (!profile && /\b(data science|machine learning|ml|model|python|nlp)\b/.test(query)) {
+      answer = 'Use the [Data Science Resume](/resume-data-science) for machine learning, Python, and modeling-focused work.';
     }
     return {
       ...base,
@@ -422,7 +617,9 @@ function navigationAnswer(message, retrieval) {
   if (/\bportfolio\b/.test(query) || /\b(show|see|browse|open|view|find)\b.*\b(project|projects|case stud|work sample)\b/.test(query)) {
     return {
       ...base,
-      answer: 'Start with the Portfolio page. From there, filter by analytics, data science, or tourism work depending on what you want to review.'
+      answer: profile
+        ? `Start with the [${profile.portfolioTitle}](${profile.portfolioUrl}); it focuses the project view on ${profile.focus}.`
+        : 'Start with the [Portfolio](/portfolio), then filter by analytics, data science, or tourism work.'
     };
   }
 
@@ -435,6 +632,7 @@ function retrievalLogChunks(retrieval) {
       id: chunk.id,
       title: chunk.title,
       url: chunk.url,
+      audience: chunk.audience,
       category: chunk.category,
       score: chunk.score,
       lexicalScore: chunk.lexicalScore,
@@ -531,10 +729,11 @@ async function safeRecordChatbotLog(req, input) {
 function buildContext(chunks) {
   const lines = [];
   let used = 0;
-  chunks.forEach((chunk, index) => {
+  chunks.forEach((chunk) => {
     const sourceUrl = `${SITE_ORIGIN}${chunk.url}`;
     const block = [
-      `[${index + 1}] ${chunk.title} (${sourceUrl})`,
+      `Source: ${chunk.title}`,
+      `URL: ${sourceUrl}`,
       `Category: ${chunk.category || 'Website'}`,
       chunk.text
     ].join('\n');
@@ -561,8 +760,17 @@ function formatFollowupContext(followupContext) {
 }
 
 function buildUserText(message, retrieval, pageContext, history = [], followupContext = null) {
+  const profile = audienceProfile(pageContext && pageContext.audience);
+  const audienceLines = profile
+    ? [
+      `Active audience lens: ${profile.label}`,
+      `Role focus: ${profile.focus}`,
+      `Preferred links: ${profile.homeUrl}, ${profile.portfolioUrl}, ${profile.resumeUrl}, /contact`
+    ]
+    : ['Active audience lens: General website'];
   return [
     `Current page: ${pageContext.title || 'Unknown'} ${pageContext.url || ''}`.trim(),
+    ...audienceLines,
     '',
     'Recent conversation:',
     formatHistory(history),
@@ -581,18 +789,31 @@ function extractAnswer(response) {
   const parts = response && response.output && response.output.message && Array.isArray(response.output.message.content)
     ? response.output.message.content
     : [];
-  return parts.map((part) => part && part.text ? String(part.text) : '').join('').trim();
+  return stripSourceCitations(parts.map((part) => part && part.text ? String(part.text) : '').join(''));
 }
 
-function bedrockSystemPrompt() {
+function stripSourceCitations(value) {
+  return String(value || '')
+    .replace(/[ \t]*\[(?:\d{1,2})(?:\s*,\s*\d{1,2})*\]/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function bedrockSystemPrompt(pageContext = {}) {
+  const profile = audienceProfile(pageContext.audience);
+  const audienceInstruction = profile
+    ? `Active audience: ${profile.label}. Advocate for Daniel as a ${profile.roleLabel} candidate, focusing on ${profile.focus}. Only recommend links relevant to this audience: ${profile.homeUrl}, ${profile.portfolioUrl}, ${profile.resumeUrl}, /contact, and project pages that support the ${profile.roleLabel} case. Shared projects may be discussed, but frame them through this role lens.`
+    : 'No audience lens is active, so use the broad website context and recommend the most relevant public page.';
   return [
-    'You are a concise website chatbot and navigation assistant for Daniel Short.',
+    'You are Daniel Short\'s website chatbot and recruiting navigation assistant.',
+    audienceInstruction,
     'Answer only using the provided website sources and recent conversation.',
+    'Advocate for Daniel with evidence: connect projects, resume details, outcomes, and site pages to why he is a strong candidate.',
+    'Be concise by default: answer with one short paragraph or at most two bullets unless the visitor explicitly asks for depth.',
+    'When a relevant website page supports the answer, include one or two inline markdown links to that page instead of separate citation text.',
     'If the sources do not support an answer, say you do not have enough information.',
     'Do not invent credentials, experience, prices, contact details, or claims.',
-    'When helpful, guide the visitor to the most relevant page, resume, project, portfolio view, or contact path from the sources.',
-    'Use a helpful, direct tone. Keep answers short unless the visitor asks for detail.',
-    'Mention source numbers like [1] when a claim depends on a source.'
+    'Do not include bracketed numeric citations like [1], [2], or [3] in the visible answer.'
   ].join(' ');
 }
 
@@ -604,12 +825,12 @@ async function callBedrock(message, retrieval, pageContext, history = [], follow
   }
 
   const modelId = pickEnv(['CHATBOT_BEDROCK_MODEL_ID']) || DEFAULT_MODEL_ID;
-  const maxTokens = Math.max(160, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 420));
+  const maxTokens = Math.max(120, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 180));
   const userText = buildUserText(message, retrieval, pageContext, history, followupContext);
 
   const command = new ConverseCommand({
     modelId,
-    system: [{ text: bedrockSystemPrompt() }],
+    system: [{ text: bedrockSystemPrompt(pageContext) }],
     messages: [
       {
         role: 'user',
@@ -639,10 +860,10 @@ async function callBedrockStream(message, retrieval, pageContext, history, follo
   }
 
   const modelId = pickEnv(['CHATBOT_BEDROCK_MODEL_ID']) || DEFAULT_MODEL_ID;
-  const maxTokens = Math.max(160, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 420));
+  const maxTokens = Math.max(120, Math.min(900, Number(process.env.CHATBOT_MAX_OUTPUT_TOKENS) || 180));
   const command = new ConverseStreamCommand({
     modelId,
-    system: [{ text: bedrockSystemPrompt() }],
+    system: [{ text: bedrockSystemPrompt(pageContext) }],
     messages: [
       {
         role: 'user',
@@ -670,7 +891,7 @@ async function callBedrockStream(message, retrieval, pageContext, history, follo
     if (event && event.metadata && event.metadata.usage) usage = event.metadata.usage;
   }
 
-  return { answer: answer.trim(), usage, modelId };
+  return { answer: stripSourceCitations(answer), usage, modelId };
 }
 
 function normalizePrompt(value) {
@@ -679,6 +900,7 @@ function normalizePrompt(value) {
 
 function makeFollowups(message, answer, retrieval, pageContext, history = [], suggestedLinks = []) {
   const combined = [message, answer, pageContext && pageContext.title, ...(retrieval.queryTerms || [])].join(' ').toLowerCase();
+  const profile = audienceProfile(pageContext && pageContext.audience || retrieval && retrieval.audience);
   const prior = new Set(history.filter((turn) => turn.role === 'user').map((turn) => normalizePrompt(turn.text)));
   const seen = new Set();
   const items = [];
@@ -689,13 +911,16 @@ function makeFollowups(message, answer, retrieval, pageContext, history = [], su
     items.push(text);
   };
 
+  if (profile) {
+    profile.followups.forEach(add);
+  }
   if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(combined)) {
-    add('Which projects should I review first?');
-    add('Which resume is most relevant?');
+    add(profile ? `Which ${profile.roleLabel} projects should I review first?` : 'Which projects should I review first?');
+    add(profile ? `Which resume sections support ${profile.roleLabel} roles?` : 'Which resume is most relevant?');
   }
   if (/\bresume|cv|experience|qualified|work history\b/.test(combined)) {
-    add('Show portfolio proof for this resume');
-    add("Summarize Daniel's strongest fit");
+    add(profile ? `Show ${profile.roleLabel} portfolio proof for this resume` : 'Show portfolio proof for this resume');
+    add(profile ? `Summarize Daniel's strongest ${profile.roleLabel} fit` : "Summarize Daniel's strongest fit");
     add('How do I contact Daniel?');
   }
   if (/\bproject|portfolio|case study|dashboard|work sample\b/.test(combined)) {
@@ -745,8 +970,8 @@ async function streamModelAnswer(req, res, input) {
     startedAt,
     conversationId
   } = input;
-  const sources = publicSources(retrieval.chunks, 5);
-  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval);
+  const sources = publicSourcesForAudience(retrieval.chunks, 5, pageContext.audience || retrieval.audience);
+  const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { pageContext });
   sendStreamHeaders(res);
   writeStreamEvent(res, 'meta', {
     sources,
@@ -761,7 +986,7 @@ async function streamModelAnswer(req, res, input) {
       streamedAnswer += token;
       writeStreamEvent(res, 'token', { text: token });
     });
-    const answer = modelResponse.answer || streamedAnswer.trim() || 'I found relevant site content, but I could not generate a useful answer.';
+    const answer = ensureInlineLinks(modelResponse.answer || streamedAnswer.trim() || 'I found relevant site content, but I could not generate a useful answer.', suggestedLinks);
     const payload = withFollowups({
       ok: true,
       answer,
@@ -795,7 +1020,7 @@ async function streamModelAnswer(req, res, input) {
     });
     writeStreamEvent(res, 'done', { data: { ...payload, logId } });
   } catch (err) {
-    const fallback = withFollowups(retrievalOnlyAnswer(message, retrieval), message, '', retrieval, pageContext, history);
+    const fallback = withFollowups(retrievalOnlyAnswer(message, retrieval, pageContext), message, '', retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
       req,
       status: 'model_fallback',
@@ -925,6 +1150,7 @@ module.exports = async (req, res) => {
     const knowledge = loadKnowledge();
     const queryEmbedding = await embedQuery(message, knowledge);
     retrieval = retrieveKnowledge(message, pageContext, {
+      audience: pageContext.audience,
       queryEmbedding: queryEmbedding && queryEmbedding.vector,
       embeddingModel: queryEmbedding && queryEmbedding.modelId,
       embeddingDimensions: queryEmbedding && queryEmbedding.dimensions
@@ -934,7 +1160,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const navigation = navigationAnswer(message, retrieval);
+  const navigation = navigationAnswer(message, retrieval, pageContext);
   if (navigation) {
     const payload = withFollowups(navigation, message, navigation.answer, retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
@@ -975,7 +1201,7 @@ module.exports = async (req, res) => {
   }
 
   if (!retrieval.confident) {
-    const fallback = withFollowups(lowConfidenceAnswer(message, retrieval), message, '', retrieval, pageContext, history);
+    const fallback = withFollowups(lowConfidenceAnswer(message, retrieval, pageContext), message, '', retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
       req,
       status: 'low_confidence',
@@ -1029,9 +1255,9 @@ module.exports = async (req, res) => {
 
   try {
     const modelResponse = await callBedrock(message, retrieval, pageContext, history, followupContext);
-    const answer = modelResponse.answer || 'I found relevant site content, but I could not generate a useful answer.';
-    const sources = publicSources(retrieval.chunks, 5);
-    const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval);
+    const sources = publicSourcesForAudience(retrieval.chunks, 5, pageContext.audience || retrieval.audience);
+    const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { pageContext });
+    const answer = ensureInlineLinks(modelResponse.answer || 'I found relevant site content, but I could not generate a useful answer.', suggestedLinks);
     const payload = withFollowups({
       ok: true,
       answer,
@@ -1069,7 +1295,7 @@ module.exports = async (req, res) => {
       limits: rateLimit.counts || null
     });
   } catch (err) {
-    const fallback = withFollowups(retrievalOnlyAnswer(message, retrieval), message, '', retrieval, pageContext, history);
+    const fallback = withFollowups(retrievalOnlyAnswer(message, retrieval, pageContext), message, '', retrieval, pageContext, history);
     const logId = await safeRecordChatbotLog(req, {
       req,
       status: 'model_fallback',
@@ -1101,14 +1327,21 @@ module.exports = async (req, res) => {
 };
 
 module.exports._private = {
+  audienceProfile,
   buildContext,
+  bedrockSystemPrompt,
   getConfigPayload,
   isAllowedOrigin,
   isLogsRoute,
   lowConfidenceAnswer,
+  inlineLinkSentence,
+  ensureInlineLinks,
   navigationAnswer,
+  normalizeAudience,
   normalizeMessage,
+  normalizePageContext,
   retrievalOnlyAnswer,
+  stripSourceCitations,
   suggestedLinksFromRetrieval,
   verifyTurnstile
 };

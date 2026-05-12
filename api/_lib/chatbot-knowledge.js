@@ -14,6 +14,16 @@ const STOPWORDS = new Set([
   'find', 'looking', 'look', 'learn', 'use', 'using', 'want', 'wants', 'need',
   'needs', 'help', 'helps', 'thing', 'things', 'info', 'information'
 ]);
+const AUDIENCE_TERMS = {
+  analytics: ['analytics', 'bi', 'sql', 'tableau', 'dashboard', 'reporting', 'forecast', 'forecasting', 'kpi'],
+  'data-science': ['data science', 'machine learning', 'ml', 'model', 'models', 'python', 'nlp', 'rag', 'lora', 'pytorch'],
+  tourism: ['tourism', 'destination', 'visitor', 'visitors', 'travel', 'lodging', 'grand junction', 'dmo']
+};
+const AUDIENCE_PATHS = {
+  analytics: { home: '/analytics', resume: '/resume-analytics', portfolio: '/portfolio?audience=analytics' },
+  'data-science': { home: '/data-science', resume: '/resume-data-science', portfolio: '/portfolio?audience=data-science' },
+  tourism: { home: '/tourism', resume: '/resume-tourism', portfolio: '/portfolio?audience=tourism' }
+};
 
 let cachedKnowledge = null;
 let cachedMtime = 0;
@@ -26,6 +36,27 @@ function normalizeText(value) {
     .replace(/[^a-z0-9+#./-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function normalizeAudience(value) {
+  const normalized = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+  if (normalized === 'data science' || normalized === 'datascience') return 'data-science';
+  return Object.prototype.hasOwnProperty.call(AUDIENCE_TERMS, normalized) ? normalized : '';
+}
+
+function inferAudienceFromUrl(value) {
+  try {
+    const url = new URL(String(value || ''), 'https://www.danielshort.me');
+    const path = (url.pathname || '').replace(/\/+$/, '') || '/';
+    const queryAudience = normalizeAudience(url.searchParams.get('audience'));
+    if (queryAudience) return queryAudience;
+    if (path === '/analytics' || path === '/resume-analytics') return 'analytics';
+    if (path === '/data-science' || path === '/resume-data-science') return 'data-science';
+    if (path === '/tourism' || path === '/resume-tourism') return 'tourism';
+    return '';
+  } catch {
+    return '';
+  }
 }
 
 function escapeRegExp(value) {
@@ -132,17 +163,48 @@ function normalizePath(value) {
   }
 }
 
-function scoreIntentBoost(chunk, intent) {
+function scoreAudienceBoost(chunk, audience, intent) {
   const url = normalizePath(chunk.url);
+  const profile = AUDIENCE_PATHS[audience];
+  if (!profile) return 0;
+  const searchText = chunk._searchText || [
+    chunk.title,
+    chunk.url,
+    chunk.category,
+    chunk.audience,
+    ...(Array.isArray(chunk.keywords) ? chunk.keywords : []),
+    chunk.text
+  ].filter(Boolean).join(' ').toLowerCase();
   let score = 0;
+  const portfolioUrl = url === '/portfolio' || url.startsWith('/portfolio/');
+
+  if (url === profile.home) score += intent.portfolio ? 3 : 26;
+  if (url === profile.resume) score += intent.resume ? 58 : (intent.portfolio ? -10 : 20);
+  if (portfolioUrl) score += intent.portfolio ? 28 : 3;
+  if (chunk.audience === audience) score += intent.portfolio ? 4 : 22;
+  (AUDIENCE_TERMS[audience] || []).forEach((term) => {
+    if (searchText.includes(term)) score += 4;
+  });
+
+  if (intent.resume && url.includes('resume') && url !== profile.resume) score -= 24;
+  if (intent.portfolio && !portfolioUrl && url !== '/contact') score -= 28;
+  if ((url === '/analytics' || url === '/data-science' || url === '/tourism') && url !== profile.home) score -= 16;
+  if ((url === '/resume-analytics' || url === '/resume-data-science' || url === '/resume-tourism') && url !== profile.resume) score -= 30;
+
+  return score;
+}
+
+function scoreIntentBoost(chunk, intent, audience = '') {
+  const url = normalizePath(chunk.url);
+  let score = scoreAudienceBoost(chunk, audience, intent);
 
   if (intent.contact && url === '/contact') score += 60;
 
   if (intent.resume) {
-    const analyticsResumeMatch = intent.analytics || (!intent.dataScience && !intent.tourism);
+    const analyticsResumeMatch = audience === 'analytics' || intent.analytics || (!audience && !intent.dataScience && !intent.tourism);
     if (url === '/resume-analytics') score += analyticsResumeMatch ? 42 : 24;
-    if (url === '/resume-data-science') score += intent.dataScience ? 42 : 18;
-    if (url === '/resume-tourism') score += intent.tourism ? 42 : 18;
+    if (url === '/resume-data-science') score += (audience === 'data-science' || intent.dataScience) ? 42 : 18;
+    if (url === '/resume-tourism') score += (audience === 'tourism' || intent.tourism) ? 42 : 18;
     if (url.includes('resume')) score += 8;
   }
 
@@ -155,7 +217,7 @@ function scoreIntentBoost(chunk, intent) {
   return score;
 }
 
-function scoreChunk(chunk, terms, pageContext, message = '') {
+function scoreChunk(chunk, terms, pageContext, message = '', options = {}) {
   if (!terms.length) return 0;
   const title = chunk._titleText || normalizeText(chunk.title);
   const url = chunk._urlText || normalizeText(chunk.url);
@@ -163,6 +225,7 @@ function scoreChunk(chunk, terms, pageContext, message = '') {
   const meta = chunk._metaText || normalizeText([chunk.category, chunk.audience].filter(Boolean).join(' '));
   const body = chunk._bodyText || normalizeText(chunk.text);
   const intent = detectQueryIntent(message);
+  const audience = normalizeAudience(options.audience || pageContext && pageContext.audience) || inferAudienceFromUrl(pageContext && pageContext.url);
   let score = 0;
 
   terms.forEach((term) => {
@@ -174,7 +237,7 @@ function scoreChunk(chunk, terms, pageContext, message = '') {
     if (termCount(meta, term)) score += 3;
   });
 
-  score += scoreIntentBoost(chunk, intent);
+  score += scoreIntentBoost(chunk, intent, audience);
 
   const contextPath = normalizePath(pageContext && pageContext.url);
   if (contextPath && normalizePath(chunk.url) === contextPath) score += 1;
@@ -188,12 +251,13 @@ function retrieveKnowledge(message, pageContext = {}, options = {}) {
   const terms = tokenize(message);
   const maxChunks = Math.max(1, Math.min(8, Number(options.maxChunks) || 5));
   const minScore = Math.max(1, Number(options.minScore) || 4);
+  const audience = normalizeAudience(options.audience || pageContext && pageContext.audience) || inferAudienceFromUrl(pageContext && pageContext.url);
   const queryEmbedding = vectorFromValue(options.queryEmbedding);
   const canUseEmbedding = Boolean(queryEmbedding && knowledge.chunks.some((chunk) => Array.isArray(chunk._embedding)));
 
   const ranked = knowledge.chunks
     .map((chunk) => {
-      const lexicalScore = scoreChunk(chunk, terms, pageContext, message);
+      const lexicalScore = scoreChunk(chunk, terms, pageContext, message, { audience });
       const embeddingScore = canUseEmbedding && chunk._embedding
         ? Math.max(0, dotProduct(queryEmbedding, chunk._embedding))
         : 0;
@@ -209,6 +273,7 @@ function retrieveKnowledge(message, pageContext = {}, options = {}) {
   const bestScore = ranked.length ? ranked[0].score : 0;
   return {
     knowledge,
+    audience,
     queryTerms: terms,
     bestScore,
     bestEmbeddingScore: ranked.length ? ranked[0].embeddingScore : 0,
@@ -246,6 +311,7 @@ module.exports = {
   loadKnowledge,
   publicSources,
   retrieveKnowledge,
+  scoreAudienceBoost,
   scoreChunk,
   tokenize
 };

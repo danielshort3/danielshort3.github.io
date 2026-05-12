@@ -69,6 +69,7 @@ async function buildBundle(entryConfig) {
   const hashedPath = path.join(outDir, hashedName);
   const legacyPath = path.join(outDir, `${entryConfig.baseName}.js`);
 
+  ensureDir(outDir);
   fs.writeFileSync(hashedPath, contents, 'utf8');
   fs.writeFileSync(legacyPath, contents, 'utf8');
 

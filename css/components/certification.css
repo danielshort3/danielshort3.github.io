@@ -55,7 +55,7 @@
   }
   .cert-track{
     position:relative;
-    height:60px;
+    height:76px;
     cursor:grab;
     user-select:none;
     touch-action:pan-y;
@@ -72,26 +72,46 @@
     transform:translate3d(var(--ticker-x), -50%, 0);
     display:inline-flex;
     align-items:center;
-    gap:14px;
-    padding:11px 22px;
+    gap:12px;
+    padding:8px 20px 8px 10px;
     border-radius:999px;
-    background:color-mix(in srgb,var(--surface) 82%, #000 18%);
+    background:#ffffff;
     font-family:'Inter';
-    font-weight:500;
+    font-weight:600;
     font-size:.95rem;
-    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    color:var(--brand-midnight);
     white-space:nowrap;
-    box-shadow:0 10px 24px rgba(0,0,0,.2);
-    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    box-shadow:var(--shadow-sm);
+    border:1px solid color-mix(in srgb,var(--brand-midnight) 12%, transparent);
+    transition:border-color .2s ease, box-shadow .2s ease;
   }
   .cert img{
-    height:24px;
-    width:auto;
-    filter:grayscale(.1);
-    opacity:.9;
+    width:28px;
+    height:28px;
+    flex:0 0 auto;
+    box-sizing:content-box;
+    padding:7px;
+    border-radius:8px;
+    object-fit:contain;
+    background:#ffffff;
+    border:1px solid color-mix(in srgb,var(--brand-midnight) 12%, transparent);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,#ffffff 80%, transparent);
+    filter:none;
+    opacity:1;
+  }
+  .cert img[src*="purdue_global"],
+  .cert-card-logo[src*="purdue_global"]{
+    background:var(--brand-midnight);
+    border-color:color-mix(in srgb,var(--brand-signal-blue) 36%, transparent);
   }
   .cert span{opacity:.75;transition:opacity .2s ease,color .2s ease;}
-  .cert:hover span{color:color-mix(in srgb,var(--primary) 82%, #ffffff 18%);opacity:1;}
+  .cert:hover,
+  .cert:focus-visible{
+    border-color:color-mix(in srgb,var(--primary) 44%, transparent);
+    box-shadow:0 10px 24px color-mix(in srgb,var(--primary) 14%, transparent);
+  }
+  .cert:hover span,
+  .cert:focus-visible span{color:color-mix(in srgb,var(--primary) 82%, var(--brand-midnight) 18%);opacity:1;}
   @keyframes fadeCert{from{opacity:0;transform:translate3d(var(--ticker-x), -50%, 0) scale(.96);}to{opacity:1;transform:translate3d(var(--ticker-x), -50%, 0) scale(1);}}
   .cert.reenter{animation:fadeCert .35s ease;}
   .cert-modal-body{
@@ -143,11 +163,13 @@
 	  .cert-card-logo{
 	    width:52px;
 	    height:52px;
-	    border-radius:14px;
-	    background:var(--logo-tile-bg-cert);
-	    padding:10px;
+	    box-sizing:content-box;
+	    border-radius:10px;
+	    background:#ffffff;
+	    border:1px solid color-mix(in srgb,var(--brand-midnight) 12%, transparent);
+	    padding:8px;
 	    object-fit:contain;
-	    box-shadow:0 8px 20px rgba(0,0,0,.3);
+	    box-shadow:var(--shadow-sm);
 	  }
   .cert-card-label{
     margin:0;

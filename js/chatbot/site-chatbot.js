@@ -19,18 +19,69 @@
   body.dataset.siteChatbotActive = 'true';
 
   const STORAGE_KEY = 'daniel-short-chatbot-conversation';
+  const SESSION_STATE_KEY = 'daniel-short-chatbot-session-state';
   const NUDGE_STORAGE_KEY = 'daniel-short-chatbot-nudge-seen';
   const NUDGE_DESKTOP_DELAY_MS = 6000;
   const NUDGE_MOBILE_DELAY_MS = 10000;
   const NUDGE_AUTO_DISMISS_MS = 6000;
   const NUDGE_MOBILE_SCROLL_RATIO = 0.35;
+  const NAVIGATION_RESTORE_MS = 3 * 60 * 1000;
+  const TRANSCRIPT_MAX_TURNS = 8;
+  const DISPLAY_TRANSCRIPT_MAX_CHARS = 6000;
+  const HISTORY_TRANSCRIPT_MAX_CHARS = 700;
+  const UI_VERSION = 'question-first-2026-05-12';
   const API_PATH = '/api/chatbot';
   const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  const FALLBACK_LINKS = [
-    { title: 'Analytics resume', url: '/resume-analytics', reason: 'Open the analytics-focused resume.' },
-    { title: 'Portfolio', url: '/portfolio?audience=analytics', reason: 'Browse project examples.' },
+  const AUDIENCE_CONFIG = {
+    analytics: {
+      label: 'Analytics',
+      roleLabel: 'analytics',
+      homeUrl: '/analytics',
+      portfolioUrl: '/portfolio?audience=analytics',
+      resumeUrl: '/resume-analytics',
+      resumeTitle: 'Analytics resume',
+      portfolioTitle: 'Analytics portfolio',
+      prompts: [
+        ['SQL proof', "What analytics projects prove Daniel's SQL and reporting strength?"],
+        ['Dashboarding', 'Which examples show Daniel can build useful dashboards?'],
+        ['Hire fit', 'Why is Daniel a strong fit for an analytics role?']
+      ]
+    },
+    'data-science': {
+      label: 'Data Science',
+      roleLabel: 'data science',
+      homeUrl: '/data-science',
+      portfolioUrl: '/portfolio?audience=data-science',
+      resumeUrl: '/resume-data-science',
+      resumeTitle: 'Data science resume',
+      portfolioTitle: 'Data science portfolio',
+      prompts: [
+        ['Model proof', "Which projects show Daniel's machine learning and Python skills?"],
+        ['Deployment', 'How does Daniel connect data science work to usable products?'],
+        ['Hire fit', 'Why is Daniel a strong fit for a data science role?']
+      ]
+    },
+    tourism: {
+      label: 'Tourism Analytics',
+      roleLabel: 'tourism analytics',
+      homeUrl: '/tourism',
+      portfolioUrl: '/portfolio?audience=tourism',
+      resumeUrl: '/resume-tourism',
+      resumeTitle: 'Tourism resume',
+      portfolioTitle: 'Tourism portfolio',
+      prompts: [
+        ['DMO fit', 'Why is Daniel a strong fit for a destination analytics role?'],
+        ['Visitor data', 'Which projects show visitor or stakeholder analytics experience?'],
+        ['Impact proof', "What tourism outcomes should a recruiter notice in Daniel's work?"]
+      ]
+    }
+  };
+  const SHARED_FALLBACK_LINKS = [
+    { title: 'Portfolio', url: '/portfolio', reason: 'Browse project examples.' },
     { title: 'Contact', url: '/contact', reason: 'Find email, LinkedIn, and message options.' }
   ];
+  const storedSessionState = readSessionState();
+  const initialAudience = pageAudience() || normalizeAudience(storedSessionState.audience);
 
   const state = {
     open: false,
@@ -42,7 +93,9 @@
     controller: null,
     conversationId: getConversationId(),
     challengeToken: '',
-    transcript: [],
+    audience: initialAudience,
+    chipsHidden: storedSessionState.chipsHidden === true,
+    transcript: normalizeTranscript(storedSessionState.transcript),
     pendingFollowupContext: null,
     retryTimer: 0,
     nudgeTimer: 0,
@@ -55,11 +108,14 @@
   const root = document.createElement('div');
   root.className = 'site-chatbot';
   root.dataset.siteChatbot = '';
+  root.dataset.chatbotVersion = UI_VERSION;
   root.dataset.state = 'closed';
   root.dataset.enabled = 'pending';
   root.dataset.expanded = 'false';
   root.dataset.keyboard = 'false';
   root.dataset.nudge = 'false';
+  root.dataset.audience = state.audience || 'general';
+  root.dataset.chips = state.chipsHidden ? 'hidden' : 'visible';
   root.innerHTML = `
     <button class="site-chatbot__launcher" type="button" aria-label="Open website chatbot" aria-haspopup="dialog" aria-expanded="false">
       <span class="site-chatbot__launcher-icon" aria-hidden="true">
@@ -93,6 +149,14 @@
             </svg>
           </span>
         </button>
+        <button class="site-chatbot__reset" type="button" aria-label="Reset chat">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 5v5h5"/>
+            <path d="M20 19v-5h-5"/>
+            <path d="M6.1 15.5A7 7 0 0 0 18 18"/>
+            <path d="M17.9 8.5A7 7 0 0 0 6 6"/>
+          </svg>
+        </button>
         <button class="site-chatbot__close" type="button" aria-label="Close assistant">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M6 6l12 12M18 6 6 18"/>
@@ -105,15 +169,17 @@
       </div>
       <div class="site-chatbot__challenge" hidden></div>
       <form class="site-chatbot__form">
-        <label class="visually-hidden" for="site-chatbot-message">Ask a question</label>
-        <textarea id="site-chatbot-message" class="site-chatbot__input" name="message" rows="2" maxlength="1000" placeholder="Ask about portfolio work, resume, analytics, tourism, or contact details"></textarea>
+        <div class="site-chatbot__input-shell">
+          <label class="visually-hidden" for="site-chatbot-message">Ask a question</label>
+          <textarea id="site-chatbot-message" class="site-chatbot__input" name="message" rows="2" maxlength="1000" placeholder="Ask about portfolio work, resume, analytics, tourism, or contact details"></textarea>
+          <button class="site-chatbot__send" type="submit" aria-label="Send question">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="m4 12 16-8-4.8 16-3.1-6.1L4 12Z"/>
+              <path d="m12.1 13.9 7.9-9.9"/>
+            </svg>
+          </button>
+        </div>
         <input type="text" name="website" tabindex="-1" autocomplete="off" class="site-chatbot__website" aria-hidden="true">
-        <button class="site-chatbot__send" type="submit" aria-label="Send question">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="m4 12 16-8-4.8 16-3.1-6.1L4 12Z"/>
-            <path d="m12.1 13.9 7.9-9.9"/>
-          </svg>
-        </button>
       </form>
       <p class="site-chatbot__status" aria-live="polite"></p>
     </section>
@@ -128,6 +194,7 @@
   const header = root.querySelector('.site-chatbot__header');
   const headerExpand = root.querySelector('.site-chatbot__header-expand');
   const headerToggle = root.querySelector('.site-chatbot__header-toggle');
+  const resetButton = root.querySelector('.site-chatbot__reset');
   const closeButton = root.querySelector('.site-chatbot__close');
   const messages = root.querySelector('.site-chatbot__messages');
   const quickPrompts = root.querySelector('.site-chatbot__quick-prompts');
@@ -139,9 +206,13 @@
   const footerOpeners = Array.from(document.querySelectorAll('[data-site-chatbot-open]'));
   let chromeOffsetFrame = 0;
   let nudgeCheckFrame = 0;
+  syncQuickPromptVisibility();
+  restoreTranscriptMessages();
   setupChromeOffsetTracking();
   setupFooterOpeners();
   scheduleInitialNudge();
+  restoreOpenAfterChatbotNavigation();
+  if (!state.ready) loadConfig();
 
   launcher.addEventListener('click', () => {
     const nextOpen = !state.open;
@@ -160,10 +231,12 @@
   headerExpand.addEventListener('click', () => requestExpanded('header'));
   headerToggle.addEventListener('click', () => toggleExpanded('toggle'));
   header.addEventListener('click', (event) => {
-    if (event.target.closest('.site-chatbot__close, .site-chatbot__header-toggle, .site-chatbot__header-expand')) return;
+    if (event.target.closest('.site-chatbot__close, .site-chatbot__reset, .site-chatbot__header-toggle, .site-chatbot__header-expand')) return;
     requestExpanded('header');
   });
+  resetButton.addEventListener('click', resetChat);
   closeButton.addEventListener('click', () => setOpen(false));
+  root.addEventListener('click', handleChatbotLinkClick);
   form.addEventListener('submit', handleSubmit);
   sendButton.addEventListener('click', (event) => {
     if (!state.sending) return;
@@ -173,6 +246,7 @@
   quickPrompts.addEventListener('click', (event) => {
     const button = event.target.closest('[data-chatbot-prompt]');
     if (!button || button.disabled) return;
+    hideAllChips();
     submitPromptText(button.dataset.chatbotPrompt || button.textContent || '');
   });
   input.addEventListener('keydown', (event) => {
@@ -186,28 +260,144 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && state.open) setOpen(false);
   });
+  document.addEventListener('pointerdown', handleOutsidePointerDown, true);
+
+  function normalizeAudience(value) {
+    const normalized = String(value || '').trim().toLowerCase().replace(/_/g, '-');
+    if (normalized === 'data science' || normalized === 'datascience') return 'data-science';
+    return Object.prototype.hasOwnProperty.call(AUDIENCE_CONFIG, normalized) ? normalized : '';
+  }
+
+  function pageAudience() {
+    const bodyAudience = normalizeAudience(body && body.dataset ? body.dataset.audience : '');
+    if (bodyAudience) return bodyAudience;
+    if (pageId === 'analytics' || pageId === 'data-science' || pageId === 'tourism') return pageId;
+    if (pageId === 'resume-analytics') return 'analytics';
+    if (pageId === 'resume-data-science') return 'data-science';
+    if (pageId === 'resume-tourism') return 'tourism';
+    try {
+      const params = new URL(window.location.href).searchParams;
+      return normalizeAudience(params.get('audience'));
+    } catch {
+      return '';
+    }
+  }
+
+  function readSessionState() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_STATE_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      if (!parsed || typeof parsed !== 'object') return {};
+      if (parsed.uiVersion !== UI_VERSION) return {};
+      return parsed;
+    } catch {
+      return {};
+    }
+  }
+
+  function persistSessionState(extra = {}) {
+    try {
+      const prior = readSessionState();
+      sessionStorage.setItem(SESSION_STATE_KEY, JSON.stringify({
+        ...prior,
+        uiVersion: UI_VERSION,
+        audience: state.audience || '',
+        chipsHidden: state.chipsHidden === true,
+        transcript: state.transcript.slice(-TRANSCRIPT_MAX_TURNS),
+        open: state.open === true,
+        expanded: state.expanded === true,
+        updatedAt: Date.now(),
+        ...extra
+      }));
+    } catch {}
+  }
+
+  function normalizeTranscript(value) {
+    return (Array.isArray(value) ? value : [])
+      .map((turn) => ({
+        role: turn && turn.role === 'assistant' ? 'assistant' : 'user',
+        text: normalizeTranscriptMarkdown(turn && turn.text, DISPLAY_TRANSCRIPT_MAX_CHARS)
+      }))
+      .filter((turn) => turn.text)
+      .slice(-TRANSCRIPT_MAX_TURNS);
+  }
+
+  function normalizeTranscriptMarkdown(value, maxChars = DISPLAY_TRANSCRIPT_MAX_CHARS) {
+    return String(value || '')
+      .replace(/\r\n?/g, '\n')
+      .replace(/\n{4,}/g, '\n\n\n')
+      .trim()
+      .slice(0, maxChars);
+  }
+
+  function apiTranscript(value) {
+    return (Array.isArray(value) ? value : [])
+      .map((turn) => ({
+        role: turn && turn.role === 'assistant' ? 'assistant' : 'user',
+        text: normalizeTranscriptMarkdown(turn && turn.text, HISTORY_TRANSCRIPT_MAX_CHARS)
+      }))
+      .filter((turn) => turn.text)
+      .slice(-TRANSCRIPT_MAX_TURNS);
+  }
+
+  function audienceConfig(audience = state.audience) {
+    return AUDIENCE_CONFIG[normalizeAudience(audience)] || null;
+  }
+
+  function fallbackLinksForAudience(audience = state.audience) {
+    const config = audienceConfig(audience);
+    if (!config) return SHARED_FALLBACK_LINKS;
+    return [
+      { title: config.resumeTitle, url: config.resumeUrl, reason: `Open the ${config.roleLabel}-focused resume.` },
+      { title: config.portfolioTitle, url: config.portfolioUrl, reason: `Browse ${config.roleLabel} project examples.` },
+      { title: 'Contact Daniel', url: '/contact', reason: 'Find email, LinkedIn, GitHub, and message options.' }
+    ];
+  }
 
   function getConversationId() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (/^[a-zA-Z0-9_-]{12,80}$/.test(stored || '')) return stored;
-      const generated = window.crypto && window.crypto.randomUUID
-        ? window.crypto.randomUUID().replace(/-/g, '')
-        : `${Date.now()}${Math.random().toString(36).slice(2)}`;
+      const generated = makeConversationId();
       localStorage.setItem(STORAGE_KEY, generated);
       return generated;
     } catch {
-      return `${Date.now()}${Math.random().toString(36).slice(2)}`;
+      return makeConversationId();
     }
   }
 
+  function makeConversationId() {
+    return window.crypto && window.crypto.randomUUID
+      ? window.crypto.randomUUID().replace(/-/g, '')
+      : `${Date.now()}${Math.random().toString(36).slice(2)}`;
+  }
+
+  function resetConversationId() {
+    const generated = makeConversationId();
+    try {
+      localStorage.setItem(STORAGE_KEY, generated);
+    } catch {}
+    return generated;
+  }
+
   function getQuickPrompts() {
+    const config = audienceConfig();
     if (pageId === 'project') {
+      if (config) {
+        return [
+          ['Project fit', `How does this project support Daniel's ${config.roleLabel} fit?`],
+          ['Related work', `Show related ${config.roleLabel} projects`],
+          ['Best resume', `Which resume should I use for a ${config.roleLabel} role?`]
+        ];
+      }
       return [
         ['Summarize this project', 'Summarize this project'],
         ['Show similar projects', 'Show similar projects'],
         ['Where is the resume?', 'Where is the best resume?']
       ];
+    }
+    if (config && (pageId === 'portfolio' || pageId === 'resume-analytics' || pageId === 'resume-data-science' || pageId === 'resume-tourism' || pageId === 'analytics' || pageId === 'data-science' || pageId === 'tourism')) {
+      return config.prompts;
     }
     if (pageId === 'portfolio') {
       return [
@@ -239,7 +429,7 @@
 
   function renderQuickPromptButtons() {
     return getQuickPrompts().map(([label, prompt]) => (
-      `<button type="button" data-chatbot-prompt="${escapeHtml(prompt)}">${escapeHtml(label)}</button>`
+      `<button type="button" data-chatbot-prompt="${escapeHtml(prompt)}" title="${escapeHtml(label)}">${escapeHtml(prompt)}</button>`
     )).join('\n        ');
   }
 
@@ -249,6 +439,121 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function syncQuickPromptVisibility() {
+    quickPrompts.hidden = state.chipsHidden;
+    root.dataset.chips = state.chipsHidden ? 'hidden' : 'visible';
+  }
+
+  function hideAllChips() {
+    if (state.chipsHidden) return;
+    state.chipsHidden = true;
+    syncQuickPromptVisibility();
+    clearFollowups();
+    persistSessionState();
+    trackChatbotEvent('chatbot_chips_hidden', { audience: state.audience || 'general' });
+  }
+
+  function restoreTranscriptMessages() {
+    state.transcript.forEach((turn) => {
+      appendMessage(turn.role, turn.text);
+    });
+  }
+
+  function restoreOpenAfterChatbotNavigation() {
+    const shouldRestore = storedSessionState.restoreOpen === true &&
+      Number(storedSessionState.restoreUntil || 0) >= Date.now();
+    if (!shouldRestore) {
+      if (storedSessionState.restoreOpen) persistSessionState({ restoreOpen: false, restoreUntil: 0 });
+      return;
+    }
+    setOpen(true);
+    setExpanded(storedSessionState.expanded === true);
+    persistSessionState({ restoreOpen: false, restoreUntil: 0 });
+  }
+
+  function resetChat() {
+    if (state.controller) {
+      try {
+        state.controller.abort();
+      } catch {}
+      state.controller = null;
+    }
+    state.conversationId = resetConversationId();
+    state.transcript = [];
+    state.pendingFollowupContext = null;
+    state.challengeToken = '';
+    state.chipsHidden = false;
+    input.value = '';
+    messages.replaceChildren();
+    clearChallenge();
+    setSending(false);
+    if (root.dataset.enabled === 'false') {
+      setDisabled(true);
+      appendAssistant('The assistant is not enabled right now. Use these shortcuts instead.', [], fallbackLinksForAudience());
+    } else {
+      setDisabled(false);
+      if (!state.ready) loadConfig();
+    }
+    syncQuickPromptVisibility();
+    setStatus('');
+    persistSessionState({
+      transcript: [],
+      restoreOpen: false,
+      restoreUntil: 0
+    });
+    trackChatbotEvent('chatbot_reset');
+    if (state.open && !state.locked) input.focus({ preventScroll: true });
+  }
+
+  function sameSiteNavigationUrl(rawHref) {
+    try {
+      const parsed = new URL(rawHref, window.location.href);
+      const publicHost = parsed.hostname === 'www.danielshort.me' || parsed.hostname === 'danielshort.me';
+      if (parsed.origin !== window.location.origin && !publicHost) return null;
+      return new URL(`${parsed.pathname}${parsed.search}${parsed.hash}`, window.location.origin);
+    } catch {
+      return null;
+    }
+  }
+
+  function linkAllowedForActiveAudience(rawHref) {
+    const config = audienceConfig();
+    if (!config) return true;
+    const url = sameSiteNavigationUrl(rawHref);
+    if (!url) return true;
+    const path = (url.pathname || '/').replace(/\/+$/, '') || '/';
+    const fullPath = `${path}${url.search || ''}`;
+    if (path === '/contact') return true;
+    if (path === config.homeUrl || path === config.resumeUrl) return true;
+    if (fullPath.startsWith('/portfolio?audience=')) return fullPath === config.portfolioUrl;
+    if (path === '/portfolio' || path.startsWith('/portfolio/')) return true;
+    if (path === '/analytics' || path === '/data-science' || path === '/tourism') return false;
+    if (path === '/resume-analytics' || path === '/resume-data-science' || path === '/resume-tourism') return false;
+    return true;
+  }
+
+  function handleChatbotLinkClick(event) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+    if (!link || !root.contains(link)) return;
+    const destination = sameSiteNavigationUrl(link.href);
+    if (!destination) return;
+    event.preventDefault();
+    persistSessionState({
+      restoreOpen: true,
+      restoreUntil: Date.now() + NAVIGATION_RESTORE_MS,
+      open: true,
+      expanded: state.expanded === true
+    });
+    window.location.href = destination.href;
+  }
+
+  function handleOutsidePointerDown(event) {
+    if (!state.open || !event || !event.target) return;
+    if (root.contains(event.target)) return;
+    setOpen(false);
   }
 
   function setOpen(nextOpen) {
@@ -272,6 +577,7 @@
         updateChromeOffset();
       }, 40);
     }
+    persistSessionState({ restoreOpen: false, restoreUntil: 0 });
   }
 
   function setExpanded(nextExpanded) {
@@ -283,6 +589,7 @@
     headerExpand.setAttribute('aria-label', state.expanded ? 'Chat panel expanded' : 'Expand chat panel');
     headerExpand.tabIndex = state.expanded ? -1 : 0;
     updateChromeOffset();
+    persistSessionState();
   }
 
   function requestExpanded(_source = 'header') {
@@ -403,15 +710,14 @@
       setStatus('');
       if (!data.enabled) {
         setAvailability(false);
-        appendAssistant('The assistant is not enabled right now. Use these shortcuts instead.', [], FALLBACK_LINKS);
+        appendAssistant('The assistant is not enabled right now. Use these shortcuts instead.', [], fallbackLinksForAudience());
         setDisabled(true);
         return;
       }
       setAvailability(true);
-      appendAssistant('Ask me about Daniel Short, his projects, resumes, contact options, or where to go next on this site.');
     } catch {
       setAvailability(false);
-      appendAssistant('The assistant API is not available from this view. Use these shortcuts instead.', [], FALLBACK_LINKS);
+      appendAssistant('The assistant API is not available from this view. Use these shortcuts instead.', [], fallbackLinksForAudience());
       setDisabled(true);
       setStatus('');
     }
@@ -430,8 +736,9 @@
     if (website || !message) return;
 
     const followupContext = state.pendingFollowupContext;
-    const priorTranscript = state.transcript.slice(-8);
+    const priorTranscript = apiTranscript(state.transcript);
     state.pendingFollowupContext = null;
+    hideAllChips();
     clearFollowups();
     appendUser(message);
     rememberTurn('user', message);
@@ -452,7 +759,8 @@
         followupContext,
         pageContext: {
           url: window.location.href,
-          title: document.title
+          title: document.title,
+          audience: state.audience || ''
         }
       };
       const data = await submitStreamingRequest(payload, assistant, message);
@@ -742,14 +1050,7 @@
   function renderAssistantExtras(item, sources = [], suggestedLinks = [], followups = [], previousQuestion = '', answer = '') {
     item.querySelectorAll('.site-chatbot__nav-links, .site-chatbot__sources, .site-chatbot__followups').forEach((node) => node.remove());
 
-    const navLinks = normalizeLinks(suggestedLinks, 5);
-    const sourceLinks = normalizeLinks(sources, 5).filter((source) => !navLinks.some((link) => link.href === source.href));
-    if (navLinks.length) {
-      const navList = document.createElement('div');
-      navList.className = 'site-chatbot__nav-links';
-      navLinks.forEach((source) => navList.appendChild(makeLink(source)));
-      item.appendChild(navList);
-    }
+    const sourceLinks = normalizeLinks(sources, 5);
 
     if (sourceLinks.length) {
       const sourceList = document.createElement('details');
@@ -763,7 +1064,7 @@
       item.appendChild(sourceList);
     }
 
-    const cleanFollowups = normalizeFollowups(followups);
+    const cleanFollowups = state.chipsHidden ? [] : normalizeFollowups(followups);
     if (cleanFollowups.length) {
       const wrap = document.createElement('div');
       wrap.className = 'site-chatbot__followups';
@@ -773,13 +1074,14 @@
         button.textContent = text;
         button.disabled = state.sending || state.locked;
         button.addEventListener('click', () => {
+          hideAllChips();
           submitPromptText(text, {
             source: 'recommended_followup',
             prompt: text,
             previous_question: previousQuestion,
             previous_answer: String(answer || '').slice(0, 650),
-            source_labels: [...navLinks, ...sourceLinks].map((source) => source.title).slice(0, 8),
-            source_urls: [...navLinks, ...sourceLinks].map((source) => source.href).slice(0, 8)
+            source_labels: sourceLinks.map((source) => source.title).slice(0, 8),
+            source_urls: sourceLinks.map((source) => source.href).slice(0, 8)
           });
         });
         wrap.appendChild(button);
@@ -814,6 +1116,7 @@
       })
       .filter((source) => {
         if (!source || seen.has(source.href)) return false;
+        if (!linkAllowedForActiveAudience(source.href)) return false;
         seen.add(source.href);
         return true;
       })
@@ -946,6 +1249,10 @@
       container.append(document.createTextNode(label));
       return null;
     }
+    if (!linkAllowedForActiveAudience(href)) {
+      container.append(document.createTextNode(label));
+      return null;
+    }
     if (state) {
       state.usedUrls.add(key);
       state.inlineCount += 1;
@@ -1009,10 +1316,11 @@
 
   function rememberTurn(role, text) {
     const safeRole = role === 'assistant' ? 'assistant' : 'user';
-    const safeText = String(text || '').replace(/\s+/g, ' ').trim();
+    const safeText = normalizeTranscriptMarkdown(text);
     if (!safeText) return;
-    state.transcript.push({ role: safeRole, text: safeText.slice(0, 700) });
-    state.transcript = state.transcript.slice(-8);
+    state.transcript.push({ role: safeRole, text: safeText.slice(0, DISPLAY_TRANSCRIPT_MAX_CHARS) });
+    state.transcript = state.transcript.slice(-TRANSCRIPT_MAX_TURNS);
+    persistSessionState();
   }
 
   function setSending(nextSending) {
@@ -1076,6 +1384,7 @@
     if (typeof window.gaEvent !== 'function') return;
     window.gaEvent(name, {
       page_id: pageId || 'unknown',
+      audience: state.audience || 'general',
       ...params
     });
   }

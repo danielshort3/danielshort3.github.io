@@ -41,8 +41,12 @@ const WATCH_ROOTS = [
 const IGNORED_PREFIXES = [
   '.git/',
   '.vercel/',
+  'build/cache/',
+  'build/templates/',
   'dist/',
+  'js/portfolio/projects-data.js',
   'node_modules/',
+  'pages/',
   'pages/portfolio/',
   'public/',
   'tmp/'
