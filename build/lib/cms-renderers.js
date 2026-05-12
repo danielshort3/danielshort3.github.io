@@ -317,6 +317,7 @@ function renderFooter({ footer, year }) {
           ...(link.target ? { target: link.target } : {}),
           ...(link.rel ? { rel: link.rel } : {}),
           ...(link.download ? { download: true } : {}),
+          ...(link.hidden ? { hidden: true } : {}),
           ...(link.type === 'button'
             ? {
                 href: null,
@@ -333,7 +334,9 @@ function renderFooter({ footer, year }) {
             type: 'button',
             class: 'footer-link',
             ...(link.id ? { id: link.id } : {}),
-            ...(link.ariaHaspopup ? { 'aria-haspopup': link.ariaHaspopup } : {})
+            ...(link.ariaHaspopup ? { 'aria-haspopup': link.ariaHaspopup } : {}),
+            ...inferredDataAttributes,
+            ...(link.hidden ? { hidden: true } : {})
           };
           return `<button${attrsToString(buttonAttrs)}>${escapeHtml(link.label || '')}</button>`;
         }

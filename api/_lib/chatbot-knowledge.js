@@ -9,11 +9,64 @@ const STOPWORDS = new Set([
   'had', 'has', 'have', 'he', 'her', 'him', 'his', 'how', 'i', 'if', 'in', 'into',
   'is', 'it', 'me', 'my', 'of', 'on', 'or', 'our', 'she', 'should', 'so', 'that',
   'the', 'their', 'them', 'there', 'they', 'this', 'to', 'was', 'we', 'were',
-  'what', 'when', 'where', 'which', 'who', 'why', 'with', 'would', 'you', 'your'
+  'what', 'when', 'where', 'which', 'who', 'why', 'with', 'would', 'you', 'your',
+  'daniel', 'short', 'website', 'site', 'page', 'pages', 'please', 'show', 'tell',
+  'find', 'looking', 'look', 'learn', 'use', 'using', 'want', 'wants', 'need',
+  'needs', 'help', 'helps', 'thing', 'things', 'info', 'information'
 ]);
 
 let cachedKnowledge = null;
 let cachedMtime = 0;
+
+function normalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9+#./-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function termCount(text, term) {
+  if (!text || !term) return 0;
+  const pattern = new RegExp(`(?:^|[^a-z0-9+#.-])${escapeRegExp(term)}`, 'g');
+  const matches = String(text).match(pattern);
+  return matches ? matches.length : 0;
+}
+
+function vectorFromValue(value) {
+  const vector = Array.isArray(value) ? value.map((item) => Number(item)) : [];
+  if (!vector.length || vector.some((item) => !Number.isFinite(item))) return null;
+  return vector;
+}
+
+function dotProduct(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return 0;
+  let score = 0;
+  for (let index = 0; index < a.length; index += 1) score += a[index] * b[index];
+  return score;
+}
+
+function detectQueryIntent(message) {
+  const text = normalizeText(message);
+  const has = (pattern) => pattern.test(text);
+  const grandJunction = text.includes('grand junction') || text.includes('visit grand junction') || has(/\bvgj\b/);
+  return {
+    contact: has(/\b(contact|email|hire|reach|linkedin|github|message)\b/),
+    resume: has(/\b(resume|cv|work history|qualification|qualified)\b/),
+    portfolio: has(/\b(portfolio|project|projects|case study|case studies|dashboard|example|sample|work sample)\b/),
+    analytics: has(/\b(analytics|bi|tableau|sql|reporting|dashboard|kpi|forecast|forecasting)\b/),
+    dataScience: has(/\b(data science|machine learning|ml|model|models|python|nlp|rag|lora)\b/),
+    tourism: grandJunction || has(/\b(tourism|destination|travel|visitor|visitors|lodging|hotel|attraction)\b/),
+    chatbotProject: has(/\b(chatbot|rag|lora|bedrock|sagemaker|qwen|mistral)\b/) &&
+      (grandJunction || has(/\b(tourism|visitor|destination|project|demo)\b/))
+  };
+}
 
 function candidatePaths() {
   const cwd = process.cwd();
@@ -42,6 +95,12 @@ function loadKnowledge() {
     ...parsed,
     chunks: chunks.map((chunk) => ({
       ...chunk,
+      _titleText: normalizeText(chunk.title),
+      _urlText: normalizeText(chunk.url),
+      _keywordText: normalizeText(Array.isArray(chunk.keywords) ? chunk.keywords.join(' ') : ''),
+      _metaText: normalizeText([chunk.category, chunk.audience].filter(Boolean).join(' ')),
+      _bodyText: normalizeText(chunk.text),
+      _embedding: vectorFromValue(chunk.embedding),
       _searchText: [
         chunk.title,
         chunk.url,
@@ -57,11 +116,7 @@ function loadKnowledge() {
 }
 
 function tokenize(value) {
-  const terms = String(value || '')
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .match(/[a-z0-9][a-z0-9+#.-]{1,}/g);
+  const terms = normalizeText(value).match(/[a-z0-9][a-z0-9+#.-]{1,}/g);
   if (!terms) return [];
   return [...new Set(terms.filter((term) => !STOPWORDS.has(term) && term.length > 1))].slice(0, 40);
 }
@@ -77,41 +132,77 @@ function normalizePath(value) {
   }
 }
 
-function scoreChunk(chunk, terms, pageContext) {
+function scoreIntentBoost(chunk, intent) {
+  const url = normalizePath(chunk.url);
+  let score = 0;
+
+  if (intent.contact && url === '/contact') score += 60;
+
+  if (intent.resume) {
+    const analyticsResumeMatch = intent.analytics || (!intent.dataScience && !intent.tourism);
+    if (url === '/resume-analytics') score += analyticsResumeMatch ? 42 : 24;
+    if (url === '/resume-data-science') score += intent.dataScience ? 42 : 18;
+    if (url === '/resume-tourism') score += intent.tourism ? 42 : 18;
+    if (url.includes('resume')) score += 8;
+  }
+
+  if (intent.chatbotProject && url === '/portfolio/chatbotLora') score += 80;
+  if (intent.portfolio && (url === '/portfolio' || url.startsWith('/portfolio/'))) score += url === '/portfolio' ? 12 : 18;
+  if (intent.analytics && (url === '/analytics' || chunk.audience === 'analytics')) score += 14;
+  if (intent.dataScience && (url === '/data-science' || chunk.audience === 'data-science')) score += 14;
+  if (intent.tourism && (url === '/tourism' || chunk.audience === 'tourism')) score += 14;
+
+  return score;
+}
+
+function scoreChunk(chunk, terms, pageContext, message = '') {
   if (!terms.length) return 0;
-  const text = chunk._searchText || '';
+  const title = chunk._titleText || normalizeText(chunk.title);
+  const url = chunk._urlText || normalizeText(chunk.url);
+  const keywords = chunk._keywordText || normalizeText(Array.isArray(chunk.keywords) ? chunk.keywords.join(' ') : '');
+  const meta = chunk._metaText || normalizeText([chunk.category, chunk.audience].filter(Boolean).join(' '));
+  const body = chunk._bodyText || normalizeText(chunk.text);
+  const intent = detectQueryIntent(message);
   let score = 0;
 
   terms.forEach((term) => {
     if (!term) return;
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const count = (text.match(new RegExp(`\\b${escaped}`, 'g')) || []).length;
-    if (count) score += Math.min(6, count);
-
-    const title = String(chunk.title || '').toLowerCase();
-    if (title.includes(term)) score += 3;
-    const keywords = Array.isArray(chunk.keywords) ? chunk.keywords.join(' ').toLowerCase() : '';
-    if (keywords.includes(term)) score += 2;
-    const url = String(chunk.url || '').toLowerCase();
-    if (url.includes(term)) score += 2;
+    score += Math.min(5, termCount(body, term));
+    if (termCount(title, term)) score += 8;
+    if (termCount(keywords, term)) score += 7;
+    if (termCount(url, term)) score += 5;
+    if (termCount(meta, term)) score += 3;
   });
 
+  score += scoreIntentBoost(chunk, intent);
+
   const contextPath = normalizePath(pageContext && pageContext.url);
-  if (contextPath && normalizePath(chunk.url) === contextPath) score += 5;
-  if (contextPath && normalizePath(chunk.url).startsWith(contextPath + '/')) score += 2;
+  if (contextPath && normalizePath(chunk.url) === contextPath) score += 1;
+  if (contextPath && normalizePath(chunk.url).startsWith(contextPath + '/')) score += 0.5;
 
   return score;
 }
 
 function retrieveKnowledge(message, pageContext = {}, options = {}) {
   const knowledge = loadKnowledge();
-  const terms = tokenize([message, pageContext && pageContext.title].filter(Boolean).join(' '));
+  const terms = tokenize(message);
   const maxChunks = Math.max(1, Math.min(8, Number(options.maxChunks) || 5));
   const minScore = Math.max(1, Number(options.minScore) || 4);
+  const queryEmbedding = vectorFromValue(options.queryEmbedding);
+  const canUseEmbedding = Boolean(queryEmbedding && knowledge.chunks.some((chunk) => Array.isArray(chunk._embedding)));
 
   const ranked = knowledge.chunks
-    .map((chunk) => ({ chunk, score: scoreChunk(chunk, terms, pageContext) }))
-    .filter((entry) => entry.score > 0)
+    .map((chunk) => {
+      const lexicalScore = scoreChunk(chunk, terms, pageContext, message);
+      const embeddingScore = canUseEmbedding && chunk._embedding
+        ? Math.max(0, dotProduct(queryEmbedding, chunk._embedding))
+        : 0;
+      const score = canUseEmbedding
+        ? lexicalScore + (embeddingScore * 85)
+        : lexicalScore;
+      return { chunk, score, lexicalScore, embeddingScore };
+    })
+    .filter((entry) => entry.score > 0 && (!canUseEmbedding || entry.lexicalScore > 0 || entry.embeddingScore >= 0.12))
     .sort((a, b) => b.score - a.score || String(a.chunk.url).localeCompare(String(b.chunk.url)))
     .slice(0, maxChunks);
 
@@ -120,8 +211,17 @@ function retrieveKnowledge(message, pageContext = {}, options = {}) {
     knowledge,
     queryTerms: terms,
     bestScore,
+    bestEmbeddingScore: ranked.length ? ranked[0].embeddingScore : 0,
     confident: bestScore >= minScore,
-    chunks: ranked.map(({ chunk, score }) => ({ ...chunk, score }))
+    retrievalMode: canUseEmbedding ? 'embedding' : 'lexical',
+    embeddingModel: canUseEmbedding ? String(options.embeddingModel || knowledge.embeddings && knowledge.embeddings.modelId || '') : '',
+    embeddingDimensions: canUseEmbedding ? Number(options.embeddingDimensions || knowledge.embeddings && knowledge.embeddings.dimensions || 0) : 0,
+    chunks: ranked.map(({ chunk, score, lexicalScore, embeddingScore }) => ({
+      ...chunk,
+      score,
+      lexicalScore,
+      embeddingScore
+    }))
   };
 }
 
@@ -142,8 +242,10 @@ function publicSources(chunks, maxSources = 5) {
 }
 
 module.exports = {
+  detectQueryIntent,
   loadKnowledge,
   publicSources,
   retrieveKnowledge,
+  scoreChunk,
   tokenize
 };
