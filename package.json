@@ -5,7 +5,7 @@
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
     "test": "node test.js",
-    "build:icons": "python3 build/resize_logo.py",
+    "build:icons": "node build/resize_logo.js",
     "build:css": "node build/build-css.js",
     "build:js": "node build/build-js.js",
     "build:utm-batch-builder": "node build/build-utm-batch-builder.js",
@@ -24,6 +24,7 @@
     "node": "22.x"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1045.0",
     "@aws-sdk/client-dynamodb": "^3.962.0",
     "@aws-sdk/lib-dynamodb": "^3.962.0"
   },

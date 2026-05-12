@@ -114,7 +114,7 @@
     align-items:center;
     gap:6px;
     font-weight:600;
-    font-family:'Poppins';
+    font-family:'Inter';
   }
 
   .textcompare-field-head{
@@ -191,7 +191,7 @@
   .textcompare-settings > summary{
     cursor:pointer;
     list-style:none;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
   }
@@ -309,7 +309,7 @@
   .textcompare-format-details > summary{
     cursor:pointer;
     list-style:none;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
     letter-spacing:.01em;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);

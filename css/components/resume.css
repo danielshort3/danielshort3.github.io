@@ -57,7 +57,7 @@
 
   .resume-name{
     margin:0;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-size:clamp(2.2rem, 4vw, 3.05rem);
     line-height:1.05;
     color:var(--text-light);
@@ -159,7 +159,7 @@
     gap:6px;
   }
   .resume-highlight-value{
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:700;
     color:color-mix(in srgb,var(--primary) 80%, #ffffff 20%);
     font-size:1.25rem;
@@ -200,7 +200,7 @@
   }
 	  .resume-block-title{
 	    margin:0 0 12px;
-	    font-family:'Poppins';
+	    font-family:'Inter';
 	    font-size:1.15rem;
 	    letter-spacing:.01em;
 	    color:var(--text-light);

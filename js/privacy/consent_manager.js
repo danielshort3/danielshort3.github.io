@@ -30,9 +30,24 @@
   } catch (err) {}
 
   const STYLE_ID = 'pcz-consent-styles';
-  const CSS_VERSION = 'v6';
+  const CRITICAL_STYLE_ID = 'pcz-consent-critical-styles';
+  const CSS_VERSION = 'v8';
 
   function loadStyles() {
+    if (!document.getElementById(CRITICAL_STYLE_ID)) {
+      const critical = document.createElement('style');
+      critical.id = CRITICAL_STYLE_ID;
+      critical.textContent = [
+        '#pcz-banner,#pcz-modal{font:16px/1.5 "Inter","Segoe UI",Arial,sans-serif;color:#091f3b;}',
+        '#pcz-banner .pcz-card,#pcz-modal .pcz-panel{background:#fff;color:#091f3b;border:1px solid rgba(9,31,59,.14);box-shadow:0 20px 44px rgba(9,31,59,.14);}',
+        '#pcz-banner .pcz-body,#pcz-modal .policy-lead,#pcz-modal .pref-description{color:#334155;}',
+        '#pcz-banner .pcz-primary,#pcz-modal .pcz-save-preferences{background:#005fed!important;color:#fff!important;border-color:#005fed!important;}',
+        '#pcz-banner .pcz-secondary{background:#fff!important;color:#091f3b!important;border-color:rgba(9,31,59,.2)!important;}',
+        '#pcz-banner .pcz-link{color:#005fed!important;}',
+        '#pcz-banner .pcz-close,#pcz-modal .pcz-panel-close{background:#fff;color:#334155;border-color:rgba(9,31,59,.16);}'
+      ].join('\n');
+      document.head.appendChild(critical);
+    }
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
     const link = document.createElement('link');
     link.id = STYLE_ID;
@@ -51,7 +66,7 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: "I use cookies to understand site traffic and improve the experience. If you continue using the site or close this banner, I’ll treat that as acceptance of all cookies.",
+        bannerDesc: "I use cookies to understand traffic and improve the site. Continuing or closing this banner accepts all cookies.",
         acceptAll: 'Allow all',
         rejectAll: 'Essential only',
         managePrefs: 'Manage settings',
@@ -89,7 +104,7 @@
       },
       es: {
         bannerTitle: 'Valoro tu privacidad',
-        bannerDesc: 'Utilizo cookies para entender el tráfico del sitio y mejorar la experiencia. Si continúas navegando o cierras este aviso, aceptaré todas las cookies.',
+        bannerDesc: 'Utilizo cookies para entender el tráfico y mejorar el sitio. Si continúas o cierras este aviso, aceptaré todas las cookies.',
         acceptAll: 'Permitir todas',
         rejectAll: 'Solo esenciales',
         managePrefs: 'Administrar ajustes',

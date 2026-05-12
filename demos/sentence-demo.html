@@ -64,7 +64,7 @@
     }
     .title {
       margin: 0;
-      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-family: Inter, Inter, system-ui, sans-serif;
       font-weight: 600;
       font-size: clamp(1.1rem, 2.2vw, 1.35rem);
       line-height: 1.35;
@@ -361,9 +361,9 @@
   </script>
   <script src="js/demos/aws-client.js"></script>
   <script>
-    const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/";
+    const DEFAULT_URL = "/api/sentence-demo/";
     const DEFAULT_QUERY = "She wonders about things.";
-    const STORAGE_KEY = "demo.endpoint.sentence";
+    const STORAGE_KEY = "demo.endpoint.sentence.v2";
     const { resolveEndpoint, getJson, postJson, joinUrl, retryRequest, isRetryableError } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY };
     const WARM_RETRY_OPTIONS = {

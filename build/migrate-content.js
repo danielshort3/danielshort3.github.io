@@ -261,12 +261,12 @@ function buildSiteSettings(audienceApi) {
     siteOrigin: 'https://www.danielshort.me',
     siteName: 'Daniel Short – Data Science & Analytics',
     ownerName: 'Daniel Short',
-    themeColor: '#0D1117',
+    themeColor: '#091F3B',
     twitterSite: '@danielshort3',
     email: 'daniel@danielshort.me',
     defaultAudience: audienceApi.defaultAudience || 'analytics',
     ogImage: {
-      url: 'https://www.danielshort.me/img/hero/head.jpg',
+      url: 'https://www.danielshort.me/img/hero/head.png',
       width: '558',
       height: '558',
       alt: 'Portrait photo of Daniel Short'
@@ -289,21 +289,13 @@ function buildNavigation(featuredProjectIds) {
     portfolio: {
       label: 'Portfolio',
       href: 'portfolio',
-      header: 'Top 5 Projects',
+      header: 'Featured Projects',
       featuredProjectIds,
       links: [
         {
-          title: 'View all projects',
-          subtitle: 'Browse the complete portfolio',
-          href: 'portfolio',
-          dataAttributes: {
-            'data-portfolio-default-link': 'true'
-          }
-        },
-        {
-          title: 'Tools',
-          subtitle: 'Browse all tools',
-          href: 'tools'
+          title: 'View full portfolio',
+          subtitle: 'Browse the complete project library',
+          href: 'portfolio'
         }
       ]
     },

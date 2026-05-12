@@ -172,6 +172,8 @@
     }
     if (isPage('home')) {
       initSkillPopups();
+    }
+    if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();
     }
     if (isPage('project')) {
@@ -623,7 +625,6 @@
   }
 
   function initJumpPanelSpy(){
-    if (!isPage('home')) return;
     const panel = document.querySelector('.jump-panel');
     if (!panel) return;
     const links = $$('.jump-panel-link', panel);

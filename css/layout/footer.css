@@ -39,7 +39,7 @@
     letter-spacing:.18em;
     text-transform:uppercase;
     color:color-mix(in srgb, var(--text-muted) 88%, #ffffff 12%);
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:600;
   }
 
@@ -77,7 +77,7 @@
     padding-top:clamp(12px, 2.4vh, 14px);
     border-top:1px solid color-mix(in srgb, var(--primary) 12%, transparent);
     font-size:12.5px;
-    font-family:'Poppins';
+    font-family:'Inter';
     font-weight:500;
     color:color-mix(in srgb, var(--text-light) 72%, var(--text-muted) 28%);
   }

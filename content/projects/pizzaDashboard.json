@@ -39,47 +39,52 @@
   "role": [
     "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
   ],
-  "problem": "I wanted one dashboard to track earnings, compare delivery zones, and forecast tips.",
+  "problem": "I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.",
   "actions": [
-    "Reshaped ~12,000 rows for Tableau and built maps, histograms, and a 12-month forecast with date/zone filters.",
-    "Set it up so I can compare zones quickly during a shift."
+    "Reshaped about 12,000 delivery records into a Tableau-ready dataset with consistent dates, zones, housing categories, and tip KPIs.",
+    "Built map, distribution, filter, and 12-month forecast views for fast zone and timing comparison.",
+    "Designed the dashboard around decisions: where to work, what patterns explain tips, and how demand might change."
   ],
   "results": [
-    "Used it to compare zones and plan shifts based on tips and delivery time.",
-    "Helped identify opportunities to improve tips and reduce downtime between deliveries."
+    "Reduced delivery decision review from roughly five minutes to about one minute during planning.",
+    "Made zone, city, housing-type, tip-rate, and timing differences easier to compare in one view.",
+    "Added forecasting so the dashboard supports planning instead of only retrospective review."
   ],
   "caseStudy": [
     {
-      "title": "Data Shaping for Tableau",
-      "lead": "I built a Tableau-ready dataset so the dashboard stays fast and the filters work cleanly.",
+      "title": "Problem",
+      "lead": "The raw delivery history had useful signals, but it was too slow to compare zones, timing, and tip patterns during planning.",
       "bullets": [
-        "Reshaped ~12,000 rows into a tidy table with consistent dates, zones/cities, and housing types.",
-        "Defined KPIs (tip $, tip %, delivery time) that work across filters and aggregations.",
-        "Kept the layout simple enough to use mid-shift."
+        "Average tip alone did not explain whether a zone was efficient.",
+        "City, housing type, date, and timing all affected the decision.",
+        "The dashboard needed to stay simple enough to use before or during a shift."
       ]
     },
     {
-      "title": "Dashboard UX",
+      "title": "Method",
+      "lead": "I shaped the data for Tableau and built views around the practical comparisons that mattered most.",
       "bullets": [
-        "Maps to compare zones by average tip, tip %, and delivery time.",
-        "Histograms to understand distributions, not just averages.",
-        "Breakdowns by housing type and city to explain why zones differ."
+        "Reshaped about 12,000 rows into a tidy table with consistent dates, zones, cities, and housing types.",
+        "Defined KPIs for tip dollars, tip percentage, delivery time, and tip efficiency.",
+        "Added maps, distributions, filters, and a 12-month forecast to support both review and planning."
       ]
     },
     {
-      "title": "Forecasting",
+      "title": "Result",
+      "lead": "The dashboard made shift and zone review faster while giving enough context to explain why zones performed differently.",
       "bullets": [
-        "Added a 12-month tip forecast to see seasonal changes.",
-        "Used date/zone filters so forecasts and comparisons stay consistent.",
-        "Made it easy to compare 'tip per delivery' vs. 'tip per hour'."
+        "Cut delivery decision review from roughly five minutes to about one minute.",
+        "Made zone, city, and housing-type differences visible without switching files.",
+        "Supported planning with forecasted tip patterns and filterable comparisons."
       ]
     },
     {
-      "title": "What I'd Improve",
+      "title": "So What",
+      "lead": "The project demonstrates the analyst skill of turning personal operational data into a lightweight decision system.",
       "bullets": [
-        "Add distance/drive-time estimates to better model tips per hour in real conditions.",
-        "Track acceptance rates and deadhead time to capture full earnings efficiency.",
-        "Publish a mobile-first layout for on-shift use."
+        "The same pattern applies to staffing, demand, territory, and route-performance dashboards.",
+        "Future versions should add distance, drive time, acceptance rate, and deadhead time.",
+        "A mobile-first layout would make the dashboard stronger for on-shift use."
       ]
     }
   ],

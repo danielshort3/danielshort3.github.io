@@ -142,6 +142,7 @@ function processHtml(html, relPath) {
 
   let shellInserted = false;
   let consentInserted = false;
+  let homeInserted = false;
   let contributionsInserted = false;
   let toolsInserted = false;
 
@@ -210,6 +211,7 @@ function processHtml(html, relPath) {
 
     if (/^<script\s+defer\s+src="js\/common\/certifications-modal\.js"><\/script>$/i.test(trimmed) || isManagedLine(trimmed, 'site-home')) {
       out.push(`${indent}<script defer src="${managedHrefs.home}"></script>`);
+      homeInserted = true;
       return;
     }
 
@@ -240,6 +242,15 @@ function processHtml(html, relPath) {
   const needsShellBundle = /\bclass="[^"]*\bsite-page\b[^"]*"/i.test(html) && /<main\b/i.test(html);
   if (needsShellBundle && !shellInserted) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
+  }
+
+  const needsHomeBundle = /id="certifications-modal"/i.test(html) || /data-cert-modal-open/i.test(html);
+  if (needsHomeBundle && !homeInserted && !normalized.some((line) => isManagedLine(String(line || '').trim(), 'site-home'))) {
+    normalized = insertManagedScriptBefore(
+      normalized,
+      `<script defer src="${managedHrefs.home}"></script>`,
+      (trimmed) => isManagedLine(trimmed, 'site-consent') || /^<script\s+src="js\/privacy\/config\.js"><\/script>$/i.test(trimmed) || /^<script\s+defer\s+src="js\/privacy\/consent_manager\.js"><\/script>$/i.test(trimmed)
+    );
   }
 
   const requiredPageBundles = [];

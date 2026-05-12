@@ -4,7 +4,7 @@
     position:relative;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
     padding:48px 32px;text-align:center;background:var(--surface);border:1px solid var(--border-subtle);
-    border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
+    border-radius:14px;color:var(--primary);font-family:'Inter';font-weight:600;
     transition:transform .25s,background .25s,color .25s,box-shadow .25s,border-color .25s
   }
   .contact-card svg{
@@ -18,8 +18,8 @@
   /* reuse the same GitHub mask style used in .btn-icon */
   .contact-card .icon-github{
     background-color: currentColor;
-    -webkit-mask-image: url('../img/icons/github-icon.png');
-            mask-image: url('../img/icons/github-icon.png');
+    -webkit-mask-image: url('../../img/icons/github-icon.png');
+            mask-image: url('../../img/icons/github-icon.png');
     -webkit-mask-repeat: no-repeat;     mask-repeat: no-repeat;
     -webkit-mask-position: center;      mask-position: center;
     -webkit-mask-size: contain;         mask-size: contain;

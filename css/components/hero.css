@@ -12,10 +12,14 @@
     overflow:hidden;
     isolation:isolate;
     text-align:center;
-    background:linear-gradient(155deg,
-      color-mix(in srgb,var(--surface) 94%, #020509 6%) 0%,
-      color-mix(in srgb,var(--surface) 86%, #000 14%) 42%,
-      #0f141d 100%);
+    background:
+      linear-gradient(90deg, color-mix(in srgb,var(--brand-cloud) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(0deg, color-mix(in srgb,var(--brand-cloud) 4%, transparent) 1px, transparent 1px),
+      linear-gradient(155deg,
+        color-mix(in srgb,var(--brand-navy) 94%, #020509 6%) 0%,
+        color-mix(in srgb,var(--surface) 88%, #020509 12%) 48%,
+        #09111f 100%);
+    background-size:56px 56px, 56px 56px, auto;
   }
   body:is([data-page="home"], .home-pattern-page) .hero{
     margin-bottom:0;
@@ -110,10 +114,12 @@
     position:absolute;
     inset:-18% -28% -32%;
     z-index:-1;
-    background:radial-gradient(120% 90% at 12% calc(18% + var(--hero-parallax,0px)),
-      color-mix(in srgb,var(--primary) 22%, transparent) 0%,
-      transparent 62%);
-    opacity:.85;
+    background:
+      var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) 82% 38% / clamp(340px, 42vw, 560px) auto no-repeat,
+      radial-gradient(120% 90% at 12% calc(18% + var(--hero-parallax,0px)),
+        color-mix(in srgb,var(--brand-cyan) 20%, transparent) 0%,
+        transparent 62%);
+    opacity:.82;
     transition:opacity .4s ease;
   }
 
@@ -122,10 +128,15 @@
     position:absolute;
     inset:-40%;
     z-index:-2;
-    background:radial-gradient(32% 32% at var(--mx,48%) calc(var(--my,38%) + var(--hero-parallax,0px)),
-      color-mix(in srgb,var(--primary) 18%, transparent) 0%,
-      transparent 70%);
-    opacity:.7;
+    background:
+      linear-gradient(135deg,
+        transparent 0 46%,
+        color-mix(in srgb,var(--brand-cyan) 18%, transparent) 46% 47%,
+        transparent 47% 100%),
+      radial-gradient(32% 32% at var(--mx,48%) calc(var(--my,38%) + var(--hero-parallax,0px)),
+        color-mix(in srgb,var(--primary) 16%, transparent) 0%,
+        transparent 70%);
+    opacity:.62;
     pointer-events:none;
   }
 
@@ -153,21 +164,21 @@
 
   .hero-eyebrow{
     margin:0;
+    max-width:100%;
+    box-sizing:border-box;
     font-size:.85rem;
     letter-spacing:.22em;
     text-transform:uppercase;
     color:color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
-    opacity:0;
-    animation:heroFade 1s .3s forwards;
   }
 
   .hero h1{
     margin:0;
+    max-width:100%;
+    box-sizing:border-box;
     font-size:clamp(2.6rem,4.3vw,3.8rem);
     line-height:1.15;
     letter-spacing:.4px;
-    opacity:0;
-    animation:heroFade 1s .4s forwards;
   }
 
   .hero-tagline{
@@ -175,9 +186,9 @@
     font-size:1.12rem;
     line-height:1.75;
     color:var(--text-muted);
-    max-width:48ch;
-    opacity:0;
-    animation:heroFade 1s .55s forwards;
+    width:min(100%, 48ch);
+    max-width:100%;
+    box-sizing:border-box;
   }
   .hero-noscript-hint{
     margin:0;
@@ -191,6 +202,8 @@
     display:inline-flex;
     align-items:center;
     gap:8px;
+    max-width:100%;
+    box-sizing:border-box;
     padding:7px 20px;
     border-radius:999px;
     font-size:.82rem;
@@ -201,8 +214,44 @@
     color:color-mix(in srgb,var(--primary) 78%, #fff 22%);
     box-shadow:0 10px 26px rgba(0,0,0,.28);
     border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
-    opacity:0;
-    animation:heroFade 1s .7s forwards;
+  }
+
+  .hero-proof-row{
+    width:min(100%, 920px);
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:10px;
+  }
+
+  .hero-proof-row li{
+    min-width:0;
+    padding:12px 14px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--brand-cyan) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 62%, transparent);
+    box-shadow:0 12px 28px rgba(2,6,23,.22);
+  }
+
+  .hero-proof-row strong,
+  .hero-proof-row span{
+    display:block;
+  }
+
+  .hero-proof-row strong{
+    font-family:"Inter", sans-serif;
+    font-size:clamp(1.15rem, 2.2vw, 1.6rem);
+    line-height:1.05;
+    color:var(--brand-cloud);
+  }
+
+  .hero-proof-row span{
+    margin-top:5px;
+    color:color-mix(in srgb,var(--text-muted) 88%, #ffffff 12%);
+    font-size:.82rem;
+    line-height:1.35;
   }
 
   .cta-group{
@@ -210,8 +259,6 @@
     justify-content:center;
     gap:16px;
     flex-wrap:wrap;
-    opacity:0;
-    animation:heroFade 1s .85s forwards;
   }
 
   .hero-cta{min-width:0;}
@@ -303,7 +350,7 @@
     flex-wrap:wrap;
     column-gap:8px;
     row-gap:4px;
-    font-family:'Poppins',sans-serif;
+    font-family:'Inter',sans-serif;
     font-size:clamp(1.6rem,3.2vw,2.2rem);
     font-weight:600;
     color:color-mix(in srgb,var(--text-light) 95%, #fff 5%);
@@ -439,6 +486,15 @@
     .cta-group .hero-cta{
       width:100%;
     }
+    .hero-proof-row{
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      width:var(--hero-action-width);
+      max-width:100%;
+      gap:8px;
+    }
+    .hero-proof-row li{
+      padding:10px 12px;
+    }
 		    .hero-kpis{
 		      flex-direction:column;
 		      align-items:center;
@@ -489,8 +545,26 @@
       align-items:center;
       text-align:center;
     }
+    .hero::before{
+      opacity:.46;
+      background-position:118% 52%, center;
+      background-size:min(210px, 58vw) auto, auto;
+    }
+    .hero-eyebrow{
+      max-width:100%;
+      font-size:.72rem;
+      letter-spacing:.16em;
+      line-height:1.5;
+      text-wrap:balance;
+      overflow-wrap:anywhere;
+    }
     .hero .wrapper :is(.hero-eyebrow,.hero-tagline,.hero-status){
       text-align:center;
+    }
+    .hero-status{
+      width:100%;
+      justify-content:center;
+      white-space:normal;
     }
     .cta-group{
       width:100%;
@@ -500,6 +574,10 @@
     .hero-cta{
       width:100%;
       justify-content:center;
+    }
+    .hero-proof-row{
+      width:100%;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
     }
 		    .hero-kpi{
 		      width:100%;
@@ -515,6 +593,7 @@
     .hero h1,
     .hero-tagline,
     .hero-status,
+    .hero-proof-row,
     .cta-group,
     .hero-kpis,
     .hero-kpi{

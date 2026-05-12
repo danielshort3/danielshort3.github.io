@@ -124,7 +124,7 @@ The custom `/admin` editor is a local-only content editor for managed JSON files
 │   └── styles.css           # CSS styles for the website
 ├── img                   # Folder for all images used in the website
 │   ├── logo.png
-│   ├── head.jpg
+│   ├── head.png
 │   ├── project_1.png
 │   ├── project_2.png
 │   ├── ...

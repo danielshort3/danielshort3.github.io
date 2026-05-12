@@ -1,4 +1,5 @@
 body.roulette00-page {
+  box-sizing: border-box;
   margin: 0;
   min-height: 100vh;
   padding: clamp(14px, 2.4vw, 24px);
@@ -11,7 +12,8 @@ body.roulette00-page {
 }
 
 .roulette00-shell {
-  width: min(1580px, 100%);
+  width: 100%;
+  max-width: 1580px;
   margin: 0 auto;
   display: grid;
   gap: clamp(14px, 2vw, 20px);
@@ -39,7 +41,7 @@ body.roulette00-page {
 
 .roulette00-header h1 {
   margin: 0;
-  font-family: "Cormorant Garamond", "Poppins", serif;
+  font-family: "Cormorant Garamond", "Inter", serif;
   font-weight: 700;
   font-size: clamp(1.72rem, 3.2vw, 2.4rem);
   letter-spacing: 0.02em;
@@ -114,7 +116,7 @@ body.roulette00-page {
 .roulette00-card h2,
 .roulette00-card h3 {
   margin: 0;
-  font-family: "Cormorant Garamond", "Poppins", serif;
+  font-family: "Cormorant Garamond", "Inter", serif;
   letter-spacing: 0.02em;
 }
 

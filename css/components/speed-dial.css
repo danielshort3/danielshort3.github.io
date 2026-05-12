@@ -62,7 +62,7 @@
     position: absolute;
     left: 50%;
     bottom: calc(100% + 10px);
-    font-family: 'Poppins';
+    font-family: 'Inter';
     font-size: 12px;
     letter-spacing: .02em;
     color: color-mix(in srgb, var(--text-light) 92%, #ffffff 8%);
@@ -160,8 +160,8 @@
 
   @media (hover:none) and (pointer:coarse) {
     .speed-dial {
-      bottom: calc(var(--space-20) + env(safe-area-inset-bottom) + 22px);
-      bottom: calc(var(--space-20) + env(safe-area-inset-bottom) + clamp(16px, 4svh, 30px));
+      right: calc(var(--floating-control-mobile-edge, 12px) + env(safe-area-inset-right));
+      bottom: calc(var(--floating-control-mobile-edge, 12px) + env(safe-area-inset-bottom));
     }
   }
 

@@ -40,8 +40,8 @@
   "demoInstructions": {
     "lead": "Ask a question and get an answer grounded in the site content (with citations).",
     "bullets": [
-      "Click a quick prompt, or type your own question in the chat box.",
-      "Press Enter or click “Send” to submit.",
+      "Click a quick prompt to submit it automatically, or type your own question in the chat box.",
+      "Press Enter or click “Send” to submit custom questions.",
       "Use the citations in the response to jump to the referenced pages.",
       "Bedrock is the default live backend; choose Qwen / SageMaker only when comparing cold-start behavior."
     ]

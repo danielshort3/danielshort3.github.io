@@ -18,7 +18,7 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 
 const root = path.resolve(__dirname, '..');
 
-const SHARED_OG_IMAGE = 'https://www.danielshort.me/img/hero/head.jpg';
+const SHARED_OG_IMAGE = 'https://www.danielshort.me/img/hero/head.png';
 const SHARED_OG_IMAGE_WIDTH = '558';
 const SHARED_OG_IMAGE_HEIGHT = '558';
 const SHARED_OG_IMAGE_ALT = 'Portrait photo of Daniel Short';

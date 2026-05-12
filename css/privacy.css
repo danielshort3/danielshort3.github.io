@@ -1,17 +1,17 @@
 :root {
-  --pcz-bg: color-mix(in srgb, var(--surface, #121821) 96%, #05080d 4%);
-  --pcz-surface: color-mix(in srgb, var(--surface, #121821) 92%, #0b121a 8%);
-  --pcz-surface-soft: color-mix(in srgb, var(--surface, #121821) 88%, #111a24 12%);
-  --pcz-fg: var(--text-light, #f4f7fb);
-  --pcz-muted: var(--text-muted, rgba(244, 247, 251, 0.72));
-  --pcz-accent: var(--primary, #32bfd3);
-  --pcz-accent-ink: var(--on-primary, #04181c);
-  --pcz-link: var(--link, #7ad7e4);
-  --pcz-focus: var(--focus, #7ad7e4);
-  --pcz-border: color-mix(in srgb, var(--pcz-accent) 16%, rgba(255, 255, 255, 0.08));
-  --pcz-border-strong: color-mix(in srgb, var(--pcz-accent) 30%, rgba(255, 255, 255, 0.12));
-  --pcz-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
-  --pcz-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.24);
+  --pcz-bg: var(--brand-canvas, #f9f9fa);
+  --pcz-surface: #ffffff;
+  --pcz-surface-soft: color-mix(in srgb, var(--brand-canvas, #f9f9fa) 82%, #ffffff 18%);
+  --pcz-fg: var(--brand-midnight, #091f3b);
+  --pcz-muted: color-mix(in srgb, var(--brand-slate, #475569) 86%, var(--brand-midnight, #091f3b) 14%);
+  --pcz-accent: var(--brand-signal-blue, #005fed);
+  --pcz-accent-ink: #ffffff;
+  --pcz-link: var(--brand-signal-blue, #005fed);
+  --pcz-focus: var(--brand-action-copper, #d97706);
+  --pcz-border: color-mix(in srgb, var(--brand-midnight, #091f3b) 14%, transparent);
+  --pcz-border-strong: color-mix(in srgb, var(--brand-signal-blue, #005fed) 40%, var(--brand-midnight, #091f3b) 12%);
+  --pcz-shadow: 0 24px 64px rgba(9, 31, 59, 0.18);
+  --pcz-shadow-soft: 0 14px 34px rgba(9, 31, 59, 0.1);
 }
 
 body.consent-blocked {
@@ -50,7 +50,7 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner,
 #pcz-modal {
-  font: 16px/1.5 "Poppins", "Segoe UI", Arial, sans-serif;
+  font: 16px/1.5 "Inter", "Segoe UI", Arial, sans-serif;
   color: var(--pcz-fg);
 }
 
@@ -110,9 +110,9 @@ body[data-consent-banner="open"] .speed-dial {
   border-radius: 18px;
   background:
     linear-gradient(180deg,
-      color-mix(in srgb, var(--pcz-bg) 96%, #ffffff 4%) 0%,
-      var(--pcz-surface) 100%);
-  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.3);
+      #ffffff 0%,
+      color-mix(in srgb, var(--pcz-bg) 72%, #ffffff 28%) 100%);
+  box-shadow: 0 20px 44px rgba(9, 31, 59, 0.14);
   pointer-events: auto;
 }
 
@@ -157,8 +157,8 @@ body[data-consent-banner="open"] .speed-dial {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: color-mix(in srgb, var(--pcz-fg) 12%, transparent);
+  background: color-mix(in srgb, var(--pcz-fg) 4%, #ffffff 96%);
   color: var(--pcz-muted);
   cursor: pointer;
   transform: translateY(-50%);
@@ -169,7 +169,7 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-banner .pcz-close:focus-visible {
   transform: translateY(calc(-50% - 1px));
   border-color: var(--pcz-border-strong);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--pcz-accent) 8%, #ffffff 92%);
   color: var(--pcz-fg);
 }
 
@@ -177,7 +177,7 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-modal .pcz-panel-close:focus-visible {
   transform: translateY(-1px);
   border-color: var(--pcz-border-strong);
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--pcz-accent) 8%, #ffffff 92%);
   color: var(--pcz-fg);
 }
 
@@ -185,10 +185,10 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-modal .pcz-save-preferences {
   min-height: 40px;
   padding: 9px 14px;
-  border-radius: 999px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: 750;
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
@@ -204,18 +204,16 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-primary,
 #pcz-modal .pcz-save-preferences {
-  border-color: transparent;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--pcz-accent) 92%, #ffffff 8%) 0%,
-    color-mix(in srgb, var(--pcz-accent) 82%, #0c4f5a 18%) 100%);
-  color: var(--pcz-accent-ink);
-  box-shadow: 0 10px 22px rgba(50, 191, 211, 0.18);
+  border-color: var(--brand-signal-blue, var(--pcz-accent));
+  background: var(--brand-signal-blue, var(--pcz-accent));
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(0, 95, 237, 0.18);
 }
 
 #pcz-banner .pcz-secondary {
-  border-color: var(--pcz-border);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--pcz-fg);
+  border-color: color-mix(in srgb, var(--brand-midnight, #091f3b) 16%, transparent);
+  background: #ffffff;
+  color: var(--brand-midnight, var(--pcz-fg));
 }
 
 #pcz-banner .pcz-link {
@@ -238,13 +236,22 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-secondary:hover,
 #pcz-banner .pcz-secondary:focus-visible {
-  border-color: var(--pcz-border-strong);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: color-mix(in srgb, var(--brand-signal-blue, var(--pcz-accent)) 34%, transparent);
+  background: color-mix(in srgb, var(--brand-signal-blue, var(--pcz-accent)) 7%, #ffffff 93%);
+}
+
+#pcz-banner .pcz-primary:hover,
+#pcz-banner .pcz-primary:focus-visible,
+#pcz-modal .pcz-save-preferences:hover,
+#pcz-modal .pcz-save-preferences:focus-visible {
+  border-color: var(--brand-deep-blue, var(--pcz-accent));
+  background: var(--brand-deep-blue, var(--pcz-accent));
+  color: #ffffff;
 }
 
 #pcz-banner .pcz-link:hover,
 #pcz-banner .pcz-link:focus-visible {
-  color: var(--pcz-fg);
+  color: var(--brand-deep-blue, var(--pcz-fg));
 }
 
 #pcz-modal {
@@ -280,8 +287,8 @@ body[data-consent-banner="open"] .speed-dial {
   border-radius: 28px;
   background:
     linear-gradient(180deg,
-      color-mix(in srgb, var(--pcz-bg) 96%, #ffffff 4%) 0%,
-      var(--pcz-surface) 100%);
+      #ffffff 0%,
+      color-mix(in srgb, var(--pcz-bg) 74%, #ffffff 26%) 100%);
   box-shadow: var(--pcz-shadow);
   outline: none;
   transform: translateY(26px) scale(0.98);
@@ -319,8 +326,8 @@ body[data-consent-banner="open"] .speed-dial {
   display: grid;
   place-items: center;
   border-radius: 14px;
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: color-mix(in srgb, var(--pcz-fg) 12%, transparent);
+  background: color-mix(in srgb, var(--pcz-fg) 4%, #ffffff 96%);
   color: var(--pcz-muted);
   cursor: pointer;
 }
@@ -337,9 +344,9 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-modal .pcz-gpc-notice {
   padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--pcz-accent) 22%, rgba(255, 255, 255, 0.08));
+  border: 1px solid color-mix(in srgb, var(--pcz-accent) 22%, transparent);
   border-radius: 16px;
-  background: rgba(50, 191, 211, 0.08);
+  background: color-mix(in srgb, var(--pcz-accent) 7%, #ffffff 93%);
 }
 
 #pcz-modal .pref-grid {
@@ -351,11 +358,11 @@ body[data-consent-banner="open"] .speed-dial {
   display: grid;
   gap: 0;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--pcz-fg) 10%, transparent);
   border-radius: 18px;
   background: linear-gradient(180deg,
-    rgba(255, 255, 255, 0.035) 0%,
-    rgba(255, 255, 255, 0.02) 100%);
+    #ffffff 0%,
+    color-mix(in srgb, var(--pcz-bg) 64%, #ffffff 36%) 100%);
   box-shadow: var(--pcz-shadow-soft);
 }
 
@@ -395,10 +402,15 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-modal .pref-toggle[aria-pressed="true"] {
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--pcz-accent) 90%, #ffffff 10%) 0%,
-    color-mix(in srgb, var(--pcz-accent) 82%, #0c4f5a 18%) 100%);
+    var(--pcz-accent) 0%,
+    var(--brand-deep-blue, #0145c8) 100%);
   color: var(--pcz-accent-ink);
   border-color: transparent;
+}
+
+#pcz-modal .pref-toggle[aria-pressed="true"] .pref-state {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 #pcz-modal .pref-toggle[disabled] {
@@ -407,15 +419,15 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 #pcz-modal .pref-option-locked {
-  border-color: color-mix(in srgb, var(--pcz-accent) 16%, rgba(255, 255, 255, 0.08));
+  border-color: color-mix(in srgb, var(--pcz-accent) 16%, transparent);
 }
 
 #pcz-modal .pref-status-row {
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid color-mix(in srgb, var(--pcz-fg) 9%, transparent);
   background:
     linear-gradient(180deg,
-      color-mix(in srgb, var(--pcz-surface-soft) 92%, #ffffff 8%) 0%,
-      color-mix(in srgb, var(--pcz-surface) 96%, #000000 4%) 100%);
+      #ffffff 0%,
+      var(--pcz-surface-soft) 100%);
   cursor: default;
 }
 
@@ -446,7 +458,7 @@ body[data-consent-banner="open"] .speed-dial {
   min-height: 30px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--pcz-accent) 10%, #ffffff 90%);
   color: inherit;
   font-size: 0.76rem;
   font-weight: 700;
@@ -455,14 +467,14 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 #pcz-modal .pref-toggle:not([aria-pressed="true"]) .pref-state {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--pcz-fg) 6%, #ffffff 94%);
   color: var(--pcz-muted);
 }
 
 #pcz-modal .pref-status-row .pref-state {
   min-width: 88px;
-  background: rgba(50, 191, 211, 0.14);
-  color: var(--pcz-fg);
+  background: color-mix(in srgb, var(--pcz-accent) 12%, #ffffff 88%);
+  color: var(--brand-deep-blue, var(--pcz-fg));
   font-size: 0.82rem;
   letter-spacing: 0.01em;
   text-transform: none;
@@ -475,8 +487,8 @@ body[data-consent-banner="open"] .speed-dial {
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: color-mix(in srgb, var(--pcz-fg) 10%, transparent);
+  background: #ffffff;
   color: var(--pcz-muted);
   cursor: pointer;
   font-size: 1rem;
@@ -489,7 +501,7 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-modal .pref-info[aria-expanded="true"] {
   transform: translateY(-1px);
   border-color: var(--pcz-border-strong);
-  background: rgba(50, 191, 211, 0.1);
+  background: color-mix(in srgb, var(--pcz-accent) 8%, #ffffff 92%);
   color: var(--pcz-fg);
 }
 
@@ -521,7 +533,7 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-modal .pref-description {
   margin: 0;
   padding: 12px 0 2px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid color-mix(in srgb, var(--pcz-fg) 10%, transparent);
   color: var(--pcz-muted);
   font-size: 0.92rem;
   line-height: 1.55;
@@ -552,33 +564,42 @@ body[data-consent-banner="open"] .speed-dial {
   #pcz-banner .pcz-card {
     grid-template-columns: 1fr;
     align-items: start;
-    gap: 12px;
-    padding: 14px 58px 14px 16px;
+    gap: 9px;
+    padding: 12px 52px 12px 14px;
+    border-radius: 14px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
   }
 
   #pcz-banner .pcz-actions {
     justify-content: flex-start;
+  }
+
+  #pcz-banner .pcz-btn {
+    min-height: 36px;
+    padding: 8px 12px;
   }
 }
 
 @media (max-width: 640px) {
   #pcz-banner {
     padding:
-      10px
-      max(12px, env(safe-area-inset-right))
-      max(10px, env(safe-area-inset-bottom))
-      max(12px, env(safe-area-inset-left));
+      8px
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
   }
 
   #pcz-banner .pcz-card {
-    border-radius: 16px;
-    gap: 10px;
-    padding: 12px 52px 12px 14px;
+    border-radius: 12px;
+    gap: 8px;
+    padding: 10px 42px 10px 12px;
+    border-color: color-mix(in srgb, var(--pcz-accent) 12%, rgba(255, 255, 255, 0.08));
   }
 
   #pcz-banner .pcz-body {
     max-width: none;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
   }
 
   #pcz-banner .pcz-actions {
@@ -590,35 +611,52 @@ body[data-consent-banner="open"] .speed-dial {
 
   #pcz-banner .pcz-btn {
     width: 100%;
-    min-height: 38px;
+    min-height: 34px;
+    padding: 7px 9px;
+    font-size: 0.82rem;
     justify-content: center;
     text-align: center;
   }
 
   #pcz-banner .pcz-close {
-    right: 10px;
-    width: 34px;
-    height: 34px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
   }
 
   #pcz-modal {
     align-items: end;
-    padding: 10px;
+    padding: 8px;
   }
 
   #pcz-modal .pcz-panel {
     width: 100%;
-    max-height: min(92vh, 100%);
-    padding: 18px;
-    border-radius: 22px;
+    max-height: min(90svh, 100%);
+    padding: 14px;
+    border-radius: 16px;
   }
 
   #pcz-modal .pref-option {
-    padding: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: none;
+  }
+
+  #pcz-modal .pref-grid {
+    gap: 8px;
+  }
+
+  #pcz-modal .pref-toggle,
+  #pcz-modal .pref-status-row {
+    min-height: 52px;
+    padding: 10px 12px;
+    border-radius: 10px;
   }
 
   #pcz-modal .pref-info {
     justify-self: end;
+    width: 36px;
+    height: 36px;
   }
 }
 

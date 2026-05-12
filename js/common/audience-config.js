@@ -35,9 +35,9 @@
         'ufoDashboard'
       ],
       portfolioTitle: 'Analytics Portfolio',
-      portfolioDescription: 'Dashboarding, KPI design, SQL workflows, forecasting, and decision-ready reporting.',
+      portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.',
       resumeNavTitle: 'Analytics Resume',
-      resumeNavSubtitle: 'Reporting, BI, SQL, and Tableau',
+      resumeNavSubtitle: 'BI, reporting, SQL, Tableau, and automation',
       resumePreviewSubtitle: 'Open the analytics PDF preview',
       resumeDownloadSubtitle: 'Download the analytics PDF',
       brandNavPrimary: 'Data Analytics'

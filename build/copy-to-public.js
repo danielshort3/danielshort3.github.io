@@ -43,9 +43,38 @@ function log(msg){
   process.stdout.write(msg + '\n');
 }
 
+function sleepSync(ms){
+  const waitMs = Math.max(0, Number(ms) || 0);
+  if (!waitMs) return;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, waitMs);
+}
+
+function removeWithRetries(target){
+  const transientCodes = new Set(['EBUSY', 'ENOTEMPTY', 'EPERM']);
+  let lastError = null;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      fs.rmSync(target, {
+        recursive: true,
+        force: true,
+        maxRetries: 3,
+        retryDelay: 100
+      });
+      return;
+    } catch (err) {
+      lastError = err;
+      if (!transientCodes.has(err && err.code)) throw err;
+      sleepSync(120 * (attempt + 1));
+    }
+  }
+  throw lastError;
+}
+
 function ensureCleanDir(dir){
-  fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
+  fs.readdirSync(dir).forEach((entry) => {
+    removeWithRetries(path.join(dir, entry));
+  });
 }
 
 function copyFile(src, dest){
@@ -95,12 +124,14 @@ function isSafeDistArtifactName(name) {
 
 function collectDistArtifacts(cssManifest, jsManifest) {
   const artifacts = new Set([
+    'ai-digest-manifest.json',
     'styles.css',
     'styles-tools.css',
     'styles-manifest.json',
     'scripts-manifest.json',
     'utm-batch-builder.js',
     'utm-batch-builder.worker.js',
+    'chatbot-knowledge.json',
     'search-index.json',
     'shortlinks-destinations.json'
   ]);
@@ -354,6 +385,7 @@ function copyStatic(){
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
   copyDistArtifacts(cssManifest, jsManifest);
+  copyDir(path.join(root, 'dist', 'ai-pages'), path.join(outDir, 'dist', 'ai-pages'));
   pruneRetiredPublicArtifacts();
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
