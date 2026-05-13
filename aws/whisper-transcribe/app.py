@@ -26,7 +26,8 @@ NUM_BEAMS = int(os.getenv("NUM_BEAMS", "1"))
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "256"))
 
 RESPONSE_HEADERS = {
-  "Content-Type": "application/json"
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store"
 }
 
 _MODEL = None
@@ -146,6 +147,33 @@ def parse_content_type(value):
   if not raw:
     return ""
   return raw.split(";", 1)[0].strip().lower()
+
+
+def health_payload():
+  return {
+    "status": "ok",
+    "service": "whisper-transcribe",
+    "model": MODEL_ID,
+    "model_loaded": _MODEL is not None,
+    "target_sample_rate": TARGET_SAMPLE_RATE,
+    "max_audio_seconds": MAX_AUDIO_SECONDS,
+    "max_part_minutes": MAX_PART_MINUTES,
+    "default_part_minutes": DEFAULT_PART_MINUTES,
+    "max_audio_bytes": MAX_AUDIO_BYTES,
+    "max_direct_upload_bytes": MAX_DIRECT_UPLOAD_BYTES,
+    "max_upload_bytes": MAX_UPLOAD_BYTES,
+    "uploads_enabled": bool(UPLOAD_BUCKET)
+  }
+
+
+def warmup_response(start):
+  load_whisper()
+  return json_response(200, {
+    **health_payload(),
+    "status": "ready",
+    "warmed": True,
+    "duration_ms": int((time.time() - start) * 1000)
+  })
 
 
 def load_whisper():
@@ -654,22 +682,17 @@ def handler(event, context):
     return {"statusCode": 204}
 
   if method == "GET":
-    return json_response(200, {
-      "status": "ok",
-      "model": MODEL_ID,
-      "model_loaded": _MODEL is not None,
-      "target_sample_rate": TARGET_SAMPLE_RATE,
-      "max_audio_seconds": MAX_AUDIO_SECONDS,
-      "max_part_minutes": MAX_PART_MINUTES,
-      "default_part_minutes": DEFAULT_PART_MINUTES,
-      "max_audio_bytes": MAX_DIRECT_UPLOAD_BYTES,
-      "max_direct_upload_bytes": MAX_DIRECT_UPLOAD_BYTES,
-      "max_upload_bytes": MAX_UPLOAD_BYTES,
-      "uploads_enabled": bool(UPLOAD_BUCKET)
-    })
+    return json_response(200, health_payload())
 
   if method != "POST":
     return json_response(405, {"error": "Method not allowed."})
+
+  if path == "/warmup":
+    try:
+      return warmup_response(start)
+    except Exception as exc:
+      print("Warmup error", exc)
+      return json_response(500, {"error": "Warm-up failed"})
 
   if path == "/presign":
     payload = parse_body(event)

@@ -12,6 +12,10 @@ GRID_SIZE = int(os.getenv("GRID_SIZE", "5"))
 CLUE_MAX_LEN = int(os.getenv("CLUE_MAX_LEN", "3"))
 CLUE_VOCAB = int(os.getenv("CLUE_VOCAB", "5"))
 CHECKPOINT_PATH = os.path.join(os.path.dirname(__file__), "models", "checkpoint_52000.pth")
+RESPONSE_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store"
+}
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
@@ -111,6 +115,51 @@ class PolicyNetwork(nn.Module):
 
 _MODEL = None
 _MODEL_META = {}
+
+
+def response(status_code, body=None):
+  return {
+    "statusCode": status_code,
+    "headers": RESPONSE_HEADERS,
+    "body": json.dumps(body or {})
+  }
+
+
+def request_path(event):
+  raw = (
+    event.get("rawPath")
+    or event.get("path")
+    or event.get("requestContext", {}).get("http", {}).get("path")
+    or "/"
+  )
+  path = "/" + str(raw).strip().lstrip("/")
+  return path.rstrip("/") or "/"
+
+
+def health_response():
+  return response(200, {
+    "status": "ok",
+    "service": "nonogram-solver",
+    "model_loaded": _MODEL is not None,
+    "grid": GRID_SIZE
+  })
+
+
+def warmup_response(start):
+  model, meta = load_model()
+  clue_max_len = meta["clue_max_len"]
+  state = torch.full((1, GRID_SIZE, GRID_SIZE), -1, dtype=torch.float32)
+  clues = torch.zeros((1, GRID_SIZE, clue_max_len), dtype=torch.long)
+  with torch.no_grad():
+    model(state, clues, clues).cpu()
+  return response(200, {
+    "status": "ready",
+    "service": "nonogram-solver",
+    "warmed": True,
+    "model_loaded": _MODEL is not None,
+    "grid": GRID_SIZE,
+    "duration_ms": int((time.time() - start) * 1000)
+  })
 
 
 def load_model():
@@ -246,26 +295,24 @@ def handler(event, context):
     or event.get("httpMethod")
     or "GET"
   )
-  response_headers = {
-    "Content-Type": "application/json"
-  }
+  path = request_path(event)
 
   if method == "OPTIONS":
     return {
       "statusCode": 204
     }
 
+  if method == "GET" and path in ("/", "/health"):
+    return health_response()
+
+  if path == "/warmup" and method in ("GET", "POST"):
+    try:
+      return warmup_response(start)
+    except Exception as exc:
+      return response(500, { "error": str(exc) })
+
   if method == "GET":
-    model_loaded = _MODEL is not None
-    return {
-      "statusCode": 200,
-      "headers": response_headers,
-      "body": json.dumps({
-        "status": "ok",
-        "model_loaded": model_loaded,
-        "grid": GRID_SIZE
-      })
-    }
+    return health_response()
 
   payload = parse_body(event)
   seed = payload.get("seed")
@@ -279,16 +326,6 @@ def handler(event, context):
     result = solve_nonogram(payload.get("solution"), seed=seed)
     duration_ms = int((time.time() - start) * 1000)
     result["duration_ms"] = duration_ms
-    return {
-      "statusCode": 200,
-      "headers": response_headers,
-      "body": json.dumps(result)
-    }
+    return response(200, result)
   except Exception as exc:
-    return {
-      "statusCode": 500,
-      "headers": response_headers,
-      "body": json.dumps({
-        "error": str(exc)
-      })
-    }
+    return response(500, { "error": str(exc) })

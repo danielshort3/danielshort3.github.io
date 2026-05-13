@@ -753,6 +753,8 @@
             listCandidates,
             postWithFallback,
             rememberEndpoint,
+            healthJson,
+            warmupJson,
             retryRequest
         } = window.DemoAws;
         const endpointConfig = {
@@ -766,7 +768,7 @@
             factor: 1.8,
             maxDelayMs: 10000
         };
-        const candidates = () => listCandidates(endpointConfig);
+        const candidates = () => listCandidates(endpointConfig).filter(Boolean);
         const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict', 'classify', ''], payload);
 
         /* ---------- Stepper (same structure/behavior as chatbot) ---------- */
@@ -1198,6 +1200,17 @@
             };
             let lastErr = null;
             for (const base of bases) {
+                try {
+                    await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+                    await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+                    rememberEndpoint(base, STORAGE_KEY);
+                    serverReady = true;
+                    setHealth('ok', 'Ready');
+                    updateClassifyState();
+                    return;
+                } catch (err) {
+                    lastErr = err;
+                }
                 try {
                     await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
                     rememberEndpoint(base, STORAGE_KEY);

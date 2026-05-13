@@ -29,7 +29,7 @@
   const TRANSCRIPT_MAX_TURNS = 8;
   const DISPLAY_TRANSCRIPT_MAX_CHARS = 6000;
   const HISTORY_TRANSCRIPT_MAX_CHARS = 700;
-  const UI_VERSION = 'question-first-2026-05-12';
+  const UI_VERSION = 'fresh-followups-2026-05-12';
   const API_PATH = '/api/chatbot';
   const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   const AUDIENCE_CONFIG = {
@@ -72,7 +72,7 @@
       prompts: [
         ['DMO fit', 'Why is Daniel a strong fit for a destination analytics role?'],
         ['Visitor data', 'Which projects show visitor or stakeholder analytics experience?'],
-        ['Impact proof', "What tourism outcomes should a recruiter notice in Daniel's work?"]
+        ['Impact proof', "What tourism outcomes does Daniel's work show?"]
       ]
     }
   };
@@ -82,6 +82,10 @@
   ];
   const storedSessionState = readSessionState();
   const initialAudience = pageAudience() || normalizeAudience(storedSessionState.audience);
+  const storedTranscript = normalizeTranscript(storedSessionState.transcript);
+  const initialStarterPromptsHidden = storedSessionState.starterPromptsHidden === true ||
+    storedSessionState.chipsHidden === true ||
+    storedTranscript.some((turn) => turn.role === 'user');
 
   const state = {
     open: false,
@@ -94,8 +98,8 @@
     conversationId: getConversationId(),
     challengeToken: '',
     audience: initialAudience,
-    chipsHidden: storedSessionState.chipsHidden === true,
-    transcript: normalizeTranscript(storedSessionState.transcript),
+    starterPromptsHidden: initialStarterPromptsHidden,
+    transcript: storedTranscript,
     pendingFollowupContext: null,
     retryTimer: 0,
     nudgeTimer: 0,
@@ -115,7 +119,7 @@
   root.dataset.keyboard = 'false';
   root.dataset.nudge = 'false';
   root.dataset.audience = state.audience || 'general';
-  root.dataset.chips = state.chipsHidden ? 'hidden' : 'visible';
+  root.dataset.chips = state.starterPromptsHidden ? 'hidden' : 'visible';
   root.innerHTML = `
     <button class="site-chatbot__launcher" type="button" aria-label="Open website chatbot" aria-haspopup="dialog" aria-expanded="false">
       <span class="site-chatbot__launcher-icon" aria-hidden="true">
@@ -246,7 +250,8 @@
   quickPrompts.addEventListener('click', (event) => {
     const button = event.target.closest('[data-chatbot-prompt]');
     if (!button || button.disabled) return;
-    hideAllChips();
+    hideStarterPrompts();
+    clearFollowups();
     submitPromptText(button.dataset.chatbotPrompt || button.textContent || '');
   });
   input.addEventListener('keydown', (event) => {
@@ -302,7 +307,8 @@
         ...prior,
         uiVersion: UI_VERSION,
         audience: state.audience || '',
-        chipsHidden: state.chipsHidden === true,
+        starterPromptsHidden: state.starterPromptsHidden === true,
+        chipsHidden: state.starterPromptsHidden === true,
         transcript: state.transcript.slice(-TRANSCRIPT_MAX_TURNS),
         open: state.open === true,
         expanded: state.expanded === true,
@@ -314,12 +320,48 @@
 
   function normalizeTranscript(value) {
     return (Array.isArray(value) ? value : [])
-      .map((turn) => ({
-        role: turn && turn.role === 'assistant' ? 'assistant' : 'user',
-        text: normalizeTranscriptMarkdown(turn && turn.text, DISPLAY_TRANSCRIPT_MAX_CHARS)
-      }))
+      .map((turn) => {
+        const safeRole = turn && turn.role === 'assistant' ? 'assistant' : 'user';
+        const normalized = {
+          role: safeRole,
+          text: normalizeTranscriptMarkdown(turn && turn.text, DISPLAY_TRANSCRIPT_MAX_CHARS)
+        };
+        if (safeRole === 'assistant') {
+          normalized.sources = normalizeStoredLinks(turn && turn.sources, 5);
+          normalized.followups = normalizeFollowups(turn && turn.followups);
+          normalized.previousQuestion = normalizeTranscriptMarkdown(turn && turn.previousQuestion, 300);
+        }
+        return normalized;
+      })
       .filter((turn) => turn.text)
       .slice(-TRANSCRIPT_MAX_TURNS);
+  }
+
+  function normalizeStoredLinks(value, maxItems = 5) {
+    const seen = new Set();
+    return (Array.isArray(value) ? value : [])
+      .map((source) => {
+        const rawUrl = source && (source.url || source.href) ? String(source.url || source.href) : '';
+        if (!rawUrl) return null;
+        let url = '';
+        try {
+          const parsed = new URL(rawUrl, window.location.origin);
+          if (!/^https?:$/.test(parsed.protocol)) return null;
+          url = parsed.pathname === rawUrl ? rawUrl : `${parsed.pathname}${parsed.search || ''}${parsed.hash || ''}`;
+          if (/^https?:\/\//i.test(rawUrl)) url = parsed.href;
+        } catch {
+          return null;
+        }
+        const title = String(source.title || rawUrl).replace(/\s+/g, ' ').trim().slice(0, 80);
+        const reason = String(source.reason || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+        return { title, url, reason };
+      })
+      .filter((source) => {
+        if (!source || seen.has(source.url)) return false;
+        seen.add(source.url);
+        return true;
+      })
+      .slice(0, maxItems);
   }
 
   function normalizeTranscriptMarkdown(value, maxChars = DISPLAY_TRANSCRIPT_MAX_CHARS) {
@@ -386,14 +428,14 @@
       if (config) {
         return [
           ['Project fit', `How does this project support Daniel's ${config.roleLabel} fit?`],
-          ['Related work', `Show related ${config.roleLabel} projects`],
-          ['Best resume', `Which resume should I use for a ${config.roleLabel} role?`]
+          ['Skill proof', `What ${config.roleLabel} skills does Daniel demonstrate in this project?`],
+          ['Team impact', "How would Daniel's work help a team?"]
         ];
       }
       return [
-        ['Summarize this project', 'Summarize this project'],
-        ['Show similar projects', 'Show similar projects'],
-        ['Where is the resume?', 'Where is the best resume?']
+        ['Project fit', "How does this project support Daniel's professional fit?"],
+        ['Skill proof', 'What skills does Daniel demonstrate in this project?'],
+        ['Team impact', "How would Daniel's work help a team?"]
       ];
     }
     if (config && (pageId === 'portfolio' || pageId === 'resume-analytics' || pageId === 'resume-data-science' || pageId === 'resume-tourism' || pageId === 'analytics' || pageId === 'data-science' || pageId === 'tourism')) {
@@ -442,22 +484,28 @@
   }
 
   function syncQuickPromptVisibility() {
-    quickPrompts.hidden = state.chipsHidden;
-    root.dataset.chips = state.chipsHidden ? 'hidden' : 'visible';
+    quickPrompts.hidden = state.starterPromptsHidden;
+    root.dataset.chips = state.starterPromptsHidden ? 'hidden' : 'visible';
   }
 
-  function hideAllChips() {
-    if (state.chipsHidden) return;
-    state.chipsHidden = true;
+  function hideStarterPrompts() {
+    if (state.starterPromptsHidden) return;
+    state.starterPromptsHidden = true;
     syncQuickPromptVisibility();
-    clearFollowups();
     persistSessionState();
-    trackChatbotEvent('chatbot_chips_hidden', { audience: state.audience || 'general' });
+    trackChatbotEvent('chatbot_starter_prompts_hidden', { audience: state.audience || 'general' });
   }
 
   function restoreTranscriptMessages() {
     state.transcript.forEach((turn) => {
-      appendMessage(turn.role, turn.text);
+      if (turn.role === 'assistant') {
+        appendMessage('assistant', turn.text, turn.sources || [], [], {
+          followups: turn.followups || [],
+          previousQuestion: turn.previousQuestion || ''
+        });
+        return;
+      }
+      appendMessage('user', turn.text);
     });
   }
 
@@ -484,7 +532,7 @@
     state.transcript = [];
     state.pendingFollowupContext = null;
     state.challengeToken = '';
-    state.chipsHidden = false;
+    state.starterPromptsHidden = false;
     input.value = '';
     messages.replaceChildren();
     clearChallenge();
@@ -500,6 +548,8 @@
     setStatus('');
     persistSessionState({
       transcript: [],
+      starterPromptsHidden: false,
+      chipsHidden: false,
       restoreOpen: false,
       restoreUntil: 0
     });
@@ -738,7 +788,7 @@
     const followupContext = state.pendingFollowupContext;
     const priorTranscript = apiTranscript(state.transcript);
     state.pendingFollowupContext = null;
-    hideAllChips();
+    hideStarterPrompts();
     clearFollowups();
     appendUser(message);
     rememberTurn('user', message);
@@ -766,7 +816,13 @@
       const data = await submitStreamingRequest(payload, assistant, message);
       if (!data) return;
       state.challengeToken = '';
-      if (data.answer) rememberTurn('assistant', data.answer);
+      if (data.answer) {
+        rememberTurn('assistant', data.answer, {
+          sources: data.sources || [],
+          followups: data.followups || [],
+          previousQuestion: message
+        });
+      }
       setStatus('');
     } catch (err) {
       if (err && err.name === 'AbortError') {
@@ -1012,7 +1068,7 @@
     }
     item.appendChild(bubble);
 
-    if (role === 'assistant') renderAssistantExtras(item, sources, suggestedLinks, options.followups || [], options.previousQuestion || '');
+    if (role === 'assistant') renderAssistantExtras(item, sources, suggestedLinks, options.followups || [], options.previousQuestion || '', text);
 
     messages.appendChild(item);
     messages.scrollTop = messages.scrollHeight;
@@ -1064,7 +1120,7 @@
       item.appendChild(sourceList);
     }
 
-    const cleanFollowups = state.chipsHidden ? [] : normalizeFollowups(followups);
+    const cleanFollowups = normalizeFollowups(followups);
     if (cleanFollowups.length) {
       const wrap = document.createElement('div');
       wrap.className = 'site-chatbot__followups';
@@ -1074,7 +1130,8 @@
         button.textContent = text;
         button.disabled = state.sending || state.locked;
         button.addEventListener('click', () => {
-          hideAllChips();
+          hideStarterPrompts();
+          clearFollowups();
           submitPromptText(text, {
             source: 'recommended_followup',
             prompt: text,
@@ -1314,11 +1371,17 @@
     messages.querySelectorAll('.site-chatbot__followups').forEach((node) => node.remove());
   }
 
-  function rememberTurn(role, text) {
+  function rememberTurn(role, text, metadata = {}) {
     const safeRole = role === 'assistant' ? 'assistant' : 'user';
     const safeText = normalizeTranscriptMarkdown(text);
     if (!safeText) return;
-    state.transcript.push({ role: safeRole, text: safeText.slice(0, DISPLAY_TRANSCRIPT_MAX_CHARS) });
+    const turn = { role: safeRole, text: safeText.slice(0, DISPLAY_TRANSCRIPT_MAX_CHARS) };
+    if (safeRole === 'assistant') {
+      turn.sources = normalizeStoredLinks(metadata.sources, 5);
+      turn.followups = normalizeFollowups(metadata.followups);
+      turn.previousQuestion = normalizeTranscriptMarkdown(metadata.previousQuestion, 300);
+    }
+    state.transcript.push(turn);
     state.transcript = state.transcript.slice(-TRANSCRIPT_MAX_TURNS);
     persistSessionState();
   }

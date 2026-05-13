@@ -493,8 +493,8 @@
       listCandidates,
       postWithFallback,
       rememberEndpoint,
-      getJson,
-      normalizeBase,
+      healthJson,
+      warmupJson,
       retryRequest
     } = window.DemoAws;
     const endpointConfig = {
@@ -507,7 +507,7 @@
       factor: 1.8,
       maxDelayMs: 10000
     };
-    const candidates = () => listCandidates(endpointConfig);
+    const candidates = () => listCandidates(endpointConfig).filter(Boolean);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
 
 	    const gridEl = document.getElementById('grid');
@@ -863,9 +863,31 @@
         return;
       }
       let lastErr = null;
+      const warmPayload = {
+        grid: TARGET_GRID,
+        mines: TARGET_MINES,
+        max_steps: 1
+      };
       for (const base of endpoints) {
         try {
-          await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
+          await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+          await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          setControlsEnabled(true);
+          if (!initialLoadTriggered) {
+            initialLoadTriggered = true;
+            await loadPuzzle();
+          } else {
+            setStatus('Ready. Generate a puzzle to begin.');
+          }
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+        try {
+          await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');

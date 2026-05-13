@@ -11,7 +11,8 @@ import torch.nn as nn
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model_3.pth")
 RESPONSE_HEADERS = {
-  "Content-Type": "application/json"
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store"
 }
 
 torch.set_grad_enabled(False)
@@ -95,6 +96,46 @@ def parse_body(event):
   return {}
 
 
+def response(status_code, body=None):
+  return {
+    "statusCode": status_code,
+    "headers": RESPONSE_HEADERS,
+    "body": json.dumps(body or {})
+  }
+
+
+def request_path(event):
+  raw = (
+    event.get("rawPath")
+    or event.get("path")
+    or event.get("requestContext", {}).get("http", {}).get("path")
+    or "/"
+  )
+  path = "/" + str(raw).strip().lstrip("/")
+  return path.rstrip("/") or "/"
+
+
+def health_response():
+  return response(200, {
+    "status": "ok",
+    "service": "handwriting-rating",
+    "model_loaded": _MODEL is not None
+  })
+
+
+def warmup_response(start):
+  model = load_model()
+  with torch.no_grad():
+    model(torch.zeros(1, 1, 28, 28, dtype=torch.float32)).cpu()
+  return response(200, {
+    "status": "ready",
+    "service": "handwriting-rating",
+    "warmed": True,
+    "model_loaded": _MODEL is not None,
+    "duration_ms": int((time.time() - start) * 1000)
+  })
+
+
 def decode_image(b64_str):
   if not b64_str or not isinstance(b64_str, str):
     return None
@@ -158,6 +199,7 @@ def handler(event, context):
     or event.get("httpMethod")
     or "GET"
   )
+  path = request_path(event)
 
   if method == "OPTIONS":
     return {
@@ -165,15 +207,17 @@ def handler(event, context):
       "headers": headers_out
     }
 
+  if method == "GET" and path in ("/", "/health"):
+    return health_response()
+
+  if path == "/warmup" and method in ("GET", "POST"):
+    try:
+      return warmup_response(start)
+    except Exception as exc:
+      return response(500, { "error": str(exc) })
+
   if method == "GET":
-    return {
-      "statusCode": 200,
-      "headers": headers_out,
-      "body": json.dumps({
-        "status": "ok",
-        "model_loaded": _MODEL is not None
-      })
-    }
+    return health_response()
 
   payload = parse_body(event)
   b64 = (
@@ -183,31 +227,15 @@ def handler(event, context):
     or payload.get("data")
   )
   if not b64:
-    return {
-      "statusCode": 400,
-      "headers": headers_out,
-      "body": json.dumps({ "error": "Missing base64 image payload." })
-    }
+    return response(400, { "error": "Missing base64 image payload." })
 
   img = decode_image(b64)
   if img is None:
-    return {
-      "statusCode": 400,
-      "headers": headers_out,
-      "body": json.dumps({ "error": "Invalid image payload." })
-    }
+    return response(400, { "error": "Invalid image payload." })
 
   try:
     result = score_image(img)
     result["duration_ms"] = int((time.time() - start) * 1000)
-    return {
-      "statusCode": 200,
-      "headers": headers_out,
-      "body": json.dumps(result)
-    }
+    return response(200, result)
   except Exception as exc:
-    return {
-      "statusCode": 500,
-      "headers": headers_out,
-      "body": json.dumps({ "error": str(exc) })
-    }
+    return response(500, { "error": str(exc) })

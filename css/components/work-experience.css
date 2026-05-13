@@ -24,27 +24,27 @@
   }
 
   .work-card{
-    background:color-mix(in srgb,var(--surface) 94%, #010306 6%);
-    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
-    border-radius:18px;
+    background:#ffffff;
+    border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 12%, transparent);
+    border-radius:10px;
     padding:22px;
     display:flex;
     flex-direction:column;
     gap:12px;
-    box-shadow:0 20px 38px rgba(0,0,0,.28);
+    box-shadow:var(--shadow-sm, 0 2px 8px rgba(9,31,59,.08));
   }
 
 	  .work-logo-shell{
 	    height:86px;
 	    min-width:86px;
 	    padding:0 18px;
-	    border-radius:18px;
+	    border-radius:8px;
 	    background:var(--logo-tile-bg-company);
-	    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+	    border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 12%, transparent);
 	    display:inline-flex;
 	    align-items:center;
 	    justify-content:center;
-	    box-shadow:0 8px 20px rgba(0,0,0,.3);
+	    box-shadow:none;
 	    align-self:center;
 	    max-width:100%;
 	  }

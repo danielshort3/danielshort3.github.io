@@ -1,0 +1,44 @@
+/* Subtle homepage scroll polish */
+@layer components {
+  body.home-pattern-page main > section:is(
+    #project-examples,
+    #selected-outcomes,
+    #transferability,
+    #work-experience,
+    #about-me,
+    #certifications,
+    #cta
+  ) {
+    scroll-margin-top:calc(var(--nav-height, 80px) + 18px);
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (min-width:769px) and (prefers-reduced-motion:no-preference) {
+      body.home-pattern-page main > section:is(
+        #project-examples,
+        #selected-outcomes,
+        #transferability,
+        #work-experience,
+        #about-me,
+        #certifications,
+        #cta
+      ) > :is(.wrapper, .cert-band-inner) {
+        animation:home-section-enter both ease-out;
+        animation-timeline:view(block);
+        animation-range:entry 6% cover 28%;
+        will-change:opacity, transform;
+      }
+    }
+  }
+
+  @keyframes home-section-enter {
+    from {
+      opacity:.78;
+      transform:translateY(14px);
+    }
+    to {
+      opacity:1;
+      transform:none;
+    }
+  }
+}

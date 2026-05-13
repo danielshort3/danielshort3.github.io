@@ -2,11 +2,13 @@
 @layer components {
   .games-hero{
     padding:clamp(3.4rem,7vh,4.8rem) 0;
-    background:linear-gradient(140deg,
-      color-mix(in srgb,var(--surface) 92%, #040910 8%) 0%,
-      color-mix(in srgb,var(--surface) 80%, #040910 20%) 100%);
-    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    box-shadow:0 22px 48px rgba(0,0,0,.32);
+    background:
+      linear-gradient(90deg, rgba(249,249,250,.98) 0%, rgba(249,249,250,.9) 54%, rgba(249,249,250,.28) 100%),
+      var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / min(48vw, 520px) auto no-repeat,
+      var(--brand-canvas, #f9f9fa);
+    border-bottom:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 10%, transparent);
+    box-shadow:none;
+    color:var(--brand-midnight, var(--text-light));
   }
   .games-hero .wrapper{
     max-width:min(1080px, calc(var(--container-max) + 80px));
@@ -40,19 +42,17 @@
     gap:12px;
     align-content:start;
     padding:clamp(1.1rem,2vw,1.4rem);
-    border-radius:16px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    background:linear-gradient(150deg,
-      color-mix(in srgb,var(--surface) 94%, #040910 6%) 0%,
-      color-mix(in srgb,var(--surface) 82%, #040910 18%) 100%);
-    box-shadow:0 16px 32px rgba(0,0,0,.28);
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 12%, transparent);
+    background:#ffffff;
+    box-shadow:var(--shadow-sm, 0 2px 8px rgba(9,31,59,.08));
     transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
   }
   .game-card:hover,
   .game-card:focus-visible{
     transform:translateY(-2px);
-    box-shadow:0 20px 42px rgba(0,0,0,.35);
-    border-color:color-mix(in srgb,var(--primary) 36%, transparent);
+    box-shadow:var(--shadow-md, 0 12px 28px rgba(9,31,59,.12));
+    border-color:color-mix(in srgb,var(--brand-signal-blue, #005fed) 30%, transparent);
     outline:none;
   }
 
@@ -72,15 +72,15 @@
   .game-icon{
     width:48px;
     height:48px;
-    border-radius:14px;
+    border-radius:8px;
     background:linear-gradient(140deg,
-      color-mix(in srgb,var(--primary) 84%, #ffffff 16%) 0%,
-      color-mix(in srgb,var(--primary) 56%, #071219 44%) 100%);
+      color-mix(in srgb,var(--brand-signal-blue, #005fed) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--brand-deep-blue, #0145c8) 92%, var(--brand-midnight, #091f3b) 8%) 100%);
     display:inline-flex;
     align-items:center;
     justify-content:center;
     color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
-    box-shadow:0 10px 22px rgba(0,0,0,.26);
+    box-shadow:0 8px 18px rgba(0,95,237,.16);
     flex-shrink:0;
   }
   .game-icon svg{
@@ -130,13 +130,12 @@
   }
   .game-pill{
     padding:6px 10px;
-    border-radius:999px;
-    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    border-radius:8px;
+    background:color-mix(in srgb,var(--brand-mist, #eef2f7) 66%, #ffffff 34%);
+    border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 10%, transparent);
     font-weight:600;
-    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    color:var(--brand-midnight, var(--text-light));
     font-size:.9rem;
     letter-spacing:.01em;
   }
 }
-

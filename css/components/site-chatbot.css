@@ -302,6 +302,15 @@
     height: var(--site-chatbot-panel-max-height);
   }
 
+  .site-chatbot[data-expanded="true"][data-chips="hidden"] .site-chatbot__panel{
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  }
+
+  .site-chatbot[data-expanded="true"][data-chips="hidden"] .site-chatbot__messages{
+    height: auto;
+    max-height: none;
+  }
+
   .site-chatbot[data-enabled="false"] .site-chatbot__panel{
     --site-chatbot-panel-max-height: min(340px, calc(var(--site-chatbot-viewport-height) - var(--site-chatbot-consent-offset) - 110px));
     --site-chatbot-center-height: clamp(150px, calc(var(--site-chatbot-viewport-height) - var(--site-chatbot-consent-offset) - 190px), 250px);
@@ -607,10 +616,17 @@
   }
 
   .site-chatbot__followups button{
+    flex: 1 1 100%;
     background: #fff;
     color: #165fae;
     cursor: pointer;
     font-weight: 700;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-align: left;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: normal;
   }
 
   .site-chatbot__followups button:hover,
@@ -648,6 +664,10 @@
     overflow-x: hidden;
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     background: #f8fafc;
+  }
+
+  .site-chatbot__quick-prompts[hidden]{
+    display: none !important;
   }
 
   .site-chatbot__quick-prompts button{
@@ -765,6 +785,11 @@
     min-height: 28px;
     padding: 0 14px 12px;
     background: #fff;
+  }
+
+  .site-chatbot__status:empty{
+    min-height: 0;
+    padding-block: 0;
   }
 
   .site-chatbot__website{

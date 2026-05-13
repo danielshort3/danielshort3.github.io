@@ -20,7 +20,8 @@ DEFAULT_MODE = os.getenv("SAMPLING_MODE", "cluster")
 LATENT_STATS_PATH = os.path.join(os.path.dirname(__file__), "latent_stats.json")
 
 RESPONSE_HEADERS = {
-  "Content-Type": "application/json"
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store"
 }
 
 torch.set_grad_enabled(False)
@@ -122,6 +123,51 @@ def parse_body(event):
   if isinstance(body, dict):
     return body
   return {}
+
+
+def response(status_code, body=None):
+  return {
+    "statusCode": status_code,
+    "headers": RESPONSE_HEADERS,
+    "body": json.dumps(body or {})
+  }
+
+
+def request_path(event):
+  raw = (
+    event.get("rawPath")
+    or event.get("path")
+    or event.get("requestContext", {}).get("http", {}).get("path")
+    or "/"
+  )
+  path = "/" + str(raw).strip().lstrip("/")
+  return path.rstrip("/") or "/"
+
+
+def health_response():
+  return response(200, {
+    "status": "ok",
+    "service": "digit-generator",
+    "latent_dim": LATENT_DIM,
+    "model_loaded": _MODEL is not None,
+    "latent_stats_loaded": _LATENT_STATS is not None
+  })
+
+
+def warmup_response(start):
+  model = load_model()
+  load_latent_stats()
+  with torch.no_grad():
+    model.decode(torch.zeros(1, LATENT_DIM, dtype=torch.float32)).cpu()
+  return response(200, {
+    "status": "ready",
+    "service": "digit-generator",
+    "warmed": True,
+    "latent_dim": LATENT_DIM,
+    "model_loaded": _MODEL is not None,
+    "latent_stats_loaded": _LATENT_STATS is not None,
+    "duration_ms": int((time.time() - start) * 1000)
+  })
 
 
 def clamp(value, min_val, max_val):
@@ -236,6 +282,7 @@ def handler(event, context):
     or event.get("httpMethod")
     or "GET"
   )
+  path = request_path(event)
 
   if method == "OPTIONS":
     return {
@@ -243,16 +290,17 @@ def handler(event, context):
       "headers": RESPONSE_HEADERS
     }
 
+  if method == "GET" and path in ("/", "/health"):
+    return health_response()
+
+  if path == "/warmup" and method in ("GET", "POST"):
+    try:
+      return warmup_response(start)
+    except Exception as exc:
+      return response(500, { "error": str(exc) })
+
   if method == "GET":
-    return {
-      "statusCode": 200,
-      "headers": RESPONSE_HEADERS,
-      "body": json.dumps({
-        "status": "ok",
-        "latent_dim": LATENT_DIM,
-        "model_loaded": _MODEL is not None
-      })
-    }
+    return health_response()
 
   payload = parse_body(event)
   seed = payload.get("seed")
@@ -277,28 +325,20 @@ def handler(event, context):
   try:
     images, resolved_mode, resolved_digit = generate_grid(seed, dim, dim_y, value, rows, cols, mode, cluster_digit)
     duration_ms = int((time.time() - start) * 1000)
-    return {
-      "statusCode": 200,
-      "headers": RESPONSE_HEADERS,
-      "body": json.dumps({
-        "seed": seed,
-        "mode": resolved_mode,
-        "cluster_digit": resolved_digit,
-        "dim": dim,
-        "dim_y": dim_y,
-        "value": value,
-        "rows": rows,
-        "cols": cols,
-        "latent_dim": LATENT_DIM,
-        "value_min": VALUE_MIN,
-        "value_max": VALUE_MAX,
-        "images": images,
-        "duration_ms": duration_ms
-      })
-    }
+    return response(200, {
+      "seed": seed,
+      "mode": resolved_mode,
+      "cluster_digit": resolved_digit,
+      "dim": dim,
+      "dim_y": dim_y,
+      "value": value,
+      "rows": rows,
+      "cols": cols,
+      "latent_dim": LATENT_DIM,
+      "value_min": VALUE_MIN,
+      "value_max": VALUE_MAX,
+      "images": images,
+      "duration_ms": duration_ms
+    })
   except Exception as exc:
-    return {
-      "statusCode": 500,
-      "headers": RESPONSE_HEADERS,
-      "body": json.dumps({ "error": str(exc) })
-    }
+    return response(500, { "error": str(exc) })

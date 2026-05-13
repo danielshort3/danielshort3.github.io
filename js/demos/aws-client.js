@@ -186,6 +186,14 @@
     });
   };
 
+  const healthJson = (base, options = {}) => {
+    return getJson(joinUrl(normalizeBase(base), 'health'), options);
+  };
+
+  const warmupJson = (base, payload = {}, options = {}) => {
+    return postJson(joinUrl(normalizeBase(base), 'warmup'), payload, options);
+  };
+
   const postWithFallback = async (base, paths, payload, options = {}) => {
     const attempts = Array.isArray(paths) ? paths : [paths];
     let lastErr = null;
@@ -214,6 +222,8 @@
     requestJson,
     getJson,
     postJson,
+    healthJson,
+    warmupJson,
     postWithFallback
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -34,7 +34,40 @@ const DEFAULT_CONF_LEVEL = normalizeConfidenceLevel(CONFIDENCE_LEVEL) || 0.8;
 const getZScore = (level) => Z_BY_LEVEL[level] || Z_BY_LEVEL[DEFAULT_CONF_LEVEL] || 1.282;
 
 const buildHeaders = () => ({
-  'Content-Type': 'application/json'
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-store'
+});
+
+const jsonResponse = (statusCode, payload) => ({
+  statusCode,
+  headers: buildHeaders(),
+  body: JSON.stringify(payload || {})
+});
+
+const getMethod = (event = {}) => String(
+  event.requestContext?.http?.method || event.httpMethod || 'GET'
+).toUpperCase();
+
+const getPath = (event = {}) => {
+  const raw = event.rawPath || event.path || event.requestContext?.http?.path || '/';
+  const path = `/${String(raw).trim().replace(/^\/+/, '')}`;
+  return path.replace(/\/+$/, '') || '/';
+};
+
+const healthPayload = () => ({
+  status: 'ok',
+  service: 'pizza-tips-predict',
+  model_loaded: true,
+  confidence_level: DEFAULT_CONF_LEVEL,
+  supported_cities: model.categories?.city?.values || [],
+  input_features: model.inputFeatures || BASE_KEYS
+});
+
+const warmupPayload = (startedAt) => ({
+  ...healthPayload(),
+  status: 'ready',
+  warmed: true,
+  duration_ms: Date.now() - startedAt
 });
 
 const parseBody = (event = {}) => {
@@ -227,17 +260,29 @@ const normalizeBounds = (bounds) => {
 };
 
 exports.handler = async (event) => {
-  if (event.requestContext?.http?.method === 'OPTIONS') {
+  const startedAt = Date.now();
+  const method = getMethod(event);
+  const path = getPath(event);
+
+  if (method === 'OPTIONS') {
     return { statusCode: 204, headers: buildHeaders() };
+  }
+
+  if (method === 'GET' && (path === '/' || path === '/health')) {
+    return jsonResponse(200, healthPayload());
+  }
+
+  if (path === '/warmup' && (method === 'GET' || method === 'POST')) {
+    return jsonResponse(200, warmupPayload(startedAt));
+  }
+
+  if (method !== 'POST') {
+    return jsonResponse(405, { error: 'Method not allowed.' });
   }
 
   const payload = parseBody(event);
   if (!payload || typeof payload !== 'object') {
-    return {
-      statusCode: 400,
-      headers: buildHeaders(),
-      body: JSON.stringify({ error: 'Invalid payload.' })
-    };
+    return jsonResponse(400, { error: 'Invalid payload.' });
   }
 
   const confidenceLevel = normalizeConfidenceLevel(
@@ -276,22 +321,14 @@ exports.handler = async (event) => {
   if (usesHousing && !housing) errors.push('Housing type is required.');
 
   if (errors.length) {
-    return {
-      statusCode: 400,
-      headers: buildHeaders(),
-      body: JSON.stringify({ error: 'Missing or invalid inputs.', details: errors })
-    };
+    return jsonResponse(400, { error: 'Missing or invalid inputs.', details: errors });
   }
 
   const orderHour = orderHourRaw === null ? null : Math.floor(orderHourRaw);
   const deliveryMinutes = deliveryMinutesRaw;
   const { city } = resolveCity(latitude, longitude);
   if (!city) {
-    return {
-      statusCode: 400,
-      headers: buildHeaders(),
-      body: JSON.stringify({ error: 'Location is outside supported city boundaries.' })
-    };
+    return jsonResponse(400, { error: 'Location is outside supported city boundaries.' });
   }
 
   const cityValues = model.categories?.city?.values || [];
@@ -468,9 +505,5 @@ exports.handler = async (event) => {
     warnings
   };
 
-  return {
-    statusCode: 200,
-    headers: buildHeaders(),
-    body: JSON.stringify(response)
-  };
+  return jsonResponse(200, response);
 };

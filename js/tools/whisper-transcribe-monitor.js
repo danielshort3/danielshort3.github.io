@@ -639,33 +639,49 @@
     setHealth('warming', 'Warming up');
     setStatus(endpointStatusEl, 'Warming up…', 'warning');
 
-    const url = joinUrl(normalized, '/transcribe');
     const body = createSilentWavBlob(WARMUP_AUDIO_MS);
     try {
       await retryRequest(async () => {
-        const res = await fetch(url, {
+        const res = await requestJson(joinUrl(normalized, '/warmup'), {
           method: 'POST',
-          headers: { 'Content-Type': 'audio/wav' },
-          body
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration_ms: WARMUP_AUDIO_MS })
         });
         if (!res.ok) {
-          const err = new Error('Warm-up failed.');
+          const err = new Error(res.data?.error || res.text || 'Warm-up failed.');
           err.status = res.status;
           throw err;
         }
         return res;
       }, WARM_RETRY_OPTIONS);
-
-      safeSet(STORAGE_WARMUP_AT, String(Date.now()));
-      safeSet(STORAGE_WARMUP_BASE, normalized);
-      setHealth('ok', 'Ready');
-      setStatus(endpointStatusEl, 'Ready.', 'success');
-      setServerReadyState(true);
-    } catch {
-      setHealth('err', 'Unavailable');
-      setStatus(endpointStatusEl, 'Warm-up failed.', 'error');
-      setServerReadyState(false);
+    } catch (err) {
+      try {
+        await retryRequest(async () => {
+          const res = await fetch(joinUrl(normalized, '/transcribe'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'audio/wav' },
+            body
+          });
+          if (!res.ok) {
+            const nextErr = new Error('Warm-up failed.');
+            nextErr.status = res.status;
+            throw nextErr;
+          }
+          return res;
+        }, WARM_RETRY_OPTIONS);
+      } catch {
+        setHealth('err', 'Unavailable');
+        setStatus(endpointStatusEl, 'Warm-up failed.', 'error');
+        setServerReadyState(false);
+        return;
+      }
     }
+
+    safeSet(STORAGE_WARMUP_AT, String(Date.now()));
+    safeSet(STORAGE_WARMUP_BASE, normalized);
+    setHealth('ok', 'Ready');
+    setStatus(endpointStatusEl, 'Ready.', 'success');
+    setServerReadyState(true);
   };
 
   const checkAndWarm = async () => {

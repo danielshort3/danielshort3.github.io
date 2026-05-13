@@ -57,7 +57,7 @@
   "resumePanel": {
     "kicker": "Resume work",
     "title": "Continue where you left off",
-    "dashboardHref": "tools-dashboard",
+    "dashboardHref": "tools/dashboard",
     "dashboardLabel": "Open dashboard"
   },
   "categories": [
