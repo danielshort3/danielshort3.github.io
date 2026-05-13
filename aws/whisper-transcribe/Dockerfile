@@ -62,5 +62,6 @@ print("Downloaded", model_id)
 PY
 
 COPY app.py ${LAMBDA_TASK_ROOT}/app.py
+COPY entrypoint.py ${LAMBDA_TASK_ROOT}/entrypoint.py
 
-CMD ["app.handler"]
+CMD ["entrypoint.handler"]

@@ -301,6 +301,8 @@ try {
     assert(!portfolioHtml.includes('js/portfolio/portfolio.js'), 'pages/portfolio.html should rely on lazy loader');
     const commonCode = fs.readFileSync('js/common/common.js', 'utf8');
     assert(commonCode.includes('js/portfolio/projects-data.js'), 'common.js missing portfolio lazy loader');
+    assert(!commonCode.includes('--jump-link-progress') && !commonCode.includes('updateLinkProgress'),
+      'common.js should not add scroll-progress styling to the homepage jump rail');
 
     const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
@@ -429,6 +431,15 @@ try {
       tourismNavigation.answer.includes('[Tourism Resume](/resume-tourism)') &&
       tourismNavigation.suggestedLinks.some((link) => link.url === '/resume-tourism'),
       'chatbot navigation answers should advocate within the active tourism audience lens with inline links');
+    const analyticsProofNavigation = chatbotApiPrivate.navigationAnswer(
+      'Show analytics portfolio proof for this resume',
+      { chunks: [], audience: 'analytics', bestScore: 0 },
+      { audience: 'analytics' }
+    );
+    assert(analyticsProofNavigation && analyticsProofNavigation.answer.includes('Analytics Portfolio') &&
+      analyticsProofNavigation.answer.includes('/portfolio?audience=analytics') &&
+      !analyticsProofNavigation.answer.includes('Use the [Analytics Resume]'),
+      'chatbot navigation answers should route proof follow-ups to the portfolio instead of repeating resume guidance');
     assert(chatbotApiPrivate.ensureInlineLinks('Daniel has strong analytics proof.', [{ title: 'Analytics Resume', url: '/resume-analytics' }]) ===
       'Daniel has strong analytics proof.\n\nSee: [Analytics Resume](/resume-analytics).',
       'chatbot API should add a concise inline link when a model answer omits one');
@@ -448,6 +459,67 @@ try {
       'chatbot model context should not number source titles in a way that leaks citation markers into answers');
     assert(chatbotApiPrivate.stripSourceCitations('Store-Level Loss & Sales ETL [3]\n- Project Overview') === 'Store-Level Loss & Sales ETL\n- Project Overview',
       'chatbot API should remove bracketed numeric source citations from visible answers');
+    const nextFollowups = chatbotApiPrivate.makeFollowups(
+      "Show project proof of Daniel's analytics impact",
+      'Daniel has analytics proof in SQL ETL, dashboarding, and forecasting projects.',
+      { chunks: [], audience: 'analytics', queryTerms: ['analytics', 'portfolio', 'projects'], retrievalMode: 'lexical' },
+      { audience: 'analytics', title: 'Analytics Portfolio' },
+      [{ role: 'user', text: 'Why is Daniel a strong analytics candidate?' }],
+      [{ title: 'Analytics Portfolio', url: '/portfolio?audience=analytics' }],
+      {
+        source: 'recommended_followup',
+        prompt: "Show project proof of Daniel's analytics impact",
+        previousQuestion: 'Why is Daniel a strong analytics candidate?'
+      }
+    );
+    const blockedFollowupPhrases = [
+      'Which resume matches this work?',
+      'Show similar projects',
+      'Summarize the strongest project',
+      'What should I look at next?',
+      'Which skills should a recruiter notice here?',
+      'What should recruiters notice'
+    ];
+    assert(!nextFollowups.includes("Show project proof of Daniel's analytics impact") &&
+      !nextFollowups.includes('Why is Daniel a strong analytics candidate?') &&
+      nextFollowups.some((item) => /skills|team|fit|candidate|impact|project evidence/i.test(item)) &&
+      blockedFollowupPhrases.every((phrase) => !nextFollowups.includes(phrase)),
+      'chatbot follow-up chips should not repeat clicked prompts and should advance readers toward Daniel skill evidence');
+    const parsedModelFollowups = chatbotApiPrivate.parseFollowupJson('```json\n{"followups":["Which project proves Daniel analytics impact best?","How would Daniel SQL work help an analytics team?","What should I ask Daniel before contacting him?"]}\n```');
+    assert(parsedModelFollowups.length === 3 &&
+      parsedModelFollowups[0].includes('project proves'),
+      'chatbot API should parse JSON follow-up chips from model responses');
+    const validatedModelFollowups = chatbotApiPrivate.validateModelFollowups([
+      "Which project proves Daniel's analytics impact best?",
+      "How would Daniel's SQL dashboards help an analytics team?",
+      'What should I ask Daniel before scheduling an interview?',
+      'How did Daniel improve revenue by 999%?',
+      'Which tourism project should I review next?',
+      'Why is Daniel a strong analytics candidate?'
+    ], {
+      message: 'Why is Daniel a strong analytics candidate?',
+      answer: 'Daniel has SQL and Tableau proof, including 99% faster reporting turnaround and 200+ hours saved annually.',
+      retrieval: { chunks: [], audience: 'analytics', queryTerms: ['analytics'] },
+      pageContext: { audience: 'analytics', title: 'Analytics' },
+      history: [{ role: 'user', text: 'What analytics skills does Daniel demonstrate?' }]
+    });
+    assert(validatedModelFollowups.length === 3 &&
+      validatedModelFollowups.every((item) => /\?$/.test(item)) &&
+      !validatedModelFollowups.some((item) => /999|tourism|strong analytics candidate/i.test(item)),
+      'chatbot API should validate model-written follow-up chips for novelty, audience fit, and supported claims');
+    const modelFollowupPrompt = chatbotApiPrivate.buildModelFollowupPrompt(
+      'Summarize Daniel analytics fit',
+      'Daniel connects SQL reporting, dashboards, and business outcomes.',
+      { chunks: [{ title: 'Analytics Resume', url: '/resume-analytics', category: 'Resume', text: 'SQL, Tableau, reporting automation.' }], audience: 'analytics' },
+      { audience: 'analytics', title: 'Analytics' },
+      [],
+      [{ title: 'Analytics Resume', url: '/resume-analytics' }],
+      null
+    );
+    assert(modelFollowupPrompt.includes('"activeAudience": "Analytics"') &&
+      modelFollowupPrompt.includes('99% faster reporting turnaround') &&
+      modelFollowupPrompt.includes('Return exactly 3 follow-up questions'),
+      'chatbot API should give the model audience-specific evidence and strict follow-up rules');
 
     const api = readFile('api/chatbot.js');
     const knowledgeLib = readFile('api/_lib/chatbot-knowledge.js');
@@ -483,9 +555,22 @@ try {
       api.includes("writeStreamEvent(res, 'token'") &&
       api.includes('normalizeHistory') &&
       api.includes('followupContext') &&
+      api.includes('wantsFreshFollowupAnswer') &&
+      api.includes("const navigation = freshFollowupAnswer ? null : navigationAnswer") &&
+      api.includes('Do not repeat the previous answer') &&
       api.includes('makeFollowups') &&
+      api.includes('generateModelFollowups') &&
+      api.includes('validateModelFollowups') &&
+      api.includes('CHATBOT_MODEL_FOLLOWUPS_ENABLED') &&
       api.includes('retrievalMode'),
-      'chatbot API should stream answers and return conversation-aware follow-up metadata');
+      'chatbot API should stream answers and return model-written, conversation-aware follow-up metadata');
+    blockedFollowupPhrases.forEach((phrase) => {
+      assert(!api.includes(phrase), `chatbot API should not generate awkward follow-up phrase: ${phrase}`);
+    });
+    assert(api.includes('What skills does Daniel demonstrate in this project?') &&
+      api.includes("How would Daniel's work help a team?") &&
+      api.includes("Why is Daniel a strong ${roleLabel} candidate?"),
+      'chatbot API follow-up chips should use natural visitor wording and advocate for Daniel');
     assert(api.includes('embedQuery') &&
       api.includes('CHATBOT_BEDROCK_EMBED_MODEL_ID') &&
       api.includes('retrievalMode') &&
@@ -534,7 +619,7 @@ try {
       !widget.includes("navList.className = 'site-chatbot__nav-links'") &&
       !widget.includes('const navLinks = normalizeLinks(suggestedLinks'),
       'chatbot widget should offer quick prompts and keep website links inline instead of rendering suggested-link chips');
-    assert(widget.includes("UI_VERSION = 'question-first-2026-05-12'") &&
+    assert(widget.includes("UI_VERSION = 'fresh-followups-2026-05-12'") &&
       widget.includes('root.dataset.chatbotVersion = UI_VERSION') &&
       widget.includes('scheduleInitialNudge();') &&
       widget.includes('if (!state.ready) loadConfig();'),
@@ -575,15 +660,24 @@ try {
       widget.includes('Model proof') &&
       widget.includes("Which projects show Daniel's machine learning and Python skills?") &&
       widget.includes('DMO fit') &&
+      widget.includes("What ${config.roleLabel} skills does Daniel demonstrate in this project?") &&
+      widget.includes("How would Daniel's work help a team?") &&
+      !widget.includes('recruiter notice') &&
+      !widget.includes('Show similar projects') &&
       !widget.includes('opener:') &&
       !widget.includes('config.opener') &&
       !widget.includes('Ask me about Daniel Short as'),
       'chatbot widget should render three role-aware default questions without an intro paragraph');
+    blockedFollowupPhrases.forEach((phrase) => {
+      assert(!widget.includes(phrase), `chatbot widget should not generate awkward follow-up phrase: ${phrase}`);
+    });
     assert(widget.includes('SESSION_STATE_KEY') &&
       widget.includes('handleChatbotLinkClick') &&
       widget.includes('restoreOpenAfterChatbotNavigation') &&
       widget.includes('audience: state.audience ||') &&
-      widget.includes('hideAllChips') &&
+      widget.includes('hideStarterPrompts') &&
+      widget.includes('clearFollowups') &&
+      widget.includes('starterPromptsHidden') &&
       widget.includes('site-chatbot__reset') &&
       widget.includes('resetChat') &&
       widget.includes('resetConversationId') &&
@@ -604,10 +698,13 @@ try {
       'chatbot widget should stream answers and let the send button stop an active response');
     assert(widget.includes('state.transcript') &&
       widget.includes('rememberTurn') &&
+      widget.includes('normalizeStoredLinks') &&
+      widget.includes('previousQuestion') &&
+      widget.includes("options.previousQuestion || '', text") &&
       widget.includes('followupContext') &&
       widget.includes("source: 'recommended_followup'") &&
       widget.includes('site-chatbot__followups'),
-      'chatbot widget should keep recent history and render conversation-aware follow-up chips');
+      'chatbot widget should keep recent history and restore conversation-aware follow-up chips');
     assert(widget.includes('renderMarkdown') &&
       widget.includes('appendInlineMarkdown') &&
       widget.includes('autoLinkSourcePhrases') &&
@@ -633,11 +730,15 @@ try {
       css.includes('.site-chatbot__input:focus{\n    outline: none;'),
       'chatbot input and send button should be a fixed two-line flush control with one shared focus ring');
     assert(css.includes('.site-chatbot__followups') &&
+      css.includes('.site-chatbot__followups button{\n    flex: 1 1 100%;') &&
       css.includes('.site-chatbot__bubble ul') &&
       css.includes('.site-chatbot__bubble a') &&
       css.includes('overflow-wrap: anywhere;') &&
+      css.includes('text-overflow: clip;') &&
       css.includes('overflow-x: hidden;') &&
       css.includes('.site-chatbot__quick-prompts{\n    order: 1;\n    display: grid;') &&
+      css.includes('.site-chatbot__quick-prompts[hidden]') &&
+      css.includes('display: none !important;') &&
       css.includes('grid-template-columns: minmax(0, 1fr);') &&
       css.includes('text-align: left;') &&
       css.includes('white-space: normal;'),
@@ -658,10 +759,13 @@ try {
       css.includes('--site-chatbot-expanded-height: calc(') &&
       css.includes('--site-chatbot-panel-max-height: var(--site-chatbot-expanded-height);') &&
       css.includes('--site-chatbot-center-height: max(220px') &&
+      css.includes('.site-chatbot[data-expanded="true"][data-chips="hidden"] .site-chatbot__panel') &&
+      css.includes('grid-template-rows: auto minmax(0, 1fr) auto auto auto;') &&
+      css.includes('.site-chatbot__status:empty') &&
       css.includes('.site-chatbot__messages') &&
       css.includes('height: var(--site-chatbot-center-height);') &&
       css.includes('transition: height 280ms cubic-bezier(0.2, 0.8, 0.2, 1);'),
-      'chatbot expansion should use the available viewport height while keeping header and input chrome fixed-size');
+      'chatbot expansion should use the available viewport height while keeping header and input chrome fixed-size without a bottom gap');
     assert(css.includes('--site-chatbot-viewport-height') &&
       css.includes('.site-chatbot[data-keyboard="true"][data-state="open"] .site-chatbot__panel') &&
       css.includes('var(--site-chatbot-consent-offset) - var(--site-chatbot-keyboard-offset)') &&
@@ -1326,6 +1430,8 @@ try {
     const resumeCss = fs.readFileSync('css/components/resume.css', 'utf8');
     const contactCardCss = fs.readFileSync('css/components/contact-card.css', 'utf8');
     const homeProofCss = fs.readFileSync('css/components/home-proof.css', 'utf8');
+    const homeScrollCss = fs.readFileSync('css/components/home-scroll.css', 'utf8');
+    const jumpPanelCss = fs.readFileSync('css/components/jump-panel.css', 'utf8');
     assert(projectCss.includes('--project-mobile-edge:calc(var(--mobile-page-gutter, 14px) * -1);'), 'project pages should flatten demo shells to mobile edges');
     assert(projectCss.includes('margin-inline:var(--project-mobile-edge);'), 'project demo shell should consume redundant mobile wrapper gutters');
     assert(projectCss.includes('.project-case-study') && projectCss.includes('.project-decision-flow'), 'project pages should include branded decision memo case-study styles');
@@ -1333,6 +1439,14 @@ try {
       homeProofCss.includes('.home-proof-card') &&
       homeProofCss.includes('box-sizing: border-box;') &&
       homeProofCss.includes('width: 100%;'), 'home proof KPI cards should fill equal-height grid tracks without overlap');
+    assert(homeScrollCss.includes('@supports (animation-timeline: view())') &&
+      homeScrollCss.includes('animation:home-section-enter both ease-out;') &&
+      homeScrollCss.includes('@media (min-width:769px) and (prefers-reduced-motion:no-preference)'),
+      'audience home scroll polish should be progressive, subtle, and desktop-only');
+    assert(!jumpPanelCss.includes('--jump-link-progress') &&
+      !jumpPanelCss.includes('.jump-panel-link::before') &&
+      jumpPanelCss.includes('color-mix(in srgb,var(--brand-midnight, #091f3b) 13%, transparent)'),
+      'jump panel should avoid scroll-progress affordances and dark drop shadows');
     assert(brandOverrideCss.includes('--hero-art-layer: url("../img/brand/23-hero-general-light.png");'), 'brand overrides should define the general alternate light hero raster');
     assert(brandOverrideCss.includes('body[data-audience="analytics"]') &&
       brandOverrideCss.includes('--hero-art-layer: url("../img/brand/24-hero-analytics-light.png");'), 'brand overrides should keep the analytics audience light hero raster available');
@@ -1343,6 +1457,13 @@ try {
     assert(brandOverrideCss.includes('--hero-art-layer: url("../img/brand/26-hero-tourism-light.png");'), 'brand overrides should define the tourism alternate light hero raster');
     assert(brandOverrideCss.includes('--hero-mobile-art-layer: url("../img/brand/27-hero-mobile-light.png");'), 'brand overrides should define the portrait mobile hero raster');
     assert(brandOverrideCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat'), 'desktop audience hero should anchor the selected light hero raster to the bottom-right and fill the hero height');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default') &&
+      brandOverrideCss.includes('box-sizing: border-box;') &&
+      brandOverrideCss.includes('min-height: calc(100svh - var(--nav-height, 72px));'),
+      'audience homepage heroes should fill the viewport without adding padding beyond it');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .chevron-hint') &&
+      brandOverrideCss.includes('display: inline-flex;'),
+      'audience homepage scroll indicators should remain visible across viewport sizes');
     assert(brandOverrideCss.includes('var(--hero-mobile-art-layer, var(--hero-art-layer, url("../img/brand/23-hero-general-light.png"))) center bottom / cover no-repeat'), 'mobile hero should use the portrait hero raster anchored to the bottom of the hero');
     assert(brandOverrideCss.includes('body[data-page="portfolio"] .hero.hero--default') &&
       brandOverrideCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat'), 'desktop portfolio hero should anchor the selected light hero raster to the bottom-right and fill the hero height');
@@ -1394,7 +1515,10 @@ try {
     assert(brandOverrideCss.includes('--home-section-pad: clamp(3.2rem, 5vw, 4.4rem);'), 'analytics homepage desktop sections should share a consistent vertical padding token');
     assert(brandOverrideCss.includes('body[data-page="analytics"] .section-title::before,\n    body[data-page="analytics"] .project-examples-head h2::before') &&
       brandOverrideCss.includes('margin-inline: auto;'), 'analytics homepage section accents should align consistently');
-    assert(brandOverrideCss.includes('body[data-page="analytics"] .hero .cta-group .btn-ghost') && brandOverrideCss.includes('background: #ffffff;'), 'analytics hero contact button should be opaque on desktop');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost') &&
+      brandOverrideCss.includes('background: #ffffff;') &&
+      brandOverrideCss.includes('color: var(--brand-ink);'),
+      'audience hero contact button should be opaque with black text');
     assert(brandOverrideCss.includes('body[data-page="analytics"] .cert img,\n    body[data-page="analytics"] .cert-card-logo') &&
       brandOverrideCss.includes('background: #ffffff;') &&
       brandOverrideCss.includes('img[src*="purdue_global"]') &&
@@ -1409,8 +1533,16 @@ try {
     assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-footer-inline') && brandOverrideCss.includes('grid-template-columns: 1fr;'), 'portfolio dropdown footer should use a single full-width portfolio link');
     assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-footer-inline::before') && brandOverrideCss.includes('background: var(--brand-action-copper);'), 'portfolio dropdown footer should use a restrained copper divider accent');
     assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-all .nav-dropdown-subtitle') && brandOverrideCss.includes('display: block;'), 'portfolio dropdown footer link should show matching subtitle text');
-    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar'), 'brand overrides should reveal restrained audience hero headshots');
+    assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar') &&
+      brandOverrideCss.includes('width: clamp(96px, 9vw, 132px);') &&
+      brandOverrideCss.includes('width: clamp(84px, 24vw, 112px);') &&
+      brandOverrideCss.includes('opacity: 1;'),
+      'brand overrides should reveal larger restrained audience hero headshots');
     assert(!/body:is\(\[data-page="data-science"\], \[data-page="tourism"\]\) \.hero-avatar\s*\{[^}]*display:\s*none/.test(brandOverrideCss), 'brand overrides should not hide data-science or tourism hero headshots');
+    assert(brandOverrideCss.includes('@media (max-width: 430px)') &&
+      brandOverrideCss.includes('width: min(100%, 310px);') &&
+      brandOverrideCss.includes('width: min(100%, 300px);'),
+      'audience mobile hero should keep headline and action clusters inside narrow phone viewports');
     assert(brandOverrideCss.includes('body[data-page="portfolio"] #projects.portfolio-library-grid'), 'brand overrides should contain mobile portfolio cards to the viewport');
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card') && brandOverrideCss.includes('grid-template-rows: auto minmax(104px, auto);'), 'audience project cards should use the portfolio page media plus white text panel layout');
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .overlay') && brandOverrideCss.includes('display: none;'), 'audience project cards should not depend on dark image overlays for readability');
@@ -1428,6 +1560,7 @@ try {
 
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
     assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
+    assert(stylesCss.includes('@import url("components/home-scroll.css");'), 'styles.css should include shared audience scroll polish');
     ['css/base/base.css','css/components/buttons.css','css/layout/nav.css','css/utilities/design-system-overrides.css'].forEach((file) => {
       assert(!fs.readFileSync(file, 'utf8').includes('Poppins'), `${file} should not reference Poppins`);
     });
@@ -1616,6 +1749,7 @@ try {
       checkFileContains(file, 'home-pattern-page');
       checkFileContains(file, 'id="selected-outcomes"');
       checkFileContains(file, 'class="jump-panel"');
+      checkFileContains(file, 'href="#selected-outcomes"');
       checkFileContains(file, 'id="project-examples"');
       checkFileContains(file, 'id="work-experience"');
       checkFileContains(file, 'id="about-me"');
@@ -1625,8 +1759,11 @@ try {
       checkFileContains(file, 'id="cta"');
       checkFileContains(file, 'id="contact-modal"');
       checkFileContains(file, 'data-cert-modal-open');
+      checkFileContains(file, 'class="chevron-hint scroll-indicator" href="#selected-outcomes"');
+      checkFileContains(file, 'Scroll for results');
       assert(htmlHasManagedBundle(html, 'site-home'), `${file} missing home bundle for certifications modal`);
       assert(!html.includes('audience-gateway-hero'), `${file} should not use audience gateway hero`);
+      assert(!html.includes('class="hero-proof-row"'), `${file} hero should not include the old metric strip`);
       assert(!html.includes('this version'), `${file} should not mention "this version"`);
     });
     assert(!readFile('pages/data-science.html').includes('hero-bullet-list'), 'data-science page should not use hero bullets');
@@ -1648,8 +1785,14 @@ try {
       checkFileContains(file, 'class="hero-identity"');
       checkFileContains(file, 'class="hero-avatar"');
       checkFileContains(file, 'img/hero/head-avatar-192.jpg');
-      checkFileContains(file, 'sizes="(max-width: 768px) 72px, 96px"');
+      checkFileContains(file, 'sizes="(max-width: 768px) 112px, 132px"');
       checkFileContains(file, 'contact#contact-modal');
+      checkFileContains(file, 'Daniel Short ·');
+      const html = readFile(file);
+      const heroHeadlineIndex = html.indexOf('<h1>');
+      const heroIdentityIndex = html.indexOf('class="hero-identity"');
+      assert(heroHeadlineIndex >= 0 && heroIdentityIndex > heroHeadlineIndex,
+        `${file} hero identity should sit below the headline`);
     });
     checkFileContains('pages/data-science.html', 'data-brand-tagline-primary="true">Data Science<');
     checkFileContains('pages/tourism.html', 'data-brand-tagline-primary="true">Tourism Analytics<');
@@ -1658,6 +1801,8 @@ try {
     checkFileContains('pages/resume-tourism.html', 'data-brand-tagline-primary="true">Tourism Analytics<');
     checkFileContains('pages/data-science.html', 'id="transferability"');
     checkFileContains('pages/tourism.html', 'id="transferability"');
+    checkFileContains('pages/data-science.html', 'href="#transferability"');
+    checkFileContains('pages/tourism.html', 'href="#transferability"');
     const homeAccentCss = readFile('css/utilities/design-system-overrides.css');
     ['--home-section-accent', '--home-section-accent-soft', '--home-section-accent-border', '--home-section-accent-strong'].forEach((token) => {
       assert(homeAccentCss.includes(token), `audience home accent CSS missing ${token}`);
@@ -1665,11 +1810,14 @@ try {
     ['#project-examples', '#selected-outcomes', '#transferability', '#work-experience', '#about-me', '#certifications', '#cta'].forEach((selector) => {
       assert(homeAccentCss.includes(selector), `audience home accent CSS missing ${selector}`);
     });
-    ['.project-examples-card .project-text::before', '.home-proof-card::after', '.work-card::after', '.icon-info::before', '.cert-card-label', '.transfer-map-head .transfer-map-cell', '#cta #cta-link', '.jump-panel-link[href="#work-experience"]'].forEach((selector) => {
+    ['.project-examples-card .project-text::before', '.home-proof-card::after', '.work-card::after', '.icon-info::before', '.cert-card-label', '.transfer-map-head .transfer-map-cell', '#cta #cta-link'].forEach((selector) => {
       assert(homeAccentCss.includes(selector), `audience home visible accent CSS missing ${selector}`);
     });
-    ['#2f9d58', '#4f73d9', '#5a78a8', 'var(--brand-action-copper)', '#5a7edb', 'var(--brand-deep-blue)'].forEach((color) => {
-      assert(homeAccentCss.includes(color), `audience home accent CSS missing artwork-derived color ${color}`);
+    ['var(--brand-signal-blue)', 'var(--brand-deep-blue)', 'var(--brand-midnight)', 'var(--brand-slate)', 'var(--brand-action-copper)'].forEach((color) => {
+      assert(homeAccentCss.includes(color), `audience home accent CSS missing brand color ${color}`);
+    });
+    ['#2f9d58', '#4f73d9', '#0f766e', '#5a78a8', '#5a7edb'].forEach((color) => {
+      assert(!homeAccentCss.includes(color), `audience home accent CSS should not use off-brand color ${color}`);
     });
     assert(homeAccentCss.includes('section:not(.hero) *:is(.section-title'),
       'audience home title accents should use minifier-safe descendant selectors');
@@ -1687,8 +1835,6 @@ try {
         `${file} work cards should be in ascending chronological order`);
     });
     assert(!readFile('pages/analytics.html').includes('destinationReporting'), 'analytics page should not feature destinationReporting');
-    assert(!readFile('pages/data-science.html').includes('chevron-hint scroll-indicator'), 'data-science hero should match the shared audience hero without the old scroll hint');
-    assert(!readFile('pages/tourism.html').includes('chevron-hint scroll-indicator'), 'tourism hero should match the shared audience hero without the old scroll hint');
   });
 
   section('Project-first public copy', () => {
@@ -2121,6 +2267,130 @@ try {
     assert(ga4Tool.includes('requestId !== accessRequestSeq'), 'GA4 tool should ignore stale access responses');
   });
 
+  section('AWS demo health and warmup contracts', () => {
+    const awsClient = fs.readFileSync('js/demos/aws-client.js', 'utf8');
+    const digitDemo = fs.readFileSync('demos/digit-generator-demo.html', 'utf8');
+    const handwritingDemo = fs.readFileSync('demos/handwriting-rating-demo.html', 'utf8');
+    const shapeDemo = fs.readFileSync('demos/shape-demo.html', 'utf8');
+    const nonogramDemo = fs.readFileSync('demos/nonogram-demo.html', 'utf8');
+    const minesweeperDemo = fs.readFileSync('demos/minesweeper-demo.html', 'utf8');
+    const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
+    const whisperMonitor = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
+    const digitLambda = fs.readFileSync('aws/digit-generator/app.py', 'utf8');
+    const handwritingLambda = fs.readFileSync('aws/handwriting-rating/app.py', 'utf8');
+    const nonogramLambda = fs.readFileSync('aws/nonogram-solver/app.py', 'utf8');
+    const nonogramEntrypoint = fs.readFileSync('aws/nonogram-solver/entrypoint.py', 'utf8');
+    const nonogramDockerfile = fs.readFileSync('aws/nonogram-solver/Dockerfile', 'utf8');
+    const minesweeperLambda = fs.readFileSync('aws/minesweeper-solver/app.py', 'utf8');
+    const minesweeperEntrypoint = fs.readFileSync('aws/minesweeper-solver/entrypoint.py', 'utf8');
+    const minesweeperDockerfile = fs.readFileSync('aws/minesweeper-solver/Dockerfile', 'utf8');
+    const pizzaLambda = fs.readFileSync('aws/pizza-tips-predict/index.js', 'utf8');
+    const whisperLambda = fs.readFileSync('aws/whisper-transcribe/app.py', 'utf8');
+    const whisperEntrypoint = fs.readFileSync('aws/whisper-transcribe/entrypoint.py', 'utf8');
+    const whisperDockerfile = fs.readFileSync('aws/whisper-transcribe/Dockerfile', 'utf8');
+
+    assert(awsClient.includes('const healthJson = (base, options = {})') &&
+           awsClient.includes("joinUrl(normalizeBase(base), 'health')") &&
+           awsClient.includes('const warmupJson = (base, payload = {}, options = {})') &&
+           awsClient.includes("joinUrl(normalizeBase(base), 'warmup')"),
+      'shared AWS demo client should expose /health and /warmup helpers');
+
+    const digitWarmupStart = digitDemo.indexOf('async function warmUpServer()');
+    const digitWarmupEnd = digitDemo.indexOf('async function fetchGrid()', digitWarmupStart);
+    const digitWarmup = digitDemo.slice(digitWarmupStart, digitWarmupEnd);
+    assert(digitDemo.includes('healthJson,') && digitDemo.includes('warmupJson,'), 'digit demo should import health and warmup helpers');
+    assert(digitWarmup.includes('await retryRequest(() => healthJson(base') &&
+           digitWarmup.includes('await retryRequest(() => warmupJson(base, warmPayload') &&
+           digitWarmup.indexOf('warmupJson(base') < digitWarmup.indexOf('postToEndpoint(base, warmPayload)'),
+      'digit demo should warm via /health and /warmup before legacy inference fallback');
+
+    const handwritingWarmupStart = handwritingDemo.indexOf('async function warmUpServer({ manual = false } = {})');
+    const handwritingWarmupEnd = handwritingDemo.indexOf('async function scoreDigit()', handwritingWarmupStart);
+    const handwritingWarmup = handwritingDemo.slice(handwritingWarmupStart, handwritingWarmupEnd);
+    assert(handwritingDemo.includes('healthJson,') && handwritingDemo.includes('warmupJson,'), 'handwriting demo should import health and warmup helpers');
+    assert(handwritingWarmup.includes('await retryRequest(() => healthJson(base') &&
+           handwritingWarmup.includes('await retryRequest(() => warmupJson(base, warmPayload') &&
+           handwritingWarmup.indexOf('warmupJson(base') < handwritingWarmup.indexOf('postToEndpoint(base, warmPayload)'),
+      'handwriting demo should warm via /health and /warmup before legacy score fallback');
+
+    [
+      ['nonogram', nonogramDemo, 'async function warmUpServer()', 'async function loadPuzzle()', 'warmupJson(base, {}', 'postToEndpoint(base, {})'],
+      ['minesweeper', minesweeperDemo, 'async function warmUpServer()', 'async function loadPuzzle()', 'warmupJson(base, warmPayload', 'postToEndpoint(base, warmPayload)'],
+      ['pizza tips', pizzaDemo, 'async function warmUpServer()', 'function applyResponse', 'warmupJson(base, payload', 'postToEndpoint(base, payload)']
+    ].forEach(([name, source, startNeedle, endNeedle, warmupNeedle, fallbackNeedle]) => {
+      const start = source.indexOf(startNeedle);
+      const end = source.indexOf(endNeedle, start);
+      const sectionText = source.slice(start, end);
+      assert(source.includes('healthJson,') && source.includes('warmupJson,'), `${name} demo should import health and warmup helpers`);
+      assert(sectionText.includes('await retryRequest(() => healthJson(base') &&
+             sectionText.includes(warmupNeedle) &&
+             sectionText.indexOf('warmupJson(base') < sectionText.indexOf(fallbackNeedle),
+        `${name} demo should warm via /health and /warmup before legacy inference fallback`);
+    });
+    const shapeWarmupStart = shapeDemo.indexOf('async function warmUpServer()');
+    const shapeWarmupEnd = shapeDemo.indexOf('async function classify()', shapeWarmupStart);
+    const shapeWarmup = shapeDemo.slice(shapeWarmupStart, shapeWarmupEnd);
+    assert(shapeDemo.includes('healthJson,') && shapeDemo.includes('warmupJson,'), 'shape demo should import health and warmup helpers');
+    assert(shapeWarmup.includes('await retryRequest(() => healthJson(base') &&
+           shapeWarmup.includes('warmupJson(base, warmPayload') &&
+           shapeWarmup.indexOf('warmupJson(base') < shapeWarmup.indexOf('postToEndpoint(base, warmPayload)'),
+      'shape demo should warm via /health and /warmup before legacy inference fallback');
+
+    assert(whisperMonitor.includes("requestJson(joinUrl(normalized, '/warmup')") &&
+           whisperMonitor.includes("fetch(joinUrl(normalized, '/transcribe')") &&
+           whisperMonitor.indexOf("joinUrl(normalized, '/warmup')") < whisperMonitor.indexOf("joinUrl(normalized, '/transcribe')"),
+      'Whisper monitor should use /warmup before falling back to silent transcription');
+
+    assert(digitLambda.includes('def health_response():') &&
+           digitLambda.includes('def warmup_response(start):') &&
+           digitLambda.includes('path in ("/", "/health")') &&
+           digitLambda.includes('path == "/warmup"') &&
+           digitLambda.includes('load_latent_stats()') &&
+           digitLambda.includes('model.decode(torch.zeros(1, LATENT_DIM'),
+      'digit Lambda should expose cheap health and real warmup routes');
+    assert(handwritingLambda.includes('def health_response():') &&
+           handwritingLambda.includes('def warmup_response(start):') &&
+           handwritingLambda.includes('path in ("/", "/health")') &&
+           handwritingLambda.includes('path == "/warmup"') &&
+           handwritingLambda.includes('model(torch.zeros(1, 1, 28, 28'),
+      'handwriting Lambda should expose cheap health and real warmup routes');
+    assert(nonogramLambda.includes('def health_response():') &&
+           nonogramLambda.includes('def warmup_response(start):') &&
+           nonogramLambda.includes('path in ("/", "/health")') &&
+           nonogramLambda.includes('path == "/warmup"') &&
+           nonogramLambda.includes('torch.full((1, GRID_SIZE, GRID_SIZE)'),
+      'nonogram Lambda should expose cheap health and model warmup routes');
+    assert(minesweeperLambda.includes('def health_response():') &&
+           minesweeperLambda.includes('def warmup_response(start):') &&
+           minesweeperLambda.includes('path in ("/", "/health")') &&
+           minesweeperLambda.includes('path == "/warmup"') &&
+           minesweeperLambda.includes('solve_game(seed=1, max_steps=1'),
+      'minesweeper Lambda should expose cheap health and model warmup routes');
+    assert(pizzaLambda.includes('const healthPayload = () =>') &&
+           pizzaLambda.includes('const warmupPayload = (startedAt) =>') &&
+           pizzaLambda.includes("path === '/warmup'") &&
+           pizzaLambda.includes("path === '/' || path === '/health'"),
+      'pizza tips Lambda should expose health and warmup routes');
+    assert(whisperLambda.includes('def health_payload():') &&
+           whisperLambda.includes('def warmup_response(start):') &&
+           whisperLambda.includes('path == "/warmup"') &&
+           whisperLambda.includes('load_whisper()'),
+      'Whisper Lambda should expose health and explicit model warmup routes');
+    [
+      ['nonogram', nonogramEntrypoint, nonogramDockerfile],
+      ['minesweeper', minesweeperEntrypoint, minesweeperDockerfile],
+      ['whisper', whisperEntrypoint, whisperDockerfile]
+    ].forEach(([name, entrypoint, dockerfile]) => {
+      assert(dockerfile.includes('COPY entrypoint.py') && dockerfile.includes('CMD ["entrypoint.handler"]'),
+        `${name} image should route through the lightweight health entrypoint`);
+      assert(entrypoint.includes('def load_app():') &&
+             entrypoint.includes('importlib.import_module("app")') &&
+             entrypoint.includes('if method == "GET" and path not in ("/warmup",):') &&
+             entrypoint.includes('return health_response()'),
+        `${name} entrypoint should answer health without importing heavy app code`);
+    });
+  });
+
   section('Chatbot demo manual warmup and views', () => {
     const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
     const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
@@ -2366,7 +2636,7 @@ try {
 
     ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
-     'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
+     'probability-engine.html','demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
     ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html']

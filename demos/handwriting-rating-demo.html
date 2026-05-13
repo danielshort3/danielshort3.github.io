@@ -852,10 +852,11 @@
     const LEGACY_KEYS = ["handwriting_fn_url"];
     const {
       listCandidates,
-      getJson,
       postWithFallback,
       rememberEndpoint,
       normalizeBase,
+      healthJson,
+      warmupJson,
       retryRequest
     } = window.DemoAws;
     const endpointConfig = {
@@ -1368,7 +1369,8 @@
       try {
         for (const base of bases) {
           try {
-            await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
+            await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+            await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
             rememberEndpoint(base, STORAGE_KEY);
             serverReady = true;
             setHealth('ok', 'Ready');
@@ -1377,7 +1379,7 @@
             lastErr = err;
           }
           try {
-            await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
+            await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
             rememberEndpoint(base, STORAGE_KEY);
             serverReady = true;
             setHealth('ok', 'Ready');

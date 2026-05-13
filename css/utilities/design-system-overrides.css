@@ -178,12 +178,12 @@
   ) {
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--accent-1, var(--primary)) 88%, #ffffff 12%) 0%,
-      color-mix(in srgb, var(--accent-3, var(--primary)) 65%, #071219 35%) 100%
+      color-mix(in srgb, var(--brand-signal-blue) 88%, #ffffff 12%) 0%,
+      var(--brand-deep-blue) 100%
     );
     color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
-    border-color: color-mix(in srgb, var(--accent-1, var(--primary)) 55%, transparent);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, .32);
+    border-color: color-mix(in srgb, var(--brand-signal-blue) 55%, transparent);
+    box-shadow: 0 8px 22px rgba(0, 95, 237, .16);
   }
 
   @media (hover:hover) and (pointer:fine) {
@@ -197,12 +197,12 @@
     ):focus-visible {
       background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--accent-1, var(--primary)) 94%, #ffffff 6%) 0%,
-        color-mix(in srgb, var(--accent-3, var(--primary)) 72%, #030b12 28%) 100%
+        color-mix(in srgb, var(--brand-signal-blue) 94%, #ffffff 6%) 0%,
+        color-mix(in srgb, var(--brand-deep-blue) 88%, var(--brand-midnight) 12%) 100%
       );
       color: color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
-      border-color: color-mix(in srgb, var(--accent-1, var(--primary)) 68%, transparent);
-      box-shadow: 0 24px 46px rgba(0, 0, 0, .4);
+      border-color: color-mix(in srgb, var(--brand-signal-blue) 68%, transparent);
+      box-shadow: 0 10px 26px rgba(0, 95, 237, .2);
     }
   }
 
@@ -1028,6 +1028,14 @@
     color: var(--brand-midnight);
   }
 
+  .project-hero,
+  .games-hero {
+    background:
+      linear-gradient(90deg, rgba(249, 249, 250, .98) 0%, rgba(249, 249, 250, .9) 52%, rgba(249, 249, 250, .28) 100%),
+      var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / min(52vw, 620px) auto no-repeat,
+      var(--brand-canvas);
+  }
+
   .hero.hero--default .wrapper {
     align-items: flex-start;
     text-align: left;
@@ -1044,17 +1052,25 @@
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default {
-    min-height: min(760px, calc(100svh - var(--nav-height, 72px)));
+    box-sizing: border-box;
+    min-height: calc(100svh - var(--nav-height, 72px));
     justify-content: center;
-  }
-
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default {
-    min-height: auto;
     padding-block: clamp(3.2rem, 6vh, 4.4rem) clamp(2.2rem, 4.5vh, 3.2rem);
     background:
       linear-gradient(90deg, rgba(249, 249, 250, .98) 0%, rgba(249, 249, 250, .88) 48%, rgba(249, 249, 250, .22) 100%),
       var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat,
       var(--brand-canvas);
+  }
+
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .chevron-hint {
+    display: inline-flex;
+  }
+
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost,
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost:visited,
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost:hover,
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost:focus-visible {
+    color: var(--brand-ink);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default .wrapper {
@@ -1067,6 +1083,7 @@
     align-items: center;
     gap: clamp(.75rem, 1.6vw, 1rem);
     max-width: 100%;
+    margin-top: clamp(-.3rem, -1vh, -.1rem);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-identity .hero-eyebrow {
@@ -1107,11 +1124,14 @@
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar {
     display: block;
-    width: clamp(72px, 7vw, 96px);
-    height: clamp(72px, 7vw, 96px);
-    border: 2px solid #ffffff;
+    width: clamp(96px, 9vw, 132px);
+    height: clamp(96px, 9vw, 132px);
+    border: 3px solid #ffffff;
     outline: 2px solid color-mix(in srgb, var(--brand-action-copper) 52%, transparent);
-    box-shadow: 0 14px 28px rgba(9, 31, 59, .14);
+    box-shadow:
+      0 18px 36px rgba(9, 31, 59, .18),
+      0 0 0 6px rgba(255, 255, 255, .78);
+    opacity: 1;
     object-position: center 34%;
     background: #ffffff;
   }
@@ -1251,7 +1271,7 @@
     background: #ffffff;
     color: var(--brand-midnight);
     border-color: color-mix(in srgb, var(--brand-midnight) 12%, transparent);
-    border-radius: 14px;
+    border-radius: 10px;
     box-shadow: var(--shadow-sm);
   }
 
@@ -1512,18 +1532,18 @@
       box-shadow: var(--shadow-sm);
     }
 
-    body[data-page="analytics"] .hero .cta-group .btn-ghost {
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost {
       background: #ffffff;
-      color: var(--brand-deep-blue);
+      color: var(--brand-ink);
       border-color: color-mix(in srgb, var(--brand-signal-blue) 34%, transparent);
       border-style: solid;
       box-shadow: var(--shadow-sm);
     }
 
-    body[data-page="analytics"] .hero .cta-group .btn-ghost:hover,
-    body[data-page="analytics"] .hero .cta-group .btn-ghost:focus-visible {
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost:hover,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost:focus-visible {
       background: color-mix(in srgb, var(--brand-signal-blue) 7%, #ffffff 93%);
-      color: var(--brand-midnight);
+      color: var(--brand-ink);
       border-color: color-mix(in srgb, var(--brand-signal-blue) 36%, transparent);
     }
 
@@ -1612,28 +1632,28 @@
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #project-examples,
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#project-examples"] {
-    --home-section-accent: #2f9d58;
+    --home-section-accent: var(--brand-signal-blue);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #selected-outcomes {
-    --home-section-accent: #4f73d9;
+    --home-section-accent: var(--brand-deep-blue);
   }
 
   body:is([data-page="data-science"], [data-page="tourism"]).home-pattern-page #transferability {
-    --home-section-accent: #0f766e;
+    --home-section-accent: var(--brand-midnight);
   }
 
   body:is([data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#transferability"] {
-    --home-section-accent: #0f766e;
+    --home-section-accent: var(--brand-midnight);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#selected-outcomes"] {
-    --home-section-accent: #4f73d9;
+    --home-section-accent: var(--brand-deep-blue);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #work-experience,
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#work-experience"] {
-    --home-section-accent: #5a78a8;
+    --home-section-accent: var(--brand-slate);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #about-me,
@@ -1643,7 +1663,7 @@
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #certifications,
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#certifications"] {
-    --home-section-accent: #5a7edb;
+    --home-section-accent: var(--brand-deep-blue);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #cta,
@@ -2015,12 +2035,17 @@
     }
 
     body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-identity {
-      order: 1;
+      order: 2;
       max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
       margin-inline: auto;
       flex-direction: column;
       gap: .6rem;
       text-align: center;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar {
+      width: clamp(84px, 24vw, 112px);
+      height: clamp(84px, 24vw, 112px);
     }
 
     body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-eyebrow {
@@ -2029,7 +2054,7 @@
     }
 
     body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero h1 {
-      order: 2;
+      order: 1;
       width: min(100%, 340px);
       max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
       margin-inline: auto;
@@ -2104,6 +2129,35 @@
     body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-proof-row span {
       font-size: .78rem;
       line-height: 1.25;
+    }
+
+    @media (max-width: 430px) {
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero h1 {
+        width: min(100%, 310px);
+        font-size: clamp(1.8rem, 7.4vw, 2.16rem);
+      }
+
+      body[data-page="tourism"] .hero h1 {
+        width: min(100%, 310px);
+        font-size: clamp(1.72rem, 7vw, 2.04rem);
+      }
+
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-tagline,
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-status,
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .cta-group,
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-proof-row {
+        width: min(100%, 300px);
+      }
+
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-status {
+        padding-inline: 10px;
+        font-size: .68rem;
+      }
+
+      body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .cta-group .hero-cta {
+        padding-inline: 6px;
+        font-size: .82rem;
+      }
     }
 
     .hero-proof-row {

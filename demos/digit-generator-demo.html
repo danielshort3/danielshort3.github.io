@@ -647,8 +647,8 @@
       listCandidates,
       postWithFallback,
       rememberEndpoint,
-      getJson,
-      normalizeBase,
+      healthJson,
+      warmupJson,
       retryRequest
     } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
@@ -664,7 +664,7 @@
       factor: 1.8,
       maxDelayMs: 10000
     };
-    const candidates = () => listCandidates(endpointConfig);
+    const candidates = () => listCandidates(endpointConfig).filter(Boolean);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'generate', 'sample'], payload);
 
     const gridEl = document.getElementById('grid');
@@ -876,7 +876,8 @@
       let lastErr = null;
       for (const base of endpoints) {
         try {
-          await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
+          await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+          await retryRequest(() => warmupJson(base, warmPayload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');
@@ -888,7 +889,7 @@
           lastErr = err;
         }
         try {
-          await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
+          await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');

@@ -19,6 +19,10 @@ except ValueError:
 DEFAULT_MINE_COUNT = int(os.getenv("MINE_COUNT", "0"))
 MAX_GUESS_COMPONENT = int(os.getenv("GUESS_COMPONENT_MAX", "18"))
 EPS = 1e-9
+RESPONSE_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store"
+}
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
@@ -940,6 +944,54 @@ def parse_body(event):
     return {}
 
 
+def response(status_code, body=None):
+  return {
+    "statusCode": status_code,
+    "headers": RESPONSE_HEADERS,
+    "body": json.dumps(body or {})
+  }
+
+
+def request_path(event):
+  raw = (
+    event.get("rawPath")
+    or event.get("path")
+    or event.get("requestContext", {}).get("http", {}).get("path")
+    or "/"
+  )
+  path = "/" + str(raw).strip().lstrip("/")
+  return path.rstrip("/") or "/"
+
+
+def health_response():
+  meta = globals().get("_MODEL_META") or {}
+  return response(200, {
+    "status": "ok",
+    "service": "minesweeper-solver",
+    "model_loaded": globals().get("_AGENT") is not None,
+    "model": meta,
+    "grid": meta.get("grid_size") or DEFAULT_GRID_SIZE,
+    "mines": meta.get("num_mines") or DEFAULT_MINE_COUNT
+  })
+
+
+def warmup_response(start):
+  agent, meta = load_agent()
+  grid_size = resolve_grid_size(agent)
+  num_mines = resolve_mine_count(grid_size, agent)
+  solve_game(seed=1, max_steps=1, grid_size=grid_size, num_mines=num_mines)
+  return response(200, {
+    "status": "ready",
+    "service": "minesweeper-solver",
+    "warmed": True,
+    "model_loaded": globals().get("_AGENT") is not None,
+    "model": meta,
+    "grid": grid_size,
+    "mines": num_mines,
+    "duration_ms": int((time.time() - start) * 1000)
+  })
+
+
 def find_best_model(target_grid=None, target_mines=None):
   best = None
   for name in os.listdir(MODEL_DIR):
@@ -1115,31 +1167,22 @@ def handler(event, context):
     or event.get("httpMethod")
     or "GET"
   )
-  path = event.get("rawPath") or event.get("path") or "/"
-  if path:
-    path = path.rstrip("/") or "/"
-
-  response_headers = {
-    "Content-Type": "application/json"
-  }
+  path = request_path(event)
 
   if method == "OPTIONS":
     return {"statusCode": 204}
 
+  if method == "GET" and path in ("/", "/health"):
+    return health_response()
+
+  if path == "/warmup" and method in ("GET", "POST"):
+    try:
+      return warmup_response(start)
+    except Exception as exc:
+      return response(500, { "error": str(exc) })
+
   if method == "GET":
-    agent, meta = load_agent()
-    grid_size = resolve_grid_size(agent)
-    num_mines = resolve_mine_count(grid_size, agent)
-    return {
-      "statusCode": 200,
-      "headers": response_headers,
-      "body": json.dumps({
-        "status": "ok",
-        "model": meta,
-        "grid": grid_size,
-        "mines": num_mines
-      })
-    }
+    return health_response()
 
   payload = parse_body(event)
   grid_size = payload.get("grid_size") or payload.get("grid") or payload.get("size")
@@ -1171,16 +1214,6 @@ def handler(event, context):
     result = solve_game(seed=seed, max_steps=max_steps, grid_size=grid_size, num_mines=num_mines)
     duration_ms = int((time.time() - start) * 1000)
     result["duration_ms"] = duration_ms
-    return {
-      "statusCode": 200,
-      "headers": response_headers,
-      "body": json.dumps(result)
-    }
+    return response(200, result)
   except Exception as exc:
-    return {
-      "statusCode": 500,
-      "headers": response_headers,
-      "body": json.dumps({
-        "error": str(exc)
-      })
-    }
+    return response(500, { "error": str(exc) })

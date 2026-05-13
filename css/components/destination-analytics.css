@@ -1,24 +1,12 @@
 @layer components {
-  body[data-page="destination-analytics"] {
-    --audience-band-border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
-    --audience-band-1: color-mix(in srgb, var(--surface) 72%, #0e7a6a 28%);
-    --audience-band-2: color-mix(in srgb, var(--surface) 76%, #7b365f 24%);
-    --audience-band-3: color-mix(in srgb, var(--surface) 74%, #2d88a0 26%);
-    --audience-band-4: color-mix(in srgb, var(--surface) 76%, #4f8a32 24%);
-  }
-
-  body[data-page="data-science"] {
-    --audience-band-1: color-mix(in srgb, var(--surface) 72%, #2b7dd3 28%);
-    --audience-band-2: color-mix(in srgb, var(--surface) 76%, #8846b8 24%);
-    --audience-band-3: color-mix(in srgb, var(--surface) 74%, #1f8871 26%);
-    --audience-band-4: color-mix(in srgb, var(--surface) 78%, #a76a23 22%);
-  }
-
+  body[data-page="destination-analytics"],
+  body[data-page="data-science"],
   body[data-page="tourism"] {
-    --audience-band-1: color-mix(in srgb, var(--surface) 72%, #1a7c78 28%);
-    --audience-band-2: color-mix(in srgb, var(--surface) 76%, #5e8f32 24%);
-    --audience-band-3: color-mix(in srgb, var(--surface) 74%, #a45c2a 26%);
-    --audience-band-4: color-mix(in srgb, var(--surface) 78%, #6b3d76 22%);
+    --audience-band-border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    --audience-band-1: color-mix(in srgb, var(--brand-canvas, #f9f9fa) 82%, var(--brand-signal-blue, #005fed) 18%);
+    --audience-band-2: color-mix(in srgb, var(--brand-mist, #eef2f7) 78%, var(--brand-deep-blue, #0145c8) 22%);
+    --audience-band-3: color-mix(in srgb, var(--brand-canvas, #f9f9fa) 88%, var(--brand-midnight, #091f3b) 12%);
+    --audience-band-4: color-mix(in srgb, var(--brand-canvas, #f9f9fa) 88%, var(--brand-action-copper, #d97706) 12%);
   }
 
   body[data-page="destination-analytics"] .nav-item-audience,
@@ -34,8 +22,8 @@
     background:
       radial-gradient(900px circle at 12% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 56%),
       linear-gradient(120deg,
-        color-mix(in srgb, var(--audience-band-base) 96%, #000 4%) 0%,
-        color-mix(in srgb, var(--audience-band-base) 86%, #000 14%) 100%);
+        color-mix(in srgb, var(--audience-band-base) 96%, #ffffff 4%) 0%,
+        color-mix(in srgb, var(--audience-band-base) 90%, var(--brand-midnight, #091f3b) 10%) 100%);
   }
 
   body[data-page="destination-analytics"] main > section.surface-band:nth-of-type(4n + 2) {
@@ -74,10 +62,10 @@
     align-items: flex-start;
     gap: 10px;
     padding: 18px 18px 18px 16px;
-    border-radius: 18px;
+    border-radius: 10px;
     border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
-    background: color-mix(in srgb, var(--surface) 88%, #02060c 12%);
-    box-shadow: 0 18px 36px rgba(0, 0, 0, .22);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(9,31,59,.08));
     text-align: left;
     color: var(--text-light);
   }
@@ -98,8 +86,8 @@
     background:
       radial-gradient(1000px circle at 10% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 58%),
       linear-gradient(150deg,
-        color-mix(in srgb, var(--surface) 95%, #030811 5%) 0%,
-        color-mix(in srgb, var(--surface) 88%, #030811 12%) 100%);
+        color-mix(in srgb, var(--brand-canvas, #f9f9fa) 96%, #ffffff 4%) 0%,
+        color-mix(in srgb, var(--brand-mist, #eef2f7) 88%, var(--brand-midnight, #091f3b) 12%) 100%);
     border-block: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
   }
 
@@ -127,10 +115,10 @@
     max-width: 980px;
     margin: 0 auto;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: 10px;
     border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
-    background: color-mix(in srgb, var(--surface) 96%, #02050a 4%);
-    box-shadow: 0 28px 60px rgba(0, 0, 0, .22);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(9,31,59,.08));
   }
 
   .transfer-map-row {
@@ -179,10 +167,10 @@
   .destination-link-card,
   .who-i-work-with-card {
     padding: 24px;
-    border-radius: 22px;
+    border-radius: 10px;
     border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
-    background: color-mix(in srgb, var(--surface) 96%, #05070b 4%);
-    box-shadow: 0 18px 36px rgba(0, 0, 0, .18);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(9,31,59,.08));
   }
 
   body[data-page="destination-analytics"] .audience-proof-card,
@@ -190,9 +178,9 @@
   body[data-page="destination-analytics"] .audience-fit-card,
   body[data-page="destination-analytics"] .destination-card,
   body[data-page="destination-analytics"] .destination-proof-link {
-    background: color-mix(in srgb, var(--audience-band-base, var(--surface)) 42%, #04070d 58%);
-    border-color: color-mix(in srgb, var(--primary) 24%, transparent);
-    box-shadow: 0 18px 36px rgba(0, 0, 0, .24);
+    background: color-mix(in srgb, #ffffff 86%, var(--audience-band-base, var(--brand-mist, #eef2f7)) 14%);
+    border-color: color-mix(in srgb, var(--primary) 20%, transparent);
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(9,31,59,.08));
   }
 
   .destination-card h3,
@@ -220,9 +208,9 @@
 
   .destination-metric-pill {
     padding: 15px 16px;
-    border-radius: 16px;
+    border-radius: 8px;
     border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
-    background: color-mix(in srgb, var(--surface) 92%, #01050a 8%);
+    background: color-mix(in srgb, var(--brand-mist, #eef2f7) 64%, #ffffff 36%);
     font-weight: 600;
     text-align: center;
     color: color-mix(in srgb, var(--text-light) 92%, #ffffff 8%);
@@ -245,9 +233,9 @@
   .destination-proof-link {
     display: block;
     padding: 18px 20px;
-    border-radius: 18px;
+    border-radius: 10px;
     border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
-    background: color-mix(in srgb, var(--surface) 96%, #02060c 4%);
+    background: #ffffff;
   }
 
   .destination-proof-link strong,

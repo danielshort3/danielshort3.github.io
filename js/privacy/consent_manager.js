@@ -39,7 +39,7 @@
       critical.id = CRITICAL_STYLE_ID;
       critical.textContent = [
         '#pcz-banner,#pcz-modal{font:16px/1.5 "Inter","Segoe UI",Arial,sans-serif;color:#091f3b;}',
-        '#pcz-banner .pcz-card,#pcz-modal .pcz-panel{background:#fff;color:#091f3b;border:1px solid rgba(9,31,59,.14);box-shadow:0 20px 44px rgba(9,31,59,.14);}',
+        '#pcz-banner .pcz-card,#pcz-modal .pcz-panel{background:#fff;color:#091f3b;border:1px solid rgba(9,31,59,.14);box-shadow:0 10px 26px rgba(9,31,59,.1);border-radius:10px;}',
         '#pcz-banner .pcz-body,#pcz-modal .policy-lead,#pcz-modal .pref-description{color:#334155;}',
         '#pcz-banner .pcz-primary,#pcz-modal .pcz-save-preferences{background:#005fed!important;color:#fff!important;border-color:#005fed!important;}',
         '#pcz-banner .pcz-secondary{background:#fff!important;color:#091f3b!important;border-color:rgba(9,31,59,.2)!important;}',

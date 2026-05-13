@@ -580,6 +580,8 @@
       listCandidates,
       postWithFallback,
       rememberEndpoint,
+      healthJson,
+      warmupJson,
       retryRequest
     } = window.DemoAws;
     const META = window.PizzaTipsMeta || {};
@@ -633,7 +635,7 @@
       factor: 1.8,
       maxDelayMs: 10000
     };
-    const candidates = () => listCandidates(endpointConfig);
+    const candidates = () => listCandidates(endpointConfig).filter(Boolean);
     const API_URL = resolveEndpoint(endpointConfig);
     const statusEl = document.getElementById('api-status');
     const latInput = document.getElementById('lat');
@@ -962,6 +964,16 @@
       const payload = currentPayload(false);
       let lastErr = null;
       for (const base of endpoints) {
+        try {
+          await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+          await retryRequest(() => warmupJson(base, payload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
+          rememberEndpoint(base, STORAGE_KEY);
+          setServerReady(true);
+          setStatus('ok', 'Ready');
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
         try {
           await retryRequest(() => postToEndpoint(base, payload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
