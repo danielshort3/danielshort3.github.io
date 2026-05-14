@@ -1,64 +1,61 @@
 (() => {
   'use strict';
 
-  const ENDPOINT_BASE_DEFAULT = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
-  const ENDPOINT_BASE = (() => {
-    const configured = String((document.body && document.body.dataset && document.body.dataset.whisperEndpointBase) || '').trim();
-    const base = configured || ENDPOINT_BASE_DEFAULT;
-    return base.endsWith('/') ? base : `${base}/`;
-  })();
-
-  const STORAGE_WARMUP_AT = 'tool.whisperTranscribe.lastWarmupAt';
-  const STORAGE_WARMUP_BASE = 'tool.whisperTranscribe.lastWarmupBase';
-
-  const WARMUP_MIN_INTERVAL_MS = 10 * 60 * 1000;
-  const WARMUP_AUDIO_MS = 250;
-  const WARM_RETRY_OPTIONS = {
-    retries: 2,
-    baseDelayMs: 700,
-    factor: 2,
-    maxDelayMs: 3000
+  const TOOL_ID = 'whisper-transcribe-monitor';
+  const API_BASE = '/api/tools/transcribe';
+  const DEFAULT_CONFIG = {
+    service: 'Amazon Transcribe',
+    region: 'us-east-2',
+    languageCode: 'en-US',
+    pricePerSecond: 0.0004,
+    pricePerMinute: 0.024,
+    minDurationSeconds: 15,
+    minBillableSeconds: 15,
+    maxFilesPerRun: 10,
+    maxFileBytes: 500 * 1024 * 1024,
+    maxTotalCostUsd: 10,
+    supportedFormats: ['amr', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm']
   };
-  const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+  const VIDEO_FORMATS = new Set(['mp4', 'webm']);
+  const POLL_INTERVAL_MS = 5000;
+  const DURATION_TIMEOUT_MS = 10000;
 
   const $id = (id) => document.getElementById(id);
 
-  const healthPillEl = $id('whispermon-health-pill');
-  const endpointStatusEl = $id('whispermon-endpoint-status');
-  const checkBtn = $id('whispermon-check');
+  const authPillEl = $id('transcribe-auth-pill');
+  const authStatusEl = $id('transcribe-auth-status');
+  const signInBtn = $id('transcribe-sign-in');
+  const serviceEl = $id('transcribe-stat-service');
+  const priceEl = $id('transcribe-stat-price');
+  const minimumEl = $id('transcribe-stat-minimum');
+  const acceptedEl = $id('transcribe-stat-accepted');
+  const formEl = $id('transcribe-form');
+  const fileEl = $id('transcribe-files');
+  const summaryEl = $id('transcribe-summary');
+  const tableWrapEl = $id('transcribe-table-wrap');
+  const tableBodyEl = $id('transcribe-file-rows');
+  const totalEl = $id('transcribe-total');
+  const approveEl = $id('transcribe-approve');
+  const startBtn = $id('transcribe-start');
+  const cancelBtn = $id('transcribe-cancel');
+  const resetBtn = $id('transcribe-reset');
+  const runStatusEl = $id('transcribe-run-status');
+  const progressWrapEl = $id('transcribe-progress-wrap');
+  const progressLabelEl = $id('transcribe-progress-label');
+  const progressBarEl = $id('transcribe-progress');
+  const resultsEl = $id('transcribe-results');
 
-  const statModelEl = $id('whispermon-stat-model');
-  const statDirectLimitEl = $id('whispermon-stat-direct-limit');
-  const statUploadLimitEl = $id('whispermon-stat-upload-limit');
-  const statPartMaxEl = $id('whispermon-stat-part-max');
+  if (!formEl || !fileEl || !startBtn || !tableBodyEl) return;
 
-  const formEl = $id('whispermon-form');
-  const fileEl = $id('whispermon-file');
-  const audioMetaEl = $id('whispermon-audio-meta');
-  const startBtn = $id('whispermon-start');
-  const cancelBtn = $id('whispermon-cancel');
-  const resetBtn = $id('whispermon-reset');
-  const runStatusEl = $id('whispermon-run-status');
-
-  const progressWrapEl = $id('whispermon-upload-progress-wrap');
-  const progressLabelEl = $id('whispermon-upload-progress-label');
-  const progressBarEl = $id('whispermon-upload-progress');
-
-  const partMinutesEl = $id('whispermon-part-minutes');
-  const partMinutesMetaEl = $id('whispermon-part-minutes-meta');
-
-  const directMeterFillEl = $id('whispermon-direct-meter-fill');
-  const directMeterMetaEl = $id('whispermon-direct-meter-meta');
-  const uploadMeterFillEl = $id('whispermon-upload-meter-fill');
-  const uploadMeterMetaEl = $id('whispermon-upload-meter-meta');
-
-  const transcriptEl = $id('whispermon-transcript');
-  const copyTranscriptBtn = $id('whispermon-copy-transcript');
-  const transcriptStatusEl = $id('whispermon-transcript-status');
-
-  if (!formEl || !fileEl || !startBtn) return;
-
-  const TOOL_ID = 'whisper-transcribe-monitor';
+  const state = {
+    config: { ...DEFAULT_CONFIG },
+    files: [],
+    busy: false,
+    canceled: false,
+    activeXhr: null,
+    activeController: null,
+    analyzing: false
+  };
 
   const markSessionDirty = () => {
     try {
@@ -66,82 +63,17 @@
     } catch {}
   };
 
-  const STORAGE_PART_MINUTES = 'tool.whisperTranscribe.partMinutes';
+  const escapeHtml = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
-  let serverReady = false;
-  let serverInfo = {
-    model: 'unknown',
-    modelLoaded: false,
-    maxAudioSeconds: null,
-    maxUploadBytes: null,
-    maxDirectBytes: null,
-    uploadsEnabled: false,
-    maxPartMinutes: 30,
-    defaultPartMinutes: 30
-  };
+  const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
-  let audioState = {
-    filename: '',
-    mime: 'application/octet-stream',
-    bytes: 0,
-    file: null,
-    durationSeconds: null
-  };
-
-  let activeRequest = null;
-  let durationProbeSeq = 0;
-  let uiBusy = false;
-
-  const updateLayoutState = () => {
-    const hasTranscript = Boolean(String(transcriptEl?.value || '').trim());
-    const hasFile = Boolean(audioState.file);
-    const nextState = uiBusy
-      ? 'working'
-      : hasTranscript
-        ? 'results'
-        : hasFile
-          ? 'ready'
-          : 'empty';
-    if (document.body) document.body.dataset.toolsState = nextState;
-  };
-
-  const safeGet = (key) => {
-    if (!key) return null;
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  };
-
-  const safeSet = (key, value) => {
-    if (!key) return;
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      // Ignore storage errors.
-    }
-  };
-
-  const parseTimestamp = (value) => {
-    const parsed = Number.parseInt(String(value || ''), 10);
-    if (!Number.isFinite(parsed) || parsed <= 0) return null;
-    return parsed;
-  };
-
-  const normalizeBase = (url) => {
-    const raw = String(url || '').trim();
-    if (!raw) return '';
-    return raw.endsWith('/') ? raw : `${raw}/`;
-  };
-
-  const joinUrl = (base, path = '') => {
-    const left = normalizeBase(base);
-    const right = String(path || '').trim();
-    if (!left) return right;
-    if (!right) return left;
-    if (right.startsWith('/')) return `${left}${right.slice(1)}`;
-    return `${left}${right}`;
+  const setText = (el, value) => {
+    if (el) el.textContent = value || '';
   };
 
   const setStatus = (el, message, tone) => {
@@ -150,707 +82,29 @@
     el.dataset.tone = tone || '';
   };
 
-  const setHealth = (state, label) => {
-    if (!healthPillEl) return;
-    healthPillEl.dataset.state = state || '';
-    healthPillEl.textContent = label || '';
-  };
-
-  const syncTranscriptUi = () => {
-    const hasText = Boolean(String(transcriptEl?.value || '').trim());
-    if (copyTranscriptBtn) copyTranscriptBtn.disabled = !hasText;
-    updateLayoutState();
-  };
-
-  const setTranscript = (text) => {
-    const value = (text || '').trim();
-    if (transcriptEl) transcriptEl.value = value;
-    syncTranscriptUi();
-    markSessionDirty();
-  };
-
-  const clearTranscript = () => {
-    setTranscript('');
-    setStatus(transcriptStatusEl, '', '');
+  const setAuthPill = (stateName, label) => {
+    if (!authPillEl) return;
+    authPillEl.dataset.state = stateName || '';
+    authPillEl.textContent = label || '';
   };
 
   const formatNumber = (value, digits = 2) => {
     const num = Number(value);
-    if (!Number.isFinite(num)) return '—';
+    if (!Number.isFinite(num)) return '--';
     return num.toFixed(digits).replace(/\.00$/, '');
-  };
-
-  const clampInt = (value, min, max, fallback) => {
-    const parsed = Number.parseInt(String(value || ''), 10);
-    if (Number.isNaN(parsed)) return fallback;
-    return Math.min(max, Math.max(min, parsed));
   };
 
   const formatBytes = (bytes) => {
     const value = Number(bytes);
-    if (!Number.isFinite(value) || value <= 0) return '—';
+    if (!Number.isFinite(value) || value <= 0) return '--';
     const mb = value / (1024 * 1024);
+    if (mb >= 1024) return `${formatNumber(mb / 1024, 2)} GB`;
     if (mb >= 1) return `${formatNumber(mb, 2)} MB`;
     return `${formatNumber(value / 1024, 1)} KB`;
   };
 
-  const setStat = (el, value) => {
-    if (!el) return;
-    el.textContent = (value || '').trim() || '—';
-  };
-
-  const createSilentWavBlob = (durationMs) => {
-    const sampleRate = 16000;
-    const channels = 1;
-    const bitsPerSample = 16;
-    const bytesPerSample = bitsPerSample / 8;
-    const ms = Math.max(1, Number(durationMs) || 1);
-    const samples = Math.max(1, Math.round(sampleRate * (ms / 1000)));
-    const dataBytes = samples * channels * bytesPerSample;
-    const buffer = new ArrayBuffer(44 + dataBytes);
-    const view = new DataView(buffer);
-
-    const writeAscii = (offset, value) => {
-      for (let i = 0; i < value.length; i += 1) {
-        view.setUint8(offset + i, value.charCodeAt(i) & 0xff);
-      }
-    };
-
-    writeAscii(0, 'RIFF');
-    view.setUint32(4, 36 + dataBytes, true);
-    writeAscii(8, 'WAVE');
-    writeAscii(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, channels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * channels * bytesPerSample, true);
-    view.setUint16(32, channels * bytesPerSample, true);
-    view.setUint16(34, bitsPerSample, true);
-    writeAscii(36, 'data');
-    view.setUint32(40, dataBytes, true);
-
-    return new Blob([buffer], { type: 'audio/wav' });
-  };
-
-  const currentPartMinutes = () => {
-    const max = clampInt(serverInfo.maxPartMinutes, 1, 60, 30);
-    const defaultMinutes = clampInt(serverInfo.defaultPartMinutes, 1, max, 30);
-    const minMinutes = 5;
-    const sliderMin = Math.min(minMinutes, max);
-    return clampInt(partMinutesEl?.value, sliderMin, max, defaultMinutes);
-  };
-
-  const updatePartMinutesMeta = () => {
-    const minutes = currentPartMinutes();
-    if (partMinutesMetaEl) {
-      partMinutesMetaEl.textContent = `Splits long media into ${minutes}-minute parts for transcription.`;
-    }
-  };
-
-  const setBusy = (busy) => {
-    const isBusy = Boolean(busy);
-    uiBusy = isBusy;
-    if (startBtn) {
-      if (isBusy) startBtn.classList.add('is-busy');
-      else startBtn.classList.remove('is-busy');
-      startBtn.disabled = isBusy || !serverReady;
-    }
-    if (cancelBtn) cancelBtn.disabled = !isBusy;
-    if (resetBtn) resetBtn.disabled = isBusy;
-    if (fileEl) fileEl.disabled = isBusy;
-    if (checkBtn) checkBtn.disabled = isBusy;
-    updateLayoutState();
-  };
-
-  const setUploadProgress = ({ state, ratio, label }) => {
-    if (!progressWrapEl || !progressBarEl) return;
-    const nextState = state || 'hidden';
-    progressWrapEl.dataset.state = nextState;
-    if (nextState === 'hidden') {
-      progressBarEl.value = 0;
-      if (progressLabelEl) progressLabelEl.textContent = 'Upload progress';
-      return;
-    }
-
-    const safeRatio = Math.min(1, Math.max(0, Number(ratio) || 0));
-    progressBarEl.value = safeRatio;
-    if (progressLabelEl) progressLabelEl.textContent = label || 'Upload progress';
-  };
-
-  const abortActive = () => {
-    if (!activeRequest) return;
-    const { xhr, controller } = activeRequest;
-    try {
-      if (xhr && xhr.readyState !== 4) xhr.abort();
-    } catch {
-      // Ignore.
-    }
-    try {
-      if (controller) controller.abort();
-    } catch {
-      // Ignore.
-    }
-    activeRequest = null;
-  };
-
-  const requestJson = async (url, options = {}) => {
-    const res = await fetch(url, options);
-    const text = await res.text();
-    let data = null;
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = null;
-      }
-    }
-    return {
-      ok: res.ok,
-      status: res.status,
-      statusText: res.statusText,
-      data,
-      text
-    };
-  };
-
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  const isRetryableError = (err) => {
-    if (!err) return false;
-    if (typeof err.status === 'number') return RETRYABLE_STATUSES.has(err.status);
-    if (err.name === 'AbortError') return true;
-    const message = String(err.message || '').toLowerCase();
-    return (
-      message.includes('failed to fetch') ||
-      message.includes('networkerror') ||
-      message.includes('load failed') ||
-      message.includes('timed out') ||
-      message.includes('timeout')
-    );
-  };
-
-  const retryRequest = async (operation, options = {}) => {
-    const retries = Number.isFinite(options.retries) ? Math.max(0, options.retries) : 2;
-    const baseDelayMs = Number.isFinite(options.baseDelayMs) ? Math.max(0, options.baseDelayMs) : 600;
-    const factor = Number.isFinite(options.factor) && options.factor > 1 ? options.factor : 2;
-    const maxDelayMs = Number.isFinite(options.maxDelayMs)
-      ? Math.max(0, options.maxDelayMs)
-      : 2500;
-    const shouldRetry = typeof options.shouldRetry === 'function'
-      ? options.shouldRetry
-      : isRetryableError;
-
-    let attempt = 0;
-    let delayMs = baseDelayMs;
-    let lastErr = null;
-
-    while (attempt <= retries) {
-      try {
-        return await operation(attempt);
-      } catch (err) {
-        lastErr = err;
-        if (attempt >= retries || !shouldRetry(err, attempt)) {
-          throw err;
-        }
-        if (delayMs > 0) {
-          await sleep(delayMs);
-        }
-        delayMs = Math.min(Math.max(delayMs * factor, 1), maxDelayMs);
-        attempt += 1;
-      }
-    }
-
-    throw lastErr || new Error('Request failed');
-  };
-
-  const shouldWarmUp = ({ base, modelLoaded }) => {
-    const last = parseTimestamp(safeGet(STORAGE_WARMUP_AT));
-    const lastBase = normalizeBase(safeGet(STORAGE_WARMUP_BASE));
-    if (!base) return true;
-    if (!modelLoaded) return true;
-    if (!last || !lastBase || lastBase !== base) return true;
-    return Date.now() - last >= WARMUP_MIN_INTERVAL_MS;
-  };
-
-  const setServerReadyState = (ready) => {
-    serverReady = Boolean(ready);
-    if (startBtn && !startBtn.classList.contains('is-busy')) {
-      startBtn.disabled = !serverReady;
-    }
-  };
-
-  const setMeter = ({ fillEl, metaEl, ratio, tone, meta }) => {
-    const safeRatio = Math.min(1, Math.max(0, Number(ratio) || 0));
-    if (fillEl) {
-      fillEl.style.width = `${safeRatio * 100}%`;
-      if (tone) fillEl.dataset.tone = tone;
-      else delete fillEl.dataset.tone;
-    }
-    if (metaEl) metaEl.textContent = meta || '';
-  };
-
-  const probeMediaDuration = async (file) => {
-    if (!file || !window.URL || typeof window.URL.createObjectURL !== 'function') return null;
-    durationProbeSeq += 1;
-    const seq = durationProbeSeq;
-    const src = window.URL.createObjectURL(file);
-    const tag = String(file.type || '').toLowerCase().startsWith('video') ? 'video' : 'audio';
-    const el = document.createElement(tag);
-    el.preload = 'metadata';
-    el.muted = true;
-    el.playsInline = true;
-
-    return await new Promise((resolve) => {
-      const cleanup = () => {
-        try {
-          el.removeAttribute('src');
-          el.load();
-        } catch {
-          // Ignore.
-        }
-        try {
-          window.URL.revokeObjectURL(src);
-        } catch {
-          // Ignore.
-        }
-      };
-
-      const finish = (value) => {
-        cleanup();
-        if (seq !== durationProbeSeq) return resolve(null);
-        const num = Number(value);
-        if (!Number.isFinite(num) || num <= 0) return resolve(null);
-        return resolve(num);
-      };
-
-      el.onloadedmetadata = () => finish(el.duration);
-      el.onerror = () => finish(null);
-      el.src = src;
-    });
-  };
-
-  const estimateParts = () => {
-    const duration = Number(audioState.durationSeconds);
-    if (!Number.isFinite(duration) || duration <= 0) return null;
-    const partSec = currentPartMinutes() * 60;
-    if (!Number.isFinite(partSec) || partSec <= 0) return null;
-    return Math.max(1, Math.ceil(duration / partSec));
-  };
-
-  const updateAudioMeta = () => {
-    if (!audioMetaEl) return;
-    if (!audioState.file) {
-      audioMetaEl.textContent = 'No media loaded.';
-      audioMetaEl.dataset.tone = '';
-      setMeter({
-        fillEl: directMeterFillEl,
-        metaEl: directMeterMetaEl,
-        ratio: 0,
-        tone: '',
-        meta: 'Select a file to compare against the direct request limit.'
-      });
-      setMeter({
-        fillEl: uploadMeterFillEl,
-        metaEl: uploadMeterMetaEl,
-        ratio: 0,
-        tone: '',
-        meta: 'Select a file to compare against the upload limit.'
-      });
-      return;
-    }
-
-    const limitBytes = serverInfo.maxUploadBytes;
-    const tooLarge = Number.isFinite(Number(limitBytes)) && limitBytes > 0 && audioState.bytes > limitBytes;
-    const limitLabel = Number.isFinite(Number(limitBytes)) && limitBytes > 0 ? formatBytes(limitBytes) : '—';
-    const typeLabel = audioState.mime && audioState.mime !== 'application/octet-stream' ? audioState.mime : 'unknown type';
-    const durationLabel = Number.isFinite(Number(audioState.durationSeconds)) ? formatClock(audioState.durationSeconds) : '';
-    const partCount = estimateParts();
-    const minutes = currentPartMinutes();
-    const partCountLabel = Number.isFinite(Number(partCount)) ? `${partCount} part${partCount === 1 ? '' : 's'} @ ${minutes}m` : '';
-    const extra = [durationLabel, partCountLabel].filter(Boolean);
-    const base = `${audioState.filename} • ${formatBytes(audioState.bytes)} • ${typeLabel}${extra.length ? ` • ${extra.join(' • ')}` : ''}`;
-    audioMetaEl.textContent = tooLarge ? `${base} • exceeds ${limitLabel} limit` : base;
-    audioMetaEl.dataset.tone = tooLarge ? 'error' : 'success';
-
-    const directLimit = serverInfo.maxDirectBytes;
-    const hasDirectLimit = Number.isFinite(Number(directLimit)) && Number(directLimit) > 0;
-    const directRatio = hasDirectLimit ? (audioState.bytes / Number(directLimit)) : 0;
-    const directTooLarge = hasDirectLimit && audioState.bytes > Number(directLimit);
-    const uploadsEnabled = Boolean(serverInfo.uploadsEnabled);
-    const directTone = directTooLarge ? (uploadsEnabled ? 'warning' : 'danger') : '';
-    const directRemaining = hasDirectLimit ? (Number(directLimit) - audioState.bytes) : 0;
-    const directOver = hasDirectLimit ? (audioState.bytes - Number(directLimit)) : 0;
-    const directRemainingLabel = directRemaining > 0 ? `${formatBytes(directRemaining)} remaining` : '';
-    const directOverLabel = directOver > 0 ? `${formatBytes(directOver)} over` : '';
-    const directMeta = hasDirectLimit
-      ? `${formatBytes(audioState.bytes)} / ${formatBytes(directLimit)}${directTooLarge ? (uploadsEnabled ? ` (${directOverLabel}, will use S3 upload)` : ` (${directOverLabel})`) : (directRemainingLabel ? ` (${directRemainingLabel})` : '')}`
-      : 'Direct limit unavailable.';
-    setMeter({
-      fillEl: directMeterFillEl,
-      metaEl: directMeterMetaEl,
-      ratio: directRatio,
-      tone: directTone,
-      meta: directMeta
-    });
-
-    const uploadLimit = serverInfo.maxUploadBytes;
-    const hasUploadLimit = Number.isFinite(Number(uploadLimit)) && Number(uploadLimit) > 0;
-    const uploadRatio = hasUploadLimit ? (audioState.bytes / Number(uploadLimit)) : 0;
-    const uploadTooLarge = hasUploadLimit && audioState.bytes > Number(uploadLimit);
-    const uploadTone = uploadTooLarge ? 'danger' : (uploadRatio >= 0.9 ? 'warning' : '');
-    const uploadRemaining = hasUploadLimit ? (Number(uploadLimit) - audioState.bytes) : 0;
-    const uploadOver = hasUploadLimit ? (audioState.bytes - Number(uploadLimit)) : 0;
-    const uploadRemainingLabel = uploadRemaining > 0 ? `${formatBytes(uploadRemaining)} remaining` : '';
-    const uploadOverLabel = uploadOver > 0 ? `${formatBytes(uploadOver)} over` : '';
-    const uploadMeta = hasUploadLimit
-      ? `${formatBytes(audioState.bytes)} / ${formatBytes(uploadLimit)}${uploadTooLarge ? ` (${uploadOverLabel})` : (uploadRemainingLabel ? ` (${uploadRemainingLabel})` : '')}`
-      : 'Upload limit unavailable.';
-    setMeter({
-      fillEl: uploadMeterFillEl,
-      metaEl: uploadMeterMetaEl,
-      ratio: uploadRatio,
-      tone: uploadTone,
-      meta: uploadMeta
-    });
-  };
-
-  const onAudioChange = () => {
-    const file = fileEl.files && fileEl.files[0];
-    if (!file) {
-      audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null, durationSeconds: null };
-      clearTranscript();
-      updateAudioMeta();
-      return;
-    }
-    audioState = {
-      filename: String(file.name || '').trim() || 'media',
-      mime: String(file.type || 'application/octet-stream').trim() || 'application/octet-stream',
-      bytes: Number(file.size) || 0,
-      file,
-      durationSeconds: null
-    };
-    clearTranscript();
-    updateAudioMeta();
-    probeMediaDuration(file).then((duration) => {
-      if (audioState.file !== file) return;
-      audioState.durationSeconds = duration;
-      updateAudioMeta();
-    });
-  };
-
-  const checkStatus = async () => {
-    setServerReadyState(false);
-    setHealth('warming', 'Warming up');
-    setStatus(endpointStatusEl, 'Connecting to AWS Lambda…', '');
-
-    const base = normalizeBase(ENDPOINT_BASE);
-    if (!base) {
-      setHealth('err', 'No endpoint');
-      setStatus(endpointStatusEl, 'No endpoint configured.', 'error');
-      return { ok: false, base };
-    }
-
-    try {
-      const res = await retryRequest(async () => {
-        const next = await requestJson(base, { method: 'GET' });
-        if (!next.ok && RETRYABLE_STATUSES.has(next.status)) {
-          const err = new Error(next.text || `${next.status} ${next.statusText}`);
-          err.status = next.status;
-          throw err;
-        }
-        return next;
-      }, WARM_RETRY_OPTIONS);
-      if (!res.ok) {
-        setHealth('err', 'Unavailable');
-        setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
-        return { ok: false, base, error: res.text || `${res.status} ${res.statusText}` };
-      }
-
-      const model = res.data?.model || res.data?.model_id || res.data?.modelId || 'unknown';
-      const modelLoaded = Boolean(res.data?.model_loaded ?? res.data?.modelLoaded);
-      const maxSec = res.data?.max_audio_seconds ?? res.data?.maxAudioSeconds;
-      const maxBytes = res.data?.max_audio_bytes ?? res.data?.maxAudioBytes;
-
-      const maxUploadBytes = res.data?.max_upload_bytes ?? res.data?.maxUploadBytes ?? maxBytes;
-      const maxDirectBytes = res.data?.max_direct_upload_bytes ?? res.data?.maxDirectUploadBytes ?? maxBytes;
-      const uploadsEnabled = Boolean(res.data?.uploads_enabled ?? res.data?.uploadsEnabled);
-      const maxPartMinutes = res.data?.max_part_minutes ?? res.data?.maxPartMinutes;
-      const defaultPartMinutes = res.data?.default_part_minutes ?? res.data?.defaultPartMinutes;
-
-      serverInfo = {
-        model,
-        modelLoaded,
-        maxAudioSeconds: Number.isFinite(Number(maxSec)) ? Number(maxSec) : null,
-        maxUploadBytes: Number.isFinite(Number(maxUploadBytes)) ? Number(maxUploadBytes) : null,
-        maxDirectBytes: Number.isFinite(Number(maxDirectBytes)) ? Number(maxDirectBytes) : null,
-        uploadsEnabled,
-        maxPartMinutes: Number.isFinite(Number(maxPartMinutes)) ? Number(maxPartMinutes) : 30,
-        defaultPartMinutes: Number.isFinite(Number(defaultPartMinutes)) ? Number(defaultPartMinutes) : 30
-      };
-
-      setStat(statModelEl, serverInfo.model);
-      setStat(statDirectLimitEl, serverInfo.maxDirectBytes ? formatBytes(serverInfo.maxDirectBytes) : '');
-      setStat(statUploadLimitEl, serverInfo.maxUploadBytes ? formatBytes(serverInfo.maxUploadBytes) : '');
-      setStat(statPartMaxEl, `${clampInt(serverInfo.maxPartMinutes, 1, 60, 30)} min`);
-
-      const parts = ['OK', model].filter(Boolean);
-      if (serverInfo.maxAudioSeconds) parts.push(`max ${serverInfo.maxAudioSeconds}s`);
-      if (serverInfo.maxUploadBytes) parts.push(`max ${formatBytes(serverInfo.maxUploadBytes)}`);
-      if (!modelLoaded) parts.push('cold');
-      setStatus(endpointStatusEl, parts.join(' • '), 'success');
-      updateAudioMeta();
-      if (partMinutesEl) {
-        const maxMinutes = clampInt(serverInfo.maxPartMinutes, 1, 60, 30);
-        const defaultMinutes = clampInt(serverInfo.defaultPartMinutes, 1, maxMinutes, 30);
-        const stored = safeGet(STORAGE_PART_MINUTES);
-        const minMinutes = 5;
-        const sliderMin = Math.min(minMinutes, maxMinutes);
-        partMinutesEl.min = String(sliderMin);
-        partMinutesEl.max = String(maxMinutes);
-        const nextValue = clampInt(partMinutesEl.value || stored, sliderMin, maxMinutes, defaultMinutes);
-        partMinutesEl.value = String(nextValue);
-      }
-      updatePartMinutesMeta();
-
-      return {
-        ok: true,
-        base,
-        modelLoaded
-      };
-    } catch (err) {
-      setHealth('err', 'Unavailable');
-      setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
-      return { ok: false, base: ENDPOINT_BASE, error: err?.message || 'Request failed.' };
-    }
-  };
-
-  const warmUpServer = async ({ base, modelLoaded }) => {
-    const normalized = normalizeBase(base);
-    if (!normalized) return;
-    if (!shouldWarmUp({ base: normalized, modelLoaded })) {
-      setHealth('ok', 'Ready');
-      setStatus(endpointStatusEl, 'Ready.', 'success');
-      setServerReadyState(true);
-      return;
-    }
-
-    setServerReadyState(false);
-    setHealth('warming', 'Warming up');
-    setStatus(endpointStatusEl, 'Warming up…', 'warning');
-
-    const body = createSilentWavBlob(WARMUP_AUDIO_MS);
-    try {
-      await retryRequest(async () => {
-        const res = await requestJson(joinUrl(normalized, '/warmup'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ duration_ms: WARMUP_AUDIO_MS })
-        });
-        if (!res.ok) {
-          const err = new Error(res.data?.error || res.text || 'Warm-up failed.');
-          err.status = res.status;
-          throw err;
-        }
-        return res;
-      }, WARM_RETRY_OPTIONS);
-    } catch (err) {
-      try {
-        await retryRequest(async () => {
-          const res = await fetch(joinUrl(normalized, '/transcribe'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'audio/wav' },
-            body
-          });
-          if (!res.ok) {
-            const nextErr = new Error('Warm-up failed.');
-            nextErr.status = res.status;
-            throw nextErr;
-          }
-          return res;
-        }, WARM_RETRY_OPTIONS);
-      } catch {
-        setHealth('err', 'Unavailable');
-        setStatus(endpointStatusEl, 'Warm-up failed.', 'error');
-        setServerReadyState(false);
-        return;
-      }
-    }
-
-    safeSet(STORAGE_WARMUP_AT, String(Date.now()));
-    safeSet(STORAGE_WARMUP_BASE, normalized);
-    setHealth('ok', 'Ready');
-    setStatus(endpointStatusEl, 'Ready.', 'success');
-    setServerReadyState(true);
-  };
-
-  const checkAndWarm = async () => {
-    const status = await checkStatus();
-    if (status && status.ok) await warmUpServer(status);
-  };
-
-  const extractPresign = (data) => {
-    if (!data || typeof data !== 'object') return null;
-    const url = data.upload_url || data.uploadUrl || data.url;
-    const fields = data.fields;
-    const key = data.key || data.object_key || data.objectKey;
-    if (!url || !fields || !key) return null;
-    return { url, fields, key };
-  };
-
-  const presignUpload = async (file) => {
-    const controller = new AbortController();
-    activeRequest = { xhr: null, controller };
-    try {
-      const payload = {
-        filename: String(file?.name || '').trim() || 'media',
-        content_type: String(file?.type || 'application/octet-stream').trim() || 'application/octet-stream',
-        bytes: Number(file?.size) || 0
-      };
-      const res = await requestJson(joinUrl(ENDPOINT_BASE, '/presign'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      if (!res.ok) return { ok: false, error: res.data?.error || res.text || 'Presign failed.' };
-      const presign = extractPresign(res.data);
-      if (!presign) return { ok: false, error: 'Invalid presign response.' };
-      return { ok: true, ...presign };
-    } catch (err) {
-      if (err && err.name === 'AbortError') return { ok: false, aborted: true };
-      return { ok: false, error: err?.message || 'Presign failed.' };
-    } finally {
-      if (activeRequest?.controller === controller) activeRequest = null;
-    }
-  };
-
-  const uploadViaPresignedPost = ({ url, fields, file }) => new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    activeRequest = { xhr, controller: null };
-    xhr.open('POST', url, true);
-    xhr.responseType = 'text';
-
-    xhr.upload.onprogress = (evt) => {
-      if (!evt || !evt.lengthComputable) return;
-      const ratio = evt.total > 0 ? (evt.loaded / evt.total) : 0;
-      setUploadProgress({
-        state: 'uploading',
-        ratio,
-        label: `Uploading ${formatBytes(evt.loaded)} / ${formatBytes(evt.total)}`
-      });
-    };
-
-    xhr.onload = () => {
-      activeRequest = null;
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve();
-        return;
-      }
-      reject(new Error(`Upload failed (${xhr.status}).`));
-    };
-
-    xhr.onerror = () => {
-      activeRequest = null;
-      reject(new Error('Upload failed.'));
-    };
-
-    xhr.onabort = () => {
-      activeRequest = null;
-      reject(new Error('Upload canceled.'));
-    };
-
-    const form = new FormData();
-    const entries = Object.entries(fields || {});
-    for (let i = 0; i < entries.length; i += 1) {
-      const [key, value] = entries[i];
-      if (value === undefined || value === null) continue;
-      form.append(key, String(value));
-    }
-    form.append('file', file, file.name || 'media');
-    xhr.send(form);
-  });
-
-  const uploadDirectToLambda = (file) => new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    activeRequest = { xhr, controller: null };
-    const minutes = currentPartMinutes();
-    const url = new URL(joinUrl(ENDPOINT_BASE, '/transcribe'));
-    url.searchParams.set('part_minutes', String(minutes));
-    xhr.open('POST', url.toString(), true);
-    xhr.responseType = 'text';
-
-    const contentType = String(file?.type || 'application/octet-stream').trim() || 'application/octet-stream';
-    try {
-      xhr.setRequestHeader('Content-Type', contentType);
-    } catch {
-      // Ignore header failures.
-    }
-
-    xhr.upload.onprogress = (evt) => {
-      if (!evt || !evt.lengthComputable) return;
-      const ratio = evt.total > 0 ? (evt.loaded / evt.total) : 0;
-      setUploadProgress({
-        state: 'uploading',
-        ratio,
-        label: `Uploading ${formatBytes(evt.loaded)} / ${formatBytes(evt.total)}`
-      });
-    };
-
-    xhr.onload = () => {
-      activeRequest = null;
-      const text = xhr.responseText || '';
-      let data = null;
-      if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          data = null;
-        }
-      }
-      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data, text });
-    };
-
-    xhr.onerror = () => {
-      activeRequest = null;
-      reject(new Error('Upload failed.'));
-    };
-
-    xhr.onabort = () => {
-      activeRequest = null;
-      reject(new Error('Upload canceled.'));
-    };
-
-    xhr.send(file);
-  });
-
-  const transcribeS3Key = async ({ key, partMinutes }) => {
-    const controller = new AbortController();
-    activeRequest = { xhr: null, controller };
-    try {
-      const url = new URL(joinUrl(ENDPOINT_BASE, '/transcribe-s3'));
-      url.searchParams.set('part_minutes', String(partMinutes));
-      const res = await requestJson(url.toString(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key }),
-        signal: controller.signal
-      });
-      if (!res.ok) {
-        const message = res.data?.error || res.data?.message || res.text || 'Transcription failed.';
-        return { ok: false, status: res.status, error: message };
-      }
-      return { ok: true, status: res.status, data: res.data };
-    } catch (err) {
-      if (err && err.name === 'AbortError') return { ok: false, aborted: true };
-      return { ok: false, error: err?.message || 'Transcription failed.' };
-    } finally {
-      if (activeRequest?.controller === controller) activeRequest = null;
-    }
-  };
-
   const formatClock = (totalSeconds) => {
-    const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+    const seconds = Math.max(0, Math.round(Number(totalSeconds) || 0));
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -859,183 +113,685 @@
     return `${pad(minutes)}:${pad(secs)}`;
   };
 
-  const formatParts = (parts) => {
-    const list = Array.isArray(parts) ? parts : [];
-    const blocks = [];
-    for (let i = 0; i < list.length; i += 1) {
-      const part = list[i] || {};
-      const idx = Number.isFinite(Number(part.index)) ? Number(part.index) : (i + 1);
-      const startSec = Number(part.start_sec ?? part.startSec) || 0;
-      const endSec = Number(part.end_sec ?? part.endSec) || 0;
-      const transcript = String(part.transcript || '').trim();
-      const header = `Part ${idx} (${formatClock(startSec)}–${formatClock(endSec)})`;
-      blocks.push(`${header}\n${transcript}`.trim());
-    }
-    return blocks.filter(Boolean).join('\n\n');
+  const formatUsd = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return '$0.00';
+    const digits = num < 0.01 ? 4 : 2;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    }).format(num);
   };
 
-  const applyTranscriptResponse = (data) => {
-    const parts = data?.parts;
-    if (Array.isArray(parts) && parts.length) {
-      const formatted = formatParts(parts);
-      if (formatted) setTranscript(formatted);
-      const label = parts.length === 1 ? 'Transcript ready.' : `Transcript ready (${parts.length} parts).`;
-      setStatus(transcriptStatusEl, label, formatted ? 'success' : 'warning');
-      if (formatted && transcriptEl && typeof transcriptEl.scrollIntoView === 'function') {
-        transcriptEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-      return;
-    }
-    const transcript = data?.transcript;
-    if (typeof transcript === 'string') {
-      setTranscript(transcript);
-      setStatus(transcriptStatusEl, transcript.trim() ? 'Transcript ready.' : 'Transcript returned empty.', transcript.trim() ? 'success' : 'warning');
-      if (transcript.trim() && transcriptEl && typeof transcriptEl.scrollIntoView === 'function') {
-        transcriptEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
+  const getExtension = (name) => {
+    const match = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
+    return match ? match[1] : '';
   };
 
-  const transcribeSelectedFile = async () => {
-    if (!serverReady) {
-      setStatus(runStatusEl, 'Server warming up...', 'warning');
+  const safeDownloadName = (name) => {
+    const base = String(name || 'transcript').replace(/\.[^.]+$/, '') || 'transcript';
+    return `${base.replace(/[^a-zA-Z0-9._-]+/g, '_') || 'transcript'}-transcript.txt`;
+  };
+
+  const supportedFormats = () => new Set(
+    Array.isArray(state.config.supportedFormats)
+      ? state.config.supportedFormats.map((item) => String(item).toLowerCase())
+      : DEFAULT_CONFIG.supportedFormats
+  );
+
+  const billableSeconds = (durationSeconds) => {
+    const duration = Number(durationSeconds);
+    if (!Number.isFinite(duration) || duration <= 0) return 0;
+    return Math.max(Number(state.config.minBillableSeconds) || 15, Math.ceil(duration));
+  };
+
+  const estimatedCost = (durationSeconds) => {
+    const cost = billableSeconds(durationSeconds) * Number(state.config.pricePerSecond || DEFAULT_CONFIG.pricePerSecond);
+    return Number(cost.toFixed(6));
+  };
+
+  const acceptedFiles = () => state.files.filter((item) => item.status !== 'skipped');
+
+  const completedFiles = () => state.files.filter((item) => item.status === 'complete');
+
+  const estimatedTotal = () => acceptedFiles().reduce((sum, item) => sum + Number(item.estimatedCostUsd || 0), 0);
+
+  const finalTotal = () => completedFiles().reduce((sum, item) => sum + Number(item.costUsd || item.estimatedCostUsd || 0), 0);
+
+  const authIsReady = () => {
+    const authApi = window.ToolsAuth;
+    if (!authApi || !authApi.getAuth || !authApi.authIsValid) return false;
+    return authApi.authIsValid(authApi.getAuth());
+  };
+
+  const updateLayoutState = () => {
+    const hasResults = state.files.some((item) => item.transcript || item.status === 'complete' || item.status === 'failed');
+    const hasFiles = state.files.length > 0;
+    const nextState = state.busy
+      ? 'working'
+      : hasResults
+        ? 'results'
+        : hasFiles
+          ? 'ready'
+          : 'empty';
+    if (document.body) document.body.dataset.toolsState = nextState;
+  };
+
+  const setBusy = (busy) => {
+    state.busy = Boolean(busy);
+    if (fileEl) fileEl.disabled = state.busy || state.analyzing;
+    if (resetBtn) resetBtn.disabled = state.busy || state.analyzing;
+    if (cancelBtn) cancelBtn.disabled = !state.busy;
+    if (startBtn) {
+      startBtn.classList.toggle('is-busy', state.busy);
+    }
+    updateControls();
+    updateLayoutState();
+  };
+
+  const updateProgress = ({ stateName = 'hidden', ratio = 0, label = '' } = {}) => {
+    if (!progressWrapEl || !progressBarEl) return;
+    progressWrapEl.dataset.state = stateName;
+    if (stateName === 'hidden') {
+      progressBarEl.value = 0;
+      setText(progressLabelEl, 'Progress');
       return;
     }
-    if (!audioState.file) {
-      setStatus(runStatusEl, 'Choose an audio or video file first.', 'error');
+    const safeRatio = Math.min(1, Math.max(0, Number(ratio) || 0));
+    progressBarEl.value = safeRatio;
+    setText(progressLabelEl, label || 'Progress');
+  };
+
+  const updateStats = () => {
+    setText(serviceEl, state.config.service || 'Amazon Transcribe');
+    setText(priceEl, `${formatUsd(state.config.pricePerMinute)} / min`);
+    setText(minimumEl, `${Number(state.config.minDurationSeconds) || 15} sec`);
+    setText(acceptedEl, String(acceptedFiles().length));
+  };
+
+  const updateAuthUi = () => {
+    if (!window.ToolsAuth) {
+      setAuthPill('warning', 'Loading auth');
+      setStatus(authStatusEl, 'Loading tools account sign-in.', 'warning');
+      if (signInBtn) signInBtn.disabled = true;
+      updateControls();
       return;
     }
 
-    const maxBytes = serverInfo.maxUploadBytes;
-    if (Number.isFinite(Number(maxBytes)) && maxBytes > 0 && audioState.bytes > maxBytes) {
-      setStatus(runStatusEl, `File exceeds upload limit (${formatBytes(maxBytes)}).`, 'error');
+    const authed = authIsReady();
+    if (authed) {
+      const user = window.ToolsAuth.getUser ? window.ToolsAuth.getUser(window.ToolsAuth.getAuth()) : {};
+      const label = cleanText(user.email || user.name) || 'Signed in';
+      setAuthPill('ok', 'Signed in');
+      setStatus(authStatusEl, `${label} can start transcription jobs.`, 'success');
+      if (signInBtn) signInBtn.disabled = true;
+    } else {
+      setAuthPill('err', 'Sign in required');
+      setStatus(authStatusEl, 'Sign in before uploading files or starting paid transcription jobs.', 'warning');
+      if (signInBtn) signInBtn.disabled = false;
+    }
+    updateControls();
+  };
+
+  const updateSummary = () => {
+    const totalCount = state.files.length;
+    const readyCount = acceptedFiles().length;
+    const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
+    const completedCount = completedFiles().length;
+    const failedCount = state.files.filter((item) => item.status === 'failed').length;
+    const totalCost = estimatedTotal();
+    const runCost = finalTotal();
+
+    if (!totalCount) {
+      setStatus(summaryEl, 'No files selected.', '');
+      setText(totalEl, 'Estimated total: $0.00');
       return;
     }
 
-    clearTranscript();
-    abortActive();
-    setBusy(true);
-    const minutes = currentPartMinutes();
-    safeSet(STORAGE_PART_MINUTES, String(minutes));
-    setUploadProgress({ state: 'uploading', ratio: 0, label: 'Starting upload…' });
-    setStatus(runStatusEl, 'Preparing upload…', '');
+    const parts = [`${readyCount} ready`, `${skippedCount} skipped`];
+    if (completedCount || failedCount) parts.push(`${completedCount} complete`, `${failedCount} failed`);
+    setStatus(summaryEl, `${parts.join(' · ')}. Estimated total ${formatUsd(totalCost)}.`, skippedCount ? 'warning' : 'success');
+    setText(totalEl, completedCount ? `Completed run total: ${formatUsd(runCost)} · Estimated total: ${formatUsd(totalCost)}` : `Estimated total: ${formatUsd(totalCost)}`);
+  };
 
-    const file = audioState.file;
-    const base = normalizeBase(ENDPOINT_BASE);
-    const canUseUploads = Boolean(serverInfo.uploadsEnabled);
-    const shouldUseUploads = canUseUploads && (
-      !serverInfo.maxDirectBytes
-      || !Number.isFinite(Number(serverInfo.maxDirectBytes))
-      || audioState.bytes > serverInfo.maxDirectBytes
-    );
+  const statusLabel = (item) => {
+    if (item.status === 'checking') return 'Checking';
+    if (item.status === 'skipped') return `Skipped: ${item.skipReason || 'Not eligible'}`;
+    if (item.status === 'ready') return 'Ready';
+    if (item.status === 'presigning') return 'Preparing upload';
+    if (item.status === 'uploading') return `Uploading ${Math.round((Number(item.progress) || 0) * 100)}%`;
+    if (item.status === 'starting') return 'Starting job';
+    if (item.status === 'transcribing') return 'Transcribing';
+    if (item.status === 'complete') return 'Complete';
+    if (item.status === 'failed') return `Failed: ${item.error || 'Transcription failed'}`;
+    if (item.status === 'canceled') return 'Canceled';
+    return cleanText(item.status) || 'Pending';
+  };
 
+  const rowTone = (item) => {
+    if (item.status === 'skipped') return 'warning';
+    if (item.status === 'failed') return 'error';
+    if (item.status === 'complete') return 'success';
+    if (item.status === 'uploading' || item.status === 'transcribing') return 'active';
+    return '';
+  };
+
+  const renderTable = () => {
+    if (tableWrapEl) tableWrapEl.hidden = state.files.length === 0;
+    tableBodyEl.innerHTML = state.files.map((item) => `
+      <tr data-tone="${escapeHtml(rowTone(item))}">
+        <td>
+          <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
+          <span class="transcribe-file-meta">${escapeHtml(formatBytes(item.bytes))}${item.extension ? ` · ${escapeHtml(item.extension.toUpperCase())}` : ''}</span>
+        </td>
+        <td>${item.durationSeconds ? escapeHtml(formatClock(item.durationSeconds)) : '--'}</td>
+        <td>${item.billableSeconds ? `${escapeHtml(String(item.billableSeconds))} sec` : '--'}</td>
+        <td>${escapeHtml(formatUsd(item.estimatedCostUsd || 0))}</td>
+        <td>${escapeHtml(statusLabel(item))}</td>
+      </tr>
+    `).join('');
+    updateStats();
+    updateSummary();
+    updateControls();
+    updateLayoutState();
+  };
+
+  const renderResults = () => {
+    if (!resultsEl) return;
+    const resultItems = state.files.filter((item) => item.transcript || item.status === 'complete' || item.status === 'failed');
+    if (!resultItems.length) {
+      resultsEl.innerHTML = '<p class="transcribe-empty">Completed transcripts will appear here.</p>';
+      return;
+    }
+    resultsEl.innerHTML = resultItems.map((item) => {
+      const transcript = String(item.transcript || '').trim();
+      const status = item.status === 'complete'
+        ? `Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)} · ${item.billableSeconds || 0} billable sec`
+        : escapeHtml(item.error || 'Transcription failed.');
+      return `
+        <article class="transcribe-result" data-status="${escapeHtml(item.status)}" data-id="${escapeHtml(item.id)}">
+          <div class="transcribe-result-header">
+            <div>
+              <h3>${escapeHtml(item.name)}</h3>
+              <p>${status}</p>
+            </div>
+            <div class="transcribe-result-actions">
+              <button type="button" class="btn-secondary" data-transcribe-action="copy" data-id="${escapeHtml(item.id)}" ${transcript ? '' : 'disabled'}>Copy</button>
+              <button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}" ${transcript ? '' : 'disabled'}>Download</button>
+            </div>
+          </div>
+          <textarea readonly>${escapeHtml(transcript)}</textarea>
+        </article>
+      `;
+    }).join('');
+  };
+
+  const updateControls = () => {
+    const readyCount = acceptedFiles().filter((item) => !['complete', 'failed'].includes(item.status)).length;
+    const approved = Boolean(approveEl && approveEl.checked);
+    const canStart = !state.busy && !state.analyzing && authIsReady() && approved && readyCount > 0;
+    if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
+    if (startBtn) startBtn.disabled = !canStart;
+  };
+
+  const readJson = async (res) => {
+    let data = null;
     try {
-      if (shouldUseUploads) {
-        const presign = await presignUpload(file);
-        if (!presign.ok) {
-          if (presign.aborted) throw new Error('Canceled.');
-          throw new Error(presign.error || 'Upload setup failed.');
-        }
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+    if (!res.ok || data?.ok === false) {
+      const err = new Error(data?.error || data?.message || `Request failed (${res.status}).`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  };
 
-        setStatus(runStatusEl, 'Uploading…', '');
-        await uploadViaPresignedPost({ url: presign.url, fields: presign.fields, file });
-        setUploadProgress({ state: 'uploading', ratio: 1, label: 'Upload complete.' });
-        setStatus(runStatusEl, 'Transcribing…', '');
+  const authFetchJson = async (url, options = {}) => {
+    if (!window.ToolsAuth || !window.ToolsAuth.fetchWithAuth) {
+      throw new Error('Sign in before starting transcription jobs.');
+    }
+    const res = await window.ToolsAuth.fetchWithAuth(url, options);
+    return readJson(res);
+  };
 
-        const result = await transcribeS3Key({ key: presign.key, partMinutes: minutes });
-        if (!result.ok) {
-          if (result.aborted) throw new Error('Canceled.');
-          throw new Error(result.error || 'Transcription failed.');
-        }
-        applyTranscriptResponse(result.data);
-        setStatus(runStatusEl, 'Done.', 'success');
+  const loadConfig = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/config`, { method: 'GET' });
+      const data = await readJson(res);
+      state.config = { ...DEFAULT_CONFIG, ...data };
+      updateStats();
+      updateSummary();
+    } catch (err) {
+      setStatus(runStatusEl, err?.message || 'Transcribe configuration is unavailable.', 'warning');
+      state.config = { ...DEFAULT_CONFIG };
+      updateStats();
+    }
+  };
+
+  const probeDuration = (file, extension) => new Promise((resolve) => {
+    if (!file || !window.URL || typeof window.URL.createObjectURL !== 'function') {
+      resolve(null);
+      return;
+    }
+
+    const src = window.URL.createObjectURL(file);
+    const tag = VIDEO_FORMATS.has(extension) || String(file.type || '').toLowerCase().startsWith('video/')
+      ? 'video'
+      : 'audio';
+    const el = document.createElement(tag);
+    let done = false;
+    let timeoutId = null;
+
+    const finish = (value) => {
+      if (done) return;
+      done = true;
+      if (timeoutId) window.clearTimeout(timeoutId);
+      try {
+        el.removeAttribute('src');
+        el.load();
+      } catch {}
+      try {
+        window.URL.revokeObjectURL(src);
+      } catch {}
+      const duration = Number(value);
+      resolve(Number.isFinite(duration) && duration > 0 ? duration : null);
+    };
+
+    timeoutId = window.setTimeout(() => finish(null), DURATION_TIMEOUT_MS);
+    el.preload = 'metadata';
+    el.muted = true;
+    el.playsInline = true;
+    el.onloadedmetadata = () => finish(el.duration);
+    el.onerror = () => finish(null);
+    el.src = src;
+  });
+
+  const analyzeSelectedFiles = async () => {
+    const files = Array.from(fileEl.files || []);
+    state.analyzing = true;
+    state.files = files.map((file, index) => ({
+      id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
+      file,
+      name: file.name || `file-${index + 1}`,
+      extension: getExtension(file.name || ''),
+      contentType: file.type || 'application/octet-stream',
+      bytes: Number(file.size) || 0,
+      durationSeconds: null,
+      billableSeconds: 0,
+      estimatedCostUsd: 0,
+      costUsd: 0,
+      progress: 0,
+      status: 'checking',
+      skipReason: '',
+      transcript: ''
+    }));
+    if (approveEl) approveEl.checked = false;
+    renderTable();
+    renderResults();
+    setStatus(runStatusEl, files.length ? 'Checking file durations...' : '', '');
+
+    const formats = supportedFormats();
+    let acceptedCost = 0;
+    let acceptedCount = 0;
+
+    for (let i = 0; i < state.files.length; i += 1) {
+      const item = state.files[i];
+      if (i >= Number(state.config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
+        item.status = 'skipped';
+        item.skipReason = `Run limit is ${state.config.maxFilesPerRun} files.`;
+        renderTable();
+        continue;
+      }
+      if (!formats.has(item.extension)) {
+        item.status = 'skipped';
+        item.skipReason = 'Unsupported file type.';
+        renderTable();
+        continue;
+      }
+      if (!item.bytes) {
+        item.status = 'skipped';
+        item.skipReason = 'Empty file.';
+        renderTable();
+        continue;
+      }
+      if (item.bytes > Number(state.config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes)) {
+        item.status = 'skipped';
+        item.skipReason = `File exceeds ${formatBytes(state.config.maxFileBytes)}.`;
+        renderTable();
+        continue;
+      }
+
+      item.durationSeconds = await probeDuration(item.file, item.extension);
+      if (!Number.isFinite(Number(item.durationSeconds))) {
+        item.status = 'skipped';
+        item.skipReason = 'Unable to read duration before upload.';
+        renderTable();
+        continue;
+      }
+      if (item.durationSeconds < Number(state.config.minDurationSeconds || 15)) {
+        item.status = 'skipped';
+        item.skipReason = `Under ${state.config.minDurationSeconds || 15} seconds.`;
+        renderTable();
+        continue;
+      }
+
+      item.billableSeconds = billableSeconds(item.durationSeconds);
+      item.estimatedCostUsd = estimatedCost(item.durationSeconds);
+      if (acceptedCost + item.estimatedCostUsd > Number(state.config.maxTotalCostUsd || DEFAULT_CONFIG.maxTotalCostUsd)) {
+        item.status = 'skipped';
+        item.skipReason = `Total estimate cap is ${formatUsd(state.config.maxTotalCostUsd)}.`;
+        renderTable();
+        continue;
+      }
+
+      item.status = 'ready';
+      acceptedCost += item.estimatedCostUsd;
+      acceptedCount += 1;
+      renderTable();
+    }
+
+    state.analyzing = false;
+    setStatus(
+      runStatusEl,
+      acceptedCount ? `Ready to transcribe ${acceptedCount} file${acceptedCount === 1 ? '' : 's'}.` : 'No selected files are eligible for transcription.',
+      acceptedCount ? 'success' : 'warning'
+    );
+    renderTable();
+    markSessionDirty();
+  };
+
+  const abortActive = () => {
+    try {
+      if (state.activeXhr && state.activeXhr.readyState !== 4) state.activeXhr.abort();
+    } catch {}
+    try {
+      if (state.activeController) state.activeController.abort();
+    } catch {}
+    state.activeXhr = null;
+    state.activeController = null;
+  };
+
+  const uploadFile = (item, uploadUrl, headers = {}) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    state.activeXhr = xhr;
+    xhr.open('PUT', uploadUrl, true);
+    Object.entries(headers || {}).forEach(([key, value]) => {
+      if (value === undefined || value === null) return;
+      try {
+        xhr.setRequestHeader(key, String(value));
+      } catch {}
+    });
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      item.progress = event.total > 0 ? event.loaded / event.total : 0;
+      renderTable();
+      updateProgress({
+        stateName: 'visible',
+        ratio: item.progress,
+        label: `Uploading ${item.name} (${Math.round(item.progress * 100)}%)`
+      });
+    };
+    xhr.onload = () => {
+      state.activeXhr = null;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      reject(new Error(`Upload failed (${xhr.status}).`));
+    };
+    xhr.onerror = () => {
+      state.activeXhr = null;
+      reject(new Error('Upload failed.'));
+    };
+    xhr.onabort = () => {
+      state.activeXhr = null;
+      reject(new Error('Upload canceled.'));
+    };
+    xhr.send(item.file);
+  });
+
+  const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+  const pollRun = async (item, runToken) => {
+    while (!state.canceled) {
+      const controller = new AbortController();
+      state.activeController = controller;
+      let data;
+      try {
+        data = await authFetchJson(`${API_BASE}/status?run=${encodeURIComponent(runToken)}`, {
+          method: 'GET',
+          signal: controller.signal
+        });
+      } finally {
+        if (state.activeController === controller) state.activeController = null;
+      }
+
+      const status = String(data.status || '').toUpperCase();
+      if (status === 'COMPLETED') {
+        item.status = 'complete';
+        item.transcript = String(data.transcript || '').trim();
+        item.costUsd = Number(data.costUsd || item.estimatedCostUsd || 0);
+        item.billableSeconds = Number(data.billableSeconds || item.billableSeconds || 0);
+        renderTable();
+        renderResults();
+        markSessionDirty();
+        return;
+      }
+      if (status === 'FAILED') {
+        item.status = 'failed';
+        item.error = data.error || 'Transcription failed.';
+        item.costUsd = Number(data.costUsd || item.estimatedCostUsd || 0);
+        renderTable();
+        renderResults();
+        markSessionDirty();
         return;
       }
 
-      setStatus(runStatusEl, 'Uploading…', '');
-      const direct = await uploadDirectToLambda(file);
-      setUploadProgress({ state: 'uploading', ratio: 1, label: 'Upload complete.' });
-      if (!direct.ok) {
-        const message = direct.data?.error || direct.data?.message || direct.text || `Request failed (${direct.status}).`;
-        throw new Error(message);
-      }
-      applyTranscriptResponse(direct.data);
-      setStatus(runStatusEl, 'Done.', 'success');
-    } catch (err) {
-      const message = err?.message || 'Request failed.';
-      const tone = message === 'Canceled.' ? 'warning' : 'error';
-      setStatus(runStatusEl, message, tone);
-    } finally {
-      setBusy(false);
-      setUploadProgress({ state: 'hidden' });
+      item.status = 'transcribing';
+      renderTable();
+      updateProgress({ stateName: 'visible', ratio: 1, label: `Transcribing ${item.name}...` });
+      await sleep(POLL_INTERVAL_MS);
     }
+    throw new Error('Canceled.');
   };
 
-  const resetForm = () => {
-    abortActive();
+  const runFile = async (item) => {
+    item.status = 'presigning';
+    item.error = '';
+    item.progress = 0;
+    renderTable();
+    updateProgress({ stateName: 'visible', ratio: 0, label: `Preparing ${item.name}...` });
+
+    const controller = new AbortController();
+    state.activeController = controller;
+    let presign;
+    try {
+      presign = await authFetchJson(`${API_BASE}/presign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: item.name,
+          contentType: item.contentType,
+          bytes: item.bytes,
+          durationSeconds: item.durationSeconds
+        }),
+        signal: controller.signal
+      });
+    } finally {
+      if (state.activeController === controller) state.activeController = null;
+    }
+
+    if (state.canceled) throw new Error('Canceled.');
+
+    item.status = 'uploading';
+    renderTable();
+    await uploadFile(item, presign.uploadUrl, presign.headers || {});
+    if (state.canceled) throw new Error('Canceled.');
+
+    item.status = 'starting';
+    renderTable();
+    updateProgress({ stateName: 'visible', ratio: 1, label: `Starting ${item.name}...` });
+
+    const startController = new AbortController();
+    state.activeController = startController;
+    let start;
+    try {
+      start = await authFetchJson(`${API_BASE}/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quoteToken: presign.quoteToken }),
+        signal: startController.signal
+      });
+    } finally {
+      if (state.activeController === startController) state.activeController = null;
+    }
+
+    item.status = 'transcribing';
+    item.runToken = start.runToken;
+    renderTable();
+    await pollRun(item, start.runToken);
+  };
+
+  const runBatch = async () => {
+    if (!authIsReady()) {
+      setStatus(runStatusEl, 'Sign in before starting transcription jobs.', 'warning');
+      updateAuthUi();
+      return;
+    }
+
+    const queue = acceptedFiles().filter((item) => !['complete', 'failed'].includes(item.status));
+    if (!queue.length) {
+      setStatus(runStatusEl, 'No eligible files to transcribe.', 'warning');
+      return;
+    }
+    if (!approveEl || !approveEl.checked) {
+      setStatus(runStatusEl, 'Review and approve the estimated charge before starting.', 'warning');
+      return;
+    }
+
+    state.canceled = false;
+    setBusy(true);
+    setStatus(runStatusEl, `Starting ${queue.length} transcription job${queue.length === 1 ? '' : 's'}...`, '');
+    updateProgress({ stateName: 'visible', ratio: 0, label: 'Starting batch...' });
+
+    for (let i = 0; i < queue.length; i += 1) {
+      const item = queue[i];
+      if (state.canceled) break;
+      try {
+        setStatus(runStatusEl, `Processing ${i + 1} of ${queue.length}: ${item.name}`, '');
+        await runFile(item);
+      } catch (err) {
+        if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
+          item.status = 'canceled';
+          item.error = 'Canceled.';
+        } else {
+          item.status = 'failed';
+          item.error = err?.message || 'Transcription failed.';
+        }
+        renderTable();
+        renderResults();
+        markSessionDirty();
+      }
+    }
+
+    const completed = completedFiles().length;
+    const failed = state.files.filter((item) => item.status === 'failed').length;
+    const canceled = state.files.filter((item) => item.status === 'canceled').length;
+    const message = state.canceled
+      ? `Canceled. ${completed} complete, ${failed} failed, ${canceled} canceled.`
+      : `Done. ${completed} complete, ${failed} failed.`;
+    setStatus(runStatusEl, message, failed || canceled ? 'warning' : 'success');
     setBusy(false);
-    setServerReadyState(serverReady);
-    if (fileEl) fileEl.value = '';
-    audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null, durationSeconds: null };
-    setStatus(runStatusEl, '', '');
-    setUploadProgress({ state: 'hidden' });
-    clearTranscript();
-    updateAudioMeta();
+    updateProgress({ stateName: 'hidden' });
+    renderTable();
+    renderResults();
   };
 
-  if (fileEl) fileEl.addEventListener('change', onAudioChange);
-  if (transcriptEl) {
-    transcriptEl.addEventListener('input', syncTranscriptUi);
-    transcriptEl.addEventListener('change', syncTranscriptUi);
-  }
-  if (checkBtn) checkBtn.addEventListener('click', checkAndWarm);
-  if (partMinutesEl) {
-    partMinutesEl.addEventListener('input', () => {
-      updatePartMinutesMeta();
-      safeSet(STORAGE_PART_MINUTES, String(currentPartMinutes()));
-      updateAudioMeta();
+  const reset = () => {
+    state.canceled = true;
+    abortActive();
+    state.files = [];
+    if (fileEl) fileEl.value = '';
+    if (approveEl) approveEl.checked = false;
+    setBusy(false);
+    setStatus(runStatusEl, '', '');
+    updateProgress({ stateName: 'hidden' });
+    renderTable();
+    renderResults();
+    markSessionDirty();
+  };
+
+  if (signInBtn) {
+    signInBtn.addEventListener('click', () => {
+      if (window.ToolsAuth && window.ToolsAuth.signIn) {
+        window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` });
+      }
     });
   }
-  if (formEl) {
-    formEl.addEventListener('submit', (e) => {
-      e.preventDefault();
-      transcribeSelectedFile();
-    });
+
+  fileEl.addEventListener('change', () => {
+    analyzeSelectedFiles();
+  });
+
+  if (approveEl) {
+    approveEl.addEventListener('change', updateControls);
   }
+
+  formEl.addEventListener('submit', (event) => {
+    event.preventDefault();
+    runBatch();
+  });
+
   if (cancelBtn) {
     cancelBtn.addEventListener('click', () => {
+      state.canceled = true;
       abortActive();
-      setStatus(runStatusEl, 'Canceled.', 'warning');
+      setStatus(runStatusEl, 'Canceling. Already submitted AWS jobs may still incur cost.', 'warning');
       setBusy(false);
-      setUploadProgress({ state: 'hidden' });
+      updateProgress({ stateName: 'hidden' });
     });
   }
-  if (resetBtn) resetBtn.addEventListener('click', resetForm);
-  if (copyTranscriptBtn) {
-    copyTranscriptBtn.addEventListener('click', async () => {
-      const text = (transcriptEl?.value || '').trim();
-      if (!text) {
-        setStatus(transcriptStatusEl, 'Nothing to copy yet.', 'warning');
-        return;
+
+  if (resetBtn) resetBtn.addEventListener('click', reset);
+
+  if (resultsEl) {
+    resultsEl.addEventListener('click', async (event) => {
+      const actionBtn = event.target.closest('[data-transcribe-action]');
+      if (!actionBtn) return;
+      const action = actionBtn.getAttribute('data-transcribe-action');
+      const id = actionBtn.getAttribute('data-id');
+      const item = state.files.find((entry) => entry.id === id);
+      const transcript = String(item?.transcript || '').trim();
+      if (!item || !transcript) return;
+      if (action === 'copy') {
+        try {
+          await navigator.clipboard.writeText(transcript);
+          setStatus(runStatusEl, `Copied transcript for ${item.name}.`, 'success');
+        } catch {
+          setStatus(runStatusEl, 'Copy failed. Select the text manually.', 'error');
+        }
       }
-      try {
-        await navigator.clipboard.writeText(text);
-        setStatus(transcriptStatusEl, 'Transcript copied.', 'success');
-      } catch {
-        setStatus(transcriptStatusEl, 'Copy failed. Please copy manually.', 'error');
+      if (action === 'download') {
+        const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = safeDownloadName(item.name);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
     });
   }
 
-  setBusy(false);
-  setServerReadyState(false);
-  updateAudioMeta();
-  updatePartMinutesMeta();
-  syncTranscriptUi();
-
-  window.setTimeout(() => {
-    checkAndWarm();
-  }, 0);
+  document.addEventListener('tools:auth-changed', updateAuthUi);
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
@@ -1043,21 +799,26 @@
     const payload = detail?.payload;
     if (!payload || typeof payload !== 'object') return;
 
-    const fileLabel = audioState?.filename
-      ? `${audioState.filename}${audioState.bytes ? ` (${formatBytes(audioState.bytes)})` : ''}`
-      : 'No file selected';
-    const durationLabel = Number.isFinite(audioState?.durationSeconds)
-      ? `${formatNumber(audioState.durationSeconds, 1)} sec`
-      : '';
-    const minutes = currentPartMinutes();
-
+    const accepted = acceptedFiles();
+    const skipped = state.files.filter((item) => item.status === 'skipped');
+    const completed = completedFiles();
+    const failed = state.files.filter((item) => item.status === 'failed');
     payload.inputs = {
-      File: fileLabel,
-      ...(durationLabel ? { Duration: durationLabel } : {}),
-      'Part length': `${minutes} min`
+      Files: `${state.files.length} selected`,
+      Accepted: String(accepted.length),
+      Skipped: String(skipped.length),
+      'Estimated total': formatUsd(estimatedTotal())
     };
-
-    const transcript = String(transcriptEl?.value || '').trim();
-    payload.outputSummary = transcript ? `Transcript (${transcript.length.toLocaleString('en-US')} chars)` : 'No transcript yet.';
+    payload.outputSummary = completed.length || failed.length
+      ? `${completed.length} complete · ${failed.length} failed · ${formatUsd(finalTotal())} run cost`
+      : 'No transcripts saved in session history.';
   });
+
+  loadConfig().finally(() => {
+    updateAuthUi();
+    renderTable();
+    renderResults();
+  });
+  window.setTimeout(updateAuthUi, 250);
+  window.setTimeout(updateAuthUi, 1000);
 })();

@@ -64,11 +64,13 @@ const MIME_TYPES = {
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.mjs': 'application/javascript; charset=utf-8',
+  '.mp4': 'video/mp4',
   '.pdf': 'application/pdf',
   '.png': 'image/png',
   '.svg': 'image/svg+xml; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
   '.wasm': 'application/wasm',
+  '.webm': 'video/webm',
   '.webp': 'image/webp',
   '.xml': 'application/xml; charset=utf-8'
 };
@@ -491,13 +493,64 @@ function resolveStaticFile(baseDir, pathname) {
   return null;
 }
 
-function sendFile(res, filePath) {
+function parseByteRange(value, size) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec(String(value || '').trim());
+  if (!match || !Number.isFinite(size) || size < 1) return null;
+  let start = match[1] === '' ? null : Number(match[1]);
+  let end = match[2] === '' ? null : Number(match[2]);
+
+  if (start === null && end === null) return null;
+  if ((start !== null && !Number.isSafeInteger(start)) || (end !== null && !Number.isSafeInteger(end))) return null;
+
+  if (start === null) {
+    const suffixLength = end;
+    if (!suffixLength || suffixLength < 1) return null;
+    start = Math.max(size - suffixLength, 0);
+    end = size - 1;
+  } else if (end === null || end >= size) {
+    end = size - 1;
+  }
+
+  if (start < 0 || start >= size || end < start) return null;
+  return { start, end };
+}
+
+function sendRangeNotSatisfiable(res, size) {
+  res.statusCode = 416;
+  res.setHeader('Content-Range', `bytes */${size}`);
+  res.setHeader('Content-Length', '0');
+  res.end();
+}
+
+function sendFile(req, res, filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const stat = fs.statSync(filePath);
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  const rangeHeader = req && req.headers ? req.headers.range : '';
+  res.setHeader('Accept-Ranges', 'bytes');
+  res.setHeader('Content-Type', contentType);
+
+  if (rangeHeader) {
+    const range = parseByteRange(rangeHeader, stat.size);
+    if (!range) {
+      sendRangeNotSatisfiable(res, stat.size);
+      return;
+    }
+    const contentLength = range.end - range.start + 1;
+    res.statusCode = 206;
+    res.setHeader('Content-Range', `bytes ${range.start}-${range.end}/${stat.size}`);
+    res.setHeader('Content-Length', String(contentLength));
+    if (req && req.method === 'HEAD') {
+      res.end();
+      return;
+    }
+    fs.createReadStream(filePath, range).pipe(res);
+    return;
+  }
+
   res.statusCode = 200;
-  res.setHeader('Content-Type', MIME_TYPES[ext] || 'application/octet-stream');
   res.setHeader('Content-Length', String(stat.size));
-  if (res.req && res.req.method === 'HEAD') {
+  if (req && req.method === 'HEAD') {
     res.end();
     return;
   }
@@ -640,7 +693,7 @@ function createLocalServer() {
       const adminPath = pathname === '/admin' ? '/index.html' : pathname.slice('/admin'.length);
       const filePath = resolveStaticFile(adminDir, adminPath);
       if (filePath) {
-        sendFile(res, filePath);
+        sendFile(req, res, filePath);
         return;
       }
       sendNotFound(res);
@@ -666,7 +719,7 @@ function createLocalServer() {
 
     const filePath = resolveStaticFile(publicDir, rewrittenPathname);
     if (filePath) {
-      sendFile(res, filePath);
+      sendFile(req, res, filePath);
       return;
     }
 

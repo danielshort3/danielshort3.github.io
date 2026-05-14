@@ -153,7 +153,7 @@ try {
       'pages/qr-code-generator.html': 'QR Code Generator | Daniel Short',
       'pages/image-optimizer.html': 'Image Optimizer | Daniel Short',
       'pages/utm-batch-builder.html': 'UTM Batch Builder | Daniel Short',
-      'pages/whisper-transcribe-monitor.html': 'Whisper Capacity Monitor | Daniel Short',
+      'pages/whisper-transcribe-monitor.html': 'File Transcriber | Daniel Short',
       'pages/ga4-utm-performance.html': 'GA4 UTM Performance | Daniel Short',
       'probability-engine.html': 'Probability Engine | Daniel Short'
     };
@@ -356,7 +356,10 @@ try {
     const pkg = JSON.parse(readFile('package.json'));
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-bedrock-runtime'], 'package.json missing Bedrock Runtime dependency');
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-dynamodb'], 'package.json missing DynamoDB dependency');
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-s3'], 'package.json missing S3 dependency');
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-transcribe'], 'package.json missing Transcribe dependency');
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/lib-dynamodb'], 'package.json missing DynamoDB document client dependency');
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/s3-request-presigner'], 'package.json missing S3 presigner dependency');
 
     const buildRunner = readFile('build/build-site.js');
     const devServer = readFile('build/dev.js');
@@ -1759,8 +1762,8 @@ try {
       checkFileContains(file, 'id="cta"');
       checkFileContains(file, 'id="contact-modal"');
       checkFileContains(file, 'data-cert-modal-open');
-      checkFileContains(file, 'class="chevron-hint scroll-indicator" href="#selected-outcomes"');
-      checkFileContains(file, 'Scroll for results');
+      checkFileContains(file, 'class="chevron-hint scroll-indicator" href="#project-examples"');
+      checkFileContains(file, 'View project examples');
       assert(htmlHasManagedBundle(html, 'site-home'), `${file} missing home bundle for certifications modal`);
       assert(!html.includes('audience-gateway-hero'), `${file} should not use audience gateway hero`);
       assert(!html.includes('class="hero-proof-row"'), `${file} hero should not include the old metric strip`);
@@ -2066,6 +2069,14 @@ try {
            copyJs.includes("rel === 'slot-config'") &&
            copyJs.includes("rel === 'demos/slot-machine-demo.html'"),
            'copy-to-public.js should keep slot assets local-only');
+    const devServer = fs.readFileSync('build/dev.js', 'utf8');
+    assert(devServer.includes("'.mp4': 'video/mp4'") &&
+           devServer.includes("'.webm': 'video/webm'") &&
+           devServer.includes('parseByteRange') &&
+           devServer.includes("res.statusCode = 206") &&
+           devServer.includes("res.setHeader('Content-Range'") &&
+           devServer.includes("res.setHeader('Accept-Ranges', 'bytes')"),
+           'local dev server should serve video assets with proper MIME types and range responses');
 
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     assert(pkg.scripts && pkg.scripts['build:projects'], 'package.json missing build:projects script');
@@ -2200,7 +2211,7 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
-    const hasNoindexWhisperTool = headers.some(h =>
+    const hasNoindexTranscribeTool = headers.some(h =>
       h && h.source === '/tools/whisper-transcribe-monitor' &&
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
@@ -2228,7 +2239,7 @@ try {
     assert(hasNoindexShortLinks, 'short-links noindex header missing');
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
-    assert(hasNoindexWhisperTool, 'Whisper tool noindex header missing');
+    assert(hasNoindexTranscribeTool, 'Transcribe tool noindex header missing');
     assert(hasNoindexResumeAnalyticsPdf, 'resume analytics PDF noindex header missing');
     assert(hasNoindexResumeDataSciencePdf, 'resume data science PDF noindex header missing');
     assert(hasNoindexResumeTourismPdf, 'resume tourism PDF noindex header missing');
@@ -2251,7 +2262,47 @@ try {
     assert(!urls.has('/resume-data-science-pdf'), 'search index should exclude data science PDF preview');
     assert(!urls.has('/resume-tourism-pdf'), 'search index should exclude tourism PDF preview');
     assert(!urls.has('/tools/ga4-utm-performance'), 'search index should exclude noindex GA4 tool');
-    assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude noindex Whisper tool');
+    assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude noindex Transcribe tool');
+  });
+
+  section('Amazon Transcribe tool contracts', () => {
+    const page = fs.readFileSync('pages/whisper-transcribe-monitor.html', 'utf8');
+    const toolScript = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
+    const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
+    const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
+
+    assert(page.includes('id="transcribe-files"') &&
+           page.includes('multiple') &&
+           page.includes('id="transcribe-file-rows"') &&
+           page.includes('id="transcribe-approve"') &&
+           page.includes('Amazon Transcribe'),
+      'Transcribe page should expose bulk upload, cost review, and approval UI');
+    assert(!page.includes('AWS Lambda') && !page.includes('Warming up'),
+      'Transcribe page should not mention the old Whisper Lambda warmup flow');
+
+    assert(toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
+           toolScript.includes('probeDuration') &&
+           toolScript.includes('state.config.minDurationSeconds') &&
+           toolScript.includes('estimatedCost') &&
+           toolScript.includes('payload.outputSummary') &&
+           !toolScript.includes('payload.output ='),
+      'Transcribe tool should preflight duration/cost and avoid saving transcript bodies in session history');
+
+    assert(endpoint.includes('StartTranscriptionJobCommand') &&
+           endpoint.includes('GetTranscriptionJobCommand') &&
+           endpoint.includes('DeleteTranscriptionJobCommand') &&
+           endpoint.includes('getSignedUrl') &&
+           endpoint.includes('TRANSCRIBE_SIGNING_SECRET') &&
+           endpoint.includes('MIN_DURATION_SECONDS = 15') &&
+           endpoint.includes('verifyCognitoIdToken'),
+      'Transcribe endpoint should use signed S3 uploads, Cognito auth, and Amazon Transcribe jobs');
+    assert(endpoint.includes('calculateCostUsd') &&
+           endpoint.includes('Math.max(MIN_DURATION_SECONDS, Math.ceil(duration))') &&
+           endpoint.includes('cleanupRun'),
+      'Transcribe endpoint should calculate minimum-billed costs and clean up completed runs');
+    assert(router.includes("if (endpoint === 'transcribe')") &&
+           router.includes('getEndpointSegmentsFromRequest'),
+      'tools router should route nested /api/tools/transcribe actions');
   });
 
   section('GA4 report race guards', () => {
@@ -2275,7 +2326,6 @@ try {
     const nonogramDemo = fs.readFileSync('demos/nonogram-demo.html', 'utf8');
     const minesweeperDemo = fs.readFileSync('demos/minesweeper-demo.html', 'utf8');
     const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
-    const whisperMonitor = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
     const digitLambda = fs.readFileSync('aws/digit-generator/app.py', 'utf8');
     const handwritingLambda = fs.readFileSync('aws/handwriting-rating/app.py', 'utf8');
     const nonogramLambda = fs.readFileSync('aws/nonogram-solver/app.py', 'utf8');
@@ -2285,9 +2335,6 @@ try {
     const minesweeperEntrypoint = fs.readFileSync('aws/minesweeper-solver/entrypoint.py', 'utf8');
     const minesweeperDockerfile = fs.readFileSync('aws/minesweeper-solver/Dockerfile', 'utf8');
     const pizzaLambda = fs.readFileSync('aws/pizza-tips-predict/index.js', 'utf8');
-    const whisperLambda = fs.readFileSync('aws/whisper-transcribe/app.py', 'utf8');
-    const whisperEntrypoint = fs.readFileSync('aws/whisper-transcribe/entrypoint.py', 'utf8');
-    const whisperDockerfile = fs.readFileSync('aws/whisper-transcribe/Dockerfile', 'utf8');
 
     assert(awsClient.includes('const healthJson = (base, options = {})') &&
            awsClient.includes("joinUrl(normalizeBase(base), 'health')") &&
@@ -2336,11 +2383,6 @@ try {
            shapeWarmup.indexOf('warmupJson(base') < shapeWarmup.indexOf('postToEndpoint(base, warmPayload)'),
       'shape demo should warm via /health and /warmup before legacy inference fallback');
 
-    assert(whisperMonitor.includes("requestJson(joinUrl(normalized, '/warmup')") &&
-           whisperMonitor.includes("fetch(joinUrl(normalized, '/transcribe')") &&
-           whisperMonitor.indexOf("joinUrl(normalized, '/warmup')") < whisperMonitor.indexOf("joinUrl(normalized, '/transcribe')"),
-      'Whisper monitor should use /warmup before falling back to silent transcription');
-
     assert(digitLambda.includes('def health_response():') &&
            digitLambda.includes('def warmup_response(start):') &&
            digitLambda.includes('path in ("/", "/health")') &&
@@ -2371,15 +2413,9 @@ try {
            pizzaLambda.includes("path === '/warmup'") &&
            pizzaLambda.includes("path === '/' || path === '/health'"),
       'pizza tips Lambda should expose health and warmup routes');
-    assert(whisperLambda.includes('def health_payload():') &&
-           whisperLambda.includes('def warmup_response(start):') &&
-           whisperLambda.includes('path == "/warmup"') &&
-           whisperLambda.includes('load_whisper()'),
-      'Whisper Lambda should expose health and explicit model warmup routes');
     [
       ['nonogram', nonogramEntrypoint, nonogramDockerfile],
-      ['minesweeper', minesweeperEntrypoint, minesweeperDockerfile],
-      ['whisper', whisperEntrypoint, whisperDockerfile]
+      ['minesweeper', minesweeperEntrypoint, minesweeperDockerfile]
     ].forEach(([name, entrypoint, dockerfile]) => {
       assert(dockerfile.includes('COPY entrypoint.py') && dockerfile.includes('CMD ["entrypoint.handler"]'),
         `${name} image should route through the lightweight health entrypoint`);
