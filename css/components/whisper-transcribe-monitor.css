@@ -20,13 +20,28 @@
     margin-inline:auto;
   }
 
+  body[data-page="transcribe"] .tools-account-dock{
+    position:relative;
+    top:auto;
+    z-index:2;
+  }
+
   .transcribe-status-bar{
+    position:sticky;
+    top:calc(var(--nav-height, 72px) + 18px);
+    z-index:15;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
     flex-wrap:wrap;
-    margin:0 0 16px;
+    margin:-4px -4px 16px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02060c 6%);
+    box-shadow:0 12px 26px rgba(0,0,0,.24);
+    backdrop-filter:blur(10px);
   }
 
   body[data-page="transcribe"] .transcribe-health-row{

@@ -2281,6 +2281,7 @@ try {
   section('Amazon Transcribe tool contracts', () => {
     const page = fs.readFileSync('pages/transcribe.html', 'utf8');
     const toolScript = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
+    const toolCss = fs.readFileSync('css/components/whisper-transcribe-monitor.css', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
     const devServer = fs.readFileSync('build/dev.js', 'utf8');
@@ -2322,6 +2323,11 @@ try {
            toolScript.includes('No audio track found.') &&
            toolScript.includes('failed to parse audio file'),
       'Transcribe tool should skip video files without audio and explain AWS parse failures');
+    assert(toolCss.includes('.transcribe-status-bar') &&
+           toolCss.includes('position:sticky') &&
+           toolCss.includes('body[data-page="transcribe"] .tools-account-dock') &&
+           toolCss.includes('top:calc(var(--nav-height'),
+      'Transcribe status bar should stay mounted near the top of the screen');
 
     assert(endpoint.includes('StartTranscriptionJobCommand') &&
            endpoint.includes('GetTranscriptionJobCommand') &&
