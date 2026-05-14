@@ -392,50 +392,9 @@
       display:grid;
       gap:14px 18px;
       align-items:start;
-    }
-
-    body[data-page="whisper-transcribe-monitor"][data-tools-state="results"] .whispermon-card-wide form.contact-form{
-      grid-template-columns:minmax(340px, .95fr) minmax(380px, 1.05fr);
-    }
-
-    body[data-page="whisper-transcribe-monitor"]:is([data-tools-state="empty"], [data-tools-state="ready"], [data-tools-state="working"]) .whispermon-card-wide form.contact-form{
       grid-template-columns:minmax(0, 1fr);
-      max-width:min(920px, 100%);
+      max-width:min(1080px, 100%);
       margin-inline:auto;
-    }
-
-    body[data-page="whisper-transcribe-monitor"] .whispermon-card-wide form.contact-form > :is(
-      .form-field,
-      .whispermon-audio-meta,
-      .whispermon-meter-block,
-      .whispermon-upload-progress,
-      .form-actions.whispermon-actions,
-      .contact-form-status#whispermon-run-status
-    ){
-      grid-column:1;
-    }
-
-    body[data-page="whisper-transcribe-monitor"]:is([data-tools-state="empty"], [data-tools-state="ready"], [data-tools-state="working"]) .whispermon-output{
-      display:none;
-    }
-
-    body[data-page="whisper-transcribe-monitor"] .whispermon-output{
-      border-radius:8px;
-    }
-
-    body[data-page="whisper-transcribe-monitor"][data-tools-state="results"] .whispermon-output{
-      display:grid;
-      grid-column:2;
-      grid-row:1 / span 8;
-      align-self:stretch;
-      min-height:min(480px, calc(var(--tools-pane-height) - 130px));
-      margin-top:0;
-      padding-top:0;
-      border-top:none;
-    }
-
-    body[data-page="whisper-transcribe-monitor"][data-tools-state="results"] .whispermon-output textarea{
-      min-height:min(420px, calc(var(--tools-pane-height) - 220px));
     }
 
     body[data-page="ocean-wave-simulation"] .ocean-wave-grid{

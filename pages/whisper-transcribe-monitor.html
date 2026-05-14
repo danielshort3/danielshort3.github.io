@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>Whisper Capacity Monitor | Daniel Short</title>
+  <title>File Transcriber | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/tools/whisper-transcribe-monitor">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Upload audio or video and get a transcript from an AWS Lambda Whisper (Tiny English) endpoint.">
-  <meta property="og:title" content="Whisper Capacity Monitor | Daniel Short">
+  <meta name="description" content="Upload audio or video files, review estimated Amazon Transcribe costs, and get per-file transcripts.">
+  <meta property="og:title" content="File Transcriber | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Transcribe audio or video with an AWS Lambda Whisper (Tiny English) endpoint.">
+  <meta property="og:description" content="Transcribe bulk audio or video files with Amazon Transcribe and per-file cost estimates.">
   <meta property="og:url" content="https://www.danielshort.me/tools/whisper-transcribe-monitor">
   <meta property="og:image" content="https://www.danielshort.me/img/hero/head.png">
   <meta property="og:image:width" content="558">
@@ -19,13 +19,13 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
-  <meta name="twitter:title" content="Whisper Capacity Monitor | Daniel Short">
-  <meta name="twitter:description" content="Transcribe audio or video with an AWS Lambda Whisper (Tiny English) endpoint.">
+  <meta name="twitter:title" content="File Transcriber | Daniel Short">
+  <meta name="twitter:description" content="Transcribe bulk audio or video files with Amazon Transcribe and per-file cost estimates.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.png">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.fce081b1.css">
-  <link rel="stylesheet" href="dist/styles-tools.3d9888b6.css">
+  <link rel="stylesheet" href="dist/styles-tools.5f8b011d.css">
   <link rel="stylesheet" href="css/components/whisper-transcribe-monitor.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -35,7 +35,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script src="js/common/no-js.js"></script>
 </head>
-<body data-page="whisper-transcribe-monitor" class="whisper-transcribe-monitor-page tools-tool-page site-page" data-tools-layout="media" data-tools-state="empty" data-whisper-endpoint-base="https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/">
+<body data-page="whisper-transcribe-monitor" class="whisper-transcribe-monitor-page tools-tool-page site-page" data-tools-layout="media" data-tools-state="empty">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -194,8 +194,8 @@
 
   <section class="hero hero--tools tools-hero">
     <div class="wrapper">
-      <p class="hero-eyebrow">Whisper transcription - upload audio or video and get a transcript.</p>
-      <h1 class="visually-hidden">Whisper Capacity Monitor</h1>
+      <p class="hero-eyebrow">File transcription - bulk upload audio or video, review cost, and get per-file transcripts.</p>
+      <h1 class="visually-hidden">File Transcriber</h1>
     </div>
   </section>
 
@@ -210,85 +210,85 @@
     <section class="surface-band tools-section whispermon-section">
       <div class="wrapper whispermon-grid">
         <article class="whispermon-card whispermon-card-wide">
-          <h2>Transcribe</h2>
-          <div class="whispermon-status-bar" aria-label="AWS status">
-            <div class="health-row whispermon-health-row" role="status" aria-live="polite">
-              <span id="whispermon-health-pill" class="health-pill" data-state="warming">Warming up</span>
-              <span class="whispermon-status-meta" id="whispermon-endpoint-status">Connecting to AWS Lambda…</span>
+          <h2>Transcribe Files</h2>
+          <div class="transcribe-status-bar" aria-label="Account status">
+            <div class="health-row transcribe-health-row" role="status" aria-live="polite">
+              <span id="transcribe-auth-pill" class="health-pill" data-state="warning">Loading auth</span>
+              <span class="transcribe-status-meta" id="transcribe-auth-status">Checking tools account sign-in.</span>
             </div>
-            <div class="whispermon-status-actions">
-              <button type="button" class="btn-secondary" id="whispermon-check">Check status</button>
-            </div>
-          </div>
-          <div class="whispermon-stats" aria-label="Endpoint limits">
-            <div class="whispermon-stat">
-              <div class="whispermon-stat-label">Model</div>
-              <div class="whispermon-stat-value" id="whispermon-stat-model">—</div>
-            </div>
-            <div class="whispermon-stat">
-              <div class="whispermon-stat-label">Direct limit</div>
-              <div class="whispermon-stat-value" id="whispermon-stat-direct-limit">—</div>
-            </div>
-            <div class="whispermon-stat">
-              <div class="whispermon-stat-label">Upload limit</div>
-              <div class="whispermon-stat-value" id="whispermon-stat-upload-limit">—</div>
-            </div>
-            <div class="whispermon-stat">
-              <div class="whispermon-stat-label">Max part length</div>
-              <div class="whispermon-stat-value" id="whispermon-stat-part-max">—</div>
+            <div class="transcribe-status-actions">
+              <button type="button" class="btn-secondary" id="transcribe-sign-in">Sign in</button>
             </div>
           </div>
-          <form id="whispermon-form" class="contact-form" novalidate>
+
+          <div class="transcribe-stats" aria-label="Transcription settings">
+            <div class="transcribe-stat">
+              <div class="transcribe-stat-label">Service</div>
+              <div class="transcribe-stat-value" id="transcribe-stat-service">Amazon Transcribe</div>
+            </div>
+            <div class="transcribe-stat">
+              <div class="transcribe-stat-label">Price</div>
+              <div class="transcribe-stat-value" id="transcribe-stat-price">$0.024 / min</div>
+            </div>
+            <div class="transcribe-stat">
+              <div class="transcribe-stat-label">Minimum length</div>
+              <div class="transcribe-stat-value" id="transcribe-stat-minimum">15 sec</div>
+            </div>
+            <div class="transcribe-stat">
+              <div class="transcribe-stat-label">Accepted</div>
+              <div class="transcribe-stat-value" id="transcribe-stat-accepted">0</div>
+            </div>
+          </div>
+
+          <form id="transcribe-form" class="contact-form" novalidate>
             <div class="form-field">
-              <label for="whispermon-file">Audio or video file</label>
-              <input id="whispermon-file" type="file" accept="audio/*,video/*">
-              <p class="contact-form-note">Direct uploads are limited to ~5 MB. Larger uploads use a presigned S3 upload. Video files are converted to audio before transcription. Do not upload sensitive media.</p>
-            </div>
-            <div class="whispermon-audio-meta" id="whispermon-audio-meta" aria-live="polite">No media loaded.</div>
-            <div class="whispermon-meter-block" aria-label="Direct request size capacity">
-              <p class="whispermon-meter-label">Direct request size</p>
-              <div class="whispermon-meter" role="presentation">
-                <div class="whispermon-meter-fill" id="whispermon-direct-meter-fill"></div>
-              </div>
-              <p class="whispermon-meter-meta" id="whispermon-direct-meter-meta">Select a file to compare against the direct request limit.</p>
-            </div>
-            <div class="whispermon-meter-block" aria-label="Upload size capacity">
-              <p class="whispermon-meter-label">Total upload size</p>
-              <div class="whispermon-meter" role="presentation">
-                <div class="whispermon-meter-fill" id="whispermon-upload-meter-fill"></div>
-              </div>
-              <p class="whispermon-meter-meta" id="whispermon-upload-meter-meta">Select a file to compare against the upload limit.</p>
-            </div>
-            <div class="form-field">
-              <label for="whispermon-part-minutes">Part length (minutes)</label>
-              <input id="whispermon-part-minutes" type="range" min="5" max="30" value="30">
-              <p class="contact-form-note" id="whispermon-part-minutes-meta">Splits long media into 30-minute parts for transcription.</p>
-            </div>
-            <div class="whispermon-upload-progress" id="whispermon-upload-progress-wrap" data-state="hidden">
-              <span class="whispermon-upload-progress-label" id="whispermon-upload-progress-label">Upload progress</span>
-              <progress class="whispermon-upload-progress-bar" id="whispermon-upload-progress" value="0" max="1">0%</progress>
+              <label for="transcribe-files">Audio or video files</label>
+              <input id="transcribe-files" type="file" accept=".mp3,.mp4,.wav,.flac,.ogg,.webm,.m4a,.amr,audio/*,video/*" multiple>
+              <p class="contact-form-note">Files under 15 seconds are skipped before upload. Supported formats: MP3, MP4, WAV, FLAC, OGG, WebM, M4A, AMR.</p>
             </div>
 
-            <div class="form-actions whispermon-actions">
-              <button type="submit" class="btn-primary" id="whispermon-start">
+            <div class="transcribe-summary" id="transcribe-summary" aria-live="polite">No files selected.</div>
+
+            <div class="transcribe-table-wrap" id="transcribe-table-wrap" hidden>
+              <table class="transcribe-table">
+                <thead>
+                  <tr>
+                    <th scope="col">File</th>
+                    <th scope="col">Duration</th>
+                    <th scope="col">Billable</th>
+                    <th scope="col">Estimate</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="transcribe-file-rows"></tbody>
+              </table>
+            </div>
+
+            <div class="transcribe-cost-review">
+              <p id="transcribe-total">Estimated total: $0.00</p>
+              <label class="transcribe-approval">
+                <input id="transcribe-approve" type="checkbox">
+                <span>I approve the estimated Amazon Transcribe charge shown above.</span>
+              </label>
+            </div>
+
+            <div class="transcribe-progress" id="transcribe-progress-wrap" data-state="hidden">
+              <span class="transcribe-progress-label" id="transcribe-progress-label">Progress</span>
+              <progress class="transcribe-progress-bar" id="transcribe-progress" value="0" max="1">0%</progress>
+            </div>
+
+            <div class="form-actions transcribe-actions">
+              <button type="submit" class="btn-primary" id="transcribe-start" disabled>
                 <span class="btn-spinner" aria-hidden="true"></span>
-                <span class="btn-label">Transcribe</span>
+                <span class="btn-label">Start Transcription</span>
               </button>
-              <button type="button" class="btn-secondary" id="whispermon-cancel" disabled>Cancel</button>
-              <button type="button" class="btn-ghost" id="whispermon-reset">Reset</button>
+              <button type="button" class="btn-secondary" id="transcribe-cancel" disabled>Cancel</button>
+              <button type="button" class="btn-ghost" id="transcribe-reset">Reset</button>
             </div>
-            <div class="contact-form-status" id="whispermon-run-status" role="status" aria-live="polite"></div>
+            <div class="contact-form-status" id="transcribe-run-status" role="status" aria-live="polite"></div>
 
-            <div class="contact-form whispermon-output" aria-label="Latest transcript output">
-              <div class="form-field">
-                <label for="whispermon-transcript">Latest transcript</label>
-                <textarea id="whispermon-transcript" readonly placeholder="Upload a file and press Transcribe to see the result."></textarea>
-                <p class="contact-form-note">Shows the most recent successful transcript.</p>
-              </div>
-              <div class="form-actions">
-                <button type="button" class="btn-secondary" id="whispermon-copy-transcript" disabled>Copy transcript</button>
-              </div>
-              <div class="contact-form-status" id="whispermon-transcript-status" role="status" aria-live="polite"></div>
+            <div class="transcribe-results" id="transcribe-results" aria-label="Transcription results">
+              <p class="transcribe-empty">Completed transcripts will appear here.</p>
             </div>
           </form>
         </article>
@@ -390,7 +390,7 @@
     </button>
   </div>
   <script defer src="js/tools/whisper-transcribe-monitor.js"></script>
-  <script defer src="dist/site-tools-account.ccf0b763.js"></script>
+  <script defer src="dist/site-tools-account.4beed894.js"></script>
   <script defer src="dist/site-shell.9821b2f1.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>

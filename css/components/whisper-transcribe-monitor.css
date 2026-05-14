@@ -1,4 +1,4 @@
-/* Whisper Capacity Monitor tool styles */
+/* Amazon Transcribe file tool styles */
 @layer components {
   .whispermon-grid{
     display:grid;
@@ -6,18 +6,8 @@
     align-items:start;
   }
 
-  @media (min-width: 900px){
-    .whispermon-grid{
-      grid-template-columns:repeat(2,minmax(0,1fr));
-    }
-
-    .whispermon-card-wide{
-      grid-column:1 / -1;
-    }
-  }
-
   .whispermon-card{
-    border-radius:16px;
+    border-radius:8px;
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
     background:linear-gradient(150deg,
       color-mix(in srgb,var(--surface) 94%, #040910 6%) 0%,
@@ -30,19 +20,10 @@
   .whispermon-card h2{
     margin:0 0 12px;
     font-size:1.2rem;
-    letter-spacing:.01em;
+    letter-spacing:0;
   }
 
-  body[data-page="whisper-transcribe-monitor"] .whispermon-health-row{
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    gap:10px;
-    flex-wrap:wrap;
-    margin:0;
-  }
-
-  .whispermon-status-bar{
+  .transcribe-status-bar{
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -51,7 +32,16 @@
     margin:0 0 16px;
   }
 
-  .whispermon-status-actions{
+  body[data-page="whisper-transcribe-monitor"] .transcribe-health-row{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:0;
+  }
+
+  .transcribe-status-actions{
     display:flex;
     gap:12px;
     align-items:center;
@@ -67,7 +57,7 @@
     border:1px solid var(--surface-accent);
     background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
     font-size:.7rem;
-    letter-spacing:.12em;
+    letter-spacing:.08em;
     text-transform:uppercase;
     color:var(--text-muted);
   }
@@ -90,89 +80,29 @@
     border-color:color-mix(in srgb,var(--danger) 55%, var(--surface-accent) 45%);
   }
 
-  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="warming"]{
+  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="warning"]{
     color:var(--warning);
     border-color:color-mix(in srgb,var(--warning) 55%, var(--surface-accent) 45%);
   }
 
-  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta,
-  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta[data-tone="success"],
-  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta[data-tone="warning"],
-  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta[data-tone="error"]{
+  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta,
+  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta[data-tone="success"],
+  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta[data-tone="warning"],
+  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta[data-tone="error"]{
     color:var(--text-muted);
     font-size:.85rem;
     line-height:1.5;
   }
 
-  .whispermon-upload-progress{
-    display:grid;
-    gap:6px;
-    margin-top:12px;
-  }
-
-  .whispermon-upload-progress[data-state="hidden"]{
-    display:none;
-  }
-
-  .whispermon-upload-progress-label{
-    font-size:.82rem;
-    color:var(--text-muted);
-  }
-
-  .whispermon-upload-progress-bar{
-    width:100%;
-    height:10px;
-    accent-color:var(--primary);
-  }
-
-  .whispermon-controls{
-    display:grid;
-    gap:12px;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    align-items:end;
-  }
-
-  .whispermon-actions .btn-primary,
-  .whispermon-actions .btn-secondary,
-  .whispermon-actions .btn-ghost{
-    flex:0 0 auto;
-  }
-
-  .whispermon-audio-meta{
-    margin-top:12px;
-    margin-bottom:14px;
-    padding:12px 14px;
-    border-radius:12px;
-    border:1px solid color-mix(in srgb,var(--text-light) 12%, transparent);
-    background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
-    color:var(--text-muted);
-    font-size:.95rem;
-    min-width:0;
-    overflow-wrap:anywhere;
-    word-break:break-word;
-  }
-
-  .whispermon-audio-meta[data-tone="success"]{
-    border-color:color-mix(in srgb,var(--success) 40%, transparent);
-    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
-    color:color-mix(in srgb,var(--text-light) 86%, var(--success) 14%);
-  }
-
-  .whispermon-audio-meta[data-tone="error"]{
-    border-color:color-mix(in srgb,var(--danger) 40%, transparent);
-    background:color-mix(in srgb,var(--danger) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
-    color:color-mix(in srgb,var(--text-light) 86%, var(--danger) 14%);
-  }
-
-  .whispermon-stats{
+  .transcribe-stats{
     display:grid;
     gap:12px;
     grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
     margin-bottom:16px;
   }
 
-  .whispermon-stat{
-    border-radius:14px;
+  .transcribe-stat{
+    border-radius:8px;
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
     background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
     padding:12px 12px 10px;
@@ -180,7 +110,7 @@
     min-width:0;
   }
 
-  .whispermon-stat-label{
+  .transcribe-stat-label{
     font-size:.78rem;
     text-transform:uppercase;
     letter-spacing:.08em;
@@ -189,148 +119,231 @@
     line-height:1.2;
   }
 
-  .whispermon-stat-value{
+  .transcribe-stat-value{
     font-weight:800;
-    font-size:1.2rem;
+    font-size:1.18rem;
     color:color-mix(in srgb,var(--text-light) 92%, #000 8%);
     line-height:1.1;
     overflow-wrap:anywhere;
     word-break:break-word;
   }
 
-  .whispermon-meter-label{
-    margin:0 0 8px;
-    color:var(--text-muted);
-    font-size:.92rem;
-    font-weight:600;
-    letter-spacing:.01em;
-  }
-
-  .whispermon-meter{
-    width:100%;
-    height:14px;
-    border-radius:999px;
-    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
-    overflow:hidden;
-    box-shadow:0 12px 22px rgba(0,0,0,.22);
-  }
-
-  .whispermon-meter-fill{
-    height:100%;
-    width:0%;
-    border-radius:999px;
-    background:linear-gradient(90deg,
-      color-mix(in srgb,var(--primary) 86%, #ffffff 14%) 0%,
-      color-mix(in srgb,var(--primary) 56%, #071219 44%) 100%);
-    transition:width .12s ease;
-  }
-
-  .whispermon-meter-fill[data-tone="warning"]{
-    background:linear-gradient(90deg,
-      color-mix(in srgb,var(--warning) 80%, #ffffff 20%) 0%,
-      color-mix(in srgb,var(--warning) 55%, #3a2600 45%) 100%);
-  }
-
-  .whispermon-meter-fill[data-tone="danger"]{
-    background:linear-gradient(90deg,
-      color-mix(in srgb,var(--danger) 80%, #ffffff 20%) 0%,
-      color-mix(in srgb,var(--danger) 55%, #2a0505 45%) 100%);
-  }
-
-  .whispermon-meter-meta{
-    margin:10px 0 14px;
-    color:var(--text-muted);
-    font-size:.92rem;
-  }
-
-  .whispermon-output{
-    margin-top:16px;
-    padding-top:16px;
-    border-top:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
-  }
-
-  .whispermon-output textarea{
-    min-height:140px;
-  }
-
-  .whispermon-log-details{
-    margin-top:18px;
-    border-radius:16px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
-    overflow:hidden;
-  }
-
-  .whispermon-log-summary{
-    list-style:none;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:12px;
+  .transcribe-summary,
+  .transcribe-cost-review{
+    margin:0;
     padding:12px 14px;
-    font-weight:600;
-    color:var(--text-light);
-  }
-  .whispermon-log-summary::-webkit-details-marker{ display:none; }
-  .whispermon-log-summary::marker{ content:""; }
-  .whispermon-log-summary::after{
-    content:"+";
-    margin-left:auto;
-    opacity:.7;
-  }
-
-  .whispermon-log-details[open] .whispermon-log-summary{
-    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-  }
-
-  .whispermon-log-details[open] .whispermon-log-summary::after{
-    content:"-";
-  }
-
-  .whispermon-log{
-    max-height:340px;
-    overflow:auto;
-    padding:12px 14px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    scrollbar-gutter:stable;
-  }
-
-  .whispermon-log-row{
-    padding:8px 10px;
-    border-radius:12px;
-    border:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--text-light) 12%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
     color:var(--text-muted);
-    font-size:.9rem;
-    line-height:1.45;
-    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    font-size:.95rem;
     min-width:0;
     overflow-wrap:anywhere;
-    word-break:break-word;
   }
 
-  .whispermon-log-row[data-tone="success"]{
-    border-color:color-mix(in srgb,var(--success) 36%, transparent);
-    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 94%, #000 6%));
+  .transcribe-summary[data-tone="success"]{
+    border-color:color-mix(in srgb,var(--success) 40%, transparent);
+    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
     color:color-mix(in srgb,var(--text-light) 86%, var(--success) 14%);
   }
 
-  .whispermon-log-row[data-tone="warning"]{
-    border-color:color-mix(in srgb,var(--warning) 36%, transparent);
-    background:color-mix(in srgb,var(--warning) 10%, color-mix(in srgb,var(--surface) 94%, #000 6%));
+  .transcribe-summary[data-tone="warning"]{
+    border-color:color-mix(in srgb,var(--warning) 42%, transparent);
+    background:color-mix(in srgb,var(--warning) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
     color:color-mix(in srgb,var(--text-light) 86%, var(--warning) 14%);
   }
 
-  .whispermon-log-row[data-tone="error"]{
-    border-color:color-mix(in srgb,var(--danger) 36%, transparent);
-    background:color-mix(in srgb,var(--danger) 10%, color-mix(in srgb,var(--surface) 94%, #000 6%));
-    color:color-mix(in srgb,var(--text-light) 86%, var(--danger) 14%);
+  .transcribe-table-wrap{
+    width:100%;
+    overflow:auto;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
+    scrollbar-gutter:stable;
   }
 
-  .whispermon-log-row[data-tone="muted"]{
-    opacity:.85;
+  .transcribe-table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:760px;
+    font-size:.9rem;
+  }
+
+  .transcribe-table th,
+  .transcribe-table td{
+    padding:12px 14px;
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
+    text-align:left;
+    vertical-align:top;
+  }
+
+  .transcribe-table th{
+    color:var(--text-muted);
+    font-size:.76rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+  }
+
+  .transcribe-table tr:last-child td{
+    border-bottom:none;
+  }
+
+  .transcribe-table tr[data-tone="success"] td{
+    background:color-mix(in srgb,var(--success) 8%, transparent);
+  }
+
+  .transcribe-table tr[data-tone="warning"] td{
+    background:color-mix(in srgb,var(--warning) 8%, transparent);
+  }
+
+  .transcribe-table tr[data-tone="error"] td{
+    background:color-mix(in srgb,var(--danger) 8%, transparent);
+  }
+
+  .transcribe-table tr[data-tone="active"] td{
+    background:color-mix(in srgb,var(--primary) 8%, transparent);
+  }
+
+  .transcribe-file-name,
+  .transcribe-file-meta{
+    display:block;
+  }
+
+  .transcribe-file-name{
+    color:var(--text-light);
+    font-weight:700;
+    overflow-wrap:anywhere;
+  }
+
+  .transcribe-file-meta{
+    color:var(--text-muted);
+    font-size:.82rem;
+    margin-top:3px;
+  }
+
+  .transcribe-cost-review{
+    display:grid;
+    gap:10px;
+  }
+
+  .transcribe-cost-review p{
+    margin:0;
+    color:var(--text-light);
+    font-weight:800;
+  }
+
+  .transcribe-approval{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    color:var(--text-muted);
+    line-height:1.45;
+  }
+
+  .transcribe-approval input{
+    margin-top:.2em;
+  }
+
+  .transcribe-progress{
+    display:grid;
+    gap:6px;
+    margin-top:4px;
+  }
+
+  .transcribe-progress[data-state="hidden"]{
+    display:none;
+  }
+
+  .transcribe-progress-label{
+    font-size:.82rem;
+    color:var(--text-muted);
+  }
+
+  .transcribe-progress-bar{
+    width:100%;
+    height:10px;
+    accent-color:var(--primary);
+  }
+
+  .transcribe-actions .btn-primary,
+  .transcribe-actions .btn-secondary,
+  .transcribe-actions .btn-ghost{
+    flex:0 0 auto;
+  }
+
+  .transcribe-results{
+    display:grid;
+    gap:14px;
+    margin-top:8px;
+  }
+
+  .transcribe-empty{
+    margin:0;
+    color:var(--text-muted);
+  }
+
+  .transcribe-result{
+    display:grid;
+    gap:12px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
+    padding:14px;
+    min-width:0;
+  }
+
+  .transcribe-result[data-status="failed"]{
+    border-color:color-mix(in srgb,var(--danger) 34%, transparent);
+  }
+
+  .transcribe-result-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .transcribe-result h3{
+    margin:0 0 4px;
+    font-size:1rem;
+    color:var(--text-light);
+    overflow-wrap:anywhere;
+  }
+
+  .transcribe-result p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.88rem;
+  }
+
+  .transcribe-result-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .transcribe-result textarea{
+    width:100%;
+    min-height:180px;
+    resize:vertical;
+  }
+
+  @media (max-width: 700px){
+    .transcribe-status-bar,
+    .transcribe-result-header{
+      align-items:stretch;
+    }
+
+    .transcribe-status-actions,
+    .transcribe-result-actions{
+      width:100%;
+    }
+
+    .transcribe-status-actions > *,
+    .transcribe-result-actions > *{
+      flex:1 1 auto;
+    }
   }
 }

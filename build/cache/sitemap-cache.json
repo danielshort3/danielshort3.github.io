@@ -2,7 +2,7 @@
   "entries": {
     "https://www.danielshort.me/analytics": {
       "lastmod": "2026-05-12",
-      "hash": "b880ba213968125731a9bea3f17865f04b15c03c1f3b2bd03c6791f5f50ecadc"
+      "hash": "71489f54d2b9c4d9a6411361ea3992e988271758b6bbdc791c12cb656a3eb54a"
     },
     "https://www.danielshort.me/contact": {
       "lastmod": "2026-05-12",
@@ -10,7 +10,7 @@
     },
     "https://www.danielshort.me/data-science": {
       "lastmod": "2026-05-12",
-      "hash": "676a8c229bb7aa066587370a7c295d5507314194073e8d2ab252c6ad8e678c08"
+      "hash": "3d2341657791f3bc88625db1868c10f404447c736f2c702f3c192e22adbd2c28"
     },
     "https://www.danielshort.me/portfolio": {
       "lastmod": "2026-05-12",
@@ -106,51 +106,51 @@
     },
     "https://www.danielshort.me/tools/background-remover": {
       "lastmod": "2026-05-12",
-      "hash": "e3c20601ec1ef511bb940a0afd7c6e8691697115deb2f615073e357129720205"
+      "hash": "95140e2ed3fab1ce9e69589134befa3ffe477112b688b36b58f9f2b6fcd051c3"
     },
     "https://www.danielshort.me/tools/image-optimizer": {
       "lastmod": "2026-05-12",
-      "hash": "abe0bfadb79470ae11c0f6c4bc1d96c5bf0a99fb2895990ffd99470c5342111a"
+      "hash": "785ac481aa656d2f6c31cf343a41f75ce0ff453ee4010d347300df531e7287e9"
     },
     "https://www.danielshort.me/tools/job-application-tracker": {
       "lastmod": "2026-05-12",
-      "hash": "6d59d949bebba15679f46d563b8e06d4a4bb7dec2a2ba7d5a274cd078d715eb2"
+      "hash": "12b141eb1e45b57c86a3600f3a012220dc08d0094f71f78908d8a28af941784d"
     },
     "https://www.danielshort.me/tools/nbsp-cleaner": {
       "lastmod": "2026-05-12",
-      "hash": "0473e49ab14a7e648ea3f00a4eb795bec0f7e56a0b1bed36d44adf101a2bbaa8"
+      "hash": "7702e378743463be3aa4d912f9213cfa0f7e336f786b920e086d80d2f9e4785d"
     },
     "https://www.danielshort.me/tools/oxford-comma-checker": {
       "lastmod": "2026-05-12",
-      "hash": "444aec0652aec7eabc7659fbd23c39f2d8e778cac2989caecc39c09e2abca825"
+      "hash": "31a9922bec90049d5bedab4dd409185c9294b912038eda6898bcbf46f2a881f7"
     },
     "https://www.danielshort.me/tools/point-of-view-checker": {
       "lastmod": "2026-05-12",
-      "hash": "ca6c901a15589cb4d867d3f96fe5e99e39afc05983779474c4598a57232dedae"
+      "hash": "775511319df86ca345b402c7ee61fa9521d1f61bf84fce2be532cae958cf326f"
     },
     "https://www.danielshort.me/tools/qr-code-generator": {
       "lastmod": "2026-05-12",
-      "hash": "598e4be10801fdbeb5de6a9aad695b811025a693492b0e898301e2c2b550a4d2"
+      "hash": "c7fddc45bdfc9bc79086ce5b253f7939c0ae0e9ef6a2fac1795ab47bf2d95a10"
     },
     "https://www.danielshort.me/tools/screen-recorder": {
       "lastmod": "2026-05-12",
-      "hash": "82cbe39bff311d261a689b810964f8f5ee90f807233b97f3078d274a9b31c896"
+      "hash": "57d87433845b124dc2e6a562a618670b9ecf77c65d4a9514f7c55950dcf5aa26"
     },
     "https://www.danielshort.me/tools/text-compare": {
       "lastmod": "2026-05-12",
-      "hash": "04db8f779bf80cbda15334bf37040e5dbc79361c3b0c84f5ddfddc81cf1930b2"
+      "hash": "a9525b0c10ad1461a2ecaf33520b28cc0814c79fd47d1dadcf982daf64171484"
     },
     "https://www.danielshort.me/tools/utm-batch-builder": {
       "lastmod": "2026-05-12",
-      "hash": "74841e5bcbb2c7955659b599726f2bd39f3cabdad58d1721542d65b849940397"
+      "hash": "385f436333ec4a63e144c8fa8ddb132252ac73ea02247de842fcf14560101f03"
     },
     "https://www.danielshort.me/tools/word-frequency": {
       "lastmod": "2026-05-12",
-      "hash": "96f271b05d8b11d26732a243d1c08db337d0b44acf68fc900f7f47cda7665e35"
+      "hash": "70187585ce994f9ff2ae04932c3dde1b124f0bd1ba73923b23a9f68d78efc0c2"
     },
     "https://www.danielshort.me/tourism": {
       "lastmod": "2026-05-12",
-      "hash": "32a7745c5a4706a33175a72354ac5e6d7ecd0775a141f8fa326efbdc422a716d"
+      "hash": "3fecf2253a8b3707ab4dbeb106a2b1e3797e46a4a54daf970263691bec20d42d"
     }
   }
 }
