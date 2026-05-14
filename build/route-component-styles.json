@@ -121,7 +121,7 @@
   "/tools/utm-batch-builder": [
     "css/components/utm-batch-builder.css"
   ],
-  "/tools/whisper-transcribe-monitor": [
+  "/tools/transcribe": [
     "css/components/whisper-transcribe-monitor.css"
   ],
   "/tools/ga4-utm-performance": [

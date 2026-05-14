@@ -101,6 +101,21 @@ function getConfig(){
   };
 }
 
+function getPublicConfig(){
+  const region = pickEnv(['TRANSCRIBE_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
+  const bucket = pickEnv(['TRANSCRIBE_UPLOAD_BUCKET']);
+  const signingSecret = pickEnv(['TRANSCRIBE_SIGNING_SECRET']);
+  return {
+    region,
+    languageCode: pickEnv(['TRANSCRIBE_LANGUAGE_CODE']) || 'en-US',
+    pricePerSecond: positiveNumber(process.env.TRANSCRIBE_PRICE_PER_SECOND, DEFAULT_PRICE_PER_SECOND),
+    maxFilesPerRun: positiveInteger(process.env.TRANSCRIBE_MAX_FILES_PER_RUN, DEFAULT_MAX_FILES_PER_RUN),
+    maxFileBytes: positiveInteger(process.env.TRANSCRIBE_MAX_FILE_BYTES, DEFAULT_MAX_FILE_BYTES),
+    maxTotalCostUsd: positiveNumber(process.env.TRANSCRIBE_MAX_TOTAL_COST_USD, DEFAULT_MAX_TOTAL_COST_USD),
+    configured: Boolean(region && bucket && signingSecret && signingSecret.length >= 24)
+  };
+}
+
 function positiveNumber(value, fallback){
   const n = Number(value);
   return Number.isFinite(n) && n > 0 ? n : fallback;
@@ -243,6 +258,7 @@ function publicConfig(config){
   return {
     ok: true,
     service: 'Amazon Transcribe',
+    configured: config.configured !== false,
     region: config.region,
     languageCode: config.languageCode,
     pricePerSecond: config.pricePerSecond,
@@ -262,15 +278,7 @@ async function handleConfig(req, res){
     sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
     return;
   }
-  try {
-    const config = getConfig();
-    sendJson(res, 200, publicConfig(config));
-  } catch (err) {
-    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' ? 503 : 500, {
-      ok: false,
-      error: err.message || 'Transcribe configuration is unavailable.'
-    });
-  }
+  sendJson(res, 200, publicConfig(getPublicConfig()));
 }
 
 async function handlePresign(req, res){

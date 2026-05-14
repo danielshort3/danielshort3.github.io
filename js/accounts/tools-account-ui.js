@@ -18,7 +18,8 @@
     'short-links': { name: 'Short Links', href: '/tools/short-links' },
     'utm-batch-builder': { name: 'UTM Batch Builder', href: '/tools/utm-batch-builder' },
     'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },
-    'whisper-transcribe-monitor': { name: 'File Transcriber', href: '/tools/whisper-transcribe-monitor' }
+    'transcribe': { name: 'File Transcriber', href: '/tools/transcribe' },
+    'whisper-transcribe-monitor': { name: 'File Transcriber', href: '/tools/transcribe' }
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);

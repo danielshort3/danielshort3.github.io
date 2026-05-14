@@ -336,7 +336,7 @@
     body[data-page="background-remover"] .bgtool-card,
     body[data-page="qr-code-generator"] .qrtool-card,
     body[data-page="screen-recorder"] .screenrec-card,
-    body[data-page="whisper-transcribe-monitor"] .whispermon-card,
+    body[data-page="transcribe"] .whispermon-card,
     body[data-page="ocean-wave-simulation"] .ocean-wave-card{
       border-radius:8px;
     }
@@ -379,16 +379,16 @@
       scrollbar-gutter:stable;
     }
 
-    body[data-page="whisper-transcribe-monitor"] .whispermon-grid{
+    body[data-page="transcribe"] .whispermon-grid{
       grid-template-columns:1fr;
     }
 
-    body[data-page="whisper-transcribe-monitor"] .whispermon-card-wide{
+    body[data-page="transcribe"] .whispermon-card-wide{
       display:grid;
       gap:14px;
     }
 
-    body[data-page="whisper-transcribe-monitor"] .whispermon-card-wide form.contact-form{
+    body[data-page="transcribe"] .whispermon-card-wide form.contact-form{
       display:grid;
       gap:14px 18px;
       align-items:start;
