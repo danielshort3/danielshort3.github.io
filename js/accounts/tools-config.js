@@ -17,6 +17,6 @@
     cognitoRedirect: getDefaultRedirect(),
     cognitoScopes: 'openid email profile',
     adminGroups: ['admin', 'admins'],
-    adminEmails: []
+    adminEmails: ['daniel@danielshort.me']
   };
 })();
