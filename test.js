@@ -326,17 +326,29 @@ try {
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
     const catalogJs = readFile('js/accounts/tools-account-ui.js');
     const toolsHtml = readFile('pages/tools.html');
+    const toolRecords = toolFiles.map((fileName) => JSON.parse(readFile(path.join('content', 'tools', fileName))));
+    const publicTools = toolRecords.filter((tool) => !tool.hidden && (!tool.visibility || tool.visibility === 'public'));
+    const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
+    const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
     assert(toolsHtml.includes('<h1>Tools</h1>'), 'tools page should expose a visible h1');
     assert(toolsHtml.includes('data-tools-filter-input'), 'tools page missing directory search input');
     assert(toolsHtml.includes('data-tools-filter-status'), 'tools page missing filter status');
     assert(toolsHtml.includes('class="tools-nav"'), 'tools page missing category shortcuts');
+    assert(toolsHtml.includes('class="tool-launch-card"'), 'tools page should render compact tool launcher cards');
+    assert(toolsHtml.includes('class="tool-card-details"'), 'tools page should render hover/focus tool details');
+    assert(toolsHtml.includes(`Showing ${publicTools.length} tools.`), 'tools page initial count should match public tools');
     assert(!toolsHtml.includes('More tools soon'), 'tools page should not render placeholder cards');
     assert(!toolsHtml.includes('href="tools/"'), 'tools page should not render empty tool links');
     assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
+    assert(publicTools.length === 10, 'anonymous tools directory should expose 10 public tools by default');
+    assert(accountTools.length === 2, 'signed-in tools directory should include 2 account-only tools');
+    assert(adminTools.length === 2, 'admin tools directory should include 2 admin-only tools');
+    assert(toolRecords.some((tool) => tool.slug === 'whisper-transcribe-monitor' && tool.visibility === 'authed'),
+      'File Transcriber should be listed as an account-only tool');
 
-    toolFiles.forEach((fileName) => {
-      const tool = JSON.parse(readFile(path.join('content', 'tools', fileName)));
+    toolRecords.forEach((tool) => {
+      const fileName = `${String(tool.slug || '').trim()}.json`;
       const slug = String(tool.slug || '').trim();
       const href = String(tool.href || '').trim();
       assert(/^[-a-z0-9]+$/.test(slug), `${fileName} has invalid or empty slug`);

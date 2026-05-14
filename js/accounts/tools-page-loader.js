@@ -72,6 +72,11 @@
   dock.addEventListener('click', triggerLoad, { once: true });
   dock.addEventListener('keydown', triggerLoad, { once: true });
 
+  if (document.body?.dataset?.page === 'tools' || document.body?.dataset?.toolsLayout === 'directory') {
+    triggerLoad();
+    return;
+  }
+
   if ('IntersectionObserver' in window) {
     observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;

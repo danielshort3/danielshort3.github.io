@@ -548,32 +548,45 @@ function renderToolsDirectoryBody(page, tools) {
   const renderedCategories = toolsByCategory.map(({ category, items }) => {
     const cards = items.map((tool) => {
       const href = trimLeadingSlash(tool.href || `tools/${tool.slug}`);
+      const visibility = String(tool.visibility || 'public').trim().toLowerCase();
+      const restricted = visibility && visibility !== 'public';
       const cardAttrs = {
         class: 'tool-card',
         'data-tools-card': true,
         'data-tools-category-id': category.id || '',
         'data-tools-category-title': category.title || '',
-        ...(tool.visibility && tool.visibility !== 'public' ? { 'data-tools-visibility': tool.visibility } : {}),
-        ...(tool.hidden ? { hidden: true } : {})
+        ...(restricted ? { 'data-tools-visibility': tool.visibility } : {}),
+        ...(tool.hidden || restricted ? { hidden: true } : {})
       };
       const pills = (Array.isArray(tool.pills) ? tool.pills : [])
         .map((pill) => `<span class="tool-pill${pill && pill.variant === 'local' ? ' tool-pill-local' : ''}">${escapeHtml(pill && pill.label ? pill.label : '')}</span>`)
         .join('\n');
+      const accessLabel = (() => {
+        if (visibility === 'admin' || visibility === 'admins') return 'Admin';
+        if (visibility === 'authed' || visibility === 'authenticated' || visibility === 'logged-in') return 'Account';
+        return 'Public';
+      })();
+      const primaryPill = Array.isArray(tool.pills) && tool.pills.length
+        ? String(tool.pills[0] && tool.pills[0].label ? tool.pills[0].label : '').trim()
+        : '';
+      const quickMeta = [accessLabel, primaryPill].filter(Boolean).join(' · ');
       return [
         `<article${attrsToString(cardAttrs)}>`,
-        `  <a href="${escapeHtml(href)}">`,
-        '    <div class="tool-top">',
-        '      <span class="tool-icon" aria-hidden="true">',
+        `  <a class="tool-launch-card" href="${escapeHtml(href)}" aria-describedby="${escapeHtml(tool.slug || href)}-details">`,
+        '    <span class="tool-icon" aria-hidden="true">',
         indentBlock(String(tool.iconHtml || '').trim(), '        '),
-        '      </span>',
-        '      <div>',
-        `        <h3>${escapeHtml(tool.title || '')}</h3>`,
-        '        <div class="tool-meta">',
+        '    </span>',
+        '    <span class="tool-card-main">',
+        `      <span class="tool-card-title">${escapeHtml(tool.title || '')}</span>`,
+        `      <span class="tool-card-kicker">${escapeHtml(quickMeta)}</span>`,
+        '    </span>',
+        `    <span class="tool-access-chip" data-tool-access="${escapeHtml(accessLabel.toLowerCase())}">${escapeHtml(accessLabel)}</span>`,
+        `    <span class="tool-card-details" id="${escapeHtml(tool.slug || href)}-details" role="tooltip">`,
+        `      <span class="tool-card-summary">${escapeHtml(tool.summary || '')}</span>`,
+        '      <span class="tool-meta">',
         indentBlock(pills, '          '),
-        '        </div>',
-        '      </div>',
-        '    </div>',
-        `    <p>${escapeHtml(tool.summary || '')}</p>`,
+        '      </span>',
+        '    </span>',
         '  </a>',
         '</article>'
       ].join('\n');
