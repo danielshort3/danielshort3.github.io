@@ -467,9 +467,15 @@
     return '';
   };
 
+  const canRemoveItem = (item) => !state.busy &&
+    !state.analyzing &&
+    !['presigning', 'uploading', 'starting', 'transcribing'].includes(String(item?.status || ''));
+
   const renderTable = () => {
     if (tableWrapEl) tableWrapEl.hidden = state.files.length === 0;
-    fileRowsEl.innerHTML = state.files.map((item) => `
+    fileRowsEl.innerHTML = state.files.map((item) => {
+      const removable = canRemoveItem(item);
+      return `
       <article class="transcribe-file-card" data-tone="${escapeHtml(rowTone(item))}">
         <div class="transcribe-file-main">
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
@@ -481,8 +487,17 @@
           <span>${escapeHtml(formatUsd(item.estimatedCostUsd || 0))}</span>
         </div>
         <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
+        <button
+          type="button"
+          class="transcribe-file-remove"
+          data-transcribe-file-remove
+          data-id="${escapeHtml(item.id)}"
+          aria-label="Remove ${escapeHtml(item.name)} from queue"
+          ${removable ? '' : 'disabled'}
+        >X</button>
       </article>
-    `).join('');
+    `;
+    }).join('');
     updateStats();
     updateSummary();
     updateControls();
@@ -557,9 +572,11 @@
   const updateControls = () => {
     const readyCount = acceptedFiles().filter((item) => item.status === 'ready').length;
     const approved = Boolean(approveEl && approveEl.checked);
-    const canStart = !state.busy && !state.analyzing && authIsReady() && approved && readyCount > 0;
     if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
-    if (startBtn) startBtn.disabled = !canStart;
+    if (startBtn) {
+      startBtn.disabled = state.busy || state.analyzing;
+      startBtn.dataset.ready = authIsReady() && approved && readyCount > 0 ? 'true' : 'false';
+    }
   };
 
   const readJson = async (res) => {
@@ -1037,6 +1054,22 @@
 
   if (approveEl) {
     approveEl.addEventListener('change', updateControls);
+  }
+
+  if (fileRowsEl) {
+    fileRowsEl.addEventListener('click', (event) => {
+      const removeBtn = event.target.closest('[data-transcribe-file-remove]');
+      if (!removeBtn || removeBtn.disabled) return;
+      const id = removeBtn.getAttribute('data-id');
+      const item = state.files.find((entry) => entry.id === id);
+      if (!item || !canRemoveItem(item)) return;
+      state.files = state.files.filter((entry) => entry.id !== id);
+      if (approveEl) approveEl.checked = false;
+      setStatus(runStatusEl, `Removed ${item.name} from the queue. Review the updated estimate before starting.`, 'warning');
+      renderTable();
+      renderResults();
+      markSessionDirty();
+    });
   }
 
   formEl.addEventListener('submit', (event) => {
