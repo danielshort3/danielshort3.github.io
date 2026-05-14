@@ -19,6 +19,7 @@ const adminDir = path.join(root, 'admin');
 const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
 const chatbotApiPath = path.join(root, 'api', 'chatbot.js');
 const chatbotLogsApiPath = path.join(root, 'api', 'chatbot', 'logs.js');
+const toolsApiPath = path.join(root, 'api', 'tools', '[...slug].js');
 const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
 const MAX_PORT_SEARCH_ATTEMPTS = 50;
 const WATCH_POLL_INTERVAL_MS = 1000;
@@ -612,6 +613,25 @@ function loadChatbotLogsApi() {
   return require(chatbotLogsApiPath);
 }
 
+function clearToolsApiCache() {
+  const prefixes = [
+    toolsApiPath,
+    path.join(root, 'api', 'tools'),
+    path.join(root, 'api', '_lib', 'tools-'),
+    path.join(root, 'api', '_lib', 'cognito-')
+  ];
+  Object.keys(require.cache).forEach((modulePath) => {
+    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
+      delete require.cache[modulePath];
+    }
+  });
+}
+
+function loadToolsApi() {
+  clearToolsApiCache();
+  return require(toolsApiPath);
+}
+
 function clearSentenceDemoApiCache() {
   const prefixes = [
     sentenceDemoApiPath,
@@ -649,6 +669,25 @@ function createLocalServer() {
         res.end(JSON.stringify({
           ok: false,
           error: err && err.message ? err.message : 'Local chatbot API failed to load'
+        }));
+      }
+      return;
+    }
+
+    if (pathname === '/api/tools' || pathname.startsWith('/api/tools/')) {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      const rawSlug = pathname.startsWith('/api/tools/')
+        ? pathname.slice('/api/tools/'.length)
+        : '';
+      req.query.slug = rawSlug ? rawSlug.split('/').filter(Boolean) : '';
+      try {
+        loadToolsApi()(req, res);
+      } catch (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          ok: false,
+          error: err && err.message ? err.message : 'Local tools API failed to load'
         }));
       }
       return;

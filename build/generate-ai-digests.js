@@ -35,7 +35,7 @@ const excludedPathPatterns = [
   /^\/sitemap-pretty$/i,
   /^\/(?:resume|resume-pdf)$/i,
   /^\/resume-(?:analytics|data-science|tourism)-pdf$/i,
-  /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|whisper-transcribe-monitor)$/i
+  /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|transcribe|whisper-transcribe-monitor)$/i
 ];
 
 const scoreTerms = [

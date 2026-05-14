@@ -116,8 +116,8 @@
     { "source": "/tools/utm-batch-builder.html","destination": "/pages/utm-batch-builder" },
     { "source": "/tools/ga4-utm-performance","destination": "/pages/ga4-utm-performance" },
     { "source": "/tools/ga4-utm-performance.html","destination": "/pages/ga4-utm-performance" },
-    { "source": "/tools/whisper-transcribe-monitor","destination": "/pages/whisper-transcribe-monitor" },
-    { "source": "/tools/whisper-transcribe-monitor.html","destination": "/pages/whisper-transcribe-monitor" },
+    { "source": "/tools/transcribe","destination": "/pages/transcribe" },
+    { "source": "/tools/transcribe.html","destination": "/pages/transcribe" },
 
     { "source": "/games/stellar-dogfight", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },
@@ -163,6 +163,8 @@
     { "source": "/", "destination": "/analytics", "permanent": true },
     { "source": "/index.html", "destination": "/analytics", "permanent": true },
     { "source": "/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true },
+    { "source": "/tools/whisper-transcribe-monitor", "destination": "/tools/transcribe", "permanent": true },
+    { "source": "/tools/whisper-transcribe-monitor.html", "destination": "/tools/transcribe", "permanent": true },
     { "source": "/tools/:tool.html", "destination": "/tools/:tool", "permanent": true },
     { "source": "/games/:game.html", "destination": "/games/:game", "permanent": true },
     { "source": "/:slug.html", "destination": "/:slug", "permanent": true },
@@ -339,13 +341,13 @@
       ]
     },
     {
-      "source": "/tools/whisper-transcribe-monitor",
+      "source": "/tools/transcribe",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {
-      "source": "/tools/whisper-transcribe-monitor.html",
+      "source": "/tools/transcribe.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]

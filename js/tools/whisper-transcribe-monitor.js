@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const TOOL_ID = 'whisper-transcribe-monitor';
+  const TOOL_ID = 'transcribe';
   const API_BASE = '/api/tools/transcribe';
   const DEFAULT_CONFIG = {
     service: 'Amazon Transcribe',
@@ -28,6 +28,11 @@
   const authPillEl = $id('transcribe-auth-pill');
   const authStatusEl = $id('transcribe-auth-status');
   const signInBtn = $id('transcribe-sign-in');
+  const shellEl = $id('transcribe-shell');
+  const uploadViewEl = $id('transcribe-upload-view');
+  const processingViewEl = $id('transcribe-processing-view');
+  const resultsViewEl = $id('transcribe-results-view');
+  const dropzoneEl = $id('transcribe-dropzone');
   const serviceEl = $id('transcribe-stat-service');
   const priceEl = $id('transcribe-stat-price');
   const minimumEl = $id('transcribe-stat-minimum');
@@ -36,19 +41,23 @@
   const fileEl = $id('transcribe-files');
   const summaryEl = $id('transcribe-summary');
   const tableWrapEl = $id('transcribe-table-wrap');
-  const tableBodyEl = $id('transcribe-file-rows');
+  const fileRowsEl = $id('transcribe-file-rows');
   const totalEl = $id('transcribe-total');
   const approveEl = $id('transcribe-approve');
   const startBtn = $id('transcribe-start');
   const cancelBtn = $id('transcribe-cancel');
   const resetBtn = $id('transcribe-reset');
+  const newBtn = $id('transcribe-new');
   const runStatusEl = $id('transcribe-run-status');
+  const processingCopyEl = $id('transcribe-processing-copy');
+  const processingRowsEl = $id('transcribe-processing-rows');
+  const resultsSummaryEl = $id('transcribe-results-summary');
   const progressWrapEl = $id('transcribe-progress-wrap');
   const progressLabelEl = $id('transcribe-progress-label');
   const progressBarEl = $id('transcribe-progress');
   const resultsEl = $id('transcribe-results');
 
-  if (!formEl || !fileEl || !startBtn || !tableBodyEl) return;
+  if (!formEl || !fileEl || !startBtn || !fileRowsEl) return;
 
   const state = {
     config: { ...DEFAULT_CONFIG },
@@ -57,7 +66,8 @@
     canceled: false,
     activeXhr: null,
     activeController: null,
-    analyzing: false
+    analyzing: false,
+    view: 'upload'
   };
 
   const markSessionDirty = () => {
@@ -308,12 +318,21 @@
     return authApi.authIsValid(authApi.getAuth());
   };
 
+  const setView = (view) => {
+    const next = ['upload', 'processing', 'results'].includes(view) ? view : 'upload';
+    state.view = next;
+    if (shellEl) shellEl.dataset.transcribeViewState = next;
+    if (uploadViewEl) uploadViewEl.hidden = next !== 'upload';
+    if (processingViewEl) processingViewEl.hidden = next !== 'processing';
+    if (resultsViewEl) resultsViewEl.hidden = next !== 'results';
+  };
+
   const updateLayoutState = () => {
     const hasResults = state.files.some((item) => item.transcript || item.status === 'complete' || item.status === 'failed');
     const hasFiles = state.files.length > 0;
-    const nextState = state.busy
+    const nextState = state.view === 'processing' || state.busy
       ? 'working'
-      : hasResults
+      : state.view === 'results' || hasResults
         ? 'results'
         : hasFiles
           ? 'ready'
@@ -324,7 +343,9 @@
   const setBusy = (busy) => {
     state.busy = Boolean(busy);
     if (fileEl) fileEl.disabled = state.busy || state.analyzing;
+    if (dropzoneEl) dropzoneEl.dataset.disabled = state.busy || state.analyzing ? 'true' : 'false';
     if (resetBtn) resetBtn.disabled = state.busy || state.analyzing;
+    if (newBtn) newBtn.disabled = state.busy || state.analyzing;
     if (cancelBtn) cancelBtn.disabled = !state.busy;
     if (startBtn) {
       startBtn.classList.toggle('is-busy', state.busy);
@@ -422,56 +443,93 @@
 
   const renderTable = () => {
     if (tableWrapEl) tableWrapEl.hidden = state.files.length === 0;
-    tableBodyEl.innerHTML = state.files.map((item) => `
-      <tr data-tone="${escapeHtml(rowTone(item))}">
-        <td>
+    fileRowsEl.innerHTML = state.files.map((item) => `
+      <article class="transcribe-file-card" data-tone="${escapeHtml(rowTone(item))}">
+        <div class="transcribe-file-main">
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
           <span class="transcribe-file-meta">${escapeHtml(formatBytes(item.bytes))}${item.extension ? ` · ${escapeHtml(item.extension.toUpperCase())}` : ''}</span>
-        </td>
-        <td>${item.durationSeconds ? escapeHtml(formatClock(item.durationSeconds)) : '--'}</td>
-        <td>${item.billableSeconds ? `${escapeHtml(String(item.billableSeconds))} sec` : '--'}</td>
-        <td>${escapeHtml(formatUsd(item.estimatedCostUsd || 0))}</td>
-        <td>${escapeHtml(statusLabel(item))}</td>
-      </tr>
+        </div>
+        <div class="transcribe-file-facts" aria-label="File details">
+          <span>${item.durationSeconds ? escapeHtml(formatClock(item.durationSeconds)) : '--'}</span>
+          <span>${item.billableSeconds ? `${escapeHtml(String(item.billableSeconds))} sec` : '--'}</span>
+          <span>${escapeHtml(formatUsd(item.estimatedCostUsd || 0))}</span>
+        </div>
+        <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
+      </article>
     `).join('');
     updateStats();
     updateSummary();
     updateControls();
     updateLayoutState();
+    renderProcessingList();
+  };
+
+  const renderProcessingList = () => {
+    if (!processingRowsEl) return;
+    const processItems = acceptedFiles().filter((item) => item.status !== 'skipped');
+    if (!processItems.length) {
+      processingRowsEl.innerHTML = '<p class="transcribe-empty">Waiting for eligible files.</p>';
+      return;
+    }
+    processingRowsEl.innerHTML = processItems.map((item) => `
+      <article class="transcribe-process-card" data-tone="${escapeHtml(rowTone(item))}">
+        <div>
+          <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
+          <span class="transcribe-file-meta">${escapeHtml(formatClock(item.durationSeconds))} · ${escapeHtml(formatUsd(item.estimatedCostUsd || item.costUsd || 0))}</span>
+        </div>
+        <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
+      </article>
+    `).join('');
   };
 
   const renderResults = () => {
     if (!resultsEl) return;
     const resultItems = state.files.filter((item) => item.transcript || item.status === 'complete' || item.status === 'failed');
+    const completedCount = completedFiles().length;
+    const failedCount = state.files.filter((item) => item.status === 'failed').length;
+    const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
+    if (resultsSummaryEl) {
+      setText(
+        resultsSummaryEl,
+        resultItems.length
+          ? `${completedCount} complete · ${failedCount} failed · ${skippedCount} skipped · Final cost ${formatUsd(finalTotal())}`
+          : 'Completed transcripts will appear below.'
+      );
+    }
     if (!resultItems.length) {
       resultsEl.innerHTML = '<p class="transcribe-empty">Completed transcripts will appear here.</p>';
       return;
     }
     resultsEl.innerHTML = resultItems.map((item) => {
       const transcript = String(item.transcript || '').trim();
-      const status = item.status === 'complete'
+      const isComplete = item.status === 'complete';
+      const status = isComplete
         ? `Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)} · ${item.billableSeconds || 0} billable sec`
-        : escapeHtml(item.error || 'Transcription failed.');
+        : item.error || 'Transcription failed.';
       return `
         <article class="transcribe-result" data-status="${escapeHtml(item.status)}" data-id="${escapeHtml(item.id)}">
           <div class="transcribe-result-header">
             <div>
               <h3>${escapeHtml(item.name)}</h3>
-              <p>${status}</p>
+              <p>${escapeHtml(status)}</p>
             </div>
-            <div class="transcribe-result-actions">
-              <button type="button" class="btn-secondary" data-transcribe-action="copy" data-id="${escapeHtml(item.id)}" ${transcript ? '' : 'disabled'}>Copy</button>
-              <button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}" ${transcript ? '' : 'disabled'}>Download</button>
-            </div>
+            ${transcript ? `
+              <div class="transcribe-result-actions">
+                <button type="button" class="btn-secondary" data-transcribe-action="copy" data-id="${escapeHtml(item.id)}">Copy</button>
+                <button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}">Download</button>
+              </div>
+            ` : ''}
           </div>
-          <textarea readonly>${escapeHtml(transcript)}</textarea>
+          ${transcript
+            ? `<textarea readonly>${escapeHtml(transcript)}</textarea>`
+            : '<p class="transcribe-result-error">No transcript was produced for this file.</p>'}
         </article>
       `;
     }).join('');
   };
 
   const updateControls = () => {
-    const readyCount = acceptedFiles().filter((item) => !['complete', 'failed'].includes(item.status)).length;
+    const readyCount = acceptedFiles().filter((item) => item.status === 'ready').length;
     const approved = Boolean(approveEl && approveEl.checked);
     const canStart = !state.busy && !state.analyzing && authIsReady() && approved && readyCount > 0;
     if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
@@ -554,9 +612,13 @@
     el.src = src;
   });
 
-  const analyzeSelectedFiles = async () => {
-    const files = Array.from(fileEl.files || []);
+  const analyzeSelectedFiles = async (selectedFiles) => {
+    const files = Array.from(selectedFiles || fileEl.files || []);
+    setView('upload');
     state.analyzing = true;
+    setBusy(false);
+    updateControls();
+    updateLayoutState();
     state.files = files.map((file, index) => ({
       id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
       file,
@@ -648,6 +710,7 @@
     }
 
     state.analyzing = false;
+    setBusy(false);
     setStatus(
       runStatusEl,
       acceptedCount ? `Ready to transcribe ${acceptedCount} file${acceptedCount === 1 ? '' : 's'}.` : 'No selected files are eligible for transcription.',
@@ -682,6 +745,7 @@
       if (!event.lengthComputable) return;
       item.progress = event.total > 0 ? event.loaded / event.total : 0;
       renderTable();
+      renderProcessingList();
       updateProgress({
         stateName: 'visible',
         ratio: item.progress,
@@ -730,6 +794,7 @@
         item.costUsd = Number(data.costUsd || item.estimatedCostUsd || 0);
         item.billableSeconds = Number(data.billableSeconds || item.billableSeconds || 0);
         renderTable();
+        renderProcessingList();
         renderResults();
         markSessionDirty();
         return;
@@ -739,6 +804,7 @@
         item.error = friendlyTranscribeError(data.error || 'Transcription failed.');
         item.costUsd = Number(data.costUsd ?? item.estimatedCostUsd ?? 0);
         renderTable();
+        renderProcessingList();
         renderResults();
         markSessionDirty();
         return;
@@ -746,6 +812,7 @@
 
       item.status = 'transcribing';
       renderTable();
+      renderProcessingList();
       updateProgress({ stateName: 'visible', ratio: 1, label: `Transcribing ${item.name}...` });
       await sleep(POLL_INTERVAL_MS);
     }
@@ -816,7 +883,7 @@
       return;
     }
 
-    const queue = acceptedFiles().filter((item) => !['complete', 'failed'].includes(item.status));
+    const queue = acceptedFiles().filter((item) => item.status === 'ready');
     if (!queue.length) {
       setStatus(runStatusEl, 'No eligible files to transcribe.', 'warning');
       return;
@@ -827,8 +894,11 @@
     }
 
     state.canceled = false;
+    setView('processing');
     setBusy(true);
+    renderProcessingList();
     setStatus(runStatusEl, `Starting ${queue.length} transcription job${queue.length === 1 ? '' : 's'}...`, '');
+    setText(processingCopyEl, `Processing ${queue.length} file${queue.length === 1 ? '' : 's'}. You can leave this tab open while Amazon Transcribe runs.`);
     updateProgress({ stateName: 'visible', ratio: 0, label: 'Starting batch...' });
 
     for (let i = 0; i < queue.length; i += 1) {
@@ -836,7 +906,13 @@
       if (state.canceled) break;
       try {
         setStatus(runStatusEl, `Processing ${i + 1} of ${queue.length}: ${item.name}`, '');
+        setText(processingCopyEl, `Processing ${i + 1} of ${queue.length}: ${item.name}`);
         await runFile(item);
+        updateProgress({
+          stateName: 'visible',
+          ratio: (i + 1) / queue.length,
+          label: `${i + 1} of ${queue.length} files finished`
+        });
       } catch (err) {
         if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
           item.status = 'canceled';
@@ -846,6 +922,7 @@
           item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
         }
         renderTable();
+        renderProcessingList();
         renderResults();
         markSessionDirty();
       }
@@ -862,14 +939,18 @@
     updateProgress({ stateName: 'hidden' });
     renderTable();
     renderResults();
+    setView('results');
+    updateLayoutState();
   };
 
   const reset = () => {
     state.canceled = true;
+    state.analyzing = false;
     abortActive();
     state.files = [];
     if (fileEl) fileEl.value = '';
     if (approveEl) approveEl.checked = false;
+    setView('upload');
     setBusy(false);
     setStatus(runStatusEl, '', '');
     updateProgress({ stateName: 'hidden' });
@@ -887,8 +968,34 @@
   }
 
   fileEl.addEventListener('change', () => {
-    analyzeSelectedFiles();
+    analyzeSelectedFiles(fileEl.files);
   });
+
+  if (dropzoneEl) {
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      dropzoneEl.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (state.busy || state.analyzing) return;
+        dropzoneEl.dataset.dragging = 'true';
+      });
+    });
+    ['dragleave', 'drop'].forEach((eventName) => {
+      dropzoneEl.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (eventName === 'dragleave' && dropzoneEl.contains(event.relatedTarget)) return;
+        dropzoneEl.dataset.dragging = 'false';
+      });
+    });
+    dropzoneEl.addEventListener('drop', (event) => {
+      if (state.busy || state.analyzing) return;
+      const droppedFiles = event.dataTransfer?.files;
+      if (!droppedFiles || !droppedFiles.length) return;
+      if (fileEl) fileEl.value = '';
+      analyzeSelectedFiles(droppedFiles);
+    });
+  }
 
   if (approveEl) {
     approveEl.addEventListener('change', updateControls);
@@ -910,6 +1017,7 @@
   }
 
   if (resetBtn) resetBtn.addEventListener('click', reset);
+  if (newBtn) newBtn.addEventListener('click', reset);
 
   if (resultsEl) {
     resultsEl.addEventListener('click', async (event) => {
@@ -966,6 +1074,7 @@
   });
 
   loadConfig().finally(() => {
+    setView('upload');
     updateAuthUi();
     renderTable();
     renderResults();

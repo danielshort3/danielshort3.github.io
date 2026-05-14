@@ -153,7 +153,7 @@ try {
       'pages/qr-code-generator.html': 'QR Code Generator | Daniel Short',
       'pages/image-optimizer.html': 'Image Optimizer | Daniel Short',
       'pages/utm-batch-builder.html': 'UTM Batch Builder | Daniel Short',
-      'pages/whisper-transcribe-monitor.html': 'File Transcriber | Daniel Short',
+      'pages/transcribe.html': 'File Transcriber | Daniel Short',
       'pages/ga4-utm-performance.html': 'GA4 UTM Performance | Daniel Short',
       'probability-engine.html': 'Probability Engine | Daniel Short'
     };
@@ -201,13 +201,13 @@ try {
       'pages/short-links.html',
       'pages/utm-batch-builder.html',
       'pages/ga4-utm-performance.html',
-      'pages/whisper-transcribe-monitor.html'
+      'pages/transcribe.html'
     ];
     const privateToolPages = [
       'pages/tools-dashboard.html',
       'pages/short-links.html',
       'pages/ga4-utm-performance.html',
-      'pages/whisper-transcribe-monitor.html'
+      'pages/transcribe.html'
     ];
 
     const shellPages = [
@@ -344,7 +344,7 @@ try {
     assert(publicTools.length === 10, 'anonymous tools directory should expose 10 public tools by default');
     assert(accountTools.length === 2, 'signed-in tools directory should include 2 account-only tools');
     assert(adminTools.length === 2, 'admin tools directory should include 2 admin-only tools');
-    assert(toolRecords.some((tool) => tool.slug === 'whisper-transcribe-monitor' && tool.visibility === 'authed'),
+    assert(toolRecords.some((tool) => tool.slug === 'transcribe' && tool.visibility === 'authed'),
       'File Transcriber should be listed as an account-only tool');
 
     toolRecords.forEach((tool) => {
@@ -1672,7 +1672,7 @@ try {
       .filter(p => p && p.published !== false)
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
-    const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
+    const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/transcribe.html','pages/ga4-utm-performance.html'];
     ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
@@ -1726,7 +1726,7 @@ try {
       'pages/qr-code-generator.html': ['js/tools/qr-code-generator-utils.js', 'js/tools/qr-code-generator.js'],
       'pages/screen-recorder.html': ['js/tools/screen-recorder.js'],
       'pages/text-compare.html': ['js/tools/text-compare-core.js', 'js/tools/text-compare.js'],
-      'pages/whisper-transcribe-monitor.html': ['js/tools/whisper-transcribe-monitor.js'],
+      'pages/transcribe.html': ['js/tools/whisper-transcribe-monitor.js'],
       'pages/word-frequency.html': ['js/tools/word-frequency.js']
     };
     Object.entries(toolPageEntryScripts).forEach(([file, scripts]) => {
@@ -2224,7 +2224,7 @@ try {
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
     const hasNoindexTranscribeTool = headers.some(h =>
-      h && h.source === '/tools/whisper-transcribe-monitor' &&
+      h && h.source === '/tools/transcribe' &&
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
@@ -2274,27 +2274,36 @@ try {
     assert(!urls.has('/resume-data-science-pdf'), 'search index should exclude data science PDF preview');
     assert(!urls.has('/resume-tourism-pdf'), 'search index should exclude tourism PDF preview');
     assert(!urls.has('/tools/ga4-utm-performance'), 'search index should exclude noindex GA4 tool');
-    assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude noindex Transcribe tool');
+    assert(!urls.has('/tools/transcribe'), 'search index should exclude noindex Transcribe tool');
+    assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude legacy Transcribe route');
   });
 
   section('Amazon Transcribe tool contracts', () => {
-    const page = fs.readFileSync('pages/whisper-transcribe-monitor.html', 'utf8');
+    const page = fs.readFileSync('pages/transcribe.html', 'utf8');
     const toolScript = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
+    const devServer = fs.readFileSync('build/dev.js', 'utf8');
     const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
     const rewrites = Array.isArray(vercel.rewrites) ? vercel.rewrites : [];
 
     assert(page.includes('id="transcribe-files"') &&
            page.includes('multiple') &&
+           page.includes('id="transcribe-dropzone"') &&
+           page.includes('id="transcribe-processing-view"') &&
+           page.includes('id="transcribe-results-view"') &&
            page.includes('id="transcribe-file-rows"') &&
            page.includes('id="transcribe-approve"') &&
            page.includes('Amazon Transcribe'),
-      'Transcribe page should expose bulk upload, cost review, and approval UI');
+      'Transcribe page should expose staged bulk upload, cost review, processing, and results UI');
     assert(!page.includes('AWS Lambda') && !page.includes('Warming up'),
       'Transcribe page should not mention the old Whisper Lambda warmup flow');
 
-    assert(toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
+    assert(toolScript.includes("const TOOL_ID = 'transcribe'") &&
+           toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
+           toolScript.includes('dropzoneEl') &&
+           toolScript.includes("setView('processing')") &&
+           toolScript.includes("setView('results')") &&
            toolScript.includes('probeDuration') &&
            toolScript.includes('state.config.minDurationSeconds') &&
            toolScript.includes('estimatedCost') &&
@@ -2322,6 +2331,10 @@ try {
     assert(router.includes("if (endpoint === 'transcribe')") &&
            router.includes('getEndpointSegmentsFromRequest'),
       'tools router should route nested /api/tools/transcribe actions');
+    assert(devServer.includes("pathname === '/api/tools'") &&
+           devServer.includes('loadToolsApi') &&
+           devServer.includes("pathname.slice('/api/tools/'.length)"),
+      'local dev server should route nested /api/tools actions through the shared tools router');
     assert(rewrites.some((rule) =>
       rule.source === '/api/tools/transcribe/:action' &&
       rule.destination === '/api/tools/transcribe%2F:action'),

@@ -8,19 +8,16 @@
 
   .whispermon-card{
     border-radius:8px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    background:linear-gradient(150deg,
-      color-mix(in srgb,var(--surface) 94%, #040910 6%) 0%,
-      color-mix(in srgb,var(--surface) 82%, #040910 18%) 100%);
-    box-shadow:0 16px 32px rgba(0,0,0,.28);
-    padding:clamp(1.1rem,2vw,1.4rem);
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #060b12 4%);
+    box-shadow:0 16px 34px rgba(0,0,0,.22);
+    padding:clamp(1rem,2.3vw,1.45rem);
     min-width:0;
   }
 
-  .whispermon-card h2{
-    margin:0 0 12px;
-    font-size:1.2rem;
-    letter-spacing:0;
+  .transcribe-shell{
+    max-width:980px;
+    margin-inline:auto;
   }
 
   .transcribe-status-bar{
@@ -32,7 +29,7 @@
     margin:0 0 16px;
   }
 
-  body[data-page="whisper-transcribe-monitor"] .transcribe-health-row{
+  body[data-page="transcribe"] .transcribe-health-row{
     display:flex;
     align-items:center;
     justify-content:flex-start;
@@ -43,16 +40,16 @@
 
   .transcribe-status-actions{
     display:flex;
-    gap:12px;
+    gap:10px;
     align-items:center;
     flex-wrap:wrap;
   }
 
-  body[data-page="whisper-transcribe-monitor"] .health-pill{
+  body[data-page="transcribe"] .health-pill{
     display:inline-flex;
     align-items:center;
-    gap:6px;
-    padding:6px 12px;
+    gap:7px;
+    padding:6px 11px;
     border-radius:999px;
     border:1px solid var(--surface-accent);
     background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
@@ -60,9 +57,10 @@
     letter-spacing:.08em;
     text-transform:uppercase;
     color:var(--text-muted);
+    white-space:nowrap;
   }
 
-  body[data-page="whisper-transcribe-monitor"] .health-pill::before{
+  body[data-page="transcribe"] .health-pill::before{
     content:"";
     width:8px;
     height:8px;
@@ -70,156 +68,273 @@
     background:currentColor;
   }
 
-  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="ok"]{
+  body[data-page="transcribe"] .health-pill[data-state="ok"]{
     color:var(--success);
-    border-color:color-mix(in srgb,var(--success) 55%, var(--surface-accent) 45%);
+    border-color:color-mix(in srgb,var(--success) 52%, var(--surface-accent) 48%);
   }
 
-  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="err"]{
+  body[data-page="transcribe"] .health-pill[data-state="err"]{
     color:var(--danger);
-    border-color:color-mix(in srgb,var(--danger) 55%, var(--surface-accent) 45%);
+    border-color:color-mix(in srgb,var(--danger) 52%, var(--surface-accent) 48%);
   }
 
-  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="warning"]{
+  body[data-page="transcribe"] .health-pill[data-state="warning"]{
     color:var(--warning);
-    border-color:color-mix(in srgb,var(--warning) 55%, var(--surface-accent) 45%);
+    border-color:color-mix(in srgb,var(--warning) 52%, var(--surface-accent) 48%);
   }
 
-  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta,
-  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta[data-tone="success"],
-  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta[data-tone="warning"],
-  body[data-page="whisper-transcribe-monitor"] .transcribe-status-meta[data-tone="error"]{
+  body[data-page="transcribe"] .transcribe-status-meta,
+  body[data-page="transcribe"] .transcribe-status-meta[data-tone="success"],
+  body[data-page="transcribe"] .transcribe-status-meta[data-tone="warning"],
+  body[data-page="transcribe"] .transcribe-status-meta[data-tone="error"]{
     color:var(--text-muted);
-    font-size:.85rem;
+    font-size:.86rem;
     line-height:1.5;
+  }
+
+  .transcribe-view{
+    display:grid;
+    gap:clamp(14px,2vw,18px);
+  }
+
+  .transcribe-view[hidden]{
+    display:none;
+  }
+
+  .transcribe-view-heading{
+    display:grid;
+    gap:6px;
+    max-width:680px;
+  }
+
+  .transcribe-kicker{
+    margin:0;
+    color:var(--primary);
+    font-size:.74rem;
+    font-weight:800;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+  }
+
+  .transcribe-view-heading h2,
+  .transcribe-processing-panel h2{
+    margin:0;
+    color:var(--text-light);
+    font-size:clamp(1.35rem,2.6vw,2rem);
+    line-height:1.1;
+  }
+
+  .transcribe-view-heading p,
+  .transcribe-processing-panel p{
+    margin:0;
+    color:var(--text-muted);
+    line-height:1.55;
+  }
+
+  .transcribe-dropzone{
+    display:grid;
+    place-items:center;
+    gap:9px;
+    min-height:230px;
+    padding:clamp(1.2rem,4vw,2rem);
+    border:2px dashed color-mix(in srgb,var(--primary) 42%, var(--surface-accent) 58%);
+    border-radius:8px;
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb,var(--primary) 9%, transparent),
+        color-mix(in srgb,var(--surface) 94%, #02060c 6%));
+    color:var(--text-light);
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .16s ease, background .16s ease, transform .16s ease;
+  }
+
+  .transcribe-dropzone[data-dragging="true"]{
+    border-color:var(--primary);
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb,var(--primary) 18%, transparent),
+        color-mix(in srgb,var(--surface) 92%, #02060c 8%));
+    transform:translateY(-1px);
+  }
+
+  .transcribe-dropzone[data-disabled="true"]{
+    cursor:not-allowed;
+    opacity:.72;
+  }
+
+  .transcribe-dropzone-icon{
+    display:grid;
+    place-items:center;
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    background:var(--primary);
+    color:#071018;
+    font-size:2rem;
+    line-height:1;
+    font-weight:700;
+  }
+
+  .transcribe-dropzone-title{
+    font-size:1.25rem;
+    font-weight:800;
+  }
+
+  .transcribe-dropzone-copy{
+    color:var(--text-muted);
+    font-size:.94rem;
+  }
+
+  .transcribe-dropzone-button{
+    margin-top:4px;
   }
 
   .transcribe-stats{
     display:grid;
-    gap:12px;
-    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    margin-bottom:16px;
+    gap:10px;
+    grid-template-columns:repeat(4,minmax(0,1fr));
   }
 
   .transcribe-stat{
     border-radius:8px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
-    padding:12px 12px 10px;
-    box-shadow:0 12px 24px rgba(0,0,0,.22);
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 93%, #02060c 7%);
+    padding:12px;
     min-width:0;
   }
 
   .transcribe-stat-label{
-    font-size:.78rem;
-    text-transform:uppercase;
-    letter-spacing:.08em;
+    margin:0 0 5px;
     color:var(--text-muted);
-    margin-bottom:6px;
+    font-size:.72rem;
+    letter-spacing:.08em;
     line-height:1.2;
+    text-transform:uppercase;
   }
 
   .transcribe-stat-value{
+    color:var(--text-light);
+    font-size:1.03rem;
     font-weight:800;
-    font-size:1.18rem;
-    color:color-mix(in srgb,var(--text-light) 92%, #000 8%);
-    line-height:1.1;
+    line-height:1.2;
     overflow-wrap:anywhere;
-    word-break:break-word;
   }
 
   .transcribe-summary,
   .transcribe-cost-review{
-    margin:0;
-    padding:12px 14px;
     border-radius:8px;
     border:1px solid color-mix(in srgb,var(--text-light) 12%, transparent);
-    background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
     color:var(--text-muted);
-    font-size:.95rem;
-    min-width:0;
+    padding:12px 14px;
     overflow-wrap:anywhere;
   }
 
   .transcribe-summary[data-tone="success"]{
-    border-color:color-mix(in srgb,var(--success) 40%, transparent);
-    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
-    color:color-mix(in srgb,var(--text-light) 86%, var(--success) 14%);
+    border-color:color-mix(in srgb,var(--success) 38%, transparent);
+    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 94%, #02060c 6%));
+    color:color-mix(in srgb,var(--text-light) 88%, var(--success) 12%);
   }
 
   .transcribe-summary[data-tone="warning"]{
-    border-color:color-mix(in srgb,var(--warning) 42%, transparent);
-    background:color-mix(in srgb,var(--warning) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
-    color:color-mix(in srgb,var(--text-light) 86%, var(--warning) 14%);
+    border-color:color-mix(in srgb,var(--warning) 40%, transparent);
+    background:color-mix(in srgb,var(--warning) 9%, color-mix(in srgb,var(--surface) 94%, #02060c 6%));
+    color:color-mix(in srgb,var(--text-light) 88%, var(--warning) 12%);
   }
 
-  .transcribe-table-wrap{
-    width:100%;
-    overflow:auto;
+  .transcribe-file-list,
+  .transcribe-processing-list,
+  .transcribe-results{
+    display:grid;
+    gap:10px;
+  }
+
+  .transcribe-file-card,
+  .transcribe-process-card,
+  .transcribe-result{
+    display:grid;
+    gap:10px;
     border-radius:8px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
-    scrollbar-gutter:stable;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 93%, #02060c 7%);
+    padding:13px;
+    min-width:0;
   }
 
-  .transcribe-table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:760px;
-    font-size:.9rem;
+  .transcribe-file-card{
+    grid-template-columns:minmax(0,1.45fr) minmax(210px,.9fr) minmax(160px,.75fr);
+    align-items:center;
   }
 
-  .transcribe-table th,
-  .transcribe-table td{
-    padding:12px 14px;
-    border-bottom:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
-    text-align:left;
-    vertical-align:top;
+  .transcribe-process-card{
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
   }
 
-  .transcribe-table th{
-    color:var(--text-muted);
-    font-size:.76rem;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+  .transcribe-file-card[data-tone="success"],
+  .transcribe-process-card[data-tone="success"],
+  .transcribe-result[data-status="complete"]{
+    border-color:color-mix(in srgb,var(--success) 32%, transparent);
   }
 
-  .transcribe-table tr:last-child td{
-    border-bottom:none;
+  .transcribe-file-card[data-tone="warning"]{
+    border-color:color-mix(in srgb,var(--warning) 38%, transparent);
+    background:color-mix(in srgb,var(--warning) 8%, color-mix(in srgb,var(--surface) 94%, #02060c 6%));
   }
 
-  .transcribe-table tr[data-tone="success"] td{
-    background:color-mix(in srgb,var(--success) 8%, transparent);
+  .transcribe-file-card[data-tone="error"],
+  .transcribe-process-card[data-tone="error"],
+  .transcribe-result[data-status="failed"]{
+    border-color:color-mix(in srgb,var(--danger) 38%, transparent);
   }
 
-  .transcribe-table tr[data-tone="warning"] td{
-    background:color-mix(in srgb,var(--warning) 8%, transparent);
-  }
-
-  .transcribe-table tr[data-tone="error"] td{
-    background:color-mix(in srgb,var(--danger) 8%, transparent);
-  }
-
-  .transcribe-table tr[data-tone="active"] td{
-    background:color-mix(in srgb,var(--primary) 8%, transparent);
+  .transcribe-file-card[data-tone="active"],
+  .transcribe-process-card[data-tone="active"]{
+    border-color:color-mix(in srgb,var(--primary) 48%, transparent);
+    background:color-mix(in srgb,var(--primary) 9%, color-mix(in srgb,var(--surface) 94%, #02060c 6%));
   }
 
   .transcribe-file-name,
-  .transcribe-file-meta{
+  .transcribe-file-meta,
+  .transcribe-file-status{
     display:block;
   }
 
   .transcribe-file-name{
     color:var(--text-light);
-    font-weight:700;
+    font-weight:800;
     overflow-wrap:anywhere;
   }
 
   .transcribe-file-meta{
     color:var(--text-muted);
-    font-size:.82rem;
+    font-size:.84rem;
     margin-top:3px;
+  }
+
+  .transcribe-file-facts{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+  }
+
+  .transcribe-file-facts span,
+  .transcribe-file-status{
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--text-light) 12%, transparent);
+    color:var(--text-muted);
+    font-size:.78rem;
+    line-height:1.2;
+    padding:6px 9px;
+  }
+
+  .transcribe-file-status{
+    justify-self:end;
+    max-width:100%;
+    overflow-wrap:anywhere;
+    text-align:right;
   }
 
   .transcribe-cost-review{
@@ -245,6 +360,24 @@
     margin-top:.2em;
   }
 
+  .transcribe-actions .btn-primary,
+  .transcribe-actions .btn-secondary,
+  .transcribe-actions .btn-ghost{
+    flex:0 0 auto;
+  }
+
+  .transcribe-processing-panel{
+    display:grid;
+    gap:8px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb,var(--primary) 10%, transparent),
+        color-mix(in srgb,var(--surface) 93%, #02060c 7%));
+    padding:clamp(1rem,2.5vw,1.4rem);
+  }
+
   .transcribe-progress{
     display:grid;
     gap:6px;
@@ -256,8 +389,8 @@
   }
 
   .transcribe-progress-label{
-    font-size:.82rem;
     color:var(--text-muted);
+    font-size:.84rem;
   }
 
   .transcribe-progress-bar{
@@ -266,35 +399,14 @@
     accent-color:var(--primary);
   }
 
-  .transcribe-actions .btn-primary,
-  .transcribe-actions .btn-secondary,
-  .transcribe-actions .btn-ghost{
-    flex:0 0 auto;
-  }
-
-  .transcribe-results{
-    display:grid;
-    gap:14px;
-    margin-top:8px;
-  }
-
-  .transcribe-empty{
+  .transcribe-empty,
+  .transcribe-result-error{
     margin:0;
     color:var(--text-muted);
   }
 
   .transcribe-result{
-    display:grid;
     gap:12px;
-    border-radius:8px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
-    padding:14px;
-    min-width:0;
-  }
-
-  .transcribe-result[data-status="failed"]{
-    border-color:color-mix(in srgb,var(--danger) 34%, transparent);
   }
 
   .transcribe-result-header{
@@ -307,8 +419,9 @@
 
   .transcribe-result h3{
     margin:0 0 4px;
-    font-size:1rem;
     color:var(--text-light);
+    font-size:1rem;
+    line-height:1.25;
     overflow-wrap:anywhere;
   }
 
@@ -326,11 +439,27 @@
 
   .transcribe-result textarea{
     width:100%;
-    min-height:180px;
+    min-height:220px;
     resize:vertical;
   }
 
-  @media (max-width: 700px){
+  @media (max-width: 860px){
+    .transcribe-stats{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .transcribe-file-card{
+      grid-template-columns:1fr;
+      align-items:start;
+    }
+
+    .transcribe-file-status{
+      justify-self:start;
+      text-align:left;
+    }
+  }
+
+  @media (max-width: 620px){
     .transcribe-status-bar,
     .transcribe-result-header{
       align-items:stretch;
@@ -342,8 +471,21 @@
     }
 
     .transcribe-status-actions > *,
-    .transcribe-result-actions > *{
+    .transcribe-result-actions > *,
+    .transcribe-actions > *{
       flex:1 1 auto;
+    }
+
+    .transcribe-stats{
+      grid-template-columns:1fr;
+    }
+
+    .transcribe-dropzone{
+      min-height:200px;
+    }
+
+    .transcribe-process-card{
+      grid-template-columns:1fr;
     }
   }
 }
