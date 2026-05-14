@@ -263,7 +263,7 @@
   }
 
   .transcribe-file-card{
-    grid-template-columns:minmax(0,1.45fr) minmax(210px,.9fr) minmax(160px,.75fr);
+    grid-template-columns:minmax(0,1.45fr) minmax(210px,.9fr) minmax(160px,.75fr) auto;
     align-items:center;
   }
 
@@ -335,6 +335,31 @@
     max-width:100%;
     overflow-wrap:anywhere;
     text-align:right;
+  }
+
+  .transcribe-file-remove{
+    display:inline-grid;
+    place-items:center;
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:1px solid color-mix(in srgb,var(--danger) 35%, var(--surface-accent) 65%);
+    background:color-mix(in srgb,var(--danger) 9%, transparent);
+    color:color-mix(in srgb,var(--danger) 82%, var(--text-light) 18%);
+    font-weight:900;
+    line-height:1;
+    cursor:pointer;
+  }
+
+  .transcribe-file-remove:hover,
+  .transcribe-file-remove:focus-visible{
+    border-color:var(--danger);
+    background:color-mix(in srgb,var(--danger) 16%, transparent);
+  }
+
+  .transcribe-file-remove:disabled{
+    cursor:not-allowed;
+    opacity:.45;
   }
 
   .transcribe-cost-review{
@@ -456,6 +481,10 @@
     .transcribe-file-status{
       justify-self:start;
       text-align:left;
+    }
+
+    .transcribe-file-remove{
+      justify-self:start;
     }
   }
 

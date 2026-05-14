@@ -2294,6 +2294,7 @@ try {
            page.includes('id="transcribe-results-view"') &&
            page.includes('id="transcribe-file-rows"') &&
            page.includes('id="transcribe-approve"') &&
+           page.includes('id="transcribe-start">') &&
            page.includes('Amazon Transcribe'),
       'Transcribe page should expose staged bulk upload, cost review, processing, and results UI');
     assert(!page.includes('AWS Lambda') && !page.includes('Warming up'),
@@ -2305,6 +2306,9 @@ try {
            toolScript.includes('createFileItem') &&
            toolScript.includes('state.files = [...state.files, ...newItems]') &&
            toolScript.includes('Already added.') &&
+           toolScript.includes('data-transcribe-file-remove') &&
+           toolScript.includes('canRemoveItem') &&
+           toolScript.includes('startBtn.disabled = state.busy || state.analyzing') &&
            toolScript.includes("setView('processing')") &&
            toolScript.includes("setView('results')") &&
            toolScript.includes('probeDuration') &&
