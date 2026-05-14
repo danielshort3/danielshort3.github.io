@@ -148,6 +148,30 @@
     return `${base.replace(/[^a-zA-Z0-9._-]+/g, '_') || 'transcript'}-transcript.txt`;
   };
 
+  const fileFingerprint = (file) => [
+    String(file?.name || ''),
+    String(Number(file?.size) || 0),
+    String(Number(file?.lastModified) || 0)
+  ].join('\u0001');
+
+  const createFileItem = (file, index) => ({
+    id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
+    fingerprint: fileFingerprint(file),
+    file,
+    name: file.name || `file-${index + 1}`,
+    extension: getExtension(file.name || ''),
+    contentType: file.type || 'application/octet-stream',
+    bytes: Number(file.size) || 0,
+    durationSeconds: null,
+    billableSeconds: 0,
+    estimatedCostUsd: 0,
+    costUsd: 0,
+    progress: 0,
+    status: 'checking',
+    skipReason: '',
+    transcript: ''
+  });
+
   const supportedFormats = () => new Set(
     Array.isArray(state.config.supportedFormats)
       ? state.config.supportedFormats.map((item) => String(item).toLowerCase())
@@ -311,6 +335,8 @@
   const estimatedTotal = () => acceptedFiles().reduce((sum, item) => sum + Number(item.estimatedCostUsd || 0), 0);
 
   const finalTotal = () => completedFiles().reduce((sum, item) => sum + Number(item.costUsd || item.estimatedCostUsd || 0), 0);
+
+  const countedForRunLimit = () => state.files.filter((item) => !['checking', 'skipped'].includes(item.status)).length;
 
   const authIsReady = () => {
     const authApi = window.ToolsAuth;
@@ -614,39 +640,48 @@
 
   const analyzeSelectedFiles = async (selectedFiles) => {
     const files = Array.from(selectedFiles || fileEl.files || []);
+    if (fileEl) fileEl.value = '';
+    if (!files.length) {
+      setStatus(runStatusEl, state.files.length ? 'No new files selected.' : '', '');
+      updateControls();
+      return;
+    }
+
+    const existingFingerprints = new Set(state.files.map((item) => item.fingerprint).filter(Boolean));
+    const newItems = files.map((file, index) => {
+      const item = createFileItem(file, state.files.length + index);
+      if (existingFingerprints.has(item.fingerprint)) {
+        item.status = 'skipped';
+        item.skipReason = 'Already added.';
+      } else {
+        existingFingerprints.add(item.fingerprint);
+      }
+      return item;
+    });
+
     setView('upload');
     state.analyzing = true;
     setBusy(false);
     updateControls();
     updateLayoutState();
-    state.files = files.map((file, index) => ({
-      id: `${Date.now()}-${index}-${Math.random().toString(36).slice(2)}`,
-      file,
-      name: file.name || `file-${index + 1}`,
-      extension: getExtension(file.name || ''),
-      contentType: file.type || 'application/octet-stream',
-      bytes: Number(file.size) || 0,
-      durationSeconds: null,
-      billableSeconds: 0,
-      estimatedCostUsd: 0,
-      costUsd: 0,
-      progress: 0,
-      status: 'checking',
-      skipReason: '',
-      transcript: ''
-    }));
+    state.files = [...state.files, ...newItems];
     if (approveEl) approveEl.checked = false;
     renderTable();
     renderResults();
-    setStatus(runStatusEl, files.length ? 'Checking file durations and audio tracks...' : '', '');
+    setStatus(runStatusEl, `Checking ${newItems.length} added file${newItems.length === 1 ? '' : 's'}...`, '');
 
     const formats = supportedFormats();
-    let acceptedCost = 0;
-    let acceptedCount = 0;
+    let acceptedCost = estimatedTotal();
+    let acceptedCount = state.files.filter((item) => item.status === 'ready').length;
+    let addedAcceptedCount = 0;
 
-    for (let i = 0; i < state.files.length; i += 1) {
-      const item = state.files[i];
-      if (i >= Number(state.config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
+    for (let i = 0; i < newItems.length; i += 1) {
+      const item = newItems[i];
+      if (item.status === 'skipped') {
+        renderTable();
+        continue;
+      }
+      if (countedForRunLimit() >= Number(state.config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
         item.status = 'skipped';
         item.skipReason = `Run limit is ${state.config.maxFilesPerRun} files.`;
         renderTable();
@@ -706,6 +741,7 @@
       item.status = 'ready';
       acceptedCost += item.estimatedCostUsd;
       acceptedCount += 1;
+      addedAcceptedCount += 1;
       renderTable();
     }
 
@@ -713,8 +749,10 @@
     setBusy(false);
     setStatus(
       runStatusEl,
-      acceptedCount ? `Ready to transcribe ${acceptedCount} file${acceptedCount === 1 ? '' : 's'}.` : 'No selected files are eligible for transcription.',
-      acceptedCount ? 'success' : 'warning'
+      addedAcceptedCount
+        ? `Added ${addedAcceptedCount} file${addedAcceptedCount === 1 ? '' : 's'}. ${acceptedCount} ready total.`
+        : 'No newly selected files are eligible for transcription.',
+      addedAcceptedCount ? 'success' : 'warning'
     );
     renderTable();
     markSessionDirty();
