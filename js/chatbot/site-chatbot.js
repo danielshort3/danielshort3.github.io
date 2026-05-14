@@ -8,6 +8,7 @@
     'contact',
     'portfolio',
     'project',
+    'tools',
     'resume-analytics',
     'resume-data-science',
     'resume-tourism'

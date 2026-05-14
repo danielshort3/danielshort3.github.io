@@ -647,8 +647,8 @@ try {
       widget.includes('function requestCollapsed') &&
       widget.includes('if (!state.expanded) return;'),
       'chatbot header should expand only while the chevron explicitly toggles expansion');
-    assert(widget.includes("'project'") && widget.includes("'resume-tourism'") && !widget.includes("'tools'") && !widget.includes("'games'"),
-      'chatbot widget should be scoped to public content pages');
+    assert(widget.includes("'project'") && widget.includes("'resume-tourism'") && widget.includes("'tools'") && !widget.includes("'games'"),
+      'chatbot widget should be scoped to public content pages and the tools directory');
     assert(widget.includes('window.visualViewport') && widget.includes("root.dataset.keyboard") && widget.includes('--site-chatbot-keyboard-offset'),
       'chatbot widget should track mobile keyboard viewport changes');
     assert(widget.includes('NUDGE_STORAGE_KEY') &&
@@ -2302,6 +2302,9 @@ try {
     assert(toolScript.includes("const TOOL_ID = 'transcribe'") &&
            toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
            toolScript.includes('dropzoneEl') &&
+           toolScript.includes('createFileItem') &&
+           toolScript.includes('state.files = [...state.files, ...newItems]') &&
+           toolScript.includes('Already added.') &&
            toolScript.includes("setView('processing')") &&
            toolScript.includes("setView('results')") &&
            toolScript.includes('probeDuration') &&
