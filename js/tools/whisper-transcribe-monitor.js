@@ -19,6 +19,9 @@
   const VIDEO_FORMATS = new Set(['mp4', 'webm']);
   const POLL_INTERVAL_MS = 5000;
   const DURATION_TIMEOUT_MS = 10000;
+  const MAX_CONTAINER_SCAN_BYTES = 8 * 1024 * 1024;
+  const MP4_CONTAINER_BOXES = new Set(['moov', 'trak', 'mdia', 'minf', 'dinf', 'stbl', 'edts', 'udta', 'meta']);
+  const WEBM_CONTAINER_IDS = new Set([0x18538067, 0x1654AE6B, 0xAE]);
 
   const $id = (id) => document.getElementById(id);
 
@@ -140,6 +143,145 @@
       ? state.config.supportedFormats.map((item) => String(item).toLowerCase())
       : DEFAULT_CONFIG.supportedFormats
   );
+
+  const readAscii = (view, offset, length) => {
+    if (!view || offset < 0 || offset + length > view.byteLength) return '';
+    let value = '';
+    for (let i = 0; i < length; i += 1) {
+      value += String.fromCharCode(view.getUint8(offset + i));
+    }
+    return value;
+  };
+
+  const readSlice = async (file, start, length) => {
+    const safeStart = Math.max(0, Number(start) || 0);
+    const safeLength = Math.max(0, Math.min(Number(length) || 0, file.size - safeStart));
+    if (!safeLength || typeof file.slice !== 'function' || typeof file.slice(safeStart, safeStart + safeLength).arrayBuffer !== 'function') {
+      return null;
+    }
+    return file.slice(safeStart, safeStart + safeLength).arrayBuffer();
+  };
+
+  const readMp4BoxHeader = (view, offset) => {
+    if (!view || offset + 8 > view.byteLength) return null;
+    let size = view.getUint32(offset);
+    const type = readAscii(view, offset + 4, 4);
+    let headerSize = 8;
+    if (size === 1) {
+      if (offset + 16 > view.byteLength) return null;
+      const high = view.getUint32(offset + 8);
+      const low = view.getUint32(offset + 12);
+      size = high * 4294967296 + low;
+      headerSize = 16;
+    } else if (size === 0) {
+      size = view.byteLength - offset;
+    }
+    if (!type || !Number.isFinite(size) || size < headerSize) return null;
+    return { type, size, headerSize };
+  };
+
+  const mp4BoxesContainAudio = (view, start, end, depth = 0) => {
+    if (!view || depth > 8) return false;
+    let offset = start;
+    while (offset + 8 <= end && offset + 8 <= view.byteLength) {
+      const box = readMp4BoxHeader(view, offset);
+      if (!box || offset + box.size > end || offset + box.size > view.byteLength) return false;
+      const payloadStart = offset + box.headerSize;
+      const payloadEnd = offset + box.size;
+      if (box.type === 'hdlr') {
+        const handlerType = readAscii(view, payloadStart + 8, 4);
+        if (handlerType === 'soun') return true;
+      }
+      if (MP4_CONTAINER_BOXES.has(box.type)) {
+        const childStart = box.type === 'meta' ? payloadStart + 4 : payloadStart;
+        if (childStart < payloadEnd && mp4BoxesContainAudio(view, childStart, payloadEnd, depth + 1)) return true;
+      }
+      offset += box.size;
+    }
+    return false;
+  };
+
+  const inspectMp4AudioTrack = async (file) => {
+    let offset = 0;
+    while (offset + 8 <= file.size) {
+      const headerBuffer = await readSlice(file, offset, 16);
+      if (!headerBuffer) return { checked: false, hasAudio: true };
+      const headerView = new DataView(headerBuffer);
+      const box = readMp4BoxHeader(headerView, 0);
+      if (!box) return { checked: false, hasAudio: true };
+      if (box.type === 'moov') {
+        if (box.size > MAX_CONTAINER_SCAN_BYTES) return { checked: false, hasAudio: true };
+        const moovBuffer = await readSlice(file, offset, box.size);
+        if (!moovBuffer) return { checked: false, hasAudio: true };
+        const moovView = new DataView(moovBuffer);
+        return { checked: true, hasAudio: mp4BoxesContainAudio(moovView, 0, moovView.byteLength) };
+      }
+      if (!Number.isFinite(box.size) || box.size <= 0) break;
+      offset += box.size;
+    }
+    return { checked: false, hasAudio: true };
+  };
+
+  const readEbmlVint = (view, offset, stripMarker) => {
+    if (!view || offset >= view.byteLength) return null;
+    const first = view.getUint8(offset);
+    let mask = 0x80;
+    let length = 1;
+    while (length <= 8 && !(first & mask)) {
+      mask >>= 1;
+      length += 1;
+    }
+    if (length > 8 || offset + length > view.byteLength) return null;
+    let value = stripMarker ? first & (mask - 1) : first;
+    for (let i = 1; i < length; i += 1) {
+      value = value * 256 + view.getUint8(offset + i);
+    }
+    return { value, length };
+  };
+
+  const webmElementsContainAudio = (view, start, end, depth = 0) => {
+    if (!view || depth > 6) return false;
+    let offset = start;
+    while (offset + 2 <= end && offset + 2 <= view.byteLength) {
+      const id = readEbmlVint(view, offset, false);
+      if (!id) return false;
+      const size = readEbmlVint(view, offset + id.length, true);
+      if (!size) return false;
+      const payloadStart = offset + id.length + size.length;
+      let payloadEnd = payloadStart + size.value;
+      if (payloadEnd > end || payloadEnd > view.byteLength) {
+        if (!WEBM_CONTAINER_IDS.has(id.value)) return false;
+        payloadEnd = Math.min(end, view.byteLength);
+      }
+      if (id.value === 0x83 && size.value >= 1 && view.getUint8(payloadStart) === 2) return true;
+      if (WEBM_CONTAINER_IDS.has(id.value) && webmElementsContainAudio(view, payloadStart, payloadEnd, depth + 1)) return true;
+      offset = payloadEnd;
+    }
+    return false;
+  };
+
+  const inspectWebmAudioTrack = async (file) => {
+    const buffer = await readSlice(file, 0, Math.min(file.size, MAX_CONTAINER_SCAN_BYTES));
+    if (!buffer) return { checked: false, hasAudio: true };
+    const view = new DataView(buffer);
+    return { checked: true, hasAudio: webmElementsContainAudio(view, 0, view.byteLength) };
+  };
+
+  const inspectAudioTrack = async (file, extension) => {
+    try {
+      if (extension === 'mp4') return inspectMp4AudioTrack(file);
+      if (extension === 'webm') return inspectWebmAudioTrack(file);
+    } catch {}
+    return { checked: false, hasAudio: true };
+  };
+
+  const friendlyTranscribeError = (message) => {
+    const text = cleanText(message);
+    if (/failed to parse audio file/i.test(text)) {
+      return 'No readable audio track found. Upload a file that includes audio or export an audio-only file.';
+    }
+    return text || 'Transcription failed.';
+  };
 
   const billableSeconds = (durationSeconds) => {
     const duration = Number(durationSeconds);
@@ -434,7 +576,7 @@
     if (approveEl) approveEl.checked = false;
     renderTable();
     renderResults();
-    setStatus(runStatusEl, files.length ? 'Checking file durations...' : '', '');
+    setStatus(runStatusEl, files.length ? 'Checking file durations and audio tracks...' : '', '');
 
     const formats = supportedFormats();
     let acceptedCost = 0;
@@ -479,6 +621,15 @@
         item.skipReason = `Under ${state.config.minDurationSeconds || 15} seconds.`;
         renderTable();
         continue;
+      }
+      if (VIDEO_FORMATS.has(item.extension) || String(item.contentType || '').toLowerCase().startsWith('video/')) {
+        const audioTrack = await inspectAudioTrack(item.file, item.extension);
+        if (audioTrack.checked && !audioTrack.hasAudio) {
+          item.status = 'skipped';
+          item.skipReason = 'No audio track found.';
+          renderTable();
+          continue;
+        }
       }
 
       item.billableSeconds = billableSeconds(item.durationSeconds);
@@ -585,8 +736,8 @@
       }
       if (status === 'FAILED') {
         item.status = 'failed';
-        item.error = data.error || 'Transcription failed.';
-        item.costUsd = Number(data.costUsd || item.estimatedCostUsd || 0);
+        item.error = friendlyTranscribeError(data.error || 'Transcription failed.');
+        item.costUsd = Number(data.costUsd ?? item.estimatedCostUsd ?? 0);
         renderTable();
         renderResults();
         markSessionDirty();
@@ -692,7 +843,7 @@
           item.error = 'Canceled.';
         } else {
           item.status = 'failed';
-          item.error = err?.message || 'Transcription failed.';
+          item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
         }
         renderTable();
         renderResults();

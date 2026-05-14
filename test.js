@@ -2301,6 +2301,11 @@ try {
            toolScript.includes('payload.outputSummary') &&
            !toolScript.includes('payload.output ='),
       'Transcribe tool should preflight duration/cost and avoid saving transcript bodies in session history');
+    assert(toolScript.includes('inspectMp4AudioTrack') &&
+           toolScript.includes('inspectWebmAudioTrack') &&
+           toolScript.includes('No audio track found.') &&
+           toolScript.includes('failed to parse audio file'),
+      'Transcribe tool should skip video files without audio and explain AWS parse failures');
 
     assert(endpoint.includes('StartTranscriptionJobCommand') &&
            endpoint.includes('GetTranscriptionJobCommand') &&
