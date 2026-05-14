@@ -2282,6 +2282,8 @@ try {
     const toolScript = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
+    const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+    const rewrites = Array.isArray(vercel.rewrites) ? vercel.rewrites : [];
 
     assert(page.includes('id="transcribe-files"') &&
            page.includes('multiple') &&
@@ -2315,6 +2317,10 @@ try {
     assert(router.includes("if (endpoint === 'transcribe')") &&
            router.includes('getEndpointSegmentsFromRequest'),
       'tools router should route nested /api/tools/transcribe actions');
+    assert(rewrites.some((rule) =>
+      rule.source === '/api/tools/transcribe/:action' &&
+      rule.destination === '/api/tools/transcribe%2F:action'),
+      'vercel should rewrite nested Transcribe API actions into the tools catch-all route');
   });
 
   section('GA4 report race guards', () => {
