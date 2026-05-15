@@ -1014,11 +1014,25 @@
     markSessionDirty();
   };
 
+  const signInReturnTo = () => `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  const signInWithPopup = () => {
+    if (!window.ToolsAuth || !window.ToolsAuth.signIn) return;
+    setStatus(runStatusEl, 'Opening sign-in in a new window. Your selected files will stay here.', '');
+    window.ToolsAuth.signIn({ mode: 'popup', returnTo: signInReturnTo() })
+      .then((result) => {
+        if (result?.mode === 'popup') {
+          setStatus(runStatusEl, 'Finish sign-in in the new window, then return here to start transcription.', '');
+        }
+      })
+      .catch((err) => {
+        setStatus(runStatusEl, err?.message || 'Unable to open sign-in.', 'warning');
+      });
+  };
+
   if (signInBtn) {
     signInBtn.addEventListener('click', () => {
-      if (window.ToolsAuth && window.ToolsAuth.signIn) {
-        window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` });
-      }
+      signInWithPopup();
     });
   }
 

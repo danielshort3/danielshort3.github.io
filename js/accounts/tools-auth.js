@@ -6,6 +6,9 @@
   const STATE_KEY = 'toolsAuthState';
   const VERIFIER_KEY = 'toolsAuthCodeVerifier';
   const RETURN_TO_KEY = 'toolsAuthReturnTo';
+  const POPUP_STATE_PREFIX = 'toolsAuthPopupState:';
+  const AUTH_BROADCAST_KEY = 'toolsAuthBroadcast';
+  const POPUP_STATE_TTL_MS = 10 * 60 * 1000;
 
   const getConfig = () => {
     const source = document.body || document.documentElement || {};
@@ -126,6 +129,11 @@
       } catch {}
     });
     try {
+      Object.keys(localStorage)
+        .filter((key) => String(key || '').startsWith(POPUP_STATE_PREFIX))
+        .forEach((key) => localStorage.removeItem(key));
+    } catch {}
+    try {
       sessionStorage.removeItem(STATE_KEY);
       sessionStorage.removeItem(VERIFIER_KEY);
       sessionStorage.removeItem(RETURN_TO_KEY);
@@ -146,7 +154,65 @@
     return new Uint8Array(digest);
   };
 
-  const buildAuthorizeUrl = async (config) => {
+  const savePopupState = ({ state, verifier, returnTo }) => {
+    if (!state || !verifier) return;
+    try {
+      localStorage.setItem(`${POPUP_STATE_PREFIX}${state}`, JSON.stringify({
+        verifier,
+        returnTo: normalizeReturnTo(returnTo || ''),
+        createdAt: Date.now()
+      }));
+    } catch {}
+  };
+
+  const loadPopupState = (state) => {
+    const key = `${POPUP_STATE_PREFIX}${String(state || '')}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      localStorage.removeItem(key);
+      const createdAt = Number(parsed?.createdAt) || 0;
+      if (!createdAt || Date.now() - createdAt > POPUP_STATE_TTL_MS) return null;
+      const verifier = String(parsed?.verifier || '').trim();
+      if (!verifier) return null;
+      return {
+        verifier,
+        returnTo: normalizeReturnTo(parsed?.returnTo || '')
+      };
+    } catch {
+      try {
+        localStorage.removeItem(key);
+      } catch {}
+      return null;
+    }
+  };
+
+  const dispatchAuthChanged = (source) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: source || 'tools-auth' } }));
+    } catch {}
+  };
+
+  const broadcastAuthChanged = (source) => {
+    try {
+      localStorage.setItem(AUTH_BROADCAST_KEY, JSON.stringify({
+        source: source || 'tools-auth',
+        at: Date.now()
+      }));
+    } catch {}
+    dispatchAuthChanged(source);
+  };
+
+  const notifyOpenerAuthComplete = () => {
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage({ type: 'tools-auth:complete', source: 'tools-auth-popup' }, window.location.origin);
+      }
+    } catch {}
+  };
+
+  const buildAuthorizeUrl = async (config, options = {}) => {
     const verifier = randomBase64Url(48);
     const challengeBytes = await sha256(verifier);
     const challenge = btoa(String.fromCharCode(...challengeBytes))
@@ -154,8 +220,12 @@
       .replace(/\//g, '_')
       .replace(/=+$/, '');
     const authState = randomBase64Url(16);
-    sessionStorage.setItem(STATE_KEY, authState);
-    sessionStorage.setItem(VERIFIER_KEY, verifier);
+    if (options.mode === 'popup') {
+      savePopupState({ state: authState, verifier, returnTo: options.returnTo || '' });
+    } else {
+      sessionStorage.setItem(STATE_KEY, authState);
+      sessionStorage.setItem(VERIFIER_KEY, verifier);
+    }
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -169,10 +239,12 @@
     return `https://${config.cognitoDomain}/oauth2/authorize?${params.toString()}`;
   };
 
-  const exchangeCodeForTokens = async (config, code) => {
-    const verifier = sessionStorage.getItem(VERIFIER_KEY) || '';
-    sessionStorage.removeItem(VERIFIER_KEY);
-    sessionStorage.removeItem(STATE_KEY);
+  const exchangeCodeForTokens = async (config, code, verifierOverride) => {
+    const verifier = String(verifierOverride || sessionStorage.getItem(VERIFIER_KEY) || '').trim();
+    if (!verifierOverride) {
+      sessionStorage.removeItem(VERIFIER_KEY);
+      sessionStorage.removeItem(STATE_KEY);
+    }
     if (!verifier) throw new Error('Missing PKCE verifier.');
 
     const params = new URLSearchParams({
@@ -262,14 +334,47 @@
     }
 
     const returnTo = normalizeReturnTo(options.returnTo || `${window.location.pathname}${window.location.search}${window.location.hash}`);
-    if (returnTo) {
+    const mode = options.mode === 'popup' ? 'popup' : 'redirect';
+    let popup = null;
+    if (mode === 'popup') {
+      popup = window.open('', 'tools-auth-sign-in', 'popup,width=520,height=720');
+      if (!popup) {
+        throw new Error('Sign-in popup was blocked. Allow popups for this site, then try again.');
+      }
+      try {
+        popup.document.title = 'Signing in...';
+        popup.document.body.innerHTML = '<p style="font:16px system-ui,sans-serif;padding:24px;">Opening sign-in...</p>';
+      } catch {}
+    }
+
+    if (mode !== 'popup' && returnTo) {
       try {
         sessionStorage.setItem(RETURN_TO_KEY, returnTo);
       } catch {}
     }
 
-    const url = await buildAuthorizeUrl(config);
+    let url;
+    try {
+      url = await buildAuthorizeUrl(config, { mode, returnTo });
+    } catch (err) {
+      if (mode === 'popup') {
+        try { popup.close(); } catch {}
+      }
+      throw err;
+    }
+    if (mode === 'popup') {
+      try {
+        popup.location.href = url;
+        popup.focus();
+      } catch (err) {
+        try { popup.close(); } catch {}
+        throw new Error(err?.message || 'Unable to open sign-in popup.');
+      }
+      return { mode: 'popup', popup };
+    }
+
     window.location.assign(url);
+    return { mode: 'redirect' };
   };
 
   const handleRedirect = async () => {
@@ -277,19 +382,29 @@
     const code = params.get('code');
     const returnedState = params.get('state') || '';
     const storedState = sessionStorage.getItem(STATE_KEY) || '';
+    const popupState = returnedState ? loadPopupState(returnedState) : null;
     if (!code) return { handled: false };
-    if (storedState && returnedState && storedState !== returnedState) {
+    if (!popupState && storedState && returnedState && storedState !== returnedState) {
       throw new Error('Auth state mismatch.');
     }
 
     const config = getConfig();
-    await exchangeCodeForTokens(config, code);
+    await exchangeCodeForTokens(config, code, popupState?.verifier);
 
     params.delete('code');
     params.delete('state');
     const nextQuery = params.toString();
     const nextUrl = nextQuery ? `${window.location.pathname}?${nextQuery}` : window.location.pathname;
     window.history.replaceState({}, document.title, nextUrl);
+
+    if (popupState) {
+      broadcastAuthChanged('tools-auth-popup');
+      notifyOpenerAuthComplete();
+      try {
+        window.close();
+      } catch {}
+      return { handled: true, redirected: false, popup: true };
+    }
 
     const returnTo = normalizeReturnTo(sessionStorage.getItem(RETURN_TO_KEY) || '');
     try {
@@ -303,6 +418,17 @@
 
     return { handled: true, redirected: false };
   };
+
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type !== 'tools-auth:complete') return;
+    dispatchAuthChanged('tools-auth-message');
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key !== AUTH_BROADCAST_KEY || !event.newValue) return;
+    dispatchAuthChanged('tools-auth-storage');
+  });
 
   const getUser = (auth) => {
     const claims = getAuthClaims(auth);

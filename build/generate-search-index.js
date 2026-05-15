@@ -16,6 +16,7 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 
 const root = path.resolve(__dirname, '..');
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
+const toolsContentDir = path.join(root, 'content', 'tools');
 const outPath = path.join(root, 'dist', 'search-index.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 
@@ -158,15 +159,34 @@ function extractProjectTags(html) {
 
 function loadToolKeywords() {
   const map = new Map();
-  if (!exists('pages/tools.html')) return map;
+  if (!fs.existsSync(toolsContentDir)) return map;
+
+  fs.readdirSync(toolsContentDir)
+    .filter((name) => name.endsWith('.json') && !name.startsWith('.'))
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((fileName) => {
+      let tool;
+      try {
+        tool = JSON.parse(fs.readFileSync(path.join(toolsContentDir, fileName), 'utf8'));
+      } catch {
+        return;
+      }
+      const slug = String(tool && tool.slug ? tool.slug : '').trim();
+      if (!slug) return;
+      const pills = (Array.isArray(tool.pills) ? tool.pills : [])
+        .map((pill) => String(pill && pill.label ? pill.label : '').trim())
+        .filter(Boolean);
+      map.set(slug, [...new Set(pills)]);
+    });
+
+  if (map.size || !exists('pages/tools.html')) return map;
+
   let html;
   try { html = read('pages/tools.html'); } catch { return map; }
-
   const cards = String(html).split(/<article\b[^>]*\bclass="[^"]*\btool-card\b[^"]*"[^>]*>/i).slice(1);
   cards.forEach((card) => {
     const hrefMatch = /href="tools\/([^"#?]+)"/i.exec(card);
-    if (!hrefMatch) return;
-    const slug = String(hrefMatch[1] || '').trim();
+    const slug = String(hrefMatch && hrefMatch[1] ? hrefMatch[1] : '').trim();
     if (!slug) return;
 
     const pills = [];

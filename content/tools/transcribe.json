@@ -2,6 +2,7 @@
   "slug": "transcribe",
   "title": "File Transcriber",
   "href": "tools/transcribe",
+  "iconImage": "img/tools/icons/transcribe.png",
   "categoryId": "tools-cloud",
   "summary": "Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"5\" width=\"16\" height=\"14\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"5\" width=\"16\" height=\"14\" rx=\"3\"></rect>\n                      <path d=\"M8 12h8\"></path>\n                      <path d=\"M10 9v6\"></path>\n                      <path d=\"M14 9v6\"></path>\n                      <path d=\"M7 19v1.5h10V19\"></path>\n                    </svg>",

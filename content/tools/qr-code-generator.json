@@ -2,6 +2,7 @@
   "slug": "qr-code-generator",
   "title": "QR Code Generator",
   "href": "tools/qr-code-generator",
+  "iconImage": "img/tools/icons/qr-code-generator.png",
   "categoryId": "tools-marketing",
   "summary": "Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n                      <path d=\"M8 8h3v3H8z\"></path>\n                      <path d=\"M13 8h3v3h-3z\"></path>\n                      <path d=\"M8 13h3v3H8z\"></path>\n                      <path d=\"M13 13h1.5M16 13v3M13 16h3\"></path>\n                    </svg>",

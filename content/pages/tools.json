@@ -2,10 +2,10 @@
   "id": "tools",
   "template": "tools-directory",
   "outputPath": "pages/tools.html",
-  "title": "Tools | Daniel Short",
+  "title": "Tool Directory | Daniel Short",
   "canonicalPath": "/tools",
   "description": "Local, privacy-first tools from Daniel Short.",
-  "ogTitle": "Tools | Daniel Short",
+  "ogTitle": "Tool Directory | Daniel Short",
   "ogDescription": "Local, privacy-first tools from Daniel Short.",
   "siteName": "Daniel Short – Data Science & Analytics",
   "ogType": "website",
@@ -45,20 +45,14 @@
     }
   ],
   "heroEyebrow": "Privacy-first utilities",
-  "heroTitle": "Tools",
-  "heroLead": "Quick browser tools for text cleanup, campaign links, QR codes, media work, and private account-backed workflows.",
-  "directoryKicker": "Tool directory",
-  "directoryTitle": "Find the right utility",
-  "directoryDescription": "Filter by task, category, or tag. Local tools run in your browser; account tools appear when you sign in.",
+  "heroTitle": "Tool Directory",
   "filter": {
     "placeholder": "Search tools, tags, or categories",
     "clearLabel": "Clear"
   },
   "resumePanel": {
     "kicker": "Resume work",
-    "title": "Continue where you left off",
-    "dashboardHref": "tools/dashboard",
-    "dashboardLabel": "Open dashboard"
+    "title": "Continue where you left off"
   },
   "categories": [
     {
