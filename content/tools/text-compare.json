@@ -2,6 +2,7 @@
   "slug": "text-compare",
   "title": "Text Compare",
   "href": "tools/text-compare",
+  "iconImage": "img/tools/icons/text-compare.png",
   "categoryId": "tools-writing",
   "summary": "Compare two drafts and see insertions, deletions, and replacements highlighted inline.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"13\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\"></rect>\n                      <rect x=\"13\" y=\"5\" width=\"7\" height=\"14\" rx=\"2\"></rect>\n                      <path d=\"M7 9h2M7 12h3M7 15h1.5\"></path>\n                      <path d=\"M16 10v4\"></path>\n                      <path d=\"M14 12h4\"></path>\n                    </svg>",

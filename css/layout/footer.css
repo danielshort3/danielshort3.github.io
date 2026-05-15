@@ -84,11 +84,15 @@
 
   @media (max-width: 640px){
     .footer.footer-classic{
-      text-align:center;
+      text-align:left;
+    }
+    .footer.footer-classic .footer-nav{
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:18px 20px;
     }
     .footer.footer-classic .footer-link{
-      justify-content:center;
-      text-align:center;
+      justify-content:flex-start;
+      text-align:left;
     }
   }
 }

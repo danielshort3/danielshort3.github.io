@@ -2,7 +2,7 @@
   .tools-account-dock{
     position:relative;
     z-index:2;
-    padding:clamp(14px,3vh,18px) 0 0;
+    padding:clamp(10px,2vh,14px) 0 0;
   }
 
   .tools-account-bar{
@@ -10,8 +10,8 @@
     flex-wrap:wrap;
     align-items:center;
     gap:10px;
-    padding:12px 14px;
-    border-radius:16px;
+    padding:10px 12px;
+    border-radius:10px;
     border:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 12%, transparent);
     background:#fff;
     color:var(--brand-midnight, var(--text-light));

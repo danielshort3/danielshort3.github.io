@@ -2,6 +2,7 @@
   "slug": "oxford-comma-checker",
   "title": "Oxford Comma Checker",
   "href": "tools/oxford-comma-checker",
+  "iconImage": "img/tools/icons/oxford-comma-checker.png",
   "categoryId": "tools-writing",
   "summary": "Scan drafts for possible missing Oxford commas in serial lists and review quick fixes.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n                      <path d=\"M8 8h7M8 12h5M8 16h4\"></path>\n                      <circle cx=\"16.5\" cy=\"15.5\" r=\"1.5\"></circle>\n                      <path d=\"M16 17l-1 2\"></path>\n                    </svg>",

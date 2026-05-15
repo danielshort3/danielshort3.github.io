@@ -177,6 +177,22 @@
     });
   };
 
+  const applyToolsAuthenticatedContentVisibility = () => {
+    const context = getToolsVisibilityContext();
+    const authedOnlyEls = [...document.querySelectorAll('[data-tools-auth-only]')];
+
+    authedOnlyEls.forEach((el) => {
+      const controlledByToolScript = el.hasAttribute('data-tools-resume');
+      if (context.authed) {
+        el.removeAttribute('aria-hidden');
+        if (!controlledByToolScript) el.removeAttribute('hidden');
+      } else {
+        el.setAttribute('hidden', '');
+        el.setAttribute('aria-hidden', 'true');
+      }
+    });
+  };
+
   const ensureToolsHero = ({ pageId }) => {
     const id = cleanText(pageId);
     if (!id) return;
@@ -509,6 +525,9 @@
     const accountButton = authed
       ? `<button type="button" class="btn-secondary" data-tools-action="open-account">Account</button>`
       : '';
+    const dashboardButton = authed
+      ? `<a class="btn-secondary tools-account-dashboard-link" href="/tools/dashboard">Dashboard</a>`
+      : '';
     const signInButton = `<button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>`;
     const signOutButton = `<button type="button" class="btn-ghost" data-tools-action="sign-out">Sign out</button>`;
     const allowToolActions = !!(toolId && toolActionsEnabled !== false);
@@ -529,12 +548,20 @@
 
     barEl.innerHTML = `
       <span class="${pillClass}" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</span>
+      ${dashboardButton}
       ${accountButton}
       ${allowToolActions && authed ? saveButton : ''}
       ${allowToolActions && authed ? newButton : ''}
       ${authed ? signOutButton : signInButton}
       ${sessionLine}
     `.trim();
+  };
+
+  const getSignInOptions = (toolId) => {
+    const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    return toolId === 'transcribe'
+      ? { mode: 'popup', returnTo }
+      : { returnTo };
   };
 
   const initSessionsPanel = ({
@@ -1965,7 +1992,7 @@
       if (!button) return;
       const action = button.dataset.toolsAction;
       if (action === 'sign-in') {
-        window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` })
+        window.ToolsAuth.signIn(getSignInOptions(toolId))
           .catch((err) => setStatus(err?.message || 'Unable to start sign-in.'));
       } else if (action === 'sign-out') {
         window.ToolsAuth.signOut();
@@ -2398,7 +2425,7 @@
 
     accountModal.setHandlers({
       signIn: () => {
-        window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` })
+        window.ToolsAuth.signIn(getSignInOptions(toolId))
           .catch((err) => setStatus(err?.message || 'Unable to start sign-in.'));
       },
       signOut: () => {
@@ -2411,8 +2438,13 @@
       }
     });
 
-    applyToolsCatalogVisibility();
-    document.addEventListener('tools:auth-changed', applyToolsCatalogVisibility);
+    const applyToolsAccountVisibility = () => {
+      applyToolsCatalogVisibility();
+      applyToolsAuthenticatedContentVisibility();
+    };
+
+    applyToolsAccountVisibility();
+    document.addEventListener('tools:auth-changed', applyToolsAccountVisibility);
 
     ensureToolsHero({ pageId: page });
 

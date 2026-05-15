@@ -143,7 +143,7 @@ try {
       'pages/resume-data-science-pdf.html': 'Data Science Resume PDF | Daniel Short',
       'pages/resume-tourism-pdf.html': 'Tourism Resume PDF | Daniel Short',
       'pages/tourism.html': 'Tourism Analytics | Daniel Short',
-      'pages/tools.html': 'Tools | Daniel Short',
+      'pages/tools.html': 'Tool Directory | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
       'pages/games.html': 'Games | Daniel Short',
       'pages/sitemap.html': 'Sitemap | Daniel Short',
@@ -325,19 +325,57 @@ try {
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
     const catalogJs = readFile('js/accounts/tools-account-ui.js');
+    const directoryJs = readFile('js/tools/tools-directory.js');
     const toolsHtml = readFile('pages/tools.html');
+    const toolsPageRecord = JSON.parse(readFile(path.join('content', 'pages', 'tools.json')));
     const toolRecords = toolFiles.map((fileName) => JSON.parse(readFile(path.join('content', 'tools', fileName))));
     const publicTools = toolRecords.filter((tool) => !tool.hidden && (!tool.visibility || tool.visibility === 'public'));
     const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
     const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
-    assert(toolsHtml.includes('<h1>Tools</h1>'), 'tools page should expose a visible h1');
-    assert(toolsHtml.includes('data-tools-filter-input'), 'tools page missing directory search input');
-    assert(toolsHtml.includes('data-tools-filter-status'), 'tools page missing filter status');
-    assert(toolsHtml.includes('class="tools-nav"'), 'tools page missing category shortcuts');
+    assert(toolsHtml.includes('<h1>Tool Directory</h1>'), 'tools page should expose a visible h1');
+    assert(!toolsHtml.includes('Quick browser tools for text cleanup') &&
+      !toolsHtml.includes('Find the right utility') &&
+      !toolsHtml.includes('Choose a focused utility'),
+      'tools page should not render the removed hero or directory intro copy');
+    assert(!toolsHtml.includes('data-tools-filter-input'), 'tools page should not render directory search input');
+    assert(!toolsHtml.includes('data-tools-filter-status'), 'tools page should not render filter status');
+    assert(!toolsHtml.includes('class="tools-filter"'), 'tools page should not render search controls');
+    assert(!toolsHtml.includes('data-tools-empty-state'), 'tools page should not render filter empty state');
+    assert(!toolsHtml.includes('class="tools-nav"'), 'tools page should not render category shortcut buttons');
     assert(toolsHtml.includes('class="tool-launch-card"'), 'tools page should render compact tool launcher cards');
     assert(toolsHtml.includes('class="tool-card-details"'), 'tools page should render hover/focus tool details');
-    assert(toolsHtml.includes(`Showing ${publicTools.length} tools.`), 'tools page initial count should match public tools');
+    assert(!toolsHtml.includes('data-tools-search='), 'tools page should not keep search-only metadata on tool cards');
+    assert(!toolsHtml.includes('class="tool-card-kicker"'), 'tools page cards should not render visible access/local metadata');
+    assert(!toolsHtml.includes('class="tool-access-chip"'), 'tools page cards should not render visible access chips');
+    assert(!toolsHtml.includes('class="tool-meta"'), 'tools page cards should not render visible tag rows');
+    assert(!toolsHtml.includes('class="tool-pill'), 'tools page cards should not render visible tool tag pills');
+    assert(!toolsHtml.includes('Public · Local'), 'tools page cards should not render Public/Local kicker text');
+    assert(!toolsHtml.includes(`Showing ${publicTools.length} tools.`), 'tools page should not render filter count copy');
+    assert(!toolsHtml.includes('data-tools-resume-action="sign-in"'), 'tools page resume panel should not render a duplicate sign-in action');
+    assert(toolsHtml.includes('data-tools-auth-only'), 'tools page resume panel should be marked as signed-in-only content');
+    assert(!toolsHtml.includes('tools-resume-dashboard-link'), 'tools page resume panel should not render a duplicate dashboard button');
+    assert(!directoryJs.includes('data-tools-resume-action'), 'tools directory script should not wire duplicate resume sign-in actions');
+    assert(directoryJs.includes('hideResumePanel') &&
+      !directoryJs.includes('renderResumeSignedOut') &&
+      directoryJs.includes('!window.ToolsAuth.authIsValid(auth)'),
+      'tools directory resume panel should stay hidden until the visitor is signed in');
+    assert(catalogJs.includes('const dashboardButton = authed') &&
+      catalogJs.includes('tools-account-dashboard-link') &&
+      catalogJs.includes('href="/tools/dashboard"'),
+      'tools account bar should show a dashboard button only after sign-in');
+    assert(catalogJs.includes('applyToolsAuthenticatedContentVisibility') &&
+      catalogJs.includes('[data-tools-auth-only]'),
+      'tools account UI should centrally manage signed-in-only tools content');
+    assert(!directoryJs.includes('data-tools-filter-input'), 'tools directory script should not wire removed search controls');
+    assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHtml.indexOf('class="tools-account-bar"'),
+      'tools resume panel should sit below the account bar');
+    assert(toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('<main id="main">'),
+      'tools resume panel should sit above the main tool grid');
+    (toolsPageRecord.categories || []).forEach((category) => {
+      if (!category.description) return;
+      assert(!toolsHtml.includes(category.description), `${category.id} description should not render in compact tools directory`);
+    });
     assert(!toolsHtml.includes('More tools soon'), 'tools page should not render placeholder cards');
     assert(!toolsHtml.includes('href="tools/"'), 'tools page should not render empty tool links');
     assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
@@ -353,6 +391,9 @@ try {
       const href = String(tool.href || '').trim();
       assert(/^[-a-z0-9]+$/.test(slug), `${fileName} has invalid or empty slug`);
       assert(href === `tools/${slug}`, `${fileName} href should match tools/${slug}`);
+      assert(tool.iconImage === `img/tools/icons/${slug}.png`, `${fileName} should declare a generated icon image`);
+      assert(fs.existsSync(tool.iconImage), `${fileName} icon image is missing`);
+      assert(toolsHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from tools page`);
       assert(toolsHtml.includes(`href="${href}"`), `${fileName} missing from tools page`);
       assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
         `${fileName} missing clean URL rewrite`);
@@ -1435,6 +1476,7 @@ try {
     assert(modalCss.includes('#contact-modal .modal-content') && modalCss.includes('width:calc(100vw - 12px);'), 'contact modal should use compact mobile viewport width');
 
     const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
+    const toolsCss = fs.readFileSync('css/components/tools.css', 'utf8');
     const brandOverrideCss = fs.readFileSync('css/utilities/design-system-overrides.css', 'utf8');
     const toolsWorkspaceCss = fs.readFileSync('css/components/tools-workspace.css', 'utf8');
     const toolsAccountCss = fs.readFileSync('css/components/tools-account.css', 'utf8');
@@ -1561,6 +1603,24 @@ try {
     assert(brandOverrideCss.includes('body[data-page="portfolio"] #projects.portfolio-library-grid'), 'brand overrides should contain mobile portfolio cards to the viewport');
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card') && brandOverrideCss.includes('grid-template-rows: auto minmax(104px, auto);'), 'audience project cards should use the portfolio page media plus white text panel layout');
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .overlay') && brandOverrideCss.includes('display: none;'), 'audience project cards should not depend on dark image overlays for readability');
+    assert(brandOverrideCss.includes('body[data-tools-layout] #main > .surface-band:nth-of-type(even)') && brandOverrideCss.includes('background: transparent;'), 'tool workspace panels should not inherit alternating gray surface backgrounds');
+    assert(brandOverrideCss.includes('body[data-tools-layout="directory"] .tool-card') &&
+      brandOverrideCss.includes('overflow: visible;'),
+      'tool directory cards should not clip their hover tooltips');
+    assert(toolsCss.includes('.tool-card:hover .tool-card-details') &&
+      toolsCss.includes('pointer-events:auto;') &&
+      toolsCss.includes('.tool-card:hover,\n  .tool-card:focus-within{\n    z-index:30;') &&
+      !toolsCss.includes('@media (hover:none), (max-width: 700px)'),
+      'tools directory tooltips should remain visible on hover-capable hybrid devices');
+    assert(toolsCss.includes('grid-template-columns:repeat(auto-fill,minmax(112.8px,132px));') &&
+      toolsCss.includes('width:76.8px;') &&
+      toolsCss.includes('width:84px;') &&
+      toolsCss.includes('max-width:124.8px;'),
+      'tools directory icons and label containers should be 20% larger for readable icon artwork and text');
+    assert(toolsCss.includes('grid-template-columns:repeat(auto-fill,minmax(103.2px,124.8px));') &&
+      toolsCss.includes('width:72px;') &&
+      toolsCss.includes('width:79.2px;'),
+      'tools directory mobile icon containers should keep the same 20% size increase');
     assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
     assert(toolsAccountCss.includes('.tools-account-bar:empty'), 'empty tools account bars should not render as orphan containers');
     assert(siteChatbotCss.includes('right: calc(100% + 8px);'), 'chatbot launcher tooltip should sit inward with a button gap');
@@ -1632,7 +1692,7 @@ try {
     const lateLoadEnv = createEnv();
     let handleRedirectCalls = 0;
     lateLoadEnv.document.body.dataset = { page: 'tools' };
-    lateLoadEnv.document.title = 'Tools | Daniel Short';
+    lateLoadEnv.document.title = 'Tool Directory | Daniel Short';
     lateLoadEnv.window.ToolsAuth = {
       handleRedirect: async () => {
         handleRedirectCalls++;
@@ -2282,6 +2342,9 @@ try {
     const page = fs.readFileSync('pages/transcribe.html', 'utf8');
     const toolScript = fs.readFileSync('js/tools/whisper-transcribe-monitor.js', 'utf8');
     const toolCss = fs.readFileSync('css/components/whisper-transcribe-monitor.css', 'utf8');
+    const toolsWorkspaceCss = fs.readFileSync('css/components/tools-workspace.css', 'utf8');
+    const toolsAuth = fs.readFileSync('js/accounts/tools-auth.js', 'utf8');
+    const toolsAccountUi = fs.readFileSync('js/accounts/tools-account-ui.js', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
     const devServer = fs.readFileSync('build/dev.js', 'utf8');
@@ -2309,6 +2372,7 @@ try {
            toolScript.includes('Already added.') &&
            toolScript.includes('data-transcribe-file-remove') &&
            toolScript.includes('canRemoveItem') &&
+           toolScript.includes("mode: 'popup'") &&
            toolScript.includes('startBtn.disabled = state.busy || state.analyzing') &&
            toolScript.includes("setView('processing')") &&
            toolScript.includes("setView('results')") &&
@@ -2325,9 +2389,26 @@ try {
       'Transcribe tool should skip video files without audio and explain AWS parse failures');
     assert(toolCss.includes('.transcribe-status-bar') &&
            toolCss.includes('position:sticky') &&
-           toolCss.includes('body[data-page="transcribe"] .tools-account-dock') &&
            toolCss.includes('top:calc(var(--nav-height'),
       'Transcribe status bar should stay mounted near the top of the screen');
+    assert(toolsWorkspaceCss.includes('body[data-tools-layout="text"]') &&
+           toolsWorkspaceCss.includes('body[data-tools-layout="media"]') &&
+           toolsWorkspaceCss.includes('body[data-tools-layout="admin"]') &&
+           toolsWorkspaceCss.includes('body[data-tools-layout="directory"]') &&
+           toolsWorkspaceCss.includes('.tools-account-dock{\n    position:relative;') &&
+           toolsWorkspaceCss.includes('top:auto;') &&
+           toolsWorkspaceCss.includes('.tools-account-dock:has(.tools-account-bar:empty)'),
+      'Tools account sign-in panel should sit in normal page flow near the top across tool layouts');
+    assert(toolsAuth.includes("options.mode === 'popup'") &&
+           toolsAuth.includes('window.open') &&
+           toolsAuth.includes('POPUP_STATE_PREFIX') &&
+           toolsAuth.includes('AUTH_BROADCAST_KEY') &&
+           toolsAuth.includes('postMessage') &&
+           toolsAuth.includes('Sign-in popup was blocked'),
+      'Tools auth should support popup sign-in without active-tab redirect fallback');
+    assert(toolsAccountUi.includes("toolId === 'transcribe'") &&
+           toolsAccountUi.includes("{ mode: 'popup', returnTo }"),
+      'Tools account UI should use popup sign-in on the Transcribe tool');
 
     assert(endpoint.includes('StartTranscriptionJobCommand') &&
            endpoint.includes('GetTranscriptionJobCommand') &&

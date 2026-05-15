@@ -20,12 +20,6 @@
     margin-inline:auto;
   }
 
-  body[data-page="transcribe"] .tools-account-dock{
-    position:relative;
-    top:auto;
-    z-index:2;
-  }
-
   .transcribe-status-bar{
     position:sticky;
     top:calc(var(--nav-height, 72px) + 18px);

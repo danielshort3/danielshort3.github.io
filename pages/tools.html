@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>Tools | Daniel Short</title>
+  <title>Tool Directory | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/tools">
   <meta name="description" content="Local, privacy-first tools from Daniel Short.">
-  <meta property="og:title" content="Tools | Daniel Short">
+  <meta property="og:title" content="Tool Directory | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
   <meta property="og:description" content="Local, privacy-first tools from Daniel Short.">
   <meta property="og:url" content="https://www.danielshort.me/tools">
@@ -18,13 +18,13 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
-  <meta name="twitter:title" content="Tools | Daniel Short">
+  <meta name="twitter:title" content="Tool Directory | Daniel Short">
   <meta name="twitter:description" content="Local, privacy-first tools from Daniel Short.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/10-github-readme-portfolio-banner.svg">
   <meta name="twitter:image:alt" content="Daniel Short branded portfolio banner">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.fce081b1.css">
-  <link rel="stylesheet" href="dist/styles-tools.ab219e2b.css">
+  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles-tools.7e940d92.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -194,8 +194,8 @@
     <div class="wrapper">
       <div class="tools-hero-copy">
         <p class="hero-eyebrow">Privacy-first utilities</p>
-        <h1>Tools</h1>
-        <p class="tools-hero-lead">Quick browser tools for text cleanup, campaign links, QR codes, media work, and private account-backed workflows.</p>
+        <h1>Tool Directory</h1>
+
       </div>
     </div>
   </section>
@@ -203,178 +203,94 @@
   <div class="tools-account-dock" data-tools-account="dock">
     <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">
       <div class="tools-account-bar" data-tools-account="bar"></div>
+      <section class="tools-resume-panel" data-tools-resume="panel" data-tools-auth-only aria-labelledby="tools-resume-title" hidden>
+        <div class="tools-resume-head">
+          <div class="tools-resume-head-copy">
+            <p class="tools-resume-kicker">Resume work</p>
+            <h2 class="tools-resume-title" id="tools-resume-title">Continue where you left off</h2>
+          </div>
+        </div>
+        <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>
+        <div class="tools-resume-content" data-tools-resume="content"></div>
+      </section>
     </div>
   </div>
 
   <main id="main">
     <section class="surface-band tools-section">
       <div class="wrapper">
-        <section class="tools-directory-controls" aria-labelledby="tools-directory-title">
-          <div class="tools-directory-head">
-            <p class="tools-directory-kicker">Tool directory</p>
-            <h2 id="tools-directory-title">Find the right utility</h2>
-            <p>Filter by task, category, or tag. Local tools run in your browser; account tools appear when you sign in.</p>
-          </div>
-          <div class="tools-filter" role="search">
-            <label class="visually-hidden" for="tools-filter-query">Search tools</label>
-            <input id="tools-filter-query" class="tools-filter-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search tools, tags, or categories" data-tools-filter-input>
-            <button class="btn-secondary tools-filter-clear" type="button" data-tools-filter-clear>Clear</button>
-          </div>
-          <p class="tools-filter-status" role="status" aria-live="polite" data-tools-filter-status>Showing 10 tools.</p>
-          <nav class="tools-nav" aria-label="Tool categories">
-            <a class="tools-nav-link" href="#tools-writing" data-tools-category-link="tools-writing">Writing &amp; Text</a>
-            <a class="tools-nav-link" href="#tools-marketing" data-tools-category-link="tools-marketing">Marketing</a>
-            <a class="tools-nav-link" href="#tools-media" data-tools-category-link="tools-media">Images &amp; Video</a>
-            <a class="tools-nav-link" href="#tools-cloud" data-tools-category-link="tools-cloud">Cloud-backed</a>
-          </nav>
-        </section>
-
-        <section class="tools-resume-panel" data-tools-resume="panel" aria-labelledby="tools-resume-title" hidden>
-          <div class="tools-resume-head">
-            <div class="tools-resume-head-copy">
-              <p class="tools-resume-kicker">Resume work</p>
-              <h2 class="tools-resume-title" id="tools-resume-title">Continue where you left off</h2>
-            </div>
-            <a class="btn-secondary tools-resume-dashboard-link" href="tools/dashboard">Open dashboard</a>
-          </div>
-          <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>
-          <div class="tools-resume-content" data-tools-resume="content"></div>
-        </section>
-
         <div id="tools-directory-results" data-tools-results>
           <section class="tools-category" id="tools-writing" aria-labelledby="tools-writing-title" data-tools-category data-tools-category-title="Writing &amp; Text">
             <header class="tools-category-head">
               <h2 class="section-title" id="tools-writing-title">Writing &amp; Text</h2>
-              <p>In-browser helpers for editing, cleanup, and quick analysis.</p>
             </header>
             <div class="tools-grid">
               <article class="tool-card" data-tools-card data-tools-category-id="tools-writing" data-tools-category-title="Writing &amp; Text">
                 <a class="tool-launch-card" href="tools/text-compare" aria-describedby="text-compare-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="5" width="7" height="14" rx="2" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="13" y="5" width="7" height="14" rx="2" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="5" width="7" height="14" rx="2"></rect>
-                                            <rect x="13" y="5" width="7" height="14" rx="2"></rect>
-                                            <path d="M7 9h2M7 12h3M7 15h1.5"></path>
-                                            <path d="M16 10v4"></path>
-                                            <path d="M14 12h4"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/text-compare.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Text Compare</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="text-compare-details" role="tooltip">
                     <span class="tool-card-summary">Compare two drafts and see insertions, deletions, and replacements highlighted inline.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Text</span>
-                        <span class="tool-pill">Diff</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-writing" data-tools-category-title="Writing &amp; Text">
                 <a class="tool-launch-card" href="tools/nbsp-cleaner" aria-describedby="nbsp-cleaner-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="6" width="16" height="12" rx="2" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="6" width="16" height="12" rx="2"></rect>
-                                            <path d="M7 10h10M7 14h4"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/nbsp-cleaner.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Non-breaking Space Cleaner</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="nbsp-cleaner-details" role="tooltip">
                     <span class="tool-card-summary">Detects hard spaces (NBSP, narrow NBSP, etc.) and replaces them with regular spaces after confirming counts.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Text</span>
-                        <span class="tool-pill">Spacing</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-writing" data-tools-category-title="Writing &amp; Text">
                 <a class="tool-launch-card" href="tools/oxford-comma-checker" aria-describedby="oxford-comma-checker-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                                            <path d="M8 8h7M8 12h5M8 16h4"></path>
-                                            <circle cx="16.5" cy="15.5" r="1.5"></circle>
-                                            <path d="M16 17l-1 2"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/oxford-comma-checker.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Oxford Comma Checker</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="oxford-comma-checker-details" role="tooltip">
                     <span class="tool-card-summary">Scan drafts for possible missing Oxford commas in serial lists and review quick fixes.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Text</span>
-                        <span class="tool-pill">Grammar</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-writing" data-tools-category-title="Writing &amp; Text">
                 <a class="tool-launch-card" href="tools/point-of-view-checker" aria-describedby="point-of-view-checker-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <path d="M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z" class="icon-fill" opacity=".12"></path>
-                                            <path d="M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z"></path>
-                                            <path d="M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/point-of-view-checker.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Point of View Checker</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="point-of-view-checker-details" role="tooltip">
                     <span class="tool-card-summary">Scan text for first-person, second-person, and third-person pronouns to spot mixed POV.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Text</span>
-                        <span class="tool-pill">Pronouns</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-writing" data-tools-category-title="Writing &amp; Text">
                 <a class="tool-launch-card" href="tools/word-frequency" aria-describedby="word-frequency-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <path d="M5 4h14v16H5z" class="icon-fill" opacity=".12"></path>
-                                            <path d="M5 4h14v16H5z"></path>
-                                            <path d="M8 8h8M8 12h5M8 16h7"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/word-frequency.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Word Frequency Analyzer</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="word-frequency-details" role="tooltip">
                     <span class="tool-card-summary">Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Text</span>
-                        <span class="tool-pill">Stopwords</span>
-                    </span>
                   </span>
                 </a>
               </article>
@@ -384,59 +300,32 @@
           <section class="tools-category" id="tools-marketing" aria-labelledby="tools-marketing-title" data-tools-category data-tools-category-title="Marketing">
             <header class="tools-category-head">
               <h2 class="section-title" id="tools-marketing-title">Marketing</h2>
-              <p>Fast, consistent link-building and shareable assets.</p>
             </header>
             <div class="tools-grid">
               <article class="tool-card" data-tools-card data-tools-category-id="tools-marketing" data-tools-category-title="Marketing">
                 <a class="tool-launch-card" href="tools/utm-batch-builder" aria-describedby="utm-batch-builder-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <path d="M6 7h12v10H6z" class="icon-fill" opacity=".12"></path>
-                                            <path d="M6 7h12v10H6z"></path>
-                                            <path d="M8 10h8M8 13h6"></path>
-                                            <path d="M18 9l2 3-2 3"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/utm-batch-builder.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">UTM Batch Builder</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="utm-batch-builder-details" role="tooltip">
                     <span class="tool-card-summary">Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">UTM</span>
-                        <span class="tool-pill">CSV</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-marketing" data-tools-category-title="Marketing">
                 <a class="tool-launch-card" href="tools/qr-code-generator" aria-describedby="qr-code-generator-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                                            <path d="M8 8h3v3H8z"></path>
-                                            <path d="M13 8h3v3h-3z"></path>
-                                            <path d="M8 13h3v3H8z"></path>
-                                            <path d="M13 13h1.5M16 13v3M13 16h3"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/qr-code-generator.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">QR Code Generator</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="qr-code-generator-details" role="tooltip">
                     <span class="tool-card-summary">Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Logo</span>
-                        <span class="tool-pill">Export</span>
-                    </span>
                   </span>
                 </a>
               </article>
@@ -446,84 +335,46 @@
           <section class="tools-category" id="tools-media" aria-labelledby="tools-media-title" data-tools-category data-tools-category-title="Images &amp; Video">
             <header class="tools-category-head">
               <h2 class="section-title" id="tools-media-title">Images &amp; Video</h2>
-              <p>Local image processing utilities and lightweight media capture.</p>
             </header>
             <div class="tools-grid">
               <article class="tool-card" data-tools-card data-tools-category-id="tools-media" data-tools-category-title="Images &amp; Video">
                 <a class="tool-launch-card" href="tools/image-optimizer" aria-describedby="image-optimizer-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                                            <path d="M8 15l2.2-2.2 2.2 2.2 3.6-3.6L19 12.4"></path>
-                                            <path d="M12 7v6"></path>
-                                            <path d="m9.6 10.6 2.4 2.4 2.4-2.4"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/image-optimizer.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Image Optimizer</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="image-optimizer-details" role="tooltip">
                     <span class="tool-card-summary">Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Resize</span>
-                        <span class="tool-pill">WebP/AVIF</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-media" data-tools-category-title="Images &amp; Video">
                 <a class="tool-launch-card" href="tools/background-remover" aria-describedby="background-remover-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                                            <path d="M8 12h8M12 8v8"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/background-remover.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Background Remover</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="background-remover-details" role="tooltip">
                     <span class="tool-card-summary">Remove backgrounds with AI matting (hair/fur friendly), refine edges with a brush, and export transparent PNG/TIFF or solid-background JPEG/WebP.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Images</span>
-                        <span class="tool-pill">Transparency</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-media" data-tools-category-title="Images &amp; Video">
                 <a class="tool-launch-card" href="tools/screen-recorder" aria-describedby="screen-recorder-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="3" y="4" width="18" height="12" rx="2" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="3" y="4" width="18" height="12" rx="2"></rect>
-                                            <path d="M9 20h6"></path>
-                                            <path d="M10 16v4M14 16v4"></path>
-                                            <circle cx="16.5" cy="9" r="2"></circle>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/screen-recorder.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Screen Recorder</span>
-                    <span class="tool-card-kicker">Public · Local</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="public">Public</span>
                   <span class="tool-card-details" id="screen-recorder-details" role="tooltip">
                     <span class="tool-card-summary">Record your screen and download the clip in browser-supported formats with optional system audio.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill tool-pill-local">Local</span>
-                        <span class="tool-pill">Video</span>
-                        <span class="tool-pill">Capture</span>
-                    </span>
                   </span>
                 </a>
               </article>
@@ -533,120 +384,66 @@
           <section class="tools-category" id="tools-cloud" aria-labelledby="tools-cloud-title" data-tools-category data-tools-category-title="Cloud-backed">
             <header class="tools-category-head">
               <h2 class="section-title" id="tools-cloud-title">Cloud-backed</h2>
-              <p>Tools that rely on an account, API, or server-side compute.</p>
             </header>
             <div class="tools-grid">
               <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-category-title="Cloud-backed" data-tools-visibility="authed" hidden>
                 <a class="tool-launch-card" href="tools/job-application-tracker" aria-describedby="job-application-tracker-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="6" y="4" width="12" height="16" rx="2" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="6" y="4" width="12" height="16" rx="2"></rect>
-                                            <path d="M9 8h6M9 12h6M9 16h4"></path>
-                                            <path d="M9 4h6"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/job-application-tracker.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Job Application Tracker</span>
-                    <span class="tool-card-kicker">Account · Cloud</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="account">Account</span>
                   <span class="tool-card-details" id="job-application-tracker-details" role="tooltip">
                     <span class="tool-card-summary">Log applications and review interview momentum with KPI cards, trend lines, and calendar heatmaps.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill">Cloud</span>
-                        <span class="tool-pill">Career</span>
-                        <span class="tool-pill">Tracker</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-category-title="Cloud-backed" data-tools-visibility="admin" hidden>
                 <a class="tool-launch-card" href="tools/short-links" aria-describedby="short-links-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <circle cx="12" cy="12" r="9" class="icon-fill" opacity=".12"></circle>
-                                            <path d="M10.5 13.5l-1 1a3 3 0 0 1-4.2 0 3 3 0 0 1 0-4.2l1-1"></path>
-                                            <path d="M13.5 10.5l1-1a3 3 0 0 1 4.2 0 3 3 0 0 1 0 4.2l-1 1"></path>
-                                            <path d="M9 12h6"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/short-links.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">Short Links (Admin)</span>
-                    <span class="tool-card-kicker">Admin · Cloud</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="admin">Admin</span>
                   <span class="tool-card-details" id="short-links-details" role="tooltip">
                     <span class="tool-card-summary">Create and manage private /go/&lt;slug&gt; redirect links with click counts (requires admin token).</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill">Cloud</span>
-                        <span class="tool-pill">Admin</span>
-                        <span class="tool-pill">Redirects</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-category-title="Cloud-backed" data-tools-visibility="admin" hidden>
                 <a class="tool-launch-card" href="tools/ga4-utm-performance" aria-describedby="ga4-utm-performance-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                                            <path d="M8 16v-5"></path>
-                                            <path d="M12 16v-8"></path>
-                                            <path d="M16 16v-3"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/ga4-utm-performance.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">GA4 UTM Performance (Admin)</span>
-                    <span class="tool-card-kicker">Admin · Cloud</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="admin">Admin</span>
                   <span class="tool-card-details" id="ga4-utm-performance-details" role="tooltip">
                     <span class="tool-card-summary">Fetch UTM performance from GA4 via the Data API and export aggregated results as CSV (requires admin token).</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill">Cloud</span>
-                        <span class="tool-pill">Admin</span>
-                        <span class="tool-pill">GA4</span>
-                        <span class="tool-pill">UTM</span>
-                    </span>
                   </span>
                 </a>
               </article>
 
               <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-category-title="Cloud-backed" data-tools-visibility="authed" hidden>
                 <a class="tool-launch-card" href="tools/transcribe" aria-describedby="transcribe-details">
-                  <span class="tool-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" role="presentation">
-                                            <rect x="4" y="5" width="16" height="14" rx="3" class="icon-fill" opacity=".12"></rect>
-                                            <rect x="4" y="5" width="16" height="14" rx="3"></rect>
-                                            <path d="M8 12h8"></path>
-                                            <path d="M10 9v6"></path>
-                                            <path d="M14 9v6"></path>
-                                            <path d="M7 19v1.5h10V19"></path>
-                                          </svg>
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                      <img src="img/tools/icons/transcribe.png" alt="" loading="lazy" decoding="async">
                   </span>
                   <span class="tool-card-main">
                     <span class="tool-card-title">File Transcriber</span>
-                    <span class="tool-card-kicker">Account · Cloud</span>
                   </span>
-                  <span class="tool-access-chip" data-tool-access="account">Account</span>
                   <span class="tool-card-details" id="transcribe-details" role="tooltip">
                     <span class="tool-card-summary">Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts.</span>
-                    <span class="tool-meta">
-                        <span class="tool-pill">Cloud</span>
-                        <span class="tool-pill">Audio</span>
-                        <span class="tool-pill">AWS</span>
-                    </span>
                   </span>
                 </a>
               </article>
             </div>
           </section>
         </div>
-        <p class="tools-empty-state" data-tools-empty-state hidden>No tools match that search.</p>
       </div>
     </section>
   </main>
@@ -745,7 +542,7 @@
   </div>
   <script defer src="js/tools/tools-directory.js"></script>
   <script defer src="dist/site-shell.7a1a28e9.js"></script>
-  <script defer src="dist/site-tools-landing.f0015620.js" data-tools-account-src="dist/site-tools-account.c283fb9e.js"></script>
+  <script defer src="dist/site-tools-landing.f0015620.js" data-tools-account-src="dist/site-tools-account.5592335a.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

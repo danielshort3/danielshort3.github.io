@@ -46,6 +46,18 @@ function attrsToString(attrs) {
   return pairs.length ? ` ${pairs.join(' ')}` : '';
 }
 
+function renderToolIconMarkup(tool) {
+  const iconImage = String(tool && tool.iconImage ? tool.iconImage : '').trim();
+  if (iconImage) {
+    return `<img src="${escapeHtml(trimLeadingSlash(iconImage))}" alt="" loading="lazy" decoding="async">`;
+  }
+  return String(tool && tool.iconHtml ? tool.iconHtml : '').trim();
+}
+
+function hasToolIconImage(tool) {
+  return Boolean(String(tool && tool.iconImage ? tool.iconImage : '').trim());
+}
+
 function renderSvgMarkup(iconType) {
   switch (String(iconType || '').trim()) {
     case 'direct-message':
@@ -537,19 +549,12 @@ function renderToolsDirectoryBody(page, tools) {
     return { category, items };
   }).filter(({ items }) => items.length > 0);
 
-  const toolCount = usableTools.filter((tool) => !tool.hidden && (!tool.visibility || tool.visibility === 'public')).length;
-
-  const renderedCategoryNav = toolsByCategory.map(({ category }) => {
-    const id = String(category.id || '').trim();
-    if (!id) return '';
-    return `<a class="tools-nav-link" href="#${escapeHtml(id)}" data-tools-category-link="${escapeHtml(id)}">${escapeHtml(category.title || '')}</a>`;
-  }).filter(Boolean).join('\n');
-
   const renderedCategories = toolsByCategory.map(({ category, items }) => {
     const cards = items.map((tool) => {
       const href = trimLeadingSlash(tool.href || `tools/${tool.slug}`);
       const visibility = String(tool.visibility || 'public').trim().toLowerCase();
       const restricted = visibility && visibility !== 'public';
+      const iconClass = hasToolIconImage(tool) ? 'tool-icon tool-icon-image' : 'tool-icon';
       const cardAttrs = {
         class: 'tool-card',
         'data-tools-card': true,
@@ -558,34 +563,17 @@ function renderToolsDirectoryBody(page, tools) {
         ...(restricted ? { 'data-tools-visibility': tool.visibility } : {}),
         ...(tool.hidden || restricted ? { hidden: true } : {})
       };
-      const pills = (Array.isArray(tool.pills) ? tool.pills : [])
-        .map((pill) => `<span class="tool-pill${pill && pill.variant === 'local' ? ' tool-pill-local' : ''}">${escapeHtml(pill && pill.label ? pill.label : '')}</span>`)
-        .join('\n');
-      const accessLabel = (() => {
-        if (visibility === 'admin' || visibility === 'admins') return 'Admin';
-        if (visibility === 'authed' || visibility === 'authenticated' || visibility === 'logged-in') return 'Account';
-        return 'Public';
-      })();
-      const primaryPill = Array.isArray(tool.pills) && tool.pills.length
-        ? String(tool.pills[0] && tool.pills[0].label ? tool.pills[0].label : '').trim()
-        : '';
-      const quickMeta = [accessLabel, primaryPill].filter(Boolean).join(' · ');
       return [
         `<article${attrsToString(cardAttrs)}>`,
         `  <a class="tool-launch-card" href="${escapeHtml(href)}" aria-describedby="${escapeHtml(tool.slug || href)}-details">`,
-        '    <span class="tool-icon" aria-hidden="true">',
-        indentBlock(String(tool.iconHtml || '').trim(), '        '),
+        `    <span class="${iconClass}" aria-hidden="true">`,
+        indentBlock(renderToolIconMarkup(tool), '        '),
         '    </span>',
         '    <span class="tool-card-main">',
         `      <span class="tool-card-title">${escapeHtml(tool.title || '')}</span>`,
-        `      <span class="tool-card-kicker">${escapeHtml(quickMeta)}</span>`,
         '    </span>',
-        `    <span class="tool-access-chip" data-tool-access="${escapeHtml(accessLabel.toLowerCase())}">${escapeHtml(accessLabel)}</span>`,
         `    <span class="tool-card-details" id="${escapeHtml(tool.slug || href)}-details" role="tooltip">`,
         `      <span class="tool-card-summary">${escapeHtml(tool.summary || '')}</span>`,
-        '      <span class="tool-meta">',
-        indentBlock(pills, '          '),
-        '      </span>',
         '    </span>',
         '  </a>',
         '</article>'
@@ -596,7 +584,6 @@ function renderToolsDirectoryBody(page, tools) {
       `<section class="tools-category" id="${escapeHtml(category.id || '')}" aria-labelledby="${escapeHtml(category.id || '')}-title" data-tools-category data-tools-category-title="${escapeHtml(category.title || '')}">`,
       '  <header class="tools-category-head">',
       `    <h2 class="section-title" id="${escapeHtml(category.id || '')}-title">${escapeHtml(category.title || '')}</h2>`,
-      `    <p>${escapeHtml(category.description || '')}</p>`,
       '  </header>',
       '  <div class="tools-grid">',
       indentBlock(cards, '    '),
@@ -606,14 +593,30 @@ function renderToolsDirectoryBody(page, tools) {
   }).join('\n\n');
 
   const resumePanel = page.resumePanel || {};
-  const filter = page.filter || {};
+  const heroLead = String(page.heroLead || '').trim();
+  const directoryKicker = String(page.directoryKicker || '').trim();
+  const directoryTitle = String(page.directoryTitle || '').trim();
+  const directoryDescription = String(page.directoryDescription || '').trim();
+  const directoryControls = (directoryKicker || directoryTitle || directoryDescription)
+    ? [
+      '      <section class="tools-directory-controls" aria-labelledby="tools-directory-title">',
+      '        <div class="tools-directory-head">',
+      directoryKicker ? `          <p class="tools-directory-kicker">${escapeHtml(directoryKicker)}</p>` : '',
+      directoryTitle ? `          <h2 id="tools-directory-title">${escapeHtml(directoryTitle)}</h2>` : '',
+      directoryDescription ? `          <p>${escapeHtml(directoryDescription)}</p>` : '',
+      '        </div>',
+      '      </section>',
+      ''
+    ].filter(Boolean)
+    : [];
+
   return [
     '<section class="hero hero--tools tools-hero">',
     '  <div class="wrapper">',
     '    <div class="tools-hero-copy">',
     `      <p class="hero-eyebrow">${escapeHtml(page.heroEyebrow || 'Tools')}</p>`,
     `      <h1>${escapeHtml(page.heroTitle || 'Tools')}</h1>`,
-    `      <p class="tools-hero-lead">${escapeHtml(page.heroLead || 'Fast utilities for writing, marketing, media, and reporting workflows.')}</p>`,
+    heroLead ? `      <p class="tools-hero-lead">${escapeHtml(heroLead)}</p>` : '',
     '    </div>',
     '  </div>',
     '</section>',
@@ -621,45 +624,26 @@ function renderToolsDirectoryBody(page, tools) {
     '<div class="tools-account-dock" data-tools-account="dock">',
     '  <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
     '    <div class="tools-account-bar" data-tools-account="bar"></div>',
+    '    <section class="tools-resume-panel" data-tools-resume="panel" data-tools-auth-only aria-labelledby="tools-resume-title" hidden>',
+    '      <div class="tools-resume-head">',
+    '        <div class="tools-resume-head-copy">',
+    `          <p class="tools-resume-kicker">${escapeHtml(resumePanel.kicker || '')}</p>`,
+    `          <h2 class="tools-resume-title" id="tools-resume-title">${escapeHtml(resumePanel.title || '')}</h2>`,
+    '        </div>',
+    '      </div>',
+    '      <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>',
+    '      <div class="tools-resume-content" data-tools-resume="content"></div>',
+    '    </section>',
     '  </div>',
     '</div>',
     '',
     '<main id="main">',
     '  <section class="surface-band tools-section">',
     '    <div class="wrapper">',
-    '      <section class="tools-directory-controls" aria-labelledby="tools-directory-title">',
-    '        <div class="tools-directory-head">',
-    `          <p class="tools-directory-kicker">${escapeHtml(page.directoryKicker || 'Directory')}</p>`,
-    `          <h2 id="tools-directory-title">${escapeHtml(page.directoryTitle || 'Find a tool')}</h2>`,
-    `          <p>${escapeHtml(page.directoryDescription || 'Search by workflow, format, or category, then jump into the tool you need.')}</p>`,
-    '        </div>',
-    '        <div class="tools-filter" role="search">',
-    '          <label class="visually-hidden" for="tools-filter-query">Search tools</label>',
-    `          <input id="tools-filter-query" class="tools-filter-input" type="search" autocomplete="off" spellcheck="false" placeholder="${escapeHtml(filter.placeholder || 'Search tools by name, task, or tag')}" data-tools-filter-input>`,
-    `          <button class="btn-secondary tools-filter-clear" type="button" data-tools-filter-clear>${escapeHtml(filter.clearLabel || 'Clear')}</button>`,
-    '        </div>',
-    `        <p class="tools-filter-status" role="status" aria-live="polite" data-tools-filter-status>Showing ${escapeHtml(toolCount)} tools.</p>`,
-    '        <nav class="tools-nav" aria-label="Tool categories">',
-    indentBlock(renderedCategoryNav, '          '),
-    '        </nav>',
-    '      </section>',
-    '',
-    '      <section class="tools-resume-panel" data-tools-resume="panel" aria-labelledby="tools-resume-title" hidden>',
-    '        <div class="tools-resume-head">',
-    '          <div class="tools-resume-head-copy">',
-    `            <p class="tools-resume-kicker">${escapeHtml(resumePanel.kicker || '')}</p>`,
-    `            <h2 class="tools-resume-title" id="tools-resume-title">${escapeHtml(resumePanel.title || '')}</h2>`,
-    '          </div>',
-    `          <a class="btn-secondary tools-resume-dashboard-link" href="${escapeHtml(trimLeadingSlash(resumePanel.dashboardHref || 'tools-dashboard'))}">${escapeHtml(resumePanel.dashboardLabel || 'Open dashboard')}</a>`,
-    '        </div>',
-    '        <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>',
-    '        <div class="tools-resume-content" data-tools-resume="content"></div>',
-    '      </section>',
-    '',
+    ...directoryControls,
     '      <div id="tools-directory-results" data-tools-results>',
     indentBlock(renderedCategories, '        '),
     '      </div>',
-    '      <p class="tools-empty-state" data-tools-empty-state hidden>No tools match that search.</p>',
     '    </div>',
     '  </section>',
     '</main>'

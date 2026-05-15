@@ -8,11 +8,6 @@
   const resumeStatusEl = document.querySelector('[data-tools-resume="status"]');
   const resumeContentEl = document.querySelector('[data-tools-resume="content"]');
   const cards = Array.from(document.querySelectorAll('.tool-card'));
-  const categories = Array.from(document.querySelectorAll('[data-tools-category]'));
-  const filterInput = document.querySelector('[data-tools-filter-input]');
-  const filterClear = document.querySelector('[data-tools-filter-clear]');
-  const filterStatusEl = document.querySelector('[data-tools-filter-status]');
-  const emptyStateEl = document.querySelector('[data-tools-empty-state]');
 
   if (!cards.length) return;
 
@@ -56,7 +51,7 @@
     const href = normalizeHref(link.getAttribute('href'));
     const toolId = cleanText(href.split('/').pop());
     if (!toolId) return;
-    const name = cleanText(card.querySelector('h3')?.textContent) || toTitleCase(toolId);
+    const name = cleanText(card.querySelector('.tool-card-title')?.textContent || card.querySelector('h3')?.textContent) || toTitleCase(toolId);
     toolInfoById.set(toolId, { href, name });
   });
 
@@ -65,107 +60,30 @@
     name: toTitleCase(toolId)
   };
 
-  const getSearchTokens = (value) => cleanText(value).toLowerCase().split(' ').filter(Boolean);
-
-  const buildCardSearchText = (card) => {
-    const category = cleanText(card.dataset.toolsCategoryTitle);
-    const title = cleanText(card.querySelector('h3')?.textContent);
-    const summary = cleanText(card.querySelector('p')?.textContent);
-    const pills = Array.from(card.querySelectorAll('.tool-pill')).map((pill) => cleanText(pill.textContent)).join(' ');
-    return `${category} ${title} ${summary} ${pills}`.toLowerCase();
-  };
-
-  cards.forEach((card) => {
-    card.dataset.toolsSearchText = buildCardSearchText(card);
-  });
-
-  const isCardAvailable = (card) => !card.hasAttribute('hidden');
-  const isCardFilterVisible = (card) => !card.hasAttribute('data-tools-filter-hidden');
-
-  const updateFilterStatus = (visibleCount, availableCount, query) => {
-    if (!filterStatusEl) return;
-    const suffix = query ? ` for "${query}"` : '';
-    filterStatusEl.textContent = `Showing ${visibleCount} of ${availableCount} tools${suffix}.`;
-  };
-
-  const applyToolFilter = () => {
-    const query = cleanText(filterInput?.value || '');
-    const tokens = getSearchTokens(query);
-    let availableCount = 0;
-    let visibleCount = 0;
-
-    cards.forEach((card) => {
-      const available = isCardAvailable(card);
-      if (available) availableCount += 1;
-
-      const searchText = card.dataset.toolsSearchText || '';
-      const matches = !tokens.length || tokens.every((token) => searchText.includes(token));
-      if (matches) {
-        card.removeAttribute('data-tools-filter-hidden');
-      } else {
-        card.setAttribute('data-tools-filter-hidden', 'true');
-      }
-
-      if (available && matches) visibleCount += 1;
-    });
-
-    categories.forEach((category) => {
-      const categoryCards = Array.from(category.querySelectorAll('.tool-card'));
-      const hasVisibleCard = categoryCards.some((card) => isCardAvailable(card) && isCardFilterVisible(card));
-      if (hasVisibleCard) {
-        category.removeAttribute('data-tools-filter-hidden');
-      } else {
-        category.setAttribute('data-tools-filter-hidden', 'true');
-      }
-    });
-
-    if (emptyStateEl) emptyStateEl.hidden = visibleCount > 0;
-    updateFilterStatus(visibleCount, availableCount, query);
-  };
-
-  if (filterInput) {
-    filterInput.addEventListener('input', applyToolFilter);
-  }
-  if (filterClear) {
-    filterClear.addEventListener('click', () => {
-      if (!filterInput) return;
-      filterInput.value = '';
-      applyToolFilter();
-      filterInput.focus();
-    });
-  }
-  if (typeof MutationObserver === 'function') {
-    const observer = new MutationObserver((mutations) => {
-      if (mutations.some((mutation) => mutation.attributeName === 'hidden')) applyToolFilter();
-    });
-    cards.forEach((card) => observer.observe(card, { attributes: true, attributeFilter: ['hidden'] }));
-  }
-  applyToolFilter();
-
   const setResumeStatus = (message) => {
     if (!resumeStatusEl) return;
     resumeStatusEl.textContent = cleanText(message);
   };
 
-  const renderResumeShell = (html, statusMessage = '') => {
-    if (!resumePanel || !resumeContentEl) return;
-    resumePanel.hidden = false;
-    setResumeStatus(statusMessage);
-    resumeContentEl.innerHTML = html;
+  const hideResumePanel = () => {
+    if (!resumePanel) return;
+    resumePanel.hidden = true;
+    resumePanel.setAttribute('aria-hidden', 'true');
+    setResumeStatus('');
+    if (resumeContentEl) resumeContentEl.innerHTML = '';
   };
 
-  const renderResumeSignedOut = () => {
-    renderResumeShell(`
-      <div class="tools-resume-prompt">
-        <div class="tools-resume-prompt-copy">
-          <p class="tools-resume-group-title">Sign in to reopen saved sessions.</p>
-          <p class="tools-resume-group-note">Pinned work and recent tool runs will appear here for quick return access.</p>
-        </div>
-        <div class="tools-resume-prompt-actions">
-          <button type="button" class="btn-primary" data-tools-resume-action="sign-in">Sign in</button>
-        </div>
-      </div>
-    `, '');
+  const showResumePanel = () => {
+    if (!resumePanel) return;
+    resumePanel.hidden = false;
+    resumePanel.removeAttribute('aria-hidden');
+  };
+
+  const renderResumeShell = (html, statusMessage = '') => {
+    if (!resumePanel || !resumeContentEl) return;
+    showResumePanel();
+    setResumeStatus(statusMessage);
+    resumeContentEl.innerHTML = html;
   };
 
   const renderResumeLoading = () => {
@@ -262,7 +180,6 @@
     window.ToolsAuth
     && typeof window.ToolsAuth.getAuth === 'function'
     && typeof window.ToolsAuth.authIsValid === 'function'
-    && typeof window.ToolsAuth.signIn === 'function'
     && window.ToolsState
     && typeof window.ToolsState.getDashboard === 'function'
   );
@@ -277,15 +194,12 @@
 
   const loadResume = async () => {
     if (!resumePanel) return;
-    resumePanel.hidden = false;
 
     if (!canLoadResume()) {
-      renderResumeLoading();
+      hideResumePanel();
       if (resumeAttempts < maxResumeAttempts) {
         resumeAttempts += 1;
         scheduleResumeRefresh(250);
-      } else {
-        renderResumeFailure('Account tools are still loading. Open the dashboard once they finish initializing.');
       }
       return;
     }
@@ -293,7 +207,7 @@
     resumeAttempts = 0;
     const auth = window.ToolsAuth.getAuth();
     if (!window.ToolsAuth.authIsValid(auth)) {
-      renderResumeSignedOut();
+      hideResumePanel();
       return;
     }
 
@@ -319,16 +233,6 @@
       renderResumeFailure(error?.message || 'Unable to load saved sessions right now.');
     }
   };
-
-  if (resumeContentEl) {
-    resumeContentEl.addEventListener('click', (event) => {
-      const actionEl = event.target.closest('[data-tools-resume-action]');
-      if (!actionEl) return;
-      const action = cleanText(actionEl.dataset.toolsResumeAction);
-      if (action !== 'sign-in' || !canLoadResume()) return;
-      window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` });
-    });
-  }
 
   document.addEventListener('tools:auth-changed', () => {
     scheduleResumeRefresh(0);

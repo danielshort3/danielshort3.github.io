@@ -1234,6 +1234,11 @@
     background: var(--brand-mist);
   }
 
+  body[data-tools-layout] #main > .surface-band,
+  body[data-tools-layout] #main > .surface-band:nth-of-type(even) {
+    background: transparent;
+  }
+
   body[data-page="portfolio"] .portfolio-library-section {
     background: var(--brand-mist);
   }
@@ -1282,6 +1287,10 @@
   :is(.home-proof-card, .work-card, .audience-proof-card, .audience-feature-card, .destination-card, .game-card, .tool-card) {
     position: relative;
     overflow: hidden;
+  }
+
+  body[data-tools-layout="directory"] .tool-card {
+    overflow: visible;
   }
 
   :is(.home-proof-card, .work-card, .audience-proof-card, .audience-feature-card, .destination-card, .game-card, .tool-card)::after {
