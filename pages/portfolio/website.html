@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/website.png">
   <meta name="twitter:image:alt" content="Preview image for danielshort.me">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -241,79 +241,22 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <div class="project-media project-video">
+			        <section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Project Preview</h2>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            <div class="project-media project-video">
       <video class="project-video-frame" controls autoplay muted loop playsinline preload="metadata" poster="img/projects/website.png" aria-label="danielshort.me video">
         <source src="img/projects/website.webm" type="video/webm">
           <source src="img/projects/website.mp4" type="video/mp4">
       </video>
     </div>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Goals</h3>
-        <p>I built this site to be fast, easy to use, and easy to update as I add projects.</p>
-        <ul>
-          <li>Performance: keep pages light and avoid blocking resources.</li>
-          <li>Accessibility: semantic landmarks, keyboard-friendly components, and predictable navigation.</li>
-          <li>Maintainability: one project data file + build scripts to generate pages.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Architecture</h3>
-        
-        <ul>
-          <li>Static HTML pages with shared JS for navigation, lazy loading, and UI behavior.</li>
-          <li>Portfolio projects defined in one data file and rendered into modals and filters.</li>
-          <li>Progressive enhancement: the portfolio page still works without JS via pre-rendered cards.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>SEO and Sharing</h3>
-        
-        <ul>
-          <li>Generated `/portfolio/&lt;id&gt;` pages for each project (canonical URLs, Open Graph metadata, JSON-LD).</li>
-          <li>Kept `sitemap.xml` in sync via a build step.</li>
-          <li>Configured Vercel rewrites so clean URLs map to generated pages under `pages/`.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Build and Deployment</h3>
-        
-        <ul>
-          <li>CSS is bundled into a hashed file for caching while still allowing quick invalidation.</li>
-          <li>Build scripts generate project pages and copy deployable artifacts into `public/`.</li>
-          <li>Lightweight tests enforce markup contracts and ensure pages exist for every project ID.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Add richer case studies (diagrams, metrics, and lessons learned) for the top projects.</li>
-          <li>Reduce third-party dependencies in demos and tighten CSP over time.</li>
-          <li>Automate screenshots so project cards stay consistent.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/danielshort3.github.io" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Site</span></a>
-      </div>
-      </div>
+          </div>
+        </section>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -347,7 +290,22 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/danielshort3.github.io" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="/"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Site</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -486,7 +444,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

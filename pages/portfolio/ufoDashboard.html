@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/ufoDashboard.png">
   <meta name="twitter:image:alt" content="Preview image for UFO Sightings Dashboard">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -239,101 +239,33 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-ufoDashboard-tab-instructions" aria-controls="project-demo-ufoDashboard-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-ufoDashboard-tab-demo" aria-controls="project-demo-ufoDashboard-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-ufoDashboard-panel-instructions" aria-labelledby="project-demo-ufoDashboard-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Use the interactive Tableau dashboard to explore sightings by place, time, and shape.</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="dashboard" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-ufoDashboard-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-ufoDashboard-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Use the interactive Tableau dashboard to explore sightings by place, time, and shape.</p>
+            <ul class="project-demo-tooltip-list">
         <li>Hover charts/maps for tooltips and quick readouts.</li>
         <li>Click marks (states/cities/shapes) to filter and cross-highlight views.</li>
         <li>Use Tableau controls to refine the slice you’re looking at.</li>
         <li>Scroll to compare time-of-day and seasonality patterns across views.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-ufoDashboard-panel-demo" aria-labelledby="project-demo-ufoDashboard-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-tableau project-embed-ufodashboard" data-project-embed="ufoDashboard">
-        <iframe class="project-embed-frame" data-src="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" title="UFO Sightings Dashboard interactive dashboard" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-tableau project-embed-ufodashboard" data-project-embed="ufoDashboard" data-embed-fit="dashboard">
+        <iframe class="project-embed-frame" src="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:showVizHome=no&amp;:embed=y" title="UFO Sightings Dashboard interactive dashboard" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
-      </div>
-    </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Dashboard Design</h3>
-        <p>I built a one-page Tableau dashboard to explore sightings by place, time, and reported shape.</p>
-        <ul>
-          <li>Maps: state and city views to compare hotspots at different levels.</li>
-          <li>Time: a month/hour heatmap to spot seasonal and time-of-day patterns.</li>
-          <li>Shapes: a breakdown of common shapes and how they change over the year.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Data Preparation</h3>
-        
-        <ul>
-          <li>Standardized location fields so points map consistently.</li>
-          <li>Normalized timestamps so reports compare cleanly by month and hour.</li>
-          <li>Cleaned shape labels to reduce duplicates from spelling and formatting.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Insights and Interpretation</h3>
-        
-        <ul>
-          <li>Reports cluster in the evening/night hours in this dataset.</li>
-          <li>The peak hour shifts with daylight (later in summer, earlier in winter).</li>
-          <li>California stands out in volume; central regions are lower.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Normalize by population (per-capita rates), especially for smaller areas.</li>
-          <li>Add filters for year, duration, and report quality.</li>
-          <li>Surface data-quality issues (missing locations, unclear shapes) in the UI.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&amp;:display_count=n&amp;:origin=viz_share_link" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/tableau-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Interactive Dashboard</span></a>
-      </div>
-      </div>
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://nuforc.org/databank/" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">NUFORC Database</span></a>
-      </div>
-      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -367,7 +299,27 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&amp;:display_count=n&amp;:origin=viz_share_link" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/tableau-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Interactive Dashboard</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://nuforc.org/databank/" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">NUFORC Database</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -506,7 +458,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

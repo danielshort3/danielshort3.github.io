@@ -58,7 +58,7 @@
   "role": [
     "Led the analysis: SQL modeling/ETL, anomaly detection, and reporting."
   ],
-  "notes": "Store, state, and employee identifiers are anonymized in the case study.",
+  "notes": "Store, state, and employee identifiers are anonymized; risk rankings normalize incident signals with sales context so high-volume stores are not treated as high-risk by volume alone.",
   "problem": "Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.",
   "actions": [
     "Modeled incident, sales, and HR data in SQL so stores, regions, time periods, and risk measures use consistent definitions.",
@@ -70,44 +70,6 @@
     "Improved theft reporting by 57.6% through clearer dashboards and workflow redesign.",
     "Narrowed broad incident data into a short, explainable list of hotspots worth investigating.",
     "Kept identifiers anonymized so the case study can show the workflow without exposing people or locations."
-  ],
-  "caseStudy": [
-    {
-      "title": "Problem",
-      "lead": "Security, loss, and sales signals were spread across separate tables, which made it hard to see where action should start.",
-      "bullets": [
-        "Incident volume alone hid severity differences.",
-        "Sales context mattered because high-volume stores can look risky without normalization.",
-        "Stakeholders needed a shortlist they could investigate, not another broad dashboard."
-      ]
-    },
-    {
-      "title": "Method",
-      "lead": "I built the repeatable analytics layer first, then used dashboards and anomaly detection to turn the data into review queues.",
-      "bullets": [
-        "Joined incident, sales, and employee tables in SQL and created reusable KPI views.",
-        "Standardized date, region, state, store format, and severity definitions across outputs.",
-        "Compared stores against peer baselines to separate normal volume from unusual risk."
-      ]
-    },
-    {
-      "title": "Result",
-      "lead": "The output made hotspots easier to explain and helped direct investigations toward the most actionable patterns.",
-      "bullets": [
-        "Supported a 24% inventory loss reduction through analytics-driven follow-up.",
-        "Helped improve theft reporting by 57.6% after dashboard and workflow redesign.",
-        "Flagged outlier stores and patterns while keeping identifiers anonymized for public sharing."
-      ]
-    },
-    {
-      "title": "So What",
-      "lead": "The value was not just a dashboard; it was a repeatable operating workflow for turning loss signals into prioritized action.",
-      "bullets": [
-        "Leaders could compare risk by location, time, and severity with consistent definitions.",
-        "Investigations started with ranked evidence instead of manual table review.",
-        "Future versions could add weekly alerts, investigation status, and normalization by traffic or shipments."
-      ]
-    }
   ],
   "order": 11
 }

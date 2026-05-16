@@ -318,6 +318,49 @@ function buildResponsiveSrcset(base, ext, width) {
   return parts.join(', ');
 }
 
+function numberDataAttr(name, value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return '';
+  return `data-${name}="${escapeHtml(String(Math.round(numeric)))}"`;
+}
+
+function isSameOriginEmbedUrl(src) {
+  const safeSrc = String(src || '').trim();
+  if (!safeSrc) return false;
+  try {
+    const parsed = new URL(safeSrc, SITE_ORIGIN);
+    return parsed.origin === SITE_ORIGIN;
+  } catch (_) {
+    return !/^[a-z][a-z\d+.-]*:/i.test(safeSrc);
+  }
+}
+
+function resolveEmbedFit(embed) {
+  const requested = String(embed && embed.fit || '').trim().toLowerCase();
+  if (['content', 'viewport', 'dashboard', 'fixed'].includes(requested)) return requested;
+
+  const type = String(embed && embed.type || '').trim().toLowerCase();
+  if (type === 'tableau') return 'dashboard';
+  if (type === 'iframe') {
+    return isSameOriginEmbedUrl(embed && embed.url) ? 'content' : 'viewport';
+  }
+  return 'fixed';
+}
+
+function renderEmbedAttrs(embed, id, extraClass = '') {
+  const embedProjectId = toDomIdSafe(id);
+  const fit = resolveEmbedFit(embed);
+  return {
+    className: `${extraClass} project-embed-${embedProjectId.toLowerCase()}`.trim(),
+    attrs: [
+      `data-project-embed="${escapeHtml(embedProjectId)}"`,
+      `data-embed-fit="${escapeHtml(fit)}"`,
+      numberDataAttr('embed-min-height', embed && embed.minHeight),
+      numberDataAttr('embed-max-height', embed && embed.maxHeight)
+    ].filter(Boolean).join(' ')
+  };
+}
+
 function loadProjects() {
   const code = fs.readFileSync(dataFile, 'utf8');
   const context = { window: {} };
@@ -529,7 +572,6 @@ function renderProjectPage(project, options = {}) {
   const actions = Array.isArray(project.actions) ? project.actions : [];
   const results = Array.isArray(project.results) ? project.results : [];
   const resources = Array.isArray(project.resources) ? project.resources : [];
-  const caseStudy = Array.isArray(project.caseStudy) ? project.caseStudy : [];
   const role = project.role;
   const notes = normalizeWhitespace(project.notes || '');
   const audiences = Array.isArray(project.audiences) ? project.audiences : [];
@@ -634,37 +676,6 @@ function renderProjectPage(project, options = {}) {
     ? `<section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">${escapeHtml(notes)}</p>
-    </section>`
-    : '';
-
-  const safeCaseStudy = caseStudy.length
-    ? `<section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        ${caseStudy.map((section) => {
-          const sectionTitle = normalizeWhitespace(section && section.title);
-          const lead = normalizeWhitespace(section && section.lead);
-          const bullets = normalizeTextArray(section && section.bullets);
-          const safeLead = lead ? `<p>${escapeHtml(lead)}</p>` : '';
-          const safeBullets = bullets.length
-            ? `<ul>
-          ${bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n          ')}
-        </ul>`
-            : '';
-          return `<article class="project-case-card">
-        <h3>${escapeHtml(sectionTitle || 'Analysis Step')}</h3>
-        ${safeLead}
-        ${safeBullets}
-      </article>`;
-        }).join('\n        ')}
-      </div>
     </section>`
     : '';
 
@@ -773,14 +784,12 @@ function renderProjectPage(project, options = {}) {
     if (!embed) return '';
     const lazy = options && options.lazy === true;
     const type = String(embed.type || '').trim();
-    const embedProjectId = toDomIdSafe(id);
-    const embedProjectClass = ` project-embed-${embedProjectId.toLowerCase()}`;
-    const embedProjectAttr = ` data-project-embed="${escapeHtml(embedProjectId)}"`;
     if (type === 'iframe') {
       const src = String(embed.url || '').trim();
       if (!src) return '';
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
-      return `<div class="project-media project-embed project-embed-iframe${embedProjectClass}"${embedProjectAttr}>
+      const embedMeta = renderEmbedAttrs(embed, id, 'project-embed-iframe');
+      return `<div class="project-media project-embed ${embedMeta.className}" ${embedMeta.attrs}>
         <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }
@@ -790,67 +799,50 @@ function renderProjectPage(project, options = {}) {
       const joiner = base.includes('?') ? '&' : '?';
       const src = `${base}${joiner}:showVizHome=no&:embed=y`;
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
-      return `<div class="project-media project-embed project-embed-tableau${embedProjectClass}"${embedProjectAttr}>
+      const embedMeta = renderEmbedAttrs(embed, id, 'project-embed-tableau');
+      return `<div class="project-media project-embed ${embedMeta.className}" ${embedMeta.attrs}>
         <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }
     return '';
   };
 
-  const renderDemoTabs = () => {
+  const renderDemoShell = () => {
     if (!embed) return '';
     const safeId = toDomIdSafe(id);
     const baseId = `project-demo-${safeId}`;
-    const tabInstructionsId = `${baseId}-tab-instructions`;
-    const tabDemoId = `${baseId}-tab-demo`;
-    const panelInstructionsId = `${baseId}-panel-instructions`;
-    const panelDemoId = `${baseId}-panel-demo`;
+    const tooltipId = `${baseId}-instructions`;
 
     const lead = normalizeWhitespace(demoInstructions?.lead || '');
     const bullets = normalizeTextArray(demoInstructions?.bullets);
-    const safeLead = lead ? `<p class="project-demo-lead">${escapeHtml(lead)}</p>` : '';
+    const safeLead = lead ? `<p class="project-demo-tooltip-lead">${escapeHtml(lead)}</p>` : '';
     const safeBullets = bullets.length
-      ? `<ul class="project-demo-list">
+      ? `<ul class="project-demo-tooltip-list">
         ${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n        ')}
       </ul>`
       : '';
-
-    const demoOpenHref = (() => {
-      const type = String(embed.type || '').trim();
-      if (type === 'iframe') return String(embed.url || '').trim();
-      if (type === 'tableau') {
-        const base = String(embed.base || '').trim();
-        if (!base) return '';
-        const joiner = base.includes('?') ? '&' : '?';
-        return `${base}${joiner}:showVizHome=no&:embed=y`;
-      }
-      return '';
-    })();
-    const openInNewTab = demoOpenHref
-      ? `<a class="btn-secondary" href="${escapeHtml(demoOpenHref)}" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>`
+    const tooltip = lead || bullets.length
+      ? `<div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="${escapeHtml(tooltipId)}">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="${escapeHtml(tooltipId)}" role="tooltip">
+            ${safeLead}
+            ${safeBullets}
+          </div>
+        </div>`
       : '';
 
-    return `<section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="${escapeHtml(tabInstructionsId)}" aria-controls="${escapeHtml(panelInstructionsId)}" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="${escapeHtml(tabDemoId)}" aria-controls="${escapeHtml(panelDemoId)}" aria-selected="false" tabindex="-1">Demo</button>
+    return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(resolveEmbedFit(embed))}" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        ${tooltip}
       </div>
 
       <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="${escapeHtml(panelInstructionsId)}" aria-labelledby="${escapeHtml(tabInstructionsId)}">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            ${safeLead}
-            ${safeBullets}
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              ${openInNewTab}
-            </div>
-          </div>
-        </section>
-
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="${escapeHtml(panelDemoId)}" aria-labelledby="${escapeHtml(tabDemoId)}" hidden>
-          <div class="project-demo-panel-inner">
-            ${renderEmbeddedMedia({ lazy: true })}
+            ${renderEmbeddedMedia()}
           </div>
         </section>
       </div>
@@ -864,7 +856,22 @@ function renderProjectPage(project, options = {}) {
     return renderImageMedia();
   })();
 
-  const demoTabs = embed ? renderDemoTabs() : '';
+  const demoTabs = embed ? renderDemoShell() : '';
+  const projectPreview = !embed && media
+    ? `<section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Project Preview</h2>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            ${media}
+          </div>
+        </section>
+      </div>
+    </section>`
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="en" class="no-js">
@@ -925,10 +932,9 @@ ${tableauPreconnect}
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        ${demoTabs || media}
-			        ${safeCaseStudy}
-			        ${safeResources}
+			        ${demoTabs || projectPreview}
 			        ${starSummary}
+        ${safeResources}
 			        ${safeNotes}
 			        ${relatedProjects}
 			      </div>

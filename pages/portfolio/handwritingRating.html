@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/handwritingRating.png">
   <meta name="twitter:image:alt" content="Preview image for Handwriting Legibility Scoring">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -242,104 +242,33 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-handwritingRating-tab-instructions" aria-controls="project-demo-handwritingRating-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-handwritingRating-tab-demo" aria-controls="project-demo-handwritingRating-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-handwritingRating-panel-instructions" aria-labelledby="project-demo-handwritingRating-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Draw a digit (0-9) or load a sample, then score how legible it is.</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-handwritingRating-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-handwritingRating-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Draw a digit (0-9) or load a sample, then score how legible it is.</p>
+            <ul class="project-demo-tooltip-list">
         <li>Pick a sample from “Daniel’s Handwritten Numbers”, or draw a digit on the canvas.</li>
         <li>Click “Rate digit” to submit.</li>
         <li>Use the eraser to clear the canvas and try another digit.</li>
         <li>Review the predicted digit, confidence, and legibility score breakdown.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="handwriting-rating-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-handwritingRating-panel-demo" aria-labelledby="project-demo-handwritingRating-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe project-embed-handwritingrating" data-project-embed="handwritingRating">
-        <iframe class="project-embed-frame" data-src="handwriting-rating-demo.html" title="Handwriting Legibility Scoring interactive demo" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-iframe project-embed-handwritingrating" data-project-embed="handwritingRating" data-embed-fit="content">
+        <iframe class="project-embed-frame" src="handwriting-rating-demo.html" title="Handwriting Legibility Scoring interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
-      </div>
-    </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Experiment Setup</h3>
-        <p>I used MNIST as a baseline, then scored my own handwriting with the same setup.</p>
-        <ul>
-          <li>Dataset: MNIST (60,000 train / 10,000 test) for digit recognition.</li>
-          <li>Goal: compare model types and quantify my own legibility with a consistent metric.</li>
-          <li>Output: per-digit accuracy and a confusion matrix to see which digits I write most ambiguously.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Model Iteration</h3>
-        
-        <ul>
-          <li>Model 1: simple linear classifier as a baseline.</li>
-          <li>Model 2: small CNN (TinyVGG-style) to capture strokes and curves.</li>
-          <li>Model 3: deeper CNN (VGG16-style) with the best test accuracy (99.1%).</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Custom Handwriting Evaluation</h3>
-        
-        <ul>
-          <li>Built a loader so new images can be preprocessed and scored consistently.</li>
-          <li>Scored a small personal handwriting set (~75.6% accuracy) and used the confusion matrix to see which digits were most ambiguous.</li>
-          <li>Used the breakdown to make it actionable (which digits to practice).</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Train on EMNIST or other real handwriting datasets to reduce domain shift from MNIST.</li>
-          <li>Add augmentation (stroke thickness, rotation, blur) to better match camera/scanner variation.</li>
-          <li>Calibrate confidence so the model can say &#39;uncertain&#39; instead of forcing a guess.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwriting-Rating" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/handwriting-rating-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_8.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_8.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-      </div>
-      </div>
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://www.tensorflow.org/datasets/catalog/mnist" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">MNIST Dataset</span></a>
-      </div>
-      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -375,7 +304,30 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwriting-Rating" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/handwriting-rating-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_8.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_8.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://www.tensorflow.org/datasets/catalog/mnist" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">MNIST Dataset</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -514,7 +466,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

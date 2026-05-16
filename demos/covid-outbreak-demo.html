@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
   <title>COVID Outbreak Drivers Demo</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#0D1117" />
+  <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,7 @@
       --risk-none: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
       --map-bg: color-mix(in srgb, var(--surface) 45%, #ffffff 55%);
       --map-border: color-mix(in srgb, var(--surface) 30%, #ffffff 70%);
-      --map-text: #0D1117;
+      --map-text: var(--brand-midnight, #091F3B);
       --map-line: color-mix(in srgb, var(--map-text) 70%, #ffffff 30%);
     }
 
@@ -656,12 +656,12 @@
         <h1 class="title">COVID Outbreak Drivers</h1>
         <p class="subtitle">Explore 7-day ICU breach risk by state with SHAP-inspired drivers. Move the date slider to surface emerging hotspots.</p>
       </div>
+      <div class="header-actions">
+        <span class="health-pill aws-status-badge" id="connection-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
+      </div>
     </header>
 
-    <div class="health-row" role="status" aria-live="polite">
-      <span class="health-pill" id="connection-pill" data-state="warming">Warming up</span>
-    </div>
-    <div class="status-row">
+    <div class="status-row demo-meta-row">
       <span class="status-meta" id="connection-meta">Connecting to AWS Lambda</span>
     </div>
 

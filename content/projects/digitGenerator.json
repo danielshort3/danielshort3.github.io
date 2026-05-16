@@ -62,40 +62,6 @@
     "Generated new digits by sampling the learned latent space.",
     "Saved the trained model so generation is a quick inference step."
   ],
-  "caseStudy": [
-    {
-      "title": "Model Architecture (VAE)",
-      "lead": "I trained a VAE to learn a compact latent space for handwritten digits and generate new samples from it.",
-      "bullets": [
-        "Encoder: CNN that maps an image to a latent mean and variance.",
-        "Reparameterization trick to sample during training while keeping gradients stable.",
-        "Decoder: transposed convolutions that reconstruct an image from a latent vector."
-      ]
-    },
-    {
-      "title": "Training and Sampling",
-      "bullets": [
-        "Trained on MNIST for up to 100 epochs with a 20-dim latent space and balanced reconstruction loss vs. KL divergence.",
-        "Validated by comparing original vs. reconstructed digits and sampling random latent vectors.",
-        "Saved the model so generation doesn't require retraining."
-      ]
-    },
-    {
-      "title": "Latent Space Analysis",
-      "bullets": [
-        "Used PCA, t-SNE, and UMAP to visualize how digits cluster in latent space.",
-        "Applied clustering (HDBSCAN/DBSCAN) to study structure and spot outliers.",
-        "Checked reconstruction error to see which digits are hardest to model."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Build a conditional VAE so I can generate a specific digit on demand.",
-        "Improve sample sharpness with stronger decoders or better loss functions.",
-        "Add quantitative metrics (FID-like proxies) to compare models over time."
-      ]
-    }
-  ],
-  "order": 8
+  "order": 8,
+  "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity."
 }

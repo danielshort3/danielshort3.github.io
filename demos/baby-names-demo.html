@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -7,7 +7,7 @@
   <title>Baby Names Analysis Demo</title>
   <meta name="robots" content="noindex, nofollow">
 
-  <meta name="theme-color" content="#0D1117">
+  <meta name="theme-color" content="#F9F9FA">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -576,6 +576,7 @@
         <p class="subtitle">Interactive look at my wife's ratings and similarity-based recommendations.</p>
       </div>
       <div class="header-actions">
+        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
         <div class="segment" role="tablist" aria-label="Name sex">
           <button class="segment-btn is-active" type="button" data-sex="F" aria-pressed="true">Girls</button>
           <button class="segment-btn" type="button" data-sex="M" aria-pressed="false">Boys</button>
@@ -584,10 +585,7 @@
       </div>
     </header>
 
-    <div class="health-row" role="status" aria-live="polite">
-      <span class="health-pill" id="status-pill" data-state="warming">Warming up</span>
-    </div>
-    <div class="status-row">
+    <div class="status-row demo-meta-row">
       <span class="status-meta" id="status-meta">Fetching demo data...</span>
       <span class="status-note">My wife has approved publication of this data through this project.</span>
     </div>

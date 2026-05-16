@@ -1281,14 +1281,15 @@ try {
 
   section('Project pages and sitemap entries', () => {
     const pdata = evalScript('js/portfolio/projects-data.js');
-    const ids = pdata.window.PROJECTS
-      .filter(p => p && p.published !== false)
-      .map(p => p.id);
+    const projects = pdata.window.PROJECTS.filter(p => p && p.published !== false);
+    const ids = projects.map(p => p.id);
+    const projectById = new Map(projects.map((project) => [project.id, project]));
     assert(ids.length > 0, 'no project ids found');
 
     const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
     ids.forEach(id => {
       const file = `pages/portfolio/${id}.html`;
+      const project = projectById.get(id);
       assert(fs.existsSync(file), `${file} missing`);
       const html = fs.readFileSync(file, 'utf8');
       checkFileContains(file, '<base href="/">');
@@ -1298,6 +1299,34 @@ try {
       checkFileContains(file, `<link rel="canonical" href="https://www.danielshort.me/portfolio/${id}">`);
       checkFileContains(file, `<meta property="og:url" content="https://www.danielshort.me/portfolio/${id}">`);
       assert(sitemap.includes(`https://www.danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
+      const shellIndex = html.indexOf('project-demo-shell');
+      const starIndex = html.indexOf('STAR Summary');
+      const linksIndex = html.indexOf('id="links"');
+      const notesIndex = html.indexOf('id="notes"');
+      const relatedIndex = html.indexOf('project-related');
+      assert(shellIndex >= 0, `${file} should render a standard demo or preview shell`);
+      assert(starIndex > shellIndex, `${file} should place STAR Summary after the demo/preview shell`);
+      assert(linksIndex > starIndex, `${file} should place Links after STAR Summary`);
+      assert(notesIndex > linksIndex, `${file} should place Notes after Links`);
+      assert(relatedIndex > notesIndex, `${file} should place Other Projects after Notes`);
+      assert(html.includes('<dt class="project-star-label">Situation</dt>') &&
+             html.includes('<dt class="project-star-label">Task</dt>') &&
+             html.includes('<dt class="project-star-label">Action</dt>') &&
+             html.includes('<dt class="project-star-label">Result</dt>'),
+        `${file} should use STAR Summary labels`);
+      if (project && project.embed) {
+        assert(html.includes('class="project-demo-header"'), `${file} should show the demo first with a compact header`);
+        assert(html.includes('<h2 class="section-title project-demo-title">Demo</h2>'), `${file} should render the Demo heading with the shared portfolio section-title style`);
+        assert(html.includes('class="project-demo-help-trigger"') && html.includes('role="tooltip"'), `${file} should move demo instructions into a tooltip`);
+        assert(html.includes('class="project-demo-panel is-active" data-demo-panel="demo"'), `${file} should render the demo panel as the default visible content`);
+        assert(!html.includes('How to Use Demo'), `${file} should not render the old instructions tab label`);
+        assert(!html.includes('data-demo-panel="instructions"'), `${file} should not render a separate instructions panel`);
+        assert(!html.includes('data-demo-tabs-open="demo"'), `${file} should not require an extra click to open the demo`);
+      } else {
+        assert(html.includes('class="project-demo-shell project-preview-shell"') &&
+               html.includes('<h2 class="section-title project-demo-title">Project Preview</h2>'),
+          `${file} should render non-embedded media in the standard Project Preview shell`);
+      }
     });
     assert(!ids.includes('destinationReporting'), 'destinationReporting should not be a published project');
     assert(!fs.existsSync('pages/portfolio/destinationReporting.html'), 'destinationReporting page should be removed');
@@ -1489,9 +1518,20 @@ try {
     const homeProofCss = fs.readFileSync('css/components/home-proof.css', 'utf8');
     const homeScrollCss = fs.readFileSync('css/components/home-scroll.css', 'utf8');
     const jumpPanelCss = fs.readFileSync('css/components/jump-panel.css', 'utf8');
-    assert(projectCss.includes('--project-mobile-edge:calc(var(--mobile-page-gutter, 14px) * -1);'), 'project pages should flatten demo shells to mobile edges');
-    assert(projectCss.includes('margin-inline:var(--project-mobile-edge);'), 'project demo shell should consume redundant mobile wrapper gutters');
-    assert(projectCss.includes('.project-case-study') && projectCss.includes('.project-decision-flow'), 'project pages should include branded decision memo case-study styles');
+    assert(projectCss.includes('.project-body > .wrapper{\n      --project-mobile-edge:calc(var(--mobile-page-gutter, 14px) * -1);'), 'project pages should define one mobile edge alignment token');
+    assert(projectCss.includes('.project-demo-shell{\n      margin-inline:var(--project-mobile-edge);') &&
+      projectCss.includes('.project-star,\n    .project-section{\n      margin-inline:var(--project-mobile-edge);'),
+      'project demo and content containers should share the same mobile left/right margin');
+    assert(projectCss.includes('.project-star-row{\n    position:relative;') &&
+      projectCss.includes('background:transparent;') &&
+      projectCss.includes('box-shadow:inset 3px 0 0'),
+      'STAR Summary should keep gray backgrounds on the text cells, not the row gutters');
+    assert(projectCss.includes('.project-preview-shell .project-demo-panel[data-demo-panel="demo"] .project-media') &&
+      !projectCss.includes('.project-demo-tabs') &&
+      !projectCss.includes('.project-demo-tab'),
+      'project pages should use the shared preview shell and remove stale demo tab styles');
+    assert(!projectCss.includes('.project-case-study') && !projectCss.includes('.project-case-card'), 'project pages should not keep stale Key Decisions panel styles');
+    assert(!projectCss.includes('.project-decision-flow'), 'project pages should not include the removed decision-flow image styles');
     assert(homeProofCss.includes('grid-auto-rows: 1fr;') &&
       homeProofCss.includes('.home-proof-card') &&
       homeProofCss.includes('box-sizing: border-box;') &&
@@ -1505,6 +1545,16 @@ try {
       jumpPanelCss.includes('color-mix(in srgb,var(--brand-midnight, #091f3b) 13%, transparent)'),
       'jump panel should avoid scroll-progress affordances and dark drop shadows');
     assert(brandOverrideCss.includes('--hero-art-layer: url("../img/brand/23-hero-general-light.png");'), 'brand overrides should define the general alternate light hero raster');
+    assert(!brandOverrideCss.includes('.project-star-grid,\n  .project-demo-tabs') &&
+      !brandOverrideCss.includes('.project-demo-tab'),
+      'brand overrides should not color STAR Summary gutters or removed demo tabs');
+    assert(brandOverrideCss.includes('body .project-hero h1 {\n      font-size: 2.05rem;') &&
+      brandOverrideCss.includes('overflow-wrap: anywhere;') &&
+      brandOverrideCss.includes('text-wrap: wrap;'),
+      'mobile project hero titles should use a fixed readable size and wrap long names');
+    assert(!brandOverrideCss.includes('pizza-tips-regression-demo-bg') &&
+      !brandOverrideCss.includes('.project-demo-shell:has(.project-embed-pizza)'),
+      'Pizza demo background overrides should be removed so project demos stay flush and consistent');
     assert(brandOverrideCss.includes('body[data-audience="analytics"]') &&
       brandOverrideCss.includes('--hero-art-layer: url("../img/brand/24-hero-analytics-light.png");'), 'brand overrides should keep the analytics audience light hero raster available');
     assert(brandOverrideCss.includes('body[data-page="analytics"]') &&
@@ -1528,7 +1578,7 @@ try {
       'analytics-project-examples-bg.png',
       'analytics-business-results-bg.png',
       'analytics-work-experience-bg.png',
-      'analytics-skills-practice-bg.png',
+      'analytics-skills-practice-bg-02-balanced-wash.png',
       'analytics-certifications-bg.png',
       'analytics-contact-cta-bg.png'
     ].forEach((file) => {
@@ -1752,6 +1802,9 @@ try {
         htmlHasManagedBundle(html, 'site-consent') || html.includes('js/privacy/config.js'),
         `${f} missing consent JS bundle reference`
       );
+      if (projectPages.includes(f)) {
+        assert(!html.includes('Open demo in new tab'), `${f} should not include redundant external demo button`);
+      }
     });
     toolPages.forEach((f) => {
       const html = fs.readFileSync(f, 'utf8');
@@ -1815,6 +1868,13 @@ try {
       checkFileContains(file, 'css/components/work-experience.css');
     });
     checkFileContains('pages/resume-analytics.html', 'css/components/resume.css');
+    const resumeCss = readFile('css/components/resume.css');
+    assert(resumeCss.includes('.resume-cert img[src*="purdue_global"]') &&
+      resumeCss.includes('.resume-school-logo[src*="purdue_global"]') &&
+      resumeCss.includes('.resume-role-brand[href*="randallreilly"] .resume-role-logo-shell') &&
+      resumeCss.includes('background:var(--brand-midnight);') &&
+      resumeCss.includes('background:#ffffff;'),
+      'digital resume logos should use readable light/dark logo tiles');
     checkFileContains('pages/portfolio/nonogram.html', 'css/components/project-page.css');
   });
 
@@ -2016,10 +2076,10 @@ try {
       'img/brand/analytics-project-examples-bg.png',
       'img/brand/analytics-business-results-bg.png',
       'img/brand/analytics-work-experience-bg.png',
+      'img/brand/analytics-skills-practice-bg-02-balanced-wash.png',
       'img/brand/analytics-skills-practice-bg.png',
       'img/brand/analytics-certifications-bg.png',
       'img/brand/analytics-contact-cta-bg.png',
-      'img/brand/13-case-study-diagram-question-to-decision.svg',
       'img/brand/20-data-visualization-style-sample.svg'
     ].forEach((file) => assert(fs.existsSync(file), `${file} missing`));
     [
@@ -2038,9 +2098,18 @@ try {
     ].forEach((file) => assert(!fs.existsSync(file), `${file} should be removed after section background rename`));
 
     const generator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
-    assert(generator.includes('project-case-study'), 'project generator should render case-study content');
-    assert(generator.includes('Question to Decision'), 'project generator should label the decision memo section');
-    assert(generator.includes('13-case-study-diagram-question-to-decision.svg'), 'project generator should use approved case-study diagram asset');
+    assert(!generator.includes('project-case-study'), 'project generator should not render removed Key Decisions panel content');
+    assert(generator.includes('STAR Summary') &&
+      generator.includes('Project Preview') &&
+      generator.includes('Situation') &&
+      generator.includes('Task') &&
+      generator.includes('Action') &&
+      !generator.includes('Project Snapshot') &&
+      !generator.includes('Key Decisions') &&
+      !generator.includes('Decision memo'),
+      'project generator should keep STAR Summary and Project Preview labels');
+    assert(!generator.includes('13-case-study-diagram-question-to-decision.svg'), 'project generator should not include removed case-study diagram asset');
+    assert(!generator.includes('project-decision-flow'), 'project generator should not render removed decision-flow wrapper');
     assert(generator.includes('img/brand/05-ds-favicon-small-icon.svg'), 'project generator should include approved SVG favicon');
 
     const portfolioJs = fs.readFileSync('js/portfolio/portfolio.js', 'utf8');
@@ -2456,6 +2525,7 @@ try {
     const nonogramDemo = fs.readFileSync('demos/nonogram-demo.html', 'utf8');
     const minesweeperDemo = fs.readFileSync('demos/minesweeper-demo.html', 'utf8');
     const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
+    const targetDemo = fs.readFileSync('demos/target-empty-package-demo.html', 'utf8');
     const digitLambda = fs.readFileSync('aws/digit-generator/app.py', 'utf8');
     const handwritingLambda = fs.readFileSync('aws/handwriting-rating/app.py', 'utf8');
     const nonogramLambda = fs.readFileSync('aws/nonogram-solver/app.py', 'utf8');
@@ -2471,6 +2541,11 @@ try {
            awsClient.includes('const warmupJson = (base, payload = {}, options = {})') &&
            awsClient.includes("joinUrl(normalizeBase(base), 'warmup')"),
       'shared AWS demo client should expose /health and /warmup helpers');
+    assert(targetDemo.includes('<meta name="theme-color" content="#F9F9FA" />') &&
+           targetDemo.includes('data-project-demo-theme="brand"') &&
+           targetDemo.includes('var(--bg);') &&
+           !targetDemo.includes('linear-gradient(140deg, #0b141d'),
+      'target empty-package demo should use the standard light demo canvas instead of the old dark background');
 
     const digitWarmupStart = digitDemo.indexOf('async function warmUpServer()');
     const digitWarmupEnd = digitDemo.indexOf('async function fetchGrid()', digitWarmupStart);
@@ -2557,6 +2632,141 @@ try {
     });
   });
 
+  section('Project demo brand theme', () => {
+    const demoThemeCss = fs.readFileSync('css/components/project-demo-theme.css', 'utf8');
+    const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
+    const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
+    const projectDemoFiles = [
+      'demos/baby-names-demo.html',
+      'demos/chatbot-demo.html',
+      'demos/covid-outbreak-demo.html',
+      'demos/digit-generator-demo.html',
+      'demos/handwriting-rating-demo.html',
+      'demos/minesweeper-demo.html',
+      'demos/nonogram-demo.html',
+      'demos/pizza-tips-demo.html',
+      'demos/retail-loss-sales-demo.html',
+      'demos/shape-demo.html',
+      'demos/sentence-demo.html',
+      'demos/target-empty-package-demo.html'
+    ];
+    const awsDashboardDemoFiles = [
+      'demos/baby-names-demo.html',
+      'demos/covid-outbreak-demo.html',
+      'demos/digit-generator-demo.html',
+      'demos/handwriting-rating-demo.html',
+      'demos/minesweeper-demo.html',
+      'demos/nonogram-demo.html',
+      'demos/pizza-tips-demo.html',
+      'demos/retail-loss-sales-demo.html',
+      'demos/shape-demo.html',
+      'demos/sentence-demo.html',
+      'demos/target-empty-package-demo.html'
+    ];
+    assert(stylesCss.includes('@import url("components/project-demo-theme.css");'), 'global CSS should import project demo brand theme');
+    assert(!demoThemeCss.includes('@layer overrides'), 'project demo theme must stay unlayered so it can override demo-local inline styles');
+    assert(demoThemeCss.includes('html[data-project-demo-theme="brand"]') &&
+           demoThemeCss.includes('--brand-midnight') &&
+           demoThemeCss.includes('--brand-signal-blue') &&
+           demoThemeCss.includes('--brand-action-copper'),
+      'project demo theme should use approved brand tokens');
+    assert(demoThemeCss.includes('html[data-project-demo-theme="brand"][data-embedded="true"]') &&
+           demoThemeCss.includes('--page-pad: 0px;') &&
+           demoThemeCss.includes('padding: 0 !important;') &&
+           demoThemeCss.includes('border: 0;') &&
+           demoThemeCss.includes('box-shadow: none;'),
+      'embedded project demos should remove the nested outer frame and page padding');
+    assert(projectCss.includes('.project-demo-header') &&
+           projectCss.includes('.project-demo-help-trigger') &&
+           projectCss.includes('.project-demo-tooltip') &&
+           projectCss.includes('.project-demo-help:hover .project-demo-tooltip,\n  .project-demo-help:focus-within .project-demo-tooltip') &&
+           projectCss.includes('--project-section-title-gap:14px;') &&
+           projectCss.includes('padding:clamp(1.1rem,2.2vw,1.6rem) clamp(1.1rem,2.2vw,1.6rem) 0;') &&
+           !projectCss.includes('.project-demo-header + *') &&
+           projectCss.includes('.project-demo-title{\n    margin:0;\n    min-width:0;') &&
+           projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-demo-panel-inner') &&
+           projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-demo-panel-inner{\n    gap:0;\n    padding:0;') &&
+           projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-media{\n    border:0;\n    padding:0;\n    border-radius:0;') &&
+           projectCss.includes('@media (max-width: 768px)') &&
+           projectCss.includes('padding:var(--mobile-card-pad) var(--mobile-page-gutter) 0;') &&
+           projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-demo-panel-inner{\n      gap:0;\n      padding:0;') &&
+           projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-media{\n      border:0;'),
+      'project demo pages should show the iframe first and move instructions into a compact tooltip on desktop and mobile');
+    assert(projectCss.includes('.project-star .section-title{\n    margin:0;') &&
+           projectCss.includes('.project-star .section-title + *{\n    margin-top:var(--project-section-title-gap);') &&
+           projectCss.includes('.project-section .section-title{\n    margin:0;') &&
+           projectCss.includes('.project-section .section-title + *{\n    margin-top:var(--project-section-title-gap);') &&
+           projectCss.includes('.project-links-groups{\n    display:grid;\n    gap:16px;\n    margin-top:0;') &&
+           projectCss.includes('.project-related-grid{\n    --project-card-aspect:1 / 1;') &&
+           projectCss.includes('margin-top:0;'),
+      'portfolio section headings should use one consistent gap before their content');
+    assert(!projectCss.includes('pizza-tips-regression-demo-bg') &&
+           !projectCss.includes('.project-demo-shell:has(.project-embed-pizza)'),
+      'pizza project demo shell should not keep one-off background or inset overrides');
+    projectDemoFiles.forEach((file) => {
+      const source = fs.readFileSync(file, 'utf8');
+      assert(source.includes('data-project-demo-theme="brand"'), `${file} should opt into the shared brand demo theme`);
+      assert(source.includes('name="theme-color" content="#F9F9FA"'), `${file} should use the brand canvas theme color`);
+    });
+    const nonogramDemo = fs.readFileSync('demos/nonogram-demo.html', 'utf8');
+    assert(nonogramDemo.includes('--nonogram-grid-line:') &&
+           nonogramDemo.includes('background: var(--nonogram-grid-line);') &&
+           nonogramDemo.includes('outline: 1px solid var(--nonogram-grid-line);'),
+      'nonogram demo should render visible board gutters before the solver fills cells');
+    assert(nonogramDemo.includes('--nonogram-cell-idle:') &&
+           nonogramDemo.includes('--nonogram-cell-filled:') &&
+           nonogramDemo.includes('--nonogram-cell-empty:') &&
+           nonogramDemo.includes('.cell--empty::after'),
+      'nonogram demo should keep untouched, filled, and revealed-empty cell states visually distinct');
+    const retailDemo = fs.readFileSync('demos/retail-loss-sales-demo.html', 'utf8');
+    assert(!/Space Grotesk|IBM Plex Sans|#25c7a1|37, 199, 161|#0b131b|#0b1118|#0c131c|#0d1722/i.test(retailDemo),
+      'retail loss/sales demo should not keep the old dark teal display theme');
+    const chatbotDemo = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
+    assert(!chatbotDemo.includes('color-scheme: dark;') &&
+           !chatbotDemo.includes('--panel-raised: #1a2230;') &&
+           chatbotDemo.includes('color-scheme: light;'),
+      'chatbot demo should use the brand-light project demo theme');
+    assert(!/#0d1117|#111827|#101722|#151b24|#1a2230|#223a82|#2f4f9b|rgba\((13|15|21|26),|rgba\(124, 156, 255|#b7c8ff|#79e5ad|#98a2b3/i.test(chatbotDemo),
+      'chatbot demo should not retain dark product-theme color overrides');
+    assert(demoThemeCss.includes('.message.assistant') &&
+           demoThemeCss.includes('.message.user') &&
+           demoThemeCss.includes('.chat-messages') &&
+           demoThemeCss.includes('.followup, .suggestion, .popup-close'),
+      'project demo brand theme should explicitly cover chatbot-specific surfaces');
+    assert(demoThemeCss.includes('header.card-header .header-actions') &&
+           demoThemeCss.includes('.aws-status-badge') &&
+           demoThemeCss.includes('.demo-meta-row') &&
+           demoThemeCss.includes('.name-list li') &&
+           demoThemeCss.includes('.drivers li') &&
+           demoThemeCss.includes('.kpi-card') &&
+           demoThemeCss.includes('background: #ffffff !important;'),
+      'project demo brand theme should standardize header badges and readable light dashboard surfaces');
+    awsDashboardDemoFiles.forEach((file) => {
+      const source = fs.readFileSync(file, 'utf8');
+      assert(source.includes('aws-status-badge'), `${file} should place AWS status in the header badge area`);
+      assert(!source.includes('<div class="health-row"'), `${file} should not render a separate full-width AWS health row`);
+    });
+    const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
+    assert(pizzaDemo.includes('class="health-pill aws-status-badge" id="api-status"') &&
+           pizzaDemo.includes('<span class="health-meta">AWS regression model</span>') &&
+           !pizzaDemo.includes('<div class="health-row" role="status"'),
+      'pizza tips demo should render AWS status as a compact header badge');
+    assert(pizzaDemo.includes('<fieldset class="scenario-segment">') &&
+           pizzaDemo.includes('<legend>Estimate Settings</legend>') &&
+           pizzaDemo.includes('<legend>Order Details</legend>') &&
+           !pizzaDemo.includes('<legend>Delivery Timing</legend>') &&
+           !pizzaDemo.includes('<legend>Weather Conditions</legend>') &&
+           pizzaDemo.includes('class="inactive-scenario-fields" hidden aria-hidden="true"') &&
+           !pizzaDemo.includes('class="inline-fields"'),
+      'pizza tips demo should only show labeled segments for active scenario controls');
+    assert(!fs.existsSync('img/projects/pizza-tips-regression-demo-bg.png'), 'pizza demo background PNG should be removed');
+    assert(!fs.existsSync('img/projects/pizza-tips-regression-demo-bg.webp'), 'pizza demo background WebP should be removed');
+    assert(!pizzaDemo.includes('data-demo-background="pizza-tips"'), 'pizza tips demo should not opt into a one-off generated background');
+    assert(!demoThemeCss.includes('pizza-tips-regression-demo-bg') &&
+           !demoThemeCss.includes('data-demo-background="pizza-tips"'),
+      'project demo theme should not keep the removed pizza tips background hooks');
+  });
+
   section('Chatbot demo manual warmup and views', () => {
     const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
     const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
@@ -2577,8 +2787,9 @@ try {
     assert(chatbotHtml.includes('id="backend-select"'), 'chatbot-demo missing backend selector');
     assert(chatbotHtml.includes('<option value="bedrock">Bedrock</option>'), 'chatbot-demo missing Bedrock backend option');
     assert(chatbotHtml.includes('<body data-chatbot-template="portfolio" data-mobile-layout="single-surface">'), 'chatbot-demo should identify the portfolio-aligned single-surface template');
-    assert(chatbotHtml.includes('color-scheme: dark;'), 'chatbot-demo should use the dark website-aligned color scheme');
-    assert(chatbotHtml.includes('--panel-raised: #1a2230;'), 'chatbot-demo missing raised panel token for website-aligned surfaces');
+    assert(chatbotHtml.includes('data-project-demo-theme="brand"'), 'chatbot-demo should opt into the shared project demo brand theme');
+    assert(chatbotHtml.includes('color-scheme: light;'), 'chatbot-demo should use the brand-light project demo color scheme');
+    assert(chatbotHtml.includes('--panel-raised: #ffffff;'), 'chatbot-demo missing raised panel token for brand-light surfaces');
     assert(chatbotHtml.includes('--chat-height: 100%;'), 'chatbot-demo mobile layout should let the grid own the remaining viewport height');
     assert(chatbotHtml.includes('body[data-chatbot-template="portfolio"] {\n      padding-top: 0;') &&
            chatbotHtml.includes('html[data-embedded="true"] body {\n      height: 100dvh;\n      overflow: hidden;') &&
@@ -2589,15 +2800,38 @@ try {
     assert(chatbotHtml.includes('html[data-embedded="true"] .chat-stage {\n        height: 100%;'), 'embedded chatbot should size the chat stage to the iframe content area');
     assert(projectGenerator.includes('project-embed-${embedProjectId.toLowerCase()}'), 'project generator should add project-specific embed classes');
     assert(projectGenerator.includes('data-project-embed="${escapeHtml(embedProjectId)}"'), 'project generator should mark embeds with project ids');
+    assert(projectGenerator.includes('function resolveEmbedFit(embed)') &&
+           projectGenerator.includes('data-embed-fit="${escapeHtml(fit)}"'),
+      'project generator should mark embed fit mode for natural iframe sizing');
     assert(projectCss.includes('.project-demo-panel .project-embed-chatbotlora'), 'project CSS should target the chatbot embed without affecting all demos');
     assert(projectCss.includes('.project-demo-shell:has(.project-embed-chatbotlora)') &&
-           projectCss.includes('height:clamp(500px, 64svh, 620px);'),
+           projectCss.includes('height:var(--project-demo-height, clamp(500px, 64svh, 620px));'),
       'chatbot embed should use a bounded mobile iframe height');
     assert(commonJs.includes('shouldAutoResizeProjectEmbed') &&
-           commonJs.includes("!ifr.closest('.project-embed-chatbotlora')") &&
+           commonJs.includes("projectEmbedFit(ifr) === 'content'") &&
+           commonJs.includes("return 'viewport';") &&
            commonJs.includes("ifr.setAttribute('scrolling', 'auto');"),
       'project iframe resizing should not auto-grow or disable scrolling on the chatbot embed');
+    assert(!commonJs.includes('bindProjectEmbedInteractionMode') &&
+           !commonJs.includes('project-embed-activation') &&
+           !commonJs.includes('Use demo') &&
+           !commonJs.includes('Return to page scrolling'),
+      'content-fit project iframes should not require a separate Use Demo activation layer');
+    assert(!projectCss.includes('.project-embed[data-embed-fit="content"]:not(.is-embed-active) .project-embed-frame') &&
+           !projectCss.includes('.project-embed-activation') &&
+           !projectCss.includes('.project-embed-exit'),
+      'content-fit project embeds should behave like normal inline page containers');
     assert(chatbotProject.demoInstructions.bullets.some((item) => item.includes('Bedrock is the default live backend')), 'chatbot project instructions should describe the current Bedrock default');
+    assert(chatbotProject.problem.includes('custom fine-tuned model') &&
+           chatbotProject.problem.includes('managed model'),
+      'chatbot project STAR situation should frame both custom LoRA and managed Bedrock model paths');
+    assert(chatbotProject.role.some((item) => item.includes('dual-backend demo') && item.includes('LoRA/SageMaker') && item.includes('Bedrock')),
+      'chatbot project STAR task should describe the dual-backend model comparison');
+    assert(chatbotProject.actions.some((item) => item.includes('LoRA') && item.includes('SageMaker')) &&
+           chatbotProject.actions.some((item) => item.includes('Bedrock backend') && item.includes('default live path')),
+      'chatbot project STAR actions should cover both the LoRA/SageMaker and Bedrock implementations');
+    assert(chatbotProject.results.some((item) => item.includes('Bedrock as the practical live production path') && item.includes('LoRA/SageMaker')),
+      'chatbot project STAR results should state both model architectures and their roles');
     assert(chatbotHtml.includes('id="qwen-startup-notice"'), 'chatbot-demo should show Qwen cold-start notice when Qwen is selected');
     assert(chatbotHtml.includes('function showQwenStartupNotice()'), 'chatbot-demo missing Qwen startup notice handler');
     assert(chatbotHtml.includes("if (selectedBackendId === 'qwen-sagemaker') showQwenStartupNotice();"), 'chatbot-demo should show the startup notice when switching to Qwen');
@@ -2649,6 +2883,13 @@ try {
     assert(chatbotHtml.includes('suggestions: []'), 'chatbot-demo should track shortcut buttons by context');
     assert(chatbotHtml.includes('followups: []'), 'chatbot-demo should track follow-up buttons by context');
     assert(chatbotHtml.includes('pendingFollowupContext: null'), 'chatbot-demo should store pending follow-up context');
+    assert(chatbotHtml.includes('const sharedConversation = {') &&
+           chatbotHtml.includes('get transcript()') &&
+           chatbotHtml.includes('get controller()') &&
+           chatbotHtml.includes('function syncMessagesFrom(sourceCtx') &&
+           chatbotHtml.includes('function syncPromptFrom(sourceCtx') &&
+           chatbotHtml.includes('sharedConversation.activeContextId = target;'),
+      'chatbot demo should share one conversation between regular and pop-up views');
     assert(chatbotHtml.includes('[...ctx.suggestions, ...ctx.followups].forEach(button =>'), 'chatbot-demo readiness updates should include shortcut and follow-up buttons');
     assert(chatbotHtml.includes('button.disabled = !serverReady;'), 'chatbot-demo shortcut buttons should be disabled until the server is ready');
     assert(chatbotHtml.includes('if (!serverReady) return;'), 'chatbot-demo shortcut click handlers should guard against cold server state');
@@ -2668,7 +2909,12 @@ try {
     assert(chatbotHtml.includes('width: 100%;'), 'chatbot-demo follow-up question buttons should span the response width');
     assert(chatbotHtml.includes("source: 'recommended_followup'"), 'chatbot-demo follow-up context should identify recommended follow-ups');
     assert(chatbotHtml.includes('body.followup_context = followupContext'), 'chatbot-demo should submit follow-up context to the API');
-    assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text, followupContext'), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
+    assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text, decodeFollowupContext(button));'), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
+    assert(chatbotHtml.includes('button.dataset.suggestionPrompt = text;') &&
+           chatbotHtml.includes('button.dataset.followupPrompt = text;') &&
+           chatbotHtml.includes('button.dataset.followupContext = JSON.stringify') &&
+           chatbotHtml.includes('bindSyncedMessageControls(ctx)'),
+      'chatbot demo should rehydrate synced shortcut and follow-up buttons after view switches');
     assert(chatbotHtml.includes('Plan a Grand Junction first day with Colorado National Monument and downtown'), 'chatbot-demo default prompts should target indexed Colorado National Monument and downtown content from a Grand Junction base');
     assert(chatbotHtml.includes('Build a Grand Junction weekend with Riverfront Trail, downtown, and local food'), 'chatbot-demo default prompts should target indexed Riverfront Trail, downtown, and restaurant content');
     assert(chatbotHtml.includes('Create a Grand Junction base-camp day trip to Grand Mesa lakes'), 'chatbot-demo default prompts should target indexed Grand Mesa content from a Grand Junction base');

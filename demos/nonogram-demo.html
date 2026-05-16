@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -7,7 +7,7 @@
   <title>Nonogram Solver Demo</title>
   <meta name="robots" content="noindex, nofollow">
 
-  <meta name="theme-color" content="#0D1117">
+  <meta name="theme-color" content="#F9F9FA">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,6 +24,11 @@
       --cell-size: clamp(38px, 6vw, 54px);
       --clue-size: clamp(70px, 10vw, 96px);
       --log-row-height: 36px;
+      --nonogram-grid-line: color-mix(in srgb, var(--brand-midnight, #091f3b) 28%, var(--brand-mist, #eef2f7) 72%);
+      --nonogram-cell-idle: #ffffff;
+      --nonogram-cell-filled: var(--brand-midnight, #091f3b);
+      --nonogram-cell-empty: color-mix(in srgb, var(--brand-mist, #eef2f7) 76%, #ffffff 24%);
+      --nonogram-empty-mark: color-mix(in srgb, var(--brand-slate, #475569) 52%, transparent);
     }
 
     * { box-sizing: border-box; }
@@ -333,38 +338,53 @@
       grid-template-columns: repeat(5, var(--cell-size));
       grid-template-rows: repeat(5, var(--cell-size));
       gap: 6px;
+      overflow: hidden;
+      border-radius: 10px;
+      outline: 1px solid var(--nonogram-grid-line);
+      background: var(--nonogram-grid-line);
     }
 
     .cell {
+      --nonogram-state-ring: 0 0 0 0 transparent;
+      position: relative;
       border-radius: 8px;
-      border: 1px solid color-mix(in srgb, var(--surface) 50%, #ffffff 50%);
-      background: color-mix(in srgb, var(--surface) 40%, #ffffff 60%);
+      border: 1px solid color-mix(in srgb, var(--brand-midnight, #091f3b) 18%, #ffffff 82%);
+      background: var(--nonogram-cell-idle);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 56%, transparent), var(--nonogram-state-ring);
       display: grid;
       place-items: center;
       font-size: .8rem;
       color: var(--text-muted);
-      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
 
     .cell--filled {
-      background: #0b0f14;
-      border-color: color-mix(in srgb, var(--primary) 55%, #000 45%);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 12%, transparent);
+      background: linear-gradient(180deg, var(--nonogram-cell-filled), color-mix(in srgb, var(--nonogram-cell-filled) 84%, #000 16%));
+      border-color: color-mix(in srgb, var(--primary) 42%, var(--nonogram-cell-filled) 58%);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 16%, transparent), var(--nonogram-state-ring);
       transform: scale(1.02);
     }
 
     .cell--empty {
-      background: #f6f8fb;
-      border-color: #c9d3e0;
-      color: #0b0f14;
+      background: var(--nonogram-cell-empty);
+      border-color: color-mix(in srgb, var(--brand-slate, #475569) 28%, #ffffff 72%);
+      color: var(--brand-midnight, #091f3b);
+    }
+
+    .cell--empty::after {
+      content: '';
+      width: clamp(5px, 18%, 8px);
+      height: clamp(5px, 18%, 8px);
+      border-radius: 50%;
+      background: var(--nonogram-empty-mark);
     }
 
     .cell--miss {
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 60%, transparent);
+      --nonogram-state-ring: 0 0 0 3px color-mix(in srgb, var(--danger) 62%, transparent);
     }
 
     .cell--duplicate {
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning) 70%, transparent);
+      --nonogram-state-ring: 0 0 0 3px color-mix(in srgb, var(--warning) 70%, transparent);
     }
 
     .panel {
@@ -518,13 +538,12 @@
         <h1 class="title">Nonogram Solver</h1>
         <p class="subtitle">Use the row and column clues (numbers show consecutive filled blocks) to fill the grid; the agent reveals a 5x5 puzzle one pick at a time.</p>
       </div>
+      <div class="header-actions">
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Warming up</span>
+      </div>
     </header>
 
-    <div class="health-row" role="status" aria-live="polite">
-      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
-    </div>
-
-    <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
+    <div class="status demo-meta-row" id="status">Ready. Generate a puzzle to begin.</div>
 
     <div class="content">
       <div class="board-column">

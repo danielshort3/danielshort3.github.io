@@ -36,7 +36,7 @@
     .nav-highlight-card,
     .nav-project-card,
     .project-pager-link,
-    .project-demo-tab
+    .project-demo-help-trigger
   ) {
     transition:
       transform var(--motion-base) var(--easing-standard),
@@ -58,7 +58,7 @@
     .nav-highlight-card,
     .nav-project-card,
     .project-pager-link,
-    .project-demo-tab
+    .project-demo-help-trigger
   ) {
     border-color: var(--interactive-border);
     color: var(--interactive-text);
@@ -78,7 +78,7 @@
     .nav-highlight-card,
     .nav-project-card,
     .project-pager-link,
-    .project-demo-tab
+    .project-demo-help-trigger
   ):focus-visible {
     outline: var(--focus-ring);
     outline-offset: 3px;
@@ -97,7 +97,7 @@
       .nav-highlight-card,
       .nav-project-card,
       .project-pager-link,
-      .project-demo-tab
+      .project-demo-help-trigger
     ):hover {
       transform: translateY(var(--hover-lift));
       box-shadow: var(--interactive-shadow-hover);
@@ -130,7 +130,7 @@
       .nav-highlight-card,
       .nav-project-card,
       .project-pager-link,
-      .project-demo-tab
+      .project-demo-help-trigger
     ) {
       transform: none !important;
     }
@@ -149,7 +149,7 @@
     .nav-highlight-card,
     .nav-project-card,
     .project-pager-link,
-    .project-demo-tab
+    .project-demo-help-trigger
   ) {
     background: var(--interactive-bg);
   }
@@ -166,7 +166,7 @@
     .nav-highlight-card:hover,
     .nav-project-card:hover,
     .project-pager-link:hover,
-    .project-demo-tab:hover
+    .project-demo-help-trigger:hover
   ) {
     background: var(--interactive-bg-hover);
   }
@@ -1620,7 +1620,7 @@
   }
 
   body[data-page="analytics"].home-pattern-page #about-me {
-    --home-section-art: url("../img/brand/analytics-skills-practice-bg.png");
+    --home-section-art: url("../img/brand/analytics-skills-practice-bg-02-balanced-wash.png");
   }
 
   body[data-page="analytics"].home-pattern-page #certifications {
@@ -1805,24 +1805,18 @@
     border-radius: 8px;
   }
 
-  .project-star-grid,
-  .project-demo-tabs,
   .project-pager {
     background: color-mix(in srgb, var(--brand-mist) 78%, #ffffff 22%);
     border-color: color-mix(in srgb, var(--brand-midnight) 10%, transparent);
   }
 
+  .project-demo-header {
+    background: #ffffff;
+    border-color: color-mix(in srgb, var(--brand-midnight) 10%, transparent);
+  }
+
   .project-star-label {
     color: var(--brand-deep-blue);
-  }
-
-  .project-demo-tab.is-active {
-    background: #ffffff;
-    border-color: var(--brand-signal-blue);
-  }
-
-  .project-demo-tab.is-active::after {
-    background: var(--brand-action-copper);
   }
 
   .resume-paper::before {
@@ -2358,6 +2352,13 @@
       line-height: 1.08;
       overflow-wrap: break-word;
       text-wrap: balance;
+    }
+
+    body .project-hero h1 {
+      font-size: 2.05rem;
+      line-height: 1.12;
+      overflow-wrap: anywhere;
+      text-wrap: wrap;
     }
 
     body .hero-tagline,

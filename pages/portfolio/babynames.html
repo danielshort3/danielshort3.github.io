@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/babynames.png">
   <meta name="twitter:image:alt" content="Preview image for Baby Name Predictor">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -239,113 +239,33 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-babynames-tab-instructions" aria-controls="project-demo-babynames-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-babynames-tab-demo" aria-controls="project-demo-babynames-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-babynames-panel-instructions" aria-labelledby="project-demo-babynames-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Explore rated names and similarity-based recommendations.</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-babynames-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-babynames-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Explore rated names and similarity-based recommendations.</p>
+            <ul class="project-demo-tooltip-list">
         <li>Choose Girls, Boys, or All at the top to change the dataset slice.</li>
         <li>In “Ratings Snapshot”, click a rating bar to see the names at that score.</li>
         <li>In “Name Explorer”, switch between Recommendations and Rated Names.</li>
         <li>Use search + sort to find names quickly.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="baby-names-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-babynames-panel-demo" aria-labelledby="project-demo-babynames-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe project-embed-babynames" data-project-embed="babynames">
-        <iframe class="project-embed-frame" data-src="baby-names-demo.html" title="Baby Name Predictor interactive demo" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-iframe project-embed-babynames" data-project-embed="babynames" data-embed-fit="content">
+        <iframe class="project-embed-frame" src="baby-names-demo.html" title="Baby Name Predictor interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
-      </div>
-    </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Data and Labeling</h3>
-        <p>I combined Social Security Administration name data with preference labels to build a personalized recommender.</p>
-        <ul>
-          <li>Aggregated SSA baby-name records (1880-present) and added recency/trend features so it doesn’t just recommend the most common names.</li>
-          <li>Focused on Colorado to keep suggestions closer to what my wife actually hears day to day.</li>
-          <li>Collected labels through quick quizzes so the model learns her taste over time.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Feature Engineering</h3>
-        
-        <ul>
-          <li>Name shape features: length, vowel/consonant mix, syllable count, start/end vowel flags, and entropy.</li>
-          <li>Popularity features: total count, peak year, and recent-count features to capture saturation and momentum.</li>
-          <li>A rough origin signal via `langdetect` as a lightweight proxy.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Modeling Strategy</h3>
-        
-        <ul>
-          <li>Trained multiple models (Random Forest, XGBoost, SVM, KNN, plus a deep learning baseline) with randomized hyperparameter search.</li>
-          <li>Optimized for weighted F1 to handle class imbalance in &#39;liked&#39; vs. &#39;not liked&#39; labels.</li>
-          <li>Averaged predictions across models to reduce quirks from any single model.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Recommendation Workflow</h3>
-        
-        <ul>
-          <li>Generated a ranked Top 50 list for boys and girls and exported results for easy review.</li>
-          <li>Designed the loop so new feedback becomes new training data.</li>
-          <li>Kept it explainable by surfacing which features correlated with higher predicted preference.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Collect more labels and add calibration so probabilities map to real acceptance rates.</li>
-          <li>Use name embeddings (character-level or phonetic) instead of hand-crafted features alone.</li>
-          <li>Add diversity constraints so recommendations aren’t overly similar to each other.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/baby-names-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Baby-Names" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_2.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDFs</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_2.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-      </div>
-      </div>
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://www.ssa.gov/oact/babynames/" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">SSA Baby Names Data</span></a>
-      </div>
-      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -380,7 +300,30 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/baby-names-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Baby-Names" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_2.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDFs</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_2.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://www.ssa.gov/oact/babynames/" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">SSA Baby Names Data</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">Uses SSA baby-name data plus personal quiz labels; recommendations are preference predictions, not a population forecast.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -519,7 +462,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

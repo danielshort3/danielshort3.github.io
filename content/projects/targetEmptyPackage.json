@@ -52,7 +52,7 @@
   "role": [
     "Built the Excel dashboard workflow (cleanup, drill-downs, and reporting)."
   ],
-  "notes": "Employee and location identifiers are anonymized in the write-up.",
+  "notes": "Employee and location identifiers are anonymized; the dashboard compares both incident count and retail value so hotspots are not judged by volume alone.",
   "problem": "Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.",
   "actions": [
     "Cleaned and anonymized 2021-2023 loss-prevention records into a dashboard-ready dataset.",
@@ -63,44 +63,6 @@
     "Identified a small set of locations, departments, and recovery paths driving disproportionate shrink.",
     "Made growth periods and hotspots visible enough for targeted review instead of broad manual scanning.",
     "Created a reusable BI workflow that can be refreshed and extended with anomaly alerts."
-  ],
-  "caseStudy": [
-    {
-      "title": "Problem",
-      "lead": "The team needed one decision-ready view of empty-package activity instead of separate logs and manual pivots.",
-      "bullets": [
-        "Hotspots were hard to compare across location, department, associate, and time.",
-        "Retail value and incident count told different stories and needed to be viewed together.",
-        "Public sharing required anonymization without losing the analytical pattern."
-      ]
-    },
-    {
-      "title": "Method",
-      "lead": "I turned messy loss-prevention logs into a governed Excel BI workflow with drill-downs and trend logic.",
-      "bullets": [
-        "Standardized dates, locations, departments, retail values, and quarter fields.",
-        "Built pivot-based drill-downs for both value and volume.",
-        "Added filters and trend views to separate persistent hotspots from one-off spikes."
-      ]
-    },
-    {
-      "title": "Result",
-      "lead": "The dashboard made concentrated risk visible and gave leaders clearer places to start investigation or prevention work.",
-      "bullets": [
-        "Two anonymized recovery locations stood out as hotspots.",
-        "A small number of departments and associates drove a disproportionate share of recoveries.",
-        "Quarterly trend views showed rapid growth periods worth investigating."
-      ]
-    },
-    {
-      "title": "So What",
-      "lead": "This is a BI example of making recurring operational questions easier to answer with the same definitions every time.",
-      "bullets": [
-        "Stakeholders can compare value, count, time, and category without rebuilding the analysis.",
-        "The same structure could support scheduled refreshes, control charts, and anomaly alerts.",
-        "Employee and location identifiers remain anonymized in the public write-up."
-      ]
-    }
   ],
   "order": 6
 }

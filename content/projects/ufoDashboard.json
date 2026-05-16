@@ -50,40 +50,6 @@
     "In this dataset, reports are most common in the evening/night hours (and shift seasonally with daylight).",
     "California has the most reports in the dataset, while many central states have fewer."
   ],
-  "caseStudy": [
-    {
-      "title": "Dashboard Design",
-      "lead": "I built a one-page Tableau dashboard to explore sightings by place, time, and reported shape.",
-      "bullets": [
-        "Maps: state and city views to compare hotspots at different levels.",
-        "Time: a month/hour heatmap to spot seasonal and time-of-day patterns.",
-        "Shapes: a breakdown of common shapes and how they change over the year."
-      ]
-    },
-    {
-      "title": "Data Preparation",
-      "bullets": [
-        "Standardized location fields so points map consistently.",
-        "Normalized timestamps so reports compare cleanly by month and hour.",
-        "Cleaned shape labels to reduce duplicates from spelling and formatting."
-      ]
-    },
-    {
-      "title": "Insights and Interpretation",
-      "bullets": [
-        "Reports cluster in the evening/night hours in this dataset.",
-        "The peak hour shifts with daylight (later in summer, earlier in winter).",
-        "California stands out in volume; central regions are lower."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Normalize by population (per-capita rates), especially for smaller areas.",
-        "Add filters for year, duration, and report quality.",
-        "Surface data-quality issues (missing locations, unclear shapes) in the UI."
-      ]
-    }
-  ],
-  "order": 4
+  "order": 4,
+  "notes": "The dashboard uses reported UFO sightings without population normalization, so patterns should be read as report volume, not incidence rates."
 }

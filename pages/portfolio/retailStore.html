@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/retailStore.png">
   <meta name="twitter:image:alt" content="Preview image for Store-Level Loss &amp; Sales ETL">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -241,98 +241,33 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-retailStore-tab-instructions" aria-controls="project-demo-retailStore-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-retailStore-tab-demo" aria-controls="project-demo-retailStore-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-retailStore-panel-instructions" aria-labelledby="project-demo-retailStore-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Compare store-level incident signals against sales metrics using tabs and filters.</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-retailStore-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-retailStore-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Compare store-level incident signals against sales metrics using tabs and filters.</p>
+            <ul class="project-demo-tooltip-list">
         <li>Pick a region to filter incidents and trends.</li>
         <li>Switch sales metrics (Total, Online, Drive-up) to change the sales view.</li>
         <li>Switch incident metrics (Count vs. Proven $) to change the incident view.</li>
         <li>Use “Reset view” to return to the default slice.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="retail-loss-sales-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-retailStore-panel-demo" aria-labelledby="project-demo-retailStore-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe project-embed-retailstore" data-project-embed="retailStore">
-        <iframe class="project-embed-frame" data-src="retail-loss-sales-demo.html" title="Store-Level Loss &amp; Sales ETL interactive demo" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-iframe project-embed-retailstore" data-project-embed="retailStore" data-embed-fit="content">
+        <iframe class="project-embed-frame" src="retail-loss-sales-demo.html" title="Store-Level Loss &amp; Sales ETL interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
-      </div>
-    </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Problem</h3>
-        <p>Security, loss, and sales signals were spread across separate tables, which made it hard to see where action should start.</p>
-        <ul>
-          <li>Incident volume alone hid severity differences.</li>
-          <li>Sales context mattered because high-volume stores can look risky without normalization.</li>
-          <li>Stakeholders needed a shortlist they could investigate, not another broad dashboard.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Method</h3>
-        <p>I built the repeatable analytics layer first, then used dashboards and anomaly detection to turn the data into review queues.</p>
-        <ul>
-          <li>Joined incident, sales, and employee tables in SQL and created reusable KPI views.</li>
-          <li>Standardized date, region, state, store format, and severity definitions across outputs.</li>
-          <li>Compared stores against peer baselines to separate normal volume from unusual risk.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Result</h3>
-        <p>The output made hotspots easier to explain and helped direct investigations toward the most actionable patterns.</p>
-        <ul>
-          <li>Supported a 24% inventory loss reduction through analytics-driven follow-up.</li>
-          <li>Helped improve theft reporting by 57.6% after dashboard and workflow redesign.</li>
-          <li>Flagged outlier stores and patterns while keeping identifiers anonymized for public sharing.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>So What</h3>
-        <p>The value was not just a dashboard; it was a repeatable operating workflow for turning loss signals into prioritized action.</p>
-        <ul>
-          <li>Leaders could compare risk by location, time, and severity with consistent definitions.</li>
-          <li>Investigations started with ranked evidence instead of manual table review.</li>
-          <li>Future versions could add weekly alerts, investigation status, and normalization by traffic or shipments.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/target-packaging-analysis-mssql" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_12.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_12.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/retail-loss-sales-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-      </div>
-      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -368,9 +303,23 @@
         </div>
       </dl>
     </section>
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/target-packaging-analysis-mssql" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_12.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_12.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/retail-loss-sales-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
 			        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
-      <p class="project-lead">Store, state, and employee identifiers are anonymized in the case study.</p>
+      <p class="project-lead">Store, state, and employee identifiers are anonymized; risk rankings normalize incident signals with sales context so high-volume stores are not treated as high-risk by volume alone.</p>
     </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
@@ -510,7 +459,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

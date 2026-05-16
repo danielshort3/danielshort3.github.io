@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/sheetMusicUpscale.png">
   <meta name="twitter:image:alt" content="Preview image for Sheet Music Watermark Removal &amp; Upscale">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -239,81 +239,22 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <div class="project-media project-video">
+			        <section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Project Preview</h2>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            <div class="project-media project-video">
       <video class="project-video-frame" controls autoplay muted loop playsinline preload="metadata" poster="img/projects/sheetMusicUpscale.png" aria-label="Sheet Music Watermark Removal &amp; Upscale video">
         <source src="img/projects/sheetMusicUpscale.webm" type="video/webm">
           <source src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
       </video>
     </div>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>End-to-End Pipeline</h3>
-        <p>One workflow: pull pages, clean them up, upscale them, and rebuild the PDF.</p>
-        <ul>
-          <li>Input: low-resolution, watermarked page images.</li>
-          <li>Step 1: remove watermark artifacts with a UNet model.</li>
-          <li>Step 2: upscale with VDSR for print-friendly pages.</li>
-          <li>Output: cleaned images compiled into a PDF.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Modeling Choices</h3>
-        
-        <ul>
-          <li>UNet handles local watermark artifacts while preserving staff lines and note heads.</li>
-          <li>VDSR improves readability when starting from low-resolution scans.</li>
-          <li>Saved model weights so the pipeline runs without retraining.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>GUI and Automation</h3>
-        
-        <ul>
-          <li>Built a PyQt5 GUI to scrape, process, and compile pages without running a notebook.</li>
-          <li>Used background worker threads so the UI stays responsive during batches.</li>
-          <li>Designed it for repeat use: new songs in, clean PDFs out.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Performance and Reliability</h3>
-        
-        <ul>
-          <li>Kept it fast enough for real use (seconds per page on a modern machine; varies by hardware and page size).</li>
-          <li>Added sensible defaults and a simple flow so it runs without tuning.</li>
-          <li>Kept steps modular so either model can be swapped or improved later.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Add tiled inference for very large pages and better memory usage.</li>
-          <li>Measure quality with objective metrics (PSNR/SSIM) and small human readability tests.</li>
-          <li>Explore more modern restoration approaches for better note/staff preservation.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Watermark-Remover" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_10_pdf.zip"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDFs</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_10.zip"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-      </div>
-      </div>
+          </div>
+        </section>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -347,7 +288,23 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Watermark-Remover" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_10_pdf.zip"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDFs</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_10.zip"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">Designed for low-resolution, watermarked page images; output quality depends on scan quality and staff-line preservation.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -486,7 +443,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

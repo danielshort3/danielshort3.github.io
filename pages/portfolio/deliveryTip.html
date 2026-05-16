@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/deliveryTip.png">
   <meta name="twitter:image:alt" content="Preview image for Delivery Tip">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -238,69 +238,21 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <picture class="project-media">
+			        <section class="project-demo-shell project-preview-shell" data-demo-fit="fixed" aria-label="Project preview">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Project Preview</h2>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            <picture class="project-media">
         <source srcset="img/projects/deliveryTip-640.avif 640w, img/projects/deliveryTip.avif 960w" type="image/avif">
         <source srcset="img/projects/deliveryTip-640.webp 640w, img/projects/deliveryTip.webp 960w" type="image/webp">
         <img src="img/projects/deliveryTip.png" alt="Preview image for Delivery Tip" loading="eager" decoding="async" width="960" height="794" sizes="(max-width: 960px) 92vw, 840px" fetchpriority="high">
       </picture>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Dataset and Cleaning</h3>
-        <p>I analyzed delivery tickets and built an Excel workflow that drivers can keep updating.</p>
-        <ul>
-          <li>Normalized timestamps and derived delivery time (minutes) and tip percentage.</li>
-          <li>Standardized location fields (city and neighborhood) for mapping and rollups.</li>
-          <li>Used Power Query so refresh doesn&#39;t require manual cleanup.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Geo-Analytics Dashboard</h3>
-        
-        <ul>
-          <li>Built a tip heatmap by neighborhood to spot strong zones.</li>
-          <li>Added pivot filters for housing type, gated communities, city, and order size.</li>
-          <li>Added weekday and shift-level summaries for scheduling.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Key Findings</h3>
-        
-        <ul>
-          <li>Mid-week shifts tended to have higher tips per delivery, while Friday evenings tended to have higher tips per hour.</li>
-          <li>Tips varied a lot by housing type and neighborhood, which helped with zone choices.</li>
-          <li>Tracked baseline stats (average tip and delivery time) to measure changes over time.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Add distance and drive-time estimates to separate &#39;better zones&#39; from &#39;shorter routes&#39;.</li>
-          <li>Control for order size to avoid confusing high tips with high bills.</li>
-          <li>Turn insights into a simple &#39;where to go next&#39; recommendation view for live shifts.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="documents/Project_11.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_11.xlsx"><img class="project-link-icon" src="img/icons/excel-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Excel</span></a>
-      </div>
-      </div>
+          </div>
+        </section>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -335,7 +287,22 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="documents/Project_11.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_11.xlsx"><img class="project-link-icon" src="img/icons/excel-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Excel</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">The Excel workflow is built from personal delivery-ticket history, so the findings are useful for shift planning but not intended as a universal tipping model.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -474,7 +441,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

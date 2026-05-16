@@ -60,40 +60,6 @@
     "High accuracy on a five-shape subset (results vary by split and drawing style): circle, triangle, square, hexagon, and octagon.",
     "Predictions return quickly once the Lambda container is warm; cold starts can take longer."
   ],
-  "caseStudy": [
-    {
-      "title": "Data and Training",
-      "lead": "I trained a small classifier on Google’s QuickDraw sketches to recognize five basic shapes from a simple black-and-white drawing.",
-      "bullets": [
-        "Built class-balanced train/validation splits from QuickDraw categories.",
-        "Used ResNet18 to keep the model small and fast.",
-        "Exported plain weights (`model.pt`) so inference stays simple."
-      ]
-    },
-    {
-      "title": "Inference API",
-      "bullets": [
-        "Implemented an AWS Lambda handler that takes a base64 image and returns a class plus confidence.",
-        "Kept the API browser-friendly (CORS and small JSON payloads).",
-        "Ran CPU-only inference so it works well in serverless environments."
-      ]
-    },
-    {
-      "title": "Demo UX",
-      "bullets": [
-        "Canvas drawing UI with a clear submit step and a confidence bar.",
-        "Clear status messaging during warm-up and cold starts.",
-        "Preprocessing tuned so messy real-world strokes still work."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Calibrate confidence (for example, temperature scaling) so scores are more reliable.",
-        "Expand to more shapes and add augmentation for stroke width and incomplete outlines.",
-        "Create a small human-drawn validation set to measure real-world performance."
-      ]
-    }
-  ],
-  "order": 3
+  "order": 3,
+  "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task."
 }

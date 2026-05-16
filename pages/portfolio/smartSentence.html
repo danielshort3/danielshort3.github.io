@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/smartSentence.png">
   <meta name="twitter:image:alt" content="Preview image for Smart Sentence Retriever">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -242,113 +242,33 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-smartSentence-tab-instructions" aria-controls="project-demo-smartSentence-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-smartSentence-tab-demo" aria-controls="project-demo-smartSentence-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-smartSentence-panel-instructions" aria-labelledby="project-demo-smartSentence-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-smartSentence-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-smartSentence-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
+            <ul class="project-demo-tooltip-list">
         <li>Type a query (a phrase or full sentence).</li>
         <li>Adjust “Top results” to control how many matches are returned.</li>
         <li>Click “Find Sentences” and review the ranked semantic matches.</li>
         <li>If the demo is warming up after idle time, wait for the status to turn ready and try again.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="sentence-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-smartSentence-panel-demo" aria-labelledby="project-demo-smartSentence-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe project-embed-smartsentence" data-project-embed="smartSentence">
-        <iframe class="project-embed-frame" data-src="sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-iframe project-embed-smartsentence" data-project-embed="smartSentence" data-embed-fit="content">
+        <iframe class="project-embed-frame" src="sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
-      </div>
-    </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>System Design</h3>
-        <p>This uses a fixed Alice in Wonderland corpus: embed each sentence once, then embed each query and rank by cosine similarity.</p>
-        <ul>
-          <li>Offline: clean the text, split it into sentences, and cache the sentence embeddings.</li>
-          <li>Online: embed the query, score against the cached matrix, and return the top-k matches with scores.</li>
-          <li>Frontend: check `/health` before submit, call `/rank`, and render the ranked results in an embeddable demo.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Model Selection</h3>
-        
-        <ul>
-          <li>Compared several embedding models using silhouette score on a small sample as a rough clustering heuristic.</li>
-          <li>Balanced retrieval quality against model size, memory footprint, and cold-start cost.</li>
-          <li>Kept the corpus, sample, and k range fixed so the comparisons were consistent.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Serverless Deployment</h3>
-        
-        <ul>
-          <li>Built a Lambda container with CPU PyTorch, FastAPI/Mangum, and the precomputed artifacts.</li>
-          <li>Used the plain Hugging Face stack (no sentence-transformers) to keep the deployment smaller.</li>
-          <li>Exposed a Lambda Function URL with CORS plus a lightweight `/health` and `/rank` contract for the site demo.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Demo and Site Integration</h3>
-        
-        <ul>
-          <li>Used the shared demo AWS client for endpoint resolution, retry logic, and warm-up polling.</li>
-          <li>Kept the embedded iframe responsive by posting resize messages back to the project page.</li>
-          <li>Supported both inline demo tabs and a separate-tab fallback from the portfolio page.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Let users upload documents and build embeddings in the background.</li>
-          <li>Add ANN search (HNSW/FAISS) for bigger corpora and faster top-k.</li>
-          <li>Add a small labeled set and evaluate with metrics like nDCG@k.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_13.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_13.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-      </div>
-      </div>
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://www.gutenberg.org/ebooks/11" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Corpus (Project Gutenberg)</span></a>
-      </div>
-      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -382,6 +302,26 @@
           </dd>
         </div>
       </dl>
+    </section>
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_13.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_13.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://www.gutenberg.org/ebooks/11" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Corpus (Project Gutenberg)</span></a>
+      </div>
+      </div>
+      </div>
     </section>
 			        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
@@ -525,7 +465,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>
