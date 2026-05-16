@@ -35,7 +35,10 @@
   ],
   "embed": {
     "type": "iframe",
-    "url": "chatbot-demo.html"
+    "url": "chatbot-demo.html",
+    "fit": "viewport",
+    "minHeight": 620,
+    "maxHeight": 860
   },
   "demoInstructions": {
     "lead": "Ask a question and get an answer grounded in the site content (with citations).",
@@ -47,53 +50,20 @@
     ]
   },
   "role": [
-    "Built the prototype from crawl to deployment, including the web demo."
+    "Built the prototype from crawl to deployment, then expanded it into a dual-backend demo comparing a custom LoRA/SageMaker model with a live Bedrock model."
   ],
-  "notes": "Uses public Visit Grand Junction pages. Answers include citations.",
-  "problem": "Off-the-shelf chatbots didn't sound like Visit Grand Junction, and they rarely pointed people to our pages.",
+  "notes": "Uses public Visit Grand Junction pages; retrieval provides citation links, and cold-start checks are part of the deployed demo.",
+  "problem": "The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly with citations.",
   "actions": [
-    "Crawled Visit Grand Junction pages and built a FAISS retrieval index.",
-    "Generated a fine-tuning dataset by prompting an open-source LLM locally (via Ollama) to create Q&A pairs from the corpus.",
-    "Fine-tuned Mistral 7B with LoRA on the Q&A set and deployed it to AWS SageMaker.",
-    "Added Lambda endpoints so the website can talk to the model."
+    "Crawled Visit Grand Junction pages, built a FAISS retrieval index, and generated a tourism-specific Q&A dataset with an open-source LLM through Ollama.",
+    "Fine-tuned a Mistral 7B/Qwen-style chatbot path with LoRA and deployed the custom model behind AWS SageMaker/Lambda for cold-start and model-control comparison.",
+    "Added a Bedrock backend as the default live path, keeping the same RAG/citation experience while providing faster always-available responses for the website demo.",
+    "Built the web interface, backend selector, health checks, warm-up state, streaming answer handling, and citation rendering so both models can be compared in one demo."
   ],
   "results": [
-    "The demo defaults to a live Bedrock backend with citation links, while Qwen / SageMaker remains available for cold-start comparison."
-  ],
-  "caseStudy": [
-    {
-      "title": "System Design",
-      "lead": "Pipeline: crawl, index, generate training data, LoRA fine-tune, then deploy behind an API the site can call.",
-      "bullets": [
-        "Ingestion: crawl pages and store cleaned text chunks.",
-        "Retrieval: use FAISS so answers can cite the right source passages.",
-        "Fine-tuning: train Mistral 7B with LoRA on auto-generated Q&A pairs."
-      ]
-    },
-    {
-      "title": "Dataset Generation",
-      "bullets": [
-        "Used an open-source LLM via Ollama to turn crawled content into Q&A pairs.",
-        "Automated crawling, indexing, dataset generation, and fine-tuning so runs are repeatable.",
-        "Kept it Docker-friendly so I could run locally and deploy the same artifacts."
-      ]
-    },
-    {
-      "title": "Serving and Deployment",
-      "bullets": [
-        "Merged the LoRA adapter into a 4-bit model and served it with FastAPI.",
-        "Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.",
-        "Added status checks and user-facing messaging to handle cold starts after idle time."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Add basic eval for retrieval quality and citation accuracy.",
-        "Cache common questions and stream tokens to make replies feel faster.",
-        "Add stronger guardrails against prompt injection."
-      ]
-    }
+    "The project now demonstrates both architectures: Bedrock as the practical live production path and LoRA/SageMaker as the custom fine-tuning path.",
+    "Viewers can compare managed-model reliability, streaming responses, and citation behavior against the custom model's cold-start and deployment tradeoffs.",
+    "The demo keeps source-grounded answers and citation links while making the model choice transparent through the backend selector."
   ],
   "order": 2
 }

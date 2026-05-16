@@ -27,22 +27,12 @@
     "What changed (1).",
     "What changed (2)."
   ],
+  notes: "Only include a concise note when context is essential.",
   resources: [
     {
       label: "Live demo",
       url: "https://example.com",
       icon: "img/ui/logo-32.png"
     }
-  ],
-  caseStudy: [
-    {
-      title: "What this was",
-      lead: "Short overview paragraph.",
-      bullets: [
-        "Bullet (1).",
-        "Bullet (2)."
-      ]
-    }
   ]
 }
-

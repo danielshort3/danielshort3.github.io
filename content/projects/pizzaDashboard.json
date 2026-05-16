@@ -50,43 +50,6 @@
     "Made zone, city, housing-type, tip-rate, and timing differences easier to compare in one view.",
     "Added forecasting so the dashboard supports planning instead of only retrospective review."
   ],
-  "caseStudy": [
-    {
-      "title": "Problem",
-      "lead": "The raw delivery history had useful signals, but it was too slow to compare zones, timing, and tip patterns during planning.",
-      "bullets": [
-        "Average tip alone did not explain whether a zone was efficient.",
-        "City, housing type, date, and timing all affected the decision.",
-        "The dashboard needed to stay simple enough to use before or during a shift."
-      ]
-    },
-    {
-      "title": "Method",
-      "lead": "I shaped the data for Tableau and built views around the practical comparisons that mattered most.",
-      "bullets": [
-        "Reshaped about 12,000 rows into a tidy table with consistent dates, zones, cities, and housing types.",
-        "Defined KPIs for tip dollars, tip percentage, delivery time, and tip efficiency.",
-        "Added maps, distributions, filters, and a 12-month forecast to support both review and planning."
-      ]
-    },
-    {
-      "title": "Result",
-      "lead": "The dashboard made shift and zone review faster while giving enough context to explain why zones performed differently.",
-      "bullets": [
-        "Cut delivery decision review from roughly five minutes to about one minute.",
-        "Made zone, city, and housing-type differences visible without switching files.",
-        "Supported planning with forecasted tip patterns and filterable comparisons."
-      ]
-    },
-    {
-      "title": "So What",
-      "lead": "The project demonstrates the analyst skill of turning personal operational data into a lightweight decision system.",
-      "bullets": [
-        "The same pattern applies to staffing, demand, territory, and route-performance dashboards.",
-        "Future versions should add distance, drive time, acceptance rate, and deadhead time.",
-        "A mobile-first layout would make the dashboard stronger for on-shift use."
-      ]
-    }
-  ],
-  "order": 14
+  "order": 14,
+  "notes": "Built from delivery history; tip efficiency should be interpreted with zone and timing context rather than average tip alone."
 }

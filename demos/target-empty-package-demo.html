@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
   <title>Empty-Package Shrink Explorer</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#0D1117" />
+  <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,14 +17,14 @@
       --radius-md: 14px;
       --radius-sm: 10px;
       --page-pad: clamp(12px, 3vw, 24px);
-      --shadow-1: 0 6px 18px rgba(0,0,0,.25);
-      --shadow-2: 0 18px 40px rgba(0,0,0,.45);
+      --shadow-1: 0 6px 18px rgba(9,31,59,.08);
+      --shadow-2: 0 18px 40px rgba(9,31,59,.14);
       --surface-2: color-mix(in srgb, var(--surface) 88%, #000 12%);
       --surface-3: color-mix(in srgb, var(--surface) 80%, #000 20%);
       --text: var(--text-light);
       --muted: var(--text-muted);
-      --accent: color-mix(in srgb, var(--primary) 70%, #7be9e0 30%);
-      --accent-strong: color-mix(in srgb, var(--primary) 85%, #8ffff0 15%);
+      --accent: var(--brand-signal-blue, var(--primary));
+      --accent-strong: var(--brand-deep-blue, #0145C8);
       --accent-soft: color-mix(in srgb, var(--primary) 18%, transparent);
       --chart-grid: color-mix(in srgb, var(--surface) 75%, #ffffff 25%);
       --chart-line: color-mix(in srgb, var(--primary) 70%, #bffcf2 30%);
@@ -54,9 +54,9 @@
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(900px 460px at 8% -12%, color-mix(in srgb, var(--primary) 28%, transparent), transparent 62%),
-        radial-gradient(680px 380px at 100% 0%, color-mix(in srgb, var(--warning) 22%, transparent), transparent 68%),
-        linear-gradient(140deg, #0b141d, #0b1218 55%, #0e1822 100%);
+        radial-gradient(900px 460px at 8% -12%, color-mix(in srgb, var(--primary) 13%, transparent), transparent 62%),
+        radial-gradient(680px 380px at 100% 0%, color-mix(in srgb, var(--warning) 10%, transparent), transparent 68%),
+        var(--bg);
       display: grid;
       place-items: start center;
       padding: var(--page-pad);
@@ -264,58 +264,124 @@
 
     .exec-panel {
       grid-column: 1 / -1;
+      background: #ffffff;
+      border-color: color-mix(in srgb, var(--brand-signal-blue, var(--primary)) 18%, var(--surface-accent) 82%);
+      box-shadow: var(--shadow-1);
+    }
+
+    .exec-panel .panel-title {
+      padding-bottom: 2px;
     }
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .kpi-card {
-      padding: 14px;
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card {
+      --kpi-accent: var(--brand-signal-blue, var(--primary));
+      position: relative;
+      overflow: hidden;
+      padding: 14px 14px 14px 16px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      border: 1px solid color-mix(in srgb, var(--kpi-accent) 20%, var(--surface-accent) 80%);
+      background:
+        linear-gradient(135deg,
+          color-mix(in srgb, var(--kpi-accent) 7%, #ffffff 93%),
+          #ffffff 54%);
       display: grid;
       gap: 6px;
-      min-height: 92px;
+      align-content: start;
+      min-height: 108px;
+      box-shadow: 0 8px 18px rgba(9, 31, 59, 0.08);
     }
 
-    .kpi-card.is-primary {
-      background: color-mix(in srgb, var(--primary) 22%, var(--surface) 78%);
-      border-color: color-mix(in srgb, var(--primary) 45%, var(--surface-accent) 55%);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--kpi-accent);
     }
 
-    .kpi-label {
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg,
+        color-mix(in srgb, var(--kpi-accent) 82%, #ffffff 18%),
+        color-mix(in srgb, var(--kpi-accent) 18%, transparent));
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card.is-primary {
+      background:
+        linear-gradient(135deg,
+          color-mix(in srgb, var(--kpi-accent) 12%, #ffffff 88%),
+          #ffffff 52%);
+      border-color: color-mix(in srgb, var(--kpi-accent) 38%, transparent);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="change"] {
+      --kpi-accent: var(--brand-action-copper, #D97706);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="incidents"] {
+      --kpi-accent: var(--brand-risk, #B91C1C);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="average"] {
+      --kpi-accent: var(--brand-success, #166534);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="hotspot"] {
+      --kpi-accent: var(--brand-deep-blue, #0145C8);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="largest"] {
+      --kpi-accent: var(--brand-action-copper, #D97706);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-label {
       font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--muted);
+      color: color-mix(in srgb, var(--kpi-accent) 58%, var(--brand-midnight, var(--text)) 42%);
+      font-weight: 600;
     }
 
-    .kpi-value {
-      font-size: 1.35rem;
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-value {
+      min-width: 0;
+      font-size: clamp(1.16rem, 2vw, 1.5rem);
       font-weight: 600;
       letter-spacing: 0.01em;
+      line-height: 1.18;
+      color: var(--brand-midnight, var(--text));
+      overflow-wrap: anywhere;
     }
 
-    .kpi-value[data-trend="up"] {
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="hotspot"] .kpi-value,
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-card[data-kpi="largest"] .kpi-value {
+      font-size: clamp(1.02rem, 1.6vw, 1.28rem);
+    }
+
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-value[data-trend="up"] {
       color: var(--success, #38b37e);
     }
 
-    .kpi-value[data-trend="down"] {
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-value[data-trend="down"] {
       color: var(--danger, #e05757);
     }
 
-    .kpi-value[data-trend="flat"] {
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-value[data-trend="flat"] {
       color: color-mix(in srgb, var(--muted) 80%, #ffffff 20%);
     }
 
-    .kpi-sub {
+    html[data-project-demo-theme="brand"] .exec-panel .kpi-sub {
       font-size: 0.72rem;
       color: var(--muted);
+      line-height: 1.4;
     }
 
     .stat-grid {
@@ -543,6 +609,12 @@
       }
     }
 
+    @media (max-width: 820px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
     @media (max-width: 600px) {
       header.card-header {
         padding: 14px;
@@ -552,6 +624,12 @@
       }
       .content {
         padding: 14px;
+      }
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      html[data-project-demo-theme="brand"] .exec-panel .kpi-card {
+        min-height: 96px;
       }
       svg {
         height: 200px;
@@ -586,15 +664,13 @@
         <p class="subtitle">Executive KPIs and aggregated drilldowns highlight concentration and acceleration.</p>
       </div>
       <div class="header-actions">
+        <span class="health-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Loading</span>
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset filters</button>
       </div>
     </header>
 
-    <div class="health-row" role="status" aria-live="polite">
-      <span class="health-pill" id="status-pill" data-state="warming">Loading</span>
-    </div>
-    <div class="status-row">
+    <div class="status-row demo-meta-row">
       <span class="status-meta" id="status-meta">Loading anonymized data...</span>
       <span class="status-note">Employee and location identifiers are anonymized.</span>
     </div>
@@ -606,32 +682,32 @@
           <span class="meta-chip" id="kpi-meta">All records</span>
         </div>
         <div class="kpi-grid">
-          <div class="kpi-card is-primary">
+          <div class="kpi-card is-primary" data-kpi="value">
             <div class="kpi-label">Recovered Value</div>
             <div class="kpi-value" id="kpi-total">--</div>
             <div class="kpi-sub" id="kpi-total-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="change">
             <div class="kpi-label">QoQ Change</div>
             <div class="kpi-value" id="kpi-qoq" data-trend="flat">--</div>
             <div class="kpi-sub" id="kpi-qoq-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="incidents">
             <div class="kpi-label">Incidents</div>
             <div class="kpi-value" id="kpi-incidents">--</div>
             <div class="kpi-sub" id="kpi-incidents-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="average">
             <div class="kpi-label">Avg Recovery</div>
             <div class="kpi-value" id="kpi-avg">--</div>
             <div class="kpi-sub" id="kpi-avg-sub">Per incident</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="hotspot">
             <div class="kpi-label">Top Hotspot</div>
             <div class="kpi-value" id="kpi-hotspot">--</div>
             <div class="kpi-sub" id="kpi-hotspot-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="largest">
             <div class="kpi-label">Largest Single Recovery</div>
             <div class="kpi-value" id="kpi-largest">--</div>
             <div class="kpi-sub" id="kpi-largest-sub">--</div>

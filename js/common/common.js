@@ -1072,18 +1072,83 @@
     }
   });
 
-  const PROJECT_EMBED_HEIGHT_BUFFER_PX = 2;
+  const PROJECT_EMBED_MIN_HEIGHT_PX = 360;
+  const PROJECT_EMBED_MAX_HEIGHT_PX = 5000;
+  const PROJECT_EMBED_RESIZE_TYPE_RE = /(?:^portfolio-demo:resize$|-demo-resize$)/;
+
+  const projectEmbedForFrame = (ifr) => (
+    ifr ? ifr.closest('.project-embed') : null
+  );
+
+  const projectEmbedFit = (ifr) => {
+    const embed = projectEmbedForFrame(ifr);
+    const fit = String(embed?.dataset?.embedFit || '').trim().toLowerCase();
+    if (['content', 'viewport', 'dashboard', 'fixed'].includes(fit)) return fit;
+    if (embed?.classList?.contains('project-embed-tableau')) return 'dashboard';
+    if (embed?.classList?.contains('project-embed-chatbotlora')) return 'viewport';
+    return 'content';
+  };
+
+  const readPositiveNumber = (value, fallback) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : fallback;
+  };
+
+  const projectEmbedHeightLimits = (ifr) => {
+    const embed = projectEmbedForFrame(ifr);
+    const min = readPositiveNumber(embed?.dataset?.embedMinHeight, PROJECT_EMBED_MIN_HEIGHT_PX);
+    const max = readPositiveNumber(embed?.dataset?.embedMaxHeight, PROJECT_EMBED_MAX_HEIGHT_PX);
+    return {
+      min: Math.max(1, Math.floor(min)),
+      max: Math.max(Math.floor(min), Math.floor(max))
+    };
+  };
+
   const shouldAutoResizeProjectEmbed = (ifr) => (
-    !!ifr && !ifr.closest('.project-embed-chatbotlora')
+    !!ifr && projectEmbedFit(ifr) === 'content'
   );
 
   const setProjectEmbedIframeHeight = (ifr, height) => {
     if (!shouldAutoResizeProjectEmbed(ifr)) return;
     if (!Number.isFinite(height) || height <= 0) return;
-    // Round up with a small buffer to avoid 1-2px inner scrollbars from sub-pixel layout.
-    const next = `${Math.ceil(height + PROJECT_EMBED_HEIGHT_BUFFER_PX)}px`;
-    if (ifr.style.height === next) return;
+    const { min, max } = projectEmbedHeightLimits(ifr);
+    const measured = Math.ceil(height);
+    const constrained = Math.min(max, Math.max(min, measured));
+    const next = `${constrained}px`;
+    const embed = projectEmbedForFrame(ifr);
+    if (ifr.style.height === next && embed?.style?.getPropertyValue('--project-demo-height') === next) return;
     ifr.style.height = next;
+    if (embed) embed.style.setProperty('--project-demo-height', next);
+  };
+
+  const measureProjectEmbedDocumentHeight = (doc) => {
+    if (!doc) return 0;
+    const body = doc.body;
+    const docEl = doc.documentElement;
+    if (body) {
+      let marginY = 0;
+      try {
+        const style = doc.defaultView?.getComputedStyle?.(body);
+        const marginTop = Number.parseFloat(style?.marginTop || '0');
+        const marginBottom = Number.parseFloat(style?.marginBottom || '0');
+        marginY = (Number.isFinite(marginTop) ? marginTop : 0) + (Number.isFinite(marginBottom) ? marginBottom : 0);
+      } catch {}
+      let rectHeight = 0;
+      try {
+        rectHeight = body.getBoundingClientRect().height + marginY;
+      } catch {}
+      const bodyHeight = Math.max(
+        body.scrollHeight || 0,
+        body.offsetHeight || 0,
+        rectHeight || 0
+      );
+      if (bodyHeight > 0) return bodyHeight;
+    }
+    if (!docEl) return 0;
+    return Math.max(
+      docEl.scrollHeight || 0,
+      docEl.offsetHeight || 0
+    );
   };
 
   const resizeProjectEmbedIframe = (ifr) => {
@@ -1091,15 +1156,7 @@
     try {
       const doc = ifr.contentDocument || ifr.contentWindow?.document;
       if (!doc) return;
-      const body = doc.body;
-      const docEl = doc.documentElement;
-      const height = Math.max(
-        body ? body.scrollHeight : 0,
-        body ? body.offsetHeight : 0,
-        docEl ? docEl.clientHeight : 0,
-        docEl ? docEl.scrollHeight : 0,
-        docEl ? docEl.offsetHeight : 0
-      );
+      const height = measureProjectEmbedDocumentHeight(doc);
       setProjectEmbedIframeHeight(ifr, height);
     } catch {}
   };
@@ -1167,18 +1224,19 @@
   document.addEventListener('DOMContentLoaded', bindProjectEmbedResize);
   window.addEventListener('load', bindProjectEmbedResize);
   window.addEventListener('message', (event) => {
+    if (event.origin && event.origin !== window.location.origin) return;
     const data = event && event.data || {};
     const type = typeof data?.type === 'string' ? data.type : '';
-    if (!/(chatbot-demo-resize|pizza-demo-resize|retail-loss-sales-demo-resize|minesweeper-demo-resize)/.test(type)) return;
+    if (!PROJECT_EMBED_RESIZE_TYPE_RE.test(type)) return;
     const ifrs = document.querySelectorAll('.project-embed-frame');
     for (const ifr of ifrs) {
       if (ifr.contentWindow === event.source) {
         if (!shouldAutoResizeProjectEmbed(ifr)) break;
         const h = typeof data.height === 'number' && isFinite(data.height)
-          ? Math.max(0, Math.ceil(data.height + PROJECT_EMBED_HEIGHT_BUFFER_PX))
+          ? Math.max(0, Number(data.height))
           : null;
         if (h) {
-          ifr.style.height = `${h}px`;
+          setProjectEmbedIframeHeight(ifr, h);
         } else {
           resizeProjectEmbedIframe(ifr);
         }

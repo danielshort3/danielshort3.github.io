@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -7,7 +7,7 @@
   <title>Smart Sentence Retriever</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Search a fixed Alice in Wonderland corpus by meaning, not exact wording, using precomputed sentence embeddings." />
-  <meta name="theme-color" content="#0D1117" />
+  <meta name="theme-color" content="#F9F9FA" />
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="dist/styles.css">
   <style>
@@ -233,7 +233,7 @@
       padding: 12px 18px;
       border-radius: 10px;
       border: 1px solid color-mix(in srgb, var(--accent) 85%, #fff 15%);
-      color: var(--bg, #0d1117);
+      color: var(--brand-midnight, #091f3b);
       font-weight: 600;
       letter-spacing: .01em;
       background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 95%, #fff 5%), color-mix(in srgb, var(--accent) 75%, #000 25%));
@@ -617,16 +617,16 @@
         <h1 class="title">Smart Sentence Retriever</h1>
         <p class="subtitle">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
       </div>
+      <div class="header-actions">
+        <div class="health-status" role="status" aria-live="polite">
+          <span id="health" class="health-pill aws-status-badge" data-state="warming">Warming up</span>
+          <span id="health-text" class="health-meta">Checking AWS Lambda status...</span>
+        </div>
+        <div class="health-actions">
+          <button id="health-check" class="btn-secondary" type="button">Check status</button>
+        </div>
+      </div>
     </header>
-    <div class="health-row" aria-label="AWS status">
-      <div class="health-status" role="status" aria-live="polite">
-        <span id="health" class="health-pill" data-state="warming">Warming up</span>
-        <span id="health-text" class="health-meta">Checking AWS Lambda status...</span>
-      </div>
-      <div class="health-actions">
-        <button id="health-check" class="btn-secondary" type="button">Check status</button>
-      </div>
-    </div>
     <div class="section">
       <form id="form">
         <div>

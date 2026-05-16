@@ -69,56 +69,6 @@
     "Top driver was the share of ICU beds occupied by COVID patients.",
     "Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days)."
   ],
-  "caseStudy": [
-    {
-      "title": "Problem Framing",
-      "lead": "Goal: estimate the probability a state will breach 90% ICU utilization within the next 7 days.",
-      "bullets": [
-        "Target label: max(adult ICU bed utilization) over the next 7 days is at least 0.90.",
-        "Breaches are rare, so I focused on ranking and precision/recall tradeoffs.",
-        "Output is a risk score meant to support decisions, not a perfect forecast."
-      ]
-    },
-    {
-      "title": "Data and Feature Engineering",
-      "bullets": [
-        "Started with the HHS hospital-capacity time series (state-by-day) and handled missing data with forward-fills and pruning.",
-        "Added rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.",
-        "Built ratio features like ICU beds with COVID (%) to normalize across states."
-      ]
-    },
-    {
-      "title": "Modeling and Evaluation",
-      "bullets": [
-        "Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.",
-        "Measured ranking quality with AUROC/PR-AUC and tuned for class imbalance.",
-        "Used the model as a risk scorer (probability output) rather than a hard yes/no classifier."
-      ]
-    },
-    {
-      "title": "Explainability (SHAP)",
-      "bullets": [
-        "Used SHAP to identify which daily metrics raise or lower the chance of an ICU crisis in the next week.",
-        "Key takeaway: when a high share of ICU beds are already filled by COVID patients, risk rises quickly.",
-        "Renamed feature labels in the SHAP plot to keep it stakeholder-friendly."
-      ]
-    },
-    {
-      "title": "Operational Output",
-      "bullets": [
-        "Exported a per-state, per-day CSV of 7-day breach probabilities for monitoring and reporting.",
-        "Reviewed the highest-risk states per snapshot and tracked how rankings changed over time.",
-        "Designed the workflow to be rerun as new days arrive."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Calibrate probabilities and tune thresholds for a clear precision/recall target.",
-        "Add outside signals (vaccination, policy, mobility, variants) to improve early warning.",
-        "Monitor drift and retrain when feature patterns shift."
-      ]
-    }
-  ],
-  "order": 5
+  "order": 5,
+  "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast."
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -7,7 +7,7 @@
   <title>Minesweeper Solver Demo</title>
   <meta name="robots" content="noindex, nofollow">
 
-  <meta name="theme-color" content="#0D1117">
+  <meta name="theme-color" content="#F9F9FA">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -446,13 +446,12 @@
         <h1 class="title">Minesweeper AI Solver</h1>
         <p class="subtitle">A reinforcement learning agent reads the board, picks safe moves, and closes the puzzle step-by-step.</p>
       </div>
+      <div class="header-actions">
+        <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Warming up</span>
+      </div>
     </header>
 
-    <div class="health-row" role="status" aria-live="polite">
-      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
-    </div>
-
-    <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
+    <div class="status demo-meta-row" id="status">Ready. Generate a puzzle to begin.</div>
     <p class="demo-note">Model success rate is ~72% on 9x9 grids with 10 mines. Some wins rely on forced guesses because not every game is solvable without guessing.</p>
 
     <div class="content">

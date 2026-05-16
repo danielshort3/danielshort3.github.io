@@ -73,40 +73,6 @@
     "On a small personal handwriting set, accuracy was ~75.6% (not a benchmark; see notebook).",
     "My wife was right."
   ],
-  "caseStudy": [
-    {
-      "title": "Experiment Setup",
-      "lead": "I used MNIST as a baseline, then scored my own handwriting with the same setup.",
-      "bullets": [
-        "Dataset: MNIST (60,000 train / 10,000 test) for digit recognition.",
-        "Goal: compare model types and quantify my own legibility with a consistent metric.",
-        "Output: per-digit accuracy and a confusion matrix to see which digits I write most ambiguously."
-      ]
-    },
-    {
-      "title": "Model Iteration",
-      "bullets": [
-        "Model 1: simple linear classifier as a baseline.",
-        "Model 2: small CNN (TinyVGG-style) to capture strokes and curves.",
-        "Model 3: deeper CNN (VGG16-style) with the best test accuracy (99.1%)."
-      ]
-    },
-    {
-      "title": "Custom Handwriting Evaluation",
-      "bullets": [
-        "Built a loader so new images can be preprocessed and scored consistently.",
-        "Scored a small personal handwriting set (~75.6% accuracy) and used the confusion matrix to see which digits were most ambiguous.",
-        "Used the breakdown to make it actionable (which digits to practice)."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Train on EMNIST or other real handwriting datasets to reduce domain shift from MNIST.",
-        "Add augmentation (stroke thickness, rotation, blur) to better match camera/scanner variation.",
-        "Calibrate confidence so the model can say 'uncertain' instead of forcing a guess."
-      ]
-    }
-  ],
-  "order": 7
+  "order": 7,
+  "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark."
 }

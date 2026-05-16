@@ -15,6 +15,7 @@
     "build:projects": "node build/generate-project-pages.js",
     "build:cms-content": "node build/generate-cms-artifacts.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
+    "record:project-previews": "node build/record-project-previews.js",
     "migrate:content": "node build/migrate-content.js",
     "scaffold": "node build/scaffold.js",
     "build": "node build/build-site.js",

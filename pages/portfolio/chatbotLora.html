@@ -6,11 +6,11 @@
   <base href="/">
   <title>Chatbot (LoRA + RAG) | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/portfolio/chatbotLora">
-  <meta name="description" content="RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.">
+  <meta name="description" content="RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…">
 
   <meta property="og:title" content="Chatbot (LoRA + RAG) | Daniel Short">
   <meta property="og:site_name" content="Daniel Short - Data Analytics &amp; BI">
-  <meta property="og:description" content="RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.">
+  <meta property="og:description" content="RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…">
   <meta property="og:url" content="https://www.danielshort.me/portfolio/chatbotLora">
   <meta property="og:image" content="https://www.danielshort.me/img/projects/chatbotLora.png">
   <meta property="og:image:alt" content="Preview image for Chatbot (LoRA + RAG)">
@@ -22,11 +22,11 @@
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="twitter:title" content="Chatbot (LoRA + RAG) | Daniel Short">
-  <meta name="twitter:description" content="RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.">
+  <meta name="twitter:description" content="RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…">
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/chatbotLora.png">
   <meta name="twitter:image:alt" content="Preview image for Chatbot (LoRA + RAG)">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -41,7 +41,7 @@
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@500;600&display=swap -->
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","name":"Chatbot (LoRA + RAG)","description":"RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn't sound like Visit Grand Junction, and they rarely pointed people to our pages.","url":"https://www.danielshort.me/portfolio/chatbotLora","image":"https://www.danielshort.me/img/projects/chatbotLora.png"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Chatbot (LoRA + RAG)","item":"https://www.danielshort.me/portfolio/chatbotLora"}]}]}
+    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","name":"Chatbot (LoRA + RAG)","description":"RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…","url":"https://www.danielshort.me/portfolio/chatbotLora","image":"https://www.danielshort.me/img/projects/chatbotLora.png"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Chatbot (LoRA + RAG)","item":"https://www.danielshort.me/portfolio/chatbotLora"}]}]}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -243,87 +243,69 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-chatbotLora-tab-instructions" aria-controls="project-demo-chatbotLora-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-chatbotLora-tab-demo" aria-controls="project-demo-chatbotLora-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-chatbotLora-panel-instructions" aria-labelledby="project-demo-chatbotLora-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Ask a question and get an answer grounded in the site content (with citations).</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="viewport" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-chatbotLora-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-chatbotLora-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Ask a question and get an answer grounded in the site content (with citations).</p>
+            <ul class="project-demo-tooltip-list">
         <li>Click a quick prompt to submit it automatically, or type your own question in the chat box.</li>
         <li>Press Enter or click “Send” to submit custom questions.</li>
         <li>Use the citations in the response to jump to the referenced pages.</li>
         <li>Bedrock is the default live backend; choose Qwen / SageMaker only when comparing cold-start behavior.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="chatbot-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-chatbotLora-panel-demo" aria-labelledby="project-demo-chatbotLora-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe project-embed-chatbotlora" data-project-embed="chatbotLora">
-        <iframe class="project-embed-frame" data-src="chatbot-demo.html" title="Chatbot (LoRA + RAG) interactive demo" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-iframe project-embed-chatbotlora" data-project-embed="chatbotLora" data-embed-fit="viewport" data-embed-min-height="620" data-embed-max-height="860">
+        <iframe class="project-embed-frame" src="chatbot-demo.html" title="Chatbot (LoRA + RAG) interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
       </div>
     </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>System Design</h3>
-        <p>Pipeline: crawl, index, generate training data, LoRA fine-tune, then deploy behind an API the site can call.</p>
-        <ul>
-          <li>Ingestion: crawl pages and store cleaned text chunks.</li>
-          <li>Retrieval: use FAISS so answers can cite the right source passages.</li>
-          <li>Fine-tuning: train Mistral 7B with LoRA on auto-generated Q&amp;A pairs.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Dataset Generation</h3>
-        
-        <ul>
-          <li>Used an open-source LLM via Ollama to turn crawled content into Q&amp;A pairs.</li>
-          <li>Automated crawling, indexing, dataset generation, and fine-tuning so runs are repeatable.</li>
-          <li>Kept it Docker-friendly so I could run locally and deploy the same artifacts.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Serving and Deployment</h3>
-        
-        <ul>
-          <li>Merged the LoRA adapter into a 4-bit model and served it with FastAPI.</li>
-          <li>Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.</li>
-          <li>Added status checks and user-facing messaging to handle cold starts after idle time.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Add basic eval for retrieval quality and citation accuracy.</li>
-          <li>Cache common questions and stream tokens to make replies feel faster.</li>
-          <li>Add stronger guardrails against prompt injection.</li>
-        </ul>
-      </article>
-      </div>
+			        <section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly with citations.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">Built the prototype from crawl to deployment, then expanded it into a dual-backend demo comparing a custom LoRA/SageMaker model with a live Bedrock model.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Crawled Visit Grand Junction pages, built a FAISS retrieval index, and generated a tourism-specific Q&amp;A dataset with an open-source LLM through Ollama.</li>
+              <li>Fine-tuned a Mistral 7B/Qwen-style chatbot path with LoRA and deployed the custom model behind AWS SageMaker/Lambda for cold-start and model-control comparison.</li>
+              <li>Added a Bedrock backend as the default live path, keeping the same RAG/citation experience while providing faster always-available responses for the website demo.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>The project now demonstrates both architectures: Bedrock as the practical live production path and LoRA/SageMaker as the custom fine-tuning path.</li>
+              <li>Viewers can compare managed-model reliability, streaming responses, and citation behavior against the custom model&#39;s cold-start and deployment tradeoffs.</li>
+              <li>The demo keeps source-grounded answers and citation links while making the model choice transparent through the backend selector.</li>
+            </ul>
+          </dd>
+        </div>
+      </dl>
     </section>
-			        <section class="project-section" id="links">
+        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links-groups">
         <div class="project-links-group">
@@ -335,40 +317,9 @@
       </div>
       </div>
     </section>
-			        <section class="project-star" aria-label="STAR summary">
-      <h2 class="section-title">STAR Summary</h2>
-      <dl class="project-star-grid">
-        <div class="project-star-row">
-          <dt class="project-star-label">Situation</dt>
-          <dd class="project-star-value">Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Task</dt>
-          <dd class="project-star-value">Built the prototype from crawl to deployment, including the web demo.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Action</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              <li>Crawled Visit Grand Junction pages and built a FAISS retrieval index.</li>
-              <li>Generated a fine-tuning dataset by prompting an open-source LLM locally (via Ollama) to create Q&amp;A pairs from the corpus.</li>
-              <li>Fine-tuned Mistral 7B with LoRA on the Q&amp;A set and deployed it to AWS SageMaker.</li>
-            </ul>
-          </dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Result</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              <li>The demo defaults to a live Bedrock backend with citation links, while Qwen / SageMaker remains available for cold-start comparison.</li>
-            </ul>
-          </dd>
-        </div>
-      </dl>
-    </section>
 			        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
-      <p class="project-lead">Uses public Visit Grand Junction pages. Answers include citations.</p>
+      <p class="project-lead">Uses public Visit Grand Junction pages; retrieval provides citation links, and cold-start checks are part of the deployed demo.</p>
     </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
@@ -508,7 +459,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

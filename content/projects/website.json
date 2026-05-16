@@ -27,7 +27,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/",
+      "url": "/",
       "label": "Live Site"
     }
   ],
@@ -40,48 +40,6 @@
     "Optimized for fast, mobile-friendly pages with a hashed CSS bundle, lazy-loaded media, and minimal JavaScript.",
     "Makes projects easy to share with clean URLs, social previews, and a searchable portfolio."
   ],
-  "caseStudy": [
-    {
-      "title": "Goals",
-      "lead": "I built this site to be fast, easy to use, and easy to update as I add projects.",
-      "bullets": [
-        "Performance: keep pages light and avoid blocking resources.",
-        "Accessibility: semantic landmarks, keyboard-friendly components, and predictable navigation.",
-        "Maintainability: one project data file + build scripts to generate pages."
-      ]
-    },
-    {
-      "title": "Architecture",
-      "bullets": [
-        "Static HTML pages with shared JS for navigation, lazy loading, and UI behavior.",
-        "Portfolio projects defined in one data file and rendered into modals and filters.",
-        "Progressive enhancement: the portfolio page still works without JS via pre-rendered cards."
-      ]
-    },
-    {
-      "title": "SEO and Sharing",
-      "bullets": [
-        "Generated `/portfolio/<id>` pages for each project (canonical URLs, Open Graph metadata, JSON-LD).",
-        "Kept `sitemap.xml` in sync via a build step.",
-        "Configured Vercel rewrites so clean URLs map to generated pages under `pages/`."
-      ]
-    },
-    {
-      "title": "Build and Deployment",
-      "bullets": [
-        "CSS is bundled into a hashed file for caching while still allowing quick invalidation.",
-        "Build scripts generate project pages and copy deployable artifacts into `public/`.",
-        "Lightweight tests enforce markup contracts and ensure pages exist for every project ID."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Add richer case studies (diagrams, metrics, and lessons learned) for the top projects.",
-        "Reduce third-party dependencies in demos and tighten CSP over time.",
-        "Automate screenshots so project cards stay consistent."
-      ]
-    }
-  ],
-  "order": 17
+  "order": 17,
+  "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site."
 }

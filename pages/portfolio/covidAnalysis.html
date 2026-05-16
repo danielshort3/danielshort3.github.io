@@ -26,7 +26,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/covidAnalysis.png">
   <meta name="twitter:image:alt" content="Preview image for COVID-19 Outbreak Drivers">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.9633da8b.css">
+  <link rel="stylesheet" href="dist/styles.4a0445fb.css">
   <link rel="stylesheet" href="css/components/project-page.css">
   <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -239,122 +239,33 @@
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
-      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-covidAnalysis-tab-instructions" aria-controls="project-demo-covidAnalysis-panel-instructions" aria-selected="true">How to Use Demo</button>
-        <button class="project-demo-tab" type="button" role="tab" id="project-demo-covidAnalysis-tab-demo" aria-controls="project-demo-covidAnalysis-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
-      </div>
-
-      <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-covidAnalysis-panel-instructions" aria-labelledby="project-demo-covidAnalysis-tab-instructions">
-          <div class="project-demo-panel-inner">
-            <p class="project-demo-lead">Explore how ICU breach risk changes over time, and what’s driving it.</p>
-            <ul class="project-demo-list">
+			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-covidAnalysis-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-covidAnalysis-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Explore how ICU breach risk changes over time, and what’s driving it.</p>
+            <ul class="project-demo-tooltip-list">
         <li>Wait for the status pill to show the demo is ready (cold starts can take a moment).</li>
         <li>Drag the date slider to move through time.</li>
         <li>Hover or click a state to see its risk score, top drivers, and recent trend.</li>
         <li>Use the hotspots list to quickly jump to the highest-risk locations.</li>
       </ul>
-            <div class="project-demo-actions">
-              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
-              <a class="btn-secondary" href="covid-outbreak-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-covidAnalysis-panel-demo" aria-labelledby="project-demo-covidAnalysis-tab-demo" hidden>
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-embed project-embed-iframe project-embed-covidanalysis" data-project-embed="covidAnalysis">
-        <iframe class="project-embed-frame" data-src="covid-outbreak-demo.html" title="COVID-19 Outbreak Drivers interactive demo" loading="lazy" allowfullscreen></iframe>
+            <div class="project-media project-embed project-embed-iframe project-embed-covidanalysis" data-project-embed="covidAnalysis" data-embed-fit="content">
+        <iframe class="project-embed-frame" src="covid-outbreak-demo.html" title="COVID-19 Outbreak Drivers interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>
           </div>
         </section>
-      </div>
-    </section>
-			        <section class="project-section project-case-study" id="case-study" aria-labelledby="case-study-title">
-      <div class="project-case-study-head">
-        <p class="hero-eyebrow">Decision memo</p>
-        <h2 class="section-title" id="case-study-title">Question to Decision</h2>
-        <p class="project-lead">A practical readout of the business question, analytical method, result, and decision value behind this work.</p>
-      </div>
-      <div class="project-decision-flow" aria-hidden="true">
-        <img src="img/brand/13-case-study-diagram-question-to-decision.svg" alt="" loading="lazy" decoding="async">
-      </div>
-      <div class="project-case-study-grid">
-        <article class="project-case-card">
-        <h3>Problem Framing</h3>
-        <p>Goal: estimate the probability a state will breach 90% ICU utilization within the next 7 days.</p>
-        <ul>
-          <li>Target label: max(adult ICU bed utilization) over the next 7 days is at least 0.90.</li>
-          <li>Breaches are rare, so I focused on ranking and precision/recall tradeoffs.</li>
-          <li>Output is a risk score meant to support decisions, not a perfect forecast.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Data and Feature Engineering</h3>
-        
-        <ul>
-          <li>Started with the HHS hospital-capacity time series (state-by-day) and handled missing data with forward-fills and pruning.</li>
-          <li>Added rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.</li>
-          <li>Built ratio features like ICU beds with COVID (%) to normalize across states.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Modeling and Evaluation</h3>
-        
-        <ul>
-          <li>Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.</li>
-          <li>Measured ranking quality with AUROC/PR-AUC and tuned for class imbalance.</li>
-          <li>Used the model as a risk scorer (probability output) rather than a hard yes/no classifier.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Explainability (SHAP)</h3>
-        
-        <ul>
-          <li>Used SHAP to identify which daily metrics raise or lower the chance of an ICU crisis in the next week.</li>
-          <li>Key takeaway: when a high share of ICU beds are already filled by COVID patients, risk rises quickly.</li>
-          <li>Renamed feature labels in the SHAP plot to keep it stakeholder-friendly.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>Operational Output</h3>
-        
-        <ul>
-          <li>Exported a per-state, per-day CSV of 7-day breach probabilities for monitoring and reporting.</li>
-          <li>Reviewed the highest-risk states per snapshot and tracked how rankings changed over time.</li>
-          <li>Designed the workflow to be rerun as new days arrive.</li>
-        </ul>
-      </article>
-        <article class="project-case-card">
-        <h3>What I&#39;d Improve</h3>
-        
-        <ul>
-          <li>Calibrate probabilities and tune thresholds for a clear precision/recall target.</li>
-          <li>Add outside signals (vaccination, policy, mobility, variants) to improve early warning.</li>
-          <li>Monitor drift and retrain when feature patterns shift.</li>
-        </ul>
-      </article>
-      </div>
-    </section>
-			        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_6.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_6.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-      </div>
-      </div>
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">HHS Dataset</span></a>
-      </div>
-      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">
@@ -389,7 +300,30 @@
         </div>
       </dl>
     </section>
-			        
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_6.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_6.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">HHS Dataset</span></a>
+      </div>
+      </div>
+      </div>
+    </section>
+			        <section class="project-section" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast.</p>
+    </section>
 			        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
@@ -528,7 +462,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7a1a28e9.js"></script>
+  <script defer src="dist/site-shell.3d662446.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

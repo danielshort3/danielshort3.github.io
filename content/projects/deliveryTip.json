@@ -37,40 +37,6 @@
     "Neighborhood and housing type differences explained a lot of the variation in this dataset.",
     "Used the dashboard to make better shift and zone choices over time."
   ],
-  "caseStudy": [
-    {
-      "title": "Dataset and Cleaning",
-      "lead": "I analyzed delivery tickets and built an Excel workflow that drivers can keep updating.",
-      "bullets": [
-        "Normalized timestamps and derived delivery time (minutes) and tip percentage.",
-        "Standardized location fields (city and neighborhood) for mapping and rollups.",
-        "Used Power Query so refresh doesn't require manual cleanup."
-      ]
-    },
-    {
-      "title": "Geo-Analytics Dashboard",
-      "bullets": [
-        "Built a tip heatmap by neighborhood to spot strong zones.",
-        "Added pivot filters for housing type, gated communities, city, and order size.",
-        "Added weekday and shift-level summaries for scheduling."
-      ]
-    },
-    {
-      "title": "Key Findings",
-      "bullets": [
-        "Mid-week shifts tended to have higher tips per delivery, while Friday evenings tended to have higher tips per hour.",
-        "Tips varied a lot by housing type and neighborhood, which helped with zone choices.",
-        "Tracked baseline stats (average tip and delivery time) to measure changes over time."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Add distance and drive-time estimates to separate 'better zones' from 'shorter routes'.",
-        "Control for order size to avoid confusing high tips with high bills.",
-        "Turn insights into a simple 'where to go next' recommendation view for live shifts."
-      ]
-    }
-  ],
-  "order": 10
+  "order": 10,
+  "notes": "The Excel workflow is built from personal delivery-ticket history, so the findings are useful for shift planning but not intended as a universal tipping model."
 }

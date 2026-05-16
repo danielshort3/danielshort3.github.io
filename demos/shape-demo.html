@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
     <meta charset="UTF-8" />
     <!-- Updated viewport for safe areas / notches -->
@@ -9,7 +9,7 @@
   <meta name="robots" content="noindex, nofollow">
 
     <!-- Optional: your external stylesheet -->
-    <meta name="theme-color" content="#0D1117">
+    <meta name="theme-color" content="#F9F9FA">
     <link rel="stylesheet" href="dist/styles.css"><!-- Icons & Fonts (async, non-blocking) -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -688,11 +688,10 @@
                 <h1 class="title">Draw a Shape</h1>
                 <p class="subtitle">This demo identifies only these shapes: <strong>Circle</strong>, <strong>Triangle</strong>, <strong>Square</strong>, <strong>Hexagon</strong>, <strong>Octagon</strong>.</p>
             </div>
+            <div class="header-actions">
+                <span id="health-pill" class="health-pill aws-status-badge" data-state="warming" role="status" aria-live="polite">Warming up</span>
+            </div>
         </header>
-
-        <div class="health-row" role="status" aria-live="polite">
-            <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
-        </div>
 
         <div id="status" role="status" aria-live="polite"></div>
 

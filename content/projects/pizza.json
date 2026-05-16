@@ -58,40 +58,6 @@
     "Housing type (apartment vs. house) showed a statistically significant difference in this sample.",
     "Weather and delivery time didn’t show a meaningful effect on tip size."
   ],
-  "caseStudy": [
-    {
-      "title": "Data Integration",
-      "lead": "I merged delivery tickets with NOAA weather to test common ideas about what drives tipping.",
-      "bullets": [
-        "Combined 1,251 deliveries with daily weather features (rain, max/min temperature, wind).",
-        "Cleaned the dataset in Power Query and derived tip percentage and delivery time (minutes).",
-        "Separated housing types (apartment vs. house) to test neighborhood effects."
-      ]
-    },
-    {
-      "title": "Exploratory Analysis",
-      "bullets": [
-        "Found a strong positive relationship between order cost and tip amount.",
-        "Rainfall had only a mild relationship with delivery duration in this dataset.",
-        "Order volume showed clear seasonality (higher in summer/early fall)."
-      ]
-    },
-    {
-      "title": "Regression and Hypothesis Tests",
-      "bullets": [
-        "Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).",
-        "Result: order cost was the main driver of tip size in the regression.",
-        "Validated housing differences with a two-sample t-test (apartment vs. house)."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Add distance, time-of-day, and driver controls to reduce omitted-variable bias.",
-        "Model tip percentage and tip amount separately to avoid conflating larger orders with generosity.",
-        "Use mixed-effects models to capture repeated customers or neighborhood-level variance."
-      ]
-    }
-  ],
-  "order": 12
+  "order": 12,
+  "notes": "Delivery records were joined to NOAA daily weather; missing distance and time-of-day controls limit causal interpretation."
 }

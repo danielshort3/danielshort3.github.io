@@ -285,8 +285,12 @@
 	    padding:6px;
 	    border-radius:12px;
 	    object-fit:contain;
-	    background:var(--logo-tile-bg-cert);
-	    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
+	    background:#ffffff;
+	    border:1px solid color-mix(in srgb,var(--brand-midnight) 12%, transparent);
+	  }
+	  .resume-cert img[src*="purdue_global"]{
+	    background:var(--brand-midnight);
+	    border-color:color-mix(in srgb,var(--brand-signal-blue) 36%, transparent);
 	  }
   .resume-cert-title{
     font-weight:700;
@@ -334,13 +338,17 @@
 		    min-width:56px;
 		    padding:0 12px;
 		    border-radius:16px;
-		    background:var(--logo-tile-bg-company);
-		    border:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
+		    background:#ffffff;
+		    border:1px solid color-mix(in srgb,var(--brand-midnight) 12%, transparent);
 		    display:inline-flex;
 		    align-items:center;
 		    justify-content:center;
 		    box-sizing:border-box;
 		    flex-shrink:0;
+		  }
+		  .resume-role-brand[href*="randallreilly"] .resume-role-logo-shell{
+		    background:var(--brand-midnight);
+		    border-color:color-mix(in srgb,var(--brand-signal-blue) 36%, transparent);
 		  }
 	  .resume-role-logo-shell img{
 	    width:auto;
@@ -409,9 +417,13 @@
 	    padding:6px;
 	    border-radius:12px;
 	    object-fit:contain;
-	    background:var(--logo-tile-bg-education);
-	    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
+	    background:#ffffff;
+	    border:1px solid color-mix(in srgb,var(--brand-midnight) 12%, transparent);
 	    flex-shrink:0;
+	  }
+	  .resume-school-logo[src*="purdue_global"]{
+	    background:var(--brand-midnight);
+	    border-color:color-mix(in srgb,var(--brand-signal-blue) 36%, transparent);
 	  }
   .resume-education-title{
     margin:0;

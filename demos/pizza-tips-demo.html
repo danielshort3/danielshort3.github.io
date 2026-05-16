@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -7,7 +7,7 @@
   <title>Pizza Tips Regression Map</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Estimate pizza tips by clicking a delivery map, adjusting weather, order time, and wait time." />
-  <meta name="theme-color" content="#0D1117" />
+  <meta name="theme-color" content="#F9F9FA" />
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -19,15 +19,15 @@
       --radius: 14px;
       --shadow-1: 0 2px 10px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.08);
       --shadow-2: 0 10px 32px rgba(0,0,0,.16), 0 2px 10px rgba(0,0,0,.12);
-      --muted: var(--text-muted, #aeb6c2);
-      --text: var(--text-light, #f1f4f8);
-      --surface-2: var(--surface-light, #1c2231);
+      --muted: var(--text-muted, #475569);
+      --text: var(--text-light, #091F3B);
+      --surface-2: var(--surface-light, #EEF2F7);
       --page-pad: clamp(12px, 3vw, 24px);
-      --accent: var(--primary, #2bbbad);
-      --accent-2: color-mix(in srgb, var(--accent) 75%, #6adac6 25%);
-      --border: var(--surface-accent, #222838);
-      --danger: #e15b64;
-      --success: #3cbf88;
+      --accent: var(--primary, #005FED);
+      --accent-2: color-mix(in srgb, var(--accent) 75%, #0145C8 25%);
+      --border: var(--surface-accent, #CBD5E1);
+      --danger: #B91C1C;
+      --success: #166534;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; }
@@ -41,7 +41,7 @@
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
       background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%)
-        var(--bg, #0d1117);
+        var(--bg, #091F3B);
       display: grid;
       place-items: start center;
       padding: var(--page-pad);
@@ -85,12 +85,17 @@
     .health-row {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       justify-content: flex-start;
-      padding: 8px 16px 0;
+      gap: 12px;
+      width: 100%;
+      padding: 10px 18px 14px;
+      border-bottom: 1px solid var(--border);
     }
     .health-pill {
       display: inline-flex;
       align-items: center;
+      flex: 0 0 auto;
       gap: 6px;
       border: 1px solid var(--border);
       padding: 6px 12px;
@@ -107,6 +112,10 @@
       height: 8px;
       border-radius: 50%;
       background: currentColor;
+    }
+    .health-meta {
+      color: var(--muted);
+      font-size: .78rem;
     }
     .health-pill[data-state="ok"] {
       color: var(--success);
@@ -168,20 +177,23 @@
       min-width: 0;
     }
     .heat-legend {
-      background: rgba(12, 16, 24, 0.92);
-      border: 1px solid var(--border);
+      min-width: 210px;
+      max-width: min(240px, calc(100vw - 48px));
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
       border-radius: 10px;
       padding: 10px 12px;
       box-shadow: var(--shadow-1);
       color: var(--text);
       font-size: .78rem;
-      min-width: 160px;
     }
     .heat-legend-title {
       text-transform: uppercase;
-      letter-spacing: .08em;
-      font-size: .7rem;
-      color: var(--muted);
+      letter-spacing: .04em;
+      font-size: .72rem;
+      line-height: 1.25;
+      font-weight: 700;
+      color: var(--text);
       margin-bottom: 6px;
     }
     .heat-legend-row {
@@ -195,7 +207,12 @@
       height: 8px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: linear-gradient(90deg, #123548, #2bbbad, #f8b500, #e15b64);
+      background: linear-gradient(90deg, #091F3B, #005FED, #D97706, #B91C1C);
+    }
+    .heat-legend-row span {
+      color: var(--text);
+      font-weight: 600;
+      white-space: nowrap;
     }
     form {
       display: grid;
@@ -222,11 +239,30 @@
     .input-row {
       display: grid;
       gap: 8px;
+      min-width: 0;
     }
-    .inline-fields {
+    .scenario-segment {
+      min-width: 0;
+      margin: 0;
+      padding: 12px;
+      border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border) 84%);
+      border-left: 3px solid var(--accent);
+      border-radius: 12px;
+      background: color-mix(in srgb, #ffffff 58%, var(--surface-2) 42%);
+    }
+    .scenario-segment legend {
+      padding: 0 8px;
+      color: var(--text);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+    .segment-fields {
       display: grid;
       gap: 8px;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .range-row {
       display: grid;
@@ -290,7 +326,7 @@
       padding: 12px 18px;
       border-radius: 10px;
       border: 1px solid color-mix(in srgb, var(--accent) 85%, #fff 15%);
-      color: var(--bg, #0d1117);
+      color: var(--bg, #091F3B);
       font-weight: 600;
       letter-spacing: .01em;
       background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 95%, #fff 5%), color-mix(in srgb, var(--accent) 75%, #000 25%));
@@ -383,6 +419,28 @@
       :root {
         --page-pad: 10px;
       }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      body {
+        place-items: start stretch;
+      }
+      .card,
+      .section,
+      .grid,
+      .panel,
+      form,
+      #map {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+      }
+      .map-panel {
+        overflow: hidden;
+      }
       .card-header {
         padding: 16px;
       }
@@ -401,7 +459,13 @@
       .status {
         justify-content: flex-start;
       }
+      .health-row {
+        padding: 10px 12px 12px;
+      }
       .actions {
+        grid-template-columns: 1fr;
+      }
+      .segment-fields {
         grid-template-columns: 1fr;
       }
       .btn {
@@ -419,7 +483,11 @@
         height: 240px;
       }
       .map-meta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
+      }
+      .map-meta span {
+        padding-inline: 8px;
       }
       .heat-legend {
         width: 100%;
@@ -474,10 +542,11 @@
         <h1 class="title">Pizza Tips Regression</h1>
         <p class="subtitle">Click the map, set the scenario, and estimate tip amount + percentage.</p>
       </div>
+      <div class="header-actions">
+        <span class="health-pill aws-status-badge" id="api-status" data-state="warming" role="status" aria-live="polite">Warming up</span>
+        <span class="health-meta">AWS regression model</span>
+      </div>
     </header>
-    <div class="health-row" role="status" aria-live="polite">
-      <span class="health-pill" id="api-status" data-state="warming">Warming up</span>
-    </div>
 
     <section class="section">
       <div class="grid">
@@ -495,47 +564,58 @@
           <input id="lat" type="hidden" />
           <input id="lon" type="hidden" />
 
-          <div class="inline-fields">
-            <div class="input-row">
-              <label for="confidence">Confidence</label>
-              <select id="confidence"></select>
-            </div>
-            <div class="input-row" data-feature="housing">
-              <label for="housing">Housing</label>
-              <select id="housing"></select>
-            </div>
-            <div class="input-row" data-feature="orderHour">
-              <label for="order-hour">Order Time</label>
-              <select id="order-hour"></select>
-            </div>
-            <div class="input-row" data-feature="cost">
-              <label for="cost">Order Cost ($)</label>
-              <input id="cost" type="number" min="0" step="0.01" />
-            </div>
-          </div>
-
-          <div class="range-row" data-feature="deliveryMinutes">
-            <div class="range-head">
-              <span>Delivery Wait (minutes)</span>
-              <div class="range-number">
-                <input id="delivery-number" type="number" min="0" step="1" />
+          <fieldset class="scenario-segment">
+            <legend>Estimate Settings</legend>
+            <div class="segment-fields">
+              <div class="input-row">
+                <label for="confidence">Confidence</label>
+                <select id="confidence"></select>
+              </div>
+              <div class="input-row" data-feature="housing">
+                <label for="housing">Housing</label>
+                <select id="housing"></select>
               </div>
             </div>
-            <input id="delivery" type="range" min="0" max="135" step="1" />
-          </div>
+          </fieldset>
 
-          <div class="inline-fields">
-            <div class="input-row" data-feature="rain">
-              <label for="rain">Rain (inches)</label>
-              <input id="rain" type="number" min="0" step="0.01" />
+          <fieldset class="scenario-segment">
+            <legend>Order Details</legend>
+            <div class="segment-fields">
+              <div class="input-row" data-feature="orderHour">
+                <label for="order-hour">Order Time</label>
+                <select id="order-hour"></select>
+              </div>
+              <div class="input-row" data-feature="cost">
+                <label for="cost">Order Cost ($)</label>
+                <input id="cost" type="number" min="0" step="0.01" />
+              </div>
             </div>
-            <div class="input-row" data-feature="maxTemp">
-              <label for="max-temp">Max Temp (F)</label>
-              <input id="max-temp" type="number" step="1" />
+          </fieldset>
+
+          <div class="inactive-scenario-fields" hidden aria-hidden="true">
+            <div class="range-row" data-feature="deliveryMinutes">
+              <div class="range-head">
+                <span>Delivery Wait (minutes)</span>
+                <div class="range-number">
+                  <input id="delivery-number" type="number" min="0" step="1" />
+                </div>
+              </div>
+              <input id="delivery" type="range" min="0" max="135" step="1" />
             </div>
-            <div class="input-row" data-feature="minTemp">
-              <label for="min-temp">Min Temp (F)</label>
-              <input id="min-temp" type="number" step="1" />
+
+            <div class="segment-fields">
+              <div class="input-row" data-feature="rain">
+                <label for="rain">Rain (inches)</label>
+                <input id="rain" type="number" min="0" step="0.01" />
+              </div>
+              <div class="input-row" data-feature="maxTemp">
+                <label for="max-temp">Max Temp (F)</label>
+                <input id="max-temp" type="number" step="1" />
+              </div>
+              <div class="input-row" data-feature="minTemp">
+                <label for="min-temp">Min Temp (F)</label>
+                <input id="min-temp" type="number" step="1" />
+              </div>
             </div>
           </div>
 
@@ -1050,10 +1130,10 @@
       blur: 22,
       minOpacity: 0.25,
       gradient: {
-        0.0: '#123548',
-        0.4: '#2bbbad',
-        0.7: '#f8b500',
-        1.0: '#e15b64'
+        0.0: '#091F3B',
+        0.4: '#005FED',
+        0.7: '#D97706',
+        1.0: '#B91C1C'
       }
     }).addTo(map);
 
@@ -1078,7 +1158,7 @@
     if (CITY_BOUNDARIES) {
       L.geoJSON(CITY_BOUNDARIES, {
         style: () => ({
-          color: '#2bbbad',
+          color: '#005FED',
           weight: 2,
           fillOpacity: 0.08
         })

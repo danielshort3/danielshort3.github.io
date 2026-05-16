@@ -75,48 +75,5 @@
     "Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.",
     "Kept the site embed usable with warm-up status, inline similarity bars, and an open-in-new-tab fallback for a larger view."
   ],
-  "caseStudy": [
-    {
-      "title": "System Design",
-      "lead": "This uses a fixed Alice in Wonderland corpus: embed each sentence once, then embed each query and rank by cosine similarity.",
-      "bullets": [
-        "Offline: clean the text, split it into sentences, and cache the sentence embeddings.",
-        "Online: embed the query, score against the cached matrix, and return the top-k matches with scores.",
-        "Frontend: check `/health` before submit, call `/rank`, and render the ranked results in an embeddable demo."
-      ]
-    },
-    {
-      "title": "Model Selection",
-      "bullets": [
-        "Compared several embedding models using silhouette score on a small sample as a rough clustering heuristic.",
-        "Balanced retrieval quality against model size, memory footprint, and cold-start cost.",
-        "Kept the corpus, sample, and k range fixed so the comparisons were consistent."
-      ]
-    },
-    {
-      "title": "Serverless Deployment",
-      "bullets": [
-        "Built a Lambda container with CPU PyTorch, FastAPI/Mangum, and the precomputed artifacts.",
-        "Used the plain Hugging Face stack (no sentence-transformers) to keep the deployment smaller.",
-        "Exposed a Lambda Function URL with CORS plus a lightweight `/health` and `/rank` contract for the site demo."
-      ]
-    },
-    {
-      "title": "Demo and Site Integration",
-      "bullets": [
-        "Used the shared demo AWS client for endpoint resolution, retry logic, and warm-up polling.",
-        "Kept the embedded iframe responsive by posting resize messages back to the project page.",
-        "Supported both inline demo tabs and a separate-tab fallback from the portfolio page."
-      ]
-    },
-    {
-      "title": "What I'd Improve",
-      "bullets": [
-        "Let users upload documents and build embeddings in the background.",
-        "Add ANN search (HNSW/FAISS) for bigger corpora and faster top-k.",
-        "Add a small labeled set and evaluate with metrics like nDCG@k."
-      ]
-    }
-  ],
   "order": 1
 }

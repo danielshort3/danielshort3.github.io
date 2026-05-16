@@ -1,38 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
   <title>Store-Level Loss &amp; Sales ETL</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#0b131b" />
+  <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap">
   <style>
     :root {
       --radius-lg: 18px;
       --radius-md: 12px;
       --radius-sm: 8px;
       --page-pad: clamp(12px, 3vw, 28px);
-      --surface: #0f1722;
-      --surface-2: #151f2c;
-      --surface-3: #1b2736;
-      --surface-4: #233244;
-      --surface-accent: rgba(255, 255, 255, 0.08);
-      --text: #e6f0f5;
-      --muted: #9bb0c3;
-      --primary: #25c7a1;
-      --primary-soft: rgba(37, 199, 161, 0.18);
-      --accent: #f4b262;
-      --accent-soft: rgba(244, 178, 98, 0.16);
-      --danger: #ff7b7b;
-      --success: #58d09b;
-      --shadow-1: 0 10px 30px rgba(0, 0, 0, 0.35);
-      --shadow-2: 0 18px 40px rgba(0, 0, 0, 0.45);
-      --grid-line: rgba(255, 255, 255, 0.08);
+      --surface-2: color-mix(in srgb, var(--brand-mist, #eef2f7) 72%, #ffffff 28%);
+      --surface-3: color-mix(in srgb, var(--brand-mist, #eef2f7) 58%, #ffffff 42%);
+      --surface-4: color-mix(in srgb, var(--brand-mist, #eef2f7) 48%, #ffffff 52%);
+      --surface-accent: color-mix(in srgb, var(--brand-midnight, #091f3b) 12%, transparent);
+      --text: var(--brand-midnight, #091f3b);
+      --muted: var(--brand-slate, #475569);
+      --primary-soft: color-mix(in srgb, var(--brand-signal-blue, #005fed) 12%, transparent);
+      --accent: var(--brand-signal-blue, #005fed);
+      --accent-soft: color-mix(in srgb, var(--brand-signal-blue, #005fed) 12%, transparent);
+      --shadow-1: 0 2px 8px rgba(9, 31, 59, 0.08);
+      --shadow-2: 0 18px 40px rgba(9, 31, 59, 0.14);
+      --grid-line: color-mix(in srgb, var(--brand-midnight, #091f3b) 10%, transparent);
     }
 
     * {
@@ -55,12 +48,12 @@
 
     body {
       margin: 0;
-      font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-family: var(--font-sans, "Inter", system-ui, -apple-system, "Segoe UI", sans-serif);
       color: var(--text);
       background:
-        radial-gradient(900px 500px at 10% -10%, rgba(37, 199, 161, 0.18), transparent 60%),
-        radial-gradient(700px 400px at 100% 0%, rgba(244, 178, 98, 0.2), transparent 65%),
-        linear-gradient(140deg, #0b1118, #0c131c 60%, #0d1722 100%);
+        radial-gradient(900px 500px at 10% -10%, color-mix(in srgb, var(--brand-signal-blue, #005fed) 11%, transparent), transparent 60%),
+        radial-gradient(700px 400px at 100% 0%, color-mix(in srgb, var(--brand-action-copper, #d97706) 8%, transparent), transparent 65%),
+        var(--brand-canvas, #f9f9fa);
       display: grid;
       place-items: start center;
       padding: var(--page-pad);
@@ -108,7 +101,7 @@
 
     .title {
       margin: 0;
-      font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+      font-family: var(--font-sans, "Inter", system-ui, sans-serif);
       font-weight: 600;
       font-size: clamp(1.3rem, 2.4vw, 1.6rem);
     }
@@ -140,9 +133,9 @@
 
     .btn-ghost {
       border-radius: 999px;
-      border: 1px solid rgba(37, 199, 161, 0.5);
-      background: rgba(37, 199, 161, 0.12);
-      color: rgba(226, 255, 245, 0.9);
+      border: 1px solid color-mix(in srgb, var(--brand-signal-blue, #005fed) 36%, transparent);
+      background: color-mix(in srgb, var(--brand-signal-blue, #005fed) 10%, #ffffff 90%);
+      color: var(--brand-deep-blue, #0145c8);
       padding: 6px 14px;
       font-size: 0.72rem;
       font-weight: 600;
@@ -153,7 +146,7 @@
 
     .btn-ghost:hover {
       transform: translateY(-1px);
-      box-shadow: 0 12px 20px rgba(37, 199, 161, 0.22);
+      box-shadow: 0 12px 20px color-mix(in srgb, var(--brand-signal-blue, #005fed) 18%, transparent);
     }
 
     .status-row {
@@ -209,7 +202,7 @@
     .status-note {
       margin-left: auto;
       font-size: 0.72rem;
-      color: rgba(255, 255, 255, 0.45);
+      color: color-mix(in srgb, var(--brand-slate, #475569) 74%, #ffffff 26%);
     }
 
     main.content {
@@ -242,13 +235,13 @@
 
     .panel-title h2 {
       margin: 0;
-      font-family: "Space Grotesk", sans-serif;
+      font-family: var(--font-sans, "Inter", system-ui, sans-serif);
       font-size: 1.05rem;
     }
 
     .panel-title h3 {
       margin: 0;
-      font-family: "Space Grotesk", sans-serif;
+      font-family: var(--font-sans, "Inter", system-ui, sans-serif);
       font-size: 0.95rem;
     }
 
@@ -269,40 +262,89 @@
 
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .kpi-card {
-      background: var(--surface-3);
-      border: 1px solid var(--surface-accent);
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card {
+      --kpi-accent: var(--brand-signal-blue, #005fed);
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg,
+          color-mix(in srgb, var(--kpi-accent) 7%, #ffffff 93%),
+          #ffffff 54%);
+      border: 1px solid color-mix(in srgb, var(--kpi-accent) 20%, var(--surface-accent) 80%);
       border-radius: var(--radius-sm);
-      padding: 12px;
+      padding: 12px 12px 12px 14px;
       display: grid;
       gap: 6px;
+      align-content: start;
+      min-height: 104px;
+      box-shadow: 0 8px 18px rgba(9, 31, 59, 0.08);
     }
 
-    .kpi-card.is-accent {
-      background: linear-gradient(140deg, rgba(37, 199, 161, 0.16), rgba(37, 199, 161, 0.04));
-      border-color: rgba(37, 199, 161, 0.3);
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--kpi-accent);
     }
 
-    .kpi-label {
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg,
+        color-mix(in srgb, var(--kpi-accent) 82%, #ffffff 18%),
+        color-mix(in srgb, var(--kpi-accent) 18%, transparent));
+    }
+
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card.is-accent {
+      background:
+        linear-gradient(135deg,
+          color-mix(in srgb, var(--kpi-accent) 12%, #ffffff 88%),
+          #ffffff 52%);
+      border-color: color-mix(in srgb, var(--kpi-accent) 38%, transparent);
+    }
+
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="boycott"],
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="empty-package"] {
+      --kpi-accent: var(--brand-action-copper, #d97706);
+    }
+
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="incidents"] {
+      --kpi-accent: var(--brand-risk, #b91c1c);
+    }
+
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="shrink"] {
+      --kpi-accent: var(--brand-success, #166534);
+    }
+
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-label {
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .kpi-value {
-      font-size: 1.4rem;
+      color: color-mix(in srgb, var(--kpi-accent) 58%, var(--brand-midnight, var(--text)) 42%);
       font-weight: 600;
-      font-family: "Space Grotesk", sans-serif;
     }
 
-    .kpi-sub {
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-value {
+      min-width: 0;
+      font-size: clamp(1.16rem, 2vw, 1.46rem);
+      font-weight: 600;
+      font-family: var(--font-sans, "Inter", system-ui, sans-serif);
+      line-height: 1.18;
+      color: var(--brand-midnight, var(--text));
+      overflow-wrap: anywhere;
+    }
+
+    html[data-project-demo-theme="brand"] .kpi-panel .kpi-sub {
       font-size: 0.78rem;
       color: var(--muted);
+      line-height: 1.4;
     }
 
     .kpi-breakout {
@@ -312,7 +354,7 @@
 
     .kpi-breakout span {
       font-size: 0.8rem;
-      color: rgba(255, 255, 255, 0.8);
+      color: color-mix(in srgb, var(--brand-slate, #475569) 88%, var(--brand-midnight, #091f3b) 12%);
     }
 
     .kpi-breakout strong {
@@ -370,9 +412,9 @@
     }
 
     .tab-btn.is-active {
-      border-color: rgba(37, 199, 161, 0.5);
-      color: #e9fff7;
-      background: rgba(37, 199, 161, 0.16);
+      border-color: color-mix(in srgb, var(--brand-signal-blue, #005fed) 38%, transparent);
+      color: var(--brand-deep-blue, #0145c8);
+      background: color-mix(in srgb, var(--brand-signal-blue, #005fed) 10%, #ffffff 90%);
     }
 
     .filter-row {
@@ -431,14 +473,14 @@
       width: 100%;
       height: 6px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
+      background: color-mix(in srgb, var(--brand-midnight, #091f3b) 8%, transparent);
       overflow: hidden;
     }
 
     .bar-fill {
       height: 100%;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(37, 199, 161, 0.9), rgba(244, 178, 98, 0.8));
+      background: linear-gradient(90deg, var(--brand-signal-blue, #005fed), var(--brand-deep-blue, #0145c8), var(--brand-action-copper, #d97706));
     }
 
     .table {
@@ -487,6 +529,21 @@
       }
     }
 
+    @media (max-width: 760px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      html[data-project-demo-theme="brand"] .kpi-panel .kpi-card {
+        min-height: 96px;
+      }
+    }
+
     @keyframes rise {
       from {
         opacity: 0;
@@ -512,13 +569,13 @@
         <p class="subtitle">AWS-backed KPI cockpit for sales, incidents, shrink, and empty-package signals.</p>
       </div>
       <div class="header-actions">
+        <span class="status-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Loading</span>
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset view</button>
       </div>
     </header>
 
-    <div class="status-row" role="status" aria-live="polite">
-      <span class="status-pill" id="status-pill" data-state="warming">Loading</span>
+    <div class="status-row demo-meta-row" role="status" aria-live="polite">
       <span class="status-meta" id="status-meta">Connecting to AWS...</span>
       <span class="status-note">All identifiers are anonymized.</span>
     </div>
@@ -530,27 +587,27 @@
           <span class="meta-chip" id="kpi-meta">Loading metrics</span>
         </div>
         <div class="kpi-grid">
-          <div class="kpi-card is-accent">
+          <div class="kpi-card is-accent" data-kpi="sales">
             <div class="kpi-label">Store Sales (YTD)</div>
             <div class="kpi-value" id="kpi-sales">--</div>
             <div class="kpi-sub" id="kpi-sales-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="boycott">
             <div class="kpi-label">Boycott YoY (May-Jul 23)</div>
             <div class="kpi-breakout" id="kpi-boycott">--</div>
             <div class="kpi-sub">Compared to 2022</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="incidents">
             <div class="kpi-label">Incidents (Latest Year)</div>
             <div class="kpi-value" id="kpi-incidents">--</div>
             <div class="kpi-sub" id="kpi-incidents-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="shrink">
             <div class="kpi-label">Avg Shrink %</div>
             <div class="kpi-value" id="kpi-shrink">--</div>
             <div class="kpi-sub" id="kpi-shrink-sub">--</div>
           </div>
-          <div class="kpi-card">
+          <div class="kpi-card" data-kpi="empty-package">
             <div class="kpi-label">Empty Package Value</div>
             <div class="kpi-value" id="kpi-empty">--</div>
             <div class="kpi-sub">Estimated retail value</div>
@@ -1012,8 +1069,8 @@
               {
                 label: "Sales",
                 data: values,
-                borderColor: "rgba(37, 199, 161, 0.9)",
-                backgroundColor: "rgba(37, 199, 161, 0.15)",
+                borderColor: "rgba(0, 95, 237, 0.9)",
+                backgroundColor: "rgba(0, 95, 237, 0.12)",
                 tension: 0.35,
                 fill: true,
                 pointRadius: 0
@@ -1025,11 +1082,11 @@
             maintainAspectRatio: false,
             scales: {
               x: {
-                grid: { color: "rgba(255, 255, 255, 0.05)" },
+                grid: { color: "rgba(9, 31, 59, 0.08)" },
                 ticks: { maxTicksLimit: 8 }
               },
               y: {
-                grid: { color: "rgba(255, 255, 255, 0.06)" },
+                grid: { color: "rgba(9, 31, 59, 0.09)" },
                 ticks: {
                   callback: (value) => `$${(value / 1000000).toFixed(1)}M`
                 }
@@ -1085,7 +1142,7 @@
             maintainAspectRatio: false,
             scales: {
               x: {
-                grid: { color: "rgba(255, 255, 255, 0.05)" },
+                grid: { color: "rgba(9, 31, 59, 0.08)" },
                 ticks: {
                   callback: (value) => metricKey === "proven"
                     ? `$${(value / 1000000).toFixed(1)}M`
@@ -1152,7 +1209,7 @@
             scales: {
               x: { grid: { display: false } },
               y: {
-                grid: { color: "rgba(255, 255, 255, 0.05)" },
+                grid: { color: "rgba(9, 31, 59, 0.08)" },
                 ticks: { callback: (value) => `${value.toFixed(2)}%` }
               }
             },
