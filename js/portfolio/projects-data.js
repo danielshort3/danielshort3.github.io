@@ -538,9 +538,9 @@ window.PROJECTS = [
     "demoInstructions": {
       "lead": "Generate a grid of synthetic digits and explore how the output morphs.",
       "bullets": [
-        "Choose a “Number” (or Auto) to sample from.",
+        "Use the blue “Number” control to choose Auto or a digit from 0–9.",
         "Click “Generate” to refresh the grid.",
-        "Open “Extra settings” to adjust seed, dim, grid density, and distortion level.",
+        "Open “Extra settings” to adjust seed, dim, grid density, minimum grid height, and distortion level.",
         "Generate again to compare how settings change the outputs."
       ]
     },

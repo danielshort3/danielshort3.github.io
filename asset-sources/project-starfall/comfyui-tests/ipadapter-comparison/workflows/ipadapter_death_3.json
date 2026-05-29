@@ -1,0 +1,174 @@
+{
+  "client_id": "codex-starfall-ipadapter",
+  "prompt": {
+    "1": {
+      "class_type": "CheckpointLoaderSimple",
+      "inputs": {
+        "ckpt_name": "animagine-xl-4.0-opt.safetensors"
+      }
+    },
+    "2": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "1",
+          1
+        ],
+        "text": "masterpiece, best quality, solo, single character, one character only, chibi hooded bandit enemy, full body, centered, feet visible, clean silhouette, simple readable shape, small dagger, dark black hood with tan trim, red scarf, brown cloak, compact mascot-like proportions, rounded cloth hood with no animal ears, maple-inspired side-scrolling RPG enemy sprite, plain solid bright green background, defeat animation frame 3, flattened on ground, matching the black line pose guide"
+      }
+    },
+    "3": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "1",
+          1
+        ],
+        "text": "low quality, blurry, realistic, 3d render, cropped, cut off feet, multiple characters, many characters, group, lineup, collage, character sheet, multiple poses, duplicate subject, duplicate limbs, extra arms, extra legs, animal, slime, text, watermark, panel borders, sprite sheet, overlapping frames, parts from another frame, animal ears, fox ears, cat ears, rabbit ears, horns, antennae"
+      }
+    },
+    "4": {
+      "class_type": "EmptyLatentImage",
+      "inputs": {
+        "width": 768,
+        "height": 768,
+        "batch_size": 1
+      }
+    },
+    "5": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "14",
+          0
+        ],
+        "positive": [
+          "10",
+          0
+        ],
+        "negative": [
+          "10",
+          1
+        ],
+        "latent_image": [
+          "4",
+          0
+        ],
+        "seed": 52703012,
+        "steps": 22,
+        "cfg": 6.5,
+        "sampler_name": "dpmpp_2m_sde",
+        "scheduler": "karras",
+        "denoise": 1.0
+      }
+    },
+    "6": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "5",
+          0
+        ],
+        "vae": [
+          "1",
+          2
+        ]
+      }
+    },
+    "7": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "filename_prefix": "starfall_ipadapter_compare_ipadapter_death_3",
+        "images": [
+          "6",
+          0
+        ]
+      }
+    },
+    "8": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "starfall_pose_death_3.png"
+      }
+    },
+    "9": {
+      "class_type": "ControlNetLoader",
+      "inputs": {
+        "control_net_name": "mistoLine_rank256.safetensors"
+      }
+    },
+    "10": {
+      "class_type": "ControlNetApplyAdvanced",
+      "inputs": {
+        "positive": [
+          "2",
+          0
+        ],
+        "negative": [
+          "3",
+          0
+        ],
+        "control_net": [
+          "9",
+          0
+        ],
+        "image": [
+          "8",
+          0
+        ],
+        "strength": 0.78,
+        "start_percent": 0.0,
+        "end_percent": 0.9,
+        "vae": [
+          "1",
+          2
+        ]
+      }
+    },
+    "11": {
+      "class_type": "IPAdapterModelLoader",
+      "inputs": {
+        "ipadapter_file": "ip-adapter-plus_sdxl_vit-h.safetensors"
+      }
+    },
+    "12": {
+      "class_type": "CLIPVisionLoader",
+      "inputs": {
+        "clip_name": "CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors"
+      }
+    },
+    "13": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "starfall_bandit_identity_reference.png"
+      }
+    },
+    "14": {
+      "class_type": "IPAdapterAdvanced",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "ipadapter": [
+          "11",
+          0
+        ],
+        "image": [
+          "13",
+          0
+        ],
+        "clip_vision": [
+          "12",
+          0
+        ],
+        "weight": 0.45,
+        "weight_type": "linear",
+        "combine_embeds": "concat",
+        "start_at": 0.0,
+        "end_at": 0.65,
+        "embeds_scaling": "V only"
+      }
+    }
+  }
+}

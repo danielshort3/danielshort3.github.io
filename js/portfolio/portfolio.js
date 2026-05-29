@@ -136,7 +136,7 @@ const normalizeAudience = (value) => {
   if (api && typeof api.normalizeAudience === 'function') {
     return api.normalizeAudience(value);
   }
-  return 'analytics';
+  return 'personal';
 };
 const getAudienceConfig = (value) => {
   const api = getAudienceApi();
@@ -144,10 +144,10 @@ const getAudienceConfig = (value) => {
     return api.getAudience(value);
   }
   return {
-    key: 'analytics',
+    key: 'personal',
     featuredProjectIds: Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [],
-    portfolioTitle: 'Analytics Portfolio',
-    portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.'
+    portfolioTitle: 'Project Library',
+    portfolioDescription: 'Projects, tools, experiments, and applied data work.'
   };
 };
 const getPortfolioAudienceKey = () => {
@@ -162,7 +162,7 @@ const getFeaturedProjectIds = (audienceKey) => {
   const audienceApi = getAudienceApi();
   const fallbackAudience = audienceApi && audienceApi.defaultAudience
     ? audienceApi.defaultAudience
-    : 'analytics';
+    : 'personal';
   const resolvedAudience = audienceKey ? normalizeAudience(audienceKey) : fallbackAudience;
   const config = getAudienceConfig(resolvedAudience);
   if (config && Array.isArray(config.featuredProjectIds) && config.featuredProjectIds.length) {
@@ -172,7 +172,7 @@ const getFeaturedProjectIds = (audienceKey) => {
 };
 const applyPortfolioAudienceContent = (audienceKey) => {
   const audienceApi = getAudienceApi();
-  const defaultAudience = audienceApi && audienceApi.defaultAudience ? audienceApi.defaultAudience : 'analytics';
+  const defaultAudience = audienceApi && audienceApi.defaultAudience ? audienceApi.defaultAudience : 'personal';
   const config = getAudienceConfig(audienceKey || defaultAudience);
   const title = document.getElementById('portfolio-hero-title');
   const tagline = document.getElementById('portfolio-hero-tagline');
@@ -184,24 +184,22 @@ const applyPortfolioAudienceContent = (audienceKey) => {
     if (eyebrow) eyebrow.textContent = 'Portfolio';
     if (title) title.textContent = 'Project Portfolio';
     if (tagline) {
-      tagline.textContent = 'Start with featured analytics projects, then browse technical depth across the full project library.';
+      tagline.textContent = 'Start with featured projects, then browse the full project library.';
     }
     if (topHeading) topHeading.textContent = 'Top 5 Projects';
     if (allHeading) allHeading.textContent = 'Other Projects';
     if (allCopy) {
-      allCopy.textContent = 'Technical depth and additional case studies beyond the featured business analytics work.';
+      allCopy.textContent = 'Additional case studies, tools, and experiments beyond the featured projects.';
     }
     return;
   }
   if (eyebrow) eyebrow.textContent = audienceKey ? (config.label || config.shortLabel || 'Portfolio') : 'Portfolio';
   if (title) title.textContent = config.portfolioTitle || 'Project Portfolio';
   if (tagline) tagline.textContent = config.portfolioDescription || '';
-  if (topHeading) topHeading.textContent = config.key === 'analytics'
-    ? 'Featured Analytics Projects'
-    : `Top 5 ${config.label || config.shortLabel || 'Portfolio'} Projects`;
+  if (topHeading) topHeading.textContent = 'Featured Projects';
   if (allHeading) allHeading.textContent = 'Other Projects';
   if (allCopy) {
-    allCopy.textContent = 'Technical depth and additional case studies beyond the featured business analytics work.';
+    allCopy.textContent = 'Additional case studies, tools, and experiments beyond the featured projects.';
   }
 };
 

@@ -19,10 +19,10 @@ const headerTemplatePath = path.join(root, 'build', 'templates', 'header.partial
 const audienceApi = require(path.join(root, 'js', 'common', 'audience-config.js'));
 const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
   ? audienceApi.normalizeAudience
-  : ((value) => String(value || '').trim().toLowerCase() || 'analytics');
+  : ((value) => String(value || '').trim().toLowerCase() || 'personal');
 const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
   ? audienceApi.getAudience
-  : (() => ({ brandNavPrimary: 'Data Analytics' }));
+  : (() => ({ brandNavPrimary: 'Projects, Tools, and Notes' }));
 const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
   ? audienceApi.detectAudienceFromPath
   : (() => null);
@@ -137,7 +137,7 @@ function detectAudienceForFile(html, relPath) {
 
 function withAudienceBranding(headerHtml, audienceKey) {
   const audience = getAudience(audienceKey);
-  const label = String(audience && audience.brandNavPrimary ? audience.brandNavPrimary : 'Data Analytics');
+  const label = String(audience && audience.brandNavPrimary ? audience.brandNavPrimary : 'Projects, Tools, and Notes');
   return headerHtml.replace(
     /(<span class="brand-tagline-chunk" data-brand-tagline-primary="true">)([\s\S]*?)(<\/span>)/i,
     `$1${label}$3`

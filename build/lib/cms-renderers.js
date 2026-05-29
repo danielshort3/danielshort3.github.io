@@ -23,6 +23,7 @@ function trimLeadingSlash(value) {
 function normalizeRelativeHref(value, fallback = '') {
   const raw = String(value || '').trim();
   const selected = raw === '/' ? fallback : (raw || fallback);
+  if (selected === '/') return '/';
   return trimLeadingSlash(selected || '');
 }
 
@@ -186,12 +187,184 @@ function renderPortfolioProjectCard(project, rank) {
   ].join('\n');
 }
 
-function renderHeader({ settings, navigation, projectsById, audienceLabel }) {
+function sortByOrderThenTitle(items, titleKey = 'title') {
+  return [...(Array.isArray(items) ? items : [])].sort((a, b) => {
+    const orderA = Number.isFinite(Number(a && a.order)) ? Number(a.order) : Number.MAX_SAFE_INTEGER;
+    const orderB = Number.isFinite(Number(b && b.order)) ? Number(b.order) : Number.MAX_SAFE_INTEGER;
+    if (orderA !== orderB) return orderA - orderB;
+    return String(a && a[titleKey] || '').localeCompare(String(b && b[titleKey] || ''));
+  });
+}
+
+function isPublicTool(tool) {
+  const visibility = String(tool && tool.visibility ? tool.visibility : 'public').trim().toLowerCase();
+  return Boolean(tool && !tool.hidden && !tool.noindex && visibility === 'public');
+}
+
+function toolHref(tool) {
+  const slug = String(tool && tool.slug ? tool.slug : '').trim();
+  return trimLeadingSlash(tool && tool.href ? tool.href : (slug ? `tools/${slug}` : ''));
+}
+
+function renderDropdownFooterLinks(links, extraClass = '') {
+  return (Array.isArray(links) ? links : [])
+    .map((link) => [
+      `<a href="${escapeHtml(trimLeadingSlash(link.href || ''))}" class="nav-dropdown-link nav-dropdown-all${extraClass ? ` ${escapeHtml(extraClass)}` : ''}"${attrsToString(link.dataAttributes || {})}>`,
+      `  <span class="nav-dropdown-title">${escapeHtml(link.title || '')}</span>`,
+      `  <span class="nav-dropdown-subtitle">${escapeHtml(link.subtitle || '')}</span>`,
+      '</a>'
+    ].join('\n'))
+    .join('\n');
+}
+
+function renderToolsDropdown(toolsNav, toolsPage, tools) {
+  if (!toolsNav || toolsNav.enabled === false) return '';
+  const categories = sortByOrderThenTitle(Array.isArray(toolsPage && toolsPage.categories) ? toolsPage.categories : []);
+  const publicTools = sortByOrderThenTitle((Array.isArray(tools) ? tools : []).filter(isPublicTool));
+  const featuredPerCategory = Math.max(1, Math.min(4, Number(toolsNav.featuredPerCategory) || 2));
+  const groups = categories
+    .map((category) => {
+      const items = publicTools
+        .filter((tool) => String(tool.categoryId || '') === String(category.id || ''))
+        .slice(0, featuredPerCategory);
+      if (!items.length) return '';
+      const links = items
+        .map((tool) => renderDropdownLink({
+          title: tool.title,
+          subtitle: tool.summary,
+          href: toolHref(tool)
+        }, 'nav-dropdown-link nav-dropdown-tool-link'))
+        .join('\n');
+      return [
+        '<div class="nav-dropdown-group">',
+        `  <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(category.title || '')}</div>`,
+        '  <div class="nav-dropdown-list" role="list">',
+        indentBlock(links, '    '),
+        '  </div>',
+        '</div>'
+      ].join('\n');
+    })
+    .filter(Boolean)
+    .join('\n');
+  const footerLinks = renderDropdownFooterLinks(toolsNav.links, 'nav-dropdown-tools-all');
+  if (!groups && !footerLinks) return '';
+
+  return [
+    '        <div class="nav-item nav-item-tools">',
+    `          <a href="${escapeHtml(trimLeadingSlash(toolsNav.href || 'tools'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-tools">`,
+    `            ${escapeHtml(toolsNav.label || 'Tools')}`,
+    '            <span class="nav-link-caret" aria-hidden="true"></span>',
+    '          </a>',
+    '          <div class="nav-dropdown nav-dropdown-directory nav-dropdown-tools" id="nav-dropdown-tools" aria-label="Featured tools">',
+    '            <div class="nav-dropdown-inner nav-dropdown-inner-directory nav-dropdown-inner-tools">',
+    indentBlock(groups, '              '),
+    footerLinks ? '              <div class="nav-dropdown-footer nav-dropdown-footer-inline">' : '',
+    footerLinks ? indentBlock(footerLinks, '                ') : '',
+    footerLinks ? '              </div>' : '',
+    '            </div>',
+    '          </div>',
+    '        </div>'
+  ].filter(Boolean).join('\n');
+}
+
+function gameHref(game) {
+  const id = String(game && game.id ? game.id : '').trim();
+  return trimLeadingSlash(game && game.href ? game.href : (id ? `games/${id}` : ''));
+}
+
+function gameSubtitle(game) {
+  const tags = Array.isArray(game && game.tags) ? game.tags.filter(Boolean).join(', ') : '';
+  return String(game && (game.navSubtitle || tags || game.summary) || '').trim();
+}
+
+function renderGamesDropdown(gamesNav, gamesPage) {
+  if (!gamesNav || gamesNav.enabled === false) return '';
+  const games = sortByOrderThenTitle(Array.isArray(gamesPage && gamesPage.games) ? gamesPage.games : []);
+  const gameLinks = games
+    .map((game) => renderDropdownLink({
+      title: game.title,
+      subtitle: gameSubtitle(game),
+      href: gameHref(game)
+    }, 'nav-dropdown-link nav-dropdown-game-link'))
+    .join('\n');
+  const footerLinks = renderDropdownFooterLinks(gamesNav.links, 'nav-dropdown-games-all');
+  if (!gameLinks && !footerLinks) return '';
+
+  return [
+    '        <div class="nav-item nav-item-games">',
+    `          <a href="${escapeHtml(trimLeadingSlash(gamesNav.href || 'games'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-games">`,
+    `            ${escapeHtml(gamesNav.label || 'Games')}`,
+    '            <span class="nav-link-caret" aria-hidden="true"></span>',
+    '          </a>',
+    '          <div class="nav-dropdown nav-dropdown-simple nav-dropdown-games" id="nav-dropdown-games" aria-label="Browser games">',
+    '            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-games">',
+    '              <div class="nav-dropdown-column nav-dropdown-column-list">',
+    `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(gamesNav.header || 'Games')}</div>`,
+    '                <div class="nav-dropdown-list" role="list">',
+    indentBlock(gameLinks, '                  '),
+    '                </div>',
+    footerLinks ? '                <div class="nav-dropdown-footer nav-dropdown-footer-inline">' : '',
+    footerLinks ? indentBlock(footerLinks, '                  ') : '',
+    footerLinks ? '                </div>' : '',
+    '              </div>',
+    '            </div>',
+    '          </div>',
+    '        </div>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderGameIconMarkup(iconType) {
+  switch (String(iconType || '').trim()) {
+    case 'dogfight':
+      return [
+        '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
+        '  <path d="M12 2l4 6-4 12-4-12 4-6z" class="icon-fill" opacity=".12"></path>',
+        '  <path d="M12 2l4 6-4 12-4-12 4-6z"></path>',
+        '  <path d="M8 14l-4 2 2-4"></path>',
+        '  <path d="M16 14l4 2-2-4"></path>',
+        '</svg>'
+      ].join('\n');
+    case 'roulette':
+      return [
+        '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
+        '  <circle cx="12" cy="12" r="8" class="icon-fill" opacity=".12"></circle>',
+        '  <circle cx="12" cy="12" r="8"></circle>',
+        '  <circle cx="12" cy="12" r="2.1"></circle>',
+        '  <path d="M12 4v2.3M20 12h-2.3M12 20v-2.3M4 12h2.3"></path>',
+        '</svg>'
+      ].join('\n');
+    case 'probability':
+      return [
+        '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
+        '  <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>',
+        '  <rect x="4" y="4" width="16" height="16" rx="3"></rect>',
+        '  <path d="M7 9h10M7 12h10M7 15h10M9 7v10M12 7v10M15 7v10"></path>',
+        '</svg>'
+      ].join('\n');
+    case 'ocean':
+      return [
+        '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
+        '  <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>',
+        '  <rect x="4" y="4" width="16" height="16" rx="3"></rect>',
+        '  <path d="M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>',
+        '  <path d="M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>',
+        '</svg>'
+      ].join('\n');
+    default:
+      return '';
+  }
+}
+
+function renderHeader({ settings, navigation, projectsById, pagesById, tools, audienceLabel }) {
   const brand = navigation.brand || {};
   const portfolio = navigation.portfolio || {};
+  const toolsNav = navigation.tools || {};
+  const gamesNav = navigation.games || {};
   const resume = navigation.resume || {};
   const contact = navigation.contact || {};
   const search = navigation.search || {};
+  const toolsPage = pagesById && pagesById.tools;
+  const gamesPage = pagesById && pagesById.games;
   const featuredProjectIds = Array.isArray(portfolio.featuredProjectIds) ? portfolio.featuredProjectIds : [];
   const featuredCards = featuredProjectIds
     .map((id, index) => {
@@ -209,26 +382,26 @@ function renderHeader({ settings, navigation, projectsById, audienceLabel }) {
     .map((link) => renderDropdownLink(link, 'nav-dropdown-link'))
     .join('\n');
 
-  const portfolioFooterLinks = (Array.isArray(portfolio.links) ? portfolio.links : [])
-    .map((link) => [
-      `<a href="${escapeHtml(trimLeadingSlash(link.href || ''))}" class="nav-dropdown-link nav-dropdown-all"${attrsToString(link.dataAttributes || {})}>`,
-      `  <span class="nav-dropdown-title">${escapeHtml(link.title || '')}</span>`,
-      `  <span class="nav-dropdown-subtitle">${escapeHtml(link.subtitle || '')}</span>`,
-      '</a>'
-    ].join('\n'))
+  const portfolioFooterLinks = renderDropdownFooterLinks(portfolio.links);
+  const primaryLinks = (Array.isArray(navigation.primary) ? navigation.primary : [])
+    .filter((link) => link && link.href && link.label)
+    .map((link) => `<a href="${escapeHtml(trimLeadingSlash(link.href || ''))}" class="nav-link"${attrsToString(link.dataAttributes || {})}>${escapeHtml(link.label || '')}</a>`)
     .join('\n');
+  const resumeEnabled = resume.enabled !== false && (resume.label || resumeLinks);
+  const toolsDropdown = renderToolsDropdown(toolsNav, toolsPage, tools);
+  const gamesDropdown = renderGamesDropdown(gamesNav, gamesPage);
 
   return [
     '<header id="combined-header-nav">',
     '  <nav class="nav" aria-label="Primary">',
     '    <div class="wrapper nav-wrapper">',
-    `      <a href="${escapeHtml(normalizeRelativeHref(brand.homePath || '/', '/analytics'))}" class="brand" aria-label="Home" data-entry-home-link="true">`,
+    `      <a href="${escapeHtml(normalizeRelativeHref(brand.homePath || '/', '/'))}" class="brand" aria-label="Home" data-entry-home-link="true">`,
     `        <img src="${escapeHtml(brand.logoSrc || 'img/ui/logo-64.png')}" srcset="${escapeHtml(brand.logoSrcSet || 'img/ui/logo-64.png 1x, img/ui/logo-192.png 3x')}" sizes="${escapeHtml(brand.logoSizes || '64px')}" alt="${escapeHtml(brand.logoAlt || 'DS logo')}" class="brand-logo" decoding="async" loading="eager" width="${escapeHtml(brand.logoWidth || 64)}" height="${escapeHtml(brand.logoHeight || 64)}">`,
     '        <span class="brand-name">',
     `          <span class="brand-title">${escapeHtml(settings.ownerName || 'Daniel Short')}</span>`,
     '          <span class="brand-divider" aria-hidden="true"></span>',
     '          <span class="brand-tagline">',
-    `            <span class="brand-tagline-chunk" data-brand-tagline-primary="true">${escapeHtml(audienceLabel || brand.defaultTagline || 'Data Analytics')}</span>`,
+    `            <span class="brand-tagline-chunk" data-brand-tagline-primary="true">${escapeHtml(audienceLabel || brand.defaultTagline || 'Projects, Tools, and Notes')}</span>`,
     '          </span>',
     '        </span>',
     '      </a>',
@@ -256,22 +429,27 @@ function renderHeader({ settings, navigation, projectsById, audienceLabel }) {
     '            </div>',
     '          </div>',
     '        </div>',
-    '        <div class="nav-item nav-item-resume">',
-    `          <a href="${escapeHtml(trimLeadingSlash(resume.href || 'resume'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">`,
-    `            ${escapeHtml(resume.label || 'Resume')}`,
-    '            <span class="nav-link-caret" aria-hidden="true"></span>',
-    '          </a>',
-    `          <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="${escapeHtml(resume.ariaLabel || 'Resume download')}">`,
-    '            <div class="nav-dropdown-inner nav-dropdown-inner-simple">',
-    '              <div class="nav-dropdown-column nav-dropdown-column-list">',
-    `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(resume.header || 'Resume shortcuts')}</div>`,
-    '                <div class="nav-dropdown-list" role="list">',
-    indentBlock(resumeLinks, '                  '),
-    '                </div>',
-    '              </div>',
-    '            </div>',
-    '          </div>',
-    '        </div>',
+    toolsDropdown,
+    gamesDropdown,
+    primaryLinks ? indentBlock(primaryLinks, '        ') : '',
+    ...(resumeEnabled ? [
+      '        <div class="nav-item nav-item-resume">',
+      `          <a href="${escapeHtml(trimLeadingSlash(resume.href || 'resume'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">`,
+      `            ${escapeHtml(resume.label || 'Resume')}`,
+      '            <span class="nav-link-caret" aria-hidden="true"></span>',
+      '          </a>',
+      `          <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="${escapeHtml(resume.ariaLabel || 'Resume download')}">`,
+      '            <div class="nav-dropdown-inner nav-dropdown-inner-simple">',
+      '              <div class="nav-dropdown-column nav-dropdown-column-list">',
+      `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(resume.header || 'Resume shortcuts')}</div>`,
+      '                <div class="nav-dropdown-list" role="list">',
+      indentBlock(resumeLinks, '                  '),
+      '                </div>',
+      '              </div>',
+      '            </div>',
+      '          </div>',
+      '        </div>'
+    ] : []),
     '        <div class="nav-item nav-item-contact">',
     `          <a href="${escapeHtml(trimLeadingSlash(contact.href || 'contact'))}" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">`,
     `            ${escapeHtml(contact.label || 'Contact')}`,
@@ -324,7 +502,7 @@ function renderFooter({ footer, year }) {
           inferredDataAttributes['data-smooth-scroll'] = 'true';
         }
         const attrs = {
-          href: normalizeRelativeHref(href, label === 'home' ? '/analytics' : ''),
+          href: normalizeRelativeHref(href, label === 'home' ? '/' : ''),
           class: 'footer-link',
           ...(link.target ? { target: link.target } : {}),
           ...(link.rel ? { rel: link.rel } : {}),
@@ -506,11 +684,13 @@ function renderBodyOpen(page) {
   return `<body${attrsToString(attrs)}>`;
 }
 
-function renderFullPage({ settings, navigation, footer, projectsById, page, audienceLabel }) {
+function renderFullPage({ settings, navigation, footer, projectsById, pagesById, tools, page, audienceLabel }) {
   const headerHtml = renderHeader({
     settings,
     navigation,
     projectsById,
+    pagesById,
+    tools,
     audienceLabel
   });
   const footerHtml = renderFooter({
@@ -650,6 +830,62 @@ function renderToolsDirectoryBody(page, tools) {
   ].join('\n');
 }
 
+function renderGamesDirectoryBody(page) {
+  const games = sortByOrderThenTitle((Array.isArray(page.games) ? page.games : [])
+    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id)));
+  const cards = games.map((game) => {
+    const id = String(game.id || game.href || '').trim();
+    const detailsId = `${id || 'game'}-details`;
+    const tags = Array.isArray(game.tags) ? game.tags.filter(Boolean) : [];
+    const renderedTags = tags.length
+      ? [
+        '      <span class="game-card-tags">',
+        ...tags.map((tag) => `        <span class="game-pill">${escapeHtml(tag)}</span>`),
+        '      </span>'
+      ].join('\n')
+      : '';
+    return [
+      '<article class="game-card" data-game-card role="listitem">',
+      `  <a class="game-launch-card" href="${escapeHtml(gameHref(game))}" aria-describedby="${escapeHtml(detailsId)}">`,
+      '    <span class="game-icon" aria-hidden="true">',
+      indentBlock(renderGameIconMarkup(game.iconType), '      '),
+      '    </span>',
+      '    <span class="game-card-main">',
+      `      <span class="game-card-title">${escapeHtml(game.title || '')}</span>`,
+      '    </span>',
+      `    <span class="game-card-details" id="${escapeHtml(detailsId)}" role="tooltip">`,
+      `      <span class="game-card-summary">${escapeHtml(game.summary || '')}</span>`,
+      renderedTags,
+      '    </span>',
+      '  </a>',
+      '</article>'
+    ].filter(Boolean).join('\n');
+  }).join('\n\n');
+  const heroLead = String(page.heroLead || '').trim();
+
+  return [
+    '<section class="hero hero--games games-hero">',
+    '  <div class="wrapper">',
+    '    <div class="games-hero-copy">',
+    `      <p class="hero-eyebrow">${escapeHtml(page.heroEyebrow || 'Games')}</p>`,
+    `      <h1>${escapeHtml(page.heroTitle || 'Games')}</h1>`,
+    heroLead ? `      <p class="games-hero-lead">${escapeHtml(heroLead)}</p>` : '',
+    '    </div>',
+    '  </div>',
+    '</section>',
+    '',
+    '<main id="main">',
+    '  <section class="surface-band games-section">',
+    '    <div class="wrapper">',
+    '      <div class="games-grid" role="list">',
+    indentBlock(cards, '        '),
+    '      </div>',
+    '    </div>',
+    '  </section>',
+    '</main>'
+  ].join('\n');
+}
+
 function renderProjectsDataJs(projects, featuredIds) {
   return [
     '/* Generated by build/generate-cms-artifacts.js. Do not edit directly. */',
@@ -726,7 +962,7 @@ function renderAudienceConfigJs(settings, audiences) {
     };
     return acc;
   }, {});
-  const defaultAudience = settings.defaultAudience || order[0] || 'analytics';
+  const defaultAudience = settings.defaultAudience || order[0] || 'personal';
 
   return [
     '/* Generated by build/generate-cms-artifacts.js. Do not edit directly. */',
@@ -792,6 +1028,7 @@ module.exports = {
   renderAudienceConfigJs,
   renderFooter,
   renderFullPage,
+  renderGamesDirectoryBody,
   renderHeader,
   renderProjectsDataJs,
   renderToolsDirectoryBody

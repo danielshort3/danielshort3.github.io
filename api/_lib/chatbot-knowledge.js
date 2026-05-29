@@ -20,9 +20,6 @@ const AUDIENCE_TERMS = {
   tourism: ['tourism', 'destination', 'visitor', 'visitors', 'travel', 'lodging', 'grand junction', 'dmo']
 };
 const AUDIENCE_PATHS = {
-  analytics: { home: '/analytics', resume: '/resume-analytics', portfolio: '/portfolio?audience=analytics' },
-  'data-science': { home: '/data-science', resume: '/resume-data-science', portfolio: '/portfolio?audience=data-science' },
-  tourism: { home: '/tourism', resume: '/resume-tourism', portfolio: '/portfolio?audience=tourism' }
 };
 
 let cachedKnowledge = null;
@@ -50,9 +47,6 @@ function inferAudienceFromUrl(value) {
     const path = (url.pathname || '').replace(/\/+$/, '') || '/';
     const queryAudience = normalizeAudience(url.searchParams.get('audience'));
     if (queryAudience) return queryAudience;
-    if (path === '/analytics' || path === '/resume-analytics') return 'analytics';
-    if (path === '/data-science' || path === '/resume-data-science') return 'data-science';
-    if (path === '/tourism' || path === '/resume-tourism') return 'tourism';
     return '';
   } catch {
     return '';
@@ -89,8 +83,10 @@ function detectQueryIntent(message) {
   const grandJunction = text.includes('grand junction') || text.includes('visit grand junction') || has(/\bvgj\b/);
   return {
     contact: has(/\b(contact|email|hire|reach|linkedin|github|message)\b/),
-    resume: has(/\b(resume|cv|work history|qualification|qualified)\b/),
+    resume: false,
     portfolio: has(/\b(portfolio|project|projects|case study|case studies|dashboard|example|sample|work sample)\b/),
+    tools: has(/\b(tool|tools|utility|utilities|editor|cleanup|qr|utm|recorder|optimizer|generator)\b/),
+    games: has(/\b(game|games|roulette|dogfight|probability engine|ocean wave|simulation|simulator)\b/),
     analytics: has(/\b(analytics|bi|tableau|sql|reporting|dashboard|kpi|forecast|forecasting)\b/),
     dataScience: has(/\b(data science|machine learning|ml|model|models|python|nlp|rag|lora)\b/),
     tourism: grandJunction || has(/\b(tourism|destination|travel|visitor|visitors|lodging|hotel|attraction)\b/),
@@ -164,34 +160,10 @@ function normalizePath(value) {
 }
 
 function scoreAudienceBoost(chunk, audience, intent) {
-  const url = normalizePath(chunk.url);
-  const profile = AUDIENCE_PATHS[audience];
-  if (!profile) return 0;
-  const searchText = chunk._searchText || [
-    chunk.title,
-    chunk.url,
-    chunk.category,
-    chunk.audience,
-    ...(Array.isArray(chunk.keywords) ? chunk.keywords : []),
-    chunk.text
-  ].filter(Boolean).join(' ').toLowerCase();
-  let score = 0;
-  const portfolioUrl = url === '/portfolio' || url.startsWith('/portfolio/');
-
-  if (url === profile.home) score += intent.portfolio ? 3 : 26;
-  if (url === profile.resume) score += intent.resume ? 58 : (intent.portfolio ? -10 : 20);
-  if (portfolioUrl) score += intent.portfolio ? 28 : 3;
-  if (chunk.audience === audience) score += intent.portfolio ? 4 : 22;
-  (AUDIENCE_TERMS[audience] || []).forEach((term) => {
-    if (searchText.includes(term)) score += 4;
-  });
-
-  if (intent.resume && url.includes('resume') && url !== profile.resume) score -= 24;
-  if (intent.portfolio && !portfolioUrl && url !== '/contact') score -= 28;
-  if ((url === '/analytics' || url === '/data-science' || url === '/tourism') && url !== profile.home) score -= 16;
-  if ((url === '/resume-analytics' || url === '/resume-data-science' || url === '/resume-tourism') && url !== profile.resume) score -= 30;
-
-  return score;
+  void chunk;
+  void audience;
+  void intent;
+  return 0;
 }
 
 function scoreIntentBoost(chunk, intent, audience = '') {
@@ -200,19 +172,10 @@ function scoreIntentBoost(chunk, intent, audience = '') {
 
   if (intent.contact && url === '/contact') score += 60;
 
-  if (intent.resume) {
-    const analyticsResumeMatch = audience === 'analytics' || intent.analytics || (!audience && !intent.dataScience && !intent.tourism);
-    if (url === '/resume-analytics') score += analyticsResumeMatch ? 42 : 24;
-    if (url === '/resume-data-science') score += (audience === 'data-science' || intent.dataScience) ? 42 : 18;
-    if (url === '/resume-tourism') score += (audience === 'tourism' || intent.tourism) ? 42 : 18;
-    if (url.includes('resume')) score += 8;
-  }
-
   if (intent.chatbotProject && url === '/portfolio/chatbotLora') score += 80;
   if (intent.portfolio && (url === '/portfolio' || url.startsWith('/portfolio/'))) score += url === '/portfolio' ? 12 : 18;
-  if (intent.analytics && (url === '/analytics' || chunk.audience === 'analytics')) score += 14;
-  if (intent.dataScience && (url === '/data-science' || chunk.audience === 'data-science')) score += 14;
-  if (intent.tourism && (url === '/tourism' || chunk.audience === 'tourism')) score += 14;
+  if (intent.tools && (url === '/tools' || url.startsWith('/tools/'))) score += url === '/tools' ? 18 : 14;
+  if (intent.games && (url === '/games' || url.startsWith('/games/'))) score += url === '/games' ? 18 : 14;
 
   return score;
 }

@@ -884,7 +884,7 @@ function renderProjectPage(project, options = {}) {
   <meta name="description" content="${escapeHtml(description)}">
 
   <meta property="og:title" content="${escapeHtml(title)} | Daniel Short">
-  <meta property="og:site_name" content="Daniel Short - Data Analytics &amp; BI">
+  <meta property="og:site_name" content="Daniel Short">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta property="og:image" content="${escapeHtml(ogImage)}">
@@ -989,13 +989,8 @@ function writeSitemap(projects) {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const baseEntries = [
     { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
-    { loc: `${SITE_ORIGIN}/analytics`, sourceFile: 'pages/analytics.html', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/data-science`, sourceFile: 'pages/data-science.html', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/tourism`, sourceFile: 'pages/tourism.html', priority: 0.9 },
     { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/resume-analytics`, sourceFile: 'pages/resume-analytics.html', priority: 0.8 },
-    { loc: `${SITE_ORIGIN}/resume-data-science`, sourceFile: 'pages/resume-data-science.html', priority: 0.8 },
-    { loc: `${SITE_ORIGIN}/resume-tourism`, sourceFile: 'pages/resume-tourism.html', priority: 0.8 },
+    { loc: `${SITE_ORIGIN}/games`, sourceFile: 'pages/games.html', priority: 0.8 },
     { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', priority: 0.7 },
     { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', priority: 0.7 },
     { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },

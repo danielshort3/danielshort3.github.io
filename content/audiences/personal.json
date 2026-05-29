@@ -1,0 +1,114 @@
+{
+  "order": 1,
+  "key": "personal",
+  "label": "Personal Site",
+  "shortLabel": "Personal",
+  "homePath": "/",
+  "portfolioPath": "/portfolio",
+  "portfolioAllPath": "/portfolio",
+  "resumePath": "",
+  "resumePreviewPath": "",
+  "resumeDownloadPath": "",
+  "featuredProjectIds": [
+    "retailStore",
+    "chatbotLora",
+    "digitGenerator",
+    "smartSentence",
+    "website"
+  ],
+  "portfolioTitle": "Project Library",
+  "portfolioDescription": "A collection of data projects, software experiments, tools, and notes from Daniel Short.",
+  "brandNavPrimary": "Projects, Tools, and Notes",
+  "page": {
+    "id": "home",
+    "template": "visual-page",
+    "outputPath": "index.html",
+    "title": "Daniel Short",
+    "canonicalPath": "/",
+    "description": "Personal website for Daniel Short, featuring projects, tools, experiments, and applied data and software work.",
+    "ogTitle": "Daniel Short",
+    "ogDescription": "Projects, tools, experiments, and applied data and software work from Daniel Short.",
+    "siteName": "Daniel Short",
+    "ogType": "website",
+    "bodyAttributes": {
+      "data-page": "home",
+      "data-audience": "personal",
+      "class": "site-page audience-page home-pattern-page"
+    },
+    "stylesheets": [
+      "dist/styles.css",
+      "css/components/home-proof.css",
+      "css/components/destination-analytics.css"
+    ],
+    "headScripts": [
+      {
+        "src": "dist/site-shell.js",
+        "defer": true
+      },
+      {
+        "src": "js/common/no-js.js"
+      }
+    ],
+    "bottomScripts": [
+      {
+        "src": "dist/site-consent.js",
+        "defer": true
+      }
+    ],
+    "mainAttributes": {
+      "id": "main"
+    },
+    "sections": [
+      {
+        "id": "home-hero",
+        "type": "legacy-html",
+        "label": "Daniel Short",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"hero hero--default\"><div class=\"wrapper\"><h1>Daniel Short</h1><div class=\"hero-identity\"><img class=\"hero-avatar\" src=\"img/hero/head-avatar-192.jpg\" srcset=\"img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w\" sizes=\"(max-width: 768px) 112px, 132px\" alt=\"Portrait of Daniel Short\" width=\"132\" height=\"132\" decoding=\"async\" fetchpriority=\"high\"><p class=\"hero-eyebrow\">Projects, tools, and applied data work</p></div><p class=\"hero-tagline\">This is my personal site for things I build, study, and keep refining: data projects, web tools, small games, writing utilities, and practical experiments.</p><p class=\"hero-status\">Python · SQL · JavaScript · Tableau · Machine Learning · Web Tools</p><div class=\"cta-group\"><a href=\"portfolio\" class=\"btn-primary hero-cta\">Projects</a><a href=\"tools\" class=\"btn-secondary hero-cta\">Tools</a><a href=\"games\" class=\"btn-ghost hero-cta\">Games</a></div></div><a class=\"chevron-hint scroll-indicator\" href=\"#featured-projects\" data-smooth-scroll=\"true\"><span class=\"chevron-label\">View featured work</span><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z\"/></svg></a></section>"
+        }
+      },
+      {
+        "id": "home-featured-projects",
+        "type": "legacy-html",
+        "label": "Featured Projects",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section id=\"featured-projects\" class=\"project-examples-band surface-band no-reveal\" role=\"region\" aria-labelledby=\"featured-projects-title\"><div class=\"wrapper\"><div class=\"project-examples-head\"><h2 id=\"featured-projects-title\">Featured Projects</h2><p class=\"project-examples-subtitle\">A few representative projects across analytics, language models, and image generation.</p></div><div class=\"project-examples-grid\" role=\"list\" aria-label=\"Featured projects\"><a class=\"project-card ripple-in project-examples-card\" role=\"listitem\" href=\"portfolio/retailStore\" aria-label=\"View Store-Level Loss and Sales ETL\"><div class=\"overlay\"></div><div class=\"project-text\"><div class=\"project-title\">Store-Level Loss &amp; Sales ETL</div><div class=\"project-subtitle\">SQL ETL and anomaly detection</div></div><picture><source srcset=\"img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w\" type=\"image/avif\"><source srcset=\"img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w\" type=\"image/webp\"><img src=\"img/projects/retailStore.png\" alt=\"Preview of store-level loss and sales analysis dashboard\" width=\"1410\" height=\"1410\" loading=\"lazy\" decoding=\"async\" draggable=\"false\" sizes=\"(max-width: 640px) 92vw, 340px\"></picture></a><a class=\"project-card ripple-in project-examples-card\" role=\"listitem\" href=\"portfolio/chatbotLora\" aria-label=\"View RAG Chatbot Fine-Tuned with LoRA\"><div class=\"overlay\"></div><div class=\"project-text\"><div class=\"project-title\">RAG Chatbot Fine-Tuned with LoRA</div><div class=\"project-subtitle\">Retrieval, fine-tuning, and evaluation</div></div><picture><source srcset=\"img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora-960.avif 960w, img/projects/chatbotLora.avif 1459w\" type=\"image/avif\"><source srcset=\"img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora-960.webp 960w, img/projects/chatbotLora.webp 1459w\" type=\"image/webp\"><img src=\"img/projects/chatbotLora.png\" alt=\"Preview of chatbot architecture and interface\" width=\"1459\" height=\"914\" loading=\"lazy\" decoding=\"async\" draggable=\"false\" sizes=\"(max-width: 640px) 92vw, 340px\"></picture></a><a class=\"project-card ripple-in project-examples-card\" role=\"listitem\" href=\"portfolio/digitGenerator\" aria-label=\"View Digit Generator\"><div class=\"overlay\"></div><div class=\"project-text\"><div class=\"project-title\">Digit Generator</div><div class=\"project-subtitle\">PyTorch generative modeling</div></div><picture><source srcset=\"img/projects/digitGenerator-640.avif 640w, img/projects/digitGenerator-960.avif 960w, img/projects/digitGenerator.avif 1410w\" type=\"image/avif\"><source srcset=\"img/projects/digitGenerator-640.webp 640w, img/projects/digitGenerator-960.webp 960w, img/projects/digitGenerator.webp 1410w\" type=\"image/webp\"><img src=\"img/projects/digitGenerator.png\" alt=\"Preview of generated handwritten digits\" width=\"1410\" height=\"1410\" loading=\"lazy\" decoding=\"async\" draggable=\"false\" sizes=\"(max-width: 640px) 92vw, 340px\"></picture></a></div><div class=\"project-examples-actions\"><a href=\"portfolio\" class=\"btn-secondary project-examples-cta\">Browse all projects</a></div></div></section>"
+        }
+      },
+      {
+        "id": "home-tools",
+        "type": "legacy-html",
+        "label": "Tools",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section id=\"tools-preview\" class=\"surface-band reveal destination-section\" aria-labelledby=\"tools-preview-title\"><div class=\"wrapper\"><div class=\"destination-section-head\"><h2 id=\"tools-preview-title\">Tools</h2><p>Small utilities built for repeated, practical use: writing cleanup, media processing, link building, and quick analysis.</p></div><div class=\"who-i-work-with-grid\"><article class=\"who-i-work-with-card\"><h3>Writing &amp; Text</h3><p>Text Compare, Word Frequency, Oxford Comma Checker, Point of View Checker, and whitespace cleanup.</p><a class=\"btn-secondary\" href=\"tools\">Open tools</a></article><article class=\"who-i-work-with-card\"><h3>Images &amp; Media</h3><p>Image optimization, background removal, QR codes, screen recording, and transcription helpers.</p><a class=\"btn-secondary\" href=\"tools\">Browse utilities</a></article><article class=\"who-i-work-with-card\"><h3>Marketing &amp; Links</h3><p>UTM batch building, short links, and campaign helpers for cleaner repeatable workflows.</p><a class=\"btn-secondary\" href=\"tools/utm-batch-builder\">Try UTM builder</a></article></div></div></section>"
+        }
+      },
+      {
+        "id": "home-experiments",
+        "type": "legacy-html",
+        "label": "Experiments",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section id=\"experiments\" class=\"surface-band reveal destination-section\" aria-labelledby=\"experiments-title\"><div class=\"wrapper\"><div class=\"destination-section-head\"><h2 id=\"experiments-title\">Experiments</h2><p>Interactive work that is more playful or exploratory than polished case study: games, simulations, prototypes, and interface sketches.</p></div><div class=\"who-i-work-with-grid\"><article class=\"who-i-work-with-card\"><h3>Games</h3><p>Small browser games and probability experiments built around interaction, state, and feedback.</p><a class=\"btn-secondary\" href=\"games\">Open games</a></article><article class=\"who-i-work-with-card\"><h3>Ocean Wave Simulation</h3><p>A visual simulation focused on motion, controls, and lightweight browser rendering.</p><a class=\"btn-secondary\" href=\"games/ocean-wave-simulation\">View simulation</a></article><article class=\"who-i-work-with-card\"><h3>Website Work</h3><p>Notes and implementation examples from building and refining this site itself.</p><a class=\"btn-secondary\" href=\"portfolio/website\">View website project</a></article></div></div></section>"
+        }
+      },
+      {
+        "id": "home-about",
+        "type": "legacy-html",
+        "label": "About",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section id=\"about\" class=\"surface-band reveal destination-section\" aria-labelledby=\"about-title\"><div class=\"wrapper\"><div class=\"destination-section-head\"><h2 id=\"about-title\">About</h2><p>I like projects that make messy information easier to inspect, explain, and use. Most of what I publish here sits somewhere between data analysis, software tooling, machine learning, and practical web interfaces.</p></div><div id=\"cta-link\" role=\"group\" aria-label=\"Contact call to action\"><h2 class=\"section-title\">Say hello</h2><p>Send a note about a project, a tool, an idea, or something on the site.</p><div><a href=\"contact\" class=\"btn-primary\">Contact</a></div></div></div></section>"
+        }
+      }
+    ]
+  }
+}

@@ -2,16 +2,12 @@
 
 (function initSiteChatbot() {
   const allowedPages = new Set([
-    'analytics',
-    'data-science',
-    'tourism',
+    'home',
     'contact',
     'portfolio',
     'project',
     'tools',
-    'resume-analytics',
-    'resume-data-science',
-    'resume-tourism'
+    'games'
   ]);
 
   const body = document.body;
@@ -30,56 +26,16 @@
   const TRANSCRIPT_MAX_TURNS = 8;
   const DISPLAY_TRANSCRIPT_MAX_CHARS = 6000;
   const HISTORY_TRANSCRIPT_MAX_CHARS = 700;
-  const UI_VERSION = 'fresh-followups-2026-05-12';
+  const UI_VERSION = 'public-materials-2026-05-29';
   const API_PATH = '/api/chatbot';
   const TURNSTILE_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  const AUDIENCE_CONFIG = {
-    analytics: {
-      label: 'Analytics',
-      roleLabel: 'analytics',
-      homeUrl: '/analytics',
-      portfolioUrl: '/portfolio?audience=analytics',
-      resumeUrl: '/resume-analytics',
-      resumeTitle: 'Analytics resume',
-      portfolioTitle: 'Analytics portfolio',
-      prompts: [
-        ['SQL proof', "What analytics projects prove Daniel's SQL and reporting strength?"],
-        ['Dashboarding', 'Which examples show Daniel can build useful dashboards?'],
-        ['Hire fit', 'Why is Daniel a strong fit for an analytics role?']
-      ]
-    },
-    'data-science': {
-      label: 'Data Science',
-      roleLabel: 'data science',
-      homeUrl: '/data-science',
-      portfolioUrl: '/portfolio?audience=data-science',
-      resumeUrl: '/resume-data-science',
-      resumeTitle: 'Data science resume',
-      portfolioTitle: 'Data science portfolio',
-      prompts: [
-        ['Model proof', "Which projects show Daniel's machine learning and Python skills?"],
-        ['Deployment', 'How does Daniel connect data science work to usable products?'],
-        ['Hire fit', 'Why is Daniel a strong fit for a data science role?']
-      ]
-    },
-    tourism: {
-      label: 'Tourism Analytics',
-      roleLabel: 'tourism analytics',
-      homeUrl: '/tourism',
-      portfolioUrl: '/portfolio?audience=tourism',
-      resumeUrl: '/resume-tourism',
-      resumeTitle: 'Tourism resume',
-      portfolioTitle: 'Tourism portfolio',
-      prompts: [
-        ['DMO fit', 'Why is Daniel a strong fit for a destination analytics role?'],
-        ['Visitor data', 'Which projects show visitor or stakeholder analytics experience?'],
-        ['Impact proof', "What tourism outcomes does Daniel's work show?"]
-      ]
-    }
-  };
+  const AUDIENCE_CONFIG = {};
   const SHARED_FALLBACK_LINKS = [
-    { title: 'Portfolio', url: '/portfolio', reason: 'Browse project examples.' },
-    { title: 'Contact', url: '/contact', reason: 'Find email, LinkedIn, and message options.' }
+    { title: 'Home', url: '/', reason: 'Start from the personal site homepage.' },
+    { title: 'Projects', url: '/portfolio', reason: 'Browse projects, demos, and case studies.' },
+    { title: 'Tools', url: '/tools', reason: 'Open the public tool directory.' },
+    { title: 'Games', url: '/games', reason: 'Browse browser games and simulations.' },
+    { title: 'Contact', url: '/contact', reason: 'Send a note or find public contact links.' }
   ];
   const storedSessionState = readSessionState();
   const initialAudience = pageAudience() || normalizeAudience(storedSessionState.audience);
@@ -176,7 +132,7 @@
       <form class="site-chatbot__form">
         <div class="site-chatbot__input-shell">
           <label class="visually-hidden" for="site-chatbot-message">Ask a question</label>
-          <textarea id="site-chatbot-message" class="site-chatbot__input" name="message" rows="2" maxlength="1000" placeholder="Ask about portfolio work, resume, analytics, tourism, or contact details"></textarea>
+          <textarea id="site-chatbot-message" class="site-chatbot__input" name="message" rows="2" maxlength="1000" placeholder="Ask about projects, tools, games, or contact details"></textarea>
           <button class="site-chatbot__send" type="submit" aria-label="Send question">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="m4 12 16-8-4.8 16-3.1-6.1L4 12Z"/>
@@ -277,10 +233,6 @@
   function pageAudience() {
     const bodyAudience = normalizeAudience(body && body.dataset ? body.dataset.audience : '');
     if (bodyAudience) return bodyAudience;
-    if (pageId === 'analytics' || pageId === 'data-science' || pageId === 'tourism') return pageId;
-    if (pageId === 'resume-analytics') return 'analytics';
-    if (pageId === 'resume-data-science') return 'data-science';
-    if (pageId === 'resume-tourism') return 'tourism';
     try {
       const params = new URL(window.location.href).searchParams;
       return normalizeAudience(params.get('audience'));
@@ -390,11 +342,7 @@
   function fallbackLinksForAudience(audience = state.audience) {
     const config = audienceConfig(audience);
     if (!config) return SHARED_FALLBACK_LINKS;
-    return [
-      { title: config.resumeTitle, url: config.resumeUrl, reason: `Open the ${config.roleLabel}-focused resume.` },
-      { title: config.portfolioTitle, url: config.portfolioUrl, reason: `Browse ${config.roleLabel} project examples.` },
-      { title: 'Contact Daniel', url: '/contact', reason: 'Find email, LinkedIn, GitHub, and message options.' }
-    ];
+    return SHARED_FALLBACK_LINKS;
   }
 
   function getConversationId() {
@@ -428,45 +376,45 @@
     if (pageId === 'project') {
       if (config) {
         return [
-          ['Project fit', `How does this project support Daniel's ${config.roleLabel} fit?`],
+          ['Project context', `How does this project connect to Daniel's ${config.roleLabel} work?`],
           ['Skill proof', `What ${config.roleLabel} skills does Daniel demonstrate in this project?`],
           ['Team impact', "How would Daniel's work help a team?"]
         ];
       }
       return [
-        ['Project fit', "How does this project support Daniel's professional fit?"],
+        ['Project context', "How does this project connect to Daniel's other work?"],
         ['Skill proof', 'What skills does Daniel demonstrate in this project?'],
-        ['Team impact', "How would Daniel's work help a team?"]
+        ['Implementation', 'What implementation choices matter here?']
       ];
     }
-    if (config && (pageId === 'portfolio' || pageId === 'resume-analytics' || pageId === 'resume-data-science' || pageId === 'resume-tourism' || pageId === 'analytics' || pageId === 'data-science' || pageId === 'tourism')) {
+    if (config && pageId === 'portfolio') {
       return config.prompts;
     }
     if (pageId === 'portfolio') {
       return [
-        ['Relevant projects', 'Show relevant projects'],
-        ['Best resume', 'Which resume fits this role?'],
+        ['Project themes', 'Which projects should I look at first?'],
+        ['AI work', 'Which projects use AI or machine learning?'],
         ['Contact', 'How do I contact Daniel?']
       ];
     }
-    if (pageId === 'resume-analytics' || pageId === 'resume-data-science' || pageId === 'resume-tourism') {
+    if (pageId === 'tools') {
       return [
-        ['Summarize experience', "Summarize Daniel Short's experience"],
-        ['Portfolio proof', 'Show portfolio proof for this resume'],
-        ['Contact Daniel', 'How do I contact Daniel?']
+        ['Writing tools', 'Which tools help with writing or text cleanup?'],
+        ['Media tools', 'Which tools work with images or media?'],
+        ['Contact', 'How do I contact Daniel?']
       ];
     }
-    if (pageId === 'analytics' || pageId === 'data-science' || pageId === 'tourism') {
+    if (pageId === 'games') {
       return [
-        ['Relevant projects', `Show relevant ${pageId.replace('-', ' ')} projects`],
-        ['Best resume', 'Which resume fits this role?'],
-        ['Contact', 'How do I contact Daniel?']
+        ['Game guide', 'Which game should I try first?'],
+        ['Simulations', 'Which games are simulations?'],
+        ['Tools', 'Which tools has Daniel built?']
       ];
     }
     return [
-      ['Analytics projects', 'Show me analytics projects'],
-      ['Resume', 'Where is the best resume?'],
-      ['Contact', 'How do I contact Daniel?']
+      ['Projects', 'Which projects should I review first?'],
+      ['Tools', 'Which tools has Daniel built?'],
+      ['Games', 'Which games has Daniel built?']
     ];
   }
 
@@ -577,11 +525,9 @@
     const path = (url.pathname || '/').replace(/\/+$/, '') || '/';
     const fullPath = `${path}${url.search || ''}`;
     if (path === '/contact') return true;
-    if (path === config.homeUrl || path === config.resumeUrl) return true;
+    if (path === config.homeUrl) return true;
     if (fullPath.startsWith('/portfolio?audience=')) return fullPath === config.portfolioUrl;
     if (path === '/portfolio' || path.startsWith('/portfolio/')) return true;
-    if (path === '/analytics' || path === '/data-science' || path === '/tourism') return false;
-    if (path === '/resume-analytics' || path === '/resume-data-science' || path === '/resume-tourism') return false;
     return true;
   }
 

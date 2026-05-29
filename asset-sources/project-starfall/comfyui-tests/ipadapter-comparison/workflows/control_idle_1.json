@@ -1,0 +1,129 @@
+{
+  "client_id": "codex-starfall-ipadapter",
+  "prompt": {
+    "1": {
+      "class_type": "CheckpointLoaderSimple",
+      "inputs": {
+        "ckpt_name": "animagine-xl-4.0-opt.safetensors"
+      }
+    },
+    "2": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "1",
+          1
+        ],
+        "text": "masterpiece, best quality, solo, single character, one character only, chibi hooded bandit enemy, full body, centered, feet visible, clean silhouette, simple readable shape, small dagger, dark black hood with tan trim, red scarf, brown cloak, compact mascot-like proportions, rounded cloth hood with no animal ears, maple-inspired side-scrolling RPG enemy sprite, plain solid bright green background, standing idle pose, calm breathing frame 1, matching the black line pose guide"
+      }
+    },
+    "3": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "1",
+          1
+        ],
+        "text": "low quality, blurry, realistic, 3d render, cropped, cut off feet, multiple characters, many characters, group, lineup, collage, character sheet, multiple poses, duplicate subject, duplicate limbs, extra arms, extra legs, animal, slime, text, watermark, panel borders, sprite sheet, overlapping frames, parts from another frame, animal ears, fox ears, cat ears, rabbit ears, horns, antennae"
+      }
+    },
+    "4": {
+      "class_type": "EmptyLatentImage",
+      "inputs": {
+        "width": 768,
+        "height": 768,
+        "batch_size": 1
+      }
+    },
+    "5": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "positive": [
+          "10",
+          0
+        ],
+        "negative": [
+          "10",
+          1
+        ],
+        "latent_image": [
+          "4",
+          0
+        ],
+        "seed": 52703000,
+        "steps": 22,
+        "cfg": 6.5,
+        "sampler_name": "dpmpp_2m_sde",
+        "scheduler": "karras",
+        "denoise": 1.0
+      }
+    },
+    "6": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "5",
+          0
+        ],
+        "vae": [
+          "1",
+          2
+        ]
+      }
+    },
+    "7": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "filename_prefix": "starfall_ipadapter_compare_control_idle_1",
+        "images": [
+          "6",
+          0
+        ]
+      }
+    },
+    "8": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "starfall_pose_idle_1.png"
+      }
+    },
+    "9": {
+      "class_type": "ControlNetLoader",
+      "inputs": {
+        "control_net_name": "mistoLine_rank256.safetensors"
+      }
+    },
+    "10": {
+      "class_type": "ControlNetApplyAdvanced",
+      "inputs": {
+        "positive": [
+          "2",
+          0
+        ],
+        "negative": [
+          "3",
+          0
+        ],
+        "control_net": [
+          "9",
+          0
+        ],
+        "image": [
+          "8",
+          0
+        ],
+        "strength": 0.78,
+        "start_percent": 0.0,
+        "end_percent": 0.9,
+        "vae": [
+          "1",
+          2
+        ]
+      }
+    }
+  }
+}

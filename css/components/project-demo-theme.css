@@ -306,6 +306,15 @@ html[data-project-demo-theme="brand"] :is(
   box-shadow: 0 10px 24px color-mix(in srgb, var(--brand-signal-blue, #005fed) 22%, transparent);
 }
 
+html[data-project-demo-theme="brand"] .grid-number-control {
+  color: #ffffff;
+}
+
+html[data-project-demo-theme="brand"] select.grid-number-pill option {
+  background: #ffffff;
+  color: var(--brand-midnight, #091f3b);
+}
+
 html[data-project-demo-theme="brand"] :is(
   .clear-button,
   .view-tab,

@@ -35,117 +35,13 @@ const AUDIENCE_TERM_GROUPS = {
   tourism: ['tourism', 'destination', 'visitor', 'visitors', 'lodging', 'travel', 'grand junction', 'dmo']
 };
 const DEFAULT_SUGGESTED_LINKS = [
-  { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics', reason: 'See analytics projects and case studies.' },
-  { title: 'Resume', url: '/resume-analytics', reason: 'Open the resume page.' },
-  { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
+  { title: 'Home', url: '/', reason: 'Start from the personal site homepage.' },
+  { title: 'Projects', url: '/portfolio', reason: 'Browse projects, demos, and case studies.' },
+  { title: 'Tools', url: '/tools', reason: 'Open the public tool directory.' },
+  { title: 'Games', url: '/games', reason: 'Browse browser games and simulations.' },
+  { title: 'Contact Daniel', url: '/contact', reason: 'Send a note or find public contact links.' }
 ];
-const AUDIENCE_PROFILES = {
-  analytics: {
-    label: 'Analytics',
-    roleLabel: 'analytics',
-    homeUrl: '/analytics',
-    portfolioUrl: '/portfolio?audience=analytics',
-    resumeUrl: '/resume-analytics',
-    resumeTitle: 'Analytics Resume',
-    portfolioTitle: 'Analytics Portfolio',
-    focus: 'SQL workflows, BI dashboards, reporting automation, forecasting, and stakeholder-ready business analysis',
-    defaults: [
-      { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics', reason: 'Review analytics projects, dashboards, SQL workflows, and reporting examples.' },
-      { title: 'Analytics Resume', url: '/resume-analytics', reason: 'Open the resume tailored to analytics, BI, SQL, and reporting work.' },
-      { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
-    ],
-    evidence: [
-      'SQL workflows',
-      'Tableau dashboards',
-      'reporting automation',
-      'forecasting',
-      'stakeholder-ready business analysis',
-      '99% faster reporting turnaround',
-      '200+ hours saved annually',
-      '24% inventory loss reduction',
-      '57.6% theft reporting improvement',
-      'Store-Level Loss & Sales ETL',
-      'Empty-Package Shrink Dashboard',
-      'Pizza Delivery Dashboard',
-      'UFO Dashboard'
-    ],
-    followups: [
-      'What analytics skills does Daniel demonstrate?',
-      "Which project evidence proves Daniel's analytics impact?",
-      'Why is Daniel a strong analytics candidate?'
-    ]
-  },
-  'data-science': {
-    label: 'Data Science',
-    roleLabel: 'data science',
-    homeUrl: '/data-science',
-    portfolioUrl: '/portfolio?audience=data-science',
-    resumeUrl: '/resume-data-science',
-    resumeTitle: 'Data Science Resume',
-    portfolioTitle: 'Data Science Portfolio',
-    focus: 'machine learning, Python, NLP, evaluation, and deployment-minded data products',
-    defaults: [
-      { title: 'Data Science Portfolio', url: '/portfolio?audience=data-science', reason: 'Review machine learning, NLP, Python, and applied model projects.' },
-      { title: 'Data Science Resume', url: '/resume-data-science', reason: 'Open the resume tailored to data science and ML work.' },
-      { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
-    ],
-    evidence: [
-      'Python',
-      'machine learning',
-      'NLP',
-      'RAG',
-      'LoRA',
-      'model evaluation',
-      'deployment-minded data products',
-      '95% delivery time cut',
-      '10x serial tracking coverage',
-      '98% anomaly precision',
-      '+14.13% pageviews per user',
-      'Smart Sentence',
-      'Visit Grand Junction chatbot',
-      'Chatbot LoRA',
-      'Shape Classifier'
-    ],
-    followups: [
-      'What data science skills does Daniel demonstrate?',
-      "Which project evidence proves Daniel's applied ML depth?",
-      'Why is Daniel a strong data science candidate?'
-    ]
-  },
-  tourism: {
-    label: 'Tourism Analytics',
-    roleLabel: 'tourism analytics',
-    homeUrl: '/tourism',
-    portfolioUrl: '/portfolio?audience=tourism',
-    resumeUrl: '/resume-tourism',
-    resumeTitle: 'Tourism Resume',
-    portfolioTitle: 'Tourism Portfolio',
-    focus: 'destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support',
-    defaults: [
-      { title: 'Tourism Portfolio', url: '/portfolio?audience=tourism', reason: 'Review destination analytics, visitor data, and stakeholder reporting examples.' },
-      { title: 'Tourism Resume', url: '/resume-tourism', reason: 'Open the resume tailored to tourism analytics and destination work.' },
-      { title: 'Contact Daniel', url: '/contact', reason: 'Start a direct message or email.' }
-    ],
-    evidence: [
-      'Visit Grand Junction',
-      'destination reporting',
-      'visitor demand analysis',
-      'stakeholder communication',
-      'public-sector decision support',
-      'council reporting',
-      'lodging and visitor data',
-      '99% faster reporting turnaround',
-      '200+ hours saved annually',
-      'Smart Sentence',
-      'Visit Grand Junction chatbot'
-    ],
-    followups: [
-      'What tourism analytics skills does Daniel demonstrate?',
-      "Which project evidence proves Daniel's destination analytics impact?",
-      'Why is Daniel a strong tourism analytics candidate?'
-    ]
-  }
-};
+const AUDIENCE_PROFILES = {};
 
 let cachedBedrockClient = null;
 let cachedBedrockKey = '';
@@ -335,12 +231,8 @@ function audienceProfile(audience) {
 function inferAudienceFromUrl(value) {
   try {
     const url = new URL(String(value || ''), SITE_ORIGIN);
-    const path = (url.pathname || '').replace(/\/+$/, '') || '/';
     const queryAudience = normalizeAudience(url.searchParams.get('audience'));
     if (queryAudience) return queryAudience;
-    if (path === '/analytics' || path === '/resume-analytics') return 'analytics';
-    if (path === '/data-science' || path === '/resume-data-science') return 'data-science';
-    if (path === '/tourism' || path === '/resume-tourism') return 'tourism';
     return '';
   } catch {
     return '';
@@ -419,8 +311,8 @@ function lowConfidenceAnswer(message, retrieval, pageContext = {}) {
   const suggestedLinks = suggestedLinksFromRetrieval(message, retrieval, { includeDefaults: true, pageContext });
   const linkText = inlineLinkSentence(suggestedLinks, 'Best next step:');
   const fallbackHint = profile
-    ? `Try asking about Daniel Short's ${profile.roleLabel} fit, relevant projects, resume, or contact options.`
-    : 'Try asking about Daniel Short, his projects, resume, or contact options.';
+    ? `Try asking about Daniel Short's ${profile.roleLabel} fit, relevant projects, or contact options.`
+    : 'Try asking about Daniel Short, his projects, tools, experiments, or contact options.';
   return {
     ok: true,
     answer: `I could not find enough support in the site content to answer that confidently. ${linkText || fallbackHint}`,
@@ -510,7 +402,7 @@ function linkLabelMatches(label, expectedTitle) {
   const titleText = normalizeLinkText(expectedTitle);
   if (!labelText || !titleText) return false;
   if (labelText.includes(titleText) || titleText.includes(labelText)) return true;
-  const genericTerms = ['portfolio', 'resume', 'contact'];
+  const genericTerms = ['portfolio', 'projects', 'tools', 'games', 'contact'];
   return genericTerms.some((term) => labelText.includes(term) && titleText.includes(term));
 }
 
@@ -560,11 +452,9 @@ function sourceAllowedForAudience(source, audience) {
   const path = pathOnly(source && source.url);
   const fullPath = normalizePath(source && source.url);
   if (path === '/contact') return true;
-  if (path === profile.homeUrl || path === profile.resumeUrl) return true;
+  if (path === profile.homeUrl) return true;
   if (fullPath.startsWith('/portfolio?audience=')) return fullPath === profile.portfolioUrl;
   if (fullPath === profile.portfolioUrl || path === '/portfolio' || path.startsWith('/portfolio/')) return true;
-  if (path === '/analytics' || path === '/data-science' || path === '/tourism') return false;
-  if (path === '/resume-analytics' || path === '/resume-data-science' || path === '/resume-tourism') return false;
   return true;
 }
 
@@ -579,39 +469,22 @@ function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
   const links = [];
   const seen = new Set();
 
-  if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(query)) {
+  if (/\b(contact|email|reach|linkedin|github|message|note)\b/.test(query)) {
     addSuggestedLink(links, seen, { title: 'Contact Daniel', url: '/contact', reason: 'Use the contact page for email, LinkedIn, GitHub, and direct messages.' });
-  }
-  if (/\bresume|cv|experience|background|work history|qualification|qualified\b/.test(query)) {
-    if (profile) {
-      addSuggestedLink(links, seen, { title: profile.resumeTitle, url: profile.resumeUrl, reason: `Resume tailored to ${profile.focus}.` });
-    } else if (/\btourism|destination|travel\b/.test(query)) {
-      addSuggestedLink(links, seen, { title: 'Tourism Resume', url: '/resume-tourism', reason: 'Resume tailored to tourism analytics and destination work.' });
-    } else if (/\bdata science|machine learning|ml|model|python\b/.test(query)) {
-      addSuggestedLink(links, seen, { title: 'Data Science Resume', url: '/resume-data-science', reason: 'Resume tailored to data science and ML work.' });
-    } else {
-      addSuggestedLink(links, seen, { title: 'Analytics Resume', url: '/resume-analytics', reason: 'Resume tailored to analytics, BI, SQL, and reporting.' });
-    }
   }
   if (/\bportfolio|project|case stud|dashboard|example|work sample\b/.test(query)) {
     addSuggestedLink(links, seen, profile
       ? { title: profile.portfolioTitle, url: profile.portfolioUrl, reason: `Browse projects most relevant to ${profile.roleLabel} roles.` }
-      : { title: 'Portfolio', url: '/portfolio', reason: 'Browse projects and examples.' });
+      : { title: 'Projects', url: '/portfolio', reason: 'Browse projects and examples.' });
   }
-  if (profile && /\b(home|overview|start|role|fit|candidate)\b/.test(query)) {
+  if (/\b(tool|tools|utility|utilities|editor|cleanup|qr|utm)\b/.test(query)) {
+    addSuggestedLink(links, seen, { title: 'Tools', url: '/tools', reason: 'Browse public tools and utilities.' });
+  }
+  if (/\b(game|games|simulation|experiment|experiments)\b/.test(query)) {
+    addSuggestedLink(links, seen, { title: 'Games', url: '/games', reason: 'Browse games, simulations, and experiments.' });
+  }
+  if (profile && /\b(home|overview|start)\b/.test(query)) {
     addSuggestedLink(links, seen, { title: `${profile.label} Home`, url: profile.homeUrl, reason: `Start with Daniel's ${profile.roleLabel} overview.` });
-  }
-  if (!profile && /\banalytics|bi|tableau|sql|reporting|dashboard\b/.test(query)) {
-    addSuggestedLink(links, seen, { title: 'Analytics Home', url: '/analytics', reason: 'Start with the analytics-focused overview.' });
-    addSuggestedLink(links, seen, { title: 'Analytics Portfolio', url: '/portfolio?audience=analytics', reason: 'Filter portfolio work to analytics projects.' });
-  }
-  if (!profile && /\bdata science|machine learning|ml|model|python|nlp\b/.test(query)) {
-    addSuggestedLink(links, seen, { title: 'Data Science Home', url: '/data-science', reason: 'Start with the data-science-focused overview.' });
-    addSuggestedLink(links, seen, { title: 'Data Science Portfolio', url: '/portfolio?audience=data-science', reason: 'Filter portfolio work to data science projects.' });
-  }
-  if (!profile && /\btourism|destination|travel|visitor|grand junction\b/.test(query)) {
-    addSuggestedLink(links, seen, { title: 'Tourism Analytics Home', url: '/tourism', reason: 'Start with the tourism analytics overview.' });
-    addSuggestedLink(links, seen, { title: 'Tourism Portfolio', url: '/portfolio?audience=tourism', reason: 'Filter portfolio work to tourism and destination projects.' });
   }
 
   publicSources(retrieval && retrieval.chunks ? retrieval.chunks : [], 5).forEach((source) => {
@@ -647,40 +520,36 @@ function navigationAnswer(message, retrieval, pageContext = {}) {
     messageEcho: String(message || '').slice(0, 120)
   };
 
-  if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(query)) {
+  if (/\b(contact|email|reach|linkedin|github|message|note)\b/.test(query)) {
     return {
       ...base,
-      answer: profile
-        ? `Use [Contact Daniel](/contact) for the fastest path. For a ${profile.roleLabel} hiring conversation, review the [${profile.resumeTitle}](${profile.resumeUrl}) and [${profile.portfolioTitle}](${profile.portfolioUrl}).`
-        : 'Use [Contact Daniel](/contact) for email, LinkedIn, GitHub, and direct message options.'
+      answer: 'Use [Contact Daniel](/contact) for email, LinkedIn, GitHub, and direct message options.'
+    };
+  }
+
+  if (/\b(tool|tools|utility|utilities|editor|cleanup|qr|utm|recorder|optimizer|generator)\b/.test(query)) {
+    return {
+      ...base,
+      answer: 'Start with the [Tools](/tools) directory, then open the specific utility that matches the task.'
+    };
+  }
+
+  if (/\b(game|games|roulette|dogfight|probability engine|ocean wave|simulation|simulator)\b/.test(query)) {
+    return {
+      ...base,
+      answer: 'Start with the [Games](/games) directory for Daniel\'s browser games and simulations.'
     };
   }
 
   const wantsPortfolioProof = /\bportfolio|project|projects|case stud|dashboard|work sample\b/.test(query) ||
     (/\bproof|evidence|examples?|support|back up|prove\b/.test(query) &&
-      /\bresume|analytics|bi|sql|reporting|dashboard|data science|machine learning|ml|python|tourism|destination|visitor\b/.test(query));
+      /\banalytics|bi|sql|reporting|dashboard|data science|machine learning|ml|python|tourism|destination|visitor\b/.test(query));
   if (wantsPortfolioProof) {
-    const isResumeProof = /\bresume|cv\b/.test(query);
     return {
       ...base,
       answer: profile
-        ? `${isResumeProof ? 'For proof behind that resume, start' : 'Start'} with the [${profile.portfolioTitle}](${profile.portfolioUrl}); it focuses the project view on ${profile.focus}.`
-        : `${isResumeProof ? 'For proof behind the resume, start' : 'Start'} with the [Portfolio](/portfolio), then filter by analytics, data science, or tourism work.`
-    };
-  }
-
-  if (/\b(resume|cv|work history|qualification|qualified)\b/.test(query)) {
-    let answer = profile
-      ? `Use the [${profile.resumeTitle}](${profile.resumeUrl}); it frames Daniel around ${profile.focus}.`
-      : 'Use the [Analytics Resume](/resume-analytics) for the broadest current resume view.';
-    if (!profile && /\b(tourism|destination|travel|visitor|grand junction)\b/.test(query)) {
-      answer = 'Use the [Tourism Resume](/resume-tourism) for destination analytics and visitor-focused work.';
-    } else if (!profile && /\b(data science|machine learning|ml|model|python|nlp)\b/.test(query)) {
-      answer = 'Use the [Data Science Resume](/resume-data-science) for machine learning, Python, and modeling-focused work.';
-    }
-    return {
-      ...base,
-      answer
+        ? `Start with the [${profile.portfolioTitle}](${profile.portfolioUrl}); it focuses the project view on ${profile.focus}.`
+        : 'Start with the [Projects](/portfolio), then browse the project pages that match your interest.'
     };
   }
 
@@ -689,7 +558,7 @@ function navigationAnswer(message, retrieval, pageContext = {}) {
       ...base,
       answer: profile
         ? `Start with the [${profile.portfolioTitle}](${profile.portfolioUrl}); it focuses the project view on ${profile.focus}.`
-        : 'Start with the [Portfolio](/portfolio), then filter by analytics, data science, or tourism work.'
+        : 'Start with the [Projects](/portfolio), then browse the project pages that match your interest.'
     };
   }
 
@@ -839,8 +708,8 @@ function buildUserText(message, retrieval, pageContext, history = [], followupCo
   const audienceLines = profile
     ? [
       `Active audience lens: ${profile.label}`,
-      `Role focus: ${profile.focus}`,
-      `Preferred links: ${profile.homeUrl}, ${profile.portfolioUrl}, ${profile.resumeUrl}, /contact`
+      `Topic focus: ${profile.focus}`,
+      `Preferred links: ${profile.homeUrl}, ${profile.portfolioUrl}, /contact`
     ]
     : ['Active audience lens: General website'];
   return [
@@ -877,13 +746,13 @@ function stripSourceCitations(value) {
 function bedrockSystemPrompt(pageContext = {}) {
   const profile = audienceProfile(pageContext.audience);
   const audienceInstruction = profile
-    ? `Active audience: ${profile.label}. Advocate for Daniel as a ${profile.roleLabel} candidate, focusing on ${profile.focus}. Only recommend links relevant to this audience: ${profile.homeUrl}, ${profile.portfolioUrl}, ${profile.resumeUrl}, /contact, and project pages that support the ${profile.roleLabel} case. Shared projects may be discussed, but frame them through this role lens.`
+    ? `Active audience: ${profile.label}. Focus on ${profile.focus}. Only recommend links relevant to this audience: ${profile.homeUrl}, ${profile.portfolioUrl}, /contact, and project pages that support that topic.`
     : 'No audience lens is active, so use the broad website context and recommend the most relevant public page.';
   return [
-    'You are Daniel Short\'s website chatbot and recruiting navigation assistant.',
+    'You are Daniel Short\'s personal website chatbot and navigation assistant.',
     audienceInstruction,
     'Answer only using the provided website sources and recent conversation.',
-    'Advocate for Daniel with evidence: connect projects, resume details, outcomes, and site pages to why he is a strong candidate.',
+    'Explain Daniel\'s projects, tools, experiments, and site pages with evidence from the provided sources.',
     'Be concise by default: answer with one short paragraph or at most two bullets unless the visitor explicitly asks for depth.',
     'When a relevant website page supports the answer, include one or two inline markdown links to that page instead of separate citation text.',
     'If the sources do not support an answer, say you do not have enough information.',
@@ -972,10 +841,10 @@ async function callBedrockStream(message, retrieval, pageContext, history, follo
 function followupSystemPrompt() {
   return [
     'You write suggested follow-up question chips for Daniel Short\'s website chatbot.',
-    'The goal is to help a recruiter, hiring manager, client, or stakeholder evaluate Daniel through evidence.',
+    'The goal is to help a visitor explore Daniel\'s projects, tools, experiments, and public site content.',
     'Return only valid compact JSON with this shape: {"followups":["question 1","question 2","question 3"]}.',
     'Each chip must be a concise question, grounded in the supplied evidence, and useful as the next user message.',
-    'Use one proof question, one role-relevance question, and one next-step question.',
+    'Use one detail question, one comparison or context question, and one next-step question.',
     'Do not repeat or paraphrase blocked prompts, the current question, or recent user questions.',
     'Do not invent metrics, credentials, employers, links, or claims.'
   ].join(' ');
@@ -1022,8 +891,8 @@ function buildModelFollowupPrompt(message, answer, retrieval, pageContext, histo
   const profile = audienceProfile(pageContext && pageContext.audience || retrieval && retrieval.audience);
   const payload = {
     activeAudience: profile ? profile.label : 'General website',
-    roleFocus: profile ? profile.focus : 'Daniel Short\'s projects, resume, contact paths, and audience-specific fit',
-    preferredLinks: profile ? [profile.homeUrl, profile.portfolioUrl, profile.resumeUrl, '/contact'] : ['/portfolio', '/resume-analytics', '/contact'],
+    roleFocus: profile ? profile.focus : 'Daniel Short\'s projects, tools, experiments, and contact paths',
+    preferredLinks: profile ? [profile.homeUrl, profile.portfolioUrl, '/contact'] : ['/', '/portfolio', '/tools', '/games', '/contact'],
     evidencePalette: evidencePaletteForAudience(profile ? (pageContext && pageContext.audience || retrieval && retrieval.audience) : ''),
     currentPage: {
       title: String(pageContext && pageContext.title || '').slice(0, 140),
@@ -1046,9 +915,9 @@ function buildModelFollowupPrompt(message, answer, retrieval, pageContext, histo
     rules: [
       `Return exactly 3 follow-up questions, each ${FOLLOWUP_MAX_CHARS} characters or fewer.`,
       'Every item must end with a question mark.',
-      'Question 1 should ask for concrete project or resume proof.',
-      'Question 2 should connect that evidence to the active audience or role.',
-      'Question 3 should move the visitor to a stronger next step, such as a project, resume, contact path, or interview question.',
+      'Question 1 should ask for concrete project, tool, or experiment detail.',
+      'Question 2 should connect that evidence to the visitor\'s stated interest.',
+      'Question 3 should move the visitor to a stronger next step, such as a project, tool, game, or contact path.',
       'Use the visitor\'s language and the active audience lens.',
       'Do not ask the same kind of question three times.',
       'Do not include unsupported metrics or claims.'
@@ -1160,11 +1029,11 @@ function mentionsOffAudience(text, context = {}) {
 
 function followupIntent(text) {
   const value = normalizePrompt(text);
-  if (/\b(contact|email|reach|message|linkedin|github|interview|ask)\b/.test(value)) return 'next-step';
-  if (/\b(resume|experience|background|qualified|qualification)\b/.test(value)) return 'resume-proof';
+  if (/\b(contact|email|reach|message|linkedin|github|ask)\b/.test(value)) return 'next-step';
+  if (/\b(experience|background|qualified|qualification)\b/.test(value)) return 'background';
   if (/\b(project|portfolio|case|example|dashboard|workflow|model|work)\b/.test(value)) return 'project-proof';
   if (/\b(skill|skills|sql|python|tableau|machine|tourism|stakeholder|reporting)\b/.test(value)) return 'skills';
-  if (/\b(fit|candidate|role|team|hire|help|support|valuable)\b/.test(value)) return 'role-fit';
+  if (/\b(fit|team|help|support|valuable)\b/.test(value)) return 'fit';
   return 'general';
 }
 
@@ -1247,19 +1116,24 @@ function makeFollowups(message, answer, retrieval, pageContext, history = [], su
   };
   const normalizedMessage = normalizePrompt(message);
 
-  if (/\b(contact|email|hire|reach|linkedin|github|message)\b/.test(combined)) {
-    add(profile ? `Which skills best support Daniel's ${roleLabel} fit?` : "Which skills best support Daniel's fit?");
-    add(profile ? `Which projects best support Daniel's ${roleLabel} fit?` : "Which projects best support Daniel's fit?");
+  if (/\b(contact|email|reach|linkedin|github|message|note)\b/.test(combined)) {
+    add('Which project should I look at first?');
+    add('Which tools has Daniel built?');
+    add('Which games has Daniel built?');
   }
-  if (/\bresume|cv|experience|qualified|work history\b/.test(combined)) {
-    add(profile ? `What ${roleLabel} strengths stand out in Daniel's resume?` : "What strengths stand out in Daniel's resume?");
-    add(profile ? `Which projects prove Daniel's ${roleLabel} skills?` : "Which projects prove Daniel's skills?");
+  if (/\bexperience|background|qualified|work history\b/.test(combined)) {
+    add('Which projects show Daniel\'s background best?');
+    add('Which tools show Daniel\'s practical skills?');
     add('How do I contact Daniel?');
   }
   if (/\bproject|portfolio|case study|dashboard|work sample\b/.test(combined)) {
     add('What skills does Daniel demonstrate in this project?');
-    add("How would Daniel's work help a team?");
-    add(profile ? `Which other project reinforces Daniel's ${roleLabel} fit?` : "Which other project reinforces Daniel's fit?");
+    add('What implementation choices matter in this project?');
+    add('Which other project should I review next?');
+  }
+  if (/\bgame|games|roulette|dogfight|probability engine|ocean wave|simulation|simulator\b/.test(combined)) {
+    add('Which game should I try first?');
+    add('What does each game demonstrate?');
   }
   if (/\btourism|destination|visitor|grand junction|lodging|travel\b/.test(combined)) {
     add('What tourism analytics skills does Daniel demonstrate?');
@@ -1278,12 +1152,12 @@ function makeFollowups(message, answer, retrieval, pageContext, history = [], su
       add('What skills does Daniel demonstrate in this project?');
       add("How would Daniel's work help a team?");
     }
-    if (/\bresume|section|experience|qualified\b/.test(normalizedMessage)) {
-      add(profile ? `Which projects support Daniel's ${roleLabel} resume strengths?` : "Which projects support Daniel's resume strengths?");
-      add('What should I ask Daniel about this experience?');
+    if (/\bsection|experience|qualified\b/.test(normalizedMessage)) {
+      add('Which projects best show Daniel\'s background?');
+      add('What should I ask Daniel about this project?');
     }
-    if (/\bwhy|strong|hire|fit|candidate\b/.test(normalizedMessage)) {
-      add("Which project evidence supports Daniel's candidacy?");
+    if (/\bwhy|strong|fit\b/.test(normalizedMessage)) {
+      add('Which project evidence supports that?');
       add('What should I ask Daniel next?');
     }
   }
@@ -1298,9 +1172,10 @@ function makeFollowups(message, answer, retrieval, pageContext, history = [], su
     add(`What should I review in ${title}?`);
   });
   addProfileDefaults();
-  add("Which project evidence best supports Daniel's fit?");
+  add('Which project should I review first?');
   add('How do I contact Daniel?');
-  add(profile ? `Why is Daniel a strong ${roleLabel} candidate?` : 'Why is Daniel a strong candidate?');
+  add('Which tools has Daniel built?');
+  add('Which games has Daniel built?');
   return items.slice(0, 3);
 }
 

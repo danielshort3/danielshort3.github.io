@@ -22,7 +22,7 @@
     "enabled": true,
     "variant": "default",
     "props": {
-      "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><div id=\"cta-link\" role=\"group\" aria-label=\"Contact call to action\"><h2 class=\"section-title\">Open to data analyst, BI, and reporting roles</h2><p>If you would like to discuss an opportunity, send a quick note.</p><div><a href=\"contact\" class=\"btn-primary\">Send a Message</a></div></div></div></section>"
+      "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><div id=\"cta-link\" role=\"group\" aria-label=\"Contact call to action\"><h2 class=\"section-title\">Send a note</h2><p>Reach out about a project, tool, idea, or question.</p><div><a href=\"contact\" class=\"btn-primary\">Send a Message</a></div></div></div></section>"
     }
   }
 }

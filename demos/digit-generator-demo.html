@@ -137,7 +137,7 @@
       align-items: center;
       justify-content: center;
       min-width: 42px;
-      padding: 6px 12px;
+      padding: 6px 30px 6px 14px;
       border-radius: 999px;
       border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--surface-accent));
       background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
@@ -148,6 +148,38 @@
       box-shadow: var(--shadow-1);
       cursor: pointer;
       transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    .grid-number-control {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .grid-number-control::after {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      width: 7px;
+      height: 7px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      color: currentColor;
+      pointer-events: none;
+      transform: translateY(-62%) rotate(45deg);
+      opacity: .82;
+    }
+
+    select.grid-number-pill {
+      line-height: 1.1;
+      text-align: center;
+      text-align-last: center;
+    }
+
+    select.grid-number-pill option {
+      background: #ffffff;
+      color: var(--text);
     }
 
     .grid-number-pill:hover {
@@ -373,6 +405,10 @@
       display: grid;
       grid-template-columns: repeat(var(--grid-cols), var(--cell-size));
       gap: var(--grid-gap);
+      width: 100%;
+      min-height: var(--grid-min-height, 420px);
+      align-content: center;
+      justify-content: center;
     }
 
     .digit-cell {
@@ -582,27 +618,26 @@
           <div class="grid-heading-eyebrow">Generated grid</div>
           <div class="grid-heading-main">
             <span class="grid-heading-key">Number</span>
-            <button id="grid-number-pill" class="grid-number-pill" type="button" title="Jump to Generate button">4</button>
+            <span class="grid-number-control">
+              <label class="visually-hidden" for="cluster-select">Number</label>
+              <select id="cluster-select" class="grid-number-pill" aria-label="Number to generate">
+                <option value="auto">Auto</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+              </select>
+            </span>
           </div>
         </div>
         <div class="grid-actions">
           <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
-          <div class="grid-actions-select">
-            <label class="visually-hidden" for="cluster-select">Number</label>
-            <select id="cluster-select" aria-label="Number to generate">
-              <option value="auto">Auto</option>
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4" selected>4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-            </select>
-          </div>
         </div>
         <div class="grid" id="grid" aria-live="polite"></div>
       </div>
@@ -625,6 +660,14 @@
                 <option value="4">4 x 4</option>
                 <option value="6">6 x 6</option>
                 <option value="8" selected>8 x 8</option>
+              </select>
+            </label>
+            <label>
+              Grid minimum height
+              <select id="grid-height-select">
+                <option value="320">320 px</option>
+                <option value="420" selected>420 px</option>
+                <option value="520">520 px</option>
               </select>
             </label>
             <label>
@@ -652,7 +695,13 @@
       retryRequest
     } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
-    const compactLayout = !!(window.matchMedia && window.matchMedia('(max-width: 520px), (max-height: 700px)').matches);
+    const GRID_MIN_HEIGHTS = [320, 420, 520];
+    const DEFAULT_GRID_MIN_HEIGHT = 420;
+    const CELL_SIZE_MIN = 24;
+    const CELL_SIZE_MAX = 108;
+    const COMPACT_CELL_SIZE_MAX = 72;
+    const compactMedia = window.matchMedia ? window.matchMedia('(max-width: 520px), (max-height: 700px)') : null;
+    const compactLayout = !!(compactMedia && compactMedia.matches);
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
@@ -668,10 +717,11 @@
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'generate', 'sample'], payload);
 
     const gridEl = document.getElementById('grid');
+    const gridShell = document.querySelector('.grid-shell');
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
+    const gridHeightSelect = document.getElementById('grid-height-select');
     const clusterSelect = document.getElementById('cluster-select');
-    const gridNumberPill = document.getElementById('grid-number-pill');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
     const valueLabel = document.getElementById('value-label');
@@ -686,6 +736,8 @@
     let gridSize = compactLayout ? 6 : 8;
     let gridRows = gridSize;
     let gridCols = gridSize;
+    let gridMinHeight = DEFAULT_GRID_MIN_HEIGHT;
+    let gridMetricsFrame = null;
     let lastSeed = null;
     let currentState = {
       seed: null,
@@ -716,17 +768,12 @@
         dimSelect,
         valueSlider,
         gridSelect,
+        gridHeightSelect,
         seedInput
       ];
       controls.forEach(control => {
         if (control) control.disabled = !enabled;
       });
-    }
-
-    function syncGridNumberLabel() {
-      if (!gridNumberPill || !clusterSelect) return;
-      const value = String(clusterSelect.value || '').trim();
-      gridNumberPill.textContent = value === 'auto' ? 'Auto' : value;
     }
 
     function setValueLabel(value) {
@@ -826,6 +873,49 @@
       currentState.rows = gridRows;
       currentState.cols = gridCols;
       gridEl.style.setProperty('--grid-cols', String(gridCols));
+      scheduleGridMetricsUpdate();
+    }
+
+    function setGridMinimumHeight(height) {
+      const next = GRID_MIN_HEIGHTS.includes(height) ? height : DEFAULT_GRID_MIN_HEIGHT;
+      gridMinHeight = next;
+      gridEl.style.setProperty('--grid-min-height', `${next}px`);
+      scheduleGridMetricsUpdate();
+    }
+
+    function isCompactLayout() {
+      return !!(compactMedia && compactMedia.matches);
+    }
+
+    function readGridGap() {
+      const style = getComputedStyle(gridEl);
+      const gap = Number.parseFloat(style.columnGap || style.gap || '0');
+      return Number.isFinite(gap) ? gap : 0;
+    }
+
+    function updateGridMetrics() {
+      if (!gridEl) return;
+      const gap = readGridGap();
+      const shellWidth = gridShell ? gridShell.clientWidth : 0;
+      const gridWidth = gridEl.clientWidth || Math.max(0, shellWidth - 32);
+      const availableWidth = Math.max(0, gridWidth);
+      const availableHeight = Math.max(gridMinHeight, 1);
+      const widthCell = (availableWidth - gap * Math.max(0, gridCols - 1)) / Math.max(1, gridCols);
+      const heightCell = (availableHeight - gap * Math.max(0, gridRows - 1)) / Math.max(1, gridRows);
+      const maxSize = isCompactLayout() ? COMPACT_CELL_SIZE_MAX : CELL_SIZE_MAX;
+      const next = Math.floor(Math.min(widthCell, heightCell));
+      const bounded = Math.max(CELL_SIZE_MIN, Math.min(maxSize, next));
+      if (Number.isFinite(bounded)) {
+        gridEl.style.setProperty('--cell-size', `${bounded}px`);
+      }
+    }
+
+    function scheduleGridMetricsUpdate() {
+      if (gridMetricsFrame) cancelAnimationFrame(gridMetricsFrame);
+      gridMetricsFrame = requestAnimationFrame(() => {
+        gridMetricsFrame = null;
+        updateGridMetrics();
+      });
     }
 
     function updateGrid(images) {
@@ -851,6 +941,7 @@
         cell.appendChild(img);
         gridEl.appendChild(cell);
       });
+      scheduleGridMetricsUpdate();
     }
 
     async function warmUpServer() {
@@ -979,6 +1070,22 @@
       }
     }
 
+    function bindGridResize() {
+      if ('ResizeObserver' in window && gridShell) {
+        const observer = new ResizeObserver(scheduleGridMetricsUpdate);
+        observer.observe(gridShell);
+      } else {
+        window.addEventListener('resize', scheduleGridMetricsUpdate);
+      }
+      if (compactMedia) {
+        try {
+          compactMedia.addEventListener('change', scheduleGridMetricsUpdate);
+        } catch {
+          compactMedia.addListener(scheduleGridMetricsUpdate);
+        }
+      }
+    }
+
     valueSlider.addEventListener('input', () => {
       syncRange(valueSlider.value);
       scheduleFetch(140);
@@ -991,8 +1098,11 @@
       setGridSize(Number.isFinite(next) ? next : gridSize);
       fetchGrid();
     });
+    gridHeightSelect.addEventListener('change', () => {
+      const next = Number(gridHeightSelect.value);
+      setGridMinimumHeight(Number.isFinite(next) ? next : DEFAULT_GRID_MIN_HEIGHT);
+    });
     clusterSelect.addEventListener('change', () => {
-      syncGridNumberLabel();
       fetchGrid();
     });
     seedInput.addEventListener('change', () => {
@@ -1002,21 +1112,14 @@
       ensureSeed(true);
       fetchGrid();
     });
-    gridNumberPill?.addEventListener('click', () => {
-      if (!refreshSeedBtn) return;
-      refreshSeedBtn.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-      try {
-        refreshSeedBtn.focus({ preventScroll: true });
-      } catch {
-        refreshSeedBtn.focus();
-      }
-    });
 
     buildDimOptions(latentDim);
     syncRange(valueSlider.value);
+    gridHeightSelect.value = String(DEFAULT_GRID_MIN_HEIGHT);
+    setGridMinimumHeight(DEFAULT_GRID_MIN_HEIGHT);
     setGridSize(gridSize);
     gridSelect.value = String(gridSize);
-    syncGridNumberLabel();
+    bindGridResize();
     ensureSeed(true);
     setControlsEnabled(false);
     warmUpServer();

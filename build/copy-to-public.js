@@ -98,6 +98,7 @@ function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
   return rel === 'img/slot'
     || rel.startsWith('img/slot/')
+    || /^documents\/Resume(?:[._-]|$)/i.test(rel)
     || rel === 'slot-config'
     || rel.startsWith('slot-config/')
     || rel === 'demos/slot-machine-demo.html';
@@ -300,6 +301,7 @@ function collectReferencedDocumentFiles() {
       } catch {}
       decoded = decoded.replace(/\\/g, '/');
       if (!decoded.startsWith('documents/')) continue;
+      if (/^documents\/Resume(?:[._-]|$)/i.test(decoded)) continue;
       if (decoded.includes('..')) continue;
       const abs = path.join(root, decoded);
       let stat;
@@ -311,13 +313,6 @@ function collectReferencedDocumentFiles() {
       if (!stat.isFile()) continue;
       matches.add(decoded);
     }
-  });
-
-  // Keep baseline resume exports available even if scan misses a reference.
-  ['documents/Resume.pdf', 'documents/Resume.docx'].forEach((relPath) => {
-    const abs = path.join(root, relPath);
-    if (!fs.existsSync(abs)) return;
-    matches.add(relPath);
   });
 
   return [...matches].sort();
@@ -358,6 +353,23 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
 function pruneRetiredPublicArtifacts() {
   const retiredTargets = [
     path.join(outDir, 'pages', 'contributions.html'),
+    path.join(outDir, 'pages', 'analytics.html'),
+    path.join(outDir, 'pages', 'data-science.html'),
+    path.join(outDir, 'pages', 'tourism.html'),
+    path.join(outDir, 'pages', 'destination-analytics.html'),
+    path.join(outDir, 'pages', 'resume.html'),
+    path.join(outDir, 'pages', 'resume-pdf.html'),
+    path.join(outDir, 'pages', 'resume-analytics.html'),
+    path.join(outDir, 'pages', 'resume-data-science.html'),
+    path.join(outDir, 'pages', 'resume-tourism.html'),
+    path.join(outDir, 'pages', 'resume-analytics-pdf.html'),
+    path.join(outDir, 'pages', 'resume-data-science-pdf.html'),
+    path.join(outDir, 'pages', 'resume-tourism-pdf.html'),
+    path.join(outDir, 'resume.html'),
+    path.join(outDir, 'resume-pdf.html'),
+    path.join(outDir, 'analytics.html'),
+    path.join(outDir, 'data-science.html'),
+    path.join(outDir, 'tourism.html'),
     path.join(outDir, 'admin'),
     path.join(outDir, 'js', 'contributions'),
     path.join(outDir, 'img', 'slot'),
@@ -385,7 +397,7 @@ function copyStatic(){
   });
 
   // Copy selected root-level static files if present
-  const rootFiles = ['robots.txt', 'sitemap.xml', 'sitemap.xsl', 'favicon.ico'];
+  const rootFiles = ['robots.txt', 'sitemap.xml', 'sitemap.xsl', 'llms.txt', 'favicon.ico'];
   rootFiles.forEach(name => {
     const src = path.join(root, name);
     if (fs.existsSync(src)) copyFile(src, path.join(outDir, name));

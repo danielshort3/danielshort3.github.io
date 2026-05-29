@@ -770,6 +770,7 @@
 
   .nav-dropdown-inner,
   .nav-dropdown-inner-simple,
+  .nav-dropdown-inner-directory,
   .nav-dropdown-inner-portfolio,
   .nav-dropdown-inner-contact {
     grid-template-columns: minmax(0, 1fr);
@@ -871,6 +872,12 @@
     .nav-item-portfolio:hover .nav-dropdown,
     .nav-item-portfolio:focus-within .nav-dropdown,
     .nav-item-portfolio.dropdown-open .nav-dropdown,
+    .nav-item-tools:hover .nav-dropdown,
+    .nav-item-tools:focus-within .nav-dropdown,
+    .nav-item-tools.dropdown-open .nav-dropdown,
+    .nav-item-games:hover .nav-dropdown,
+    .nav-item-games:focus-within .nav-dropdown,
+    .nav-item-games.dropdown-open .nav-dropdown,
     .nav-item-resume:hover .nav-dropdown,
     .nav-item-resume:focus-within .nav-dropdown,
     .nav-item-resume.dropdown-open .nav-dropdown,
@@ -882,15 +889,25 @@
     }
 
     #nav-dropdown-resume,
-    #nav-dropdown-contact {
+    #nav-dropdown-contact,
+    #nav-dropdown-games {
       width: min(360px, 64vw);
       max-width: 360px;
+    }
+
+    #nav-dropdown-tools {
+      width: min(620px, 78vw);
+      max-width: 640px;
     }
   }
 
   #nav-dropdown-portfolio {
     background: rgba(255, 255, 255, .98);
     border-color: color-mix(in srgb, var(--brand-midnight) 12%, transparent);
+  }
+
+  #nav-dropdown-tools .nav-dropdown-inner-directory {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   #nav-dropdown-portfolio .nav-dropdown-header {
@@ -1046,7 +1063,6 @@
     body[data-page="portfolio"] .hero.hero--default {
       background:
         linear-gradient(90deg, rgba(249, 249, 250, .96) 0%, rgba(249, 249, 250, .82) 46%, rgba(249, 249, 250, .18) 100%),
-        var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat,
         var(--brand-canvas);
     }
   }
@@ -1243,6 +1259,28 @@
     background: var(--brand-mist);
   }
 
+  body[data-page="portfolio"] :is(#portfolio-carousel-section, .portfolio-library-section) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        color-mix(in srgb, var(--brand-mist) 62%, #ffffff 38%) 100%
+      );
+  }
+
+  body[data-page="portfolio"] :is(#portfolio-carousel-section, .portfolio-library-section)::before {
+    content: none;
+    display: none;
+  }
+
+  body[data-page="portfolio"] :is(#portfolio-carousel-section, .portfolio-library-section) > .wrapper {
+    position: relative;
+    z-index: 1;
+  }
+
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-band {
     background: #ffffff;
     border-block-color: color-mix(in srgb, var(--brand-midnight) 9%, transparent);
@@ -1384,6 +1422,17 @@
     text-decoration: none;
   }
 
+  body[data-page="portfolio"] .project-card {
+    --portfolio-card-text-min-height: 103px;
+    grid-template-rows: auto minmax(var(--portfolio-card-text-min-height), auto);
+  }
+
+  @media (max-width: 640px) {
+    body[data-page="portfolio"] .project-card {
+      --portfolio-card-text-min-height: 114px;
+    }
+  }
+
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .overlay,
   body[data-page="portfolio"] .project-card .overlay {
     display: none;
@@ -1416,6 +1465,11 @@
     transform: none;
     -webkit-transform: none;
     will-change: auto;
+  }
+
+  body[data-page="portfolio"] .project-card .project-text {
+    box-sizing: border-box;
+    min-height: var(--portfolio-card-text-min-height);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .project-text::before,
@@ -2432,9 +2486,12 @@
       width: 100%;
     }
 
-    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .project-text,
-    body[data-page="portfolio"] .project-card .project-text {
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .project-text {
       min-height: auto;
+      padding: 16px;
+    }
+
+    body[data-page="portfolio"] .project-card .project-text {
       padding: 16px;
     }
 

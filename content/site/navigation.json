@@ -1,7 +1,7 @@
 {
   "brand": {
-    "homePath": "/analytics",
-    "defaultTagline": "Data Analytics, Made Actionable",
+    "homePath": "/",
+    "defaultTagline": "Projects, Tools, and Notes",
     "logoSrc": "img/brand/00-ds-logo-master-full-color.svg",
     "logoSrcSet": "img/brand/00-ds-logo-master-full-color.svg 1x",
     "logoSizes": "56px",
@@ -10,7 +10,7 @@
     "logoHeight": 392
   },
   "portfolio": {
-    "label": "Portfolio",
+    "label": "Projects",
     "href": "portfolio",
     "header": "Featured Projects",
     "featuredProjectIds": [
@@ -22,44 +22,45 @@
     ],
     "links": [
       {
-        "title": "View full portfolio",
+        "title": "View all projects",
         "subtitle": "Browse the complete project library",
         "href": "portfolio"
       }
     ]
   },
-  "resume": {
-    "label": "Resume",
-    "href": "resume",
-    "ariaLabel": "Resume download",
-    "header": "Resume shortcuts",
+  "tools": {
+    "label": "Tools",
+    "href": "tools",
+    "header": "Featured Tools",
+    "featuredPerCategory": 2,
     "links": [
       {
-        "title": "Analytics Resume",
-        "subtitle": "BI, reporting, SQL, Tableau, and automation",
-        "href": "resume-analytics",
-        "dataAttributes": {
-          "data-resume-home-link": "true"
-        }
-      },
-      {
-        "title": "Preview PDF",
-        "subtitle": "Preview the analytics PDF resume",
-        "href": "resume-analytics-pdf",
-        "dataAttributes": {
-          "data-resume-preview-link": "true"
-        }
-      },
-      {
-        "title": "Download Resume",
-        "subtitle": "Download the analytics PDF copy",
-        "href": "documents/Resume-Analytics.pdf",
-        "download": true,
-        "dataAttributes": {
-          "data-resume-download-link": "true"
-        }
+        "title": "View all tools",
+        "subtitle": "Browse the complete tool directory",
+        "href": "tools"
       }
     ]
+  },
+  "games": {
+    "label": "Games",
+    "href": "games",
+    "header": "Browser Games",
+    "links": [
+      {
+        "title": "View all games",
+        "subtitle": "Open the games directory",
+        "href": "games"
+      }
+    ]
+  },
+  "primary": [],
+  "resume": {
+    "enabled": false,
+    "label": "",
+    "href": "",
+    "ariaLabel": "",
+    "header": "",
+    "links": []
   },
   "contact": {
     "label": "Contact",
@@ -67,10 +68,9 @@
     "header": "Get in touch",
     "links": [
       {
-        "title": "Message about a role",
-        "subtitle": "Best for analytics, BI, reporting, and automation work",
+        "title": "Send a note",
+        "subtitle": "Best for projects, ideas, questions, and introductions",
         "href": "contact#contact-modal",
-        "badge": "Recommended",
         "dataAttributes": {
           "data-contact-modal-link": "true"
         }

@@ -5,6 +5,7 @@
   Generate deterministic, JS-free page digests for AI retrieval agents.
 
   The output is intentionally static and reviewable:
+  - llms.txt
   - dist/ai-digest-manifest.json
   - dist/ai-pages/<canonical-route>.html
 */
@@ -17,6 +18,7 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'dist', 'ai-pages');
 const manifestPath = path.join(root, 'dist', 'ai-digest-manifest.json');
+const llmsPath = path.join(root, 'llms.txt');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const MAX_SOURCE_CHARS = 8000;
 const MAX_SUMMARY_CHARS = 520;
@@ -26,7 +28,6 @@ const MAX_BODY_POINTS = 6;
 const MAX_LINKS = 14;
 
 const excludedPathPatterns = [
-  /^\/$/i,
   /^\/admin(?:\/|$)/i,
   /^\/api(?:\/|$)/i,
   /^\/ai(?:\/|$)/i,
@@ -34,8 +35,8 @@ const excludedPathPatterns = [
   /^\/search$/i,
   /^\/sitemap-pretty$/i,
   /^\/(?:resume|resume-pdf)$/i,
-  /^\/resume-(?:analytics|data-science|tourism)-pdf$/i,
-  /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|transcribe|whisper-transcribe-monitor)$/i
+  /^\/resume(?:-[a-z-]+)?(?:-pdf)?$/i,
+  /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|job-application-tracker|transcribe|whisper-transcribe-monitor)$/i
 ];
 
 const scoreTerms = [
@@ -210,6 +211,52 @@ function relFromRoot(absPath) {
   return path.relative(root, absPath).replace(/\\/g, '/');
 }
 
+function readJsonFile(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function readJsonRel(relPath) {
+  return readJsonFile(path.join(root, relPath));
+}
+
+function loadJsonRecords(relDir) {
+  const dirPath = path.join(root, relDir);
+  return walkFiles(dirPath, (filePath) => filePath.endsWith('.json'))
+    .map((filePath) => ({
+      absPath: filePath,
+      relPath: relFromRoot(filePath),
+      data: readJsonFile(filePath)
+    }))
+    .filter((record) => record.data && typeof record.data === 'object');
+}
+
+function slugifyId(value) {
+  const slug = normalizeWhitespace(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug || 'section';
+}
+
+function textHash(value) {
+  return sourceHash(String(value || ''));
+}
+
+function routeToAiUrl(urlPath) {
+  const normalized = normalizePathname(urlPath);
+  if (!normalized || normalized === '/') return `${SITE_ORIGIN}/ai/index`;
+  return `${SITE_ORIGIN}/ai${normalized}`;
+}
+
+function isPublicVisibility(value) {
+  const visibility = normalizeWhitespace(value).toLowerCase();
+  return !visibility || visibility === 'public';
+}
+
 function loadPublicToolSlugs() {
   const slugs = new Set();
   walkFiles(path.join(root, 'content', 'tools'), (filePath) => filePath.endsWith('.json')).forEach((filePath) => {
@@ -217,7 +264,7 @@ function loadPublicToolSlugs() {
       const tool = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       const slug = normalizeWhitespace(tool && tool.slug);
       const visibility = normalizeWhitespace(tool && tool.visibility).toLowerCase();
-      if (!slug || tool.hidden || tool.noindex || visibility === 'admin') return;
+      if (!slug || tool.hidden || tool.noindex || !isPublicVisibility(visibility)) return;
       slugs.add(slug);
     } catch {}
   });
@@ -259,9 +306,8 @@ function toPathFromRelFile(relPath, publicToolSlugs) {
 function routeCategory(urlPath) {
   if (urlPath === '/portfolio' || urlPath.startsWith('/portfolio/')) return 'Portfolio';
   if (urlPath === '/tools' || urlPath.startsWith('/tools/')) return 'Tools';
-  if (urlPath.includes('resume')) return 'Resume';
-  if (urlPath.startsWith('/games/')) return 'Games';
-  if (['/analytics', '/data-science', '/tourism', '/contact'].includes(urlPath)) return 'Core';
+  if (urlPath === '/games' || urlPath.startsWith('/games/')) return 'Games';
+  if (['/', '/contact'].includes(urlPath)) return 'Core';
   return 'Page';
 }
 
@@ -276,7 +322,7 @@ function shouldExcludeUrl(urlPath, html, noindexPathnames, override) {
 
 function stripIndexNoise(html) {
   return String(html || '')
-    .replace(/<article\b[^>]*\bdata-tools-visibility="admin"[^>]*>[\s\S]*?<\/article>/gi, ' ')
+    .replace(/<article\b[^>]*\bdata-tools-visibility="[^"]+"[^>]*>[\s\S]*?<\/article>/gi, ' ')
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ')
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ')
     .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, ' ');
@@ -474,50 +520,52 @@ function renderLinks(links) {
   if (!links || !links.length) return '';
   return [
     '<ul>',
-    ...links.map((link) => `  <li><a href="${escapeHtml(link.url)}">${escapeHtml(link.label)}</a></li>`),
+    ...links.map((link) => {
+      const description = normalizeWhitespace(link.description || '');
+      const suffix = description ? `: ${escapeHtml(description)}` : '';
+      return `  <li><a href="${escapeHtml(link.url)}">${escapeHtml(link.label)}</a>${suffix}</li>`;
+    }),
     '</ul>'
   ].join('\n');
 }
 
+function normalizeSection(section) {
+  if (!section || typeof section !== 'object') return null;
+  const title = normalizeWhitespace(section.title || section.heading || '');
+  if (!title) return null;
+  const paragraphs = uniqueList(normalizeTextArray(section.paragraphs || section.text || section.summary), 6);
+  const items = uniqueList(normalizeTextArray(section.items || section.facts || section.bullets), 16);
+  const links = normalizeStructuredLinks(section.links || []);
+  const level = Math.min(6, Math.max(2, Number(section.level) || 2));
+  if (!paragraphs.length && !items.length && !links.length) return null;
+  return { title, paragraphs, items, links, level };
+}
+
+function renderSection(section, index) {
+  const normalized = normalizeSection(section);
+  if (!normalized) return '';
+  const id = `${slugifyId(normalized.title)}-${index + 1}`;
+  const headingTag = `h${normalized.level}`;
+  const parts = [
+    `<section aria-labelledby="${escapeHtml(id)}">`,
+    `  <${headingTag} id="${escapeHtml(id)}">${escapeHtml(normalized.title)}</${headingTag}>`
+  ];
+  normalized.paragraphs.forEach((paragraph) => {
+    parts.push(`  <p>${escapeHtml(paragraph)}</p>`);
+  });
+  if (normalized.items.length) parts.push(renderList(normalized.items));
+  if (normalized.links.length) parts.push(renderLinks(normalized.links));
+  parts.push('</section>');
+  return parts.join('\n');
+}
+
 function renderDigest(page) {
-  const generatedAt = page.generatedAt;
-  const sections = [];
-  if (page.summary) {
-    sections.push(`<section aria-labelledby="summary">
-  <h2 id="summary">Summary</h2>
-  <p>${escapeHtml(page.summary)}</p>
-</section>`);
-  }
-  if (page.facts.length) {
-    sections.push(`<section aria-labelledby="key-facts">
-  <h2 id="key-facts">Key Facts</h2>
-${renderList(page.facts)}
-</section>`);
-  }
-  if (page.evidence.length) {
-    sections.push(`<section aria-labelledby="evidence">
-  <h2 id="evidence">Evidence And Outcomes</h2>
-${renderList(page.evidence)}
-</section>`);
-  }
-  if (page.bodyPoints.length) {
-    sections.push(`<section aria-labelledby="context">
-  <h2 id="context">Context</h2>
-${renderList(page.bodyPoints)}
-</section>`);
-  }
-  if (page.keywords.length) {
-    sections.push(`<section aria-labelledby="topics">
-  <h2 id="topics">Topics</h2>
-  <p>${escapeHtml(page.keywords.join(', '))}</p>
-</section>`);
-  }
-  if (page.links.length) {
-    sections.push(`<section aria-labelledby="links">
-  <h2 id="links">Relevant Links</h2>
-${renderLinks(page.links)}
-</section>`);
-  }
+  const introParagraphs = uniqueList(normalizeTextArray(page.introParagraphs || []), 6)
+    .map((paragraph) => `      <p>${escapeHtml(paragraph)}</p>`)
+    .join('\n');
+  const sections = (page.sections || [])
+    .map(renderSection)
+    .filter(Boolean);
 
   return `<!DOCTYPE html>
 <html lang="en" data-ai-digest="true">
@@ -528,25 +576,15 @@ ${renderLinks(page.links)}
   <link rel="canonical" href="${escapeHtml(page.canonicalUrl)}">
   <meta name="description" content="${escapeHtml(page.description || page.summary || page.title)}">
   <meta name="generator" content="Daniel Short deterministic AI digest">
+  <meta name="source-path" content="${escapeHtml(page.sourcePath)}">
+  <meta name="source-hash" content="${escapeHtml(page.sourceHash)}">
 </head>
 <body>
   <main id="main" data-ai-digest="true" data-canonical-url="${escapeHtml(page.canonicalUrl)}">
     <article>
-      <header>
-        <p>AI digest for <a href="${escapeHtml(page.canonicalUrl)}">${escapeHtml(page.canonicalUrl)}</a></p>
-        <h1>${escapeHtml(page.title)}</h1>
-        <p>Page type: ${escapeHtml(page.category)}</p>
-      </header>
+      <h1>${escapeHtml(page.title)}</h1>
+${introParagraphs}
 ${sections.join('\n')}
-      <footer>
-        <h2>Source Metadata</h2>
-        <ul>
-          <li>Canonical URL: <a href="${escapeHtml(page.canonicalUrl)}">${escapeHtml(page.canonicalUrl)}</a></li>
-          <li>Source path: ${escapeHtml(page.sourcePath)}</li>
-          <li>Source hash: ${escapeHtml(page.sourceHash)}</li>
-          <li>Generated at: ${escapeHtml(generatedAt)}</li>
-        </ul>
-      </footer>
     </article>
   </main>
 </body>
@@ -637,6 +675,489 @@ function normalizeOverrideLinks(links) {
   }).filter(Boolean);
 }
 
+function normalizeStructuredLinks(links) {
+  if (!Array.isArray(links)) return [];
+  return links.map((link) => {
+    if (!link || typeof link !== 'object') return null;
+    const label = normalizeWhitespace(link.label || link.title || '');
+    const url = normalizeHref(link.url || link.href || '');
+    const description = normalizeWhitespace(link.description || link.summary || '');
+    if (!label || !url) return null;
+    return { label, url, description };
+  }).filter(Boolean);
+}
+
+function getClassBlocks(html, tagName, className) {
+  const safeTag = String(tagName || '').replace(/[^A-Za-z0-9-]/g, '');
+  const safeClass = String(className || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  if (!safeTag || !safeClass) return [];
+  const re = new RegExp(`<${safeTag}\\b[^>]*\\bclass="[^"]*\\b${safeClass}\\b[^"]*"[^>]*>([\\s\\S]*?)<\\/${safeTag}>`, 'gi');
+  const blocks = [];
+  let match;
+  while ((match = re.exec(String(html || '')))) blocks.push(match[1]);
+  return blocks;
+}
+
+function getFirstTagText(html, tagName, className) {
+  const blocks = getClassBlocks(html, tagName, className);
+  return blocks.length ? cleanText(blocks[0]) : '';
+}
+
+function extractHtmlLinks(html, maxItems = MAX_LINKS) {
+  return normalizeStructuredLinks(extractLinks(html).slice(0, maxItems));
+}
+
+function projectSummary(project) {
+  const subtitle = normalizeWhitespace(project && project.subtitle);
+  const problem = normalizeWhitespace(project && project.problem);
+  const summary = [subtitle, problem].filter(Boolean).join(': ');
+  return trimToSentence(summary || normalizeWhitespace(project && project.notes), MAX_SUMMARY_CHARS);
+}
+
+function readableLabel(value) {
+  return normalizeWhitespace(value)
+    .replace(/,(\S)/g, ', $1');
+}
+
+function pageSectionLabels(page) {
+  return ((page && page.sections) || [])
+    .map((section) => readableLabel(section && section.label))
+    .filter((label) => label && !/^(?:Jump to section|Show jump menu)$/i.test(label));
+}
+
+function findPageSectionLabel(page, patterns, fallback) {
+  const labels = pageSectionLabels(page);
+  const regexes = (Array.isArray(patterns) ? patterns : [patterns]).filter(Boolean);
+  return labels.find((label) => regexes.some((pattern) => pattern.test(label))) || fallback;
+}
+
+function createStructuredPage(urlPath, fields) {
+  const normalizedUrl = normalizePathname(urlPath);
+  if (!normalizedUrl) return null;
+  const sourceText = fields.sourceText || '';
+  return {
+    url: normalizedUrl,
+    title: normalizeWhitespace(fields.title),
+    description: normalizeWhitespace(fields.description || fields.summary),
+    summary: trimToSentence(fields.summary || fields.description, MAX_SUMMARY_CHARS),
+    category: normalizeWhitespace(fields.category || routeCategory(normalizedUrl)),
+    sourcePath: normalizeWhitespace(fields.sourcePath || ''),
+    sourceHash: sourceText ? textHash(sourceText) : '',
+    sections: (fields.sections || []).map(normalizeSection).filter(Boolean),
+    introParagraphs: normalizeTextArray(fields.introParagraphs || []),
+    keywords: uniqueList(fields.keywords || [], 30),
+    links: normalizeStructuredLinks(fields.links || [])
+  };
+}
+
+function buildProjectStructuredPage(record) {
+  const project = record.data;
+  const id = normalizeWhitespace(project.id || path.basename(record.relPath, '.json'));
+  if (!id || project.hidden || project.noindex) return null;
+  const urlPath = `/portfolio/${id}`;
+  const resources = normalizeStructuredLinks(project.resources || []);
+  const links = resources.length ? resources : [];
+  return createStructuredPage(urlPath, {
+    title: project.title,
+    description: projectSummary(project),
+    summary: projectSummary(project),
+    category: 'Portfolio',
+    sourcePath: record.relPath,
+    sourceText: JSON.stringify(project),
+    keywords: [...(project.tools || []), ...(project.concepts || []), ...(project.audiences || [])],
+    links,
+    sections: [
+      {
+        title: 'STAR Summary',
+        items: uniqueList([
+          project.problem ? `Situation: ${project.problem}` : '',
+          ...normalizeTextArray(project.role).map((item) => `Task: ${item}`),
+          ...normalizeTextArray(project.actions).map((item) => `Action: ${item}`),
+          ...normalizeTextArray(project.results).map((item) => `Result: ${item}`)
+        ].filter(Boolean), 16)
+      },
+      { title: 'Notes', paragraphs: [project.notes].filter(Boolean) },
+      { title: 'Links', links }
+    ]
+  });
+}
+
+function extractResumeDetails(record) {
+  const resume = record.data || {};
+  const page = resume.digitalPage || {};
+  const html = (page.sections || [])
+    .map((section) => section && section.props && section.props.html ? section.props.html : '')
+    .join('\n');
+  const summary = getFirstTagText(html, 'p', 'resume-summary') || page.description || '';
+
+  const skills = getClassBlocks(html, 'div', 'resume-skill-group')
+    .map((block) => {
+      const label = cleanText((/<h3\b[^>]*>([\s\S]*?)<\/h3>/i.exec(block) || [])[1] || '');
+      const items = extractTagTexts(block, ['li']).filter(Boolean);
+      return label && items.length ? `${label}: ${items.join(', ')}` : '';
+    })
+    .filter(Boolean);
+
+  const experience = getClassBlocks(html, 'article', 'resume-role')
+    .map((block) => {
+      const title = cleanText((/<h3\b[^>]*>([\s\S]*?)<\/h3>/i.exec(block) || [])[1] || '');
+      const company = getFirstTagText(block, 'p', 'resume-role-company');
+      const dates = getFirstTagText(block, 'p', 'resume-role-dates');
+      const bullets = extractTagTexts(block, ['li']).filter(Boolean);
+      const heading = [title, company, dates].filter(Boolean).join(' - ');
+      return { heading, bullets };
+    })
+    .filter((role) => role.heading || role.bullets.length);
+
+  const education = getClassBlocks(html, 'a', 'resume-education-item')
+    .map(cleanText)
+    .filter(Boolean);
+
+  const selectedProjects = getClassBlocks(html, 'li', 'resume-project')
+    .map((block) => {
+      const title = cleanText((/<a\b[^>]*>([\s\S]*?)<\/a>/i.exec(block) || [])[1] || '');
+      const meta = getFirstTagText(block, 'p', 'resume-project-meta');
+      return [title, meta].filter(Boolean).join(': ');
+    })
+    .filter(Boolean);
+
+  const links = extractHtmlLinks(html, 10)
+    .filter((link) => !/^tel:/i.test(link.url));
+
+  return { summary, skills, experience, education, selectedProjects, links, html };
+}
+
+function buildResumeStructuredPage(record) {
+  const resume = record.data || {};
+  const page = resume.digitalPage || {};
+  const urlPath = normalizeWhitespace(page.canonicalPath);
+  if (!urlPath || page.robots && String(page.robots).toLowerCase().includes('noindex')) return null;
+  const details = extractResumeDetails(record);
+  const experienceItems = [];
+  details.experience.forEach((role) => {
+    if (role.heading) experienceItems.push(role.heading);
+    role.bullets.forEach((bullet) => experienceItems.push(bullet));
+  });
+  return createStructuredPage(urlPath, {
+    title: stripSiteSuffix(page.title || `${resume.audience || resume.key || 'Resume'} Resume`),
+    description: page.description,
+    summary: details.summary || page.description,
+    category: 'Resume',
+    sourcePath: record.relPath,
+    sourceText: JSON.stringify(record.data),
+    keywords: [resume.audience, resume.key, 'resume', 'experience', 'skills'],
+    links: details.links,
+    sections: [
+      { title: 'Summary', paragraphs: [details.summary || page.description].filter(Boolean) },
+      { title: 'Skills', items: details.skills },
+      { title: 'Experience', items: experienceItems },
+      { title: 'Education', items: details.education },
+      { title: 'Selected Projects', items: details.selectedProjects },
+      { title: 'Links', links: details.links }
+    ]
+  });
+}
+
+function extractProofItemsFromAudience(audience) {
+  const html = ((audience.page && audience.page.sections) || [])
+    .map((section) => section && section.props && section.props.html ? section.props.html : '')
+    .join('\n');
+  const items = [];
+  const re = /<span\b[^>]*\bclass="[^"]*\bhome-proof-value\b[^"]*"[^>]*>([\s\S]*?)<\/span>\s*<span\b[^>]*\bclass="[^"]*\bhome-proof-label\b[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
+  let match;
+  while ((match = re.exec(html))) {
+    const value = cleanText(match[1]);
+    const label = cleanText(match[2]);
+    if (value && label) items.push(`${value} ${label}`);
+  }
+  return uniqueList(items, 8);
+}
+
+function buildAudienceStructuredPage(record, projectsById, resumeDetailsByKey) {
+  const audience = record.data || {};
+  const page = audience.page || {};
+  const urlPath = normalizeWhitespace(page.canonicalPath || audience.homePath);
+  if (!urlPath) return null;
+  const key = normalizeWhitespace(audience.key || path.basename(record.relPath, '.json'));
+  const resumeDetails = resumeDetailsByKey.get(key);
+  const pageHtml = (page.sections || [])
+    .map((section) => section && section.props && section.props.html ? section.props.html : '')
+    .join('\n');
+  const heroLabel = pageSectionLabels(page)[0] || stripSiteSuffix(page.title || audience.label);
+  const heroTagline = getFirstTagText(pageHtml, 'p', 'hero-tagline');
+  const heroStatus = getFirstTagText(pageHtml, 'p', 'hero-status');
+  const resultsLabel = findPageSectionLabel(page, [/Results/i, /Impact/i], 'Results');
+  const projectsLabel = findPageSectionLabel(page, [/Project Examples/i], 'Project Examples');
+  const experienceLabel = findPageSectionLabel(page, [/Work Experience/i], 'Work Experience');
+  const skillsLabel = findPageSectionLabel(page, [/Skills in Practice/i], 'Skills in Practice');
+  const credentialsLabel = findPageSectionLabel(page, [/Certifications.*Degrees/i], 'Certifications & Degrees');
+  const contactLabel = findPageSectionLabel(page, [/Open to/i, /Send a Message/i], 'Send a Message');
+  const featuredProjects = (audience.featuredProjectIds || [])
+    .map((id) => projectsById.get(id))
+    .filter(Boolean);
+  const featuredItems = featuredProjects.map((project) => {
+    return [project.title, project.subtitle].filter(Boolean).join(': ');
+  });
+  const experienceItems = resumeDetails
+    ? resumeDetails.experience.slice(0, 3).map((role) => {
+      const bullet = role.bullets && role.bullets[0] ? ` - ${role.bullets[0]}` : '';
+      return `${role.heading}${bullet}`;
+    })
+    : [];
+  const links = [
+    { label: audience.resumeNavTitle || `${audience.label} Resume`, url: audience.resumePath },
+    { label: audience.portfolioTitle || `${audience.label} Portfolio`, url: audience.portfolioPath },
+    { label: 'Contact Daniel Short', url: '/contact' }
+  ];
+  return createStructuredPage(urlPath, {
+    title: stripSiteSuffix(page.title || audience.label),
+    description: page.description,
+    summary: page.description,
+    category: 'Core',
+    sourcePath: record.relPath,
+    sourceText: JSON.stringify(record.data),
+    keywords: [audience.label, audience.shortLabel, 'hiring', 'portfolio', 'resume'],
+    links,
+    sections: [
+      { title: heroLabel, paragraphs: [heroTagline, heroStatus].filter(Boolean) },
+      { title: resultsLabel, items: extractProofItemsFromAudience(audience) },
+      { title: projectsLabel, items: featuredItems },
+      { title: experienceLabel, items: experienceItems },
+      { title: skillsLabel, items: resumeDetails ? resumeDetails.skills : [] },
+      { title: credentialsLabel, items: resumeDetails ? resumeDetails.education : [] },
+      { title: contactLabel, links }
+    ]
+  });
+}
+
+function buildToolsDirectoryStructuredPage(pageRecord, toolRecords) {
+  const page = pageRecord && pageRecord.data;
+  if (!page) return null;
+  const categories = Array.isArray(page.categories) ? page.categories : [];
+  const publicTools = toolRecords
+    .map((record) => record.data)
+    .filter((tool) => tool && !tool.hidden && !tool.noindex && isPublicVisibility(tool.visibility))
+    .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
+  const sections = [
+    { title: 'Summary', paragraphs: [page.description].filter(Boolean) }
+  ];
+  categories.forEach((category) => {
+    const tools = publicTools.filter((tool) => tool.categoryId === category.id);
+    if (!tools.length) return;
+    sections.push({
+      title: category.title,
+      paragraphs: [category.description].filter(Boolean),
+      links: tools.map((tool) => ({
+        label: tool.title,
+        url: tool.href || `/tools/${tool.slug}`,
+        description: tool.summary
+      }))
+    });
+  });
+  return createStructuredPage(page.canonicalPath, {
+    title: stripSiteSuffix(page.title),
+    description: page.description,
+    summary: page.description,
+    category: 'Tools',
+    sourcePath: pageRecord.relPath,
+    sourceText: JSON.stringify(page),
+    keywords: ['tools', 'utilities', 'privacy-first'],
+    links: publicTools.map((tool) => ({ label: tool.title, url: tool.href || `/tools/${tool.slug}`, description: tool.summary })),
+    sections
+  });
+}
+
+function buildGamesDirectoryStructuredPage(pageRecord) {
+  const page = pageRecord && pageRecord.data;
+  if (!page) return null;
+  const games = (Array.isArray(page.games) ? page.games : [])
+    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id))
+    .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
+  const links = games.map((game) => ({
+    label: game.title,
+    url: game.href || `/games/${game.id}`,
+    description: game.summary
+  }));
+  return createStructuredPage(page.canonicalPath, {
+    title: stripSiteSuffix(page.title),
+    description: page.description,
+    summary: page.heroLead || page.description,
+    category: 'Games',
+    sourcePath: pageRecord.relPath,
+    sourceText: JSON.stringify(page),
+    keywords: ['games', 'simulations', ...games.flatMap((game) => Array.isArray(game.tags) ? game.tags : [])],
+    links,
+    sections: [
+      { title: page.heroTitle || 'Games', paragraphs: [page.heroLead || page.description].filter(Boolean), links }
+    ]
+  });
+}
+
+function buildToolStructuredPage(record, categoriesById) {
+  const tool = record.data || {};
+  const slug = normalizeWhitespace(tool.slug || path.basename(record.relPath, '.json'));
+  if (!slug || tool.hidden || tool.noindex || !isPublicVisibility(tool.visibility)) return null;
+  const pills = (tool.pills || []).map((pill) => normalizeWhitespace(pill && pill.label)).filter(Boolean);
+  const category = categoriesById.get(tool.categoryId);
+  const isLocal = pills.some((pill) => /^local$/i.test(pill)) || /\b(?:locally|local|no uploads)\b/i.test(tool.summary || '');
+  const privacy = isLocal
+    ? 'Designed for local, browser-based use where supported; avoid sending sensitive inputs unless the tool explicitly states it uses a backend.'
+    : 'May use an account, API, or server-side compute depending on the tool workflow.';
+  const links = [{ label: tool.title, url: tool.href || `/tools/${slug}`, description: tool.summary }];
+  return createStructuredPage(`/tools/${slug}`, {
+    title: tool.title,
+    description: tool.summary,
+    summary: tool.summary,
+    category: 'Tools',
+    sourcePath: record.relPath,
+    sourceText: JSON.stringify(tool),
+    keywords: [...pills, category && category.title].filter(Boolean),
+    links,
+    sections: [
+      { title: 'Summary', paragraphs: [tool.summary].filter(Boolean) },
+      { title: 'What It Does', items: [tool.summary].filter(Boolean) },
+      { title: 'Privacy And Runtime', items: [privacy] },
+      { title: 'Use Cases', items: pills.filter((pill) => !/^local$/i.test(pill)) },
+      { title: 'Links', links }
+    ]
+  });
+}
+
+function buildPortfolioStructuredPage(projectRecords) {
+  const projects = projectRecords
+    .map((record) => record.data)
+    .filter((project) => project && project.id && !project.hidden && !project.noindex)
+    .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
+  const links = projects.map((project) => ({
+    label: project.title,
+    url: `/portfolio/${project.id}`,
+    description: projectSummary(project)
+  }));
+  return createStructuredPage('/portfolio', {
+    title: 'Portfolio',
+    description: 'Project library of data projects, software experiments, tools, and demos by Daniel Short.',
+    summary: 'Project library of data projects, software experiments, tools, and demos by Daniel Short.',
+    category: 'Portfolio',
+    sourcePath: 'content/projects/*.json',
+    sourceText: JSON.stringify(projects),
+    keywords: ['portfolio', 'projects', 'tools', 'experiments', 'data'],
+    links,
+    sections: [
+      { title: 'Summary', paragraphs: ['Project library of data projects, software experiments, tools, and demos by Daniel Short.'] },
+      { title: 'Featured Projects', links: links.slice(0, 12) }
+    ]
+  });
+}
+
+function loadStructuredPages() {
+  const structured = new Map();
+  const projectRecords = loadJsonRecords('content/projects');
+  const toolRecords = loadJsonRecords('content/tools');
+  const toolsPageRecord = {
+    relPath: 'content/pages/tools.json',
+    data: readJsonRel('content/pages/tools.json')
+  };
+  const gamesPageRecord = {
+    relPath: 'content/pages/games.json',
+    data: readJsonRel('content/pages/games.json')
+  };
+  const categoriesById = new Map(((toolsPageRecord.data && toolsPageRecord.data.categories) || [])
+    .map((category) => [category.id, category]));
+  projectRecords.forEach((record) => {
+    const page = buildProjectStructuredPage(record);
+    if (page) structured.set(page.url, page);
+  });
+
+  const portfolioPage = buildPortfolioStructuredPage(projectRecords);
+  if (portfolioPage) structured.set(portfolioPage.url, portfolioPage);
+
+  const toolsPage = buildToolsDirectoryStructuredPage(toolsPageRecord, toolRecords);
+  if (toolsPage) structured.set(toolsPage.url, toolsPage);
+
+  const gamesPage = buildGamesDirectoryStructuredPage(gamesPageRecord);
+  if (gamesPage) structured.set(gamesPage.url, gamesPage);
+
+  toolRecords.forEach((record) => {
+    const page = buildToolStructuredPage(record, categoriesById);
+    if (page) structured.set(page.url, page);
+  });
+
+  return structured;
+}
+
+function applyStructuredPage(basePage, structuredPage) {
+  if (!structuredPage) return basePage;
+  return {
+    ...basePage,
+    title: structuredPage.title || basePage.title,
+    description: structuredPage.description || basePage.description,
+    summary: structuredPage.summary || basePage.summary,
+    category: structuredPage.category || basePage.category,
+    sourcePath: structuredPage.sourcePath || basePage.sourcePath,
+    sourceHash: structuredPage.sourceHash || basePage.sourceHash,
+    sections: basePage.sections && basePage.sections.length ? basePage.sections : structuredPage.sections,
+    introParagraphs: basePage.introParagraphs && basePage.introParagraphs.length ? basePage.introParagraphs : structuredPage.introParagraphs,
+    keywords: uniqueList([...(structuredPage.keywords || []), ...(basePage.keywords || [])], 30),
+    links: normalizeStructuredLinks([...(structuredPage.links || []), ...(basePage.links || [])])
+  };
+}
+
+function extractSectionsFromRegion(region) {
+  const sections = [];
+  const introParagraphs = [];
+  let current = null;
+  const pushCurrent = () => {
+    const normalized = normalizeSection(current);
+    if (normalized) sections.push(normalized);
+    current = null;
+  };
+  const tokenRe = /<(h[1-6]|p|li|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+  let match;
+  while ((match = tokenRe.exec(String(region || '')))) {
+    const tag = String(match[1] || '').toLowerCase();
+    const text = cleanText(match[3]);
+    if (!text || isNoiseText(text)) continue;
+
+    if (/^h[1-6]$/.test(tag)) {
+      if (tag === 'h1') continue;
+      pushCurrent();
+      current = {
+        title: text,
+        paragraphs: [],
+        items: [],
+        links: [],
+        level: Math.min(6, Math.max(2, Number(tag.slice(1)) || 2))
+      };
+      continue;
+    }
+
+    if (tag === 'p') {
+      if (text.length < 20) continue;
+      if (current) current.paragraphs.push(text);
+      else introParagraphs.push(text);
+      continue;
+    }
+
+    if (tag === 'li') {
+      if (!current || text.length < 12 || text.length > 320) continue;
+      current.items.push(text);
+      continue;
+    }
+
+    if (tag === 'a' && current) {
+      const attrs = parseAttributes(match[2]);
+      const href = normalizeHref(attrs.href || '');
+      if (!href || text.length > 140) continue;
+      current.links.push({ label: text, url: href });
+    }
+  }
+  pushCurrent();
+  return {
+    introParagraphs: uniqueList(introParagraphs, 6),
+    sections: sections.map(normalizeSection).filter(Boolean)
+  };
+}
+
 function buildDigestPage({ html, relPath, urlPath, override, generatedAt }) {
   const region = extractMainRegion(html);
   const mainText = extractCleanMainText(html);
@@ -646,6 +1167,7 @@ function buildDigestPage({ html, relPath, urlPath, override, generatedAt }) {
   const listItems = uniqueList(extractTagTexts(region, ['li']), 80).filter((item) => item.length >= 20 && item.length <= 280);
   const paragraphs = uniqueList(extractTagTexts(region, ['p']), 80).filter((item) => item.length >= 35 && item.length <= 340);
   const sentences = splitSentences(mainText).filter((item) => item.length >= 35 && item.length <= 300);
+  const extractedSections = extractSectionsFromRegion(region);
 
   const title = extractTitle(html) || headings[0] || urlPath;
   const description = extractDescription(html);
@@ -676,6 +1198,7 @@ function buildDigestPage({ html, relPath, urlPath, override, generatedAt }) {
     ...headings.filter((heading) => heading.length <= 80)
   ], 30);
   const canonicalUrl = `${SITE_ORIGIN}${urlPath}`;
+  const aiUrl = routeToAiUrl(urlPath);
   const outputRelPath = routeToOutputRel(urlPath);
 
   return {
@@ -687,12 +1210,17 @@ function buildDigestPage({ html, relPath, urlPath, override, generatedAt }) {
     sourcePath: relPath,
     sourceHash: sourceHash(html),
     canonicalUrl,
+    aiUrl,
     outputPath: `dist/ai-pages/${outputRelPath}`,
     outputRelPath,
     generatedAt,
     facts,
     evidence,
     bodyPoints,
+    introParagraphs: extractedSections.introParagraphs.length
+      ? extractedSections.introParagraphs
+      : paragraphs.slice(0, 4),
+    sections: extractedSections.sections,
     keywords,
     links: dedupedLinks.slice(0, MAX_LINKS)
   };
@@ -702,6 +1230,7 @@ function buildDigests() {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const publicToolSlugs = loadPublicToolSlugs();
   const overrides = loadAiDigestOverrides();
+  const structuredPages = loadStructuredPages();
   const candidates = [
     ...listRootHtmlFiles(),
     ...walkFiles(path.join(root, 'pages'), (filePath) => filePath.endsWith('.html')),
@@ -726,8 +1255,9 @@ function buildDigests() {
     const override = overrides.get(normalizedUrl);
     if (shouldExcludeUrl(normalizedUrl, html, noindexPathnames, override)) return;
 
-    const page = buildDigestPage({ html, relPath, urlPath: normalizedUrl, override, generatedAt });
+    let page = buildDigestPage({ html, relPath, urlPath: normalizedUrl, override, generatedAt });
     if (!page) return;
+    page = applyStructuredPage(page, structuredPages.get(normalizedUrl));
 
     const previous = pagesByUrl.get(normalizedUrl);
     const previousScore = previous ? previous.facts.length + previous.evidence.length + previous.bodyPoints.length : -1;
@@ -736,6 +1266,93 @@ function buildDigests() {
   });
 
   return [...pagesByUrl.values()].sort((a, b) => a.url.localeCompare(b.url));
+}
+
+function escapeMarkdown(value) {
+  return normalizeWhitespace(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]');
+}
+
+function trimLlmsDescription(value, maxChars = 240) {
+  const text = normalizeWhitespace(value);
+  const finish = (description) => {
+    const cleaned = normalizeWhitespace(description).replace(/\b(?:with|and|or|the|a|an|to|of|for|that|could|would|should)$/i, '').trim();
+    return cleaned && /[.!?)]$/.test(cleaned) ? cleaned : `${cleaned.replace(/[,:;]+$/, '')}.`;
+  };
+  if (!text) return '';
+  if (text.length <= maxChars) return finish(text);
+  const sliced = text.slice(0, maxChars);
+  const sentenceEnd = Math.max(sliced.lastIndexOf('. '), sliced.lastIndexOf('! '), sliced.lastIndexOf('? '));
+  if (sentenceEnd > 80) return sliced.slice(0, sentenceEnd + 1).trim();
+  const trimmed = sliced.replace(/\s+\S*$/, '').replace(/[,:;]+$/, '').trim();
+  return trimmed ? finish(trimmed) : '';
+}
+
+function llmsLine(page) {
+  const label = escapeMarkdown(page.title || page.url);
+  const url = page.aiUrl || routeToAiUrl(page.url);
+  const description = trimLlmsDescription(page.summary || page.description || '');
+  return `- [${label}](${url})${description ? `: ${description}` : ''}`;
+}
+
+function llmsSection(title, pages) {
+  const lines = uniqueList((pages || []).filter(Boolean).map(llmsLine));
+  if (!lines.length) return '';
+  return [`## ${title}`, '', ...lines].join('\n');
+}
+
+function renderLlmsTxt(pages) {
+  const byUrl = new Map((pages || []).map((page) => [page.url, page]));
+  const pick = (urls) => urls.map((url) => byUrl.get(url)).filter(Boolean);
+  const portfolioUrls = [
+    '/portfolio',
+    '/portfolio/retailStore',
+    '/portfolio/targetEmptyPackage',
+    '/portfolio/pizzaDashboard',
+    '/portfolio/deliveryTip',
+    '/portfolio/ufoDashboard',
+    '/portfolio/chatbotLora',
+    '/portfolio/smartSentence'
+  ];
+  const toolUrls = [
+    '/tools',
+    '/tools/text-compare',
+    '/tools/utm-batch-builder',
+    '/tools/word-frequency',
+    '/tools/qr-code-generator',
+    '/tools/image-optimizer'
+  ];
+  const gameUrls = [
+    '/games',
+    '/games/stellar-dogfight',
+    '/games/roulette',
+    '/games/probability-engine',
+    '/games/ocean-wave-simulation'
+  ];
+  const optionalPages = [
+    ...pick(['/privacy', '/sitemap'])
+  ];
+  const sections = [
+    llmsSection('Start Here', pick(['/', '/portfolio', '/tools', '/games', '/contact'])),
+    llmsSection('Projects', pick(portfolioUrls)),
+    llmsSection('Tools', pick(toolUrls)),
+    llmsSection('Games', pick(gameUrls)),
+    llmsSection('Optional', optionalPages)
+  ].filter(Boolean);
+
+  return [
+    '# Daniel Short',
+    '',
+    '> Personal website for Daniel Short. This file prioritizes stable AI-readable entry points for projects, tools, experiments, and contact information.',
+    '',
+    'Canonical site: https://www.danielshort.me/',
+    'AI-readable pages use stable /ai/ URLs and canonicalize back to their public human-facing pages.',
+    '',
+    sections.join('\n\n'),
+    ''
+  ].join('\n');
 }
 
 function writeOutputs(pages) {
@@ -753,6 +1370,7 @@ function writeOutputs(pages) {
       title: page.title,
       outputPath: page.outputPath,
       canonicalUrl: page.canonicalUrl,
+      aiUrl: page.aiUrl,
       sourcePath: page.sourcePath,
       sourceHash: page.sourceHash
     };
@@ -768,6 +1386,7 @@ function writeOutputs(pages) {
       description: page.description,
       category: page.category,
       canonicalUrl: page.canonicalUrl,
+      aiUrl: page.aiUrl,
       outputPath: page.outputPath,
       sourcePath: page.sourcePath,
       sourceHash: page.sourceHash,
@@ -779,12 +1398,13 @@ function writeOutputs(pages) {
 
   ensureDir(path.dirname(manifestPath));
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(llmsPath, renderLlmsTxt(pages), 'utf8');
 }
 
 function main() {
   const pages = buildDigests();
   writeOutputs(pages);
-  process.stdout.write(`[ai-digests] Wrote dist/ai-digest-manifest.json and ${pages.length} AI page digest(s)\n`);
+  process.stdout.write(`[ai-digests] Wrote llms.txt, dist/ai-digest-manifest.json, and ${pages.length} AI page digest(s)\n`);
 }
 
 main();

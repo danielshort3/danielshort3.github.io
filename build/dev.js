@@ -23,6 +23,28 @@ const toolsApiPath = path.join(root, 'api', 'tools', '[...slug].js');
 const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
 const MAX_PORT_SEARCH_ATTEMPTS = 50;
 const WATCH_POLL_INTERVAL_MS = 1000;
+const SOURCE_STATIC_FALLBACK_DIRS = new Set([
+  'css',
+  'demos',
+  'dist',
+  'documents',
+  'img',
+  'js',
+  'pages'
+]);
+const SOURCE_STATIC_FALLBACK_FILES = new Set([
+  '404.html',
+  'contact.html',
+  'dshort.html',
+  'favicon.ico',
+  'index.html',
+  'llms.txt',
+  'privacy.html',
+  'robots.txt',
+  'sitemap.html',
+  'sitemap.xml',
+  'sitemap.xsl'
+]);
 
 const WATCH_ROOTS = [
   'api',
@@ -494,6 +516,21 @@ function resolveStaticFile(baseDir, pathname) {
   return null;
 }
 
+function resolveSourceStaticFallback(pathname) {
+  const decoded = safeDecodePathname(pathname).replace(/\\/g, '/');
+  const clean = decoded.split('?')[0].split('#')[0].replace(/^\/+/, '');
+  if (!clean || clean.includes('..')) return null;
+  const firstSegment = clean.split('/')[0];
+  if (!SOURCE_STATIC_FALLBACK_DIRS.has(firstSegment) && !SOURCE_STATIC_FALLBACK_FILES.has(clean)) {
+    return null;
+  }
+  return resolveStaticFile(root, `/${clean}`);
+}
+
+function resolveLocalStaticFile(pathname) {
+  return resolveStaticFile(publicDir, pathname) || resolveSourceStaticFallback(pathname);
+}
+
 function parseByteRange(value, size) {
   const match = /^bytes=(\d*)-(\d*)$/.exec(String(value || '').trim());
   if (!match || !Number.isFinite(size) || size < 1) return null;
@@ -756,7 +793,7 @@ function createLocalServer() {
     const rewrittenUrl = new URL(rewrittenPath, 'http://localhost');
     const rewrittenPathname = rewrittenUrl.pathname.replace(/\/+$/, '') || '/';
 
-    const filePath = resolveStaticFile(publicDir, rewrittenPathname);
+    const filePath = resolveLocalStaticFile(rewrittenPathname);
     if (filePath) {
       sendFile(req, res, filePath);
       return;

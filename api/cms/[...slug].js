@@ -46,6 +46,7 @@ const {
 const {
   renderFooter,
   renderFullPage,
+  renderGamesDirectoryBody,
   renderHeader,
   renderToolsDirectoryBody
 } = require('../../build/lib/cms-renderers');
@@ -222,6 +223,13 @@ function preparePreviewPage(page, content) {
     };
   }
 
+  if (page.template === 'games-directory') {
+    return {
+      ...page,
+      bodyHtml: renderGamesDirectoryBody(page)
+    };
+  }
+
   if (page.template === 'visual-page') {
     return {
       ...page,
@@ -367,6 +375,8 @@ async function handlePreview(req, res) {
       navigation: site.navigation,
       footer: site.footer,
       projectsById: content.projectsById,
+      pagesById: content.pagesById,
+      tools: content.tools,
       page,
       audienceLabel: getAudienceLabel(content, page.audienceKey)
     });
@@ -444,6 +454,8 @@ function hydrateProjectPreviewChrome(html, { content, site, projects }) {
     settings: site.settings,
     navigation: site.navigation,
     projectsById: getProjectsById(projects),
+    pagesById: content.pagesById,
+    tools: content.tools,
     audienceLabel: getAudienceLabel(content, site.settings && site.settings.defaultAudience)
   });
   const footerHtml = renderFooter({
@@ -527,6 +539,8 @@ async function handleToolPreview(req, res) {
       navigation: site.navigation,
       footer: site.footer,
       projectsById: content.projectsById,
+      pagesById: content.pagesById,
+      tools,
       page: preparedPage,
       audienceLabel: getAudienceLabel(content, site.settings && site.settings.defaultAudience)
     }), tool);

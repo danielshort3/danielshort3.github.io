@@ -5,6 +5,9 @@
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
     "test": "node test.js",
+    "test:starfall": "node test.js --suite=starfall-runtime",
+    "test:starfall:assets": "node test.js --suite=starfall-assets",
+    "test:all": "node test.js --suite=all",
     "build:icons": "node build/resize_logo.js",
     "build:css": "node build/build-css.js",
     "build:js": "node build/build-js.js",
@@ -15,6 +18,7 @@
     "build:projects": "node build/generate-project-pages.js",
     "build:cms-content": "node build/generate-cms-artifacts.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
+    "build:project-starfall-assets": "node build/process-project-starfall-non-enemy-ai-assets.js",
     "record:project-previews": "node build/record-project-previews.js",
     "migrate:content": "node build/migrate-content.js",
     "scaffold": "node build/scaffold.js",

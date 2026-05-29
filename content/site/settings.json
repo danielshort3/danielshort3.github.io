@@ -1,11 +1,11 @@
 {
   "siteOrigin": "https://www.danielshort.me",
-  "siteName": "Daniel Short - Data Analytics & BI",
+  "siteName": "Daniel Short",
   "ownerName": "Daniel Short",
   "themeColor": "#091F3B",
   "twitterSite": "@danielshort3",
   "email": "daniel@danielshort.me",
-  "defaultAudience": "analytics",
+  "defaultAudience": "personal",
   "ogImage": {
     "url": "https://www.danielshort.me/img/brand/10-github-readme-portfolio-banner.svg",
     "width": "1600",

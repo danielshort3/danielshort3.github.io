@@ -58,7 +58,7 @@
             </div>
             <div class="form-field">
               <label for="contact-message">How can I help? <span class="field-required" id="contact-message-required" hidden>- Required</span></label>
-              <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, role, or opportunity." aria-describedby="contact-message-required"></textarea>
+              <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, idea, or question." aria-describedby="contact-message-required"></textarea>
             </div>
             <div class="form-field honeypot" aria-hidden="true">
               <label for="contact-company">Company</label>

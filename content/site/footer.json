@@ -9,7 +9,7 @@
       "links": [
         {
           "label": "Home",
-          "href": "/analytics"
+          "href": "/"
         },
         {
           "label": "Search",
@@ -30,14 +30,11 @@
     },
     {
       "id": "work",
-      "title": "Work",
+      "title": "Personal Site",
       "links": [
         {
-          "label": "Resume",
-          "href": "resume",
-          "dataAttributes": {
-            "data-resume-home-link": "true"
-          }
+          "label": "Games",
+          "href": "games"
         },
         {
           "label": "Contact",
@@ -106,7 +103,7 @@
     "items": [
       {
         "label": "Direct Message",
-        "href": "#contact-modal",
+        "href": "contact#contact-modal",
         "ariaLabel": "Send a direct message",
         "iconType": "direct-message",
         "variant": "direct",
