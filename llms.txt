@@ -1,0 +1,47 @@
+# Daniel Short
+
+> Personal website for Daniel Short. This file prioritizes stable AI-readable entry points for projects, tools, experiments, and contact information.
+
+Canonical site: https://www.danielshort.me/
+AI-readable pages use stable /ai/ URLs and canonicalize back to their public human-facing pages.
+
+## Start Here
+
+- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring projects, tools, experiments, and applied data and software work.
+- [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
+- [Tool Directory](https://www.danielshort.me/ai/tools): Local, privacy-first tools from Daniel Short.
+- [Games](https://www.danielshort.me/ai/games): Mini games built by Daniel Short. Play in your browser, no install required.
+- [Contact](https://www.danielshort.me/ai/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
+
+## Projects
+
+- [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
+- [Store-Level Loss & Sales ETL](https://www.danielshort.me/ai/portfolio/retailStore): SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.
+- [Empty-Package Shrink Dashboard](https://www.danielshort.me/ai/portfolio/targetEmptyPackage): Excel Forecasting & BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.
+- [Pizza Delivery Dashboard](https://www.danielshort.me/ai/portfolio/pizzaDashboard): Tableau Analytics & Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.
+- [Delivery Tip](https://www.danielshort.me/ai/portfolio/deliveryTip): Excel Geo-Analytics & Optimization: I wanted to know which shifts and neighborhoods lead to better tips.
+- [UFO Sightings Dashboard](https://www.danielshort.me/ai/portfolio/ufoDashboard): Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.
+- [Chatbot (LoRA + RAG)](https://www.danielshort.me/ai/portfolio/chatbotLora): RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly.
+- [Smart Sentence Retriever](https://www.danielshort.me/ai/portfolio/smartSentence): NLP Embeddings & Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.
+
+## Tools
+
+- [Tool Directory](https://www.danielshort.me/ai/tools): Local, privacy-first tools from Daniel Short.
+- [Text Compare](https://www.danielshort.me/ai/tools/text-compare): Compare two drafts and see insertions, deletions, and replacements highlighted inline.
+- [UTM Batch Builder](https://www.danielshort.me/ai/tools/utm-batch-builder): Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.
+- [Word Frequency Analyzer](https://www.danielshort.me/ai/tools/word-frequency): Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.
+- [QR Code Generator](https://www.danielshort.me/ai/tools/qr-code-generator): Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.
+- [Image Optimizer](https://www.danielshort.me/ai/tools/image-optimizer): Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.
+
+## Games
+
+- [Games](https://www.danielshort.me/ai/games): Mini games built by Daniel Short. Play in your browser, no install required.
+- [Stellar Dogfight](https://www.danielshort.me/ai/games/stellar-dogfight): Pick one boost each wave. Skills level up.
+- [Double-Zero Roulette](https://www.danielshort.me/ai/games/roulette): Ball runs opposite wheel rotation and settles into the winning pocket.
+- [Probability Engine](https://www.danielshort.me/ai/games/probability-engine): Play Probability Engine, a progressive slot-machine strategy game with deck building, upgrades, and prestige mechanics.
+- [Ocean Wave Simulation](https://www.danielshort.me/ai/games/ocean-wave-simulation): A calming, real-time ocean wave simulation with adjustable wind speed, wave height, and sun lighting. Runs locally in your browser.
+
+## Optional
+
+- [Privacy & Analytics](https://www.danielshort.me/ai/privacy): What this site tracks (and what it doesn’t). Privacy & analytics details.
+- [Sitemap](https://www.danielshort.me/ai/sitemap): Browse tools, portfolio projects, and key pages across Daniel Short’s site.

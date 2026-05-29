@@ -1,36 +1,10 @@
 {
   "/": [
     "css/components/home-proof.css",
-    "css/components/jump-panel.css",
-    "css/components/certification.css",
-    "css/components/work-experience.css"
+    "css/components/destination-analytics.css"
   ],
   "/contact": [
     "css/components/contact-card.css",
-    "css/components/destination-analytics.css"
-  ],
-  "/analytics": [
-    "css/components/home-proof.css",
-    "css/components/jump-panel.css",
-    "css/components/certification.css",
-    "css/components/work-experience.css",
-    "css/components/destination-analytics.css"
-  ],
-  "/data-science": [
-    "css/components/home-proof.css",
-    "css/components/jump-panel.css",
-    "css/components/certification.css",
-    "css/components/work-experience.css",
-    "css/components/destination-analytics.css"
-  ],
-  "/destination-analytics": [
-    "css/components/destination-analytics.css"
-  ],
-  "/tourism": [
-    "css/components/home-proof.css",
-    "css/components/jump-panel.css",
-    "css/components/certification.css",
-    "css/components/work-experience.css",
     "css/components/destination-analytics.css"
   ],
   "/search": [
@@ -42,35 +16,14 @@
   "/sitemap-pretty": [
     "css/components/sitemap-page.css"
   ],
-  "/resume": [
-    "css/components/resume.css"
-  ],
-  "/resume-pdf": [
-    "css/components/resume.css"
-  ],
-  "/resume-analytics": [
-    "css/components/resume.css"
-  ],
-  "/resume-data-science": [
-    "css/components/resume.css"
-  ],
-  "/resume-tourism": [
-    "css/components/resume.css"
-  ],
-  "/resume-analytics-pdf": [
-    "css/components/resume.css"
-  ],
-  "/resume-data-science-pdf": [
-    "css/components/resume.css"
-  ],
-  "/resume-tourism-pdf": [
-    "css/components/resume.css"
-  ],
   "/privacy": [
     "css/components/privacy-page.css"
   ],
   "/games": [
     "css/components/games.css"
+  ],
+  "/project-starfall": [
+    "css/components/project-starfall.css"
   ],
   "/games/probability-engine": [
     "css/components/games.css"

@@ -29,19 +29,14 @@
     { "source": "/go/:first/:rest", "destination": "/api/go/:first%2F:rest" },
     { "source": "/go/:slug", "destination": "/api/go/:slug" },
     { "source": "/ai/:path*", "destination": "/dist/ai-pages/:path*" },
-    { "source": "/analytics", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/analytics" },
-    { "source": "/data-science", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/data-science" },
-    { "source": "/tourism", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/tourism" },
     { "source": "/contact", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/contact" },
     { "source": "/portfolio", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/portfolio" },
     { "source": "/portfolio/:project", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/portfolio/:project" },
-    { "source": "/resume-analytics", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/resume-analytics" },
-    { "source": "/resume-data-science", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/resume-data-science" },
-    { "source": "/resume-tourism", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/resume-tourism" },
     { "source": "/tools", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/tools" },
     { "source": "/tools/:tool", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/tools/:tool" },
     { "source": "/privacy", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/privacy" },
     { "source": "/sitemap", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/sitemap" },
+    { "source": "/games", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/games" },
     { "source": "/games/:game", "has": [{ "type": "header", "key": "user-agent", "value": ".*(?:GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|Perplexity|Google-Extended|GoogleOther|GoogleOther-Image|GoogleOther-Video|Applebot-Extended|Bytespider|Meta-ExternalAgent|Meta-ExternalFetcher|FacebookBot|CCBot|cohere-ai|Diffbot|YouBot|Timpibot|PhindBot|DuckAssistBot|MistralAI-User|Amazonbot|omgili|omgilibot|ImagesiftBot).*" }], "destination": "/dist/ai-pages/games/:game" },
     { "source": "/portfolio", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
     { "source": "/portfolio.html", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
@@ -49,28 +44,10 @@
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio",         "destination": "/pages/portfolio" },
     { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
-    { "source": "/analytics", "destination": "/pages/analytics" },
-    { "source": "/analytics.html", "destination": "/pages/analytics" },
-    { "source": "/data-science", "destination": "/pages/data-science" },
-    { "source": "/data-science.html", "destination": "/pages/data-science" },
-    { "source": "/tourism", "destination": "/pages/tourism" },
-    { "source": "/tourism.html", "destination": "/pages/tourism" },
     { "source": "/contact",           "destination": "/pages/contact" },
     { "source": "/contact.html",      "destination": "/pages/contact" },
     { "source": "/privacy",           "destination": "/pages/privacy" },
     { "source": "/privacy.html",      "destination": "/pages/privacy" },
-    { "source": "/resume-analytics", "destination": "/pages/resume-analytics" },
-    { "source": "/resume-analytics.html", "destination": "/pages/resume-analytics" },
-    { "source": "/resume-data-science", "destination": "/pages/resume-data-science" },
-    { "source": "/resume-data-science.html", "destination": "/pages/resume-data-science" },
-    { "source": "/resume-tourism", "destination": "/pages/resume-tourism" },
-    { "source": "/resume-tourism.html", "destination": "/pages/resume-tourism" },
-    { "source": "/resume-analytics-pdf", "destination": "/pages/resume-analytics-pdf" },
-    { "source": "/resume-analytics-pdf.html", "destination": "/pages/resume-analytics-pdf" },
-    { "source": "/resume-data-science-pdf", "destination": "/pages/resume-data-science-pdf" },
-    { "source": "/resume-data-science-pdf.html", "destination": "/pages/resume-data-science-pdf" },
-    { "source": "/resume-tourism-pdf", "destination": "/pages/resume-tourism-pdf" },
-    { "source": "/resume-tourism-pdf.html", "destination": "/pages/resume-tourism-pdf" },
     { "source": "/search",            "destination": "/pages/search" },
     { "source": "/search.html",       "destination": "/pages/search" },
     { "source": "/sitemap",           "destination": "/pages/sitemap" },
@@ -119,6 +96,9 @@
     { "source": "/tools/transcribe","destination": "/pages/transcribe" },
     { "source": "/tools/transcribe.html","destination": "/pages/transcribe" },
 
+    { "source": "/project-starfall", "destination": "/pages/project-starfall" },
+    { "source": "/project-starfall.html", "destination": "/pages/project-starfall" },
+
     { "source": "/games/stellar-dogfight", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/roulette", "destination": "/demos/roulette-double-zero-demo" },
@@ -156,12 +136,33 @@
     { "source": "/retail-loss-sales-demo.html", "destination": "/demos/retail-loss-sales-demo" }
   ],
   "redirects": [
-    { "source": "/", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/analytics", "permanent": true },
-    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me/analytics", "permanent": true },
-    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me/analytics", "permanent": true },
+    { "source": "/", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
+    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
+    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/:path*", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/:path*", "permanent": true },
-    { "source": "/", "destination": "/analytics", "permanent": true },
-    { "source": "/index.html", "destination": "/analytics", "permanent": true },
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/analytics", "destination": "/", "permanent": false },
+    { "source": "/analytics.html", "destination": "/", "permanent": false },
+    { "source": "/data-science", "destination": "/", "permanent": false },
+    { "source": "/data-science.html", "destination": "/", "permanent": false },
+    { "source": "/tourism", "destination": "/", "permanent": false },
+    { "source": "/tourism.html", "destination": "/", "permanent": false },
+    { "source": "/resume", "destination": "/", "permanent": false },
+    { "source": "/resume.html", "destination": "/", "permanent": false },
+    { "source": "/resume-pdf", "destination": "/", "permanent": false },
+    { "source": "/resume-pdf.html", "destination": "/", "permanent": false },
+    { "source": "/resume-analytics", "destination": "/", "permanent": false },
+    { "source": "/resume-analytics.html", "destination": "/", "permanent": false },
+    { "source": "/resume-data-science", "destination": "/", "permanent": false },
+    { "source": "/resume-data-science.html", "destination": "/", "permanent": false },
+    { "source": "/resume-tourism", "destination": "/", "permanent": false },
+    { "source": "/resume-tourism.html", "destination": "/", "permanent": false },
+    { "source": "/resume-analytics-pdf", "destination": "/", "permanent": false },
+    { "source": "/resume-analytics-pdf.html", "destination": "/", "permanent": false },
+    { "source": "/resume-data-science-pdf", "destination": "/", "permanent": false },
+    { "source": "/resume-data-science-pdf.html", "destination": "/", "permanent": false },
+    { "source": "/resume-tourism-pdf", "destination": "/", "permanent": false },
+    { "source": "/resume-tourism-pdf.html", "destination": "/", "permanent": false },
     { "source": "/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true },
     { "source": "/tools/whisper-transcribe-monitor", "destination": "/tools/transcribe", "permanent": true },
     { "source": "/tools/whisper-transcribe-monitor.html", "destination": "/tools/transcribe", "permanent": true },
@@ -172,22 +173,18 @@
     { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
     { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true },
-    { "source": "/resume", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/resume.html", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/pages/resume", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/pages/resume.html", "destination": "/resume-analytics", "permanent": true },
-    { "source": "/resume-pdf", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/resume-pdf.html", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/pages/resume-pdf", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/pages/resume-pdf.html", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/destination-analytics", "destination": "/tourism", "permanent": true },
-    { "source": "/destination-analytics.html", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/destination-analytics", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/destination-analytics.html", "destination": "/tourism", "permanent": true },
-    { "source": "/contributions", "destination": "/tourism", "permanent": true },
-    { "source": "/contributions.html", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/contributions", "destination": "/tourism", "permanent": true },
-    { "source": "/pages/contributions.html", "destination": "/tourism", "permanent": true }
+    { "source": "/pages/resume", "destination": "/", "permanent": false },
+    { "source": "/pages/resume.html", "destination": "/", "permanent": false },
+    { "source": "/pages/resume-pdf", "destination": "/", "permanent": false },
+    { "source": "/pages/resume-pdf.html", "destination": "/", "permanent": false },
+    { "source": "/destination-analytics", "destination": "/", "permanent": false },
+    { "source": "/destination-analytics.html", "destination": "/", "permanent": false },
+    { "source": "/pages/destination-analytics", "destination": "/", "permanent": false },
+    { "source": "/pages/destination-analytics.html", "destination": "/", "permanent": false },
+    { "source": "/contributions", "destination": "/", "permanent": false },
+    { "source": "/contributions.html", "destination": "/", "permanent": false },
+    { "source": "/pages/contributions", "destination": "/", "permanent": false },
+    { "source": "/pages/contributions.html", "destination": "/", "permanent": false }
   ],
   "headers": [
     {
@@ -216,42 +213,6 @@
     },
     {
       "source": "/admin/(.*)",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-analytics-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-analytics-pdf.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-data-science-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-data-science-pdf.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-tourism-pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/resume-tourism-pdf.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]

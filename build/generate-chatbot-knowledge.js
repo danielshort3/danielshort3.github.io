@@ -24,12 +24,11 @@ const DEFAULT_EMBED_DIMENSIONS = 512;
 
 const excludedPathPatterns = [
   /^\/(?:chatbot-demo|.*-demo)(?:\/|$)/i,
-  /^\/games(?:\/|$)/i,
-  /^\/tools(?:\/|$)/i,
   /^\/privacy$/i,
   /^\/sitemap(?:-pretty)?$/i,
-  /^\/resume(?:-pdf)?$/i,
-  /^\/resume-(?:analytics|data-science|tourism)-pdf$/i
+  /^\/project-starfall$/i,
+  /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|job-application-tracker|transcribe|whisper-transcribe-monitor)$/i,
+  /^\/resume(?:-[a-z-]+)?(?:-pdf)?$/i
 ];
 
 function ensureDir(dirPath) {
@@ -217,21 +216,20 @@ function toPathFromRelFile(relPath) {
 
 function categoryForPath(urlPath) {
   if (urlPath === '/portfolio' || urlPath.startsWith('/portfolio/')) return 'Portfolio';
-  if (urlPath.includes('resume')) return 'Resume';
-  if (['/analytics', '/data-science', '/tourism', '/contact'].includes(urlPath)) return 'Core';
+  if (urlPath === '/tools' || urlPath.startsWith('/tools/')) return 'Tools';
+  if (urlPath === '/games' || urlPath.startsWith('/games/')) return 'Games';
+  if (['/', '/contact'].includes(urlPath)) return 'Core';
   return 'Pages';
 }
 
 function audienceForPath(urlPath) {
-  if (urlPath.includes('tourism') || urlPath.includes('destination')) return 'tourism';
-  if (urlPath.includes('data-science')) return 'data-science';
-  if (urlPath.includes('analytics')) return 'analytics';
+  void urlPath;
   return '';
 }
 
 function extractKeywords(html) {
   const keywords = [];
-  const tagRe = /<span\b[^>]*\bclass="[^"]*\b(?:project-tag|tool-pill|resume-chip)\b[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
+  const tagRe = /<span\b[^>]*\bclass="[^"]*\b(?:project-tag|tool-pill|game-pill|resume-chip)\b[^"]*"[^>]*>([\s\S]*?)<\/span>/gi;
   let match;
   while ((match = tagRe.exec(String(html || '')))) {
     const text = cleanText(match[1]);
@@ -335,6 +333,8 @@ function extractMainText(html) {
     .replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, ' ')
     .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, ' ')
     .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, ' ')
+    .replace(/<article\b[^>]*\bdata-tools-visibility="[^"]+"[^>]*>[\s\S]*?<\/article>/gi, ' ')
+    .replace(/<[^>]+\bhidden\b[^>]*>[\s\S]*?<\/[^>]+>/gi, ' ')
     .replace(/<button\b[^>]*>[\s\S]*?<\/button>/gi, ' ')
     .replace(/<form\b[^>]*>[\s\S]*?<\/form>/gi, ' ');
   return cleanText(region);
@@ -495,7 +495,7 @@ function isExcludedUrl(urlPath, noindexPathnames) {
 function buildKnowledge() {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const projectMetadata = loadProjectMetadata();
-  const files = [...listRootHtmlFiles(), ...walkHtmlFiles('pages')];
+  const files = [...listRootHtmlFiles(), ...walkHtmlFiles('pages'), ...walkHtmlFiles('demos')];
   const pagesByUrl = new Map();
 
   files.forEach((absPath) => {

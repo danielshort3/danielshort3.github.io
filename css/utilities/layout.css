@@ -352,18 +352,24 @@
     display:block;
   }
   .nav-item-portfolio .nav-link-has-menu,
+  .nav-item-tools .nav-link-has-menu,
+  .nav-item-games .nav-link-has-menu,
   .nav-item-contributions .nav-link-has-menu,
   .nav-item-resume .nav-link-has-menu,
   .nav-item-contact .nav-link-has-menu{
     gap:0;
   }
   .nav-item-portfolio .nav-link-caret,
+  .nav-item-tools .nav-link-caret,
+  .nav-item-games .nav-link-caret,
   .nav-item-contributions .nav-link-caret,
   .nav-item-resume .nav-link-caret,
   .nav-item-contact .nav-link-caret{
     display:none;
   }
   .nav-item-portfolio .nav-dropdown,
+  .nav-item-tools .nav-dropdown,
+  .nav-item-games .nav-dropdown,
   .nav-item-contributions .nav-dropdown,
   .nav-item-resume .nav-dropdown,
   .nav-item-contact .nav-dropdown{

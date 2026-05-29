@@ -16,8 +16,6 @@ const root = path.resolve(__dirname, '..');
 
 const PAIRS = [
   { from: 'pages/contact.html', to: 'contact.html' },
-  { from: 'pages/resume.html', to: 'resume.html' },
-  { from: 'pages/resume-pdf.html', to: 'resume-pdf.html' },
   { from: 'pages/privacy.html', to: 'privacy.html' },
   { from: 'pages/sitemap.html', to: 'sitemap.html' }
 ];

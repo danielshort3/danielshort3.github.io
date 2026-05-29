@@ -231,18 +231,15 @@
     const audienceApi = window.SITE_AUDIENCE_CONFIG || null;
     const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
       ? audienceApi.normalizeAudience
-      : (() => 'analytics');
+      : (() => 'personal');
     const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
       ? audienceApi.getAudience
       : (() => ({
-          key: 'analytics',
-          homePath: '/analytics',
-          portfolioPath: '/portfolio?audience=analytics',
-          portfolioAllPath: '/portfolio?audience=analytics',
-          resumePath: '/resume-analytics',
-          resumePreviewPath: '/resume-analytics-pdf',
-          resumeDownloadPath: '/documents/Resume-Analytics.pdf',
-          brandNavPrimary: 'Data Analytics'
+          key: 'personal',
+          homePath: '/',
+          portfolioPath: '/portfolio',
+          portfolioAllPath: '/portfolio',
+          brandNavPrimary: 'Projects, Tools, and Notes'
         }));
     const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
       ? audienceApi.detectAudienceFromPath
@@ -314,7 +311,7 @@
     const activeAudience = getAudience(bodyAudience || queryAudience || pathAudience || storedAudience);
     const activeAudienceKey = normalizeAudience(activeAudience && activeAudience.key);
     const isRootHome = currentPathVariants.includes('/');
-    const entryHome = isRootHome ? '/' : String(activeAudience.homePath || '/analytics');
+    const entryHome = isRootHome ? '/' : String(activeAudience.homePath || '/');
 
     writeSession(AUDIENCE_KEY, activeAudienceKey);
     writeSession(ENTRY_HOME_KEY, entryHome);
@@ -323,29 +320,20 @@
       link.setAttribute('href', entryHome);
     });
     $$('[data-audience-home-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.homePath || '/analytics');
+      link.setAttribute('href', activeAudience.homePath || '/');
     });
     $$('[data-portfolio-home-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.portfolioPath || '/portfolio?audience=analytics');
+      link.setAttribute('href', activeAudience.portfolioPath || '/portfolio');
     });
     $$('[data-portfolio-default-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.portfolioAllPath || '/portfolio?audience=analytics');
-    });
-    $$('[data-resume-home-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.resumePath || '/resume-analytics');
-    });
-    $$('[data-resume-preview-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.resumePreviewPath || '/resume-analytics-pdf');
-    });
-    $$('[data-resume-download-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.resumeDownloadPath || '/documents/Resume-Analytics.pdf');
+      link.setAttribute('href', activeAudience.portfolioAllPath || '/portfolio');
     });
     $$('[data-brand-tagline-primary="true"]', host).forEach((node) => {
-      node.textContent = activeAudience.brandNavPrimary || 'Data Analytics';
+      node.textContent = activeAudience.brandNavPrimary || 'Projects, Tools, and Notes';
     });
     $$('[data-audience-link]', host).forEach((link) => {
       const audience = getAudience(link.dataset.audienceLink);
-      link.setAttribute('href', audience.homePath || '/analytics');
+      link.setAttribute('href', audience.homePath || '/');
       const isActive = normalizeAudience(audience.key) === activeAudienceKey;
       link.classList.toggle('is-current', isActive);
       if (isActive) {
@@ -370,6 +358,9 @@
         if (targetNoHtml === '/tools') {
           return [currentPath, altCurrentPath].some(p => p === '/tools' || p === '/tools.html' || p.startsWith('/tools/'));
         }
+        if (targetNoHtml === '/games') {
+          return [currentPath, altCurrentPath].some(p => p === '/games' || p === '/games.html' || p.startsWith('/games/'));
+        }
         return false;
       })();
       const matches = matchesExact || matchesSection;
@@ -385,10 +376,7 @@
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
     let closeMenu = () => {};
-    setupDropdown(host.querySelector('.nav-item-audience'));
-    setupDropdown(host.querySelector('.nav-item-portfolio'));
-    setupDropdown(host.querySelector('.nav-item-resume'));
-    setupDropdown(host.querySelector('.nav-item-contact'));
+    host.querySelectorAll('.nav-item').forEach(setupDropdown);
     setupHeaderSearch(host);
 
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');

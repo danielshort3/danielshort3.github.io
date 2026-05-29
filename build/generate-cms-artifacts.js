@@ -8,6 +8,7 @@ const {
   renderAudienceConfigJs,
   renderFooter,
   renderFullPage,
+  renderGamesDirectoryBody,
   renderHeader,
   renderProjectsDataJs,
   renderToolsDirectoryBody
@@ -65,7 +66,7 @@ function getAudienceLabel(content, audienceKey) {
   const defaultAudience = content.audiencesByKey[content.site.settings.defaultAudience];
   return defaultAudience && defaultAudience.brandNavPrimary
     ? defaultAudience.brandNavPrimary
-    : 'Data Analytics';
+    : 'Projects, Tools, and Notes';
 }
 
 async function main() {
@@ -75,6 +76,8 @@ async function main() {
     settings: content.site.settings,
     navigation,
     projectsById: content.projectsById,
+    pagesById: content.pagesById,
+    tools: content.tools,
     audienceLabel: getAudienceLabel(content, content.site.settings.defaultAudience)
   });
   const footerHtml = renderFooter({
@@ -100,6 +103,11 @@ async function main() {
         ...page,
         bodyHtml: renderToolsDirectoryBody(page, content.tools)
       };
+    } else if (page.template === 'games-directory') {
+      pageDef = {
+        ...page,
+        bodyHtml: renderGamesDirectoryBody(page)
+      };
     } else if (page.template === 'visual-page') {
       pageDef = {
         ...page,
@@ -116,6 +124,8 @@ async function main() {
       navigation: content.site.navigation,
       footer: content.site.footer,
       projectsById: content.projectsById,
+      pagesById: content.pagesById,
+      tools: content.tools,
       page: pageDef,
       audienceLabel: getAudienceLabel(content, pageDef.audienceKey)
     });

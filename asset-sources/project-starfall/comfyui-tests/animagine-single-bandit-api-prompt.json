@@ -1,0 +1,62 @@
+{
+  "client_id": "codex-starfall",
+  "prompt": {
+    "1": {
+      "class_type": "CheckpointLoaderSimple",
+      "inputs": {
+        "ckpt_name": "animagine-xl-4.0-opt.safetensors"
+      }
+    },
+    "2": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": ["1", 1],
+        "text": "masterpiece, best quality, solo, single character, one character only, 1boy, chibi hooded bandit enemy, full body, centered, standing idle pose, feet visible, clean silhouette, simple readable shape, small dagger, brown hooded cloak, compact mascot-like proportions, maple-inspired side-scrolling RPG enemy sprite, large single subject occupying most of the image, plain solid bright green background"
+      }
+    },
+    "3": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": ["1", 1],
+        "text": "low quality, blurry, realistic, 3d render, cropped, cut off feet, multiple characters, many characters, group, lineup, collage, character sheet, multiple poses, duplicate subject, duplicate limbs, extra arms, extra legs, animal, slime, text, watermark, panel borders, sprite sheet, overlapping frames"
+      }
+    },
+    "4": {
+      "class_type": "EmptyLatentImage",
+      "inputs": {
+        "width": 768,
+        "height": 768,
+        "batch_size": 1
+      }
+    },
+    "5": {
+      "class_type": "KSampler",
+      "inputs": {
+        "model": ["1", 0],
+        "positive": ["2", 0],
+        "negative": ["3", 0],
+        "latent_image": ["4", 0],
+        "seed": 52702602,
+        "steps": 30,
+        "cfg": 7.0,
+        "sampler_name": "dpmpp_2m_sde",
+        "scheduler": "karras",
+        "denoise": 1.0
+      }
+    },
+    "6": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": ["5", 0],
+        "vae": ["1", 2]
+      }
+    },
+    "7": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "filename_prefix": "starfall_animagine_single_bandit",
+        "images": ["6", 0]
+      }
+    }
+  }
+}

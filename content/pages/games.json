@@ -1,0 +1,76 @@
+{
+  "id": "games",
+  "template": "games-directory",
+  "outputPath": "pages/games.html",
+  "title": "Games | Daniel Short",
+  "canonicalPath": "/games",
+  "description": "Browser-based games built by Daniel Short.",
+  "ogTitle": "Games | Daniel Short",
+  "ogDescription": "Browser-based games built by Daniel Short.",
+  "siteName": "Daniel Short - Data Science & Analytics",
+  "ogType": "website",
+  "bodyAttributes": {
+    "data-page": "games",
+    "class": "site-page"
+  },
+  "stylesheets": [
+    "dist/styles.css",
+    "css/components/games.css"
+  ],
+  "headScripts": [
+    {
+      "src": "js/common/no-js.js"
+    }
+  ],
+  "bottomScripts": [
+    {
+      "src": "dist/site-shell.js",
+      "defer": true
+    },
+    {
+      "src": "dist/site-consent.js",
+      "defer": true
+    }
+  ],
+  "heroEyebrow": "Browser-based mini games",
+  "heroTitle": "Games",
+  "heroLead": "Mini games built by Daniel Short. Play in your browser, no install required.",
+  "games": [
+    {
+      "id": "stellar-dogfight",
+      "title": "Stellar Dogfight",
+      "href": "games/stellar-dogfight",
+      "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and stack upgrades between waves.",
+      "tags": ["AI squadrons", "Upgrades", "Progression"],
+      "iconType": "dogfight",
+      "order": 1
+    },
+    {
+      "id": "roulette",
+      "title": "Double-Zero Roulette",
+      "href": "games/roulette",
+      "summary": "Play a realistic 00 roulette table, place bets across inside and outside layouts, and track hot pockets over the last 200 spins.",
+      "tags": ["American table", "Wheel animation", "Hot numbers"],
+      "iconType": "roulette",
+      "order": 2
+    },
+    {
+      "id": "probability-engine",
+      "title": "Probability Engine",
+      "href": "games/probability-engine",
+      "summary": "Construct slot reels, chain synergies, automate a casino floor, and fight entropy in a long-run probability simulator.",
+      "tags": ["Idle/Incremental", "Deck Builder", "Prestige"],
+      "iconType": "probability",
+      "order": 3
+    },
+    {
+      "id": "ocean-wave-simulation",
+      "title": "Ocean Wave Simulation",
+      "href": "games/ocean-wave-simulation",
+      "summary": "Dial in wind speed, wave height, and sun elevation in a calming real-time ocean surface renderer.",
+      "tags": ["Relaxing", "Simulation", "Canvas"],
+      "iconType": "ocean",
+      "order": 4
+    }
+  ]
+}
