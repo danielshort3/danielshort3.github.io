@@ -96,8 +96,10 @@
     { "source": "/tools/transcribe","destination": "/pages/transcribe" },
     { "source": "/tools/transcribe.html","destination": "/pages/transcribe" },
 
-    { "source": "/project-starfall", "destination": "/pages/project-starfall" },
-    { "source": "/project-starfall.html", "destination": "/pages/project-starfall" },
+    { "source": "/games/project-starfall", "destination": "/pages/games/project-starfall" },
+    { "source": "/games/project-starfall.html", "destination": "/pages/games/project-starfall" },
+    { "source": "/project-starfall", "destination": "/pages/games/project-starfall" },
+    { "source": "/project-starfall.html", "destination": "/pages/games/project-starfall" },
 
     { "source": "/games/stellar-dogfight", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },

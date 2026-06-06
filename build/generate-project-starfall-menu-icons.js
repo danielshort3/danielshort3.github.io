@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const Data = require('../js/project-starfall/project-starfall-data.js');
+const Data = require('../js/games/project-starfall/project-starfall-data.js');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 

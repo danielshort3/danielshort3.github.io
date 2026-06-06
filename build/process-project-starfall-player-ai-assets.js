@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const Data = require('../js/project-starfall/project-starfall-data.js');
+const Data = require('../js/games/project-starfall/project-starfall-data.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE_PATH = path.join(ROOT, 'img/project-starfall/characters/source/ai-class-sheet.png');
@@ -16,6 +16,35 @@ const CHARACTER_SIZE = 320;
 const FRAME_SIZE = 160;
 const SHEET_COLS = 6;
 const PLAYER_ROWS = Object.freeze(['idle', 'run', 'jump', 'fall', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat']);
+
+function parseAssetFrame(assetPath) {
+  const value = String(assetPath || '').trim();
+  const hashIndex = value.indexOf('#');
+  if (hashIndex < 0) return { path: value };
+  const assetPathOnly = value.slice(0, hashIndex);
+  const fragment = value.slice(hashIndex + 1);
+  const match = fragment.match(/(?:^|[;&])(?:frame|xywh)=([0-9.,-]+)/);
+  if (!match) return { path: assetPathOnly };
+  const parts = match[1].split(',').map((part) => Number(part));
+  return {
+    path: assetPathOnly,
+    frame: {
+      left: Math.max(0, Math.floor(parts[0]) || 0),
+      top: Math.max(0, Math.floor(parts[1]) || 0),
+      width: Math.max(1, Math.floor(parts[2]) || 1),
+      height: Math.max(1, Math.floor(parts[3]) || 1)
+    }
+  };
+}
+
+async function readItemIcon(iconPath) {
+  const descriptor = parseAssetFrame(iconPath);
+  const absolutePath = path.join(ROOT, descriptor.path || '');
+  if (!descriptor.path || !fs.existsSync(absolutePath)) return null;
+  let pipeline = sharp(absolutePath).ensureAlpha();
+  if (descriptor.frame) pipeline = pipeline.extract(descriptor.frame);
+  return pipeline.png().toBuffer();
+}
 
 const SOURCE_CLASS_CELLS = Object.freeze({
   fighter: Object.freeze({ row: 0, col: 0 }),
@@ -282,6 +311,8 @@ function equipmentPose(layer, stateId, frame) {
   const base = { dx: 26, dy: -58, rotate: 0, size: 48 };
   if (layer === 'chest') return { dx: 0, dy: -78 + Math.abs(wave) * -3, rotate: wave * 2, size: 54 };
   if (layer === 'boots') return { dx: wave * 5, dy: -14, rotate: wave * 5, size: 42 };
+  if (layer === 'head') return { dx: 1 + wave * 2, dy: -114 + Math.abs(wave) * -2, rotate: wave * 3, size: 42 };
+  if (layer === 'gloves') return { dx: 28 + wave * 5, dy: -57 + Math.abs(wave) * -3, rotate: -8 + wave * 8, size: 34 };
   if (layer === 'aura') return { dx: 0, dy: -72, rotate: frame * 7, size: 76 };
   if (layer === 'offhand') return { dx: -28 + wave * 3, dy: -58, rotate: -10 + wave * 4, size: 50 };
   if (stateId === 'basic') return { dx: 36 + frame * 5, dy: -64 + wave * 6, rotate: -24 + frame * 10, size: 64 };
@@ -329,9 +360,9 @@ async function writeEquipmentFrame(iconBuffer, layer, stateId, frame) {
 }
 
 async function writeEquipmentSheet(itemId, visual) {
-  const iconPath = Data.ITEM_ASSETS && Data.ITEM_ASSETS[itemId];
-  if (!iconPath || !fs.existsSync(path.join(ROOT, iconPath))) return null;
-  const iconBuffer = await sharp(path.join(ROOT, iconPath)).ensureAlpha().png().toBuffer();
+  const iconPath = Data.ITEM_ASSETS && (Data.ITEM_ASSETS[visual.assetId] || Data.ITEM_ASSETS[itemId]);
+  const iconBuffer = await readItemIcon(iconPath);
+  if (!iconBuffer) return null;
   const cells = [];
   for (const stateId of PLAYER_ROWS) {
     for (let frame = 0; frame < SHEET_COLS; frame += 1) {
@@ -399,6 +430,7 @@ async function generateAll() {
 }
 
 async function validateAll() {
+  await validatePng(path.join(PLAYER_SHEET_DIR, 'generic-player-sheet.png'), SHEET_COLS * FRAME_SIZE, PLAYER_ROWS.length * FRAME_SIZE);
   for (const fileId of Object.values(Data.CLASS_FILE_IDS || {})) {
     await validatePng(path.join(CHARACTER_DIR, `${fileId}.png`), CHARACTER_SIZE, CHARACTER_SIZE);
     await validatePng(path.join(PLAYER_SHEET_DIR, `${fileId}-sheet.png`), SHEET_COLS * FRAME_SIZE, PLAYER_ROWS.length * FRAME_SIZE);
@@ -406,7 +438,7 @@ async function validateAll() {
   for (const visual of Object.values(Data.EQUIPMENT_VISUALS || {})) {
     await validatePng(path.join(ROOT, visual.animation.sheet), SHEET_COLS * FRAME_SIZE, PLAYER_ROWS.length * FRAME_SIZE);
   }
-  console.log(`Validated ${Object.keys(Data.CLASS_FILE_IDS || {}).length} AI class portraits and player sheets plus ${Object.keys(Data.EQUIPMENT_VISUALS || {}).length} equipment layer sheets`);
+  console.log(`Validated generic paper-doll sheet, ${Object.keys(Data.CLASS_FILE_IDS || {}).length} class portraits/player sheets, and ${Object.keys(Data.EQUIPMENT_VISUALS || {}).length} equipment layer sheets`);
 }
 
 async function main() {

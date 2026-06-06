@@ -341,6 +341,14 @@ function renderGameIconMarkup(iconType) {
         '  <path d="M7 9h10M7 12h10M7 15h10M9 7v10M12 7v10M15 7v10"></path>',
         '</svg>'
       ].join('\n');
+    case 'starfall':
+      return [
+        '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
+        '  <path d="M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z" class="icon-fill" opacity=".12"></path>',
+        '  <path d="M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z"></path>',
+        '  <path d="M12 7.3v6.1M9.2 10.2h5.6"></path>',
+        '</svg>'
+      ].join('\n');
     case 'ocean':
       return [
         '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
@@ -399,17 +407,12 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
     `        <img src="${escapeHtml(brand.logoSrc || 'img/ui/logo-64.png')}" srcset="${escapeHtml(brand.logoSrcSet || 'img/ui/logo-64.png 1x, img/ui/logo-192.png 3x')}" sizes="${escapeHtml(brand.logoSizes || '64px')}" alt="${escapeHtml(brand.logoAlt || 'DS logo')}" class="brand-logo" decoding="async" loading="eager" width="${escapeHtml(brand.logoWidth || 64)}" height="${escapeHtml(brand.logoHeight || 64)}">`,
     '        <span class="brand-name">',
     `          <span class="brand-title">${escapeHtml(settings.ownerName || 'Daniel Short')}</span>`,
-    '          <span class="brand-divider" aria-hidden="true"></span>',
-    '          <span class="brand-tagline">',
-    `            <span class="brand-tagline-chunk" data-brand-tagline-primary="true">${escapeHtml(audienceLabel || brand.defaultTagline || 'Projects, Tools, and Notes')}</span>`,
-    '          </span>',
     '        </span>',
     '      </a>',
     '      <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">',
     '        <span class="bar"></span><span class="bar"></span><span class="bar"></span>',
     '      </button>',
     '      <div id="primary-menu" class="nav-row" data-collapsible role="navigation">',
-    '        <a href="/" class="nav-link" data-entry-home-link="true">Home</a>',
     '        <div class="nav-item nav-item-portfolio">',
     `          <a href="${escapeHtml(trimLeadingSlash(portfolio.href || 'portfolio'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">`,
     `            ${escapeHtml(portfolio.label || 'Portfolio')}`,

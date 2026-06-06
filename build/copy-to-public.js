@@ -52,19 +52,19 @@ function sleepSync(ms){
 function removeWithRetries(target){
   const transientCodes = new Set(['EBUSY', 'ENOTEMPTY', 'EPERM']);
   let lastError = null;
-  for (let attempt = 0; attempt < 5; attempt += 1) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
     try {
       fs.rmSync(target, {
         recursive: true,
         force: true,
-        maxRetries: 3,
-        retryDelay: 100
+        maxRetries: 5,
+        retryDelay: 150
       });
       return;
     } catch (err) {
       lastError = err;
       if (!transientCodes.has(err && err.code)) throw err;
-      sleepSync(120 * (attempt + 1));
+      sleepSync(180 * (attempt + 1));
     }
   }
   throw lastError;
@@ -98,6 +98,9 @@ function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
   return rel === 'img/slot'
     || rel.startsWith('img/slot/')
+    || rel === 'img/project-starfall/review'
+    || rel.startsWith('img/project-starfall/review/')
+    || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel)
     || /^documents\/Resume(?:[._-]|$)/i.test(rel)
     || rel === 'slot-config'
     || rel.startsWith('slot-config/')
@@ -379,7 +382,7 @@ function pruneRetiredPublicArtifacts() {
 
   retiredTargets.forEach((target) => {
     try {
-      fs.rmSync(target, { recursive: true, force: true });
+      removeWithRetries(target);
     } catch {}
   });
 }

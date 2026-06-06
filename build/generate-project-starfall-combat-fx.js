@@ -6,7 +6,8 @@ const path = require('path');
 const sharp = require('sharp');
 
 const ROOT = path.resolve(__dirname, '..');
-const Data = require('../js/project-starfall/project-starfall-data.js');
+const Data = require('../js/games/project-starfall/project-starfall-data.js');
+const { processSkillFxSheets } = require('./process-project-starfall-ai-skill-fx.js');
 
 const DEFAULT_FRAME_SIZE = 160;
 const DEFAULT_FRAMES = 6;
@@ -59,7 +60,8 @@ function normalizeMode(mode) {
 function usage() {
   return [
     'Usage: node build/generate-project-starfall-combat-fx.js --only all',
-    'Modes: --only all, --only skills, --only basic, --only enemies'
+    'Modes: --only all, --only skills, --only basic, --only enemies',
+    'Skill FX sheets are source-backed by build/process-project-starfall-ai-skill-fx.js.'
   ].join('\n');
 }
 
@@ -189,6 +191,41 @@ function drawOrbitals(centerX, centerY, radius, count, turn, palette, seed, opac
     const y = centerY + Math.sin(angle) * radius * 0.58;
     const size = 4 + ((seed + index) % 5);
     parts.push(shape('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: size.toFixed(1), fill: index % 2 ? palette.accent : palette.color, 'fill-opacity': opacity }));
+  }
+  return parts.join('');
+}
+
+function drawMotifSignature(motif, rowId, frame, frames, palette, seed) {
+  const p = frame / Math.max(1, frames - 1);
+  const pulse = Math.sin(p * Math.PI);
+  const opacity = (0.22 + pulse * 0.34).toFixed(2);
+  const spin = (seed % 180 + frame * 18).toFixed(1);
+  const parts = [
+    shape('circle', { cx: 80, cy: 82, r: (46 + pulse * 12).toFixed(1), fill: 'none', stroke: palette.color, 'stroke-width': 2, 'stroke-dasharray': '7 9', 'stroke-opacity': opacity, transform: `rotate(${spin} 80 82)` })
+  ];
+  if (motif === 'fire') {
+    parts.push(pathShape('M80 33 C94 58 114 68 101 105 C91 95 79 109 66 96 C50 80 71 61 80 33 Z', { fill: palette.color, 'fill-opacity': 0.14 + pulse * 0.16, stroke: palette.accent, 'stroke-width': 2, 'stroke-opacity': opacity }));
+  } else if (motif === 'lightning') {
+    parts.push(pathShape('M71 28 L101 29 L85 66 L113 66 L61 136 L75 88 L51 88 Z', { fill: palette.accent, 'fill-opacity': 0.16 + pulse * 0.18, stroke: palette.color, 'stroke-width': 2, 'stroke-opacity': opacity }));
+  } else if (motif === 'rune' || motif === 'void') {
+    parts.push(polygon([[80, 29], [126, 82], [80, 135], [34, 82]], { fill: 'none', stroke: palette.accent, 'stroke-width': 3, 'stroke-opacity': opacity }));
+    parts.push(pathShape('M80 43 L80 121 M49 82 L111 82 M59 59 L101 105 M101 59 L59 105', { fill: 'none', stroke: palette.color, 'stroke-width': 2, 'stroke-opacity': opacity }));
+  } else if (motif === 'arrow') {
+    parts.push(pathShape('M31 83 L117 83 M99 65 L133 83 L99 101', { fill: 'none', stroke: palette.accent, 'stroke-width': 5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-opacity': opacity }));
+  } else if (motif === 'trap') {
+    parts.push(pathShape('M42 121 L118 43 M42 43 L118 121 M37 82 L123 82', { fill: 'none', stroke: palette.accent, 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-opacity': opacity }));
+  } else if (motif === 'shield') {
+    parts.push(pathShape('M80 31 L116 49 L107 105 Q80 132 53 105 L44 49 Z', { fill: palette.color, 'fill-opacity': 0.1 + pulse * 0.12, stroke: palette.accent, 'stroke-width': 3, 'stroke-opacity': opacity }));
+  } else if (motif === 'nature' || motif === 'beast') {
+    parts.push(pathShape('M80 125 C63 98 38 105 30 73 C55 75 61 55 80 38 C99 55 105 75 130 73 C122 105 97 98 80 125 Z', { fill: palette.color, 'fill-opacity': 0.12 + pulse * 0.14, stroke: palette.accent, 'stroke-width': 2, 'stroke-opacity': opacity }));
+  } else if (motif === 'gear') {
+    for (let index = 0; index < 8; index += 1) {
+      const angle = index / 8 * Math.PI * 2 + p * Math.PI;
+      parts.push(shape('rect', { x: (75 + Math.cos(angle) * 49).toFixed(1), y: (77 + Math.sin(angle) * 49).toFixed(1), width: 10, height: 10, rx: 2, fill: palette.accent, 'fill-opacity': opacity, transform: `rotate(${angle * 180 / Math.PI} ${(80 + Math.cos(angle) * 49).toFixed(1)} ${(82 + Math.sin(angle) * 49).toFixed(1)})` }));
+    }
+  }
+  if (rowId === 'impact' || rowId === 'area') {
+    parts.push(drawOrbitals(80, 82, 50 + pulse * 18, 6 + seed % 3, p * Math.PI * 2, palette, seed, 0.42));
   }
   return parts.join('');
 }
@@ -378,10 +415,11 @@ function makeSheetSvg(entry) {
       const x = frame * frameSize;
       const y = rowIndex * frameHeight;
       const frameSeed = seed + rowIndex * 101 + frame * 37;
-      parts.push(`<g transform="translate(${x} ${y})">`);
-      parts.push(shape('ellipse', { cx: 80, cy: 124, rx: 52, ry: 12, fill: mixHex(palette.color, '#000000', 0.25), 'fill-opacity': 0.08 }));
-      parts.push(drawFrame(rowId, stateFrame, state, palette, motif, frameSeed));
-      parts.push('</g>');
+	      parts.push(`<g transform="translate(${x} ${y})">`);
+	      parts.push(shape('ellipse', { cx: 80, cy: 124, rx: 52, ry: 12, fill: mixHex(palette.color, '#000000', 0.25), 'fill-opacity': 0.08 }));
+	      parts.push(drawFrame(rowId, stateFrame, state, palette, motif, frameSeed));
+	      parts.push(drawMotifSignature(motif, rowId, stateFrame, rowFrames, palette, frameSeed));
+	      parts.push('</g>');
     }
   });
   parts.push('</svg>');
@@ -440,20 +478,32 @@ async function writeEntry(entry) {
 async function main() {
   const mode = normalizeMode(getOnlyMode(process.argv.slice(2)));
   const entries = buildEntries();
+  if (mode === 'skills') {
+    const result = await processSkillFxSheets();
+    console.log(`Processed ${result.validated} Project Starfall skill FX sheets; ${result.processed} source-backed sheet(s) written, ${result.missingSources} existing runtime sheet(s) reused.`);
+    return;
+  }
   const selected = mode === 'all'
-    ? entries.skills.concat(entries.basic, entries.enemies)
+    ? entries.basic.concat(entries.enemies)
     : entries[mode];
   if (!selected) {
     console.error(`Unknown mode: ${mode}\n${usage()}`);
     process.exitCode = 1;
     return;
   }
+  let skillResult = null;
+  if (mode === 'all') {
+    skillResult = await processSkillFxSheets();
+  }
   let count = 0;
   for (const entry of selected) {
     await writeEntry(entry);
     count += 1;
   }
-  console.log(`Generated ${count} Project Starfall combat FX sheets (${mode}).`);
+  const skillSummary = skillResult
+    ? ` Processed ${skillResult.validated} skill FX sheets; ${skillResult.processed} source-backed sheet(s) written, ${skillResult.missingSources} existing runtime sheet(s) reused.`
+    : '';
+  console.log(`Generated ${count} Project Starfall combat FX sheets (${mode}).${skillSummary}`);
 }
 
 main().catch((error) => {

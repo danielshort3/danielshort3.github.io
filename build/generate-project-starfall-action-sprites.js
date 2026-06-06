@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
+const Data = require('../js/games/project-starfall/project-starfall-data.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const FRAME = 160;
@@ -159,7 +160,7 @@ const CLASS_VARIANTS = Object.freeze([
   }
 ]);
 
-const EQUIPMENT = Object.freeze([
+const BASE_EQUIPMENT = Object.freeze([
   { id: 'training_sword', fileId: 'training-sword', kind: 'sword', blade: '#b8c7d0', bright: '#eef6ff', grip: '#8f5f39' },
   { id: 'training_wand', fileId: 'training-wand', kind: 'wand', rod: '#8b5f35', glow: '#8bd7ff', gem: '#c6f4ff' },
   { id: 'training_bow', fileId: 'training-bow', kind: 'bow', wood: '#9b6a35', string: '#f1e6ca', arrow: '#efe2a4' },
@@ -180,7 +181,32 @@ const EQUIPMENT = Object.freeze([
   { id: 'deadeye_scope', fileId: 'deadeye-scope', kind: 'scope', metal: '#4b5663', lens: '#ffe16a', trim: '#d8c25f' },
   { id: 'trap_kit', fileId: 'trap-kit', kind: 'kit', leather: '#8a5a36', metal: '#b7c3ca', cord: '#3f2c24' }
 ]);
-const EQUIPMENT_ICON_KINDS = Object.freeze(['sword', 'axe', 'wand', 'staff', 'bow', 'chest', 'boots', 'ring', 'shield', 'grip', 'core', 'focus', 'scope', 'kit']);
+const EQUIPMENT_ICON_KINDS = Object.freeze(['sword', 'axe', 'wand', 'staff', 'bow', 'chest', 'boots', 'head', 'gloves', 'ring', 'amulet', 'shield', 'grip', 'core', 'focus', 'scope', 'kit']);
+
+function normalizeEquipmentStyle(style) {
+  const item = Object.assign({}, style || {});
+  if (item.shine && !item.bright) item.bright = item.shine;
+  if (item.grip && !item.haft && item.kind === 'axe') item.haft = item.grip;
+  return item;
+}
+
+function buildEquipmentDefinitions() {
+  const baseById = BASE_EQUIPMENT.reduce((items, item) => {
+    items[item.id] = item;
+    return items;
+  }, {});
+  const rigVisuals = Data.PLAYER_RIGS && Data.PLAYER_RIGS.fighter && Data.PLAYER_RIGS.fighter.equipmentVisuals || {};
+  return Object.values(Data.EQUIPMENT_VISUALS || baseById).map((visual) => {
+    const style = normalizeEquipmentStyle(rigVisuals[visual.id] || baseById[visual.id] || {});
+    return Object.assign({}, style, {
+      id: visual.id || style.id,
+      fileId: visual.fileId || style.fileId,
+      kind: visual.kind || style.kind || 'chest'
+    });
+  });
+}
+
+const EQUIPMENT = Object.freeze(buildEquipmentDefinitions());
 
 const ENEMIES = Object.freeze([
   { id: 'slimelet', fileId: 'slimelet', kind: 'slime', main: '#78c86d', dark: '#2c7b58', light: '#b8f0a4', accent: '#efffba' },
@@ -750,12 +776,60 @@ function bootsLayer(item, row, frame) {
 function ringLayer(item, row, frame) {
   const p = pose(row, frame);
   const h = handPoint(p);
-  const pulse = 2 + frame % 3;
-  if (p.gear === 'down') return px(103, 129, 5, 5, item.metal);
+  const pulse = frame % 3;
+  if (p.gear === 'down') return box([px(103, 129, 5, 5, item.metal), px(108, 128, 2, 2, item.glow, ' opacity="0.8"')]);
   return box([
-    px(h.x - 1, h.y + 1, 5, 5, item.metal),
-    px(73 - pulse, 77 - pulse, 58 + pulse * 2, 58 + pulse * 2, item.glow, ' opacity="0.08"'),
-    px(80 - pulse, 84 - pulse, 44 + pulse * 2, 44 + pulse * 2, item.glow, ' opacity="0.07"')
+    px(h.x - 2, h.y + 1, 7, 5, item.metal),
+    px(h.x, h.y + 2, 3, 2, 'transparent'),
+    px(h.x + 4, h.y - 1 - pulse, 3, 3, item.glow, ' opacity="0.75"'),
+    px(h.x - 5 - pulse, h.y + 6, 4, 2, item.glow, ' opacity="0.25"')
+  ]);
+}
+
+function amuletLayer(item, row, frame) {
+  const p = pose(row, frame);
+  const bob = frame % 2 ? -1 : 1;
+  if (p.gear === 'down') return box([px(78, 126, 8, 4, item.metal), px(86, 126, 5, 5, item.gem || item.glow)]);
+  const x = 79 + p.bodyX;
+  const y = 82 + p.bodyY + bob;
+  return box([
+    px(x - 9, y - 6, 5, 3, item.metal),
+    px(x + 10, y - 6, 5, 3, item.metal),
+    px(x - 4, y - 3, 4, 4, item.metal),
+    px(x + 3, y - 3, 4, 4, item.metal),
+    px(x - 2, y + 1, 9, 9, item.gem || item.glow || item.metal),
+    px(x, y + 3, 5, 5, item.glow || item.accent || item.metal, ' opacity="0.78"')
+  ]);
+}
+
+function headLayer(item, row, frame) {
+  const p = pose(row, frame);
+  if (p.gear === 'down') {
+    return box([
+      px(96 + p.bodyX, 108 + p.headY, 24, 7, item.dark || item.metal),
+      px(99 + p.bodyX, 105 + p.headY, 18, 5, item.trim || item.metal)
+    ]);
+  }
+  const x = 74 + p.bodyX + p.headX;
+  const y = 43 + p.headY;
+  return box([
+    px(x - 2, y + 6, 26, 8, item.dark || item.metal),
+    px(x, y + 3, 22, 8, item.metal || item.trim),
+    px(x + 3, y, 4, 5, item.trim || item.metal),
+    px(x + 10, y - 2, 4, 7, item.trim || item.metal),
+    px(x + 17, y, 4, 5, item.trim || item.metal)
+  ]);
+}
+
+function glovesLayer(item, row, frame) {
+  const p = pose(row, frame);
+  const front = armRects(p.frontArm, true, p).slice(-1)[0];
+  const back = armRects(p.backArm, false, p).slice(-1)[0];
+  return box([
+    px(back.x - 1, back.y - 1, back.w + 2, back.h + 1, item.dark || item.metal),
+    px(back.x + Math.max(1, back.w - 5), back.y, 4, 3, item.edge || item.metal),
+    px(front.x - 1, front.y - 1, front.w + 2, front.h + 1, item.dark || item.metal),
+    px(front.x + Math.max(1, front.w - 5), front.y, 4, 3, item.edge || item.metal)
   ]);
 }
 
@@ -841,7 +915,10 @@ function drawEquipmentLayer(item, row, frame) {
   if (item.kind === 'bow') return bowLayer(item, row, frame);
   if (item.kind === 'chest') return chestLayer(item, row, frame);
   if (item.kind === 'boots') return bootsLayer(item, row, frame);
+  if (item.kind === 'head') return headLayer(item, row, frame);
+  if (item.kind === 'gloves') return glovesLayer(item, row, frame);
   if (item.kind === 'ring') return ringLayer(item, row, frame);
+  if (item.kind === 'amulet') return amuletLayer(item, row, frame);
   if (item.kind === 'shield') return shieldLayer(item, row, frame);
   if (item.kind === 'grip') return gripLayer(item, row, frame);
   if (item.kind === 'core') return coreLayer(item, row, frame);
@@ -2855,8 +2932,13 @@ function drawPortalSprite(portal, frame) {
   const rx = 31 + squeeze - ringInset * 0.25;
   const shardOffset = (phase % 2) * 3;
   const interior = portal.locked ? 'rgba(23,34,47,0.62)' : 'rgba(10,29,56,0.44)';
-  const sparkOpacity = portal.locked ? 0.25 : 0.68;
-  const lockBars = portal.locked ? box([
+	  const sparkOpacity = portal.locked ? 0.25 : 0.68;
+	  const runeOpacity = portal.locked ? 0.24 : 0.72;
+	  const bossCrown = portal.id === 'boss' ? box([
+	    polygon(`${centerX},22 ${centerX + 11},35 ${centerX + 25},29 ${centerX + 17},44 ${centerX - 17},44 ${centerX - 25},29 ${centerX - 11},35`, portal.accent, ` opacity="${(0.56 + phase * 0.04).toFixed(2)}"`),
+	    px(centerX - 3, 24, 6, 6, portal.light, ' opacity="0.9"')
+	  ]) : '';
+	  const lockBars = portal.locked ? box([
     px(51, 74, 58, 10, portal.dark, ' opacity="0.9"'),
     px(58, 56, 8, 42, portal.dark, ' opacity="0.88"'),
     px(94, 56, 8, 42, portal.dark, ' opacity="0.88"'),
@@ -2870,16 +2952,21 @@ function drawPortalSprite(portal, frame) {
     ellipse(centerX, centerY, rx + 11, ry + 6, portal.dark, ` opacity="${(0.5 * open).toFixed(2)}"`),
     ellipse(centerX, centerY, rx, ry, portal.core, ` opacity="${(0.92 * open).toFixed(2)}"`),
     ellipse(centerX, centerY, Math.max(12, rx - 14), Math.max(28, ry - 18), interior),
-    ellipse(centerX, centerY, Math.max(8, rx - 23 + phase % 2 * 3), Math.max(20, ry - 27), portal.light, ` opacity="${(0.5 * open).toFixed(2)}"`),
-    px(73 - squeeze * 0.35, 35, 12 + squeeze * 0.7, 88, portal.accent, ` opacity="${(0.28 * open).toFixed(2)}"`),
-    px(61 - shardOffset, 48, 8, 20, portal.light, ` opacity="${sparkOpacity}"`),
+	    ellipse(centerX, centerY, Math.max(8, rx - 23 + phase % 2 * 3), Math.max(20, ry - 27), portal.light, ` opacity="${(0.5 * open).toFixed(2)}"`),
+	    px(73 - squeeze * 0.35, 35, 12 + squeeze * 0.7, 88, portal.accent, ` opacity="${(0.28 * open).toFixed(2)}"`),
+	    polygon(`${centerX},${centerY - ry - 5} ${centerX + 10},${centerY - ry + 11} ${centerX - 10},${centerY - ry + 11}`, portal.light, ` opacity="${runeOpacity}"`),
+	    polygon(`${centerX},${centerY + ry + 5} ${centerX + 10},${centerY + ry - 11} ${centerX - 10},${centerY + ry - 11}`, portal.light, ` opacity="${(runeOpacity * 0.82).toFixed(2)}"`),
+	    polygon(`${centerX - rx - 12},${centerY} ${centerX - rx + 1},${centerY - 8} ${centerX - rx + 1},${centerY + 8}`, portal.accent, ` opacity="${runeOpacity}"`),
+	    polygon(`${centerX + rx + 12},${centerY} ${centerX + rx - 1},${centerY - 8} ${centerX + rx - 1},${centerY + 8}`, portal.accent, ` opacity="${runeOpacity}"`),
+	    px(61 - shardOffset, 48, 8, 20, portal.light, ` opacity="${sparkOpacity}"`),
     px(98 + shardOffset, 90, 7, 17, portal.light, ` opacity="${sparkOpacity}"`),
     px(49 + phase * 2, 116, 10, 5, portal.accent, ` opacity="${sparkOpacity}"`),
     px(104 - phase, 39, 8, 5, portal.accent, ` opacity="${sparkOpacity}"`),
-    portal.locked ? '' : px(79 + (phase - 2), 24, 5, 12, portal.light, ' opacity="0.72"'),
-    portal.locked ? '' : px(84 - (phase % 3), 120, 5, 14, portal.light, ' opacity="0.55"'),
-    lockBars
-  ]);
+	    portal.locked ? '' : px(79 + (phase - 2), 24, 5, 12, portal.light, ' opacity="0.72"'),
+	    portal.locked ? '' : px(84 - (phase % 3), 120, 5, 14, portal.light, ' opacity="0.55"'),
+	    bossCrown,
+	    lockBars
+	  ]);
 }
 
 function makeSheet(renderer, rows) {
@@ -2912,6 +2999,13 @@ async function writeWebp(buffer, destination, options) {
     effort: Number.isFinite(settings.effort) ? settings.effort : 4
   }).toFile(destination);
   return path.relative(ROOT, destination).replace(/\\/g, '/');
+}
+
+async function validatePngDimensions(filePath, width, height) {
+  const metadata = await sharp(filePath).metadata();
+  if (metadata.width !== width || metadata.height !== height) {
+    throw new Error(`${path.relative(ROOT, filePath)} is ${metadata.width}x${metadata.height}; expected ${width}x${height}`);
+  }
 }
 
 async function makeGenericPlayerCharacter() {
@@ -2963,7 +3057,7 @@ async function generateBossRoomAssets(generated) {
   }
 }
 
-async function generateAllAssets(generated) {
+async function generatePlayerAssets(generated) {
   generated.push(await makeGenericPlayerCharacter());
   generated.push(await makeGenericPlayerSheet());
   for (const variant of CLASS_VARIANTS) {
@@ -2973,6 +3067,23 @@ async function generateAllAssets(generated) {
   for (const item of EQUIPMENT) {
     generated.push(await makeEquipmentSheet(item));
   }
+}
+
+async function validatePlayerAssets() {
+  await validatePngDimensions(GENERIC_CHARACTER_PATH, 320, 320);
+  await validatePngDimensions(GENERIC_SHEET_PATH, COLS * FRAME, ROWS.length * FRAME);
+  for (const variant of CLASS_VARIANTS) {
+    await validatePngDimensions(path.join(CHARACTER_DIR, `${variant.fileId}.png`), 320, 320);
+    await validatePngDimensions(path.join(PLAYER_DIR, `${variant.fileId}-sheet.png`), COLS * FRAME, ROWS.length * FRAME);
+  }
+  for (const item of EQUIPMENT) {
+    await validatePngDimensions(path.join(EQUIPMENT_DIR, `${item.fileId}-sheet.png`), COLS * FRAME, ROWS.length * FRAME);
+  }
+  console.log(`Validated ${CLASS_VARIANTS.length} procedural class portraits/player sheets, the generic player sheet, and ${EQUIPMENT.length} equipment effect sheets`);
+}
+
+async function generateAllAssets(generated) {
+  await generatePlayerAssets(generated);
   for (const map of MAP_BACKGROUNDS) {
     generated.push(await makeMapBackground(map));
   }
@@ -2983,12 +3094,27 @@ async function generateAllAssets(generated) {
 async function main() {
   const onlyIndex = process.argv.indexOf('--only');
   const onlyTarget = onlyIndex >= 0 ? String(process.argv[onlyIndex + 1] || '').trim().toLowerCase() : '';
+  const validateOnly = process.argv.includes('--validate');
   const generated = [];
-  if (onlyTarget && !['portals', 'maps', 'trial-maps', 'boss-rooms'].includes(onlyTarget)) {
+  const playerTargets = ['players', 'player', 'actors', 'characters', 'player-equipment'];
+  if (onlyTarget && !['portals', 'maps', 'trial-maps', 'boss-rooms', 'equipment'].concat(playerTargets).includes(onlyTarget)) {
     throw new Error(`Unsupported --only target: ${onlyTarget}`);
+  }
+  if (validateOnly) {
+    if (onlyTarget && !playerTargets.includes(onlyTarget)) {
+      throw new Error(`Validation is only supported for procedural player targets, received: ${onlyTarget}`);
+    }
+    await validatePlayerAssets();
+    return;
   }
   if (onlyTarget === 'portals') {
     await generatePortalAssets(generated);
+  } else if (onlyTarget === 'equipment') {
+    for (const item of EQUIPMENT) {
+      generated.push(await makeEquipmentSheet(item));
+    }
+  } else if (playerTargets.includes(onlyTarget)) {
+    await generatePlayerAssets(generated);
   } else if (onlyTarget === 'maps') {
     for (const map of MAP_BACKGROUNDS) {
       generated.push(await makeMapBackground(map));

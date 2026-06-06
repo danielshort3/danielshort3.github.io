@@ -25,20 +25,10 @@
           "dataAttributes": {
             "data-portfolio-home-link": "true"
           }
-        }
-      ]
-    },
-    {
-      "id": "work",
-      "title": "Personal Site",
-      "links": [
+        },
         {
           "label": "Games",
           "href": "games"
-        },
-        {
-          "label": "Contact",
-          "href": "contact"
         }
       ]
     },
@@ -46,6 +36,13 @@
       "id": "connect",
       "title": "Connect",
       "links": [
+        {
+          "label": "Contact",
+          "href": "contact#contact-modal",
+          "dataAttributes": {
+            "data-contact-modal-link": "true"
+          }
+        },
         {
           "label": "LinkedIn",
           "href": "https://www.linkedin.com/in/danielshort3/",

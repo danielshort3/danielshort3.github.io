@@ -7,7 +7,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Start Here
 
-- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring projects, tools, experiments, and applied data and software work.
+- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring projects, tools, games, and applied data and software work.
 - [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
 - [Tool Directory](https://www.danielshort.me/ai/tools): Local, privacy-first tools from Daniel Short.
 - [Games](https://www.danielshort.me/ai/games): Mini games built by Daniel Short. Play in your browser, no install required.
@@ -39,6 +39,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 - [Stellar Dogfight](https://www.danielshort.me/ai/games/stellar-dogfight): Pick one boost each wave. Skills level up.
 - [Double-Zero Roulette](https://www.danielshort.me/ai/games/roulette): Ball runs opposite wheel rotation and settles into the winning pocket.
 - [Probability Engine](https://www.danielshort.me/ai/games/probability-engine): Play Probability Engine, a progressive slot-machine strategy game with deck building, upgrades, and prestige mechanics.
+- [Project Starfall Prototype](https://www.danielshort.me/ai/games/project-starfall): A no-framework browser prototype for Project Starfall, a 2D side-scrolling action RPG concept with class progression, combat, loot, and upgrades.
 - [Ocean Wave Simulation](https://www.danielshort.me/ai/games/ocean-wave-simulation): A calming, real-time ocean wave simulation with adjustable wind speed, wave height, and sun lighting. Runs locally in your browser.
 
 ## Optional

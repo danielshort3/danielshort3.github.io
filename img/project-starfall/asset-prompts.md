@@ -16,9 +16,9 @@ Workspace source: `img/project-starfall/characters/source/ai-class-sheet.png`
 
 Prompt summary: 3 by 3 grid of full-body side-view sprites for Fighter, Mage, Archer, Guardian, Berserker, Fire Mage, Rune Mage, Sniper, and Trapper. Starlit Frontier Fantasy, readable silhouettes, non-photoreal painterly style, flat `#FF00FF` chroma-key background, no labels or watermark.
 
-Updated on 2026-05-25 with `build/process-project-starfall-player-ai-assets.js`.
+Updated on 2026-05-25 with `build/process-project-starfall-player-ai-assets.js`, then reverted on 2026-05-31.
 
-Playable class portraits and runtime player animation sheets now use this AI class sheet as their source instead of the legacy blocky class generator. Duelist, Storm Mage, and Beast Archer are derived from the closest base class source until dedicated AI source cells are generated. The same pass rebuilds equipment layer sheets from the AI item icons so weapon/offhand/chest/boot overlays follow the authored inventory art rather than the old code-drawn layer shapes. The generic player fallback remains the limited-color blocky rig for tests and non-class fallback only.
+Playable player portraits, runtime player animation sheets, and on-character equipment effect layers are owned by the deterministic generator again. Keep `build/generate-project-starfall-action-sprites.js --only players` as the canonical refresh path for `img/project-starfall/characters/`, `img/project-starfall/animations/players/`, and `img/project-starfall/equipment-layers/`. The AI class source sheet remains archived as source material only and should not be used by the standard non-enemy asset build.
 
 ## Enemy Sheet
 
@@ -84,6 +84,22 @@ FX source: `/home/sd205521/.codex/generated_images/019e31c3-9335-7fb1-918d-7c012
 
 FX prompt summary: 6 by 1 horizontal sprite sheet of a melee slash arc, blue arcane cast burst, golden arrow streak, party aura, impact spark, and smoky defeat burst. Starlit Frontier Fantasy, transparent-ready flat `#FF00FF` background.
 
+## AI Skill Combat FX Pass
+
+Updated on 2026-05-30 with `build/process-project-starfall-ai-skill-fx.js`.
+
+Workspace source directory: `img/project-starfall/animations/combat-fx/skills/source/`
+
+Generated field-skill sources:
+- Ground Glyph: `/home/sd205521/.codex/generated_images/019e7acc-e769-7210-b933-f0a8ac8a72ef/ig_04d25c7eb75e4c4d016a1b5c1c52988193be57756cc0a6f9b3.png`
+- Grand Inscription: `/home/sd205521/.codex/generated_images/019e7acc-e769-7210-b933-f0a8ac8a72ef/ig_04d25c7eb75e4c4d016a1b5c4f60c081939973cadf37ab9044.png`
+
+Prompt summary: one generated 6 by 4 sprite sheet per active skill, ordered by rows `cast`, `projectile`, `impact`, and `area`, with six frames per row. Sources should use Project Starfall's Starlit Frontier Fantasy spell and weapon VFX language: readable silhouettes, luminous star-magic accents, custom motifs per skill, no UI, no text, no labels, no watermarks, no character bodies, and transparent-ready flat `#00ff00` or `#ff00ff` backgrounds. Bordered sources may use the shared `#00ffff` guide color; the processor removes chroma-key and guide pixels, normalizes each sheet to 960 by 640, validates visible art, and writes the runtime sheets under `img/project-starfall/animations/combat-fx/skills/`.
+
+`build/process-project-starfall-ai-visual-sweep.js` now owns the broad source-backed visual replacement pass for global FX, basic attack FX, enemy combat FX, enemy projectiles, portals, menu icons, town landmark structures, class trial maps, missing derived map backgrounds, and the rate coupon sheet. It intentionally does not rewrite playable player or equipment-layer assets; those stay on the deterministic character/equipment generator so equipped items can be rendered as procedural effects on the player. The generated source sheets live under the matching `img/project-starfall/**/source/` folders, old deterministic outputs are preserved under `img/project-starfall/backups/procedural/`, and runtime asset loading can automatically use those backup images if an AI primary fails to load.
+
+Mage projectile rows now use `img/project-starfall/animations/combat-fx/projectiles/source/ai-mage-projectile-rows.png`, generated from `/home/sd205521/.codex/generated_images/019e7ac8-62d4-7fe0-b3c9-2019cc7c9fd1/ig_0db365bbc683087e016a1b9878237481958b9aff9da407075c.png`. The source is a 6 by 4 bordered sheet for magic, fire, rune, and lightning projectile rows; every frame must be centered, right-facing, and horizontally level so mage projectile visuals do not imply an upward shot.
+
 ## Action Sprite Refinement
 
 Updated on 2026-05-16 with `build/generate-project-starfall-action-sprites.js`.
@@ -130,6 +146,11 @@ Updated on 2026-05-25 with the built-in image generation tool and `build/process
 
 Workspace source sheets:
 - `img/project-starfall/items/source/ai-items-consumables-materials.png`
+- `img/project-starfall/items/source/ai-items-potion-tiers.png`
+- `img/project-starfall/items/source/ai-items-rate-coupons.png`
+- `img/project-starfall/items/source/ai-items-slot-prisms-plinko.png`
+- `img/project-starfall/items/source/ai-items-mob-materials-core.png`
+- `img/project-starfall/items/source/ai-items-mob-materials-late.png`
 - `img/project-starfall/items/source/ai-items-shop-boss-forest.png`
 - `img/project-starfall/items/source/ai-items-boss-core-storm.png`
 - `img/project-starfall/items/source/ai-items-boss-astral-eclipse.png`
@@ -138,9 +159,13 @@ Generated sources:
 - `/home/sd205521/.codex/generated_images/019e4330-b02e-7a02-89c6-1c10e5514eb6/ig_02e102501c98f839016a14444fe28c8193b8914c4b2184a64a.png`
 - `/home/sd205521/.codex/generated_images/019e4330-b02e-7a02-89c6-1c10e5514eb6/ig_02e102501c98f839016a14469cc3c481938014be47cf106f00.png`
 - `/home/sd205521/.codex/generated_images/019e4330-b02e-7a02-89c6-1c10e5514eb6/ig_02e102501c98f839016a1445e2058c8193b8bbbfc151a14867.png`
+- `/home/sd205521/.codex/generated_images/019e7acc-e769-7210-b933-f0a8ac8a72ef/ig_0f4d91151dab977d016a1c9e54b9308193b6909a24493cfc70.png`
 - `/home/sd205521/.codex/generated_images/019e4330-b02e-7a02-89c6-1c10e5514eb6/ig_02e102501c98f839016a14463df49481939391b2ddff4f752e.png`
+- `/home/sd205521/.codex/generated_images/019e7ac8-62d4-7fe0-b3c9-2019cc7c9fd1/ig_0db365bbc683087e016a1b97d3e5588195b289d0c9f44148fb.png`
+- `/home/sd205521/.codex/generated_images/019e7ac8-62d4-7fe0-b3c9-2019cc7c9fd1/ig_0db365bbc683087e016a1b982634cc819583c4164dfdc4f75e.png`
+- `/home/sd205521/.codex/generated_images/019e7ac8-62d4-7fe0-b3c9-2019cc7c9fd1/ig_00de5723ad24ef89016a1c54528fb4819bba7b92d2f94dd7db.png`
 
-Prompt summary: four clean RPG inventory sprite sheets on flat `#00ff00` chroma-key backgrounds covering every entry in `ITEM_ASSETS`: consumables, currencies, materials, shop gear, random world-drop gear, and all boss-set equipment. Replacement sources must include the shared `#00ffff` bordered-cell grid, one centered item per cell, generous padding, no item art crossing cell borders, and no intentional `#00ff00` or neon chroma green inside item art. The processor detects that grid, slices only cell interiors, globally removes chroma-key green plus post-resize key-color remnants, rejects visible edge spillover, crops to the visible icon, and writes transparent 64px PNGs to the existing `img/project-starfall/items/` paths so the runtime never falls back to procedural item art.
+Prompt summary: clean RPG inventory sprite sheets on flat `#00ff00` chroma-key backgrounds covering every entry in `ITEM_ASSETS`: consumables, tiered HP/MP/hybrid potion restoratives, currencies, rate coupons, materials, shop gear, random world-drop gear, and all boss-set equipment. Replacement sources must include the shared `#00ffff` bordered-cell grid, one centered item per cell, generous padding, no item art crossing cell borders, and no intentional `#00ff00` or neon chroma green inside item art. The processors detect that grid, slice only cell interiors, globally remove chroma-key green plus post-resize key-color remnants, reject visible edge spillover, crop to the visible icon, and write transparent 64px PNGs or item sheets from AI source art.
 
 ## Base Skill Icon Sheets
 
@@ -152,6 +177,18 @@ Sources:
 - Archer: `/home/sd205521/.codex/generated_images/019e3274-f207-7663-a990-3f25e4a8438a/ig_007fc2b5eb25b35b016a0909c820048196b313994b61fa5cee.png`
 
 Prompt summary: three 3 by 2 sheets covering Fighter, Mage, and Archer base skills. Replacement sheets must include the shared `#00ffff` bordered-cell grid. Each icon uses a centered blocky RPG symbol, flat `#ff00ff` chroma-key background, no text, no numerals, no watermark, and enough separation to crop into individual 256px PNGs under `img/project-starfall/skills/base/`. The processor removes chroma-key and corner-connected sheet backgrounds, including black fallback backgrounds, so deployable icons use real transparent alpha.
+
+## Card Icon Sheet Pass
+
+Updated on 2026-05-31 with the built-in image generation tool and `build/process-project-starfall-card-icons.js`.
+
+Workspace source sheet:
+- `img/project-starfall/cards/source/ai-card-icons.png`
+
+Generated source:
+- `/home/sd205521/.codex/generated_images/019e7ade-a02d-78f1-bafe-f03d0c8a1c74/ig_09a17062ccb86316016a1c9a2b68c481948983fa24bc869ab5.png`
+
+Prompt summary: one 7 by 3 card icon sheet covering every `CARD_DEFINITIONS` entry in data order. Icons use Project Starfall's Starlit Frontier Fantasy item-symbol style, with centered readable card motifs that match the card names, tags, and guide role. The source uses the shared `#00ffff` bordered-cell grid, flat `#ff00ff` chroma-key background, no text, no labels, no UI frames, and one isolated icon per cell. The processor removes chroma-key and guide pixels, crops visible art, normalizes each icon to a transparent 64px PNG, and writes runtime assets under `img/project-starfall/cards/icons/`.
 
 ## Advanced Skill Icon and Class Variant Pass
 
@@ -180,7 +217,7 @@ Brambleking, Clockwork Titan, and Quarry Colossus now have unique deterministic 
 
 Updated on 2026-05-17 with `build/generate-project-starfall-environment-assets.js`.
 
-All maps now have deterministic transparent pixel-art terrain and prop atlases under `img/project-starfall/environment/`. Terrain sheets are 4 by 2 grids of 64px tiles for platform tops, bodies, edges, undersides, caps, and detail overlays. Prop sheets are 6 by 2 grids of 64px sprites for grass, bushes, trees, rocks, flowers, small/tall objects, crates, crystals, vines, signs, and glow accents. The engine places these assets deterministically from map id and platform geometry so platforms, ground, and foreground read as richer map-specific scenery without changing collision or pathing.
+All maps now have deterministic transparent pixel-art terrain and prop atlases under `img/project-starfall/environment/`. Terrain sheets are 8 by 4 grids of 64px natural-platform cells with multiple top, body, deep-body, underside, side-cap, shadow, and detail variants. Prop sheets are 6 by 2 grids of 64px sprites for grass, bushes, trees, rocks, flowers, small/tall objects, crates, crystals, vines, signs, and glow accents. The engine places these assets deterministically from map id and platform geometry so platforms, ground, and foreground read as richer map-specific scenery without changing collision or pathing.
 
 Updated later on 2026-05-17 for gameplay readability. The pass kept deterministic terrain and transparent prop atlas paths, but scaled props down in the generator and restricted runtime placement so scenery never overlaps the walkable foot line. Full-height decorative props draw behind gameplay silhouettes or on safe ground-layer positions only, and there is no actor-covering foreground scenery pass after enemies, loot, projectiles, or the player. The 2026-05-24 imagegen pass re-enabled a small front-lane pass for low-profile props only.
 
@@ -192,7 +229,13 @@ Imagegen source: `/home/sd205521/.codex/generated_images/019e3725-52b4-7572-ac7e
 
 Workspace source copy: `img/project-starfall/environment/source/imagegen-environment-source.png`
 
-Prompt summary: generated a large side-scroller MMO environment source sheet on a flat `#00ff00` chroma-key background. It includes distinct terrain strips and isolated props for guild town cobbles, meadow roots, thorn brambles, rusted gearworks, volcanic basalt, frost camp ice, storm cliffs, astral observatory structures, eclipse rift stone, and crystal quarry pieces. The processor removes chroma key, builds exact 4 by 2 terrain atlases and 6 by 2 transparent prop atlases, and outputs one terrain/prop pair for every playable map plus each class trial. Map profiles now use map-specific terrain IDs so repeated areas such as frost, cinder, storm, astral, and ruins no longer share the same standardized atlas.
+Prompt summary: generated a large side-scroller MMO environment source sheet on a flat `#00ff00` chroma-key background. It includes distinct terrain strips and isolated props for guild town cobbles, meadow roots, thorn brambles, rusted gearworks, volcanic basalt, frost camp ice, storm cliffs, astral observatory structures, eclipse rift stone, and crystal quarry pieces. The processor removes chroma key, builds exact 8 by 4 natural terrain atlases and 6 by 2 transparent prop atlases, and outputs one terrain/prop pair for every playable map plus each class trial. Map profiles now use map-specific terrain IDs so repeated areas such as frost, cinder, storm, astral, and ruins no longer share the same standardized atlas.
+
+Updated on 2026-05-30 for natural side-scroller terrain. The runtime keeps authored collision rectangles but renders terrain with overhanging lips, side caps, varied body chunks, ragged undersides, deterministic detail patches, and no repeated grass trim on organic maps. Greenroot Road I / Starter Field is the baseline for this treatment, inspired by the layered natural readability of classic side-scrolling MMO maps without copying external assets.
+
+Updated on 2026-05-31 with `build/generate-project-starfall-forest-terrain-atlases.js`.
+
+Greenroot Meadow and Thornpath Thicket now have dedicated custom AI terrain source sheets instead of cropped strips from the shared environment source. Workspace sources live at `img/project-starfall/environment/source/greenroot-meadow-terrain-imagegen-source.png` and `img/project-starfall/environment/source/thornpath-thicket-terrain-imagegen-source.png`; keyed processor outputs are stored beside them. The generator removes `#ff00ff` chroma-key from the source copies, then assembles exact 8 by 4 64px low-frequency modular terrain atlases with tighter repeated-cell seams so forest platforms render as consistent natural tiles with smoother ends and no visible magenta square artifacts.
 
 Future replacement prompt family: "Create a high-quality side-scroller pixel-art environment source sheet on a perfectly flat #00ff00 chroma-key background. Include structurally different platform terrain strips and isolated environmental props for each biome, not just recolors. Props only, no characters, no monsters, no UI, no text, no shadows, generous padding, clean silhouettes, and low-profile variants suitable for platform edges without covering enemies." Crop into the same terrain and prop atlas formats, then validate dimensions and transparent prop corners before replacing any project asset.
 

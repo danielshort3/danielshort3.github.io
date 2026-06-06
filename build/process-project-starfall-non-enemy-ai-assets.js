@@ -18,17 +18,27 @@ const TASKS = Object.freeze([
     validate: ['build/process-project-starfall-environment-imagegen-assets.js', '--validate']
   }),
   Object.freeze({
-    name: 'playable class and equipment sheets',
-    generate: ['build/process-project-starfall-player-ai-assets.js'],
-    validate: ['build/process-project-starfall-player-ai-assets.js', '--validate']
+    name: 'procedural playable character and equipment effect sheets',
+    generate: ['build/generate-project-starfall-action-sprites.js', '--only', 'players'],
+    validate: ['build/generate-project-starfall-action-sprites.js', '--only', 'players', '--validate']
   }),
   Object.freeze({
     name: 'item icons',
     generate: ['build/process-project-starfall-ai-item-icons.js']
   }),
   Object.freeze({
+    name: 'card icons',
+    generate: ['build/process-project-starfall-card-icons.js'],
+    validate: ['build/process-project-starfall-card-icons.js', '--validate']
+  }),
+  Object.freeze({
     name: 'skill icons',
     generate: ['build/process-project-starfall-skill-icons.js']
+  }),
+  Object.freeze({
+    name: 'remaining AI visual sweep',
+    generate: ['build/process-project-starfall-ai-visual-sweep.js'],
+    validate: ['build/process-project-starfall-ai-visual-sweep.js', '--validate']
   })
 ]);
 
