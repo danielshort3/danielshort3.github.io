@@ -53,9 +53,38 @@ const scoreTerms = [
   'workflow'
 ];
 
+function sleepSync(ms) {
+  const waitMs = Math.max(0, Number(ms) || 0);
+  if (!waitMs) return;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, waitMs);
+}
+
+function removeWithRetries(target) {
+  const transientCodes = new Set(['EBUSY', 'ENOTEMPTY', 'EPERM']);
+  let lastError = null;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      fs.rmSync(target, {
+        recursive: true,
+        force: true,
+        maxRetries: 3,
+        retryDelay: 100
+      });
+      return;
+    } catch (err) {
+      lastError = err;
+      if (!transientCodes.has(err && err.code)) throw err;
+      sleepSync(120 * (attempt + 1));
+    }
+  }
+  throw lastError;
+}
+
 function ensureCleanDir(dirPath) {
-  fs.rmSync(dirPath, { recursive: true, force: true });
   fs.mkdirSync(dirPath, { recursive: true });
+  fs.readdirSync(dirPath).forEach((entry) => {
+    removeWithRetries(path.join(dirPath, entry));
+  });
 }
 
 function ensureDir(dirPath) {
@@ -1329,6 +1358,7 @@ function renderLlmsTxt(pages) {
     '/games/stellar-dogfight',
     '/games/roulette',
     '/games/probability-engine',
+    '/games/project-starfall',
     '/games/ocean-wave-simulation'
   ];
   const optionalPages = [

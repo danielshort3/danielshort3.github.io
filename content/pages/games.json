@@ -64,13 +64,22 @@
       "order": 3
     },
     {
+      "id": "project-starfall",
+      "title": "Project Starfall",
+      "href": "games/project-starfall",
+      "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test upgrade systems in a browser RPG prototype.",
+      "tags": ["Action RPG", "Loot", "Progression"],
+      "iconType": "starfall",
+      "order": 4
+    },
+    {
       "id": "ocean-wave-simulation",
       "title": "Ocean Wave Simulation",
       "href": "games/ocean-wave-simulation",
       "summary": "Dial in wind speed, wave height, and sun elevation in a calming real-time ocean surface renderer.",
       "tags": ["Relaxing", "Simulation", "Canvas"],
       "iconType": "ocean",
-      "order": 4
+      "order": 5
     }
   ]
 }

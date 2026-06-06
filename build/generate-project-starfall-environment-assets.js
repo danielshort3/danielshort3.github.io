@@ -10,6 +10,8 @@ const TERRAIN_DIR = path.join(ROOT, 'img/project-starfall/environment/terrain');
 const PROP_DIR = path.join(ROOT, 'img/project-starfall/environment/props');
 const STRUCTURE_DIR = path.join(ROOT, 'img/project-starfall/environment/structures');
 const CELL = 64;
+const TERRAIN_COLUMNS = 8;
+const TERRAIN_ROWS = 4;
 const STRUCTURE_CELL = 256;
 
 const THEMES = Object.freeze([
@@ -216,24 +218,43 @@ function terrainDetailMotif(theme) {
   return rect(6, 38, 52, 7, theme.leaf, ' opacity="0.5"') + circle(18, 32, 4, theme.flower, ' opacity="0.8"') + circle(42, 30, 4, theme.accent, ' opacity="0.68"');
 }
 
-function terrainTile(theme, kind) {
+function terrainVariantOffset(variant, salt) {
+  return (variant * 17 + salt * 11) % 13;
+}
+
+function terrainTile(theme, kind, variant = 0) {
+  const offset = terrainVariantOffset(variant, 1);
+  if (kind === 'surfaceLeft') return terrainTile(theme, 'left', variant);
+  if (kind === 'surfaceRight') return terrainTile(theme, 'right', variant);
+  if (kind === 'surfaceMid') return terrainTile(theme, 'top', variant);
+  if (kind === 'surfaceAlt') return terrainTile(theme, 'topAlt', variant);
   if (kind === 'top') {
+    const topHeight = 16 + (variant % 3);
     return [
-      rect(0, 0, 64, 18, theme.top),
-      rect(0, 18, 64, 46, theme.body),
+      rect(0, 0, 64, topHeight, theme.top),
+      rect(0, topHeight, 64, 64 - topHeight, theme.body),
       rect(0, 0, 64, 5, theme.light),
-      rect(0, 14, 64, 5, theme.dark, ' opacity="0.35"'),
-      terrainTopMotif(theme),
-      rect(6, 30, 14, 8, theme.dark, ' opacity="0.35"'),
-      rect(34, 42, 20, 7, theme.dark, ' opacity="0.28"')
+      rect(0, topHeight - 4, 64, 5, theme.dark, ' opacity="0.35"'),
+      group((offset % 5) - 2, (variant % 2) - 1, terrainTopMotif(theme)),
+      rect(5 + offset, 30, 14, 8, theme.dark, ' opacity="0.35"'),
+      rect(30 + (offset % 9), 42, 20, 7, theme.dark, ' opacity="0.28"')
     ].join('');
   }
   if (kind === 'body') {
     return [
       rect(0, 0, 64, 64, theme.body),
       rect(0, 0, 64, 5, theme.dark, ' opacity="0.3"'),
-      terrainBodyMotif(theme),
-      rect(6, 54, 18, 5, theme.light, ' opacity="0.38"')
+      group((offset % 7) - 3, (variant % 4) - 2, terrainBodyMotif(theme)),
+      rect(6 + offset, 54, 18, 5, theme.light, ' opacity="0.38"')
+    ].join('');
+  }
+  if (kind === 'bodyDeep') {
+    return [
+      rect(0, 0, 64, 64, theme.dark, ' opacity="0.88"'),
+      rect(0, 0, 64, 64, theme.body, ' opacity="0.58"'),
+      polygon(`0,${22 + variant} ${18 + offset},${8 + variant} ${34 + offset},${34 - variant} 64,${16 + variant} 64,64 0,64`, theme.dark, ' opacity="0.34"'),
+      rect(10 + offset, 42, 22, 7, theme.light, ' opacity="0.2"'),
+      rect(42 - (offset % 8), 18, 14, 6, theme.dark, ' opacity="0.32"')
     ].join('');
   }
   if (kind === 'left') {
@@ -256,22 +277,23 @@ function terrainTile(theme, kind) {
   }
   if (kind === 'underside') {
     return [
-      rect(0, 0, 64, 18, theme.dark),
+      polygon(`0,0 64,0 64,${15 + variant} ${48 - offset},${18 + variant} ${32},${13 + variant} ${14 + offset},${20 - variant} 0,${16 + variant}`, theme.dark),
       rect(0, 18, 64, 46, 'transparent'),
       rect(8, 4, 14, 6, theme.body, ' opacity="0.7"'),
       rect(34, 6, 20, 5, theme.body, ' opacity="0.65"'),
-      terrainUndersideMotif(theme)
+      group((offset % 5) - 2, variant % 3, terrainUndersideMotif(theme))
     ].join('');
   }
   if (kind === 'topAlt') {
+    const topHeight = 17 + (variant % 4);
     return [
-      rect(0, 0, 64, 18, theme.top),
-      rect(0, 18, 64, 46, theme.body),
+      rect(0, 0, 64, topHeight, theme.top),
+      rect(0, topHeight, 64, 64 - topHeight, theme.body),
       rect(0, 0, 64, 5, theme.light),
-      rect(4, 2, 8, 12, theme.leaf, ' opacity="0.85"'),
-      rect(15, 5, 5, 9, theme.leaf, ' opacity="0.85"'),
-      rect(45, 3, 11, 10, theme.accent, ' opacity="0.7"'),
-      rect(25, 38, 22, 7, theme.dark, ' opacity="0.28"')
+      rect(4 + (offset % 6), 2, 8, 12, theme.leaf, ' opacity="0.85"'),
+      rect(15 + (offset % 4), 5, 5, 9, theme.leaf, ' opacity="0.85"'),
+      rect(43 - (offset % 7), 3, 11, 10, theme.accent, ' opacity="0.7"'),
+      rect(23 + (offset % 8), 38, 22, 7, theme.dark, ' opacity="0.28"')
     ].join('');
   }
   if (kind === 'cap') {
@@ -284,10 +306,26 @@ function terrainTile(theme, kind) {
       rect(20, 28, 24, 9, theme.light, ' opacity="0.45"')
     ].join('');
   }
+  if (kind === 'undersideLong') {
+    return [
+      rect(0, 0, 64, 64, 'transparent'),
+      polygon(`0,0 64,0 64,${18 + variant} 52,${21 + variant} 40,${16 + variant} 30,${24 - variant} 18,${17 + variant} 0,${22 - variant}`, theme.dark, ' opacity="0.92"'),
+      rect(9 + offset, 7, 18, 8, theme.body, ' opacity="0.62"'),
+      rect(36 - (offset % 8), 8, 16, 7, theme.body, ' opacity="0.5"'),
+      terrainUndersideMotif(theme)
+    ].join('');
+  }
+  if (kind === 'shadow') {
+    return [
+      rect(0, 0, 64, 64, 'transparent'),
+      ellipse(32, 34, 28, 10, theme.dark, ' opacity="0.2"'),
+      rect(5, 26, 54, 13, theme.dark, ' opacity="0.12"')
+    ].join('');
+  }
   return [
     rect(0, 0, 64, 64, 'transparent'),
-    rect(0, 0, 64, 9, theme.light, ' opacity="0.65"'),
-    terrainDetailMotif(theme)
+    rect(0, 0, 64, 9 + (variant % 3), theme.light, ' opacity="0.65"'),
+    group((offset % 7) - 3, (variant % 4) - 1, terrainDetailMotif(theme))
   ].join('');
 }
 
@@ -573,8 +611,26 @@ function propTile(theme, kind) {
 }
 
 function terrainSvg(theme) {
-  const cells = ['top', 'body', 'left', 'right', 'underside', 'topAlt', 'cap', 'detail'];
-  return svg(CELL * 4, CELL * 2, cells.map((kind, index) => tile(index % 4, Math.floor(index / 4), terrainTile(theme, kind))).join(''));
+  const cells = [
+    ['surfaceLeft', 0],
+    ...Array.from({ length: 2 }, (_, variant) => ['surfaceMid', variant]),
+    ['surfaceRight', 0],
+    ['surfaceLeft', 1],
+    ...Array.from({ length: 2 }, (_, variant) => ['surfaceAlt', variant]),
+    ['surfaceRight', 1],
+    ...Array.from({ length: 4 }, (_, variant) => ['body', variant]),
+    ...Array.from({ length: 4 }, (_, variant) => ['bodyDeep', variant]),
+    ...Array.from({ length: 4 }, (_, variant) => ['underside', variant]),
+    ['left', 0],
+    ['right', 0],
+    ['cap', 0],
+    ...Array.from({ length: 4 }, (_, variant) => ['detail', variant]),
+    ...Array.from({ length: 4 }, (_, variant) => ['undersideLong', variant]),
+    ['shadow', 0]
+  ];
+  return svg(CELL * TERRAIN_COLUMNS, CELL * TERRAIN_ROWS, cells.map(([kind, variant], index) => {
+    return tile(index % TERRAIN_COLUMNS, Math.floor(index / TERRAIN_COLUMNS), terrainTile(theme, kind, variant));
+  }).join(''));
 }
 
 function propSvg(theme) {

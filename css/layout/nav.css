@@ -50,12 +50,12 @@
   }
   .nav-row{
     display:grid;
-    grid-template-columns:repeat(5, minmax(0, 1fr)) auto;
+    grid-template-columns:repeat(4, minmax(0, 1fr)) auto;
     align-items:stretch;
     gap:clamp(8px, 1.4vw, 18px);
     margin-left:auto;
-    flex:1 1 620px;
-    max-width:min(920px, 88vw);
+    flex:1 1 540px;
+    max-width:min(820px, 88vw);
   }
   .nav-search{
     display:flex;

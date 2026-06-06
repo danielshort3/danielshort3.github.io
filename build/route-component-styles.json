@@ -22,8 +22,8 @@
   "/games": [
     "css/components/games.css"
   ],
-  "/project-starfall": [
-    "css/components/project-starfall.css"
+  "/games/project-starfall": [
+    "css/games/project-starfall.css"
   ],
   "/games/probability-engine": [
     "css/components/games.css"

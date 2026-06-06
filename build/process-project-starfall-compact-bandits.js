@@ -10,7 +10,7 @@ const {
   detectGuideGrid,
   getGridCellRect
 } = require('./project-starfall-sheet-grid.js');
-const Data = require('../js/project-starfall/project-starfall-data.js');
+const Data = require('../js/games/project-starfall/project-starfall-data.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const RAW_DIR = path.join(ROOT, 'asset-sources/project-starfall/enemies/compact');

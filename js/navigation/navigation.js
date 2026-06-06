@@ -238,8 +238,7 @@
           key: 'personal',
           homePath: '/',
           portfolioPath: '/portfolio',
-          portfolioAllPath: '/portfolio',
-          brandNavPrimary: 'Projects, Tools, and Notes'
+          portfolioAllPath: '/portfolio'
         }));
     const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
       ? audienceApi.detectAudienceFromPath
@@ -327,9 +326,6 @@
     });
     $$('[data-portfolio-default-link="true"]', host).forEach((link) => {
       link.setAttribute('href', activeAudience.portfolioAllPath || '/portfolio');
-    });
-    $$('[data-brand-tagline-primary="true"]', host).forEach((node) => {
-      node.textContent = activeAudience.brandNavPrimary || 'Projects, Tools, and Notes';
     });
     $$('[data-audience-link]', host).forEach((link) => {
       const audience = getAudience(link.dataset.audienceLink);
