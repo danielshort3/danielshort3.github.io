@@ -1,0 +1,171 @@
+@layer components {
+  .project-starfall-panel-block {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .project-starfall-modal-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+    background: rgba(9, 31, 59, 0.48);
+  }
+
+  .project-starfall-modal {
+    width: min(940px, 100%);
+    max-height: min(760px, calc(100vh - 36px));
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    border: 1px solid rgba(245,207,114,0.46);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--starfall-panel-soft), var(--starfall-panel));
+    box-shadow:
+      0 24px 70px rgba(9, 31, 59, 0.42),
+      inset 0 0 0 1px rgba(255,255,255,0.18);
+    overflow: hidden;
+  }
+
+  .project-starfall-modal.is-inventory-modal {
+    width: min(360px, 100%);
+    height: min(760px, calc(100vh - 36px));
+  }
+
+  .project-starfall-modal.is-storage-modal {
+    width: min(640px, 100%);
+  }
+
+  .project-starfall-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 15px 16px;
+    border-bottom: 1px solid rgba(245,207,114,0.38);
+    background: linear-gradient(180deg, #1f3b54, #071323);
+    color: #fff3cf;
+  }
+
+  .project-starfall-modal-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-left: auto;
+    min-width: 0;
+  }
+
+  .project-starfall-modal-header-actions:empty {
+    display: none;
+  }
+
+  .project-starfall-inventory-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .project-starfall-inventory-header-sort-control {
+    display: inline-flex;
+    min-width: 0;
+  }
+
+  .project-starfall-inventory-header-sort-control select {
+    width: 64px;
+    min-height: 30px;
+    padding: 4px 7px;
+    font-size: 0.74rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-inventory-header-sort-button {
+    width: 64px;
+    min-height: 30px;
+    padding: 4px 9px;
+    font-size: 0.74rem;
+  }
+
+  .project-starfall-modal-close {
+    min-width: 42px;
+    padding: 8px 12px;
+  }
+
+  .project-starfall-panel-body {
+    min-height: 260px;
+    overflow: auto;
+    padding: 14px;
+  }
+
+  .project-starfall-panel-body.is-inventory-panel {
+    display: grid;
+    overflow: hidden;
+    width: min(100%, 324px);
+    min-height: 0;
+    margin-inline: auto;
+  }
+
+  .project-starfall-panel-body.is-storage-panel {
+    display: grid;
+    overflow: hidden;
+    width: min(100%, 604px);
+    min-height: 0;
+    margin-inline: auto;
+  }
+
+  .project-starfall-panel-body.is-skills-panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .project-starfall-panel-body.is-plinko-panel {
+    overflow: hidden;
+  }
+
+  .project-starfall-panel-body h3,
+  .project-starfall-panel-body h4 {
+    margin: 0;
+  }
+
+  .project-starfall-muted,
+  .project-starfall-panel-body p,
+  .project-starfall-panel-body small,
+  .project-starfall-gear-card small,
+  .project-starfall-equipment-card small,
+  .project-starfall-keybind-row span {
+    color: var(--starfall-muted);
+    line-height: 1.55;
+  }
+
+  .project-starfall-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .project-starfall-stat-grid div {
+    display: grid;
+    gap: 4px;
+    min-height: 62px;
+    padding: 10px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--starfall-panel-soft), var(--starfall-panel));
+  }
+
+  .project-starfall-stat-grid span {
+    color: var(--starfall-muted);
+    font-size: 0.82rem;
+    font-weight: 750;
+  }
+
+  .project-starfall-stat-grid strong {
+    overflow-wrap: anywhere;
+  }
+}

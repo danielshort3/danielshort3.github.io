@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-player-animation-goal.txt to rework Project Starfall's base player animations and animation rig until every supported player action is distinct, readable, artifact-free, and ready for future equipment overlays.

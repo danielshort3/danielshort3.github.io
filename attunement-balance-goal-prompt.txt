@@ -1,0 +1,39 @@
+Goal: Iterate on and finalize Project Starfall's attunement line system.
+
+Please continue working until the attunement system has a strong, balanced template and the implementation is complete. The goal is to review all currently available attunement lines, evaluate their balance, slot identity, synergy, and gameplay impact, then refine the system as needed.
+
+Start by inspecting the current Project Starfall attunement data, engine hooks, UI display, and tests. Build a clear inventory of every attunement line, what equipment slots it can roll on, what it does mechanically, and whether it is currently too weak, too strong, redundant, unclear, or missing synergy.
+
+Then iterate through multiple possible design directions before implementing. Compare pros and cons of different approaches, including:
+- Removing weak or redundant lines.
+- Reworking unclear lines into more meaningful effects.
+- Adding new lines where a slot lacks identity.
+- Moving lines between equipment slots.
+- Adjusting roll ranges, caps, or scaling.
+- Creating synergy between stats without creating mandatory combos.
+- Ensuring each equipment slot has a distinct reason to chase specific lines.
+
+Balance principles:
+- Attunements should feel powerful and worth chasing, but not overbearing.
+- No single line should be universally best for every build.
+- Each slot should have a clear identity.
+- Offensive, defensive, sustain, utility, and build-enabling lines should all have viable roles.
+- Multiplicative damage, cooldown reduction, cost reduction, damage reduction, and sustain should have sensible caps or conservative ranges.
+- Synergy should reward intentional builds without making non-synergy rolls feel useless.
+- Existing save data should be handled safely, including cleanup or migration of invalid old lines.
+
+After comparing options, settle on a final template and implement it fully. This may include changing data pools, stat definitions, stat ranges, engine behavior, UI labels/tooltips, auto-attunement goal options, and tests.
+
+Acceptance criteria:
+- Every attunement line has a clear gameplay purpose.
+- Every line that appears in the UI has an actual engine effect or is intentionally display-only with a clear reason.
+- Every equipment slot has distinct, desirable attunement identities.
+- Strong lines are capped or ranged appropriately.
+- There is meaningful synergy across slots without one obvious best setup.
+- Invalid legacy lines are cleaned or safely normalized.
+- UI labels remain clear and player-facing.
+- Regression tests cover slot assignment, stat behavior, and cleanup.
+- Run the relevant syntax checks and npm test.
+- End with a concise summary of the final template, major balance choices, files changed, and verification results.
+
+Do not stop at brainstorming. Iterate, decide, implement, and verify.

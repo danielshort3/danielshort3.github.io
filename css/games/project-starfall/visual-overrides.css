@@ -1,0 +1,173 @@
+@layer components {
+  .project-starfall-page :is(
+    .project-starfall-admin-boss-preview,
+    .project-starfall-asset-preview-toolbar,
+    .project-starfall-asset-kind-pane,
+    .project-starfall-asset-entry-pane,
+    .project-starfall-asset-detail,
+    .project-starfall-worldmap-detail,
+    .project-starfall-map-row,
+    .project-starfall-skill,
+    .project-starfall-party-member,
+    .project-starfall-party-buff,
+    .project-starfall-role-card,
+    .project-starfall-character-overview-header,
+    .project-starfall-character-panel-card,
+    .project-starfall-character-stat-chip,
+    .project-starfall-character-equipment-mini,
+    .project-starfall-equipment-icon-grid,
+    .project-starfall-equipment-tabs,
+    .project-starfall-card-deck-summary,
+    .project-starfall-card-slot,
+    .project-starfall-loadout-card,
+    .project-starfall-card-inspector,
+    .project-starfall-equipment-stat-row,
+    .project-starfall-character-stat-group,
+    .project-starfall-character-stat-row,
+    .project-starfall-stat-upgrade-row,
+    .project-starfall-plinko-prizes,
+    .project-starfall-plinko-prize-card,
+    .project-starfall-plinko-ball-card,
+    .project-starfall-plinko-action-card,
+    .project-starfall-plinko-slot-card,
+    .project-starfall-guide-card,
+    .project-starfall-inventory-board,
+    .project-starfall-inventory-sell-settings,
+    .project-starfall-pet-assist,
+    .project-starfall-pet-slot,
+    .project-starfall-pet-picker button,
+    .project-starfall-log li
+  ) {
+    border-color: rgba(116,79,28,0.32);
+    background:
+      linear-gradient(180deg, var(--starfall-panel-soft), var(--starfall-panel));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.28),
+      0 6px 14px rgba(9,31,59,0.06);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-inventory-tile,
+    .project-starfall-equipment-slot-tile,
+    .project-starfall-asset-kind,
+    .project-starfall-asset-entry,
+    .project-starfall-card-stat-chip,
+    .project-starfall-character-stat-row,
+    .project-starfall-character-panel-card__header button,
+    .project-starfall-character-panel-card__header-actions button,
+    .project-starfall-stat-upgrade-heading button,
+    .project-starfall-stat-upgrade-actions button
+  ) {
+    border-color: rgba(116,79,28,0.24);
+    background:
+      linear-gradient(180deg, #fff3d3, #eed9ad 56%, #d4b47f);
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-page .project-starfall-inventory-board {
+    border-color: rgba(65,43,19,0.48);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.18), rgba(89,57,25,0.08)),
+      linear-gradient(180deg, var(--starfall-panel-soft), var(--starfall-panel));
+    box-shadow:
+      inset 0 0 0 1px rgba(245,207,114,0.34),
+      inset 0 0 0 4px rgba(9,31,59,0.04),
+      0 8px 18px rgba(9,31,59,0.08);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-inventory-tile,
+    .project-starfall-equipment-slot-tile
+  ) {
+    border-color: rgba(116,79,28,0.3);
+    background:
+      linear-gradient(90deg, rgba(137,93,39,0.28), rgba(137,93,39,0.28)) left 7px top 7px / 13px 1px no-repeat,
+      linear-gradient(180deg, rgba(137,93,39,0.28), rgba(137,93,39,0.28)) left 7px top 7px / 1px 13px no-repeat,
+      linear-gradient(270deg, rgba(137,93,39,0.28), rgba(137,93,39,0.28)) right 7px top 7px / 13px 1px no-repeat,
+      linear-gradient(180deg, rgba(137,93,39,0.28), rgba(137,93,39,0.28)) right 7px top 7px / 1px 13px no-repeat,
+      linear-gradient(90deg, rgba(137,93,39,0.22), rgba(137,93,39,0.22)) left 7px bottom 7px / 13px 1px no-repeat,
+      linear-gradient(0deg, rgba(137,93,39,0.22), rgba(137,93,39,0.22)) left 7px bottom 7px / 1px 13px no-repeat,
+      linear-gradient(270deg, rgba(137,93,39,0.22), rgba(137,93,39,0.22)) right 7px bottom 7px / 13px 1px no-repeat,
+      linear-gradient(0deg, rgba(137,93,39,0.22), rgba(137,93,39,0.22)) right 7px bottom 7px / 1px 13px no-repeat,
+      radial-gradient(circle at 50% 50%, rgba(170,121,55,0.12) 0 18%, transparent 19%),
+      linear-gradient(180deg, #fff0cf 0%, #ecd7ad 58%, #d6b985 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.44),
+      inset 0 -1px 0 rgba(137,93,39,0.16),
+      inset 0 0 0 3px rgba(255,250,230,0.18),
+      inset 0 0 0 5px rgba(88,57,25,0.06);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-inventory-tile.is-selected,
+    .project-starfall-inventory-tile:focus-visible,
+    .project-starfall-inventory-tile:hover,
+    .project-starfall-equipment-slot-tile:hover
+  ) {
+    border-color: rgba(89,216,255,0.72);
+    background:
+      linear-gradient(90deg, rgba(79,198,238,0.46), rgba(79,198,238,0.46)) left 7px top 7px / 13px 1px no-repeat,
+      linear-gradient(180deg, rgba(79,198,238,0.46), rgba(79,198,238,0.46)) left 7px top 7px / 1px 13px no-repeat,
+      linear-gradient(270deg, rgba(79,198,238,0.46), rgba(79,198,238,0.46)) right 7px top 7px / 13px 1px no-repeat,
+      linear-gradient(180deg, rgba(79,198,238,0.46), rgba(79,198,238,0.46)) right 7px top 7px / 1px 13px no-repeat,
+      linear-gradient(180deg, rgba(233,248,255,0.36), rgba(189,207,219,0.18)),
+      linear-gradient(180deg, #fff0cf 0%, #ecd7ad 58%, #d6b985 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 0 0 3px rgba(255,250,230,0.22),
+      0 8px 18px rgba(16,32,51,0.12);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-action-icon,
+    .project-starfall-asset-kind-art,
+    .project-starfall-asset-entry-art,
+    .project-starfall-asset-card-art,
+    .project-starfall-card-icon,
+    .project-starfall-card-inspector-icon
+  ) {
+    border-color: rgba(245,207,114,0.38);
+    background:
+      linear-gradient(180deg, #17283d, #071323);
+    color: #fff3cf;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.08),
+      0 5px 12px rgba(9,31,59,0.16);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-tabs button[aria-pressed="true"],
+    .project-starfall-segmented button[aria-pressed="true"],
+    .project-starfall-equipment-tabs button[aria-pressed="true"],
+    .project-starfall-asset-source-toggle button[aria-pressed="true"],
+    .project-starfall-asset-state-row button[aria-pressed="true"],
+    .project-starfall-map-list button[aria-pressed="true"],
+    .project-starfall-branch-list button[aria-pressed="true"],
+    .project-starfall-inventory-sell-settings button.is-active,
+    .project-starfall-pet-picker button.is-selected,
+    .project-starfall-pet-controls button[aria-pressed="true"],
+    .project-starfall-plinko-ball-card.is-selected
+  ) {
+    border-color: rgba(89,216,255,0.72);
+    background:
+      linear-gradient(180deg, #e9f8ff, #bdcfdb);
+    color: #102033;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.28),
+      0 0 0 1px rgba(89,216,255,0.1);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-plinko-prizes h3,
+    .project-starfall-worldmap-node.is-current .project-starfall-worldmap-node-pin,
+    .project-starfall-worldmap-node[aria-pressed="true"] .project-starfall-worldmap-node-pin,
+    .project-starfall-worldmap-node[aria-pressed="true"] .project-starfall-worldmap-node-label,
+    .project-starfall-character-tabs button.is-selected
+  ) {
+    border-color: rgba(89,216,255,0.56);
+    background:
+      linear-gradient(180deg, #1f3b54, #071323);
+    color: #fff3cf;
+  }
+
+}

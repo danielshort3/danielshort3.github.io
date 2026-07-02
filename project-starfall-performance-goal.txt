@@ -1,0 +1,26 @@
+Goal for Codex:
+
+Continue iterating on Project Starfall until the current game engine feels vastly improved in day-to-day play, with little to no noticeable lag spikes during common interactions.
+
+Primary objective:
+Improve runtime performance across the engine by identifying, measuring, and fixing the highest-impact sources of frame stalls, input delay, UI hitching, combat spikes, inventory lag, map transition pauses, NPC/service panel delays, item-use delays, rendering cache churn, snapshot generation overhead, and any other repeatable sources of jank.
+
+Work style:
+- Do not stop at a single quick fix. Profile, implement, verify, then continue looking for the next bottleneck until additional changes no longer produce meaningful improvement or a real blocker is reached.
+- Prefer measured improvements over guesswork. Capture before/after timings whenever practical.
+- Use multiple approaches if the first path is inconclusive: browser profiling, targeted instrumentation, Node-based timing harnesses, focused regression tests, render-path measurements, UI snapshot measurements, and gameplay interaction benchmarks.
+- Keep changes scoped and sympathetic to the existing engine structure. Avoid broad rewrites unless profiling shows the current architecture is the core bottleneck.
+- Preserve current gameplay behavior unless a behavior change is explicitly required for performance.
+- Add focused tests or assertions for any changed behavior, cache invalidation logic, throttling rules, or performance-sensitive regression path.
+- Re-run relevant syntax checks, focused test suites, and broader tests when appropriate.
+
+Areas to investigate:
+- Inventory, equipment, skills, world map, shop, NPC service panels, attunement, line upgrades, item usage, crafting, slot unlocks, and other overlay/UI workflows.
+- Map changes, portals, dungeon start/end flows, channel changes, spawning, runtime creation, renderer cache pruning, and Pixi prewarm behavior.
+- Combat update loops, enemy AI, offscreen entity work, damage splats, floating text, cooldown indicators, projectiles, collision checks, and effect cleanup.
+- Snapshot generation, UI change emissions, toast handling, dirty-state propagation, panel body caching, full-overlay caching, and cache invalidation frequency.
+- Canvas/Pixi rendering paths, texture lifecycle, derived map caches, draw batching, expensive text/layout measurement, and large drawImage calls.
+- Any repeated synchronous work that can be cached, deferred, batched, throttled, scoped, or moved to idle time without changing user-facing behavior.
+
+Acceptance target:
+The task is not complete until common interactions that previously produced lag spikes have been repeatedly profiled and improved, with before/after evidence showing materially lower worst-case timings and a smoother player experience. When no further high-impact bottlenecks are apparent, summarize what was measured, what changed, what remains risky, and what tests were run.

@@ -1,0 +1,118 @@
+{
+  "id": "goldrush",
+  "name": "Gold Rush",
+  "tier": "Epic",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "pickaxe",
+      "label": "Pickaxe",
+      "asset": "assets/goldrush/symbols/pickaxe.png"
+    },
+    {
+      "key": "gold_pan",
+      "label": "Gold Pan",
+      "asset": "assets/goldrush/symbols/gold_pan.png"
+    },
+    {
+      "key": "boot_spur",
+      "label": "Boot Spur",
+      "asset": "assets/goldrush/symbols/boot_spur.png"
+    },
+    {
+      "key": "dynamite",
+      "label": "Dynamite",
+      "asset": "assets/goldrush/symbols/dynamite.png"
+    },
+    {
+      "key": "lantern",
+      "label": "Lantern",
+      "asset": "assets/goldrush/symbols/lantern.png"
+    },
+    {
+      "key": "gold_nugget",
+      "label": "Gold Nugget",
+      "asset": "assets/goldrush/symbols/gold_nugget.png"
+    },
+    {
+      "key": "gold_minecart",
+      "label": "Gold Minecart",
+      "asset": "assets/goldrush/symbols/gold_minecart.png"
+    },
+    {
+      "key": "gold_bars",
+      "label": "Gold Bars",
+      "asset": "assets/goldrush/symbols/gold_bars.png"
+    },
+    {
+      "key": "prospector_badge",
+      "label": "Prospector Badge",
+      "asset": "assets/goldrush/symbols/prospector_badge.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "assets/goldrush/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "assets/goldrush/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "pickaxe": 8,
+    "gold_pan": 9,
+    "boot_spur": 10,
+    "dynamite": 12,
+    "lantern": 14,
+    "gold_nugget": 20,
+    "gold_minecart": 26,
+    "gold_bars": 32,
+    "prospector_badge": 40,
+    "wild": 50,
+    "bonus": 100
+  },
+  "assets": {
+    "icon": "assets/goldrush/icon.png",
+    "frame": "assets/goldrush/frame.png",
+    "background": {
+      "portrait": "assets/goldrush/background_vertical.png",
+      "landscape": "assets/goldrush/background_horizontal.png"
+    },
+    "spinButton": "assets/classic/spin-button.png",
+    "chip": "assets/classic/circle.png",
+    "bet": "assets/classic/square.png",
+    "info": "assets/classic/rectangle.png",
+    "placeholder": "assets/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

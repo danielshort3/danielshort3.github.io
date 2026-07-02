@@ -1,0 +1,118 @@
+{
+  "id": "charm",
+  "name": "Lucky Charm",
+  "tier": "Rare",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "clover",
+      "label": "Clover",
+      "asset": "assets/charm/symbols/clover.png"
+    },
+    {
+      "key": "horseshoe",
+      "label": "Horseshoe",
+      "asset": "assets/charm/symbols/horseshoe.png"
+    },
+    {
+      "key": "wishbone",
+      "label": "Wishbone",
+      "asset": "assets/charm/symbols/wishbone.png"
+    },
+    {
+      "key": "ladybug",
+      "label": "Ladybug",
+      "asset": "assets/charm/symbols/ladybug.png"
+    },
+    {
+      "key": "rabbit_foot",
+      "label": "Rabbit Foot",
+      "asset": "assets/charm/symbols/rabbit_foot.png"
+    },
+    {
+      "key": "rainbow",
+      "label": "Rainbow",
+      "asset": "assets/charm/symbols/rainbow.png"
+    },
+    {
+      "key": "lucky_hat",
+      "label": "Lucky Hat",
+      "asset": "assets/charm/symbols/lucky_hat.png"
+    },
+    {
+      "key": "shamrock",
+      "label": "Shamrock",
+      "asset": "assets/charm/symbols/shamrock.png"
+    },
+    {
+      "key": "pot_of_gold",
+      "label": "Pot Of Gold",
+      "asset": "assets/charm/symbols/pot_of_gold.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "assets/charm/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "assets/charm/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "clover": 7,
+    "horseshoe": 8,
+    "wishbone": 9,
+    "ladybug": 10,
+    "rabbit_foot": 12,
+    "rainbow": 18,
+    "lucky_hat": 24,
+    "shamrock": 28,
+    "pot_of_gold": 35,
+    "wild": 50,
+    "bonus": 90
+  },
+  "assets": {
+    "icon": "assets/charm/icon.png",
+    "frame": "assets/charm/frame.png",
+    "background": {
+      "portrait": "assets/charm/background_vertical.png",
+      "landscape": "assets/charm/background_horizontal.png"
+    },
+    "spinButton": "assets/classic/spin-button.png",
+    "chip": "assets/classic/circle.png",
+    "bet": "assets/classic/square.png",
+    "info": "assets/classic/rectangle.png",
+    "placeholder": "assets/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

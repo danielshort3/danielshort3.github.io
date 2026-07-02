@@ -1,0 +1,461 @@
+@layer components {
+  .project-starfall-skill-group {
+    display: grid;
+    gap: 6px;
+    margin-top: 0;
+  }
+
+  .project-starfall-skill-list {
+    display: grid;
+    gap: 5px;
+  }
+
+  .project-starfall-skill-scroll {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+
+  .project-starfall-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .project-starfall-tabs button {
+    flex: 1 1 78px;
+    min-height: 24px;
+    padding: 3px 5px;
+    font-size: 0.68rem;
+  }
+
+  .project-starfall-tabs button[aria-pressed="true"] {
+    background: var(--starfall-ink);
+    color: #ffffff;
+  }
+
+  .project-starfall-skill-paths {
+    display: grid;
+    gap: 4px;
+  }
+
+  .project-starfall-skill-paths span {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+    padding: 5px 7px;
+    border: 1px solid rgba(47,125,214,0.16);
+    border-radius: 7px;
+    background: #eef6ff;
+    color: var(--starfall-muted);
+    font-size: 0.62rem;
+    line-height: 1.18;
+  }
+
+  .project-starfall-skill-paths strong {
+    color: var(--starfall-blue);
+    font-size: 0.66rem;
+  }
+
+  .project-starfall-skill-icon,
+  .project-starfall-action-icon {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(16,32,51,0.16);
+    border-radius: 8px;
+    background: #132238;
+    color: #eef6ff;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  .project-starfall-action-icon {
+    background: #f6f0dc;
+    color: var(--starfall-ink);
+    font-size: 0.64rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .project-starfall-action-icon.has-image {
+    background: #eef6ff;
+  }
+
+  .project-starfall-action-icon img,
+  .project-starfall-inventory-chip-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .project-starfall-skill-icon img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .project-starfall-skill-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+
+  .project-starfall-skill-icon::before,
+  .project-starfall-skill-icon::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: #eef6ff;
+    box-shadow: 0 0 10px rgba(123,223,242,0.72);
+  }
+
+  .project-starfall-skill-icon.has-image::before,
+  .project-starfall-skill-icon.has-image::after {
+    display: none;
+  }
+
+  .project-starfall-skill-icon--slash::before,
+  .project-starfall-skill-icon--break::before {
+    width: 70%;
+    height: 4px;
+    transform: rotate(-38deg);
+  }
+
+  .project-starfall-skill-icon--slash::after,
+  .project-starfall-skill-icon--break::after {
+    width: 44%;
+    height: 3px;
+    transform: translate(6px, 8px) rotate(-22deg);
+  }
+
+  .project-starfall-skill-icon--mobility::before,
+  .project-starfall-skill-icon--blink::before {
+    width: 70%;
+    height: 4px;
+    transform: translateX(2px) rotate(-18deg);
+  }
+
+  .project-starfall-skill-icon--mobility::after,
+  .project-starfall-skill-icon--blink::after {
+    width: 46%;
+    height: 3px;
+    transform: translate(-5px, 8px) rotate(-18deg);
+  }
+
+  .project-starfall-skill-icon--guard::before,
+  .project-starfall-skill-icon--field::before,
+  .project-starfall-skill-icon--area::before,
+  .project-starfall-skill-icon--buff::before,
+  .project-starfall-skill-icon--magic::before,
+  .project-starfall-skill-icon--burst::before,
+  .project-starfall-skill-icon--mark::before {
+    width: 56%;
+    height: 56%;
+    border: 3px solid #eef6ff;
+    background: transparent;
+  }
+
+  .project-starfall-skill-icon--guard::after {
+    width: 28%;
+    height: 42%;
+    border-radius: 6px 6px 12px 12px;
+    background: rgba(123,223,242,0.7);
+  }
+
+  .project-starfall-skill-icon--arrow::before {
+    width: 68%;
+    height: 4px;
+    transform: rotate(-20deg);
+  }
+
+  .project-starfall-skill-icon--arrow::after {
+    width: 12px;
+    height: 12px;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    border-radius: 2px;
+    transform: translate(10px, -5px) rotate(-20deg);
+  }
+
+  .project-starfall-skill {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) 58px;
+    gap: 5px;
+    align-items: center;
+    padding: 4px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .project-starfall-skill[draggable="true"] {
+    cursor: grab;
+  }
+
+  .project-starfall-skill.is-dragging {
+    opacity: 0.62;
+    outline: 2px solid rgba(47,125,214,0.44);
+  }
+
+  .project-starfall-drag-preview {
+    position: fixed;
+    left: -10000px;
+    top: -10000px;
+    z-index: 2147483647;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    width: 76px;
+    min-height: 76px;
+    padding: 8px 6px 6px;
+    border: 1px solid rgba(47,125,214,0.46);
+    border-radius: 12px;
+    background: rgba(238,246,255,0.72);
+    box-shadow: 0 12px 24px rgba(16,32,51,0.22);
+    color: var(--starfall-ink);
+    pointer-events: none;
+  }
+
+  .project-starfall-drag-preview-symbol {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: rgba(16,32,51,0.1);
+    color: rgba(16,32,51,0.72);
+    font-size: 0.62rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-drag-preview-symbol > * {
+    filter: grayscale(1) brightness(0.12);
+    opacity: 0.62;
+  }
+
+  .project-starfall-drag-preview-symbol :is(.project-starfall-inventory-icon-wrap, .project-starfall-action-icon, .project-starfall-skill-icon, .project-starfall-gear-icon) {
+    width: 38px;
+    height: 38px;
+  }
+
+  .project-starfall-drag-preview-symbol img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .project-starfall-drag-preview-label {
+    max-width: 64px;
+    overflow: hidden;
+    color: rgba(16,32,51,0.72);
+    font-size: 0.52rem;
+    font-weight: 900;
+    line-height: 1.05;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-skill.is-locked {
+    background: #f3f1ec;
+  }
+
+  .project-starfall-skill h4 {
+    display: flex;
+    gap: 4px;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.7rem;
+    line-height: 1.12;
+  }
+
+  .project-starfall-skill-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-skill h4 span {
+    white-space: nowrap;
+  }
+
+  .project-starfall-skill p {
+    margin: 2px 0;
+    font-size: 0.62rem;
+  }
+
+  .project-starfall-skill-body {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .project-starfall-skill-summary {
+    color: var(--starfall-ink);
+    line-height: 1.16;
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-skill-status {
+    display: block;
+    color: var(--starfall-muted);
+    font-size: 0.56rem;
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-tags,
+  .project-starfall-outcomes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+
+  .project-starfall-tags span,
+  .project-starfall-outcomes span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 16px;
+    padding: 1px 4px;
+    border-radius: 6px;
+    background: #eef6ff;
+    border: 1px solid rgba(47,125,214,0.16);
+    color: var(--starfall-ink);
+    font-size: 0.58rem;
+    font-weight: 800;
+  }
+
+  .project-starfall-tags .project-starfall-purpose-tag {
+    background: #102033;
+    border-color: rgba(16,32,51,0.3);
+    color: #ffffff;
+  }
+
+  .project-starfall-tags .project-starfall-state-tag {
+    background: #fff8e8;
+    border-color: rgba(216,165,49,0.28);
+    color: #8a6b1d;
+  }
+
+  .project-starfall-skill.is-trainable {
+    border-color: rgba(216,165,49,0.48);
+    background: #fffdf2;
+  }
+
+  .project-starfall-skill-next {
+    display: block;
+    color: var(--starfall-muted);
+    font-size: 0.56rem;
+    line-height: 1.15;
+  }
+
+  .project-starfall-skill-prereqs,
+  .project-starfall-skill-future {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    margin: 2px 0;
+  }
+
+  .project-starfall-skill-dependency-label,
+  .project-starfall-skill-any-label,
+  .project-starfall-skill-future-more {
+    display: inline-flex;
+    align-items: center;
+    min-height: 15px;
+    padding: 1px 4px;
+    border-radius: 999px;
+    background: #f6f0dc;
+    border: 1px solid rgba(16,32,51,0.12);
+    color: var(--starfall-muted);
+    font-size: 0.52rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .project-starfall-skill-future .project-starfall-skill-dependency-label {
+    background: #eef6ff;
+    border-color: rgba(47,125,214,0.18);
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-skill-prereq-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .project-starfall-skill-prereq-chip,
+  .project-starfall-skill-future-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 1px 3px 1px 1px;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 7px;
+    background: #fbfaf6;
+    color: var(--starfall-ink);
+    line-height: 1;
+  }
+
+  .project-starfall-skill-prereq-chip.is-met {
+    background: #eaf8ee;
+    border-color: rgba(58,155,95,0.42);
+  }
+
+  .project-starfall-skill-prereq-chip.is-missing {
+    background: #fff0ee;
+    border-color: rgba(196,73,73,0.45);
+  }
+
+  .project-starfall-skill-prereq-chip.is-any {
+    border-style: dashed;
+  }
+
+  .project-starfall-skill-future-chip {
+    background: #eef6ff;
+    border-color: rgba(47,125,214,0.24);
+  }
+
+  .project-starfall-skill-future-chip.is-any {
+    border-style: dashed;
+  }
+
+  .project-starfall-skill-rank-badge {
+    font-size: 0.52rem;
+    font-weight: 950;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .project-starfall-skill-icon--mini {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+  }
+
+  .project-starfall-skill > button {
+    min-width: 56px;
+    min-height: 22px;
+    padding: 3px 4px;
+    font-size: 0.58rem;
+    background: #eff9ef;
+  }
+
+}

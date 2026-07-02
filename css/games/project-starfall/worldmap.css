@@ -1,0 +1,293 @@
+@layer components {
+  .project-starfall-map-row,
+  .project-starfall-map-list button,
+  .project-starfall-branch-list button {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 4px;
+    min-height: 56px;
+    padding: 10px;
+    align-items: center;
+    text-align: left;
+  }
+
+  .project-starfall-map-row {
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-map-thumb {
+    width: 64px;
+    height: 42px;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.45);
+  }
+
+  .project-starfall-branch-art {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 5px 8px rgba(16,32,51,0.16));
+  }
+
+  .project-starfall-map-copy,
+  .project-starfall-branch-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .project-starfall-map-row span,
+  .project-starfall-map-list button span,
+  .project-starfall-branch-list button span {
+    font-size: 0.82rem;
+    font-weight: 700;
+    opacity: 0.78;
+  }
+
+  .project-starfall-map-row[aria-current="location"],
+  .project-starfall-map-list button[aria-pressed="true"],
+  .project-starfall-branch-list button[aria-pressed="true"] {
+    background: var(--starfall-ink);
+    color: #ffffff;
+  }
+
+  .project-starfall-worldmap-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .project-starfall-worldmap-graph {
+    position: relative;
+    min-height: 440px;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(16,32,51,0.1), rgba(16,32,51,0.18)),
+      #1b2e43;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.24);
+  }
+
+  .project-starfall-worldmap-atlas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.06) contrast(1.02);
+    pointer-events: none;
+  }
+
+  .project-starfall-worldmap-area {
+    display: none;
+  }
+
+  .project-starfall-worldmap-routes {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .project-starfall-worldmap-edge {
+    fill: none;
+    stroke: rgba(255,247,209,0.84);
+    stroke-width: 0.72;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
+  }
+
+  .project-starfall-worldmap-edge.is-currentRoute {
+    stroke: #9bd7ff;
+    stroke-width: 1.18;
+    filter: drop-shadow(0 0 4px rgba(86,190,255,0.76));
+  }
+
+  .project-starfall-worldmap-edge.is-completed {
+    stroke: #bdf48f;
+    stroke-width: 0.92;
+  }
+
+  .project-starfall-worldmap-edge.is-locked {
+    stroke: rgba(25,34,45,0.54);
+    stroke-dasharray: 1.8 1.4;
+    filter: none;
+  }
+
+  .project-starfall-worldmap-node {
+    position: absolute;
+    z-index: 3;
+    left: var(--x);
+    top: var(--y);
+    width: 28px;
+    min-height: 28px;
+    transform: translate(-50%, -50%);
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--starfall-ink);
+    font-size: 0.66rem;
+    font-weight: 850;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.78);
+  }
+
+  .project-starfall-worldmap-node-pin {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border: 2px solid color-mix(in srgb, var(--node-color, #7ec8d8) 78%, #102033);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.34);
+    color: #102033;
+    font-size: 0.52rem;
+    line-height: 1;
+    font-weight: 950;
+  }
+
+  .project-starfall-worldmap-node.is-dungeon .project-starfall-worldmap-node-pin {
+    width: 21px;
+    height: 21px;
+    border-color: #8f65ff;
+    background: #f2ebff;
+  }
+
+  .project-starfall-worldmap-node.is-bossArena .project-starfall-worldmap-node-pin {
+    width: 22px;
+    height: 22px;
+    border-color: #d87bff;
+    background: #fff0ff;
+  }
+
+  .project-starfall-worldmap-node.is-deepField .project-starfall-worldmap-node-pin {
+    border-color: #ffbe55;
+    background: #fff3d7;
+  }
+
+  .project-starfall-worldmap-node.is-starterField .project-starfall-worldmap-node-pin {
+    border-color: #8ed174;
+    background: #eff9ef;
+  }
+
+  .project-starfall-worldmap-node.is-endlessField .project-starfall-worldmap-node-pin {
+    border-color: #f06bff;
+    background: #f7efff;
+  }
+
+  .project-starfall-worldmap-node.is-town .project-starfall-worldmap-node-pin {
+    border-color: #f7d28a;
+    background: #fff7dd;
+  }
+
+  .project-starfall-worldmap-node-label {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 5px);
+    transform: translateX(-50%);
+    display: none;
+    max-width: 74px;
+    padding: 2px 5px;
+    border: 1px solid rgba(16,32,51,0.12);
+    border-radius: 5px;
+    background: rgba(255,255,255,0.78);
+    box-shadow: 0 1px 4px rgba(16,32,51,0.14);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.52rem;
+    line-height: 1.05;
+    pointer-events: none;
+  }
+
+  .project-starfall-worldmap-node.label-top .project-starfall-worldmap-node-label {
+    top: auto;
+    bottom: calc(100% + 5px);
+  }
+
+  .project-starfall-worldmap-node.label-left .project-starfall-worldmap-node-label {
+    top: 50%;
+    left: auto;
+    right: calc(100% + 7px);
+    transform: translateY(-50%);
+  }
+
+  .project-starfall-worldmap-node.label-right .project-starfall-worldmap-node-label {
+    top: 50%;
+    left: calc(100% + 7px);
+    transform: translateY(-50%);
+  }
+
+  .project-starfall-worldmap-node.show-label .project-starfall-worldmap-node-label,
+  .project-starfall-worldmap-node.is-current .project-starfall-worldmap-node-label,
+  .project-starfall-worldmap-node[aria-pressed="true"] .project-starfall-worldmap-node-label,
+  .project-starfall-worldmap-node:hover .project-starfall-worldmap-node-label,
+  .project-starfall-worldmap-node:focus-visible .project-starfall-worldmap-node-label {
+    display: block;
+  }
+
+  .project-starfall-worldmap-node.show-label,
+  .project-starfall-worldmap-node.is-current,
+  .project-starfall-worldmap-node[aria-pressed="true"] {
+    z-index: 4;
+  }
+
+  .project-starfall-worldmap-node.is-current .project-starfall-worldmap-node-pin,
+  .project-starfall-worldmap-node[aria-pressed="true"] .project-starfall-worldmap-node-pin {
+    border-color: var(--starfall-blue);
+    background: #eef6ff;
+    box-shadow: 0 0 0 4px rgba(47,125,214,0.2), 0 0 14px rgba(47,125,214,0.62);
+  }
+
+  .project-starfall-worldmap-node[aria-pressed="true"] .project-starfall-worldmap-node-label {
+    background: #eef6ff;
+  }
+
+  .project-starfall-worldmap-node.is-locked {
+    opacity: 0.68;
+  }
+
+  .project-starfall-worldmap-node.is-locked .project-starfall-worldmap-node-pin,
+  .project-starfall-worldmap-node.is-locked .project-starfall-worldmap-node-label {
+    filter: grayscale(0.8);
+    background: rgba(229,229,222,0.82);
+    color: #4f5a64;
+  }
+
+  .project-starfall-worldmap-detail {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-worldmap-detail strong,
+  .project-starfall-worldmap-detail span,
+  .project-starfall-worldmap-detail small {
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-worldmap-detail button {
+    margin-top: 4px;
+  }
+}

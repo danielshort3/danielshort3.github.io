@@ -1,0 +1,313 @@
+Goal for Codex:
+
+Optimize Project Starfall's MMORPG-style class, combat, progression, loot, enemy, map, boss, party, economy, and retention systems.
+
+Role:
+Act as a senior MMORPG systems designer, combat designer, progression designer, and economy-balance analyst.
+
+Primary objective:
+Analyze the existing Project Starfall codebase and design data. Focus on Warrior, Archer, and Mage balance, skill progression, grinding pace, maps, enemies, loot, equipment, bossing, party play, economy health, and long-term retention. Identify what is likely to break, what will become dominant, what will feel bad to players, and what should change before launch.
+
+Design philosophy:
+- Classes should feel meaningfully different, not equally good at everything.
+- Maintain asymmetry in feel but parity in long-term usefulness.
+- No class, map, skill, boss strategy, loot source, or reward loop should dominate the game.
+- Balance around real gameplay performance, not tooltip DPS.
+- Preserve multiple viable progression paths for casuals, grinders, bossers, completionists, economy players, and competitive players.
+- Rewards should feel impactful and exciting without being handed out too frequently.
+- Progression should have a long lifespan without becoming tedious or unfair.
+- The game should avoid becoming a mandatory chore checklist.
+
+Core balance principle:
+- Asymmetry in feel.
+- Parity in long-term usefulness.
+- Clear class identity.
+- Controlled scaling.
+- Multiple viable progression paths.
+- No single class, map, skill, or reward source should dominate the entire game.
+
+Core class targets:
+- Warrior should win through uptime, durability, melee control, poise, anti-knockback, safe boss progression, strong close-range cleave, and front-line pressure. Warrior should generally be the safest class and best blind-progression class, but less efficient than Archer or Mage at wide-map screen clearing.
+- Archer should win through range, route efficiency, positioning, safe sustained damage, weak-point pressure, mobility, traps, marks, or tactical utility. Archer should generally be strongest in open-map grinding and scouting, but weaker when pinned or forced into close quarters.
+- Mage should win through AoE, elemental control, burst windows, zone control, crowd control, resource planning, and timing. Mage should generally be strongest in dense-map clearing and burst windows, but more vulnerable to interruption and more dependent on MP/resource management.
+
+Suggested relative class baselines, where 100 is average:
+- Warrior: Effective HP 125, sustained boss damage 100, burst damage 95, map clear 95, mobility 95, control 110.
+- Archer: Effective HP 90, sustained boss damage 103, burst damage 100, map clear 105 on open maps and 95 in cramped maps, mobility 110, party utility 100-105.
+- Mage: Effective HP 85, sustained boss damage 98, burst damage 112 during windows, dense-map clear 110, mobility 100 through teleport/blink rather than constant speed, control 120.
+
+Potential subclass directions:
+- Warrior Guardian: tank/support/control, lower solo damage but strong party value.
+- Warrior Berserker: high-risk, high-burst melee damage.
+- Warrior Duelist/Crusader: counters, armor breaks, precision melee execution.
+- Archer Sniper: boss precision, weak-point damage, lower mobility during setup.
+- Archer Ranger/Stormshot: fast farming, scatter damage, route efficiency.
+- Archer Tactician: traps, marks, exposed-hit windows, party crit/accuracy support.
+- Mage Elementalist: DoTs, zones, elemental strengths/weaknesses.
+- Mage Arcanist: cooldown planning, burst windows, proc timing.
+- Mage Cleric/Summoner: support, shields, summons, lower personal DPS but strong party value.
+
+Balance rules:
+- No class should exceed the class median by more than roughly 10-15% across several major content types.
+- A specialist class/subclass may be 10-15% above baseline in its best content lane, but should be 8-12% below baseline outside that lane.
+- A high-skill class may have a higher ceiling, but its average player performance should not collapse so hard that the class becomes a trap.
+- Support classes should not be balanced only by personal DPS. Count prevented damage, buffs, debuffs, shields, revives, crowd control, pulls, slows, and party damage contribution.
+- Avoid balancing purely around tooltip DPS. In a side-scroller, true performance includes target acquisition, travel time, range, setup time, animation lock, cooldowns, MP/resource cost, repositioning, looting, and recovery downtime.
+- Do not let gear define the entire character.
+- Avoid too many independent damage multipliers.
+- Avoid rare mandatory drops without deterministic backup.
+- Avoid one-map or one-class dominance.
+
+Skill system goals:
+- Each class should have four skill families: core rotation skills, movement and survival skills, role utility skills, and long-cooldown identity skills.
+- Avoid skill bloat. Every skill should have a clear purpose.
+- Older skills should remain relevant as starter attacks, combo builders, resource generators, mobility tools, cancel tools, utility tools, debuff primers, or upgraded versions through traits, nodes, or job advancement.
+- New skills should not always fully replace old skills. Later progression should often upgrade earlier skills, add secondary effects, add combo interactions, improve cooldowns, improve range, improve utility, change resource flow, or add specialization-specific modifications.
+- Job advancements should preserve about 60% of the prior class loop, amplify one strength by 15-25%, add one signature mechanic, add one new liability/cost/execution requirement, and avoid invalidating earlier learning.
+
+Suggested skill unlock cadence:
+- Early game: new active skill every 15-30 minutes.
+- Midgame: new active or major upgrade every 45-90 minutes.
+- Late game: fewer new actives, with more upgrades, passives, traits, and specialization choices.
+- Endgame: mastery systems, node systems, account-wide growth, and build customization.
+
+Damage and stat formula direction:
+Use or migrate toward a bucketed formula to prevent runaway scaling.
+
+Base Offense =
+WeaponPower * (1 + PrimaryStat / S) + FlatAttack
+
+Skill Output =
+Base Offense * SkillCoefficient * (1 + AdditiveDamageBucket)
+
+Mitigation =
+1 / (1 + Defense / (C + LevelScalar))
+
+Final Damage =
+Skill Output
+* HitChance
+* CritBucket
+* ElementBucket
+* UtilityOrStatusBucket
+* Mitigation
+* Variance
+
+Damage/stat rules:
+- Keep most percentage bonuses additive within clear buckets.
+- Allow only a small number of multiplier buckets.
+- Power should come from a mix of level, skills, stats, gear, job advancement, account progression, and endgame mastery.
+- Flat bonuses should matter more early.
+- Percentage bonuses should matter more later.
+- Avoid stacking too many independent multipliers.
+- Elemental advantages should usually be modest: 10-25% for normal advantage. Extreme resistances, immunities, or healing interactions should be reserved for special enemies, bosses, puzzles, or optional routes.
+
+Recommended stat structure:
+- Warrior primary stat: Strength.
+- Archer primary stat: Dexterity.
+- Mage primary stat: Intelligence.
+- Optional Warrior secondary stat: Vitality or Endurance.
+- Optional Archer secondary stat: Luck or Agility.
+- Optional Mage secondary stat: Wisdom or Spirit.
+- Universal derived stats: HP, MP, Attack, Magic Attack, Defense, Speed, Accuracy, Evasion, Critical Rate, and Critical Damage.
+
+Grinding and leveling analysis:
+Evaluate maps using full hourly value, not EXP per monster.
+
+Expected Grind Value per Hour =
+(kills_per_hour * XP_per_kill)
++ expected_currency
++ expected_materials
++ deterministic_token_progress
+- potion_cost
+- travel_downtime
+- recovery_downtime
+
+Suggested pacing targets:
+- Early game: 3-8 minutes per level, normal monster TTK 2-4 seconds, meaningful reward every 15-25 minutes.
+- Midgame: 10-25 minutes per level, normal monster TTK 4-7 seconds, meaningful reward every 30-60 minutes.
+- Late game: 25-60 minutes per level, normal monster TTK 6-10 seconds, meaningful reward every 60-120 minutes.
+- Endgame: 1-4 hours per major power step, strong pack TTK 8-15 seconds, boss TTK 6-12 minutes depending on tier, reward cadence every session plus one weekly macro-goal.
+
+Progression rule:
+Do not let a progression step spike by more than about 25% unless it coincides with a major advancement, new system unlock, or content breakpoint.
+
+Map and enemy balance goals:
+- Analyze flat lane maps, vertical maps, ladder/platform maps, slope maps, chokepoint maps, wide multi-lane maps, dense spawn maps, sparse elite maps, boss arenas, and party maps.
+- Flat lanes should favor Warrior cleave and Archer line shots.
+- Vertical maps should favor Mage teleport, Archer range, or specialized mobility.
+- Chokepoints should favor Mage AoE, Archer traps, and summons.
+- Wide maps should favor Archer route efficiency and mobility.
+- Dense maps should favor Mage AoE.
+- Dangerous close-range maps should favor Warrior durability.
+- For each level bracket, benchmark each class on curated maps. Keep class efficiency across realistic best maps within roughly +/-10-15%.
+- Enemy variety should prevent one class from exploiting every map.
+
+Enemy variety to include or evaluate:
+- Rushers that punish stationary ranged farming.
+- Shielded enemies that require angle changes or armor breaking.
+- Flying enemies that disrupt ground-only classes.
+- Casters that require interrupts or dodging.
+- Armored enemies that favor magic or debuffs.
+- Elemental enemies that reward preparation.
+- Elites that punish simple projectile spam.
+- Swarm enemies for AoE classes.
+- High-threat melee enemies for durable classes.
+
+Loot, rewards, and economy goals:
+- Every item should have one of four purposes: equip, sell, salvage, or craft. If an item has none of these purposes, it is noise.
+- Use layered reward cadence: small visible reward every 3-7 minutes, medium forward progress every 20-40 minutes, memorable milestone every 2-4 hours, and weekly macro-goal for long-term retention.
+- Random drops should create excitement.
+- Deterministic tokens/materials should prevent frustration.
+- Pity systems should protect combat-power progression before cosmetics.
+- Rare cosmetics can stay rare longer than mandatory power upgrades.
+
+Loot tier intent:
+- Common: useful for selling, salvage, or crafting.
+- Uncommon: minor upgrades or useful materials.
+- Rare: meaningful upgrades or build pieces.
+- Epic: build-defining or major progression item.
+- Legendary: long-term chase item, prestige, major identity shift, or rare cosmetic.
+
+Economy sinks to evaluate or add:
+- Repair costs.
+- Crafting fees.
+- Enhancement fees.
+- Reroll costs.
+- Auction taxes.
+- Travel fees.
+- Cosmetic sinks.
+- Housing or vanity systems if applicable.
+
+Economy health metrics:
+- Currency per hour.
+- Currency entering the economy.
+- Currency leaving the economy.
+- Market prices.
+- Market volumes.
+- Essential item volatility.
+- Dead loot.
+- Hoarding behavior.
+
+Equipment and upgrade goals:
+- Use three layers: deterministic baseline power, build expression, and prestige progression.
+- Deterministic baseline power should provide reliable weapon and armor upgrades so players do not get stuck.
+- Build expression should come from affixes, set effects, gems, sockets, skill modifiers, and elemental bonuses.
+- Prestige progression can use long-tail enhancement, risk/reward upgrades, high-end optimization, cosmetics, or prestige effects.
+- Do not make gear mandatory every few levels.
+- Do not let one rare stat multiplier dominate all builds.
+- Avoid item destruction except possibly at the prestige layer.
+- Failed upgrades should often still produce some forward progress.
+- Avoid upgrade systems that feel pay-to-win, overly random, or punitive.
+- Let players steer progression through crafting, materials, tokens, pity, or targeted farming.
+
+Bossing, dungeons, and party goals:
+- Bosses should test positioning, burst windows, dodging, resource attrition, add phases, interrupt windows, utility, crowd control, class-role moments, and preparation. Avoid pure damage checks.
+- Mechanics should be solvable by categories of tools, not one mandatory class.
+- Useful categories include interrupts, shields, cleanses, mobility, stagger, damage reduction, weak-point damage, crowd control, summons, buffs, and debuffs.
+- Party scaling should be sublinear.
+
+Suggested boss HP scaling:
+Boss HP(players) =
+BaseHP * (1 + 0.7 * (players - 1)^0.85)
+
+Boss reward structure:
+- Weekly high-value reward or lockout-limited chase.
+- Repeatable token/material reward.
+- Low-rate prestige or cosmetic drop.
+- Deterministic progress for power rewards.
+- Rare randomness for cosmetics/prestige.
+
+Party grinding target:
+A well-composed party should produce about 125-160% of the total hourly value of the same number of solo players, while each individual member should land around 85-110% of solo value depending on role, map, and team quality.
+
+Long-term retention goals:
+- Support job mastery, account-wide progression, monster book/bestiary, collections, achievements, boss progression, rare cosmetics, professions, crafting mastery, seasonal events, prestige levels, titles, rankings, housing or vanity systems, alt-friendly bonuses, weekly goals, and optional challenge modes where appropriate.
+- Avoid daily chore overload.
+- Target 20-30 minutes of high-value daily tasks, 60-90 minutes of weekly goals, optional uncapped grinding for dedicated players, catch-up mechanics for returning players, and seasonal acceleration modes that do not destroy the baseline economy.
+
+Design for player types:
+- Casual players need reliable deterministic progress.
+- Grinders need uncapped efficiency and optimization.
+- Completionists need collections, codexes, monster books, and achievements.
+- Bossers need mechanical mastery and progression ladders.
+- Economy players need crafting, trading, and market opportunities.
+- Competitive players need rankings, timers, and prestige cosmetics.
+
+Telemetry to recommend or implement where feasible:
+- EXP/hour by class, level range, map, and gear tier.
+- Kills/hour.
+- Currency/hour.
+- Item drops/hour.
+- Potion consumption/hour.
+- Deaths/hour.
+- Damage taken/hour.
+- Boss clear times.
+- Boss failure reasons.
+- Skill usage rates.
+- Skill damage contribution.
+- Map usage rates.
+- Class population by level range.
+- Subclass pick rates.
+- Reroll rates.
+- Party composition.
+- Support contribution.
+- Market prices.
+- Market volume.
+- Sink-to-faucet currency ratio.
+- Rare item dry streaks.
+- Upgrade success/failure rates.
+- Player retention by class.
+- Time to first meaningful reward.
+- Time to first frustration point.
+
+Suggested investigation thresholds:
+- EXP/hour: investigate if one class exceeds median by 12-15% across several popular maps.
+- Boss clear time: investigate if one class is consistently 10%+ faster or slower after controlling for gear.
+- Deaths/hour: investigate if one class dies 20%+ more with no compensating efficiency.
+- Potion cost: investigate if potion cost exceeds 25% of normal farming earnings.
+- Map usage: investigate if one map holds 20%+ of activity in a level bracket.
+- Market volatility: investigate if essential items swing 15%+ weekly without a content cause.
+- Chase item dry streaks: investigate if the 95th percentile dry streak creates obvious frustration.
+
+Common balance mistakes to identify:
+- Balancing only around tooltip DPS.
+- One class having best range, best AoE, best mobility, and best safety.
+- Warrior being too slow to farm.
+- Archer being able to safely farm everything from off-screen.
+- Mage having too much AoE with too little resource/cast risk.
+- Support classes feeling awful solo.
+- Multiplicative stat stacking creating runaway power creep.
+- Gear upgrades replacing skill mastery.
+- One map becoming the only efficient grind spot.
+- Rare drops being too rare without deterministic backup.
+- Too much worthless loot.
+- Too many mandatory dailies.
+- Upgrade systems that destroy too much progress.
+- Job advancements that invalidate previous skills.
+- Too many subclasses for the team to maintain.
+- Bosses that only reward raw DPS.
+- Economy faucets without enough sinks.
+- Patch changes that nerf players without explaining why.
+
+Requested output:
+1. Executive summary with biggest balance strengths, biggest balance risks, and highest-priority fixes.
+2. Class balance review covering Warrior, Archer, and Mage strengths/weaknesses, identity clarity, and whether any class is overpowered, underpowered, or too generalist.
+3. Skill system review covering skill bloat, obsolete skills, missing utility, missing mobility/survival tools, scaling problems, and recommended skill changes.
+4. Progression review covering level pacing, time-to-level curve, job advancement pacing, reward cadence, and early/mid/late/endgame targets.
+5. Damage/stat formula review covering runaway scaling risks, bucket structure, stat changes, and flat vs percentage balance.
+6. Map and monster review covering class-favored maps, exploitable maps, spawn density, enemy HP, EXP, drops, and recommended map/enemy adjustments.
+7. Loot/economy review covering drop-rate health, currency inflation risks, loot usefulness, sinks and faucets, crafting/enhancement balance, and rare drop/pity recommendations.
+8. Equipment review covering gear scaling, upgrade pacing, class-specific vs shared gear, enhancement randomness, and recommended equipment progression structure.
+9. Boss/party review covering boss mechanics, party scaling, role usefulness, reward structure, and whether bosses are too DPS-check heavy.
+10. Long-term retention review covering endgame goals, daily/weekly structure, account-wide progression, completionist systems, seasonal/event ideas, and chore-risk assessment.
+11. Testing and telemetry plan covering what to measure, how to test classes, maps, and loot, how to detect overpowered/underpowered systems, and how to run patches without upsetting players.
+12. Prioritized action plan with immediate fixes, medium-term improvements, long-term systems, and a suggested balance patch roadmap.
+13. Concrete recommendations with specific numerical targets, example formulas, skill changes, enemy/map changes, reward cadence, and subclass directions for Warrior, Archer, and Mage.
+
+Work style:
+- Inspect the actual code and data before making recommendations whenever possible.
+- Clearly separate confirmed findings from assumptions.
+- Be practical and critical. Prefer specific fixes over general advice.
+- Where code/data changes are appropriate, make focused changes that match the existing Starfall structure.
+- Add or update tests when changing formulas, data, progression, drops, enemies, or UI-visible balance behavior.
+- Run relevant tests after changes and summarize what was validated.

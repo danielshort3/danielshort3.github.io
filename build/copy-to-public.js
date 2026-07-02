@@ -29,6 +29,7 @@ const textExtensions = new Set([
 const scanSkipDirs = new Set([
   '.git',
   '.vercel',
+  'archive',
   'Project Submission',
   'Slot-Machine-v4',
   'aws',
@@ -96,15 +97,9 @@ function copyFile(src, dest){
 
 function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
-  return rel === 'img/slot'
-    || rel.startsWith('img/slot/')
-    || rel === 'img/project-starfall/review'
+  return rel === 'img/project-starfall/review'
     || rel.startsWith('img/project-starfall/review/')
-    || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel)
-    || /^documents\/Resume(?:[._-]|$)/i.test(rel)
-    || rel === 'slot-config'
-    || rel.startsWith('slot-config/')
-    || rel === 'demos/slot-machine-demo.html';
+    || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel);
 }
 
 function copyDir(src, dest){
@@ -168,7 +163,6 @@ function collectDistArtifacts(cssManifest, jsManifest) {
   [
     'site-shell.js',
     'site-consent.js',
-    'site-home.js',
     'site-contact.js',
     'site-search.js',
     'site-contributions.js',
@@ -304,7 +298,6 @@ function collectReferencedDocumentFiles() {
       } catch {}
       decoded = decoded.replace(/\\/g, '/');
       if (!decoded.startsWith('documents/')) continue;
-      if (/^documents\/Resume(?:[._-]|$)/i.test(decoded)) continue;
       if (decoded.includes('..')) continue;
       const abs = path.join(root, decoded);
       let stat;
@@ -374,10 +367,7 @@ function pruneRetiredPublicArtifacts() {
     path.join(outDir, 'data-science.html'),
     path.join(outDir, 'tourism.html'),
     path.join(outDir, 'admin'),
-    path.join(outDir, 'js', 'contributions'),
-    path.join(outDir, 'img', 'slot'),
-    path.join(outDir, 'slot-config'),
-    path.join(outDir, 'demos', 'slot-machine-demo.html')
+    path.join(outDir, 'js', 'contributions')
   ];
 
   retiredTargets.forEach((target) => {
@@ -385,6 +375,22 @@ function pruneRetiredPublicArtifacts() {
       removeWithRetries(target);
     } catch {}
   });
+}
+
+function copyCleanUrlAliases() {
+  const aliases = [
+    ['pages/games/project-starfall.html', 'games/project-starfall.html'],
+    ['pages/games/project-starfall.html', 'project-starfall.html']
+  ];
+
+  let copied = 0;
+  aliases.forEach(([sourceRel, aliasRel]) => {
+    const source = path.join(outDir, sourceRel);
+    if (!fs.existsSync(source)) return;
+    copyFile(source, path.join(outDir, aliasRel));
+    copied += 1;
+  });
+  if (copied) log(`Copied ${copied} clean URL alias page(s).`);
 }
 
 function copyStatic(){
@@ -414,6 +420,7 @@ function copyStatic(){
   copyDistArtifacts(cssManifest, jsManifest);
   copyDir(path.join(root, 'dist', 'ai-pages'), path.join(outDir, 'dist', 'ai-pages'));
   pruneRetiredPublicArtifacts();
+  copyCleanUrlAliases();
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {

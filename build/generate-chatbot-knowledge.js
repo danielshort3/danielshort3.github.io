@@ -27,6 +27,7 @@ const excludedPathPatterns = [
   /^\/privacy$/i,
   /^\/sitemap(?:-pretty)?$/i,
   /^\/project-starfall$/i,
+  /^\/(?:analytics|data-science|tourism|destination-analytics|contributions)$/i,
   /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|job-application-tracker|transcribe|whisper-transcribe-monitor)$/i,
   /^\/resume(?:-[a-z-]+)?(?:-pdf)?$/i
 ];

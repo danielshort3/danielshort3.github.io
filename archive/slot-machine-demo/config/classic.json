@@ -1,0 +1,62 @@
+{
+  "id": "classic",
+  "name": "Lucky Lambda Classic",
+  "tier": "Demo Suite",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    { "key": "cherry", "label": "Cherry", "asset": "assets/classic/symbols/cherry.png" },
+    { "key": "lemon", "label": "Lemon", "asset": "assets/classic/symbols/lemon.png" },
+    { "key": "orange", "label": "Orange", "asset": "assets/classic/symbols/orange.png" },
+    { "key": "plum", "label": "Plum", "asset": "assets/classic/symbols/plum.png" },
+    { "key": "watermelon", "label": "Watermelon", "asset": "assets/classic/symbols/watermelon.png" },
+    { "key": "horseshoe", "label": "Horseshoe", "asset": "assets/classic/symbols/horseshoe.png" },
+    { "key": "bell", "label": "Bell", "asset": "assets/classic/symbols/bell.png" },
+    { "key": "diamond", "label": "Diamond", "asset": "assets/classic/symbols/diamond.png" },
+    { "key": "seven", "label": "Lucky Seven", "asset": "assets/classic/symbols/seven.png" },
+    { "key": "crown", "label": "Crown", "asset": "assets/classic/symbols/crown.png" },
+    { "key": "wild", "label": "Wild", "asset": "assets/classic/symbols/wild.png" },
+    { "key": "bonus", "label": "Bonus Sigil", "asset": "assets/classic/symbols/bonus.png" }
+  ],
+  "payouts": {
+    "cherry": 5,
+    "lemon": 6,
+    "orange": 7,
+    "plum": 8,
+    "watermelon": 10,
+    "horseshoe": 12,
+    "bell": 16,
+    "diamond": 20,
+    "seven": 25,
+    "crown": 30,
+    "wild": 50,
+    "bonus": 70
+  },
+  "assets": {
+    "icon": "assets/classic/icon.png",
+    "frame": "assets/classic/frame.png",
+    "background": {
+      "portrait": "assets/classic/background_vertical.png",
+      "landscape": "assets/classic/background_horizontal.png"
+    },
+    "spinButton": "assets/classic/spin-button.png",
+    "chip": "assets/classic/circle.png",
+    "bet": "assets/classic/square.png",
+    "info": "assets/classic/rectangle.png",
+    "placeholder": "assets/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [10, 12, 15],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [600, 1450],
+    "reels": [700, 1800],
+    "lines": [450, 1100, 2750]
+  }
+}

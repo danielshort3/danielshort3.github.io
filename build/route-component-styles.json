@@ -26,7 +26,13 @@
     "css/games/project-starfall.css"
   ],
   "/games/probability-engine": [
-    "css/components/games.css"
+    "css/games/probability-engine.css"
+  ],
+  "/games/stellar-dogfight": [
+    "css/games/stellar-dogfight.css"
+  ],
+  "/games/roulette": [
+    "css/games/roulette.css"
   ],
   "/portfolio/*": [
     "css/components/project-page.css"

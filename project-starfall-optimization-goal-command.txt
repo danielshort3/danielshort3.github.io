@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-optimization-goal.txt to analyze and optimize Project Starfall's class balance, skills, progression, grinding, loot, equipment, enemies, maps, bosses, party systems, economy, telemetry, and long-term retention, with practical recommendations, focused code/data changes where appropriate, and relevant tests.

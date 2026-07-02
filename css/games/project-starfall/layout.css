@@ -1,0 +1,15 @@
+@layer components {
+  .project-starfall-map-list,
+  .project-starfall-branch-list,
+  .project-starfall-admin-grid,
+  .project-starfall-save-row {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-save-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 14px;
+  }
+
+}

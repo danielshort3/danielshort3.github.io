@@ -1,0 +1,569 @@
+@layer components {
+  .project-starfall-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+	  .project-starfall-card-deck-panel {
+	    display: grid;
+	    gap: 12px;
+	    width: min(920px, 100%);
+	    min-width: 0;
+	  }
+
+  .project-starfall-card-deck-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid rgba(16,32,51,0.12);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f9f5ea 0%, #ebe2d2 100%);
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-card-deck-summary strong {
+    display: block;
+    color: var(--starfall-ink);
+    font-size: 0.88rem;
+    font-weight: 950;
+  }
+
+	  .project-starfall-card-deck-summary small {
+	    display: block;
+	    line-height: 1.25;
+	  }
+
+	  .project-starfall-card-bonus-heading {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: 6px;
+	    align-items: center;
+	    justify-content: space-between;
+	    min-width: 0;
+	    color: var(--starfall-muted);
+	    font-size: 0.68rem;
+	    font-weight: 900;
+	  }
+
+	  .project-starfall-card-bonus-heading strong {
+	    color: var(--starfall-ink);
+	    font-size: 0.78rem;
+	    font-weight: 950;
+	  }
+
+	  .project-starfall-card-loadout-layout {
+	    display: grid;
+	    grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+	    align-items: start;
+	    gap: 12px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-loadout-main,
+	  .project-starfall-card-owned-section {
+	    display: grid;
+	    gap: 8px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-loadout-main h3,
+	  .project-starfall-card-owned-section h3 {
+	    margin: 0;
+	    color: var(--starfall-ink);
+	    font-size: 0.86rem;
+	    font-weight: 950;
+	  }
+
+	  .project-starfall-card-slot-grid,
+	  .project-starfall-card-owned-grid {
+	    display: grid;
+	    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+	    gap: 8px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-owned-grid {
+	    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+	  }
+
+	  .project-starfall-card-slot {
+	    display: grid;
+	    grid-template-rows: minmax(0, 1fr) auto;
+	    gap: 6px;
+	    min-width: 0;
+	    min-height: 218px;
+	    padding: 6px;
+	    border: 1px solid rgba(16,32,51,0.12);
+	    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-card-slot.is-empty {
+    place-items: center;
+    border-style: dashed;
+    color: rgba(16,32,51,0.45);
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-card-slot.is-empty small {
+    display: block;
+    max-width: 100%;
+    color: var(--starfall-muted);
+    font-size: 0.62rem;
+    line-height: 1.2;
+  }
+
+	  .project-starfall-card-owned-entry {
+	    display: grid;
+	    gap: 6px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-owned-entry.is-blocked {
+	    opacity: 0.82;
+	  }
+
+	  .project-starfall-loadout-card {
+	    position: relative;
+	    display: grid;
+	    min-width: 0;
+	    min-height: 154px;
+	    border: 1px solid rgba(16,32,51,0.16);
+	    border-radius: 8px;
+	    background: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.78);
+    overflow: hidden;
+  }
+
+  .project-starfall-loadout-card.is-selected {
+    outline: 2px solid rgba(47,125,214,0.46);
+    outline-offset: 1px;
+  }
+
+  .project-starfall-loadout-card.rarity-common {
+    background: linear-gradient(180deg, #f8fbf4 0%, #edf4e8 100%);
+  }
+
+  .project-starfall-loadout-card.rarity-uncommon {
+    border-color: rgba(47,125,214,0.32);
+    background: linear-gradient(180deg, #f4fbff 0%, #e6f1fb 100%);
+  }
+
+  .project-starfall-loadout-card.rarity-rare {
+    border-color: rgba(136,86,197,0.36);
+    background: linear-gradient(180deg, #fbf8ff 0%, #eee7fb 100%);
+  }
+
+  .project-starfall-loadout-card.rarity-epic {
+    border-color: rgba(205,78,139,0.38);
+    background: linear-gradient(180deg, #fff7fb 0%, #f8e4ee 100%);
+  }
+
+  .project-starfall-loadout-card.rarity-relic {
+    border-color: rgba(216,165,49,0.52);
+    background: linear-gradient(180deg, #fffbe8 0%, #f3e5bb 100%);
+	  }
+
+	  .project-starfall-card-face {
+	    display: grid;
+	    grid-template-rows: auto auto minmax(0, 1fr);
+	    gap: 8px;
+	    width: 100%;
+	    height: 100%;
+	    min-height: 154px;
+	    padding: 8px;
+	    border: 0;
+	    border-radius: 0;
+    background: transparent;
+    color: var(--starfall-ink);
+    text-align: left;
+	    box-shadow: none;
+	  }
+
+	  .project-starfall-card-main {
+	    display: grid;
+	    grid-template-columns: 56px minmax(0, 1fr);
+	    align-items: start;
+	    gap: 9px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-rarity,
+	  .project-starfall-card-rank {
+	    color: var(--starfall-muted);
+    font-size: 0.56rem;
+    font-weight: 950;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+	  .project-starfall-card-icon {
+	    display: inline-grid;
+	    place-items: center;
+	    width: 56px;
+	    height: 56px;
+	    border: 1px solid rgba(16,32,51,0.12);
+	    border-radius: 8px;
+	    background: rgba(255,255,255,0.82);
+    color: var(--starfall-blue);
+    font-size: 0.72rem;
+    font-weight: 950;
+	    overflow: hidden;
+	  }
+
+	  .project-starfall-card-icon-mark {
+	    display: block;
+	    width: 26px;
+	    height: 34px;
+	    border: 2px solid rgba(47,125,214,0.72);
+	    border-radius: 5px;
+	    background:
+	      linear-gradient(135deg, rgba(123,223,242,0.38), rgba(255,255,255,0.82)),
+	      #ffffff;
+	    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7);
+	  }
+
+	  .project-starfall-card-icon-art {
+	    width: 100%;
+	    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    filter:
+      drop-shadow(0 0 5px rgba(123,223,242,0.28))
+      drop-shadow(0 3px 4px rgba(16,32,51,0.18));
+	    pointer-events: none;
+	  }
+
+	  .project-starfall-card-copy {
+	    display: grid;
+	    gap: 3px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-face strong {
+	    min-width: 0;
+	    color: var(--starfall-ink);
+	    font-size: 0.82rem;
+	    font-weight: 950;
+	    line-height: 1.12;
+	    overflow-wrap: anywhere;
+	  }
+
+	  .project-starfall-card-face small {
+	    min-width: 0;
+	    color: var(--starfall-muted);
+	    font-size: 0.62rem;
+	    font-weight: 800;
+	    line-height: 1.2;
+	    overflow-wrap: anywhere;
+	  }
+
+	  .project-starfall-card-meta {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: 4px;
+	    align-items: center;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-meta span {
+	    display: inline-flex;
+	    max-width: 100%;
+	    min-height: 18px;
+	    align-items: center;
+	    padding: 2px 6px;
+	    border: 1px solid rgba(16,32,51,0.12);
+	    border-radius: 999px;
+	    background: rgba(255,255,255,0.78);
+	    color: var(--starfall-muted);
+	    font-size: 0.56rem;
+	    font-weight: 950;
+	    line-height: 1;
+	    overflow: hidden;
+    text-overflow: ellipsis;
+	    white-space: nowrap;
+	  }
+
+	  .project-starfall-card-stat-list {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: 5px;
+	    align-content: start;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-stat-chip {
+	    display: inline-grid;
+	    grid-template-columns: minmax(0, 1fr) auto;
+	    gap: 6px;
+	    align-items: center;
+	    min-width: min(100%, 118px);
+	    padding: 4px 6px;
+	    border: 1px solid rgba(16,32,51,0.12);
+	    border-radius: 7px;
+	    background: rgba(255,255,255,0.62);
+	    color: var(--starfall-muted);
+	    font-size: 0.6rem;
+	    font-weight: 850;
+	    line-height: 1.15;
+	  }
+
+	  .project-starfall-card-stat-chip b,
+	  .project-starfall-card-stat-chip strong {
+	    overflow: hidden;
+	    text-overflow: ellipsis;
+	    white-space: nowrap;
+	  }
+
+	  .project-starfall-card-stat-chip strong {
+	    color: var(--starfall-ink);
+	    font-weight: 950;
+	  }
+
+	  .project-starfall-card-stat-chip.is-empty {
+	    grid-template-columns: 1fr;
+	    color: var(--starfall-muted);
+	  }
+
+	  .project-starfall-card-stat-list.is-active-bonus {
+	    display: grid;
+	    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+	    padding: 8px 10px;
+	    border: 1px solid rgba(16,32,51,0.12);
+	    border-radius: 8px;
+	    background: rgba(255,255,255,0.54);
+	  }
+
+	  .project-starfall-card-stat-list.is-full {
+	    display: grid;
+	    grid-template-columns: repeat(auto-fit, minmax(min(100%, 146px), 1fr));
+	  }
+
+	  .project-starfall-card-stat-list.is-active-bonus .project-starfall-card-stat-chip,
+	  .project-starfall-card-stat-list.is-full .project-starfall-card-stat-chip {
+	    min-width: 0;
+	  }
+
+	  .project-starfall-star-card-wallet {
+	    display: grid;
+	    gap: 8px;
+	    min-width: 0;
+	    padding: 8px 10px;
+	    border: 1px solid rgba(16,32,51,0.14);
+	    border-radius: 8px;
+	    background: rgba(255,255,255,0.58);
+	  }
+
+	  .project-starfall-star-card-wallet.is-compact {
+	    margin: 0 0 10px;
+	  }
+
+	  .project-starfall-star-card-wallet__head,
+	  .project-starfall-star-card-wallet__head span {
+	    display: flex;
+	    min-width: 0;
+	    align-items: center;
+	    justify-content: space-between;
+	    gap: 8px;
+	  }
+
+	  .project-starfall-star-card-wallet__head strong {
+	    color: var(--starfall-ink);
+	    font-size: 0.72rem;
+	    font-weight: 950;
+	  }
+
+	  .project-starfall-star-card-wallet__head small {
+	    overflow: hidden;
+	    color: var(--starfall-muted);
+	    font-size: 0.58rem;
+	    font-weight: 900;
+	    text-overflow: ellipsis;
+	    white-space: nowrap;
+	  }
+
+	  .project-starfall-star-card-grid,
+	  .project-starfall-star-card-exchanges,
+	  .project-starfall-card-cost-list {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: 6px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-star-card-chip,
+	  .project-starfall-card-cost-chip {
+	    display: inline-grid;
+	    grid-template-columns: 26px auto;
+	    align-items: center;
+	    gap: 6px;
+	    min-height: 32px;
+	    padding: 3px 7px 3px 4px;
+	    border: 1px solid rgba(16,32,51,0.13);
+	    border-radius: 8px;
+	    background: rgba(255,255,255,0.72);
+	    color: var(--starfall-ink);
+	    font-size: 0.62rem;
+	    font-weight: 950;
+	    line-height: 1;
+	  }
+
+	  .project-starfall-card-cost-chip {
+	    grid-template-columns: 26px auto auto;
+	  }
+
+	  .project-starfall-card-cost-chip small {
+	    color: var(--starfall-muted);
+	    font-size: 0.56rem;
+	    font-weight: 900;
+	  }
+
+	  .project-starfall-card-cost-chip.is-missing {
+	    border-color: rgba(188,74,74,0.42);
+	    background: #fff5f1;
+	  }
+
+	  .project-starfall-star-card-art,
+	  .project-starfall-card-cost-art {
+	    display: block;
+	    width: 24px;
+	    height: 24px;
+	    object-fit: contain;
+	  }
+
+	  .project-starfall-star-card-exchanges button {
+	    display: inline-grid;
+	    grid-template-columns: 24px auto 24px;
+	    align-items: center;
+	    gap: 5px;
+	    min-height: 30px;
+	    padding: 3px 7px;
+	    border: 1px solid rgba(47,125,214,0.22);
+	    border-radius: 8px;
+	    background: #eef6ff;
+	    color: #204c84;
+	    font-size: 0.58rem;
+	    font-weight: 950;
+	    line-height: 1;
+	  }
+
+	  .project-starfall-star-card-exchanges button:disabled {
+	    border-color: rgba(16,32,51,0.1);
+	    background: rgba(255,255,255,0.48);
+	    color: var(--starfall-muted);
+	    opacity: 0.68;
+	  }
+
+	  .project-starfall-card-inspector {
+	    display: grid;
+	    gap: 10px;
+	    min-width: 0;
+	    padding: 10px;
+	    border: 1px solid rgba(16,32,51,0.14);
+	    border-radius: 8px;
+	    background:
+	      linear-gradient(180deg, rgba(255,255,255,0.82), rgba(247,244,235,0.94)),
+	      #fbfaf6;
+	    box-shadow: inset 0 1px 0 rgba(255,255,255,0.78);
+	  }
+
+	  .project-starfall-card-inspector.is-empty {
+	    align-content: center;
+	    min-height: 164px;
+	  }
+
+	  .project-starfall-card-inspector-head {
+	    display: grid;
+	    grid-template-columns: 64px minmax(0, 1fr);
+	    gap: 10px;
+	    align-items: center;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-inspector-icon {
+	    display: grid;
+	    place-items: center;
+	    width: 64px;
+	    height: 64px;
+	    border: 1px solid rgba(16,32,51,0.12);
+	    border-radius: 8px;
+	    background: rgba(255,255,255,0.86);
+	    overflow: hidden;
+	  }
+
+	  .project-starfall-card-inspector h3 {
+	    margin: 0;
+	    color: var(--starfall-ink);
+	    font-size: 1rem;
+	    line-height: 1.12;
+	    overflow-wrap: anywhere;
+	  }
+
+	  .project-starfall-card-inspector small {
+	    display: block;
+	    margin-top: 3px;
+	    color: var(--starfall-muted);
+	    font-size: 0.72rem;
+	    font-weight: 800;
+	    line-height: 1.25;
+	  }
+
+	  .project-starfall-card-inspector-section {
+	    display: grid;
+	    gap: 6px;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-card-inspector-section > strong {
+	    color: var(--starfall-ink);
+	    font-size: 0.72rem;
+	    font-weight: 950;
+	    text-transform: uppercase;
+	  }
+
+	  .project-starfall-card-inspector-foot {
+	    display: grid;
+	    gap: 8px;
+	  }
+
+	  .project-starfall-card-inspector-foot > span {
+	    color: var(--starfall-muted);
+	    font-size: 0.72rem;
+	    font-weight: 850;
+	    line-height: 1.25;
+	  }
+
+	  .project-starfall-card-actions {
+	    display: grid;
+	    grid-template-columns: repeat(auto-fit, minmax(min(100%, 82px), 1fr));
+	    gap: 4px;
+	  }
+
+	  .project-starfall-card-actions button,
+	  .project-starfall-card-slot > button {
+	    min-height: 28px;
+	    padding: 0 4px;
+	    border-radius: 6px;
+	    font-size: 0.56rem;
+	    font-weight: 900;
+	    line-height: 1.05;
+	    white-space: normal;
+	  }
+
+  .project-starfall-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    margin-top: 12px;
+  }
+
+  .project-starfall-card-grid > .project-starfall-muted {
+    grid-column: 1 / -1;
+  }
+
+}

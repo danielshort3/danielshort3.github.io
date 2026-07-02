@@ -323,6 +323,7 @@
         <section class="footer-col" aria-labelledby="footer-site">
           <h2 class="footer-col-title" id="footer-site">Site</h2>
           <a href="sitemap-pretty" class="footer-link">Sitemap</a>
+          <a href="?mode=professional" class="footer-link" data-site-realm-switch="professional">Work</a>
           <button type="button" class="footer-link" data-site-chatbot-open hidden>Ask the site assistant</button>
           <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
           <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
@@ -392,14 +393,170 @@
       </svg>
     </button>
   </div>
-  <script defer src="js/games/project-starfall/project-starfall-data.js?v=20260519"></script>
-  <script defer src="js/games/project-starfall/project-starfall-rig.js?v=20260519"></script>
-  <script defer src="js/vendor/pixi.min.js?v=20260519"></script>
-  <script defer src="js/games/project-starfall/project-starfall-renderer-pixi.js?v=20260519"></script>
-  <script defer src="js/games/project-starfall/project-starfall-engine.js?v=20260519"></script>
-  <script defer src="js/games/project-starfall/project-starfall-ui.js?v=20260519"></script>
-  <script defer src="js/games/project-starfall/project-starfall-main.js?v=20260519"></script>
-  <script defer src="dist/site-shell.c7ddeef7.js"></script>
+  <script defer src="js/games/project-starfall/core/math.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/geometry.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/time.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/ids.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/storage.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/format.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/settings.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/core/assets.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/assets.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/viewport.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/performance.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/combat-formulas.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/combat-metrics.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/snapshots.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/debug-log.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/channels.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/state.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/progress-objectives.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/audio.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/inventory.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/upgrades.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/equipment.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/loot.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/pet.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/monster-guide.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/plinko.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/cards.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/cosmetics.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/cash-shop.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/season.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/daily-login.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/party.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/accomplishments.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/stat-upgrades.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/stats.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/market.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/specializations.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/roster.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/class-mastery.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/class-trials.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/target-farm.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/skill-modifiers.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/skills.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/movement.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/visuals.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/map-modifiers.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/map-mechanics.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/map-analytics.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/route-progress.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/dungeons.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/portals.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/world-map.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/quest-npcs.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/engine/generated-maps.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/engine/map-runtime.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/assets.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/environment.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/environment-content.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/items.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/consumables.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/rewards.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/plinko.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/equipment-meta.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/equipment-visuals.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/animations.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/equipment-item-assets.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/cards.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/monster-drops.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/progression.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/progression-content.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/guides.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/enemies.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/combat-fx.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/asset-backups.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/world.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-presentation.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-rules.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/combat-modifiers.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/upgrades.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/accomplishments.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/dungeons.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/boss-encounters.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/boss-mechanics.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/equipment-sets.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/equipment-catalog.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/equipment-economy.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/commerce.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/shop-vendors.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-portals.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-geometry.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-sizing.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-layouts.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-builders.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-town.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-assembly.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-publication.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-catalog.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/map-content.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/daily-login.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/stat-upgrades.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/quests.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/reward-content.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/party.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/onboarding.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/specializations.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/classes.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/skills.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/class-skill-design.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/actor-combat.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/asset-backup-content.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/data/index.js?v=20260619"></script>
+<script defer src="js/games/project-starfall/project-starfall-data.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/project-starfall-rig.js?v=20260619"></script>
+  <script defer src="js/vendor/pixi.min.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/project-starfall-renderer-pixi.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/project-starfall-engine.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/canvas-viewport.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/canvas-windows.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/panel-cache.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/canvas-regions.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/canvas-hover.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/canvas-wheel.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/panels.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/settings.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/asset-preview.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/asset-rendering.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/formatting.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/visuals.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/stat-metadata.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/attunement.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/item-comparison.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/item-requirements.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/item-assets.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/metric-formatting.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/lookups.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/equipment-sets.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/skill-metadata.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/skill-prerequisites.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/skill-display.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/skill-state.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/character-roster.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/character-record.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/shared-storage.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/keybindings.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/input.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/equipment-layout.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/cards.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/inventory-config.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/inventory-drag-drop.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/inventory-items.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/upgrades.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/shop.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/plinko.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/resource-widgets.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/party.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/pet.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/quests.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/monster-guide.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/hud.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/admin-config.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/ui/prompts.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/project-starfall-ui.js?v=20260619"></script>
+  <script defer src="js/games/project-starfall/project-starfall-main.js?v=20260619"></script>
+  <script defer src="dist/site-shell.ca8dd551.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>

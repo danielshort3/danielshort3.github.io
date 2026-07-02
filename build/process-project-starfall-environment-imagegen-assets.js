@@ -865,7 +865,7 @@ async function buildSpriteCell(keyedBuffer, sourceMeta, crop, config, scale) {
       })
       .png()
       .toBuffer();
-    return placeSpriteOnCell(sprite);
+    return placeSpriteOnCell(await trimSpriteAlphaBounds(sprite));
   } catch (error) {
     let fallback = sharp(keyedBuffer).extract(safe);
     if (config.hue || config.brightness || config.saturation) {
@@ -884,8 +884,42 @@ async function buildSpriteCell(keyedBuffer, sourceMeta, crop, config, scale) {
       })
       .png()
       .toBuffer();
-    return placeSpriteOnCell(sprite);
+    return placeSpriteOnCell(await trimSpriteAlphaBounds(sprite));
   }
+}
+
+async function trimSpriteAlphaBounds(sprite) {
+  const image = await sharp(sprite).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width, height, channels } = image.info;
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const alpha = image.data[(y * width + x) * channels + 3];
+      if (alpha <= 8) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+  if (maxX < minX || maxY < minY) return sprite;
+  const pad = 1;
+  const left = Math.max(0, minX - pad);
+  const top = Math.max(0, minY - pad);
+  const right = Math.min(width - 1, maxX + pad);
+  const bottom = Math.min(height - 1, maxY + pad);
+  return sharp(image.data, { raw: image.info })
+    .extract({
+      left,
+      top,
+      width: right - left + 1,
+      height: bottom - top + 1
+    })
+    .png()
+    .toBuffer();
 }
 
 async function placeSpriteOnCell(sprite) {

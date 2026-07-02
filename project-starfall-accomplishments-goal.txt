@@ -1,0 +1,74 @@
+Goal: Expand Project Starfall accomplishments into a motivating short-term and long-term progression system with meaningful but not overpowering rewards.
+
+Primary references:
+- `project_starfall_gdd_v0_5.md`, especially the Current Player Guide, Progression, Monster Guide, Account/Roster Progression, Rewards, Economy, and UI / UX Direction sections.
+- Existing accomplishment implementation in `js/games/project-starfall/project-starfall-data.js`, `project-starfall-engine.js`, `project-starfall-ui.js`, and related tests in `test.js`.
+
+High-level outcome:
+- Add a broad accomplishment ladder that gives players frequent early wins and aspirational long-term grind goals.
+- Rewards should feel worth claiming, support the core loop, and make grinding feel productive without creating runaway power or mandatory chores.
+- Use the existing Accomplishments tab and reward/progress systems unless a focused extension is clearly needed.
+- Preserve the compact RPG-client tone and Starfall terminology.
+
+Start with an audit:
+1. Read the relevant GDD sections and current accomplishment code before editing.
+2. Inventory existing objective event types, reward types, Accomplishments UI rendering, snapshot caching, save migration, and tests.
+3. Identify missing objective/event coverage before adding data. Do not create data that cannot progress naturally.
+4. Check for existing data issues while touching the system, including duplicate keys, invalid ids, unreachable goals, or rewards that cannot be accepted.
+
+Design requirements:
+- Include short-term accomplishments that complete during normal play sessions: first loot, first upgrade, first skill rank, first attunement, early monster kills, first map route, first quest chain, first dungeon, first boss, first useful storage/shop/keybind/pet/party interaction where supported.
+- Include medium-term accomplishments that support the core grind: map clears, enemy-family kills, monster-guide milestones, dungeon/boss clear counts, gear upgrades, attunement use, material collection, card progress, Plinko participation, class trials, advanced class, level bands, and region progression.
+- Include long-term accomplishments that can motivate extended play: high kill counts, repeated boss/dungeon clears, route completion, all-region exploration, multiple advanced classes or roster/class variety if account scope supports it, high upgrade/attunement milestones, collection goals, and mastery-style achievements.
+- Organize accomplishments by clear categories and tiers, such as Onboarding, Combat, Exploration, Collection, Crafting, Boss, Dungeon, Class, Roster, and Mastery.
+- Use a tier ladder that scans well in UI: Bronze/Silver/Gold/Relic/Mythic or the established local equivalent. Avoid cluttering the first viewport with too many same-looking entries.
+- Prefer chains with visible next steps over a flat list of unrelated goals. Example: `Slime Sweeper I/II/III`, `Greenroot Pathfinder`, `Bossbreaker`, `Route Veteran`, `Starfall Master`.
+- Keep objectives specific and player-readable. Labels should state the target and count plainly.
+- Avoid daily/weekly chore design unless the existing economy already uses it. Long-term grind should be optional, satisfying, and naturally aligned with gameplay.
+
+Reward balance requirements:
+- Rewards must be significant enough to matter: useful consumables, upgrade materials, coupons, Star Tokens, moderate currency, rare but not excessive gear, cosmetic unlocks, timed buffs, and small permanent stats.
+- Permanent stats must be conservative and capped by finite accomplishment count. They should feel like account/character prestige, not replace gear, skills, or leveling.
+- Avoid large percent multipliers, uncapped stacking, best-in-slot gear spam, and rewards that trivialize early combat.
+- Short-term rewards should be practical and consumable-heavy.
+- Medium-term rewards can add materials, coupons, selected Rare gear, Star Tokens, and modest timed buffs.
+- Long-term rewards can include cosmetics, titles if supported, notable material bundles, rare account/roster-style utility if supported, and small permanent stat bonuses.
+- Ensure inventory capacity is respected. If rewards include items/cards/equipment, verify `canAcceptProgressReward` behavior and UX messaging.
+- Reward summaries in UI should remain readable and not overflow.
+
+Implementation requirements:
+- Extend `ACCOMPLISHMENTS` with enough authored goals to make the tab feel like a real progression system, not a placeholder. Aim for a balanced set rather than just one category.
+- Add or extend progress event support only when needed for real gameplay events. Wire events at the source of truth, not from UI-only code.
+- Keep save compatibility and snapshot caching intact.
+- If accomplishment scope should be account-wide, implement or explicitly defer that with a clear note. Do not silently mix per-character and account-wide semantics.
+- Improve the Accomplishments UI if the expanded list becomes hard to scan: category/tier grouping, filters/tabs, progress bars, claimable ordering, compact rows, or better tooltips are acceptable.
+- Make claimable accomplishments visible and satisfying without noisy interruptions.
+- Keep hit regions aligned with any canvas changes.
+
+Suggested accomplishment coverage:
+- Onboarding: first loot, first equipment change, first skill rank, first quest claim, first upgrade, first attunement.
+- Combat: enemy family ladders, map-specific kill ladders, elite/boss defeats, no-overkill or survival goals only if currently tracked.
+- Exploration: visit towns, reach region hubs, use portals, complete route stages.
+- Crafting/economy: upgrade attempts/successes, material collection, shard crafting, slot unlock coupons, shop usage.
+- Class/progression: level bands, advanced class selection, class trial completion, skill batch/rank milestones.
+- Dungeon/boss: first clear, repeat clears, multi-region boss clears, route boss chains.
+- Collection: monster guide progress, cards, cosmetics, Plinko balls/prizes, rare drops where supported.
+- Long grind: 250/500/1000+ kills, 10/25 boss clears, all current region routes, high upgrade tier, high attunement tier/line count, broad collection/mastery goals.
+
+Testing and verification:
+- Add or update tests for accomplishment data validity, objective ids/types, reward validity, balance guardrails, progression events, claim behavior, snapshot refresh/caching, migration, and UI contracts.
+- Include tests that prove short-term and long-term accomplishments can progress and claim through normal events.
+- Run `node --check` on changed JS files.
+- Run relevant focused Starfall tests if available, then run `npm test`.
+- Start or use a local dev server and visually inspect the Accomplishments tab with unclaimed, claimable, and claimed entries. Capture screenshots before/after when practical.
+- Check that the expanded list remains readable in desktop and constrained viewport sizes.
+
+Acceptance criteria:
+- The Accomplishments tab contains a coherent mix of short-term, medium-term, and long-term goals across major gameplay loops.
+- Rewards are meaningful, valid, claimable, and balanced against game progression.
+- Long-term goals encourage grinding without becoming mandatory daily chores or runaway power.
+- UI labels, categories, progress text, and reward summaries are readable and guide-aligned.
+- Existing gameplay, saves, and reward systems still work.
+- Relevant tests pass.
+
+End with a concise summary of: accomplishments added, reward philosophy, event/system changes, UI changes, visual checks, tests run, and any remaining risks or deferred account-wide scope.

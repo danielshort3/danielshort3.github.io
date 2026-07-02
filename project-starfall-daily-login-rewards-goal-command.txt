@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-daily-login-rewards-goal.txt to add Project Starfall daily login rewards with a fair daily loop, enticing long-term milestones, balanced rewards, clean guide-aligned UX, visual verification, and passing tests.

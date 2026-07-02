@@ -1,0 +1,133 @@
+@layer components {
+  .project-starfall-kicker {
+    margin: 0 0 8px;
+    color: var(--starfall-blue);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+  }
+
+  .project-starfall-class-card h2,
+  .project-starfall-modal-header h2 {
+    margin: 0;
+    font-size: 1.55rem;
+  }
+
+  .project-starfall-class-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .project-starfall-panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .project-starfall-segmented {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .project-starfall-segmented button {
+    min-height: 32px;
+    padding: 6px 9px;
+  }
+
+  .project-starfall-segmented button[aria-pressed="true"] {
+    border-color: rgba(104,169,255,0.72);
+    background: #eef6ff;
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-class-button,
+  .project-starfall-modal-close,
+  .project-starfall-panel-body button,
+  .project-starfall-save-row button {
+    min-height: 42px;
+    border: 1px solid rgba(245,207,114,0.42);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #1f3b54, #071323);
+    color: #fff3cf;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+
+  .project-starfall-class-button {
+    display: grid;
+    grid-template-rows: minmax(96px, 1fr) auto auto;
+    gap: 7px;
+    min-height: 190px;
+    align-content: center;
+    justify-items: center;
+    padding: 14px;
+    overflow: hidden;
+    text-align: center;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      0 10px 24px rgba(9,31,59,0.12);
+  }
+
+  .project-starfall-class-art {
+    width: 100%;
+    height: 116px;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 8px 10px rgba(16,32,51,0.18));
+    pointer-events: none;
+  }
+
+  .project-starfall-class-button span {
+    font-size: 1.2rem;
+  }
+
+  .project-starfall-class-button small {
+    color: rgba(255,243,207,0.72);
+    font-weight: 700;
+  }
+
+  .project-starfall-class-button--fighter {
+    border-color: rgba(217, 88, 74, 0.46);
+    background: linear-gradient(180deg, rgba(91,40,43,0.92), rgba(24,20,31,0.96));
+  }
+
+  .project-starfall-class-button--mage {
+    border-color: rgba(89,216,255,0.48);
+    background: linear-gradient(180deg, rgba(22,62,91,0.94), rgba(7,19,35,0.96));
+  }
+
+  .project-starfall-class-button--archer {
+    border-color: rgba(78, 157, 97, 0.48);
+    background: linear-gradient(180deg, rgba(32,76,57,0.92), rgba(7,19,35,0.96));
+  }
+
+  .project-starfall-class-button:hover,
+  .project-starfall-modal-close:hover,
+  .project-starfall-panel-body button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(89,216,255,0.64);
+    box-shadow:
+      0 10px 22px rgba(9, 31, 59, 0.2),
+      inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+
+  .project-starfall-class-button:focus-visible,
+  .project-starfall-modal-close:focus-visible,
+  .project-starfall-panel-body button:focus-visible {
+    outline: 3px solid rgba(89,216,255,0.32);
+    outline-offset: 2px;
+  }
+
+  .project-starfall-panel-body button:disabled {
+    cursor: not-allowed;
+    opacity: 0.52;
+    transform: none;
+    box-shadow: none;
+  }
+}

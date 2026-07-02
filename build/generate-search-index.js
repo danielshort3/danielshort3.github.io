@@ -19,6 +19,10 @@ const toolsIndexPath = path.join(root, 'pages', 'tools.html');
 const toolsContentDir = path.join(root, 'content', 'tools');
 const outPath = path.join(root, 'dist', 'search-index.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
+const hiddenProfessionalPathPatterns = [
+  /^\/(?:analytics|data-science|tourism|destination-analytics|contributions)$/i,
+  /^\/resume(?:-[a-z-]+)?(?:-pdf)?$/i
+];
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -291,7 +295,9 @@ function main() {
 		    const canonical = extractCanonical(html);
 		    const urlPath = toPathFromCanonical(canonical) || toPathFromRelFile(relPath, toolKeywords);
 		    if (!urlPath || !urlPath.startsWith('/')) return;
-        if (noindexPathnames.has(normalizePathname(urlPath))) return;
+        const normalizedUrlPath = normalizePathname(urlPath);
+        if (noindexPathnames.has(normalizedUrlPath)) return;
+        if (hiddenProfessionalPathPatterns.some((pattern) => pattern.test(normalizedUrlPath))) return;
 
     const category = categoryForPath(urlPath);
     const title = stripOwnerPrefix(extractTitle(html) || urlPath, urlPath) || urlPath;

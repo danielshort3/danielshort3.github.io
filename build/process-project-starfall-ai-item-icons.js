@@ -14,6 +14,7 @@ const ROOT = path.resolve(__dirname, '..');
 const STARFALL_ROOT = path.join(ROOT, 'img/project-starfall');
 const SOURCE_DIR = path.join(STARFALL_ROOT, 'items/source');
 const OUTPUT_DIR = path.join(STARFALL_ROOT, 'items/sheets');
+const ICON_OUTPUT_DIR = path.join(STARFALL_ROOT, 'items/icons');
 const BACKUP_ROOT = path.join(STARFALL_ROOT, 'backups/procedural');
 const ICON_SIZE = 64;
 const KEY_COLOR = Object.freeze({ r: 0, g: 255, b: 0 });
@@ -22,6 +23,20 @@ const FINAL_COMPONENT_MIN_AREA = 10;
 const RATE_COUPON_OUTPUT_FILE = 'ai-items-rate-coupons-sheet.png';
 const POTION_TIER_SOURCE_FILE = 'ai-items-potion-tiers.png';
 const POTION_TIER_OUTPUT_FILE = 'ai-items-potion-tiers-sheet.png';
+const EXTERNAL_ITEM_SHEETS = Object.freeze([
+  Object.freeze({
+    file: 'ai-items-star-cards-sheet.png',
+    cols: 5,
+    rows: 1,
+    ids: Object.freeze([
+      'white_star_card',
+      'green_star_card',
+      'blue_star_card',
+      'purple_star_card',
+      'orange_star_card'
+    ])
+  })
+]);
 const RATE_COUPON_ITEMS = Object.freeze([
   Object.freeze({ id: 'xp_coupon_1_2_1h', type: 'xp', tier: 0, main: '#54a5ff', accent: '#cbe8ff', foil: '#c98b45' }),
   Object.freeze({ id: 'xp_coupon_1_5_1h', type: 'xp', tier: 1, main: '#6f7dff', accent: '#e1e7ff', foil: '#d7dde7' }),
@@ -92,13 +107,15 @@ const SHEETS = Object.freeze([
       Object.freeze({ id: 'base_skill_manual', sourceIndex: 15 }),
       Object.freeze({ id: 'advanced_skill_manual', sourceIndex: 16 }),
       Object.freeze({ id: 'skill_reset_scroll', sourceIndex: 17 }),
+      Object.freeze({ id: 'stat_reset_scroll', sourceIndex: 17 }),
       Object.freeze({ id: 'admin_worldwright_console', sourceIndex: 18 }),
       Object.freeze({ id: 'upgrade_dust', sourceIndex: 19 }),
       Object.freeze({ id: 'upgrade_catalyst', sourceIndex: 20 }),
       Object.freeze({ id: 'warding_scroll', sourceIndex: 21 }),
       Object.freeze({ id: 'refinement_core', sourceIndex: 22 }),
       Object.freeze({ id: 'gel_drop', sourceIndex: 23 }),
-      Object.freeze({ id: 'ore_chunks', sourceIndex: 24 })
+      Object.freeze({ id: 'ore_chunks', sourceIndex: 24 }),
+      Object.freeze({ id: 'line_catalyst', sourceIndex: 12 })
     ])
   }),
   Object.freeze({
@@ -603,6 +620,19 @@ function getSheetOutputRows(sheet) {
   return Math.max(1, Math.floor(Number(sheet && (sheet.outputRows || sheet.rows) || 1)) || 1);
 }
 
+function getItemIconFileName(itemId) {
+  return String(itemId || '')
+    .replace(/_/g, '-')
+    .replace(/[^a-zA-Z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+}
+
+function getItemIconOutputPath(itemId) {
+  return path.join(ICON_OUTPUT_DIR, `${getItemIconFileName(itemId)}.png`);
+}
+
 function getSheetItemId(entry) {
   if (typeof entry === 'string') return entry;
   return entry && typeof entry.id === 'string' ? entry.id : '';
@@ -901,11 +931,50 @@ async function normalizeIconFill(raw, width, height) {
   return removeSmallAlphaComponents(purgeVisibleChromaKeyRgba(composed, width, height), width, height, FINAL_COMPONENT_MIN_AREA);
 }
 
+async function writeIndividualIcon(itemId, icon) {
+  const destination = getItemIconOutputPath(itemId);
+  ensureFileDir(destination);
+  await sharp(icon)
+    .resize(ICON_SIZE, ICON_SIZE, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 0 }
+    })
+    .png({ compressionLevel: 9 })
+    .toFile(destination);
+  ensureRuntimeBackup(destination);
+  return rel(destination);
+}
+
+async function writeExternalSheetIcons(sheet) {
+  const sourcePath = path.join(OUTPUT_DIR, sheet.file);
+  if (!fs.existsSync(sourcePath)) return [];
+  const written = [];
+  for (let index = 0; index < sheet.ids.length; index += 1) {
+    const id = sheet.ids[index];
+    const col = index % sheet.cols;
+    const row = Math.floor(index / sheet.cols);
+    const icon = await sharp(sourcePath)
+      .extract({
+        left: col * ICON_SIZE,
+        top: row * ICON_SIZE,
+        width: ICON_SIZE,
+        height: ICON_SIZE
+      })
+      .ensureAlpha()
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+    written.push(await writeIndividualIcon(id, icon));
+  }
+  return written;
+}
+
 async function main() {
   const data = require(path.join(ROOT, 'js/games/project-starfall/project-starfall-data.js'));
   const assets = data.ITEM_ASSETS || {};
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  fs.mkdirSync(ICON_OUTPUT_DIR, { recursive: true });
   const written = [];
+  const writtenIcons = [];
   for (const sheet of SHEETS) {
     const sourcePath = path.join(SOURCE_DIR, sheet.source);
     if (!fs.existsSync(sourcePath)) throw new Error(`Missing AI item source sheet: ${path.relative(ROOT, sourcePath)}`);
@@ -937,6 +1006,7 @@ async function main() {
       if (!assetPath) throw new Error(`Missing ITEM_ASSETS mapping for ${id}`);
       const cell = await extractCell(sheetRuntime, sourceIndex);
       const icon = await renderIcon(cell, id);
+      writtenIcons.push(await writeIndividualIcon(id, icon));
       composites.push({
         input: icon,
         left: (index % outputCols) * ICON_SIZE,
@@ -965,6 +1035,9 @@ async function main() {
     }
     written.push(rel(destination));
   }
+  for (const sheet of EXTERNAL_ITEM_SHEETS) {
+    writtenIcons.push(...await writeExternalSheetIcons(sheet));
+  }
   const coveredIds = new Set(SHEETS.reduce((ids, sheet) => {
     (sheet.items || []).forEach((entry) => {
       const id = getSheetItemId(entry);
@@ -975,6 +1048,14 @@ async function main() {
   RATE_COUPON_ITEMS.forEach((item) => coveredIds.add(item.id));
   coveredIds.add('stat_reset_scroll');
   const uniqueWritten = new Set(written);
+  EXTERNAL_ITEM_SHEETS.forEach((sheet) => {
+    const relativeFile = `img/project-starfall/items/sheets/${sheet.file}`;
+    const fullPath = path.join(ROOT, relativeFile);
+    if (!fs.existsSync(fullPath)) return;
+    uniqueWritten.add(relativeFile);
+    (sheet.ids || []).forEach((id) => coveredIds.add(id));
+  });
+  writtenIcons.forEach((file) => uniqueWritten.add(file));
   const missing = Object.keys(assets)
     .filter((id) => !coveredIds.has(id));
   if (missing.length) {
@@ -988,6 +1069,7 @@ async function main() {
     throw new Error(`ITEM_ASSETS references sheets that were not generated: ${missingSheets.join(', ')}`);
   }
   written.forEach((file) => process.stdout.write(`Processed ${file}\n`));
+  writtenIcons.forEach((file) => process.stdout.write(`Processed ${file}\n`));
 }
 
 main().catch((error) => {

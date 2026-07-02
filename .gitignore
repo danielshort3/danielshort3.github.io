@@ -21,6 +21,7 @@ node_modules/
 # Build output (Vercel will run the build)
 dist/
 public/
+build/cache/
 /go/
 .short-links-generated
 /Slot-Machine-v4
@@ -32,6 +33,7 @@ tips_data_geocoded.csv
 Covid-Analysis/
 /aws/covid-outbreak-drivers/output
 /aws/target-empty-package/output
+aws/**/*.zip
 Baby-Names/
 /Project Submission
 /_local/

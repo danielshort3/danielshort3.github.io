@@ -3100,6 +3100,11 @@ async function main() {
   if (onlyTarget && !['portals', 'maps', 'trial-maps', 'boss-rooms', 'equipment'].concat(playerTargets).includes(onlyTarget)) {
     throw new Error(`Unsupported --only target: ${onlyTarget}`);
   }
+  if (playerTargets.includes(onlyTarget)) {
+    const playerAssetProcessor = require('./process-project-starfall-player-ai-assets.js');
+    await playerAssetProcessor.main(validateOnly ? ['--validate'] : []);
+    return;
+  }
   if (validateOnly) {
     if (onlyTarget && !playerTargets.includes(onlyTarget)) {
       throw new Error(`Validation is only supported for procedural player targets, received: ${onlyTarget}`);

@@ -1,0 +1,60 @@
+Goal: Audit, polish, and finalize Project Starfall's UI so every visible interface is consistent, legible, themed, detailed, and professionally finished.
+
+Use this reference image as the visual benchmark and inspect it before changing UI:
+/home/sd205521/.codex/generated_images/019e9dfe-762b-73d1-9463-099d891bf36b/ig_0761409679e66e4b016a24a81c591c81978d515c840e6404bf.png
+
+Target visual direction from the reference:
+- Dark navy/black fantasy panels with ornate gold framing and crisp corner accents.
+- Warm parchment content surfaces for rows, cards, lists, and detail areas.
+- Blue/gold highlight accents for active states, icons, separators, and important values.
+- Framed icon slots, polished buttons, readable dense RPG information, strong contrast, and generous padding between text and borders.
+- A professional game UI that feels rich and cohesive without becoming cluttered.
+
+Start by inspecting the current Project Starfall UI implementation, CSS, canvas rendering code, HUD, inventory, character/equipment panels, shops, attunement screens, quest tracker, minimap, tooltips, menus, modals, bottom HUD, hotbar, notifications, and any other game UI surfaces.
+
+Build an inventory of issues:
+- UI elements that do not match the theme.
+- Inconsistent panel, button, icon, scrollbar, tab, tooltip, or status bar styling.
+- Text overlap, clipping, truncation, or border crowding.
+- Weak contrast, cramped margins, poor line height, or hard-to-read text.
+- Low-detail or placeholder-looking panels.
+- Responsive layout risks at desktop and smaller viewport sizes.
+- Canvas hit regions that may not align with the drawn controls.
+
+Then compare implementation approaches before editing. Consider:
+- Shared theme tokens and drawing helpers instead of one-off styling.
+- CSS component updates for repeated HTML UI.
+- Canvas panel helper consolidation for repeated game windows.
+- Typography, spacing, panel sizing, row density, and icon/button frame consistency.
+- More ornamental detail where it improves polish, without reducing readability.
+- Responsive behavior for constrained viewports.
+
+Implementation requirements:
+- Make all major UI surfaces match one coherent Project Starfall theme close to the reference.
+- Prevent text overlap, clipping, and border crowding.
+- Keep all text legible with appropriate contrast, font size, line height, and margins.
+- Standardize windows, buttons, tabs, close controls, scrollbars, tooltips, cards, rows, prompts, HUD elements, and icon frames.
+- Add enough visual detail for a polished RPG interface without cluttering screens.
+- Preserve usability: controls should remain obvious, hit regions should match visuals, and dense UI should still scan quickly.
+- Prefer shared styling helpers/tokens when multiple surfaces need the same treatment.
+- Avoid unrelated gameplay changes.
+
+Verification requirements:
+- Add focused regression tests for UI contracts that can be checked in code.
+- Run syntax checks for changed JS files.
+- Run npm test.
+- Start or use a local dev server if needed and inspect the actual game visually.
+- Capture screenshots for important UI states, including desktop and smaller viewport/mobile-like sizes where supported.
+- Review screenshots for overlap, clipping, inconsistent theming, poor margins, and illegible text.
+- Fix issues found during visual review before marking the goal complete.
+
+Acceptance criteria:
+- Major Project Starfall UI surfaces align with the reference image's dark framed fantasy UI, gold trim, parchment detail panels, and high-detail RPG presentation.
+- No obvious text overlap, clipping, or border crowding remains in inspected primary screens.
+- Buttons, icons, tabs, close controls, scrollbars, and status bars are visually consistent across screens.
+- Text hierarchy and contrast are clear enough for fast reading.
+- The UI looks professional and polished rather than placeholder, sparse, or mismatched.
+- Existing functionality still works and tests pass.
+- End with a concise summary of surfaces audited, major styling/template decisions, files changed, screenshots or visual checks performed, and verification results.
+
+Do not stop at brainstorming. Inspect, compare options, implement the strongest polish pass, visually verify it, fix issues found during review, and only mark complete when the current UI state satisfies the criteria above.
