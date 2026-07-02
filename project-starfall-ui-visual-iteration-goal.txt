@@ -1,0 +1,78 @@
+Goal: Audit, repair, polish, visually verify, and finalize Project Starfall's UI across all major screens and interaction states.
+
+Primary references:
+- project_starfall_gdd_v0_5.md, especially "0.9 Current Player Guide", "22. UI / UX Direction", and "23. Art Direction".
+- Existing Project Starfall implementation in pages/games/project-starfall.html, css/components/project-starfall.css, and js/games/project-starfall/.
+- The current playable browser build, inspected directly in desktop and constrained viewport sizes.
+
+High-level outcome:
+- Every important UI surface must be readable, visible, and comfortable to use.
+- UI text, controls, panels, tooltips, prompts, and canvas-drawn windows must not overlap, clip, crowd borders, hide essential content, or force the player to guess what is offscreen.
+- The UI should match the Current Player Guide terminology, controls, features, and flow. If the guide says a system exists, the UI should expose it clearly. If the UI says something, it should agree with the guide and current implementation.
+- Preserve the compact RPG-client feel from the GDD, but raise the visual and usability quality so it feels intentional rather than cramped.
+
+Known issue to prioritize:
+- The attunement window is currently extremely narrow. Widen, reflow, or otherwise redesign the attunement UI so selected gear, current lines, previewed Echo Prism rolls, action buttons, costs, outcomes, and explanatory text are visible without awkward clipping or unreadable wrapping.
+
+Start with a real audit:
+1. Read the guide and UI/UX sections of project_starfall_gdd_v0_5.md before editing.
+2. Inspect the current UI code and identify every major UI surface, including:
+   - Start screen, character select, character creation, and class selection.
+   - Main HUD, HP/MP/resource bars, XP, coins, hotbar, cooldowns, buffs, debuffs, combat metrics, minimap, guide strip, toasts, and notifications.
+   - Command menu, top-window stack, close controls, keyboard shortcuts, and focus behavior.
+   - Character, equipment, inventory, item tooltips, comparison tooltips, usable item flows, quantity prompts, and storage-like lists.
+   - Skills, skill tree/batches, rank-up flows, prerequisites, advanced class trials, and party/self-buff panels.
+   - Quests, class master flow, dungeons, world map, portals, NPC dialogue, shop, upgrade station, attunement, monster guide, accomplishments, keybinds, session log, pet UI, admin/settings, debug/performance panels, modals, and fallback DOM panels.
+3. Build a written inventory of visual and UX issues before implementing. Include clipping, text overflow, too-small panels, weak contrast, inconsistent spacing, unclear labels, hidden controls, inaccessible states, stale guide terminology, and mismatched visual language.
+
+Implementation standards:
+- Make content visible first. Increase panel sizes, add scroll regions, improve wrapping, use responsive layouts, or split dense content into tabs/sections when needed.
+- Keep text away from borders. Use consistent padding, line height, and vertical rhythm.
+- Use clear hierarchy: titles, section labels, stat values, warnings, costs, and primary actions should scan quickly.
+- Standardize repeated elements: windows, headers, tabs, buttons, close controls, icon slots, scrollbars, meters, cards, rows, empty states, disabled states, warnings, and tooltips.
+- Keep hit regions aligned with drawn controls, especially for canvas UI. If a button is drawn larger or moved, update its hit box.
+- Preserve keyboard usability from the guide, including Escape closing the top window and attunement UI.
+- Follow common UX expectations: visible focus states for DOM controls, obvious disabled states, clear feedback after actions, predictable close/back behavior, readable contrast, stable layouts, no layout jump when labels change, and minimum practical target sizes for buttons.
+- Keep the Starfall visual identity: dark navy panels, gold/star-white/crystal accents, readable fantasy RPG framing, parchment-like detail areas where useful, and no modern sci-fi styling that conflicts with the GDD.
+- Do not turn the game page into a landing page. The playable experience remains primary.
+- Avoid unrelated gameplay or balance changes unless they are strictly necessary to make UI behavior truthful.
+
+Attunement-specific requirements:
+- The attunement UI must clearly show the selected gear name, slot, rarity/tier, current attunement tier, current lines, possible new lines, material costs, prism shard conversion state, and available actions.
+- Echo Prism preview must clearly distinguish "keep current" from "apply preview".
+- Attunement line labels, stat values, and descriptions must not be truncated in normal desktop play.
+- If the content is too dense, use a wider window, two-column layout, readable scroll panel, or detail subpanel rather than shrinking text to unreadable sizes.
+- Confirm that item tooltips and inventory rows still show attunement lines cleanly after the window changes.
+
+Guide-alignment requirements:
+- Compare UI labels, shortcuts, and flows against the Current Player Guide.
+- Confirm the UI communicates the implemented first loop: choose class, use guide strip/world map/quests/portals, defeat monsters, pick up loot, equip gear, rank skills, use shops, progress class trials, upgrade gear, and use attunement items.
+- Confirm key panels and shortcuts in the guide are discoverable in the UI: Character, Equipment, Party, Pet, World Map, Monster Guide, Skills, Quests, Inventory, Shop, Upgrade, Session Log, Keybinds, Combat Metrics, Performance Debug, save/load/delete character, and Level 100 Boost.
+- Fix stale, misleading, or inconsistent player-facing copy when found.
+
+Visual verification requirements:
+- Start or use a local dev server and inspect the actual Project Starfall page.
+- Capture screenshots for representative states before and after fixes where possible.
+- Verify at desktop size and at least one constrained/mobile-like viewport.
+- Inspect screenshots manually for overlap, clipping, unreadable text, hidden actions, text touching borders, inconsistent theming, broken scroll regions, and controls drawn away from their hit regions.
+- For canvas-heavy UI, use Playwright screenshots and canvas pixel checks where practical to make sure the canvas is nonblank and windows render correctly.
+- Fix issues found during visual review before marking the goal complete.
+
+Testing requirements:
+- Add or update focused regression tests where practical for UI contracts, panel sizing, shortcut labels, attunement state display, or guide-aligned content.
+- Run syntax checks for changed JavaScript files.
+- Run relevant Starfall test suites where practical, then run npm test.
+- If a full test cannot be run, explain exactly why and what was run instead.
+
+Acceptance criteria:
+- All major Project Starfall UI surfaces have been inspected in the running game.
+- The attunement window is no longer extremely narrow and its core content is readable without obvious clipping.
+- Primary panels, tooltips, prompts, menus, HUD elements, meters, and buttons have consistent spacing, contrast, and visual language.
+- No obvious text overlap, clipped labels, hidden actions, or border crowding remains in inspected primary screens.
+- UI terminology and shortcuts match the Current Player Guide and implemented behavior.
+- The dense RPG-client UI remains compact, but it is clean, readable, and professionally organized.
+- Existing gameplay functionality still works.
+- Relevant tests pass.
+- End with a concise summary of audited surfaces, major changes, files changed, visual checks performed, tests run, and any remaining known risks.
+
+Do not stop at brainstorming. Inspect, document issues, compare implementation options, make the strongest focused fixes, visually verify them, iterate on anything still broken, and only mark the goal complete when the UI is genuinely clean and guide-aligned.

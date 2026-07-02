@@ -1,0 +1,56 @@
+Create and pursue a goal to substantially improve Project Starfall engine performance until gameplay has little to no noticeable lag spikes.
+
+Repository: /mnt/c/Users/clopt/Documents/coding/Personal_Projects/danielshort3.github.io
+
+Primary objective:
+Profile, diagnose, and iteratively optimize the current Project Starfall engine, renderer, UI, and inventory/gameplay interaction paths so the game experience is much smoother. There are currently lag spikes across different interactions, so do not assume a single cause. Continue investigating, implementing, testing, and re-measuring until the major lag sources are resolved or clearly blocked by missing information.
+
+Important workflow:
+1. Read the existing Project Starfall code first, especially:
+   - js/games/project-starfall/project-starfall-engine.js
+   - js/games/project-starfall/project-starfall-ui.js
+   - js/games/project-starfall/project-starfall-renderer-pixi.js
+   - js/games/project-starfall/project-starfall-main.js
+   - css/games/project-starfall.css
+   - test.js
+2. Establish a baseline before optimizing. Add temporary or dev-only measurements if needed, such as frame-time logging, long-frame counters, interaction timing, render-loop timing, UI redraw timing, inventory render timing, snapshot generation timing, persistence timing, and asset/render cache timing.
+3. Reproduce and inspect likely lag-heavy interactions:
+   - opening/closing inventory and switching tabs
+   - using consumables, prisms, line catalysts, and upgrade prompts
+   - hovering/passing NPCs and station prompts
+   - combat with many entities/effects
+   - loot pickup, sorting, stacking, slot unlocks
+   - map transitions and portal/town/shop interactions
+   - minimap/status/HUD/window rendering
+   - equipment/stat recalculation and item comparison rendering
+4. Consider multiple optimization pathways before settling on fixes:
+   - reduce per-frame work
+   - cache expensive derived data
+   - use dirty flags and incremental updates instead of rebuilding full UI/snapshots
+   - throttle/debounce repeated interaction work
+   - defer non-urgent work with idle callbacks or small batches
+   - avoid repeated sorting/filtering during render
+   - reduce object churn and garbage collection pressure
+   - pool temporary objects/effects where reasonable
+   - optimize spatial/entity/collision/NPC queries
+   - avoid expensive DOM or canvas work when panels are hidden
+   - precompute static metadata and asset lookups
+   - improve texture/image cache behavior
+   - split heavy persistence/save work from immediate interaction feedback
+   - use workers only if there is a clear heavy task that benefits from it
+5. Keep changes pragmatic and scoped. Prefer the repo's existing patterns. Do not rewrite the whole engine unless profiling proves it is necessary.
+6. After each meaningful change, re-run relevant checks and compare performance measurements against the baseline.
+7. Iterate. If one optimization does not materially improve lag, keep investigating alternative bottlenecks.
+8. Preserve existing gameplay behavior unless a behavior change is explicitly needed for performance.
+9. Add or update focused regression tests where possible, especially for any changed inventory, attunement, rendering, or interaction behavior.
+10. Do not revert unrelated dirty worktree changes. Work with the existing state.
+
+Acceptance criteria:
+- Major interaction lag spikes are measurably reduced.
+- Frame-time spikes during common interactions are much lower than baseline.
+- Inventory, NPC prompts, combat, item usage, upgrades, and map/UI interactions feel noticeably smoother.
+- No known regressions in existing Project Starfall behavior.
+- npm test passes, and relevant Starfall suites are run where practical.
+- Summarize the measured bottlenecks, optimizations made, before/after results, tests run, and any remaining risks.
+
+Stay on the task until the engine is genuinely improved, not just until one suspected issue is fixed.

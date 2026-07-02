@@ -13,8 +13,8 @@ const vm = require('vm');
 const sharp = require('sharp');
 
 const root = path.resolve(__dirname, '..');
-const manifestPath = path.join(root, 'js', 'demos', 'stellar-dogfight-art.js');
-const rasterDir = path.join(root, 'img', 'stellar-dogfight', 'raster');
+const manifestPath = path.join(root, 'js', 'games', 'stellar-dogfight', 'art.js');
+const rasterDir = path.join(root, 'img', 'games', 'stellar-dogfight', 'raster');
 
 function readArtManifest() {
   const source = fs.readFileSync(manifestPath, 'utf8');

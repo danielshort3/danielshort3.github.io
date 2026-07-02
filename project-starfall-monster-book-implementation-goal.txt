@@ -1,0 +1,1 @@
+/goal Implement the Monster Guide system described in docs/project-starfall-monster-book-blueprint.md. Work from the current Project Starfall codebase and deliver the blueprint's optimized monster book, enemy information, drop table UI, progressive research unlocks, collection tracking, rewards, UX, data model, save migration, and tests without regressing existing game behavior.

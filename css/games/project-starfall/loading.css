@@ -1,0 +1,252 @@
+@layer components {
+  .project-starfall-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 24;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background:
+      linear-gradient(180deg, rgba(8, 18, 34, 0.22), rgba(8, 18, 34, 0.8) 62%, rgba(8, 18, 34, 0.94)),
+      url("../../../img/project-starfall/ui/splash-screen.png") center / cover no-repeat,
+      #102033;
+    color: #ffffff;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 420ms ease, visibility 0s linear 0s;
+  }
+
+  .project-starfall-canvas-wrap.is-loaded .project-starfall-loading {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 420ms ease, visibility 0s linear 420ms;
+  }
+
+  .project-starfall-canvas-wrap.is-map-transitioning #project-starfall-canvas,
+  .project-starfall-canvas-wrap.is-map-transitioning .project-starfall-pixi-stage,
+  .project-starfall-canvas-wrap.is-map-transitioning .project-starfall-station,
+  .project-starfall-canvas-wrap.is-map-transitioning .project-starfall-toast {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .project-starfall-canvas-wrap.is-transition-loader-visible .project-starfall-loading {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transition: opacity 220ms ease, visibility 0s linear 0s;
+  }
+
+  .project-starfall-loading-card {
+    width: min(360px, 100%);
+    padding: 22px;
+    border: 1px solid rgba(245,207,114,0.48);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(31,59,84,0.92), rgba(7,19,35,0.96)),
+      rgba(9, 31, 59, 0.88);
+    box-shadow:
+      0 18px 46px rgba(0,0,0,0.32),
+      inset 0 0 0 1px rgba(255,255,255,0.08);
+    text-align: center;
+  }
+
+  .project-starfall-start-screen {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: grid;
+    align-items: end;
+    justify-items: start;
+    padding: clamp(22px, 4vw, 54px);
+    background:
+      radial-gradient(ellipse at 26% 70%, rgba(3, 10, 22, 0.86), rgba(3, 10, 22, 0.58) 26%, rgba(3, 10, 22, 0.12) 58%, transparent 76%),
+      linear-gradient(90deg, rgba(5, 12, 28, 0.72), rgba(5, 12, 28, 0.34) 44%, rgba(5, 12, 28, 0.06) 78%),
+      linear-gradient(180deg, rgba(8, 18, 34, 0.02), rgba(8, 18, 34, 0.42)),
+      url("../../../img/project-starfall/ui/start-screen.png") center / cover no-repeat,
+      #102033;
+    color: #ffffff;
+  }
+
+  .project-starfall-start-screen[hidden] {
+    display: none;
+  }
+
+  .project-starfall-start-content {
+    position: relative;
+    width: min(520px, 100%);
+    margin-bottom: clamp(8px, 4vh, 42px);
+    padding: 18px 20px 20px 24px;
+    border: 1px solid rgba(245,207,114,0.46);
+    border-left: 4px solid #f3d86d;
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(31,59,84,0.88), rgba(7,19,35,0.88)),
+      rgba(6, 18, 34, 0.64);
+    box-shadow:
+      0 18px 44px rgba(0,0,0,0.34),
+      inset 0 1px 0 rgba(255,255,255,0.08);
+    backdrop-filter: blur(2px);
+  }
+
+  .project-starfall-start-kicker,
+  .project-starfall-start-content h2,
+  .project-starfall-start-content p {
+    margin: 0;
+  }
+
+  .project-starfall-start-kicker {
+    color: #ffe28a;
+    -webkit-text-fill-color: #ffe28a;
+    font-size: 0.82rem;
+    font-weight: 950;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    text-shadow:
+      0 1px 2px rgba(0,0,0,0.9),
+      0 0 16px rgba(255, 209, 102, 0.32);
+  }
+
+  .project-starfall-start-content h2 {
+    margin-top: 8px;
+    color: #fff7dc;
+    -webkit-text-fill-color: #fff7dc;
+    font-size: 3.2rem;
+    font-weight: 950;
+    line-height: 1;
+    text-shadow:
+      0 2px 2px rgba(0,0,0,0.95),
+      0 0 18px rgba(0,0,0,0.76),
+      0 0 30px rgba(255, 209, 102, 0.18);
+  }
+
+  .project-starfall-start-content p:not(.project-starfall-start-kicker) {
+    max-width: 28rem;
+    margin-top: 12px;
+    color: #ffffff;
+    -webkit-text-fill-color: #ffffff;
+    font-size: 1.02rem;
+    font-weight: 850;
+    line-height: 1.45;
+    text-shadow:
+      0 1px 2px rgba(0,0,0,0.95),
+      0 0 14px rgba(0,0,0,0.72);
+  }
+
+  .project-starfall-start-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .project-starfall-start-actions button {
+    min-width: 132px;
+    min-height: 42px;
+    border: 1px solid rgba(245,207,114,0.54);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, #1f3b54, #071323);
+    color: #fff3cf;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 950;
+    cursor: pointer;
+    box-shadow:
+      0 12px 28px rgba(0,0,0,0.28),
+      inset 0 1px 0 rgba(255,255,255,0.16);
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .project-starfall-start-actions button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(89,216,255,0.72);
+    box-shadow:
+      0 14px 30px rgba(0,0,0,0.34),
+      inset 0 1px 0 rgba(255,255,255,0.48);
+  }
+
+  .project-starfall-start-actions button:focus-visible {
+    outline: 3px solid rgba(126, 200, 216, 0.55);
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 720px) {
+    .project-starfall-start-screen {
+      align-items: end;
+      padding: 18px;
+    }
+
+    .project-starfall-start-content {
+      width: min(400px, 100%);
+      margin-bottom: 0;
+      padding: 16px 16px 18px 18px;
+    }
+
+    .project-starfall-start-content h2 {
+      font-size: 2.35rem;
+    }
+
+    .project-starfall-start-content p:not(.project-starfall-start-kicker) {
+      font-size: 0.95rem;
+    }
+  }
+
+  .project-starfall-loading-card strong,
+  .project-starfall-loading-card b {
+    display: block;
+  }
+
+  .project-starfall-loading-card strong {
+    font-size: 1rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-loading-card span {
+    display: block;
+    margin-top: 6px;
+    color: rgba(255,255,255,0.76);
+    font-size: 0.85rem;
+    font-weight: 750;
+  }
+
+  .project-starfall-loading-bar {
+    height: 12px;
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.26);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+  }
+
+  .project-starfall-loading-bar span {
+    display: block;
+    width: var(--starfall-load-progress, 0%);
+    height: 100%;
+    margin: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #7ec8d8, #f3d86d);
+    transition: width 180ms ease;
+  }
+
+  .project-starfall-loading-card b {
+    margin-top: 10px;
+    font-size: 1.45rem;
+    font-weight: 950;
+    color: #f3d86d;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #project-starfall-canvas,
+    .project-starfall-pixi-stage,
+    .project-starfall-canvas-wrap .project-starfall-class-select,
+    .project-starfall-canvas-wrap .project-starfall-start-screen,
+    .project-starfall-canvas-wrap .project-starfall-station,
+    .project-starfall-canvas-wrap .project-starfall-toast,
+    .project-starfall-loading,
+    .project-starfall-loading-bar span {
+      transition-duration: 1ms;
+    }
+  }
+}

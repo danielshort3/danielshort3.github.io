@@ -1,6 +1,73 @@
 (function initProjectStarfallPixiRenderer(global) {
   'use strict';
 
+  const CoreMath = (typeof require === 'function' ? require('./core/math.js') : null) || global.ProjectStarfallCore || {};
+  const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
+  const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const hashString = CoreMath.hashString || function hashStringFallback(value) {
+    const text = String(value || '');
+    let hash = 2166136261;
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  };
+  const seededUnit = CoreMath.seededUnit || function seededUnitFallback(seed, salt) {
+    let value = hashString(`${seed}:${salt}`);
+    value ^= value << 13;
+    value ^= value >>> 17;
+    value ^= value << 5;
+    return ((value >>> 0) % 10000) / 10000;
+  };
+  const seededPick = CoreMath.seededPick || function seededPickFallback(items, seed, salt) {
+    const options = (items || []).filter(Boolean);
+    if (!options.length) return '';
+    return options[Math.floor(seededUnit(seed, salt) * options.length) % options.length];
+  };
+  const rectsOverlap = CoreMath.rectsOverlap || function rectsOverlapFallback(a, b) {
+    return !!(a && b &&
+      a.x < b.x + b.w &&
+      a.x + a.w > b.x &&
+      a.y < b.y + b.h &&
+      a.y + a.h > b.y);
+  };
+  const positiveModulo = CoreMath.positiveModulo || function positiveModuloFallback(value, divisor) {
+    const base = Math.max(1, Number(divisor || 1));
+    return ((Number(value || 0) % base) + base) % base;
+  };
+  const isSlopePlatform = CoreGeometry.isSlopePlatform || function isSlopePlatformFallback(platform) {
+    return !!(platform && platform.shape === 'slope' && Number.isFinite(Number(platform.y2)));
+  };
+  const getPlatformSurfaceY = CoreGeometry.getPlatformSurfaceY || function getPlatformSurfaceYFallback(platform, x) {
+    if (!platform) return 0;
+    const y = Number(platform.y || 0);
+    if (!isSlopePlatform(platform)) return y;
+    const width = Math.max(1, Number(platform.w || 0));
+    const ratio = clamp((Number(x || 0) - Number(platform.x || 0)) / width, 0, 1);
+    return y + (Number(platform.y2 || y) - y) * ratio;
+  };
+  const getPlatformBottomY = CoreGeometry.getPlatformBottomY || function getPlatformBottomYFallback(platform) {
+    if (!platform) return 0;
+    const surfaceBottom = isSlopePlatform(platform) ? Math.max(Number(platform.y || 0), Number(platform.y2 || platform.y || 0)) : Number(platform.y || 0);
+    return surfaceBottom + Math.max(1, Number(platform.h || 0));
+  };
+  const isRectInBounds = CoreGeometry.isRectInBounds || function isRectInBoundsFallback(rect, bounds, padding) {
+    if (!rect || !bounds) return true;
+    const pad = Number(padding || 0);
+    return rect.x + rect.w >= Number(bounds.left || 0) - pad &&
+      rect.x <= Number(bounds.right || 0) + pad &&
+      rect.y + rect.h >= Number(bounds.top || 0) - pad &&
+      rect.y <= Number(bounds.bottom || 0) + pad;
+  };
+  const isPointInBounds = CoreGeometry.isPointInBounds || function isPointInBoundsFallback(point, bounds, padding) {
+    if (!point || !bounds) return true;
+    const pad = Number(padding || 0);
+    return Number(point.x || 0) >= Number(bounds.left || 0) - pad &&
+      Number(point.x || 0) <= Number(bounds.right || 0) + pad &&
+      Number(point.y || 0) >= Number(bounds.top || 0) - pad &&
+      Number(point.y || 0) <= Number(bounds.bottom || 0) + pad;
+  };
   const FALLBACK_COLOR = 0xffffff;
   const MAP_BACKGROUND_PARALLAX = 0.42;
   const MAP_BACKGROUND_TILE_OVERLAP_PX = 2;
@@ -9,6 +76,16 @@
   const COMPOSITE_TEXTURE_CACHE_LIMIT = 180;
   const RIG_TEXTURE_CACHE_LIMIT = 220;
   const ENVIRONMENT_TEXTURE_CACHE_LIMIT = 360;
+  const MAP_SCENERY_PLACEMENT_CACHE_LIMIT = 24;
+  const ASSET_FRAME_CACHE_LIMIT = CoreAssets.DEFAULT_ASSET_FRAME_CACHE_LIMIT || 512;
+  const assetFrameCache = new Map();
+  const MAP_DERIVED_CACHE_PATHS = Object.freeze([
+    'img/project-starfall/maps/',
+    'img/project-starfall/animations/enemies/',
+    'img/project-starfall/animations/enemy-projectiles/',
+    'img/project-starfall/enemies/',
+    'img/project-starfall/environment/'
+  ]);
   const RIG_TEXTURE_SCALE = 3;
   const RUNE_FIELD_REFILL_PULSE_SECONDS = 0.35;
   const HORIZONTAL_PLAYER_PROJECTILE_TYPES = Object.freeze(['magic', 'fire', 'rune', 'lightning']);
@@ -95,29 +172,47 @@
     return new ProjectStarfallPixiRenderer(options || {});
   }
 
-  function parseAssetFrame(assetPath) {
-    const value = String(assetPath || '').trim();
-    if (!value) return null;
-    const hashIndex = value.indexOf('#');
-    if (hashIndex < 0) return { path: value };
-    const path = value.slice(0, hashIndex);
-    const fragment = value.slice(hashIndex + 1);
-    const match = fragment.match(/(?:^|[;&])(?:frame|xywh)=([0-9.,-]+)/);
-    if (!match) return { path };
-    const parts = match[1].split(',').map((part) => Number(part));
-    return {
-      path,
-      sx: Math.max(0, Math.floor(parts[0]) || 0),
-      sy: Math.max(0, Math.floor(parts[1]) || 0),
-      sw: Math.max(1, Math.floor(parts[2]) || 1),
-      sh: Math.max(1, Math.floor(parts[3]) || 1)
-    };
-  }
+  const parseAssetFrame = CoreAssets.createAssetFrameParser
+    ? CoreAssets.createAssetFrameParser({ cache: assetFrameCache, cacheLimit: ASSET_FRAME_CACHE_LIMIT, includeSheetSize: false })
+    : function parseAssetFrameFallback(assetPath) {
+        const value = String(assetPath || '').trim();
+        if (!value) return null;
+        if (assetFrameCache.has(value)) return assetFrameCache.get(value);
+        const hashIndex = value.indexOf('#');
+        if (hashIndex < 0) {
+          const frame = { path: value };
+          if (assetFrameCache.size > ASSET_FRAME_CACHE_LIMIT) assetFrameCache.clear();
+          assetFrameCache.set(value, frame);
+          return frame;
+        }
+        const path = value.slice(0, hashIndex);
+        const fragment = value.slice(hashIndex + 1);
+        const match = fragment.match(/(?:^|[;&])(?:frame|xywh)=([0-9.,-]+)/);
+        if (!match) {
+          const frame = { path };
+          if (assetFrameCache.size > ASSET_FRAME_CACHE_LIMIT) assetFrameCache.clear();
+          assetFrameCache.set(value, frame);
+          return frame;
+        }
+        const parts = match[1].split(',').map((part) => Number(part));
+        const frame = {
+          path,
+          sx: Math.max(0, Math.floor(parts[0]) || 0),
+          sy: Math.max(0, Math.floor(parts[1]) || 0),
+          sw: Math.max(1, Math.floor(parts[2]) || 1),
+          sh: Math.max(1, Math.floor(parts[3]) || 1)
+        };
+        if (assetFrameCache.size > ASSET_FRAME_CACHE_LIMIT) assetFrameCache.clear();
+        assetFrameCache.set(value, frame);
+        return frame;
+      };
 
-  function getAssetSourcePath(assetPath) {
-    const frame = parseAssetFrame(assetPath);
-    return frame && frame.path || '';
-  }
+  const getAssetSourcePath = CoreAssets.createAssetSourcePathGetter
+    ? CoreAssets.createAssetSourcePathGetter({ cache: assetFrameCache, cacheLimit: ASSET_FRAME_CACHE_LIMIT, includeSheetSize: false })
+    : function getAssetSourcePathFallback(assetPath) {
+        const frame = parseAssetFrame(assetPath);
+        return frame && frame.path || '';
+      };
 
   class ProjectStarfallPixiRenderer {
     constructor(options) {
@@ -143,6 +238,7 @@
       this.trimmedTextures = new Map();
       this.rigTextures = new Map();
       this.environmentTextures = new Map();
+      this.mapSceneryPlacementCache = new Map();
       this.loadingTextures = new Map();
       this.runtimeTextures = new Map();
       this.idlePrewarmQueue = [];
@@ -191,6 +287,70 @@
         cache.delete(oldest);
       }
       return value;
+    }
+
+    normalizeRetainedAssetPaths(assetPaths) {
+      return new Set((assetPaths || [])
+        .map((assetPath) => getAssetSourcePath(assetPath))
+        .map((assetPath) => String(assetPath || '').trim())
+        .filter(Boolean));
+    }
+
+    isMapDerivedCacheKey(key) {
+      const value = String(key || '');
+      return MAP_DERIVED_CACHE_PATHS.some((path) => value.includes(path));
+    }
+
+    cacheKeyHasRetainedAsset(key, retainedAssets) {
+      const value = String(key || '');
+      for (const assetPath of retainedAssets || []) {
+        if (assetPath && value.includes(assetPath)) return true;
+      }
+      return false;
+    }
+
+    pruneCacheByRetainedAssets(cache, retainedAssets) {
+      if (!cache || typeof cache.keys !== 'function') return 0;
+      let pruned = 0;
+      Array.from(cache.keys()).forEach((key) => {
+        if (!this.isMapDerivedCacheKey(key)) return;
+        if (this.cacheKeyHasRetainedAsset(key, retainedAssets)) return;
+        cache.delete(key);
+        pruned += 1;
+      });
+      return pruned;
+    }
+
+    pruneIdlePrewarmQueue(retainedAssets) {
+      const before = this.idlePrewarmQueue.length;
+      this.idlePrewarmQueue = this.idlePrewarmQueue.filter((entry) => {
+        const key = entry && (entry.key || this.getPrewarmJobKey(entry.job));
+        if (!this.isMapDerivedCacheKey(key)) return true;
+        return this.cacheKeyHasRetainedAsset(key, retainedAssets);
+      });
+      this.idlePrewarmKeys.clear();
+      this.idlePrewarmQueue.forEach((entry) => {
+        if (entry && entry.key) this.idlePrewarmKeys.add(entry.key);
+      });
+      return before - this.idlePrewarmQueue.length;
+    }
+
+    pruneMapDerivedCaches(retainAssetPaths) {
+      const retainedAssets = this.normalizeRetainedAssetPaths(retainAssetPaths);
+      const frameTextures = this.pruneCacheByRetainedAssets(this.frameTextures, retainedAssets);
+      const trimmedTextures = this.pruneCacheByRetainedAssets(this.trimmedTextures, retainedAssets);
+      const compositeTextures = this.pruneCacheByRetainedAssets(this.compositeTextures, retainedAssets);
+      const environmentTextures = this.pruneCacheByRetainedAssets(this.environmentTextures, retainedAssets);
+      const idlePrewarmJobs = this.pruneIdlePrewarmQueue(retainedAssets);
+      return {
+        frameTextures,
+        trimmedTextures,
+        compositeTextures,
+        environmentTextures,
+        idlePrewarmJobs,
+        retainedAssetCount: retainedAssets.size,
+        totalPruned: frameTextures + trimmedTextures + compositeTextures + environmentTextures + idlePrewarmJobs
+      };
     }
 
     async init() {
@@ -309,36 +469,44 @@
     }
 
     createPool(name, container) {
-      const pool = { container, items: [], active: 0 };
+      const pool = { container, items: [], active: 0, previousActive: 0 };
       this.spritePools[name] = pool;
       return pool;
     }
 
     createTextPool(name, container) {
-      const pool = { container, items: [], active: 0 };
+      const pool = { container, items: [], active: 0, previousActive: 0 };
       this.textPools[name] = pool;
       return pool;
     }
 
     beginPools() {
       Object.values(this.spritePools).forEach((pool) => {
+        pool.previousActive = Math.max(0, Math.min(pool.items.length, Math.floor(Number(pool.active || 0) || 0)));
         pool.active = 0;
       });
       Object.values(this.textPools).forEach((pool) => {
+        pool.previousActive = Math.max(0, Math.min(pool.items.length, Math.floor(Number(pool.active || 0) || 0)));
         pool.active = 0;
       });
     }
 
     hideUnusedSprites() {
       Object.values(this.spritePools).forEach((pool) => {
-        for (let i = pool.active; i < pool.items.length; i += 1) {
+        const active = Math.max(0, Math.min(pool.items.length, Math.floor(Number(pool.active || 0) || 0)));
+        const previousActive = Math.max(active, Math.min(pool.items.length, Math.floor(Number(pool.previousActive || 0) || 0)));
+        for (let i = active; i < previousActive; i += 1) {
           pool.items[i].visible = false;
         }
+        pool.previousActive = active;
       });
       Object.values(this.textPools).forEach((pool) => {
-        for (let i = pool.active; i < pool.items.length; i += 1) {
+        const active = Math.max(0, Math.min(pool.items.length, Math.floor(Number(pool.active || 0) || 0)));
+        const previousActive = Math.max(active, Math.min(pool.items.length, Math.floor(Number(pool.previousActive || 0) || 0)));
+        for (let i = active; i < previousActive; i += 1) {
           pool.items[i].visible = false;
         }
+        pool.previousActive = active;
       });
     }
 
@@ -368,10 +536,14 @@
     createTextNode() {
       if (!this.PIXI || !this.PIXI.Text) return null;
       try {
-        return new this.PIXI.Text({ text: '', style: Object.assign({}, DAMAGE_TEXT_POOL_STYLE) });
+        const text = new this.PIXI.Text({ text: '', style: Object.assign({}, DAMAGE_TEXT_POOL_STYLE) });
+        text._starfallStyleKey = '';
+        return text;
       } catch {
         try {
-          return new this.PIXI.Text('', Object.assign({}, DAMAGE_TEXT_POOL_STYLE));
+          const text = new this.PIXI.Text('', Object.assign({}, DAMAGE_TEXT_POOL_STYLE));
+          text._starfallStyleKey = '';
+          return text;
         } catch {
           return null;
         }
@@ -391,7 +563,6 @@
       }
       pool.active += 1;
       text.visible = true;
-      text.text = '';
       text.position.set(0, 0);
       text.rotation = 0;
       text.scale.set(1, 1);
@@ -404,15 +575,24 @@
       const text = this.acquireText(poolName);
       if (!text) return false;
       const settings = options || {};
-      const style = Object.assign({}, DAMAGE_TEXT_POOL_STYLE, {
-        fontSize: Math.max(8, Number(settings.fontSize || DAMAGE_TEXT_POOL_STYLE.fontSize)),
-        fontWeight: String(settings.fontWeight || DAMAGE_TEXT_POOL_STYLE.fontWeight),
-        fill: settings.fill || DAMAGE_TEXT_POOL_STYLE.fill,
-        stroke: { color: settings.stroke || 'rgba(9,31,59,0.92)', width: Math.max(0, Number(settings.strokeWidth == null ? 4 : settings.strokeWidth)) },
-        strokeThickness: Math.max(0, Number(settings.strokeWidth == null ? 4 : settings.strokeWidth))
-      });
-      text.text = String(value || '');
-      text.style = style;
+      const fontSize = Math.max(8, Number(settings.fontSize || DAMAGE_TEXT_POOL_STYLE.fontSize));
+      const fontWeight = String(settings.fontWeight || DAMAGE_TEXT_POOL_STYLE.fontWeight);
+      const fill = settings.fill || DAMAGE_TEXT_POOL_STYLE.fill;
+      const strokeColor = settings.stroke || 'rgba(9,31,59,0.92)';
+      const strokeWidth = Math.max(0, Number(settings.strokeWidth == null ? 4 : settings.strokeWidth));
+      const styleKey = [fontSize, fontWeight, fill, strokeColor, strokeWidth].join('|');
+      const nextText = String(value || '');
+      if (text.text !== nextText) text.text = nextText;
+      if (text._starfallStyleKey !== styleKey) {
+        text.style = Object.assign({}, DAMAGE_TEXT_POOL_STYLE, {
+          fontSize,
+          fontWeight,
+          fill,
+          stroke: { color: strokeColor, width: strokeWidth },
+          strokeThickness: strokeWidth
+        });
+        text._starfallStyleKey = styleKey;
+      }
       text.position.set(Number(x || 0), Number(y || 0));
       text.alpha = clamp(settings.alpha == null ? 1 : Number(settings.alpha), 0, 1);
       text.rotation = Number(settings.rotation || 0);
@@ -1028,9 +1208,11 @@
       this.renderPlayer(snapshot);
       marker = markTiming(timings, 'player', marker);
       this.renderDamageSplats(snapshot);
-      markTiming(timings, 'damageSplats', marker);
+      marker = markTiming(timings, 'damageSplats', marker);
       this.hideUnusedSprites();
+      marker = markTiming(timings, 'poolCleanup', marker);
       this.app.render();
+      markTiming(timings, 'present', marker);
       return timings;
     }
 
@@ -1148,7 +1330,7 @@
 
     getEnvironmentAsset(kind, profile) {
       const group = this.data && this.data.ENVIRONMENT_ASSETS && this.data.ENVIRONMENT_ASSETS[kind];
-      const id = profile && profile[kind];
+      const id = profile && (profile[kind] || (kind === 'ramps' ? profile.terrain : ''));
       return group && id ? group[id] : null;
     }
 
@@ -1238,7 +1420,10 @@
       const texture = this.getEnvironmentCellTexture(kind, profile, safeCell);
       if (!texture) return false;
       const settings = options || {};
-      return this.drawTexture('map', texture, x, y, w, h, {
+      const asset = settings.trim ? this.getEnvironmentAsset(kind, profile) : null;
+      const trimKey = asset && asset.path ? `${asset.path}:${safeCell}:${asset.cellSize || 64}:${asset.columns || 4}:trimmed` : '';
+      const trimmed = trimKey ? this.getTrimmedTexture(texture, trimKey) : null;
+      return this.drawTexture('map', trimmed && trimmed.texture || texture, x, y, w, h, {
         anchorX: 0,
         anchorY: 0,
         alpha: settings.alpha,
@@ -1363,7 +1548,7 @@
         glow: [34, 22]
       }[kind] || [34, 26];
       const rules = visibility || this.getEnvironmentVisibility(null);
-      const layerScale = layer === 'rear' ? 0.98 : 0.78;
+      const layerScale = layer === 'rear' ? 0.98 : 1;
       const platformScale = platformIndex === 0 ? 1 : Number(rules.upperPlatformPropScale || 0.56);
       const w = Math.round(base[0] * layerScale * platformScale);
       let h = Math.round(base[1] * layerScale * platformScale);
@@ -1388,6 +1573,13 @@
       return blockers;
     }
 
+    getSnapshotMapDecorationBlockers(snapshot, runtime) {
+      if (snapshot && Array.isArray(snapshot._mapDecorationBlockers)) return snapshot._mapDecorationBlockers;
+      const blockers = this.getMapDecorationBlockers(runtime);
+      if (snapshot) snapshot._mapDecorationBlockers = blockers;
+      return blockers;
+    }
+
     isEnvironmentPropPlacementSafe(platform, x, y, w, h, blockers, visibility) {
       if (!platform || x < platform.x + 28 || x + w > platform.x + platform.w - 28) return false;
       const clearance = Number(visibility && visibility.combatClearancePx || 72);
@@ -1400,25 +1592,54 @@
       const cell = cells[kind] == null ? cells.grass : cells[kind];
       const alpha = layer === 'rear' ? 0.68 : 0.88;
       const flip = seededUnit(seed, 'flip') > 0.5;
-      return this.drawEnvironmentCell('props', profile, cell, x, y, w, h, { alpha, flip });
+      return this.drawEnvironmentCell('props', profile, cell, x, y, w, h, { alpha, flip, trim: true });
     }
 
-    renderMapScenery(snapshot, map, layer) {
-      const profile = this.getEnvironmentProfile(map);
-      const propAsset = this.getEnvironmentAsset('props', profile);
-      if (!profile || !propAsset || !propAsset.path) return;
-      const visibility = this.getEnvironmentVisibility(profile);
-      const densityScale = layer === 'rear'
-        ? Number(visibility.rearDensityScale == null ? 0.34 : visibility.rearDensityScale)
-        : Number(visibility.frontDensityScale == null ? 0 : visibility.frontDensityScale);
-      if (densityScale <= 0) return;
-      const runtime = snapshot.runtime || {};
-      const blockers = this.getMapDecorationBlockers(runtime);
+    getMapSceneryRuntimeSignature(snapshot, runtime) {
+      if (snapshot && snapshot._mapSceneryRuntimeSignature) return snapshot._mapSceneryRuntimeSignature;
+      const safeRuntime = runtime || {};
+      const rectSignature = (list, fields) => (list || [])
+        .map((item) => fields.map((field) => Math.round(Number(item && item[field] || 0))).join(','))
+        .join(';');
+      const signature = [
+        safeRuntime.id || '',
+        safeRuntime.trialId || '',
+        Math.round(Number(safeRuntime.worldWidth || 0)),
+        Math.round(Number(safeRuntime.worldHeight || 0)),
+        rectSignature(safeRuntime.platforms, ['x', 'y', 'y2', 'w', 'h']),
+        rectSignature(safeRuntime.climbables, ['x', 'y', 'w', 'h']),
+        rectSignature(safeRuntime.stations, ['x', 'y', 'w', 'h']),
+        rectSignature(safeRuntime.portals, ['x', 'y', 'w', 'h']),
+        rectSignature(safeRuntime.questNpcs, ['x', 'y', 'w', 'h']),
+        rectSignature(safeRuntime.spawnPoints, ['x', 'platformIndex'])
+      ].join('|');
+      if (snapshot) snapshot._mapSceneryRuntimeSignature = signature;
+      return signature;
+    }
+
+    getMapSceneryPlacementCacheKey(snapshot, runtime, map, profile, visibility, layer, densityScale) {
+      return [
+        map && map.id || '',
+        layer || '',
+        profile && profile.id || '',
+        profile && profile.props || '',
+        Number(profile && profile.density || 0),
+        Number(densityScale || 0),
+        Number(visibility && visibility.combatClearancePx || 0),
+        Number(visibility && visibility.upperPlatformPropScale || 0),
+        Number(visibility && visibility.maxFrontPropHeight || 0),
+        Number(visibility && visibility.maxUpperPropHeight || 0),
+        this.getMapSceneryRuntimeSignature(snapshot, runtime)
+      ].join('::');
+    }
+
+    buildMapSceneryPlacements(snapshot, runtime, map, profile, visibility, layer, densityScale) {
+      const blockers = this.getSnapshotMapDecorationBlockers(snapshot, runtime);
       const density = Number(profile.density || 0.5) * densityScale;
       const spacing = layer === 'rear' ? 430 : 340;
-      const bounds = snapshot.bounds || {};
+      const placements = [];
       (runtime.platforms || []).forEach((platform, platformIndex) => {
-        if (!platform || platform.w < 120 || !isRectInBounds(platform, bounds, 160)) return;
+        if (!platform || platform.w < 120) return;
         const kindPool = this.getEnvironmentPropKinds(profile, layer, platformIndex);
         if (!kindPool.length) return;
         const rawCount = Math.max(1, Math.round(platform.w / spacing * density));
@@ -1431,10 +1652,37 @@
           const x = platform.x + 48 + Math.floor(usableW * ((index + 0.35 + seededUnit(seed, 'x') * 0.3) / Math.max(1, count)));
           const overlap = layer === 'front' ? 0 : 10 + Math.floor(seededUnit(seed, 'y') * 6);
           const y = platform.y - size.h + overlap;
-          if (!isRectInBounds({ x, y, w: size.w, h: size.h }, bounds, 80)) continue;
           if (!this.isEnvironmentPropPlacementSafe(platform, x, y, size.w, size.h, blockers, visibility)) continue;
-          this.drawMapProp(profile, kind, x, y, size.w, size.h, seed, layer);
+          placements.push({ kind, x, y, w: size.w, h: size.h, seed });
         }
+      });
+      return placements;
+    }
+
+    getMapSceneryPlacements(snapshot, runtime, map, profile, visibility, layer, densityScale) {
+      if (!this.mapSceneryPlacementCache) this.mapSceneryPlacementCache = new Map();
+      const key = this.getMapSceneryPlacementCacheKey(snapshot, runtime, map, profile, visibility, layer, densityScale);
+      const cached = this.getCacheValue(this.mapSceneryPlacementCache, key);
+      if (cached) return cached;
+      const placements = this.buildMapSceneryPlacements(snapshot, runtime, map, profile, visibility, layer, densityScale);
+      return this.setCacheValue(this.mapSceneryPlacementCache, key, placements, MAP_SCENERY_PLACEMENT_CACHE_LIMIT);
+    }
+
+    renderMapScenery(snapshot, map, layer) {
+      const profile = this.getEnvironmentProfile(map);
+      const propAsset = this.getEnvironmentAsset('props', profile);
+      if (!profile || !propAsset || !propAsset.path) return;
+      const visibility = this.getEnvironmentVisibility(profile);
+      const densityScale = layer === 'rear'
+        ? Number(visibility.rearDensityScale == null ? 0.34 : visibility.rearDensityScale)
+        : Number(visibility.frontDensityScale == null ? 0 : visibility.frontDensityScale);
+      if (densityScale <= 0) return;
+      const runtime = snapshot.runtime || {};
+      const bounds = snapshot.bounds || {};
+      const placements = this.getMapSceneryPlacements(snapshot, runtime, map, profile, visibility, layer, densityScale);
+      placements.forEach((placement) => {
+        if (!isRectInBounds(placement, bounds, 80)) return;
+        this.drawMapProp(profile, placement.kind, placement.x, placement.y, placement.w, placement.h, placement.seed, layer);
       });
     }
 
@@ -1517,20 +1765,20 @@
       });
     }
 
-    renderTownStreetProp(snapshot, runtime, profile, entry, groundPlatform, seed) {
+    renderTownStreetProp(snapshot, runtime, profile, entry, groundPlatform, seed, blockers) {
       if (!entry || !groundPlatform) return;
       const w = Math.max(12, Number(entry.w || 32));
       const h = Math.max(12, Number(entry.h || 24));
       const x = Number(entry.x || 0);
       const y = groundPlatform.y - h + Number(entry.footOffset || 0);
       const visibility = this.getEnvironmentVisibility(profile);
-      const blockers = this.getMapDecorationBlockers(runtime);
+      const placementBlockers = blockers || this.getSnapshotMapDecorationBlockers(snapshot, runtime);
       if (!isRectInBounds({ x, y, w, h }, snapshot.bounds, 120)) return;
-      if (!this.isEnvironmentPropPlacementSafe(groundPlatform, x, y, w, h, blockers, visibility)) return;
+      if (!this.isEnvironmentPropPlacementSafe(groundPlatform, x, y, w, h, placementBlockers, visibility)) return;
       this.drawMapProp(profile, entry.kind || 'grass', x, y, w, h, seed, 'front');
     }
 
-    renderTownForegroundTrim(snapshot, runtime, profile, entry, groundPlatform, seedPrefix) {
+    renderTownForegroundTrim(snapshot, runtime, profile, entry, groundPlatform, seedPrefix, blockers) {
       if (!entry || !groundPlatform) return;
       const startX = Math.max(groundPlatform.x + 28, Number(entry.startX || groundPlatform.x));
       const endX = Math.min(groundPlatform.x + groundPlatform.w - 28, Number(entry.endX || groundPlatform.x + groundPlatform.w));
@@ -1538,13 +1786,13 @@
       const w = Math.max(10, Number(entry.w || 28));
       const h = Math.max(8, Number(entry.h || 18));
       const visibility = this.getEnvironmentVisibility(profile);
-      const blockers = this.getMapDecorationBlockers(runtime);
+      const placementBlockers = blockers || this.getSnapshotMapDecorationBlockers(snapshot, runtime);
       for (let x = startX, index = 0; x <= endX; x += every, index += 1) {
         const jitter = Math.floor((seededUnit(seedPrefix, index) - 0.5) * Math.min(72, every * 0.24));
         const drawX = x + jitter;
         const y = groundPlatform.y - h + Number(entry.footOffset || 0);
         if (!isRectInBounds({ x: drawX, y, w, h }, snapshot.bounds, 120)) continue;
-        if (!this.isEnvironmentPropPlacementSafe(groundPlatform, drawX, y, w, h, blockers, visibility)) continue;
+        if (!this.isEnvironmentPropPlacementSafe(groundPlatform, drawX, y, w, h, placementBlockers, visibility)) continue;
         this.drawMapProp(profile, entry.kind || 'grass', drawX, y, w, h, `${seedPrefix}:${index}`, 'front');
       }
     }
@@ -1561,11 +1809,12 @@
         return;
       }
       const profile = this.getEnvironmentProfile(map);
+      const blockers = this.getSnapshotMapDecorationBlockers(snapshot, runtime);
       (scene.streetProps || []).forEach((entry, index) => {
-        this.renderTownStreetProp(snapshot, runtime, profile, entry, groundPlatform, `${map.id}:town-prop:${index}`);
+        this.renderTownStreetProp(snapshot, runtime, profile, entry, groundPlatform, `${map.id}:town-prop:${index}`, blockers);
       });
       (scene.foregroundTrim || []).forEach((entry, index) => {
-        this.renderTownForegroundTrim(snapshot, runtime, profile, entry, groundPlatform, `${map.id}:town-trim:${index}`);
+        this.renderTownForegroundTrim(snapshot, runtime, profile, entry, groundPlatform, `${map.id}:town-trim:${index}`, blockers);
       });
     }
 
@@ -1577,7 +1826,7 @@
       if (!profile || !propAsset || !propAsset.path) return;
       const runtime = snapshot.runtime || {};
       const groundPlatform = this.getGroundPlatform(runtime, snapshot);
-      const blockers = this.getMapDecorationBlockers(runtime);
+      const blockers = this.getSnapshotMapDecorationBlockers(snapshot, runtime);
       const visibility = this.getEnvironmentVisibility(profile);
       (composition.landmarkBands || []).forEach((band, bandIndex) => {
         const kind = band.kind || 'tree';
@@ -1613,6 +1862,27 @@
       const palette = Array.isArray(map && map.palette) ? map.palette : [];
       const bodyColor = map && map.id === 'cinderHollow' ? 0x332a2f : map && map.id === 'rustcoilRuins' ? 0x5f6872 : 0x4c8b5c;
       const topColor = colorToNumber(palette[2], 0xf3d86d);
+      if (isSlopePlatform(platform)) {
+        const x = Number(platform.x || 0);
+        const w = Number(platform.w || 0);
+        const leftY = Number(platform.y || 0);
+        const rightY = Number(platform.y2 || platform.y || 0);
+        const thickness = Math.max(18, Math.min(30, Number(platform.h || 24) + 4));
+        const topInset = Math.max(3, Math.min(6, Math.round(thickness * 0.16)));
+        graphics
+          .moveTo(x, leftY - topInset)
+          .lineTo(x + w, rightY - topInset)
+          .lineTo(x + w, rightY + thickness)
+          .lineTo(x, leftY + thickness)
+          .closePath()
+          .fill({ color: bodyColor, alpha: index === 0 ? 0.96 : 0.9 });
+        graphics
+          .moveTo(x, leftY)
+          .lineTo(x + w, rightY)
+          .stroke({ width: 5, color: topColor, alpha: index === 0 ? 0.92 : 0.84 });
+        this.drawPlatformThemeTrim(graphics, map, platform, index);
+        return;
+      }
       const y = Number(platform.y || 0);
       const h = Math.max(12, Number(platform.h || 0));
       const topY = y - (index === 0 ? 10 : 7);
@@ -1632,6 +1902,16 @@
       const theme = this.getMapThemeId(map);
       const palette = map && map.palette || [];
       const accent = colorToNumber(palette[2] || palette[1], 0xf3d86d);
+      if (isSlopePlatform(platform)) {
+        graphics
+          .moveTo(platform.x + 12, getPlatformSurfaceY(platform, platform.x + 12))
+          .lineTo(platform.x + platform.w - 12, getPlatformSurfaceY(platform, platform.x + platform.w - 12))
+          .stroke({ width: 2.5, color: accent, alpha: index === 0 ? 0.38 : 0.58 });
+        for (let x = platform.x + 42; x < platform.x + platform.w - 26; x += 86) {
+          graphics.rect(x, getPlatformSurfaceY(platform, x) - 3, 18, 3).fill({ color: 0xffffff, alpha: 0.16 });
+        }
+        return;
+      }
       if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) {
         graphics.moveTo(platform.x + 14, platform.y + 4).lineTo(platform.x + platform.w - 14, platform.y + 4)
           .stroke({ width: 2, color: 0xff8a3d, alpha: index === 0 ? 0.38 : 0.54 });
@@ -1823,18 +2103,41 @@
     }
 
     drawFieldSolidLaneTerrain(snapshot, map, platform, index, visual, profile, cells, style, seed) {
-      return false;
+      this.drawFieldPlatformLedge(snapshot, map, platform, index, profile, cells, style, seed);
+      return true;
+    }
+
+    getRampTerrainCell(platform, index) {
+      const descendingRight = Number(platform && platform.y2 || platform && platform.y || 0) > Number(platform && platform.y || 0);
+      return (descendingRight ? 1 : 0) + (index % 2 ? 2 : 0);
+    }
+
+    drawRampPlatformTerrain(snapshot, map, platform, index, profile, style, seed) {
+      if (!isSlopePlatform(platform)) return false;
+      this.drawPlatformFallback(this.mapGraphics, map, platform, index);
+      return true;
     }
 
     drawFieldConnectorTerrain(snapshot, map, platform, index, visual, profile, cells, style, seed) {
+      if (!visual || !platform) return false;
+      if (visual.kind === 'connector' || visual.kind === 'hop' || visual.kind === 'island') {
+        this.drawFieldPlatformLedge(snapshot, map, platform, index, profile, cells, style, seed);
+        return true;
+      }
       return false;
     }
 
     drawFieldVisualPlatformTerrain(snapshot, map, platform, index, profile, cells, style, seed) {
       const visual = this.getPlatformTerrainVisual(platform, index);
+      if (isSlopePlatform(platform) || visual && visual.kind === 'slope') {
+        if (!this.drawRampPlatformTerrain(snapshot, map, platform, index, profile, style, seed)) {
+          this.drawPlatformFallback(this.mapGraphics, map, platform, index);
+        }
+        return true;
+      }
       if (this.drawFieldConnectorTerrain(snapshot, map, platform, index, visual, profile, cells, style, seed)) return true;
       if (!visual) return false;
-      if (visual.kind === 'solidLane') return this.drawFieldSolidLaneTerrain(snapshot, map, platform, index, visual, profile, cells, style, seed);
+      if (visual.kind === 'solidLane' || visual.kind === 'ledge') return this.drawFieldSolidLaneTerrain(snapshot, map, platform, index, visual, profile, cells, style, seed);
       return false;
     }
 
@@ -1920,31 +2223,13 @@
         const right = climbable.x + climbable.w * 0.72;
         const top = climbable.y;
         const bottom = climbable.y + climbable.h;
-        if (style.kind === 'stair') {
-          graphics
-            .moveTo(left - 8, bottom)
-            .lineTo(right + 8, top)
-            .moveTo(left + 8, bottom)
-            .lineTo(right + 24, top)
-            .stroke({ width: 4, color: style.rail, alpha: style.railAlpha });
-        } else {
-          graphics
-            .moveTo(left, top)
-            .lineTo(left, bottom)
-            .moveTo(right, top)
-            .lineTo(right, bottom)
-            .stroke({ width: style.kind === 'vine' ? 5 : 4, color: style.rail, alpha: style.railAlpha });
-        }
+        graphics
+          .moveTo(left, top)
+          .lineTo(left, bottom)
+          .moveTo(right, top)
+          .lineTo(right, bottom)
+          .stroke({ width: style.kind === 'vine' ? 5 : 4, color: style.rail, alpha: style.railAlpha });
         for (let y = top + 16; y < bottom; y += 28) {
-          if (style.kind === 'stair') {
-            const t = clamp((y - top) / Math.max(1, bottom - top), 0, 1);
-            const stepX = right + 8 - (right - left + 16) * t;
-            graphics
-              .moveTo(stepX - 14, y)
-              .lineTo(stepX + 34, y)
-              .stroke({ width: 2, color: style.rung, alpha: style.rungAlpha });
-            continue;
-          }
           if (style.kind === 'chain') {
             graphics.ellipse((left + right) / 2, y, climbable.w * 0.34, 7)
               .stroke({ width: 3, color: style.rung, alpha: style.rungAlpha });
@@ -2076,12 +2361,13 @@
     }
 
     renderWorldEffects(snapshot) {
-      const bounds = snapshot.bounds || {};
       const now = Number(snapshot.nowSec || 0);
       const quality = snapshot.visualQuality || {};
       const simplified = !!quality.reduceEffects || quality.level === 'reduced';
-      (snapshot.worldEffects || []).forEach((effect) => {
-        if (!effect || !isEffectInBounds(effect, bounds, 140)) return;
+      const effects = snapshot.worldEffects || [];
+      for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
+        const effect = effects[effectIndex];
+        if (!effect) continue;
         const type = String(effect.type || '');
         const color = colorToNumber(effect.color, type === 'shockBurst' ? 0x7bdff2 : type === 'field' ? 0x68d58d : 0xffd166);
         const ttl = Math.max(0, Number(effect.ttl || effect.life || 0));
@@ -2115,7 +2401,7 @@
               this.renderRuneFieldGroundVisual(effect, x, y, radius, color, alpha, lifeRatio, now, simplified, { aura: false });
               this.renderRuneFieldTimerBar(effect, x, y, radius, color, alpha, lifeRatio, now);
             }
-            return;
+            continue;
           }
         }
         if (type === 'chainLine') {
@@ -2123,14 +2409,14 @@
             tint: color,
             alpha: simplified ? 0.34 : 0.55
           });
-          return;
+          continue;
         }
         if (type === 'telegraph') {
           const w = Math.max(1, Number(effect.w || 0));
           const h = Math.max(1, Number(effect.h || 0));
           this.drawSolidRect('vfx', x, y, w, h, { tint: 0xff6b35, alpha: simplified ? 0.06 : 0.08 });
           this.drawRectOutline('vfx', x, y, w, h, 2, { tint: 0xffc857, alpha: simplified ? 0.28 : 0.42 });
-          return;
+          continue;
         }
         if (type === 'recoveryPulse') {
           const duration = Math.max(0.01, Number(effect.duration || 0.5));
@@ -2151,7 +2437,7 @@
               });
             }
           }
-          return;
+          continue;
         }
         if (type === 'field') {
           const radius = Math.max(8, Number(effect.r || effect.radius || 32));
@@ -2160,14 +2446,14 @@
           if (effect.runeField) {
             this.renderRuneFieldGroundVisual(effect, x, y, radius, color, alpha, lifeRatio, now, simplified, { aura: false });
             this.renderRuneFieldTimerBar(effect, x, y, radius, color, alpha, lifeRatio, now);
-            return;
+            continue;
           }
           const fieldW = radius * 2;
           const fieldH = Math.max(30, radius * 0.34);
           const fieldAlpha = Math.max(0.08, alpha * (0.34 + lifeRatio * 0.44));
           this.drawShape('vfx', 'glow', x, y, fieldW, fieldH, { tint: color, alpha: simplified ? fieldAlpha * 0.55 : fieldAlpha });
           this.drawShape('vfx', 'ring', x, y, fieldW * 0.94, fieldH * 1.16, { tint: color, alpha: Math.max(0.12, alpha * (0.18 + lifeRatio * 0.68)) });
-          return;
+          continue;
         }
         if (type === 'slash' || type === 'arrowRelease') {
           const facing = Number(effect.facing || 1) >= 0 ? 1 : -1;
@@ -2176,12 +2462,12 @@
             alpha: Math.max(0.22, simplified ? alpha * 0.72 : alpha),
             flipX: facing < 0
           });
-          return;
+          continue;
         }
         if (type === 'cast') {
           const radius = Math.max(12, Number(effect.r || 28));
           this.drawShape('vfx', 'ring', x, y, radius * 2, radius * 2, { tint: color, alpha });
-          return;
+          continue;
         }
         if (type === 'lootPickup') {
           const duration = Math.max(0.01, Number(effect.duration || 0.26));
@@ -2199,14 +2485,14 @@
           const texture = this.getAssetFrameTexture(effect.itemAsset);
           if (texture) this.drawTexture('vfx', texture, drawX, drawY, size, size, { alpha: drawAlpha });
           else this.drawShape('vfx', 'circle', drawX, drawY, radius * 0.92, radius * 0.92, { tint: color, alpha: drawAlpha });
-          return;
+          continue;
         }
         const radius = Math.max(8, Number(effect.r || effect.radius || 32));
         this.drawShape('vfx', 'glow', x, y, radius * 2.2, radius * 2.2, { tint: color, alpha: simplified ? alpha * 0.08 : alpha * 0.12 });
         if (!simplified || type === 'skillImpact' || type === 'shockBurst') {
           this.drawShape('vfx', 'ring', x, y, radius * 1.44, radius * 1.44, { tint: color, alpha: Math.max(0.2, alpha * 0.78) });
         }
-      });
+      }
     }
 
     renderProjectiles(snapshot) {
@@ -2409,19 +2695,51 @@
 
     getActorCompositeFrames(actor) {
       if (!actor || !actor.animationFrame) return [];
-      const equipmentLayers = (actor.equipmentLayers || [])
-        .filter((layer) => layer && layer.frame)
-        .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
-      if (!equipmentLayers.length) return [];
-      const backFrames = equipmentLayers.filter((layer) => Number(layer.order || 0) < 0).map((layer) => layer.frame);
-      const frontFrames = equipmentLayers.filter((layer) => Number(layer.order || 0) >= 0).map((layer) => layer.frame);
-      return backFrames.concat([actor.animationFrame], frontFrames);
+      const equipmentLayers = Array.isArray(actor.equipmentLayers) ? actor.equipmentLayers : [];
+      let hasEquipmentFrame = false;
+      let needsSort = false;
+      let previousOrder = -Infinity;
+      for (let index = 0; index < equipmentLayers.length; index += 1) {
+        const layer = equipmentLayers[index];
+        if (!layer || !layer.frame) continue;
+        const order = Number(layer.order || 0);
+        if (order < previousOrder) needsSort = true;
+        previousOrder = order;
+        hasEquipmentFrame = true;
+      }
+      if (!hasEquipmentFrame) return [];
+      const layers = needsSort
+        ? equipmentLayers.filter((layer) => layer && layer.frame).sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+        : equipmentLayers;
+      const frames = [];
+      let insertedBaseFrame = false;
+      for (let index = 0; index < layers.length; index += 1) {
+        const layer = layers[index];
+        if (!layer || !layer.frame) continue;
+        if (!insertedBaseFrame && Number(layer.order || 0) >= 0) {
+          frames.push(actor.animationFrame);
+          insertedBaseFrame = true;
+        }
+        frames.push(layer.frame);
+      }
+      if (!insertedBaseFrame) frames.push(actor.animationFrame);
+      return frames;
+    }
+
+    getCompositeFrameTextureKey(frames) {
+      let compositeKey = '';
+      for (let index = 0; index < frames.length; index += 1) {
+        const frameKey = this.getFrameTextureKey(frames[index]);
+        if (!frameKey) continue;
+        compositeKey += compositeKey ? `|${frameKey}` : frameKey;
+      }
+      return compositeKey;
     }
 
     renderActorComposite(actor, box, alpha) {
       const frames = this.getActorCompositeFrames(actor);
       if (!frames.length) return false;
-      const compositeKey = frames.map((frame) => this.getFrameTextureKey(frame)).filter(Boolean).join('|');
+      const compositeKey = this.getCompositeFrameTextureKey(frames);
       const compositeTexture = this.getCompositeFrameTexture(frames, compositeKey);
       if (!compositeTexture) return false;
       return this.drawActorTexture(compositeTexture, box, {
@@ -2449,10 +2767,12 @@
       const simplified = !!(metrics && metrics.simplified);
       const flash = Math.sin(clamp(progress / 0.24, 0, 1) * Math.PI);
       const seed = Number(effect && effect.x || 0) * 0.011 + Number(effect && effect.y || 0) * 0.017;
-      this.drawShape('damage', 'glow', x, y + 2, glowW * (1.82 + flash * 0.22), glowH * (2.2 + flash * 0.24), {
-        tint: burstTint,
-        alpha: alpha * (simplified ? 0.2 : 0.3)
-      });
+      if (!simplified) {
+        this.drawShape('damage', 'glow', x, y + 2, glowW * (1.82 + flash * 0.22), glowH * (2.2 + flash * 0.24), {
+          tint: burstTint,
+          alpha: alpha * 0.3
+        });
+      }
       this.drawShape('damage', 'ring', x, y + 2, glowW * (1.32 + progress * 0.44), glowH * (1.58 + flash * 0.22), {
         tint: ringTint,
         alpha: alpha * (0.72 - progress * 0.22)
@@ -2476,16 +2796,18 @@
           rotation: Math.PI - 0.28
         });
       }
-      const starAlpha = alpha * (0.28 + flash * 0.42);
-      this.drawLine('damage', x - glowW * 0.78, y + 2, x + glowW * 0.78, y + 2, simplified ? 1.4 : 2.2, {
-        tint,
-        alpha: starAlpha
-      });
-      this.drawLine('damage', x, y - glowH * 0.88, x, y + glowH * 0.62, simplified ? 1.4 : 2.2, {
-        tint,
-        alpha: starAlpha
-      });
-      const shardCount = simplified ? 4 : 8;
+      if (!simplified) {
+        const starAlpha = alpha * (0.28 + flash * 0.42);
+        this.drawLine('damage', x - glowW * 0.78, y + 2, x + glowW * 0.78, y + 2, 2.2, {
+          tint,
+          alpha: starAlpha
+        });
+        this.drawLine('damage', x, y - glowH * 0.88, x, y + glowH * 0.62, 2.2, {
+          tint,
+          alpha: starAlpha
+        });
+      }
+      const shardCount = simplified ? 2 : 8;
       for (let i = 0; i < shardCount; i += 1) {
         const angle = seed + progress * Math.PI * 0.68 + i * (Math.PI * 2 / shardCount);
         const inner = glowW * (0.48 + progress * 0.08);
@@ -2586,21 +2908,22 @@
     }
 
     renderDamageSplats(snapshot) {
-      const bounds = snapshot.bounds || {};
       const quality = snapshot.visualQuality || {};
       const simplified = !!quality.simplifyDamageSplats || quality.level === 'reduced';
-      (snapshot.damageSplats || []).forEach((effect) => {
-        if (!effect || !isEffectInBounds(effect, bounds, 120)) return;
+      const effects = snapshot.damageSplats || [];
+      for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
+        const effect = effects[effectIndex];
+        if (!effect) continue;
         const visibleAge = Number(effect.age) || 0;
-        if (visibleAge < 0) return;
+        if (visibleAge < 0) continue;
         const duration = Math.max(0.01, Number(effect.duration) || 1.05);
         const progress = clamp(visibleAge / duration, 0, 1);
         const fadeIn = clamp(visibleAge / 0.08, 0, 1);
         const fadeOut = progress < 0.72 ? 1 : clamp((1 - progress) / 0.28, 0, 1);
         const alpha = fadeIn * fadeOut;
-        if (alpha <= 0.01) return;
+        if (alpha <= 0.01) continue;
         const text = String(effect.text || '');
-        if (!text) return;
+        if (!text) continue;
         const stacked = !!effect.stacked && Number(effect.lineCount || 1) > 1;
         const critical = !!effect.critical;
         const color = effect.color || '#fff4c7';
@@ -2644,10 +2967,13 @@
             alpha: critical ? alpha * 0.62 : alpha * 0.32
           });
         }
-        this.drawSolidRect('damage', x - glowW / 2, y + 2 - glowH / 2, glowW, glowH, {
-          tint: 0x091f3b,
-          alpha: simplified ? alpha * 0.12 : alpha * 0.2
-        });
+        const needsTextBackplate = !simplified || critical || effect.targetType === 'player';
+        if (needsTextBackplate) {
+          this.drawSolidRect('damage', x - glowW / 2, y + 2 - glowH / 2, glowW, glowH, {
+            tint: 0x091f3b,
+            alpha: simplified ? alpha * 0.12 : alpha * 0.2
+          });
+        }
         this.drawText('damageText', text, x, y, {
           fill: color,
           stroke: strokeColor,
@@ -2667,7 +2993,7 @@
             alpha: alpha * 0.86
           });
         }
-      });
+      }
     }
 
     renderActorRig(actor, box, alpha) {
@@ -2803,6 +3129,7 @@
       this.frameTextures.clear();
       this.rigTextures.clear();
       this.environmentTextures.clear();
+      if (this.mapSceneryPlacementCache) this.mapSceneryPlacementCache.clear();
       this.runtimeTextures.clear();
       this.app = null;
       this.ready = false;
@@ -2824,11 +3151,6 @@
     const number = Number(value);
     if (!Number.isFinite(number)) return min;
     return Math.min(max, Math.max(min, number));
-  }
-
-  function positiveModulo(value, divisor) {
-    const base = Math.max(1, Number(divisor || 1));
-    return ((Number(value || 0) % base) + base) % base;
   }
 
   function shouldRenderProjectileFxHorizontally(projectile) {
@@ -2854,81 +3176,6 @@
       return ((parts[0] || 0) << 16) + ((parts[1] || 0) << 8) + (parts[2] || 0);
     }
     return fallback == null ? FALLBACK_COLOR : fallback;
-  }
-
-  function hashString(value) {
-    const text = String(value || '');
-    let hash = 2166136261;
-    for (let index = 0; index < text.length; index += 1) {
-      hash ^= text.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return hash >>> 0;
-  }
-
-  function seededUnit(seed, salt) {
-    let value = hashString(`${seed}:${salt}`);
-    value ^= value << 13;
-    value ^= value >>> 17;
-    value ^= value << 5;
-    return ((value >>> 0) % 10000) / 10000;
-  }
-
-  function seededPick(items, seed, salt) {
-    const options = (items || []).filter(Boolean);
-    if (!options.length) return '';
-    return options[Math.floor(seededUnit(seed, salt) * options.length) % options.length];
-  }
-
-  function rectsOverlap(a, b) {
-    return !!(a && b &&
-      a.x < b.x + b.w &&
-      a.x + a.w > b.x &&
-      a.y < b.y + b.h &&
-      a.y + a.h > b.y);
-  }
-
-  function isRectInBounds(rect, bounds, padding) {
-    if (!rect || !bounds) return true;
-    const pad = Number(padding || 0);
-    return rect.x + rect.w >= Number(bounds.left || 0) - pad &&
-      rect.x <= Number(bounds.right || 0) + pad &&
-      rect.y + rect.h >= Number(bounds.top || 0) - pad &&
-      rect.y <= Number(bounds.bottom || 0) + pad;
-  }
-
-  function isPointInBounds(point, bounds, padding) {
-    if (!point || !bounds) return true;
-    const pad = Number(padding || 0);
-    return Number(point.x || 0) >= Number(bounds.left || 0) - pad &&
-      Number(point.x || 0) <= Number(bounds.right || 0) + pad &&
-      Number(point.y || 0) >= Number(bounds.top || 0) - pad &&
-      Number(point.y || 0) <= Number(bounds.bottom || 0) + pad;
-  }
-
-  function isEffectInBounds(effect, bounds, padding) {
-    if (!effect || !bounds) return true;
-    if (effect.type === 'telegraph') {
-      return isRectInBounds({
-        x: Number(effect.x || 0),
-        y: Number(effect.y || 0),
-        w: Math.max(1, Number(effect.w || 0)),
-        h: Math.max(1, Number(effect.h || 0))
-      }, bounds, padding);
-    }
-    if (effect.type === 'chainLine') {
-      const x1 = Number(effect.x || 0);
-      const y1 = Number(effect.y || 0);
-      const x2 = Number(effect.x2 == null ? x1 : effect.x2);
-      const y2 = Number(effect.y2 == null ? y1 : effect.y2);
-      return isRectInBounds({
-        x: Math.min(x1, x2),
-        y: Math.min(y1, y2),
-        w: Math.abs(x2 - x1),
-        h: Math.abs(y2 - y1)
-      }, bounds, padding);
-    }
-    return isPointInBounds(effect, bounds, padding);
   }
 
   global.ProjectStarfallPixiRenderer = { createRenderer };

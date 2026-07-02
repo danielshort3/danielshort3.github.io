@@ -1,0 +1,19 @@
+@layer components {
+  .project-starfall-page {
+    --starfall-ink: #1c2631;
+    --starfall-muted: #65727c;
+    --starfall-panel: #f2dfbf;
+    --starfall-panel-soft: #f7ebd2;
+    --starfall-frame: #102033;
+    --starfall-frame-deep: #071323;
+    --starfall-border: rgba(116, 79, 28, 0.34);
+    --starfall-blue: #2aaad3;
+    --starfall-green: #4e9d61;
+    --starfall-gold: #d8a531;
+    --starfall-gold-bright: #f5cf72;
+    --starfall-red: #d9584a;
+    --starfall-teal: #2aa79a;
+    background: #132238;
+    color: var(--starfall-ink);
+  }
+}

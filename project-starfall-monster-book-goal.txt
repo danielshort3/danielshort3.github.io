@@ -1,0 +1,145 @@
+Goal: Optimize Project Starfall's monster information, drop table, bestiary, and progression-based research systems.
+
+Analyze the current Project Starfall codebase and design a practical, implementation-ready monster book system for a 2D side-scrolling RPG/MMORPG-style game. The system should help players understand enemies, farm intelligently, track collection progress, and feel rewarded for repeated kills without making the bestiary feel mandatory or tedious.
+
+Core design direction:
+Build a combat-first, collection-second monster book. Useful tactical information should unlock early, while long-term kill milestones should reward completionists with exact odds, lore, cosmetics, mastery badges, tracking improvements, and collection prestige.
+
+Use these reference principles:
+- Monster Hunter: progressive research reveals tactically useful information.
+- Terraria: kill-count milestones unlock bestiary depth.
+- OSRS: ghosted/silhouetted unobtained items and duplicate tracking work well.
+- MapleStory: monster collection and set completion support long-term goals.
+- Diablo Immortal: anti-frustration boosts help long-tail collection.
+- WoW/FFXIV: enemy info should be searchable, clean, and reference-quality.
+- Ragnarok Online: avoid forcing players to depend on external databases.
+
+Deliverables:
+
+1. Current-state diagnosis
+   - Identify what monster/enemy/drop/progression data already exists.
+   - Identify missing data needed for a bestiary and drop-tracking system.
+   - Call out code or data structures that need refactoring.
+
+2. Recommended system overview
+   - Recommend the best name: Monster Book, Bestiary, Codex, Field Guide, Enemy Journal, or Monster Encyclopedia.
+   - Design the list page, monster detail page, region/family pages, completion summary, and drop tracking model.
+   - Account for desktop and mobile UX.
+
+3. Monster entry design
+   Include an ideal monster detail layout with:
+   - Header: sprite/silhouette, name, family/type, threat tier, level range, kills, completion, research rank, biome tags, quest tags.
+   - Overview: lore, behavior summary, first seen location, habitats, behavior tags.
+   - Combat: HP, attack, defense, weaknesses, resistances, status vulnerabilities, attack patterns, special mechanics, recommended approach.
+   - Habitat: spawn locations, conditions, time/weather/event requirements, respawn class, rare spawn rules, map hints.
+   - Drops: item icon, item name, known state, quantity, rarity, odds, conditions, personal obtained count.
+   - Footer: entry completion, drops discovered, drops obtained, next milestone, rewards earned, mastery status.
+
+4. Progressive unlock milestone plan
+   Use this as the baseline, adjusting only if the game benefits from different thresholds:
+   - Sighted: silhouette, family, broad biome, rough threat tier, unknown nameplate.
+   - 1 kill: name, portrait, kill counter, flavor line, broad habitat, one behavior tag.
+   - 5 kills: approximate stat bars, obvious weakness, basic attack tags, known spawn-region names.
+   - 10 kills: exact core stats, resistances, weaknesses, notable attacks, quest/task relevance.
+   - 25 kills: full drop list, quantity ranges, rarity tiers, silhouettes for not-yet-found items.
+   - 50 kills: exact odds for common through very rare drops, conditional notes.
+   - 100 kills: ultra-rare odds, advanced behavior notes, rare spawn/respawn details, personal drop history.
+   - 250 kills: mastery badge, cosmetic/lore/prestige reward, optional account-level perk.
+
+5. Drop table rules
+   Design drop states:
+   - Hidden slot
+   - Revealed but not obtained
+   - Obtained
+   - Fully researched
+
+   Recommend when exact odds should appear. Prefer milestone-based odds unlocks, with exact odds eventually available to dedicated farmers.
+
+   Rarity tiers must use text labels plus non-color indicators:
+   - Common
+   - Uncommon
+   - Rare
+   - Very Rare
+   - Ultra Rare
+
+6. Completion and reward system
+   Design:
+   - Monster entry completion
+   - Region completion
+   - Family completion
+   - Global bestiary completion
+   - Drops discovered vs drops obtained
+   - Duplicate drop counts
+   - Boss, rare spawn, event-only, and quest-only handling
+
+   Prefer account-wide progress unless the current game architecture strongly suggests otherwise.
+
+   Rewards should favor:
+   - Cosmetics
+   - Titles
+   - Badges
+   - Profile frames
+   - Housing trophies/decorations
+   - Lore pages
+   - Map hints
+   - Tracking improvements
+   - Collection achievements
+
+   Avoid large combat stat bonuses or mandatory power progression.
+
+7. UX recommendations
+   Improve search, filters, sorting, progress bars, milestone indicators, locked states, partial info states, completed states, tooltips, accessibility, colorblind-safe rarity design, keyboard/controller navigation, and touch target sizing.
+
+   Required filters:
+   - Monster name
+   - Region
+   - Biome
+   - Family/type
+   - Level range
+   - Threat tier
+   - Weakness
+   - Drop item
+   - Rarity
+   - Completion status
+   - Quest/task relevance
+   - Event-only status
+   - Boss/elite/normal type
+
+8. Implementation blueprint
+   Recommend frontend/backend structures and data models.
+
+   At minimum, design these entities:
+   - MonsterDefinition
+   - MonsterDrop
+   - PlayerMonsterProgress
+
+   Include which data should be static, player/account-specific, dynamically calculated, exposed immediately, or hidden behind milestones.
+
+9. Example monster entry
+   Create one example Project Starfall monster entry with:
+   - Header
+   - Overview
+   - Combat notes
+   - Habitat
+   - Drop table
+   - Unlock state
+   - Completion progress
+
+10. Prioritized action plan
+   Provide:
+   - Quick wins
+   - Medium-term improvements
+   - Long-term system upgrades
+
+Important constraints:
+- Make the system useful early and rewarding long-term.
+- Do not hide basic combat information behind excessive grind.
+- Do not hide all rare drops forever.
+- Use revealed-but-not-owned states for rare drops.
+- Track personal duplicate counts.
+- Reveal exact drop odds eventually.
+- Do not rely on color alone.
+- Prefer cosmetic, prestige, and convenience rewards over raw power.
+- Keep the system searchable, filterable, readable, and implementation-friendly.
+
+Final output should be a concrete blueprint that can be handed to a developer.

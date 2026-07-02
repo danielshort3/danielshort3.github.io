@@ -1,0 +1,21 @@
+@layer components {
+  .project-starfall-log {
+    display: grid;
+    gap: 8px;
+    max-height: 520px;
+    overflow: auto;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    color: var(--starfall-muted);
+    font-size: 0.92rem;
+  }
+
+  .project-starfall-log li {
+    padding: 8px 10px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+}

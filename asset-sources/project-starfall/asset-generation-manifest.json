@@ -1,0 +1,399 @@
+{
+  "version": 1,
+  "name": "Project Starfall Asset Generation Manifest",
+  "guide": "ASSET_GENERATION_GUIDE.md",
+  "styleSource": "img/project-starfall/asset-prompts.md",
+  "promptTemplates": "asset-sources/project-starfall/prompts/README.md",
+  "validationCommand": "npm run validate:project-starfall-assets",
+  "engine": {
+    "type": "static browser game",
+    "renderer": "Project Starfall canvas/Pixi runtime",
+    "runtimeData": "js/games/project-starfall/project-starfall-data.js"
+  },
+  "requiredFolders": [
+    "asset-sources/project-starfall/players/classes",
+    "asset-sources/project-starfall/players/equipment",
+    "asset-sources/project-starfall/enemies/compact",
+    "asset-sources/project-starfall/enemy-projectiles",
+    "asset-sources/project-starfall/prompts",
+    "img/project-starfall/animations/players",
+    "img/project-starfall/animations/enemies",
+    "img/project-starfall/animations/enemy-projectiles",
+    "img/project-starfall/animations/combat-fx/basic",
+    "img/project-starfall/animations/combat-fx/enemies",
+    "img/project-starfall/animations/combat-fx/projectiles/source",
+    "img/project-starfall/animations/combat-fx/skills",
+    "img/project-starfall/animations/combat-fx/skills/source",
+    "img/project-starfall/animations/fx",
+    "img/project-starfall/animations/fx/source",
+    "img/project-starfall/animations/pets",
+    "img/project-starfall/animations/pets/source",
+    "img/project-starfall/animations/portals",
+    "img/project-starfall/animations/portals/source",
+    "img/project-starfall/cards/icons",
+    "img/project-starfall/cards/source",
+    "img/project-starfall/characters",
+    "img/project-starfall/enemies",
+    "img/project-starfall/environment/props",
+    "img/project-starfall/environment/ramps",
+    "img/project-starfall/environment/source",
+    "img/project-starfall/environment/structures",
+    "img/project-starfall/environment/structures/source",
+    "img/project-starfall/environment/terrain",
+    "img/project-starfall/equipment-layers",
+    "img/project-starfall/items/icons",
+    "img/project-starfall/items/source",
+    "img/project-starfall/items/sheets",
+    "img/project-starfall/maps",
+    "img/project-starfall/maps/source/field",
+    "img/project-starfall/maps/source/safe-zones",
+    "img/project-starfall/maps/trials",
+    "img/project-starfall/skills/base",
+    "img/project-starfall/skills/advanced",
+    "img/project-starfall/skills/source",
+    "img/project-starfall/stations",
+    "img/project-starfall/ui",
+    "img/project-starfall/ui/menu-icons",
+    "img/project-starfall/ui/source",
+    "img/project-starfall/world-map"
+  ],
+  "contracts": {
+    "players": {
+      "sourceFolder": "asset-sources/project-starfall/players/classes",
+      "sourcePattern": "<file-id>-source.png",
+      "portraitFolder": "img/project-starfall/characters",
+      "portraitPattern": "<file-id>.png",
+      "animationFolder": "img/project-starfall/animations/players",
+      "animationPattern": "<file-id>-sheet.png",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": [
+        "idle",
+        "run",
+        "jump",
+        "fall",
+        "climb",
+        "basic",
+        "skill",
+        "party",
+        "hit",
+        "defeat"
+      ],
+      "sheetWidth": 960,
+      "sheetHeight": 1600,
+      "portraitWidth": 320,
+      "portraitHeight": 320,
+      "classes": [
+        "fighter",
+        "mage",
+        "archer",
+        "guardian",
+        "berserker",
+        "duelist",
+        "fireMage",
+        "runeMage",
+        "stormMage",
+        "sniper",
+        "trapper",
+        "beastArcher"
+      ],
+      "processor": "build/process-project-starfall-player-ai-assets.js --validate"
+    },
+    "equipmentLayers": {
+      "folder": "img/project-starfall/equipment-layers",
+      "pattern": "<equipment-file-id>-sheet.png",
+      "frameSize": 160,
+      "columns": 6,
+      "rowsFrom": "contracts.players.rows",
+      "sheetWidth": 960,
+      "sheetHeight": 1600
+    },
+    "enemies": {
+      "sourceFolder": "asset-sources/project-starfall/enemies/compact",
+      "sourcePattern": "<enemy-file-id>-compact-source.png",
+      "portraitFolder": "img/project-starfall/enemies",
+      "portraitPattern": "<enemy-file-id>.png",
+      "animationFolder": "img/project-starfall/animations/enemies",
+      "animationPattern": "<enemy-file-id>-compact-sheet.png",
+      "frameSize": 128,
+      "columns": 3,
+      "rows": [
+        "idle",
+        "move",
+        "telegraph",
+        "attack",
+        "projectile",
+        "buff",
+        "hit",
+        "defeat"
+      ],
+      "sheetWidth": 384,
+      "sheetHeight": 1024,
+      "sourceGuideColor": "#00ffff",
+      "defaultChroma": "#00ff00",
+      "greenSubjectChroma": "#ff00ff",
+      "processor": "build/process-project-starfall-compact-bandits.js --validate"
+    },
+    "enemyProjectiles": {
+      "folder": "img/project-starfall/animations/enemy-projectiles",
+      "pattern": "<projectile-id>-sheet.png",
+      "frameSize": 64,
+      "columns": 3,
+      "rows": [
+        "projectile"
+      ],
+      "sheetWidth": 192,
+      "sheetHeight": 64
+    },
+    "globalFx": {
+      "folder": "img/project-starfall/animations/fx",
+      "sourceFolder": "img/project-starfall/animations/fx/source",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": 1,
+      "sheetWidth": 960,
+      "sheetHeight": 160
+    },
+    "skillFx": {
+      "folder": "img/project-starfall/animations/combat-fx/skills",
+      "sourceFolder": "img/project-starfall/animations/combat-fx/skills/source",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": [
+        "cast",
+        "projectile",
+        "impact",
+        "area"
+      ],
+      "sheetWidth": 960,
+      "sheetHeight": 640,
+      "processor": "build/process-project-starfall-ai-skill-fx.js --validate"
+    },
+    "basicAttackFx": {
+      "folder": "img/project-starfall/animations/combat-fx/basic",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": [
+        "cast",
+        "projectile",
+        "impact",
+        "trail"
+      ],
+      "sheetWidth": 960,
+      "sheetHeight": 640
+    },
+    "enemyCombatFx": {
+      "folder": "img/project-starfall/animations/combat-fx/enemies",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": [
+        "telegraph",
+        "melee",
+        "projectile",
+        "buff",
+        "impact"
+      ],
+      "sheetWidth": 960,
+      "sheetHeight": 800
+    },
+    "portals": {
+      "folder": "img/project-starfall/animations/portals",
+      "sourceFolder": "img/project-starfall/animations/portals/source",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": 1,
+      "sheetWidth": 960,
+      "sheetHeight": 160,
+      "variants": [
+        "standard",
+        "boss",
+        "locked"
+      ]
+    },
+    "pet": {
+      "folder": "img/project-starfall/animations/pets",
+      "sourceFolder": "img/project-starfall/animations/pets/source",
+      "frameSize": 160,
+      "columns": 6,
+      "rows": [
+        "idle",
+        "run",
+        "jump",
+        "fall",
+        "loot",
+        "teleport"
+      ],
+      "sheetWidth": 960,
+      "sheetHeight": 960
+    },
+    "items": {
+      "iconFolder": "img/project-starfall/items/icons",
+      "sourceFolder": "img/project-starfall/items/source",
+      "sheetFolder": "img/project-starfall/items/sheets",
+      "iconWidth": 64,
+      "iconHeight": 64,
+      "processor": "build/process-project-starfall-ai-item-icons.js",
+      "sourceSheets": [
+        { "file": "ai-items-consumables-materials.png", "columns": 5, "rows": 5, "outputFile": "ai-items-consumables-materials-sheet.png" },
+        { "file": "ai-items-potion-tiers.png", "columns": 4, "rows": 3, "outputFile": "ai-items-potion-tiers-sheet.png" },
+        { "file": "ai-items-mob-materials-core.png", "columns": 5, "rows": 4, "outputFile": "ai-items-mob-materials-core-sheet.png" },
+        { "file": "ai-items-mob-materials-late.png", "columns": 5, "rows": 4, "outputFile": "ai-items-mob-materials-late-sheet.png" },
+        { "file": "ai-items-coin-stacks.png", "columns": 4, "rows": 1, "outputFile": "ai-items-coin-stacks-sheet.png" },
+        { "file": "ai-items-rate-coupons.png", "columns": 3, "rows": 2, "outputFile": "ai-items-rate-coupons-sheet.png" },
+        { "file": "ai-items-slot-prisms-plinko.png", "columns": 3, "rows": 3, "outputFile": "ai-items-slot-prisms-plinko-sheet.png" },
+        { "file": "ai-items-shop-boss-forest.png", "columns": 5, "rows": 5, "outputFile": "ai-items-shop-boss-forest-sheet.png" },
+        { "file": "ai-items-world-drops.png", "columns": 5, "rows": 4, "outputFile": "ai-items-world-drops-sheet.png" },
+        { "file": "ai-items-boss-core-storm.png", "columns": 5, "rows": 5, "outputFile": "ai-items-boss-core-storm-sheet.png" },
+        { "file": "ai-items-boss-astral-eclipse.png", "columns": 5, "rows": 4, "outputFile": "ai-items-boss-astral-eclipse-sheet.png" }
+      ],
+      "externalSheets": [
+        { "file": "ai-items-star-cards-sheet.png", "columns": 5, "rows": 1, "ids": ["white_star_card", "green_star_card", "blue_star_card", "purple_star_card", "orange_star_card"] }
+      ]
+    },
+    "cards": {
+      "source": "img/project-starfall/cards/source/ai-card-icons.png",
+      "iconFolder": "img/project-starfall/cards/icons",
+      "iconWidth": 64,
+      "iconHeight": 64,
+      "sourceColumns": 7,
+      "sourceRows": 3,
+      "processor": "build/process-project-starfall-card-icons.js"
+    },
+    "skills": {
+      "sourceFolder": "img/project-starfall/skills/source",
+      "baseFolder": "img/project-starfall/skills/base",
+      "advancedFolder": "img/project-starfall/skills/advanced",
+      "iconWidth": 256,
+      "iconHeight": 256,
+      "processor": "build/process-project-starfall-skill-icons.js",
+      "sourceSheets": [
+        "fighter-base-sheet.png",
+        "mage-base-sheet.png",
+        "archer-base-sheet.png",
+        "guardian-advanced-sheet.png",
+        "berserker-advanced-sheet.png",
+        "fire-mage-advanced-sheet.png",
+        "rune-mage-advanced-sheet.png",
+        "sniper-advanced-sheet.png",
+        "trapper-advanced-sheet.png",
+        "duelist-storm-beast-advanced-sheet.png"
+      ]
+    },
+    "maps": {
+      "folder": "img/project-starfall/maps",
+      "fieldSourceFolder": "img/project-starfall/maps/source/field",
+      "safeZoneSourceFolder": "img/project-starfall/maps/source/safe-zones",
+      "trialFolder": "img/project-starfall/maps/trials",
+      "width": 1280,
+      "height": 640,
+      "format": "webp",
+      "processor": "build/process-project-starfall-map-backgrounds.js --validate"
+    },
+    "worldMap": {
+      "path": "img/project-starfall/world-map/starfall-atlas.webp",
+      "width": 1920,
+      "height": 1080,
+      "format": "webp"
+    },
+    "environment": {
+      "terrain": {
+        "folder": "img/project-starfall/environment/terrain",
+        "width": 512,
+        "height": 256,
+        "cellSize": 64,
+        "columns": 8,
+        "schema": "modular-v2"
+      },
+      "props": {
+        "folder": "img/project-starfall/environment/props",
+        "width": 384,
+        "height": 128,
+        "cellSize": 64,
+        "columns": 6
+      },
+      "ramps": {
+        "folder": "img/project-starfall/environment/ramps",
+        "width": 512,
+        "height": 128,
+        "cellSize": 128,
+        "columns": 4,
+        "schema": "ramps-v1"
+      },
+      "structures": {
+        "townLandmarks": {
+          "path": "img/project-starfall/environment/structures/town-landmarks.png",
+          "source": "img/project-starfall/environment/structures/source/ai-town-landmarks.png",
+          "width": 1024,
+          "height": 512,
+          "cellSize": 256,
+          "columns": 4,
+          "rows": 2
+        }
+      },
+      "processor": "build/process-project-starfall-environment-imagegen-assets.js --validate"
+    },
+    "ui": {
+      "screens": [
+        { "path": "img/project-starfall/ui/splash-screen.png", "width": 1672, "height": 941, "alpha": false },
+        { "path": "img/project-starfall/ui/start-screen.png", "width": 1672, "height": 941, "alpha": false },
+        { "path": "img/project-starfall/ui/character-select-screen.png", "width": 1672, "height": 941, "alpha": false },
+        { "path": "img/project-starfall/ui/character-slot-pedestal.png", "width": 512, "height": 160, "alpha": true }
+      ],
+      "menuIconFolder": "img/project-starfall/ui/menu-icons",
+      "menuIconWidth": 64,
+      "menuIconHeight": 64,
+      "source": "img/project-starfall/ui/source/ai-menu-icons-sheet.png",
+      "menuIcons": {
+        "character": "character.png",
+        "equipment": "equipment.png",
+        "partyPanel": "party-panel.png",
+        "inventory": "inventory.png",
+        "skills": "skills.png",
+        "quests": "quests.png",
+        "worldmap": "worldmap.png",
+        "monsters": "monsters.png",
+        "shop": "shop.png",
+        "upgrade": "upgrade.png",
+        "daily": "beta.png",
+        "cashShop": "cash-shop.png",
+        "beta": "beta.png",
+        "guide": "guide.png",
+        "log": "log.png",
+        "settings": "settings.png",
+        "keybinds": "keybinds.png",
+        "admin": "admin.png",
+        "logout": "logout.png"
+      }
+    },
+    "stations": {
+      "folder": "img/project-starfall/stations",
+      "width": 320,
+      "height": 320,
+      "ids": [
+        "shop",
+        "storage",
+        "slots",
+        "upgrade",
+        "class"
+      ]
+    }
+  },
+  "buildScripts": [
+    "build/process-project-starfall-player-ai-assets.js",
+    "build/process-project-starfall-compact-bandits.js",
+    "build/process-project-starfall-ai-item-icons.js",
+    "build/process-project-starfall-card-icons.js",
+    "build/process-project-starfall-skill-icons.js",
+    "build/process-project-starfall-ai-skill-fx.js",
+    "build/process-project-starfall-environment-imagegen-assets.js",
+    "build/process-project-starfall-map-backgrounds.js",
+    "build/process-project-starfall-ai-visual-sweep.js",
+    "build/process-project-starfall-non-enemy-ai-assets.js"
+  ],
+  "reviewChecklist": {
+    "style": ["Starlit Frontier Fantasy", "readable silhouette", "no copied IP", "no AI artifacts"],
+    "technical": ["correct dimensions", "correct frame count", "correct folder", "correct filename", "transparent runtime output"],
+    "animation": ["stable baseline", "stable scale", "clear tells", "no cell overflow"],
+    "gameplay": ["class identity", "enemy role", "hazard direction", "UI readability"]
+  }
+}

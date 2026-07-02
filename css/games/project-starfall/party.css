@@ -1,0 +1,219 @@
+@layer components {
+  .project-starfall-party-roster {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .project-starfall-party-member,
+  .project-starfall-party-buff {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-party-member.is-player {
+    background: #eef6ff;
+  }
+
+  .project-starfall-party-member.is-ally {
+    background: #eff9ef;
+  }
+
+  .project-starfall-party-member.is-empty {
+    color: var(--starfall-muted);
+  }
+
+  .project-starfall-party-member > span:first-child {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #f3eee4;
+    color: var(--starfall-ink);
+    font-weight: 950;
+  }
+
+  .project-starfall-party-art {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 4px 6px rgba(16,32,51,0.16));
+  }
+
+  .project-starfall-party-member strong,
+  .project-starfall-party-member small,
+  .project-starfall-party-buff span {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-party-member small {
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    font-weight: 760;
+  }
+
+  .project-starfall-party-buff {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    min-height: 36px;
+  }
+
+  .project-starfall-party-buff .project-starfall-skill-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .project-starfall-party-buff strong {
+    color: var(--starfall-blue);
+    font-size: 0.78rem;
+  }
+
+  .project-starfall-status-tile-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .project-starfall-status-tile {
+    display: grid;
+    width: 58px;
+    gap: 4px;
+    justify-items: center;
+    min-width: 0;
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-status-icon-frame {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    overflow: hidden;
+    border: 1px solid rgba(255,209,102,0.58);
+    border-radius: 8px;
+    background: rgba(16,32,51,0.9);
+    box-shadow: 0 5px 10px rgba(16,32,51,0.14);
+  }
+
+  .project-starfall-status-tile.is-cooldown .project-starfall-status-icon-frame {
+    border-color: rgba(123,223,242,0.62);
+    background: rgba(13,22,35,0.94);
+  }
+
+  .project-starfall-status-icon-frame .project-starfall-skill-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 7px;
+  }
+
+  .project-starfall-status-fallback {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: #102033;
+    background: #fff3c4;
+    font-size: 0.62rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-status-duration-bar {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(9,17,27,0.72);
+  }
+
+  .project-starfall-status-duration-bar::after {
+    content: "";
+    display: block;
+    width: var(--status-progress, 100%);
+    height: 100%;
+    border-radius: inherit;
+    background: #ffd166;
+  }
+
+  .project-starfall-status-cooldown-shade {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: var(--status-progress, 100%);
+    background: rgba(3,8,15,0.64);
+  }
+
+  .project-starfall-status-timer {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    max-width: calc(100% - 8px);
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: rgba(16,32,51,0.72);
+    color: #fff7df;
+    font-size: 0.52rem;
+    font-weight: 950;
+    line-height: 1.15;
+  }
+
+  .project-starfall-status-tile.is-cooldown .project-starfall-status-timer {
+    background: rgba(4,12,22,0.76);
+    color: #c9f6ff;
+  }
+
+  .project-starfall-status-label {
+    max-width: 100%;
+    color: var(--starfall-muted);
+    font-size: 0.62rem;
+    font-weight: 850;
+    line-height: 1.1;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-role-chip {
+    color: var(--starfall-blue);
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
+  .project-starfall-role-card {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border: 1px solid rgba(59, 136, 189, 0.22);
+    border-radius: 8px;
+    background: #f3fbff;
+  }
+
+  .project-starfall-role-card strong {
+    color: var(--starfall-blue);
+    font-size: 0.82rem;
+  }
+
+  .project-starfall-role-card span,
+  .project-starfall-role-card small {
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+}

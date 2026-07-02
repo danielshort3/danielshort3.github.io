@@ -1,0 +1,270 @@
+Goal for Codex:
+
+Inspect Project Starfall's current 2D side-scrolling RPG/MMORPG maps and produce a practical optimization plan for towns, combat/grinding maps, party-play spaces, monster spawn layouts, progression flow, visual identity, metrics, and implementation priorities.
+
+Repository:
+/mnt/c/Users/clopt/Documents/coding/Personal_Projects/danielshort3.github.io
+
+Role:
+Act as a senior 2D MMORPG/RPG level designer and systems designer. Use proven design patterns from MapleStory and comparable 2D side-scrolling RPG/MMORPGs, while applying the analysis directly to Project Starfall's actual current maps.
+
+Primary design inspirations:
+- MapleStory: Henesys, Ellinia, Kerning City, Sleepywood, Ludibrium, Kerning Subway, Ant Tunnel, Toy Factory, Clocktower, and classic hunting maps.
+- LaTale: Belos/Elias-style towns and area-map navigation.
+- Elsword: compact village services and dungeon/field separation.
+- Dragonica / Dragon Saga: towns, fields, hidden maps, dungeons, and high-respawn farming areas.
+- Terraria: NPC towns, spawn suppression, pylon-style travel, and spawn logic.
+- Castlevania-style RPGs: safe rooms, looped progression, shortcuts, and thematic zones.
+- Ragnarok Online where relevant: Prontera/Kafra-style service hubs and landmark-based navigation.
+
+Primary objective:
+Optimize Project Starfall so towns feel functional, memorable, readable, visually distinct, and useful, while monster maps support solo grinding, party grinding, exploration, progression, and long-term replayability without becoming too easy, too repetitive, too empty, too confusing, or too exploitable.
+
+Core design principle:
+Do not simply make maps pretty. Treat maps as behavior-shaping spaces. Towns should feel like places. Combat maps should feel like routes.
+
+Start by inspecting current authoritative sources:
+- project_starfall_gdd_v0_5.md
+- pages/games/project-starfall.html
+- css/games/project-starfall.css
+- js/games/project-starfall/project-starfall-data.js
+- js/games/project-starfall/project-starfall-engine.js
+- js/games/project-starfall/project-starfall-renderer-pixi.js
+- js/games/project-starfall/project-starfall-ui.js
+- test.js
+- tests/project-starfall-balance-harness.js
+- img/project-starfall/maps/
+- img/project-starfall/environment/
+- any existing map cleanup or Starfall goal files in the root directory
+
+Important current implementation detail to verify:
+Project Starfall may generate or override runtime map geometry from helper functions. Inspect both authored map definitions and runtime-generated geometry before drawing conclusions.
+
+Town and hub audit principles:
+- Each town should have one unmistakable landmark.
+- High-frequency services should be quick to find without relying entirely on menus.
+- Potion, repair, storage, mail, auction/broker, crafting, transportation, class/job NPCs, and quest hubs should be placed logically.
+- High-frequency services should be close together.
+- Lower-frequency flavor areas should sit slightly farther away so the town still feels like a real place.
+- Doors, portals, interiors, and transitions should feel diegetic rather than like flat UI buttons.
+- Exits should be visually clear and should preview nearby biomes.
+- A new player should be able to cross a town without mobility skills in roughly 20-40 seconds.
+- Towns should balance convenience and atmosphere.
+
+MapleStory-style town grammar:
+- Safe main map with 4-8 meaningful connections.
+- One dominant landmark.
+- Services visible or one short transition away.
+- One or more single-purpose interiors, such as class hall, shop, inn, guild hall, library, market, hideout, or crafting room.
+- A social pocket such as a plaza, fountain, park, tavern, rooftop, or market.
+- Exits that visually communicate the next region: forest gate, sewer hatch, subway entrance, tower elevator, desert road, dungeon cave, shrine gate, etc.
+
+Town service-frequency rule:
+- Highest frequency: potions, repair, quick travel, core quest turn-ins.
+- Medium frequency: storage, mail, auction/broker, crafting, upgrade systems.
+- Lower frequency: cosmetics, housing, guilds, lore library, minigames, museums, class-flavor interiors.
+
+Visual identity audit principles:
+- Each town or region should have distinct architecture, palette, props, background, music/audio mood, lighting, NPC culture, terrain, and monster family.
+- The town theme should connect naturally to nearby monster maps.
+- Each town should be describable in one phrase, such as mushroom village, vertical fairy forest, neon sewer city, toy-clock city, underground refuge, desert trade camp, storm mast town, or astral observatory.
+- Reuse efficient layouts only if landmark silhouette, portal fiction, background, lighting, traversal objects, and enemy families still make the region feel unique.
+
+Combat map audit principles:
+- Evaluate each combat map as a route, not as a screenshot.
+- Identify intended player route, main loop or rotation, platform coverage, dead travel time, spawn density, respawn timing, class bias, safe spots, exploit points, party overlap, and whether players return to sections as enemies repopulate.
+- Good grinding maps usually have one clear dominant loop, 1-3 core monster types, enough enemies that players are rarely idle, limited dead travel, tactical terrain, clear platform ownership, shortcut/reset support on vertical maps, and a shape players can explain in one sentence.
+
+Avoid:
+- Huge maps with low density.
+- Too many ladders or ropes with no payoff.
+- Platforms that are hard to reach but not tactically interesting.
+- Monster spawns in unreachable or low-visibility areas.
+- One perfect safe platform that invalidates the rest of the map.
+- Maps where only one class type is clearly optimal.
+- Maps where players wait for enemies instead of moving through a loop.
+- Maps where enemies are so dense and static that grinding becomes effortless.
+
+Classify combat maps using these archetypes:
+- A. Flat lane map.
+- B. Dense chamber map.
+- C. Multi-platform terrace map.
+- D. Vertical shaft map.
+- E. Split-lane party map.
+- F. Circular loop map.
+- G. Hub-and-branch map.
+- H. Arena-style map.
+- I. Hazard-based map.
+- J. Hidden/high-density farming map.
+
+Solo and party design rules:
+- Solo maps should prioritize personal rhythm, low downtime, a clear loop, moderate density, and fair access for melee, ranged, and mobility classes.
+- Party maps should prioritize separable labor, multiple lanes or platform zones, central regroup points, spawn density that scales with player count, and enough enemies per section that players avoid overlapping constantly.
+- Party-oriented maps should support 3-6 meaningful sections, lane-local respawns, central elite/miniboss pulses, support-friendly regroup points, anti-air or ranged responsibilities, chokepoints for tanks/frontliners, dense but not map-wide AoE packs, and objectives that reward splitting and regrouping.
+
+Spawn and difficulty tuning:
+- Inspect or infer number of spawn points, active monster cap, spawn distribution by platform/section, respawn timer or wave behavior, route-loop time, and whether enemy behavior matches terrain.
+- Route time and respawn time must "shake hands."
+- If players return to empty platforms, the map is too sparse, too large, or respawns too slowly.
+- If the map is always overfilled and players barely move, it is too dense or too static.
+- If one platform has the best reward and no danger, it will become an exploit spot.
+- If enemies spawn directly on players or in unreachable spots, the map feels unfair.
+
+Starting spawn heuristics:
+- Short platform: 5-8 standard melee mobs, or 4-6 ranged/flying mobs.
+- Wide horizontal floor: 8-12 standard mobs.
+- Two-tier solo lane: 10-16 mobs across the combined lane.
+- Party lane: 12-18 mobs, or 8-12 plus one periodic elite.
+- Central intersection: 4-6 mobs plus optional elite/miniboss/buff objective.
+- Starter solo map: 32-40 total spawns.
+- Midgame solo terrace: 40-52 total spawns.
+- Duo/trio split map: 52-64 total spawns.
+- Full-party map: 72-96 total spawns across 4-6 sections.
+- High-intensity farm pocket: smaller footprint, higher respawn, limited travel, optional elite or resource constraint.
+
+Monster behavior and terrain fit:
+- Walkers work well on lanes and terraces.
+- Flying mobs work well when players have ranged, anti-air, or jump attacks.
+- Ranged mobs need sightlines but should not create unfair unavoidable damage.
+- Chargers need enough lane length to telegraph movement.
+- Jumpers work well on tiered maps.
+- Tanks work well in chokepoints or elite-control zones.
+- Swarms need AoE counters but should not be trivialized by one safe spot.
+- Supports and healers need regroup zones.
+- Mobility-heavy enemies should be used sparingly in high-ladder maps.
+
+Progression and world-structure rules:
+- Starter town should connect to simple fields, then slightly denser lanes, then first dungeon/forest/cave.
+- Midgame towns should connect to split routes, stronger monster identities, class-specific advantages, and optional farm maps.
+- Late-game towns should introduce verticality, hazards, layered regions, shortcuts, elite objectives, and party maps.
+- Complexity should increase gradually.
+- Player mobility upgrades should unlock new route structures, not merely make longer maps tolerable.
+
+Metrics to recommend tracking:
+- Kills per minute.
+- EXP per minute.
+- Drop value per minute.
+- Idle time per minute.
+- Travel share of total time.
+- Route cycle time.
+- Damage taken per minute.
+- Potion/resource use.
+- Death rate.
+- Platform coverage.
+- Spawn vacancy.
+- Time spent on ladders/ropes/non-combat traversal.
+- Class performance spread.
+- Party overlap time.
+- Party reward efficiency vs solo reward efficiency.
+- Elite/miniboss clear time.
+- Player abandonment rate.
+- Repeat visitation rate.
+
+Suggested warning thresholds:
+- Idle time above 10-15 percent: map may be too sparse or too large.
+- Travel share above 30 percent: map may have too much dead movement.
+- Party overlap above 25-40 percent: map may not separate responsibilities well.
+- Best-class vs median-class reward gap above 20-25 percent: map may be too biased toward one class.
+- Party output barely better than solo: party map is inefficient.
+- Party output massively better with no risk: party map is too trivial or exploitable.
+
+Required deliverable:
+Write or update docs/project-starfall-map-optimization-audit.md with:
+
+A. Executive summary
+- Biggest strengths of current map design.
+- Biggest problems.
+- Highest-priority fixes.
+- Quick wins.
+- Longer-term redesign recommendations.
+
+B. Town-by-town audit
+For each town:
+- Current role.
+- Layout strengths.
+- Navigation problems.
+- Service placement issues.
+- Landmark/identity quality.
+- Door/portal/interior quality.
+- Suggested layout changes.
+- Suggested visual identity improvements.
+
+C. Combat-map-by-combat-map audit
+For each monster map:
+- Intended map type.
+- Actual map type.
+- Route clarity.
+- Spawn density.
+- Terrain quality.
+- Class bias.
+- Solo viability.
+- Party viability.
+- Exploit risks.
+- Recommended geometry changes.
+- Recommended spawn changes.
+- Recommended monster behavior changes.
+
+D. Map archetype classification table
+- Map name.
+- Current archetype.
+- Intended archetype.
+- Best use case.
+- Main problem.
+- Recommended fix.
+
+E. Spawn tuning table
+- Map name.
+- Recommended total spawn count.
+- Recommended spawn distribution by section/platform.
+- Recommended respawn timing.
+- Recommended elite/miniboss/event use.
+- Risk level for farming abuse.
+
+F. Party-play recommendations
+- Identify which maps should support solo only, solo/duo, small party, full party, party-only, and high-density farming.
+- Recommend lane splits, regroup points, support roles, and spawn scaling.
+
+G. Example redesigned layouts
+For the highest-priority maps, describe:
+- Platform arrangement.
+- Player route.
+- Spawn sections.
+- Portal/ladder/rope/elevator placement.
+- Monster types.
+- Intended class interactions.
+- Party strategy, if relevant.
+
+H. Visual identity recommendations
+Suggest ways to make regions unique while reusing efficient layout skeletons:
+- Landmark.
+- Architecture.
+- Color palette.
+- Props.
+- Background layers.
+- Music/audio mood.
+- NPC flavor.
+- Nearby monster families.
+- Portal/interior style.
+
+I. Checklist for future map design
+Provide a reusable checklist for every future town or monster map.
+
+J. Prioritized implementation roadmap
+Separate recommendations into:
+- Must fix now.
+- Should improve soon.
+- Nice-to-have polish.
+- Future expansion ideas.
+
+Acceptance criteria:
+- Recommendations are grounded in the current code/data, not generic MMORPG advice.
+- Every current town is audited.
+- Every current non-admin monster/combat map is audited.
+- The audit clearly identifies inefficient, confusing, boring, exploitable, too sparse, too dense, too easy, or class-biased areas.
+- The audit includes concrete recommended fixes, not only diagnosis.
+- The audit distinguishes current runtime behavior from authored map definitions where applicable.
+- The audit includes enough spawn and party-play detail to guide implementation.
+- The audit includes a reusable design checklist and roadmap.
+- Run lightweight verification that the audit contains all required sections and covers every current map name from `ProjectStarfallData.MAPS`.
+
+Be direct and practical. Do not only describe what other games do. Apply the principles to Project Starfall's actual maps.

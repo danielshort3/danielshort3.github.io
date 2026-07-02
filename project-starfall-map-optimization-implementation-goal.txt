@@ -1,0 +1,134 @@
+Goal for Codex:
+
+Implement the Project Starfall map-optimization recommendations from `docs/project-starfall-map-optimization-audit.md`.
+
+Repository:
+/mnt/c/Users/clopt/Documents/coding/Personal_Projects/danielshort3.github.io
+
+Primary objective:
+Turn the audit into working Project Starfall improvements. Towns should become more usable and visually distinct, combat maps should have clearer route identity, spawn layouts should support solo and party play, and the project should gain enough data/tests/metrics to keep future map tuning deliberate.
+
+Authoritative references:
+- `docs/project-starfall-map-optimization-audit.md`
+- `project_starfall_gdd_v0_5.md`
+- `js/games/project-starfall/project-starfall-data.js`
+- `js/games/project-starfall/project-starfall-engine.js`
+- `js/games/project-starfall/project-starfall-renderer-pixi.js`
+- `js/games/project-starfall/project-starfall-ui.js`
+- `tests/project-starfall-balance-harness.js`
+- `test.js`
+- `pages/games/project-starfall.html`
+- `css/games/project-starfall.css`
+- `img/project-starfall/maps/`
+- `img/project-starfall/environment/`
+
+Working rules:
+- Inspect the current worktree first. Do not rely only on the audit, because Project Starfall may have changed.
+- Do not revert unrelated dirty worktree changes.
+- Preserve current runtime guarantees unless replacing them with better verified behavior.
+- Distinguish authored map data from runtime-generated geometry. `applyPartyPlayGeometry()` and related helpers may override authored definitions.
+- Prefer small, verifiable implementation slices, but do not mark the goal complete until all required areas below are actually implemented and verified.
+
+Required implementation areas:
+
+1. Town service and navigation pass
+- Fix Starfall Crossing Plinko station placement so the station and Plinko Host resolve to the same usable location.
+- Create a clear ground-level high-frequency service pocket for each town: storage, supply/potion shop, repair/equipment shop, and quick travel/town-return access.
+- Move or keep medium-frequency systems one short transition away: slots, upgrade, crafting, broker/market, and similar systems.
+- Keep lower-frequency flavor systems farther out or in interiors: class flavor, guild/lore/cosmetic/minigame spaces.
+- Make town exits visually and structurally communicate the next region: forest gate, gear gate, mine lift, cave vent, ashglass bridge, glacier lift, sky elevator, archive gate, eclipse/rift gate.
+- Reduce repeated `townVerticalHub` sameness where practical by adding town-specific service placement, landmarks, props, portal fiction, and social pockets.
+
+2. Map intent and design metadata
+- Add explicit intent metadata to every current non-admin combat map. Include at minimum:
+  - intended archetype
+  - intended use case: solo, solo/duo, small party, full party, high-density farming, boss, exploration, dangerous progression
+  - one-sentence route summary
+  - party role target, if any
+  - farming-abuse risk
+  - visual identity tag
+  - recommended or current spawn-section model
+- Add or update field/town composition metadata so every major field, dungeon, and boss echo has authored section labels, portal roles, landmark bands, and route identity. Do not leave later maps dependent on generic Entry/Route/Exit composition where the audit calls that out as weak.
+
+3. Spawn section system
+- Add section identifiers to spawn points or equivalent runtime spawn metadata.
+- Implement lane-local or section-local spawn pressure so respawns can refill the section players are actually clearing instead of relying only on a global `waveMax`.
+- Keep safe-spawn behavior: do not spawn unfairly on top of players, inside unreachable areas, or on invalid platforms.
+- Add party-aware spawn scaling for party-intended maps. Scale by occupied section and party count where feasible, not only total player count.
+- Preserve or improve current automated guarantees for route validity, spawn reachability, and low downtime.
+
+4. Priority combat map redesigns
+Implement the audit's highest-priority layout changes in data/generator/runtime code, with focused tests:
+- Greenroot Meadow: make the first experience a starter loop before expanding into larger multi-tier play.
+- Bandit Ridge Camp: make it the first explicit split-lane party map with lower, middle, high, and regroup sections.
+- Oreback Quarry: make it a small-party/material farm with lane-local objectives and abuse controls.
+- Cinder Hollow and Ashglass Pass: stop them from feeling like duplicate lava-shaft variants.
+- Stormbreak Cliffs: create real anti-air party roles with low ram lane, mid archer bridge, high harrier airspace, and a lightning-rod/support objective.
+- Endless Rift: create a scaling circular or quadrant loop with surge rules and anti-camping/reward controls.
+
+5. Dungeon and boss arena identity
+- Give each dungeon and boss echo a distinct arena skeleton tied to its mechanic. Avoid the current generic `dungeonArena` sameness.
+- Cover at least: Bramble Depths, Gearworks Vault, Emberjaw Lair, Rimewarden Sanctum, Brambleking Court, Titan Foundry, Deepcore Core, Emberjaw Furnace, Rimewarden Vault, Stormbreak Aerie, Astral Stacks, and Eclipse Throne.
+- Add spatial roles for boss mechanics: root lanes, gear switches, quarry chambers, furnace vents, ice-wall lanes, storm rod perches, mirrored archive shelves, solar/lunar zone rotation.
+
+6. Monster behavior and terrain fit
+- Adjust spawn placement and terrain so walkers, flyers, ranged enemies, chargers, jumpers, tanks, healers, and swarms fit their maps.
+- Avoid one safe platform that invalidates a map.
+- Avoid unreachable, hidden, or low-visibility spawn points.
+- Avoid class-biased layouts where ranged, mobility, or AoE classes dominate without counterpressure.
+- Add melee/tank routes, flank paths, line-of-sight shelves, anti-air duties, support regroup points, and chokepoints where the audit recommends them.
+
+7. Metrics and tuning support
+- Add or extend instrumentation so map tuning can measure:
+  - kills per minute
+  - EXP per minute
+  - drop value per minute where available
+  - idle time
+  - travel share
+  - route cycle time
+  - damage taken
+  - potion/resource use
+  - death rate
+  - platform coverage
+  - spawn vacancy
+  - ladder/rope/non-combat traversal time
+  - class performance spread
+  - party overlap time
+  - party efficiency versus solo efficiency
+  - elite/miniboss clear time
+  - abandonment/repeat-visitation hooks if practical
+- Extend `tests/project-starfall-balance-harness.js` or related tooling so the new intent metadata and spawn sections can be inspected.
+
+8. Visual identity implementation
+- Reuse existing assets where possible, but make regions feel distinct through data, rendering placement, props, landmarks, lighting/palette, backgrounds, portal style, traversal objects, and NPC flavor.
+- The implementation should make each major town/region describable in one phrase, matching or improving the audit's visual identity table.
+- Do not make broad generated-asset changes unless they are necessary for the layout/identity work. Prefer existing `img/project-starfall/maps/` and `img/project-starfall/environment/` coverage first.
+
+9. Documentation update
+- Update `docs/project-starfall-map-optimization-audit.md` or add a companion implementation note such as `docs/project-starfall-map-optimization-implementation.md`.
+- Document what changed, what remains deferred, what metrics should be collected next, and any tradeoffs made.
+
+Required verification:
+- Run a scripted check that every current safe-zone town has the required town-service intent coverage.
+- Run a scripted check that every current non-admin combat map has intent metadata and section/spawn metadata.
+- Run a scripted check that every current non-admin combat map is represented in the relevant implementation documentation.
+- Run `npm test`.
+- Run `npm run build` if build inputs, copied assets, public output, or CSS bundles are changed.
+- Run `git diff --check`.
+- If a dev server or browser check is practical, inspect Project Starfall enough to confirm town stations, portals, redesigned maps, and UI panels still render and interact.
+
+Acceptance criteria:
+- Starfall Crossing Plinko station/host mismatch is fixed.
+- High-frequency town services are easier to access in every town.
+- Every current town has clearer landmark/service/portal identity than before.
+- Every current non-admin combat map has explicit design intent metadata.
+- Priority maps from the audit have concrete geometry/spawn changes, not only comments.
+- Party-intended maps have separable sections, regroup points, and lane/section-aware spawn behavior.
+- High-density farming maps have abuse controls.
+- Dungeons and boss echoes are no longer all the same generic arena in behavior and layout.
+- Spawn tuning preserves safe placement and route validity.
+- Metrics/harness support exists for future KPM, EXP/min, idle time, travel share, class spread, and party-overlap tuning.
+- Tests and verification commands pass, or any failure is documented with a clear reason and next fix.
+
+Completion note:
+This is a large implementation goal. If it cannot be completed in one turn, make concrete progress in the priority order above and leave the goal active. Do not mark it complete until the current code, data, tests, and documentation prove that all acceptance criteria are satisfied.

@@ -1,0 +1,191 @@
+@layer components {
+  .project-starfall-pet-assist {
+    display: grid;
+    gap: 8px;
+    padding: 9px;
+    border: 1px solid rgba(16,32,51,0.12);
+    border-radius: 8px;
+    background: #fffaf0;
+  }
+
+  .project-starfall-pet-panel {
+    align-content: start;
+  }
+
+  .project-starfall-pet-assist-head,
+  .project-starfall-pet-controls,
+  .project-starfall-pet-slots,
+  .project-starfall-pet-thresholds,
+  .project-starfall-pet-threshold {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .project-starfall-pet-assist-head {
+    justify-content: space-between;
+  }
+
+  .project-starfall-pet-assist-head span:first-child {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .project-starfall-pet-assist-head small {
+    color: var(--starfall-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .project-starfall-pet-controls {
+    flex-wrap: wrap;
+  }
+
+  .project-starfall-pet-slots {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 7px;
+  }
+
+  .project-starfall-pet-slot-wrap {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .project-starfall-pet-slot {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    min-height: 48px;
+    padding: 6px;
+    border: 1px dashed rgba(47,125,214,0.38);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.72);
+  }
+
+  .project-starfall-pet-slot-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(16,32,51,0.12);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--starfall-blue);
+    font-size: 0.62rem;
+    font-weight: 950;
+    overflow: hidden;
+  }
+
+  .project-starfall-pet-slot strong,
+  .project-starfall-pet-picker strong,
+  .project-starfall-pet-loot-rules > strong {
+    color: var(--starfall-ink);
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-pet-slot small,
+  .project-starfall-pet-picker small {
+    display: block;
+    color: var(--starfall-muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .project-starfall-pet-picker {
+    display: grid;
+    gap: 4px;
+    max-height: 156px;
+    overflow: auto;
+  }
+
+  .project-starfall-pet-picker button {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 38px;
+    padding: 5px;
+    border: 1px solid rgba(16,32,51,0.1);
+    border-radius: 7px;
+    background: #ffffff;
+    text-align: left;
+  }
+
+  .project-starfall-pet-picker button.is-selected {
+    border-color: rgba(47,125,214,0.55);
+    background: #eef6ff;
+  }
+
+  .project-starfall-pet-loot-rules {
+    display: grid;
+    gap: 6px;
+    padding: 7px;
+    border: 1px solid rgba(16,32,51,0.08);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.52);
+  }
+
+  .project-starfall-pet-select {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    color: var(--starfall-muted);
+    font-size: 0.7rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-pet-select select {
+    width: 100%;
+    min-height: 30px;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 6px;
+    background: #ffffff;
+    color: var(--starfall-ink);
+    font: 800 0.72rem system-ui, sans-serif;
+  }
+
+  .project-starfall-pet-controls button,
+  .project-starfall-pet-slot button,
+  .project-starfall-pet-threshold button {
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+
+  .project-starfall-pet-controls button[aria-pressed="true"] {
+    border-color: rgba(104,169,255,0.72);
+    background: #eef6ff;
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-pet-thresholds {
+    flex-wrap: wrap;
+  }
+
+  .project-starfall-pet-threshold {
+    justify-content: space-between;
+    min-width: min(100%, 126px);
+    padding: 5px 7px;
+    border: 1px solid rgba(16,32,51,0.08);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.62);
+    color: var(--starfall-muted);
+    font-size: 0.7rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-pet-threshold strong {
+    color: var(--starfall-blue);
+  }
+
+}

@@ -1,0 +1,100 @@
+Goal: Rework Project Starfall's base player animations until every supported player action has a simple, distinct, readable animation, and the animation system is ready for future equipment-art overlays.
+
+Context:
+The current player animations still feel odd, generic, and too basic. Use MapleStory as an action-coverage reference only: the goal is not to copy MapleStory art, but to reach the same kind of clarity where idle, walking, climbing, attacking, casting, buffing, being hit, and dying all have their own recognizable poses. The base player model should animate cleanly first; future work will overlay equipped items, armor, weapons, and accessories on top of the same frame grid.
+
+Primary objective:
+Audit the current Project Starfall player state and rendering systems, then implement and iterate on a clear base-player animation set for every supported runtime action. Keep the result straightforward rather than overproduced: readable pose changes, stable proportions, clean frame timing, no artifacts, and a consistent base rig that equipment layers can follow.
+
+Primary files to inspect:
+- js/games/project-starfall/project-starfall-engine.js
+- js/games/project-starfall/project-starfall-renderer-pixi.js
+- js/games/project-starfall/project-starfall-rig.js
+- js/games/project-starfall/project-starfall-data.js
+- build/process-project-starfall-player-ai-assets.js
+- build/generate-project-starfall-action-sprites.js
+- img/project-starfall/animations/players/*-sheet.png
+- img/project-starfall/characters/*.png
+- img/project-starfall/equipment-layers/*-sheet.png
+- img/project-starfall/asset-prompts.md
+- test.js
+
+Required action coverage:
+Implement or improve distinct base-model animation rows for every current player action/state, including at minimum:
+- Idle: stable breathing/stance with subtle motion.
+- Walk/run: alternating stride with readable arms, legs, and body rhythm.
+- Jump: clear takeoff/lift pose.
+- Fall: clear downward/brace pose that differs from jump.
+- Climb: ladder/rope climbing with alternating hands and feet.
+- Basic attack: readable windup, strike/release, and recovery.
+- Melee attack: weapon swing and body follow-through.
+- Bow attack: draw, release, and recovery silhouette.
+- Magic/staff/wand attack: cast pose with weapon/focus involvement.
+- Skill cast: stronger cast/channel pose distinct from basic attack.
+- Buff/party cast: supportive cast pose distinct from offensive skill.
+- Hit: recoil/flinch that preserves the character silhouette.
+- Defeat/death: simple collapse/defeat sequence without visual glitches.
+
+Layer-ready animation contract:
+- Preserve the existing runtime sheet contract unless there is a strong reason to change it: 6 columns by 10 rows, 160px frames, ordered as idle, run, jump, fall, climb, basic attack, skill cast, party/buff cast, hit, and defeat.
+- Keep every frame anchored to a consistent foot/baseline and body origin so equipment overlays can share the same coordinates.
+- Keep head, torso, hands, weapon hand, off hand, hips, feet, and back/shoulder positions predictable across frames.
+- If the code has or needs a rig/metadata structure, define simple per-frame attachment anchors for future equipment layers: head, face, chest, back, mainHand, offHand, gloves, boots, ring/charm, and weaponTip.
+- Do not solve equipment art fully unless needed, but do not make animation choices that would make equipment layering harder later.
+- Existing equipment layer sheets should remain aligned or be documented as needing a follow-up regeneration pass.
+
+Implementation requirements:
+1. Read the current state machine and renderer before editing assets.
+   - Identify every player action the engine can select.
+   - Make sure the renderer uses the intended row for each state.
+   - Fix missing, stale, or overly generic animation-state mappings.
+
+2. Improve the base player model first.
+   - The generic/base player sheet is the priority.
+   - Class-specific sheets can reuse the same rig and timing with class/weapon variations.
+   - Do not rely on tiny rotations or whole-body tilts as the main animation technique.
+
+3. Make actions visually distinct.
+   - Each action row should be recognizable when viewed at runtime scale.
+   - Adjacent frames should show intentional pose progression, not jitter.
+   - The base model should remain the same character across every frame.
+
+4. Keep the style clean and maintainable.
+   - No chroma-key pixels, guide pixels, clipped limbs, floating fragments, malformed shadows, or visible cell borders.
+   - No large scale changes between frames unless deliberately part of defeat/hit motion.
+   - Keep outlines, proportions, palette, and shading consistent.
+   - Use deterministic generation or documented processing steps; avoid hand-editing one final PNG in a way that cannot be repeated.
+
+5. Accommodate class and weapon differences.
+   - Fighter/warrior-style classes should read as melee.
+   - Archer/sniper/beast-archer-style classes should read as bow/ranged.
+   - Mage/fire/rune/storm-style classes should read as casting with staff/wand/focus.
+   - Guardian/berserker/duelist/trapper should have sensible silhouettes for their class fantasy while still using the shared base rig.
+
+6. Iterate with visual review.
+   - Regenerate sheets after generator/processor changes.
+   - Inspect `asset-sources/project-starfall/players/plain-adventurer-review.png` if produced by the pipeline.
+   - Inspect at least `img/project-starfall/animations/players/generic-player-sheet.png`, `fighter-sheet.png`, `archer-sheet.png`, and `mage-sheet.png`.
+   - Continue refining until the animations look correct, not merely until tests pass.
+
+Validation and tests:
+- Add or update validation where practical for:
+  - expected player sheet dimensions and row order,
+  - non-empty frames,
+  - no chroma/guide pixels,
+  - stable idle bounds,
+  - reasonable frame bounds and baselines,
+  - non-identical frames within animated rows,
+  - attack/cast rows differing meaningfully from idle/run,
+  - layer anchor metadata presence if anchor metadata is added.
+
+Verification commands:
+- node --check build/process-project-starfall-player-ai-assets.js
+- node --check build/generate-project-starfall-action-sprites.js
+- node build/process-project-starfall-player-ai-assets.js --validate
+- node build/generate-project-starfall-action-sprites.js --only players --validate
+- npm run build
+- npm test
+
+Definition of done:
+The base player sheet and representative class sheets show straightforward, readable animations for all supported actions: idle, run, jump, fall, climb, basic attack, melee/bow/magic attack variants, skill cast, buff cast, hit, and defeat. The animations look intentional at runtime scale, remain stylistically consistent with the base model, avoid artifacts, and preserve a clear shared frame/anchor contract so future equipment art can be layered over the player cleanly. All relevant validation/build/test commands pass, or any unrelated pre-existing failures are documented clearly.

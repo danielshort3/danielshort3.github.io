@@ -18,9 +18,14 @@ const TASKS = Object.freeze([
     validate: ['build/process-project-starfall-environment-imagegen-assets.js', '--validate']
   }),
   Object.freeze({
-    name: 'procedural playable character and equipment effect sheets',
-    generate: ['build/generate-project-starfall-action-sprites.js', '--only', 'players'],
-    validate: ['build/generate-project-starfall-action-sprites.js', '--only', 'players', '--validate']
+    name: 'environment ramp atlases',
+    generate: ['build/generate-project-starfall-ramp-assets.js'],
+    validate: ['build/generate-project-starfall-ramp-assets.js', '--validate']
+  }),
+  Object.freeze({
+    name: 'source-backed playable character sheets',
+    generate: ['build/process-project-starfall-player-ai-assets.js'],
+    validate: ['build/process-project-starfall-player-ai-assets.js', '--validate']
   }),
   Object.freeze({
     name: 'item icons',

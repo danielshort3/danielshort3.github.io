@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-accomplishments-goal.txt to expand Project Starfall accomplishments with motivating short-term and long-term grind goals, meaningful but balanced rewards, guide-aligned UI, visual verification, and passing tests.

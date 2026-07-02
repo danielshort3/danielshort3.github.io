@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-map-optimization-goal.txt to inspect Project Starfall's current towns, combat maps, party-play spaces, spawn layouts, progression flow, and visual identity, then produce the requested practical map optimization audit and roadmap.

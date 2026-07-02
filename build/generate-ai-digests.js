@@ -34,6 +34,7 @@ const excludedPathPatterns = [
   /^\/pages(?:\/|$)/i,
   /^\/search$/i,
   /^\/sitemap-pretty$/i,
+  /^\/(?:analytics|data-science|tourism|destination-analytics|contributions)$/i,
   /^\/(?:resume|resume-pdf)$/i,
   /^\/resume(?:-[a-z-]+)?(?:-pdf)?$/i,
   /^\/tools\/(?:dashboard|short-links|ga4-utm-performance|job-application-tracker|transcribe|whisper-transcribe-monitor)$/i

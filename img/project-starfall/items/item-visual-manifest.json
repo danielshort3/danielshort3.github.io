@@ -1,0 +1,565 @@
+{
+  "version": 1,
+  "sourceOfTruth": "ITEM_VISUAL_DESIGN_GUIDE.md",
+  "runtime": {
+    "inventoryIcon": {
+      "width": 64,
+      "height": 64,
+      "format": "png",
+      "alpha": true,
+      "folder": "img/project-starfall/items/icons",
+      "fileName": "<item-id-kebab>.png",
+      "safePaddingPx": {
+        "min": 4,
+        "max": 8
+      }
+    },
+    "cardIcon": {
+      "width": 64,
+      "height": 64,
+      "format": "png",
+      "alpha": true,
+      "folder": "img/project-starfall/cards/icons",
+      "fileName": "<card-id>.png"
+    },
+    "worldPickup": {
+      "currentMode": "reuse_inventory_icon",
+      "generatedFolder": "img/project-starfall/items/pickups",
+      "itemFileName": "pickup-<item-id-kebab>.png",
+      "cardFileName": "pickup-card-<card-id-kebab>.png",
+      "tierAuraBoxPx": 44,
+      "tierAuraIconPadPx": 5,
+      "tierAuraInnerIconPx": 34,
+      "stackableBoxPx": 58,
+      "stackableIconPadPx": 4,
+      "stackableInnerIconPx": 50,
+      "settledBobPx": 5,
+      "futureStaticSpritePx": 64,
+      "futureHighValueSpritePx": 96
+    },
+    "animatedPickup": {
+      "folder": "img/project-starfall/items/pickups/animated",
+      "sourceFolder": "img/project-starfall/items/pickups/source",
+      "commonIdleFrames": 4,
+      "rareGlowFrames": 6,
+      "questPulseFrames": 8,
+      "currencySparkleFrames": 4,
+      "bossDropFrames": 12
+    },
+    "equipmentLayer": {
+      "folder": "img/project-starfall/equipment-layers",
+      "width": 960,
+      "height": 1600,
+      "columns": 6,
+      "rows": 10,
+      "cellSize": 160,
+      "fileName": "<visual-id-kebab>-sheet.png"
+    }
+  },
+  "folders": {
+    "runtimeIcons": {
+      "path": "img/project-starfall/items/icons",
+      "status": "active",
+      "required": true
+    },
+    "runtimeSheets": {
+      "path": "img/project-starfall/items/sheets",
+      "status": "active",
+      "required": true
+    },
+    "sourceSheets": {
+      "path": "img/project-starfall/items/source",
+      "status": "active",
+      "required": true
+    },
+    "sourceItems": {
+      "path": "asset-sources/project-starfall/items",
+      "status": "source-reference",
+      "required": true
+    },
+    "pickupSprites": {
+      "path": "img/project-starfall/items/pickups",
+      "status": "generated-from-runtime-icons",
+      "required": true
+    },
+    "pickupSource": {
+      "path": "img/project-starfall/items/pickups/source",
+      "status": "source-reference",
+      "required": true
+    },
+    "animatedPickups": {
+      "path": "img/project-starfall/items/pickups/animated",
+      "status": "generated-generic-sheets",
+      "required": true
+    },
+    "rarityFrames": {
+      "path": "img/project-starfall/items/rarity-frames",
+      "status": "generated-overlays",
+      "required": true
+    },
+    "itemVfx": {
+      "path": "img/project-starfall/animations/item-vfx",
+      "status": "generated-generic-sheets",
+      "required": true
+    },
+    "itemOverlays": {
+      "path": "img/project-starfall/ui/item-overlays",
+      "status": "generated-category-markers",
+      "required": true
+    },
+    "promptDocs": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md",
+      "status": "active",
+      "required": true
+    },
+    "workflowDocs": {
+      "path": "docs/project-starfall-item-visuals/README.md",
+      "status": "active",
+      "required": true
+    },
+    "auditDoc": {
+      "path": "docs/project-starfall-item-visuals/audit.md",
+      "status": "active",
+      "required": true
+    },
+    "identityTemplate": {
+      "path": "docs/project-starfall-item-visuals/item-visual-identity-template.md",
+      "status": "active",
+      "required": true
+    }
+  },
+  "metadataFields": {
+    "icon_path": {
+      "currentSource": "ITEM_ASSETS",
+      "required": true
+    },
+    "tooltip_icon": {
+      "currentSource": "ITEM_ASSETS",
+      "required": true
+    },
+    "pickup_sprite_path": {
+      "currentSource": "manifest.runtime.worldPickup.generatedFolder",
+      "required": true,
+      "mode": "generated_from_runtime_icon_until_renderer_supports_pickupAsset"
+    },
+    "animated_pickup_path": {
+      "currentSource": "manifest.runtime.animatedPickup.folder",
+      "required": false,
+      "mode": "future_optional"
+    },
+    "rarity": {
+      "currentSource": "item definitions or explicit manifest default",
+      "required": true
+    },
+    "category": {
+      "currentSource": "visualClassification.categoryRules",
+      "required": true
+    },
+    "theme": {
+      "currentSource": "visualClassification.themeRules",
+      "required": true
+    },
+    "motif": {
+      "currentSource": "visualClassification.themeRules",
+      "required": true
+    },
+    "visual_tags": {
+      "currentSource": "visualClassification",
+      "required": true
+    },
+    "vfx_path": {
+      "currentSource": "img/project-starfall/animations/item-vfx",
+      "required": false,
+      "mode": "future_optional"
+    },
+    "ui_frame": {
+      "currentSource": "runtime rarity aura and planned item overlays",
+      "required": false
+    },
+    "world_pickup_scale": {
+      "currentSource": "manifest.runtime.worldPickup",
+      "required": true
+    },
+    "inventory_scale": {
+      "currentSource": "manifest.runtime.inventoryIcon",
+      "required": true
+    },
+    "drop_effect": {
+      "currentSource": "rarity treatment and loot renderer",
+      "required": true
+    },
+    "pickup_effect": {
+      "currentSource": "loot pickup fly effect plus rarity treatment",
+      "required": true
+    }
+  },
+  "generatedAssets": {
+    "pickupSprites": {
+      "folder": "img/project-starfall/items/pickups",
+      "itemFileName": "pickup-<item-id-kebab>.png",
+      "cardFileName": "pickup-card-<card-id-kebab>.png",
+      "width": 64,
+      "height": 64,
+      "source": "runtime inventory/card icons"
+    },
+    "animatedPickups": {
+      "folder": "img/project-starfall/items/pickups/animated",
+      "width": 64,
+      "height": 64,
+      "sheets": [
+        { "file": "pickup-common-idle-sheet.png", "frames": 4 },
+        { "file": "pickup-rare-glow-sheet.png", "frames": 6 },
+        { "file": "pickup-quest-pulse-sheet.png", "frames": 8 },
+        { "file": "pickup-currency-sparkle-sheet.png", "frames": 4 },
+        { "file": "pickup-equipment-reveal-sheet.png", "frames": 8 },
+        { "file": "pickup-boss-drop-sheet.png", "frames": 12 }
+      ]
+    },
+    "rarityFrames": {
+      "folder": "img/project-starfall/items/rarity-frames",
+      "fileName": "frame-rarity-<rarity-kebab>.png",
+      "width": 64,
+      "height": 64
+    },
+    "itemVfx": {
+      "folder": "img/project-starfall/animations/item-vfx",
+      "width": 64,
+      "height": 64,
+      "rarityDropFrames": 6,
+      "sheets": [
+        { "file": "vfx-currency-sparkle.png", "frames": 4 },
+        { "file": "vfx-quest-pulse.png", "frames": 8 },
+        { "file": "vfx-boss-drop-reveal.png", "frames": 12 }
+      ]
+    },
+    "categoryMarkers": {
+      "folder": "img/project-starfall/ui/item-overlays",
+      "fileName": "marker-category-<category-kebab>.png",
+      "width": 32,
+      "height": 32
+    }
+  },
+  "rarities": {
+    "Common": {
+      "color": "#d8e5ec",
+      "glow": 7,
+      "alpha": 0.5,
+      "ring": 1.4,
+      "animation": "none"
+    },
+    "Uncommon": {
+      "color": "#74d680",
+      "glow": 11,
+      "alpha": 0.7,
+      "ring": 1.8,
+      "animation": "none"
+    },
+    "Rare": {
+      "color": "#68a9ff",
+      "glow": 15,
+      "alpha": 0.82,
+      "ring": 2.1,
+      "animation": "small_glint"
+    },
+    "Epic": {
+      "color": "#c794ff",
+      "glow": 19,
+      "alpha": 0.92,
+      "ring": 2.4,
+      "pulse": 0.16,
+      "animation": "controlled_pulse"
+    },
+    "Relic": {
+      "color": "#ffbe55",
+      "glow": 23,
+      "alpha": 0.98,
+      "ring": 2.7,
+      "pulse": 0.2,
+      "animation": "relic_aura"
+    },
+    "Mythic": {
+      "status": "future",
+      "animation": "not_supported_until_runtime_rarity_added"
+    }
+  },
+  "categories": {
+    "weapon": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "weapon_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "strong directional silhouettes, slot-readable weapon type"
+    },
+    "armor": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "armor_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "slot-readable helm, chest, glove, boot, robe, or plate silhouette"
+    },
+    "accessory": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "accessory_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "large ring, charm, amulet, badge, shield, focus, or tool silhouette"
+    },
+    "potion": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "potion_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "bottle silhouette with function-color liquid"
+    },
+    "food": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "consumable_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "wrapped ration or provision bundle"
+    },
+    "scroll": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "consumable_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "rolled parchment, book, manual, or sealed document"
+    },
+    "coupon": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "service_item_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "ticket or coupon object with no readable text"
+    },
+    "tool": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "service_item_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "guild utility object, not modern UI"
+    },
+    "currency": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "currency_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "gold coin stack or pouch silhouette"
+    },
+    "crafting_material": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "crafting_material_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "enemy or biome material with one dominant readable form"
+    },
+    "upgrade_material": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "upgrade_material_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "prism, core, dust, catalyst, or warding reagent"
+    },
+    "star_card": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "card_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "star-card material silhouette"
+    },
+    "monster_card": {
+      "runtimeFolder": "img/project-starfall/cards/icons",
+      "promptTemplate": "card_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon",
+      "shapeLanguage": "collectible card silhouette with symbolic face"
+    },
+    "quest_item": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "quest_item_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "future_dedicated_pickup",
+      "shapeLanguage": "key, relic, document, crest, or lore token"
+    },
+    "boss_drop": {
+      "runtimeFolder": "img/project-starfall/items/icons",
+      "promptTemplate": "boss_drop_icon",
+      "negativePrompt": "master_negative",
+      "pickupMode": "reuse_inventory_icon_with_relic_or_epic_aura",
+      "shapeLanguage": "boss-specific unique silhouette"
+    }
+  },
+  "themes": {
+    "frontier": {
+      "motifs": ["leather", "wood", "iron", "cloth", "brass", "guild utility"],
+      "palette": ["#b88448", "#78603f", "#c9d3dc", "#f6c44f"]
+    },
+    "recovery": {
+      "motifs": ["potion bottles", "tonic glass", "rations", "restorative seals"],
+      "palette": ["#d94848", "#4f80ff", "#ffe6b8", "#c9d3dc"]
+    },
+    "star_magic": {
+      "motifs": ["prisms", "star dust", "runes", "crystal cores", "lantern gold"],
+      "palette": ["#dff8ff", "#6edcff", "#f6c44f", "#c794ff"]
+    },
+    "forest": {
+      "motifs": ["moss", "bark", "thorn", "vine", "root", "bramble"],
+      "palette": ["#5fa96a", "#7b5a35", "#d5b85d", "#203828"]
+    },
+    "construct": {
+      "motifs": ["gears", "coils", "brass", "plates", "clockwork"],
+      "palette": ["#c98b45", "#20bda2", "#8c8f93", "#2d2a28"]
+    },
+    "cinder": {
+      "motifs": ["basalt", "ember", "molten cracks", "ash", "furnace"],
+      "palette": ["#2b2524", "#ff6b2f", "#b63c2f", "#8b8b86"]
+    },
+    "frost": {
+      "motifs": ["ice facets", "rime", "snow", "frozen hide", "silver"],
+      "palette": ["#bfefff", "#68a9ff", "#d8e5ec", "#31515c"]
+    },
+    "storm": {
+      "motifs": ["feathers", "cloud arcs", "lightning", "charged rods"],
+      "palette": ["#6e70ff", "#dff8ff", "#8aa1b5", "#fff0a6"]
+    },
+    "astral": {
+      "motifs": ["stars", "codex pages", "orbit rings", "runes", "crystal cyan"],
+      "palette": ["#2d2a6c", "#6edcff", "#c794ff", "#fff4d5"]
+    },
+    "eclipse": {
+      "motifs": ["corona gold", "void shards", "black-violet metal", "cold white"],
+      "palette": ["#181324", "#ffbe55", "#b03cff", "#f3f4ff"]
+    },
+    "quarry": {
+      "motifs": ["stone slabs", "ore veins", "geodes", "bedrock"],
+      "palette": ["#6f7374", "#8a6c42", "#68a9ff", "#d8bc68"]
+    },
+    "class_identity": {
+      "motifs": ["shield", "war grip", "parry medal", "focus core", "scope", "trap kit", "beast charm"],
+      "palette": ["#f6c44f", "#68a9ff", "#d94848", "#52c77a"]
+    },
+    "ooze_dew": {
+      "motifs": ["gel drops", "dew beads", "soft wet highlights", "starter-route slime"],
+      "palette": ["#8cf4d8", "#6edcff", "#52c77a", "#dff8ff"]
+    },
+    "card_collection": {
+      "motifs": ["upright cards", "symbolic monster marks", "rarity color faces"],
+      "palette": ["#d8e5ec", "#74d680", "#68a9ff", "#c794ff", "#ffbe55"]
+    }
+  },
+  "visualClassification": {
+    "defaultRarity": "Common",
+    "slotCategories": {
+      "weapon": "weapon",
+      "head": "armor",
+      "chest": "armor",
+      "gloves": "armor",
+      "boots": "armor",
+      "ring": "accessory",
+      "amulet": "accessory",
+      "badge": "accessory",
+      "charm": "accessory",
+      "offhand": "accessory"
+    },
+    "categoryRules": [
+      { "category": "currency", "ids": ["coins", "coins_small", "coins_medium", "coins_large", "coins_huge"] },
+      { "category": "star_card", "suffixes": ["_star_card"] },
+      { "category": "potion", "includes": ["health_potion", "resource_tonic"] },
+      { "category": "food", "includes": ["ration"] },
+      { "category": "coupon", "includes": ["coupon"] },
+      { "category": "upgrade_material", "ids": ["upgrade_dust", "upgrade_catalyst", "warding_scroll", "refinement_core", "cube_fragment", "potential_cube", "preservation_cube", "line_catalyst"] },
+      { "category": "scroll", "includes": ["scroll", "manual", "codex", "page", "index"] },
+      { "category": "tool", "ids": ["pet_whistle", "guard_tonic", "swiftstep_oil", "magnet_charm", "admin_worldwright_console", "plinko_ball_basic", "plinko_ball_polished", "plinko_ball_meteor"] },
+      { "category": "crafting_material", "includes": ["dust", "hide", "fiber", "bead", "claw", "scrap", "coil", "plate", "carapace", "fang", "gland", "cloth", "spores", "crown", "core", "ore", "badge", "shard", "petal", "feather", "fletching", "horn", "silk", "splinter", "sigil", "plume", "corona"] }
+    ],
+    "themeRules": [
+      { "theme": "recovery", "includes": ["health_potion", "resource_tonic", "ration", "guard_tonic", "swiftstep_oil", "magnet_charm"] },
+      { "theme": "star_magic", "includes": ["upgrade", "catalyst", "warding", "refinement", "cube", "prism", "line_catalyst", "star_card", "plinko", "skill_manual", "reset_scroll", "worldwright"] },
+      { "theme": "forest", "includes": ["moss", "thorn", "vine", "bristle", "briar", "bramble", "root", "bark", "antler", "glow_spores", "thorncrown", "thornroot", "briarstring", "rootstep"] },
+      { "theme": "construct", "includes": ["clock", "gear", "chrono", "ratchet", "titan", "gyro", "spring", "rustcoil", "coil", "scrap"] },
+      { "theme": "cinder", "includes": ["ember", "ash", "molten", "cinder", "furnace", "lava", "scorch", "magma", "ashen", "emberjaw"] },
+      { "theme": "frost", "includes": ["rime", "frozen", "glacier", "snow", "icebloom", "frostfen", "frost", "snowstep"] },
+      { "theme": "storm", "includes": ["storm", "thunder", "gale", "cloud", "tempest", "lightning", "sky", "roc", "plume", "feather", "fletching"] },
+      { "theme": "astral", "includes": ["astral", "star", "comet", "archivist", "archive", "index", "scribe", "orbit", "codex", "runic", "lumen", "starglass", "runewoven", "channeler", "aether"] },
+      { "theme": "eclipse", "includes": ["eclipse", "umbral", "corona", "sovereign", "penumbra", "sunfall", "void", "rift"] },
+      { "theme": "quarry", "includes": ["colossus", "geode", "ore", "deepcore", "bedrock", "quarry", "stone"] },
+      { "theme": "class_identity", "includes": ["guardian", "berserker", "duelist", "ember_core", "rune_etched_focus", "storm_charge_focus", "deadeye_scope", "trap_kit", "beast_bond"] },
+      { "theme": "ooze_dew", "includes": ["gel", "dew", "ooze"] },
+      { "theme": "frontier", "includes": ["coins", "training", "copper", "birch", "simple", "stitched", "traveler", "plain", "iron", "apprentice", "oak", "adventurer", "balanced", "wanderer", "fieldguard", "trailwoven", "vanguard", "bulwark", "breaker", "sentinel", "ranger", "pathfinder", "deadeye", "windrunner", "bandit", "throwing_knife", "dust_claw", "town_return", "pet_whistle", "coupon"] }
+    ]
+  },
+  "promptTemplates": {
+    "master_item": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#master-item-art-prompt"
+    },
+    "master_negative": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#master-negative-prompt"
+    },
+    "weapon_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#weapon-icon-prompt"
+    },
+    "armor_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#armor-icon-prompt"
+    },
+    "accessory_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#accessory-icon-prompt"
+    },
+    "potion_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#potion-icon-prompt"
+    },
+    "consumable_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#consumable-icon-prompt"
+    },
+    "crafting_material_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#crafting-material-prompt"
+    },
+    "upgrade_material_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#upgrade-material-prompt"
+    },
+    "currency_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#currency-prompt"
+    },
+    "card_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#card-icon-prompt"
+    },
+    "quest_item_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#quest-item-prompt"
+    },
+    "service_item_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#service-item-prompt"
+    },
+    "boss_drop_icon": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#boss-drop-prompt"
+    },
+    "world_pickup": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#world-pickup-sprite-prompt"
+    },
+    "animated_pickup": {
+      "path": "asset-sources/project-starfall/prompts/item-visual-prompts.md#animated-pickup-sprite-sheet-prompt"
+    }
+  },
+  "review": {
+    "checklistPath": "ITEM_VISUAL_DESIGN_GUIDE.md#15-item-review-checklist",
+    "templatePath": "ITEM_VISUAL_DESIGN_GUIDE.md#16-item-visual-documentation-templates",
+    "requiredSmallSizes": [64, 48, 34],
+    "requiredBackgrounds": ["parchment_inventory", "dark_gameplay"],
+    "requiredArtifactChecks": ["no_text", "no_watermark", "no_fake_ui", "no_background_scene", "no_chroma_residue"]
+  },
+  "validation": {
+    "command": "npm run validate:project-starfall-item-visuals",
+    "script": "build/validate-project-starfall-item-visuals.js",
+    "checks": [
+      "required_folders_exist",
+      "manifest_categories_themes_rarities_exist",
+      "runtime_icon_dimensions",
+      "card_icon_dimensions",
+      "rarity_colors_match_runtime_data",
+      "every_icon_has_category",
+      "every_icon_has_theme",
+      "every_icon_has_rarity_or_default",
+      "pickup_placeholder_policy_exists",
+      "prompt_templates_exist",
+      "guide_references_manifest_and_validation"
+    ]
+  }
+}

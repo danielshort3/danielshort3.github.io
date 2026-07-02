@@ -1,0 +1,451 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const sharp = require('sharp');
+
+const ROOT = path.resolve(__dirname, '..');
+const MANIFEST_PATH = path.join(ROOT, 'asset-sources/project-starfall/asset-generation-manifest.json');
+const DATA_PATH = path.join(ROOT, 'js/games/project-starfall/project-starfall-data.js');
+
+function toPosix(filePath) {
+  return String(filePath || '').replace(/\\/g, '/');
+}
+
+function fullPath(filePath) {
+  return path.join(ROOT, filePath);
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function assertExists(filePath, label) {
+  assert(fs.existsSync(fullPath(filePath)), `${label || filePath} missing: ${filePath}`);
+}
+
+function assertDirectory(filePath) {
+  assert(fs.existsSync(fullPath(filePath)) && fs.statSync(fullPath(filePath)).isDirectory(),
+    `Required Project Starfall asset folder missing: ${filePath}`);
+}
+
+function assertArrayEquals(actual, expected, label) {
+  assert(Array.isArray(actual), `${label} should be an array`);
+  assert(Array.isArray(expected), `${label} expected value should be an array`);
+  assert(actual.length === expected.length &&
+    actual.every((value, index) => value === expected[index]),
+    `${label} mismatch. Expected ${expected.join(', ')}, got ${actual.join(', ')}`);
+}
+
+function uniqueValues(values) {
+  return Array.from(new Set(values));
+}
+
+function basenameWithoutExt(filePath) {
+  return path.basename(String(filePath || ''), path.extname(String(filePath || '')));
+}
+
+async function assertImage(filePath, expected, label) {
+  assertExists(filePath, label);
+  const metadata = await sharp(fullPath(filePath)).metadata();
+  assert(metadata.width === expected.width && metadata.height === expected.height,
+    `${label || filePath} should be ${expected.width}x${expected.height}, got ${metadata.width}x${metadata.height}`);
+  if (Object.prototype.hasOwnProperty.call(expected, 'alpha')) {
+    assert(Boolean(metadata.hasAlpha) === Boolean(expected.alpha),
+      `${label || filePath} alpha expectation mismatch`);
+  }
+  if (expected.format) {
+    assert(String(metadata.format || '').toLowerCase() === String(expected.format).toLowerCase(),
+      `${label || filePath} should be ${expected.format}, got ${metadata.format}`);
+  }
+  return metadata;
+}
+
+function itemIconFileName(itemId) {
+  return `${String(itemId || '').replace(/_/g, '-')}.png`;
+}
+
+async function validatePlayers(manifest, data) {
+  const contract = manifest.contracts.players;
+  assertArrayEquals(data.PLAYER_ANIMATION_ROWS || [], contract.rows, 'Player animation rows');
+  const expectedClassIds = contract.classes.slice().sort();
+  const actualClassIds = Object.keys(data.CLASS_FILE_IDS || {}).sort();
+  assertArrayEquals(actualClassIds, expectedClassIds, 'Player class IDs');
+
+  await assertImage(data.GENERIC_PLAYER_ASSET, {
+    width: contract.portraitWidth,
+    height: contract.portraitHeight,
+    alpha: true
+  }, 'Generic player portrait');
+  await assertImage(data.GENERIC_PLAYER_ANIMATION_ASSET.sheet, {
+    width: contract.sheetWidth,
+    height: contract.sheetHeight,
+    alpha: true
+  }, 'Generic player animation sheet');
+
+  for (const [classId, fileId] of Object.entries(data.CLASS_FILE_IDS || {})) {
+    assert(contract.classes.includes(classId), `Manifest missing player class ${classId}`);
+    assertExists(`${contract.sourceFolder}/${fileId}-source.png`, `${classId} player source sheet`);
+    await assertImage(data.CLASS_ASSETS[classId], {
+      width: contract.portraitWidth,
+      height: contract.portraitHeight,
+      alpha: true
+    }, `${classId} portrait`);
+    const animation = data.PLAYER_ANIMATION_ASSETS[classId];
+    assert(animation && animation.frameWidth === contract.frameSize && animation.frameHeight === contract.frameSize,
+      `${classId} player animation should use ${contract.frameSize}px frames`);
+    await assertImage(animation.sheet, {
+      width: contract.sheetWidth,
+      height: contract.sheetHeight,
+      alpha: true
+    }, `${classId} player animation sheet`);
+  }
+}
+
+async function validateEquipmentLayers(manifest, data) {
+  const contract = manifest.contracts.equipmentLayers;
+  const visuals = Object.values(data.EQUIPMENT_VISUALS || {});
+  assert(visuals.length > 0, 'Project Starfall equipment visuals should be populated');
+  for (const visual of visuals) {
+    assert(visual.animation && String(visual.animation.sheet || '').startsWith(`${contract.folder}/`),
+      `${visual.id || 'equipment visual'} should use the equipment-layer folder`);
+    await assertImage(visual.animation.sheet, {
+      width: contract.sheetWidth,
+      height: contract.sheetHeight,
+      alpha: true
+    }, `${visual.id || visual.animation.sheet} equipment layer sheet`);
+  }
+}
+
+async function validateEnemies(manifest, data) {
+  const contract = manifest.contracts.enemies;
+  assertArrayEquals(data.ENEMY_ANIMATION_ROWS || [], contract.rows, 'Enemy animation rows');
+  assert((data.ENEMIES || []).length > 0, 'Project Starfall enemies should be populated');
+
+  for (const enemy of data.ENEMIES || []) {
+    const fileId = basenameWithoutExt(enemy.asset);
+    assertExists(`${contract.sourceFolder}/${fileId}-compact-source.png`, `${enemy.id} compact enemy source sheet`);
+    await assertImage(enemy.asset, { width: 320, height: 320, alpha: true }, `${enemy.id} enemy portrait`);
+    assert(enemy.animation && enemy.animation.frameWidth === contract.frameSize && enemy.animation.frameHeight === contract.frameSize,
+      `${enemy.id} compact enemy animation should use ${contract.frameSize}px frames`);
+    assert(toPosix(enemy.animation.sheet).endsWith(`/${fileId}-compact-sheet.png`),
+      `${enemy.id} compact enemy animation filename should match portrait file ID`);
+    await assertImage(enemy.animation.sheet, {
+      width: contract.sheetWidth,
+      height: contract.sheetHeight,
+      alpha: true
+    }, `${enemy.id} compact enemy animation sheet`);
+  }
+}
+
+async function validateFx(manifest, data) {
+  const globalContract = manifest.contracts.globalFx;
+  for (const [id, animation] of Object.entries(data.FX_ANIMATION_ASSETS || {})) {
+    await assertImage(animation.sheet, {
+      width: globalContract.sheetWidth,
+      height: globalContract.sheetHeight,
+      alpha: true
+    }, `${id} global FX sheet`);
+  }
+  assertExists(`${globalContract.sourceFolder}/ai-global-fx-sheet.png`, 'Global FX source sheet');
+
+  const skillContract = manifest.contracts.skillFx;
+  assertArrayEquals(data.SKILL_FX_ANIMATION_ROWS || [], skillContract.rows, 'Skill FX animation rows');
+  for (const [id, animation] of Object.entries(data.SKILL_FX_ANIMATION_ASSETS || {})) {
+    await assertImage(animation.sheet, {
+      width: skillContract.sheetWidth,
+      height: skillContract.sheetHeight,
+      alpha: true
+    }, `${id} skill FX sheet`);
+  }
+
+  const basicContract = manifest.contracts.basicAttackFx;
+  assertArrayEquals(data.BASIC_ATTACK_FX_ANIMATION_ROWS || [], basicContract.rows, 'Basic attack FX animation rows');
+  for (const [id, animation] of Object.entries(data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {})) {
+    await assertImage(animation.sheet, {
+      width: basicContract.sheetWidth,
+      height: basicContract.sheetHeight,
+      alpha: true
+    }, `${id} basic attack FX sheet`);
+  }
+
+  const enemyFxContract = manifest.contracts.enemyCombatFx;
+  assertArrayEquals(data.ENEMY_COMBAT_FX_ANIMATION_ROWS || [], enemyFxContract.rows, 'Enemy combat FX animation rows');
+  for (const [id, animation] of Object.entries(data.ENEMY_COMBAT_FX_ANIMATION_ASSETS || {})) {
+    await assertImage(animation.sheet, {
+      width: enemyFxContract.sheetWidth,
+      height: enemyFxContract.sheetHeight,
+      alpha: true
+    }, `${id} enemy combat FX sheet`);
+  }
+
+  const projectileContract = manifest.contracts.enemyProjectiles;
+  for (const [id, animation] of Object.entries(data.ENEMY_PROJECTILE_ANIMATION_ASSETS || {})) {
+    await assertImage(animation.sheet, {
+      width: projectileContract.sheetWidth,
+      height: projectileContract.sheetHeight,
+      alpha: true
+    }, `${id} enemy projectile sheet`);
+  }
+
+  const portalContract = manifest.contracts.portals;
+  for (const variant of portalContract.variants) {
+    const animation = data.PORTAL_ANIMATION_ASSETS && data.PORTAL_ANIMATION_ASSETS[variant];
+    assert(animation, `Missing portal animation variant ${variant}`);
+    await assertImage(animation.sheet, {
+      width: portalContract.sheetWidth,
+      height: portalContract.sheetHeight,
+      alpha: true
+    }, `${variant} portal animation sheet`);
+  }
+  assertExists(`${portalContract.sourceFolder}/ai-portals-sheet.png`, 'Portal source sheet');
+
+  const petContract = manifest.contracts.pet;
+  assertArrayEquals(data.PET_ANIMATION_ROWS || [], petContract.rows, 'Pet animation rows');
+  await assertImage(data.PET_ANIMATION_ASSET.sheet, {
+    width: petContract.sheetWidth,
+    height: petContract.sheetHeight,
+    alpha: true
+  }, 'Pet animation sheet');
+}
+
+async function validateItemsAndCards(manifest, data) {
+  const itemContract = manifest.contracts.items;
+  for (const sheet of itemContract.sourceSheets || []) {
+    assertExists(`${itemContract.sourceFolder}/${sheet.file}`, `${sheet.file} item source sheet`);
+    assertExists(`${itemContract.sheetFolder}/${sheet.outputFile}`, `${sheet.outputFile} processed item sheet`);
+  }
+  for (const sheet of itemContract.externalSheets || []) {
+    assertExists(`${itemContract.sheetFolder}/${sheet.file}`, `${sheet.file} external processed item sheet`);
+    for (const id of sheet.ids || []) {
+      assert(data.ITEM_ASSETS && data.ITEM_ASSETS[id], `External item sheet ID missing ITEM_ASSETS mapping: ${id}`);
+    }
+  }
+
+  const itemAssets = data.ITEM_ASSETS || {};
+  assert(Object.keys(itemAssets).length > 0, 'Project Starfall ITEM_ASSETS should be populated');
+  for (const [itemId, assetPath] of Object.entries(itemAssets)) {
+    assert(toPosix(assetPath).startsWith(`${itemContract.iconFolder}/`),
+      `${itemId} should use standalone item icon folder`);
+    assert(path.basename(assetPath) === itemIconFileName(itemId),
+      `${itemId} item icon filename should be kebab-case`);
+    await assertImage(assetPath, {
+      width: itemContract.iconWidth,
+      height: itemContract.iconHeight,
+      alpha: true
+    }, `${itemId} item icon`);
+  }
+
+  const cardContract = manifest.contracts.cards;
+  assertExists(cardContract.source, 'Card icon source sheet');
+  assert((data.CARD_DEFINITIONS || []).length > 0, 'Project Starfall CARD_DEFINITIONS should be populated');
+  for (const card of data.CARD_DEFINITIONS || []) {
+    const assetPath = data.CARD_ASSETS && data.CARD_ASSETS[card.id];
+    assert(assetPath === `${cardContract.iconFolder}/${card.id}.png`,
+      `${card.id} card asset path should match card icon folder`);
+    await assertImage(assetPath, {
+      width: cardContract.iconWidth,
+      height: cardContract.iconHeight,
+      alpha: true
+    }, `${card.id} card icon`);
+  }
+}
+
+async function validateSkills(manifest, data) {
+  const contract = manifest.contracts.skills;
+  for (const sourceSheet of contract.sourceSheets || []) {
+    assertExists(`${contract.sourceFolder}/${sourceSheet}`, `${sourceSheet} skill source sheet`);
+  }
+  assert((data.SKILLS || []).length > 0, 'Project Starfall skills should be populated');
+  for (const skill of data.SKILLS || []) {
+    if (!skill.iconAsset) continue;
+    await assertImage(skill.iconAsset, {
+      width: contract.iconWidth,
+      height: contract.iconHeight,
+      alpha: true
+    }, `${skill.id} skill icon`);
+    assert(toPosix(skill.iconAsset).startsWith(`${contract.baseFolder}/`) ||
+      toPosix(skill.iconAsset).startsWith(`${contract.advancedFolder}/`),
+      `${skill.id} skill icon should live in a skill icon folder`);
+  }
+}
+
+async function validateMapsAndEnvironment(manifest, data) {
+  const mapContract = manifest.contracts.maps;
+  for (const map of data.MAPS || []) {
+    if (!map.asset) continue;
+    await assertImage(map.asset, {
+      width: mapContract.width,
+      height: mapContract.height,
+      format: mapContract.format
+    }, `${map.id} map background`);
+  }
+  for (const assetPath of Object.values(data.CLASS_TRIAL_ASSETS || {})) {
+    await assertImage(assetPath, {
+      width: mapContract.width,
+      height: mapContract.height,
+      format: mapContract.format
+    }, `${assetPath} class trial background`);
+  }
+  await assertImage(manifest.contracts.worldMap.path, {
+    width: manifest.contracts.worldMap.width,
+    height: manifest.contracts.worldMap.height,
+    format: manifest.contracts.worldMap.format
+  }, 'Project Starfall world map atlas');
+
+  const environmentContract = manifest.contracts.environment;
+  for (const [themeId, asset] of Object.entries(data.ENVIRONMENT_ASSETS && data.ENVIRONMENT_ASSETS.terrain || {})) {
+    assert(asset.cellSize === environmentContract.terrain.cellSize &&
+      asset.columns === environmentContract.terrain.columns &&
+      asset.schema === environmentContract.terrain.schema,
+      `${themeId} terrain metadata should match terrain contract`);
+    await assertImage(asset.path, {
+      width: environmentContract.terrain.width,
+      height: environmentContract.terrain.height,
+      alpha: true
+    }, `${themeId} terrain atlas`);
+  }
+  for (const [themeId, asset] of Object.entries(data.ENVIRONMENT_ASSETS && data.ENVIRONMENT_ASSETS.props || {})) {
+    assert(asset.cellSize === environmentContract.props.cellSize &&
+      asset.columns === environmentContract.props.columns,
+      `${themeId} prop metadata should match prop contract`);
+    await assertImage(asset.path, {
+      width: environmentContract.props.width,
+      height: environmentContract.props.height,
+      alpha: true
+    }, `${themeId} prop atlas`);
+  }
+  for (const [themeId, asset] of Object.entries(data.ENVIRONMENT_ASSETS && data.ENVIRONMENT_ASSETS.ramps || {})) {
+    assert(asset.cellSize === environmentContract.ramps.cellSize &&
+      asset.columns === environmentContract.ramps.columns &&
+      asset.schema === environmentContract.ramps.schema,
+      `${themeId} ramp metadata should match ramp contract`);
+    await assertImage(asset.path, {
+      width: environmentContract.ramps.width,
+      height: environmentContract.ramps.height,
+      alpha: true
+    }, `${themeId} ramp atlas`);
+  }
+  const townLandmarks = environmentContract.structures.townLandmarks;
+  assertExists(townLandmarks.source, 'Town landmark source sheet');
+  await assertImage(townLandmarks.path, {
+    width: townLandmarks.width,
+    height: townLandmarks.height,
+    alpha: true
+  }, 'Town landmark structure atlas');
+}
+
+async function validateUiAndStations(manifest, data) {
+  const uiContract = manifest.contracts.ui;
+  assertExists(uiContract.source, 'Menu icon source sheet');
+  for (const screen of uiContract.screens || []) {
+    await assertImage(screen.path, {
+      width: screen.width,
+      height: screen.height,
+      alpha: screen.alpha
+    }, screen.path);
+  }
+
+  const expectedMenuIcons = uiContract.menuIcons || {};
+  assertArrayEquals(Object.keys(data.MENU_ICON_ASSETS || {}).sort(), Object.keys(expectedMenuIcons).sort(), 'Menu icon IDs');
+  for (const [id, filename] of Object.entries(expectedMenuIcons)) {
+    const assetPath = data.MENU_ICON_ASSETS[id];
+    assert(assetPath === `${uiContract.menuIconFolder}/${filename}`,
+      `${id} menu icon should use ${filename}`);
+    await assertImage(assetPath, {
+      width: uiContract.menuIconWidth,
+      height: uiContract.menuIconHeight,
+      alpha: true
+    }, `${id} menu icon`);
+  }
+
+  const stationContract = manifest.contracts.stations;
+  for (const id of stationContract.ids || []) {
+    const assetPath = data.STATION_ASSETS && data.STATION_ASSETS[id];
+    assert(assetPath === `${stationContract.folder}/${id}.png`, `${id} station should use station folder`);
+    await assertImage(assetPath, {
+      width: stationContract.width,
+      height: stationContract.height,
+      alpha: true
+    }, `${id} station`);
+  }
+  assert(data.STATION_ASSETS && data.STATION_ASSETS.plinko === data.STATION_ASSETS.slots,
+    'Plinko station should intentionally reuse slots station art');
+}
+
+async function validateManifest() {
+  assertExists('ASSET_GENERATION_GUIDE.md', 'Asset generation guide');
+  assertExists('img/project-starfall/asset-prompts.md', 'Asset prompt provenance');
+  assert(fs.existsSync(MANIFEST_PATH), 'Project Starfall asset-generation manifest missing');
+  assert(fs.existsSync(DATA_PATH), 'Project Starfall runtime data missing');
+
+  const manifest = readJson(MANIFEST_PATH);
+  const data = require(DATA_PATH);
+  assert(manifest.version === 1, 'Project Starfall asset-generation manifest should be version 1');
+  assert(manifest.guide === 'ASSET_GENERATION_GUIDE.md', 'Manifest should point to ASSET_GENERATION_GUIDE.md');
+  assert(manifest.promptTemplates === 'asset-sources/project-starfall/prompts/README.md',
+    'Manifest should point to source prompt templates');
+  assertExists(manifest.promptTemplates, 'Prompt template README');
+
+  for (const folder of manifest.requiredFolders || []) assertDirectory(folder);
+  for (const script of manifest.buildScripts || []) assertExists(script, `${script} build script`);
+
+  const requiredContractKeys = [
+    'players',
+    'equipmentLayers',
+    'enemies',
+    'enemyProjectiles',
+    'globalFx',
+    'skillFx',
+    'basicAttackFx',
+    'enemyCombatFx',
+    'portals',
+    'pet',
+    'items',
+    'cards',
+    'skills',
+    'maps',
+    'worldMap',
+    'environment',
+    'ui',
+    'stations'
+  ];
+  const contractKeys = Object.keys(manifest.contracts || {});
+  requiredContractKeys.forEach((key) => {
+    assert(contractKeys.includes(key), `Manifest missing ${key} contract`);
+  });
+
+  await validatePlayers(manifest, data);
+  await validateEquipmentLayers(manifest, data);
+  await validateEnemies(manifest, data);
+  await validateFx(manifest, data);
+  await validateItemsAndCards(manifest, data);
+  await validateSkills(manifest, data);
+  await validateMapsAndEnvironment(manifest, data);
+  await validateUiAndStations(manifest, data);
+
+  const runtimeAssetRoots = uniqueValues([
+    ...Object.values(data.CLASS_ASSETS || {}),
+    ...Object.values(data.ENEMY_ASSETS || {}),
+    ...Object.values(data.ITEM_ASSETS || {}),
+    ...Object.values(data.CARD_ASSETS || {}),
+    ...Object.values(data.MAP_ASSETS || {}),
+    ...Object.values(data.MENU_ICON_ASSETS || {}),
+    ...Object.values(data.STATION_ASSETS || {})
+  ].map((assetPath) => toPosix(assetPath).split('/').slice(0, 2).join('/')));
+  assert(runtimeAssetRoots.every((root) => root === 'img/project-starfall'),
+    `All Starfall runtime assets should stay under img/project-starfall, got ${runtimeAssetRoots.join(', ')}`);
+
+  console.log(`Validated Project Starfall asset generation manifest: ${manifest.requiredFolders.length} folders, ${requiredContractKeys.length} contracts, ${Object.keys(data.ITEM_ASSETS || {}).length} item icons, ${(data.ENEMIES || []).length} enemies.`);
+}
+
+validateManifest().catch((error) => {
+  console.error(error && error.stack || error);
+  process.exitCode = 1;
+});
+

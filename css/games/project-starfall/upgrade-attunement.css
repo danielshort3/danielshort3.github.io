@@ -1,0 +1,1857 @@
+@layer components {
+  .project-starfall-upgrade-card {
+    align-items: start;
+    min-height: 188px;
+  }
+
+  .project-starfall-upgrade-workspace {
+    display: block;
+  }
+
+  .project-starfall-upgrade-list {
+    display: grid;
+    gap: 8px;
+    max-height: 560px;
+    overflow: auto;
+    padding-right: 2px;
+  }
+
+  .project-starfall-upgrade-group-title {
+    margin: 6px 0 0;
+    color: var(--starfall-ink);
+    font-size: 0.76rem;
+    font-weight: 950;
+    letter-spacing: 0;
+  }
+
+  .project-starfall-upgrade-list .project-starfall-upgrade-card {
+    min-height: 86px;
+  }
+
+  .project-starfall-upgrade-card .project-starfall-gear-card-main {
+    gap: 5px;
+  }
+
+  .project-starfall-upgrade-detail {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .project-starfall-upgrade-detail-header {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: center;
+  }
+
+  .project-starfall-upgrade-detail-header > span:nth-child(2) {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .project-starfall-upgrade-detail-header small {
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+
+  .project-starfall-upgrade-meta {
+    font-weight: 900;
+  }
+
+  .project-starfall-upgrade-preview {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .project-starfall-potential-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .project-starfall-potential-confirm .project-starfall-upgrade-confirm-card {
+    width: min(340px, 100%);
+  }
+
+  .project-starfall-potential-drop-zone {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-height: 64px;
+    padding: 10px;
+    border: 1px dashed rgba(136,86,197,0.46);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-potential-drop-zone.has-item {
+    border-style: solid;
+    border-color: rgba(47,125,214,0.22);
+    background: #ffffff;
+  }
+
+  .project-starfall-potential-drop-zone span:last-child,
+  .project-starfall-potential-current {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .project-starfall-potential-drop-zone small,
+  .project-starfall-potential-current small {
+    color: var(--starfall-muted);
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+
+  .project-starfall-potential-current {
+    padding: 9px 10px;
+    border: 1px solid rgba(16,32,51,0.1);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-potential-current span {
+    color: var(--starfall-blue);
+    font-size: 0.88rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-potential-current-header,
+  .project-starfall-potential-line-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+  }
+
+  .project-starfall-potential-line-list {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .project-starfall-potential-line-row {
+    padding: 4px 0;
+    border-top: 1px solid rgba(16,32,51,0.08);
+  }
+
+  .project-starfall-potential-line-row b {
+    overflow: hidden;
+    color: var(--starfall-ink);
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+	  .project-starfall-potential-line-row .project-starfall-potential-rank,
+	  .project-starfall-echo-stat-row .project-starfall-potential-rank {
+	    display: inline-flex;
+	    align-items: center;
+	    justify-content: center;
+	    min-width: 26px;
+	    padding: 2px 6px;
+	    border: 1px solid rgba(16,32,51,0.1);
+	    border-radius: 5px;
+	    font-weight: 900;
+	    text-align: center;
+	    white-space: nowrap;
+	  }
+
+	  .project-starfall-potential-line-row .project-starfall-potential-rank span,
+	  .project-starfall-echo-stat-row .project-starfall-potential-rank span {
+	    min-width: 10px;
+	    color: inherit;
+	    font-size: 0.68rem;
+	    line-height: 1;
+	    text-align: center;
+	  }
+
+  .project-starfall-potential-rank.is-rank-s {
+    background: #fdf1c9;
+    color: #805500;
+  }
+
+  .project-starfall-potential-rank.is-rank-a {
+    background: #e5f7ed;
+    color: #177645;
+  }
+
+  .project-starfall-potential-rank.is-rank-b {
+    background: #e9f3ff;
+    color: #2f7dd6;
+  }
+
+  .project-starfall-potential-rank.is-rank-c {
+    background: #f1edf9;
+    color: #7950b4;
+  }
+
+  .project-starfall-potential-rank.is-rank-d {
+    background: #f8e8e4;
+    color: #a94432;
+  }
+
+  .project-starfall-potential-rank.is-rank-unknown {
+    background: #edf1f5;
+    color: #5f6f7a;
+  }
+
+  .project-starfall-potential-advance {
+    color: #8856c5;
+    font-weight: 900;
+  }
+
+  .project-starfall-echo-choice {
+    background:
+      radial-gradient(circle at 50% 14%, rgba(245,207,114,0.2), transparent 34%),
+      rgba(16,32,51,0.24);
+  }
+
+  .project-starfall-potential-confirm .project-starfall-echo-choice-card {
+    position: relative;
+    isolation: isolate;
+    width: min(780px, calc(100vw - 28px));
+    max-height: min(720px, calc(100vh - 32px));
+    display: grid;
+    grid-template-rows: auto auto minmax(0, auto) auto;
+    overflow: visible;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(245,207,114,0.56);
+    background:
+      linear-gradient(90deg, rgba(245,207,114,0.82), rgba(245,207,114,0.82)) left 13px top 13px / 32px 1px no-repeat,
+      linear-gradient(180deg, rgba(245,207,114,0.82), rgba(245,207,114,0.82)) left 13px top 13px / 1px 32px no-repeat,
+      linear-gradient(270deg, rgba(245,207,114,0.82), rgba(245,207,114,0.82)) right 13px top 13px / 32px 1px no-repeat,
+      linear-gradient(180deg, rgba(245,207,114,0.82), rgba(245,207,114,0.82)) right 13px top 13px / 1px 32px no-repeat,
+      linear-gradient(90deg, rgba(216,167,58,0.58), rgba(216,167,58,0.58)) left 13px bottom 13px / 32px 1px no-repeat,
+      linear-gradient(0deg, rgba(216,167,58,0.58), rgba(216,167,58,0.58)) left 13px bottom 13px / 1px 32px no-repeat,
+      linear-gradient(270deg, rgba(216,167,58,0.58), rgba(216,167,58,0.58)) right 13px bottom 13px / 32px 1px no-repeat,
+      linear-gradient(0deg, rgba(216,167,58,0.58), rgba(216,167,58,0.58)) right 13px bottom 13px / 1px 32px no-repeat,
+      radial-gradient(circle at 50% 0%, rgba(42,170,211,0.18), transparent 42%),
+      linear-gradient(180deg, #18304a 0%, var(--starfall-frame) 44%, var(--starfall-frame-deep) 100%);
+    color: #e9f4ff;
+    box-shadow:
+      0 24px 62px rgba(3,10,20,0.54),
+      inset 0 1px 0 rgba(255,255,255,0.14),
+      inset 0 0 0 4px rgba(255,236,174,0.07);
+  }
+
+  .project-starfall-potential-confirm .project-starfall-echo-choice-card::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    z-index: 0;
+    border: 1px solid rgba(245,207,114,0.24);
+    border-radius: 5px;
+    box-shadow:
+      inset 0 0 0 1px rgba(42,170,211,0.08),
+      inset 0 0 24px rgba(245,207,114,0.08);
+    pointer-events: none;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-choice-card::after {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    z-index: 2;
+    border-radius: 5px;
+    background:
+      linear-gradient(105deg, transparent 0 30%, rgba(255,255,255,0.38) 43%, rgba(245,207,114,0.42) 50%, transparent 64% 100%),
+      radial-gradient(circle at 50% 18%, rgba(245,207,114,0.32), transparent 34%),
+      radial-gradient(circle at 78% 58%, rgba(136,86,197,0.22), transparent 36%);
+    mix-blend-mode: screen;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-18%) scale(0.98);
+    animation: project-starfall-attunement-result-sweep 840ms ease-out both;
+  }
+
+  .project-starfall-potential-confirm .project-starfall-echo-choice-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-choice-card {
+    animation: project-starfall-attunement-card-settle 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-choice-card {
+    width: min(820px, calc(100vw - 28px));
+  }
+
+  .project-starfall-attunement-choice.has-ready-item .project-starfall-echo-choice-card {
+    width: min(760px, calc(100vw - 28px));
+  }
+
+  .project-starfall-potential-confirm .project-starfall-attunement-empty-card {
+    width: min(430px, calc(100vw - 28px));
+    grid-template-rows: auto auto;
+  }
+
+  .project-starfall-potential-confirm .project-starfall-echo-choice-card.is-user-placed {
+    position: absolute;
+    margin: 0;
+  }
+
+  .project-starfall-echo-help {
+    right: 46px;
+  }
+
+  .project-starfall-echo-choice-title {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-height: 54px;
+    padding: 8px 76px 8px 8px;
+    border: 1px solid rgba(245,207,114,0.34);
+    border-radius: 6px;
+    background:
+      linear-gradient(90deg, rgba(245,207,114,0.18), transparent 30%, rgba(42,170,211,0.12)),
+      linear-gradient(180deg, rgba(31,59,84,0.96), rgba(7,19,35,0.98));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      0 8px 18px rgba(0,0,0,0.18);
+    cursor: grab;
+    user-select: none;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-echo-choice-title strong {
+    display: block;
+    color: #fff3cf;
+    font-size: clamp(1.08rem, 2vw, 1.55rem);
+    font-weight: 950;
+    line-height: 1.05;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.55);
+  }
+
+  .project-starfall-echo-choice-title small {
+    display: block;
+    margin-top: 4px;
+    color: #9fdcf2;
+    font-size: 0.74rem;
+    font-weight: 850;
+    line-height: 1.25;
+    text-transform: none;
+  }
+
+  .project-starfall-echo-crystal {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(245,207,114,0.42);
+    border-radius: 7px;
+    background:
+      radial-gradient(circle at 50% 28%, rgba(245,207,114,0.22), transparent 52%),
+      linear-gradient(180deg, #203b56, #071323);
+    color: #fff3cf;
+    font-size: 0.72rem;
+    font-weight: 950;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.16),
+      0 0 18px rgba(245,207,114,0.12);
+  }
+
+  .project-starfall-echo-crystal.has-image {
+    padding: 3px;
+    overflow: hidden;
+  }
+
+  .project-starfall-echo-crystal .project-starfall-item-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-crystal {
+    animation: project-starfall-attunement-crystal-cast 820ms ease-out both;
+  }
+
+  .project-starfall-attunement-choice.is-echo .project-starfall-echo-crystal {
+    border-color: rgba(188,143,255,0.52);
+    color: #f4d7ff;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.16),
+      0 0 22px rgba(136,86,197,0.28);
+  }
+
+  .project-starfall-attunement-choice.is-echo .project-starfall-echo-choice-title strong,
+  .project-starfall-attunement-choice.is-echo .project-starfall-echo-stat-table-next header {
+    color: #f4d7ff;
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-choice-card {
+    background:
+      linear-gradient(90deg, rgba(143,214,111,0.78), rgba(143,214,111,0.78)) left 13px top 13px / 32px 1px no-repeat,
+      linear-gradient(180deg, rgba(143,214,111,0.78), rgba(143,214,111,0.78)) left 13px top 13px / 1px 32px no-repeat,
+      linear-gradient(270deg, rgba(100,217,197,0.58), rgba(100,217,197,0.58)) right 13px top 13px / 32px 1px no-repeat,
+      linear-gradient(180deg, rgba(100,217,197,0.58), rgba(100,217,197,0.58)) right 13px top 13px / 1px 32px no-repeat,
+      linear-gradient(90deg, rgba(143,214,111,0.26), transparent 42%, rgba(100,217,197,0.18)),
+      linear-gradient(180deg, #16354a 0%, #102338 54%, #071323 100%);
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-choice-card::before {
+    border-color: rgba(143,214,111,0.34);
+    box-shadow:
+      inset 0 0 0 1px rgba(100,217,197,0.12),
+      inset 0 0 24px rgba(143,214,111,0.1);
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-choice-title {
+    border-color: rgba(143,214,111,0.44);
+    background:
+      linear-gradient(90deg, rgba(143,214,111,0.2), transparent 34%, rgba(100,217,197,0.16)),
+      linear-gradient(180deg, rgba(24,64,76,0.96), rgba(7,19,35,0.98));
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-choice-title strong,
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-stat-table-next header {
+    color: #dfffd0;
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-choice-title small {
+    color: #9cf3df;
+  }
+
+  .project-starfall-echo-crystal.is-line-catalyst,
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-crystal {
+    border-color: rgba(143,214,111,0.58);
+    background:
+      linear-gradient(180deg, rgba(143,214,111,0.2), transparent),
+      linear-gradient(180deg, #16354a, #071323);
+    color: #dfffd0;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.16),
+      0 0 22px rgba(143,214,111,0.24);
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-summary,
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-stat-table,
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-verdict-table {
+    border-color: rgba(47,122,93,0.44);
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-echo-stat-table-next {
+    border-color: rgba(47,122,93,0.5);
+    background:
+      linear-gradient(180deg, rgba(240,255,232,0.98), rgba(204,231,198,0.95));
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-attunement-target-zone {
+    border-color: rgba(47,122,93,0.58);
+    background:
+      linear-gradient(180deg, rgba(248,255,242,0.98), rgba(213,237,205,0.94));
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-attunement-empty-result,
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-attunement-ready-state {
+    border-color: rgba(143,214,111,0.42);
+    background:
+      linear-gradient(180deg, rgba(248,255,242,0.98), rgba(213,237,205,0.94));
+  }
+
+  .project-starfall-line-catalyst-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+    gap: 10px;
+    min-height: 0;
+    max-height: min(360px, calc(100vh - 224px));
+    overflow: auto;
+  }
+
+  .project-starfall-line-catalyst-card {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px;
+    border: 1px solid rgba(47,122,93,0.44);
+    border-radius: 5px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(143,214,111,0.16), transparent 36%),
+      linear-gradient(180deg, rgba(248,255,242,0.98), rgba(213,237,205,0.94));
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+  }
+
+  .project-starfall-line-catalyst-card header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+    color: #2f7a5d;
+    font-size: 0.78rem;
+    font-weight: 950;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-line-catalyst-card header small {
+    color: #5f6f7a;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  .project-starfall-line-catalyst-gear-row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-width: 0;
+    cursor: pointer;
+  }
+
+  .project-starfall-line-catalyst-gear-row span:last-child {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .project-starfall-line-catalyst-gear-row strong,
+  .project-starfall-line-catalyst-metrics strong,
+  .project-starfall-line-catalyst-odds strong {
+    color: var(--starfall-ink);
+    font-weight: 950;
+  }
+
+  .project-starfall-line-catalyst-gear-row small,
+  .project-starfall-line-catalyst-metrics small,
+  .project-starfall-line-catalyst-odds small,
+  .project-starfall-line-catalyst-odds-card p {
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+    line-height: 1.25;
+  }
+
+  .project-starfall-line-catalyst-current {
+    grid-row: span 2;
+  }
+
+  .project-starfall-line-catalyst-lines {
+    display: grid;
+    align-content: start;
+    min-height: 0;
+    max-height: 230px;
+    overflow: auto;
+    border: 1px solid rgba(47,122,93,0.18);
+    border-radius: 5px;
+    background: rgba(255,255,255,0.28);
+  }
+
+  .project-starfall-line-catalyst-lines .project-starfall-echo-stat-row {
+    grid-template-columns: 30px minmax(84px, 1fr) minmax(62px, auto) 42px 34px;
+    min-height: 32px;
+    box-shadow: none;
+  }
+
+  .project-starfall-line-catalyst-lines .project-starfall-echo-stat-row em {
+    color: #65727c;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-align: right;
+  }
+
+  .project-starfall-line-catalyst-metrics,
+  .project-starfall-line-catalyst-odds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .project-starfall-line-catalyst-metrics span,
+  .project-starfall-line-catalyst-odds span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid rgba(47,122,93,0.2);
+    border-radius: 5px;
+    background: rgba(255,255,255,0.34);
+  }
+
+  .project-starfall-line-catalyst-odds span.is-gain {
+    border-color: rgba(73,150,75,0.38);
+    background: rgba(225,249,218,0.72);
+  }
+
+  .project-starfall-line-catalyst-odds span.is-loss {
+    border-color: rgba(202,86,67,0.3);
+    background: rgba(255,232,221,0.58);
+  }
+
+  .project-starfall-line-catalyst-odds-card p {
+    margin: 0;
+  }
+
+  .project-starfall-echo-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid rgba(245,207,114,0.32);
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg, rgba(255,250,240,0.96), rgba(236,215,173,0.96));
+    box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+  }
+
+  .project-starfall-echo-summary span {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-right: 1px solid rgba(137,93,39,0.2);
+    text-align: center;
+  }
+
+  .project-starfall-echo-summary span:last-child {
+    border-right: 0;
+  }
+
+  .project-starfall-echo-summary small,
+  .project-starfall-echo-stat-table header small {
+    color: #8a5d27;
+    font-size: 0.7rem;
+    font-weight: 950;
+    letter-spacing: 0;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-echo-summary strong {
+    color: var(--starfall-ink);
+    font-size: clamp(1rem, 2.1vw, 1.44rem);
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .project-starfall-echo-summary i {
+    color: #8a5d27;
+    font-style: normal;
+  }
+
+  .project-starfall-echo-summary em,
+  .project-starfall-echo-total-row em,
+	  .project-starfall-echo-delta {
+	    color: #8fd66f;
+	    font-style: normal;
+	    font-weight: 950;
+	    text-align: right;
+	    white-space: nowrap;
+	  }
+
+  .project-starfall-echo-summary em.is-loss,
+  .project-starfall-echo-total-row.is-loss em,
+  .project-starfall-echo-delta.is-loss {
+    color: #ff6b61;
+  }
+
+  .project-starfall-echo-summary em.is-same,
+  .project-starfall-echo-total-row.is-same em,
+  .project-starfall-echo-delta.is-same {
+    color: var(--starfall-muted);
+  }
+
+  .project-starfall-echo-comparison-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 136px minmax(0, 1fr);
+    gap: 10px;
+    align-items: stretch;
+    min-height: 0;
+    max-height: min(330px, calc(100vh - 230px));
+    overflow: auto;
+  }
+
+  .project-starfall-echo-comparison-grid.is-empty {
+    grid-template-columns: minmax(0, 1fr) 136px minmax(0, 1fr);
+  }
+
+  .project-starfall-echo-stat-table,
+  .project-starfall-echo-verdict-table {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    border: 1px solid rgba(137,93,39,0.38);
+    border-radius: 4px;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(170,121,55,0.08) 0 18%, transparent 19%),
+      linear-gradient(180deg, #fff0cf 0%, #ecd7ad 100%);
+    overflow: hidden;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+  }
+
+  .project-starfall-echo-stat-table-next {
+    border-color: rgba(136,86,197,0.32);
+    background:
+      radial-gradient(circle at 50% 50%, rgba(136,86,197,0.08) 0 18%, transparent 19%),
+      linear-gradient(180deg, #fff3d3 0%, #ecd7ad 100%);
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next {
+    animation: project-starfall-attunement-panel-reveal 520ms ease-out 90ms both;
+  }
+
+  .project-starfall-echo-stat-table header,
+  .project-starfall-echo-verdict-table header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 34px;
+    padding: 0 10px;
+    border-bottom: 1px solid rgba(137,93,39,0.26);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.34), rgba(245,207,114,0.14));
+    color: #8a5d27;
+    font-size: 0.8rem;
+    font-weight: 950;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-echo-stat-table-next header {
+    color: #8a5d27;
+  }
+
+  .project-starfall-echo-stat-list,
+  .project-starfall-echo-verdict-list {
+    display: grid;
+    align-content: start;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .project-starfall-echo-stat-row {
+    display: grid;
+    grid-template-columns: 30px minmax(88px, 1fr) minmax(62px, auto) 56px;
+    gap: 8px;
+    align-items: center;
+    min-height: 34px;
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(137,93,39,0.18);
+  }
+
+  .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row {
+    grid-template-columns: 30px minmax(78px, 1fr) minmax(62px, auto) 56px minmax(48px, auto);
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row {
+    animation: project-starfall-attunement-row-reveal 460ms ease-out both;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row:nth-child(1) {
+    animation-delay: 170ms;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row:nth-child(2) {
+    animation-delay: 230ms;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row:nth-child(3) {
+    animation-delay: 290ms;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row:nth-child(4) {
+    animation-delay: 350ms;
+  }
+
+  .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row:nth-child(5) {
+    animation-delay: 410ms;
+  }
+
+  .project-starfall-echo-stat-row b,
+  .project-starfall-echo-total-row b {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--starfall-ink);
+    font-size: 0.86rem;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-echo-stat-row strong,
+  .project-starfall-echo-total-row strong {
+    color: var(--starfall-ink);
+    font-size: 0.88rem;
+    font-weight: 950;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row strong {
+    color: #8856c5;
+  }
+
+  .project-starfall-echo-stat-row.is-loss .project-starfall-echo-stat-table-next strong,
+  .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row.is-loss strong {
+    color: #ff7b70;
+  }
+
+  .project-starfall-echo-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(137,93,39,0.2);
+    border-radius: 999px;
+    color: #8a5d27;
+    font-size: 0.58rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-attunement-stat-icon {
+    position: relative;
+    color: var(--attunement-color, #8a5d27);
+    background:
+      radial-gradient(circle at 35% 25%, rgba(255,255,255,0.82), transparent 34%),
+      var(--attunement-bg, #fff0cf);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.72),
+      0 2px 4px rgba(16,32,51,0.12);
+    outline: none;
+  }
+
+  .project-starfall-attunement-stat-icon svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .project-starfall-attunement-stat-icon.is-empty {
+    color: var(--starfall-muted);
+    background: rgba(137,93,39,0.06);
+  }
+
+  .project-starfall-attunement-stat-icon:not(.is-empty)::before,
+  .project-starfall-attunement-stat-icon:not(.is-empty)::after {
+    position: absolute;
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 140ms ease, transform 140ms ease;
+  }
+
+  .project-starfall-attunement-stat-icon:not(.is-empty)::before {
+    content: "";
+    left: calc(100% + 3px);
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-left: 1px solid rgba(245,207,114,0.38);
+    border-bottom: 1px solid rgba(245,207,114,0.38);
+    background: #102338;
+    transform: translate(4px, -50%) rotate(45deg);
+  }
+
+  .project-starfall-attunement-stat-icon:not(.is-empty)::after {
+    content: attr(data-starfall-attunement-tooltip);
+    left: calc(100% + 8px);
+    top: 50%;
+    width: min(268px, 66vw);
+    padding: 8px 9px;
+    border: 1px solid rgba(245,207,114,0.38);
+    border-radius: 5px;
+    background: linear-gradient(180deg, #18304a, #102338);
+    color: #e9f4ff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1.28;
+    text-align: left;
+    text-transform: none;
+    white-space: normal;
+    box-shadow: 0 12px 24px rgba(3,10,20,0.34);
+    transform: translate(4px, -50%);
+  }
+
+  .project-starfall-attunement-stat-icon:not(.is-empty):hover,
+  .project-starfall-attunement-stat-icon:not(.is-empty):focus-visible {
+    border-color: rgba(245,207,114,0.62);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.78),
+      0 0 0 2px rgba(245,207,114,0.18),
+      0 4px 10px rgba(16,32,51,0.18);
+  }
+
+  .project-starfall-attunement-stat-icon:not(.is-empty):hover::before,
+  .project-starfall-attunement-stat-icon:not(.is-empty):hover::after,
+  .project-starfall-attunement-stat-icon:not(.is-empty):focus-visible::before,
+  .project-starfall-attunement-stat-icon:not(.is-empty):focus-visible::after {
+    opacity: 1;
+    transform: translate(0, -50%) rotate(45deg);
+  }
+
+  .project-starfall-attunement-stat-icon:not(.is-empty):hover::after,
+  .project-starfall-attunement-stat-icon:not(.is-empty):focus-visible::after {
+    transform: translate(0, -50%);
+  }
+
+  .project-starfall-attunement-choice .project-starfall-echo-stat-table,
+  .project-starfall-attunement-choice .project-starfall-echo-stat-list {
+    overflow: visible;
+  }
+
+	  .project-starfall-echo-stat-row .project-starfall-potential-rank {
+	    min-width: 28px;
+	    border-color: rgba(137,93,39,0.28);
+	    border-radius: 3px;
+	  }
+
+  .project-starfall-potential-rank-empty {
+    background: rgba(137,93,39,0.06);
+    color: var(--starfall-muted);
+  }
+
+  .project-starfall-echo-verdict-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 6px;
+    align-items: center;
+    justify-items: center;
+    min-height: 34px;
+    padding: 5px 8px;
+    border-bottom: 1px solid rgba(137,93,39,0.18);
+  }
+
+  .project-starfall-echo-verdict-row strong {
+    color: #8fd66f;
+    font-size: 1.15rem;
+    font-weight: 950;
+    line-height: 1;
+  }
+
+  .project-starfall-echo-verdict-row.is-loss strong {
+    color: #ff6b61;
+  }
+
+  .project-starfall-echo-verdict-row.is-same strong {
+    color: var(--starfall-muted);
+  }
+
+  .project-starfall-echo-verdict-row span {
+    color: var(--starfall-muted);
+    font-size: 0.62rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-echo-total-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    min-height: 36px;
+    padding: 7px 10px;
+    background: rgba(137,93,39,0.08);
+  }
+
+  @keyframes project-starfall-attunement-card-settle {
+    0% {
+      opacity: 0.86;
+      transform: translateY(8px) scale(0.985);
+      filter: saturate(1.2) brightness(1.08);
+    }
+    65% {
+      opacity: 1;
+      transform: translateY(-1px) scale(1.004);
+      filter: saturate(1.08) brightness(1.04);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: none;
+    }
+  }
+
+  @keyframes project-starfall-attunement-result-sweep {
+    0% {
+      opacity: 0;
+      transform: translateX(-24%) scale(0.98);
+    }
+    22% {
+      opacity: 0.82;
+    }
+    70% {
+      opacity: 0.48;
+      transform: translateX(18%) scale(1.01);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(32%) scale(1.02);
+    }
+  }
+
+  @keyframes project-starfall-attunement-crystal-cast {
+    0% {
+      transform: scale(0.86) rotate(-10deg);
+      filter: brightness(1.4) saturate(1.3);
+    }
+    38% {
+      transform: scale(1.16) rotate(8deg);
+      filter: brightness(1.7) saturate(1.5);
+    }
+    100% {
+      transform: scale(1) rotate(0);
+      filter: none;
+    }
+  }
+
+  @keyframes project-starfall-attunement-panel-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+      box-shadow: 0 0 0 rgba(136,86,197,0);
+    }
+    55% {
+      opacity: 1;
+      transform: translateY(0);
+      box-shadow: 0 0 24px rgba(136,86,197,0.22);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+  }
+
+  @keyframes project-starfall-attunement-row-reveal {
+    0% {
+      opacity: 0;
+      transform: translateX(16px);
+      background-color: rgba(245,207,114,0.26);
+    }
+    60% {
+      opacity: 1;
+      transform: translateX(0);
+      background-color: rgba(245,207,114,0.18);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+      background-color: transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-starfall-attunement-choice.has-comparison .project-starfall-echo-choice-card,
+    .project-starfall-attunement-choice.has-comparison .project-starfall-echo-crystal,
+    .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next,
+    .project-starfall-attunement-choice.has-comparison .project-starfall-echo-stat-table-next .project-starfall-echo-stat-row {
+      animation: none;
+    }
+
+    .project-starfall-attunement-choice.has-comparison .project-starfall-echo-choice-card::after {
+      display: none;
+    }
+  }
+
+  .project-starfall-echo-stat-table-previous .project-starfall-echo-total-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .project-starfall-attunement-target-table {
+    min-height: 0;
+  }
+
+  .project-starfall-attunement-target-zone {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    min-height: 86px;
+    margin: 12px;
+    padding: 12px;
+    border: 1px dashed rgba(245,207,114,0.58);
+    border-radius: 6px;
+    background:
+      radial-gradient(circle at 14% 50%, rgba(42,170,211,0.08), transparent 34%),
+      linear-gradient(180deg, rgba(255,250,240,0.94), rgba(236,215,173,0.9));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.32);
+    cursor: pointer;
+  }
+
+  .project-starfall-attunement-drop-only {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-height: 128px;
+    padding: 16px;
+    border: 1px dashed rgba(245,207,114,0.58);
+    border-radius: 7px;
+    background:
+      radial-gradient(circle at 14% 50%, rgba(42,170,211,0.1), transparent 34%),
+      linear-gradient(180deg, rgba(255,250,240,0.96), rgba(236,215,173,0.92));
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.34),
+      0 8px 18px rgba(0,0,0,0.12);
+    cursor: pointer;
+  }
+
+  .project-starfall-attunement-drop-only span:last-child {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .project-starfall-attunement-drop-only strong {
+    color: var(--starfall-ink);
+    font-size: 0.96rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-attunement-drop-only small {
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+    line-height: 1.25;
+  }
+
+  .project-starfall-attunement-target-zone.has-item {
+    border-style: solid;
+    border-color: rgba(42,170,211,0.42);
+    background:
+      linear-gradient(180deg, rgba(255,250,240,0.98), rgba(236,215,173,0.94));
+  }
+
+  .project-starfall-attunement-target-zone span:last-child {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .project-starfall-attunement-target-zone strong,
+  .project-starfall-attunement-empty-result strong,
+  .project-starfall-attunement-ready-state strong {
+    color: var(--starfall-ink);
+    font-weight: 950;
+  }
+
+  .project-starfall-attunement-target-zone small,
+  .project-starfall-attunement-empty-result small,
+  .project-starfall-attunement-ready-state span {
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+    line-height: 1.25;
+  }
+
+  .project-starfall-attunement-empty-result,
+  .project-starfall-attunement-ready-state {
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    min-height: 130px;
+    margin: 0 12px 12px;
+    padding: 18px;
+    border: 1px solid rgba(245,207,114,0.3);
+    border-radius: 6px;
+    background:
+      linear-gradient(180deg, rgba(255,250,240,0.94), rgba(236,215,173,0.9));
+    text-align: center;
+  }
+
+  .project-starfall-attunement-ready-state {
+    height: calc(100% - 40px);
+    margin-top: 12px;
+  }
+
+	  .project-starfall-attunement-footer {
+	    display: grid;
+	    gap: 10px;
+	    min-height: 0;
+	    padding-top: 2px;
+	    position: relative;
+	  }
+
+	  .project-starfall-attunement-auto-shell {
+	    position: relative;
+	    z-index: 4;
+	    justify-self: start;
+	    min-width: min(292px, 100%);
+	  }
+
+	  .project-starfall-attunement-auto-launcher {
+	    display: grid;
+	    grid-template-columns: minmax(136px, auto) minmax(110px, auto);
+	    gap: 8px;
+	    align-items: center;
+	  }
+
+	  .project-starfall-attunement-auto-toggle,
+	  .project-starfall-attunement-auto-repeat {
+	    min-height: 34px;
+	    padding-inline: 14px;
+	    border-color: rgba(245,207,114,0.42);
+	    background:
+	      linear-gradient(180deg, rgba(42,170,211,0.28), transparent),
+	      linear-gradient(180deg, #203b56, #071323);
+	    color: #fff3cf;
+	    font-weight: 950;
+	    text-align: left;
+	  }
+
+	  .project-starfall-attunement-auto-repeat {
+	    border-color: rgba(245,207,114,0.38);
+	    background:
+	      linear-gradient(180deg, rgba(245,207,114,0.28), transparent),
+	      linear-gradient(180deg, #20354d, #0a1728);
+	    color: #fff3cf;
+	    text-align: center;
+	  }
+
+	  .project-starfall-attunement-auto-toggle[aria-expanded="true"] {
+	    box-shadow: 0 0 0 2px rgba(42,170,211,0.24);
+	  }
+
+	  .project-starfall-attunement-auto {
+	    position: absolute;
+	    bottom: calc(100% + 8px);
+	    left: 0;
+	    display: grid;
+	    grid-template-columns: minmax(0, 1fr) minmax(160px, 0.45fr);
+	    gap: 10px;
+	    align-items: stretch;
+	    width: min(660px, calc(100vw - 48px));
+	    padding: 12px;
+	    border: 1px solid rgba(245,207,114,0.44);
+	    border-radius: 6px;
+	    background:
+	      linear-gradient(90deg, rgba(245,207,114,0.35), rgba(245,207,114,0.35)) left 8px top 8px / 22px 1px no-repeat,
+	      linear-gradient(180deg, rgba(245,207,114,0.35), rgba(245,207,114,0.35)) left 8px top 8px / 1px 22px no-repeat,
+	      linear-gradient(270deg, rgba(245,207,114,0.35), rgba(245,207,114,0.35)) right 8px top 8px / 22px 1px no-repeat,
+	      linear-gradient(180deg, rgba(245,207,114,0.35), rgba(245,207,114,0.35)) right 8px top 8px / 1px 22px no-repeat,
+	      radial-gradient(circle at 18% 0%, rgba(42,170,211,0.16), transparent 40%),
+	      linear-gradient(180deg, #18304a 0%, var(--starfall-frame-deep) 100%);
+	    box-shadow: 0 18px 38px rgba(3,10,20,0.46);
+	  }
+
+	  .project-starfall-attunement-auto header {
+	    grid-column: 1 / -1;
+	    display: flex;
+	    align-items: center;
+	    justify-content: space-between;
+	    gap: 8px;
+	    color: #fff3cf;
+	    font-size: 0.72rem;
+	    font-weight: 950;
+	    text-transform: uppercase;
+	  }
+
+	  .project-starfall-attunement-auto header button {
+	    min-width: 26px;
+	    min-height: 24px;
+	    padding: 0;
+	    border-color: rgba(137,93,39,0.28);
+	    background: #fffaf0;
+	    color: #8a5d27;
+	    font-size: 0.7rem;
+	    font-weight: 950;
+	  }
+
+  .project-starfall-attunement-auto label {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .project-starfall-attunement-auto label span {
+    color: #f4d689;
+    font-size: 0.64rem;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-attunement-auto select,
+  .project-starfall-attunement-auto input {
+    width: 100%;
+    min-width: 0;
+    min-height: 30px;
+    border: 1px solid rgba(137,93,39,0.28);
+    border-radius: 5px;
+    background: #fffaf0;
+    color: var(--starfall-ink);
+    font: 850 0.76rem/1.1 system-ui, sans-serif;
+  }
+
+  .project-starfall-attunement-auto input {
+    padding: 0 8px;
+  }
+
+  .project-starfall-attunement-auto-requests {
+    grid-row: span 4;
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .project-starfall-attunement-auto-request-list {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    max-height: 240px;
+    overflow: auto;
+    padding-right: 2px;
+  }
+
+  .project-starfall-attunement-auto-request {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px auto;
+    gap: 8px;
+    align-items: end;
+    min-width: 0;
+  }
+
+  .project-starfall-attunement-auto-request > button,
+  .project-starfall-attunement-auto-requests > button {
+    min-height: 30px;
+    padding-inline: 10px;
+    border: 1px solid rgba(137,93,39,0.24);
+    border-radius: 5px;
+    background: #fffaf0;
+    color: var(--starfall-ink);
+    font-size: 0.68rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-attunement-auto-requests > button {
+    justify-self: start;
+    border-color: rgba(42,170,211,0.5);
+    background:
+      linear-gradient(180deg, rgba(42,170,211,0.22), transparent),
+      linear-gradient(180deg, #fffaf0, #ecd7ad);
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-attunement-auto-request-empty {
+    min-height: 34px;
+    padding: 10px;
+    border: 1px dashed rgba(245,207,114,0.34);
+    border-radius: 5px;
+    background: rgba(255,250,240,0.08);
+    color: #c7d6e5;
+    font-size: 0.72rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-attunement-auto-tier,
+  .project-starfall-attunement-auto-max,
+  .project-starfall-attunement-auto-estimate,
+  .project-starfall-attunement-auto > button[data-starfall-potential-auto-run],
+  .project-starfall-attunement-auto > small {
+    grid-column: 2;
+  }
+
+	  .project-starfall-attunement-auto-slider {
+	    display: grid;
+	    grid-template-columns: minmax(0, 1fr) auto;
+	    gap: 8px;
+	    align-items: center;
+	    min-width: 0;
+	  }
+
+	  .project-starfall-attunement-auto-slider input[type="range"] {
+	    min-height: 24px;
+	    padding: 0;
+	    border: 0;
+	    background: transparent;
+	    accent-color: var(--starfall-blue);
+	    cursor: pointer;
+	  }
+
+	  .project-starfall-attunement-auto-slider strong {
+	    min-width: 68px;
+	    padding: 5px 7px;
+	    border: 1px solid rgba(137,93,39,0.22);
+	    border-radius: 5px;
+	    background: rgba(255,250,240,0.94);
+	    color: var(--starfall-ink);
+	    font-size: 0.72rem;
+	    font-weight: 950;
+	    text-align: center;
+	    white-space: nowrap;
+	  }
+
+	  .project-starfall-attunement-auto-max > small {
+	    display: block;
+	    margin-top: 4px;
+	    line-height: 1.2;
+	  }
+
+  .project-starfall-attunement-auto-estimate {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .project-starfall-attunement-auto-estimate span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 7px 8px;
+    border: 1px solid rgba(245,207,114,0.26);
+    border-radius: 5px;
+    background: rgba(255,250,240,0.92);
+  }
+
+  .project-starfall-attunement-auto-estimate small {
+    grid-column: auto;
+    color: #8a5d27;
+    font-size: 0.6rem;
+    font-weight: 950;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-attunement-auto-estimate strong {
+    overflow: hidden;
+    color: var(--starfall-ink);
+    font-size: 0.78rem;
+    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-attunement-auto > button[data-starfall-potential-auto-run] {
+    min-height: 30px;
+    padding-inline: 12px;
+    border-color: rgba(42,170,211,0.5);
+    background:
+      linear-gradient(180deg, rgba(42,170,211,0.28), transparent),
+      linear-gradient(180deg, #fffaf0, #d4b47f);
+    color: var(--starfall-ink);
+    font-weight: 950;
+  }
+
+  .project-starfall-attunement-auto small {
+    color: #c7d6e5;
+    font-size: 0.7rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-echo-actions {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: min(520px, 100%);
+    justify-self: center;
+  }
+
+  .project-starfall-echo-actions-four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: min(860px, 100%);
+  }
+
+  .project-starfall-echo-actions-four button {
+    min-width: 0;
+    min-height: 38px;
+    font-size: 0.72rem;
+    line-height: 1.1;
+    white-space: normal;
+  }
+
+  .project-starfall-echo-actions button {
+    border-color: rgba(245,207,114,0.42);
+    background:
+      linear-gradient(180deg, rgba(245,207,114,0.26), transparent),
+      linear-gradient(180deg, #203b56, #071323);
+    color: #fff3cf;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.34);
+  }
+
+  .project-starfall-echo-actions .project-starfall-echo-accept {
+    border-color: rgba(42,170,211,0.54);
+    background:
+      linear-gradient(180deg, rgba(42,170,211,0.34), transparent),
+      linear-gradient(180deg, #203b56, #071323);
+    color: #dff8ff;
+  }
+
+  .project-starfall-potential-confirm .project-starfall-attunement-result-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-attunement-line-actions {
+    width: min(620px, 100%);
+    justify-self: center;
+  }
+
+  .project-starfall-attunement-choice.is-line-catalyst .project-starfall-attunement-line-actions button {
+    border-color: rgba(143,214,111,0.58);
+    background:
+      linear-gradient(180deg, rgba(143,214,111,0.34), transparent),
+      linear-gradient(180deg, #203b56, #071323);
+    color: #dfffd0;
+  }
+
+  .project-starfall-attunement-result-actions span {
+    color: #c7d6e5;
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-upgrade-preview span {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+    padding: 4px 5px;
+    border: 1px solid rgba(47,125,214,0.12);
+    border-radius: 6px;
+    background: #eef6ff;
+    color: var(--starfall-muted);
+    font-size: 0.58rem;
+    line-height: 1.12;
+  }
+
+  .project-starfall-upgrade-preview strong {
+    color: var(--starfall-blue);
+    font-size: 0.72rem;
+  }
+
+  .project-starfall-upgrade-state {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+  }
+
+  .project-starfall-upgrade-state div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 6px 7px;
+    border: 1px solid rgba(16,32,51,0.08);
+    border-radius: 6px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-upgrade-state dt {
+    color: var(--starfall-muted);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-upgrade-state dd {
+    margin: 0;
+    color: var(--starfall-ink);
+    font-size: 0.68rem;
+    font-weight: 850;
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-upgrade-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid rgba(47,125,214,0.18);
+    border-radius: 8px;
+    background: #eef6ff;
+  }
+
+  .project-starfall-upgrade-actions span {
+    color: var(--starfall-blue);
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-potential-confirm .project-starfall-upgrade-actions,
+  .project-starfall-shard-craft .project-starfall-upgrade-actions {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-flow: row;
+    align-items: stretch;
+  }
+
+  .project-starfall-shard-craft .project-starfall-upgrade-actions button.is-selected {
+    border-color: rgba(47,125,214,0.55);
+    background: #ffffff;
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-shard-craft-quantity {
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid rgba(16,32,51,0.1);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-shard-craft-quantity span {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--starfall-ink);
+    font-size: 0.76rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-shard-craft-quantity div {
+    display: grid;
+    grid-template-columns: 38px 38px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .project-starfall-shard-craft-quantity small {
+    color: var(--starfall-muted);
+    font-size: 0.68rem;
+  }
+
+  .project-starfall-upgrade-requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .project-starfall-upgrade-requirement {
+    display: inline-grid;
+    grid-template-columns: 24px auto;
+    gap: 5px;
+    align-items: center;
+    min-width: 0;
+    padding: 4px 6px;
+    border: 1px solid rgba(47,125,214,0.18);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--starfall-blue);
+    font-size: 0.72rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-upgrade-requirement.is-low {
+    border-color: rgba(184,50,50,0.28);
+    color: #b83232;
+    background: #fff3f3;
+  }
+
+  .project-starfall-upgrade-requirement .project-starfall-gear-icon {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+  }
+
+  .project-starfall-upgrade-aides {
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+    border: 1px solid rgba(16,32,51,0.1);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-upgrade-aides > div {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .project-starfall-upgrade-aide {
+    display: grid;
+    grid-template-columns: 16px 26px minmax(0, 1fr);
+    gap: 5px;
+    align-items: center;
+    min-width: 0;
+    padding: 5px;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--starfall-ink);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .project-starfall-upgrade-aide input {
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    accent-color: #2f7dd6;
+  }
+
+  .project-starfall-upgrade-aide.is-selected {
+    border-color: rgba(47,125,214,0.56);
+    background: #e7f3ff;
+  }
+
+  .project-starfall-upgrade-aide.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .project-starfall-upgrade-aide .project-starfall-gear-icon {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+  }
+
+  .project-starfall-upgrade-aide b,
+  .project-starfall-upgrade-aide small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-upgrade-aide b {
+    font-size: 0.62rem;
+    line-height: 1.05;
+  }
+
+  .project-starfall-upgrade-aide small {
+    color: var(--starfall-muted);
+    font-size: 0.56rem;
+    line-height: 1.05;
+  }
+
+  .project-starfall-upgrade-outcomes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .project-starfall-upgrade-chances {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    margin-top: 2px;
+  }
+
+  .project-starfall-upgrade-chance {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+    padding: 4px 5px;
+    border: 1px solid rgba(16,32,51,0.1);
+    border-radius: 6px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-upgrade-chance strong {
+    color: var(--starfall-ink);
+    font-size: 0.64rem;
+    line-height: 1.12;
+  }
+
+  .project-starfall-upgrade-chance small {
+    color: var(--starfall-muted);
+    font-size: 0.56rem;
+    line-height: 1.12;
+  }
+
+  .project-starfall-upgrade-chance b {
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-upgrade-outcome {
+    align-content: start;
+  }
+
+  .project-starfall-upgrade-confirm {
+    position: fixed;
+    inset: 0;
+    z-index: 18;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(16,32,51,0.2);
+  }
+
+  .project-starfall-upgrade-confirm-card {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    width: min(420px, 100%);
+    padding: 14px;
+    border: 1px solid rgba(16,32,51,0.16);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 18px 40px rgba(9,31,59,0.24);
+  }
+
+  .project-starfall-confirm-prompt {
+    background:
+      radial-gradient(circle at 50% 42%, rgba(240,195,106,0.18), transparent 32%),
+      rgba(9,31,59,0.34);
+  }
+
+  .project-starfall-confirm-card {
+    border-color: rgba(216,167,58,0.34);
+    background:
+      linear-gradient(180deg, rgba(255,250,240,0.98), rgba(246,238,219,0.98));
+    box-shadow:
+      0 18px 42px rgba(9,31,59,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.72);
+  }
+
+	  .project-starfall-confirm-card h3 {
+	    margin: 0;
+	    color: var(--starfall-ink);
+	    font-size: 1.05rem;
+	    line-height: 1.15;
+	  }
+
+	  .project-starfall-confirm-quantity {
+	    display: flex;
+	    align-items: center;
+	    justify-content: space-between;
+	    gap: 12px;
+	    padding: 8px 10px;
+	    border: 1px solid rgba(138,100,29,0.22);
+	    border-radius: 8px;
+	    background: rgba(255,255,255,0.52);
+	    color: var(--starfall-ink);
+	    font-size: 0.82rem;
+	    font-weight: 900;
+	  }
+
+	  .project-starfall-confirm-quantity > span:last-child {
+	    display: inline-grid;
+	    grid-template-columns: 28px 58px 28px;
+	    align-items: center;
+	    gap: 6px;
+	  }
+
+	  .project-starfall-confirm-quantity input {
+	    width: 58px;
+	    min-height: 28px;
+	    border: 1px solid rgba(16,32,51,0.16);
+	    border-radius: 6px;
+	    background: #fffaf0;
+	    color: var(--starfall-ink);
+	    font: inherit;
+	    text-align: center;
+	  }
+
+  .project-starfall-upgrade-confirm-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+  }
+
+}

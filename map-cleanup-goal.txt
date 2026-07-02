@@ -1,0 +1,39 @@
+Goal: Audit and clean up every game map geometry so all maps are visually coherent, playable, and distinct.
+
+Work through every map definition in the project. For each map, inspect the geometry data and update slopes, ladders, platforms, ground segments, enemy/NPC placements, and traversal paths so the layout looks intentional and readable.
+
+Acceptance criteria:
+
+1. Visual consistency
+- No stray platforms hidden under slopes unless intentionally used as structure.
+- No ladders that start or end in empty space.
+- Ladders must connect clearly between walkable surfaces.
+- Slopes should connect cleanly into platforms or ground.
+- Platforms should have believable support or placement.
+- Terrain should not appear randomly stacked, overlapping, or cluttered.
+
+2. Playability
+- The player can intuitively understand where they can walk, climb, jump, and fight.
+- Enemy and NPC placements should make sense on the terrain.
+- Quest targets should remain reachable.
+- No soft-locks, unreachable areas, or impossible traversal paths.
+
+3. Distinct map identity
+- Do not make every map follow the same template.
+- Each map should have a recognizable layout style, such as vertical climb, open combat field, bridge network, mining tunnels, ruins, layered platforms, etc.
+- Reuse visual language consistently, but vary silhouette, routes, elevation, and encounter spacing.
+
+4. Clean implementation
+- Preserve the existing map schema and rendering system unless a small helper or validation rule clearly improves maintainability.
+- Keep changes scoped to map geometry/data and any necessary supporting validation.
+- If possible, add or improve a map validation script that catches floating ladders, unreachable platforms, severe overlaps, and disconnected walkable surfaces.
+
+5. Verification
+- Run the project's existing build/test commands.
+- Launch the game locally and inspect every map visually.
+- Iterate until every map satisfies the criteria above.
+- Capture screenshots or otherwise document the reviewed maps in the final summary.
+
+Important: Do not stop after fixing the first obvious map. Continue through the full map list. Treat the provided screenshot as an example of what to eliminate: visually chaotic geometry, slopes overlapping hidden platforms, disconnected ladders, and terrain that does not look intentionally designed.
+
+Continue iterating autonomously until all maps have been reviewed and either fixed or explicitly documented as already meeting the standard.

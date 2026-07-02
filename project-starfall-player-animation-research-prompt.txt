@@ -1,0 +1,71 @@
+Research task: Best practices for Project Starfall player animations
+
+You are researching 2D side-scroller player animation best practices for a browser-based action RPG prototype called Project Starfall. Do not implement code or generate final assets. Produce a source-backed research report that can later guide animation, sprite-sheet, and prompt-writing work in Codex.
+
+Project context:
+- Project Starfall is a 2D side-scrolling action RPG/MMORPG-style prototype.
+- The intended visual identity is "Starlit Frontier Fantasy": clean luminous fantasy, cel-shaded sprite assets, crisp contour outlines, readable silhouettes, fallen-star magic, guild-town warmth, blue-and-gold Starfall motifs, runes, portals, lanterns, crystal inlays, and practical crafted materials.
+- The game should not look copied from MapleStory or any existing game. MapleStory can be considered only as a high-level action-coverage reference where idle, run, jump, climb, attack, cast, buff, hit, and defeat all have distinct readable poses.
+- The current direction uses compact readable characters, roughly 3.5 to 4 heads tall, with minimal face detail. Character identity should come mostly from equipment layers, weapon silhouettes, class VFX, portraits, and accent colors, not from highly unique base bodies.
+- The goal is to make animations feel natural, responsive, consistent, and authored, not awkward, forced, generic, or blatantly AI-generated.
+
+Current animation contract to keep in mind:
+- Player runtime sheets use 160px frames.
+- Current layout is 6 columns by 10 rows, 960x1600 total.
+- Row order: idle, run, jump, fall, climb, basic, skill, party, hit, defeat.
+- Equipment layers are expected to align to the same frame grid, baseline, and body anchors.
+- Supported player actions include idle, run, jump, fall, climb, basic attack, skill/offensive cast, party/buff cast, hit reaction, and defeat.
+- Class readability matters:
+  - Fighter, Guardian, Berserker, and Duelist should read as melee.
+  - Archer, Sniper, Trapper, and Beast Archer should read as bow/ranged.
+  - Mage, Fire Mage, Rune Mage, and Storm Mage should read as staff/wand/focus casters.
+
+Research questions:
+1. What are the most important principles for natural 2D side-scroller player animation?
+   Cover key poses, timing, spacing, silhouette, arcs, squash/stretch, anticipation, follow-through, overlap, staging, and readability at small gameplay scale.
+
+2. How should game animation balance natural motion with responsiveness?
+   Specifically research how short anticipation, action locks, cancel windows, recovery frames, and follow-through can make attacks feel weighty without creating input lag.
+
+3. What makes a good run cycle for compact side-view RPG characters?
+   Include recommended key poses, foot-contact/pass frames, arm-leg counter motion, vertical bounce, common frame counts, and common mistakes.
+
+4. What are best practices for the following action rows?
+   - Idle: subtle breathing, posture, hair/cloth motion, no foot sliding.
+   - Run: contact/pass poses, body lean, readable stride, loop energy.
+   - Jump: immediate lift/readiness, optional squash without delaying input.
+   - Fall: bracing pose distinct from jump.
+   - Climb: alternating hands/feet, readable ladder/rope interaction.
+   - Basic melee attack: windup, contact/release, recovery, weapon arc.
+   - Bow attack: draw, aim, release, recovery, arrow/hand clarity.
+   - Magic attack: focus/staff involvement, cast shape, release, readable VFX.
+   - Skill cast: stronger offensive action distinct from basic attack.
+   - Party/buff cast: supportive channel pose distinct from offensive cast.
+   - Hit: quick recoil that preserves silhouette and gameplay readability.
+   - Defeat: clean collapse/slump without awkward anatomy or visual glitches.
+
+5. How should animation be designed for equipment overlays?
+   Research stable baselines, consistent body proportions, hand/head/feet anchors, weapon attachment points, layer ordering, and how to avoid body movement that makes future gear layers hard to align.
+
+6. What makes AI-generated sprite animation look obviously AI-generated?
+   Identify common issues such as inconsistent anatomy, changing clothing, drifting weapon shape, random shadows, scale jitter, broken hands/feet, face changes, outline inconsistency, texture noise, unreadable VFX, cell-border artifacts, and inconsistent baselines. Recommend prevention and review methods.
+
+7. What review checklist should be used after generating or editing sprite sheets?
+   Include checks at full size and runtime scale for silhouette readability, frame-to-frame continuity, foot sliding, baseline stability, loop smoothness, attack readability, class identity, no cropped limbs, no floating fragments, no guide/chroma pixels, no copied style, and equipment-layer compatibility.
+
+8. What source-backed recommendations apply specifically to Project Starfall?
+   Translate the research into concrete guidance for the 6-frame rows and Starfall style. Recommend which animations can stay subtle, which need stronger key poses, and how to preserve the Starlit Frontier Fantasy identity.
+
+Preferred source quality:
+- Prioritize game animation books, industry articles, animator talks, GDC-style talks, professional animator blogs, studio breakdowns, and reputable game development resources.
+- Avoid relying on unsourced SEO articles unless they point to useful primary references.
+- You may include examples from existing games, but discuss them as high-level animation principles only. Do not recommend copying character designs, exact frame poses, or copyrighted art.
+
+Required output format:
+1. Executive summary: 8 to 12 bullets of the most actionable findings.
+2. Source notes: cited sources with short explanations of why each source is useful.
+3. Animation principles: natural motion and responsiveness guidelines for 2D side-scrollers.
+4. Action-by-action recommendations: idle, run, jump, fall, climb, basic, skill, party/buff, hit, defeat.
+5. Starfall-specific guidance: how to apply the research while preserving Starlit Frontier Fantasy and the current 6x10 sheet contract.
+6. AI-art risk checklist: what to avoid and how to detect/fix it.
+7. Final production checklist: a practical pass/fail checklist for reviewing the next Project Starfall player animation iteration.

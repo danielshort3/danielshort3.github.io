@@ -746,6 +746,48 @@
     ctx.restore();
   }
 
+  function resolveAttachmentAnchors(rig, state, elapsed, context) {
+    const pose = resolvePose(rig, state, elapsed, context);
+    const backHand = limbPoints(pose.backShoulder, pose.backArm.upper, pose.backArm.lower, 15, 14).hand;
+    const mainHand = limbPoints(pose.frontShoulder, pose.frontArm.upper, pose.frontArm.lower, 15, 14).hand;
+    const backFoot = legFootPoint(pose, 'back');
+    const frontFoot = legFootPoint(pose, 'front');
+    const weaponKind = weaponKindFromContext(context);
+    const weaponLength = isBowWeapon(weaponKind)
+      ? 40
+      : isCasterWeapon(weaponKind)
+        ? 48
+        : 46;
+    const weaponOrigin = {
+      x: mainHand.x + Number(pose.weaponReach || 0),
+      y: mainHand.y + Number(pose.weaponLift || 0)
+    };
+    const weaponTip = {
+      x: Math.round(weaponOrigin.x + Math.cos(Number(pose.weaponAngle || 0)) * weaponLength),
+      y: Math.round(weaponOrigin.y + Math.sin(Number(pose.weaponAngle || 0)) * weaponLength)
+    };
+    const root = { x: Number(pose.rootX || 0), y: Number(pose.rootY || 0) };
+    return Object.freeze({
+      root: Object.freeze(root),
+      head: Object.freeze({ x: Math.round(2 + Number(pose.headX || 0)), y: Math.round(-52 + Number(pose.headY || 0)) }),
+      face: Object.freeze({ x: Math.round(14 + Number(pose.headX || 0)), y: Math.round(-51 + Number(pose.headY || 0)) }),
+      chest: Object.freeze({ x: Math.round(3 + Number(pose.rootX || 0)), y: Math.round(-24 + Number(pose.bodyY || 0)) }),
+      back: Object.freeze({ x: -13, y: -28 }),
+      mainHand: Object.freeze({ x: Math.round(mainHand.x), y: Math.round(mainHand.y) }),
+      offHand: Object.freeze({ x: Math.round(backHand.x), y: Math.round(backHand.y) }),
+      gloves: Object.freeze({
+        main: Object.freeze({ x: Math.round(mainHand.x), y: Math.round(mainHand.y) }),
+        off: Object.freeze({ x: Math.round(backHand.x), y: Math.round(backHand.y) })
+      }),
+      boots: Object.freeze({
+        front: Object.freeze({ x: Math.round(frontFoot.x), y: Math.round(frontFoot.y) }),
+        back: Object.freeze({ x: Math.round(backFoot.x), y: Math.round(backFoot.y) })
+      }),
+      ringCharm: Object.freeze({ x: 0, y: -18 }),
+      weaponTip: Object.freeze(weaponTip)
+    });
+  }
+
   function drawCharacter(ctx, actor, rig, options) {
     if (!canDraw(ctx) || !actor || !rig) return false;
     const settings = options || {};
@@ -811,7 +853,8 @@
 
   const ProjectStarfallRig = Object.freeze({
     drawCharacter,
-    resolvePose
+    resolvePose,
+    resolveAttachmentAnchors
   });
 
   global.ProjectStarfallRig = ProjectStarfallRig;

@@ -1,0 +1,1 @@
+/goal Follow project-starfall-map-optimization-implementation-goal.txt to implement the Project Starfall map audit recommendations across towns, combat maps, spawn sections, party-play layouts, visual identity, metrics, tests, and documentation.

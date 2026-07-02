@@ -155,7 +155,12 @@ const getPortfolioAudienceKey = () => {
     const params = new URLSearchParams(window.location.search || '');
     const audience = params.get('audience');
     if (audience) return normalizeAudience(audience);
+    const mode = String(params.get('mode') || '').trim().toLowerCase();
+    if (['professional', 'work', 'career', 'analytics'].includes(mode)) return normalizeAudience('analytics');
   } catch {}
+  if (typeof window.isProfessionalRealm === 'function' && window.isProfessionalRealm()) {
+    return normalizeAudience('analytics');
+  }
   return null;
 };
 const getFeaturedProjectIds = (audienceKey) => {

@@ -1,0 +1,719 @@
+@layer components {
+  .project-starfall-admin-picker-control {
+    align-content: start;
+  }
+
+  .project-starfall-admin-picker-toggle,
+  .project-starfall-admin-picker-option {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    align-items: center;
+    padding: 7px;
+    text-align: left;
+  }
+
+  .project-starfall-admin-picker-toggle[aria-expanded="true"],
+  .project-starfall-admin-picker-option[aria-selected="true"] {
+    border-color: rgba(89,216,255,0.66);
+    background: linear-gradient(180deg, #e9f8ff, #bdcfdb);
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-admin-picker-list {
+    display: grid;
+    gap: 6px;
+    max-height: 310px;
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid rgba(116,79,28,0.26);
+    border-radius: 8px;
+    background: var(--starfall-panel-soft);
+  }
+
+  .project-starfall-admin-picker-icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(116,79,28,0.28);
+    border-radius: 7px;
+    background: #f6f0dc;
+    color: var(--starfall-ink);
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-admin-picker-art {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .project-starfall-admin-picker-summary {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .project-starfall-admin-picker-summary strong,
+  .project-starfall-admin-picker-summary em {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-admin-picker-summary strong {
+    color: var(--starfall-ink);
+    font-size: 0.84rem;
+    font-style: normal;
+    font-weight: 900;
+  }
+
+  .project-starfall-admin-picker-summary em {
+    color: var(--starfall-muted);
+    font-size: 0.74rem;
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  .project-starfall-admin-command-shell,
+  .project-starfall-admin-command-examples,
+  .project-starfall-admin-command-history {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-admin-command-line {
+    display: grid;
+    gap: 7px;
+    padding: 10px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--starfall-panel-soft), var(--starfall-panel));
+  }
+
+  .project-starfall-admin-command-line span {
+    color: var(--starfall-muted);
+    font-size: 0.82rem;
+    font-weight: 900;
+  }
+
+  .project-starfall-admin-command-line input {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid rgba(16,32,51,0.16);
+    border-radius: 7px;
+    background: #f7ebd2;
+    color: var(--starfall-ink);
+    font: 800 0.86rem ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  .project-starfall-admin-command-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 0;
+  }
+
+  .project-starfall-admin-command-result {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    padding: 9px 10px;
+    border: 1px solid rgba(89,216,255,0.32);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #e9f8ff, #bdcfdb);
+    color: var(--starfall-ink);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .project-starfall-admin-command-result[data-ok="false"] {
+    border-color: rgba(168,61,61,0.34);
+    background: #fff0ec;
+  }
+
+  .project-starfall-admin-command-result span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-admin-command-examples,
+  .project-starfall-admin-command-history {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .project-starfall-admin-command-examples button,
+  .project-starfall-admin-command-history button {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 8px;
+    text-align: left;
+  }
+
+  .project-starfall-admin-command-examples span,
+  .project-starfall-admin-command-history span {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--starfall-muted);
+    font: 800 0.74rem ui-monospace, SFMono-Regular, Menlo, monospace;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-admin-boss-preview {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-admin-boss-art {
+    display: grid;
+    width: 72px;
+    height: 72px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 8px;
+    background: rgba(9,31,59,0.08);
+    color: var(--starfall-ink);
+    font-weight: 950;
+  }
+
+  .project-starfall-admin-boss-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .project-starfall-admin-boss-copy {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .project-starfall-admin-boss-copy strong {
+    overflow: hidden;
+    color: var(--starfall-ink);
+    font-size: 0.96rem;
+    font-weight: 950;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-admin-boss-copy span,
+  .project-starfall-admin-boss-copy p,
+  .project-starfall-admin-boss-reward,
+  .project-starfall-admin-boss-phases span {
+    color: var(--starfall-muted);
+    font-size: 0.74rem;
+    font-weight: 780;
+    line-height: 1.3;
+  }
+
+  .project-starfall-admin-boss-copy p {
+    margin: 0;
+  }
+
+  .project-starfall-admin-boss-reward,
+  .project-starfall-admin-boss-phases {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 5px;
+  }
+
+  .project-starfall-admin-boss-reward {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 7px 8px;
+    border-radius: 8px;
+    background: rgba(16,32,51,0.06);
+  }
+
+  .project-starfall-admin-boss-reward strong,
+  .project-starfall-admin-boss-phases strong {
+    color: var(--starfall-ink);
+    font-weight: 950;
+  }
+
+  .project-starfall-admin-boss-phases span {
+    display: grid;
+    gap: 1px;
+    padding: 6px 8px;
+    border-left: 3px solid var(--boss-color, #d8b74a);
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .project-starfall-admin-asset-summary,
+  .project-starfall-admin-console-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .project-starfall-admin-asset-summary h3,
+  .project-starfall-admin-debug-summary h3,
+  .project-starfall-admin-console-summary h3,
+  .project-starfall-admin-asset-summary p,
+  .project-starfall-admin-debug-summary p,
+  .project-starfall-admin-console-summary p {
+    margin: 0;
+  }
+
+  .project-starfall-admin-debug-summary {
+    display: grid;
+    gap: 10px;
+  }
+
+  .project-starfall-admin-debug-log {
+    display: grid;
+    gap: 6px;
+    max-height: 220px;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    list-style: none;
+  }
+
+  .project-starfall-admin-debug-log li {
+    display: grid;
+    gap: 3px;
+    padding: 7px 8px;
+    border: 1px solid rgba(16,32,51,0.1);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--starfall-ink);
+    font-size: 0.75rem;
+  }
+
+  .project-starfall-admin-debug-log span,
+  .project-starfall-admin-debug-log code {
+    overflow-wrap: anywhere;
+    color: #5f6f7a;
+  }
+
+  .project-starfall-admin-debug-log code {
+    font-size: 0.68rem;
+  }
+
+  .project-starfall-asset-preview-panel {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .project-starfall-asset-preview-toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 8px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-asset-preview-toolbar label {
+    display: grid;
+    gap: 4px;
+    color: var(--starfall-muted);
+    font-size: 0.74rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-asset-preview-toolbar input {
+    width: 100%;
+    min-height: 34px;
+    border: 1px solid rgba(16,32,51,0.18);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--starfall-ink);
+    font: inherit;
+    font-weight: 850;
+  }
+
+  .project-starfall-asset-preview-toolbar span {
+    color: var(--starfall-blue);
+    font-size: 0.78rem;
+    font-weight: 950;
+    white-space: nowrap;
+  }
+
+  .project-starfall-asset-source-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  .project-starfall-asset-source-toggle button {
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid rgba(16,32,51,0.16);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--starfall-muted);
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-asset-source-toggle button[aria-pressed="true"] {
+    border-color: rgba(47,125,214,0.68);
+    background: #eef6ff;
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-asset-browser {
+    display: grid;
+    grid-template-columns: 164px minmax(220px, 0.9fr) minmax(280px, 1.15fr);
+    gap: 10px;
+    min-height: 420px;
+    max-height: min(620px, 72vh);
+    align-items: start;
+  }
+
+  .project-starfall-asset-kind-pane,
+  .project-starfall-asset-entry-pane,
+  .project-starfall-asset-detail {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+    max-height: min(620px, 72vh);
+    padding: 10px;
+    overflow: auto;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .project-starfall-asset-kind-pane {
+    background: #fbfaf6;
+  }
+
+  .project-starfall-asset-persistent-detail {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+
+  .project-starfall-asset-kind,
+  .project-starfall-asset-entry {
+    display: grid;
+    min-width: 0;
+    width: 100%;
+    align-items: center;
+    border: 1px solid rgba(16,32,51,0.14);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--starfall-ink);
+    text-align: left;
+  }
+
+  .project-starfall-asset-kind {
+    grid-template-columns: 44px minmax(0, 1fr);
+    min-height: 58px;
+    gap: 8px;
+    padding: 7px;
+  }
+
+  .project-starfall-asset-kind.is-selected,
+  .project-starfall-asset-entry.is-selected {
+    border-color: rgba(47,125,214,0.68);
+    background: #eef6ff;
+  }
+
+  .project-starfall-asset-kind:disabled {
+    opacity: 0.55;
+  }
+
+  .project-starfall-asset-kind span,
+  .project-starfall-asset-entry-copy {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  .project-starfall-asset-kind strong,
+  .project-starfall-asset-kind small,
+  .project-starfall-asset-entry-copy strong,
+  .project-starfall-asset-entry-copy em,
+  .project-starfall-asset-entry-copy small {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--starfall-muted);
+    font-size: 0.68rem;
+    font-style: normal;
+    font-weight: 780;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-asset-kind strong,
+  .project-starfall-asset-entry-copy strong {
+    color: var(--starfall-ink);
+    font-size: 0.78rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-asset-pane-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--starfall-muted);
+    font-size: 0.74rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-asset-pane-heading strong {
+    color: var(--starfall-ink);
+    font-size: 0.84rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-asset-entry-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-asset-entry {
+    grid-template-columns: 58px minmax(0, 1fr);
+    min-height: 74px;
+    gap: 9px;
+    padding: 8px;
+  }
+
+  .project-starfall-asset-entry.is-failed {
+    border-color: rgba(184,50,50,0.35);
+    background: #fff3ee;
+  }
+
+  .project-starfall-asset-kind-art,
+  .project-starfall-asset-entry-art,
+  .project-starfall-asset-card-art {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(16,32,51,0.12);
+    border-radius: 7px;
+    background: #f6f0dc;
+    color: var(--starfall-muted);
+    font-size: 0.7rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-asset-kind-art {
+    width: 44px;
+    height: 44px;
+  }
+
+  .project-starfall-asset-entry-art,
+  .project-starfall-asset-card-art {
+    width: 58px;
+    height: 58px;
+  }
+
+  .project-starfall-asset-detail-stage {
+    display: grid;
+    min-height: 210px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(16,32,51,0.12);
+    border-radius: 8px;
+    background:
+      linear-gradient(45deg, rgba(16,32,51,0.06) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(16,32,51,0.06) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(16,32,51,0.06) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(16,32,51,0.06) 75%);
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    background-size: 16px 16px;
+  }
+
+  .project-starfall-asset-detail-art {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .project-starfall-asset-detail-image {
+    max-width: 100%;
+    max-height: 210px;
+    object-fit: contain;
+  }
+
+  .project-starfall-asset-animation-art {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .project-starfall-asset-animation-frame {
+    display: block;
+    flex: 0 0 auto;
+    width: var(--asset-frame-width, 160px);
+    height: var(--asset-frame-height, 160px);
+    background-image: var(--asset-sheet);
+    background-repeat: no-repeat;
+    background-position: 0 var(--asset-row-offset);
+    animation: project-starfall-asset-preview-play var(--asset-duration, 1s) steps(var(--asset-frames, 1)) infinite;
+  }
+
+  .project-starfall-asset-animation-frame.is-thumb {
+    transform: scale(0.36);
+    transform-origin: center;
+  }
+
+  .project-starfall-asset-animation-frame.has-loop-delay {
+    animation-name: project-starfall-asset-preview-effect-loop;
+  }
+
+  .project-starfall-asset-animation-frame.is-paused {
+    animation-play-state: paused;
+  }
+
+  @keyframes project-starfall-asset-preview-play {
+    from {
+      background-position: 0 var(--asset-row-offset);
+    }
+    to {
+      background-position: var(--asset-end-offset) var(--asset-row-offset);
+    }
+  }
+
+  @keyframes project-starfall-asset-preview-effect-loop {
+    0% {
+      opacity: 1;
+      background-position: 0 var(--asset-row-offset);
+    }
+    72% {
+      opacity: 1;
+      background-position: var(--asset-end-offset) var(--asset-row-offset);
+    }
+    72.01%,
+    100% {
+      opacity: 0;
+      background-position: var(--asset-end-offset) var(--asset-row-offset);
+    }
+  }
+
+  .project-starfall-asset-detail-copy {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: 8px;
+  }
+
+  .project-starfall-asset-detail-copy strong {
+    color: var(--starfall-ink);
+    font-size: 1rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-asset-detail-copy span,
+  .project-starfall-asset-detail-copy code {
+    color: var(--starfall-muted);
+    font-size: 0.74rem;
+    font-weight: 780;
+    line-height: 1.35;
+  }
+
+  .project-starfall-asset-detail-copy code {
+    display: block;
+    padding: 6px 8px;
+    overflow-wrap: anywhere;
+    border-radius: 7px;
+    background: rgba(16,32,51,0.06);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+
+  .project-starfall-asset-state-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .project-starfall-asset-state-groups {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-asset-state-group {
+    display: grid;
+    gap: 5px;
+  }
+
+  .project-starfall-asset-state-group h4 {
+    margin: 0;
+    color: var(--starfall-ink);
+    font-size: 0.72rem;
+    font-weight: 950;
+  }
+
+  .project-starfall-asset-state-row button[aria-pressed="true"] {
+    border-color: rgba(47,125,214,0.62);
+    background: #eef6ff;
+    color: var(--starfall-blue);
+  }
+
+  .project-starfall-asset-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .project-starfall-asset-meta-grid span {
+    padding: 6px 8px;
+    border-radius: 7px;
+    background: #fbfaf6;
+    color: var(--starfall-muted);
+    font-size: 0.72rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-asset-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  @media (max-width: 820px) {
+    .project-starfall-asset-preview-toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .project-starfall-asset-source-toggle {
+      justify-content: flex-start;
+    }
+
+    .project-starfall-asset-browser {
+      grid-template-columns: 1fr;
+      max-height: none;
+    }
+
+    .project-starfall-asset-kind-pane,
+    .project-starfall-asset-entry-pane,
+    .project-starfall-asset-detail {
+      max-height: 360px;
+    }
+
+    .project-starfall-asset-persistent-detail {
+      position: static;
+    }
+  }
+}

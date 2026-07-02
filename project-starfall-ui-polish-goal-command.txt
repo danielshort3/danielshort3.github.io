@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-ui-polish-goal-prompt.txt to audit, polish, visually verify, test, and finalize Project Starfall's UI so it matches the referenced dark framed fantasy theme, has no obvious overlap or clipping, keeps text legible with good margins, and looks professional across major game screens.

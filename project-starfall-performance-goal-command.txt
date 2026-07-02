@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-performance-goal-prompt.txt to profile, diagnose, and iteratively optimize Project Starfall engine performance until common gameplay, combat, inventory, NPC, item-use, map, and UI interactions have little to no noticeable lag spikes, with measured before/after results and relevant tests after each meaningful change.

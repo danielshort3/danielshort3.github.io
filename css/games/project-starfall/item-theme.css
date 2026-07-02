@@ -1,0 +1,116 @@
+@layer components {
+  .project-starfall-gear-copy span {
+    color: var(--starfall-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-gear-copy strong,
+  .project-starfall-gear-card-main strong {
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-strength {
+    align-self: start;
+    min-width: 58px;
+    padding: 5px 7px;
+    border-radius: 8px;
+    background: rgba(16,32,51,0.07);
+    color: var(--starfall-ink);
+    font-size: 0.76rem;
+    font-weight: 850;
+    text-align: center;
+  }
+
+  .project-starfall-gear-card.is-selected,
+  .project-starfall-gear-card:focus-visible {
+    border-color: rgba(47,125,214,0.56);
+    background: #eef6ff;
+  }
+
+  .rarity-common {
+    --starfall-item-aura: #d8e5ec;
+    --starfall-item-aura-glow: 7px;
+    --starfall-item-aura-alpha: 0.48;
+  }
+
+  .rarity-uncommon {
+    --starfall-item-aura: #74d680;
+    --starfall-item-aura-glow: 11px;
+    --starfall-item-aura-alpha: 0.66;
+  }
+
+  .rarity-rare {
+    --starfall-item-aura: #68a9ff;
+    --starfall-item-aura-glow: 15px;
+    --starfall-item-aura-alpha: 0.78;
+  }
+
+  .rarity-epic {
+    --starfall-item-aura: #c794ff;
+    --starfall-item-aura-glow: 19px;
+    --starfall-item-aura-alpha: 0.88;
+  }
+
+  .rarity-relic {
+    --starfall-item-aura: #ffbe55;
+    --starfall-item-aura-glow: 23px;
+    --starfall-item-aura-alpha: 0.94;
+  }
+
+  .item-aura-common {
+    --starfall-item-aura: #d8e5ec;
+    --starfall-item-aura-glow: 7px;
+    --starfall-item-aura-alpha: 0.48;
+  }
+
+  .item-aura-uncommon {
+    --starfall-item-aura: #74d680;
+    --starfall-item-aura-glow: 11px;
+    --starfall-item-aura-alpha: 0.66;
+  }
+
+  .item-aura-rare {
+    --starfall-item-aura: #68a9ff;
+    --starfall-item-aura-glow: 15px;
+    --starfall-item-aura-alpha: 0.78;
+  }
+
+  .item-aura-epic {
+    --starfall-item-aura: #c794ff;
+    --starfall-item-aura-glow: 19px;
+    --starfall-item-aura-alpha: 0.88;
+  }
+
+  .item-aura-relic {
+    --starfall-item-aura: #ffbe55;
+    --starfall-item-aura-glow: 23px;
+    --starfall-item-aura-alpha: 0.94;
+  }
+
+  .attunement-rare {
+    border-color: rgba(47,125,214,0.64);
+  }
+
+  .attunement-epic {
+    border-color: rgba(136,86,197,0.68);
+  }
+
+  .attunement-relic {
+    border-color: rgba(216,165,49,0.76);
+  }
+
+  .attunement-mythic {
+    border-color: rgba(255,111,145,0.78);
+  }
+
+  .attunement-ascendant {
+    border-color: rgba(66,214,255,0.82);
+  }
+
+  .attunement-celestial {
+    border-color: rgba(255,225,106,0.9);
+  }
+
+}

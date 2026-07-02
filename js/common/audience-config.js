@@ -17,6 +17,31 @@
   'use strict';
 
   const audiences = {
+    analytics: {
+      key: 'analytics',
+      label: 'Data Analytics',
+      shortLabel: 'Analytics',
+      homePath: '/analytics',
+      portfolioPath: '/portfolio?audience=analytics',
+      portfolioAllPath: '/portfolio?audience=analytics',
+      resumePath: '/resume-analytics',
+      resumePreviewPath: '/resume-analytics-pdf',
+      resumeDownloadPath: '/documents/Resume-Analytics.pdf',
+      featuredProjectIds: [
+        'retailStore',
+        'targetEmptyPackage',
+        'pizzaDashboard',
+        'deliveryTip',
+        'ufoDashboard'
+      ],
+      portfolioTitle: 'Analytics Portfolio',
+      portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.',
+      resumeNavTitle: 'Analytics Resume',
+      resumeNavSubtitle: 'BI, reporting, SQL, Tableau, and automation',
+      resumePreviewSubtitle: 'Open the analytics PDF preview',
+      resumeDownloadSubtitle: 'Download the analytics PDF',
+      brandNavPrimary: 'Data Analytics'
+    },
     personal: {
       key: 'personal',
       label: 'Personal Site',
@@ -41,11 +66,64 @@
       resumePreviewSubtitle: null,
       resumeDownloadSubtitle: null,
       brandNavPrimary: 'Projects, Tools, and Notes'
+    },
+    'data-science': {
+      key: 'data-science',
+      label: 'Data Science',
+      shortLabel: 'Data Science',
+      homePath: '/data-science',
+      portfolioPath: '/portfolio?audience=data-science',
+      portfolioAllPath: '/portfolio?audience=data-science',
+      resumePath: '/resume-data-science',
+      resumePreviewPath: '/resume-data-science-pdf',
+      resumeDownloadPath: '/documents/Resume-Data-Science.pdf',
+      featuredProjectIds: [
+        'smartSentence',
+        'chatbotLora',
+        'shapeClassifier',
+        'digitGenerator',
+        'handwritingRating'
+      ],
+      portfolioTitle: 'Data Science Portfolio',
+      portfolioDescription: 'Machine learning, NLP, modeling, evaluation, and production-minded experimentation.',
+      resumeNavTitle: 'Data Science Resume',
+      resumeNavSubtitle: 'ML, NLP, modeling, and deployment',
+      resumePreviewSubtitle: 'Open the data science PDF preview',
+      resumeDownloadSubtitle: 'Download the data science PDF',
+      brandNavPrimary: 'Data Science'
+    },
+    tourism: {
+      key: 'tourism',
+      label: 'Tourism Analytics',
+      shortLabel: 'Tourism',
+      homePath: '/tourism',
+      portfolioPath: '/portfolio?audience=tourism',
+      portfolioAllPath: '/portfolio?audience=tourism',
+      resumePath: '/resume-tourism',
+      resumePreviewPath: '/resume-tourism-pdf',
+      resumeDownloadPath: '/documents/Resume-Tourism.pdf',
+      featuredProjectIds: [
+        'chatbotLora',
+        'pizzaDashboard',
+        'covidAnalysis',
+        'retailStore',
+        'smartSentence'
+      ],
+      portfolioTitle: 'Tourism Analytics Portfolio',
+      portfolioDescription: 'Destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support.',
+      resumeNavTitle: 'Tourism Resume',
+      resumeNavSubtitle: 'Destination reporting and stakeholder analytics',
+      resumePreviewSubtitle: 'Open the tourism PDF preview',
+      resumeDownloadSubtitle: 'Download the tourism PDF',
+      brandNavPrimary: 'Tourism Analytics'
     }
   };
 
   const order = [
-    'personal'
+    'analytics',
+    'personal',
+    'data-science',
+    'tourism'
   ];
   const defaultAudience = 'personal';
 

@@ -1,0 +1,14549 @@
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "stellarDogfightProgress";
+      const UPGRADE_REROLL_COST = 45;
+      const UPGRADE_REROLL_SCALE = 1.62;
+      const WORLD_WIDTH = 3200;
+      const WORLD_HEIGHT = 1800;
+      const LEVEL_WAVES = 10;
+      const SCORE_ATTACK_DURATION_SEC = 300;
+      const DAILY_SECTOR_DURATION_SEC = 360;
+      const BOSS_RUSH_WAVES = 5;
+      const SKILL_LIMIT = 3;
+      const HUD_UPDATE_INTERVAL_MS = 50;
+      const DEFERRED_UI_FLUSH_MS = 220;
+      const DEFERRED_SAVE_FLUSH_MS = 180;
+      const HUD_META_REVEAL_MS = 2200;
+      const HUD_RECENT_DAMAGE_MS = 2600;
+      const HUD_HOSTILE_BULLET_RANGE = 320;
+      const SPATIAL_GRID_CELL_SIZE = 240;
+      const MAX_COLLISION_RADIUS = 90;
+      const MINIMAP_RENDER_INTERVAL_MS = 125;
+      const MINIMAP_RENDER_INTERVAL_STRESSED_MS = 500;
+      const MINIMAP_RENDER_INTERVAL_EMERGENCY_MS = 1000;
+      const EFFECT_POOL_LIMIT = 360;
+      const ADAPTIVE_FRAME_TARGET_MS = 17;
+      const ADAPTIVE_FRAME_STRESS_MS = 22;
+      const AUTO_RENDER_PIXEL_TIERS = [
+        { id: "quality", label: "Quality", pixels: 1000000 },
+        { id: "balanced", label: "Balanced", pixels: 700000 },
+        { id: "performance", label: "Performance", pixels: 500000 },
+        { id: "fast", label: "Fast", pixels: 350000 },
+        { id: "emergency", label: "Emergency", pixels: 220000 }
+      ];
+      const WEBGL_RENDER_PIXEL_TIERS = [
+        { id: "quality", label: "Quality", pixels: 2000000 },
+        { id: "balanced", label: "Balanced", pixels: 1400000 },
+        { id: "performance", label: "Performance", pixels: 1000000 },
+        { id: "fast", label: "Fast", pixels: 700000 },
+        { id: "emergency", label: "Emergency", pixels: 450000 }
+      ];
+      const PIXI_VENDOR_SCRIPT = "/js/vendor/pixi.min.js";
+      const PIXI_RENDERER_SCRIPT = "/js/games/stellar-dogfight/renderer-pixi.js";
+      const AUTO_RENDER_TARGET_PIXELS = AUTO_RENDER_PIXEL_TIERS[0].pixels;
+      const AUTO_RENDER_MIN_SCALE = 0.2;
+      const HIGH_PIXEL_PRESSURE_THRESHOLD = 0.8;
+      const PREMIUM_CURRENCY_LABEL = "Astralite";
+      const PREMIUM_DROP_RUN_CAP = 4;
+      const DROP_PITY_THRESHOLDS = {
+        key: 4,
+        blueprint: 5
+      };
+      const UI_ICON_PATHS = {
+        play: '<path d="M8 5v14l11-7z"></path>',
+        menu: '<path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path>',
+        back: '<path d="M15 18l-6-6 6-6"></path><path d="M9 12h11"></path>',
+        next: '<path d="M9 18l6-6-6-6"></path><path d="M4 12h11"></path>',
+        close: '<path d="M6 6l12 12"></path><path d="M18 6L6 18"></path>',
+        settings: '<path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"></path><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04-2.78 2.78-.04-.04A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1.5 1.6h-3a1.8 1.8 0 0 0-1.5-1.6 1.8 1.8 0 0 0-1.98.36l-.04.04-2.78-2.78.04-.04A1.8 1.8 0 0 0 4.6 15 1.8 1.8 0 0 0 3 13.5v-3A1.8 1.8 0 0 0 4.6 9a1.8 1.8 0 0 0-.36-1.98l-.04-.04L6.98 4.2l.04.04A1.8 1.8 0 0 0 9 4.6 1.8 1.8 0 0 0 10.5 3h3A1.8 1.8 0 0 0 15 4.6a1.8 1.8 0 0 0 1.98-.36l.04-.04 2.78 2.78-.04.04A1.8 1.8 0 0 0 19.4 9a1.8 1.8 0 0 0 1.6 1.5v3a1.8 1.8 0 0 0-1.6 1.5z"></path>',
+        help: '<circle cx="12" cy="12" r="9"></circle><path d="M9.5 9a2.6 2.6 0 1 1 4.5 1.8c-.9.8-2 1.2-2 2.7"></path><path d="M12 17h.01"></path>',
+        ship: '<path d="M12 3l4 8-4 10-4-10 4-8z"></path><path d="M8 11H4l3 4"></path><path d="M16 11h4l-3 4"></path>',
+        progress: '<path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-7"></path>',
+        options: '<path d="M4 7h6"></path><path d="M14 7h6"></path><path d="M10 5v4"></path><path d="M4 17h10"></path><path d="M18 17h2"></path><path d="M14 15v4"></path>',
+        boosts: '<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"></path>',
+        gear: '<path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-2.5 2.5-2.5-2.5 2.5-2.5z"></path>',
+        ships: '<path d="M5 19h14"></path><path d="M7 19V9l5-5 5 5v10"></path><path d="M10 19v-5h4v5"></path>',
+        tasks: '<path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M3.5 6l1 1 2-2"></path><path d="M3.5 12l1 1 2-2"></path><path d="M3.5 18l1 1 2-2"></path>',
+        forge: '<path d="M12 3l3 6 6 3-6 3-3 6-3-6-6-3 6-3 3-6z"></path>',
+        save: '<path d="M5 4h12l2 2v14H5z"></path><path d="M8 4v6h8V4"></path><path d="M8 16h8"></path>',
+        load: '<path d="M3 7h7l2 3h9v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M12 13v4"></path><path d="M9 14l3 3 3-3"></path>',
+        replay: '<path d="M4 12a8 8 0 1 0 2.3-5.7"></path><path d="M4 5v5h5"></path>',
+        tutorial: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21z"></path><path d="M8 7h8"></path><path d="M8 11h6"></path>',
+        glossary: '<circle cx="12" cy="12" r="9"></circle><path d="M12 10v6"></path><path d="M12 7h.01"></path>',
+        activity: '<path d="M3 12h4l2-6 4 12 2-6h6"></path>',
+        trash: '<path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M7 7l1 13h8l1-13"></path><path d="M10 11v5"></path><path d="M14 11v5"></path>',
+        practice: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4"></path><path d="M12 18v4"></path><path d="M2 12h4"></path><path d="M18 12h4"></path>',
+        hangar: '<path d="M4 19V9l8-5 8 5v10"></path><path d="M8 19v-6h8v6"></path>',
+        reroll: '<path d="M20 7v5h-5"></path><path d="M4 17v-5h5"></path><path d="M19 12a7 7 0 0 0-12-5l-3 3"></path><path d="M5 12a7 7 0 0 0 12 5l3-3"></path>',
+        skip: '<path d="M5 5l8 7-8 7V5z"></path><path d="M19 5v14"></path>'
+      };
+      const BALANCE_TUNING = {
+        playerEnergyCostScale: 0.9,
+        helperRatePenaltyPerExtra: 0.18,
+        helperDamagePenaltyPerExtra: 0.24,
+        barrageBonusSoftCap: 2,
+        barrageBonusSoftScale: 0.6,
+        barrageDamageSoftScale: 0.72,
+        arcChainFalloffPerJump: 0.22,
+        waveDensitySoftScale: [
+          { wave: 10, scale: 1 },
+          { wave: 18, scale: 0.9 },
+          { wave: Infinity, scale: 0.8 }
+        ]
+      };
+      const PREMIUM_DROP_PITY_THRESHOLD = 4;
+      const MILESTONE_WAVES = [3, 6, 9];
+      const KILL_CHAIN_WINDOW_MS = 4800;
+      const CLEAN_STREAK_MS = 9000;
+      const CLOSE_KILL_DISTANCE = 170;
+      const FAST_CLEAR_PAR_SEC = {
+        eliminate: 24,
+        survive: 18,
+        "elite-hunt": 28
+      };
+      const PRIORITY_KILL_ROLES = new Set(["support", "artillery", "siege", "command"]);
+      const THREAT_TIERS = [
+        { id: "normal", label: "Normal", minWave: 1, enemyScale: 1, fireRate: 1, eliteBonus: 0 },
+        { id: "veteran", label: "Veteran", minWave: 5, enemyScale: 1.08, fireRate: 1.05, eliteBonus: 0.06 },
+        { id: "elite", label: "Elite", minWave: 10, enemyScale: 1.16, fireRate: 1.11, eliteBonus: 0.12 },
+        { id: "mythic", label: "Mythic", minWave: 16, enemyScale: 1.25, fireRate: 1.17, eliteBonus: 0.18 }
+      ];
+      const ENEMY_ROLE_MAP = {
+        scout: "screen",
+        fighter: "line",
+        interceptor: "interceptor",
+        skirmisher: "interceptor",
+        disruptor: "support",
+        sniper: "artillery",
+        bomber: "siege",
+        rusher: "brawler",
+        bulwark: "support",
+        ace: "interceptor",
+        dreadnought: "command"
+      };
+      const ENEMY_ROLE_LABELS = {
+        screen: "Screen",
+        line: "Line",
+        interceptor: "Chaser",
+        support: "Support",
+        artillery: "Sniper",
+        siege: "Siege",
+        brawler: "Ram",
+        command: "Boss"
+      };
+      const ENEMY_ROLE_MARKS = {
+        screen: "SCN",
+        line: "LINE",
+        interceptor: "CHASE",
+        support: "SUP",
+        artillery: "SNIPE",
+        siege: "BOMB",
+        brawler: "RAM",
+        command: "BOSS"
+      };
+      const ART_CONFIG = window.STELLAR_DOGFIGHT_ART || {};
+      const SHIP_ART_IDS = {
+        scout: "playerScout",
+        vanguard: "playerHeavy",
+        warden: "playerHeavy",
+        striker: "playerScout",
+        rift: "playerScout",
+        corsair: "playerScout",
+        specter: "playerScout",
+        titan: "playerHeavy",
+        tempest: "playerScout",
+        nexus: "playerHeavy",
+        helios: "playerScout",
+        sentinel: "playerHeavy",
+        valkyrie: "playerHeavy"
+      };
+      const ENEMY_ROLE_ART_IDS = {
+        screen: "enemyScreen",
+        line: "enemyLine",
+        interceptor: "enemyInterceptor",
+        support: "enemySupport",
+        artillery: "enemyArtillery",
+        siege: "enemySiege",
+        brawler: "enemyBrawler",
+        command: "enemyCommand"
+      };
+      const UNLOCK_CONFIG = window.STELLAR_DOGFIGHT_UNLOCKS || {};
+      const FALLBACK_UNLOCK_FEATURES = [
+        { id: "upgrades", label: "Wave Boosts", desc: "Pick one boost after each cleared wave.", hint: "Clear Wave 1 or fly for 45 seconds.", panel: "upgrades" },
+        { id: "ability", label: "Ship Ability", desc: "Your ship ability is now part of the combat loop.", hint: "Fly a little longer to unlock.", panel: "systems" },
+        { id: "secondary", label: "Secondary System", desc: "Secondary fire opens up more combat options.", hint: "Unlocks after abilities.", panel: "systems" },
+        { id: "hangar", label: "Hangar Boosts", desc: "Permanent hangar upgrades let you shape a long-term build.", hint: "Reach Rank 2 or complete a run.", panel: "upgrades" },
+        { id: "scoreMode", label: "Score Attack", desc: "Timed scoring runs are now available from Options.", hint: "Reach Rank 2 or Campaign Wave 3.", panel: "settings" },
+        { id: "armory", label: "Gear Locker", desc: "Weapons, attachments, and secondaries can now be compared and equipped.", hint: "Reach Rank 3 or destroy 20 enemies.", panel: "armory" },
+        { id: "shipyard", label: "Shipyard", desc: "New hulls unlock and expand your build identity.", hint: "Reach Rank 4 or find a blueprint.", panel: "shipyard" },
+        { id: "bossRush", label: "Boss Rush", desc: "Capital-wave challenge runs are now available from Options.", hint: "Reach Rank 5 or defeat a dreadnought.", panel: "settings" },
+        { id: "contracts", label: "Tasks Board", desc: "Optional objectives and faction reputation are now active.", hint: "Reach Rank 4 and Campaign Wave 5.", panel: "contracts" },
+        { id: "premium", label: "Astralite Forge", desc: "Astralite can now be spent on permanent account upgrades.", hint: "Reach Rank 5, Campaign Wave 7, or earn Astralite.", panel: "premium" },
+        { id: "dailySector", label: "Daily Sector", desc: "Daily seeded challenge runs are now available from Options.", hint: "Reach Rank 5 after unlocking Score Attack.", panel: "settings" },
+        { id: "salvage", label: "Salvage Cache", desc: "Keys can now be spent on salvage openings and rare gear rolls.", hint: "Unlock Gear, then find a salvage key.", panel: "armory" },
+        { id: "frontierMode", label: "Frontier", desc: "Long-form frontier patrols are now available from Options.", hint: "Reach Rank 6 with Shipyard online and Campaign Wave 8 cleared.", panel: "settings" }
+      ];
+      const FALLBACK_UNLOCK_MODES = [
+        { id: "arcade", label: "Campaign", feature: "always" },
+        { id: "score", label: "Score Attack", feature: "scoreMode" },
+        { id: "boss", label: "Boss Rush", feature: "bossRush" },
+        { id: "daily", label: "Daily Sector", feature: "dailySector" },
+        { id: "frontier", label: "Frontier", feature: "frontierMode" }
+      ];
+      const UNLOCK_FEATURES = Array.isArray(UNLOCK_CONFIG.features) && UNLOCK_CONFIG.features.length
+        ? UNLOCK_CONFIG.features
+        : FALLBACK_UNLOCK_FEATURES;
+      const UNLOCK_MODES = Array.isArray(UNLOCK_CONFIG.modes) && UNLOCK_CONFIG.modes.length
+        ? UNLOCK_CONFIG.modes
+        : FALLBACK_UNLOCK_MODES;
+      const UNLOCK_FEATURE_MAP = new Map(UNLOCK_FEATURES.map((feature) => [feature.id, feature]));
+      const UNLOCK_MODE_MAP = new Map(UNLOCK_MODES.map((mode) => [mode.id, mode]));
+      const RUN_MODE_LABELS = UNLOCK_MODES.reduce((labels, mode) => {
+        labels[mode.id] = mode.label;
+        return labels;
+      }, {});
+      const WAVE_ROLE_PROFILES = [
+        {
+          id: "vanguard-screen",
+          label: "Vanguard Screen",
+          roles: { screen: 1.45, line: 1.2, interceptor: 1.08, support: 0.82, artillery: 0.7, siege: 0.78, brawler: 0.88 },
+          guarantees: ["line"],
+          minWave: 1
+        },
+        {
+          id: "hunter-pack",
+          label: "Hunter Pack",
+          roles: { interceptor: 1.6, screen: 1.12, brawler: 1.2, line: 0.9, support: 0.8, artillery: 0.78, siege: 0.8 },
+          guarantees: ["interceptor"],
+          minWave: 2
+        },
+        {
+          id: "siege-line",
+          label: "Siege Line",
+          roles: { artillery: 1.55, siege: 1.3, line: 1.1, support: 0.92, interceptor: 0.76, screen: 0.74, brawler: 0.78 },
+          guarantees: ["artillery"],
+          minWave: 4
+        },
+        {
+          id: "command-bastion",
+          label: "Command Bastion",
+          roles: { support: 1.58, line: 1.18, artillery: 1.04, siege: 0.9, interceptor: 0.76, screen: 0.78, brawler: 0.82 },
+          guarantees: ["support"],
+          minWave: 5
+        },
+        {
+          id: "breakthrough",
+          label: "Breakthrough Wing",
+          roles: { brawler: 1.46, interceptor: 1.18, line: 1.02, support: 0.9, screen: 0.82, artillery: 0.74, siege: 0.84 },
+          guarantees: ["brawler"],
+          minWave: 4
+        }
+      ];
+      const BOSS_PHASES = [
+        {
+          name: "Siege Screen",
+          fireRateMult: 1,
+          damageMult: 1,
+          speedMult: 1,
+          broadsideCooldown: 7.4,
+          broadsideCount: 5,
+          broadsideAngle: 0.18,
+          broadsideDamageMult: 1.25,
+          escortIds: ["fighter", "interceptor"],
+          escortCount: 2,
+          escortCooldown: 10.5,
+          shockwaveCooldown: 0,
+          shockwaveRadius: 0,
+          shockwaveDamage: 0,
+          shockwaveSlow: 0
+        },
+        {
+          name: "Lance Net",
+          fireRateMult: 1.12,
+          damageMult: 1.08,
+          speedMult: 1.06,
+          broadsideCooldown: 6.2,
+          broadsideCount: 7,
+          broadsideAngle: 0.2,
+          broadsideDamageMult: 1.32,
+          escortIds: ["bulwark", "interceptor", "sniper"],
+          escortCount: 3,
+          escortCooldown: 9.5,
+          shockwaveCooldown: 11.5,
+          shockwaveRadius: 210,
+          shockwaveDamage: 20,
+          shockwaveSlow: 1.3
+        },
+        {
+          name: "Overrun Core",
+          fireRateMult: 1.22,
+          damageMult: 1.16,
+          speedMult: 1.1,
+          broadsideCooldown: 5.1,
+          broadsideCount: 9,
+          broadsideAngle: 0.24,
+          broadsideDamageMult: 1.45,
+          escortIds: ["bomber", "bulwark", "interceptor", "sniper"],
+          escortCount: 4,
+          escortCooldown: 8.4,
+          shockwaveCooldown: 9.4,
+          shockwaveRadius: 240,
+          shockwaveDamage: 26,
+          shockwaveSlow: 1.8
+        }
+      ];
+      const BUILD_PATHS = [
+        {
+          id: "balanced",
+          name: "Balanced Command",
+          desc: "No specialization penalties. Stable output in all situations.",
+          apply: () => {}
+        },
+        {
+          id: "crit",
+          name: "Critical Overwatch",
+          desc: "Keystone: high crit burst and precision pressure.",
+          apply: (stats) => {
+            stats.critChance = Math.min(0.95, stats.critChance + 0.14);
+            stats.critMultiplier += 0.45;
+            stats.damage *= 1.12;
+          }
+        },
+        {
+          id: "drone",
+          name: "Drone Command",
+          desc: "Keystone: autonomous support wing focus.",
+          apply: (stats) => {
+            stats.helperCount = Math.max(stats.helperCount || 0, 2);
+            stats.helperDamageRatio = Math.max(stats.helperDamageRatio || 0, 0.52);
+            stats.helperFireRate = Math.max(stats.helperFireRate || 0, 1.95);
+            stats.helperRange = Math.max(stats.helperRange || 0, 480);
+            stats.damage *= 0.95;
+          }
+        },
+        {
+          id: "singularity",
+          name: "Singularity Doctrine",
+          desc: "Keystone: black-hole and arc-control dominance.",
+          apply: (stats) => {
+            stats.blackHoleChance = Math.max(stats.blackHoleChance || 0, 0.22);
+            stats.blackHoleRadius = Math.max(stats.blackHoleRadius || 0, 120);
+            stats.blackHoleDuration = Math.max(stats.blackHoleDuration || 0, 1.7);
+            stats.blackHoleForce = Math.max(stats.blackHoleForce || 0, 380);
+            stats.blackHoleDamage = Math.max(stats.blackHoleDamage || 0, 16);
+            stats.arcDamage = Math.max(stats.arcDamage || 0, 0.34);
+            stats.arcRadius = Math.max(stats.arcRadius || 0, 135);
+            stats.arcChains = Math.max(stats.arcChains || 0, 1);
+            stats.fireRate *= 0.94;
+          }
+        },
+        {
+          id: "brawler",
+          name: "Brawler Core",
+          desc: "Keystone: close-range pressure and heavy survivability.",
+          apply: (stats) => {
+            stats.maxHealth += 80;
+            stats.maxShield += 60;
+            stats.damageReduction = Math.min(0.7, (stats.damageReduction || 0) + 0.12);
+            stats.auraRadius = Math.max(stats.auraRadius || 0, 96);
+            stats.auraDamage = Math.max(stats.auraDamage || 0, 18);
+            stats.maxSpeed *= 0.96;
+          }
+        }
+      ];
+      const WEEKLY_MUTATORS = [
+        {
+          id: "solar-flare",
+          label: "Solar Flare",
+          desc: "Hazard zones intensify and appear more often.",
+          applyPlayer: () => {},
+          applyWave: (waveConfig) => { waveConfig.hazardBoost += 0.5; }
+        },
+        {
+          id: "glass-cannon",
+          label: "Glass Cannon",
+          desc: "Both sides hit harder.",
+          applyPlayer: (stats) => { stats.damage *= 1.18; stats.maxShield *= 0.9; },
+          applyWave: (waveConfig) => { waveConfig.enemyDamage *= 1.15; }
+        },
+        {
+          id: "shattered-shields",
+          label: "Shattered Shields",
+          desc: "Shield values are lower but hull pressure is higher.",
+          applyPlayer: (stats) => { stats.maxShield *= 0.78; stats.maxHealth *= 1.14; },
+          applyWave: (waveConfig) => { waveConfig.enemyShieldScale *= 0.75; waveConfig.enemyHealthScale *= 1.1; }
+        },
+        {
+          id: "overclocked-sector",
+          label: "Overclocked Sector",
+          desc: "Projectile cadence is accelerated for all ships.",
+          applyPlayer: (stats) => { stats.fireRate *= 1.1; },
+          applyWave: (waveConfig) => { waveConfig.enemyFireRate *= 1.12; }
+        }
+      ];
+      const STAT_GLOSSARY = [
+        {
+          term: "DPS",
+          detail: "Estimated sustained damage per second, including crit and projectile count."
+        },
+        {
+          term: "EHP",
+          detail: "Effective hit points from hull + shield adjusted by damage reduction."
+        },
+        {
+          term: "Energy Sustain",
+          detail: "Energy regen minus weapon drain at current fire rate. Negative means eventual dry fire."
+        },
+        {
+          term: "Threat Tier",
+          detail: "Wave pressure class. Higher tiers increase enemy output and elite pressure."
+        },
+        {
+          term: "Objective",
+          detail: "Current wave requirement. Completing it ends the wave once hostiles are cleared."
+        },
+        {
+          term: "Weekly Mutator",
+          detail: "Rotating global modifier affecting player and/or enemy wave behavior."
+        },
+        {
+          term: "Challenge Seed",
+          detail: "Weekly challenge identifier for consistent comparisons and runs."
+        }
+      ];
+      const TUTORIAL_STEPS = [
+        {
+          title: "Core Flight",
+          text: "Use WASD to move, mouse to aim, and Space or mouse press to fire. Launch Practice from here to complete the live checklist."
+        },
+        {
+          title: "Boost and Brake",
+          text: "Boost breaks crossfire. Air Brake bleeds speed and pivots the ship faster so the lead pip settles before you fire."
+        },
+        {
+          title: "Enemy Roles",
+          text: "Enemy labels call out support, sniper, bomber, ram, and boss threats. Remove utility ships before chasing score."
+        },
+        {
+          title: "Run Goals",
+          text: "Campaign clears levels, Score Attack races the timer, Daily Sector gives a shared seed, and Boss Rush skips straight to heavy targets."
+        },
+        {
+          title: "Astralite Forge",
+          text: "Elite and boss kills can drop Astralite. Spend it in the Forge for permanent account upgrades."
+        }
+      ];
+      const ACHIEVEMENT_DEFS = [
+        { id: "first-sortie", title: "First Sortie", desc: "Launch a combat run." },
+        { id: "first-blood", title: "First Blood", desc: "Destroy an enemy." },
+        { id: "chain-five", title: "Hot Streak", desc: "Reach a five-kill chain." },
+        { id: "boss-down", title: "Capital Breaker", desc: "Destroy a dreadnought." },
+        { id: "score-attack", title: "Timer Tested", desc: "Finish a timed Score Attack or Daily Sector run." },
+        { id: "boss-rush-clear", title: "Boss Rush Clear", desc: "Clear Boss Rush." },
+        { id: "flight-school", title: "Flight School", desc: "Complete the live practice checklist." }
+      ];
+      const INVENTORY_LIMIT = 42;
+      const ITEM_UPGRADE_SLOTS = {
+        common: 2,
+        uncommon: 3,
+        rare: 4,
+        epic: 5,
+        legendary: 6
+      };
+      const ITEM_UPGRADE_CHANCE = {
+        common: 0.8,
+        uncommon: 0.65,
+        rare: 0.5,
+        epic: 0.36,
+        legendary: 0.24
+      };
+      const FIELD_DROP_LIMIT = 10;
+      const FIELD_DROP_INTERVAL = 12;
+      const FIELD_DROP_LIFETIME = 26;
+      const FIELD_DROP_MIN_DISTANCE = 180;
+      const FIELD_DROP_TYPES = [
+        {
+          id: "nova",
+          name: "Nova Strike",
+          tier: "epic",
+          weight: 0.5,
+          symbol: "NOVA",
+          damageScale: 4.2
+        },
+        {
+          id: "hull",
+          name: "Hull Patch",
+          tier: "uncommon",
+          weight: 1.6,
+          symbol: "HULL",
+          healRatio: 0.35
+        },
+        {
+          id: "shield",
+          name: "Shield Battery",
+          tier: "uncommon",
+          weight: 1.4,
+          symbol: "SHLD",
+          healRatio: 0.4
+        },
+        {
+          id: "energy",
+          name: "Energy Cell",
+          tier: "common",
+          weight: 1.6,
+          symbol: "ENG",
+          healRatio: 0.45
+        },
+        {
+          id: "invuln",
+          name: "Phase Ward",
+          tier: "rare",
+          weight: 0.9,
+          symbol: "WARD",
+          duration: 5.5
+        },
+        {
+          id: "damage",
+          name: "Overcharge",
+          tier: "rare",
+          weight: 0.95,
+          symbol: "DMG",
+          duration: 7,
+          multiplier: 2
+        },
+        {
+          id: "speed",
+          name: "Afterburner",
+          tier: "uncommon",
+          weight: 1.1,
+          symbol: "SPD",
+          duration: 7,
+          multiplier: 1.35
+        }
+      ];
+      const WEAPON_TIER_SCALING = {
+        damage: 0.12,
+        fireRate: 0.08,
+        bulletSpeed: 0.06,
+        energyCost: 0.05,
+        spread: 0.04
+      };
+      const WEAPON_AFFIX_POOL = [
+        {
+          id: "accelerated",
+          label: "Accelerated",
+          desc: "+18% bullet speed.",
+          minTier: "common",
+          apply: (stats) => { stats.bulletSpeed *= 1.18; }
+        },
+        {
+          id: "charged",
+          label: "Charged Coils",
+          desc: "+15% damage.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.damage *= 1.15; }
+        },
+        {
+          id: "overclocked",
+          label: "Overclocked",
+          desc: "+15% fire rate.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.fireRate *= 1.15; }
+        },
+        {
+          id: "stabilized",
+          label: "Stabilized",
+          desc: "-20% spread.",
+          minTier: "rare",
+          apply: (stats) => { stats.spread = Math.max(0.02, stats.spread * 0.8); }
+        },
+        {
+          id: "piercing",
+          label: "Piercing",
+          desc: "+1 pierce.",
+          minTier: "rare",
+          apply: (stats) => { stats.pierce = (stats.pierce || 0) + 1; }
+        },
+        {
+          id: "cluster",
+          label: "Cluster Rounds",
+          desc: "+1 projectile, +spread.",
+          minTier: "rare",
+          apply: (stats) => {
+            stats.projectiles = (stats.projectiles || 1) + 1;
+            stats.spread = Math.min(0.36, stats.spread + 0.06);
+          }
+        },
+        {
+          id: "detonator",
+          label: "Detonator",
+          desc: "Adds splash damage.",
+          minTier: "epic",
+          apply: (stats) => {
+            stats.splashRadius = Math.max(stats.splashRadius || 0, 24);
+            stats.splashDamage = Math.max(stats.splashDamage || 0.6, 0.65);
+          }
+        },
+        {
+          id: "arc-conduit",
+          label: "Arc Conduit",
+          desc: "Bolts arc to nearby foes.",
+          minTier: "epic",
+          apply: (stats) => {
+            stats.arcDamage = Math.max(stats.arcDamage || 0, 0.45);
+            stats.arcRadius = Math.max(stats.arcRadius || 0, 120);
+            stats.arcChains = Math.max(stats.arcChains || 0, 1);
+          }
+        },
+        {
+          id: "barrage",
+          label: "Barrage Sync",
+          desc: "Every 5th shot fires extra bolts.",
+          minTier: "epic",
+          apply: (stats) => {
+            stats.barrageEvery = Math.min(stats.barrageEvery || 5, 5);
+            stats.barrageProjectiles = (stats.barrageProjectiles || 0) + 2;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.4);
+          }
+        },
+        {
+          id: "singularity",
+          label: "Void Singularity",
+          desc: "Each shot spawns a black hole.",
+          minTier: "legendary",
+          apply: (stats) => {
+            stats.blackHoleChance = Math.max(stats.blackHoleChance || 0, 1);
+            stats.blackHoleRadius = Math.max(stats.blackHoleRadius || 0, 120);
+            stats.blackHoleDuration = Math.max(stats.blackHoleDuration || 0, 1.6);
+            stats.blackHoleForce = Math.max(stats.blackHoleForce || 0, 380);
+            stats.blackHoleDamage = Math.max(stats.blackHoleDamage || 0, 18);
+          }
+        },
+        {
+          id: "rift-echo",
+          label: "Rift Echo",
+          desc: "22% chance to echo the volley.",
+          minTier: "legendary",
+          apply: (stats) => {
+            stats.echoChance = Math.max(stats.echoChance || 0, 0.22);
+            stats.echoDamage = Math.max(stats.echoDamage || 0, 0.55);
+          }
+        }
+      ];
+      const ATTACHMENT_AFFIX_POOL = [
+        {
+          id: "reinforced",
+          label: "Reinforced",
+          desc: "+20 max shield.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.maxShield = (stats.maxShield || 0) + 20; }
+        },
+        {
+          id: "reactive",
+          label: "Reactive",
+          desc: "+10 max hull.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.maxHealth = (stats.maxHealth || 0) + 10; }
+        },
+        {
+          id: "tuned",
+          label: "Tuned",
+          desc: "+8 energy regen.",
+          minTier: "rare",
+          apply: (stats) => { stats.energyRegen = (stats.energyRegen || 0) + 8; }
+        },
+        {
+          id: "precision",
+          label: "Precision",
+          desc: "+2% crit chance.",
+          minTier: "rare",
+          apply: (stats) => { stats.critChance = (stats.critChance || 0) + 0.02; }
+        },
+        {
+          id: "overdrive",
+          label: "Overdrive",
+          desc: "+8% max speed.",
+          minTier: "epic",
+          apply: (stats) => { stats.maxSpeed = (stats.maxSpeed || 0) * 1.08; }
+        },
+        {
+          id: "tactician",
+          label: "Tactician",
+          desc: "+0.2 upgrade luck.",
+          minTier: "epic",
+          apply: (stats) => { stats.upgradeLuck = (stats.upgradeLuck || 0) + 0.2; }
+        }
+      ];
+      const dom = {
+        canvas: document.querySelector("[data-role='battlefield']"),
+        overlay: document.querySelector("[data-role='overlay']"),
+        overlayContent: document.querySelector("[data-role='overlay-content']"),
+        tips: document.querySelector("[data-role='tips']"),
+        launchGuidance: document.querySelector("[data-role='launch-guidance']"),
+        commandOverview: document.querySelector("[data-role='command-overview']"),
+        commandRoadmap: document.querySelector("[data-role='command-roadmap']"),
+        progressOverview: document.querySelector("[data-role='progress-overview']"),
+        progressRoadmap: document.querySelector("[data-role='progress-roadmap']"),
+        systemsFocus: document.querySelector("[data-role='systems-focus']"),
+        settingsGuidance: document.querySelector("[data-role='settings-guidance']"),
+        log: document.querySelector("[data-role='log']"),
+        activeUpgrades: document.querySelector("[data-role='active-upgrades']"),
+        hangar: document.querySelector("[data-role='hangar']"),
+        shipyard: document.querySelector("[data-role='shipyard']"),
+        premiumShop: document.querySelector("[data-role='premium-shop']"),
+        inventory: document.querySelector("[data-role='inventory']"),
+        equippedItems: document.querySelector("[data-role='equipped-items']"),
+        secondaries: document.querySelector("[data-role='secondaries']"),
+        salvage: document.querySelector("[data-role='salvage']"),
+        contracts: document.querySelector("[data-role='contracts']"),
+        factions: document.querySelector("[data-role='factions']"),
+        history: document.querySelector("[data-role='history']"),
+        keybinds: document.querySelector("[data-role='keybinds']"),
+        tierPill: document.querySelector("[data-role='tier-pill']"),
+        minimap: document.querySelector("[data-role='minimap']"),
+        settingsOverlay: document.querySelector("[data-role='settings-overlay']"),
+        settingsBody: document.querySelector("[data-role='settings-body']"),
+        perfOverlay: document.querySelector("[data-role='perf-overlay']"),
+        perfDetailOverlay: document.querySelector("[data-role='perf-detail-overlay']"),
+        perfSettingsCard: document.querySelector("[data-role='perf-settings-card']"),
+        perfSettingsBasic: document.querySelector("[data-role='perf-settings-basic']"),
+        perfSettingsDetail: document.querySelector("[data-role='perf-settings-detail']"),
+        perfLogBtn: document.querySelector("[data-role='perf-log-btn']"),
+        perfLogStatus: document.querySelector("[data-role='perf-log-status']"),
+        statusIcons: document.querySelector("[data-role='status-icons']"),
+        runAnalytics: document.querySelector("[data-role='run-analytics']"),
+        hudMeta: document.querySelector("[data-role='hud-meta']"),
+        commandMenu: document.querySelector("[data-role='command-menu']"),
+        commandBackdrop: document.querySelector("[data-role='command-backdrop']"),
+        topbarSummary: document.querySelector("[data-role='topbar-summary']"),
+        touchControls: document.querySelector("[data-role='touch-controls']"),
+        touchMove: document.querySelector("[data-touch-stick='move']"),
+        touchAim: document.querySelector("[data-touch-stick='aim']"),
+        touchMoveThumb: document.querySelector("[data-touch-thumb='move']"),
+        touchAimThumb: document.querySelector("[data-touch-thumb='aim']")
+      };
+      const settingsPanel = document.querySelector("[data-tab-panel='settings']");
+      const settingsHome = settingsPanel ? settingsPanel.parentElement : null;
+      const settingsAnchor = settingsPanel ? settingsPanel.nextElementSibling : null;
+      let settingsOpen = false;
+      let settingsReturnTab = "systems";
+      let settingsResumeMode = null;
+      let commandMenuOpen = false;
+      let commandMenuLastFocus = null;
+
+      const ctx = dom.canvas.getContext("2d", { alpha: false });
+      const stats = {
+        hullText: document.querySelector("[data-stat='hull-text']"),
+        shieldText: document.querySelector("[data-stat='shield-text']"),
+        energyText: document.querySelector("[data-stat='energy-text']"),
+        wave: document.querySelector("[data-stat='wave']"),
+        tier: document.querySelector("[data-stat='tier']"),
+        enemyCount: document.querySelector("[data-stat='enemy-count']"),
+        score: document.querySelector("[data-stat='score']"),
+        credits: document.querySelector("[data-stat='credits']"),
+        rank: document.querySelector("[data-stat='rank']"),
+        xp: document.querySelector("[data-stat='xp']"),
+        techPoints: document.querySelector("[data-stat='tech-points']"),
+        bestWave: document.querySelector("[data-stat='best-wave']"),
+        totalKills: document.querySelector("[data-stat='total-kills']"),
+        shipName: document.querySelector("[data-stat='ship-name']"),
+        weaponName: document.querySelector("[data-stat='weapon-name']"),
+        secondaryName: document.querySelector("[data-stat='secondary-name']"),
+        abilityStatus: document.querySelector("[data-stat='ability-status']"),
+        secondaryStatus: document.querySelector("[data-stat='secondary-status']"),
+        sectorMod: document.querySelector("[data-stat='sector-mod']"),
+        status: document.querySelector("[data-stat='status']"),
+        modeLabel: document.querySelector("[data-stat='mode-label']"),
+        sector: document.querySelector("[data-stat='sector']"),
+        blueprints: document.querySelector("[data-stat='blueprints']"),
+        bankedCredits: document.querySelector("[data-stat='banked-credits']"),
+        bankedCreditsTotal: document.querySelector("[data-stat='banked-credits-total']"),
+        premiumCurrency: document.querySelector("[data-stat='premium-currency']"),
+        premiumCurrencyTotal: document.querySelector("[data-stat='premium-currency-total']"),
+        salvageKeys: document.querySelector("[data-stat='salvage-keys']"),
+        contractStatus: document.querySelector("[data-stat='contract-status']"),
+        controlMode: document.querySelector("[data-stat='control-mode']"),
+        damage: document.querySelector("[data-stat='damage']"),
+        fireRate: document.querySelector("[data-stat='fire-rate']"),
+        speed: document.querySelector("[data-stat='speed']"),
+        shieldRegen: document.querySelector("[data-stat='shield-regen']"),
+        energyRegen: document.querySelector("[data-stat='energy-regen']"),
+        crit: document.querySelector("[data-stat='crit']"),
+        dps: document.querySelector("[data-stat='dps']"),
+        ehp: document.querySelector("[data-stat='ehp']"),
+        energySustain: document.querySelector("[data-stat='energy-sustain']"),
+        threatTier: document.querySelector("[data-stat='threat-tier']"),
+        threatTierHud: document.querySelector("[data-stat='threat-tier-hud']"),
+        objective: document.querySelector("[data-stat='objective']"),
+        objectiveHud: document.querySelector("[data-stat='objective-hud']"),
+        weeklyMutator: document.querySelector("[data-stat='weekly-mutator']"),
+        challengeSeed: document.querySelector("[data-stat='challenge-seed']")
+      };
+      const meters = {
+        hull: document.querySelector("[data-meter='hull']"),
+        shield: document.querySelector("[data-meter='shield']"),
+        energy: document.querySelector("[data-meter='energy']")
+      };
+      const hudMeters = {
+        hull: document.querySelector("[data-hud-meter='hull']"),
+        shield: document.querySelector("[data-hud-meter='shield']"),
+        energy: document.querySelector("[data-hud-meter='energy']")
+      };
+      const hudStats = {
+        hull: document.querySelector("[data-hud-stat='hull']"),
+        shield: document.querySelector("[data-hud-stat='shield']"),
+        energy: document.querySelector("[data-hud-stat='energy']")
+      };
+
+      const input = {
+        keys: new Set(),
+        pointer: { x: 0, y: 0, screenX: 0, screenY: 0, active: false, moved: false },
+        firing: false,
+        padFiring: false,
+        boost: false,
+        padBrake: false,
+        aimAngle: 0,
+        aimSource: "mouse",
+        aimMode: "hybrid",
+        capture: null,
+        padMoveX: 0,
+        padMoveY: 0,
+        padAimX: 0,
+        padAimY: 0,
+        touch: {
+          supported: false,
+          movePointerId: null,
+          aimPointerId: null,
+          moveX: 0,
+          moveY: 0,
+          aimX: 0,
+          aimY: 0,
+          firing: false,
+          boost: false,
+          brake: false
+        }
+      };
+
+      const KEYBIND_LABELS = {
+        forward: "Move Forward",
+        back: "Move Back",
+        left: "Strafe Left",
+        right: "Strafe Right",
+        aimUp: "Aim Up",
+        aimDown: "Aim Down",
+        aimLeft: "Aim Left",
+        aimRight: "Aim Right",
+        fire: "Fire",
+        boost: "Boost",
+        ability: "Ability",
+        secondary: "Secondary",
+        dock: "Upgrade Dock",
+        pause: "Pause",
+        help: "Help Overlay",
+        brake: "Air Brake"
+      };
+
+      const state = {
+        mode: "hangar",
+        overlayMode: null,
+        gameMode: "arcade",
+        level: 1,
+        wave: 1,
+        score: 0,
+        credits: 0,
+        kills: 0,
+        lastTime: 0,
+        runStart: 0,
+        waveStart: 0,
+        width: 0,
+        height: 0,
+        sector: 1,
+        sectorMod: null,
+        contracts: [],
+        training: false,
+        resumeMode: "flight",
+        runActive: false,
+        runBanked: false,
+        runEndedByAbort: false,
+        runLoadout: null,
+        runHighlights: [],
+        runPremiumDrops: 0,
+        lastContractRender: 0,
+        lastSidebarRender: 0,
+        lastSaveFlushAt: 0,
+        contractsDirty: false,
+        sidebarDirty: false,
+        savePending: false,
+        inventorySelectionId: null,
+        onboardingTimer: 0,
+        onboardingSave: 0,
+        coachingTimer: 0,
+        difficulty: "normal",
+        enemyAccuracyMod: 1,
+        decoy: null,
+        mines: [],
+        blackHoles: [],
+        skillSlots: [],
+        lastHudUpdate: 0,
+        lastHudMetaRevealAt: 0,
+        lastHudScore: null,
+        lastHudCredits: null,
+        lastHudTier: null,
+        minimapLastRenderAt: 0,
+        minimapForceRender: true,
+        adaptiveQuality: {
+          level: 0,
+          pressure: 0,
+          recovery: 0
+        },
+        spatial: {
+          cellSize: SPATIAL_GRID_CELL_SIZE,
+          enemyGrid: new Map(),
+          obstacleGrid: new Map(),
+          queryStamp: 1,
+          obstacleDirty: true
+        },
+        activeUpgradeKey: "",
+        lastPlayerDamageAt: 0,
+        lastHullHitAt: 0,
+        upgradeStacks: {},
+        upgradeOptions: [],
+        upgradeRerolls: 0,
+        worldWidth: WORLD_WIDTH,
+        worldHeight: WORLD_HEIGHT,
+        renderScale: 1,
+        renderScaleAutoCap: null,
+        renderScaleAutoReason: "",
+        renderScaleTier: 0,
+        renderScaleTierLabel: "Quality",
+        performanceMode: false,
+        renderBackend: "canvas",
+        frameDelta: 1 / 60,
+        camera: { x: 0, y: 0 },
+        cameraTarget: { x: 0, y: 0 },
+        cameraReady: false,
+        fieldDropTimer: 0,
+        frontier: null,
+        lossRewards: null,
+        levelRewards: null,
+        salvageResults: null,
+        quickDuration: 0,
+        quickTimer: 0,
+        dailyChallenge: null,
+        hazards: [],
+        threatTier: THREAT_TIERS[0].id,
+        waveObjective: null,
+        objectiveClearPending: false,
+        choiceEvent: null,
+        routeBonus: null,
+        milestoneRewardsClaimed: {},
+        tutorialMode: false,
+        tutorialFlight: false,
+        tutorialGoals: {},
+        tutorialStep: 0,
+        tutorialComplete: false,
+        overlayReturnMode: null,
+        waveProfile: "",
+        runTipsSeen: {},
+        lastRunTelemetry: null,
+        lastRunSummary: null,
+        lastRunReason: "",
+        runDebrief: null,
+        runUnlockBaseline: null,
+        bonusScore: 0,
+        bestKillChain: 0,
+        priorityKills: 0,
+        closeKills: 0,
+        fastClears: 0,
+        cleanFlights: 0,
+        cleanStreakSince: 0,
+        lowHealthWarningAt: 0,
+        killChain: 0,
+        killChainAt: 0,
+        weekly: null,
+        challengeSeed: "",
+        controllerConnected: false,
+        controllerPrevButtons: [],
+        telemetryRun: null,
+        targetAssist: null,
+        screenShake: 0
+      };
+
+      const BASE_PLAYER = {
+        maxHealth: 130,
+        maxShield: 96,
+        shieldRegen: 6,
+        maxEnergy: 130,
+        energyRegen: 28,
+        energyCost: 16,
+        damage: 12,
+        fireRate: 4,
+        bulletSpeed: 520,
+        maxSpeed: 240,
+        accel: 620,
+        damping: 2.4,
+        critChance: 0.06,
+        critMultiplier: 1.6,
+        projectiles: 1,
+        spread: 0.14,
+        splashRadius: 0,
+        splashDamage: 0.6,
+        pierce: 0,
+        turnRate: 4.2,
+        boostMultiplier: 1.35,
+        boostCost: 19,
+        damageReduction: 0,
+        slowChance: 0,
+        slowDuration: 0,
+        salvageBonus: 0,
+        xpBonus: 0,
+        healOnKill: 0,
+        energyOnKill: 0,
+        barrageEvery: 0,
+        barrageProjectiles: 0,
+        barragePierce: 0,
+        barrageBonusDamage: 1,
+        barrageSplashRadius: 0,
+        barrageSplashDamage: 0,
+        barrageCounter: 0,
+        upgradeLuck: 0,
+        damageBoostTimer: 0,
+        damageBoostMultiplier: 1,
+        speedBoostTimer: 0,
+        speedBoostMultiplier: 1,
+        auraRadius: 0,
+        auraDamage: 0,
+        auraInterval: 0.45,
+        auraTimer: 0,
+        mineDropChance: 0,
+        mineInterval: 1.2,
+        mineTimer: 0,
+        mineRadius: 0,
+        mineDamage: 0,
+        mineDuration: 5,
+        helperCount: 0,
+        helperDamageRatio: 0,
+        helperFireRate: 0,
+        helperRange: 0,
+        helperOrbitRadius: 26,
+        helperOrbitSpeed: 1.4,
+        shockwaveInterval: 0,
+        shockwaveTimer: 0,
+        shockwaveRadius: 0,
+        shockwaveDamage: 0,
+        shockwaveSlow: 0,
+        missileInterval: 0,
+        missileTimer: 0,
+        missileDamage: 0,
+        missileCount: 0,
+        missileSpeed: 0,
+        brakeDrag: 6.4,
+        brakeTurnBoost: 1.75,
+        brakeSpeedClamp: 0.62,
+        aegisCooldown: 0,
+        aegisReadyAt: 0,
+        aegisShieldRestore: 0,
+        aegisPulseRadius: 0,
+        aegisPulseDamage: 0,
+        aegisPulseSlow: 0,
+        arcDamage: 0,
+        arcRadius: 0,
+        arcChains: 0,
+        arcRequiresSlow: false,
+        blackHoleChance: 0,
+        blackHoleRadius: 0,
+        blackHoleDuration: 0,
+        blackHoleForce: 0,
+        blackHoleDamage: 0,
+        echoChance: 0,
+        echoDamage: 0,
+        slowTimer: 0,
+        slowFactor: 1
+      };
+
+      const DIFFICULTY_SETTINGS = {
+        easy: { label: "Easy", enemyScale: 0.82, enemyDamage: 0.86, reward: 0.88 },
+        normal: { label: "Normal", enemyScale: 1, enemyDamage: 1, reward: 1 },
+        hard: { label: "Hard", enemyScale: 1.14, enemyDamage: 1.1, reward: 1.12 },
+        adaptive: { label: "Adaptive", enemyScale: 1, enemyDamage: 1, reward: 1 }
+      };
+
+      const GAME_DB = window.STELLAR_DOGFIGHT_DB || {};
+      const {
+        TIER_META,
+        TIER_ORDER,
+        ABILITIES,
+        SHIPS,
+        WEAPONS,
+        SECONDARIES,
+        PART_RARITIES,
+        PART_SLOTS,
+        PART_TEMPLATES,
+        FACTIONS,
+        SECTOR_MODIFIERS,
+        CONTRACT_DEFS,
+        SALVAGE_CACHE,
+        ELITE_MODS,
+        HANGAR_UPGRADES,
+        FRONTIER_STARTERS,
+        FRONTIER_UPGRADES,
+        PREMIUM_SHOP_ITEMS,
+        FIELD_UPGRADES,
+        ENEMY_TYPES,
+        ACE_TYPE,
+        BOSS_TYPE
+      } = GAME_DB;
+
+      const perfQueryOverrides = parsePerfQueryOverrides();
+      let progress = loadProgress();
+      ensurePremiumState();
+      setPerfMode(normalizePerfMode(progress.settings));
+      applyPerfQueryOverrides();
+      syncProgressSelections();
+      state.weekly = getWeeklyChallengeInfo();
+      state.challengeSeed = state.weekly.seed;
+      const audioController = window.STELLAR_DOGFIGHT_AUDIO && window.STELLAR_DOGFIGHT_AUDIO.createAudioController
+        ? window.STELLAR_DOGFIGHT_AUDIO.createAudioController({
+          enabled: (progress.settings.audio || "on") !== "off"
+        })
+        : null;
+      let player = null;
+      let enemies = [];
+      let bullets = [];
+      let helpers = [];
+      let particles = [];
+      let pulses = [];
+      let lootBursts = [];
+      let damageNumbers = [];
+      let stars = [];
+      let obstacles = [];
+      let fieldDrops = [];
+      let backgroundGradient = null;
+      let backgroundCache = {
+        canvas: null,
+        ctx: null,
+        width: 0,
+        height: 0,
+        quality: -1,
+        ready: false
+      };
+      let minimapCtx = null;
+      let pixiRenderer = null;
+      let pixiRendererInitStarted = false;
+      let perfFrameActive = false;
+      const effectPools = {
+        particles: [],
+        pulses: [],
+        damageNumbers: []
+      };
+      const gameArt = {
+        entries: new Map(),
+        loading: false,
+        ready: false,
+        loaded: 0,
+        total: 0
+      };
+      const hudTextCache = new WeakMap();
+      const hudStyleCache = new WeakMap();
+      const perfMetrics = {
+        fps: 0,
+        frameMs: 0,
+        avgFrameMs: 0,
+        updateMs: 0,
+        avgUpdateMs: 0,
+        renderMs: 0,
+        avgRenderMs: 0,
+        hudMs: 0,
+        avgHudMs: 0,
+        maxFrameMs: 0,
+        rafIntervalMs: 0,
+        avgRafIntervalMs: 0,
+        maxRafIntervalMs: 0,
+        idleMs: 0,
+        avgIdleMs: 0,
+        busyRatio: 0,
+        avgBusyRatio: 0,
+        deltaMs: 0,
+        avgDeltaMs: 0,
+        slowFrames: 0,
+        hitchFrames: 0,
+        slowRate: 0,
+        hitchRate: 0,
+        rafWaitMs: 0,
+        avgRafWaitMs: 0,
+        longTaskDeltaCount: 0,
+        longTaskDeltaDuration: 0,
+        avgLongTaskDeltaDuration: 0,
+        lastLongTaskCount: 0,
+        lastLongTaskDuration: 0,
+        topBottleneck: "n/a",
+        updateBuckets: {},
+        avgUpdateBuckets: {},
+        renderBuckets: {},
+        avgRenderBuckets: {},
+        frames: 0,
+        lastFpsAt: performance.now(),
+        lastOverlayUpdate: 0,
+        lastFrameEnd: 0
+      };
+      const longTaskMetrics = {
+        count: 0,
+        totalDuration: 0,
+        supported: false
+      };
+      let longTaskObserver = null;
+      const perfLog = {
+        active: false,
+        entries: [],
+        startAt: 0,
+        lastSampleAt: 0,
+        samples: 0,
+        lastLongTaskCount: 0,
+        lastLongTaskDuration: 0,
+        sampleIntervalMs: 250
+      };
+
+      function isAudioEnabled() {
+        return (progress.settings.audio || "on") === "on";
+      }
+
+      function applyAudioFromProgress() {
+        if (!audioController) return;
+        audioController.setEnabled(isAudioEnabled());
+        audioController.setMode(state.mode);
+      }
+
+      function resumeAudio() {
+        if (audioController) {
+          audioController.resume();
+        }
+      }
+
+      function playAudioCue(eventName, payload) {
+        if (audioController) {
+          audioController.play(eventName, payload);
+        }
+      }
+
+      window.STELLAR_DOGFIGHT_HELPERS = {
+        logEvent,
+        spawnPulse,
+        spawnBlackHole,
+        damageEnemy,
+        wrapEntity,
+        distanceBetween,
+        rand,
+        randInt,
+        pick,
+        pickWeighted,
+        formatStat,
+        getEnemies: () => enemies,
+        generatePart: (rarity) => generatePart(rarity)
+      };
+
+      function hashString(inputValue) {
+        const inputText = String(inputValue || "");
+        let hash = 0;
+        for (let i = 0; i < inputText.length; i += 1) {
+          hash = (hash * 31 + inputText.charCodeAt(i)) >>> 0;
+        }
+        return hash >>> 0;
+      }
+
+      function getIsoWeekStamp(date) {
+        const now = date ? new Date(date.getTime()) : new Date();
+        const utc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+        const dayNum = utc.getUTCDay() || 7;
+        utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((utc - yearStart) / 86400000) + 1) / 7);
+        return `${utc.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+      }
+
+      function getWeeklyChallengeInfo() {
+        const weekKey = getIsoWeekStamp(new Date());
+        const mutators = Array.isArray(WEEKLY_MUTATORS) ? WEEKLY_MUTATORS : [];
+        const mutator = mutators.length
+          ? mutators[hashString(weekKey) % mutators.length]
+          : { id: "none", label: "None", desc: "No mutator this week." };
+        const seedHash = hashString(`${weekKey}:${mutator.id}`);
+        const seed = seedHash.toString(16).toUpperCase().padStart(8, "0");
+        return {
+          weekKey,
+          mutator,
+          seed
+        };
+      }
+
+      function getActiveBuildPath() {
+        const pathId = progress.buildPath || "balanced";
+        return BUILD_PATHS.find((item) => item.id === pathId) || BUILD_PATHS[0];
+      }
+
+      function resolveThreatTier(globalWave) {
+        const value = Math.max(1, globalWave || 1);
+        let tier = THREAT_TIERS[0];
+        THREAT_TIERS.forEach((entry) => {
+          if (value >= entry.minWave) tier = entry;
+        });
+        return tier;
+      }
+
+      function getThreatTierMeta(threatId) {
+        return THREAT_TIERS.find((entry) => entry.id === threatId) || THREAT_TIERS[0];
+      }
+
+      function formatThreatTierLabel(threatId) {
+        return getThreatTierMeta(threatId).label;
+      }
+
+      function formatRouteBonusLabel(routeId) {
+        if (!routeId) return "";
+        return routeId.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+      }
+
+      function getEnemyRoleId(typeOrId) {
+        const id = typeof typeOrId === "string" ? typeOrId : typeOrId?.id;
+        return ENEMY_ROLE_MAP[id] || "line";
+      }
+
+      function getWaveRoleProfile(globalWave, objectiveId, isHardWave, isBossWave) {
+        if (isBossWave) {
+          return {
+            id: "capital-phalanx",
+            label: "Capital Phalanx",
+            roles: { command: 1.8, support: 1.45, line: 1.18, artillery: 1.06, interceptor: 0.84, screen: 0.78, siege: 0.96, brawler: 0.82 },
+            guarantees: globalWave >= 5 ? ["support", "artillery"] : ["line"]
+          };
+        }
+        if (objectiveId === "elite-hunt") {
+          return WAVE_ROLE_PROFILES.find((profile) => profile.id === "hunter-pack") || WAVE_ROLE_PROFILES[0];
+        }
+        if (objectiveId === "survive") {
+          return WAVE_ROLE_PROFILES.find((profile) => profile.id === "command-bastion")
+            || WAVE_ROLE_PROFILES[WAVE_ROLE_PROFILES.length - 1];
+        }
+        if (isHardWave) {
+          return WAVE_ROLE_PROFILES.find((profile) => profile.id === "breakthrough")
+            || WAVE_ROLE_PROFILES[WAVE_ROLE_PROFILES.length - 1];
+        }
+        const available = WAVE_ROLE_PROFILES.filter((profile) => globalWave >= (profile.minWave || 1));
+        const pool = available.length ? available : WAVE_ROLE_PROFILES;
+        return pool[(Math.max(1, globalWave) - 1) % pool.length];
+      }
+
+      function getWaveRoleWeightedPool(availableTypes, profile) {
+        return availableTypes.map((type) => {
+          const role = getEnemyRoleId(type);
+          const roleWeight = profile?.roles?.[role] || 0.84;
+          return {
+            type,
+            role,
+            weight: Math.max(0.05, (type.weight || 1) * roleWeight)
+          };
+        }).filter((entry) => entry.weight > 0);
+      }
+
+      function getGuaranteedWaveTypes(profile, availableTypes) {
+        const guaranteed = [];
+        const used = new Set();
+        (profile?.guarantees || []).forEach((role) => {
+          const candidates = availableTypes.filter((type) => (
+            getEnemyRoleId(type) === role
+            && !used.has(type.id)
+          ));
+          if (!candidates.length) return;
+          const type = pickWeighted(candidates, candidates.map((entry) => entry.weight || 1));
+          guaranteed.push(type);
+          used.add(type.id);
+        });
+        return guaranteed;
+      }
+
+      function buildWaveSpawnRoster(availableTypes, spawnCount, profile) {
+        const pool = Array.isArray(availableTypes) ? availableTypes.filter(Boolean) : [];
+        if (!pool.length || spawnCount <= 0) return [];
+        const weightedPool = getWaveRoleWeightedPool(pool, profile);
+        const selectionPool = weightedPool.length
+          ? weightedPool.map((entry) => entry.type)
+          : pool;
+        const weights = weightedPool.length
+          ? weightedPool.map((entry) => entry.weight)
+          : selectionPool.map((entry) => entry.weight || 1);
+        const roster = getGuaranteedWaveTypes(profile, selectionPool).slice(0, spawnCount);
+        while (roster.length < spawnCount) {
+          roster.push(pickWeighted(selectionPool, weights));
+        }
+        return roster;
+      }
+
+      function createWaveObjective(globalWave) {
+        if (state.training) {
+          return {
+            id: "eliminate",
+            label: "Eliminate hostiles",
+            progressLabel: "Clear all enemies",
+            complete: false
+          };
+        }
+        const roll = Math.random();
+        if (globalWave >= 6 && roll > 0.74) {
+          const target = globalWave >= 14 ? 3 : 2;
+          return {
+            id: "elite-hunt",
+            label: `Hunt priority targets (${target})`,
+            progress: 0,
+            target,
+            progressLabel: `0 / ${target}`,
+            complete: false
+          };
+        }
+        if (globalWave >= 4 && roll > 0.48) {
+          const timer = clamp(14 + Math.floor(globalWave * 0.45), 14, 26);
+          return {
+            id: "survive",
+            label: `Survive ${timer}s`,
+            timer,
+            progressLabel: `${timer}s remaining`,
+            complete: false
+          };
+        }
+        return {
+          id: "eliminate",
+          label: "Eliminate hostiles",
+          progressLabel: "Clear all enemies",
+          complete: false
+        };
+      }
+
+      function updateObjectiveProgressLabel() {
+        if (!state.waveObjective) return;
+        const objective = state.waveObjective;
+        if (objective.id === "survive") {
+          objective.progressLabel = `${Math.max(0, Math.ceil(objective.timer || 0))}s remaining`;
+          return;
+        }
+        if (objective.id === "elite-hunt") {
+          objective.progressLabel = `${objective.progress || 0} / ${objective.target || 0}`;
+          return;
+        }
+        objective.progressLabel = "Clear all enemies";
+      }
+
+      function initRunTelemetry() {
+        state.telemetryRun = {
+          startedAt: Date.now(),
+          mode: state.training ? "training" : normalizeGameMode(state.gameMode),
+          seed: state.challengeSeed || "",
+          mutator: state.weekly?.mutator?.id || "none",
+          ship: player?.ship?.id || progress.selectedShip,
+          weapon: player?.weapon?.templateId || player?.weapon?.id || "unknown",
+          shotsFired: 0,
+          shotsHit: 0,
+          damageDealt: 0,
+          damageTaken: 0,
+          kills: 0,
+          eliteKills: 0,
+          bonusScore: 0,
+          bestKillChain: 0,
+          priorityKills: 0,
+          closeKills: 0,
+          fastClears: 0,
+          cleanFlightMilestones: 0,
+          abilityUses: 0,
+          secondaryUses: 0,
+          objectiveCompletions: 0,
+          hazardTicks: 0,
+          boostSeconds: 0,
+          boostBursts: 0,
+          brakeSeconds: 0,
+          brakeUses: 0,
+          lowHullSeconds: 0,
+          criticalHullEvents: 0
+        };
+        pushTelemetryEvent("run_start", {
+          mode: state.telemetryRun.mode,
+          ship: state.telemetryRun.ship,
+          weapon: state.telemetryRun.weapon,
+          seed: state.telemetryRun.seed,
+          mutator: state.telemetryRun.mutator
+        });
+      }
+
+      function pushTelemetryEvent(eventName, payload = {}) {
+        progress.telemetry = progress.telemetry || { recent: [] };
+        const event = {
+          ts: Date.now(),
+          event: eventName,
+          ...payload
+        };
+        progress.telemetry.recent = [event, ...(progress.telemetry.recent || [])].slice(0, 80);
+        try {
+          window.dispatchEvent(new CustomEvent("stellar:telemetry", { detail: event }));
+        } catch (error) {
+          // Ignore custom event failures.
+        }
+      }
+
+      function finalizeRunTelemetry(summary) {
+        if (!state.telemetryRun) return null;
+        const telemetry = {
+          ...state.telemetryRun,
+          endedAt: Date.now(),
+          wave: summary?.wave || state.wave,
+          globalWave: summary?.globalWave || getGlobalWave(state.wave || 1),
+          score: summary?.score || Math.round(state.score),
+          credits: summary?.credits || Math.round(state.credits),
+          durationSec: Math.round(summary?.durationSec || 0)
+        };
+        telemetry.accuracy = telemetry.shotsFired > 0
+          ? telemetry.shotsHit / telemetry.shotsFired
+          : 0;
+        state.telemetryRun = null;
+        pushTelemetryEvent("run_end", telemetry);
+        return telemetry;
+      }
+
+      function resetCleanFlightStreak(now = performance.now()) {
+        state.cleanStreakSince = now;
+      }
+
+      function getCleanFlightMilestone(now = performance.now()) {
+        if (!state.cleanStreakSince) return 0;
+        return Math.max(0, Math.floor((now - state.cleanStreakSince) / CLEAN_STREAK_MS));
+      }
+
+      function getActiveKillChain(now = performance.now()) {
+        if (!state.killChainAt || now - state.killChainAt > KILL_CHAIN_WINDOW_MS) {
+          return 0;
+        }
+        return Math.max(0, state.killChain || 0);
+      }
+
+      function updateCombatMomentum(now = performance.now()) {
+        if (state.killChain && now - state.killChainAt > KILL_CHAIN_WINDOW_MS) {
+          state.killChain = 0;
+        }
+      }
+
+      function awardCombatScoreBonus(amount, label, options = {}) {
+        const bonus = Math.max(0, Math.round(amount || 0));
+        if (!bonus || !label) return 0;
+        state.score += bonus;
+        state.bonusScore = Math.max(0, (state.bonusScore || 0) + bonus);
+        if (state.telemetryRun) {
+          state.telemetryRun.bonusScore = Math.max(0, (state.telemetryRun.bonusScore || 0) + bonus);
+        }
+        spawnLootBursts(
+          options.x ?? player?.x ?? state.worldWidth * 0.5,
+          options.y ?? player?.y ?? state.worldHeight * 0.5,
+          [{ label: `${label} +${bonus}`, tier: options.tier || "rare" }]
+        );
+        noteHudMetaReveal(options.now || performance.now());
+        return bonus;
+      }
+
+      function awardKillScoreBonuses(enemy, now = performance.now()) {
+        if (!enemy) return 0;
+        const chainActive = state.killChainAt && now - state.killChainAt <= KILL_CHAIN_WINDOW_MS;
+        state.killChain = chainActive ? Math.max(1, (state.killChain || 0) + 1) : 1;
+        state.killChainAt = now;
+        state.bestKillChain = Math.max(state.bestKillChain || 0, state.killChain);
+        if (state.telemetryRun) {
+          state.telemetryRun.bestKillChain = Math.max(state.telemetryRun.bestKillChain || 0, state.killChain);
+        }
+
+        const scoreDrops = [];
+        let totalBonus = 0;
+        const pushBonus = (amount, label, tier) => {
+          const bonus = Math.max(0, Math.round(amount || 0));
+          if (!bonus) return;
+          totalBonus += bonus;
+          scoreDrops.push({ label: `${label} +${bonus}`, tier: tier || "rare" });
+        };
+
+        if (state.killChain >= 2) {
+          const chainBonus = 10 + state.killChain * 8 + Math.max(0, state.killChain - 4) * 4;
+          pushBonus(
+            chainBonus,
+            `Chain x${state.killChain}`,
+            state.killChain >= 5 ? "legendary" : state.killChain >= 3 ? "epic" : "rare"
+          );
+        }
+
+        const role = enemy.role || ENEMY_ROLE_MAP[enemy.id] || "line";
+        const priorityKill = isPriorityEnemy(enemy) || PRIORITY_KILL_ROLES.has(role);
+        if (priorityKill) {
+          state.priorityKills += 1;
+          if (state.telemetryRun) {
+            state.telemetryRun.priorityKills = (state.telemetryRun.priorityKills || 0) + 1;
+          }
+          pushBonus(
+            isPriorityEnemy(enemy) ? 32 : 24,
+            enemy.id === "dreadnought" ? "Capital kill" : "Priority",
+            isPriorityEnemy(enemy) ? "legendary" : "epic"
+          );
+        }
+
+        if (player && distanceBetween(player, enemy) <= CLOSE_KILL_DISTANCE) {
+          state.closeKills += 1;
+          if (state.telemetryRun) {
+            state.telemetryRun.closeKills = (state.telemetryRun.closeKills || 0) + 1;
+          }
+          pushBonus(priorityKill ? 26 : 18, "Close pass", priorityKill ? "epic" : "uncommon");
+        }
+
+        const cleanMilestone = getCleanFlightMilestone(now);
+        if (cleanMilestone > (state.cleanFlights || 0)) {
+          state.cleanFlights = cleanMilestone;
+          if (state.telemetryRun) {
+            state.telemetryRun.cleanFlightMilestones = Math.max(
+              state.telemetryRun.cleanFlightMilestones || 0,
+              cleanMilestone
+            );
+          }
+          pushBonus(28 + cleanMilestone * 10, "Clean flight", cleanMilestone >= 2 ? "epic" : "rare");
+        }
+
+        if (enemy.exposedTimer > 0.15) {
+          pushBonus(24, "Punish window", "epic");
+        }
+
+        if (!totalBonus) return 0;
+        state.score += totalBonus;
+        state.bonusScore = Math.max(0, (state.bonusScore || 0) + totalBonus);
+        if (state.telemetryRun) {
+          state.telemetryRun.bonusScore = Math.max(0, (state.telemetryRun.bonusScore || 0) + totalBonus);
+        }
+        spawnLootBursts(enemy.x, enemy.y, scoreDrops.slice(0, 3));
+        noteHudMetaReveal(now);
+        return totalBonus;
+      }
+
+      function awardWaveTempoBonus(now = performance.now()) {
+        if (!state.waveStart || !state.waveObjective) return 0;
+        const objectiveId = state.waveObjective.id || "eliminate";
+        const basePar = FAST_CLEAR_PAR_SEC[objectiveId] || FAST_CLEAR_PAR_SEC.eliminate;
+        const globalWave = Math.max(1, getGlobalWave(state.wave || 1));
+        const par = basePar + Math.max(0, globalWave - 1) * 1.35;
+        const waveDurationSec = Math.max(1, (now - state.waveStart) / 1000);
+        const margin = par - waveDurationSec;
+        if (margin < 4) return 0;
+        state.fastClears += 1;
+        if (state.telemetryRun) {
+          state.telemetryRun.fastClears = (state.telemetryRun.fastClears || 0) + 1;
+        }
+        const bonus = 18 + margin * 6;
+        return awardCombatScoreBonus(bonus, "Fast clear", {
+          x: player?.x ?? state.worldWidth * 0.5,
+          y: player?.y ?? state.worldHeight * 0.5,
+          tier: margin >= 10 ? "epic" : "uncommon",
+          now
+        });
+      }
+
+      function maybeShowAdaptiveCoaching(delta) {
+        if ((state.mode !== "flight" && state.mode !== "training") || !player || !state.telemetryRun) return;
+        state.coachingTimer += delta;
+        if (state.coachingTimer < 6.5) return;
+        state.coachingTimer = 0;
+
+        const telemetry = state.telemetryRun;
+        const now = performance.now();
+        const elapsed = state.runStart ? now - state.runStart : 0;
+        const accuracy = telemetry.shotsFired > 0 ? telemetry.shotsHit / telemetry.shotsFired : 1;
+        const priorityTargetsVisible = enemies.some((enemy) => (
+          PRIORITY_KILL_ROLES.has(enemy.role || ENEMY_ROLE_MAP[enemy.id] || "line")
+        ));
+        const bossExposed = enemies.some((enemy) => enemy.id === "dreadnought" && enemy.exposedTimer > 0.45);
+
+        if (!state.runTipsSeen.exposedBoss && bossExposed) {
+          state.runTipsSeen.exposedBoss = true;
+          showTip(null, "Boss opening", "The dreadnought is exposed after its special. Stay close enough to punish before the window closes.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.accuracy && telemetry.shotsFired >= 18 && accuracy < 0.34) {
+          state.runTipsSeen.accuracy = true;
+          showTip(null, "Accuracy tip", "Tap Air Brake, let the lead pip settle, then fire. You're overswinging targets.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.hazards && telemetry.hazardTicks >= 6) {
+          state.runTipsSeen.hazards = true;
+          showTip(null, "Hazard pressure", "Red hazard rings are draining tempo. Break wide around them or boost all the way through.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.boost && elapsed >= 28000 && telemetry.damageTaken >= 80 && telemetry.boostSeconds < 1.5) {
+          state.runTipsSeen.boost = true;
+          showTip(null, "Boost out sooner", "Use boost to break crossfire and reset spacing before hull gets chewed up.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.lowHull && telemetry.lowHullSeconds >= 5.5) {
+          state.runTipsSeen.lowHull = true;
+          showTip(null, "Disengage on low hull", "Once hull drops into the red, leave the pocket immediately and rebuild the fight.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.secondary && isFeatureUnlocked("secondary") && telemetry.secondaryUses === 0 && elapsed >= 40000 && enemies.length >= 3) {
+          state.runTipsSeen.secondary = true;
+          showTip(null, "Spend your secondary", "You're holding a full secondary. Dump it into clustered ships or a priority target and keep the wave lighter.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.priority && priorityTargetsVisible && (telemetry.priorityKills || 0) === 0 && getGlobalWave(state.wave || 1) >= 4) {
+          state.runTipsSeen.priority = true;
+          showTip(null, "Target order", "Delete support and artillery first. Letting them live makes every other ship harder to manage.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+        }
+      }
+
+      function getRunCoachingRecommendations(summary, telemetry) {
+        if (!summary || !telemetry) return [];
+        const notes = [];
+        const accuracy = Number.isFinite(telemetry.accuracy) ? telemetry.accuracy : 0;
+        if (telemetry.shotsFired >= 18 && accuracy < 0.34) {
+          const brakeClause = (telemetry.brakeUses || 0) < 4
+            ? " Feather Air Brake before firing and trust the lead pip instead of dragging the reticle through targets."
+            : " Trust the lead pip instead of dragging the reticle through targets.";
+          notes.push(`Accuracy ran low.${brakeClause}`);
+        }
+        if ((telemetry.priorityKills || 0) === 0 && (summary.globalWave || summary.wave || 1) >= 4) {
+          notes.push("Priority targets stayed up too long. Delete support, artillery, and command ships first to flatten the wave.");
+        }
+        if (telemetry.hazardTicks >= 8) {
+          notes.push("Hazards cost too much hull. Break wide around red zones or boost clean through instead of drifting inside them.");
+        }
+        if ((summary.durationSec || 0) >= 30 && (telemetry.boostSeconds || 0) < 1.5) {
+          notes.push("Boost barely got used. Spend it to break crossfire, chase isolated targets, or reset after overcommitting.");
+        }
+        if ((telemetry.lowHullSeconds || 0) >= 6 || (telemetry.criticalHullEvents || 0) >= 2) {
+          notes.push("You stayed in danger too long on low hull. Disengage the moment hull drops below roughly one third.");
+        }
+        if (isFeatureUnlocked("secondary") && telemetry.secondaryUses === 0) {
+          notes.push("Secondary went unused. Spend it earlier on clustered enemies or a dangerous elite instead of saving it for a perfect shot.");
+        } else if (isFeatureUnlocked("ability") && telemetry.abilityUses === 0) {
+          notes.push("Ship ability stayed unused. Spend it proactively when the wave spikes or your shields start to crack.");
+        }
+        if ((telemetry.bestKillChain || 0) < 3 && (summary.globalWave || summary.wave || 1) >= 3) {
+          notes.push("Chain bonus stayed low. Stay aggressive between kills to keep pressure off the field and lift score faster.");
+        }
+        return notes.slice(0, 3);
+      }
+
+      function getFeatureMilestone(feature) {
+        return getProgressMilestones().find((item) => item.id === feature) || null;
+      }
+
+      function getFeatureFollowupCopy(feature) {
+        const followups = {
+          upgrades: "Open Boosts and plan your first field-upgrade path before launching again.",
+          ability: "Open Ship and get used to weaving the new ability into your next pressure spike.",
+          secondary: "Open Ship and start spending the new secondary early instead of holding it too long.",
+          hangar: "Open Boosts and spend any tech points before your next sortie.",
+          armory: "Open Gear and compare your strongest weapon and attachments before relaunching.",
+          shipyard: "Visit Ships and compare the newly available hulls before committing to the next run.",
+          contracts: "Visit Tasks and pin a bonus objective before the next launch.",
+          premium: `Visit Forge and decide whether to spend your ${PREMIUM_CURRENCY_LABEL} now or save it.`,
+          salvage: "Open Gear and check Salvage Cache if you have keys ready."
+        };
+        return followups[feature] || "Review the new system before the next sortie.";
+      }
+
+      function getDebriefNextAction(summary, telemetry, unlockedFeatures, reason) {
+        if (unlockedFeatures.length) {
+          return getFeatureFollowupCopy(unlockedFeatures[0]);
+        }
+        const accuracy = Number.isFinite(telemetry?.accuracy) ? telemetry.accuracy : 0;
+        if ((telemetry?.shotsFired || 0) >= 18 && accuracy < 0.34 && (telemetry?.brakeUses || 0) < 4) {
+          return "Run Practice and tap Air Brake before firing at fast targets.";
+        }
+        if ((summary?.durationSec || 0) >= 30 && (telemetry?.boostSeconds || 0) < 1.5) {
+          return "Use boost as a disengage tool earlier, not only as a chase tool.";
+        }
+        if ((telemetry?.lowHullSeconds || 0) >= 6 || (telemetry?.criticalHullEvents || 0) >= 2) {
+          return "Disengage the moment hull drops into the red instead of trading more damage.";
+        }
+        if (isFeatureUnlocked("secondary") && (telemetry?.secondaryUses || 0) === 0) {
+          return "Spend your secondary earlier on clustered ships or dangerous elites.";
+        }
+        if (isFeatureUnlocked("ability") && (telemetry?.abilityUses || 0) === 0) {
+          return "Use your ship ability on the first serious pressure spike instead of holding it.";
+        }
+        if (reason === "victory") {
+          return `Launch Level ${Math.max(progress.campaignLevel || 1, (summary?.level || 1) + 1)} when ready, or refit first.`;
+        }
+        if (reason === "abort") {
+          return "Refit in the hangar, then relaunch once your route and loadout are set.";
+        }
+        return "Open Progress, review the roadmap, and launch another run.";
+      }
+
+      function buildRunDebrief(summary, telemetry, reason) {
+        const unlockedFeatures = getRunUnlockedFeatures();
+        const recommendations = summary && telemetry ? getRunCoachingRecommendations(summary, telemetry) : [];
+        const unlockedLabels = unlockedFeatures
+          .map((feature) => getFeatureMilestone(feature))
+          .filter(Boolean)
+          .map((item) => item.label);
+        const summaryLine = unlockedLabels.length
+          ? `Unlocked during this run: ${unlockedLabels.join(", ")}.`
+          : reason === "victory"
+            ? "Run complete. The next level is ready when you are."
+            : reason === "abort"
+              ? "Sortie ended early. Refit before your next launch."
+              : "Sortie logged. Use the notes below to tighten the next run.";
+        return {
+          summary: summaryLine,
+          unlockedFeatures,
+          unlockedLabels,
+          recommendations,
+          nextAction: getDebriefNextAction(summary, telemetry, unlockedFeatures, reason || "unknown")
+        };
+      }
+
+      function renderRunDebriefSection() {
+        const debrief = state.runDebrief;
+        if (!debrief) return "";
+        const unlockedChips = debrief.unlockedLabels.length
+          ? debrief.unlockedLabels.map((label) => `<span class="chip" data-tier="epic">${label}</span>`).join("")
+          : "<span class=\"select-meta\">No new systems unlocked this run.</span>";
+        const coachingList = debrief.recommendations.length
+          ? `<ul class="overlay-list debrief-list">${debrief.recommendations.map((note) => `<li>${note}</li>`).join("")}</ul>`
+          : "<p class=\"select-meta\">No major issues detected. Keep pressing deeper waves.</p>";
+        return `
+          <div class="debrief-grid">
+            <div class="debrief-card">
+              <span class="focus-label">What Changed</span>
+              <strong>${debrief.summary}</strong>
+              <div class="chip-list">${unlockedChips}</div>
+            </div>
+            <div class="debrief-card">
+              <span class="focus-label">Coaching</span>
+              ${coachingList}
+            </div>
+            <div class="debrief-card">
+              <span class="focus-label">Next Step</span>
+              <strong>${debrief.nextAction}</strong>
+            </div>
+          </div>
+        `;
+      }
+
+      function getDerivedCombatMetrics(statsObj) {
+        const statsValue = statsObj || player || BASE_PLAYER;
+        const damage = Math.max(1, statsValue.damage || 1);
+        const fireRate = Math.max(0.1, statsValue.fireRate || 0.1);
+        const critChance = clamp(statsValue.critChance || 0, 0, 0.95);
+        const critMult = Math.max(1, statsValue.critMultiplier || 1);
+        const projectiles = Math.max(1, statsValue.projectiles || 1);
+        const avgCritFactor = 1 + critChance * (critMult - 1);
+        const dps = damage * fireRate * projectiles * avgCritFactor;
+        const dr = clamp(statsValue.damageReduction || 0, 0, 0.85);
+        const rawHp = Math.max(1, (statsValue.maxHealth || 0) + (statsValue.maxShield || 0));
+        const ehp = rawHp / Math.max(0.15, 1 - dr);
+        const sustain = (statsValue.energyRegen || 0) - ((statsValue.energyCost || 0) * fireRate);
+        return { dps, ehp, sustain };
+      }
+
+      function describeDelta(before, after, key, digits = 1, asPercent = false) {
+        const beforeValue = before[key] || 0;
+        const afterValue = after[key] || 0;
+        const rawDiff = afterValue - beforeValue;
+        if (Math.abs(rawDiff) < 0.0001) return null;
+        const factor = asPercent ? 100 : 1;
+        const diff = rawDiff * factor;
+        const value = Number.isInteger(diff) ? diff.toString() : diff.toFixed(digits);
+        const sign = diff > 0 ? "+" : "";
+        const suffix = asPercent ? "%" : "";
+        return `${sign}${value}${suffix}`;
+      }
+
+      function getHangarPreviewText(upgrade, level) {
+        if (!upgrade || level >= (upgrade.maxLevel || 1)) return "Maxed";
+        const base = buildBaseStats();
+        const preview = { ...base };
+        if (typeof upgrade.apply === "function") {
+          upgrade.apply(preview, level + 1);
+        }
+        const beforeMetrics = getDerivedCombatMetrics(base);
+        const afterMetrics = getDerivedCombatMetrics(preview);
+        const dpsDelta = describeDelta(beforeMetrics, afterMetrics, "dps", 0);
+        const ehpDelta = describeDelta(beforeMetrics, afterMetrics, "ehp", 0);
+        const sustainDelta = describeDelta(beforeMetrics, afterMetrics, "sustain", 1);
+        return [
+          dpsDelta ? `DPS ${dpsDelta}` : "",
+          ehpDelta ? `EHP ${ehpDelta}` : "",
+          sustainDelta ? `Sustain ${sustainDelta}` : ""
+        ].filter(Boolean).join(" • ") || "No immediate delta";
+      }
+
+      function getPremiumPreviewText(item) {
+        if (!item) return "No preview";
+        const base = buildBaseStats();
+        const preview = { ...base };
+        const currentLevel = getPremiumItemLevel(item);
+        if (typeof item.apply === "function") {
+          item.apply(preview, item.kind === "one-time" ? 1 : currentLevel + 1);
+        }
+        const beforeMetrics = getDerivedCombatMetrics(base);
+        const afterMetrics = getDerivedCombatMetrics(preview);
+        const dpsDelta = describeDelta(beforeMetrics, afterMetrics, "dps", 0);
+        const ehpDelta = describeDelta(beforeMetrics, afterMetrics, "ehp", 0);
+        const sustainDelta = describeDelta(beforeMetrics, afterMetrics, "sustain", 1);
+        return [
+          dpsDelta ? `DPS ${dpsDelta}` : "",
+          ehpDelta ? `EHP ${ehpDelta}` : "",
+          sustainDelta ? `Sustain ${sustainDelta}` : ""
+        ].filter(Boolean).join(" • ") || "No immediate delta";
+      }
+
+      function init() {
+        setupTabs();
+        hydrateIconButtons();
+        setupTouchControls();
+        setupArmoryNav();
+        setupCanvas();
+        loadGameArt();
+        setupPixiRenderer();
+        setupLongTaskObserver();
+        attachEvents();
+        applySettingsFromProgress();
+        checkProgressionUnlocks();
+        setupWorld();
+        player = createPlayer();
+        renderHangar();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        renderContracts();
+        renderSettings();
+        renderProgressiveUi();
+        renderHistory();
+        renderRunAnalytics();
+        setOverlay("start");
+        updateLayout();
+        logEvent("Hangar systems online. Launch when ready.");
+        state.lastTime = performance.now();
+        requestAnimationFrame(loop);
+      }
+
+      function supportsTouchControls() {
+        return !!(
+          (window.matchMedia && window.matchMedia("(pointer: coarse)").matches)
+          || navigator.maxTouchPoints > 0
+        );
+      }
+
+      function setupTouchControls() {
+        if (!dom.touchControls) return;
+        input.touch.supported = supportsTouchControls();
+        document.body.classList.toggle("is-touch-controls-supported", input.touch.supported);
+        hydrateIconButtons(dom.touchControls);
+        if (!input.touch.supported) {
+          dom.touchControls.hidden = true;
+          dom.touchControls.setAttribute("aria-hidden", "true");
+          return;
+        }
+
+        [dom.touchMove, dom.touchAim].forEach((surface) => {
+          if (!surface) return;
+          surface.addEventListener("pointerdown", handleTouchStickPointerDown);
+          surface.addEventListener("pointermove", handleTouchStickPointerMove);
+          surface.addEventListener("pointerup", handleTouchStickPointerEnd);
+          surface.addEventListener("pointercancel", handleTouchStickPointerEnd);
+        });
+
+        dom.touchControls.querySelectorAll("[data-touch-action]").forEach((button) => {
+          button.addEventListener("pointerdown", handleTouchActionPointerDown);
+          button.addEventListener("pointerup", handleTouchActionPointerEnd);
+          button.addEventListener("pointercancel", handleTouchActionPointerEnd);
+          button.addEventListener("lostpointercapture", handleTouchActionPointerEnd);
+        });
+        window.addEventListener("resize", () => {
+          input.touch.supported = supportsTouchControls();
+          document.body.classList.toggle("is-touch-controls-supported", input.touch.supported);
+          syncTouchControls();
+        });
+        syncTouchControls();
+      }
+
+      function shouldShowTouchControls() {
+        return !!(
+          input.touch.supported
+          && dom.touchControls
+          && (state.mode === "flight" || state.mode === "training")
+          && !state.overlayMode
+          && !settingsOpen
+          && !commandMenuOpen
+        );
+      }
+
+      function syncTouchControls() {
+        if (!dom.touchControls) return;
+        const active = shouldShowTouchControls();
+        dom.touchControls.hidden = !active;
+        dom.touchControls.setAttribute("aria-hidden", active ? "false" : "true");
+        document.body.classList.toggle("is-touch-controls-active", active);
+        syncTouchActionButtons();
+        if (!active) {
+          resetTouchInput();
+        }
+      }
+
+      function syncTouchActionButtons() {
+        if (!dom.touchControls) return;
+        const rules = {
+          ability: isFeatureUnlocked("ability"),
+          secondary: isFeatureUnlocked("secondary"),
+          dock: isFrontierMode() && (state.mode === "flight" || state.mode === "training")
+        };
+        dom.touchControls.querySelectorAll("[data-touch-action]").forEach((button) => {
+          const action = button.dataset.touchAction;
+          if (Object.prototype.hasOwnProperty.call(rules, action)) {
+            button.hidden = !rules[action];
+          }
+        });
+      }
+
+      function resetTouchInput() {
+        input.touch.movePointerId = null;
+        input.touch.aimPointerId = null;
+        input.touch.moveX = 0;
+        input.touch.moveY = 0;
+        input.touch.aimX = 0;
+        input.touch.aimY = 0;
+        input.touch.firing = false;
+        input.touch.boost = false;
+        input.touch.brake = false;
+        resetTouchStick("move");
+        resetTouchStick("aim");
+        if (dom.touchControls) {
+          dom.touchControls.querySelectorAll(".is-active").forEach((element) => element.classList.remove("is-active"));
+        }
+      }
+
+      function resetTouchStick(kind) {
+        const stick = kind === "move" ? dom.touchMove : dom.touchAim;
+        const thumb = kind === "move" ? dom.touchMoveThumb : dom.touchAimThumb;
+        if (stick) stick.classList.remove("is-active");
+        if (thumb) {
+          thumb.style.setProperty("--touch-x", "0px");
+          thumb.style.setProperty("--touch-y", "0px");
+        }
+      }
+
+      function updateTouchStickVector(kind, event) {
+        const stick = kind === "move" ? dom.touchMove : dom.touchAim;
+        const thumb = kind === "move" ? dom.touchMoveThumb : dom.touchAimThumb;
+        if (!stick || !thumb) return;
+        const rect = stick.getBoundingClientRect();
+        const dx = event.clientX - rect.left - rect.width * 0.5;
+        const dy = event.clientY - rect.top - rect.height * 0.5;
+        const limit = Math.max(20, rect.width * 0.36);
+        const distance = Math.hypot(dx, dy);
+        const scale = distance > limit ? limit / distance : 1;
+        const thumbX = dx * scale;
+        const thumbY = dy * scale;
+        const deadzone = limit * 0.14;
+        const valueX = distance > deadzone ? clamp(dx / limit, -1, 1) : 0;
+        const valueY = distance > deadzone ? clamp(dy / limit, -1, 1) : 0;
+        thumb.style.setProperty("--touch-x", `${thumbX.toFixed(1)}px`);
+        thumb.style.setProperty("--touch-y", `${thumbY.toFixed(1)}px`);
+        stick.classList.add("is-active");
+        if (kind === "move") {
+          input.touch.moveX = valueX;
+          input.touch.moveY = valueY;
+        } else {
+          const aimDistance = Math.hypot(valueX, valueY);
+          input.touch.aimX = aimDistance > 0 ? valueX / aimDistance : 0;
+          input.touch.aimY = aimDistance > 0 ? valueY / aimDistance : 0;
+          input.touch.firing = true;
+        }
+      }
+
+      function handleTouchStickPointerDown(event) {
+        if (!shouldShowTouchControls()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        resumeAudio();
+        const kind = event.currentTarget.dataset.touchStick;
+        if (kind === "move") {
+          input.touch.movePointerId = event.pointerId;
+        } else if (kind === "aim") {
+          input.touch.aimPointerId = event.pointerId;
+        }
+        event.currentTarget.setPointerCapture(event.pointerId);
+        updateTouchStickVector(kind, event);
+      }
+
+      function handleTouchStickPointerMove(event) {
+        const kind = event.currentTarget.dataset.touchStick;
+        const activeId = kind === "move" ? input.touch.movePointerId : input.touch.aimPointerId;
+        if (activeId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        updateTouchStickVector(kind, event);
+      }
+
+      function handleTouchStickPointerEnd(event) {
+        const kind = event.currentTarget.dataset.touchStick;
+        const activeId = kind === "move" ? input.touch.movePointerId : input.touch.aimPointerId;
+        if (activeId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (kind === "move") {
+          input.touch.movePointerId = null;
+          input.touch.moveX = 0;
+          input.touch.moveY = 0;
+        } else {
+          input.touch.aimPointerId = null;
+          input.touch.aimX = 0;
+          input.touch.aimY = 0;
+          input.touch.firing = false;
+        }
+        resetTouchStick(kind);
+      }
+
+      function handleTouchActionPointerDown(event) {
+        if (!shouldShowTouchControls()) return;
+        event.preventDefault();
+        event.stopPropagation();
+        resumeAudio();
+        const action = event.currentTarget.dataset.touchAction;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.classList.add("is-active");
+        if (action === "boost") input.touch.boost = true;
+        if (action === "brake") input.touch.brake = true;
+        if (action === "ability") activateAbility();
+        if (action === "secondary") activateSecondary();
+        if (action === "dock") toggleFrontierDock();
+        if (action === "pause") togglePause();
+        if (action === "help") toggleHelpOverlay();
+      }
+
+      function handleTouchActionPointerEnd(event) {
+        const action = event.currentTarget.dataset.touchAction;
+        event.preventDefault();
+        event.stopPropagation();
+        if (action === "boost") input.touch.boost = false;
+        if (action === "brake") input.touch.brake = false;
+        event.currentTarget.classList.remove("is-active");
+      }
+
+      function setupCanvas() {
+        resizeCanvas();
+        resizeMinimap();
+        window.addEventListener("resize", () => {
+          resizeCanvas();
+          resizeMinimap();
+          if (!input.pointer.active) {
+            input.pointer.screenX = state.width * 0.5;
+            input.pointer.screenY = state.height * 0.5;
+            updatePointerWorld();
+          }
+        });
+      }
+
+      function setupPixiRenderer() {
+        if (pixiRendererInitStarted || getRendererSetting() !== "pixi") {
+          document.body.classList.remove("is-pixi-renderer");
+          state.renderBackend = "canvas";
+          return;
+        }
+        const factory = window.STELLAR_DOGFIGHT_PIXI_RENDERER;
+        if (!window.PIXI || !factory || typeof factory.createRenderer !== "function") {
+          pixiRendererInitStarted = true;
+          loadPixiRendererScripts().then(() => {
+            pixiRendererInitStarted = false;
+            setupPixiRenderer();
+          }).catch(() => {
+            pixiRendererInitStarted = false;
+            state.renderBackend = "canvas";
+            document.body.classList.remove("is-pixi-renderer");
+            logEvent("Experimental WebGL renderer unavailable. Canvas active.");
+          });
+          return;
+        }
+        pixiRendererInitStarted = true;
+        pixiRenderer = factory.createRenderer({
+          PIXI: window.PIXI,
+          anchorCanvas: dom.canvas,
+          artConfig: ART_CONFIG,
+          getRenderScale: () => state.renderScale || getRenderScaleDpr()
+        });
+        pixiRenderer.init().then((ready) => {
+          if (!ready) {
+            state.renderBackend = "canvas";
+            pixiRenderer = null;
+            return;
+          }
+          state.renderBackend = "pixi";
+          resizeCanvas();
+          logEvent("Experimental WebGL renderer online.");
+        }).catch(() => {
+          state.renderBackend = "canvas";
+          document.body.classList.remove("is-pixi-renderer");
+          pixiRenderer = null;
+          logEvent("Experimental WebGL renderer unavailable. Canvas active.");
+        });
+      }
+
+      function loadPixiRendererScripts() {
+        return loadScriptOnce(PIXI_VENDOR_SCRIPT).then(() => loadScriptOnce(PIXI_RENDERER_SCRIPT));
+      }
+
+      function loadScriptOnce(src) {
+        if (!src) return Promise.reject(new Error("Missing script source"));
+        const existing = Array.from(document.scripts).find((script) => {
+          const scriptSrc = script.getAttribute("src") || "";
+          return scriptSrc === src || scriptSrc.endsWith(`/${src}`);
+        });
+        if (existing) {
+          return Promise.resolve(existing);
+        }
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.async = false;
+          script.dataset.experimentalRenderer = "pixi";
+          script.onload = () => resolve(script);
+          script.onerror = () => reject(new Error(`Unable to load ${src}`));
+          document.body.appendChild(script);
+        });
+      }
+
+      function isPixiRendererReady() {
+        return getRendererSetting() === "pixi" && !!(pixiRenderer && pixiRenderer.ready);
+      }
+
+      function getRendererInfo() {
+        if (pixiRenderer && typeof pixiRenderer.getInfo === "function") {
+          return pixiRenderer.getInfo();
+        }
+        return {
+          backend: perfQueryOverrides.renderer === "canvas" ? "Canvas forced" : "Canvas",
+          ready: false,
+          failed: false,
+          width: 0,
+          height: 0,
+          resolution: state.renderScale || 1
+        };
+      }
+
+      function resizeCanvas() {
+        const rect = dom.canvas.getBoundingClientRect();
+        const dpr = getRenderScaleDpr();
+        if (!rect.width || !rect.height) return;
+        dom.canvas.width = Math.floor(rect.width * dpr);
+        dom.canvas.height = Math.floor(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        state.width = rect.width;
+        state.height = rect.height;
+        backgroundGradient = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * -0.2,
+          120,
+          state.width * 0.5,
+          state.height * 0.4,
+          state.width * 1.1
+        );
+        backgroundGradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
+        backgroundGradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
+        backgroundGradient.addColorStop(1, "rgba(5, 8, 14, 1)");
+        if (pixiRenderer && typeof pixiRenderer.resize === "function") {
+          pixiRenderer.resize(rect.width, rect.height);
+        }
+        markBackgroundCacheDirty();
+        updateStarfield();
+      }
+
+      function markBackgroundCacheDirty() {
+        if (!backgroundCache) return;
+        backgroundCache.ready = false;
+        backgroundCache.width = 0;
+        backgroundCache.height = 0;
+      }
+
+      function getArtDefinitions() {
+        return {
+          ...(ART_CONFIG.sprites || {}),
+          ...(ART_CONFIG.effects || {}),
+          ...(ART_CONFIG.backgrounds || {})
+        };
+      }
+
+      function loadGameArt() {
+        if (gameArt.loading || gameArt.ready) return;
+        if (typeof Image === "undefined") return;
+        const definitions = getArtDefinitions();
+        const entries = Object.entries(definitions).filter(([, definition]) => definition && definition.src);
+        gameArt.loading = true;
+        gameArt.total = entries.length;
+        if (!entries.length) {
+          gameArt.ready = true;
+          return;
+        }
+        entries.forEach(([id, definition]) => {
+          const image = new Image();
+          const entry = {
+            ...definition,
+            id,
+            image,
+            loaded: false,
+            failed: false
+          };
+          gameArt.entries.set(id, entry);
+          image.onload = () => {
+            entry.loaded = true;
+            rasterizeArtEntry(entry);
+            if (id === "nebula") markBackgroundCacheDirty();
+            gameArt.loaded += 1;
+            gameArt.ready = gameArt.loaded >= gameArt.total;
+          };
+          image.onerror = () => {
+            entry.failed = true;
+            gameArt.loaded += 1;
+            gameArt.ready = gameArt.loaded >= gameArt.total;
+          };
+          image.src = definition.src;
+        });
+      }
+
+      function getArtEntry(id) {
+        const entry = id ? gameArt.entries.get(id) : null;
+        if (!entry || !entry.loaded || !entry.image) return null;
+        return entry;
+      }
+
+      function getArtDrawable(entry) {
+        return entry && entry.rasterSource ? entry.rasterSource : entry ? entry.image : null;
+      }
+
+      function rasterizeArtEntry(entry) {
+        if (!entry || !entry.image || typeof document === "undefined") return;
+        const frameWidth = entry.width || entry.image.naturalWidth || entry.image.width;
+        const frameHeight = entry.height || entry.image.naturalHeight || entry.image.height;
+        const frames = Math.max(1, entry.frames || 1);
+        if (!frameWidth || !frameHeight) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.floor(frameWidth * frames));
+        canvas.height = Math.max(1, Math.floor(frameHeight));
+        const rasterCtx = canvas.getContext("2d");
+        if (!rasterCtx) return;
+        try {
+          rasterCtx.drawImage(entry.image, 0, 0, canvas.width, canvas.height);
+          entry.rasterSource = canvas;
+        } catch (error) {
+          entry.rasterSource = null;
+        }
+      }
+
+      function drawSprite(id, x, y, angle = 0, width = 0, height = 0, options = {}) {
+        const entry = getArtEntry(id);
+        if (!entry) return false;
+        const source = getArtDrawable(entry);
+        if (!source) return false;
+        const frameWidth = entry.width || entry.image.naturalWidth || entry.image.width;
+        const frameHeight = entry.height || entry.image.naturalHeight || entry.image.height;
+        if (!frameWidth || !frameHeight) return false;
+        const frames = Math.max(1, entry.frames || 1);
+        const fps = Math.max(0, entry.fps || 0);
+        const frame = frames > 1 && fps > 0
+          ? Math.floor(performance.now() * 0.001 * fps) % frames
+          : 0;
+        const scale = Number.isFinite(options.scale) ? options.scale : (entry.scale || 1);
+        const drawWidth = width || frameWidth * scale;
+        const drawHeight = height || frameHeight * scale;
+        const anchorX = Number.isFinite(entry.anchorX) ? entry.anchorX : 0.5;
+        const anchorY = Number.isFinite(entry.anchorY) ? entry.anchorY : 0.5;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        if (Number.isFinite(options.alpha)) {
+          ctx.globalAlpha *= options.alpha;
+        }
+        if (options.composite) {
+          ctx.globalCompositeOperation = options.composite;
+        }
+        if (options.shadowBlur && shouldUsePremiumVfx()) {
+          ctx.shadowBlur = options.shadowBlur;
+          ctx.shadowColor = options.shadowColor || "#57e0ff";
+        }
+        try {
+          if (frames > 1) {
+            ctx.drawImage(
+              source,
+              frame * frameWidth,
+              0,
+              frameWidth,
+              frameHeight,
+              -drawWidth * anchorX,
+              -drawHeight * anchorY,
+              drawWidth,
+              drawHeight
+            );
+          } else {
+            ctx.drawImage(
+              source,
+              -drawWidth * anchorX,
+              -drawHeight * anchorY,
+              drawWidth,
+              drawHeight
+            );
+          }
+        } catch (error) {
+          ctx.restore();
+          return false;
+        }
+        ctx.restore();
+        return true;
+      }
+
+      function resizeMinimap() {
+        if (!dom.minimap) return;
+        const rect = dom.minimap.getBoundingClientRect();
+        const dpr = getRenderScaleDpr();
+        if (!rect.width || !rect.height) return;
+        dom.minimap.width = Math.floor(rect.width * dpr);
+        dom.minimap.height = Math.floor(rect.height * dpr);
+        if (!minimapCtx) {
+          minimapCtx = dom.minimap.getContext("2d");
+        }
+        minimapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        queueMinimapRefresh();
+      }
+
+      function setupLongTaskObserver() {
+        if (!("PerformanceObserver" in window)) return;
+        const supported = PerformanceObserver.supportedEntryTypes;
+        if (Array.isArray(supported) && !supported.includes("longtask")) return;
+        longTaskMetrics.supported = true;
+        try {
+          longTaskObserver = new PerformanceObserver((list) => {
+            list.getEntries().forEach((entry) => {
+              longTaskMetrics.count += 1;
+              longTaskMetrics.totalDuration += entry.duration || 0;
+            });
+          });
+          longTaskObserver.observe({ entryTypes: ["longtask"] });
+        } catch (error) {
+          longTaskMetrics.supported = false;
+          longTaskObserver = null;
+        }
+      }
+
+      function setCommandMenuOpen(open, options = {}) {
+        commandMenuOpen = !!open;
+        document.body.classList.toggle("is-command-menu-open", commandMenuOpen);
+        if (dom.commandMenu) {
+          dom.commandMenu.setAttribute("aria-hidden", commandMenuOpen ? "false" : "true");
+          if ("inert" in dom.commandMenu) {
+            dom.commandMenu.inert = !commandMenuOpen;
+          } else {
+            dom.commandMenu.toggleAttribute("inert", !commandMenuOpen);
+          }
+        }
+        if (dom.commandBackdrop) {
+          dom.commandBackdrop.hidden = !commandMenuOpen;
+        }
+        document.querySelectorAll("[data-action='command-menu']").forEach((button) => {
+          button.setAttribute("aria-expanded", commandMenuOpen ? "true" : "false");
+        });
+        if (commandMenuOpen) {
+          commandMenuLastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          const focusTarget = dom.commandMenu?.querySelector("[data-tab-target].is-active:not([hidden])")
+            || dom.commandMenu?.querySelector("[data-action='command-menu-close']");
+          if (focusTarget) focusTarget.focus();
+        } else if (options.restoreFocus && commandMenuLastFocus && document.contains(commandMenuLastFocus)) {
+          commandMenuLastFocus.focus();
+        }
+      }
+
+      function openCommandMenu() {
+        if (!dom.commandMenu || commandMenuOpen) return;
+        if (settingsOpen) closeSettings(false);
+        renderProgressiveUi();
+        setCommandMenuOpen(true);
+      }
+
+      function closeCommandMenu(options = {}) {
+        if (!commandMenuOpen) return;
+        setCommandMenuOpen(false, options);
+      }
+
+      function attachEvents() {
+        document.addEventListener("click", (event) => {
+          resumeAudio();
+          const action = event.target.closest("[data-action]");
+          if (!action) return;
+          const actionName = action.dataset.action;
+          if (actionName === "command-menu") {
+            openCommandMenu();
+            return;
+          }
+          if (actionName === "command-menu-close") {
+            closeCommandMenu({ restoreFocus: true });
+            return;
+          }
+          if (actionName === "launch") {
+            closeCommandMenu();
+            startMission();
+          }
+          if (actionName === "training") {
+            closeCommandMenu();
+            startTraining();
+          }
+          if (actionName === "tutorial") startTutorial();
+          if (actionName === "replay-last-loadout") replayLastLoadout();
+          if (actionName === "glossary") openGlossary();
+          if (actionName === "dock") toggleFrontierDock();
+          if (actionName === "pause") togglePause();
+          if (actionName === "help") toggleHelpOverlay();
+          if (actionName === "reset") {
+            closeCommandMenu();
+            resetMission();
+          }
+          if (actionName === "settings") {
+            closeCommandMenu();
+            openSettings();
+          }
+          if (actionName === "settings-close") closeSettings();
+          if (actionName === "perf-log") togglePerfLog();
+          if (actionName === "reset-progress") resetProgress();
+          if (actionName === "preset-save") saveLoadoutPreset(action.dataset.slot || "");
+          if (actionName === "preset-load") loadLoadoutPreset(action.dataset.slot || "");
+        });
+
+        if (dom.settingsOverlay) {
+          dom.settingsOverlay.addEventListener("click", (event) => {
+            if (event.target === dom.settingsOverlay) {
+              closeSettings();
+            }
+          });
+        }
+
+        if (dom.tips) {
+          dom.tips.addEventListener("click", (event) => {
+            const card = event.target.closest("[data-tip-id]");
+            if (card) {
+              card.remove();
+            }
+          });
+        }
+
+        dom.overlay.addEventListener("click", (event) => {
+          const overlayAction = event.target.closest("[data-overlay-action]");
+          if (overlayAction) {
+            const actionName = overlayAction.dataset.overlayAction;
+            if (actionName === "launch") startMission();
+            if (actionName === "resume") togglePause();
+            if (actionName === "restart") {
+              if (state.training) {
+                startTraining();
+              } else {
+                startMission();
+              }
+            }
+            if (actionName === "reset") resetMission();
+            if (actionName === "reroll") rerollUpgrades();
+            if (actionName === "skip") acceptUpgrade(null);
+            if (actionName === "dock-close") closeFrontierDock();
+            if (actionName === "dock") openFrontierDock();
+            if (actionName === "tier-up") openFrontierTierSelect();
+            if (actionName === "next-level") startMission();
+            if (actionName === "choice-continue") {
+              hideOverlay();
+              setMode("flight");
+            }
+            if (actionName === "tutorial-prev") {
+              state.tutorialStep = Math.max(0, (state.tutorialStep || 0) - 1);
+              setOverlay("tutorial");
+            }
+            if (actionName === "tutorial-next") {
+              state.tutorialStep = Math.min(TUTORIAL_STEPS.length - 1, (state.tutorialStep || 0) + 1);
+              setOverlay("tutorial");
+            }
+            if (actionName === "tutorial-close") {
+              state.tutorialMode = false;
+              state.tutorialComplete = true;
+              if (!progress.tutorialCompleted) {
+                progress.tutorialCompleted = true;
+                saveProgress();
+              }
+              restoreOverlayReturn();
+            }
+            if (actionName === "tutorial-training") {
+              state.tutorialMode = false;
+              if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") {
+                resetMission();
+              }
+              state.tutorialFlight = true;
+              state.tutorialGoals = getTutorialGoalTemplate();
+              startTraining();
+            }
+            if (actionName === "glossary-close") {
+              restoreOverlayReturn();
+            }
+            if (actionName === "salvage-close") {
+              state.salvageResults = null;
+              if (state.mode === "hangar" && !state.runActive) {
+                setOverlay("start");
+              } else {
+                hideOverlay();
+              }
+            }
+            return;
+          }
+
+          const choiceButton = event.target.closest("[data-choice-id]");
+          if (choiceButton) {
+            applyChoiceEvent(choiceButton.dataset.choiceId);
+            return;
+          }
+
+          const upgradeButton = event.target.closest("[data-upgrade-id]");
+          if (upgradeButton) {
+            acceptUpgrade(upgradeButton.dataset.upgradeId);
+            return;
+          }
+
+          const frontierUpgrade = event.target.closest("[data-frontier-upgrade]");
+          if (frontierUpgrade) {
+            purchaseFrontierUpgrade(frontierUpgrade.dataset.frontierUpgrade);
+            return;
+          }
+
+          const frontierShip = event.target.closest("[data-frontier-ship]");
+          if (frontierShip) {
+            selectFrontierShip(frontierShip.dataset.frontierShip);
+          }
+        });
+
+        dom.hangar.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("hangar")) {
+            showTip("locked-hangar", "Hangar locked", getFeatureHint("hangar"), { kind: "lock" });
+            return;
+          }
+          const buildPathButton = event.target.closest("[data-build-path]");
+          if (buildPathButton) {
+            const pathId = buildPathButton.dataset.buildPath || "";
+            if (!BUILD_PATHS.some((item) => item.id === pathId)) return;
+            if (progress.buildPath === pathId) return;
+            progress.buildPath = pathId;
+            applyLoadoutChange("Build identity updated. Applies next sortie.");
+            showTip(null, "Build identity", `${getActiveBuildPath().name} selected.`, {
+              kind: "info",
+              repeatable: true,
+              duration: 3600
+            });
+            renderHangar();
+            return;
+          }
+          const button = event.target.closest("[data-hangar-id]");
+          if (!button) return;
+          const upgrade = HANGAR_UPGRADES.find((item) => item.id === button.dataset.hangarId);
+          if (!upgrade) return;
+          const currentLevel = progress.hangar[upgrade.id] || 0;
+          const maxLevel = upgrade.maxLevel || 1;
+          const cost = getHangarUpgradeCost(upgrade, currentLevel);
+          if (progress.techPoints < cost || currentLevel >= maxLevel) return;
+          progress.techPoints = Math.max(0, progress.techPoints - cost);
+          progress.hangar[upgrade.id] = currentLevel + 1;
+          saveProgress();
+          renderHangar();
+          if (state.mode === "flight" || state.mode === "upgrade" || state.mode === "paused") {
+            logEvent("Hangar upgrade installed for next sortie.");
+          } else {
+            player = createPlayer();
+          }
+        });
+
+        dom.shipyard.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("shipyard")) {
+            showTip("locked-shipyard", "Shipyard locked", getFeatureHint("shipyard"), { kind: "lock" });
+            return;
+          }
+          const button = event.target.closest("[data-ship-id]");
+          if (!button) return;
+          const ship = SHIPS.find((item) => item.id === button.dataset.shipId);
+          if (!ship) return;
+          const unlocked = !!progress.shipUnlocks[ship.id];
+          if (!unlocked) {
+            if (!unlockItem(ship, progress.shipUnlocks)) return;
+            logEvent(`Ship unlocked: ${ship.name}.`);
+          }
+          if (progress.selectedShip !== ship.id) {
+            progress.selectedShip = ship.id;
+            applyLoadoutChange("Ship selection updated. Applies next sortie.");
+          } else {
+            saveProgress();
+            renderShipyard();
+          }
+        });
+
+        if (dom.inventory) {
+          dom.inventory.addEventListener("click", (event) => {
+            if (!isFeatureUnlocked("armory")) {
+              showTip("locked-armory", "Gear locked", getFeatureHint("armory"), { kind: "lock" });
+              return;
+            }
+            const selection = event.target.closest("[data-inventory-select]");
+            if (selection) {
+              state.inventorySelectionId = selection.dataset.inventorySelect;
+              renderInventory();
+              return;
+            }
+            const action = event.target.closest("[data-item-action]");
+            const card = event.target.closest("[data-item-id]");
+            if (!card) return;
+            const item = getItemById(card.dataset.itemId);
+            if (!item) return;
+            if (!action) return;
+            const actionName = action.dataset.itemAction;
+            if (actionName === "equip") {
+              equipItem(item);
+            } else if (actionName === "upgrade") {
+              upgradeItem(item);
+            } else if (actionName === "sell") {
+              sellItem(item);
+            }
+          });
+        }
+
+        dom.secondaries.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("armory")) {
+            showTip("locked-armory-secondary", "Secondaries locked", getFeatureHint("armory"), { kind: "lock" });
+            return;
+          }
+          const button = event.target.closest("[data-secondary-id]");
+          if (!button) return;
+          const secondary = SECONDARIES.find((item) => item.id === button.dataset.secondaryId);
+          if (!secondary) return;
+          const unlocked = !!progress.secondaryUnlocks[secondary.id];
+          if (!unlocked) {
+            if (!unlockItem(secondary, progress.secondaryUnlocks)) return;
+            logEvent(`Secondary unlocked: ${secondary.name}.`);
+          }
+          if (progress.selectedSecondary !== secondary.id) {
+            progress.selectedSecondary = secondary.id;
+            applyLoadoutChange("Secondary selection updated. Applies next sortie.");
+          } else {
+            saveProgress();
+            renderArmory();
+          }
+        });
+
+
+        dom.salvage.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("salvage")) {
+            showTip("locked-salvage", "Salvage locked", getFeatureHint("salvage"), { kind: "lock" });
+            return;
+          }
+          const button = event.target.closest("[data-salvage-action='open']");
+          if (!button) return;
+          const count = button.dataset.salvageCount || "1";
+          openSalvageCaches(count);
+        });
+
+        if (dom.premiumShop) {
+          dom.premiumShop.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-premium-buy]");
+            if (!button) return;
+            buyPremiumItem(button.dataset.premiumBuy);
+          });
+        }
+
+        dom.keybinds.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-bind]");
+          if (!button) return;
+          input.capture = button.dataset.bind;
+          renderKeybinds();
+        });
+
+        document.addEventListener("click", (event) => {
+          const optionBtn = event.target.closest(".option-btn");
+          if (!optionBtn) return;
+          const group = optionBtn.closest("[data-setting]");
+          if (!group) return;
+          const setting = group.dataset.setting;
+          const option = optionBtn.dataset.option;
+          if (!option) return;
+          if (setting === "difficulty") {
+            progress.settings.difficulty = option;
+          } else if (setting === "game-mode") {
+            if (!isModeUnlocked(option)) {
+              const feature = getModeFeature(option);
+              showTip(`locked-mode-${option}`, `${getRunModeLabel(option)} locked`, getFeatureHint(feature), { kind: "lock" });
+              syncModeOptions();
+              return;
+            }
+            progress.settings.gameMode = normalizeGameMode(option);
+            if (state.runActive) {
+              logEvent("Mode change applies on the next launch.");
+            }
+          } else if (setting === "shipyard-tier") {
+            progress.settings.shipyardTier = option;
+          } else if (setting === "inventory-filter") {
+            progress.settings.inventoryFilter = option;
+          } else if (setting === "input-mode") {
+            progress.settings.inputMode = option;
+          } else if (setting === "target-assist") {
+            progress.settings.targetAssist = option;
+          } else if (setting === "particles") {
+            progress.settings.particles = option;
+          } else if (setting === "hit-flash") {
+            progress.settings.hitFlash = option === "on";
+          } else if (setting === "hud-layout") {
+            progress.settings.hudLayout = option;
+          } else if (setting === "hud-scale") {
+            progress.settings.hudScale = option;
+          } else if (setting === "camera-mode") {
+            progress.settings.cameraMode = option;
+            state.cameraReady = false;
+          } else if (setting === "audio") {
+            progress.settings.audio = option;
+          } else if (setting === "palette") {
+            progress.settings.palette = option;
+          } else if (setting === "render-scale") {
+            progress.settings.renderScale = option;
+          } else if (setting === "perf-mode") {
+            setPerfMode(option);
+          }
+          saveProgress();
+          applySettingsFromProgress();
+          renderSettings();
+          syncLaunchButtons();
+          renderShipyard();
+          renderPremiumShop();
+          renderArmory();
+          if (setting === "game-mode" && state.mode === "hangar" && state.overlayMode === "start") {
+            setOverlay("start");
+          }
+          logEvent(`Settings updated: ${setting.replace("-", " ")}.`);
+        });
+
+        dom.canvas.addEventListener("pointermove", (event) => {
+          const rect = dom.canvas.getBoundingClientRect();
+          input.pointer.screenX = event.clientX - rect.left;
+          input.pointer.screenY = event.clientY - rect.top;
+          input.pointer.active = true;
+          input.pointer.moved = true;
+          updatePointerWorld();
+        });
+
+        dom.canvas.addEventListener("pointerdown", () => {
+          resumeAudio();
+          input.firing = true;
+        });
+
+        window.addEventListener("pointerup", () => {
+          input.firing = false;
+        });
+
+        window.addEventListener("keydown", (event) => {
+          const key = normalizeKey(event);
+          if (!key) return;
+          if (key === "escape" && settingsOpen) {
+            event.preventDefault();
+            closeSettings();
+            return;
+          }
+          if (key === "escape" && commandMenuOpen) {
+            event.preventDefault();
+            closeCommandMenu({ restoreFocus: true });
+            return;
+          }
+          if (input.capture) {
+            event.preventDefault();
+            if (key === "escape") {
+              input.capture = null;
+              renderKeybinds();
+              return;
+            }
+            if (!isBindableKey(key)) {
+              logEvent("Key not supported for binding.");
+              return;
+            }
+            const conflicts = getKeybindConflicts(input.capture, key);
+            if (conflicts.length) {
+              const labels = conflicts.map((action) => KEYBIND_LABELS[action] || action).join(", ");
+              showTip("keybind-conflict", "Key already used", `${formatKeybind(key)} is bound to ${labels}.`, {
+                kind: "info",
+                repeatable: true,
+                duration: 4500
+              });
+              return;
+            }
+            progress.keybinds[input.capture] = key;
+            input.capture = null;
+            saveProgress();
+            renderSettings();
+            logEvent("Keybind updated.");
+            return;
+          }
+          if (key === "escape") {
+            if (state.mode === "dock" || state.mode === "tier-select") {
+              event.preventDefault();
+              closeFrontierDock();
+              return;
+            }
+            if (state.mode === "flight" || state.mode === "training" || state.mode === "paused") {
+              event.preventDefault();
+              togglePause();
+            }
+            return;
+          }
+          if (key === " " || key.startsWith("arrow")) {
+            event.preventDefault();
+          }
+          if (key === (progress.keybinds.pause || "p")) {
+            if (state.mode === "dock" || state.mode === "tier-select") {
+              closeFrontierDock();
+            } else {
+              togglePause();
+            }
+            return;
+          }
+          if (key === "r") {
+            resetMission();
+            return;
+          }
+          if (key === (progress.keybinds.help || "h")) {
+            event.preventDefault();
+            toggleHelpOverlay();
+            return;
+          }
+          if (!event.repeat) {
+            if (key === progress.keybinds.ability) {
+              activateAbility();
+            }
+            if (key === progress.keybinds.secondary) {
+              activateSecondary();
+            }
+            if (key === progress.keybinds.dock) {
+              toggleFrontierDock();
+            }
+          }
+          input.keys.add(key);
+        });
+
+        window.addEventListener("keyup", (event) => {
+          const key = normalizeKey(event);
+          if (!key) return;
+          input.keys.delete(key);
+        });
+
+        window.addEventListener("blur", () => {
+          if (state.mode === "flight") {
+            setPaused(true);
+          }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden && state.mode === "flight") {
+            setPaused(true);
+          }
+        });
+      }
+
+      function setupTabs() {
+        const groups = document.querySelectorAll("[data-tab-group]");
+        groups.forEach((group) => {
+          const buttons = Array.from(group.querySelectorAll("[data-tab-target]"));
+          const panels = Array.from(group.querySelectorAll("[data-tab-panel]"));
+          if (!buttons.length || !panels.length) return;
+          const defaultTarget = group.dataset.tabDefault || buttons[0].dataset.tabTarget;
+          const missionGrid = document.querySelector(".mission-grid");
+          const missionShell = document.querySelector(".mission-shell");
+          const getVisibleButtons = () => buttons.filter((button) => !button.hidden);
+
+          const activate = (requestedTarget, focusButton, shouldMarkSeen = false) => {
+            const visibleButtons = getVisibleButtons();
+            const resolvedTarget = visibleButtons.some((button) => button.dataset.tabTarget === requestedTarget)
+              ? requestedTarget
+              : (visibleButtons[0]?.dataset.tabTarget || buttons[0].dataset.tabTarget);
+            buttons.forEach((button) => {
+              const isActive = !button.hidden && button.dataset.tabTarget === resolvedTarget;
+              button.classList.toggle("is-active", isActive);
+              button.setAttribute("aria-selected", isActive ? "true" : "false");
+              button.tabIndex = isActive ? 0 : -1;
+              if (isActive && focusButton) {
+                button.focus();
+              }
+            });
+
+            panels.forEach((panel) => {
+              const isActive = !panel.hidden && panel.dataset.tabPanel === resolvedTarget;
+              panel.classList.toggle("is-active", isActive);
+              panel.hidden = !isActive;
+            });
+
+            if (group.dataset.tabGroup === "sidebar") {
+              const isWide = resolvedTarget !== "systems" && resolvedTarget !== "upgrades";
+              if (missionGrid) {
+                missionGrid.classList.toggle("is-wide", isWide);
+              }
+              if (missionShell) {
+                missionShell.classList.toggle("is-wide", isWide);
+              }
+            }
+
+            if (shouldMarkSeen) {
+              markPanelSeen(resolvedTarget);
+            }
+          };
+
+          activate(defaultTarget, false, false);
+
+          group.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-tab-target]");
+            if (!button || !group.contains(button)) return;
+            activate(button.dataset.tabTarget, true, true);
+          });
+
+          group.addEventListener("keydown", (event) => {
+            const visibleButtons = getVisibleButtons();
+            const currentIndex = visibleButtons.findIndex((button) => button.classList.contains("is-active"));
+            if (currentIndex === -1) return;
+            let nextIndex = currentIndex;
+            if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+              nextIndex = (currentIndex + 1) % visibleButtons.length;
+            } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+              nextIndex = (currentIndex - 1 + visibleButtons.length) % visibleButtons.length;
+            } else if (event.key === "Home") {
+              nextIndex = 0;
+            } else if (event.key === "End") {
+              nextIndex = visibleButtons.length - 1;
+            } else {
+              return;
+            }
+            event.preventDefault();
+            activate(visibleButtons[nextIndex].dataset.tabTarget, true, true);
+          });
+        });
+      }
+
+      function getActiveTabTarget() {
+        const activeButton = document.querySelector("[data-tab-group='sidebar'] [data-tab-target].is-active");
+        return activeButton ? activeButton.dataset.tabTarget : "systems";
+      }
+
+      function selectTab(target) {
+        const button = document.querySelector(`[data-tab-group='sidebar'] [data-tab-target="${target}"]`);
+        if (button) {
+          button.click();
+        }
+      }
+
+      function isPlayingMode(mode) {
+        return ["flight", "training", "paused", "upgrade", "dock", "tier-select", "gameover", "victory"].includes(mode);
+      }
+
+      function updateLayout() {
+        const playing = isPlayingMode(state.mode);
+        document.body.classList.toggle("is-playing", playing);
+        document.body.classList.toggle("is-hangar", !playing);
+        syncContextualHudState();
+        syncTouchControls();
+        resizeCanvas();
+        resizeMinimap();
+      }
+
+      function openSettings() {
+        if (settingsOpen) return;
+        settingsOpen = true;
+        settingsReturnTab = getActiveTabTarget();
+        settingsResumeMode = state.mode;
+        if (state.mode === "flight" || state.mode === "training") {
+          setPaused(true);
+        }
+        if (settingsPanel && dom.settingsBody) {
+          selectTab("settings");
+          settingsPanel.hidden = false;
+          settingsPanel.classList.add("is-active");
+          dom.settingsBody.appendChild(settingsPanel);
+        }
+        if (dom.settingsOverlay) {
+          dom.settingsOverlay.hidden = false;
+        }
+        updateLayout();
+        renderSettings();
+      }
+
+      function closeSettings(shouldResume = true) {
+        if (!settingsOpen) return;
+        settingsOpen = false;
+        if (settingsPanel && settingsHome) {
+          if (settingsAnchor && settingsAnchor.parentElement === settingsHome) {
+            settingsHome.insertBefore(settingsPanel, settingsAnchor);
+          } else {
+            settingsHome.appendChild(settingsPanel);
+          }
+        }
+        if (settingsReturnTab) {
+          selectTab(settingsReturnTab);
+        }
+        if (dom.settingsOverlay) {
+          dom.settingsOverlay.hidden = true;
+        }
+        if (shouldResume && (settingsResumeMode === "flight" || settingsResumeMode === "training")) {
+          setPaused(false);
+        }
+        updateLayout();
+      }
+
+      function setupArmoryNav() {
+        const nav = document.querySelector("[data-armory-nav]");
+        if (!nav) return;
+        const buttons = Array.from(nav.querySelectorAll("[data-armory-target]"));
+        const sections = Array.from(document.querySelectorAll("[data-armory-section]"));
+        if (!buttons.length || !sections.length) return;
+
+        const activate = (target, shouldSave) => {
+          let nextTarget = target;
+          if (!buttons.some((button) => button.dataset.armoryTarget === nextTarget)) {
+            nextTarget = buttons[0].dataset.armoryTarget;
+          }
+          buttons.forEach((button) => {
+            button.classList.toggle("is-active", button.dataset.armoryTarget === nextTarget);
+          });
+          sections.forEach((section) => {
+            const isActive = section.dataset.armorySection === nextTarget;
+            section.hidden = !isActive;
+          });
+          if (shouldSave) {
+            progress.settings.armorySection = nextTarget;
+            saveProgress();
+          }
+        };
+
+        const storedTarget = progress.settings.armorySection || buttons[0].dataset.armoryTarget;
+        activate(storedTarget, false);
+
+        nav.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-armory-target]");
+          if (!button) return;
+          activate(button.dataset.armoryTarget, true);
+        });
+      }
+
+      function getDefaultFeatureUnlocks() {
+        return UNLOCK_FEATURES.reduce((defaults, feature) => {
+          if (feature && feature.id) {
+            defaults[feature.id] = feature.unlockedByDefault === true;
+          }
+          return defaults;
+        }, {});
+      }
+
+      function loadProgress() {
+        const fallback = {
+          rank: 1,
+          xp: 0,
+          techPoints: 0,
+          bestWave: 1,
+          bestLevel: 1,
+          campaignLevel: 1,
+          totalKills: 0,
+          bankedCredits: 0,
+          blueprints: 0,
+          salvageKeys: 0,
+          salvagePity: 0,
+          salvageHistory: [],
+          dropPity: {
+            key: 0,
+            blueprint: 0
+          },
+          records: {
+            bestScore: 0,
+            bestKills: 0,
+            bestSurvivalSec: 0,
+            bestScoreAttack: 0,
+            bestDailyScore: 0,
+            bestBossRushScore: 0
+          },
+          achievements: {},
+          dailyRuns: [],
+          runAnalytics: [],
+          telemetry: {
+            recent: []
+          },
+          premiumCurrency: 0,
+          premiumDropPity: 0,
+          premiumShop: {
+            oneTime: {},
+            levels: {}
+          },
+          buildPath: "balanced",
+          buildHistory: [],
+          lastLoadout: null,
+          featureUnlocks: getDefaultFeatureUnlocks(),
+          onboarding: {
+            flightSeconds: 0
+          },
+          uiSeen: {
+            tabs: {},
+            features: {}
+          },
+          tipsSeen: {},
+          tutorialCompleted: false,
+          selectedShip: "vanguard",
+          selectedWeapon: "basic",
+          selectedSecondary: "emp",
+          shipUnlocks: { vanguard: true, scout: true },
+          weaponUnlocks: { basic: true },
+          secondaryUnlocks: { emp: true },
+          weaponLevels: {},
+          inventory: [],
+          equipped: {
+            weaponId: null,
+            attachments: {
+              barrel: null,
+              core: null,
+              targeting: null,
+              thruster: null
+            }
+          },
+          partsInventory: [],
+          equippedParts: {
+            barrel: null,
+            core: null,
+            targeting: null,
+            thruster: null
+          },
+          factions: {
+            nova: 0,
+            aegis: 0,
+            vortex: 0
+          },
+          settings: {
+            difficulty: "normal",
+            gameMode: "arcade",
+            inputMode: "hybrid",
+            targetAssist: "on",
+            particles: "medium",
+            hitFlash: true,
+            hudLayout: "standard",
+            hudScale: "md",
+            cameraMode: "dynamic",
+            audio: "on",
+            palette: "default",
+            armorySection: "inventory",
+            partsMode: "equip",
+            shipyardTier: "all",
+            inventoryFilter: "all",
+            renderScale: "auto",
+            perfMode: "off",
+            perfOverlay: false,
+            perfDetail: false
+          },
+          keybinds: {
+            forward: "w",
+            back: "s",
+            left: "a",
+            right: "d",
+            aimUp: "arrowup",
+            aimDown: "arrowdown",
+            aimLeft: "arrowleft",
+            aimRight: "arrowright",
+            fire: " ",
+            boost: "shift",
+            ability: "e",
+            secondary: "q",
+            dock: "u",
+            pause: "p",
+            help: "h",
+            brake: "x"
+          },
+          loadoutPresets: {
+            a: null,
+            b: null,
+            c: null
+          },
+          runHistory: [],
+          hangar: {
+            hull: 0,
+            shield: 0,
+            "shield-regenerator": 0,
+            "damage-dampers": 0,
+            "reactive-repair": 0,
+            "aegis-relay": 0,
+            "weapon-calibration": 0,
+            "fire-control": 0,
+            targeting: 0,
+            "munitions-loader": 0,
+            "amplifier-core": 0,
+            "barrage-sync": 0,
+            thrusters: 0,
+            "attitude-control": 0,
+            "inertial-dampers": 0,
+            "boost-couplers": 0,
+            reactor: 0,
+            "capacitor-banks": 0,
+            "efficiency-tuning": 0,
+            "salvage-magnet": 0,
+            "tactical-scanner": 0,
+            "upgrade-forecast": 0,
+            "energy-siphon": 0
+          }
+        };
+        try {
+          const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (!stored) return fallback;
+          const merged = {
+            ...fallback,
+            ...stored,
+            hangar: {
+              ...fallback.hangar,
+              ...(stored.hangar || {})
+            },
+            shipUnlocks: {
+              ...fallback.shipUnlocks,
+              ...(stored.shipUnlocks || {})
+            },
+            weaponUnlocks: {
+              ...fallback.weaponUnlocks,
+              ...(stored.weaponUnlocks || {})
+            },
+            secondaryUnlocks: {
+              ...fallback.secondaryUnlocks,
+              ...(stored.secondaryUnlocks || {})
+            },
+            weaponLevels: {
+              ...fallback.weaponLevels,
+              ...(stored.weaponLevels || {})
+            },
+            inventory: Array.isArray(stored.inventory) ? stored.inventory : fallback.inventory,
+            equipped: {
+              ...fallback.equipped,
+              ...(stored.equipped || {}),
+              attachments: {
+                ...fallback.equipped.attachments,
+                ...((stored.equipped && stored.equipped.attachments) || {})
+              }
+            },
+            equippedParts: {
+              ...fallback.equippedParts,
+              ...(stored.equippedParts || {})
+            },
+            factions: {
+              ...fallback.factions,
+              ...(stored.factions || {})
+            },
+            settings: {
+              ...fallback.settings,
+              ...(stored.settings || {})
+            },
+            dropPity: {
+              ...fallback.dropPity,
+              ...(stored.dropPity || {})
+            },
+            records: {
+              ...fallback.records,
+              ...(stored.records || {})
+            },
+            achievements: {
+              ...fallback.achievements,
+              ...(stored.achievements || {})
+            },
+            premiumShop: {
+              ...fallback.premiumShop,
+              ...(stored.premiumShop || {}),
+              oneTime: {
+                ...fallback.premiumShop.oneTime,
+                ...((stored.premiumShop && stored.premiumShop.oneTime) || {})
+              },
+              levels: {
+                ...fallback.premiumShop.levels,
+                ...((stored.premiumShop && stored.premiumShop.levels) || {})
+              }
+            },
+            keybinds: {
+              ...fallback.keybinds,
+              ...(stored.keybinds || {})
+            },
+            loadoutPresets: {
+              ...fallback.loadoutPresets,
+              ...(stored.loadoutPresets || {})
+            },
+            runHistory: Array.isArray(stored.runHistory) ? stored.runHistory.slice(0, 8) : fallback.runHistory,
+            runAnalytics: Array.isArray(stored.runAnalytics) ? stored.runAnalytics.slice(0, 10) : fallback.runAnalytics,
+            dailyRuns: Array.isArray(stored.dailyRuns) ? stored.dailyRuns.slice(0, 12) : fallback.dailyRuns,
+            salvageHistory: Array.isArray(stored.salvageHistory) ? stored.salvageHistory.slice(0, 6) : fallback.salvageHistory,
+            buildHistory: Array.isArray(stored.buildHistory) ? stored.buildHistory.slice(0, 10) : fallback.buildHistory,
+            telemetry: {
+              recent: Array.isArray(stored.telemetry?.recent) ? stored.telemetry.recent.slice(0, 80) : []
+            },
+            featureUnlocks: {
+              ...fallback.featureUnlocks,
+              ...(stored.featureUnlocks || {})
+            },
+            onboarding: {
+              ...fallback.onboarding,
+              ...(stored.onboarding || {})
+            },
+            uiSeen: {
+              ...fallback.uiSeen,
+              ...(stored.uiSeen || {}),
+              tabs: {
+                ...fallback.uiSeen.tabs,
+                ...((stored.uiSeen && stored.uiSeen.tabs) || {})
+              },
+              features: {
+                ...fallback.uiSeen.features,
+                ...((stored.uiSeen && stored.uiSeen.features) || {})
+              }
+            },
+            tipsSeen: {
+              ...fallback.tipsSeen,
+              ...(stored.tipsSeen || {})
+            },
+            lastLoadout: sanitizeLoadoutPreset(stored.lastLoadout || null)
+          };
+          merged.bestWave = Number.isFinite(merged.bestWave) ? Math.max(1, merged.bestWave) : 1;
+          const inferredCampaign = Math.max(1, Math.floor((merged.bestWave || 1) / LEVEL_WAVES) + 1);
+          const storedCampaign = Number.isFinite(stored.campaignLevel) ? stored.campaignLevel : null;
+          merged.campaignLevel = Number.isFinite(storedCampaign)
+            ? Math.max(1, storedCampaign, inferredCampaign)
+            : inferredCampaign;
+          const storedBestLevel = Number.isFinite(stored.bestLevel) ? stored.bestLevel : null;
+          merged.bestLevel = Number.isFinite(storedBestLevel)
+            ? Math.max(1, storedBestLevel, merged.campaignLevel - 1)
+            : Math.max(1, merged.campaignLevel - 1);
+          merged.dropPity = {
+            key: Number.isFinite(merged.dropPity?.key) ? Math.max(0, merged.dropPity.key) : 0,
+            blueprint: Number.isFinite(merged.dropPity?.blueprint) ? Math.max(0, merged.dropPity.blueprint) : 0
+          };
+          merged.records = {
+            bestScore: Number.isFinite(merged.records?.bestScore) ? Math.max(0, merged.records.bestScore) : 0,
+            bestKills: Number.isFinite(merged.records?.bestKills) ? Math.max(0, merged.records.bestKills) : 0,
+            bestSurvivalSec: Number.isFinite(merged.records?.bestSurvivalSec)
+              ? Math.max(0, merged.records.bestSurvivalSec)
+              : 0,
+            bestScoreAttack: Number.isFinite(merged.records?.bestScoreAttack)
+              ? Math.max(0, merged.records.bestScoreAttack)
+              : 0,
+            bestDailyScore: Number.isFinite(merged.records?.bestDailyScore)
+              ? Math.max(0, merged.records.bestDailyScore)
+              : 0,
+            bestBossRushScore: Number.isFinite(merged.records?.bestBossRushScore)
+              ? Math.max(0, merged.records.bestBossRushScore)
+              : 0
+          };
+          merged.achievements = merged.achievements || {};
+          merged.tutorialCompleted = !!merged.tutorialCompleted;
+          merged.premiumCurrency = Number.isFinite(merged.premiumCurrency)
+            ? Math.max(0, Math.floor(merged.premiumCurrency))
+            : 0;
+          merged.premiumDropPity = Number.isFinite(merged.premiumDropPity)
+            ? Math.max(0, Math.floor(merged.premiumDropPity))
+            : 0;
+          merged.buildPath = BUILD_PATHS.some((item) => item.id === merged.buildPath) ? merged.buildPath : "balanced";
+          merged.loadoutPresets = {
+            a: sanitizeLoadoutPreset(merged.loadoutPresets?.a),
+            b: sanitizeLoadoutPreset(merged.loadoutPresets?.b),
+            c: sanitizeLoadoutPreset(merged.loadoutPresets?.c)
+          };
+          const legacyAim = {
+            aimUp: "i",
+            aimDown: "k",
+            aimLeft: "j",
+            aimRight: "l"
+          };
+          const hasLegacyAim = stored.keybinds && Object.keys(legacyAim)
+            .every((key) => stored.keybinds[key] === legacyAim[key]);
+          if (hasLegacyAim) {
+            merged.keybinds = {
+              ...merged.keybinds,
+              aimUp: "arrowup",
+              aimDown: "arrowdown",
+              aimLeft: "arrowleft",
+              aimRight: "arrowright"
+            };
+          }
+          return merged;
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      function sanitizeLoadoutPreset(preset) {
+        if (!preset || typeof preset !== "object") return null;
+        const attachments = {
+          barrel: null,
+          core: null,
+          targeting: null,
+          thruster: null,
+          ...((preset.equippedAttachments && typeof preset.equippedAttachments === "object")
+            ? preset.equippedAttachments
+            : {})
+        };
+        return {
+          shipId: typeof preset.shipId === "string" ? preset.shipId : null,
+          secondaryId: typeof preset.secondaryId === "string" ? preset.secondaryId : null,
+          weaponId: typeof preset.weaponId === "string" ? preset.weaponId : null,
+          equippedAttachments: attachments,
+          label: typeof preset.label === "string" ? preset.label : ""
+        };
+      }
+
+      function ensurePremiumState() {
+        progress.premiumCurrency = Number.isFinite(progress.premiumCurrency)
+          ? Math.max(0, Math.floor(progress.premiumCurrency))
+          : 0;
+        progress.premiumShop = progress.premiumShop || {};
+        progress.premiumShop.oneTime = progress.premiumShop.oneTime || {};
+        progress.premiumShop.levels = progress.premiumShop.levels || {};
+        const shopItems = Array.isArray(PREMIUM_SHOP_ITEMS) ? PREMIUM_SHOP_ITEMS : [];
+        shopItems.forEach((item) => {
+          if (!item || !item.id) return;
+          if (item.kind === "one-time") {
+            progress.premiumShop.oneTime[item.id] = !!progress.premiumShop.oneTime[item.id];
+            return;
+          }
+          const maxLevel = Number.isFinite(item.maxLevel) ? Math.max(1, item.maxLevel) : 1;
+          const raw = progress.premiumShop.levels[item.id];
+          const level = Number.isFinite(raw) ? Math.floor(raw) : 0;
+          progress.premiumShop.levels[item.id] = clamp(level, 0, maxLevel);
+        });
+      }
+
+      function saveProgress() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        } catch (error) {
+          // Storage can be unavailable in some browser modes.
+        }
+      }
+
+      function queueProgressSave() {
+        state.savePending = true;
+      }
+
+      function queueSidebarRefresh() {
+        state.sidebarDirty = true;
+      }
+
+      function queueContractsRefresh() {
+        state.contractsDirty = true;
+      }
+
+      function flushDeferredState(force = false) {
+        const now = performance.now();
+        if (state.savePending && (force || now - state.lastSaveFlushAt >= DEFERRED_SAVE_FLUSH_MS)) {
+          saveProgress();
+          state.savePending = false;
+          state.lastSaveFlushAt = now;
+        }
+        if (state.sidebarDirty && (force || now - state.lastSidebarRender >= DEFERRED_UI_FLUSH_MS)) {
+          renderShipyard();
+          renderPremiumShop();
+          renderArmory();
+          renderProgressiveUi();
+          state.sidebarDirty = false;
+          state.lastSidebarRender = now;
+        }
+        if (state.contractsDirty && (force || now - state.lastContractRender >= DEFERRED_UI_FLUSH_MS)) {
+          renderContracts();
+          state.contractsDirty = false;
+          state.lastContractRender = now;
+        }
+      }
+
+      function resetProgress() {
+        const confirmed = window.confirm("Reset all progress? This cannot be undone.");
+        if (!confirmed) return;
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+          // Ignore storage failures.
+        }
+        window.location.reload();
+      }
+
+      function syncProgressSelections() {
+        const shipIds = SHIPS.map((ship) => ship.id);
+        if (!shipIds.includes(progress.selectedShip)) {
+          progress.selectedShip = SHIPS[0].id;
+        }
+        if (!progress.shipUnlocks[progress.selectedShip]) {
+          const unlockedShip = SHIPS.find((ship) => progress.shipUnlocks[ship.id]);
+          progress.selectedShip = unlockedShip ? unlockedShip.id : SHIPS[0].id;
+          progress.shipUnlocks[progress.selectedShip] = true;
+        }
+
+        const secondaryIds = SECONDARIES.map((secondary) => secondary.id);
+        if (!secondaryIds.includes(progress.selectedSecondary)) {
+          progress.selectedSecondary = SECONDARIES[0].id;
+        }
+        if (!progress.secondaryUnlocks[progress.selectedSecondary]) {
+          const unlockedSecondary = SECONDARIES.find((secondary) => progress.secondaryUnlocks[secondary.id]);
+          progress.selectedSecondary = unlockedSecondary ? unlockedSecondary.id : SECONDARIES[0].id;
+          progress.secondaryUnlocks[progress.selectedSecondary] = true;
+        }
+        ensurePremiumState();
+        ensureInventory();
+        saveProgress();
+      }
+
+      function ensureInventory() {
+        progress.inventory = Array.isArray(progress.inventory) ? progress.inventory : [];
+        progress.equipped = progress.equipped || {
+          weaponId: null,
+          attachments: {
+            barrel: null,
+            core: null,
+            targeting: null,
+            thruster: null
+          }
+        };
+        progress.equipped.attachments = {
+          barrel: null,
+          core: null,
+          targeting: null,
+          thruster: null,
+          ...(progress.equipped.attachments || {})
+        };
+
+        const existingIds = new Set(progress.inventory.map((item) => item.id));
+        if (Array.isArray(progress.partsInventory) && progress.partsInventory.length) {
+          progress.partsInventory.forEach((part) => {
+            if (!part || existingIds.has(part.id)) return;
+            const attachment = convertPartToAttachment(part);
+            if (!attachment) return;
+            progress.inventory.push(attachment);
+            existingIds.add(attachment.id);
+          });
+        }
+
+        const legacyWeaponId = progress.selectedWeapon || "basic";
+        const hasWeaponItem = progress.inventory.some((item) => item.type === "weapon");
+        if (!hasWeaponItem) {
+          const starter = createWeaponItem({ templateId: legacyWeaponId, tier: "common", isStarter: true });
+          progress.inventory.push(starter);
+          progress.equipped.weaponId = starter.id;
+        }
+        if (!progress.equipped.weaponId || !getItemById(progress.equipped.weaponId)) {
+          const fallbackWeapon = progress.inventory.find((item) => item.type === "weapon");
+          progress.equipped.weaponId = fallbackWeapon ? fallbackWeapon.id : null;
+        }
+
+        PART_SLOTS.forEach((slot) => {
+          const legacyEquipped = progress.equippedParts ? progress.equippedParts[slot] : null;
+          const preferredId = progress.equipped.attachments[slot] || legacyEquipped;
+          const attachment = preferredId ? getItemById(preferredId) : null;
+          progress.equipped.attachments[slot] = attachment ? attachment.id : null;
+        });
+
+        if (progress.inventory.length > INVENTORY_LIMIT) {
+          progress.inventory = progress.inventory.slice(0, INVENTORY_LIMIT);
+        }
+
+        progress.inventory.forEach((item) => {
+          if (!item) return;
+          if (!item.type) {
+            if (item.templateId) {
+              item.type = "weapon";
+            } else if (item.slot) {
+              item.type = "attachment";
+            }
+          }
+          if (!item.tier) {
+            item.tier = getPartTier(item);
+          }
+          if (!item.upgradeSlots) {
+            item.upgradeSlots = ITEM_UPGRADE_SLOTS[item.tier] || 2;
+          }
+          if (!Number.isFinite(item.upgradeSuccesses)) {
+            item.upgradeSuccesses = 0;
+          }
+        });
+      }
+
+      function parsePerfQueryOverrides() {
+        const result = {};
+        try {
+          const params = new URLSearchParams(window.location.search || "");
+          const perfMode = params.get("perf");
+          const renderScale = params.get("renderScale") || params.get("scale");
+          const renderer = params.get("renderer") || params.get("backend");
+          if (perfMode === "off" || perfMode === "basic" || perfMode === "detail") {
+            result.perfMode = perfMode;
+          }
+          if (renderScale === "auto" || ["0.25", "0.35", "0.5", "0.75", "1", "1.25", "1.5", "2"].includes(renderScale || "")) {
+            result.renderScale = renderScale;
+          }
+          if (renderer === "auto" || renderer === "pixi" || renderer === "canvas") {
+            result.renderer = renderer;
+          }
+        } catch (error) {
+          return {};
+        }
+        return result;
+      }
+
+      function applyPerfQueryOverrides() {
+        // Query overrides are intentionally session-only; saved settings stay untouched.
+      }
+
+      function normalizePerfMode(settings) {
+        if (!settings) return "off";
+        if (settings.perfMode === "basic" || settings.perfMode === "detail") {
+          return settings.perfMode;
+        }
+        if (settings.perfMode === "off") {
+          if (settings.perfDetail) return "detail";
+          if (settings.perfOverlay) return "basic";
+          return "off";
+        }
+        if (settings.perfDetail) return "detail";
+        if (settings.perfOverlay) return "basic";
+        return "off";
+      }
+
+      function setPerfMode(mode) {
+        const normalized = mode === "basic" || mode === "detail" || mode === "off" ? mode : "off";
+        progress.settings.perfMode = normalized;
+        progress.settings.perfOverlay = normalized === "basic";
+        progress.settings.perfDetail = normalized === "detail";
+      }
+
+      function getPerfMode() {
+        return perfQueryOverrides.perfMode || normalizePerfMode(progress.settings);
+      }
+
+      function getRenderScaleSetting() {
+        return perfQueryOverrides.renderScale || progress.settings.renderScale || "auto";
+      }
+
+      function getRendererSetting() {
+        return perfQueryOverrides.renderer === "pixi" ? "pixi" : "canvas";
+      }
+
+      function getCanvasCssSize() {
+        if (state.width && state.height) {
+          return { width: state.width, height: state.height };
+        }
+        if (!dom.canvas || typeof dom.canvas.getBoundingClientRect !== "function") {
+          return { width: 0, height: 0 };
+        }
+        const rect = dom.canvas.getBoundingClientRect();
+        return { width: rect.width || 0, height: rect.height || 0 };
+      }
+
+      function getCanvasMegapixels() {
+        if (!dom.canvas) return 0;
+        return (dom.canvas.width * dom.canvas.height) / 1000000;
+      }
+
+      function getRawAdaptiveQualityLevel() {
+        return state.adaptiveQuality ? state.adaptiveQuality.level || 0 : 0;
+      }
+
+      function getBaselineRenderTier(cssPixels, baseDpr) {
+        const nativePixels = cssPixels * baseDpr * baseDpr;
+        if (nativePixels >= 6500000 || cssPixels >= 2200000) return 2;
+        if (nativePixels >= 2800000 || cssPixels >= 1300000) return 1;
+        return 0;
+      }
+
+      function getPerformanceQualityLevel() {
+        const size = getCanvasCssSize();
+        const cssPixels = Math.max(0, size.width * size.height);
+        const baseDpr = Math.max(1, window.devicePixelRatio || 1);
+        return Math.max(getRawAdaptiveQualityLevel(), getBaselineRenderTier(cssPixels, baseDpr));
+      }
+
+      function getActiveRenderPixelTiers() {
+        const webglLikely = getRendererSetting() !== "canvas" && (
+          state.renderBackend === "pixi"
+          || !!(pixiRenderer && !pixiRenderer.failed)
+        );
+        return webglLikely ? WEBGL_RENDER_PIXEL_TIERS : AUTO_RENDER_PIXEL_TIERS;
+      }
+
+      function getActiveRenderTargetPixels() {
+        const tiers = getActiveRenderPixelTiers();
+        return tiers[0] ? tiers[0].pixels : AUTO_RENDER_TARGET_PIXELS;
+      }
+
+      function getAutoRenderPixelTier(level = getPerformanceQualityLevel()) {
+        const tiers = getActiveRenderPixelTiers();
+        const index = clamp(Math.round(level), 0, tiers.length - 1);
+        return {
+          ...tiers[index],
+          index
+        };
+      }
+
+      function getAutoRenderScaleInfo(baseDpr = Math.max(1, window.devicePixelRatio || 1)) {
+        const size = getCanvasCssSize();
+        const cssPixels = Math.max(0, size.width * size.height);
+        const tier = getAutoRenderPixelTier();
+        if (!cssPixels) {
+          return {
+            cap: Math.min(baseDpr, 1),
+            megapixels: 0,
+            targetMegapixels: tier.pixels / 1000000,
+            reason: "pending",
+            tier
+          };
+        }
+        const targetScale = Math.sqrt(tier.pixels / cssPixels);
+        const level = getPerformanceQualityLevel();
+        let cap = clamp(Math.min(baseDpr, targetScale), AUTO_RENDER_MIN_SCALE, baseDpr);
+        let reason = cap < baseDpr ? tier.id : "native";
+        if (level >= 3) {
+          reason = tier.id === "emergency" ? "emergency" : "stress high";
+        } else if (level === 2) {
+          reason = "stress";
+        }
+        cap = clamp(cap, AUTO_RENDER_MIN_SCALE, baseDpr);
+        return {
+          cap,
+          megapixels: (cssPixels * cap * cap) / 1000000,
+          targetMegapixels: tier.pixels / 1000000,
+          reason,
+          tier
+        };
+      }
+
+      function getRenderScaleCap() {
+        const value = getRenderScaleSetting();
+        if (value === "auto") return getAdaptiveRenderScaleCap();
+        const cap = parseFloat(value);
+        if (!Number.isFinite(cap) || cap <= 0) return null;
+        return cap;
+      }
+
+      function getAdaptiveRenderScaleCap() {
+        const baseDpr = Math.max(1, window.devicePixelRatio || 1);
+        const info = getAutoRenderScaleInfo(baseDpr);
+        state.renderScaleAutoCap = info.cap;
+        state.renderScaleAutoReason = info.reason;
+        state.renderScaleTier = info.tier ? info.tier.index : 0;
+        state.renderScaleTierLabel = info.tier ? info.tier.label : "Quality";
+        return info.cap;
+      }
+
+      function getRenderScaleDpr() {
+        const baseDpr = Math.max(1, window.devicePixelRatio || 1);
+        const cap = getRenderScaleCap();
+        const dpr = cap ? Math.min(baseDpr, cap) : baseDpr;
+        state.renderScale = dpr;
+        if (getRenderScaleSetting() !== "auto") {
+          state.renderScaleAutoCap = null;
+          state.renderScaleAutoReason = "manual";
+          state.renderScaleTier = 0;
+          state.renderScaleTierLabel = "Manual";
+        }
+        syncPerformanceModeClass();
+        return dpr;
+      }
+
+      function isPerformanceModeActive() {
+        return state.runActive && (getPerformanceQualityLevel() >= 1 || isHighPixelPressure());
+      }
+
+      function syncPerformanceModeClass() {
+        const active = isPerformanceModeActive();
+        if (state.performanceMode === active && document.body.dataset.performanceTier === String(getPerformanceQualityLevel())) {
+          return;
+        }
+        state.performanceMode = active;
+        document.body.classList.toggle("is-performance-mode", active);
+        document.body.dataset.performanceTier = String(getPerformanceQualityLevel());
+      }
+
+      function normalizeGameMode(mode) {
+        return RUN_MODE_LABELS[mode] ? mode : "arcade";
+      }
+
+      function getModeFeature(mode) {
+        const definition = UNLOCK_MODE_MAP.get(normalizeGameMode(mode));
+        return definition ? definition.feature : "always";
+      }
+
+      function isModeUnlocked(mode) {
+        const feature = getModeFeature(mode);
+        return !feature || feature === "always" || isFeatureUnlocked(feature);
+      }
+
+      function getAvailableGameMode(mode) {
+        const normalized = normalizeGameMode(mode);
+        return isModeUnlocked(normalized) ? normalized : "arcade";
+      }
+
+      function getRunModeLabel(mode = state.gameMode) {
+        return RUN_MODE_LABELS[normalizeGameMode(mode)] || RUN_MODE_LABELS.arcade;
+      }
+
+      function applySettingsFromProgress() {
+        state.difficulty = progress.settings.difficulty || "normal";
+        progress.settings.gameMode = getAvailableGameMode(progress.settings.gameMode || "arcade");
+        if (!state.runActive || state.mode === "hangar" || state.mode === "gameover" || state.mode === "victory") {
+          state.gameMode = progress.settings.gameMode;
+        }
+        input.aimMode = progress.settings.inputMode || "hybrid";
+        if (input.aimMode === "keyboard" || input.aimMode === "controller") {
+          input.aimSource = "keyboard";
+        } else {
+          input.aimSource = "mouse";
+        }
+        if ((progress.settings.targetAssist || "on") === "off") {
+          state.targetAssist = null;
+        }
+        syncHudPresentation();
+        updateParticleSettings();
+        resizeCanvas();
+        resizeMinimap();
+        applyAudioFromProgress();
+        updatePerformanceOverlayVisibility();
+        syncContextualHudState();
+      }
+
+      function syncHudPresentation() {
+        const layout = progress.settings.hudLayout || "standard";
+        const scale = progress.settings.hudScale || "md";
+        const palette = progress.settings.palette || "default";
+        document.body.classList.toggle("is-hud-compact", layout === "compact");
+        document.body.classList.toggle("is-hud-scale-sm", scale === "sm");
+        document.body.classList.toggle("is-hud-scale-lg", scale === "lg");
+        document.body.classList.toggle("is-colorblind", palette === "colorblind");
+      }
+
+      function noteHudMetaReveal(now = performance.now()) {
+        state.lastHudMetaRevealAt = now;
+      }
+
+      function isHudCombatFocusActive(now = performance.now()) {
+        if (!player) return false;
+        if (settingsOpen || state.overlayMode) return false;
+        if (state.mode !== "flight" && state.mode !== "training") return false;
+        const hostileBulletNearby = bullets.some((bullet) => (
+          bullet
+          && bullet.owner === "enemy"
+          && distanceBetween(bullet, player) <= HUD_HOSTILE_BULLET_RANGE
+        ));
+        const lowHull = clamp(player.health / player.maxHealth, 0, 1) <= 0.45;
+        const lowShield = player.maxShield > 0
+          ? clamp(player.shield / player.maxShield, 0, 1) <= 0.25
+          : false;
+        const recentDamage = now - state.lastHullHitAt < HUD_RECENT_DAMAGE_MS;
+        return enemies.length > 0
+          || hostileBulletNearby
+          || recentDamage
+          || lowHull
+          || lowShield
+          || (state.hazards && state.hazards.length > 0);
+      }
+
+      function syncContextualHudState(now = performance.now()) {
+        const focused = isHudCombatFocusActive(now);
+        const metaRevealed = !focused || now - state.lastHudMetaRevealAt < HUD_META_REVEAL_MS;
+        document.body.classList.toggle("is-hud-focused", focused);
+        document.body.classList.toggle("is-hud-meta-revealed", metaRevealed);
+      }
+
+      function isFeatureUnlocked(feature) {
+        return !!(progress.featureUnlocks && progress.featureUnlocks[feature]);
+      }
+
+      function getUnlockFeature(feature) {
+        return UNLOCK_FEATURE_MAP.get(feature) || null;
+      }
+
+      function getUnlockContext() {
+        const activeWave = isCampaignMode()
+          ? getGlobalWave(state.wave || 1)
+          : (state.wave || 1);
+        const waveProgress = Math.max(progress.bestWave || 1, activeWave);
+        return {
+          rank: Math.max(1, progress.rank || 1),
+          bestWave: Math.max(1, progress.bestWave || 1),
+          waveProgress,
+          flightSeconds: progress.onboarding?.flightSeconds || 0,
+          runHistoryCount: Array.isArray(progress.runHistory) ? progress.runHistory.length : 0,
+          totalKills: Math.max(0, progress.totalKills || 0),
+          blueprints: Math.max(0, progress.blueprints || 0),
+          salvageKeys: Math.max(0, progress.salvageKeys || 0),
+          premiumCurrency: Math.max(0, progress.premiumCurrency || 0),
+          achievements: progress.achievements || {},
+          records: progress.records || {},
+          abilityKey: formatKeybind(progress.keybinds.ability),
+          secondaryKey: formatKeybind(progress.keybinds.secondary),
+          unlocked: isFeatureUnlocked
+        };
+      }
+
+      function resolveUnlockCopy(value, context = getUnlockContext()) {
+        return typeof value === "function" ? value(context) : value;
+      }
+
+      function shouldUnlockFeature(feature) {
+        if (!feature || isFeatureUnlocked(feature)) return false;
+        const definition = getUnlockFeature(feature);
+        if (!definition || typeof definition.unlocksWhen !== "function") return false;
+        try {
+          return definition.unlocksWhen(getUnlockContext()) === true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function getFeatureHint(feature) {
+        const definition = getUnlockFeature(feature);
+        return definition ? resolveUnlockCopy(definition.hint) : "Unlocks later.";
+      }
+
+      function getFeatureTip(feature) {
+        const definition = getUnlockFeature(feature);
+        if (!definition || !definition.tip) return null;
+        const context = getUnlockContext();
+        return {
+          title: resolveUnlockCopy(definition.tip.title, context),
+          message: resolveUnlockCopy(definition.tip.message, context)
+        };
+      }
+
+      function getTipIcon(kind) {
+        const icons = {
+          unlock: "🎉",
+          reward: "🎁",
+          lock: "🔒",
+          info: "💡"
+        };
+        return icons[kind] || icons.info;
+      }
+
+      function ensureUiSeenState() {
+        progress.uiSeen = progress.uiSeen || {};
+        progress.uiSeen.tabs = progress.uiSeen.tabs || {};
+        progress.uiSeen.features = progress.uiSeen.features || {};
+      }
+
+      function getAchievementDef(id) {
+        return ACHIEVEMENT_DEFS.find((achievement) => achievement.id === id) || null;
+      }
+
+      function getAchievementCount() {
+        progress.achievements = progress.achievements || {};
+        return ACHIEVEMENT_DEFS.filter((achievement) => progress.achievements[achievement.id]).length;
+      }
+
+      function unlockAchievement(id) {
+        const achievement = getAchievementDef(id);
+        if (!achievement) return false;
+        progress.achievements = progress.achievements || {};
+        if (progress.achievements[id]) return false;
+        progress.achievements[id] = Date.now();
+        state.runHighlights = state.runHighlights || [];
+        state.runHighlights.push(`Achievement: ${achievement.title}`);
+        showTip(null, achievement.title, achievement.desc, {
+          kind: "reward",
+          repeatable: true,
+          duration: 5200
+        });
+        queueProgressSave();
+        queueSidebarRefresh();
+        return true;
+      }
+
+      function getTutorialGoalTemplate() {
+        return {
+          move: false,
+          aim: false,
+          fire: false,
+          boost: false,
+          pickup: false,
+          kill: false
+        };
+      }
+
+      function noteTutorialGoal(goal) {
+        if (!state.tutorialFlight || !state.training || !goal) return;
+        state.tutorialGoals = state.tutorialGoals || getTutorialGoalTemplate();
+        if (state.tutorialGoals[goal]) return;
+        state.tutorialGoals[goal] = true;
+        const completed = Object.values(state.tutorialGoals).filter(Boolean).length;
+        const total = Object.keys(state.tutorialGoals).length;
+        showTip(null, "Flight school", `${completed}/${total} checks complete.`, {
+          kind: "info",
+          repeatable: true,
+          duration: 3400
+        });
+        if (completed >= total) {
+          state.tutorialFlight = false;
+          progress.tutorialCompleted = true;
+          unlockAchievement("flight-school");
+          saveProgress();
+          logEvent("Flight school checklist complete.");
+        }
+      }
+
+      function getFeaturePanelTarget(feature) {
+        const definition = getUnlockFeature(feature);
+        return definition?.panel || "progress";
+      }
+
+      function getPanelDisplayLabel(target) {
+        const labels = {
+          systems: "Ship",
+          upgrades: "Boosts",
+          armory: "Gear",
+          shipyard: "Ships",
+          contracts: "Tasks",
+          premium: "Forge",
+          progress: "Progress",
+          settings: "Options"
+        };
+        return labels[target] || "Progress";
+      }
+
+      function isFeatureBadgeNew(feature) {
+        ensureUiSeenState();
+        return isFeatureUnlocked(feature) && !progress.uiSeen.features[feature];
+      }
+
+      function getNewFeaturesForTarget(target) {
+        return getProgressMilestones().filter((item) => item.unlocked && isFeatureBadgeNew(item.id)
+          && getFeaturePanelTarget(item.id) === target);
+      }
+
+      function markFeatureSeen(feature, options = {}) {
+        if (!feature || !isFeatureUnlocked(feature)) return false;
+        ensureUiSeenState();
+        if (progress.uiSeen.features[feature]) return false;
+        progress.uiSeen.features[feature] = true;
+        if (options.save !== false) {
+          saveProgress();
+        }
+        return true;
+      }
+
+      function markPanelSeen(target) {
+        if (!target) return;
+        ensureUiSeenState();
+        let changed = false;
+        if (!progress.uiSeen.tabs[target]) {
+          progress.uiSeen.tabs[target] = true;
+          changed = true;
+        }
+        getProgressMilestones().forEach((item) => {
+          if (!item.unlocked) return;
+          if (getFeaturePanelTarget(item.id) !== target) return;
+          if (markFeatureSeen(item.id, { save: false })) {
+            changed = true;
+          }
+        });
+        if (changed) {
+          saveProgress();
+          renderProgressiveUi();
+        }
+      }
+
+      function getNewlyUnlockedMilestones() {
+        return getProgressMilestones().filter((item) => item.unlocked && isFeatureBadgeNew(item.id));
+      }
+
+      function captureRunUnlockBaseline() {
+        state.runUnlockBaseline = {
+          ...(progress.featureUnlocks || {})
+        };
+      }
+
+      function getRunUnlockedFeatures() {
+        const baseline = state.runUnlockBaseline || {};
+        return Object.keys(progress.featureUnlocks || {}).filter((feature) => (
+          progress.featureUnlocks[feature] && !baseline[feature]
+        ));
+      }
+
+      function getUiTierLevel() {
+        const activeWave = isCampaignMode()
+          ? getGlobalWave(state.wave || 1)
+          : (state.wave || 1);
+        const waveProgress = Math.max(progress.bestWave || 1, activeWave);
+        if (isFeatureUnlocked("armory") || isFeatureUnlocked("shipyard") || isFeatureUnlocked("contracts")
+          || progress.rank >= 3 || waveProgress >= 4) {
+          return 2;
+        }
+        if (isFeatureUnlocked("upgrades") || isFeatureUnlocked("ability") || progress.rank >= 2 || waveProgress >= 2) {
+          return 1;
+        }
+        return 0;
+      }
+
+      function getUiPhaseSummary() {
+        const tier = getUiTierLevel();
+        const next = getNextLockedMilestone();
+        if (tier <= 0) {
+          return {
+            title: "Cadet Flight",
+            description: "Only the essential controls and ship reads are exposed while you learn the combat loop.",
+            recommendation: next
+              ? `Focus on surviving cleanly. ${next.label} is the first extra system to unlock.`
+              : "Focus on surviving cleanly."
+          };
+        }
+        if (tier === 1) {
+          return {
+            title: "Field Systems",
+            description: "Boost picks and active combat tools are now online, but the management layer still stays compact.",
+            recommendation: next
+              ? `Start shaping a build around what feels weak. ${next.label} is the next layer.`
+              : "Start shaping a build around what feels weak."
+          };
+        }
+        return {
+          title: "Command Deck",
+          description: "Loadout management, tuning, and progression systems are open. The UI now prioritizes comparison and optimization.",
+          recommendation: next
+            ? `Push deeper runs to unlock ${next.label.toLowerCase()}.`
+            : "All core systems are online. Push deeper runs for optimization and score."
+        };
+      }
+
+      function getProgressMilestones() {
+        return UNLOCK_FEATURES.map((feature) => ({
+          id: feature.id,
+          label: feature.label,
+          desc: resolveUnlockCopy(feature.desc),
+          hint: getFeatureHint(feature.id),
+          unlocked: isFeatureUnlocked(feature.id)
+        }));
+      }
+
+      function getNextLockedMilestone() {
+        return getProgressMilestones().find((item) => !item.unlocked) || null;
+      }
+
+      function renderRoadmapHtml(items, nextId) {
+        if (!items.length) {
+          return `
+            <div class="progress-step" data-state="done">
+              <span class="progress-step-eyebrow">Online</span>
+              <strong class="progress-step-title">All core systems online</strong>
+              <span class="progress-step-meta">The interface is fully expanded. Focus on optimization, score, and deeper runs.</span>
+            </div>
+          `;
+        }
+        return items.map((item) => {
+          const stateLabel = item.unlocked
+            ? (isFeatureBadgeNew(item.id) ? "new" : "done")
+            : item.id === nextId ? "next" : "locked";
+          const eyebrow = stateLabel === "new"
+            ? "New"
+            : stateLabel === "done"
+              ? "Online"
+              : stateLabel === "next"
+                ? "Next"
+                : "Later";
+          const copy = item.unlocked
+            ? `${item.desc}${stateLabel === "new" ? ` Visit ${getPanelDisplayLabel(getFeaturePanelTarget(item.id))} to review it.` : ""}`
+            : item.hint;
+          return `
+            <article class="progress-step" data-state="${stateLabel}">
+              <span class="progress-step-eyebrow">${eyebrow}</span>
+              <strong class="progress-step-title">${item.label}</strong>
+              <span class="progress-step-meta">${copy}</span>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function renderCommandOverview() {
+        if (!dom.commandOverview || !dom.launchGuidance) return;
+        const phase = getUiPhaseSummary();
+        const milestones = getProgressMilestones();
+        const next = milestones.find((item) => !item.unlocked) || null;
+        const newUnlocked = getNewlyUnlockedMilestones();
+        const systemsOnline = milestones.filter((item) => item.unlocked).length;
+        const bestWave = Math.max(1, progress.bestWave || 1);
+        const debriefCard = state.runDebrief
+          ? `
+            <div class="command-stat">
+              <span>Last Debrief</span>
+              <strong>${state.runDebrief.nextAction}</strong>
+              <small>${state.runDebrief.recommendations[0] || state.runDebrief.summary}</small>
+            </div>
+          `
+          : "";
+        dom.commandOverview.innerHTML = `
+          <div class="command-stat">
+            <span>Current Phase</span>
+            <strong>${phase.title}</strong>
+            <small>${phase.description}</small>
+          </div>
+          <div class="command-stat">
+            <span>${newUnlocked.length ? "New System" : "Next Unlock"}</span>
+            <strong>${newUnlocked.length ? newUnlocked[0].label : (next ? next.label : "All core systems online")}</strong>
+            <small>${newUnlocked.length
+              ? `Visit ${getPanelDisplayLabel(getFeaturePanelTarget(newUnlocked[0].id))} to use it.`
+              : (next ? next.hint : "You have unlocked the full hangar and progression shell.")}</small>
+          </div>
+          <div class="command-stat">
+            <span>Progress</span>
+            <strong>Rank ${progress.rank} · Best Wave ${bestWave}</strong>
+            <small>${systemsOnline}/${milestones.length} systems online.</small>
+          </div>
+          ${debriefCard}
+        `;
+        if (newUnlocked.length) {
+          const newest = newUnlocked[0];
+          dom.launchGuidance.textContent = `${newest.label} just came online. Visit ${getPanelDisplayLabel(getFeaturePanelTarget(newest.id))} before your next sortie.`;
+          return;
+        }
+        if (state.runDebrief) {
+          dom.launchGuidance.textContent = state.runDebrief.nextAction;
+          return;
+        }
+        dom.launchGuidance.textContent = next
+          ? `${phase.recommendation} Next: ${next.label}. ${next.hint}`
+          : `${phase.recommendation} All major systems are already online.`;
+      }
+
+      function renderSystemsFocus() {
+        if (!dom.systemsFocus) return;
+        const tier = getUiTierLevel();
+        const next = getNextLockedMilestone();
+        const newUnlocked = getNewlyUnlockedMilestones();
+        let title = "Stay alive and read the field.";
+        let body = next
+          ? `${next.label} is the next layer to unlock. ${next.hint}`
+          : "All core ship systems are online. Focus on stronger routes, cleaner clears, and higher ranks.";
+        if (newUnlocked.length) {
+          title = `${newUnlocked[0].label} is ready to use.`;
+          body = `Open ${getPanelDisplayLabel(getFeaturePanelTarget(newUnlocked[0].id))} and work it into the next sortie before launching.`;
+        }
+        if (tier === 1) {
+          title = "Pick boosts that solve your weakest stat.";
+        } else if (tier >= 2) {
+          title = "Tune the loadout between sorties.";
+        }
+        if (newUnlocked.length) {
+          title = `${newUnlocked[0].label} is ready to use.`;
+        } else if (state.runDebrief) {
+          body = state.runDebrief.nextAction;
+        }
+        dom.systemsFocus.innerHTML = `
+          <div class="focus-card">
+            <span class="focus-label">Current Focus</span>
+            <strong class="focus-title">${title}</strong>
+            <span>${body}</span>
+          </div>
+        `;
+      }
+
+      function renderProgressOverview() {
+        if (!dom.progressOverview || !dom.progressRoadmap) return;
+        const milestones = getProgressMilestones();
+        const next = milestones.find((item) => !item.unlocked) || null;
+        const newUnlocked = getNewlyUnlockedMilestones();
+        const phase = getUiPhaseSummary();
+        const systemsOnline = milestones.filter((item) => item.unlocked).length;
+        const bestWave = Math.max(1, progress.bestWave || 1);
+        const achievementCount = getAchievementCount();
+        const bestScoreAttack = Math.max(0, progress.records?.bestScoreAttack || 0);
+        const bestBossRush = Math.max(0, progress.records?.bestBossRushScore || 0);
+        dom.progressOverview.innerHTML = `
+          <div class="progress-highlight">
+            <span class="progress-highlight-label">Current Track</span>
+            <strong>${phase.title}</strong>
+            <p>${phase.description}</p>
+            <div class="select-pills">
+              <span class="select-pill">Rank ${progress.rank}</span>
+              <span class="select-pill">Best Wave ${bestWave}</span>
+              <span class="select-pill">Achievements ${achievementCount}/${ACHIEVEMENT_DEFS.length}</span>
+              ${bestScoreAttack ? `<span class="select-pill">Score Attack ${bestScoreAttack.toLocaleString()}</span>` : ""}
+              ${bestBossRush ? `<span class="select-pill">Boss Rush ${bestBossRush.toLocaleString()}</span>` : ""}
+              <span class="select-pill">${systemsOnline}/${milestones.length} systems online</span>
+              <span class="select-pill">${newUnlocked.length ? `New: ${newUnlocked[0].label}` : (next ? `Next: ${next.label}` : "All systems online")}</span>
+            </div>
+          </div>
+        `;
+        dom.progressRoadmap.innerHTML = renderRoadmapHtml(milestones, next ? next.id : "");
+      }
+
+      function renderSettingsGuidance() {
+        if (!dom.settingsGuidance) return;
+        const tier = getUiTierLevel();
+        let title = "Starter options only";
+        let body = "Only the essentials are surfaced at first: run type, difficulty, input, assist, and basic comfort settings.";
+        let pills = ["Difficulty", "Input", "Assist", "Audio"];
+        if (tier === 1) {
+          title = "Field tuning unlocked";
+          body = "Camera, HUD layout, particles, and tutorial support are online now that the combat loop is established.";
+          pills = ["Camera", "HUD Layout", "Particles", "Tutorial"];
+        } else if (tier >= 2) {
+          title = "Full tuning online";
+          body = "Presets, keybinds, HUD sizing, palette, and advanced run setup are available as the command layer opens.";
+          pills = ["Presets", "Keybinds", "HUD Scale", "Palette"];
+        }
+        dom.settingsGuidance.innerHTML = `
+          <div class="settings-guidance-card">
+            <span class="focus-label">Settings Scope</span>
+            <strong>${title}</strong>
+            <p>${body}</p>
+            <div class="select-pills">
+              ${pills.map((pill) => `<span class="select-pill">${pill}</span>`).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function syncUtilityActions() {
+        const hasReplay = !!sanitizeLoadoutPreset(progress.lastLoadout || null);
+        document.querySelectorAll(".utility-cluster [data-action='replay-last-loadout']").forEach((button) => {
+          button.hidden = !hasReplay;
+          button.disabled = !hasReplay;
+        });
+        const showGlossary = getUiTierLevel() >= 1;
+        document.querySelectorAll(".utility-cluster [data-action='glossary']").forEach((button) => {
+          button.hidden = !showGlossary;
+        });
+      }
+
+      function syncLaunchButtons() {
+        document.querySelectorAll("[data-action='launch']").forEach((button) => {
+          const label = `Play ${getRunModeLabel(progress.settings.gameMode || state.gameMode)}`;
+          setIconButtonContent(button, button.dataset.uiIcon || "play", label, {
+            visibleLabel: button.dataset.compactLabel || label
+          });
+        });
+      }
+
+      function syncTopbarSummary() {
+        if (!dom.topbarSummary) return;
+        const level = Math.max(1, progress.campaignLevel || state.level || 1);
+        const bestWave = Math.max(1, progress.bestWave || 1);
+        const modeLabel = getRunModeLabel(progress.settings.gameMode || state.gameMode);
+        const progressLabel = isCampaignRunMode() || normalizeGameMode(progress.settings.gameMode || state.gameMode) === "arcade"
+          ? `Level ${level}`
+          : `Best Wave ${bestWave}`;
+        dom.topbarSummary.textContent = `${modeLabel} · Rank ${progress.rank} · ${progressLabel}`;
+      }
+
+      function syncModeOptions() {
+        const modeGroup = document.querySelector("[data-setting='game-mode']");
+        if (!modeGroup) return;
+        progress.settings.gameMode = getAvailableGameMode(progress.settings.gameMode || "arcade");
+        modeGroup.querySelectorAll("[data-option]").forEach((button) => {
+          const mode = normalizeGameMode(button.dataset.option);
+          const visible = isModeUnlocked(mode);
+          button.hidden = !visible;
+          button.disabled = !visible;
+          button.setAttribute("aria-disabled", visible ? "false" : "true");
+          button.classList.toggle("is-active", mode === progress.settings.gameMode);
+        });
+      }
+
+      function syncFeatureReveals() {
+        document.querySelectorAll("[data-feature-reveal]").forEach((element) => {
+          const features = (element.dataset.featureReveal || "").split(/[,\s]+/).filter(Boolean);
+          const visible = features.every((feature) => isFeatureUnlocked(feature));
+          element.hidden = !visible;
+        });
+      }
+
+      function updateTabBadges() {
+        const buttons = Array.from(document.querySelectorAll("[data-tab-group='sidebar'] [data-tab-target]"));
+        buttons.forEach((button) => {
+          const label = button.dataset.baseLabel || button.textContent.trim();
+          button.dataset.baseLabel = label;
+          const newFeatures = getNewFeaturesForTarget(button.dataset.tabTarget);
+          const icon = button.dataset.tabIcon || getTabIconName(button.dataset.tabTarget);
+          button.setAttribute("aria-label", newFeatures.length ? `${label}, new` : label);
+          button.innerHTML = newFeatures.length
+            ? `${renderUiIcon(icon)}<span class="tab-btn-label">${escapeHtml(label)}</span><span class="tab-badge">New</span>`
+            : `${renderUiIcon(icon)}<span class="tab-btn-label">${escapeHtml(label)}</span>`;
+        });
+      }
+
+      function isPanelFeatureVisible(feature) {
+        return !feature || feature === "always" || isFeatureUnlocked(feature);
+      }
+
+      function syncSidebarPanels() {
+        const buttons = Array.from(document.querySelectorAll("[data-tab-group='sidebar'] [data-tab-target]"));
+        const panels = Array.from(document.querySelectorAll("[data-tab-panel]"));
+        buttons.forEach((button) => {
+          const visible = isPanelFeatureVisible(button.dataset.panelFeature);
+          button.hidden = !visible;
+          if (!visible) {
+            button.classList.remove("is-active");
+            button.setAttribute("aria-selected", "false");
+            button.tabIndex = -1;
+          }
+        });
+        panels.forEach((panel) => {
+          const visible = isPanelFeatureVisible(panel.dataset.panelFeature);
+          if (!visible) {
+            panel.hidden = true;
+            panel.classList.remove("is-active");
+          }
+        });
+        const activeTarget = getActiveTabTarget();
+        const activeButton = buttons.find((button) => button.dataset.tabTarget === activeTarget);
+        if (activeButton && activeButton.hidden) {
+          const fallback = buttons.find((button) => !button.hidden);
+          if (fallback) {
+            selectTab(fallback.dataset.tabTarget);
+          }
+        }
+      }
+
+      function syncSettingsVisibility() {
+        const tier = getUiTierLevel();
+        document.querySelectorAll("[data-settings-tier]").forEach((element) => {
+          const requiredTier = parseInt(element.dataset.settingsTier || "0", 10);
+          element.hidden = tier < requiredTier;
+        });
+      }
+
+      function syncHudMetaVisibility() {
+        if (!dom.hudMeta) return;
+        const showMeta = isFeatureUnlocked("upgrades") || progress.rank >= 2 || (progress.bestWave || 1) >= 2;
+        dom.hudMeta.hidden = !showMeta;
+      }
+
+      function renderProgressiveUi() {
+        const milestones = getProgressMilestones();
+        const next = milestones.find((item) => !item.unlocked) || null;
+        renderCommandOverview();
+        renderSystemsFocus();
+        renderProgressOverview();
+        renderSettingsGuidance();
+        syncUtilityActions();
+        syncModeOptions();
+        syncLaunchButtons();
+        syncTopbarSummary();
+        syncSidebarPanels();
+        updateTabBadges();
+        syncSettingsVisibility();
+        syncFeatureReveals();
+        syncHudMetaVisibility();
+        syncTouchControls();
+        if (dom.commandRoadmap) {
+          const nextIndex = milestones.findIndex((item) => !item.unlocked);
+          let start = nextIndex === -1 ? Math.max(0, milestones.length - 3) : Math.max(0, nextIndex - 1);
+          let end = Math.min(milestones.length, start + 3);
+          start = Math.max(0, end - 3);
+          dom.commandRoadmap.innerHTML = renderRoadmapHtml(milestones.slice(start, end), next ? next.id : "");
+        }
+      }
+
+      function showTip(id, title, message, options = {}) {
+        if (!dom.tips || !title || !message) return;
+        progress.tipsSeen = progress.tipsSeen || {};
+        const repeatable = options.repeatable === true;
+        const kind = options.kind || "info";
+        const icon = options.icon || getTipIcon(kind);
+        const duration = Number.isFinite(options.duration) ? options.duration : 9000;
+        if (id && !repeatable) {
+          if (progress.tipsSeen[id]) return;
+          progress.tipsSeen[id] = true;
+          saveProgress();
+        }
+        const tipId = id || `notice-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        const card = document.createElement("div");
+        card.className = "tip-card";
+        card.dataset.tipId = tipId;
+        card.dataset.kind = kind;
+        card.innerHTML = `
+          <span class="tip-icon" aria-hidden="true">${icon}</span>
+          <div class="tip-body">
+            <strong>${title}</strong>
+            <span>${message}</span>
+          </div>
+        `;
+        dom.tips.prepend(card);
+        while (dom.tips.children.length > 3) {
+          dom.tips.removeChild(dom.tips.lastChild);
+        }
+        setTimeout(() => {
+          if (card.parentElement) {
+            card.remove();
+          }
+        }, duration);
+      }
+
+      function unlockFeature(feature) {
+        progress.featureUnlocks = progress.featureUnlocks || {};
+        if (isFeatureUnlocked(feature)) return false;
+        progress.featureUnlocks[feature] = true;
+        const tip = getFeatureTip(feature);
+        if (tip) {
+          showTip(`unlock-${feature}`, tip.title, tip.message, { kind: "unlock" });
+          logEvent(tip.title);
+        }
+        saveProgress();
+        renderHangar();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        renderContracts();
+        renderSettings();
+        renderProgressiveUi();
+        return true;
+      }
+
+      function checkProgressionUnlocks() {
+        UNLOCK_FEATURES.forEach((feature) => {
+          if (feature && shouldUnlockFeature(feature.id)) {
+            unlockFeature(feature.id);
+          }
+        });
+      }
+
+      function updateParticleSettings() {
+        if (!state.width || !state.height) return;
+        updateStarfield();
+      }
+
+      function getParticleScale() {
+        const setting = progress.settings.particles || "medium";
+        const adaptiveScale = getAdaptiveParticleScale();
+        if (setting === "low") return 0.6 * adaptiveScale;
+        if (setting === "high") return 1.4 * adaptiveScale;
+        return adaptiveScale;
+      }
+
+      function getParticleCount(base) {
+        return Math.max(1, Math.round(base * getParticleScale()));
+      }
+
+      function getShipById(id) {
+        return SHIPS.find((ship) => ship.id === id) || SHIPS[0];
+      }
+
+      function getWeaponById(id) {
+        return WEAPONS.find((weapon) => weapon.id === id) || WEAPONS[0];
+      }
+
+      function getSecondaryById(id) {
+        return SECONDARIES.find((secondary) => secondary.id === id) || SECONDARIES[0];
+      }
+
+      function getItemById(id) {
+        if (!id || !Array.isArray(progress.inventory)) return null;
+        return progress.inventory.find((item) => item.id === id) || null;
+      }
+
+      function getEquippedWeapon() {
+        const weaponId = progress.equipped?.weaponId;
+        return weaponId ? getItemById(weaponId) : null;
+      }
+
+      function getEquippedAttachment(slot) {
+        if (!slot) return null;
+        const attachmentId = progress.equipped?.attachments?.[slot];
+        return attachmentId ? getItemById(attachmentId) : null;
+      }
+
+      function getEquippedAttachments() {
+        return PART_SLOTS.map((slot) => getEquippedAttachment(slot)).filter(Boolean);
+      }
+
+      function getFieldDropDef(id) {
+        return FIELD_DROP_TYPES.find((entry) => entry.id === id) || FIELD_DROP_TYPES[0];
+      }
+
+      function rollFieldDropDef() {
+        return pickWeighted(FIELD_DROP_TYPES, FIELD_DROP_TYPES.map((entry) => entry.weight));
+      }
+
+      function getTierIndex(tier) {
+        const index = TIER_ORDER.indexOf(tier);
+        return index >= 0 ? index : 0;
+      }
+
+      function rollItemTier(preferred, weights) {
+        if (preferred) return preferred;
+        const tiers = TIER_ORDER.slice();
+        const baseWeights = tiers.map((tier) => (TIER_META[tier] ? TIER_META[tier].weight : 1));
+        const finalWeights = Array.isArray(weights) && weights.length === tiers.length ? weights : baseWeights;
+        return pickWeighted(tiers, finalWeights);
+      }
+
+      function getAffixCount(tier, type) {
+        const base = {
+          common: 1,
+          uncommon: 1,
+          rare: 2,
+          epic: 2,
+          legendary: 3
+        };
+        const baseCount = base[tier] || 1;
+        const allowBonus = tier === "epic" || tier === "legendary";
+        const bonus = allowBonus && Math.random() < 0.45 ? 1 : 0;
+        const cap = type === "attachment" ? 2 : 3;
+        return Math.min(baseCount + bonus, cap);
+      }
+
+      function pickAffixes(pool, tier, count) {
+        if (!count) return [];
+        const tierIndex = getTierIndex(tier);
+        const eligible = pool.filter((affix) => getTierIndex(affix.minTier || "common") <= tierIndex);
+        if (!eligible.length) return [];
+        const picks = shuffle([...eligible]).slice(0, count);
+        if (tierIndex >= getTierIndex("epic")) {
+          const tierAffixes = eligible.filter((affix) => getTierIndex(affix.minTier || "common") >= tierIndex);
+          if (tierAffixes.length && !picks.some((affix) => tierAffixes.includes(affix))) {
+            picks[0] = pick(tierAffixes);
+          }
+        }
+        return picks;
+      }
+
+      function applyWeaponTierScaling(stats, tier) {
+        const tierIndex = getTierIndex(tier);
+        if (!tierIndex) return;
+        stats.damage *= 1 + WEAPON_TIER_SCALING.damage * tierIndex;
+        stats.fireRate *= 1 + WEAPON_TIER_SCALING.fireRate * tierIndex;
+        stats.bulletSpeed *= 1 + WEAPON_TIER_SCALING.bulletSpeed * tierIndex;
+        if (Number.isFinite(stats.energyCost)) {
+          stats.energyCost = Math.max(4, stats.energyCost * (1 - WEAPON_TIER_SCALING.energyCost * tierIndex));
+        }
+        if (Number.isFinite(stats.spread)) {
+          stats.spread = Math.max(0.02, stats.spread * (1 - WEAPON_TIER_SCALING.spread * tierIndex));
+        }
+      }
+
+      function applyWeaponUpgradeScaling(stats, item) {
+        const level = item.upgradeSuccesses || 0;
+        if (!level) return;
+        stats.damage *= 1 + level * 0.08;
+        stats.fireRate *= 1 + level * 0.06;
+        stats.bulletSpeed *= 1 + level * 0.05;
+        if (Number.isFinite(stats.energyCost)) {
+          stats.energyCost = Math.max(3, stats.energyCost * (1 - level * 0.05));
+        }
+        if (Number.isFinite(stats.spread)) {
+          stats.spread = Math.max(0.02, stats.spread * (1 - level * 0.04));
+        }
+        if (Number.isFinite(stats.critChance)) {
+          stats.critChance += level * 0.01;
+        }
+      }
+
+      function applyAttachmentUpgradeScaling(stats, item) {
+        const level = item.upgradeSuccesses || 0;
+        if (!level) return;
+        const scale = 1 + level * 0.12;
+        Object.keys(stats).forEach((key) => {
+          if (!Number.isFinite(stats[key])) return;
+          stats[key] *= scale;
+        });
+      }
+
+      function getWeaponItemStats(item) {
+        if (!item || !item.stats) return null;
+        const stats = { ...item.stats };
+        applyWeaponUpgradeScaling(stats, item);
+        return stats;
+      }
+
+      function getAttachmentStats(item) {
+        if (!item || !item.stats) return null;
+        const stats = { ...item.stats };
+        applyAttachmentUpgradeScaling(stats, item);
+        return stats;
+      }
+
+      function buildStatSummary(stats) {
+        if (!stats) return "";
+        return Object.keys(stats)
+          .filter((key) => Number.isFinite(stats[key]) && stats[key] !== 0 && !BARRAGE_STAT_KEYS.has(key))
+          .map((key) => formatStat(key, stats[key]))
+          .join(" · ");
+      }
+
+      function createWeaponItem({ templateId, tier, isStarter } = {}) {
+        const pool = isStarter ? WEAPONS : WEAPONS.filter((weapon) => weapon.id !== "basic");
+        const template = templateId ? getWeaponById(templateId) : pick(pool.length ? pool : WEAPONS);
+        const finalTier = rollItemTier(tier);
+        const stats = { ...template.stats };
+        applyWeaponTierScaling(stats, finalTier);
+        const affixCount = getAffixCount(finalTier, "weapon");
+        const affixes = pickAffixes(WEAPON_AFFIX_POOL, finalTier, affixCount);
+        affixes.forEach((affix) => affix.apply(stats));
+        return {
+          id: `weapon_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          type: "weapon",
+          templateId: template.id,
+          tier: finalTier,
+          name: template.name,
+          stats,
+          affixes: affixes.map((affix) => ({ id: affix.id, label: affix.label, desc: affix.desc })),
+          upgradeSlots: ITEM_UPGRADE_SLOTS[finalTier] || 2,
+          upgradeSuccesses: 0,
+          createdAt: Date.now(),
+          isStarter: !!isStarter
+        };
+      }
+
+      function createAttachmentItem({ tier, slot } = {}) {
+        const finalTier = rollItemTier(tier);
+        const templateSlot = slot || pick(PART_SLOTS);
+        const template = PART_TEMPLATES[templateSlot];
+        if (!template) return null;
+        const rarity = PART_RARITIES[finalTier] || PART_RARITIES.common;
+        const stats = {};
+        Object.keys(template.stats).forEach((key) => {
+          const range = template.stats[key];
+          const value = rand(range[0], range[1]) * rarity.mult;
+          const rounded = Math.abs(value) < 1 ? parseFloat(value.toFixed(2)) : Math.round(value);
+          stats[key] = rounded;
+        });
+        const affixCount = getAffixCount(finalTier, "attachment");
+        const affixes = pickAffixes(ATTACHMENT_AFFIX_POOL, finalTier, affixCount);
+        affixes.forEach((affix) => affix.apply(stats));
+        const tierLabel = formatTierLabel(finalTier);
+        return {
+          id: `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          type: "attachment",
+          slot: templateSlot,
+          tier: finalTier,
+          name: `${tierLabel} ${template.name}`,
+          stats,
+          affixes: affixes.map((affix) => ({ id: affix.id, label: affix.label, desc: affix.desc })),
+          upgradeSlots: ITEM_UPGRADE_SLOTS[finalTier] || 2,
+          upgradeSuccesses: 0,
+          createdAt: Date.now()
+        };
+      }
+
+      function convertPartToAttachment(part) {
+        if (!part || !part.stats || !part.slot) return null;
+        const tier = getPartTier(part);
+        return {
+          id: part.id || `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          type: "attachment",
+          slot: part.slot,
+          tier,
+          name: part.name || part.slot,
+          stats: { ...part.stats },
+          affixes: Array.isArray(part.affixes) ? part.affixes : [],
+          upgradeSlots: ITEM_UPGRADE_SLOTS[tier] || 2,
+          upgradeSuccesses: part.upgradeSuccesses || 0,
+          createdAt: part.createdAt || Date.now()
+        };
+      }
+
+      function addInventoryItem(item, options = {}) {
+        if (!item) return false;
+        progress.inventory = Array.isArray(progress.inventory) ? progress.inventory : [];
+        if (progress.inventory.length >= INVENTORY_LIMIT) {
+          const value = getItemSellValue(item);
+          progress.bankedCredits += value;
+          if (options.notify) {
+            logEvent(`Inventory full. Auto-sold ${item.name} for ${value} credits.`);
+          }
+          return false;
+        }
+        progress.inventory.unshift(item);
+        return true;
+      }
+
+      function applyMods(stats, mods) {
+        if (!mods) return;
+        const add = mods.add || {};
+        const mult = mods.mult || {};
+        Object.keys(add).forEach((key) => {
+          stats[key] = (stats[key] || 0) + add[key];
+        });
+        Object.keys(mult).forEach((key) => {
+          stats[key] = (stats[key] || 0) * mult[key];
+        });
+      }
+
+      function applyAttachmentStats(stats, item) {
+        const attachmentStats = getAttachmentStats(item);
+        if (!attachmentStats) return;
+        Object.keys(attachmentStats).forEach((key) => {
+          stats[key] = (stats[key] || 0) + attachmentStats[key];
+        });
+      }
+
+      function applyFrontierUpgrades(stats, upgrades) {
+        if (!upgrades) return;
+        FRONTIER_UPGRADES.forEach((upgrade) => {
+          const level = upgrades[upgrade.id] || 0;
+          for (let i = 0; i < level; i += 1) {
+            if (upgrade.apply) upgrade.apply(stats, i + 1);
+          }
+        });
+      }
+
+      function applyPremiumBonuses(stats) {
+        const shopItems = Array.isArray(PREMIUM_SHOP_ITEMS) ? PREMIUM_SHOP_ITEMS : [];
+        if (!shopItems.length) return;
+        ensurePremiumState();
+        shopItems.forEach((item) => {
+          if (!item || typeof item.apply !== "function") return;
+          if (item.kind === "one-time") {
+            if (progress.premiumShop.oneTime[item.id]) {
+              item.apply(stats, 1);
+            }
+            return;
+          }
+          const level = progress.premiumShop.levels[item.id] || 0;
+          if (level > 0) {
+            item.apply(stats, level);
+          }
+        });
+      }
+
+      function applyBuildPathBonuses(stats) {
+        const path = getActiveBuildPath();
+        if (path && typeof path.apply === "function") {
+          path.apply(stats);
+        }
+      }
+
+      function applyAttachmentSetBonuses(stats) {
+        const attachments = getEquippedAttachments();
+        if (!attachments.length) return;
+        const tierCounts = attachments.reduce((acc, item) => {
+          const tier = item?.tier || "common";
+          acc[tier] = (acc[tier] || 0) + 1;
+          return acc;
+        }, {});
+        const rarePlus = (tierCounts.rare || 0) + (tierCounts.epic || 0) + (tierCounts.legendary || 0);
+        const epicPlus = (tierCounts.epic || 0) + (tierCounts.legendary || 0);
+        if (rarePlus >= 2) {
+          stats.damage *= 1.08;
+          stats.energyRegen += 6;
+        }
+        if (epicPlus >= 3) {
+          stats.projectiles += 1;
+          stats.critChance = Math.min(0.95, stats.critChance + 0.05);
+        }
+        if ((tierCounts.legendary || 0) >= 2) {
+          stats.blackHoleChance = Math.max(stats.blackHoleChance || 0, 0.16);
+          stats.damageReduction = Math.min(0.72, (stats.damageReduction || 0) + 0.08);
+        }
+      }
+
+      function applyConditionalSynergies(stats) {
+        if ((stats.slowChance || 0) >= 0.3 && (stats.arcDamage || 0) > 0) {
+          stats.arcDamage *= 1.15;
+          stats.arcChains = Math.max(stats.arcChains || 0, 2);
+        }
+        if ((stats.helperCount || 0) > 0 && (stats.auraRadius || 0) > 0) {
+          stats.helperDamageRatio = Math.min(0.95, (stats.helperDamageRatio || 0) + 0.12);
+        }
+        if ((stats.blackHoleChance || 0) > 0 && (stats.echoChance || 0) > 0) {
+          stats.echoDamage = Math.max(stats.echoDamage || 0, 0.42);
+        }
+      }
+
+      function applyWeeklyMutatorToPlayer(stats) {
+        const mutator = state.weekly && state.weekly.mutator;
+        if (mutator && typeof mutator.applyPlayer === "function") {
+          mutator.applyPlayer(stats);
+        }
+      }
+
+      function applyGlobalSoftCaps(stats) {
+        const softMult = (value, cap, softness = 0.45) => {
+          if (!Number.isFinite(value)) return value;
+          if (value <= cap) return value;
+          return cap + (value - cap) * softness;
+        };
+        stats.fireRate = softMult(stats.fireRate, 12.5, 0.4);
+        stats.damage = softMult(stats.damage, 380, 0.48);
+        stats.maxSpeed = softMult(stats.maxSpeed, 540, 0.52);
+        stats.energyRegen = softMult(stats.energyRegen, 160, 0.46);
+        stats.damageReduction = clamp(stats.damageReduction || 0, 0, 0.78);
+        stats.critChance = clamp(stats.critChance || 0, 0, 0.85);
+        stats.barrageBonusDamage = softMult(stats.barrageBonusDamage || 1, 3, 0.52);
+      }
+
+      function buildBaseStats(loadout = {}) {
+        const stats = { ...BASE_PLAYER };
+        const ship = getShipById(loadout.shipId || progress.selectedShip);
+        const weaponItem = loadout.weaponItem || getEquippedWeapon();
+        const secondary = getSecondaryById(loadout.secondaryId || progress.selectedSecondary);
+        applyMods(stats, ship.mods);
+        if (weaponItem) {
+          const weaponStats = getWeaponItemStats(weaponItem);
+          if (weaponStats) {
+            Object.assign(stats, weaponStats);
+          }
+        }
+        HANGAR_UPGRADES.forEach((upgrade) => {
+          const level = progress.hangar[upgrade.id] || 0;
+          upgrade.apply(stats, level);
+        });
+        applyPremiumBonuses(stats);
+        applyBuildPathBonuses(stats);
+        getEquippedAttachments().forEach((attachment) => applyAttachmentStats(stats, attachment));
+        applyAttachmentSetBonuses(stats);
+        applyConditionalSynergies(stats);
+        applyWeeklyMutatorToPlayer(stats);
+        applyGlobalSoftCaps(stats);
+        stats.ship = ship;
+        stats.weapon = weaponItem || null;
+        stats.secondary = secondary;
+        return stats;
+      }
+
+      function createPlayer(loadout = {}) {
+        const base = buildBaseStats(loadout);
+        if (state.gameMode === "frontier" && state.frontier && state.frontier.active) {
+          applyFrontierUpgrades(base, state.frontier.upgrades);
+        }
+        const ability = ABILITIES[base.ship.abilityId];
+        const spawn = getSpawnPoint();
+        return {
+          ...base,
+          ability,
+          x: spawn.x,
+          y: spawn.y,
+          vx: 0,
+          vy: 0,
+          angle: 0,
+          health: base.maxHealth,
+          shield: base.maxShield,
+          energy: base.maxEnergy,
+          radius: 14,
+          shieldCooldown: 0,
+          fireCooldown: 0,
+          hitFlash: 0,
+          braking: false,
+          abilityTimer: 0,
+          abilityCooldown: 0,
+          secondaryCooldown: 0,
+          invulnerable: 0
+        };
+      }
+
+      function createStars(count) {
+        const width = state.worldWidth || state.width;
+        const height = state.worldHeight || state.height;
+        return Array.from({ length: count }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: rand(0.6, 1.6),
+          speed: rand(6, 26),
+          alpha: rand(0.3, 0.9)
+        }));
+      }
+
+      function updateStarfield() {
+        stars = createStars(getStarCount());
+      }
+
+      function getStarCount() {
+        const base = getParticleCount(160);
+        const viewArea = state.width * state.height;
+        const worldArea = state.worldWidth * state.worldHeight;
+        if (!viewArea || !worldArea) return base;
+        const density = clamp(worldArea / viewArea, 1, 4);
+        return Math.round(base * density);
+      }
+
+      function setupWorld() {
+        state.worldWidth = WORLD_WIDTH;
+        state.worldHeight = WORLD_HEIGHT;
+        state.cameraReady = false;
+        obstacles = generateObstacles();
+        markObstacleSpatialDirty();
+        updateStarfield();
+        updateCamera();
+        updatePointerWorld();
+      }
+
+      function generateObstacles() {
+        const width = state.worldWidth;
+        const height = state.worldHeight;
+        const padding = 160;
+        const safeRadius = 200;
+        const obstacles = [];
+        const rockSeeds = [
+          { x: width * 0.28, y: height * 0.3 },
+          { x: width * 0.7, y: height * 0.3 },
+          { x: width * 0.32, y: height * 0.7 },
+          { x: width * 0.68, y: height * 0.66 }
+        ];
+        rockSeeds.forEach((seed) => {
+          const radius = rand(110, 170);
+          const x = clamp(seed.x + rand(-130, 130), radius + padding, width - radius - padding);
+          const y = clamp(seed.y + rand(-120, 120), radius + padding, height - radius - padding);
+          obstacles.push({
+            kind: "rock",
+            x,
+            y,
+            radius,
+            shade: rand(0.3, 0.7),
+            rotation: rand(0, Math.PI * 2)
+          });
+        });
+        const debrisSeeds = [
+          { x: width * 0.5, y: height * 0.18, width: 520, height: 90 },
+          { x: width * 0.5, y: height * 0.82, width: 520, height: 90 },
+          { x: width * 0.18, y: height * 0.5, width: 90, height: 420 },
+          { x: width * 0.82, y: height * 0.5, width: 90, height: 420 }
+        ];
+        debrisSeeds.forEach((seed) => {
+          const x = clamp(seed.x + rand(-90, 90), seed.width / 2 + padding, width - seed.width / 2 - padding);
+          const y = clamp(seed.y + rand(-90, 90), seed.height / 2 + padding, height - seed.height / 2 - padding);
+          obstacles.push({
+            kind: "debris",
+            x,
+            y,
+            width: seed.width,
+            height: seed.height,
+            shade: rand(0.2, 0.6),
+            rotation: seed.width > seed.height ? 0 : Math.PI * 0.5
+          });
+        });
+        for (let i = 0; i < 6; i += 1) {
+          const radius = rand(60, 100);
+          const x = rand(radius + padding, width - radius - padding);
+          const y = rand(radius + padding, height - radius - padding);
+          obstacles.push({
+            kind: "rock",
+            x,
+            y,
+            radius,
+            shade: rand(0.25, 0.55),
+            rotation: rand(0, Math.PI * 2)
+          });
+        }
+        return obstacles.filter((obstacle) => !isObstacleNearPoint(obstacle, width * 0.5, height * 0.5, safeRadius));
+      }
+
+      function isObstacleNearPoint(obstacle, x, y, buffer) {
+        if (!obstacle) return false;
+        if (obstacle.kind === "rock") {
+          return distanceBetween(obstacle, { x, y }) <= obstacle.radius + buffer;
+        }
+        const halfWidth = obstacle.width * 0.5;
+        const halfHeight = obstacle.height * 0.5;
+        const closestX = clamp(x, obstacle.x - halfWidth, obstacle.x + halfWidth);
+        const closestY = clamp(y, obstacle.y - halfHeight, obstacle.y + halfHeight);
+        return Math.hypot(x - closestX, y - closestY) <= buffer;
+      }
+
+      function getSpawnPoint() {
+        const center = { x: state.worldWidth * 0.5, y: state.worldHeight * 0.5 };
+        if (!isPointInObstacle(center, 140)) return center;
+        for (let i = 0; i < 12; i += 1) {
+          const angle = rand(0, Math.PI * 2);
+          const distance = rand(140, 320);
+          const candidate = {
+            x: clamp(center.x + Math.cos(angle) * distance, 80, state.worldWidth - 80),
+            y: clamp(center.y + Math.sin(angle) * distance, 80, state.worldHeight - 80)
+          };
+          if (!isPointInObstacle(candidate, 140)) {
+            return candidate;
+          }
+        }
+        return center;
+      }
+
+      function getFieldDropSpawnPoint() {
+        const padding = 70;
+        const buffer = 30;
+        for (let i = 0; i < 20; i += 1) {
+          const candidate = {
+            x: rand(padding, state.worldWidth - padding),
+            y: rand(padding, state.worldHeight - padding)
+          };
+          if (isPointInObstacle(candidate, buffer)) continue;
+          if (player && distanceBetween(candidate, player) < FIELD_DROP_MIN_DISTANCE) continue;
+          const tooClose = fieldDrops.some((drop) => distanceBetween(candidate, drop) < (drop.radius || 16) + 32);
+          if (tooClose) continue;
+          return candidate;
+        }
+        return {
+          x: rand(padding, state.worldWidth - padding),
+          y: rand(padding, state.worldHeight - padding)
+        };
+      }
+
+      function isPointInObstacle(point, buffer = 0) {
+        let blocked = false;
+        forEachObstacleNear(point, buffer + MAX_COLLISION_RADIUS, (obstacle) => {
+          if (obstacle.kind === "rock") {
+            const radius = obstacle.radius + buffer;
+            if (distanceSquared(point, obstacle) <= radius * radius) {
+              blocked = true;
+              return true;
+            }
+            return false;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          const insideX = point.x >= obstacle.x - halfWidth - buffer && point.x <= obstacle.x + halfWidth + buffer;
+          const insideY = point.y >= obstacle.y - halfHeight - buffer && point.y <= obstacle.y + halfHeight + buffer;
+          if (insideX && insideY) {
+            blocked = true;
+            return true;
+          }
+          return false;
+        });
+        return blocked;
+      }
+
+      function getViewportBounds() {
+        const left = state.camera.x;
+        const top = state.camera.y;
+        return {
+          left,
+          top,
+          right: left + state.width,
+          bottom: top + state.height
+        };
+      }
+
+      function clampPointDistance(origin, target, maxDistance) {
+        if (!origin || !target || !Number.isFinite(maxDistance) || maxDistance <= 0) {
+          return target || origin;
+        }
+        const dx = target.x - origin.x;
+        const dy = target.y - origin.y;
+        const distance = Math.hypot(dx, dy);
+        if (!distance || distance <= maxDistance) {
+          return {
+            x: target.x,
+            y: target.y
+          };
+        }
+        const ratio = maxDistance / distance;
+        return {
+          x: origin.x + dx * ratio,
+          y: origin.y + dy * ratio
+        };
+      }
+
+      function getDynamicCameraFocusPoint() {
+        if (!player) return null;
+        const assist = getActiveTargetAssist();
+        const aimAnchor = assist
+          ? clampPointDistance(player, { x: assist.leadX, y: assist.leadY }, 260)
+          : clampPointDistance(player, getAimTarget(), 240);
+        const driftAnchor = {
+          x: clamp(player.x + player.vx * 0.18, 0, state.worldWidth),
+          y: clamp(player.y + player.vy * 0.18, 0, state.worldHeight)
+        };
+        const assistWeight = assist ? assist.lockStrength * 0.08 : 0;
+        const playerWeight = 0.58;
+        const aimWeight = 0.28 + assistWeight;
+        const driftWeight = 0.14;
+        const total = playerWeight + aimWeight + driftWeight;
+        return {
+          x: (player.x * playerWeight + aimAnchor.x * aimWeight + driftAnchor.x * driftWeight) / total,
+          y: (player.y * playerWeight + aimAnchor.y * aimWeight + driftAnchor.y * driftWeight) / total
+        };
+      }
+
+      function updateCamera(delta = 1 / 60) {
+        if (!player) {
+          state.cameraReady = false;
+          return;
+        }
+        const maxX = Math.max(0, state.worldWidth - state.width);
+        const maxY = Math.max(0, state.worldHeight - state.height);
+        const cameraMode = progress.settings.cameraMode || "dynamic";
+        const focus = cameraMode === "dynamic" && (state.mode === "flight" || state.mode === "training")
+          ? getDynamicCameraFocusPoint()
+          : player;
+        const desiredX = clamp((focus?.x || player.x) - state.width * 0.5, 0, maxX);
+        const desiredY = clamp((focus?.y || player.y) - state.height * 0.5, 0, maxY);
+        state.cameraTarget.x = desiredX;
+        state.cameraTarget.y = desiredY;
+        if (!state.cameraReady || cameraMode !== "dynamic" || (state.mode !== "flight" && state.mode !== "training")) {
+          state.camera.x = desiredX;
+          state.camera.y = desiredY;
+          state.cameraReady = true;
+          return;
+        }
+        const snapDistance = Math.max(state.width, state.height) * 0.9;
+        const cameraDistance = Math.hypot(state.camera.x - desiredX, state.camera.y - desiredY);
+        if (cameraDistance > snapDistance) {
+          state.camera.x = desiredX;
+          state.camera.y = desiredY;
+          return;
+        }
+        const smoothing = 1 - Math.exp(-Math.max(0.001, delta) * 7.2);
+        state.camera.x += (desiredX - state.camera.x) * smoothing;
+        state.camera.y += (desiredY - state.camera.y) * smoothing;
+      }
+
+      function screenToWorld(x, y) {
+        return {
+          x: clamp(x + state.camera.x, 0, state.worldWidth),
+          y: clamp(y + state.camera.y, 0, state.worldHeight)
+        };
+      }
+
+      function updatePointerWorld() {
+        if (!input.pointer.active || !player) {
+          input.pointer.x = player ? player.x : state.worldWidth * 0.5;
+          input.pointer.y = player ? player.y : state.worldHeight * 0.5;
+          return;
+        }
+        const world = screenToWorld(input.pointer.screenX, input.pointer.screenY);
+        input.pointer.x = world.x;
+        input.pointer.y = world.y;
+      }
+
+      function rollSectorModifier() {
+        return pick(SECTOR_MODIFIERS);
+      }
+
+      function updateSector() {
+        const waveProgress = getGlobalWave(state.wave);
+        const nextSector = Math.max(1, Math.ceil(waveProgress / 3));
+        if (nextSector !== state.sector) {
+          state.sector = nextSector;
+          state.sectorMod = rollSectorModifier();
+          if (state.sectorMod) {
+            logEvent(`Sector ${state.sector.toString().padStart(2, "0")} anomaly: ${state.sectorMod.name}.`);
+          }
+        }
+      }
+
+      function rollContracts() {
+        if (state.training || !isFeatureUnlocked("contracts")) return [];
+        const pool = shuffle([...CONTRACT_DEFS]);
+        const count = 2 + Math.round(Math.random());
+        return pool.slice(0, count).map((contract) => ({
+          ...contract,
+          progress: 0,
+          complete: false,
+          factionId: pick(FACTIONS).id
+        }));
+      }
+
+      function getDifficultySettings() {
+        const base = DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal;
+        if (state.difficulty !== "adaptive" || !player) {
+          return base;
+        }
+        const healthRatio = player.health / player.maxHealth;
+        const performance = clamp((healthRatio - 0.5) * 0.35, -0.08, 0.12);
+        return {
+          ...base,
+          enemyScale: base.enemyScale + performance,
+          enemyDamage: base.enemyDamage + performance * 0.6,
+          reward: base.reward + performance * 0.3
+        };
+      }
+
+      function maybeShowRunQuickTip() {
+        if (input.touch.supported) {
+          const parts = ["left stick move", "right stick aim/fire", "boost and brake buttons"];
+          if (isFeatureUnlocked("ability")) parts.push("ability button");
+          if (isFeatureUnlocked("secondary")) parts.push("secondary button");
+          showTip("quick-run-hint", "Touch controls", `${parts.join(", ")}.`, {
+            kind: "info",
+            duration: 6500
+          });
+          return;
+        }
+        const helpKey = formatKeybind(progress.keybinds.help || "h");
+        const abilityKey = formatKeybind(progress.keybinds.ability);
+        const secondaryKey = formatKeybind(progress.keybinds.secondary);
+        const brakeKey = formatKeybind(progress.keybinds.brake || "x");
+        const parts = [];
+        if (isFeatureUnlocked("ability")) {
+          parts.push(`Ability ${abilityKey}`);
+        }
+        if (isFeatureUnlocked("secondary")) {
+          parts.push(`secondary ${secondaryKey}`);
+        }
+        if (getUiTierLevel() >= 1) {
+          parts.push(`air brake ${brakeKey}`);
+        }
+        parts.push(`help ${helpKey}`);
+        showTip("quick-run-hint", "Flight controls", `${parts.join(", ")}.`, {
+          kind: "info",
+          duration: 6500
+        });
+      }
+
+      function startMission() {
+        if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") return;
+        closeCommandMenu();
+        applySettingsFromProgress();
+        state.level = isCampaignRunMode() ? Math.max(1, progress.campaignLevel || 1) : 1;
+        input.keys.clear();
+        input.firing = false;
+        input.padFiring = false;
+        input.boost = false;
+        input.padBrake = false;
+        resetTouchInput();
+        checkProgressionUnlocks();
+        enemies = [];
+        bullets = [];
+        helpers = [];
+        particles = [];
+        lootBursts = [];
+        damageNumbers = [];
+        fieldDrops = [];
+        state.mines = [];
+        state.decoy = null;
+        state.enemyAccuracyMod = 1;
+        state.upgradeStacks = {};
+        state.upgradeOptions = [];
+        state.upgradeRerolls = 0;
+        state.skillSlots = [];
+        state.lossRewards = null;
+        state.levelRewards = null;
+        state.salvageResults = null;
+        state.quickDuration = getRunTimeLimit();
+        state.quickTimer = state.quickDuration;
+        state.dailyChallenge = isDailyMode() ? getDailyChallengeInfo() : null;
+        state.challengeSeed = state.dailyChallenge ? state.dailyChallenge.seed : state.weekly.seed;
+        state.blackHoles = [];
+        state.hazards = [];
+        state.waveObjective = null;
+        state.threatTier = THREAT_TIERS[0].id;
+        state.choiceEvent = null;
+        state.routeBonus = null;
+        state.milestoneRewardsClaimed = {};
+        state.overlayReturnMode = null;
+        state.fieldDropTimer = 0;
+        state.wave = 1;
+        state.score = 0;
+        state.credits = 0;
+        state.kills = 0;
+        state.sector = 1;
+        state.sectorMod = rollSectorModifier();
+        state.training = false;
+        state.tutorialMode = false;
+        state.tutorialFlight = false;
+        state.tutorialGoals = {};
+        state.resumeMode = "flight";
+        state.runActive = true;
+        state.runBanked = false;
+        state.runEndedByAbort = false;
+        state.runHighlights = [];
+        state.runPremiumDrops = 0;
+        state.runDebrief = null;
+        state.lastRunSummary = null;
+        state.telemetryRun = null;
+        state.lastRunTelemetry = null;
+        state.lastRunReason = "";
+        state.targetAssist = null;
+        state.controllerPrevButtons = [];
+        state.lastPlayerDamageAt = performance.now();
+        state.killChain = 0;
+        state.killChainAt = 0;
+        state.waveProfile = "";
+        state.lastContractRender = 0;
+        state.contracts = rollContracts();
+        state.runStart = performance.now();
+        state.waveStart = performance.now();
+        captureRunUnlockBaseline();
+        unlockAchievement("first-sortie");
+        setupWorld();
+        if (isFrontierMode()) {
+          initFrontierRun();
+        } else {
+          state.frontier = null;
+          player = createPlayer();
+        }
+        updateCamera();
+        updatePointerWorld();
+        state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
+        captureCurrentLoadoutAsLastRun();
+        initRunTelemetry();
+        spawnWave(state.wave);
+        hideOverlay();
+        setMode("flight");
+        playAudioCue("launch");
+        maybeShowRunQuickTip();
+        if (state.sectorMod) {
+          logEvent(`Sector 01 anomaly: ${state.sectorMod.name}.`);
+        }
+        if (isFrontierMode()) {
+          logEvent("Frontier patrol launched. Upgrade at the dock.");
+        } else if (isScoreAttackMode()) {
+          logEvent(`Score Attack launched. ${formatDuration(state.quickDuration)} on the clock.`);
+        } else if (isDailyMode()) {
+          logEvent(`Daily Sector ${state.dailyChallenge?.date || ""} launched. Seed ${state.challengeSeed}.`);
+        } else if (isBossRushMode()) {
+          logEvent(`Boss Rush launched. Clear ${BOSS_RUSH_WAVES} capital waves.`);
+        } else {
+          logEvent(`Level ${state.level} launched. Wave 1 inbound.`);
+        }
+        renderContracts();
+      }
+
+      function startTraining() {
+        if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") return;
+        closeCommandMenu();
+        applySettingsFromProgress();
+        const tutorialFlight = state.tutorialFlight === true;
+        state.gameMode = "arcade";
+        input.keys.clear();
+        input.firing = false;
+        input.padFiring = false;
+        input.boost = false;
+        input.padBrake = false;
+        resetTouchInput();
+        checkProgressionUnlocks();
+        state.frontier = null;
+        enemies = [];
+        bullets = [];
+        helpers = [];
+        particles = [];
+        lootBursts = [];
+        damageNumbers = [];
+        fieldDrops = [];
+        state.mines = [];
+        state.decoy = null;
+        state.enemyAccuracyMod = 1;
+        state.upgradeStacks = {};
+        state.upgradeOptions = [];
+        state.upgradeRerolls = 0;
+        state.skillSlots = [];
+        state.lossRewards = null;
+        state.levelRewards = null;
+        state.salvageResults = null;
+        state.quickDuration = 0;
+        state.quickTimer = 0;
+        state.dailyChallenge = null;
+        state.challengeSeed = state.weekly.seed;
+        state.blackHoles = [];
+        state.hazards = [];
+        state.waveObjective = null;
+        state.threatTier = THREAT_TIERS[0].id;
+        state.choiceEvent = null;
+        state.routeBonus = null;
+        state.milestoneRewardsClaimed = {};
+        state.overlayReturnMode = null;
+        state.fieldDropTimer = 0;
+        state.level = 1;
+        state.wave = 1;
+        state.score = 0;
+        state.credits = 0;
+        state.kills = 0;
+        state.sector = 1;
+        state.sectorMod = rollSectorModifier();
+        state.training = true;
+        state.tutorialFlight = tutorialFlight;
+        state.tutorialGoals = tutorialFlight ? getTutorialGoalTemplate() : {};
+        state.resumeMode = "training";
+        state.runActive = true;
+        state.runBanked = false;
+        state.runEndedByAbort = false;
+        state.runHighlights = [];
+        state.runPremiumDrops = 0;
+        state.runDebrief = null;
+        state.lastRunSummary = null;
+        state.telemetryRun = null;
+        state.lastRunTelemetry = null;
+        state.lastRunReason = "";
+        state.targetAssist = null;
+        state.controllerPrevButtons = [];
+        state.lastPlayerDamageAt = performance.now();
+        state.killChain = 0;
+        state.killChainAt = 0;
+        state.waveProfile = "";
+        state.contracts = [];
+        state.runStart = performance.now();
+        state.waveStart = performance.now();
+        state.lastContractRender = 0;
+        captureRunUnlockBaseline();
+        setupWorld();
+        player = createPlayer();
+        state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
+        captureCurrentLoadoutAsLastRun();
+        initRunTelemetry();
+        updateCamera();
+        updatePointerWorld();
+        spawnWave(state.wave);
+        hideOverlay();
+        setMode("training");
+        playAudioCue("launch");
+        maybeShowRunQuickTip();
+        if (state.sectorMod) {
+          logEvent(`Training sector: ${state.sectorMod.name}.`);
+        }
+        logEvent("Training session initiated. No rewards earned.");
+        if (state.tutorialFlight) {
+          logEvent("Flight school checklist active: move, aim, fire, boost, collect, destroy.");
+        }
+        renderContracts();
+      }
+
+      function resetMission() {
+        if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") {
+          triggerAbortRewards();
+          return;
+        }
+        if (state.mode !== "hangar") {
+          endRun("abort");
+        }
+        setMode("hangar");
+        enemies = [];
+        bullets = [];
+        helpers = [];
+        particles = [];
+        lootBursts = [];
+        damageNumbers = [];
+        fieldDrops = [];
+        state.mines = [];
+        state.decoy = null;
+        state.enemyAccuracyMod = 1;
+        state.upgradeStacks = {};
+        state.upgradeOptions = [];
+        state.upgradeRerolls = 0;
+        state.skillSlots = [];
+        state.lossRewards = null;
+        state.levelRewards = null;
+        state.salvageResults = null;
+        state.quickDuration = 0;
+        state.quickTimer = 0;
+        state.dailyChallenge = null;
+        state.challengeSeed = state.weekly.seed;
+        state.blackHoles = [];
+        state.hazards = [];
+        state.waveObjective = null;
+        state.threatTier = THREAT_TIERS[0].id;
+        state.choiceEvent = null;
+        state.routeBonus = null;
+        state.milestoneRewardsClaimed = {};
+        state.overlayReturnMode = null;
+        state.fieldDropTimer = 0;
+        state.level = isCampaignRunMode() ? Math.max(1, progress.campaignLevel || 1) : 1;
+        state.wave = 1;
+        state.score = 0;
+        state.credits = 0;
+        state.kills = 0;
+        state.contracts = [];
+        state.sector = 1;
+        state.sectorMod = null;
+        state.training = false;
+        state.tutorialFlight = false;
+        state.tutorialGoals = {};
+        state.runActive = false;
+        state.runBanked = false;
+        state.runEndedByAbort = false;
+        state.runLoadout = null;
+        state.runHighlights = [];
+        state.runPremiumDrops = 0;
+        state.telemetryRun = null;
+        state.controllerPrevButtons = [];
+        state.lastPlayerDamageAt = 0;
+        state.killChain = 0;
+        state.killChainAt = 0;
+        state.waveProfile = "";
+        state.lastContractRender = 0;
+        state.frontier = null;
+        input.keys.clear();
+        input.firing = false;
+        input.padFiring = false;
+        input.boost = false;
+        input.padBrake = false;
+        resetTouchInput();
+        setupWorld();
+        player = createPlayer();
+        setOverlay("start");
+        renderContracts();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        renderHistory();
+        renderProgressiveUi();
+        logEvent("Run reset. Hangar ready.");
+      }
+
+      function setMode(mode) {
+        state.mode = mode;
+        if (mode === "hangar" && settingsOpen) {
+          closeSettings(false);
+        }
+        if (mode !== "hangar" && commandMenuOpen) {
+          closeCommandMenu();
+        }
+        const labels = {
+          hangar: "Hangar",
+          flight: "In Flight",
+          upgrade: "Upgrade Bay",
+          dock: "Docked",
+          "tier-select": "Tier Uplink",
+          paused: "Paused",
+          gameover: "Wrecked",
+          training: "Training",
+          victory: "Victory"
+        };
+        stats.status.textContent = labels[mode] || "Hangar";
+        updateLayout();
+        queueMinimapRefresh();
+        if (audioController) {
+          audioController.setMode(mode);
+        }
+      }
+
+      function togglePause() {
+        if (state.mode === "dock" || state.mode === "tier-select") {
+          closeFrontierDock();
+        } else if (state.mode === "flight" || state.mode === "training") {
+          setPaused(true);
+        } else if (state.mode === "paused") {
+          setPaused(false);
+        }
+      }
+
+      function toggleHelpOverlay() {
+        if (state.mode === "flight" || state.mode === "training") {
+          setPaused(true);
+          setOverlay("help");
+          return;
+        }
+        if (state.mode === "paused") {
+          if (state.overlayMode === "help") {
+            setPaused(false);
+          } else {
+            setOverlay("help");
+          }
+        }
+      }
+
+      function restoreOverlayReturn() {
+        const nextMode = state.overlayReturnMode || (state.mode === "hangar" ? "start" : null);
+        state.overlayReturnMode = null;
+        if (nextMode) {
+          setOverlay(nextMode);
+        } else {
+          hideOverlay();
+        }
+      }
+
+      function startTutorial() {
+        if (state.mode === "flight" || state.mode === "training") {
+          setPaused(true);
+          state.overlayReturnMode = "paused";
+        } else {
+          state.overlayReturnMode = state.overlayMode || (state.mode === "hangar" ? "start" : null);
+        }
+        state.tutorialMode = true;
+        state.tutorialStep = 0;
+        setOverlay("tutorial");
+      }
+
+      function openGlossary() {
+        if (state.mode === "flight" || state.mode === "training") {
+          setPaused(true);
+          state.overlayReturnMode = "paused";
+        } else {
+          state.overlayReturnMode = state.overlayMode || (state.mode === "hangar" ? "start" : null);
+        }
+        setOverlay("glossary");
+      }
+
+      function setPaused(shouldPause) {
+        if (shouldPause) {
+          state.resumeMode = state.mode === "paused" ? state.resumeMode : state.mode;
+          setMode("paused");
+          setOverlay("paused");
+        } else {
+          setMode(state.resumeMode === "training" ? "training" : "flight");
+          hideOverlay();
+        }
+      }
+
+      function isFrontierMode() {
+        return state.gameMode === "frontier";
+      }
+
+      function isScoreAttackMode() {
+        return state.gameMode === "score";
+      }
+
+      function isDailyMode() {
+        return state.gameMode === "daily";
+      }
+
+      function isBossRushMode() {
+        return state.gameMode === "boss";
+      }
+
+      function isTimedQuickMode() {
+        return isScoreAttackMode() || isDailyMode();
+      }
+
+      function isQuickRunMode() {
+        return isTimedQuickMode() || isBossRushMode();
+      }
+
+      function isCampaignRunMode(mode = state.gameMode) {
+        return normalizeGameMode(mode) === "arcade";
+      }
+
+      function isCampaignMode() {
+        return isCampaignRunMode() && !state.training;
+      }
+
+      function getGlobalWave(wave = state.wave) {
+        if (!isCampaignMode()) return wave;
+        const level = Math.max(1, state.level || progress.campaignLevel || 1);
+        return (level - 1) * LEVEL_WAVES + wave;
+      }
+
+      function getWaveDisplay(wave = state.wave) {
+        if (!isCampaignMode()) return `${wave}`;
+        return `${wave}/${LEVEL_WAVES}`;
+      }
+
+      function getDailyChallengeInfo() {
+        const date = new Date().toISOString().slice(0, 10);
+        let hash = 0;
+        for (let i = 0; i < date.length; i += 1) {
+          hash = (hash * 31 + date.charCodeAt(i)) % 9973;
+        }
+        return {
+          date,
+          seed: `DS-${date.replace(/-/g, "")}-${String(hash).padStart(4, "0")}`
+        };
+      }
+
+      function getRunTimeLimit() {
+        if (isScoreAttackMode()) return SCORE_ATTACK_DURATION_SEC;
+        if (isDailyMode()) return DAILY_SECTOR_DURATION_SEC;
+        return 0;
+      }
+
+      function getActiveMutator() {
+        return state.weekly && state.weekly.mutator ? state.weekly.mutator : null;
+      }
+
+      function getMutatorWaveConfig(globalWave) {
+        const config = {
+          enemyDamage: 1,
+          enemyShieldScale: 1,
+          enemyHealthScale: 1,
+          enemyFireRate: 1,
+          hazardBoost: 0
+        };
+        const mutator = getActiveMutator();
+        if (mutator && typeof mutator.applyWave === "function") {
+          mutator.applyWave(config, globalWave);
+        }
+        if (state.routeBonus && state.routeBonus.wavesRemaining > 0) {
+          if (state.routeBonus.id === "aggression") {
+            config.enemyHealthScale *= 1.08;
+            config.enemyDamage *= 1.08;
+          } else if (state.routeBonus.id === "fortify") {
+            config.enemyDamage *= 0.9;
+          } else if (state.routeBonus.id === "prospector") {
+            config.enemyShieldScale *= 1.05;
+          }
+        }
+        return config;
+      }
+
+      function getFrontierStarterId() {
+        const starters = (FRONTIER_STARTERS || []).filter((id) => progress.shipUnlocks[id]);
+        if (progress.selectedShip && starters.includes(progress.selectedShip)) {
+          return progress.selectedShip;
+        }
+        if (starters.length) return starters[0];
+        return (FRONTIER_STARTERS && FRONTIER_STARTERS[0]) || progress.selectedShip;
+      }
+
+      function initFrontierRun() {
+        const starterId = getFrontierStarterId();
+        const starterShip = getShipById(starterId);
+        const weaponItem = getEquippedWeapon();
+        state.frontier = {
+          active: true,
+          tier: starterShip.tier || 1,
+          shipId: starterShip.id,
+          weaponItem,
+          upgrades: {},
+          spawnTimer: 0
+        };
+        player = createPlayer({ shipId: starterShip.id, weaponItem });
+      }
+
+      function getFrontierUpgradeCost(upgrade, level, tier) {
+        const tierScale = 1 + Math.max(0, tier - 1) * 0.28;
+        const levelScale = 1 + level * 0.48;
+        return Math.round((upgrade.baseCost || 100) * tierScale * levelScale);
+      }
+
+      function getFrontierTierCost(tier) {
+        return Math.round(250 * Math.pow(Math.max(1, tier), 1.28));
+      }
+
+      function getHangarUpgradeCost(upgrade, level) {
+        const baseCost = Number.isFinite(upgrade.baseCost) ? upgrade.baseCost : 1;
+        const scale = Number.isFinite(upgrade.costScale) ? upgrade.costScale : 1.2;
+        return Math.max(1, Math.ceil(baseCost * Math.pow(scale, level)));
+      }
+
+      function getFrontierNextShips() {
+        if (!state.frontier || !state.frontier.shipId) return [];
+        const ship = getShipById(state.frontier.shipId);
+        const nextIds = ship.nextIds || [];
+        return nextIds.map((id) => getShipById(id)).filter(Boolean);
+      }
+
+      function purchaseFrontierUpgrade(id) {
+        if (!isFrontierMode() || !state.frontier || !player) return;
+        const upgrade = FRONTIER_UPGRADES.find((item) => item.id === id);
+        if (!upgrade) return;
+        const level = state.frontier.upgrades[upgrade.id] || 0;
+        const maxLevel = upgrade.maxLevel || 1;
+        if (level >= maxLevel) return;
+        const cost = getFrontierUpgradeCost(upgrade, level, state.frontier.tier);
+        if (state.credits < cost) return;
+        const healthRatio = player.maxHealth ? player.health / player.maxHealth : 1;
+        const shieldRatio = player.maxShield ? player.shield / player.maxShield : 1;
+        const energyRatio = player.maxEnergy ? player.energy / player.maxEnergy : 1;
+        state.credits -= cost;
+        state.frontier.upgrades[upgrade.id] = level + 1;
+        if (upgrade.apply) {
+          upgrade.apply(player, level + 1);
+        }
+        player.health = Math.min(player.maxHealth, player.maxHealth * healthRatio);
+        player.shield = Math.min(player.maxShield, player.maxShield * shieldRatio);
+        player.energy = Math.min(player.maxEnergy, player.maxEnergy * energyRatio);
+        logEvent(`Frontier upgrade installed: ${upgrade.name}.`);
+        renderActiveUpgrades();
+        setOverlay("dock");
+      }
+
+      function toggleFrontierDock() {
+        if (!isFrontierMode()) {
+          logEvent("Frontier dock available in Frontier mode.");
+          return;
+        }
+        if (state.mode === "dock" || state.mode === "tier-select") {
+          closeFrontierDock();
+        } else if (state.mode === "flight") {
+          openFrontierDock();
+        }
+      }
+
+      function openFrontierDock() {
+        if (!isFrontierMode() || !state.frontier || state.mode !== "flight") return;
+        setMode("dock");
+        setOverlay("dock");
+      }
+
+      function closeFrontierDock() {
+        if (state.mode !== "dock" && state.mode !== "tier-select") return;
+        setMode("flight");
+        hideOverlay();
+      }
+
+      function openFrontierTierSelect() {
+        if (!isFrontierMode() || !state.frontier) return;
+        const nextShips = getFrontierNextShips();
+        if (!nextShips.length) return;
+        const cost = getFrontierTierCost(state.frontier.tier);
+        if (state.credits < cost) {
+          logEvent("Not enough credits to upgrade tiers.");
+          return;
+        }
+        setMode("tier-select");
+        setOverlay("tier-select");
+      }
+
+      function selectFrontierShip(id) {
+        if (!isFrontierMode() || !state.frontier) return;
+        const nextShips = getFrontierNextShips().map((ship) => ship.id);
+        if (!nextShips.includes(id)) return;
+        const cost = getFrontierTierCost(state.frontier.tier);
+        if (state.credits < cost) return;
+        const ship = getShipById(id);
+        state.credits -= cost;
+        state.frontier.tier = ship.tier || state.frontier.tier + 1;
+        state.frontier.shipId = ship.id;
+        state.frontier.weaponItem = getEquippedWeapon();
+        state.frontier.upgrades = {};
+        state.frontier.spawnTimer = 0;
+        player = createPlayer({ shipId: ship.id, weaponItem: state.frontier.weaponItem });
+        state.runLoadout = { ship: ship.name, weapon: player.weapon?.name || "Unknown" };
+        logEvent(`Tier ${state.frontier.tier} frame acquired: ${ship.name}.`);
+        closeFrontierDock();
+        renderActiveUpgrades();
+      }
+
+      function spawnWave(wave) {
+        const globalWave = getGlobalWave(wave);
+        const isHardWave = wave % 5 === 0;
+        const isBossWave = isBossRushMode() ? true : (isCampaignMode() ? wave === LEVEL_WAVES : wave % 10 === 0);
+        const baseCount = isBossRushMode()
+          ? Math.min(3 + wave, 8)
+          : Math.min(4 + Math.floor(globalWave * 0.95), 17);
+        const difficulty = getDifficultySettings();
+        const threatTier = resolveThreatTier(globalWave);
+        state.threatTier = threatTier.id;
+        const difficultyAimBonus = state.difficulty === "hard"
+          ? 0.03
+          : state.difficulty === "easy"
+            ? -0.04
+            : 0;
+        state.enemyAccuracyMod = clamp(0.82 + globalWave * 0.009 + difficultyAimBonus, 0.78, 0.94);
+        state.waveObjective = createWaveObjective(globalWave);
+        state.objectiveClearPending = false;
+        const frontierTier = isFrontierMode() && state.frontier ? state.frontier.tier : 1;
+        const mutatorWave = getMutatorWaveConfig(globalWave);
+        const waveRamp = 1
+          + globalWave * 0.056
+          + Math.max(0, globalWave - 12) * 0.009
+          + Math.max(0, globalWave - 20) * 0.012;
+        let enemyScale = waveRamp * difficulty.enemyScale * (1 + (frontierTier - 1) * 0.18) * threatTier.enemyScale;
+        if (isBossRushMode()) {
+          enemyScale *= 0.78 + wave * 0.08;
+        }
+        if (isBossWave) {
+          enemyScale *= 1.1;
+        } else if (isHardWave) {
+          enemyScale *= 1.05;
+        }
+        const densityScale = getWaveDensityScale(globalWave);
+        const hardBonus = isHardWave && !isBossWave ? 2 : 0;
+        const bossBonus = isBossWave && !isBossRushMode() ? 3 : 0;
+        const rawSpawnCount = baseCount
+          + (wave % 3 === 0 ? 1 : 0)
+          + hardBonus
+          + bossBonus
+          + (isFrontierMode() ? Math.max(0, Math.floor((frontierTier - 1) * 1.2)) : 0);
+        const spawnCap = isBossRushMode() ? 10 : (isBossWave ? 20 : 18);
+        const spawnCount = clamp(Math.round(rawSpawnCount * densityScale), 3, spawnCap);
+        const availableTypes = ENEMY_TYPES.filter((type) => {
+          if (type.minWave && globalWave < type.minWave) return false;
+          if (type.maxWave && globalWave > type.maxWave) return false;
+          return true;
+        });
+        const selectionPool = availableTypes.length ? availableTypes : ENEMY_TYPES;
+        const waveProfile = getWaveRoleProfile(globalWave, state.waveObjective?.id, isHardWave, isBossWave);
+        state.waveProfile = waveProfile?.label || "";
+        const spawnRoster = buildWaveSpawnRoster(selectionPool, spawnCount, waveProfile);
+        const forceEliteRate = Math.max(0, threatTier.eliteBonus || 0);
+        for (let i = 0; i < spawnRoster.length; i += 1) {
+          const type = spawnRoster[i];
+          const enemy = createEnemy(type, enemyScale, difficulty);
+          applyWaveEnemyModifiers(enemy, type, mutatorWave, threatTier, {
+            allowForceElite: true,
+            forceEliteRate
+          });
+          enemies.push(enemy);
+        }
+        if (isHardWave && !isBossWave) {
+          const ace = createEnemy(ACE_TYPE, enemyScale + 0.25, difficulty, true);
+          applyWaveEnemyModifiers(ace, ACE_TYPE, mutatorWave, threatTier);
+          enemies.push(ace);
+          logEvent("Hard wave incoming. Enemy ace spotted.");
+        }
+        if (isBossWave) {
+          const boss = createEnemy(BOSS_TYPE, enemyScale + (isBossRushMode() ? 0.18 : 0.5), difficulty, true);
+          applyWaveEnemyModifiers(boss, BOSS_TYPE, mutatorWave, threatTier);
+          enemies.push(boss);
+          logEvent(isBossRushMode() ? `Boss Rush ${wave}/${BOSS_RUSH_WAVES}: dreadnought detected.` : "Boss wave: capital dreadnought detected.");
+        }
+        if (!isBossWave && globalWave >= 6 && (isHardWave || Math.random() < 0.22)) {
+          const miniboss = createMiniBoss(enemyScale, difficulty, threatTier);
+          applyWaveEnemyModifiers(miniboss, { id: miniboss.id }, mutatorWave, threatTier);
+          enemies.push(miniboss);
+          logEvent("Miniboss contact: command-class hostile entering combat.");
+        }
+        spawnWaveHazards(globalWave, threatTier, mutatorWave);
+        if (state.routeBonus && state.routeBonus.wavesRemaining > 0) {
+          state.routeBonus.wavesRemaining -= 1;
+          if (state.routeBonus.wavesRemaining <= 0) {
+            state.routeBonus = null;
+            logEvent("Route bonus expired.");
+          }
+        }
+        updateObjectiveProgressLabel();
+        rebuildEnemySpatialGrid();
+        queueMinimapRefresh();
+      }
+
+      function createMiniBoss(scale, difficulty, threatTier) {
+        const baseType = pick([
+          ENEMY_TYPES.find((item) => item.id === "bulwark"),
+          ENEMY_TYPES.find((item) => item.id === "bomber"),
+          ENEMY_TYPES.find((item) => item.id === "disruptor")
+        ].filter(Boolean));
+        const type = baseType || BOSS_TYPE;
+        const enemy = createEnemy(type, scale * 1.45, difficulty, true);
+        enemy.id = `miniboss-${type.id}`;
+        enemy.name = `Command ${type.name}`;
+        enemy.radius = Math.max(enemy.radius, 20);
+        enemy.maxHealth *= 1.35;
+        enemy.health = enemy.maxHealth;
+        enemy.maxShield *= 1.3;
+        enemy.shield = enemy.maxShield;
+        enemy.baseDamage *= 1.22;
+        enemy.baseFireRate *= 1.1;
+        enemy.score *= 2.1;
+        enemy.credits = Math.round(enemy.credits * 2.2);
+        enemy.color = "#ff9f6b";
+        enemy.miniboss = true;
+        enemy.threatTier = threatTier.id;
+        enemy.phaseThreshold = enemy.maxHealth * 0.55;
+        enemy.phaseActive = false;
+        enemy.phaseTimer = 0;
+        enemy.summonTimer = rand(5, 8);
+        enemy.summonCooldown = rand(8, 11);
+        enemy.dashCooldown = rand(3.2, 4.8);
+        enemy.dashTimer = rand(1, enemy.dashCooldown);
+        enemy.dashStrength = 2.2;
+        return enemy;
+      }
+
+      function spawnWaveHazards(globalWave, threatTier, waveConfig) {
+        state.hazards = [];
+        if (state.training) return;
+        const baseCount = globalWave >= 8 ? 1 : 0;
+        const tierBonus = threatTier.id === "elite" ? 1 : threatTier.id === "mythic" ? 2 : 0;
+        const mutatorBonus = Math.floor((waveConfig?.hazardBoost || 0) * 2);
+        const count = clamp(baseCount + tierBonus + mutatorBonus, 0, 4);
+        for (let i = 0; i < count; i += 1) {
+          const point = randomWorldPosition();
+          state.hazards.push({
+            id: `hazard_${Date.now()}_${i}`,
+            x: point.x,
+            y: point.y,
+            radius: rand(90, 140),
+            damagePerSec: rand(10, 18) * (1 + globalWave * 0.02),
+            slowFactor: 0.85,
+            life: rand(14, 22)
+          });
+        }
+      }
+
+      function getWaveDensityScale(globalWave) {
+        const tiers = BALANCE_TUNING.waveDensitySoftScale || [];
+        for (let i = 0; i < tiers.length; i += 1) {
+          const tier = tiers[i];
+          if (globalWave <= tier.wave) return tier.scale;
+        }
+        return 1;
+      }
+
+      function createEnemy(type, scale, difficulty, forceElite) {
+        const position = randomWorldPosition();
+        const baseHealth = type.health * scale;
+        const baseShield = type.shield * scale;
+        const baseSpeed = type.speed + scale * 12;
+        const baseAccel = type.accel + scale * 16;
+        const baseFireRate = type.fireRate + scale * 0.04;
+        const baseBulletSpeed = type.bulletSpeed + scale * 10;
+        const baseDamage = (type.damage + scale * 1.2) * (difficulty ? difficulty.enemyDamage : 1);
+        const baseTurnRate = type.turnRate || 2.6;
+        const preferredRange = Number.isFinite(type.preferredRange)
+          ? type.preferredRange + rand(-18, 18)
+          : rand(180, 260);
+        const strafeBias = Number.isFinite(type.strafeBias)
+          ? type.strafeBias
+          : (Math.random() > 0.5 ? 1 : -1);
+        const burstCount = type.burstCount || 0;
+        const burstInterval = type.burstInterval || 0.12;
+        const burstCooldown = type.burstCooldown || 1.2;
+        const shieldPulseCooldown = type.shieldPulseCooldown || 0;
+        const ramCooldown = type.ramCooldown || 0;
+        const enemy = {
+          id: type.id,
+          name: type.name,
+          x: position.x,
+          y: position.y,
+          vx: 0,
+          vy: 0,
+          angle: rand(0, Math.PI * 2),
+          radius: type.radius,
+          maxHealth: baseHealth,
+          health: baseHealth,
+          maxShield: baseShield,
+          shield: baseShield,
+          baseSpeed,
+          baseAccel,
+          baseFireRate,
+          baseBulletSpeed,
+          baseDamage,
+          baseTurnRate,
+          fireCooldown: rand(0.2, 0.6),
+          color: type.color,
+          role: type.role || ENEMY_ROLE_MAP[type.id] || "line",
+          credits: type.credits,
+          score: type.score,
+          hitFlash: 0,
+          slowTimer: 0,
+          slowFactor: 1,
+          damageTakenMult: 1,
+          exposedTimer: 0,
+          preferredRange,
+          strafeBias,
+          pattern: type.pattern || (type.spreadCount ? "spread" : "single"),
+          spreadCount: type.spreadCount || 0,
+          spreadAngle: Number.isFinite(type.spreadAngle) ? type.spreadAngle : null,
+          bulletRadius: type.bulletRadius || 3,
+          bulletLife: type.bulletLife || 1.6,
+          bulletTint: type.bulletTint || null,
+          bulletSlowPlayer: !!type.bulletSlowPlayer,
+          bulletSlowDuration: type.bulletSlowDuration || 1.4,
+          burstCount,
+          burstInterval,
+          burstCooldown,
+          burstRemaining: 0,
+          burstTimer: 0,
+          shieldPulseCooldown,
+          shieldPulseTimer: shieldPulseCooldown ? rand(0.3, shieldPulseCooldown) : 0,
+          shieldPulseRadius: type.shieldPulseRadius || 0,
+          shieldPulseAmount: type.shieldPulseAmount || 0,
+          shieldPulseColor: type.shieldPulseColor || "#7ca8ff",
+          shieldPulseSelf: !!type.shieldPulseSelf,
+          ramDamage: type.ramDamage || 0,
+          ramCooldown,
+          ramTimer: ramCooldown ? rand(0.3, ramCooldown) : 0,
+          ramRange: type.ramRange || 0,
+          ramKnockback: type.ramKnockback || 0,
+          navTarget: null,
+          navTimer: 0,
+          navCooldown: 0,
+          stuckTimer: 0,
+          lastTargetDist: null,
+          specialAttack: null
+        };
+        const eliteChance = forceElite ? 1 : (scale > 1.1 && Math.random() < 0.18);
+        if (eliteChance && type.id !== "dreadnought") {
+          applyEliteMod(enemy);
+        }
+        return enemy;
+      }
+
+      function applyWaveEnemyModifiers(enemy, type, mutatorWave, threatTier, options = {}) {
+        if (!enemy) return enemy;
+        const enemyId = type?.id || enemy.id;
+        enemy.threatTier = threatTier.id;
+        enemy.baseDamage *= mutatorWave.enemyDamage;
+        enemy.maxShield *= mutatorWave.enemyShieldScale;
+        enemy.shield = enemy.maxShield;
+        enemy.maxHealth *= mutatorWave.enemyHealthScale;
+        enemy.health = enemy.maxHealth;
+        enemy.baseFireRate *= (mutatorWave.enemyFireRate * (threatTier.fireRate || 1));
+        if (options.allowForceElite && !enemy.elite && enemyId !== "dreadnought" && Math.random() < (options.forceEliteRate || 0)) {
+          applyEliteMod(enemy);
+        }
+        if (threatTier.id === "mythic") {
+          enemy.dashCooldown = rand(3.4, 5.4);
+          enemy.dashTimer = rand(1, enemy.dashCooldown);
+          enemy.dashStrength = 1.8;
+        }
+        if (enemyId === "dreadnought") {
+          initializeBossEnemy(enemy);
+        }
+        return enemy;
+      }
+
+      function initializeBossEnemy(enemy) {
+        if (!enemy || enemy.phaseThresholds) return enemy;
+        enemy.baseFireRateBase = enemy.baseFireRate;
+        enemy.baseDamageBase = enemy.baseDamage;
+        enemy.baseSpeedBase = enemy.baseSpeed;
+        enemy.baseBulletSpeedBase = enemy.baseBulletSpeed;
+        enemy.preferredRange = Math.max(enemy.preferredRange || 0, 320);
+        enemy.phaseThresholds = [0.72, 0.38];
+        enemy.phaseIndex = 0;
+        enemy.phaseName = BOSS_PHASES[0].name;
+        enemy.phaseLockTimer = 0;
+        enemy.commandSummonTimer = 5.5;
+        enemy.commandSummonCooldown = BOSS_PHASES[0].escortCooldown;
+        enemy.broadsideTimer = 4.2;
+        enemy.broadsideCooldown = BOSS_PHASES[0].broadsideCooldown;
+        enemy.shockwaveTimer = 0;
+        enemy.shockwaveCooldown = 0;
+        enemy.shockwaveRadius = 0;
+        enemy.shockwaveDamage = 0;
+        enemy.shockwaveSlow = 0;
+        enemy.phaseEscortIds = BOSS_PHASES[0].escortIds.slice();
+        enemy.phaseEscortCount = BOSS_PHASES[0].escortCount;
+        enemy.phaseBroadsideCount = BOSS_PHASES[0].broadsideCount;
+        enemy.phaseBroadsideAngle = BOSS_PHASES[0].broadsideAngle;
+        enemy.phaseBroadsideDamageMult = BOSS_PHASES[0].broadsideDamageMult;
+        applyBossPhase(enemy, 0, { initial: true });
+        return enemy;
+      }
+
+      function applyBossPhase(enemy, phaseIndex, options = {}) {
+        if (!enemy) return;
+        const safeIndex = clamp(phaseIndex, 0, BOSS_PHASES.length - 1);
+        const phase = BOSS_PHASES[safeIndex];
+        enemy.phaseIndex = safeIndex;
+        enemy.phaseName = phase.name;
+        enemy.baseFireRate = enemy.baseFireRateBase * phase.fireRateMult;
+        enemy.baseDamage = enemy.baseDamageBase * phase.damageMult;
+        enemy.baseSpeed = enemy.baseSpeedBase * phase.speedMult;
+        enemy.baseBulletSpeed = enemy.baseBulletSpeedBase;
+        enemy.commandSummonCooldown = phase.escortCooldown;
+        enemy.phaseEscortIds = phase.escortIds.slice();
+        enemy.phaseEscortCount = phase.escortCount;
+        enemy.broadsideCooldown = phase.broadsideCooldown;
+        enemy.phaseBroadsideCount = phase.broadsideCount;
+        enemy.phaseBroadsideAngle = phase.broadsideAngle;
+        enemy.phaseBroadsideDamageMult = phase.broadsideDamageMult;
+        enemy.shockwaveCooldown = phase.shockwaveCooldown;
+        enemy.shockwaveRadius = phase.shockwaveRadius;
+        enemy.shockwaveDamage = phase.shockwaveDamage;
+        enemy.shockwaveSlow = phase.shockwaveSlow;
+        if (options.initial) return;
+        enemy.phaseLockTimer = 1.35;
+        enemy.invulnerable = Math.max(enemy.invulnerable || 0, 0.9);
+        enemy.specialAttack = null;
+        enemy.commandSummonTimer = enemy.commandSummonCooldown;
+        enemy.broadsideTimer = Math.min(enemy.broadsideCooldown, 2.6);
+        enemy.shockwaveTimer = enemy.shockwaveCooldown > 0 ? Math.min(enemy.shockwaveCooldown, 3.2) : 0;
+        spawnPulse(enemy.x, enemy.y, "#f6c65f", 240);
+        summonBossEscorts(enemy, phase.escortCount, phase.escortIds);
+        logEvent(`Dreadnought phase shift: ${phase.name}.`);
+      }
+
+      function summonBossEscorts(enemy, count, escortIds = []) {
+        if (!enemy || !count || enemies.length >= 36) return;
+        const difficulty = getDifficultySettings();
+        const threatTier = getThreatTierMeta(state.threatTier);
+        const mutatorWave = getMutatorWaveConfig(getGlobalWave(state.wave || 1));
+        const scale = 1.05 + getGlobalWave(state.wave || 1) * 0.05 + (enemy.phaseIndex || 0) * 0.08;
+        const escortPool = escortIds
+          .map((id) => ENEMY_TYPES.find((item) => item.id === id))
+          .filter(Boolean);
+        const available = escortPool.length ? escortPool : ENEMY_TYPES;
+        const weights = available.map((item) => item.weight || 1);
+        for (let i = 0; i < count && enemies.length < 36; i += 1) {
+          const type = pickWeighted(available, weights);
+          const escort = createEnemy(type, scale, difficulty, enemy.phaseIndex >= 2 && type.id !== "bulwark");
+          escort.x = clamp(enemy.x + rand(-120, 120), escort.radius + 24, state.worldWidth - escort.radius - 24);
+          escort.y = clamp(enemy.y + rand(-120, 120), escort.radius + 24, state.worldHeight - escort.radius - 24);
+          applyWaveEnemyModifiers(escort, type, mutatorWave, threatTier);
+          enemies.push(escort);
+        }
+        spawnPulse(enemy.x, enemy.y, "#b98cff", 160);
+      }
+
+      function startBossSpecialAttack(enemy, config) {
+        if (!enemy || !player || enemy.specialAttack) return;
+        const duration = config.duration || 1;
+        if (config.type === "shockwave") {
+          enemy.specialAttack = {
+            type: "shockwave",
+            timer: duration,
+            duration,
+            radius: config.radius || 0,
+            damage: config.damage || 0,
+            slow: config.slow || 0,
+            color: config.color || "#ff9f6b"
+          };
+          return;
+        }
+        const projectileSpeed = enemy.baseBulletSpeed * (config.bulletSpeedMultiplier || 1);
+        const intercept = getPredictedInterceptPoint(enemy, player, projectileSpeed) || { x: player.x, y: player.y };
+        enemy.specialAttack = {
+          type: "broadside",
+          timer: duration,
+          duration,
+          aimX: intercept.x,
+          aimY: intercept.y,
+          aimAngle: Math.atan2(intercept.y - enemy.y, intercept.x - enemy.x),
+          distance: distanceBetween(enemy, player),
+          spreadCount: config.spreadCount || 5,
+          spreadAngle: config.spreadAngle || 0.18,
+          damageMultiplier: config.damageMultiplier || 1.2,
+          bulletSpeedMultiplier: config.bulletSpeedMultiplier || 1.08,
+          bulletRadius: config.bulletRadius || 5,
+          bulletLife: config.bulletLife || 2.2,
+          color: config.color || "#f6c65f"
+        };
+      }
+
+      function setEnemyExposure(enemy, duration, damageMultiplier = 1.28) {
+        if (!enemy || duration <= 0) return;
+        enemy.exposedTimer = Math.max(enemy.exposedTimer || 0, duration);
+        enemy.damageTakenMult = Math.max(enemy.damageTakenMult || 1, damageMultiplier);
+        enemy.hitFlash = Math.max(enemy.hitFlash || 0, 0.12);
+        spawnPulse(enemy.x, enemy.y, "#44d2c2", enemy.radius + 30);
+      }
+
+      function triggerBossShockwave(enemy, attack) {
+        if (!enemy || !attack) return;
+        spawnPulse(enemy.x, enemy.y, attack.color || "#ff9f6b", attack.radius || 180);
+        if (!player) return;
+        if (distanceBetween(enemy, player) > (attack.radius || 0) + player.radius) return;
+        applyDamage(player, attack.damage || 0, { owner: "enemy" });
+        if (attack.slow > 0) {
+          player.slowTimer = Math.max(player.slowTimer || 0, attack.slow);
+        }
+        const pushAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+        player.vx += Math.cos(pushAngle) * 140;
+        player.vy += Math.sin(pushAngle) * 140;
+      }
+
+      function resolveBossSpecialAttack(enemy, attack) {
+        if (!enemy || !attack) return;
+        if (attack.type === "shockwave") {
+          triggerBossShockwave(enemy, attack);
+        } else {
+          fireEnemy(enemy, attack.aimAngle, {
+            spreadCount: attack.spreadCount,
+            spreadAngle: attack.spreadAngle,
+            damageMultiplier: attack.damageMultiplier,
+            bulletSpeed: enemy.baseBulletSpeed * (attack.bulletSpeedMultiplier || 1),
+            bulletRadius: attack.bulletRadius,
+            bulletLife: attack.bulletLife,
+            bulletTint: attack.color,
+            jitter: 0.03
+          });
+          spawnPulse(enemy.x, enemy.y, attack.color || "#f6c65f", 180);
+          enemy.fireCooldown = Math.max(enemy.fireCooldown, 0.75);
+        }
+        setEnemyExposure(enemy, attack.type === "shockwave" ? 2.8 : 2.2, attack.type === "shockwave" ? 1.34 : 1.28);
+      }
+
+      function updateBossBehavior(enemy, delta) {
+        if (!enemy || enemy.id !== "dreadnought" || !player) return;
+        initializeBossEnemy(enemy);
+        const healthRatio = enemy.maxHealth > 0 ? enemy.health / enemy.maxHealth : 1;
+        while (enemy.phaseIndex < enemy.phaseThresholds.length && healthRatio <= enemy.phaseThresholds[enemy.phaseIndex]) {
+          applyBossPhase(enemy, enemy.phaseIndex + 1);
+        }
+        if (enemy.phaseLockTimer > 0) {
+          enemy.phaseLockTimer = Math.max(0, enemy.phaseLockTimer - delta);
+        }
+        enemy.commandSummonTimer = Math.max(0, (enemy.commandSummonTimer || 0) - delta);
+        enemy.broadsideTimer = Math.max(0, (enemy.broadsideTimer || 0) - delta);
+        if (enemy.shockwaveCooldown > 0) {
+          enemy.shockwaveTimer = Math.max(0, (enemy.shockwaveTimer || 0) - delta);
+        }
+        if (enemy.specialAttack) {
+          enemy.specialAttack.timer = Math.max(0, enemy.specialAttack.timer - delta);
+          if (enemy.specialAttack.timer <= 0) {
+            resolveBossSpecialAttack(enemy, enemy.specialAttack);
+            enemy.specialAttack = null;
+          }
+          return;
+        }
+        if (enemy.phaseLockTimer > 0) return;
+        if (enemy.commandSummonTimer <= 0 && enemies.length < 34) {
+          summonBossEscorts(enemy, enemy.phaseEscortCount, enemy.phaseEscortIds);
+          enemy.commandSummonTimer = enemy.commandSummonCooldown;
+          return;
+        }
+        const playerDistance = distanceBetween(enemy, player);
+        if (enemy.shockwaveCooldown > 0 && enemy.shockwaveTimer <= 0 && playerDistance <= enemy.shockwaveRadius + 120) {
+          startBossSpecialAttack(enemy, {
+            type: "shockwave",
+            duration: 1.05,
+            radius: enemy.shockwaveRadius,
+            damage: enemy.shockwaveDamage,
+            slow: enemy.shockwaveSlow,
+            color: "#ff9f6b"
+          });
+          enemy.shockwaveTimer = enemy.shockwaveCooldown;
+          return;
+        }
+        if (enemy.broadsideTimer <= 0 && playerDistance <= 780) {
+          startBossSpecialAttack(enemy, {
+            type: "broadside",
+            duration: 1.15,
+            spreadCount: enemy.phaseBroadsideCount,
+            spreadAngle: enemy.phaseBroadsideAngle,
+            damageMultiplier: enemy.phaseBroadsideDamageMult,
+            bulletSpeedMultiplier: 1.1 + enemy.phaseIndex * 0.05,
+            bulletRadius: 5,
+            bulletLife: 2.2,
+            color: "#f6c65f"
+          });
+          enemy.broadsideTimer = enemy.broadsideCooldown;
+        }
+      }
+
+      function applyEliteMod(enemy) {
+        const mod = pick(ELITE_MODS);
+        enemy.elite = mod;
+        if (mod.mods.maxShield) {
+          enemy.maxShield *= 1 + mod.mods.maxShield;
+          enemy.shield = enemy.maxShield;
+        }
+        if (mod.mods.speed) {
+          enemy.baseSpeed *= mod.mods.speed;
+        }
+        if (mod.mods.accel) {
+          enemy.baseAccel *= mod.mods.accel;
+        }
+        if (mod.mods.damage) {
+          enemy.baseDamage *= mod.mods.damage;
+        }
+        if (mod.mods.fireRate) {
+          enemy.baseFireRate *= mod.mods.fireRate;
+        }
+        enemy.color = mod.color || enemy.color;
+      }
+
+      function randomWorldPosition() {
+        const padding = 60;
+        const minDistance = player ? 240 : 0;
+        for (let i = 0; i < 12; i += 1) {
+          const position = {
+            x: rand(padding, state.worldWidth - padding),
+            y: rand(padding, state.worldHeight - padding)
+          };
+          if (isPointInObstacle(position, 50)) continue;
+          if (player && distanceBetween(position, player) < minDistance) continue;
+          return position;
+        }
+        return {
+          x: clamp(state.worldWidth * 0.5 + rand(-120, 120), padding, state.worldWidth - padding),
+          y: clamp(state.worldHeight * 0.5 + rand(-120, 120), padding, state.worldHeight - padding)
+        };
+      }
+
+      function loop(timestamp) {
+        const perfMode = getPerfMode();
+        const shouldMeasure = perfMode !== "off" || perfLog.active;
+        const rawDeltaMs = Math.max(0, timestamp - state.lastTime || 0);
+        const delta = Math.min(0.033, rawDeltaMs / 1000 || 0);
+        state.lastTime = timestamp;
+        updateAdaptiveQuality(rawDeltaMs);
+        if (shouldMeasure) {
+          perfFrameActive = true;
+          resetPerfBuckets("update");
+          resetPerfBuckets("render");
+          const frameStart = performance.now();
+          const updateStart = performance.now();
+          update(delta);
+          const updateEnd = performance.now();
+          renderFrame();
+          const renderEnd = performance.now();
+          updateHud();
+          const hudEnd = performance.now();
+          recordPerformance(
+            frameStart,
+            updateEnd - updateStart,
+            renderEnd - updateEnd,
+            hudEnd - renderEnd,
+            rawDeltaMs,
+            delta * 1000
+          );
+          perfFrameActive = false;
+        } else {
+          perfFrameActive = false;
+          update(delta);
+          renderFrame();
+          updateHud();
+        }
+        requestAnimationFrame(loop);
+      }
+
+      function update(delta) {
+        let perfStart = perfFrameActive ? performance.now() : 0;
+        state.frameDelta = delta;
+        updateStars(delta);
+        updateParticles(delta);
+        updatePulses(delta);
+        updateLootBursts(delta);
+        updateDamageNumbers(delta);
+        updateScreenShake(delta);
+        trackOnboarding(delta);
+        perfStart = markPerfBucket("update", "ambient", perfStart);
+        if (state.mode !== "flight" && state.mode !== "training") {
+          return;
+        }
+        updateCamera(delta);
+        updatePointerWorld();
+        pollGamepadInput(delta);
+        updatePlayer(delta);
+        updateDecoy(delta);
+        updateFieldDrops(delta);
+        perfStart = markPerfBucket("update", "player", perfStart);
+        rebuildEnemySpatialGrid();
+        updateHazards(delta);
+        updateEnemies(delta);
+        rebuildEnemySpatialGrid();
+        perfStart = markPerfBucket("update", "enemies", perfStart);
+        updateBlackHoles(delta);
+        updateSkillSystems(delta);
+        updateHelpers(delta);
+        perfStart = markPerfBucket("update", "systems", perfStart);
+        updateBullets(delta);
+        updateMines(delta);
+        updateContracts(delta);
+        handleCollisions();
+        updateTargetAssist();
+        updateCombatMomentum(performance.now());
+        maybeShowAdaptiveCoaching(delta);
+        perfStart = markPerfBucket("update", "collisions", perfStart);
+        updateWaveObjective(delta);
+        if (updateQuickRunTimer(delta)) {
+          markPerfBucket("update", "wave", perfStart);
+          return;
+        }
+        if (isFrontierMode()) {
+          updateFrontierSpawner(delta);
+        } else {
+          checkWaveStatus();
+        }
+        markPerfBucket("update", "wave", perfStart);
+      }
+
+      function updateQuickRunTimer(delta) {
+        if (!isTimedQuickMode() || state.training || !state.runActive) return false;
+        state.quickTimer = Math.max(0, (state.quickTimer || 0) - delta);
+        if (state.quickTimer > 0) return false;
+        finishQuickRun("time");
+        return true;
+      }
+
+      function trackOnboarding(delta) {
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        state.onboardingTimer += delta;
+        if (state.onboardingTimer < 1) return;
+        const elapsed = Math.floor(state.onboardingTimer);
+        state.onboardingTimer -= elapsed;
+        progress.onboarding = progress.onboarding || { flightSeconds: 0 };
+        progress.onboarding.flightSeconds = (progress.onboarding.flightSeconds || 0) + elapsed;
+        state.onboardingSave += elapsed;
+        checkProgressionUnlocks();
+        if (state.onboardingSave >= 12) {
+          state.onboardingSave = 0;
+          saveProgress();
+        }
+      }
+
+      function pollGamepadInput() {
+        if (!navigator.getGamepads) return;
+        const pads = navigator.getGamepads();
+        const pad = Array.from(pads || []).find((item) => item && item.connected);
+        state.controllerConnected = !!pad;
+        if (!pad) {
+          input.padMoveX = 0;
+          input.padMoveY = 0;
+          input.padAimX = 0;
+          input.padAimY = 0;
+          input.padFiring = false;
+          input.padBrake = false;
+          return;
+        }
+        input.padMoveX = Math.abs(pad.axes[0] || 0) > 0.15 ? (pad.axes[0] || 0) : 0;
+        input.padMoveY = Math.abs(pad.axes[1] || 0) > 0.15 ? (pad.axes[1] || 0) : 0;
+        input.padAimX = Math.abs(pad.axes[2] || 0) > 0.2 ? (pad.axes[2] || 0) : 0;
+        input.padAimY = Math.abs(pad.axes[3] || 0) > 0.2 ? (pad.axes[3] || 0) : 0;
+        const readButton = (index) => {
+          const btn = pad.buttons[index];
+          return !!(btn && btn.pressed);
+        };
+        const firePressed = readButton(7) || readButton(5);
+        const boostPressed = readButton(0);
+        const brakePressed = readButton(4);
+        const abilityPressed = readButton(1);
+        const secondaryPressed = readButton(2);
+        const dockPressed = readButton(3);
+        const pausePressed = readButton(9);
+        const helpPressed = readButton(8);
+        const previous = state.controllerPrevButtons || [];
+        const wasPressed = (index) => !!previous[index];
+        if (abilityPressed && !wasPressed(1)) {
+          activateAbility();
+        }
+        if (secondaryPressed && !wasPressed(2)) {
+          activateSecondary();
+        }
+        if (dockPressed && !wasPressed(3)) {
+          toggleFrontierDock();
+        }
+        if (pausePressed && !wasPressed(9)) {
+          togglePause();
+        }
+        if (helpPressed && !wasPressed(8)) {
+          toggleHelpOverlay();
+        }
+        state.controllerPrevButtons = [false, abilityPressed, secondaryPressed, dockPressed, false, firePressed, false, firePressed, helpPressed, pausePressed];
+        input.padFiring = firePressed;
+        input.boost = boostPressed;
+        input.padBrake = brakePressed;
+        if (input.padAimX || input.padAimY) {
+          input.aimAngle = Math.atan2(input.padAimY, input.padAimX);
+          input.aimSource = "keyboard";
+        }
+      }
+
+      function updateHazards(delta) {
+        if (!state.hazards || !state.hazards.length) return;
+        for (let i = state.hazards.length - 1; i >= 0; i -= 1) {
+          const hazard = state.hazards[i];
+          hazard.life -= delta;
+          if (hazard.life <= 0) {
+            removeArrayIndex(state.hazards, i);
+            continue;
+          }
+          if (player && distanceBetween(player, hazard) <= hazard.radius + player.radius) {
+            applyDamage(player, hazard.damagePerSec * delta, { owner: "enemy" });
+            player.slowTimer = Math.max(player.slowTimer || 0, 0.18);
+            if (state.telemetryRun) {
+              state.telemetryRun.hazardTicks += 1;
+            }
+          }
+          forEachEnemyNear(hazard, hazard.radius + MAX_COLLISION_RADIUS, (enemy) => {
+            if (!circlesOverlap(enemy, hazard)) return false;
+            applyDamage(enemy, hazard.damagePerSec * delta * 0.75, { owner: "player" });
+            enemy.slowTimer = Math.max(enemy.slowTimer || 0, 0.18);
+            if (enemy.health <= 0) {
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
+            }
+            return false;
+          });
+        }
+      }
+
+      function updateWaveObjective(delta) {
+        if (!state.waveObjective || state.mode !== "flight") return;
+        const objective = state.waveObjective;
+        if (objective.complete) return;
+        if (objective.id === "survive") {
+          objective.timer = Math.max(0, (objective.timer || 0) - delta);
+          if (objective.timer <= 0) {
+            objective.complete = true;
+            enemies = [];
+            logEvent("Objective complete: survival timer held.");
+            if (state.telemetryRun) state.telemetryRun.objectiveCompletions += 1;
+          }
+        } else if (objective.id === "elite-hunt") {
+          if ((objective.progress || 0) >= (objective.target || 0)) {
+            objective.complete = true;
+            enemies = [];
+            logEvent("Objective complete: priority targets neutralized.");
+            if (state.telemetryRun) state.telemetryRun.objectiveCompletions += 1;
+          }
+        } else if (objective.id === "eliminate" && enemies.length === 0) {
+          objective.complete = true;
+          if (state.telemetryRun) state.telemetryRun.objectiveCompletions += 1;
+        }
+        updateObjectiveProgressLabel();
+      }
+
+      function updateStars(delta) {
+        const width = state.worldWidth || state.width;
+        const height = state.worldHeight || state.height;
+        stars.forEach((star) => {
+          star.x += star.speed * delta * 0.03;
+          star.y += star.speed * delta * 0.18;
+          if (star.x < 0) star.x += width;
+          if (star.x > width) star.x -= width;
+          if (star.y < 0) star.y += height;
+          if (star.y > height) star.y -= height;
+        });
+      }
+
+      function updateParticles(delta) {
+        for (let i = particles.length - 1; i >= 0; i -= 1) {
+          const particle = particles[i];
+          particle.x += particle.vx * delta;
+          particle.y += particle.vy * delta;
+          particle.life -= delta;
+          if (particle.life <= 0) {
+            releaseEffect(effectPools.particles, removeArrayIndex(particles, i));
+          }
+        }
+      }
+
+      function updatePulses(delta) {
+        for (let i = pulses.length - 1; i >= 0; i -= 1) {
+          const pulse = pulses[i];
+          pulse.life -= delta;
+          pulse.radius = Math.min(pulse.maxRadius, pulse.radius + pulse.speed * delta);
+          if (pulse.life <= 0) {
+            releaseEffect(effectPools.pulses, removeArrayIndex(pulses, i));
+          }
+        }
+      }
+
+      function updateBlackHoles(delta) {
+        if (!state.blackHoles || !state.blackHoles.length) return;
+        for (let i = state.blackHoles.length - 1; i >= 0; i -= 1) {
+          const hole = state.blackHoles[i];
+          hole.life -= delta;
+          if (hole.life <= 0) {
+            removeArrayIndex(state.blackHoles, i);
+            continue;
+          }
+          forEachEnemyNear(hole, hole.radius + MAX_COLLISION_RADIUS, (enemy) => {
+            const dx = hole.x - enemy.x;
+            const dy = hole.y - enemy.y;
+            const dist = Math.hypot(dx, dy) || 1;
+            if (dist > hole.radius) return false;
+            const pull = (1 - dist / hole.radius) * hole.force;
+            enemy.vx += (dx / dist) * pull * delta;
+            enemy.vy += (dy / dist) * pull * delta;
+            if (hole.damage > 0) {
+              applyDamage(enemy, hole.damage * delta, { owner: "player" });
+              if (enemy.health <= 0) {
+                const index = enemies.indexOf(enemy);
+                if (index >= 0) {
+                  destroyEnemy(enemy, index);
+                }
+              }
+            }
+            return false;
+          });
+        }
+      }
+
+      function updateLootBursts(delta) {
+        for (let i = lootBursts.length - 1; i >= 0; i -= 1) {
+          const burst = lootBursts[i];
+          burst.life -= delta;
+          burst.y += burst.vy * delta;
+          if (burst.life <= 0) {
+            removeArrayIndex(lootBursts, i);
+          }
+        }
+      }
+
+      function updateDamageNumbers(delta) {
+        for (let i = damageNumbers.length - 1; i >= 0; i -= 1) {
+          const burst = damageNumbers[i];
+          burst.life -= delta;
+          burst.x += burst.vx * delta;
+          burst.y += burst.vy * delta;
+          if (burst.life <= 0) {
+            releaseEffect(effectPools.damageNumbers, removeArrayIndex(damageNumbers, i));
+          }
+        }
+      }
+
+      function prefersReducedMotion() {
+        return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      }
+
+      function addScreenShake(amount) {
+        if (prefersReducedMotion()) return;
+        state.screenShake = Math.min(18, Math.max(state.screenShake || 0, amount || 0));
+      }
+
+      function updateScreenShake(delta) {
+        if (!state.screenShake) return;
+        state.screenShake = Math.max(0, state.screenShake - delta * 34);
+      }
+
+      function getScreenShakeOffset() {
+        const amount = state.screenShake || 0;
+        if (!amount) return { x: 0, y: 0 };
+        const now = performance.now();
+        return {
+          x: Math.sin(now * 0.09) * amount,
+          y: Math.cos(now * 0.075) * amount * 0.72
+        };
+      }
+
+      function updatePlayer(delta) {
+        if (!player) return;
+        if (player.slowTimer > 0) {
+          player.slowTimer = Math.max(0, player.slowTimer - delta);
+        }
+        player.slowFactor = player.slowTimer > 0 ? 0.7 : 1;
+        const wasCriticalHull = !!player.isCriticalHull;
+        const wasBraking = !!player.braking;
+        const wasBoosting = !!player.boosting;
+        const keyboardAim = getKeyboardAimVector();
+        const touchAimActive = input.touch.firing && Math.hypot(input.touch.aimX || 0, input.touch.aimY || 0) > 0;
+        if (touchAimActive) {
+          input.aimAngle = Math.atan2(input.touch.aimY, input.touch.aimX);
+          input.aimSource = "touch";
+          noteTutorialGoal("aim");
+        } else if (keyboardAim.active) {
+          input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
+          input.aimSource = "keyboard";
+          noteTutorialGoal("aim");
+        } else if (input.aimMode === "hybrid" && input.pointer.active) {
+          input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
+          input.aimSource = "mouse";
+          if (input.pointer.moved) {
+            noteTutorialGoal("aim");
+          }
+        }
+        const braking = isActionActive("brake") || input.padBrake || input.touch.brake;
+        player.braking = braking;
+        if (state.telemetryRun) {
+          if (braking) {
+            state.telemetryRun.brakeSeconds += delta;
+          }
+          if (braking && !wasBraking) {
+            state.telemetryRun.brakeUses += 1;
+          }
+        }
+        const turnRate = (player.turnRate || 0)
+          * (player.slowFactor || 1)
+          * (braking ? state.brakeTurnBoost : 1);
+        player.angle = rotateTowards(player.angle, input.aimAngle, turnRate * delta);
+        input.pointer.moved = false;
+
+        if (player.abilityCooldown > 0) {
+          player.abilityCooldown = Math.max(0, player.abilityCooldown - delta);
+        }
+        if (player.abilityTimer > 0) {
+          player.abilityTimer = Math.max(0, player.abilityTimer - delta);
+          if (player.abilityTimer <= 0 && player.ability && player.ability.onEnd) {
+            player.ability.onEnd(player, state);
+          }
+        }
+        if (player.secondaryCooldown > 0) {
+          player.secondaryCooldown = Math.max(0, player.secondaryCooldown - delta);
+        }
+        if (player.invulnerable > 0) {
+          player.invulnerable = Math.max(0, player.invulnerable - delta);
+        }
+        if (player.damageBoostTimer > 0) {
+          player.damageBoostTimer = Math.max(0, player.damageBoostTimer - delta);
+          if (player.damageBoostTimer <= 0) {
+            player.damageBoostMultiplier = 1;
+          }
+        }
+        if (player.speedBoostTimer > 0) {
+          player.speedBoostTimer = Math.max(0, player.speedBoostTimer - delta);
+          if (player.speedBoostTimer <= 0) {
+            player.speedBoostMultiplier = 1;
+          }
+        }
+
+        const allowArrowThrust = input.aimMode !== "keyboard";
+        const thrustForward = isActionActive("forward") || (allowArrowThrust && hasKey("arrowup"));
+        const thrustBack = isActionActive("back") || (allowArrowThrust && hasKey("arrowdown"));
+        const strafeLeft = isActionActive("left") || (allowArrowThrust && hasKey("arrowleft"));
+        const strafeRight = isActionActive("right") || (allowArrowThrust && hasKey("arrowright"));
+        const padX = clamp((input.padMoveX || 0) + (input.touch.moveX || 0), -1, 1);
+        const padY = clamp((input.padMoveY || 0) + (input.touch.moveY || 0), -1, 1);
+        const boosting = (isActionActive("boost") || input.boost || input.touch.boost) && player.energy > player.boostCost * delta;
+        player.boosting = boosting;
+
+        if (state.telemetryRun) {
+          if (boosting) {
+            state.telemetryRun.boostSeconds += delta;
+          }
+          if (boosting && !wasBoosting) {
+            state.telemetryRun.boostBursts += 1;
+          }
+        }
+
+        if (boosting) {
+          noteTutorialGoal("boost");
+          player.energy = Math.max(0, player.energy - player.boostCost * delta);
+        }
+
+        const playerMod = state.sectorMod ? state.sectorMod.player : {};
+        const slowFactor = player.slowFactor || 1;
+        const speedBoost = player.speedBoostTimer > 0 ? (player.speedBoostMultiplier || 1) : 1;
+        const accel = player.accel * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor * speedBoost;
+        let ax = 0;
+        let ay = 0;
+        player.thrusting = false;
+
+        if (thrustForward) {
+          ax += Math.cos(player.angle) * accel;
+          ay += Math.sin(player.angle) * accel;
+          player.thrusting = true;
+        }
+        if (thrustBack) {
+          ax -= Math.cos(player.angle) * accel * 0.6;
+          ay -= Math.sin(player.angle) * accel * 0.6;
+          player.thrusting = true;
+        }
+        if (strafeLeft) {
+          ax += Math.cos(player.angle - Math.PI / 2) * accel * 0.7;
+          ay += Math.sin(player.angle - Math.PI / 2) * accel * 0.7;
+          player.thrusting = true;
+        }
+        if (strafeRight) {
+          ax += Math.cos(player.angle + Math.PI / 2) * accel * 0.7;
+          ay += Math.sin(player.angle + Math.PI / 2) * accel * 0.7;
+          player.thrusting = true;
+        }
+        if (padX || padY) {
+          ax += padX * accel * 0.9;
+          ay += padY * accel * 0.9;
+          player.thrusting = true;
+        }
+        if (player.thrusting) {
+          noteTutorialGoal("move");
+        }
+
+        player.vx += ax * delta;
+        player.vy += ay * delta;
+
+        const damping = Math.max(0, 1 - (player.damping + (braking ? state.brakeDrag : 0)) * delta);
+        player.vx *= damping;
+        player.vy *= damping;
+
+        const speedLimit = player.maxSpeed
+          * (boosting ? player.boostMultiplier : 1)
+          * (playerMod.speed || 1)
+          * slowFactor
+          * speedBoost
+          * (braking ? state.brakeSpeedClamp : 1);
+        const speed = Math.hypot(player.vx, player.vy);
+        if (speed > speedLimit) {
+          const ratio = speedLimit / speed;
+          player.vx *= ratio;
+          player.vy *= ratio;
+        }
+
+        const hullRatio = player.maxHealth > 0 ? player.health / player.maxHealth : 1;
+        player.isCriticalHull = hullRatio <= 0.35;
+        if (state.telemetryRun) {
+          if (player.isCriticalHull) {
+            state.telemetryRun.lowHullSeconds += delta;
+          }
+          if (player.isCriticalHull && !wasCriticalHull) {
+            state.telemetryRun.criticalHullEvents += 1;
+          }
+        }
+
+        player.x += player.vx * delta;
+        player.y += player.vy * delta;
+        wrapEntity(player);
+        resolveObstacleCollisions(player);
+        wrapEntity(player);
+
+        player.fireCooldown = Math.max(0, player.fireCooldown - delta);
+        player.shieldCooldown = Math.max(0, player.shieldCooldown - delta);
+
+        const energyRegen = player.energyRegen * (playerMod.energyRegen || 1);
+        const shieldRegen = player.shieldRegen * (playerMod.shieldRegen || 1);
+        player.energy = Math.min(player.maxEnergy, player.energy + energyRegen * delta);
+        if (player.shieldCooldown <= 0) {
+          player.shield = Math.min(player.maxShield, player.shield + shieldRegen * delta);
+        }
+
+        if (player.hitFlash > 0) {
+          player.hitFlash = Math.max(0, player.hitFlash - delta);
+        }
+
+        const firing = input.firing || input.padFiring || input.touch.firing || isActionActive("fire");
+        const energyCost = player.energyCost * (playerMod.energyCost || 1) * BALANCE_TUNING.playerEnergyCostScale;
+        if (firing && player.fireCooldown <= 0 && player.energy >= energyCost) {
+          firePlayer();
+        }
+      }
+
+      function updateSkillSystems(delta) {
+        if (!player) return;
+        updateAura(delta);
+        updateMineDeployment(delta);
+        updateShockwave(delta);
+        updateMissiles(delta);
+      }
+
+      function updateAura(delta) {
+        if (player.auraRadius <= 0 || player.auraDamage <= 0) return;
+        player.auraTimer = (player.auraTimer || 0) - delta;
+        if (player.auraTimer > 0) return;
+        const interval = player.auraInterval || 0.45;
+        player.auraTimer = interval;
+        const damage = player.auraDamage * interval;
+        forEachEnemyNear(player, player.auraRadius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (circlesOverlap(player, enemy, player.auraRadius - (player.radius || 0))) {
+            applyDamage(enemy, damage, { owner: "player" });
+            if (enemy.health <= 0) {
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
+            }
+          }
+          return false;
+        });
+      }
+
+      function updateMineDeployment(delta) {
+        if (player.mineDropChance <= 0 || player.mineRadius <= 0 || player.mineDamage <= 0) return;
+        player.mineTimer = (player.mineTimer || 0) - delta;
+        if (player.mineTimer > 0) return;
+        player.mineTimer = player.mineInterval || 1.2;
+        if (Math.random() < player.mineDropChance) {
+          state.mines.push({
+            x: player.x + rand(-10, 10),
+            y: player.y + rand(-10, 10),
+            radius: player.mineRadius,
+            damage: player.mineDamage,
+            timer: player.mineDuration || 5
+          });
+        }
+      }
+
+      function updateShockwave(delta) {
+        if (player.shockwaveInterval <= 0 || player.shockwaveRadius <= 0 || player.shockwaveDamage <= 0) return;
+        player.shockwaveTimer = (player.shockwaveTimer || 0) - delta;
+        if (player.shockwaveTimer > 0) return;
+        player.shockwaveTimer = player.shockwaveInterval;
+        spawnPulse(player.x, player.y, "#7ca8ff", player.shockwaveRadius);
+        forEachEnemyNear(player, player.shockwaveRadius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (circlesOverlap(player, enemy, player.shockwaveRadius - (player.radius || 0))) {
+            applyDamage(enemy, player.shockwaveDamage, { owner: "player" });
+            if (player.shockwaveSlow > 0) {
+              enemy.slowTimer = Math.max(enemy.slowTimer || 0, player.shockwaveSlow);
+            }
+            if (enemy.health <= 0) {
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
+            }
+          }
+          return false;
+        });
+      }
+
+      function updateMissiles(delta) {
+        if (player.missileInterval <= 0 || player.missileDamage <= 0 || player.missileCount <= 0) return;
+        player.missileTimer = (player.missileTimer || 0) - delta;
+        if (player.missileTimer > 0) return;
+        const target = getNearestEnemy(player.x, player.y, 520);
+        if (!target) return;
+        player.missileTimer = player.missileInterval;
+        const count = Math.max(1, player.missileCount);
+        for (let i = 0; i < count; i += 1) {
+          const angle = Math.atan2(target.y - player.y, target.x - player.x) + rand(-0.2, 0.2);
+          const speed = player.missileSpeed || 520;
+          bullets.push({
+            owner: "player",
+            x: player.x + Math.cos(angle) * (player.radius + 6),
+            y: player.y + Math.sin(angle) * (player.radius + 6),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 3,
+            life: 1.6,
+            damage: player.missileDamage,
+            tint: "#f6c65f"
+          });
+        }
+      }
+
+      function updateHelpers(delta) {
+        if (!player || player.helperCount <= 0) {
+          helpers = [];
+          return;
+        }
+        const rawCount = Math.min(6, Math.max(1, player.helperCount));
+        const count = rawCount <= 3
+          ? rawCount
+          : Math.min(5, 3 + Math.floor((rawCount - 3) * 0.5));
+        const orbitRadius = player.helperOrbitRadius || 26;
+        const orbitSpeed = player.helperOrbitSpeed || 1.4;
+        while (helpers.length < count) {
+          helpers.push({
+            angle: Math.random() * Math.PI * 2,
+            fireCooldown: rand(0.1, 0.6)
+          });
+        }
+        if (helpers.length > count) {
+          helpers = helpers.slice(0, count);
+        }
+        const baseAngle = player.angle;
+        helpers.forEach((helper, index) => {
+          helper.angle += orbitSpeed * delta;
+          const offset = helper.angle + (index * Math.PI * 2) / count;
+          helper.x = player.x + Math.cos(offset) * orbitRadius;
+          helper.y = player.y + Math.sin(offset) * orbitRadius;
+          helper.fireCooldown = Math.max(0, helper.fireCooldown - delta);
+        });
+        const target = getNearestEnemy(player.x, player.y, player.helperRange || 360);
+        if (!target) return;
+        const baseRate = Math.max(0.4, player.helperFireRate || 1.2);
+        const helperPenalty = 1 + Math.max(0, helpers.length - 2) * BALANCE_TUNING.helperRatePenaltyPerExtra;
+        const rate = Math.max(0.35, baseRate / helperPenalty);
+        helpers.forEach((helper) => {
+          if (helper.fireCooldown > 0) return;
+          fireHelper(helper, target);
+          helper.fireCooldown = 1 / rate;
+        });
+      }
+
+      function fireHelper(helper, target) {
+        if (!helper || !target) return;
+        const angle = Math.atan2(target.y - helper.y, target.x - helper.x) + rand(-0.1, 0.1);
+        const speed = player.bulletSpeed * 0.9;
+        const helperPenalty = 1 / (1 + Math.max(0, helpers.length - 2) * BALANCE_TUNING.helperDamagePenaltyPerExtra);
+        const damage = player.damage * (player.helperDamageRatio || 0.3) * helperPenalty;
+        bullets.push({
+          owner: "player",
+          x: helper.x + Math.cos(angle) * 6,
+          y: helper.y + Math.sin(angle) * 6,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 2.6,
+          life: 1.4,
+          damage,
+          tint: "#6ee7b7"
+        });
+      }
+
+      function getNearestEnemy(x, y, range) {
+        let best = null;
+        const origin = { x, y };
+        let bestDistSq = Number.isFinite(range) ? range * range : Infinity;
+        const consider = (enemy) => {
+          const distanceSq = distanceSquared(origin, enemy);
+          if (distanceSq < bestDistSq) {
+            best = enemy;
+            bestDistSq = distanceSq;
+          }
+        };
+        if (Number.isFinite(range)) {
+          forEachEnemyNear(origin, range + MAX_COLLISION_RADIUS, (enemy) => {
+            consider(enemy);
+            return false;
+          });
+        } else {
+          for (let i = 0; i < enemies.length; i += 1) {
+            consider(enemies[i]);
+          }
+        }
+        return best;
+      }
+
+      function getPredictedInterceptPoint(origin, target, projectileSpeed) {
+        if (!origin || !target || !Number.isFinite(projectileSpeed) || projectileSpeed <= 0) {
+          return null;
+        }
+        const relX = target.x - origin.x;
+        const relY = target.y - origin.y;
+        const targetVx = target.vx || 0;
+        const targetVy = target.vy || 0;
+        const speedSq = projectileSpeed * projectileSpeed;
+        const velocitySq = targetVx * targetVx + targetVy * targetVy;
+        const a = velocitySq - speedSq;
+        const b = 2 * (relX * targetVx + relY * targetVy);
+        const c = relX * relX + relY * relY;
+        let time = 0;
+        if (Math.abs(a) < 0.0001) {
+          if (Math.abs(b) > 0.0001) {
+            time = -c / b;
+          }
+        } else {
+          const discriminant = b * b - 4 * a * c;
+          if (discriminant >= 0) {
+            const root = Math.sqrt(discriminant);
+            const t1 = (-b - root) / (2 * a);
+            const t2 = (-b + root) / (2 * a);
+            const times = [t1, t2].filter((value) => Number.isFinite(value) && value > 0);
+            if (times.length) {
+              time = Math.min(...times);
+            }
+          }
+        }
+        if (!Number.isFinite(time) || time <= 0) {
+          const distance = Math.sqrt(c);
+          time = clamp(distance / projectileSpeed, 0.05, 0.75);
+        } else {
+          time = Math.min(1.1, time);
+        }
+        return {
+          x: target.x + targetVx * time,
+          y: target.y + targetVy * time,
+          time
+        };
+      }
+
+      function resolveTargetAssist(previousTarget = null) {
+        if (!player || !enemies.length || (progress.settings.targetAssist || "on") === "off") {
+          return null;
+        }
+        if (state.mode !== "flight" && state.mode !== "training") {
+          return null;
+        }
+        const aimTarget = getAimTarget();
+        const inputMode = progress.settings.inputMode || "hybrid";
+        const mouseAiming = input.aimSource === "mouse" && inputMode === "hybrid" && input.pointer.active;
+        const acquireRadius = mouseAiming ? 130 : 170;
+        const stickyRadius = acquireRadius + 56;
+        const maxAngle = mouseAiming ? 0.48 : 0.64;
+        const maxDistance = mouseAiming ? 940 : 780;
+        let best = null;
+        let bestScore = Infinity;
+        forEachEnemyNear(player, maxDistance + MAX_COLLISION_RADIUS, (enemy) => {
+          const distance = Math.sqrt(distanceSquared(player, enemy));
+          if (distance > maxDistance) return false;
+          const aimDistance = Math.hypot(enemy.x - aimTarget.x, enemy.y - aimTarget.y);
+          const angleToEnemy = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+          const angleDiff = Math.abs(normalizeAngle(angleToEnemy - player.angle));
+          const sticky = previousTarget && enemy === previousTarget;
+          const allowedAimDistance = sticky ? stickyRadius : acquireRadius;
+          if (aimDistance > allowedAimDistance && angleDiff > maxAngle) return false;
+          const threatBonus = isPriorityEnemy(enemy) ? 82 : (enemy.baseDamage >= 14 ? 28 : 0);
+          const stickyBonus = sticky ? 72 : 0;
+          const score = aimDistance + angleDiff * 190 + distance * 0.03 - threatBonus - stickyBonus;
+          if (score < bestScore) {
+            bestScore = score;
+            best = {
+              enemy,
+              distance,
+              aimDistance,
+              angleDiff
+            };
+          }
+          return false;
+        });
+        if (!best) {
+          return null;
+        }
+        const intercept = getPredictedInterceptPoint(player, best.enemy, player.bulletSpeed);
+        if (!intercept) {
+          return null;
+        }
+        const radius = best.enemy === previousTarget ? stickyRadius : acquireRadius;
+        const distanceFactor = clamp(1 - best.aimDistance / (radius + 40), 0, 1);
+        const angleFactor = clamp(1 - best.angleDiff / Math.max(0.18, maxAngle), 0, 1);
+        const threatFactor = isPriorityEnemy(best.enemy) ? 0.14 : 0;
+        const lockStrength = clamp(distanceFactor * 0.65 + angleFactor * 0.35 + threatFactor, 0, 1);
+        if (lockStrength <= 0.04) {
+          return null;
+        }
+        return {
+          enemy: best.enemy,
+          leadX: intercept.x,
+          leadY: intercept.y,
+          angle: Math.atan2(intercept.y - player.y, intercept.x - player.x),
+          distance: best.distance,
+          aimDistance: best.aimDistance,
+          lockStrength
+        };
+      }
+
+      function updateTargetAssist() {
+        const previousTarget = state.targetAssist && enemies.includes(state.targetAssist.enemy)
+          ? state.targetAssist.enemy
+          : null;
+        state.targetAssist = resolveTargetAssist(previousTarget);
+      }
+
+      function getActiveTargetAssist() {
+        if (!state.targetAssist || (progress.settings.targetAssist || "on") === "off") {
+          return null;
+        }
+        if (state.mode !== "flight" && state.mode !== "training") {
+          return null;
+        }
+        if (!state.targetAssist.enemy || !enemies.includes(state.targetAssist.enemy)) {
+          return null;
+        }
+        return state.targetAssist;
+      }
+
+      function getPlayerShotAngle() {
+        if (!player) return 0;
+        const previousTarget = state.targetAssist && state.targetAssist.enemy ? state.targetAssist.enemy : null;
+        const assist = resolveTargetAssist(previousTarget);
+        if (!assist) {
+          return player.angle;
+        }
+        state.targetAssist = assist;
+        const inputMode = progress.settings.inputMode || "hybrid";
+        const mouseAiming = input.aimSource === "mouse" && inputMode === "hybrid" && input.pointer.active;
+        const maxAssistAngle = mouseAiming ? 0.07 : 0.13;
+        const assistPull = mouseAiming ? 0.42 : 0.72;
+        const angleDelta = normalizeAngle(assist.angle - player.angle);
+        return normalizeAngle(player.angle + clamp(angleDelta * assistPull * assist.lockStrength, -maxAssistAngle, maxAssistAngle));
+      }
+
+      function activateAbility() {
+        if (!player || !player.ability) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        if (!isFeatureUnlocked("ability")) {
+          showTip("locked-ability", "Ability locked", getFeatureHint("ability"), { kind: "lock" });
+          return;
+        }
+        if (player.abilityCooldown > 0 || player.abilityTimer > 0) return;
+        player.abilityTimer = player.ability.duration || 0;
+        player.abilityCooldown = player.ability.cooldown || 0;
+        if (player.ability.onStart) {
+          player.ability.onStart(player, state);
+        }
+        if (state.telemetryRun) {
+          state.telemetryRun.abilityUses += 1;
+        }
+        playAudioCue("ability");
+      }
+
+      function activateSecondary() {
+        if (!player || !player.secondary) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        if (!isFeatureUnlocked("secondary")) {
+          showTip("locked-secondary", "Secondary locked", getFeatureHint("secondary"), { kind: "lock" });
+          return;
+        }
+        if (player.secondaryCooldown > 0) return;
+        player.secondaryCooldown = player.secondary.cooldown || 0;
+        if (player.secondary.activate) {
+          player.secondary.activate(player, state);
+        }
+        if (state.telemetryRun) {
+          state.telemetryRun.secondaryUses += 1;
+        }
+        playAudioCue("secondary");
+      }
+
+      function updateEnemies(delta) {
+        const difficulty = getDifficultySettings();
+        enemies.forEach((enemy) => {
+          enemy.fireCooldown = Math.max(0, enemy.fireCooldown - delta);
+          if (enemy.hitFlash > 0) {
+            enemy.hitFlash = Math.max(0, enemy.hitFlash - delta);
+          }
+          if (enemy.invulnerable > 0) {
+            enemy.invulnerable = Math.max(0, enemy.invulnerable - delta);
+          }
+          if (enemy.exposedTimer > 0) {
+            enemy.exposedTimer = Math.max(0, (enemy.exposedTimer || 0) - delta);
+            if (enemy.exposedTimer <= 0) {
+              enemy.damageTakenMult = 1;
+            }
+          }
+          if (enemy.slowTimer > 0) {
+            enemy.slowTimer = Math.max(0, enemy.slowTimer - delta);
+            enemy.slowFactor = enemy.slowTimer > 0 ? 0.6 : 1;
+          }
+          if (enemy.shieldPulseCooldown > 0) {
+            enemy.shieldPulseTimer = Math.max(0, enemy.shieldPulseTimer - delta);
+          }
+          if (enemy.ramCooldown > 0) {
+            enemy.ramTimer = Math.max(0, enemy.ramTimer - delta);
+          }
+          if (enemy.dashCooldown > 0) {
+            enemy.dashTimer = Math.max(0, (enemy.dashTimer || 0) - delta);
+          }
+          if (enemy.miniboss) {
+            if (!enemy.phaseActive && enemy.health <= (enemy.phaseThreshold || 0)) {
+              enemy.phaseActive = true;
+              enemy.phaseTimer = 2.6;
+              enemy.invulnerable = 2.2;
+              spawnPulse(enemy.x, enemy.y, "#ff9f6b", 210);
+              logEvent("Miniboss phase shift detected.");
+            }
+            if (enemy.phaseActive) {
+              enemy.phaseTimer = Math.max(0, (enemy.phaseTimer || 0) - delta);
+              if (enemy.phaseTimer <= 0) {
+                enemy.phaseActive = false;
+              }
+            }
+            enemy.summonTimer = Math.max(0, (enemy.summonTimer || 0) - delta);
+            if (enemy.summonTimer <= 0 && enemies.length < 36) {
+              const interceptor = ENEMY_TYPES.find((item) => item.id === "interceptor") || ENEMY_TYPES[0];
+              const addCount = 2;
+              for (let s = 0; s < addCount; s += 1) {
+                const summoned = createEnemy(interceptor, 1.1 + (state.wave || 1) * 0.04, difficulty, true);
+                summoned.x = clamp(enemy.x + rand(-70, 70), 30, state.worldWidth - 30);
+                summoned.y = clamp(enemy.y + rand(-70, 70), 30, state.worldHeight - 30);
+                enemies.push(summoned);
+              }
+              enemy.summonTimer = enemy.summonCooldown || 9;
+              spawnPulse(enemy.x, enemy.y, "#b98cff", 150);
+            }
+          }
+          if (enemy.burstRemaining > 0) {
+            enemy.burstTimer = Math.max(0, enemy.burstTimer - delta);
+          }
+
+          const target = state.decoy && state.decoy.timer > 0 ? state.decoy : player;
+          const dx = target.x - enemy.x;
+          const dy = target.y - enemy.y;
+          const distance = Math.hypot(dx, dy) || 1;
+          const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
+          const leadTime = Math.min(0.8, distance / bulletSpeed);
+          const targetX = target.x + (target.vx || 0) * leadTime;
+          const targetY = target.y + (target.vy || 0) * leadTime;
+          const aimAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
+          const exposureSlow = enemy.exposedTimer > 0 ? 0.82 : 1;
+          const turnRate = (enemy.baseTurnRate || 0) * enemy.slowFactor * exposureSlow;
+          enemy.angle = rotateTowards(enemy.angle, aimAngle, turnRate * delta);
+
+          const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor * exposureSlow;
+          let ax = 0;
+          let ay = 0;
+          const moveTarget = getEnemyNavigationTarget(enemy, target, delta, distance);
+          const moveDx = moveTarget.x - enemy.x;
+          const moveDy = moveTarget.y - enemy.y;
+          const moveDistance = Math.hypot(moveDx, moveDy) || 1;
+          const toTargetX = moveDx / moveDistance;
+          const toTargetY = moveDy / moveDistance;
+          const currentSpeed = Math.hypot(enemy.vx, enemy.vy);
+          const isDetouring = moveTarget !== target;
+
+          if (isDetouring || distance > enemy.preferredRange) {
+            ax += toTargetX * accel;
+            ay += toTargetY * accel;
+          } else {
+            const strafeAngle = aimAngle + Math.PI / 2 * enemy.strafeBias;
+            ax += Math.cos(strafeAngle) * accel * 0.85;
+            ay += Math.sin(strafeAngle) * accel * 0.85;
+          }
+
+          const avoidance = getObstacleAvoidance(enemy, toTargetX, toTargetY);
+          ax += avoidance.x * accel * 0.65;
+          ay += avoidance.y * accel * 0.65;
+          const edgeAvoidance = getBoundaryAvoidance(enemy, toTargetX, toTargetY);
+          ax += edgeAvoidance.x * accel * 0.85;
+          ay += edgeAvoidance.y * accel * 0.85;
+          if ((isDetouring || distance > enemy.preferredRange * 0.7) && currentSpeed < 34) {
+            ax += toTargetX * accel * 0.45;
+            ay += toTargetY * accel * 0.45;
+          }
+
+          enemy.vx += ax * delta;
+          enemy.vy += ay * delta;
+
+          const damping = Math.max(0, 1 - 2 * delta);
+          enemy.vx *= damping;
+          enemy.vy *= damping;
+
+          const maxSpeed = enemy.baseSpeed * (state.sectorMod?.enemy?.speed || 1) * enemy.slowFactor * exposureSlow;
+          const speed = Math.hypot(enemy.vx, enemy.vy);
+          if (speed > maxSpeed) {
+            const ratio = maxSpeed / speed;
+            enemy.vx *= ratio;
+            enemy.vy *= ratio;
+          }
+
+          enemy.x += enemy.vx * delta;
+          enemy.y += enemy.vy * delta;
+          wrapEntity(enemy);
+          resolveObstacleCollisions(enemy);
+          wrapEntity(enemy);
+
+          if (enemy.dashCooldown > 0 && enemy.dashTimer <= 0 && player) {
+            const angleToPlayer = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+            const dashPower = (enemy.baseSpeed || 200) * (enemy.dashStrength || 1.8);
+            enemy.vx += Math.cos(angleToPlayer) * dashPower;
+            enemy.vy += Math.sin(angleToPlayer) * dashPower;
+            enemy.dashTimer = enemy.dashCooldown;
+            spawnPulse(enemy.x, enemy.y, enemy.miniboss ? "#ff9f6b" : "#b98cff", enemy.miniboss ? 150 : 90);
+          }
+
+          if (enemy.shieldPulseCooldown > 0 && enemy.shieldPulseTimer <= 0) {
+            const radius = enemy.shieldPulseRadius || 0;
+            const amount = enemy.shieldPulseAmount || 0;
+            if (amount > 0) {
+              enemies.forEach((ally) => {
+                if (radius <= 0) {
+                  if (!enemy.shieldPulseSelf || ally !== enemy) return;
+                } else if (distanceBetween(enemy, ally) > radius) {
+                  return;
+                }
+                ally.shield = Math.min(ally.maxShield, ally.shield + amount);
+              });
+            }
+            spawnPulse(enemy.x, enemy.y, enemy.shieldPulseColor || "#7ca8ff", radius || 120);
+            enemy.shieldPulseTimer = enemy.shieldPulseCooldown;
+          }
+
+          if (enemy.ramDamage > 0 && player && enemy.ramTimer <= 0) {
+            const playerDistance = distanceBetween(enemy, player);
+            const ramRange = enemy.ramRange || (enemy.radius + player.radius + 8);
+            if (playerDistance <= ramRange) {
+              applyDamage(player, enemy.ramDamage, { owner: "enemy" });
+              enemy.ramTimer = enemy.ramCooldown || 0;
+              enemy.hitFlash = 0.2;
+              spawnPulse(enemy.x, enemy.y, "#f06969", 90);
+              if (enemy.ramKnockback) {
+                const pushAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                player.vx += Math.cos(pushAngle) * enemy.ramKnockback;
+                player.vy += Math.sin(pushAngle) * enemy.ramKnockback;
+              }
+            }
+          }
+
+          const fireRate = enemy.baseFireRate * (state.sectorMod?.enemy?.fireRate || 1);
+          const inRange = distance < 520;
+          if (enemy.burstRemaining > 0) {
+            if (enemy.burstTimer <= 0 && inRange) {
+              fireEnemy(enemy, enemy.angle);
+              enemy.burstRemaining -= 1;
+              enemy.burstTimer = enemy.burstInterval || 0.12;
+            }
+          } else if (enemy.fireCooldown <= 0 && inRange) {
+            if (enemy.burstCount > 1) {
+              fireEnemy(enemy, enemy.angle);
+              enemy.burstRemaining = enemy.burstCount - 1;
+              enemy.burstTimer = enemy.burstInterval || 0.12;
+              enemy.fireCooldown = enemy.burstCooldown || (1 / fireRate);
+            } else {
+              fireEnemy(enemy, enemy.angle);
+              enemy.fireCooldown = 1 / fireRate;
+            }
+          }
+        });
+      }
+
+      function updateBullets(delta) {
+        for (let i = bullets.length - 1; i >= 0; i -= 1) {
+          const bullet = bullets[i];
+          bullet.x += bullet.vx * delta;
+          bullet.y += bullet.vy * delta;
+          bullet.life -= delta;
+          if (isPointInObstacle(bullet, bullet.radius + 2)) {
+            removeArrayIndex(bullets, i);
+            continue;
+          }
+          if (bullet.life <= 0 || isOutOfBounds(bullet)) {
+            removeArrayIndex(bullets, i);
+          }
+        }
+      }
+
+      function updateDecoy(delta) {
+        if (!state.decoy) return;
+        state.decoy.timer -= delta;
+        if (state.decoy.timer <= 0) {
+          state.decoy = null;
+        }
+      }
+
+      function updateMines(delta) {
+        if (!state.mines.length) return;
+        for (let i = state.mines.length - 1; i >= 0; i -= 1) {
+          const mine = state.mines[i];
+          mine.timer -= delta;
+          if (mine.timer <= 0) {
+            removeArrayIndex(state.mines, i);
+            continue;
+          }
+          forEachEnemyNear(mine, mine.radius + MAX_COLLISION_RADIUS, (enemy) => {
+            if (!circlesOverlap(mine, enemy)) return false;
+            applyDamage(enemy, mine.damage || 40, { owner: "player" });
+            spawnExplosion(mine.x, mine.y, "#f6c65f");
+            removeArrayIndex(state.mines, i);
+            if (enemy.health <= 0) {
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
+            }
+            return true;
+          });
+        }
+      }
+
+      function getFieldDropInterval() {
+        const wave = Math.max(1, getGlobalWave(state.wave || 1));
+        return Math.max(7, FIELD_DROP_INTERVAL - wave * 0.25);
+      }
+
+      function spawnFieldDrop() {
+        if (fieldDrops.length >= FIELD_DROP_LIMIT) return;
+        const def = rollFieldDropDef();
+        const point = getFieldDropSpawnPoint();
+        fieldDrops.push({
+          id: `drop_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          typeId: def.id,
+          x: point.x,
+          y: point.y,
+          radius: 16,
+          life: FIELD_DROP_LIFETIME,
+          maxLife: FIELD_DROP_LIFETIME,
+          phase: rand(0, Math.PI * 2)
+        });
+      }
+
+      function triggerNovaStrike(def) {
+        if (!player || !enemies.length) return;
+        const wave = Math.max(1, getGlobalWave(state.wave || 1));
+        const damage = Math.round(30 + wave * (def.damageScale || 4));
+        const pulseRadius = Math.max(state.worldWidth, state.worldHeight);
+        spawnPulse(player.x, player.y, "#f6c65f", pulseRadius);
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const enemy = enemies[i];
+          applyDamage(enemy, damage, { owner: "player" });
+          if (enemy.health <= 0) {
+            destroyEnemy(enemy, i);
+          }
+        }
+        logEvent("Nova strike detonated across the sector.");
+      }
+
+      function applyFieldDropEffect(drop) {
+        if (!drop || !player) return;
+        const def = getFieldDropDef(drop.typeId);
+        if (!def) return;
+        noteTutorialGoal("pickup");
+        if (def.id === "nova") {
+          triggerNovaStrike(def);
+          return;
+        }
+        if (def.id === "hull") {
+          const amount = Math.round(player.maxHealth * (def.healRatio || 0.3));
+          const before = player.health;
+          player.health = Math.min(player.maxHealth, player.health + amount);
+          const restored = Math.round(player.health - before);
+          spawnPulse(player.x, player.y, "#6ee7b7", 140);
+          logEvent(`Hull patch applied: +${restored} hull.`);
+          return;
+        }
+        if (def.id === "shield") {
+          const amount = Math.round(player.maxShield * (def.healRatio || 0.35));
+          const before = player.shield;
+          player.shield = Math.min(player.maxShield, player.shield + amount);
+          const restored = Math.round(player.shield - before);
+          spawnPulse(player.x, player.y, "#7ca8ff", 140);
+          logEvent(`Shield battery charged: +${restored} shield.`);
+          return;
+        }
+        if (def.id === "energy") {
+          const amount = Math.round(player.maxEnergy * (def.healRatio || 0.35));
+          const before = player.energy;
+          player.energy = Math.min(player.maxEnergy, player.energy + amount);
+          const restored = Math.round(player.energy - before);
+          spawnPulse(player.x, player.y, "#44d2c2", 140);
+          logEvent(`Energy cell absorbed: +${restored} energy.`);
+          return;
+        }
+        if (def.id === "invuln") {
+          player.invulnerable = Math.max(player.invulnerable, def.duration || 4);
+          spawnPulse(player.x, player.y, "#f6c65f", 160);
+          logEvent("Phase ward online. Invulnerable.");
+          return;
+        }
+        if (def.id === "damage") {
+          player.damageBoostTimer = Math.max(player.damageBoostTimer || 0, def.duration || 6);
+          player.damageBoostMultiplier = Math.max(player.damageBoostMultiplier || 1, def.multiplier || 2);
+          spawnPulse(player.x, player.y, "#f48b7f", 160);
+          logEvent("Overcharge active. Damage doubled.");
+          return;
+        }
+        if (def.id === "speed") {
+          player.speedBoostTimer = Math.max(player.speedBoostTimer || 0, def.duration || 6);
+          player.speedBoostMultiplier = Math.max(player.speedBoostMultiplier || 1, def.multiplier || 1.3);
+          spawnPulse(player.x, player.y, "#6ee7b7", 160);
+          logEvent("Afterburners engaged. Speed boosted.");
+        }
+      }
+
+      function updateFieldDrops(delta) {
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        state.fieldDropTimer += delta;
+        const interval = getFieldDropInterval();
+        if (state.fieldDropTimer >= interval) {
+          state.fieldDropTimer = state.fieldDropTimer % interval;
+          spawnFieldDrop();
+        }
+        for (let i = fieldDrops.length - 1; i >= 0; i -= 1) {
+          const drop = fieldDrops[i];
+          drop.life -= delta;
+          if (drop.life <= 0) {
+            removeArrayIndex(fieldDrops, i);
+            continue;
+          }
+          if (player && distanceBetween(player, drop) <= (drop.radius || 16) + player.radius) {
+            applyFieldDropEffect(drop);
+            removeArrayIndex(fieldDrops, i);
+          }
+        }
+      }
+
+      function handleCollisions() {
+        for (let i = bullets.length - 1; i >= 0; i -= 1) {
+          const bullet = bullets[i];
+          if (bullet.owner === "player") {
+            forEachEnemyNear(bullet, bullet.radius + MAX_COLLISION_RADIUS, (enemy) => {
+              if (!circlesOverlap(bullet, enemy)) return false;
+              if (state.telemetryRun) {
+                state.telemetryRun.shotsHit += 1;
+              }
+              applyDamage(enemy, bullet.damage, bullet);
+              if (bullet.splashRadius && bullet.splashRadius > 0) {
+                applySplashDamage(enemy, bullet);
+              }
+              triggerArcChain(enemy, bullet);
+              if (enemy.health <= 0) {
+                const index = enemies.indexOf(enemy);
+                if (index >= 0) {
+                  destroyEnemy(enemy, index);
+                }
+              }
+              if (bullet.pierce && bullet.pierce > 0) {
+                bullet.pierce -= 1;
+              } else {
+                removeArrayIndex(bullets, i);
+              }
+              return true;
+            });
+          } else if (bullet.owner === "enemy") {
+            if (player.invulnerable <= 0 && circlesOverlap(bullet, player)) {
+              applyDamage(player, bullet.damage, bullet);
+              removeArrayIndex(bullets, i);
+              if (player.health <= 0) {
+                triggerGameOver();
+              }
+            }
+          }
+        }
+      }
+
+      function applySplashDamage(primary, bullet) {
+        const radius = bullet.splashRadius || 0;
+        if (!radius) return;
+        const splashDamage = bullet.damage * (bullet.splashDamage || 0.6);
+        const radiusSq = radius * radius;
+        forEachEnemyNear(primary, radius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (enemy === primary) return false;
+          if (distanceSquared(primary, enemy) <= radiusSq) {
+            applyDamage(enemy, splashDamage, bullet);
+            if (enemy.health <= 0) {
+              const index = enemies.indexOf(enemy);
+              if (index >= 0) {
+                destroyEnemy(enemy, index);
+              }
+            }
+          }
+          return false;
+        });
+      }
+
+      function findArcTarget(primary, radius) {
+        let target = null;
+        let closestSq = radius * radius;
+        forEachEnemyNear(primary, radius + MAX_COLLISION_RADIUS, (enemy) => {
+          if (enemy === primary) return false;
+          const distanceSq = distanceSquared(primary, enemy);
+          if (distanceSq <= closestSq) {
+            closestSq = distanceSq;
+            target = enemy;
+          }
+          return false;
+        });
+        return target;
+      }
+
+      function triggerArcChain(primary, bullet) {
+        if (!bullet || !bullet.arcDamage || !bullet.arcRadius || !bullet.arcChains) return;
+        if (bullet.arcRequiresSlow && (!primary.slowTimer || primary.slowTimer <= 0)) return;
+        const target = findArcTarget(primary, bullet.arcRadius);
+        if (!target) return;
+        bullet.arcChains -= 1;
+        const chainIndex = bullet.arcChainIndex || 0;
+        bullet.arcChainIndex = chainIndex + 1;
+        const arcFalloff = 1 / (1 + chainIndex * BALANCE_TUNING.arcChainFalloffPerJump);
+        const arcDamage = bullet.damage * bullet.arcDamage * arcFalloff;
+        applyDamage(target, arcDamage, { owner: "player" });
+        spawnPulse(target.x, target.y, "#7ca8ff", Math.min(160, bullet.arcRadius));
+        const targetIndex = enemies.indexOf(target);
+        if (target.health <= 0 && targetIndex >= 0) {
+          destroyEnemy(target, targetIndex);
+        }
+      }
+
+      function updateContracts(delta) {
+        if (!state.contracts.length || state.training) return;
+        let changed = false;
+        const now = performance.now();
+        state.contracts.forEach((contract) => {
+          if (contract.complete) return;
+          if (contract.type === "noDamage") {
+            const prev = contract.progress;
+            contract.progress = Math.min(contract.target, contract.progress + delta);
+            if (Math.floor(contract.progress) !== Math.floor(prev)) {
+              changed = true;
+            }
+            if (contract.progress >= contract.target) {
+              completeContract(contract);
+            }
+          }
+        });
+        if (changed && now - state.lastContractRender > 250) {
+          state.lastContractRender = now;
+          renderContracts();
+        }
+      }
+
+      function resetNoDamageContracts() {
+        if (!state.contracts.length) return;
+        let updated = false;
+        state.contracts.forEach((contract) => {
+          if (contract.type === "noDamage" && !contract.complete) {
+            contract.progress = 0;
+            updated = true;
+          }
+        });
+        if (updated) {
+          renderContracts();
+        }
+      }
+
+      function completeContract(contract) {
+        contract.complete = true;
+        contract.progress = contract.target;
+        state.credits += contract.reward.credits;
+        awardXp(contract.reward.xp, { deferPersistence: true });
+        progress.factions[contract.factionId] = (progress.factions[contract.factionId] || 0) + contract.reward.rep;
+        queueProgressSave();
+        renderContracts();
+        queueSidebarRefresh();
+        logEvent(`Contract complete: ${contract.title}.`);
+      }
+
+      function updateKillContracts(enemy) {
+        if (!state.contracts.length) return;
+        let updated = false;
+        state.contracts.forEach((contract) => {
+          if (contract.complete) return;
+          if (contract.type === "kills") {
+            contract.progress += 1;
+            updated = true;
+            if (contract.progress >= contract.target) {
+              completeContract(contract);
+            }
+          }
+          if (contract.type === "elite" && (enemy.elite || enemy.id === "dreadnought" || enemy.id === "ace")) {
+            contract.progress = contract.target;
+            updated = true;
+            completeContract(contract);
+          }
+        });
+        if (updated) {
+          queueContractsRefresh();
+        }
+      }
+
+      function maybeDropLoot(enemy) {
+        const isBoss = enemy.id === "dreadnought";
+        const isElite = enemy.elite || enemy.id === "ace";
+        const dropPity = ensureDropPityState();
+        ensurePremiumState();
+        progress.premiumDropPity = Number.isFinite(progress.premiumDropPity)
+          ? Math.max(0, Math.floor(progress.premiumDropPity))
+          : 0;
+        const drops = [];
+        const keyChance = isBoss ? 1 : isElite ? 0.38 : 0.14;
+        const pityKeyReady = isElite && !isBoss && dropPity.key >= DROP_PITY_THRESHOLDS.key;
+        if (pityKeyReady || Math.random() < keyChance) {
+          progress.salvageKeys += 1;
+          dropPity.key = 0;
+          if (pityKeyReady) {
+            logEvent("Pity drop: salvage key recovered from elite wreckage.");
+          } else {
+            logEvent("Salvage key recovered from the wreckage.");
+          }
+          drops.push({
+            label: "Salvage Key +1",
+            tier: isBoss ? "epic" : isElite ? "rare" : "uncommon"
+          });
+        } else if (isElite) {
+          dropPity.key += 1;
+        }
+        const blueprintChance = isBoss ? 1 : isElite ? 0.32 : 0.1;
+        const pityBlueprintReady = isElite && !isBoss && dropPity.blueprint >= DROP_PITY_THRESHOLDS.blueprint;
+        if (pityBlueprintReady || Math.random() < blueprintChance) {
+          progress.blueprints += 1;
+          dropPity.blueprint = 0;
+          if (pityBlueprintReady) {
+            logEvent("Pity drop: blueprint recovered from elite debris.");
+          } else {
+            logEvent("Blueprint recovered from debris.");
+          }
+          drops.push({
+            label: "Blueprint +1",
+            tier: isBoss ? "epic" : isElite ? "rare" : "uncommon"
+          });
+        } else if (isElite) {
+          dropPity.blueprint += 1;
+        }
+
+        if ((isElite || isBoss) && state.runPremiumDrops < PREMIUM_DROP_RUN_CAP) {
+          const pityReady = !isBoss && progress.premiumDropPity >= PREMIUM_DROP_PITY_THRESHOLD;
+          const routeBonus = state.routeBonus && state.routeBonus.id === "prospector" ? 0.1 : 0;
+          const dropChance = isBoss ? 1 : Math.max(0.18, 0.34 - state.runPremiumDrops * 0.05 + routeBonus);
+          if (pityReady || Math.random() < dropChance) {
+            const premiumAmount = isBoss ? randInt(4, 6) : randInt(1, 2);
+            progress.premiumCurrency += premiumAmount;
+            progress.premiumDropPity = 0;
+            state.runPremiumDrops += 1;
+            const capReached = state.runPremiumDrops >= PREMIUM_DROP_RUN_CAP;
+            if (pityReady) {
+              logEvent(`${PREMIUM_CURRENCY_LABEL} pity cache recovered (+${premiumAmount}).`);
+            } else {
+              logEvent(capReached
+                ? `${PREMIUM_CURRENCY_LABEL} cache recovered (+${premiumAmount}). Run drop limit reached.`
+                : `${PREMIUM_CURRENCY_LABEL} cache recovered (+${premiumAmount}).`);
+            }
+            drops.push({
+              label: `${PREMIUM_CURRENCY_LABEL} +${premiumAmount}`,
+              tier: isBoss ? "legendary" : "epic"
+            });
+          } else if (isElite) {
+            progress.premiumDropPity += 1;
+          }
+        }
+
+        const attachmentChance = isBoss ? 0.8 : isElite ? 0.4 : 0.14;
+        if (Math.random() < attachmentChance) {
+          const attachmentTier = rollItemTier(null, isBoss
+            ? [1.6, 2.4, 2.1, 1.5, 0.9]
+            : isElite ? [3.8, 3, 2.4, 1.4, 0.7] : null);
+          const attachment = createAttachmentItem({ tier: attachmentTier });
+          if (attachment) {
+            addInventoryItem(attachment, { notify: true });
+            logEvent(`Recovered attachment: ${attachment.name}.`);
+            drops.push({
+              label: `Attachment: ${attachment.name}`,
+              tier: attachment.tier
+            });
+          }
+        }
+
+        const weaponChance = isBoss ? 0.6 : isElite ? 0.28 : 0.09;
+        if (Math.random() < weaponChance) {
+          const weaponTier = rollItemTier(null, isBoss
+            ? [1.2, 2.2, 2.2, 1.6, 1]
+            : isElite ? [3.5, 3, 2.4, 1.4, 0.8] : null);
+          const weaponDrop = createWeaponItem({ tier: weaponTier });
+          if (weaponDrop) {
+            addInventoryItem(weaponDrop, { notify: true });
+            logEvent(`Recovered weapon: ${weaponDrop.name}.`);
+            drops.push({
+              label: `Weapon: ${weaponDrop.name}`,
+              tier: weaponDrop.tier
+            });
+          }
+        }
+        if (drops.length) {
+          spawnLootBursts(enemy.x, enemy.y, drops);
+        }
+        checkProgressionUnlocks();
+      }
+
+      function ensureDropPityState() {
+        progress.dropPity = progress.dropPity || { key: 0, blueprint: 0 };
+        progress.dropPity.key = Number.isFinite(progress.dropPity.key) ? Math.max(0, progress.dropPity.key) : 0;
+        progress.dropPity.blueprint = Number.isFinite(progress.dropPity.blueprint) ? Math.max(0, progress.dropPity.blueprint) : 0;
+        return progress.dropPity;
+      }
+
+      function generatePart(preferred) {
+        return createAttachmentItem({ tier: preferred });
+      }
+
+      function checkWaveStatus() {
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        const objective = state.waveObjective;
+        const objectiveComplete = objective
+          ? (objective.complete || (objective.id === "eliminate" && enemies.length === 0))
+          : enemies.length === 0;
+        if (!objectiveComplete) return;
+        if (objective && objective.id !== "eliminate" && enemies.length > 0) {
+          enemies = [];
+        }
+        if (enemies.length > 0) return;
+        if (!state.training) {
+          awardWaveTempoBonus(performance.now());
+        }
+        if (state.training) {
+          state.wave += 1;
+          state.waveStart = performance.now();
+          updateSector();
+          restoreBetweenWaves();
+          checkProgressionUnlocks();
+          spawnWave(state.wave);
+          logEvent(`Training wave ${state.wave} online.`);
+          return;
+        }
+        const globalWave = getGlobalWave(state.wave);
+        progress.bestWave = Math.max(progress.bestWave, globalWave);
+        if (isBossRushMode() && state.wave >= BOSS_RUSH_WAVES) {
+          finishQuickRun("boss-rush");
+          return;
+        }
+        if (isCampaignMode() && MILESTONE_WAVES.includes(state.wave) && !state.milestoneRewardsClaimed[state.wave]) {
+          state.milestoneRewardsClaimed[state.wave] = true;
+          grantMilestoneRewards(state.wave);
+          state.choiceEvent = buildChoiceEvent(state.wave);
+          setMode("paused");
+          setOverlay("choice-event");
+          saveProgress();
+          return;
+        }
+        saveProgress();
+        if (isCampaignMode() && state.wave >= LEVEL_WAVES) {
+          completeLevel();
+          return;
+        }
+        state.wave += 1;
+        state.waveStart = performance.now();
+        updateSector();
+        restoreBetweenWaves();
+        checkProgressionUnlocks();
+        if (isFeatureUnlocked("upgrades")) {
+          state.upgradeRerolls = 0;
+          state.upgradeOptions = rollUpgrades();
+          setMode("upgrade");
+          setOverlay("upgrade");
+          logEvent("Wave cleared. Choose a field upgrade.");
+        } else {
+          spawnWave(state.wave);
+        }
+      }
+
+      function grantMilestoneRewards(wave) {
+        const credits = 160 + wave * 42;
+        const blueprints = wave >= 9 ? 2 : wave >= 6 ? 1 : 0;
+        const salvage = wave >= 9 ? 2 : 1;
+        const premium = wave >= 9 ? 3 : wave >= 6 ? 2 : 1;
+        progress.bankedCredits += credits;
+        progress.salvageKeys += salvage;
+        progress.blueprints += blueprints;
+        progress.premiumCurrency += premium;
+        const blueprintText = blueprints > 0 ? `, +${blueprints} blueprint${blueprints === 1 ? "" : "s"}` : "";
+        showTip(null, `Milestone ${wave}`, `+${credits} credits, +${salvage} key${salvage === 1 ? "" : "s"}${blueprintText}, +${premium} ${PREMIUM_CURRENCY_LABEL}.`, {
+          kind: "reward",
+          repeatable: true,
+          duration: 6200
+        });
+        logEvent(`Milestone chest secured at wave ${wave}.`);
+      }
+
+      function buildChoiceEvent(wave) {
+        const options = [
+          {
+            id: "aggression",
+            title: "Aggression Route",
+            desc: "Harder waves for three sectors, larger payouts.",
+            apply: () => {
+              state.routeBonus = { id: "aggression", wavesRemaining: 3 };
+              state.credits += 120 + wave * 30;
+            }
+          },
+          {
+            id: "fortify",
+            title: "Fortify Route",
+            desc: "Safer waves for three sectors, stronger defenses now.",
+            apply: () => {
+              state.routeBonus = { id: "fortify", wavesRemaining: 3 };
+              if (player) {
+                applyHullHeal(player, player.maxHealth * 0.35);
+                applyShieldHeal(player, player.maxShield * 0.45);
+                player.damageReduction = Math.min(0.82, (player.damageReduction || 0) + 0.08);
+              }
+            }
+          },
+          {
+            id: "prospector",
+            title: "Prospector Route",
+            desc: "Higher resource focus and Astralite pity acceleration.",
+            apply: () => {
+              state.routeBonus = { id: "prospector", wavesRemaining: 3 };
+              progress.salvageKeys += 1;
+              progress.premiumDropPity = Math.min(PREMIUM_DROP_PITY_THRESHOLD - 1, (progress.premiumDropPity || 0) + 2);
+            }
+          }
+        ];
+        return {
+          wave,
+          options
+        };
+      }
+
+      function applyChoiceEvent(choiceId) {
+        const event = state.choiceEvent;
+        if (!event || !Array.isArray(event.options)) return;
+        const option = event.options.find((item) => item.id === choiceId);
+        if (!option) return;
+        option.apply();
+        state.choiceEvent = null;
+        saveProgress();
+        renderPremiumShop();
+        queueSidebarRefresh();
+        setMode("flight");
+        hideOverlay();
+        if (state.routeBonus) {
+          logEvent(`Route selected: ${option.title}.`);
+        }
+        pushTelemetryEvent("route_selected", {
+          route: option.id,
+          wave: state.wave
+        });
+        state.wave += 1;
+        state.waveStart = performance.now();
+        updateSector();
+        restoreBetweenWaves();
+        spawnWave(state.wave);
+      }
+
+      function updateFrontierSpawner(delta) {
+        if (!state.frontier || !state.frontier.active) return;
+        state.frontier.spawnTimer += delta;
+        const tier = state.frontier.tier || 1;
+        const interval = Math.max(10, 18 - tier * 1.2);
+        const shouldForce = enemies.length === 0 && state.frontier.spawnTimer >= 2.5;
+        if (state.frontier.spawnTimer >= interval || shouldForce) {
+          state.frontier.spawnTimer = 0;
+          state.wave += 1;
+          state.waveStart = performance.now();
+          updateSector();
+          spawnWave(state.wave);
+          if (state.wave % 3 === 0) {
+            logEvent(`Frontier spike: threat level ${state.wave}.`);
+          }
+        }
+      }
+
+      function restoreBetweenWaves() {
+        applyHullHeal(player, player.maxHealth * 0.25);
+        applyShieldHeal(player, player.maxShield - player.shield);
+        player.energy = player.maxEnergy;
+      }
+
+      function getUpgradeWeight(tier, luck) {
+        const meta = getTierMeta(tier);
+        if (!luck) return meta.weight;
+        const tierIndex = Math.max(0, TIER_ORDER.indexOf(tier));
+        const normalized = tierIndex / Math.max(1, TIER_ORDER.length - 1);
+        const bias = 1 + luck * (normalized * 1.6 - 0.4);
+        return Math.max(0.12, meta.weight * bias);
+      }
+
+      function getUpgradeRerollCost() {
+        const rerolls = Math.max(0, state.upgradeRerolls || 0);
+        return Math.round(UPGRADE_REROLL_COST * Math.pow(UPGRADE_REROLL_SCALE, rerolls));
+      }
+
+      function getSkillId(upgrade) {
+        return upgrade.skillId || upgrade.id;
+      }
+
+      function isSkillUpgrade(upgrade) {
+        return upgrade && upgrade.kind === "skill";
+      }
+
+      function getSkillTier(level) {
+        const index = clamp((level || 1) - 1, 0, TIER_ORDER.length - 1);
+        return TIER_ORDER[index] || "common";
+      }
+
+      function getUpgradeTier(upgrade, level) {
+        if (!upgrade) return "common";
+        if (isSkillUpgrade(upgrade)) {
+          const resolvedLevel = Number.isFinite(level) ? level : 1;
+          return getSkillTier(resolvedLevel);
+        }
+        return upgrade.tier || "common";
+      }
+
+      function canSelectSkillUpgrade(upgrade) {
+        if (!isSkillUpgrade(upgrade)) return true;
+        const skillId = getSkillId(upgrade);
+        return state.skillSlots.includes(skillId) || state.skillSlots.length < SKILL_LIMIT;
+      }
+
+      function rollUpgrades() {
+        const available = FIELD_UPGRADES.filter((upgrade) => {
+          const stack = state.upgradeStacks[upgrade.id] || 0;
+          if (stack >= (upgrade.maxStacks || 99)) return false;
+          return canSelectSkillUpgrade(upgrade);
+        });
+        const picks = [];
+        const pool = [...available];
+        const luck = player ? player.upgradeLuck || 0 : 0;
+        while (picks.length < Math.min(3, pool.length)) {
+          const weights = pool.map((upgrade) => {
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const tier = getUpgradeTier(upgrade, stack + 1);
+            return getUpgradeWeight(tier, luck);
+          });
+          const selected = pickWeighted(pool, weights);
+          picks.push(selected);
+          pool.splice(pool.indexOf(selected), 1);
+        }
+        return picks;
+      }
+
+      function acceptUpgrade(id) {
+        if (state.mode !== "upgrade") return;
+        if (!isFeatureUnlocked("upgrades")) return;
+        if (id) {
+          const upgrade = FIELD_UPGRADES.find((item) => item.id === id);
+          if (upgrade) {
+            const wasSkill = isSkillUpgrade(upgrade);
+            const skillId = wasSkill ? getSkillId(upgrade) : null;
+            const isNewSkill = wasSkill && !state.skillSlots.includes(skillId);
+            if (isNewSkill && state.skillSlots.length >= SKILL_LIMIT) {
+              logEvent("Skill slots are full. Choose a different upgrade.");
+              return;
+            }
+            const previousHealth = player.health;
+            const previousShield = player.shield;
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const nextLevel = stack + 1;
+            upgrade.apply(player, nextLevel);
+            state.upgradeStacks[upgrade.id] = nextLevel;
+            if (isNewSkill) {
+              state.skillSlots.push(skillId);
+              logEvent(`Skill system online: ${upgrade.name}.`);
+            } else if (wasSkill) {
+              logEvent(`Skill upgraded: ${upgrade.name}.`);
+            } else {
+              logEvent(`Upgrade acquired: ${upgrade.name}.`);
+            }
+            const healthGain = player.health - previousHealth;
+            const shieldGain = player.shield - previousShield;
+            if (healthGain > 0) {
+              spawnDamageNumber(player.x, player.y - player.radius - 12, healthGain, { color: "#6ee7b7", prefix: "+" });
+            }
+            if (shieldGain > 0) {
+              spawnDamageNumber(player.x, player.y - player.radius - 22, shieldGain, { color: "#57e0ff", prefix: "+" });
+            }
+            playAudioCue("upgrade");
+          }
+        } else {
+          logEvent("Upgrade skipped. Launching next wave.");
+        }
+        hideOverlay();
+        setMode("flight");
+        spawnWave(state.wave);
+      }
+
+      function rerollUpgrades() {
+        const rerollCost = getUpgradeRerollCost();
+        if (state.credits < rerollCost) {
+          logEvent("Not enough credits to reroll upgrades.");
+          return;
+        }
+        state.credits -= rerollCost;
+        state.upgradeRerolls += 1;
+        state.upgradeOptions = rollUpgrades();
+        setOverlay("upgrade");
+      }
+
+      function firePlayer() {
+        noteTutorialGoal("fire");
+        const playerMod = state.sectorMod ? state.sectorMod.player : {};
+        const energyCost = player.energyCost * (playerMod.energyCost || 1);
+        player.fireCooldown = 1 / player.fireRate;
+        player.energy = Math.max(0, player.energy - energyCost);
+        if (state.telemetryRun) {
+          state.telemetryRun.shotsFired += 1;
+        }
+        const barrageEvery = player.barrageEvery || 0;
+        if (barrageEvery > 0) {
+          player.barrageCounter = (player.barrageCounter || 0) + 1;
+        }
+        const isBarrage = barrageEvery > 0 && player.barrageCounter % barrageEvery === 0;
+        const rawBonusProjectiles = isBarrage ? (player.barrageProjectiles || 0) : 0;
+        const softCap = BALANCE_TUNING.barrageBonusSoftCap;
+        const bonusProjectiles = rawBonusProjectiles <= softCap
+          ? rawBonusProjectiles
+          : softCap + Math.floor((rawBonusProjectiles - softCap) * BALANCE_TUNING.barrageBonusSoftScale);
+        const count = Math.max(1, player.projectiles + bonusProjectiles);
+        const spread = (count > 1 ? player.spread : 0) * (playerMod.spreadMult || 1);
+        const shotAngle = getPlayerShotAngle();
+        const baseAngle = shotAngle - spread * (count - 1) * 0.5;
+        const rawBarrageMultiplier = isBarrage ? (player.barrageBonusDamage || 1) : 1;
+        const barrageMultiplier = 1 + (rawBarrageMultiplier - 1) * BALANCE_TUNING.barrageDamageSoftScale;
+        const damageMultiplier = player.damageBoostTimer > 0 ? (player.damageBoostMultiplier || 1) : 1;
+        const splashRadius = isBarrage
+          ? Math.max(player.splashRadius || 0, player.barrageSplashRadius || 0)
+          : (player.splashRadius || 0);
+        const splashDamage = isBarrage
+          ? Math.max(player.splashDamage || 0.6, player.barrageSplashDamage || 0.6)
+          : (player.splashDamage || 0.6);
+        const pierce = (player.pierce || 0) + (isBarrage ? (player.barragePierce || 0) : 0);
+        const tint = isBarrage ? "#f6c65f" : (player.arcDamage ? "#7ca8ff" : null);
+        const arcChains = Math.max(0, Math.min(4, player.arcChains || 0));
+        for (let i = 0; i < count; i += 1) {
+          const angle = baseAngle + spread * i;
+          const crit = Math.random() < player.critChance;
+          const damage = player.damage * barrageMultiplier * damageMultiplier * (crit ? player.critMultiplier : 1);
+          const speed = player.bulletSpeed;
+          bullets.push({
+            owner: "player",
+            x: player.x + Math.cos(angle) * (player.radius + 4),
+            y: player.y + Math.sin(angle) * (player.radius + 4),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 3,
+            life: 1.4,
+            damage,
+            crit,
+            slow: player.slowChance > 0 && Math.random() < player.slowChance,
+            splashRadius,
+            splashDamage,
+            pierce,
+            arcDamage: player.arcDamage || 0,
+            arcRadius: player.arcRadius || 0,
+            arcChains,
+            arcChainIndex: 0,
+            arcRequiresSlow: !!player.arcRequiresSlow,
+            isBarrage,
+            tint
+          });
+        }
+        if (player.echoChance > 0 && Math.random() < player.echoChance) {
+          const echoTint = "#9aa7ff";
+          const echoDamage = player.echoDamage || 0.55;
+          for (let i = 0; i < count; i += 1) {
+            const angle = baseAngle + spread * i;
+            const damage = player.damage * barrageMultiplier * damageMultiplier * echoDamage;
+            const speed = player.bulletSpeed * 0.95;
+            bullets.push({
+              owner: "player",
+              x: player.x + Math.cos(angle) * (player.radius + 4),
+              y: player.y + Math.sin(angle) * (player.radius + 4),
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              radius: 3,
+              life: 1.2,
+              damage,
+              crit: false,
+              slow: false,
+              splashRadius,
+              splashDamage,
+              pierce,
+              arcDamage: player.arcDamage || 0,
+              arcRadius: player.arcRadius || 0,
+              arcChains,
+              arcChainIndex: 0,
+              arcRequiresSlow: !!player.arcRequiresSlow,
+              isBarrage: false,
+              tint: echoTint
+            });
+          }
+        }
+        if (player.blackHoleChance > 0 && Math.random() < player.blackHoleChance) {
+          const distance = 120 + (player.blackHoleRadius || 0) * 0.35;
+          const holeX = clamp(player.x + Math.cos(shotAngle) * distance, 0, state.worldWidth);
+          const holeY = clamp(player.y + Math.sin(shotAngle) * distance, 0, state.worldHeight);
+          spawnBlackHole(holeX, holeY, {
+            radius: player.blackHoleRadius || 120,
+            duration: player.blackHoleDuration || 1.6,
+            force: player.blackHoleForce || 360,
+            damage: player.blackHoleDamage || 0
+          });
+        }
+        playAudioCue("shot");
+      }
+
+      function fireEnemy(enemy, angle) {
+        const accuracy = state.enemyAccuracyMod || 1;
+        const jitter = (1 - accuracy) * 0.6;
+        const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
+        const damage = enemy.baseDamage * (state.sectorMod?.enemy?.damage || 1);
+        const pattern = enemy.pattern || "single";
+        const spreadCount = enemy.spreadCount || (pattern === "spread" ? 5 : 1);
+        const spreadAngle = Number.isFinite(enemy.spreadAngle)
+          ? enemy.spreadAngle
+          : (pattern === "spread" ? 0.18 : 0);
+        const spread = spreadCount > 1 ? spreadAngle : 0;
+        const bulletRadius = enemy.bulletRadius || 3;
+        const bulletLife = enemy.bulletLife || 1.6;
+        const bulletTint = enemy.bulletTint || null;
+        const baseAngle = angle - spread * (spreadCount - 1) * 0.5;
+        for (let i = 0; i < spreadCount; i += 1) {
+          const shotAngle = baseAngle + spread * i + rand(-jitter, jitter);
+          bullets.push({
+            owner: "enemy",
+            x: enemy.x + Math.cos(shotAngle) * (enemy.radius + 4),
+            y: enemy.y + Math.sin(shotAngle) * (enemy.radius + 4),
+            vx: Math.cos(shotAngle) * bulletSpeed,
+            vy: Math.sin(shotAngle) * bulletSpeed,
+            radius: bulletRadius,
+            life: bulletLife,
+            damage,
+            slowPlayer: !!enemy.bulletSlowPlayer,
+            slowDuration: enemy.bulletSlowDuration || 1.4,
+            tint: bulletTint
+          });
+        }
+      }
+
+      function applyDamage(target, amount, bullet) {
+        if (target === player && player.invulnerable > 0) {
+          return;
+        }
+        if (target !== player && target && target.invulnerable > 0) {
+          return;
+        }
+        const hadShield = target.shield > 0;
+        const mitigation = target.damageReduction || 0;
+        let finalDamage = amount * (1 - mitigation);
+        let shieldDamage = 0;
+        let hullDamage = 0;
+        if (target.shield > 0) {
+          const absorbed = Math.min(target.shield, finalDamage);
+          target.shield -= absorbed;
+          finalDamage -= absorbed;
+          shieldDamage = absorbed;
+          if (progress.settings.hitFlash) {
+            target.hitFlash = 0.15;
+          }
+        }
+        if (finalDamage > 0) {
+          target.health -= finalDamage;
+          hullDamage = finalDamage;
+          if (progress.settings.hitFlash) {
+            target.hitFlash = 0.2;
+          }
+          if (target === player) {
+            state.lastHullHitAt = performance.now();
+            resetNoDamageContracts();
+            addScreenShake(clamp(hullDamage * 0.08, 3, 11));
+          }
+        }
+        if (target.health < 0) {
+          target.health = 0;
+        }
+        if (shieldDamage > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 12, shieldDamage, { color: "#57e0ff", prefix: "-" });
+        }
+        if (hullDamage > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 22, hullDamage, { color: "#f06969", prefix: "-" });
+        }
+        if (state.telemetryRun) {
+          if (target === player) {
+            state.telemetryRun.damageTaken += shieldDamage + hullDamage;
+          } else if (bullet && bullet.owner === "player") {
+            state.telemetryRun.damageDealt += shieldDamage + hullDamage;
+          }
+        }
+        if (target === player) {
+          player.shieldCooldown = 1.6;
+          if (shieldDamage > 0 || hullDamage > 0) {
+            playAudioCue("player-hit");
+          }
+          if (hadShield && target.shield <= 0) {
+            triggerAegisMatrix();
+          }
+          if (bullet && bullet.slowPlayer) {
+            const slowDuration = bullet.slowDuration || 1.4;
+            player.slowTimer = Math.max(player.slowTimer || 0, slowDuration);
+          }
+        }
+        if (bullet && bullet.slow && target !== player) {
+          target.slowTimer = player.slowDuration;
+        }
+      }
+
+      function damageEnemy(enemy, amount, options = {}) {
+        if (!enemy || amount <= 0) return false;
+        applyDamage(enemy, amount, { owner: "player" });
+        if (options.slowDuration) {
+          enemy.slowTimer = Math.max(enemy.slowTimer || 0, options.slowDuration);
+        }
+        const index = enemies.indexOf(enemy);
+        if (enemy.health <= 0 && index >= 0) {
+          destroyEnemy(enemy, index);
+          return true;
+        }
+        return false;
+      }
+
+      function applyHullHeal(target, amount) {
+        if (!target || amount <= 0) return;
+        const before = target.health;
+        target.health = Math.min(target.maxHealth, target.health + amount);
+        const delta = target.health - before;
+        if (delta > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 12, delta, { color: "#6ee7b7", prefix: "+" });
+        }
+      }
+
+      function applyShieldHeal(target, amount) {
+        if (!target || amount <= 0) return;
+        const before = target.shield;
+        target.shield = Math.min(target.maxShield, target.shield + amount);
+        const delta = target.shield - before;
+        if (delta > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 18, delta, { color: "#57e0ff", prefix: "+" });
+        }
+      }
+
+      function triggerAegisMatrix() {
+        if (!player || !player.aegisCooldown) return;
+        const now = performance.now();
+        if (player.aegisReadyAt && now < player.aegisReadyAt) return;
+        player.aegisReadyAt = now + player.aegisCooldown * 1000;
+        if (player.aegisShieldRestore > 0) {
+          const targetShield = player.maxShield * player.aegisShieldRestore;
+          applyShieldHeal(player, targetShield - player.shield);
+        }
+        player.invulnerable = Math.max(player.invulnerable, 1.4);
+        if (player.aegisPulseRadius > 0) {
+          spawnPulse(player.x, player.y, "#f6c65f", player.aegisPulseRadius);
+        }
+        if (player.aegisPulseDamage > 0 || player.aegisPulseSlow > 0) {
+          const radiusSq = player.aegisPulseRadius * player.aegisPulseRadius;
+          forEachEnemyNear(player, player.aegisPulseRadius + MAX_COLLISION_RADIUS, (enemy) => {
+            if (distanceSquared(player, enemy) <= radiusSq) {
+              if (player.aegisPulseDamage > 0) {
+                applyDamage(enemy, player.aegisPulseDamage, { owner: "player" });
+              }
+              if (player.aegisPulseSlow > 0) {
+                enemy.slowTimer = Math.max(enemy.slowTimer, player.aegisPulseSlow);
+              }
+              if (enemy.health <= 0) {
+                const index = enemies.indexOf(enemy);
+                if (index >= 0) {
+                  destroyEnemy(enemy, index);
+                }
+              }
+            }
+            return false;
+          });
+        }
+        logEvent("Aegis Matrix surge activated.");
+      }
+
+      function destroyEnemy(enemy, index) {
+        removeArrayIndex(enemies, index);
+        state.score += enemy.score;
+        state.kills += 1;
+        awardKillScoreBonuses(enemy, performance.now());
+        if (state.waveObjective && state.waveObjective.id === "elite-hunt" && (enemy.elite || enemy.miniboss || enemy.id === "dreadnought" || enemy.id === "ace")) {
+          state.waveObjective.progress = Math.min(
+            state.waveObjective.target || 0,
+            (state.waveObjective.progress || 0) + 1
+          );
+        }
+        if (state.telemetryRun) {
+          state.telemetryRun.kills += 1;
+          if (enemy.elite || enemy.id === "dreadnought" || enemy.id === "ace" || enemy.miniboss) {
+            state.telemetryRun.eliteKills += 1;
+          }
+        }
+        spawnExplosion(enemy.x, enemy.y, enemy.color);
+        if (!state.training) {
+          const difficulty = getDifficultySettings();
+          const waveScale = Math.max(1, getGlobalWave(state.wave || 1));
+          const waveCreditScale = 1 + Math.max(0, waveScale - 1) * 0.025;
+          const creditsGain = Math.round(enemy.credits * (1 + player.salvageBonus) * difficulty.reward * waveCreditScale);
+          const xpGain = Math.round((10 + waveScale * 2) * (1 + player.xpBonus) * difficulty.reward);
+          state.credits += creditsGain;
+          progress.totalKills += 1;
+          awardXp(xpGain, { deferPersistence: true });
+          updateKillContracts(enemy);
+          maybeDropLoot(enemy);
+          queueProgressSave();
+          queueSidebarRefresh();
+        }
+        playAudioCue("enemy-down", { elite: !!enemy.elite || enemy.id === "dreadnought" || enemy.id === "ace" });
+        noteTutorialGoal("kill");
+        unlockAchievement("first-blood");
+        if (state.killChain >= 5) {
+          unlockAchievement("chain-five");
+        }
+        if (enemy.id === "dreadnought") {
+          unlockAchievement("boss-down");
+        }
+        if (player.healOnKill > 0) {
+          applyHullHeal(player, player.maxHealth * player.healOnKill);
+        }
+        if (player.energyOnKill > 0) {
+          player.energy = Math.min(player.maxEnergy, player.energy + player.energyOnKill);
+        }
+      }
+
+      function awardXp(amount, options = {}) {
+        progress.xp += amount;
+        let leveled = false;
+        while (progress.xp >= xpToNext(progress.rank)) {
+          progress.xp -= xpToNext(progress.rank);
+          progress.rank += 1;
+          progress.techPoints += 1;
+          leveled = true;
+        }
+        if (leveled) {
+          logEvent(`Rank up. Pilot rank is now ${progress.rank}.`);
+          renderHangar();
+        }
+        checkProgressionUnlocks();
+        if (options.deferPersistence) {
+          queueProgressSave();
+        } else {
+          saveProgress();
+        }
+      }
+
+      function getRunSummary() {
+        const durationSec = state.runStart ? Math.max(1, (performance.now() - state.runStart) / 1000) : 0;
+        const difficulty = DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal;
+        const rewardMultiplier = getDifficultySettings().reward;
+        const globalWave = getGlobalWave(state.wave);
+        const level = isCampaignMode() ? Math.max(1, state.level || progress.campaignLevel || 1) : 1;
+        return {
+          wave: Math.max(1, state.wave),
+          globalWave,
+          waveDisplay: getWaveDisplay(state.wave),
+          level,
+          kills: state.kills,
+          score: Math.round(state.score),
+          credits: Math.round(state.credits),
+          durationSec,
+          difficultyLabel: difficulty.label,
+          rewardMultiplier
+        };
+      }
+
+      function buildRunAnalyticsEntry(summary, telemetry, reason, difficultyLabel) {
+        const safeSummary = summary || getRunSummary();
+        const safeTelemetry = telemetry || {};
+        return {
+          ts: Date.now(),
+          reason: reason || "unknown",
+          mode: getRunModeLabel(),
+          difficulty: difficultyLabel || (DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal).label,
+          ship: state.runLoadout?.ship || player?.ship?.name || "Unknown",
+          weapon: state.runLoadout?.weapon || player?.weapon?.name || "Unknown",
+          waveDisplay: safeSummary.waveDisplay || getWaveDisplay(safeSummary.wave || state.wave),
+          globalWave: safeSummary.globalWave || getGlobalWave(safeSummary.wave || state.wave),
+          kills: Math.round(safeSummary.kills || 0),
+          score: Math.round(safeSummary.score || 0),
+          credits: Math.round(safeSummary.credits || 0),
+          durationSec: Math.round(safeSummary.durationSec || 0),
+          accuracy: safeTelemetry.accuracy || 0,
+          damageDealt: Math.round(safeTelemetry.damageDealt || 0),
+          damageTaken: Math.round(safeTelemetry.damageTaken || 0),
+          abilityUses: Math.round(safeTelemetry.abilityUses || 0),
+          secondaryUses: Math.round(safeTelemetry.secondaryUses || 0),
+          objectiveCompletions: Math.round(safeTelemetry.objectiveCompletions || 0),
+          hazardTicks: Math.round(safeTelemetry.hazardTicks || 0),
+          boostSeconds: Math.round(safeTelemetry.boostSeconds || 0),
+          brakeUses: Math.round(safeTelemetry.brakeUses || 0),
+          lowHullSeconds: Math.round(safeTelemetry.lowHullSeconds || 0),
+          mutator: state.weekly?.mutator?.label || "None",
+          seed: state.challengeSeed || "",
+          threatTier: formatThreatTierLabel(state.threatTier),
+          route: state.routeBonus?.id || ""
+        };
+      }
+
+      function updateRunRecords(summary) {
+        if (!summary) return [];
+        progress.records = progress.records || {
+          bestScore: 0,
+          bestKills: 0,
+          bestSurvivalSec: 0,
+          bestScoreAttack: 0,
+          bestDailyScore: 0,
+          bestBossRushScore: 0
+        };
+        const highlights = [];
+        const score = Math.max(0, Math.round(summary.score || 0));
+        const kills = Math.max(0, Math.round(summary.kills || 0));
+        const survivalSec = Math.max(0, Math.round(summary.durationSec || 0));
+        if (score > (progress.records.bestScore || 0)) {
+          progress.records.bestScore = score;
+          highlights.push("New best score");
+        }
+        if (kills > (progress.records.bestKills || 0)) {
+          progress.records.bestKills = kills;
+          highlights.push("Most kills");
+        }
+        if (survivalSec > (progress.records.bestSurvivalSec || 0)) {
+          progress.records.bestSurvivalSec = survivalSec;
+          highlights.push("Longest survival");
+        }
+        if (isScoreAttackMode() && score > (progress.records.bestScoreAttack || 0)) {
+          progress.records.bestScoreAttack = score;
+          highlights.push("Score Attack record");
+        }
+        if (isDailyMode()) {
+          if (score > (progress.records.bestDailyScore || 0)) {
+            progress.records.bestDailyScore = score;
+            highlights.push("Daily Sector record");
+          }
+          const daily = state.dailyChallenge || getDailyChallengeInfo();
+          progress.dailyRuns = [
+            {
+              date: daily.date,
+              seed: daily.seed,
+              score,
+              kills,
+              wave: summary.wave
+            },
+            ...(progress.dailyRuns || []).filter((run) => run.date !== daily.date)
+          ].slice(0, 12);
+        }
+        if (isBossRushMode() && score > (progress.records.bestBossRushScore || 0)) {
+          progress.records.bestBossRushScore = score;
+          highlights.push("Boss Rush record");
+        }
+        return highlights;
+      }
+
+      function getPerformanceScore(summary) {
+        const minutes = summary.durationSec / 60;
+        const waveProgress = summary.globalWave || summary.wave;
+        const waveScore = Math.max(0, waveProgress - 1) * 1.1;
+        const killScore = summary.kills * 0.08;
+        const scoreScore = summary.score / 1200;
+        const timeScore = minutes * 0.8;
+        return (waveScore + killScore + scoreScore + timeScore) * summary.rewardMultiplier;
+      }
+
+      function getPerformanceTier(score) {
+        if (score >= 24) return "legendary";
+        if (score >= 18) return "epic";
+        if (score >= 12) return "rare";
+        if (score >= 6) return "uncommon";
+        return "common";
+      }
+
+      function buildLossRewards() {
+        const summary = getRunSummary();
+        const performanceScore = getPerformanceScore(summary);
+        const performanceTier = getPerformanceTier(performanceScore);
+        const tierIndex = Math.max(0, TIER_ORDER.indexOf(performanceTier));
+        const waveProgress = summary.globalWave || summary.wave;
+        const minutes = summary.durationSec / 60;
+        const creditBase = 40
+          + waveProgress * 12
+          + summary.kills * 2
+          + summary.score / 140
+          + minutes * 12;
+        const creditBonus = Math.round(creditBase * (1 + tierIndex * 0.18) * summary.rewardMultiplier);
+        const blueprintCount = clamp(
+          Math.floor(Math.max(0, waveProgress - 1) / 3) + (tierIndex >= 2 ? 1 : 0),
+          0,
+          tierIndex >= 4 ? 3 : 2
+        );
+        const salvageCount = clamp(
+          Math.floor(summary.kills / 25) + (tierIndex >= 1 ? 1 : 0),
+          0,
+          tierIndex >= 3 ? 3 : 2
+        );
+        const partCount = (tierIndex >= 4 && waveProgress >= 8) ? 2 : (tierIndex >= 2 ? 1 : 0);
+        const weaponCount = tierIndex >= 3 && waveProgress >= 6 ? 1 : 0;
+        const blueprintTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
+        const salvageTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
+        const partTier = tierIndex >= 4 ? "legendary" : tierIndex >= 3 ? "epic" : tierIndex >= 2 ? "rare" : "uncommon";
+        const weaponTier = tierIndex >= 4 ? "legendary" : "epic";
+        const rewards = [];
+        if (creditBonus > 0) {
+          rewards.push({
+            type: "credits",
+            amount: creditBonus,
+            tier: performanceTier,
+            title: "Recovery credits",
+            desc: `${creditBonus.toLocaleString()} credits secured`
+          });
+        }
+        if (blueprintCount > 0) {
+          rewards.push({
+            type: "blueprints",
+            amount: blueprintCount,
+            tier: blueprintTier,
+            title: "Blueprint cache",
+            desc: `+${blueprintCount} blueprint${blueprintCount === 1 ? "" : "s"}`
+          });
+        }
+        if (salvageCount > 0) {
+          rewards.push({
+            type: "salvage",
+            amount: salvageCount,
+            tier: salvageTier,
+            title: "Salvage keys",
+            desc: `+${salvageCount} key${salvageCount === 1 ? "" : "s"}`
+          });
+        }
+        const parts = [];
+        for (let i = 0; i < partCount; i += 1) {
+          const part = generatePart(partTier);
+          if (part) {
+            parts.push(part);
+          }
+        }
+        parts.forEach((part) => {
+          const summaryText = buildStatSummary(getAttachmentStats(part) || part.stats);
+          rewards.push({
+            type: "part",
+            amount: 1,
+            tier: part.tier || getPartTier(part),
+            title: part.name,
+            desc: summaryText,
+            part
+          });
+        });
+        if (weaponCount > 0) {
+          const weapon = createWeaponItem({ tier: weaponTier });
+          if (weapon) {
+            rewards.push({
+              type: "weapon",
+              amount: 1,
+              tier: weapon.tier,
+              title: weapon.name,
+              desc: buildStatSummary(getWeaponItemStats(weapon) || weapon.stats),
+              item: weapon
+            });
+          }
+        }
+        return {
+          tier: performanceTier,
+          score: performanceScore,
+          summary,
+          rewards
+        };
+      }
+
+      function getLevelRewardTierWeights(level) {
+        if (level <= 2) return [6, 3.5, 1.4, 0.4, 0.1];
+        if (level <= 4) return [4.6, 3.3, 1.8, 0.7, 0.2];
+        if (level <= 6) return [3.1, 3, 2.4, 1.2, 0.4];
+        if (level <= 8) return [2.1, 2.6, 2.4, 1.6, 0.8];
+        return [1.1, 1.8, 2.3, 2.2, 1.2];
+      }
+
+      function buildLevelRewards(level, summary) {
+        const safeLevel = Math.max(1, level);
+        const rewards = [];
+        const tierIndex = clamp(Math.floor((safeLevel - 1) / 2), 0, TIER_ORDER.length - 1);
+        const rewardTier = TIER_ORDER[tierIndex] || "common";
+        const creditBase = 140
+          + safeLevel * 42
+          + summary.kills * 2
+          + summary.score / 180;
+        const creditBonus = Math.round(creditBase * summary.rewardMultiplier);
+        if (creditBonus > 0) {
+          rewards.push({
+            type: "credits",
+            amount: creditBonus,
+            tier: rewardTier,
+            title: "Mission credits",
+            desc: `${creditBonus.toLocaleString()} credits secured`
+          });
+        }
+        const salvageCount = safeLevel <= 3
+          ? 2
+          : safeLevel <= 6
+            ? 1
+            : (Math.random() < 0.35 ? 1 : 0);
+        const blueprintCount = safeLevel <= 3
+          ? 2
+          : safeLevel <= 5
+            ? 1
+            : (Math.random() < 0.25 ? 1 : 0);
+        const supportTier = tierIndex >= 4
+          ? "legendary"
+          : tierIndex >= 3
+            ? "epic"
+            : tierIndex >= 2
+              ? "rare"
+              : tierIndex >= 1
+                ? "uncommon"
+                : "common";
+        if (salvageCount > 0) {
+          rewards.push({
+            type: "salvage",
+            amount: salvageCount,
+            tier: supportTier,
+            title: "Salvage keys",
+            desc: `+${salvageCount} key${salvageCount === 1 ? "" : "s"}`
+          });
+        }
+        if (blueprintCount > 0) {
+          rewards.push({
+            type: "blueprints",
+            amount: blueprintCount,
+            tier: supportTier,
+            title: "Blueprint cache",
+            desc: `+${blueprintCount} blueprint${blueprintCount === 1 ? "" : "s"}`
+          });
+        }
+        const baseItemCount = safeLevel <= 2 ? 2 : 1;
+        const bonusChance = safeLevel <= 3 ? 0.45 : safeLevel <= 6 ? 0.25 : safeLevel <= 9 ? 0.16 : 0.12;
+        const itemCount = baseItemCount + (Math.random() < bonusChance ? 1 : 0);
+        const tierWeights = getLevelRewardTierWeights(safeLevel);
+        for (let i = 0; i < itemCount; i += 1) {
+          const rollWeapon = Math.random() < 0.45;
+          if (rollWeapon) {
+            const weapon = createWeaponItem({ tier: rollItemTier(null, tierWeights) });
+            if (weapon) {
+              rewards.push({
+                type: "weapon",
+                amount: 1,
+                tier: weapon.tier,
+                title: weapon.name,
+                desc: buildStatSummary(getWeaponItemStats(weapon) || weapon.stats),
+                item: weapon
+              });
+            }
+          } else {
+            const attachment = createAttachmentItem({ tier: rollItemTier(null, tierWeights) });
+            if (attachment) {
+              rewards.push({
+                type: "part",
+                amount: 1,
+                tier: attachment.tier || getPartTier(attachment),
+                title: attachment.name,
+                desc: buildStatSummary(getAttachmentStats(attachment) || attachment.stats),
+                part: attachment
+              });
+            }
+          }
+        }
+        return {
+          level: safeLevel,
+          tier: rewardTier,
+          summary,
+          rewards
+        };
+      }
+
+      function applyRewardBundle(result, logLabel) {
+        if (!result || !result.rewards) return;
+        result.rewards.forEach((reward) => {
+          if (reward.type === "credits") {
+            progress.bankedCredits += reward.amount;
+          }
+          if (reward.type === "blueprints") {
+            progress.blueprints += reward.amount;
+          }
+          if (reward.type === "salvage") {
+            progress.salvageKeys += reward.amount;
+          }
+          if (reward.type === "part" && reward.part) {
+            addInventoryItem(reward.part, { notify: true });
+          }
+          if (reward.type === "weapon" && reward.item) {
+            addInventoryItem(reward.item, { notify: true });
+          }
+        });
+        saveProgress();
+        checkProgressionUnlocks();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        renderContracts();
+        if (result.rewards.length) {
+          const notice = result.rewards.map((reward) => {
+            if (reward.type === "credits") return `+${reward.amount} coins`;
+            if (reward.type === "blueprints") return `+${reward.amount} plans`;
+            if (reward.type === "salvage") return `+${reward.amount} keys`;
+            if (reward.type === "part") return reward.title || "Attachment";
+            if (reward.type === "weapon") return reward.title || "Weapon";
+            return reward.title || reward.type || "Reward";
+          }).join(" · ");
+          const title = logLabel ? logLabel.replace(/\s*secured$/i, "") : "Rewards";
+          showTip(null, title || "Rewards", notice, { kind: "reward", repeatable: true, duration: 7000 });
+        }
+        if (result.rewards.length && logLabel) {
+          const summary = result.rewards.map((reward) => {
+            if (reward.type === "part") return reward.title;
+            if (reward.type === "weapon") return reward.title;
+            if (reward.type === "credits") return `${reward.amount}c`;
+            if (reward.type === "blueprints") {
+              return `${reward.amount} blueprint${reward.amount === 1 ? "" : "s"}`;
+            }
+            if (reward.type === "salvage") {
+              return `${reward.amount} key${reward.amount === 1 ? "" : "s"}`;
+            }
+            return `${reward.amount} ${reward.type}`;
+          }).join(", ");
+          logEvent(`${logLabel}: ${summary}.`);
+        }
+      }
+
+      function applyLossRewards(result) {
+        applyRewardBundle(result, "Recovery rewards secured");
+      }
+
+      function applyLevelRewards(result) {
+        applyRewardBundle(result, "Level rewards secured");
+      }
+
+      function completeLevel() {
+        if (!isCampaignMode()) return;
+        const completedLevel = Math.max(1, state.level || progress.campaignLevel || 1);
+        const summary = getRunSummary();
+        const globalWave = summary.globalWave || getGlobalWave(state.wave);
+        state.levelRewards = buildLevelRewards(completedLevel, summary);
+        applyLevelRewards(state.levelRewards);
+        progress.bestWave = Math.max(progress.bestWave, globalWave);
+        progress.bestLevel = Math.max(progress.bestLevel || 1, completedLevel);
+        progress.campaignLevel = Math.max(progress.campaignLevel || 1, completedLevel + 1);
+        saveProgress();
+        endRun("victory");
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || summary, state.lastRunTelemetry, "victory");
+        renderProgressiveUi();
+        setMode("victory");
+        setOverlay("victory");
+        playAudioCue("victory");
+        logEvent(`Level ${completedLevel} cleared. Rewards secured.`);
+      }
+
+      function finishQuickRun(reason) {
+        if (!state.runActive || state.runBanked) return;
+        const finalReason = reason || (isBossRushMode() ? "boss-rush" : "time");
+        if (!state.training) {
+          progress.bestWave = Math.max(progress.bestWave, getGlobalWave(state.wave));
+          saveProgress();
+        }
+        endRun(finalReason);
+        state.lossRewards = buildLossRewards();
+        applyLossRewards(state.lossRewards);
+        if (isTimedQuickMode()) {
+          unlockAchievement("score-attack");
+        }
+        if (isBossRushMode()) {
+          unlockAchievement("boss-rush-clear");
+        }
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || getRunSummary(), state.lastRunTelemetry, finalReason);
+        renderProgressiveUi();
+        setMode("gameover");
+        setOverlay("gameover");
+        playAudioCue("victory");
+        logEvent(`${getRunModeLabel()} complete. Rewards secured.`);
+      }
+
+      function endRun(reason) {
+        if (!state.runActive || state.runBanked) return;
+        state.runActive = false;
+        state.runBanked = true;
+        state.blackHoles = [];
+        if (state.frontier) {
+          state.frontier.active = false;
+        }
+        const summary = getRunSummary();
+        const telemetry = finalizeRunTelemetry(summary);
+        state.lastRunSummary = summary;
+        state.lastRunTelemetry = telemetry;
+        state.lastRunReason = reason || "unknown";
+        if (state.training) {
+          state.runHighlights = [];
+          return;
+        }
+        const bankedCredits = Math.round(state.credits);
+        progress.bankedCredits += bankedCredits;
+        const difficultyLabel = (DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal).label;
+        const earnedHighlights = Array.isArray(state.runHighlights) ? state.runHighlights.slice(0, 5) : [];
+        state.runHighlights = [...updateRunRecords(summary), ...earnedHighlights].slice(0, 8);
+        const entry = {
+          wave: state.wave,
+          level: summary.level,
+          globalWave: summary.globalWave,
+          score: Math.round(state.score),
+          credits: bankedCredits,
+          kills: state.kills,
+          ship: state.runLoadout?.ship || player?.ship?.name || "Unknown",
+          weapon: state.runLoadout?.weapon || player?.weapon?.name || "Unknown",
+          difficulty: difficultyLabel,
+          mode: getRunModeLabel(),
+          threatTier: formatThreatTierLabel(state.threatTier),
+          mutator: state.weekly?.mutator?.label || "None",
+          seed: state.challengeSeed || "",
+          route: state.routeBonus?.id || ""
+        };
+        progress.runHistory = [entry, ...progress.runHistory].slice(0, 8);
+        if (telemetry) {
+          const analyticsEntry = buildRunAnalyticsEntry(summary, telemetry, reason, difficultyLabel);
+          progress.runAnalytics = [analyticsEntry, ...(progress.runAnalytics || [])].slice(0, 10);
+        }
+        saveProgress();
+        checkProgressionUnlocks();
+        renderHistory();
+        renderRunAnalytics();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        renderContracts();
+        if (bankedCredits > 0) {
+          logEvent(`Run banked: ${bankedCredits} credits secured.`);
+        }
+      }
+
+      function xpToNext(rank) {
+        return Math.floor(120 + (rank - 1) * 80);
+      }
+
+      function triggerGameOver() {
+        state.runEndedByAbort = false;
+        setMode("gameover");
+        if (!state.training) {
+          progress.bestWave = Math.max(progress.bestWave, getGlobalWave(state.wave));
+          saveProgress();
+        }
+        endRun("wrecked");
+        if (!state.training) {
+          state.lossRewards = buildLossRewards();
+          applyLossRewards(state.lossRewards);
+        } else {
+          state.lossRewards = null;
+        }
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || getRunSummary(), state.lastRunTelemetry, state.training ? "training" : "wrecked");
+        renderProgressiveUi();
+        spawnExplosion(player.x, player.y, "#ffffff", 26);
+        setOverlay("gameover");
+        playAudioCue("gameover");
+        logEvent("Ship destroyed. Returning to hangar.");
+      }
+
+      function triggerAbortRewards() {
+        state.runEndedByAbort = true;
+        setMode("gameover");
+        if (!state.training) {
+          progress.bestWave = Math.max(progress.bestWave, getGlobalWave(state.wave));
+          saveProgress();
+        }
+        endRun("abort");
+        state.lossRewards = null;
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || getRunSummary(), state.lastRunTelemetry, "abort");
+        renderProgressiveUi();
+        setOverlay("gameover");
+        logEvent("Run aborted. Returning to hangar.");
+      }
+
+      function isCircleInBounds(item, radius = 16, bounds = getViewportBounds(), padding = 80) {
+        if (!item) return false;
+        return item.x + radius >= bounds.left - padding
+          && item.x - radius <= bounds.right + padding
+          && item.y + radius >= bounds.top - padding
+          && item.y - radius <= bounds.bottom + padding;
+      }
+
+      function shouldDrawSecondaryCombatDetail() {
+        return getPerformanceQualityLevel() < 3;
+      }
+
+      function renderBackground() {
+        const cached = getCachedBackgroundSurface();
+        if (cached) {
+          ctx.drawImage(cached, 0, 0, state.width, state.height);
+          return;
+        }
+        ctx.fillStyle = backgroundGradient || "#05090f";
+        ctx.fillRect(0, 0, state.width, state.height);
+        const nebula = getArtEntry("nebula");
+        if (nebula) {
+          const alpha = getPerformanceQualityLevel() >= 3 ? 0.18 : 0.34;
+          const parallaxX = -((state.camera.x || 0) * 0.018) % state.width;
+          const parallaxY = -((state.camera.y || 0) * 0.012) % state.height;
+          const source = getArtDrawable(nebula);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.globalCompositeOperation = "screen";
+          ctx.drawImage(source, parallaxX - state.width * 0.08, parallaxY - state.height * 0.08, state.width * 1.18, state.height * 1.18);
+          ctx.restore();
+        }
+        const vignette = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * 0.5,
+          Math.min(state.width, state.height) * 0.18,
+          state.width * 0.5,
+          state.height * 0.5,
+          Math.max(state.width, state.height) * 0.72
+        );
+        vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+        vignette.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, state.width, state.height);
+      }
+
+      function getCachedBackgroundSurface() {
+        const width = Math.max(1, Math.round(state.width));
+        const height = Math.max(1, Math.round(state.height));
+        if (!width || !height) return null;
+        const quality = getPerformanceQualityLevel();
+        if (backgroundCache.ready && backgroundCache.width === width && backgroundCache.height === height && backgroundCache.quality === quality) {
+          return backgroundCache.canvas;
+        }
+        const canvas = backgroundCache.canvas || document.createElement("canvas");
+        if (canvas.width !== width) canvas.width = width;
+        if (canvas.height !== height) canvas.height = height;
+        const cacheCtx = backgroundCache.ctx || canvas.getContext("2d", { alpha: false });
+        if (!cacheCtx) return null;
+        backgroundCache.canvas = canvas;
+        backgroundCache.ctx = cacheCtx;
+        cacheCtx.setTransform(1, 0, 0, 1, 0, 0);
+        const gradient = cacheCtx.createRadialGradient(
+          width * 0.5,
+          height * -0.2,
+          120,
+          width * 0.5,
+          height * 0.4,
+          width * 1.1
+        );
+        gradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
+        gradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
+        gradient.addColorStop(1, "rgba(5, 8, 14, 1)");
+        cacheCtx.fillStyle = gradient;
+        cacheCtx.fillRect(0, 0, width, height);
+        const nebula = getArtEntry("nebula");
+        const nebulaSource = getArtDrawable(nebula);
+        if (nebulaSource) {
+          cacheCtx.save();
+          cacheCtx.globalAlpha = quality >= 3 ? 0.16 : 0.3;
+          cacheCtx.globalCompositeOperation = "screen";
+          cacheCtx.drawImage(nebulaSource, -width * 0.08, -height * 0.08, width * 1.16, height * 1.16);
+          cacheCtx.restore();
+        }
+        const vignette = cacheCtx.createRadialGradient(
+          width * 0.5,
+          height * 0.5,
+          Math.min(width, height) * 0.18,
+          width * 0.5,
+          height * 0.5,
+          Math.max(width, height) * 0.72
+        );
+        vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+        vignette.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+        cacheCtx.fillStyle = vignette;
+        cacheCtx.fillRect(0, 0, width, height);
+        backgroundCache.width = width;
+        backgroundCache.height = height;
+        backgroundCache.quality = quality;
+        backgroundCache.ready = true;
+        return canvas;
+      }
+
+      function renderLootBursts() {
+        if (!lootBursts.length) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "600 12px \"Chakra Petch\", sans-serif";
+        lootBursts.forEach((burst) => {
+          const alpha = clamp(burst.life / burst.maxLife, 0, 1);
+          const color = TIER_COLORS[burst.tier] || "#e5f1ff";
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(4, 8, 16, 0.8)";
+          ctx.lineWidth = 3;
+          ctx.strokeText(burst.label, burst.x, burst.y);
+          ctx.fillStyle = color;
+          ctx.fillText(burst.label, burst.x, burst.y);
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderDamageNumbers() {
+        if (!damageNumbers.length) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "700 13px \"Chakra Petch\", sans-serif";
+        const useStroke = damageNumbers.length < 80;
+        damageNumbers.forEach((burst) => {
+          const alpha = clamp(burst.life / burst.maxLife, 0, 1);
+          ctx.globalAlpha = alpha;
+          if (useStroke) {
+            ctx.strokeStyle = "rgba(4, 8, 16, 0.85)";
+            ctx.lineWidth = 3;
+            ctx.strokeText(burst.text, burst.x, burst.y);
+          }
+          ctx.fillStyle = burst.color;
+          ctx.fillText(burst.text, burst.x, burst.y);
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderObstacles() {
+        if (!obstacles.length) return;
+        const bounds = getViewportBounds();
+        const viewOrigin = {
+          x: bounds.left + (bounds.right - bounds.left) * 0.5,
+          y: bounds.top + (bounds.bottom - bounds.top) * 0.5
+        };
+        const viewRadius = Math.hypot(bounds.right - bounds.left, bounds.bottom - bounds.top) * 0.5 + 220;
+        forEachObstacleNear(viewOrigin, viewRadius, (obstacle) => {
+          if (obstacle.kind === "rock") {
+            const radius = obstacle.radius;
+            if (obstacle.x + radius < bounds.left - 80 || obstacle.x - radius > bounds.right + 80
+              || obstacle.y + radius < bounds.top - 80 || obstacle.y - radius > bounds.bottom + 80) {
+              return false;
+            }
+            if (drawSprite("asteroidRock", obstacle.x, obstacle.y, obstacle.rotation || 0, radius * 2.12, radius * 2.12, {
+              alpha: 0.96,
+              shadowBlur: 10,
+              shadowColor: "rgba(140, 170, 195, 0.34)"
+            })) {
+              return false;
+            }
+            const gradient = ctx.createRadialGradient(
+              obstacle.x - radius * 0.3,
+              obstacle.y - radius * 0.3,
+              radius * 0.2,
+              obstacle.x,
+              obstacle.y,
+              radius
+            );
+            const shade = obstacle.shade || 0.5;
+            gradient.addColorStop(0, `rgba(140, 170, 195, ${0.4 + shade * 0.2})`);
+            gradient.addColorStop(1, `rgba(30, 42, 60, ${0.8 + shade * 0.15})`);
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(obstacle.x, obstacle.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            return false;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          if (obstacle.x + halfWidth < bounds.left - 80 || obstacle.x - halfWidth > bounds.right + 80
+            || obstacle.y + halfHeight < bounds.top - 80 || obstacle.y - halfHeight > bounds.bottom + 80) {
+            return false;
+          }
+          const x = obstacle.x - halfWidth;
+          const y = obstacle.y - halfHeight;
+          if (drawSprite("obstaclePlate", obstacle.x, obstacle.y, obstacle.rotation || 0, obstacle.width, obstacle.height, {
+            alpha: 0.92,
+            shadowBlur: 8,
+            shadowColor: "rgba(124, 168, 255, 0.22)"
+          })) {
+            return false;
+          }
+          ctx.fillStyle = `rgba(22, 34, 48, ${0.7 + (obstacle.shade || 0.3) * 0.2})`;
+          ctx.fillRect(x, y, obstacle.width, obstacle.height);
+          ctx.strokeStyle = "rgba(160, 190, 220, 0.12)";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(x, y, obstacle.width, obstacle.height);
+          return false;
+        });
+      }
+
+      function renderFieldDrops() {
+        if (!fieldDrops.length) return;
+        const bounds = getViewportBounds();
+        const now = performance.now() * 0.001;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "600 9px \"Space Grotesk\", \"Chakra Petch\", sans-serif";
+        fieldDrops.forEach((drop) => {
+          const def = getFieldDropDef(drop.typeId);
+          if (!def) return;
+          const radius = drop.radius || 16;
+          if (drop.x + radius < bounds.left - 40 || drop.x - radius > bounds.right + 40
+            || drop.y + radius < bounds.top - 40 || drop.y - radius > bounds.bottom + 40) {
+            return;
+          }
+          const color = TIER_COLORS[def.tier] || "#ffffff";
+          const bob = Math.sin(now * 2 + drop.phase) * 4;
+          const x = drop.x;
+          const y = drop.y + bob;
+          const alpha = clamp(drop.life / drop.maxLife, 0, 1);
+          ctx.globalAlpha = alpha * 0.9;
+          const glow = ctx.createRadialGradient(x, y, 4, x, y, radius + 14);
+          glow.addColorStop(0, color);
+          glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x, y, radius + 14, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = alpha;
+          if (drawSprite("pickupCore", x, y, now * 0.9 + drop.phase, radius * 2.55, radius * 2.55, {
+            alpha,
+            shadowBlur: 12,
+            shadowColor: color
+          })) {
+            ctx.fillStyle = color;
+            ctx.fillText(def.symbol || "DROP", x, y);
+            return;
+          }
+          ctx.fillStyle = "rgba(8, 14, 24, 0.85)";
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = color;
+          ctx.fillText(def.symbol || "DROP", x, y);
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderHazards() {
+        if (!state.hazards || !state.hazards.length) return;
+        const bounds = getViewportBounds();
+        state.hazards.forEach((hazard) => {
+          const radius = hazard.radius || 100;
+          if (hazard.x + radius < bounds.left - 30 || hazard.x - radius > bounds.right + 30
+            || hazard.y + radius < bounds.top - 30 || hazard.y - radius > bounds.bottom + 30) {
+            return;
+          }
+          const lifeRatio = clamp((hazard.life || 0) / 22, 0.15, 1);
+          ctx.save();
+          ctx.globalAlpha = 0.2 + lifeRatio * 0.35;
+          const gradient = ctx.createRadialGradient(hazard.x, hazard.y, radius * 0.2, hazard.x, hazard.y, radius);
+          gradient.addColorStop(0, "rgba(240, 105, 105, 0.28)");
+          gradient.addColorStop(1, "rgba(240, 105, 105, 0.02)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(hazard.x, hazard.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 0.5 + Math.sin(performance.now() * 0.008) * 0.15;
+          ctx.strokeStyle = "rgba(255, 159, 107, 0.8)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(hazard.x, hazard.y, radius * 0.92, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      function renderParticles() {
+        if (!particles.length) return;
+        const premium = shouldUsePremiumVfx();
+        const bounds = getViewportBounds();
+        const level = getPerformanceQualityLevel();
+        ctx.save();
+        if (premium) {
+          ctx.globalCompositeOperation = "lighter";
+        }
+        particles.forEach((particle, index) => {
+          if (level >= 3 && index % 2 === 1) return;
+          if (!isCircleInBounds(particle, particle.size || 3, bounds, 90)) return;
+          const ratio = clamp(particle.life / particle.maxLife, 0, 1);
+          const alpha = easeOutCubic(ratio);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = particle.color;
+          ctx.strokeStyle = particle.color;
+          if (premium && particle.trail) {
+            ctx.lineWidth = Math.max(1, particle.size * 0.65);
+            ctx.beginPath();
+            ctx.moveTo(particle.x, particle.y);
+            ctx.lineTo(particle.x - particle.vx * 0.035, particle.y - particle.vy * 0.035);
+            ctx.stroke();
+          }
+          if (premium) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = particle.color;
+          }
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderPulses() {
+        if (!pulses.length) return;
+        const premium = shouldUsePremiumVfx();
+        const bounds = getViewportBounds();
+        const renderDetail = shouldDrawSecondaryCombatDetail();
+        ctx.save();
+        if (premium) {
+          ctx.globalCompositeOperation = "lighter";
+        }
+        pulses.forEach((pulse) => {
+          if (!isCircleInBounds(pulse, pulse.radius || 20, bounds, 120)) return;
+          const progress = 1 - clamp(pulse.life / pulse.maxLife, 0, 1);
+          const alpha = easeOutCubic(clamp(pulse.life / pulse.maxLife, 0, 1));
+          if (pulse.kind === "burst") {
+            drawSprite("burst", pulse.x, pulse.y, 0, pulse.radius * 2.2, pulse.radius * 2.2, {
+              alpha: alpha * 0.55,
+              composite: premium ? "lighter" : "",
+              shadowBlur: 12,
+              shadowColor: pulse.color
+            });
+          }
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = pulse.color;
+          ctx.lineWidth = 1.4 + (1 - progress) * 1.6;
+          if (premium) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = pulse.color;
+          }
+          ctx.beginPath();
+          ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = alpha * 0.28;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(pulse.x, pulse.y, pulse.radius * 0.72, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function renderBullets() {
+        if (!bullets.length) return;
+        const premium = shouldUsePremiumVfx();
+        const bounds = getViewportBounds();
+        ctx.save();
+        if (premium) {
+          ctx.globalCompositeOperation = "lighter";
+        }
+        bullets.forEach((bullet) => {
+          if (!isCircleInBounds(bullet, bullet.radius || 4, bounds, 80)) return;
+          let color = bullet.owner === "player" ? (bullet.crit ? "#f6c65f" : "#6ee7b7") : "#f06969";
+          if (bullet.tint) {
+            color = bullet.tint;
+          }
+          ctx.fillStyle = color;
+          ctx.strokeStyle = color;
+          if (premium) {
+            const speed = Math.hypot(bullet.vx || 0, bullet.vy || 0) || 1;
+            const tail = clamp(speed * 0.035, 8, 24);
+            ctx.globalAlpha = 0.34;
+            ctx.lineWidth = Math.max(1, bullet.radius * 0.8);
+            ctx.beginPath();
+            ctx.moveTo(bullet.x, bullet.y);
+            ctx.lineTo(bullet.x - (bullet.vx / speed) * tail, bullet.y - (bullet.vy / speed) * tail);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = bullet.owner === "player" ? 9 : 7;
+            ctx.shadowColor = color;
+          }
+          ctx.beginPath();
+          ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function drawWorldBounds() {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(4, 4, state.worldWidth - 8, state.worldHeight - 8);
+        ctx.restore();
+      }
+
+      function renderMinimap(force = false) {
+        if (!minimapCtx || !dom.minimap) return;
+        const now = performance.now();
+        const qualityLevel = getPerformanceQualityLevel();
+        const interval = qualityLevel >= 4
+          ? MINIMAP_RENDER_INTERVAL_EMERGENCY_MS
+          : qualityLevel >= 2 || isHighPixelPressure()
+          ? MINIMAP_RENDER_INTERVAL_STRESSED_MS
+          : MINIMAP_RENDER_INTERVAL_MS;
+        if (!force && !state.minimapForceRender && now - state.minimapLastRenderAt < interval) {
+          return;
+        }
+        state.minimapLastRenderAt = now;
+        state.minimapForceRender = false;
+        const dpr = Math.max(AUTO_RENDER_MIN_SCALE, state.renderScale || window.devicePixelRatio || 1);
+        const width = dom.minimap.width / dpr;
+        const height = dom.minimap.height / dpr;
+        minimapCtx.clearRect(0, 0, width, height);
+        if (!player || (state.mode !== "flight" && state.mode !== "training")) return;
+        minimapCtx.fillStyle = "rgba(6, 10, 18, 0.9)";
+        minimapCtx.fillRect(0, 0, width, height);
+
+        const padding = 6;
+        const mapWidth = width - padding * 2;
+        const mapHeight = height - padding * 2;
+        const scaleX = mapWidth / state.worldWidth;
+        const scaleY = mapHeight / state.worldHeight;
+        const scale = Math.min(scaleX, scaleY);
+        const offsetX = (width - state.worldWidth * scale) * 0.5;
+        const offsetY = (height - state.worldHeight * scale) * 0.5;
+
+        minimapCtx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+        minimapCtx.lineWidth = 1;
+        minimapCtx.strokeRect(offsetX, offsetY, state.worldWidth * scale, state.worldHeight * scale);
+
+        minimapCtx.fillStyle = "rgba(140, 170, 195, 0.35)";
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            minimapCtx.beginPath();
+            minimapCtx.arc(
+              offsetX + obstacle.x * scale,
+              offsetY + obstacle.y * scale,
+              Math.max(2, obstacle.radius * scale),
+              0,
+              Math.PI * 2
+            );
+            minimapCtx.fill();
+            return;
+          }
+          minimapCtx.fillRect(
+            offsetX + (obstacle.x - obstacle.width * 0.5) * scale,
+            offsetY + (obstacle.y - obstacle.height * 0.5) * scale,
+            obstacle.width * scale,
+            obstacle.height * scale
+          );
+        });
+
+        minimapCtx.fillStyle = "#f06969";
+        enemies.forEach((enemy) => {
+          const x = offsetX + enemy.x * scale;
+          const y = offsetY + enemy.y * scale;
+          minimapCtx.fillRect(x - 1, y - 1, 2, 2);
+        });
+
+        fieldDrops.forEach((drop) => {
+          const def = getFieldDropDef(drop.typeId);
+          const color = TIER_COLORS[def.tier] || "#ffffff";
+          minimapCtx.fillStyle = color;
+          minimapCtx.fillRect(
+            offsetX + drop.x * scale - 1,
+            offsetY + drop.y * scale - 1,
+            2,
+            2
+          );
+        });
+
+        minimapCtx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+        minimapCtx.strokeRect(
+          offsetX + state.camera.x * scale,
+          offsetY + state.camera.y * scale,
+          state.width * scale,
+          state.height * scale
+        );
+
+        minimapCtx.fillStyle = "#44d2c2";
+        minimapCtx.beginPath();
+        minimapCtx.arc(
+          offsetX + player.x * scale,
+          offsetY + player.y * scale,
+          3,
+          0,
+          Math.PI * 2
+        );
+        minimapCtx.fill();
+      }
+
+      function renderFrame() {
+        if (isPixiRendererReady()) {
+          renderPixiFrame();
+          return;
+        }
+        state.renderBackend = "canvas";
+        render();
+      }
+
+      function renderPixiFrame() {
+        state.renderBackend = "pixi";
+        const timings = pixiRenderer.renderFrame(buildPixiFrameSnapshot()) || {};
+        Object.keys(timings).forEach((key) => {
+          addPerfBucket("render", key, timings[key]);
+        });
+        const minimapStart = perfFrameActive ? performance.now() : 0;
+        renderMinimap();
+        if (perfFrameActive) {
+          addPerfBucket("render", "minimap", performance.now() - minimapStart);
+        }
+      }
+
+      function buildPixiFrameSnapshot() {
+        return {
+          width: state.width,
+          height: state.height,
+          renderScale: state.renderScale,
+          qualityLevel: getPerformanceQualityLevel(),
+          showDetail: shouldDrawSecondaryCombatDetail(),
+          premiumVfx: shouldUsePremiumVfx(),
+          nowSec: performance.now() * 0.001,
+          mode: state.mode,
+          camera: state.camera,
+          shake: getScreenShakeOffset(),
+          bounds: getViewportBounds(),
+          player,
+          enemies,
+          bullets,
+          particles,
+          pulses,
+          obstacles,
+          fieldDrops,
+          helpers,
+          mines: state.mines,
+          blackHoles: state.blackHoles,
+          hazards: state.hazards,
+          decoy: state.decoy,
+          aimTarget: getAimTarget(),
+          targetAssist: getActiveTargetAssist(),
+          playerArtId: getPlayerArtId(player),
+          getEnemyArtId,
+          getFieldDropDef,
+          getTierColor: (tier) => TIER_COLORS[tier] || "#ffffff",
+          shouldDrawEnemyTelegraph,
+          getEnemyAttackTelegraph,
+          isPriorityEnemy,
+          getPriorityEnemyColor
+        };
+      }
+
+      function render() {
+        let perfStart = perfFrameActive ? performance.now() : 0;
+        ctx.clearRect(0, 0, state.width, state.height);
+        renderBackground();
+        perfStart = markPerfBucket("render", "background", perfStart);
+
+        const bounds = getViewportBounds();
+        const renderDetail = shouldDrawSecondaryCombatDetail();
+        ctx.save();
+        const shake = getScreenShakeOffset();
+        ctx.translate(shake.x, shake.y);
+        ctx.translate(-state.camera.x, -state.camera.y);
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        stars.forEach((star) => {
+          if (star.x < bounds.left - 40 || star.x > bounds.right + 40
+            || star.y < bounds.top - 40 || star.y > bounds.bottom + 40) {
+            return;
+          }
+          ctx.globalAlpha = star.alpha;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        perfStart = markPerfBucket("render", "stars", perfStart);
+
+        renderObstacles();
+        renderFieldDrops();
+        renderHazards();
+        perfStart = markPerfBucket("render", "world", perfStart);
+        renderParticles();
+        renderPulses();
+
+        renderBlackHoles();
+        perfStart = markPerfBucket("render", "vfx", perfStart);
+        enemies.forEach((enemy) => {
+          if (!isCircleInBounds(enemy, enemy.radius || 22, bounds, 160)) return;
+          if (!shouldDrawEnemyTelegraph(enemy)) return;
+          drawEnemyAttackTelegraph(enemy);
+        });
+
+        if (player && renderDetail) {
+          drawAura();
+        }
+
+        if (state.decoy) {
+          ctx.strokeStyle = "rgba(246, 198, 95, 0.6)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(state.decoy.x, state.decoy.y, 12, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        state.mines.forEach((mine) => {
+          if (!isCircleInBounds(mine, mine.radius || 14, bounds, 90)) return;
+          if (drawSprite("mineCore", mine.x, mine.y, performance.now() * 0.0018, mine.radius * 1.35, mine.radius * 1.35, {
+            alpha: 0.9,
+            shadowBlur: 10,
+            shadowColor: "#ffd166"
+          })) {
+            return;
+          }
+          ctx.fillStyle = "rgba(246, 198, 95, 0.8)";
+          ctx.beginPath();
+          ctx.arc(mine.x, mine.y, mine.radius * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        renderBullets();
+        perfStart = markPerfBucket("render", "overlays", perfStart);
+
+        const drawRoleLabels = renderDetail && shouldDrawEnemyRoleLabels();
+        enemies.forEach((enemy) => {
+          const priority = isPriorityEnemy(enemy);
+          if (!isCircleInBounds(enemy, enemy.radius || 22, bounds, priority ? 260 : 120)) return;
+          if (renderDetail || priority) {
+            drawEnemyThreatHalo(enemy);
+          }
+          drawEnemyShip(enemy);
+          if (renderDetail || priority) {
+            drawShield(enemy);
+            drawEnemyVitals(enemy);
+          }
+          if (drawRoleLabels || isPriorityEnemy(enemy)) {
+            drawEnemyRoleLabel(enemy);
+          }
+        });
+
+        if (player) {
+          drawShip(player.x, player.y, player.angle, player.radius, "#44d2c2", player.hitFlash > 0, player.thrusting, getPlayerArtId(player));
+          drawShield(player);
+        }
+
+        renderHelpers();
+        perfStart = markPerfBucket("render", "entities", perfStart);
+        if (renderDetail) {
+          renderLootBursts();
+          renderDamageNumbers();
+          drawWorldBounds();
+        }
+        drawCrosshair();
+        ctx.restore();
+
+        drawThreatIndicators();
+        renderMinimap();
+        markPerfBucket("render", "minimap", perfStart);
+      }
+
+      function isPriorityEnemy(enemy) {
+        return !!(enemy && (enemy.id === "dreadnought" || enemy.id === "ace" || enemy.elite || enemy.miniboss));
+      }
+
+      function getPriorityEnemyColor(enemy) {
+        if (!enemy) return "#f6c65f";
+        if (enemy.id === "dreadnought") return "#f6c65f";
+        if (enemy.miniboss) return "#ff9f6b";
+        if (enemy.id === "ace") return "#ff9f6b";
+        return "#b98cff";
+      }
+
+      function getEnemyAttackTelegraph(enemy) {
+        if (!enemy || !player) return null;
+        if (enemy.burstRemaining > 0) return null;
+        const dangerous = isPriorityEnemy(enemy)
+          || enemy.bulletSlowPlayer
+          || enemy.baseDamage >= 14
+          || enemy.pattern === "spread"
+          || enemy.baseBulletSpeed >= 520;
+        if (!dangerous) return null;
+        const fireRate = enemy.baseFireRate * (state.sectorMod?.enemy?.fireRate || 1);
+        const cadence = fireRate > 0 ? 1 / fireRate : 1;
+        const baseWindow = enemy.baseBulletSpeed >= 520
+          ? 0.8
+          : enemy.pattern === "spread"
+            ? 0.62
+            : 0.42;
+        const window = clamp(baseWindow, 0.28, Math.max(0.28, cadence * 0.7));
+        if (enemy.fireCooldown > window) return null;
+        const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
+        const intercept = getPredictedInterceptPoint(enemy, player, bulletSpeed);
+        if (!intercept) return null;
+        const distance = distanceBetween(enemy, player);
+        if (distance > 700) return null;
+        return {
+          progress: clamp(1 - enemy.fireCooldown / window, 0, 1),
+          aimX: intercept.x,
+          aimY: intercept.y,
+          aimAngle: Math.atan2(intercept.y - enemy.y, intercept.x - enemy.x),
+          distance,
+          spreadCount: enemy.spreadCount || 1,
+          spreadAngle: Number.isFinite(enemy.spreadAngle) ? enemy.spreadAngle : 0,
+          color: enemy.bulletTint || (enemy.baseBulletSpeed >= 520 ? "#b98cff" : "#ff9f6b")
+        };
+      }
+
+      function drawEnemyAttackTelegraph(enemy) {
+        const telegraph = getEnemyAttackTelegraph(enemy);
+        if (!telegraph) return;
+        const lineLength = Math.min(telegraph.distance, 250 + telegraph.progress * 80);
+        const color = telegraph.color;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1.4 + telegraph.progress * 1.2;
+        ctx.globalAlpha = 0.16 + telegraph.progress * 0.34;
+        ctx.setLineDash([7, 6]);
+        if (telegraph.spreadCount > 1) {
+          const spread = telegraph.spreadAngle || 0.18;
+          const startAngle = telegraph.aimAngle - spread * (telegraph.spreadCount - 1) * 0.5;
+          const endAngle = telegraph.aimAngle + spread * (telegraph.spreadCount - 1) * 0.5;
+          [startAngle, telegraph.aimAngle, endAngle].forEach((angle) => {
+            ctx.beginPath();
+            ctx.moveTo(enemy.x, enemy.y);
+            ctx.lineTo(enemy.x + Math.cos(angle) * lineLength, enemy.y + Math.sin(angle) * lineLength);
+            ctx.stroke();
+          });
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(enemy.x, enemy.y);
+          ctx.lineTo(enemy.x + Math.cos(telegraph.aimAngle) * lineLength, enemy.y + Math.sin(telegraph.aimAngle) * lineLength);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.22 + telegraph.progress * 0.32;
+        ctx.beginPath();
+        ctx.arc(telegraph.aimX, telegraph.aimY, 10 + telegraph.progress * 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawEnemyThreatHalo(enemy) {
+        if (!isPriorityEnemy(enemy)) return;
+        const now = performance.now();
+        const pulse = 0.45 + Math.sin(now * 0.01) * 0.18;
+        const color = getPriorityEnemyColor(enemy);
+        const radius = enemy.radius + (enemy.id === "dreadnought" ? 16 : 11);
+        ctx.save();
+        ctx.globalAlpha = 0.45 + pulse * 0.3;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = enemy.id === "dreadnought" ? 3 : 2;
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.22 + pulse * 0.2;
+        ctx.beginPath();
+        ctx.arc(enemy.x, enemy.y, radius + 8, 0, Math.PI * 2);
+        ctx.stroke();
+        if (enemy.dashCooldown > 0 && enemy.dashTimer <= 0.75) {
+          ctx.globalAlpha = 0.55;
+          ctx.strokeStyle = "#ff9f6b";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.arc(enemy.x, enemy.y, radius + 16, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        if (enemy.shieldPulseCooldown > 0 && enemy.shieldPulseRadius > 0 && enemy.shieldPulseTimer <= 0.8) {
+          ctx.globalAlpha = 0.36;
+          ctx.strokeStyle = enemy.shieldPulseColor || "#7ca8ff";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 5]);
+          ctx.beginPath();
+          ctx.arc(enemy.x, enemy.y, enemy.shieldPulseRadius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.restore();
+      }
+
+      function drawThreatIndicators() {
+        if (!player || !enemies.length) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        const margin = 34;
+        const centerX = state.width * 0.5;
+        const centerY = state.height * 0.5;
+        const priorities = enemies
+          .filter((enemy) => isPriorityEnemy(enemy))
+          .sort((a, b) => distanceBetween(player, a) - distanceBetween(player, b))
+          .slice(0, 6);
+        if (!priorities.length) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "700 10px \"Space Grotesk\", \"Chakra Petch\", sans-serif";
+        priorities.forEach((enemy) => {
+          const screenX = enemy.x - state.camera.x;
+          const screenY = enemy.y - state.camera.y;
+          const onScreen = screenX >= margin && screenX <= state.width - margin
+            && screenY >= margin && screenY <= state.height - margin;
+          if (onScreen) return;
+          const indicatorX = clamp(screenX, margin, state.width - margin);
+          const indicatorY = clamp(screenY, margin, state.height - margin);
+          const angle = Math.atan2(screenY - centerY, screenX - centerX);
+          const color = getPriorityEnemyColor(enemy);
+          const distance = Math.round(distanceBetween(player, enemy));
+          ctx.save();
+          ctx.translate(indicatorX, indicatorY);
+          ctx.rotate(angle);
+          ctx.fillStyle = color;
+          ctx.strokeStyle = "rgba(8, 14, 24, 0.9)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(14, 0);
+          ctx.lineTo(-8, 7);
+          ctx.lineTo(-8, -7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+          ctx.fillStyle = color;
+          ctx.strokeStyle = "rgba(8, 14, 24, 0.9)";
+          ctx.lineWidth = 3;
+          const distanceY = indicatorY - 13;
+          ctx.strokeText(`${distance}m`, indicatorX, distanceY);
+          ctx.fillText(`${distance}m`, indicatorX, distanceY);
+        });
+        ctx.restore();
+      }
+
+      function drawAura() {
+        if (!player || player.auraRadius <= 0 || player.auraDamage <= 0) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        const pulse = 0.5 + Math.sin(performance.now() * 0.004) * 0.5;
+        ctx.save();
+        const gradient = ctx.createRadialGradient(player.x, player.y, player.radius, player.x, player.y, player.auraRadius);
+        gradient.addColorStop(0, "rgba(124, 168, 255, 0.1)");
+        gradient.addColorStop(0.75, "rgba(124, 168, 255, 0.04)");
+        gradient.addColorStop(1, "rgba(124, 168, 255, 0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.auraRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = `rgba(124, 168, 255, ${0.24 + pulse * 0.22})`;
+        ctx.lineWidth = 1.5;
+        if (shouldUsePremiumVfx()) {
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = "#7ca8ff";
+        }
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.auraRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function renderBlackHoles() {
+        if (!state.blackHoles || !state.blackHoles.length) return;
+        state.blackHoles.forEach((hole) => {
+          const lifeRatio = hole.maxLife ? hole.life / hole.maxLife : 1;
+          const alpha = clamp(0.2 + lifeRatio * 0.4, 0, 0.7);
+          const spin = performance.now() * 0.0015;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          if (shouldUsePremiumVfx()) {
+            ctx.globalCompositeOperation = "lighter";
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = "#9aa7ff";
+          }
+          const gradient = ctx.createRadialGradient(hole.x, hole.y, hole.radius * 0.2, hole.x, hole.y, hole.radius);
+          gradient.addColorStop(0, "rgba(16, 28, 46, 0.9)");
+          gradient.addColorStop(0.45, "rgba(88, 122, 208, 0.45)");
+          gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.translate(hole.x, hole.y);
+          ctx.rotate(spin);
+          ctx.strokeStyle = "rgba(218, 224, 255, 0.5)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, hole.radius * 0.62, hole.radius * 0.22, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      function renderHelpers() {
+        if (!helpers.length || (state.mode !== "flight" && state.mode !== "training")) return;
+        const bounds = getViewportBounds();
+        helpers.forEach((helper) => {
+          if (!isCircleInBounds(helper, 18, bounds, 80)) return;
+          if (drawSprite("helperDrone", helper.x, helper.y, helper.angle || 0, 20, 20, {
+            alpha: 0.96,
+            shadowBlur: 8,
+            shadowColor: "#6ee7b7"
+          })) {
+            return;
+          }
+          ctx.save();
+          ctx.translate(helper.x, helper.y);
+          ctx.fillStyle = "#6ee7b7";
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(6, 0);
+          ctx.lineTo(-4, 4);
+          ctx.lineTo(-4, -4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        });
+      }
+
+      function getEnemyRole(enemy) {
+        return enemy?.role || ENEMY_ROLE_MAP[enemy?.id] || "line";
+      }
+
+      function drawEnemyShip(enemy) {
+        if (!enemy) return;
+        const role = getEnemyRole(enemy);
+        drawShip(enemy.x, enemy.y, enemy.angle, enemy.radius, enemy.color, enemy.hitFlash > 0, false, getEnemyArtId(enemy));
+        ctx.save();
+        ctx.translate(enemy.x, enemy.y);
+        ctx.rotate(enemy.angle);
+        ctx.strokeStyle = enemy.hitFlash > 0 ? "#ffffff" : (enemy.bulletTint || getPriorityEnemyColor(enemy));
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.85;
+        if (role === "support") {
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.radius * 0.52, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-enemy.radius * 0.34, 0);
+          ctx.lineTo(enemy.radius * 0.34, 0);
+          ctx.moveTo(0, -enemy.radius * 0.34);
+          ctx.lineTo(0, enemy.radius * 0.34);
+          ctx.stroke();
+        } else if (role === "artillery") {
+          ctx.beginPath();
+          ctx.moveTo(enemy.radius * 0.25, 0);
+          ctx.lineTo(enemy.radius * 1.28, 0);
+          ctx.stroke();
+        } else if (role === "siege") {
+          ctx.strokeRect(-enemy.radius * 0.55, -enemy.radius * 0.45, enemy.radius * 0.55, enemy.radius * 0.9);
+        } else if (role === "brawler") {
+          ctx.beginPath();
+          ctx.moveTo(enemy.radius * 0.18, -enemy.radius * 0.52);
+          ctx.lineTo(enemy.radius * 0.78, 0);
+          ctx.lineTo(enemy.radius * 0.18, enemy.radius * 0.52);
+          ctx.stroke();
+        } else if (role === "interceptor") {
+          ctx.beginPath();
+          ctx.moveTo(-enemy.radius * 0.58, -enemy.radius * 0.78);
+          ctx.lineTo(-enemy.radius * 0.1, 0);
+          ctx.lineTo(-enemy.radius * 0.58, enemy.radius * 0.78);
+          ctx.stroke();
+        } else if (role === "command") {
+          ctx.beginPath();
+          ctx.arc(0, 0, enemy.radius * 0.78, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawShip(x, y, angle, size, color, hitFlash, thrusting, artId = "playerScout") {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        if (thrusting) {
+          const flame = 0.8 + Math.sin(performance.now() * 0.03) * 0.2;
+          ctx.fillStyle = `rgba(246, 198, 95, ${0.62 + flame * 0.22})`;
+          if (shouldUsePremiumVfx()) {
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = "#ffd166";
+          }
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.8, 0);
+          ctx.lineTo(-size * (1.38 + flame * 0.14), size * 0.48);
+          ctx.lineTo(-size * (1.64 + flame * 0.18), 0);
+          ctx.lineTo(-size * (1.38 + flame * 0.14), -size * 0.48);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        const spriteWidth = size * ((artId === "enemyCommand" || artId === "playerHeavy") ? 3.4 : 3.0);
+        const spriteHeight = size * ((artId === "enemyArtillery") ? 1.9 : 2.72);
+        const spriteDrawn = drawSprite(artId, 0, 0, 0, spriteWidth, spriteHeight, {
+          alpha: hitFlash ? 0.98 : 0.94,
+          shadowBlur: hitFlash ? 16 : 9,
+          shadowColor: hitFlash ? "#ffffff" : color
+        });
+        if (spriteDrawn) {
+          if (hitFlash && (progress.settings.hitFlash !== false)) {
+            ctx.globalAlpha = 0.55;
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(size, 0);
+            ctx.lineTo(-size * 0.7, size * 0.68);
+            ctx.lineTo(-size * 0.36, 0);
+            ctx.lineTo(-size * 0.7, -size * 0.68);
+            ctx.closePath();
+            ctx.fill();
+          }
+          ctx.restore();
+          return;
+        }
+
+        ctx.fillStyle = hitFlash ? "#ffffff" : color;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(size, 0);
+        ctx.lineTo(-size * 0.7, size * 0.7);
+        ctx.lineTo(-size * 0.4, 0);
+        ctx.lineTo(-size * 0.7, -size * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawShield(entity) {
+        if (entity.maxShield <= 0 || entity.shield <= 0) return;
+        const ratio = entity.shield / entity.maxShield;
+        const radius = entity.radius + 6;
+        ctx.save();
+        ctx.globalAlpha = 0.2 + ratio * 0.4;
+        ctx.strokeStyle = entity === player ? "#57e0ff" : "#f6c65f";
+        ctx.lineWidth = 2;
+        if (entity === player && drawSprite("shieldRipple", entity.x, entity.y, 0, radius * 2.3, radius * 2.3, {
+          alpha: 0.35 + ratio * 0.2,
+          composite: shouldUsePremiumVfx() ? "screen" : "",
+          shadowBlur: 10,
+          shadowColor: "#57e0ff"
+        })) {
+          ctx.globalAlpha = 0.18 + ratio * 0.28;
+        }
+        ctx.beginPath();
+        ctx.arc(entity.x, entity.y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawEnemyVitals(enemy) {
+        if (!enemy) return;
+        const barWidth = Math.max(26, enemy.radius * 3.2);
+        const barHeight = 4;
+        const gap = 2;
+        const hasShield = enemy.maxShield > 0;
+        const totalHeight = barHeight + (hasShield ? barHeight + gap : 0);
+        const x = enemy.x - barWidth / 2;
+        let y = enemy.y - enemy.radius - 12 - totalHeight;
+        y = Math.max(6, y);
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "rgba(5, 8, 14, 0.7)";
+        ctx.fillRect(x - 1, y - 1, barWidth + 2, totalHeight + 2);
+        if (hasShield) {
+          const shieldRatio = clamp(enemy.shield / enemy.maxShield, 0, 1);
+          ctx.fillStyle = "#57e0ff";
+          ctx.fillRect(x, y, barWidth * shieldRatio, barHeight);
+          y += barHeight + gap;
+        }
+        const hullRatio = clamp(enemy.health / enemy.maxHealth, 0, 1);
+        ctx.fillStyle = "#f06969";
+        ctx.fillRect(x, y, barWidth * hullRatio, barHeight);
+        ctx.restore();
+      }
+
+      function shouldDrawEnemyRoleLabel(enemy) {
+        if (!enemy) return false;
+        const role = getEnemyRole(enemy);
+        return isPriorityEnemy(enemy)
+          || PRIORITY_KILL_ROLES.has(role)
+          || role === "brawler"
+          || role === "interceptor"
+          || getGlobalWave(state.wave || 1) <= 2;
+      }
+
+      function drawEnemyRoleLabel(enemy) {
+        if (!shouldDrawEnemyRoleLabel(enemy)) return;
+        const role = getEnemyRole(enemy);
+        const label = enemy.id === "dreadnought"
+          ? "BOSS"
+          : (ENEMY_ROLE_MARKS[role] || (ENEMY_ROLE_LABELS[role] || role).toUpperCase());
+        const width = Math.max(34, label.length * 7 + 12);
+        const x = enemy.x - width * 0.5;
+        const y = Math.max(8, enemy.y - enemy.radius - 32);
+        ctx.save();
+        ctx.font = "700 9px \"Space Grotesk\", \"Chakra Petch\", sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(5, 8, 14, 0.72)";
+        ctx.strokeStyle = getPriorityEnemyColor(enemy);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, 16, 6);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#f5f9ff";
+        ctx.fillText(label, enemy.x, y + 8);
+        ctx.restore();
+      }
+
+      function drawTargetAssistOverlay(assist) {
+        if (!assist || !assist.enemy) return;
+        const enemy = assist.enemy;
+        const ringRadius = enemy.radius + 10 + assist.lockStrength * 6;
+        const corner = 6 + assist.lockStrength * 3;
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 209, 102, ${0.52 + assist.lockStrength * 0.3})`;
+        ctx.fillStyle = "rgba(255, 209, 102, 0.9)";
+        ctx.lineWidth = 1.6 + assist.lockStrength * 0.8;
+        [
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [1, 1]
+        ].forEach(([sx, sy]) => {
+          const baseX = enemy.x + sx * ringRadius;
+          const baseY = enemy.y + sy * ringRadius;
+          ctx.beginPath();
+          ctx.moveTo(baseX, baseY + sy * corner);
+          ctx.lineTo(baseX, baseY);
+          ctx.lineTo(baseX + sx * corner, baseY);
+          ctx.stroke();
+        });
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(enemy.x, enemy.y);
+        ctx.lineTo(assist.leadX, assist.leadY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(assist.leadX, assist.leadY, 6 + assist.lockStrength * 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.95;
+        ctx.beginPath();
+        ctx.arc(assist.leadX, assist.leadY, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawCrosshair() {
+        const target = getAimTarget();
+        const assist = getActiveTargetAssist();
+        const aimX = target.x;
+        const aimY = target.y;
+        ctx.save();
+        ctx.strokeStyle = assist
+          ? `rgba(255, 209, 102, ${0.42 + assist.lockStrength * 0.38})`
+          : "rgba(255, 255, 255, 0.35)";
+        ctx.lineWidth = assist ? 1.5 : 1;
+        ctx.beginPath();
+        ctx.arc(aimX, aimY, assist ? 12 : 10, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(aimX - 16, aimY);
+        ctx.lineTo(aimX - 9, aimY);
+        ctx.moveTo(aimX + 9, aimY);
+        ctx.lineTo(aimX + 16, aimY);
+        ctx.moveTo(aimX, aimY - 16);
+        ctx.lineTo(aimX, aimY - 9);
+        ctx.moveTo(aimX, aimY + 9);
+        ctx.lineTo(aimX, aimY + 16);
+        ctx.stroke();
+        if (assist) {
+          drawTargetAssistOverlay(assist);
+        }
+        ctx.restore();
+      }
+
+      function updateHud() {
+        flushDeferredState();
+        const now = performance.now();
+        if (now - state.lastHudUpdate < HUD_UPDATE_INTERVAL_MS) {
+          return;
+        }
+        state.lastHudUpdate = now;
+        if (!player) return;
+        const hullPct = clamp(player.health / player.maxHealth, 0, 1) * 100;
+        const shieldPct = player.maxShield > 0 ? clamp(player.shield / player.maxShield, 0, 1) * 100 : 0;
+        const energyPct = clamp(player.energy / player.maxEnergy, 0, 1) * 100;
+        setCachedWidth(meters.hull, hullPct);
+        setCachedWidth(meters.shield, shieldPct);
+        setCachedWidth(meters.energy, energyPct);
+        setCachedWidth(hudMeters.hull, hullPct);
+        setCachedWidth(hudMeters.shield, shieldPct);
+        setCachedWidth(hudMeters.energy, energyPct);
+
+        setCachedText(stats.hullText, `${Math.round(player.health)} / ${Math.round(player.maxHealth)}`);
+        setCachedText(stats.shieldText, player.maxShield > 0
+          ? `${Math.round(player.shield)} / ${Math.round(player.maxShield)}`
+          : "0 / 0");
+        setCachedText(stats.energyText, `${Math.round(player.energy)} / ${Math.round(player.maxEnergy)}`);
+        setCachedText(hudStats.hull, `${Math.round(player.health)}/${Math.round(player.maxHealth)}`);
+        setCachedText(hudStats.shield, player.maxShield > 0
+          ? `${Math.round(player.shield)}/${Math.round(player.maxShield)}`
+          : "0/0");
+        setCachedText(hudStats.energy, `${Math.round(player.energy)}/${Math.round(player.maxEnergy)}`);
+
+        setCachedText(stats.wave, getWaveDisplay(state.wave));
+        setCachedText(stats.enemyCount, enemies.length);
+        const roundedScore = Math.round(state.score);
+        const roundedCredits = Math.round(state.credits);
+        setCachedText(stats.score, roundedScore.toLocaleString());
+        setCachedText(stats.credits, roundedCredits.toLocaleString());
+        if (roundedScore !== state.lastHudScore || roundedCredits !== state.lastHudCredits) {
+          state.lastHudScore = roundedScore;
+          state.lastHudCredits = roundedCredits;
+          noteHudMetaReveal(now);
+        }
+        const threatLabel = formatThreatTierLabel(state.threatTier);
+        setCachedText(stats.threatTier, threatLabel);
+        setCachedText(stats.threatTierHud, threatLabel);
+        const objectiveBase = state.waveObjective
+          ? `${state.waveObjective.label}${state.waveObjective.complete ? " (Complete)" : ` • ${state.waveObjective.progressLabel || ""}`}`
+          : "Eliminate hostiles";
+        const objectiveText = isTimedQuickMode()
+          ? `Time ${formatDuration(state.quickTimer || 0)} • ${objectiveBase}`
+          : objectiveBase;
+        setCachedText(stats.objective, objectiveText);
+        setCachedText(stats.objectiveHud, objectiveText);
+        if (stats.modeLabel) {
+          if (state.training) {
+            setCachedText(stats.modeLabel, "Training");
+          } else if (isCampaignMode()) {
+            setCachedText(stats.modeLabel, `Campaign L${state.level || 1}`);
+          } else {
+            setCachedText(stats.modeLabel, getRunModeLabel());
+          }
+        }
+        if (dom.tierPill && stats.tier) {
+          const showTier = isFrontierMode() && state.frontier && state.frontier.active;
+          const tierValue = showTier ? (state.frontier.tier || 1) : null;
+          dom.tierPill.hidden = !showTier;
+          if (showTier) {
+            setCachedText(stats.tier, tierValue);
+          }
+          if (tierValue !== state.lastHudTier) {
+            state.lastHudTier = tierValue;
+            if (tierValue !== null) {
+              noteHudMetaReveal(now);
+            }
+          }
+        }
+
+        setCachedText(stats.rank, progress.rank);
+        setCachedText(stats.xp, `${Math.round(progress.xp)} / ${xpToNext(progress.rank)}`);
+        setCachedText(stats.techPoints, progress.techPoints);
+        setCachedText(stats.bestWave, progress.campaignLevel || 1);
+        setCachedText(stats.totalKills, progress.totalKills);
+        setCachedText(stats.bankedCredits, `Credits ${Math.round(progress.bankedCredits)}`);
+        setCachedText(stats.bankedCreditsTotal, Math.round(progress.bankedCredits).toLocaleString());
+        setCachedText(stats.premiumCurrency, `${PREMIUM_CURRENCY_LABEL} ${progress.premiumCurrency || 0}`);
+        setCachedText(stats.premiumCurrencyTotal, Math.round(progress.premiumCurrency || 0).toLocaleString());
+        setCachedText(stats.blueprints, `Blueprints ${progress.blueprints}`);
+        setCachedText(stats.salvageKeys, `Keys ${progress.salvageKeys || 0}`);
+
+        setCachedText(stats.damage, Math.round(player.damage));
+        setCachedText(stats.fireRate, `${player.fireRate.toFixed(1)} / sec`);
+        setCachedText(stats.speed, Math.round(player.maxSpeed));
+        setCachedText(stats.shieldRegen, `${player.shieldRegen.toFixed(1)} / sec`);
+        setCachedText(stats.energyRegen, `${player.energyRegen.toFixed(1)} / sec`);
+        setCachedText(stats.crit, `${Math.round(player.critChance * 100)}%`);
+        const derived = getDerivedCombatMetrics(player);
+        setCachedText(stats.dps, Math.round(derived.dps).toLocaleString());
+        setCachedText(stats.ehp, Math.round(derived.ehp).toLocaleString());
+        if (stats.energySustain) {
+          const sustain = Number.isFinite(derived.sustain) ? derived.sustain : 0;
+          setCachedText(stats.energySustain, `${sustain >= 0 ? "+" : ""}${sustain.toFixed(1)} / sec`);
+        }
+
+        setCachedText(stats.shipName, player.ship ? player.ship.name : "-");
+        setCachedText(stats.weaponName, player.weapon ? player.weapon.name : "-");
+        setCachedText(stats.secondaryName, isFeatureUnlocked("secondary")
+          ? (player.secondary ? player.secondary.name : "-")
+          : "Locked");
+        setCachedText(stats.sector, `Sector ${state.sector.toString().padStart(2, "0")}`);
+        setCachedText(stats.sectorMod, state.sectorMod ? state.sectorMod.name : "Clear");
+        if (!isFeatureUnlocked("contracts")) {
+          setCachedText(stats.contractStatus, "Locked");
+        } else if (!state.contracts.length) {
+          setCachedText(stats.contractStatus, "Offline");
+        } else {
+          const activeCount = state.contracts.filter((contract) => !contract.complete).length;
+          setCachedText(stats.contractStatus, activeCount ? `${activeCount} Active` : "Complete");
+        }
+        setCachedText(stats.weeklyMutator, state.weekly?.mutator?.label || "None");
+        setCachedText(stats.challengeSeed, state.challengeSeed || "-");
+        if (input.touch.supported) {
+          setCachedText(stats.controlMode, "Touch");
+        } else if (progress.settings.inputMode === "keyboard") {
+          setCachedText(stats.controlMode, "Keyboard");
+        } else if (progress.settings.inputMode === "controller") {
+          setCachedText(stats.controlMode, state.controllerConnected ? "Controller" : "Controller (No Pad)");
+        } else {
+          setCachedText(stats.controlMode, "Hybrid");
+        }
+
+        if (!isFeatureUnlocked("ability")) {
+          setCachedText(stats.abilityStatus, "Locked");
+        } else {
+          const abilityReady = player.abilityCooldown <= 0 && player.abilityTimer <= 0;
+          setCachedText(stats.abilityStatus, player.abilityTimer > 0
+            ? "Active"
+            : abilityReady
+              ? "Ready"
+              : `CD ${Math.ceil(player.abilityCooldown)}s`);
+        }
+
+        if (!isFeatureUnlocked("secondary")) {
+          setCachedText(stats.secondaryStatus, "Locked");
+        } else {
+          const secondaryReady = player.secondaryCooldown <= 0;
+          setCachedText(stats.secondaryStatus, secondaryReady ? "Ready" : `CD ${Math.ceil(player.secondaryCooldown)}s`);
+        }
+
+        syncHudMetaVisibility();
+        renderStatusIcons();
+        renderActiveUpgrades();
+        syncContextualHudState(now);
+      }
+
+      function renderStatusIcons() {
+        if (!dom.statusIcons || !player) return;
+        const chips = [];
+        const focused = isHudCombatFocusActive(performance.now());
+        if (player.abilityTimer > 0) {
+          chips.push({ kind: "buff", label: `Ability ${Math.ceil(player.abilityTimer)}s`, priority: 2 });
+        }
+        if (player.damageBoostTimer > 0) {
+          chips.push({
+            kind: "buff",
+            label: `Damage x${(player.damageBoostMultiplier || 1).toFixed(1)}`,
+            priority: 3
+          });
+        }
+        if (player.speedBoostTimer > 0) {
+          chips.push({
+            kind: "buff",
+            label: `Boost x${(player.speedBoostMultiplier || 1).toFixed(1)}`,
+            priority: 3
+          });
+        }
+        if (state.routeBonus && state.routeBonus.wavesRemaining > 0) {
+          chips.push({
+            kind: "buff",
+            label: `${formatRouteBonusLabel(state.routeBonus.id)} (${state.routeBonus.wavesRemaining})`,
+            priority: 4
+          });
+        }
+        if (player.slowTimer > 0) {
+          chips.push({ kind: "debuff", label: "Slowed", priority: 0 });
+        }
+        if (state.hazards && state.hazards.length > 0) {
+          chips.push({ kind: "debuff", label: `Hazards ${state.hazards.length}`, priority: 0 });
+        }
+        const mutator = state.weekly?.mutator;
+        if (mutator && mutator.id && mutator.id !== "none") {
+          chips.push({ kind: "system", label: mutator.label, priority: 4 });
+        }
+        if (progress.settings.inputMode === "controller" && !state.controllerConnected) {
+          chips.push({
+            kind: "system",
+            label: "Controller offline",
+            priority: 1
+          });
+        }
+        chips.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+        const visibleLimit = focused ? 3 : 5;
+        const hiddenCount = Math.max(0, chips.length - visibleLimit);
+        const display = chips.slice(0, visibleLimit);
+        if (hiddenCount > 0) {
+          display.push({ kind: "summary", label: `+${hiddenCount} more` });
+        }
+        const html = display.map((chip) => `
+          <span class="status-chip" data-kind="${chip.kind}">${chip.label}</span>
+        `).join("");
+        if (hudTextCache.get(dom.statusIcons) !== html) {
+          hudTextCache.set(dom.statusIcons, html);
+          dom.statusIcons.innerHTML = html;
+        }
+      }
+
+      function updatePerformanceOverlayVisibility() {
+        const perfMode = getPerfMode();
+        const showBasic = perfMode === "basic";
+        const showDetail = perfMode === "detail";
+        if (dom.perfOverlay) {
+          dom.perfOverlay.hidden = !showBasic;
+        }
+        if (dom.perfDetailOverlay) {
+          dom.perfDetailOverlay.hidden = !showDetail;
+        }
+        renderPerformanceOverlays(performance.now(), true);
+      }
+
+      function resetPerfBuckets(kind) {
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        Object.keys(buckets).forEach((key) => {
+          buckets[key] = 0;
+        });
+      }
+
+      function markPerfBucket(kind, key, start) {
+        if (!perfFrameActive) return start;
+        const now = performance.now();
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        buckets[key] = (buckets[key] || 0) + Math.max(0, now - start);
+        return now;
+      }
+
+      function addPerfBucket(kind, key, value) {
+        if (!perfFrameActive || !Number.isFinite(value)) return;
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        buckets[key] = (buckets[key] || 0) + Math.max(0, value);
+      }
+
+      function smoothPerfBuckets(kind, smoothing) {
+        const buckets = kind === "render" ? perfMetrics.renderBuckets : perfMetrics.updateBuckets;
+        const averages = kind === "render" ? perfMetrics.avgRenderBuckets : perfMetrics.avgUpdateBuckets;
+        Object.keys(buckets).forEach((key) => {
+          const value = buckets[key] || 0;
+          averages[key] = averages[key]
+            ? averages[key] * (1 - smoothing) + value * smoothing
+            : value;
+        });
+      }
+
+      function formatPerfBucketRows(buckets, labels) {
+        return Object.keys(labels).map((key) => `
+          <div class="perf-row"><span class="perf-label">${labels[key]}</span><span class="perf-value">${formatPerfValue(buckets[key] || 0)} ms</span></div>
+        `).join("");
+      }
+
+      function getPerfBottleneckLabel() {
+        const canvasMp = getCanvasMegapixels();
+        const renderScaleSetting = getRenderScaleSetting();
+        if (renderScaleSetting === "auto" && canvasMp > (getActiveRenderTargetPixels() / 1000000) * 1.12 && perfMetrics.avgRafWaitMs > 8) {
+          return state.renderBackend === "pixi" ? "Renderer pixels" : "Canvas pixels";
+        }
+        if (perfMetrics.avgLongTaskDeltaDuration > 12) {
+          return "Browser long tasks";
+        }
+        const candidates = [
+          ["RAF/browser wait", perfMetrics.avgRafWaitMs],
+          ["Render JS", perfMetrics.avgRenderMs],
+          ["Update JS", perfMetrics.avgUpdateMs],
+          ["HUD DOM", perfMetrics.avgHudMs]
+        ];
+        const updateLabels = {
+          ambient: "Update ambient",
+          player: "Update player",
+          enemies: "Update enemies",
+          systems: "Update systems",
+          collisions: "Update collisions",
+          wave: "Update wave"
+        };
+        const renderLabels = {
+          background: "Render bg",
+          stars: "Render stars",
+          world: "Render world",
+          vfx: "Render VFX",
+          entities: "Render entities",
+          overlays: "Render overlays",
+          minimap: "Minimap"
+        };
+        Object.keys(perfMetrics.avgUpdateBuckets).forEach((key) => {
+          candidates.push([updateLabels[key] || `Update ${key}`, perfMetrics.avgUpdateBuckets[key] || 0]);
+        });
+        Object.keys(perfMetrics.avgRenderBuckets).forEach((key) => {
+          candidates.push([renderLabels[key] || `Render ${key}`, perfMetrics.avgRenderBuckets[key] || 0]);
+        });
+        candidates.sort((a, b) => b[1] - a[1]);
+        return candidates[0] && Number.isFinite(candidates[0][1]) ? candidates[0][0] : "n/a";
+      }
+
+      function formatPerfValue(value, digits = 1) {
+        if (!Number.isFinite(value)) return "--";
+        return value.toFixed(digits);
+      }
+
+      function formatPerfInt(value) {
+        if (!Number.isFinite(value)) return "--";
+        return Math.round(value).toString();
+      }
+
+      function formatPerfPercent(value, digits = 0) {
+        if (!Number.isFinite(value)) return "--";
+        return `${value.toFixed(digits)}%`;
+      }
+
+      function formatPerfLogNumber(value, digits = 2) {
+        if (!Number.isFinite(value)) return "";
+        return value.toFixed(digits);
+      }
+
+      function buildPerformanceBasicHtml() {
+        const rendererInfo = getRendererInfo();
+        return `
+          <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-row"><span class="perf-label">Bottleneck</span><span class="perf-value">${perfMetrics.topBottleneck}</span></div>
+          <div class="perf-row"><span class="perf-label">Backend</span><span class="perf-value">${rendererInfo.backend}</span></div>
+          <div class="perf-row"><span class="perf-label">Tier</span><span class="perf-value">${state.performanceMode ? state.renderScaleTierLabel : "Off"}</span></div>
+          <div class="perf-row"><span class="perf-label">Frame</span><span class="perf-value">${formatPerfValue(perfMetrics.avgFrameMs)} ms</span></div>
+          <div class="perf-row"><span class="perf-label">Update</span><span class="perf-value">${formatPerfValue(perfMetrics.avgUpdateMs)} ms</span></div>
+          <div class="perf-row"><span class="perf-label">Render</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRenderMs)} ms</span></div>
+        `;
+      }
+
+      function buildPerformanceDetailHtml() {
+        const memory = performance && performance.memory
+          ? (performance.memory.usedJSHeapSize / (1024 * 1024))
+          : null;
+        const rafHz = perfMetrics.avgRafIntervalMs
+          ? 1000 / perfMetrics.avgRafIntervalMs
+          : NaN;
+        const busyPercent = perfMetrics.avgBusyRatio
+          ? perfMetrics.avgBusyRatio * 100
+          : NaN;
+        const focusState = typeof document.hasFocus === "function"
+          ? (document.hasFocus() ? "yes" : "no")
+          : "n/a";
+        const visibility = document.visibilityState || "unknown";
+        const dpr = window.devicePixelRatio || 1;
+        const renderScale = state.renderScale || dpr;
+        const autoInfo = getAutoRenderScaleInfo(Math.max(1, dpr));
+        const canvasMegapixels = getCanvasMegapixels();
+        const pixelBudget = autoInfo.targetMegapixels || AUTO_RENDER_TARGET_PIXELS / 1000000;
+        const renderScaleSetting = getRenderScaleSetting();
+        const rendererInfo = getRendererInfo();
+        const canvasPx = dom.canvas
+          ? `${dom.canvas.width}x${dom.canvas.height}`
+          : "--";
+        const webglPx = rendererInfo.width && rendererInfo.height
+          ? `${rendererInfo.width}x${rendererInfo.height}`
+          : "--";
+        const longTaskSummary = longTaskMetrics.supported
+          ? `${longTaskMetrics.count} • ${formatPerfValue(longTaskMetrics.totalDuration)} ms (+${formatPerfValue(perfMetrics.longTaskDeltaDuration)} ms)`
+          : "n/a";
+        const updateRows = formatPerfBucketRows(perfMetrics.avgUpdateBuckets, {
+          ambient: "Ambient",
+          player: "Player/Input",
+          enemies: "Enemies/Grid",
+          systems: "Skills/Helpers",
+          collisions: "Bullets/Collisions",
+          wave: "Wave/Contracts"
+        });
+        const renderRows = formatPerfBucketRows(perfMetrics.avgRenderBuckets, {
+          background: "Background",
+          stars: "Stars",
+          world: "World",
+          vfx: "VFX",
+          overlays: "Bullets/Telegraphs",
+          entities: "Ships/Labels",
+          minimap: "Minimap"
+        });
+        return `
+          <div class="perf-row perf-headline"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-row perf-headline"><span class="perf-label">Top Bottleneck</span><span class="perf-value">${perfMetrics.topBottleneck}</span></div>
+          <div class="perf-section-label">Frame</div>
+          <div class="perf-grid">
+            <div class="perf-row"><span class="perf-label">Frame Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgFrameMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Frame Max</span><span class="perf-value">${formatPerfValue(perfMetrics.maxFrameMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Update Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgUpdateMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Render Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRenderMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">HUD Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgHudMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRafIntervalMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Max</span><span class="perf-value">${formatPerfValue(perfMetrics.maxRafIntervalMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Wait</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRafWaitMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Hz</span><span class="perf-value">${formatPerfValue(rafHz, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">Idle Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgIdleMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Util Avg</span><span class="perf-value">${formatPerfPercent(busyPercent, 0)}</span></div>
+            <div class="perf-row"><span class="perf-label">Delta Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgDeltaMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">33ms+ /s</span><span class="perf-value">${formatPerfValue(perfMetrics.slowRate, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">50ms+ /s</span><span class="perf-value">${formatPerfValue(perfMetrics.hitchRate, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">Long Tasks</span><span class="perf-value">${longTaskSummary}</span></div>
+          </div>
+          <div class="perf-section-label">Update</div>
+          <div class="perf-grid">${updateRows}</div>
+          <div class="perf-section-label">Render</div>
+          <div class="perf-grid">${renderRows}</div>
+          <div class="perf-section-label">Renderer</div>
+          <div class="perf-grid">
+            <div class="perf-row"><span class="perf-label">Mode</span><span class="perf-value">${state.mode}</span></div>
+            <div class="perf-row"><span class="perf-label">Backend</span><span class="perf-value">${rendererInfo.backend}</span></div>
+            <div class="perf-row"><span class="perf-label">Visibility</span><span class="perf-value">${visibility}</span></div>
+            <div class="perf-row"><span class="perf-label">Focus</span><span class="perf-value">${focusState}</span></div>
+            <div class="perf-row"><span class="perf-label">DPR</span><span class="perf-value">${formatPerfValue(dpr, 2)}</span></div>
+            <div class="perf-row"><span class="perf-label">Render Scale</span><span class="perf-value">${formatPerfValue(renderScale, 2)}</span></div>
+            <div class="perf-row"><span class="perf-label">WebGL Px</span><span class="perf-value">${webglPx}</span></div>
+            <div class="perf-row"><span class="perf-label">Scale Mode</span><span class="perf-value">${renderScaleSetting}</span></div>
+            <div class="perf-row"><span class="perf-label">Performance Mode</span><span class="perf-value">${state.performanceMode ? state.renderScaleTierLabel : "Off"}</span></div>
+            <div class="perf-row"><span class="perf-label">Auto Cap</span><span class="perf-value">${formatPerfValue(state.renderScaleAutoCap || autoInfo.cap, 2)} (${state.renderScaleAutoReason || autoInfo.reason})</span></div>
+            <div class="perf-row"><span class="perf-label">Canvas MP</span><span class="perf-value">${formatPerfValue(canvasMegapixels, 2)} / ${formatPerfValue(pixelBudget, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">Enemies</span><span class="perf-value">${enemies.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Bullets</span><span class="perf-value">${bullets.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Particles</span><span class="perf-value">${particles.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Pulses</span><span class="perf-value">${pulses.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Black Holes</span><span class="perf-value">${state.blackHoles ? state.blackHoles.length : 0}</span></div>
+            <div class="perf-row"><span class="perf-label">Mines</span><span class="perf-value">${state.mines.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Helpers</span><span class="perf-value">${helpers.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Obstacles</span><span class="perf-value">${obstacles.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Stars</span><span class="perf-value">${stars.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Canvas</span><span class="perf-value">${Math.round(state.width)}x${Math.round(state.height)}</span></div>
+            <div class="perf-row"><span class="perf-label">Canvas Px</span><span class="perf-value">${canvasPx}</span></div>
+            <div class="perf-row"><span class="perf-label">World</span><span class="perf-value">${state.worldWidth}x${state.worldHeight}</span></div>
+            ${memory !== null ? `<div class="perf-row"><span class="perf-label">Memory</span><span class="perf-value">${memory.toFixed(1)} MB</span></div>` : ""}
+          </div>
+        `;
+      }
+
+      function renderPerformanceOverlays(now, force = false) {
+        const perfMode = getPerfMode();
+        const showBasic = perfMode === "basic";
+        const showDetail = perfMode === "detail";
+        const showSettings = !!(settingsPanel && !settingsPanel.hidden);
+        const allowSettingsMetrics = perfMode !== "off";
+        if (!showBasic && !showDetail && !showSettings) return;
+        const overlayInterval = showDetail ? 1000 : 250;
+        if (!force && now - perfMetrics.lastOverlayUpdate < overlayInterval) return;
+        perfMetrics.lastOverlayUpdate = now;
+        const basicHtml = buildPerformanceBasicHtml();
+        const detailHtml = (showDetail || (showSettings && perfMode === "detail"))
+          ? buildPerformanceDetailHtml()
+          : "";
+
+        if (dom.perfOverlay) {
+          if (showBasic) {
+            dom.perfOverlay.hidden = false;
+            dom.perfOverlay.innerHTML = basicHtml;
+          } else {
+            dom.perfOverlay.hidden = true;
+          }
+        }
+
+        if (dom.perfDetailOverlay) {
+          if (showDetail) {
+            dom.perfDetailOverlay.hidden = false;
+            dom.perfDetailOverlay.innerHTML = detailHtml;
+          } else {
+            dom.perfDetailOverlay.hidden = true;
+          }
+        }
+
+        if (showSettings) {
+          if (dom.perfSettingsCard) {
+            dom.perfSettingsCard.hidden = !allowSettingsMetrics;
+          }
+          if (dom.perfSettingsBasic) {
+            dom.perfSettingsBasic.hidden = perfMode !== "basic";
+            dom.perfSettingsBasic.innerHTML = perfMode === "basic" ? basicHtml : "";
+          }
+          if (dom.perfSettingsDetail) {
+            dom.perfSettingsDetail.hidden = perfMode !== "detail";
+            dom.perfSettingsDetail.innerHTML = perfMode === "detail" ? detailHtml : "";
+          }
+        }
+      }
+
+      function recordPerformance(frameStart, updateMs, renderMs, hudMs, rafDeltaMs, deltaMs) {
+        const perfMode = getPerfMode();
+        const shouldSample = perfMode !== "off" || perfLog.active;
+        if (!shouldSample) return;
+        const now = performance.now();
+        const idleMs = perfMetrics.lastFrameEnd ? Math.max(0, frameStart - perfMetrics.lastFrameEnd) : 0;
+        const frameMs = now - frameStart;
+        const rafIntervalMs = Math.max(0, rafDeltaMs || 0);
+        const rafWaitMs = Math.max(0, rafIntervalMs - frameMs);
+        const busyRatio = rafIntervalMs ? frameMs / rafIntervalMs : 0;
+        const smoothing = 0.12;
+        const longTaskDeltaCount = Math.max(0, longTaskMetrics.count - perfMetrics.lastLongTaskCount);
+        const longTaskDeltaDuration = Math.max(0, longTaskMetrics.totalDuration - perfMetrics.lastLongTaskDuration);
+        perfMetrics.frameMs = frameMs;
+        perfMetrics.updateMs = updateMs;
+        perfMetrics.renderMs = renderMs;
+        perfMetrics.hudMs = hudMs;
+        perfMetrics.rafIntervalMs = rafIntervalMs;
+        perfMetrics.rafWaitMs = rafWaitMs;
+        perfMetrics.idleMs = idleMs;
+        perfMetrics.busyRatio = busyRatio;
+        perfMetrics.deltaMs = deltaMs;
+        perfMetrics.longTaskDeltaCount = longTaskDeltaCount;
+        perfMetrics.longTaskDeltaDuration = longTaskDeltaDuration;
+        perfMetrics.avgFrameMs = perfMetrics.avgFrameMs
+          ? perfMetrics.avgFrameMs * (1 - smoothing) + frameMs * smoothing
+          : frameMs;
+        perfMetrics.avgUpdateMs = perfMetrics.avgUpdateMs
+          ? perfMetrics.avgUpdateMs * (1 - smoothing) + updateMs * smoothing
+          : updateMs;
+        perfMetrics.avgRenderMs = perfMetrics.avgRenderMs
+          ? perfMetrics.avgRenderMs * (1 - smoothing) + renderMs * smoothing
+          : renderMs;
+        perfMetrics.avgHudMs = perfMetrics.avgHudMs
+          ? perfMetrics.avgHudMs * (1 - smoothing) + hudMs * smoothing
+          : hudMs;
+        perfMetrics.avgRafIntervalMs = perfMetrics.avgRafIntervalMs
+          ? perfMetrics.avgRafIntervalMs * (1 - smoothing) + rafIntervalMs * smoothing
+          : rafIntervalMs;
+        perfMetrics.avgRafWaitMs = perfMetrics.avgRafWaitMs
+          ? perfMetrics.avgRafWaitMs * (1 - smoothing) + rafWaitMs * smoothing
+          : rafWaitMs;
+        perfMetrics.avgIdleMs = perfMetrics.avgIdleMs
+          ? perfMetrics.avgIdleMs * (1 - smoothing) + idleMs * smoothing
+          : idleMs;
+        perfMetrics.avgBusyRatio = perfMetrics.avgBusyRatio
+          ? perfMetrics.avgBusyRatio * (1 - smoothing) + busyRatio * smoothing
+          : busyRatio;
+        perfMetrics.avgDeltaMs = perfMetrics.avgDeltaMs
+          ? perfMetrics.avgDeltaMs * (1 - smoothing) + deltaMs * smoothing
+          : deltaMs;
+        perfMetrics.avgLongTaskDeltaDuration = perfMetrics.avgLongTaskDeltaDuration
+          ? perfMetrics.avgLongTaskDeltaDuration * (1 - smoothing) + longTaskDeltaDuration * smoothing
+          : longTaskDeltaDuration;
+        smoothPerfBuckets("update", smoothing);
+        smoothPerfBuckets("render", smoothing);
+        perfMetrics.maxFrameMs = Math.max(perfMetrics.maxFrameMs, frameMs);
+        perfMetrics.maxRafIntervalMs = Math.max(perfMetrics.maxRafIntervalMs, rafIntervalMs);
+        perfMetrics.topBottleneck = getPerfBottleneckLabel();
+        perfMetrics.frames += 1;
+        if (rafIntervalMs >= 33) perfMetrics.slowFrames += 1;
+        if (rafIntervalMs >= 50) perfMetrics.hitchFrames += 1;
+        if (now - perfMetrics.lastFpsAt >= 500) {
+          const windowSeconds = (now - perfMetrics.lastFpsAt) / 1000;
+          perfMetrics.fps = perfMetrics.frames / windowSeconds;
+          perfMetrics.slowRate = perfMetrics.slowFrames / windowSeconds;
+          perfMetrics.hitchRate = perfMetrics.hitchFrames / windowSeconds;
+          perfMetrics.frames = 0;
+          perfMetrics.lastFpsAt = now;
+          perfMetrics.maxFrameMs = 0;
+          perfMetrics.maxRafIntervalMs = 0;
+          perfMetrics.slowFrames = 0;
+          perfMetrics.hitchFrames = 0;
+        }
+        perfMetrics.lastFrameEnd = now;
+        perfMetrics.lastLongTaskCount = longTaskMetrics.count;
+        perfMetrics.lastLongTaskDuration = longTaskMetrics.totalDuration;
+        appendPerfLogSample(now);
+        renderPerformanceOverlays(now);
+      }
+
+      function updatePerfLogUi() {
+        if (dom.perfLogBtn) {
+          const label = perfLog.active ? "Stop and download performance log" : "Start performance log";
+          setIconButtonContent(dom.perfLogBtn, "activity", label, {
+            visibleLabel: perfLog.active ? "Stop" : "Log"
+          });
+          dom.perfLogBtn.setAttribute("aria-pressed", perfLog.active ? "true" : "false");
+        }
+        if (dom.perfLogStatus) {
+          if (perfLog.active) {
+            const elapsed = Math.max(0, performance.now() - perfLog.startAt);
+            const seconds = Math.floor(elapsed / 1000);
+            dom.perfLogStatus.textContent = `Recording ${seconds}s • ${perfLog.samples} samples`;
+          } else {
+            dom.perfLogStatus.textContent = "Idle";
+          }
+        }
+      }
+
+      function togglePerfLog() {
+        if (perfLog.active) {
+          stopPerfLog();
+        } else {
+          startPerfLog();
+        }
+      }
+
+      function startPerfLog() {
+        perfLog.active = true;
+        perfLog.entries = [];
+        perfLog.samples = 0;
+        perfLog.startAt = performance.now();
+        perfLog.lastSampleAt = 0;
+        const startedAt = new Date().toISOString();
+        perfLog.entries.push("# Stellar Dogfight Performance Log");
+        perfLog.entries.push(`# Started: ${startedAt}`);
+        perfLog.entries.push(`# Perf Mode: ${getPerfMode()}`);
+        perfLog.entries.push(`# Sample Interval: ${perfLog.sampleIntervalMs} ms`);
+        perfLog.lastLongTaskCount = longTaskMetrics.count;
+        perfLog.lastLongTaskDuration = longTaskMetrics.totalDuration;
+        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,raf_wait_ms,idle_ms,busy_pct,delta_ms,bottleneck,update_ambient_ms,update_player_ms,update_enemies_ms,update_systems_ms,update_collisions_ms,update_wave_ms,render_background_ms,render_stars_ms,render_world_ms,render_vfx_ms,render_overlays_ms,render_entities_ms,render_minimap_ms,enemies,bullets,particles,pulses,blackholes,mines,helpers,obstacles,stars,longtasks_total,longtasks_delta,longtask_ms_total,longtask_ms_delta,mode,visibility,focus,dpr,render_scale,render_scale_mode,auto_cap,canvas_mp,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb,render_backend,webgl_px_w,webgl_px_h");
+        updatePerfLogUi();
+        logEvent("Performance log recording started.");
+      }
+
+      function stopPerfLog() {
+        perfLog.active = false;
+        updatePerfLogUi();
+        if (!perfLog.entries.length) return;
+        downloadPerfLog();
+        logEvent("Performance log saved.");
+      }
+
+      function appendPerfLogSample(now) {
+        if (!perfLog.active) return;
+        if (now - perfLog.lastSampleAt < perfLog.sampleIntervalMs) return;
+        perfLog.lastSampleAt = now;
+        perfLog.samples += 1;
+        const elapsedMs = Math.max(0, now - perfLog.startAt);
+        const memory = performance && performance.memory
+          ? (performance.memory.usedJSHeapSize / (1024 * 1024))
+          : null;
+        const visibility = document.visibilityState || "unknown";
+        const focusState = typeof document.hasFocus === "function"
+          ? (document.hasFocus() ? "yes" : "no")
+          : "n/a";
+        const dpr = window.devicePixelRatio || 1;
+        const renderScale = state.renderScale || dpr;
+        const renderScaleSetting = getRenderScaleSetting();
+        const autoInfo = getAutoRenderScaleInfo(Math.max(1, dpr));
+        const canvasPxW = dom.canvas ? dom.canvas.width : 0;
+        const canvasPxH = dom.canvas ? dom.canvas.height : 0;
+        const canvasMegapixels = canvasPxW && canvasPxH ? (canvasPxW * canvasPxH) / 1000000 : 0;
+        const rendererInfo = getRendererInfo();
+        const longTaskCount = longTaskMetrics.count;
+        const longTaskDuration = longTaskMetrics.totalDuration;
+        const longTaskDelta = Math.max(0, longTaskCount - perfLog.lastLongTaskCount);
+        const longTaskDurationDelta = Math.max(0, longTaskDuration - perfLog.lastLongTaskDuration);
+        const line = [
+          formatPerfLogNumber(elapsedMs, 0),
+          formatPerfLogNumber(perfMetrics.fps, 1),
+          formatPerfLogNumber(perfMetrics.frameMs, 2),
+          formatPerfLogNumber(perfMetrics.updateMs, 2),
+          formatPerfLogNumber(perfMetrics.renderMs, 2),
+          formatPerfLogNumber(perfMetrics.hudMs, 2),
+          formatPerfLogNumber(perfMetrics.rafIntervalMs, 2),
+          formatPerfLogNumber(perfMetrics.rafWaitMs, 2),
+          formatPerfLogNumber(perfMetrics.idleMs, 2),
+          formatPerfLogNumber(perfMetrics.busyRatio * 100, 1),
+          formatPerfLogNumber(perfMetrics.deltaMs, 2),
+          perfMetrics.topBottleneck,
+          formatPerfLogNumber(perfMetrics.updateBuckets.ambient || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.player || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.enemies || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.systems || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.collisions || 0, 2),
+          formatPerfLogNumber(perfMetrics.updateBuckets.wave || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.background || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.stars || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.world || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.vfx || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.overlays || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.entities || 0, 2),
+          formatPerfLogNumber(perfMetrics.renderBuckets.minimap || 0, 2),
+          enemies.length,
+          bullets.length,
+          particles.length,
+          pulses.length,
+          state.blackHoles ? state.blackHoles.length : 0,
+          state.mines.length,
+          helpers.length,
+          obstacles.length,
+          stars.length,
+          longTaskCount,
+          longTaskDelta,
+          formatPerfLogNumber(longTaskDuration, 2),
+          formatPerfLogNumber(longTaskDurationDelta, 2),
+          state.mode,
+          visibility,
+          focusState,
+          formatPerfLogNumber(dpr, 2),
+          formatPerfLogNumber(renderScale, 2),
+          renderScaleSetting,
+          formatPerfLogNumber(state.renderScaleAutoCap || autoInfo.cap, 2),
+          formatPerfLogNumber(canvasMegapixels, 3),
+          Math.round(state.width),
+          Math.round(state.height),
+          canvasPxW,
+          canvasPxH,
+          state.worldWidth,
+          state.worldHeight,
+          memory !== null ? memory.toFixed(1) : "",
+          rendererInfo.backend,
+          rendererInfo.width || 0,
+          rendererInfo.height || 0
+        ].join(",");
+        perfLog.lastLongTaskCount = longTaskCount;
+        perfLog.lastLongTaskDuration = longTaskDuration;
+        perfLog.entries.push(line);
+        if (settingsPanel && !settingsPanel.hidden) {
+          updatePerfLogUi();
+        }
+      }
+
+      function downloadPerfLog() {
+        const content = perfLog.entries.join("\n");
+        const blob = new Blob([content], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `stellar-dogfight-perf-${formatPerfLogTimestamp(new Date())}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function formatPerfLogTimestamp(date) {
+        const pad = (value) => value.toString().padStart(2, "0");
+        return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+      }
+
+      function renderActiveUpgrades() {
+        const upgradeKey = getActiveUpgradeKey();
+        if (upgradeKey === state.activeUpgradeKey) {
+          return;
+        }
+        state.activeUpgradeKey = upgradeKey;
+        if (isFrontierMode()) {
+          if (!state.frontier || !state.frontier.active) {
+            dom.activeUpgrades.innerHTML = "<span class=\"chip\">Frontier upgrades available at the dock</span>";
+            return;
+          }
+          const entries = FRONTIER_UPGRADES.filter((upgrade) => state.frontier.upgrades[upgrade.id]);
+          if (!entries.length) {
+            dom.activeUpgrades.innerHTML = "<span class=\"chip\">No frontier upgrades yet</span>";
+            return;
+          }
+          dom.activeUpgrades.innerHTML = entries.map((upgrade) => {
+            const level = state.frontier.upgrades[upgrade.id] || 0;
+            const tier = upgrade.tier || "common";
+            return `<span class=\"chip\" data-tier="${tier}">${upgrade.name} Lv ${level}</span>`;
+          }).join("");
+          return;
+        }
+        if (!isFeatureUnlocked("upgrades")) {
+          dom.activeUpgrades.innerHTML = "<span class=\"chip\">Field upgrades locked</span>";
+          return;
+        }
+        const entries = FIELD_UPGRADES.filter((upgrade) => state.upgradeStacks[upgrade.id]);
+        const skillEntries = entries.filter((upgrade) => isSkillUpgrade(upgrade));
+        const statEntries = entries.filter((upgrade) => !isSkillUpgrade(upgrade));
+        const renderChips = (list) => list.map((upgrade) => {
+          const stack = state.upgradeStacks[upgrade.id] || 0;
+          const isSkill = isSkillUpgrade(upgrade);
+          const label = isSkill ? `${upgrade.name} Lv ${stack}` : (stack > 1 ? `${upgrade.name} x${stack}` : upgrade.name);
+          const tier = getUpgradeTier(upgrade, stack);
+          return `<span class=\"chip\" data-tier="${tier}">${label}</span>`;
+        }).join("");
+        const skillHtml = `
+          <div class="upgrade-group">
+            <span class="upgrade-group-title">Skills (${state.skillSlots.length}/${SKILL_LIMIT})</span>
+            <div class="chip-list">
+              ${skillEntries.length ? renderChips(skillEntries) : "<span class=\"chip\">No skills yet</span>"}
+            </div>
+          </div>
+        `;
+        const statHtml = `
+          <div class="upgrade-group">
+            <span class="upgrade-group-title">Boosts</span>
+            <div class="chip-list">
+              ${statEntries.length ? renderChips(statEntries) : "<span class=\"chip\">No boosts yet</span>"}
+            </div>
+          </div>
+        `;
+        dom.activeUpgrades.innerHTML = `${skillHtml}${statHtml}`;
+      }
+
+      function getActiveUpgradeKey() {
+        if (isFrontierMode()) {
+          if (!state.frontier || !state.frontier.upgrades) return "frontier:none";
+          const entries = Object.entries(state.frontier.upgrades)
+            .filter(([, level]) => level > 0)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([id, level]) => `${id}:${level}`)
+            .join("|");
+          return `frontier:${entries}`;
+        }
+        const stacks = Object.entries(state.upgradeStacks || {})
+          .filter(([, count]) => count > 0)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([id, count]) => `${id}:${count}`)
+          .join("|");
+        return `arcade:${state.skillSlots.join(",")}:${stacks}`;
+      }
+
+      function renderHangar() {
+        if (!isFeatureUnlocked("hangar")) {
+          dom.hangar.innerHTML = renderLockedCard("Hangar locked", getFeatureHint("hangar"));
+          return;
+        }
+        const grouped = {};
+        HANGAR_UPGRADES.forEach((upgrade) => {
+          const category = upgrade.category || "Utility";
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(upgrade);
+        });
+        const categoryOrder = ["Defense", "Offense", "Mobility", "Utility", "Strategy", "Systems", "Control"];
+        const sortedCategories = Object.keys(grouped).sort((a, b) => {
+          const aIndex = categoryOrder.indexOf(a);
+          const bIndex = categoryOrder.indexOf(b);
+          if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        });
+        const activePath = getActiveBuildPath();
+        const buildPathSection = `
+          <div class="tier-section">
+            <div class="tier-header">
+              <span class="tier-title">Build Identity</span>
+              <span class="tier-count">${activePath ? activePath.name : "Balanced Command"}</span>
+            </div>
+            <div class="card-grid">
+              ${BUILD_PATHS.map((path) => `
+                <button class="select-card ${progress.buildPath === path.id ? "is-active" : ""}" data-build-path="${path.id}">
+                  <span class="select-title">${path.name}</span>
+                  <span class="select-meta">${path.desc}</span>
+                  <div class="select-pills">
+                    <span class="select-pill">${progress.buildPath === path.id ? "Active" : "Select"}</span>
+                    <span class="select-pill">Exclusive Keystone</span>
+                  </div>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        `;
+        dom.hangar.innerHTML = buildPathSection + sortedCategories.map((category) => {
+          const items = grouped[category] || [];
+          items.sort((a, b) => {
+            const tierA = a.tier || "common";
+            const tierB = b.tier || "common";
+            const tierIndexA = TIER_ORDER.indexOf(tierA);
+            const tierIndexB = TIER_ORDER.indexOf(tierB);
+            if (tierIndexA !== tierIndexB) return tierIndexA - tierIndexB;
+            return a.name.localeCompare(b.name);
+          });
+          const categoryIcon = getUpgradeCategoryIcon(category);
+          const categoryKey = normalizeCategory(category);
+          return `
+            <div class="tier-section">
+              <div class="tier-header">
+                <span class="tier-title">
+                  <span class="select-pill category-pill" data-category="${categoryKey}" aria-label="${category}" title="${category}">${categoryIcon}</span>
+                  ${category}
+                </span>
+                <span class="tier-count">${items.length} upgrade${items.length === 1 ? "" : "s"}</span>
+              </div>
+              <div class="card-grid">
+                ${items.map((upgrade) => {
+                  const level = progress.hangar[upgrade.id] || 0;
+                  const maxLevel = upgrade.maxLevel || 1;
+                  const tier = upgrade.tier || "common";
+                  const tierLabel = formatTierLabel(tier);
+                  const cost = getHangarUpgradeCost(upgrade, level);
+                  const canBuy = level < maxLevel && progress.techPoints >= cost;
+                  const costLabel = level >= maxLevel ? "Maxed" : `Cost ${cost} tech`;
+                  const glyphs = renderUpgradeGlyphs(getUpgradeGlyphs(upgrade, Math.min(level + 1, maxLevel)));
+                  const preview = getHangarPreviewText(upgrade, level);
+                  return `
+                    <button class="hangar-card" data-tier="${tier}" data-hangar-id="${upgrade.id}" ${canBuy ? "" : "disabled"}>
+                      <span class="hangar-title">${upgrade.name}</span>
+                      <span class="hangar-meta">${preview}</span>
+                      <div class="upgrade-glyphs">${glyphs}</div>
+                      <div class="select-pills">
+                        <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+                        <span class="select-pill">Level ${level}/${maxLevel}</span>
+                        <span class="select-pill">${costLabel}</span>
+                      </div>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderShipyard() {
+        if (!dom.shipyard) return;
+        if (!isFeatureUnlocked("shipyard")) {
+          dom.shipyard.innerHTML = renderLockedCard("Shipyard locked", getFeatureHint("shipyard"));
+          return;
+        }
+        const tierGroup = document.querySelector("[data-setting='shipyard-tier']");
+        let tierFilter = progress.settings.shipyardTier || "all";
+        if (tierGroup && !tierGroup.querySelector(`[data-option="${tierFilter}"]`)) {
+          tierFilter = "all";
+          progress.settings.shipyardTier = "all";
+          saveProgress();
+        }
+        if (tierGroup) {
+          tierGroup.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === tierFilter);
+          });
+        }
+        const filteredShips = tierFilter === "all"
+          ? SHIPS
+          : SHIPS.filter((ship) => String(Number(ship.tier) || 1) === tierFilter);
+        const renderShipCard = (ship) => {
+          const unlocked = !!progress.shipUnlocks[ship.id];
+          const selected = progress.selectedShip === ship.id;
+          const unlockable = canUnlock(ship, progress.shipUnlocks);
+          const disabled = !unlocked && !unlockable ? "disabled" : "";
+          const statusLabel = unlocked ? (selected ? "Active" : "Select") : (unlockable ? "Unlock" : "Locked");
+          const unlockText = formatUnlockText(ship.unlock);
+          const signatureWeapon = ship.signatureWeapon ? getWeaponById(ship.signatureWeapon).name : "";
+          const shipTierValue = Number(ship.tier) || 1;
+          const tierStyle = getShipTierStyle(shipTierValue);
+          const tierPill = ship.tier ? `<span class="select-pill tier-pill" data-tier="${tierStyle}">Tier ${shipTierValue}</span>` : "";
+          const tierAttr = ship.tier ? `data-tier="${tierStyle}"` : "";
+          return `
+            <button class="select-card ${selected ? "is-active" : ""}" ${tierAttr} data-ship-id="${ship.id}" ${disabled}>
+              <span class="select-title">${ship.name}</span>
+              <span class="select-meta">${ship.desc}</span>
+              ${signatureWeapon ? `<span class="select-meta">Signature: ${signatureWeapon}</span>` : ""}
+              <span class="select-meta">Passive: ${ship.passive}</span>
+              <div class="select-pills">
+                ${tierPill}
+                <span class="select-pill">${ABILITIES[ship.abilityId].name}</span>
+                <span class="select-pill">${statusLabel}</span>
+                ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
+              </div>
+            </button>
+          `;
+        };
+        if (!filteredShips.length) {
+          dom.shipyard.innerHTML = "<span class=\"select-meta\">No ships available for this tier yet.</span>";
+          return;
+        }
+        if (tierFilter === "all") {
+          const shipsByTier = {};
+          filteredShips.forEach((ship) => {
+            const shipTierValue = Number(ship.tier) || 1;
+            if (!shipsByTier[shipTierValue]) shipsByTier[shipTierValue] = [];
+            shipsByTier[shipTierValue].push(ship);
+          });
+          const tiers = Object.keys(shipsByTier).map(Number).sort((a, b) => a - b);
+          dom.shipyard.innerHTML = tiers.map((tier) => {
+            const items = shipsByTier[tier] || [];
+            return `
+              <div class="tier-section">
+                <div class="tier-header">
+                  <span class="tier-title">Tier ${tier}</span>
+                  <span class="tier-count">${items.length} ship${items.length === 1 ? "" : "s"}</span>
+                </div>
+                <div class="card-grid">
+                  ${items.map(renderShipCard).join("")}
+                </div>
+              </div>
+            `;
+          }).join("");
+          return;
+        }
+        dom.shipyard.innerHTML = filteredShips.map(renderShipCard).join("");
+      }
+
+      function renderArmory() {
+        if (!dom.inventory) return;
+        if (!isFeatureUnlocked("armory")) {
+          dom.inventory.innerHTML = renderLockedCard("Gear locked", getFeatureHint("armory"));
+          if (dom.equippedItems) {
+            dom.equippedItems.innerHTML = "";
+          }
+          dom.secondaries.innerHTML = renderLockedCard("Secondaries locked", getFeatureHint("secondary"));
+          renderSalvage();
+          return;
+        }
+        renderInventory();
+        renderSecondaries();
+        renderSalvage();
+      }
+
+      function renderInventory() {
+        if (!dom.inventory) return;
+        const filterGroup = document.querySelector("[data-setting='inventory-filter']");
+        const filter = progress.settings.inventoryFilter || "all";
+        if (filterGroup) {
+          filterGroup.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === filter);
+          });
+        }
+
+        const equippedWeapon = getEquippedWeapon();
+        const equippedCards = [
+          renderEquippedItemCard(equippedWeapon, "Equipped Weapon")
+        ];
+        PART_SLOTS.forEach((slot) => {
+          const attachment = getEquippedAttachment(slot);
+          const label = `${slot.charAt(0).toUpperCase() + slot.slice(1)} Slot`;
+          equippedCards.push(renderEquippedItemCard(attachment, label, slot));
+        });
+        if (dom.equippedItems) {
+          dom.equippedItems.innerHTML = equippedCards.join("");
+        }
+
+        if (!Array.isArray(progress.inventory) || !progress.inventory.length) {
+          state.inventorySelectionId = null;
+          dom.inventory.innerHTML = "<span class=\"select-meta\">No gear collected yet.</span>";
+          return;
+        }
+        const filteredItems = progress.inventory.filter((item) => {
+          if (!item) return false;
+          if (!item.type) return false;
+          if (filter === "weapon") return item.type === "weapon";
+          if (filter === "attachment") return item.type === "attachment";
+          return true;
+        });
+        if (!filteredItems.length) {
+          state.inventorySelectionId = null;
+          dom.inventory.innerHTML = "<span class=\"select-meta\">No matching items.</span>";
+          return;
+        }
+        const sortedItems = sortInventoryItems(filteredItems);
+        let selectedItem = sortedItems.find((item) => item.id === state.inventorySelectionId) || null;
+        if (!selectedItem) {
+          selectedItem = sortedItems[0];
+          state.inventorySelectionId = selectedItem ? selectedItem.id : null;
+        }
+        const grid = sortedItems.map((item) => renderInventoryCell(item)).join("");
+        const detail = selectedItem
+          ? renderInventoryDetail(selectedItem)
+          : "<div class=\"inventory-detail empty\">Select a piece of gear to inspect and equip.</div>";
+        dom.inventory.innerHTML = `
+          <div class="inventory-grid">
+            ${grid}
+          </div>
+          ${detail}
+        `;
+      }
+
+      function getInventoryCellIcon(item) {
+        if (!item) return "G";
+        if (item.type === "weapon") return "WPN";
+        if (item.type === "attachment") {
+          const slotIcons = {
+            barrel: "BAR",
+            core: "CORE",
+            targeting: "TRG",
+            thruster: "THR"
+          };
+          return slotIcons[item.slot] || "MOD";
+        }
+        return "GEAR";
+      }
+
+      function getInventoryCellLabel(item) {
+        if (!item) return "Gear";
+        if (item.type === "weapon") return "Weapon";
+        if (item.type === "attachment") {
+          const slotLabels = {
+            barrel: "Barrel",
+            core: "Core",
+            targeting: "Target",
+            thruster: "Thruster"
+          };
+          return slotLabels[item.slot] || "Module";
+        }
+        return "Gear";
+      }
+
+      function getInventoryTypeLabel(item) {
+        if (!item) return "Item";
+        if (item.type === "weapon") return "Weapon";
+        if (item.type === "attachment") {
+          return `${item.slot ? item.slot.charAt(0).toUpperCase() + item.slot.slice(1) : "Attachment"} Attachment`;
+        }
+        return "Item";
+      }
+
+      function sortInventoryItems(items) {
+        return items.slice().sort((a, b) => {
+          const tierDiff = getTierIndex(b.tier || "common") - getTierIndex(a.tier || "common");
+          if (tierDiff !== 0) return tierDiff;
+          const typeDiff = (a.type || "").localeCompare(b.type || "");
+          if (typeDiff !== 0) return typeDiff;
+          return (a.name || "").localeCompare(b.name || "");
+        });
+      }
+
+      function renderInventoryCell(item) {
+        const tier = item.tier || "common";
+        const equipped = isItemEquipped(item);
+        const isSelected = item.id === state.inventorySelectionId;
+        const icon = getInventoryCellIcon(item);
+        const label = getInventoryCellLabel(item);
+        const tooltip = buildItemTooltip(item);
+        const upgrades = `${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}`;
+        return `
+          <button class="inventory-cell ${isSelected ? "is-selected" : ""} ${equipped ? "is-equipped" : ""}" data-tier="${tier}" data-item-id="${item.id}" data-inventory-select="${item.id}" ${tooltip ? `title="${escapeAttribute(tooltip)}"` : ""}>
+            <span class="inventory-icon">${icon}</span>
+            <span class="inventory-slot">${label}</span>
+            <span class="inventory-upgrades">Upg ${upgrades}</span>
+          </button>
+        `;
+      }
+
+      function renderInventoryDetail(item) {
+        const tier = item.tier || "common";
+        const tierLabel = formatTierLabel(tier);
+        const summary = getItemSummary(item);
+        const typeLabel = getInventoryTypeLabel(item);
+        const equipped = isItemEquipped(item);
+        const comparison = item.type === "weapon"
+          ? buildWeaponComparison(getEquippedWeapon(), item)
+          : buildAttachmentComparison(item, getEquippedAttachment(item.slot));
+        const compareBlock = equipped
+          ? "<div class=\"compare-list\"><span class=\"stat-diff is-neutral\">Equipped</span></div>"
+          : (comparison ? `<div class="compare-list">${comparison}</div>` : "");
+        const upgradeChance = getUpgradeSuccessChance(item);
+        const upgradeLabel = item.upgradeSuccesses >= item.upgradeSlots
+          ? "Maxed"
+          : `Upgrade ${Math.round(upgradeChance * 100)}%`;
+        const canUpgrade = canUpgradeItem(item);
+        const canSell = canSellItem(item);
+        const affixPills = (item.affixes || []).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("");
+        return `
+          <div class="inventory-detail" data-tier="${tier}" data-item-id="${item.id}">
+            <div class="inventory-detail-header">
+              <div>
+                <div class="inventory-detail-title">${item.name}</div>
+                <div class="inventory-detail-meta">${typeLabel} · ${summary}</div>
+              </div>
+              <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+            </div>
+            ${compareBlock}
+            ${affixPills ? `<div class="select-pills">${affixPills}</div>` : ""}
+            <div class="inventory-actions">
+              <button class="btn ghost btn-mini" type="button" data-item-action="equip" ${equipped ? "disabled" : ""}>
+                ${equipped ? "Equipped" : "Equip"}
+              </button>
+              <button class="btn ghost btn-mini" type="button" data-item-action="upgrade" ${canUpgrade ? "" : "disabled"}>
+                ${upgradeLabel}
+              </button>
+              <button class="btn ghost btn-mini" type="button" data-item-action="sell" ${canSell ? "" : "disabled"}>
+                Sell ${getItemSellValue(item)}c
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderSecondaries() {
+        if (!dom.secondaries) return;
+        if (!isFeatureUnlocked("secondary")) {
+          dom.secondaries.innerHTML = renderLockedCard("Secondaries locked", getFeatureHint("secondary"));
+          return;
+        }
+        const currentSecondary = getSecondaryById(progress.selectedSecondary);
+        const secondaryGroups = groupByTier(SECONDARIES);
+        dom.secondaries.innerHTML = secondaryGroups.map((group) => {
+          return renderTierSection(group.tier, group.items, (item) => {
+            const unlocked = !!progress.secondaryUnlocks[item.id];
+            const selected = progress.selectedSecondary === item.id;
+            const unlockable = canUnlock(item, progress.secondaryUnlocks);
+            const disabled = !unlocked && !unlockable ? "disabled" : "";
+            const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (unlockable ? "Unlock" : "Locked");
+            const unlockText = formatUnlockText(item.unlock);
+            const tier = item.tier || "common";
+            const tierLabel = formatTierLabel(tier);
+            const comparison = selected ? "" : buildSecondaryComparison(currentSecondary, item);
+            const compareBlock = comparison ? `<div class="compare-list">${comparison}</div>` : "";
+            return `
+              <button class="select-card ${selected ? "is-active" : ""}" data-tier="${tier}" data-secondary-id="${item.id}" ${disabled}>
+                <span class="select-title">${item.name}</span>
+                <span class="select-meta">${item.desc}</span>
+                ${compareBlock}
+                <div class="select-pills">
+                  <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+                  <span class="select-pill">Cooldown ${item.cooldown}s</span>
+                  <span class="select-pill">${statusLabel}</span>
+                  ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
+                </div>
+              </button>
+            `;
+          });
+        }).join("");
+      }
+
+      function renderEquippedItemCard(item, label, slot) {
+        const hasItem = !!item;
+        const tier = hasItem ? (item.tier || "common") : "common";
+        const tierLabel = hasItem ? formatTierLabel(tier) : "";
+        const summary = hasItem ? getItemSummary(item) : "Empty slot";
+        const tag = hasItem
+          ? (item.type === "attachment" ? `${slot.charAt(0).toUpperCase() + slot.slice(1)} Attachment` : "Weapon")
+          : "Empty";
+        const tooltip = hasItem ? buildItemTooltip(item) : "";
+        return `
+          <div class="select-card is-static" ${hasItem ? `data-tier="${tier}"` : ""} ${tooltip ? `title="${escapeAttribute(tooltip)}"` : ""}>
+            <span class="select-title">${label}</span>
+            <span class="select-meta">${hasItem ? item.name : "No item equipped"}</span>
+            <span class="select-meta">${summary}</span>
+            <div class="select-pills">
+              ${hasItem ? `<span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>` : ""}
+              <span class="select-pill">${tag}</span>
+              ${hasItem ? `<span class="select-pill">Upgrades ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}</span>` : ""}
+              ${hasItem ? (item.affixes || []).slice(0, 2).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("") : ""}
+            </div>
+          </div>
+        `;
+      }
+
+      function getItemSummary(item) {
+        if (!item) return "";
+        const stats = item.type === "weapon" ? getWeaponItemStats(item) : getAttachmentStats(item);
+        if (!stats) return "";
+        if (item.type === "weapon") {
+          const parts = [
+            `DMG ${Math.round(stats.damage)}`,
+            `FR ${stats.fireRate.toFixed(1)}`,
+            `EN ${stats.energyCost.toFixed(1)}`
+          ];
+          if (stats.projectiles > 1) parts.push(`Proj ${stats.projectiles}`);
+          if (stats.pierce > 0) parts.push(`Pierce ${stats.pierce}`);
+          if (stats.splashRadius > 0) parts.push(`Splash ${Math.round(stats.splashRadius)}`);
+          if (stats.arcChains > 0) parts.push(`Arc ${stats.arcChains}`);
+          return parts.join(" · ");
+        }
+        const entries = Object.keys(stats)
+          .filter((key) => Number.isFinite(stats[key]) && stats[key] !== 0)
+          .map((key) => formatStat(key, stats[key]));
+        return entries.slice(0, 3).join(" · ");
+      }
+
+      function buildItemTooltip(item) {
+        if (!item) return "";
+        const stats = item.type === "weapon" ? getWeaponItemStats(item) : getAttachmentStats(item);
+        const lines = [];
+        const tierLabel = formatTierLabel(item.tier || "common");
+        lines.push(`${tierLabel} ${item.name}`);
+        if (item.type === "attachment" && item.slot) {
+          lines.push(`Slot: ${item.slot.charAt(0).toUpperCase() + item.slot.slice(1)}`);
+        }
+        if (stats) {
+          lines.push(buildStatSummary(stats));
+        }
+        if (item.affixes && item.affixes.length) {
+          item.affixes.forEach((affix) => {
+            if (affix.desc) {
+              lines.push(`${affix.label}: ${affix.desc}`);
+            } else {
+              lines.push(affix.label);
+            }
+          });
+        }
+        lines.push(`Upgrades: ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}`);
+        return lines.filter(Boolean).join("\n");
+      }
+
+      function escapeAttribute(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function isItemEquipped(item) {
+        if (!item) return false;
+        if (item.type === "weapon") {
+          return progress.equipped?.weaponId === item.id;
+        }
+        if (item.type === "attachment") {
+          return progress.equipped?.attachments?.[item.slot] === item.id;
+        }
+        return false;
+      }
+
+      function getUpgradeMaterial(item) {
+        if (!item || !Array.isArray(progress.inventory)) return null;
+        let pool = progress.inventory.filter((candidate) => {
+          if (!candidate || candidate.id === item.id) return false;
+          if (candidate.type !== item.type) return false;
+          if (isItemEquipped(candidate)) return false;
+          if (item.type === "attachment" && candidate.slot !== item.slot) return false;
+          return true;
+        });
+        if (item.type === "weapon") {
+          const sameTemplate = pool.filter((candidate) => candidate.templateId === item.templateId);
+          if (sameTemplate.length) {
+            pool = sameTemplate;
+          }
+        }
+        if (!pool.length) return null;
+        pool.sort((a, b) => {
+          const tierDiff = getTierIndex(a.tier) - getTierIndex(b.tier);
+          if (tierDiff !== 0) return tierDiff;
+          return (a.upgradeSuccesses || 0) - (b.upgradeSuccesses || 0);
+        });
+        return pool[0];
+      }
+
+      function getUpgradeSuccessChance(item) {
+        if (!item) return 0;
+        const base = ITEM_UPGRADE_CHANCE[item.tier] || 0.5;
+        const penalty = (item.upgradeSuccesses || 0) * 0.08;
+        return clamp(base - penalty, 0.1, 0.95);
+      }
+
+      function canUpgradeItem(item) {
+        if (!item) return false;
+        if ((item.upgradeSuccesses || 0) >= (item.upgradeSlots || 0)) return false;
+        return !!getUpgradeMaterial(item);
+      }
+
+      function canSellItem(item) {
+        if (!item) return false;
+        if (isItemEquipped(item)) return false;
+        if (item.type === "weapon") {
+          const weaponCount = progress.inventory.filter((entry) => entry.type === "weapon").length;
+          return weaponCount > 1;
+        }
+        return true;
+      }
+
+      function equipItem(item) {
+        if (!item) return;
+        if (item.type === "weapon") {
+          progress.equipped.weaponId = item.id;
+          applyLoadoutChange("Weapon equipped. Applies next sortie.");
+          return;
+        }
+        if (item.type === "attachment") {
+          progress.equipped.attachments[item.slot] = item.id;
+          applyLoadoutChange("Attachment equipped. Applies next sortie.");
+        }
+      }
+
+      function upgradeItem(item) {
+        if (!item) return;
+        if ((item.upgradeSuccesses || 0) >= (item.upgradeSlots || 0)) {
+          logEvent("Upgrade slots full.");
+          return;
+        }
+        const material = getUpgradeMaterial(item);
+        if (!material) {
+          logEvent("No compatible item to consume.");
+          return;
+        }
+        const chance = getUpgradeSuccessChance(item);
+        progress.inventory = progress.inventory.filter((entry) => entry.id !== material.id);
+        const success = Math.random() < chance;
+        if (success) {
+          item.upgradeSuccesses = (item.upgradeSuccesses || 0) + 1;
+          applyLoadoutChange(`Upgrade succeeded: ${item.name} +1.`);
+        } else {
+          applyLoadoutChange(`Upgrade failed: ${item.name} resisted the fusion.`);
+        }
+      }
+
+      function sellItem(item) {
+        if (!item || !canSellItem(item)) return;
+        const value = getItemSellValue(item);
+        progress.inventory = progress.inventory.filter((entry) => entry.id !== item.id);
+        progress.bankedCredits += value;
+        applyLoadoutChange(`Sold ${item.name} for ${value} credits.`);
+      }
+
+      function getItemSellValue(item) {
+        if (!item) return 0;
+        const values = {
+          common: 80,
+          uncommon: 140,
+          rare: 220,
+          epic: 340,
+          legendary: 520
+        };
+        const base = values[item.tier] || 80;
+        const typeBonus = item.type === "weapon" ? 1.1 : 0.9;
+        const upgradeBonus = 1 + (item.upgradeSuccesses || 0) * 0.2;
+        return Math.round(base * typeBonus * upgradeBonus);
+      }
+
+      function renderLockedCard(title, message) {
+        return `
+          <div class="select-card is-static">
+            <span class="select-title">${title}</span>
+            <span class="select-meta">${message}</span>
+          </div>
+        `;
+      }
+
+      function renderSalvage() {
+        if (!dom.salvage) return;
+        if (!isFeatureUnlocked("salvage")) {
+          dom.salvage.innerHTML = renderLockedCard("Salvage locked", getFeatureHint("salvage"));
+          return;
+        }
+        const keys = progress.salvageKeys || 0;
+        const pityThreshold = SALVAGE_CACHE.pityThreshold;
+        const pity = Math.min(progress.salvagePity || 0, pityThreshold);
+        const pityText = pity >= pityThreshold ? "Rare guarantee ready" : `Rare guarantee ${pity} / ${pityThreshold}`;
+        const odds = getSalvageOdds();
+        const oddsPills = odds.map((item) => {
+          return `<span class="select-pill">${item.label} ${item.percent}%</span>`;
+        }).join("");
+        const openOptions = [
+          { label: "Open 1", count: 1 },
+          { label: "Open 10", count: 10 },
+          { label: "Open 100", count: 100 },
+          { label: `Open Max (${keys})`, count: "max" }
+        ];
+        const openButtons = openOptions.map((option) => {
+          const isMax = option.count === "max";
+          const requiredKeys = isMax ? keys : option.count;
+          const canOpen = requiredKeys > 0 && keys >= requiredKeys;
+          const label = isMax ? `Open Max (${keys})` : option.label;
+          return `
+            <button class="btn ghost btn-mini" type="button" data-salvage-action="open" data-salvage-count="${option.count}" ${canOpen ? "" : "disabled"}>
+              ${label}
+            </button>
+          `;
+        }).join("");
+        const historyHtml = progress.salvageHistory && progress.salvageHistory.length
+          ? progress.salvageHistory.map((entry) => `
+            <div class="history-entry">
+              <strong>${entry.title}</strong>
+              <span>${entry.detail}</span>
+            </div>
+          `).join("")
+          : "<span class=\"select-meta\">No caches opened yet.</span>";
+        dom.salvage.innerHTML = `
+          <div class="select-card is-static">
+            <span class="select-title">${SALVAGE_CACHE.name}</span>
+            <span class="select-meta">Keys ${keys} • ${pityText}</span>
+            <span class="select-meta">Rewards roll on open. No real currency involved.</span>
+            <div class="select-pills">
+              ${oddsPills}
+            </div>
+            <div class="salvage-actions">
+              ${openButtons}
+            </div>
+          </div>
+          <div class="select-card is-static">
+            <span class="select-title">Recent Hauls</span>
+            <div class="history-list">
+              ${historyHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      function getPremiumItemById(id) {
+        const items = Array.isArray(PREMIUM_SHOP_ITEMS) ? PREMIUM_SHOP_ITEMS : [];
+        return items.find((item) => item && item.id === id) || null;
+      }
+
+      function getPremiumItemLevel(item) {
+        if (!item) return 0;
+        ensurePremiumState();
+        if (item.kind === "one-time") {
+          return progress.premiumShop.oneTime[item.id] ? 1 : 0;
+        }
+        return progress.premiumShop.levels[item.id] || 0;
+      }
+
+      function getPremiumItemCost(item, level = 0) {
+        if (!item) return 0;
+        if (item.kind === "one-time") {
+          return Math.max(1, Math.round(item.cost || 1));
+        }
+        const baseCost = Number.isFinite(item.baseCost) ? Math.max(1, item.baseCost) : 1;
+        const costScale = Number.isFinite(item.costScale) ? Math.max(1, item.costScale) : 1;
+        return Math.max(1, Math.round(baseCost * Math.pow(costScale, level)));
+      }
+
+      function buyPremiumItem(itemId) {
+        const item = getPremiumItemById(itemId);
+        if (!item) return;
+        ensurePremiumState();
+        const currentLevel = getPremiumItemLevel(item);
+        const maxLevel = item.kind === "one-time"
+          ? 1
+          : (Number.isFinite(item.maxLevel) ? Math.max(1, item.maxLevel) : 1);
+        if (currentLevel >= maxLevel) {
+          showTip(null, "Astralite Forge", "Item already maxed.", { kind: "info", repeatable: true, duration: 3000 });
+          return;
+        }
+        const cost = getPremiumItemCost(item, currentLevel);
+        if (progress.premiumCurrency < cost) {
+          showTip(null, "Not enough Astralite", `Need ${cost} ${PREMIUM_CURRENCY_LABEL}.`, {
+            kind: "lock",
+            repeatable: true,
+            duration: 3600
+          });
+          return;
+        }
+
+        progress.premiumCurrency = Math.max(0, progress.premiumCurrency - cost);
+        if (item.kind === "one-time") {
+          progress.premiumShop.oneTime[item.id] = true;
+        } else {
+          progress.premiumShop.levels[item.id] = Math.min(maxLevel, currentLevel + 1);
+        }
+
+        saveProgress();
+        renderPremiumShop();
+        queueSidebarRefresh();
+        renderSettings();
+        if (state.mode === "hangar" || state.mode === "gameover" || state.mode === "victory") {
+          player = createPlayer();
+          updateHud();
+        }
+
+        const nextLevel = getPremiumItemLevel(item);
+        const rankLabel = item.kind === "one-time" ? "unlocked" : `level ${nextLevel}/${maxLevel}`;
+        showTip(null, "Forge upgrade", `${item.name} ${rankLabel}.`, {
+          kind: "reward",
+          repeatable: true,
+          duration: 5200
+        });
+        logEvent(`Astralite Forge: ${item.name} ${rankLabel}.`);
+      }
+
+      function renderPremiumShop() {
+        if (!dom.premiumShop) return;
+        if (!isFeatureUnlocked("premium")) {
+          dom.premiumShop.innerHTML = renderLockedCard("Astralite Forge locked", getFeatureHint("premium"));
+          return;
+        }
+        const items = Array.isArray(PREMIUM_SHOP_ITEMS) ? PREMIUM_SHOP_ITEMS : [];
+        if (!items.length) {
+          dom.premiumShop.innerHTML = "<span class=\"select-meta\">Astralite Forge inventory unavailable.</span>";
+          return;
+        }
+        ensurePremiumState();
+        const balance = progress.premiumCurrency || 0;
+        const oneTime = items.filter((item) => item.kind === "one-time");
+        const scalable = items.filter((item) => item.kind !== "one-time");
+
+        const renderPremiumCard = (item) => {
+          const tier = item.tier || "legendary";
+          const tierLabel = formatTierLabel(tier);
+          const currentLevel = getPremiumItemLevel(item);
+          const maxLevel = item.kind === "one-time"
+            ? 1
+            : (Number.isFinite(item.maxLevel) ? Math.max(1, item.maxLevel) : 1);
+          const isMaxed = currentLevel >= maxLevel;
+          const cost = getPremiumItemCost(item, currentLevel);
+          const canBuy = !isMaxed && balance >= cost;
+          const levelPill = item.kind === "one-time"
+            ? (isMaxed ? "Owned" : "One-time")
+            : `Level ${currentLevel}/${maxLevel}`;
+          const actionLabel = isMaxed
+            ? "Maxed"
+            : item.kind === "one-time"
+              ? `Unlock (${cost})`
+              : `Upgrade (${cost})`;
+          const preview = isMaxed ? "Maxed" : getPremiumPreviewText(item);
+          return `
+            <div class="select-card premium-card" data-tier="${tier}">
+              <span class="select-title">${item.name}</span>
+              <span class="select-meta">${item.desc}</span>
+              ${item.impact ? `<span class="select-meta">${item.impact}</span>` : ""}
+              <span class="select-meta">${preview}</span>
+              <div class="select-pills">
+                <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+                <span class="select-pill">${levelPill}</span>
+                <span class="select-pill">${PREMIUM_CURRENCY_LABEL}</span>
+              </div>
+              <button class="btn ghost btn-mini" type="button" data-premium-buy="${item.id}" ${canBuy ? "" : "disabled"}>
+                ${actionLabel}
+              </button>
+            </div>
+          `;
+        };
+
+        dom.premiumShop.innerHTML = `
+          <div class="select-card is-static">
+            <span class="select-title">${PREMIUM_CURRENCY_LABEL}: ${balance.toLocaleString()}</span>
+            <span class="select-meta">Forge upgrades are permanent and account-wide.</span>
+            <span class="select-meta">Limited combat drops from elite and boss enemies, up to ${PREMIUM_DROP_RUN_CAP} per run.</span>
+            <span class="select-meta">Astralite pity: ${Math.min(PREMIUM_DROP_PITY_THRESHOLD, progress.premiumDropPity || 0)} / ${PREMIUM_DROP_PITY_THRESHOLD}</span>
+          </div>
+          <div class="tier-section">
+            <div class="tier-header">
+              <span class="tier-title">One-time unlocks</span>
+              <span class="tier-count">${oneTime.length} unlock${oneTime.length === 1 ? "" : "s"}</span>
+            </div>
+            <div class="card-grid">
+              ${oneTime.map(renderPremiumCard).join("")}
+            </div>
+          </div>
+          <div class="tier-section">
+            <div class="tier-header">
+              <span class="tier-title">Scalable upgrades</span>
+              <span class="tier-count">${scalable.length} track${scalable.length === 1 ? "" : "s"}</span>
+            </div>
+            <div class="card-grid">
+              ${scalable.map(renderPremiumCard).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function getSalvageOdds() {
+        const total = SALVAGE_CACHE.table.reduce((sum, item) => sum + item.weight, 0);
+        return SALVAGE_CACHE.table.map((item) => ({
+          id: item.id,
+          label: item.label,
+          percent: Math.round((item.weight / total) * 100)
+        }));
+      }
+
+      function resolveSalvageOpenCount(token, keys) {
+        if (!keys) return 0;
+        if (token === "max") return keys;
+        const count = parseInt(token, 10);
+        if (!Number.isFinite(count) || count <= 0) return 0;
+        return Math.min(count, keys);
+      }
+
+      function getSalvageRewardTier(reward, rewardDef) {
+        if (reward.type === "part" && reward.part) {
+          return reward.part.tier || getPartTier(reward.part);
+        }
+        if (rewardDef && rewardDef.id === "credits-jackpot") return "rare";
+        if (rewardDef && rewardDef.id === "blueprints") return "uncommon";
+        return "common";
+      }
+
+      function buildSalvageRewardResult(reward, rewardDef) {
+        let title = rewardDef ? rewardDef.label : "Salvage";
+        let amount = Number.isFinite(reward.amount) ? reward.amount : 1;
+        let tier = getSalvageRewardTier(reward, rewardDef);
+        let detail = "";
+        let note = "";
+        if (reward.type === "credits") {
+          progress.bankedCredits += reward.amount;
+          title = "Credits";
+          detail = `${reward.amount.toLocaleString()} credits`;
+        }
+        if (reward.type === "blueprints") {
+          progress.blueprints += reward.amount;
+          title = "Blueprints";
+          detail = `${reward.amount} blueprint${reward.amount === 1 ? "" : "s"}`;
+        }
+        if (reward.type === "part") {
+          const part = reward.part;
+          if (part) {
+            const stored = addInventoryItem(part, { notify: false });
+            title = part.name;
+            amount = 1;
+            tier = part.tier || getPartTier(part);
+            detail = part.name;
+            if (!stored) {
+              const value = getItemSellValue(part);
+              note = `Auto-sold ${value}c`;
+            }
+          } else {
+            title = "Attachment";
+            amount = 1;
+            detail = "Component fragment";
+          }
+        }
+        const isRare = rewardDef && SALVAGE_CACHE.rareIds.includes(rewardDef.id);
+        progress.salvagePity = isRare ? 0 : (progress.salvagePity || 0) + 1;
+        recordSalvageHistory({ title: rewardDef ? rewardDef.label : "Salvage", detail });
+        return {
+          type: reward.type,
+          amount,
+          tier,
+          title,
+          desc: detail,
+          note
+        };
+      }
+
+      function openSalvageCaches(token) {
+        const keys = progress.salvageKeys || 0;
+        const count = resolveSalvageOpenCount(token, keys);
+        if (!count) return;
+        progress.salvageKeys = Math.max(0, keys - count);
+        const rewards = [];
+        for (let i = 0; i < count; i += 1) {
+          let rewardDef = rollSalvageReward();
+          const rareReady = progress.salvagePity >= SALVAGE_CACHE.pityThreshold;
+          if (rareReady && !SALVAGE_CACHE.rareIds.includes(rewardDef.id)) {
+            const rareTable = SALVAGE_CACHE.table.filter((item) => SALVAGE_CACHE.rareIds.includes(item.id));
+            rewardDef = pickWeighted(rareTable, rareTable.map((item) => item.weight));
+          }
+          const reward = rewardDef.roll();
+          const result = buildSalvageRewardResult(reward, rewardDef);
+          rewards.push(result);
+        }
+        saveProgress();
+        checkProgressionUnlocks();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        if (rewards.length) {
+          state.salvageResults = {
+            count,
+            rewards
+          };
+          setOverlay("salvage");
+        }
+        logEvent(`Salvage caches opened: ${count}.`);
+      }
+
+      function rollSalvageReward() {
+        const table = SALVAGE_CACHE.table;
+        return pickWeighted(table, table.map((item) => item.weight));
+      }
+
+      function recordSalvageHistory(entry) {
+        progress.salvageHistory = [entry, ...(progress.salvageHistory || [])].slice(0, 6);
+      }
+
+      function normalizePresetSlot(slot) {
+        const key = String(slot || "").toLowerCase();
+        return ["a", "b", "c"].includes(key) ? key : "";
+      }
+
+      function getPresetDisplayLabel(slot) {
+        const key = normalizePresetSlot(slot).toUpperCase();
+        return key ? `Preset ${key}` : "Preset";
+      }
+
+      function captureCurrentLoadoutAsLastRun() {
+        const ship = player?.ship || getShipById(progress.selectedShip);
+        const secondary = player?.secondary || getSecondaryById(progress.selectedSecondary);
+        const weapon = getEquippedWeapon();
+        progress.lastLoadout = sanitizeLoadoutPreset({
+          shipId: ship ? ship.id : null,
+          secondaryId: secondary ? secondary.id : null,
+          weaponId: weapon ? weapon.id : null,
+          equippedAttachments: {
+            ...(progress.equipped?.attachments || {})
+          },
+          label: `${ship ? ship.name : "Ship"} / ${player?.weapon?.name || weapon?.name || "Weapon"}`
+        });
+        queueProgressSave();
+      }
+
+      function applyLoadoutPreset(preset, title) {
+        if (!preset) return false;
+        if (preset.shipId && progress.shipUnlocks[preset.shipId]) {
+          progress.selectedShip = preset.shipId;
+        }
+        if (preset.secondaryId && progress.secondaryUnlocks[preset.secondaryId]) {
+          progress.selectedSecondary = preset.secondaryId;
+        }
+        if (preset.weaponId) {
+          const weapon = getItemById(preset.weaponId);
+          if (weapon && weapon.type === "weapon") {
+            progress.equipped.weaponId = weapon.id;
+          }
+        }
+        if (preset.equippedAttachments) {
+          PART_SLOTS.forEach((slotKey) => {
+            const attachmentId = preset.equippedAttachments[slotKey];
+            const attachment = attachmentId ? getItemById(attachmentId) : null;
+            progress.equipped.attachments[slotKey] = (attachment && attachment.type === "attachment" && attachment.slot === slotKey)
+              ? attachment.id
+              : null;
+          });
+        }
+        syncProgressSelections();
+        applyLoadoutChange(`${title} loaded. Applies next sortie.`);
+        return true;
+      }
+
+      function saveLoadoutPreset(slot) {
+        const key = normalizePresetSlot(slot);
+        if (!key) return;
+        const ship = getShipById(progress.selectedShip);
+        const secondary = getSecondaryById(progress.selectedSecondary);
+        const weapon = getEquippedWeapon();
+        progress.loadoutPresets = progress.loadoutPresets || { a: null, b: null, c: null };
+        progress.loadoutPresets[key] = sanitizeLoadoutPreset({
+          shipId: ship ? ship.id : null,
+          secondaryId: secondary ? secondary.id : null,
+          weaponId: weapon ? weapon.id : null,
+          equippedAttachments: {
+            ...(progress.equipped?.attachments || {})
+          },
+          label: `${ship ? ship.name : "Ship"} / ${weapon ? weapon.name : "Weapon"}`
+        });
+        saveProgress();
+        const title = getPresetDisplayLabel(key);
+        showTip(null, title, "Loadout saved.", { kind: "info", repeatable: true, duration: 3600 });
+        logEvent(`${title} saved.`);
+      }
+
+      function loadLoadoutPreset(slot) {
+        const key = normalizePresetSlot(slot);
+        if (!key) return;
+        progress.loadoutPresets = progress.loadoutPresets || { a: null, b: null, c: null };
+        const preset = sanitizeLoadoutPreset(progress.loadoutPresets[key]);
+        const title = getPresetDisplayLabel(key);
+        if (!preset) {
+          showTip(null, title, "No saved loadout in this slot.", { kind: "info", repeatable: true, duration: 3600 });
+          return;
+        }
+        applyLoadoutPreset(preset, title);
+      }
+
+      function replayLastLoadout() {
+        const preset = sanitizeLoadoutPreset(progress.lastLoadout || null);
+        if (!preset) {
+          showTip(null, "Replay build", "No previous run build available yet.", {
+            kind: "info",
+            repeatable: true,
+            duration: 3600
+          });
+          return;
+        }
+        applyLoadoutPreset(preset, "Last sortie build");
+      }
+
+      function applyLoadoutChange(message) {
+        saveProgress();
+        renderShipyard();
+        renderPremiumShop();
+        renderArmory();
+        renderSettings();
+        if (state.mode === "hangar" || state.mode === "gameover") {
+          player = createPlayer();
+        } else if (message) {
+          logEvent(message);
+        }
+      }
+
+      function renderContracts() {
+        if (!dom.contracts) return;
+        if (!isFeatureUnlocked("contracts")) {
+          dom.contracts.innerHTML = "<span class=\"select-meta\">Tasks locked. " + getFeatureHint("contracts") + "</span>";
+          dom.factions.innerHTML = renderLockedCard("Faction intel locked", getFeatureHint("contracts"));
+          return;
+        }
+        const active = state.contracts || [];
+        if (!active.length) {
+          dom.contracts.innerHTML = "<span class=\"select-meta\">No tasks yet. Launch a mission.</span>";
+        } else {
+          dom.contracts.innerHTML = active.map((contract) => {
+            const pct = contract.complete ? 100 : (contract.target ? Math.min(100, (contract.progress / contract.target) * 100) : 0);
+            const progressText = contract.type === "noDamage"
+              ? `${Math.floor(contract.progress)}s / ${contract.target}s`
+              : `${contract.progress} / ${contract.target}`;
+            const statusText = contract.complete ? "Complete" : progressText;
+            const faction = FACTIONS.find((item) => item.id === contract.factionId);
+            return `
+              <div class="contract-card">
+                <div class="contract-title">${contract.title}</div>
+                <div class="contract-meta">
+                  <span>${contract.desc}</span>
+                  <span>${statusText}</span>
+                  <span>Reward: ${contract.reward.credits}c, ${contract.reward.xp}xp, +${contract.reward.rep} rep</span>
+                  <span>${faction ? faction.name : contract.factionId}</span>
+                </div>
+                <div class="contract-progress"><span style="width:${pct}%"></span></div>
+              </div>
+            `;
+          }).join("");
+        }
+
+        dom.factions.innerHTML = FACTIONS.map((faction) => {
+          const rep = progress.factions[faction.id] || 0;
+          return `
+            <div class="faction-card">
+              <span>${faction.desc}</span>
+              <strong>${faction.name}</strong>
+              <div class="contract-meta">Rep ${rep}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderSettings() {
+        syncModeOptions();
+        const modeGroup = document.querySelector("[data-setting='game-mode']");
+        const difficultyGroup = document.querySelector("[data-setting='difficulty']");
+        const inputGroup = document.querySelector("[data-setting='input-mode']");
+        const targetAssistGroup = document.querySelector("[data-setting='target-assist']");
+        const particleGroup = document.querySelector("[data-setting='particles']");
+        const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
+        const hudLayoutGroup = document.querySelector("[data-setting='hud-layout']");
+        const hudScaleGroup = document.querySelector("[data-setting='hud-scale']");
+        const cameraModeGroup = document.querySelector("[data-setting='camera-mode']");
+        const audioGroup = document.querySelector("[data-setting='audio']");
+        const paletteGroup = document.querySelector("[data-setting='palette']");
+        const perfModeGroup = document.querySelector("[data-setting='perf-mode']");
+        const renderScaleGroup = document.querySelector("[data-setting='render-scale']");
+        [modeGroup, difficultyGroup, inputGroup, targetAssistGroup, particleGroup, hitFlashGroup, hudLayoutGroup, hudScaleGroup, cameraModeGroup, audioGroup, paletteGroup, perfModeGroup, renderScaleGroup].forEach((group) => {
+          if (!group) return;
+          const setting = group.dataset.setting;
+          const value = setting === "game-mode" ? progress.settings.gameMode
+            : setting === "difficulty" ? progress.settings.difficulty
+            : setting === "input-mode" ? progress.settings.inputMode
+            : setting === "target-assist" ? (progress.settings.targetAssist || "on")
+            : setting === "particles" ? progress.settings.particles
+            : setting === "hud-layout" ? (progress.settings.hudLayout || "standard")
+            : setting === "hud-scale" ? (progress.settings.hudScale || "md")
+            : setting === "camera-mode" ? (progress.settings.cameraMode || "dynamic")
+            : setting === "audio" ? (progress.settings.audio || "on")
+            : setting === "palette" ? (progress.settings.palette || "default")
+            : setting === "perf-mode" ? getPerfMode()
+            : setting === "render-scale" ? getRenderScaleSetting()
+            : progress.settings.hitFlash ? "on" : "off";
+          group.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === value);
+          });
+        });
+
+        syncSettingsVisibility();
+        syncFeatureReveals();
+        renderKeybinds();
+        renderPerformanceOverlays(performance.now(), true);
+        updatePerfLogUi();
+      }
+
+      function renderKeybinds() {
+        dom.keybinds.innerHTML = Object.keys(KEYBIND_LABELS).map((key) => {
+          const value = input.capture === key ? "Press key" : formatKeybind(progress.keybinds[key]);
+          return `
+            <div class="keybind-row">
+              <span>${KEYBIND_LABELS[key]}</span>
+              <button class="keybind-btn" type="button" data-bind="${key}">${value}</button>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderHistory() {
+        if (!dom.history) return;
+        if (!progress.runHistory.length) {
+          dom.history.innerHTML = "<span class=\"select-meta\">No runs logged yet.</span>";
+          return;
+        }
+        dom.history.innerHTML = progress.runHistory.map((run) => {
+          const difficultyLabel = run.difficulty || "Normal";
+          const modeLabel = run.mode ? ` • ${run.mode}` : "";
+          const score = Number.isFinite(run.score) ? Math.round(run.score).toLocaleString() : run.score;
+          const credits = Number.isFinite(run.credits) ? Math.round(run.credits).toLocaleString() : run.credits;
+          const usesLevel = run.mode === "Campaign" && Number.isFinite(run.level);
+          const progressText = usesLevel
+            ? `Level ${run.level} • Wave ${run.wave}/${LEVEL_WAVES}`
+            : `Wave ${run.wave}`;
+          const intel = [
+            run.threatTier ? `Threat ${run.threatTier}` : "",
+            run.mutator ? `Mutator ${run.mutator}` : "",
+            run.seed ? `Seed ${run.seed}` : "",
+            run.route ? `Route ${formatRouteBonusLabel(run.route)}` : ""
+          ].filter(Boolean).join(" • ");
+          return `
+            <div class="history-entry">
+              <strong>${run.ship} / ${run.weapon}</strong>
+              <span>${progressText} • Score ${score} • ${difficultyLabel}${modeLabel}</span>
+              <span>${run.kills} kills • ${credits} credits</span>
+              ${intel ? `<span class="muted">${intel}</span>` : ""}
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderRunAnalytics() {
+        if (!dom.runAnalytics) return;
+        const entries = Array.isArray(progress.runAnalytics) ? progress.runAnalytics : [];
+        if (!entries.length) {
+          dom.runAnalytics.innerHTML = "<span class=\"select-meta\">No analytics captured yet.</span>";
+          return;
+        }
+        dom.runAnalytics.innerHTML = entries.map((entry) => {
+          const timestamp = new Date(entry.ts || Date.now()).toLocaleString();
+          const score = Number.isFinite(entry.score) ? Math.round(entry.score).toLocaleString() : "0";
+          const dealt = Number.isFinite(entry.damageDealt) ? Math.round(entry.damageDealt).toLocaleString() : "0";
+          const taken = Number.isFinite(entry.damageTaken) ? Math.round(entry.damageTaken).toLocaleString() : "0";
+          const accuracyPct = Number.isFinite(entry.accuracy) ? `${Math.round(entry.accuracy * 100)}%` : "0%";
+          const mobility = `Boost ${entry.boostSeconds || 0}s • Brake ${entry.brakeUses || 0} • Low hull ${entry.lowHullSeconds || 0}s`;
+          const systems = [
+            entry.threatTier ? `Threat ${entry.threatTier}` : "",
+            entry.mutator ? entry.mutator : "",
+            entry.seed ? `Seed ${entry.seed}` : ""
+          ].filter(Boolean).join(" • ");
+          return `
+            <div class="history-entry">
+              <strong>${entry.ship || "Unknown"} / ${entry.weapon || "Unknown"}</strong>
+              <span>${entry.waveDisplay || "Wave 1"} • ${entry.kills || 0} kills • Score ${score} • ${entry.mode || "Campaign"}</span>
+              <span>ACC ${accuracyPct} • DMG ${dealt}/${taken} • A${entry.abilityUses || 0} S${entry.secondaryUses || 0} O${entry.objectiveCompletions || 0}</span>
+              <span>${mobility}</span>
+              <span class="muted">${systems}${systems ? " • " : ""}${timestamp}</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function formatKeybind(value) {
+        if (!value) return "-";
+        if (value === " ") return "Space";
+        if (value.startsWith("arrow")) {
+          return `Arrow ${value.replace("arrow", "").toUpperCase()}`;
+        }
+        if (value === "shift") return "Shift";
+        if (value === "control") return "Ctrl";
+        if (value === "alt") return "Alt";
+        if (value === "meta") return "Meta";
+        return value.length > 1 ? value.toUpperCase() : value.toUpperCase();
+      }
+
+      function formatStat(key, value) {
+        const labels = {
+          damage: "Damage",
+          bulletSpeed: "Velocity",
+          fireRate: "Fire Rate",
+          energyCost: "Energy Cost",
+          critChance: "Crit Chance",
+          spread: "Spread",
+          turnRate: "Turn Rate",
+          maxSpeed: "Max Speed",
+          accel: "Acceleration",
+          projectiles: "Projectiles",
+          pierce: "Pierce",
+          splashRadius: "Splash Radius",
+          splashDamage: "Splash Damage",
+          arcDamage: "Arc Damage",
+          arcRadius: "Arc Radius",
+          arcChains: "Arc Chains",
+          slowChance: "Slow Chance",
+          slowDuration: "Slow Duration",
+          maxShield: "Max Shield",
+          maxHealth: "Max Hull",
+          maxEnergy: "Max Energy",
+          energyRegen: "Energy Regen",
+          boostMultiplier: "Boost Mult",
+          boostCost: "Boost Cost",
+          damageReduction: "Damage Reduction",
+          upgradeLuck: "Upgrade Luck",
+          blackHoleChance: "Black Hole Chance",
+          blackHoleRadius: "Black Hole Radius",
+          blackHoleDuration: "Black Hole Duration",
+          blackHoleForce: "Black Hole Force",
+          blackHoleDamage: "Black Hole Damage",
+          echoChance: "Echo Chance",
+          echoDamage: "Echo Damage"
+        };
+        const label = labels[key] || key;
+        const isPercent = key === "critChance"
+          || key === "damageReduction"
+          || key === "slowChance"
+          || key === "blackHoleChance"
+          || key === "echoChance"
+          || key === "echoDamage";
+        const displayValue = isPercent ? value * 100 : value;
+        const formatted = Number.isInteger(displayValue) ? displayValue.toString() : displayValue.toFixed(2);
+        const signed = displayValue > 0 ? `+${formatted}` : formatted;
+        const suffix = isPercent ? "%" : "";
+        return `${signed}${suffix} ${label}`;
+      }
+
+      function formatDuration(seconds) {
+        const total = Math.max(0, Math.round(seconds));
+        const minutes = Math.floor(total / 60);
+        const secs = total % 60;
+        return `${minutes}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      const TIER_COLORS = {
+        common: "#ffffff",
+        uncommon: "#6ee7b7",
+        rare: "#7ca8ff",
+        epic: "#b98cff",
+        legendary: "#f6c65f"
+      };
+
+      const BARRAGE_STAT_KEYS = new Set([
+        "barrageEvery",
+        "barrageProjectiles",
+        "barrageBonusDamage",
+        "barrageSplashRadius",
+        "barrageSplashDamage",
+        "barragePierce",
+        "barrageCounter"
+      ]);
+
+      const LOWER_BETTER_STATS = new Set(["energyCost", "spread", "cooldown", "boostCost"]);
+
+      function getTierMeta(tier) {
+        return TIER_META[tier] || TIER_META.common;
+      }
+
+      function formatTierLabel(tier) {
+        return getTierMeta(tier).label;
+      }
+
+      function normalizeCategory(category) {
+        return (category || "upgrade").toLowerCase().replace(/\s+/g, "-");
+      }
+
+      function getUpgradeCategoryIcon(category) {
+        const key = normalizeCategory(category);
+        const icons = {
+          offense: "⚔",
+          defense: "🛡",
+          mobility: "➜",
+          utility: "🔧",
+          strategy: "🧭",
+          control: "❄",
+          systems: "⚙",
+          upgrade: "★"
+        };
+        return icons[key] || icons.upgrade;
+      }
+
+      function getUpgradeGlyphs(upgrade, level = 1) {
+        if (!upgrade) return [];
+        const labels = [];
+        const add = (label) => {
+          if (!label || labels.length >= 3 || labels.includes(label)) return;
+          labels.push(label);
+        };
+        if (upgrade.kind === "skill" && upgrade.skillId) {
+          const skillMap = {
+            halo: ["HALO ↑", "RANGE ↑", "DMG ↑"],
+            minefield: ["MINE ↑", "BLAST ↑", "RATE ↑"],
+            escort: ["HELPER ↑", "DMG ↑", "RATE ↑"],
+            shockwave: ["WAVE ↑", "RANGE ↑", "DMG ↑"],
+            harrier: ["MISSILE ↑", "DMG ↑", "RATE ↑"],
+            barrage: ["BARRAGE ↑", "SHOT ↑", "PIERCE ↑"],
+            "arc-lattice": ["CHAIN ↑", "SLOW ↑", "RANGE ↑"],
+            bulwark: ["SHIELD ↑", "HULL ↑", "AURA ↑"]
+          };
+          const mapped = skillMap[upgrade.skillId];
+          if (mapped) {
+            mapped.forEach(add);
+            return labels;
+          }
+        }
+        const id = `${upgrade.id || ""} ${upgrade.name || ""} ${upgrade.category || ""}`.toLowerCase();
+        const keywordMap = [
+          { test: /(damage|calibrated|coil|amplifier|fire-control|munitions|barrage|weapon-calibration)/, label: "DMG ↑" },
+          { test: /(fire|rate|overclock|loader|cadence|rapid)/, label: "RATE ↑" },
+          { test: /(crit|target|lens|scope)/, label: "CRIT ↑" },
+          { test: /(shield|aegis|bulwark|barrier|reflect)/, label: "SHIELD ↑" },
+          { test: /(hull|repair|armor|plating|patch)/, label: "HULL ↑" },
+          { test: /(energy|reactor|capacitor|battery|efficiency)/, label: "ENERGY ↑" },
+          { test: /(speed|boost|thruster|jet|vector|inertial)/, label: "SPEED ↑" },
+          { test: /(cooldown|charge|cycle)/, label: "COOLDOWN ↓" },
+          { test: /(salvage|scanner|luck|blueprint|credit)/, label: "LOOT ↑" },
+          { test: /(slow|chill|freeze|snare)/, label: "SLOW ↑" },
+          { test: /(range|radius|aura)/, label: "RANGE ↑" },
+          { test: /(mine|shockwave|nova|pulse)/, label: "BLAST ↑" },
+          { test: /(missile|rocket|torpedo)/, label: "MISSILE ↑" },
+          { test: /(helper|escort|drone|wing)/, label: "HELPER ↑" }
+        ];
+        keywordMap.forEach((entry) => {
+          if (entry.test.test(id)) add(entry.label);
+        });
+        if (!labels.length) {
+          const category = normalizeCategory(upgrade.category || "upgrade");
+          const categoryMap = {
+            offense: ["DMG ↑", "RATE ↑", "CRIT ↑"],
+            defense: ["SHIELD ↑", "HULL ↑", "GUARD ↑"],
+            mobility: ["SPEED ↑", "BOOST ↑", "TURN ↑"],
+            utility: ["ENERGY ↑", "COOLDOWN ↓", "CONTROL ↑"],
+            strategy: ["LOOT ↑", "XP ↑", "BONUS ↑"],
+            control: ["SLOW ↑", "RANGE ↑", "BLAST ↑"],
+            systems: ["SYSTEM ↑", "ENERGY ↑", "POWER ↑"],
+            upgrade: ["POWER ↑", "BOOST ↑", "READY ↑"]
+          };
+          (categoryMap[category] || categoryMap.upgrade).forEach(add);
+        }
+        return labels;
+      }
+
+      function renderUpgradeGlyphs(glyphs) {
+        if (!glyphs || !glyphs.length) return "";
+        return glyphs.map((glyph) => `<span class="upgrade-glyph">${glyph}</span>`).join("");
+      }
+
+      function getUpgradeChoiceDescription(upgrade, nextLevel) {
+        if (!upgrade) return "";
+        if (upgrade.desc) return upgrade.desc;
+        const glyphs = getUpgradeGlyphs(upgrade, nextLevel);
+        if (glyphs.length) {
+          return `Improves ${glyphs.map((glyph) => glyph.replace(/\s*[↑↓]$/u, "").toLowerCase()).join(", ")}.`;
+        }
+        return "Improves this run immediately.";
+      }
+
+      function getUpgradeSynergyHint(upgrade) {
+        if (!upgrade) return "";
+        const category = normalizeCategory(upgrade.category || "");
+        const pathId = progress.buildPath || "balanced";
+        if (pathId === "crit" && category === "offense") return "Fits Critical Overwatch.";
+        if (pathId === "drone" && /helper|escort|drone|wing/i.test(`${upgrade.id} ${upgrade.name}`)) return "Fits Drone Command.";
+        if (pathId === "singularity" && (category === "control" || /arc|black|slow|freeze/i.test(`${upgrade.id} ${upgrade.name}`))) {
+          return "Fits Singularity Doctrine.";
+        }
+        if (pathId === "brawler" && (category === "defense" || category === "mobility")) return "Fits Brawler Core.";
+        if (isSkillUpgrade(upgrade)) return `Uses one of ${SKILL_LIMIT} skill slots.`;
+        return "";
+      }
+
+      function getRewardIcon(reward) {
+        const icons = {
+          credits: "🪙",
+          blueprints: "📘",
+          salvage: "🔑",
+          part: "⚙",
+          weapon: "⚡"
+        };
+        return icons[reward.type] || "★";
+      }
+
+      function getRewardLabel(reward) {
+        if (!reward) return "";
+        if (reward.type === "credits") return "Credits";
+        if (reward.type === "blueprints") return "Blueprints";
+        if (reward.type === "salvage") return "Salvage keys";
+        if (reward.type === "part") return reward.title || "Attachment";
+        if (reward.type === "weapon") return reward.title || "Weapon";
+        return reward.type;
+      }
+
+      function formatRewardValue(reward) {
+        if (!reward) return "0";
+        const amount = Number.isFinite(reward.amount) ? reward.amount : 1;
+        return amount.toLocaleString();
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function renderUiIcon(name) {
+        const paths = UI_ICON_PATHS[name] || UI_ICON_PATHS.menu;
+        return `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${paths}</svg>`;
+      }
+
+      function renderIconLabel(icon, label, options = {}) {
+        const labelClass = options.iconOnly ? "btn-label" : (options.labelClass || "btn-label");
+        const visibleLabel = options.visibleLabel || label;
+        return `${renderUiIcon(icon)}<span class="${labelClass}">${escapeHtml(visibleLabel)}</span>`;
+      }
+
+      function setIconButtonContent(button, icon, label, options = {}) {
+        if (!button) return;
+        const visibleLabel = options.visibleLabel || button.dataset.compactLabel || label;
+        button.setAttribute("aria-label", label);
+        if (options.iconOnly || button.dataset.iconOnly === "true" || button.classList.contains("btn-icon-only")) {
+          button.title = label;
+        }
+        button.innerHTML = renderIconLabel(icon, label, {
+          iconOnly: options.iconOnly || button.dataset.iconOnly === "true" || button.classList.contains("btn-icon-only"),
+          visibleLabel
+        });
+      }
+
+      function hydrateIconButtons(root = document) {
+        root.querySelectorAll("[data-ui-icon]").forEach((button) => {
+          const label = button.dataset.uiLabel || button.getAttribute("aria-label") || button.textContent.trim();
+          setIconButtonContent(button, button.dataset.uiIcon, label);
+        });
+      }
+
+      function getTabIconName(target) {
+        const icons = {
+          systems: "ship",
+          progress: "progress",
+          settings: "options",
+          upgrades: "boosts",
+          armory: "gear",
+          shipyard: "ships",
+          contracts: "tasks",
+          premium: "forge"
+        };
+        return icons[target] || "menu";
+      }
+
+      function getOverlayActionIcon(action) {
+        const icons = {
+          launch: "play",
+          resume: "play",
+          restart: "replay",
+          reset: "hangar",
+          "next-level": "next",
+          help: "help",
+          training: "practice",
+          tutorial: "tutorial",
+          "command-menu": "menu",
+          "tutorial-prev": "back",
+          "tutorial-next": "next",
+          "tutorial-close": "close",
+          "tutorial-training": "practice",
+          "glossary-close": "close",
+          reroll: "reroll",
+          skip: "skip",
+          "dock-close": "play",
+          dock: "hangar",
+          "tier-up": "next",
+          "salvage-close": "gear"
+        };
+        return icons[action] || "menu";
+      }
+
+      function sortRewardsByTier(rewards) {
+        if (!Array.isArray(rewards)) return [];
+        return rewards.slice().sort((a, b) => {
+          const tierA = a && a.tier ? a.tier : "common";
+          const tierB = b && b.tier ? b.tier : "common";
+          const diff = getTierIndex(tierA) - getTierIndex(tierB);
+          if (diff !== 0) return diff;
+          return (a && a.title ? a.title : "").localeCompare(b && b.title ? b.title : "");
+        });
+      }
+
+      function buildRewardSummaryItems(rewards) {
+        if (!Array.isArray(rewards) || !rewards.length) return [];
+        const currencyTypes = new Set(["credits", "blueprints", "salvage"]);
+        const currencyLabels = {
+          credits: "Credits",
+          blueprints: "Blueprints",
+          salvage: "Salvage keys"
+        };
+        const currencies = new Map();
+        const gear = [];
+        rewards.filter(Boolean).forEach((reward) => {
+          if (currencyTypes.has(reward.type)) {
+            const current = currencies.get(reward.type) || {
+              type: reward.type,
+              amount: 0,
+              tier: reward.tier || "common",
+              label: currencyLabels[reward.type] || getRewardLabel(reward),
+              icon: getRewardIcon(reward)
+            };
+            current.amount += Number.isFinite(reward.amount) ? reward.amount : 1;
+            if (getTierIndex(reward.tier || "common") > getTierIndex(current.tier)) {
+              current.tier = reward.tier || current.tier;
+            }
+            currencies.set(reward.type, current);
+            return;
+          }
+          if (reward.type === "part" || reward.type === "weapon") {
+            gear.push(reward);
+          }
+        });
+        const sortedGear = gear
+          .slice()
+          .sort((a, b) => {
+            const tierDiff = getTierIndex(b.tier || "common") - getTierIndex(a.tier || "common");
+            if (tierDiff !== 0) return tierDiff;
+            return (a.title || getRewardLabel(a)).localeCompare(b.title || getRewardLabel(b));
+          });
+        const gearItems = sortedGear
+          .slice(0, 2)
+          .map((reward) => {
+            const tier = reward.tier || "common";
+            return {
+              type: reward.type,
+              tier,
+              icon: getRewardIcon(reward),
+              label: reward.title || getRewardLabel(reward),
+              value: formatTierLabel(tier)
+            };
+          });
+        if (gear.length > 2) {
+          gearItems.push({
+            type: "gear-more",
+            tier: sortedGear[2]?.tier || "common",
+            icon: "★",
+            label: "More gear",
+            value: `+${gear.length - 2}`
+          });
+        }
+        const currencyItems = Array.from(currencies.values())
+          .sort((a, b) => {
+            const order = { credits: 0, blueprints: 1, salvage: 2 };
+            return (order[a.type] ?? 9) - (order[b.type] ?? 9);
+          })
+          .map((reward) => ({
+            type: reward.type,
+            tier: reward.tier || "common",
+            icon: reward.icon,
+            label: reward.label,
+            value: `+${formatRewardValue(reward)}`
+          }));
+        return [...gearItems, ...currencyItems.slice(0, Math.max(0, 4 - gearItems.length))].slice(0, 4);
+      }
+
+      function renderSimpleRewardTiles(items, emptyCopy) {
+        if (!items.length) {
+          return `<div class="result-empty">${escapeHtml(emptyCopy || "No rewards recovered.")}</div>`;
+        }
+        return `
+          <div class="result-rewards" aria-label="Rewards won">
+            ${items.map((item) => `
+              <div class="result-reward-tile" data-tier="${item.tier || "common"}">
+                <span class="result-reward-icon" aria-hidden="true">${escapeHtml(item.icon || "★")}</span>
+                <strong class="result-reward-value">${escapeHtml(item.value || "")}</strong>
+                <span class="result-reward-label">${escapeHtml(item.label || "Reward")}</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function buildRunResultStats(summary, context) {
+        const stats = [];
+        if (context === "victory") {
+          stats.push({ label: "Level", value: summary.level || 1 });
+        } else if (context === "quick") {
+          stats.push({ label: "Mode", value: getRunModeLabel() });
+        } else {
+          stats.push({ label: "Wave", value: summary.waveDisplay || getWaveDisplay(summary.wave || state.wave) });
+        }
+        stats.push({ label: "Kills", value: Math.round(summary.kills || 0).toLocaleString() });
+        stats.push({ label: "Score", value: Math.round(summary.score || 0).toLocaleString() });
+        return stats.slice(0, 3);
+      }
+
+      function renderRunResultStats(stats) {
+        return `
+          <div class="result-summary-strip" aria-label="Run summary">
+            ${stats.map((stat) => `
+              <div class="result-summary-stat">
+                <span>${escapeHtml(stat.label)}</span>
+                <strong>${escapeHtml(stat.value)}</strong>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function getRunResultModel(mode) {
+        const victory = mode === "victory";
+        const aborted = mode === "gameover" && !!state.runEndedByAbort;
+        const quickComplete = mode === "gameover" && (state.lastRunReason === "time" || state.lastRunReason === "boss-rush");
+        const training = mode === "gameover" && !!state.training;
+        const result = victory ? state.levelRewards : state.lossRewards;
+        const summary = result ? result.summary : (state.lastRunSummary || getRunSummary());
+        const level = result && result.level ? result.level : summary.level;
+        const nextLevel = Math.max(progress.campaignLevel || level + 1, level + 1);
+        const rewards = training || aborted || !result ? [] : buildRewardSummaryItems(result.rewards || []);
+        const detailChips = [
+          `Time ${formatDuration(summary.durationSec || 0)}`,
+          `${summary.difficultyLabel || "Normal"} difficulty`,
+          `${Math.round(summary.credits || 0).toLocaleString()} credits banked`
+        ];
+        if (result && result.tier) {
+          detailChips.push(`${formatTierLabel(result.tier)} ${victory ? "rewards" : "performance"}`);
+        }
+        if (victory) {
+          return {
+            context: "victory",
+            eyebrow: `Level ${level} cleared`,
+            title: "Rewards secured",
+            copy: `Level rewards are banked. Launch Level ${nextLevel} or refit first.`,
+            emptyCopy: "No rewards recovered.",
+            rewards,
+            stats: buildRunResultStats(summary, "victory"),
+            details: {
+              chips: [`Level ${level}`, ...detailChips],
+              highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: `Launch Level ${nextLevel}`, action: "next-level" },
+            secondaryAction: { label: "Return to hangar", action: "reset" }
+          };
+        }
+        if (training) {
+          return {
+            context: "training",
+            eyebrow: "Practice done",
+            title: "Practice complete",
+            copy: "No rewards this time. Return to the hangar when ready.",
+            emptyCopy: "Practice has no loot.",
+            rewards,
+            stats: buildRunResultStats(summary, "training"),
+            details: {
+              chips: detailChips,
+              highlights: [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: "Return to hangar", action: "reset" },
+            secondaryAction: null
+          };
+        }
+        if (aborted) {
+          return {
+            context: "aborted",
+            eyebrow: "Run aborted",
+            title: "Mission aborted",
+            copy: "The sortie ended early. Return to the hangar to refit.",
+            emptyCopy: "No rewards recovered.",
+            rewards,
+            stats: buildRunResultStats(summary, "aborted"),
+            details: {
+              chips: detailChips,
+              highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: "Return to hangar", action: "reset" },
+            secondaryAction: null
+          };
+        }
+        if (quickComplete) {
+          return {
+            context: "quick",
+            eyebrow: `${getRunModeLabel()} complete`,
+            title: "Run complete",
+            copy: "Rewards are banked. Replay the mode or refit in the hangar.",
+            emptyCopy: "No rewards recovered.",
+            rewards,
+            stats: buildRunResultStats(summary, "quick"),
+            details: {
+              chips: detailChips,
+              highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+              debrief: renderRunDebriefSection()
+            },
+            primaryAction: { label: "Play again", action: "restart" },
+            secondaryAction: { label: "Return to hangar", action: "reset" }
+          };
+        }
+        return {
+          context: "loss",
+          eyebrow: "Run ended",
+          title: "Ship down",
+          copy: "Recovered rewards are banked. Return to the hangar to refit.",
+          emptyCopy: "No salvage recovered.",
+          rewards,
+          stats: buildRunResultStats(summary, "loss"),
+          details: {
+            chips: detailChips,
+            highlights: Array.isArray(state.runHighlights) ? state.runHighlights : [],
+            debrief: renderRunDebriefSection()
+          },
+          primaryAction: { label: "Return to hangar", action: "reset" },
+          secondaryAction: { label: "Play again", action: "restart" }
+        };
+      }
+
+      function renderRunResultDetails(model) {
+        const chips = model.details?.chips || [];
+        const highlights = model.details?.highlights || [];
+        const debrief = model.details?.debrief || "";
+        if (!chips.length && !highlights.length && !debrief) return "";
+        const chipList = chips.length
+          ? `<div class="chip-list">${chips.map((label) => `<span class="chip">${escapeHtml(label)}</span>`).join("")}</div>`
+          : "";
+        const highlightList = highlights.length
+          ? `<div class="chip-list">${highlights.map((label) => `<span class="chip" data-tier="legendary">${escapeHtml(label)}</span>`).join("")}</div>`
+          : "";
+        return `
+          <details class="result-details">
+            <summary>Run details</summary>
+            <div class="result-details-body">
+              ${chipList}
+              ${highlightList}
+              ${debrief}
+            </div>
+          </details>
+        `;
+      }
+
+      function renderRunResultAction(action, primary) {
+        if (!action) return "";
+        const buttonClass = primary ? "btn primary" : "btn ghost";
+        const icon = getOverlayActionIcon(action.action);
+        return `<button class="${buttonClass}" data-overlay-action="${escapeAttribute(action.action)}">${renderIconLabel(icon, action.label)}</button>`;
+      }
+
+      function renderRunResultOverlay(mode) {
+        const model = getRunResultModel(mode);
+        return `
+          <div class="overlay-header result-header">
+            <p class="eyebrow">${escapeHtml(model.eyebrow)}</p>
+            <h3>${escapeHtml(model.title)}</h3>
+            <p>${escapeHtml(model.copy)}</p>
+          </div>
+          <div class="result-section">
+            <span class="result-section-title">Rewards won</span>
+            ${renderSimpleRewardTiles(model.rewards, model.emptyCopy)}
+          </div>
+          ${renderRunResultStats(model.stats)}
+          ${renderRunResultDetails(model)}
+          <div class="overlay-actions result-actions">
+            ${renderRunResultAction(model.primaryAction, true)}
+            ${renderRunResultAction(model.secondaryAction, false)}
+          </div>
+        `;
+      }
+
+      function getSalvageRevealDelay(tier, index) {
+        const tierIndex = getTierIndex(tier || "common");
+        const baseDelay = index * 0.08;
+        const tierBonus = tierIndex >= 4
+          ? 0.3
+          : tierIndex >= 3
+            ? 0.22
+            : tierIndex >= 2
+              ? 0.14
+              : tierIndex >= 1
+                ? 0.08
+                : 0;
+        return (baseDelay + tierBonus).toFixed(2);
+      }
+
+      function groupByTier(items) {
+        const grouped = {};
+        items.forEach((item) => {
+          const tier = item.tier || "common";
+          if (!grouped[tier]) grouped[tier] = [];
+          grouped[tier].push(item);
+        });
+        return TIER_ORDER.filter((tier) => grouped[tier] && grouped[tier].length)
+          .map((tier) => ({ tier, items: grouped[tier] }));
+      }
+
+      function formatDelta(value, digits) {
+        if (!Number.isFinite(value)) return "0";
+        const rounded = Number.isInteger(value) ? value.toString() : value.toFixed(digits);
+        const sign = value > 0 ? "+" : "";
+        return `${sign}${rounded}`;
+      }
+
+      function isBetterStat(key, diff) {
+        return LOWER_BETTER_STATS.has(key) ? diff < 0 : diff > 0;
+      }
+
+      function getWeaponStatsSnapshot(item) {
+        return getWeaponItemStats(item) || {};
+      }
+
+      function buildWeaponComparison(currentWeapon, candidateWeapon) {
+        if (!currentWeapon || !candidateWeapon) return "";
+        const currentStats = getWeaponStatsSnapshot(currentWeapon);
+        const nextStats = getWeaponStatsSnapshot(candidateWeapon);
+        const rules = [
+          { key: "damage", label: "Damage", digits: 0 },
+          { key: "fireRate", label: "Fire Rate", digits: 1 },
+          { key: "energyCost", label: "Energy Cost", digits: 1 },
+          { key: "bulletSpeed", label: "Velocity", digits: 0 },
+          { key: "projectiles", label: "Projectiles", digits: 0 },
+          { key: "spread", label: "Spread", digits: 2 },
+          { key: "splashRadius", label: "Splash", digits: 0 },
+          { key: "pierce", label: "Pierce", digits: 0 }
+        ];
+        const chips = [];
+        rules.forEach((rule) => {
+          const base = currentStats[rule.key] || 0;
+          const next = nextStats[rule.key] || 0;
+          const diff = next - base;
+          if (Math.abs(diff) < 0.01) return;
+          const better = isBetterStat(rule.key, diff);
+          chips.push(`<span class="stat-diff ${better ? "is-positive" : "is-negative"}">${formatDelta(diff, rule.digits)} ${rule.label}</span>`);
+        });
+        if (!chips.length) {
+          return "<span class=\"stat-diff is-neutral\">Matches equipped stats</span>";
+        }
+        return chips.slice(0, 4).join("");
+      }
+
+      function buildSecondaryComparison(currentSecondary, candidateSecondary) {
+        if (!currentSecondary || !candidateSecondary) return "";
+        const diff = (candidateSecondary.cooldown || 0) - (currentSecondary.cooldown || 0);
+        if (Math.abs(diff) < 0.1) {
+          return "<span class=\"stat-diff is-neutral\">Matches equipped cooldown</span>";
+        }
+        const better = isBetterStat("cooldown", diff);
+        return `<span class="stat-diff ${better ? "is-positive" : "is-negative"}">${formatDelta(diff, 0)}s Cooldown</span>`;
+      }
+
+      function buildAttachmentComparison(item, equippedItem) {
+        if (!item || !item.stats) return "";
+        const currentStats = equippedItem ? (getAttachmentStats(equippedItem) || {}) : {};
+        const candidateStats = getAttachmentStats(item) || {};
+        const chips = Object.keys(candidateStats).map((key) => {
+          const diff = (candidateStats[key] || 0) - (currentStats[key] || 0);
+          if (Math.abs(diff) < 0.01) return "";
+          const better = isBetterStat(key, diff);
+          return `<span class="stat-diff ${better ? "is-positive" : "is-negative"}">${formatStat(key, diff)}</span>`;
+        }).filter(Boolean);
+        if (!chips.length) {
+          return "<span class=\"stat-diff is-neutral\">Matches equipped attachment</span>";
+        }
+        return chips.slice(0, 4).join("");
+      }
+
+      function getPartTier(part) {
+        if (!part) return "common";
+        if (part.tier) return part.tier;
+        if (part.rarityId) return part.rarityId;
+        return (part.rarity || "Common").toLowerCase();
+      }
+
+      function getPartScrapValue(part) {
+        const tier = getPartTier(part);
+        const values = {
+          common: 60,
+          uncommon: 120,
+          rare: 200,
+          epic: 320,
+          legendary: 520
+        };
+        return values[tier] || 80;
+      }
+
+      function getShipTierStyle(tier) {
+        if (tier >= 4) return "epic";
+        if (tier === 3) return "rare";
+        if (tier === 2) return "uncommon";
+        return "common";
+      }
+
+      function renderTierSection(tier, items, renderItem) {
+        const meta = getTierMeta(tier);
+        return `
+          <div class="tier-section" data-tier="${tier}">
+            <div class="tier-header">
+              <span class="tier-title">${meta.label} Tier</span>
+              <span class="tier-count">${items.length} ${items.length === 1 ? "option" : "options"}</span>
+            </div>
+            <div class="card-grid">
+              ${items.map(renderItem).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function formatUnlockText(unlock) {
+        if (!unlock) return "";
+        const parts = [];
+        if (unlock.rank) parts.push(`Rank ${unlock.rank}`);
+        if (unlock.credits) parts.push(`${unlock.credits}c`);
+        if (unlock.blueprints) parts.push(`${unlock.blueprints} blueprints`);
+        if (unlock.faction) parts.push(`${unlock.faction.id.toUpperCase()} ${unlock.faction.rep}`);
+        return parts.join(" · ");
+      }
+
+      function canUnlock(item, unlocks) {
+        if (unlocks[item.id]) return true;
+        const unlock = item.unlock || {};
+        if (unlock.rank && progress.rank < unlock.rank) return false;
+        if (unlock.faction) {
+          const rep = progress.factions[unlock.faction.id] || 0;
+          if (rep < unlock.faction.rep) return false;
+        }
+        if (unlock.credits && progress.bankedCredits < unlock.credits) return false;
+        if (unlock.blueprints && progress.blueprints < unlock.blueprints) return false;
+        return true;
+      }
+
+      function spendUnlockCost(unlock) {
+        if (!unlock) return;
+        if (unlock.credits) {
+          progress.bankedCredits = Math.max(0, progress.bankedCredits - unlock.credits);
+        }
+        if (unlock.blueprints) {
+          progress.blueprints = Math.max(0, progress.blueprints - unlock.blueprints);
+        }
+      }
+
+      function unlockItem(item, unlocks) {
+        if (unlocks[item.id]) return true;
+        if (!canUnlock(item, unlocks)) return false;
+        spendUnlockCost(item.unlock);
+        unlocks[item.id] = true;
+        saveProgress();
+        return true;
+      }
+
+      function setOverlay(mode) {
+        state.overlayMode = mode;
+        dom.overlayContent.classList.toggle("is-result-card", mode === "gameover" || mode === "victory");
+        if (mode === "start") {
+          const fireKey = formatKeybind(progress.keybinds.fire);
+          const boostKey = formatKeybind(progress.keybinds.boost);
+          const abilityKey = formatKeybind(progress.keybinds.ability);
+          const secondaryKey = formatKeybind(progress.keybinds.secondary);
+          const dockKey = formatKeybind(progress.keybinds.dock);
+          const helpKey = formatKeybind(progress.keybinds.help || "h");
+          const brakeKey = formatKeybind(progress.keybinds.brake || "x");
+          const level = Math.max(1, progress.campaignLevel || 1);
+          let modeLabel = `Campaign Level ${level}`;
+          let modeCopy = `Clear ${LEVEL_WAVES} waves. Boss on wave ${LEVEL_WAVES}.`;
+          if (isFrontierMode()) {
+            modeLabel = "Frontier patrol";
+            modeCopy = "Survive as long as you can. Dock mid-run to boost.";
+          } else if (isScoreAttackMode()) {
+            modeLabel = "Score Attack";
+            modeCopy = `Score as high as possible in ${formatDuration(SCORE_ATTACK_DURATION_SEC)}.`;
+          } else if (isDailyMode()) {
+            const daily = getDailyChallengeInfo();
+            modeLabel = "Daily Sector";
+            modeCopy = `Shared daily seed ${daily.seed}. Timer: ${formatDuration(DAILY_SECTOR_DURATION_SEC)}.`;
+          } else if (isBossRushMode()) {
+            modeLabel = "Boss Rush";
+            modeCopy = `Clear ${BOSS_RUSH_WAVES} capital waves with shorter build-up.`;
+          }
+          const next = getNextLockedMilestone();
+          const aimKeys = [
+            progress.keybinds.aimUp,
+            progress.keybinds.aimLeft,
+            progress.keybinds.aimDown,
+            progress.keybinds.aimRight
+          ].map(formatKeybind).join("/");
+          const controlLines = input.touch.supported
+            ? [
+              "Move: left stick.",
+              "Aim and fire: right stick.",
+              "Boost, brake, pause, and help: tap the on-screen buttons."
+            ]
+            : [
+              `Move: WASD. Aim: mouse or ${aimKeys}.`,
+              `Shoot: ${fireKey}. Boost: ${boostKey}.`,
+              `Pause: P or Esc. Help: ${helpKey}.`
+            ];
+          if (isFeatureUnlocked("ability")) {
+            controlLines.splice(2, 0, input.touch.supported ? "Ability: tap the star action button." : `Ability: ${abilityKey}.`);
+          }
+          if (isFeatureUnlocked("secondary")) {
+            controlLines.splice(
+              Math.min(controlLines.length, 3),
+              0,
+              input.touch.supported ? "Secondary: tap the gear action button." : `Secondary: ${secondaryKey}.`
+            );
+          }
+          if (getUiTierLevel() >= 1) {
+            controlLines.push(input.touch.supported
+              ? "Air Brake: hold the brake button for quick turns and target snaps."
+              : `Air Brake: ${brakeKey} for quick turns and target snaps.`);
+          }
+          if (isFrontierMode()) {
+            controlLines.push(input.touch.supported ? "Dock: tap the hangar button for quick boosts." : `Dock: ${dockKey} for quick boosts.`);
+          } else if (isTimedQuickMode()) {
+            controlLines.push(`Timer ends the run automatically and banks rewards.`);
+          } else if (isBossRushMode()) {
+            controlLines.push(`Clear ${BOSS_RUSH_WAVES} boss waves to bank the rush.`);
+          } else {
+            controlLines.push(`Beat wave ${LEVEL_WAVES} to unlock the next level.`);
+          }
+          if (next) {
+            controlLines.push(`Next unlock: ${next.label}. ${next.hint}`);
+          }
+          controlLines.push("Practice runs teach the ship without loot pressure.");
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Ready to fly</p>
+              <h3>${modeLabel}</h3>
+              <p>${modeCopy}</p>
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="launch">${renderIconLabel("play", `Play ${getRunModeLabel()}`)}</button>
+              <button class="btn ghost" data-action="training">${renderIconLabel("practice", "Practice")}</button>
+            </div>
+            <details class="panel-subsection panel-disclosure start-help">
+              <summary class="panel-disclosure-toggle">
+                <span class="panel-disclosure-title">How to play</span>
+                <span class="panel-disclosure-meta">Controls</span>
+              </summary>
+              <div class="panel-disclosure-body">
+                <ul class="overlay-list">
+                  ${controlLines.map((line) => `<li>${line}</li>`).join("")}
+                </ul>
+                <div class="overlay-actions">
+                  <button class="btn ghost btn-mini" type="button" data-action="tutorial">${renderIconLabel("tutorial", "Tutorial")}</button>
+                  <button class="btn ghost btn-mini" type="button" data-action="command-menu">${renderIconLabel("menu", "Menu")}</button>
+                </div>
+              </div>
+            </details>
+          `;
+        }
+        if (mode === "paused") {
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Paused</p>
+              <h3>Take a breather</h3>
+              <p>Press resume to keep flying.</p>
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="resume">${renderIconLabel("play", "Resume")}</button>
+              <button class="btn ghost" data-action="help">${renderIconLabel("help", "Help")}</button>
+              <button class="btn ghost" data-overlay-action="reset">${renderIconLabel("hangar", "Exit")}</button>
+            </div>
+          `;
+        }
+        if (mode === "help") {
+          const fireKey = formatKeybind(progress.keybinds.fire);
+          const boostKey = formatKeybind(progress.keybinds.boost);
+          const abilityKey = formatKeybind(progress.keybinds.ability);
+          const secondaryKey = formatKeybind(progress.keybinds.secondary);
+          const dockKey = formatKeybind(progress.keybinds.dock);
+          const helpKey = formatKeybind(progress.keybinds.help || "h");
+          const brakeKey = formatKeybind(progress.keybinds.brake || "x");
+          const helpLines = input.touch.supported
+            ? [
+              "Left stick moves the ship.",
+              "Right stick aims and fires while held.",
+              "Boost and Air Brake use the lower action buttons."
+            ]
+            : [
+              "Move with WASD and aim with mouse or arrow keys.",
+              `Shoot ${fireKey}. Boost ${boostKey}.`
+            ];
+          if (isFeatureUnlocked("ability")) {
+            helpLines.push(input.touch.supported ? "Tap the ability action button when it is ready." : `Use ability with ${abilityKey}.`);
+          }
+          if (isFeatureUnlocked("secondary")) {
+            helpLines.push(input.touch.supported ? "Tap the secondary action button for missiles or EMP." : `Use secondary with ${secondaryKey}.`);
+          }
+          if (getUiTierLevel() >= 1) {
+            helpLines.push(input.touch.supported
+              ? "Hold Air Brake for fast turns. Dynamic Camera can be simplified in Options."
+              : `Air Brake ${brakeKey}. Dynamic Camera can be simplified in Options.`);
+            helpLines.push("Bracketed enemies show a predictive lead pip when target assist is on.");
+          }
+          if (isFrontierMode()) {
+            helpLines.push(input.touch.supported ? "Frontier dock: tap the hangar action button." : `Frontier dock: ${dockKey}.`);
+          }
+          helpLines.push(input.touch.supported ? "Tap Resume to return to flight." : `Press ${helpKey} again to close help.`);
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Quick guide</p>
+              <h3>Combat controls</h3>
+              <p>Use this panel as a fast in-run reminder.</p>
+            </div>
+            <ul class="overlay-list">
+              ${helpLines.map((line) => `<li>${line}</li>`).join("")}
+            </ul>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="resume">${renderIconLabel("play", "Resume")}</button>
+              <button class="btn ghost" data-overlay-action="reset">${renderIconLabel("hangar", "Exit")}</button>
+            </div>
+          `;
+        }
+        if (mode === "tutorial") {
+          const stepIndex = clamp(state.tutorialStep || 0, 0, TUTORIAL_STEPS.length - 1);
+          state.tutorialStep = stepIndex;
+          const step = TUTORIAL_STEPS[stepIndex];
+          const isFirst = stepIndex === 0;
+          const isLast = stepIndex === TUTORIAL_STEPS.length - 1;
+          const launchTraining = state.mode === "hangar"
+            ? `<button class="btn ghost" data-overlay-action="tutorial-training">${renderIconLabel("practice", "Practice")}</button>`
+            : "";
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Tutorial ${stepIndex + 1}/${TUTORIAL_STEPS.length}</p>
+              <h3>${step.title}</h3>
+              <p>${step.text}</p>
+            </div>
+            <ul class="overlay-list">
+              <li>Keep objective, threat tier, and status chips in view before committing to fights.</li>
+              <li>Use route events and Forge upgrades to shape long-run consistency, not just burst.</li>
+            </ul>
+            <div class="overlay-actions">
+              <button class="btn ghost" data-overlay-action="tutorial-prev" ${isFirst ? "disabled" : ""}>${renderIconLabel("back", "Back")}</button>
+              <button class="btn primary" data-overlay-action="${isLast ? "tutorial-close" : "tutorial-next"}">${renderIconLabel(isLast ? "close" : "next", isLast ? "Done" : "Next")}</button>
+              ${launchTraining}
+            </div>
+          `;
+        }
+        if (mode === "glossary") {
+          const entries = STAT_GLOSSARY.map((item) => `
+            <div class="history-entry">
+              <strong>${item.term}</strong>
+              <span>${item.detail}</span>
+            </div>
+          `).join("");
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Stat glossary</p>
+              <h3>Combat metrics</h3>
+              <p>Use these to tune loadouts, upgrades, and route choices.</p>
+            </div>
+            <div class="history-list">
+              ${entries}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="glossary-close">${renderIconLabel("close", "Close")}</button>
+            </div>
+          `;
+        }
+        if (mode === "choice-event") {
+          const choiceEvent = state.choiceEvent;
+          const options = choiceEvent && Array.isArray(choiceEvent.options) ? choiceEvent.options : [];
+          const cards = options.map((option) => `
+            <button class="select-card" data-choice-id="${option.id}">
+              <span class="select-title">${option.title}</span>
+              <span class="select-meta">${option.desc}</span>
+            </button>
+          `).join("");
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Milestone wave ${choiceEvent ? choiceEvent.wave : state.wave}</p>
+              <h3>Route decision</h3>
+              <p>Select one strategic route for the next three waves.</p>
+            </div>
+            <div class="card-grid">
+              ${cards || "<div class=\"select-meta\">No route options available.</div>"}
+            </div>
+          `;
+        }
+        if (mode === "upgrade") {
+          const availableUpgrades = state.upgradeOptions.filter((upgrade) => {
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
+            return stack < maxStacks && canSelectSkillUpgrade(upgrade);
+          });
+          const hasUpgrades = availableUpgrades.length > 0;
+          const creditsLabel = Math.round(state.credits).toLocaleString();
+          const skillSlots = `${state.skillSlots.length}/${SKILL_LIMIT}`;
+          const upgradeCards = hasUpgrades
+            ? availableUpgrades.map((upgrade) => {
+              const stack = state.upgradeStacks[upgrade.id] || 0;
+              const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
+              const nextLevel = stack + 1;
+              const tier = getUpgradeTier(upgrade, nextLevel);
+              const tierLabel = formatTierLabel(tier);
+              const category = upgrade.category || "Upgrade";
+              const categoryIcon = getUpgradeCategoryIcon(category);
+              const isSkill = isSkillUpgrade(upgrade);
+              const stackLabel = `Lv ${nextLevel}/${maxStacks}`;
+              const kindLabel = isSkill ? "Skill" : "Boost";
+              const glyphs = renderUpgradeGlyphs(getUpgradeGlyphs(upgrade, nextLevel));
+              const description = getUpgradeChoiceDescription(upgrade, nextLevel);
+              const synergy = getUpgradeSynergyHint(upgrade);
+              return `
+                <button class="upgrade-card is-choice" data-tier="${tier}" data-kind="${isSkill ? "skill" : "stat"}" data-upgrade-id="${upgrade.id}">
+                  <span class="upgrade-ribbon" data-tier="${tier}">${tierLabel}</span>
+                  <span class="upgrade-stack">${stackLabel}</span>
+                  <span class="upgrade-icon" aria-hidden="true">${categoryIcon}</span>
+                  <span class="upgrade-title">${upgrade.name}</span>
+                  <div class="upgrade-glyphs">${glyphs}</div>
+                  <span class="upgrade-desc">${description}</span>
+                  ${synergy ? `<span class="upgrade-synergy">${synergy}</span>` : ""}
+                  <span class="upgrade-kind">${kindLabel}</span>
+                </button>
+              `;
+            }).join("")
+            : `
+              <div class="upgrade-card is-choice is-static" data-tier="common" aria-disabled="true">
+                <span class="upgrade-ribbon" data-tier="common">Complete</span>
+                <span class="upgrade-icon" aria-hidden="true">${getUpgradeCategoryIcon("upgrade")}</span>
+                <span class="upgrade-title">All upgrades installed</span>
+                <span class="upgrade-desc">All boosts maxed. Launch next wave.</span>
+                <span class="upgrade-kind">Ready</span>
+              </div>
+            `;
+          const rerollCost = getUpgradeRerollCost();
+          const canReroll = state.credits >= rerollCost;
+          const rerollCopy = `Reroll grows each wave: ${rerollCost} coins.`;
+          const upgradeActions = hasUpgrades
+            ? `
+              <button class="btn ghost" data-overlay-action="reroll" ${canReroll ? "" : "disabled"}>${renderIconLabel("reroll", `Reroll (${rerollCost})`)}</button>
+              <button class="btn ghost" data-overlay-action="skip">${renderIconLabel("skip", "Skip")}</button>
+            `
+            : `
+              <button class="btn primary" data-overlay-action="skip">${renderIconLabel("play", "Next wave")}</button>
+            `;
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Wave ${getWaveDisplay(state.wave - 1)} cleared</p>
+              <h3>Pick a boost</h3>
+              <p>Pick one boost. Skills max ${SKILL_LIMIT}. ${rerollCopy}</p>
+            </div>
+            <div class="badge-group overlay-badges">
+              <span class="badge">Credits ${creditsLabel}</span>
+              <span class="badge">Skills ${skillSlots}</span>
+            </div>
+            <div class="upgrade-grid upgrade-choice-grid">
+              ${upgradeCards}
+            </div>
+            <div class="overlay-actions">
+              ${upgradeActions}
+            </div>
+          `;
+        }
+        if (mode === "dock") {
+          const tier = state.frontier ? state.frontier.tier : 1;
+          const upgradesHtml = FRONTIER_UPGRADES.map((upgrade) => {
+            const level = state.frontier?.upgrades[upgrade.id] || 0;
+            const maxLevel = upgrade.maxLevel || 1;
+            const cost = getFrontierUpgradeCost(upgrade, level, tier);
+            const canBuy = level < maxLevel && state.credits >= cost;
+            const status = level >= maxLevel ? "Maxed" : `Cost ${cost} credits`;
+            const tierId = upgrade.tier || "common";
+            const tierLabel = formatTierLabel(tierId);
+            const levelLabel = `Lv ${level} / ${maxLevel}`;
+            const category = upgrade.category || "Upgrade";
+            const categoryIcon = getUpgradeCategoryIcon(category);
+            const categoryKey = normalizeCategory(category);
+            const glyphs = renderUpgradeGlyphs(getUpgradeGlyphs(upgrade, Math.min(level + 1, maxLevel)));
+            return `
+              <button class="upgrade-card" data-tier="${tierId}" data-frontier-upgrade="${upgrade.id}" ${canBuy ? "" : "disabled"}>
+                <div class="upgrade-meta">
+                  <span class="select-pill tier-pill" data-tier="${tierId}">${tierLabel}</span>
+                  <span class="select-pill category-pill" data-category="${categoryKey}" aria-label="${category}" title="${category}">${categoryIcon}</span>
+                  <span class="select-pill">${levelLabel}</span>
+                </div>
+                <span class="upgrade-title">${upgrade.name}</span>
+                <div class="upgrade-glyphs">${glyphs}</div>
+                <span class="upgrade-desc">${status}</span>
+              </button>
+            `;
+          }).join("");
+          const nextShips = getFrontierNextShips();
+          const tierCost = getFrontierTierCost(tier);
+          const canTierUp = nextShips.length && state.credits >= tierCost;
+          const tierButton = nextShips.length
+            ? `<button class="btn primary" data-overlay-action="tier-up" ${canTierUp ? "" : "disabled"}>${renderIconLabel("next", `Tier up (${tierCost})`)}</button>`
+            : `<button class="btn ghost" disabled>${renderIconLabel("ships", "Max tier")}</button>`;
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Frontier dock</p>
+              <h3>Dock upgrades</h3>
+              <p>Spend credits to boost your ship. Tier up to unlock new hulls.</p>
+            </div>
+            <div class="upgrade-grid">
+              ${upgradesHtml}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn ghost" data-overlay-action="dock-close">${renderIconLabel("play", "Resume")}</button>
+              ${tierButton}
+            </div>
+          `;
+        }
+        if (mode === "tier-select") {
+          const nextShips = getFrontierNextShips();
+          const tierCost = getFrontierTierCost(state.frontier?.tier || 1);
+          const shipCards = nextShips.map((ship) => {
+            const weaponName = ship.signatureWeapon ? getWeaponById(ship.signatureWeapon).name : "Standard";
+            const tierText = ship.tier ? `Tier ${ship.tier}` : "Tier upgrade";
+            const abilityName = ABILITIES[ship.abilityId]?.name || "Ability";
+            return `
+              <button class="select-card" data-frontier-ship="${ship.id}">
+                <span class="select-title">${ship.name}</span>
+                <span class="select-meta">${ship.desc}</span>
+                <div class="select-pills">
+                  <span class="select-pill">${tierText}</span>
+                  <span class="select-pill">Signature: ${weaponName}</span>
+                  <span class="select-pill">${abilityName}</span>
+                </div>
+              </button>
+            `;
+          }).join("");
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Tier upgrade</p>
+              <h3>Pick your next ship</h3>
+              <p>Cost ${tierCost} credits. Dock boosts reset.</p>
+            </div>
+            <div class="card-grid">
+              ${shipCards || "<div class=\"select-meta\">No upgrades available.</div>"}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn ghost" data-overlay-action="dock">${renderIconLabel("hangar", "Dock")}</button>
+            </div>
+          `;
+        }
+        if (mode === "salvage") {
+          const results = state.salvageResults || { rewards: [], count: 0 };
+          const rewards = sortRewardsByTier(results.rewards || []);
+          const rewardCards = rewards.length
+            ? rewards.map((reward, index) => {
+              const tier = reward.tier || "common";
+              const tierIndex = getTierIndex(tier);
+              const glow = tierIndex >= 2;
+              const icon = getRewardIcon(reward);
+              const label = reward.title || getRewardLabel(reward);
+              const value = formatRewardValue(reward);
+              const delay = getSalvageRevealDelay(tier, index);
+              return `
+                <div class="reward-item salvage-item ${glow ? "is-glow" : ""}" data-tier="${tier}" style="--reveal-delay:${delay}s;">
+                  <span class="reward-icon" role="img" aria-label="${label} x${value}" title="${label} x${value}">${icon}</span>
+                  <span class="reward-value">${value}</span>
+                  <span class="reward-label">${label}</span>
+                  ${reward.note ? `<span class="reward-note">${reward.note}</span>` : ""}
+                </div>
+              `;
+            }).join("")
+            : "<div class=\"select-meta\">No salvage recovered.</div>";
+          const countLabel = results.count === 1 ? "1 cache" : `${results.count} caches`;
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Salvage recovered</p>
+              <h3>${countLabel} opened</h3>
+              <p>Loot pops in from common to legendary. Big drops glow.</p>
+            </div>
+            <div class="salvage-grid">
+              ${rewardCards}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="salvage-close">${renderIconLabel("gear", "Gear")}</button>
+            </div>
+          `;
+        }
+        if (mode === "gameover") {
+          dom.overlayContent.innerHTML = renderRunResultOverlay("gameover");
+        }
+        if (mode === "victory") {
+          dom.overlayContent.innerHTML = renderRunResultOverlay("victory");
+        }
+
+        dom.overlay.classList.add("is-visible");
+        syncTouchControls();
+      }
+
+      function hideOverlay() {
+        state.overlayMode = null;
+        dom.overlay.classList.remove("is-visible");
+        syncTouchControls();
+      }
+
+      function logEvent(message) {
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+        entry.textContent = message;
+        dom.log.prepend(entry);
+        while (dom.log.children.length > 6) {
+          dom.log.removeChild(dom.log.lastChild);
+        }
+      }
+
+      function spawnExplosion(x, y, color, size = 18) {
+        addScreenShake(size >= 24 ? 9 : 4);
+        spawnPulse(x, y, color, Math.max(90, size * 5), "burst");
+        const count = getParticleCount(14);
+        for (let i = 0; i < count; i += 1) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = rand(60, 220);
+          const life = rand(0.4, 0.9);
+          const particle = acquireEffect(effectPools.particles);
+          Object.assign(particle, {
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life,
+            maxLife: life,
+            size: rand(2, size / 6),
+            color,
+            trail: Math.random() > 0.35
+          });
+          particles.push(particle);
+        }
+      }
+
+      function spawnPulse(x, y, color, maxRadius = 120, kind = "ring") {
+        const pulse = acquireEffect(effectPools.pulses);
+        Object.assign(pulse, {
+          x,
+          y,
+          color,
+          radius: 10,
+          maxRadius,
+          life: 0.6,
+          maxLife: 0.6,
+          speed: (maxRadius - 10) / 0.6,
+          kind
+        });
+        pulses.push(pulse);
+      }
+
+      function spawnBlackHole(x, y, options = {}) {
+        const duration = options.duration || 1.6;
+        const hole = {
+          x,
+          y,
+          radius: options.radius || 120,
+          force: options.force || 360,
+          damage: options.damage || 0,
+          life: duration,
+          maxLife: duration
+        };
+        state.blackHoles = state.blackHoles || [];
+        state.blackHoles.push(hole);
+        if (state.blackHoles.length > 6) {
+          state.blackHoles.splice(0, state.blackHoles.length - 6);
+        }
+      }
+
+      function spawnLootBursts(x, y, drops) {
+        if (!drops || !drops.length) return;
+        const baseX = clamp(x, 24, state.worldWidth - 24);
+        const baseY = clamp(y, 24, state.worldHeight - 24);
+        drops.forEach((drop, index) => {
+          lootBursts.push({
+            x: clamp(baseX + rand(-12, 12), 16, state.worldWidth - 16),
+            y: clamp(baseY - index * 18, 16, state.worldHeight - 16),
+            vy: -28 - index * 4,
+            life: 1.4,
+            maxLife: 1.4,
+            label: drop.label,
+            tier: drop.tier || "common"
+          });
+        });
+      }
+
+      function spawnDamageNumber(x, y, amount, options = {}) {
+        const value = Math.round(amount);
+        if (!Number.isFinite(value) || value === 0) return;
+        const prefix = options.prefix || "";
+        const safeX = clamp(x, 16, state.worldWidth - 16);
+        const safeY = clamp(y, 16, state.worldHeight - 16);
+        const burst = acquireEffect(effectPools.damageNumbers);
+        Object.assign(burst, {
+          x: safeX,
+          y: safeY,
+          vx: rand(-10, 10),
+          vy: -28,
+          life: 0.9,
+          maxLife: 0.9,
+          text: `${prefix}${Math.abs(value)}`,
+          color: options.color || "#f06969"
+        });
+        damageNumbers.push(burst);
+      }
+
+      function wrapEntity(entity) {
+        const radius = entity.radius || 0;
+        const minX = radius + 4;
+        const minY = radius + 4;
+        const maxX = state.worldWidth - radius - 4;
+        const maxY = state.worldHeight - radius - 4;
+        if (entity.x < minX) {
+          entity.x = minX;
+          if (entity.vx) entity.vx = Math.max(0, entity.vx) * 0.6;
+        }
+        if (entity.x > maxX) {
+          entity.x = maxX;
+          if (entity.vx) entity.vx = Math.min(0, entity.vx) * 0.6;
+        }
+        if (entity.y < minY) {
+          entity.y = minY;
+          if (entity.vy) entity.vy = Math.max(0, entity.vy) * 0.6;
+        }
+        if (entity.y > maxY) {
+          entity.y = maxY;
+          if (entity.vy) entity.vy = Math.min(0, entity.vy) * 0.6;
+        }
+      }
+
+      function resolveObstacleCollisions(entity) {
+        if (!entity || !obstacles.length) return;
+        const applyBounce = (nx, ny) => {
+          if (!Number.isFinite(entity.vx) || !Number.isFinite(entity.vy)) return;
+          const speed = Math.hypot(entity.vx, entity.vy);
+          const bounce = clamp(speed / 240, 0.12, 0.45);
+          const dot = entity.vx * nx + entity.vy * ny;
+          if (dot < 0) {
+            entity.vx -= (1 + bounce) * dot * nx;
+            entity.vy -= (1 + bounce) * dot * ny;
+          } else if (speed < 10) {
+            entity.vx += nx * 28 * bounce;
+            entity.vy += ny * 28 * bounce;
+          }
+        };
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            const dx = entity.x - obstacle.x;
+            const dy = entity.y - obstacle.y;
+            const distance = Math.hypot(dx, dy);
+            const minDistance = (entity.radius || 0) + obstacle.radius + 2;
+            if (distance < minDistance) {
+              const push = minDistance - distance;
+              let nx = 0;
+              let ny = 0;
+              if (distance < 0.01) {
+                const angle = rand(0, Math.PI * 2);
+                nx = Math.cos(angle);
+                ny = Math.sin(angle);
+              } else {
+                nx = dx / distance;
+                ny = dy / distance;
+              }
+              entity.x += nx * push;
+              entity.y += ny * push;
+              applyBounce(nx, ny);
+            }
+            return;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          const closestX = clamp(entity.x, obstacle.x - halfWidth, obstacle.x + halfWidth);
+          const closestY = clamp(entity.y, obstacle.y - halfHeight, obstacle.y + halfHeight);
+          const dx = entity.x - closestX;
+          const dy = entity.y - closestY;
+          const distance = Math.hypot(dx, dy) || 0;
+          const minDistance = (entity.radius || 0) + 2;
+          if (distance < minDistance) {
+            let push = minDistance - distance;
+            let nx = 0;
+            let ny = 0;
+            if (distance === 0) {
+              const offsetX = entity.x - obstacle.x;
+              const offsetY = entity.y - obstacle.y;
+              const overlapX = halfWidth + minDistance - Math.abs(offsetX);
+              const overlapY = halfHeight + minDistance - Math.abs(offsetY);
+              if (overlapX < overlapY) {
+                nx = offsetX >= 0 ? 1 : -1;
+                push = overlapX;
+              } else {
+                ny = offsetY >= 0 ? 1 : -1;
+                push = overlapY;
+              }
+            } else {
+              nx = dx / distance;
+              ny = dy / distance;
+            }
+            entity.x += nx * push;
+            entity.y += ny * push;
+            applyBounce(nx, ny);
+          }
+        });
+      }
+
+      function getObstacleAvoidance(entity, forwardX, forwardY) {
+        if (!entity || !obstacles.length) {
+          return { x: 0, y: 0 };
+        }
+        let steerX = 0;
+        let steerY = 0;
+        let bestStrength = 0;
+        let bestNX = 0;
+        let bestNY = 0;
+        const bias = Number.isFinite(entity.strafeBias) ? entity.strafeBias : 1;
+        const forwardValid = Number.isFinite(forwardX) && Number.isFinite(forwardY);
+        const getTangentSign = (nx, ny) => {
+          if (!forwardValid) return bias;
+          const cross = forwardX * ny - forwardY * nx;
+          return cross === 0 ? bias : Math.sign(cross);
+        };
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            const dx = entity.x - obstacle.x;
+            const dy = entity.y - obstacle.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const range = obstacle.radius + (entity.radius || 0) + 160;
+            if (distance < range) {
+              const strength = (range - distance) / range;
+              const nx = dx / distance;
+              const ny = dy / distance;
+              steerX += nx * strength;
+              steerY += ny * strength;
+              const tangentSign = getTangentSign(nx, ny);
+              const lateral = strength * 0.38 * tangentSign;
+              steerX += -ny * lateral;
+              steerY += nx * lateral;
+              if (strength > bestStrength) {
+                bestStrength = strength;
+                bestNX = nx;
+                bestNY = ny;
+              }
+            }
+            return;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          const closestX = clamp(entity.x, obstacle.x - halfWidth, obstacle.x + halfWidth);
+          const closestY = clamp(entity.y, obstacle.y - halfHeight, obstacle.y + halfHeight);
+          const dx = entity.x - closestX;
+          const dy = entity.y - closestY;
+          const distance = Math.hypot(dx, dy) || 1;
+          const range = Math.max(halfWidth, halfHeight) + (entity.radius || 0) + 140;
+          if (distance < range) {
+            const strength = (range - distance) / range;
+            const nx = distance ? dx / distance : (entity.x >= obstacle.x ? 1 : -1);
+            const ny = distance ? dy / distance : (entity.y >= obstacle.y ? 1 : -1);
+            steerX += nx * strength;
+            steerY += ny * strength;
+            const tangentSign = getTangentSign(nx, ny);
+            const lateral = strength * 0.32 * tangentSign;
+            steerX += -ny * lateral;
+            steerY += nx * lateral;
+            if (strength > bestStrength) {
+              bestStrength = strength;
+              bestNX = nx;
+              bestNY = ny;
+            }
+          }
+        });
+        let length = Math.hypot(steerX, steerY);
+        if (length < 0.08 && bestStrength > 0.1) {
+          const tangentSign = getTangentSign(bestNX, bestNY);
+          const tangent = bestStrength * 0.45 * tangentSign;
+          steerX = bestNX * bestStrength + -bestNY * tangent;
+          steerY = bestNY * bestStrength + bestNX * tangent;
+        }
+        if (forwardValid) {
+          const backward = steerX * forwardX + steerY * forwardY;
+          if (backward < 0) {
+            steerX -= backward * forwardX;
+            steerY -= backward * forwardY;
+          }
+        }
+        length = Math.hypot(steerX, steerY);
+        if (!length) {
+          return { x: 0, y: 0 };
+        }
+        const scale = length > 1 ? 1 / length : 1;
+        return { x: steerX * scale, y: steerY * scale };
+      }
+
+      function getBoundaryAvoidance(entity, forwardX, forwardY) {
+        if (!entity) {
+          return { x: 0, y: 0 };
+        }
+        const buffer = 140 + (entity.radius || 0);
+        const maxX = state.worldWidth - buffer;
+        const maxY = state.worldHeight - buffer;
+        let steerX = 0;
+        let steerY = 0;
+        if (entity.x < buffer) {
+          steerX += (buffer - entity.x) / buffer;
+        } else if (entity.x > maxX) {
+          steerX -= (entity.x - maxX) / buffer;
+        }
+        if (entity.y < buffer) {
+          steerY += (buffer - entity.y) / buffer;
+        } else if (entity.y > maxY) {
+          steerY -= (entity.y - maxY) / buffer;
+        }
+        if (Number.isFinite(forwardX) && Number.isFinite(forwardY)) {
+          const backward = steerX * forwardX + steerY * forwardY;
+          if (backward < 0) {
+            steerX -= backward * forwardX;
+            steerY -= backward * forwardY;
+          }
+        }
+        const length = Math.hypot(steerX, steerY);
+        if (!length) {
+          return { x: 0, y: 0 };
+        }
+        const scale = length > 1 ? 1 / length : 1;
+        return { x: steerX * scale, y: steerY * scale };
+      }
+
+      function segmentIntersectsCircle(ax, ay, bx, by, cx, cy, radius) {
+        const dx = bx - ax;
+        const dy = by - ay;
+        const fx = ax - cx;
+        const fy = ay - cy;
+        const a = dx * dx + dy * dy;
+        if (a <= 0) return false;
+        const b = 2 * (fx * dx + fy * dy);
+        const c = fx * fx + fy * fy - radius * radius;
+        let discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return false;
+        discriminant = Math.sqrt(discriminant);
+        const t1 = (-b - discriminant) / (2 * a);
+        const t2 = (-b + discriminant) / (2 * a);
+        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+      }
+
+      function segmentIntersectsAabb(ax, ay, bx, by, minX, minY, maxX, maxY) {
+        let t0 = 0;
+        let t1 = 1;
+        const dx = bx - ax;
+        const dy = by - ay;
+        const p = [-dx, dx, -dy, dy];
+        const q = [ax - minX, maxX - ax, ay - minY, maxY - ay];
+        for (let i = 0; i < 4; i += 1) {
+          if (p[i] === 0) {
+            if (q[i] < 0) return false;
+          } else {
+            const r = q[i] / p[i];
+            if (p[i] < 0) {
+              if (r > t1) return false;
+              if (r > t0) t0 = r;
+            } else {
+              if (r < t0) return false;
+              if (r < t1) t1 = r;
+            }
+          }
+        }
+        return true;
+      }
+
+      function findBlockingObstacle(entity, target, buffer) {
+        if (!entity || !target || !obstacles.length) return null;
+        const ax = entity.x;
+        const ay = entity.y;
+        const bx = target.x;
+        const by = target.y;
+        let closest = null;
+        let bestDist = Infinity;
+        obstacles.forEach((obstacle) => {
+          let intersects = false;
+          if (obstacle.kind === "rock") {
+            intersects = segmentIntersectsCircle(
+              ax,
+              ay,
+              bx,
+              by,
+              obstacle.x,
+              obstacle.y,
+              obstacle.radius + buffer
+            );
+          } else {
+            const halfWidth = obstacle.width * 0.5 + buffer;
+            const halfHeight = obstacle.height * 0.5 + buffer;
+            intersects = segmentIntersectsAabb(
+              ax,
+              ay,
+              bx,
+              by,
+              obstacle.x - halfWidth,
+              obstacle.y - halfHeight,
+              obstacle.x + halfWidth,
+              obstacle.y + halfHeight
+            );
+          }
+          if (intersects) {
+            const dist = distanceBetween(entity, obstacle);
+            if (dist < bestDist) {
+              bestDist = dist;
+              closest = obstacle;
+            }
+          }
+        });
+        return closest;
+      }
+
+      function getEdgePenalty(point) {
+        const margin = 170;
+        const edgeDistance = Math.min(
+          point.x,
+          point.y,
+          state.worldWidth - point.x,
+          state.worldHeight - point.y
+        );
+        if (edgeDistance >= margin) return 0;
+        return (margin - edgeDistance) / margin;
+      }
+
+      function scoreNavPoint(point, target) {
+        const edgePenalty = getEdgePenalty(point);
+        const obstaclePenalty = isPointInObstacle(point, 40) ? 1 : 0;
+        const distance = Math.hypot(point.x - target.x, point.y - target.y);
+        return distance + edgePenalty * 520 + obstaclePenalty * 900;
+      }
+
+      function clampNavPoint(point, margin) {
+        return {
+          x: clamp(point.x, margin, state.worldWidth - margin),
+          y: clamp(point.y, margin, state.worldHeight - margin)
+        };
+      }
+
+      function getDetourPoint(entity, target, obstacle, buffer) {
+        const dx = target.x - entity.x;
+        const dy = target.y - entity.y;
+        const length = Math.hypot(dx, dy);
+        if (!length) return target;
+        const dirX = dx / length;
+        const dirY = dy / length;
+        const perpX = -dirY;
+        const perpY = dirX;
+        const clearance = obstacle.kind === "rock"
+          ? obstacle.radius
+          : Math.max(obstacle.width, obstacle.height) * 0.5;
+        const offset = clearance + buffer + 90;
+        const margin = 120;
+        const left = clampNavPoint({ x: obstacle.x + perpX * offset, y: obstacle.y + perpY * offset }, margin);
+        const right = clampNavPoint({ x: obstacle.x - perpX * offset, y: obstacle.y - perpY * offset }, margin);
+        const leftScore = scoreNavPoint(left, target);
+        const rightScore = scoreNavPoint(right, target);
+        if (Math.abs(leftScore - rightScore) < 18) {
+          return entity.strafeBias >= 0 ? left : right;
+        }
+        return leftScore < rightScore ? left : right;
+      }
+
+      function getNavigationTarget(entity, target) {
+        if (!entity || !target) return target;
+        const buffer = (entity.radius || 0) + 28;
+        const blocking = findBlockingObstacle(entity, target, buffer);
+        if (!blocking) return target;
+        return getDetourPoint(entity, target, blocking, buffer);
+      }
+
+      function getEnemyNavigationTarget(enemy, target, delta, distanceToTarget) {
+        if (!enemy || !target) return target;
+        const buffer = (enemy.radius || 0) + 26;
+        enemy.navTimer = Math.max(0, (enemy.navTimer || 0) - delta);
+        enemy.navCooldown = Math.max(0, (enemy.navCooldown || 0) - delta);
+        const distance = Number.isFinite(distanceToTarget) ? distanceToTarget : distanceBetween(enemy, target);
+        const directBlock = findBlockingObstacle(enemy, target, buffer);
+        const detouring = enemy.navTarget && enemy.navTimer > 0;
+        if (!detouring) {
+          if (!Number.isFinite(enemy.lastTargetDist)) {
+            enemy.lastTargetDist = distance;
+          } else {
+            const progress = enemy.lastTargetDist - distance;
+            if (progress < 1.2 && distance > enemy.preferredRange * 0.7) {
+              enemy.stuckTimer = (enemy.stuckTimer || 0) + delta;
+            } else {
+              enemy.stuckTimer = Math.max(0, (enemy.stuckTimer || 0) - delta * 0.6);
+            }
+            enemy.lastTargetDist = distance;
+          }
+        } else {
+          enemy.stuckTimer = Math.max(0, (enemy.stuckTimer || 0) - delta * 0.8);
+          enemy.lastTargetDist = distance;
+        }
+        if (directBlock && (enemy.stuckTimer > 0.45 || !detouring) && enemy.navCooldown <= 0) {
+          enemy.navTarget = getDetourPoint(enemy, target, directBlock, buffer);
+          enemy.navTimer = 1.25;
+          enemy.navCooldown = 0.4;
+          enemy.stuckTimer = 0;
+        }
+        if (enemy.navTarget && enemy.navTimer > 0) {
+          const navDistance = Math.hypot(enemy.navTarget.x - enemy.x, enemy.navTarget.y - enemy.y);
+          if (navDistance < 60 || (!directBlock && navDistance < 120)) {
+            enemy.navTarget = null;
+            enemy.navTimer = 0;
+          }
+        } else {
+          enemy.navTarget = null;
+        }
+        return enemy.navTarget || target;
+      }
+
+      function isOutOfBounds(entity) {
+        const margin = 60;
+        return entity.x < -margin
+          || entity.x > state.worldWidth + margin
+          || entity.y < -margin
+          || entity.y > state.worldHeight + margin;
+      }
+
+      function normalizeKey(event) {
+        if (!event) return "";
+        if (event.code === "Space") return " ";
+        const key = event.key;
+        if (!key || key === "Unidentified") return "";
+        if (key === " " || key === "Spacebar") return " ";
+        return key.toLowerCase();
+      }
+
+      function isBindableKey(key) {
+        if (!key) return false;
+        const blocked = ["meta", "alt", "control", "capslock", "tab"];
+        return !blocked.includes(key);
+      }
+
+      function getKeybindConflicts(targetAction, key) {
+        if (!targetAction || !key) return [];
+        return Object.keys(progress.keybinds || {}).filter((action) => {
+          if (action === targetAction) return false;
+          return progress.keybinds[action] === key;
+        });
+      }
+
+      function isActionActive(action) {
+        const key = progress.keybinds[action];
+        if (!key) return false;
+        return input.keys.has(key);
+      }
+
+      function hasKey(key) {
+        return input.keys.has(key);
+      }
+
+      function getKeyboardAimVector() {
+        if (input.aimMode === "controller") {
+          return { active: false, x: 0, y: 0 };
+        }
+        if (input.aimMode !== "keyboard") {
+          const aimKeys = [
+            progress.keybinds.aimUp,
+            progress.keybinds.aimDown,
+            progress.keybinds.aimLeft,
+            progress.keybinds.aimRight
+          ].filter(Boolean);
+          const usesArrowAim = aimKeys.some((key) => key.startsWith("arrow"));
+          if (usesArrowAim) {
+            return { x: 0, y: 0, active: false };
+          }
+        }
+        let x = 0;
+        let y = 0;
+        const aimUp = progress.keybinds.aimUp;
+        const aimDown = progress.keybinds.aimDown;
+        const aimLeft = progress.keybinds.aimLeft;
+        const aimRight = progress.keybinds.aimRight;
+        if (aimUp && hasKey(aimUp)) y -= 1;
+        if (aimDown && hasKey(aimDown)) y += 1;
+        if (aimLeft && hasKey(aimLeft)) x -= 1;
+        if (aimRight && hasKey(aimRight)) x += 1;
+        const length = Math.hypot(x, y);
+        if (length === 0) {
+          return { active: false, x: 0, y: 0 };
+        }
+        return { active: true, x: x / length, y: y / length };
+      }
+
+      function getAimTarget() {
+        if ((input.aimSource === "keyboard" || input.aimSource === "touch") && player) {
+          return {
+            x: player.x + Math.cos(player.angle) * (input.aimSource === "touch" ? 180 : 70),
+            y: player.y + Math.sin(player.angle) * (input.aimSource === "touch" ? 180 : 70)
+          };
+        }
+        if (input.pointer.active && Number.isFinite(input.pointer.x) && Number.isFinite(input.pointer.y)) {
+          return { x: input.pointer.x, y: input.pointer.y };
+        }
+        if (player) {
+          return { x: player.x, y: player.y };
+        }
+        return { x: state.worldWidth * 0.5, y: state.worldHeight * 0.5 };
+      }
+
+      function distanceBetween(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function distanceSquared(a, b) {
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        return dx * dx + dy * dy;
+      }
+
+      function circlesOverlap(a, b, extra = 0) {
+        const radius = (a.radius || 0) + (b.radius || 0) + extra;
+        return distanceSquared(a, b) <= radius * radius;
+      }
+
+      function removeArrayIndex(array, index) {
+        const lastIndex = array.length - 1;
+        if (index < 0 || index > lastIndex) return null;
+        const removed = array[index];
+        if (index !== lastIndex) {
+          array[index] = array[lastIndex];
+        }
+        array.pop();
+        return removed;
+      }
+
+      function acquireEffect(pool) {
+        return pool.pop() || {};
+      }
+
+      function releaseEffect(pool, item) {
+        if (!item || pool.length >= EFFECT_POOL_LIMIT) return;
+        pool.push(item);
+      }
+
+      function getSpatialCell(value) {
+        return Math.floor(value / state.spatial.cellSize);
+      }
+
+      function getSpatialKey(cellX, cellY) {
+        return `${cellX}:${cellY}`;
+      }
+
+      function bumpSpatialQueryStamp() {
+        state.spatial.queryStamp = state.spatial.queryStamp >= 2147483000
+          ? 1
+          : state.spatial.queryStamp + 1;
+        return state.spatial.queryStamp;
+      }
+
+      function insertSpatialEntity(grid, entity, radius) {
+        if (!entity || !Number.isFinite(entity.x) || !Number.isFinite(entity.y)) return;
+        const safeRadius = Math.max(1, radius || entity.radius || 1);
+        const minCellX = getSpatialCell(entity.x - safeRadius);
+        const maxCellX = getSpatialCell(entity.x + safeRadius);
+        const minCellY = getSpatialCell(entity.y - safeRadius);
+        const maxCellY = getSpatialCell(entity.y + safeRadius);
+        for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
+          for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
+            const key = getSpatialKey(cellX, cellY);
+            let bucket = grid.get(key);
+            if (!bucket) {
+              bucket = [];
+              grid.set(key, bucket);
+            }
+            bucket.push(entity);
+          }
+        }
+      }
+
+      function getObstacleSpatialRadius(obstacle) {
+        if (!obstacle) return 1;
+        if (obstacle.kind === "rock") return obstacle.radius || 1;
+        return Math.hypot(obstacle.width || 1, obstacle.height || 1) * 0.5;
+      }
+
+      function markObstacleSpatialDirty() {
+        state.spatial.obstacleDirty = true;
+        state.minimapForceRender = true;
+      }
+
+      function rebuildEnemySpatialGrid() {
+        const grid = state.spatial.enemyGrid;
+        grid.clear();
+        enemies.forEach((enemy) => {
+          if (!enemy || enemy.health <= 0) return;
+          insertSpatialEntity(grid, enemy, Math.max(MAX_COLLISION_RADIUS, enemy.radius || 0));
+        });
+      }
+
+      function ensureObstacleSpatialGrid() {
+        if (!state.spatial.obstacleDirty) return;
+        const grid = state.spatial.obstacleGrid;
+        grid.clear();
+        obstacles.forEach((obstacle) => {
+          insertSpatialEntity(grid, obstacle, getObstacleSpatialRadius(obstacle));
+        });
+        state.spatial.obstacleDirty = false;
+      }
+
+      function forEachSpatialEntityNear(grid, origin, radius, markerKey, callback) {
+        if (!origin || !Number.isFinite(origin.x) || !Number.isFinite(origin.y)) return false;
+        const stamp = bumpSpatialQueryStamp();
+        const safeRadius = Math.max(1, radius || 1);
+        const minCellX = getSpatialCell(origin.x - safeRadius);
+        const maxCellX = getSpatialCell(origin.x + safeRadius);
+        const minCellY = getSpatialCell(origin.y - safeRadius);
+        const maxCellY = getSpatialCell(origin.y + safeRadius);
+        for (let cellY = minCellY; cellY <= maxCellY; cellY += 1) {
+          for (let cellX = minCellX; cellX <= maxCellX; cellX += 1) {
+            const bucket = grid.get(getSpatialKey(cellX, cellY));
+            if (!bucket) continue;
+            for (let i = 0; i < bucket.length; i += 1) {
+              const entity = bucket[i];
+              if (!entity || entity[markerKey] === stamp) continue;
+              entity[markerKey] = stamp;
+              if (callback(entity) === true) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function forEachEnemyNear(origin, radius, callback) {
+        return forEachSpatialEntityNear(state.spatial.enemyGrid, origin, radius, "_enemySpatialStamp", (enemy) => {
+          if (!enemy || enemy.health <= 0) return false;
+          return callback(enemy);
+        });
+      }
+
+      function forEachObstacleNear(origin, radius, callback) {
+        ensureObstacleSpatialGrid();
+        return forEachSpatialEntityNear(state.spatial.obstacleGrid, origin, radius, "_obstacleSpatialStamp", callback);
+      }
+
+      function setCachedText(element, value) {
+        if (!element) return;
+        const text = String(value);
+        if (hudTextCache.get(element) === text) return;
+        hudTextCache.set(element, text);
+        element.textContent = text;
+      }
+
+      function setCachedWidth(element, value) {
+        if (!element) return;
+        const width = `${value}%`;
+        if (hudStyleCache.get(element) === width) return;
+        hudStyleCache.set(element, width);
+        element.style.width = width;
+      }
+
+      function queueMinimapRefresh() {
+        state.minimapForceRender = true;
+      }
+
+      function getAdaptiveQualityLevel() {
+        return getRawAdaptiveQualityLevel();
+      }
+
+      function getAdaptiveParticleScale() {
+        const level = getPerformanceQualityLevel();
+        if (level >= 4) return 0.15;
+        if (level === 3) return 0.3;
+        if (level === 2) return 0.65;
+        if (level === 1) return 0.82;
+        return 1;
+      }
+
+      function isHighPixelPressure() {
+        return getCanvasMegapixels() >= HIGH_PIXEL_PRESSURE_THRESHOLD;
+      }
+
+      function shouldUsePremiumVfx() {
+        return getPerformanceQualityLevel() < 2 && !isHighPixelPressure() && (progress.settings.particles || "medium") !== "low";
+      }
+
+      function easeOutCubic(value) {
+        const t = clamp(value, 0, 1);
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      function easeInOutSine(value) {
+        const t = clamp(value, 0, 1);
+        return -(Math.cos(Math.PI * t) - 1) / 2;
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const t = clamp((value - edge0) / Math.max(0.0001, edge1 - edge0), 0, 1);
+        return t * t * (3 - 2 * t);
+      }
+
+      function updateAdaptiveQuality(rawDeltaMs) {
+        const quality = state.adaptiveQuality;
+        if (!quality || !Number.isFinite(rawDeltaMs)) return;
+        if (rawDeltaMs >= 50) {
+          quality.pressure += 8;
+          quality.recovery = 0;
+        } else if (rawDeltaMs >= 33) {
+          quality.pressure += 5;
+          quality.recovery = 0;
+        } else if (rawDeltaMs >= ADAPTIVE_FRAME_STRESS_MS) {
+          quality.pressure += 2.5;
+          quality.recovery = 0;
+        } else if (rawDeltaMs <= ADAPTIVE_FRAME_TARGET_MS) {
+          quality.recovery += 1;
+          quality.pressure = Math.max(0, quality.pressure - 1);
+        } else {
+          quality.pressure = Math.max(0, quality.pressure - 0.35);
+          quality.recovery = Math.max(0, quality.recovery - 0.35);
+        }
+        if (quality.pressure >= 6 && quality.level < AUTO_RENDER_PIXEL_TIERS.length - 1) {
+          quality.level += 1;
+          quality.pressure = 0;
+          markBackgroundCacheDirty();
+          resizeCanvas();
+          resizeMinimap();
+          queueMinimapRefresh();
+        } else if (quality.recovery >= 420 && quality.level > 0) {
+          quality.level -= 1;
+          quality.recovery = 0;
+          markBackgroundCacheDirty();
+          resizeCanvas();
+          resizeMinimap();
+          queueMinimapRefresh();
+        }
+        syncPerformanceModeClass();
+      }
+
+      function shouldDrawEnemyTelegraph(enemy) {
+        const level = getPerformanceQualityLevel();
+        return level < 2 || isPriorityEnemy(enemy);
+      }
+
+      function shouldDrawEnemyRoleLabels() {
+        return getPerformanceQualityLevel() < 3 && enemies.length <= 24;
+      }
+
+      function getPlayerArtId(ship = player) {
+        const shipId = ship?.ship?.id || progress.selectedShip || "scout";
+        return SHIP_ART_IDS[shipId] || "playerScout";
+      }
+
+      function getEnemyArtId(enemy) {
+        const role = getEnemyRole(enemy);
+        return ENEMY_ROLE_ART_IDS[role] || "enemyLine";
+      }
+
+      function normalizeAngle(angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+      }
+
+      function rotateTowards(current, target, maxDelta) {
+        if (!Number.isFinite(maxDelta) || maxDelta <= 0) {
+          return normalizeAngle(current);
+        }
+        const diff = normalizeAngle(target - current);
+        if (Math.abs(diff) <= maxDelta) {
+          return normalizeAngle(target);
+        }
+        return normalizeAngle(current + Math.sign(diff) * maxDelta);
+      }
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function randInt(min, max) {
+        return Math.floor(rand(min, max + 1));
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      function pickWeighted(items, weights) {
+        const total = weights.reduce((sum, weight) => sum + weight, 0);
+        let roll = Math.random() * total;
+        for (let i = 0; i < items.length; i += 1) {
+          roll -= weights[i];
+          if (roll <= 0) {
+            return items[i];
+          }
+        }
+        return items[items.length - 1];
+      }
+
+      function pick(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+
+      init();
+    })();

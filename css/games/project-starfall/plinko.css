@@ -1,0 +1,117 @@
+@layer components {
+  .project-starfall-plinko-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 230px);
+    gap: 12px;
+    min-height: 0;
+    padding: 2px;
+  }
+
+  .project-starfall-plinko-main,
+  .project-starfall-plinko-prizes {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .project-starfall-plinko-main .project-starfall-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .project-starfall-plinko-main > .project-starfall-muted {
+    padding: 8px 10px;
+    border: 1px solid rgba(47, 125, 214, 0.2);
+    border-radius: 8px;
+    background: #eef6ff;
+    color: var(--starfall-ink);
+    font-weight: 800;
+  }
+
+  .project-starfall-plinko-prizes {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(47, 125, 214, 0.2);
+    border-radius: 8px;
+    background: #fbfaf6;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .project-starfall-plinko-prizes h3 {
+    margin: 0;
+    padding: 8px 10px;
+    border: 1px solid rgba(47, 125, 214, 0.18);
+    border-radius: 7px;
+    background: #eef6ff;
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-plinko-prize-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-plinko-prize-card {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 7px;
+    border: 1px solid rgba(16, 32, 51, 0.12);
+    border-radius: 7px;
+    background: #ffffff;
+  }
+
+  .project-starfall-plinko-ball-card {
+    position: relative;
+    border-color: rgba(16, 32, 51, 0.14);
+    background: #fbfaf6;
+  }
+
+  .project-starfall-plinko-ball-card::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    left: 8px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(47, 125, 214, 0.24);
+  }
+
+  .project-starfall-plinko-ball-card.is-selected {
+    border-color: #2f7dd6;
+    background: #eef6ff;
+  }
+
+  .project-starfall-plinko-ball-card.is-selected::before {
+    background: rgba(47, 125, 214, 0.62);
+  }
+
+  .project-starfall-plinko-action-card {
+    border-color: rgba(47, 125, 214, 0.2);
+    background: #fbfaf6;
+  }
+
+  .project-starfall-plinko-action-card button[data-starfall-plinko-drop] {
+    border-color: rgba(47, 125, 214, 0.45);
+    background: #eef6ff;
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-plinko-slot-card {
+    background: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+
+  .project-starfall-plinko-prize-card strong,
+  .project-starfall-plinko-prize-card small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+}

@@ -1,0 +1,112 @@
+{
+  "id": "cosmic",
+  "name": "Cosmic Chaos",
+  "tier": "Divine",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "meteor",
+      "label": "Meteor",
+      "asset": "assets/cosmic/symbols/meteor.png"
+    },
+    {
+      "key": "rocket",
+      "label": "Rocket",
+      "asset": "assets/cosmic/symbols/rocket.png"
+    },
+    {
+      "key": "satellite",
+      "label": "Satellite",
+      "asset": "assets/cosmic/symbols/satellite.png"
+    },
+    {
+      "key": "asteroid",
+      "label": "Asteroid",
+      "asset": "assets/cosmic/symbols/asteroid.png"
+    },
+    {
+      "key": "planet",
+      "label": "Planet",
+      "asset": "assets/cosmic/symbols/planet.png"
+    },
+    {
+      "key": "galaxy_swirl",
+      "label": "Galaxy Swirl",
+      "asset": "assets/cosmic/symbols/galaxy_swirl.png"
+    },
+    {
+      "key": "alien",
+      "label": "Alien",
+      "asset": "assets/cosmic/symbols/alien.png"
+    },
+    {
+      "key": "crystal",
+      "label": "Crystal",
+      "asset": "assets/cosmic/symbols/crystal.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "assets/cosmic/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "assets/cosmic/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "meteor": 12,
+    "rocket": 13,
+    "satellite": 14,
+    "asteroid": 16,
+    "planet": 24,
+    "galaxy_swirl": 32,
+    "alien": 42,
+    "crystal": 55,
+    "wild": 50,
+    "bonus": 170
+  },
+  "assets": {
+    "icon": "assets/cosmic/icon.png",
+    "frame": "assets/cosmic/frame.png",
+    "background": {
+      "portrait": "assets/cosmic/background_vertical.png",
+      "landscape": "assets/cosmic/background_horizontal.png"
+    },
+    "spinButton": "assets/classic/spin-button.png",
+    "chip": "assets/classic/circle.png",
+    "bet": "assets/classic/square.png",
+    "info": "assets/classic/rectangle.png",
+    "placeholder": "assets/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

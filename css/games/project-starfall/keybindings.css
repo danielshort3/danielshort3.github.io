@@ -1,0 +1,235 @@
+@layer components {
+  .project-starfall-keybind-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .project-starfall-keybind-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .project-starfall-keybind-row div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .project-starfall-keybind-row button {
+    min-width: 96px;
+    padding: 8px 10px;
+  }
+
+  .project-starfall-keybind-row.is-rebinding {
+    border-color: rgba(216,165,49,0.72);
+    background: #fff8df;
+  }
+
+  .project-starfall-keybind-workspace {
+    display: grid;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .project-starfall-bind-palette,
+  .project-starfall-keyboard-wrap {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-fixed-movement {
+    margin: 0;
+    color: var(--starfall-muted);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .project-starfall-bind-palette {
+    max-height: 560px;
+    overflow: auto;
+    padding-right: 4px;
+  }
+
+  .project-starfall-bind-group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-bind-group h3 {
+    color: var(--starfall-muted);
+    font-size: 0.82rem;
+    font-weight: 850;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-bind-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .project-starfall-bind-action {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 9px;
+    border: 1px solid var(--starfall-border);
+    border-radius: 8px;
+    background: #ffffff;
+    cursor: grab;
+  }
+
+  .project-starfall-bind-action.is-item-action {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    min-height: 68px;
+  }
+
+  .project-starfall-bind-action.is-item-action > .project-starfall-action-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .project-starfall-bind-action.is-selected,
+  .project-starfall-bind-action.is-rebinding {
+    border-color: rgba(47,125,214,0.62);
+    background: #eef6ff;
+  }
+
+  .project-starfall-bind-action.is-dragging {
+    opacity: 0.62;
+  }
+
+  .project-starfall-bind-action div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .project-starfall-bind-action strong,
+  .project-starfall-bind-action span {
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-bind-action button {
+    min-width: 74px;
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+  }
+
+  .project-starfall-key-action-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+  }
+
+  .project-starfall-key-action-icon.is-item-action {
+    width: 22px;
+    height: 22px;
+  }
+
+  .project-starfall-keyboard {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .project-starfall-keyboard-row {
+    display: grid;
+    grid-template-columns: repeat(15, minmax(30px, 1fr));
+    gap: 4px;
+  }
+
+  .project-starfall-key {
+    position: relative;
+    display: grid;
+    gap: 3px;
+    align-content: start;
+    min-height: 44px;
+    padding: 5px;
+    border: 1px solid rgba(16,32,51,0.16);
+    border-radius: 8px;
+    background: #fbfaf6;
+    color: var(--starfall-ink);
+    cursor: copy;
+    overflow: hidden;
+  }
+
+  .project-starfall-key--wide {
+    grid-column: span 2;
+  }
+
+  .project-starfall-key--space {
+    grid-column: span 5;
+  }
+
+  .project-starfall-key.is-bound {
+    border-color: rgba(47,125,214,0.46);
+    background: #eef6ff;
+  }
+
+  .project-starfall-key.is-disabled {
+    border-color: rgba(16,32,51,0.1);
+    background: #eef0f2;
+    color: #7a8389;
+    cursor: not-allowed;
+    opacity: 0.72;
+  }
+
+  .project-starfall-key:hover,
+  .project-starfall-key:focus-visible {
+    border-color: rgba(47,125,214,0.62);
+    outline: 0;
+    box-shadow: 0 8px 18px rgba(16,32,51,0.1);
+  }
+
+  .project-starfall-key.is-disabled:hover,
+  .project-starfall-key.is-disabled:focus-visible {
+    border-color: rgba(16,32,51,0.1);
+    box-shadow: none;
+  }
+
+  .project-starfall-key span {
+    font-size: 0.66rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-key strong,
+  .project-starfall-key em {
+    color: var(--starfall-muted);
+    font-size: 0.64rem;
+    font-style: normal;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .project-starfall-default-bind-tray {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
+    gap: 8px;
+  }
+
+  .project-starfall-key button {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+
+}

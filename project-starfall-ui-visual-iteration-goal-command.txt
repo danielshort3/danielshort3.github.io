@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-ui-visual-iteration-goal.txt to audit, repair, visually verify, and finalize Project Starfall's UI so all content is visible, clean, guide-aligned, and consistent with common UX standards, prioritizing the extremely narrow attunement window.

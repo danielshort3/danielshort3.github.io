@@ -1,0 +1,1 @@
+/goal Follow the instructions in project-starfall-monster-book-goal.txt to audit, design, and produce an implementation-ready blueprint for Project Starfall's monster book, enemy information, drop table UI, progression-based research unlocks, collection tracking, rewards, UX, and supporting data model.

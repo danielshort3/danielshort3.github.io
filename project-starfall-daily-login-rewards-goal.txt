@@ -1,0 +1,116 @@
+Goal: Add Project Starfall daily login rewards that create a satisfying habit loop, include enticing long-term milestones, and stay fair, readable, and balanced.
+
+Primary references:
+- `project_starfall_gdd_v0_5.md`, especially the Current Player Guide, Rewards, Economy, Account/Roster Progression, Cash Shop / Star Tokens, and UI / UX Direction sections.
+- Existing Project Starfall systems in `js/games/project-starfall/project-starfall-data.js`, `project-starfall-engine.js`, `project-starfall-ui.js`, and tests in `test.js`.
+- Existing reward helpers such as reward summaries, reward popups, `awardProgressReward`, `canAcceptProgressReward`, cash-shop currency, cosmetics, consumables, materials, timed buffs, and accomplishment/season reward patterns.
+
+High-level outcome:
+- Implement a daily login reward feature that gives players a useful reason to return without becoming a punishing chore.
+- The system should support both short-term daily/weekly excitement and long-term cumulative milestone rewards for players who grind the game for months.
+- Rewards should be significant enough to feel worth claiming but not powerful enough to trivialize progression, replace gear/skills/leveling, or create runaway permanent power.
+- The UX should be clear, compact, and aligned with the existing RPG-client interface.
+
+Start with an audit:
+1. Read the GDD sections and the current reward, cosmetic, cash-shop, season, accomplishment, save, snapshot, and UI code before editing.
+2. Inventory existing reward data types and identify which are safe for recurring login rewards.
+3. Find the best existing UI surface for daily rewards, such as a compact claim panel, menu notification, Beta/shop-adjacent reward panel, or a new tab only if justified by the current layout.
+4. Check save migration and snapshot caching patterns before adding state.
+5. Identify inventory-capacity edge cases before any reward can include equipment or cards.
+
+Design principles:
+- Do not use dark-pattern mechanics. Avoid loss aversion, paid streak protection, confusing timers, pressure copy, or rewards that imply players must log in every day to remain viable.
+- Prefer a forgiving system: missed days should not wipe long-term progress. A streak can reset or pause if the design needs one, but cumulative login progress should keep moving over the life of the character/account.
+- Make the most important progress long-term and cumulative, not fragile. Players should feel that every login helps.
+- Use clear calendar-day semantics. Normalize daily claim keys to a stable `YYYY-MM-DD` style date. Prefer a server/game-day source if one exists; otherwise use a small helper around local time with defensive tests for repeated claims, date rollover, DST, and clock rollback.
+- One claim per game day. Never allow multiple rewards from refreshes, save reloads, manual clock jitter, or repeated UI clicks.
+- If the project has no account-wide save layer for Project Starfall, keep rewards per character and explicitly note that account-wide login rewards are deferred. Do not silently mix account and character semantics.
+- Daily rewards should complement grinding. They should supply materials, consumables, coupons, Star Tokens, cosmetics, and convenience, not replace combat drops, boss rewards, upgrades, or accomplishments.
+
+Reward structure requirements:
+- Add a short-term daily track with visible upcoming rewards. A 7-day loop is acceptable if it is easy to understand and can repeat safely.
+- Add a longer milestone track that rewards cumulative login days, such as 7, 14, 30, 60, 90, 180, and 365 total claimed days.
+- Consider a monthly or 28-day track only if the UI can make it readable. If implemented, missed days should advance the next claim rather than permanently locking calendar cells.
+- Include occasional "choice-light" or themed reward days only if existing UI/reward code can support it cleanly. Do not add complex selection UI unless it materially improves the experience.
+- Short-term daily rewards should emphasize practical items: potions, modest currency, upgradeDust, small catalyst bundles, Plinko balls, common coupons, and map-appropriate materials.
+- Weekly rewards can be stronger: Star Tokens, useful timed buffs, Rare gear at conservative upgrade levels, cards, refinement materials, or upgrade-support bundles.
+- Long-term cumulative rewards should be enticing and mostly non-runaway: cosmetics, profile/title-like unlocks if supported, pet/cosmetic variants, visual auras, card packs, larger material bundles, Star Tokens, and limited permanent stats.
+- Permanent stats, if used at all, must be rare, finite, and capped across all daily-login milestones. They should feel like prestige, not a required power source.
+- Do not grant large percent multipliers, best-in-slot gear, unlimited premium currency, or repeatable permanent stats.
+- Keep reward summaries short enough to fit in the UI.
+
+Suggested reward cadence:
+- Day 1: useful consumables and a small material starter bundle.
+- Day 2: upgrade materials or Plinko balls.
+- Day 3: a practical timed buff or coupon.
+- Day 4: material bundle tied to current progression systems.
+- Day 5: card or cosmetic-adjacent collection reward if supported.
+- Day 6: stronger upgrade/crafting support.
+- Day 7: a notable weekly chest with Star Tokens, a coupon, and a small rare material bundle.
+- 14 cumulative days: cosmetic, card pack, or named bundle.
+- 30 cumulative days: distinctive cosmetic/profile/title-style reward plus useful materials.
+- 60 and 90 cumulative days: larger but still bounded progression bundles and collection rewards.
+- 180 and 365 cumulative days: aspirational cosmetics, prestige titles if supported, special pet/visual variants if supported, and small capped permanent stats only if balance tests enforce strict limits.
+
+Implementation requirements:
+- Add a data-driven daily-login reward definition, for example `DAILY_LOGIN_REWARDS` and `DAILY_LOGIN_MILESTONES`, following existing data style.
+- Add state migration for daily reward progress. Track at minimum: last claimed date key, total claimed days, current cycle index, claimed milestone ids, and any streak value if used.
+- Add engine helpers for date-key generation, claim eligibility, reward snapshot, and claiming:
+  - Determine whether today's reward is claimable.
+  - Prevent duplicate claims for the same date.
+  - Award the daily reward and any newly unlocked milestone rewards through existing reward helpers.
+  - Respect inventory capacity and show a clear blocked state if a reward cannot fit.
+  - Invalidate relevant snapshots after claims.
+- Use existing `awardProgressReward`, `formatRewardSummary`, `showRewardPopup`, and toast patterns where possible.
+- If daily rewards should feed accomplishments or season objectives, emit a normal progress event such as `dailyLoginClaim` only after the claim succeeds. Do not count opening the panel as progress.
+- Keep the implementation dependency-free.
+- Keep all labels and reward names guide-aligned with Project Starfall terminology.
+
+UX requirements:
+- Add a clear visual entry point when a daily reward is claimable, such as a menu badge, panel badge, or compact notification.
+- The daily reward panel should show:
+  - Today's claimable reward.
+  - Claimed state for today.
+  - Time or date for the next claim when not claimable.
+  - The 7-day loop or current cycle progress.
+  - Long-term cumulative milestone progress and upcoming milestone rewards.
+  - Any inventory-capacity blocker before the player clicks claim.
+- Claiming should feel satisfying but not noisy: use a reward popup and concise toast.
+- The UI must remain readable at desktop and constrained/mobile viewport sizes. Avoid overlapping labels, tiny hit regions, and overly narrow content areas.
+- Hit regions must align with visual buttons if the UI is canvas-rendered.
+- Do not force a login-reward modal on every start. Prefer an indicator and let the player claim deliberately, unless existing UX strongly favors a lightweight prompt.
+
+Testing and validation:
+- Add data contract tests for the daily reward tables:
+  - Unique ids.
+  - Valid reward object shapes.
+  - Valid referenced materials, consumables, items, cards, cosmetics, timed buffs, and currencies.
+  - No repeatable permanent stat rewards.
+  - Capped total permanent stat budget for all daily-login milestones.
+  - No excessive Star Token, currency, gear, or coupon amounts.
+- Add engine tests for:
+  - Legacy save migration.
+  - Claim eligibility before and after a claim.
+  - Duplicate claim prevention on the same date.
+  - Date rollover eligibility.
+  - Missed-day behavior.
+  - Cumulative milestone unlocking.
+  - Inventory-capacity blocking for rewards that include equipment/cards.
+  - Snapshot invalidation after claim.
+  - Optional `dailyLoginClaim` progress event only firing after successful claim.
+- Add UI contract tests where practical: claimable badge/panel entry, snapshot fields, reward summary strings, and milestone progress labels.
+- Run `node --check` on changed JS files.
+- Run relevant focused Project Starfall tests if available, then run `npm test`.
+- Start or use a local dev server and visually inspect the daily reward UI in claimable, claimed, blocked, and long-term milestone states. Check desktop and constrained/mobile viewports.
+
+Acceptance criteria:
+- A player can claim exactly one daily reward per game day.
+- The system includes a visible short-term daily loop and long-term cumulative milestones.
+- Rewards are enticing, valid, and balanced, with no uncapped repeatable power.
+- Missed days do not erase long-term progress.
+- The UI is easy to find, clean, readable, and guide-aligned.
+- Rewards use existing grant, popup, summary, and capacity patterns.
+- Save migration works for existing players.
+- Relevant tests and visual checks pass.
+
+End with a concise summary of: reward cadence added, long-term milestone design, balance guardrails, state/migration changes, UI changes, visual checks, tests run, and any intentionally deferred account-wide/server-time work.

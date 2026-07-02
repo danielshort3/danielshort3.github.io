@@ -70,6 +70,13 @@
           "href": "sitemap-pretty"
         },
         {
+          "label": "Work",
+          "href": "/?mode=professional",
+          "dataAttributes": {
+            "data-site-realm-switch": "professional"
+          }
+        },
+        {
           "label": "Ask the site assistant",
           "type": "button",
           "dataAttributes": {
