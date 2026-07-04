@@ -1,18 +1,19 @@
 {
-  "id": "resume-pdf-directory",
+  "id": "resume-pdf",
   "template": "visual-page",
   "outputPath": "pages/resume-pdf.html",
-  "title": "Resume PDF Versions | Daniel Short",
-  "canonicalPath": "/resume-analytics-pdf",
-  "description": "Choose the Daniel Short PDF resume version that matches analytics, data science, or tourism roles.",
+  "title": "Resume PDF | Daniel Short",
+  "canonicalPath": "/resume-pdf",
+  "description": "Preview and download the resume PDF for Daniel Short.",
   "robots": "noindex, nofollow",
-  "ogTitle": "Resume PDF Versions | Daniel Short",
-  "ogDescription": "Choose the Daniel Short PDF resume version that matches analytics, data science, or tourism roles.",
-  "siteName": "Daniel Short – Analytics, Data Science & Tourism",
+  "ogTitle": "Resume PDF | Daniel Short",
+  "ogDescription": "Preview and download the resume PDF for Daniel Short.",
+  "siteName": "Daniel Short",
   "ogType": "website",
   "bodyAttributes": {
-    "data-page": "resume-pdf-versions",
-    "class": "resume-page site-page"
+    "data-page": "resume-pdf",
+    "data-audience": "analytics",
+    "class": "resume-pdf-page site-page"
   },
   "stylesheets": [
     "dist/styles.css",
@@ -38,13 +39,13 @@
   },
   "sections": [
     {
-      "id": "resume-pdf-directory-1",
+      "id": "resume-pdf-1",
       "type": "legacy-html",
-      "label": "Choose the PDF that matches the role.",
+      "label": "PDF Preview",
       "enabled": true,
       "variant": "default",
       "props": {
-        "html": "<section class=\"surface-band resume-section\">\n      <div class=\"wrapper\">\n        <div class=\"resume-paper\" role=\"document\" aria-label=\"Daniel Short PDF resume versions\">\n          <header class=\"resume-paper-header\">\n            <p class=\"resume-eyebrow\">Resume PDF versions</p>\n            <h1 class=\"resume-name\">Choose the PDF that matches the role.</h1>\n            <p class=\"resume-summary\">Analytics is the default PDF resume. The data science and tourism PDFs are available here when you need a different version.</p>\n          </header>\n\n          <section class=\"resume-projects-wide\" aria-label=\"PDF resume options\">\n            <h2 class=\"resume-block-title resume-wide-category\"><span>Available PDF versions</span></h2>\n            <ul class=\"resume-projects-grid\">\n              <li class=\"resume-project\">\n                <a class=\"resume-project-title\" href=\"resume-analytics-pdf\">Analytics Resume PDF</a>\n                <p class=\"resume-project-meta\">Preview or download the BI and reporting version.</p>\n              </li>\n              <li class=\"resume-project\">\n                <a class=\"resume-project-title\" href=\"resume-data-science-pdf\">Data Science Resume PDF</a>\n                <p class=\"resume-project-meta\">Preview or download the machine learning version.</p>\n              </li>\n              <li class=\"resume-project\">\n                <a class=\"resume-project-title\" href=\"resume-tourism-pdf\">Tourism Resume PDF</a>\n                <p class=\"resume-project-meta\">Preview or download the destination analytics version.</p>\n              </li>\n            </ul>\n          </section>\n        </div>\n      </div>\n    </section>"
+        "html": "<section class=\"surface-band resume-section\">\n      <div class=\"wrapper\">\n        <p class=\"resume-eyebrow\">Resume</p>\n        <h1 class=\"resume-name\">PDF Preview</h1>\n        <p class=\"resume-summary\">Use this resume for BI, reporting, and analytics applications.</p>\n        <div class=\"resume-actions\">\n          <a href=\"resume\" class=\"btn-secondary\">View digital resume</a>\n          <a href=\"documents/Resume.pdf\" class=\"btn-secondary\" download>Download PDF</a>\n        </div>\n        <div class=\"resume-pdf\">\n          <object data=\"documents/Resume.pdf\" type=\"application/pdf\" aria-label=\"Resume PDF preview\">\n            <p>Your browser does not support embedded PDFs. <a href=\"documents/Resume.pdf\" download>Download the PDF</a>.</p>\n          </object>\n        </div>\n      </div>\n    </section>"
       }
     }
   ]

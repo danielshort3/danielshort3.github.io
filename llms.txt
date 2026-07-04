@@ -7,10 +7,10 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Start Here
 
-- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring projects, tools, games, and applied data and software work.
+- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.
 - [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Tool Directory](https://www.danielshort.me/ai/tools): Local, privacy-first tools from Daniel Short.
-- [Games](https://www.danielshort.me/ai/games): Mini games built by Daniel Short. Play in your browser, no install required.
+- [Tools](https://www.danielshort.me/ai/tools): Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.
+- [Games](https://www.danielshort.me/ai/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
 - [Contact](https://www.danielshort.me/ai/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
 
 ## Projects
@@ -26,7 +26,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Tools
 
-- [Tool Directory](https://www.danielshort.me/ai/tools): Local, privacy-first tools from Daniel Short.
+- [Tools](https://www.danielshort.me/ai/tools): Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.
 - [Text Compare](https://www.danielshort.me/ai/tools/text-compare): Compare two drafts and see insertions, deletions, and replacements highlighted inline.
 - [UTM Batch Builder](https://www.danielshort.me/ai/tools/utm-batch-builder): Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.
 - [Word Frequency Analyzer](https://www.danielshort.me/ai/tools/word-frequency): Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.
@@ -35,7 +35,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Games
 
-- [Games](https://www.danielshort.me/ai/games): Mini games built by Daniel Short. Play in your browser, no install required.
+- [Games](https://www.danielshort.me/ai/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
 - [Stellar Dogfight](https://www.danielshort.me/ai/games/stellar-dogfight): Pick one boost each wave. Skills level up.
 - [Double-Zero Roulette](https://www.danielshort.me/ai/games/roulette): Ball runs opposite wheel rotation and settles into the winning pocket.
 - [Probability Engine](https://www.danielshort.me/ai/games/probability-engine): Play Probability Engine, a progressive slot-machine strategy game with deck building, upgrades, and prestige mechanics.

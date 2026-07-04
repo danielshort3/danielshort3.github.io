@@ -23,7 +23,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.png">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.009a7ed4.css">
+  <link rel="stylesheet" href="dist/styles.3d4768b0.css">
   <link rel="stylesheet" href="dist/styles-tools.7f2ad26c.css">
   <link rel="stylesheet" href="css/components/qr-code-generator.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -32,6 +32,9 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script defer src="dist/site-tools-account.8553a915.js"></script>
+  <script defer src="dist/site-consent.4e00f02d.js"></script>
+  <script defer src="dist/site-shell.0733e6d5.js"></script>
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json" id="tool-jsonld">
     {"@context":"https://schema.org","@type":"WebApplication","name":"QR Code Generator","description":"Generate business-grade QR codes with templates, customization controls, logo embedding, and high-resolution exports. Runs locally in your browser.","url":"https://www.danielshort.me/tools/qr-code-generator","image":"https://www.danielshort.me/img/hero/head.png","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://www.danielshort.me/"}}
@@ -121,7 +124,7 @@
             <div class="nav-dropdown nav-dropdown-directory nav-dropdown-tools" id="nav-dropdown-tools" aria-label="Featured tools">
               <div class="nav-dropdown-inner nav-dropdown-inner-directory nav-dropdown-inner-tools">
                 <div class="nav-dropdown-group">
-                  <div class="nav-dropdown-header" aria-hidden="true">Writing &amp; Text</div>
+                  <div class="nav-dropdown-header" aria-hidden="true">Text and writing</div>
                   <div class="nav-dropdown-list" role="list">
                     <a href="tools/text-compare" class="nav-dropdown-link nav-dropdown-tool-link" role="listitem">
                       <span class="nav-dropdown-title">Text Compare</span>
@@ -134,7 +137,7 @@
                   </div>
                 </div>
                 <div class="nav-dropdown-group">
-                  <div class="nav-dropdown-header" aria-hidden="true">Marketing</div>
+                  <div class="nav-dropdown-header" aria-hidden="true">Links and campaigns</div>
                   <div class="nav-dropdown-list" role="list">
                     <a href="tools/utm-batch-builder" class="nav-dropdown-link nav-dropdown-tool-link" role="listitem">
                       <span class="nav-dropdown-title">UTM Batch Builder</span>
@@ -147,7 +150,7 @@
                   </div>
                 </div>
                 <div class="nav-dropdown-group">
-                  <div class="nav-dropdown-header" aria-hidden="true">Images &amp; Video</div>
+                  <div class="nav-dropdown-header" aria-hidden="true">Media utilities</div>
                   <div class="nav-dropdown-list" role="list">
                     <a href="tools/image-optimizer" class="nav-dropdown-link nav-dropdown-tool-link" role="listitem">
                       <span class="nav-dropdown-title">Image Optimizer</span>
@@ -180,23 +183,23 @@
                   <div class="nav-dropdown-list" role="list">
                     <a href="games/stellar-dogfight" class="nav-dropdown-link nav-dropdown-game-link" role="listitem">
                       <span class="nav-dropdown-title">Stellar Dogfight</span>
-                      <span class="nav-dropdown-subtitle">AI squadrons, Upgrades, Progression</span>
+                      <span class="nav-dropdown-subtitle">Adaptive AI, Upgrade loops, Combat tuning</span>
                     </a>
                     <a href="games/roulette" class="nav-dropdown-link nav-dropdown-game-link" role="listitem">
                       <span class="nav-dropdown-title">Double-Zero Roulette</span>
-                      <span class="nav-dropdown-subtitle">American table, Wheel animation, Hot numbers</span>
+                      <span class="nav-dropdown-subtitle">Probability, Distribution tracking, Table state</span>
                     </a>
                     <a href="games/probability-engine" class="nav-dropdown-link nav-dropdown-game-link" role="listitem">
                       <span class="nav-dropdown-title">Probability Engine</span>
-                      <span class="nav-dropdown-subtitle">Idle/Incremental, Deck Builder, Prestige</span>
+                      <span class="nav-dropdown-subtitle">Simulation, Synergies, Prestige loops</span>
                     </a>
                     <a href="games/project-starfall" class="nav-dropdown-link nav-dropdown-game-link" role="listitem">
                       <span class="nav-dropdown-title">Project Starfall</span>
-                      <span class="nav-dropdown-subtitle">Action RPG, Loot, Progression</span>
+                      <span class="nav-dropdown-subtitle">RPG systems, Loot economy, Progression</span>
                     </a>
                     <a href="games/ocean-wave-simulation" class="nav-dropdown-link nav-dropdown-game-link" role="listitem">
                       <span class="nav-dropdown-title">Ocean Wave Simulation</span>
-                      <span class="nav-dropdown-subtitle">Relaxing, Simulation, Canvas</span>
+                      <span class="nav-dropdown-subtitle">Parameter sandbox, Realtime canvas, Visual systems</span>
                     </a>
                   </div>
                   <div class="nav-dropdown-footer nav-dropdown-footer-inline">
@@ -258,6 +261,7 @@
       </div>
     </nav>
   </header>
+
 
   <section class="hero hero--tools tools-hero">
     <div class="wrapper">
@@ -443,519 +447,4 @@
                     </div>
                   </div>
                   <label class="qrtool-check qrtool-check-inline">
-                    <input id="qrtool-basic-logo-enabled" type="checkbox" checked>
-                    Include centered logo
-                  </label>
-                  <div class="qrtool-field">
-                    <label class="qrtool-label" for="qrtool-payload-preview">Encoded payload (read-only)</label>
-                    <textarea id="qrtool-payload-preview" class="qrtool-input" rows="4" readonly></textarea>
-                    <div class="qrtool-actions">
-                      <button type="button" id="qrtool-payload-copy" class="btn-ghost">Copy payload</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div id="qrtool-panel-templates" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-templates" data-qrtool-panel="templates" hidden>
-                  <div class="qrtool-field-header">
-                    <h3>Templates</h3>
-                    <p class="qrtool-help">Start with a pre-designed business style.</p>
-                  </div>
-                  <div class="qrtool-template-grid" role="list" aria-label="QR templates">
-                    <button type="button" class="qrtool-template" data-template="minimal-light">
-                      <span class="qrtool-template-swatch" style="--qr-fg:#0B0F14;--qr-bg:#FFFFFF"></span>
-                      <span class="qrtool-template-name">Minimal Light</span>
-                    </button>
-                    <button type="button" class="qrtool-template" data-template="modern-navy">
-                      <span class="qrtool-template-swatch" style="--qr-fg:#0B2D4A;--qr-bg:#F5F7FA"></span>
-                      <span class="qrtool-template-name">Modern Navy</span>
-                    </button>
-                    <button type="button" class="qrtool-template" data-template="rounded-teal">
-                      <span class="qrtool-template-swatch" style="--qr-fg:#0F6D77;--qr-bg:#FFFFFF"></span>
-                      <span class="qrtool-template-name">Rounded Teal</span>
-                    </button>
-                    <button type="button" class="qrtool-template" data-template="bold-black">
-                      <span class="qrtool-template-swatch" style="--qr-fg:#000000;--qr-bg:#FFFFFF"></span>
-                      <span class="qrtool-template-name">Bold Black</span>
-                    </button>
-                    <button type="button" class="qrtool-template" data-template="high-contrast">
-                      <span class="qrtool-template-swatch" style="--qr-fg:#000000;--qr-bg:#FFFFFF"></span>
-                      <span class="qrtool-template-name">High Contrast</span>
-                    </button>
-                    <button type="button" class="qrtool-template" data-template="dark-premium">
-                      <span class="qrtool-template-swatch" style="--qr-fg:#EAF2FF;--qr-bg:#0D1117"></span>
-                      <span class="qrtool-template-name">Dark Premium</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div id="qrtool-panel-customize" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-customize" data-qrtool-panel="customize" hidden>
-                  <div class="qrtool-field-header">
-                    <h3>Customize</h3>
-                    <p class="qrtool-help">Adjust dots, corners, colors, margins, and error correction.</p>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-dot-style">Dot style</label>
-                      <select id="qrtool-dot-style" class="qrtool-select">
-                        <option value="square">Square</option>
-                        <option value="rounded">Rounded</option>
-                        <option value="dots" selected>Dots</option>
-                      </select>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-corner-style">Corner style</label>
-                      <select id="qrtool-corner-style" class="qrtool-select">
-                        <option value="square">Square</option>
-                        <option value="rounded">Rounded</option>
-                        <option value="extra-rounded" selected>Extra rounded</option>
-                      </select>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-ecc">Error correction</label>
-                      <select id="qrtool-ecc" class="qrtool-select">
-                        <option value="L">L (7%)</option>
-                        <option value="M">M (15%)</option>
-                        <option value="Q">Q (25%)</option>
-                        <option value="H" selected>H (30%)</option>
-                      </select>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-margin">Quiet zone <span id="qrtool-margin-value" class="qrtool-value">2</span></label>
-                      <input id="qrtool-margin" type="range" min="2" max="10" value="2" step="1">
-                    </div>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-fg">Foreground</label>
-                      <div class="qrtool-color-row">
-                        <input id="qrtool-fg" class="qrtool-color" type="color" value="#3095aa" aria-label="Foreground color">
-                        <span id="qrtool-fg-label" class="qrtool-chip">#3095AA</span>
-                      </div>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-bg">Background</label>
-                      <div class="qrtool-color-row">
-                        <input id="qrtool-bg" class="qrtool-color" type="color" value="#131b22" aria-label="Background color">
-                        <span id="qrtool-bg-label" class="qrtool-chip">#131B22</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <label class="qrtool-check">
-                    <input id="qrtool-transparent" type="checkbox">
-                    Transparent background (PNG/SVG)
-                  </label>
-                </div>
-
-                <div id="qrtool-panel-logo" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-logo" data-qrtool-panel="logo" hidden>
-                  <div class="qrtool-field-header">
-                    <h3>Logo</h3>
-                    <p class="qrtool-help">Add a centered logo or text on a clean plate to maintain scan reliability.</p>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-center-mode">Center content</label>
-                      <select id="qrtool-center-mode" class="qrtool-select">
-                        <option value="image" selected>Logo image</option>
-                        <option value="text">Text</option>
-                        <option value="none">None</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div data-qrtool-center="image">
-                    <div class="qrtool-logo-row">
-                      <input id="qrtool-logo" class="qrtool-file" type="file" accept="image/png, image/jpeg, image/jpg, image/svg+xml">
-                      <button id="qrtool-logo-remove" type="button" class="btn-ghost" disabled>Remove</button>
-                    </div>
-                    <div id="qrtool-logo-preview-wrap" class="qrtool-logo-preview-wrap hide" aria-hidden="true">
-                      <img id="qrtool-logo-preview" class="qrtool-logo-preview" alt="Logo preview" width="84" height="84">
-                      <p class="qrtool-help">Logo is centered with a clean background plate for scan reliability.</p>
-                    </div>
-                  </div>
-
-                  <div data-qrtool-center="text" hidden>
-                    <div class="qrtool-field">
-                      <label class="qrtool-label" for="qrtool-center-text">Center text</label>
-                      <textarea id="qrtool-center-text" class="qrtool-input" rows="2" maxlength="40" autocomplete="off" spellcheck="false" placeholder="SCAN&#10;ME"></textarea>
-                      <div class="qrtool-actions">
-                        <button type="button" class="btn-ghost" data-qrtool="center-text-clear" disabled>Clear text</button>
-                      </div>
-                    </div>
-
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-center-text-weight">Weight</label>
-                        <select id="qrtool-center-text-weight" class="qrtool-select" disabled>
-                          <option value="700" selected>Bold</option>
-                          <option value="600">Semibold</option>
-                          <option value="500">Medium</option>
-                        </select>
-                      </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-center-text-color-style">Text color</label>
-                        <select id="qrtool-center-text-color-style" class="qrtool-select" disabled>
-                          <option value="auto" selected>Auto (use foreground)</option>
-                          <option value="custom">Custom</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-center-text-color">Text color</label>
-                        <div class="qrtool-color-row">
-                          <input id="qrtool-center-text-color" class="qrtool-color" type="color" value="#3095aa" aria-label="Center text color" disabled>
-                          <span id="qrtool-center-text-color-label" class="qrtool-chip">#3095AA</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-size">Center size <span id="qrtool-logo-size-value" class="qrtool-value">30%</span></label>
-                      <input id="qrtool-logo-size" type="range" min="10" max="30" value="30" step="1" disabled>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-padding">Padding <span id="qrtool-logo-padding-value" class="qrtool-value">6%</span></label>
-                      <input id="qrtool-logo-padding" type="range" min="6" max="22" value="6" step="1" disabled>
-                    </div>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-shape">Logo shape</label>
-                      <select id="qrtool-logo-shape" class="qrtool-select" disabled>
-                        <option value="rounded">Rounded square</option>
-                        <option value="square">Square</option>
-                        <option value="circle" selected>Circle</option>
-                      </select>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-plate-style">Plate</label>
-                      <select id="qrtool-logo-plate-style" class="qrtool-select" disabled>
-                        <option value="auto" selected>Auto (match background)</option>
-                        <option value="white">White</option>
-                        <option value="custom">Custom</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-plate-color">Plate color</label>
-                      <div class="qrtool-color-row">
-                        <input id="qrtool-logo-plate-color" class="qrtool-color" type="color" value="#ffffff" aria-label="Logo plate color" disabled>
-                        <span id="qrtool-logo-plate-color-label" class="qrtool-chip">#FFFFFF</span>
-                      </div>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-border-style">Border</label>
-                      <select id="qrtool-logo-border-style" class="qrtool-select" disabled>
-                        <option value="auto">Auto (subtle)</option>
-                        <option value="custom">Custom</option>
-                        <option value="none" selected>None</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-border-size">Border thickness <span id="qrtool-logo-border-size-value" class="qrtool-value">5%</span></label>
-                      <input id="qrtool-logo-border-size" type="range" min="0" max="12" value="5" step="1" disabled>
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-border-color">Border color</label>
-                      <div class="qrtool-color-row">
-                        <input id="qrtool-logo-border-color" class="qrtool-color" type="color" value="#0b0f14" aria-label="Logo border color" disabled>
-                        <span id="qrtool-logo-border-color-label" class="qrtool-chip">#0B0F14</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div id="qrtool-panel-export" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-export" data-qrtool-panel="export" hidden>
-                  <div class="qrtool-field-header">
-                    <h3>Export</h3>
-                    <p class="qrtool-help">Download high-resolution PNG, scalable SVG, or a matching PDF.</p>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-filename">File name</label>
-                      <input id="qrtool-filename" class="qrtool-input" type="text" value="qr-code" autocomplete="off">
-                    </div>
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-image-size">Image size</label>
-                      <select id="qrtool-image-size" class="qrtool-select">
-                        <option value="512">512 px</option>
-                        <option value="1024" selected>1024 px</option>
-                        <option value="2048">2048 px</option>
-                        <option value="4096">4096 px</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="qrtool-control">
-                    <label class="qrtool-label" for="qrtool-export-preset">Export preset</label>
-                    <select id="qrtool-export-preset" class="qrtool-select">
-                      <option value="sticker">Sticker (512 px)</option>
-                      <option value="web" selected>Web (1024 px)</option>
-                      <option value="print">Print (2048 px)</option>
-                      <option value="poster">Poster (4096 px)</option>
-                      <option value="custom">Custom size</option>
-                    </select>
-                  </div>
-
-                  <div class="qrtool-field" data-qrtool-mode-section="advanced">
-                    <label class="qrtool-check">
-                      <input id="qrtool-caption-enabled" type="checkbox">
-                      Add a caption band below the QR code (all exports)
-                    </label>
-
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-caption-text">Caption text</label>
-                      <textarea id="qrtool-caption-text" class="qrtool-input" rows="2" maxlength="120" autocomplete="off" spellcheck="false" placeholder="example.com" disabled></textarea>
-                    </div>
-
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-size">Caption size <span id="qrtool-caption-size-value" class="qrtool-value">5%</span></label>
-                        <input id="qrtool-caption-size" type="range" min="3" max="10" value="5" step="1" disabled>
-                      </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-align">Alignment</label>
-                        <select id="qrtool-caption-align" class="qrtool-select" disabled>
-                          <option value="center" selected>Center</option>
-                          <option value="left">Left</option>
-                          <option value="right">Right</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-color-style">Text color</label>
-                        <select id="qrtool-caption-color-style" class="qrtool-select" disabled>
-                          <option value="auto" selected>Auto (use foreground)</option>
-                          <option value="custom">Custom</option>
-                        </select>
-                      </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-bg-style">Background</label>
-                        <select id="qrtool-caption-bg-style" class="qrtool-select" disabled>
-                          <option value="auto" selected>Auto (match background)</option>
-                          <option value="white">White</option>
-                          <option value="custom">Custom</option>
-                          <option value="none">None (transparent)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-color">Text color</label>
-                        <div class="qrtool-color-row">
-                          <input id="qrtool-caption-color" class="qrtool-color" type="color" value="#3095aa" aria-label="Caption text color" disabled>
-                          <span id="qrtool-caption-color-label" class="qrtool-chip">#3095AA</span>
-                        </div>
-                      </div>
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-caption-bg-color">Background color</label>
-                        <div class="qrtool-color-row">
-                          <input id="qrtool-caption-bg-color" class="qrtool-color" type="color" value="#131b22" aria-label="Caption background color" disabled>
-                          <span id="qrtool-caption-bg-color-label" class="qrtool-chip">#131B22</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="qrtool-export-actions">
-                    <button type="button" id="qrtool-download-png" class="btn-primary" disabled>Download PNG</button>
-                    <button type="button" id="qrtool-download-svg" class="btn-secondary" disabled>Download SVG</button>
-                    <button type="button" id="qrtool-download-pdf" class="btn-secondary" disabled>Download PDF</button>
-                    <button type="button" id="qrtool-copy-png" class="btn-secondary" disabled>Copy PNG</button>
-                    <button type="button" id="qrtool-copy-svg" class="btn-secondary" disabled>Copy SVG</button>
-                    <button type="button" id="qrtool-download-all" class="btn-secondary" disabled>Download All (ZIP)</button>
-                  </div>
-                  <p id="qrtool-export-status" class="qrtool-help" role="status" aria-live="polite"></p>
-
-                  <div class="qrtool-field" data-qrtool-mode-section="advanced">
-                    <div class="qrtool-field-header">
-                      <h3>Config Presets</h3>
-                      <p class="qrtool-help">Save reusable brand styles, share settings with URL parameters, or import/export full config JSON.</p>
-                    </div>
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-config-name">Preset name</label>
-                        <input id="qrtool-config-name" class="qrtool-input" type="text" autocomplete="off" spellcheck="false" placeholder="Brand default">
-                      </div>
-                      <div class="qrtool-control qrtool-config-save-wrap">
-                        <button type="button" id="qrtool-config-save" class="btn-secondary">Save preset</button>
-                      </div>
-                    </div>
-                    <div class="qrtool-two-col">
-                      <div class="qrtool-control">
-                        <label class="qrtool-label" for="qrtool-config-list">Saved presets</label>
-                        <select id="qrtool-config-list" class="qrtool-select">
-                          <option value="">No presets saved</option>
-                        </select>
-                      </div>
-                      <div class="qrtool-control qrtool-config-actions-inline">
-                        <button type="button" id="qrtool-config-apply" class="btn-secondary">Apply preset</button>
-                        <button type="button" id="qrtool-config-delete" class="btn-ghost">Delete preset</button>
-                      </div>
-                    </div>
-                    <div class="qrtool-actions">
-                      <button type="button" id="qrtool-config-export" class="btn-ghost">Export config JSON</button>
-                      <button type="button" id="qrtool-config-import" class="btn-ghost">Import config JSON</button>
-                      <button type="button" id="qrtool-config-share" class="btn-ghost">Copy share link</button>
-                      <input id="qrtool-config-import-file" type="file" accept="application/json,.json" hidden>
-                    </div>
-                    <p id="qrtool-config-status" class="qrtool-help" role="status" aria-live="polite"></p>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="modal" id="qrtool-destination-modal" data-qrtool="destination-modal" aria-hidden="true">
-      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="qrtool-destination-title">
-        <button type="button" class="modal-close" aria-label="Close dialog" data-qrtool="destination-modal-close">&times;</button>
-        <div class="modal-title-strip">
-          <h3 class="modal-title" id="qrtool-destination-title">Pick a website page</h3>
-          <p class="modal-subtitle">Select an internal page on <code>danielshort.me</code>. The URL is set as a full link so it works from any origin.</p>
-        </div>
-        <div class="modal-body stacked shortlinks-picker">
-          <label class="shortlinks-picker-search">
-            <span class="shortlinks-picker-search-label">Search</span>
-            <input type="search" autocomplete="off" spellcheck="false" placeholder="Search pages…" data-qrtool="destination-search">
-          </label>
-          <div class="shortlinks-picker-results" data-qrtool="destination-results" aria-live="polite"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal" id="qrtool-shortlinks-modal" data-qrtool="shortlinks-modal" aria-hidden="true">
-      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="qrtool-shortlinks-title">
-        <button type="button" class="modal-close" aria-label="Close dialog" data-qrtool="shortlinks-modal-close">&times;</button>
-        <div class="modal-title-strip">
-          <h3 class="modal-title" id="qrtool-shortlinks-title">Pick a short link</h3>
-          <p class="modal-subtitle">Select a saved short link from the admin dashboard. Requires the Short Links admin token to be saved on this device.</p>
-        </div>
-        <div class="modal-body stacked shortlinks-picker">
-          <div class="contact-form-status" data-qrtool="shortlinks-status" role="status" aria-live="polite"></div>
-          <label class="shortlinks-picker-search">
-            <span class="shortlinks-picker-search-label">Search</span>
-            <input type="search" autocomplete="off" spellcheck="false" placeholder="Search short links…" data-qrtool="shortlinks-search">
-          </label>
-          <div class="shortlinks-picker-results" data-qrtool="shortlinks-results" aria-live="polite"></div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <footer class="footer footer-classic">
-    <div class="wrapper footer-inner">
-      <nav class="footer-nav" aria-label="Footer">
-        <section class="footer-col" aria-labelledby="footer-explore">
-          <h2 class="footer-col-title" id="footer-explore">Explore</h2>
-          <a href="/" class="footer-link">Home</a>
-          <a href="search" class="footer-link">Search</a>
-          <a href="tools" class="footer-link">Tools</a>
-          <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
-          <a href="games" class="footer-link">Games</a>
-        </section>
-        <section class="footer-col" aria-labelledby="footer-connect">
-          <h2 class="footer-col-title" id="footer-connect">Connect</h2>
-          <a href="contact#contact-modal" class="footer-link" data-contact-modal-link="true">Contact</a>
-          <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-          <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
-        </section>
-        <section class="footer-col" aria-labelledby="footer-site">
-          <h2 class="footer-col-title" id="footer-site">Site</h2>
-          <a href="sitemap-pretty" class="footer-link">Sitemap</a>
-          <a href="?mode=professional" class="footer-link" data-site-realm-switch="professional">Work</a>
-          <button type="button" class="footer-link" data-site-chatbot-open hidden>Ask the site assistant</button>
-          <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
-          <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
-        </section>
-      </nav>
-      <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
-    </div>
-  </footer>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a href="contact#contact-modal" class="speed-dial__action btn-icon speed-dial__action--direct" aria-label="Send a direct message" role="menuitem" data-contact-modal-link="true" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a href="mailto:daniel@danielshort.me" class="speed-dial__action btn-icon" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a href="https://www.linkedin.com/in/danielshort3/" class="speed-dial__action btn-icon" aria-label="View LinkedIn" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a href="https://github.com/danielshort3" class="speed-dial__action btn-icon" aria-label="View GitHub" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <script defer src="js/tools/qr-code-generator-utils.js"></script>
-  <script defer src="js/tools/qr-code-generator.js"></script>
-  <script defer src="dist/site-tools-account.5592335a.js"></script>
-  <script defer src="dist/site-shell.ca8dd551.js"></script>
-  <script defer src="dist/site-consent.4e00f02d.js"></script>
-</body>
-</html>
+                    <input id="qrtool-basic-logo-enabled" type="checkbox" che

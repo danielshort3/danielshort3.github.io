@@ -30,6 +30,22 @@ const getImageSizeAttr = (p = {}) => {
   }
   return '';
 };
+const escapeHtml = (value = '') => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+const projectToolsMarkup = (project = {}, limit = 3) => {
+  const tools = Array.isArray(project.tools) ? project.tools.filter(Boolean).slice(0, limit) : [];
+  if (!tools.length) return '';
+  return `<div class="project-card-tags">${tools.map((tool) => `<span>${escapeHtml(tool)}</span>`).join('')}</div>`;
+};
+const projectSignalLabel = (project = {}, index = 0, prefix = 'Project') => {
+  const tools = Array.isArray(project.tools) ? project.tools.filter(Boolean) : [];
+  const signal = tools[0] || String(project.subtitle || '').split(/\s+/).filter(Boolean)[0] || 'Build';
+  return `${prefix} ${String(index + 1).padStart(2, '0')} / ${signal}`;
+};
 
 const buildResponsiveSrcset = (base, ext, width) => {
   const fullW = Number(width);
@@ -186,25 +202,28 @@ const applyPortfolioAudienceContent = (audienceKey) => {
   const allHeading = document.getElementById('all-projects-title');
   const allCopy = document.getElementById('portfolio-library-copy');
   if (!config) {
-    if (eyebrow) eyebrow.textContent = 'Portfolio';
-    if (title) title.textContent = 'Project Portfolio';
+    if (eyebrow) eyebrow.textContent = 'Projects';
+    if (title) title.textContent = 'Project Library';
     if (tagline) {
-      tagline.textContent = 'Start with featured projects, then browse the full project library.';
+      tagline.textContent = 'Machine learning, analytics, data systems, and browser experiments organized by the problem each project is trying to make clearer.';
     }
-    if (topHeading) topHeading.textContent = 'Top 5 Projects';
-    if (allHeading) allHeading.textContent = 'Other Projects';
+    if (topHeading) topHeading.textContent = 'Featured systems';
+    if (allHeading) allHeading.textContent = 'Project library';
     if (allCopy) {
-      allCopy.textContent = 'Additional case studies, tools, and experiments beyond the featured projects.';
+      allCopy.textContent = 'Additional case studies, tools, and experiments across machine learning, analytics, visual interfaces, and software systems.';
     }
     return;
   }
-  if (eyebrow) eyebrow.textContent = audienceKey ? (config.label || config.shortLabel || 'Portfolio') : 'Portfolio';
+  const personalMode = !audienceKey || normalizeAudience(audienceKey) === 'personal';
+  if (eyebrow) eyebrow.textContent = personalMode ? 'Projects' : (config.label || config.shortLabel || 'Portfolio');
   if (title) title.textContent = config.portfolioTitle || 'Project Portfolio';
   if (tagline) tagline.textContent = config.portfolioDescription || '';
-  if (topHeading) topHeading.textContent = 'Featured Projects';
-  if (allHeading) allHeading.textContent = 'Other Projects';
+  if (topHeading) topHeading.textContent = personalMode ? 'Featured systems' : 'Featured Projects';
+  if (allHeading) allHeading.textContent = 'Project library';
   if (allCopy) {
-    allCopy.textContent = 'Additional case studies, tools, and experiments beyond the featured projects.';
+    allCopy.textContent = personalMode
+      ? 'Additional case studies, tools, and experiments across machine learning, analytics, visual interfaces, and software systems.'
+      : 'Additional case studies, tools, and experiments beyond the featured projects.';
   }
 };
 
@@ -352,8 +371,10 @@ function buildPortfolioCarousel() {
     card.innerHTML = `
       <div class="overlay"></div>
       <div class="project-text">
-        <div class="project-title">${p.title}</div>
-        <div class="project-subtitle">${p.subtitle}</div>
+        <div class="project-card-kicker">${escapeHtml(projectSignalLabel(p, i, 'Featured'))}</div>
+        <div class="project-title">${escapeHtml(p.title)}</div>
+        <div class="project-subtitle">${escapeHtml(p.subtitle)}</div>
+        ${projectToolsMarkup(p)}
       </div>
       ${media}
     `;
@@ -576,8 +597,10 @@ function buildPortfolio() {
     const card = el("a", "project-card", `
       <div class="overlay"></div>
       <div class="project-text">
-        <div class="project-title">${project.title}</div>
-        <div class="project-subtitle">${project.subtitle}</div>
+        <div class="project-card-kicker">${escapeHtml(projectSignalLabel(project, index, 'Project'))}</div>
+        <div class="project-title">${escapeHtml(project.title)}</div>
+        <div class="project-subtitle">${escapeHtml(project.subtitle)}</div>
+        ${projectToolsMarkup(project)}
       </div>
       ${mediaMarkup}`);
     card.href = `portfolio/${encodeURIComponent(project.id)}`;

@@ -22,7 +22,7 @@ const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience ==
   : ((value) => String(value || '').trim().toLowerCase() || 'personal');
 const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
   ? audienceApi.getAudience
-  : (() => ({ brandNavPrimary: 'Projects, Tools, and Notes' }));
+  : (() => ({ brandNavPrimary: 'Projects, Tools, and Games' }));
 const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
   ? audienceApi.detectAudienceFromPath
   : (() => null);
@@ -118,6 +118,21 @@ function replaceHeader(html, headerHtml) {
   return { html: next, changed: next !== html };
 }
 
+function insertHeaderAfterSkipLink(html, headerHtml) {
+  if (/<header\b[^>]*\bid=["']combined-header-nav["'][^>]*>/i.test(html)) {
+    return { html, changed: false };
+  }
+
+  const skipRe = /^([\t ]*)<a\b[^>]*\bclass=["'][^"']*\bskip-link\b[^"']*["'][^>]*>[\s\S]*?<\/a>[^\S\r\n]*(?:\r?\n)?/im;
+  const match = skipRe.exec(html);
+  if (!match) return { html, changed: false };
+
+  const indent = normalizeIndent(match[1] || '  ');
+  const replacement = `${match[0]}${indentBlock(headerHtml, indent)}\n`;
+  const next = html.slice(0, match.index) + replacement + html.slice(match.index + match[0].length);
+  return { html: next, changed: next !== html };
+}
+
 function relPathToRoute(relPath) {
   const normalized = String(relPath || '').replace(/\\/g, '/');
   if (!normalized || normalized === 'index.html') return '/';
@@ -137,7 +152,7 @@ function detectAudienceForFile(html, relPath) {
 
 function withAudienceBranding(headerHtml, audienceKey) {
   const audience = getAudience(audienceKey);
-  const label = String(audience && audience.brandNavPrimary ? audience.brandNavPrimary : 'Projects, Tools, and Notes');
+  const label = String(audience && audience.brandNavPrimary ? audience.brandNavPrimary : 'Projects, Tools, and Games');
   return headerHtml.replace(
     /(<span class="brand-tagline-chunk" data-brand-tagline-primary="true">)([\s\S]*?)(<\/span>)/i,
     `$1${label}$3`
@@ -166,11 +181,12 @@ function main() {
     const audienceKey = detectAudienceForFile(html, relPath);
     const pageHeaderHtml = withAudienceBranding(headerHtml, audienceKey);
     const replaced = replaceHeader(html, pageHeaderHtml);
-    if (!replaced.changed) {
+    const result = replaced.changed ? replaced : insertHeaderAfterSkipLink(html, pageHeaderHtml);
+    if (!result.changed) {
       skipped += 1;
       return;
     }
-    write(relPath, replaced.html);
+    write(relPath, result.html);
     updated += 1;
   });
 

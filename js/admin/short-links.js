@@ -159,9 +159,9 @@
       shortLabel: 'Analytics',
       homePath: '/analytics',
       portfolioPath: '/portfolio?audience=analytics',
-      resumePath: '/resume-analytics',
-      resumePreviewPath: '/resume-analytics-pdf',
-      resumeDownloadPath: '/documents/Resume-Analytics.pdf'
+      resumePath: '/resume',
+      resumePreviewPath: '/resume-pdf',
+      resumeDownloadPath: '/documents/Resume.pdf'
     },
     'data-science': {
       key: 'data-science',

@@ -516,7 +516,8 @@ function buildKnowledge() {
     const metadata = projectMetadata.get(url) || null;
     const description = metadata && metadata.description ? metadata.description : extractDescription(html);
     const text = [extractMainText(html), metadata && metadata.text].filter(Boolean).join(' ');
-    if (!text || text.length < 160) return;
+    const searchableText = [description, text].filter(Boolean).join(' ');
+    if (!searchableText || searchableText.length < 160) return;
 
     const entry = {
       url,
@@ -526,7 +527,7 @@ function buildKnowledge() {
       category: categoryForPath(url),
       audience: audienceForPath(url),
       keywords: compactUnique([...extractKeywords(html), ...((metadata && metadata.keywords) || [])], 60),
-      text
+      text: text || description
     };
 
     const previous = pagesByUrl.get(url);

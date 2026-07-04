@@ -18,10 +18,10 @@
   ],
   "portfolioTitle": "Data Science Portfolio",
   "portfolioDescription": "Machine learning, NLP, modeling, evaluation, and production-minded experimentation.",
-  "resumeNavTitle": "Data Science Resume",
+  "resumeNavTitle": "Resume",
   "resumeNavSubtitle": "ML, NLP, modeling, and deployment",
-  "resumePreviewSubtitle": "Open the data science PDF preview",
-  "resumeDownloadSubtitle": "Download the data science PDF",
+  "resumePreviewSubtitle": "Open the PDF preview",
+  "resumeDownloadSubtitle": "Download the PDF",
   "brandNavPrimary": "Data Science",
   "page": {
     "id": "audience-data-science",

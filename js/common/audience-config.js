@@ -24,9 +24,9 @@
       homePath: '/analytics',
       portfolioPath: '/portfolio?audience=analytics',
       portfolioAllPath: '/portfolio?audience=analytics',
-      resumePath: '/resume-analytics',
-      resumePreviewPath: '/resume-analytics-pdf',
-      resumeDownloadPath: '/documents/Resume-Analytics.pdf',
+      resumePath: '/resume',
+      resumePreviewPath: '/resume-pdf',
+      resumeDownloadPath: '/documents/Resume.pdf',
       featuredProjectIds: [
         'retailStore',
         'targetEmptyPackage',
@@ -36,10 +36,10 @@
       ],
       portfolioTitle: 'Analytics Portfolio',
       portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.',
-      resumeNavTitle: 'Analytics Resume',
+      resumeNavTitle: 'Resume',
       resumeNavSubtitle: 'BI, reporting, SQL, Tableau, and automation',
-      resumePreviewSubtitle: 'Open the analytics PDF preview',
-      resumeDownloadSubtitle: 'Download the analytics PDF',
+      resumePreviewSubtitle: 'Open the PDF preview',
+      resumeDownloadSubtitle: 'Download the PDF',
       brandNavPrimary: 'Data Analytics'
     },
     personal: {
@@ -60,12 +60,12 @@
         'website'
       ],
       portfolioTitle: 'Project Library',
-      portfolioDescription: 'A collection of data projects, software experiments, tools, and notes from Daniel Short.',
+      portfolioDescription: 'Machine learning, analytics, software tools, and browser experiments by Daniel Short.',
       resumeNavTitle: null,
       resumeNavSubtitle: null,
       resumePreviewSubtitle: null,
       resumeDownloadSubtitle: null,
-      brandNavPrimary: 'Projects, Tools, and Notes'
+      brandNavPrimary: 'Projects, Tools, and Games'
     },
     'data-science': {
       key: 'data-science',
@@ -86,10 +86,10 @@
       ],
       portfolioTitle: 'Data Science Portfolio',
       portfolioDescription: 'Machine learning, NLP, modeling, evaluation, and production-minded experimentation.',
-      resumeNavTitle: 'Data Science Resume',
+      resumeNavTitle: 'Resume',
       resumeNavSubtitle: 'ML, NLP, modeling, and deployment',
-      resumePreviewSubtitle: 'Open the data science PDF preview',
-      resumeDownloadSubtitle: 'Download the data science PDF',
+      resumePreviewSubtitle: 'Open the PDF preview',
+      resumeDownloadSubtitle: 'Download the PDF',
       brandNavPrimary: 'Data Science'
     },
     tourism: {
@@ -111,10 +111,10 @@
       ],
       portfolioTitle: 'Tourism Analytics Portfolio',
       portfolioDescription: 'Destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support.',
-      resumeNavTitle: 'Tourism Resume',
+      resumeNavTitle: 'Resume',
       resumeNavSubtitle: 'Destination reporting and stakeholder analytics',
-      resumePreviewSubtitle: 'Open the tourism PDF preview',
-      resumeDownloadSubtitle: 'Download the tourism PDF',
+      resumePreviewSubtitle: 'Open the PDF preview',
+      resumeDownloadSubtitle: 'Download the PDF',
       brandNavPrimary: 'Tourism Analytics'
     }
   };
