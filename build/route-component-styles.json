@@ -1,8 +1,5 @@
 {
-  "/": [
-    "css/components/home-proof.css",
-    "css/components/destination-analytics.css"
-  ],
+  "/": [],
   "/contact": [
     "css/components/contact-card.css",
     "css/components/destination-analytics.css"

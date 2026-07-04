@@ -1079,10 +1079,84 @@ function buildPortfolioStructuredPage(projectRecords) {
   });
 }
 
+function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRecords, gamesPageRecord) {
+  const audience = audienceRecord && audienceRecord.data;
+  const page = audience && audience.page;
+  if (!page) return null;
+
+  const projects = projectRecords
+    .map((record) => record.data)
+    .filter((project) => project && project.id && project.published !== false && !project.hidden && !project.noindex)
+    .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
+  const tools = toolRecords
+    .map((record) => record.data)
+    .filter((tool) => tool && !tool.hidden && !tool.noindex && isPublicVisibility(tool.visibility))
+    .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
+  const gamesPage = gamesPageRecord && gamesPageRecord.data;
+  const games = (Array.isArray(gamesPage && gamesPage.games) ? gamesPage.games : [])
+    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id))
+    .sort((a, b) => (a.order || 999) - (b.order || 999) || normalizeWhitespace(a.title).localeCompare(normalizeWhitespace(b.title)));
+
+  const projectLinks = projects.map((project) => ({
+    label: project.title,
+    url: `/portfolio/${project.id}`,
+    description: projectSummary(project)
+  }));
+  const toolLinks = tools.map((tool) => ({
+    label: tool.title,
+    url: tool.href || `/tools/${tool.slug}`,
+    description: tool.summary
+  }));
+  const gameLinks = games.map((game) => ({
+    label: game.title,
+    url: game.href || `/games/${game.id}`,
+    description: game.summary
+  }));
+
+  return createStructuredPage(page.canonicalPath || '/', {
+    title: stripSiteSuffix(page.title || audience.label || 'Daniel Short'),
+    description: page.description,
+    summary: page.description,
+    category: 'Core',
+    sourcePath: audienceRecord.relPath,
+    sourceText: JSON.stringify({ audience, projects, tools, games }),
+    keywords: ['projects', 'tools', 'games', 'machine learning', 'data analytics', 'browser experiments'],
+    links: [
+      { label: 'Projects', url: '/portfolio', description: `${projects.length} projects in the project library.` },
+      { label: 'Tools', url: '/tools', description: `${tools.length} practical browser tools.` },
+      { label: 'Games', url: '/games', description: `${games.length} browser games and simulations.` },
+      ...projectLinks.slice(0, 8),
+      ...toolLinks.slice(0, 6),
+      ...gameLinks.slice(0, 5)
+    ],
+    sections: [
+      {
+        title: 'Projects',
+        paragraphs: [`Models, dashboards, and data systems built around practical analysis and usable interfaces. The homepage graph represents ${projects.length} published projects.`],
+        links: projectLinks
+      },
+      {
+        title: 'Tools',
+        paragraphs: [`Small browser utilities for repeated text, link, media, analytics, and workflow tasks. The homepage graph represents ${tools.length} public tools.`],
+        links: toolLinks
+      },
+      {
+        title: 'Games',
+        paragraphs: [`Browser games and simulations where systems, probability, balance, and feedback loops are the point. The homepage graph represents ${games.length} games.`],
+        links: gameLinks
+      }
+    ]
+  });
+}
+
 function loadStructuredPages() {
   const structured = new Map();
   const projectRecords = loadJsonRecords('content/projects');
   const toolRecords = loadJsonRecords('content/tools');
+  const personalAudienceRecord = {
+    relPath: 'content/audiences/personal.json',
+    data: readJsonRel('content/audiences/personal.json')
+  };
   const toolsPageRecord = {
     relPath: 'content/pages/tools.json',
     data: readJsonRel('content/pages/tools.json')
@@ -1100,6 +1174,9 @@ function loadStructuredPages() {
 
   const portfolioPage = buildPortfolioStructuredPage(projectRecords);
   if (portfolioPage) structured.set(portfolioPage.url, portfolioPage);
+
+  const personalHomePage = buildPersonalHomeStructuredPage(personalAudienceRecord, projectRecords, toolRecords, gamesPageRecord);
+  if (personalHomePage) structured.set(personalHomePage.url, personalHomePage);
 
   const toolsPage = buildToolsDirectoryStructuredPage(toolsPageRecord, toolRecords);
   if (toolsPage) structured.set(toolsPage.url, toolsPage);

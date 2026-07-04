@@ -235,6 +235,9 @@ function processHtml(html, relPath) {
   if (needsShellBundle && !shellInserted) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
   }
+  if (needsShellBundle && !normalized.some((line) => isManagedLine(String(line || '').trim(), 'site-consent'))) {
+    normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.consent}"></script>`);
+  }
 
   const requiredPageBundles = [];
   if (relPath === 'pages/contact.html') requiredPageBundles.push(['site-contact', managedHrefs.contact]);

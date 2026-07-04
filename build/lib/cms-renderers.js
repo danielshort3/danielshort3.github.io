@@ -774,6 +774,17 @@ function renderToolsDirectoryBody(page, tools) {
       '</section>'
     ].join('\n');
   }).join('\n\n');
+  const categoryRail = toolsByCategory.map(({ category, items }, index) => [
+    `<a class="tools-rail-link" href="#${escapeHtml(category.id || '')}">`,
+    `  <span class="tools-rail-index">${String(index + 1).padStart(2, '0')}</span>`,
+    '  <span class="tools-rail-copy">',
+    `    <span class="tools-rail-title">${escapeHtml(category.title || '')}</span>`,
+    category.description ? `    <span class="tools-rail-description">${escapeHtml(category.description)}</span>` : '',
+    '  </span>',
+    `  <span class="tools-rail-count">${items.length}</span>`,
+    '</a>'
+  ].filter(Boolean).join('\n')).join('\n');
+  const totalToolCount = toolsByCategory.reduce((sum, { items }) => sum + items.length, 0);
 
   const resumePanel = page.resumePanel || {};
   const heroLead = String(page.heroLead || '').trim();
@@ -822,11 +833,22 @@ function renderToolsDirectoryBody(page, tools) {
     '',
     '<main id="main">',
     '  <section class="surface-band tools-section">',
-    '    <div class="wrapper">',
+    '    <div class="wrapper tools-directory-layout">',
+    '      <aside class="tools-directory-rail" aria-label="Tool categories">',
+    `        <p class="tools-directory-stat">${totalToolCount} tools</p>`,
+    indentBlock(categoryRail, '        '),
+    '      </aside>',
+    '      <div class="tools-directory-main">',
     ...directoryControls,
-    '      <div id="tools-directory-results" data-tools-results>',
-    indentBlock(renderedCategories, '        '),
+    '        <div id="tools-directory-results" data-tools-results>',
+    indentBlock(renderedCategories, '          '),
+    '        </div>',
     '      </div>',
+    '      <aside class="tools-directory-note" aria-labelledby="tools-directory-note-title">',
+    '        <p class="tools-directory-note-kicker">Why tools?</p>',
+    '        <h2 id="tools-directory-note-title">Small utilities should feel finished.</h2>',
+    '        <p>I keep these focused on repeatable output, local-first behavior where possible, and clear state when a tool needs account-backed work.</p>',
+    '      </aside>',
     '    </div>',
     '  </section>',
     '</main>'
@@ -850,6 +872,7 @@ function renderGamesDirectoryBody(page) {
     return [
       '<article class="game-card" data-game-card role="listitem">',
       `  <a class="game-launch-card" href="${escapeHtml(gameHref(game))}" aria-describedby="${escapeHtml(detailsId)}">`,
+      `    <span class="game-card-index">${String(Number(game.order || 0) || 0).padStart(2, '0')}</span>`,
       '    <span class="game-icon" aria-hidden="true">',
       indentBlock(renderGameIconMarkup(game.iconType), '      '),
       '    </span>',
@@ -879,7 +902,17 @@ function renderGamesDirectoryBody(page) {
     '',
     '<main id="main">',
     '  <section class="surface-band games-section">',
-    '    <div class="wrapper">',
+    '    <div class="wrapper games-directory-layout">',
+    '      <aside class="games-system-panel" aria-labelledby="games-system-title">',
+    '        <p class="games-system-kicker">Design lens</p>',
+    '        <h2 id="games-system-title">Systems before spectacle.</h2>',
+    '        <p>These are places to test loops: probability, enemy behavior, upgrades, pacing, and readable feedback.</p>',
+    '        <dl>',
+    '          <div><dt>State</dt><dd>What the player tracks</dd></div>',
+    '          <div><dt>Balance</dt><dd>How choices compound</dd></div>',
+    '          <div><dt>Feedback</dt><dd>What the interface teaches</dd></div>',
+    '        </dl>',
+    '      </aside>',
     '      <div class="games-grid" role="list">',
     indentBlock(cards, '        '),
     '      </div>',

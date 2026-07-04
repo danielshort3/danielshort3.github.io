@@ -594,11 +594,11 @@ try {
   section('Page shells and required meta', () => {
     checkFileContains('index.html', '<title>Daniel Short</title>');
     checkFileContains('index.html', '<link rel="canonical" href="https://www.danielshort.me/">');
-    checkFileContains('index.html', 'Projects, tools, and applied data work');
+    checkFileContains('index.html', '<section class="home-graph"');
 
     const expectedTitles = {
       'pages/contact.html': 'Contact | Daniel Short',
-      'pages/tools.html': 'Tool Directory | Daniel Short',
+      'pages/tools.html': 'Tools | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
       'pages/games.html': 'Games | Daniel Short',
       'pages/games/project-starfall.html': 'Project Starfall Prototype | Daniel Short',
@@ -743,7 +743,7 @@ try {
     assert(!/ds:hash=/.test(sitemap), 'sitemap.xml should not contain build metadata');
     assert(sitemap.includes('<loc>https://www.danielshort.me/</loc>'), 'sitemap.xml should include the personal site root URL');
     ['/analytics', '/data-science', '/tourism', '/resume'].forEach((route) => {
-      assert(!sitemap.includes(`<loc>https://www.danielshort.me${route}</loc>`), `sitemap.xml should not include retired route ${route}`);
+      assert(!sitemap.includes(`<loc>https://www.danielshort.me${route}</loc>`), `sitemap.xml should not include hidden route ${route}`);
     });
   });
 
@@ -789,7 +789,9 @@ try {
     const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
     const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
-    assert(toolsHtml.includes('<h1>Tool Directory</h1>'), 'tools page should expose a visible h1');
+    assert(toolsHtml.includes('<h1>Tools I keep refining</h1>'), 'tools page should expose a visible h1');
+    assert(!catalogJs.includes("if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');"),
+      'tools account UI should not force an existing visible h1 offscreen');
     assert(!toolsHtml.includes('Quick browser tools for text cleanup') &&
       !toolsHtml.includes('Find the right utility') &&
       !toolsHtml.includes('Choose a focused utility'),
@@ -798,7 +800,12 @@ try {
     assert(!toolsHtml.includes('data-tools-filter-status'), 'tools page should not render filter status');
     assert(!toolsHtml.includes('class="tools-filter"'), 'tools page should not render search controls');
     assert(!toolsHtml.includes('data-tools-empty-state'), 'tools page should not render filter empty state');
-    assert(!toolsHtml.includes('class="tools-nav"'), 'tools page should not render category shortcut buttons');
+    assert(!toolsHtml.includes('class="tools-nav"'), 'tools page should not render the removed category shortcut buttons');
+    assert(toolsHtml.includes('tools-directory-layout') &&
+      toolsHtml.includes('tools-directory-rail') &&
+      toolsHtml.includes('tools-directory-note') &&
+      toolsHtml.includes('tools-rail-link'),
+      'tools page should render the ML/data directory rail and rationale panel');
     assert(toolsHtml.includes('class="tool-launch-card"'), 'tools page should render compact tool launcher cards');
     assert(toolsHtml.includes('class="tool-card-details"'), 'tools page should render hover/focus tool details');
     assert(!toolsHtml.includes('data-tools-search='), 'tools page should not keep search-only metadata on tool cards');
@@ -823,6 +830,17 @@ try {
     assert(catalogJs.includes('applyToolsAuthenticatedContentVisibility') &&
       catalogJs.includes('[data-tools-auth-only]'),
       'tools account UI should centrally manage signed-in-only tools content');
+    assert(catalogJs.includes('createModalController') &&
+      catalogJs.includes("modalEl.removeAttribute('inert')") &&
+      catalogJs.includes("modalEl.setAttribute('inert', '')") &&
+      catalogJs.includes('restoreFocusEl') &&
+      catalogJs.includes('modalController.trapFocus'),
+      'tools account/session modals should use inert hidden state, restored focus, and a focus trap');
+    const bundledToolsAccountJs = readFile('dist/site-tools-account.js');
+    assert(bundledToolsAccountJs.includes('removeAttribute("inert")') &&
+      bundledToolsAccountJs.includes('setAttribute("inert","")') &&
+      bundledToolsAccountJs.includes('setAttribute("aria-hidden","true")'),
+      'bundled tools account UI should include the inert modal behavior used in production pages');
     assert(!directoryJs.includes('data-tools-filter-input'), 'tools directory script should not wire removed search controls');
     assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHtml.indexOf('class="tools-account-bar"'),
       'tools resume panel should sit below the account bar');
@@ -830,7 +848,9 @@ try {
       'tools resume panel should sit above the main tool grid');
     (toolsPageRecord.categories || []).forEach((category) => {
       if (!category.description) return;
-      assert(!toolsHtml.includes(category.description), `${category.id} description should not render in compact tools directory`);
+      const hasTools = toolRecords.some((tool) => String(tool.categoryId || '') === String(category.id || '') && (tool.slug || tool.href));
+      if (!hasTools) return;
+      assert(toolsHtml.includes(category.description), `${category.id} description should render in the category rail`);
     });
     assert(!toolsHtml.includes('More tools soon'), 'tools page should not render placeholder cards');
     assert(!toolsHtml.includes('href="tools/"'), 'tools page should not render empty tool links');
@@ -36537,7 +36557,7 @@ try {
       'chatbot retrieval should rank the contact page first for contact questions');
     const resumeRetrieval = retrieveKnowledge('Where is the best resume?', { url: '/', title: 'Daniel Short' });
     assert(resumeRetrieval.chunks.every((chunk) => !/^\/resume/i.test(chunk.url || '')),
-      'chatbot retrieval should not surface retired resume routes');
+      'chatbot retrieval should not surface hidden professional resume routes');
     const projectRetrieval = retrieveKnowledge('What projects show SQL and Tableau experience?', { url: '/', title: 'Daniel Short' });
     assert(projectRetrieval.chunks[0] && String(projectRetrieval.chunks[0].url || '').startsWith('/portfolio/'),
       'chatbot retrieval should keep project questions focused on portfolio projects');
@@ -36960,7 +36980,7 @@ try {
     assert(rewrites.some((rule) => rule.source === '/portfolio' && /user-agent/i.test(JSON.stringify(rule)) && rule.destination === '/dist/ai-pages/portfolio'),
       'vercel rewrites should serve same-URL portfolio digest to AI agents');
     assert(!rewrites.some((rule) => rule.source === '/analytics' && /user-agent/i.test(JSON.stringify(rule))),
-      'vercel rewrites should not expose retired analytics digests');
+      'vercel rewrites should not expose hidden professional digests');
     assert(rewrites.some((rule) => rule.source === '/portfolio/:project' && rule.destination === '/dist/ai-pages/portfolio/:project'),
       'vercel rewrites should serve portfolio project digests to AI agents');
     assert(rewrites.some((rule) => rule.source === '/tools/:tool' && rule.destination === '/dist/ai-pages/tools/:tool'),
@@ -37002,10 +37022,13 @@ try {
       'AI digest pages should not include visible header/footer/source metadata chrome');
     assert((homeDigest.match(/<h1\b/gi) || []).length === 1, 'AI digest pages should include exactly one rendered h1');
     assert(homeDigest.includes('<h1>Daniel Short</h1>') &&
-      homeDigest.includes('Projects') &&
-      homeDigest.includes('Tools') &&
-      homeDigest.includes('Games'),
-      'home AI digest should reuse existing personal-site page labels');
+      homeDigest.includes('Models, dashboards, and data systems') &&
+      homeDigest.includes('Small browser utilities for repeated text') &&
+      homeDigest.includes('Browser games and simulations') &&
+      homeDigest.includes('16 published projects') &&
+      homeDigest.includes('10 public tools') &&
+      homeDigest.includes('5 games'),
+      'home AI digest should reuse personal-site graph labels and counts');
     ['Summary', 'Key Details', 'Evidence', 'Context', 'Topics'].forEach((heading) => {
       assert(!homeDigest.includes(`>${heading}<`), `home AI digest should not add synthetic ${heading} heading`);
     });
@@ -37183,6 +37206,10 @@ try {
     assert(!devJs.includes('vercel dev') && !devJs.includes('npx --yes vercel'), 'dev server should not launch Vercel CLI');
     assert(copyJs.includes("path.join(outDir, 'admin')") && !/const dirs = \[[^\]]*'admin'/s.test(copyJs),
       'copy-to-public.js should keep admin local-only');
+    ['analytics', 'data-science', 'tourism', 'resume', 'resume-pdf', 'resume-analytics', 'resume-data-science', 'resume-tourism', 'resume-analytics-pdf', 'resume-data-science-pdf', 'resume-tourism-pdf'].forEach((slug) => {
+      assert(!copyJs.includes(`path.join(outDir, 'pages', '${slug}.html')`),
+        `copy-to-public.js should publish professional route page ${slug}`);
+    });
     assert(!fs.existsSync('public/admin'), 'public/admin should not be generated');
   });
 
@@ -37831,13 +37858,13 @@ try {
 
     const routeStyles = JSON.parse(fs.readFileSync('build/route-component-styles.json', 'utf8'));
     assert(Array.isArray(routeStyles['/']), 'route styles manifest missing home entry');
-    assert(!routeStyles['/analytics'], 'route styles manifest should not include retired analytics entry');
-    assert(!routeStyles['/data-science'], 'route styles manifest should not include retired data-science entry');
-    assert(!routeStyles['/tourism'], 'route styles manifest should not include retired tourism entry');
-    ['css/components/home-proof.css','css/components/destination-analytics.css'].forEach((stylePath) => {
-      assert(routeStyles['/'].includes(stylePath), `/ route styles missing ${stylePath}`);
-    });
-    assert(!routeStyles['/resume-analytics'], 'route styles manifest should not include retired resume analytics entry');
+    assert(routeStyles['/'].length === 0, '/ route styles should rely on the bundled home graph CSS');
+    assert(!routeStyles['/analytics'], 'route styles manifest should not include hidden analytics entry');
+    assert(!routeStyles['/data-science'], 'route styles manifest should not include hidden data-science entry');
+    assert(!routeStyles['/tourism'], 'route styles manifest should not include hidden tourism entry');
+    assert(stylesCss.includes('@import url("components/home-project-graph.css");'),
+      'styles.css should eagerly import the personal homepage graph styles');
+    assert(!routeStyles['/resume-analytics'], 'route styles manifest should not include hidden resume analytics entry');
     assert(Array.isArray(routeStyles['/search']), 'route styles manifest missing search entry');
     assert(Array.isArray(routeStyles['/games/project-starfall']) && routeStyles['/games/project-starfall'].includes('css/games/project-starfall.css'),
       'route styles manifest missing project starfall CSS entry');
@@ -37865,7 +37892,7 @@ try {
     const lateLoadEnv = createEnv();
     let handleRedirectCalls = 0;
     lateLoadEnv.document.body.dataset = { page: 'tools' };
-    lateLoadEnv.document.title = 'Tool Directory | Daniel Short';
+    lateLoadEnv.document.title = 'Tools | Daniel Short';
     lateLoadEnv.window.ToolsAuth = {
       handleRedirect: async () => {
         handleRedirectCalls++;
@@ -37982,126 +38009,232 @@ try {
     assert(!readFile('index.html').includes('http-equiv="refresh"'), 'index.html should be a real homepage, not a redirect');
     checkFileContains('pages/search.html', 'css/components/search.css');
     checkFileContains('pages/contact.html', 'css/components/contact-card.css');
-    checkFileContains('index.html', 'css/components/destination-analytics.css');
-    ['index.html'].forEach((file) => {
-      checkFileContains(file, 'css/components/home-proof.css');
-    });
+    checkFileContains('index.html', 'js/home/project-graph.js');
     checkFileContains('pages/portfolio/nonogram.html', 'css/components/project-page.css');
   });
 
   section('Personal homepage structure', () => {
     const html = readFile('index.html');
     const personalAudience = readFile('content/audiences/personal.json');
-    const homeCss = readFile('css/utilities/design-system-overrides.css');
+    const graphCss = readFile('css/components/home-project-graph.css');
+    const graphJs = readFile('js/home/project-graph.js');
     checkFileContains('index.html', 'home-pattern-page');
-    checkFileContains('index.html', '<h1>Daniel Short</h1>');
-    checkFileContains('index.html', 'class="hero-identity"');
-    checkFileContains('index.html', 'class="hero-avatar"');
+    checkFileContains('index.html', 'class="home-graph"');
+    checkFileContains('index.html', 'data-home-graph');
+    checkFileContains('index.html', 'data-graph-tab="projects"');
+    checkFileContains('index.html', 'data-graph-tab="tools"');
+    checkFileContains('index.html', 'data-graph-tab="games"');
+    checkFileContains('index.html', 'data-graph-center');
+    checkFileContains('index.html', 'data-graph-inspector');
     checkFileContains('index.html', 'img/hero/head-avatar-192.jpg');
-    checkFileContains('index.html', 'Projects, tools, and applied data work');
-    checkFileContains('index.html', 'id="featured-projects"');
-    checkFileContains('index.html', 'id="tools-preview"');
-    checkFileContains('index.html', 'id="games-preview"');
-    checkFileContains('index.html', 'id="contact-preview"');
-    checkFileContains('index.html', 'class="home-showcase-grid"');
-    checkFileContains('index.html', 'class="home-showcase-card"');
-    checkFileContains('index.html', 'class="home-showcase-summary"');
-    checkFileContains('index.html', 'Browse all projects');
-    checkFileContains('index.html', 'View all tools');
-    checkFileContains('index.html', 'View all games');
-    checkFileContains('index.html', 'View project');
-    checkFileContains('index.html', 'Text Compare');
-    checkFileContains('index.html', 'Word Count');
-    checkFileContains('index.html', 'QR Code Generator');
-    checkFileContains('index.html', 'tools/text-compare');
-    checkFileContains('index.html', 'tools/word-frequency');
-    checkFileContains('index.html', 'tools/qr-code-generator');
-    checkFileContains('index.html', 'Play dogfight');
-    checkFileContains('index.html', 'Say hello');
-    checkFileContains('index.html', 'Contact form');
-    checkFileContains('index.html', 'href="contact#contact-modal" class="btn-primary" data-contact-modal-link="true">Contact form</a>');
-    [
-      'SQL pipeline and anomaly views for comparing loss signals against store sales context.',
-      'Source-grounded chatbot demo comparing managed RAG responses with a custom fine-tuned path.',
-      'VAE demo that samples a learned digit space to generate new handwritten-style digits.',
-      'Compare two drafts and highlight insertions, deletions, and replacements inline.',
-      'Paste text, remove stopwords, and review frequent words locally in the browser.',
-      'Create branded QR codes with templates, logo embedding, and high-resolution exports.',
-      'Pilot a fighter, duel adaptive AI opponents, and stack upgrades between waves.',
-      'Play an American roulette table and track hot pockets across recent spins.',
-      'Build slot reels, chain synergies, and tune long-run probability systems.'
-    ].forEach((summary) => {
-      checkFileContains('index.html', summary);
-      assert(personalAudience.includes(summary), `personal homepage source should persist summary: ${summary}`);
+    checkFileContains('js/home/project-graph.js', "label: 'Projects'");
+    checkFileContains('js/home/project-graph.js', "label: 'Tools'");
+    checkFileContains('js/home/project-graph.js', "label: 'Games'");
+    checkFileContains('js/home/project-graph.js', 'const BRANCH_LAYOUT');
+    checkFileContains('js/home/project-graph.js', 'const ITEM_EXPANSION_LAYOUT');
+    checkFileContains('js/home/project-graph.js', 'const CATEGORY_GROUPS');
+    checkFileContains('js/home/project-graph.js', 'const ITEM_ICON_BY_ID');
+    checkFileContains('js/home/project-graph.js', 'getItemIcon(item, state.active)');
+    checkFileContains('js/home/project-graph.js', 'buildCategoryDots');
+    checkFileContains('js/home/project-graph.js', 'getToggleIcon(active)');
+    assert(!graphJs.includes('getNodeInitial'), 'homepage graph should use themed SVG icons instead of text initials');
+    checkFileContains('js/home/project-graph.js', "id: 'project-starfall'");
+    checkFileContains('js/home/project-graph.js', "id: 'text-compare'");
+    checkFileContains('js/home/project-graph.js', "id: 'chatbotLora'");
+    ['short-links', 'ga4-utm-performance', 'job-application-tracker', 'transcribe'].forEach((toolId) => {
+      assert(!graphJs.includes(`id: '${toolId}'`), `homepage graph should not expose hidden tool ${toolId}`);
     });
-    const heroSection = html.slice(html.indexOf('<section class="hero hero--default"'), html.indexOf('id="featured-projects"'));
-    assert(heroSection.includes('href="games" class="btn-secondary hero-cta"'),
-      'homepage hero Games CTA should match the secondary Tools button style');
-    assert(!heroSection.includes('hero-status') && !heroSection.includes('Python · SQL'),
-      'homepage hero should not render the old tools/status line');
+    checkFileContains('js/home/project-graph.js', 'selectCategory');
+    checkFileContains('js/home/project-graph.js', 'selectInspectorItem');
+    checkFileContains('js/home/project-graph.js', 'restoreInspectorPreview');
+    checkFileContains('js/home/project-graph.js', 'getRelatedItems');
+    checkFileContains('js/home/project-graph.js', 'getItemGroupLabels');
+    checkFileContains('js/home/project-graph.js', 'getItemSearchTokens');
+    checkFileContains('js/home/project-graph.js', 'collapseGraph');
+    checkFileContains('js/home/project-graph.js', 'computeGraphLayout');
+    checkFileContains('js/home/project-graph.js', 'getGraphMetrics');
+    checkFileContains('js/home/project-graph.js', 'getGraphLayout');
+    checkFileContains('js/home/project-graph.js', 'getRadialGraphLayout');
+    checkFileContains('js/home/project-graph.js', 'getGroupedItemLayout');
+    checkFileContains('js/home/project-graph.js', 'getGroupKey');
+    checkFileContains('js/home/project-graph.js', 'parseGroupKey');
+    checkFileContains('js/home/project-graph.js', 'getEdgeAnchorPoint');
+    checkFileContains('js/home/project-graph.js', 'makeEdgeConnectorPath');
+    checkFileContains('js/home/project-graph.js', 'getCategoryLineBox');
+    checkFileContains('js/home/project-graph.js', 'getBranchingItemSlot');
+    checkFileContains('js/home/project-graph.js', 'getBranchingItemPoint');
+    checkFileContains('js/home/project-graph.js', 'createGroupInspectorHtml');
+    checkFileContains('js/home/project-graph.js', 'selectInspectorGroup');
+    checkFileContains('js/home/project-graph.js', 'data-graph-group');
+    checkFileContains('js/home/project-graph.js', 'getCompactGroupedItemLayout');
+    checkFileContains('js/home/project-graph.js', 'getSelectedGroupIdForLayout');
+    checkFileContains('js/home/project-graph.js', 'getGroupedColumnObstacles');
+    checkFileContains('js/home/project-graph.js', 'getSafeGroupedColumnStart');
+    checkFileContains('js/home/project-graph.js', 'getCompactItemPositions');
+    checkFileContains('js/home/project-graph.js', 'getItemNodeSize');
+    checkFileContains('js/home/project-graph.js', 'resolveGraphCollisions');
+    checkFileContains('js/home/project-graph.js', '--x: ${pos.x}px');
+    checkFileContains('js/home/project-graph.js', '--node-size: ${layout.nodeSize}px');
+    checkFileContains('js/home/project-graph.js', '--node-width: ${layout.nodeWidth}px');
+    assert(graphJs.includes("active: 'projects'"), 'homepage graph should default to Projects');
+    assert(graphJs.includes("selectedKey: ''") &&
+      graphJs.includes('selectOverview(state.active)') &&
+      graphJs.includes('state.latestLayout = layout'),
+      'homepage graph should show category overviews by default and draw connectors from stable layout state');
+    assert(!graphJs.includes('setPan') && !graphJs.includes('is-dragging') && !graphJs.includes("addEventListener('pointerdown'"),
+      'homepage graph should not expose manual pan/drag controls');
+    assert(graphCss.includes('touch-action: pan-y') &&
+      graphCss.includes('--home-graph-footer-space') &&
+      graphCss.includes('flex: 1 1 auto') &&
+      graphCss.includes('height: auto') &&
+      graphCss.includes('grid-template-rows: minmax(620px, 68svh) auto') &&
+      graphCss.includes('grid-template-rows: minmax(690px, 72svh) auto') &&
+      graphCss.includes('grid-template-columns: minmax(0, 4fr) minmax(260px, 1fr)') &&
+      graphCss.includes('body[data-page="home"].home-pattern-page #main') &&
+      graphCss.includes('body[data-page="home"].home-pattern-page .footer.footer-classic .footer-nav') &&
+      graphCss.includes('.home-graph__inspector') &&
+      graphCss.includes('.home-pattern-page .speed-dial') &&
+      graphCss.includes('.home-pattern-page .site-chatbot') &&
+      graphCss.includes('@keyframes homeGraphNodeIn') &&
+      graphCss.includes('@keyframes homeGraphNodeOut') &&
+      graphCss.includes('@media (prefers-reduced-motion: reduce)'),
+      'home graph CSS should cover one-screen desktop fit, scroll-safe mobile behavior, preview panel, animation, and reduced motion');
+    assert(!graphCss.includes('min-height: 920px') &&
+      !graphCss.includes('min-height: 1040px') &&
+      !graphCss.includes('position: fixed'),
+      'homepage graph should fit the visible viewport without a tall draggable board or fixed preview overlay');
+    assert(graphJs.includes('data-graph-dot') &&
+      graphJs.includes('data-graph-dot-category') &&
+      graphJs.includes('data-graph-dot-item') &&
+      graphJs.includes('handleDotPreviewEnter') &&
+      graphJs.includes("addEventListener('mousemove', handleDotPreviewEnter)") &&
+      graphJs.includes('showTooltip(entry.item, dot, { force: true })') &&
+      !graphJs.includes('previewInspectorItem'),
+      'homepage graph should render interactive collapsed item dots with hover tooltips while keeping the inspector selection-driven');
+    assert(graphCss.includes('.home-graph[data-graph-active] .home-graph__category.is-active .home-graph__halo') &&
+      graphCss.includes('grid-template-columns: 44px minmax(0, 1fr) 28px 30px') &&
+      graphCss.includes('width: calc(100% + 92px)') &&
+      graphCss.includes('height: calc(100% + 82px)') &&
+      graphCss.includes('border-radius: 50%') &&
+      graphCss.includes('inset: 0') &&
+      graphCss.includes('pointer-events: auto') &&
+      graphCss.includes('pointer-events: none') &&
+      graphCss.includes('visibility: hidden') &&
+      graphCss.includes('.home-graph__status {\n    display: none;') &&
+      graphCss.includes('.home-graph__category:is(:hover, :focus-within) .home-graph__category-card') &&
+      graphCss.includes('box-sizing: border-box'),
+      'homepage graph should hide the active status badge, hide only the active category count dots, keep plus/minus inside cards, style category hover, allow collapsed dot hover, and fit inspector buttons');
+    assert(graphCss.includes('.home-graph__node.has-label') &&
+      graphCss.includes('width: var(--node-width') &&
+      graphCss.includes('clip: auto') &&
+      graphCss.includes('-webkit-line-clamp: 2') &&
+      graphCss.includes('border-radius: 50%'),
+      'homepage graph item nodes should show wrapped labeled rows on roomy screens and stay compact on constrained screens');
+    assert(graphJs.includes('getGroupedFanSlot') &&
+      graphJs.includes("tools: { x: .94, y: .5 }") &&
+      graphJs.includes("width: showLabels ? clamp(Math.round(metrics.width * .105), 112, 124) : size") &&
+      graphJs.includes('const categoryBottom = Math.max') &&
+      graphJs.includes('Math.ceil(Math.sqrt(count * 1.15))'),
+      'homepage graph should use radial desktop group slots and a compact mobile icon grid that avoids branch-card overlap');
+    assert(graphJs.includes('MOBILE_DEPTH_TOPICS') &&
+      graphJs.includes('getMobileDepthTopics') &&
+      graphJs.includes('createMobileDepthDeckHtml') &&
+      graphJs.includes('data-mobile-group') &&
+      graphJs.includes('data-mobile-topic') &&
+      graphJs.includes('data-mobile-item') &&
+      graphJs.includes('syncMobileDepth') &&
+      graphJs.includes('home-graph__mobile-chain') &&
+      graphCss.includes('.home-graph__mobile-deck') &&
+      graphCss.includes('.home-graph__mobile-depth-card') &&
+      graphCss.includes('.home-graph__mobile-depth-card--final') &&
+      graphCss.includes('.home-graph__mobile-chain') &&
+      graphCss.includes('.home-graph__mobile-cluster-card') &&
+      graphCss.includes('.home-graph__mobile-cluster-lines') &&
+      graphCss.includes('@media (max-width: 640px)'),
+      'homepage graph mobile layout should use a depth-deck interaction with the selected chain, subcategory, topic, project cluster, and preview inside the final cell');
+    assert(graphJs.includes('getGroupKey(categoryId, group.id)') &&
+      graphJs.includes('entry.type === \'group\'') &&
+      graphJs.includes('groupPoints.set(entry.groupId') &&
+      graphJs.includes("key: `group:${state.active}:${entry.groupId}`") &&
+      graphJs.includes('className: \'home-graph__line home-graph__line--group\'') &&
+      graphJs.includes('metrics.isCompact') &&
+      graphJs.includes('getCompactGroupedItemLayout(categoryId, metrics, graphLayout, dimensions, selectedKey)') &&
+      graphJs.includes('updateLayout: true') &&
+      graphJs.includes('halfWidth: groupHalfWidth') &&
+      graphJs.includes('makeEdgeConnectorPath(activeCategoryPoint, groupPoint') &&
+      graphJs.includes('makeEdgeConnectorPath(fromPoint, itemPoint') &&
+      graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
+      graphJs.includes('keepEntryNearCluster') &&
+      graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
+      graphCss.includes('.home-graph__line--group') &&
+      graphCss.includes('.home-graph__group-label') &&
+      graphCss.includes('.home-graph__group-label::before') &&
+      graphCss.includes('.home-graph__group-count') &&
+      graphCss.includes('.home-graph__group-label:is(:hover, :focus-visible)') &&
+      graphCss.includes('.home-graph__category.is-supporting .home-graph__category-title') &&
+      graphCss.includes('grid-template-columns: 36px 28px') &&
+      graphCss.includes('width: 88px') &&
+      graphCss.includes('stroke-dasharray: 12 11'),
+      'homepage graph should route edge-anchored lines through interactive subcategory hubs and shrink non-focused categories');
+    assert(!graphJs.includes('const stackStep = dimensions.height') &&
+      graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
+      graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
+      personalAudience.includes('home-graph-20260704-mobile-chain-cell-v5'),
+      'homepage graph item placement should cluster project labels around each subcategory instead of using tabular child-node grids');
+    assert(graphJs.includes("map.addEventListener('click'") &&
+      graphJs.includes("center?.addEventListener('click', () => collapseGraph())"),
+      'homepage graph should collapse the active branch from the center logo or empty canvas space');
+    assert(graphJs.includes("event.target.closest('[data-graph-category]')") &&
+      graphJs.includes('selectCategory(categoryEl.dataset.graphCategory)') &&
+      graphCss.includes('.home-graph__category-toggle') &&
+      graphCss.includes('position: relative'),
+      'homepage graph plus/minus chips and category shells should both toggle the branch');
+    assert(graphJs.includes('const title = item.fullTitle || item.title;') &&
+      graphJs.includes('title="${escapeHtml(title)}"') &&
+      graphJs.includes('title="${escapeHtml(category.label)}"'),
+      'homepage graph nodes and category buttons should expose native hover titles');
+    assert(graphJs.includes("addEventListener('pointerover', handleItemPreviewEnter)") &&
+      graphJs.includes("addEventListener('mouseover', handleItemPreviewEnter)") &&
+      graphJs.includes("addEventListener('focusin'") &&
+      graphJs.includes('data-graph-line-key') &&
+      !graphJs.includes("svg.innerHTML = ''") &&
+      graphCss.includes('.home-graph__node:is(:hover, :focus-visible, :focus-within)') &&
+      !graphJs.includes('setTimeout(drawLines'),
+      'homepage graph should expose node tooltip previews above other nodes and avoid delayed line redraw flashes');
+    assert(personalAudience.includes('home-graph__center-logo') &&
+      personalAudience.includes('img/brand/00-ds-logo-master-full-color.svg'),
+      'homepage graph should use the main DS logo as the center node');
+    ['Projects','Tools','Games'].forEach((label) => {
+      assert(personalAudience.includes(`data-graph-tab=\\"${label.toLowerCase()}\\"`),
+        `personal homepage source missing ${label} tab`);
+    });
+    assert(!html.includes('Blog') && !html.includes('href="blog"') && !personalAudience.includes('Blog'),
+      'personal homepage should not include a blog page link');
+    assert(!html.includes('tourism intelligence') && !html.includes('Domain</dt><dd>Tourism'),
+      'personal homepage should move away from tourism/professional positioning');
     assert(!html.includes('id="experiments"'), 'homepage should not render an Experiments section');
     assert(!html.includes('id="about"'), 'homepage should not render an About section');
-    assert(!personalAudience.includes('class=\\"hero-status\\"') && !personalAudience.includes('Python · SQL') &&
-      personalAudience.includes('href=\\"games\\" class=\\"btn-secondary hero-cta\\"') &&
-      personalAudience.includes('href=\\"contact#contact-modal\\" class=\\"btn-primary\\" data-contact-modal-link=\\"true\\"'),
-      'personal homepage source should persist the simplified hero and contact modal CTA');
-    assert(!personalAudience.includes('home-experiments') && !personalAudience.includes('id=\\"experiments\\"'),
-      'personal homepage source should not regenerate an Experiments section');
-    assert(!personalAudience.includes('home-about') && !personalAudience.includes('id=\\"about\\"'),
-      'personal homepage source should not regenerate an About section');
-    const featuredSection = html.slice(html.indexOf('id="featured-projects"'), html.indexOf('id="tools-preview"'));
-    const toolsSection = html.slice(html.indexOf('id="tools-preview"'), html.indexOf('id="games-preview"'));
-    const gamesSection = html.slice(html.indexOf('id="games-preview"'), html.indexOf('id="contact-preview"'));
-    assert(featuredSection.includes('home-showcase-card') && !featuredSection.includes('project-card') &&
-      !featuredSection.includes('<picture') && !featuredSection.includes('class="overlay"'),
-      'homepage Projects section should use standardized text cards, not media overlay cards');
-    assert(toolsSection.includes('home-showcase-actions') && toolsSection.includes('View all tools'),
-      'homepage Tools section should include a section-level View all tools action');
-    assert(gamesSection.includes('home-showcase-actions') && gamesSection.includes('View all games'),
-      'homepage Games section should include a section-level View all games action');
-    assert(!html.includes('who-i-work-with-card'), 'homepage section cards should use the standardized showcase card class');
-    assert(personalAudience.includes('home-showcase-card') && personalAudience.includes('home-showcase-summary') &&
-      !personalAudience.includes('project-examples-card') &&
-      !personalAudience.includes('class=\\"overlay\\"'),
-      'personal homepage source should persist standardized text cards with summaries');
-    assert(personalAudience.includes('home-showcase-actions') &&
-      personalAudience.includes('View all tools') &&
-      personalAudience.includes('View all games'),
-      'personal homepage source should persist Tools and Games section actions');
-    assert(homeCss.includes('body[data-page="home"].home-pattern-page main > section#featured-projects') &&
-      homeCss.includes('--home-section-accent: var(--brand-green);') &&
-      homeCss.includes('body[data-page="home"].home-pattern-page main > section#tools-preview') &&
-      homeCss.includes('--home-section-accent: var(--brand-action-copper);') &&
-      homeCss.includes('--home-section-accent-contrast: #ffffff;') &&
-      homeCss.includes('body[data-page="home"].home-pattern-page main > section#games-preview') &&
-      homeCss.includes('--home-section-accent: var(--brand-blue);'),
-      'homepage sections should define per-section accent colors');
-    assert(homeCss.includes('--home-section-accent-strong: var(--home-section-accent);') &&
-      homeCss.includes('background: var(--home-section-accent);') &&
-      homeCss.includes('color: var(--home-section-accent-contrast);') &&
-      homeCss.includes('grid-template-rows: auto 1fr auto;') &&
-      homeCss.includes('.home-showcase-summary') &&
-      homeCss.includes('.home-showcase-card .btn-secondary') &&
-      homeCss.includes('background: #ffffff;') &&
-      homeCss.includes('border-left: 3px solid var(--home-section-accent);') &&
-      homeCss.includes(':is(.project-examples-actions, .home-showcase-actions) .btn-secondary'),
-      'homepage section accents should use restrained card accents, summaries, outline card buttons, and filled section CTAs');
-    assert(homeCss.includes('min-height: clamp(400px, 46svh, 540px);') &&
-      homeCss.includes('.home-showcase-actions') &&
-      homeCss.includes('margin-top: clamp(.95rem, 2vw, 1.25rem);') &&
-      homeCss.includes('min-height: 154px;') &&
-      homeCss.includes('width: min(100%, 760px);') &&
-      homeCss.includes('border-top: 3px solid var(--home-section-accent);') &&
-      homeCss.includes('text-align: center;'),
-      'homepage sections should use tighter panel heights, summary cards, and a centered contact close-out');
+    assert(!html.includes('id="featured-projects"') &&
+      !html.includes('id="tools-preview"') &&
+      !html.includes('id="games-preview"') &&
+      !html.includes('id="contact-preview"'),
+      'homepage should use the interactive graph instead of the prior stacked sections');
+    assert(personalAudience.includes('class=\\"home-graph\\"') &&
+      personalAudience.includes('data-graph-map') &&
+      personalAudience.includes('data-graph-item-host') &&
+      personalAudience.includes('data-graph-inspector'),
+      'personal homepage source should persist the interactive graph shell');
+    assert(!personalAudience.includes('home-hero-panel') && !personalAudience.includes('tourism intelligence'),
+      'personal homepage source should not keep the previous professional hero copy');
     assert(!html.includes('audience-gateway-hero'), 'homepage should not use audience gateway hero');
     assert(!html.includes('class="hero-proof-row"'), 'homepage hero should not include the old metric strip');
     assert(!html.includes('this version'), 'homepage should not mention audience versions');
     assert(!html.includes('data-cert-modal-open'), 'homepage should not include resume-era certification modal hooks');
-    const heroHeadlineIndex = html.indexOf('<h1>');
-    const heroIdentityIndex = html.indexOf('class="hero-identity"');
-    assert(heroHeadlineIndex >= 0 && heroIdentityIndex > heroHeadlineIndex,
-      'homepage hero identity should sit below the headline');
+    const profileIndex = html.indexOf('class="home-graph__profile"');
+    const tabsIndex = html.indexOf('class="home-graph__tabs"');
+    const workspaceIndex = html.indexOf('class="home-graph__workspace"');
+    assert(profileIndex >= 0 && tabsIndex > profileIndex && workspaceIndex > tabsIndex,
+      'homepage graph should render profile, tabs, then graph workspace');
   });
 
   section('Project-first public copy', () => {
@@ -38340,6 +38473,19 @@ try {
            copyJs.includes('img/project-starfall') &&
            copyJs.includes('source(?:\\/|$)'),
            'copy-to-public.js should skip Project Starfall source/review visuals from public deploy output');
+    assert(copyJs.includes('PUBLIC_INCLUDE_STARFALL_BACKUPS') &&
+           copyJs.includes("img/project-starfall/backups"),
+           'copy-to-public.js should skip Project Starfall backup visuals by default with an explicit opt-in');
+    assert(copyJs.includes('requiredPublicDocuments') &&
+           copyJs.includes('documents/Resume.pdf') &&
+           copyJs.includes('documents/Resume-Analytics.pdf') &&
+           copyJs.includes('documents/Resume-Data-Science.pdf') &&
+           copyJs.includes('documents/Resume-Tourism.pdf'),
+           'copy-to-public.js should always publish the core resume PDFs');
+    const starfallAssetEngine = fs.readFileSync('js/games/project-starfall/engine/assets.js', 'utf8');
+    assert(starfallAssetEngine.includes('source.PRELOAD_ASSET_BACKUPS') &&
+           starfallAssetEngine.includes('addAssetPathBackup'),
+           'Project Starfall should only preload backup asset URLs when backup publishing is explicitly enabled');
     const devServer = fs.readFileSync('build/dev.js', 'utf8');
     assert(devServer.includes("'.mp4': 'video/mp4'") &&
            devServer.includes("'.webm': 'video/webm'") &&
@@ -38434,6 +38580,9 @@ try {
     assert(hasTourism && hasTourismHtml, 'tourism rewrites missing for hidden professional realm');
     assert(hasResumeAnalytics && hasResumeDataScience && hasResumeTourism, 'professional resume rewrites missing');
     assert(hasResumeAnalyticsPdf && hasResumeDataSciencePdf && hasResumeTourismPdf, 'professional resume PDF preview rewrites missing');
+    const hasDestinationAnalyticsRedirect = redirects.some(r => r.source === '/destination-analytics' && r.destination === '/tourism' && r.permanent === true);
+    const hasContributionsRedirect = redirects.some(r => r.source === '/contributions' && r.destination === '/tourism' && r.permanent === true);
+    assert(hasDestinationAnalyticsRedirect && hasContributionsRedirect, 'legacy professional aliases should redirect permanently to tourism');
     const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
     const hasProjectStarfall = rewrites.some(r => r.source === '/games/project-starfall' && r.destination === '/pages/games/project-starfall');
     const hasProjectStarfallHtml = rewrites.some(r => r.source === '/games/project-starfall.html' && r.destination === '/pages/games/project-starfall');
@@ -38481,6 +38630,30 @@ try {
     assert(hasGoTwoSeg, 'missing 2-segment /go shortlink rewrite');
 
     const headers = (vercelObj && vercelObj.headers) || [];
+    const cspHeaderForSource = (source) => {
+      const entry = headers.find(h => h && h.source === source);
+      if (!entry || !Array.isArray(entry.headers)) return null;
+      return entry.headers.find(x => x && x.key === 'Content-Security-Policy') || null;
+    };
+    const globalSecurityHeader = headers.find(h =>
+      h && String(h.source || '').includes('(?!tools/background-remover')
+    );
+    const globalCsp = globalSecurityHeader && Array.isArray(globalSecurityHeader.headers)
+      ? globalSecurityHeader.headers.find(x => x && x.key === 'Content-Security-Policy')
+      : null;
+    assert(globalCsp && !String(globalCsp.value || '').includes("'unsafe-eval'"),
+      'global CSP should not allow unsafe-eval');
+    assert(!headers.some(h =>
+      h && h.source === '/(.*)' &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'Content-Security-Policy')
+    ), 'global CSP should exclude the background remover routes instead of applying to every route');
+    ['/tools/background-remover', '/tools/background-remover.html', '/pages/background-remover'].forEach((source) => {
+      const csp = cspHeaderForSource(source);
+      assert(csp && String(csp.value || '').includes("'unsafe-eval'") &&
+             String(csp.value || '').includes('https://staticimgly.com'),
+             `${source} should keep the relaxed background remover CSP isolated to that route`);
+    });
     const hasNoindexShortLinks = headers.some(h =>
       h && h.source === '/short-links' &&
       Array.isArray(h.headers) &&
@@ -38513,9 +38686,9 @@ try {
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
     assert(hasNoindexTranscribeTool, 'Transcribe tool noindex header missing');
-    assert(!hasNoindexResumeAnalyticsPdf, 'resume analytics PDF noindex header should be retired with the route');
-    assert(!hasNoindexResumeDataSciencePdf, 'resume data science PDF noindex header should be retired with the route');
-    assert(!hasNoindexResumeTourismPdf, 'resume tourism PDF noindex header should be retired with the route');
+    assert(!hasNoindexResumeAnalyticsPdf, 'resume analytics PDF preview should not have an explicit noindex header');
+    assert(!hasNoindexResumeDataSciencePdf, 'resume data science PDF preview should not have an explicit noindex header');
+    assert(!hasNoindexResumeTourismPdf, 'resume tourism PDF preview should not have an explicit noindex header');
     assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
   });
 
@@ -38530,10 +38703,10 @@ try {
     assert(urls.has('/'), 'search index should include personal homepage');
     assert(urls.has('/portfolio'), 'search index should include portfolio page');
     assert(urls.has('/contact'), 'search index should include contact page');
-    assert(!urls.has('/analytics'), 'search index should exclude retired analytics page');
-    assert(!urls.has('/data-science'), 'search index should exclude retired data-science page');
-    assert(!urls.has('/tourism'), 'search index should exclude retired tourism page');
-    assert(!urls.has('/resume-analytics'), 'search index should exclude retired resume page');
+    assert(!urls.has('/analytics'), 'search index should exclude hidden analytics page');
+    assert(!urls.has('/data-science'), 'search index should exclude hidden data-science page');
+    assert(!urls.has('/tourism'), 'search index should exclude hidden tourism page');
+    assert(!urls.has('/resume-analytics'), 'search index should exclude hidden professional resume page');
     assert(!urls.has('/resume-analytics-pdf'), 'search index should exclude analytics PDF preview');
     assert(!urls.has('/resume-data-science-pdf'), 'search index should exclude data science PDF preview');
     assert(!urls.has('/resume-tourism-pdf'), 'search index should exclude tourism PDF preview');
@@ -39175,6 +39348,11 @@ try {
     checkFileContains('pages/portfolio.html', 'id="modals"');
     checkFileContains('pages/portfolio.html', 'id="filters"');
     checkFileContains('pages/portfolio.html', 'portfolio-library-section');
+    checkFileContains('pages/portfolio.html', 'portfolio-ml-hero');
+    checkFileContains('pages/portfolio.html', 'portfolio-lab-panel');
+    checkFileContains('pages/portfolio.html', 'Project signals');
+    checkFileContains('js/portfolio/portfolio.js', 'project-card-kicker');
+    checkFileContains('js/portfolio/portfolio.js', 'project-card-tags');
     const portfolioHtml = readFile('pages/portfolio.html');
     assert(!portfolioHtml.includes('id="filter-menu"'), 'portfolio page should not include filter menu');
     assert(!portfolioHtml.includes('id="see-more"'), 'portfolio page should not include see-more toggle');

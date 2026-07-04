@@ -4,10 +4,10 @@
   "outputPath": "pages/games.html",
   "title": "Games | Daniel Short",
   "canonicalPath": "/games",
-  "description": "Browser-based games built by Daniel Short.",
+  "description": "Browser games and simulations by Daniel Short focused on systems, probability, progression, and feedback loops.",
   "ogTitle": "Games | Daniel Short",
-  "ogDescription": "Browser-based games built by Daniel Short.",
-  "siteName": "Daniel Short - Data Science & Analytics",
+  "ogDescription": "Browser games and simulations by Daniel Short focused on systems, probability, progression, and feedback loops.",
+  "siteName": "Daniel Short",
   "ogType": "website",
   "bodyAttributes": {
     "data-page": "games",
@@ -32,16 +32,20 @@
       "defer": true
     }
   ],
-  "heroEyebrow": "Browser-based mini games",
-  "heroTitle": "Games",
-  "heroLead": "Mini games built by Daniel Short. Play in your browser, no install required.",
+  "heroEyebrow": "Systems playground",
+  "heroTitle": "Games and simulations",
+  "heroLead": "Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.",
   "games": [
     {
       "id": "stellar-dogfight",
       "title": "Stellar Dogfight",
       "href": "games/stellar-dogfight",
-      "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and stack upgrades between waves.",
-      "tags": ["AI squadrons", "Upgrades", "Progression"],
+      "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.",
+      "tags": [
+        "Adaptive AI",
+        "Upgrade loops",
+        "Combat tuning"
+      ],
       "iconType": "dogfight",
       "order": 1
     },
@@ -49,8 +53,12 @@
       "id": "roulette",
       "title": "Double-Zero Roulette",
       "href": "games/roulette",
-      "summary": "Play a realistic 00 roulette table, place bets across inside and outside layouts, and track hot pockets over the last 200 spins.",
-      "tags": ["American table", "Wheel animation", "Hot numbers"],
+      "summary": "Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.",
+      "tags": [
+        "Probability",
+        "Distribution tracking",
+        "Table state"
+      ],
       "iconType": "roulette",
       "order": 2
     },
@@ -58,8 +66,12 @@
       "id": "probability-engine",
       "title": "Probability Engine",
       "href": "games/probability-engine",
-      "summary": "Construct slot reels, chain synergies, automate a casino floor, and fight entropy in a long-run probability simulator.",
-      "tags": ["Idle/Incremental", "Deck Builder", "Prestige"],
+      "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
+      "tags": [
+        "Simulation",
+        "Synergies",
+        "Prestige loops"
+      ],
       "iconType": "probability",
       "order": 3
     },
@@ -67,8 +79,12 @@
       "id": "project-starfall",
       "title": "Project Starfall",
       "href": "games/project-starfall",
-      "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test upgrade systems in a browser RPG prototype.",
-      "tags": ["Action RPG", "Loot", "Progression"],
+      "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.",
+      "tags": [
+        "RPG systems",
+        "Loot economy",
+        "Progression"
+      ],
       "iconType": "starfall",
       "order": 4
     },
@@ -76,8 +92,12 @@
       "id": "ocean-wave-simulation",
       "title": "Ocean Wave Simulation",
       "href": "games/ocean-wave-simulation",
-      "summary": "Dial in wind speed, wave height, and sun elevation in a calming real-time ocean surface renderer.",
-      "tags": ["Relaxing", "Simulation", "Canvas"],
+      "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
+      "tags": [
+        "Parameter sandbox",
+        "Realtime canvas",
+        "Visual systems"
+      ],
       "iconType": "ocean",
       "order": 5
     }

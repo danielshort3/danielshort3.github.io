@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="documents">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/.vercel/output/static/documents/Project_10.zip!/" />
+      <root url="jar://$PROJECT_DIR$/.vercel/output/static/documents/Project_10_pdf.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -66,7 +66,7 @@ function getAudienceLabel(content, audienceKey) {
   const defaultAudience = content.audiencesByKey[content.site.settings.defaultAudience];
   return defaultAudience && defaultAudience.brandNavPrimary
     ? defaultAudience.brandNavPrimary
-    : 'Projects, Tools, and Notes';
+    : 'Projects, Tools, and Games';
 }
 
 async function main() {

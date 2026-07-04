@@ -18,6 +18,35 @@
     '/resume-tourism',
     '/resume-tourism-pdf'
   ]);
+  const PROFESSIONAL_RESUME_HTML = `
+    <div class="nav-item nav-item-resume">
+      <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
+        Resume
+        <span class="nav-link-caret" aria-hidden="true"></span>
+      </a>
+      <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="Resume download">
+        <div class="nav-dropdown-inner nav-dropdown-inner-simple">
+          <div class="nav-dropdown-column nav-dropdown-column-list">
+            <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+            <div class="nav-dropdown-list" role="list">
+              <a href="resume" class="nav-dropdown-link" role="listitem" data-resume-home-link="true">
+                <span class="nav-dropdown-title">Resume</span>
+                <span class="nav-dropdown-subtitle">BI, reporting, SQL, Tableau, and automation</span>
+              </a>
+              <a href="resume-pdf" class="nav-dropdown-link" role="listitem" data-resume-preview-link="true">
+                <span class="nav-dropdown-title">Preview PDF</span>
+                <span class="nav-dropdown-subtitle">Preview the PDF resume</span>
+              </a>
+              <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download data-resume-download-link="true">
+                <span class="nav-dropdown-title">Download Resume</span>
+                <span class="nav-dropdown-subtitle">Download the PDF copy</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 
   const PROFESSIONAL_HOME_HTML = `
     <section class="hero hero--default">
@@ -30,7 +59,7 @@
         <p class="hero-tagline">I build SQL, Tableau, Excel, and Python workflows that turn recurring reporting, KPI tracking, and operational questions into outputs leaders can act on quickly.</p>
         <p class="hero-status">SQL · Tableau · Python · Reporting</p>
         <div class="cta-group">
-          <a href="resume-analytics" class="btn-primary hero-cta">Resume</a>
+          <a href="resume" class="btn-primary hero-cta">Resume</a>
           <a href="portfolio?audience=analytics" class="btn-secondary hero-cta">Portfolio</a>
           <a href="contact#contact-modal" class="btn-ghost hero-cta" data-contact-modal-link="true">Contact</a>
         </div>
@@ -65,7 +94,7 @@
           </article>
         </div>
         <div class="project-examples-actions">
-          <a href="portfolio?audience=analytics" class="btn-secondary project-examples-cta">View analytics portfolio</a>
+          <a href="portfolio?audience=analytics" class="btn-secondary project-examples-cta">View portfolio</a>
         </div>
       </div>
     </section>
@@ -120,7 +149,7 @@
             <p>I’m open to roles where practical data workflows turn recurring business questions into decision-ready outputs.</p>
           </div>
           <div class="home-contact-actions" aria-label="Professional contact options">
-            <a href="resume-analytics" class="btn-primary">Resume</a>
+            <a href="resume" class="btn-primary">Resume</a>
             <a href="contact#contact-modal" class="btn-secondary" data-contact-modal-link="true">Contact form</a>
           </div>
         </div>
@@ -241,11 +270,107 @@
   const updateSwitches = (mode) => {
     const isProfessional = mode === PROFESSIONAL_MODE;
     document.querySelectorAll('[data-site-realm-switch]').forEach((link) => {
-      link.textContent = isProfessional ? 'Personal' : 'Work';
-      link.setAttribute('href', isProfessional ? '/?mode=personal' : '/?mode=professional');
-      link.setAttribute('aria-label', isProfessional ? 'Switch to the personal site view' : 'Switch to the professional site view');
-      link.dataset.siteRealmSwitch = isProfessional ? PERSONAL_MODE : PROFESSIONAL_MODE;
+      if (isProfessional) {
+        link.hidden = true;
+        link.textContent = '';
+        link.removeAttribute('href');
+        link.setAttribute('aria-hidden', 'true');
+        link.dataset.siteRealmSwitch = PERSONAL_MODE;
+        return;
+      }
+      link.hidden = false;
+      link.textContent = 'Work';
+      link.setAttribute('href', '/?mode=professional');
+      link.setAttribute('aria-label', 'Switch to the professional site view');
+      link.removeAttribute('aria-hidden');
+      link.dataset.siteRealmSwitch = PROFESSIONAL_MODE;
     });
+  };
+
+  const setNavLinkLabel = (link, label) => {
+    if (!link) return;
+    const caret = link.querySelector('.nav-link-caret');
+    link.textContent = '';
+    link.append(document.createTextNode(label));
+    if (caret) {
+      link.append(document.createTextNode('\n            '));
+      link.append(caret);
+    }
+  };
+
+  const ensureProfessionalHomeLink = (menu) => {
+    let homeLink = menu.querySelector('[data-professional-home-link="true"]');
+    if (homeLink) return homeLink;
+    homeLink = document.createElement('a');
+    homeLink.href = '/';
+    homeLink.className = 'nav-link';
+    homeLink.textContent = 'Home';
+    homeLink.dataset.entryHomeLink = 'true';
+    homeLink.dataset.professionalHomeLink = 'true';
+    menu.insertBefore(homeLink, menu.firstElementChild);
+    return homeLink;
+  };
+
+  const applyProfessionalPortfolioNav = (menu) => {
+    const portfolioItem = menu.querySelector('.nav-item-portfolio');
+    if (!portfolioItem) return;
+    const portfolioLink = portfolioItem.querySelector(':scope > .nav-link');
+    setNavLinkLabel(portfolioLink, 'Portfolio');
+    const footerTitle = portfolioItem.querySelector('.nav-dropdown-all .nav-dropdown-title');
+    const footerSubtitle = portfolioItem.querySelector('.nav-dropdown-all .nav-dropdown-subtitle');
+    if (footerTitle) footerTitle.textContent = 'View full portfolio';
+    if (footerSubtitle) footerSubtitle.textContent = 'Browse the complete project library';
+  };
+
+  const ensureProfessionalResumeNav = (menu) => {
+    let resumeItem = menu.querySelector('.nav-item-resume');
+    if (!resumeItem) {
+      const contactItem = menu.querySelector('.nav-item-contact');
+      if (contactItem) {
+        contactItem.insertAdjacentHTML('beforebegin', PROFESSIONAL_RESUME_HTML.trim());
+      } else {
+        menu.insertAdjacentHTML('beforeend', PROFESSIONAL_RESUME_HTML.trim());
+      }
+      resumeItem = menu.querySelector('.nav-item-resume');
+    }
+    const resumeLink = resumeItem?.querySelector(':scope > .nav-link');
+    if (resumeLink) resumeLink.setAttribute('href', 'resume');
+  };
+
+  const applyProfessionalContactNav = (menu) => {
+    const firstContactLink = menu.querySelector('.nav-item-contact .nav-dropdown-list .nav-dropdown-link');
+    if (!firstContactLink) return;
+    const title = firstContactLink.querySelector('.nav-dropdown-title');
+    const subtitle = firstContactLink.querySelector('.nav-dropdown-subtitle');
+    if (title) {
+      title.textContent = 'Message about a role';
+      const badge = document.createElement('span');
+      badge.className = 'nav-dropdown-badge';
+      badge.setAttribute('aria-hidden', 'true');
+      badge.textContent = 'Recommended';
+      title.appendChild(badge);
+    }
+    if (subtitle) {
+      subtitle.textContent = 'Best for analytics, BI, reporting, and automation work';
+    }
+  };
+
+  const applyProfessionalNavigation = () => {
+    if (window.getSiteRealm() !== PROFESSIONAL_MODE) return;
+    const header = document.getElementById('combined-header-nav');
+    const menu = header?.querySelector('#primary-menu');
+    if (!header || !menu || header.dataset.siteRealmNav === PROFESSIONAL_MODE) return;
+
+    const brandLink = header.querySelector('.brand[data-entry-home-link="true"]');
+    if (brandLink) brandLink.setAttribute('href', 'analytics');
+
+    ensureProfessionalHomeLink(menu);
+    menu.querySelectorAll('.nav-item-tools, .nav-item-games').forEach((item) => item.remove());
+    applyProfessionalPortfolioNav(menu);
+    ensureProfessionalResumeNav(menu);
+    applyProfessionalContactNav(menu);
+
+    header.dataset.siteRealmNav = PROFESSIONAL_MODE;
   };
 
   const preserveProfessionalLinks = () => {
@@ -305,6 +430,7 @@
   const applyMode = () => {
     const mode = detectMode();
     setDocumentMode(mode);
+    applyProfessionalNavigation();
     renderProfessionalHome();
     updateSwitches(mode);
     preserveProfessionalLinks();

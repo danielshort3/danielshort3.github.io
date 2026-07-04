@@ -157,7 +157,9 @@
     (source.SKILLS || []).forEach((skill) => addAssetPath(paths, skill.iconAsset));
     collectAnimationAssetPaths(source.ANIMATION_ASSETS, paths);
     collectAnimationAssetPaths(source.EQUIPMENT_VISUALS, paths);
-    Object.keys(source.ASSET_BACKUP_PATHS || {}).forEach((assetPath) => addAssetPathBackup(paths, assetPath, source, fallbackData));
+    if (source.PRELOAD_ASSET_BACKUPS) {
+      Object.keys(source.ASSET_BACKUP_PATHS || {}).forEach((assetPath) => addAssetPathBackup(paths, assetPath, source, fallbackData));
+    }
     return Array.from(new Set(paths));
   }
 

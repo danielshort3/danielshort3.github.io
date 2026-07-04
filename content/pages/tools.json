@@ -2,12 +2,12 @@
   "id": "tools",
   "template": "tools-directory",
   "outputPath": "pages/tools.html",
-  "title": "Tool Directory | Daniel Short",
+  "title": "Tools | Daniel Short",
   "canonicalPath": "/tools",
-  "description": "Local, privacy-first tools from Daniel Short.",
-  "ogTitle": "Tool Directory | Daniel Short",
-  "ogDescription": "Local, privacy-first tools from Daniel Short.",
-  "siteName": "Daniel Short – Data Science & Analytics",
+  "description": "Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.",
+  "ogTitle": "Tools | Daniel Short",
+  "ogDescription": "Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.",
+  "siteName": "Daniel Short",
   "ogType": "website",
   "bodyAttributes": {
     "data-page": "tools",
@@ -44,8 +44,9 @@
       "defer": true
     }
   ],
-  "heroEyebrow": "Privacy-first utilities",
-  "heroTitle": "Tool Directory",
+  "heroEyebrow": "Tools",
+  "heroTitle": "Tools I keep refining",
+  "heroLead": "Small utilities built around real friction: compare text, clean inputs, generate links, process media, and keep repeatable work moving.",
   "filter": {
     "placeholder": "Search tools, tags, or categories",
     "clearLabel": "Clear"
@@ -57,33 +58,36 @@
   "categories": [
     {
       "id": "tools-writing",
-      "title": "Writing & Text",
-      "description": "In-browser helpers for editing, cleanup, and quick analysis.",
+      "title": "Text and writing",
+      "description": "Draft comparison, cleanup, and quick text analysis.",
       "order": 1
     },
     {
       "id": "tools-marketing",
-      "title": "Marketing",
-      "description": "Fast, consistent link-building and shareable assets.",
+      "title": "Links and campaigns",
+      "description": "Campaign URLs, QR assets, and shareable outputs.",
       "order": 2
     },
     {
       "id": "tools-media",
-      "title": "Images & Video",
-      "description": "Local image processing utilities and lightweight media capture.",
+      "title": "Media utilities",
+      "description": "Local image, video, and capture workflows.",
       "order": 3
     },
     {
       "id": "tools-cloud",
-      "title": "Cloud-backed",
-      "description": "Tools that rely on an account, API, or server-side compute.",
+      "title": "Cloud-backed workflows",
+      "description": "Account, API, and server-assisted tools.",
       "order": 4
     },
     {
       "id": "tools-experiments",
       "title": "Experiments",
-      "description": "Small creative projects and just-for-fun utilities.",
+      "description": "Small creative utilities and prototypes.",
       "order": 5
     }
-  ]
+  ],
+  "directoryKicker": "Tool catalog",
+  "directoryTitle": "Choose the workflow surface",
+  "directoryDescription": "Grouped by the kind of repeated work each tool is meant to remove."
 }

@@ -11,6 +11,13 @@ const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public');
 const cssManifestPath = path.join(root, 'dist', 'styles-manifest.json');
 const jsManifestPath = path.join(root, 'dist', 'scripts-manifest.json');
+const includeStarfallBackups = /^(1|true|yes)$/i.test(String(process.env.PUBLIC_INCLUDE_STARFALL_BACKUPS || '').trim());
+const requiredPublicDocuments = [
+  'documents/Resume.pdf',
+  'documents/Resume-Analytics.pdf',
+  'documents/Resume-Data-Science.pdf',
+  'documents/Resume-Tourism.pdf'
+];
 const textExtensions = new Set([
   '.css',
   '.html',
@@ -99,6 +106,7 @@ function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
   return rel === 'img/project-starfall/review'
     || rel.startsWith('img/project-starfall/review/')
+    || (!includeStarfallBackups && (rel === 'img/project-starfall/backups' || rel.startsWith('img/project-starfall/backups/')))
     || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel);
 }
 
@@ -281,6 +289,17 @@ function collectReferencedDocumentFiles() {
   const sources = listTextFilesRecursive(root);
   const matcher = /(?:^|["'(=\s])\/?(documents\/[A-Za-z0-9._\-/%]+)(?=$|["')#?\s<])/g;
 
+  requiredPublicDocuments.forEach((relPath) => {
+    const abs = path.join(root, relPath);
+    let stat;
+    try {
+      stat = fs.statSync(abs);
+    } catch {
+      return;
+    }
+    if (stat.isFile()) matches.add(relPath);
+  });
+
   sources.forEach((filePath) => {
     let body = '';
     try {
@@ -349,23 +368,7 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
 function pruneRetiredPublicArtifacts() {
   const retiredTargets = [
     path.join(outDir, 'pages', 'contributions.html'),
-    path.join(outDir, 'pages', 'analytics.html'),
-    path.join(outDir, 'pages', 'data-science.html'),
-    path.join(outDir, 'pages', 'tourism.html'),
     path.join(outDir, 'pages', 'destination-analytics.html'),
-    path.join(outDir, 'pages', 'resume.html'),
-    path.join(outDir, 'pages', 'resume-pdf.html'),
-    path.join(outDir, 'pages', 'resume-analytics.html'),
-    path.join(outDir, 'pages', 'resume-data-science.html'),
-    path.join(outDir, 'pages', 'resume-tourism.html'),
-    path.join(outDir, 'pages', 'resume-analytics-pdf.html'),
-    path.join(outDir, 'pages', 'resume-data-science-pdf.html'),
-    path.join(outDir, 'pages', 'resume-tourism-pdf.html'),
-    path.join(outDir, 'resume.html'),
-    path.join(outDir, 'resume-pdf.html'),
-    path.join(outDir, 'analytics.html'),
-    path.join(outDir, 'data-science.html'),
-    path.join(outDir, 'tourism.html'),
     path.join(outDir, 'admin'),
     path.join(outDir, 'js', 'contributions')
   ];
