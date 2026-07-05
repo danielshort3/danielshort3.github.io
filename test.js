@@ -38683,6 +38683,13 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
+    const hasHiringModeNoindex = headers.some(h =>
+      h && h.source === '/:path*' &&
+      Array.isArray(h.has) &&
+      h.has.some(x => x && x.type === 'query' && x.key === 'mode' && x.value === 'professional') &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
+    );
     assert(hasNoindexShortLinks, 'short-links noindex header missing');
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
@@ -38691,6 +38698,7 @@ try {
     assert(!hasNoindexResumeDataSciencePdf, 'resume data science PDF preview should not have an explicit noindex header');
     assert(!hasNoindexResumeTourismPdf, 'resume tourism PDF preview should not have an explicit noindex header');
     assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
+    assert(hasHiringModeNoindex, 'hiring mode should send a query-scoped noindex, nofollow robots header');
   });
 
   section('Search index', () => {
@@ -39380,6 +39388,23 @@ try {
     assert(!readFile('index.html').includes('window.location.replace(target)'), 'index.html should not client-side redirect');
     checkFileContains('index.html', 'rel="canonical" href="https://www.danielshort.me/"');
     assert(!readFile('index.html').includes('name="robots" content="noindex, follow"'), 'index.html should be indexable');
+    const siteRealm = readFile('js/common/site-realm.js');
+    assert(siteRealm.includes('return PERSONAL_MODE;') &&
+      !siteRealm.includes('return normalizeMode(readStoredRealm())') &&
+      !siteRealm.includes('localStorage.setItem(STORAGE_KEY'),
+      'site realm should default to the public homepage version instead of persisting recruiter mode');
+    assert(siteRealm.includes('meta[name="robots"][data-site-realm-robots="hiring"]') &&
+      siteRealm.includes("robots.setAttribute('content', 'noindex, nofollow')") &&
+      siteRealm.includes('mode === PROFESSIONAL_MODE && explicitMode === PROFESSIONAL_MODE'),
+      'mode=professional hiring view should add a noindex, nofollow robots meta tag');
+    assert(siteRealm.includes("document.documentElement.classList.toggle('site-realm-professional-home', isProfessionalHome)") &&
+      siteRealm.includes("document.body.dataset.siteRealmHome = PROFESSIONAL_MODE"),
+      'root mode=professional should expose a scoped professional-home state without redirecting');
+    const professionalHomeCss = readFile('css/utilities/design-system-overrides.css');
+    assert(professionalHomeCss.includes('html.site-realm-professional-home body[data-page="home"].home-pattern-page') &&
+      professionalHomeCss.includes('07-website-hero-light-version.png') &&
+      professionalHomeCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat'),
+      'root mode=professional homepage should keep an image-backed analytics hero instead of the personal homepage gradient-only hero');
 
     ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
