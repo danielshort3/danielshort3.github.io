@@ -5,7 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const { loadSiteContentAsync } = require('./lib/content-loader');
 const {
+  buildGamesDirectoryWorkbenchData,
+  buildToolsDirectoryWorkbenchData,
   renderAudienceConfigJs,
+  renderDirectoryDataJs,
   renderFooter,
   renderFullPage,
   renderGamesDirectoryBody,
@@ -91,6 +94,18 @@ async function main() {
       ? navigation.portfolio.featuredProjectIds
       : []
   ));
+  if (content.pagesById && content.pagesById.tools) {
+    write(
+      path.join('js', 'portfolio', 'tools-directory-data.js'),
+      renderDirectoryDataJs(buildToolsDirectoryWorkbenchData(content.pagesById.tools, content.tools))
+    );
+  }
+  if (content.pagesById && content.pagesById.games) {
+    write(
+      path.join('js', 'portfolio', 'games-directory-data.js'),
+      renderDirectoryDataJs(buildGamesDirectoryWorkbenchData(content.pagesById.games))
+    );
+  }
   write(path.join('js', 'common', 'audience-config.js'), renderAudienceConfigJs(content.site.settings, content.audiences));
   write(path.join('build', 'templates', 'header.partial.html'), `${headerHtml}\n`);
   write(path.join('build', 'templates', 'footer.partial.html'), `${footerHtml}\n`);

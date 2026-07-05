@@ -435,14 +435,6 @@ function buildFooter() {
         title: 'Site',
         links: [
           { label: 'Sitemap', href: 'sitemap-pretty' },
-          {
-            label: 'Ask the site assistant',
-            type: 'button',
-            dataAttributes: {
-              'data-site-chatbot-open': true
-            },
-            hidden: true
-          },
           { label: 'Cookie settings', type: 'button', id: 'privacy-settings-link-footer', ariaHaspopup: 'dialog' },
           {
             label: 'Back to top',

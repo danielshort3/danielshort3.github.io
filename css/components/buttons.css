@@ -26,14 +26,10 @@
 
   .btn-primary {
     padding: 14px 30px;
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--accent-1) 92%, #ffffff 8%) 0%,
-      color-mix(in srgb, var(--accent-3) 68%, #0A1A1F 32%) 100%
-    );
-    color: var(--interactive-text);
-    border: 1px solid var(--interactive-border-hover);
-    box-shadow: var(--interactive-shadow-rest);
+    background: var(--cta-blue-gradient);
+    color: var(--cta-blue-text);
+    border: 1px solid var(--cta-blue);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   .btn-primary::after {
@@ -46,8 +42,10 @@
   }
 
   .btn-primary:hover {
+    background: var(--cta-blue-gradient-hover);
+    border-color: var(--cta-blue-hover);
     transform: translateY(var(--hover-lift-strong));
-    box-shadow: var(--interactive-shadow-hover);
+    box-shadow: var(--cta-blue-shadow-hover);
   }
 
   .btn-primary:hover::after { opacity: 1; }
@@ -161,28 +159,20 @@
   .btn-icon.btn-icon-featured {
     width: 50px;
     height: 50px;
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--accent-1) 88%, #ffffff 12%) 0%,
-      color-mix(in srgb, var(--accent-3) 65%, #071219 35%) 100%
-    );
-    color: var(--interactive-text);
-    border-color: var(--interactive-border-hover);
-    box-shadow: var(--interactive-shadow-hover);
+    background: var(--cta-blue-gradient);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue-border);
+    box-shadow: var(--cta-blue-shadow);
   }
   .btn-icon.btn-icon-featured svg {
     stroke-width: 1.6;
   }
   .btn-icon.btn-icon-featured:hover {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--accent-1) 94%, #ffffff 6%) 0%,
-      color-mix(in srgb, var(--accent-3) 72%, #030b12 28%) 100%
-    );
-    color: var(--text-1);
-    border-color: var(--interactive-border-hover);
+    background: var(--cta-blue-gradient-hover);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue);
     transform: translateY(var(--hover-lift-strong)) scale(var(--hover-scale));
-    box-shadow: var(--interactive-shadow-strong);
+    box-shadow: var(--cta-blue-shadow-hover);
   }
 
   .btn-icon:hover i,

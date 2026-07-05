@@ -23,7 +23,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/10-github-readme-portfolio-banner.svg">
   <meta name="twitter:image:alt" content="Daniel Short branded portfolio banner">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.c99107a2.css">
+  <link rel="stylesheet" href="dist/styles.fe778ac7.css">
   <link rel="stylesheet" href="css/components/destination-analytics.css">
   <link rel="stylesheet" href="css/components/contact-card.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -33,7 +33,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.7d2e9dfa.js"></script>
+  <script defer src="dist/site-shell.61fe0e32.js"></script>
   <script src="js/common/no-js.js"></script>
 </head>
 <body data-page="contact" class="contact-page site-page">
@@ -327,6 +327,14 @@
           <p class="section-subtitle">Email is fastest. LinkedIn and GitHub are useful for introductions, project context, and public work.</p>
         </div>
         <div class="contact-grid contact-big">
+        <a href="contact#contact-modal" class="contact-card contact-card-recommended" data-contact-modal-link="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+            <path d="M7 9h10"></path>
+            <path d="M7 13h6"></path>
+          </svg>
+          <span>Send a Message</span><small>Open the contact form</small>
+        </a>
         <a href="mailto:daniel@danielshort.me" class="contact-card">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="5" width="18" height="14" rx="2"></rect>
@@ -350,32 +358,18 @@
       </div>
       </section>
 
-  <section class="surface-band reveal destination-section" aria-labelledby="what-i-like-title">
-      <div class="wrapper">
-        <div class="destination-section-head">
-          <h2 id="what-i-like-title">What I Like to Talk About</h2>
-          <p>I’m usually interested in practical tools, data projects, interface ideas, automation, writing systems, and thoughtful uses of machine learning.</p>
-        </div>
-        <div class="who-i-work-with-grid">
-          <article class="who-i-work-with-card">
-            <h3>Projects</h3>
-            <p>Questions about anything in the project library, including datasets, dashboards, models, demos, and implementation choices.</p>
-          </article>
-          <article class="who-i-work-with-card">
-            <h3>Tools</h3>
-            <p>Ideas for small utilities, workflow helpers, browser-based editors, and privacy-first local tools.</p>
-          </article>
-          <article class="who-i-work-with-card">
-            <h3>Experiments</h3>
-            <p>Games, simulations, prototypes, and visual interfaces that make abstract systems easier to inspect.</p>
-          </article>
-          <article class="who-i-work-with-card">
-            <h3>Writing &amp; Notes</h3>
-            <p>Clear explanations, reusable documentation, and ways to make technical work easier to revisit later.</p>
-          </article>
-        </div>
+  <section id="grand-junction-location" class="surface-band reveal cms-location" data-cms-section-id="grand-junction-location" data-cms-section-type="map">
+    <div class="wrapper cms-location-inner">
+      <div class="cms-location-copy">
+        <h2 class="section-title">Based in Grand Junction, CO</h2>
+        <p class="section-subtitle">A western Colorado base for tourism, analytics, and practical web projects.</p>
+        <p><a class="btn-secondary" href="https://www.google.com/maps/search/?api=1&amp;query=Grand%20Junction%2C%20CO" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>
       </div>
-    </section>
+      <div class="cms-map-shell">
+        <iframe class="cms-map-iframe" title="Map of Grand Junction, CO" src="https://www.google.com/maps?q=Grand%20Junction%2C%20CO&amp;output=embed" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" data-google-maps-iframe data-google-maps-address="Grand Junction, CO" data-google-maps-zoom="10"></iframe>
+      </div>
+    </div>
+  </section>
   </main>
   <footer class="footer footer-classic">
     <div class="wrapper footer-inner">
@@ -399,7 +393,6 @@
           <h2 class="footer-col-title" id="footer-site">Site</h2>
           <a href="sitemap-pretty" class="footer-link">Sitemap</a>
           <a href="?mode=professional" class="footer-link" data-site-realm-switch="professional">Work</a>
-          <button type="button" class="footer-link" data-site-chatbot-open hidden>Ask the site assistant</button>
           <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
           <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
         </section>

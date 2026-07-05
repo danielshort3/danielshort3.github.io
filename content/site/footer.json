@@ -77,14 +77,6 @@
           }
         },
         {
-          "label": "Ask the site assistant",
-          "type": "button",
-          "dataAttributes": {
-            "data-site-chatbot-open": true
-          },
-          "hidden": true
-        },
-        {
           "label": "Cookie settings",
           "type": "button",
           "id": "privacy-settings-link-footer",

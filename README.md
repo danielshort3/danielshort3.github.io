@@ -64,6 +64,10 @@ Use a different port:
 npm run dev -- --port 4173
 ```
 
+### Google Maps embed
+
+The contact page location map is upgraded during `npm run build` with the Google Maps Embed API. For local builds, put the key in `google_maps_api_key.txt` at the repo root or set `GOOGLE_MAPS_API_KEY`; for Vercel, set `GOOGLE_MAPS_API_KEY` as an environment variable. Do not commit the key file.
+
 ## Usage
 
 - **Navigating the Website**:
