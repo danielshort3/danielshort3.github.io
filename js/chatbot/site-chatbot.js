@@ -13,7 +13,6 @@
   const body = document.body;
   const pageId = body && body.dataset ? body.dataset.page : '';
   if (!allowedPages.has(pageId) || document.querySelector('[data-site-chatbot]')) return;
-  body.dataset.siteChatbotActive = 'true';
 
   const STORAGE_KEY = 'daniel-short-chatbot-conversation';
   const SESSION_STATE_KEY = 'daniel-short-chatbot-session-state';
@@ -164,13 +163,11 @@
   const input = root.querySelector('.site-chatbot__input');
   const sendButton = root.querySelector('.site-chatbot__send');
   const status = root.querySelector('.site-chatbot__status');
-  const footerOpeners = Array.from(document.querySelectorAll('[data-site-chatbot-open]'));
   let chromeOffsetFrame = 0;
   let nudgeCheckFrame = 0;
   syncQuickPromptVisibility();
   restoreTranscriptMessages();
   setupChromeOffsetTracking();
-  setupFooterOpeners();
   scheduleInitialNudge();
   restoreOpenAfterChatbotNavigation();
   if (!state.ready) loadConfig();
@@ -1347,9 +1344,6 @@
 
   function setAvailability(available) {
     root.dataset.enabled = available ? 'true' : 'false';
-    footerOpeners.forEach((button) => {
-      button.hidden = !available;
-    });
     if (available) requestNudgeCheck();
   }
 
@@ -1377,17 +1371,6 @@
     state.pendingFollowupContext = followupContext;
     input.value = prompt;
     form.requestSubmit();
-  }
-
-  function setupFooterOpeners() {
-    footerOpeners.forEach((button) => {
-      button.hidden = root.dataset.enabled !== 'true';
-      button.addEventListener('click', () => {
-        dismissNudge('footer');
-        setOpen(true);
-        trackChatbotEvent('chatbot_launcher_opened', { source: 'footer' });
-      });
-    });
   }
 
   function trackChatbotEvent(name, params = {}) {

@@ -46,12 +46,10 @@
     color:color-mix(in srgb,var(--primary) 80%, #031016 20%);
   }
   .contact-card.contact-card-recommended{
-    background:linear-gradient(135deg,
-      color-mix(in srgb,var(--primary) 22%, var(--surface) 78%) 0%,
-      color-mix(in srgb,var(--primary) 38%, var(--surface) 62%) 100%);
-    border-color:color-mix(in srgb,var(--primary) 48%, transparent);
-    color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
-    box-shadow:0 24px 48px rgba(0,0,0,.35);
+    background:var(--brand-signal-blue, var(--primary));
+    border-color:var(--brand-signal-blue, var(--primary));
+    color:#ffffff;
+    box-shadow:0 18px 38px color-mix(in srgb, var(--brand-signal-blue, var(--primary)) 24%, transparent);
     isolation:isolate;
   }
   .contact-card.contact-card-recommended::after{
@@ -59,26 +57,26 @@
     position:absolute;
     inset:0;
     border-radius:inherit;
-    background:var(--primary);
+    background:var(--brand-deep-blue, var(--brand-signal-blue, var(--primary)));
     opacity:0;
     transition:opacity .25s;
     z-index:-1;
     pointer-events:none;
   }
   .contact-card.contact-card-recommended small{
-    color:color-mix(in srgb,#ffffff 88%, var(--bg) 12%);
+    color:color-mix(in srgb,#ffffff 88%, var(--brand-mist, #eef2f7) 12%);
   }
   .contact-card.contact-card-recommended:hover{
-    color:var(--bg);
-    border-color:var(--primary);
+    color:#ffffff;
+    border-color:var(--brand-deep-blue, var(--brand-signal-blue, var(--primary)));
     transform:translateY(-3px);
-    box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent);
+    box-shadow:0 10px 24px color-mix(in srgb, var(--brand-signal-blue, var(--primary)) 35%, transparent);
   }
   .contact-card.contact-card-recommended:hover::after{
     opacity:1;
   }
   .contact-card.contact-card-recommended:hover small{
-    color:var(--bg);
+    color:#ffffff;
   }
   .contact-options-heading{
     text-align:center;

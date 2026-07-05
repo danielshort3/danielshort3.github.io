@@ -176,14 +176,10 @@
     .speed-dial__toggle.btn-icon-featured,
     .speed-dial .speed-dial__action--direct.btn-icon
   ) {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--brand-signal-blue) 88%, #ffffff 12%) 0%,
-      var(--brand-deep-blue) 100%
-    );
-    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
-    border-color: color-mix(in srgb, var(--brand-signal-blue) 55%, transparent);
-    box-shadow: 0 8px 22px rgba(0, 95, 237, .16);
+    background: var(--cta-blue-gradient);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue-border);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   @media (hover:hover) and (pointer:fine) {
@@ -195,34 +191,30 @@
       .speed-dial__toggle.btn-icon-featured,
       .speed-dial .speed-dial__action--direct.btn-icon
     ):focus-visible {
-      background: linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--brand-signal-blue) 94%, #ffffff 6%) 0%,
-        color-mix(in srgb, var(--brand-deep-blue) 88%, var(--brand-midnight) 12%) 100%
-      );
-      color: color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
-      border-color: color-mix(in srgb, var(--brand-signal-blue) 68%, transparent);
-      box-shadow: 0 10px 26px rgba(0, 95, 237, .2);
+      background: var(--cta-blue-gradient-hover);
+      color: var(--cta-blue-text);
+      border-color: var(--cta-blue);
+      box-shadow: var(--cta-blue-shadow-hover);
     }
   }
 
   .cookie-settings__toggle.btn-icon-featured {
     width: 52px;
     height: 52px;
-    background: var(--brand-signal-blue);
-    color: #ffffff;
-    border-color: var(--brand-signal-blue);
+    background: var(--cta-blue);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue);
     border-radius: 10px;
-    box-shadow: 0 10px 22px rgba(0, 95, 237, .18);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   @media (hover:hover) and (pointer:fine) {
     .cookie-settings__toggle.btn-icon-featured:hover,
     .cookie-settings__toggle.btn-icon-featured:focus-visible {
-      background: var(--brand-deep-blue);
-      color: #ffffff;
-      border-color: var(--brand-deep-blue);
-      box-shadow: 0 16px 30px rgba(0, 95, 237, .24);
+      background: var(--cta-blue-hover);
+      color: var(--cta-blue-text);
+      border-color: var(--cta-blue-hover);
+      box-shadow: var(--cta-blue-shadow-hover);
       transform: translateY(-1px);
     }
   }
@@ -713,11 +705,11 @@
 
   .nav-link.nav-link-cta,
   .btn-primary {
-    background: var(--brand-signal-blue);
-    color: #ffffff;
-    border: 1px solid var(--brand-signal-blue);
+    background: var(--cta-blue);
+    color: var(--cta-blue-text);
+    border: 1px solid var(--cta-blue);
     border-radius: 10px;
-    box-shadow: 0 10px 22px rgba(0, 95, 237, .18);
+    box-shadow: var(--cta-blue-shadow);
     font-family: var(--font-sans);
     font-weight: 750;
   }
@@ -745,15 +737,15 @@
   }
 
   :is(.btn-primary, .nav-link.nav-link-cta):hover {
-    background: var(--brand-deep-blue);
-    border-color: var(--brand-deep-blue);
-    color: #ffffff;
+    background: var(--cta-blue-hover);
+    border-color: var(--cta-blue-hover);
+    color: var(--cta-blue-text);
   }
 
   :is(.btn-secondary, .btn-ghost, .btn-icon):hover {
-    background: color-mix(in srgb, var(--brand-signal-blue) 7%, #ffffff 93%);
+    background: var(--cta-blue-soft);
     color: var(--brand-midnight);
-    border-color: color-mix(in srgb, var(--brand-signal-blue) 36%, transparent);
+    border-color: var(--cta-blue-border);
   }
 
   .nav-dropdown,
@@ -1754,8 +1746,8 @@
 
   body[data-page="home"].home-pattern-page main > section#contact-preview {
     --home-section-art: url("../img/brand/analytics-contact-cta-bg.png");
-    --home-section-accent: var(--brand-action-copper);
-    --home-section-accent-contrast: var(--brand-midnight);
+    --home-section-accent: var(--cta-blue);
+    --home-section-accent-contrast: var(--cta-blue-text);
   }
 
   body[data-page="home"].home-pattern-page main > section:is(
@@ -1954,10 +1946,10 @@
     #games-preview
   ) :is(.project-examples-actions, .home-showcase-actions) .btn-secondary,
   body[data-page="home"].home-pattern-page #contact-preview .home-contact-actions .btn-primary {
-    background: var(--home-section-accent);
-    border-color: var(--home-section-accent);
-    color: var(--home-section-accent-contrast);
-    box-shadow: 0 10px 22px color-mix(in srgb, var(--home-section-accent) 22%, transparent);
+    background: var(--cta-blue);
+    border-color: var(--cta-blue);
+    color: var(--cta-blue-text);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   body[data-page="home"].home-pattern-page main > section:is(
@@ -1966,9 +1958,9 @@
     #games-preview
   ) :is(.project-examples-actions, .home-showcase-actions) .btn-secondary:is(:hover, :focus-visible),
   body[data-page="home"].home-pattern-page #contact-preview .home-contact-actions .btn-primary:is(:hover, :focus-visible) {
-    background: var(--home-section-accent-hover);
-    border-color: var(--home-section-accent-hover);
-    color: #ffffff;
+    background: var(--cta-blue-hover);
+    border-color: var(--cta-blue-hover);
+    color: var(--cta-blue-text);
   }
 
   body[data-page="home"].home-pattern-page #contact-preview #cta-link {
@@ -2177,14 +2169,14 @@
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #cta .btn-primary {
-    background: var(--home-section-accent);
-    border-color: var(--home-section-accent);
-    color: #ffffff;
+    background: var(--cta-blue);
+    border-color: var(--cta-blue);
+    color: var(--cta-blue-text);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #cta .btn-primary:is(:hover, :focus-visible) {
-    background: color-mix(in srgb, var(--home-section-accent) 82%, var(--brand-midnight) 18%);
-    border-color: color-mix(in srgb, var(--home-section-accent) 82%, var(--brand-midnight) 18%);
+    background: var(--cta-blue-hover);
+    border-color: var(--cta-blue-hover);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link:hover,
@@ -2257,6 +2249,10 @@
     border-color: color-mix(in srgb, var(--brand-midnight) 12%, transparent);
   }
 
+  body[data-page="contact"] .contact-big {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .contact-card {
     align-items: flex-start;
     color: var(--brand-midnight);
@@ -2269,15 +2265,72 @@
     color: var(--brand-signal-blue);
   }
 
-  .contact-card.contact-card-recommended {
-    background: var(--brand-midnight);
-    color: #ffffff;
-    border-color: var(--brand-midnight);
+  body[data-page="contact"] .contact-big .contact-card small {
+    overflow-wrap: anywhere;
   }
 
-  .contact-card.contact-card-recommended small,
-  .contact-card.contact-card-recommended svg {
-    color: color-mix(in srgb, #ffffff 86%, var(--brand-mist) 14%);
+  body[data-page="contact"] .contact-card:is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--brand-signal-blue) 7%, #ffffff 93%);
+    color: var(--brand-midnight);
+    border-color: color-mix(in srgb, var(--brand-signal-blue) 34%, transparent);
+    box-shadow: var(--shadow-md);
+  }
+
+  body[data-page="contact"] .contact-card:is(:hover, :focus-visible) :is(svg, .icon) {
+    color: var(--brand-signal-blue);
+  }
+
+  body[data-page="contact"] .contact-card:is(:hover, :focus-visible) small {
+    color: color-mix(in srgb, var(--brand-midnight) 72%, #ffffff 28%);
+  }
+
+  body[data-page="contact"] :is(.btn-secondary, .btn-ghost):is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--brand-signal-blue) 7%, #ffffff 93%);
+    color: var(--brand-midnight);
+    border-color: color-mix(in srgb, var(--brand-signal-blue) 34%, transparent);
+  }
+
+  body[data-page="contact"] .contact-card.contact-card-recommended {
+    background: var(--brand-signal-blue);
+    color: #ffffff;
+    border-color: var(--brand-signal-blue);
+    box-shadow: 0 18px 38px color-mix(in srgb, var(--brand-signal-blue) 24%, transparent);
+  }
+
+  body[data-page="contact"] .contact-card.contact-card-recommended small,
+  body[data-page="contact"] .contact-card.contact-card-recommended svg,
+  body[data-page="contact"] .contact-card.contact-card-recommended .icon {
+    color: #ffffff;
+  }
+
+  body[data-page="contact"] .contact-card.contact-card-recommended:is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--brand-signal-blue) 92%, var(--brand-deep-blue) 8%);
+    color: #ffffff;
+    border-color: var(--brand-deep-blue);
+  }
+
+  body[data-page="contact"] .contact-card.contact-card-recommended:is(:hover, :focus-visible) :is(svg, .icon, small) {
+    color: #ffffff;
+  }
+
+  @media (max-width: 1100px) {
+    body[data-page="contact"] .contact-big {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    body[data-page="contact"] .contact-big {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body[data-page="contact"] .contact-big .contact-card {
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 138px;
+      text-align: center;
+    }
   }
 
   .modal-content,
@@ -2317,30 +2370,30 @@
   }
 
   .site-chatbot__launcher {
-    background: var(--brand-signal-blue);
-    color: #ffffff;
-    border-color: var(--brand-signal-blue);
+    background: var(--cta-blue);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue);
     border-radius: 10px;
-    box-shadow: 0 10px 22px rgba(0, 95, 237, .18);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   .site-chatbot__send,
   .site-chatbot__message--user .site-chatbot__bubble {
-    background: var(--brand-signal-blue);
+    background: var(--cta-blue);
   }
 
   .site-chatbot__send,
   .site-chatbot__message--user .site-chatbot__bubble,
   .site-chatbot__message--user .site-chatbot__bubble p {
-    color: #ffffff;
-    -webkit-text-fill-color: #ffffff;
+    color: var(--cta-blue-text);
+    -webkit-text-fill-color: var(--cta-blue-text);
   }
 
   .site-chatbot__launcher:hover,
   .site-chatbot__launcher:focus-visible {
-    background: var(--brand-deep-blue);
-    border-color: var(--brand-deep-blue);
-    box-shadow: 0 16px 30px rgba(0, 95, 237, .24);
+    background: var(--cta-blue-hover);
+    border-color: var(--cta-blue-hover);
+    box-shadow: var(--cta-blue-shadow-hover);
     transform: none;
   }
 
@@ -2389,17 +2442,17 @@
     }
 
     .nav-row .nav-link.nav-link-cta {
-      background: var(--brand-signal-blue);
-      border-color: var(--brand-signal-blue);
-      color: #ffffff;
+      background: var(--cta-blue);
+      border-color: var(--cta-blue);
+      color: var(--cta-blue-text);
       box-shadow: none;
     }
 
     .nav-row .nav-link.nav-link-cta:hover,
     .nav-row .nav-link.nav-link-cta:focus-visible {
-      background: var(--brand-deep-blue);
-      border-color: var(--brand-deep-blue);
-      color: #ffffff;
+      background: var(--cta-blue-hover);
+      border-color: var(--cta-blue-hover);
+      color: var(--cta-blue-text);
     }
 
     #nav-dropdown-portfolio .nav-project-card {
@@ -2934,9 +2987,9 @@
   }
 
   .nav-row {
-    flex: 0 1 auto;
-    gap: 8px;
-    max-width: none;
+    flex: 0 1 clamp(620px, 58vw, 760px);
+    gap: clamp(14px, 1.8vw, 24px);
+    max-width: min(760px, 64vw);
   }
 
   .nav-link {
@@ -3634,10 +3687,10 @@
   body.site-page .speed-dial .speed-dial__action--direct.btn-icon {
     width: 44px;
     height: 44px;
-    background: #ffffff;
-    color: var(--brand-deep-blue);
-    border-color: var(--professional-border-strong);
-    box-shadow: 0 8px 18px rgba(9, 31, 59, .12);
+    background: var(--cta-blue);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   body.site-page .cookie-settings__label,
@@ -3654,15 +3707,14 @@
   body.site-page .speed-dial__toggle.btn-icon-featured:focus-visible,
   body.site-page .speed-dial .speed-dial__action--direct.btn-icon:hover,
   body.site-page .speed-dial .speed-dial__action--direct.btn-icon:focus-visible {
-    background: var(--brand-signal-blue);
-    color: #ffffff;
-    border-color: var(--brand-signal-blue);
-    box-shadow: 0 10px 22px rgba(0, 95, 237, .18);
+    background: var(--cta-blue-hover);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue-hover);
+    box-shadow: var(--cta-blue-shadow-hover);
   }
 
   @media (max-width: 640px) {
-    body.site-page .cookie-settings,
-    body.site-page .speed-dial {
+    body.site-page .cookie-settings {
       display: none;
     }
   }

@@ -365,6 +365,119 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
   return next;
 }
 
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function escapeHtmlAttribute(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function decodeHtmlAttribute(value) {
+  return String(value || '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
+function getHtmlAttribute(tag, name) {
+  const matcher = new RegExp(`${escapeRegExp(name)}\\s*=\\s*(["'])(.*?)\\1`, 'i');
+  const match = matcher.exec(String(tag || ''));
+  return match ? decodeHtmlAttribute(match[2]) : '';
+}
+
+function setHtmlAttribute(tag, name, value) {
+  const attrName = escapeRegExp(name);
+  const escaped = escapeHtmlAttribute(value);
+  const matcher = new RegExp(`\\s${attrName}\\s*=\\s*(["'])[^"']*\\1`, 'i');
+  if (matcher.test(tag)) {
+    return tag.replace(matcher, ` ${name}="${escaped}"`);
+  }
+  return tag.replace(/>$/, ` ${name}="${escaped}">`);
+}
+
+function normalizeGoogleMapsZoom(value) {
+  const zoom = Number(value);
+  if (!Number.isFinite(zoom)) return 10;
+  return Math.max(0, Math.min(21, Math.round(zoom)));
+}
+
+function readGoogleMapsApiKey() {
+  const envKey = String(process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_EMBED_API_KEY || '').trim();
+  if (envKey) return envKey;
+
+  const keyPath = path.join(root, 'google_maps_api_key.txt');
+  try {
+    return fs.readFileSync(keyPath, 'utf8').trim();
+  } catch {
+    return '';
+  }
+}
+
+function buildGoogleMapsEmbedUrl(apiKey, address, zoom) {
+  const params = new URLSearchParams();
+  params.set('key', apiKey);
+  params.set('q', String(address || 'Grand Junction, CO').trim() || 'Grand Junction, CO');
+  params.set('zoom', String(normalizeGoogleMapsZoom(zoom)));
+  return `https://www.google.com/maps/embed/v1/place?${params.toString()}`;
+}
+
+function rewriteGoogleMapsEmbedsInHtml(html, apiKey) {
+  let count = 0;
+  const next = String(html || '').replace(/<iframe\b[^>]*\bdata-google-maps-iframe\b[^>]*>/gi, (tag) => {
+    const address = getHtmlAttribute(tag, 'data-google-maps-address') || 'Grand Junction, CO';
+    const zoom = getHtmlAttribute(tag, 'data-google-maps-zoom') || 10;
+    count += 1;
+    return setHtmlAttribute(tag, 'src', buildGoogleMapsEmbedUrl(apiKey, address, zoom));
+  });
+  return { html: next, count };
+}
+
+function rewriteGoogleMapsEmbedsInPublic() {
+  const apiKey = readGoogleMapsApiKey();
+  const publicHtmlFiles = listHtmlFilesRecursive(outDir);
+  let iframeCount = 0;
+  let fileCount = 0;
+
+  publicHtmlFiles.forEach((filePath) => {
+    let html;
+    try {
+      html = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    if (!html.includes('data-google-maps-iframe')) return;
+
+    if (!apiKey) {
+      iframeCount += (html.match(/\bdata-google-maps-iframe\b/g) || []).length;
+      return;
+    }
+
+    const rewritten = rewriteGoogleMapsEmbedsInHtml(html, apiKey);
+    iframeCount += rewritten.count;
+    if (rewritten.count && rewritten.html !== html) {
+      try {
+        fs.writeFileSync(filePath, rewritten.html, 'utf8');
+        fileCount += 1;
+      } catch {}
+    }
+  });
+
+  if (!iframeCount) return;
+  if (!apiKey) {
+    log(`Google Maps API key not found; left ${iframeCount} fallback map iframe(s) in public/.`);
+    return;
+  }
+  log(`Rewrote ${iframeCount} Google Maps iframe(s) with Maps Embed API URLs in ${fileCount} public HTML file(s).`);
+}
+
 function pruneRetiredPublicArtifacts() {
   const retiredTargets = [
     path.join(outDir, 'pages', 'contributions.html'),
@@ -432,28 +545,29 @@ function copyStatic(){
   };
   if (!cssHrefs.base) {
     log('No CSS manifest found; leaving dist/styles.css references intact.');
-    return;
-  }
-  const publicHtmlFiles = listHtmlFilesRecursive(outDir);
-  let rewrote = 0;
-  publicHtmlFiles.forEach((filePath) => {
-    let html;
-    try {
-      html = fs.readFileSync(filePath, 'utf8');
-    } catch {
-      return;
-    }
-    const next = rewriteCssLinksInHtml(html, cssHrefs);
-    if (next !== html) {
+  } else {
+    const publicHtmlFiles = listHtmlFilesRecursive(outDir);
+    let rewrote = 0;
+    publicHtmlFiles.forEach((filePath) => {
+      let html;
       try {
-        fs.writeFileSync(filePath, next, 'utf8');
-        rewrote++;
-      } catch {}
-    }
-  });
-  const rewrittenTargets = [`dist/${cssHrefs.base}`];
-  if (cssHrefs.tools) rewrittenTargets.push(`dist/${cssHrefs.tools}`);
-  log(`Rewrote CSS links in ${rewrote} HTML files to ${rewrittenTargets.join(', ')}`);
+        html = fs.readFileSync(filePath, 'utf8');
+      } catch {
+        return;
+      }
+      const next = rewriteCssLinksInHtml(html, cssHrefs);
+      if (next !== html) {
+        try {
+          fs.writeFileSync(filePath, next, 'utf8');
+          rewrote++;
+        } catch {}
+      }
+    });
+    const rewrittenTargets = [`dist/${cssHrefs.base}`];
+    if (cssHrefs.tools) rewrittenTargets.push(`dist/${cssHrefs.tools}`);
+    log(`Rewrote CSS links in ${rewrote} HTML files to ${rewrittenTargets.join(', ')}`);
+  }
+  rewriteGoogleMapsEmbedsInPublic();
 }
 
 copyStatic();

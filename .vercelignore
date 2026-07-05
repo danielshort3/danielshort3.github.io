@@ -9,6 +9,7 @@ node_modules/
 .env.local
 .env.*.local
 .env*.local
+google_maps_api_key.txt
 
 # Local Vercel CLI state
 .vercel/

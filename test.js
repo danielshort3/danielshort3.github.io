@@ -619,6 +619,14 @@ try {
       checkFileContains(file, `<title>${title}</title>`);
     });
 
+    const contactPageHtml = readFile('pages/contact.html');
+    assert(contactPageHtml.includes('id="grand-junction-location"') &&
+           contactPageHtml.includes('data-google-maps-iframe') &&
+           contactPageHtml.includes('Grand Junction, CO'),
+      'contact page should include the Grand Junction map embed marker');
+    assert(!contactPageHtml.includes('maps/embed/v1/place?key='),
+      'tracked contact page HTML should not contain a committed Google Maps API key');
+
     const titleConventionPages = [
       ...Object.keys(expectedTitles),
       'index.html',
@@ -36760,8 +36768,8 @@ try {
     const css = readFile('css/components/site-chatbot.css');
     const cssImports = readFile('css/styles.css');
     const footerTemplate = readFile('build/templates/footer.partial.html');
-    assert(entry.includes('../../js/chatbot/site-chatbot.js'), 'site shell should load chatbot widget');
-    assert(cssImports.includes('components/site-chatbot.css'), 'main stylesheet should import chatbot styles');
+    assert(!entry.includes('../../js/chatbot/site-chatbot.js'), 'site shell should not load the chatbot launcher because quick access is the universal floating control');
+    assert(!cssImports.includes('components/site-chatbot.css'), 'main stylesheet should not import unused chatbot launcher styles');
     assert(widget.includes("const API_PATH = '/api/chatbot'") && widget.includes('conversationId') && widget.includes('turnstile'),
       'chatbot widget should call the API, keep a conversation id, and handle challenges');
     assert(widget.includes('data-chatbot-prompt') &&
@@ -36775,8 +36783,8 @@ try {
       widget.includes('scheduleInitialNudge();') &&
       widget.includes('if (!state.ready) loadConfig();'),
       'chatbot widget should expose a current UI marker and preflight availability so nudge and prompts are not stale');
-    assert(widget.includes("body.dataset.siteChatbotActive = 'true'"),
-      'chatbot widget should mark chatbot pages so the bottom-right chatbot replaces the speed dial');
+    assert(!widget.includes("body.dataset.siteChatbotActive = 'true'"),
+      'chatbot widget should not mark chatbot pages to replace the universal speed dial');
     assert(widget.includes('site-chatbot__header-expand') &&
       widget.includes("headerExpand.addEventListener('click', () => requestExpanded('header'))") &&
       widget.includes("headerToggle.addEventListener('click', () => toggleExpanded('toggle'))") &&
@@ -36864,9 +36872,9 @@ try {
       widget.includes('normalizeLinks(sources, 8)') &&
       widget.includes('Sources (${sourceLinks.length})'),
       'chatbot widget should render safe markdown and richer source links');
-    assert(widget.includes('[data-site-chatbot-open]') &&
-      footerTemplate.includes('data-site-chatbot-open hidden') &&
-      footerTemplate.includes('Ask the site assistant'), 'footer should expose a JS-enabled chatbot help entry');
+    assert(!widget.includes('[data-site-chatbot-open]') &&
+      !footerTemplate.includes('data-site-chatbot-open') &&
+      !footerTemplate.includes('Ask the site assistant'), 'footer should not expose a chatbot opener when quick access is universal');
     assert(css.includes('.site-chatbot__panel') && css.includes('@media (max-width: 640px)'),
       'chatbot CSS should include panel and mobile behavior');
     assert(css.includes('.site-chatbot__input-shell') &&
@@ -36905,8 +36913,8 @@ try {
       css.includes('width: max-content;') &&
       css.includes('bottom: calc(100% + 10px);') &&
       css.includes('animation: none;'), 'chatbot CSS should style a responsive launcher nudge and respect reduced motion');
-    assert(css.includes('body[data-site-chatbot-active="true"] .speed-dial') && css.includes('transform: translateY(18px) scale(0.96)'),
-      'chatbot CSS should replace the speed dial and animate the expanded panel');
+    assert(!css.includes('body[data-site-chatbot-active="true"] .speed-dial') && css.includes('transform: translateY(18px) scale(0.96)'),
+      'chatbot CSS should not hide the universal speed dial and should keep expanded panel animation styles available');
     assert(css.includes('--site-chatbot-panel-max-height: min(520px') &&
       css.includes('--site-chatbot-center-height: clamp(180px') &&
       css.includes('--site-chatbot-expanded-height: calc(') &&
@@ -38022,12 +38030,8 @@ try {
     checkFileContains('index.html', 'home-pattern-page');
     checkFileContains('index.html', 'class="home-graph"');
     checkFileContains('index.html', 'data-home-graph');
-    checkFileContains('index.html', 'data-graph-tab="projects"');
-    checkFileContains('index.html', 'data-graph-tab="tools"');
-    checkFileContains('index.html', 'data-graph-tab="games"');
     checkFileContains('index.html', 'data-graph-center');
     checkFileContains('index.html', 'data-graph-inspector');
-    checkFileContains('index.html', 'img/hero/head-avatar-192.jpg');
     checkFileContains('js/home/project-graph.js', "label: 'Projects'");
     checkFileContains('js/home/project-graph.js', "label: 'Tools'");
     checkFileContains('js/home/project-graph.js', "label: 'Games'");
@@ -38077,11 +38081,12 @@ try {
     checkFileContains('js/home/project-graph.js', '--x: ${pos.x}px');
     checkFileContains('js/home/project-graph.js', '--node-size: ${layout.nodeSize}px');
     checkFileContains('js/home/project-graph.js', '--node-width: ${layout.nodeWidth}px');
-    assert(graphJs.includes("active: 'projects'"), 'homepage graph should default to Projects');
+    assert(graphJs.includes('active: null'), 'homepage graph should default to the Daniel Short overview');
     assert(graphJs.includes("selectedKey: ''") &&
-      graphJs.includes('selectOverview(state.active)') &&
+      graphJs.includes('selectOverview(null)') &&
+      graphJs.includes('updateOverviewState') &&
       graphJs.includes('state.latestLayout = layout'),
-      'homepage graph should show category overviews by default and draw connectors from stable layout state');
+      'homepage graph should show the site overview by default and draw connectors from stable layout state');
     assert(!graphJs.includes('setPan') && !graphJs.includes('is-dragging') && !graphJs.includes("addEventListener('pointerdown'"),
       'homepage graph should not expose manual pan/drag controls');
     assert(graphCss.includes('touch-action: pan-y') &&
@@ -38095,7 +38100,6 @@ try {
       graphCss.includes('body[data-page="home"].home-pattern-page .footer.footer-classic .footer-nav') &&
       graphCss.includes('.home-graph__inspector') &&
       graphCss.includes('.home-pattern-page .speed-dial') &&
-      graphCss.includes('.home-pattern-page .site-chatbot') &&
       graphCss.includes('@keyframes homeGraphNodeIn') &&
       graphCss.includes('@keyframes homeGraphNodeOut') &&
       graphCss.includes('@media (prefers-reduced-motion: reduce)'),
@@ -38151,8 +38155,9 @@ try {
       graphCss.includes('.home-graph__mobile-chain') &&
       graphCss.includes('.home-graph__mobile-cluster-card') &&
       graphCss.includes('.home-graph__mobile-cluster-lines') &&
+      graphCss.includes('.home-graph:not([data-graph-active]) .home-graph__center') &&
       graphCss.includes('@media (max-width: 640px)'),
-      'homepage graph mobile layout should use a depth-deck interaction with the selected chain, subcategory, topic, project cluster, and preview inside the final cell');
+      'homepage graph mobile layout should keep the inactive DS overview visible, then use a depth-deck interaction with the selected chain, subcategory, topic, project cluster, and preview inside the final cell');
     assert(graphJs.includes('getGroupKey(categoryId, group.id)') &&
       graphJs.includes('entry.type === \'group\'') &&
       graphJs.includes('groupPoints.set(entry.groupId') &&
@@ -38180,7 +38185,7 @@ try {
     assert(!graphJs.includes('const stackStep = dimensions.height') &&
       graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
       graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
-      personalAudience.includes('home-graph-20260704-mobile-chain-cell-v8'),
+      personalAudience.includes('home-graph-20260705-no-tabs-v1'),
       'homepage graph item placement should cluster project labels around each subcategory instead of using tabular child-node grids');
     assert(graphJs.includes("map.addEventListener('click'") &&
       graphJs.includes("center?.addEventListener('click', () => collapseGraph())"),
@@ -38203,12 +38208,16 @@ try {
       !graphJs.includes('setTimeout(drawLines'),
       'homepage graph should expose node tooltip previews above other nodes and avoid delayed line redraw flashes');
     assert(personalAudience.includes('home-graph__center-logo') &&
-      personalAudience.includes('img/brand/00-ds-logo-master-full-color.svg'),
-      'homepage graph should use the main DS logo as the center node');
-    ['Projects','Tools','Games'].forEach((label) => {
-      assert(personalAudience.includes(`data-graph-tab=\\"${label.toLowerCase()}\\"`),
-        `personal homepage source missing ${label} tab`);
-    });
+      personalAudience.includes('img/brand/00-ds-logo-master-full-color.svg') &&
+      personalAudience.includes('home-graph__center is-active') &&
+      personalAudience.includes('aria-pressed=\\"true\\"'),
+      'homepage graph should use the main DS logo as the active center node');
+    assert(!html.includes('class="home-graph__tabs"') &&
+      !personalAudience.includes('data-graph-tab') &&
+      !graphCss.includes('.home-graph__tabs') &&
+      !graphCss.includes('.home-graph-help') &&
+      !graphJs.includes('openHelpModal'),
+      'homepage graph should not render the removed tab strip or initial guide modal');
     assert(!html.includes('Blog') && !html.includes('href="blog"') && !personalAudience.includes('Blog'),
       'personal homepage should not include a blog page link');
     assert(!html.includes('tourism intelligence') && !html.includes('Domain</dt><dd>Tourism'),
@@ -38231,11 +38240,18 @@ try {
     assert(!html.includes('class="hero-proof-row"'), 'homepage hero should not include the old metric strip');
     assert(!html.includes('this version'), 'homepage should not mention audience versions');
     assert(!html.includes('data-cert-modal-open'), 'homepage should not include resume-era certification modal hooks');
-    const profileIndex = html.indexOf('class="home-graph__profile"');
-    const tabsIndex = html.indexOf('class="home-graph__tabs"');
     const workspaceIndex = html.indexOf('class="home-graph__workspace"');
-    assert(profileIndex >= 0 && tabsIndex > profileIndex && workspaceIndex > tabsIndex,
-      'homepage graph should render profile, tabs, then graph workspace');
+    assert(!html.includes('class="home-graph__profile"') &&
+      !html.includes('img/hero/head-avatar-192.jpg') &&
+      !personalAudience.includes('home-graph__profile') &&
+      !personalAudience.includes('ML engineer &middot; data builder &middot; problem solver'),
+      'homepage graph should not render the old identity profile panel');
+    assert(workspaceIndex >= 0 &&
+      html.includes('<div class="wrapper home-graph__shell"><div class="home-graph__workspace"') &&
+      !html.includes('id="home-graph-help-modal"') &&
+      !html.includes('How this page works') &&
+      !html.includes('data-home-graph-help-close'),
+      'homepage graph should render the graph workspace directly without the tab bar or initial guide modal');
   });
 
   section('Project-first public copy', () => {
@@ -38477,6 +38493,11 @@ try {
     assert(copyJs.includes('PUBLIC_INCLUDE_STARFALL_BACKUPS') &&
            copyJs.includes("img/project-starfall/backups"),
            'copy-to-public.js should skip Project Starfall backup visuals by default with an explicit opt-in');
+    assert(copyJs.includes('readGoogleMapsApiKey') &&
+           copyJs.includes('google_maps_api_key.txt') &&
+           copyJs.includes('data-google-maps-iframe') &&
+           copyJs.includes('maps/embed/v1/place'),
+           'copy-to-public.js should inject Google Maps Embed API URLs into public output from env or local key file');
     assert(copyJs.includes('requiredPublicDocuments') &&
            copyJs.includes('documents/Resume.pdf') &&
            copyJs.includes('documents/Resume-Analytics.pdf') &&
@@ -38532,6 +38553,9 @@ try {
     ['/api/cms/', '/api/chatbot/logs.js', '/api/short-domain.js', '/api/short-links/test/'].forEach((entry) => {
       assert(vercelIgnore.includes(entry), `.vercelignore should exclude ${entry} from Hobby deployments`);
     });
+    const gitIgnore = fs.readFileSync('.gitignore', 'utf8');
+    assert(gitIgnore.includes('google_maps_api_key.txt') && vercelIgnore.includes('google_maps_api_key.txt'),
+      'Google Maps key file should stay out of git and direct Vercel uploads');
     let vercelObj;
     try { vercelObj = JSON.parse(vercel); } catch {}
     assert(vercelObj && vercelObj.env && vercelObj.env.CHATBOT_ENABLED === 'true' &&
@@ -38644,6 +38668,9 @@ try {
       : null;
     assert(globalCsp && !String(globalCsp.value || '').includes("'unsafe-eval'"),
       'global CSP should not allow unsafe-eval');
+    assert(globalCsp && String(globalCsp.value || '').includes('frame-src') &&
+           String(globalCsp.value || '').includes('https://www.google.com'),
+      'global CSP should allow Google Maps iframe embeds');
     assert(!headers.some(h =>
       h && h.source === '/(.*)' &&
       Array.isArray(h.headers) &&

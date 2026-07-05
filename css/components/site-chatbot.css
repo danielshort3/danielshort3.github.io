@@ -13,10 +13,6 @@
     transition: bottom 180ms ease;
   }
 
-  body[data-site-chatbot-active="true"] .speed-dial{
-    display: none;
-  }
-
   .site-chatbot__launcher{
     position: relative;
     display: inline-grid;
@@ -26,11 +22,11 @@
     min-width: 52px;
     min-height: 52px;
     padding: 0;
-    border: 1px solid var(--brand-signal-blue, #005fed);
+    border: 1px solid var(--cta-blue, var(--brand-signal-blue, #005fed));
     border-radius: 10px;
-    background: var(--brand-signal-blue, #005fed);
-    color: #fff;
-    box-shadow: 0 10px 22px rgba(0, 95, 237, 0.18);
+    background: var(--cta-blue, var(--brand-signal-blue, #005fed));
+    color: var(--cta-blue-text, #fff);
+    box-shadow: var(--cta-blue-shadow, 0 10px 22px rgba(0, 95, 237, 0.18));
     cursor: pointer;
     font: 700 0.92rem/1.1 var(--font-sans, system-ui, sans-serif);
     letter-spacing: 0;
@@ -39,9 +35,9 @@
 
   .site-chatbot__launcher:hover,
   .site-chatbot__launcher:focus-visible{
-    border-color: var(--brand-deep-blue, #0145c8);
-    background: var(--brand-deep-blue, #0145c8);
-    box-shadow: 0 16px 30px rgba(0, 95, 237, 0.24);
+    border-color: var(--cta-blue-hover, var(--brand-deep-blue, #0145c8));
+    background: var(--cta-blue-hover, var(--brand-deep-blue, #0145c8));
+    box-shadow: var(--cta-blue-shadow-hover, 0 16px 30px rgba(0, 95, 237, 0.24));
     transform: none;
   }
 
@@ -538,7 +534,7 @@
   }
 
   .site-chatbot__message--user .site-chatbot__bubble{
-    background: #1565c0;
+    background: var(--cta-blue, #005fed);
   }
 
   .site-chatbot__message--user .site-chatbot__bubble,
@@ -571,7 +567,7 @@
   }
 
   .site-chatbot__bubble a{
-    color: #0f559f;
+    color: var(--cta-blue-hover, #0145c8);
     font-weight: 700;
     overflow-wrap: anywhere;
     text-decoration: underline;
@@ -593,10 +589,10 @@
     max-width: 100%;
     padding: 5px 8px;
     overflow: hidden;
-    border: 1px solid rgba(21, 101, 192, 0.24);
+    border: 1px solid color-mix(in srgb, var(--cta-blue, #005fed) 24%, transparent);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.8);
-    color: #165fae;
+    color: var(--cta-blue-hover, #0145c8);
     font-size: 0.75rem;
     line-height: 1.2;
     text-decoration: none;
@@ -605,9 +601,9 @@
   }
 
   .site-chatbot__nav-links a{
-    border-color: rgba(15, 87, 157, 0.28);
-    background: #e9f2fc;
-    color: #0f559f;
+    border-color: color-mix(in srgb, var(--cta-blue-hover, #0145c8) 28%, transparent);
+    background: var(--cta-blue-soft, #e9f2fc);
+    color: var(--cta-blue-hover, #0145c8);
     font-weight: 700;
   }
 
@@ -618,7 +614,7 @@
   .site-chatbot__followups button{
     flex: 1 1 100%;
     background: #fff;
-    color: #165fae;
+    color: var(--cta-blue-hover, #0145c8);
     cursor: pointer;
     font-weight: 700;
     overflow: visible;
@@ -631,8 +627,8 @@
 
   .site-chatbot__followups button:hover,
   .site-chatbot__followups button:focus-visible{
-    border-color: rgba(21, 101, 192, 0.38);
-    color: #0f559f;
+    border-color: color-mix(in srgb, var(--cta-blue, #005fed) 38%, transparent);
+    color: var(--cta-blue-hover, #0145c8);
   }
 
   .site-chatbot__followups button:disabled{
@@ -688,8 +684,8 @@
 
   .site-chatbot__quick-prompts button:hover,
   .site-chatbot__quick-prompts button:focus-visible{
-    border-color: rgba(21, 101, 192, 0.34);
-    color: #0f559f;
+    border-color: color-mix(in srgb, var(--cta-blue, #005fed) 34%, transparent);
+    color: var(--cta-blue-hover, #0145c8);
   }
 
   .site-chatbot__quick-prompts button:disabled{
@@ -729,8 +725,8 @@
   }
 
   .site-chatbot__input-shell:focus-within{
-    border-color: #1565c0;
-    outline: 3px solid rgba(21, 101, 192, 0.16);
+    border-color: var(--cta-blue, #005fed);
+    outline: 3px solid color-mix(in srgb, var(--cta-blue, #005fed) 16%, transparent);
     outline-offset: 2px;
   }
 
@@ -765,13 +761,13 @@
     height: var(--site-chatbot-input-height);
     min-height: var(--site-chatbot-input-height);
     border-radius: 0 10px 10px 0;
-    background: #1565c0;
-    color: #fff;
+    background: var(--cta-blue, #005fed);
+    color: var(--cta-blue-text, #fff);
   }
 
   .site-chatbot__send:hover,
   .site-chatbot__send:focus-visible{
-    background: #0f559f;
+    background: var(--cta-blue-hover, #0145c8);
   }
 
   .site-chatbot__send:disabled,

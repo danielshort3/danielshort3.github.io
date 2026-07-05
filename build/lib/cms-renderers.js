@@ -277,6 +277,37 @@ function gameSubtitle(game) {
   return String(game && (game.navSubtitle || tags || game.summary) || '').trim();
 }
 
+function slugify(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function uniqueLabels(values) {
+  const seen = new Set();
+  return (Array.isArray(values) ? values : [])
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .filter((value) => {
+      const key = slugify(value);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function optionList(labels, field) {
+  return uniqueLabels(labels)
+    .sort((a, b) => a.localeCompare(b))
+    .map((label) => ({
+      value: slugify(label),
+      label,
+      field
+    }));
+}
+
 function renderGamesDropdown(gamesNav, gamesPage) {
   if (!gamesNav || gamesNav.enabled === false) return '';
   const games = sortByOrderThenTitle(Array.isArray(gamesPage && gamesPage.games) ? gamesPage.games : []);
@@ -718,208 +749,207 @@ function renderFullPage({ settings, navigation, footer, projectsById, pagesById,
   ].filter(Boolean).join('\n');
 }
 
-function renderToolsDirectoryBody(page, tools) {
-  const categories = Array.isArray(page.categories) ? page.categories : [];
-  const usableTools = (Array.isArray(tools) ? tools : []).filter((tool) => {
-    const slug = String(tool && tool.slug ? tool.slug : '').trim();
-    const href = String(tool && tool.href ? tool.href : '').trim();
-    return Boolean(slug || href);
+function pillLabels(tool) {
+  return uniqueLabels((Array.isArray(tool && tool.pills) ? tool.pills : [])
+    .map((pill) => (typeof pill === 'string' ? pill : pill && pill.label)));
+}
+
+function toolAvailability(tool) {
+  const tags = pillLabels(tool).map((tag) => slugify(tag));
+  if (tags.includes('local')) return 'Local';
+  if (tags.includes('cloud')) return 'Cloud';
+  return 'Browser';
+}
+
+function buildToolsDirectoryWorkbenchData(page, tools) {
+  const categories = sortByOrderThenTitle(Array.isArray(page && page.categories) ? page.categories : []);
+  const publicTools = (Array.isArray(tools) ? tools : []).filter(isPublicTool);
+  const usedTools = new Set();
+  const orderedTools = categories.flatMap((category) => {
+    const items = sortByOrderThenTitle(publicTools.filter((tool) => String(tool.categoryId || '') === String(category.id || '')));
+    items.forEach((tool) => usedTools.add(tool));
+    return items;
+  }).concat(sortByOrderThenTitle(publicTools.filter((tool) => !usedTools.has(tool))));
+  const categoriesById = new Map(categories.map((category) => [String(category.id || ''), category]));
+  const items = orderedTools.map((tool, index) => {
+    const category = categoriesById.get(String(tool.categoryId || '')) || {};
+    const tags = pillLabels(tool);
+    const availability = toolAvailability(tool);
+    const categoryTitle = category.title || 'Tools';
+    return {
+      id: String(tool.slug || tool.href || `tool-${index + 1}`).trim(),
+      title: tool.title || 'Tool',
+      subtitle: categoryTitle,
+      summary: tool.summary || '',
+      href: toolHref(tool),
+      type: `${availability} Tool`,
+      category: categoryTitle,
+      tags,
+      tools: tags,
+      concepts: [categoryTitle],
+      formats: [`${availability} Tool`],
+      results: tool.summary ? [tool.summary] : [],
+      actions: category.description ? [category.description] : [],
+      iconImage: tool.iconImage ? trimLeadingSlash(tool.iconImage) : '',
+      iconHtml: tool.iconImage ? '' : renderToolIconMarkup(tool),
+      order: index + 1
+    };
   });
-  const toolsByCategory = categories.map((category) => {
-    const items = usableTools
-      .filter((tool) => String(tool.categoryId || '') === String(category.id || ''))
-      .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
-    return { category, items };
-  }).filter(({ items }) => items.length > 0);
 
-  const renderedCategories = toolsByCategory.map(({ category, items }) => {
-    const cards = items.map((tool) => {
-      const href = trimLeadingSlash(tool.href || `tools/${tool.slug}`);
-      const visibility = String(tool.visibility || 'public').trim().toLowerCase();
-      const restricted = visibility && visibility !== 'public';
-      const iconClass = hasToolIconImage(tool) ? 'tool-icon tool-icon-image' : 'tool-icon';
-      const cardAttrs = {
-        class: 'tool-card',
-        'data-tools-card': true,
-        'data-tools-category-id': category.id || '',
-        'data-tools-category-title': category.title || '',
-        ...(restricted ? { 'data-tools-visibility': tool.visibility } : {}),
-        ...(tool.hidden || restricted ? { hidden: true } : {})
-      };
-      return [
-        `<article${attrsToString(cardAttrs)}>`,
-        `  <a class="tool-launch-card" href="${escapeHtml(href)}" aria-describedby="${escapeHtml(tool.slug || href)}-details">`,
-        `    <span class="${iconClass}" aria-hidden="true">`,
-        indentBlock(renderToolIconMarkup(tool), '        '),
-        '    </span>',
-        '    <span class="tool-card-main">',
-        `      <span class="tool-card-title">${escapeHtml(tool.title || '')}</span>`,
-        '    </span>',
-        `    <span class="tool-card-details" id="${escapeHtml(tool.slug || href)}-details" role="tooltip">`,
-        `      <span class="tool-card-summary">${escapeHtml(tool.summary || '')}</span>`,
-        '    </span>',
-        '  </a>',
-        '</article>'
-      ].join('\n');
-    }).join('\n\n');
+  return {
+    kind: 'tools',
+    title: page.heroTitle || 'Tools',
+    itemSingular: 'tool',
+    itemPlural: 'tools',
+    queryParam: 'tool',
+    ctaLabel: 'Open tool',
+    itemSignalPrefix: 'Tool',
+    summaryTitle: 'What it does',
+    highlightsTitle: 'Notes',
+    approachTitle: 'Category',
+    stackTitle: 'Tags',
+    emptySelectionText: 'Choose a tool to see details.',
+    filterGroups: [
+      { id: 'category', title: 'Category', options: optionList(items.map((item) => item.category), 'category') },
+      { id: 'availability', title: 'Availability', options: optionList(items.map((item) => item.type), 'type') },
+      { id: 'tag', title: 'Tags', options: optionList(items.flatMap((item) => item.tags), 'tags') }
+    ].filter((group) => group.options.length),
+    items
+  };
+}
 
-    return [
-      `<section class="tools-category" id="${escapeHtml(category.id || '')}" aria-labelledby="${escapeHtml(category.id || '')}-title" data-tools-category data-tools-category-title="${escapeHtml(category.title || '')}">`,
-      '  <header class="tools-category-head">',
-      `    <h2 class="section-title" id="${escapeHtml(category.id || '')}-title">${escapeHtml(category.title || '')}</h2>`,
-      '  </header>',
-      '  <div class="tools-grid">',
-      indentBlock(cards, '    '),
-      '  </div>',
-      '</section>'
-    ].join('\n');
-  }).join('\n\n');
-  const categoryRail = toolsByCategory.map(({ category, items }, index) => [
-    `<a class="tools-rail-link" href="#${escapeHtml(category.id || '')}">`,
-    `  <span class="tools-rail-index">${String(index + 1).padStart(2, '0')}</span>`,
-    '  <span class="tools-rail-copy">',
-    `    <span class="tools-rail-title">${escapeHtml(category.title || '')}</span>`,
-    category.description ? `    <span class="tools-rail-description">${escapeHtml(category.description)}</span>` : '',
-    '  </span>',
-    `  <span class="tools-rail-count">${items.length}</span>`,
-    '</a>'
-  ].filter(Boolean).join('\n')).join('\n');
-  const totalToolCount = toolsByCategory.reduce((sum, { items }) => sum + items.length, 0);
+function buildGamesDirectoryWorkbenchData(page) {
+  const games = sortByOrderThenTitle((Array.isArray(page && page.games) ? page.games : [])
+    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id)));
+  const items = games.map((game, index) => {
+    const tags = uniqueLabels(Array.isArray(game.tags) ? game.tags : []);
+    const isSimulation = tags.some((tag) => /simulation|sandbox|canvas|probability/i.test(tag))
+      || /simulation|sandbox/i.test(game.summary || '');
+    const type = isSimulation ? 'Simulation' : 'Browser Game';
+    return {
+      id: String(game.id || game.href || `game-${index + 1}`).trim(),
+      title: game.title || 'Game',
+      subtitle: type,
+      summary: game.summary || '',
+      href: gameHref(game),
+      type,
+      category: type,
+      tags,
+      tools: tags,
+      concepts: tags,
+      formats: [type],
+      results: game.summary ? [game.summary] : [],
+      actions: tags.length ? [`Focus areas: ${tags.join(', ')}`] : [],
+      iconHtml: renderGameIconMarkup(game.iconType),
+      order: index + 1
+    };
+  });
 
-  const resumePanel = page.resumePanel || {};
-  const heroLead = String(page.heroLead || '').trim();
-  const directoryKicker = String(page.directoryKicker || '').trim();
-  const directoryTitle = String(page.directoryTitle || '').trim();
-  const directoryDescription = String(page.directoryDescription || '').trim();
-  const directoryControls = (directoryKicker || directoryTitle || directoryDescription)
-    ? [
-      '      <section class="tools-directory-controls" aria-labelledby="tools-directory-title">',
-      '        <div class="tools-directory-head">',
-      directoryKicker ? `          <p class="tools-directory-kicker">${escapeHtml(directoryKicker)}</p>` : '',
-      directoryTitle ? `          <h2 id="tools-directory-title">${escapeHtml(directoryTitle)}</h2>` : '',
-      directoryDescription ? `          <p>${escapeHtml(directoryDescription)}</p>` : '',
-      '        </div>',
-      '      </section>',
-      ''
-    ].filter(Boolean)
-    : [];
+  return {
+    kind: 'games',
+    title: page.heroTitle || 'Games',
+    itemSingular: 'game',
+    itemPlural: 'games',
+    queryParam: 'game',
+    ctaLabel: 'Play game',
+    itemSignalPrefix: 'Game',
+    summaryTitle: 'Overview',
+    highlightsTitle: 'Play loop',
+    approachTitle: 'System focus',
+    stackTitle: 'Tags',
+    emptySelectionText: 'Choose a game to see details.',
+    filterGroups: [
+      { id: 'format', title: 'Format', options: optionList(items.map((item) => item.type), 'type') },
+      { id: 'tag', title: 'Tags', options: optionList(items.flatMap((item) => item.tags), 'tags') }
+    ].filter((group) => group.options.length),
+    items
+  };
+}
+
+function renderDirectoryDataJs(data) {
+  return [
+    '/* Generated by build/generate-cms-artifacts.js. Do not edit directly. */',
+    `window.DIRECTORY_WORKBENCH = ${JSON.stringify(data, null, 2)};`,
+    ''
+  ].join('\n');
+}
+
+function renderDirectoryWorkbenchBody(page, options = {}) {
+  const kind = String(options.kind || page.id || 'directory').trim();
+  const itemSingular = String(options.itemSingular || 'item').trim();
+  const itemPlural = String(options.itemPlural || `${itemSingular}s`).trim();
+  const title = String(options.title || page.heroTitle || page.title || 'Library').trim();
+  const titleId = `${kind}-workbench-title`;
+  const resultsId = `${kind}-results-title`;
+  const displaySingular = `${itemSingular.charAt(0).toUpperCase()}${itemSingular.slice(1)}`;
 
   return [
-    '<section class="hero hero--tools tools-hero">',
-    '  <div class="wrapper">',
-    '    <div class="tools-hero-copy">',
-    `      <p class="hero-eyebrow">${escapeHtml(page.heroEyebrow || 'Tools')}</p>`,
-    `      <h1>${escapeHtml(page.heroTitle || 'Tools')}</h1>`,
-    heroLead ? `      <p class="tools-hero-lead">${escapeHtml(heroLead)}</p>` : '',
-    '    </div>',
-    '  </div>',
-    '</section>',
-    '',
-    '<div class="tools-account-dock" data-tools-account="dock">',
-    '  <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
-    '    <div class="tools-account-bar" data-tools-account="bar"></div>',
-    '    <section class="tools-resume-panel" data-tools-resume="panel" data-tools-auth-only aria-labelledby="tools-resume-title" hidden>',
-    '      <div class="tools-resume-head">',
-    '        <div class="tools-resume-head-copy">',
-    `          <p class="tools-resume-kicker">${escapeHtml(resumePanel.kicker || '')}</p>`,
-    `          <h2 class="tools-resume-title" id="tools-resume-title">${escapeHtml(resumePanel.title || '')}</h2>`,
+    '<main id="main" class="portfolio-main directory-workbench-main">',
+    `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-labelledby="${escapeHtml(titleId)}">`,
+    '    <div class="portfolio-workbench__shell">',
+    '      <header class="portfolio-workbench__header">',
+    '        <div class="portfolio-workbench__title-block">',
+    `          <h1 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h1>`,
     '        </div>',
-    '      </div>',
-    '      <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>',
-    '      <div class="tools-resume-content" data-tools-resume="content"></div>',
-    '    </section>',
-    '  </div>',
-    '</div>',
+    '      </header>',
     '',
-    '<main id="main">',
-    '  <section class="surface-band tools-section">',
-    '    <div class="wrapper tools-directory-layout">',
-    '      <aside class="tools-directory-rail" aria-label="Tool categories">',
-    `        <p class="tools-directory-stat">${totalToolCount} tools</p>`,
-    indentBlock(categoryRail, '        '),
-    '      </aside>',
-    '      <div class="tools-directory-main">',
-    ...directoryControls,
-    '        <div id="tools-directory-results" data-tools-results>',
-    indentBlock(renderedCategories, '          '),
-    '        </div>',
+    '      <div class="portfolio-workbench__layout">',
+    `        <aside class="portfolio-workbench__filters" aria-label="${escapeHtml(displaySingular)} filters">`,
+    '          <div class="portfolio-filter-head">',
+    '            <h2>Filters</h2>',
+    '            <button type="button" class="portfolio-filter-clear" data-portfolio-clear-filters>Clear all</button>',
+    '          </div>',
+    '          <div class="portfolio-filter-groups" data-portfolio-filters></div>',
+    '        </aside>',
+    '',
+    `        <section class="portfolio-workbench__results" aria-labelledby="${escapeHtml(resultsId)}">`,
+    '          <div class="portfolio-results-toolbar">',
+    '            <div>',
+    `              <h2 id="${escapeHtml(resultsId)}" class="visually-hidden">${escapeHtml(title)} results</h2>`,
+    `              <p class="portfolio-results-count" data-portfolio-results-count>Loading ${escapeHtml(itemPlural)}...</p>`,
+    '            </div>',
+    '            <label class="portfolio-sort-control">',
+    '              <span>Sort by:</span>',
+    `              <select data-portfolio-sort aria-label="Sort ${escapeHtml(itemPlural)}">`,
+    '                <option value="default">Default</option>',
+    '                <option value="title">Alphabetical</option>',
+    '              </select>',
+    '            </label>',
+    '          </div>',
+    '          <div class="portfolio-search">',
+    `            <label class="visually-hidden" for="${escapeHtml(kind)}-search-input">Search ${escapeHtml(itemPlural)}</label>`,
+    `            <input id="${escapeHtml(kind)}-search-input" type="search" placeholder="Search ${escapeHtml(itemPlural)}" autocomplete="off" data-portfolio-search>`,
+    '          </div>',
+    '          <div class="portfolio-results-list" role="list" data-portfolio-results></div>',
+    `          <p class="portfolio-empty-state" data-portfolio-empty hidden>No ${escapeHtml(itemPlural)} match those filters.</p>`,
+    '        </section>',
+    '',
+    `        <aside class="portfolio-inspector" aria-label="Selected ${escapeHtml(itemSingular)} details" aria-live="polite" data-portfolio-inspector>`,
+    `          <div class="portfolio-inspector__loading">Choose a ${escapeHtml(itemSingular)} to see details.</div>`,
+    '        </aside>',
     '      </div>',
-    '      <aside class="tools-directory-note" aria-labelledby="tools-directory-note-title">',
-    '        <p class="tools-directory-note-kicker">Why tools?</p>',
-    '        <h2 id="tools-directory-note-title">Small utilities should feel finished.</h2>',
-    '        <p>I keep these focused on repeatable output, local-first behavior where possible, and clear state when a tool needs account-backed work.</p>',
-    '      </aside>',
     '    </div>',
     '  </section>',
     '</main>'
   ].join('\n');
 }
 
-function renderGamesDirectoryBody(page) {
-  const games = sortByOrderThenTitle((Array.isArray(page.games) ? page.games : [])
-    .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id)));
-  const cards = games.map((game) => {
-    const id = String(game.id || game.href || '').trim();
-    const detailsId = `${id || 'game'}-details`;
-    const tags = Array.isArray(game.tags) ? game.tags.filter(Boolean) : [];
-    const renderedTags = tags.length
-      ? [
-        '      <span class="game-card-tags">',
-        ...tags.map((tag) => `        <span class="game-pill">${escapeHtml(tag)}</span>`),
-        '      </span>'
-      ].join('\n')
-      : '';
-    return [
-      '<article class="game-card" data-game-card role="listitem">',
-      `  <a class="game-launch-card" href="${escapeHtml(gameHref(game))}" aria-describedby="${escapeHtml(detailsId)}">`,
-      `    <span class="game-card-index">${String(Number(game.order || 0) || 0).padStart(2, '0')}</span>`,
-      '    <span class="game-icon" aria-hidden="true">',
-      indentBlock(renderGameIconMarkup(game.iconType), '      '),
-      '    </span>',
-      '    <span class="game-card-main">',
-      `      <span class="game-card-title">${escapeHtml(game.title || '')}</span>`,
-      '    </span>',
-      `    <span class="game-card-details" id="${escapeHtml(detailsId)}" role="tooltip">`,
-      `      <span class="game-card-summary">${escapeHtml(game.summary || '')}</span>`,
-      renderedTags,
-      '    </span>',
-      '  </a>',
-      '</article>'
-    ].filter(Boolean).join('\n');
-  }).join('\n\n');
-  const heroLead = String(page.heroLead || '').trim();
+function renderToolsDirectoryBody(page) {
+  return renderDirectoryWorkbenchBody(page, {
+    kind: 'tools',
+    title: page.heroTitle || 'Tools',
+    itemSingular: 'tool',
+    itemPlural: 'tools'
+  });
+}
 
-  return [
-    '<section class="hero hero--games games-hero">',
-    '  <div class="wrapper">',
-    '    <div class="games-hero-copy">',
-    `      <p class="hero-eyebrow">${escapeHtml(page.heroEyebrow || 'Games')}</p>`,
-    `      <h1>${escapeHtml(page.heroTitle || 'Games')}</h1>`,
-    heroLead ? `      <p class="games-hero-lead">${escapeHtml(heroLead)}</p>` : '',
-    '    </div>',
-    '  </div>',
-    '</section>',
-    '',
-    '<main id="main">',
-    '  <section class="surface-band games-section">',
-    '    <div class="wrapper games-directory-layout">',
-    '      <aside class="games-system-panel" aria-labelledby="games-system-title">',
-    '        <p class="games-system-kicker">Design lens</p>',
-    '        <h2 id="games-system-title">Systems before spectacle.</h2>',
-    '        <p>These are places to test loops: probability, enemy behavior, upgrades, pacing, and readable feedback.</p>',
-    '        <dl>',
-    '          <div><dt>State</dt><dd>What the player tracks</dd></div>',
-    '          <div><dt>Balance</dt><dd>How choices compound</dd></div>',
-    '          <div><dt>Feedback</dt><dd>What the interface teaches</dd></div>',
-    '        </dl>',
-    '      </aside>',
-    '      <div class="games-grid" role="list">',
-    indentBlock(cards, '        '),
-    '      </div>',
-    '    </div>',
-    '  </section>',
-    '</main>'
-  ].join('\n');
+function renderGamesDirectoryBody(page) {
+  return renderDirectoryWorkbenchBody(page, {
+    kind: 'games',
+    title: page.heroTitle || 'Games',
+    itemSingular: 'game',
+    itemPlural: 'games'
+  });
 }
 
 function renderProjectsDataJs(projects, featuredIds) {
@@ -1061,6 +1091,9 @@ function renderAudienceConfigJs(settings, audiences) {
 }
 
 module.exports = {
+  buildGamesDirectoryWorkbenchData,
+  buildToolsDirectoryWorkbenchData,
+  renderDirectoryDataJs,
   renderAudienceConfigJs,
   renderFooter,
   renderFullPage,

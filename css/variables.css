@@ -15,6 +15,21 @@
     --brand-success:#166534;
     --brand-risk:#B91C1C;
 
+    /* Call-to-action blue system */
+    --cta-blue:var(--brand-signal-blue);
+    --cta-blue-hover:var(--brand-deep-blue);
+    --cta-blue-text:#FFFFFF;
+    --cta-blue-soft:color-mix(in srgb,var(--cta-blue) 8%, #ffffff 92%);
+    --cta-blue-border:color-mix(in srgb,var(--cta-blue) 36%, transparent);
+    --cta-blue-shadow:0 10px 22px rgba(0,95,237,.18);
+    --cta-blue-shadow-hover:0 16px 30px rgba(0,95,237,.24);
+    --cta-blue-gradient:linear-gradient(135deg,
+      color-mix(in srgb,var(--cta-blue) 92%, #ffffff 8%) 0%,
+      color-mix(in srgb,var(--cta-blue-hover) 88%, var(--brand-midnight) 12%) 100%);
+    --cta-blue-gradient-hover:linear-gradient(135deg,
+      color-mix(in srgb,var(--cta-blue) 94%, #ffffff 6%) 0%,
+      color-mix(in srgb,var(--cta-blue-hover) 92%, var(--brand-midnight) 8%) 100%);
+
     /* Backward-compatible aliases. Keep old names mapped to approved colors. */
     --brand-navy:var(--brand-midnight);
     --brand-blue:var(--brand-signal-blue);

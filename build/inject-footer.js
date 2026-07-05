@@ -101,7 +101,7 @@ function normalizeIndent(indent) {
 function replaceFooter(html, footerHtml) {
   // Replace the footer plus any previously injected shell widgets that sit
   // between the footer and the closing scripts/body so the step stays idempotent.
-  const footerRe = /^([\t ]*)<footer\b[^>]*>[\s\S]*?(?=^[\t ]*<script\b|^[\t ]*<\/body>)/im;
+  const footerRe = /^([\t ]*)<footer\b[^>]*>[\s\S]*?<\/footer>(?:[\s\S]*?(?=^[\t ]*<script\b|^[\t ]*<\/body>|(?![\s\S])))?/im;
   const match = footerRe.exec(html);
   if (!match) return { html, changed: false };
 

@@ -170,7 +170,7 @@
   };
 
   const loadedScripts = new Map();
-  let portfolioBundle = null;
+  const portfolioBundles = new Map();
   let modalsPromise = null;
   let modalsHydrated = false;
 
@@ -197,8 +197,8 @@
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
     }
-    if (isPage('portfolio')) {
-      ensurePortfolioScripts().then(() => {
+    if (isPage('portfolio') || (document.body && document.body.matches('.portfolio-workbench-page') && document.querySelector('[data-portfolio-workbench]'))) {
+      ensurePortfolioScripts(document.body.dataset.page || 'portfolio').then(() => {
         run(window.buildPortfolioCarousel);
         run(window.buildPortfolio);
       }).catch(err => console.warn('Failed to initialize portfolio page', err));
@@ -307,15 +307,22 @@
     requestContactModal();
   });
 
-  function ensurePortfolioScripts(){
-    if (portfolioBundle) return portfolioBundle;
-    const chain = ['js/portfolio/projects-data.js','js/portfolio/modal-helpers.js','js/portfolio/portfolio.js']
+  function ensurePortfolioScripts(pageId = 'portfolio'){
+    const normalizedPageId = String(pageId || 'portfolio').trim();
+    const directoryDataScripts = {
+      tools: 'js/portfolio/tools-directory-data.js',
+      games: 'js/portfolio/games-directory-data.js'
+    };
+    const dataScript = directoryDataScripts[normalizedPageId] || 'js/portfolio/projects-data.js';
+    if (portfolioBundles.has(normalizedPageId)) return portfolioBundles.get(normalizedPageId);
+    const chain = [dataScript,'js/portfolio/modal-helpers.js','js/portfolio/portfolio.js']
       .reduce((p, src) => p.then(() => loadScriptOnce(src)), Promise.resolve());
-    portfolioBundle = chain.catch(err => {
-      portfolioBundle = null;
+    const bundle = chain.catch(err => {
+      portfolioBundles.delete(normalizedPageId);
       throw err;
     });
-    return portfolioBundle;
+    portfolioBundles.set(normalizedPageId, bundle);
+    return bundle;
   }
 
   function hydrateProjectModals(){

@@ -16,10 +16,11 @@
   .speed-dial__tray {
     position: absolute;
     right: calc(var(--speed-dial-toggle-size) - var(--speed-dial-join));
-    bottom: 0;
+    top: 50%;
     width: max-content;
     clip-path: inset(-40px 0 -40px calc(-1 * var(--speed-dial-label-room)));
     pointer-events: none;
+    transform: translateY(-50%);
     z-index: 1;
   }
 
@@ -28,11 +29,13 @@
   }
 
   .speed-dial__actions {
+    box-sizing: border-box;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: var(--space-12);
-    padding: 4px calc(10px + var(--speed-dial-join)) 4px 8px;
+    height: var(--speed-dial-toggle-size);
+    padding: 3px calc(10px + var(--speed-dial-join)) 3px 16px;
     border-radius: 999px;
     border: 1px solid var(--border-subtle);
     border-right: none;
@@ -94,26 +97,18 @@
   }
 
   .speed-dial .speed-dial__action--direct.btn-icon {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--primary) 88%, #ffffff 12%) 0%,
-      color-mix(in srgb, var(--primary) 65%, #071219 35%) 100%
-    );
-    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
-    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, .32);
+    background: var(--cta-blue-gradient);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue-border);
+    box-shadow: var(--cta-blue-shadow);
   }
 
   .speed-dial .speed-dial__action--direct.btn-icon:hover,
   .speed-dial .speed-dial__action--direct.btn-icon:focus-visible {
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--primary) 94%, #ffffff 6%) 0%,
-      color-mix(in srgb, var(--primary) 72%, #030b12 28%) 100%
-    );
-    color: color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
-    border-color: color-mix(in srgb, var(--primary) 68%, transparent);
-    box-shadow: 0 24px 46px rgba(0, 0, 0, .4);
+    background: var(--cta-blue-gradient-hover);
+    color: var(--cta-blue-text);
+    border-color: var(--cta-blue);
+    box-shadow: var(--cta-blue-shadow-hover);
   }
 
   .speed-dial__toggle {
@@ -122,6 +117,7 @@
     min-width: var(--speed-dial-toggle-size);
     min-height: var(--speed-dial-toggle-size);
     pointer-events: auto;
+    transform: none;
     z-index: 2;
   }
 
@@ -134,27 +130,20 @@
   }
 
   .speed-dial__toggle.btn-icon-featured{
-    background:linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--accent-1, var(--primary)) 88%, #ffffff 12%) 0%,
-      color-mix(in srgb, var(--accent-3, var(--primary)) 65%, #071219 35%) 100%
-    );
-    color:color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
-    border-color:color-mix(in srgb, var(--accent-1, var(--primary)) 55%, transparent);
-    box-shadow:0 16px 32px rgba(0,0,0,.32);
+    background:var(--cta-blue-gradient);
+    color:var(--cta-blue-text);
+    border-color:var(--cta-blue-border);
+    box-shadow:var(--cta-blue-shadow);
   }
 
   @media (hover:hover) and (pointer:fine) {
     .speed-dial__toggle.btn-icon-featured:hover,
     .speed-dial__toggle.btn-icon-featured:focus-visible{
-      background:linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--accent-1, var(--primary)) 94%, #ffffff 6%) 0%,
-        color-mix(in srgb, var(--accent-3, var(--primary)) 72%, #030b12 28%) 100%
-      );
-      color:color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
-      border-color:color-mix(in srgb, var(--accent-1, var(--primary)) 68%, transparent);
-      box-shadow:0 24px 46px rgba(0,0,0,.4);
+      background:var(--cta-blue-gradient-hover);
+      color:var(--cta-blue-text);
+      border-color:var(--cta-blue);
+      box-shadow:var(--cta-blue-shadow-hover);
+      transform:none;
     }
   }
 
@@ -171,5 +160,20 @@
     .speed-dial__toggle svg {
       transition: none;
     }
+  }
+}
+
+@layer overrides {
+  .speed-dial .btn-icon,
+  .speed-dial .btn-icon:is(:hover, :focus-visible, :active),
+  .speed-dial .speed-dial__toggle.btn-icon-featured,
+  .speed-dial .speed-dial__toggle.btn-icon-featured:is(:hover, :focus-visible, :active) {
+    transform: none;
+  }
+
+  .speed-dial.is-open .speed-dial__toggle.btn-icon-featured,
+  .speed-dial.is-open .speed-dial__toggle.btn-icon-featured:is(:hover, :focus-visible, :active),
+  .speed-dial.is-open .speed-dial__toggle.btn-icon-featured svg {
+    transform: none;
   }
 }

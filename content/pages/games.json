@@ -11,11 +11,10 @@
   "ogType": "website",
   "bodyAttributes": {
     "data-page": "games",
-    "class": "site-page"
+    "class": "site-page portfolio-workbench-page"
   },
   "stylesheets": [
-    "dist/styles.css",
-    "css/components/games.css"
+    "dist/styles.css"
   ],
   "headScripts": [
     {

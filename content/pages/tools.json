@@ -11,12 +11,10 @@
   "ogType": "website",
   "bodyAttributes": {
     "data-page": "tools",
-    "class": "tools-page site-page",
-    "data-tools-layout": "directory"
+    "class": "tools-page site-page portfolio-workbench-page"
   },
   "stylesheets": [
-    "dist/styles.css",
-    "dist/styles-tools.css"
+    "dist/styles.css"
   ],
   "headScripts": [
     {
@@ -25,19 +23,8 @@
   ],
   "bottomScripts": [
     {
-      "src": "js/tools/tools-directory.js",
-      "defer": true
-    },
-    {
       "src": "dist/site-shell.js",
       "defer": true
-    },
-    {
-      "src": "dist/site-tools-landing.js",
-      "defer": true,
-      "attributes": {
-        "data-tools-account-src": "dist/site-tools-account.js"
-      }
     },
     {
       "src": "dist/site-consent.js",

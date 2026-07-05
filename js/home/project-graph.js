@@ -916,136 +916,10 @@
     const showLabels = Boolean(metrics.showItemLabels);
     return {
       size,
-      width: showLabels ? clamp(Math.round(metrics.width * .105), 112, 124) : size,
-      height: showLabels ? 50 : size,
+      width: showLabels ? clamp(Math.round(metrics.width * .074), 84, 98) : size,
+      height: showLabels ? 34 : size,
       showLabels
     };
-  };
-
-  const getItemPackingSettings = (metrics) => {
-    if (metrics.isCompact) {
-      return {
-        firstOffset: 82,
-        ringGap: 32,
-        firstRingCount: 5,
-        ringStep: 1,
-        sweepBase: 92,
-        sweepStep: 20,
-        maxSweep: 144,
-        itemGap: 4
-      };
-    }
-
-    if (metrics.isNarrow) {
-      return {
-        firstOffset: 102,
-        ringGap: 42,
-        firstRingCount: 6,
-        ringStep: 1,
-        sweepBase: 82,
-        sweepStep: 17,
-        maxSweep: 132,
-        itemGap: 6
-      };
-    }
-
-    return {
-      firstOffset: 152,
-      ringGap: 58,
-      firstRingCount: 6,
-      ringStep: 2,
-      sweepBase: 70,
-      sweepStep: 14,
-      maxSweep: 116,
-      itemGap: 8
-    };
-  };
-
-  const getCategoryObstacleHalfWidth = (metrics, categoryId, activeCategoryId) => {
-    if (!metrics.isCompact || categoryId === activeCategoryId) return metrics.categoryHalfWidth;
-    return 30;
-  };
-
-  const getCompactItemPositions = (categoryId, count, metrics, graphLayout, nodeSize) => {
-    const nodeHalf = nodeSize / 2;
-    const safeLeft = metrics.safe.left + nodeHalf;
-    const safeRight = metrics.safe.right - nodeHalf;
-    const safeTop = metrics.safe.top + nodeHalf;
-    const safeBottom = metrics.safe.bottom - nodeHalf;
-    const categoryBottom = Math.max(
-      ...CATEGORY_ORDER.map((entry) => (graphLayout.categories[entry]?.y || 0) + metrics.categoryHalfHeight)
-    );
-    const left = safeLeft;
-    const right = safeRight;
-    const top = clamp(categoryBottom + nodeHalf + 22, safeTop, safeBottom);
-    const bottom = safeBottom;
-
-    const step = nodeSize + 14;
-    const maxColumns = Math.max(1, Math.floor(Math.max(0, right - left) / step) + 1);
-    const columns = Math.min(maxColumns, Math.max(2, Math.ceil(Math.sqrt(count * 1.15))));
-    const rows = Math.max(1, Math.ceil(count / columns));
-    const columnStep = columns <= 1 ? 0 : (right - left) / (columns - 1);
-    const rowStep = rows <= 1 ? 0 : Math.min((bottom - top) / (rows - 1), nodeSize + 26);
-
-    return Array.from({ length: count }, (_, index) => {
-      const row = Math.floor(index / columns);
-      const remaining = count - (row * columns);
-      const rowColumns = Math.min(columns, remaining);
-      const col = index % columns;
-      const rowInset = columns > rowColumns && columns > 1
-        ? ((columns - rowColumns) * columnStep) / 2
-        : 0;
-      return clampPoint({
-        x: left + rowInset + (col * columnStep),
-        y: top + (row * rowStep)
-      }, metrics.safe, nodeHalf, nodeHalf);
-    });
-  };
-
-  const resolveItemPositions = (positions, obstacles, metrics, nodeSize, gap) => {
-    const nodeHalf = nodeSize / 2;
-    const resolved = positions.map((point) => clampPoint(point, metrics.safe, nodeHalf, nodeHalf));
-
-    for (let iteration = 0; iteration < 14; iteration += 1) {
-      resolved.forEach((_, index) => {
-        obstacles.forEach((obstacle) => {
-          const point = resolved[index];
-          resolved[index] = pushPointAway(
-            point,
-            obstacle.point,
-            nodeHalf,
-            nodeHalf,
-            obstacle.halfWidth,
-            obstacle.halfHeight,
-            { ...metrics, layoutGap: gap }
-          );
-        });
-      });
-
-      for (let index = 0; index < resolved.length; index += 1) {
-        for (let otherIndex = index + 1; otherIndex < resolved.length; otherIndex += 1) {
-          const point = resolved[index];
-          const other = resolved[otherIndex];
-          const dx = other.x - point.x || .1;
-          const dy = other.y - point.y || .1;
-          const overlapX = nodeSize + gap - Math.abs(dx);
-          const overlapY = nodeSize + gap - Math.abs(dy);
-          if (overlapX <= 0 || overlapY <= 0) continue;
-
-          if (overlapX < overlapY) {
-            const shift = (overlapX / 2) * Math.sign(dx);
-            resolved[index] = clampPoint({ x: point.x - shift, y: point.y }, metrics.safe, nodeHalf, nodeHalf);
-            resolved[otherIndex] = clampPoint({ x: other.x + shift, y: other.y }, metrics.safe, nodeHalf, nodeHalf);
-          } else {
-            const shift = (overlapY / 2) * Math.sign(dy);
-            resolved[index] = clampPoint({ x: point.x, y: point.y - shift }, metrics.safe, nodeHalf, nodeHalf);
-            resolved[otherIndex] = clampPoint({ x: other.x, y: other.y + shift }, metrics.safe, nodeHalf, nodeHalf);
-          }
-        }
-      }
-    }
-
-    return resolved;
   };
 
   const splitGroupsIntoColumns = (categoryId, groups, columnCount) => {
@@ -1168,41 +1042,19 @@
     });
   };
 
-  const getGroupBranchAngle = (categoryId, groupId, fallbackAngle) => {
-    const branchAngles = {
-      projects: {
-        'ai-nlp': 92,
-        'data-analytics': 100,
-        'computer-vision': -85,
-        'modeling-systems': -56
-      },
-      tools: {
-        'text-writing': -18,
-        'campaign-link': -132,
-        media: 64
-      },
-      games: {
-        'playable-systems': 128,
-        simulations: 52
-      }
-    };
-
-    return branchAngles[categoryId]?.[groupId] ?? fallbackAngle;
-  };
-
   const getGroupedFanSlot = (categoryId, groupIndex, origin, metrics) => {
     const xScale = clamp(metrics.width / 1120, .84, 1.08);
     const yScale = clamp(metrics.height / 680, .82, 1.16);
     const slots = {
       projects: [
         { x: 0, y: 295 },
-        { x: -355, y: 78 },
+        { x: -315, y: 170 },
         { x: -305, y: -230 },
         { x: 315, y: -325 }
       ],
       tools: [
         { x: 305, y: 44 },
-        { x: -208, y: -226 },
+        { x: -224, y: -260 },
         { x: 88, y: 292 }
       ],
       games: [
@@ -1280,52 +1132,32 @@
     };
   };
 
-  const GROUPED_LABEL_ITEM_SLOTS = Object.freeze({
-    projects: {
-      'data-analytics': {
-        retailStore: { a: 0, rx: 1.04, ry: 1, absolute: true },
-        pizzaDashboard: { a: 46, rx: 1.02, ry: 1.04, absolute: true },
-        ufoDashboard: { a: 88, rx: .88, ry: 1.08, absolute: true },
-        deliveryTip: { a: 136, rx: 1.02, ry: 1.04, absolute: true },
-        targetEmptyPackage: { a: 180, rx: 1.08, ry: .95, absolute: true },
-        pizza: { a: -92, rx: .92, ry: 1.08, absolute: true }
-      }
-    },
-    tools: {
-      'campaign-link': {
-        'utm-batch-builder': { a: 118, rx: .96, ry: 1.05, absolute: true },
-        'qr-code-generator': { a: -90, rx: .94, ry: 1.02, absolute: true }
-      }
-    }
-  });
-
-  const getClusteredLabelItemSlot = (index, count, categoryId = '', groupId = '', itemId = '') => {
-    const itemSlot = GROUPED_LABEL_ITEM_SLOTS[categoryId]?.[groupId]?.[itemId];
-    if (itemSlot) {
-      return {
-        r: 0,
-        rx: 1,
-        ry: 1,
-        absolute: false,
-        ...itemSlot
-      };
-    }
-
+  const getBalancedClusterOffsets = (count) => {
     const patterns = {
-      1: [{ a: 0, r: 0 }],
-      2: [{ a: -42, r: 0 }, { a: 42, r: 0 }],
-      3: [{ a: -62, r: 1 }, { a: 0, r: 0 }, { a: 62, r: 1 }],
-      4: [{ a: -112, r: 1 }, { a: -36, r: 0 }, { a: 36, r: 0 }, { a: 112, r: 1 }],
-      5: [{ a: -132, r: 1 }, { a: -66, r: 0 }, { a: 0, r: 1 }, { a: 66, r: 0 }, { a: 132, r: 1 }],
-      6: [{ a: -150, r: 1 }, { a: -90, r: 0 }, { a: -30, r: 0 }, { a: 30, r: 0 }, { a: 90, r: 0 }, { a: 150, r: 1 }]
+      1: [0],
+      2: [-58, 58],
+      3: [-82, 0, 82],
+      4: [-108, -36, 36, 108],
+      5: [-122, -61, 0, 61, 122],
+      6: [-126, -76, -25, 25, 76, 126]
     };
-    if (patterns[count]) return patterns[count][index];
+    if (patterns[count]) return patterns[count];
 
-    const spread = Math.min(228, 116 + (count * 14));
-    const offset = count <= 1 ? 0 : ((index / (count - 1)) - .5) * spread;
+    const spread = Math.min(252, 128 + (count * 12));
+    return Array.from({ length: count }, (_, offsetIndex) => (
+      count <= 1 ? 0 : ((offsetIndex / (count - 1)) - .5) * spread
+    ));
+  };
+
+  const getClusteredLabelItemSlot = (index, count) => {
+    const offsets = getBalancedClusterOffsets(count);
+    const offset = offsets[index] ?? 0;
+    const absOffset = Math.abs(offset);
     return {
       a: offset,
-      r: index % 2
+      r: absOffset > 104 || (count >= 5 && absOffset < 8) ? .7 : 0,
+      rx: 1,
+      ry: 1
     };
   };
 
@@ -1340,11 +1172,11 @@
     itemId = ''
   ) => {
     const slot = getClusteredLabelItemSlot(index, count, categoryId, groupId, itemId);
-    const angle = toRadians((slot.absolute ? 0 : branchAngle) + slot.a);
+    const angle = toRadians(branchAngle + slot.a);
 
     if (dimensions.showLabels) {
-      const radiusX = (Math.max(174, dimensions.width + 50) + (slot.r * 28)) * (slot.rx || 1);
-      const radiusY = (Math.max(102, dimensions.height + 52) + (slot.r * 20)) * (slot.ry || 1);
+      const radiusX = (Math.max(136, dimensions.width + 42) + (slot.r * 20)) * (slot.rx || 1);
+      const radiusY = (Math.max(78, dimensions.height + 38) + (slot.r * 16)) * (slot.ry || 1);
 
       return {
         x: groupPoint.x + (Math.cos(angle) * radiusX),
@@ -1449,10 +1281,27 @@
     };
   };
 
+  const getConnectorCorridorObstacles = (fromPoint, toPoint, metrics) => {
+    if (!fromPoint || !toPoint) return [];
+    const sampleCount = metrics.showItemLabels ? 7 : 5;
+    const corridorHalfSize = metrics.showItemLabels ? 12 : 8;
+    return Array.from({ length: sampleCount }, (_, index) => {
+      const t = sampleCount <= 1 ? .5 : .22 + ((index / (sampleCount - 1)) * .58);
+      return {
+        x: fromPoint.x + ((toPoint.x - fromPoint.x) * t),
+        y: fromPoint.y + ((toPoint.y - fromPoint.y) * t),
+        halfWidth: corridorHalfSize,
+        halfHeight: corridorHalfSize
+      };
+    });
+  };
+
   const resolveGroupedFanEntries = (entries, categoryId, metrics, graphLayout) => {
     const resolved = entries.map((entry) => ({ ...entry }));
     const itemEntries = resolved.filter((entry) => entry.type === 'item');
-    const gap = metrics.isCompact ? 4 : 12;
+    const groupEntries = resolved.filter((entry) => entry.type === 'group');
+    const activeCategoryPoint = graphLayout.categories[categoryId];
+    const gap = metrics.isCompact ? 4 : metrics.showItemLabels ? 16 : 12;
     const obstacles = [
       {
         x: graphLayout.center.x,
@@ -1461,21 +1310,22 @@
         halfHeight: metrics.centerHalfSize
       },
       ...CATEGORY_ORDER.map((entryId) => getGroupedFanCategoryObstacle(entryId, categoryId, metrics, graphLayout)),
-      ...resolved
-        .filter((entry) => entry.type === 'group')
-        .map((entry) => ({
-          x: entry.x,
-          y: entry.y,
-          halfWidth: entry.halfWidth,
-          halfHeight: entry.halfHeight
-        }))
+      ...groupEntries.flatMap((entry) => getConnectorCorridorObstacles(activeCategoryPoint, entry, metrics)),
+      ...groupEntries.map((entry) => ({
+        x: entry.x,
+        y: entry.y,
+        halfWidth: entry.halfWidth,
+        halfHeight: entry.halfHeight
+      }))
     ];
 
-    for (let iteration = 0; iteration < 28; iteration += 1) {
+    const avoidObstacles = () => {
       itemEntries.forEach((entry) => {
         obstacles.forEach((obstacle) => pushEntryAwayFromObstacle(entry, obstacle, metrics, gap));
       });
+    };
 
+    const separateItems = () => {
       itemEntries.forEach((entry, index) => {
         itemEntries.slice(index + 1)
           .forEach((otherEntry) => {
@@ -1485,9 +1335,45 @@
             separateEntryPair(entry, otherEntry, metrics, separationGap);
           });
       });
+    };
+
+    for (let iteration = 0; iteration < 28; iteration += 1) {
+      avoidObstacles();
+      separateItems();
+      avoidObstacles();
     }
 
     return resolved;
+  };
+
+  const getGroupLabelHalfWidth = (label, dimensions) => {
+    if (!dimensions.showLabels) return Math.min((dimensions.width / 2) + 11, 92);
+    return Math.min(
+      Math.max((String(label || '').length * 3.8) + 46, (dimensions.width / 2) + 30),
+      112
+    );
+  };
+
+  const getGroupClusterHaloSize = (categoryId, groupId, count, dimensions) => {
+    const fallback = dimensions.showLabels
+      ? {
+          width: count >= 6 ? 360 : count >= 4 ? 336 : 272,
+          height: count >= 6 ? 238 : count >= 4 ? 218 : 172
+        }
+      : {
+          width: 276,
+          height: 204
+        };
+    const customSizes = {
+      projects: {
+        'ai-nlp': { width: 274, height: 176 },
+        'data-analytics': { width: 362, height: 242 },
+        'computer-vision': { width: 346, height: 222 },
+        'modeling-systems': { width: 350, height: 224 }
+      }
+    };
+
+    return customSizes[categoryId]?.[groupId] || fallback;
   };
 
   const getGroupedFanItemLayout = (categoryId, metrics, graphLayout, dimensions) => {
@@ -1517,7 +1403,8 @@
         x: origin.x + ((rawCenter.x - origin.x) * hubScale),
         y: origin.y + ((rawCenter.y - origin.y) * hubScale)
       }, metrics.safe, groupBranchMarginX, groupBranchMarginY);
-      const branchAngle = getGroupBranchAngle(categoryId, group.id, angles[groupIndex] || 0);
+      const branchAngle = getAngleBetweenPoints(origin, groupPoint);
+      const clusterHaloSize = getGroupClusterHaloSize(categoryId, group.id, group.items.length, dimensions);
 
       entries.push({
         type: 'group',
@@ -1527,8 +1414,10 @@
         items: group.items,
         x: groupPoint.x,
         y: groupPoint.y,
-        halfWidth: Math.min((dimensions.width / 2) + 11, 92),
-        halfHeight: 16,
+        halfWidth: getGroupLabelHalfWidth(group.label, dimensions),
+        halfHeight: dimensions.showLabels ? 21 : 16,
+        haloWidth: clusterHaloSize.width,
+        haloHeight: clusterHaloSize.height,
         index: entries.length
       });
 
@@ -1559,7 +1448,7 @@
           halfHeight: dimensions.height / 2,
           clusterX: groupPoint.x,
           clusterY: groupPoint.y,
-          clusterRadius: dimensions.showLabels ? 236 : 182,
+          clusterRadius: dimensions.showLabels ? 232 : 182,
           index: itemOrder.get(item.id) || 0
         });
       });
@@ -1574,6 +1463,124 @@
       nodeWidth: dimensions.width,
       nodeHeight: dimensions.height,
       showLabels: true
+    };
+  };
+
+  const getNarrowGroupClusterSlot = (categoryId, groupId, groupIndex, groupCount, origin, metrics) => {
+    const xOffset = metrics.isNarrow ? 154 : 206;
+    const yOffset = metrics.isNarrow ? 132 : 164;
+    const projectSlots = {
+      'computer-vision': { x: -xOffset, y: -yOffset, branchAngle: -148 },
+      'modeling-systems': { x: xOffset, y: -yOffset, branchAngle: -34 },
+      'data-analytics': { x: -xOffset, y: yOffset, branchAngle: 142 },
+      'ai-nlp': { x: xOffset, y: yOffset, branchAngle: 48 }
+    };
+    const genericSlots = {
+      1: [{ x: 0, y: yOffset, branchAngle: 90 }],
+      2: [
+        { x: -xOffset, y: 0, branchAngle: 180 },
+        { x: xOffset, y: 0, branchAngle: 0 }
+      ],
+      3: [
+        { x: -xOffset, y: -yOffset * .7, branchAngle: -150 },
+        { x: xOffset, y: -yOffset * .7, branchAngle: -30 },
+        { x: 0, y: yOffset, branchAngle: 90 }
+      ],
+      4: [
+        { x: -xOffset, y: -yOffset, branchAngle: -148 },
+        { x: xOffset, y: -yOffset, branchAngle: -34 },
+        { x: -xOffset, y: yOffset, branchAngle: 142 },
+        { x: xOffset, y: yOffset, branchAngle: 48 }
+      ]
+    };
+    const slot = categoryId === 'projects'
+      ? projectSlots[groupId] || genericSlots[groupCount]?.[groupIndex]
+      : genericSlots[groupCount]?.[groupIndex];
+    const fallbackAngle = groupCount <= 1 ? 90 : -130 + ((260 / Math.max(1, groupCount - 1)) * groupIndex);
+    const fallback = {
+      x: Math.cos(toRadians(fallbackAngle)) * xOffset,
+      y: Math.sin(toRadians(fallbackAngle)) * yOffset,
+      branchAngle: fallbackAngle
+    };
+    const resolvedSlot = slot || fallback;
+
+    return {
+      point: clampPoint({
+        x: origin.x + resolvedSlot.x,
+        y: origin.y + resolvedSlot.y
+      }, metrics.safe, 96, 30),
+      branchAngle: resolvedSlot.branchAngle ?? fallbackAngle
+    };
+  };
+
+  const getNarrowGroupedClusterLayout = (categoryId, metrics, graphLayout, dimensions) => {
+    const category = CATEGORIES[categoryId];
+    const origin = graphLayout.categories[categoryId] || graphLayout.center;
+    const groups = getCategoryGroups(categoryId);
+    const itemOrder = new Map(category.items.map((item, index) => [item.id, index]));
+    const entries = [];
+
+    groups.forEach((group, groupIndex) => {
+      const slot = getNarrowGroupClusterSlot(categoryId, group.id, groupIndex, groups.length, origin, metrics);
+      const groupPoint = slot.point;
+      const clusterHaloSize = getGroupClusterHaloSize(categoryId, group.id, group.items.length, dimensions);
+
+      entries.push({
+        type: 'group',
+        id: getGroupKey(categoryId, group.id),
+        groupId: group.id,
+        label: group.label,
+        items: group.items,
+        x: groupPoint.x,
+        y: groupPoint.y,
+        halfWidth: getGroupLabelHalfWidth(group.label, dimensions),
+        halfHeight: 14,
+        haloWidth: Math.min(clusterHaloSize.width, metrics.isNarrow ? 196 : 244),
+        haloHeight: Math.min(clusterHaloSize.height, metrics.isNarrow ? 146 : 178),
+        index: entries.length
+      });
+
+      group.items.forEach((item, itemIndex) => {
+        const clusteredPoint = getBranchingItemPoint(
+          groupPoint,
+          origin,
+          itemIndex,
+          group.items.length,
+          metrics,
+          dimensions,
+          slot.branchAngle
+        );
+        const point = clampPoint(
+          clusteredPoint,
+          metrics.safe,
+          dimensions.size / 2,
+          dimensions.size / 2
+        );
+        entries.push({
+          type: 'item',
+          item,
+          groupId: group.id,
+          x: point.x,
+          y: point.y,
+          halfWidth: dimensions.size / 2,
+          halfHeight: dimensions.size / 2,
+          clusterX: groupPoint.x,
+          clusterY: groupPoint.y,
+          clusterRadius: metrics.isNarrow ? 112 : 142,
+          index: itemOrder.get(item.id) || 0
+        });
+      });
+    });
+
+    const resolvedEntries = resolveGroupedFanEntries(entries, categoryId, metrics, graphLayout);
+
+    return {
+      entries: resolvedEntries,
+      positions: resolvedEntries.filter((entry) => entry.type === 'item'),
+      nodeSize: dimensions.size,
+      nodeWidth: dimensions.width,
+      nodeHeight: dimensions.height,
+      showLabels: false
     };
   };
 
@@ -1789,67 +1796,7 @@
       return getCompactGroupedItemLayout(categoryId, metrics, graphLayout, dimensions, selectedKey);
     }
 
-    const settings = getItemPackingSettings(metrics);
-    const baseAngle = toRadians(ITEM_EXPANSION_LAYOUT[categoryId]?.angle ?? BRANCH_LAYOUT[categoryId]?.angle ?? 0);
-    const origin = graphLayout.categories[categoryId] || graphLayout.center;
-    const positions = [];
-    let index = 0;
-    let ring = 0;
-
-    while (index < count) {
-      const capacity = Math.min(
-        count - index,
-        settings.firstRingCount + (ring * settings.ringStep)
-      );
-      const sweep = Math.min(settings.maxSweep, settings.sweepBase + (ring * settings.sweepStep));
-      const radius = settings.firstOffset + (ring * settings.ringGap);
-
-      for (let ringIndex = 0; ringIndex < capacity; ringIndex += 1) {
-        const offset = capacity === 1
-          ? 0
-          : ((ringIndex / (capacity - 1)) - .5) * sweep;
-        const angle = baseAngle + toRadians(offset);
-        positions.push({
-          x: origin.x + (Math.cos(angle) * radius),
-          y: origin.y + (Math.sin(angle) * radius)
-        });
-        index += 1;
-      }
-
-      ring += 1;
-    }
-
-    const obstacles = [
-      {
-        point: graphLayout.center,
-        halfWidth: metrics.centerHalfSize,
-        halfHeight: metrics.centerHalfSize
-      },
-      ...CATEGORY_ORDER.map((entry) => ({
-        point: graphLayout.categories[entry],
-        halfWidth: getCategoryObstacleHalfWidth(metrics, entry, categoryId),
-        halfHeight: metrics.categoryHalfHeight
-      }))
-    ];
-
-    const resolved = resolveItemPositions(positions, obstacles, metrics, nodeSize, settings.itemGap);
-
-    return {
-      entries: resolved.map((point, index) => ({
-        type: 'item',
-        item: category.items[index],
-        x: point.x,
-        y: point.y,
-        halfWidth: nodeSize / 2,
-        halfHeight: nodeSize / 2,
-        index
-      })),
-      positions: resolved,
-      nodeSize,
-      nodeWidth: dimensions.width,
-      nodeHeight: dimensions.height,
-      showLabels: false
-    };
+    return getNarrowGroupedClusterLayout(categoryId, metrics, graphLayout, dimensions);
   };
 
   const computeGraphLayout = (map, activeCategoryId, selectedKey = '') => {
@@ -2202,7 +2149,6 @@
     const tooltip = $('[data-graph-tooltip]', root);
     const inspector = $('[data-graph-inspector]', root);
     const status = $('[data-graph-status]', root);
-    const tabs = $$('[data-graph-tab]', root);
     const center = $('[data-graph-center]', root);
 
     if (!map || !svg || !categoryHost || !itemHost || !inspector) return;
@@ -2213,7 +2159,7 @@
     map.appendChild(mobileDeck);
 
     const state = {
-      active: 'projects',
+      active: null,
       selectedKey: '',
       mobileGroupId: '',
       mobileTopicId: '',
@@ -2264,12 +2210,20 @@
       root.style.setProperty('--active-accent', category.accent);
     };
 
-    const updateTabs = () => {
-      tabs.forEach((tab) => {
-        const selected = tab.dataset.graphTab === state.active;
-        tab.setAttribute('aria-selected', selected ? 'true' : 'false');
-        tab.tabIndex = selected || !state.active ? 0 : -1;
-      });
+    const updateOverviewState = () => {
+      const overviewActive = !state.active;
+      if (status) {
+        status.textContent = overviewActive
+          ? 'Daniel Short overview active'
+          : `${CATEGORIES[state.active]?.label || 'Section'} active`;
+      }
+      if (!center) return;
+      center.classList.toggle('is-active', overviewActive);
+      center.setAttribute('aria-pressed', overviewActive ? 'true' : 'false');
+      center.setAttribute(
+        'aria-label',
+        overviewActive ? 'Daniel Short overview active' : 'Show Daniel Short overview'
+      );
     };
 
     const showTooltip = (item, node, options = {}) => {
@@ -2472,7 +2426,7 @@
           className: 'home-graph__line',
           d: makeEdgeConnectorPath(centerPoint, categoryPoint, centerBox, getCategoryLineBox(categoryId), .42),
           color: category.accent,
-          opacity: state.active && categoryId !== state.active ? '.3' : '.62'
+          opacity: state.active && categoryId !== state.active ? '.18' : '.5'
         });
       });
 
@@ -2491,7 +2445,7 @@
             className: 'home-graph__line home-graph__line--group',
             d: makeEdgeConnectorPath(activeCategoryPoint, groupPoint, getCategoryLineBox(state.active), groupBox, .48),
             color: CATEGORIES[state.active]?.accent || 'var(--home-graph-blue)',
-            opacity: '.7'
+            opacity: '.56'
           });
         });
 
@@ -2513,7 +2467,7 @@
             className: 'home-graph__line home-graph__line--item',
             d: makeEdgeConnectorPath(fromPoint, itemPoint, fromBox, itemBox, .5),
             color: CATEGORIES[state.active]?.accent || 'var(--home-graph-blue)',
-            opacity: '.54'
+            opacity: '.38'
           });
         });
       }
@@ -2593,7 +2547,7 @@
           const selected = state.selectedKey === entry.id;
           const groupTitle = `${entry.label}: ${entry.items.length} ${category.singular}${entry.items.length === 1 ? '' : 's'}`;
           return `
-            <button type="button" class="home-graph__group-label${selected ? ' is-selected' : ''}" data-graph-group="${escapeHtml(entry.id)}" data-category-id="${escapeHtml(state.active)}" data-group-id="${escapeHtml(entry.groupId)}" aria-label="${escapeHtml(groupTitle)}" title="${escapeHtml(groupTitle)}" style="--x: ${entry.x}px; --y: ${entry.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index};">
+            <button type="button" class="home-graph__group-label${selected ? ' is-selected' : ''}" data-graph-group="${escapeHtml(entry.id)}" data-category-id="${escapeHtml(state.active)}" data-group-id="${escapeHtml(entry.groupId)}" aria-label="${escapeHtml(groupTitle)}" title="${escapeHtml(groupTitle)}" style="--x: ${entry.x}px; --y: ${entry.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --cluster-width: ${entry.haloWidth || 276}px; --cluster-height: ${entry.haloHeight || 204}px;">
               <span>${escapeHtml(entry.label)}</span>
               <span class="home-graph__group-count">${entry.items.length}</span>
             </button>
@@ -2640,7 +2594,7 @@
       } else {
         delete root.dataset.graphActive;
       }
-      updateTabs();
+      updateOverviewState();
       const layout = computeGraphLayout(map, state.active, state.selectedKey);
       state.latestLayout = layout;
       if (center) {
@@ -2739,19 +2693,6 @@
       state.selectedKey = getGroupKey(state.active, group.id);
       render();
     };
-
-    tabs.forEach((tab) => {
-      tab.addEventListener('click', () => selectCategory(tab.dataset.graphTab));
-      tab.addEventListener('keydown', (event) => {
-        const currentIndex = tabs.indexOf(tab);
-        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-        event.preventDefault();
-        const delta = event.key === 'ArrowRight' ? 1 : -1;
-        const next = tabs[(currentIndex + delta + tabs.length) % tabs.length];
-        next.focus();
-        selectCategory(next.dataset.graphTab);
-      });
-    });
 
     categoryHost.addEventListener('click', (event) => {
       const link = event.target.closest('.home-graph__category-link');

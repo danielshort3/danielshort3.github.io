@@ -21,6 +21,30 @@ function normalizeHref(value, fallback = '#') {
   return raw || fallback;
 }
 
+function normalizeMapAddress(value) {
+  const raw = String(value || '').trim();
+  return raw || 'Grand Junction, CO';
+}
+
+function normalizeMapZoom(value) {
+  const zoom = Number(value);
+  if (!Number.isFinite(zoom)) return 10;
+  return Math.max(0, Math.min(21, Math.round(zoom)));
+}
+
+function isTruthy(value) {
+  if (value === true) return true;
+  return /^(1|true|yes)$/i.test(String(value || '').trim());
+}
+
+function googleMapsSearchUrl(address) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+function googleMapsFallbackEmbedUrl(address) {
+  return `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+}
+
 function sectionAttrs(section, className) {
   const attrs = {
     class: className,
@@ -136,13 +160,36 @@ function renderDocumentList(section) {
 
 function renderMap(section) {
   const props = section.props || {};
-  const query = encodeURIComponent(props.address || 'Grand Junction, CO');
+  const address = normalizeMapAddress(props.address);
+  const zoom = normalizeMapZoom(props.zoom);
+  const shouldEmbed = isTruthy(props.embed);
+  const mapHref = googleMapsSearchUrl(address);
+  const iframeTitle = String(props.iframeTitle || `Map of ${address}`).trim();
+  const anchorId = String(props.anchorId || section.id || '').trim();
+  const frameAttrs = {
+    class: 'cms-map-iframe',
+    title: iframeTitle,
+    src: googleMapsFallbackEmbedUrl(address),
+    loading: 'lazy',
+    allowfullscreen: true,
+    referrerpolicy: 'strict-origin-when-cross-origin',
+    ...(shouldEmbed ? {
+      'data-google-maps-iframe': true,
+      'data-google-maps-address': address,
+      'data-google-maps-zoom': zoom
+    } : {})
+  };
   return [
-    `<section${sectionAttrs(section, 'surface-band reveal')}>`,
-    '  <div class="wrapper">',
-    `    <h2 class="section-title">${escapeHtml(props.title || 'Location')}</h2>`,
-    props.body ? `    <p>${escapeHtml(props.body)}</p>` : '',
-    `    <p><a class="btn-secondary" href="https://www.google.com/maps/search/?api=1&query=${query}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>`,
+    `<section${anchorId ? ` id="${escapeHtml(anchorId)}"` : ''}${sectionAttrs(section, 'surface-band reveal cms-location')}>`,
+    '  <div class="wrapper cms-location-inner">',
+    '    <div class="cms-location-copy">',
+    `      <h2 class="section-title">${escapeHtml(props.title || 'Location')}</h2>`,
+    props.body ? `      <p class="section-subtitle">${escapeHtml(props.body)}</p>` : '',
+    `      <p><a class="btn-secondary" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(props.buttonLabel || 'Open map')}</a></p>`,
+    '    </div>',
+    '    <div class="cms-map-shell">',
+    `      <iframe${attrsToString(frameAttrs) ? ` ${attrsToString(frameAttrs)}` : ''}></iframe>`,
+    '    </div>',
     '  </div>',
     '</section>'
   ].filter(Boolean).join('\n');
@@ -379,15 +426,17 @@ const WIDGETS = [
   },
   {
     type: 'map',
-    label: 'Location Map Link',
+    label: 'Location Map',
     category: 'Utility',
-    description: 'Location block with a map link.',
-    defaultProps: { title: 'Location', body: 'Add location context.', address: 'Grand Junction, CO', buttonLabel: 'Open map' },
+    description: 'Location block with an optional Google Maps embed and map link.',
+    defaultProps: { title: 'Location', body: 'Add location context.', address: 'Grand Junction, CO', buttonLabel: 'Open map', embed: false, zoom: 10 },
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'body', label: 'Body', type: 'textarea' },
       { name: 'address', label: 'Address', type: 'text' },
-      { name: 'buttonLabel', label: 'Button label', type: 'text' }
+      { name: 'buttonLabel', label: 'Button label', type: 'text' },
+      { name: 'embed', label: 'Embed map', type: 'checkbox' },
+      { name: 'zoom', label: 'Zoom', type: 'number' }
     ],
     render: renderMap
   },

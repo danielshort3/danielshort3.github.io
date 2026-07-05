@@ -7,9 +7,7 @@
     --brand-logo-size: clamp(48px, 4.6vw, 68px);
     --brand-title-size: clamp(18px, 2vw, 24px);
     --brand-tagline-size: clamp(13px, 1.6vw, 16px);
-    --nav-accent-gradient:linear-gradient(135deg,
-      color-mix(in srgb,var(--primary) 92%, #ffffff 8%) 0%,
-      color-mix(in srgb,var(--brand-cyan) 58%, #0A1A1F 42%) 100%);
+    --nav-accent-gradient:var(--cta-blue-gradient);
     --nav-block-padding: clamp(12px, 1.8vw, 20px);
     --nav-inline-padding: clamp(20px, 5vw, 48px);
     --nav-border-width:1px;
@@ -186,7 +184,7 @@
     padding:10px 22px;
     border-radius:999px;
     background:var(--nav-accent-gradient);
-    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    color:var(--cta-blue-text);
     box-shadow:0 12px 28px rgba(0,0,0,.28);
     transition:
       color .25s ease,
@@ -196,9 +194,10 @@
   .nav-link.nav-link-cta::after{display:none;}
   .nav-link.nav-link-cta:hover,
   .nav-link.nav-link-cta:focus-visible{
+    background:var(--cta-blue-gradient-hover);
     transform:translateY(-1px);
     box-shadow:0 16px 32px rgba(0,0,0,.32);
-    color:color-mix(in srgb,#ffffff 96%, var(--bg) 4%);
+    color:var(--cta-blue-text);
   }
   .nav-item{
     position:relative;

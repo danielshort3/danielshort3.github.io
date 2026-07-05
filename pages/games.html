@@ -23,7 +23,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/10-github-readme-portfolio-banner.svg">
   <meta name="twitter:image:alt" content="Daniel Short branded portfolio banner">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.c99107a2.css">
+  <link rel="stylesheet" href="dist/styles.fe778ac7.css">
   <link rel="stylesheet" href="css/components/games.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
@@ -34,7 +34,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script src="js/common/no-js.js"></script>
 </head>
-<body data-page="games" class="site-page">
+<body data-page="games" class="site-page portfolio-workbench-page">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -255,152 +255,49 @@
       </div>
     </nav>
   </header>
-  <section class="hero hero--games games-hero">
-    <div class="wrapper">
-      <div class="games-hero-copy">
-        <p class="hero-eyebrow">Systems playground</p>
-        <h1>Games and simulations</h1>
-        <p class="games-hero-lead">Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.</p>
-      </div>
-    </div>
-  </section>
+  <main id="main" class="portfolio-main directory-workbench-main">
+    <section class="portfolio-workbench" id="games-workbench" data-portfolio-workbench data-directory-workbench="games" aria-labelledby="games-workbench-title">
+      <div class="portfolio-workbench__shell">
+        <header class="portfolio-workbench__header">
+          <div class="portfolio-workbench__title-block">
+            <h1 id="games-workbench-title">Games and simulations</h1>
+          </div>
+        </header>
 
-  <main id="main">
-    <section class="surface-band games-section">
-      <div class="wrapper games-directory-layout">
-        <aside class="games-system-panel" aria-labelledby="games-system-title">
-          <p class="games-system-kicker">Design lens</p>
-          <h2 id="games-system-title">Systems before spectacle.</h2>
-          <p>These are places to test loops: probability, enemy behavior, upgrades, pacing, and readable feedback.</p>
-          <dl>
-            <div><dt>State</dt><dd>What the player tracks</dd></div>
-            <div><dt>Balance</dt><dd>How choices compound</dd></div>
-            <div><dt>Feedback</dt><dd>What the interface teaches</dd></div>
-          </dl>
-        </aside>
-        <div class="games-grid" role="list">
-          <article class="game-card" data-game-card role="listitem">
-            <a class="game-launch-card" href="games/stellar-dogfight" aria-describedby="stellar-dogfight-details">
-              <span class="game-card-index">01</span>
-              <span class="game-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
-                  <path d="M12 2l4 6-4 12-4-12 4-6z" class="icon-fill" opacity=".12"></path>
-                  <path d="M12 2l4 6-4 12-4-12 4-6z"></path>
-                  <path d="M8 14l-4 2 2-4"></path>
-                  <path d="M16 14l4 2-2-4"></path>
-                </svg>
-              </span>
-              <span class="game-card-main">
-                <span class="game-card-title">Stellar Dogfight</span>
-              </span>
-              <span class="game-card-details" id="stellar-dogfight-details" role="tooltip">
-                <span class="game-card-summary">Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.</span>
-                <span class="game-card-tags">
-                  <span class="game-pill">Adaptive AI</span>
-                  <span class="game-pill">Upgrade loops</span>
-                  <span class="game-pill">Combat tuning</span>
-                </span>
-              </span>
-            </a>
-          </article>
+        <div class="portfolio-workbench__layout">
+          <aside class="portfolio-workbench__filters" aria-label="Game filters">
+            <div class="portfolio-filter-head">
+              <h2>Filters</h2>
+              <button type="button" class="portfolio-filter-clear" data-portfolio-clear-filters>Clear all</button>
+            </div>
+            <div class="portfolio-filter-groups" data-portfolio-filters></div>
+          </aside>
 
-          <article class="game-card" data-game-card role="listitem">
-            <a class="game-launch-card" href="games/roulette" aria-describedby="roulette-details">
-              <span class="game-card-index">02</span>
-              <span class="game-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
-                  <circle cx="12" cy="12" r="8" class="icon-fill" opacity=".12"></circle>
-                  <circle cx="12" cy="12" r="8"></circle>
-                  <circle cx="12" cy="12" r="2.1"></circle>
-                  <path d="M12 4v2.3M20 12h-2.3M12 20v-2.3M4 12h2.3"></path>
-                </svg>
-              </span>
-              <span class="game-card-main">
-                <span class="game-card-title">Double-Zero Roulette</span>
-              </span>
-              <span class="game-card-details" id="roulette-details" role="tooltip">
-                <span class="game-card-summary">Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.</span>
-                <span class="game-card-tags">
-                  <span class="game-pill">Probability</span>
-                  <span class="game-pill">Distribution tracking</span>
-                  <span class="game-pill">Table state</span>
-                </span>
-              </span>
-            </a>
-          </article>
+          <section class="portfolio-workbench__results" aria-labelledby="games-results-title">
+            <div class="portfolio-results-toolbar">
+              <div>
+                <h2 id="games-results-title" class="visually-hidden">Games and simulations results</h2>
+                <p class="portfolio-results-count" data-portfolio-results-count>Loading games...</p>
+              </div>
+              <label class="portfolio-sort-control">
+                <span>Sort by:</span>
+                <select data-portfolio-sort aria-label="Sort games">
+                  <option value="default">Default</option>
+                  <option value="title">Alphabetical</option>
+                </select>
+              </label>
+            </div>
+            <div class="portfolio-search">
+              <label class="visually-hidden" for="games-search-input">Search games</label>
+              <input id="games-search-input" type="search" placeholder="Search games" autocomplete="off" data-portfolio-search>
+            </div>
+            <div class="portfolio-results-list" role="list" data-portfolio-results></div>
+            <p class="portfolio-empty-state" data-portfolio-empty hidden>No games match those filters.</p>
+          </section>
 
-          <article class="game-card" data-game-card role="listitem">
-            <a class="game-launch-card" href="games/probability-engine" aria-describedby="probability-engine-details">
-              <span class="game-card-index">03</span>
-              <span class="game-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
-                  <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                  <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                  <path d="M7 9h10M7 12h10M7 15h10M9 7v10M12 7v10M15 7v10"></path>
-                </svg>
-              </span>
-              <span class="game-card-main">
-                <span class="game-card-title">Probability Engine</span>
-              </span>
-              <span class="game-card-details" id="probability-engine-details" role="tooltip">
-                <span class="game-card-summary">Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.</span>
-                <span class="game-card-tags">
-                  <span class="game-pill">Simulation</span>
-                  <span class="game-pill">Synergies</span>
-                  <span class="game-pill">Prestige loops</span>
-                </span>
-              </span>
-            </a>
-          </article>
-
-          <article class="game-card" data-game-card role="listitem">
-            <a class="game-launch-card" href="games/project-starfall" aria-describedby="project-starfall-details">
-              <span class="game-card-index">04</span>
-              <span class="game-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
-                  <path d="M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z" class="icon-fill" opacity=".12"></path>
-                  <path d="M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z"></path>
-                  <path d="M12 7.3v6.1M9.2 10.2h5.6"></path>
-                </svg>
-              </span>
-              <span class="game-card-main">
-                <span class="game-card-title">Project Starfall</span>
-              </span>
-              <span class="game-card-details" id="project-starfall-details" role="tooltip">
-                <span class="game-card-summary">Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.</span>
-                <span class="game-card-tags">
-                  <span class="game-pill">RPG systems</span>
-                  <span class="game-pill">Loot economy</span>
-                  <span class="game-pill">Progression</span>
-                </span>
-              </span>
-            </a>
-          </article>
-
-          <article class="game-card" data-game-card role="listitem">
-            <a class="game-launch-card" href="games/ocean-wave-simulation" aria-describedby="ocean-wave-simulation-details">
-              <span class="game-card-index">05</span>
-              <span class="game-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
-                  <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                  <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                  <path d="M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>
-                  <path d="M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>
-                </svg>
-              </span>
-              <span class="game-card-main">
-                <span class="game-card-title">Ocean Wave Simulation</span>
-              </span>
-              <span class="game-card-details" id="ocean-wave-simulation-details" role="tooltip">
-                <span class="game-card-summary">Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.</span>
-                <span class="game-card-tags">
-                  <span class="game-pill">Parameter sandbox</span>
-                  <span class="game-pill">Realtime canvas</span>
-                  <span class="game-pill">Visual systems</span>
-                </span>
-              </span>
-            </a>
-          </article>
+          <aside class="portfolio-inspector" aria-label="Selected game details" aria-live="polite" data-portfolio-inspector>
+            <div class="portfolio-inspector__loading">Choose a game to see details.</div>
+          </aside>
         </div>
       </div>
     </section>
@@ -427,7 +324,6 @@
           <h2 class="footer-col-title" id="footer-site">Site</h2>
           <a href="sitemap-pretty" class="footer-link">Sitemap</a>
           <a href="?mode=professional" class="footer-link" data-site-realm-switch="professional">Work</a>
-          <button type="button" class="footer-link" data-site-chatbot-open hidden>Ask the site assistant</button>
           <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
           <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
         </section>
@@ -496,7 +392,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.7d2e9dfa.js"></script>
+  <script defer src="dist/site-shell.61fe0e32.js"></script>
   <script defer src="dist/site-consent.4e00f02d.js"></script>
 </body>
 </html>
