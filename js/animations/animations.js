@@ -6,6 +6,7 @@
   'use strict';
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const on = (n,e,f,o) => n && n.addEventListener(e,f,o);
+  let revealObserver = null;
   document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     setScrollbarVar();
@@ -16,11 +17,31 @@
     initHeroParallax();
     initProjectPreviewVideos();
   });
+  document.addEventListener('site:content-updated', () => {
+    initReveal();
+    setScrollbarVar();
+    setViewportVar();
+    initChevronHint();
+    initCertTicker();
+    initHeroParallax();
+    initProjectPreviewVideos();
+  });
   function initReveal(){
-    const io = new IntersectionObserver((ents,o)=>{
-      ents.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('active');o.unobserve(e.target);} });
-    },{threshold:.15});
-    $$('.reveal:not(.no-reveal)').forEach(el=>io.observe(el));
+    const targets = $$('.reveal:not(.no-reveal):not(.active)').filter(el => el.dataset.revealObserved !== 'yes');
+    if (!targets.length) return;
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(el => el.classList.add('active'));
+      return;
+    }
+    if (!revealObserver) {
+      revealObserver = new IntersectionObserver((ents,o)=>{
+        ents.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('active');o.unobserve(e.target);} });
+      },{threshold:.15});
+    }
+    targets.forEach(el=>{
+      el.dataset.revealObserved = 'yes';
+      revealObserver.observe(el);
+    });
   }
   const setScrollbarVar = () => {
     const sb = window.innerWidth - document.documentElement.clientWidth;
@@ -94,6 +115,8 @@
     if (document.body?.dataset?.page !== 'home') return;
     const hero = document.querySelector('.hero');
     if (!hero) return;
+    if (hero.dataset.heroParallaxBound === 'yes') return;
+    hero.dataset.heroParallaxBound = 'yes';
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) return;
     const onScroll = () => {
@@ -230,12 +253,40 @@
         window.scrollBy({top:window.innerHeight*0.8,behavior:'smooth'});
       }
     };
+    const normalizePagePath = pathname => {
+      let next = String(pathname || '/');
+      next = next.replace(/\/index\.html$/i, '/');
+      next = next.replace(/\.html$/i, '');
+      next = next.replace(/\/+$/, '');
+      return next || '/';
+    };
+    const samePageHashFromHref = href => {
+      const value = String(href || '').trim();
+      if(!value) return '';
+      try{
+        const targetUrl = new URL(value, window.location.href);
+        const currentUrl = new URL(window.location.href);
+        if(!targetUrl.hash || targetUrl.hash.length < 2) return '';
+        if(targetUrl.origin !== currentUrl.origin) return '';
+        if(normalizePagePath(targetUrl.pathname) !== normalizePagePath(currentUrl.pathname)) return '';
+        if((targetUrl.search || '') !== (currentUrl.search || '')) return '';
+        return targetUrl.hash;
+      }catch{
+        return '';
+      }
+    };
     $$('.chevron-hint,.scroll-indicator').forEach(ind=>{
+      if(ind.dataset.chevronHintBound === 'yes') return;
+      ind.dataset.chevronHintBound = 'yes';
       on(ind,'click',e=>{
+        if(e.defaultPrevented) return;
         const href = typeof ind.getAttribute === 'function' ? ind.getAttribute('href') : null;
-        if(href && href.startsWith('#') && href.length > 1){
+        const hash = samePageHashFromHref(href);
+        if(hash){
           e.preventDefault();
-          const target = document.querySelector(href);
+          let targetId = hash.slice(1);
+          try{ targetId = decodeURIComponent(targetId); }catch{}
+          const target = document.getElementById(targetId);
           if(scrollToTarget(target)) return;
         }else if(ind.tagName === 'A'){
           e.preventDefault();
@@ -247,6 +298,8 @@
   function initCertTicker(){
     const track = document.querySelector('.cert-track');
     if(!track) return;
+    if(track.dataset.certTickerBound === 'yes') return;
+    track.dataset.certTickerBound = 'yes';
     const GAP=160, BASE=90, DRAG=15;
     let v=BASE, target=BASE, bandW, stripW=0;
     let down=false,moved=false; let sx=0,lx=0; let paused=false; let cancelClk=false;

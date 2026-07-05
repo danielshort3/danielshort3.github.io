@@ -2064,7 +2064,7 @@
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #project-examples,
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#project-examples"] {
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#project-examples"] {
     --home-section-accent: var(--brand-signal-blue);
   }
 
@@ -2076,31 +2076,31 @@
     --home-section-accent: var(--brand-midnight);
   }
 
-  body:is([data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#transferability"] {
+  body:is([data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#transferability"] {
     --home-section-accent: var(--brand-midnight);
   }
 
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#selected-outcomes"] {
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#selected-outcomes"] {
     --home-section-accent: var(--brand-deep-blue);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #work-experience,
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#work-experience"] {
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#work-experience"] {
     --home-section-accent: var(--brand-slate);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #about-me,
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#about-me"] {
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#about-me"] {
     --home-section-accent: var(--brand-action-copper);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #certifications,
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#certifications"] {
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#certifications"] {
     --home-section-accent: var(--brand-deep-blue);
   }
 
   body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page #cta,
-  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href="#cta"] {
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-link[href$="#cta"] {
     --home-section-accent: var(--brand-deep-blue);
   }
 
