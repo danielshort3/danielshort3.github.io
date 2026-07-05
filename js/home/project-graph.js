@@ -624,6 +624,10 @@
     .slice()
     .sort((a, b) => (b.items.length - a.items.length) || a.label.localeCompare(b.label))[0] || null;
 
+  const getPreferredMobileTopic = (topics = []) => topics
+    .slice()
+    .sort((a, b) => (b.items.length - a.items.length) || a.label.localeCompare(b.label))[0] || null;
+
   const getMobileItemDepth = (categoryId, itemId) => {
     const group = getCategoryGroups(categoryId)
       .find((entry) => entry.items.some((item) => item.id === itemId));
@@ -1946,11 +1950,11 @@
   const getMobileClusterSlot = (index, count) => {
     const patterns = {
       1: [{ x: 50, y: 22 }],
-      2: [{ x: 10, y: 38 }, { x: 90, y: 62 }],
-      3: [{ x: 50, y: 14 }, { x: 10, y: 70 }, { x: 90, y: 70 }],
-      4: [{ x: 50, y: 13 }, { x: 10, y: 48 }, { x: 90, y: 48 }, { x: 50, y: 87 }],
-      5: [{ x: 50, y: 13 }, { x: 10, y: 36 }, { x: 90, y: 36 }, { x: 24, y: 84 }, { x: 76, y: 84 }],
-      6: [{ x: 50, y: 12 }, { x: 10, y: 34 }, { x: 90, y: 34 }, { x: 10, y: 70 }, { x: 90, y: 70 }, { x: 50, y: 88 }]
+      2: [{ x: 26, y: 38 }, { x: 74, y: 62 }],
+      3: [{ x: 50, y: 14 }, { x: 24, y: 70 }, { x: 76, y: 70 }],
+      4: [{ x: 50, y: 13 }, { x: 24, y: 48 }, { x: 76, y: 48 }, { x: 50, y: 87 }],
+      5: [{ x: 50, y: 13 }, { x: 24, y: 36 }, { x: 76, y: 36 }, { x: 30, y: 84 }, { x: 70, y: 84 }],
+      6: [{ x: 50, y: 12 }, { x: 24, y: 34 }, { x: 76, y: 34 }, { x: 24, y: 70 }, { x: 76, y: 70 }, { x: 50, y: 88 }]
     };
     if (patterns[count]) return patterns[count][index];
 
@@ -1989,6 +1993,18 @@
     return getIcon(icons[categoryId]?.[groupId] || CATEGORIES[categoryId]?.icon || 'folder');
   };
 
+  const getMobileMiniNetworkHtml = () => `
+    <svg viewBox="0 0 88 64" aria-hidden="true">
+      <path d="M17 44 37 20 56 42 72 17"></path>
+      <path d="M17 44 56 42M37 20 72 17M37 20 49 32"></path>
+      <circle cx="17" cy="44" r="4.8"></circle>
+      <circle cx="37" cy="20" r="4.8"></circle>
+      <circle cx="49" cy="32" r="4.8"></circle>
+      <circle cx="56" cy="42" r="4.8"></circle>
+      <circle cx="72" cy="17" r="4.8"></circle>
+    </svg>
+  `;
+
   const createMobileDepthDeckHtml = ({ categoryId, group, groups, topic, topics, selectedItem }) => {
     const category = CATEGORIES[categoryId] || CATEGORIES.projects;
     const groupItems = group?.items || [];
@@ -2014,24 +2030,26 @@
 
     return `
       <div class="home-graph__mobile-depth-card home-graph__mobile-depth-card--branch" style="--accent: ${escapeHtml(category.accent)}">
-        <div class="home-graph__mobile-depth-copy">
-          <span>Layer 1</span>
-          <strong>${escapeHtml(category.label)}</strong>
-          <small>${category.items.length} nodes</small>
+        <div class="home-graph__mobile-layer-head">
+          <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>
+          <div class="home-graph__mobile-depth-copy">
+            <span>Layer 1</span>
+            <strong>${escapeHtml(category.label)}</strong>
+            <small>${category.items.length} ${category.singular}${category.items.length === 1 ? '' : 's'}</small>
+          </div>
         </div>
-        <div class="home-graph__mobile-category-switch" aria-label="Choose branch">
-          ${CATEGORY_ORDER.map((entryId) => {
-            const entry = CATEGORIES[entryId];
-            const active = entryId === categoryId;
-            return `<button type="button" class="home-graph__mobile-category-chip${active ? ' is-active' : ''}" data-mobile-category="${escapeHtml(entryId)}" style="--accent: ${escapeHtml(entry.accent)}" aria-pressed="${active ? 'true' : 'false'}">${getCategoryIcon(entry.icon)}<span>${escapeHtml(entry.label)}</span></button>`;
-          }).join('')}
+        <div class="home-graph__mobile-network-mini">
+          ${getMobileMiniNetworkHtml()}
         </div>
       </div>
       <div class="home-graph__mobile-depth-card home-graph__mobile-depth-card--group" style="--accent: ${escapeHtml(category.accent)}">
-        <div class="home-graph__mobile-depth-copy">
-          <span>Layer 2</span>
-          <strong>${escapeHtml(group?.label || category.label)}</strong>
-          <small>Swipe subcategories</small>
+        <div class="home-graph__mobile-layer-head">
+          <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, group?.id || '')}</span>
+          <div class="home-graph__mobile-depth-copy">
+            <span>Layer 2</span>
+            <strong>${escapeHtml(group?.label || category.label)}</strong>
+            <small>Swipe subcategories</small>
+          </div>
         </div>
         <div class="home-graph__mobile-rail" aria-label="${escapeHtml(category.label)} subcategories">
           ${groups.map((entry) => {
@@ -2045,10 +2063,13 @@
       </div>
       <div class="home-graph__mobile-depth-card home-graph__mobile-depth-card--final" style="--accent: ${escapeHtml(category.accent)}">
         <div class="home-graph__mobile-final-head">
-          <div class="home-graph__mobile-depth-copy">
-            <span>Layer 3</span>
-            <strong>${escapeHtml(topic?.label || group?.label || category.label)}</strong>
-            <small>${topicItems.length} ${category.singular}${topicItems.length === 1 ? '' : 's'}</small>
+          <div class="home-graph__mobile-layer-head">
+            <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, group?.id || '')}</span>
+            <div class="home-graph__mobile-depth-copy">
+              <span>Layer 3</span>
+              <strong>${escapeHtml(topic?.label || group?.label || category.label)}</strong>
+              <small>${topicItems.length} ${category.singular}${topicItems.length === 1 ? '' : 's'}</small>
+            </div>
           </div>
           <div class="home-graph__mobile-chain" aria-label="Selected path">
             ${chainParts.map((part, index) => `<span${index === chainParts.length - 1 ? ' aria-current="step"' : ''}>${escapeHtml(part)}</span>`).join('<b aria-hidden="true">/</b>')}
@@ -2137,7 +2158,7 @@
       const topics = getMobileDepthTopics(categoryId, group);
       const topic = itemDepth?.topic
         || topics.find((entry) => entry.id === state.mobileTopicId)
-        || topics[0]
+        || getPreferredMobileTopic(topics)
         || null;
       const selectedItem = itemId
         ? category.items.find((entry) => entry.id === itemId) || null

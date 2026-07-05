@@ -1744,13 +1744,19 @@
     }
 
     .home-graph__workspace {
-      grid-template-rows: minmax(1010px, auto);
+      grid-template-rows: auto;
     }
 
     .home-graph__canvas {
-      min-height: 1010px;
+      min-height: 0;
       overflow: visible;
       touch-action: pan-y;
+    }
+
+    .home-graph__map {
+      position: relative;
+      inset: auto;
+      min-height: 0;
     }
 
     .home-graph__lines,
@@ -1764,13 +1770,12 @@
     }
 
     .home-graph__mobile-deck {
-      position: absolute;
-      inset: 0;
+      position: relative;
       z-index: 12;
       display: grid;
       grid-template-rows: auto auto auto;
       align-content: start;
-      gap: 10px;
+      gap: 9px;
       padding: 10px;
       overflow: visible;
       color: var(--home-graph-ink);
@@ -1799,8 +1804,10 @@
     }
 
     .home-graph__mobile-depth-card--branch {
-      grid-template-columns: minmax(92px, .72fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr) 104px;
       align-items: center;
+      min-height: 82px;
+      padding: 13px 14px;
     }
 
     .home-graph__mobile-depth-card--group {
@@ -1818,6 +1825,67 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 8px;
+    }
+
+    .home-graph__mobile-layer-head {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .home-graph__mobile-layer-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid color-mix(in srgb, var(--accent) 18%, #d8e2ef);
+      border-radius: 17px;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, #ffffff);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+    }
+
+    .home-graph__mobile-layer-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .home-graph__mobile-network-mini {
+      justify-self: end;
+      display: grid;
+      place-items: center;
+      width: 96px;
+      height: 62px;
+      color: var(--accent);
+    }
+
+    .home-graph__mobile-network-mini svg {
+      width: 88px;
+      height: 64px;
+      overflow: visible;
+    }
+
+    .home-graph__mobile-network-mini path {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: .42;
+    }
+
+    .home-graph__mobile-network-mini circle {
+      fill: var(--accent);
+      stroke: #ffffff;
+      stroke-width: 2.4;
+      filter: drop-shadow(0 5px 10px color-mix(in srgb, var(--accent) 24%, transparent));
     }
 
     .home-graph__mobile-depth-copy {
@@ -1841,7 +1909,7 @@
       display: block;
       overflow: hidden;
       color: var(--home-graph-ink);
-      font-size: .93rem;
+      font-size: .96rem;
       font-weight: 820;
       line-height: 1.05;
       text-overflow: ellipsis;
@@ -2058,7 +2126,7 @@
 
     .home-graph__mobile-cluster-card {
       position: relative;
-      min-height: 342px;
+      min-height: 328px;
       overflow: hidden;
       border-radius: 19px;
       background:
@@ -2076,8 +2144,8 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 210px;
-      height: 232px;
+      width: 220px;
+      height: 226px;
       border: 1px dashed color-mix(in srgb, var(--accent) 24%, transparent);
       border-radius: 50%;
       transform: translate(-50%, -50%);
@@ -2210,7 +2278,7 @@
       left: 50%;
       top: calc(100% + 3px);
       display: -webkit-box;
-      width: 72px;
+      width: 78px;
       overflow: hidden;
       color: #26334d;
       font-size: .56rem;
@@ -2449,6 +2517,13 @@
     body[data-page="home"].home-pattern-page .speed-dial,
     body[data-page="home"].home-pattern-page .site-chatbot {
       bottom: calc(clamp(136px, 20svh, 176px) + 18px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  @media (max-width: 640px) {
+    body[data-page="home"].home-pattern-page .speed-dial,
+    body[data-page="home"].home-pattern-page .site-chatbot {
+      display: none;
     }
   }
 }
