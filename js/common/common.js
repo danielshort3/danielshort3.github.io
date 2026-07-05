@@ -135,6 +135,39 @@
     }
   };
   const isJumpPanelAutoScrolling = () => activeJumpPanelScrollToken !== 0;
+  const normalizePagePath = (pathname) => {
+    let next = String(pathname || '/');
+    next = next.replace(/\/index\.html$/i, '/');
+    next = next.replace(/\.html$/i, '');
+    next = next.replace(/\/+$/, '');
+    return next || '/';
+  };
+  const samePageHashFromHref = (href) => {
+    const value = String(href || '').trim();
+    if (!value) return '';
+    let targetUrl;
+    let currentUrl;
+    try {
+      targetUrl = new URL(value, window.location.href);
+      currentUrl = new URL(window.location.href);
+    } catch {
+      return '';
+    }
+    if (!targetUrl.hash || targetUrl.hash.length < 2) return '';
+    if (targetUrl.origin !== currentUrl.origin) return '';
+    if (normalizePagePath(targetUrl.pathname) !== normalizePagePath(currentUrl.pathname)) return '';
+    if ((targetUrl.search || '') !== (currentUrl.search || '')) return '';
+    return targetUrl.hash;
+  };
+  const currentHashUrl = (hash) => {
+    try {
+      const url = new URL(window.location.href);
+      url.hash = hash;
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return hash;
+    }
+  };
 
   const loadedScripts = new Map();
   let portfolioBundle = null;
@@ -173,6 +206,15 @@
     if (isPage('home')) {
       initSkillPopups();
     }
+    if (isPage('home') || document.querySelector('.jump-panel')) {
+      initJumpPanelSpy();
+    }
+    if (isPage('project')) {
+      initProjectDemoTabs();
+    }
+  });
+  document.addEventListener('site:content-updated', () => {
+    initSmoothScrollLinks();
     if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();
     }
@@ -512,8 +554,9 @@
         if (evt && typeof evt.button === 'number' && evt.button !== 0) return;
 
         const href = link.getAttribute('href') || '';
-        if (!href.startsWith('#') || href.length < 2) return;
-        const targetId = decodeURIComponent(href.slice(1));
+        const hash = samePageHashFromHref(href);
+        if (!hash) return;
+        const targetId = decodeURIComponent(hash.slice(1));
         const target = document.getElementById(targetId);
         if (!target) return;
         const isJumpPanelLink = Boolean(link.closest('.jump-panel'));
@@ -525,7 +568,7 @@
         evt.preventDefault();
         smoothScrollToTarget(target, { jumpPanel: isJumpPanelLink });
         try {
-          history.pushState(null, '', href);
+          history.pushState(null, '', currentHashUrl(hash));
         } catch {}
       });
     });
@@ -631,12 +674,15 @@
     const hideBtn = panel.querySelector('[data-jump-hide]');
     const showBtn = document.querySelector('[data-jump-show]');
     if (!links.length) return;
+    if (panel.dataset.jumpPanelSpyBound === 'yes') return;
+    panel.dataset.jumpPanelSpyBound = 'yes';
     const focusables = [...links];
     if (hideBtn) focusables.push(hideBtn);
     const items = links.map((link) => {
       const href = link.getAttribute('href') || '';
-      if (!href.startsWith('#') || href.length < 2) return null;
-      let id = href.slice(1);
+      const hash = samePageHashFromHref(href);
+      if (!hash) return null;
+      let id = hash.slice(1);
       try {
         id = decodeURIComponent(id);
       } catch {}

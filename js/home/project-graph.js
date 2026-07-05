@@ -1280,14 +1280,38 @@
     };
   };
 
-  const getClusteredLabelItemSlot = (index, count) => {
+  const GROUPED_LABEL_ITEM_SLOTS = Object.freeze({
+    projects: {
+      'data-analytics': {
+        retailStore: { a: 0, rx: 1.04, ry: 1, absolute: true },
+        pizzaDashboard: { a: 46, rx: 1.02, ry: 1.04, absolute: true },
+        ufoDashboard: { a: 88, rx: .88, ry: 1.08, absolute: true },
+        deliveryTip: { a: 136, rx: 1.02, ry: 1.04, absolute: true },
+        targetEmptyPackage: { a: 180, rx: 1.08, ry: .95, absolute: true },
+        pizza: { a: -92, rx: .92, ry: 1.08, absolute: true }
+      }
+    }
+  });
+
+  const getClusteredLabelItemSlot = (index, count, categoryId = '', groupId = '', itemId = '') => {
+    const itemSlot = GROUPED_LABEL_ITEM_SLOTS[categoryId]?.[groupId]?.[itemId];
+    if (itemSlot) {
+      return {
+        r: 0,
+        rx: 1,
+        ry: 1,
+        absolute: false,
+        ...itemSlot
+      };
+    }
+
     const patterns = {
       1: [{ a: 0, r: 0 }],
       2: [{ a: -42, r: 0 }, { a: 42, r: 0 }],
       3: [{ a: -62, r: 1 }, { a: 0, r: 0 }, { a: 62, r: 1 }],
-      4: [{ a: -82, r: 1 }, { a: -28, r: 0 }, { a: 28, r: 0 }, { a: 82, r: 1 }],
-      5: [{ a: -96, r: 1 }, { a: -48, r: 0 }, { a: 0, r: 1 }, { a: 48, r: 0 }, { a: 96, r: 1 }],
-      6: [{ a: -108, r: 1 }, { a: -66, r: 0 }, { a: -24, r: 1 }, { a: 24, r: 1 }, { a: 66, r: 0 }, { a: 108, r: 1 }]
+      4: [{ a: -112, r: 1 }, { a: -36, r: 0 }, { a: 36, r: 0 }, { a: 112, r: 1 }],
+      5: [{ a: -132, r: 1 }, { a: -66, r: 0 }, { a: 0, r: 1 }, { a: 66, r: 0 }, { a: 132, r: 1 }],
+      6: [{ a: -150, r: 1 }, { a: -90, r: 0 }, { a: -30, r: 0 }, { a: 30, r: 0 }, { a: 90, r: 0 }, { a: 150, r: 1 }]
     };
     if (patterns[count]) return patterns[count][index];
 
@@ -1299,10 +1323,30 @@
     };
   };
 
-  const getClusteredLabelItemPoint = (groupPoint, index, count, dimensions, branchAngle) => {
-    const slot = getClusteredLabelItemSlot(index, count);
+  const getClusteredLabelItemPoint = (
+    groupPoint,
+    index,
+    count,
+    dimensions,
+    branchAngle,
+    categoryId = '',
+    groupId = '',
+    itemId = ''
+  ) => {
+    const slot = getClusteredLabelItemSlot(index, count, categoryId, groupId, itemId);
+    const angle = toRadians((slot.absolute ? 0 : branchAngle) + slot.a);
+
+    if (dimensions.showLabels) {
+      const radiusX = (Math.max(174, dimensions.width + 50) + (slot.r * 28)) * (slot.rx || 1);
+      const radiusY = (Math.max(102, dimensions.height + 52) + (slot.r * 20)) * (slot.ry || 1);
+
+      return {
+        x: groupPoint.x + (Math.cos(angle) * radiusX),
+        y: groupPoint.y + (Math.sin(angle) * radiusY)
+      };
+    }
+
     const radius = Math.max(124, dimensions.width + 12) + (slot.r * 40);
-    const angle = toRadians(branchAngle + slot.a);
 
     return {
       x: groupPoint.x + (Math.cos(angle) * radius),
@@ -1464,7 +1508,16 @@
       });
 
       group.items.forEach((item, itemIndex) => {
-        const clusteredPoint = getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length, dimensions, branchAngle);
+        const clusteredPoint = getClusteredLabelItemPoint(
+          groupPoint,
+          itemIndex,
+          group.items.length,
+          dimensions,
+          branchAngle,
+          categoryId,
+          group.id,
+          item.id
+        );
         const point = clampPoint(
           clusteredPoint,
           metrics.safe,
@@ -1481,7 +1534,7 @@
           halfHeight: dimensions.height / 2,
           clusterX: groupPoint.x,
           clusterY: groupPoint.y,
-          clusterRadius: 182,
+          clusterRadius: dimensions.showLabels ? 218 : 182,
           index: itemOrder.get(item.id) || 0
         });
       });
@@ -2492,7 +2545,7 @@
             <div class="home-graph__category-card">
               <button type="button" class="home-graph__category-button" data-graph-category-button="${escapeHtml(categoryId)}" aria-label="${active ? 'Collapse' : 'Expand'} ${escapeHtml(category.label)}" title="${escapeHtml(category.label)}"></button>
               <span class="home-graph__category-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>
-              <span>
+              <span class="home-graph__category-copy">
                 <span class="home-graph__category-title">${escapeHtml(category.label)}</span>
                 <span class="home-graph__category-count">${category.items.length} items</span>
               </span>

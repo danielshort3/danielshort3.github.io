@@ -18,6 +18,7 @@
     '/resume-tourism',
     '/resume-tourism-pdf'
   ]);
+  const PROFESSIONAL_HOME_SOURCE = '/analytics';
   const PROFESSIONAL_RESUME_HTML = `
     <div class="nav-item nav-item-resume">
       <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
@@ -48,114 +49,6 @@
     </div>
   `;
 
-  const PROFESSIONAL_HOME_HTML = `
-    <section class="hero hero--default">
-      <div class="wrapper">
-        <h1>Data Analytics,<br>Made Actionable</h1>
-        <div class="hero-identity">
-          <img class="hero-avatar" src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="(max-width: 768px) 112px, 132px" alt="Portrait of Daniel Short" width="132" height="132" decoding="async" fetchpriority="high">
-          <p class="hero-eyebrow">Daniel Short · Analytics &amp; BI</p>
-        </div>
-        <p class="hero-tagline">I build SQL, Tableau, Excel, and Python workflows that turn recurring reporting, KPI tracking, and operational questions into outputs leaders can act on quickly.</p>
-        <p class="hero-status">SQL · Tableau · Python · Reporting</p>
-        <div class="cta-group">
-          <a href="resume" class="btn-primary hero-cta">Resume</a>
-          <a href="portfolio?audience=analytics" class="btn-secondary hero-cta">Portfolio</a>
-          <a href="contact#contact-modal" class="btn-ghost hero-cta" data-contact-modal-link="true">Contact</a>
-        </div>
-      </div>
-      <a class="chevron-hint scroll-indicator" href="#professional-projects" data-smooth-scroll="true">
-        <span class="chevron-label">View project examples</span>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
-      </a>
-    </section>
-
-    <section id="professional-projects" class="project-examples-band surface-band no-reveal" role="region" aria-labelledby="professional-projects-title">
-      <div class="wrapper">
-        <div class="project-examples-head">
-          <h2 id="professional-projects-title">Project Examples</h2>
-          <p class="project-examples-subtitle">A focused view of dashboarding, SQL workflows, forecasting, and decision support tied to business questions.</p>
-        </div>
-        <div class="home-showcase-grid" role="list" aria-label="Professional project examples">
-          <article class="home-showcase-card" role="listitem">
-            <h3>Store-Level Loss &amp; Sales ETL</h3>
-            <p class="home-showcase-summary">SQL ETL and anomaly views for comparing loss signals against store sales context.</p>
-            <a class="btn-secondary" href="portfolio/retailStore?audience=analytics">View project</a>
-          </article>
-          <article class="home-showcase-card" role="listitem">
-            <h3>Empty-Package Shrink Dashboard</h3>
-            <p class="home-showcase-summary">Excel forecasting and BI workflow for tracking theft trends, hotspots, and prevention follow-up.</p>
-            <a class="btn-secondary" href="portfolio/targetEmptyPackage?audience=analytics">View project</a>
-          </article>
-          <article class="home-showcase-card" role="listitem">
-            <h3>Pizza Delivery Dashboard</h3>
-            <p class="home-showcase-summary">Tableau KPI tracking and forecasting for planning, regional comparison, and operational review.</p>
-            <a class="btn-secondary" href="portfolio/pizzaDashboard?audience=analytics">View project</a>
-          </article>
-        </div>
-        <div class="project-examples-actions">
-          <a href="portfolio?audience=analytics" class="btn-secondary project-examples-cta">View portfolio</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="professional-results" class="home-proof-band surface-band no-reveal" role="region" aria-labelledby="professional-results-title">
-      <div class="wrapper">
-        <div class="home-proof-head">
-          <h2 id="professional-results-title" class="section-title">Business-Facing Results</h2>
-          <p>A concise snapshot of outcomes behind the professional project examples.</p>
-        </div>
-        <ul class="home-proof-kpis" aria-label="Business-facing analytics results">
-          <li class="home-proof-item"><div class="home-proof-card"><span class="home-proof-value">99%</span><span class="home-proof-label">Faster reporting turnaround on recurring leadership and stakeholder updates.</span></div></li>
-          <li class="home-proof-item"><div class="home-proof-card"><span class="home-proof-value">200+</span><span class="home-proof-label">Hours saved annually by automating recurring report prep and delivery.</span></div></li>
-          <li class="home-proof-item"><div class="home-proof-card"><span class="home-proof-value">24%</span><span class="home-proof-label">Inventory loss reduction through analytics-driven investigations and workflow improvements.</span></div></li>
-          <li class="home-proof-item"><div class="home-proof-card"><span class="home-proof-value">57.6%</span><span class="home-proof-label">Improvement in theft reporting after dashboard and process redesign.</span></div></li>
-        </ul>
-      </div>
-    </section>
-
-    <section id="professional-experience" class="surface-band reveal destination-section" aria-labelledby="professional-experience-title">
-      <div class="wrapper">
-        <div class="destination-section-head">
-          <h2 id="professional-experience-title">Work Snapshot</h2>
-          <p>Recent roles across destination reporting, AI data quality, retail operations, and business analysis.</p>
-        </div>
-        <div class="home-showcase-grid" role="list" aria-label="Professional work experience">
-          <article class="home-showcase-card" role="listitem">
-            <h3>Visit Grand Junction</h3>
-            <p class="home-showcase-summary">Automated stakeholder reporting across lodging, tax, web, campaign, airport, and visitor data.</p>
-          </article>
-          <article class="home-showcase-card" role="listitem">
-            <h3>Randall Reilly</h3>
-            <p class="home-showcase-summary">Re-platformed R workflows into Python and built anomaly models for QA review prioritization.</p>
-          </article>
-          <article class="home-showcase-card" role="listitem">
-            <h3>Target</h3>
-            <p class="home-showcase-summary">Designed dashboards and investigations that improved theft reporting and reduced inventory loss.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="professional-skills" class="surface-band reveal destination-section" aria-labelledby="professional-skills-title">
-      <div class="wrapper">
-        <div class="destination-section-head">
-          <h2 id="professional-skills-title">Skills in Practice</h2>
-          <p>SQL, Tableau, Excel, Python, forecasting, anomaly detection, stakeholder reporting, GA4, and dashboard design.</p>
-        </div>
-        <div class="home-contact-panel" role="group" aria-label="Professional call to action">
-          <div class="home-contact-copy">
-            <h2 class="section-title">Open to analytics, BI, and reporting automation roles</h2>
-            <p>I’m open to roles where practical data workflows turn recurring business questions into decision-ready outputs.</p>
-          </div>
-          <div class="home-contact-actions" aria-label="Professional contact options">
-            <a href="resume" class="btn-primary">Resume</a>
-            <a href="contact#contact-modal" class="btn-secondary" data-contact-modal-link="true">Contact form</a>
-          </div>
-        </div>
-      </div>
-    </section>
-  `;
 
   const clearStoredRealm = () => {
     try {
@@ -231,9 +124,11 @@
     document.documentElement.classList.toggle('site-realm-professional-home', isProfessionalHome);
     if (document.body) {
       document.body.dataset.siteRealm = mode;
-      document.body.classList.toggle('professional-home-page', isProfessionalHome);
+      document.body.classList.remove('professional-home-page');
       if (isProfessionalHome) {
         document.body.dataset.siteRealmHome = PROFESSIONAL_MODE;
+        document.body.dataset.page = PROFESSIONAL_AUDIENCE;
+        document.body.dataset.audience = PROFESSIONAL_AUDIENCE;
       } else {
         delete document.body.dataset.siteRealmHome;
       }
@@ -255,15 +150,32 @@
   const isSkippableHref = (href) => {
     const value = String(href || '').trim();
     return !value
-      || value.startsWith('#')
       || /^(mailto|tel|sms|javascript):/i.test(value);
+  };
+
+  const isHashOnlyHref = (href) => {
+    const value = String(href || '').trim();
+    return value.startsWith('#') && value.length > 1;
   };
 
   const shouldSkipModeParam = (url) => (
     /\.(?:pdf|docx?|xlsx?|zip|png|jpe?g|webp|avif|svg|ico)$/i.test(url.pathname || '')
   );
 
+  const currentHashHref = (hash) => {
+    let url;
+    try {
+      url = new URL(window.location.href);
+    } catch {
+      return hash;
+    }
+    url.searchParams.set('mode', PROFESSIONAL_MODE);
+    url.hash = hash;
+    return `${url.pathname}${url.search}${url.hash}`;
+  };
+
   const withProfessionalMode = (href) => {
+    if (isHashOnlyHref(href)) return currentHashHref(String(href || '').trim());
     if (isSkippableHref(href)) return href;
     let url;
     try {
@@ -428,17 +340,97 @@
     linkMutationObserver.observe(document.body, { childList: true, subtree: true });
   };
 
+  const ensureProfessionalHomeStyles = (sourceDoc) => {
+    const sourceLinks = Array.from(sourceDoc.querySelectorAll('link[rel~="stylesheet"][href]'));
+    const existingHrefs = new Set(Array.from(document.querySelectorAll('link[rel~="stylesheet"][href]')).map((link) => {
+      try {
+        return new URL(link.getAttribute('href'), window.location.href).href;
+      } catch {
+        return link.getAttribute('href');
+      }
+    }));
+
+    const pending = sourceLinks.map((sourceLink) => {
+      let absoluteHref;
+      try {
+        absoluteHref = new URL(sourceLink.getAttribute('href'), window.location.href).href;
+      } catch {
+        absoluteHref = sourceLink.getAttribute('href');
+      }
+      if (!absoluteHref || existingHrefs.has(absoluteHref)) return null;
+
+      const link = sourceLink.cloneNode(false);
+      existingHrefs.add(absoluteHref);
+      return new Promise((resolve) => {
+        const finish = () => resolve();
+        const timeout = window.setTimeout(finish, 3000);
+        link.addEventListener('load', () => {
+          window.clearTimeout(timeout);
+          finish();
+        }, { once: true });
+        link.addEventListener('error', () => {
+          window.clearTimeout(timeout);
+          finish();
+        }, { once: true });
+        document.head.appendChild(link);
+      });
+    }).filter(Boolean);
+
+    return Promise.all(pending);
+  };
+
+  let professionalHomeRenderPromise = null;
   const renderProfessionalHome = () => {
     if (window.getSiteRealm() !== PROFESSIONAL_MODE || currentPath() !== '/') return;
     const main = document.getElementById('main');
     if (!main || main.dataset.siteRealmRendered === PROFESSIONAL_MODE) return;
-    main.innerHTML = PROFESSIONAL_HOME_HTML.trim();
-    main.dataset.siteRealmRendered = PROFESSIONAL_MODE;
-    document.title = 'Data Analytics | Daniel Short';
-    const description = document.querySelector('meta[name="description"]');
-    if (description) {
-      description.setAttribute('content', 'Professional analytics and BI portfolio for Daniel Short: SQL, Tableau, reporting automation, dashboarding, forecasting, and business decision support.');
+    if (professionalHomeRenderPromise) return professionalHomeRenderPromise;
+
+    if (document.body) {
+      document.body.dataset.page = PROFESSIONAL_AUDIENCE;
+      document.body.dataset.audience = PROFESSIONAL_AUDIENCE;
+      document.body.dataset.siteRealmHome = PROFESSIONAL_MODE;
     }
+
+    const sourceUrl = new URL(PROFESSIONAL_HOME_SOURCE, window.location.origin);
+    sourceUrl.searchParams.set('mode', PROFESSIONAL_MODE);
+    main.dataset.siteRealmRendered = 'loading';
+
+    professionalHomeRenderPromise = window.fetch(sourceUrl.toString(), { credentials: 'same-origin' })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Unable to load professional home source: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then((html) => {
+        const sourceDoc = new DOMParser().parseFromString(html, 'text/html');
+        const sourceMain = sourceDoc.getElementById('main');
+        if (!sourceMain) {
+          throw new Error('Professional home source is missing #main');
+        }
+        return ensureProfessionalHomeStyles(sourceDoc).then(() => ({ sourceDoc, sourceMain }));
+      })
+      .then(({ sourceDoc, sourceMain }) => {
+        main.innerHTML = sourceMain.innerHTML;
+        main.dataset.siteRealmRendered = PROFESSIONAL_MODE;
+        document.title = sourceDoc.title || 'Data Analytics | Daniel Short';
+        const sourceDescription = sourceDoc.querySelector('meta[name="description"]');
+        const description = document.querySelector('meta[name="description"]');
+        if (sourceDescription && description) {
+          description.setAttribute('content', sourceDescription.getAttribute('content') || '');
+        }
+        preserveProfessionalLinks();
+        document.dispatchEvent(new CustomEvent('site:content-updated', {
+          detail: { source: 'professional-home', mode: PROFESSIONAL_MODE }
+        }));
+      })
+      .catch((error) => {
+        main.dataset.siteRealmRendered = 'error';
+        console.warn(error);
+      });
+
+    return professionalHomeRenderPromise;
   };
 
   const applyMode = () => {

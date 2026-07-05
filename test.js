@@ -39400,11 +39400,35 @@ try {
     assert(siteRealm.includes("document.documentElement.classList.toggle('site-realm-professional-home', isProfessionalHome)") &&
       siteRealm.includes("document.body.dataset.siteRealmHome = PROFESSIONAL_MODE"),
       'root mode=professional should expose a scoped professional-home state without redirecting');
+    assert(siteRealm.includes("const PROFESSIONAL_HOME_SOURCE = '/analytics'") &&
+      siteRealm.includes('document.body.dataset.page = PROFESSIONAL_AUDIENCE') &&
+      siteRealm.includes("window.fetch(sourceUrl.toString(), { credentials: 'same-origin' })") &&
+      siteRealm.includes("sourceDoc.getElementById('main')") &&
+      siteRealm.includes('ensureProfessionalHomeStyles(sourceDoc)'),
+      'root mode=professional should reuse the analytics page markup and route styles instead of rendering a separate professional homepage');
+    assert(siteRealm.includes('if (isHashOnlyHref(href)) return currentHashHref') &&
+      siteRealm.includes("document.dispatchEvent(new CustomEvent('site:content-updated'"),
+      'professional mode should preserve current mode on same-page hash links and notify dynamic content initializers');
+    const commonScript = readFile('js/common/common.js');
+    assert(commonScript.includes('const samePageHashFromHref = (href) =>') &&
+      commonScript.includes("document.addEventListener('site:content-updated'") &&
+      commonScript.includes("panel.dataset.jumpPanelSpyBound === 'yes'") &&
+      commonScript.includes("history.pushState(null, '', currentHashUrl(hash))"),
+      'same-page smooth scroll and jump panel spy should support mode-preserving hash URLs after professional homepage injection');
+    const animationsScript = readFile('js/animations/animations.js');
+    assert(animationsScript.includes("document.addEventListener('site:content-updated'") &&
+      animationsScript.includes('let revealObserver = null') &&
+      animationsScript.includes("el.dataset.revealObserved = 'yes'") &&
+      animationsScript.includes("track.dataset.certTickerBound === 'yes'"),
+      'professional homepage injection should initialize reveal animations and avoid duplicate ticker bindings');
     const professionalHomeCss = readFile('css/utilities/design-system-overrides.css');
     assert(professionalHomeCss.includes('html.site-realm-professional-home body[data-page="home"].home-pattern-page') &&
       professionalHomeCss.includes('07-website-hero-light-version.png') &&
       professionalHomeCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / auto 100% no-repeat'),
       'root mode=professional homepage should keep an image-backed analytics hero instead of the personal homepage gradient-only hero');
+    assert(professionalHomeCss.includes('.jump-panel-link[href$="#project-examples"]') &&
+      professionalHomeCss.includes('.jump-panel-link[href$="#cta"]'),
+      'professional jump panel accent styling should survive mode-preserving same-page hrefs');
 
     ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
