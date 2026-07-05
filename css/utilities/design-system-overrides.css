@@ -1070,6 +1070,7 @@
     body[data-page="portfolio"] .hero.hero--default {
       background:
         linear-gradient(90deg, rgba(249, 249, 250, .96) 0%, rgba(249, 249, 250, .82) 46%, rgba(249, 249, 250, .18) 100%),
+        var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / min(58vw, 720px) auto no-repeat,
         var(--brand-canvas);
     }
   }

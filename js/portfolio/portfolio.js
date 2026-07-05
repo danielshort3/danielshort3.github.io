@@ -202,6 +202,9 @@ const applyPortfolioAudienceContent = (audienceKey) => {
   const allHeading = document.getElementById('all-projects-title');
   const allCopy = document.getElementById('portfolio-library-copy');
   if (!config) {
+    if (document.body) {
+      document.body.dataset.audience = 'personal';
+    }
     if (eyebrow) eyebrow.textContent = 'Projects';
     if (title) title.textContent = 'Project Library';
     if (tagline) {
@@ -215,6 +218,9 @@ const applyPortfolioAudienceContent = (audienceKey) => {
     return;
   }
   const personalMode = !audienceKey || normalizeAudience(audienceKey) === 'personal';
+  if (document.body) {
+    document.body.dataset.audience = config.key || (personalMode ? 'personal' : normalizeAudience(audienceKey));
+  }
   if (eyebrow) eyebrow.textContent = personalMode ? 'Projects' : (config.label || config.shortLabel || 'Portfolio');
   if (title) title.textContent = config.portfolioTitle || 'Project Portfolio';
   if (tagline) tagline.textContent = config.portfolioDescription || '';

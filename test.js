@@ -37724,7 +37724,8 @@ try {
       'audience homepage scroll indicators should remain visible across viewport sizes');
     assert(brandOverrideCss.includes('var(--hero-mobile-art-layer, var(--hero-art-layer, url("../img/brand/23-hero-general-light.png"))) center bottom / cover no-repeat'), 'mobile hero should use the portrait hero raster anchored to the bottom of the hero');
     assert(brandOverrideCss.includes('body[data-page="portfolio"] .hero.hero--default') &&
-      brandOverrideCss.includes('linear-gradient(90deg, rgba(249, 249, 250, .96) 0%, rgba(249, 249, 250, .82) 46%, rgba(249, 249, 250, .18) 100%),\n        var(--brand-canvas);'), 'desktop portfolio hero should use a plain brand-canvas gradient without raster background art');
+      brandOverrideCss.includes('var(--hero-art-layer, url("../img/brand/23-hero-general-light.png")) right bottom / min(58vw, 720px) auto no-repeat'),
+      'desktop portfolio hero should preserve the selected audience raster background art');
     [
       'analytics-project-examples-bg.png',
       'analytics-business-results-bg.png',
@@ -38179,7 +38180,7 @@ try {
     assert(!graphJs.includes('const stackStep = dimensions.height') &&
       graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
       graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
-      personalAudience.includes('home-graph-20260704-mobile-chain-cell-v5'),
+      personalAudience.includes('home-graph-20260704-mobile-chain-cell-v8'),
       'homepage graph item placement should cluster project labels around each subcategory instead of using tabular child-node grids');
     assert(graphJs.includes("map.addEventListener('click'") &&
       graphJs.includes("center?.addEventListener('click', () => collapseGraph())"),
@@ -39362,6 +39363,9 @@ try {
     const portfolioScript = readFile('js/portfolio/portfolio.js');
     assert(!portfolioScript.includes('function initSeeMore'), 'portfolio script should not include see-more initializer');
     assert(!portfolioScript.includes('filter-menu'), 'portfolio script should not depend on filter menu');
+    assert(portfolioScript.includes('document.body.dataset.audience = config.key') &&
+      portfolioScript.includes("document.body.dataset.audience = 'personal'"),
+      'portfolio script should keep body data-audience synced with the selected portfolio audience for hero artwork');
 
     const commonScript = readFile('js/common/common.js');
     assert(!commonScript.includes('run(window.initSeeMore);'), 'common portfolio init should not run see-more');

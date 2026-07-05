@@ -49,7 +49,7 @@
     ],
     "bottomScripts": [
       {
-        "src": "js/home/project-graph.js?v=home-graph-20260704-mobile-chain-cell-v5",
+        "src": "js/home/project-graph.js?v=home-graph-20260704-mobile-chain-cell-v8",
         "defer": true
       },
       {
