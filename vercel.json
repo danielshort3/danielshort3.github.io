@@ -193,6 +193,15 @@
   ],
   "headers": [
     {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "mode", "value": "professional" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
       "source": "/pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }

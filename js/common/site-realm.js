@@ -157,21 +157,9 @@
     </section>
   `;
 
-  const readStoredRealm = () => {
+  const clearStoredRealm = () => {
     try {
-      return window.localStorage.getItem(STORAGE_KEY);
-    } catch {
-      return '';
-    }
-  };
-
-  const writeStoredRealm = (mode) => {
-    try {
-      if (mode === PROFESSIONAL_MODE) {
-        window.localStorage.setItem(STORAGE_KEY, PROFESSIONAL_MODE);
-      } else {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
+      window.localStorage.removeItem(STORAGE_KEY);
     } catch {}
   };
 
@@ -210,20 +198,45 @@
 
   const detectMode = () => {
     const explicit = queryMode();
-    if (explicit) {
-      writeStoredRealm(explicit);
-      return explicit;
-    }
+    if (explicit) return explicit;
+    clearStoredRealm();
     if (pathLooksProfessional() || bodyLooksProfessional()) return PROFESSIONAL_MODE;
-    return normalizeMode(readStoredRealm()) || PERSONAL_MODE;
+    return PERSONAL_MODE;
+  };
+
+  const applyHiringRobots = (mode) => {
+    const explicitMode = queryMode();
+    const isHiringView = mode === PROFESSIONAL_MODE && explicitMode === PROFESSIONAL_MODE;
+    const selector = 'meta[name="robots"][data-site-realm-robots="hiring"]';
+    const existing = document.head?.querySelector(selector);
+    if (!isHiringView) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    const robots = existing || document.createElement('meta');
+    robots.setAttribute('name', 'robots');
+    robots.setAttribute('content', 'noindex, nofollow');
+    robots.dataset.siteRealmRobots = 'hiring';
+    if (!existing && document.head) {
+      document.head.appendChild(robots);
+    }
   };
 
   const setDocumentMode = (mode) => {
     const isProfessional = mode === PROFESSIONAL_MODE;
+    const isProfessionalHome = isProfessional && currentPath() === '/';
     document.documentElement.classList.toggle('site-realm-professional', isProfessional);
     document.documentElement.classList.toggle('site-realm-personal', !isProfessional);
+    document.documentElement.classList.toggle('site-realm-professional-home', isProfessionalHome);
     if (document.body) {
       document.body.dataset.siteRealm = mode;
+      document.body.classList.toggle('professional-home-page', isProfessionalHome);
+      if (isProfessionalHome) {
+        document.body.dataset.siteRealmHome = PROFESSIONAL_MODE;
+      } else {
+        delete document.body.dataset.siteRealmHome;
+      }
       if (isProfessional && (!document.body.dataset.audience || document.body.dataset.audience === 'personal')) {
         document.body.dataset.audience = PROFESSIONAL_AUDIENCE;
       }
@@ -231,6 +244,7 @@
     window.SITE_REALM = mode;
     window.getSiteRealm = () => window.SITE_REALM || PERSONAL_MODE;
     window.isProfessionalRealm = () => window.getSiteRealm() === PROFESSIONAL_MODE;
+    applyHiringRobots(mode);
   };
 
   const isInternalHttpUrl = (url) => {
@@ -440,13 +454,6 @@
     window.requestAnimationFrame?.(preserveProfessionalLinks);
   };
 
-  const handleSwitchClick = (event) => {
-    const switchLink = event.target.closest('[data-site-realm-switch]');
-    if (!switchLink) return;
-    const mode = normalizeMode(switchLink.dataset.siteRealmSwitch);
-    if (mode) writeStoredRealm(mode);
-  };
-
   const handleInternalClick = (event) => {
     if (window.getSiteRealm() !== PROFESSIONAL_MODE) return;
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -460,6 +467,5 @@
 
   setDocumentMode(detectMode());
   document.addEventListener('DOMContentLoaded', applyMode);
-  document.addEventListener('click', handleSwitchClick, true);
   document.addEventListener('click', handleInternalClick, true);
 })();
