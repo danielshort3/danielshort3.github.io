@@ -1290,6 +1290,12 @@
         targetEmptyPackage: { a: 180, rx: 1.08, ry: .95, absolute: true },
         pizza: { a: -92, rx: .92, ry: 1.08, absolute: true }
       }
+    },
+    tools: {
+      'campaign-link': {
+        'utm-batch-builder': { a: 118, rx: .96, ry: 1.05, absolute: true },
+        'qr-code-generator': { a: -90, rx: .94, ry: 1.02, absolute: true }
+      }
     }
   });
 
@@ -1423,6 +1429,26 @@
     keepEntryNearCluster(second, metrics);
   };
 
+  const getGroupedFanCategoryObstacle = (entryId, activeCategoryId, metrics, graphLayout) => {
+    const active = entryId === activeCategoryId;
+    const supportingHaloScale = metrics.showItemLabels && !metrics.isNarrow
+      ? {
+          x: .72,
+          y: 1.3
+        }
+      : {
+          x: .42,
+          y: .72
+        };
+
+    return {
+      x: graphLayout.categories[entryId].x,
+      y: graphLayout.categories[entryId].y,
+      halfWidth: active ? metrics.categoryHalfWidth : metrics.categoryHalfWidth * supportingHaloScale.x,
+      halfHeight: active ? metrics.categoryHalfHeight : metrics.categoryHalfHeight * supportingHaloScale.y
+    };
+  };
+
   const resolveGroupedFanEntries = (entries, categoryId, metrics, graphLayout) => {
     const resolved = entries.map((entry) => ({ ...entry }));
     const itemEntries = resolved.filter((entry) => entry.type === 'item');
@@ -1434,12 +1460,7 @@
         halfWidth: metrics.centerHalfSize,
         halfHeight: metrics.centerHalfSize
       },
-      ...CATEGORY_ORDER.map((entryId) => ({
-        x: graphLayout.categories[entryId].x,
-        y: graphLayout.categories[entryId].y,
-        halfWidth: entryId === categoryId ? metrics.categoryHalfWidth : metrics.categoryHalfWidth * .42,
-        halfHeight: entryId === categoryId ? metrics.categoryHalfHeight : metrics.categoryHalfHeight * .72
-      })),
+      ...CATEGORY_ORDER.map((entryId) => getGroupedFanCategoryObstacle(entryId, categoryId, metrics, graphLayout)),
       ...resolved
         .filter((entry) => entry.type === 'group')
         .map((entry) => ({
@@ -1457,8 +1478,12 @@
 
       itemEntries.forEach((entry, index) => {
         itemEntries.slice(index + 1)
-          .filter((otherEntry) => otherEntry.groupId === entry.groupId)
-          .forEach((otherEntry) => separateEntryPair(entry, otherEntry, metrics, gap));
+          .forEach((otherEntry) => {
+            const separationGap = otherEntry.groupId === entry.groupId
+              ? gap
+              : gap + (metrics.showItemLabels ? 12 : 4);
+            separateEntryPair(entry, otherEntry, metrics, separationGap);
+          });
       });
     }
 
@@ -1534,7 +1559,7 @@
           halfHeight: dimensions.height / 2,
           clusterX: groupPoint.x,
           clusterY: groupPoint.y,
-          clusterRadius: dimensions.showLabels ? 218 : 182,
+          clusterRadius: dimensions.showLabels ? 236 : 182,
           index: itemOrder.get(item.id) || 0
         });
       });
