@@ -2,23 +2,200 @@
   "copyrightName": "Daniel Short",
   "cookieSettingsLabel": "Cookie settings",
   "cookieSettingsButtonId": "privacy-settings-link",
+  "identity": {
+    "variants": {
+      "personal": {
+        "name": "Daniel Short",
+        "summary": "Projects, browser tools, games, and machine-learning experiments.",
+        "links": [
+          {
+            "label": "Portfolio",
+            "href": "portfolio",
+            "dataAttributes": {
+              "data-portfolio-home-link": "true"
+            }
+          },
+          {
+            "label": "Contact",
+            "href": "contact#contact-modal",
+            "dataAttributes": {
+              "data-contact-modal-link": "true"
+            }
+          }
+        ]
+      },
+      "professional": {
+        "name": "Daniel Short",
+        "summary": "Data analyst | BI, reporting, automation",
+        "links": [
+          {
+            "label": "Resume",
+            "href": "resume",
+            "dataAttributes": {
+              "data-resume-home-link": "true"
+            }
+          },
+          {
+            "label": "Contact",
+            "href": "contact#contact-modal",
+            "dataAttributes": {
+              "data-contact-modal-link": "true"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "navVariants": {
+    "personal": [
+      {
+        "id": "browse",
+        "title": "Browse",
+        "links": [
+          {
+            "label": "Portfolio",
+            "href": "portfolio",
+            "dataAttributes": {
+              "data-portfolio-home-link": "true"
+            }
+          },
+          {
+            "label": "Tools",
+            "href": "tools"
+          },
+          {
+            "label": "Games",
+            "href": "games"
+          },
+          {
+            "label": "Search",
+            "href": "search"
+          }
+        ]
+      },
+      {
+        "id": "connect",
+        "title": "Connect",
+        "links": [
+          {
+            "label": "LinkedIn",
+            "href": "https://www.linkedin.com/in/danielshort3/",
+            "target": "_blank",
+            "rel": "noopener noreferrer"
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/danielshort3",
+            "target": "_blank",
+            "rel": "noopener noreferrer"
+          },
+          {
+            "label": "Email",
+            "href": "mailto:daniel@danielshort.me"
+          }
+        ]
+      }
+    ],
+    "professional": [
+      {
+        "id": "work",
+        "title": "Work",
+        "links": [
+          {
+            "label": "Portfolio",
+            "href": "portfolio?audience=analytics",
+            "dataAttributes": {
+              "data-portfolio-home-link": "true"
+            }
+          },
+          {
+            "label": "Resume",
+            "href": "resume",
+            "dataAttributes": {
+              "data-resume-home-link": "true"
+            }
+          },
+          {
+            "label": "Analytics",
+            "href": "analytics"
+          },
+          {
+            "label": "Data science",
+            "href": "data-science"
+          }
+        ]
+      },
+      {
+        "id": "connect",
+        "title": "Connect",
+        "links": [
+          {
+            "label": "Contact",
+            "href": "contact#contact-modal",
+            "dataAttributes": {
+              "data-contact-modal-link": "true"
+            }
+          },
+          {
+            "label": "LinkedIn",
+            "href": "https://www.linkedin.com/in/danielshort3/",
+            "target": "_blank",
+            "rel": "noopener noreferrer"
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/danielshort3",
+            "target": "_blank",
+            "rel": "noopener noreferrer"
+          },
+          {
+            "label": "Email",
+            "href": "mailto:daniel@danielshort.me"
+          }
+        ]
+      }
+    ]
+  },
+  "utilityLinks": [
+    {
+      "label": "Sitemap",
+      "href": "sitemap-pretty"
+    },
+    {
+      "label": "Work",
+      "href": "/?mode=professional",
+      "dataAttributes": {
+        "data-site-realm-switch": "professional",
+        "data-footer-realm": "personal"
+      }
+    },
+    {
+      "label": "Home",
+      "href": "/",
+      "dataAttributes": {
+        "data-site-realm-switch": "personal",
+        "data-footer-realm": "professional"
+      }
+    },
+    {
+      "label": "Cookie settings",
+      "type": "button",
+      "id": "privacy-settings-link-footer",
+      "ariaHaspopup": "dialog"
+    },
+    {
+      "label": "Back to top",
+      "href": "#main",
+      "dataAttributes": {
+        "data-smooth-scroll": "true"
+      }
+    }
+  ],
   "columns": [
     {
-      "id": "explore",
-      "title": "Explore",
+      "id": "browse",
+      "title": "Browse",
       "links": [
-        {
-          "label": "Home",
-          "href": "/"
-        },
-        {
-          "label": "Search",
-          "href": "search"
-        },
-        {
-          "label": "Tools",
-          "href": "tools"
-        },
         {
           "label": "Portfolio",
           "href": "portfolio",
@@ -27,8 +204,16 @@
           }
         },
         {
+          "label": "Tools",
+          "href": "tools"
+        },
+        {
           "label": "Games",
           "href": "games"
+        },
+        {
+          "label": "Search",
+          "href": "search"
         }
       ]
     },
@@ -73,7 +258,8 @@
           "label": "Work",
           "href": "/?mode=professional",
           "dataAttributes": {
-            "data-site-realm-switch": "professional"
+            "data-site-realm-switch": "professional",
+            "data-footer-realm": "personal"
           }
         },
         {

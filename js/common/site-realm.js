@@ -196,20 +196,31 @@
   const updateSwitches = (mode) => {
     const isProfessional = mode === PROFESSIONAL_MODE;
     document.querySelectorAll('[data-site-realm-switch]').forEach((link) => {
-      if (isProfessional) {
+      const targetMode = normalizeMode(link.dataset.siteRealmSwitch) || (isProfessional ? PERSONAL_MODE : PROFESSIONAL_MODE);
+      if (!link.dataset.siteRealmLabel) {
+        link.dataset.siteRealmLabel = String(link.textContent || '').trim();
+      }
+      const shouldShow = targetMode !== mode;
+
+      if (!shouldShow) {
         link.hidden = true;
         link.textContent = '';
         link.removeAttribute('href');
         link.setAttribute('aria-hidden', 'true');
-        link.dataset.siteRealmSwitch = PERSONAL_MODE;
         return;
       }
+
       link.hidden = false;
-      link.textContent = 'Work';
-      link.setAttribute('href', '/?mode=professional');
-      link.setAttribute('aria-label', 'Switch to the professional site view');
       link.removeAttribute('aria-hidden');
-      link.dataset.siteRealmSwitch = PROFESSIONAL_MODE;
+      link.dataset.siteRealmSwitch = targetMode;
+      link.textContent = link.dataset.siteRealmLabel || (targetMode === PROFESSIONAL_MODE ? 'Work' : 'Home');
+      if (targetMode === PROFESSIONAL_MODE) {
+        link.setAttribute('href', '/?mode=professional');
+        link.setAttribute('aria-label', 'Open work-focused pages');
+      } else {
+        link.setAttribute('href', '/');
+        link.setAttribute('aria-label', 'Go to the home page');
+      }
     });
   };
 
