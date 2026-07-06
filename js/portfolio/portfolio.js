@@ -146,25 +146,67 @@ const setupPreviewVideo = (card, options = {}) => {
 
 const isPublishedProject = (project) => project && project.published !== false;
 
+const FALLBACK_AUDIENCES = {
+  analytics: {
+    key: 'analytics',
+    label: 'Data Analytics',
+    shortLabel: 'Analytics',
+    portfolioPath: '/portfolio?audience=analytics',
+    resumePath: '/resume',
+    featuredProjectIds: ['retailStore', 'targetEmptyPackage', 'pizzaDashboard', 'deliveryTip', 'ufoDashboard'],
+    portfolioTitle: 'Analytics Portfolio',
+    portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.'
+  },
+  personal: {
+    key: 'personal',
+    label: 'Personal Site',
+    shortLabel: 'Personal',
+    portfolioPath: '/portfolio',
+    resumePath: '',
+    featuredProjectIds: ['retailStore', 'chatbotLora', 'digitGenerator', 'smartSentence', 'website'],
+    portfolioTitle: 'Project Library',
+    portfolioDescription: 'Machine learning, analytics, software tools, and browser experiments by Daniel Short.'
+  },
+  'data-science': {
+    key: 'data-science',
+    label: 'Data Science',
+    shortLabel: 'Data Science',
+    portfolioPath: '/portfolio?audience=data-science',
+    resumePath: '/resume-data-science',
+    featuredProjectIds: ['smartSentence', 'chatbotLora', 'shapeClassifier', 'digitGenerator', 'handwritingRating'],
+    portfolioTitle: 'Data Science Portfolio',
+    portfolioDescription: 'Machine learning, NLP, modeling, evaluation, and production-minded experimentation.'
+  },
+  tourism: {
+    key: 'tourism',
+    label: 'Tourism Analytics',
+    shortLabel: 'Tourism',
+    portfolioPath: '/portfolio?audience=tourism',
+    resumePath: '/resume-tourism',
+    featuredProjectIds: ['chatbotLora', 'pizzaDashboard', 'covidAnalysis', 'retailStore', 'smartSentence'],
+    portfolioTitle: 'Tourism Analytics Portfolio',
+    portfolioDescription: 'Destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support.'
+  }
+};
+const FALLBACK_AUDIENCE_ORDER = ['personal', 'analytics', 'data-science', 'tourism'];
 const getAudienceApi = () => window.SITE_AUDIENCE_CONFIG || null;
 const normalizeAudience = (value) => {
   const api = getAudienceApi();
   if (api && typeof api.normalizeAudience === 'function') {
     return api.normalizeAudience(value);
   }
-  return 'personal';
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return 'personal';
+  if (raw === 'datascience' || raw === 'data_science') return 'data-science';
+  if (raw === 'tourism-analytics') return 'tourism';
+  return FALLBACK_AUDIENCES[raw] ? raw : 'personal';
 };
 const getAudienceConfig = (value) => {
   const api = getAudienceApi();
   if (api && typeof api.getAudience === 'function') {
     return api.getAudience(value);
   }
-  return {
-    key: 'personal',
-    featuredProjectIds: Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [],
-    portfolioTitle: 'Project Library',
-    portfolioDescription: 'Projects, tools, experiments, and applied data work.'
-  };
+  return FALLBACK_AUDIENCES[normalizeAudience(value)] || FALLBACK_AUDIENCES.personal;
 };
 const getPortfolioAudienceKey = () => {
   try {
@@ -1359,18 +1401,106 @@ function buildPortfolioWorkbench() {
   const queryParam = directoryConfig && directoryConfig.queryParam ? directoryConfig.queryParam : 'project';
   const ctaLabel = directoryConfig && directoryConfig.ctaLabel ? directoryConfig.ctaLabel : 'View case study';
   const signalPrefix = directoryConfig && directoryConfig.itemSignalPrefix ? directoryConfig.itemSignalPrefix : 'Project';
-  const summaryTitle = directoryConfig && directoryConfig.summaryTitle ? directoryConfig.summaryTitle : 'Summary';
-  const highlightsTitle = directoryConfig && directoryConfig.highlightsTitle ? directoryConfig.highlightsTitle : 'Highlights';
-  const approachTitle = directoryConfig && directoryConfig.approachTitle ? directoryConfig.approachTitle : 'Approach';
-  const stackTitle = directoryConfig && directoryConfig.stackTitle ? directoryConfig.stackTitle : 'Tools & Stack';
+  const summaryTitle = directoryConfig && directoryConfig.summaryTitle ? directoryConfig.summaryTitle : 'Problem';
+  const highlightsTitle = directoryConfig && directoryConfig.highlightsTitle ? directoryConfig.highlightsTitle : 'Outcome';
+  const approachTitle = directoryConfig && directoryConfig.approachTitle ? directoryConfig.approachTitle : 'How it works';
+  const stackTitle = directoryConfig && directoryConfig.stackTitle ? directoryConfig.stackTitle : 'Stack';
   const emptySelectionText = directoryConfig && directoryConfig.emptySelectionText
     ? directoryConfig.emptySelectionText
     : 'Choose a project to see details.';
 
-  const allProjects = isDirectoryWorkbench
+  const sourceProjects = isDirectoryWorkbench
     ? directoryConfig.items.filter((item) => item && item.id)
     : (Array.isArray(window.PROJECTS) ? window.PROJECTS : []).filter(isPublishedProject);
-  if (!allProjects.length) return true;
+  if (!sourceProjects.length) return true;
+
+  const directoryKind = isDirectoryWorkbench ? String(directoryConfig.kind || '').trim().toLowerCase() : '';
+  const getDirectoryAuthContext = () => {
+    const authApi = window.ToolsAuth || {};
+    const auth = typeof authApi.getAuth === 'function' ? authApi.getAuth() : null;
+    const authed = typeof authApi.authIsValid === 'function' ? authApi.authIsValid(auth) : false;
+    const admin = authed && typeof authApi.isAdmin === 'function' ? authApi.isAdmin(auth) : false;
+    return { authed: !!authed, admin: !!admin };
+  };
+  const isDirectoryItemVisible = (item = {}) => {
+    if (!isDirectoryWorkbench || directoryKind !== 'tools') return true;
+    const rule = String(item.visibility || 'public').trim().toLowerCase();
+    if (!rule || rule === 'public') return true;
+    const context = getDirectoryAuthContext();
+    if (rule === 'authed' || rule === 'authenticated' || rule === 'logged-in') return context.authed;
+    if (rule === 'admin' || rule === 'admins') return context.admin;
+    return true;
+  };
+  let allProjects = sourceProjects.filter(isDirectoryItemVisible);
+
+  const audienceKey = isDirectoryWorkbench ? null : getPortfolioAudienceKey();
+  const activeAudience = isDirectoryWorkbench ? null : getAudienceConfig(audienceKey || 'personal');
+  const activeAudienceKey = activeAudience ? normalizeAudience(activeAudience.key || audienceKey || 'personal') : 'personal';
+  const featuredProjectIds = isDirectoryWorkbench ? [] : getFeaturedProjectIds(activeAudienceKey);
+  const featuredProjectRank = new Map(featuredProjectIds.map((id, index) => [id, index]));
+
+  const portfolioProofPoints = {
+    analytics: [
+      { value: '99%', label: 'faster reporting' },
+      { value: '200+', label: 'hours saved annually' },
+      { value: '24%', label: 'inventory loss reduction' },
+      { value: '57.6%', label: 'reporting lift' }
+    ],
+    'data-science': [
+      { value: '95%', label: 'workflow time cut' },
+      { value: '10x', label: 'serial tracking coverage' },
+      { value: '98%', label: 'anomaly precision' },
+      { value: '+14.13%', label: 'pageviews per user' }
+    ],
+    tourism: [
+      { value: '99%', label: 'faster reporting' },
+      { value: '+23.3%', label: 'listing pageview growth' },
+      { value: '+9.4%', label: 'organic sessions' },
+      { value: '10x', label: 'AI referral growth' }
+    ]
+  };
+
+  const hydratePortfolioBrand = () => {
+    if (isDirectoryWorkbench) return;
+    root.dataset.portfolioAudience = activeAudienceKey;
+    if (document.body) document.body.dataset.audience = activeAudienceKey;
+
+    const titleNode = root.querySelector('[data-portfolio-brand-title]');
+    const descriptionNode = root.querySelector('[data-portfolio-brand-description]');
+    const resumeLink = root.querySelector('[data-portfolio-resume-link]');
+    const proofHost = root.querySelector('[data-portfolio-proof]');
+
+    if (titleNode) titleNode.textContent = activeAudience.portfolioTitle || 'Project Library';
+    if (descriptionNode) {
+      descriptionNode.textContent = activeAudience.portfolioDescription || 'Projects, tools, experiments, and applied data work.';
+    }
+    if (resumeLink) {
+      const resumePath = activeAudience.resumePath || '';
+      resumeLink.hidden = !resumePath;
+      if (resumePath) resumeLink.href = resumePath.replace(/^\//, '');
+    }
+    root.querySelectorAll('[data-portfolio-audience-link]').forEach((link) => {
+      const linkKey = normalizeAudience(link.dataset.portfolioAudienceLink || 'personal');
+      const active = linkKey === activeAudienceKey;
+      link.classList.toggle('is-active', active);
+      link.setAttribute('aria-current', active ? 'page' : 'false');
+    });
+    if (proofHost) {
+      const points = portfolioProofPoints[activeAudienceKey] || [
+        { value: `${allProjects.length}`, label: 'project builds' },
+        { value: `${featuredProjectIds.length || 5}`, label: 'featured systems' },
+        { value: 'SQL', label: 'Python and BI' },
+        { value: 'Live', label: 'demos and case studies' }
+      ];
+      proofHost.innerHTML = points.map((point) => `
+        <li>
+          <strong>${escapeHtml(point.value)}</strong>
+          <span>${escapeHtml(point.label)}</span>
+        </li>
+      `).join('');
+    }
+  };
+  hydratePortfolioBrand();
 
   const normalizeText = (value = '') => String(value || '').toLowerCase();
   const slugify = (value = '') => normalizeText(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -1553,7 +1683,7 @@ function buildPortfolioWorkbench() {
     filterHost,
     filterGroups,
     state,
-    allItems: allProjects,
+    allItems: sourceProjects,
     sortSelect,
     searchInput,
     itemSingular,
@@ -1629,6 +1759,14 @@ function buildPortfolioWorkbench() {
     if (state.sort === 'title') {
       return copy.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
     }
+    if (featuredProjectRank.size) {
+      return copy.sort((a, b) => {
+        const aRank = featuredProjectRank.has(a.id) ? featuredProjectRank.get(a.id) : Infinity;
+        const bRank = featuredProjectRank.has(b.id) ? featuredProjectRank.get(b.id) : Infinity;
+        if (aRank !== bRank) return aRank - bRank;
+        return Number(a.order || 0) - Number(b.order || 0);
+      });
+    }
     return copy;
   };
 
@@ -1659,8 +1797,11 @@ function buildPortfolioWorkbench() {
     resultHost.innerHTML = projects.map((project, index) => {
       const focuses = getProjectFocuses(project);
       const visibleChips = unique([getPrimaryFormat(project), ...focuses, ...toList(project.tools), ...toList(project.tags)]);
+      const visibilityAttr = isDirectoryWorkbench && directoryKind === 'tools'
+        ? ` data-tools-visibility="${escapeHtml(project.visibility || 'public')}"`
+        : '';
       return `
-        <button type="button" class="portfolio-result-card${project.id === state.selectedId ? ' is-selected' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}" aria-pressed="${project.id === state.selectedId ? 'true' : 'false'}">
+        <button type="button" class="portfolio-result-card${project.id === state.selectedId ? ' is-selected' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}"${visibilityAttr} aria-pressed="${project.id === state.selectedId ? 'true' : 'false'}">
           <span class="portfolio-result-card__media${project.image ? '' : ' portfolio-result-card__media--icon'}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
           <span class="portfolio-result-card__body">
             <span class="portfolio-result-card__title">${escapeHtml(project.title)}</span>
@@ -1763,8 +1904,12 @@ function buildPortfolioWorkbench() {
   };
 
   const render = () => {
+    allProjects = sourceProjects.filter(isDirectoryItemVisible);
     if (sortSelect && sortSelect.value !== state.sort) state.sort = sortSelect.value;
     renderFilters();
+    if (!state.selectedId && initialProjectId && allProjects.some((project) => project.id === initialProjectId)) {
+      state.selectedId = initialProjectId;
+    }
     const projects = filteredProjects();
     if (!projects.some((project) => project.id === state.selectedId)) {
       state.selectedId = autoSelectFallback && projects[0] ? projects[0].id : null;
@@ -1864,6 +2009,11 @@ function buildPortfolioWorkbench() {
       if (searchInput) searchInput.value = '';
       render();
     });
+  }
+
+  if (isDirectoryWorkbench && directoryKind === 'tools') {
+    document.addEventListener('tools:auth-changed', render);
+    document.addEventListener('tools:visibility-updated', render);
   }
 
   render();

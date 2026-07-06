@@ -4,9 +4,9 @@
   "outputPath": "pages/tools.html",
   "title": "Tools | Daniel Short",
   "canonicalPath": "/tools",
-  "description": "Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.",
+  "description": "Small utilities for writing, links, media, and repeatable work.",
   "ogTitle": "Tools | Daniel Short",
-  "ogDescription": "Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.",
+  "ogDescription": "Small utilities for writing, links, media, and repeatable work.",
   "siteName": "Daniel Short",
   "ogType": "website",
   "bodyAttributes": {
@@ -28,6 +28,10 @@
     },
     {
       "src": "dist/site-consent.js",
+      "defer": true
+    },
+    {
+      "src": "dist/site-tools-landing.js",
       "defer": true
     }
   ],

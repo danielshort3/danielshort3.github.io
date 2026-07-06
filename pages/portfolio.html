@@ -24,7 +24,7 @@
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0F172A">
   <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="dist/styles.bf9199a2.css">
+  <link rel="stylesheet" href="dist/styles.12ccca2b.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -261,9 +261,42 @@
   <main id="main" class="portfolio-main">
     <section class="portfolio-workbench" id="portfolio-workbench" data-portfolio-workbench aria-labelledby="portfolio-workbench-title">
       <div class="portfolio-workbench__shell">
-        <header class="portfolio-workbench__header">
-          <div class="portfolio-workbench__title-block">
-            <h1 id="portfolio-workbench-title">Portfolio</h1>
+        <header class="portfolio-workbench__header portfolio-brand-panel" data-portfolio-brand>
+          <div class="portfolio-brand-panel__graph" aria-hidden="true">
+            <span class="portfolio-brand-panel__line portfolio-brand-panel__line--one"></span>
+            <span class="portfolio-brand-panel__line portfolio-brand-panel__line--two"></span>
+            <span class="portfolio-brand-panel__line portfolio-brand-panel__line--three"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--core"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--analytics"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--science"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--tourism"></span>
+          </div>
+          <div class="portfolio-brand-panel__main">
+            <div class="portfolio-brand-panel__identity" aria-hidden="true">
+              <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="54" height="54" decoding="async">
+            </div>
+            <div class="portfolio-workbench__title-block">
+              <h1 id="portfolio-workbench-title" data-portfolio-brand-title>Project Library</h1>
+              <p class="portfolio-brand-panel__description" data-portfolio-brand-description>Machine learning, analytics, software tools, and browser experiments by Daniel Short.</p>
+            </div>
+            <div class="portfolio-brand-panel__actions">
+              <a class="portfolio-brand-panel__action portfolio-brand-panel__action--resume" href="resume" data-portfolio-resume-link hidden>Resume</a>
+              <a class="portfolio-brand-panel__action" href="contact#contact-modal" data-contact-modal-link="true">Contact</a>
+            </div>
+          </div>
+          <div class="portfolio-brand-panel__meta">
+            <nav class="portfolio-audience-tabs" aria-label="Portfolio audience views" data-portfolio-audience-tabs>
+              <a href="portfolio" data-portfolio-audience-link="personal">All</a>
+              <a href="portfolio?audience=analytics" data-portfolio-audience-link="analytics">Analytics</a>
+              <a href="portfolio?audience=data-science" data-portfolio-audience-link="data-science">Data Science</a>
+              <a href="portfolio?audience=tourism" data-portfolio-audience-link="tourism">Tourism</a>
+            </nav>
+            <ul class="portfolio-proof-strip" data-portfolio-proof aria-label="Portfolio proof points">
+              <li><strong>15+</strong><span>project builds</span></li>
+              <li><strong>4</strong><span>focus areas</span></li>
+              <li><strong>SQL</strong><span>Python and BI</span></li>
+              <li><strong>Live</strong><span>demos and case studies</span></li>
+            </ul>
           </div>
         </header>
 

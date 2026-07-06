@@ -18,6 +18,11 @@ window.DIRECTORY_WORKBENCH = {
       "title": "Category",
       "options": [
         {
+          "value": "cloud-backed-workflows",
+          "label": "Cloud-backed workflows",
+          "field": "category"
+        },
+        {
           "value": "links-and-campaigns",
           "label": "Links and campaigns",
           "field": "category"
@@ -39,6 +44,11 @@ window.DIRECTORY_WORKBENCH = {
       "title": "Availability",
       "options": [
         {
+          "value": "cloud-tool",
+          "label": "Cloud Tool",
+          "field": "type"
+        },
+        {
           "value": "local-tool",
           "label": "Local Tool",
           "field": "type"
@@ -50,8 +60,33 @@ window.DIRECTORY_WORKBENCH = {
       "title": "Tags",
       "options": [
         {
+          "value": "admin",
+          "label": "Admin",
+          "field": "tags"
+        },
+        {
+          "value": "audio",
+          "label": "Audio",
+          "field": "tags"
+        },
+        {
+          "value": "aws",
+          "label": "AWS",
+          "field": "tags"
+        },
+        {
           "value": "capture",
           "label": "Capture",
+          "field": "tags"
+        },
+        {
+          "value": "career",
+          "label": "Career",
+          "field": "tags"
+        },
+        {
+          "value": "cloud",
+          "label": "Cloud",
           "field": "tags"
         },
         {
@@ -67,6 +102,11 @@ window.DIRECTORY_WORKBENCH = {
         {
           "value": "export",
           "label": "Export",
+          "field": "tags"
+        },
+        {
+          "value": "ga4",
+          "label": "GA4",
           "field": "tags"
         },
         {
@@ -95,6 +135,11 @@ window.DIRECTORY_WORKBENCH = {
           "field": "tags"
         },
         {
+          "value": "redirects",
+          "label": "Redirects",
+          "field": "tags"
+        },
+        {
           "value": "resize",
           "label": "Resize",
           "field": "tags"
@@ -112,6 +157,11 @@ window.DIRECTORY_WORKBENCH = {
         {
           "value": "text",
           "label": "Text",
+          "field": "tags"
+        },
+        {
+          "value": "tracker",
+          "label": "Tracker",
           "field": "tags"
         },
         {
@@ -170,6 +220,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/text-compare.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 1
     },
     {
@@ -204,6 +257,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/nbsp-cleaner.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 2
     },
     {
@@ -238,6 +294,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/oxford-comma-checker.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 3
     },
     {
@@ -272,6 +331,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/point-of-view-checker.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 4
     },
     {
@@ -306,6 +368,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/word-frequency.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 5
     },
     {
@@ -340,6 +405,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/utm-batch-builder.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 6
     },
     {
@@ -374,6 +442,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/qr-code-generator.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 7
     },
     {
@@ -408,6 +479,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/image-optimizer.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 8
     },
     {
@@ -442,6 +516,9 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/background-remover.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 9
     },
     {
@@ -476,7 +553,160 @@ window.DIRECTORY_WORKBENCH = {
       ],
       "iconImage": "img/tools/icons/screen-recorder.png",
       "iconHtml": "",
+      "visibility": "public",
+      "hidden": false,
+      "noindex": false,
       "order": 10
+    },
+    {
+      "id": "job-application-tracker",
+      "title": "Job Application Tracker",
+      "subtitle": "Cloud-backed workflows",
+      "summary": "Log applications and review interview momentum with KPI cards, trend lines, and calendar heatmaps.",
+      "href": "tools/job-application-tracker",
+      "type": "Cloud Tool",
+      "category": "Cloud-backed workflows",
+      "tags": [
+        "Cloud",
+        "Career",
+        "Tracker"
+      ],
+      "tools": [
+        "Cloud",
+        "Career",
+        "Tracker"
+      ],
+      "concepts": [
+        "Cloud-backed workflows"
+      ],
+      "formats": [
+        "Cloud Tool"
+      ],
+      "results": [
+        "Log applications and review interview momentum with KPI cards, trend lines, and calendar heatmaps."
+      ],
+      "actions": [
+        "Account, API, and server-assisted tools."
+      ],
+      "iconImage": "img/tools/icons/job-application-tracker.png",
+      "iconHtml": "",
+      "visibility": "authed",
+      "hidden": true,
+      "noindex": true,
+      "order": 11
+    },
+    {
+      "id": "short-links",
+      "title": "Short Links (Admin)",
+      "subtitle": "Cloud-backed workflows",
+      "summary": "Create and manage private /go/<slug> redirect links with click counts (requires admin token).",
+      "href": "tools/short-links",
+      "type": "Cloud Tool",
+      "category": "Cloud-backed workflows",
+      "tags": [
+        "Cloud",
+        "Admin",
+        "Redirects"
+      ],
+      "tools": [
+        "Cloud",
+        "Admin",
+        "Redirects"
+      ],
+      "concepts": [
+        "Cloud-backed workflows"
+      ],
+      "formats": [
+        "Cloud Tool"
+      ],
+      "results": [
+        "Create and manage private /go/<slug> redirect links with click counts (requires admin token)."
+      ],
+      "actions": [
+        "Account, API, and server-assisted tools."
+      ],
+      "iconImage": "img/tools/icons/short-links.png",
+      "iconHtml": "",
+      "visibility": "admin",
+      "hidden": true,
+      "noindex": true,
+      "order": 12
+    },
+    {
+      "id": "ga4-utm-performance",
+      "title": "GA4 UTM Performance (Admin)",
+      "subtitle": "Cloud-backed workflows",
+      "summary": "Fetch UTM performance from GA4 via the Data API and export aggregated results as CSV (requires admin token).",
+      "href": "tools/ga4-utm-performance",
+      "type": "Cloud Tool",
+      "category": "Cloud-backed workflows",
+      "tags": [
+        "Cloud",
+        "Admin",
+        "GA4",
+        "UTM"
+      ],
+      "tools": [
+        "Cloud",
+        "Admin",
+        "GA4",
+        "UTM"
+      ],
+      "concepts": [
+        "Cloud-backed workflows"
+      ],
+      "formats": [
+        "Cloud Tool"
+      ],
+      "results": [
+        "Fetch UTM performance from GA4 via the Data API and export aggregated results as CSV (requires admin token)."
+      ],
+      "actions": [
+        "Account, API, and server-assisted tools."
+      ],
+      "iconImage": "img/tools/icons/ga4-utm-performance.png",
+      "iconHtml": "",
+      "visibility": "admin",
+      "hidden": true,
+      "noindex": true,
+      "order": 13
+    },
+    {
+      "id": "transcribe",
+      "title": "File Transcriber",
+      "subtitle": "Cloud-backed workflows",
+      "summary": "Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts.",
+      "href": "tools/transcribe",
+      "type": "Cloud Tool",
+      "category": "Cloud-backed workflows",
+      "tags": [
+        "Cloud",
+        "Audio",
+        "AWS"
+      ],
+      "tools": [
+        "Cloud",
+        "Audio",
+        "AWS"
+      ],
+      "concepts": [
+        "Cloud-backed workflows"
+      ],
+      "formats": [
+        "Cloud Tool"
+      ],
+      "results": [
+        "Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts."
+      ],
+      "actions": [
+        "Account, API, and server-assisted tools."
+      ],
+      "iconImage": "img/tools/icons/transcribe.png",
+      "iconHtml": "",
+      "visibility": "authed",
+      "hidden": true,
+      "noindex": true,
+      "order": 14
     }
   ]
 };
