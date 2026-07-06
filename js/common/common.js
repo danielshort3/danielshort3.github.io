@@ -1075,27 +1075,9 @@
     } catch {
       return;
     }
-    if (document.getElementById('privacy-settings-link')) return;
-    if (document.querySelector('[data-cookie-settings]')) return;
-
-    const host = document.createElement('div');
-    if (!host || typeof host.setAttribute !== 'function') return;
-    host.className = 'cookie-settings';
-    host.setAttribute('data-cookie-settings', 'true');
-    host.innerHTML = `
-      <div class="cookie-settings__item">
-        <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-        <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-            <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-            <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-            <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-          </svg>
-        </button>
-      </div>
-    `;
-    document.body.appendChild(host);
+    $$('[data-cookie-settings]').forEach((host) => {
+      host.remove();
+    });
   }
 
   initCookieSettingsButton();

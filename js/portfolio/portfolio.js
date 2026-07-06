@@ -239,6 +239,336 @@ if (!hasModalHelpers) {
 }
 const openModal = hasModalHelpers ? window.openModal.bind(window) : () => {};
 
+function setupPortfolioMobileFilterSheet(options = {}) {
+  const {
+    enabled,
+    root,
+    filterHost,
+    filterGroups = [],
+    state,
+    allItems = [],
+    sortSelect,
+    searchInput,
+    itemSingular = 'project',
+    itemPlural = 'projects',
+    slugify = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+    requestRender = () => {}
+  } = options;
+  const noop = {
+    render() {},
+    syncSortControls() {}
+  };
+  if (!enabled || !root || !filterHost || !state || !filterGroups.length) return noop;
+
+  const filterPanel = filterHost.closest('.portfolio-workbench__filters');
+  if (!filterPanel) return noop;
+
+  root.dataset.mobileFilters = 'true';
+  const sheetTitleId = `${root.id || 'portfolio'}-mobile-filter-title`;
+  const sheetSummaryId = `${root.id || 'portfolio'}-mobile-filter-summary`;
+  if (!filterPanel.id) filterPanel.id = `${root.id || 'portfolio'}-filter-sheet`;
+  filterPanel.setAttribute('aria-labelledby', sheetTitleId);
+
+  const handle = document.createElement('div');
+  handle.className = 'portfolio-filter-sheet-handle';
+  handle.setAttribute('aria-hidden', 'true');
+  filterPanel.prepend(handle);
+
+  let toggleButton = null;
+  const panelHead = filterPanel.querySelector('.portfolio-filter-head');
+  if (panelHead) {
+    const heading = panelHead.querySelector('h2');
+    if (heading) heading.id = sheetTitleId;
+    toggleButton = document.createElement('button');
+    toggleButton.type = 'button';
+    toggleButton.className = 'portfolio-filter-sheet-close';
+    toggleButton.textContent = 'Expand';
+    toggleButton.dataset.portfolioFilterSheetToggle = 'true';
+    toggleButton.setAttribute('aria-controls', filterPanel.id);
+    toggleButton.setAttribute('aria-expanded', 'false');
+    panelHead.append(toggleButton);
+  }
+
+  const summary = document.createElement('section');
+  summary.className = 'portfolio-mobile-filter-summary';
+  summary.setAttribute('aria-labelledby', sheetSummaryId);
+  summary.innerHTML = `
+    <div class="portfolio-mobile-filter-summary__head">
+      <h3 id="${escapeHtml(sheetSummaryId)}">Selected</h3>
+      <button type="button" data-portfolio-mobile-clear>Clear all</button>
+    </div>
+    <div class="portfolio-mobile-filter-summary__chips" data-portfolio-mobile-active-chips></div>
+  `;
+  filterHost.before(summary);
+
+  const quickFilters = document.createElement('section');
+  quickFilters.className = 'portfolio-mobile-quick-filters';
+  quickFilters.innerHTML = `
+    <h3>Quick filters</h3>
+    <div class="portfolio-mobile-quick-filters__grid" data-portfolio-mobile-quick-filters></div>
+  `;
+  filterHost.before(quickFilters);
+
+  const allFiltersLabel = document.createElement('h3');
+  allFiltersLabel.className = 'portfolio-mobile-all-filters-label';
+  allFiltersLabel.textContent = 'All filters';
+  filterHost.before(allFiltersLabel);
+
+  const footer = document.createElement('div');
+  footer.className = 'portfolio-mobile-filter-actions';
+  footer.innerHTML = '<button type="button" data-portfolio-filter-sheet-close data-portfolio-filter-sheet-count>Show projects</button>';
+  filterPanel.append(footer);
+
+  const mobileSort = null;
+  const activeChipHost = summary.querySelector('[data-portfolio-mobile-active-chips]');
+  const quickHost = quickFilters.querySelector('[data-portfolio-mobile-quick-filters]');
+  const clearMobileButton = summary.querySelector('[data-portfolio-mobile-clear]');
+  const statusNode = null;
+  const badgeNode = null;
+  const showCountButton = footer.querySelector('[data-portfolio-filter-sheet-count]');
+  const openButton = toggleButton;
+
+  if (sortSelect && mobileSort) {
+    mobileSort.innerHTML = sortSelect.innerHTML;
+    mobileSort.value = sortSelect.value;
+  }
+
+  const optionCounts = () => {
+    const counts = new Map();
+    filterGroups.forEach((group) => {
+      group.options.forEach((option) => {
+        counts.set(`${group.id}:${option.value}`, allItems.filter(option.match).length);
+      });
+    });
+    return counts;
+  };
+
+  const activeEntries = () => {
+    const entries = [];
+    filterGroups.forEach((group) => {
+      const selected = state.filters[group.id];
+      if (!selected || !selected.size) return;
+      group.options.forEach((option) => {
+        if (selected.has(option.value)) {
+          entries.push({
+            groupId: group.id,
+            groupTitle: group.title,
+            value: option.value,
+            label: option.label
+          });
+        }
+      });
+    });
+    return entries;
+  };
+
+  const quickEntries = (() => {
+    const preferred = [
+      { group: 'focus', label: 'Analytics' },
+      { group: 'focus', label: 'Dashboards' },
+      { group: 'focus', label: 'Machine Learning' },
+      { group: 'stack', label: 'Python' },
+      { group: 'stack', label: 'SQL' },
+      { group: 'stack', label: 'AWS' }
+    ];
+    const entries = [];
+    const seen = new Set();
+    const addEntry = (group, option) => {
+      if (!group || !option) return;
+      const key = `${group.id}:${option.value}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      entries.push({
+        groupId: group.id,
+        groupTitle: group.title,
+        value: option.value,
+        label: option.label
+      });
+    };
+    preferred.forEach((item) => {
+      const group = filterGroups.find((candidate) => candidate.id === item.group);
+      const option = group && group.options.find((candidate) => slugify(candidate.label) === slugify(item.label));
+      addEntry(group, option);
+    });
+    filterGroups.forEach((group) => {
+      group.options.forEach((option) => {
+        if (entries.length < 6) addEntry(group, option);
+      });
+    });
+    return entries.slice(0, 6);
+  })();
+
+  const expandableNodes = [summary, quickFilters, allFiltersLabel, filterHost, footer];
+  let desktopMode = false;
+  const setExpandableHidden = (hidden) => {
+    expandableNodes.forEach((node) => {
+      if (node) node.hidden = hidden;
+    });
+  };
+  const syncToggleLabel = (activeCount = activeEntries().length) => {
+    if (!toggleButton) return;
+    const open = root.classList.contains('is-filter-sheet-open');
+    toggleButton.textContent = open ? 'Done' : (activeCount ? `${activeCount} active` : 'Expand');
+    toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggleButton.setAttribute('aria-label', open ? 'Collapse project filters' : 'Expand project filters');
+  };
+  const setSheetOpen = (open) => {
+    root.classList.toggle('is-filter-sheet-open', open);
+    filterPanel.dataset.expanded = open ? 'true' : 'false';
+    if (!desktopMode) setExpandableHidden(!open);
+    syncToggleLabel();
+    if (open) {
+      const focusTarget = filterPanel.querySelector('.portfolio-mobile-quick-filter, .portfolio-filter-option input, button, input, select');
+      if (focusTarget) focusTarget.focus({ preventScroll: true });
+    }
+  };
+
+  if (openButton) {
+    openButton.addEventListener('click', (event) => {
+      event.stopPropagation();
+      setSheetOpen(!root.classList.contains('is-filter-sheet-open'));
+    });
+  }
+
+  const clearFilters = () => {
+    Object.values(state.filters).forEach((set) => set.clear());
+    state.search = '';
+    if (searchInput) searchInput.value = '';
+    requestRender();
+  };
+
+  const toggleFilter = (groupId, value) => {
+    const selected = state.filters[groupId];
+    if (!selected) return;
+    if (selected.has(value)) selected.delete(value);
+    else selected.add(value);
+    requestRender();
+  };
+
+  root.addEventListener('click', (event) => {
+    const openTrigger = event.target.closest('[data-portfolio-filter-sheet-open]');
+    if (openTrigger) {
+      setSheetOpen(true);
+      return;
+    }
+    if (event.target.closest('[data-portfolio-filter-sheet-toggle]')) {
+      setSheetOpen(!root.classList.contains('is-filter-sheet-open'));
+      return;
+    }
+    if (event.target.closest('[data-portfolio-filter-sheet-close]')) {
+      setSheetOpen(false);
+      return;
+    }
+    const quickTrigger = event.target.closest('[data-portfolio-mobile-quick-filter]');
+    if (quickTrigger) {
+      toggleFilter(quickTrigger.dataset.mobileFilterGroup, quickTrigger.dataset.mobileFilterValue);
+      return;
+    }
+    const removeTrigger = event.target.closest('[data-portfolio-mobile-remove-filter]');
+    if (removeTrigger) {
+      const selected = state.filters[removeTrigger.dataset.mobileFilterGroup];
+      if (selected) {
+        selected.delete(removeTrigger.dataset.mobileFilterValue);
+        requestRender();
+      }
+    }
+  });
+
+  if (clearMobileButton) {
+    clearMobileButton.addEventListener('click', clearFilters);
+  }
+
+  if (mobileSort) {
+    mobileSort.addEventListener('change', () => {
+      state.sort = mobileSort.value;
+      if (sortSelect) sortSelect.value = mobileSort.value;
+      requestRender();
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (!root.classList.contains('is-filter-sheet-open')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setSheetOpen(false);
+      if (openButton) openButton.focus({ preventScroll: true });
+    }
+  });
+
+  if (window.matchMedia) {
+    const desktopQuery = window.matchMedia('(min-width: 821px)');
+    const syncDialogMode = () => {
+      desktopMode = desktopQuery.matches;
+      if (desktopQuery.matches) {
+        setSheetOpen(false);
+        filterPanel.removeAttribute('role');
+        filterPanel.removeAttribute('aria-modal');
+        filterPanel.removeAttribute('aria-hidden');
+        setExpandableHidden(false);
+      } else {
+        filterPanel.removeAttribute('role');
+        filterPanel.removeAttribute('aria-modal');
+        filterPanel.removeAttribute('aria-hidden');
+        setExpandableHidden(!root.classList.contains('is-filter-sheet-open'));
+      }
+    };
+    if (typeof desktopQuery.addEventListener === 'function') {
+      desktopQuery.addEventListener('change', syncDialogMode);
+    } else if (typeof desktopQuery.addListener === 'function') {
+      desktopQuery.addListener(syncDialogMode);
+    }
+    syncDialogMode();
+  } else {
+    setExpandableHidden(true);
+  }
+
+  const syncSortControls = () => {
+    if (mobileSort && mobileSort.value !== state.sort) mobileSort.value = state.sort;
+    if (sortSelect && sortSelect.value !== state.sort) sortSelect.value = state.sort;
+  };
+
+  const render = (projects = []) => {
+    syncSortControls();
+    const counts = optionCounts();
+    const entries = activeEntries();
+    const activeCount = entries.length;
+    syncToggleLabel(activeCount);
+    if (statusNode) statusNode.textContent = activeCount ? `${activeCount} active` : 'No filters';
+    if (badgeNode) {
+      badgeNode.hidden = !activeCount;
+      badgeNode.textContent = String(activeCount);
+    }
+    if (showCountButton) {
+      showCountButton.textContent = `Show ${projects.length} ${projects.length === 1 ? itemSingular : itemPlural}`;
+    }
+    if (clearMobileButton) clearMobileButton.disabled = activeCount === 0 && !state.search;
+    if (activeChipHost) {
+      activeChipHost.innerHTML = entries.length ? entries.map((entry) => `
+        <button type="button" class="portfolio-mobile-filter-chip" data-portfolio-mobile-remove-filter data-mobile-filter-group="${escapeHtml(entry.groupId)}" data-mobile-filter-value="${escapeHtml(entry.value)}">
+          <span>${escapeHtml(entry.label)}</span>
+          <span aria-hidden="true">x</span>
+        </button>
+      `).join('') : '<span class="portfolio-mobile-filter-summary__empty">None selected</span>';
+    }
+    if (quickHost) {
+      quickHost.innerHTML = quickEntries.map((entry) => {
+        const active = state.filters[entry.groupId] && state.filters[entry.groupId].has(entry.value);
+        return `
+          <button type="button" class="portfolio-mobile-quick-filter${active ? ' is-active' : ''}" data-portfolio-mobile-quick-filter data-mobile-filter-group="${escapeHtml(entry.groupId)}" data-mobile-filter-value="${escapeHtml(entry.value)}" aria-pressed="${active ? 'true' : 'false'}">
+            <span>${escapeHtml(entry.label)}</span>
+            <span>${counts.get(`${entry.groupId}:${entry.value}`) || 0}</span>
+          </button>
+        `;
+      }).join('');
+    }
+  };
+
+  return {
+    render,
+    syncSortControls
+  };
+}
+
 /* ────────────────────────────────────────────────────────────
    Portfolio Carousel (top of page) – no wrap-around version
    ------------------------------------------------------------------ */
@@ -835,6 +1165,7 @@ function buildPortfolioWorkbenchLegacy() {
           <h2 class="portfolio-inspector__title">${escapeHtml(project.title)}</h2>
           <div class="portfolio-inspector__rule" aria-hidden="true"></div>
         </div>
+        <button type="button" class="portfolio-inspector__close" data-portfolio-inspector-close aria-label="Close project details">Close</button>
       </div>
       <div class="portfolio-inspector__type">${escapeHtml(getPrimaryFormat(project))}</div>
       <section class="portfolio-inspector__section">
@@ -866,13 +1197,24 @@ function buildPortfolioWorkbenchLegacy() {
   };
 
   const renderSelection = () => {
+    const selectedProject = allProjects.find((project) => project.id === state.selectedId);
+    root.classList.toggle('has-selected-project', Boolean(selectedProject));
     resultHost.querySelectorAll('[data-project-id]').forEach((card) => {
       const selected = card.dataset.projectId === state.selectedId;
       card.classList.toggle('is-selected', selected);
       card.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
-    renderInspector(allProjects.find((project) => project.id === state.selectedId));
+    renderInspector(selectedProject);
   };
+
+  const clearSelection = () => {
+    if (!state.selectedId) return;
+    state.selectedId = null;
+    pendingSelectionScrollTop = null;
+    renderSelection();
+  };
+
+  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 820px)').matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -892,7 +1234,7 @@ function buildPortfolioWorkbenchLegacy() {
     renderFilters();
     const projects = filteredProjects();
     if (!projects.some((project) => project.id === state.selectedId)) {
-      state.selectedId = projects[0] ? projects[0].id : null;
+      state.selectedId = null;
     }
     renderResults(projects);
     renderSelection();
@@ -920,6 +1262,27 @@ function buildPortfolioWorkbenchLegacy() {
     if (input.checked) group.add(input.value);
     else group.delete(input.value);
     render();
+  });
+
+  inspector.addEventListener('click', (event) => {
+    const closeButton = event.target.closest('[data-portfolio-inspector-close]');
+    if (!closeButton) return;
+    event.preventDefault();
+    clearSelection();
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!state.selectedId || !isMobileSelectionCard()) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (inspector.contains(target) || target.closest('[data-project-id]')) return;
+    clearSelection();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !state.selectedId) return;
+    if (root.classList.contains('is-filter-sheet-open')) return;
+    clearSelection();
   });
 
   resultHost.addEventListener('pointerdown', (event) => {
@@ -1182,7 +1545,22 @@ function buildPortfolioWorkbench() {
     sort: sortSelect ? sortSelect.value : 'default',
     selectedId: allProjects.some((project) => project.id === initialProjectId) ? initialProjectId : null
   };
+  const autoSelectFallback = isDirectoryWorkbench;
   let pendingSelectionScrollTop = null;
+  const mobileFilters = setupPortfolioMobileFilterSheet({
+    enabled: !isDirectoryWorkbench && root.id === 'portfolio-workbench',
+    root,
+    filterHost,
+    filterGroups,
+    state,
+    allItems: allProjects,
+    sortSelect,
+    searchInput,
+    itemSingular,
+    itemPlural,
+    slugify,
+    requestRender: () => render()
+  });
 
   const renderFilters = () => {
     const counts = new Map();
@@ -1317,6 +1695,7 @@ function buildPortfolioWorkbench() {
           <h2 class="portfolio-inspector__title">${escapeHtml(project.title)}</h2>
           <div class="portfolio-inspector__rule" aria-hidden="true"></div>
         </div>
+        <button type="button" class="portfolio-inspector__close" data-portfolio-inspector-close aria-label="Close project details">Close</button>
       </div>
       <div class="portfolio-inspector__type">${escapeHtml(getPrimaryFormat(project))}</div>
       <section class="portfolio-inspector__section">
@@ -1348,13 +1727,24 @@ function buildPortfolioWorkbench() {
   };
 
   const renderSelection = () => {
+    const selectedProject = allProjects.find((project) => project.id === state.selectedId);
+    root.classList.toggle('has-selected-project', Boolean(selectedProject));
     resultHost.querySelectorAll('[data-project-id]').forEach((card) => {
       const selected = card.dataset.projectId === state.selectedId;
       card.classList.toggle('is-selected', selected);
       card.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
-    renderInspector(allProjects.find((project) => project.id === state.selectedId));
+    renderInspector(selectedProject);
   };
+
+  const clearSelection = () => {
+    if (!state.selectedId) return;
+    state.selectedId = null;
+    pendingSelectionScrollTop = null;
+    renderSelection();
+  };
+
+  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 820px)').matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -1377,13 +1767,14 @@ function buildPortfolioWorkbench() {
     renderFilters();
     const projects = filteredProjects();
     if (!projects.some((project) => project.id === state.selectedId)) {
-      state.selectedId = projects[0] ? projects[0].id : null;
+      state.selectedId = autoSelectFallback && projects[0] ? projects[0].id : null;
     }
     renderResults(projects);
     renderSelection();
     countNode.textContent = `${projects.length} ${projects.length === 1 ? itemSingular : itemPlural}`;
     if (emptyState) emptyState.hidden = projects.length > 0;
     updateClearButton();
+    mobileFilters.render(projects);
     try {
       srStatus().textContent = `Showing ${projects.length} ${projects.length === 1 ? itemSingular : itemPlural}.`;
     } catch {}
@@ -1405,6 +1796,27 @@ function buildPortfolioWorkbench() {
     if (input.checked) group.add(input.value);
     else group.delete(input.value);
     render();
+  });
+
+  inspector.addEventListener('click', (event) => {
+    const closeButton = event.target.closest('[data-portfolio-inspector-close]');
+    if (!closeButton) return;
+    event.preventDefault();
+    clearSelection();
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!state.selectedId || !isMobileSelectionCard()) return;
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (inspector.contains(target) || target.closest('[data-project-id]')) return;
+    clearSelection();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !state.selectedId) return;
+    if (root.classList.contains('is-filter-sheet-open')) return;
+    clearSelection();
   });
 
   resultHost.addEventListener('pointerdown', (event) => {
