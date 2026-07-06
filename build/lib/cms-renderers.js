@@ -519,54 +519,69 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
 
 function renderFooter({ footer, year }) {
   const columns = Array.isArray(footer.columns) ? footer.columns : [];
-  const renderedColumns = columns.map((column, index) => {
-    const titleId = `footer-${String(column.id || index + 1).trim() || index + 1}`;
+  const normalizeVariantMap = (value, valueKey) => {
+    if (Array.isArray(value)) return value;
+    if (!value || typeof value !== 'object') return [];
+    return Object.entries(value).map(([id, config]) => {
+      if (Array.isArray(config)) return { id, [valueKey]: config };
+      return { id, ...(config || {}) };
+    });
+  };
+
+  const inferFooterDataAttributes = (link) => {
+    const inferredDataAttributes = { ...(link.dataAttributes || {}) };
+    const href = String(link.href || '').trim();
+    const label = String(link.label || '').trim().toLowerCase();
+    if (!inferredDataAttributes['data-portfolio-home-link'] && (href === 'portfolio' || href === '/portfolio' || href.startsWith('portfolio?') || label === 'portfolio')) {
+      inferredDataAttributes['data-portfolio-home-link'] = 'true';
+    }
+    if (!inferredDataAttributes['data-resume-home-link'] && (href === 'resume' || href === '/resume' || label === 'resume')) {
+      inferredDataAttributes['data-resume-home-link'] = 'true';
+    }
+    if (!inferredDataAttributes['data-contact-modal-link'] && href.includes('#contact-modal')) {
+      inferredDataAttributes['data-contact-modal-link'] = 'true';
+    }
+    if (!inferredDataAttributes['data-smooth-scroll'] && href.startsWith('#')) {
+      inferredDataAttributes['data-smooth-scroll'] = 'true';
+    }
+    return inferredDataAttributes;
+  };
+
+  const renderFooterLink = (link, className = 'footer-link') => {
+    const inferredDataAttributes = inferFooterDataAttributes(link);
+    const href = String(link.href || '').trim();
+    const label = String(link.label || '').trim().toLowerCase();
+    const hrefFallback = href === '/' || label === 'home' ? '/' : '';
+
+    if (link.type === 'button') {
+      const buttonAttrs = {
+        type: 'button',
+        class: className,
+        ...(link.id ? { id: link.id } : {}),
+        ...(link.ariaHaspopup ? { 'aria-haspopup': link.ariaHaspopup } : {}),
+        ...inferredDataAttributes,
+        ...(link.hidden ? { hidden: true } : {})
+      };
+      return `<button${attrsToString(buttonAttrs)}>${escapeHtml(link.label || '')}</button>`;
+    }
+
+    const attrs = {
+      href: normalizeRelativeHref(href, hrefFallback),
+      class: className,
+      ...(link.target ? { target: link.target } : {}),
+      ...(link.rel ? { rel: link.rel } : {}),
+      ...(link.download ? { download: true } : {}),
+      ...(link.hidden ? { hidden: true } : {}),
+      ...inferredDataAttributes
+    };
+    return `<a${attrsToString(attrs)}>${escapeHtml(link.label || '')}</a>`;
+  };
+
+  const renderFooterColumn = (column, index, realm = '') => {
+    const realmPrefix = realm ? `${realm}-` : '';
+    const titleId = `footer-${realmPrefix}${String(column.id || index + 1).trim() || index + 1}`;
     const links = (Array.isArray(column.links) ? column.links : [])
-      .map((link) => {
-        const inferredDataAttributes = { ...(link.dataAttributes || {}) };
-        const href = String(link.href || '').trim();
-        const label = String(link.label || '').trim().toLowerCase();
-        if (!inferredDataAttributes['data-portfolio-home-link'] && (href === 'portfolio' || href === '/portfolio' || label === 'portfolio')) {
-          inferredDataAttributes['data-portfolio-home-link'] = 'true';
-        }
-        if (!inferredDataAttributes['data-resume-home-link'] && (href === 'resume' || href === '/resume' || label === 'resume')) {
-          inferredDataAttributes['data-resume-home-link'] = 'true';
-        }
-        if (!inferredDataAttributes['data-smooth-scroll'] && href.startsWith('#')) {
-          inferredDataAttributes['data-smooth-scroll'] = 'true';
-        }
-        const attrs = {
-          href: normalizeRelativeHref(href, label === 'home' ? '/' : ''),
-          class: 'footer-link',
-          ...(link.target ? { target: link.target } : {}),
-          ...(link.rel ? { rel: link.rel } : {}),
-          ...(link.download ? { download: true } : {}),
-          ...(link.hidden ? { hidden: true } : {}),
-          ...(link.type === 'button'
-            ? {
-                href: null,
-                type: 'button',
-                id: link.id || null,
-                'aria-haspopup': link.ariaHaspopup || null
-              }
-            : {}),
-          ...inferredDataAttributes
-        };
-
-        if (link.type === 'button') {
-          const buttonAttrs = {
-            type: 'button',
-            class: 'footer-link',
-            ...(link.id ? { id: link.id } : {}),
-            ...(link.ariaHaspopup ? { 'aria-haspopup': link.ariaHaspopup } : {}),
-            ...inferredDataAttributes,
-            ...(link.hidden ? { hidden: true } : {})
-          };
-          return `<button${attrsToString(buttonAttrs)}>${escapeHtml(link.label || '')}</button>`;
-        }
-
-        return `<a${attrsToString(attrs)}>${escapeHtml(link.label || '')}</a>`;
-      })
+      .map((link) => renderFooterLink(link))
       .join('\n');
 
     return [
@@ -575,7 +590,50 @@ function renderFooter({ footer, year }) {
       indentBlock(links, '  '),
       '</section>'
     ].join('\n');
+  };
+
+  const identityVariants = normalizeVariantMap(footer.identity && footer.identity.variants, 'identity')
+    .filter((variant) => variant && String(variant.id || '').trim());
+  const renderedIdentity = (identityVariants.length ? identityVariants : [{
+    id: 'personal',
+    name: footer.copyrightName || 'Daniel Short',
+    summary: 'Projects, tools, games, and experiments.',
+    links: []
+  }]).map((variant) => {
+    const realm = String(variant.id || 'personal').trim();
+    const name = variant.name || footer.copyrightName || 'Daniel Short';
+    const eyebrow = String(variant.eyebrow || '').trim();
+    const identityLinks = (Array.isArray(variant.links) ? variant.links : [])
+      .map((link) => renderFooterLink(link, 'footer-link footer-identity-link'))
+      .join('\n');
+    return [
+      `<section class="footer-identity-panel" data-footer-realm="${escapeHtml(realm)}" aria-label="${escapeHtml(`${name} footer summary`)}">`,
+      eyebrow ? `  <p class="footer-identity-eyebrow">${escapeHtml(eyebrow)}</p>` : '',
+      `  <h2 class="footer-identity-name">${escapeHtml(name)}</h2>`,
+      `  <p class="footer-identity-summary">${escapeHtml(variant.summary || '')}</p>`,
+      identityLinks ? `  <div class="footer-identity-actions">\n${indentBlock(identityLinks, '    ')}\n  </div>` : '',
+      '</section>'
+    ].filter(Boolean).join('\n');
   }).join('\n');
+
+  const navVariants = normalizeVariantMap(footer.navVariants, 'columns');
+  const renderedNavPanels = (navVariants.length ? navVariants : [{ id: 'personal', columns }])
+    .map((variant) => {
+      const realm = String(variant.id || 'personal').trim();
+      const variantColumns = Array.isArray(variant.columns) ? variant.columns : columns;
+      return [
+        `<div class="footer-nav-panel" data-footer-realm="${escapeHtml(realm)}">`,
+        indentBlock(variantColumns.map((column, index) => renderFooterColumn(column, index, realm)).join('\n'), '  '),
+        '</div>'
+      ].join('\n');
+    }).join('\n');
+
+  const utilityLinks = Array.isArray(footer.utilityLinks)
+    ? footer.utilityLinks
+    : (columns.find((column) => column && column.id === 'site')?.links || []);
+  const renderedUtilityLinks = utilityLinks
+    .map((link) => renderFooterLink(link))
+    .join('\n');
 
   const speedDial = footer.speedDial || {};
   const speedDialItems = (Array.isArray(speedDial.items) ? speedDial.items : [])
@@ -608,10 +666,18 @@ function renderFooter({ footer, year }) {
   return [
     '<footer class="footer footer-classic">',
     '  <div class="wrapper footer-inner">',
+    '    <div class="footer-identity">',
+    indentBlock(renderedIdentity, '      '),
+    '    </div>',
     '    <nav class="footer-nav" aria-label="Footer">',
-    indentBlock(renderedColumns, '      '),
+    indentBlock(renderedNavPanels, '      '),
     '    </nav>',
-    `    <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}. All rights reserved.</p>`,
+    '    <div class="footer-bottom">',
+    '      <nav class="footer-utility" aria-label="Footer utility">',
+    indentBlock(renderedUtilityLinks, '        '),
+    '      </nav>',
+    `      <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}. All rights reserved.</p>`,
+    '    </div>',
     '  </div>',
     '</footer>',
     '<div class="speed-dial" data-speed-dial="true">',

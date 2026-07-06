@@ -31,7 +31,7 @@
 
   const STYLE_ID = 'pcz-consent-styles';
   const CRITICAL_STYLE_ID = 'pcz-consent-critical-styles';
-  const CSS_VERSION = 'v8';
+  const CSS_VERSION = 'v9';
 
   function loadStyles() {
     if (!document.getElementById(CRITICAL_STYLE_ID)) {

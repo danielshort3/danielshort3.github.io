@@ -7,7 +7,7 @@
   .modal{
     position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
     background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(4px);
-    opacity:0;pointer-events:none;transition:opacity .45s ease;z-index:2000
+    opacity:0;pointer-events:none;transition:opacity .45s ease;z-index:2600
   }
   .modal.active{opacity:1;pointer-events:auto}
   body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
@@ -15,6 +15,7 @@
     position:relative;max-height:82vh;margin:5% 12px;
     width: min(var(--modal-max), calc(100vw - 24px));
     max-width: var(--modal-max);
+    box-sizing:border-box;
     display:flex;flex-direction:column;overflow:hidden;
     background:var(--surface); /* unified darker surface */
     color:var(--text-light);
@@ -163,7 +164,7 @@
     backdrop-filter:blur(6px);
     opacity:0;pointer-events:none;
     transition:opacity .3s ease;
-    z-index:2400;
+    z-index:2800;
   }
   .media-viewer.active{opacity:1;pointer-events:auto}
   .media-viewer-content{
@@ -621,12 +622,34 @@
 
   /* Responsive adjustments */
   @media (max-width: 768px) {
+    body.modal-open{
+      padding-right:0;
+    }
+    .modal{
+      --modal-mobile-top-clearance: calc(var(--nav-height, 72px) + 8px);
+      --modal-mobile-bottom-clearance: calc(8px + env(safe-area-inset-bottom, 0px));
+      align-items:flex-start;
+      padding:
+        var(--modal-mobile-top-clearance)
+        max(8px, env(safe-area-inset-right))
+        var(--modal-mobile-bottom-clearance)
+        max(8px, env(safe-area-inset-left));
+      overflow:hidden;
+    }
+    body.has-mobile-site-masthead .modal{
+      --modal-mobile-top-clearance: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 8px);
+    }
     .modal-content{
-      width:calc(100vw - 16px);
-      max-height:calc(100svh - 16px);
-      margin:8px;
+      width:100%;
+      max-width:min(var(--modal-max), calc(100vw - 16px));
+      max-height:calc(100svh - var(--modal-mobile-top-clearance) - var(--modal-mobile-bottom-clearance));
+      margin:0;
       padding:18px var(--mobile-card-pad);
       border-radius:12px;
+    }
+    .modal-content.modal-wide{
+      width:100%;
+      max-width:min(var(--modal-max-wide, var(--container-max)), calc(100vw - 16px));
     }
     .modal-content::before{
       border-radius:12px 12px 0 0;
@@ -639,9 +662,10 @@
     .modal-divider { position: static; width: 80%; height: 1px; margin: 12px 0; transform: none; }
     .modal-body { padding:0 0 18px; gap:18px; }
     #contact-modal .modal-content{
-      width:calc(100vw - 12px);
-      max-height:calc(100svh - 12px);
-      margin:6px;
+      width:100%;
+      max-width:min(760px, calc(100vw - 16px));
+      max-height:calc(100svh - var(--modal-mobile-top-clearance) - var(--modal-mobile-bottom-clearance));
+      margin:0;
     }
     #contact-modal .modal-body { padding:18px var(--mobile-card-pad) 22px; }
     .contact-form .form-actions{

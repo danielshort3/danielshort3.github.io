@@ -625,13 +625,22 @@ body[data-consent-banner="open"] .speed-dial {
   }
 
   #pcz-modal {
+    --pcz-mobile-top-clearance: calc(var(--nav-height, 72px) + 8px);
     align-items: end;
-    padding: 8px;
+    padding:
+      var(--pcz-mobile-top-clearance)
+      max(8px, env(safe-area-inset-right))
+      8px
+      max(8px, env(safe-area-inset-left));
+  }
+
+  body.has-mobile-site-masthead #pcz-modal {
+    --pcz-mobile-top-clearance: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 8px);
   }
 
   #pcz-modal .pcz-panel {
     width: 100%;
-    max-height: min(90svh, 100%);
+    max-height: calc(100svh - var(--pcz-mobile-top-clearance) - 8px);
     padding: 14px;
     border-radius: 16px;
   }

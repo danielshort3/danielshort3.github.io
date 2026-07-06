@@ -37592,16 +37592,31 @@ try {
       'header should not render a separate Home nav link');
     assert(!footerTemplate.includes('data-entry-home-link'), 'footer should not include entry-home markers');
     assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
-    const footerExplore = footerTemplate.slice(footerTemplate.indexOf('id="footer-explore"'), footerTemplate.indexOf('id="footer-connect"'));
-    const footerConnect = footerTemplate.slice(footerTemplate.indexOf('id="footer-connect"'), footerTemplate.indexOf('id="footer-site"'));
-    assert(footerExplore.includes('href="games"') && footerExplore.includes('>Games</a>'),
-      'footer should place Games under Explore');
-    assert(footerConnect.includes('href="contact#contact-modal"') &&
-      footerConnect.includes('data-contact-modal-link="true"') &&
-      footerConnect.includes('>Contact</a>'),
-      'footer should place Contact under Connect as a modal trigger');
-    assert(!footerTemplate.includes('id="footer-work"') && !footerTemplate.includes('Personal Site'),
-      'footer should remove the old Personal Site column');
+    assert(footerTemplate.includes('class="footer-identity"') &&
+      footerTemplate.includes('data-footer-realm="personal"') &&
+      footerTemplate.includes('data-footer-realm="professional"'),
+      'footer should render personal and professional identity rail variants');
+    const footerPersonalBrowse = footerTemplate.slice(footerTemplate.indexOf('id="footer-personal-browse"'), footerTemplate.indexOf('id="footer-personal-connect"'));
+    const footerProfessional = footerTemplate.slice(footerTemplate.indexOf('id="footer-professional-work"'), footerTemplate.indexOf('id="footer-professional-connect"'));
+    assert(footerPersonalBrowse.includes('href="games"') && footerPersonalBrowse.includes('>Games</a>') &&
+      footerPersonalBrowse.includes('href="tools"') && footerPersonalBrowse.includes('>Tools</a>'),
+      'personal footer should keep Tools and Games in the Browse group');
+    assert(footerProfessional.includes('href="resume"') && footerProfessional.includes('>Resume</a>') &&
+      footerProfessional.includes('href="analytics"') && footerProfessional.includes('>Analytics</a>'),
+      'professional footer should prioritize resume and professional route links');
+    assert(footerTemplate.includes('href="contact#contact-modal"') &&
+      footerTemplate.includes('data-contact-modal-link="true"') &&
+      footerTemplate.includes('>Contact</a>'),
+      'footer should keep Contact as a modal trigger');
+    assert((footerTemplate.match(/id="privacy-settings-link-footer"/g) || []).length === 1,
+      'footer should keep one shared cookie settings control');
+    assert(footerTemplate.includes('data-site-realm-switch="professional"') &&
+      footerTemplate.includes('data-site-realm-switch="personal"'),
+      'footer should expose realm-specific Work and Home utility links');
+    assert(footerTemplate.includes('>Home</a>') && !footerTemplate.includes('>Personal site</a>'),
+      'footer should label the professional-mode exit link as Home');
+    assert(!footerTemplate.includes('Personal site</p>') && !footerTemplate.includes('Professional view</p>'),
+      'footer should not render visible personal/professional view labels');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
     assert(headerTemplate.includes('data-nav-search="collapsed"'), 'header search should expose collapsed state for compact expansion');
     assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
@@ -39437,6 +39452,9 @@ try {
     assert(siteRealm.includes('if (isHashOnlyHref(href)) return currentHashHref') &&
       siteRealm.includes("document.dispatchEvent(new CustomEvent('site:content-updated'"),
       'professional mode should preserve current mode on same-page hash links and notify dynamic content initializers');
+    assert(siteRealm.includes('targetMode !== mode') &&
+      siteRealm.includes("Go to the home page"),
+      'site realm switches should support both professional and personal footer links');
     const commonScript = readFile('js/common/common.js');
     assert(commonScript.includes('const samePageHashFromHref = (href) =>') &&
       commonScript.includes("document.addEventListener('site:content-updated'") &&
