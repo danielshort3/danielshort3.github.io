@@ -8,7 +8,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 ## Start Here
 
 - [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Tools](https://www.danielshort.me/ai/tools): Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.
+- [Tools](https://www.danielshort.me/ai/tools): Small utilities for writing, links, media, and repeatable work.
 - [Games](https://www.danielshort.me/ai/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
 - [Contact](https://www.danielshort.me/ai/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
 
@@ -25,7 +25,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Tools
 
-- [Tools](https://www.danielshort.me/ai/tools): Practical browser tools for text, links, media, analytics, and repeated workflow tasks by Daniel Short.
+- [Tools](https://www.danielshort.me/ai/tools): Small utilities for writing, links, media, and repeatable work.
 - [Text Compare](https://www.danielshort.me/ai/tools/text-compare): Compare two drafts and see insertions, deletions, and replacements highlighted inline.
 - [UTM Batch Builder](https://www.danielshort.me/ai/tools/utm-batch-builder): Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.
 - [Word Frequency Analyzer](https://www.danielshort.me/ai/tools/word-frequency): Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.

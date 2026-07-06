@@ -201,6 +201,16 @@ function isPublicTool(tool) {
   return Boolean(tool && !tool.hidden && !tool.noindex && visibility === 'public');
 }
 
+function toolVisibility(tool) {
+  const visibility = String(tool && tool.visibility ? tool.visibility : 'public').trim().toLowerCase();
+  return visibility || 'public';
+}
+
+function isDirectoryTool(tool) {
+  const visibility = toolVisibility(tool);
+  return Boolean(tool && (tool.slug || tool.href) && ['public', 'authed', 'authenticated', 'logged-in', 'admin', 'admins'].includes(visibility));
+}
+
 function toolHref(tool) {
   const slug = String(tool && tool.slug ? tool.slug : '').trim();
   return trimLeadingSlash(tool && tool.href ? tool.href : (slug ? `tools/${slug}` : ''));
@@ -816,13 +826,13 @@ function toolAvailability(tool) {
 
 function buildToolsDirectoryWorkbenchData(page, tools) {
   const categories = sortByOrderThenTitle(Array.isArray(page && page.categories) ? page.categories : []);
-  const publicTools = (Array.isArray(tools) ? tools : []).filter(isPublicTool);
+  const directoryTools = (Array.isArray(tools) ? tools : []).filter(isDirectoryTool);
   const usedTools = new Set();
   const orderedTools = categories.flatMap((category) => {
-    const items = sortByOrderThenTitle(publicTools.filter((tool) => String(tool.categoryId || '') === String(category.id || '')));
+    const items = sortByOrderThenTitle(directoryTools.filter((tool) => String(tool.categoryId || '') === String(category.id || '')));
     items.forEach((tool) => usedTools.add(tool));
     return items;
-  }).concat(sortByOrderThenTitle(publicTools.filter((tool) => !usedTools.has(tool))));
+  }).concat(sortByOrderThenTitle(directoryTools.filter((tool) => !usedTools.has(tool))));
   const categoriesById = new Map(categories.map((category) => [String(category.id || ''), category]));
   const items = orderedTools.map((tool, index) => {
     const category = categoriesById.get(String(tool.categoryId || '')) || {};
@@ -845,6 +855,9 @@ function buildToolsDirectoryWorkbenchData(page, tools) {
       actions: category.description ? [category.description] : [],
       iconImage: tool.iconImage ? trimLeadingSlash(tool.iconImage) : '',
       iconHtml: tool.iconImage ? '' : renderToolIconMarkup(tool),
+      visibility: toolVisibility(tool),
+      hidden: Boolean(tool.hidden),
+      noindex: Boolean(tool.noindex),
       order: index + 1
     };
   });
@@ -935,9 +948,17 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   const titleId = `${kind}-workbench-title`;
   const resultsId = `${kind}-results-title`;
   const displaySingular = `${itemSingular.charAt(0).toUpperCase()}${itemSingular.slice(1)}`;
+  const accountDock = options.accountDock
+    ? [
+      '  <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
+      '    <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner"></div>',
+      '  </div>'
+    ]
+    : [];
 
   return [
     '<main id="main" class="portfolio-main directory-workbench-main">',
+    ...accountDock,
     `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-labelledby="${escapeHtml(titleId)}">`,
     '    <div class="portfolio-workbench__shell">',
     '      <header class="portfolio-workbench__header">',
@@ -992,7 +1013,8 @@ function renderToolsDirectoryBody(page) {
     kind: 'tools',
     title: page.heroTitle || 'Tools',
     itemSingular: 'tool',
-    itemPlural: 'tools'
+    itemPlural: 'tools',
+    accountDock: true
   });
 }
 

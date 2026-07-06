@@ -2529,6 +2529,9 @@
     const applyToolsAccountVisibility = () => {
       applyToolsCatalogVisibility();
       applyToolsAuthenticatedContentVisibility();
+      try {
+        document.dispatchEvent(new CustomEvent('tools:visibility-updated', { detail: { source: 'tools-account-ui' } }));
+      } catch {}
     };
 
     applyToolsAccountVisibility();
