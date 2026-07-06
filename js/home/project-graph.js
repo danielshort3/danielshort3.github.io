@@ -485,6 +485,27 @@
     'ocean-wave-simulation': 'wave'
   };
 
+  const ITEM_VISUAL_BY_ID = Object.freeze({
+    chatbotLora: '/img/projects/chatbotLora-640.webp',
+    retailStore: '/img/projects/retailStore-640.webp',
+    digitGenerator: '/img/projects/digitGenerator-640.webp',
+    smartSentence: '/img/projects/smartSentence-640.webp',
+    pizzaDashboard: '/img/projects/pizzaDashboard-640.webp',
+    ufoDashboard: '/img/projects/ufoDashboard-640.webp',
+    sheetMusicUpscale: '/img/projects/sheetMusicUpscale-640.webp',
+    deliveryTip: '/img/projects/deliveryTip-640.webp',
+    targetEmptyPackage: '/img/projects/targetEmptyPackage-640.webp',
+    shapeClassifier: '/img/projects/shapeClassifier-640.webp',
+    handwritingRating: '/img/projects/handwritingRating-640.webp',
+    covidAnalysis: '/img/projects/covidAnalysis-640.webp',
+    babynames: '/img/projects/babynames-640.webp',
+    pizza: '/img/projects/pizza-640.webp',
+    nonogram: '/img/projects/nonogram-640.webp',
+    website: '/img/projects/website-640.webp',
+    'project-starfall': '/img/project-starfall/ui/start-screen.png',
+    'stellar-dogfight': '/img/games/stellar-dogfight/raster/background-nebula.png'
+  });
+
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
@@ -620,13 +641,9 @@
     return topics;
   };
 
-  const getPreferredMobileGroup = (categoryId) => getCategoryGroups(categoryId)
-    .slice()
-    .sort((a, b) => (b.items.length - a.items.length) || a.label.localeCompare(b.label))[0] || null;
+  const getPreferredMobileGroup = (categoryId) => getCategoryGroups(categoryId)[0] || null;
 
-  const getPreferredMobileTopic = (topics = []) => topics
-    .slice()
-    .sort((a, b) => (b.items.length - a.items.length) || a.label.localeCompare(b.label))[0] || null;
+  const getPreferredMobileTopic = (topics = []) => topics[0] || null;
 
   const getMobileItemDepth = (categoryId, itemId) => {
     const group = getCategoryGroups(categoryId)
@@ -2030,110 +2047,92 @@
     </svg>
   `;
 
-  const createMobileDepthDeckHtml = ({ categoryId, group, groups, topic, topics, selectedItem }) => {
-    const category = CATEGORIES[categoryId] || CATEGORIES.projects;
-    const groupItems = group?.items || [];
-    const topicItems = topic?.items || groupItems;
-    const previewItem = selectedItem && topicItems.some((item) => item.id === selectedItem.id)
-      ? selectedItem
-      : null;
-    const previewTitle = previewItem ? (previewItem.fullTitle || previewItem.title) : (topic?.label || group?.label || category.label);
-    const previewSummary = previewItem
-      ? (previewItem.snippet || previewItem.summary || '')
-      : `${topic?.label || group?.label || category.label} contains ${topicItems.length} ${category.singular}${topicItems.length === 1 ? '' : 's'} in this mobile focus path.`;
-    const previewTags = previewItem
-      ? (previewItem.tags || [])
-      : [category.label, group?.label, topic?.label].filter(Boolean);
-    const previewHref = previewItem ? previewItem.href : category.href;
-    const previewCta = previewItem ? `View ${category.singular}` : `View ${category.label.toLowerCase()}`;
-    const nodeSlots = topicItems.map((item, index) => ({
-      item,
-      slot: getMobileClusterSlot(index, topicItems.length),
-      index
-    }));
-    const chainParts = [category.label, group?.label, topic?.label].filter(Boolean);
+  const createMobileDepthDeckHtml = () => {
+    const createMobileSection = (categoryId, index) => {
+      const category = CATEGORIES[categoryId];
+      const preferredGroup = getPreferredMobileGroup(categoryId);
+      const items = (preferredGroup?.items?.length ? preferredGroup.items : category.items).slice(0, 3);
+      const featured = items[0] || category.items[0];
+      const sectionTitle = {
+        projects: 'Project Examples',
+        tools: 'Tools I Keep Refining',
+        games: 'Games & Simulations'
+      }[categoryId] || category.label;
+      const sectionKicker = {
+        projects: 'Featured work',
+        tools: 'Browser utilities',
+        games: 'Playable systems'
+      }[categoryId] || category.singular;
+      const sectionSummary = {
+        projects: 'A quick look at machine learning, analytics, and interface-driven project work.',
+        tools: 'Small utilities for text, campaign links, media, and repeated workflow cleanup.',
+        games: 'Lightweight games and simulations built around systems, feedback loops, and interaction design.'
+      }[categoryId] || category.summary;
+      const sectionVisual = featured ? ITEM_VISUAL_BY_ID[featured.id] : '';
+      const sectionStyle = [
+        `--accent: ${escapeHtml(category.accent)}`,
+        sectionVisual ? `--section-image: url('${escapeHtml(sectionVisual)}')` : ''
+      ].filter(Boolean).join('; ');
+      const sectionCta = {
+        projects: 'View portfolio',
+        tools: 'Open tools',
+        games: 'Open games'
+      }[categoryId] || `Browse ${category.label.toLowerCase()}`;
 
-    return `
-      <div class="home-graph__mobile-depth-card home-graph__mobile-depth-card--branch" style="--accent: ${escapeHtml(category.accent)}">
-        <div class="home-graph__mobile-layer-head">
-          <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>
-          <div class="home-graph__mobile-depth-copy">
-            <span>Layer 1</span>
-            <strong>${escapeHtml(category.label)}</strong>
-            <small>${category.items.length} ${category.singular}${category.items.length === 1 ? '' : 's'}</small>
-          </div>
-        </div>
-        <div class="home-graph__mobile-network-mini">
-          ${getMobileMiniNetworkHtml()}
-        </div>
-      </div>
-      <div class="home-graph__mobile-depth-card home-graph__mobile-depth-card--group" style="--accent: ${escapeHtml(category.accent)}">
-        <div class="home-graph__mobile-layer-head">
-          <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, group?.id || '')}</span>
-          <div class="home-graph__mobile-depth-copy">
-            <span>Layer 2</span>
-            <strong>${escapeHtml(group?.label || category.label)}</strong>
-            <small>Swipe subcategories</small>
-          </div>
-        </div>
-        <div class="home-graph__mobile-rail" aria-label="${escapeHtml(category.label)} subcategories">
-          ${groups.map((entry) => {
-            const active = entry.id === group?.id;
-            return `<button type="button" class="home-graph__mobile-group-chip${active ? ' is-active' : ''}" data-mobile-group="${escapeHtml(entry.id)}" aria-pressed="${active ? 'true' : 'false'}">
-              <span class="home-graph__mobile-group-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, entry.id)}</span>
-              <span class="home-graph__mobile-group-text"><strong>${escapeHtml(entry.label)}</strong><small>${entry.items.length} ${category.singular}${entry.items.length === 1 ? '' : 's'}</small></span>
-            </button>`;
-          }).join('')}
-        </div>
-      </div>
-      <div class="home-graph__mobile-depth-card home-graph__mobile-depth-card--final" style="--accent: ${escapeHtml(category.accent)}">
-        <div class="home-graph__mobile-final-head">
-          <div class="home-graph__mobile-layer-head">
-            <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, group?.id || '')}</span>
-            <div class="home-graph__mobile-depth-copy">
-              <span>Layer 3</span>
-              <strong>${escapeHtml(topic?.label || group?.label || category.label)}</strong>
-              <small>${topicItems.length} ${category.singular}${topicItems.length === 1 ? '' : 's'}</small>
+      return `
+        <section class="home-graph__mobile-section home-graph__mobile-section--${escapeHtml(categoryId)}" style="${sectionStyle}" aria-labelledby="home-mobile-${escapeHtml(categoryId)}-title">
+          <div class="home-graph__mobile-section-head">
+            <span class="home-graph__mobile-section-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>
+            <div>
+              <p>${escapeHtml(sectionKicker)}</p>
+              <h2 id="home-mobile-${escapeHtml(categoryId)}-title">${escapeHtml(sectionTitle)}</h2>
             </div>
           </div>
-          <div class="home-graph__mobile-chain" aria-label="Selected path">
-            ${chainParts.map((part, index) => `<span${index === chainParts.length - 1 ? ' aria-current="step"' : ''}>${escapeHtml(part)}</span>`).join('<b aria-hidden="true">/</b>')}
+          <p class="home-graph__mobile-section-summary">${escapeHtml(sectionSummary)}</p>
+          <div class="home-graph__mobile-section-list">
+            ${items.map((item, itemIndex) => {
+              const title = item.fullTitle || item.title;
+              const itemVisual = ITEM_VISUAL_BY_ID[item.id];
+              const itemStyle = [
+                `--card-index: ${index + itemIndex}`,
+                itemVisual ? `--card-image: url('${escapeHtml(itemVisual)}')` : ''
+              ].filter(Boolean).join('; ');
+              return `
+                <a class="home-graph__mobile-section-card" href="${escapeHtml(item.href)}" style="${itemStyle}">
+                  <span class="home-graph__mobile-section-art${itemVisual ? ' has-visual' : ''}" aria-hidden="true">${itemVisual ? '' : getItemIcon(item, categoryId)}</span>
+                  <span class="home-graph__mobile-section-copy">
+                    <strong>${escapeHtml(title)}</strong>
+                    <span>${escapeHtml(item.snippet || item.summary || '')}</span>
+                  </span>
+                </a>
+              `;
+            }).join('')}
           </div>
-        </div>
-        <div class="home-graph__mobile-topic-list" aria-label="${escapeHtml(group?.label || category.label)} focus areas">
-          ${topics.map((entry) => {
-            const active = entry.id === topic?.id;
-            return `<button type="button" class="home-graph__mobile-topic-chip${active ? ' is-active' : ''}" data-mobile-topic="${escapeHtml(entry.id)}" aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(entry.label)}<span>${entry.items.length}</span></button>`;
-          }).join('')}
-        </div>
-        <div class="home-graph__mobile-cluster-card" style="--accent: ${escapeHtml(category.accent)}">
-          <svg class="home-graph__mobile-cluster-lines" viewBox="0 0 100 100" aria-hidden="true">
-            ${nodeSlots.map(({ slot }) => `<path d="${getMobileLinePath(slot)}"></path>`).join('')}
-          </svg>
-          <button type="button" class="home-graph__mobile-hub" data-mobile-topic="${escapeHtml(topic?.id || '')}" aria-label="${escapeHtml(topic?.label || group?.label || category.label)}">
-            <span class="home-graph__mobile-hub-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, group?.id || '')}</span>
-            <span>${escapeHtml(topic?.label || group?.label || category.label)}</span>
-          </button>
-          ${nodeSlots.map(({ item, slot, index }) => {
-            const selected = previewItem?.id === item.id;
-            const title = item.fullTitle || item.title;
-            return `<button type="button" class="home-graph__mobile-project-node${selected ? ' is-selected' : ''}" data-mobile-item="${escapeHtml(item.id)}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" style="--node-x: ${slot.x}%; --node-y: ${slot.y}%; --node-index: ${index}; --accent: ${escapeHtml(category.accent)}">
-              <span class="home-graph__mobile-project-icon" aria-hidden="true">${getItemIcon(item, categoryId)}</span>
-              <span class="home-graph__mobile-project-title">${escapeHtml(item.title)}</span>
-            </button>`;
-          }).join('')}
-        </div>
-        <div class="home-graph__mobile-preview" style="--accent: ${escapeHtml(category.accent)}">
-          <div>
-            <span class="home-graph__mobile-preview-kicker">${previewItem ? category.singular : 'Focus area'}</span>
-            <strong>${escapeHtml(previewTitle)}</strong>
-            <p>${escapeHtml(previewSummary)}</p>
-            <ul>
-              ${previewTags.slice(0, 3).map((tag) => `<li>${escapeHtml(tag)}</li>`).join('')}
-            </ul>
+          <a class="home-graph__mobile-section-cta" href="${escapeHtml(category.href)}">${escapeHtml(sectionCta)} ${getLinkIcon()}</a>
+        </section>
+      `;
+    };
+
+    return `
+      <div class="home-graph__mobile-classic">
+        <section class="home-graph__mobile-hero" aria-labelledby="home-mobile-hero-title">
+          <div class="home-graph__mobile-hero-copy">
+            <h1 id="home-mobile-hero-title">Projects, Tools & Games</h1>
+            <div class="home-graph__mobile-hero-identity">
+              <img src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="112px" alt="Portrait of Daniel Short" width="112" height="112" decoding="async" fetchpriority="high">
+              <p>Daniel Short · Personal Lab</p>
+            </div>
+            <p>Machine learning demos, practical browser utilities, and lightweight games built around usable interfaces.</p>
+            <p class="home-graph__mobile-hero-status">Projects · Tools · Games · Experiments</p>
+            <div class="home-graph__mobile-hero-actions">
+              <a href="portfolio">Projects</a>
+              <a href="tools">Tools</a>
+              <a href="contact#contact-modal" data-contact-modal-link="true">Contact</a>
+            </div>
+            <a class="home-graph__mobile-hero-scroll" href="#home-mobile-projects-title">View sections ${getLinkIcon()}</a>
           </div>
-          <a href="${escapeHtml(previewHref)}">${escapeHtml(previewCta)} ${getLinkIcon()}</a>
-        </div>
+        </section>
+        ${CATEGORY_ORDER.map(createMobileSection).join('')}
       </div>
     `;
   };
@@ -2165,10 +2164,12 @@
       mobileTopicId: '',
       transitionTimer: null,
       lineTimer: null,
-      latestLayout: null
+      latestLayout: null,
+      mobileRenderKey: ''
     };
 
     const usesMobileDeck = () => window.matchMedia?.('(max-width: 640px)').matches || window.innerWidth <= 640;
+    const getCurrentMobileCategoryId = () => (state.active && CATEGORIES[state.active] ? state.active : 'projects');
 
     const getMobileDepth = (categoryId = state.active, itemId = '') => {
       const category = CATEGORIES[categoryId] || CATEGORIES.projects;
@@ -2568,17 +2569,23 @@
       }).join('');
     };
 
-    const renderMobileDeck = () => {
-      if (!state.active || !CATEGORIES[state.active]) {
-        mobileDeck.innerHTML = '';
-        return;
-      }
+    const renderMobileDeck = (options = {}) => {
+      const categoryId = getCurrentMobileCategoryId();
       const itemSelection = parseItemKey(state.selectedKey);
-      const itemId = itemSelection?.categoryId === state.active ? itemSelection.itemId : '';
-      const depth = syncMobileDepth(state.active, itemId);
+      const itemId = itemSelection?.categoryId === categoryId ? itemSelection.itemId : '';
+      const depth = syncMobileDepth(categoryId, itemId);
+      const renderKey = [
+        categoryId,
+        itemId,
+        depth.group?.id || '',
+        depth.topic?.id || '',
+        state.selectedKey
+      ].join('|');
+      if (!options.force && state.mobileRenderKey === renderKey) return;
+      state.mobileRenderKey = renderKey;
       mobileDeck.style.setProperty('--accent', depth.category.accent);
       mobileDeck.innerHTML = createMobileDepthDeckHtml({
-        categoryId: state.active,
+        categoryId,
         group: depth.group,
         groups: depth.groups,
         topic: depth.topic,
@@ -2667,6 +2674,14 @@
         return;
       }
 
+      if (usesMobileDeck()) {
+        state.active = categoryId;
+        state.selectedKey = itemId ? getItemKey(categoryId, itemId) : '';
+        syncMobileDepth(categoryId, itemId || '');
+        render();
+        return;
+      }
+
       renderAfterCondense(() => {
         state.active = categoryId;
         state.selectedKey = itemId ? getItemKey(categoryId, itemId) : '';
@@ -2675,22 +2690,26 @@
     };
 
     const selectMobileGroup = (groupId) => {
-      const group = getCategoryGroupById(state.active, groupId);
+      const categoryId = getCurrentMobileCategoryId();
+      const group = getCategoryGroupById(categoryId, groupId);
       if (!group) return;
+      state.active = categoryId;
       state.mobileGroupId = group.id;
-      state.mobileTopicId = getMobileDepthTopics(state.active, group)[0]?.id || '';
-      state.selectedKey = getGroupKey(state.active, group.id);
+      state.mobileTopicId = getMobileDepthTopics(categoryId, group)[0]?.id || '';
+      state.selectedKey = getGroupKey(categoryId, group.id);
       render();
     };
 
     const selectMobileTopic = (topicId) => {
-      const group = getCategoryGroupById(state.active, state.mobileGroupId) || getPreferredMobileGroup(state.active);
-      const topic = getMobileDepthTopics(state.active, group)
+      const categoryId = getCurrentMobileCategoryId();
+      const group = getCategoryGroupById(categoryId, state.mobileGroupId) || getPreferredMobileGroup(categoryId);
+      const topic = getMobileDepthTopics(categoryId, group)
         .find((entry) => entry.id === topicId);
       if (!group || !topic) return;
+      state.active = categoryId;
       state.mobileGroupId = group.id;
       state.mobileTopicId = topic.id;
-      state.selectedKey = getGroupKey(state.active, group.id);
+      state.selectedKey = getGroupKey(categoryId, group.id);
       render();
     };
 
@@ -2783,8 +2802,8 @@
 
       const itemButton = event.target.closest('[data-mobile-item]');
       if (itemButton) {
-        selectInspectorItem(state.active, itemButton.dataset.mobileItem);
-        renderMobileDeck();
+        selectInspectorItem(getCurrentMobileCategoryId(), itemButton.dataset.mobileItem);
+        renderMobileDeck({ force: true });
       }
     });
 

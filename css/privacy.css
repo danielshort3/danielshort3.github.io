@@ -660,6 +660,12 @@ body[data-consent-banner="open"] .speed-dial {
   }
 }
 
+@media (max-width: 768px) {
+  body.has-mobile-site-dock #pcz-banner {
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #pcz-banner,
   #pcz-modal,

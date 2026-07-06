@@ -217,6 +217,48 @@
     .cert-band-inner{
       padding-inline:var(--mobile-page-gutter);
     }
+    .cert-band .cert-track{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      height:64px;
+      min-height:64px;
+      margin-inline:calc(var(--mobile-page-gutter) * -1);
+      padding:4px var(--mobile-page-gutter) 8px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      cursor:auto;
+      user-select:auto;
+      touch-action:pan-x pan-y;
+      overscroll-behavior-x:contain;
+      scroll-padding-inline:var(--mobile-page-gutter);
+      scrollbar-width:none;
+      mask-image:none;
+      -webkit-mask-image:none;
+      -webkit-overflow-scrolling:touch;
+    }
+    .cert-band .cert-track::-webkit-scrollbar{
+      display:none;
+    }
+    .cert-band .cert-track.dragging{
+      cursor:auto;
+    }
+    .cert-band .cert-track.dragging .cert{
+      pointer-events:auto;
+    }
+    .cert-band .cert{
+      position:relative;
+      top:auto;
+      flex:0 0 auto;
+      transform:none;
+      will-change:auto;
+    }
+    .cert-band .cert.reenter{
+      animation:none;
+    }
+    .cert-band .cert-track[data-cert-ticker-mode="native"]{
+      height:auto;
+    }
     .cert-modal-trigger{
       width:100%;
       min-width:0;
@@ -235,6 +277,23 @@
     }
     .cert-card-actions .btn-secondary{
       width:100%;
+    }
+  }
+}
+
+@layer overrides {
+  @media (max-width: 900px) {
+    .cert-band .cert-track{
+      height:64px;
+      cursor:auto;
+      overflow-x:auto;
+      touch-action:pan-x pan-y;
+      mask-image:none;
+      -webkit-mask-image:none;
+    }
+    .cert-band .cert-track[data-cert-ticker-mode="native"]{
+      height:auto;
+      touch-action:pan-x pan-y;
     }
   }
 }

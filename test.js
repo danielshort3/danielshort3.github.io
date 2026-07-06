@@ -37258,7 +37258,8 @@ try {
       assert(html.includes(snippet), `pages/short-links.html missing expected short-links hook: ${snippet}`);
     });
     assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
-    assert((html.match(/data-cookie-settings="true"/g) || []).length === 1, 'pages/short-links.html should include one cookie settings widget');
+    assert((html.match(/id="privacy-settings-link-footer"/g) || []).length === 1, 'pages/short-links.html should include one footer cookie settings control');
+    assert(!html.includes('data-cookie-settings="true"'), 'pages/short-links.html should not include a floating cookie settings widget');
     assert((html.match(/data-speed-dial="true"/g) || []).length === 1, 'pages/short-links.html should include one speed dial');
   });
 
