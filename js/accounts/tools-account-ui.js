@@ -2537,7 +2537,9 @@
     applyToolsAccountVisibility();
     document.addEventListener('tools:auth-changed', applyToolsAccountVisibility);
 
-    ensureToolsHero({ pageId: page });
+    if (page !== 'tools') {
+      ensureToolsHero({ pageId: page });
+    }
 
     if (page === 'tools-dashboard') {
       initDashboard({ setStatus, onViewSession: sessionModal.open }).catch((err) => logAsyncError('dashboard:init', err));
