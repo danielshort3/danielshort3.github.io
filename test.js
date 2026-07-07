@@ -38833,8 +38833,10 @@ try {
            toolsAuth.includes('POPUP_STATE_PREFIX') &&
            toolsAuth.includes('AUTH_BROADCAST_KEY') &&
            toolsAuth.includes('postMessage') &&
+           toolsAuth.includes('select_account') &&
+           toolsAuth.includes("params.set('prompt', authPrompt)") &&
            toolsAuth.includes('Sign-in popup was blocked'),
-      'Tools auth should support popup sign-in without active-tab redirect fallback');
+      'Tools auth should support popup sign-in and account selection without active-tab redirect fallback');
     assert(toolsAccountUi.includes("toolId === 'transcribe'") &&
            toolsAccountUi.includes("{ mode: 'popup', returnTo }"),
       'Tools account UI should use popup sign-in on the Transcribe tool');

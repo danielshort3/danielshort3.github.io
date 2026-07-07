@@ -16,6 +16,7 @@
     cognitoClientId: '78oo663obb0t28u63u9bqn00o9',
     cognitoRedirect: getDefaultRedirect(),
     cognitoScopes: 'openid email profile',
+    cognitoPrompt: 'select_account',
     adminGroups: ['admin', 'admins'],
     adminEmails: ['daniel@danielshort.me']
   };
