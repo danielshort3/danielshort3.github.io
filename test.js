@@ -800,6 +800,9 @@ try {
     assert(toolsHtml.includes('<h1>Tools I keep refining</h1>'), 'tools page should expose a visible h1');
     assert(!catalogJs.includes("if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');"),
       'tools account UI should not force an existing visible h1 offscreen');
+    assert(catalogJs.includes("if (page !== 'tools')") &&
+      catalogJs.includes('ensureToolsHero({ pageId: page });'),
+      'tools account UI should not inject a duplicate hero panel on the tools workbench page');
     assert(!toolsHtml.includes('Quick browser tools for text cleanup') &&
       !toolsHtml.includes('Find the right utility') &&
       !toolsHtml.includes('Choose a focused utility'),
