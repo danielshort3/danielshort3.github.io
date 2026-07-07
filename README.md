@@ -100,7 +100,7 @@ Generate an admin token locally:
 This repo includes an optional account layer for tools under `/tools`:
 
 - **Dashboard:** `/tools/dashboard` (shows signed-in tool usage, recent sessions, and activity).
-- **Auth:** Amazon Cognito Hosted UI (PKCE) configured in `js/accounts/tools-config.js`.
+- **Auth:** Amazon Cognito Hosted UI (PKCE) configured in `js/accounts/tools-config.js`; sign-in requests `select_account` by default so Google prompts for the intended account.
 - **Storage:** AWS DynamoDB (see `.env.example`).
 
 Required configuration:

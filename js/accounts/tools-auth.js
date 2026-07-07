@@ -16,7 +16,8 @@
       cognitoDomain: (source.dataset.cognitoDomain || '').trim(),
       cognitoClientId: (source.dataset.cognitoClientId || '').trim(),
       cognitoRedirect: (source.dataset.cognitoRedirect || '').trim(),
-      cognitoScopes: (source.dataset.cognitoScopes || '').trim()
+      cognitoScopes: (source.dataset.cognitoScopes || '').trim(),
+      cognitoPrompt: (source.dataset.cognitoPrompt || '').trim()
     };
 
     const globalConfig = window.TOOLS_AUTH_CONFIG || {};
@@ -32,7 +33,8 @@
       cognitoDomain: fromDataset.cognitoDomain || String(globalConfig.cognitoDomain || '').trim(),
       cognitoClientId: fromDataset.cognitoClientId || String(globalConfig.cognitoClientId || '').trim(),
       cognitoRedirect: fromDataset.cognitoRedirect || String(globalConfig.cognitoRedirect || '').trim() || fallbackRedirect,
-      cognitoScopes: fromDataset.cognitoScopes || String(globalConfig.cognitoScopes || '').trim() || 'openid email profile'
+      cognitoScopes: fromDataset.cognitoScopes || String(globalConfig.cognitoScopes || '').trim() || 'openid email profile',
+      cognitoPrompt: fromDataset.cognitoPrompt || String(globalConfig.cognitoPrompt || '').trim() || 'select_account'
     };
   };
 
@@ -236,6 +238,8 @@
       code_challenge: challenge,
       state: authState
     });
+    const authPrompt = String(options.prompt || config.cognitoPrompt || '').trim();
+    if (authPrompt) params.set('prompt', authPrompt);
     return `https://${config.cognitoDomain}/oauth2/authorize?${params.toString()}`;
   };
 
