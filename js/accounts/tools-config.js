@@ -18,6 +18,6 @@
     cognitoScopes: 'openid email profile',
     cognitoPrompt: 'select_account',
     adminGroups: ['admin', 'admins'],
-    adminEmails: ['daniel@danielshort.me']
+    adminEmails: ['daniel@danielshort.me', 'danielshort3@gmail.com']
   };
 })();
