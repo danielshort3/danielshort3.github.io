@@ -726,7 +726,7 @@
 
   .site-chatbot__input-shell:focus-within{
     border-color: var(--cta-blue, #005fed);
-    outline: 3px solid color-mix(in srgb, var(--cta-blue, #005fed) 16%, transparent);
+    outline: 3px solid rgba(21, 101, 192, 0.16);
     outline-offset: 2px;
   }
 

@@ -23,7 +23,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/10-github-readme-portfolio-banner.svg">
   <meta name="twitter:image:alt" content="Daniel Short branded portfolio banner">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.12ccca2b.css">
+  <link rel="stylesheet" href="dist/styles.cd89576f.css">
   <link rel="stylesheet" href="dist/styles-tools.7f2ad26c.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
@@ -34,7 +34,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script src="js/common/no-js.js"></script>
 </head>
-<body data-page="tools" class="tools-page site-page portfolio-workbench-page">
+<body data-page="tools" class="tools-page site-page" data-tools-layout="directory">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -255,53 +255,288 @@
       </div>
     </nav>
   </header>
-  <main id="main" class="portfolio-main directory-workbench-main">
-    <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">
-      <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner"></div>
+  <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">
+    <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">
+      <div class="tools-account-bar" data-tools-account="bar"></div>
     </div>
-    <section class="portfolio-workbench" id="tools-workbench" data-portfolio-workbench data-directory-workbench="tools" aria-labelledby="tools-workbench-title">
-      <div class="portfolio-workbench__shell">
-        <header class="portfolio-workbench__header">
-          <div class="portfolio-workbench__title-block">
-            <h1 id="tools-workbench-title">Tools I keep refining</h1>
-          </div>
-        </header>
-
-        <div class="portfolio-workbench__layout">
-          <aside class="portfolio-workbench__filters" aria-label="Tool filters">
-            <div class="portfolio-filter-head">
-              <h2>Filters</h2>
-              <button type="button" class="portfolio-filter-clear" data-portfolio-clear-filters>Clear all</button>
-            </div>
-            <div class="portfolio-filter-groups" data-portfolio-filters></div>
-          </aside>
-
-          <section class="portfolio-workbench__results" aria-labelledby="tools-results-title">
-            <div class="portfolio-results-toolbar">
-              <div>
-                <h2 id="tools-results-title" class="visually-hidden">Tools I keep refining results</h2>
-                <p class="portfolio-results-count" data-portfolio-results-count>Loading tools...</p>
+  </div>
+  <section class="tools-resume-panel" data-tools-resume="panel" data-tools-auth-only aria-labelledby="tools-resume-title" hidden aria-hidden="true">
+    <div class="tools-resume-head">
+      <div class="tools-resume-head-copy">
+        <p class="tools-resume-kicker">Saved sessions</p>
+        <h2 class="tools-resume-title" id="tools-resume-title">Continue where you left off</h2>
+      </div>
+    </div>
+    <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>
+    <div class="tools-resume-content" data-tools-resume="content"></div>
+  </section>
+  <main id="main">
+    <section class="tools-section" aria-label="Tool directory">
+      <div class="wrapper tools-directory-layout">
+        <nav class="tools-directory-rail" aria-label="Tool categories">
+          <p class="tools-directory-stat">10 public tools</p>
+          <a class="tools-rail-link" href="#tools-writing">
+            <span class="tools-rail-index">01</span>
+            <span class="tools-rail-copy">
+              <span class="tools-rail-title">Text and writing</span>
+              <span class="tools-rail-description">Draft comparison, cleanup, and quick text analysis.</span>
+            </span>
+            <span class="tools-rail-count">5 tools</span>
+          </a>
+          <a class="tools-rail-link" href="#tools-marketing">
+            <span class="tools-rail-index">02</span>
+            <span class="tools-rail-copy">
+              <span class="tools-rail-title">Links and campaigns</span>
+              <span class="tools-rail-description">Campaign URLs, QR assets, and shareable outputs.</span>
+            </span>
+            <span class="tools-rail-count">2 tools</span>
+          </a>
+          <a class="tools-rail-link" href="#tools-media">
+            <span class="tools-rail-index">03</span>
+            <span class="tools-rail-copy">
+              <span class="tools-rail-title">Media utilities</span>
+              <span class="tools-rail-description">Local image, video, and capture workflows.</span>
+            </span>
+            <span class="tools-rail-count">3 tools</span>
+          </a>
+          <a class="tools-rail-link" href="#tools-cloud">
+            <span class="tools-rail-index">04</span>
+            <span class="tools-rail-copy">
+              <span class="tools-rail-title">Cloud-backed workflows</span>
+              <span class="tools-rail-description">Account, API, and server-assisted tools.</span>
+            </span>
+            <span class="tools-rail-count">4 tools</span>
+          </a>
+        </nav>
+        <div class="tools-directory-main">
+          <header class="tools-directory-head">
+            <p class="tools-directory-kicker">Tools</p>
+            <h1>Tools I keep refining</h1>
+            <p>Small utilities built around real friction: compare text, clean inputs, generate links, process media, and keep repeatable work moving.</p>
+          </header>
+          <div id="tools-directory-results" data-tools-results>
+            <section class="tools-category" id="tools-writing" aria-labelledby="tools-writing-title" data-tools-category data-tools-category-title="Text and writing">
+              <header class="tools-category-head">
+                <h2 class="section-title" id="tools-writing-title">Text and writing</h2>
+                <p>Draft comparison, cleanup, and quick text analysis.</p>
+              </header>
+              <div class="tools-grid">
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-writing">
+                <a class="tool-launch-card" href="tools/text-compare" aria-describedby="text-compare-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/text-compare.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Text Compare</span>
+                  </span>
+                  <span class="tool-card-details" id="text-compare-details" role="tooltip">
+                    <span class="tool-card-summary">Compare two drafts and see insertions, deletions, and replacements highlighted inline.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-writing">
+                <a class="tool-launch-card" href="tools/nbsp-cleaner" aria-describedby="nbsp-cleaner-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/nbsp-cleaner.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Non-breaking Space Cleaner</span>
+                  </span>
+                  <span class="tool-card-details" id="nbsp-cleaner-details" role="tooltip">
+                    <span class="tool-card-summary">Detects hard spaces (NBSP, narrow NBSP, etc.) and replaces them with regular spaces after confirming counts.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-writing">
+                <a class="tool-launch-card" href="tools/oxford-comma-checker" aria-describedby="oxford-comma-checker-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/oxford-comma-checker.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Oxford Comma Checker</span>
+                  </span>
+                  <span class="tool-card-details" id="oxford-comma-checker-details" role="tooltip">
+                    <span class="tool-card-summary">Scan drafts for possible missing Oxford commas in serial lists and review quick fixes.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-writing">
+                <a class="tool-launch-card" href="tools/point-of-view-checker" aria-describedby="point-of-view-checker-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/point-of-view-checker.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Point of View Checker</span>
+                  </span>
+                  <span class="tool-card-details" id="point-of-view-checker-details" role="tooltip">
+                    <span class="tool-card-summary">Scan text for first-person, second-person, and third-person pronouns to spot mixed POV.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-writing">
+                <a class="tool-launch-card" href="tools/word-frequency" aria-describedby="word-frequency-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/word-frequency.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Word Frequency Analyzer</span>
+                  </span>
+                  <span class="tool-card-details" id="word-frequency-details" role="tooltip">
+                    <span class="tool-card-summary">Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.</span>
+                  </span>
+                </a>
+              </article>
               </div>
-              <label class="portfolio-sort-control">
-                <span>Sort by:</span>
-                <select data-portfolio-sort aria-label="Sort tools">
-                  <option value="default">Default</option>
-                  <option value="title">Alphabetical</option>
-                </select>
-              </label>
-            </div>
-            <div class="portfolio-search">
-              <label class="visually-hidden" for="tools-search-input">Search tools</label>
-              <input id="tools-search-input" type="search" placeholder="Search tools" autocomplete="off" data-portfolio-search>
-            </div>
-            <div class="portfolio-results-list" role="list" data-portfolio-results></div>
-            <p class="portfolio-empty-state" data-portfolio-empty hidden>No tools match those filters.</p>
-          </section>
-
-          <aside class="portfolio-inspector" aria-label="Selected tool details" aria-live="polite" data-portfolio-inspector>
-            <div class="portfolio-inspector__loading">Choose a tool to see details.</div>
-          </aside>
+            </section>
+            <section class="tools-category" id="tools-marketing" aria-labelledby="tools-marketing-title" data-tools-category data-tools-category-title="Links and campaigns">
+              <header class="tools-category-head">
+                <h2 class="section-title" id="tools-marketing-title">Links and campaigns</h2>
+                <p>Campaign URLs, QR assets, and shareable outputs.</p>
+              </header>
+              <div class="tools-grid">
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-marketing">
+                <a class="tool-launch-card" href="tools/utm-batch-builder" aria-describedby="utm-batch-builder-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/utm-batch-builder.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">UTM Batch Builder</span>
+                  </span>
+                  <span class="tool-card-details" id="utm-batch-builder-details" role="tooltip">
+                    <span class="tool-card-summary">Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-marketing">
+                <a class="tool-launch-card" href="tools/qr-code-generator" aria-describedby="qr-code-generator-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/qr-code-generator.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">QR Code Generator</span>
+                  </span>
+                  <span class="tool-card-details" id="qr-code-generator-details" role="tooltip">
+                    <span class="tool-card-summary">Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.</span>
+                  </span>
+                </a>
+              </article>
+              </div>
+            </section>
+            <section class="tools-category" id="tools-media" aria-labelledby="tools-media-title" data-tools-category data-tools-category-title="Media utilities">
+              <header class="tools-category-head">
+                <h2 class="section-title" id="tools-media-title">Media utilities</h2>
+                <p>Local image, video, and capture workflows.</p>
+              </header>
+              <div class="tools-grid">
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-media">
+                <a class="tool-launch-card" href="tools/image-optimizer" aria-describedby="image-optimizer-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/image-optimizer.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Image Optimizer</span>
+                  </span>
+                  <span class="tool-card-details" id="image-optimizer-details" role="tooltip">
+                    <span class="tool-card-summary">Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-media">
+                <a class="tool-launch-card" href="tools/background-remover" aria-describedby="background-remover-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/background-remover.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Background Remover</span>
+                  </span>
+                  <span class="tool-card-details" id="background-remover-details" role="tooltip">
+                    <span class="tool-card-summary">Remove backgrounds with AI matting (hair/fur friendly), refine edges with a brush, and export transparent PNG/TIFF or solid-background JPEG/WebP.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-media">
+                <a class="tool-launch-card" href="tools/screen-recorder" aria-describedby="screen-recorder-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/screen-recorder.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Screen Recorder</span>
+                  </span>
+                  <span class="tool-card-details" id="screen-recorder-details" role="tooltip">
+                    <span class="tool-card-summary">Record your screen and download the clip in browser-supported formats with optional system audio.</span>
+                  </span>
+                </a>
+              </article>
+              </div>
+            </section>
+            <section class="tools-category" id="tools-cloud" aria-labelledby="tools-cloud-title" data-tools-category data-tools-category-title="Cloud-backed workflows" hidden>
+              <header class="tools-category-head">
+                <h2 class="section-title" id="tools-cloud-title">Cloud-backed workflows</h2>
+                <p>Account, API, and server-assisted tools.</p>
+              </header>
+              <div class="tools-grid">
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-visibility="authed" hidden aria-hidden="true">
+                <a class="tool-launch-card" href="tools/job-application-tracker" aria-describedby="job-application-tracker-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/job-application-tracker.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Job Application Tracker</span>
+                  </span>
+                  <span class="tool-card-details" id="job-application-tracker-details" role="tooltip">
+                    <span class="tool-card-summary">Log applications and review interview momentum with KPI cards, trend lines, and calendar heatmaps.</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-visibility="admin" hidden aria-hidden="true">
+                <a class="tool-launch-card" href="tools/short-links" aria-describedby="short-links-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/short-links.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">Short Links (Admin)</span>
+                  </span>
+                  <span class="tool-card-details" id="short-links-details" role="tooltip">
+                    <span class="tool-card-summary">Create and manage private /go/&lt;slug&gt; redirect links with click counts (requires admin token).</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-visibility="admin" hidden aria-hidden="true">
+                <a class="tool-launch-card" href="tools/ga4-utm-performance" aria-describedby="ga4-utm-performance-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/ga4-utm-performance.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">GA4 UTM Performance (Admin)</span>
+                  </span>
+                  <span class="tool-card-details" id="ga4-utm-performance-details" role="tooltip">
+                    <span class="tool-card-summary">Fetch UTM performance from GA4 via the Data API and export aggregated results as CSV (requires admin token).</span>
+                  </span>
+                </a>
+              </article>
+              <article class="tool-card" data-tools-card data-tools-category-id="tools-cloud" data-tools-visibility="authed" hidden aria-hidden="true">
+                <a class="tool-launch-card" href="tools/transcribe" aria-describedby="transcribe-details">
+                  <span class="tool-icon tool-icon-image" aria-hidden="true">
+                    <img src="img/tools/icons/transcribe.png" alt="" loading="lazy" decoding="async">
+                  </span>
+                  <span class="tool-card-main">
+                    <span class="tool-card-title">File Transcriber</span>
+                  </span>
+                  <span class="tool-card-details" id="transcribe-details" role="tooltip">
+                    <span class="tool-card-summary">Drag in audio or video files, approve the estimated Amazon Transcribe cost, and download completed transcripts.</span>
+                  </span>
+                </a>
+              </article>
+              </div>
+            </section>
+          </div>
         </div>
+        <aside class="tools-directory-note" aria-labelledby="tools-directory-note-title">
+          <p class="tools-directory-note-kicker">Tool catalog</p>
+          <h2 id="tools-directory-note-title">Choose the workflow surface</h2>
+          <p>Grouped by the kind of repeated work each tool is meant to remove.</p>
+          <p>Public tools run without an account. Signed-in tools reveal private session history and account-backed workflows when available.</p>
+        </aside>
       </div>
     </section>
   </main>
@@ -418,6 +653,7 @@
       </svg>
     </button>
   </div>
+  <script defer src="js/tools/tools-directory.js"></script>
   <script defer src="dist/site-shell.113e5965.js"></script>
   <script defer src="dist/site-consent.6ac8c70b.js"></script>
   <script defer src="dist/site-tools-landing.f0015620.js" data-tools-account-src="dist/site-tools-account.8cda8f9e.js"></script>

@@ -55,7 +55,22 @@ function isAdminRequest(req){
   if (!provided && auth.toLowerCase().startsWith('bearer ')) {
     provided = auth.slice(7).trim();
   }
-  return provided.length > 0 && provided === configured;
+  if (!provided) return false;
+
+  const providedBuffer = Buffer.from(provided, 'utf8');
+  const configuredBuffer = Buffer.from(configured, 'utf8');
+  if (providedBuffer.length !== configuredBuffer.length) {
+    try {
+      crypto.timingSafeEqual(configuredBuffer, configuredBuffer);
+    } catch {}
+    return false;
+  }
+
+  try {
+    return crypto.timingSafeEqual(providedBuffer, configuredBuffer);
+  } catch {
+    return false;
+  }
 }
 
 function sendJson(res, status, body){

@@ -150,7 +150,7 @@
   .home-graph__line--group {
     --line-width: 2.2;
     --line-opacity: .56;
-    stroke-dasharray: 11 12;
+    stroke-dasharray: 12 11;
   }
 
   .home-graph__center,
@@ -283,12 +283,12 @@
   }
 
   .home-graph__category.is-supporting .home-graph__category-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: 36px 28px;
     place-items: center;
-    width: 96px;
-    min-width: 96px;
-    min-height: 64px;
-    padding: 8px 14px;
+    width: 88px;
+    min-width: 88px;
+    min-height: 54px;
+    padding: 7px 8px;
     opacity: .92;
     box-shadow: 0 12px 30px rgba(19, 35, 67, .075);
     transform: scale(.92);
@@ -301,14 +301,14 @@
   }
 
   .home-graph__category.is-supporting .home-graph__category-icon {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 15px;
   }
 
   .home-graph__category.is-supporting .home-graph__category-icon svg {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
   }
 
   .home-graph__category-copy {
@@ -2687,7 +2687,7 @@
     }
 
     .home-graph__mobile-dock {
-      position: fixed;
+      position: sticky;
       right: calc(12px + env(safe-area-inset-right, 0px));
       bottom: calc(8px + env(safe-area-inset-bottom, 0px));
       left: calc(12px + env(safe-area-inset-left, 0px));

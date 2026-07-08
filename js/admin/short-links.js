@@ -3,6 +3,8 @@
   'use strict';
 
   const STORAGE_KEY = 'shortlinks_admin_token';
+  const MODE_STORAGE_KEY = 'shortlinks_active_mode';
+  const VIEWS_STORAGE_KEY = 'shortlinks_saved_views';
   const DEFAULT_BASE_PATH = 'go';
   const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
   const TABLE_LAYOUT_MEDIA_QUERY = '(min-width: 900px)';
@@ -24,6 +26,20 @@
   const adminExportSummaryEl = document.querySelector('[data-shortlinks="admin-export-summary"]');
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
+  const statusFilterSelect = document.querySelector('[data-shortlinks="status-filter"]');
+  const sortSelect = document.querySelector('[data-shortlinks="sort"]');
+  const densitySelect = document.querySelector('[data-shortlinks="density"]');
+  const newLinkFromListButton = document.querySelector('[data-shortlinks="new-link-from-list"]');
+  const healthStripEl = document.querySelector('[data-shortlinks="health-strip"]');
+  const savedViewSelect = document.querySelector('[data-shortlinks="saved-view"]');
+  const saveViewButton = document.querySelector('[data-shortlinks="save-view"]');
+  const deleteViewButton = document.querySelector('[data-shortlinks="delete-view"]');
+  const selectVisibleInput = document.querySelector('[data-shortlinks="select-visible"]');
+  const selectionCountEl = document.querySelector('[data-shortlinks="selection-count"]');
+  const testSelectedButton = document.querySelector('[data-shortlinks="test-selected"]');
+  const exportViewButton = document.querySelector('[data-shortlinks="export-view"]');
+  const clearSelectionButton = document.querySelector('[data-shortlinks="clear-selection"]');
+  const detailPanelEl = document.querySelector('[data-shortlinks="detail-panel"]');
   const exportModeSelect = document.querySelector('[data-shortlinks="export-mode"]');
   const exportClickLimitInput = document.querySelector('[data-shortlinks="export-click-limit"]');
   const exportButton = document.querySelector('[data-shortlinks="export"]');
@@ -35,6 +51,7 @@
   const modeSummaryEl = document.querySelector('[data-shortlinks="mode-summary"]');
 
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
+  const rememberTokenInput = authForm.querySelector('[data-shortlinks="remember-token"]');
   const refreshButton = authForm.querySelector('[data-shortlinks="refresh"]');
   const healthButton = authForm.querySelector('[data-shortlinks="health"]');
   const forgetButton = authForm.querySelector('[data-shortlinks="forget-token"]');
@@ -214,6 +231,11 @@
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
   let visibleLinksCount = 0;
+  let visibleLinkSlugs = [];
+  let selectedSlugs = new Set();
+  let linkHealth = new Map();
+  let memorySavedViews = [];
+  let activeDetailSlug = '';
   let projectHealth = { total: 0, missing: 0, mismatched: 0 };
   let allSets = [];
   let activeSetId = '';
@@ -269,6 +291,7 @@
       modeSummaryEl.textContent = activeTab?.textContent?.trim() || 'Single link';
     }
     document.body.dataset.shortlinksMode = nextMode;
+    if (!options.skipPersist) saveActiveMode(nextMode);
 
     if (options.focusTab) {
       if (activeTab && typeof activeTab.focus === 'function') activeTab.focus();
@@ -306,7 +329,8 @@
     }
   }
 
-  const storage = getStorage(true) || getStorage(false);
+  const localTokenStorage = getStorage(true);
+  const sessionTokenStorage = getStorage(false);
   let memoryToken = '';
   const tableLayoutQuery = typeof window.matchMedia === 'function'
     ? window.matchMedia(TABLE_LAYOUT_MEDIA_QUERY)
@@ -318,24 +342,176 @@
   }
 
   function getSavedToken(){
-    if (storage) return storage.getItem(STORAGE_KEY) || '';
+    const sessionToken = sessionTokenStorage ? sessionTokenStorage.getItem(STORAGE_KEY) || '' : '';
+    if (sessionToken) return sessionToken;
+    const localToken = localTokenStorage ? localTokenStorage.getItem(STORAGE_KEY) || '' : '';
+    if (localToken) return localToken;
     return memoryToken;
   }
 
-  function saveToken(token){
+  function saveToken(token, remember){
     const value = String(token || '').trim();
-    if (storage) {
-      if (!value) storage.removeItem(STORAGE_KEY);
-      else storage.setItem(STORAGE_KEY, value);
+    if (!value) {
+      if (sessionTokenStorage) sessionTokenStorage.removeItem(STORAGE_KEY);
+      if (localTokenStorage) localTokenStorage.removeItem(STORAGE_KEY);
+      memoryToken = '';
       return;
     }
+
+    if (remember && localTokenStorage) {
+      localTokenStorage.setItem(STORAGE_KEY, value);
+      if (sessionTokenStorage) sessionTokenStorage.removeItem(STORAGE_KEY);
+      memoryToken = '';
+      return;
+    }
+
+    if (sessionTokenStorage) {
+      sessionTokenStorage.setItem(STORAGE_KEY, value);
+      if (localTokenStorage) localTokenStorage.removeItem(STORAGE_KEY);
+      memoryToken = '';
+      return;
+    }
+
+    if (localTokenStorage) {
+      localTokenStorage.setItem(STORAGE_KEY, value);
+      memoryToken = '';
+      return;
+    }
+
     memoryToken = value;
+  }
+
+  function isTokenRemembered(){
+    return !!(localTokenStorage && localTokenStorage.getItem(STORAGE_KEY));
+  }
+
+  function getSavedMode(){
+    const mode = sessionTokenStorage ? String(sessionTokenStorage.getItem(MODE_STORAGE_KEY) || '').trim().toLowerCase() : '';
+    return getModePanel(mode) ? mode : '';
+  }
+
+  function saveActiveMode(mode){
+    if (!sessionTokenStorage) return;
+    const clean = String(mode || '').trim().toLowerCase();
+    if (!getModePanel(clean)) return;
+    sessionTokenStorage.setItem(MODE_STORAGE_KEY, clean);
+  }
+
+  function getInitialMode(){
+    return getSavedMode() || (getSavedToken() ? 'links' : 'single');
+  }
+
+  function getSavedViews(){
+    const fallback = Array.isArray(memorySavedViews) ? memorySavedViews : [];
+    if (!localTokenStorage) return fallback;
+    try {
+      const parsed = JSON.parse(localTokenStorage.getItem(VIEWS_STORAGE_KEY) || '[]');
+      return Array.isArray(parsed)
+        ? parsed
+          .filter(view => view && typeof view.name === 'string')
+          .map(view => ({
+            name: String(view.name || '').trim(),
+            query: String(view.query || ''),
+            status: String(view.status || 'all'),
+            sort: String(view.sort || 'slug'),
+            density: String(view.density || 'comfortable')
+          }))
+          .filter(view => view.name)
+        : [];
+    } catch {
+      return fallback;
+    }
+  }
+
+  function saveSavedViews(views){
+    const clean = (Array.isArray(views) ? views : [])
+      .filter(view => view && String(view.name || '').trim())
+      .map(view => ({
+        name: String(view.name || '').trim().slice(0, 64),
+        query: String(view.query || '').trim().slice(0, 180),
+        status: String(view.status || 'all').trim().toLowerCase(),
+        sort: String(view.sort || 'slug').trim().toLowerCase(),
+        density: String(view.density || 'comfortable').trim().toLowerCase() === 'compact' ? 'compact' : 'comfortable'
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    memorySavedViews = clean;
+    if (localTokenStorage) {
+      try {
+        localTokenStorage.setItem(VIEWS_STORAGE_KEY, JSON.stringify(clean));
+      } catch {}
+    }
+    return clean;
+  }
+
+  function getCurrentViewConfig(name){
+    return {
+      name: String(name || '').trim(),
+      query: filterInput ? String(filterInput.value || '').trim() : '',
+      status: getStatusFilter(),
+      sort: getSortMode(),
+      density: getDensityMode()
+    };
+  }
+
+  function renderSavedViewOptions(selectedName){
+    if (!savedViewSelect) return;
+    const selected = String(selectedName || savedViewSelect.value || '').trim();
+    const views = getSavedViews();
+    savedViewSelect.replaceChildren();
+    const current = document.createElement('option');
+    current.value = '';
+    current.textContent = 'Current filters';
+    savedViewSelect.appendChild(current);
+    views.forEach((view) => {
+      const option = document.createElement('option');
+      option.value = view.name;
+      option.textContent = view.name;
+      savedViewSelect.appendChild(option);
+    });
+    savedViewSelect.value = views.some(view => view.name === selected) ? selected : '';
+    if (deleteViewButton) deleteViewButton.disabled = !savedViewSelect.value;
+  }
+
+  function applySavedView(name){
+    const view = getSavedViews().find(item => item.name === name);
+    if (!view) return;
+    if (filterInput) filterInput.value = view.query || '';
+    if (statusFilterSelect) statusFilterSelect.value = view.status || 'all';
+    if (sortSelect) sortSelect.value = view.sort || 'slug';
+    if (densitySelect) densitySelect.value = view.density === 'compact' ? 'compact' : 'comfortable';
+    applyFilterAndRender();
+    markSessionDirty();
+  }
+
+  function saveCurrentView(){
+    if (!savedViewSelect) return;
+    const defaultName = savedViewSelect.value || getFilterQuery() || getStatusFilter() || 'Link view';
+    const raw = window.prompt('Save current filter view as:', defaultName);
+    const name = String(raw || '').trim();
+    if (!name) return;
+    const views = getSavedViews().filter(view => view.name.toLowerCase() !== name.toLowerCase());
+    views.push(getCurrentViewConfig(name));
+    saveSavedViews(views);
+    renderSavedViewOptions(name);
+    setStatus(listStatusEl, `Saved view "${name}".`, 'success');
+  }
+
+  function deleteCurrentView(){
+    if (!savedViewSelect || !savedViewSelect.value) return;
+    const name = savedViewSelect.value;
+    const views = getSavedViews().filter(view => view.name !== name);
+    saveSavedViews(views);
+    renderSavedViewOptions('');
+    setStatus(listStatusEl, `Deleted view "${name}".`, 'success');
   }
 
   function updateAccessMeta(){
     if (accessMetaEl) {
-      accessMetaEl.textContent = getSavedToken() ? 'Token stored' : 'Token required';
+      accessMetaEl.textContent = getSavedToken()
+        ? (isTokenRemembered() ? 'Token remembered' : 'Token stored for session')
+        : 'Token required';
     }
+    if (rememberTokenInput) rememberTokenInput.checked = isTokenRemembered();
     updateAdminSummary();
   }
 
@@ -358,14 +534,158 @@
     return String(filterInput.value || '').trim().toLowerCase();
   }
 
+  function getStatusFilter(){
+    return statusFilterSelect ? String(statusFilterSelect.value || 'all').trim().toLowerCase() : 'all';
+  }
+
+  function getSortMode(){
+    return sortSelect ? String(sortSelect.value || 'slug').trim().toLowerCase() : 'slug';
+  }
+
+  function getDensityMode(){
+    return densitySelect && String(densitySelect.value || '').trim().toLowerCase() === 'compact'
+      ? 'compact'
+      : 'comfortable';
+  }
+
+  function isLinkExpired(link){
+    const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
+    return !!expiresAt && expiresAt * 1000 <= Date.now();
+  }
+
+  function getLinkExpiresMs(link){
+    const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
+    return expiresAt ? expiresAt * 1000 - Date.now() : 0;
+  }
+
+  function isLinkExpiringSoon(link){
+    const ms = getLinkExpiresMs(link);
+    return ms > 0 && ms <= 7 * 24 * 60 * 60 * 1000;
+  }
+
+  function getLinkStatus(link){
+    if (!link) return 'unknown';
+    if (link.disabled) return 'disabled';
+    if (isLinkExpired(link)) return 'expired';
+    return 'active';
+  }
+
+  function getLinkBySlug(slug){
+    const key = normalizeSlugInput(slug);
+    return allLinks.find(link => normalizeSlugInput(link && link.slug) === key) || null;
+  }
+
+  function getStoredHealth(slug){
+    const key = normalizeSlugInput(slug);
+    return key ? linkHealth.get(key) || null : null;
+  }
+
+  function getLinkHealth(link){
+    const status = getLinkStatus(link);
+    if (status === 'disabled') {
+      return { key: 'disabled', label: 'Disabled', tone: 'muted', note: 'Redirect disabled' };
+    }
+    if (status === 'expired') {
+      return { key: 'expired', label: 'Expired', tone: 'warning', note: 'No longer resolves' };
+    }
+    if (!String(link && link.destination || '').trim()) {
+      return { key: 'broken', label: 'Missing destination', tone: 'error', note: 'Destination is empty' };
+    }
+
+    const stored = getStoredHealth(link && link.slug);
+    if (stored) return stored;
+
+    if (isLinkExpiringSoon(link)) {
+      return { key: 'expiring-soon', label: 'Expires soon', tone: 'warning', note: `Expires in ${formatCountdown(getLinkExpiresMs(link))}` };
+    }
+
+    return { key: 'unchecked', label: 'Unchecked', tone: '', note: 'Not tested this session' };
+  }
+
+  function getLinkHealthClass(health){
+    const tone = String(health && health.tone || '').trim().toLowerCase();
+    if (tone === 'success') return 'shortlinks-health-success';
+    if (tone === 'warning') return 'shortlinks-health-warning';
+    if (tone === 'error') return 'shortlinks-health-error';
+    if (tone === 'muted') return 'shortlinks-health-muted';
+    return 'shortlinks-health-neutral';
+  }
+
+  function makeHealthPill(link){
+    const health = getLinkHealth(link);
+    const pill = document.createElement('span');
+    pill.className = `tool-pill shortlinks-health-pill ${getLinkHealthClass(health)}`;
+    pill.textContent = health.label;
+    if (health.note) pill.title = health.note;
+    return pill;
+  }
+
+  function matchesStatusFilter(link){
+    const filter = getStatusFilter();
+    if (!filter || filter === 'all') return true;
+    if (filter === 'active') return getLinkStatus(link) === 'active';
+    if (filter === 'disabled') return getLinkStatus(link) === 'disabled';
+    if (filter === 'expired') return getLinkStatus(link) === 'expired';
+    if (filter === 'temporary') return !link?.permanent;
+    if (filter === 'permanent') return !!link?.permanent;
+    if (filter === 'expiring-soon') return getLinkHealth(link).key === 'expiring-soon';
+    if (filter === 'warning') return ['warning', 'error'].includes(getLinkHealth(link).tone);
+    if (filter === 'healthy') return getLinkHealth(link).key === 'healthy';
+    return true;
+  }
+
+  function getLinkSortValue(link, key){
+    switch (key) {
+      case 'clicks':
+        return Number.isFinite(Number(link?.clicks)) ? Number(link.clicks) : 0;
+      case 'updated':
+        return Date.parse(link?.updatedAt) || 0;
+      case 'created':
+        return Date.parse(link?.createdAt) || 0;
+      case 'expires':
+        return Number.isFinite(Number(link?.expiresAt)) ? Number(link.expiresAt) : Number.MAX_SAFE_INTEGER;
+      case 'destination':
+        return String(link?.destination || '').toLowerCase();
+      case 'slug':
+      default:
+        return normalizeSlugKey(link?.slug);
+    }
+  }
+
+  function sortVisibleLinks(links){
+    const mode = getSortMode();
+    const descending = mode.startsWith('-');
+    const key = descending ? mode.slice(1) : mode;
+    return (Array.isArray(links) ? links.slice() : []).sort((a, b) => {
+      const av = getLinkSortValue(a, key);
+      const bv = getLinkSortValue(b, key);
+      let result = 0;
+      if (typeof av === 'number' && typeof bv === 'number') result = av - bv;
+      else result = String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' });
+      if (!result) result = normalizeSlugInput(a?.slug).localeCompare(normalizeSlugInput(b?.slug));
+      return descending ? -result : result;
+    });
+  }
+
   function getFilteredLinks(){
     const query = getFilterQuery();
-    if (!query) return allLinks.slice();
-    return allLinks.filter(link => {
-      const slug = String(link.slug || '').toLowerCase();
-      const destination = String(link.destination || '').toLowerCase();
-      return slug.includes(query) || destination.includes(query);
+    const filtered = allLinks.filter(link => {
+      if (!matchesStatusFilter(link)) return false;
+      if (!query) return true;
+      const haystack = [
+        link?.slug,
+        link?.destination,
+        link?.label,
+        link?.templateTitle,
+        link?.batchTitle,
+        link?.contextCompany,
+        link?.contextTitle,
+        getLinkHealth(link).label,
+        getLinkHealth(link).note
+      ].join(' ').toLowerCase();
+      return haystack.includes(query);
     });
+    return sortVisibleLinks(filtered);
   }
 
   function formatCount(value){
@@ -622,12 +942,6 @@
     }
   }
 
-  function isLinkExpired(link){
-    const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
-    if (!expiresAt) return false;
-    return expiresAt * 1000 <= Date.now();
-  }
-
   function makeSnapshotCard({ label, value, note, tone }){
     const card = document.createElement('article');
     card.className = 'shortlinks-snapshot-card';
@@ -652,6 +966,218 @@
     return card;
   }
 
+  function getHealthCounts(links){
+    return (Array.isArray(links) ? links : []).reduce((counts, link) => {
+      const health = getLinkHealth(link);
+      counts.total += 1;
+      if (!['healthy', 'warning', 'broken'].includes(health.key)) {
+        counts[health.key] = (counts[health.key] || 0) + 1;
+      }
+      if (health.tone === 'success') counts.healthy += 1;
+      if (health.tone === 'warning') counts.warning += 1;
+      if (health.tone === 'error') counts.broken += 1;
+      if (isLinkExpiringSoon(link)) counts.expiringSoon += 1;
+      return counts;
+    }, {
+      total: 0,
+      healthy: 0,
+      warning: 0,
+      broken: 0,
+      expiringSoon: 0,
+      unchecked: 0,
+      disabled: 0,
+      expired: 0
+    });
+  }
+
+  function makeHealthMetric({ label, value, tone, filter }){
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `shortlinks-health-metric ${tone ? `is-${tone}` : ''}`;
+    button.innerHTML = `<span>${label}</span><strong>${formatCount(value)}</strong>`;
+    button.addEventListener('click', () => {
+      if (statusFilterSelect && filter) statusFilterSelect.value = filter;
+      applyFilterAndRender();
+    });
+    return button;
+  }
+
+  function renderHealthStrip(){
+    if (!healthStripEl) return;
+    healthStripEl.replaceChildren();
+    const counts = getHealthCounts(allLinks);
+    [
+      { label: 'Healthy', value: counts.healthy, tone: 'success', filter: 'healthy' },
+      { label: 'Warnings', value: counts.warning + counts.broken, tone: counts.warning || counts.broken ? 'warning' : '', filter: 'warning' },
+      { label: 'Expiring', value: counts.expiringSoon, tone: counts.expiringSoon ? 'warning' : '', filter: 'expiring-soon' },
+      { label: 'Unchecked', value: counts.unchecked, tone: counts.unchecked ? 'neutral' : '', filter: 'all' },
+      { label: 'Disabled', value: counts.disabled, tone: counts.disabled ? 'muted' : '', filter: 'disabled' }
+    ].forEach(metric => {
+      healthStripEl.appendChild(makeHealthMetric(metric));
+    });
+  }
+
+  function pruneSelectedSlugs(){
+    const valid = new Set(allLinks.map(link => normalizeSlugInput(link && link.slug)).filter(Boolean));
+    selectedSlugs = new Set(Array.from(selectedSlugs).filter(slug => valid.has(slug)));
+  }
+
+  function getSelectedLinks(){
+    const selected = new Set(Array.from(selectedSlugs).map(normalizeSlugInput));
+    return allLinks.filter(link => selected.has(normalizeSlugInput(link && link.slug)));
+  }
+
+  function updateSelectionControls(){
+    pruneSelectedSlugs();
+    const selectedCount = selectedSlugs.size;
+    if (selectionCountEl) {
+      selectionCountEl.textContent = `${formatCount(selectedCount)} selected`;
+    }
+    if (selectVisibleInput) {
+      const visibleKeys = visibleLinkSlugs.map(normalizeSlugInput).filter(Boolean);
+      const visibleSelected = visibleKeys.filter(slug => selectedSlugs.has(slug)).length;
+      selectVisibleInput.checked = visibleKeys.length > 0 && visibleSelected === visibleKeys.length;
+      selectVisibleInput.indeterminate = visibleSelected > 0 && visibleSelected < visibleKeys.length;
+      selectVisibleInput.disabled = visibleKeys.length === 0;
+    }
+    [testSelectedButton, clearSelectionButton].forEach((button) => {
+      if (button) button.disabled = selectedCount === 0;
+    });
+    if (exportViewButton) exportViewButton.disabled = visibleLinkSlugs.length === 0;
+  }
+
+  function makeSelectionControl(link){
+    const slug = normalizeSlugInput(link && link.slug);
+    const label = buildPublicPath(slug);
+    const wrap = document.createElement('label');
+    wrap.className = 'shortlinks-select-link';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = selectedSlugs.has(slug);
+    input.setAttribute('aria-label', `Select ${label}`);
+    input.addEventListener('change', () => {
+      if (input.checked) selectedSlugs.add(slug);
+      else selectedSlugs.delete(slug);
+      updateSelectionControls();
+    });
+    const text = document.createElement('span');
+    text.className = 'visually-hidden';
+    text.textContent = `Select ${label}`;
+    wrap.appendChild(input);
+    wrap.appendChild(text);
+    return wrap;
+  }
+
+  function renderDetailPanel(link){
+    if (!detailPanelEl) return;
+    detailPanelEl.replaceChildren();
+    if (!link) {
+      detailPanelEl.hidden = true;
+      activeDetailSlug = '';
+      return;
+    }
+
+    activeDetailSlug = normalizeSlugInput(link.slug);
+    detailPanelEl.hidden = false;
+    const shortUrl = buildShortUrl(link.slug);
+    const destinationUrl = formatAbsoluteUrl(link.destination);
+    const health = getLinkHealth(link);
+    const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+    const stored = getStoredHealth(link.slug);
+
+    const head = document.createElement('div');
+    head.className = 'shortlinks-detail-head';
+    const copy = document.createElement('div');
+    copy.className = 'shortlinks-card-copy';
+    const kicker = document.createElement('p');
+    kicker.className = 'shortlinks-kicker';
+    kicker.textContent = 'Link detail';
+    const title = document.createElement('h3');
+    title.className = 'shortlinks-output-title';
+    title.textContent = buildPublicPath(link.slug);
+    copy.appendChild(kicker);
+    copy.appendChild(title);
+    head.appendChild(copy);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'btn-ghost shortlinks-detail-close';
+    close.textContent = 'Close';
+    close.addEventListener('click', () => renderDetailPanel(null));
+    head.appendChild(close);
+    detailPanelEl.appendChild(head);
+
+    const status = document.createElement('div');
+    status.className = 'shortlinks-detail-status';
+    status.appendChild(makeHealthPill(link));
+    const statusNote = document.createElement('span');
+    statusNote.textContent = stored?.checkedAt
+      ? `${health.note || health.label} · checked ${formatTimestamp(stored.checkedAt)}`
+      : (health.note || 'Not tested this session');
+    status.appendChild(statusNote);
+    detailPanelEl.appendChild(status);
+
+    const grid = document.createElement('dl');
+    grid.className = 'shortlinks-detail-grid';
+    [
+      ['Short URL', shortUrl],
+      ['Destination', destinationUrl],
+      ['Redirect', link.permanent ? '301 permanent' : '302 temporary'],
+      ['Clicks', `${formatCount(link.clicks)} total`],
+      ['Created', formatTimestamp(link.createdAt) || 'Unknown'],
+      ['Updated', formatTimestamp(link.updatedAt) || 'Unknown'],
+      ['Expires', expiresAt ? new Date(expiresAt * 1000).toLocaleString() : 'Never'],
+      ['Campaign', link.batchTitle || link.templateTitle || link.label || 'None']
+    ].forEach(([label, value]) => {
+      const wrap = document.createElement('div');
+      const dt = document.createElement('dt');
+      dt.textContent = label;
+      const dd = document.createElement('dd');
+      dd.textContent = value;
+      wrap.appendChild(dt);
+      wrap.appendChild(dd);
+      grid.appendChild(wrap);
+    });
+    detailPanelEl.appendChild(grid);
+
+    const actions = document.createElement('div');
+    actions.className = 'shortlinks-detail-actions shortlinks-action-row shortlinks-action-row-compact';
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.className = 'btn-secondary';
+    copyButton.textContent = 'Copy short URL';
+    copyButton.addEventListener('click', async () => {
+      await copyTextToClipboard({
+        text: shortUrl,
+        button: copyButton,
+        statusTarget: listStatusEl,
+        successMessage: `Copied: ${shortUrl}`
+      });
+    });
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'btn-secondary';
+    editButton.textContent = 'Edit';
+    editButton.addEventListener('click', () => {
+      openEditorForLink({
+        slug: link.slug,
+        destination: link.destination,
+        disabled: !!link.disabled,
+        expiresAt
+      });
+    });
+    const testButton = document.createElement('button');
+    testButton.type = 'button';
+    testButton.className = 'btn-secondary';
+    testButton.textContent = 'Test';
+    testButton.addEventListener('click', async () => {
+      await testRedirect(link.slug, testButton);
+    });
+    actions.appendChild(copyButton);
+    actions.appendChild(editButton);
+    actions.appendChild(testButton);
+    detailPanelEl.appendChild(actions);
+  }
+
   function renderDashboardSummary(){
     if (!summaryEl) return;
     summaryEl.replaceChildren();
@@ -664,13 +1190,9 @@
       if (!link || link.disabled || isLinkExpired(link)) return count;
       return count + 1;
     }, 0);
-    const expiringSoon = links.reduce((count, link) => {
-      const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
-      if (!expiresAt) return count;
-      const ms = expiresAt * 1000 - Date.now();
-      if (ms > 0 && ms <= 7 * 24 * 60 * 60 * 1000) return count + 1;
-      return count;
-    }, 0);
+    const healthCounts = getHealthCounts(links);
+    const expiringSoon = healthCounts.expiringSoon;
+    const warnings = healthCounts.warning + healthCounts.broken;
 
     const totalProjects = Number.isFinite(Number(projectHealth.total)) ? Number(projectHealth.total) : 0;
     const missingProjects = Number.isFinite(Number(projectHealth.missing)) ? Number(projectHealth.missing) : 0;
@@ -697,6 +1219,13 @@
       value: formatCount(temporaryLinks),
       note: `${formatCount(permanentLinks)} permanent redirects`,
       tone: temporaryLinks ? 'info' : ''
+    }));
+
+    summaryEl.appendChild(makeSnapshotCard({
+      label: 'Health checks',
+      value: warnings ? formatCount(warnings) : formatCount(healthCounts.healthy),
+      note: warnings ? `${formatCount(warnings)} warning${warnings === 1 ? '' : 's'} need review` : `${formatCount(healthCounts.unchecked)} unchecked this session`,
+      tone: warnings ? 'warning' : (healthCounts.healthy ? 'success' : '')
     }));
 
     if (totalProjects > 0) {
@@ -1872,13 +2401,138 @@
     await refreshClickHistory(cleanSlug);
   }
 
+  function makeIcon(name){
+    const paths = {
+      copy: [
+        '<rect x="9" y="9" width="10" height="10" rx="2"></rect>',
+        '<path d="M5 15V5a2 2 0 0 1 2-2h10"></path>'
+      ],
+      test: [
+        '<path d="M4 12h4l2-6 4 12 2-6h4"></path>'
+      ],
+      open: [
+        '<path d="M14 3h7v7"></path>',
+        '<path d="M10 14 21 3"></path>',
+        '<path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>'
+      ]
+    };
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = (paths[name] || paths.open).join('');
+    return svg;
+  }
+
+  function makeIconButton({ icon, label, href, onClick }){
+    const control = href ? document.createElement('a') : document.createElement('button');
+    control.className = 'shortlinks-icon-button';
+    control.setAttribute('aria-label', label);
+    control.title = label;
+    if (href) {
+      control.href = href;
+      control.target = '_blank';
+      control.rel = 'noopener noreferrer';
+    } else {
+      control.type = 'button';
+      if (typeof onClick === 'function') control.addEventListener('click', onClick);
+    }
+    control.appendChild(makeIcon(icon));
+    const text = document.createElement('span');
+    text.className = 'visually-hidden';
+    text.textContent = label;
+    control.appendChild(text);
+    return control;
+  }
+
   function flashButtonText(button, text){
     if (!button) return;
+    if (button.classList && button.classList.contains('shortlinks-icon-button')) {
+      const originalLabel = button.getAttribute('aria-label') || '';
+      const originalTitle = button.title || '';
+      button.setAttribute('aria-label', text);
+      button.title = text;
+      button.classList.add('is-flashing');
+      window.setTimeout(() => {
+        button.setAttribute('aria-label', originalLabel);
+        button.title = originalTitle;
+        button.classList.remove('is-flashing');
+      }, 1200);
+      return;
+    }
     const original = button.textContent;
     button.textContent = text;
     window.setTimeout(() => {
       if (button.textContent === text) button.textContent = original;
     }, 1200);
+  }
+
+  function renderTestResult(statusEl, detail, tone, openTarget){
+    if (!statusEl) return;
+    statusEl.replaceChildren();
+    if (tone) statusEl.dataset.tone = tone;
+    else delete statusEl.dataset.tone;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'shortlinks-test-result';
+    const copy = document.createElement('span');
+    copy.className = 'shortlinks-test-result-copy';
+    copy.textContent = detail;
+    wrap.appendChild(copy);
+
+    if (openTarget) {
+      const open = document.createElement('a');
+      open.className = 'btn-secondary shortlinks-test-open';
+      open.href = openTarget;
+      open.target = '_blank';
+      open.rel = 'noopener noreferrer';
+      open.textContent = 'Open destination';
+      wrap.appendChild(open);
+    }
+
+    statusEl.appendChild(wrap);
+  }
+
+  function recordLinkHealthFromResult(slug, data, elapsedMs){
+    const key = normalizeSlugInput(slug);
+    if (!key) return null;
+    const check = data && typeof data.check === 'object' ? data.check : null;
+    const checkOk = check && check.ok === true;
+    const checkStatus = check && Number.isFinite(Number(check.status)) ? Number(check.status) : 0;
+    const checkMethod = check && typeof check.method === 'string' ? check.method : '';
+    const checkMs = check && Number.isFinite(Number(check.ms)) ? Number(check.ms) : 0;
+    const checkUrl = check && typeof check.url === 'string' ? check.url : '';
+    const checkError = check && typeof check.error === 'string' ? check.error : '';
+    const tone = check && check.ok === false
+      ? (checkStatus ? 'warning' : 'error')
+      : 'success';
+    const record = {
+      key: tone === 'success' ? 'healthy' : (tone === 'error' ? 'broken' : 'warning'),
+      label: tone === 'success' ? 'Healthy' : (tone === 'error' ? 'Broken' : 'Destination warning'),
+      tone,
+      note: tone === 'success'
+        ? `${checkMethod || 'Check'} ${checkStatus || 200} in ${checkMs || elapsedMs}ms`
+        : (checkError || (checkStatus ? `Destination returned ${checkStatus}` : 'Destination check failed')),
+      status: checkStatus,
+      method: checkMethod,
+      finalUrl: checkUrl,
+      checkedAt: new Date().toISOString()
+    };
+    linkHealth.set(key, record);
+    return record;
+  }
+
+  function recordLinkHealthError(slug, err){
+    const key = normalizeSlugInput(slug);
+    if (!key) return null;
+    const record = {
+      key: 'broken',
+      label: 'Broken',
+      tone: 'error',
+      note: err && err.message ? err.message : 'Redirect test failed',
+      checkedAt: new Date().toISOString()
+    };
+    linkHealth.set(key, record);
+    return record;
   }
 
   async function testRedirect(slug, button, statusTarget){
@@ -1888,34 +2542,27 @@
     const label = buildPublicPath(clean) || clean;
     const statusEl = statusTarget || listStatusEl;
     const start = Date.now();
-    let popup = null;
 
-    try {
-      popup = window.open('about:blank', '_blank');
-      if (popup) popup.opener = null;
-    } catch {
-      popup = null;
-    }
-
-    const originalText = button && typeof button.textContent === 'string' ? button.textContent : '';
     const flashText = (text) => {
       if (!button) return;
-      button.textContent = text;
-      window.setTimeout(() => {
-        if (!button) return;
-        if (button.textContent === text) button.textContent = originalText;
-      }, 1200);
+      flashButtonText(button, text);
     };
 
     if (button) {
       button.disabled = true;
-      button.textContent = 'Testing…';
+      if (button.classList && button.classList.contains('shortlinks-icon-button')) {
+        button.classList.add('is-flashing');
+      } else {
+        button.dataset.originalText = button.textContent || '';
+        button.textContent = 'Testing...';
+      }
     }
     setStatus(statusEl, `Testing ${label}…`);
 
     try {
       const data = await api(`/api/short-links/test/${encodeURIComponent(clean)}`, { method: 'GET' });
       const ms = Date.now() - start;
+      recordLinkHealthFromResult(clean, data, ms);
 
       const redirect = data && typeof data.redirect === 'object' ? data.redirect : null;
       const destination = redirect && typeof redirect.destination === 'string' ? redirect.destination : '';
@@ -1945,29 +2592,77 @@
       }
 
       const tone = check && check.ok === false ? 'warning' : 'success';
-      setStatus(statusEl, detail, tone);
-      flashText(check && check.ok === false ? 'Warn' : 'OK');
-
       const openTarget = checkUrl || destination;
-      if (openTarget) {
-        if (popup && !popup.closed) {
-          popup.location.href = openTarget;
-        } else {
-          window.open(openTarget, '_blank', 'noopener,noreferrer');
-        }
-      } else if (popup && !popup.closed) {
-        popup.close();
-      }
+      renderTestResult(statusEl, detail, tone, openTarget);
+      applyFilterAndRender();
+      flashText(check && check.ok === false ? 'Warn' : 'OK');
     } catch (err) {
-      if (popup && !popup.closed) popup.close();
+      recordLinkHealthError(clean, err);
+      applyFilterAndRender();
       setStatus(statusEl, err && err.message ? err.message : 'Test failed.', 'error');
       flashText('Failed');
     } finally {
       if (button) {
         button.disabled = false;
-        if (button.textContent === 'Testing…' && originalText) button.textContent = originalText;
+        if (button.classList && button.classList.contains('shortlinks-icon-button')) {
+          button.classList.remove('is-flashing');
+        } else if (button.textContent === 'Testing...' && button.dataset.originalText) {
+          button.textContent = button.dataset.originalText;
+          delete button.dataset.originalText;
+        }
       }
     }
+  }
+
+  async function testSelectedLinks(){
+    const links = getSelectedLinks();
+    if (!links.length) {
+      setStatus(listStatusEl, 'Select at least one visible link to test.', 'warning');
+      return;
+    }
+    const total = links.length;
+    let healthy = 0;
+    let warnings = 0;
+    let skipped = 0;
+    setStatus(listStatusEl, `Testing ${total} selected link${total === 1 ? '' : 's'}...`);
+    for (let index = 0; index < links.length; index += 1) {
+      const link = links[index];
+      const slug = normalizeSlugInput(link && link.slug);
+      if (!slug) continue;
+      if (link.disabled || isLinkExpired(link)) {
+        skipped += 1;
+        continue;
+      }
+      try {
+        const started = Date.now();
+        const data = await api(`/api/short-links/test/${encodeURIComponent(slug)}`, { method: 'GET' });
+        const record = recordLinkHealthFromResult(slug, data, Date.now() - started);
+        if (record && record.tone === 'success') healthy += 1;
+        else warnings += 1;
+      } catch (err) {
+        recordLinkHealthError(slug, err);
+        warnings += 1;
+      }
+      setStatus(listStatusEl, `Tested ${index + 1}/${total} selected link${total === 1 ? '' : 's'}...`);
+    }
+    applyFilterAndRender();
+    const skippedBit = skipped ? `, ${skipped} skipped` : '';
+    setStatus(
+      listStatusEl,
+      warnings
+        ? `Tested ${total} link${total === 1 ? '' : 's'}: ${healthy} healthy, ${warnings} warning${warnings === 1 ? '' : 's'}${skippedBit}.`
+        : `Tested ${total} link${total === 1 ? '' : 's'}: ${healthy} healthy${skippedBit}.`,
+      warnings ? 'warning' : 'success'
+    );
+  }
+
+  function exportCurrentView(){
+    const links = getFilteredLinks();
+    if (!links.length) {
+      setStatus(listStatusEl, 'Nothing in the current view to export.', 'warning');
+      return;
+    }
+    exportRedirectsOnly(links);
   }
 
   async function api(path, options = {}){
@@ -2240,6 +2935,16 @@
     );
   }
 
+  function startNewLinkFromList(){
+    clearEditor();
+    setActiveMode('single');
+    setEditorMeta('New short link');
+    setStatus(editorStatusEl, 'Ready to create a new short link.', 'success');
+    if (destinationInput && typeof destinationInput.focus === 'function') {
+      destinationInput.focus({ preventScroll: false });
+    }
+  }
+
   async function setLinkDisabled(link, nextDisabled, statusTarget){
     if (!link || !normalizeSlugInput(link.slug)) return;
     if (nextDisabled) {
@@ -2350,6 +3055,7 @@
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
     [
+      { key: 'select', label: '' },
       { key: 'slug', label: 'Slug' },
       { key: 'destination', label: 'Destination' },
       { key: 'clicks', label: 'Clicks' },
@@ -2358,6 +3064,7 @@
       const th = document.createElement('th');
       th.scope = 'col';
       th.textContent = col.label;
+      if (col.key === 'select') th.className = 'shortlinks-table-cell-select';
       headRow.appendChild(th);
     });
     thead.appendChild(headRow);
@@ -2375,6 +3082,11 @@
       row.className = 'shortlinks-row';
       if (link.disabled) row.classList.add('shortlinks-row-disabled');
       if (isExpired) row.classList.add('shortlinks-row-expired');
+
+      const selectCell = document.createElement('td');
+      selectCell.className = 'shortlinks-table-cell-select';
+      selectCell.appendChild(makeSelectionControl(link));
+      row.appendChild(selectCell);
 
       const slugCell = document.createElement('td');
       const slugAnchor = document.createElement('a');
@@ -2398,6 +3110,7 @@
       statusPill.className = 'tool-pill';
       statusPill.textContent = link.permanent ? '301' : '302';
       meta.appendChild(statusPill);
+      meta.appendChild(makeHealthPill(link));
 
       if (expiresAt) {
         const expiresPill = document.createElement('span');
@@ -2456,29 +3169,43 @@
       const actions = document.createElement('div');
       actions.className = 'shortlinks-table-actions shortlinks-inline-actions';
 
-      const copyButton = document.createElement('button');
-      copyButton.type = 'button';
-      copyButton.className = 'btn-ghost';
-      copyButton.textContent = 'Copy';
-      copyButton.addEventListener('click', async () => {
-        await copyTextToClipboard({
-          text: shortUrl,
-          button: copyButton,
-          statusTarget: listStatusEl,
-          successMessage: `Copied: ${shortUrl}`
-        });
+      const copyButton = makeIconButton({
+        icon: 'copy',
+        label: `Copy ${buildPublicPath(link.slug)}`,
+        onClick: async () => {
+          await copyTextToClipboard({
+            text: shortUrl,
+            button: copyButton,
+            statusTarget: listStatusEl,
+            successMessage: `Copied: ${shortUrl}`
+          });
+        }
       });
 
-      const testButton = document.createElement('button');
-      testButton.type = 'button';
-      testButton.className = 'btn-secondary';
-      testButton.textContent = 'Test';
-      testButton.addEventListener('click', () => {
-        testRedirect(link.slug, testButton);
+      const openButton = makeIconButton({
+        icon: 'open',
+        label: `Open ${buildPublicPath(link.slug)}`,
+        href: shortUrl
+      });
+
+      const testButton = makeIconButton({
+        icon: 'test',
+        label: `Test ${buildPublicPath(link.slug)}`,
+        onClick: () => {
+          testRedirect(link.slug, testButton);
+        }
       });
 
       actions.appendChild(copyButton);
+      actions.appendChild(openButton);
+      actions.appendChild(testButton);
       const rowMenu = buildActionMenu([
+        {
+          label: 'View details',
+          onSelect: async () => {
+            renderDetailPanel(link);
+          }
+        },
         {
           label: 'Edit link',
           onSelect: async () => {
@@ -2565,6 +3292,8 @@
       const titleWrap = document.createElement('div');
       titleWrap.className = 'shortlinks-item-title';
 
+      titleWrap.appendChild(makeSelectionControl(link));
+
       const slugCode = document.createElement('code');
       slugCode.className = 'shortlinks-slug';
       slugCode.textContent = buildPublicPath(link.slug);
@@ -2576,6 +3305,7 @@
       statusPill.className = 'tool-pill';
       statusPill.textContent = link.permanent ? '301' : '302';
       meta.appendChild(statusPill);
+      meta.appendChild(makeHealthPill(link));
 
       if (expiresAt) {
         const expiresPill = document.createElement('span');
@@ -2615,29 +3345,43 @@
       const actions = document.createElement('div');
       actions.className = 'shortlinks-actions shortlinks-inline-actions';
 
-      const copyButton = document.createElement('button');
-      copyButton.type = 'button';
-      copyButton.className = 'btn-ghost';
-      copyButton.textContent = 'Copy';
-      copyButton.addEventListener('click', async () => {
-        await copyTextToClipboard({
-          text: shortUrl,
-          button: copyButton,
-          statusTarget: listStatusEl,
-          successMessage: `Copied: ${shortUrl}`
-        });
+      const copyButton = makeIconButton({
+        icon: 'copy',
+        label: `Copy ${buildPublicPath(link.slug)}`,
+        onClick: async () => {
+          await copyTextToClipboard({
+            text: shortUrl,
+            button: copyButton,
+            statusTarget: listStatusEl,
+            successMessage: `Copied: ${shortUrl}`
+          });
+        }
       });
 
-      const testButton = document.createElement('button');
-      testButton.type = 'button';
-      testButton.className = 'btn-secondary';
-      testButton.textContent = 'Test';
-      testButton.addEventListener('click', () => {
-        testRedirect(link.slug, testButton);
+      const openButton = makeIconButton({
+        icon: 'open',
+        label: `Open ${buildPublicPath(link.slug)}`,
+        href: shortUrl
+      });
+
+      const testButton = makeIconButton({
+        icon: 'test',
+        label: `Test ${buildPublicPath(link.slug)}`,
+        onClick: () => {
+          testRedirect(link.slug, testButton);
+        }
       });
 
       actions.appendChild(copyButton);
+      actions.appendChild(openButton);
+      actions.appendChild(testButton);
       const cardMenu = buildActionMenu([
+        {
+          label: 'View details',
+          onSelect: async () => {
+            renderDetailPanel(link);
+          }
+        },
         {
           label: 'Edit link',
           onSelect: async () => {
@@ -2728,6 +3472,8 @@
 
   function applyFilterAndRender(){
     const filtered = getFilteredLinks();
+    visibleLinkSlugs = filtered.map(link => normalizeSlugInput(link && link.slug)).filter(Boolean);
+    listEl.dataset.density = getDensityMode();
     if (prefersTableLayout()) {
       renderLinksTable(filtered);
     } else {
@@ -2735,6 +3481,9 @@
     }
     visibleLinksCount = filtered.length;
     setCount(filtered.length, allLinks.length);
+    renderHealthStrip();
+    updateSelectionControls();
+    if (activeDetailSlug) renderDetailPanel(getLinkBySlug(activeDetailSlug));
     renderDashboardSummary();
   }
 
@@ -2745,12 +3494,15 @@
       const data = await api('/api/short-links', { method: 'GET' });
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
       allLinks = Array.isArray(data.links) ? data.links : [];
+      pruneSelectedSlugs();
       applyFilterAndRender();
       void refreshProjectsSection({ ensureMissing: true });
       setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
       markSessionDirty();
     } catch (err) {
       allLinks = [];
+      visibleLinkSlugs = [];
+      selectedSlugs = new Set();
       clearList();
       visibleLinksCount = 0;
       setCount(0, 0);
@@ -3429,11 +4181,13 @@
       }
       return;
     }
-    saveToken(token);
+    const remember = !!(rememberTokenInput && rememberTokenInput.checked);
+    saveToken(token, remember);
     updateAccessMeta();
     tokenInput.value = '';
-    setStatus(statusEl, 'Token saved. Loading links…');
+    setStatus(statusEl, remember ? 'Token remembered. Loading links...' : 'Token saved for this session. Loading links...');
     if (accessCard) accessCard.classList.remove('is-attention');
+    setActiveMode('links');
     await refreshLinks();
     await refreshSets({ preserveSelection: true, silent: true });
   });
@@ -3720,13 +4474,16 @@
   syncSlugModeState();
   syncCreateTimingVisibility();
   syncAudienceFieldVisibility();
-  setActiveMode('single');
+  setActiveMode(getInitialMode(), { skipPersist: true });
   setEditorMeta('New short link');
   syncExportControls();
+  renderSavedViewOptions('');
+  renderHealthStrip();
+  updateSelectionControls();
   void refreshProjectsSection();
   resetSetEditor({ keepStatus: true });
   if (getSavedToken()) {
-    setStatus(statusEl, 'Token loaded from this browser. Loading links…', 'success');
+    setStatus(statusEl, isTokenRemembered() ? 'Remembered token loaded. Loading links...' : 'Session token loaded. Loading links...', 'success');
     refreshLinks();
     refreshSets({ preserveSelection: true, silent: true });
   }
@@ -3780,7 +4537,74 @@
 
   if (filterInput) {
     filterInput.addEventListener('input', () => {
+      if (savedViewSelect) savedViewSelect.value = '';
+      if (deleteViewButton) deleteViewButton.disabled = true;
       applyFilterAndRender();
+    });
+  }
+
+  [statusFilterSelect, sortSelect, densitySelect].forEach((control) => {
+    if (!control) return;
+    control.addEventListener('change', () => {
+      if (savedViewSelect) savedViewSelect.value = '';
+      if (deleteViewButton) deleteViewButton.disabled = true;
+      applyFilterAndRender();
+      markSessionDirty();
+    });
+  });
+
+  if (savedViewSelect) {
+    savedViewSelect.addEventListener('change', () => {
+      if (savedViewSelect.value) applySavedView(savedViewSelect.value);
+      if (deleteViewButton) deleteViewButton.disabled = !savedViewSelect.value;
+    });
+  }
+
+  if (saveViewButton) {
+    saveViewButton.addEventListener('click', () => {
+      saveCurrentView();
+    });
+  }
+
+  if (deleteViewButton) {
+    deleteViewButton.addEventListener('click', () => {
+      deleteCurrentView();
+    });
+  }
+
+  if (selectVisibleInput) {
+    selectVisibleInput.addEventListener('change', () => {
+      const shouldSelect = selectVisibleInput.checked;
+      visibleLinkSlugs.forEach((slug) => {
+        if (shouldSelect) selectedSlugs.add(slug);
+        else selectedSlugs.delete(slug);
+      });
+      applyFilterAndRender();
+    });
+  }
+
+  if (clearSelectionButton) {
+    clearSelectionButton.addEventListener('click', () => {
+      selectedSlugs = new Set();
+      applyFilterAndRender();
+    });
+  }
+
+  if (testSelectedButton) {
+    testSelectedButton.addEventListener('click', () => {
+      void testSelectedLinks();
+    });
+  }
+
+  if (exportViewButton) {
+    exportViewButton.addEventListener('click', () => {
+      exportCurrentView();
+    });
+  }
+
+  if (newLinkFromListButton) {
+    newLinkFromListButton.addEventListener('click', () => {
+      startNewLinkFromList();
     });
   }
 

@@ -324,7 +324,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     toggleButton = document.createElement('button');
     toggleButton.type = 'button';
     toggleButton.className = 'portfolio-filter-sheet-close';
-    toggleButton.textContent = 'Expand';
+    toggleButton.textContent = 'Filters';
     toggleButton.dataset.portfolioFilterSheetToggle = 'true';
     toggleButton.setAttribute('aria-controls', filterPanel.id);
     toggleButton.setAttribute('aria-expanded', 'false');
@@ -450,7 +450,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   const syncToggleLabel = (activeCount = activeEntries().length) => {
     if (!toggleButton) return;
     const open = root.classList.contains('is-filter-sheet-open');
-    toggleButton.textContent = open ? 'Done' : (activeCount ? `${activeCount} active` : 'Expand');
+    toggleButton.textContent = open ? 'Done' : (activeCount ? `${activeCount} active` : 'Filters');
     toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false');
     toggleButton.setAttribute('aria-label', open ? 'Collapse project filters' : 'Expand project filters');
   };
@@ -1389,6 +1389,7 @@ function buildPortfolioWorkbench() {
   const resultHost = root.querySelector('[data-portfolio-results]');
   const inspector = root.querySelector('[data-portfolio-inspector]');
   const countNode = root.querySelector('[data-portfolio-results-count]');
+  const scopeToggle = root.querySelector('[data-portfolio-scope-toggle]');
   const clearButton = root.querySelector('[data-portfolio-clear-filters]');
   const searchInput = root.querySelector('[data-portfolio-search]');
   const sortSelect = root.querySelector('[data-portfolio-sort]');
@@ -1431,13 +1432,29 @@ function buildPortfolioWorkbench() {
     if (rule === 'admin' || rule === 'admins') return context.admin;
     return true;
   };
-  let allProjects = sourceProjects.filter(isDirectoryItemVisible);
-
   const audienceKey = isDirectoryWorkbench ? null : getPortfolioAudienceKey();
   const activeAudience = isDirectoryWorkbench ? null : getAudienceConfig(audienceKey || 'personal');
   const activeAudienceKey = activeAudience ? normalizeAudience(activeAudience.key || audienceKey || 'personal') : 'personal';
   const featuredProjectIds = isDirectoryWorkbench ? [] : getFeaturedProjectIds(activeAudienceKey);
+  const featuredProjectIdSet = new Set(featuredProjectIds);
   const featuredProjectRank = new Map(featuredProjectIds.map((id, index) => [id, index]));
+  const toList = (values = []) => {
+    if (Array.isArray(values)) return values.filter(Boolean);
+    return values ? [values] : [];
+  };
+  const isAudienceScopedView = !isDirectoryWorkbench && activeAudienceKey !== 'personal';
+  const projectMatchesAudienceScope = (project = {}) => {
+    if (!isAudienceScopedView) return true;
+    if (featuredProjectIdSet.has(project.id)) return true;
+    return toList(project.audiences).some((audience) => normalizeAudience(audience) === activeAudienceKey);
+  };
+  const getVisibleProjects = (applyAudienceScope = true) => {
+    const visible = sourceProjects.filter(isDirectoryItemVisible);
+    return applyAudienceScope && isAudienceScopedView
+      ? visible.filter(projectMatchesAudienceScope)
+      : visible;
+  };
+  let allProjects = getVisibleProjects(true);
 
   const portfolioProofPoints = {
     analytics: [
@@ -1508,10 +1525,6 @@ function buildPortfolioWorkbench() {
     const text = String(value || '').replace(/\s+/g, ' ').trim();
     if (text.length <= max) return text;
     return `${text.slice(0, Math.max(0, max - 3)).trim()}...`;
-  };
-  const toList = (values = []) => {
-    if (Array.isArray(values)) return values.filter(Boolean);
-    return values ? [values] : [];
   };
   const listText = (values = []) => toList(values).join(' ');
   const unique = (values = []) => Array.from(new Set(values.filter(Boolean)));
@@ -1593,15 +1606,16 @@ function buildPortfolioWorkbench() {
     '',
     140
   );
-  const focusOptionLabels = unique(allProjects.flatMap((project) => getProjectFocuses(project)))
+  const filterOptionProjects = isAudienceScopedView ? getVisibleProjects(false) : allProjects;
+  const focusOptionLabels = unique(filterOptionProjects.flatMap((project) => getProjectFocuses(project)))
     .sort(prioritySorter(
       ['Analytics', 'Machine Learning', 'Automation', 'Dashboards', 'Visualization', 'Data Engineering', 'NLP', 'Product'],
-      (label) => allProjects.filter((project) => getProjectFocuses(project).includes(label)).length
+      (label) => filterOptionProjects.filter((project) => getProjectFocuses(project).includes(label)).length
     ));
-  const stackOptionLabels = unique(allProjects.flatMap((project) => toList(project.tools)))
+  const stackOptionLabels = unique(filterOptionProjects.flatMap((project) => toList(project.tools)))
     .sort(prioritySorter(
       ['Python', 'AWS', 'Docker', 'SQL', 'Excel', 'Tableau', 'PyTorch', 'JavaScript'],
-      (label) => allProjects.filter((project) => toList(project.tools).some((tool) => slugify(tool) === slugify(label))).length
+      (label) => filterOptionProjects.filter((project) => toList(project.tools).some((tool) => slugify(tool) === slugify(label))).length
     ));
   const chipMarkup = (values = [], limit = 4, accentFirst = true) => {
     const chips = values.filter(Boolean).slice(0, limit);
@@ -1668,14 +1682,16 @@ function buildPortfolioWorkbench() {
     if (location.hash && location.hash.length > 1) return decodeURIComponent(location.hash.slice(1));
     return null;
   })();
+  const initialProjectInScopedPool = allProjects.some((project) => project.id === initialProjectId);
+  const initialProjectInFullPool = getVisibleProjects(false).some((project) => project.id === initialProjectId);
   const state = {
     filters: Object.fromEntries(filterGroups.map((group) => [group.id, new Set()])),
     collapsedFilters: Object.fromEntries(filterGroups.map((group) => [group.id, false])),
     search: '',
     sort: sortSelect ? sortSelect.value : 'default',
-    selectedId: allProjects.some((project) => project.id === initialProjectId) ? initialProjectId : null
+    showAllAudienceProjects: isAudienceScopedView && Boolean(initialProjectId) && !initialProjectInScopedPool && initialProjectInFullPool,
+    selectedId: initialProjectInScopedPool || initialProjectInFullPool ? initialProjectId : null
   };
-  const autoSelectFallback = isDirectoryWorkbench;
   let pendingSelectionScrollTop = null;
   const mobileFilters = setupPortfolioMobileFilterSheet({
     enabled: !isDirectoryWorkbench && root.id === 'portfolio-workbench',
@@ -1683,7 +1699,7 @@ function buildPortfolioWorkbench() {
     filterHost,
     filterGroups,
     state,
-    allItems: sourceProjects,
+    allItems: filterOptionProjects,
     sortSelect,
     searchInput,
     itemSingular,
@@ -1903,8 +1919,34 @@ function buildPortfolioWorkbench() {
     clearButton.disabled = !hasFilters;
   };
 
+  const audienceScopeLabel = () => String(
+    (activeAudience && (activeAudience.shortLabel || activeAudience.label)) || activeAudienceKey || itemPlural
+  ).replace(/\s+/g, ' ').trim().toLowerCase();
+
+  const formatCountText = (projects) => {
+    if (!isAudienceScopedView) {
+      return `${projects.length} ${projects.length === 1 ? itemSingular : itemPlural}`;
+    }
+    const alignedTotal = getVisibleProjects(true).length;
+    const label = audienceScopeLabel();
+    if (state.showAllAudienceProjects) {
+      return `${projects.length} total ${projects.length === 1 ? itemSingular : itemPlural} (${alignedTotal} ${label}-aligned)`;
+    }
+    return `${projects.length} ${label}-aligned ${projects.length === 1 ? itemSingular : itemPlural}`;
+  };
+
+  const updateScopeToggle = () => {
+    if (!scopeToggle) return;
+    scopeToggle.hidden = !isAudienceScopedView;
+    if (!isAudienceScopedView) return;
+    scopeToggle.textContent = state.showAllAudienceProjects
+      ? `Show ${audienceScopeLabel()} only`
+      : 'Show all projects';
+    scopeToggle.setAttribute('aria-pressed', state.showAllAudienceProjects ? 'true' : 'false');
+  };
+
   const render = () => {
-    allProjects = sourceProjects.filter(isDirectoryItemVisible);
+    allProjects = getVisibleProjects(!state.showAllAudienceProjects);
     if (sortSelect && sortSelect.value !== state.sort) state.sort = sortSelect.value;
     renderFilters();
     if (!state.selectedId && initialProjectId && allProjects.some((project) => project.id === initialProjectId)) {
@@ -1912,13 +1954,15 @@ function buildPortfolioWorkbench() {
     }
     const projects = filteredProjects();
     if (!projects.some((project) => project.id === state.selectedId)) {
-      state.selectedId = autoSelectFallback && projects[0] ? projects[0].id : null;
+      const shouldAutoSelect = (isDirectoryWorkbench || !isMobileSelectionCard()) && projects[0];
+      state.selectedId = shouldAutoSelect ? projects[0].id : null;
     }
     renderResults(projects);
     renderSelection();
-    countNode.textContent = `${projects.length} ${projects.length === 1 ? itemSingular : itemPlural}`;
+    countNode.textContent = formatCountText(projects);
     if (emptyState) emptyState.hidden = projects.length > 0;
     updateClearButton();
+    updateScopeToggle();
     mobileFilters.render(projects);
     try {
       srStatus().textContent = `Showing ${projects.length} ${projects.length === 1 ? itemSingular : itemPlural}.`;
@@ -2007,6 +2051,13 @@ function buildPortfolioWorkbench() {
       Object.values(state.filters).forEach((set) => set.clear());
       state.search = '';
       if (searchInput) searchInput.value = '';
+      render();
+    });
+  }
+
+  if (scopeToggle) {
+    scopeToggle.addEventListener('click', () => {
+      state.showAllAudienceProjects = !state.showAllAudienceProjects;
       render();
     });
   }

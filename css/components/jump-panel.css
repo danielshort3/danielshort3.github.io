@@ -312,6 +312,13 @@
       top:auto;
       bottom:calc(var(--mobile-site-dock-clearance, calc(120px + env(safe-area-inset-bottom, 0px))) + var(--jump-mobile-edge, 10px));
     }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-reveal,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-reveal {
+      display: none;
+    }
   }
 
   @media (max-width:520px){

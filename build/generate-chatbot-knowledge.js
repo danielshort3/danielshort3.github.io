@@ -368,6 +368,16 @@ function chunkText(text) {
   return chunks.slice(0, MAX_PAGE_CHUNKS);
 }
 
+function fallbackTextForPath(urlPath) {
+  const normalized = normalizePathname(urlPath);
+  if (normalized !== '/') return '';
+  return [
+    'Daniel Short is a data science and analytics professional who publishes portfolio projects, practical browser tools, and interactive games on this site.',
+    'The homepage routes visitors into the project library, tools directory, games directory, resume, and contact page.',
+    'Featured work includes analytics dashboards, SQL and ETL projects, machine learning experiments, data visualization, and utility tools that run in the browser.'
+  ].join(' ');
+}
+
 function makeId(input) {
   return crypto.createHash('sha256').update(String(input || '')).digest('hex').slice(0, 16);
 }
@@ -515,7 +525,10 @@ function buildKnowledge() {
     const title = extractTitle(html) || url;
     const metadata = projectMetadata.get(url) || null;
     const description = metadata && metadata.description ? metadata.description : extractDescription(html);
-    const text = [extractMainText(html), metadata && metadata.text].filter(Boolean).join(' ');
+    let text = [extractMainText(html), metadata && metadata.text].filter(Boolean).join(' ');
+    if (url === '/' && text.length < 160) {
+      text = [text, fallbackTextForPath(url)].filter(Boolean).join(' ');
+    }
     const searchableText = [description, text].filter(Boolean).join(' ');
     if (!searchableText || searchableText.length < 160) return;
 

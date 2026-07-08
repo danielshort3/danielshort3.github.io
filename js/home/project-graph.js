@@ -933,7 +933,7 @@
     const showLabels = Boolean(metrics.showItemLabels);
     return {
       size,
-      width: showLabels ? clamp(Math.round(metrics.width * .074), 84, 98) : size,
+      width: showLabels ? clamp(Math.round(metrics.width * .105), 112, 124) : size,
       height: showLabels ? 34 : size,
       showLabels
     };
@@ -1439,16 +1439,7 @@
       });
 
       group.items.forEach((item, itemIndex) => {
-        const clusteredPoint = getClusteredLabelItemPoint(
-          groupPoint,
-          itemIndex,
-          group.items.length,
-          dimensions,
-          branchAngle,
-          categoryId,
-          group.id,
-          item.id
-        );
+        const clusteredPoint = getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length, dimensions, branchAngle, categoryId, group.id, item.id);
         const point = clampPoint(
           clusteredPoint,
           metrics.safe,
@@ -1695,6 +1686,33 @@
     return group?.id || '';
   };
 
+  const getCompactItemPositions = (selectedGroup, groupPoint, origin, metrics, dimensions, itemOrder) => {
+    if (!selectedGroup) return [];
+
+    const itemCount = selectedGroup.items.length;
+    const nodeHalf = dimensions.size / 2;
+
+    return selectedGroup.items.map((item, itemIndex) => {
+      const point = clampPoint(
+        getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount, metrics, dimensions, 90),
+        metrics.safe,
+        nodeHalf,
+        nodeHalf
+      );
+
+      return {
+        type: 'item',
+        item,
+        groupId: selectedGroup.id,
+        x: point.x,
+        y: point.y,
+        halfWidth: nodeHalf,
+        halfHeight: nodeHalf,
+        index: itemOrder.get(item.id) || 0
+      };
+    });
+  };
+
   const getCompactGroupedItemLayout = (categoryId, metrics, graphLayout, dimensions, selectedKey) => {
     const category = CATEGORIES[categoryId];
     const origin = graphLayout.categories[categoryId] || graphLayout.center;
@@ -1706,16 +1724,17 @@
     const itemOrder = new Map(category.items.map((item, index) => [item.id, index]));
     const groupHeight = 28;
     const groupHalfWidth = Math.min(86, Math.max(58, (metrics.safe.width / 2) - 16));
-    const columnCount = groups.length > 2 ? 2 : 1;
+    const count = groups.length;
+    const columnCount = Math.min(2, Math.max(1, Math.ceil(Math.sqrt(count * 1.15))));
     const leftX = metrics.safe.left + groupHalfWidth;
     const rightX = metrics.safe.right - groupHalfWidth;
     const centerX = metrics.safe.left + (metrics.safe.width / 2);
-    const lowerCategoryEdge = Math.max(
+    const categoryBottom = Math.max(
       ...CATEGORY_ORDER.map((entry) => (graphLayout.categories[entry]?.y || 0) + metrics.categoryHalfHeight)
     );
     const firstGroupY = clamp(
       Math.max(
-        lowerCategoryEdge + 42,
+        categoryBottom + 42,
         graphLayout.center.y + metrics.centerHalfSize + 46,
         origin.y + metrics.categoryHalfHeight + 40
       ),
@@ -1755,27 +1774,7 @@
         x: centerX,
         y: firstGroupY
       };
-      const itemCount = selectedGroup.items.length;
-      const nodeHalf = dimensions.size / 2;
-
-      selectedGroup.items.forEach((item, itemIndex) => {
-        const point = clampPoint(
-          getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount, metrics, dimensions, 90),
-          metrics.safe,
-          nodeHalf,
-          nodeHalf
-        );
-        entries.push({
-          type: 'item',
-          item,
-          groupId: selectedGroup.id,
-          x: point.x,
-          y: point.y,
-          halfWidth: dimensions.size / 2,
-          halfHeight: dimensions.size / 2,
-          index: itemOrder.get(item.id) || 0
-        });
-      });
+      entries.push(...getCompactItemPositions(selectedGroup, groupPoint, origin, metrics, dimensions, itemOrder));
     }
 
     const resolvedEntries = resolveGroupedFanEntries(entries, categoryId, metrics, graphLayout);
@@ -1959,14 +1958,14 @@
       <div class="home-graph__inspector-head">
         <span class="home-graph__inspector-icon" style="--accent: var(--home-graph-blue)">${getCategoryIcon('folder')}</span>
         <div>
-          <h2 class="home-graph__inspector-title">Daniel Short</h2>
+          <h2 class="home-graph__inspector-title">Projects, Tools & Games</h2>
           <div class="home-graph__inspector-type">
             <span class="home-graph__pill" style="--accent: var(--home-graph-blue)">ML</span>
             <span class="home-graph__pill" style="--accent: var(--home-graph-blue)">Data</span>
           </div>
         </div>
       </div>
-      <p class="home-graph__summary">Explore projects, tools, and games through an interactive machine-learning style graph. Select a branch to expand its categorized work.</p>
+      <p class="home-graph__summary">Explore machine learning projects, practical browser tools, lightweight games, and experiments through an interactive graph. Select a branch or open a library directly.</p>
       <div class="home-graph__inspector-section">
         <h3>Library</h3>
         <ul class="home-graph__tag-list">
@@ -1985,6 +1984,7 @@
       <div class="home-graph__inspector-section">
         <a class="home-graph__cta" href="portfolio">Open project library ${getLinkIcon()}</a>
         <a class="home-graph__library-link" href="tools">View tools</a>
+        <a class="home-graph__library-link" href="games">Play games</a>
       </div>
     `;
   };
@@ -2047,7 +2047,7 @@
     </svg>
   `;
 
-  const createMobileDepthDeckHtml = () => {
+  const createMobileClassicDeckHtml = () => {
     const createMobileSection = (categoryId, index) => {
       const category = CATEGORIES[categoryId];
       const preferredGroup = getPreferredMobileGroup(categoryId);
@@ -2133,6 +2133,149 @@
           </div>
         </section>
         ${CATEGORY_ORDER.map(createMobileSection).join('')}
+      </div>
+    `;
+  };
+
+  const createMobileDepthDeckHtml = ({
+    categoryId = 'projects',
+    group = null,
+    groups = [],
+    topic = null,
+    topics = [],
+    selectedItem = null
+  } = {}) => {
+    const category = CATEGORIES[categoryId] || CATEGORIES.projects;
+    const resolvedGroups = groups.length ? groups : getCategoryGroups(categoryId);
+    const resolvedGroup = group || getPreferredMobileGroup(categoryId) || resolvedGroups[0] || null;
+    const resolvedTopics = topics.length ? topics : getMobileDepthTopics(categoryId, resolvedGroup);
+    const resolvedTopic = topic || getPreferredMobileTopic(resolvedTopics);
+    const clusterItems = (resolvedTopic?.items?.length
+      ? resolvedTopic.items
+      : resolvedGroup?.items?.length
+        ? resolvedGroup.items
+        : category.items
+    ).filter(Boolean);
+    const previewItem = selectedItem && clusterItems.some((item) => item.id === selectedItem.id)
+      ? selectedItem
+      : clusterItems[0] || category.items[0] || null;
+    const previewTitle = previewItem ? previewItem.fullTitle || previewItem.title : category.label;
+    const previewSummary = previewItem ? previewItem.summary || previewItem.snippet || '' : category.summary;
+    const previewTags = (previewItem?.tags || [category.label, 'Interactive map']).slice(0, 4);
+    const activeGroupLabel = resolvedGroup?.label || category.label;
+    const activeTopicLabel = resolvedTopic?.label || activeGroupLabel;
+
+    const categoryChips = CATEGORY_ORDER.map((entryId) => {
+      const entry = CATEGORIES[entryId];
+      const active = entryId === categoryId;
+      return `
+        <button type="button" class="home-graph__mobile-category-chip${active ? ' is-active' : ''}" data-mobile-category="${escapeHtml(entryId)}" aria-pressed="${active ? 'true' : 'false'}">
+          ${getCategoryIcon(entry.icon)}
+          <span>${escapeHtml(entry.label)}</span>
+        </button>
+      `;
+    }).join('');
+
+    const groupChips = resolvedGroups.map((entry) => {
+      const active = resolvedGroup?.id === entry.id;
+      return `
+        <button type="button" class="home-graph__mobile-group-chip${active ? ' is-active' : ''}" data-mobile-group="${escapeHtml(entry.id)}" aria-pressed="${active ? 'true' : 'false'}">
+          <span class="home-graph__mobile-group-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, entry.id)}</span>
+          <span class="home-graph__mobile-group-text">
+            <strong>${escapeHtml(entry.label)}</strong>
+            <small>${entry.items.length} ${escapeHtml(category.singular)}${entry.items.length === 1 ? '' : 's'}</small>
+          </span>
+        </button>
+      `;
+    }).join('');
+
+    const topicChips = resolvedTopics.map((entry) => {
+      const active = resolvedTopic?.id === entry.id;
+      return `
+        <button type="button" class="home-graph__mobile-topic-chip${active ? ' is-active' : ''}" data-mobile-topic="${escapeHtml(entry.id)}" aria-pressed="${active ? 'true' : 'false'}">
+          <span>${entry.items.length}</span>
+          ${escapeHtml(entry.label)}
+        </button>
+      `;
+    }).join('');
+
+    const clusterLines = clusterItems.map((item, itemIndex) => {
+      const slot = getMobileClusterSlot(itemIndex, clusterItems.length);
+      return `<path d="${escapeHtml(getMobileLinePath(slot))}"></path>`;
+    }).join('');
+
+    const clusterNodes = clusterItems.map((item, itemIndex) => {
+      const slot = getMobileClusterSlot(itemIndex, clusterItems.length);
+      const title = item.fullTitle || item.title;
+      const selected = previewItem?.id === item.id;
+      return `
+        <button type="button" class="home-graph__mobile-project-node${selected ? ' is-selected' : ''}" data-mobile-item="${escapeHtml(item.id)}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" style="--node-x: ${slot.x}%; --node-y: ${slot.y}%; --node-index: ${itemIndex};">
+          <span class="home-graph__mobile-project-icon" aria-hidden="true">${getItemIcon(item, categoryId)}</span>
+          <span class="home-graph__mobile-project-title">${escapeHtml(item.title)}</span>
+        </button>
+      `;
+    }).join('');
+
+    return `
+      <div class="home-graph__mobile-depth">
+        <section class="home-graph__mobile-depth-card home-graph__mobile-depth-card--branch" aria-label="Select graph branch">
+          <div class="home-graph__mobile-layer-head">
+            <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>
+            <span class="home-graph__mobile-depth-copy">
+              <span>Branch</span>
+              <strong>${escapeHtml(category.label)}</strong>
+              <small>${escapeHtml(category.summary)}</small>
+            </span>
+          </div>
+          <span class="home-graph__mobile-network-mini" aria-hidden="true">${getMobileMiniNetworkHtml()}</span>
+          <div class="home-graph__mobile-category-switch" aria-label="Branches">${categoryChips}</div>
+        </section>
+
+        <section class="home-graph__mobile-depth-card home-graph__mobile-depth-card--group" aria-label="Select subcategory">
+          <div class="home-graph__mobile-layer-head">
+            <span class="home-graph__mobile-layer-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, resolvedGroup?.id)}</span>
+            <span class="home-graph__mobile-depth-copy">
+              <span>Subcategory</span>
+              <strong>${escapeHtml(activeGroupLabel)}</strong>
+              <small>${resolvedGroup?.items?.length || 0} connected ${escapeHtml(category.singular)}${resolvedGroup?.items?.length === 1 ? '' : 's'}</small>
+            </span>
+          </div>
+          <div class="home-graph__mobile-rail" aria-label="${escapeHtml(category.label)} subcategories">${groupChips}</div>
+        </section>
+
+        <section class="home-graph__mobile-depth-card home-graph__mobile-depth-card--final" aria-label="Explore selected topic">
+          <div class="home-graph__mobile-final-head">
+            <div class="home-graph__mobile-chain" aria-label="Selected path">
+              <span>${escapeHtml(category.label)}</span>
+              <b aria-hidden="true">/</b>
+              <span>${escapeHtml(activeGroupLabel)}</span>
+              <b aria-hidden="true">/</b>
+              <span aria-current="step">${escapeHtml(activeTopicLabel)}</span>
+            </div>
+            <div class="home-graph__mobile-topic-list" aria-label="Topics">${topicChips}</div>
+          </div>
+
+          <div class="home-graph__mobile-cluster-card" aria-label="${escapeHtml(activeTopicLabel)} cluster">
+            <svg class="home-graph__mobile-cluster-lines" viewBox="0 0 100 100" aria-hidden="true">${clusterLines}</svg>
+            <button type="button" class="home-graph__mobile-hub" data-mobile-group="${escapeHtml(resolvedGroup?.id || '')}" aria-label="${escapeHtml(activeGroupLabel)} hub">
+              <span class="home-graph__mobile-hub-icon" aria-hidden="true">${getMobileGroupIcon(categoryId, resolvedGroup?.id)}</span>
+              <span>${escapeHtml(activeGroupLabel)}</span>
+            </button>
+            ${clusterNodes}
+          </div>
+
+          ${previewItem ? `
+            <div class="home-graph__mobile-preview">
+              <span class="home-graph__mobile-preview-kicker">Preview</span>
+              <strong>${escapeHtml(previewTitle)}</strong>
+              <p>${escapeHtml(previewSummary)}</p>
+              <ul>
+                ${previewTags.map((tag) => `<li>${escapeHtml(tag)}</li>`).join('')}
+              </ul>
+              <a href="${escapeHtml(previewItem.href)}">Open ${escapeHtml(category.singular)} ${getLinkIcon()}</a>
+            </div>
+          ` : ''}
+        </section>
       </div>
     `;
   };
@@ -2543,12 +2686,13 @@
         return;
       }
 
-      itemHost.innerHTML = layout.items.map((entry) => {
+      itemHost.innerHTML = layout.items.map((pos) => {
+        const entry = pos;
         if (entry.type === 'group') {
           const selected = state.selectedKey === entry.id;
           const groupTitle = `${entry.label}: ${entry.items.length} ${category.singular}${entry.items.length === 1 ? '' : 's'}`;
           return `
-            <button type="button" class="home-graph__group-label${selected ? ' is-selected' : ''}" data-graph-group="${escapeHtml(entry.id)}" data-category-id="${escapeHtml(state.active)}" data-group-id="${escapeHtml(entry.groupId)}" aria-label="${escapeHtml(groupTitle)}" title="${escapeHtml(groupTitle)}" style="--x: ${entry.x}px; --y: ${entry.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --cluster-width: ${entry.haloWidth || 276}px; --cluster-height: ${entry.haloHeight || 204}px;">
+            <button type="button" class="home-graph__group-label${selected ? ' is-selected' : ''}" data-graph-group="${escapeHtml(entry.id)}" data-category-id="${escapeHtml(state.active)}" data-group-id="${escapeHtml(entry.groupId)}" aria-label="${escapeHtml(groupTitle)}" title="${escapeHtml(groupTitle)}" style="--x: ${pos.x}px; --y: ${pos.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --cluster-width: ${entry.haloWidth || 276}px; --cluster-height: ${entry.haloHeight || 204}px;">
               <span>${escapeHtml(entry.label)}</span>
               <span class="home-graph__group-count">${entry.items.length}</span>
             </button>
@@ -2560,7 +2704,7 @@
         const title = item.fullTitle || item.title;
         const snippet = item.snippet || item.summary || '';
         return `
-          <button type="button" class="home-graph__node${selected ? ' is-selected' : ''}${layout.showLabels ? ' has-label' : ''}" data-graph-item="${escapeHtml(getItemKey(state.active, item.id))}" data-category-id="${escapeHtml(state.active)}" data-item-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(entry.groupId || '')}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" style="--x: ${entry.x}px; --y: ${entry.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --node-size: ${layout.nodeSize}px; --node-width: ${layout.nodeWidth}px; --node-height: ${layout.nodeHeight}px;">
+          <button type="button" class="home-graph__node${selected ? ' is-selected' : ''}${layout.showLabels ? ' has-label' : ''}" data-graph-item="${escapeHtml(getItemKey(state.active, item.id))}" data-category-id="${escapeHtml(state.active)}" data-item-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(entry.groupId || '')}" aria-label="${escapeHtml(title)}" title="${escapeHtml(title)}" style="--x: ${pos.x}px; --y: ${pos.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --node-size: ${layout.nodeSize}px; --node-width: ${layout.nodeWidth}px; --node-height: ${layout.nodeHeight}px;">
             <span class="home-graph__node-title">${escapeHtml(item.title)}</span>
             <span class="home-graph__node-icon" aria-hidden="true">${getItemIcon(item, state.active)}</span>
             <span class="home-graph__node-preview" aria-hidden="true"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(snippet)}</span></span>

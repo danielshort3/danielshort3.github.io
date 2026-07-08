@@ -662,8 +662,8 @@
     .modal-divider { position: static; width: 80%; height: 1px; margin: 12px 0; transform: none; }
     .modal-body { padding:0 0 18px; gap:18px; }
     #contact-modal .modal-content{
-      width:100%;
-      max-width:min(760px, calc(100vw - 16px));
+      width:calc(100vw - 12px);
+      max-width:min(760px, 100%);
       max-height:calc(100svh - var(--modal-mobile-top-clearance) - var(--modal-mobile-bottom-clearance));
       margin:0;
     }
