@@ -4292,7 +4292,9 @@
 
   body[data-page="tools"] .tools-directory-layout {
     display: grid;
-    grid-template-columns: 230px minmax(0, 1fr) 250px;
+    width: min(1280px, calc(100vw - 40px));
+    max-width: none;
+    grid-template-columns: 230px minmax(0, 1fr);
     align-items: start;
     gap: 22px;
   }
@@ -4307,6 +4309,16 @@
   body[data-page="tools"] .tools-directory-rail {
     display: grid;
     gap: 8px;
+  }
+
+  body[data-page="tools"] .tools-directory-main,
+  body[data-page="tools"] .tools-directory-note {
+    grid-column: 2;
+  }
+
+  body[data-page="tools"] .tools-directory-note {
+    position: static;
+    top: auto;
   }
 
   body[data-page="tools"] .tools-directory-stat {
@@ -4440,9 +4452,10 @@
   }
 
   body[data-page="tools"] .tool-launch-card {
-    grid-template-columns: 46px minmax(0, 1fr);
-    min-height: 92px;
-    padding: 12px;
+    grid-template-columns: 58px minmax(0, 1fr);
+    min-height: 104px;
+    gap: 10px 12px;
+    padding: 14px;
   }
 
   body[data-page="tools"] .tool-card-details,
@@ -4457,7 +4470,7 @@
     color: inherit;
     opacity: 1;
     visibility: visible;
-    pointer-events: none;
+    pointer-events: auto;
     transform: none;
   }
 

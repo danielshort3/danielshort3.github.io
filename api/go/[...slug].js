@@ -19,6 +19,42 @@ function getRequestHost(req){
   return hostHeader.split(':')[0].trim();
 }
 
+function getHeader(req, name){
+  if (!req || !req.headers) return '';
+  const value = req.headers[name];
+  if (Array.isArray(value)) return value[0] ? String(value[0]) : '';
+  return value ? String(value) : '';
+}
+
+function decodeHeaderValue(value){
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+function getRequestPath(req, base){
+  try {
+    const url = new URL(req.url, base);
+    return `${url.pathname}${url.search || ''}`;
+  } catch {
+    return typeof req.url === 'string' ? req.url : '';
+  }
+}
+
+function getUrlHost(value){
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return '';
+  }
+}
+
 function buildUnavailableRedirect(req, slug){
   const host = getRequestHost(req) || 'dshort.me';
   const params = new URLSearchParams();
@@ -153,14 +189,15 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     const now = new Date();
     const clickId = `${now.toISOString()}#${crypto.randomBytes(4).toString('hex')}`;
-    const hostHeader = req.headers && req.headers.host ? String(req.headers.host) : '';
-    const referer = (req.headers && (req.headers.referer || req.headers.referrer))
-      ? String(req.headers.referer || req.headers.referrer)
-      : '';
-    const userAgent = (req.headers && req.headers['user-agent']) ? String(req.headers['user-agent']) : '';
-    const country = (req.headers && req.headers['x-vercel-ip-country']) ? String(req.headers['x-vercel-ip-country']) : '';
-    const region = (req.headers && req.headers['x-vercel-ip-country-region']) ? String(req.headers['x-vercel-ip-country-region']) : '';
-    const city = (req.headers && req.headers['x-vercel-ip-city']) ? String(req.headers['x-vercel-ip-city']) : '';
+    const hostHeader = getHeader(req, 'host');
+    const referer = getHeader(req, 'referer') || getHeader(req, 'referrer');
+    const userAgent = getHeader(req, 'user-agent');
+    const country = decodeHeaderValue(getHeader(req, 'x-vercel-ip-country'));
+    const region = decodeHeaderValue(getHeader(req, 'x-vercel-ip-country-region'));
+    const city = decodeHeaderValue(getHeader(req, 'x-vercel-ip-city'));
+    const timezone = decodeHeaderValue(getHeader(req, 'x-vercel-ip-timezone'));
+    const latitude = decodeHeaderValue(getHeader(req, 'x-vercel-ip-latitude'));
+    const longitude = decodeHeaderValue(getHeader(req, 'x-vercel-ip-longitude'));
 
     const clickEvent = {
       slug,
@@ -169,11 +206,16 @@ module.exports = async (req, res) => {
       destination: finalUrl,
       statusCode: link.permanent ? 301 : 302,
       host: hostHeader.split(':')[0].trim(),
+      path: getRequestPath(req, base),
       referer,
+      refererHost: getUrlHost(referer),
       userAgent,
       country,
       region,
-      city
+      city,
+      timezone,
+      latitude,
+      longitude
     };
 
     try {

@@ -378,11 +378,16 @@ async function recordClick(event){
     destination: sanitizeValue(event.destination, 2048),
     statusCode: Number.isFinite(Number(event.statusCode)) ? Number(event.statusCode) : undefined,
     host: sanitizeValue(event.host, 255),
+    path: sanitizeValue(event.path, 2048),
     referer: sanitizeValue(event.referer, 2048),
+    refererHost: sanitizeValue(event.refererHost, 255),
     userAgent: sanitizeValue(event.userAgent, 768),
     country: sanitizeValue(event.country, 64),
     region: sanitizeValue(event.region, 128),
-    city: sanitizeValue(event.city, 128)
+    city: sanitizeValue(event.city, 128),
+    timezone: sanitizeValue(event.timezone, 128),
+    latitude: sanitizeValue(event.latitude, 64),
+    longitude: sanitizeValue(event.longitude, 64)
   };
 
   const ttlDays = 90;

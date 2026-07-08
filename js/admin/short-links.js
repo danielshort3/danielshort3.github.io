@@ -4,6 +4,7 @@
 
   const STORAGE_KEY = 'shortlinks_admin_token';
   const MODE_STORAGE_KEY = 'shortlinks_active_mode';
+  const PROJECT_SHORTCUT_MODE_STORAGE_KEY = 'shortlinks_project_shortcut_mode';
   const VIEWS_STORAGE_KEY = 'shortlinks_saved_views';
   const DEFAULT_BASE_PATH = 'go';
   const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
@@ -19,6 +20,7 @@
   const projectsMetaEl = document.querySelector('[data-shortlinks="projects-meta"]');
   const projectsRefreshButton = document.querySelector('[data-shortlinks="projects-refresh"]');
   const projectsEnsureButton = document.querySelector('[data-shortlinks="projects-ensure"]');
+  const projectsShortcutModeSelect = document.querySelector('[data-shortlinks="projects-shortcut-mode"]');
 
   const accessCard = document.querySelector('[data-shortlinks="access-card"]');
   const adminAccessSummaryEl = document.querySelector('[data-shortlinks="admin-access-summary"]');
@@ -111,6 +113,9 @@
   const destinationSearch = destinationModal
     ? destinationModal.querySelector('[data-shortlinks="destination-search"]')
     : null;
+  const destinationAudienceSelect = destinationModal
+    ? destinationModal.querySelector('[data-shortlinks="destination-audience"]')
+    : null;
   const destinationResults = destinationModal
     ? destinationModal.querySelector('[data-shortlinks="destination-results"]')
     : null;
@@ -170,10 +175,20 @@
   const EXPORT_DEFAULT_CLICK_LIMIT = 100;
   const EXPORT_MAX_CLICK_LIMIT = 500;
   const FALLBACK_AUDIENCES = {
+    personal: {
+      key: 'personal',
+      label: 'Personal Site',
+      shortLabel: 'Personal',
+      homePath: '/',
+      portfolioPath: '/portfolio?audience=personal',
+      resumePath: '',
+      resumePreviewPath: '',
+      resumeDownloadPath: ''
+    },
     analytics: {
       key: 'analytics',
-      label: 'Data Analytics',
-      shortLabel: 'Analytics',
+      label: 'Professional Site',
+      shortLabel: 'Professional',
       homePath: '/analytics',
       portfolioPath: '/portfolio?audience=analytics',
       resumePath: '/resume',
@@ -201,7 +216,7 @@
       resumeDownloadPath: '/documents/Resume-Tourism.pdf'
     }
   };
-  const FALLBACK_AUDIENCE_ORDER = ['analytics', 'data-science', 'tourism'];
+  const FALLBACK_AUDIENCE_ORDER = ['personal', 'analytics', 'data-science', 'tourism'];
   const FALLBACK_AUDIENCE_DEFAULT = 'analytics';
 
   const markSessionDirty = () => {
@@ -1330,11 +1345,13 @@
   }
 
   function normalizeAudienceKey(value){
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'professional' || raw === 'pro') return 'analytics';
     const api = getAudienceApi();
     if (api && typeof api.normalizeAudience === 'function') {
-      return api.normalizeAudience(value);
+      const normalized = api.normalizeAudience(value);
+      return normalized === 'professional' ? 'analytics' : normalized;
     }
-    const raw = String(value || '').trim().toLowerCase();
     if (!raw) return FALLBACK_AUDIENCE_DEFAULT;
     if (raw === 'datascience' || raw === 'data_science') return 'data-science';
     if (raw === 'tourism-analytics') return 'tourism';
@@ -1352,6 +1369,67 @@
 
   function getSelectedAudienceKey(){
     return normalizeAudienceKey(audienceSelect ? audienceSelect.value : FALLBACK_AUDIENCE_DEFAULT);
+  }
+
+  function setAudienceControlsValue(value){
+    const key = normalizeAudienceKey(value);
+    [audienceSelect, destinationAudienceSelect].forEach((control) => {
+      if (!control) return;
+      control.value = key;
+    });
+    return key;
+  }
+
+  function normalizeProjectShortcutMode(value){
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'personal' || raw === 'professional') return raw;
+    return 'canonical';
+  }
+
+  function getSavedProjectShortcutMode(){
+    try {
+      return normalizeProjectShortcutMode(window.sessionStorage.getItem(PROJECT_SHORTCUT_MODE_STORAGE_KEY));
+    } catch {
+      return 'canonical';
+    }
+  }
+
+  function saveProjectShortcutMode(value){
+    const mode = normalizeProjectShortcutMode(value);
+    try {
+      window.sessionStorage.setItem(PROJECT_SHORTCUT_MODE_STORAGE_KEY, mode);
+    } catch {}
+    return mode;
+  }
+
+  function getProjectShortcutMode(){
+    return normalizeProjectShortcutMode(projectsShortcutModeSelect ? projectsShortcutModeSelect.value : 'canonical');
+  }
+
+  function getProjectShortcutConfig(mode = getProjectShortcutMode()){
+    switch (normalizeProjectShortcutMode(mode)) {
+      case 'personal':
+        return {
+          mode: 'personal',
+          label: 'Personal',
+          audienceKey: 'personal',
+          slugPrefix: 'p/personal'
+        };
+      case 'professional':
+        return {
+          mode: 'professional',
+          label: 'Professional',
+          audienceKey: 'analytics',
+          slugPrefix: 'p/professional'
+        };
+      default:
+        return {
+          mode: 'canonical',
+          label: 'Canonical',
+          audienceKey: '',
+          slugPrefix: PROJECT_SLUG_PREFIX
+        };
+    }
   }
 
   function normalizeSitePath(pathname){
@@ -1404,7 +1482,8 @@
     return getAudienceOrder()
       .map((key) => {
         const config = getAudienceConfig(key);
-        return normalizeSitePath(config && config[field]);
+        const raw = config && config[field];
+        return raw ? normalizeSitePath(raw) : '';
       })
       .filter(Boolean);
   }
@@ -1466,13 +1545,13 @@
       return buildAbsoluteSiteUrl(audience.homePath);
     }
     if (path === '/resume' || isAudienceResumePath(path)) {
-      return buildAbsoluteSiteUrl(audience.resumePath);
+      return buildAbsoluteSiteUrl(audience.resumePath || path);
     }
     if (path === '/resume-pdf' || isAudienceResumePreviewPath(path)) {
-      return buildAbsoluteSiteUrl(audience.resumePreviewPath);
+      return buildAbsoluteSiteUrl(audience.resumePreviewPath || path);
     }
     if (path === '/documents/Resume.pdf' || isAudienceResumeDownloadPath(path)) {
-      return buildAbsoluteSiteUrl(audience.resumeDownloadPath);
+      return buildAbsoluteSiteUrl(audience.resumeDownloadPath || path);
     }
     if (isPortfolioPath(path)) {
       params.delete('audience');
@@ -1495,13 +1574,13 @@
       return buildAbsoluteSiteUrl(audience.homePath);
     }
     if (path === '/resume' || isAudienceResumePath(path)) {
-      return buildAbsoluteSiteUrl(audience.resumePath);
+      return buildAbsoluteSiteUrl(audience.resumePath || path);
     }
     if (path === '/resume-pdf' || isAudienceResumePreviewPath(path)) {
-      return buildAbsoluteSiteUrl(audience.resumePreviewPath);
+      return buildAbsoluteSiteUrl(audience.resumePreviewPath || path);
     }
     if (path === '/documents/Resume.pdf' || isAudienceResumeDownloadPath(path)) {
-      return buildAbsoluteSiteUrl(audience.resumeDownloadPath);
+      return buildAbsoluteSiteUrl(audience.resumeDownloadPath || path);
     }
     if (isPortfolioPath(path)) {
       params.delete('audience');
@@ -1733,11 +1812,25 @@
     }
   }
 
-  function buildProjectSlugFromPath(pathname){
+  function buildProjectSlugFromPath(pathname, shortcutMode){
     const suffix = buildBaseSlugFromPath(pathname);
     if (!suffix) return '';
-    const prefix = normalizeSlugInput(PROJECT_SLUG_PREFIX);
+    const config = getProjectShortcutConfig(shortcutMode);
+    const prefix = normalizeSlugInput(config.slugPrefix);
     return prefix ? `${prefix}/${suffix}` : suffix;
+  }
+
+  function buildProjectDestinationFromPath(pathname, shortcutMode){
+    const config = getProjectShortcutConfig(shortcutMode);
+    const origin = getCanonicalSiteOrigin();
+    if (!config.audienceKey) return joinOriginAndPath(origin, pathname);
+
+    const info = parseInternalSiteDestination(pathname);
+    const path = info ? info.pathname : normalizeSitePath(pathname);
+    const params = info ? new URLSearchParams(info.searchParams) : new URLSearchParams();
+    params.delete('audience');
+    params.set('audience', config.audienceKey);
+    return buildAbsoluteSiteUrl(path, params, info ? info.hash : '');
   }
 
   function getPortfolioProjectsFromManifest(){
@@ -1753,16 +1846,16 @@
   }
 
   function rebuildProjectCatalog(){
-    const origin = getCanonicalSiteOrigin();
+    const shortcutConfig = getProjectShortcutConfig();
     const projects = getPortfolioProjectsFromManifest();
     projectCatalog = projects
       .map(project => {
         const path = String(project.path || '');
         const id = path.split('/').filter(Boolean).slice(-1)[0] || '';
-        const slug = buildProjectSlugFromPath(path);
-        const destination = joinOriginAndPath(origin, path);
+        const slug = buildProjectSlugFromPath(path, shortcutConfig.mode);
+        const destination = buildProjectDestinationFromPath(path, shortcutConfig.mode);
         const label = String(project.label || '').trim() || id || path;
-        return { id, path, label, slug, destination };
+        return { id, path, label, slug, destination, shortcutMode: shortcutConfig.mode, shortcutLabel: shortcutConfig.label };
       })
       .filter(project => project.slug && project.destination)
       .sort((a, b) => a.label.localeCompare(b.label));
@@ -1899,6 +1992,13 @@
         meta.appendChild(mismatchPill);
       }
 
+      if (project.shortcutLabel) {
+        const shortcutPill = document.createElement('span');
+        shortcutPill.className = 'tool-pill shortlinks-click-pill-muted';
+        shortcutPill.textContent = project.shortcutLabel;
+        meta.appendChild(shortcutPill);
+      }
+
       const clicksPill = document.createElement('button');
       clicksPill.type = 'button';
       clicksPill.className = 'tool-pill shortlinks-pill-button';
@@ -2018,7 +2118,8 @@
       projectsListEl.appendChild(card);
     });
 
-    const bits = [`${total} project${total === 1 ? '' : 's'}`];
+    const shortcutConfig = getProjectShortcutConfig();
+    const bits = [`${total} project${total === 1 ? '' : 's'}`, `${shortcutConfig.label} set`];
     if (!canCompare) {
       bits.push(getProjectSyncPendingCopy().meta);
     } else {
@@ -2252,6 +2353,7 @@
     destinationModal.classList.add('active');
     destinationModal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
+    setAudienceControlsValue(getSelectedAudienceKey());
 
     await loadDestinationsManifest();
     renderDestinations();
@@ -2319,6 +2421,44 @@
     });
   }
 
+  function getClickString(item, field){
+    return item && typeof item[field] === 'string' ? item[field].trim() : '';
+  }
+
+  function formatClickLocation(item){
+    return ['city', 'region', 'country']
+      .map((field) => getClickString(item, field))
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  function formatClickCoordinates(item){
+    const latitude = getClickString(item, 'latitude');
+    const longitude = getClickString(item, 'longitude');
+    return latitude && longitude ? `${latitude}, ${longitude}` : '';
+  }
+
+  function summarizeUserAgent(userAgent){
+    const raw = String(userAgent || '');
+    if (!raw) return { browser: '', os: '' };
+
+    let browser = '';
+    if (/Edg\//.test(raw)) browser = 'Microsoft Edge';
+    else if (/Chrome\//.test(raw) && !/Chromium\//.test(raw)) browser = 'Chrome';
+    else if (/Firefox\//.test(raw)) browser = 'Firefox';
+    else if (/Safari\//.test(raw) && /Version\//.test(raw)) browser = 'Safari';
+    else if (/Chromium\//.test(raw)) browser = 'Chromium';
+
+    let os = '';
+    if (/Windows NT/.test(raw)) os = 'Windows';
+    else if (/Android/.test(raw)) os = 'Android';
+    else if (/(iPhone|iPad|iPod)/.test(raw)) os = 'iOS';
+    else if (/Mac OS X/.test(raw)) os = 'macOS';
+    else if (/Linux/.test(raw)) os = 'Linux';
+
+    return { browser, os };
+  }
+
   function renderClickHistory(items){
     if (!clicksListEl) return;
     clicksListEl.replaceChildren();
@@ -2355,7 +2495,7 @@
         pills.appendChild(statusPill);
       }
 
-      const host = typeof item.host === 'string' ? item.host : '';
+      const host = getClickString(item, 'host');
       if (host) {
         const hostPill = document.createElement('span');
         hostPill.className = 'tool-pill shortlinks-click-pill-muted';
@@ -2363,13 +2503,11 @@
         pills.appendChild(hostPill);
       }
 
-      const geoParts = [item.city, item.region, item.country]
-        .filter(part => typeof part === 'string' && part.trim())
-        .map(part => String(part).trim());
-      if (geoParts.length) {
+      const location = formatClickLocation(item);
+      if (location) {
         const geoPill = document.createElement('span');
         geoPill.className = 'tool-pill shortlinks-click-pill-muted';
-        geoPill.textContent = geoParts.join(', ');
+        geoPill.textContent = location;
         pills.appendChild(geoPill);
       }
 
@@ -2409,14 +2547,29 @@
         rows.appendChild(row);
       }
 
-      const destination = typeof item.destination === 'string' ? item.destination : '';
+      const destination = getClickString(item, 'destination');
+      const referer = getClickString(item, 'referer');
+      const refererHost = getClickString(item, 'refererHost');
+      const userAgent = getClickString(item, 'userAgent');
+      const userAgentSummary = summarizeUserAgent(userAgent);
+      const requestPath = getClickString(item, 'path');
+      const timezone = getClickString(item, 'timezone');
+      const coordinates = formatClickCoordinates(item);
+      const clickId = getClickString(item, 'clickId');
+
+      addRow('Click ID', clickId);
+      addRow('Short host', host);
+      addRow('Path', requestPath);
+      addRow('Redirect', statusCode ? `${statusCode}` : '');
       addRow('To', destination, destination);
-
-      const referer = typeof item.referer === 'string' ? item.referer : '';
+      addRow('Referrer host', refererHost);
       addRow('From', referer, referer);
-
-      const userAgent = typeof item.userAgent === 'string' ? item.userAgent : '';
-      addRow('UA', userAgent);
+      addRow('Location', location);
+      addRow('Timezone', timezone);
+      addRow('Coordinates', coordinates);
+      addRow('Browser', userAgentSummary.browser);
+      addRow('OS', userAgentSummary.os);
+      addRow('User agent', userAgent);
 
       card.appendChild(top);
       card.appendChild(rows);
@@ -2553,23 +2706,27 @@
   function recordLinkHealthFromResult(slug, data, elapsedMs){
     const key = normalizeSlugInput(slug);
     if (!key) return null;
+    const redirect = data && typeof data.redirect === 'object' ? data.redirect : null;
+    const redirectStatus = redirect && Number.isFinite(Number(redirect.statusCode)) ? Number(redirect.statusCode) : 0;
+    const redirectDestination = redirect && typeof redirect.destination === 'string' ? redirect.destination : '';
+    const redirectOk = !!redirectDestination || (redirectStatus >= 300 && redirectStatus < 400);
     const check = data && typeof data.check === 'object' ? data.check : null;
-    const checkOk = check && check.ok === true;
     const checkStatus = check && Number.isFinite(Number(check.status)) ? Number(check.status) : 0;
     const checkMethod = check && typeof check.method === 'string' ? check.method : '';
     const checkMs = check && Number.isFinite(Number(check.ms)) ? Number(check.ms) : 0;
     const checkUrl = check && typeof check.url === 'string' ? check.url : '';
     const checkError = check && typeof check.error === 'string' ? check.error : '';
     const tone = check && check.ok === false
-      ? (checkStatus ? 'warning' : 'error')
+      ? (redirectOk ? 'warning' : (checkStatus ? 'warning' : 'error'))
       : 'success';
+    const warningNote = checkError || (checkStatus ? `Destination probe returned ${checkStatus}` : 'Destination probe was unreachable');
     const record = {
       key: tone === 'success' ? 'healthy' : (tone === 'error' ? 'broken' : 'warning'),
-      label: tone === 'success' ? 'Healthy' : (tone === 'error' ? 'Broken' : 'Destination warning'),
+      label: tone === 'success' ? 'Healthy' : (tone === 'error' ? 'Broken' : (redirectOk ? 'Redirect OK' : 'Destination warning')),
       tone,
       note: tone === 'success'
         ? `${checkMethod || 'Check'} ${checkStatus || 200} in ${checkMs || elapsedMs}ms`
-        : (checkError || (checkStatus ? `Destination returned ${checkStatus}` : 'Destination check failed')),
+        : warningNote,
       status: checkStatus,
       method: checkMethod,
       finalUrl: checkUrl,
@@ -2645,7 +2802,7 @@
           detail += ` • Destination ${checkMethod} ${checkStatus}${finalBit} (${checkMs || ms}ms)`;
         } else {
           const errorLabel = checkError || (checkStatus ? `Status ${checkStatus}` : 'Unreachable');
-          detail += ` • Destination check failed (${errorLabel})`;
+          detail += ` • Destination probe warning (${errorLabel})`;
         }
       }
 
@@ -4280,6 +4437,16 @@
     });
   }
 
+  if (projectsShortcutModeSelect) {
+    projectsShortcutModeSelect.addEventListener('change', () => {
+      const mode = saveProjectShortcutMode(projectsShortcutModeSelect.value);
+      projectsShortcutModeSelect.value = mode;
+      rebuildProjectCatalog();
+      renderProjectLinks();
+      setStatus(projectsStatusEl, `Showing ${getProjectShortcutConfig(mode).label.toLowerCase()} project shortcuts.`, 'success');
+    });
+  }
+
   if (healthButton) {
     healthButton.addEventListener('click', () => {
       if (!getSavedToken()) {
@@ -4338,6 +4505,15 @@
   if (destinationSearch) {
     destinationSearch.addEventListener('input', () => {
       renderDestinations();
+    });
+  }
+
+  if (destinationAudienceSelect) {
+    destinationAudienceSelect.addEventListener('change', () => {
+      setAudienceControlsValue(destinationAudienceSelect.value);
+      syncEditorAudienceState({ announce: !!String(destinationInput?.value || '').trim() });
+      renderDestinations();
+      markSessionDirty();
     });
   }
 
@@ -4534,7 +4710,10 @@
 
   updateAccessMeta();
   if (audienceSelect) {
-    audienceSelect.value = getSelectedAudienceKey();
+    setAudienceControlsValue(getSelectedAudienceKey());
+  }
+  if (projectsShortcutModeSelect) {
+    projectsShortcutModeSelect.value = getSavedProjectShortcutMode();
   }
   syncSlugModeState();
   syncCreateTimingVisibility();
@@ -4675,6 +4854,7 @@
 
   if (audienceSelect) {
     audienceSelect.addEventListener('change', () => {
+      setAudienceControlsValue(audienceSelect.value);
       syncEditorAudienceState({ announce: !!String(destinationInput?.value || '').trim() });
       renderDestinations();
       markSessionDirty();

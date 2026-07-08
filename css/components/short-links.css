@@ -802,6 +802,7 @@
   .shortlinks-list{
     display:grid;
     gap:14px;
+    overflow:visible;
   }
 
   .shortlinks-list.shortlinks-list-table{
@@ -1013,8 +1014,10 @@
   }
 
   .shortlinks-item{
+    position:relative;
     display:grid;
     gap:14px;
+    overflow:visible;
     padding:17px;
     border-radius:18px;
     border:1px solid var(--shortlinks-border);
@@ -1026,6 +1029,12 @@
 
   .shortlinks-item-missing{
     border-color:color-mix(in srgb,var(--warning) 30%, transparent);
+  }
+
+  .shortlinks-item:has(.shortlinks-menu[open]),
+  .shortlinks-table tbody tr:has(.shortlinks-menu[open]){
+    position:relative;
+    z-index:80;
   }
 
   .shortlinks-item-mismatch{
@@ -1127,7 +1136,7 @@
   }
 
   .shortlinks-menu[open]{
-    z-index:10;
+    z-index:90;
   }
 
   .shortlinks-menu-trigger{
@@ -1160,6 +1169,7 @@
 
   .shortlinks-menu-popover{
     position:absolute;
+    z-index:100;
     right:0;
     top:calc(100% + 8px);
     display:grid;
@@ -1285,7 +1295,15 @@
 
   .shortlinks-projects-toolbar{
     display:flex;
-    justify-content:flex-start;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .shortlinks-project-shortcut-control{
+    flex:1 1 260px;
+    max-width:360px;
   }
 
   .shortlinks-projects-actions{
@@ -1526,16 +1544,17 @@
 
   @media (min-width: 1120px){
     .shortlinks-workspace{
-      grid-template-columns:minmax(290px, 336px) minmax(0, 1fr);
+      grid-template-columns:1fr;
       align-items:start;
     }
 
     .shortlinks-utility-rail{
-      position:sticky;
-      top:calc(var(--nav-height, 72px) + 18px);
-      max-height:calc(100svh - var(--nav-height, 72px) - 40px);
-      overflow:auto;
-      scrollbar-gutter:stable;
+      position:static;
+      grid-template-columns:minmax(0, 1.15fr) minmax(360px, 1fr) minmax(240px, .62fr);
+      align-items:start;
+      max-height:none;
+      overflow:visible;
+      scrollbar-gutter:auto;
     }
 
     .shortlinks-mode-summary{
@@ -1547,12 +1566,12 @@
     }
 
     .shortlinks-summary-head .shortlinks-output-meta{
-      max-width:24ch;
+      max-width:34ch;
       text-align:right;
     }
 
     .shortlinks-snapshot{
-      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-template-columns:repeat(4, minmax(0, 1fr));
       gap:10px;
     }
 
@@ -1593,6 +1612,62 @@
 
     .shortlinks-access-card .shortlinks-action-row > *{
       flex:1 1 calc(50% - 8px);
+    }
+
+    .shortlinks-access-card .shortlinks-panel-lead,
+    .shortlinks-access-card .contact-form-note{
+      display:none;
+    }
+
+    .shortlinks-access-card .shortlinks-card-head{
+      gap:10px;
+    }
+
+    .shortlinks-access-card .section-title{
+      font-size:1rem;
+      line-height:1.25;
+    }
+
+    .shortlinks-access-card [data-shortlinks="auth"]{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(180px, .82fr);
+      align-items:end;
+      gap:10px 12px;
+    }
+
+    .shortlinks-access-card [data-shortlinks="auth"] .form-field{
+      min-width:0;
+    }
+
+    .shortlinks-access-card [data-shortlinks="auth"] .shortlinks-action-row{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+    }
+
+    .shortlinks-access-card [data-shortlinks="auth"] .shortlinks-action-row > *{
+      width:100%;
+      min-height:40px;
+      padding:9px 11px;
+    }
+
+    .shortlinks-access-card [data-shortlinks="auth"] .contact-form-status:empty{
+      display:none;
+    }
+
+    .shortlinks-access-card [data-shortlinks="status"],
+    .shortlinks-access-card [data-shortlinks="health-status"]{
+      grid-column:1 / -1;
+    }
+  }
+
+  @media (min-width: 1120px) and (max-width: 1320px){
+    .shortlinks-utility-rail{
+      grid-template-columns:minmax(0, 1fr) minmax(360px, 1fr);
+    }
+
+    .shortlinks-mode-summary{
+      grid-column:1 / -1;
     }
   }
 

@@ -37912,20 +37912,21 @@ try {
     assert(brandOverrideCss.includes('body[data-tools-layout="directory"] .tool-card') &&
       brandOverrideCss.includes('overflow: visible;'),
       'tool directory cards should not clip their hover tooltips');
-    assert(toolsCss.includes('.tool-card:hover .tool-card-details') &&
+    assert(toolsCss.includes('.tool-card-details') &&
+      toolsCss.includes('position:static;') &&
       toolsCss.includes('pointer-events:auto;') &&
       toolsCss.includes('.tool-card:hover,\n  .tool-card:focus-within{\n    z-index:30;') &&
       !toolsCss.includes('@media (hover:none), (max-width: 700px)'),
-      'tools directory tooltips should remain visible on hover-capable hybrid devices');
-    assert(toolsCss.includes('grid-template-columns:repeat(auto-fill,minmax(112.8px,132px));') &&
-      toolsCss.includes('width:76.8px;') &&
-      toolsCss.includes('width:84px;') &&
-      toolsCss.includes('max-width:124.8px;'),
-      'tools directory icons and label containers should be 20% larger for readable icon artwork and text');
-    assert(toolsCss.includes('grid-template-columns:repeat(auto-fill,minmax(103.2px,124.8px));') &&
+      'tools directory summaries should stay visible in readable cards on hover-capable hybrid devices');
+    assert(toolsCss.includes('grid-template-columns:repeat(auto-fit, minmax(min(290px, 100%), 1fr));') &&
+      toolsCss.includes('grid-template-columns:auto minmax(0, 1fr);') &&
+      toolsCss.includes('width:58px;') &&
+      toolsCss.includes('grid-column:2;'),
+      'tools directory cards should use readable two-column cards with persistent summaries');
+    assert(toolsCss.includes('grid-template-columns:1fr;') &&
       toolsCss.includes('width:72px;') &&
       toolsCss.includes('width:79.2px;'),
-      'tools directory mobile icon containers should keep the same 20% size increase');
+      'tools directory mobile cards should stack without shrinking icon artwork');
     assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
     assert(toolsAccountCss.includes('.tools-account-bar:empty'), 'empty tools account bars should not render as orphan containers');
     assert(siteChatbotCss.includes('right: calc(100% + 8px);'), 'chatbot launcher tooltip should sit inward with a button gap');

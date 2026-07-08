@@ -93,11 +93,16 @@ module.exports = async (req, res) => {
     destination: typeof item.destination === 'string' ? item.destination : '',
     statusCode: Number.isFinite(Number(item.statusCode)) ? Number(item.statusCode) : 0,
     host: typeof item.host === 'string' ? item.host : '',
+    path: typeof item.path === 'string' ? item.path : '',
     referer: typeof item.referer === 'string' ? item.referer : '',
+    refererHost: typeof item.refererHost === 'string' ? item.refererHost : '',
     userAgent: typeof item.userAgent === 'string' ? item.userAgent : '',
     country: typeof item.country === 'string' ? item.country : '',
     region: typeof item.region === 'string' ? item.region : '',
-    city: typeof item.city === 'string' ? item.city : ''
+    city: typeof item.city === 'string' ? item.city : '',
+    timezone: typeof item.timezone === 'string' ? item.timezone : '',
+    latitude: typeof item.latitude === 'string' ? item.latitude : '',
+    longitude: typeof item.longitude === 'string' ? item.longitude : ''
   }));
 
   sendJson(res, 200, { ok: true, slug: resolvedSlug, limit, clicks });
