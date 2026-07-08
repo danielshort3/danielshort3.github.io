@@ -37233,6 +37233,7 @@ try {
       'data-shortlinks="admin-project-summary"',
       'data-shortlinks="admin-export-summary"',
       'data-shortlinks="auth"',
+      'data-shortlinks="remember-token"',
       'data-shortlinks="summary"',
       'data-shortlinks="mode-tab"',
       'data-shortlinks-mode-panel="single"',
@@ -37256,10 +37257,33 @@ try {
       'data-shortlinks="export-mode"',
       'data-shortlinks="export-click-limit"',
       'data-shortlinks="export"',
+      'data-shortlinks="new-link-from-list"',
+      'data-shortlinks="status-filter"',
+      'data-shortlinks="sort"',
+      'data-shortlinks="density"',
+      'data-shortlinks="health-strip"',
+      'data-shortlinks="saved-view"',
+      'data-shortlinks="save-view"',
+      'data-shortlinks="delete-view"',
+      'data-shortlinks="select-visible"',
+      'data-shortlinks="selection-count"',
+      'data-shortlinks="test-selected"',
+      'data-shortlinks="export-view"',
+      'data-shortlinks="clear-selection"',
+      'data-shortlinks="detail-panel"',
       'data-shortlinks="list"'
     ].forEach((snippet) => {
       assert(html.includes(snippet), `pages/short-links.html missing expected short-links hook: ${snippet}`);
     });
+    const css = readFile('css/components/short-links.css');
+    assert(css.includes('.shortlinks-mode-panel[hidden]'), 'short links CSS should preserve hidden tab panel behavior');
+    assert(css.includes('.shortlinks-health-strip'), 'short links CSS should style health metrics');
+    assert(css.includes('.shortlinks-detail-panel'), 'short links CSS should style the detail panel');
+    const adminJs = readFile('js/admin/short-links.js');
+    assert(adminJs.includes('shortlinks_active_mode'), 'short links should remember the active workspace mode');
+    assert(adminJs.includes('shortlinks_saved_views'), 'short links should store saved filter views');
+    assert(adminJs.includes('testSelectedLinks'), 'short links should support bulk health checks');
+    assert(adminJs.includes('shortlinks-icon-button'), 'short links should render icon quick actions');
     assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
     assert((html.match(/id="privacy-settings-link-footer"/g) || []).length === 1, 'pages/short-links.html should include one footer cookie settings control');
     assert(!html.includes('data-cookie-settings="true"'), 'pages/short-links.html should not include a floating cookie settings widget');
@@ -37269,6 +37293,8 @@ try {
   section('Short links helper logic', () => {
     const helpers = require('./api/_lib/short-links.js');
     const setHelpers = require('./api/_lib/short-links-sets.js');
+    const shortLinksApi = require('./api/short-links/index.js');
+    const shortLinksTestApi = require('./api/short-links/test/[...slug].js');
 
     assert(helpers.normalizeSlug('Ab12Cd') === 'Ab12Cd', 'normalizeSlug should preserve case for valid slugs');
     assert(helpers.normalizeSlug('a/b-C_9') === 'a/b-C_9', 'normalizeSlug should allow nested mixed-case slugs');
@@ -37279,6 +37305,44 @@ try {
     assert(/^[A-Za-z0-9]{6}$/.test(randomSlug), 'generateRandomSlug should create mixed-case alphanumeric codes');
     assert(helpers.normalizeRandomLength(3, 6) === 4, 'normalizeRandomLength should clamp to min');
     assert(helpers.normalizeRandomLength(40, 6) === 12, 'normalizeRandomLength should clamp to max');
+
+    const previousToken = process.env.SHORTLINKS_ADMIN_TOKEN;
+    process.env.SHORTLINKS_ADMIN_TOKEN = 'test-token';
+    try {
+      assert(helpers.isAdminRequest({ headers: { authorization: 'Bearer test-token' } }) === true,
+        'isAdminRequest should accept a matching bearer token');
+      assert(helpers.isAdminRequest({ headers: { authorization: 'Bearer wrong-token' } }) === false,
+        'isAdminRequest should reject a non-matching bearer token');
+    } finally {
+      if (typeof previousToken === 'undefined') delete process.env.SHORTLINKS_ADMIN_TOKEN;
+      else process.env.SHORTLINKS_ADMIN_TOKEN = previousToken;
+    }
+
+    assert(shortLinksApi && shortLinksApi._internal && typeof shortLinksApi._internal.applyListQuery === 'function',
+      'short links API should expose internal list-query helpers for fast tests');
+    const sampleLinks = [
+      { slug: 'resume', destination: 'https://www.danielshort.me/resume', permanent: true, clicks: 4, updatedAt: '2026-01-02T00:00:00Z' },
+      { slug: 'campaign', destination: 'https://www.danielshort.me/contact', permanent: false, expiresAt: Math.floor(Date.now() / 1000) + 3600, clicks: 12, updatedAt: '2026-01-03T00:00:00Z' },
+      { slug: 'old', destination: 'https://www.danielshort.me/old', permanent: false, expiresAt: Math.floor(Date.now() / 1000) - 3600, disabled: true, clicks: 1, updatedAt: '2026-01-01T00:00:00Z' }
+    ];
+    const queried = shortLinksApi._internal.applyListQuery(sampleLinks, new URLSearchParams('q=danielshort&status=active&sort=-clicks&limit=1'));
+    assert(Array.isArray(queried.links) && queried.links.length === 1 && queried.links[0].slug === 'campaign',
+      'applyListQuery should filter active links, sort by clicks, and apply limit');
+    assert(queried.pagination && queried.pagination.total === 2 && queried.pagination.nextCursor === '1',
+      'applyListQuery should report pagination metadata');
+
+    assert(shortLinksTestApi && shortLinksTestApi._internal && typeof shortLinksTestApi._internal.isBlockedAddress === 'function',
+      'short links test API should expose internal safety helpers for fast tests');
+    assert(shortLinksTestApi._internal.isBlockedAddress('127.0.0.1') === true,
+      'short links test API should block loopback IPv4 destinations');
+    assert(shortLinksTestApi._internal.isBlockedAddress('192.168.1.10') === true,
+      'short links test API should block private IPv4 destinations');
+    assert(shortLinksTestApi._internal.isBlockedAddress('8.8.8.8') === false,
+      'short links test API should allow public IPv4 destinations');
+    assert(shortLinksTestApi._internal.isBlockedAddress('::1') === true,
+      'short links test API should block loopback IPv6 destinations');
+    assert(shortLinksTestApi._internal.isLocalHostname('localhost') === true,
+      'short links test API should block localhost hostnames');
 
     const template = setHelpers.buildSetTemplateRecord({
       title: ' Data Analyst Resume ',

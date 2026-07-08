@@ -4,7 +4,7 @@
 */
 'use strict';
 
-const { findLinkByLowerSlug, listLinks, upsertLink } = require('../_lib/short-links-store');
+const { listLinks, upsertLink } = require('../_lib/short-links-store');
 const {
   DEFAULT_RANDOM_LENGTH,
   MAX_RANDOM_LENGTH,
@@ -15,6 +15,7 @@ const {
   sendJson,
   readJson,
   normalizeSlug,
+  normalizeSlugLower,
   normalizeRandomLength,
   normalizeDestination
 } = require('../_lib/short-links');
@@ -57,7 +58,23 @@ function buildMetadata(body){
   };
 }
 
-async function resolveRequestedSlug(body){
+function buildLowerSlugMap(items){
+  const map = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const lower = normalizeSlugLower(item && item.slug);
+    if (!lower || map.has(lower)) return;
+    map.set(lower, item);
+  });
+  return map;
+}
+
+function getSlugConflict(lowerSlugMap, slug){
+  const target = normalizeSlugLower(slug);
+  if (!target || !lowerSlugMap || typeof lowerSlugMap.get !== 'function') return null;
+  return lowerSlugMap.get(target) || null;
+}
+
+async function resolveRequestedSlug(body, lowerSlugMap){
   const slugMode = typeof body?.slugMode === 'string' ? body.slugMode.trim().toLowerCase() : '';
   const randomLength = normalizeRandomLength(body?.randomLength, DEFAULT_RANDOM_LENGTH);
   const manualSlug = normalizeSlug(body?.slug);
@@ -65,8 +82,11 @@ async function resolveRequestedSlug(body){
   if (slugMode === 'random') {
     for (let i = 0; i < RANDOM_SLUG_RETRY_LIMIT; i += 1) {
       const candidate = generateRandomSlug(randomLength);
-      const conflict = await findLinkByLowerSlug(candidate);
+      const conflict = getSlugConflict(lowerSlugMap, candidate);
       if (!conflict) {
+        if (lowerSlugMap && typeof lowerSlugMap.set === 'function') {
+          lowerSlugMap.set(normalizeSlugLower(candidate), { slug: candidate });
+        }
         return { slug: candidate, randomLength, generated: true };
       }
     }
@@ -81,7 +101,7 @@ async function resolveRequestedSlug(body){
     throw err;
   }
 
-  const conflict = await findLinkByLowerSlug(manualSlug);
+  const conflict = getSlugConflict(lowerSlugMap, manualSlug);
   if (conflict && String(conflict.slug || '') !== manualSlug) {
     const err = new Error(`Slug conflicts with existing link "${conflict.slug}"`);
     err.statusCode = 409;
@@ -91,7 +111,140 @@ async function resolveRequestedSlug(body){
   return { slug: manualSlug, randomLength, generated: false };
 }
 
-module.exports = async (req, res) => {
+function getRequestUrl(req){
+  try {
+    return new URL(req.url, 'https://www.danielshort.me');
+  } catch {
+    return new URL('https://www.danielshort.me/');
+  }
+}
+
+function getQueryValue(params, key){
+  if (!params || !params.has(key)) return '';
+  return String(params.get(key) || '').trim();
+}
+
+function isLinkExpired(link){
+  const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
+  return !!expiresAt && expiresAt * 1000 <= Date.now();
+}
+
+function matchesStatus(link, status){
+  const normalized = String(status || '').trim().toLowerCase();
+  if (!normalized || normalized === 'all') return true;
+  if (normalized === 'disabled') return !!(link && link.disabled);
+  if (normalized === 'expired') return isLinkExpired(link);
+  if (normalized === 'temporary') return !(link && link.permanent);
+  if (normalized === 'permanent') return !!(link && link.permanent);
+  if (normalized === 'active') return !!link && !link.disabled && !isLinkExpired(link);
+  return true;
+}
+
+function matchesQuery(link, query){
+  const needle = String(query || '').trim().toLowerCase();
+  if (!needle) return true;
+  const haystack = [
+    link && link.slug,
+    link && link.destination,
+    link && link.label,
+    link && link.templateTitle,
+    link && link.batchTitle,
+    link && link.contextCompany,
+    link && link.contextTitle
+  ].join(' ').toLowerCase();
+  return haystack.includes(needle);
+}
+
+function getComparableValue(link, key){
+  switch (key) {
+    case 'clicks':
+      return Number.isFinite(Number(link && link.clicks)) ? Number(link.clicks) : 0;
+    case 'updated':
+      return Date.parse(link && link.updatedAt) || 0;
+    case 'created':
+      return Date.parse(link && link.createdAt) || 0;
+    case 'expires':
+      return Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
+    case 'destination':
+      return String(link && link.destination || '').toLowerCase();
+    case 'slug':
+    default:
+      return String(link && link.slug || '').toLowerCase();
+  }
+}
+
+function sortLinks(links, rawSort){
+  const requested = String(rawSort || 'slug').trim().toLowerCase();
+  const descending = requested.startsWith('-');
+  const key = descending ? requested.slice(1) : requested;
+  const allowed = new Set(['slug', 'destination', 'clicks', 'updated', 'created', 'expires']);
+  const sortKey = allowed.has(key) ? key : 'slug';
+
+  return links.slice().sort((a, b) => {
+    const av = getComparableValue(a, sortKey);
+    const bv = getComparableValue(b, sortKey);
+    let result = 0;
+    if (typeof av === 'number' && typeof bv === 'number') result = av - bv;
+    else result = String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' });
+    if (!result) result = String(a.slug || '').localeCompare(String(b.slug || ''));
+    return descending ? -result : result;
+  });
+}
+
+function normalizeLimit(value){
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.max(1, Math.min(500, Math.floor(numeric)));
+}
+
+function normalizeCursor(value){
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.max(0, Math.floor(numeric));
+}
+
+function hasListQuery(params){
+  return ['q', 'status', 'sort', 'limit', 'cursor'].some(key => params && params.has(key));
+}
+
+function applyListQuery(links, params){
+  const q = getQueryValue(params, 'q');
+  const status = getQueryValue(params, 'status');
+  const sort = getQueryValue(params, 'sort') || 'slug';
+  const limit = normalizeLimit(getQueryValue(params, 'limit'));
+  const cursor = normalizeCursor(getQueryValue(params, 'cursor'));
+
+  const filtered = sortLinks(
+    (Array.isArray(links) ? links : []).filter(link => matchesQuery(link, q) && matchesStatus(link, status)),
+    sort
+  );
+
+  if (!limit) {
+    return {
+      links: filtered,
+      pagination: {
+        total: filtered.length,
+        limit: 0,
+        cursor: 0,
+        nextCursor: ''
+      }
+    };
+  }
+
+  const page = filtered.slice(cursor, cursor + limit);
+  const nextCursor = cursor + limit < filtered.length ? String(cursor + limit) : '';
+  return {
+    links: page,
+    pagination: {
+      total: filtered.length,
+      limit,
+      cursor,
+      nextCursor
+    }
+  };
+}
+
+async function handler(req, res){
   const adminToken = getAdminToken();
   if (!adminToken) {
     sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
@@ -120,6 +273,18 @@ module.exports = async (req, res) => {
       .filter(link => link.slug && link.destination)
       .sort((a, b) => a.slug.localeCompare(b.slug, undefined, { sensitivity: 'base' }) || a.slug.localeCompare(b.slug));
 
+    const params = getRequestUrl(req).searchParams;
+    if (hasListQuery(params)) {
+      const result = applyListQuery(links, params);
+      sendJson(res, 200, {
+        ok: true,
+        basePath: 'go',
+        links: result.links,
+        pagination: result.pagination
+      });
+      return;
+    }
+
     sendJson(res, 200, { ok: true, basePath: 'go', links });
     return;
   }
@@ -135,8 +300,13 @@ module.exports = async (req, res) => {
 
     let requestedSlug;
     try {
-      requestedSlug = await resolveRequestedSlug(body || {});
+      const existingLinks = await listLinks();
+      requestedSlug = await resolveRequestedSlug(body || {}, buildLowerSlugMap(existingLinks));
     } catch (err) {
+      if (err.code === 'DDB_ENV_MISSING') {
+        sendJson(res, 503, { ok: false, error: err.message });
+        return;
+      }
       sendJson(res, err.statusCode || 400, { ok: false, error: err.message || 'Invalid slug' });
       return;
     }
@@ -204,4 +374,12 @@ module.exports = async (req, res) => {
   res.statusCode = 405;
   res.setHeader('Allow', 'GET, POST');
   sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
+}
+
+module.exports = handler;
+module.exports._internal = {
+  applyListQuery,
+  buildLowerSlugMap,
+  resolveRequestedSlug,
+  serializeLink
 };

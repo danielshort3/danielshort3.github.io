@@ -884,6 +884,154 @@ function buildToolsDirectoryWorkbenchData(page, tools) {
   };
 }
 
+function toolsByCategory(page, tools) {
+  const categories = sortByOrderThenTitle(Array.isArray(page && page.categories) ? page.categories : []);
+  const directoryTools = (Array.isArray(tools) ? tools : []).filter(isDirectoryTool);
+  const usedTools = new Set();
+  const groups = categories
+    .map((category) => {
+      const items = sortByOrderThenTitle(directoryTools.filter((tool) => String(tool.categoryId || '') === String(category.id || '')));
+      items.forEach((tool) => usedTools.add(tool));
+      return { category, items };
+    })
+    .filter((group) => group.items.length);
+
+  const uncategorized = sortByOrderThenTitle(directoryTools.filter((tool) => !usedTools.has(tool)));
+  if (uncategorized.length) {
+    groups.push({
+      category: {
+        id: 'tools-other',
+        title: 'Other tools',
+        description: 'Additional focused utilities.'
+      },
+      items: uncategorized
+    });
+  }
+
+  return groups;
+}
+
+function renderToolsResumePanel(page) {
+  const resumePanel = page && page.resumePanel ? page.resumePanel : {};
+  const kicker = resumePanel.kicker || 'Saved sessions';
+  const title = resumePanel.title || 'Continue where you left off';
+  return [
+    '<section class="tools-resume-panel" data-tools-resume="panel" data-tools-auth-only aria-labelledby="tools-resume-title" hidden aria-hidden="true">',
+    '  <div class="tools-resume-head">',
+    '    <div class="tools-resume-head-copy">',
+    `      <p class="tools-resume-kicker">${escapeHtml(kicker)}</p>`,
+    `      <h2 class="tools-resume-title" id="tools-resume-title">${escapeHtml(title)}</h2>`,
+    '    </div>',
+    '  </div>',
+    '  <p class="tools-resume-status" data-tools-resume="status" role="status" aria-live="polite"></p>',
+    '  <div class="tools-resume-content" data-tools-resume="content"></div>',
+    '</section>'
+  ].join('\n');
+}
+
+function renderToolsDirectoryRail(groups) {
+  const publicCount = groups.reduce((total, group) => total + group.items.filter(isPublicTool).length, 0);
+  const links = groups.map((group, index) => {
+    const category = group.category || {};
+    const id = String(category.id || `tools-category-${index + 1}`).trim();
+    const title = category.title || 'Tools';
+    const description = category.description || '';
+    const count = group.items.length;
+    return [
+      `  <a class="tools-rail-link" href="#${escapeHtml(id)}">`,
+      `    <span class="tools-rail-index">${String(index + 1).padStart(2, '0')}</span>`,
+      '    <span class="tools-rail-copy">',
+      `      <span class="tools-rail-title">${escapeHtml(title)}</span>`,
+      description ? `      <span class="tools-rail-description">${escapeHtml(description)}</span>` : '',
+      '    </span>',
+      `    <span class="tools-rail-count">${escapeHtml(count)} ${count === 1 ? 'tool' : 'tools'}</span>`,
+      '  </a>'
+    ].filter(Boolean).join('\n');
+  });
+
+  return [
+    '<nav class="tools-directory-rail" aria-label="Tool categories">',
+    `  <p class="tools-directory-stat">${escapeHtml(publicCount)} public tools</p>`,
+    ...links,
+    '</nav>'
+  ].join('\n');
+}
+
+function renderToolsDirectoryNote(page) {
+  const title = page && page.directoryTitle ? page.directoryTitle : 'Choose the workflow surface';
+  const kicker = page && page.directoryKicker ? page.directoryKicker : 'Tool catalog';
+  const description = page && page.directoryDescription ? page.directoryDescription : 'Grouped by the kind of repeated work each tool is meant to remove.';
+  return [
+    '<aside class="tools-directory-note" aria-labelledby="tools-directory-note-title">',
+    `  <p class="tools-directory-note-kicker">${escapeHtml(kicker)}</p>`,
+    `  <h2 id="tools-directory-note-title">${escapeHtml(title)}</h2>`,
+    `  <p>${escapeHtml(description)}</p>`,
+    '  <p>Public tools run without an account. Signed-in tools reveal private session history and account-backed workflows when available.</p>',
+    '</aside>'
+  ].join('\n');
+}
+
+function renderToolsDirectoryCard(tool) {
+  const visibility = toolVisibility(tool);
+  const hiddenByDefault = !isPublicTool(tool);
+  const slug = String(tool && tool.slug ? tool.slug : '').trim();
+  const title = tool && tool.title ? tool.title : 'Tool';
+  const detailsId = `${slug || slugify(title)}-details`;
+  const iconClass = hasToolIconImage(tool) ? 'tool-icon tool-icon-image' : 'tool-icon';
+  const attrs = {
+    class: 'tool-card',
+    'data-tools-card': true,
+    'data-tools-category-id': tool && tool.categoryId ? tool.categoryId : null,
+    'data-tools-visibility': visibility === 'public' ? null : visibility,
+    hidden: hiddenByDefault ? true : null,
+    'aria-hidden': hiddenByDefault ? 'true' : null
+  };
+
+  return [
+    `  <article${attrsToString(attrs)}>`,
+    `    <a class="tool-launch-card" href="${escapeHtml(toolHref(tool))}" aria-describedby="${escapeHtml(detailsId)}">`,
+    `      <span class="${escapeHtml(iconClass)}" aria-hidden="true">`,
+    indentBlock(renderToolIconMarkup(tool), '        '),
+    '      </span>',
+    '      <span class="tool-card-main">',
+    `        <span class="tool-card-title">${escapeHtml(title)}</span>`,
+    '      </span>',
+    `      <span class="tool-card-details" id="${escapeHtml(detailsId)}" role="tooltip">`,
+    `        <span class="tool-card-summary">${escapeHtml(tool && tool.summary ? tool.summary : '')}</span>`,
+    '      </span>',
+    '    </a>',
+    '  </article>'
+  ].join('\n');
+}
+
+function renderToolsDirectoryCategory(group) {
+  const category = group.category || {};
+  const id = String(category.id || '').trim();
+  const title = category.title || 'Tools';
+  const description = category.description || '';
+  const hiddenByDefault = !group.items.some(isPublicTool);
+  const attrs = {
+    class: 'tools-category',
+    id,
+    'aria-labelledby': `${id}-title`,
+    'data-tools-category': true,
+    'data-tools-category-title': title,
+    hidden: hiddenByDefault ? true : null
+  };
+
+  return [
+    `<section${attrsToString(attrs)}>`,
+    '  <header class="tools-category-head">',
+    `    <h2 class="section-title" id="${escapeHtml(id)}-title">${escapeHtml(title)}</h2>`,
+    description ? `    <p>${escapeHtml(description)}</p>` : '',
+    '  </header>',
+    '  <div class="tools-grid">',
+    group.items.map(renderToolsDirectoryCard).join('\n'),
+    '  </div>',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
 function buildGamesDirectoryWorkbenchData(page) {
   const games = sortByOrderThenTitle((Array.isArray(page && page.games) ? page.games : [])
     .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id)));
@@ -945,7 +1093,6 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   const itemSingular = String(options.itemSingular || 'item').trim();
   const itemPlural = String(options.itemPlural || `${itemSingular}s`).trim();
   const title = String(options.title || page.heroTitle || page.title || 'Library').trim();
-  const titleId = `${kind}-workbench-title`;
   const resultsId = `${kind}-results-title`;
   const displaySingular = `${itemSingular.charAt(0).toUpperCase()}${itemSingular.slice(1)}`;
   const accountDock = options.accountDock
@@ -959,11 +1106,11 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   return [
     '<main id="main" class="portfolio-main directory-workbench-main">',
     ...accountDock,
-    `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-labelledby="${escapeHtml(titleId)}">`,
+    `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-label="${escapeHtml(title)}">`,
     '    <div class="portfolio-workbench__shell">',
     '      <header class="portfolio-workbench__header">',
     '        <div class="portfolio-workbench__title-block">',
-    `          <h1 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h1>`,
+    `          <h1>${escapeHtml(title)}</h1>`,
     '        </div>',
     '      </header>',
     '',
@@ -1008,14 +1155,36 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   ].join('\n');
 }
 
-function renderToolsDirectoryBody(page) {
-  return renderDirectoryWorkbenchBody(page, {
-    kind: 'tools',
-    title: page.heroTitle || 'Tools',
-    itemSingular: 'tool',
-    itemPlural: 'tools',
-    accountDock: true
-  });
+function renderToolsDirectoryBody(page, tools) {
+  const groups = toolsByCategory(page, tools);
+  const title = page.heroTitle || 'Tools';
+  const lead = page.heroLead || page.description || '';
+  return [
+    '<div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
+    '  <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
+    '    <div class="tools-account-bar" data-tools-account="bar"></div>',
+    '  </div>',
+    '</div>',
+    renderToolsResumePanel(page),
+    '<main id="main">',
+    '  <section class="tools-section" aria-label="Tool directory">',
+    '    <div class="wrapper tools-directory-layout">',
+    indentBlock(renderToolsDirectoryRail(groups), '      '),
+    '      <div class="tools-directory-main">',
+    '        <header class="tools-directory-head">',
+    `          <p class="tools-directory-kicker">${escapeHtml(page.heroEyebrow || 'Tools')}</p>`,
+    `          <h1>${escapeHtml(title)}</h1>`,
+    lead ? `          <p>${escapeHtml(lead)}</p>` : '',
+    '        </header>',
+    '        <div id="tools-directory-results" data-tools-results>',
+    indentBlock(groups.map(renderToolsDirectoryCategory).join('\n'), '          '),
+    '        </div>',
+    '      </div>',
+    indentBlock(renderToolsDirectoryNote(page), '      '),
+    '    </div>',
+    '  </section>',
+    '</main>'
+  ].filter(Boolean).join('\n');
 }
 
 function renderGamesDirectoryBody(page) {

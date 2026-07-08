@@ -99,13 +99,13 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-card {
   position: relative;
-  width: min(1120px, 100%);
+  width: min(920px, 100%);
   margin-inline: auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px 16px;
   align-items: center;
-  padding: 12px 56px 12px 16px;
+  padding: 10px 52px 10px 14px;
   border: 1px solid var(--pcz-border);
   border-radius: 10px;
   background:
@@ -123,9 +123,9 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-banner .pcz-body {
   margin: 0;
   color: var(--pcz-muted);
-  max-width: 74ch;
-  font-size: 0.9rem;
-  line-height: 1.42;
+  max-width: 66ch;
+  font-size: 0.86rem;
+  line-height: 1.36;
 }
 
 #pcz-banner .pcz-actions {
@@ -591,8 +591,8 @@ body[data-consent-banner="open"] .speed-dial {
 
   #pcz-banner .pcz-card {
     border-radius: 8px;
-    gap: 7px;
-    padding: 9px 40px 9px 10px;
+    gap: 6px;
+    padding: 8px 38px 8px 10px;
     border-color: color-mix(in srgb, var(--pcz-accent) 12%, rgba(255, 255, 255, 0.08));
   }
 
@@ -606,7 +606,7 @@ body[data-consent-banner="open"] .speed-dial {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
-    gap: 7px;
+    gap: 6px;
   }
 
   #pcz-banner .pcz-btn {
@@ -671,7 +671,39 @@ body[data-consent-banner="open"] .speed-dial {
 
 @media (max-width: 768px) {
   body.has-mobile-site-dock #pcz-banner {
-    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+    top: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 6px);
+    bottom: auto;
+    padding:
+      6px
+      max(8px, env(safe-area-inset-right))
+      0
+      max(8px, env(safe-area-inset-left));
+    transform: translateY(-140%);
+  }
+
+  body.has-mobile-site-dock #pcz-banner.pcz-visible {
+    transform: translateY(0);
+  }
+
+  body.has-mobile-site-dock #pcz-banner.pcz-exit {
+    transform: translateY(-140%);
+  }
+
+  body.has-mobile-site-dock #pcz-banner .pcz-card {
+    width: min(100%, 430px);
+    margin-inline: auto;
+    box-shadow: 0 12px 24px rgba(9, 31, 59, 0.16);
+  }
+
+  body.has-mobile-site-dock #pcz-banner .pcz-body {
+    font-size: 0.78rem;
+    line-height: 1.28;
+  }
+
+  body.has-mobile-site-dock #pcz-banner .pcz-btn {
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 0.76rem;
   }
 }
 

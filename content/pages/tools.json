@@ -11,7 +11,8 @@
   "ogType": "website",
   "bodyAttributes": {
     "data-page": "tools",
-    "class": "tools-page site-page portfolio-workbench-page"
+    "class": "tools-page site-page",
+    "data-tools-layout": "directory"
   },
   "stylesheets": [
     "dist/styles.css"
@@ -22,6 +23,10 @@
     }
   ],
   "bottomScripts": [
+    {
+      "src": "js/tools/tools-directory.js",
+      "defer": true
+    },
     {
       "src": "dist/site-shell.js",
       "defer": true

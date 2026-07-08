@@ -21,7 +21,7 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.12ccca2b.css">
+  <link rel="stylesheet" href="dist/styles.cd89576f.css">
   <link rel="stylesheet" href="dist/styles-tools.7f2ad26c.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -296,7 +296,7 @@
                 <div class="shortlinks-card-copy">
                   <p class="shortlinks-kicker">Admin access</p>
                   <h2 id="shortlinks-access-title" class="section-title">Unlock redirects and exports</h2>
-                  <p class="shortlinks-panel-lead">Save the admin token on this browser, refresh redirect data, and run a quick backend check without opening another panel.</p>
+                  <p class="shortlinks-panel-lead">Use the short-links admin token for this dashboard. This is separate from the public tools account sign-in above.</p>
                 </div>
                 <div class="shortlinks-access-status" aria-live="polite">
                   <span class="shortlinks-admin-badge" data-shortlinks="admin-access-summary">Token required</span>
@@ -307,7 +307,11 @@
                 <div class="form-field">
                   <label for="shortlinks-token">Admin token</label>
                   <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
-                  <p class="contact-form-note">Stored locally on this browser only.</p>
+                  <label class="shortlinks-token-remember">
+                    <input type="checkbox" data-shortlinks="remember-token">
+                    <span>Remember on this browser</span>
+                  </label>
+                  <p class="contact-form-note">Session-only by default. Use remember only on a trusted device.</p>
                 </div>
                 <div class="form-actions shortlinks-action-row shortlinks-action-row-compact">
                   <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
@@ -615,14 +619,76 @@
                   <p class="shortlinks-kicker">All links</p>
                   <h2 id="shortlinks-links-title" class="section-title">All redirects</h2>
                 </div>
-                <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
+                <div class="shortlinks-links-head-actions">
+                  <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
+                  <button type="button" class="btn-primary" data-shortlinks="new-link-from-list">New short link</button>
+                </div>
               </div>
               <div class="shortlinks-toolbar shortlinks-toolbar-main">
                 <label class="shortlinks-filter">
                   <span class="shortlinks-filter-label">Search links</span>
                   <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs or destinations" data-shortlinks="filter">
                 </label>
+                <label class="shortlinks-view">
+                  <span class="shortlinks-view-label">Status</span>
+                  <select data-shortlinks="status-filter">
+                    <option value="all" selected>All statuses</option>
+                    <option value="active">Active</option>
+                    <option value="temporary">Temporary</option>
+                    <option value="permanent">Permanent</option>
+                    <option value="healthy">Healthy</option>
+                    <option value="warning">Warnings</option>
+                    <option value="expiring-soon">Expiring soon</option>
+                    <option value="expired">Expired</option>
+                    <option value="disabled">Disabled</option>
+                  </select>
+                </label>
+                <label class="shortlinks-view">
+                  <span class="shortlinks-view-label">Sort</span>
+                  <select data-shortlinks="sort">
+                    <option value="slug" selected>Slug A-Z</option>
+                    <option value="-updated">Recently updated</option>
+                    <option value="-clicks">Most clicks</option>
+                    <option value="expires">Expiring soon</option>
+                    <option value="destination">Destination A-Z</option>
+                  </select>
+                </label>
+                <label class="shortlinks-view">
+                  <span class="shortlinks-view-label">Density</span>
+                  <select data-shortlinks="density">
+                    <option value="comfortable" selected>Comfortable</option>
+                    <option value="compact">Compact</option>
+                  </select>
+                </label>
               </div>
+              <div class="shortlinks-ops-panel" aria-label="Link operations">
+                <div class="shortlinks-health-strip" data-shortlinks="health-strip" aria-live="polite"></div>
+                <div class="shortlinks-views-row">
+                  <label class="shortlinks-view shortlinks-saved-view-control">
+                    <span class="shortlinks-view-label">Saved view</span>
+                    <select data-shortlinks="saved-view">
+                      <option value="">Current filters</option>
+                    </select>
+                  </label>
+                  <div class="shortlinks-action-row shortlinks-action-row-compact shortlinks-view-actions">
+                    <button type="button" class="btn-secondary" data-shortlinks="save-view">Save view</button>
+                    <button type="button" class="btn-ghost" data-shortlinks="delete-view">Delete view</button>
+                  </div>
+                </div>
+                <div class="shortlinks-bulk-row">
+                  <label class="shortlinks-select-visible">
+                    <input type="checkbox" data-shortlinks="select-visible">
+                    <span>Select visible</span>
+                  </label>
+                  <p class="shortlinks-output-meta" data-shortlinks="selection-count" aria-live="polite">0 selected</p>
+                  <div class="shortlinks-action-row shortlinks-action-row-compact shortlinks-bulk-actions">
+                    <button type="button" class="btn-secondary" data-shortlinks="test-selected">Test selected</button>
+                    <button type="button" class="btn-secondary" data-shortlinks="export-view">Export view</button>
+                    <button type="button" class="btn-ghost" data-shortlinks="clear-selection">Clear</button>
+                  </div>
+                </div>
+              </div>
+              <aside class="shortlinks-detail-panel" data-shortlinks="detail-panel" hidden aria-live="polite"></aside>
               <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
               <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
             </section>

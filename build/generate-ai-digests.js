@@ -282,6 +282,15 @@ function routeToAiUrl(urlPath) {
   return `${SITE_ORIGIN}/ai${normalized}`;
 }
 
+function fallbackMainTextForRoute(urlPath) {
+  const normalized = normalizePathname(urlPath);
+  if (normalized !== '/') return '';
+  return [
+    'Daniel Short personal website with portfolio projects, browser tools, games, and contact information.',
+    'The homepage is an interactive graph that links to projects, tools, games, resume materials, and ways to contact Daniel Short.'
+  ].join(' ');
+}
+
 function isPublicVisibility(value) {
   const visibility = normalizeWhitespace(value).toLowerCase();
   return !visibility || visibility === 'public';
@@ -1267,7 +1276,10 @@ function extractSectionsFromRegion(region) {
 
 function buildDigestPage({ html, relPath, urlPath, override, generatedAt }) {
   const region = extractMainRegion(html);
-  const mainText = extractCleanMainText(html);
+  let mainText = extractCleanMainText(html);
+  if (mainText.length < 80) {
+    mainText = [mainText, fallbackMainTextForRoute(urlPath)].filter(Boolean).join(' ');
+  }
   if (!mainText || mainText.length < 80) return null;
 
   const headings = uniqueList(extractTagTexts(region, ['h1', 'h2', 'h3']), 14);

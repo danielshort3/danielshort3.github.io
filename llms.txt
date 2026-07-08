@@ -7,6 +7,7 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Start Here
 
+- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.
 - [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
 - [Tools](https://www.danielshort.me/ai/tools): Small utilities for writing, links, media, and repeatable work.
 - [Games](https://www.danielshort.me/ai/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
@@ -43,5 +44,5 @@ AI-readable pages use stable /ai/ URLs and canonicalize back to their public hum
 
 ## Optional
 
-- [Privacy & Analytics](https://www.danielshort.me/ai/privacy): What this site tracks (and what it doesn’t). Privacy & analytics details.
+- [Privacy & Analytics](https://www.danielshort.me/ai/privacy): What this site tracks and what it does not. Privacy and analytics details.
 - [Sitemap](https://www.danielshort.me/ai/sitemap): Browse tools, portfolio projects, and key pages across Daniel Short’s site.
