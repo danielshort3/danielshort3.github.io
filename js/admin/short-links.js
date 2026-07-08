@@ -230,13 +230,14 @@
 
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
+  let linksLoaded = false;
   let visibleLinksCount = 0;
   let visibleLinkSlugs = [];
   let selectedSlugs = new Set();
   let linkHealth = new Map();
   let memorySavedViews = [];
   let activeDetailSlug = '';
-  let projectHealth = { total: 0, missing: 0, mismatched: 0 };
+  let projectHealth = { total: 0, missing: 0, mismatched: 0, checked: false };
   let allSets = [];
   let activeSetId = '';
   let setRowCounter = 0;
@@ -253,6 +254,23 @@
     el.textContent = String(message || '');
     if (tone) el.dataset.tone = tone;
     else delete el.dataset.tone;
+  }
+
+  function canCompareProjectLinks(){
+    return linksLoaded;
+  }
+
+  function getProjectSyncPendingCopy(){
+    const hasToken = !!getSavedToken();
+    return {
+      value: hasToken ? 'Loading' : 'Locked',
+      note: hasToken
+        ? 'Loading saved redirects before comparing projects'
+        : 'Admin token required to compare saved redirects',
+      badge: hasToken ? 'Project sync loading' : 'Unlock to check sync',
+      meta: hasToken ? 'loading saved redirects' : 'admin token required',
+      tone: hasToken ? 'info' : ''
+    };
   }
 
   function setEditorMeta(message){
@@ -1198,6 +1216,7 @@
     const missingProjects = Number.isFinite(Number(projectHealth.missing)) ? Number(projectHealth.missing) : 0;
     const mismatchedProjects = Number.isFinite(Number(projectHealth.mismatched)) ? Number(projectHealth.mismatched) : 0;
     const syncedProjects = Math.max(0, totalProjects - missingProjects - mismatchedProjects);
+    const projectSyncChecked = projectHealth.checked === true && canCompareProjectLinks();
 
     const query = getFilterQuery();
 
@@ -1228,7 +1247,7 @@
       tone: warnings ? 'warning' : (healthCounts.healthy ? 'success' : '')
     }));
 
-    if (totalProjects > 0) {
+    if (totalProjects > 0 && projectSyncChecked) {
       const issues = missingProjects + mismatchedProjects;
       const noteBits = [];
       if (missingProjects) noteBits.push(`${formatCount(missingProjects)} missing`);
@@ -1238,6 +1257,14 @@
         value: `${formatCount(syncedProjects)} / ${formatCount(totalProjects)}`,
         note: noteBits.length ? noteBits.join(' · ') : 'All mapped correctly',
         tone: issues ? 'warning' : 'success'
+      }));
+    } else if (totalProjects > 0) {
+      const pending = getProjectSyncPendingCopy();
+      summaryEl.appendChild(makeSnapshotCard({
+        label: 'Project sync',
+        value: pending.value,
+        note: pending.note,
+        tone: pending.tone
       }));
     } else {
       summaryEl.appendChild(makeSnapshotCard({
@@ -1262,9 +1289,13 @@
     const missingProjects = Number.isFinite(Number(projectHealth.missing)) ? Number(projectHealth.missing) : 0;
     const mismatchedProjects = Number.isFinite(Number(projectHealth.mismatched)) ? Number(projectHealth.mismatched) : 0;
     const projectIssues = missingProjects + mismatchedProjects;
+    const projectSyncChecked = projectHealth.checked === true && canCompareProjectLinks();
 
     if (!totalProjects) {
       setAdminBadge(adminProjectSummaryEl, 'Project sync loading', '');
+    } else if (!projectSyncChecked) {
+      const pending = getProjectSyncPendingCopy();
+      setAdminBadge(adminProjectSummaryEl, pending.badge, pending.tone);
     } else {
       setAdminBadge(
         adminProjectSummaryEl,
@@ -1691,11 +1722,15 @@
 
   function setProjectsBusy(isBusy){
     const busy = !!isBusy;
-    const controls = [projectsRefreshButton, projectsEnsureButton];
-    controls.forEach(control => {
-      if (!control) return;
-      control.disabled = busy;
-    });
+    if (projectsRefreshButton) projectsRefreshButton.disabled = busy;
+    if (projectsEnsureButton) {
+      projectsEnsureButton.disabled = busy || !canCompareProjectLinks();
+      if (!canCompareProjectLinks()) {
+        projectsEnsureButton.title = 'Load redirects with admin access before syncing.';
+      } else {
+        projectsEnsureButton.removeAttribute('title');
+      }
+    }
   }
 
   function buildProjectSlugFromPath(pathname){
@@ -1776,22 +1811,26 @@
     projectsListEl.replaceChildren();
 
     if (!Array.isArray(projectCatalog) || projectCatalog.length === 0) {
-      projectHealth = { total: 0, missing: 0, mismatched: 0 };
+      projectHealth = { total: 0, missing: 0, mismatched: 0, checked: false };
       setProjectsMeta('');
       const empty = document.createElement('p');
       empty.className = 'shortlinks-empty shortlinks-empty-state';
       empty.textContent = destinationsManifest ? 'No portfolio projects found.' : 'Loading projects…';
       projectsListEl.appendChild(empty);
+      setProjectsBusy(ensuringProjectLinks);
       renderDashboardSummary();
       return;
     }
 
+    const canCompare = canCompareProjectLinks();
     const linkMap = new Map();
-    allLinks.forEach(link => {
-      const slug = normalizeSlugKey(link && link.slug);
-      if (!slug) return;
-      linkMap.set(slug, link);
-    });
+    if (canCompare) {
+      allLinks.forEach(link => {
+        const slug = normalizeSlugKey(link && link.slug);
+        if (!slug) return;
+        linkMap.set(slug, link);
+      });
+    }
 
     const total = projectCatalog.length;
     let missing = 0;
@@ -1800,21 +1839,21 @@
     projectCatalog.forEach(project => {
       const expectedSlug = normalizeSlugKey(project.slug);
       const expectedDestination = normalizeDestinationForCompare(project.destination);
-      const link = expectedSlug ? linkMap.get(expectedSlug) : null;
+      const link = canCompare && expectedSlug ? linkMap.get(expectedSlug) : null;
       const hasLink = !!(link && typeof link.destination === 'string');
       const destMatches = hasLink
         ? normalizeDestinationForCompare(link.destination) === expectedDestination
         : false;
 
-      if (!hasLink) missing += 1;
-      else if (!destMatches) mismatched += 1;
+      if (canCompare && !hasLink) missing += 1;
+      else if (canCompare && !destMatches) mismatched += 1;
 
       const shortUrl = expectedSlug ? buildShortUrl(expectedSlug) : '';
       const destinationUrl = formatAbsoluteUrl(project.destination);
 
       const card = document.createElement('article');
       card.className = 'shortlinks-item shortlinks-project-item';
-      if (!hasLink) card.classList.add('shortlinks-item-missing');
+      if (canCompare && !hasLink) card.classList.add('shortlinks-item-missing');
       if (hasLink && link.disabled) card.classList.add('shortlinks-item-disabled');
       if (hasLink && !destMatches) card.classList.add('shortlinks-item-mismatch');
 
@@ -1835,7 +1874,12 @@
       const meta = document.createElement('div');
       meta.className = 'shortlinks-item-meta';
 
-      if (!hasLink) {
+      if (!canCompare) {
+        const pendingPill = document.createElement('span');
+        pendingPill.className = 'tool-pill';
+        pendingPill.textContent = 'Not checked';
+        meta.appendChild(pendingPill);
+      } else if (!hasLink) {
         const missingPill = document.createElement('span');
         missingPill.className = 'tool-pill shortlinks-pill-missing';
         missingPill.textContent = 'Missing';
@@ -1882,7 +1926,7 @@
       if (!openShort.href) openShort.setAttribute('aria-disabled', 'true');
       actions.appendChild(openShort);
 
-      if (!hasLink) {
+      if (canCompare && !hasLink) {
         const createButton = document.createElement('button');
         createButton.type = 'button';
         createButton.className = 'btn-primary';
@@ -1891,7 +1935,7 @@
           await ensureProjectLinks({ only: [project], includeMismatched: true, silent: false });
         });
         actions.appendChild(createButton);
-      } else if (!destMatches) {
+      } else if (canCompare && !destMatches) {
         const fixButton = document.createElement('button');
         fixButton.type = 'button';
         fixButton.className = 'btn-primary';
@@ -1902,7 +1946,7 @@
         actions.appendChild(fixButton);
       }
 
-      const projectMenu = buildActionMenu([
+      const projectMenu = canCompare ? buildActionMenu([
         {
           label: 'Edit link',
           onSelect: async () => {
@@ -1929,7 +1973,7 @@
       ], {
         label: 'More',
         ariaLabel: `${project.label || project.id || 'Project'} actions`
-      });
+      }) : null;
       if (projectMenu) actions.appendChild(projectMenu);
 
       head.appendChild(titleWrap);
@@ -1975,10 +2019,20 @@
     });
 
     const bits = [`${total} project${total === 1 ? '' : 's'}`];
-    if (missing) bits.push(`${missing} missing`);
-    if (mismatched) bits.push(`${mismatched} mismatch${mismatched === 1 ? '' : 'es'}`);
-    projectHealth = { total, missing, mismatched };
+    if (!canCompare) {
+      bits.push(getProjectSyncPendingCopy().meta);
+    } else {
+      if (missing) bits.push(`${missing} missing`);
+      if (mismatched) bits.push(`${mismatched} mismatch${mismatched === 1 ? '' : 'es'}`);
+    }
+    projectHealth = {
+      total,
+      missing: canCompare ? missing : 0,
+      mismatched: canCompare ? mismatched : 0,
+      checked: canCompare
+    };
     setProjectsMeta(bits.join(' • '));
+    setProjectsBusy(ensuringProjectLinks);
     renderDashboardSummary();
   }
 
@@ -1988,7 +2042,7 @@
     await loadDestinationsManifest();
     rebuildProjectCatalog();
     renderProjectLinks();
-    if (ensureMissing) {
+    if (ensureMissing && canCompareProjectLinks()) {
       void ensureProjectLinks({ silent: true });
     }
   }
@@ -2001,6 +2055,10 @@
     const includeMismatched = options && options.includeMismatched === true;
 
     if (!requireToken(projectsStatusEl)) return;
+    if (!canCompareProjectLinks()) {
+      setStatus(projectsStatusEl, 'Load redirects before syncing project links.', 'warning');
+      return;
+    }
     ensuringProjectLinks = true;
     setProjectsBusy(true);
 
@@ -3488,18 +3546,23 @@
   }
 
   async function refreshLinks(){
+    linksLoaded = false;
+    setProjectsBusy(ensuringProjectLinks);
+    if (Array.isArray(projectCatalog) && projectCatalog.length) renderProjectLinks();
     setStatus(listStatusEl, 'Loading…');
     setStatus(healthStatusEl, '');
     try {
       const data = await api('/api/short-links', { method: 'GET' });
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
       allLinks = Array.isArray(data.links) ? data.links : [];
+      linksLoaded = true;
       pruneSelectedSlugs();
       applyFilterAndRender();
       void refreshProjectsSection({ ensureMissing: true });
       setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
       markSessionDirty();
     } catch (err) {
+      linksLoaded = false;
       allLinks = [];
       visibleLinkSlugs = [];
       selectedSlugs = new Set();
@@ -3507,6 +3570,7 @@
       visibleLinksCount = 0;
       setCount(0, 0);
       setStatus(listStatusEl, err.message, 'error');
+      renderProjectLinks();
       renderDashboardSummary();
       markSessionDirty();
     }
@@ -4232,6 +4296,7 @@
       saveToken('');
       updateAccessMeta();
       tokenInput.value = '';
+      linksLoaded = false;
       allLinks = [];
       clearList();
       visibleLinksCount = 0;
