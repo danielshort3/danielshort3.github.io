@@ -21,8 +21,8 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.cd89576f.css">
-  <link rel="stylesheet" href="dist/styles-tools.7f2ad26c.css">
+  <link rel="stylesheet" href="dist/styles.8204a96b.css">
+  <link rel="stylesheet" href="dist/styles-tools.43e3d3b0.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -365,11 +365,12 @@
                       <div class="form-field" data-shortlinks="audience-field" hidden>
                         <label for="shortlinks-audience">Audience target</label>
                         <select id="shortlinks-audience" data-shortlinks="audience">
-                          <option value="analytics" selected>Data Analytics</option>
+                          <option value="personal">Personal site</option>
+                          <option value="analytics" selected>Professional site</option>
                           <option value="data-science">Data Science</option>
                           <option value="tourism">Tourism</option>
                         </select>
-                        <p class="contact-form-note">Shown for internal home, resume, and portfolio links that change by audience.</p>
+                        <p class="contact-form-note">Shown for internal home, resume, and portfolio links that change by site version.</p>
                       </div>
                       <div class="form-field">
                         <label for="shortlinks-slug-mode">Short code type</label>
@@ -602,6 +603,14 @@
                   </div>
                   <p class="shortlinks-projects-note">Keep published portfolio projects matched with permanent short links and correct destinations without crowding the main redirect view.</p>
                   <div class="shortlinks-projects-toolbar">
+                    <label class="shortlinks-view shortlinks-project-shortcut-control">
+                      <span class="shortlinks-view-label">Shortcut set</span>
+                      <select data-shortlinks="projects-shortcut-mode">
+                        <option value="canonical" selected>Canonical project links</option>
+                        <option value="personal">Personal project links</option>
+                        <option value="professional">Professional project links</option>
+                      </select>
+                    </label>
                     <div class="shortlinks-projects-actions">
                       <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
                       <button type="button" class="btn-primary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
@@ -706,6 +715,15 @@
           <p class="modal-subtitle">Select an internal page on <code>danielshort.me</code>. The value is saved as a full URL so it works from any origin.</p>
         </div>
         <div class="modal-body stacked shortlinks-picker">
+          <label class="shortlinks-view shortlinks-picker-audience">
+            <span class="shortlinks-view-label">Site version</span>
+            <select data-shortlinks="destination-audience">
+              <option value="personal">Personal site</option>
+              <option value="analytics" selected>Professional site</option>
+              <option value="data-science">Data Science</option>
+              <option value="tourism">Tourism</option>
+            </select>
+          </label>
           <label class="shortlinks-picker-search">
             <span class="shortlinks-picker-search-label">Search</span>
             <input type="search" autocomplete="off" spellcheck="false" placeholder="Search pages…" data-shortlinks="destination-search">
