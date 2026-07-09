@@ -707,6 +707,21 @@ body[data-consent-banner="open"] .speed-dial {
   }
 }
 
+@media (min-width: 941px) {
+  body[data-page="home"].home-pattern-page #pcz-banner {
+    padding-right: calc(300px + max(16px, env(safe-area-inset-right)));
+  }
+
+  body[data-page="home"].home-pattern-page #pcz-banner .pcz-card {
+    width: min(760px, 100%);
+  }
+
+  body[data-page="home"].home-pattern-page[data-consent-banner="open"] .site-chatbot {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #pcz-banner,
   #pcz-modal,

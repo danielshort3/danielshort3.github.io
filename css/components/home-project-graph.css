@@ -11,6 +11,8 @@
     --home-graph-surface: rgba(255, 255, 255, .96);
     --home-graph-shadow: 0 22px 64px rgba(15, 31, 63, .12);
     --home-graph-footer-space: 152px;
+    --home-graph-mobile-top-clearance: 0px;
+    --home-graph-mobile-bottom-clearance: 0px;
     box-sizing: border-box;
   }
 
@@ -294,10 +296,19 @@
     transform: scale(.92);
   }
 
+  .home-graph[data-graph-active] .home-graph__category.is-supporting .home-graph__category-card {
+    opacity: .74;
+    filter: saturate(.78);
+  }
+
   .home-graph__category.is-supporting .home-graph__halo {
     width: calc(100% + 54px);
     height: calc(100% + 48px);
     opacity: .68;
+  }
+
+  .home-graph[data-graph-active] .home-graph__category.is-supporting .home-graph__halo {
+    opacity: .36;
   }
 
   .home-graph__category.is-supporting .home-graph__category-icon {
@@ -342,6 +353,8 @@
   }
 
   .home-graph__category.is-supporting:is(:hover, :focus-within) .home-graph__category-card {
+    opacity: .96;
+    filter: none;
     transform: translateY(-2px) scale(.98);
   }
 
@@ -820,6 +833,10 @@
     transform: translate(-50%, -50%);
     opacity: .34;
     pointer-events: none;
+  }
+
+  .home-graph[data-graph-active] .home-graph__group-label::before {
+    opacity: .24;
   }
 
   .home-graph__group-label:is(:hover, :focus-visible),
@@ -2406,7 +2423,10 @@
     .home-graph:not([data-graph-active]) .home-graph__mobile-deck {
       display: block;
       min-height: calc(100svh - var(--nav-height, 68px));
-      padding: 0;
+      padding:
+        var(--home-graph-mobile-top-clearance, 0px)
+        0
+        var(--home-graph-mobile-bottom-clearance, 0px);
       overflow: visible;
     }
 
@@ -2796,7 +2816,13 @@
     }
 
     body.has-mobile-site-dock[data-page="home"].home-pattern-page {
-      --nav-height: 0px;
+      --nav-height: var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px)));
+      --home-graph-mobile-top-clearance: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 10px);
+      --home-graph-mobile-bottom-clearance: calc(var(--mobile-site-dock-clearance, calc(120px + env(safe-area-inset-bottom, 0px))) + 18px);
+    }
+
+    body.has-mobile-site-dock[data-page="home"].home-pattern-page:has(#pcz-banner.pcz-visible) {
+      --home-graph-mobile-top-clearance: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + clamp(94px, 18svh, 128px));
     }
 
     body.has-mobile-site-dock[data-page="home"].home-pattern-page .home-graph {

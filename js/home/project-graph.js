@@ -747,6 +747,13 @@
     && a.bottom + gap > b.top
   );
 
+  const getBoxOverlapArea = (box, fixedBox, gap = 0) => {
+    if (!boxesOverlap(box, fixedBox, gap)) return 0;
+    const overlapX = Math.max(0, Math.min(box.right + gap, fixedBox.right) - Math.max(box.left - gap, fixedBox.left));
+    const overlapY = Math.max(0, Math.min(box.bottom + gap, fixedBox.bottom) - Math.max(box.top - gap, fixedBox.top));
+    return overlapX * overlapY;
+  };
+
   const pushPointAway = (point, fixedPoint, halfWidth, halfHeight, fixedHalfWidth, fixedHalfHeight, metrics) => {
     const box = makeBox(point, halfWidth, halfHeight);
     const fixedBox = makeBox(fixedPoint, fixedHalfWidth, fixedHalfHeight);
@@ -1134,13 +1141,13 @@
       ? projectedRadialSize + 52
       : labelNode
         ? Math.max(projectedRadialSize + 18, 164)
-        : projectedRadialSize + 52;
-    const radiusStep = compact ? 42 : labelNode ? 44 : 58;
+        : projectedRadialSize + 72;
+    const radiusStep = compact ? 42 : labelNode ? 44 : 64;
     const tangentGap = compact
       ? projectedTangentSize + 20
       : labelNode
         ? Math.max(projectedTangentSize + 28, nodeHeight + 42)
-        : projectedTangentSize + 30;
+        : projectedTangentSize + 40;
     const slot = getBranchingItemSlot(index, count);
 
     return {
@@ -1235,16 +1242,42 @@
     const overlapY = entry.halfHeight + obstacle.halfHeight + gap - Math.abs(dy);
     if (overlapX <= 0 || overlapY <= 0) return;
 
-    if (overlapX <= overlapY) {
-      entry.x += dx > 0 ? overlapX : -overlapX;
-    } else {
-      entry.y += dy > 0 ? overlapY : -overlapY;
-    }
+    const original = {
+      x: entry.x,
+      y: entry.y
+    };
+    const makeCandidate = (axis) => {
+      const candidate = {
+        ...entry,
+        x: original.x,
+        y: original.y
+      };
+      if (axis === 'x') {
+        candidate.x += dx > 0 ? overlapX : -overlapX;
+      } else {
+        candidate.y += dy > 0 ? overlapY : -overlapY;
+      }
+      const point = clampPoint(candidate, metrics.safe, candidate.halfWidth, candidate.halfHeight);
+      candidate.x = point.x;
+      candidate.y = point.y;
+      keepEntryNearCluster(candidate, metrics);
+      return candidate;
+    };
+    const preferredAxis = overlapX <= overlapY ? 'x' : 'y';
+    const candidates = [
+      makeCandidate(preferredAxis),
+      makeCandidate(preferredAxis === 'x' ? 'y' : 'x')
+    ];
+    const bestCandidate = candidates.find((candidate) => (
+      !boxesOverlap(makeBox(candidate, candidate.halfWidth, candidate.halfHeight), obstacleBox, gap)
+    )) || candidates.reduce((best, candidate) => {
+      const bestArea = getBoxOverlapArea(makeBox(best, best.halfWidth, best.halfHeight), obstacleBox, gap);
+      const candidateArea = getBoxOverlapArea(makeBox(candidate, candidate.halfWidth, candidate.halfHeight), obstacleBox, gap);
+      return candidateArea < bestArea ? candidate : best;
+    });
 
-    const point = clampPoint(entry, metrics.safe, entry.halfWidth, entry.halfHeight);
-    entry.x = point.x;
-    entry.y = point.y;
-    keepEntryNearCluster(entry, metrics);
+    entry.x = bestCandidate.x;
+    entry.y = bestCandidate.y;
   };
 
   const separateEntryPair = (first, second, metrics, gap) => {
@@ -1258,24 +1291,77 @@
     const overlapY = first.halfHeight + second.halfHeight + gap - Math.abs(dy);
     if (overlapX <= 0 || overlapY <= 0) return;
 
-    if (overlapX <= overlapY) {
-      const shift = overlapX / 2;
-      first.x -= dx > 0 ? shift : -shift;
-      second.x += dx > 0 ? shift : -shift;
-    } else {
-      const shift = overlapY / 2;
-      first.y -= dy > 0 ? shift : -shift;
-      second.y += dy > 0 ? shift : -shift;
-    }
+    const originalFirst = {
+      x: first.x,
+      y: first.y
+    };
+    const originalSecond = {
+      x: second.x,
+      y: second.y
+    };
+    const makeCandidate = (axis) => {
+      const firstCandidate = {
+        ...first,
+        x: originalFirst.x,
+        y: originalFirst.y
+      };
+      const secondCandidate = {
+        ...second,
+        x: originalSecond.x,
+        y: originalSecond.y
+      };
+      if (axis === 'x') {
+        const shift = overlapX / 2;
+        firstCandidate.x -= dx > 0 ? shift : -shift;
+        secondCandidate.x += dx > 0 ? shift : -shift;
+      } else {
+        const shift = overlapY / 2;
+        firstCandidate.y -= dy > 0 ? shift : -shift;
+        secondCandidate.y += dy > 0 ? shift : -shift;
+      }
 
-    const firstPoint = clampPoint(first, metrics.safe, first.halfWidth, first.halfHeight);
-    const secondPoint = clampPoint(second, metrics.safe, second.halfWidth, second.halfHeight);
-    first.x = firstPoint.x;
-    first.y = firstPoint.y;
-    second.x = secondPoint.x;
-    second.y = secondPoint.y;
-    keepEntryNearCluster(first, metrics);
-    keepEntryNearCluster(second, metrics);
+      const firstPoint = clampPoint(firstCandidate, metrics.safe, firstCandidate.halfWidth, firstCandidate.halfHeight);
+      const secondPoint = clampPoint(secondCandidate, metrics.safe, secondCandidate.halfWidth, secondCandidate.halfHeight);
+      firstCandidate.x = firstPoint.x;
+      firstCandidate.y = firstPoint.y;
+      secondCandidate.x = secondPoint.x;
+      secondCandidate.y = secondPoint.y;
+      keepEntryNearCluster(firstCandidate, metrics);
+      keepEntryNearCluster(secondCandidate, metrics);
+      return {
+        first: firstCandidate,
+        second: secondCandidate
+      };
+    };
+    const preferredAxis = overlapX <= overlapY ? 'x' : 'y';
+    const candidates = [
+      makeCandidate(preferredAxis),
+      makeCandidate(preferredAxis === 'x' ? 'y' : 'x')
+    ];
+    const bestCandidate = candidates.find((candidate) => (
+      !boxesOverlap(
+        makeBox(candidate.first, candidate.first.halfWidth, candidate.first.halfHeight),
+        makeBox(candidate.second, candidate.second.halfWidth, candidate.second.halfHeight),
+        gap
+      )
+    )) || candidates.reduce((best, candidate) => {
+      const bestArea = getBoxOverlapArea(
+        makeBox(best.first, best.first.halfWidth, best.first.halfHeight),
+        makeBox(best.second, best.second.halfWidth, best.second.halfHeight),
+        gap
+      );
+      const candidateArea = getBoxOverlapArea(
+        makeBox(candidate.first, candidate.first.halfWidth, candidate.first.halfHeight),
+        makeBox(candidate.second, candidate.second.halfWidth, candidate.second.halfHeight),
+        gap
+      );
+      return candidateArea < bestArea ? candidate : best;
+    });
+
+    first.x = bestCandidate.first.x;
+    first.y = bestCandidate.first.y;
+    second.x = bestCandidate.second.x;
+    second.y = bestCandidate.second.y;
   };
 
   const getGroupedFanCategoryObstacle = (entryId, activeCategoryId, metrics, graphLayout) => {
@@ -1364,7 +1450,12 @@
   };
 
   const getGroupLabelHalfWidth = (label, dimensions) => {
-    if (!dimensions.showLabels) return Math.min((dimensions.width / 2) + 11, 92);
+    if (!dimensions.showLabels) {
+      return Math.min(
+        Math.max((String(label || '').length * 3.6) + 40, (dimensions.width / 2) + 24),
+        106
+      );
+    }
     return Math.min(
       Math.max((String(label || '').length * 3.8) + 46, (dimensions.width / 2) + 30),
       112
@@ -1432,7 +1523,7 @@
         x: groupPoint.x,
         y: groupPoint.y,
         halfWidth: getGroupLabelHalfWidth(group.label, dimensions),
-        halfHeight: dimensions.showLabels ? 21 : 16,
+        halfHeight: dimensions.showLabels ? 21 : 20,
         haloWidth: clusterHaloSize.width,
         haloHeight: clusterHaloSize.height,
         index: entries.length
@@ -1521,6 +1612,19 @@
     };
   };
 
+  const getConstrainedClusterBranchAngle = (groupPoint, origin, branchAngle, metrics, dimensions) => {
+    if (dimensions.showLabels || metrics.isCompact) return branchAngle;
+    const edgePressure = Math.max(dimensions.size + 86, 124);
+    const pointsLeft = groupPoint.x < origin.x;
+    if (groupPoint.y - metrics.safe.top < edgePressure && Math.sin(toRadians(branchAngle)) < .2) {
+      return pointsLeft ? 135 : 45;
+    }
+    if (metrics.safe.bottom - groupPoint.y < edgePressure && Math.sin(toRadians(branchAngle)) > -.2) {
+      return pointsLeft ? -135 : -45;
+    }
+    return branchAngle;
+  };
+
   const getNarrowGroupedClusterLayout = (categoryId, metrics, graphLayout, dimensions) => {
     const category = CATEGORIES[categoryId];
     const origin = graphLayout.categories[categoryId] || graphLayout.center;
@@ -1532,6 +1636,7 @@
       const slot = getNarrowGroupClusterSlot(categoryId, group.id, groupIndex, groups.length, origin, metrics);
       const groupPoint = slot.point;
       const clusterHaloSize = getGroupClusterHaloSize(categoryId, group.id, group.items.length, dimensions);
+      const branchAngle = getConstrainedClusterBranchAngle(groupPoint, origin, slot.branchAngle, metrics, dimensions);
 
       entries.push({
         type: 'group',
@@ -1542,7 +1647,7 @@
         x: groupPoint.x,
         y: groupPoint.y,
         halfWidth: getGroupLabelHalfWidth(group.label, dimensions),
-        halfHeight: 14,
+        halfHeight: 20,
         haloWidth: Math.min(clusterHaloSize.width, metrics.isNarrow ? 196 : 244),
         haloHeight: Math.min(clusterHaloSize.height, metrics.isNarrow ? 146 : 178),
         index: entries.length
@@ -1556,7 +1661,7 @@
           group.items.length,
           metrics,
           dimensions,
-          slot.branchAngle
+          branchAngle
         );
         const point = clampPoint(
           clusteredPoint,
@@ -1574,7 +1679,7 @@
           halfHeight: dimensions.size / 2,
           clusterX: groupPoint.x,
           clusterY: groupPoint.y,
-          clusterRadius: metrics.isNarrow ? 112 : 142,
+          clusterRadius: metrics.isNarrow ? 138 : 178,
           index: itemOrder.get(item.id) || 0
         });
       });
@@ -2570,7 +2675,7 @@
           className: 'home-graph__line',
           d: makeEdgeConnectorPath(centerPoint, categoryPoint, centerBox, getCategoryLineBox(categoryId), .42),
           color: category.accent,
-          opacity: state.active && categoryId !== state.active ? '.18' : '.5'
+          opacity: state.active && categoryId !== state.active ? '.12' : '.5'
         });
       });
 
