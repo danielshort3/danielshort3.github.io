@@ -691,11 +691,21 @@
     const bodyAudience = document.body && document.body.dataset
       ? document.body.dataset.audience
       : '';
+    const siteRealm = document.body && document.body.dataset
+      ? String(document.body.dataset.siteRealm || '').trim().toLowerCase()
+      : '';
     const pathAudience = currentPathVariants
       .map((path) => detectAudienceFromPath(path))
       .find(Boolean);
+    const explicitAudienceCandidates = [bodyAudience, queryAudience, pathAudience].filter(Boolean);
+    const explicitProfessionalAudience = explicitAudienceCandidates
+      .find((audience) => normalizeAudience(audience) !== 'personal');
+    const explicitAudience = explicitProfessionalAudience || explicitAudienceCandidates[0] || '';
+    const realmAudience = siteRealm === 'professional'
+      ? 'analytics'
+      : (siteRealm === 'personal' ? 'personal' : '');
     const storedAudience = readSession(AUDIENCE_KEY);
-    const activeAudience = getAudience(bodyAudience || queryAudience || pathAudience || storedAudience);
+    const activeAudience = getAudience(explicitAudience || realmAudience || storedAudience);
     const activeAudienceKey = normalizeAudience(activeAudience && activeAudience.key);
     const isRootHome = currentPathVariants.includes('/');
     const entryHome = isRootHome ? '/' : String(activeAudience.homePath || '/');

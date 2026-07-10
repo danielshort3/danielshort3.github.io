@@ -3437,15 +3437,39 @@
   }
 
   body[data-page="tools"] .tools-account-dock {
-    padding: 12px 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  body[data-page="tools"] .tools-account-dock-inner {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid var(--professional-border);
+    border-radius: 8px;
     background: #ffffff;
-    border-bottom: 1px solid var(--professional-border);
+    box-sizing: border-box;
   }
 
   body[data-page="tools"] .tools-account-bar {
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 0;
+    border-radius: 0;
     box-shadow: none;
+  }
+
+  body[data-page="tools"] .tools-account-context {
+    margin: 0;
+    color: var(--ml-muted);
+    font-size: .86rem;
+    line-height: 1.45;
+  }
+
+  body[data-page="tools"] .tools-account-context strong {
+    color: var(--ml-ink);
   }
 
   body[data-page="tools"] .tools-section {
@@ -4398,11 +4422,12 @@
     max-width: 680px;
   }
 
-  body[data-page="tools"] .tools-directory-head h2 {
+  body[data-page="tools"] .tools-directory-head h1 {
     margin: 0;
     color: var(--ml-ink);
-    font-size: 1.45rem;
-    line-height: 1.2;
+    font-size: clamp(2rem, 3.4vw, 2.75rem);
+    line-height: 1.08;
+    text-wrap: balance;
   }
 
   body[data-page="tools"] .tools-directory-kicker {
@@ -4580,9 +4605,16 @@
     }
 
     body[data-page="tools"] .tools-directory-rail,
+    body[data-page="tools"] .tools-directory-main,
     body[data-page="tools"] .tools-directory-note,
     body[data-page="games"] .games-system-panel {
       position: static;
+    }
+
+    body[data-page="tools"] .tools-directory-rail,
+    body[data-page="tools"] .tools-directory-main,
+    body[data-page="tools"] .tools-directory-note {
+      grid-column: 1;
     }
 
     body[data-page="tools"] .tools-directory-rail {
@@ -4632,6 +4664,10 @@
     body[data-page="tools"] .tools-hero h1,
     body[data-page="games"] .games-hero h1 {
       font-size: 2.5rem;
+    }
+
+    body[data-page="tools"] .tools-directory-head h1 {
+      font-size: clamp(1.75rem, 8vw, 2.15rem);
     }
 
     body[data-page="home"].home-pattern-page .personal-ml-hero-grid,
@@ -4964,6 +5000,145 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       justify-content: stretch;
+    }
+  }
+
+  @media (min-width: 769px) {
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero.hero--default {
+      min-height: auto;
+      justify-content: flex-start;
+      padding-block: clamp(2.1rem, 4vh, 2.75rem);
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default .wrapper,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero.hero--default > .wrapper {
+      gap: .72rem;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero h1,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero h1 {
+      max-width: 16ch;
+      font-size: clamp(3rem, 4.6vw, 4rem);
+      line-height: .98;
+    }
+
+    body[data-page="tourism"] .hero h1 {
+      max-width: 20ch;
+      font-size: clamp(2.8rem, 4vw, 3.7rem);
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero-avatar {
+      width: clamp(96px, 7vw, 112px);
+      height: clamp(96px, 7vw, 112px);
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-tagline,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero-tagline {
+      width: min(100%, 62ch);
+      font-size: clamp(1rem, 1.25vw, 1.1rem);
+      line-height: 1.48;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-status,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero-status {
+      padding: 5px 14px;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .cta-group .hero-cta,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .cta-group .hero-cta {
+      min-height: 48px;
+      padding: 10px 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero.hero--default {
+      min-height: 0;
+      padding-block: calc(var(--mobile-site-masthead-height, 62px) + 18px) 28px;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero.hero--default .wrapper,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero.hero--default > .wrapper {
+      gap: .72rem;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-avatar,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero-avatar {
+      width: clamp(82px, 22vw, 96px);
+      height: clamp(82px, 22vw, 96px);
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero-tagline,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero-tagline {
+      font-size: .94rem;
+      line-height: 1.48;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .chevron-hint,
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .chevron-hint {
+      display: none;
+    }
+  }
+
+  body[data-page="contact"] .hero.hero--default {
+    min-height: auto;
+    height: auto;
+    justify-content: flex-start;
+    padding-block: clamp(2.6rem, 6vw, 4.5rem);
+  }
+
+  body[data-page="contact"] .hero.hero--default > .wrapper {
+    min-height: 0;
+  }
+
+  body[data-page="contact"] .hero .scroll-indicator {
+    position: static;
+    inset: auto;
+    width: fit-content;
+    min-height: 44px;
+    margin: 1rem auto 0;
+    transform: none;
+  }
+
+  body[data-page="contact"] .speed-dial {
+    display: none !important;
+  }
+
+  @media (max-width: 640px) {
+    body[data-page="contact"] .hero.hero--default {
+      padding-block: 2rem 1.5rem;
+    }
+
+    body[data-page="contact"] .hero .scroll-indicator {
+      display: none;
+    }
+
+    body[data-page="contact"] .contact-big .contact-card {
+      min-height: 124px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    body[data-page="contact"] .contact-big {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    body[data-page="contact"] .contact-big .contact-card {
+      min-height: 108px;
+      padding: 18px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    html.site-realm-professional-home,
+    html:has(body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page),
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page {
+      overflow-x: clip !important;
+      overflow-y: visible !important;
     }
   }
 }

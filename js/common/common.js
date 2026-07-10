@@ -73,7 +73,6 @@
                 <span class="btn-spinner" aria-hidden="true"></span>
                 <span class="btn-label">Send Message</span>
               </button>
-              <button type="button" class="btn-secondary" data-contact-close>Close</button>
               <button type="button" class="btn-ghost" data-contact-reset>Clear form</button>
             </div>
           </form>
@@ -169,6 +168,49 @@
     }
   };
 
+  const workDateRank = (value) => {
+    const text = String(value || '').trim();
+    if (/present/i.test(text)) return Number.MAX_SAFE_INTEGER;
+    const matches = [...text.matchAll(/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}\b/gi)];
+    const last = matches.length ? matches[matches.length - 1][0] : '';
+    const parsed = last ? Date.parse(`1 ${last}`) : Number.NaN;
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const sortWorkCardsNewestFirst = (root = document) => {
+    $$('.work-grid:not([data-work-order="newest-first"])', root).forEach((grid) => {
+      const cards = $$('.work-card', grid);
+      if (cards.length < 2) return;
+      cards
+        .map((card, index) => ({ card, index, rank: workDateRank($('.work-timeframe', card)?.textContent) }))
+        .sort((a, b) => (b.rank - a.rank) || (a.index - b.index))
+        .forEach(({ card }) => grid.appendChild(card));
+      grid.dataset.workOrder = 'newest-first';
+    });
+  };
+
+  const normalizeAudienceSectionOrder = () => {
+    if (!document.body?.matches('[data-page="analytics"], [data-page="data-science"], [data-page="tourism"]')) return;
+    const main = document.getElementById('main');
+    if (!main) return;
+    const order = [
+      'selected-outcomes',
+      'transferability',
+      'project-examples',
+      'work-experience',
+      'about-me',
+      'certifications',
+      'cta'
+    ];
+    const children = [...main.children];
+    const orderedSections = order
+      .map((id) => children.find((node) => node.id === id))
+      .filter(Boolean);
+    if (orderedSections.length < 2) return;
+    orderedSections.forEach((section) => main.appendChild(section));
+    main.dataset.audienceSectionOrder = 'proof-projects-experience';
+  };
+
   const loadedScripts = new Map();
   const portfolioBundles = new Map();
   let modalsPromise = null;
@@ -194,6 +236,8 @@
     initClientErrorTelemetry();
     resetScrollLocks();
     initSmoothScrollLinks();
+    normalizeAudienceSectionOrder();
+    sortWorkCardsNewestFirst();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
     }
@@ -215,6 +259,8 @@
   });
   document.addEventListener('site:content-updated', () => {
     initSmoothScrollLinks();
+    normalizeAudienceSectionOrder();
+    sortWorkCardsNewestFirst();
     if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();
     }

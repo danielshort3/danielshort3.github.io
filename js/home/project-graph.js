@@ -710,7 +710,7 @@
     const rect = map?.getBoundingClientRect?.();
     const width = Math.max(280, Math.round(rect?.width || map?.clientWidth || window.innerWidth || 1200));
     const height = Math.max(300, Math.round(rect?.height || map?.clientHeight || window.innerHeight * .58 || 620));
-    const isCompact = width <= 620 || window.innerWidth <= 640;
+    const isCompact = width <= 768 || window.innerWidth <= 768;
     const isNarrow = width <= 940 || window.innerWidth <= 940;
     const safeX = isCompact ? 10 : isNarrow ? 18 : 34;
     const safeY = isCompact ? 10 : isNarrow ? 18 : 28;
@@ -940,8 +940,8 @@
     const showLabels = Boolean(metrics.showItemLabels);
     return {
       size,
-      width: showLabels ? clamp(Math.round(metrics.width * .105), 112, 124) : size,
-      height: showLabels ? 34 : size,
+      width: showLabels ? clamp(Math.round(metrics.width * .12), 132, 154) : size,
+      height: showLabels ? 44 : size,
       showLabels
     };
   };
@@ -2222,19 +2222,18 @@
       <div class="home-graph__mobile-classic">
         <section class="home-graph__mobile-hero" aria-labelledby="home-mobile-hero-title">
           <div class="home-graph__mobile-hero-copy">
-            <h1 id="home-mobile-hero-title">Projects, Tools & Games</h1>
+            <h1 id="home-mobile-hero-title">Daniel Short</h1>
             <div class="home-graph__mobile-hero-identity">
               <img src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="112px" alt="Portrait of Daniel Short" width="112" height="112" decoding="async" fetchpriority="high">
-              <p>Daniel Short · Personal Lab</p>
+              <p>Builder of useful interfaces</p>
             </div>
-            <p>Machine learning demos, practical browser utilities, and lightweight games built around usable interfaces.</p>
-            <p class="home-graph__mobile-hero-status">Projects · Tools · Games · Experiments</p>
+            <p>I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.</p>
             <div class="home-graph__mobile-hero-actions">
               <a href="portfolio">Projects</a>
               <a href="tools">Tools</a>
-              <a href="contact#contact-modal" data-contact-modal-link="true">Contact</a>
+              <a href="games">Games</a>
             </div>
-            <a class="home-graph__mobile-hero-scroll" href="#home-mobile-projects-title">View sections ${getLinkIcon()}</a>
+            <a class="home-graph__mobile-hero-scroll" href="#home-mobile-projects-title">Browse featured work ${getLinkIcon()}</a>
           </div>
         </section>
         ${CATEGORY_ORDER.map(createMobileSection).join('')}
@@ -2416,7 +2415,7 @@
       mobileRenderKey: ''
     };
 
-    const usesMobileDeck = () => window.matchMedia?.('(max-width: 640px)').matches || window.innerWidth <= 640;
+    const usesMobileDeck = () => window.matchMedia?.('(max-width: 768px)').matches || window.innerWidth <= 768;
     const getCurrentMobileCategoryId = () => (state.active && CATEGORIES[state.active] ? state.active : 'projects');
 
     const getMobileDepth = (categoryId = state.active, itemId = '') => {
@@ -2819,28 +2818,11 @@
     };
 
     const renderMobileDeck = (options = {}) => {
-      const categoryId = getCurrentMobileCategoryId();
-      const itemSelection = parseItemKey(state.selectedKey);
-      const itemId = itemSelection?.categoryId === categoryId ? itemSelection.itemId : '';
-      const depth = syncMobileDepth(categoryId, itemId);
-      const renderKey = [
-        categoryId,
-        itemId,
-        depth.group?.id || '',
-        depth.topic?.id || '',
-        state.selectedKey
-      ].join('|');
+      const renderKey = 'classic';
       if (!options.force && state.mobileRenderKey === renderKey) return;
       state.mobileRenderKey = renderKey;
-      mobileDeck.style.setProperty('--accent', depth.category.accent);
-      mobileDeck.innerHTML = createMobileDepthDeckHtml({
-        categoryId,
-        group: depth.group,
-        groups: depth.groups,
-        topic: depth.topic,
-        topics: depth.topics,
-        selectedItem: depth.selectedItem
-      });
+      mobileDeck.style.removeProperty('--accent');
+      mobileDeck.innerHTML = createMobileClassicDeckHtml();
     };
 
     const render = () => {

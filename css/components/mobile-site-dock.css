@@ -10,9 +10,9 @@
   @media (max-width: 768px) {
     :root {
       --mobile-site-masthead-height: calc(62px + env(safe-area-inset-top, 0px));
-      --mobile-site-dock-height: 112px;
-      --mobile-site-dock-clearance: calc(120px + env(safe-area-inset-bottom, 0px));
-      --mobile-site-dock-stacked-clearance: calc(190px + env(safe-area-inset-bottom, 0px));
+      --mobile-site-dock-height: 80px;
+      --mobile-site-dock-clearance: calc(88px + env(safe-area-inset-bottom, 0px));
+      --mobile-site-dock-stacked-clearance: calc(158px + env(safe-area-inset-bottom, 0px));
     }
 
     .mobile-site-masthead {
@@ -243,7 +243,7 @@
       --dock-surface: rgba(255, 255, 255, .96);
       --dock-line: rgba(96, 121, 160, .16);
       --dock-shadow: 0 -8px 30px rgba(15, 31, 63, .13);
-      --mobile-site-dock-panel-inset-top: 33px;
+      --mobile-site-dock-panel-inset-top: 18px;
       box-sizing: border-box;
       position: fixed;
       right: 0;
@@ -251,12 +251,12 @@
       left: 0;
       z-index: 2400;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr)) 96px repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr)) 64px repeat(2, minmax(0, 1fr));
       align-items: end;
-      gap: 5px;
+      gap: 4px;
       height: calc(var(--mobile-site-dock-height) + env(safe-area-inset-bottom, 0px));
       min-height: 0;
-      padding: 18px 13px calc(10px + env(safe-area-inset-bottom, 0px));
+      padding: 9px 10px calc(6px + env(safe-area-inset-bottom, 0px));
       pointer-events: auto;
       isolation: isolate;
     }
@@ -282,17 +282,17 @@
     .mobile-site-dock::after {
       content: "";
       position: absolute;
-      top: -18px;
+      top: -10px;
       left: 50%;
       z-index: -1;
-      width: 128px;
-      height: 78px;
+      width: 88px;
+      height: 54px;
       pointer-events: none;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, .98) 0%, var(--dock-surface) 100%);
       border: 1px solid var(--dock-line);
       border-bottom: 0;
-      border-radius: 64px 64px 0 0 / 78px 78px 0 0;
+      border-radius: 44px 44px 0 0 / 54px 54px 0 0;
       box-shadow: 0 -8px 20px rgba(15, 31, 63, .08);
       transform: translateX(-50%);
       backdrop-filter: blur(22px);
@@ -318,9 +318,9 @@
     .mobile-site-dock__item {
       box-sizing: border-box;
       align-content: center;
-      gap: 5px;
-      min-height: 70px;
-      padding: 6px 4px;
+      gap: 3px;
+      min-height: 56px;
+      padding: 4px 3px;
       border: 0;
       border-radius: 15px;
       background: transparent;
@@ -442,8 +442,8 @@
       justify-content: flex-start;
       gap: 9px;
       width: 100%;
-      height: 43px;
-      min-height: 43px;
+      height: 44px;
+      min-height: 44px;
       padding: 0 10px 0 8px;
       border: 1px solid rgba(96, 121, 160, .18);
       border-radius: 16px;
@@ -543,13 +543,13 @@
     .mobile-site-dock__icon {
       display: grid;
       place-items: center;
-      width: 38px;
-      height: 38px;
+      width: 30px;
+      height: 30px;
     }
 
     .mobile-site-dock__icon svg {
-      width: 34px;
-      height: 34px;
+      width: 27px;
+      height: 27px;
       fill: none;
       stroke: currentColor;
       stroke-width: 2.12;
@@ -560,7 +560,7 @@
     .mobile-site-dock__label {
       max-width: 100%;
       overflow: hidden;
-      font-size: .68rem;
+      font-size: .64rem;
       font-weight: 790;
       letter-spacing: 0;
       line-height: 1;
@@ -573,10 +573,10 @@
       justify-self: center;
       align-self: start;
       box-sizing: border-box;
-      width: 96px;
-      height: 96px;
-      margin-top: -20px;
-      padding: 10px;
+      width: 64px;
+      height: 64px;
+      margin-top: -12px;
+      padding: 7px;
       border: 0;
       border-radius: 50%;
       background:
@@ -596,8 +596,8 @@
       position: relative;
       z-index: 1;
       display: block;
-      width: 76px;
-      height: 76px;
+      width: 50px;
+      height: 50px;
       object-fit: contain;
       filter: drop-shadow(0 2px 4px rgba(9, 31, 59, .14));
     }

@@ -936,22 +936,29 @@ function renderToolsDirectoryRail(groups) {
     const id = String(category.id || `tools-category-${index + 1}`).trim();
     const title = category.title || 'Tools';
     const description = category.description || '';
-    const count = group.items.length;
+    const count = group.items.filter(isPublicTool).length;
+    const attrs = {
+      class: 'tools-rail-link',
+      href: `#${id}`,
+      'data-tools-category-link': id,
+      hidden: count === 0 ? true : null,
+      'aria-hidden': count === 0 ? 'true' : null
+    };
     return [
-      `  <a class="tools-rail-link" href="#${escapeHtml(id)}">`,
+      `  <a${attrsToString(attrs)}>`,
       `    <span class="tools-rail-index">${String(index + 1).padStart(2, '0')}</span>`,
       '    <span class="tools-rail-copy">',
       `      <span class="tools-rail-title">${escapeHtml(title)}</span>`,
       description ? `      <span class="tools-rail-description">${escapeHtml(description)}</span>` : '',
       '    </span>',
-      `    <span class="tools-rail-count">${escapeHtml(count)} ${count === 1 ? 'tool' : 'tools'}</span>`,
+      `    <span class="tools-rail-count" data-tools-category-count>${escapeHtml(count)} ${count === 1 ? 'tool' : 'tools'}</span>`,
       '  </a>'
     ].filter(Boolean).join('\n');
   });
 
   return [
     '<nav class="tools-directory-rail" aria-label="Tool categories">',
-    `  <p class="tools-directory-stat">${escapeHtml(publicCount)} public tools</p>`,
+    `  <p class="tools-directory-stat" data-tools-directory-stat>${escapeHtml(publicCount)} public tools</p>`,
     ...links,
     '</nav>'
   ].join('\n');
@@ -1160,12 +1167,6 @@ function renderToolsDirectoryBody(page, tools) {
   const title = page.heroTitle || 'Tools';
   const lead = page.heroLead || page.description || '';
   return [
-    '<div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
-    '  <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
-    '    <div class="tools-account-bar" data-tools-account="bar"></div>',
-    '  </div>',
-    '</div>',
-    renderToolsResumePanel(page),
     '<main id="main">',
     '  <section class="tools-section" aria-label="Tool directory">',
     '    <div class="wrapper tools-directory-layout">',
@@ -1176,6 +1177,13 @@ function renderToolsDirectoryBody(page, tools) {
     `          <h1>${escapeHtml(title)}</h1>`,
     lead ? `          <p>${escapeHtml(lead)}</p>` : '',
     '        </header>',
+    '        <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
+    '          <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
+    '            <p class="tools-account-context"><strong>Saving is optional.</strong> Sign in to keep session history and reopen work across tools; public tools work without an account.</p>',
+    '            <div class="tools-account-bar" data-tools-account="bar"></div>',
+    '          </div>',
+    '        </div>',
+    indentBlock(renderToolsResumePanel(page), '        '),
     '        <div id="tools-directory-results" data-tools-results>',
     indentBlock(groups.map(renderToolsDirectoryCategory).join('\n'), '          '),
     '        </div>',
