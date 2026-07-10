@@ -324,12 +324,36 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     toggleButton = document.createElement('button');
     toggleButton.type = 'button';
     toggleButton.className = 'portfolio-filter-sheet-close';
-    toggleButton.textContent = 'Filters';
+    toggleButton.textContent = 'Done';
     toggleButton.dataset.portfolioFilterSheetToggle = 'true';
     toggleButton.setAttribute('aria-controls', filterPanel.id);
     toggleButton.setAttribute('aria-expanded', 'false');
     panelHead.append(toggleButton);
   }
+
+  const resultsToolbar = root.querySelector('.portfolio-results-toolbar');
+  const triggerButton = document.createElement('button');
+  triggerButton.type = 'button';
+  triggerButton.className = 'portfolio-mobile-filter-trigger';
+  triggerButton.dataset.portfolioFilterSheetOpen = 'true';
+  triggerButton.setAttribute('aria-controls', filterPanel.id);
+  triggerButton.setAttribute('aria-expanded', 'false');
+  triggerButton.innerHTML = `
+    <span class="portfolio-mobile-filter-trigger__label">Filters</span>
+    <span class="portfolio-mobile-filter-trigger__status" data-portfolio-mobile-filter-status>All</span>
+    <span class="portfolio-mobile-filter-trigger__badge" data-portfolio-mobile-filter-badge hidden></span>
+  `;
+  if (resultsToolbar) {
+    const sortControl = resultsToolbar.querySelector('.portfolio-sort-control');
+    resultsToolbar.insertBefore(triggerButton, sortControl || null);
+  }
+
+  const backdrop = document.createElement('button');
+  backdrop.type = 'button';
+  backdrop.className = 'portfolio-filter-backdrop';
+  backdrop.dataset.portfolioFilterSheetClose = 'true';
+  backdrop.setAttribute('aria-label', `Close ${itemSingular} filters`);
+  root.append(backdrop);
 
   const summary = document.createElement('section');
   summary.className = 'portfolio-mobile-filter-summary';
@@ -365,10 +389,10 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   const activeChipHost = summary.querySelector('[data-portfolio-mobile-active-chips]');
   const quickHost = quickFilters.querySelector('[data-portfolio-mobile-quick-filters]');
   const clearMobileButton = summary.querySelector('[data-portfolio-mobile-clear]');
-  const statusNode = null;
-  const badgeNode = null;
+  const statusNode = triggerButton.querySelector('[data-portfolio-mobile-filter-status]');
+  const badgeNode = triggerButton.querySelector('[data-portfolio-mobile-filter-badge]');
   const showCountButton = footer.querySelector('[data-portfolio-filter-sheet-count]');
-  const openButton = toggleButton;
+  const openButton = triggerButton;
 
   if (sortSelect && mobileSort) {
     mobileSort.innerHTML = sortSelect.innerHTML;
@@ -448,20 +472,36 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     });
   };
   const syncToggleLabel = (activeCount = activeEntries().length) => {
-    if (!toggleButton) return;
     const open = root.classList.contains('is-filter-sheet-open');
-    toggleButton.textContent = open ? 'Done' : (activeCount ? `${activeCount} active` : 'Filters');
-    toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false');
-    toggleButton.setAttribute('aria-label', open ? 'Collapse project filters' : 'Expand project filters');
+    if (toggleButton) {
+      toggleButton.textContent = 'Done';
+      toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggleButton.setAttribute('aria-label', `Close ${itemSingular} filters`);
+    }
+    triggerButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    triggerButton.setAttribute('aria-label', activeCount
+      ? `Open ${itemSingular} filters, ${activeCount} active`
+      : `Open ${itemSingular} filters`);
   };
   const setSheetOpen = (open) => {
-    root.classList.toggle('is-filter-sheet-open', open);
-    filterPanel.dataset.expanded = open ? 'true' : 'false';
-    if (!desktopMode) setExpandableHidden(!open);
+    const wasOpen = root.classList.contains('is-filter-sheet-open');
+    const nextOpen = Boolean(open) && !desktopMode;
+    root.classList.toggle('is-filter-sheet-open', nextOpen);
+    filterPanel.dataset.expanded = nextOpen ? 'true' : 'false';
+    if (document.body) document.body.classList.toggle('portfolio-filter-sheet-open', nextOpen);
+    if (!desktopMode) {
+      setExpandableHidden(!nextOpen);
+      filterPanel.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+      filterPanel.toggleAttribute('inert', !nextOpen);
+    }
     syncToggleLabel();
-    if (open) {
-      const focusTarget = filterPanel.querySelector('.portfolio-mobile-quick-filter, .portfolio-filter-option input, button, input, select');
-      if (focusTarget) focusTarget.focus({ preventScroll: true });
+    if (nextOpen) {
+      window.requestAnimationFrame(() => {
+        const focusTarget = toggleButton || filterPanel.querySelector('.portfolio-filter-option input:not(:disabled), button:not(:disabled), input:not(:disabled), select:not(:disabled)');
+        if (focusTarget) focusTarget.focus({ preventScroll: true });
+      });
+    } else if (wasOpen && !desktopMode) {
+      window.requestAnimationFrame(() => triggerButton.focus({ preventScroll: true }));
     }
   };
 
@@ -532,8 +572,24 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     if (!root.classList.contains('is-filter-sheet-open')) return;
     if (event.key === 'Escape') {
       event.preventDefault();
+      event.stopImmediatePropagation();
       setSheetOpen(false);
       if (openButton) openButton.focus({ preventScroll: true });
+      return;
+    }
+    if (event.key === 'Tab') {
+      const focusable = Array.from(filterPanel.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])'))
+        .filter((node) => !node.hidden && node.offsetParent !== null);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
   });
 
@@ -546,11 +602,13 @@ function setupPortfolioMobileFilterSheet(options = {}) {
         filterPanel.removeAttribute('role');
         filterPanel.removeAttribute('aria-modal');
         filterPanel.removeAttribute('aria-hidden');
+        filterPanel.removeAttribute('inert');
         setExpandableHidden(false);
       } else {
-        filterPanel.removeAttribute('role');
-        filterPanel.removeAttribute('aria-modal');
-        filterPanel.removeAttribute('aria-hidden');
+        filterPanel.setAttribute('role', 'dialog');
+        filterPanel.setAttribute('aria-modal', 'true');
+        filterPanel.setAttribute('aria-hidden', root.classList.contains('is-filter-sheet-open') ? 'false' : 'true');
+        filterPanel.toggleAttribute('inert', !root.classList.contains('is-filter-sheet-open'));
         setExpandableHidden(!root.classList.contains('is-filter-sheet-open'));
       }
     };
@@ -575,7 +633,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     const entries = activeEntries();
     const activeCount = entries.length;
     syncToggleLabel(activeCount);
-    if (statusNode) statusNode.textContent = activeCount ? `${activeCount} active` : 'No filters';
+    if (statusNode) statusNode.textContent = activeCount ? `${activeCount} active` : 'All';
     if (badgeNode) {
       badgeNode.hidden = !activeCount;
       badgeNode.textContent = String(activeCount);
@@ -1693,8 +1751,11 @@ function buildPortfolioWorkbench() {
     selectedId: initialProjectInScopedPool || initialProjectInFullPool ? initialProjectId : null
   };
   let pendingSelectionScrollTop = null;
+  const mobileSelectionOverlayEnabled = !isDirectoryWorkbench && root.id === 'portfolio-workbench';
+  const mobileFilterSheetEnabled = mobileSelectionOverlayEnabled || (isDirectoryWorkbench && directoryKind === 'games');
+  if (mobileSelectionOverlayEnabled) root.dataset.mobileSelection = 'overlay';
   const mobileFilters = setupPortfolioMobileFilterSheet({
-    enabled: !isDirectoryWorkbench && root.id === 'portfolio-workbench',
+    enabled: mobileFilterSheetEnabled,
     root,
     filterHost,
     filterGroups,
@@ -1901,7 +1962,7 @@ function buildPortfolioWorkbench() {
     renderSelection();
   };
 
-  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 820px)').matches;
+  const isMobileSelectionCard = () => root.dataset.mobileSelection === 'overlay' && window.matchMedia('(max-width: 820px)').matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -1998,6 +2059,7 @@ function buildPortfolioWorkbench() {
     if (!state.selectedId || !isMobileSelectionCard()) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
+    if (root.classList.contains('is-filter-sheet-open') || target.closest('[data-portfolio-filter-sheet-open], [data-portfolio-filter-sheet-toggle]')) return;
     if (inspector.contains(target) || target.closest('[data-project-id]')) return;
     clearSelection();
   });

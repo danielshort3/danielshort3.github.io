@@ -817,6 +817,14 @@ try {
       toolsHtml.includes('tools-directory-note') &&
       toolsHtml.includes('tools-rail-link'),
       'tools page should render the ML/data directory rail and rationale panel');
+    assert(toolsHtml.includes('data-tools-directory-stat') &&
+      toolsHtml.includes('data-tools-category-link="tools-cloud"') &&
+      /<a[^>]*data-tools-category-link="tools-cloud"[^>]*hidden[^>]*aria-hidden="true"/.test(toolsHtml),
+      'tools page should hide the account-only Cloud rail entry before authentication');
+    assert(catalogJs.includes("document.querySelectorAll('[data-tools-category-link]')") &&
+      catalogJs.includes("railLink?.setAttribute('hidden', '')") &&
+      catalogJs.includes("directoryStat.textContent = `${visibleToolCount} ${availabilityLabel}"),
+      'tools account UI should keep category rail visibility and visible tool totals in sync with authentication');
     assert(toolsHtml.includes('class="tool-launch-card"'), 'tools page should render compact tool launcher cards');
     assert(toolsHtml.includes('class="tool-card-details"'), 'tools page should render hover/focus tool details');
     assert(!toolsHtml.includes('data-tools-search='), 'tools page should not keep search-only metadata on tool cards');
@@ -853,10 +861,24 @@ try {
       bundledToolsAccountJs.includes('setAttribute("aria-hidden","true")'),
       'bundled tools account UI should include the inert modal behavior used in production pages');
     assert(!directoryJs.includes('data-tools-filter-input'), 'tools directory script should not wire removed search controls');
-    assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHtml.indexOf('class="tools-account-bar"'),
-      'tools resume panel should sit below the account bar');
-    assert(toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('<main id="main">'),
-      'tools resume panel should sit above the main tool grid');
+    assert(toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory"') > toolsHtml.indexOf('<h1>Tools I keep refining</h1>') &&
+      toolsHtml.includes('<strong>Saving is optional.</strong>'),
+      'tools sign-in prompt should sit below the visible h1 and explain that session saving is optional');
+    assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHtml.indexOf('class="tools-account-bar"') &&
+      toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('id="tools-directory-results"'),
+      'tools resume panel should sit below the account bar and above the tool grid');
+    const toolsCss = readFile('css/components/tools.css');
+    const toolsOverridesCss = readFile('css/utilities/design-system-overrides.css');
+    assert(toolsCss.includes('@media (max-width: 1080px)') &&
+      toolsCss.includes('.tools-directory-main,') &&
+      toolsCss.includes('grid-column:1;') &&
+      toolsCss.includes('.tools-rail-link[hidden]') &&
+      toolsCss.includes('display:none !important;'),
+      'base tools CSS should explicitly stack every outer directory region by 1080px');
+    assert(toolsOverridesCss.includes('body[data-page="tools"] .tools-directory-main,') &&
+      toolsOverridesCss.includes('grid-column: 1;') &&
+      toolsOverridesCss.includes('body[data-page="tools"] .tools-directory-head h1'),
+      'tools design-system overrides should preserve the one-column breakpoint and responsive h1 styling');
     (toolsPageRecord.categories || []).forEach((category) => {
       if (!category.description) return;
       const hasTools = toolRecords.some((tool) => String(tool.categoryId || '') === String(category.id || '') && (tool.slug || tool.href));
@@ -37394,6 +37416,31 @@ try {
     });
   });
 
+  section('Portfolio and games responsive workbench contracts', () => {
+    const portfolioJs = fs.readFileSync('js/portfolio/portfolio.js', 'utf8');
+    const workbenchCss = fs.readFileSync('css/components/portfolio-workbench.css', 'utf8');
+    const gamesHtml = fs.readFileSync('pages/games.html', 'utf8');
+
+    assert(gamesHtml.includes('data-directory-workbench="games"'),
+      'games page should keep the shared directory workbench contract');
+    assert(portfolioJs.includes("mobileFilterSheetEnabled = mobileSelectionOverlayEnabled || (isDirectoryWorkbench && directoryKind === 'games')"),
+      'games workbench should opt into the shared mobile filter sheet');
+    assert(portfolioJs.includes("triggerButton.className = 'portfolio-mobile-filter-trigger'") &&
+           portfolioJs.includes("backdrop.className = 'portfolio-filter-backdrop'"),
+      'mobile filters should expose an external trigger and dismissible backdrop');
+    assert(portfolioJs.includes("document.body.classList.toggle('portfolio-filter-sheet-open', nextOpen)") &&
+           portfolioJs.includes("root.dataset.mobileSelection === 'overlay'"),
+      'mobile filter state should lock page chrome without changing the games inspector behavior');
+    assert(/body\[data-page="portfolio"\] \.portfolio-inspector \{\s*overflow-x: hidden;\s*overflow-y: auto;/.test(workbenchCss),
+      'portfolio inspector should override the branded overflow rule and remain scrollable on desktop');
+    assert(workbenchCss.includes('min-height: min(240px, 35dvh);') &&
+           workbenchCss.includes('body.portfolio-filter-sheet-open .mobile-site-dock'),
+      'mobile filter sheet should preserve a usable scrolling body and hide the site dock while open');
+    assert(workbenchCss.includes('body[data-page="portfolio"] .portfolio-brand-panel__actions') &&
+           workbenchCss.includes('body[data-page="portfolio"] .portfolio-proof-strip {'),
+      'mobile portfolio header should remove redundant actions and use a compact proof strip');
+  });
+
   section('Job tracker UI additions', () => {
     const trackerHtml = fs.readFileSync('pages/job-application-tracker.html', 'utf8');
     const trackerJs = fs.readFileSync('js/tools/job-application-tracker.js', 'utf8');
@@ -38111,11 +38158,19 @@ try {
     const personalAudience = readFile('content/audiences/personal.json');
     const graphCss = readFile('css/components/home-project-graph.css');
     const graphJs = readFile('js/home/project-graph.js');
+    const mobileDockCss = readFile('css/components/mobile-site-dock.css');
     checkFileContains('index.html', 'home-pattern-page');
     checkFileContains('index.html', 'class="home-graph"');
     checkFileContains('index.html', 'data-home-graph');
     checkFileContains('index.html', 'data-graph-center');
     checkFileContains('index.html', 'data-graph-inspector');
+    assert(html.includes('class="home-graph__intro"') &&
+      html.includes('<h1 id="home-graph-title">Daniel Short</h1>') &&
+      html.includes('class="home-graph__intro-actions"') &&
+      html.includes('href="portfolio">Projects</a>') &&
+      html.includes('href="tools">Tools</a>') &&
+      html.includes('href="games">Games</a>'),
+      'personal homepage should introduce Daniel Short and provide direct Projects, Tools, and Games paths before the desktop graph');
     checkFileContains('js/home/project-graph.js', "label: 'Projects'");
     checkFileContains('js/home/project-graph.js', "label: 'Tools'");
     checkFileContains('js/home/project-graph.js', "label: 'Games'");
@@ -38221,27 +38276,26 @@ try {
       'homepage graph item nodes should show wrapped labeled rows on roomy screens and stay compact on constrained screens');
     assert(graphJs.includes('getGroupedFanSlot') &&
       graphJs.includes("tools: { x: .94, y: .5 }") &&
-      graphJs.includes("width: showLabels ? clamp(Math.round(metrics.width * .105), 112, 124) : size") &&
+      graphJs.includes("width: showLabels ? clamp(Math.round(metrics.width * .12), 132, 154) : size") &&
+      graphJs.includes('height: showLabels ? 44 : size') &&
       graphJs.includes('const categoryBottom = Math.max') &&
       graphJs.includes('Math.ceil(Math.sqrt(count * 1.15))'),
       'homepage graph should use radial desktop group slots and a compact mobile icon grid that avoids branch-card overlap');
-    assert(graphJs.includes('MOBILE_DEPTH_TOPICS') &&
-      graphJs.includes('getMobileDepthTopics') &&
-      graphJs.includes('createMobileDepthDeckHtml') &&
-      graphJs.includes('data-mobile-group') &&
-      graphJs.includes('data-mobile-topic') &&
-      graphJs.includes('data-mobile-item') &&
-      graphJs.includes('syncMobileDepth') &&
-      graphJs.includes('home-graph__mobile-chain') &&
+    assert(graphJs.includes('createMobileClassicDeckHtml') &&
+      graphJs.includes('mobileDeck.innerHTML = createMobileClassicDeckHtml()') &&
+      graphJs.includes('<h1 id="home-mobile-hero-title">Daniel Short</h1>') &&
+      graphJs.includes('<a href="portfolio">Projects</a>') &&
+      graphJs.includes('<a href="tools">Tools</a>') &&
+      graphJs.includes('<a href="games">Games</a>') &&
+      graphJs.includes("window.matchMedia?.('(max-width: 768px)')") &&
+      graphJs.includes('window.innerWidth <= 768') &&
       graphCss.includes('.home-graph__mobile-deck') &&
-      graphCss.includes('.home-graph__mobile-depth-card') &&
-      graphCss.includes('.home-graph__mobile-depth-card--final') &&
-      graphCss.includes('.home-graph__mobile-chain') &&
-      graphCss.includes('.home-graph__mobile-cluster-card') &&
-      graphCss.includes('.home-graph__mobile-cluster-lines') &&
-      graphCss.includes('.home-graph:not([data-graph-active]) .home-graph__center') &&
-      graphCss.includes('@media (max-width: 640px)'),
-      'homepage graph mobile layout should keep the inactive DS overview visible, then use a depth-deck interaction with the selected chain, subcategory, topic, project cluster, and preview inside the final cell');
+      graphCss.includes('.home-graph__mobile-classic') &&
+      graphCss.includes('.home-graph__mobile-hero') &&
+      graphCss.includes('.home-graph__mobile-section-card') &&
+      graphCss.includes('@media (max-width: 768px)') &&
+      !graphCss.includes('@media (max-width: 640px)'),
+      'homepage mobile layout should switch at 768px to a card-first Daniel Short introduction with direct library paths and featured content');
     assert(graphJs.includes('getGroupKey(categoryId, group.id)') &&
       graphJs.includes('entry.type === \'group\'') &&
       graphJs.includes('groupPoints.set(entry.groupId') &&
@@ -38269,7 +38323,7 @@ try {
     assert(!graphJs.includes('const stackStep = dimensions.height') &&
       graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
       graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
-      personalAudience.includes('home-graph-20260705-no-tabs-v1'),
+      personalAudience.includes('home-graph-20260709-hybrid-v1'),
       'homepage graph item placement should cluster project labels around each subcategory instead of using tabular child-node grids');
     assert(graphJs.includes("map.addEventListener('click'") &&
       graphJs.includes("center?.addEventListener('click', () => collapseGraph())"),
@@ -38331,11 +38385,23 @@ try {
       !personalAudience.includes('ML engineer &middot; data builder &middot; problem solver'),
       'homepage graph should not render the old identity profile panel');
     assert(workspaceIndex >= 0 &&
-      html.includes('<div class="wrapper home-graph__shell"><div class="home-graph__workspace"') &&
+      html.includes('<div class="wrapper home-graph__shell"><header class="home-graph__intro"') &&
       !html.includes('id="home-graph-help-modal"') &&
       !html.includes('How this page works') &&
       !html.includes('data-home-graph-help-close'),
       'homepage graph should render the graph workspace directly without the tab bar or initial guide modal');
+    assert(graphCss.includes('.home-graph__halo-dot::before') &&
+      graphCss.includes('font-size: .75rem') &&
+      graphCss.includes('homeGraphLineSignal 6.4s linear infinite') &&
+      graphCss.includes('homeGraphDotBreathe 7.2s ease-in-out infinite'),
+      'desktop graph should provide readable labels, 44px halo-dot targets, and calm idle motion');
+    assert(mobileDockCss.includes('--mobile-site-dock-height: 80px') &&
+      mobileDockCss.includes('--mobile-site-dock-clearance: calc(88px + env(safe-area-inset-bottom, 0px))') &&
+      mobileDockCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr)) 64px repeat(2, minmax(0, 1fr))') &&
+      mobileDockCss.includes('min-height: 56px') &&
+      mobileDockCss.includes('width: 64px') &&
+      mobileDockCss.includes('height: 64px'),
+      'shared mobile dock should stay compact while preserving 44px or larger navigation targets and matching body clearance');
   });
 
   section('Project-first public copy', () => {
@@ -38409,6 +38475,11 @@ try {
     assert(navCode.includes('ENTRY_HOME_KEY'), 'navigation missing entry-home storage key');
     assert(navCode.includes('[data-entry-home-link="true"]'), 'navigation missing entry-home link selector');
     assert(navCode.includes('detectAudienceFromPath'), 'navigation missing audience path detection');
+    assert(navCode.includes('document.body.dataset.siteRealm') &&
+      navCode.includes('explicitProfessionalAudience') &&
+      navCode.includes("siteRealm === 'personal' ? 'personal' : ''") &&
+      navCode.includes('getAudience(explicitAudience || realmAudience || storedAudience)'),
+      'navigation should prefer explicit professional signals and the current site realm before stored audience state');
     assert(navCode.includes('[data-portfolio-home-link="true"]'), 'navigation missing portfolio home selector');
     assert(!navCode.includes('[data-resume-home-link="true"]'), 'navigation should not keep resume home selector');
     assert(!navCode.includes('[data-brand-tagline-primary="true"]'), 'navigation should not update a removed brand tagline hook');
@@ -39531,6 +39602,36 @@ try {
       commonScript.includes("panel.dataset.jumpPanelSpyBound === 'yes'") &&
       commonScript.includes("history.pushState(null, '', currentHashUrl(hash))"),
       'same-page smooth scroll and jump panel spy should support mode-preserving hash URLs after professional homepage injection');
+    assert(commonScript.includes('normalizeAudienceSectionOrder') &&
+      commonScript.includes('sortWorkCardsNewestFirst') &&
+      commonScript.includes("grid.dataset.workOrder = 'newest-first'"),
+      'professional pages should keep proof-first section order and reverse-chronological experience after dynamic content updates');
+    const cmsWidgets = readFile('api/_lib/cms-widgets.js');
+    assert(cmsWidgets.includes('page && page.sectionOrder') &&
+      cmsWidgets.includes('sortLegacyWorkCards(html)'),
+      'visual-page rendering should apply authored section order and reverse-chronological work cards before first paint');
+    [
+      ['content/audiences/analytics.json', 'pages/analytics.html'],
+      ['content/audiences/data-science.json', 'pages/data-science.html'],
+      ['content/audiences/tourism.json', 'pages/tourism.html']
+    ].forEach(([contentPath, outputPath]) => {
+      const audience = JSON.parse(readFile(contentPath));
+      assert(Array.isArray(audience.page.sectionOrder) && audience.page.sectionOrder.length === audience.page.sections.length,
+        `${contentPath} should define a complete visual section order`);
+      const html = readFile(outputPath);
+      assert(html.indexOf('id="selected-outcomes"') < html.indexOf('id="project-examples"') &&
+        html.indexOf('id="project-examples"') < html.indexOf('id="work-experience"'),
+        `${outputPath} should render results, projects, then experience before JavaScript runs`);
+      assert(html.indexOf('<h3 class="work-company">Visit Grand Junction</h3>') < html.indexOf('<h3 class="work-company">Randall Reilly</h3>') &&
+        html.indexOf('<h3 class="work-company">Randall Reilly</h3>') < html.indexOf('<h3 class="work-company">Target</h3>'),
+        `${outputPath} should render experience in reverse chronological order`);
+    });
+    const jumpPanelCss = readFile('css/components/jump-panel.css');
+    assert(!jumpPanelCss.includes('@media (hover:none) and (pointer:coarse), (max-width:768px)') &&
+      jumpPanelCss.includes('scroll-margin-top:68px;') &&
+      jumpPanelCss.includes('overflow-x:clip;') &&
+      jumpPanelCss.includes('overflow-y:visible;'),
+      'professional mobile jump navigation should stay mobile-width-only and clear both sticky navigation bars');
     const animationsScript = readFile('js/animations/animations.js');
     assert(animationsScript.includes("document.addEventListener('site:content-updated'") &&
       animationsScript.includes('let revealObserver = null') &&
@@ -39572,6 +39673,9 @@ try {
     checkFileContains('contact.html', 'id="contact-form"');
     checkFileContains('pages/contact.html', 'action="/api/contact"');
     assert(fs.existsSync('api/contact.js'), 'api/contact.js missing');
+    assert(readFile('pages/resume.html').includes('href="documents/Resume.pdf" class="btn-primary" download>Download PDF</a>') &&
+      readFile('pages/resume-pdf.html').includes('href="documents/Resume.pdf" class="btn-primary" download>Download PDF</a>'),
+      'the primary resume and PDF preview routes should emphasize Download PDF');
   });
 
   section('Search page form contract', () => {
@@ -39600,6 +39704,16 @@ try {
       'consent manager should toggle expanded preference rows');
     assert(consentCode.includes('pcz-consent-critical-styles') && consentCode.includes('#pcz-banner .pcz-primary'),
       'consent manager should inject critical readable banner styles before privacy.css loads');
+    assert(consentCode.includes("closeBtn.addEventListener('click', useEssentialOnly)") &&
+      consentCode.includes("rejectBtn.addEventListener('click', useEssentialOnly)") &&
+      !consentCode.includes('handleIgnoreInteraction'),
+      'closing or declining the banner should keep essential-only consent without passive implied acceptance');
+    assert(consentCode.includes("const strictState = { necessary: true, analytics: false, functional: false, advertising: false }") &&
+      !consentCode.includes('const permissiveState ='),
+      'optional cookie categories should remain disabled until an explicit choice');
+    assert(consentCode.includes("existingBanner.dataset.state !== 'closing'") &&
+      consentCode.includes('if (existingBanner) existingBanner.remove();'),
+      'closing preferences should be able to restore a fresh banner without leaving stale consent layout state');
     assert(privacyCss.includes('.pref-option-head'),
       'privacy.css missing aligned preference row layout');
     assert(privacyCss.includes('.pref-disclosure'),

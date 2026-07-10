@@ -261,13 +261,36 @@
     });
 
     const categories = [...document.querySelectorAll('.tools-category')];
+    const railLinks = [...document.querySelectorAll('[data-tools-category-link]')];
+    let visibleToolCount = 0;
     categories.forEach((category) => {
       const toolCards = [...category.querySelectorAll('.tool-card')];
       if (!toolCards.length) return;
-      const hasVisibleCards = toolCards.some(card => !card.hasAttribute('hidden'));
-      if (hasVisibleCards) category.removeAttribute('hidden');
-      else category.setAttribute('hidden', '');
+      const visibleCards = toolCards.filter(card => !card.hasAttribute('hidden'));
+      const hasVisibleCards = visibleCards.length > 0;
+      const railLink = railLinks.find(link => link.dataset.toolsCategoryLink === category.id);
+      const railCount = railLink?.querySelector('[data-tools-category-count]');
+
+      visibleToolCount += visibleCards.length;
+      if (hasVisibleCards) {
+        category.removeAttribute('hidden');
+        railLink?.removeAttribute('hidden');
+        railLink?.removeAttribute('aria-hidden');
+      } else {
+        category.setAttribute('hidden', '');
+        railLink?.setAttribute('hidden', '');
+        railLink?.setAttribute('aria-hidden', 'true');
+      }
+      if (railCount) {
+        railCount.textContent = `${visibleCards.length} ${visibleCards.length === 1 ? 'tool' : 'tools'}`;
+      }
     });
+
+    const directoryStat = document.querySelector('[data-tools-directory-stat]');
+    if (directoryStat) {
+      const availabilityLabel = context.authed ? 'available' : 'public';
+      directoryStat.textContent = `${visibleToolCount} ${availabilityLabel} ${visibleToolCount === 1 ? 'tool' : 'tools'}`;
+    }
   };
 
   const applyToolsAuthenticatedContentVisibility = () => {

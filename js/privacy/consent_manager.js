@@ -66,12 +66,12 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: "I use cookies to understand traffic and improve the site. Continuing or closing this banner accepts all cookies.",
+        bannerDesc: 'I use optional cookies to understand traffic and improve the site. Choose the level you are comfortable with.',
         acceptAll: 'Allow all',
         rejectAll: 'Essential only',
         managePrefs: 'Manage settings',
         privacyPolicy: 'Privacy Policy',
-        close: 'Close banner and accept all cookies',
+        close: 'Close banner and use essential cookies only',
         modalTitle: 'Manage Your Privacy Settings',
         modalLead: 'Adjust your preferences below and click “Save preferences” to apply the changes. Necessary cookies are always enabled.',
         savePrefs: 'Save preferences',
@@ -104,12 +104,12 @@
       },
       es: {
         bannerTitle: 'Valoro tu privacidad',
-        bannerDesc: 'Utilizo cookies para entender el tráfico y mejorar el sitio. Si continúas o cierras este aviso, aceptaré todas las cookies.',
+        bannerDesc: 'Utilizo cookies opcionales para entender el tráfico y mejorar el sitio. Elige el nivel con el que te sientas cómodo.',
         acceptAll: 'Permitir todas',
         rejectAll: 'Solo esenciales',
         managePrefs: 'Administrar ajustes',
         privacyPolicy: 'Política de privacidad',
-        close: 'Cerrar y aceptar todas las cookies',
+        close: 'Cerrar y usar solo cookies esenciales',
         modalTitle: 'Preferencias de privacidad',
         modalLead: 'Ajusta tus preferencias y pulsa “Guardar preferencias” para aplicar los cambios. Las cookies necesarias siempre están activadas.',
         savePrefs: 'Guardar preferencias',
@@ -264,11 +264,7 @@
 
   function getDefaultState() {
     const strictState = { necessary: true, analytics: false, functional: false, advertising: false };
-    const permissiveState = { necessary: true, analytics: false, functional: true, advertising: false };
-    const region = getRegion();
-    const stateCode = getUSState();
-    const base = regionRequiresOptIn(region, stateCode) ? strictState : permissiveState;
-    const result = Object.assign({}, base);
+    const result = Object.assign({}, strictState);
     if (hasGPC()) {
       result.advertising = false;
     }
@@ -537,10 +533,12 @@
    * Show the consent banner.
    */
   function showBanner(localeStrings) {
-    if (document.getElementById('pcz-banner')) {
+    const existingBanner = document.getElementById('pcz-banner');
+    if (existingBanner && existingBanner.dataset.state !== 'closing') {
       setBannerUiState(true);
       return;
     }
+    if (existingBanner) existingBanner.remove();
     const saved = loadConsent();
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
@@ -555,20 +553,8 @@
     const rejectBtn = banner.querySelector('#pcz-reject');
     const manageBtn = banner.querySelector('#pcz-manage');
 
-    let cleanedUp = false;
-    const cleanupAutoAccept = () => {
-      if (cleanedUp) return;
-      cleanedUp = true;
-      try { document.removeEventListener('pointerdown', handleIgnoreInteraction, true); } catch {}
-      try { document.removeEventListener('keydown', handleIgnoreInteraction, true); } catch {}
-      try { window.removeEventListener('scroll', handleIgnoreInteraction, true); } catch {}
-      try { window.removeEventListener('wheel', handleIgnoreInteraction, true); } catch {}
-      try { window.removeEventListener('touchstart', handleIgnoreInteraction, true); } catch {}
-    };
-
     const dismissBanner = () => {
       if (!banner || banner.dataset.state === 'closing') return;
-      cleanupAutoAccept();
       banner.dataset.state = 'closing';
       setBannerUiState(false);
       banner.classList.remove('pcz-visible');
@@ -582,19 +568,6 @@
       try { document.body.classList.remove('consent-blocked'); } catch (err) {}
     };
 
-    // If the banner is ignored and the visitor continues using the page,
-    // treat that as implied consent ("continue browsing" = accept).
-    function handleIgnoreInteraction(event) {
-      if (loadConsent()) {
-        dismissBanner();
-        return;
-      }
-      const target = event && event.target ? event.target : null;
-      if (target && banner.contains(target)) return;
-      if (document.getElementById('pcz-modal')) return;
-      acceptAll();
-    }
-
     function acceptAll() {
       const newState = {
         necessary: true,
@@ -606,24 +579,19 @@
       applyConsent(newState);
       dismissBanner();
     }
-    try { document.addEventListener('pointerdown', handleIgnoreInteraction, true); } catch {}
-    try { document.addEventListener('keydown', handleIgnoreInteraction, true); } catch {}
-    try { window.addEventListener('scroll', handleIgnoreInteraction, { passive: true, capture: true }); } catch {}
-    try { window.addEventListener('wheel', handleIgnoreInteraction, { passive: true, capture: true }); } catch {}
-    try { window.addEventListener('touchstart', handleIgnoreInteraction, { passive: true, capture: true }); } catch {}
 
-    acceptBtn.addEventListener('click', acceptAll);
-    if (closeBtn) {
-      closeBtn.addEventListener('click', acceptAll);
-    }
-    rejectBtn.addEventListener('click', function () {
+    function useEssentialOnly() {
       const newState = { necessary: true, analytics: false, functional: false, advertising: false };
-      // If GPC is enabled, advertising must remain false
-      if (hasGPC()) newState.advertising = false;
       saveConsent(newState);
       applyConsent(newState);
       dismissBanner();
-    });
+    }
+
+    acceptBtn.addEventListener('click', acceptAll);
+    if (closeBtn) {
+      closeBtn.addEventListener('click', useEssentialOnly);
+    }
+    rejectBtn.addEventListener('click', useEssentialOnly);
     manageBtn.addEventListener('click', function (event) {
       event.preventDefault();
       dismissBanner();

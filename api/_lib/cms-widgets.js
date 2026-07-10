@@ -343,8 +343,44 @@ function renderMediaShowcase(section) {
   ].filter(Boolean).join('\n');
 }
 
+function workDateRank(value) {
+  const text = String(value || '').trim();
+  if (/present/i.test(text)) return Number.MAX_SAFE_INTEGER;
+  const matches = [...text.matchAll(/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{4}\b/gi)];
+  const last = matches.length ? matches[matches.length - 1][0] : '';
+  const parsed = last ? Date.parse(`1 ${last}`) : Number.NaN;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sortLegacyWorkCards(html) {
+  const source = String(html || '');
+  if (!source.includes('id="work-experience"')) return source;
+
+  const cardPattern = /<article\b[^>]*class="[^"]*\bwork-card\b[^"]*"[^>]*>[\s\S]*?<\/article>/gi;
+  const cards = [...source.matchAll(cardPattern)].map((match, index) => {
+    const cardHtml = match[0];
+    const timeframe = /class="[^"]*\bwork-timeframe\b[^"]*"[^>]*>([\s\S]*?)<\//i.exec(cardHtml);
+    return {
+      html: cardHtml,
+      index,
+      rank: workDateRank(timeframe ? timeframe[1].replace(/<[^>]+>/g, ' ') : '')
+    };
+  });
+  if (cards.length < 2) return source;
+
+  const sorted = cards
+    .slice()
+    .sort((a, b) => (b.rank - a.rank) || (a.index - b.index));
+  let replacementIndex = 0;
+  return source.replace(cardPattern, () => sorted[replacementIndex++].html);
+}
+
 function renderLegacyHtml(section) {
-  return String(section && section.props && section.props.html ? section.props.html : '');
+  const html = String(section && section.props && section.props.html ? section.props.html : '');
+  return sortLegacyWorkCards(html).replace(
+    /(<a\b[^>]*class=")btn-secondary("[^>]*\bdownload>Download PDF<\/a>)/gi,
+    '$1btn-primary$2'
+  );
 }
 
 const WIDGETS = [
@@ -586,7 +622,14 @@ function renderSection(section) {
 
 function renderVisualPageBody(page) {
   const sections = Array.isArray(page && page.sections) ? page.sections : [];
-  const body = sections
+  const requestedOrder = Array.isArray(page && page.sectionOrder) ? page.sectionOrder : [];
+  const sectionsById = new Map(sections.map((section) => [String(section && section.id || ''), section]));
+  const orderedIds = new Set(requestedOrder.map((id) => String(id || '')));
+  const orderedSections = requestedOrder
+    .map((id) => sectionsById.get(String(id || '')))
+    .filter(Boolean)
+    .concat(sections.filter((section) => !orderedIds.has(String(section && section.id || ''))));
+  const body = orderedSections
     .map((section) => renderSection(section))
     .filter(Boolean)
     .join('\n\n');
