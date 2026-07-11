@@ -1,29 +1,30 @@
 /*
   Admin health endpoint for short links storage: /api/short-links/health
-  - Requires SHORTLINKS_ADMIN_TOKEN (same as the dashboard).
+  - Requires a verified Cognito admins-group token (legacy token only during rollback mode).
   - Returns sanitized DynamoDB connectivity diagnostics.
 */
 'use strict';
 
 const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
-const { getAwsCredentialsFromEnv, getAwsCredentialEnvInfo, getRequiredEnv } = require('../_lib/short-links-store');
-const { getAdminToken, isAdminRequest, sendJson } = require('../_lib/short-links');
+const {
+  AWS_WORKLOADS,
+  describeAwsAuth,
+  getAwsClientConfig
+} = require('../_lib/aws-credentials');
+const { getRequiredEnv } = require('../_lib/short-links-store');
+const { authorizeShortLinksAdmin, sendJson } = require('../_lib/short-links');
 
-function maskAccessKeyId(value){
-  const raw = typeof value === 'string' ? value.trim() : '';
-  if (!raw) return '';
-  if (raw.length <= 8) return `${raw.slice(0, 2)}…${raw.slice(-2)}`;
-  return `${raw.slice(0, 4)}…${raw.slice(-4)}`;
+function safeAwsError(err){
+  return {
+    name: err && err.name ? String(err.name).slice(0, 120) : '',
+    code: err && err.code ? String(err.code).slice(0, 120) : ''
+  };
 }
 
 module.exports = async (req, res) => {
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const admin = await authorizeShortLinksAdmin(req);
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
     return;
   }
 
@@ -42,27 +43,20 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const envInfo = getAwsCredentialEnvInfo();
-  const creds = {
-    accessKeyId: maskAccessKeyId(envInfo.accessKeyId),
-    accessKeyIdSource: envInfo.accessKeyIdSource,
-    secretSource: envInfo.secretSource,
-    sessionTokenSource: envInfo.sessionTokenSource,
-    accessKeyConfigured: envInfo.accessKeyConfigured,
-    secretConfigured: envInfo.secretConfigured,
-    sessionTokenConfigured: envInfo.sessionTokenConfigured,
-    sessionTokenUsed: envInfo.sessionTokenUsed,
-    sessionTokenIgnored: envInfo.sessionTokenIgnored,
-    accessKeyTrimmed: envInfo.accessKeyTrimmed,
-    secretTrimmed: envInfo.secretTrimmed,
-    sessionTokenTrimmed: envInfo.sessionTokenTrimmed,
-    accessKeyLength: envInfo.accessKeyLength,
-    secretLength: envInfo.secretLength,
-    sessionTokenLength: envInfo.sessionTokenLength,
-    secretFingerprint: envInfo.secretFingerprint
-  };
-  const credentials = getAwsCredentialsFromEnv();
-  const client = new DynamoDBClient({ region: env.region, credentials: credentials || undefined });
+  let aws;
+  let auth;
+  try {
+    aws = getAwsClientConfig(AWS_WORKLOADS.SHORT_LINKS, { region: env.region });
+    auth = describeAwsAuth(AWS_WORKLOADS.SHORT_LINKS, { region: env.region });
+  } catch (err) {
+    sendJson(res, 503, {
+      ok: false,
+      error: 'Short links AWS authentication is not configured',
+      details: safeAwsError(err)
+    });
+    return;
+  }
+  const client = new DynamoDBClient(aws.clientConfig);
 
   try {
     const result = await client.send(new DescribeTableCommand({ TableName: env.tableName }));
@@ -78,11 +72,7 @@ module.exports = async (req, res) => {
         const clicksResult = await client.send(new DescribeTableCommand({ TableName: clicksTableName }));
         clicksTable = clicksResult && clicksResult.Table ? clicksResult.Table : null;
       } catch (err) {
-        clicksError = {
-          name: err && err.name ? err.name : '',
-          code: err && err.code ? err.code : '',
-          message: err && err.message ? err.message : ''
-        };
+        clicksError = safeAwsError(err);
       }
     }
 
@@ -90,7 +80,7 @@ module.exports = async (req, res) => {
       ok: true,
       aws: {
         region: env.region,
-        ...creds
+        ...auth
       },
       table: {
         name: table && table.TableName ? table.TableName : env.tableName,
@@ -111,15 +101,11 @@ module.exports = async (req, res) => {
     sendJson(res, 502, {
       ok: false,
       error: 'DynamoDB backend unavailable',
-      details: {
-        name: err && err.name ? err.name : '',
-        code: err && err.code ? err.code : '',
-        message: err && err.message ? err.message : ''
-      },
+      details: safeAwsError(err),
       aws: {
         region: env.region,
         table: env.tableName,
-        ...creds
+        ...auth
       }
     });
   }

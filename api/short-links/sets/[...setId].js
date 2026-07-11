@@ -14,11 +14,10 @@ const {
 } = require('../../_lib/short-links-store');
 const {
   buildBatchRecordKey,
+  authorizeShortLinksAdmin,
   createBatchId,
   generateRandomSlug,
-  getAdminToken,
   getRequestBaseUrl,
-  isAdminRequest,
   normalizeDestination,
   normalizeRandomLength,
   normalizeSetId,
@@ -95,13 +94,9 @@ function createUniqueSlug(length, usedLowerSlugs){
 }
 
 module.exports = async (req, res) => {
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const admin = await authorizeShortLinksAdmin(req);
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
     return;
   }
 

@@ -1,0 +1,352 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Least-privilege Vercel OIDC roles for one website deployment environment.
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - production
+      - preview
+  VercelTeamSlug:
+    Type: String
+    Default: daniel-shorts-projects
+    AllowedValues:
+      - daniel-shorts-projects
+  VercelProjectName:
+    Type: String
+    Default: website
+    AllowedValues:
+      - website
+  OidcProviderArn:
+    Type: String
+    AllowedPattern: '^arn:(aws|aws-us-gov|aws-cn):iam::[0-9]{12}:oidc-provider/oidc\.vercel\.com/daniel-shorts-projects$'
+  OidcAudience:
+    Type: String
+    Default: sts.amazonaws.com
+    AllowedValues:
+      - sts.amazonaws.com
+  RolePrefix:
+    Type: String
+    Default: website
+    AllowedPattern: '^[A-Za-z0-9+=,.@_-]{1,24}$'
+  ToolsTableName:
+    Type: String
+    MinLength: 3
+  ShortLinksTableName:
+    Type: String
+    MinLength: 3
+  ShortLinksClicksTableName:
+    Type: String
+    MinLength: 3
+  ChatbotTableName:
+    Type: String
+    MinLength: 3
+  TranscribeBucketName:
+    Type: String
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$'
+  TranscribeObjectPrefix:
+    Type: String
+    Default: tools-transcribe/
+    AllowedPattern: '^[A-Za-z0-9!_.*()/-]+/$'
+  BedrockResourceArns:
+    Type: CommaDelimitedList
+    Description: Exact inference-profile and foundation-model ARNs used by the chatbot and embedding build.
+  SesIdentityArns:
+    Type: CommaDelimitedList
+    Description: Exact verified SES identity ARN or ARNs allowed to send contact mail.
+  DemoFunctionArns:
+    Type: CommaDelimitedList
+    Description: Exact Lambda function or alias ARNs exposed by the allowlisted demo proxy.
+  DemoRateLimitTableName:
+    Type: String
+    MinLength: 3
+
+Resources:
+  ToolsStateRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-tools-state-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: tools-state-table
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ToolsTableName}'
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ToolsTableName}/index/*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ShortLinksRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-short-links-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: short-links-tables
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:DescribeTable
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksTableName}'
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksTableName}/index/*'
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksClicksTableName}'
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ShortLinksClicksTableName}/index/*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  TranscribeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-transcribe-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: transcribe-jobs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: transcribe:StartTranscriptionJob
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - transcribe:DeleteTranscriptionJob
+                  - transcribe:GetTranscriptionJob
+                Resource: !Sub 'arn:${AWS::Partition}:transcribe:${AWS::Region}:${AWS::AccountId}:transcription-job/site-transcribe-*'
+              - Effect: Allow
+                Action:
+                  - s3:DeleteObject
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::${TranscribeBucketName}/${TranscribeObjectPrefix}*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ChatbotBedrockRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-chatbot-bedrock-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: approved-bedrock-models
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: !Ref BedrockResourceArns
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ChatbotDdbRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-chatbot-ddb-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: chatbot-log-rate-limit-table
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ChatbotTableName}'
+                  - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ChatbotTableName}/index/*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ContactRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-contact-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: verified-contact-sender
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                Resource: !Ref SesIdentityArns
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  DemoInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${RolePrefix}-demo-invoke-${Environment}'
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref OidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'oidc.vercel.com/daniel-shorts-projects:aud': !Ref OidcAudience
+                'oidc.vercel.com/daniel-shorts-projects:sub': !Sub 'owner:${VercelTeamSlug}:project:${VercelProjectName}:environment:${Environment}'
+      Policies:
+        - PolicyName: allowlisted-demo-functions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !Ref DemoFunctionArns
+              - Effect: Allow
+                Action:
+                  - dynamodb:UpdateItem
+                Resource: !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DemoRateLimitTableName}'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+Outputs:
+  ToolsAwsRoleArn:
+    Value: !GetAtt ToolsStateRole.Arn
+    Description: TOOLS_AWS_ROLE_ARN
+  ShortLinksAwsRoleArn:
+    Value: !GetAtt ShortLinksRole.Arn
+    Description: SHORTLINKS_AWS_ROLE_ARN
+  TranscribeAwsRoleArn:
+    Value: !GetAtt TranscribeRole.Arn
+    Description: TRANSCRIBE_AWS_ROLE_ARN
+  ChatbotBedrockAwsRoleArn:
+    Value: !GetAtt ChatbotBedrockRole.Arn
+    Description: CHATBOT_BEDROCK_AWS_ROLE_ARN
+  ChatbotDdbAwsRoleArn:
+    Value: !GetAtt ChatbotDdbRole.Arn
+    Description: CHATBOT_DDB_AWS_ROLE_ARN
+  ContactAwsRoleArn:
+    Value: !GetAtt ContactRole.Arn
+    Description: CONTACT_AWS_ROLE_ARN
+  DemoInvokeAwsRoleArn:
+    Value: !GetAtt DemoInvokeRole.Arn
+    Description: DEMO_INVOKE_AWS_ROLE_ARN

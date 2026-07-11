@@ -33,8 +33,11 @@ function getMapSlopeBudget(map) {
   const role = String(map && map.layoutRole || '');
   if (map && map.shopInterior) return { maxSlopes: 0, maxGrade: 0, maxSlopesPerWindow: 0 };
   if (map && map.safeZone || role === 'town') return { maxSlopes: 4, maxGrade: 0.7, maxSlopesPerWindow: 3 };
-  if (map && map.bossRoom || role === 'bossArena') return { maxSlopes: 4, maxGrade: 0.72, maxSlopesPerWindow: 3 };
-  if (map && map.isDungeon || role === 'dungeon') return { maxSlopes: 4, maxGrade: 0.72, maxSlopesPerWindow: 3 };
+  if (map && map.bossRoom || role === 'bossArena') return { maxSlopes: 6, maxGrade: 0.72, maxSlopesPerWindow: 3 };
+  if (map && map.isDungeon || role === 'dungeon') return { maxSlopes: 6, maxGrade: 0.72, maxSlopesPerWindow: 3 };
+  if (map && map.designIntent && map.designIntent.priorityRedesign) {
+    return { maxSlopes: 12, maxGrade: 0.72, maxSlopesPerWindow: 4 };
+  }
   if (role === 'starterField') return { maxSlopes: 6, maxGrade: 0.72, maxSlopesPerWindow: 3 };
   if (role === 'endlessField') return { maxSlopes: 8, maxGrade: 0.72, maxSlopesPerWindow: 3 };
   if (role === 'deepField') return { maxSlopes: 8, maxGrade: 0.72, maxSlopesPerWindow: 3 };

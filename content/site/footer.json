@@ -103,7 +103,7 @@
         "links": [
           {
             "label": "Portfolio",
-            "href": "portfolio?audience=analytics",
+            "href": "portfolio",
             "dataAttributes": {
               "data-portfolio-home-link": "true"
             }

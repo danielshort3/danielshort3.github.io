@@ -4,8 +4,14 @@
   "private": true,
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
-    "test": "node test.js && node build/validate-seo.js",
+    "test": "node test.js && node tests/aws-credentials.test.js && node tests/contact-demo-boundaries.test.js && node tests/admin-auth.test.js && node tests/job-tracker-boundaries.test.js && node build/validate-seo.js",
+    "test:aws-auth": "node tests/aws-credentials.test.js",
+    "test:aws-boundaries": "node tests/contact-demo-boundaries.test.js",
+    "test:admin-auth": "node tests/admin-auth.test.js",
+    "test:job-tracker-boundaries": "node tests/job-tracker-boundaries.test.js",
+    "audit:dependencies": "npm audit --audit-level=moderate",
     "test:seo": "node build/validate-seo.js",
+    "validate:aws:preview-lambdas": "node build/validate-preview-lambdas.js",
     "test:starfall": "node test.js --suite=starfall-runtime",
     "test:starfall:smoke": "node test.js --suite=starfall-smoke",
     "test:starfall:inventory": "node test.js --suite=starfall-inventory",
@@ -44,12 +50,15 @@
     "node": "22.x"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.1045.0",
-    "@aws-sdk/client-dynamodb": "^3.962.0",
-    "@aws-sdk/client-s3": "^3.1046.0",
-    "@aws-sdk/client-transcribe": "^3.1046.0",
-    "@aws-sdk/lib-dynamodb": "^3.962.0",
-    "@aws-sdk/s3-request-presigner": "^3.1046.0"
+    "@aws-sdk/client-bedrock-runtime": "^3.1085.0",
+    "@aws-sdk/client-dynamodb": "^3.1085.0",
+    "@aws-sdk/client-lambda": "^3.1085.0",
+    "@aws-sdk/client-s3": "^3.1085.0",
+    "@aws-sdk/client-sesv2": "^3.1085.0",
+    "@aws-sdk/client-transcribe": "^3.1085.0",
+    "@aws-sdk/lib-dynamodb": "^3.1085.0",
+    "@aws-sdk/s3-request-presigner": "^3.1085.0",
+    "@vercel/oidc-aws-credentials-provider": "^3.3.0"
   },
   "devDependencies": {
     "esbuild": "^0.27.2",

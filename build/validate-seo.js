@@ -14,6 +14,11 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const SITE_ORIGIN = 'https://www.danielshort.me';
+const EXPECTED_SITEMAP_URL_COUNT = 38;
+const EXPECTED_BULK_REDIRECTS_PATH = 'seo-bulk-redirects.json';
+const PROFESSIONAL_AUDIENCE_KEYS = ['analytics', 'data-science', 'tourism'];
+const GOOGLEBOT_USER_AGENT = 'Googlebot';
+const DOCUMENT_CRAWL_SAMPLE = '/documents/Resume.pdf';
 const RASTER_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const NON_SITEMAP_UTILITY_SOURCES = new Set([
   '404.html',
@@ -48,6 +53,36 @@ const REQUIRED_ALIAS_REDIRECTS = [
   ['/projects', '/portfolio'],
   ['/projects/:project', '/portfolio/:project'],
   ['/projects/:project.html', '/portfolio/:project']
+];
+
+const ONE_HOP_REDIRECT_CASES = [
+  ['/index.html', '/'],
+  ['/portfolio/retailStore.html', '/portfolio/retailStore'],
+  ['/tools/text-compare.html', '/tools/text-compare'],
+  ['/games/project-starfall.html', '/games/project-starfall'],
+  ['/contact.html', '/contact'],
+  ['/tools/whisper-transcribe-monitor.html', '/tools/transcribe'],
+  ['/demos/stellar-dogfight-demo.html', '/games/stellar-dogfight'],
+  ['/demos/roulette-double-zero-demo.html', '/games/roulette'],
+  ['/probability-engine.html', '/games/probability-engine'],
+  ['/word-frequency.html', '/tools/word-frequency'],
+  ['/oxford-comma-checker.html', '/tools/oxford-comma-checker'],
+  ['/nbsp-cleaner.html', '/tools/nbsp-cleaner'],
+  ['/project-starfall.html', '/games/project-starfall'],
+  ['/tools/ocean-wave-simulation.html', '/games/ocean-wave-simulation'],
+  ['/projects/retailStore.html', '/portfolio/retailStore'],
+  ['/pages/portfolio', '/portfolio'],
+  ['/pages/portfolio.html', '/portfolio'],
+  ['/pages/background-remover', '/tools/background-remover'],
+  ['/pages/background-remover.html', '/tools/background-remover'],
+  ['/pages/word-frequency', '/tools/word-frequency'],
+  ['/pages/word-frequency.html', '/tools/word-frequency'],
+  ['/destination-analytics.html', '/tourism'],
+  ['/pages/destination-analytics', '/tourism'],
+  ['/pages/destination-analytics.html', '/tourism'],
+  ['/contributions.html', '/tourism'],
+  ['/pages/contributions', '/tourism'],
+  ['/pages/contributions.html', '/tourism']
 ];
 
 const errors = [];
@@ -278,11 +313,20 @@ function requireSingleMeta(document, attributeName, key) {
   return values[0];
 }
 
-function hasNoindexHeader(rule) {
+function hasRobotsHeaderDirective(rule, directive) {
+  const matcher = new RegExp(`(?:^|[,\\s])${directive}(?:$|[,\\s])`, 'i');
   return Array.isArray(rule && rule.headers) && rule.headers.some((header) => (
     String(header && header.key || '').trim().toLowerCase() === 'x-robots-tag'
-      && /(?:^|[,\s])noindex(?:$|[,\s])/i.test(String(header && header.value || ''))
+      && matcher.test(String(header && header.value || ''))
   ));
+}
+
+function hasNoindexHeader(rule) {
+  return hasRobotsHeaderDirective(rule, 'noindex');
+}
+
+function hasNoindexNofollowHeader(rule) {
+  return hasNoindexHeader(rule) && hasRobotsHeaderDirective(rule, 'nofollow');
 }
 
 function isExactRouteSource(source) {
@@ -462,6 +506,10 @@ function validateSitemap(groups, exactNoindexRoutes) {
   const locations = parseSitemapLocations(readRequired('sitemap.xml'));
   const sitemapSet = new Set();
 
+  if (locations.length !== EXPECTED_SITEMAP_URL_COUNT) {
+    report('sitemap.xml', `expected ${EXPECTED_SITEMAP_URL_COUNT} URLs, found ${locations.length}`);
+  }
+
   locations.forEach((location) => {
     if (sitemapSet.has(location)) {
       report('sitemap.xml', `duplicate URL: ${location}`);
@@ -470,6 +518,9 @@ function validateSitemap(groups, exactNoindexRoutes) {
     const parsed = parseCanonical(location, 'sitemap.xml');
     if (!parsed) return;
     const pathname = normalizeRoutePathname(parsed.pathname);
+    if (pathname === '/documents' || pathname.startsWith('/documents/')) {
+      report('sitemap.xml', `document URL must not be included: ${location}`);
+    }
     if (exactNoindexRoutes.has(pathname)) {
       report('sitemap.xml', `noindex route must not be included: ${location}`);
     }
@@ -508,6 +559,362 @@ function findRouteRule(rules, source, destination, requirePermanent = false) {
   ));
 }
 
+function escapeRegex(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function matchRouteSource(source, pathname) {
+  const rawSource = String(source || '');
+  const names = [];
+  let pattern = '^';
+  let offset = 0;
+  const tokenMatcher = /:([a-zA-Z][a-zA-Z0-9_]*)(\*)?/g;
+  let token;
+  while ((token = tokenMatcher.exec(rawSource))) {
+    pattern += escapeRegex(rawSource.slice(offset, token.index));
+    names.push(token[1]);
+    pattern += token[2] ? '(.*)' : '([^/]+)';
+    offset = tokenMatcher.lastIndex;
+  }
+  pattern += `${escapeRegex(rawSource.slice(offset))}$`;
+
+  let match;
+  try {
+    match = new RegExp(pattern).exec(String(pathname || ''));
+  } catch (_) {
+    return null;
+  }
+  if (!match) return null;
+  return names.reduce((params, name, index) => {
+    params[name] = match[index + 1] || '';
+    return params;
+  }, {});
+}
+
+function interpolateRouteDestination(destination, params) {
+  return String(destination || '').replace(/:([a-zA-Z][a-zA-Z0-9_]*)(\*)?/g, (_match, name) => (
+    Object.prototype.hasOwnProperty.call(params, name) ? params[name] : ''
+  ));
+}
+
+function findFirstUnconditionalRedirect(redirects, pathname) {
+  for (const redirect of redirects) {
+    if (!isUnconditionalRule(redirect)) continue;
+    const params = matchRouteSource(redirect.source, pathname);
+    if (!params) continue;
+    return {
+      redirect,
+      destination: interpolateRouteDestination(redirect.destination, params)
+    };
+  }
+  return null;
+}
+
+function cleanUrlRedirectDestination(pathname) {
+  const value = String(pathname || '');
+  if (!value.toLowerCase().endsWith('.html')) return '';
+  const withoutExtension = value.slice(0, -5) || '/';
+  if (withoutExtension.toLowerCase() === '/index') return '/';
+  if (withoutExtension.toLowerCase().endsWith('/index')) {
+    return withoutExtension.slice(0, -6) || '/';
+  }
+  return withoutExtension;
+}
+
+function findBulkRedirect(bulkRedirects, pathname) {
+  const normalized = String(pathname || '').toLowerCase();
+  const redirect = bulkRedirects.find((candidate) => (
+    String(candidate && candidate.source || '').toLowerCase() === normalized
+  ));
+  return redirect
+    ? { redirect, destination: String(redirect.destination || ''), kind: 'bulk redirect' }
+    : null;
+}
+
+function findFirstPlatformRedirect(vercel, redirects, bulkRedirects, pathname) {
+  const bulk = findBulkRedirect(bulkRedirects, pathname);
+  if (bulk) return bulk;
+
+  if (vercel && vercel.cleanUrls === true) {
+    const destination = cleanUrlRedirectDestination(pathname);
+    if (destination) {
+      return {
+        redirect: { source: pathname, destination },
+        destination,
+        kind: 'cleanUrls redirect'
+      };
+    }
+  }
+
+  const configured = findFirstUnconditionalRedirect(redirects, pathname);
+  return configured ? { ...configured, kind: 'deployment redirect' } : null;
+}
+
+function resolveDeploymentRedirectDestination(redirects, pathname) {
+  let current = String(pathname || '');
+  const visited = new Set();
+  while (current && !/^https?:\/\//i.test(current) && !visited.has(current)) {
+    visited.add(current);
+    const redirect = findFirstUnconditionalRedirect(redirects, current);
+    if (!redirect) return current;
+    current = redirect.destination;
+  }
+  if (visited.has(current)) {
+    report('vercel.json', `redirect cycle detected while resolving ${pathname}`);
+  }
+  return current;
+}
+
+function addExpectedBulkRedirect(expected, source, destination) {
+  const existing = expected.get(source);
+  if (existing && existing !== destination) {
+    report(EXPECTED_BULK_REDIRECTS_PATH, `${source} has conflicting expected destinations ${existing} and ${destination}`);
+    return;
+  }
+  expected.set(source, destination);
+}
+
+function buildExpectedBulkRedirects(documents, redirects) {
+  const expected = new Map();
+
+  documents
+    .filter((document) => document.relativePath.startsWith('pages/') && document.canonicalUrl)
+    .forEach((document) => {
+      const relative = document.relativePath.slice('pages/'.length, -'.html'.length);
+      const destination = resolveDeploymentRedirectDestination(redirects, document.canonicalUrl.pathname);
+      const htmlSource = `/pages/${relative}.html`;
+      const cleanSource = `/pages/${relative}`;
+      addExpectedBulkRedirect(expected, htmlSource, destination);
+
+      const current = findFirstUnconditionalRedirect(redirects, cleanSource);
+      if (!current || current.destination !== destination) {
+        addExpectedBulkRedirect(expected, cleanSource, destination);
+      }
+
+      if (relative.startsWith('portfolio/') && !relative.slice('portfolio/'.length).includes('/')) {
+        const project = relative.slice('portfolio/'.length);
+        addExpectedBulkRedirect(expected, `/projects/${project}.html`, destination);
+      }
+    });
+
+  redirects.forEach((redirect) => {
+    if (!isUnconditionalRule(redirect) || !isExactRouteSource(redirect.source)) return;
+    const source = String(redirect.source || '');
+    const destination = resolveDeploymentRedirectDestination(redirects, redirect.destination);
+    const cleanDestination = cleanUrlRedirectDestination(source);
+    if (cleanDestination && cleanDestination !== destination) {
+      addExpectedBulkRedirect(expected, source, destination);
+    }
+
+    const firstConfigured = findFirstUnconditionalRedirect(redirects, source);
+    if (firstConfigured && firstConfigured.redirect !== redirect && firstConfigured.destination !== destination) {
+      addExpectedBulkRedirect(expected, source, destination);
+    }
+  });
+
+  return expected;
+}
+
+function validateBulkRedirectManifest(vercel, redirects, documents) {
+  const configuredPath = String(vercel && vercel.bulkRedirectsPath || '');
+  if (configuredPath !== EXPECTED_BULK_REDIRECTS_PATH) {
+    report('vercel.json', `bulkRedirectsPath must be ${EXPECTED_BULK_REDIRECTS_PATH}`);
+  }
+
+  const parsed = readJsonRequired(EXPECTED_BULK_REDIRECTS_PATH);
+  if (!Array.isArray(parsed)) {
+    report(EXPECTED_BULK_REDIRECTS_PATH, 'must contain a JSON array');
+    return [];
+  }
+
+  const actual = new Map();
+  parsed.forEach((redirect, index) => {
+    const scope = `${EXPECTED_BULK_REDIRECTS_PATH} entry ${index + 1}`;
+    const source = String(redirect && redirect.source || '');
+    const destination = String(redirect && redirect.destination || '');
+    if (!source.startsWith('/') || /[:*()?#]/.test(source)) {
+      report(scope, `source must be one exact internal pathname: ${source || '(empty)'}`);
+    }
+    if (!destination.startsWith('/') || /[?#]/.test(destination)) {
+      report(scope, `destination must be one clean internal pathname: ${destination || '(empty)'}`);
+    }
+    if (Number(redirect && redirect.statusCode) !== 308) {
+      report(scope, 'statusCode must be 308');
+    }
+    if (redirect && redirect.preserveQueryParams !== true) {
+      report(scope, 'preserveQueryParams must be true');
+    }
+    if (actual.has(source)) {
+      report(scope, `duplicate source ${source}`);
+    }
+    actual.set(source, destination);
+  });
+
+  const expected = buildExpectedBulkRedirects(documents, redirects);
+  expected.forEach((destination, source) => {
+    if (!actual.has(source)) {
+      report(EXPECTED_BULK_REDIRECTS_PATH, `missing priority redirect ${source} -> ${destination}`);
+      return;
+    }
+    if (actual.get(source) !== destination) {
+      report(EXPECTED_BULK_REDIRECTS_PATH, `${source} must redirect directly to ${destination}, found ${actual.get(source)}`);
+    }
+  });
+  actual.forEach((destination, source) => {
+    if (!expected.has(source)) {
+      report(EXPECTED_BULK_REDIRECTS_PATH, `unexpected redirect outside the known canonical aliases: ${source} -> ${destination}`);
+    }
+    const downstreamBulk = actual.get(destination);
+    const downstreamConfigured = findFirstUnconditionalRedirect(redirects, destination);
+    if (downstreamBulk || downstreamConfigured) {
+      const next = downstreamBulk || downstreamConfigured.destination;
+      report(EXPECTED_BULK_REDIRECTS_PATH, `${source} still requires another redirect hop: ${destination} -> ${next}`);
+    }
+  });
+
+  return parsed;
+}
+
+function validateOneHopRedirects(vercel, redirects, bulkRedirects) {
+  ONE_HOP_REDIRECT_CASES.forEach(([requestPath, expectedDestination]) => {
+    const first = findFirstPlatformRedirect(vercel, redirects, bulkRedirects, requestPath);
+    if (!first) {
+      report('vercel.json', `missing canonical redirect for ${requestPath}`);
+      return;
+    }
+    if (first.destination !== expectedDestination) {
+      report('vercel.json', `canonical redirect for ${requestPath} must go directly to ${expectedDestination}, found ${first.destination}`);
+      return;
+    }
+    const second = findFirstPlatformRedirect(vercel, redirects, bulkRedirects, first.destination);
+    if (second) {
+      report('vercel.json', `canonical redirect for ${requestPath} requires another hop: ${first.destination} -> ${second.destination}`);
+    }
+  });
+}
+
+function hasQueryCondition(rule, key, value) {
+  return Array.isArray(rule && rule.has) && rule.has.some((condition) => (
+    String(condition && condition.type || '').toLowerCase() === 'query'
+      && String(condition && condition.key || '') === key
+      && String(condition && condition.value || '') === value
+  ));
+}
+
+function validateConditionalNoindexHeaders(headers) {
+  const queryVariants = [
+    ['mode', 'professional'],
+    ...PROFESSIONAL_AUDIENCE_KEYS.map((audience) => ['audience', audience])
+  ];
+  queryVariants.forEach(([key, value]) => {
+    ['/', '/:path*'].forEach((source) => {
+      const rule = headers.find((candidate) => (
+        String(candidate && candidate.source || '') === source
+          && hasQueryCondition(candidate, key, value)
+      ));
+      if (!rule || !hasNoindexNofollowHeader(rule)) {
+        report('vercel.json', `missing query-specific X-Robots-Tag noindex, nofollow for ${source}?${key}=${value}`);
+        return;
+      }
+      const conditions = [
+        ...(Array.isArray(rule.has) ? rule.has : []),
+        ...(Array.isArray(rule.missing) ? rule.missing : [])
+      ];
+      if (conditions.some(conditionUsesUserAgent)) {
+        report('vercel.json', `query noindex coverage must not vary by user-agent: ${source}?${key}=${value}`);
+      }
+    });
+  });
+}
+
+function parseRobotsGroups(contents) {
+  const groups = [];
+  let agents = [];
+  let directives = [];
+  const flush = () => {
+    if (agents.length) groups.push({ agents, directives });
+    agents = [];
+    directives = [];
+  };
+
+  String(contents || '').split(/\r?\n/).forEach((line) => {
+    const normalized = line.replace(/#.*$/, '').trim();
+    if (!normalized) return;
+    const match = normalized.match(/^([^:]+):\s*(.*)$/);
+    if (!match) return;
+    const name = match[1].trim().toLowerCase();
+    const value = match[2].trim();
+    if (name === 'user-agent') {
+      if (directives.length) flush();
+      agents.push(value.toLowerCase());
+      return;
+    }
+    if ((name === 'allow' || name === 'disallow') && agents.length) {
+      directives.push({ type: name, value });
+    }
+  });
+  flush();
+  return groups;
+}
+
+function robotsPatternMatches(pattern, pathname) {
+  const value = String(pattern || '');
+  if (!value) return false;
+  const endAnchored = value.endsWith('$');
+  const source = endAnchored ? value.slice(0, -1) : value;
+  const regexSource = escapeRegex(source).replace(/\\\*/g, '.*');
+  try {
+    return new RegExp(`^${regexSource}${endAnchored ? '$' : ''}`).test(String(pathname || '/'));
+  } catch (_) {
+    return false;
+  }
+}
+
+function isRobotsAllowed(contents, userAgent, pathname) {
+  const normalizedAgent = String(userAgent || '').toLowerCase();
+  const matchedGroups = parseRobotsGroups(contents)
+    .map((group) => {
+      const matches = group.agents
+        .filter((agent) => agent === '*' || normalizedAgent.includes(agent))
+        .map((agent) => (agent === '*' ? 0 : agent.length));
+      return matches.length ? { group, specificity: Math.max(...matches) } : null;
+    })
+    .filter(Boolean);
+  if (!matchedGroups.length) return true;
+  const bestSpecificity = Math.max(...matchedGroups.map((entry) => entry.specificity));
+  const matchingDirectives = matchedGroups
+    .filter((entry) => entry.specificity === bestSpecificity)
+    .flatMap((entry) => entry.group.directives)
+    .filter((directive) => robotsPatternMatches(directive.value, pathname))
+    .map((directive) => ({
+      ...directive,
+      specificity: directive.value.replace(/[*$]/g, '').length
+    }))
+    .sort((left, right) => (
+      right.specificity - left.specificity
+        || (left.type === 'allow' ? -1 : 1)
+    ));
+  return !matchingDirectives.length || matchingDirectives[0].type === 'allow';
+}
+
+function validateGooglebotAccessibility(robots, sitemapSet) {
+  const paths = [
+    DOCUMENT_CRAWL_SAMPLE,
+    ...[...sitemapSet].map((location) => {
+      try {
+        return new URL(location).pathname;
+      } catch (_) {
+        return '';
+      }
+    }).filter(Boolean)
+  ];
+  [...new Set(paths)].forEach((pathname) => {
+    if (!isRobotsAllowed(robots, GOOGLEBOT_USER_AGENT, pathname)) {
+      report('robots.txt', `${GOOGLEBOT_USER_AGENT} must be allowed to crawl ${pathname} so response noindex/canonical signals can be read`);
+    }
+  });
+}
+
 function ruleCoversPrefix(rule, prefix) {
   if (!isUnconditionalRule(rule) || !hasNoindexHeader(rule)) return false;
   const source = String(rule.source || '');
@@ -518,10 +925,11 @@ function ruleCoversPrefix(rule, prefix) {
     || source.startsWith(`${prefix}*`);
 }
 
-function validateVercelAndRobots(vercel) {
+function validateVercelAndRobots(vercel, sitemapSet, documents) {
   const rewrites = Array.isArray(vercel.rewrites) ? vercel.rewrites : [];
   const redirects = Array.isArray(vercel.redirects) ? vercel.redirects : [];
   const headers = Array.isArray(vercel.headers) ? vercel.headers : [];
+  const bulkRedirects = validateBulkRedirectManifest(vercel, redirects, documents);
 
   rewrites.forEach((rewrite) => {
     const conditions = [
@@ -532,6 +940,8 @@ function validateVercelAndRobots(vercel) {
       report('vercel.json', `content must not be rewritten by user-agent: ${rewrite.source} -> ${rewrite.destination}`);
     }
   });
+
+  validateConditionalNoindexHeaders(headers);
 
   [
     ['/ai/:path*', '/dist/ai-pages/:path*']
@@ -556,11 +966,21 @@ function validateVercelAndRobots(vercel) {
     }
   });
 
+  const documentsHeader = headers.find((rule) => (
+    String(rule && rule.source || '') === '/documents/:path*'
+      && isUnconditionalRule(rule)
+      && hasNoindexNofollowHeader(rule)
+  ));
+  if (!documentsHeader) {
+    report('vercel.json', 'missing unconditional X-Robots-Tag noindex, nofollow coverage for /documents/:path*');
+  }
+
   REQUIRED_ALIAS_REDIRECTS.forEach(([source, destination]) => {
     if (!findRouteRule(redirects, source, destination, true)) {
       report('vercel.json', `missing permanent alias redirect ${source} -> ${destination}`);
     }
   });
+  validateOneHopRedirects(vercel, redirects, bulkRedirects);
 
   if (!findRouteRule(rewrites, '/portfolio/:project', '/pages/portfolio/:project')) {
     report('vercel.json', 'missing project-page rewrite /portfolio/:project -> /pages/portfolio/:project');
@@ -588,6 +1008,7 @@ function validateVercelAndRobots(vercel) {
       report('robots.txt', `must not block redirectable/noindex content path: ${rule}`);
     }
   }
+  validateGooglebotAccessibility(robots, sitemapSet);
 }
 
 function extractElementWithAttribute(html, attributeName) {
@@ -670,6 +1091,94 @@ function validateDirectoryResultAnchors() {
   });
 }
 
+function readJsonRequired(relativePath) {
+  const contents = readRequired(relativePath);
+  try {
+    return JSON.parse(contents);
+  } catch (error) {
+    report(relativePath, `invalid JSON: ${error.message}`);
+    return null;
+  }
+}
+
+function validateProfessionalPortfolioPath(scope, audienceKey, field, value) {
+  let url;
+  try {
+    url = new URL(String(value || ''), SITE_ORIGIN);
+  } catch (_) {
+    report(scope, `${field} is not a valid URL: ${value || '(empty)'}`);
+    return;
+  }
+  if (url.origin !== SITE_ORIGIN || url.pathname !== '/portfolio') {
+    report(scope, `${field} must target the clean /portfolio path`);
+  }
+  if (url.searchParams.get('audience') !== audienceKey) {
+    report(scope, `${field} must include audience=${audienceKey}`);
+  }
+  if (url.searchParams.get('mode') !== 'professional') {
+    report(scope, `${field} must include mode=professional`);
+  }
+}
+
+function validateProfessionalLinkGeneration() {
+  PROFESSIONAL_AUDIENCE_KEYS.forEach((audienceKey) => {
+    const sourcePath = `content/audiences/${audienceKey}.json`;
+    const audience = readJsonRequired(sourcePath);
+    if (!audience) return;
+    ['portfolioPath', 'portfolioAllPath'].forEach((field) => {
+      validateProfessionalPortfolioPath(sourcePath, audienceKey, field, audience[field]);
+    });
+  });
+
+  try {
+    const generatedPath = path.join(root, 'js', 'common', 'audience-config.js');
+    delete require.cache[require.resolve(generatedPath)];
+    const generated = require(generatedPath);
+    PROFESSIONAL_AUDIENCE_KEYS.forEach((audienceKey) => {
+      const audience = generated && generated.audiences && generated.audiences[audienceKey];
+      if (!audience) {
+        report('js/common/audience-config.js', `missing generated ${audienceKey} audience configuration`);
+        return;
+      }
+      ['portfolioPath', 'portfolioAllPath'].forEach((field) => {
+        validateProfessionalPortfolioPath('js/common/audience-config.js', audienceKey, field, audience[field]);
+      });
+    });
+  } catch (error) {
+    report('js/common/audience-config.js', `could not load generated audience configuration (${error.message})`);
+  }
+
+  const footer = readJsonRequired('content/site/footer.json');
+  const professionalColumns = footer && footer.navVariants && footer.navVariants.professional;
+  const portfolioLinks = (Array.isArray(professionalColumns) ? professionalColumns : [])
+    .flatMap((column) => (Array.isArray(column && column.links) ? column.links : []))
+    .filter((link) => String(link && link.label || '').trim().toLowerCase() === 'portfolio');
+  if (portfolioLinks.length !== 1 || String(portfolioLinks[0] && portfolioLinks[0].href || '') !== 'portfolio') {
+    report('content/site/footer.json', 'shared static footer must use the clean portfolio URL; runtime audience navigation adds professional query state');
+  }
+}
+
+function validateProfessionalMarkupLinks(documents) {
+  documents.forEach((document) => {
+    collectTagAttributes(document.html, 'a').forEach((attributes) => {
+      const href = String(attributes.href || '').trim();
+      if (!href) return;
+      let url;
+      try {
+        url = new URL(href, SITE_ORIGIN);
+      } catch (_) {
+        return;
+      }
+      if (url.origin !== SITE_ORIGIN) return;
+      const audience = String(url.searchParams.get('audience') || '').toLowerCase();
+      if (!PROFESSIONAL_AUDIENCE_KEYS.includes(audience)) return;
+      if (url.searchParams.get('mode') !== 'professional') {
+        report(document.relativePath, `professional audience link must include mode=professional: ${href}`);
+      }
+    });
+  });
+}
+
 function main() {
   let vercel = {};
   try {
@@ -717,9 +1226,11 @@ function main() {
 
   validateUniqueMetadata(metadataRecords, 'title');
   validateUniqueMetadata(metadataRecords, 'description');
+  validateProfessionalMarkupLinks(documents);
   const sitemapSet = validateSitemap(groups, exactNoindexRoutes);
-  validateVercelAndRobots(vercel);
+  validateVercelAndRobots(vercel, sitemapSet, documents);
   validateDirectoryResultAnchors();
+  validateProfessionalLinkGeneration();
 
   if (errors.length) {
     process.stderr.write(`SEO validation failed with ${errors.length} issue(s):\n`);

@@ -1,0 +1,46 @@
+[
+  {
+    "ParameterKey": "ProjectName",
+    "ParameterValue": "job-application-tracker"
+  },
+  {
+    "ParameterKey": "AllowedOrigins",
+    "ParameterValue": "https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app,https://danielshort.me,https://www.danielshort.me,https://website-aws-migration-preview.vercel.app"
+  },
+  {
+    "ParameterKey": "LambdaCodeBucket",
+    "ParameterValue": "job-application-tracker-deploy-886623862678"
+  },
+  {
+    "ParameterKey": "LambdaCodeKey",
+    "ParameterValue": "job-application-tracker/releases/2026-07-11-ownership-boundaries.zip"
+  },
+  {
+    "ParameterKey": "LambdaReleaseId",
+    "ParameterValue": "2026-07-11-ownership-boundaries"
+  },
+  {
+    "ParameterKey": "CognitoDomainPrefix",
+    "ParameterValue": "job-tracker-auth-886623862678"
+  },
+  {
+    "ParameterKey": "CallbackUrls",
+    "ParameterValue": "https://danielshort.me/tools/job-application-tracker,https://www.danielshort.me/tools/job-application-tracker,https://danielshort3.github.io/tools/job-application-tracker,https://danielshort3-github-io.vercel.app/tools/job-application-tracker,https://danielshort.dev/tools/job-application-tracker,https://www.danielshort.dev/tools/job-application-tracker,https://danielshort.me/tools/dashboard,https://www.danielshort.me/tools/dashboard,https://danielshort3.github.io/tools/dashboard,https://danielshort3-github-io.vercel.app/tools/dashboard,https://danielshort.dev/tools/dashboard,https://www.danielshort.dev/tools/dashboard,https://website-aws-migration-preview.vercel.app/tools/dashboard"
+  },
+  {
+    "ParameterKey": "LogoutUrls",
+    "ParameterValue": "https://danielshort.me/tools/job-application-tracker,https://www.danielshort.me/tools/job-application-tracker,https://danielshort3.github.io/tools/job-application-tracker,https://danielshort3-github-io.vercel.app/tools/job-application-tracker,https://danielshort.dev/tools/job-application-tracker,https://www.danielshort.dev/tools/job-application-tracker,https://danielshort.me/tools/dashboard,https://www.danielshort.me/tools/dashboard,https://danielshort3.github.io/tools/dashboard,https://danielshort3-github-io.vercel.app/tools/dashboard,https://danielshort.dev/tools/dashboard,https://www.danielshort.dev/tools/dashboard,https://website-aws-migration-preview.vercel.app/tools/dashboard"
+  },
+  {
+    "ParameterKey": "AlertTopicArn",
+    "ParameterValue": "arn:aws:sns:us-east-2:886623862678:website-security-operations"
+  },
+  {
+    "ParameterKey": "ReservedConcurrency",
+    "ParameterValue": "0"
+  },
+  {
+    "ParameterKey": "EnableCanaryAdminPasswordAuth",
+    "ParameterValue": "false"
+  }
+]

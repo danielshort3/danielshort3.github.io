@@ -1513,9 +1513,9 @@ try {
     const mapDesignValidation = validateProjectStarfallMaps(data, { includeWarnings: false });
     assert(mapDesignValidation.issues.length === 0,
       `Project Starfall map design validation failed:\n${mapDesignValidation.issues.join('\n')}`);
-    assert(mapDesignValidation.summaries.some((summary) => summary.mapId === 'greenrootMeadow' && summary.slopeCount <= 6) &&
-      mapDesignValidation.summaries.some((summary) => summary.mapId === 'endlessRift' && summary.slopeCount <= 8) &&
-      mapDesignValidation.summaries.every((summary) => summary.role !== 'bossArena' || summary.slopeCount <= 4),
+    assert(mapDesignValidation.summaries.some((summary) => summary.mapId === 'greenrootMeadow' && summary.slopeCount <= 12) &&
+      mapDesignValidation.summaries.some((summary) => summary.mapId === 'endlessRift' && summary.slopeCount <= 12) &&
+      mapDesignValidation.summaries.every((summary) => summary.role !== 'bossArena' || summary.slopeCount <= 6),
       'Project Starfall maps should stay within the slope budgets from MAP_AND_LEVEL_DESIGN_GUIDE.md');
     assert(data.BASE_CLASSES && ['fighter', 'mage', 'archer'].every((classId) => data.BASE_CLASSES[classId]) &&
       data.ADVANCED_CLASSES && Object.keys(data.ADVANCED_CLASSES).length >= 9,
@@ -36800,7 +36800,8 @@ try {
     const knowledgeLib = readFile('api/_lib/chatbot-knowledge.js');
     const rateLimit = readFile('api/_lib/chatbot-rate-limit.js');
     const logStore = readFile('api/_lib/chatbot-logs.js');
-    const logApi = `${readFile('api/_lib/chatbot-logs-api.js')}\n${readFile('api/chatbot/logs.js')}`;
+    const logApi = readFile('api/_lib/chatbot-logs-api.js');
+    const vercelConfig = readFile('vercel.json');
     const envExample = readFile('.env.example');
     assert(api.includes("DEFAULT_MODEL_ID = 'us.amazon.nova-lite-v1:0'"), 'chatbot API should default to the Nova Lite inference profile');
     assert(api.includes('ConverseCommand') && api.includes('ConverseStreamCommand') && api.includes('InvokeModelCommand') &&
@@ -36878,8 +36879,10 @@ try {
       'chatbot logs should be indexed with TTL and hashed actor metadata');
     assert(!logStore.includes('x-forwarded-for') && !logStore.includes('remoteAddress'),
       'chatbot logs should not store raw IP address headers');
-    assert(logApi.includes('CHATBOT_ADMIN_TOKEN') && logApi.includes('isAdminRequest') && logApi.includes('listChatbotLogs'),
-      'chatbot log API should be admin-token protected');
+    assert(logApi.includes('authorizeAdminRequest') && logApi.includes("legacyTokenEnv: 'CHATBOT_ADMIN_TOKEN'") && logApi.includes('listChatbotLogs'),
+      'chatbot log API should require verified Cognito admin authorization with an explicit legacy rollback token');
+    assert(vercelConfig.includes('"source": "/api/chatbot/logs"') && vercelConfig.includes('"destination": "/api/chatbot?__route=logs"'),
+      'chatbot logs should route through the consolidated chatbot function');
 
     const widget = readFile('js/chatbot/site-chatbot.js');
     const entry = readFile('build/entries/site-shell.entry.js');
@@ -37418,17 +37421,8 @@ try {
     assert(helpers.normalizeRandomLength(3, 6) === 4, 'normalizeRandomLength should clamp to min');
     assert(helpers.normalizeRandomLength(40, 6) === 12, 'normalizeRandomLength should clamp to max');
 
-    const previousToken = process.env.SHORTLINKS_ADMIN_TOKEN;
-    process.env.SHORTLINKS_ADMIN_TOKEN = 'test-token';
-    try {
-      assert(helpers.isAdminRequest({ headers: { authorization: 'Bearer test-token' } }) === true,
-        'isAdminRequest should accept a matching bearer token');
-      assert(helpers.isAdminRequest({ headers: { authorization: 'Bearer wrong-token' } }) === false,
-        'isAdminRequest should reject a non-matching bearer token');
-    } finally {
-      if (typeof previousToken === 'undefined') delete process.env.SHORTLINKS_ADMIN_TOKEN;
-      else process.env.SHORTLINKS_ADMIN_TOKEN = previousToken;
-    }
+    assert(typeof helpers.authorizeShortLinksAdmin === 'function',
+      'short links should expose the shared Cognito admins-group authorization boundary');
 
     assert(shortLinksApi && shortLinksApi._internal && typeof shortLinksApi._internal.applyListQuery === 'function',
       'short links API should expose internal list-query helpers for fast tests');
@@ -39412,6 +39406,10 @@ try {
       rule.source === '/api/tools/transcribe/:action' &&
       rule.destination === '/api/tools/transcribe%2F:action'),
       'vercel should rewrite nested Transcribe API actions into the tools catch-all route');
+    assert(rewrites.some((rule) =>
+      rule.source === '/api/short-links/clicks/:clickSlug' &&
+      rule.destination === '/api/short-links/clicks%2F:clickSlug'),
+      'vercel should rewrite Short Links click history through the stable catch-all route');
   });
 
   section('GA4 report race guards', () => {

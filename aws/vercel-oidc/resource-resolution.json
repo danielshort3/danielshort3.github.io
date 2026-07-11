@@ -1,0 +1,144 @@
+{
+  "capturedAt": "2026-07-11T21:41:22Z",
+  "accountId": "886623862678",
+  "region": "us-east-2",
+  "evidence": {
+    "backupDirectory": "2026-07-11-pre-aws-migration",
+    "manifests": [
+      "aws-dynamodb-site-manifest.json",
+      "aws-lambda-site-manifest.json",
+      "aws-lambda-live-aliases.json",
+      "aws-transcribe-bucket-manifest.json",
+      "aws-iam-site-role-manifest.json"
+    ],
+    "liveChecks": [
+      "sts:GetCallerIdentity",
+      "dynamodb:ListTables",
+      "lambda:ListFunctions",
+      "lambda:GetAlias",
+      "lambda:ListVersionsByFunction",
+      "s3:HeadBucket",
+      "ses:GetEmailIdentity",
+      "bedrock:GetInferenceProfile",
+      "bedrock:ListFoundationModels",
+      "iam:ListOpenIDConnectProviders",
+      "iam:GetRole",
+      "iam:SimulatePrincipalPolicy",
+      "cloudformation:DescribeStacks",
+      "cloudformation:ValidateTemplate",
+      "dynamodb:DescribeTable",
+      "lambda:ListFunctionUrlConfigs",
+      "s3:HeadObject"
+    ]
+  },
+  "shared": {
+    "OidcProviderArn": {
+      "value": "arn:aws:iam::886623862678:oidc-provider/oidc.vercel.com/daniel-shorts-projects",
+      "state": "live-verified",
+      "owner": "website-vercel-oidc-provider",
+      "stackStatus": "CREATE_COMPLETE",
+      "note": "The deployed provider exposes only sts.amazonaws.com for the team-scoped Vercel issuer."
+    },
+    "BedrockResourceArns": {
+      "state": "live-verified",
+      "values": [
+        "arn:aws:bedrock:us-east-2:886623862678:inference-profile/us.amazon.nova-lite-v1:0",
+        "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0",
+        "arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-lite-v1:0",
+        "arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-lite-v1:0",
+        "arn:aws:bedrock:us-east-2::foundation-model/amazon.titan-embed-text-v2:0"
+      ]
+    },
+    "SesIdentityArns": {
+      "state": "live-verified",
+      "values": [
+        "arn:aws:ses:us-east-2:886623862678:identity/noreply@danielshort.me"
+      ],
+      "note": "The verified sender is intentionally reused by both environment-specific Contact roles."
+    }
+  },
+  "production": {
+    "state": "deployed-verified",
+    "resolved": {
+      "ToolsTableName": "danielshort-tools-accounts",
+      "ShortLinksTableName": "danielshort-short-links",
+      "ShortLinksClicksTableName": "danielshort-short-links-clicks",
+      "ChatbotTableName": "danielshort-chatbot-runtime",
+      "TranscribeBucketName": "danielshort-transcribe-tool-886623862678-us-east-2",
+      "DemoRateLimitTableName": "website-demo-rate-limit-production",
+      "SesIdentityArns": [
+        "arn:aws:ses:us-east-2:886623862678:identity/noreply@danielshort.me"
+      ],
+      "DemoFunctionArns": [
+        "arn:aws:lambda:us-east-2:886623862678:function:shape-analyzer:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:smart-sentence-finder:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:nonogram-solver:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:handwriting-rating-demo:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:digit-generator:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:covid-outbreak-drivers:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:pizza-tips-predict:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:target-empty-package:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:retail-loss-sales:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:minesweeper-solver:live"
+      ]
+    },
+    "deployedStacks": {
+      "resources": {
+        "name": "website-production-resources",
+        "status": "CREATE_COMPLETE"
+      },
+      "roles": {
+        "name": "website-vercel-oidc-production",
+        "status": "UPDATE_COMPLETE"
+      }
+    },
+    "planned": {},
+    "unresolved": {}
+  },
+  "preview": {
+    "state": "deployed-verified",
+    "resolved": {
+      "ToolsTableName": "danielshort-tools-accounts-preview",
+      "ShortLinksTableName": "danielshort-short-links-preview",
+      "ShortLinksClicksTableName": "danielshort-short-links-clicks-preview",
+      "ChatbotTableName": "danielshort-chatbot-runtime-preview",
+      "TranscribeBucketName": "danielshort-transcribe-tool-preview-886623862678-us-east-2",
+      "DemoRateLimitTableName": "website-demo-rate-limit-preview",
+      "SesIdentityArns": [
+        "arn:aws:ses:us-east-2:886623862678:identity/noreply@danielshort.me"
+      ],
+      "DemoFunctionArns": [
+        "arn:aws:lambda:us-east-2:886623862678:function:shape-analyzer-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:smart-sentence-finder-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:nonogram-solver-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:handwriting-rating-demo-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:digit-generator-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:covid-outbreak-drivers-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:pizza-tips-predict-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:target-empty-package-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:retail-loss-sales-preview:live",
+        "arn:aws:lambda:us-east-2:886623862678:function:minesweeper-solver-preview:live"
+      ]
+    },
+    "deployedStacks": {
+      "resources": {
+        "name": "website-preview-resources",
+        "status": "CREATE_COMPLETE"
+      },
+      "workloads": {
+        "name": "website-demo-preview",
+        "status": "CREATE_COMPLETE"
+      },
+      "alarms": {
+        "name": "website-demo-preview-alarms",
+        "status": "CREATE_COMPLETE"
+      },
+      "roles": {
+        "name": "website-vercel-oidc-preview",
+        "status": "CREATE_COMPLETE"
+      }
+    },
+    "planned": {},
+    "unresolved": {}
+  }
+}

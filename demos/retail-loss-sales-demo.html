@@ -711,8 +711,8 @@
   <script src="js/vendor/chartjs/chart.umd.min.js"></script>
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "https://oafstar74okqvfqaxayeici3ry0yikkx.lambda-url.us-east-2.on.aws/";
-    const STORAGE_KEY = "demo.endpoint.retailLossSales";
+    const DEFAULT_API_URL = "/api/demos/retail-loss-sales/";
+    const STORAGE_KEY = "demo.endpoint.retailLossSales.proxy.v1";
     const { resolveEndpoint, joinUrl, getJson, retryRequest } = window.DemoAws;
     const WARM_RETRY_OPTIONS = {
       retries: 12,
@@ -720,7 +720,7 @@
       factor: 1.8,
       maxDelayMs: 10000
     };
-    const API_URL = resolveEndpoint({ defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY });
+    const API_URL = resolveEndpoint({ defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY, queryKeys: [] });
 
     const state = {
       data: null,

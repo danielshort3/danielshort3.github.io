@@ -1,0 +1,3 @@
+[
+  { "ParameterKey": "AlarmTopicArn", "ParameterValue": "arn:aws:sns:us-east-2:886623862678:website-security-operations" }
+]

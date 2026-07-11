@@ -121,9 +121,15 @@ async function verifyCognitoIdToken(token){
     throw err;
   }
   const tokenUse = String(jwt.payload?.token_use || '').trim();
-  if (tokenUse && tokenUse !== 'id') {
+  if (tokenUse !== 'id') {
     const err = new Error('Invalid token_use (expected id)');
     err.code = 'JWT_USE';
+    throw err;
+  }
+  const sub = String(jwt.payload?.sub || '').trim();
+  if (!sub) {
+    const err = new Error('Missing token subject');
+    err.code = 'JWT_SUB';
     throw err;
   }
   const exp = Number(jwt.payload?.exp);
@@ -154,4 +160,3 @@ module.exports = {
   getCognitoEnv,
   verifyCognitoIdToken
 };
-

@@ -1,0 +1,1142 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Isolated Preview copies of the ten website portfolio demo Lambdas. Image code is
+  pinned to the production digests captured on 2026-07-11; ZIP versions enforce the
+  captured CodeSha256. This stack deliberately creates no Lambda Function URLs.
+
+Parameters:
+  ArtifactBucketName:
+    Type: String
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$'
+    Description: Private, versioned S3 bucket containing the four verified ZIP artifacts.
+  CovidArtifactKey:
+    Type: String
+    MinLength: 1
+  CovidArtifactObjectVersion:
+    Type: String
+    MinLength: 1
+  PizzaArtifactKey:
+    Type: String
+    MinLength: 1
+  PizzaArtifactObjectVersion:
+    Type: String
+    MinLength: 1
+  RetailArtifactKey:
+    Type: String
+    MinLength: 1
+  RetailArtifactObjectVersion:
+    Type: String
+    MinLength: 1
+  TargetArtifactKey:
+    Type: String
+    MinLength: 1
+  TargetArtifactObjectVersion:
+    Type: String
+    MinLength: 1
+  LogRetentionDays:
+    Type: Number
+    Default: 14
+    AllowedValues: [7, 14, 30, 60, 90]
+
+Resources:
+  CovidDataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'website-covid-outbreak-preview-${AWS::AccountId}-${AWS::Region}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: covid-outbreak
+        - Key: ManagedBy
+          Value: cloudformation
+
+  CovidDataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref CovidDataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt CovidDataBucket.Arn
+              - !Sub '${CovidDataBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  RetailDataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'website-retail-loss-sales-preview-${AWS::AccountId}-${AWS::Region}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: retail-loss-sales
+        - Key: ManagedBy
+          Value: cloudformation
+
+  RetailDataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref RetailDataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt RetailDataBucket.Arn
+              - !Sub '${RetailDataBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  TargetDataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'website-target-empty-package-preview-${AWS::AccountId}-${AWS::Region}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: target-empty-package
+        - Key: ManagedBy
+          Value: cloudformation
+
+  TargetDataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TargetDataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt TargetDataBucket.Arn
+              - !Sub '${TargetDataBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  ShapeExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-shape-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/shape-analyzer-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: shape-analyzer
+        - Key: ManagedBy
+          Value: cloudformation
+
+  SmartSentenceExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-smart-sentence-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-sentence-finder-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: smart-sentence-finder
+        - Key: ManagedBy
+          Value: cloudformation
+
+  NonogramExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-nonogram-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/nonogram-solver-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: nonogram-solver
+        - Key: ManagedBy
+          Value: cloudformation
+
+  HandwritingExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-handwriting-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/handwriting-rating-demo-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: handwriting-rating
+        - Key: ManagedBy
+          Value: cloudformation
+
+  DigitExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-digit-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/digit-generator-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: digit-generator
+        - Key: ManagedBy
+          Value: cloudformation
+
+  MinesweeperExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-minesweeper-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/minesweeper-solver-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: minesweeper-solver
+        - Key: ManagedBy
+          Value: cloudformation
+
+  CovidExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-covid-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: logs-and-preview-data
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/covid-outbreak-drivers-preview:*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${CovidDataBucket.Arn}/covid-outbreak/v1/*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: covid-outbreak
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PizzaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-pizza-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-own-log-group
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/pizza-tips-predict-preview:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: pizza-tips
+        - Key: ManagedBy
+          Value: cloudformation
+
+  RetailExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-retail-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: logs-and-preview-data
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/retail-loss-sales-preview:*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${RetailDataBucket.Arn}/retail-loss-sales/v1/data.json'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: retail-loss-sales
+        - Key: ManagedBy
+          Value: cloudformation
+
+  TargetExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-demo-target-preview-exec
+      Path: /website/preview/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: logs-and-preview-data
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/target-empty-package-preview:*'
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${TargetDataBucket.Arn}/target-empty-package/v1/data.json'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: target-empty-package
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ShapeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/shape-analyzer-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  SmartSentenceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/smart-sentence-finder-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  NonogramLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/nonogram-solver-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  HandwritingLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/handwriting-rating-demo-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  DigitLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/digit-generator-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  MinesweeperLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/minesweeper-solver-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  CovidLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/covid-outbreak-drivers-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  PizzaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/pizza-tips-predict-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  RetailLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/retail-loss-sales-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  TargetLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/target-empty-package-preview
+      RetentionInDays: !Ref LogRetentionDays
+
+  ShapeFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: shape-analyzer-preview
+      Description: Preview copy pinned to the verified 2026-07-11 production image digest.
+      PackageType: Image
+      Code:
+        ImageUri: 886623862678.dkr.ecr.us-east-2.amazonaws.com/shape-analyzer@sha256:78174eb27e07c1c3338bf2ff8a7a8b520cde7cb7191f9dbb160ffaa400cbef38
+      Role: !GetAtt ShapeExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 2048
+      Timeout: 120
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref ShapeLogGroup
+      Environment:
+        Variables:
+          ALLOWED_ORIGINS: https://danielshort.me,https://www.danielshort.me
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: shape-analyzer
+        - Key: ManagedBy
+          Value: cloudformation
+
+  SmartSentenceFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: smart-sentence-finder-preview
+      Description: Preview copy pinned to the verified 2026-07-11 production image digest.
+      PackageType: Image
+      Code:
+        ImageUri: 886623862678.dkr.ecr.us-east-2.amazonaws.com/smart-sentence-finder-lambda@sha256:860926b8441422073686608b44fe9f443efe0be2ad8cc3e1eb55e7efe870750a
+      Role: !GetAtt SmartSentenceExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 3008
+      Timeout: 120
+      EphemeralStorage:
+        Size: 1024
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref SmartSentenceLogGroup
+      Environment:
+        Variables:
+          ALLOWED_ORIGINS: https://danielshort.me,https://www.danielshort.me
+          # Lambda currently allocates fewer CPU cores than PyTorch detects on
+          # its host. Bound native pools to prevent severe oversubscription.
+          OMP_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+          OPENBLAS_NUM_THREADS: '1'
+          NUMEXPR_NUM_THREADS: '1'
+          MODEL_NAME: Snowflake/snowflake-arctic-embed-l-v2.0
+          SSF_EMBED_BACKEND: hf
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: smart-sentence-finder
+        - Key: ManagedBy
+          Value: cloudformation
+
+  NonogramFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: nonogram-solver-preview
+      Description: Preview copy pinned to the verified 2026-07-11 production image digest.
+      PackageType: Image
+      Code:
+        ImageUri: 886623862678.dkr.ecr.us-east-2.amazonaws.com/nonogram-solver-lambda@sha256:49668d156c3794a7e533ac60f62590696bf9366e269cb4c3f6921c362c518bdc
+      Role: !GetAtt NonogramExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 1024
+      Timeout: 60
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref NonogramLogGroup
+      Environment:
+        Variables:
+          ALLOWED_ORIGINS: https://danielshort.me,https://www.danielshort.me,http://localhost:4173
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: nonogram-solver
+        - Key: ManagedBy
+          Value: cloudformation
+
+  HandwritingFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: handwriting-rating-demo-preview
+      Description: Preview copy pinned to the verified 2026-07-11 production image digest.
+      PackageType: Image
+      Code:
+        ImageUri: 886623862678.dkr.ecr.us-east-2.amazonaws.com/handwriting-rating@sha256:21e441a5d329cf7b9c29bf18c031a9a378a31395bb9bf8889204f06148a1be6b
+      Role: !GetAtt HandwritingExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 2048
+      Timeout: 60
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref HandwritingLogGroup
+      Environment:
+        Variables:
+          ALLOWED_ORIGINS: https://danielshort.me,https://www.danielshort.me
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: handwriting-rating
+        - Key: ManagedBy
+          Value: cloudformation
+
+  DigitFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: digit-generator-preview
+      Description: Preview copy pinned to the verified 2026-07-11 production image digest.
+      PackageType: Image
+      Code:
+        ImageUri: 886623862678.dkr.ecr.us-east-2.amazonaws.com/digit-generator-lambda@sha256:b250e895c38c79b8503fafa790ee5fd5b450ad43b9af02e1b954fa2059ab84c4
+      Role: !GetAtt DigitExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 1024
+      Timeout: 60
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref DigitLogGroup
+      Environment:
+        Variables:
+          VALUE_MAX: '20'
+          VALUE_MIN: '0'
+          GRID_COLS: '8'
+          GRID_ROWS: '8'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: digit-generator
+        - Key: ManagedBy
+          Value: cloudformation
+
+  MinesweeperFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: minesweeper-solver-preview
+      Description: Preview copy pinned to the verified 2026-07-11 production image digest; remains unpublished/noindex.
+      PackageType: Image
+      Code:
+        ImageUri: 886623862678.dkr.ecr.us-east-2.amazonaws.com/minesweeper-solver@sha256:bb6189816dd435e439702cafb475a171f2f7877d3319b498ad0c94f5c4e7d63a
+      Role: !GetAtt MinesweeperExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 2048
+      Timeout: 60
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref MinesweeperLogGroup
+      Environment:
+        Variables:
+          MINE_COUNT: '10'
+          GRID_SIZE: '9'
+          MODEL_PREFIX: Guesser_tiny_transformer_20251228-005944_final
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: minesweeper-solver
+        - Key: ManagedBy
+          Value: cloudformation
+
+  CovidFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: covid-outbreak-drivers-preview
+      Description: Preview copy of the verified 2026-07-11 production ZIP package.
+      PackageType: Zip
+      Code:
+        S3Bucket: !Ref ArtifactBucketName
+        S3Key: !Ref CovidArtifactKey
+        S3ObjectVersion: !Ref CovidArtifactObjectVersion
+      Runtime: python3.11
+      Handler: app.lambda_handler
+      Role: !GetAtt CovidExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 512
+      Timeout: 10
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref CovidLogGroup
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref CovidDataBucket
+          DATA_PREFIX: covid-outbreak/v1
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: covid-outbreak
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PizzaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: pizza-tips-predict-preview
+      Description: Preview copy of the verified 2026-07-11 production ZIP package.
+      PackageType: Zip
+      Code:
+        S3Bucket: !Ref ArtifactBucketName
+        S3Key: !Ref PizzaArtifactKey
+        S3ObjectVersion: !Ref PizzaArtifactObjectVersion
+      Runtime: nodejs24.x
+      Handler: index.handler
+      Role: !GetAtt PizzaExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 256
+      Timeout: 5
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref PizzaLogGroup
+      Environment:
+        Variables:
+          ALLOWED_ORIGINS: https://danielshort.me,https://www.danielshort.me
+          CONFIDENCE_LEVEL: '0.8'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: pizza-tips
+        - Key: ManagedBy
+          Value: cloudformation
+
+  RetailFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: retail-loss-sales-preview
+      Description: Preview copy of the verified 2026-07-11 production ZIP package.
+      PackageType: Zip
+      Code:
+        S3Bucket: !Ref ArtifactBucketName
+        S3Key: !Ref RetailArtifactKey
+        S3ObjectVersion: !Ref RetailArtifactObjectVersion
+      Runtime: python3.11
+      Handler: app.lambda_handler
+      Role: !GetAtt RetailExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 256
+      Timeout: 8
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref RetailLogGroup
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref RetailDataBucket
+          DATA_KEY: retail-loss-sales/v1/data.json
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: retail-loss-sales
+        - Key: ManagedBy
+          Value: cloudformation
+
+  TargetFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: target-empty-package-preview
+      Description: Preview copy of the verified 2026-07-11 production ZIP package.
+      PackageType: Zip
+      Code:
+        S3Bucket: !Ref ArtifactBucketName
+        S3Key: !Ref TargetArtifactKey
+        S3ObjectVersion: !Ref TargetArtifactObjectVersion
+      Runtime: python3.11
+      Handler: app.lambda_handler
+      Role: !GetAtt TargetExecutionRole.Arn
+      Architectures: [x86_64]
+      MemorySize: 256
+      Timeout: 8
+      EphemeralStorage:
+        Size: 512
+      TracingConfig:
+        Mode: PassThrough
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref TargetLogGroup
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref TargetDataBucket
+          DATA_KEY: target-empty-package/v1/data.json
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: Workload
+          Value: target-empty-package
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ShapeVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref ShapeFunction
+      Description: sha256:78174eb27e07c1c3338bf2ff8a7a8b520cde7cb7191f9dbb160ffaa400cbef38 config-clean-20260711
+
+  SmartSentenceVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref SmartSentenceFunction
+      Description: sha256:860926b8441422073686608b44fe9f443efe0be2ad8cc3e1eb55e7efe870750a threads-1-20260711
+
+  NonogramVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref NonogramFunction
+      Description: sha256:49668d156c3794a7e533ac60f62590696bf9366e269cb4c3f6921c362c518bdc
+
+  HandwritingVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref HandwritingFunction
+      Description: sha256:21e441a5d329cf7b9c29bf18c031a9a378a31395bb9bf8889204f06148a1be6b
+
+  DigitVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref DigitFunction
+      Description: sha256:b250e895c38c79b8503fafa790ee5fd5b450ad43b9af02e1b954fa2059ab84c4
+
+  MinesweeperVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref MinesweeperFunction
+      Description: sha256:bb6189816dd435e439702cafb475a171f2f7877d3319b498ad0c94f5c4e7d63a
+
+  CovidVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref CovidFunction
+      CodeSha256: 7PedbEyBSwwMomZQbxfwnG43QL1hJGoa7aVMJHAbfb4=
+      Description: zip sha256 ECF79D6C4C814B0C0CA266506F17F09C6E3740BD61246A1AEDA54C24701B7DBE
+
+  PizzaVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref PizzaFunction
+      CodeSha256: DcZBVCxTXit37pB9I5DI4A7TwGU/tTeuTTTqgrLWhd4=
+      Description: zip sha256 0DC641542C535E2B77EE907D2390C8E00ED3C0653FB537AE4D34EA82B2D685DE
+
+  RetailVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref RetailFunction
+      CodeSha256: dnidsinAc2Zzk8BwPxcm296sGR7u7JhbYhpAMGrEpc0=
+      Description: zip sha256 76789DB229C073667393C0703F1726DBDEAC191EEEEC985B621A40306AC4A5CD
+
+  TargetVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref TargetFunction
+      CodeSha256: hg7VQ75PtfGLp4iQq7hEn/QPdCRtxvPTrDvpw+H6mXc=
+      Description: zip sha256 860ED543BE4FB5F18BA78890ABB8449FF40F74246DC6F3D3AC3BE9C3E1FA9977
+
+  ShapeLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref ShapeFunction
+      FunctionVersion: !GetAtt ShapeVersion.Version
+
+  SmartSentenceLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref SmartSentenceFunction
+      FunctionVersion: !GetAtt SmartSentenceVersion.Version
+
+  NonogramLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref NonogramFunction
+      FunctionVersion: !GetAtt NonogramVersion.Version
+
+  HandwritingLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref HandwritingFunction
+      FunctionVersion: !GetAtt HandwritingVersion.Version
+
+  DigitLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref DigitFunction
+      FunctionVersion: !GetAtt DigitVersion.Version
+
+  MinesweeperLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy; not publicly listed.
+      FunctionName: !Ref MinesweeperFunction
+      FunctionVersion: !GetAtt MinesweeperVersion.Version
+
+  CovidLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref CovidFunction
+      FunctionVersion: !GetAtt CovidVersion.Version
+
+  PizzaLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref PizzaFunction
+      FunctionVersion: !GetAtt PizzaVersion.Version
+
+  RetailLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref RetailFunction
+      FunctionVersion: !GetAtt RetailVersion.Version
+
+  TargetLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: live
+      Description: Immutable Preview entrypoint for the Vercel demo proxy.
+      FunctionName: !Ref TargetFunction
+      FunctionVersion: !GetAtt TargetVersion.Version
+
+Outputs:
+  DemoFunctionArns:
+    Description: Copy this comma-separated value into DemoFunctionArns for the Preview Vercel OIDC role stack.
+    Value: !Join
+      - ','
+      - - !GetAtt ShapeLiveAlias.AliasArn
+        - !GetAtt SmartSentenceLiveAlias.AliasArn
+        - !GetAtt NonogramLiveAlias.AliasArn
+        - !GetAtt HandwritingLiveAlias.AliasArn
+        - !GetAtt DigitLiveAlias.AliasArn
+        - !GetAtt CovidLiveAlias.AliasArn
+        - !GetAtt PizzaLiveAlias.AliasArn
+        - !GetAtt TargetLiveAlias.AliasArn
+        - !GetAtt RetailLiveAlias.AliasArn
+        - !GetAtt MinesweeperLiveAlias.AliasArn
+  ShapeFunctionArn:
+    Description: DEMO_SHAPE_FUNCTION_ARN
+    Value: !GetAtt ShapeLiveAlias.AliasArn
+  SmartSentenceFunctionArn:
+    Description: DEMO_SMART_SENTENCE_FUNCTION_ARN
+    Value: !GetAtt SmartSentenceLiveAlias.AliasArn
+  NonogramFunctionArn:
+    Description: DEMO_NONOGRAM_FUNCTION_ARN
+    Value: !GetAtt NonogramLiveAlias.AliasArn
+  HandwritingFunctionArn:
+    Description: DEMO_HANDWRITING_FUNCTION_ARN
+    Value: !GetAtt HandwritingLiveAlias.AliasArn
+  DigitGeneratorFunctionArn:
+    Description: DEMO_DIGIT_GENERATOR_FUNCTION_ARN
+    Value: !GetAtt DigitLiveAlias.AliasArn
+  CovidOutbreakFunctionArn:
+    Description: DEMO_COVID_OUTBREAK_FUNCTION_ARN
+    Value: !GetAtt CovidLiveAlias.AliasArn
+  PizzaTipsFunctionArn:
+    Description: DEMO_PIZZA_TIPS_FUNCTION_ARN
+    Value: !GetAtt PizzaLiveAlias.AliasArn
+  TargetEmptyPackageFunctionArn:
+    Description: DEMO_TARGET_EMPTY_PACKAGE_FUNCTION_ARN
+    Value: !GetAtt TargetLiveAlias.AliasArn
+  RetailLossSalesFunctionArn:
+    Description: DEMO_RETAIL_LOSS_SALES_FUNCTION_ARN
+    Value: !GetAtt RetailLiveAlias.AliasArn
+  MinesweeperFunctionArn:
+    Description: DEMO_MINESWEEPER_FUNCTION_ARN; retained unpublished/noindex.
+    Value: !GetAtt MinesweeperLiveAlias.AliasArn
+  ShapeFunctionName:
+    Value: !Ref ShapeFunction
+  SmartSentenceFunctionName:
+    Value: !Ref SmartSentenceFunction
+  NonogramFunctionName:
+    Value: !Ref NonogramFunction
+  HandwritingFunctionName:
+    Value: !Ref HandwritingFunction
+  DigitFunctionName:
+    Value: !Ref DigitFunction
+  CovidFunctionName:
+    Value: !Ref CovidFunction
+  PizzaFunctionName:
+    Value: !Ref PizzaFunction
+  TargetFunctionName:
+    Value: !Ref TargetFunction
+  RetailFunctionName:
+    Value: !Ref RetailFunction
+  MinesweeperFunctionName:
+    Value: !Ref MinesweeperFunction
+  CovidDataBucketName:
+    Value: !Ref CovidDataBucket
+  RetailDataBucketName:
+    Value: !Ref RetailDataBucket
+  TargetDataBucketName:
+    Value: !Ref TargetDataBucket

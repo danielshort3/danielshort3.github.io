@@ -1,9 +1,8 @@
 'use strict';
 
+const { authorizeAdminRequest } = require('./admin-auth');
 const {
-  getAdminToken,
   getChatbotLog,
-  isAdminRequest,
   listChatbotLogs,
   summarizeLog
 } = require('./chatbot-logs');
@@ -36,13 +35,9 @@ module.exports = async (req, res) => {
     return;
   }
 
-  if (!getAdminToken()) {
-    sendJson(res, 503, { ok: false, error: 'CHATBOT_ADMIN_TOKEN is not configured' });
-    return;
-  }
-
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const admin = await authorizeAdminRequest(req, { legacyTokenEnv: 'CHATBOT_ADMIN_TOKEN' });
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
     return;
   }
 

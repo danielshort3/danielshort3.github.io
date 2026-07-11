@@ -7,13 +7,18 @@ Parameters:
     Default: job-application-tracker
   AllowedOrigins:
     Type: CommaDelimitedList
-    Default: "https://www.danielshort.me,https://www.danielshort.me"
+    Default: "https://danielshort.me,https://www.danielshort.me"
   LambdaCodeBucket:
     Type: String
     Description: S3 bucket containing the Lambda deployment zip.
   LambdaCodeKey:
     Type: String
     Description: S3 key for the Lambda deployment zip.
+  LambdaReleaseId:
+    Type: String
+    Default: initial
+    AllowedPattern: '^[A-Za-z0-9._-]+$'
+    Description: Change for every uploaded deployment package so CloudFormation publishes and aliases a new immutable version.
   CognitoDomainPrefix:
     Type: String
     Default: job-tracker-auth
@@ -23,13 +28,36 @@ Parameters:
   LogoutUrls:
     Type: CommaDelimitedList
     Default: "https://www.danielshort.me/tools/job-application-tracker,https://www.danielshort.me/tools/dashboard"
+  AlertTopicArn:
+    Type: String
+    Default: arn:aws:sns:us-east-2:886623862678:website-security-operations
+    AllowedPattern: '^arn:(aws|aws-us-gov|aws-cn):sns:[a-z0-9-]+:[0-9]{12}:[A-Za-z0-9_-]+$'
+  ReservedConcurrency:
+    Type: Number
+    Default: 0
+    MinValue: 0
+    Description: Set to 5 only after the regional Lambda concurrency quota is raised; zero leaves the property unset.
+  EnableCanaryAdminPasswordAuth:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Temporary migration-canary switch; keep false outside a controlled validation window.
+
+Conditions:
+  HasReservedConcurrency: !Not [!Equals [!Ref ReservedConcurrency, 0]]
+  CanaryAdminPasswordAuthEnabled: !Equals [!Ref EnableCanaryAdminPasswordAuth, 'true']
 
 Resources:
   ApplicationsTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       TableName: !Sub '${ProjectName}-applications'
       BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
         - AttributeName: userId
           AttributeType: S
@@ -67,8 +95,14 @@ Resources:
 
   UserPool:
     Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       UserPoolName: !Sub '${ProjectName}-users'
+      DeletionProtection: ACTIVE
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -80,6 +114,11 @@ Resources:
       ClientName: !Sub '${ProjectName}-client'
       UserPoolId: !Ref UserPool
       GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - !If [CanaryAdminPasswordAuthEnabled, ALLOW_ADMIN_USER_PASSWORD_AUTH, !Ref 'AWS::NoValue']
       SupportedIdentityProviders:
         - COGNITO
       AllowedOAuthFlowsUserPoolClient: true
@@ -98,6 +137,14 @@ Resources:
       Domain: !Ref CognitoDomainPrefix
       UserPoolId: !Ref UserPool
 
+  TrackerLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/website/${ProjectName}-api-production'
+      RetentionInDays: 30
+
   TrackerFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -108,9 +155,16 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
+        - PolicyName: JobTrackerLogAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${TrackerLogGroup.Arn}:*'
         - PolicyName: JobTrackerDataAccess
           PolicyDocument:
             Version: '2012-10-17'
@@ -140,6 +194,10 @@ Resources:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref LambdaCodeKey
       Timeout: 60
+      ReservedConcurrentExecutions: !If [HasReservedConcurrency, !Ref ReservedConcurrency, !Ref 'AWS::NoValue']
+      LoggingConfig:
+        LogFormat: Text
+        LogGroup: !Ref TrackerLogGroup
       Environment:
         Variables:
           APPLICATIONS_TABLE: !Ref ApplicationsTable
@@ -150,6 +208,28 @@ Resources:
           MAX_ATTACHMENT_COUNT: "12"
           MAX_TAGS: "12"
           MAX_CUSTOM_FIELDS: "12"
+
+  TrackerFunctionVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      FunctionName: !Ref TrackerFunction
+      Description: !Sub 'Immutable Job Tracker release ${LambdaReleaseId} managed by CloudFormation.'
+
+  TrackerFunctionLiveAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref TrackerFunction
+      FunctionVersion: !GetAtt TrackerFunctionVersion.Version
+      Name: live
+      Description: Current known-good Job Tracker release.
+
+  HttpApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub '/aws/http-api/${ProjectName}-prod'
+      RetentionInDays: 30
 
   HttpApi:
     Type: AWS::ApiGatewayV2::Api
@@ -174,13 +254,22 @@ Resources:
       ApiId: !Ref HttpApi
       StageName: prod
       AutoDeploy: true
+      AccessLogSettings:
+        DestinationArn: !GetAtt HttpApiAccessLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status","responseLength":"$context.responseLength","integrationStatus":"$context.integration.status","errorType":"$context.error.responseType"}'
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: true
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
 
   HttpApiIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref HttpApi
       IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations'
+      IntegrationUri: !Sub
+        - 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AliasArn}/invocations'
+        - AliasArn: !Ref TrackerFunctionLiveAlias
       PayloadFormatVersion: '2.0'
 
   HttpApiAuthorizer:
@@ -389,9 +478,75 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref TrackerFunction
+      FunctionName: !Ref TrackerFunctionLiveAlias
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
+
+  TrackerErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-lambda-errors'
+      AlarmDescription: Job Tracker Lambda returned an error.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TrackerFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlertTopicArn
+      OKActions:
+        - !Ref AlertTopicArn
+
+  TrackerThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-lambda-throttles'
+      AlarmDescription: Job Tracker Lambda was throttled.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TrackerFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlertTopicArn
+      OKActions:
+        - !Ref AlertTopicArn
+
+  TrackerDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-lambda-duration-high'
+      AlarmDescription: Job Tracker Lambda duration reached 80 percent of its timeout.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref TrackerFunction
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 48000
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlertTopicArn
+      OKActions:
+        - !Ref AlertTopicArn
 
 Outputs:
   ApiEndpoint:
@@ -412,3 +567,6 @@ Outputs:
   AttachmentsBucketName:
     Description: S3 attachments bucket name.
     Value: !Ref AttachmentsBucket
+  TrackerFunctionLiveAliasArn:
+    Description: Immutable live alias for the Job Tracker API.
+    Value: !Ref TrackerFunctionLiveAlias

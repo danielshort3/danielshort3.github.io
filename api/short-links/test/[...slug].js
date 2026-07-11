@@ -1,6 +1,6 @@
 /*
   Admin API for testing a short link: /api/short-links/test/<slug>
-  - Requires SHORTLINKS_ADMIN_TOKEN.
+  - Requires a verified Cognito admins-group token (legacy token only during rollback mode).
   - Does not increment clicks or record click history.
 */
 'use strict';
@@ -9,8 +9,7 @@ const dns = require('dns').promises;
 const net = require('net');
 const { getLinkWithLegacyFallback } = require('../../_lib/short-links-store');
 const {
-  getAdminToken,
-  isAdminRequest,
+  authorizeShortLinksAdmin,
   sendJson,
   normalizeSlug,
   getRequestBaseUrl
@@ -300,13 +299,9 @@ async function checkDestination(url){
 }
 
 async function handler(req, res){
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const admin = await authorizeShortLinksAdmin(req);
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
     return;
   }
 

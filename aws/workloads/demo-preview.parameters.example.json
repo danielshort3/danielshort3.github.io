@@ -1,0 +1,12 @@
+[
+  { "ParameterKey": "ArtifactBucketName", "ParameterValue": "website-lambda-artifacts-886623862678-us-east-2" },
+  { "ParameterKey": "CovidArtifactKey", "ParameterValue": "preview/2026-07-11/covid-outbreak-drivers.zip" },
+  { "ParameterKey": "CovidArtifactObjectVersion", "ParameterValue": "Ef3cB8oKSD8S14ixqQeafyKmLNdJdCKo" },
+  { "ParameterKey": "PizzaArtifactKey", "ParameterValue": "preview/2026-07-11/pizza-tips-predict.zip" },
+  { "ParameterKey": "PizzaArtifactObjectVersion", "ParameterValue": "PopXMIDRrZOOtwOYAXftqxrGaHiQPLlz" },
+  { "ParameterKey": "RetailArtifactKey", "ParameterValue": "preview/2026-07-11/retail-loss-sales.zip" },
+  { "ParameterKey": "RetailArtifactObjectVersion", "ParameterValue": "QcOqA9XkEWFQ3Z1Bhl9_p9IRB9aibUdy" },
+  { "ParameterKey": "TargetArtifactKey", "ParameterValue": "preview/2026-07-11/target-empty-package.zip" },
+  { "ParameterKey": "TargetArtifactObjectVersion", "ParameterValue": "FXunpcj3hiHLYYemRTwh11mnIOGGNCvh" },
+  { "ParameterKey": "LogRetentionDays", "ParameterValue": "30" }
+]

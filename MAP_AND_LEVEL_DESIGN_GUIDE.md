@@ -280,15 +280,15 @@ Use these targets when cleaning up existing maps or authoring new ones.
 | Map Type | Initial Audit Tendency | Target Slope Count | Rule |
 | --- | --- | --- | --- |
 | Town hub | About 4 slopes | 2-4 | Slopes may connect service terraces, but all service stations need flat footing. |
-| Starter field | About 9-12 slopes | 4-6 | Use slopes to introduce terrain flow, not to connect every lane. |
+| Starter field | About 9-12 slopes | 4-6 normally; up to 12 for an audited priority route | Use slopes to introduce terrain flow and preserve the explicit route contract. |
 | Standard field | About 9-12 slopes | 5-8 | Keep slopes as section transitions. Use ledges, bridges, vines, and drops elsewhere. |
-| Party farm field | About 10-12 slopes | 5-8 | Prioritize flat party combat and healer/rest pockets. |
-| Vertical field | About 9 slopes | 6-9 only if biome-appropriate | Use climbables, lifts, shelves, and one-way drops for most vertical movement. |
-| Dungeon | About 6 slopes | 2-4 | Dungeons should feel constructed, rooted, carved, or magical, not like rolling hills. |
-| Boss arena | About 6 slopes | 2-4 | The primary boss lane must be flat. Slopes can connect side shelves or hazard vents. |
-| Endless Rift | 13 slopes | 5-8 | Use floating islands, portals, rune steps, and quadrant breaks instead of repeated ramps. |
+| Priority/party field | About 10-12 slopes | 8-12 when every audited route section needs a ramp path | Preserve broad party combat lanes and healer/rest pockets between transitions. |
+| Vertical field | About 9 slopes | 6-12 only if biome-appropriate and route-audited | Use climbables, lifts, shelves, and one-way drops alongside ramps for vertical movement. |
+| Dungeon | About 6 slopes | 4-6 | Each branch needs a non-ladder enemy route while the primary combat lanes remain flat. |
+| Boss arena | About 6 slopes | 4-6 | The primary boss lane must be flat. Slopes connect side shelves or hazard vents. |
+| Endless Rift | About 12 slopes | 8-12 | Keep the four quadrant routes connected while retaining floating islands, portals, rune steps, and regroup breaks. |
 
-As a practical target, most maps should have at least two broad flat combat/platform sections for every one slope. If a map has one slope per broad lane, slope density is too high.
+As a practical target, every slope should be paired with at least one broad flat combat/platform section, with 1.5 broad sections per slope preferred. Priority-route maps may use one ramp per broad lane when the ramp is required by the audited loop and the lane still provides clear combat footing.
 
 Executable enforcement lives in `build/validate-project-starfall-maps.js` and runs through:
 
@@ -296,7 +296,7 @@ Executable enforcement lives in `build/validate-project-starfall-maps.js` and ru
 npm run validate:starfall:maps
 ```
 
-The same validation is also called from the `Project Starfall fast contracts` section in `test.js`. It fails if a map exceeds its slope budget, has a slope grade above 0.72, places more than 3 slopes in a 1200 px section, has slope platforms without matching `rampConnections`, places spawns on slopes, loses required map-design paths, or removes required sections from this guide.
+The same validation is also called from the `Project Starfall fast contracts` section in `test.js`. It fails if a map exceeds its slope budget, has a slope grade above 0.72, exceeds its per-section slope limit (3 normally, 4 for audited priority routes), has slope platforms without matching `rampConnections`, places spawns on slopes, loses required map-design paths, or removes required sections from this guide.
 
 ### When To Use Slopes
 

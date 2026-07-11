@@ -11,6 +11,11 @@ const { loadKnowledge, publicSources, retrieveKnowledge } = require('./_lib/chat
 const chatbotLogsApi = require('./_lib/chatbot-logs-api');
 const { recordChatbotLog } = require('./_lib/chatbot-logs');
 const {
+  AWS_WORKLOADS,
+  getAwsClientConfig,
+  hasAwsAuthConfiguration
+} = require('./_lib/aws-credentials');
+const {
   checkChatbotRateLimit,
   getClientIp,
   getLimitConfig,
@@ -70,39 +75,17 @@ function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
-}
-
 function hasBedrockConfiguration() {
-  if (!isProductionRuntime()) return true;
-  return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
-    'AWS_PROFILE',
-    'AWS_SHARED_CREDENTIALS_FILE',
-    'AWS_WEB_IDENTITY_TOKEN_FILE',
-    'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI',
-    'AWS_CONTAINER_CREDENTIALS_FULL_URI'
-  ]));
+  return hasAwsAuthConfiguration(AWS_WORKLOADS.CHATBOT_BEDROCK, { region: getRegion() });
 }
 
 function getBedrockClient() {
   const region = getRegion();
-  const credentials = getAwsCredentialsFromEnv();
-  const key = `${region}:${credentials ? credentials.accessKeyId : 'default'}`;
+  const aws = getAwsClientConfig(AWS_WORKLOADS.CHATBOT_BEDROCK, { region });
+  const key = `${region}:${aws.cacheKey}`;
   if (cachedBedrockClient && cachedBedrockKey === key) return cachedBedrockClient;
 
-  cachedBedrockClient = new BedrockRuntimeClient({
-    region,
-    credentials: credentials || undefined
-  });
+  cachedBedrockClient = new BedrockRuntimeClient(aws.clientConfig);
   cachedBedrockKey = key;
   return cachedBedrockClient;
 }

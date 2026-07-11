@@ -4,9 +4,8 @@
   Env vars required:
   - TOOLS_DDB_TABLE (or TOOLS_DDB_TABLE_NAME)
   - AWS_REGION (or AWS_DEFAULT_REGION)
-  - Prefer TOOLS_AWS_ACCESS_KEY_ID / TOOLS_AWS_SECRET_ACCESS_KEY to avoid conflicts
-  - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
-  - Optional (temporary creds only): TOOLS_AWS_SESSION_TOKEN / AWS_SESSION_TOKEN
+  - TOOLS_AWS_ROLE_ARN when AWS_AUTH_MODE=oidc
+  - Legacy static credentials are supported only while AWS_AUTH_MODE=legacy
 */
 'use strict';
 
@@ -18,6 +17,7 @@ const {
   TransactWriteCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
+const { AWS_WORKLOADS, getAwsClientConfig } = require('./aws-credentials');
 
 const PREFIX = 'USER';
 const MAX_TS = 9999999999999;
@@ -37,22 +37,6 @@ function pickEnv(keys){
     return { key, raw };
   }
   return { key: '', raw: '' };
-}
-
-function getAwsCredentialsFromEnv(){
-  const accessKeyIdEnv = pickEnv(['TOOLS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKeyEnv = pickEnv(['TOOLS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionTokenEnv = pickEnv(['TOOLS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-
-  const accessKeyId = accessKeyIdEnv.raw.trim();
-  const secretAccessKey = secretAccessKeyEnv.raw.trim();
-  const sessionToken = sessionTokenEnv.raw.trim();
-
-  if (!accessKeyId || !secretAccessKey) return null;
-
-  const creds = { accessKeyId, secretAccessKey };
-  if (sessionToken && accessKeyId.startsWith('ASIA')) creds.sessionToken = sessionToken;
-  return creds;
 }
 
 function getRequiredEnv(){
@@ -79,11 +63,11 @@ let cachedClientKey = '';
 
 function getDocClient(){
   const { region } = getRequiredEnv();
-  const creds = getAwsCredentialsFromEnv();
-  const key = `${region}:${creds ? creds.accessKeyId : 'default'}`;
+  const aws = getAwsClientConfig(AWS_WORKLOADS.TOOLS_STATE, { region });
+  const key = `${region}:${aws.cacheKey}`;
   if (cachedDocClient && cachedClientKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region, credentials: creds || undefined });
+  const client = new DynamoDBClient(aws.clientConfig);
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });

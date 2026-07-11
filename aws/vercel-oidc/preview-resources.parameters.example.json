@@ -1,0 +1,4 @@
+[
+  { "ParameterKey": "Environment", "ParameterValue": "preview" },
+  { "ParameterKey": "PreviewTranscribeAllowedOrigins", "ParameterValue": "https://*.vercel.app,http://localhost:*,http://127.0.0.1:*" }
+]

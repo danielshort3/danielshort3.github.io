@@ -1058,6 +1058,15 @@
     }
   };
 
+  const getShortlinksAdminCredential = async () => {
+    const authApi = window.ToolsAuth || {};
+    if (typeof authApi.ensureAdminIdToken === 'function') {
+      const idToken = await authApi.ensureAdminIdToken().catch(() => '');
+      if (idToken) return String(idToken).trim();
+    }
+    return getSavedShortlinksToken();
+  };
+
   const saveShortlinksToken = (token) => {
     try {
       const value = (token || '').toString().trim();
@@ -1067,9 +1076,9 @@
   };
 
   const fetchShortlinksAdmin = async (path, { method = 'GET', body } = {}) => {
-    const token = getSavedShortlinksToken();
+    const token = await getShortlinksAdminCredential();
     if (!token) {
-      const err = new Error('Short Links admin token required.');
+      const err = new Error('Cognito admins-group sign-in required.');
       err.code = 'TOKEN_MISSING';
       throw err;
     }
@@ -1795,7 +1804,7 @@
       tokenField.className = 'jobtrack-field';
       const tokenLabel = document.createElement('label');
       tokenLabel.className = 'jobtrack-label';
-      tokenLabel.textContent = 'Short Links admin token';
+      tokenLabel.textContent = 'Legacy Short Links rollback token';
       const tokenInput = document.createElement('input');
       tokenInput.type = 'password';
       tokenInput.className = 'jobtrack-input';
@@ -1809,11 +1818,11 @@
       const saveButton = document.createElement('button');
       saveButton.type = 'button';
       saveButton.className = 'btn-primary jobtrack-modal-status-btn';
-      saveButton.textContent = 'Save token';
+      saveButton.textContent = 'Use legacy token';
       saveButton.addEventListener('click', async () => {
         const token = (tokenInput.value || '').toString().trim();
         if (!token) {
-          setStatus(statusEl, 'Paste the Short Links admin token first.', 'error');
+          setStatus(statusEl, 'Paste the legacy Short Links rollback token first.', 'error');
           tokenInput.focus();
           return;
         }
@@ -1831,7 +1840,7 @@
       actions.appendChild(openTool);
       content.appendChild(actions);
 
-      setStatus(statusEl, message || 'Save your Short Links admin token to load templates.', message ? 'warning' : 'info');
+      setStatus(statusEl, message || 'Sign in with a Cognito admins-group account, or use the legacy rollback token.', message ? 'warning' : 'info');
     };
 
     const renderTemplatePicker = (templates) => {
@@ -2019,7 +2028,7 @@
         } catch (err) {
           resultsHost.replaceChildren();
           if (err?.status === 401 || err?.status === 403 || err?.code === 'TOKEN_MISSING') {
-            renderTokenPrompt(err?.message || 'Short Links token required.');
+            renderTokenPrompt(err?.message || 'Cognito admins-group sign-in required.');
             return;
           }
           setStatus(statusEl, err?.message || 'Unable to generate short-link set.', 'error');
@@ -2033,8 +2042,8 @@
     };
 
     const loadTemplates = async () => {
-      if (!getSavedShortlinksToken()) {
-        renderTokenPrompt('Save your Short Links admin token to load templates.');
+      if (!await getShortlinksAdminCredential()) {
+        renderTokenPrompt('Sign in with a Cognito admins-group account to load templates.');
         return;
       }
       setStatus(statusEl, 'Loading short-link templates…', 'info');
@@ -2043,7 +2052,7 @@
         renderTemplatePicker(Array.isArray(data?.sets) ? data.sets : []);
       } catch (err) {
         if (err?.status === 401 || err?.status === 403 || err?.code === 'TOKEN_MISSING') {
-          renderTokenPrompt(err?.message || 'Short Links token required.');
+          renderTokenPrompt(err?.message || 'Cognito admins-group sign-in required.');
           return;
         }
         content.replaceChildren();

@@ -485,10 +485,10 @@
 
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_FN_URL = "https://jnvd3mdbyb5f44yh4afzsvqlwy0mdtzy.lambda-url.us-east-2.on.aws/";
+    const DEFAULT_FN_URL = "/api/demos/minesweeper/";
     const TARGET_GRID = 9;
     const TARGET_MINES = 10;
-    const STORAGE_KEY = "demo.endpoint.minesweeper";
+    const STORAGE_KEY = "demo.endpoint.minesweeper.proxy.v1";
     const {
       listCandidates,
       postWithFallback,
@@ -499,7 +499,8 @@
     } = window.DemoAws;
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
-      storageKey: STORAGE_KEY
+      storageKey: STORAGE_KEY,
+      queryKeys: []
     };
     const WARM_RETRY_OPTIONS = {
       retries: 12,
@@ -508,7 +509,7 @@
       maxDelayMs: 10000
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
-    const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
+    const postToEndpoint = (base, payload) => postWithFallback(base, ['solve', 'predict', 'invoke'], payload);
 
 	    const gridEl = document.getElementById('grid');
 	    const statusEl = document.getElementById('status');

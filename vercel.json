@@ -3,7 +3,13 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "public",
+  "functions": {
+    "api/demos/[...slug].js": {
+      "maxDuration": 60
+    }
+  },
   "cleanUrls": true,
+  "bulkRedirectsPath": "seo-bulk-redirects.json",
   "trailingSlash": false,
   "env": {
     "CHATBOT_ENABLED": "true",
@@ -15,8 +21,12 @@
     "CHATBOT_BEDROCK_EMBED_DIMENSIONS": "512"
   },
   "rewrites": [
+    { "source": "/api/demos/:project/:first/:second", "destination": "/api/demos/:project%2F:first%2F:second" },
+    { "source": "/api/demos/:project/:operation", "destination": "/api/demos/:project%2F:operation" },
+    { "source": "/api/sentence-demo/:operation", "destination": "/api/demos/smart-sentence%2F:operation" },
     { "source": "/api/tools/transcribe/:action", "destination": "/api/tools/transcribe%2F:action" },
     { "source": "/api/chatbot/logs", "destination": "/api/chatbot?__route=logs" },
+    { "source": "/api/short-links/clicks/:clickSlug", "destination": "/api/short-links/clicks%2F:clickSlug" },
     { "source": "/api/short-links/sets", "destination": "/api/short-links/sets/__collection__" },
     { "source": "/go/:first/:rest", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:first%2F:rest" },
     { "source": "/go/:slug", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug" },
@@ -174,11 +184,11 @@
     { "source": "/nbsp-cleaner.html", "destination": "/tools/nbsp-cleaner", "permanent": true },
     { "source": "/project-starfall", "destination": "/games/project-starfall", "permanent": true },
     { "source": "/project-starfall.html", "destination": "/games/project-starfall", "permanent": true },
+    { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
+    { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/tools/:tool.html", "destination": "/tools/:tool", "permanent": true },
     { "source": "/games/:game.html", "destination": "/games/:game", "permanent": true },
     { "source": "/:slug.html", "destination": "/:slug", "permanent": true },
-    { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
-    { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
     { "source": "/projects/:project.html", "destination": "/portfolio/:project", "permanent": true },
     { "source": "/projects/:project", "destination": "/portfolio/:project", "permanent": true },
@@ -207,6 +217,60 @@
       "source": "/:path*",
       "has": [
         { "type": "query", "key": "mode", "value": "professional" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "data-science" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "data-science" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "tourism" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "tourism" }
       ],
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
@@ -340,6 +404,12 @@
     },
     {
       "source": "/resume-tourism-pdf.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/documents/:path*",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
