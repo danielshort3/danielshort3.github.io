@@ -9,8 +9,6 @@
   const resumeContentEl = document.querySelector('[data-tools-resume="content"]');
   const cards = Array.from(document.querySelectorAll('.tool-card'));
 
-  if (!cards.length) return;
-
   const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
   const escapeHtml = (value) => String(value || '')
     .replace(/&/g, '&amp;')
@@ -55,9 +53,20 @@
     toolInfoById.set(toolId, { href, name });
   });
 
-  const getToolInfo = (toolId) => toolInfoById.get(toolId) || {
-    href: `tools/${toolId}`,
-    name: toTitleCase(toolId)
+  const getToolInfo = (toolId) => {
+    const configured = Array.isArray(window.DIRECTORY_WORKBENCH?.items)
+      ? window.DIRECTORY_WORKBENCH.items.find((item) => cleanText(item?.id) === cleanText(toolId))
+      : null;
+    if (configured) {
+      return {
+        href: normalizeHref(configured.href || `tools/${toolId}`),
+        name: cleanText(configured.title) || toTitleCase(toolId)
+      };
+    }
+    return toolInfoById.get(toolId) || {
+      href: `tools/${toolId}`,
+      name: toTitleCase(toolId)
+    };
   };
 
   const setResumeStatus = (message) => {

@@ -4,6 +4,9 @@
   "href": "tools/word-frequency",
   "iconImage": "img/tools/icons/word-frequency.png",
   "categoryId": "tools-writing",
+  "privacy": "Runs in your browser. Your text stays on this device.",
+  "inputs": ["Pasted text and stopword preferences"],
+  "outputs": ["Word-frequency analysis"],
   "summary": "Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <path d=\"M5 4h14v16H5z\" class=\"icon-fill\" opacity=\".12\"></path>\n                      <path d=\"M5 4h14v16H5z\"></path>\n                      <path d=\"M8 8h8M8 12h5M8 16h7\"></path>\n                    </svg>",
   "pills": [

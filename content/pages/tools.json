@@ -11,7 +11,7 @@
   "ogType": "website",
   "bodyAttributes": {
     "data-page": "tools",
-    "class": "tools-page site-page",
+    "class": "tools-page site-page portfolio-workbench-page",
     "data-tools-layout": "directory"
   },
   "stylesheets": [
@@ -40,12 +40,12 @@
       "defer": true
     }
   ],
-  "heroEyebrow": "Tools",
-  "heroTitle": "Tools I keep refining",
-  "heroLead": "Small utilities built around real friction: compare text, clean inputs, generate links, process media, and keep repeatable work moving.",
+  "heroTitle": "Tools",
+  "heroLead": "Focused utilities for writing, campaigns, and media.",
+  "statusLabel": "Local-first",
   "filter": {
-    "placeholder": "Search tools, tags, or categories",
-    "clearLabel": "Clear"
+    "placeholder": "Search tools",
+    "clearLabel": "Clear all"
   },
   "resumePanel": {
     "kicker": "Saved sessions",

@@ -4,6 +4,9 @@
   "href": "tools/screen-recorder",
   "iconImage": "img/tools/icons/screen-recorder.png",
   "categoryId": "tools-media",
+  "privacy": "Recording stays in your browser until you download it.",
+  "inputs": ["Screen or window and optional system audio"],
+  "outputs": ["Browser-supported video file"],
   "summary": "Record your screen and download the clip in browser-supported formats with optional system audio.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"3\" y=\"4\" width=\"18\" height=\"12\" rx=\"2\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"3\" y=\"4\" width=\"18\" height=\"12\" rx=\"2\"></rect>\n                      <path d=\"M9 20h6\"></path>\n                      <path d=\"M10 16v4M14 16v4\"></path>\n                      <circle cx=\"16.5\" cy=\"9\" r=\"2\"></circle>\n                    </svg>",
   "pills": [

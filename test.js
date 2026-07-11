@@ -790,14 +790,42 @@ try {
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
     const catalogJs = readFile('js/accounts/tools-account-ui.js');
     const directoryJs = readFile('js/tools/tools-directory.js');
+    const commonJs = readFile('js/common/common.js');
+    const portfolioJs = readFile('js/portfolio/portfolio.js');
     const toolsHtml = readFile('pages/tools.html');
+    const toolsDirectoryDataSource = readFile('js/portfolio/tools-directory-data.js');
+    const toolsDirectoryDataContext = { window: {} };
+    vm.runInNewContext(toolsDirectoryDataSource, toolsDirectoryDataContext);
+    const toolsDirectoryData = toolsDirectoryDataContext.window.DIRECTORY_WORKBENCH;
     const toolsPageRecord = JSON.parse(readFile(path.join('content', 'pages', 'tools.json')));
     const toolRecords = toolFiles.map((fileName) => JSON.parse(readFile(path.join('content', 'tools', fileName))));
     const publicTools = toolRecords.filter((tool) => !tool.hidden && (!tool.visibility || tool.visibility === 'public'));
     const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
     const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
-    assert(toolsHtml.includes('<h1>Tools I keep refining</h1>'), 'tools page should expose a visible h1');
+    assert(toolsHtml.includes('<h1>Tools</h1>'), 'tools page should expose the concise Tools h1');
+    assert(String(toolsPageRecord.bodyAttributes && toolsPageRecord.bodyAttributes.class || '').includes('portfolio-workbench-page'),
+      'tools page should opt into the shared workbench shell');
+    assert(toolsHtml.includes('data-portfolio-workbench') &&
+      toolsHtml.includes('data-directory-workbench="tools"') &&
+      toolsHtml.includes('class="portfolio-workbench__filters"') &&
+      toolsHtml.includes('class="portfolio-workbench__results"') &&
+      toolsHtml.includes('data-portfolio-inspector'),
+      'tools page should render the shared filter, results, and inspector workbench anatomy');
+    assert(toolsHtml.includes('tools-workbench-header') &&
+      toolsHtml.includes('Focused utilities for writing, campaigns, and media.') &&
+      toolsHtml.includes(`<span data-tools-directory-stat>${publicTools.length} public tools</span>`) &&
+      toolsHtml.includes('<span>Local-first</span>'),
+      'tools page should render its distinct light utility header and live directory status');
+    const toolsHeaderStart = toolsHtml.indexOf('class="portfolio-workbench__header tools-workbench-header"');
+    const toolsHeaderEnd = toolsHtml.indexOf('</header>', toolsHeaderStart);
+    const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory"');
+    assert(toolsHeaderStart >= 0 && toolsAccountDockIndex > toolsHeaderStart && toolsAccountDockIndex < toolsHeaderEnd,
+      'tools account action should stay compact and inside the utility header');
+    assert(toolsHtml.includes('data-portfolio-search') &&
+      toolsHtml.includes('placeholder="Search tools"') &&
+      toolsHtml.includes('data-portfolio-sort'),
+      'tools page should provide familiar search and sort controls');
     assert(!catalogJs.includes("if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');"),
       'tools account UI should not force an existing visible h1 offscreen');
     assert(catalogJs.includes("if (page !== 'tools')") &&
@@ -805,28 +833,55 @@ try {
       'tools account UI should not inject a duplicate hero panel on the tools workbench page');
     assert(!toolsHtml.includes('Quick browser tools for text cleanup') &&
       !toolsHtml.includes('Find the right utility') &&
-      !toolsHtml.includes('Choose a focused utility'),
-      'tools page should not render the removed hero or directory intro copy');
+      !toolsHtml.includes('Choose a focused utility') &&
+      !toolsHtml.includes('Tools I keep refining'),
+      'tools page should not render the superseded hero or directory intro copy');
     assert(!toolsHtml.includes('data-tools-filter-input'), 'tools page should not render directory search input');
     assert(!toolsHtml.includes('data-tools-filter-status'), 'tools page should not render filter status');
     assert(!toolsHtml.includes('class="tools-filter"'), 'tools page should not render search controls');
     assert(!toolsHtml.includes('data-tools-empty-state'), 'tools page should not render filter empty state');
     assert(!toolsHtml.includes('class="tools-nav"'), 'tools page should not render the removed category shortcut buttons');
-    assert(toolsHtml.includes('tools-directory-layout') &&
-      toolsHtml.includes('tools-directory-rail') &&
-      toolsHtml.includes('tools-directory-note') &&
-      toolsHtml.includes('tools-rail-link'),
-      'tools page should render the ML/data directory rail and rationale panel');
-    assert(toolsHtml.includes('data-tools-directory-stat') &&
-      toolsHtml.includes('data-tools-category-link="tools-cloud"') &&
-      /<a[^>]*data-tools-category-link="tools-cloud"[^>]*hidden[^>]*aria-hidden="true"/.test(toolsHtml),
-      'tools page should hide the account-only Cloud rail entry before authentication');
-    assert(catalogJs.includes("document.querySelectorAll('[data-tools-category-link]')") &&
-      catalogJs.includes("railLink?.setAttribute('hidden', '')") &&
-      catalogJs.includes("directoryStat.textContent = `${visibleToolCount} ${availabilityLabel}"),
-      'tools account UI should keep category rail visibility and visible tool totals in sync with authentication');
-    assert(toolsHtml.includes('class="tool-launch-card"'), 'tools page should render compact tool launcher cards');
-    assert(toolsHtml.includes('class="tool-card-details"'), 'tools page should render hover/focus tool details');
+    assert(!toolsHtml.includes('tools-directory-layout') &&
+      !toolsHtml.includes('tools-directory-rail') &&
+      !toolsHtml.includes('tools-directory-note') &&
+      !toolsHtml.includes('tools-rail-link') &&
+      !toolsHtml.includes('tool-card-details'),
+      'tools page should remove the old rail, rationale panel, and hover-card directory');
+    assert(toolsHtml.includes('<noscript>') &&
+      toolsHtml.includes('class="tools-workbench-fallback"') &&
+      toolsHtml.includes('class="tool-launch-card"'),
+      'tools page should retain crawlable no-script launch links');
+    assert(/class="tool-card tools-workbench-fallback-card"[^>]*data-tools-visibility="(?:authed|admin)"[^>]*hidden[^>]*aria-hidden="true"/.test(toolsHtml),
+      'non-public fallback launch links should remain hidden until the appropriate account state');
+    const fallbackStart = toolsHtml.indexOf('<noscript>');
+    const fallbackEnd = toolsHtml.indexOf('</noscript>', fallbackStart);
+    const fallbackHtml = fallbackStart >= 0 && fallbackEnd > fallbackStart
+      ? toolsHtml.slice(fallbackStart, fallbackEnd)
+      : '';
+    assert((fallbackHtml.match(/tools-workbench-fallback-card/g) || []).length === toolRecords.length,
+      'no-script fallback should contain one crawlable card for every tool');
+    assert(toolsDirectoryData && toolsDirectoryData.kind === 'tools' && toolsDirectoryData.itemPlural === 'tools',
+      'generated tools data should declare the shared workbench contract');
+    assert(toolsDirectoryData.filterGroups.map((group) => group.title).join('|') === 'Category|Availability|Access',
+      'tools workbench filters should cover category, availability, and access');
+    assert(toolsDirectoryData.items.length === toolRecords.length &&
+      toolsDirectoryData.items.every((tool) => tool.privacy && Array.isArray(tool.inputs) && tool.inputs.length && Array.isArray(tool.outputs) && tool.outputs.length),
+      'each generated tool should provide privacy and input/output inspector details');
+    assert(toolsDirectoryData.items.filter((tool) => tool.visibility === 'public').length === publicTools.length,
+      'generated public tool total should match the source catalog');
+    assert(commonJs.includes("tools: 'js/portfolio/tools-directory-data.js'") &&
+      commonJs.includes('portfolio-workbench-page'),
+      'common loader should map Tools to its generated workbench data and shared controller');
+    assert(portfolioJs.includes("directoryKind === 'tools'") &&
+      portfolioJs.includes('tools-workbench-result__select') &&
+      portfolioJs.includes('tools-workbench-result__open') &&
+      portfolioJs.includes('tools-workbench-inspector__identity') &&
+      portfolioJs.includes("directoryKind !== 'tools'"),
+      'shared workbench controller should provide tool details, direct launch links, a utility inspector, and an unobstructed mobile start state');
+    assert(catalogJs.includes("document.querySelector('[data-directory-workbench=\"tools\"]')"),
+      'tools account UI should defer workbench visibility and totals to the shared controller');
+    assert(directoryJs.includes('window.DIRECTORY_WORKBENCH') && !directoryJs.includes("if (!document.querySelector('.tool-card')) return;"),
+      'saved-session labels should resolve from generated workbench data without requiring legacy cards');
     assert(!toolsHtml.includes('data-tools-search='), 'tools page should not keep search-only metadata on tool cards');
     assert(!toolsHtml.includes('class="tool-card-kicker"'), 'tools page cards should not render visible access/local metadata');
     assert(!toolsHtml.includes('class="tool-access-chip"'), 'tools page cards should not render visible access chips');
@@ -861,30 +916,20 @@ try {
       bundledToolsAccountJs.includes('setAttribute("aria-hidden","true")'),
       'bundled tools account UI should include the inert modal behavior used in production pages');
     assert(!directoryJs.includes('data-tools-filter-input'), 'tools directory script should not wire removed search controls');
-    assert(toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory"') > toolsHtml.indexOf('<h1>Tools I keep refining</h1>') &&
-      toolsHtml.includes('<strong>Saving is optional.</strong>'),
-      'tools sign-in prompt should sit below the visible h1 and explain that session saving is optional');
-    assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHtml.indexOf('class="tools-account-bar"') &&
-      toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('id="tools-directory-results"'),
-      'tools resume panel should sit below the account bar and above the tool grid');
+    assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHeaderEnd &&
+      toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('class="portfolio-workbench__layout"'),
+      'signed-in resume content should sit between the compact header and the workbench panes');
     const toolsCss = readFile('css/components/tools.css');
-    const toolsOverridesCss = readFile('css/utilities/design-system-overrides.css');
-    assert(toolsCss.includes('@media (max-width: 1080px)') &&
-      toolsCss.includes('.tools-directory-main,') &&
-      toolsCss.includes('grid-column:1;') &&
-      toolsCss.includes('.tools-rail-link[hidden]') &&
-      toolsCss.includes('display:none !important;'),
-      'base tools CSS should explicitly stack every outer directory region by 1080px');
-    assert(toolsOverridesCss.includes('body[data-page="tools"] .tools-directory-main,') &&
-      toolsOverridesCss.includes('grid-column: 1;') &&
-      toolsOverridesCss.includes('body[data-page="tools"] .tools-directory-head h1'),
-      'tools design-system overrides should preserve the one-column breakpoint and responsive h1 styling');
-    (toolsPageRecord.categories || []).forEach((category) => {
-      if (!category.description) return;
-      const hasTools = toolRecords.some((tool) => String(tool.categoryId || '') === String(category.id || '') && (tool.slug || tool.href));
-      if (!hasTools) return;
-      assert(toolsHtml.includes(category.description), `${category.id} description should render in the category rail`);
-    });
+    assert(toolsCss.includes('body[data-page="tools"] .tools-workbench-header') &&
+      toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr) minmax(310px,390px);') &&
+      toolsCss.includes('.tools-workbench-result__open') &&
+      toolsCss.includes('background:var(--brand-action-copper);'),
+      'tools CSS should implement the light three-pane launcher and copper selected edge');
+    assert(toolsCss.includes('@media (max-width:820px)') &&
+      toolsCss.includes('grid-template-columns:minmax(0,1fr);') &&
+      toolsCss.includes('data-mobile-selection="overlay"') &&
+      toolsCss.includes('bottom:calc(var(--mobile-site-dock-height,112px)'),
+      'tools CSS should preserve compact mobile rows and a dock-aware details drawer');
     assert(!toolsHtml.includes('More tools soon'), 'tools page should not render placeholder cards');
     assert(!toolsHtml.includes('href="tools/"'), 'tools page should not render empty tool links');
     assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
@@ -893,6 +938,15 @@ try {
     assert(adminTools.length === 2, 'admin tools directory should include 2 admin-only tools');
     assert(toolRecords.some((tool) => tool.slug === 'transcribe' && tool.visibility === 'authed'),
       'File Transcriber should be listed as an account-only tool');
+    const sitemap = readFile('sitemap.xml');
+    publicTools.forEach((tool) => {
+      assert(sitemap.includes(`<loc>https://www.danielshort.me/tools/${tool.slug}</loc>`),
+        `${tool.slug} public tool URL should remain in sitemap.xml`);
+    });
+    [...accountTools, ...adminTools].forEach((tool) => {
+      assert(!sitemap.includes(`<loc>https://www.danielshort.me/tools/${tool.slug}</loc>`),
+        `${tool.slug} restricted tool URL should stay out of sitemap.xml`);
+    });
 
     toolRecords.forEach((tool) => {
       const fileName = `${String(tool.slug || '').trim()}.json`;
@@ -902,8 +956,20 @@ try {
       assert(href === `tools/${slug}`, `${fileName} href should match tools/${slug}`);
       assert(tool.iconImage === `img/tools/icons/${slug}.png`, `${fileName} should declare a generated icon image`);
       assert(fs.existsSync(tool.iconImage), `${fileName} icon image is missing`);
-      assert(toolsHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from tools page`);
-      assert(toolsHtml.includes(`href="${href}"`), `${fileName} missing from tools page`);
+      assert(fallbackHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from the no-script fallback`);
+      assert(fallbackHtml.includes(`href="${href}"`), `${fileName} crawlable link missing from the no-script fallback`);
+      const hrefIndex = fallbackHtml.indexOf(`href="${href}"`);
+      const articleStart = fallbackHtml.lastIndexOf('<article', hrefIndex);
+      const articleEnd = fallbackHtml.indexOf('</article>', hrefIndex);
+      const fallbackCard = fallbackHtml.slice(articleStart, articleEnd);
+      const visibility = String(tool.visibility || 'public').trim().toLowerCase();
+      assert(fallbackCard.includes(`data-tools-visibility="${visibility}"`), `${fileName} fallback visibility is missing`);
+      if (visibility === 'public') {
+        assert(!/\shidden(?:\s|>)/.test(fallbackCard), `${fileName} public fallback should remain visible`);
+      } else {
+        assert(/\shidden(?:\s|>)/.test(fallbackCard) && fallbackCard.includes('aria-hidden="true"'),
+          `${fileName} restricted fallback should be hidden before authentication`);
+      }
       assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
         `${fileName} missing clean URL rewrite`);
       assert(catalogJs.includes(`'${slug}':`), `${fileName} missing from TOOL_CATALOG`);
@@ -37416,15 +37482,15 @@ try {
     });
   });
 
-  section('Portfolio and games responsive workbench contracts', () => {
+  section('Portfolio, games, and tools responsive workbench contracts', () => {
     const portfolioJs = fs.readFileSync('js/portfolio/portfolio.js', 'utf8');
     const workbenchCss = fs.readFileSync('css/components/portfolio-workbench.css', 'utf8');
     const gamesHtml = fs.readFileSync('pages/games.html', 'utf8');
 
     assert(gamesHtml.includes('data-directory-workbench="games"'),
       'games page should keep the shared directory workbench contract');
-    assert(portfolioJs.includes("mobileFilterSheetEnabled = mobileSelectionOverlayEnabled || (isDirectoryWorkbench && directoryKind === 'games')"),
-      'games workbench should opt into the shared mobile filter sheet');
+    assert(portfolioJs.includes("directoryKind === 'games' || directoryKind === 'tools'"),
+      'games and tools workbenches should opt into the shared mobile filter sheet');
     assert(portfolioJs.includes("triggerButton.className = 'portfolio-mobile-filter-trigger'") &&
            portfolioJs.includes("backdrop.className = 'portfolio-filter-backdrop'"),
       'mobile filters should expose an external trigger and dismissible backdrop');
@@ -37599,15 +37665,12 @@ try {
     });
 
     const toolsHtml = fs.readFileSync('pages/tools.html', 'utf8');
-    const adminToolPaths = toolsHtml
-      .split('<article class="tool-card"')
-      .slice(1)
-      .filter((card) => /data-tools-visibility="admin"/i.test(card))
-      .map((card) => {
-        const match = /<a\s+[^>]*href="tools\/([^"#?]+)"/i.exec(card);
-        return match ? `/tools/${String(match[1] || '').trim()}` : '';
-      })
-      .filter(Boolean);
+    const adminToolPaths = fs.readdirSync(path.join('content', 'tools'))
+      .filter((name) => name.endsWith('.json') && !name.startsWith('.'))
+      .map((name) => JSON.parse(fs.readFileSync(path.join('content', 'tools', name), 'utf8')))
+      .filter((tool) => ['admin', 'admins'].includes(String(tool && tool.visibility ? tool.visibility : '').trim().toLowerCase()))
+      .map((tool) => `/tools/${String(tool && tool.slug ? tool.slug : '').trim()}`)
+      .filter((toolPath) => toolPath !== '/tools/');
 
     adminToolPaths.forEach((toolPath) => {
       assert(!sitemap.includes(`https://www.danielshort.me${toolPath}`), `sitemap.xml should exclude admin tool URL: ${toolPath}`);
@@ -37956,24 +38019,21 @@ try {
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card') && brandOverrideCss.includes('grid-template-rows: auto minmax(104px, auto);'), 'audience project cards should use the portfolio page media plus white text panel layout');
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .overlay') && brandOverrideCss.includes('display: none;'), 'audience project cards should not depend on dark image overlays for readability');
     assert(brandOverrideCss.includes('body[data-tools-layout] #main > .surface-band:nth-of-type(even)') && brandOverrideCss.includes('background: transparent;'), 'tool workspace panels should not inherit alternating gray surface backgrounds');
-    assert(brandOverrideCss.includes('body[data-tools-layout="directory"] .tool-card') &&
-      brandOverrideCss.includes('overflow: visible;'),
-      'tool directory cards should not clip their hover tooltips');
-    assert(toolsCss.includes('.tool-card-details') &&
-      toolsCss.includes('position:static;') &&
-      toolsCss.includes('pointer-events:auto;') &&
-      toolsCss.includes('.tool-card:hover,\n  .tool-card:focus-within{\n    z-index:30;') &&
-      !toolsCss.includes('@media (hover:none), (max-width: 700px)'),
-      'tools directory summaries should stay visible in readable cards on hover-capable hybrid devices');
-    assert(toolsCss.includes('grid-template-columns:repeat(auto-fit, minmax(min(290px, 100%), 1fr));') &&
-      toolsCss.includes('grid-template-columns:auto minmax(0, 1fr);') &&
-      toolsCss.includes('width:58px;') &&
-      toolsCss.includes('grid-column:2;'),
-      'tools directory cards should use readable two-column cards with persistent summaries');
-    assert(toolsCss.includes('grid-template-columns:1fr;') &&
-      toolsCss.includes('width:72px;') &&
-      toolsCss.includes('width:79.2px;'),
-      'tools directory mobile cards should stack without shrinking icon artwork');
+    assert(toolsCss.includes('.tools-workbench-result') &&
+      toolsCss.includes('min-height:108px;') &&
+      toolsCss.includes('grid-template-columns:64px minmax(0,1fr);') &&
+      toolsCss.includes('.portfolio-result-card__summary') &&
+      toolsCss.includes('-webkit-line-clamp:unset;'),
+      'tools workbench rows should keep compact icons and complete summaries');
+    assert(toolsCss.includes('.tools-workbench-result.is-selected') &&
+      toolsCss.includes('background:color-mix(in srgb,var(--brand-signal-blue) 7%, #ffffff 93%);') &&
+      toolsCss.includes('background:var(--brand-action-copper);'),
+      'tools workbench selection should use a pale signal-blue surface with a copper edge');
+    assert(toolsCss.includes('@media (max-width:820px)') &&
+      toolsCss.includes('grid-template-columns:72px minmax(0,1fr);') &&
+      toolsCss.includes('min-height:148px;') &&
+      toolsCss.includes('position:absolute;'),
+      'tools workbench mobile rows should preserve readable launcher content and a direct Open action');
     assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
     assert(toolsAccountCss.includes('.tools-account-bar:empty'), 'empty tools account bars should not render as orphan containers');
     assert(siteChatbotCss.includes('right: calc(100% + 8px);'), 'chatbot launcher tooltip should sit inward with a button gap');
@@ -39619,13 +39679,28 @@ try {
       assert(Array.isArray(audience.page.sectionOrder) && audience.page.sectionOrder.length === audience.page.sections.length,
         `${contentPath} should define a complete visual section order`);
       const html = readFile(outputPath);
-      assert(html.indexOf('id="selected-outcomes"') < html.indexOf('id="project-examples"') &&
-        html.indexOf('id="project-examples"') < html.indexOf('id="work-experience"'),
-        `${outputPath} should render results, projects, then experience before JavaScript runs`);
+      if (contentPath.endsWith('/analytics.json')) {
+        assert(html.indexOf('id="selected-outcomes"') < html.indexOf('id="work-experience"') &&
+          html.indexOf('id="work-experience"') < html.indexOf('id="project-examples"'),
+          `${outputPath} should render results, experience, then projects before JavaScript runs`);
+      } else {
+        assert(html.indexOf('id="selected-outcomes"') < html.indexOf('id="project-examples"') &&
+          html.indexOf('id="project-examples"') < html.indexOf('id="work-experience"'),
+          `${outputPath} should render results, projects, then experience before JavaScript runs`);
+      }
       assert(html.indexOf('<h3 class="work-company">Visit Grand Junction</h3>') < html.indexOf('<h3 class="work-company">Randall Reilly</h3>') &&
         html.indexOf('<h3 class="work-company">Randall Reilly</h3>') < html.indexOf('<h3 class="work-company">Target</h3>'),
         `${outputPath} should render experience in reverse chronological order`);
     });
+    const recruiterStoryCss = readFile('css/components/recruiter-story.css');
+    assert(recruiterStoryCss.includes('.jump-panel[data-story-rail="true"]') &&
+      recruiterStoryCss.includes('@media (max-width: 768px)') &&
+      recruiterStoryCss.includes('@media (prefers-reduced-motion: reduce)'),
+      'analytics recruiter story should provide desktop rail, mobile, and reduced-motion treatments');
+    assert(commonScript.includes('prepareAnalyticsStory') &&
+      commonScript.includes("panel.dataset.storyRail = 'true'") &&
+      commonScript.includes("document.addEventListener('site:content-updated'"),
+      'analytics recruiter story should initialize on direct and injected professional pages');
     const jumpPanelCss = readFile('css/components/jump-panel.css');
     assert(!jumpPanelCss.includes('@media (hover:none) and (pointer:coarse), (max-width:768px)') &&
       jumpPanelCss.includes('scroll-margin-top:68px;') &&
