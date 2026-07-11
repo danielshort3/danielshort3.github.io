@@ -37,6 +37,32 @@
   </url>
 
   <url>
+    <loc>https://www.danielshort.me/games/stellar-dogfight</loc>
+    <lastmod>2026-07-10</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/roulette</loc>
+    <lastmod>2026-07-10</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/probability-engine</loc>
+    <lastmod>2026-07-10</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/project-starfall</loc>
+    <lastmod>2026-07-10</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/games/ocean-wave-simulation</loc>
+    <lastmod>2026-07-10</lastmod>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
     <loc>https://www.danielshort.me/tools/background-remover</loc>
     <lastmod>2026-07-10</lastmod>
     <priority>0.6</priority>
