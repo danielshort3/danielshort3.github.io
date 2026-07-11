@@ -19,12 +19,9 @@ function escapeAttr(value){
 
 function sendContributionEvent(name, params){
   if (typeof window.gaEvent === 'function') {
-    window.gaEvent(name, params);
-    return;
+    return window.gaEvent(name, params);
   }
-  if (typeof window.gtag === 'function') {
-    window.gtag('event', name, params || {});
-  }
+  return false;
 }
 
 function formatMonthYear(date){

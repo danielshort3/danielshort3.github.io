@@ -755,7 +755,7 @@ try {
     });
   });
 
-  section('Lazy loading and analytics defers', () => {
+  section('Lazy loading and analytics bundle ownership', () => {
     const homeHtml = fs.readFileSync('index.html', 'utf8');
     assert(!homeHtml.includes('js/portfolio/modal-helpers.js'), 'index.html should lazy load portfolio modal helpers');
     assert(!homeHtml.includes('js/portfolio/projects-data.js'), 'index.html should lazy load portfolio data');
@@ -771,10 +771,14 @@ try {
     const htmlFiles = ['index.html','contact.html','privacy.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
-      assert(!content.includes('js/analytics/ga4-events.js'), `${file} should load analytics helpers on demand`);
+      assert(!content.includes('js/analytics/ga4-events.js'), `${file} should not load analytics helpers outside the consent bundle`);
     });
+    const consentEntry = fs.readFileSync('build/entries/site-consent.entry.js', 'utf8');
     const consentCode = fs.readFileSync('js/privacy/consent_manager.js', 'utf8');
-    assert(consentCode.includes('ga4-helper'), 'consent manager should inject analytics helper script');
+    assert(consentEntry.includes("import '../../js/analytics/ga4-events.js';"),
+      'site consent bundle should own the consent-aware analytics helpers');
+    assert(!consentCode.includes('ga4-helper') && !consentCode.includes('js/analytics/ga4-events.js'),
+      'consent manager should not dynamically inject a second analytics helper path');
   });
 
   section('Tools directory contracts', () => {
@@ -37707,18 +37711,59 @@ try {
   });
 
   section('Analytics helpers and events', () => {
-    const env = evalScript('js/analytics/ga4-events.js');
+    const deniedEnv = createEnv();
+    deniedEnv.setTimeout = () => 0;
+    deniedEnv.window.consentAPI = { get: () => ({ analytics: false }) };
+    evalScript('js/analytics/ga4-events.js', deniedEnv);
+    const deniedStart = deniedEnv.dataLayer.length;
+    assert(deniedEnv.window.gaEvent('blocked_event') === false,
+      'analytics helper should reject events without analytics consent');
+    assert(deniedEnv.dataLayer.length === deniedStart,
+      'analytics helper should not queue events while analytics consent is denied');
+
+    const embeddedEnv = createEnv();
+    embeddedEnv.setTimeout = () => 0;
+    embeddedEnv.window.self = {};
+    embeddedEnv.window.top = { location: { origin: 'https://www.danielshort.me' } };
+    embeddedEnv.window.location = { href: 'https://www.danielshort.me/shape-demo', hostname: 'www.danielshort.me', origin: 'https://www.danielshort.me' };
+    embeddedEnv.window.consentAPI = { get: () => ({ analytics: true }) };
+    evalScript('js/analytics/ga4-events.js', embeddedEnv);
+    const embeddedStart = embeddedEnv.dataLayer.length;
+    assert(embeddedEnv.window.gaEvent('embedded_event') === false && embeddedEnv.dataLayer.length === embeddedStart,
+      'same-origin embedded demos should not emit a second analytics stream');
+
+    const env = createEnv();
+    const listeners = {};
+    env.setTimeout = () => 0;
+    env.window.addEventListener = (name, handler) => { listeners[name] = handler; };
+    env.window.consentAPI = { get: () => ({ analytics: true }) };
+    evalScript('js/analytics/ga4-events.js', env);
     assert(typeof env.window.gaEvent === 'function', 'ga4-events.js missing gaEvent');
     assert(typeof env.window.trackProjectView === 'function', 'ga4-events.js missing trackProjectView');
     assert(typeof env.window.trackModalClose === 'function', 'ga4-events.js missing trackModalClose');
     const startLen = (env.dataLayer || []).length;
     env.window.trackProjectView('alpha');
+    env.window.trackProjectView(' alpha ');
+    env.window.trackProjectView('ALPHA');
     env.window.trackProjectView('beta');
+    let evts = (env.dataLayer || []).slice(startLen).filter(x => x && x[0] === 'event');
+    assert(!evts.some(x => x[1] === 'multi_project_view'),
+      'repeated project IDs should not count toward multi_project_view');
     env.window.trackProjectView('gamma');
-    const evts = (env.dataLayer || []).slice(startLen).filter(x => x && x[0] === 'event');
-    const hasMulti = evts.some(x => x[1] === 'multi_project_view');
-    assert(hasMulti, 'multi_project_view event not emitted on third view');
+    env.window.trackProjectView('gamma');
+    evts = (env.dataLayer || []).slice(startLen).filter(x => x && x[0] === 'event');
+    const multiEvents = evts.filter(x => x[1] === 'multi_project_view');
+    assert(multiEvents.length === 1, 'multi_project_view should emit exactly once on the third unique project');
     assert(typeof env.window.gtag === 'function', 'gtag shim not defined');
+    listeners['consent-changed']({ detail: { analytics: false } });
+    const revokedStart = env.dataLayer.length;
+    assert(env.window.gaEvent('revoked_event') === false && env.dataLayer.length === revokedStart,
+      'analytics helper should immediately stop events after consent is revoked');
+
+    const analyticsCode = readFile('js/analytics/ga4-events.js');
+    assert(analyticsCode.includes('Resume(?:-[A-Za-z0-9-]+)?\\.pdf') &&
+      analyticsCode.includes('resume_variant') && analyticsCode.includes('link_domain'),
+    'analytics helper should distinguish audience resume downloads and outbound domains');
   });
 
   section('Portfolio modal analytics hook', () => {
@@ -38897,6 +38942,40 @@ try {
              String(csp.value || '').includes('https://staticimgly.com'),
              `${source} should keep the relaxed background remover CSP isolated to that route`);
     });
+    const cspVariants = [
+      ['global', globalCsp],
+      ...['/tools/background-remover', '/tools/background-remover.html', '/pages/background-remover']
+        .map(source => [source, cspHeaderForSource(source)])
+    ];
+    const cspDirective = (value, directive) => String(value || '')
+      .split(';')
+      .map(part => part.trim())
+      .find(part => part.startsWith(`${directive} `)) || '';
+    cspVariants.forEach(([source, header]) => {
+      const value = header && header.value;
+      const scriptSrc = cspDirective(value, 'script-src');
+      const scriptElem = cspDirective(value, 'script-src-elem');
+      const styleSrc = cspDirective(value, 'style-src');
+      const fontSrc = cspDirective(value, 'font-src');
+      const connectSrc = cspDirective(value, 'connect-src');
+      const frameSrc = cspDirective(value, 'frame-src');
+      assert(scriptSrc.includes('https://*.googletagmanager.com') &&
+        scriptSrc.includes('https://tagmanager.google.com') &&
+        scriptElem.includes('https://*.googletagmanager.com') &&
+        scriptElem.includes('https://tagmanager.google.com'),
+      `${source} CSP should allow GTM, GA4 scripts, and Tag Manager Preview scripts`);
+      assert(styleSrc.includes('https://www.googletagmanager.com') &&
+        styleSrc.includes('https://tagmanager.google.com') && fontSrc.includes('data:'),
+      `${source} CSP should allow Tag Manager Preview styles and data fonts`);
+      assert(connectSrc.includes('https://*.google-analytics.com') &&
+        connectSrc.includes('https://*.analytics.google.com') &&
+        connectSrc.includes('https://*.googletagmanager.com'),
+      `${source} CSP should allow GA4 collection endpoints`);
+      assert(frameSrc.includes('https://www.googletagmanager.com'),
+        `${source} CSP should allow the Google Tag Manager frame endpoint`);
+      assert(!/doubleclick|googlesyndication|googleadservices/i.test(String(value || '')),
+        `${source} CSP should not allow Google Ads-only endpoints before they are needed`);
+    });
     const hasNoindexShortLinks = headers.some(h =>
       h && h.source === '/short-links' &&
       Array.isArray(h.headers) &&
@@ -39766,9 +39845,115 @@ try {
     checkFileContainsOneOf('privacy.html', ['js/privacy/consent_manager.js', 'dist/site-consent.'], 'privacy.html missing consent manager reference');
     const pcfg = evalScript('js/privacy/config.js');
     const consentCode = readFile('js/privacy/consent_manager.js');
+    const analyticsCode = readFile('js/analytics/ga4-events.js');
+    const contributionsCode = readFile('js/contributions/contributions.js');
+    const bundleInjectorCode = readFile('build/inject-script-bundles.js');
+    const privacyHtml = readFile('pages/privacy.html');
     const privacyCss = readFile('css/privacy.css');
-    assert(pcfg.window.PrivacyConfig && pcfg.window.PrivacyConfig.vendors && pcfg.window.PrivacyConfig.vendors.ga4 && pcfg.window.PrivacyConfig.vendors.ga4.id,
-           'PrivacyConfig missing GA4 vendor id');
+    assert(pcfg.window.PrivacyConfig && pcfg.window.PrivacyConfig.vendors &&
+      pcfg.window.PrivacyConfig.vendors.gtm && pcfg.window.PrivacyConfig.vendors.gtm.id === 'GTM-MX6DNH8L',
+    'PrivacyConfig should keep the GTM container ID in one shared config');
+    assert(!pcfg.window.PrivacyConfig.vendors.ga4,
+      'PrivacyConfig should not expose a direct GA4 loader after the GTM migration');
+    assert(pcfg.window.PrivacyConfig.respectDNT === true &&
+      pcfg.window.PrivacyConfig.tcf && pcfg.window.PrivacyConfig.tcf.enabled === false,
+    'PrivacyConfig should honor Do Not Track and keep TCF generation disabled by default');
+
+    const dntEnv = createEnv();
+    const storedConsent = new Map();
+    let tcfConstructorCalls = 0;
+    dntEnv.document.readyState = 'loading';
+    dntEnv.navigator = {
+      doNotTrack: '1',
+      globalPrivacyControl: false,
+      languages: ['en-US'],
+      language: 'en-US',
+      onLine: true
+    };
+    dntEnv.window.navigator = dntEnv.navigator;
+    dntEnv.localStorage = {
+      getItem: key => storedConsent.has(key) ? storedConsent.get(key) : null,
+      setItem: (key, value) => storedConsent.set(key, String(value)),
+      removeItem: key => storedConsent.delete(key)
+    };
+    dntEnv.window.localStorage = dntEnv.localStorage;
+    dntEnv.CustomEvent = function CustomEvent(type, init = {}) {
+      this.type = type;
+      this.detail = init.detail;
+    };
+    dntEnv.window.dispatchEvent = event => { dntEnv.lastConsentEvent = event; };
+    dntEnv.window.PrivacyRegion = 'EU';
+    dntEnv.window.__iabtcf = {
+      GVL: function GVL() { tcfConstructorCalls++; },
+      TCModel: function TCModel() { tcfConstructorCalls++; },
+      TCString: { encode() { tcfConstructorCalls++; return 'unexpected'; } }
+    };
+    evalScript('js/privacy/config.js', dntEnv);
+    dntEnv.window.PrivacyRegion = 'EU';
+    evalScript('js/privacy/consent_manager.js', dntEnv);
+    dntEnv.window.consentAPI.set({ analytics: true, functional: true, advertising: true });
+    const dntRecord = JSON.parse(storedConsent.get('pcz_consent_v1'));
+    assert(dntRecord.dnt === true && dntRecord.categories.analytics === false &&
+      dntRecord.categories.advertising === false && dntRecord.categories.functional === true,
+    'Do Not Track should override analytics and advertising without disabling functional consent');
+    assert(dntEnv.lastConsentEvent && dntEnv.lastConsentEvent.detail.analytics === false &&
+      dntEnv.lastConsentEvent.detail.advertising === false,
+    'Do Not Track should propagate the enforced consent state to event helpers');
+    assert(dntRecord.tcString === '' && tcfConstructorCalls === 0,
+      'disabled TCF configuration should not invoke placeholder TCF generation');
+    assert(!consentCode.includes('tcModel.cmpId = 123') &&
+      consentCode.includes('if (tcfConfig.enabled !== true) return null;') &&
+      consentCode.includes('tcModel.cmpId = tcfConfig.cmpId;'),
+    'TCF generation should require explicit enabled configuration and registered CMP metadata');
+    assert(privacyHtml.includes('uses Google Tag Manager to load Google Analytics 4') &&
+      privacyHtml.includes('Do Not Track signal') &&
+      privacyHtml.includes('analytics and advertising remain disabled'),
+    'privacy policy should accurately describe GTM loading and the enforced Do Not Track override');
+    assert(consentCode.includes("window.gtag('consent', 'default'") &&
+      consentCode.includes("analytics_storage: 'denied'") &&
+      consentCode.includes("ad_storage: 'denied'"),
+    'consent manager should queue denied-by-default Google Consent Mode settings before GTM loads');
+    assert(consentCode.includes("enableVendor('gtm', state.analytics)") &&
+      consentCode.includes("s.src = 'https://www.googletagmanager.com/gtm.js?id='") &&
+      consentCode.includes("const scriptId = 'gtm-src'"),
+    'consent manager should load the configured GTM container only through the analytics consent path');
+    assert(consentCode.includes('const embeddedState = Object.assign(') &&
+      consentCode.includes('{ analytics: false, advertising: false }') &&
+      analyticsCode.includes('!isEmbeddedSameOrigin() && !!(state && state.analytics)'),
+    'same-origin embeds should keep GTM and custom analytics events disabled');
+    assert(!consentCode.includes('googletagmanager.com/gtag/js') &&
+      !consentCode.includes("window.gtag('config'") &&
+      !analyticsCode.includes('googletagmanager.com/gtag/js') &&
+      !analyticsCode.includes("window.gtag('config'"),
+    'source analytics paths should not directly load or configure GA4');
+    assert(!contributionsCode.includes("window.gtag('event'") &&
+      contributionsCode.includes("typeof window.gaEvent === 'function'"),
+    'contribution events should use only the shared consent-aware analytics helper');
+    assert(bundleInjectorCode.includes("walkHtmlFiles('demos')") &&
+      bundleInjectorCode.includes("!relPath.includes('/')") &&
+      bundleInjectorCode.includes("relPath.startsWith('pages/')") &&
+      bundleInjectorCode.includes("relPath.startsWith('demos/')"),
+    'script bundle injection should cover root, page, and standalone demo routes');
+    const standaloneTrackedPages = [
+      'pages/games/roulette.html',
+      'pages/games/stellar-dogfight.html',
+      'demos/baby-names-demo.html',
+      'demos/chatbot-demo.html',
+      'demos/covid-outbreak-demo.html',
+      'demos/digit-generator-demo.html',
+      'demos/handwriting-rating-demo.html',
+      'demos/minesweeper-demo.html',
+      'demos/nonogram-demo.html',
+      'demos/pizza-tips-demo.html',
+      'demos/retail-loss-sales-demo.html',
+      'demos/sentence-demo.html',
+      'demos/shape-demo.html',
+      'demos/target-empty-package-demo.html'
+    ];
+    standaloneTrackedPages.forEach((file) => {
+      assert(htmlHasManagedBundle(readFile(file), 'site-consent'),
+        `${file} should receive the shared consent and GTM bundle`);
+    });
     assert(consentCode.includes('pref-status-row'),
       'consent manager should render a locked necessary status row');
     assert(consentCode.includes('Required for site operation'),

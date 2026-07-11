@@ -232,10 +232,14 @@ function processHtml(html, relPath) {
 
   let normalized = out;
   const needsShellBundle = /\bclass="[^"]*\bsite-page\b[^"]*"/i.test(html) && /<main\b/i.test(html);
+  const needsConsentBundle = needsShellBundle
+    || !relPath.includes('/')
+    || relPath.startsWith('pages/')
+    || relPath.startsWith('demos/');
   if (needsShellBundle && !shellInserted) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
   }
-  if (needsShellBundle && !normalized.some((line) => isManagedLine(String(line || '').trim(), 'site-consent'))) {
+  if (needsConsentBundle && !normalized.some((line) => isManagedLine(String(line || '').trim(), 'site-consent'))) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.consent}"></script>`);
   }
 
@@ -275,7 +279,7 @@ function processHtml(html, relPath) {
 }
 
 function main() {
-  const targets = [...listRootHtmlFiles(), ...walkHtmlFiles('pages')];
+  const targets = [...listRootHtmlFiles(), ...walkHtmlFiles('pages'), ...walkHtmlFiles('demos')];
   let updated = 0;
   let skipped = 0;
 

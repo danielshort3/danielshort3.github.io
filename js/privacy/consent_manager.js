@@ -4,14 +4,12 @@
  * A lightweight, privacy‑focused consent management implementation for
  * static websites. It displays an accessible banner and preferences
  * modal, persists the user’s choices, integrates with Google Consent
- * Mode v2 and the IAB TCF v2.2 (when appropriate), and honors
+ * Mode v2 and optional IAB TCF v2.2 generation, and honors
  * Global Privacy Control (GPC) signals for California residents.
  *
- * This script does not require any external dependencies aside from
- * Google’s gtag.js (which should be loaded with default denied
- * settings) and the optional @iabtcf/core library if you choose to
- * generate a TCF string. See inline comments for configuration
- * guidance.
+ * Google Tag Manager is loaded only after analytics consent is granted.
+ * TCF generation is disabled by default and requires both @iabtcf/core
+ * and explicit registered CMP metadata in PrivacyConfig.
  */
 
 (function () {
@@ -142,10 +140,7 @@
       }
     },
     vendors: {
-      ga4: {
-        id: 'G-0VL37MQ62P',
-        enabled: false
-      }
+      gtm: { enabled: false }
     }
   };
 
@@ -156,30 +151,6 @@
     });
   }
   const STORAGE_KEY = GLOBAL_CONF.storageKey || 'consent';
-
-  const loadAnalyticsHelpers = (() => {
-    let promise = null;
-    return function loadHelpers(){
-      if (promise) return promise;
-      promise = new Promise((resolve, reject) => {
-        if (document.getElementById('ga4-helper')) {
-          resolve();
-          return;
-        }
-        const tag = document.createElement('script');
-        tag.id = 'ga4-helper';
-        tag.src = 'js/analytics/ga4-events.js';
-        tag.async = false;
-        tag.onload = () => resolve();
-        tag.onerror = () => {
-          promise = null;
-          reject(new Error('Failed to load ga4-events.js'));
-        };
-        document.head.appendChild(tag);
-      });
-      return promise;
-    };
-  })();
 
   /**
    * Retrieve the user’s locale. We fall back to English if no
@@ -197,6 +168,15 @@
   function hasGPC() {
     try {
       return navigator.globalPrivacyControl === true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function hasDNT() {
+    try {
+      const value = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      return value === '1' || value === 1 || String(value || '').toLowerCase() === 'yes';
     } catch (err) {
       return false;
     }
@@ -262,13 +242,23 @@
     return false;
   }
 
-  function getDefaultState() {
-    const strictState = { necessary: true, analytics: false, functional: false, advertising: false };
-    const result = Object.assign({}, strictState);
-    if (hasGPC()) {
+  function enforcePrivacySignals(state) {
+    const result = Object.assign(
+      { necessary: true, analytics: false, functional: false, advertising: false },
+      state || {},
+      { necessary: true }
+    );
+    if (GLOBAL_CONF.respectDNT !== false && hasDNT()) {
+      result.analytics = false;
       result.advertising = false;
     }
+    if (GLOBAL_CONF.respectGPC !== false && hasGPC()) result.advertising = false;
     return result;
+  }
+
+  function getDefaultState() {
+    const strictState = { necessary: true, analytics: false, functional: false, advertising: false };
+    return enforcePrivacySignals(strictState);
   }
 
   function setBannerUiState(isOpen) {
@@ -289,22 +279,34 @@
     return true;
   };
 
+  function getEnabledTcfConfig() {
+    const tcfConfig = GLOBAL_CONF.tcf || {};
+    const cmpId = Number(tcfConfig.cmpId);
+    const cmpVersion = Number(tcfConfig.cmpVersion);
+    if (tcfConfig.enabled !== true) return null;
+    if (!Number.isInteger(cmpId) || cmpId <= 0) return null;
+    if (!Number.isInteger(cmpVersion) || cmpVersion <= 0) return null;
+    return { cmpId, cmpVersion };
+  }
+
   /**
    * Persist the consent record in localStorage. The record includes
-   * timestamp, region, version, user categories, GPC status and a
-   * placeholder for the TCF string when applicable.
+   * timestamp, region, version, user categories, privacy signals and an
+   * optional TCF string when explicitly configured.
    */
   function saveConsent(state) {
+    const effectiveState = enforcePrivacySignals(state);
     const record = {
       version: CONFIG.version,
       timestamp: Date.now(),
       region: getRegion(),
       gpc: hasGPC(),
-      categories: state,
+      dnt: hasDNT(),
+      categories: effectiveState,
       tcString: ''
     };
-    if (record.region === 'EU' && window.__iabtcf) {
-      getTcString(state).then(tc => {
+    if (record.region === 'EU' && getEnabledTcfConfig() && window.__iabtcf) {
+      getTcString(effectiveState).then(tc => {
         record.tcString = tc;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
       });
@@ -319,7 +321,9 @@
   function loadConsent() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const record = raw ? JSON.parse(raw) : null;
+      if (record && record.categories) record.categories = enforcePrivacySignals(record.categories);
+      return record;
     } catch (err) {
       return null;
     }
@@ -330,6 +334,7 @@
    * and enabling or disabling vendors.
    */
   function applyConsent(state) {
+    state = enforcePrivacySignals(state);
     const update = {
       analytics_storage: state.analytics ? 'granted' : 'denied',
       ad_storage: state.advertising ? 'granted' : 'denied',
@@ -344,7 +349,7 @@
         window.gtag('consent', 'update', update);
       });
     }
-    enableVendor('ga4', state.analytics);
+    enableVendor('gtm', state.analytics);
     window.dispatchEvent(new CustomEvent('consent-changed', { detail: state }));
   }
 
@@ -354,36 +359,26 @@
   function enableVendor(vendorKey, enabled) {
     const vendor = CONFIG.vendors[vendorKey];
     if (!vendor) return;
-    if (enabled) {
-      loadAnalyticsHelpers()
-        .then(() => {
-          if (window.consentAPI && typeof window.consentAPI.get === 'function') {
-            const current = window.consentAPI.get();
-            if (current) {
-              window.dispatchEvent(new CustomEvent('consent-changed', { detail: current }));
-            }
-          }
-        })
-        .catch(err => console.warn(err));
-    }
+    vendor._consentGranted = !!enabled;
     if (enabled && !vendor.enabled) {
-      if (vendorKey === 'ga4') {
-        const scriptId = 'ga4-src';
-        const loadGa = () => {
+      if (vendorKey === 'gtm') {
+        const containerId = String(vendor.id || '').trim();
+        if (!/^GTM-[A-Z0-9]+$/i.test(containerId)) {
+          console.warn('Google Tag Manager container ID is missing or invalid.');
+          return;
+        }
+        const scriptId = 'gtm-src';
+        const loadGtm = () => {
           if (document.getElementById(scriptId)) return;
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            'gtm.start': Date.now(),
+            event: 'gtm.js'
+          });
           const s = document.createElement('script');
           s.id = scriptId;
           s.async = true;
-          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + vendor.id;
-          s.onload = function(){
-            // Ensure global gtag shim exists, then configure the property
-            window.dataLayer = window.dataLayer || [];
-            window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
-            try {
-              window.gtag('js', new Date());
-              window.gtag('config', vendor.id);
-            } catch {}
-          };
+          s.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(containerId);
           s.onerror = function(){
             vendor.enabled = false;
           };
@@ -395,17 +390,18 @@
             window.addEventListener('online', function handleOnline(){
               vendor._pendingOnline = false;
               window.removeEventListener('online', handleOnline);
-              enableVendor(vendorKey, true);
+              if (vendor._consentGranted) enableVendor(vendorKey, true);
             });
           }
           return;
         }
-        loadGa();
+        loadGtm();
       }
       vendor.enabled = true;
     }
     if (!enabled && vendor.enabled) {
-      // GA4 cannot be fully unloaded; rely on consent update.
+      // GTM cannot be fully unloaded after consent is revoked. Consent Mode
+      // blocks Google tags, and event helpers independently enforce consent.
       vendor.enabled = false;
     }
   }
@@ -414,14 +410,16 @@
    * Generate a TCF v2.2 compliant string using the @iabtcf/core library.
    */
   async function getTcString(state) {
+    const tcfConfig = getEnabledTcfConfig();
+    if (!tcfConfig) return '';
     const api = window.__iabtcf;
     if (!api) return '';
     const { TCModel, TCString, GVL } = api;
     const gvl = new GVL();
     await gvl.readyPromise;
     const tcModel = new TCModel(gvl);
-    tcModel.cmpId = 123;
-    tcModel.cmpVersion = 1;
+    tcModel.cmpId = tcfConfig.cmpId;
+    tcModel.cmpVersion = tcfConfig.cmpVersion;
     tcModel.tcStringVersion = 3;
     tcModel.policyVersion = gvl.tcfPolicyVersion;
     tcModel.purposeConsents.set(1, true);
@@ -715,15 +713,12 @@
     if (isEmbeddedSameOrigin()) {
       setBannerUiState(false);
       const saved = loadConsent();
-      if (saved) {
-        if (hasGPC() && saved.categories && saved.categories.advertising) {
-          saved.categories.advertising = false;
-          saveConsent(saved.categories);
-        }
-        applyConsent(saved.categories);
-      } else {
-        applyConsent(getDefaultState());
-      }
+      const embeddedState = Object.assign(
+        {},
+        saved && saved.categories ? saved.categories : getDefaultState(),
+        { analytics: false, advertising: false }
+      );
+      applyConsent(embeddedState);
       return;
     }
     loadStyles();
