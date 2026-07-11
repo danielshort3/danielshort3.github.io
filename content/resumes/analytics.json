@@ -9,6 +9,7 @@
     "title": "Resume | Daniel Short",
     "canonicalPath": "/resume-analytics",
     "description": "Resume for data analytics and BI roles focused on SQL, Tableau, KPI reporting, automation, and business decision support.",
+    "robots": "noindex, nofollow",
     "ogTitle": "Resume | Daniel Short",
     "ogDescription": "Resume for data analytics and BI roles focused on SQL, Tableau, KPI reporting, automation, and business decision support.",
     "siteName": "Daniel Short",

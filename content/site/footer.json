@@ -162,22 +162,6 @@
       "href": "sitemap-pretty"
     },
     {
-      "label": "Work",
-      "href": "/?mode=professional",
-      "dataAttributes": {
-        "data-site-realm-switch": "professional",
-        "data-footer-realm": "personal"
-      }
-    },
-    {
-      "label": "Home",
-      "href": "/",
-      "dataAttributes": {
-        "data-site-realm-switch": "personal",
-        "data-footer-realm": "professional"
-      }
-    },
-    {
       "label": "Cookie settings",
       "type": "button",
       "id": "privacy-settings-link-footer",
@@ -253,14 +237,6 @@
         {
           "label": "Sitemap",
           "href": "sitemap-pretty"
-        },
-        {
-          "label": "Work",
-          "href": "/?mode=professional",
-          "dataAttributes": {
-            "data-site-realm-switch": "professional",
-            "data-footer-realm": "personal"
-          }
         },
         {
           "label": "Cookie settings",

@@ -30,6 +30,7 @@
     "title": "Tourism Analytics | Daniel Short",
     "canonicalPath": "/tourism",
     "description": "Tourism analytics portfolio focused on destination reporting, visitor demand, stakeholder communication, and public-sector decision support.",
+    "robots": "noindex, nofollow",
     "ogTitle": "Tourism Analytics | Daniel Short",
     "ogDescription": "Tourism analytics portfolio focused on destination reporting, visitor demand, stakeholder communication, and public-sector decision support.",
     "siteName": "Daniel Short - Data Analytics & BI",

@@ -9,6 +9,7 @@
     "title": "Resume | Daniel Short",
     "canonicalPath": "/resume-data-science",
     "description": "Resume for data science roles focused on machine learning, NLP, model evaluation, deployment-minded experimentation, and applied Python work.",
+    "robots": "noindex, nofollow",
     "ogTitle": "Resume | Daniel Short",
     "ogDescription": "Resume for data science roles focused on machine learning, NLP, model evaluation, deployment-minded experimentation, and applied Python work.",
     "siteName": "Daniel Short",

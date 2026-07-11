@@ -97,21 +97,27 @@
     return PERSONAL_MODE;
   };
 
-  const applyHiringRobots = (mode) => {
-    const explicitMode = queryMode();
-    const isHiringView = mode === PROFESSIONAL_MODE && explicitMode === PROFESSIONAL_MODE;
-    const selector = 'meta[name="robots"][data-site-realm-robots="hiring"]';
-    const existing = document.head?.querySelector(selector);
-    if (!isHiringView) {
-      if (existing) existing.remove();
+  const applyProfessionalRobots = (mode) => {
+    const isProfessionalView = mode === PROFESSIONAL_MODE;
+    const selector = 'meta[name="robots"][data-site-realm-robots="professional"]';
+    const dynamicRobots = document.head?.querySelector(selector);
+    if (!isProfessionalView) {
+      if (dynamicRobots) dynamicRobots.remove();
       return;
     }
 
-    const robots = existing || document.createElement('meta');
+    const staticNoindex = Array.from(document.head?.querySelectorAll('meta[name="robots"]') || [])
+      .some((meta) => meta !== dynamicRobots && /(?:^|,)\s*noindex\b/i.test(meta.getAttribute('content') || ''));
+    if (staticNoindex) {
+      if (dynamicRobots) dynamicRobots.remove();
+      return;
+    }
+
+    const robots = dynamicRobots || document.createElement('meta');
     robots.setAttribute('name', 'robots');
     robots.setAttribute('content', 'noindex, nofollow');
-    robots.dataset.siteRealmRobots = 'hiring';
-    if (!existing && document.head) {
+    robots.dataset.siteRealmRobots = 'professional';
+    if (!dynamicRobots && document.head) {
       document.head.appendChild(robots);
     }
   };
@@ -139,7 +145,7 @@
     window.SITE_REALM = mode;
     window.getSiteRealm = () => window.SITE_REALM || PERSONAL_MODE;
     window.isProfessionalRealm = () => window.getSiteRealm() === PROFESSIONAL_MODE;
-    applyHiringRobots(mode);
+    applyProfessionalRobots(mode);
   };
 
   const isInternalHttpUrl = (url) => {
