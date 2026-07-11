@@ -37712,7 +37712,6 @@ try {
 
   section('Analytics helpers and events', () => {
     const deniedEnv = createEnv();
-    deniedEnv.setTimeout = () => 0;
     deniedEnv.window.consentAPI = { get: () => ({ analytics: false }) };
     evalScript('js/analytics/ga4-events.js', deniedEnv);
     const deniedStart = deniedEnv.dataLayer.length;
@@ -37722,7 +37721,6 @@ try {
       'analytics helper should not queue events while analytics consent is denied');
 
     const embeddedEnv = createEnv();
-    embeddedEnv.setTimeout = () => 0;
     embeddedEnv.window.self = {};
     embeddedEnv.window.top = { location: { origin: 'https://www.danielshort.me' } };
     embeddedEnv.window.location = { href: 'https://www.danielshort.me/shape-demo', hostname: 'www.danielshort.me', origin: 'https://www.danielshort.me' };
@@ -37734,7 +37732,13 @@ try {
 
     const env = createEnv();
     const listeners = {};
-    env.setTimeout = () => 0;
+    env.document.body.dataset = { page: 'portfolio', audience: 'professional' };
+    env.window.location = {
+      href: 'https://www.danielshort.me/portfolio?preview=true#work',
+      pathname: '/portfolio',
+      hostname: 'www.danielshort.me',
+      origin: 'https://www.danielshort.me'
+    };
     env.window.addEventListener = (name, handler) => { listeners[name] = handler; };
     env.window.consentAPI = { get: () => ({ analytics: true }) };
     evalScript('js/analytics/ga4-events.js', env);
@@ -37746,24 +37750,109 @@ try {
     env.window.trackProjectView(' alpha ');
     env.window.trackProjectView('ALPHA');
     env.window.trackProjectView('beta');
-    let evts = (env.dataLayer || []).slice(startLen).filter(x => x && x[0] === 'event');
-    assert(!evts.some(x => x[1] === 'multi_project_view'),
+    let evts = (env.dataLayer || []).slice(startLen).filter(x => x && x.event);
+    assert(!evts.some(x => x.event === 'multi_project_view'),
       'repeated project IDs should not count toward multi_project_view');
     env.window.trackProjectView('gamma');
     env.window.trackProjectView('gamma');
-    evts = (env.dataLayer || []).slice(startLen).filter(x => x && x[0] === 'event');
-    const multiEvents = evts.filter(x => x[1] === 'multi_project_view');
+    evts = (env.dataLayer || []).slice(startLen).filter(x => x && x.event);
+    const multiEvents = evts.filter(x => x.event === 'multi_project_view');
     assert(multiEvents.length === 1, 'multi_project_view should emit exactly once on the third unique project');
-    assert(typeof env.window.gtag === 'function', 'gtag shim not defined');
+    const projectEvent = evts.find(x => x.event === 'project_view');
+    assert(projectEvent && projectEvent.project_id === 'alpha' &&
+      projectEvent.page_id === 'portfolio' && projectEvent.audience === 'professional',
+    'custom events should use plain dataLayer objects with common page and audience context');
+    assert(projectEvent.activity_label === 'alpha',
+      'custom events should include a safe normalized activity label');
+
+    const safeStart = env.dataLayer.length;
+    assert(env.window.gaEvent('site_search', {
+      query_length_bucket: '21-80',
+      query_token_bucket: '6-12',
+      result_count: 7,
+      has_results: true,
+      name: 'Private Name',
+      email: 'private@example.com',
+      message: 'Private message',
+      search_term: 'private search',
+      query: 'private query',
+      prompt: 'private prompt',
+      file_name: 'private-upload.pdf',
+      uploaded_filename: 'private-upload.pdf',
+      session_id: 'private-session',
+      error_message: 'Private stack trace'
+    }) === true, 'analytics helper should accept allowlisted custom activity events');
+    const searchEvent = env.dataLayer.slice(safeStart).find(x => x && x.event === 'site_search');
+    assert(searchEvent && searchEvent.query_length_bucket === '21-80' &&
+      searchEvent.query_token_bucket === '6-12' && searchEvent.result_count === 7 &&
+      searchEvent.has_results === true,
+    'analytics helper should retain only safe categorical buckets, counts, and booleans');
+    const serializedSearchEvent = JSON.stringify(searchEvent);
+    ['Private Name', 'private@example.com', 'Private message', 'private search', 'private query',
+      'private prompt', 'private-upload.pdf', 'private-session', 'Private stack trace'].forEach((secret) => {
+      assert(!serializedSearchEvent.includes(secret), `analytics helper should not expose sensitive value: ${secret}`);
+    });
+
+    env.window.gaEvent('nav_link_click', {
+      link_url: 'https://www.danielshort.me/contact?email=private%40example.com#form'
+    });
+    env.window.gaEvent('email_cta_click', {
+      link_url: 'mailto:private@example.com?subject=Portfolio'
+    });
+    const navEvent = env.dataLayer.find(x => x && x.event === 'nav_link_click');
+    const emailEvent = env.dataLayer.find(x => x && x.event === 'email_cta_click');
+    assert(navEvent && navEvent.link_url === 'https://www.danielshort.me/contact' &&
+      !navEvent.link_url.includes('?') && !navEvent.link_url.includes('#'),
+    'analytics helper should strip URL query strings and fragments');
+    assert(emailEvent && emailEvent.link_url === 'mailto:',
+      'analytics helper should preserve email intent without exposing the mailto address');
+
+    env.window.gaEvent('client_error', {
+      kind: 'unhandledrejection',
+      page_path: '/contact?draft=private#form',
+      message: 'Private free-form exception'
+    });
+    env.window.gaEvent('contact_form_error', {
+      page_path: '/contact?draft=private#form',
+      reason: 'Private server error'
+    });
+    const clientErrorEvent = env.dataLayer.find(x => x && x.event === 'client_error');
+    const formErrorEvent = env.dataLayer.find(x => x && x.event === 'contact_form_error');
+    assert(clientErrorEvent && clientErrorEvent.page_path === '/contact' &&
+      !Object.prototype.hasOwnProperty.call(clientErrorEvent, 'message'),
+    'client error analytics should keep only an error category and query-free page path');
+    assert(formErrorEvent && formErrorEvent.page_path === '/contact' &&
+      !Object.prototype.hasOwnProperty.call(formErrorEvent, 'reason'),
+    'contact form errors should not include free-form server messages');
+
+    const autoStart = env.dataLayer.length;
+    ['contact_page_view', 'engaged_time', 'outbound_click', 'contact_form_submit', 'resume_download']
+      .forEach((eventName) => {
+        assert(env.window.gaEvent(eventName, { file_name: 'Resume-private.pdf' }) === false,
+          `${eventName} should stay owned by GA4 automatic measurement`);
+      });
+    assert(env.dataLayer.length === autoStart,
+      'events covered by GA4 automatic measurement should not be duplicated as custom events');
+
     listeners['consent-changed']({ detail: { analytics: false } });
     const revokedStart = env.dataLayer.length;
     assert(env.window.gaEvent('revoked_event') === false && env.dataLayer.length === revokedStart,
       'analytics helper should immediately stop events after consent is revoked');
 
     const analyticsCode = readFile('js/analytics/ga4-events.js');
-    assert(analyticsCode.includes('Resume(?:-[A-Za-z0-9-]+)?\\.pdf') &&
-      analyticsCode.includes('resume_variant') && analyticsCode.includes('link_domain'),
-    'analytics helper should distinguish audience resume downloads and outbound domains');
+    assert(!analyticsCode.includes("window.gtag('event'") &&
+      analyticsCode.includes('window.dataLayer.push(eventData)'),
+    'custom analytics should route through GTM dataLayer objects, never direct gtag event calls');
+    assert(!analyticsCode.includes('getResumeDetails') && !analyticsCode.includes('getOutboundDetails'),
+      'analytics helper should leave PDF downloads and outbound clicks to GA4 enhanced measurement');
+
+    const activityCode = readFile('js/analytics/activity-events.js');
+    assert(activityCode.includes("classList?.contains('tools-tool-page')") &&
+      !activityCode.includes('hasToolChrome'),
+    'activity instrumentation should only classify explicit tool pages as tool runs');
+    assert(activityCode.includes("document.querySelector('.project-star')") &&
+      activityCode.includes("emit('case_study_engaged'") && activityCode.includes('}, 5000);'),
+    'project pages should measure sustained STAR proof engagement instead of a page-load proxy');
   });
 
   section('Portfolio modal analytics hook', () => {
