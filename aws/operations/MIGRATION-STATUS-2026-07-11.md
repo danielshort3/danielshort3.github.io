@@ -28,6 +28,7 @@ This file is the secret-free handoff for the July 11 website migration. It recor
 - Direct exposure: all twelve retained Function URLs use `AWS_IAM`; anonymous requests return `403`.
 - IAM boundaries: positive simulations allow each workload's intended resource, while cross-workload and Preview-to-Production simulations are implicitly denied.
 - Authenticated canaries: Tools state CRUD/isolation, Job Tracker CRUD/attachments/cross-user denial, Short Links CRUD/redirect/click history/admin enforcement, Transcribe job cleanup, and Chatbot streaming/logging/rate limiting pass.
+- Public browser QA: all 17 Tools/Games routes and all 16 portfolio project routes pass desktop and 390x844 mobile checks with a safe primary interaction on every surface. All 13 project embeds load at both viewports. There are no application console errors; the only browser warning is a non-blocking third-party Tableau/Mapbox CSS warning on dashboards that still render and accept selections.
 - SEO: all 38 sitemap URLs return `200` directly, are self-canonical, and are indexable. Documents and audience query variants return `X-Robots-Tag: noindex, nofollow`; `/admin` remains a noindex `404`.
 - Search Console accepted priority crawl requests for the homepage, Portfolio, Tools, Games, Contact, and the five priority project pages.
 - The SSA Baby Names source loaded successfully through a real browser GET; its prior HEAD-only `403` was not treated as an outage.
