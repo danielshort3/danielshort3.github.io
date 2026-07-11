@@ -37698,6 +37698,8 @@ try {
     const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
     const noindexPathSet = new Set();
     (vercel.headers || []).forEach((rule) => {
+      if ((Array.isArray(rule && rule.has) && rule.has.length > 0) ||
+        (Array.isArray(rule && rule.missing) && rule.missing.length > 0)) return;
       const source = String(rule && rule.source ? rule.source : '').trim();
       if (!source || /[:*()]/.test(source)) return;
       const hasNoindex = Array.isArray(rule.headers) && rule.headers.some((entry) => {
@@ -39101,8 +39103,8 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
-    const hasHiringModeNoindex = headers.some(h =>
-      h && h.source === '/:path*' &&
+    const hasProfessionalModeNoindex = (source) => headers.some(h =>
+      h && h.source === source &&
       Array.isArray(h.has) &&
       h.has.some(x => x && x.type === 'query' && x.key === 'mode' && x.value === 'professional') &&
       Array.isArray(h.headers) &&
@@ -39141,7 +39143,8 @@ try {
       assert(hasNoindexHeaderFor(route), `${route} PDF noindex header missing`);
     });
     assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
-    assert(hasHiringModeNoindex, 'hiring mode should send a query-scoped noindex, nofollow robots header');
+    assert(hasProfessionalModeNoindex('/'), 'professional root mode should send a query-scoped noindex, nofollow robots header');
+    assert(hasProfessionalModeNoindex('/:path*'), 'professional mode on non-root routes should send a query-scoped noindex, nofollow robots header');
   });
 
   section('Search index', () => {

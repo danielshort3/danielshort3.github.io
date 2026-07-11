@@ -35,6 +35,10 @@ function loadNoindexPathnamesFromVercel(projectRoot) {
     const headers = parsed && Array.isArray(parsed.headers) ? parsed.headers : [];
 
     headers.forEach((rule) => {
+      const hasConditions = Array.isArray(rule && rule.has) && rule.has.length > 0;
+      const hasMissingConditions = Array.isArray(rule && rule.missing) && rule.missing.length > 0;
+      if (hasConditions || hasMissingConditions) return;
+
       const source = String(rule && rule.source ? rule.source : '').trim();
       if (!source || !isExactRouteSource(source)) return;
 
