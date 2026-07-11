@@ -382,7 +382,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
 
   const footer = document.createElement('div');
   footer.className = 'portfolio-mobile-filter-actions';
-  footer.innerHTML = '<button type="button" data-portfolio-filter-sheet-close data-portfolio-filter-sheet-count>Show projects</button>';
+  footer.innerHTML = `<button type="button" data-portfolio-filter-sheet-close data-portfolio-filter-sheet-count>Show ${escapeHtml(itemPlural)}</button>`;
   filterPanel.append(footer);
 
   const mobileSort = null;
@@ -1463,6 +1463,9 @@ function buildPortfolioWorkbench() {
   const summaryTitle = directoryConfig && directoryConfig.summaryTitle ? directoryConfig.summaryTitle : 'Problem';
   const highlightsTitle = directoryConfig && directoryConfig.highlightsTitle ? directoryConfig.highlightsTitle : 'Outcome';
   const approachTitle = directoryConfig && directoryConfig.approachTitle ? directoryConfig.approachTitle : 'How it works';
+  const privacyTitle = directoryConfig && directoryConfig.privacyTitle ? directoryConfig.privacyTitle : 'Privacy';
+  const accessTitle = directoryConfig && directoryConfig.accessTitle ? directoryConfig.accessTitle : 'Access';
+  const inputsOutputsTitle = directoryConfig && directoryConfig.inputsOutputsTitle ? directoryConfig.inputsOutputsTitle : 'Inputs & outputs';
   const stackTitle = directoryConfig && directoryConfig.stackTitle ? directoryConfig.stackTitle : 'Stack';
   const emptySelectionText = directoryConfig && directoryConfig.emptySelectionText
     ? directoryConfig.emptySelectionText
@@ -1686,6 +1689,8 @@ function buildPortfolioWorkbench() {
   const calendarIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path></svg>';
   const formatIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 15l3-3 3 2 5-7"></path></svg>';
   const listIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg>';
+  const openArrowIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg>';
+  const closeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12"></path><path d="m18 6-12 12"></path></svg>';
 
   const configuredFilterGroups = isDirectoryWorkbench
     ? toList(directoryConfig.filterGroups).map((group) => ({
@@ -1751,8 +1756,10 @@ function buildPortfolioWorkbench() {
     selectedId: initialProjectInScopedPool || initialProjectInFullPool ? initialProjectId : null
   };
   let pendingSelectionScrollTop = null;
-  const mobileSelectionOverlayEnabled = !isDirectoryWorkbench && root.id === 'portfolio-workbench';
-  const mobileFilterSheetEnabled = mobileSelectionOverlayEnabled || (isDirectoryWorkbench && directoryKind === 'games');
+  const mobileSelectionOverlayEnabled = (!isDirectoryWorkbench && root.id === 'portfolio-workbench')
+    || (isDirectoryWorkbench && directoryKind === 'tools');
+  const mobileFilterSheetEnabled = mobileSelectionOverlayEnabled
+    || (isDirectoryWorkbench && (directoryKind === 'games' || directoryKind === 'tools'));
   if (mobileSelectionOverlayEnabled) root.dataset.mobileSelection = 'overlay';
   const mobileFilters = setupPortfolioMobileFilterSheet({
     enabled: mobileFilterSheetEnabled,
@@ -1877,6 +1884,24 @@ function buildPortfolioWorkbench() {
       const visibilityAttr = isDirectoryWorkbench && directoryKind === 'tools'
         ? ` data-tools-visibility="${escapeHtml(project.visibility || 'public')}"`
         : '';
+      if (isDirectoryWorkbench && directoryKind === 'tools') {
+        const selected = project.id === state.selectedId;
+        return `
+          <article class="portfolio-result-card tools-workbench-result${selected ? ' is-selected' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}"${visibilityAttr}>
+            <button type="button" class="tools-workbench-result__select" data-tool-details aria-pressed="${selected ? 'true' : 'false'}" aria-label="Show details for ${escapeHtml(project.title)}">
+              <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
+              <span class="portfolio-result-card__body">
+                <span class="portfolio-result-card__title">${escapeHtml(project.title)}</span>
+                <span class="portfolio-result-card__summary">${escapeHtml(getSummary(project))}</span>
+                ${chipMarkup(unique([project.category, project.availability, project.access, ...toList(project.tags)]), 3)}
+              </span>
+            </button>
+            <a class="tools-workbench-result__open" data-tool-open href="${escapeHtml(getProjectHref(project))}" aria-label="Open ${escapeHtml(project.title)}">
+              <span>Open</span>${openArrowIcon}
+            </a>
+          </article>
+        `;
+      }
       return `
         <button type="button" class="portfolio-result-card${project.id === state.selectedId ? ' is-selected' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}"${visibilityAttr} aria-pressed="${project.id === state.selectedId ? 'true' : 'false'}">
           <span class="portfolio-result-card__media${project.image ? '' : ' portfolio-result-card__media--icon'}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
@@ -1899,6 +1924,62 @@ function buildPortfolioWorkbench() {
       inspector.innerHTML = `<div class="portfolio-inspector__loading">${escapeHtml(emptySelectionText)}</div>`;
       return;
     }
+    if (isDirectoryWorkbench && directoryKind === 'tools') {
+      const tools = toList(project.tools);
+      const tags = toList(project.tags);
+      const inputs = toList(project.inputs);
+      const outputs = toList(project.outputs);
+      const access = String(project.access || 'Public');
+      const accessCopy = access === 'Admin'
+        ? 'Restricted to administrator accounts.'
+        : access === 'Account'
+          ? 'Sign in to use this tool and reopen saved sessions.'
+          : 'Available without an account.';
+      const privacy = project.privacy || (project.availability === 'Local'
+        ? 'Runs in your browser. Your content stays on this device.'
+        : 'Uses a cloud-backed service. Review the tool before sending data.');
+      const ioItems = [
+        ...inputs.map((item) => `<li>${listIcon}<span><strong>Input:</strong> ${escapeHtml(item)}</span></li>`),
+        ...outputs.map((item) => `<li>${listIcon}<span><strong>Output:</strong> ${escapeHtml(item)}</span></li>`)
+      ];
+      inspector.innerHTML = `
+        <div class="portfolio-inspector__head tools-workbench-inspector__head">
+          <div class="tools-workbench-inspector__identity">
+            <span class="tools-workbench-inspector__icon" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
+            <div>
+              <h2 class="portfolio-inspector__title">${escapeHtml(project.title)}</h2>
+              <div class="portfolio-inspector__type">${escapeHtml(getPrimaryFormat(project))}</div>
+            </div>
+          </div>
+          <button type="button" class="portfolio-inspector__close" data-portfolio-inspector-close aria-label="Close ${escapeHtml(itemSingular)} details">${closeIcon}<span class="visually-hidden">Close</span></button>
+        </div>
+        <div class="portfolio-inspector__rule" aria-hidden="true"></div>
+        <section class="portfolio-inspector__section tools-workbench-inspector__section--summary">
+          <h3 class="portfolio-inspector__section-title">${escapeHtml(summaryTitle)}</h3>
+          <p class="portfolio-inspector__copy">${escapeHtml(project.summary || getSummary(project))}</p>
+        </section>
+        <section class="portfolio-inspector__section tools-workbench-inspector__section--privacy">
+          <h3 class="portfolio-inspector__section-title">${escapeHtml(privacyTitle)}</h3>
+          <p class="portfolio-inspector__copy">${escapeHtml(privacy)}</p>
+        </section>
+        <section class="portfolio-inspector__section tools-workbench-inspector__section--access">
+          <h3 class="portfolio-inspector__section-title">${escapeHtml(accessTitle)}</h3>
+          <p class="portfolio-inspector__copy">${escapeHtml(accessCopy)}</p>
+        </section>
+        ${ioItems.length ? `
+          <section class="portfolio-inspector__section tools-workbench-inspector__section--io">
+            <h3 class="portfolio-inspector__section-title">${escapeHtml(inputsOutputsTitle)}</h3>
+            <ul class="portfolio-inspector__list">${ioItems.join('')}</ul>
+          </section>
+        ` : ''}
+        <section class="portfolio-inspector__section tools-workbench-inspector__section--tags">
+          <h3 class="portfolio-inspector__section-title">${escapeHtml(stackTitle)}</h3>
+          ${chipMarkup(unique([project.category, project.availability, project.access, ...tools, ...tags]), 8, false)}
+        </section>
+        <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}">Open tool ${openArrowIcon}</a>
+      `;
+      return;
+    }
     const tools = toList(project.tools);
     const tags = toList(project.tags);
     const focuses = getProjectFocuses(project);
@@ -1913,7 +1994,7 @@ function buildPortfolioWorkbench() {
           <h2 class="portfolio-inspector__title">${escapeHtml(project.title)}</h2>
           <div class="portfolio-inspector__rule" aria-hidden="true"></div>
         </div>
-        <button type="button" class="portfolio-inspector__close" data-portfolio-inspector-close aria-label="Close project details">Close</button>
+        <button type="button" class="portfolio-inspector__close" data-portfolio-inspector-close aria-label="Close ${escapeHtml(itemSingular)} details">Close</button>
       </div>
       <div class="portfolio-inspector__type">${escapeHtml(getPrimaryFormat(project))}</div>
       <section class="portfolio-inspector__section">
@@ -1950,7 +2031,8 @@ function buildPortfolioWorkbench() {
     resultHost.querySelectorAll('[data-project-id]').forEach((card) => {
       const selected = card.dataset.projectId === state.selectedId;
       card.classList.toggle('is-selected', selected);
-      card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      const selectionControl = card.matches('button') ? card : card.querySelector('[data-tool-details]');
+      if (selectionControl) selectionControl.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
     renderInspector(selectedProject);
   };
@@ -2015,12 +2097,20 @@ function buildPortfolioWorkbench() {
     }
     const projects = filteredProjects();
     if (!projects.some((project) => project.id === state.selectedId)) {
-      const shouldAutoSelect = (isDirectoryWorkbench || !isMobileSelectionCard()) && projects[0];
+      const shouldAutoSelect = (!isMobileSelectionCard() || (isDirectoryWorkbench && directoryKind !== 'tools')) && projects[0];
       state.selectedId = shouldAutoSelect ? projects[0].id : null;
     }
     renderResults(projects);
     renderSelection();
     countNode.textContent = formatCountText(projects);
+    if (isDirectoryWorkbench && directoryKind === 'tools') {
+      const directoryStat = root.querySelector('[data-tools-directory-stat]');
+      if (directoryStat) {
+        const authContext = getDirectoryAuthContext();
+        const availabilityLabel = authContext.authed ? 'available' : 'public';
+        directoryStat.textContent = `${allProjects.length} ${availabilityLabel} ${allProjects.length === 1 ? 'tool' : 'tools'}`;
+      }
+    }
     if (emptyState) emptyState.hidden = projects.length > 0;
     updateClearButton();
     updateScopeToggle();
@@ -2071,16 +2161,20 @@ function buildPortfolioWorkbench() {
   });
 
   resultHost.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('[data-tool-open], a[href]')) return;
     if (!event.target.closest('[data-project-id]')) return;
     pendingSelectionScrollTop = resultHost.scrollTop;
   });
 
   resultHost.addEventListener('mousedown', (event) => {
+    if (event.target.closest('[data-tool-open], a[href]')) return;
     if (!event.target.closest('[data-project-id]')) return;
+    if (isDirectoryWorkbench && directoryKind === 'tools') return;
     event.preventDefault();
   });
 
   resultHost.addEventListener('click', (event) => {
+    if (event.target.closest('[data-tool-open], a[href]')) return;
     const card = event.target.closest('[data-project-id]');
     if (!card) return;
     if (card.dataset.projectId === state.selectedId) {

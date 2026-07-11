@@ -296,6 +296,7 @@
     });
   }
   function initCertTicker(){
+    if(document.body?.matches('[data-page="analytics"].home-pattern-page')) return;
     const track = document.querySelector('.cert-track');
     if(!track) return;
     if(track.dataset.certTickerBound === 'yes') return;

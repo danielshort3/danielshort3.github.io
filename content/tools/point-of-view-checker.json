@@ -4,6 +4,9 @@
   "href": "tools/point-of-view-checker",
   "iconImage": "img/tools/icons/point-of-view-checker.png",
   "categoryId": "tools-writing",
+  "privacy": "Runs in your browser. Your text stays on this device.",
+  "inputs": ["Pasted text"],
+  "outputs": ["Point-of-view and pronoun breakdown"],
   "summary": "Scan text for first-person, second-person, and third-person pronouns to spot mixed POV.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <path d=\"M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z\" class=\"icon-fill\" opacity=\".12\"></path>\n                      <path d=\"M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z\"></path>\n                      <path d=\"M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z\"></path>\n                    </svg>",
   "pills": [

@@ -155,7 +155,13 @@
     if (!targetUrl.hash || targetUrl.hash.length < 2) return '';
     if (targetUrl.origin !== currentUrl.origin) return '';
     if (normalizePagePath(targetUrl.pathname) !== normalizePagePath(currentUrl.pathname)) return '';
-    if ((targetUrl.search || '') !== (currentUrl.search || '')) return '';
+    const searchWithoutRealm = (url) => {
+      const params = new URLSearchParams(url.search || '');
+      params.delete('mode');
+      params.sort();
+      return params.toString();
+    };
+    if (searchWithoutRealm(targetUrl) !== searchWithoutRealm(currentUrl)) return '';
     return targetUrl.hash;
   };
   const currentHashUrl = (hash) => {
@@ -193,22 +199,196 @@
     if (!document.body?.matches('[data-page="analytics"], [data-page="data-science"], [data-page="tourism"]')) return;
     const main = document.getElementById('main');
     if (!main) return;
-    const order = [
-      'selected-outcomes',
-      'transferability',
-      'project-examples',
-      'work-experience',
-      'about-me',
-      'certifications',
-      'cta'
-    ];
+    const order = document.body.matches('[data-page="analytics"]')
+      ? [
+          'selected-outcomes',
+          'work-experience',
+          'project-examples',
+          'about-me',
+          'certifications',
+          'cta'
+        ]
+      : [
+          'selected-outcomes',
+          'transferability',
+          'project-examples',
+          'work-experience',
+          'about-me',
+          'certifications',
+          'cta'
+        ];
     const children = [...main.children];
     const orderedSections = order
       .map((id) => children.find((node) => node.id === id))
       .filter(Boolean);
     if (orderedSections.length < 2) return;
     orderedSections.forEach((section) => main.appendChild(section));
-    main.dataset.audienceSectionOrder = 'proof-projects-experience';
+    main.dataset.audienceSectionOrder = document.body.matches('[data-page="analytics"]')
+      ? 'proof-experience-projects'
+      : 'proof-projects-experience';
+  };
+
+  const ANALYTICS_STORY_CHAPTERS = Object.freeze([
+    { id: 'selected-outcomes', label: 'Business-Facing Results' },
+    { id: 'work-experience', label: 'Work Experience' },
+    { id: 'project-examples', label: 'Project Examples' },
+    { id: 'about-me', label: 'Skills in Practice' },
+    { id: 'certifications', label: 'Education & Credentials' },
+    { id: 'cta', label: 'Start a Conversation' }
+  ]);
+
+  const ANALYTICS_SKILL_STORIES = Object.freeze([
+    {
+      href: 'portfolio/retailStore',
+      label: 'BI & Reporting',
+      tools: 'SQL, Tableau, KPI development',
+      detail: 'Built 200+ dashboards and recurring KPI reports for decision-makers.'
+    },
+    {
+      href: 'portfolio/retailStore',
+      label: 'Automation & Data Quality',
+      tools: 'Excel, Power Query, Python, Pandas',
+      detail: 'Automated recurring workflows and validation logic, saving 200+ hours annually.'
+    },
+    {
+      href: 'portfolio/targetEmptyPackage',
+      label: 'Analysis & Decision Support',
+      tools: 'Forecasting, anomaly detection, root-cause analysis',
+      detail: 'Turned operational questions into clear, actionable findings.'
+    },
+    {
+      href: 'resume',
+      label: 'Web & Marketing Analytics',
+      tools: 'GA4, campaign performance, conversion tracking',
+      detail: 'Measured campaign impact, traveler behavior, and emerging search trends.'
+    }
+  ]);
+
+  const ANALYTICS_PROJECT_EVIDENCE = Object.freeze([
+    [
+      'Question: Where are loss and margin signals changing?',
+      'Approach: SQL ETL with anomaly scoring.',
+      'Outcome: Faster, targeted investigations.'
+    ],
+    [
+      'Question: How can shrink be forecast and reduced?',
+      'Approach: Excel forecasting with live KPIs.',
+      'Outcome: Clear action drivers for teams.'
+    ],
+    [
+      'Question: How do delivery demand and staffing connect?',
+      'Approach: Tableau trend and forecast views.',
+      'Outcome: Faster shift-planning decisions.'
+    ]
+  ]);
+
+  const prepareAnalyticsStory = () => {
+    if (!document.body?.matches('[data-page="analytics"].home-pattern-page')) return;
+    const main = document.getElementById('main');
+    const panel = document.querySelector('.jump-panel');
+    if (!main || !panel) return;
+
+    panel.dataset.storyRail = 'true';
+    panel.setAttribute('aria-label', 'Explore Daniel Short\'s analytics story');
+    const hideButton = panel.querySelector('[data-jump-hide]');
+    const linkById = new Map();
+    $$('.jump-panel-link', panel).forEach((link) => {
+      const hash = samePageHashFromHref(link.getAttribute('href') || '');
+      if (hash) linkById.set(hash.slice(1), link);
+    });
+
+    ANALYTICS_STORY_CHAPTERS.forEach((chapter, index) => {
+      const target = document.getElementById(chapter.id);
+      const link = linkById.get(chapter.id);
+      if (!target || !link) return;
+      const chapterNumber = String(index + 1).padStart(2, '0');
+      target.classList.add('story-chapter');
+      target.dataset.storyChapter = chapterNumber;
+      const frame = target.querySelector(':scope > .wrapper, :scope > .cert-band-inner');
+      frame?.classList.add('story-chapter__frame');
+      const heading = target.querySelector('h2');
+      if (heading) {
+        heading.dataset.storyAnchor = 'true';
+        heading.dataset.storyIndex = chapterNumber;
+        if (chapter.id === 'certifications') heading.textContent = 'Education & Credentials';
+      }
+
+      link.dataset.storyIndex = chapterNumber;
+      link.dataset.storyTarget = chapter.id;
+      const label = link.querySelector('.jump-panel-text');
+      if (label) label.textContent = chapter.label;
+      panel.insertBefore(link, hideButton || null);
+    });
+
+    const cue = main.querySelector('.hero .chevron-hint');
+    if (cue) {
+      cue.classList.add('story-entry-cue');
+      cue.setAttribute('href', '#selected-outcomes');
+      const label = cue.querySelector('.chevron-label');
+      if (label) label.textContent = 'Follow the work';
+    }
+
+    const projectCards = $$('#project-examples .project-examples-card', main);
+    projectCards.forEach((card, index) => {
+      const textPanel = card.querySelector('.project-text');
+      const evidence = ANALYTICS_PROJECT_EVIDENCE[index];
+      if (!textPanel || !evidence || textPanel.querySelector('.story-project-evidence')) return;
+      const list = document.createElement('ul');
+      list.className = 'story-project-evidence';
+      evidence.forEach((line) => {
+        const item = document.createElement('li');
+        const separator = line.indexOf(':');
+        const label = document.createElement('strong');
+        label.textContent = separator >= 0 ? line.slice(0, separator + 1) : '';
+        const detail = document.createElement('span');
+        detail.textContent = separator >= 0 ? line.slice(separator + 1).trim() : line;
+        item.append(label, detail);
+        list.appendChild(item);
+      });
+      textPanel.appendChild(list);
+    });
+
+    const skillGrid = main.querySelector('#about-me .grid-container');
+    if (skillGrid && skillGrid.dataset.storySkills !== 'true') {
+      const existingCards = $$('.skill-link', skillGrid);
+      const selectedCards = [existingCards[1], existingCards[2], existingCards[3], existingCards[5]].filter(Boolean);
+      selectedCards.forEach((card, index) => {
+        const story = ANALYTICS_SKILL_STORIES[index];
+        if (!story) return;
+        card.setAttribute('href', story.href);
+        card.setAttribute('aria-label', `View evidence for ${story.label}`);
+        const heading = card.querySelector('p');
+        if (heading) {
+          heading.textContent = story.label;
+          const tools = document.createElement('small');
+          tools.className = 'skill-link-btn';
+          tools.textContent = story.tools;
+          heading.appendChild(tools);
+        }
+        const detail = card.querySelector(':scope > small');
+        if (detail) detail.textContent = story.detail;
+      });
+      skillGrid.replaceChildren(...selectedCards);
+      skillGrid.dataset.storySkills = 'true';
+    }
+
+    const ctaActions = main.querySelector('#cta-link > div');
+    if (ctaActions && ctaActions.dataset.storyCta !== 'true') {
+      ctaActions.classList.add('story-cta-actions');
+      const resumeLink = document.createElement('a');
+      resumeLink.className = 'btn-secondary';
+      resumeLink.href = 'documents/Resume.pdf';
+      resumeLink.textContent = 'Download resume';
+      resumeLink.setAttribute('download', 'Daniel-Short-Resume.pdf');
+      const linkedInLink = document.createElement('a');
+      linkedInLink.className = 'btn-ghost';
+      linkedInLink.href = 'https://www.linkedin.com/in/danielshort3/';
+      linkedInLink.target = '_blank';
+      linkedInLink.rel = 'noopener noreferrer';
+      linkedInLink.textContent = 'View LinkedIn';
+      ctaActions.append(resumeLink, linkedInLink);
+      ctaActions.dataset.storyCta = 'true';
+    }
   };
 
   const loadedScripts = new Map();
@@ -235,8 +415,9 @@
   document.addEventListener('DOMContentLoaded', () => {
     initClientErrorTelemetry();
     resetScrollLocks();
-    initSmoothScrollLinks();
     normalizeAudienceSectionOrder();
+    prepareAnalyticsStory();
+    initSmoothScrollLinks();
     sortWorkCardsNewestFirst();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
@@ -258,8 +439,9 @@
     }
   });
   document.addEventListener('site:content-updated', () => {
-    initSmoothScrollLinks();
     normalizeAudienceSectionOrder();
+    prepareAnalyticsStory();
+    initSmoothScrollLinks();
     sortWorkCardsNewestFirst();
     if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();
@@ -723,6 +905,7 @@
   function initJumpPanelSpy(){
     const panel = document.querySelector('.jump-panel');
     if (!panel) return;
+    const isStoryRail = panel.dataset.storyRail === 'true';
     const links = $$('.jump-panel-link', panel);
     const hideBtn = panel.querySelector('[data-jump-hide]');
     const showBtn = document.querySelector('[data-jump-show]');
@@ -748,6 +931,9 @@
     let activeId = null;
     let ticking = false;
     let manualOverrideId = null;
+    let storyStartY = 0;
+    let storyEndY = 0;
+    let storyMeasureToken = 0;
 
     const getNavOffset = () => {
       if (typeof window.getNavOffset === 'function') {
@@ -757,14 +943,51 @@
     };
 
     const setActive = (id) => {
+      const activeIndex = items.findIndex((item) => item.id === id);
       items.forEach((item) => {
         const isActive = item.id === id;
         item.link.classList.toggle('is-active', isActive);
+        item.link.classList.toggle('is-complete', activeIndex >= 0 && items.indexOf(item) < activeIndex);
+        if (isStoryRail) {
+          item.target.classList.toggle('is-current', isActive);
+          item.target.classList.toggle('is-complete', activeIndex >= 0 && items.indexOf(item) < activeIndex);
+        }
         if (isActive) {
           item.link.setAttribute('aria-current', 'location');
         } else {
           item.link.removeAttribute('aria-current');
         }
+      });
+    };
+
+    const measureStoryRail = () => {
+      if (!isStoryRail) return;
+      const main = panel.closest('main') || document.getElementById('main');
+      if (!main) return;
+      const mainTop = main.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
+      const stops = items.map((item) => {
+        const anchor = item.target.querySelector('[data-story-anchor]') || item.target.querySelector('h2') || item.target;
+        const anchorRect = anchor.getBoundingClientRect();
+        const targetRect = item.target.getBoundingClientRect();
+        const stopY = anchorRect.top + (window.scrollY || window.pageYOffset || 0) - mainTop + Math.min(20, anchorRect.height / 2);
+        item.link.style.setProperty('--story-stop-y', `${Math.max(0, stopY)}px`);
+        item.target.style.setProperty('--story-anchor-y', `${Math.max(0, anchorRect.top - targetRect.top + Math.min(20, anchorRect.height / 2))}px`);
+        return stopY;
+      });
+      if (!stops.length) return;
+      storyStartY = Math.max(0, stops[0]);
+      storyEndY = Math.max(storyStartY, stops[stops.length - 1]);
+      panel.style.setProperty('--story-start-y', `${storyStartY}px`);
+      panel.style.setProperty('--story-end-y', `${storyEndY}px`);
+      panel.classList.add('is-rail-ready');
+    };
+
+    const requestStoryMeasure = () => {
+      if (!isStoryRail || storyMeasureToken) return;
+      storyMeasureToken = requestAnimationFrame(() => {
+        storyMeasureToken = 0;
+        measureStoryRail();
+        requestUpdate();
       });
     };
 
@@ -907,6 +1130,16 @@
       const bottomLimit = viewportHeight;
       const focusSpan = Math.max(0, bottomLimit - topLimit);
 
+      if (isStoryRail && storyEndY > storyStartY) {
+        const main = panel.closest('main') || document.getElementById('main');
+        const mainTop = main
+          ? main.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0)
+          : 0;
+        const focusY = (window.scrollY || window.pageYOffset || 0) + navOffset + (viewportHeight * .34) - mainTop;
+        const progressY = Math.min(storyEndY - storyStartY, Math.max(0, focusY - storyStartY));
+        panel.style.setProperty('--story-progress-y', `${progressY}px`);
+      }
+
       let best = null;
       let bestRatio = 0;
       let bestDistance = Infinity;
@@ -948,6 +1181,7 @@
       requestAnimationFrame(update);
     };
 
+    measureStoryRail();
     requestUpdate();
     const handleScroll = () => {
       const autoScrolling = isJumpPanelAutoScrolling();
@@ -964,12 +1198,24 @@
       if (!shouldCondenseOnScroll()) {
         panel.classList.remove('is-condensed');
       }
-      requestUpdate();
+      requestStoryMeasure();
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
     document.addEventListener('navheightchange', requestUpdate);
+    if (isStoryRail) {
+      if (document.fonts?.ready && typeof document.fonts.ready.then === 'function') {
+        document.fonts.ready.then(requestStoryMeasure).catch(() => {});
+      }
+      $$('img', document.getElementById('main') || document).forEach((image) => {
+        if (!image.complete) image.addEventListener('load', requestStoryMeasure, { once: true });
+      });
+      if ('ResizeObserver' in window) {
+        const storyObserver = new ResizeObserver(requestStoryMeasure);
+        items.forEach((item) => storyObserver.observe(item.target));
+      }
+    }
   }
 
   function initSpeedDial(){

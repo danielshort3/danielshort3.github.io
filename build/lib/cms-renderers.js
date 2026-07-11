@@ -824,6 +824,13 @@ function toolAvailability(tool) {
   return 'Browser';
 }
 
+function toolAccess(tool) {
+  const visibility = toolVisibility(tool);
+  if (visibility === 'admin' || visibility === 'admins') return 'Admin';
+  if (visibility === 'authed' || visibility === 'authenticated' || visibility === 'logged-in') return 'Account';
+  return 'Public';
+}
+
 function buildToolsDirectoryWorkbenchData(page, tools) {
   const categories = sortByOrderThenTitle(Array.isArray(page && page.categories) ? page.categories : []);
   const directoryTools = (Array.isArray(tools) ? tools : []).filter(isDirectoryTool);
@@ -838,6 +845,7 @@ function buildToolsDirectoryWorkbenchData(page, tools) {
     const category = categoriesById.get(String(tool.categoryId || '')) || {};
     const tags = pillLabels(tool);
     const availability = toolAvailability(tool);
+    const access = toolAccess(tool);
     const categoryTitle = category.title || 'Tools';
     return {
       id: String(tool.slug || tool.href || `tool-${index + 1}`).trim(),
@@ -846,13 +854,18 @@ function buildToolsDirectoryWorkbenchData(page, tools) {
       summary: tool.summary || '',
       href: toolHref(tool),
       type: `${availability} Tool`,
+      availability,
+      access,
       category: categoryTitle,
       tags,
       tools: tags,
       concepts: [categoryTitle],
       formats: [`${availability} Tool`],
       results: tool.summary ? [tool.summary] : [],
-      actions: category.description ? [category.description] : [],
+      actions: [],
+      privacy: String(tool && tool.privacy ? tool.privacy : '').trim(),
+      inputs: uniqueLabels(Array.isArray(tool && tool.inputs) ? tool.inputs : []),
+      outputs: uniqueLabels(Array.isArray(tool && tool.outputs) ? tool.outputs : []),
       iconImage: tool.iconImage ? trimLeadingSlash(tool.iconImage) : '',
       iconHtml: tool.iconImage ? '' : renderToolIconMarkup(tool),
       visibility: toolVisibility(tool),
@@ -871,14 +884,15 @@ function buildToolsDirectoryWorkbenchData(page, tools) {
     ctaLabel: 'Open tool',
     itemSignalPrefix: 'Tool',
     summaryTitle: 'What it does',
-    highlightsTitle: 'Notes',
-    approachTitle: 'Category',
+    privacyTitle: 'Privacy',
+    accessTitle: 'Access',
+    inputsOutputsTitle: 'Inputs & outputs',
     stackTitle: 'Tags',
     emptySelectionText: 'Choose a tool to see details.',
     filterGroups: [
       { id: 'category', title: 'Category', options: optionList(items.map((item) => item.category), 'category') },
-      { id: 'availability', title: 'Availability', options: optionList(items.map((item) => item.type), 'type') },
-      { id: 'tag', title: 'Tags', options: optionList(items.flatMap((item) => item.tags), 'tags') }
+      { id: 'availability', title: 'Availability', options: optionList(items.map((item) => item.availability), 'availability') },
+      { id: 'access', title: 'Access', options: optionList(items.map((item) => item.access), 'access') }
     ].filter((group) => group.options.length),
     items
   };
@@ -1095,6 +1109,71 @@ function renderDirectoryDataJs(data) {
   ].join('\n');
 }
 
+function renderToolsWorkbenchFallback(items) {
+  const cards = (Array.isArray(items) ? items : []).map((item) => {
+    const visibility = String(item && item.visibility ? item.visibility : 'public').trim().toLowerCase();
+    const hiddenByDefault = visibility !== 'public';
+    const attrs = {
+      class: 'tool-card tools-workbench-fallback-card',
+      'data-tools-card': true,
+      'data-tools-visibility': visibility,
+      hidden: hiddenByDefault ? true : null,
+      'aria-hidden': hiddenByDefault ? 'true' : null
+    };
+    const icon = item && item.iconImage
+      ? `<img src="${escapeHtml(item.iconImage)}" alt="" loading="lazy" decoding="async">`
+      : String(item && item.iconHtml ? item.iconHtml : '');
+    return [
+      `  <article${attrsToString(attrs)}>`,
+      `    <a class="tool-launch-card" href="${escapeHtml(item && item.href ? item.href : '')}">`,
+      `      <span class="tool-icon tool-icon-image" aria-hidden="true">${icon}</span>`,
+      '      <span class="tool-card-main">',
+      `        <span class="tool-card-title">${escapeHtml(item && item.title ? item.title : 'Tool')}</span>`,
+      `        <span class="tool-card-summary">${escapeHtml(item && item.summary ? item.summary : '')}</span>`,
+      '      </span>',
+      '    </a>',
+      '  </article>'
+    ].join('\n');
+  }).join('\n');
+
+  return [
+    '<noscript>',
+    '  <div class="tools-workbench-fallback" role="list" aria-label="Tool links">',
+    cards,
+    '  </div>',
+    '</noscript>'
+  ].join('\n');
+}
+
+function renderToolsWorkbenchHeader(page, publicCount) {
+  const title = page && page.heroTitle ? page.heroTitle : 'Tools';
+  const lead = page && page.heroLead ? page.heroLead : 'Focused utilities for writing, campaigns, and media.';
+  const statusLabel = page && page.statusLabel ? page.statusLabel : 'Local-first';
+  return [
+    '<header class="portfolio-workbench__header tools-workbench-header">',
+    '  <div class="tools-workbench-header__identity" aria-hidden="true">',
+    '    <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="48" height="48" decoding="async">',
+    '  </div>',
+    '  <div class="portfolio-workbench__title-block">',
+    `    <h1>${escapeHtml(title)}</h1>`,
+    `    <p class="tools-workbench-header__description">${escapeHtml(lead)}</p>`,
+    '  </div>',
+    '  <div class="tools-workbench-header__actions">',
+    '    <p class="tools-workbench-header__status">',
+    `      <span data-tools-directory-stat>${escapeHtml(publicCount)} public tools</span>`,
+    '      <span aria-hidden="true">&middot;</span>',
+    `      <span>${escapeHtml(statusLabel)}</span>`,
+    '    </p>',
+    '    <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
+    '      <div class="tools-account-dock-inner" data-tools-account="dock-inner">',
+    '        <div class="tools-account-bar" data-tools-account="bar"></div>',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+    '</header>'
+  ].join('\n');
+}
+
 function renderDirectoryWorkbenchBody(page, options = {}) {
   const kind = String(options.kind || page.id || 'directory').trim();
   const itemSingular = String(options.itemSingular || 'item').trim();
@@ -1102,6 +1181,18 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   const title = String(options.title || page.heroTitle || page.title || 'Library').trim();
   const resultsId = `${kind}-results-title`;
   const displaySingular = `${itemSingular.charAt(0).toUpperCase()}${itemSingular.slice(1)}`;
+  const headerHtml = options.headerHtml || [
+    '<header class="portfolio-workbench__header">',
+    '  <div class="portfolio-workbench__title-block">',
+    `    <h1>${escapeHtml(title)}</h1>`,
+    '  </div>',
+    '</header>'
+  ].join('\n');
+  const supplementalHtml = String(options.supplementalHtml || '').trim();
+  const fallbackHtml = String(options.fallbackHtml || '').trim();
+  const initialResultsText = String(options.initialResultsText || `Loading ${itemPlural}...`).trim();
+  const supplementalLines = supplementalHtml ? [indentBlock(supplementalHtml, '      ')] : [];
+  const fallbackLines = fallbackHtml ? [indentBlock(fallbackHtml, '          ')] : [];
   const accountDock = options.accountDock
     ? [
       '  <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
@@ -1115,11 +1206,8 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
     ...accountDock,
     `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-label="${escapeHtml(title)}">`,
     '    <div class="portfolio-workbench__shell">',
-    '      <header class="portfolio-workbench__header">',
-    '        <div class="portfolio-workbench__title-block">',
-    `          <h1>${escapeHtml(title)}</h1>`,
-    '        </div>',
-    '      </header>',
+    indentBlock(headerHtml, '      '),
+    ...supplementalLines,
     '',
     '      <div class="portfolio-workbench__layout">',
     `        <aside class="portfolio-workbench__filters" aria-label="${escapeHtml(displaySingular)} filters">`,
@@ -1134,7 +1222,7 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
     '          <div class="portfolio-results-toolbar">',
     '            <div>',
     `              <h2 id="${escapeHtml(resultsId)}" class="visually-hidden">${escapeHtml(title)} results</h2>`,
-    `              <p class="portfolio-results-count" data-portfolio-results-count>Loading ${escapeHtml(itemPlural)}...</p>`,
+    `              <p class="portfolio-results-count" data-portfolio-results-count>${escapeHtml(initialResultsText)}</p>`,
     '            </div>',
     '            <label class="portfolio-sort-control">',
     '              <span>Sort by:</span>',
@@ -1150,6 +1238,7 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
     '          </div>',
     '          <div class="portfolio-results-list" role="list" data-portfolio-results></div>',
     `          <p class="portfolio-empty-state" data-portfolio-empty hidden>No ${escapeHtml(itemPlural)} match those filters.</p>`,
+    ...fallbackLines,
     '        </section>',
     '',
     `        <aside class="portfolio-inspector" aria-label="Selected ${escapeHtml(itemSingular)} details" aria-live="polite" data-portfolio-inspector>`,
@@ -1163,36 +1252,18 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
 }
 
 function renderToolsDirectoryBody(page, tools) {
-  const groups = toolsByCategory(page, tools);
-  const title = page.heroTitle || 'Tools';
-  const lead = page.heroLead || page.description || '';
-  return [
-    '<main id="main">',
-    '  <section class="tools-section" aria-label="Tool directory">',
-    '    <div class="wrapper tools-directory-layout">',
-    indentBlock(renderToolsDirectoryRail(groups), '      '),
-    '      <div class="tools-directory-main">',
-    '        <header class="tools-directory-head">',
-    `          <p class="tools-directory-kicker">${escapeHtml(page.heroEyebrow || 'Tools')}</p>`,
-    `          <h1>${escapeHtml(title)}</h1>`,
-    lead ? `          <p>${escapeHtml(lead)}</p>` : '',
-    '        </header>',
-    '        <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
-    '          <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
-    '            <p class="tools-account-context"><strong>Saving is optional.</strong> Sign in to keep session history and reopen work across tools; public tools work without an account.</p>',
-    '            <div class="tools-account-bar" data-tools-account="bar"></div>',
-    '          </div>',
-    '        </div>',
-    indentBlock(renderToolsResumePanel(page), '        '),
-    '        <div id="tools-directory-results" data-tools-results>',
-    indentBlock(groups.map(renderToolsDirectoryCategory).join('\n'), '          '),
-    '        </div>',
-    '      </div>',
-    indentBlock(renderToolsDirectoryNote(page), '      '),
-    '    </div>',
-    '  </section>',
-    '</main>'
-  ].filter(Boolean).join('\n');
+  const data = buildToolsDirectoryWorkbenchData(page, tools);
+  const publicCount = data.items.filter((item) => item.visibility === 'public').length;
+  return renderDirectoryWorkbenchBody(page, {
+    kind: 'tools',
+    title: page.heroTitle || 'Tools',
+    itemSingular: 'tool',
+    itemPlural: 'tools',
+    headerHtml: renderToolsWorkbenchHeader(page, publicCount),
+    supplementalHtml: renderToolsResumePanel(page),
+    initialResultsText: `${publicCount} tools`,
+    fallbackHtml: renderToolsWorkbenchFallback(data.items)
+  });
 }
 
 function renderGamesDirectoryBody(page) {

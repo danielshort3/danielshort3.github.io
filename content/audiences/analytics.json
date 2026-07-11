@@ -45,7 +45,8 @@
       "css/components/certification.css",
       "css/components/jump-panel.css",
       "css/components/home-proof.css",
-      "css/components/destination-analytics.css"
+      "css/components/destination-analytics.css",
+      "css/components/recruiter-story.css"
     ],
     "headScripts": [
       {
@@ -70,12 +71,12 @@
       "audience-analytics-3",
       "audience-analytics-4",
       "audience-analytics-2",
-      "audience-analytics-5",
-      "audience-analytics-6",
       "audience-analytics-7",
+      "audience-analytics-5",
       "audience-analytics-8",
       "audience-analytics-9",
       "audience-analytics-10",
+      "audience-analytics-6",
       "audience-analytics-11"
     ],
     "sections": [

@@ -246,6 +246,9 @@
     if (page !== 'tools') return;
 
     const context = getToolsVisibilityContext();
+    if (document.querySelector('[data-directory-workbench="tools"]')) {
+      return;
+    }
     const cards = [...document.querySelectorAll('[data-tools-visibility]')];
 
     cards.forEach((card) => {

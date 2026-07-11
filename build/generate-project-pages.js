@@ -19,7 +19,7 @@ const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const sitemapCachePath = path.join(root, 'build', 'cache', 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
-const toolsIndexPath = path.join(root, 'pages', 'tools.html');
+const toolsContentDir = path.join(root, 'content', 'tools');
 
 const noindexMetaCache = new Map();
 
@@ -76,22 +76,21 @@ function computeContentHash(relPath) {
 function loadToolUrls() {
   const urls = new Set();
   try {
-    if (!fs.existsSync(toolsIndexPath)) return [];
-    const html = fs.readFileSync(toolsIndexPath, 'utf8');
-    const cards = String(html).split('<article class="tool-card"').slice(1);
-    cards.forEach((rawCard) => {
-      const card = `<article class="tool-card"${rawCard}`;
-      const visibilityMatch = /data-tools-visibility="([^"]+)"/i.exec(card);
-      const visibility = String(visibilityMatch ? visibilityMatch[1] : '').trim().toLowerCase();
-      if (visibility === 'admin') return;
+    if (!fs.existsSync(toolsContentDir)) return [];
+    fs.readdirSync(toolsContentDir)
+      .filter((name) => name.endsWith('.json') && !name.startsWith('.'))
+      .sort()
+      .forEach((name) => {
+        const tool = JSON.parse(fs.readFileSync(path.join(toolsContentDir, name), 'utf8'));
+        const visibility = String(tool && tool.visibility ? tool.visibility : 'public').trim().toLowerCase();
+        if (visibility !== 'public' || tool.hidden || tool.noindex) return;
 
-      const hrefMatch = /<a\s+[^>]*href="tools\/([^"#?]+)"/i.exec(card);
-      if (!hrefMatch) return;
-
-      const slug = String(hrefMatch[1] || '').trim();
-      if (!slug) return;
-      urls.add(`${SITE_ORIGIN}/tools/${slug}`);
-    });
+        const href = String(tool && tool.href ? tool.href : '').trim();
+        const hrefMatch = /^\/?tools\/([^#?]+)$/i.exec(href);
+        const slug = String(tool && tool.slug ? tool.slug : (hrefMatch ? hrefMatch[1] : '')).trim();
+        if (!slug) return;
+        urls.add(`${SITE_ORIGIN}/tools/${slug}`);
+      });
   } catch (_) {}
   return [...urls].sort();
 }

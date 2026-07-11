@@ -4,6 +4,9 @@
   "href": "tools/background-remover",
   "iconImage": "img/tools/icons/background-remover.png",
   "categoryId": "tools-media",
+  "privacy": "Runs in your browser. Source images stay on this device.",
+  "inputs": ["Image file and optional edge refinements"],
+  "outputs": ["Transparent or solid-background image"],
   "summary": "Remove backgrounds with AI matting (hair/fur friendly), refine edges with a brush, and export transparent PNG/TIFF or solid-background JPEG/WebP.",
   "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n                      <path d=\"M8 12h8M12 8v8\"></path>\n                    </svg>",
   "pills": [
