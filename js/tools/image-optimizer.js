@@ -52,6 +52,14 @@
     } catch {}
   };
 
+  const dispatchToolRunEvent = (eventName, detail = {}) => {
+    try {
+      document.dispatchEvent(new CustomEvent(eventName, {
+        detail: { toolId: TOOL_ID, ...detail }
+      }));
+    } catch {}
+  };
+
   const state = {
     items: [],
     outputs: [],
@@ -666,6 +674,7 @@
     if (!state.items.length) {
       setStatus('Add at least one image first.');
       dropzone.focus();
+      dispatchToolRunEvent('tools:run-error', { errorType: 'validation' });
       return;
     }
 
@@ -690,6 +699,7 @@
     if (selectedMime !== 'keep' && !state.supports[selectedMime]) {
       setStatus(`${labelForMime(selectedMime)} export is not supported in this browser.`);
       setWorking(false);
+      dispatchToolRunEvent('tools:run-error', { errorType: 'unsupported' });
       return;
     }
 
@@ -783,9 +793,13 @@
 
       renderOutputs({ responsiveEnabled });
       setStatus(`Done. Generated ${state.outputs.length} optimized ${state.outputs.length === 1 ? 'image' : 'images'}.`);
+      dispatchToolRunEvent('tools:run-complete', {
+        resultBucket: state.outputs.length === 1 ? 'single_output' : 'multiple_outputs'
+      });
     } catch (err) {
       revokeOutputs();
       setStatus(err?.message || 'Unable to optimize images. Please try different files or settings.');
+      dispatchToolRunEvent('tools:run-error', { errorType: 'processing' });
     } finally {
       setWorking(false);
     }

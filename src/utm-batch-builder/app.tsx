@@ -80,6 +80,23 @@ const TOOLS_MAX_SAVED_CSV_CHARS = 80_000;
 const TOOLS_MAX_SAVED_OUTPUT_ROWS = 60;
 const TOOLS_MAX_OUTPUT_PREVIEW_CHARS = 40_000;
 
+const dispatchToolRunEvent = (eventName: "tools:run-start" | "tools:run-complete" | "tools:run-error" | "tools:run-cancel", detail: Record<string, unknown> = {}) => {
+  try {
+    document.dispatchEvent(new CustomEvent(eventName, {
+      detail: { toolId: TOOLS_TOOL_ID, ...detail },
+    }));
+  } catch {}
+};
+
+const generatedCountBucket = (count: number) => {
+  const value = Math.max(0, Number(count) || 0);
+  if (value === 0) return "no_results";
+  if (value <= 10) return "1-10";
+  if (value <= 100) return "11-100";
+  if (value <= 1000) return "101-1000";
+  return "1001-plus";
+};
+
 const clampText = (value: unknown, maxChars: number) => {
   const text = String(value ?? "");
   if (text.length <= maxChars) return { text, truncated: false, total: text.length };
@@ -1104,6 +1121,7 @@ const App = () => {
 
   const workerRef = useRef<Worker | null>(null);
   const activeRequestId = useRef<string | null>(null);
+  const activeRunKind = useRef<"preview" | "full" | null>(null);
 
   const markSessionDirty = useCallback(() => {
     try {
@@ -1385,6 +1403,12 @@ const App = () => {
       if (msg.type === "done") {
         setGeneratedCount(msg.generatedCount || 0);
         setStatus("done");
+        dispatchToolRunEvent("tools:run-complete", {
+          action: activeRunKind.current === "preview" ? "preview" : "generate",
+          resultBucket: generatedCountBucket(msg.generatedCount || 0),
+        });
+        activeRequestId.current = null;
+        activeRunKind.current = null;
         markSessionDirty();
         return;
       }
@@ -1392,6 +1416,9 @@ const App = () => {
       if (msg.type === "cancelled") {
         setGeneratedCount(msg.generatedCount || 0);
         setStatus("cancelled");
+        dispatchToolRunEvent("tools:run-cancel");
+        activeRequestId.current = null;
+        activeRunKind.current = null;
         markSessionDirty();
         return;
       }
@@ -1400,8 +1427,20 @@ const App = () => {
         setWarnings(msg.warnings || []);
         setErrors(msg.errors || ["Generation failed."]);
         setStatus("error");
+        dispatchToolRunEvent("tools:run-error", { errorType: "processing" });
+        activeRequestId.current = null;
+        activeRunKind.current = null;
         markSessionDirty();
       }
+    });
+    worker.addEventListener("error", () => {
+      if (!activeRequestId.current) return;
+      setErrors(["Generation failed."]);
+      setStatus("error");
+      dispatchToolRunEvent("tools:run-error", { errorType: "runtime" });
+      activeRequestId.current = null;
+      activeRunKind.current = null;
+      markSessionDirty();
     });
     return worker;
   }, [markSessionDirty]);
@@ -1412,11 +1451,15 @@ const App = () => {
     const worker = startWorker();
     worker.postMessage({ type: "cancel", requestId: id });
     activeRequestId.current = null;
+    activeRunKind.current = null;
     setStatus("cancelled");
+    dispatchToolRunEvent("tools:run-cancel");
     markSessionDirty();
   }, [markSessionDirty, startWorker]);
 
   const runGeneration = useCallback(async (kind: "preview" | "full") => {
+    const action = kind === "preview" ? "preview" : "generate";
+    dispatchToolRunEvent("tools:run-start", { action });
     markSessionDirty();
     const limit = kind === "preview"
       ? Math.max(1, Math.floor(config.previewLimit || 10))
@@ -1435,6 +1478,7 @@ const App = () => {
       setErrors(check.errors || ["Invalid configuration."]);
       setWarnings(check.warnings || []);
       setStatus("error");
+      dispatchToolRunEvent("tools:run-error", { action, errorType: "validation" });
       markSessionDirty();
       return;
     }
@@ -1445,8 +1489,18 @@ const App = () => {
 
     const requestId = makeId();
     activeRequestId.current = requestId;
-    const worker = startWorker();
-    worker.postMessage({ type: "generate", requestId, config: check.req, limit, chunkSize: 500 });
+    activeRunKind.current = kind;
+    try {
+      const worker = startWorker();
+      worker.postMessage({ type: "generate", requestId, config: check.req, limit, chunkSize: 500 });
+    } catch (_) {
+      activeRequestId.current = null;
+      activeRunKind.current = null;
+      setErrors(["Generation could not start in this browser."]);
+      setStatus("error");
+      dispatchToolRunEvent("tools:run-error", { action, errorType: "runtime" });
+      markSessionDirty();
+    }
   }, [config.maxRows, config.previewLimit, markSessionDirty, preflight, startWorker]);
 
   const handleCsvUpload = async (file: File | null) => {

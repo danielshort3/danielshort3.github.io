@@ -76,6 +76,30 @@
     } catch {}
   };
 
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
+  const reportRunCancel = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-cancel', {
+        detail: { toolId: TOOL_ID }
+      }));
+    } catch {}
+  };
+
   const escapeHtml = (value) => String(value || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -84,6 +108,16 @@
     .replace(/'/g, '&#39;');
 
   const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+  const classifyRunError = (error) => {
+    const status = Number(error?.status || 0);
+    const message = cleanText(error?.message).toLowerCase();
+    if (status === 401 || status === 403 || /sign in|not authorized|forbidden/.test(message)) return 'permission';
+    if (status === 408 || status === 504 || /timed? out|timeout/.test(message)) return 'timeout';
+    if (status >= 500 || /service|transcription failed|request failed/.test(message)) return 'service';
+    if (/failed to fetch|network|connection|offline|upload failed|load failed/.test(message)) return 'network';
+    return 'processing';
+  };
 
   const setText = (el, value) => {
     if (el) el.textContent = value || '';
@@ -342,6 +376,20 @@
     const authApi = window.ToolsAuth;
     if (!authApi || !authApi.getAuth || !authApi.authIsValid) return false;
     return authApi.authIsValid(authApi.getAuth());
+  };
+
+  const runConfigIsValid = () => {
+    const numericValues = [
+      state.config.pricePerSecond,
+      state.config.minDurationSeconds,
+      state.config.maxFilesPerRun,
+      state.config.maxFileBytes,
+      state.config.maxTotalCostUsd
+    ].map(Number);
+    return Boolean(cleanText(state.config.service)) &&
+      Array.isArray(state.config.supportedFormats) &&
+      state.config.supportedFormats.length > 0 &&
+      numericValues.every((value) => Number.isFinite(value) && value > 0);
   };
 
   const setView = (view) => {
@@ -813,7 +861,9 @@
         resolve();
         return;
       }
-      reject(new Error(`Upload failed (${xhr.status}).`));
+      const error = new Error(`Upload failed (${xhr.status}).`);
+      error.status = xhr.status;
+      reject(error);
     };
     xhr.onerror = () => {
       state.activeXhr = null;
@@ -857,6 +907,7 @@
       if (status === 'FAILED') {
         item.status = 'failed';
         item.error = friendlyTranscribeError(data.error || 'Transcription failed.');
+        item.runErrorType = 'service';
         item.costUsd = Number(data.costUsd ?? item.estimatedCostUsd ?? 0);
         renderTable();
         renderProcessingList();
@@ -877,6 +928,7 @@
   const runFile = async (item) => {
     item.status = 'presigning';
     item.error = '';
+    item.runErrorType = '';
     item.progress = 0;
     renderTable();
     updateProgress({ stateName: 'visible', ratio: 0, label: `Preparing ${item.name}...` });
@@ -931,20 +983,29 @@
     await pollRun(item, start.runToken);
   };
 
-  const runBatch = async () => {
+  const runBatch = async ({ reportOutcome = false } = {}) => {
     if (!authIsReady()) {
       setStatus(runStatusEl, 'Sign in before starting transcription jobs.', 'warning');
       updateAuthUi();
+      if (reportOutcome) reportRunError('permission');
+      return;
+    }
+
+    if (!runConfigIsValid()) {
+      setStatus(runStatusEl, 'Transcription configuration is unavailable. Refresh and try again.', 'warning');
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
     const queue = acceptedFiles().filter((item) => item.status === 'ready');
     if (!queue.length) {
       setStatus(runStatusEl, 'No eligible files to transcribe.', 'warning');
+      if (reportOutcome) reportRunError('validation');
       return;
     }
     if (!approveEl || !approveEl.checked) {
       setStatus(runStatusEl, 'Review and approve the estimated charge before starting.', 'warning');
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
@@ -972,9 +1033,11 @@
         if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
           item.status = 'canceled';
           item.error = 'Canceled.';
+          item.runErrorType = 'processing';
         } else {
           item.status = 'failed';
           item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
+          item.runErrorType = classifyRunError(err);
         }
         renderTable();
         renderProcessingList();
@@ -983,9 +1046,9 @@
       }
     }
 
-    const completed = completedFiles().length;
-    const failed = state.files.filter((item) => item.status === 'failed').length;
-    const canceled = state.files.filter((item) => item.status === 'canceled').length;
+    const completed = queue.filter((item) => item.status === 'complete').length;
+    const failed = queue.filter((item) => item.status === 'failed').length;
+    const canceled = queue.filter((item) => item.status === 'canceled').length;
     const message = state.canceled
       ? `Canceled. ${completed} complete, ${failed} failed, ${canceled} canceled.`
       : `Done. ${completed} complete, ${failed} failed.`;
@@ -996,6 +1059,19 @@
     renderResults();
     setView('results');
     updateLayoutState();
+
+    if (reportOutcome) {
+      if (state.canceled || canceled) {
+        reportRunCancel();
+      } else if (completed > 0) {
+        reportRunComplete(failed ? 'partial_success' : 'all_complete');
+      } else {
+        const errorTypes = queue.map((item) => item.runErrorType).filter(Boolean);
+        const errorType = ['permission', 'network', 'timeout', 'service', 'processing']
+          .find((candidate) => errorTypes.includes(candidate)) || 'service';
+        reportRunError(errorType);
+      }
+    }
   };
 
   const reset = () => {
@@ -1088,7 +1164,9 @@
 
   formEl.addEventListener('submit', (event) => {
     event.preventDefault();
-    runBatch();
+    void runBatch({ reportOutcome: true }).catch((error) => {
+      reportRunError(classifyRunError(error));
+    });
   });
 
   if (cancelBtn) {

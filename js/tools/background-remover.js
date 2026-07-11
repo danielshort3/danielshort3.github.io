@@ -83,6 +83,26 @@
     } catch {}
   };
 
+  const dispatchToolRunEvent = (eventName, detail = {}) => {
+    try {
+      document.dispatchEvent(new CustomEvent(eventName, {
+        detail: { toolId: TOOL_ID, ...detail }
+      }));
+    } catch {}
+  };
+
+  const classifyRunError = (jobs) => {
+    const summary = Array.from(jobs || [])
+      .map((job) => String(job?.message || '').toLowerCase())
+      .join(' ');
+    if (/permission|denied|notallowed/.test(summary)) return 'permission';
+    if (/network|failed to fetch|download|cdn|offline/.test(summary)) return 'network';
+    if (/not supported|unsupported|content security policy|\bcsp\b|webgl|wasm/.test(summary)) return 'unsupported';
+    if (/too large|file limit|smaller version|invalid/.test(summary)) return 'validation';
+    if (/model|service unavailable/.test(summary)) return 'service';
+    return 'processing';
+  };
+
   const logAsyncError = (scope, err) => {
     const label = String(scope || '').trim() || 'async';
     try {
@@ -1318,15 +1338,22 @@
 
   const processQueue = async () => {
     if (state.working) return;
+    if (!state.jobs.some((job) => job.status === 'queued')) return;
     state.working = true;
     updateLayoutState();
     const currentRunId = state.runId;
+    const runJobIds = new Set();
     updateActionButtons();
+    dispatchToolRunEvent('tools:run-start');
     try {
       for (;;) {
-        if (currentRunId !== state.runId) return;
+        if (currentRunId !== state.runId) {
+          dispatchToolRunEvent('tools:run-cancel');
+          return;
+        }
         const next = state.jobs.find((j) => j.status === 'queued');
         if (!next) break;
+        runJobIds.add(next.id);
         next.status = 'processing';
         renderFileList();
         renderResults();
@@ -1344,6 +1371,24 @@
         }
       }
       setStatus(state.jobs.some((j) => j.status === 'ready') ? 'Done. Review results below.' : 'Add photos to begin.');
+      const runJobs = state.jobs.filter((job) => runJobIds.has(job.id));
+      const readyCount = runJobs.filter((job) => job.status === 'ready').length;
+      const errorCount = runJobs.filter((job) => job.status === 'error').length;
+      if (readyCount > 0) {
+        dispatchToolRunEvent('tools:run-complete', {
+          resultBucket: errorCount > 0 ? 'partial_success' : 'success'
+        });
+      } else {
+        dispatchToolRunEvent('tools:run-error', {
+          errorType: classifyRunError(runJobs)
+        });
+      }
+    } catch (err) {
+      const runJobs = state.jobs.filter((job) => runJobIds.has(job.id));
+      dispatchToolRunEvent('tools:run-error', {
+        errorType: classifyRunError(runJobs)
+      });
+      throw err;
     } finally {
       hideProgress();
       state.working = false;

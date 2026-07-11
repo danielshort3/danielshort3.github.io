@@ -32,6 +32,22 @@
     } catch {}
   };
 
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
   const HARD_SPACES = [
     { char: '\u00A0', label: 'Non-breaking space', code: 'U+00A0' },
     { char: '\u202F', label: 'Narrow no-break space', code: 'U+202F' },
@@ -390,7 +406,7 @@
       output.value = '';
       setCopyStatus('');
       preview.innerHTML = '<span class="nbsp-status">Preview will appear after you paste text.</span>';
-      return;
+      return null;
     }
     const { perType, total } = analyze(text);
     const nonAsciiCounts = countNonAscii(text);
@@ -409,11 +425,19 @@
     renderPreview(text);
     setCopyStatus('');
     markSessionDirty();
+    return findings.length ? 'with_findings' : 'no_findings';
   };
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    runCleaner();
+    try {
+      const resultBucket = runCleaner();
+      if (resultBucket) reportRunComplete(resultBucket);
+      else reportRunError('validation');
+    } catch (error) {
+      reportRunError('processing');
+      throw error;
+    }
   });
 
   clearBtn?.addEventListener('click', () => {

@@ -82,6 +82,22 @@
     } catch {}
   };
 
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
   const WORD_REGEX = (() => {
     try {
       new RegExp('\\p{L}', 'u');
@@ -1013,6 +1029,7 @@
     lastAnalysis = analysis;
     renderAnalysis(analysis);
     hasRun = true;
+    return analysis;
   };
 
   const csvEscape = (value) => {
@@ -1852,8 +1869,15 @@
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    runAnalysis();
-    markSessionDirty();
+    try {
+      const analysis = runAnalysis();
+      markSessionDirty();
+      if (!analysis?.hasText) reportRunError('validation');
+      else reportRunComplete(analysis.total ? 'with_findings' : 'no_findings');
+    } catch (error) {
+      reportRunError('processing');
+      throw error;
+    }
   });
 
   form.addEventListener('input', () => {
