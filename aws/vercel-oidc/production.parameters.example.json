@@ -1,0 +1,13 @@
+[
+  { "ParameterKey": "Environment", "ParameterValue": "production" },
+  { "ParameterKey": "OidcProviderArn", "ParameterValue": "arn:aws:iam::886623862678:oidc-provider/oidc.vercel.com/daniel-shorts-projects" },
+  { "ParameterKey": "ToolsTableName", "ParameterValue": "danielshort-tools-accounts" },
+  { "ParameterKey": "ShortLinksTableName", "ParameterValue": "danielshort-short-links" },
+  { "ParameterKey": "ShortLinksClicksTableName", "ParameterValue": "danielshort-short-links-clicks" },
+  { "ParameterKey": "ChatbotTableName", "ParameterValue": "danielshort-chatbot-runtime" },
+  { "ParameterKey": "TranscribeBucketName", "ParameterValue": "danielshort-transcribe-tool-886623862678-us-east-2" },
+  { "ParameterKey": "BedrockResourceArns", "ParameterValue": "arn:aws:bedrock:us-east-2:886623862678:inference-profile/us.amazon.nova-lite-v1:0,arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0,arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-lite-v1:0,arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-lite-v1:0,arn:aws:bedrock:us-east-2::foundation-model/amazon.titan-embed-text-v2:0" },
+  { "ParameterKey": "SesIdentityArns", "ParameterValue": "arn:aws:ses:us-east-2:886623862678:identity/noreply@danielshort.me" },
+  { "ParameterKey": "DemoFunctionArns", "ParameterValue": "arn:aws:lambda:us-east-2:886623862678:function:shape-analyzer:live,arn:aws:lambda:us-east-2:886623862678:function:smart-sentence-finder:live,arn:aws:lambda:us-east-2:886623862678:function:nonogram-solver:live,arn:aws:lambda:us-east-2:886623862678:function:handwriting-rating-demo:live,arn:aws:lambda:us-east-2:886623862678:function:digit-generator:live,arn:aws:lambda:us-east-2:886623862678:function:covid-outbreak-drivers:live,arn:aws:lambda:us-east-2:886623862678:function:pizza-tips-predict:live,arn:aws:lambda:us-east-2:886623862678:function:target-empty-package:live,arn:aws:lambda:us-east-2:886623862678:function:retail-loss-sales:live,arn:aws:lambda:us-east-2:886623862678:function:minesweeper-solver:live" },
+  { "ParameterKey": "DemoRateLimitTableName", "ParameterValue": "website-demo-rate-limit-production" }
+]

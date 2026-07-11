@@ -4,9 +4,9 @@
 'use strict';
 
 const { deleteLink, getLinkWithLegacyFallback, setLinkDisabled } = require('../_lib/short-links-store');
+const clickHistoryHandler = require('../_lib/short-links-clicks-handler');
 const {
-  getAdminToken,
-  isAdminRequest,
+  authorizeShortLinksAdmin,
   sendJson,
   readJson,
   normalizeSlug,
@@ -49,17 +49,20 @@ function serializeLink(record, fallbackSlug, fallbackUpdatedAt){
 }
 
 module.exports = async (req, res) => {
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const requestedSlug = normalizeSlug(getSlugFromRequest(req));
+  if (requestedSlug.startsWith('clicks/')) {
+    req.query = { ...(req.query || {}), slug: requestedSlug.slice('clicks/'.length) };
+    await clickHistoryHandler(req, res);
     return;
   }
 
-  const slug = normalizeSlug(getSlugFromRequest(req));
+  const admin = await authorizeShortLinksAdmin(req);
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
+    return;
+  }
+
+  const slug = requestedSlug;
   if (!slug) {
     sendJson(res, 400, { ok: false, error: 'Invalid slug' });
     return;

@@ -788,6 +788,26 @@ function renderBodyOpen(page) {
   return `<body${attrsToString(attrs)}>`;
 }
 
+function addProfessionalModeToAudienceLinks(html) {
+  return String(html || '').replace(/\bhref=(['"])([^'"]+)\1/gi, (attribute, quote, href) => {
+    const decodedHref = String(href).replace(/&amp;/gi, '&');
+    const hashIndex = decodedHref.indexOf('#');
+    const withoutHash = hashIndex >= 0 ? decodedHref.slice(0, hashIndex) : decodedHref;
+    const hash = hashIndex >= 0 ? decodedHref.slice(hashIndex) : '';
+    const queryIndex = withoutHash.indexOf('?');
+    if (queryIndex < 0) return attribute;
+
+    const base = withoutHash.slice(0, queryIndex);
+    const params = new URLSearchParams(withoutHash.slice(queryIndex + 1));
+    const audience = String(params.get('audience') || '').toLowerCase();
+    if (!['analytics', 'data-science', 'tourism'].includes(audience)) return attribute;
+    params.set('mode', 'professional');
+
+    const nextHref = `${base}?${params.toString().replace(/&/g, '&amp;')}${hash}`;
+    return `href=${quote}${nextHref}${quote}`;
+  });
+}
+
 function renderFullPage({ settings, navigation, footer, projectsById, pagesById, tools, page, audienceLabel }) {
   const headerHtml = renderHeader({
     settings,
@@ -810,7 +830,7 @@ function renderFullPage({ settings, navigation, footer, projectsById, pagesById,
     renderBodyOpen(page),
     '  <a href="#main" class="skip-link">Skip to main content</a>',
     indentBlock(headerHtml, '  '),
-    indentBlock(String(page.bodyHtml || '').trim(), '  '),
+    indentBlock(addProfessionalModeToAudienceLinks(page.bodyHtml).trim(), '  '),
     indentBlock(footerHtml, '  '),
     bottomScripts,
     '</body>',

@@ -30,7 +30,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.0a877445.js"></script>
+  <script defer src="dist/site-shell.2ca64592.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="twitter:title" content="Short Links (Admin) | Daniel Short">
   <meta name="twitter:description" content="Private dashboard for managing short redirect links.">
@@ -299,26 +299,26 @@
               <div class="shortlinks-card-head shortlinks-card-head-tight">
                 <div class="shortlinks-card-copy">
                   <p class="shortlinks-kicker">Admin access</p>
-                  <h2 id="shortlinks-access-title" class="section-title">Unlock redirects and exports</h2>
-                  <p class="shortlinks-panel-lead">Use the short-links admin token for this dashboard. This is separate from the public tools account sign-in above.</p>
+                  <h2 id="shortlinks-access-title" class="section-title">Cognito admin access</h2>
+                  <p class="shortlinks-panel-lead">Sign in above with an account in the Cognito <code>admins</code> group. The token field below is retained only for an explicitly enabled legacy rollback.</p>
                 </div>
                 <div class="shortlinks-access-status" aria-live="polite">
-                  <span class="shortlinks-admin-badge" data-shortlinks="admin-access-summary">Token required</span>
+                  <span class="shortlinks-admin-badge" data-shortlinks="admin-access-summary">Sign-in required</span>
                   <span class="shortlinks-access-meta" data-shortlinks="access-meta"></span>
                 </div>
               </div>
               <form class="contact-form shortlinks-form" data-shortlinks="auth">
                 <div class="form-field">
-                  <label for="shortlinks-token">Admin token</label>
+                  <label for="shortlinks-token">Legacy rollback token</label>
                   <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
                   <label class="shortlinks-token-remember">
                     <input type="checkbox" data-shortlinks="remember-token">
                     <span>Remember on this browser</span>
                   </label>
-                  <p class="contact-form-note">Session-only by default. Use remember only on a trusted device.</p>
+                  <p class="contact-form-note">Accepted only while the server is explicitly running <code>AWS_AUTH_MODE=legacy</code>. Session-only by default.</p>
                 </div>
                 <div class="form-actions shortlinks-action-row shortlinks-action-row-compact">
-                  <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
+                  <button type="submit" class="btn-primary"><span class="btn-label">Use legacy token</span></button>
                   <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh</button>
                   <button type="button" class="btn-secondary" data-shortlinks="health">Check backend</button>
                   <button type="button" class="btn-ghost" data-shortlinks="forget-token">Forget token</button>
@@ -827,7 +827,7 @@
         <div class="footer-nav-panel" data-footer-realm="professional">
           <section class="footer-col" aria-labelledby="footer-professional-work">
             <h2 class="footer-col-title" id="footer-professional-work">Work</h2>
-            <a href="portfolio?audience=analytics" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
+            <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
             <a href="resume" class="footer-link" data-resume-home-link="true">Resume</a>
             <a href="analytics" class="footer-link">Analytics</a>
             <a href="data-science" class="footer-link">Data science</a>
@@ -899,8 +899,8 @@
       </svg>
     </button>
   </div>
+  <script defer src="dist/site-tools-account.29607e81.js"></script>
   <script defer src="js/admin/short-links.js"></script>
-  <script defer src="dist/site-tools-account.18516f4a.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

@@ -79,6 +79,13 @@ const httpError = (statusCode, message) => {
   return err;
 };
 
+const throwMutationError = (err) => {
+  if (err?.name === 'ConditionalCheckFailedException') {
+    throw httpError(404, 'Application not found.');
+  }
+  throw err;
+};
+
 const buildHeaders = (origin) => ({
   'Access-Control-Allow-Origin': origin || '*',
   'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
@@ -979,14 +986,24 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
     updateExpression += ` REMOVE ${removeFields.join(', ')}`;
   }
 
-  const result = await dynamo.send(new UpdateCommand({
-    TableName: APPLICATIONS_TABLE,
-    Key: { userId, applicationId },
-    UpdateExpression: updateExpression,
-    ExpressionAttributeNames: names,
-    ExpressionAttributeValues: values,
-    ReturnValues: 'ALL_NEW'
-  }));
+  names['#ownerUserId'] = 'userId';
+  names['#ownerApplicationId'] = 'applicationId';
+  names['#recordType'] = 'recordType';
+  values[':expectedRecordType'] = 'prospect';
+  let result;
+  try {
+    result = await dynamo.send(new UpdateCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId },
+      UpdateExpression: updateExpression,
+      ConditionExpression: 'attribute_exists(#ownerUserId) AND attribute_exists(#ownerApplicationId) AND #recordType = :expectedRecordType',
+      ExpressionAttributeNames: names,
+      ExpressionAttributeValues: values,
+      ReturnValues: 'ALL_NEW'
+    }));
+  } catch (err) {
+    throwMutationError(err);
+  }
   return result.Attributes;
 };
 
@@ -1100,23 +1117,42 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     updateExpression += ` REMOVE ${removeFields.join(', ')}`;
   }
 
-  const result = await dynamo.send(new UpdateCommand({
-    TableName: APPLICATIONS_TABLE,
-    Key: { userId, applicationId },
-    UpdateExpression: updateExpression,
-    ExpressionAttributeNames: names,
-    ExpressionAttributeValues: values,
-    ReturnValues: 'ALL_NEW'
-  }));
+  names['#ownerUserId'] = 'userId';
+  names['#ownerApplicationId'] = 'applicationId';
+  names['#recordType'] = 'recordType';
+  values[':expectedRecordType'] = 'application';
+  let result;
+  try {
+    result = await dynamo.send(new UpdateCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId },
+      UpdateExpression: updateExpression,
+      ConditionExpression: 'attribute_exists(#ownerUserId) AND attribute_exists(#ownerApplicationId) AND (attribute_not_exists(#recordType) OR #recordType = :expectedRecordType)',
+      ExpressionAttributeNames: names,
+      ExpressionAttributeValues: values,
+      ReturnValues: 'ALL_NEW'
+    }));
+  } catch (err) {
+    throwMutationError(err);
+  }
   return result.Attributes;
 };
 
 const handleDeleteApplication = async (userId, applicationId) => {
   if (!applicationId) throw httpError(400, 'Missing applicationId.');
-  await dynamo.send(new DeleteCommand({
-    TableName: APPLICATIONS_TABLE,
-    Key: { userId, applicationId }
-  }));
+  try {
+    await dynamo.send(new DeleteCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId },
+      ConditionExpression: 'attribute_exists(#ownerUserId) AND attribute_exists(#ownerApplicationId)',
+      ExpressionAttributeNames: {
+        '#ownerUserId': 'userId',
+        '#ownerApplicationId': 'applicationId'
+      }
+    }));
+  } catch (err) {
+    throwMutationError(err);
+  }
   return { ok: true };
 };
 

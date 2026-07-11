@@ -745,9 +745,8 @@
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
-    const STORAGE_KEY = "demo.endpoint.covid";
-    const LEGACY_KEYS = ["covid_outbreak_api"];
+    const DEFAULT_API_URL = "/api/demos/covid-outbreak/";
+    const STORAGE_KEY = "demo.endpoint.covid.proxy.v1";
     const { resolveEndpoint, getJson, joinUrl, retryRequest } = window.DemoAws;
 
     const notifyResize = (() => {
@@ -911,7 +910,7 @@
     const endpointConfig = {
       defaultUrl: DEFAULT_API_URL,
       storageKey: STORAGE_KEY,
-      legacyKeys: LEGACY_KEYS
+      queryKeys: []
     };
     const WARM_RETRY_OPTIONS = {
       retries: 12,

@@ -1,21 +1,18 @@
 /*
-  Admin API for click history: /api/short-links/clicks/<slug>
-  - Requires SHORTLINKS_ADMIN_TOKEN.
-  - Requires SHORTLINKS_DDB_CLICKS_TABLE to be configured.
+  Admin API for click history, delegated through the stable Short Links catch-all.
 */
 'use strict';
 
-const { getLinkWithLegacyFallback, listClicks } = require('../../_lib/short-links-store');
+const { getLinkWithLegacyFallback, listClicks } = require('./short-links-store');
 const {
-  getAdminToken,
-  isAdminRequest,
+  authorizeShortLinksAdmin,
   sendJson,
   normalizeSlug,
   getRequestBaseUrl
-} = require('../../_lib/short-links');
+} = require('./short-links');
 
 function getSlugFromRequest(req){
-  const querySlug = req.query && req.query.slug;
+  const querySlug = req.query && (req.query.slug || req.query['...slug']);
   if (Array.isArray(querySlug)) return querySlug.join('/');
   if (typeof querySlug === 'string') return querySlug;
   try {
@@ -28,20 +25,19 @@ function getSlugFromRequest(req){
 }
 
 function parseLimit(req){
-  const raw = req.query && req.query.limit ? String(req.query.limit) : '';
+  const headerValue = req.headers && req.headers['x-shortlinks-limit'];
+  const raw = headerValue
+    ? String(headerValue)
+    : (req.query && req.query.limit ? String(req.query.limit) : '');
   const value = Number(raw);
   if (!Number.isFinite(value)) return 100;
   return Math.max(1, Math.min(500, Math.floor(value)));
 }
 
 module.exports = async (req, res) => {
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const admin = await authorizeShortLinksAdmin(req);
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
     return;
   }
 
@@ -75,11 +71,7 @@ module.exports = async (req, res) => {
   try {
     items = await listClicks({ slug: resolvedSlug, limit });
   } catch (err) {
-    if (err && err.code === 'DDB_CLICKS_ENV_MISSING') {
-      sendJson(res, 503, { ok: false, error: err.message });
-      return;
-    }
-    if (err && err.code === 'DDB_ENV_MISSING') {
+    if (err && (err.code === 'DDB_CLICKS_ENV_MISSING' || err.code === 'DDB_ENV_MISSING')) {
       sendJson(res, 503, { ok: false, error: err.message });
       return;
     }

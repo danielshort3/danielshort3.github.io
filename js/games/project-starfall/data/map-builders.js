@@ -187,6 +187,7 @@
       addPlatform(lowX, lowY, widths.low, 'solidLane');
       addTransitionSlope(lowX, lowY, widths.low, midX, midY, widths.mid, rampW);
       addPlatform(midX, midY, widths.mid, 'solidLane');
+      addTransitionSlope(midX, midY, widths.mid, highX, highY, widths.high, rampW);
       addPlatform(highX, highY, widths.high, 'solidLane');
     };
     const leftLow = Number(skeleton.left || 300);
@@ -244,10 +245,14 @@
       if (shouldUseSlopePhase(settings, 'groundToLow', clusterIndex, cluster)) addSlope(cluster.lowX - rampW, lanes.ground, lowY, rampW);
       addPlatform(cluster.lowX, lowY, lowW, 'solidLane');
       addFlatConnector(cluster.lowX + lowW - 280, (lowY + midY) / 2, 230);
-      if (shouldUseSlopePhase(settings, 'lowToMid', clusterIndex, cluster)) addSlope(cluster.midX - rampW, lowY, midY, rampW);
+      if (shouldUseSlopePhase(settings, 'lowToMid', clusterIndex, cluster)) {
+        addSlope(Math.max(cluster.lowX, cluster.midX - rampW), lowY, midY, rampW);
+      }
       addPlatform(cluster.midX, midY, midW, 'solidLane');
       addFlatConnector(cluster.midX + Math.min(midW - 280, 320), (midY + highY) / 2, 230);
-      if (shouldUseSlopePhase(settings, 'midToHigh', clusterIndex, cluster)) addSlope(cluster.highX - rampW, midY, highY, rampW);
+      if (shouldUseSlopePhase(settings, 'midToHigh', clusterIndex, cluster)) {
+        addSlope(Math.max(cluster.midX, cluster.highX - rampW), midY, highY, rampW);
+      }
       addPlatform(cluster.highX, highY, highW, 'solidLane');
     };
 
@@ -261,8 +266,7 @@
         { lowX: 4440, midX: 4700, highX: 4960, lowW: 1420, midW: 1320, highW: 1220 },
         { lowX: 6320, midX: 6560, highX: 6820, lowW: 1260, midW: 1220, highW: 1120 }
       ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 260,
-        slopePlan: { lowToMid: [0, 2], midToHigh: [] }
+        rampW: 260
       }, index));
       addPlatform(1940, lanes.mid - 52, 260, 'hop');
       addPlatform(5980, lanes.mid - 52, 260, 'hop');
@@ -279,8 +283,7 @@
         { lowX: 4300, midX: 4580, highX: 4880, lowW: 1340, midW: 1200, highW: 1080 },
         { lowX: 6260, midX: 6540, highX: 6840, lowW: 1260, midW: 1160, highW: 980 }
       ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 280,
-        slopePlan: { lowToMid: [1, 3], midToHigh: [0] }
+        rampW: 280
       }, index));
       addPlatform(6900, midY - 58, 620, 'solidLane');
       addPlatform(7240, highY - 58, 320, 'hop');
@@ -293,8 +296,7 @@
         { lowX: 1700, midX: 2020, highX: 2360, lowW: 900, midW: 800, highW: 720 },
         { lowX: 3100, midX: 3420, highX: 3760, lowW: 900, midW: 800, highW: 720 }
       ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 280,
-        slopePlan: { lowToMid: [1], midToHigh: [2] }
+        rampW: 280
       }, index));
       addSlope(2440, lanes.high, lanes.peak, 280);
       addPlatform(2720, lanes.peak, 820, 'solidLane');
@@ -309,8 +311,7 @@
         { lowX: 1880, midX: 2160, highX: 2460, lowW: 920, midW: 780, highW: 700 },
         { lowX: 3440, midX: 3740, highX: 4020, lowW: 920, midW: 780, highW: 700 }
       ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 260,
-        slopePlan: { lowToMid: [1], midToHigh: [2] }
+        rampW: 260
       }, index));
       addPlatform(1500, lanes.low - 40, 600, 'solidLane');
       addPlatform(2920, lanes.mid - 54, 620, 'solidLane');
@@ -324,8 +325,7 @@
         { lowX: 1900, midX: 2300, highX: 2700, lowW: 1380, midW: 880, highW: 720, rampW: 300 },
         { lowX: 3520, midX: 3860, highX: 4200, lowW: 1240, midW: 840, highW: 680, rampW: 280 }
       ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: Number(cluster.rampW || 280),
-        slopePlan: { lowToMid: [0, 2], midToHigh: [] }
+        rampW: Number(cluster.rampW || 280)
       }, index));
       addPlatform(3000, lanes.peak, 720, 'solidLane');
       addSlope(2720, lanes.high, lanes.peak, 280);
@@ -339,8 +339,7 @@
         { lowX: 1680, midX: 2020, highX: 2380, lowW: 900, midW: 820, highW: 740 },
         { lowX: 3100, midX: 3460, highX: 3820, lowW: 900, midW: 820, highW: 740 }
       ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 280,
-        slopePlan: { lowToMid: [1], midToHigh: [0] }
+        rampW: 280
       }, index));
       addSlope(2380, lanes.high, lanes.peak, 280);
       addPlatform(2660, lanes.peak, 860, 'solidLane');
@@ -356,8 +355,7 @@
         { lowX: 2660, midX: 2940, highX: 3220, lowW: 820, midW: 760, highW: 700 },
         { lowX: 3860, midX: 4100, highX: 4340, lowW: 740, midW: 700, highW: 640 }
       ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 300,
-        slopePlan: { lowToMid: [1], midToHigh: [] }
+        rampW: 300
       }, index));
       addPlatform(2620, lanes.peak, 900, 'solidLane');
       addPlatform(2380, lanes.sky, 520, 'hop');
@@ -654,8 +652,12 @@
     add(roofX, lanes.roof, roofW, 'island');
     addSlope(lowMarketX - 220, TOWN_LANE_Y.ground - 8, lanes.low, 300);
     addSlope(midMarketX - 160, lanes.low, lanes.mid, 300);
-    addSlope(highLeftX + highLeftW - 280, lanes.mid, lanes.high, 280);
-    addSlope(highGateX - 280, lanes.mid, lanes.high, 280);
+    // Low-rise upper-town profiles such as Rustcoil need compact ramps so the
+    // collision surface does not run underneath both walkable platforms.
+    // Taller profiles keep the longer, gentler ramp grade.
+    const upperRampWidth = Math.abs(lanes.mid - lanes.high) <= 80 ? 200 : 280;
+    addSlope(highLeftX + highLeftW - upperRampWidth, lanes.mid, lanes.high, upperRampWidth);
+    addSlope(highGateX - upperRampWidth, lanes.mid, lanes.high, upperRampWidth);
     add(1960 + shift(29, 26) + profileShift([0, 68, -48, 36]), lanes.roof + 46, 260, 'hop');
     add(3160 + shift(31, 24) + profileShift([0, -62, 54, -40]), lanes.high + 58, 240, 'hop');
     return platforms;

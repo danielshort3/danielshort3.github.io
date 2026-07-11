@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Split least-privilege execution roles and log groups for the Shape Analyzer and Smart Sentence Finder Lambdas.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues:
+      - production
+
+Resources:
+  ShapeAnalyzerLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/lambda/website/shape-analyzer-production
+      RetentionInDays: 30
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  SmartSentenceLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/lambda/website/smart-sentence-finder-production
+      RetentionInDays: 30
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  ShapeAnalyzerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-shape-analyzer-execution-production
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-shape-analyzer-logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${ShapeAnalyzerLogGroup.Arn}:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Workload
+          Value: shape-analyzer
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  SmartSentenceExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-smart-sentence-execution-production
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-smart-sentence-logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub '${SmartSentenceLogGroup.Arn}:*'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Workload
+          Value: smart-sentence-finder
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+Outputs:
+  ShapeAnalyzerRoleArn:
+    Value: !GetAtt ShapeAnalyzerExecutionRole.Arn
+  ShapeAnalyzerLogGroupName:
+    Value: !Ref ShapeAnalyzerLogGroup
+  SmartSentenceRoleArn:
+    Value: !GetAtt SmartSentenceExecutionRole.Arn
+  SmartSentenceLogGroupName:
+    Value: !Ref SmartSentenceLogGroup

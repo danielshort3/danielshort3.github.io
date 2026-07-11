@@ -1,6 +1,7 @@
 /*
   Admin API for managing short links.
-  Requires SHORTLINKS_ADMIN_TOKEN and DynamoDB env vars.
+  Requires a verified Cognito admins-group token and DynamoDB env vars.
+  SHORTLINKS_ADMIN_TOKEN is accepted only while AWS_AUTH_MODE=legacy.
 */
 'use strict';
 
@@ -10,8 +11,7 @@ const {
   MAX_RANDOM_LENGTH,
   MIN_RANDOM_LENGTH,
   generateRandomSlug,
-  getAdminToken,
-  isAdminRequest,
+  authorizeShortLinksAdmin,
   sendJson,
   readJson,
   normalizeSlug,
@@ -245,13 +245,9 @@ function applyListQuery(links, params){
 }
 
 async function handler(req, res){
-  const adminToken = getAdminToken();
-  if (!adminToken) {
-    sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
-    return;
-  }
-  if (!isAdminRequest(req)) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
+  const admin = await authorizeShortLinksAdmin(req);
+  if (!admin.authorized) {
+    sendJson(res, admin.statusCode, { ok: false, error: admin.error });
     return;
   }
 

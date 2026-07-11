@@ -745,9 +745,8 @@
     <script src="js/demos/aws-client.js"></script>
     <script type="module">
         // Shape-classifier endpoint handling with graceful fallbacks
-        const DEFAULT_FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda Function URL
-        const STORAGE_KEY = "demo.endpoint.shape";
-        const LEGACY_KEYS = ["shape_fn_url"];
+        const DEFAULT_FN_URL = "/api/demos/shape/";
+        const STORAGE_KEY = "demo.endpoint.shape.proxy.v1";
         const {
             listCandidates,
             postWithFallback,
@@ -759,7 +758,7 @@
         const endpointConfig = {
           defaultUrl: DEFAULT_FN_URL,
           storageKey: STORAGE_KEY,
-          legacyKeys: LEGACY_KEYS
+          queryKeys: []
         };
         const WARM_RETRY_OPTIONS = {
             retries: 12,
@@ -768,7 +767,7 @@
             maxDelayMs: 10000
         };
         const candidates = () => listCandidates(endpointConfig).filter(Boolean);
-        const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict', 'classify', ''], payload);
+        const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict', 'classify', 'invoke'], payload);
 
         /* ---------- Stepper (same structure/behavior as chatbot) ---------- */
         const statusEl = document.getElementById('status');

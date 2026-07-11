@@ -4,9 +4,8 @@
   Env vars required:
   - SHORTLINKS_DDB_TABLE
   - AWS_REGION (or AWS_DEFAULT_REGION)
-  - Prefer SHORTLINKS_AWS_ACCESS_KEY_ID / SHORTLINKS_AWS_SECRET_ACCESS_KEY to avoid conflicts
-  - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
-  - Optional (temporary creds only): SHORTLINKS_AWS_SESSION_TOKEN / AWS_SESSION_TOKEN
+  - SHORTLINKS_AWS_ROLE_ARN when AWS_AUTH_MODE=oidc
+  - Legacy static credentials are supported only while AWS_AUTH_MODE=legacy
 
   Optional click log table:
   - SHORTLINKS_DDB_CLICKS_TABLE
@@ -31,73 +30,7 @@ const {
   isInternalRecordSlug,
   normalizeSlugLower
 } = require('./short-links');
-
-function pickEnv(keys){
-  for (const key of keys) {
-    if (!key) continue;
-    if (typeof process.env[key] === 'undefined') continue;
-    const raw = String(process.env[key]);
-    if (!raw.trim()) continue;
-    return { key, raw };
-  }
-  return { key: '', raw: '' };
-}
-
-function getAwsCredentialsFromEnv(){
-  const accessKeyIdEnv = pickEnv(['SHORTLINKS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKeyEnv = pickEnv(['SHORTLINKS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionTokenEnv = pickEnv(['SHORTLINKS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-
-  const accessKeyId = accessKeyIdEnv.raw.trim();
-  const secretAccessKey = secretAccessKeyEnv.raw.trim();
-  const sessionToken = sessionTokenEnv.raw.trim();
-
-  if (!accessKeyId || !secretAccessKey) return null;
-
-  const creds = { accessKeyId, secretAccessKey };
-  if (sessionToken && accessKeyId.startsWith('ASIA')) creds.sessionToken = sessionToken;
-  return creds;
-}
-
-function getAwsCredentialEnvInfo(){
-  const crypto = require('crypto');
-
-  const accessKeyIdEnv = pickEnv(['SHORTLINKS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKeyEnv = pickEnv(['SHORTLINKS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionTokenEnv = pickEnv(['SHORTLINKS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-
-  const accessKeyIdRaw = accessKeyIdEnv.raw;
-  const secretAccessKeyRaw = secretAccessKeyEnv.raw;
-  const sessionTokenRaw = sessionTokenEnv.raw;
-
-  const accessKeyId = accessKeyIdRaw.trim();
-  const secretAccessKey = secretAccessKeyRaw.trim();
-  const sessionToken = sessionTokenRaw.trim();
-
-  const sessionTokenUsed = !!(sessionToken && accessKeyId && accessKeyId.startsWith('ASIA'));
-  const secretFingerprint = secretAccessKey
-    ? crypto.createHash('sha256').update(secretAccessKey, 'utf8').digest('hex').slice(0, 12)
-    : '';
-
-  return {
-    accessKeyId,
-    accessKeyIdSource: accessKeyIdEnv.key,
-    secretSource: secretAccessKeyEnv.key,
-    sessionTokenSource: sessionTokenEnv.key,
-    accessKeyConfigured: !!accessKeyId,
-    secretConfigured: !!secretAccessKey,
-    sessionTokenConfigured: !!sessionToken,
-    sessionTokenUsed,
-    sessionTokenIgnored: !!sessionToken && !sessionTokenUsed,
-    accessKeyTrimmed: accessKeyIdRaw !== accessKeyId,
-    secretTrimmed: secretAccessKeyRaw !== secretAccessKey,
-    sessionTokenTrimmed: sessionTokenRaw !== sessionToken,
-    accessKeyLength: accessKeyIdRaw.length,
-    secretLength: secretAccessKeyRaw.length,
-    sessionTokenLength: sessionTokenRaw.length,
-    secretFingerprint
-  };
-}
+const { AWS_WORKLOADS, getAwsClientConfig } = require('./aws-credentials');
 
 function getRequiredEnv(){
   const tableName = process.env.SHORTLINKS_DDB_TABLE ? String(process.env.SHORTLINKS_DDB_TABLE).trim() : '';
@@ -137,11 +70,11 @@ let cachedKey = '';
 
 function getDocClient(){
   const { region } = getRequiredEnv();
-  const creds = getAwsCredentialsFromEnv();
-  const key = `${region}:${creds ? creds.accessKeyId : 'default'}`;
+  const aws = getAwsClientConfig(AWS_WORKLOADS.SHORT_LINKS, { region });
+  const key = `${region}:${aws.cacheKey}`;
   if (cachedDocClient && cachedKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region, credentials: creds || undefined });
+  const client = new DynamoDBClient(aws.clientConfig);
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });
@@ -421,8 +354,6 @@ async function listClicks({ slug, limit }){
 }
 
 module.exports = {
-  getAwsCredentialsFromEnv,
-  getAwsCredentialEnvInfo,
   getRequiredEnv,
   getLink,
   getLinkWithLegacyFallback,

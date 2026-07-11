@@ -575,9 +575,8 @@
 
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_FN_URL = "https://gw676aqgd4lpcoxngfvnfki5ce0urcfg.lambda-url.us-east-2.on.aws/";
-    const STORAGE_KEY = "demo.endpoint.nonogram";
-    const LEGACY_KEYS = ["nonogram_fn_url"];
+    const DEFAULT_FN_URL = "/api/demos/nonogram/";
+    const STORAGE_KEY = "demo.endpoint.nonogram.proxy.v1";
     const {
       listCandidates,
       postWithFallback,
@@ -589,7 +588,7 @@
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
-      legacyKeys: LEGACY_KEYS
+      queryKeys: []
     };
     const WARM_RETRY_OPTIONS = {
       retries: 12,
@@ -598,7 +597,7 @@
       maxDelayMs: 10000
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
-    const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
+    const postToEndpoint = (base, payload) => postWithFallback(base, ['solve', 'predict', 'invoke'], payload);
 
     const gridEl = document.getElementById('grid');
     const cluesTop = document.getElementById('clues-top');

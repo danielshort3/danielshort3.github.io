@@ -7,6 +7,8 @@ const sharp = require('sharp');
 
 const ROOT = path.resolve(__dirname, '..');
 const MANIFEST_PATH = 'img/project-starfall/items/item-visual-manifest.json';
+const ASSET_ROOT = 'img/project-starfall';
+const PROCEDURAL_BACKUP_ROOT = `${ASSET_ROOT}/backups/procedural`;
 const DATA = require('../js/games/project-starfall/project-starfall-data.js');
 const MANIFEST = JSON.parse(fs.readFileSync(path.join(ROOT, MANIFEST_PATH), 'utf8'));
 
@@ -16,6 +18,16 @@ function fullPath(filePath) {
 
 function ensureDir(filePath) {
   fs.mkdirSync(path.dirname(fullPath(filePath)), { recursive: true });
+}
+
+function ensureProceduralBackup(filePath) {
+  const relativePath = path.relative(ASSET_ROOT, filePath).replace(/\\/g, '/');
+  if (!relativePath || relativePath.startsWith('../')) return false;
+  const backupPath = `${PROCEDURAL_BACKUP_ROOT}/${relativePath}`;
+  if (fs.existsSync(fullPath(backupPath))) return false;
+  ensureDir(backupPath);
+  fs.copyFileSync(fullPath(filePath), fullPath(backupPath));
+  return true;
 }
 
 function kebabFromId(itemId) {
@@ -169,6 +181,7 @@ async function createDirectIconVariant(sourcePath, outputPath, item) {
     .toBuffer();
   const cleaned = await stripLowAlphaPixels(rendered);
   await sharp(cleaned).png().toFile(fullPath(outputPath));
+  ensureProceduralBackup(outputPath);
 }
 
 async function writePngFromSvg(relativePath, svg) {

@@ -1,0 +1,255 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Isolated Preview data resources and per-environment demo proxy rate limiting for the website.
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+      - production
+      - preview
+  PreviewTranscribeAllowedOrigins:
+    Type: CommaDelimitedList
+    Default: 'https://*.vercel.app,http://localhost:*,http://127.0.0.1:*'
+    Description: Browser origins allowed to upload directly to the Preview Transcribe bucket.
+
+Conditions:
+  IsPreview: !Equals [!Ref Environment, preview]
+
+Resources:
+  PreviewToolsTable:
+    Type: AWS::DynamoDB::Table
+    Condition: IsPreview
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: danielshort-tools-accounts-preview
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PreviewShortLinksTable:
+    Type: AWS::DynamoDB::Table
+    Condition: IsPreview
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: danielshort-short-links-preview
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: slug
+          AttributeType: S
+      KeySchema:
+        - AttributeName: slug
+          KeyType: HASH
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PreviewShortLinksClicksTable:
+    Type: AWS::DynamoDB::Table
+    Condition: IsPreview
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: danielshort-short-links-clicks-preview
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: slug
+          AttributeType: S
+        - AttributeName: clickId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: slug
+          KeyType: HASH
+        - AttributeName: clickId
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PreviewChatbotTable:
+    Type: AWS::DynamoDB::Table
+    Condition: IsPreview
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: danielshort-chatbot-runtime-preview
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: ManagedBy
+          Value: cloudformation
+
+  DemoRateLimitTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub 'website-demo-rate-limit-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PreviewTranscribeBucket:
+    Type: AWS::S3::Bucket
+    Condition: IsPreview
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub 'danielshort-transcribe-tool-preview-${AWS::AccountId}-${AWS::Region}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - Id: PreviewPresignedUploads
+            AllowedHeaders:
+              - content-type
+              - x-amz-date
+              - x-amz-security-token
+              - authorization
+            AllowedMethods:
+              - PUT
+            AllowedOrigins: !Ref PreviewTranscribeAllowedOrigins
+            ExposedHeaders:
+              - etag
+              - x-amz-request-id
+            MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpirePreviewTranscribeUploads
+            Prefix: tools-transcribe/
+            Status: Enabled
+            ExpirationInDays: 3
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: Environment
+          Value: preview
+        - Key: ManagedBy
+          Value: cloudformation
+
+  PreviewTranscribeBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: IsPreview
+    Properties:
+      Bucket: !Ref PreviewTranscribeBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt PreviewTranscribeBucket.Arn
+              - !Sub '${PreviewTranscribeBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+Outputs:
+  PreviewToolsTableName:
+    Condition: IsPreview
+    Value: !Ref PreviewToolsTable
+  PreviewShortLinksTableName:
+    Condition: IsPreview
+    Value: !Ref PreviewShortLinksTable
+  PreviewShortLinksClicksTableName:
+    Condition: IsPreview
+    Value: !Ref PreviewShortLinksClicksTable
+  PreviewChatbotTableName:
+    Condition: IsPreview
+    Value: !Ref PreviewChatbotTable
+  PreviewTranscribeBucketName:
+    Condition: IsPreview
+    Value: !Ref PreviewTranscribeBucket
+  DemoRateLimitTableName:
+    Value: !Ref DemoRateLimitTable

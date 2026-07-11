@@ -1,4 +1,4 @@
-/* Short links admin dashboard (token-based). */
+/* Short links admin dashboard (Cognito admins group, with legacy rollback token support). */
 (() => {
   'use strict';
 
@@ -190,7 +190,7 @@
       label: 'Professional Site',
       shortLabel: 'Professional',
       homePath: '/analytics',
-      portfolioPath: '/portfolio?audience=analytics',
+      portfolioPath: '/portfolio?audience=analytics&mode=professional',
       resumePath: '/resume',
       resumePreviewPath: '/resume-pdf',
       resumeDownloadPath: '/documents/Resume.pdf'
@@ -200,7 +200,7 @@
       label: 'Data Science',
       shortLabel: 'Data Science',
       homePath: '/data-science',
-      portfolioPath: '/portfolio?audience=data-science',
+      portfolioPath: '/portfolio?audience=data-science&mode=professional',
       resumePath: '/resume-data-science',
       resumePreviewPath: '/resume-data-science-pdf',
       resumeDownloadPath: '/documents/Resume-Data-Science.pdf'
@@ -210,7 +210,7 @@
       label: 'Tourism Analytics',
       shortLabel: 'Tourism',
       homePath: '/tourism',
-      portfolioPath: '/portfolio?audience=tourism',
+      portfolioPath: '/portfolio?audience=tourism&mode=professional',
       resumePath: '/resume-tourism',
       resumePreviewPath: '/resume-tourism-pdf',
       resumeDownloadPath: '/documents/Resume-Tourism.pdf'
@@ -281,9 +281,9 @@
       value: hasToken ? 'Loading' : 'Locked',
       note: hasToken
         ? 'Loading saved redirects before comparing projects'
-        : 'Admin token required to compare saved redirects',
+        : 'Cognito admin sign-in required to compare saved redirects',
       badge: hasToken ? 'Project sync loading' : 'Unlock to check sync',
-      meta: hasToken ? 'loading saved redirects' : 'admin token required',
+      meta: hasToken ? 'loading saved redirects' : 'admin sign-in required',
       tone: hasToken ? 'info' : ''
     };
   }
@@ -374,12 +374,31 @@
     return typeof window.innerWidth === 'number' ? window.innerWidth >= 900 : true;
   }
 
-  function getSavedToken(){
+  function getCognitoAdminToken(){
+    const authApi = window.ToolsAuth || {};
+    if (typeof authApi.getAdminIdToken !== 'function') return '';
+    return String(authApi.getAdminIdToken() || '').trim();
+  }
+
+  function getSavedLegacyToken(){
     const sessionToken = sessionTokenStorage ? sessionTokenStorage.getItem(STORAGE_KEY) || '' : '';
     if (sessionToken) return sessionToken;
     const localToken = localTokenStorage ? localTokenStorage.getItem(STORAGE_KEY) || '' : '';
     if (localToken) return localToken;
     return memoryToken;
+  }
+
+  function getSavedToken(){
+    return getCognitoAdminToken() || getSavedLegacyToken();
+  }
+
+  async function getFreshAdminToken(){
+    const authApi = window.ToolsAuth || {};
+    if (typeof authApi.ensureAdminIdToken === 'function') {
+      const token = await authApi.ensureAdminIdToken().catch(() => '');
+      if (token) return String(token).trim();
+    }
+    return getSavedLegacyToken();
   }
 
   function saveToken(token, remember){
@@ -539,10 +558,14 @@
   }
 
   function updateAccessMeta(){
+    const cognitoToken = getCognitoAdminToken();
+    const legacyToken = getSavedLegacyToken();
     if (accessMetaEl) {
-      accessMetaEl.textContent = getSavedToken()
-        ? (isTokenRemembered() ? 'Token remembered' : 'Token stored for session')
-        : 'Token required';
+      accessMetaEl.textContent = cognitoToken
+        ? 'Verified admins-group session'
+        : (legacyToken
+          ? (isTokenRemembered() ? 'Legacy token remembered' : 'Legacy token stored for session')
+          : 'Admin sign-in required');
     }
     if (rememberTokenInput) rememberTokenInput.checked = isTokenRemembered();
     updateAdminSummary();
@@ -877,7 +900,10 @@
   async function fetchClickHistoryForExport(slug, limit){
     if (!slug) return [];
     const safeLimit = normalizeExportClickLimit(limit);
-    const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${safeLimit}`, { method: 'GET' });
+    const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}`, {
+      method: 'GET',
+      headers: { 'X-Shortlinks-Limit': String(safeLimit) }
+    });
     return Array.isArray(data?.clicks) ? data.clicks : [];
   }
 
@@ -1293,10 +1319,11 @@
   }
 
   function updateAdminSummary(){
-    const hasToken = !!getSavedToken();
+    const cognitoToken = getCognitoAdminToken();
+    const hasToken = !!(cognitoToken || getSavedLegacyToken());
     setAdminBadge(
       adminAccessSummaryEl,
-      hasToken ? 'Token saved' : 'Token required',
+      cognitoToken ? 'Cognito admin' : (hasToken ? 'Legacy rollback' : 'Sign-in required'),
       hasToken ? 'success' : 'warning'
     );
 
@@ -2585,7 +2612,10 @@
     if (clicksMetaEl) clicksMetaEl.textContent = '';
 
     try {
-      const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${CLICK_HISTORY_LIMIT}`, { method: 'GET' });
+      const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}`, {
+        method: 'GET',
+        headers: { 'X-Shortlinks-Limit': String(CLICK_HISTORY_LIMIT) }
+      });
       const events = Array.isArray(data.clicks) ? data.clicks : [];
       renderClickHistory(events);
       const countLabel = events.length === 1 ? 'event' : 'events';
@@ -2881,7 +2911,7 @@
   }
 
   async function api(path, options = {}){
-    const token = getSavedToken();
+    const token = await getFreshAdminToken();
     const headers = Object.assign({}, options.headers || {});
     if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -2901,7 +2931,7 @@
   }
 
   async function apiInspect(path){
-    const token = getSavedToken();
+    const token = await getFreshAdminToken();
     const headers = {};
     if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -3815,7 +3845,7 @@
   async function createOrUpdateLink({ slug, slugMode, randomLength, destination, permanent, expiresAt, statusEl, audienceKey }){
     const targetStatus = statusEl || editorStatusEl;
     if (!getSavedToken()) {
-      setStatus(targetStatus, 'Admin token required.', 'error');
+      setStatus(targetStatus, 'Cognito admin sign-in required.', 'error');
       return null;
     }
 
@@ -4257,7 +4287,7 @@
     if (!getSavedToken()) {
       allSets = [];
       renderSetLibrary();
-      if (!options.silent) setStatus(setsStatusEl, 'Admin token required.', 'error');
+      if (!options.silent) setStatus(setsStatusEl, 'Cognito admin sign-in required.', 'error');
       resetSetEditor({ keepStatus: true });
       return;
     }
@@ -4396,9 +4426,11 @@
     const token = tokenInput.value.trim();
     if (!token) {
       if (getSavedToken()) {
-        setStatus(statusEl, 'Token already stored. Paste a token to replace, or click "Forget token".', 'success');
+        setStatus(statusEl, getCognitoAdminToken()
+          ? 'Cognito admin session is active. A legacy token is not needed.'
+          : 'Legacy token already stored. Paste a token to replace, or click "Forget token".', 'success');
       } else {
-        setStatus(statusEl, 'Paste your admin token to unlock this dashboard.', 'error');
+        setStatus(statusEl, 'Sign in with an admins-group account, or paste a legacy rollback token.', 'error');
       }
       return;
     }
@@ -4406,7 +4438,7 @@
     saveToken(token, remember);
     updateAccessMeta();
     tokenInput.value = '';
-    setStatus(statusEl, remember ? 'Token remembered. Loading links...' : 'Token saved for this session. Loading links...');
+    setStatus(statusEl, remember ? 'Legacy rollback token remembered. Loading links...' : 'Legacy rollback token saved for this session. Loading links...');
     if (accessCard) accessCard.classList.remove('is-attention');
     setActiveMode('links');
     await refreshLinks();
@@ -4415,8 +4447,8 @@
 
   refreshButton.addEventListener('click', async () => {
     if (!getSavedToken()) {
-      setStatus(statusEl, 'Admin token required.', 'error');
-      setStatus(listStatusEl, 'Admin token required.', 'error');
+      setStatus(statusEl, 'Cognito admin sign-in required.', 'error');
+      setStatus(listStatusEl, 'Cognito admin sign-in required.', 'error');
       revealAccessCard({ focusInput: true });
       return;
     }
@@ -4450,7 +4482,7 @@
   if (healthButton) {
     healthButton.addEventListener('click', () => {
       if (!getSavedToken()) {
-        setStatus(healthStatusEl, 'Admin token required.', 'error');
+        setStatus(healthStatusEl, 'Cognito admin sign-in required.', 'error');
         revealAccessCard({ focusInput: true });
         return;
       }
@@ -4463,11 +4495,15 @@
       saveToken('');
       updateAccessMeta();
       tokenInput.value = '';
+      if (getCognitoAdminToken()) {
+        setStatus(statusEl, 'Legacy rollback token cleared. Cognito admin session remains active.', 'success');
+        return;
+      }
       linksLoaded = false;
       allLinks = [];
       clearList();
       visibleLinksCount = 0;
-      setStatus(statusEl, 'Token forgotten on this device.', 'success');
+      setStatus(statusEl, 'Legacy rollback token forgotten on this device.', 'success');
       setStatus(healthStatusEl, '');
       setStatus(listStatusEl, '');
       setStatus(setsStatusEl, '');
@@ -4583,7 +4619,7 @@
 
   function requireToken(target){
     if (getSavedToken()) return true;
-    setStatus(target || editorStatusEl, 'Admin token required.', 'error');
+    setStatus(target || editorStatusEl, 'Cognito admin sign-in required.', 'error');
     revealAccessCard({ focusInput: true });
     return false;
   }
@@ -4708,6 +4744,27 @@
     temporaryForm.addEventListener('submit', submitTemporary);
   }
 
+  document.addEventListener('tools:auth-changed', () => {
+    updateAccessMeta();
+    if (getSavedToken()) {
+      setStatus(statusEl, getCognitoAdminToken()
+        ? 'Cognito admins-group session active. Loading links...'
+        : 'Legacy rollback token active. Loading links...', 'success');
+      void refreshLinks();
+      void refreshSets({ preserveSelection: true, silent: true });
+      return;
+    }
+    linksLoaded = false;
+    allLinks = [];
+    visibleLinkSlugs = [];
+    selectedSlugs = new Set();
+    clearList();
+    setCount(0, 0);
+    allSets = [];
+    renderSetLibrary();
+    setStatus(statusEl, 'Sign in with a Cognito account in the admins group.', 'info');
+  });
+
   updateAccessMeta();
   if (audienceSelect) {
     setAudienceControlsValue(getSelectedAudienceKey());
@@ -4727,7 +4784,11 @@
   void refreshProjectsSection();
   resetSetEditor({ keepStatus: true });
   if (getSavedToken()) {
-    setStatus(statusEl, isTokenRemembered() ? 'Remembered token loaded. Loading links...' : 'Session token loaded. Loading links...', 'success');
+    setStatus(statusEl, getCognitoAdminToken()
+      ? 'Cognito admins-group session active. Loading links...'
+      : (isTokenRemembered()
+        ? 'Remembered legacy rollback token loaded. Loading links...'
+        : 'Session legacy rollback token loaded. Loading links...'), 'success');
     refreshLinks();
     refreshSets({ preserveSelection: true, silent: true });
   }

@@ -5,7 +5,7 @@
   - TRANSCRIBE_UPLOAD_BUCKET
   - TRANSCRIBE_SIGNING_SECRET
   - AWS_REGION (or AWS_DEFAULT_REGION)
-  - Prefer TRANSCRIBE_AWS_ACCESS_KEY_ID / TRANSCRIBE_AWS_SECRET_ACCESS_KEY
+  - TRANSCRIBE_AWS_ROLE_ARN when AWS_AUTH_MODE=oidc
 */
 'use strict';
 
@@ -20,6 +20,7 @@ const {
 } = require('@aws-sdk/client-transcribe');
 const { getBearerToken, readJson, sendJson } = require('../tools-api');
 const { verifyCognitoIdToken } = require('../cognito-jwt');
+const { AWS_WORKLOADS, getAwsClientConfig } = require('../aws-credentials');
 
 const SUPPORTED_FORMATS = new Set(['mp3', 'mp4', 'wav', 'flac', 'ogg', 'webm', 'm4a', 'amr']);
 const VIDEO_FORMATS = new Set(['mp4', 'webm']);
@@ -45,16 +46,6 @@ function pickEnv(keys){
     return raw.trim();
   }
   return '';
-}
-
-function getAwsCredentialsFromEnv(){
-  const accessKeyId = pickEnv(['TRANSCRIBE_AWS_ACCESS_KEY_ID', 'TOOLS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['TRANSCRIBE_AWS_SECRET_ACCESS_KEY', 'TOOLS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['TRANSCRIBE_AWS_SESSION_TOKEN', 'TOOLS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  const creds = { accessKeyId, secretAccessKey };
-  if (sessionToken && accessKeyId.startsWith('ASIA')) creds.sessionToken = sessionToken;
-  return creds;
 }
 
 function getConfig(){
@@ -128,13 +119,13 @@ function positiveInteger(value, fallback){
 
 function getClients(){
   const config = getConfig();
-  const creds = getAwsCredentialsFromEnv();
-  const key = `${config.region}:${creds ? creds.accessKeyId : 'default'}`;
+  const aws = getAwsClientConfig(AWS_WORKLOADS.TRANSCRIBE, { region: config.region });
+  const key = `${config.region}:${aws.cacheKey}`;
   if (cachedS3Client && cachedTranscribeClient && cachedClientKey === key) {
     return { s3: cachedS3Client, transcribe: cachedTranscribeClient, config };
   }
-  cachedS3Client = new S3Client({ region: config.region, credentials: creds || undefined });
-  cachedTranscribeClient = new TranscribeClient({ region: config.region, credentials: creds || undefined });
+  cachedS3Client = new S3Client(aws.clientConfig);
+  cachedTranscribeClient = new TranscribeClient(aws.clientConfig);
   cachedClientKey = key;
   return { s3: cachedS3Client, transcribe: cachedTranscribeClient, config };
 }
@@ -453,11 +444,7 @@ async function handleStart(req, res){
       TranscriptionJobName: jobName,
       LanguageCode: config.languageCode,
       MediaFormat: quote.format,
-      Media: { MediaFileUri: `s3://${quote.bucket}/${quote.key}` },
-      Tags: [
-        { Key: 'tool', Value: 'amazon-transcribe' },
-        { Key: 'user', Value: user.sub.slice(0, 200) }
-      ]
+      Media: { MediaFileUri: `s3://${quote.bucket}/${quote.key}` }
     }));
     sendJson(res, 200, {
       ok: true,
@@ -468,6 +455,11 @@ async function handleStart(req, res){
       billableSeconds: quote.billableSeconds
     });
   } catch (err) {
+    console.error('[transcribe] StartTranscriptionJob failed', {
+      name: String(err && err.name || '').slice(0, 120),
+      code: String(err && err.code || '').slice(0, 120),
+      statusCode: Number(err && err.$metadata && err.$metadata.httpStatusCode) || 0
+    });
     await Promise.allSettled([
       s3.send(new DeleteObjectCommand({ Bucket: quote.bucket, Key: quote.key }))
     ]);

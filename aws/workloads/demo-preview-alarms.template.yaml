@@ -1,0 +1,533 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Error, throttle, and duration alarms for the ten isolated Preview demo Lambdas.
+
+Parameters:
+  AlarmTopicArn:
+    Type: String
+    AllowedPattern: '^arn:(aws|aws-us-gov|aws-cn):sns:[a-z0-9-]+:[0-9]{12}:[A-Za-z0-9_.-]{1,256}$'
+  ShapeFunctionName:
+    Type: String
+    Default: shape-analyzer-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  SmartSentenceFunctionName:
+    Type: String
+    Default: smart-sentence-finder-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  NonogramFunctionName:
+    Type: String
+    Default: nonogram-solver-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  HandwritingFunctionName:
+    Type: String
+    Default: handwriting-rating-demo-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  DigitFunctionName:
+    Type: String
+    Default: digit-generator-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  CovidFunctionName:
+    Type: String
+    Default: covid-outbreak-drivers-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  PizzaFunctionName:
+    Type: String
+    Default: pizza-tips-predict-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  TargetFunctionName:
+    Type: String
+    Default: target-empty-package-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  RetailFunctionName:
+    Type: String
+    Default: retail-loss-sales-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+  MinesweeperFunctionName:
+    Type: String
+    Default: minesweeper-solver-preview
+    AllowedPattern: '^[A-Za-z0-9_-]{1,56}-preview$'
+
+Resources:
+  ShapeErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-shape-preview-errors
+      AlarmDescription: Shape Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref ShapeFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  ShapeThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-shape-preview-throttles
+      AlarmDescription: Shape Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref ShapeFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  ShapeDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-shape-preview-duration
+      AlarmDescription: Shape Preview exceeded 100 seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref ShapeFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  SmartSentenceErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-smart-sentence-preview-errors
+      AlarmDescription: Smart Sentence Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref SmartSentenceFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  SmartSentenceThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-smart-sentence-preview-throttles
+      AlarmDescription: Smart Sentence Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref SmartSentenceFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  SmartSentenceDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-smart-sentence-preview-duration
+      AlarmDescription: Smart Sentence Preview exceeded 100 seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref SmartSentenceFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 100000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  NonogramErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-nonogram-preview-errors
+      AlarmDescription: Nonogram Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref NonogramFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  NonogramThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-nonogram-preview-throttles
+      AlarmDescription: Nonogram Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref NonogramFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  NonogramDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-nonogram-preview-duration
+      AlarmDescription: Nonogram Preview exceeded 50 seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref NonogramFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 50000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  HandwritingErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-handwriting-preview-errors
+      AlarmDescription: Handwriting Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref HandwritingFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  HandwritingThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-handwriting-preview-throttles
+      AlarmDescription: Handwriting Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref HandwritingFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  HandwritingDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-handwriting-preview-duration
+      AlarmDescription: Handwriting Preview exceeded 50 seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref HandwritingFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 50000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  DigitErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-digit-preview-errors
+      AlarmDescription: Digit Generator Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref DigitFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  DigitThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-digit-preview-throttles
+      AlarmDescription: Digit Generator Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref DigitFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  DigitDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-digit-preview-duration
+      AlarmDescription: Digit Generator Preview exceeded 50 seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref DigitFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 50000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  CovidErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-covid-preview-errors
+      AlarmDescription: COVID Outbreak Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref CovidFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  CovidThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-covid-preview-throttles
+      AlarmDescription: COVID Outbreak Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref CovidFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  CovidDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-covid-preview-duration
+      AlarmDescription: COVID Outbreak Preview exceeded eight seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref CovidFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 8000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  PizzaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-pizza-preview-errors
+      AlarmDescription: Pizza Tips Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref PizzaFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  PizzaThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-pizza-preview-throttles
+      AlarmDescription: Pizza Tips Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref PizzaFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  PizzaDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-pizza-preview-duration
+      AlarmDescription: Pizza Tips Preview exceeded four seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref PizzaFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 4000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  TargetErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-target-preview-errors
+      AlarmDescription: Target Empty Package Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref TargetFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  TargetThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-target-preview-throttles
+      AlarmDescription: Target Empty Package Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref TargetFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  TargetDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-target-preview-duration
+      AlarmDescription: Target Empty Package Preview exceeded six seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref TargetFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 6000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  RetailErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-retail-preview-errors
+      AlarmDescription: Retail Loss Sales Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref RetailFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  RetailThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-retail-preview-throttles
+      AlarmDescription: Retail Loss Sales Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref RetailFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  RetailDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-retail-preview-duration
+      AlarmDescription: Retail Loss Sales Preview exceeded six seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref RetailFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 6000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  MinesweeperErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-minesweeper-preview-errors
+      AlarmDescription: Minesweeper Preview reported at least one error in five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions: [{Name: FunctionName, Value: !Ref MinesweeperFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  MinesweeperThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-minesweeper-preview-throttles
+      AlarmDescription: Minesweeper Preview was throttled in the last five minutes.
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions: [{Name: FunctionName, Value: !Ref MinesweeperFunctionName}]
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+  MinesweeperDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: website-demo-minesweeper-preview-duration
+      AlarmDescription: Minesweeper Preview exceeded 50 seconds in a five-minute period.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions: [{Name: FunctionName, Value: !Ref MinesweeperFunctionName}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 50000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopicArn]
+
+Outputs:
+  AlarmCount:
+    Value: '30'
+    Description: Three alarms for each of ten Preview functions.

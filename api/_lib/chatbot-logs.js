@@ -8,6 +8,7 @@ const {
   PutCommand,
   QueryCommand
 } = require('@aws-sdk/lib-dynamodb');
+const { AWS_WORKLOADS, getAwsClientConfig } = require('./aws-credentials');
 
 let cachedDocClient = null;
 let cachedClientKey = '';
@@ -36,25 +37,13 @@ function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
-}
-
 function getDocClient() {
   const region = getRegion();
-  const credentials = getAwsCredentialsFromEnv();
-  const key = `${region}:${credentials ? credentials.accessKeyId : 'default'}`;
+  const aws = getAwsClientConfig(AWS_WORKLOADS.CHATBOT_DDB, { region });
+  const key = `${region}:${aws.cacheKey}`;
   if (cachedDocClient && cachedClientKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region, credentials: credentials || undefined });
+  const client = new DynamoDBClient(aws.clientConfig);
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });
@@ -251,32 +240,9 @@ async function getChatbotLog(logId) {
   return result.Item || null;
 }
 
-function getAdminToken() {
-  return pickEnv(['CHATBOT_ADMIN_TOKEN']);
-}
-
-function isAdminRequest(req) {
-  const configured = getAdminToken();
-  if (!configured) return false;
-  const headers = req && req.headers ? req.headers : {};
-  const auth = headers.authorization ? String(headers.authorization) : '';
-  const headerToken = headers['x-admin-token'] || headers['x-chatbot-admin-token'];
-  let provided = headerToken ? String(headerToken).trim() : '';
-  if (!provided && auth.toLowerCase().startsWith('bearer ')) {
-    provided = auth.slice(7).trim();
-  }
-  if (!provided) return false;
-
-  const a = Buffer.from(provided);
-  const b = Buffer.from(configured);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
-}
-
 module.exports = {
-  getAdminToken,
   getChatbotLog,
   getLogConfig,
-  isAdminRequest,
   listChatbotLogs,
   recordChatbotLog,
   summarizeLog

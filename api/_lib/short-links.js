@@ -4,6 +4,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { authorizeAdminRequest } = require('./admin-auth');
 
 const SHORTLINKS_PREFIX = 'shortlinks';
 const SLUG_SET_KEY = `${SHORTLINKS_PREFIX}:slugs`;
@@ -37,40 +38,8 @@ function isInternalRecordSlug(slug){
   return raw.startsWith(SET_KEY_PREFIX) || raw.startsWith(BATCH_KEY_PREFIX);
 }
 
-function getAdminToken(){
-  const token = process.env.SHORTLINKS_ADMIN_TOKEN;
-  return typeof token === 'string' ? token.trim() : '';
-}
-
-function isAdminRequest(req){
-  const configured = getAdminToken();
-  if (!configured) return false;
-
-  const auth = (req.headers && req.headers.authorization) ? String(req.headers.authorization) : '';
-  const headerToken = (req.headers && (req.headers['x-admin-token'] || req.headers['x-shortlinks-token']))
-    ? String(req.headers['x-admin-token'] || req.headers['x-shortlinks-token'])
-    : '';
-
-  let provided = headerToken.trim();
-  if (!provided && auth.toLowerCase().startsWith('bearer ')) {
-    provided = auth.slice(7).trim();
-  }
-  if (!provided) return false;
-
-  const providedBuffer = Buffer.from(provided, 'utf8');
-  const configuredBuffer = Buffer.from(configured, 'utf8');
-  if (providedBuffer.length !== configuredBuffer.length) {
-    try {
-      crypto.timingSafeEqual(configuredBuffer, configuredBuffer);
-    } catch {}
-    return false;
-  }
-
-  try {
-    return crypto.timingSafeEqual(providedBuffer, configuredBuffer);
-  } catch {
-    return false;
-  }
+function authorizeShortLinksAdmin(req){
+  return authorizeAdminRequest(req, { legacyTokenEnv: 'SHORTLINKS_ADMIN_TOKEN' });
 }
 
 function sendJson(res, status, body){
@@ -179,8 +148,7 @@ module.exports = {
   buildSetRecordKey,
   buildBatchRecordKey,
   isInternalRecordSlug,
-  getAdminToken,
-  isAdminRequest,
+  authorizeShortLinksAdmin,
   sendJson,
   readJson,
   normalizeSlug,

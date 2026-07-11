@@ -472,7 +472,7 @@
 
   const getClaimGroups = (auth) => {
     const claims = getAuthClaims(auth);
-    const groups = claims['cognito:groups'] || claims.groups || claims.group;
+    const groups = claims['cognito:groups'];
     return normalizeStringList(groups);
   };
 
@@ -480,12 +480,7 @@
     const config = window.TOOLS_AUTH_CONFIG || {};
     const configured = normalizeStringList(config.adminGroups);
     if (configured.length) return configured;
-    return ['admin', 'admins'];
-  };
-
-  const getConfiguredAdminEmails = () => {
-    const config = window.TOOLS_AUTH_CONFIG || {};
-    return normalizeStringList(config.adminEmails);
+    return ['admins'];
   };
 
   const isAdmin = (authInput) => {
@@ -494,15 +489,12 @@
 
     const adminGroups = new Set(getConfiguredAdminGroups());
     const claimGroups = getClaimGroups(auth);
-    if (claimGroups.some((group) => adminGroups.has(group))) return true;
+    return claimGroups.some((group) => adminGroups.has(group));
+  };
 
-    const adminEmails = new Set(getConfiguredAdminEmails());
-    if (adminEmails.size) {
-      const email = String(getUser(auth).email || '').trim().toLowerCase();
-      if (email && adminEmails.has(email)) return true;
-    }
-
-    return false;
+  const getAdminIdToken = (authInput) => {
+    const auth = normalizeAuth(authInput || loadAuth());
+    return authIsValid(auth) && isAdmin(auth) ? String(auth.idToken || '') : '';
   };
 
   const getAuth = () => loadAuth();
@@ -519,6 +511,11 @@
       clearAuth();
       return null;
     }
+  };
+
+  const ensureAdminIdToken = async () => {
+    const auth = await ensureFreshAuth();
+    return getAdminIdToken(auth);
   };
 
   const fetchWithAuth = async (url, options = {}) => {
@@ -538,10 +535,12 @@
     getUser,
     authIsValid,
     isAdmin,
+    getAdminIdToken,
     signIn,
     signOut: clearAllAuth,
     handleRedirect,
     ensureFreshAuth,
+    ensureAdminIdToken,
     fetchWithAuth
   };
 })();

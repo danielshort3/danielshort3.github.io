@@ -486,14 +486,32 @@
 
   const storage = getStorage(true) || getStorage(false);
 
-  const getSavedShortlinksToken = () => {
+  const getSavedLegacyShortlinksToken = () => {
     if (!storage) return '';
     return String(storage.getItem(SHORTLINKS_TOKEN_STORAGE_KEY) || '').trim();
   };
 
+  const getCognitoAdminToken = () => {
+    const authApi = window.ToolsAuth || {};
+    return typeof authApi.getAdminIdToken === 'function'
+      ? String(authApi.getAdminIdToken() || '').trim()
+      : '';
+  };
+
+  const getAvailableShortlinksToken = () => getCognitoAdminToken() || getSavedLegacyShortlinksToken();
+
+  const getFreshShortlinksToken = async () => {
+    const authApi = window.ToolsAuth || {};
+    if (typeof authApi.ensureAdminIdToken === 'function') {
+      const idToken = await authApi.ensureAdminIdToken().catch(() => '');
+      if (idToken) return String(idToken).trim();
+    }
+    return getSavedLegacyShortlinksToken();
+  };
+
   const updateShortlinksPickerVisibility = () => {
     if (!shortlinksPickerOpen) return;
-    shortlinksPickerOpen.hidden = !getSavedShortlinksToken();
+    shortlinksPickerOpen.hidden = !getAvailableShortlinksToken();
   };
 
   const getCanonicalSiteOrigin = () => {
@@ -722,9 +740,9 @@
 
   const loadShortlinksManifest = async () => {
     if (shortlinksManifest) return shortlinksManifest;
-    const token = getSavedShortlinksToken();
+    const token = await getFreshShortlinksToken();
     if (!token) {
-      const err = new Error('Short Links admin token not found. Open the Short Links tool and save your token first.');
+      const err = new Error('Cognito admins-group sign-in required. Open the Short Links tool to sign in.');
       err.code = 'TOKEN_MISSING';
       throw err;
     }
@@ -742,6 +760,11 @@
     shortlinksManifest = data;
     return shortlinksManifest;
   };
+
+  document.addEventListener('tools:auth-changed', () => {
+    shortlinksManifest = null;
+    updateShortlinksPickerVisibility();
+  });
 
   const getShortlinksQuery = () => {
     if (!shortlinksSearch) return '';

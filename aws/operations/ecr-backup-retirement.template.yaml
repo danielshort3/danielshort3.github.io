@@ -1,0 +1,214 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  One-time retirement of the exact backup-20260711-* ECR tags after the
+  30-day migration recovery window. This stack does not change release tags.
+
+Parameters:
+  RetirementAt:
+    Type: String
+    Default: '2026-08-11T00:00:00'
+    AllowedPattern: '^2026-08-1[1-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$'
+    Description: UTC one-time Scheduler timestamp, at least 30 days after the July 11 checkpoint.
+
+Resources:
+  BackupTagRetirementRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: website-ecr-backup-retirement-20260711
+      Path: /website/operations/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+                aws:SourceArn: !Sub 'arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule-group/default'
+      Policies:
+        - PolicyName: remove-exact-website-backup-tags
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ecr:BatchDeleteImage
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/nonogram-solver-lambda'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/shape-analyzer'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/digit-generator-lambda'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/minesweeper-solver'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/whisper-transcribe'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/vgj-chatbot-inference'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/smart-sentence-finder-lambda'
+                  - !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/handwriting-rating'
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Purpose
+          Value: migration-backup-retirement
+
+  NonogramBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-nonogram-backups-20260711
+      Description: Remove the 13 exact July 11 Nonogram backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"nonogram-solver-lambda","ImageIds":[{"ImageTag":"backup-20260711-0e89f753e16f"},{"ImageTag":"backup-20260711-16638a5fadc3"},{"ImageTag":"backup-20260711-18ebee5c13de"},{"ImageTag":"backup-20260711-19ca266432a5"},{"ImageTag":"backup-20260711-3495621e935d"},{"ImageTag":"backup-20260711-40842f332e51"},{"ImageTag":"backup-20260711-4d742e6b0f51"},{"ImageTag":"backup-20260711-4e7127040c9d"},{"ImageTag":"backup-20260711-7747154af44c"},{"ImageTag":"backup-20260711-91c8b7ab3972"},{"ImageTag":"backup-20260711-d61b843518ac"},{"ImageTag":"backup-20260711-df77092e1eb5"},{"ImageTag":"backup-20260711-e7d30e586dfe"}]}
+
+  ShapeBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-shape-backups-20260711
+      Description: Remove the three exact July 11 Shape backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"shape-analyzer","ImageIds":[{"ImageTag":"backup-20260711-07f13602dcfa"},{"ImageTag":"backup-20260711-18bf222fa295"},{"ImageTag":"backup-20260711-8f33644336f4"}]}
+
+  DigitBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-digit-backups-20260711
+      Description: Remove the ten exact July 11 Digit Generator backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"digit-generator-lambda","ImageIds":[{"ImageTag":"backup-20260711-06e2c640d32a"},{"ImageTag":"backup-20260711-08aeeff85a1e"},{"ImageTag":"backup-20260711-2da8bff5deec"},{"ImageTag":"backup-20260711-4a8f83885d40"},{"ImageTag":"backup-20260711-4ac391b10c9e"},{"ImageTag":"backup-20260711-7003e0a7afd2"},{"ImageTag":"backup-20260711-7e2fe6a07780"},{"ImageTag":"backup-20260711-9c404ac4dc58"},{"ImageTag":"backup-20260711-b6fc0c41615b"},{"ImageTag":"backup-20260711-da7aa9364a55"}]}
+
+  MinesweeperBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-minesweeper-backups-20260711
+      Description: Remove the 20 exact July 11 Minesweeper backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"minesweeper-solver","ImageIds":[{"ImageTag":"backup-20260711-01de158001a4"},{"ImageTag":"backup-20260711-0cd0a80caa1a"},{"ImageTag":"backup-20260711-0ef0a05d7e9d"},{"ImageTag":"backup-20260711-3c2e37580cbe"},{"ImageTag":"backup-20260711-5024a0104029"},{"ImageTag":"backup-20260711-65c94a87354e"},{"ImageTag":"backup-20260711-843b16d1637d"},{"ImageTag":"backup-20260711-895be0de1dcd"},{"ImageTag":"backup-20260711-92aac12044d3"},{"ImageTag":"backup-20260711-969e328c4ef3"},{"ImageTag":"backup-20260711-a863d3674355"},{"ImageTag":"backup-20260711-b345b08ec459"},{"ImageTag":"backup-20260711-c612256dd800"},{"ImageTag":"backup-20260711-dcf8fc26e19b"},{"ImageTag":"backup-20260711-dd679b6a9c0f"},{"ImageTag":"backup-20260711-e4d37904dd14"},{"ImageTag":"backup-20260711-e99ad2fe6695"},{"ImageTag":"backup-20260711-f787df43ae57"},{"ImageTag":"backup-20260711-fb894dc4b833"},{"ImageTag":"backup-20260711-fccc84168969"}]}
+
+  WhisperBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-whisper-backups-20260711
+      Description: Remove the 19 exact July 11 Whisper backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"whisper-transcribe","ImageIds":[{"ImageTag":"backup-20260711-023f514a6577"},{"ImageTag":"backup-20260711-13d15e01ccfd"},{"ImageTag":"backup-20260711-248caa5b507f"},{"ImageTag":"backup-20260711-2bea2c45be6f"},{"ImageTag":"backup-20260711-32cd9c086a36"},{"ImageTag":"backup-20260711-67cadd56610e"},{"ImageTag":"backup-20260711-69ca533e5ae2"},{"ImageTag":"backup-20260711-703aaf539c5a"},{"ImageTag":"backup-20260711-79007f7e1a23"},{"ImageTag":"backup-20260711-8c69e22ffb21"},{"ImageTag":"backup-20260711-90c3e14f4bad"},{"ImageTag":"backup-20260711-935dc6058f2f"},{"ImageTag":"backup-20260711-ba92fcc8bee1"},{"ImageTag":"backup-20260711-c3b672cd5a21"},{"ImageTag":"backup-20260711-d2e19264b831"},{"ImageTag":"backup-20260711-d610412c4c19"},{"ImageTag":"backup-20260711-d76cff0634c1"},{"ImageTag":"backup-20260711-e69b95feaf8c"},{"ImageTag":"backup-20260711-f95a43ea4687"}]}
+
+  VgjBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-vgj-backups-20260711
+      Description: Remove the seven exact July 11 VGJ backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"vgj-chatbot-inference","ImageIds":[{"ImageTag":"backup-20260711-3c82b8adaf38"},{"ImageTag":"backup-20260711-461fb1bf7152"},{"ImageTag":"backup-20260711-56439c0760ed"},{"ImageTag":"backup-20260711-79b44401741c"},{"ImageTag":"backup-20260711-824b60909853"},{"ImageTag":"backup-20260711-9f950ab44cde"},{"ImageTag":"backup-20260711-ff548c62a516"}]}
+
+  SmartSentenceBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-smart-sentence-backups-20260711
+      Description: Remove the four exact July 11 Smart Sentence backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"smart-sentence-finder-lambda","ImageIds":[{"ImageTag":"backup-20260711-1fa15e13c7a1"},{"ImageTag":"backup-20260711-619ede9c3df2"},{"ImageTag":"backup-20260711-c8b2277b5ff3"},{"ImageTag":"backup-20260711-ca124ab4f665"}]}
+
+  HandwritingBackupRetirement:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: website-ecr-retire-handwriting-backups-20260711
+      Description: Remove the four exact July 11 Handwriting backup tags after the recovery window.
+      ScheduleExpression: !Sub 'at(${RetirementAt})'
+      ScheduleExpressionTimezone: UTC
+      FlexibleTimeWindow:
+        Mode: 'OFF'
+      State: ENABLED
+      Target:
+        Arn: !Sub 'arn:${AWS::Partition}:scheduler:::aws-sdk:ecr:batchDeleteImage'
+        RoleArn: !GetAtt BackupTagRetirementRole.Arn
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 86400
+          MaximumRetryAttempts: 10
+        Input: >-
+          {"RepositoryName":"handwriting-rating","ImageIds":[{"ImageTag":"backup-20260711-1ac12c9cb2ae"},{"ImageTag":"backup-20260711-6bd1f20ad8c6"},{"ImageTag":"backup-20260711-757c73ba5c77"},{"ImageTag":"backup-20260711-9834e20a2657"}]}
+
+Outputs:
+  RetirementAtUtc:
+    Value: !Ref RetirementAt
+  ScheduledRepositoryCount:
+    Value: '8'
+  ScheduledBackupTagCount:
+    Value: '80'
+  SchedulerRoleArn:
+    Value: !GetAtt BackupTagRetirementRole.Arn

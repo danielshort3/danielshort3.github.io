@@ -1,0 +1,13 @@
+[
+  { "ParameterKey": "Environment", "ParameterValue": "preview" },
+  { "ParameterKey": "OidcProviderArn", "ParameterValue": "arn:aws:iam::886623862678:oidc-provider/oidc.vercel.com/daniel-shorts-projects" },
+  { "ParameterKey": "ToolsTableName", "ParameterValue": "danielshort-tools-accounts-preview" },
+  { "ParameterKey": "ShortLinksTableName", "ParameterValue": "danielshort-short-links-preview" },
+  { "ParameterKey": "ShortLinksClicksTableName", "ParameterValue": "danielshort-short-links-clicks-preview" },
+  { "ParameterKey": "ChatbotTableName", "ParameterValue": "danielshort-chatbot-runtime-preview" },
+  { "ParameterKey": "TranscribeBucketName", "ParameterValue": "danielshort-transcribe-tool-preview-886623862678-us-east-2" },
+  { "ParameterKey": "BedrockResourceArns", "ParameterValue": "arn:aws:bedrock:us-east-2:886623862678:inference-profile/us.amazon.nova-lite-v1:0,arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0,arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-lite-v1:0,arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-lite-v1:0,arn:aws:bedrock:us-east-2::foundation-model/amazon.titan-embed-text-v2:0" },
+  { "ParameterKey": "SesIdentityArns", "ParameterValue": "arn:aws:ses:us-east-2:886623862678:identity/noreply@danielshort.me" },
+  { "ParameterKey": "DemoFunctionArns", "ParameterValue": "arn:aws:lambda:us-east-2:886623862678:function:shape-analyzer-preview:live,arn:aws:lambda:us-east-2:886623862678:function:smart-sentence-finder-preview:live,arn:aws:lambda:us-east-2:886623862678:function:nonogram-solver-preview:live,arn:aws:lambda:us-east-2:886623862678:function:handwriting-rating-demo-preview:live,arn:aws:lambda:us-east-2:886623862678:function:digit-generator-preview:live,arn:aws:lambda:us-east-2:886623862678:function:covid-outbreak-drivers-preview:live,arn:aws:lambda:us-east-2:886623862678:function:pizza-tips-predict-preview:live,arn:aws:lambda:us-east-2:886623862678:function:target-empty-package-preview:live,arn:aws:lambda:us-east-2:886623862678:function:retail-loss-sales-preview:live,arn:aws:lambda:us-east-2:886623862678:function:minesweeper-solver-preview:live" },
+  { "ParameterKey": "DemoRateLimitTableName", "ParameterValue": "website-demo-rate-limit-preview" }
+]

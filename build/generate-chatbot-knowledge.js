@@ -11,6 +11,11 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
+const {
+  AWS_WORKLOADS,
+  getAwsAuthConfig,
+  getAwsClientConfig
+} = require('../api/_lib/aws-credentials');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
@@ -56,20 +61,11 @@ function pickEnv(keys) {
   return '';
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
-}
-
 function hasBedrockBuildConfig() {
-  return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
+  const options = { region: getRegion() };
+  const auth = getAwsAuthConfig(AWS_WORKLOADS.CHATBOT_BEDROCK, options);
+  if (auth.mode !== 'default') return true;
+  return Boolean(pickEnv([
     'AWS_PROFILE',
     'AWS_SHARED_CREDENTIALS_FILE',
     'AWS_WEB_IDENTITY_TOKEN_FILE',
@@ -461,11 +457,9 @@ async function applyEmbeddings(knowledge) {
     return knowledge;
   }
 
-  const credentials = getAwsCredentialsFromEnv();
-  const client = new BedrockRuntimeClient({
-    region: getRegion(),
-    credentials: credentials || undefined
-  });
+  const region = getRegion();
+  const aws = getAwsClientConfig(AWS_WORKLOADS.CHATBOT_BEDROCK, { region });
+  const client = new BedrockRuntimeClient(aws.clientConfig);
   const cache = loadExistingEmbeddingCache(config.modelId, config.dimensions);
 
   for (const chunk of knowledge.chunks) {

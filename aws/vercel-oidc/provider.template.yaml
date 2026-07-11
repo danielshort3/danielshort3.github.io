@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Team-scoped Vercel OIDC provider for the website project.
+
+Parameters:
+  VercelTeamSlug:
+    Type: String
+    Default: daniel-shorts-projects
+    AllowedValues:
+      - daniel-shorts-projects
+  Audience:
+    Type: String
+    Default: sts.amazonaws.com
+    AllowedValues:
+      - sts.amazonaws.com
+
+Resources:
+  VercelOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Url: !Sub 'https://oidc.vercel.com/${VercelTeamSlug}'
+      ClientIdList:
+        - !Ref Audience
+      Tags:
+        - Key: Application
+          Value: website
+        - Key: ManagedBy
+          Value: cloudformation
+
+Outputs:
+  OidcProviderArn:
+    Description: Pass this ARN to each production and preview roles stack.
+    Value: !Ref VercelOidcProvider
+    Export:
+      Name: website-vercel-oidc-provider-arn
+  IssuerUrl:
+    Value: !Sub 'https://oidc.vercel.com/${VercelTeamSlug}'
+  Audience:
+    Value: !Ref Audience

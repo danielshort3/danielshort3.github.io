@@ -2447,7 +2447,9 @@
       goodEnemyDensity: combatMap && enemyDensity >= (map && map.isDungeon ? 1.2 : 2),
       sensibleSpawnPlacement: combatMap && spawnCoverage >= 0.75 && (spawnPoints || []).every((point) => trainingPlatformIndices.includes(point.platformIndex)),
       loopableMovement: combatMap && stronglyConnected,
-      reasonableVerticalTravel: combatMap && (climbables || []).length >= (map && map.isDungeon ? 3 : 8) && (rampConnections || []).length >= (map && map.isDungeon ? 4 : 8),
+      reasonableVerticalTravel: combatMap &&
+        (climbables || []).length >= (map && map.isDungeon ? 3 : 8) &&
+        rampLinkCount >= (map && map.isDungeon ? 4 : 8),
       noUnreachablePlatforms: combatMap && unreachableTrainingPlatforms.length === 0,
       noAwkwardDeadEnds: combatMap && deadEndPlatforms.length === 0,
       noCrampedCombatLanes: combatMap && minCombatLaneWidth >= 640,

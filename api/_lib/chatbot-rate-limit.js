@@ -7,6 +7,7 @@ const {
   GetCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
+const { AWS_WORKLOADS, getAwsClientConfig } = require('./aws-credentials');
 
 const memoryStore = new Map();
 let cachedDocClient = null;
@@ -56,29 +57,17 @@ function getRateLimitTable() {
   return pickEnv(['CHATBOT_DDB_TABLE', 'CHATBOT_DDB_TABLE_NAME']);
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
-}
-
 function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
 
 function getDocClient() {
   const region = getRegion();
-  const credentials = getAwsCredentialsFromEnv();
-  const key = `${region}:${credentials ? credentials.accessKeyId : 'default'}`;
+  const aws = getAwsClientConfig(AWS_WORKLOADS.CHATBOT_DDB, { region });
+  const key = `${region}:${aws.cacheKey}`;
   if (cachedDocClient && cachedClientKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region, credentials: credentials || undefined });
+  const client = new DynamoDBClient(aws.clientConfig);
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });
