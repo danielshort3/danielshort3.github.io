@@ -3,7 +3,7 @@ window.PrivacyConfig = {
   languages: ["en", "es"],
   regions: { eea: true, uk: true, usStatesWithCCPA: ["CA"] },
   vendors: {
-    ga4: { id: "G-0VL37MQ62P", enabled: false }
+    gtm: { id: "GTM-MX6DNH8L", enabled: false }
   },
   categories: {
     necessary: { required: true },
@@ -17,7 +17,8 @@ window.PrivacyConfig = {
     persistLinkSelector: "#privacy-settings-link-footer"
   },
   consentMode: { default: "denied" },
-  tcf: { enabled: true },
+  tcf: { enabled: false },
   respectGPC: true,
+  respectDNT: true,
   storageKey: "pcz_consent_v1"
 };
