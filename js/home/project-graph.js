@@ -2222,7 +2222,7 @@
       <div class="home-graph__mobile-classic">
         <section class="home-graph__mobile-hero" aria-labelledby="home-mobile-hero-title">
           <div class="home-graph__mobile-hero-copy">
-            <h1 id="home-mobile-hero-title">Daniel Short</h1>
+            <h2 id="home-mobile-hero-title">Daniel Short</h2>
             <div class="home-graph__mobile-hero-identity">
               <img src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="112px" alt="Portrait of Daniel Short" width="112" height="112" decoding="async" fetchpriority="high">
               <p>Builder of useful interfaces</p>

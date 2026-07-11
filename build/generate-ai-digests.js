@@ -614,6 +614,7 @@ function renderDigest(page) {
   <title>${escapeHtml(page.title)} | AI Digest</title>
   <link rel="canonical" href="${escapeHtml(page.canonicalUrl)}">
   <meta name="description" content="${escapeHtml(page.description || page.summary || page.title)}">
+  <meta name="robots" content="noindex, follow">
   <meta name="generator" content="Daniel Short deterministic AI digest">
   <meta name="source-path" content="${escapeHtml(page.sourcePath)}">
   <meta name="source-hash" content="${escapeHtml(page.sourceHash)}">
@@ -1088,6 +1089,32 @@ function buildPortfolioStructuredPage(projectRecords) {
   });
 }
 
+function buildGameStructuredPage(game, pageRecord) {
+  if (!game || game.hidden || game.noindex || !(game.href || game.id)) return null;
+  const rawPath = String(game.href || `games/${game.id}`).trim();
+  const urlPath = `/${rawPath.replace(/^\/+/, '').replace(/\.html$/i, '')}`;
+  const title = normalizeWhitespace(game.title || game.id || 'Browser game');
+  const summary = normalizeWhitespace(game.summary || '');
+  if (!title || !summary) return null;
+  const tags = normalizeTextArray(game.tags);
+  const links = [{ label: title, url: urlPath, description: summary }];
+  return createStructuredPage(urlPath, {
+    title,
+    description: summary,
+    summary,
+    category: 'Games',
+    sourcePath: pageRecord.relPath,
+    sourceText: JSON.stringify(game),
+    keywords: ['browser game', ...tags],
+    links,
+    sections: [
+      { title: 'Overview', paragraphs: [summary] },
+      ...(tags.length ? [{ title: 'System Focus', items: tags }] : []),
+      { title: 'Play', links }
+    ]
+  });
+}
+
 function buildPersonalHomeStructuredPage(audienceRecord, projectRecords, toolRecords, gamesPageRecord) {
   const audience = audienceRecord && audienceRecord.data;
   const page = audience && audience.page;
@@ -1192,6 +1219,11 @@ function loadStructuredPages() {
 
   const gamesPage = buildGamesDirectoryStructuredPage(gamesPageRecord);
   if (gamesPage) structured.set(gamesPage.url, gamesPage);
+
+  ((gamesPageRecord.data && gamesPageRecord.data.games) || []).forEach((game) => {
+    const page = buildGameStructuredPage(game, gamesPageRecord);
+    if (page) structured.set(page.url, page);
+  });
 
   toolRecords.forEach((record) => {
     const page = buildToolStructuredPage(record, categoriesById);
@@ -1411,7 +1443,7 @@ function trimLlmsDescription(value, maxChars = 240) {
 
 function llmsLine(page) {
   const label = escapeMarkdown(page.title || page.url);
-  const url = page.aiUrl || routeToAiUrl(page.url);
+  const url = page.canonicalUrl || `${SITE_ORIGIN}${page.url}`;
   const description = trimLlmsDescription(page.summary || page.description || '');
   return `- [${label}](${url})${description ? `: ${description}` : ''}`;
 }
@@ -1465,10 +1497,10 @@ function renderLlmsTxt(pages) {
   return [
     '# Daniel Short',
     '',
-    '> Personal website for Daniel Short. This file prioritizes stable AI-readable entry points for projects, tools, experiments, and contact information.',
+    '> Supplemental, AI-readable summaries of Daniel Short\'s projects, tools, experiments, and contact information.',
     '',
     'Canonical site: https://www.danielshort.me/',
-    'AI-readable pages use stable /ai/ URLs and canonicalize back to their public human-facing pages.',
+    'The public canonical HTML is authoritative. Optional /ai/ summaries contain the same source-backed information and canonicalize back to the public pages.',
     '',
     sections.join('\n\n'),
     ''

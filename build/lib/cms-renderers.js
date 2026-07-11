@@ -50,7 +50,7 @@ function attrsToString(attrs) {
 function renderToolIconMarkup(tool) {
   const iconImage = String(tool && tool.iconImage ? tool.iconImage : '').trim();
   if (iconImage) {
-    return `<img src="${escapeHtml(trimLeadingSlash(iconImage))}" alt="" loading="lazy" decoding="async">`;
+    return `<img src="${escapeHtml(trimLeadingSlash(iconImage))}" alt="" width="256" height="256" loading="lazy" decoding="async">`;
   }
   return String(tool && tool.iconHtml ? tool.iconHtml : '').trim();
 }
@@ -714,6 +714,9 @@ function renderHead({ settings, page }) {
   const twitterTitle = String(page.twitterTitle || ogTitle).trim();
   const twitterDescription = String(page.twitterDescription || ogDescription).trim();
   const twitterSite = String(page.twitterSite || settings.twitterSite || '').trim();
+  const twitterCreator = String(page.twitterCreator || settings.twitterCreator || twitterSite).trim();
+  const ownerName = String(settings.ownerName || settings.siteName || 'Daniel Short').trim();
+  const locale = String(page.locale || settings.locale || 'en_US').trim();
   const scripts = Array.isArray(page.headScripts) ? page.headScripts : [];
   const stylesheetLines = (Array.isArray(page.stylesheets) ? page.stylesheets : [])
     .map((href) => `  <link rel="stylesheet" href="${escapeHtml(href)}">`)
@@ -732,18 +735,22 @@ function renderHead({ settings, page }) {
     `  <title>${escapeHtml(page.title || '')}</title>`,
     `  <link rel="canonical" href="${escapeHtml(canonicalUrl)}">`,
     description ? `  <meta name="description" content="${escapeHtml(description)}">` : '',
+    ownerName ? `  <meta name="author" content="${escapeHtml(ownerName)}">` : '',
     page.robots ? `  <meta name="robots" content="${escapeHtml(page.robots)}">` : '',
     `  <meta property="og:title" content="${escapeHtml(ogTitle)}">`,
     siteName ? `  <meta property="og:site_name" content="${escapeHtml(siteName)}">` : '',
+    locale ? `  <meta property="og:locale" content="${escapeHtml(locale)}">` : '',
     `  <meta property="og:description" content="${escapeHtml(ogDescription)}">`,
     `  <meta property="og:url" content="${escapeHtml(canonicalUrl)}">`,
     `  <meta property="og:image" content="${escapeHtml(ogImage.url || '')}">`,
     ogImage.width ? `  <meta property="og:image:width" content="${escapeHtml(ogImage.width)}">` : '',
     ogImage.height ? `  <meta property="og:image:height" content="${escapeHtml(ogImage.height)}">` : '',
+    ogImage.type ? `  <meta property="og:image:type" content="${escapeHtml(ogImage.type)}">` : '',
     ogImage.alt ? `  <meta property="og:image:alt" content="${escapeHtml(ogImage.alt)}">` : '',
     `  <meta property="og:type" content="${escapeHtml(page.ogType || 'website')}">`,
     '  <meta name="twitter:card" content="summary_large_image">',
     twitterSite ? `  <meta name="twitter:site" content="${escapeHtml(twitterSite)}">` : '',
+    twitterCreator ? `  <meta name="twitter:creator" content="${escapeHtml(twitterCreator)}">` : '',
     `  <meta name="twitter:title" content="${escapeHtml(twitterTitle)}">`,
     `  <meta name="twitter:description" content="${escapeHtml(twitterDescription)}">`,
     ogImage.url ? `  <meta name="twitter:image" content="${escapeHtml(ogImage.url)}">` : '',
@@ -1109,40 +1116,47 @@ function renderDirectoryDataJs(data) {
   ].join('\n');
 }
 
-function renderToolsWorkbenchFallback(items) {
-  const cards = (Array.isArray(items) ? items : []).map((item) => {
-    const visibility = String(item && item.visibility ? item.visibility : 'public').trim().toLowerCase();
-    const hiddenByDefault = visibility !== 'public';
-    const attrs = {
-      class: 'tool-card tools-workbench-fallback-card',
-      'data-tools-card': true,
-      'data-tools-visibility': visibility,
-      hidden: hiddenByDefault ? true : null,
-      'aria-hidden': hiddenByDefault ? 'true' : null
-    };
-    const icon = item && item.iconImage
-      ? `<img src="${escapeHtml(item.iconImage)}" alt="" loading="lazy" decoding="async">`
-      : String(item && item.iconHtml ? item.iconHtml : '');
+function renderDirectoryWorkbenchStaticResults(items, kind) {
+  const safeKind = String(kind || '').trim().toLowerCase();
+  const publicItems = (Array.isArray(items) ? items : []).filter((item) => {
+    if (!item || item.hidden || item.noindex) return false;
+    if (safeKind !== 'tools') return true;
+    return String(item.visibility || 'public').trim().toLowerCase() === 'public';
+  });
+
+  return publicItems.map((item) => {
+    const title = String(item.title || (safeKind === 'games' ? 'Game' : 'Tool')).trim();
+    const summary = String(item.summary || '').trim();
+    const href = String(item.href || '').trim();
+    const media = item.iconImage
+      ? `<span class="portfolio-result-card__icon"><img src="${escapeHtml(item.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`
+      : String(item.iconHtml || `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`);
+    const cardBody = [
+      '<span class="portfolio-result-card__body">',
+      `  <span class="portfolio-result-card__title">${escapeHtml(title)}</span>`,
+      summary ? `  <span class="portfolio-result-card__summary">${escapeHtml(summary)}</span>` : '',
+      '</span>'
+    ].filter(Boolean).join('\n');
+
+    if (safeKind === 'tools') {
+      return [
+        `<article class="portfolio-result-card tools-workbench-result" role="listitem" data-project-id="${escapeHtml(item.id || '')}" data-tools-visibility="public">`,
+        `  <a class="tools-workbench-result__select" href="${escapeHtml(href)}" aria-label="Open ${escapeHtml(title)}">`,
+        `    <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true">${media}</span>`,
+        indentBlock(cardBody, '    '),
+        '  </a>',
+        `  <a class="tools-workbench-result__open" href="${escapeHtml(href)}" aria-label="Open ${escapeHtml(title)}"><span>Open</span><span aria-hidden="true">&rarr;</span></a>`,
+        '</article>'
+      ].join('\n');
+    }
+
     return [
-      `  <article${attrsToString(attrs)}>`,
-      `    <a class="tool-launch-card" href="${escapeHtml(item && item.href ? item.href : '')}">`,
-      `      <span class="tool-icon tool-icon-image" aria-hidden="true">${icon}</span>`,
-      '      <span class="tool-card-main">',
-      `        <span class="tool-card-title">${escapeHtml(item && item.title ? item.title : 'Tool')}</span>`,
-      `        <span class="tool-card-summary">${escapeHtml(item && item.summary ? item.summary : '')}</span>`,
-      '      </span>',
-      '    </a>',
-      '  </article>'
+      `<a class="portfolio-result-card" role="listitem" href="${escapeHtml(href)}" data-project-id="${escapeHtml(item.id || '')}">`,
+      `  <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true">${media}</span>`,
+      indentBlock(cardBody, '  '),
+      '</a>'
     ].join('\n');
   }).join('\n');
-
-  return [
-    '<noscript>',
-    '  <div class="tools-workbench-fallback" role="list" aria-label="Tool links">',
-    cards,
-    '  </div>',
-    '</noscript>'
-  ].join('\n');
 }
 
 function renderToolsWorkbenchHeader(page, publicCount) {
@@ -1190,9 +1204,11 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   ].join('\n');
   const supplementalHtml = String(options.supplementalHtml || '').trim();
   const fallbackHtml = String(options.fallbackHtml || '').trim();
+  const initialItemsHtml = String(options.initialItemsHtml || '').trim();
   const initialResultsText = String(options.initialResultsText || `Loading ${itemPlural}...`).trim();
   const supplementalLines = supplementalHtml ? [indentBlock(supplementalHtml, '      ')] : [];
   const fallbackLines = fallbackHtml ? [indentBlock(fallbackHtml, '          ')] : [];
+  const initialItemLines = initialItemsHtml ? [indentBlock(initialItemsHtml, '            ')] : [];
   const accountDock = options.accountDock
     ? [
       '  <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
@@ -1236,7 +1252,9 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
     `            <label class="visually-hidden" for="${escapeHtml(kind)}-search-input">Search ${escapeHtml(itemPlural)}</label>`,
     `            <input id="${escapeHtml(kind)}-search-input" type="search" placeholder="Search ${escapeHtml(itemPlural)}" autocomplete="off" data-portfolio-search>`,
     '          </div>',
-    '          <div class="portfolio-results-list" role="list" data-portfolio-results></div>',
+    '          <div class="portfolio-results-list" role="list" data-portfolio-results>',
+    ...initialItemLines,
+    '          </div>',
     `          <p class="portfolio-empty-state" data-portfolio-empty hidden>No ${escapeHtml(itemPlural)} match those filters.</p>`,
     ...fallbackLines,
     '        </section>',
@@ -1262,16 +1280,19 @@ function renderToolsDirectoryBody(page, tools) {
     headerHtml: renderToolsWorkbenchHeader(page, publicCount),
     supplementalHtml: renderToolsResumePanel(page),
     initialResultsText: `${publicCount} tools`,
-    fallbackHtml: renderToolsWorkbenchFallback(data.items)
+    initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'tools')
   });
 }
 
 function renderGamesDirectoryBody(page) {
+  const data = buildGamesDirectoryWorkbenchData(page);
   return renderDirectoryWorkbenchBody(page, {
     kind: 'games',
     title: page.heroTitle || 'Games',
     itemSingular: 'game',
-    itemPlural: 'games'
+    itemPlural: 'games',
+    initialResultsText: `${data.items.length} games`,
+    initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'games')
   });
 }
 

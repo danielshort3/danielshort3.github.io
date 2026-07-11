@@ -27,15 +27,10 @@ User-agent: MistralAI-User
 User-agent: Amazonbot
 Allow: /
 Allow: /ai/
-Disallow: /pages/
 Disallow: /api/
 Disallow: /documents/Resume
-Disallow: /dist/ai-pages/
 
 User-agent: *
-Disallow: /pages/
 Disallow: /api/
-Disallow: /ai/
-Disallow: /dist/ai-pages/
 Allow: /
 Sitemap: https://www.danielshort.me/sitemap.xml

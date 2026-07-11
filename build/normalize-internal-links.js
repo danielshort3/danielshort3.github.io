@@ -11,6 +11,12 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const SITE_ORIGIN = 'https://www.danielshort.me';
+const CLEAN_ROUTE_ALIASES = new Map([
+  ['/word-frequency', '/tools/word-frequency'],
+  ['/oxford-comma-checker', '/tools/oxford-comma-checker'],
+  ['/nbsp-cleaner', '/tools/nbsp-cleaner'],
+  ['/project-starfall', '/games/project-starfall']
+]);
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -93,6 +99,33 @@ function shouldKeepNewTab(href) {
   return false;
 }
 
+function normalizeInternalHref(href) {
+  const raw = String(href || '').trim();
+  if (!raw || raw.startsWith('#') || /^(?:mailto|tel|javascript):/i.test(raw)) return raw;
+
+  const decoded = raw.replace(/&amp;/gi, '&');
+  const absolute = /^https?:\/\//i.test(decoded);
+  let parsed;
+  try {
+    parsed = new URL(decoded, `${SITE_ORIGIN}/`);
+  } catch {
+    return raw;
+  }
+  if (parsed.origin !== SITE_ORIGIN) return raw;
+
+  let pathname = parsed.pathname || '/';
+  if (pathname === '/index.html') {
+    pathname = '/';
+  } else if (pathname.endsWith('.html')) {
+    pathname = pathname.slice(0, -5) || '/';
+  }
+  pathname = CLEAN_ROUTE_ALIASES.get(pathname) || pathname;
+  const normalized = `${pathname}${parsed.search}${parsed.hash}`;
+  if (absolute) return `${SITE_ORIGIN}${normalized}`;
+  if (decoded.startsWith('/')) return normalized;
+  return normalized.replace(/^\//, '');
+}
+
 function normalizeRelAttribute(tag) {
   return tag.replace(/\s+rel="([^"]*)"/i, (match, value) => {
     const kept = String(value || '')
@@ -106,10 +139,14 @@ function normalizeRelAttribute(tag) {
 
 function processHtml(html) {
   const next = String(html || '').replace(/<a\b[^>]*\bhref="([^"]+)"[^>]*>/gi, (tag, href) => {
-    if (shouldKeepNewTab(href)) return tag;
-    if (!/\btarget="_blank"/i.test(tag)) return tag;
+    const normalizedHref = normalizeInternalHref(href);
+    let normalized = normalizedHref !== href
+      ? tag.replace(/\bhref="[^"]+"/i, `href="${normalizedHref.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`)
+      : tag;
+    if (shouldKeepNewTab(normalizedHref)) return normalized;
+    if (!/\btarget="_blank"/i.test(normalized)) return normalized;
 
-    let normalized = tag.replace(/\s+target="_blank"/i, '');
+    normalized = normalized.replace(/\s+target="_blank"/i, '');
     normalized = normalizeRelAttribute(normalized);
     return normalized;
   });

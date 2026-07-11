@@ -592,15 +592,15 @@ try {
   let hashedCss;
 
   section('Page shells and required meta', () => {
-    checkFileContains('index.html', '<title>Daniel Short</title>');
+    checkFileContains('index.html', '<title>Daniel Short | Data Analytics, ML Projects &amp; Web Tools</title>');
     checkFileContains('index.html', '<link rel="canonical" href="https://www.danielshort.me/">');
     checkFileContains('index.html', '<section class="home-graph"');
 
     const expectedTitles = {
       'pages/contact.html': 'Contact | Daniel Short',
-      'pages/tools.html': 'Tools | Daniel Short',
+      'pages/tools.html': 'Browser Tools for Writing, Images &amp; Campaigns | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
-      'pages/games.html': 'Games | Daniel Short',
+      'pages/games.html': 'Browser Games &amp; Interactive Simulations | Daniel Short',
       'pages/games/project-starfall.html': 'Project Starfall Prototype | Daniel Short',
       'pages/sitemap.html': 'Sitemap | Daniel Short',
       'pages/point-of-view-checker.html': 'Point of View Checker | Daniel Short',
@@ -641,7 +641,8 @@ try {
       const title = extractTitle(file, html);
       assert(!title.includes(' - '), `${file} title should not use dash separator`);
       if (file === 'index.html') {
-        assert(title === 'Daniel Short', 'index.html title should be the personal site name');
+        assert(title === 'Daniel Short | Data Analytics, ML Projects &amp; Web Tools',
+          'index.html title should identify the owner and the indexed site topics');
       } else {
         assert(title.includes(' | '), `${file} title should use pipe separator`);
         assert(/\| Daniel Short$/.test(title), `${file} title should end with | Daniel Short`);
@@ -863,19 +864,17 @@ try {
       !toolsHtml.includes('tools-rail-link') &&
       !toolsHtml.includes('tool-card-details'),
       'tools page should remove the old rail, rationale panel, and hover-card directory');
-    assert(toolsHtml.includes('<noscript>') &&
-      toolsHtml.includes('class="tools-workbench-fallback"') &&
-      toolsHtml.includes('class="tool-launch-card"'),
-      'tools page should retain crawlable no-script launch links');
-    assert(/class="tool-card tools-workbench-fallback-card"[^>]*data-tools-visibility="(?:authed|admin)"[^>]*hidden[^>]*aria-hidden="true"/.test(toolsHtml),
-      'non-public fallback launch links should remain hidden until the appropriate account state');
-    const fallbackStart = toolsHtml.indexOf('<noscript>');
-    const fallbackEnd = toolsHtml.indexOf('</noscript>', fallbackStart);
-    const fallbackHtml = fallbackStart >= 0 && fallbackEnd > fallbackStart
-      ? toolsHtml.slice(fallbackStart, fallbackEnd)
+    const resultsStart = toolsHtml.indexOf('class="portfolio-results-list"');
+    const resultsEnd = toolsHtml.indexOf('<p class="portfolio-empty-state"', resultsStart);
+    const initialResultsHtml = resultsStart >= 0 && resultsEnd > resultsStart
+      ? toolsHtml.slice(resultsStart, resultsEnd)
       : '';
-    assert((fallbackHtml.match(/tools-workbench-fallback-card/g) || []).length === toolRecords.length,
-      'no-script fallback should contain one crawlable card for every tool');
+    assert((initialResultsHtml.match(/class="portfolio-result-card tools-workbench-result"/g) || []).length === publicTools.length &&
+      publicTools.every((tool) => initialResultsHtml.includes(`href="${tool.href}"`)),
+      'tools page should server-render one crawlable launch card for every public tool');
+    assert(!accountTools.some((tool) => initialResultsHtml.includes(`href="${tool.href}"`)) &&
+      !adminTools.some((tool) => initialResultsHtml.includes(`href="${tool.href}"`)),
+      'tools page should not expose account or admin launch cards in its indexable static results');
     assert(toolsDirectoryData && toolsDirectoryData.kind === 'tools' && toolsDirectoryData.itemPlural === 'tools',
       'generated tools data should declare the shared workbench contract');
     assert(toolsDirectoryData.filterGroups.map((group) => group.title).join('|') === 'Category|Availability|Access',
@@ -986,19 +985,17 @@ try {
       assert(href === `tools/${slug}`, `${fileName} href should match tools/${slug}`);
       assert(tool.iconImage === `img/tools/icons/${slug}.png`, `${fileName} should declare a generated icon image`);
       assert(fs.existsSync(tool.iconImage), `${fileName} icon image is missing`);
-      assert(fallbackHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from the no-script fallback`);
-      assert(fallbackHtml.includes(`href="${href}"`), `${fileName} crawlable link missing from the no-script fallback`);
-      const hrefIndex = fallbackHtml.indexOf(`href="${href}"`);
-      const articleStart = fallbackHtml.lastIndexOf('<article', hrefIndex);
-      const articleEnd = fallbackHtml.indexOf('</article>', hrefIndex);
-      const fallbackCard = fallbackHtml.slice(articleStart, articleEnd);
       const visibility = String(tool.visibility || 'public').trim().toLowerCase();
-      assert(fallbackCard.includes(`data-tools-visibility="${visibility}"`), `${fileName} fallback visibility is missing`);
       if (visibility === 'public') {
-        assert(!/\shidden(?:\s|>)/.test(fallbackCard), `${fileName} public fallback should remain visible`);
+        assert(initialResultsHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from static results`);
+        assert(initialResultsHtml.includes(`href="${href}"`), `${fileName} crawlable link missing from static results`);
+        const hrefIndex = initialResultsHtml.indexOf(`href="${href}"`);
+        const articleStart = initialResultsHtml.lastIndexOf('<article', hrefIndex);
+        const articleEnd = initialResultsHtml.indexOf('</article>', hrefIndex);
+        const staticCard = initialResultsHtml.slice(articleStart, articleEnd);
+        assert(staticCard.includes('data-tools-visibility="public"'), `${fileName} static visibility is missing`);
       } else {
-        assert(/\shidden(?:\s|>)/.test(fallbackCard) && fallbackCard.includes('aria-hidden="true"'),
-          `${fileName} restricted fallback should be hidden before authentication`);
+        assert(!initialResultsHtml.includes(`href="${href}"`), `${fileName} restricted route should stay out of indexable static results`);
       }
       assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
         `${fileName} missing clean URL rewrite`);
@@ -37075,7 +37072,6 @@ try {
     const copyPublic = readFile('build/copy-to-public.js');
     const devServer = readFile('build/dev.js');
     const generator = readFile('build/generate-ai-digests.js');
-    const userAgents = readFile('build/lib/ai-bot-user-agents.js');
     const robots = readFile('robots.txt');
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
@@ -37085,19 +37081,19 @@ try {
     assert(copyPublic.includes("'ai-digest-manifest.json'") && copyPublic.includes("'llms.txt'") && copyPublic.includes("'dist', 'ai-pages'"),
       'public copy should include AI digest artifacts and llms.txt');
     assert(devServer.includes('hasConditionsMatch') && !devServer.includes('aiPageApiPath') && !devServer.includes('dispatchAiPageApi'),
-      'local dev server should test header-based static digest rewrites without an AI digest API');
+      'local dev server should support configured routes without an AI digest API');
     assert(generator.includes('data-ai-digest') && generator.includes('ai-digest-manifest.json') && generator.includes('llms.txt') && generator.includes('aiDigest'),
       'AI digest generator should emit marked deterministic digests, llms.txt, and support overrides');
-    assert(userAgents.includes('GPTBot') && userAgents.includes('ChatGPT-User') && userAgents.includes('ClaudeBot') && userAgents.includes('PerplexityBot'),
-      'AI user-agent matcher should include major AI retrieval bots');
+    assert(!fs.existsSync('build/lib/ai-bot-user-agents.js'),
+      'the build should not maintain crawler-specific content routing logic');
     assert(!fs.existsSync('api/ai-page/[...path].js') && !fs.existsSync('api/ai-page'),
       'AI digest delivery should not add a Vercel serverless function');
     assert(robots.includes('User-agent: GPTBot') && robots.includes('User-agent: ClaudeBot') && robots.includes('User-agent: PerplexityBot'),
       'robots.txt should explicitly allow major AI bots');
-    assert(robots.includes('Allow: /ai/') && robots.includes('Disallow: /dist/ai-pages/'),
-      'robots.txt should allow known AI bots to fetch /ai digests while hiding implementation paths');
-    assert(/User-agent:\s*\*[\s\S]*Disallow:\s*\/api\//.test(robots) && /User-agent:\s*\*[\s\S]*Disallow:\s*\/ai\//.test(robots),
-      'robots.txt fallback block should hide API and duplicate AI paths from generic crawlers');
+    assert(robots.includes('Allow: /ai/') && !/Disallow:\s*\/(?:pages|ai|dist\/ai-pages)\//i.test(robots),
+      'robots.txt should let crawlers reach redirects and noindex directives for noncanonical HTML paths');
+    assert(/User-agent:\s*\*[\s\S]*Disallow:\s*\/api\//.test(robots),
+      'robots.txt fallback block should hide API routes');
     const generalCrawlerRules = robots.split(/User-agent:\s*\*/i)[1] || '';
     assert(!generalCrawlerRules.includes('Disallow: /documents/Resume'),
       'general search crawlers should be allowed to read resume PDF noindex headers');
@@ -37111,27 +37107,18 @@ try {
 
     assert(rewrites.some((rule) => rule.source === '/ai/:path*' && rule.destination === '/dist/ai-pages/:path*'),
       'vercel rewrites should expose /ai debug digests');
-    assert(rewrites.some((rule) => rule.source === '/portfolio' && /user-agent/i.test(JSON.stringify(rule)) && rule.destination === '/dist/ai-pages/portfolio'),
-      'vercel rewrites should serve same-URL portfolio digest to AI agents');
-    assert(!rewrites.some((rule) => rule.source === '/analytics' && /user-agent/i.test(JSON.stringify(rule))),
-      'vercel rewrites should not expose hidden professional digests');
-    assert(rewrites.some((rule) => rule.source === '/portfolio/:project' && rule.destination === '/dist/ai-pages/portfolio/:project'),
-      'vercel rewrites should serve portfolio project digests to AI agents');
-    assert(rewrites.some((rule) => rule.source === '/tools/:tool' && rule.destination === '/dist/ai-pages/tools/:tool'),
-      'vercel rewrites should serve public tool digests to AI agents');
-    assert(rewrites.some((rule) => rule.source === '/games' && /user-agent/i.test(JSON.stringify(rule)) && rule.destination === '/dist/ai-pages/games'),
-      'vercel rewrites should serve same-URL games digest to AI agents');
-    assert(rewrites.some((rule) => rule.source === '/games/:game' && rule.destination === '/dist/ai-pages/games/:game'),
-      'vercel rewrites should serve game digests to AI agents');
+    assert(!rewrites.some((rule) => /user-agent/i.test(JSON.stringify(rule))),
+      'canonical pages should serve the same substantive HTML to people and crawlers');
 
     assert(fs.existsSync('dist/ai-digest-manifest.json'), 'AI digest manifest missing');
     assert(fs.existsSync('llms.txt'), 'llms.txt missing');
     const llms = readFile('llms.txt');
     assert(llms.startsWith('# Daniel Short\n'), 'llms.txt should start with the site name');
-    assert(llms.includes('\n> Personal website') && llms.includes('\n## Start Here\n') && llms.includes('\n## Projects\n') && llms.includes('\n## Tools\n') && llms.includes('\n## Games\n'),
+    assert(llms.includes('\n> Supplemental, AI-readable summaries') && llms.includes('\n## Start Here\n') && llms.includes('\n## Projects\n') && llms.includes('\n## Tools\n') && llms.includes('\n## Games\n'),
       'llms.txt should use the expected Markdown summary and sections');
-    assert(llms.includes('https://www.danielshort.me/ai/index') && llms.includes('https://www.danielshort.me/ai/portfolio') && !llms.includes('/ai/resume'),
-      'llms.txt should link to stable /ai deep-read URLs');
+    assert(llms.includes('](https://www.danielshort.me/)') && llms.includes('](https://www.danielshort.me/portfolio)') &&
+      !llms.includes('](https://www.danielshort.me/ai/'),
+      'llms.txt should link to the same canonical pages that people visit');
     assert(!llms.includes('/dist/ai-pages/') && !llms.includes('/pages/') && !llms.includes('/api/'),
       'llms.txt should not expose implementation, source, or API paths');
     const manifest = JSON.parse(readFile('dist/ai-digest-manifest.json'));
@@ -37150,12 +37137,14 @@ try {
     assert(homeDigest.includes('data-ai-digest="true"'), 'home AI digest should be marked');
     assert(homeDigest.includes('<link rel="canonical" href="https://www.danielshort.me/">'),
       'home AI digest should preserve canonical URL');
+    assert(homeDigest.includes('<meta name="robots" content="noindex, follow">'),
+      'optional AI digest pages should include a static noindex directive');
     assert(!/<script\b/i.test(homeDigest), 'AI digest pages should not include scripts');
     assert(!/<nav\b/i.test(homeDigest), 'AI digest pages should not include nav chrome');
     assert(!/<header\b/i.test(homeDigest) && !/<footer\b/i.test(homeDigest) && !/Source Metadata/.test(homeDigest),
       'AI digest pages should not include visible header/footer/source metadata chrome');
     assert((homeDigest.match(/<h1\b/gi) || []).length === 1, 'AI digest pages should include exactly one rendered h1');
-    assert(homeDigest.includes('<h1>Daniel Short</h1>') &&
+    assert(homeDigest.includes('<h1>Daniel Short | Data Analytics, ML Projects &amp; Web Tools</h1>') &&
       homeDigest.includes('Models, dashboards, and data systems') &&
       homeDigest.includes('Small browser utilities for repeated text') &&
       homeDigest.includes('Browser games and simulations') &&
@@ -38511,7 +38500,7 @@ try {
       'homepage graph should use radial desktop group slots and a compact mobile icon grid that avoids branch-card overlap');
     assert(graphJs.includes('createMobileClassicDeckHtml') &&
       graphJs.includes('mobileDeck.innerHTML = createMobileClassicDeckHtml()') &&
-      graphJs.includes('<h1 id="home-mobile-hero-title">Daniel Short</h1>') &&
+      graphJs.includes('<h2 id="home-mobile-hero-title">Daniel Short</h2>') &&
       graphJs.includes('<a href="portfolio">Projects</a>') &&
       graphJs.includes('<a href="tools">Tools</a>') &&
       graphJs.includes('<a href="games">Games</a>') &&

@@ -4,10 +4,10 @@
 /*
   Inject shared head metadata into site HTML files.
 
-  Currently:
-  - Ensures Twitter card tags exist (title/description/image/alt) based on Open Graph tags.
-  - Adds og:image width/height for the shared headshot image.
-  - Injects JSON-LD WebApplication data for /tools/* pages.
+  Responsibilities:
+  - Normalizes baseline SEO, Open Graph, and Twitter metadata.
+  - Injects connected, route-aware JSON-LD for the public site.
+  - Keeps authored and generated pages aligned with content/site/settings.json.
 
   No external deps.
 */
@@ -18,11 +18,74 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 
 const root = path.resolve(__dirname, '..');
 
-const SHARED_OG_IMAGE = 'https://www.danielshort.me/img/hero/head.png';
-const SHARED_OG_IMAGE_WIDTH = '558';
-const SHARED_OG_IMAGE_HEIGHT = '558';
-const SHARED_OG_IMAGE_ALT = 'Portrait photo of Daniel Short';
-const SITE_ORIGIN = 'https://www.danielshort.me';
+function readJsonFile(absPath, fallback = {}) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(absPath, 'utf8'));
+    return parsed && typeof parsed === 'object' ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function loadJsonRecords(relDir) {
+  const absDir = path.join(root, relDir);
+  try {
+    return fs.readdirSync(absDir)
+      .filter((name) => name.endsWith('.json') && !name.startsWith('.'))
+      .sort()
+      .map((name) => readJsonFile(path.join(absDir, name), null))
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function sortRecords(records) {
+  return [...(Array.isArray(records) ? records : [])].sort((a, b) => {
+    const orderA = Number.isFinite(Number(a && a.order)) ? Number(a.order) : Number.MAX_SAFE_INTEGER;
+    const orderB = Number.isFinite(Number(b && b.order)) ? Number(b.order) : Number.MAX_SAFE_INTEGER;
+    if (orderA !== orderB) return orderA - orderB;
+    return String(a && (a.title || a.id || a.slug) || '').localeCompare(String(b && (b.title || b.id || b.slug) || ''));
+  });
+}
+
+const SITE_SETTINGS = Object.freeze(readJsonFile(path.join(root, 'content', 'site', 'settings.json')));
+const SITE_ORIGIN = String(SITE_SETTINGS.siteOrigin || 'https://www.danielshort.me').replace(/\/+$/, '');
+const OWNER_NAME = String(SITE_SETTINGS.ownerName || SITE_SETTINGS.siteName || 'Daniel Short').trim();
+const SITE_NAME = String(SITE_SETTINGS.siteName || OWNER_NAME).trim();
+const SITE_LANGUAGE = String(SITE_SETTINGS.language || 'en-US').trim();
+const OG_LOCALE = String(SITE_SETTINGS.locale || 'en_US').trim();
+const TWITTER_SITE = String(SITE_SETTINGS.twitterSite || '@danielshort3').trim();
+const TWITTER_CREATOR = String(SITE_SETTINGS.twitterCreator || TWITTER_SITE).trim();
+const PROFILE_IMAGE = String(SITE_SETTINGS.profileImage || `${SITE_ORIGIN}/img/hero/head-avatar-384.jpg`).trim();
+const SAME_AS = Object.freeze((Array.isArray(SITE_SETTINGS.sameAs) ? SITE_SETTINGS.sameAs : [])
+  .map((value) => String(value || '').trim())
+  .filter(Boolean));
+const DEFAULT_OG_IMAGE = Object.freeze({
+  url: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.url || `${SITE_ORIGIN}/img/brand/07-website-hero-light-version.png`).trim(),
+  width: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.width || '1672').trim(),
+  height: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.height || '941').trim(),
+  type: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.type || 'image/png').trim(),
+  alt: String(SITE_SETTINGS.ogImage && SITE_SETTINGS.ogImage.alt || 'Daniel Short portfolio preview').trim()
+});
+const LEGACY_SHARED_OG_IMAGES = new Set([
+  `${SITE_ORIGIN}/img/hero/head.png`,
+  `${SITE_ORIGIN}/img/brand/10-github-readme-portfolio-banner.svg`
+]);
+const GAME_PAGE = readJsonFile(path.join(root, 'content', 'pages', 'games.json'));
+const GAME_RECORDS = Object.freeze(sortRecords(Array.isArray(GAME_PAGE.games) ? GAME_PAGE.games : [])
+  .filter((game) => game && !game.hidden && !game.noindex && (game.href || game.id)));
+const GAME_BY_PATH = new Map(GAME_RECORDS.map((game) => [
+  normalizePathname(game.href || `/games/${game.id}`),
+  game
+]));
+const PROJECT_RECORDS = Object.freeze(sortRecords(loadJsonRecords(path.join('content', 'projects')))
+  .filter((project) => project && project.id && project.published !== false && !project.hidden && !project.noindex));
+const TOOL_RECORDS = Object.freeze(sortRecords(loadJsonRecords(path.join('content', 'tools')))
+  .filter((tool) => {
+    const visibility = String(tool && tool.visibility || 'public').trim().toLowerCase();
+    return tool && tool.slug && !tool.hidden && !tool.noindex && visibility === 'public';
+  }));
 const noindexPathnames = loadNoindexPathnamesFromVercel(root);
 const CSS_MANIFEST_PATH = path.join(root, 'dist', 'styles-manifest.json');
 const CSS_MANIFEST = Object.freeze(loadCssManifest());
@@ -219,6 +282,125 @@ function getTitleText(headInner) {
   return match ? String(match[1] || '').trim() : '';
 }
 
+function escapeHtmlAttribute(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeRegExp(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function upsertMetaTag(headInner, attr, key, content) {
+  const safeAttr = String(attr || '').trim();
+  const safeKey = String(key || '').trim();
+  const safeContent = String(content || '').trim();
+  if (!safeAttr || !safeKey || !safeContent) return headInner;
+  const matcher = new RegExp(`<meta\\b[^>]*\\b${escapeRegExp(safeAttr)}=["']${escapeRegExp(safeKey)}["'][^>]*>`, 'i');
+  const tag = `<meta ${safeAttr}="${escapeHtmlAttribute(safeKey)}" content="${escapeHtmlAttribute(safeContent)}">`;
+  if (matcher.test(headInner)) return headInner.replace(matcher, tag);
+  return `${String(headInner || '').trimEnd()}\n  ${tag}\n`;
+}
+
+function inferImageMime(imageUrl) {
+  const pathname = String(imageUrl || '').split(/[?#]/)[0].toLowerCase();
+  if (pathname.endsWith('.png')) return 'image/png';
+  if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) return 'image/jpeg';
+  if (pathname.endsWith('.webp')) return 'image/webp';
+  if (pathname.endsWith('.gif')) return 'image/gif';
+  return '';
+}
+
+function toAbsoluteSiteUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    return new URL(raw, `${SITE_ORIGIN}/`).href;
+  } catch {
+    return '';
+  }
+}
+
+function getHeadPathname(headInner) {
+  return toPathname(getCanonicalHref(headInner));
+}
+
+function replaceLegacySharedOgImage(headInner) {
+  const currentImage = getMetaContent(headInner, { property: 'og:image' });
+  if (!LEGACY_SHARED_OG_IMAGES.has(currentImage)) return headInner;
+
+  let next = String(headInner || '');
+  LEGACY_SHARED_OG_IMAGES.forEach((legacyUrl) => {
+    next = next.split(legacyUrl).join(DEFAULT_OG_IMAGE.url);
+  });
+  next = upsertMetaTag(next, 'property', 'og:image:width', DEFAULT_OG_IMAGE.width);
+  next = upsertMetaTag(next, 'property', 'og:image:height', DEFAULT_OG_IMAGE.height);
+  next = upsertMetaTag(next, 'property', 'og:image:type', DEFAULT_OG_IMAGE.type);
+  next = upsertMetaTag(next, 'property', 'og:image:alt', DEFAULT_OG_IMAGE.alt);
+  next = upsertMetaTag(next, 'name', 'twitter:image', DEFAULT_OG_IMAGE.url);
+  next = upsertMetaTag(next, 'name', 'twitter:image:alt', DEFAULT_OG_IMAGE.alt);
+  return next;
+}
+
+function ensureGameSocialMetadata(headInner) {
+  const pathname = getHeadPathname(headInner);
+  const game = GAME_BY_PATH.get(pathname);
+  if (!game) return headInner;
+
+  const title = String(game.title || getTitleText(headInner) || 'Browser game').trim();
+  const pageTitle = getTitleText(headInner) || `${title} | ${OWNER_NAME}`;
+  const description = String(game.summary || '').trim();
+  const canonical = getCanonicalHref(headInner);
+  const image = toAbsoluteSiteUrl(game.image) || DEFAULT_OG_IMAGE.url;
+  const imageWidth = String(game.imageWidth || (image === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.width : '')).trim();
+  const imageHeight = String(game.imageHeight || (image === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.height : '')).trim();
+  const imageAlt = String(game.imageAlt || `${title} browser game preview`).trim();
+
+  let next = headInner;
+  if (description) next = upsertMetaTag(next, 'name', 'description', description);
+  next = upsertMetaTag(next, 'property', 'og:title', pageTitle);
+  next = upsertMetaTag(next, 'property', 'og:site_name', SITE_NAME);
+  if (description) next = upsertMetaTag(next, 'property', 'og:description', description);
+  if (canonical) next = upsertMetaTag(next, 'property', 'og:url', canonical);
+  next = upsertMetaTag(next, 'property', 'og:image', image);
+  if (imageWidth) next = upsertMetaTag(next, 'property', 'og:image:width', imageWidth);
+  if (imageHeight) next = upsertMetaTag(next, 'property', 'og:image:height', imageHeight);
+  next = upsertMetaTag(next, 'property', 'og:image:type', inferImageMime(image) || DEFAULT_OG_IMAGE.type);
+  next = upsertMetaTag(next, 'property', 'og:image:alt', imageAlt);
+  next = upsertMetaTag(next, 'property', 'og:type', 'website');
+  next = upsertMetaTag(next, 'name', 'twitter:card', 'summary_large_image');
+  next = upsertMetaTag(next, 'name', 'twitter:site', TWITTER_SITE);
+  return next;
+}
+
+function ensureBaselineMetadata(headInner) {
+  const pathname = getHeadPathname(headInner);
+  const explicitNoindex = hasNoindexRobotsMeta(headInner);
+  const routeNoindex = pathname && noindexPathnames.has(pathname);
+  let next = headInner;
+
+  next = upsertMetaTag(next, 'name', 'author', OWNER_NAME);
+  if (pathname && !explicitNoindex && !routeNoindex) {
+    next = upsertMetaTag(next, 'name', 'robots', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+  }
+  if (getMetaContent(next, { property: 'og:title' })) {
+    next = upsertMetaTag(next, 'property', 'og:site_name', SITE_NAME);
+    next = upsertMetaTag(next, 'property', 'og:locale', OG_LOCALE);
+  }
+  const image = getMetaContent(next, { property: 'og:image' });
+  const imageType = inferImageMime(image);
+  if (imageType) next = upsertMetaTag(next, 'property', 'og:image:type', imageType);
+  if (getMetaContent(next, { name: 'twitter:title' }) || getMetaContent(next, { property: 'og:title' })) {
+    next = upsertMetaTag(next, 'name', 'twitter:site', TWITTER_SITE);
+    next = upsertMetaTag(next, 'name', 'twitter:creator', TWITTER_CREATOR);
+  }
+  return next;
+}
+
 function findLineInsertionPoint(headInner) {
   const candidates = [
     /(^([ \t]*)<meta\s+name="twitter:site"[^>]*>\s*$)/mi,
@@ -261,8 +443,8 @@ function ensureTwitterMeta(headInner) {
   if (!hasTwitterTitle && ogTitle) lines.push(`<meta name="twitter:title" content="${ogTitle}">`);
   if (!hasTwitterDesc && ogDesc) lines.push(`<meta name="twitter:description" content="${ogDesc}">`);
   if (!hasTwitterImage && ogImage) lines.push(`<meta name="twitter:image" content="${ogImage}">`);
-  if (!hasTwitterAlt && (ogAlt || (ogImage === SHARED_OG_IMAGE ? SHARED_OG_IMAGE_ALT : ''))) {
-    const alt = ogAlt || (ogImage === SHARED_OG_IMAGE ? SHARED_OG_IMAGE_ALT : '');
+  if (!hasTwitterAlt && (ogAlt || (ogImage === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.alt : ''))) {
+    const alt = ogAlt || (ogImage === DEFAULT_OG_IMAGE.url ? DEFAULT_OG_IMAGE.alt : '');
     if (alt) lines.push(`<meta name="twitter:image:alt" content="${alt}">`);
   }
   if (!lines.length) return headInner;
@@ -274,7 +456,7 @@ function ensureTwitterMeta(headInner) {
 
 function ensureSharedOgImageDimensions(headInner) {
   const ogImage = getMetaContent(headInner, { property: 'og:image' });
-  if (ogImage !== SHARED_OG_IMAGE) return headInner;
+  if (ogImage !== DEFAULT_OG_IMAGE.url) return headInner;
 
   const hasWidth = hasTag(headInner, /<meta\b[^>]*\bproperty="og:image:width"/i);
   const hasHeight = hasTag(headInner, /<meta\b[^>]*\bproperty="og:image:height"/i);
@@ -283,9 +465,9 @@ function ensureSharedOgImageDimensions(headInner) {
   if (hasWidth && hasHeight && hasAlt) return headInner;
 
   const lines = [];
-  if (!hasWidth) lines.push(`<meta property="og:image:width" content="${SHARED_OG_IMAGE_WIDTH}">`);
-  if (!hasHeight) lines.push(`<meta property="og:image:height" content="${SHARED_OG_IMAGE_HEIGHT}">`);
-  if (!hasAlt) lines.push(`<meta property="og:image:alt" content="${SHARED_OG_IMAGE_ALT}">`);
+  if (!hasWidth) lines.push(`<meta property="og:image:width" content="${DEFAULT_OG_IMAGE.width}">`);
+  if (!hasHeight) lines.push(`<meta property="og:image:height" content="${DEFAULT_OG_IMAGE.height}">`);
+  if (!hasAlt) lines.push(`<meta property="og:image:alt" content="${DEFAULT_OG_IMAGE.alt}">`);
 
   if (!lines.length) return headInner;
   return injectAfterMetaLine(headInner, 'og:image', lines);
@@ -402,6 +584,191 @@ function hasNoindexRobotsMeta(headInner) {
   return /<meta\b[^>]*\bname="robots"[^>]*\bcontent="[^"]*noindex[^"]*"[^>]*>/i.test(String(headInner || ''));
 }
 
+function decodeHtmlText(value) {
+  return String(value || '')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&amp;/gi, '&');
+}
+
+function stripSiteJsonLd(headInner) {
+  return String(headInner || '').replace(/\n?[ \t]*<script\b[^>]*\bid="site-jsonld"[^>]*>[\s\S]*?<\/script>/i, '');
+}
+
+function collectionItems(pathname) {
+  let records = [];
+  if (pathname === '/portfolio') {
+    records = PROJECT_RECORDS.map((project) => ({
+      name: project.title || project.id,
+      url: `${SITE_ORIGIN}/portfolio/${encodeURIComponent(project.id)}`
+    }));
+  } else if (pathname === '/tools') {
+    records = TOOL_RECORDS.map((tool) => ({
+      name: tool.title || tool.slug,
+      url: toAbsoluteSiteUrl(tool.href || `/tools/${tool.slug}`)
+    }));
+  } else if (pathname === '/games') {
+    records = GAME_RECORDS.map((game) => ({
+      name: game.title || game.id,
+      url: toAbsoluteSiteUrl(game.href || `/games/${game.id}`)
+    }));
+  }
+
+  return records
+    .filter((item) => item.name && item.url)
+    .map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: String(item.name),
+      url: item.url
+    }));
+}
+
+function breadcrumbNode(pathname, canonicalUrl, pageName) {
+  if (!pathname || pathname === '/') return null;
+  const segmentLabels = {
+    portfolio: 'Portfolio',
+    tools: 'Tools',
+    games: 'Games'
+  };
+  const segments = pathname.split('/').filter(Boolean);
+  const items = [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_ORIGIN}/` }
+  ];
+  let route = '';
+  segments.forEach((segment, index) => {
+    route += `/${segment}`;
+    const isLast = index === segments.length - 1;
+    items.push({
+      '@type': 'ListItem',
+      position: index + 2,
+      name: isLast ? pageName : (segmentLabels[segment] || segment.replace(/-/g, ' ')),
+      item: isLast ? canonicalUrl : `${SITE_ORIGIN}${route}`
+    });
+  });
+  return {
+    '@type': 'BreadcrumbList',
+    '@id': `${canonicalUrl}#breadcrumb`,
+    itemListElement: items
+  };
+}
+
+function ensureSiteJsonLd(headInner) {
+  const withoutExisting = stripSiteJsonLd(headInner);
+  if (hasNoindexRobotsMeta(withoutExisting)) return withoutExisting;
+
+  const canonicalUrl = getCanonicalHref(withoutExisting);
+  const pathname = toPathname(canonicalUrl);
+  if (!canonicalUrl || !pathname || noindexPathnames.has(pathname)) return withoutExisting;
+
+  const title = decodeHtmlText(getTitleText(withoutExisting));
+  const name = escapeTitleSuffix(title) || SITE_NAME;
+  const description = decodeHtmlText(
+    getMetaContent(withoutExisting, { name: 'description' })
+    || getMetaContent(withoutExisting, { property: 'og:description' })
+  );
+  if (!title || !description) return withoutExisting;
+
+  const image = getMetaContent(withoutExisting, { property: 'og:image' }) || DEFAULT_OG_IMAGE.url;
+  const websiteId = `${SITE_ORIGIN}/#website`;
+  const personId = `${SITE_ORIGIN}/#person`;
+  const webpageId = `${canonicalUrl}#webpage`;
+  const person = {
+    '@type': 'Person',
+    '@id': personId,
+    name: OWNER_NAME,
+    url: `${SITE_ORIGIN}/`,
+    image: PROFILE_IMAGE,
+    ...(SAME_AS.length ? { sameAs: SAME_AS } : {})
+  };
+  const website = {
+    '@type': 'WebSite',
+    '@id': websiteId,
+    url: `${SITE_ORIGIN}/`,
+    name: SITE_NAME,
+    publisher: { '@id': personId },
+    inLanguage: SITE_LANGUAGE
+  };
+  const pageType = pathname === '/'
+    ? 'ProfilePage'
+    : (['/portfolio', '/tools', '/games'].includes(pathname)
+      ? 'CollectionPage'
+      : (pathname === '/contact' ? 'ContactPage' : 'WebPage'));
+  const page = {
+    '@type': pageType,
+    '@id': webpageId,
+    url: canonicalUrl,
+    name: title,
+    description,
+    isPartOf: { '@id': websiteId },
+    about: { '@id': personId },
+    inLanguage: SITE_LANGUAGE,
+    primaryImageOfPage: {
+      '@type': 'ImageObject',
+      url: image
+    }
+  };
+  const graph = [website, person, page];
+
+  if (pathname === '/') {
+    page.mainEntity = { '@id': personId };
+  }
+
+  const items = collectionItems(pathname);
+  if (items.length) {
+    const itemListId = `${canonicalUrl}#itemlist`;
+    page.mainEntity = { '@id': itemListId };
+    graph.push({
+      '@type': 'ItemList',
+      '@id': itemListId,
+      numberOfItems: items.length,
+      itemListElement: items
+    });
+  }
+
+  const game = GAME_BY_PATH.get(pathname);
+  if (game) {
+    const gameId = `${canonicalUrl}#game`;
+    const gameImage = toAbsoluteSiteUrl(game.image) || image;
+    page.mainEntity = { '@id': gameId };
+    graph.push({
+      '@type': ['VideoGame', 'WebApplication'],
+      '@id': gameId,
+      name: String(game.title || name),
+      description: String(game.summary || description),
+      url: canonicalUrl,
+      image: gameImage,
+      creator: { '@id': personId },
+      applicationCategory: 'GameApplication',
+      operatingSystem: 'Any',
+      gamePlatform: 'Web browser',
+      playMode: 'SinglePlayer',
+      isAccessibleForFree: true,
+      ...(Array.isArray(game.tags) && game.tags.length ? { genre: game.tags } : {})
+    });
+  } else if (pathname.startsWith('/tools/') && pathname !== '/tools') {
+    page.mainEntity = { '@id': `${canonicalUrl}#app` };
+  } else if (pathname.startsWith('/portfolio/') && pathname !== '/portfolio') {
+    page.mainEntity = { '@id': `${canonicalUrl}#project` };
+  }
+
+  const breadcrumb = breadcrumbNode(pathname, canonicalUrl, name);
+  if (breadcrumb) {
+    page.breadcrumb = { '@id': breadcrumb['@id'] };
+    graph.push(breadcrumb);
+  }
+
+  const serialized = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c');
+  const block = [
+    '  <script type="application/ld+json" id="site-jsonld">',
+    `    ${serialized}`,
+    '  </script>'
+  ].join('\n');
+  return `${withoutExisting.trimEnd()}\n${block}\n`;
+}
+
 function ensureToolJsonLd(headInner) {
   const withoutExisting = stripToolJsonLd(headInner);
   if (hasNoindexRobotsMeta(withoutExisting)) return withoutExisting;
@@ -412,15 +779,16 @@ function ensureToolJsonLd(headInner) {
   const pathname = toPathname(canonical);
   if (pathname && noindexPathnames.has(pathname)) return withoutExisting;
 
-  const title = escapeTitleSuffix(getMetaContent(withoutExisting, { property: 'og:title' }) || getTitleText(withoutExisting));
-  const description = getMetaContent(withoutExisting, { name: 'description' }) || getMetaContent(withoutExisting, { property: 'og:description' });
+  const title = decodeHtmlText(escapeTitleSuffix(getMetaContent(withoutExisting, { property: 'og:title' }) || getTitleText(withoutExisting)));
+  const description = decodeHtmlText(getMetaContent(withoutExisting, { name: 'description' }) || getMetaContent(withoutExisting, { property: 'og:description' }));
   if (!title || !description) return withoutExisting;
 
-  const image = getMetaContent(withoutExisting, { property: 'og:image' }) || SHARED_OG_IMAGE;
+  const image = getMetaContent(withoutExisting, { property: 'og:image' }) || DEFAULT_OG_IMAGE.url;
 
   const json = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
+    '@id': `${canonical}#app`,
     name: title,
     description,
     url: canonical,
@@ -430,7 +798,8 @@ function ensureToolJsonLd(headInner) {
     isAccessibleForFree: true,
     creator: {
       '@type': 'Person',
-      name: 'Daniel Short',
+      '@id': `${SITE_ORIGIN}/#person`,
+      name: OWNER_NAME,
       url: `${SITE_ORIGIN}/`
     }
   };
@@ -455,19 +824,37 @@ function processHtml(html) {
   inner = replaceManagedStylesheetLinks(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');
+  inner = dedupeMeta(inner, 'property', 'og:image:type');
   inner = dedupeMeta(inner, 'property', 'og:image:alt');
+  inner = dedupeMeta(inner, 'property', 'og:site_name');
+  inner = dedupeMeta(inner, 'property', 'og:locale');
+  inner = dedupeMeta(inner, 'name', 'author');
+  inner = dedupeMeta(inner, 'name', 'robots');
+  inner = dedupeMeta(inner, 'name', 'twitter:site');
+  inner = dedupeMeta(inner, 'name', 'twitter:creator');
   inner = dedupeMeta(inner, 'name', 'twitter:title');
   inner = dedupeMeta(inner, 'name', 'twitter:description');
   inner = dedupeMeta(inner, 'name', 'twitter:image');
   inner = dedupeMeta(inner, 'name', 'twitter:image:alt');
+  inner = replaceLegacySharedOgImage(inner);
+  inner = ensureGameSocialMetadata(inner);
   inner = ensureSharedOgImageDimensions(inner);
+  inner = ensureBaselineMetadata(inner);
   inner = ensureTwitterMeta(inner);
   inner = ensureToolsStylesheet(inner);
   inner = ensureRouteComponentStylesheet(inner);
   inner = ensureToolJsonLd(inner);
+  inner = ensureSiteJsonLd(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');
+  inner = dedupeMeta(inner, 'property', 'og:image:type');
   inner = dedupeMeta(inner, 'property', 'og:image:alt');
+  inner = dedupeMeta(inner, 'property', 'og:site_name');
+  inner = dedupeMeta(inner, 'property', 'og:locale');
+  inner = dedupeMeta(inner, 'name', 'author');
+  inner = dedupeMeta(inner, 'name', 'robots');
+  inner = dedupeMeta(inner, 'name', 'twitter:site');
+  inner = dedupeMeta(inner, 'name', 'twitter:creator');
   inner = dedupeMeta(inner, 'name', 'twitter:title');
   inner = dedupeMeta(inner, 'name', 'twitter:description');
   inner = dedupeMeta(inner, 'name', 'twitter:image');

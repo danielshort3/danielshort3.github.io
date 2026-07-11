@@ -4,7 +4,8 @@
   "private": true,
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
-    "test": "node test.js",
+    "test": "node test.js && node build/validate-seo.js",
+    "test:seo": "node build/validate-seo.js",
     "test:starfall": "node test.js --suite=starfall-runtime",
     "test:starfall:smoke": "node test.js --suite=starfall-smoke",
     "test:starfall:inventory": "node test.js --suite=starfall-inventory",
