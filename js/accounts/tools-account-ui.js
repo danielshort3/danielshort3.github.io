@@ -1117,6 +1117,12 @@
           ...rows.map(row => header.map(key => toCsvCell(row[key] || '')).join(','))
         ].join('\n');
         downloadTextFile({ filename: 'tools-sessions.csv', text: csv, mime: 'text/csv;charset=utf-8' });
+        if (typeof window.gaEvent === 'function') {
+          window.gaEvent('tool_output_export', {
+            tool_id: 'tools-dashboard',
+            action: 'export_csv'
+          });
+        }
         return;
       }
 
@@ -1144,6 +1150,12 @@
             text: JSON.stringify({ exportedAt: Date.now(), sessions: sessionsOut }, null, 2),
             mime: 'application/json;charset=utf-8'
           });
+          if (typeof window.gaEvent === 'function') {
+            window.gaEvent('tool_output_export', {
+              tool_id: 'tools-dashboard',
+              action: 'export_json'
+            });
+          }
         } finally {
           setBusy(false, '');
         }
@@ -2419,12 +2431,13 @@
       }
     };
 
-    const saveSession = async ({ keepalive } = {}) => {
+    const saveSession = async ({ keepalive, source = 'autosave' } = {}) => {
       const auth = window.ToolsAuth.getAuth();
       if (!window.ToolsAuth.authIsValid(auth)) return;
       if (saveInFlight) return;
       saveInFlight = true;
       updateStatus('Saving...');
+      const saveAction = sessionId ? 'update' : 'create';
 
       const snapshot = buildSnapshot({ toolId, root });
       const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
@@ -2451,6 +2464,13 @@
         try {
           await window.ToolsState.logActivity({ toolId, type: 'session_save', summary: `Saved session ${sessionId}`, keepalive: !!keepalive });
         } catch {}
+        if (typeof window.gaEvent === 'function') {
+          window.gaEvent('tool_session_save', {
+            tool_id: toolId,
+            action: saveAction,
+            save_source: ['manual', 'autosave', 'page_exit'].includes(source) ? source : 'autosave'
+          });
+        }
       } catch (err) {
         updateStatus(err?.message || 'Save failed.');
       } finally {
@@ -2460,7 +2480,7 @@
 
     document.addEventListener('tools:save-session', (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
-      saveSession().catch((err) => logAsyncError('tools:save-session', err));
+      saveSession({ source: 'manual' }).catch((err) => logAsyncError('tools:save-session', err));
     });
 
     document.addEventListener('tools:session-dirty', (event) => {
@@ -2487,13 +2507,13 @@
     applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
 
     const tick = () => {
-      if (dirty) saveSession().catch((err) => logAsyncError('tool-autosave:tick-save', err));
+      if (dirty) saveSession({ source: 'autosave' }).catch((err) => logAsyncError('tool-autosave:tick-save', err));
     };
     const timer = window.setInterval(tick, AUTO_SAVE_MS);
 
     const flush = () => {
       if (!dirty) return;
-      saveSession({ keepalive: true }).catch((err) => logAsyncError('tool-autosave:flush-save', err));
+      saveSession({ keepalive: true, source: 'page_exit' }).catch((err) => logAsyncError('tool-autosave:flush-save', err));
     };
 
     window.addEventListener('beforeunload', flush);

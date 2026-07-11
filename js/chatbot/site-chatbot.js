@@ -533,6 +533,20 @@
     const link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
     if (!link || !root.contains(link)) return;
     const destination = sameSiteNavigationUrl(link.href);
+    const linkType = link.closest('.site-chatbot__sources')
+      ? 'source'
+      : link.closest('.site-chatbot__nav-links') ? 'suggested' : 'answer';
+    let destinationSection = 'external';
+    if (destination) {
+      destinationSection = String(destination.pathname || '/')
+        .split('/')
+        .filter(Boolean)[0] || 'home';
+    }
+    trackChatbotEvent('chatbot_link_click', {
+      link_type: linkType,
+      destination_kind: destination ? 'internal' : 'external',
+      destination_section: safeEventId(destinationSection)
+    });
     if (!destination) return;
     event.preventDefault();
     persistSessionState({
@@ -731,6 +745,12 @@
 
     const followupContext = state.pendingFollowupContext;
     const priorTranscript = apiTranscript(state.transcript);
+    trackChatbotEvent('chatbot_question_submit', {
+      question_length_bucket: eventLengthBucket(message),
+      question_token_bucket: eventTokenBucket(message),
+      transcript_size_bucket: eventCountBucket(priorTranscript.length),
+      is_followup: Boolean(followupContext)
+    });
     state.pendingFollowupContext = null;
     hideStarterPrompts();
     clearFollowups();
@@ -767,13 +787,25 @@
           previousQuestion: message
         });
       }
+      trackChatbotEvent('chatbot_response_success', {
+        response_length_bucket: eventLengthBucket(data.answer),
+        source_count: Array.isArray(data.sources) ? data.sources.length : 0,
+        followup_count: Array.isArray(data.followups) ? data.followups.length : 0,
+        response_mode: data.responseMode === 'json' ? 'json' : 'stream'
+      });
       setStatus('');
     } catch (err) {
       if (err && err.name === 'AbortError') {
         const partial = String(assistant.bubble.dataset.partialAnswer || '').trim();
         updateAssistantMessage(assistant, partial ? `${partial}\n\nStopped before final answer.` : 'Stopped before final answer.');
+        trackChatbotEvent('chatbot_response_stopped', {
+          had_partial_response: Boolean(partial)
+        });
       } else {
         updateAssistantMessage(assistant, err && err.message ? err.message : 'The assistant could not answer right now.');
+        trackChatbotEvent('chatbot_response_error', {
+          error_type: err instanceof TypeError ? 'network' : 'api'
+        });
       }
       setStatus('');
     } finally {
@@ -806,7 +838,7 @@
         throw new Error(data && data.error ? data.error : 'The assistant could not answer right now.');
       }
       updateAssistantMessage(assistant, data.answer || 'I could not find a supported answer.', data.sources || [], data.suggestedLinks || [], data.followups || [], lastMessage);
-      return data;
+      return { ...data, responseMode: 'json' };
     }
 
     const reader = res.body.getReader();
@@ -860,7 +892,13 @@
       (finalData && finalData.followups) || [],
       lastMessage
     );
-    return finalData || { answer };
+    return {
+      ...(finalData || {}),
+      answer,
+      sources: (finalData && finalData.sources) || meta.sources,
+      suggestedLinks: (finalData && finalData.suggestedLinks) || meta.suggestedLinks,
+      responseMode: 'stream'
+    };
   }
 
   function abortActiveRequest() {
@@ -873,6 +911,14 @@
   function handleRateLimit(data, lastMessage, target = null) {
     const seconds = Math.max(1, Number(data.retryAfter) || 20);
     const message = limitMessage(data, seconds);
+    const limitType = data.challengeRequired
+      ? 'challenge'
+      : String(data.error || '').includes('Daily') ? 'daily' : 'throttle';
+    trackChatbotEvent('chatbot_rate_limited', {
+      limit_type: limitType,
+      retry_bucket: eventRetryBucket(seconds),
+      challenge_required: Boolean(data.challengeRequired)
+    });
     if (target) {
       updateAssistantMessage(target, message);
     } else {
@@ -1380,6 +1426,49 @@
       audience: state.audience || 'general',
       ...params
     });
+  }
+
+  function safeEventId(value) {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48) || 'unknown';
+  }
+
+  function eventLengthBucket(value) {
+    const length = String(value || '').trim().length;
+    if (length === 0) return '0';
+    if (length <= 50) return '1-50';
+    if (length <= 150) return '51-150';
+    if (length <= 400) return '151-400';
+    if (length <= 800) return '401-800';
+    return '801-plus';
+  }
+
+  function eventTokenBucket(value) {
+    const count = String(value || '').trim().split(/\s+/).filter(Boolean).length;
+    if (count <= 3) return '1-3';
+    if (count <= 8) return '4-8';
+    if (count <= 20) return '9-20';
+    return '21-plus';
+  }
+
+  function eventCountBucket(value) {
+    const count = Math.max(0, Number(value) || 0);
+    if (count === 0) return '0';
+    if (count <= 2) return '1-2';
+    if (count <= 5) return '3-5';
+    return '6-plus';
+  }
+
+  function eventRetryBucket(seconds) {
+    const value = Math.max(0, Number(seconds) || 0);
+    if (value <= 10) return '1-10';
+    if (value <= 30) return '11-30';
+    if (value <= 60) return '31-60';
+    return '61-plus';
   }
 
   function setupChromeOffsetTracking() {

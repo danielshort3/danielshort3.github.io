@@ -244,6 +244,29 @@
     updateTimer = window.setTimeout(fn, 80);
   };
 
+  const lengthBucket = (value) => {
+    const length = String(value || '').trim().length;
+    if (length === 0) return '0';
+    if (length <= 10) return '1-10';
+    if (length <= 25) return '11-25';
+    if (length <= 50) return '26-50';
+    return '51-plus';
+  };
+
+  const tokenBucket = (count) => {
+    const numeric = Math.max(0, Number(count) || 0);
+    if (numeric === 0) return '0';
+    if (numeric === 1) return '1';
+    if (numeric <= 3) return '2-3';
+    if (numeric <= 6) return '4-6';
+    return '7-plus';
+  };
+
+  const trackSearchEvent = (name, params) => {
+    if (typeof window.gaEvent !== 'function') return;
+    window.gaEvent(name, params);
+  };
+
   const runSearch = async (query) => {
     const trimmed = String(query || '').trim();
     activeInput.value = trimmed;
@@ -253,7 +276,7 @@
     const tokens = tokenize(trimmed);
     if (!tokens.length) {
       renderResults([], '', tokens, 0);
-      return;
+      return { query: trimmed, tokenCount: 0, totalMatches: 0 };
     }
 
     status.textContent = 'Searching…';
@@ -268,6 +291,7 @@
     const matches = scored.slice(0, MAX_RESULTS).map((m) => m.entry);
 
     renderResults(matches, trimmed, tokens, totalMatches);
+    return { query: trimmed, tokenCount: tokens.length, totalMatches };
   };
 
   const initialQuery = new URLSearchParams(location.search).get('q') || '';
@@ -279,7 +303,16 @@
     form.dataset.searchBound = 'yes';
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      runSearch(input.value);
+      const searchSurface = form === pageForm ? 'search_page' : 'header';
+      void runSearch(input.value).then((metrics) => {
+        if (!metrics || !metrics.tokenCount) return;
+        trackSearchEvent('site_search', {
+          query_length_bucket: lengthBucket(metrics.query),
+          query_token_bucket: tokenBucket(metrics.tokenCount),
+          result_count: metrics.totalMatches,
+          search_surface: searchSurface
+        });
+      });
     });
   };
 
@@ -307,6 +340,32 @@
   bindInput(headerInput);
   bindInput(pageInput);
 
+  results.addEventListener('click', (event) => {
+    const result = event.target.closest('a.search-result[href]');
+    if (!result || !results.contains(result)) return;
+    const resultLinks = Array.from(results.querySelectorAll('a.search-result[href]'));
+    const position = resultLinks.indexOf(result) + 1;
+    if (position <= 0) return;
+    const category = String(result.querySelector('.search-badge')?.textContent || 'Pages')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'pages';
+    trackSearchEvent('site_search_result_click', {
+      result_category: category,
+      result_position: position
+    });
+  });
+
   // Initial run
-  runSearch(activeInput.value);
+  void runSearch(activeInput.value).then((metrics) => {
+    if (!metrics || !metrics.tokenCount) return;
+    trackSearchEvent('site_search', {
+      query_length_bucket: lengthBucket(metrics.query),
+      query_token_bucket: tokenBucket(metrics.tokenCount),
+      result_count: metrics.totalMatches,
+      search_surface: 'landing'
+    });
+  });
 })();

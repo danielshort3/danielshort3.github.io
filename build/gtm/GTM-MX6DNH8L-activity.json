@@ -1,0 +1,1384 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-07-11 03:34:05",
+  "containerVersion": {
+    "path": "accounts/6221119580/containers/179683921/versions/0",
+    "accountId": "6221119580",
+    "containerId": "179683921",
+    "containerVersionId": "0",
+    "container": {
+      "path": "accounts/6221119580/containers/179683921",
+      "accountId": "6221119580",
+      "containerId": "179683921",
+      "name": "www.danielshort.me",
+      "publicId": "GTM-MX6DNH8L",
+      "usageContext": [
+        "WEB"
+      ],
+      "fingerprint": "1709933027544",
+      "tagManagerUrl": "https://tagmanager.google.com/#/container/accounts/6221119580/containers/179683921/workspaces?apiLink=container",
+      "features": {
+        "supportUserPermissions": true,
+        "supportEnvironments": true,
+        "supportWorkspaces": true,
+        "supportGtagConfigs": false,
+        "supportBuiltInVariables": true,
+        "supportClients": false,
+        "supportFolders": true,
+        "supportTags": true,
+        "supportTemplates": true,
+        "supportTriggers": true,
+        "supportVariables": true,
+        "supportVersions": true,
+        "supportZones": true,
+        "supportTransformations": false
+      },
+      "tagIds": [
+        "GTM-MX6DNH8L"
+      ]
+    },
+    "tag": [
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "3",
+        "name": "GA4 - Google tag - All pages",
+        "type": "googtag",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "tagId",
+            "value": "G-0VL37MQ62P"
+          }
+        ],
+        "fingerprint": "1783730399914",
+        "firingTriggerId": [
+          "2147479573"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "6",
+        "name": "GA4 - Event - Home Explore Select",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "home_explore_select"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000100",
+        "firingTriggerId": [
+          "5"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "29",
+        "name": "GA4 - Event - Audience & Navigation",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000101",
+        "firingTriggerId": [
+          "15"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "30",
+        "name": "GA4 - Event - Directory Behavior",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000102",
+        "firingTriggerId": [
+          "16"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "31",
+        "name": "GA4 - Event - Portfolio Depth",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000103",
+        "firingTriggerId": [
+          "17"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "32",
+        "name": "GA4 - Event - Career Intent",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000104",
+        "firingTriggerId": [
+          "18"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "33",
+        "name": "GA4 - Event - Tool Activation",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000105",
+        "firingTriggerId": [
+          "19"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "34",
+        "name": "GA4 - Event - Tool Value",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000106",
+        "firingTriggerId": [
+          "20"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "35",
+        "name": "GA4 - Event - Game Activation",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000107",
+        "firingTriggerId": [
+          "21"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "36",
+        "name": "GA4 - Event - Contact Intent",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000108",
+        "firingTriggerId": [
+          "22"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "37",
+        "name": "GA4 - Event - Generate Lead",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "generate_lead"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000109",
+        "firingTriggerId": [
+          "23"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "38",
+        "name": "GA4 - Event - Chatbot Activation",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000110",
+        "firingTriggerId": [
+          "24"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "39",
+        "name": "GA4 - Event - Chatbot Outcomes",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000111",
+        "firingTriggerId": [
+          "25"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "40",
+        "name": "GA4 - Event - Site Search",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000112",
+        "firingTriggerId": [
+          "26"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "41",
+        "name": "GA4 - Event - Content & Contributions",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000113",
+        "firingTriggerId": [
+          "27"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "tagId": "42",
+        "name": "GA4 - Event - Reliability",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-0VL37MQ62P"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{EVS - Site activity parameters}}"
+          }
+        ],
+        "fingerprint": "1783739000114",
+        "firingTriggerId": [
+          "28"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "5",
+        "name": "CE - Home Explore Select",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^home_explore_select$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000200"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "15",
+        "name": "CE - Audience & Navigation",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(portfolio_audience_select|hero_cta_click|nav_link_click)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000201"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "16",
+        "name": "CE - Directory Behavior",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(directory_filter_apply|directory_search|select_content|project_filter_select)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000202"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "17",
+        "name": "CE - Portfolio Depth",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(case_study_engaged|project_view|multi_project_view|modal_close)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000203"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "18",
+        "name": "CE - Career Intent",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(resume_cta_click|email_cta_click)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000204"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "19",
+        "name": "CE - Tool Activation",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(tool_run_start|tool_run_complete)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000205"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "20",
+        "name": "CE - Tool Value",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(tool_output_export|tool_session_save)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000206"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "21",
+        "name": "CE - Game Activation",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^game_session_start$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000207"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "22",
+        "name": "CE - Contact Intent",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(contact_intent|contact_modal_open|contact_modal_close|contact_form_validation_error|contact_card_click)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000208"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "23",
+        "name": "CE - Generate Lead",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^contact_form_success$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000209"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "24",
+        "name": "CE - Chatbot Activation",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(chatbot_launcher_opened|chatbot_starter_prompts_hidden|chatbot_nudge_shown|chatbot_nudge_opened|chatbot_nudge_dismissed|chatbot_reset|chatbot_question_submit)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000210"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "25",
+        "name": "CE - Chatbot Outcomes",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(chatbot_response_success|chatbot_response_error|chatbot_response_stopped|chatbot_rate_limited|chatbot_link_click)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000211"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "26",
+        "name": "CE - Site Search",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(site_search|site_search_result_click)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000212"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "27",
+        "name": "CE - Content & Contributions",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(see_more_toggle|scroll_depth|contrib_doc_click|contrib_timeline_toggle)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000213"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "triggerId": "28",
+        "name": "CE - Reliability",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(client_error|contact_form_error)$"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000214"
+      }
+    ],
+    "variable": [
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "7",
+        "name": "DLV - activity_label",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "activity_label"
+          }
+        ],
+        "fingerprint": "1783739000300",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "9",
+        "name": "DLV - activity_detail",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "activity_detail"
+          }
+        ],
+        "fingerprint": "1783739000301",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "10",
+        "name": "DLV - activity_value",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "activity_value"
+          }
+        ],
+        "fingerprint": "1783739000302",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "11",
+        "name": "DLV - activity_state",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "activity_state"
+          }
+        ],
+        "fingerprint": "1783739000303",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "12",
+        "name": "DLV - activity_category",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "activity_category"
+          }
+        ],
+        "fingerprint": "1783739000304",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "13",
+        "name": "DLV - page_id",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "page_id"
+          }
+        ],
+        "fingerprint": "1783739000305",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "14",
+        "name": "DLV - audience",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "audience"
+          }
+        ],
+        "fingerprint": "1783739000306",
+        "formatValue": {}
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "variableId": "8",
+        "name": "EVS - Site activity parameters",
+        "type": "gtes",
+        "parameter": [
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "activity_label"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - activity_label}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "activity_detail"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - activity_detail}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "activity_value"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - activity_value}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "activity_state"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - activity_state}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "activity_category"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - activity_category}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "page_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - page_id}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "audience"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - audience}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1783739000400"
+      }
+    ],
+    "builtInVariable": [
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "type": "PAGE_URL",
+        "name": "Page URL"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "type": "PAGE_HOSTNAME",
+        "name": "Page Hostname"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "type": "PAGE_PATH",
+        "name": "Page Path"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "type": "REFERRER",
+        "name": "Referrer"
+      },
+      {
+        "accountId": "6221119580",
+        "containerId": "179683921",
+        "type": "EVENT",
+        "name": "Event"
+      }
+    ],
+    "fingerprint": "1783739000500",
+    "tagManagerUrl": "https://tagmanager.google.com/#/versions/accounts/6221119580/containers/179683921/versions/0?apiLink=version"
+  }
+}
