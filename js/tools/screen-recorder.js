@@ -70,6 +70,14 @@
     } catch {}
   };
 
+  const dispatchToolRunEvent = (eventName, detail = {}) => {
+    try {
+      document.dispatchEvent(new CustomEvent(eventName, {
+        detail: { toolId: TOOL_ID, ...detail }
+      }));
+    } catch {}
+  };
+
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
   const supportsMicrophone = Boolean(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -2282,14 +2290,32 @@
     cancelCountdown(false);
     clearRecordedClip();
 
+    let runTerminalDispatched = false;
+    const dispatchRunTerminal = (eventName, detail = {}) => {
+      if (runTerminalDispatched) return;
+      runTerminalDispatched = true;
+      dispatchToolRunEvent(eventName, detail);
+    };
+
     setLivePreview();
     if (el.micToggle?.checked && !streamHasAudio(state.micStream)) {
       await ensureMicStream();
     }
 
-    const recordingStreamInfo = buildRecordingStream();
+    let recordingStreamInfo;
+    try {
+      recordingStreamInfo = buildRecordingStream();
+    } catch (_) {
+      setStatus('Recording failed to initialize in this browser.', 'error');
+      dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
+      if (state.testMode) {
+        state.testMode = false;
+      }
+      return;
+    }
     if (!recordingStreamInfo || !recordingStreamInfo.stream) {
       setStatus('Recording failed to initialize in this browser.', 'error');
+      dispatchRunTerminal('tools:run-error', { errorType: 'unsupported' });
       if (state.testMode) {
         state.testMode = false;
       }
@@ -2298,10 +2324,22 @@
     state.recordingStream = recordingStreamInfo.stream;
     state.recordingCleanup = recordingStreamInfo.cleanup;
 
-    const recorderSet = buildRecorderSet(recordingStreamInfo.stream);
+    let recorderSet;
+    try {
+      recorderSet = buildRecorderSet(recordingStreamInfo.stream);
+    } catch (_) {
+      setStatus('Recording failed to initialize in this browser.', 'error');
+      cleanupRecordingPipeline();
+      dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
+      if (state.testMode) {
+        state.testMode = false;
+      }
+      return;
+    }
     if (!recorderSet.recorders.length) {
       setStatus('Recording failed to initialize in this browser.', 'error');
       cleanupRecordingPipeline();
+      dispatchRunTerminal('tools:run-error', { errorType: 'unsupported' });
       if (state.testMode) {
         state.testMode = false;
       }
@@ -2344,17 +2382,27 @@
               setStatus('Clip ready to download. First-frame image export failed.', 'warn');
             }
             updateButtons();
+            dispatchRunTerminal('tools:run-complete', {
+              resultBucket: files.length > 1 || imageFiles.length > 0 ? 'multiple_files' : 'single_file'
+            });
           }).catch(() => {
             if (state.firstFrameJobId !== jobId || state.recordedBlob !== primaryFile.blob) return;
             setDownloads(files);
             setStatus('Clip ready to download. First-frame image export failed.', 'warn');
             updateButtons();
+            dispatchRunTerminal('tools:run-complete', {
+              resultBucket: files.length > 1 ? 'multiple_files' : 'single_file'
+            });
           });
         } else {
           setRecordedClip(primaryFile.blob, primaryFile.mimeType, files);
+          dispatchRunTerminal('tools:run-complete', {
+            resultBucket: files.length > 1 ? 'multiple_files' : 'single_file'
+          });
         }
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
+        dispatchRunTerminal('tools:run-error', { errorType: 'processing' });
       }
       cleanupRecordingPipeline();
       state.recorders = [];
@@ -2403,6 +2451,9 @@
       entry.recorder.addEventListener('stop', () => {
         handleRecorderStop(entry);
       }, { once: true });
+      entry.recorder.addEventListener('error', () => {
+        dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
+      }, { once: true });
     });
 
     try {
@@ -2439,6 +2490,7 @@
       }
       setStatus(statusMessage, 'recording');
       updateButtons();
+      dispatchToolRunEvent('tools:run-start');
     } catch (err) {
       state.recording = false;
       stopTimer();
@@ -2450,6 +2502,7 @@
         state.testMode = false;
       }
       updateButtons();
+      dispatchRunTerminal('tools:run-error', { errorType: 'runtime' });
     }
   };
 

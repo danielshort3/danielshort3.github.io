@@ -1,6 +1,6 @@
 {
   "exportFormatVersion": 2,
-  "exportTime": "2026-07-11 03:34:05",
+  "exportTime": "2026-07-11 15:23:48",
   "containerVersion": {
     "path": "accounts/6221119580/containers/179683921/versions/0",
     "accountId": "6221119580",
@@ -733,7 +733,7 @@
               {
                 "type": "TEMPLATE",
                 "key": "arg1",
-                "value": "^(directory_filter_apply|directory_search|select_content|project_filter_select)$"
+                "value": "^(directory_filter_apply|directory_search|directory_depth_reached|select_content|project_filter_select)$"
               }
             ]
           }
@@ -808,7 +808,7 @@
               {
                 "type": "TEMPLATE",
                 "key": "arg1",
-                "value": "^(tool_run_start|tool_run_complete)$"
+                "value": "^(tool_run_start|tool_run_complete|tool_run_error)$"
               }
             ]
           }

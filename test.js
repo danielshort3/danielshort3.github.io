@@ -37787,6 +37787,39 @@ try {
     assert(projectEvent.activity_label === 'alpha',
       'custom events should include a safe normalized activity label');
 
+    const sharedSessionValues = new Map();
+    const sharedSessionStorage = {
+      getItem: key => sharedSessionValues.has(key) ? sharedSessionValues.get(key) : null,
+      setItem: (key, value) => sharedSessionValues.set(key, String(value)),
+      removeItem: key => sharedSessionValues.delete(key)
+    };
+    const createConsentedAnalyticsEnv = (pathname) => {
+      const pageEnv = createEnv();
+      pageEnv.document.body.dataset = { page: 'portfolio', audience: 'professional' };
+      pageEnv.window.location = {
+        href: `https://www.danielshort.me${pathname}`,
+        pathname,
+        hostname: 'www.danielshort.me',
+        origin: 'https://www.danielshort.me'
+      };
+      pageEnv.window.sessionStorage = sharedSessionStorage;
+      pageEnv.window.consentAPI = { get: () => ({ analytics: true }) };
+      evalScript('js/analytics/ga4-events.js', pageEnv);
+      return pageEnv;
+    };
+    const firstProjectPage = createConsentedAnalyticsEnv('/portfolio/alpha');
+    firstProjectPage.window.trackProjectView('alpha', { source_surface: 'case_study' });
+    firstProjectPage.window.trackProjectView('beta', { source_surface: 'portfolio_workbench' });
+    const secondProjectPage = createConsentedAnalyticsEnv('/portfolio/gamma');
+    secondProjectPage.window.trackProjectView('gamma', { source_surface: 'case_study' });
+    const sessionMultiEvents = secondProjectPage.dataLayer.filter(x => x && x.event === 'multi_project_view');
+    assert(sessionMultiEvents.length === 1 && sessionMultiEvents[0].view_count === 3,
+      'multi_project_view should count unique project views across page navigations in one session');
+    const thirdProjectPage = createConsentedAnalyticsEnv('/portfolio/delta');
+    thirdProjectPage.window.trackProjectView('delta', { source_surface: 'case_study' });
+    assert(!thirdProjectPage.dataLayer.some(x => x && x.event === 'multi_project_view'),
+      'multi_project_view should remain a once-per-session milestone after it is sent');
+
     const safeStart = env.dataLayer.length;
     assert(env.window.gaEvent('site_search', {
       query_length_bucket: '21-80',
@@ -37814,6 +37847,54 @@ try {
       'private prompt', 'private-upload.pdf', 'private-session', 'Private stack trace'].forEach((secret) => {
       assert(!serializedSearchEvent.includes(secret), `analytics helper should not expose sensitive value: ${secret}`);
     });
+
+    env.window.gaEvent('select_content', {
+      content_type: 'project_resource',
+      content_id: 'alpha',
+      resource_type: 'github',
+      source_surface: 'case_study_resources'
+    });
+    env.window.gaEvent('resume_cta_click', {
+      resume_variant: 'analytics',
+      cta_surface: 'portfolio_header',
+      action_type: 'download_pdf'
+    });
+    env.window.gaEvent('tool_run_error', {
+      tool_id: 'image-optimizer',
+      action: 'optimize',
+      error_type: 'processing',
+      duration_bucket: '3-10s',
+      error_message: 'Private exception detail'
+    });
+    env.window.gaEvent('directory_depth_reached', {
+      directory_type: 'portfolio',
+      source_surface: 'directory_results',
+      percent: 50,
+      result_bucket: '11-plus'
+    });
+    const resourceEvent = env.dataLayer.find(x => x && x.event === 'select_content');
+    const resumeEvent = env.dataLayer.find(x => x && x.event === 'resume_cta_click');
+    const toolErrorEvent = env.dataLayer.find(x => x && x.event === 'tool_run_error');
+    const directoryDepthEvent = env.dataLayer.find(x => x && x.event === 'directory_depth_reached');
+    assert(resourceEvent && resourceEvent.activity_category === 'portfolio' &&
+      resourceEvent.activity_label === 'alpha' && resourceEvent.activity_detail === 'case_study_resources' &&
+      resourceEvent.activity_state === 'github',
+    'project resource clicks should use normalized portfolio fields without sending link text or URLs');
+    assert(resumeEvent && resumeEvent.activity_category === 'career_intent' &&
+      resumeEvent.activity_detail === 'portfolio_header' && resumeEvent.activity_state === 'download_pdf',
+    'resume intent should distinguish HTML views, PDF previews, and downloads through action_type');
+    assert(toolErrorEvent && toolErrorEvent.activity_category === 'reliability' &&
+      toolErrorEvent.activity_label === 'image-optimizer' && toolErrorEvent.activity_detail === 'optimize' &&
+      toolErrorEvent.activity_value === '3-10s' && toolErrorEvent.activity_state === 'processing' &&
+      !JSON.stringify(toolErrorEvent).includes('Private exception detail'),
+    'tool failures should retain only coarse type and duration buckets');
+    assert(directoryDepthEvent && directoryDepthEvent.activity_label === 'portfolio' &&
+      directoryDepthEvent.activity_value === 50,
+    'directory depth should use a once-only percentage milestone instead of raw scroll activity');
+    env.window.gaEvent('chatbot_reset');
+    const resetEvent = env.dataLayer.filter(x => x && x.event === 'chatbot_reset').pop();
+    assert(resetEvent && resetEvent.activity_detail === '' && resetEvent.activity_value === '' && resetEvent.activity_state === '',
+      'normalized optional activity fields should reset on every event so GTM cannot reuse stale dataLayer values');
 
     env.window.gaEvent('nav_link_click', {
       link_url: 'https://www.danielshort.me/contact?email=private%40example.com#form'
@@ -37875,6 +37956,52 @@ try {
     assert(activityCode.includes("document.querySelector('.project-star')") &&
       activityCode.includes("emit('case_study_engaged'") && activityCode.includes('}, 5000);'),
     'project pages should measure sustained STAR proof engagement instead of a page-load proxy');
+    assert(activityCode.includes("emit('directory_depth_reached'") &&
+      activityCode.includes('directoryDepthTracked.add(results)') && activityCode.includes('percent: 50'),
+    'internal workbench scrolling should emit one consent-aware 50% directory milestone');
+    assert(activityCode.includes("document.addEventListener('tools:run-complete'") &&
+      activityCode.includes("document.addEventListener('tools:run-error'") &&
+      activityCode.includes('durationBucket(currentTimeMs() - pendingToolRun.startedAt)') &&
+      !activityCode.includes("document.addEventListener('tools:session-dirty'"),
+    'tool outcomes should use explicit terminal signals and duration buckets, not autosave dirty events');
+    assert(activityCode.includes('[data-content-open][href]') &&
+      activityCode.includes("contentType = 'project_resource'") &&
+      activityCode.includes('window.trackProjectView(normalizedContentId'),
+    'project cards and case-study resources should feed semantic selection and session-depth events');
+
+    [
+      'js/tools/background-remover.js',
+      'js/tools/ga4-utm-performance.js',
+      'js/tools/image-optimizer.js',
+      'js/tools/nbsp-cleaner.js',
+      'js/tools/oxford-comma-checker.js',
+      'js/tools/point-of-view-checker.js',
+      'js/tools/screen-recorder.js',
+      'js/tools/text-compare.js',
+      'js/tools/whisper-transcribe-monitor.js',
+      'js/tools/word-frequency.js'
+    ].forEach((file) => {
+      const code = readFile(file);
+      assert(code.includes('tools:run-complete') && code.includes('tools:run-error'),
+        `${file} should emit explicit privacy-safe terminal run events`);
+    });
+    const utmBuilderSource = readFile('src/utm-batch-builder/app.tsx');
+    assert(utmBuilderSource.includes('tools:run-start') &&
+      utmBuilderSource.includes('tools:run-complete') &&
+      utmBuilderSource.includes('tools:run-error') &&
+      utmBuilderSource.includes('tools:run-cancel'),
+    'UTM generation should explicitly distinguish starts, completions, errors, and cancellations');
+    const utmBuilderHtml = readFile('pages/utm-batch-builder.html');
+    assert(utmBuilderHtml.includes('<script defer src="dist/utm-batch-builder.js"></script>') &&
+      utmBuilderHtml.indexOf('dist/utm-batch-builder.js') < utmBuilderHtml.indexOf('dist/site-tools-account.'),
+    'UTM Batch Builder should load its generated app before the shared tools account bundle');
+
+    const gtmGeneratorCode = readFile('build/gtm/generate-activity-container.js');
+    const gtmContainer = readFile('build/gtm/GTM-MX6DNH8L-activity.json');
+    assert(gtmGeneratorCode.includes('directory_depth_reached') && gtmContainer.includes('directory_depth_reached'),
+      'GTM Directory Behavior should route the directory depth milestone');
+    assert(gtmGeneratorCode.includes('tool_run_error') && gtmContainer.includes('tool_run_error'),
+      'GTM Tool Activation should route explicit tool errors');
   });
 
   section('Portfolio modal analytics hook', () => {
@@ -39992,10 +40119,23 @@ try {
 
   section('Search page form contract', () => {
     const html = fs.readFileSync('pages/search.html', 'utf8');
+    const sitemapHtml = fs.readFileSync('pages/sitemap.html', 'utf8');
+    const searchCode = readFile('js/search/site-search.js');
+    const sitemapCode = readFile('js/sitemap/sitemap-page.js');
     assert(html.includes('id="search-page-form"'), 'pages/search.html missing in-page search form');
     assert(html.includes('id="search-page-q"'), 'pages/search.html missing in-page search input');
     assert(html.includes('id="search-results"'), 'pages/search.html missing search results container');
     assert(html.includes('id="search-status"'), 'pages/search.html missing search status region');
+    [searchCode, sitemapCode].forEach((code) => {
+      assert(code.includes("url.searchParams.get('q')") && code.includes("url.searchParams.delete('q')"),
+        'search surfaces should capture then remove an initial q parameter before analytics loads');
+      assert(!code.includes("searchParams.set('q'") && !code.includes('searchParams.set("q"'),
+        'search surfaces should never write raw search terms into browser history');
+    });
+    assert(html.indexOf('dist/site-search.') < html.indexOf('dist/site-consent.'),
+      'search should strip an initial q parameter before the consent and analytics bundle runs');
+    assert(sitemapHtml.indexOf('dist/site-sitemap.') < sitemapHtml.indexOf('dist/site-consent.'),
+      'sitemap filtering should strip an initial q parameter before the consent and analytics bundle runs');
   });
 
   section('Privacy CMP', () => {

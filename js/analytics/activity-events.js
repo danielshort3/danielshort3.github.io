@@ -5,6 +5,7 @@
   const pathParts = window.location.pathname.split('/').filter(Boolean);
   const directorySearchTimers = new WeakMap();
   const directorySearchValues = new WeakMap();
+  const directoryDepthTracked = new WeakSet();
   let pendingToolRun = null;
   let gameSessionStarted = false;
   let caseStudyTimer = null;
@@ -47,6 +48,31 @@
     return '11-plus';
   }
 
+  function durationBucket(durationMs) {
+    const value = Math.max(0, Number(durationMs) || 0);
+    if (value < 1000) return 'under-1s';
+    if (value < 3000) return '1-3s';
+    if (value < 10000) return '3-10s';
+    if (value < 30000) return '10-30s';
+    if (value < 120000) return '30-120s';
+    return '120s-plus';
+  }
+
+  function currentTimeMs() {
+    if (window.performance && typeof window.performance.now === 'function') {
+      return window.performance.now();
+    }
+    return Date.now();
+  }
+
+  function safeToolErrorType(value) {
+    const type = safeId(value, 'unknown');
+    return [
+      'network', 'permission', 'processing', 'runtime', 'service',
+      'timeout', 'unsupported', 'validation', 'unknown'
+    ].includes(type) ? type : 'unknown';
+  }
+
   function emit(name, params = {}) {
     if (typeof window.gaEvent !== 'function') return false;
     return window.gaEvent(name, params);
@@ -81,6 +107,33 @@
     return 'message_form';
   }
 
+  function resumeActionType(link) {
+    const href = String(link?.getAttribute('href') || '').toLowerCase().split(/[?#]/)[0];
+    if (link?.hasAttribute?.('download')) return 'download_pdf';
+    if (/(?:^|\/)resume(?:-[a-z-]+)?-pdf(?:\.html)?$/.test(href)) return 'preview_pdf';
+    if (/(?:^|\/)documents\/resume[^/]*\.pdf$/.test(href)) return 'download_pdf';
+    return 'view_html';
+  }
+
+  function contentResourceType(link) {
+    const explicit = safeId(link?.dataset?.resourceType || '', '');
+    if (explicit) return explicit;
+    const href = String(link?.getAttribute?.('href') || '').toLowerCase().split(/[?#]/)[0];
+    const label = String(link?.textContent || '').toLowerCase();
+    const signal = `${href} ${label}`;
+    if (href.includes('github.com')) return 'github';
+    if (/\.ipynb$|\bnotebook\b/.test(signal)) return 'notebook';
+    if (/\.pdf$|\bpdf\b/.test(signal)) return 'pdf';
+    if (/\.xlsx?$|\bexcel\b|\bspreadsheet\b/.test(signal)) return 'spreadsheet';
+    if (/\.csv$|\bdataset\b|kaggle/.test(signal)) return 'dataset';
+    if (/tableau|powerbi|dashboard/.test(signal)) return 'dashboard';
+    if (/\blive[- ]?demo\b|\binteractive\b|(?:^|\/)demos?\//.test(signal)) return 'live_demo';
+    if (/(?:^|\/)portfolio\//.test(href)) return 'case_study';
+    if (/(?:^|\/)tools\//.test(href)) return 'tool';
+    if (/(?:^|\/)games\//.test(href)) return 'game';
+    return 'resource';
+  }
+
   function directoryRoot(element) {
     return element?.closest?.('[data-portfolio-workbench]') || null;
   }
@@ -93,6 +146,27 @@
   function visibleDirectoryResultCount(root) {
     return Array.from(root?.querySelectorAll?.('[data-portfolio-results] [data-project-id]') || [])
       .filter((entry) => !entry.hidden).length;
+  }
+
+  function setupDirectoryDepthTracking() {
+    document.querySelectorAll('[data-portfolio-workbench]').forEach((root) => {
+      const results = root.querySelector('[data-portfolio-results]');
+      if (!results) return;
+      results.addEventListener('scroll', () => {
+        if (directoryDepthTracked.has(results)) return;
+        const scrollable = Math.max(0, Number(results.scrollHeight || 0) - Number(results.clientHeight || 0));
+        if (scrollable <= 0) return;
+        const percent = Math.round((Math.max(0, Number(results.scrollTop || 0)) / scrollable) * 100);
+        if (percent < 50) return;
+        const sent = emit('directory_depth_reached', {
+          directory_type: directoryType(root),
+          source_surface: 'directory_results',
+          percent: 50,
+          result_bucket: resultBucket(visibleDirectoryResultCount(root))
+        });
+        if (sent) directoryDepthTracked.add(results);
+      }, { passive: true });
+    });
   }
 
   function trackDirectoryFilter(target) {
@@ -200,6 +274,41 @@
       item_id: safeId(card.dataset.projectId),
       source_surface: 'directory_results'
     });
+    if (root && rootType === 'portfolio' && typeof window.trackProjectView === 'function') {
+      window.trackProjectView(card.dataset.projectId, { source_surface: 'portfolio_workbench' });
+    }
+    return true;
+  }
+
+  function trackContentOpen(target) {
+    const explicit = target.closest('[data-content-open][href]');
+    const projectResource = target.closest('.project-link[href]');
+    const link = explicit || projectResource;
+    if (!link) return false;
+
+    let contentId = explicit?.dataset?.contentId || '';
+    let contentType = explicit?.dataset?.contentType || '';
+    let sourceSurface = explicit?.dataset?.sourceSurface || '';
+
+    if (!explicit) {
+      if (pathParts[0] !== 'portfolio' || pathParts.length < 2) return false;
+      contentId = pathParts[1].replace(/\.html$/i, '');
+      contentType = 'project_resource';
+      sourceSurface = 'case_study_resources';
+    }
+
+    const normalizedContentType = safeId(contentType, 'content');
+    const normalizedContentId = safeId(contentId);
+    const normalizedSourceSurface = safeId(sourceSurface, 'content_link');
+    emit('select_content', {
+      content_type: normalizedContentType,
+      content_id: normalizedContentId,
+      resource_type: contentResourceType(link),
+      source_surface: normalizedSourceSurface
+    });
+    if (normalizedContentType === 'project' && typeof window.trackProjectView === 'function') {
+      window.trackProjectView(normalizedContentId, { source_surface: normalizedSourceSurface });
+    }
     return true;
   }
 
@@ -290,8 +399,46 @@
     const context = toolContext();
     if (!context || !context.main.contains(element)) return;
     const action = toolAction(element);
-    const sent = emit('tool_run_start', { tool_id: context.toolId, action });
-    pendingToolRun = sent ? { toolId: context.toolId, action } : null;
+    startToolRun(context.toolId, action, { restart: true });
+  }
+
+  function startToolRun(toolId, action = 'run', options = {}) {
+    const context = toolContext();
+    const normalizedToolId = safeId(toolId || context?.toolId);
+    if (!context || normalizedToolId !== context.toolId) return false;
+    if (pendingToolRun?.toolId === normalizedToolId && options.restart !== true) return true;
+    const normalizedAction = safeId(action, 'run');
+    const sent = emit('tool_run_start', { tool_id: normalizedToolId, action: normalizedAction });
+    pendingToolRun = sent ? {
+      toolId: normalizedToolId,
+      action: normalizedAction,
+      startedAt: currentTimeMs()
+    } : null;
+    return sent;
+  }
+
+  function finishToolRun(eventName, detail = {}) {
+    if (!pendingToolRun) return false;
+    const detailToolId = safeId(detail.toolId || detail.tool_id || pendingToolRun.toolId);
+    if (!detailToolId || detailToolId === 'unknown' || detailToolId !== pendingToolRun.toolId) return false;
+
+    const action = safeId(detail.action || pendingToolRun?.action || 'run');
+    const params = {
+      tool_id: detailToolId,
+      action
+    };
+    if (pendingToolRun && Number.isFinite(pendingToolRun.startedAt)) {
+      params.duration_bucket = durationBucket(currentTimeMs() - pendingToolRun.startedAt);
+    }
+    if (eventName === 'tool_run_error') {
+      params.error_type = safeToolErrorType(detail.errorType || detail.error_type);
+    } else if (detail.resultBucket || detail.result_bucket) {
+      params.result_bucket = safeId(detail.resultBucket || detail.result_bucket);
+    }
+
+    const sent = emit(eventName, params);
+    if (pendingToolRun && detailToolId === pendingToolRun.toolId) pendingToolRun = null;
+    return sent;
   }
 
   function exportAction(element) {
@@ -338,9 +485,13 @@
       caseStudyTimer = window.setTimeout(() => {
         caseStudyTimer = null;
         if (!sufficientlyVisible || caseStudyTracked || document.visibilityState === 'hidden') return;
+        const projectId = safeId(pathParts[1].replace(/\.html$/i, ''));
         caseStudyTracked = emit('case_study_engaged', {
-          project_id: safeId(pathParts[1].replace(/\.html$/i, ''))
+          project_id: projectId
         });
+        if (caseStudyTracked && typeof window.trackProjectView === 'function') {
+          window.trackProjectView(projectId, { source_surface: 'case_study' });
+        }
         if (caseStudyTracked) observer.disconnect();
       }, 5000);
     }, { threshold: [0.5] });
@@ -371,18 +522,29 @@
   document.addEventListener('submit', (event) => {
     const context = toolContext();
     if (!context || !context.main.contains(event.target)) return;
-    beginToolRun(event.submitter || event.target);
+    const trigger = event.submitter || event.target;
+    if (!startsToolRun(trigger)) return;
+    beginToolRun(trigger);
   }, true);
 
-  document.addEventListener('tools:session-dirty', (event) => {
+  document.addEventListener('tools:run-complete', (event) => {
+    finishToolRun('tool_run_complete', event?.detail || {});
+  });
+
+  document.addEventListener('tools:run-error', (event) => {
+    finishToolRun('tool_run_error', event?.detail || {});
+  });
+
+  document.addEventListener('tools:run-start', (event) => {
+    const detail = event?.detail || {};
+    startToolRun(detail.toolId || detail.tool_id, detail.action || 'run');
+  });
+
+  document.addEventListener('tools:run-cancel', (event) => {
     if (!pendingToolRun) return;
-    const eventToolId = safeId(event?.detail?.toolId || pendingToolRun.toolId);
-    if (eventToolId !== pendingToolRun.toolId) return;
-    emit('tool_run_complete', {
-      tool_id: pendingToolRun.toolId,
-      action: pendingToolRun.action
-    });
-    pendingToolRun = null;
+    const detail = event?.detail || {};
+    const detailToolId = safeId(detail.toolId || detail.tool_id || pendingToolRun.toolId);
+    if (detailToolId === pendingToolRun.toolId) pendingToolRun = null;
   });
 
   document.addEventListener('change', (event) => {
@@ -411,11 +573,12 @@
       });
     }
 
-    const resumeLink = target.closest('[data-resume-home-link], [data-portfolio-resume-link], a[href*="resume"]');
+    const resumeLink = target.closest('[data-resume-home-link], [data-portfolio-resume-link], a[href*="resume" i]');
     if (resumeLink) {
       emit('resume_cta_click', {
         resume_variant: resumeVariant(resumeLink),
-        cta_surface: clickSurface(resumeLink)
+        cta_surface: clickSurface(resumeLink),
+        action_type: resumeActionType(resumeLink)
       });
     }
 
@@ -430,19 +593,22 @@
     }
 
     trackDirectoryFilterClick(target);
-    trackSelectedContent(target);
+    const openedContent = trackContentOpen(target);
+    if (!openedContent) trackSelectedContent(target);
     trackHomeExplore(target);
 
     const context = toolContext();
     if (context && context.main.contains(target)) {
       if (!trackToolExport(target)) {
         const control = target.closest('button, [role="button"]');
-        if (control && !control.closest('form') && startsToolRun(control)) beginToolRun(control);
+        const isModeControl = control?.matches?.('[role="tab"], [data-qrtool-tab]');
+        if (control && !isModeControl && !control.closest('form') && startsToolRun(control)) beginToolRun(control);
       }
     }
   }, true);
 
   document.addEventListener('pointerdown', startGameSession, true);
   document.addEventListener('keydown', startGameSession, true);
+  setupDirectoryDepthTracking();
   setupCaseStudyEngagement();
 })();

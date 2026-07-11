@@ -164,6 +164,22 @@
     } catch {}
   };
 
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
   const splitCustomList = (raw) => String(raw || '')
     .split(/[\n,;]+/)
     .map((entry) => entry.trim())
@@ -1128,7 +1144,7 @@
       selectedTermLabel = '';
       renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
       markSessionDirty();
-      return;
+      return null;
     }
 
     if (!analysis.topEntries.length) {
@@ -1140,7 +1156,7 @@
         : 'No analyzable words remained after filtering.';
       renderEmpty('No results found with current settings.', reason);
       markSessionDirty();
-      return;
+      return 'no_results';
     }
 
     lastAnalysis = analysis;
@@ -1165,6 +1181,7 @@
     renderFullText(analysis, selectedTerm);
 
     markSessionDirty();
+    return 'with_results';
   };
 
   const handleCopyResults = async () => {
@@ -1309,7 +1326,14 @@
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    runAnalysis();
+    try {
+      const resultBucket = runAnalysis();
+      if (resultBucket) reportRunComplete(resultBucket);
+      else reportRunError('validation');
+    } catch (error) {
+      reportRunError('processing');
+      throw error;
+    }
   });
 
   clearBtn?.addEventListener('click', () => {

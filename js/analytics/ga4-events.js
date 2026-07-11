@@ -23,8 +23,9 @@
     nav_link_click: ['link_url'],
     contact_card_click: ['card_label', 'card_type'],
     scroll_depth: ['percent'],
-    project_view: ['project_id'],
-    multi_project_view: ['view_count'],
+    directory_depth_reached: ['directory_type', 'source_surface', 'percent', 'result_bucket'],
+    project_view: ['project_id', 'source_surface'],
+    multi_project_view: ['view_count', 'source_surface'],
     modal_close: ['project_id'],
     contact_modal_open: ['page_path'],
     contact_modal_close: ['page_path'],
@@ -44,11 +45,12 @@
     portfolio_audience_select: ['current_audience', 'selected_audience'],
     directory_filter_apply: ['directory_type', 'filter_group', 'filter_value', 'filter_state', 'action_type', 'result_bucket'],
     directory_search: ['directory_type', 'query_length_bucket', 'query_token_bucket', 'token_count_bucket', 'result_bucket', 'has_results'],
-    select_content: ['content_type', 'content_id', 'item_id', 'source_surface'],
+    select_content: ['content_type', 'content_id', 'item_id', 'resource_type', 'source_surface'],
     case_study_engaged: ['project_id'],
-    resume_cta_click: ['resume_variant', 'source_surface', 'cta_surface'],
+    resume_cta_click: ['resume_variant', 'source_surface', 'cta_surface', 'action_type'],
     tool_run_start: ['tool_id', 'action', 'action_type'],
     tool_run_complete: ['tool_id', 'action', 'action_type', 'result_bucket', 'duration_bucket'],
+    tool_run_error: ['tool_id', 'action', 'action_type', 'error_type', 'duration_bucket'],
     tool_output_export: ['tool_id', 'action', 'action_type', 'export_type', 'result_bucket'],
     tool_session_save: ['tool_id', 'action', 'action_type', 'save_source'],
     game_session_start: ['game_id', 'action_type', 'input_type'],
@@ -73,6 +75,7 @@
     project_filter_select: 'directory',
     directory_filter_apply: 'directory',
     directory_search: 'directory',
+    directory_depth_reached: 'directory',
     select_content: 'directory',
     project_view: 'portfolio',
     multi_project_view: 'portfolio',
@@ -82,6 +85,7 @@
     email_cta_click: 'career_intent',
     tool_run_start: 'tool_activation',
     tool_run_complete: 'tool_activation',
+    tool_run_error: 'reliability',
     tool_output_export: 'tool_value',
     tool_session_save: 'tool_value',
     game_session_start: 'game_activation',
@@ -123,7 +127,7 @@
   const ACTIVITY_DETAIL_KEYS = [
     'source_surface', 'cta_surface', 'search_surface', 'filter_group', 'content_type',
     'selection_type', 'explore_type', 'action_type', 'action', 'input_type',
-    'export_type', 'save_source', 'response_mode', 'limit_type', 'error_type',
+    'export_type', 'resource_type', 'save_source', 'response_mode', 'limit_type', 'error_type',
     'kind', 'source', 'destination_kind', 'destination_section'
   ];
   const ACTIVITY_VALUE_KEYS = [
@@ -133,13 +137,17 @@
     'response_length_bucket', 'answer_length_bucket', 'retry_bucket'
   ];
   const ACTIVITY_STATE_KEYS = [
-    'selected_audience', 'current_audience', 'filter_state', 'outcome', 'expanded',
+    'selected_audience', 'current_audience', 'filter_state', 'resource_type', 'action_type',
+    'error_type', 'outcome', 'expanded',
     'selected', 'has_results', 'challenge_required', 'is_followup', 'had_partial_response'
   ];
 
   let analyticsConsentGranted = false;
   let domListenersBound = false;
   const viewedProjectIds = new Set();
+  const PROJECT_VIEW_SESSION_KEY = 'ds_analytics_project_views_v1';
+  let projectViewStateLoaded = false;
+  let multiProjectViewSent = false;
   let sent50 = false;
 
   function normalizeConsentState(value) {
@@ -323,6 +331,7 @@
     reason: safeReason,
     response_length_bucket: safeBucket,
     response_mode: safeToken,
+    resource_type: safeToken,
     result_bucket: safeBucket,
     result_category: safeToken,
     result_count: safeCount,
@@ -385,14 +394,70 @@
   }
 
   function addActivityFields(eventName, eventData) {
-    eventData.activity_category = ACTIVITY_CATEGORY_BY_EVENT[eventName] || 'engagement';
+    let activityCategory = ACTIVITY_CATEGORY_BY_EVENT[eventName] || 'engagement';
+    if (eventName === 'select_content' && eventData.resource_type) {
+      if (['project', 'project_resource'].includes(eventData.content_type)) activityCategory = 'portfolio';
+      else if (eventData.content_type === 'tool') activityCategory = 'tool_activation';
+      else if (eventData.content_type === 'game') activityCategory = 'game_activation';
+      else activityCategory = 'discovery';
+    }
+    eventData.activity_category = activityCategory;
     eventData.activity_label = firstActivityValue(eventData, ACTIVITY_LABEL_KEYS) || eventName;
+    eventData.activity_detail = '';
+    eventData.activity_value = '';
+    eventData.activity_state = '';
     const detail = firstActivityValue(eventData, ACTIVITY_DETAIL_KEYS);
     const value = firstActivityValue(eventData, ACTIVITY_VALUE_KEYS);
     const state = firstActivityValue(eventData, ACTIVITY_STATE_KEYS);
     if (detail !== undefined) eventData.activity_detail = detail;
     if (value !== undefined) eventData.activity_value = value;
     if (state !== undefined) eventData.activity_state = state;
+  }
+
+  function getSessionStorage() {
+    try {
+      return window.sessionStorage || null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function loadProjectViewState() {
+    if (projectViewStateLoaded) return;
+    projectViewStateLoaded = true;
+    const storage = getSessionStorage();
+    if (!storage) return;
+    try {
+      const parsed = JSON.parse(storage.getItem(PROJECT_VIEW_SESSION_KEY) || '{}');
+      const ids = Array.isArray(parsed.ids) ? parsed.ids : [];
+      ids.forEach((id) => {
+        const safeId = safeToken(id, 64);
+        if (safeId) viewedProjectIds.add(safeId);
+      });
+      multiProjectViewSent = parsed.multiProjectViewSent === true;
+    } catch (err) {}
+  }
+
+  function saveProjectViewState() {
+    const storage = getSessionStorage();
+    if (!storage) return;
+    try {
+      storage.setItem(PROJECT_VIEW_SESSION_KEY, JSON.stringify({
+        ids: Array.from(viewedProjectIds).slice(0, 100),
+        multiProjectViewSent
+      }));
+    } catch (err) {}
+  }
+
+  function clearProjectViewState() {
+    projectViewStateLoaded = false;
+    multiProjectViewSent = false;
+    viewedProjectIds.clear();
+    const storage = getSessionStorage();
+    if (!storage) return;
+    try {
+      storage.removeItem(PROJECT_VIEW_SESSION_KEY);
+    } catch (err) {}
   }
 
   function send(name, params = {}) {
@@ -412,6 +477,7 @@
   function updateConsent(value) {
     const state = normalizeConsentState(value);
     analyticsConsentGranted = !isEmbeddedSameOrigin() && !!(state && state.analytics);
+    if (!analyticsConsentGranted) clearProjectViewState();
   }
 
   function getClosest(target, selector) {
@@ -472,14 +538,26 @@
 
   window.gaEvent = send;
 
-  window.trackProjectView = id => {
+  window.trackProjectView = (id, options = {}) => {
     const projectId = String(id || '').trim();
-    if (!projectId || !send('project_view', { project_id: projectId })) return false;
+    const sourceSurface = typeof options === 'string'
+      ? options
+      : options && (options.source_surface || options.sourceSurface);
+    if (!projectId || !send('project_view', {
+      project_id: projectId,
+      source_surface: sourceSurface
+    })) return false;
+    loadProjectViewState();
     const previousCount = viewedProjectIds.size;
-    viewedProjectIds.add(projectId.toLowerCase());
-    if (previousCount < 3 && viewedProjectIds.size === 3) {
-      send('multi_project_view', { view_count: 3 });
+    const normalizedProjectId = safeToken(projectId, 64);
+    if (normalizedProjectId) viewedProjectIds.add(normalizedProjectId);
+    if (!multiProjectViewSent && previousCount < 3 && viewedProjectIds.size >= 3) {
+      multiProjectViewSent = send('multi_project_view', {
+        view_count: 3,
+        source_surface: sourceSurface || 'portfolio_session'
+      });
     }
+    saveProjectViewState();
     return true;
   };
 

@@ -3,6 +3,19 @@
 
   const SITEMAP_XML_PATH = '/sitemap.xml';
   const SEARCH_INDEX_PATH = '/dist/search-index.json';
+  const initialQuery = (() => {
+    try {
+      const url = new URL(window.location.href);
+      const query = url.searchParams.get('q') || '';
+      if (url.searchParams.has('q')) {
+        url.searchParams.delete('q');
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+      }
+      return query;
+    } catch (_) {
+      return '';
+    }
+  })();
 
   function $(selector) {
     return document.querySelector(selector);
@@ -183,12 +196,6 @@
       statusEl.textContent = isFiltering ? `Filtering by: “${query}”` : '';
     }
 
-    try {
-      const url = new URL(window.location.href);
-      if (isFiltering) url.searchParams.set('q', query);
-      else url.searchParams.delete('q');
-      window.history.replaceState(null, '', url.toString());
-    } catch (_) {}
   }
 
   async function main() {
@@ -288,15 +295,7 @@
       items: allItems
     };
 
-    const urlQ = (() => {
-      try {
-        return new URLSearchParams(window.location.search || '').get('q') || '';
-      } catch (_) {
-        return '';
-      }
-    })();
-
-    if (input && urlQ) input.value = urlQ;
+    if (input && initialQuery) input.value = initialQuery;
 
     const runUpdate = () => updateFilterState(options);
 
