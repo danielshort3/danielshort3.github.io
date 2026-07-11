@@ -1,48 +1,48 @@
 # Daniel Short
 
-> Personal website for Daniel Short. This file prioritizes stable AI-readable entry points for projects, tools, experiments, and contact information.
+> Supplemental, AI-readable summaries of Daniel Short's projects, tools, experiments, and contact information.
 
 Canonical site: https://www.danielshort.me/
-AI-readable pages use stable /ai/ URLs and canonicalize back to their public human-facing pages.
+The public canonical HTML is authoritative. Optional /ai/ summaries contain the same source-backed information and canonicalize back to the public pages.
 
 ## Start Here
 
-- [Daniel Short](https://www.danielshort.me/ai/index): Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.
-- [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Tools](https://www.danielshort.me/ai/tools): Small utilities for writing, links, media, and repeatable work.
-- [Games](https://www.danielshort.me/ai/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
-- [Contact](https://www.danielshort.me/ai/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
+- [Daniel Short | Data Analytics, ML Projects & Web Tools](https://www.danielshort.me/): Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.
+- [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
+- [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording.
+- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
+- [Contact](https://www.danielshort.me/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
 
 ## Projects
 
-- [Portfolio](https://www.danielshort.me/ai/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
-- [Store-Level Loss & Sales ETL](https://www.danielshort.me/ai/portfolio/retailStore): SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.
-- [Empty-Package Shrink Dashboard](https://www.danielshort.me/ai/portfolio/targetEmptyPackage): Excel Forecasting & BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.
-- [Pizza Delivery Dashboard](https://www.danielshort.me/ai/portfolio/pizzaDashboard): Tableau Analytics & Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.
-- [Delivery Tip](https://www.danielshort.me/ai/portfolio/deliveryTip): Excel Geo-Analytics & Optimization: I wanted to know which shifts and neighborhoods lead to better tips.
-- [UFO Sightings Dashboard](https://www.danielshort.me/ai/portfolio/ufoDashboard): Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.
-- [Chatbot (LoRA + RAG)](https://www.danielshort.me/ai/portfolio/chatbotLora): RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly.
-- [Smart Sentence Retriever](https://www.danielshort.me/ai/portfolio/smartSentence): NLP Embeddings & Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.
+- [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
+- [Store-Level Loss & Sales ETL](https://www.danielshort.me/portfolio/retailStore): SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together separate reports.
+- [Empty-Package Shrink Dashboard](https://www.danielshort.me/portfolio/targetEmptyPackage): Excel Forecasting & BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and departments.
+- [Pizza Delivery Dashboard](https://www.danielshort.me/portfolio/pizzaDashboard): Tableau Analytics & Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to support shift decisions.
+- [Delivery Tip](https://www.danielshort.me/portfolio/deliveryTip): Excel Geo-Analytics & Optimization: I wanted to know which shifts and neighborhoods lead to better tips.
+- [UFO Sightings Dashboard](https://www.danielshort.me/portfolio/ufoDashboard): Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.
+- [Chatbot (LoRA + RAG)](https://www.danielshort.me/portfolio/chatbotLora): RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn destination voice and a production-ready managed model that could answer quickly.
+- [Smart Sentence Retriever](https://www.danielshort.me/portfolio/smartSentence): NLP Embeddings & Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.
 
 ## Tools
 
-- [Tools](https://www.danielshort.me/ai/tools): Small utilities for writing, links, media, and repeatable work.
-- [Text Compare](https://www.danielshort.me/ai/tools/text-compare): Compare two drafts and see insertions, deletions, and replacements highlighted inline.
-- [UTM Batch Builder](https://www.danielshort.me/ai/tools/utm-batch-builder): Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.
-- [Word Frequency Analyzer](https://www.danielshort.me/ai/tools/word-frequency): Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.
-- [QR Code Generator](https://www.danielshort.me/ai/tools/qr-code-generator): Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.
-- [Image Optimizer](https://www.danielshort.me/ai/tools/image-optimizer): Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.
+- [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording.
+- [Text Compare](https://www.danielshort.me/tools/text-compare): Compare two drafts and see insertions, deletions, and replacements highlighted inline.
+- [UTM Batch Builder](https://www.danielshort.me/tools/utm-batch-builder): Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.
+- [Word Frequency Analyzer](https://www.danielshort.me/tools/word-frequency): Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.
+- [QR Code Generator](https://www.danielshort.me/tools/qr-code-generator): Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.
+- [Image Optimizer](https://www.danielshort.me/tools/image-optimizer): Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.
 
 ## Games
 
-- [Games](https://www.danielshort.me/ai/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
-- [Stellar Dogfight](https://www.danielshort.me/ai/games/stellar-dogfight): Pick one boost each wave. Skills level up.
-- [Double-Zero Roulette](https://www.danielshort.me/ai/games/roulette): Ball runs opposite wheel rotation and settles into the winning pocket.
-- [Probability Engine](https://www.danielshort.me/ai/games/probability-engine): Play Probability Engine, a progressive slot-machine strategy game with deck building, upgrades, and prestige mechanics.
-- [Project Starfall Prototype](https://www.danielshort.me/ai/games/project-starfall): A no-framework browser prototype for Project Starfall, a 2D side-scrolling action RPG concept with class progression, combat, loot, and upgrades.
-- [Ocean Wave Simulation](https://www.danielshort.me/ai/games/ocean-wave-simulation): A calming, real-time ocean wave simulation with adjustable wind speed, wave height, and sun lighting. Runs locally in your browser.
+- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
+- [Stellar Dogfight](https://www.danielshort.me/games/stellar-dogfight): Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.
+- [Double-Zero Roulette](https://www.danielshort.me/games/roulette): Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.
+- [Probability Engine](https://www.danielshort.me/games/probability-engine): Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.
+- [Project Starfall](https://www.danielshort.me/games/project-starfall): Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.
+- [Ocean Wave Simulation](https://www.danielshort.me/games/ocean-wave-simulation): Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.
 
 ## Optional
 
-- [Privacy & Analytics](https://www.danielshort.me/ai/privacy): What this site tracks and what it does not. Privacy and analytics details.
-- [Sitemap](https://www.danielshort.me/ai/sitemap): Browse tools, portfolio projects, and key pages across Daniel Short’s site.
+- [Privacy & Analytics](https://www.danielshort.me/privacy): What this site tracks and what it does not. Privacy and analytics details.
+- [Sitemap](https://www.danielshort.me/sitemap): Browse tools, portfolio projects, and key pages across Daniel Short’s site.

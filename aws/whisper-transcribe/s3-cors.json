@@ -2,9 +2,6 @@
   "CORSRules": [
     {
       "AllowedOrigins": [
-        "https://danielshort.dev",
-        "https://www.danielshort.dev",
-        "https://danielshort3-github-io.vercel.app",
         "https://www.danielshort.me",
         "https://danielshort.me"
       ],

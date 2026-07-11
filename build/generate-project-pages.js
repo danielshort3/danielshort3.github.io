@@ -16,6 +16,7 @@ const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
 const outDir = path.join(root, 'pages', 'portfolio');
+const portfolioIndexPath = path.join(root, 'pages', 'portfolio.html');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const sitemapCachePath = path.join(root, 'build', 'cache', 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
@@ -122,14 +123,14 @@ function loadGameEntries() {
         const pathname = `/games/${slug}`;
         const nestedSource = `pages/games/${slug}.html`;
         const fallbackSource = `pages/${slug}.html`;
-        const sourceFile = fileExists(nestedSource)
+        const pageFile = fileExists(nestedSource)
           ? nestedSource
           : (fileExists(fallbackSource) ? fallbackSource : '');
-        if (!sourceFile) return;
+        if (!pageFile) return;
 
         const loc = toAbsoluteUrl(pathname);
         if (!entries.has(loc)) {
-          entries.set(loc, { loc, sourceFile, priority: 0.6 });
+          entries.set(loc, { loc, sourceFile: 'content/pages/games.json' });
         }
       });
   } catch (_) {}
@@ -223,14 +224,17 @@ function resolveSitemapMeta(options, previousEntries) {
   const previousHash = previous && previous.hash ? String(previous.hash).trim().toLowerCase() : null;
   const currentHash = computeContentHash(sourceFile);
 
-  const gitLastmod = getGitLastmod(sourceFile);
-  if (gitLastmod) return { lastmod: gitLastmod, hash: currentHash };
-
   if (currentHash && previousHash && currentHash === previousHash && previousLastmod) {
     return { lastmod: previousLastmod, hash: currentHash };
   }
 
   const changed = currentHash && previousHash && currentHash !== previousHash;
+  if (changed) {
+    return { lastmod: formatLastmod(new Date()), hash: currentHash };
+  }
+
+  const gitLastmod = getGitLastmod(sourceFile);
+  if (gitLastmod) return { lastmod: gitLastmod, hash: currentHash };
 
   if (!changed && previousLastmod) {
     return { lastmod: previousLastmod, hash: currentHash };
@@ -251,7 +255,6 @@ function toSitemapUrlEntry(options, previousEntries, nextEntries, noindexPathnam
   const meta = resolveSitemapMeta({ loc, sourceFile: options?.sourceFile }, previousEntries);
   const lastmod = meta && meta.lastmod ? meta.lastmod : null;
   const hash = meta && meta.hash ? meta.hash : null;
-  const priority = Number(options?.priority);
 
   if (nextEntries && typeof nextEntries.set === 'function') {
     nextEntries.set(loc, { lastmod, hash });
@@ -262,9 +265,6 @@ function toSitemapUrlEntry(options, previousEntries, nextEntries, noindexPathnam
     `    <loc>${loc.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</loc>`
   ];
   if (lastmod) lines.push(`    <lastmod>${lastmod}</lastmod>`);
-  if (Number.isFinite(priority) && priority >= 0 && priority <= 1) {
-    lines.push(`    <priority>${priority.toFixed(1)}</priority>`);
-  }
   lines.push('  </url>');
   return lines.join('\n');
 }
@@ -643,13 +643,23 @@ function renderProjectPage(project, options = {}) {
 
   const projectLd = {
     '@type': 'CreativeWork',
+    '@id': `${canonicalUrl}#project`,
     name: title,
     description,
     url: canonicalUrl,
-    image: ogImage
+    image: ogImage,
+    mainEntityOfPage: { '@id': `${canonicalUrl}#webpage` },
+    creator: {
+      '@type': 'Person',
+      '@id': `${SITE_ORIGIN}/#person`,
+      name: 'Daniel Short',
+      url: `${SITE_ORIGIN}/`
+    },
+    ...(tags.length ? { keywords: tags.join(', ') } : {})
   };
   const breadcrumbsLd = {
     '@type': 'BreadcrumbList',
+    '@id': `${canonicalUrl}#breadcrumb`,
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_ORIGIN}/` },
       { '@type': 'ListItem', position: 2, name: 'Portfolio', item: `${SITE_ORIGIN}/portfolio` },
@@ -1023,23 +1033,74 @@ function writeProjectPages(projects) {
   });
 }
 
+function renderPortfolioStaticResults(projects) {
+  return (Array.isArray(projects) ? projects : []).map((project) => {
+    const id = String(project && project.id ? project.id : '').trim();
+    if (!id) return '';
+    const title = normalizeWhitespace(project.title || id);
+    const summary = toMetaDescription(project);
+    const image = String(project.image || '').trim();
+    const width = Number(project.imageWidth);
+    const height = Number(project.imageHeight);
+    const sizeAttrs = Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
+      ? ` width="${escapeHtml(width)}" height="${escapeHtml(height)}"`
+      : '';
+    const media = image
+      ? `<img src="${escapeHtml(image)}" alt="Preview of ${escapeHtml(title)}"${sizeAttrs} loading="lazy" decoding="async">`
+      : `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`;
+    const labels = [...new Set([
+      normalizeWhitespace(project.subtitle || ''),
+      ...(Array.isArray(project.concepts) ? project.concepts : []),
+      ...(Array.isArray(project.tools) ? project.tools : [])
+    ].map(normalizeWhitespace).filter(Boolean))].slice(0, 4);
+    const chips = labels.length
+      ? `<span class="portfolio-result-tags">${labels.map((label) => `<span>${escapeHtml(label)}</span>`).join('')}</span>`
+      : '';
+
+    return [
+      `<a class="portfolio-result-card" role="listitem" href="portfolio/${escapeHtml(encodeURIComponent(id))}" data-project-id="${escapeHtml(id)}">`,
+      `  <span class="portfolio-result-card__media" aria-hidden="true">${media}</span>`,
+      '  <span class="portfolio-result-card__body">',
+      `    <span class="portfolio-result-card__title">${escapeHtml(title)}</span>`,
+      summary ? `    <span class="portfolio-result-card__summary">${escapeHtml(summary)}</span>` : '',
+      chips ? `    ${chips}` : '',
+      '  </span>',
+      '</a>'
+    ].filter(Boolean).join('\n');
+  }).filter(Boolean).join('\n');
+}
+
+function syncPortfolioStaticResults(projects) {
+  if (!fs.existsSync(portfolioIndexPath)) return;
+  const html = fs.readFileSync(portfolioIndexPath, 'utf8');
+  const start = '<!-- portfolio-static-results:start -->';
+  const end = '<!-- portfolio-static-results:end -->';
+  const matcher = new RegExp(`${start}[\\s\\S]*?${end}`);
+  if (!matcher.test(html)) return;
+  const results = renderPortfolioStaticResults(projects);
+  const indentedResults = results.split('\n').map((line) => `              ${line}`).join('\n');
+  const block = `${start}\n${indentedResults}\n              ${end}`;
+  const next = html.replace(matcher, block);
+  if (next !== html) fs.writeFileSync(portfolioIndexPath, next, 'utf8');
+}
+
 function writeSitemap(projects) {
   const previousEntries = loadSitemapCache();
   const nextEntries = new Map();
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const baseEntries = [
-    { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
-    { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/games`, sourceFile: 'pages/games.html', priority: 0.8 },
-    { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', priority: 0.7 },
-    { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', priority: 0.7 },
-    { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },
-    { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html', priority: 0.2 }
+    { loc: `${SITE_ORIGIN}/`, sourceFile: 'content/audiences/personal.json' },
+    { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'js/portfolio/projects-data.js' },
+    { loc: `${SITE_ORIGIN}/games`, sourceFile: 'content/pages/games.json' },
+    { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'content/pages/contact.json' },
+    { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'js/portfolio/tools-directory-data.js' },
+    { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html' },
+    { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html' }
   ];
 
   const toolEntries = loadToolUrls().map((loc) => {
     const slug = String(loc).replace(`${SITE_ORIGIN}/tools/`, '').replace(/^\/+/, '');
-    return { loc, sourceFile: `pages/${slug}.html`, priority: 0.6 };
+    return { loc, sourceFile: `content/tools/${slug}.json` };
   });
 
   const gameEntries = loadGameEntries();
@@ -1049,8 +1110,7 @@ function writeSitemap(projects) {
     .filter(Boolean)
     .map((id) => ({
       loc: `${SITE_ORIGIN}/portfolio/${encodeURIComponent(id)}`,
-      sourceFile: `pages/portfolio/${id}.html`,
-      priority: 0.6
+      sourceFile: `content/projects/${id}.json`
     }));
 
   const xml = [
@@ -1073,6 +1133,7 @@ function writeSitemap(projects) {
 function main() {
   const projects = loadProjects().filter(isPublishedProject);
   writeProjectPages(projects);
+  syncPortfolioStaticResults(projects);
   writeSitemap(projects);
   process.stdout.write(`Generated ${projects.length} project pages in pages/portfolio/ and updated sitemap.xml\n`);
 }
@@ -1084,5 +1145,6 @@ if (require.main === module) {
 module.exports = {
   isPublishedProject,
   loadProjects,
+  renderPortfolioStaticResults,
   renderProjectPage
 };
