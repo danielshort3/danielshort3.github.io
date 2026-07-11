@@ -1070,9 +1070,24 @@ function renderPortfolioStaticResults(projects) {
   }).filter(Boolean).join('\n');
 }
 
+function assertCompletePortfolioIndex(html) {
+  const source = String(html || '');
+  const requiredMarkers = ['</main>', '<footer', '</footer>', '</body>', '</html>'];
+  const missing = requiredMarkers.filter((marker) => !source.includes(marker));
+  const hasPartialTrailingTag = /<[^>]*$/.test(source.trim());
+  if (!missing.length && !hasPartialTrailingTag) return;
+
+  const detail = [
+    missing.length ? `missing ${missing.join(', ')}` : '',
+    hasPartialTrailingTag ? 'ends with a partial HTML tag' : ''
+  ].filter(Boolean).join('; ');
+  throw new Error(`pages/portfolio.html appears truncated (${detail}). Stop active build watchers, restore the complete document, and rebuild.`);
+}
+
 function syncPortfolioStaticResults(projects) {
   if (!fs.existsSync(portfolioIndexPath)) return;
   const html = fs.readFileSync(portfolioIndexPath, 'utf8');
+  assertCompletePortfolioIndex(html);
   const start = '<!-- portfolio-static-results:start -->';
   const end = '<!-- portfolio-static-results:end -->';
   const matcher = new RegExp(`${start}[\\s\\S]*?${end}`);
@@ -1081,6 +1096,7 @@ function syncPortfolioStaticResults(projects) {
   const indentedResults = results.split('\n').map((line) => `              ${line}`).join('\n');
   const block = `${start}\n${indentedResults}\n              ${end}`;
   const next = html.replace(matcher, block);
+  assertCompletePortfolioIndex(next);
   if (next !== html) fs.writeFileSync(portfolioIndexPath, next, 'utf8');
 }
 
