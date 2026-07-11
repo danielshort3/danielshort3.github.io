@@ -617,6 +617,14 @@ function extractElementWithAttribute(html, attributeName) {
 function validateDirectoryResultAnchors() {
   DIRECTORY_RESULT_CONTRACTS.forEach((contract) => {
     const html = readRequired(contract.file);
+    if (
+      !/<\/main>/i.test(html)
+      || !/<footer\b[\s\S]*?<\/footer>/i.test(html)
+      || !/<\/body>\s*<\/html>\s*$/i.test(html)
+    ) {
+      report(contract.file, 'incomplete HTML document shell');
+      return;
+    }
     const container = extractElementWithAttribute(html, 'data-portfolio-results');
     if (!container) {
       report(contract.file, 'missing a complete raw HTML [data-portfolio-results] container');
