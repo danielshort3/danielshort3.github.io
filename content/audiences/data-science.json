@@ -30,6 +30,7 @@
     "title": "Data Science | Daniel Short",
     "canonicalPath": "/data-science",
     "description": "Data science portfolio focused on machine learning, NLP, model evaluation, experimentation, and deployment-minded demos.",
+    "robots": "noindex, nofollow",
     "ogTitle": "Data Science | Daniel Short",
     "ogDescription": "Data science portfolio focused on machine learning, NLP, model evaluation, experimentation, and deployment-minded demos.",
     "siteName": "Daniel Short - Data Analytics & BI",

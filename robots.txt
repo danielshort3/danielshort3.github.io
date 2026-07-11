@@ -35,7 +35,6 @@ Disallow: /dist/ai-pages/
 User-agent: *
 Disallow: /pages/
 Disallow: /api/
-Disallow: /documents/Resume
 Disallow: /ai/
 Disallow: /dist/ai-pages/
 Allow: /

@@ -37072,6 +37072,11 @@ try {
       'robots.txt should allow known AI bots to fetch /ai digests while hiding implementation paths');
     assert(/User-agent:\s*\*[\s\S]*Disallow:\s*\/api\//.test(robots) && /User-agent:\s*\*[\s\S]*Disallow:\s*\/ai\//.test(robots),
       'robots.txt fallback block should hide API and duplicate AI paths from generic crawlers');
+    const generalCrawlerRules = robots.split(/User-agent:\s*\*/i)[1] || '';
+    assert(!generalCrawlerRules.includes('Disallow: /documents/Resume'),
+      'general search crawlers should be allowed to read resume PDF noindex headers');
+    assert(/User-agent:\s*GPTBot[\s\S]*Disallow:\s*\/documents\/Resume[\s\S]*User-agent:\s*\*/i.test(robots),
+      'AI crawlers should remain blocked from resume PDF assets');
     assert(headers.some((rule) => rule.source === '/ai/(.*)' && JSON.stringify(rule.headers).includes('X-Robots-Tag')),
       'debug AI digest paths should be noindex');
     assert(headers.some((rule) => rule.source === '/dist/ai-pages/(.*)' && JSON.stringify(rule.headers).includes('X-Robots-Tag')),
@@ -37921,11 +37926,12 @@ try {
       'footer should keep Contact as a modal trigger');
     assert((footerTemplate.match(/id="privacy-settings-link-footer"/g) || []).length === 1,
       'footer should keep one shared cookie settings control');
-    assert(footerTemplate.includes('data-site-realm-switch="professional"') &&
-      footerTemplate.includes('data-site-realm-switch="personal"'),
-      'footer should expose realm-specific Work and Home utility links');
-    assert(footerTemplate.includes('>Home</a>') && !footerTemplate.includes('>Personal site</a>'),
-      'footer should label the professional-mode exit link as Home');
+    assert(!footerTemplate.includes('data-site-realm-switch'),
+      'footer should not expose personal/professional realm switch links');
+    const footerContent = JSON.parse(readFile('content/site/footer.json'));
+    assert(!JSON.stringify(footerContent).includes('data-site-realm-switch') &&
+      !JSON.stringify(footerContent).includes('/?mode=professional'),
+      'footer content source should not retain personal/professional realm switch records');
     assert(!footerTemplate.includes('Personal site</p>') && !footerTemplate.includes('Professional view</p>'),
       'footer should not render visible personal/professional view labels');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
@@ -39085,9 +39091,11 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
-    const hasNoindexResumeAnalyticsPdf = headers.some(h => h && (h.source === '/resume-analytics-pdf' || h.source === '/resume-analytics-pdf.html'));
-    const hasNoindexResumeDataSciencePdf = headers.some(h => h && (h.source === '/resume-data-science-pdf' || h.source === '/resume-data-science-pdf.html'));
-    const hasNoindexResumeTourismPdf = headers.some(h => h && (h.source === '/resume-tourism-pdf' || h.source === '/resume-tourism-pdf.html'));
+    const hasNoindexHeaderFor = (source) => headers.some(h =>
+      h && h.source === source &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
+    );
     const hasNoindexDestinationAnalytics = headers.some(h =>
       h && (h.source === '/destination-analytics' || h.source === '/destination-analytics.html') &&
       Array.isArray(h.headers) &&
@@ -39104,9 +39112,34 @@ try {
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
     assert(hasNoindexTranscribeTool, 'Transcribe tool noindex header missing');
-    assert(!hasNoindexResumeAnalyticsPdf, 'resume analytics PDF preview should not have an explicit noindex header');
-    assert(!hasNoindexResumeDataSciencePdf, 'resume data science PDF preview should not have an explicit noindex header');
-    assert(!hasNoindexResumeTourismPdf, 'resume tourism PDF preview should not have an explicit noindex header');
+    const professionalRoutes = [
+      '/analytics',
+      '/data-science',
+      '/tourism',
+      '/resume',
+      '/resume-pdf',
+      '/resume-analytics',
+      '/resume-analytics-pdf',
+      '/resume-data-science',
+      '/resume-data-science-pdf',
+      '/resume-tourism',
+      '/resume-tourism-pdf'
+    ];
+    professionalRoutes.forEach((route) => {
+      assert(hasNoindexHeaderFor(route), `${route} professional route noindex header missing`);
+      assert(hasNoindexHeaderFor(`${route}.html`), `${route}.html professional route noindex header missing`);
+    });
+    [
+      '/documents/Resume.pdf',
+      '/documents/Resume-Analytics.pdf',
+      '/documents/Resume-Analytics-Custom.pdf',
+      '/documents/Resume-Data-Science.pdf',
+      '/documents/Resume-Data-Science-Custom.pdf',
+      '/documents/Resume-Tourism.pdf',
+      '/documents/Resume-Tourism-Custom.pdf'
+    ].forEach((route) => {
+      assert(hasNoindexHeaderFor(route), `${route} PDF noindex header missing`);
+    });
     assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
     assert(hasHiringModeNoindex, 'hiring mode should send a query-scoped noindex, nofollow robots header');
   });
@@ -39805,10 +39838,12 @@ try {
       !siteRealm.includes('return normalizeMode(readStoredRealm())') &&
       !siteRealm.includes('localStorage.setItem(STORAGE_KEY'),
       'site realm should default to the public homepage version instead of persisting recruiter mode');
-    assert(siteRealm.includes('meta[name="robots"][data-site-realm-robots="hiring"]') &&
+    assert(siteRealm.includes('meta[name="robots"][data-site-realm-robots="professional"]') &&
       siteRealm.includes("robots.setAttribute('content', 'noindex, nofollow')") &&
-      siteRealm.includes('mode === PROFESSIONAL_MODE && explicitMode === PROFESSIONAL_MODE'),
-      'mode=professional hiring view should add a noindex, nofollow robots meta tag');
+      siteRealm.includes('const isProfessionalView = mode === PROFESSIONAL_MODE') &&
+      siteRealm.includes('const staticNoindex = Array.from') &&
+      siteRealm.includes('applyProfessionalRobots(mode)'),
+      'every professional realm view should provide one noindex, nofollow robots directive without duplicating static metadata');
     assert(siteRealm.includes("document.documentElement.classList.toggle('site-realm-professional-home', isProfessionalHome)") &&
       siteRealm.includes("document.body.dataset.siteRealmHome = PROFESSIONAL_MODE"),
       'root mode=professional should expose a scoped professional-home state without redirecting');
@@ -39821,9 +39856,22 @@ try {
     assert(siteRealm.includes('if (isHashOnlyHref(href)) return currentHashHref') &&
       siteRealm.includes("document.dispatchEvent(new CustomEvent('site:content-updated'"),
       'professional mode should preserve current mode on same-page hash links and notify dynamic content initializers');
-    assert(siteRealm.includes('targetMode !== mode') &&
-      siteRealm.includes("Go to the home page"),
-      'site realm switches should support both professional and personal footer links');
+    [
+      'pages/analytics.html',
+      'pages/data-science.html',
+      'pages/tourism.html',
+      'pages/resume.html',
+      'pages/resume-pdf.html',
+      'pages/resume-analytics.html',
+      'pages/resume-analytics-pdf.html',
+      'pages/resume-data-science.html',
+      'pages/resume-data-science-pdf.html',
+      'pages/resume-tourism.html',
+      'pages/resume-tourism-pdf.html'
+    ].forEach((file) => {
+      assert(/<meta\s+name="robots"\s+content="noindex, nofollow">/i.test(readFile(file)),
+        `${file} should include static noindex, nofollow metadata`);
+    });
     const commonScript = readFile('js/common/common.js');
     assert(commonScript.includes('const samePageHashFromHref = (href) =>') &&
       commonScript.includes("document.addEventListener('site:content-updated'") &&
