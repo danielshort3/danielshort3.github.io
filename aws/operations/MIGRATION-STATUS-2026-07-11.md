@@ -17,6 +17,7 @@ This file is the secret-free handoff for the July 11 website migration. It recor
 - Previous corrected OIDC-capable Production deployment: `E3GWNK3n12ECrc6bkLEakpB9PE6Q` (`website-1ui3ql31b-daniel-shorts-projects.vercel.app`).
 - Stable Preview alias: `website-aws-migration-preview.vercel.app`.
 - Production and Preview use exact Vercel OIDC subjects and separate workload roles. CloudTrail has recorded Production assumptions for Tools, Short Links, Transcribe, Chatbot DynamoDB, Chatbot Bedrock, and Demo Invoke.
+- Preview demo Lambdas are fully CloudFormation-owned. Production OIDC roles/resources, Job Tracker, and the split Shape/Smart execution boundaries are CloudFormation-owned; the remaining pre-existing Production demo functions are protected behind `AWS_IAM` Function URLs and immutable `live` aliases but have not yet been imported into per-workload stacks. Perform those resource imports after the observation window with reviewed change sets rather than risking replacement of known-good Production functions during the same-day cutover.
 - Contact delivery remains in `legacy` mode because the SES account is still sandboxed. The OIDC Contact role and direct SES code are deployed but are not the active delivery path.
 - Static AWS keys remain present only as the staged rollback path. Do not remove or deactivate them before the observation gates below.
 
@@ -48,8 +49,9 @@ This file is the secret-free handoff for the July 11 website migration. It recor
 2. After seven healthy days, remove static Vercel credential variables and the legacy credential code path.
 3. Retain the disabled IAM keys through day 14, then delete the keys. Leave disabled IAM users for a later explicit retirement decision.
 4. Keep obsolete VGJ APIs, the route-less duplicate API, archived Slot Machine, and legacy Whisper resources quarantined for at least 30 days. Do not permanently delete them in this rollout.
-5. The `website-ecr-backup-retirement-20260711` stack schedules removal of exactly the 80 `backup-20260711-*` tags on `2026-08-11T00:00:00Z`. Verify CloudTrail and tag inventories before deleting that stack.
-6. Review GuardDuty's measured cost and findings by trial day 25. The `$5` security-services budget alerts at 50%, 80%, and 100%.
+5. Import the remaining pre-existing Production demo functions into reviewed per-workload CloudFormation stacks after the stability window. Preserve each current function, immutable version, and `live` alias during import; do not recreate them in place.
+6. The `website-ecr-backup-retirement-20260711` stack schedules removal of exactly the 80 `backup-20260711-*` tags on `2026-08-11T00:00:00Z`. Verify CloudTrail and tag inventories before deleting that stack.
+7. Review GuardDuty's measured cost and findings by trial day 25. The `$5` security-services budget alerts at 50%, 80%, and 100%.
 
 ### Capacity and image remediation
 
