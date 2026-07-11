@@ -20,6 +20,7 @@ const sitemapPath = path.join(root, 'sitemap.xml');
 const sitemapCachePath = path.join(root, 'build', 'cache', 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const toolsContentDir = path.join(root, 'content', 'tools');
+const gamesContentFile = path.join(root, 'content', 'pages', 'games.json');
 
 const noindexMetaCache = new Map();
 
@@ -93,6 +94,46 @@ function loadToolUrls() {
       });
   } catch (_) {}
   return [...urls].sort();
+}
+
+function loadGameEntries() {
+  const entries = new Map();
+  try {
+    const page = JSON.parse(fs.readFileSync(gamesContentFile, 'utf8'));
+    const games = Array.isArray(page && page.games) ? page.games : [];
+    games
+      .filter((game) => {
+        const visibility = String(game && game.visibility ? game.visibility : 'public').trim().toLowerCase();
+        return Boolean(game && !game.hidden && !game.noindex && visibility === 'public');
+      })
+      .sort((a, b) => {
+        const orderA = Number.isFinite(Number(a && a.order)) ? Number(a.order) : Number.MAX_SAFE_INTEGER;
+        const orderB = Number.isFinite(Number(b && b.order)) ? Number(b.order) : Number.MAX_SAFE_INTEGER;
+        if (orderA !== orderB) return orderA - orderB;
+        return String(a && (a.title || a.id) || '').localeCompare(String(b && (b.title || b.id) || ''));
+      })
+      .forEach((game) => {
+        const id = String(game && game.id ? game.id : '').trim();
+        const href = String(game && game.href ? game.href : (id ? `games/${id}` : '')).trim();
+        const hrefMatch = /^\/?games\/([a-z0-9][a-z0-9-]*)$/i.exec(href);
+        if (!hrefMatch) return;
+
+        const slug = hrefMatch[1];
+        const pathname = `/games/${slug}`;
+        const nestedSource = `pages/games/${slug}.html`;
+        const fallbackSource = `pages/${slug}.html`;
+        const sourceFile = fileExists(nestedSource)
+          ? nestedSource
+          : (fileExists(fallbackSource) ? fallbackSource : '');
+        if (!sourceFile) return;
+
+        const loc = toAbsoluteUrl(pathname);
+        if (!entries.has(loc)) {
+          entries.set(loc, { loc, sourceFile, priority: 0.6 });
+        }
+      });
+  } catch (_) {}
+  return [...entries.values()];
 }
 
 function formatLastmod(dateLike) {
@@ -1001,6 +1042,8 @@ function writeSitemap(projects) {
     return { loc, sourceFile: `pages/${slug}.html`, priority: 0.6 };
   });
 
+  const gameEntries = loadGameEntries();
+
   const projectEntries = projects
     .map((p) => String(p.id || '').trim())
     .filter(Boolean)
@@ -1014,6 +1057,8 @@ function writeSitemap(projects) {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries, noindexPathnames)).filter(Boolean),
+    '',
+    ...gameEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries, noindexPathnames)).filter(Boolean),
     '',
     ...toolEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries, noindexPathnames)).filter(Boolean),
     '',

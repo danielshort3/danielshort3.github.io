@@ -511,6 +511,18 @@
       ]
     },
     {
+      "source": "/tools/job-application-tracker",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/job-application-tracker.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
       "source": "/tools/background-remover",
       "headers": [
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },

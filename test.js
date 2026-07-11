@@ -674,6 +674,7 @@ try {
     ];
     const privateToolPages = [
       'pages/tools-dashboard.html',
+      'pages/job-application-tracker.html',
       'pages/short-links.html',
       'pages/ga4-utm-performance.html',
       'pages/transcribe.html'
@@ -750,7 +751,18 @@ try {
     assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
     assert(!/ds:hash=/.test(sitemap), 'sitemap.xml should not contain build metadata');
     assert(sitemap.includes('<loc>https://www.danielshort.me/</loc>'), 'sitemap.xml should include the personal site root URL');
-    ['/analytics', '/data-science', '/tourism', '/resume'].forEach((route) => {
+    const sitemapGamesConfig = JSON.parse(readFile('content/pages/games.json'));
+    (Array.isArray(sitemapGamesConfig.games) ? sitemapGamesConfig.games : []).forEach((game) => {
+      const visibility = String(game && game.visibility ? game.visibility : 'public').trim().toLowerCase();
+      const id = String(game && game.id ? game.id : '').trim();
+      const href = String(game && game.href ? game.href : (id ? `games/${id}` : '')).trim().replace(/^\/+/, '');
+      if (!/^games\/[a-z0-9][a-z0-9-]*$/i.test(href)) return;
+      const loc = `<loc>https://www.danielshort.me/${href}</loc>`;
+      const shouldInclude = Boolean(game && !game.hidden && !game.noindex && visibility === 'public');
+      assert(sitemap.includes(loc) === shouldInclude,
+        `sitemap.xml ${shouldInclude ? 'should include' : 'should exclude'} personal game route /${href}`);
+    });
+    ['/analytics', '/data-science', '/tourism', '/resume', '/tools/job-application-tracker'].forEach((route) => {
       assert(!sitemap.includes(`<loc>https://www.danielshort.me${route}</loc>`), `sitemap.xml should not include hidden route ${route}`);
     });
   });
@@ -803,7 +815,7 @@ try {
     const toolsDirectoryData = toolsDirectoryDataContext.window.DIRECTORY_WORKBENCH;
     const toolsPageRecord = JSON.parse(readFile(path.join('content', 'pages', 'tools.json')));
     const toolRecords = toolFiles.map((fileName) => JSON.parse(readFile(path.join('content', 'tools', fileName))));
-    const publicTools = toolRecords.filter((tool) => !tool.hidden && (!tool.visibility || tool.visibility === 'public'));
+    const publicTools = toolRecords.filter((tool) => !tool.hidden && !tool.noindex && (!tool.visibility || tool.visibility === 'public'));
     const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
     const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
@@ -950,6 +962,20 @@ try {
     [...accountTools, ...adminTools].forEach((tool) => {
       assert(!sitemap.includes(`<loc>https://www.danielshort.me/tools/${tool.slug}</loc>`),
         `${tool.slug} restricted tool URL should stay out of sitemap.xml`);
+    });
+    const noindexHeaderSources = new Set(
+      (Array.isArray(vercelConfig.headers) ? vercelConfig.headers : [])
+        .filter((rule) => Array.isArray(rule && rule.headers) && rule.headers.some((header) =>
+          header && header.key === 'X-Robots-Tag' && /noindex/i.test(String(header.value || ''))))
+        .map((rule) => String(rule.source || ''))
+    );
+    toolRecords.filter((tool) => tool && tool.noindex).forEach((tool) => {
+      const slug = String(tool.slug || '').trim();
+      const page = readFile(`pages/${slug}.html`);
+      assert(/<meta\s+[^>]*name="robots"[^>]*content="[^"]*noindex/i.test(page),
+        `${slug} noindex tool should include static robots metadata`);
+      assert(noindexHeaderSources.has(`/tools/${slug}`), `${slug} clean route noindex header missing`);
+      assert(noindexHeaderSources.has(`/tools/${slug}.html`), `${slug} HTML route noindex header missing`);
     });
 
     toolRecords.forEach((tool) => {
@@ -39114,6 +39140,8 @@ try {
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
     assert(hasNoindexTranscribeTool, 'Transcribe tool noindex header missing');
+    assert(hasNoindexHeaderFor('/tools/job-application-tracker'), 'job application tracker noindex header missing');
+    assert(hasNoindexHeaderFor('/tools/job-application-tracker.html'), 'job application tracker HTML noindex header missing');
     const professionalRoutes = [
       '/analytics',
       '/data-science',
@@ -39166,6 +39194,7 @@ try {
     assert(!urls.has('/resume-data-science-pdf'), 'search index should exclude data science PDF preview');
     assert(!urls.has('/resume-tourism-pdf'), 'search index should exclude tourism PDF preview');
     assert(!urls.has('/tools/ga4-utm-performance'), 'search index should exclude noindex GA4 tool');
+    assert(!urls.has('/tools/job-application-tracker'), 'search index should exclude noindex job application tracker');
     assert(!urls.has('/tools/transcribe'), 'search index should exclude noindex Transcribe tool');
     assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude legacy Transcribe route');
   });
