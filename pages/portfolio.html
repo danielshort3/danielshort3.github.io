@@ -24,7 +24,8 @@
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0F172A">
   <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="dist/styles.4cbad3f5.css">
+  <link rel="stylesheet" href="dist/styles.7ca0dca9.css">
+  <link rel="stylesheet" href="dist/styles-workbench.677eafb2.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -33,7 +34,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
   <script defer src="dist/site-consent.8416bd25.js"></script>
-  <script defer src="dist/site-shell.0a877445.js"></script>
+  <script defer src="dist/site-shell.48da09c4.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta property="og:image:type" content="image/png">
   <meta name="author" content="Daniel Short">
@@ -59,6 +60,7 @@
           <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+
           <div class="nav-item nav-item-portfolio">
             <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
               Projects
@@ -288,17 +290,11 @@
               <p class="portfolio-brand-panel__description" data-portfolio-brand-description>Machine learning, analytics, software tools, and browser experiments by Daniel Short.</p>
             </div>
             <div class="portfolio-brand-panel__actions">
-              <a class="portfolio-brand-panel__action portfolio-brand-panel__action--resume" href="resume" data-portfolio-resume-link hidden>Resume</a>
+              <a class="portfolio-brand-panel__action portfolio-brand-panel__action--resume" data-portfolio-resume-link hidden>Resume</a>
               <a class="portfolio-brand-panel__action" href="contact#contact-modal" data-contact-modal-link="true">Contact</a>
             </div>
           </div>
           <div class="portfolio-brand-panel__meta">
-            <nav class="portfolio-audience-tabs" aria-label="Portfolio audience views" data-portfolio-audience-tabs>
-              <a href="portfolio" data-portfolio-audience-link="personal">All</a>
-              <a href="portfolio?audience=analytics" data-portfolio-audience-link="analytics">Analytics</a>
-              <a href="portfolio?audience=data-science" data-portfolio-audience-link="data-science">Data Science</a>
-              <a href="portfolio?audience=tourism" data-portfolio-audience-link="tourism">Tourism</a>
-            </nav>
             <ul class="portfolio-proof-strip" data-portfolio-proof aria-label="Portfolio proof points">
               <li><strong>15+</strong><span>project builds</span></li>
               <li><strong>4</strong><span>focus areas</span></li>
@@ -338,134 +334,198 @@
             </div>
             <div class="portfolio-results-list" role="list" data-portfolio-results>
               <!-- portfolio-static-results:start -->
-              <a class="portfolio-result-card" role="listitem" href="portfolio/smartSentence" data-project-id="smartSentence">
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="smartSentence">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/smartSentence.png" alt="Preview of Smart Sentence Retriever" width="952" height="952" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Smart Sentence Retriever</span>
-                  <span class="portfolio-result-card__summary">NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Smart Sentence Retriever</h2>
+                  <p class="portfolio-result-card__summary">NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.</p>
                   <span class="portfolio-result-tags"><span>NLP Embeddings &amp; Serverless Retrieval</span><span>Machine Learning</span><span>Automation</span><span>Python</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/chatbotLora" data-project-id="chatbotLora">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/smartSentence" data-content-open="true" data-content-id="smartSentence" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="chatbotLora">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/chatbotLora.png" alt="Preview of Chatbot (LoRA + RAG)" width="1280" height="720" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Chatbot (LoRA + RAG)</span>
-                  <span class="portfolio-result-card__summary">RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Chatbot (LoRA + RAG)</h2>
+                  <p class="portfolio-result-card__summary">RAG Chatbot Fine-Tuned with LoRA: The project needed to show both sides of a tourism chatbot decision: a custom fine-tuned model that could learn…</p>
                   <span class="portfolio-result-tags"><span>RAG Chatbot Fine-Tuned with LoRA</span><span>Machine Learning</span><span>Automation</span><span>Python</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/shapeClassifier" data-project-id="shapeClassifier">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/chatbotLora" data-content-open="true" data-content-id="chatbotLora" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="shapeClassifier">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/shapeClassifier.png" alt="Preview of Shape Classifier Demo" width="926" height="926" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Shape Classifier Demo</span>
-                  <span class="portfolio-result-card__summary">Handwritten Shape Recognition: I wanted a model that can tell what shape someone drew.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Shape Classifier Demo</h2>
+                  <p class="portfolio-result-card__summary">Handwritten Shape Recognition: I wanted a model that can tell what shape someone drew.</p>
                   <span class="portfolio-result-tags"><span>Handwritten Shape Recognition</span><span>Machine Learning</span><span>Python</span><span>PyTorch</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/ufoDashboard" data-project-id="ufoDashboard">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/shapeClassifier" data-content-open="true" data-content-id="shapeClassifier" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="ufoDashboard">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/ufoDashboard.png" alt="Preview of UFO Sightings Dashboard" width="2008" height="1116" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">UFO Sightings Dashboard</span>
-                  <span class="portfolio-result-card__summary">Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">UFO Sightings Dashboard</h2>
+                  <p class="portfolio-result-card__summary">Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.</p>
                   <span class="portfolio-result-tags"><span>Tableau Geospatial Analytics</span><span>Visualization</span><span>Analytics</span><span>Tableau</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/covidAnalysis" data-project-id="covidAnalysis">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/ufoDashboard" data-content-open="true" data-content-id="ufoDashboard" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="covidAnalysis">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/covidAnalysis.png" alt="Preview of COVID-19 Outbreak Drivers" width="1446" height="1446" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">COVID-19 Outbreak Drivers</span>
-                  <span class="portfolio-result-card__summary">Python XGBoost &amp; SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">COVID-19 Outbreak Drivers</h2>
+                  <p class="portfolio-result-card__summary">Python XGBoost &amp; SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…</p>
                   <span class="portfolio-result-tags"><span>Python XGBoost &amp; SHAP</span><span>Analytics</span><span>Python</span><span>AWS</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/targetEmptyPackage" data-project-id="targetEmptyPackage">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/covidAnalysis" data-content-open="true" data-content-id="covidAnalysis" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="targetEmptyPackage">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/targetEmptyPackage.png" alt="Preview of Empty-Package Shrink Dashboard" width="1460" height="1460" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Empty-Package Shrink Dashboard</span>
-                  <span class="portfolio-result-card__summary">Excel Forecasting &amp; BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and…</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Empty-Package Shrink Dashboard</h2>
+                  <p class="portfolio-result-card__summary">Excel Forecasting &amp; BI: Empty-package shrink was growing, and leaders needed a single view of trends, hotspots, and forecasted risk across locations and…</p>
                   <span class="portfolio-result-tags"><span>Excel Forecasting &amp; BI</span><span>Automation</span><span>Analytics</span><span>Excel</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/handwritingRating" data-project-id="handwritingRating">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/targetEmptyPackage" data-content-open="true" data-content-id="targetEmptyPackage" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="handwritingRating">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/handwritingRating.png" alt="Preview of Handwriting Legibility Scoring" width="1138" height="1138" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Handwriting Legibility Scoring</span>
-                  <span class="portfolio-result-card__summary">PyTorch CNN Fine-Tuning: My wife says my handwriting is hard to read. I wanted an objective score.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Handwriting Legibility Scoring</h2>
+                  <p class="portfolio-result-card__summary">PyTorch CNN Fine-Tuning: My wife says my handwriting is hard to read. I wanted an objective score.</p>
                   <span class="portfolio-result-tags"><span>PyTorch CNN Fine-Tuning</span><span>Machine Learning</span><span>Python</span><span>PyTorch</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/digitGenerator" data-project-id="digitGenerator">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="digitGenerator">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/digitGenerator.png" alt="Preview of Synthetic Digit Generator" width="1470" height="1470" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Synthetic Digit Generator</span>
-                  <span class="portfolio-result-card__summary">Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Synthetic Digit Generator</h2>
+                  <p class="portfolio-result-card__summary">Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.</p>
                   <span class="portfolio-result-tags"><span>Variational Autoencoder</span><span>Machine Learning</span><span>Python</span><span>VAE</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/sheetMusicUpscale" data-project-id="sheetMusicUpscale">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/digitGenerator" data-content-open="true" data-content-id="digitGenerator" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="sheetMusicUpscale">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/sheetMusicUpscale.png" alt="Preview of Sheet Music Watermark Removal &amp; Upscale" width="1604" height="1230" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Sheet Music Watermark Removal &amp; Upscale</span>
-                  <span class="portfolio-result-card__summary">UNet &amp; VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Sheet Music Watermark Removal &amp; Upscale</h2>
+                  <p class="portfolio-result-card__summary">UNet &amp; VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.</p>
                   <span class="portfolio-result-tags"><span>UNet &amp; VDSR Pipeline</span><span>Machine Learning</span><span>Python</span><span>Computer Vision</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/deliveryTip" data-project-id="deliveryTip">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/sheetMusicUpscale" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="deliveryTip">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/deliveryTip.png" alt="Preview of Delivery Tip" width="960" height="794" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Delivery Tip</span>
-                  <span class="portfolio-result-card__summary">Excel Geo-Analytics &amp; Optimization: I wanted to know which shifts and neighborhoods lead to better tips.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Delivery Tip</h2>
+                  <p class="portfolio-result-card__summary">Excel Geo-Analytics &amp; Optimization: I wanted to know which shifts and neighborhoods lead to better tips.</p>
                   <span class="portfolio-result-tags"><span>Excel Geo-Analytics &amp; Optimization</span><span>Analytics</span><span>Excel</span><span>Power Query</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/retailStore" data-project-id="retailStore">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/deliveryTip" data-content-open="true" data-content-id="deliveryTip" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="retailStore">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/retailStore.png" alt="Preview of Store-Level Loss &amp; Sales ETL" width="1410" height="1410" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Store-Level Loss &amp; Sales ETL</span>
-                  <span class="portfolio-result-card__summary">SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together…</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Store-Level Loss &amp; Sales ETL</h2>
+                  <p class="portfolio-result-card__summary">SQL ETL + Anomaly Detection: Leaders needed one reliable way to compare security incidents, theft hotspots, and sales signals without stitching together…</p>
                   <span class="portfolio-result-tags"><span>SQL ETL + Anomaly Detection</span><span>Automation</span><span>Analytics</span><span>SQL</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/pizza" data-project-id="pizza">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/retailStore" data-content-open="true" data-content-id="retailStore" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="pizza">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/pizza.png" alt="Preview of Pizza Tips Regression Modeling" width="1398" height="1398" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Pizza Tips Regression Modeling</span>
-                  <span class="portfolio-result-card__summary">Excel Analytics &amp; Regression Modeling: Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Pizza Tips Regression Modeling</h2>
+                  <p class="portfolio-result-card__summary">Excel Analytics &amp; Regression Modeling: Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.</p>
                   <span class="portfolio-result-tags"><span>Excel Analytics &amp; Regression Modeling</span><span>Analytics</span><span>Excel</span><span>Statistics</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/babynames" data-project-id="babynames">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/pizza" data-content-open="true" data-content-id="pizza" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="babynames">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/babynames.png" alt="Preview of Baby Name Predictor" width="1238" height="1238" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Baby Name Predictor</span>
-                  <span class="portfolio-result-card__summary">Python ML Pipeline: My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Baby Name Predictor</h2>
+                  <p class="portfolio-result-card__summary">Python ML Pipeline: My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.</p>
                   <span class="portfolio-result-tags"><span>Python ML Pipeline</span><span>Machine Learning</span><span>Python</span><span>scikit-learn</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/pizzaDashboard" data-project-id="pizzaDashboard">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="pizzaDashboard">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/pizzaDashboard.png" alt="Preview of Pizza Delivery Dashboard" width="1250" height="1092" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Pizza Delivery Dashboard</span>
-                  <span class="portfolio-result-card__summary">Tableau Analytics &amp; Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to…</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Pizza Delivery Dashboard</h2>
+                  <p class="portfolio-result-card__summary">Tableau Analytics &amp; Forecasting: I needed a Tableau dashboard that could compare delivery zones, earnings, timing, and tip patterns quickly enough to…</p>
                   <span class="portfolio-result-tags"><span>Tableau Analytics &amp; Forecasting</span><span>Visualization</span><span>Analytics</span><span>Tableau</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/nonogram" data-project-id="nonogram">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/pizzaDashboard" data-content-open="true" data-content-id="pizzaDashboard" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="nonogram">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/nonogram.png" alt="Preview of Nonogram Solver" width="1228" height="1228" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">Nonogram Solver</span>
-                  <span class="portfolio-result-card__summary">Reinforcement Learning (RL): I wanted to see if an RL agent could learn to solve Nonogram puzzles.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">Nonogram Solver</h2>
+                  <p class="portfolio-result-card__summary">Reinforcement Learning (RL): I wanted to see if an RL agent could learn to solve Nonogram puzzles.</p>
                   <span class="portfolio-result-tags"><span>Reinforcement Learning (RL)</span><span>Machine Learning</span><span>Python</span><span>PyTorch</span></span>
-                </span>
-              </a>
-              <a class="portfolio-result-card" role="listitem" href="portfolio/website" data-project-id="website">
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/nonogram" data-content-open="true" data-content-id="nonogram" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
+              <article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="website">
                 <span class="portfolio-result-card__media" aria-hidden="true"><img src="img/projects/website.png" alt="Preview of danielshort.me" width="1464" height="1464" loading="lazy" decoding="async"></span>
-                <span class="portfolio-result-card__body">
-                  <span class="portfolio-result-card__title">danielshort.me</span>
-                  <span class="portfolio-result-card__summary">Responsive Portfolio Site: I needed a fast site to show my work, especially on mobile.</span>
+                <div class="portfolio-result-card__body">
+                  <h2 class="portfolio-result-card__title">danielshort.me</h2>
+                  <p class="portfolio-result-card__summary">Responsive Portfolio Site: I needed a fast site to show my work, especially on mobile.</p>
                   <span class="portfolio-result-tags"><span>Responsive Portfolio Site</span><span>Product</span><span>Visualization</span><span>HTML</span></span>
-                </span>
-              </a>
+                  <div class="portfolio-result-card__actions">
+                    <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>
+                    <a class="portfolio-result-card__open" href="portfolio/website" data-content-open="true" data-content-id="website" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>
+                  </div>
+                </div>
+              </article>
               <!-- portfolio-static-results:end -->
             </div>
             <p class="portfolio-empty-state" data-portfolio-empty hidden>No projects match those filters.</p>
@@ -659,14 +719,6 @@
             <a href="contact#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
           </div>
         </section>
-        <section class="footer-identity-panel" data-footer-realm="professional" aria-label="Daniel Short footer summary">
-          <h2 class="footer-identity-name">Daniel Short</h2>
-          <p class="footer-identity-summary">Data analyst | BI, reporting, automation</p>
-          <div class="footer-identity-actions">
-            <a href="resume" class="footer-link footer-identity-link" data-resume-home-link="true">Resume</a>
-            <a href="contact#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
-          </div>
-        </section>
       </div>
       <nav class="footer-nav" aria-label="Footer">
         <div class="footer-nav-panel" data-footer-realm="personal">
@@ -679,22 +731,6 @@
           </section>
           <section class="footer-col" aria-labelledby="footer-personal-connect">
             <h2 class="footer-col-title" id="footer-personal-connect">Connect</h2>
-            <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
-          </section>
-        </div>
-        <div class="footer-nav-panel" data-footer-realm="professional">
-          <section class="footer-col" aria-labelledby="footer-professional-work">
-            <h2 class="footer-col-title" id="footer-professional-work">Work</h2>
-            <a href="portfolio?audience=analytics" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
-            <a href="resume" class="footer-link" data-resume-home-link="true">Resume</a>
-            <a href="analytics" class="footer-link">Analytics</a>
-            <a href="data-science" class="footer-link">Data science</a>
-          </section>
-          <section class="footer-col" aria-labelledby="footer-professional-connect">
-            <h2 class="footer-col-title" id="footer-professional-connect">Connect</h2>
-            <a href="contact#contact-modal" class="footer-link" data-contact-modal-link="true">Contact</a>
             <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>

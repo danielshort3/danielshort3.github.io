@@ -166,6 +166,15 @@
     { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me/", "permanent": true },
     { "source": "/:path*", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/:path*", "permanent": true },
+    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "professional" }], "destination": "/analytics", "permanent": false },
+    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "work" }], "destination": "/analytics", "permanent": false },
+    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "career" }], "destination": "/analytics", "permanent": false },
+    { "source": "/", "has": [{ "type": "query", "key": "mode", "value": "analytics" }], "destination": "/analytics", "permanent": false },
+    { "source": "/resume", "destination": "/resume-analytics", "permanent": true },
+    { "source": "/resume.html", "destination": "/resume-analytics", "permanent": true },
+    { "source": "/resume-pdf", "destination": "/resume-analytics-pdf", "permanent": true },
+    { "source": "/resume-pdf.html", "destination": "/resume-analytics-pdf", "permanent": true },
+    { "source": "/documents/Resume.pdf", "destination": "/documents/Resume-Analytics.pdf", "permanent": true },
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true },
     { "source": "/tools/whisper-transcribe-monitor", "destination": "/tools/transcribe", "permanent": true },
@@ -217,6 +226,87 @@
       "source": "/:path*",
       "has": [
         { "type": "query", "key": "mode", "value": "professional" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "mode", "value": "work" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "mode", "value": "work" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "mode", "value": "career" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "mode", "value": "career" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "mode", "value": "analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "mode", "value": "analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "data-science" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "tourism" }
       ],
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
@@ -545,7 +635,7 @@
         { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
         }
       ]
     },
@@ -560,7 +650,7 @@
         { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
         }
       ]
     },
@@ -575,7 +665,7 @@
         { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
         }
       ]
     },
@@ -588,7 +678,7 @@
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com https://k8bys9gicf.execute-api.us-east-2.amazonaws.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://4kvebym8b3.execute-api.us-east-2.amazonaws.com https://public.tableau.com; frame-src 'self' https://www.googletagmanager.com https://public.tableau.com https://docs.google.com https://www.google.com https://challenges.cloudflare.com;"
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com https://k8bys9gicf.execute-api.us-east-2.amazonaws.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://4kvebym8b3.execute-api.us-east-2.amazonaws.com https://public.tableau.com; frame-src 'self' https://www.googletagmanager.com https://public.tableau.com https://docs.google.com https://www.google.com https://challenges.cloudflare.com;"
         }
       ]
     },

@@ -6,6 +6,7 @@
   "homePath": "/tourism",
   "portfolioPath": "/portfolio?audience=tourism",
   "portfolioAllPath": "/portfolio?audience=tourism",
+  "contactPath": "/contact?audience=tourism",
   "resumePath": "/resume-tourism",
   "resumePreviewPath": "/resume-tourism-pdf",
   "resumeDownloadPath": "/documents/Resume-Tourism.pdf",

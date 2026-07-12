@@ -15,6 +15,7 @@ const manifest = loadManifest();
 
 const managedHrefs = {
   shell: resolveHref('site-shell.js', manifest.shell),
+  home: resolveHref('site-home.js', manifest.home),
   consent: resolveHref('site-consent.js', manifest.consent),
   contact: resolveHref('site-contact.js', manifest.contact),
   search: resolveHref('site-search.js', manifest.search),
@@ -140,6 +141,7 @@ function processHtml(html, relPath) {
   const out = [];
 
   let shellInserted = false;
+  let homeInserted = false;
   let consentInserted = false;
   let contributionsInserted = false;
   let toolsInserted = false;
@@ -159,6 +161,17 @@ function processHtml(html, relPath) {
       if (!shellInserted) {
         out.push(`${indent}<script defer src="${managedHrefs.shell}"></script>`);
         shellInserted = true;
+      }
+      return;
+    }
+
+    if (
+      /^<script\s+defer\s+src="js\/home\/project-graph\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
+      || isManagedLine(trimmed, 'site-home')
+    ) {
+      if (relPath === 'index.html' && !homeInserted) {
+        out.push(`${indent}<script defer src="${managedHrefs.home}"></script>`);
+        homeInserted = true;
       }
       return;
     }
@@ -238,6 +251,9 @@ function processHtml(html, relPath) {
     || relPath.startsWith('demos/');
   if (needsShellBundle && !shellInserted) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
+  }
+  if (relPath === 'index.html' && !homeInserted) {
+    normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.home}"></script>`);
   }
   if (needsConsentBundle && !normalized.some((line) => isManagedLine(String(line || '').trim(), 'site-consent'))) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.consent}"></script>`);

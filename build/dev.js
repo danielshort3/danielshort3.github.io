@@ -20,6 +20,7 @@ const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
 const chatbotApiPath = path.join(root, 'api', 'chatbot.js');
 const chatbotLogsApiPath = path.join(root, 'api', 'chatbot', 'logs.js');
 const toolsApiPath = path.join(root, 'api', 'tools', '[...slug].js');
+const demosApiPath = path.join(root, 'api', 'demos', '[...slug].js');
 const sentenceDemoApiPath = path.join(root, 'api', 'sentence-demo', '[...slug].js');
 const MAX_PORT_SEARCH_ATTEMPTS = 50;
 const WATCH_POLL_INTERVAL_MS = 1000;
@@ -389,8 +390,38 @@ function compileRoute(source) {
       const wildcard = pattern[end] === '*';
       if (name) {
         names.push(name);
-        regexSource += wildcard ? '(.*)' : '([^/]+)';
-        index = wildcard ? end : end - 1;
+        if (wildcard) {
+          regexSource += '(.*)';
+          index = end;
+          continue;
+        }
+
+        if (pattern[end] === '(') {
+          let close = end + 1;
+          let depth = 1;
+          let escaped = false;
+          while (close < pattern.length && depth > 0) {
+            const token = pattern[close];
+            if (escaped) {
+              escaped = false;
+            } else if (token === '\\') {
+              escaped = true;
+            } else if (token === '(') {
+              depth += 1;
+            } else if (token === ')') {
+              depth -= 1;
+            }
+            close += 1;
+          }
+          if (depth === 0) {
+            regexSource += `(${pattern.slice(end + 1, close - 1)})`;
+            index = close - 1;
+            continue;
+          }
+        }
+
+        regexSource += '([^/]+)';
+        index = end - 1;
         continue;
       }
     }
@@ -472,6 +503,17 @@ function matchRule(pathname, rules, req, url) {
     return { rule, params };
   }
   return null;
+}
+
+function applyResponseHeaders(pathname, rules, req, res, url) {
+  rules.forEach((rule) => {
+    if (!rule.compiled.regex.test(pathname)) return;
+    if (!hasConditionsMatch(rule, req, url)) return;
+    (Array.isArray(rule.headers) ? rule.headers : []).forEach((header) => {
+      if (!header || !header.key || typeof header.value === 'undefined') return;
+      res.setHeader(String(header.key), String(header.value));
+    });
+  });
 }
 
 function applyParams(value, params) {
@@ -669,6 +711,24 @@ function loadToolsApi() {
   return require(toolsApiPath);
 }
 
+function clearDemosApiCache() {
+  const prefixes = [
+    demosApiPath,
+    path.join(root, 'api', 'demos'),
+    path.join(root, 'api', '_lib', 'demo-')
+  ];
+  Object.keys(require.cache).forEach((modulePath) => {
+    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
+      delete require.cache[modulePath];
+    }
+  });
+}
+
+function loadDemosApi() {
+  clearDemosApiCache();
+  return require(demosApiPath);
+}
+
 function clearSentenceDemoApiCache() {
   const prefixes = [
     sentenceDemoApiPath,
@@ -690,10 +750,12 @@ function createLocalServer() {
   const vercelConfig = readVercelConfig();
   const redirects = compileRoutes(vercelConfig.redirects);
   const rewrites = compileRoutes(vercelConfig.rewrites);
+  const responseHeaders = compileRoutes(vercelConfig.headers);
 
   return http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const pathname = url.pathname.replace(/\/+$/, '') || '/';
+    applyResponseHeaders(pathname, responseHeaders, req, res, url);
 
     if (pathname === '/api/chatbot' || pathname === '/api/chatbot/logs') {
       req.query = Object.fromEntries(url.searchParams.entries());
@@ -741,6 +803,25 @@ function createLocalServer() {
         res.end(JSON.stringify({
           ok: false,
           error: err && err.message ? err.message : 'Local CMS API failed to load'
+        }));
+      }
+      return;
+    }
+
+    if (pathname === '/api/demos' || pathname.startsWith('/api/demos/')) {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      const rawSlug = pathname.startsWith('/api/demos/')
+        ? pathname.slice('/api/demos/'.length)
+        : '';
+      req.query.slug = rawSlug ? rawSlug.split('/').filter(Boolean) : '';
+      try {
+        loadDemosApi()(req, res);
+      } catch (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          ok: false,
+          error: err && err.message ? err.message : 'Local demos API failed to load'
         }));
       }
       return;
@@ -847,4 +928,12 @@ function main() {
   process.on('SIGTERM', () => shutdown(0));
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = {
+  compileRoute,
+  compileRoutes,
+  matchRule,
+  applyResponseHeaders,
+  createLocalServer
+};

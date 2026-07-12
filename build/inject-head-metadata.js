@@ -90,8 +90,12 @@ const noindexPathnames = loadNoindexPathnamesFromVercel(root);
 const CSS_MANIFEST_PATH = path.join(root, 'dist', 'styles-manifest.json');
 const CSS_MANIFEST = Object.freeze(loadCssManifest());
 const BASE_STYLESHEET_FALLBACK = 'dist/styles.css';
+const HOME_STYLESHEET_FALLBACK = 'dist/styles-home.css';
+const WORKBENCH_STYLESHEET_FALLBACK = 'dist/styles-workbench.css';
 const TOOLS_STYLESHEET_FALLBACK = 'dist/styles-tools.css';
 const BASE_STYLESHEET_HREF = resolveManagedStylesheetHref(BASE_STYLESHEET_FALLBACK, CSS_MANIFEST.file);
+const HOME_STYLESHEET_HREF = resolveManagedStylesheetHref(HOME_STYLESHEET_FALLBACK, CSS_MANIFEST.homeFile);
+const WORKBENCH_STYLESHEET_HREF = resolveManagedStylesheetHref(WORKBENCH_STYLESHEET_FALLBACK, CSS_MANIFEST.workbenchFile);
 const TOOLS_STYLESHEET_HREF = resolveManagedStylesheetHref(TOOLS_STYLESHEET_FALLBACK, CSS_MANIFEST.toolsFile);
 
 const ROUTE_COMPONENT_STYLES_PATH = path.join(root, 'build', 'route-component-styles.json');
@@ -518,6 +522,8 @@ function ensureStylesheetLink(headInner, href, preferredAfterHrefs = []) {
 function replaceManagedStylesheetLinks(headInner) {
   return String(headInner || '')
     .replace(/href="dist\/styles(?:\.[0-9a-f]{8})?\.css"/gi, `href="${BASE_STYLESHEET_HREF}"`)
+    .replace(/href="dist\/styles-home(?:\.[0-9a-f]{8})?\.css"/gi, `href="${HOME_STYLESHEET_HREF}"`)
+    .replace(/href="dist\/styles-workbench(?:\.[0-9a-f]{8})?\.css"/gi, `href="${WORKBENCH_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-tools(?:\.[0-9a-f]{8})?\.css"/gi, `href="${TOOLS_STYLESHEET_HREF}"`);
 }
 
@@ -529,6 +535,32 @@ function ensureToolsStylesheet(headInner) {
     headInner,
     TOOLS_STYLESHEET_HREF,
     stylesheetCandidates(BASE_STYLESHEET_HREF, BASE_STYLESHEET_FALLBACK)
+  );
+}
+
+function ensureRouteBundleStylesheet(headInner) {
+  const canonical = getCanonicalHref(headInner);
+  const pathname = toPathname(canonical);
+  let href = '';
+  let fallback = '';
+
+  if (pathname === '/') {
+    href = HOME_STYLESHEET_HREF;
+    fallback = HOME_STYLESHEET_FALLBACK;
+  } else if (pathname === '/portfolio' || pathname === '/tools' || pathname === '/games') {
+    href = WORKBENCH_STYLESHEET_HREF;
+    fallback = WORKBENCH_STYLESHEET_FALLBACK;
+  }
+
+  if (!href) return headInner;
+  return ensureStylesheetLink(
+    headInner,
+    href,
+    stylesheetCandidates(
+      BASE_STYLESHEET_HREF,
+      BASE_STYLESHEET_FALLBACK,
+      fallback
+    )
   );
 }
 
@@ -842,6 +874,7 @@ function processHtml(html) {
   inner = ensureBaselineMetadata(inner);
   inner = ensureTwitterMeta(inner);
   inner = ensureToolsStylesheet(inner);
+  inner = ensureRouteBundleStylesheet(inner);
   inner = ensureRouteComponentStylesheet(inner);
   inner = ensureToolJsonLd(inner);
   inner = ensureSiteJsonLd(inner);

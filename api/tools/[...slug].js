@@ -11,6 +11,7 @@ const handleDashboard = require('../_lib/tools-endpoints/dashboard');
 const handleState = require('../_lib/tools-endpoints/state');
 const handleActivity = require('../_lib/tools-endpoints/activity');
 const handleTranscribe = require('../_lib/tools-endpoints/transcribe');
+const handleAuth = require('../_lib/tools-endpoints/auth');
 
 function getEndpointSegmentsFromRequest(req){
   const querySlug = req.query && req.query.slug;
@@ -37,6 +38,7 @@ module.exports = async (req, res) => {
   if (endpoint === 'state') return handleState(req, res);
   if (endpoint === 'activity') return handleActivity(req, res);
   if (endpoint === 'transcribe') return handleTranscribe(req, res, rest);
+  if (endpoint === 'auth') return handleAuth(req, res, rest);
 
   sendJson(res, 404, { ok: false, error: 'Not Found' });
 };

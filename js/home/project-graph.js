@@ -502,7 +502,7 @@
     pizza: '/img/projects/pizza-640.webp',
     nonogram: '/img/projects/nonogram-640.webp',
     website: '/img/projects/website-640.webp',
-    'project-starfall': '/img/project-starfall/ui/start-screen.png',
+    'project-starfall': '/img/project-starfall/ui/start-screen.webp',
     'stellar-dogfight': '/img/games/stellar-dogfight/raster/background-nebula.png'
   });
 
@@ -2349,7 +2349,7 @@
       <div class="home-graph__mobile-classic">
         <section class="home-graph__mobile-hero" aria-labelledby="home-mobile-hero-title">
           <div class="home-graph__mobile-hero-copy">
-            <h2 id="home-mobile-hero-title">Daniel Short</h2>
+            <h1 id="home-mobile-hero-title">Daniel Short</h1>
             <div class="home-graph__mobile-hero-identity">
               <img src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="112px" alt="Portrait of Daniel Short" width="112" height="112" decoding="async" fetchpriority="high">
               <p>Builder of useful interfaces</p>

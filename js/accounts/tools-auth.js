@@ -9,6 +9,12 @@
   const POPUP_STATE_PREFIX = 'toolsAuthPopupState:';
   const AUTH_BROADCAST_KEY = 'toolsAuthBroadcast';
   const POPUP_STATE_TTL_MS = 10 * 60 * 1000;
+  const SESSION_API = {
+    exchange: '/api/tools/auth/exchange',
+    session: '/api/tools/auth/session',
+    logout: '/api/tools/auth/logout'
+  };
+  const SESSION_MODES = new Set(['legacy', 'dual', 'cookie']);
 
   const getConfig = () => {
     const source = document.body || document.documentElement || {};
@@ -17,7 +23,8 @@
       cognitoClientId: (source.dataset.cognitoClientId || '').trim(),
       cognitoRedirect: (source.dataset.cognitoRedirect || '').trim(),
       cognitoScopes: (source.dataset.cognitoScopes || '').trim(),
-      cognitoPrompt: (source.dataset.cognitoPrompt || '').trim()
+      cognitoPrompt: (source.dataset.cognitoPrompt || '').trim(),
+      sessionMode: (source.dataset.toolsSessionMode || '').trim().toLowerCase()
     };
 
     const globalConfig = window.TOOLS_AUTH_CONFIG || {};
@@ -29,12 +36,14 @@
       }
     })();
 
+    const configuredSessionMode = fromDataset.sessionMode || String(globalConfig.sessionMode || '').trim().toLowerCase();
     return {
       cognitoDomain: fromDataset.cognitoDomain || String(globalConfig.cognitoDomain || '').trim(),
       cognitoClientId: fromDataset.cognitoClientId || String(globalConfig.cognitoClientId || '').trim(),
       cognitoRedirect: fromDataset.cognitoRedirect || String(globalConfig.cognitoRedirect || '').trim() || fallbackRedirect,
       cognitoScopes: fromDataset.cognitoScopes || String(globalConfig.cognitoScopes || '').trim() || 'openid email profile',
-      cognitoPrompt: fromDataset.cognitoPrompt || String(globalConfig.cognitoPrompt || '').trim() || 'select_account'
+      cognitoPrompt: fromDataset.cognitoPrompt || String(globalConfig.cognitoPrompt || '').trim() || 'select_account',
+      sessionMode: SESSION_MODES.has(configuredSessionMode) ? configuredSessionMode : 'dual'
     };
   };
 
@@ -51,7 +60,7 @@
   };
 
   const getAuthClaims = (auth) => {
-    if (!auth?.idToken) return {};
+    if (!auth?.idToken && !auth?.sessionOnly) return {};
     return auth.claims || parseJwt(auth.idToken) || {};
   };
 
@@ -64,7 +73,7 @@
   };
 
   const normalizeAuth = (auth) => {
-    if (!auth?.idToken) return null;
+    if (!auth?.idToken && !auth?.sessionOnly) return null;
     const claims = getAuthClaims(auth);
     const expiresAt = getAuthExpiresAt({ ...auth, claims });
     return {
@@ -75,7 +84,7 @@
   };
 
   const authIsValid = (auth) => {
-    if (!auth || !auth.idToken) return false;
+    if (!auth || (!auth.idToken && !auth.sessionOnly)) return false;
     const expiresAt = getAuthExpiresAt(auth);
     if (!expiresAt) return false;
     if (Date.now() > expiresAt - 60 * 1000) return false;
@@ -87,7 +96,7 @@
       const raw = localStorage.getItem(key);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed || !parsed.idToken) return null;
+      if (!parsed || (!parsed.idToken && !parsed.sessionOnly)) return null;
       return parsed;
     } catch {
       return null;
@@ -280,8 +289,64 @@
       claims
     });
     if (!auth) throw new Error('Unable to save auth.');
-    saveAuth(auth);
-    return auth;
+    return persistAuthForSessionMode(config, auth);
+  };
+
+  const sessionAuthFromResponse = (data) => {
+    const expiresAt = Number(data?.expiresAt) * 1000;
+    const user = data?.user || {};
+    if (!expiresAt || !user.sub) return null;
+    return normalizeAuth({
+      sessionOnly: true,
+      expiresAt,
+      claims: {
+        sub: String(user.sub || '').trim(),
+        email: String(user.email || '').trim(),
+        name: String(user.name || '').trim(),
+        'cognito:groups': Array.isArray(user.groups) ? user.groups : []
+      }
+    });
+  };
+
+  const establishServerSession = async (auth) => {
+    if (!auth?.idToken) throw new Error('Missing ID token for session exchange.');
+    const res = await fetch(SESSION_API.exchange, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { Authorization: `Bearer ${auth.idToken}` }
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(String(data?.error || `Unable to establish server session (${res.status}).`));
+    }
+    const data = await res.json();
+    const sessionAuth = sessionAuthFromResponse(data);
+    if (!sessionAuth) throw new Error('Invalid server session response.');
+    return sessionAuth;
+  };
+
+  const persistAuthForSessionMode = async (config, auth) => {
+    const mode = String(config?.sessionMode || 'dual');
+    if (mode === 'legacy') {
+      saveAuth(auth);
+      return auth;
+    }
+    try {
+      const sessionAuth = await establishServerSession(auth);
+      const next = mode === 'cookie'
+        ? sessionAuth
+        : normalizeAuth({
+            ...auth,
+            serverSession: true,
+            serverSessionExpiresAt: sessionAuth.expiresAt
+          });
+      saveAuth(next);
+      return next;
+    } catch (err) {
+      if (mode === 'cookie') throw err;
+      saveAuth(auth);
+      return auth;
+    }
   };
 
   const refreshTokens = async (config, auth) => {
@@ -315,8 +380,7 @@
       claims
     });
     if (!next) throw new Error('Unable to normalize auth.');
-    saveAuth(next);
-    return next;
+    return persistAuthForSessionMode(config, next);
   };
 
   const normalizeReturnTo = (value) => {
@@ -511,7 +575,22 @@
     const config = getConfig();
     const current = loadAuth();
     if (authIsValid(current)) return current;
-    if (!current) return null;
+    if (!current) {
+      if (config.sessionMode !== 'cookie') return null;
+      try {
+        const res = await fetch(SESSION_API.session, { method: 'GET', credentials: 'same-origin' });
+        if (!res.ok) return null;
+        const restored = sessionAuthFromResponse(await res.json());
+        if (authIsValid(restored)) saveAuth(restored);
+        return authIsValid(restored) ? restored : null;
+      } catch {
+        return null;
+      }
+    }
+    if (current.sessionOnly) {
+      clearAuth();
+      return null;
+    }
     try {
       const refreshed = await refreshTokens(config, current);
       return authIsValid(refreshed) ? refreshed : null;
@@ -525,11 +604,30 @@
     const auth = await ensureFreshAuth();
     if (!auth) throw new Error('Not authenticated.');
     const headers = new Headers(options.headers || {});
-    if (!headers.has('Authorization')) {
+    const target = new URL(String(url || ''), window.location.origin);
+    const sameOrigin = target.origin === window.location.origin;
+    if (auth.sessionOnly && !sameOrigin) {
+      throw new Error('Cookie-only tools sessions require a same-origin API proxy for this request.');
+    }
+    // Dual mode deliberately keeps sending the verified ID token during the
+    // migration. The server still authenticates the cookie first, but can use
+    // this header if the browser cookie was cleared or expired between calls.
+    if (!auth.sessionOnly && auth.idToken && !headers.has('Authorization')) {
       headers.set('Authorization', `Bearer ${auth.idToken}`);
     }
-    const res = await fetch(url, { ...options, headers });
+    const credentials = sameOrigin ? 'same-origin' : options.credentials;
+    const res = await fetch(url, { ...options, headers, credentials });
     return res;
+  };
+
+  const signOut = () => {
+    const request = fetch(SESSION_API.logout, {
+      method: 'POST',
+      credentials: 'same-origin',
+      keepalive: true
+    }).catch(() => null);
+    clearAllAuth();
+    return request;
   };
 
   window.ToolsAuth = {
@@ -539,7 +637,7 @@
     authIsValid,
     isAdmin,
     signIn,
-    signOut: clearAllAuth,
+    signOut,
     handleRedirect,
     ensureFreshAuth,
     fetchWithAuth

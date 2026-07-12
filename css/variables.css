@@ -17,8 +17,9 @@
 
     /* Personal-site category accents */
     --category-projects:#155DFC;
-    --category-tools:#0798A6;
-    --category-games:#F97316;
+    /* Dark enough to keep white labels above WCAG AA's 4.5:1 threshold. */
+    --category-tools:#087F8C;
+    --category-games:#C94B0A;
 
     /* Call-to-action blue system */
     --cta-blue:var(--brand-signal-blue);

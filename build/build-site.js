@@ -134,23 +134,36 @@ function main() {
     const cmsStep = runNodeScript(path.join('build', 'generate-cms-artifacts.js'), { verbose });
     logStep('cms-content', cmsStep.durationMs, 'content/ -> pages/, js/, build/templates/');
 
-    // 2) CSS bundle (css/ -> dist/)
+    // 2) High-impact image variants (PNG sources -> AVIF/WebP)
+    const imagesStep = runNodeScript(path.join('build', 'optimize-site-images.js'), { verbose });
+    logStep('images', imagesStep.durationMs, 'mobile hero + Project Starfall start screen');
+
+    // 3) CSS bundle (css/ -> dist/)
     const cssStep = runNodeScript(path.join('build', 'build-css.js'), { verbose });
     const cssManifestPath = path.join(root, 'dist', 'styles-manifest.json');
     const manifest = readJson(cssManifestPath);
-    const cssFile = manifest && typeof manifest.file === 'string' ? path.join('dist', manifest.file) : 'dist/styles.[hash].css';
-    const cssStats = safeStat(path.join(root, cssFile));
-    const cssDetail = cssStats ? `${cssFile} (${formatBytes(cssStats.size)})` : cssFile;
+    const cssOutputs = [
+      ['base', manifest && manifest.file],
+      ['home', manifest && manifest.homeFile],
+      ['workbench', manifest && manifest.workbenchFile],
+      ['tools', manifest && manifest.toolsFile]
+    ].filter(([, fileName]) => typeof fileName === 'string');
+    const cssDetail = cssOutputs.length
+      ? cssOutputs.map(([label, fileName]) => {
+        const stats = safeStat(path.join(root, 'dist', fileName));
+        return `${label} ${stats ? formatBytes(stats.size) : fileName}`;
+      }).join(', ')
+      : 'dist/styles.[hash].css';
     logStep('css', cssStep.durationMs, cssDetail);
 
-    // 3) Shared site JS bundles (js/ -> dist/)
+    // 4) Shared site JS bundles (js/ -> dist/)
     const jsStep = runNodeScript(path.join('build', 'build-js.js'), { verbose });
     const jsManifestPath = path.join(root, 'dist', 'scripts-manifest.json');
     const jsManifest = readJson(jsManifestPath);
     const jsBundles = jsManifest ? Object.values(jsManifest).filter((value) => typeof value === 'string') : [];
     logStep('js', jsStep.durationMs, `dist/ (${jsBundles.length} bundled script${jsBundles.length === 1 ? '' : 's'})`);
 
-    // 4) UTM Batch Builder bundle (src/ -> dist/)
+    // 5) UTM Batch Builder bundle (src/ -> dist/)
     const utmStep = runNodeScript(path.join('build', 'build-utm-batch-builder.js'), { verbose });
     const utmMain = path.join(root, 'dist', 'utm-batch-builder.js');
     const utmWorker = path.join(root, 'dist', 'utm-batch-builder.worker.js');
@@ -161,7 +174,7 @@ function main() {
     utmPieces.push(`dist/utm-batch-builder.worker.js${utmWorkerStat ? ` (${formatBytes(utmWorkerStat.size)})` : ''}`);
     logStep('utm-batch-builder', utmStep.durationMs, utmPieces.join(', '));
 
-    // 5) Project pages (js/portfolio -> pages/portfolio + sitemap.xml)
+    // 6) Project pages (js/portfolio -> pages/portfolio + sitemap.xml)
     const projectsStep = runNodeScript(path.join('build', 'generate-project-pages.js'), { verbose });
     const portfolioDir = path.join(root, 'pages', 'portfolio');
     const projectPages = fs.existsSync(portfolioDir)
@@ -169,14 +182,14 @@ function main() {
       : 0;
     logStep('projects', projectsStep.durationMs, `pages/portfolio (${projectPages} pages), sitemap.xml`);
 
-    // 6) Search index (sitemap.xml + pages -> dist/)
+    // 7) Search index (sitemap.xml + pages -> dist/)
     const searchIndexStep = runNodeScript(path.join('build', 'generate-search-index.js'), { verbose });
     const searchIndexPath = path.join(root, 'dist', 'search-index.json');
     const searchIndexStat = safeStat(searchIndexPath);
     const searchIndexDetail = searchIndexStat ? `dist/search-index.json (${formatBytes(searchIndexStat.size)})` : 'dist/search-index.json';
     logStep('search-index', searchIndexStep.durationMs, searchIndexDetail);
 
-    // 7) Chatbot knowledge database (site HTML -> dist/)
+    // 8) Chatbot knowledge database (site HTML -> dist/)
     const chatbotStep = runNodeScript(path.join('build', 'generate-chatbot-knowledge.js'), { verbose });
     const chatbotKnowledgePath = path.join(root, 'dist', 'chatbot-knowledge.json');
     const chatbotKnowledge = readJson(chatbotKnowledgePath);
@@ -187,7 +200,7 @@ function main() {
     if (chatbotStat) chatbotDetailParts.push(`${formatBytes(chatbotStat.size)}`);
     logStep('chatbot-knowledge', chatbotStep.durationMs, chatbotDetailParts.join(' '));
 
-    // 8) Shortlinks destinations manifest (site HTML + vercel.json -> dist/)
+    // 9) Shortlinks destinations manifest (site HTML + vercel.json -> dist/)
     const shortlinksStep = runNodeScript(path.join('build', 'generate-shortlinks-destinations.js'), { verbose });
     const destinationsPath = path.join(root, 'dist', 'shortlinks-destinations.json');
     const destinations = readJson(destinationsPath);
@@ -198,31 +211,31 @@ function main() {
     if (destinationsStat) destinationsDetailParts.push(`${formatBytes(destinationsStat.size)}`);
     logStep('shortlinks', shortlinksStep.durationMs, destinationsDetailParts.join(' '));
 
-    // 9) Shared header/nav (build-time injected)
+    // 10) Shared header/nav (build-time injected)
     const headerStep = runNodeScript(path.join('build', 'inject-header.js'), { verbose });
     logStep('header', headerStep.durationMs);
 
-    // 10) Shared footer (build-time injected)
+    // 11) Shared footer (build-time injected)
     const footerStep = runNodeScript(path.join('build', 'inject-footer.js'), { verbose });
     logStep('footer', footerStep.durationMs);
 
-    // 11) Shared head metadata (build-time injected)
+    // 12) Shared head metadata (build-time injected)
     const metaStep = runNodeScript(path.join('build', 'inject-head-metadata.js'), { verbose });
     logStep('head-metadata', metaStep.durationMs);
 
-    // 12) Shared script bundle references (build-time injected)
+    // 13) Shared script bundle references (build-time injected)
     const scriptsStep = runNodeScript(path.join('build', 'inject-script-bundles.js'), { verbose });
     logStep('script-bundles', scriptsStep.durationMs);
 
-    // 13) Internal same-site links should stay in the same tab
+    // 14) Internal same-site links should stay in the same tab
     const linksStep = runNodeScript(path.join('build', 'normalize-internal-links.js'), { verbose });
     logStep('internal-links', linksStep.durationMs);
 
-    // 14) Keep root HTML copies in sync with /pages
+    // 15) Keep root HTML copies in sync with /pages
     const syncStep = runNodeScript(path.join('build', 'sync-root-pages.js'), { verbose });
     logStep('sync-root-pages', syncStep.durationMs);
 
-    // 15) AI retrieval digests (final HTML -> dist/)
+    // 16) AI retrieval digests (final HTML -> dist/)
     const aiDigestStep = runNodeScript(path.join('build', 'generate-ai-digests.js'), { verbose });
     const aiDigestManifestPath = path.join(root, 'dist', 'ai-digest-manifest.json');
     const aiDigestManifest = readJson(aiDigestManifestPath);
@@ -233,7 +246,7 @@ function main() {
     if (aiDigestStat) aiDigestDetailParts.push(`${formatBytes(aiDigestStat.size)}`);
     logStep('ai-digests', aiDigestStep.durationMs, aiDigestDetailParts.join(' '));
 
-    // 16) Public output (deployable mirror)
+    // 17) Public output (deployable mirror)
     const publicStep = runNodeScript(path.join('build', 'copy-to-public.js'), { verbose });
     const publicDir = path.join(root, 'public');
     const publicFiles = countFilesRecursive(publicDir);

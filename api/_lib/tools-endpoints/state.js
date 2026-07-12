@@ -13,13 +13,12 @@
 const {
   sendJson,
   readJson,
-  getBearerToken,
   normalizeKnownToolId,
   normalizeToolId,
   normalizeSessionId,
   clampLimit
 } = require('../tools-api');
-const { verifyCognitoIdToken } = require('../cognito-jwt');
+const { authenticateToolsRequest } = require('../tools-auth-session');
 const {
   MAX_SNAPSHOT_BYTES,
   saveSession,
@@ -81,18 +80,16 @@ function sendStorageError(res, err){
 }
 
 module.exports = async (req, res) => {
-  const token = getBearerToken(req);
-  if (!token) {
-    sendJson(res, 401, { ok: false, error: 'Unauthorized' });
-    return;
-  }
-
   let claims;
   try {
-    claims = await verifyCognitoIdToken(token);
+    ({ claims } = await authenticateToolsRequest(req));
   } catch (err) {
-    if (err.code === 'COGNITO_ENV_MISSING') {
+    if (['COGNITO_ENV_MISSING', 'TOOLS_SESSION_SECRET_MISSING', 'TOOLS_SESSION_SECRET_INVALID'].includes(err.code)) {
       sendJson(res, 503, { ok: false, error: err.message });
+      return;
+    }
+    if (err.code === 'AUTH_ORIGIN_MISMATCH') {
+      sendJson(res, 403, { ok: false, error: 'Same-origin request required.' });
       return;
     }
     sendJson(res, 401, { ok: false, error: 'Unauthorized' });

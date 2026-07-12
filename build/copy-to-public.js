@@ -145,6 +145,8 @@ function collectDistArtifacts(cssManifest, jsManifest) {
   const artifacts = new Set([
     'ai-digest-manifest.json',
     'styles.css',
+    'styles-home.css',
+    'styles-workbench.css',
     'styles-tools.css',
     'styles-manifest.json',
     'scripts-manifest.json',
@@ -155,11 +157,10 @@ function collectDistArtifacts(cssManifest, jsManifest) {
     'shortlinks-destinations.json'
   ]);
 
-  if (cssManifest && typeof cssManifest.file === 'string') {
-    artifacts.add(cssManifest.file);
-  }
-  if (cssManifest && typeof cssManifest.toolsFile === 'string') {
-    artifacts.add(cssManifest.toolsFile);
+  if (cssManifest && typeof cssManifest === 'object') {
+    Object.values(cssManifest).forEach((value) => {
+      if (typeof value === 'string') artifacts.add(value);
+    });
   }
 
   if (jsManifest && typeof jsManifest === 'object') {
@@ -170,6 +171,7 @@ function collectDistArtifacts(cssManifest, jsManifest) {
 
   [
     'site-shell.js',
+    'site-home.js',
     'site-consent.js',
     'site-contact.js',
     'site-search.js',
@@ -359,6 +361,12 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
   if (cssHrefs.base) {
     next = next.replace(/href=(["'])dist\/styles\.css\1/g, `href="dist/${cssHrefs.base}"`);
   }
+  if (cssHrefs.home) {
+    next = next.replace(/href=(["'])dist\/styles-home\.css\1/g, `href="dist/${cssHrefs.home}"`);
+  }
+  if (cssHrefs.workbench) {
+    next = next.replace(/href=(["'])dist\/styles-workbench\.css\1/g, `href="dist/${cssHrefs.workbench}"`);
+  }
   if (cssHrefs.tools) {
     next = next.replace(/href=(["'])dist\/styles-tools\.css\1/g, `href="dist/${cssHrefs.tools}"`);
   }
@@ -541,6 +549,8 @@ function copyStatic(){
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {
     base: cssManifest && typeof cssManifest.file === 'string' ? cssManifest.file : null,
+    home: cssManifest && typeof cssManifest.homeFile === 'string' ? cssManifest.homeFile : null,
+    workbench: cssManifest && typeof cssManifest.workbenchFile === 'string' ? cssManifest.workbenchFile : null,
     tools: cssManifest && typeof cssManifest.toolsFile === 'string' ? cssManifest.toolsFile : null
   };
   if (!cssHrefs.base) {
@@ -564,6 +574,8 @@ function copyStatic(){
       }
     });
     const rewrittenTargets = [`dist/${cssHrefs.base}`];
+    if (cssHrefs.home) rewrittenTargets.push(`dist/${cssHrefs.home}`);
+    if (cssHrefs.workbench) rewrittenTargets.push(`dist/${cssHrefs.workbench}`);
     if (cssHrefs.tools) rewrittenTargets.push(`dist/${cssHrefs.tools}`);
     log(`Rewrote CSS links in ${rewrote} HTML files to ${rewrittenTargets.join(', ')}`);
   }

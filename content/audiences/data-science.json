@@ -6,6 +6,7 @@
   "homePath": "/data-science",
   "portfolioPath": "/portfolio?audience=data-science",
   "portfolioAllPath": "/portfolio?audience=data-science",
+  "contactPath": "/contact?audience=data-science",
   "resumePath": "/resume-data-science",
   "resumePreviewPath": "/resume-data-science-pdf",
   "resumeDownloadPath": "/documents/Resume-Data-Science.pdf",

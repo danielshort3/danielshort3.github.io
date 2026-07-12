@@ -19,8 +19,8 @@ const {
   TranscribeClient
 } = require('@aws-sdk/client-transcribe');
 const { resolveAwsCredentials } = require('../aws-credentials');
-const { getBearerToken, readJson, sendJson } = require('../tools-api');
-const { verifyCognitoIdToken } = require('../cognito-jwt');
+const { readJson, sendJson } = require('../tools-api');
+const { authenticateToolsRequest } = require('../tools-auth-session');
 const {
   RUN_STATE,
   getRun,
@@ -342,13 +342,8 @@ function verifyToken(token, secret, expectedType){
 }
 
 async function requireUser(req, res){
-  const token = getBearerToken(req);
-  if (!token) {
-    sendJson(res, 401, { ok: false, error: 'Sign in before transcribing files.' });
-    return null;
-  }
   try {
-    const claims = await verifyCognitoIdToken(token);
+    const { claims } = await authenticateToolsRequest(req);
     const sub = String(claims?.sub || '').trim();
     if (!sub) throw new Error('Missing subject.');
     return {
@@ -356,8 +351,12 @@ async function requireUser(req, res){
       email: String(claims?.email || '').trim()
     };
   } catch (err) {
-    if (err && err.code === 'COGNITO_ENV_MISSING') {
+    if (err && ['COGNITO_ENV_MISSING', 'TOOLS_SESSION_SECRET_MISSING', 'TOOLS_SESSION_SECRET_INVALID'].includes(err.code)) {
       sendJson(res, 503, { ok: false, error: err.message });
+      return null;
+    }
+    if (err && err.code === 'AUTH_ORIGIN_MISMATCH') {
+      sendJson(res, 403, { ok: false, error: 'Same-origin request required.' });
       return null;
     }
     sendJson(res, 401, { ok: false, error: 'Sign in before transcribing files.' });

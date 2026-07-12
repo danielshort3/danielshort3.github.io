@@ -13,6 +13,15 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const outputPath = path.join(root, 'dist', 'shortlinks-destinations.json');
+const LEGACY_DESTINATION_ALIASES = new Set(['/resume', '/resume-pdf']);
+const DESTINATION_LABELS = new Map([
+  ['/resume-analytics', 'Data Analytics Resume'],
+  ['/resume-analytics-pdf', 'Data Analytics Resume PDF'],
+  ['/resume-data-science', 'Data Science Resume'],
+  ['/resume-data-science-pdf', 'Data Science Resume PDF'],
+  ['/resume-tourism', 'Tourism Resume'],
+  ['/resume-tourism-pdf', 'Tourism Resume PDF']
+]);
 
 function readFileSafe(filePath){
   try {
@@ -133,10 +142,13 @@ function buildManifest(){
     }
     if (!pathname) return;
     if (pathname === '/404.html') return;
+    if (LEGACY_DESTINATION_ALIASES.has(pathname)) return;
 
     const label = normalizeLabel(extractTitle(html)) || pathname;
     const group = classifyGroup(pathname);
-    const finalLabel = pathname === '/' ? 'Home' : label;
+    const finalLabel = pathname === '/'
+      ? 'Home'
+      : (DESTINATION_LABELS.get(pathname) || label);
     if (!seen.has(pathname)) seen.set(pathname, { path: pathname, label: finalLabel, group });
   });
 

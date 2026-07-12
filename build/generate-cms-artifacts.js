@@ -72,6 +72,53 @@ function getAudienceLabel(content, audienceKey) {
     : 'Projects, Tools, and Games';
 }
 
+function applyAudienceLinks(page, content) {
+  const audienceKey = page.audienceKey
+    || (page.bodyAttributes && page.bodyAttributes['data-audience'])
+    || '';
+  const audience = content.audiencesByKey[audienceKey];
+  if (!audience || audience.key === 'personal') return page;
+
+  const resumePath = String(audience.resumePath || '').replace(/^\/+/, '');
+  const resumePreviewPath = String(audience.resumePreviewPath || '').replace(/^\/+/, '');
+  const resumeDownloadPath = String(audience.resumeDownloadPath || '').replace(/^\/+/, '');
+  const portfolioPath = String(audience.portfolioPath || '/portfolio').replace(/^\/+/, '');
+  const contactPath = String(audience.contactPath || `/contact?audience=${audience.key}`).replace(/^\/+/, '');
+  const updateHtml = (value) => {
+    let html = String(value || '')
+      .replace(/href="(\/?portfolio\/[^"?#]+)"/g, (match, path) => (
+        `href="${String(path).replace(/^\/+/, '')}?audience=${encodeURIComponent(audience.key)}"`
+      ))
+      .replaceAll('href="/portfolio"', `href="/${portfolioPath}"`)
+      .replaceAll('href="portfolio"', `href="${portfolioPath}"`)
+      .replaceAll('href="/contact#contact-modal"', `href="/${contactPath}#contact-modal"`)
+      .replaceAll('href="contact#contact-modal"', `href="${contactPath}#contact-modal"`);
+
+    if (audience.key === 'analytics') {
+      html = html
+        .replaceAll('href="/resume-pdf"', `href="/${resumePreviewPath}"`)
+        .replaceAll('href="resume-pdf"', `href="${resumePreviewPath}"`)
+        .replaceAll('href="/resume"', `href="/${resumePath}"`)
+        .replaceAll('href="resume"', `href="${resumePath}"`)
+        .replaceAll('documents/Resume.pdf', resumeDownloadPath);
+    }
+    return html;
+  };
+
+  return {
+    ...page,
+    ...(page.bodyHtml ? { bodyHtml: updateHtml(page.bodyHtml) } : {}),
+    sections: Array.isArray(page.sections)
+      ? page.sections.map((section) => ({
+          ...section,
+          props: section && section.props && typeof section.props.html === 'string'
+            ? { ...section.props, html: updateHtml(section.props.html) }
+            : section.props
+        }))
+      : page.sections
+  };
+}
+
 async function main() {
   const content = await loadSiteContentAsync(root);
   const navigation = content.site.navigation || {};
@@ -81,11 +128,18 @@ async function main() {
     projectsById: content.projectsById,
     pagesById: content.pagesById,
     tools: content.tools,
+    audience: content.audiencesByKey[content.site.settings.defaultAudience]
+      || content.audiencesByKey.personal
+      || null,
     audienceLabel: getAudienceLabel(content, content.site.settings.defaultAudience)
   });
+  const personalAudience = content.audiencesByKey[content.site.settings.defaultAudience]
+    || content.audiencesByKey.personal
+    || null;
   const footerHtml = renderFooter({
     footer: content.site.footer,
-    year: new Date().getFullYear()
+    year: new Date().getFullYear(),
+    audience: personalAudience
   });
 
   write(path.join('js', 'portfolio', 'projects-data.js'), renderProjectsDataJs(
@@ -108,25 +162,47 @@ async function main() {
   }
   write(path.join('js', 'common', 'audience-config.js'), renderAudienceConfigJs(content.site.settings, content.audiences));
   write(path.join('build', 'templates', 'header.partial.html'), `${headerHtml}\n`);
+  content.audiences.forEach((audience) => {
+    if (audience.key === content.site.settings.defaultAudience) return;
+    write(
+      path.join('build', 'templates', `header.${audience.key}.partial.html`),
+      `${renderHeader({
+        settings: content.site.settings,
+        navigation,
+        projectsById: content.projectsById,
+        pagesById: content.pagesById,
+        tools: content.tools,
+        audience,
+        audienceLabel: getAudienceLabel(content, audience.key)
+      })}\n`
+    );
+  });
   write(path.join('build', 'templates', 'footer.partial.html'), `${footerHtml}\n`);
+  content.audiences.forEach((audience) => {
+    if (audience.key === content.site.settings.defaultAudience) return;
+    write(
+      path.join('build', 'templates', `footer.${audience.key}.partial.html`),
+      `${renderFooter({ footer: content.site.footer, year: new Date().getFullYear(), audience })}\n`
+    );
+  });
 
   const managedPages = buildManagedPages(content);
   managedPages.forEach((page) => {
-    let pageDef = page;
-    if (page.template === 'tools-directory') {
+    let pageDef = applyAudienceLinks(page, content);
+    if (pageDef.template === 'tools-directory') {
       pageDef = {
-        ...page,
-        bodyHtml: renderToolsDirectoryBody(page, content.tools)
+        ...pageDef,
+        bodyHtml: renderToolsDirectoryBody(pageDef, content.tools)
       };
-    } else if (page.template === 'games-directory') {
+    } else if (pageDef.template === 'games-directory') {
       pageDef = {
-        ...page,
-        bodyHtml: renderGamesDirectoryBody(page)
+        ...pageDef,
+        bodyHtml: renderGamesDirectoryBody(pageDef)
       };
-    } else if (page.template === 'visual-page') {
+    } else if (pageDef.template === 'visual-page') {
       pageDef = {
-        ...page,
-        bodyHtml: renderVisualPageBody(page)
+        ...pageDef,
+        bodyHtml: renderVisualPageBody(pageDef)
       };
     }
 
@@ -142,6 +218,9 @@ async function main() {
       pagesById: content.pagesById,
       tools: content.tools,
       page: pageDef,
+      audience: content.audiencesByKey[pageDef.audienceKey
+        || (pageDef.bodyAttributes && pageDef.bodyAttributes['data-audience'])
+        || content.site.settings.defaultAudience],
       audienceLabel: getAudienceLabel(content, pageDef.audienceKey)
     });
     write(pageDef.outputPath, html);

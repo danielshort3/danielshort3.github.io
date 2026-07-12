@@ -94,7 +94,10 @@
     try {
       const title = (document.title || '').trim();
       const url = (window.location && window.location.href) ? window.location.href.trim() : '';
-      sessionStorage.setItem(CONTACT_CONTEXT_KEY, JSON.stringify({ title, url, ts: Date.now() }));
+      const audience = typeof window.getSiteAudience === 'function'
+        ? window.getSiteAudience()
+        : String(document.body?.dataset?.audience || 'personal').trim();
+      sessionStorage.setItem(CONTACT_CONTEXT_KEY, JSON.stringify({ title, url, audience, ts: Date.now() }));
     } catch {}
   };
 
@@ -110,6 +113,7 @@
   let jumpPanelScrollToken = 0;
   let activeJumpPanelScrollToken = 0;
   let jumpPanelScrollTimer = null;
+  let activeSmoothScrollCancel = null;
   const beginJumpPanelAutoScroll = (timeoutMs) => {
     jumpPanelScrollToken += 1;
     const token = jumpPanelScrollToken;
@@ -681,8 +685,29 @@
       }
     };
 
+    const focusScrollTarget = (target) => {
+      if (!target || typeof target.focus !== 'function') return;
+      const isNaturallyFocusable = target.matches?.('a[href], button, input, select, textarea, summary, [tabindex]');
+      const needsTemporaryTabindex = !isNaturallyFocusable;
+      if (needsTemporaryTabindex) target.setAttribute('tabindex', '-1');
+      try {
+        target.focus({ preventScroll: true });
+      } catch {
+        target.focus();
+      }
+      if (!needsTemporaryTabindex) return;
+      const restoreTabindex = () => {
+        if (target.getAttribute('tabindex') === '-1') target.removeAttribute('tabindex');
+      };
+      target.addEventListener('blur', restoreTabindex, { once: true });
+    };
+
     const smoothScrollToTarget = (target, options = {}) => {
       if (!target) return;
+
+      if (typeof activeSmoothScrollCancel === 'function') {
+        activeSmoothScrollCancel();
+      }
 
       const openAncestorDetails = (node) => {
         let current = node;
@@ -705,7 +730,6 @@
       const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
       const clampedTop = Math.min(Math.max(0, targetTop), maxScroll);
       const distance = clampedTop - startTop;
-      if (Math.abs(distance) < 1) return;
 
       const jumpPanelToken = options.jumpPanel ? beginJumpPanelAutoScroll() : 0;
       let jumpPanelTailTimer = null;
@@ -740,7 +764,9 @@
         if (rafId) cancelAnimationFrame(rafId);
         window.removeEventListener('wheel', cancel);
         window.removeEventListener('touchstart', cancel);
+        window.removeEventListener('pointerdown', cancel);
         window.removeEventListener('keydown', onKeydown);
+        if (activeSmoothScrollCancel === cancel) activeSmoothScrollCancel = null;
         if (jumpPanelToken) {
           if (cancelled) {
             releaseJumpPanelAutoScroll();
@@ -748,6 +774,7 @@
             releaseJumpPanelAutoScroll(180);
           }
         }
+        if (!cancelled) focusScrollTarget(target);
       };
 
       const cancel = () => {
@@ -775,9 +802,23 @@
         }
       };
 
+      if (options.reducedMotion || Math.abs(distance) < 1) {
+        if (Math.abs(distance) >= 1) {
+          try {
+            window.scrollTo({ top: clampedTop, left: 0, behavior: 'auto' });
+          } catch {
+            window.scrollTo(0, clampedTop);
+          }
+        }
+        cleanup();
+        return;
+      }
+
       window.addEventListener('wheel', cancel, { passive: true });
       window.addEventListener('touchstart', cancel, { passive: true });
+      window.addEventListener('pointerdown', cancel, { passive: true });
       window.addEventListener('keydown', onKeydown);
+      activeSmoothScrollCancel = cancel;
       rafId = requestAnimationFrame(step);
     };
 
@@ -795,13 +836,11 @@
         const target = document.getElementById(targetId);
         if (!target) return;
         const isJumpPanelLink = Boolean(link.closest('.jump-panel'));
-        if (prefersReducedMotion()) {
-          if (isJumpPanelLink) beginJumpPanelAutoScroll(400);
-          return;
-        }
-
         evt.preventDefault();
-        smoothScrollToTarget(target, { jumpPanel: isJumpPanelLink });
+        smoothScrollToTarget(target, {
+          jumpPanel: isJumpPanelLink,
+          reducedMotion: prefersReducedMotion()
+        });
         try {
           history.pushState(null, '', currentHashUrl(hash));
         } catch {}
@@ -902,11 +941,114 @@
     });
   }
 
+  const setupProfessionalJumpRail = (panel, links) => {
+    const isProfessionalPage = document.body?.matches('[data-page="analytics"], [data-page="data-science"], [data-page="tourism"]');
+    if (!isProfessionalPage || !panel || !links.length) return null;
+
+    let track = panel.querySelector('[data-jump-rail-track]');
+    let previousButton = panel.querySelector('[data-jump-rail-step="previous"]');
+    let nextButton = panel.querySelector('[data-jump-rail-step="next"]');
+
+    if (!track) {
+      track = document.createElement('div');
+      track.className = 'jump-panel-track';
+      track.dataset.jumpRailTrack = 'true';
+      track.id = `${panel.id || 'jump-panel'}-track`;
+      panel.insertBefore(track, links[0]);
+      links.forEach((link) => track.appendChild(link));
+    }
+
+    const createStepButton = (direction, label, path) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `jump-panel-step jump-panel-step--${direction}`;
+      button.dataset.jumpRailStep = direction;
+      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-controls', track.id);
+      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"></path></svg>`;
+      return button;
+    };
+
+    if (!previousButton) {
+      previousButton = createStepButton('previous', 'Show previous section links', 'm15 18-6-6 6-6');
+      panel.insertBefore(previousButton, track);
+    }
+    if (!nextButton) {
+      nextButton = createStepButton('next', 'Show next section links', 'm9 18 6-6-6-6');
+      track.insertAdjacentElement('afterend', nextButton);
+    }
+
+    const prefersReducedMotion = () => {
+      try {
+        return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+      } catch {
+        return false;
+      }
+    };
+    const getMaxScroll = () => Math.max(0, track.scrollWidth - track.clientWidth);
+    const scrollTrackTo = (left) => {
+      const nextLeft = Math.min(getMaxScroll(), Math.max(0, left));
+      try {
+        track.scrollTo({ left: nextLeft, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      } catch {
+        track.scrollLeft = nextLeft;
+      }
+    };
+    const updateControls = () => {
+      const maxScroll = getMaxScroll();
+      const hasOverflow = maxScroll > 2;
+      const canScrollPrevious = hasOverflow && track.scrollLeft > 2;
+      const canScrollNext = hasOverflow && track.scrollLeft < maxScroll - 2;
+      previousButton.disabled = !canScrollPrevious;
+      nextButton.disabled = !canScrollNext;
+      panel.classList.toggle('has-overflow', hasOverflow);
+      panel.classList.toggle('can-scroll-prev', canScrollPrevious);
+      panel.classList.toggle('can-scroll-next', canScrollNext);
+    };
+    const centerLink = (link) => {
+      if (!link || getMaxScroll() <= 2) {
+        updateControls();
+        return;
+      }
+      const left = link.offsetLeft - ((track.clientWidth - link.offsetWidth) / 2);
+      scrollTrackTo(left);
+      requestAnimationFrame(updateControls);
+    };
+    const stepTrack = (direction) => {
+      const center = track.scrollLeft + (track.clientWidth / 2);
+      const centers = links.map((link) => ({
+        link,
+        center: link.offsetLeft + (link.offsetWidth / 2)
+      }));
+      const currentIndex = centers.reduce((bestIndex, entry, index) => (
+        Math.abs(entry.center - center) < Math.abs(centers[bestIndex].center - center)
+          ? index
+          : bestIndex
+      ), 0);
+      const targetIndex = Math.min(
+        centers.length - 1,
+        Math.max(0, currentIndex + (direction > 0 ? 1 : -1))
+      );
+      const target = centers[targetIndex];
+      if (target) centerLink(target.link);
+    };
+
+    if (panel.dataset.jumpRailControlsBound !== 'yes') {
+      panel.dataset.jumpRailControlsBound = 'yes';
+      previousButton.addEventListener('click', () => stepTrack(-1));
+      nextButton.addEventListener('click', () => stepTrack(1));
+      track.addEventListener('scroll', updateControls, { passive: true });
+    }
+    requestAnimationFrame(updateControls);
+    return { centerLink, updateControls };
+  };
+
   function initJumpPanelSpy(){
     const panel = document.querySelector('.jump-panel');
     if (!panel) return;
     const isStoryRail = panel.dataset.storyRail === 'true';
     const links = $$('.jump-panel-link', panel);
+    const railControls = setupProfessionalJumpRail(panel, links);
     const hideBtn = panel.querySelector('[data-jump-hide]');
     const showBtn = document.querySelector('[data-jump-show]');
     if (!links.length) return;
@@ -958,6 +1100,9 @@
           item.link.removeAttribute('aria-current');
         }
       });
+      const activeItem = activeIndex >= 0 ? items[activeIndex] : null;
+      if (activeItem) railControls?.centerLink(activeItem.link);
+      railControls?.updateControls();
     };
 
     const measureStoryRail = () => {
@@ -1198,6 +1343,7 @@
       if (!shouldCondenseOnScroll()) {
         panel.classList.remove('is-condensed');
       }
+      railControls?.updateControls();
       requestStoryMeasure();
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
