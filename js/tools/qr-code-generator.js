@@ -218,6 +218,18 @@
 
   const QR_PRESETS_STORAGE_KEY = 'qrtool_presets_v1';
   const QR_LAST_CONFIG_STORAGE_KEY = 'qrtool_last_config_v1';
+  const sanitizeConfigSnapshot = (input) => {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
+    const safe = { ...input };
+    delete safe.wifiPassword;
+
+    const payloadMode = String(safe.payloadMode || '').trim().toLowerCase();
+    const data = String(safe.data || '').trim();
+    if (payloadMode === 'wifi' || /^WIFI:/i.test(data)) {
+      delete safe.data;
+    }
+    return safe;
+  };
   const EXPORT_SIZE_BY_PRESET = Object.freeze({
     sticker: 512,
     web: 1024,
@@ -2867,7 +2879,7 @@
     state.darkModules = darkModules;
 
     emptyOverlay?.classList.add('hide');
-    const version = qrInstance.typeNumber;
+    const version = Math.max(1, Math.round((moduleCount - 17) / 4));
     metaEl.textContent = `Version ${version} • ${moduleCount}×${moduleCount} modules • ECC ${state.ecc} • Quiet zone ${state.marginModules}`;
 
     const analysis = analyzeReliability(moduleCount);
@@ -3112,7 +3124,6 @@
       payloadText: state.payloadText,
       wifiSsid: state.wifiSsid,
       wifiAuth: state.wifiAuth,
-      wifiPassword: state.wifiPassword,
       wifiHidden: state.wifiHidden,
       vcardFirst: state.vcardFirst,
       vcardLast: state.vcardLast,
@@ -3123,7 +3134,7 @@
       vcardWebsite: state.vcardWebsite,
       vcardAddress: state.vcardAddress,
       vcardNote: state.vcardNote,
-      data: state.data,
+      ...(state.payloadMode === 'wifi' ? {} : { data: state.data }),
       dotStyle: state.dotStyle,
       cornerStyle: state.cornerStyle,
       ecc: state.ecc,
@@ -3161,13 +3172,10 @@
     if (logoUrl && (!forShare || (logoUrl.length <= 260 && !logoUrl.startsWith('data:')))) {
       snapshot.logoDataUrl = logoUrl;
     }
-    if (forShare && snapshot.payloadMode === 'wifi') {
-      delete snapshot.wifiPassword;
-    }
-    return snapshot;
+    return sanitizeConfigSnapshot(snapshot);
   };
 
-  const applyConfigSnapshot = (input, { markDirty = false, skipShareSync = false } = {}) => {
+  const applyConfigSnapshot = (input, { markDirty = false, skipShareSync = false, allowWifiPassword = false } = {}) => {
     const config = input && typeof input === 'object' ? input : null;
     if (!config) return false;
 
@@ -3176,7 +3184,7 @@
     if (typeof config.payloadText === 'string') state.payloadText = config.payloadText;
     if (typeof config.wifiSsid === 'string') state.wifiSsid = config.wifiSsid;
     if (typeof config.wifiAuth === 'string') state.wifiAuth = ['WPA', 'WEP', 'NOPASS', 'nopass'].includes(config.wifiAuth) ? String(config.wifiAuth).toUpperCase() : state.wifiAuth;
-    if (typeof config.wifiPassword === 'string') state.wifiPassword = config.wifiPassword;
+    if (allowWifiPassword && typeof config.wifiPassword === 'string') state.wifiPassword = config.wifiPassword;
     if (typeof config.wifiHidden === 'boolean') state.wifiHidden = config.wifiHidden;
     if (typeof config.vcardFirst === 'string') state.vcardFirst = config.vcardFirst;
     if (typeof config.vcardLast === 'string') state.vcardLast = config.vcardLast;
@@ -3246,7 +3254,14 @@
       const raw = storage.getItem(QR_PRESETS_STORAGE_KEY);
       const parsed = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(parsed)) return [];
-      return parsed.filter(item => item && typeof item.name === 'string' && item.config && typeof item.config === 'object');
+      const presets = parsed
+        .filter(item => item && typeof item.name === 'string' && item.config && typeof item.config === 'object')
+        .map(item => ({ ...item, config: sanitizeConfigSnapshot(item.config) }))
+        .filter(item => item.config);
+      try {
+        storage.setItem(QR_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+      } catch {}
+      return presets;
     } catch {
       return [];
     }
@@ -3255,7 +3270,14 @@
   const persistPresets = (presets) => {
     if (!storage) return;
     try {
-      storage.setItem(QR_PRESETS_STORAGE_KEY, JSON.stringify(presets || []));
+      const safePresets = (Array.isArray(presets) ? presets : [])
+        .map(item => {
+          if (!item || typeof item !== 'object') return null;
+          const config = sanitizeConfigSnapshot(item.config);
+          return config ? { ...item, config } : null;
+        })
+        .filter(Boolean);
+      storage.setItem(QR_PRESETS_STORAGE_KEY, JSON.stringify(safePresets));
     } catch {}
   };
 
@@ -3315,12 +3337,18 @@
         if (decoded) applied = applyConfigSnapshot(decoded, { markDirty: false, skipShareSync: true });
       }
     } catch {}
-    if (applied || !storage) return;
+    if (applied) {
+      syncShareUrl();
+      return;
+    }
+    if (!storage) return;
     try {
       const raw = storage.getItem(QR_LAST_CONFIG_STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      applyConfigSnapshot(parsed, { markDirty: false, skipShareSync: true });
+      if (applyConfigSnapshot(parsed, { markDirty: false, skipShareSync: true })) {
+        persistLastConfig();
+      }
     } catch {}
   };
 
@@ -3651,7 +3679,7 @@
       try {
         const text = await file.text();
         const parsed = JSON.parse(text);
-        const ok = applyConfigSnapshot(parsed, { markDirty: true });
+        const ok = applyConfigSnapshot(parsed, { markDirty: true, allowWifiPassword: true });
         setInlineStatus(configStatusEl, ok ? `Imported "${file.name}".` : 'Config import failed.', ok ? 'success' : 'error');
       } catch {
         setInlineStatus(configStatusEl, 'Invalid config JSON file.', 'error');
@@ -3852,12 +3880,36 @@
     const summary = captureSummary();
     payload.outputSummary = summary || 'QR code';
 
+    const isWifiPayload = state.payloadMode === 'wifi';
     const data = String(state.data || '').trim();
-    payload.inputs = {
-      'Payload type': String(state.payloadMode || 'url').toUpperCase(),
-      Data: data,
-      ...(captionEnabledInput?.checked ? { Caption: String(captionTextInput?.value || '').trim() } : {}),
-    };
+    payload.inputs = isWifiPayload
+      ? {
+          'Payload type': 'WI-FI',
+          'Network name': String(state.wifiSsid || '').trim(),
+          Security: String(state.wifiAuth || 'WPA').toUpperCase(),
+          Hidden: state.wifiHidden ? 'Yes' : 'No',
+          ...(captionEnabledInput?.checked ? { Caption: String(captionTextInput?.value || '').trim() } : {}),
+        }
+      : {
+          'Payload type': String(state.payloadMode || 'url').toUpperCase(),
+          Data: data,
+          ...(captionEnabledInput?.checked ? { Caption: String(captionTextInput?.value || '').trim() } : {}),
+        };
+
+    if (isWifiPayload) {
+      if (detail.snapshot && typeof detail.snapshot === 'object') {
+        if (detail.snapshot.fields && typeof detail.snapshot.fields === 'object') {
+          delete detail.snapshot.fields['qrtool-payload-preview'];
+        }
+        if (detail.snapshot.fieldMeta && Array.isArray(detail.snapshot.fieldMeta.outputs)) {
+          detail.snapshot.fieldMeta.outputs = detail.snapshot.fieldMeta.outputs
+            .filter(key => key !== 'qrtool-payload-preview');
+        }
+        delete detail.snapshot.output;
+      }
+      delete payload.output;
+      return;
+    }
 
     const preview = buildPreviewDataUrl(420);
     if (preview?.dataUrl) {
@@ -3870,5 +3922,16 @@
         summary
       };
     }
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    if (event?.detail?.toolId !== TOOL_ID || getPayloadMode() !== 'wifi') return;
+    if (wifiPasswordInput) wifiPasswordInput.value = '';
+    state.wifiPassword = '';
+    readStateFromControls();
+    updateControlsFromState();
+    scheduleRender();
+    schedulePersistLastConfig();
+    scheduleSyncShareUrl();
   });
 })();

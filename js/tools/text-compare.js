@@ -72,6 +72,22 @@
     } catch {}
   };
 
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
   const escapeHtml = (s) => String(s || '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -826,7 +842,7 @@
     markSessionDirty();
   };
 
-  const runCompare = () => {
+  const runCompare = ({ reportOutcome = false } = {}) => {
     setCopyStatus('');
     setWarningStatus('', '');
     markSessionDirty();
@@ -845,6 +861,7 @@
       latestCompareRequestId += 1;
       setWarningStatus('', '');
       markSessionDirty();
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
@@ -856,6 +873,7 @@
       latestCompareRequestId += 1;
       setWarningStatus('', '');
       markSessionDirty();
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
@@ -867,6 +885,7 @@
       latestCompareRequestId += 1;
       setWarningStatus('', '');
       markSessionDirty();
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
@@ -900,23 +919,37 @@
               lastRevisedText = '';
               setWarningStatus('', '');
               markSessionDirty();
+              if (reportOutcome) reportRunError('validation');
               return;
             }
           }
 
-          result = await requestWorkerCompare(payload);
-        } catch {
-          workerUnavailable = true;
           try {
-            compareWorker?.terminate();
-          } catch {}
-          compareWorker = null;
-          result = runCompareOnMainThread(payload);
-          fallbackWarning = 'Compared on the main thread because the background worker was unavailable.';
-        }
+            result = await requestWorkerCompare(payload);
+          } catch {
+            workerUnavailable = true;
+            try {
+              compareWorker?.terminate();
+            } catch {}
+            compareWorker = null;
+            result = runCompareOnMainThread(payload);
+            fallbackWarning = 'Compared on the main thread because the background worker was unavailable.';
+          }
 
-        if (requestId !== latestCompareRequestId) return;
-        renderCompareResult(result, revised, payload.modeOverride, fallbackWarning);
+          if (requestId !== latestCompareRequestId) return;
+          renderCompareResult(result, revised, payload.modeOverride, fallbackWarning);
+          if (reportOutcome) {
+            reportRunComplete(result?.counts?.hasChanges ? 'with_changes' : 'no_changes');
+          }
+        } catch {
+          if (requestId === latestCompareRequestId) {
+            summaryEl.textContent = 'Unable to compare these drafts.';
+            setEmpty('Comparison failed. Please try smaller sections.');
+            setWarningStatus('The comparison could not be completed.', 'error');
+            markSessionDirty();
+          }
+          if (reportOutcome) reportRunError('processing');
+        }
       })();
     });
   };
@@ -947,7 +980,12 @@
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    runCompare();
+    try {
+      runCompare({ reportOutcome: true });
+    } catch (error) {
+      reportRunError('processing');
+      throw error;
+    }
   });
 
   clearBtn?.addEventListener('click', () => {

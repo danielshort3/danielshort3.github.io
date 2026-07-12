@@ -6,8 +6,10 @@
 const {
   deleteSetTemplate,
   getSetTemplate,
+  isSlugConflictError,
   listLinks,
   listSetTemplates,
+  listSetTemplatesPage,
   saveGeneratedBatch,
   saveSetTemplate,
   upsertLink
@@ -72,6 +74,20 @@ function isCollectionRoute(parts){
     && String(parts[0] || '').trim().toLowerCase() === COLLECTION_SENTINEL;
 }
 
+function getSearchParams(req){
+  try {
+    return new URL(req.url, getRequestBaseUrl(req)).searchParams;
+  } catch {
+    return new URLSearchParams();
+  }
+}
+
+function normalizePageLimit(value){
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 50;
+  return Math.max(1, Math.min(200, Math.floor(numeric)));
+}
+
 function serializeGeneratedLink(record, req){
   const slug = typeof record?.slug === 'string' ? record.slug : '';
   return {
@@ -109,6 +125,26 @@ module.exports = async (req, res) => {
   if (isCollectionRoute(parts)) {
     if (req.method === 'GET') {
       try {
+        const params = getSearchParams(req);
+        if (String(params.get('pageMode') || '').trim().toLowerCase() === 'storage') {
+          const limit = normalizePageLimit(params.get('limit'));
+          const page = await listSetTemplatesPage({
+            limit,
+            cursor: String(params.get('cursor') || '').trim()
+          });
+          sendJson(res, 200, {
+            ok: true,
+            sets: page.items.map(serializeSetTemplate),
+            pagination: {
+              mode: 'storage',
+              total: null,
+              limit,
+              cursor: String(params.get('cursor') || '').trim(),
+              nextCursor: page.nextCursor
+            }
+          });
+          return;
+        }
         const items = await listSetTemplates();
         sendJson(res, 200, {
           ok: true,
@@ -118,6 +154,10 @@ module.exports = async (req, res) => {
       } catch (err) {
         if (err.code === 'DDB_ENV_MISSING') {
           sendJson(res, 503, { ok: false, error: err.message });
+          return;
+        }
+        if (err.code === 'INVALID_CURSOR') {
+          sendJson(res, 400, { ok: false, error: err.message });
           return;
         }
         sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
@@ -292,43 +332,48 @@ module.exports = async (req, res) => {
     const savedLinks = [];
 
     for (const entry of enabledEntries) {
-      const slug = createUniqueSlug(randomLength, usedLowerSlugs);
       const destination = normalizeDestination(entry.destination, { absolutizeInternalPath: true });
-      if (!slug) {
-        sendJson(res, 409, { ok: false, error: 'Unable to generate a unique short code right now' });
-        return;
-      }
       if (!destination) {
         sendJson(res, 400, { ok: false, error: `Invalid destination in template row "${entry.label}"` });
         return;
       }
 
-      let record;
-      try {
-        record = await upsertLink({
-          slug,
-          destination,
-          permanent: timing.permanent,
-          expiresAt: timing.permanent ? 0 : timing.expiresAt,
-          updatedAt: createdAt,
-          metadata: {
-            label: entry.label,
-            templateId: template.setId,
-            templateTitle: template.title,
-            batchId,
-            batchTitle,
-            contextType: context.type,
-            contextEntryId: context.entryId,
-            contextCompany: context.company,
-            contextTitle: context.title
+      let record = null;
+      for (let attempt = 0; attempt < RANDOM_SLUG_RETRY_LIMIT && !record; attempt += 1) {
+        const slug = createUniqueSlug(randomLength, usedLowerSlugs);
+        if (!slug) break;
+        try {
+          record = await upsertLink({
+            slug,
+            destination,
+            permanent: timing.permanent,
+            expiresAt: timing.permanent ? 0 : timing.expiresAt,
+            updatedAt: createdAt,
+            metadata: {
+              label: entry.label,
+              templateId: template.setId,
+              templateTitle: template.title,
+              batchId,
+              batchTitle,
+              contextType: context.type,
+              contextEntryId: context.entryId,
+              contextCompany: context.company,
+              contextTitle: context.title
+            }
+          });
+        } catch (err) {
+          if (isSlugConflictError(err)) continue;
+          if (err.code === 'DDB_ENV_MISSING') {
+            sendJson(res, 503, { ok: false, error: err.message });
+            return;
           }
-        });
-      } catch (err) {
-        if (err.code === 'DDB_ENV_MISSING') {
-          sendJson(res, 503, { ok: false, error: err.message });
+          sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
           return;
         }
-        sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
+      }
+
+      if (!record) {
+        sendJson(res, 409, { ok: false, error: 'Unable to generate a unique short code right now' });
         return;
       }
       savedLinks.push(record);

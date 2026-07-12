@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const core = require("./core");
@@ -79,6 +79,25 @@ const TOOLS_TOOL_ID = "utm-batch-builder";
 const TOOLS_MAX_SAVED_CSV_CHARS = 80_000;
 const TOOLS_MAX_SAVED_OUTPUT_ROWS = 60;
 const TOOLS_MAX_OUTPUT_PREVIEW_CHARS = 40_000;
+const UTM_MAX_CSV_BYTES = 5 * 1024 * 1024;
+const UTM_MAX_GENERATED_ROWS = 50_000;
+
+const dispatchToolRunEvent = (eventName: "tools:run-start" | "tools:run-complete" | "tools:run-error" | "tools:run-cancel", detail: Record<string, unknown> = {}) => {
+  try {
+    document.dispatchEvent(new CustomEvent(eventName, {
+      detail: { toolId: TOOLS_TOOL_ID, ...detail },
+    }));
+  } catch {}
+};
+
+const generatedCountBucket = (count: number) => {
+  const value = Math.max(0, Number(count) || 0);
+  if (value === 0) return "no_results";
+  if (value <= 10) return "1-10";
+  if (value <= 100) return "11-100";
+  if (value <= 1000) return "101-1000";
+  return "1001-plus";
+};
 
 const clampText = (value: unknown, maxChars: number) => {
   const text = String(value ?? "");
@@ -335,6 +354,7 @@ const FieldEditor = ({
   const hasCsv = csvColumns.length > 0;
   const isTemplateRows = combinationMode === "templateRows";
   const [isDropOver, setIsDropOver] = useState(false);
+  const fieldLabelId = `utmtool-field-${useId().replace(/:/g, "")}`;
 
   const readDroppedCsvColumnIndex = (e: React.DragEvent) => {
     if (!hasCsv) return null;
@@ -387,15 +407,16 @@ const FieldEditor = ({
       }}
     >
       <div className="utmtool-field-head">
-        <label className="utmtool-label">
+        <span className="utmtool-label" id={fieldLabelId}>
           {label}
           {required ? <span className="utmtool-required">Required</span> : null}
-        </label>
+        </span>
         <div className="utmtool-mode">
           <span className="utmtool-mode-label">{isTemplateRows ? "Overrides" : "Mode"}</span>
           <select
             className="utmtool-select"
             value={field.mode}
+            aria-label={`${isTemplateRows ? "Override mode" : "Input mode"} for ${label}`}
             onChange={(e) => setMode(e.target.value as InputMode)}
           >
             {modeOptions.map((opt) => (
@@ -420,6 +441,7 @@ const FieldEditor = ({
               type="text"
               value={field.single}
               placeholder={placeholder}
+              aria-label={`${label} default value`}
               onChange={(e) => onChange({ ...field, single: e.target.value })}
             />
           </div>
@@ -432,6 +454,7 @@ const FieldEditor = ({
                 value={field.list}
                 rows={4}
                 placeholder={"row1\nrow2\n\nrow4"}
+                aria-label={`${label} override values`}
                 onChange={(e) => onChange({ ...field, list: e.target.value })}
               />
             </div>
@@ -443,6 +466,7 @@ const FieldEditor = ({
               <select
                 className="utmtool-select"
                 value={field.csvColumnIndex ?? ""}
+                aria-label={`CSV override column for ${label}`}
                 onChange={(e) =>
                   onChange({ ...field, csvColumnIndex: Number(e.target.value) })
                 }
@@ -464,6 +488,7 @@ const FieldEditor = ({
               type="text"
               value={field.single}
               placeholder={placeholder}
+              aria-labelledby={fieldLabelId}
               onChange={(e) => onChange({ ...field, single: e.target.value })}
             />
           ) : null}
@@ -474,6 +499,7 @@ const FieldEditor = ({
               value={field.list}
               rows={4}
               placeholder={placeholder || "value1\nvalue2\nvalue3"}
+              aria-labelledby={fieldLabelId}
               onChange={(e) => onChange({ ...field, list: e.target.value })}
             />
           ) : null}
@@ -482,6 +508,7 @@ const FieldEditor = ({
             <select
               className="utmtool-select"
               value={field.csvColumnIndex ?? ""}
+              aria-label={`CSV column for ${label}`}
               onChange={(e) => onChange({ ...field, csvColumnIndex: Number(e.target.value) })}
             >
               {csvColumns.map((c) => (
@@ -1075,6 +1102,7 @@ const RelationshipBuilder = ({
                       type="text"
                       value={newCustomKey}
                       placeholder="audience"
+                      aria-label="Custom field name"
                       onChange={(e) => setNewCustomKey(e.target.value)}
                     />
                     <button type="button" className="btn-secondary" onClick={addCustomField}>
@@ -1104,6 +1132,7 @@ const App = () => {
 
   const workerRef = useRef<Worker | null>(null);
   const activeRequestId = useRef<string | null>(null);
+  const activeRunKind = useRef<"preview" | "full" | null>(null);
 
   const markSessionDirty = useCallback(() => {
     try {
@@ -1385,6 +1414,12 @@ const App = () => {
       if (msg.type === "done") {
         setGeneratedCount(msg.generatedCount || 0);
         setStatus("done");
+        dispatchToolRunEvent("tools:run-complete", {
+          action: activeRunKind.current === "preview" ? "preview" : "generate",
+          resultBucket: generatedCountBucket(msg.generatedCount || 0),
+        });
+        activeRequestId.current = null;
+        activeRunKind.current = null;
         markSessionDirty();
         return;
       }
@@ -1392,6 +1427,9 @@ const App = () => {
       if (msg.type === "cancelled") {
         setGeneratedCount(msg.generatedCount || 0);
         setStatus("cancelled");
+        dispatchToolRunEvent("tools:run-cancel");
+        activeRequestId.current = null;
+        activeRunKind.current = null;
         markSessionDirty();
         return;
       }
@@ -1400,8 +1438,20 @@ const App = () => {
         setWarnings(msg.warnings || []);
         setErrors(msg.errors || ["Generation failed."]);
         setStatus("error");
+        dispatchToolRunEvent("tools:run-error", { errorType: "processing" });
+        activeRequestId.current = null;
+        activeRunKind.current = null;
         markSessionDirty();
       }
+    });
+    worker.addEventListener("error", () => {
+      if (!activeRequestId.current) return;
+      setErrors(["Generation failed."]);
+      setStatus("error");
+      dispatchToolRunEvent("tools:run-error", { errorType: "runtime" });
+      activeRequestId.current = null;
+      activeRunKind.current = null;
+      markSessionDirty();
     });
     return worker;
   }, [markSessionDirty]);
@@ -1412,15 +1462,19 @@ const App = () => {
     const worker = startWorker();
     worker.postMessage({ type: "cancel", requestId: id });
     activeRequestId.current = null;
+    activeRunKind.current = null;
     setStatus("cancelled");
+    dispatchToolRunEvent("tools:run-cancel");
     markSessionDirty();
   }, [markSessionDirty, startWorker]);
 
   const runGeneration = useCallback(async (kind: "preview" | "full") => {
+    const action = kind === "preview" ? "preview" : "generate";
+    dispatchToolRunEvent("tools:run-start", { action });
     markSessionDirty();
     const limit = kind === "preview"
       ? Math.max(1, Math.floor(config.previewLimit || 10))
-      : Math.max(1, Math.floor(config.maxRows || 50000));
+      : Math.min(UTM_MAX_GENERATED_ROWS, Math.max(1, Math.floor(config.maxRows || UTM_MAX_GENERATED_ROWS)));
     const check = preflight(limit);
 
     setErrors([]);
@@ -1435,6 +1489,7 @@ const App = () => {
       setErrors(check.errors || ["Invalid configuration."]);
       setWarnings(check.warnings || []);
       setStatus("error");
+      dispatchToolRunEvent("tools:run-error", { action, errorType: "validation" });
       markSessionDirty();
       return;
     }
@@ -1445,14 +1500,34 @@ const App = () => {
 
     const requestId = makeId();
     activeRequestId.current = requestId;
-    const worker = startWorker();
-    worker.postMessage({ type: "generate", requestId, config: check.req, limit, chunkSize: 500 });
+    activeRunKind.current = kind;
+    try {
+      const worker = startWorker();
+      worker.postMessage({ type: "generate", requestId, config: check.req, limit, chunkSize: 500 });
+    } catch (_) {
+      activeRequestId.current = null;
+      activeRunKind.current = null;
+      setErrors(["Generation could not start in this browser."]);
+      setStatus("error");
+      dispatchToolRunEvent("tools:run-error", { action, errorType: "runtime" });
+      markSessionDirty();
+    }
   }, [config.maxRows, config.previewLimit, markSessionDirty, preflight, startWorker]);
 
   const handleCsvUpload = async (file: File | null) => {
     if (!file) return;
-    const text = await file.text();
-    setConfig((prev) => ({ ...prev, csvText: text }));
+    if (file.size > UTM_MAX_CSV_BYTES) {
+      setErrors([`CSV files must be ${Math.floor(UTM_MAX_CSV_BYTES / (1024 * 1024))} MB or smaller.`]);
+      setStatus("error");
+      return;
+    }
+    try {
+      const text = await file.text();
+      setConfig((prev) => ({ ...prev, csvText: text }));
+    } catch (_) {
+      setErrors(["The CSV file could not be read."]);
+      setStatus("error");
+    }
   };
 
   const addCustomParam = () => {
@@ -1840,8 +1915,11 @@ const App = () => {
 
           <div className="utmtool-card">
             <h3>CSV (optional)</h3>
-            <div className="utmtool-row">
+            <div className="utmtool-row utmtool-csv-upload-row">
+              <label className="utmtool-label" htmlFor="utmtool-csv-file">CSV file</label>
               <input
+                id="utmtool-csv-file"
+                className="utmtool-file-input"
                 type="file"
                 accept=".csv,text/csv"
                 onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
@@ -2129,7 +2207,9 @@ const App = () => {
 
                 <div className="utmtool-subsection">
                   <h4>Exclude rules</h4>
+                  <label className="utmtool-label" htmlFor="utmtool-exclude-rules">Rules to exclude</label>
                   <textarea
+                    id="utmtool-exclude-rules"
                     className="utmtool-textarea"
                     rows={4}
                     value={config.excludeRulesText}
@@ -2195,8 +2275,12 @@ const App = () => {
                 className="utmtool-input utmtool-number"
                 type="number"
                 min={1}
+                max={UTM_MAX_GENERATED_ROWS}
                 value={config.maxRows}
-                onChange={(e) => setConfig((prev) => ({ ...prev, maxRows: Number(e.target.value) }))}
+                onChange={(e) => setConfig((prev) => ({
+                  ...prev,
+                  maxRows: Math.min(UTM_MAX_GENERATED_ROWS, Math.max(1, Number(e.target.value) || 1)),
+                }))}
               />
             </div>
 
@@ -2280,7 +2364,9 @@ const App = () => {
           <div className="utmtool-card">
             <h3>Presets</h3>
             <div className="utmtool-row">
+              <label className="utmtool-label" htmlFor="utmtool-preset-name">Preset name</label>
               <input
+                id="utmtool-preset-name"
                 className="utmtool-input"
                 type="text"
                 value={presetName}

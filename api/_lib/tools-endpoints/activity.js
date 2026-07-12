@@ -1,8 +1,8 @@
 /*
-  Tools activity API (KV-backed).
+  Authenticated tools activity API.
 
-  - GET /api/tools/activity?tool=<toolId>&limit=100
-  - GET /api/tools/activity?limit=100 (global)
+  - GET /api/tools/activity?tool=<toolId>&limit=100&cursor=<opaque>
+  - GET /api/tools/activity?limit=100&cursor=<opaque> (global)
   - POST /api/tools/activity { toolId, type, summary?, data? }
 */
 'use strict';
@@ -11,6 +11,7 @@ const {
   sendJson,
   readJson,
   getBearerToken,
+  normalizeKnownToolId,
   normalizeToolId,
   clampLimit
 } = require('../tools-api');
@@ -18,6 +19,22 @@ const { verifyCognitoIdToken } = require('../cognito-jwt');
 const { logActivity, listActivity } = require('../tools-store');
 
 const pickQuery = (value) => Array.isArray(value) ? value[0] : value;
+
+function sendStorageError(res, err){
+  if (err?.code === 'ACTIVITY_TOO_LARGE') {
+    sendJson(res, 413, { ok: false, error: err.message });
+    return;
+  }
+  if (err?.code === 'INVALID_CURSOR') {
+    sendJson(res, 400, { ok: false, error: err.message });
+    return;
+  }
+  if (err?.code === 'KV_ENV_MISSING' || err?.code === 'DDB_ENV_MISSING') {
+    sendJson(res, 503, { ok: false, error: err.message });
+    return;
+  }
+  sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
+}
 
 module.exports = async (req, res) => {
   const token = getBearerToken(req);
@@ -45,18 +62,20 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    const toolId = normalizeToolId(pickQuery(req.query?.tool || req.query?.toolId));
+    const rawToolId = pickQuery(req.query?.tool || req.query?.toolId);
+    const toolId = normalizeToolId(rawToolId);
     const limit = clampLimit(pickQuery(req.query?.limit), 100, 200);
+    const cursor = String(pickQuery(req.query?.cursor) || '').trim();
+    if (rawToolId && !toolId) {
+      sendJson(res, 400, { ok: false, error: 'Unknown toolId' });
+      return;
+    }
     try {
-      const events = await listActivity({ sub, toolId: toolId || undefined, limit });
-      sendJson(res, 200, { ok: true, toolId: toolId || '', events });
+      const events = await listActivity({ sub, toolId: toolId || undefined, limit, cursor });
+      sendJson(res, 200, { ok: true, toolId: toolId || '', events, nextCursor: events.nextCursor || '' });
       return;
     } catch (err) {
-      if (err.code === 'KV_ENV_MISSING' || err.code === 'DDB_ENV_MISSING') {
-        sendJson(res, 503, { ok: false, error: err.message });
-        return;
-      }
-      sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
+      sendStorageError(res, err);
       return;
     }
   }
@@ -65,12 +84,16 @@ module.exports = async (req, res) => {
     let body;
     try {
       body = await readJson(req);
-    } catch {
+    } catch (err) {
+      if (err?.code === 'BODY_TOO_LARGE') {
+        sendJson(res, 413, { ok: false, error: err.message });
+        return;
+      }
       sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
       return;
     }
 
-    const toolId = normalizeToolId(body?.toolId || body?.tool);
+    const toolId = normalizeKnownToolId(body?.toolId || body?.tool);
     const type = String(body?.type || '').trim();
     const summary = body?.summary;
     const data = body?.data;
@@ -89,11 +112,7 @@ module.exports = async (req, res) => {
       sendJson(res, 200, { ok: true, event });
       return;
     } catch (err) {
-      if (err.code === 'KV_ENV_MISSING' || err.code === 'DDB_ENV_MISSING') {
-        sendJson(res, 503, { ok: false, error: err.message });
-        return;
-      }
-      sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
+      sendStorageError(res, err);
       return;
     }
   }
@@ -102,4 +121,3 @@ module.exports = async (req, res) => {
   res.setHeader('Allow', 'GET, POST');
   sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
 };
-

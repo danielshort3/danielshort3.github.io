@@ -45,6 +45,26 @@
 
   const TOOL_ID = 'image-optimizer';
   const MAX_SAVED_OUTPUT_LINES = 120;
+  const MEBIBYTE = 1024 * 1024;
+  const IMAGE_LIMITS = Object.freeze({
+    maxFiles: 20,
+    maxFileBytes: 25 * MEBIBYTE,
+    maxInputBytes: 150 * MEBIBYTE,
+    maxDimension: 12000,
+    maxDecodedPixelsPerFile: 40_000_000,
+    maxDecodedPixelsTotal: 120_000_000,
+    maxEstimatedOutputBytes: 256 * MEBIBYTE,
+    maxActualOutputBytes: 200 * MEBIBYTE
+  });
+  const PREVIEW_MAX_SIDE = 96;
+  const IMAGE_HEADER_SCAN_BYTES = 4 * MEBIBYTE;
+  const SUPPORTED_INPUT_TYPES = new Set([
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+    'image/avif'
+  ]);
 
   const markSessionDirty = () => {
     try {
@@ -52,10 +72,22 @@
     } catch {}
   };
 
+  const dispatchToolRunEvent = (eventName, detail = {}) => {
+    try {
+      document.dispatchEvent(new CustomEvent(eventName, {
+        detail: { toolId: TOOL_ID, ...detail }
+      }));
+    } catch {}
+  };
+
   const state = {
     items: [],
     outputs: [],
     working: false,
+    cancelRequested: false,
+    operationId: 0,
+    selectionVersion: 0,
+    metadataQueue: Promise.resolve(),
     nextId: 1,
     supports: {}
   };
@@ -79,6 +111,36 @@
     const val = n / Math.pow(1024, idx);
     const precision = val >= 100 ? 0 : val >= 10 ? 1 : 2;
     return `${val.toFixed(precision)} ${units[idx]}`;
+  };
+
+  const describeSelectionLimits = () => `${IMAGE_LIMITS.maxFiles} files, ${formatBytes(IMAGE_LIMITS.maxFileBytes)} each, ${formatBytes(IMAGE_LIMITS.maxInputBytes)} total`;
+
+  const validateImageDimensions = (width, height, filename = 'Image') => {
+    const safeWidth = Math.trunc(Number(width));
+    const safeHeight = Math.trunc(Number(height));
+    if (!Number.isFinite(safeWidth) || !Number.isFinite(safeHeight) || safeWidth < 1 || safeHeight < 1) {
+      throw new Error(`${filename} has invalid dimensions.`);
+    }
+    if (safeWidth > IMAGE_LIMITS.maxDimension || safeHeight > IMAGE_LIMITS.maxDimension) {
+      throw new Error(`${filename} is ${safeWidth} x ${safeHeight}; each side must be ${IMAGE_LIMITS.maxDimension.toLocaleString()} px or less.`);
+    }
+    const pixels = safeWidth * safeHeight;
+    if (pixels > IMAGE_LIMITS.maxDecodedPixelsPerFile) {
+      throw new Error(`${filename} has ${(pixels / 1_000_000).toFixed(1)} MP; the limit is ${(IMAGE_LIMITS.maxDecodedPixelsPerFile / 1_000_000).toFixed(0)} MP per image.`);
+    }
+    return { width: safeWidth, height: safeHeight, pixels };
+  };
+
+  const createCancellationError = () => {
+    const error = new Error('Optimization cancelled. Selected images were kept.');
+    error.name = 'AbortError';
+    return error;
+  };
+
+  const throwIfCancelled = (operationId) => {
+    if (state.cancelRequested || operationId !== state.operationId) {
+      throw createCancellationError();
+    }
   };
 
   const clampInt = (value, min, max) => {
@@ -214,7 +276,11 @@
   const setWorking = (working) => {
     state.working = Boolean(working);
     if (processBtn) processBtn.disabled = state.working || state.items.length === 0;
-    if (clearBtn) clearBtn.disabled = state.working;
+    if (clearBtn) {
+      clearBtn.disabled = false;
+      clearBtn.textContent = state.working ? 'Cancel' : 'Clear';
+      clearBtn.setAttribute('aria-label', state.working ? 'Cancel optimization' : 'Clear selected images');
+    }
     if (downloadAllBtn) downloadAllBtn.disabled = state.working || state.outputs.length === 0;
     if (fileInput) fileInput.disabled = state.working;
     if (formatSelect) formatSelect.disabled = state.working;
@@ -246,7 +312,9 @@
 
   const clearAll = () => {
     if (state.working) return;
+    state.selectionVersion += 1;
     state.items.forEach((it) => {
+      it.removed = true;
       if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
     });
     state.items = [];
@@ -295,12 +363,138 @@
     }
   };
 
+  const readFourCc = (view, offset) => {
+    if (!view || offset < 0 || offset + 4 > view.byteLength) return '';
+    return String.fromCharCode(
+      view.getUint8(offset),
+      view.getUint8(offset + 1),
+      view.getUint8(offset + 2),
+      view.getUint8(offset + 3)
+    );
+  };
+
+  const readUint24Le = (view, offset) => {
+    if (!view || offset < 0 || offset + 3 > view.byteLength) return 0;
+    return view.getUint8(offset) |
+      (view.getUint8(offset + 1) << 8) |
+      (view.getUint8(offset + 2) << 16);
+  };
+
+  const parsePngDimensions = (view) => {
+    if (view.byteLength < 24 || view.getUint32(0) !== 0x89504e47 || readFourCc(view, 12) !== 'IHDR') return null;
+    return { width: view.getUint32(16), height: view.getUint32(20) };
+  };
+
+  const parseJpegDimensions = (view) => {
+    if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) return null;
+    const sofMarkers = new Set([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf]);
+    let offset = 2;
+    while (offset + 4 <= view.byteLength) {
+      if (view.getUint8(offset) !== 0xff) {
+        offset += 1;
+        continue;
+      }
+      while (offset < view.byteLength && view.getUint8(offset) === 0xff) offset += 1;
+      if (offset >= view.byteLength) break;
+      const marker = view.getUint8(offset);
+      offset += 1;
+      if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd9)) continue;
+      if (offset + 2 > view.byteLength) break;
+      const length = view.getUint16(offset);
+      if (length < 2 || offset + length > view.byteLength) break;
+      if (sofMarkers.has(marker) && length >= 7) {
+        return { width: view.getUint16(offset + 5), height: view.getUint16(offset + 3) };
+      }
+      offset += length;
+    }
+    return null;
+  };
+
+  const parseWebpDimensions = (view) => {
+    if (view.byteLength < 30 || readFourCc(view, 0) !== 'RIFF' || readFourCc(view, 8) !== 'WEBP') return null;
+    let offset = 12;
+    while (offset + 8 <= view.byteLength) {
+      const chunkType = readFourCc(view, offset);
+      const chunkSize = view.getUint32(offset + 4, true);
+      const dataOffset = offset + 8;
+      if (chunkType === 'VP8X' && chunkSize >= 10 && dataOffset + 10 <= view.byteLength) {
+        return {
+          width: readUint24Le(view, dataOffset + 4) + 1,
+          height: readUint24Le(view, dataOffset + 7) + 1
+        };
+      }
+      if (chunkType === 'VP8 ' && chunkSize >= 10 && dataOffset + 10 <= view.byteLength &&
+        view.getUint8(dataOffset + 3) === 0x9d && view.getUint8(dataOffset + 4) === 0x01 && view.getUint8(dataOffset + 5) === 0x2a) {
+        return {
+          width: view.getUint16(dataOffset + 6, true) & 0x3fff,
+          height: view.getUint16(dataOffset + 8, true) & 0x3fff
+        };
+      }
+      if (chunkType === 'VP8L' && chunkSize >= 5 && dataOffset + 5 <= view.byteLength && view.getUint8(dataOffset) === 0x2f) {
+        const bits = view.getUint32(dataOffset + 1, true);
+        return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
+      }
+      const nextOffset = dataOffset + chunkSize + (chunkSize % 2);
+      if (nextOffset <= offset || nextOffset > view.byteLength) break;
+      offset = nextOffset;
+    }
+    return null;
+  };
+
+  const parseAvifDimensions = (view) => {
+    if (view.byteLength < 32 || readFourCc(view, 4) !== 'ftyp') return null;
+    for (let offset = 4; offset + 16 <= view.byteLength; offset += 1) {
+      if (readFourCc(view, offset) !== 'ispe' || offset < 4) continue;
+      const boxSize = view.getUint32(offset - 4);
+      if (boxSize < 20 || offset - 4 + boxSize > view.byteLength) continue;
+      return { width: view.getUint32(offset + 8), height: view.getUint32(offset + 12) };
+    }
+    return null;
+  };
+
+  const readImageHeaderDimensions = async (file) => {
+    const bytes = await file.slice(0, Math.min(file.size, IMAGE_HEADER_SCAN_BYTES)).arrayBuffer();
+    const view = new DataView(bytes);
+    const type = String(file.type || '').toLowerCase();
+    const extension = String(file.name || '').toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] || '';
+    if (type === 'image/png' || extension === 'png') return parsePngDimensions(view);
+    if (type === 'image/jpeg' || type === 'image/jpg' || extension === 'jpg' || extension === 'jpeg') return parseJpegDimensions(view);
+    if (type === 'image/webp' || extension === 'webp') return parseWebpDimensions(view);
+    if (type === 'image/avif' || extension === 'avif') return parseAvifDimensions(view);
+    return null;
+  };
+
+  const createPreviewUrl = async (decoded) => {
+    const sourceWidth = decoded?.width || decoded?.naturalWidth || 0;
+    const sourceHeight = decoded?.height || decoded?.naturalHeight || 0;
+    if (!sourceWidth || !sourceHeight) return null;
+    const scale = Math.min(1, PREVIEW_MAX_SIDE / sourceWidth, PREVIEW_MAX_SIDE / sourceHeight);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+    canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+    try {
+      const ctx = canvas.getContext('2d', { alpha: true });
+      if (!ctx) return null;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'medium';
+      ctx.drawImage(decoded, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob(resolve, 'image/png');
+      });
+      return blob ? URL.createObjectURL(blob) : null;
+    } finally {
+      canvas.width = 1;
+      canvas.height = 1;
+    }
+  };
+
   const getItemById = (id) => state.items.find((it) => String(it.id) === String(id));
 
   const removeItem = (id) => {
     const idx = state.items.findIndex((it) => String(it.id) === String(id));
     if (idx < 0) return;
     const [removed] = state.items.splice(idx, 1);
+    if (removed) removed.removed = true;
     if (removed?.previewUrl) URL.revokeObjectURL(removed.previewUrl);
     renderFileList();
     revokeOutputs();
@@ -323,7 +517,8 @@
       thumb.alt = '';
       thumb.decoding = 'async';
       thumb.loading = 'lazy';
-      thumb.src = it.previewUrl;
+      thumb.hidden = !it.previewUrl;
+      if (it.previewUrl) thumb.src = it.previewUrl;
 
       const meta = document.createElement('div');
       meta.className = 'imgopt-file-meta';
@@ -357,39 +552,126 @@
   };
 
   const hydrateItemMetadata = async (item) => {
-    if (!item || item.width) return;
+    if (!item || item.width || item.removed || !state.items.includes(item)) return;
+    let decoded = null;
     try {
-      const decoded = await decodeBitmap(item.file);
-      item.width = decoded.width || decoded.naturalWidth || null;
-      item.height = decoded.height || decoded.naturalHeight || null;
+      const headerDimensions = await readImageHeaderDimensions(item.file);
+      if (!headerDimensions) {
+        throw new Error(`${item.file.name} dimensions could not be verified safely before decoding.`);
+      }
+      validateImageDimensions(headerDimensions.width, headerDimensions.height, item.file.name);
+      decoded = await decodeBitmap(item.file);
+      if (item.removed || item.selectionVersion !== state.selectionVersion || !state.items.includes(item)) return;
+      const dimensions = validateImageDimensions(
+        decoded.width || decoded.naturalWidth,
+        decoded.height || decoded.naturalHeight,
+        item.file.name
+      );
+      const otherPixels = state.items.reduce((sum, candidate) => {
+        if (candidate === item || !candidate.width || !candidate.height) return sum;
+        return sum + (candidate.width * candidate.height);
+      }, 0);
+      if (otherPixels + dimensions.pixels > IMAGE_LIMITS.maxDecodedPixelsTotal) {
+        throw new Error(`${item.file.name} would take the selection above the ${(IMAGE_LIMITS.maxDecodedPixelsTotal / 1_000_000).toFixed(0)} MP decoded-pixel limit.`);
+      }
+      let previewUrl = null;
+      try {
+        previewUrl = await createPreviewUrl(decoded);
+      } catch (_) {}
+      if (item.removed || item.selectionVersion !== state.selectionVersion || !state.items.includes(item)) {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        return;
+      }
+      item.width = dimensions.width;
+      item.height = dimensions.height;
+      item.previewUrl = previewUrl;
+    } finally {
       if (decoded && typeof decoded.close === 'function') decoded.close();
-      renderFileList();
-      updateSummary();
-    } catch {
-      // Ignore decode errors; user will see failures on processing.
     }
   };
 
   const addFiles = (list) => {
     const files = Array.from(list || []);
-    const accepted = files.filter((f) => f && /^image\//.test(f.type || 'image/'));
+    const accepted = files.filter((file) => {
+      if (!file) return false;
+      const mimeType = String(file.type || '').toLowerCase();
+      if (SUPPORTED_INPUT_TYPES.has(mimeType)) return true;
+      return !mimeType && /\.(?:avif|jpe?g|png|webp)$/i.test(String(file.name || ''));
+    });
     if (!accepted.length) {
       setStatus('No supported image files were detected.');
       return;
     }
 
+    const rejected = files
+      .filter((file) => file && !accepted.includes(file))
+      .map((file) => `${file.name}: use PNG, JPEG, WebP, or AVIF`);
+    const queued = [];
+    let selectedBytes = state.items.reduce((sum, item) => sum + (item.file?.size || 0), 0);
+    const selectionVersion = state.selectionVersion;
     accepted.forEach((file) => {
+      if (state.items.length >= IMAGE_LIMITS.maxFiles) {
+        rejected.push(`${file.name}: only ${IMAGE_LIMITS.maxFiles} files can be selected`);
+        return;
+      }
+      if (file.size > IMAGE_LIMITS.maxFileBytes) {
+        rejected.push(`${file.name}: ${formatBytes(file.size)} exceeds ${formatBytes(IMAGE_LIMITS.maxFileBytes)}`);
+        return;
+      }
+      if (selectedBytes + file.size > IMAGE_LIMITS.maxInputBytes) {
+        rejected.push(`${file.name}: selection would exceed ${formatBytes(IMAGE_LIMITS.maxInputBytes)} total`);
+        return;
+      }
+      selectedBytes += file.size;
       const id = state.nextId++;
-      const previewUrl = URL.createObjectURL(file);
-      const item = { id, file, previewUrl, width: null, height: null };
+      const item = {
+        id,
+        file,
+        previewUrl: null,
+        width: null,
+        height: null,
+        removed: false,
+        selectionVersion: state.selectionVersion
+      };
       state.items.push(item);
-      hydrateItemMetadata(item);
+      queued.push(item);
     });
 
     renderFileList();
     updateSummary();
     revokeOutputs();
-    setStatus(`${accepted.length} ${accepted.length === 1 ? 'image added' : 'images added'}. Click Optimize to generate downloads.`);
+    if (!queued.length) {
+      setStatus(`No images added. ${rejected.slice(0, 2).join(' ') || `Limits: ${describeSelectionLimits()}.`}`);
+      return;
+    }
+
+    setStatus(`Checking ${queued.length} ${queued.length === 1 ? 'image' : 'images'} safely... Limits: ${describeSelectionLimits()}.`);
+    state.metadataQueue = state.metadataQueue.then(async () => {
+      const dimensionRejections = [];
+      for (const item of queued) {
+        if (item.removed || item.selectionVersion !== state.selectionVersion || !state.items.includes(item)) continue;
+        try {
+          await hydrateItemMetadata(item);
+        } catch (error) {
+          item.removed = true;
+          const index = state.items.indexOf(item);
+          if (index >= 0) state.items.splice(index, 1);
+          dimensionRejections.push(error?.message || `${item.file.name} could not be decoded.`);
+        }
+      }
+      if (selectionVersion !== state.selectionVersion) return;
+      renderFileList();
+      updateSummary();
+      const allRejections = rejected.concat(dimensionRejections);
+      const readyCount = queued.filter((item) => !item.removed && item.width && item.height && state.items.includes(item)).length;
+      if (allRejections.length) {
+        setStatus(`${readyCount} added; ${allRejections.length} rejected. ${allRejections.slice(0, 2).join(' ')}`);
+      } else {
+        setStatus(`${readyCount} ${readyCount === 1 ? 'image is' : 'images are'} ready. Click Optimize to generate downloads.`);
+      }
+    }).catch(() => {
+      setStatus('Image checks failed. Remove the affected files and try again.');
+    });
   };
 
   const parseResponsiveWidths = (raw) => {
@@ -489,6 +771,66 @@
     }
 
     return { width: w, height: h };
+  };
+
+  const buildOutputVariants = ({
+    srcW,
+    srcH,
+    responsiveEnabled,
+    responsiveWidths,
+    noUpscale,
+    mode,
+    maxW,
+    maxH,
+    scalePct,
+    keepAspect
+  }) => {
+    const variants = [];
+    if (responsiveEnabled && responsiveWidths.length) {
+      responsiveWidths.forEach((width) => {
+        if (noUpscale && width > srcW) return;
+        const height = Math.max(1, Math.round((srcH / srcW) * width));
+        variants.push({ width, height, variantWidth: width });
+      });
+    } else {
+      const { width, height } = computeTargetSize({
+        srcW,
+        srcH,
+        mode,
+        maxW,
+        maxH,
+        scalePct,
+        keepAspect,
+        noUpscale
+      });
+      variants.push({ width, height, variantWidth: null });
+    }
+    return variants;
+  };
+
+  const buildOutputPlan = (settings) => {
+    const variantsById = new Map();
+    let estimatedBytes = 0;
+    state.items.forEach((item) => {
+      const source = validateImageDimensions(item.width, item.height, item.file.name);
+      const variants = buildOutputVariants({
+        srcW: source.width,
+        srcH: source.height,
+        ...settings
+      });
+      if (!variants.length) {
+        throw new Error('No output sizes were generated. Try disabling "Prevent upscaling" or adjust widths.');
+      }
+      variants.forEach((variant) => {
+        const output = validateImageDimensions(variant.width, variant.height, `${item.file.name} output`);
+        estimatedBytes += output.pixels * 4;
+      });
+      variantsById.set(item.id, variants);
+    });
+    if (estimatedBytes > IMAGE_LIMITS.maxEstimatedOutputBytes) {
+      throw new Error(`These settings need about ${formatBytes(estimatedBytes)} of output canvas memory; reduce image sizes or responsive widths to stay under ${formatBytes(IMAGE_LIMITS.maxEstimatedOutputBytes)}.`);
+    }
+    return { variantsById, estimatedBytes };
   };
 
   const canvasToBlob = (canvas, mime, quality) => new Promise((resolve, reject) => {
@@ -666,127 +1008,152 @@
     if (!state.items.length) {
       setStatus('Add at least one image first.');
       dropzone.focus();
+      dispatchToolRunEvent('tools:run-error', { errorType: 'validation' });
       return;
     }
 
     revokeOutputs();
+    state.cancelRequested = false;
+    const operationId = state.operationId + 1;
+    state.operationId = operationId;
     setWorking(true);
-    setStatus('Preparing…');
-
-    const suffix = normalizeSuffix(suffixInput?.value ?? '-optimized');
-    const requestedMime = formatSelect.value;
-    const keepAspect = Boolean(keepAspectInput?.checked);
-    const noUpscale = Boolean(noUpscaleInput?.checked);
-    const mode = resizeMode?.value || 'none';
-    const maxW = widthInput?.value;
-    const maxH = heightInput?.value;
-    const scalePct = scaleInput?.value;
-
-    const responsiveEnabled = Boolean(responsiveInput?.checked);
-    const responsiveWidths = responsiveEnabled ? parseResponsiveWidths(responsiveWidthsInput?.value) : [];
-
-    const chosenMime = requestedMime === 'keep' ? null : requestedMime;
-    const selectedMime = chosenMime || 'keep';
-    if (selectedMime !== 'keep' && !state.supports[selectedMime]) {
-      setStatus(`${labelForMime(selectedMime)} export is not supported in this browser.`);
-      setWorking(false);
-      return;
-    }
-
-    const quality = getQuality();
-    const flattenHex = (flattenColor?.value || '#0d1117').toLowerCase();
-
-    const makeUnique = makeUniqueNamer();
+    setStatus('Finishing image checks...');
 
     try {
+      await state.metadataQueue;
+      throwIfCancelled(operationId);
+      if (!state.items.length) {
+        const error = new Error('No images passed the safety checks. Add smaller files and try again.');
+        error.errorType = 'validation';
+        throw error;
+      }
+
+      const suffix = normalizeSuffix(suffixInput?.value ?? '-optimized');
+      const requestedMime = formatSelect.value;
+      const keepAspect = Boolean(keepAspectInput?.checked);
+      const noUpscale = Boolean(noUpscaleInput?.checked);
+      const mode = resizeMode?.value || 'none';
+      const maxW = widthInput?.value;
+      const maxH = heightInput?.value;
+      const scalePct = scaleInput?.value;
+      const responsiveEnabled = Boolean(responsiveInput?.checked);
+      const responsiveWidths = responsiveEnabled ? parseResponsiveWidths(responsiveWidthsInput?.value) : [];
+      const chosenMime = requestedMime === 'keep' ? null : requestedMime;
+      const selectedMime = chosenMime || 'keep';
+      if (selectedMime !== 'keep' && !state.supports[selectedMime]) {
+        const error = new Error(`${labelForMime(selectedMime)} export is not supported in this browser.`);
+        error.errorType = 'unsupported';
+        throw error;
+      }
+
+      const quality = getQuality();
+      const flattenHex = (flattenColor?.value || '#0d1117').toLowerCase();
+      const outputPlan = buildOutputPlan({
+        responsiveEnabled,
+        responsiveWidths,
+        noUpscale,
+        mode,
+        maxW,
+        maxH,
+        scalePct,
+        keepAspect
+      });
+      const makeUnique = makeUniqueNamer();
+      let actualOutputBytes = 0;
+      setStatus(`Output plan approved: about ${formatBytes(outputPlan.estimatedBytes)} of canvas memory, with saved files capped at ${formatBytes(IMAGE_LIMITS.maxActualOutputBytes)}. Starting...`);
+
       for (let idx = 0; idx < state.items.length; idx++) {
+        throwIfCancelled(operationId);
         const item = state.items[idx];
         setStatus(`Optimizing ${idx + 1} / ${state.items.length}: ${item.file.name}`);
 
-        const decoded = await decodeBitmap(item.file);
-        const srcW = decoded.width || decoded.naturalWidth;
-        const srcH = decoded.height || decoded.naturalHeight;
+        let decoded = null;
+        try {
+          decoded = await decodeBitmap(item.file);
+          throwIfCancelled(operationId);
+          const source = validateImageDimensions(
+            decoded.width || decoded.naturalWidth,
+            decoded.height || decoded.naturalHeight,
+            item.file.name
+          );
+          item.width = source.width;
+          item.height = source.height;
 
-        item.width = item.width || srcW;
-        item.height = item.height || srcH;
-
-        const outputMime = inferOutputMime(requestedMime, item.file.type);
-        if (!state.supports[outputMime]) {
-          throw new Error(`Encoding not supported: ${outputMime}`);
-        }
-
-        const variants = [];
-        if (responsiveEnabled && responsiveWidths.length) {
-          responsiveWidths.forEach((w) => {
-            if (noUpscale && w > srcW) return;
-            const h = Math.max(1, Math.round((srcH / srcW) * w));
-            variants.push({ width: w, height: h, variantWidth: w });
-          });
-        } else {
-          const { width, height } = computeTargetSize({
-            srcW,
-            srcH,
-            mode,
-            maxW,
-            maxH,
-            scalePct,
-            keepAspect,
-            noUpscale
-          });
-          variants.push({ width, height, variantWidth: null });
-        }
-
-        if (!variants.length) {
-          throw new Error('No output sizes were generated. Try disabling “Prevent upscaling” or adjust widths.');
-        }
-
-        for (const v of variants) {
-          const canvas = document.createElement('canvas');
-          canvas.width = v.width;
-          canvas.height = v.height;
-          const ctx = canvas.getContext('2d', { alpha: true });
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-
-          if (outputMime === 'image/jpeg') {
-            ctx.fillStyle = flattenHex;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const outputMime = inferOutputMime(requestedMime, item.file.type);
+          if (!state.supports[outputMime]) {
+            const error = new Error(`Encoding not supported: ${outputMime}`);
+            error.errorType = 'unsupported';
+            throw error;
           }
 
-          ctx.drawImage(decoded, 0, 0, canvas.width, canvas.height);
+          const variants = outputPlan.variantsById.get(item.id) || [];
+          for (const variant of variants) {
+            throwIfCancelled(operationId);
+            const canvas = document.createElement('canvas');
+            canvas.width = variant.width;
+            canvas.height = variant.height;
+            try {
+              const ctx = canvas.getContext('2d', { alpha: true });
+              if (!ctx) throw new Error('This browser could not allocate an output canvas. Try smaller dimensions.');
+              ctx.imageSmoothingEnabled = true;
+              ctx.imageSmoothingQuality = 'high';
 
-          const outBlob = await canvasToBlob(canvas, outputMime, quality);
-          const outUrl = URL.createObjectURL(outBlob);
-          const rawName = buildOutputName({
-            inputName: item.file.name,
-            suffix,
-            mime: outputMime,
-            variantWidth: v.variantWidth
-          });
-          const outName = makeUnique(rawName);
+              if (outputMime === 'image/jpeg') {
+                ctx.fillStyle = flattenHex;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+              }
 
-          state.outputs.push({
-            inputId: item.id,
-            blob: outBlob,
-            url: outUrl,
-            name: outName,
-            mime: outputMime,
-            width: canvas.width,
-            height: canvas.height,
-            variantWidth: v.variantWidth
-          });
+              ctx.drawImage(decoded, 0, 0, canvas.width, canvas.height);
+              const outBlob = await canvasToBlob(canvas, outputMime, quality);
+              throwIfCancelled(operationId);
+              if (actualOutputBytes + outBlob.size > IMAGE_LIMITS.maxActualOutputBytes) {
+                throw new Error(`Encoded files would exceed the ${formatBytes(IMAGE_LIMITS.maxActualOutputBytes)} output limit. Reduce dimensions, quality, or responsive widths.`);
+              }
+              actualOutputBytes += outBlob.size;
+              const outUrl = URL.createObjectURL(outBlob);
+              const rawName = buildOutputName({
+                inputName: item.file.name,
+                suffix,
+                mime: outputMime,
+                variantWidth: variant.variantWidth
+              });
+              const outName = makeUnique(rawName);
+
+              state.outputs.push({
+                inputId: item.id,
+                blob: outBlob,
+                url: outUrl,
+                name: outName,
+                mime: outputMime,
+                width: variant.width,
+                height: variant.height,
+                variantWidth: variant.variantWidth
+              });
+            } finally {
+              canvas.width = 1;
+              canvas.height = 1;
+            }
+          }
+        } finally {
+          if (decoded && typeof decoded.close === 'function') decoded.close();
         }
 
-        if (decoded && typeof decoded.close === 'function') decoded.close();
         await new Promise((r) => window.requestAnimationFrame(r));
       }
 
       renderOutputs({ responsiveEnabled });
-      setStatus(`Done. Generated ${state.outputs.length} optimized ${state.outputs.length === 1 ? 'image' : 'images'}.`);
+      setStatus(`Done. Generated ${state.outputs.length} optimized ${state.outputs.length === 1 ? 'image' : 'images'} (${formatBytes(actualOutputBytes)} total).`);
+      dispatchToolRunEvent('tools:run-complete', {
+        resultBucket: state.outputs.length === 1 ? 'single_output' : 'multiple_outputs'
+      });
     } catch (err) {
       revokeOutputs();
       setStatus(err?.message || 'Unable to optimize images. Please try different files or settings.');
+      dispatchToolRunEvent('tools:run-error', {
+        errorType: err?.errorType || (err?.name === 'AbortError' ? 'cancelled' : 'processing')
+      });
     } finally {
+      state.cancelRequested = false;
       setWorking(false);
     }
   };
@@ -870,7 +1237,15 @@
     removeItem(btn.dataset.imgoptRemove);
   });
 
-  clearBtn?.addEventListener('click', clearAll);
+  clearBtn?.addEventListener('click', () => {
+    if (state.working) {
+      state.cancelRequested = true;
+      clearBtn.disabled = true;
+      setStatus('Cancelling after the current browser operation finishes...');
+      return;
+    }
+    clearAll();
+  });
   downloadAllBtn?.addEventListener('click', downloadAll);
 
   formatSelect.addEventListener('change', updateControlsVisibility);

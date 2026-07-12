@@ -2939,12 +2939,30 @@
 	        const clicksName = clicks.table && clicks.table.name ? clicks.table.name : '';
 	        const clicksStatus = clicks.table && clicks.table.status ? clicks.table.status : '';
 	        bits.push(`Click log${clicksName ? `: ${clicksName}` : ''}${clicksStatus ? ` (${clicksStatus})` : ''}.`);
+	        const retention = clicks.retention && typeof clicks.retention === 'object' ? clicks.retention : null;
+	        if (retention) {
+	          const days = Number.isFinite(Number(retention.days)) ? Number(retention.days) : 0;
+	          const ttlStatus = String(retention.ttlStatus || '').trim();
+	          const ttlAttribute = String(retention.configuredAttribute || retention.ttlAttribute || '').trim();
+	          if (retention.ttlConfigured) {
+	            bits.push(`Click retention: ${days || 90} days (TTL enabled${ttlAttribute ? ` on ${ttlAttribute}` : ''}).`);
+	          } else {
+	            bits.push(`Click retention target: ${days || 90} days; TTL is not enforced${ttlStatus ? ` (${ttlStatus})` : ''}.`);
+	          }
+	        }
 	        if (clicks.error && (clicks.error.name || clicks.error.message)) {
 	          const errName = clicks.error.name ? String(clicks.error.name) : '';
 	          const errMsg = clicks.error.message ? String(clicks.error.message) : '';
 	          const compact = [errName, errMsg].filter(Boolean).join(': ');
 	          const clipped = compact.length > 140 ? `${compact.slice(0, 137)}…` : compact;
 	          if (clipped) bits.push(`Click log error: ${clipped}.`);
+	        }
+	        if (clicks.ttlError && (clicks.ttlError.name || clicks.ttlError.message)) {
+	          const errName = clicks.ttlError.name ? String(clicks.ttlError.name) : '';
+	          const errMsg = clicks.ttlError.message ? String(clicks.ttlError.message) : '';
+	          const compact = [errName, errMsg].filter(Boolean).join(': ');
+	          const clipped = compact.length > 140 ? `${compact.slice(0, 137)}â€¦` : compact;
+	          if (clipped) bits.push(`TTL status error: ${clipped}.`);
 	        }
 	      } else {
 	        bits.push('Click log: not configured.');

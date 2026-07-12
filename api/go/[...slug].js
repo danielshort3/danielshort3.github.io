@@ -39,9 +39,9 @@ function decodeHeaderValue(value){
 function getRequestPath(req, base){
   try {
     const url = new URL(req.url, base);
-    return `${url.pathname}${url.search || ''}`;
+    return url.pathname;
   } catch {
-    return typeof req.url === 'string' ? req.url : '';
+    return typeof req.url === 'string' ? req.url.split(/[?#]/, 1)[0] : '';
   }
 }
 
@@ -50,6 +50,21 @@ function getUrlHost(value){
   if (!raw) return '';
   try {
     return new URL(raw).hostname;
+  } catch {
+    return '';
+  }
+}
+
+function getTelemetryUrl(value){
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    url.username = '';
+    url.password = '';
+    url.search = '';
+    url.hash = '';
+    return url.toString();
   } catch {
     return '';
   }
@@ -188,6 +203,7 @@ module.exports = async (req, res) => {
 
   if (req.method === 'GET') {
     const now = new Date();
+    const canonicalSlug = normalizeSlug(link.slug) || slug;
     const clickId = `${now.toISOString()}#${crypto.randomBytes(4).toString('hex')}`;
     const hostHeader = getHeader(req, 'host');
     const referer = getHeader(req, 'referer') || getHeader(req, 'referrer');
@@ -196,38 +212,33 @@ module.exports = async (req, res) => {
     const region = decodeHeaderValue(getHeader(req, 'x-vercel-ip-country-region'));
     const city = decodeHeaderValue(getHeader(req, 'x-vercel-ip-city'));
     const timezone = decodeHeaderValue(getHeader(req, 'x-vercel-ip-timezone'));
-    const latitude = decodeHeaderValue(getHeader(req, 'x-vercel-ip-latitude'));
-    const longitude = decodeHeaderValue(getHeader(req, 'x-vercel-ip-longitude'));
 
     const clickEvent = {
-      slug,
+      slug: canonicalSlug,
       clickId,
       clickedAt: now.toISOString(),
-      destination: finalUrl,
+      destination: getTelemetryUrl(finalUrl),
       statusCode: link.permanent ? 301 : 302,
       host: hostHeader.split(':')[0].trim(),
       path: getRequestPath(req, base),
-      referer,
       refererHost: getUrlHost(referer),
       userAgent,
       country,
       region,
       city,
-      timezone,
-      latitude,
-      longitude
+      timezone
     };
 
     try {
       const results = await Promise.allSettled([
-        incrementClicks(slug),
+        incrementClicks(canonicalSlug),
         recordClick(clickEvent)
       ]);
       const clickResult = results[1];
       if (clickResult && clickResult.status === 'rejected') {
         const reason = clickResult.reason || {};
         console.warn('Shortlinks click log failed', {
-          slug,
+          slug: canonicalSlug,
           name: reason.name || '',
           message: reason.message || ''
         });

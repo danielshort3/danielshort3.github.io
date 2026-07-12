@@ -3339,10 +3339,32 @@
 	        setAuthMessage('Your session ended. Please sign in again.', 'error');
 	        updateAuthUI();
 	      }
-	      throw new Error(data?.error || data?.message || text || `${res.status} ${res.statusText}`);
+	      const error = new Error(data?.error || data?.message || text || `${res.status} ${res.statusText}`);
+        error.status = res.status;
+        error.payload = data;
+        throw error;
 	    }
 	    return data || {};
 	  };
+
+  const requestAllItems = async (path, maxPages = 100) => {
+    const items = [];
+    let cursor = '';
+    for (let page = 0; page < maxPages; page += 1) {
+      const params = new URLSearchParams({ limit: '500' });
+      if (cursor) params.set('cursor', cursor);
+      const separator = path.includes('?') ? '&' : '?';
+      const data = await requestJson(`${path}${separator}${params.toString()}`);
+      if (!Object.prototype.hasOwnProperty.call(data, 'nextCursor')) {
+        const legacy = await requestJson(path);
+        return { items: Array.isArray(legacy.items) ? legacy.items : [], truncated: false, legacy: true };
+      }
+      if (Array.isArray(data.items)) items.push(...data.items);
+      cursor = String(data.nextCursor || '').trim();
+      if (!cursor) return { items, truncated: false };
+    }
+    return { items, truncated: true };
+  };
 
   const collectAttachments = () => {
     const attachments = [];
@@ -3366,8 +3388,13 @@
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   };
 
-  const validateAttachmentFiles = (attachments = [], statusEl) => {
+  const validateAttachmentFiles = (attachments = [], statusEl, existingCount = 0) => {
     const maxBytes = config.maxAttachmentBytes || 0;
+    const maxCount = config.maxAttachmentCount || 12;
+    if (Math.max(0, existingCount) + attachments.length > maxCount) {
+      setStatus(statusEl, `A maximum of ${maxCount} attachments is allowed per application.`, 'error');
+      return false;
+    }
     if (!maxBytes) return true;
     for (const attachment of attachments) {
       const file = attachment?.file;
@@ -3385,7 +3412,8 @@
     if (!els.attachmentLimit) return;
     const maxBytes = config.maxAttachmentBytes || 0;
     if (!maxBytes) return;
-    els.attachmentLimit.textContent = `Files are stored privately with this application (max ${formatFileSize(maxBytes)} each).`;
+    const maxCount = config.maxAttachmentCount || 12;
+    els.attachmentLimit.textContent = `Files are stored privately with this application (max ${formatFileSize(maxBytes)} each, ${maxCount} total).`;
   };
 
   const resetEntryDateFields = (type = state.entryType) => {
@@ -3699,11 +3727,23 @@
         size: file.size
       }
     });
-    const res = await fetch(presign.uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': contentType },
-      body: file
-    });
+    let res;
+    if (presign.fields && typeof presign.fields === 'object') {
+      const uploadForm = new FormData();
+      Object.entries(presign.fields).forEach(([key, value]) => uploadForm.append(key, String(value)));
+      uploadForm.append('file', file);
+      res = await fetch(presign.uploadUrl, {
+        method: 'POST',
+        body: uploadForm
+      });
+    } else {
+      // Compatibility with the previous PUT-presign response during a staged deployment.
+      res = await fetch(presign.uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': contentType },
+        body: file
+      });
+    }
     if (!res.ok) {
       throw new Error('Unable to upload attachment.');
     }
@@ -4998,16 +5038,35 @@
     clearDashboardDetail();
     try {
       const query = buildQuery(range);
-      const [, summary, timeline, statuses, calendar, applications, funnel, timeInStage] = await Promise.all([
-        ensureChartJs(),
-        requestJson(`/api/analytics/summary?${query}`),
-        requestJson(`/api/analytics/applications-over-time?${query}`),
-        requestJson(`/api/analytics/status-breakdown?${query}`),
-        requestJson(`/api/analytics/calendar?${query}`),
-        requestJson(`/api/applications?${query}`),
-        requestJson(`/api/analytics/funnel?${query}`),
-        requestJson(`/api/analytics/time-in-stage?${query}`)
-      ]);
+      const chartPromise = ensureChartJs().then(
+        () => ({ error: null }),
+        error => ({ error })
+      );
+      let dashboard;
+      try {
+        dashboard = await requestJson(`/api/analytics/dashboard?${query}`);
+      } catch (err) {
+        if (err?.status !== 404 && err?.status !== 405) throw err;
+        const [summary, timeline, statuses, calendar, applications, funnel, timeInStage] = await Promise.all([
+          requestJson(`/api/analytics/summary?${query}`),
+          requestJson(`/api/analytics/applications-over-time?${query}`),
+          requestJson(`/api/analytics/status-breakdown?${query}`),
+          requestJson(`/api/analytics/calendar?${query}`),
+          requestAllItems(`/api/applications?${query}`),
+          requestJson(`/api/analytics/funnel?${query}`),
+          requestJson(`/api/analytics/time-in-stage?${query}`)
+        ]);
+        dashboard = { summary, timeline, statuses, calendar, applications, funnel, timeInStage };
+      }
+      const chartResult = await chartPromise;
+      if (chartResult.error) throw chartResult.error;
+      const summary = dashboard.summary || {};
+      const timeline = dashboard.timeline || {};
+      const statuses = dashboard.statuses || {};
+      const calendar = dashboard.calendar || {};
+      const applications = dashboard.applications || {};
+      const funnel = dashboard.funnel || {};
+      const timeInStage = dashboard.timeInStage || {};
       const series = timeline.series || [];
       const statusSeries = statuses.statuses || [];
       const appItems = (Array.isArray(applications.items) ? applications.items : [])
@@ -6133,8 +6192,8 @@
 	    try {
 	      setStatus(els.entryListStatus, 'Loading entries...', 'info');
 	      const [apps, prospects] = await Promise.all([
-	        requestJson('/api/applications'),
-	        requestJson('/api/prospects')
+	        requestAllItems('/api/applications'),
+	        requestAllItems('/api/prospects')
 	      ]);
       const appItems = (apps.items || []).map(item => normalizeEntry(item, 'application'));
       const prospectItems = (prospects.items || []).map(item => normalizeEntry(item, 'prospect'));
@@ -6162,6 +6221,9 @@
         setStatus(els.prospectReviewStatus, `Loaded ${label} in the queue.`, 'success');
       }
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
+      if (apps.truncated || prospects.truncated) {
+        setStatus(els.entryListStatus, `Loaded the first ${items.length} entries. Narrow your filters to reduce the result set.`, 'warning');
+      }
       loadSavedViews();
       refreshFollowups();
 	    } catch (err) {
@@ -6602,7 +6664,8 @@
     if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
     try {
       setStatus(els.entryListStatus, 'Deleting entry...', 'info');
-      await requestJson(`/api/applications/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+      const deleteCollection = getEntryType(item) === 'prospect' ? 'prospects' : 'applications';
+      await requestJson(`/api/${deleteCollection}/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
       if (state.editingEntryId === entryId) {
         clearEntryEditMode('Ready to save entries.', 'info');
         if (els.entryForm) {
@@ -6711,7 +6774,9 @@
     try {
       setStatus(els.entryListStatus, `Deleting ${label}...`, 'info');
       const results = await runWithConcurrency(ids, 3, async (entryId) => {
-        await requestJson(`/api/applications/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+        const item = state.entryItems.get(entryId);
+        const deleteCollection = getEntryType(item) === 'prospect' ? 'prospects' : 'applications';
+        await requestJson(`/api/${deleteCollection}/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
         return entryId;
       });
       const failed = results.filter(result => !result.ok).length;
@@ -6866,7 +6931,7 @@
       let deleteError = null;
       if (prospectId) {
         try {
-          await requestJson(`/api/applications/${encodeURIComponent(prospectId)}`, { method: 'DELETE' });
+          await requestJson(`/api/prospects/${encodeURIComponent(prospectId)}`, { method: 'DELETE' });
         } catch (err) {
           deleteError = err;
         }
@@ -6918,7 +6983,10 @@
           const uploaded = await uploadAttachments(applicationId, attachments, null, statusTarget);
           await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
             method: 'PATCH',
-            body: { attachments: uploaded }
+            body: {
+              attachments: uploaded,
+              ...(created?.updatedAt ? { expectedUpdatedAt: created.updatedAt } : {})
+            }
           });
         } catch (err) {
           attachmentError = err;
@@ -6926,7 +6994,7 @@
       }
       let deleteError = null;
       try {
-        await requestJson(`/api/applications/${encodeURIComponent(entry.applicationId)}`, { method: 'DELETE' });
+        await requestJson(`/api/prospects/${encodeURIComponent(entry.applicationId)}`, { method: 'DELETE' });
       } catch (err) {
         deleteError = err;
       }
@@ -7016,16 +7084,28 @@
     }
     const editingId = state.editingEntryId;
     const editingItem = state.editingEntry;
+    const existingAttachmentCount = Array.isArray(editingItem?.attachments) ? editingItem.attachments.length : 0;
+    if (!validateAttachmentFiles(attachments, els.entryFormStatus, existingAttachmentCount)) return false;
     try {
       setStatus(els.entryFormStatus, editingId ? 'Updating application...' : 'Saving application...', 'info');
       let applicationId = editingId;
       let currentAttachments = Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
+      let currentUpdatedAt = String(editingItem?.updatedAt || '').trim();
       if (editingId) {
-        await requestJson(`/api/applications/${encodeURIComponent(editingId)}`, { method: 'PATCH', body: payload });
+        const updated = await requestJson(`/api/applications/${encodeURIComponent(editingId)}`, {
+          method: 'PATCH',
+          body: {
+            ...payload,
+            ...(currentUpdatedAt ? { expectedUpdatedAt: currentUpdatedAt } : {})
+          }
+        });
+        currentAttachments = Array.isArray(updated?.attachments) ? updated.attachments : currentAttachments;
+        currentUpdatedAt = String(updated?.updatedAt || currentUpdatedAt).trim();
       } else {
         const created = await requestJson('/api/applications', { method: 'POST', body: payload });
         applicationId = created?.applicationId;
         currentAttachments = Array.isArray(created?.attachments) ? created.attachments : [];
+        currentUpdatedAt = String(created?.updatedAt || '').trim();
       }
       let attachmentError = null;
       if (attachments.length && applicationId) {
@@ -7033,11 +7113,13 @@
           const label = attachments.length === 1 ? 'attachment' : 'attachments';
           setStatus(els.entryFormStatus, `Uploading ${attachments.length} ${label}...`, 'info');
           const uploaded = await uploadAttachments(applicationId, attachments, null, els.entryFormStatus);
-          const maxCount = config.maxAttachmentCount || 12;
-          const merged = [...currentAttachments, ...uploaded].slice(-maxCount);
+          const merged = [...currentAttachments, ...uploaded];
           await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
             method: 'PATCH',
-            body: { attachments: merged }
+            body: {
+              attachments: merged,
+              ...(currentUpdatedAt ? { expectedUpdatedAt: currentUpdatedAt } : {})
+            }
           });
         } catch (err) {
           attachmentError = err;
@@ -7506,7 +7588,10 @@
                   const uploaded = await uploadAttachments(applicationId, attachments, handleAttachmentProgress, els.importStatus);
                   await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
                     method: 'PATCH',
-                    body: { attachments: uploaded }
+                    body: {
+                      attachments: uploaded,
+                      ...(created?.updatedAt ? { expectedUpdatedAt: created.updatedAt } : {})
+                    }
                   });
                   attachmentsUploaded = uploaded.length;
                 } catch {

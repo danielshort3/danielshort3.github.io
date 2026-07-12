@@ -34,6 +34,32 @@
   "heroEyebrow": "Systems playground",
   "heroTitle": "Games and simulations",
   "heroLead": "Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.",
+  "brandPanel": {
+    "signals": [
+      "Browser-playable",
+      "Systems",
+      "Probability",
+      "Progression"
+    ],
+    "proofPoints": [
+      {
+        "value": "{{count}}",
+        "label": "playable builds"
+      },
+      {
+        "value": "Live",
+        "label": "browser play"
+      },
+      {
+        "value": "AI",
+        "label": "adaptive opponents"
+      },
+      {
+        "value": "Systems",
+        "label": "feedback loops"
+      }
+    ]
+  },
   "games": [
     {
       "id": "stellar-dogfight",

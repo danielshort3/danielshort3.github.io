@@ -27,8 +27,8 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.fa08e9b5.css">
-  <link rel="stylesheet" href="dist/styles-tools.3be046ad.css">
+  <link rel="stylesheet" href="dist/styles.34345873.css">
+  <link rel="stylesheet" href="dist/styles-tools.be77460a.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -264,27 +264,59 @@
     </nav>
   </header>
   <main id="main" class="portfolio-main directory-workbench-main">
-    <section class="portfolio-workbench" id="tools-workbench" data-portfolio-workbench data-directory-workbench="tools" aria-label="Tools">
+    <section class="portfolio-workbench" id="tools-workbench" data-portfolio-workbench data-directory-workbench="tools" aria-labelledby="tools-workbench-title">
       <div class="portfolio-workbench__shell">
-        <header class="portfolio-workbench__header tools-workbench-header">
-          <div class="tools-workbench-header__identity" aria-hidden="true">
-            <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="48" height="48" decoding="async">
+        <header class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel" data-directory-brand="tools">
+          <div class="portfolio-brand-panel__graph" aria-hidden="true">
+            <span class="portfolio-brand-panel__line portfolio-brand-panel__line--one"></span>
+            <span class="portfolio-brand-panel__line portfolio-brand-panel__line--two"></span>
+            <span class="portfolio-brand-panel__line portfolio-brand-panel__line--three"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--core"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--analytics"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--science"></span>
+            <span class="portfolio-brand-panel__node portfolio-brand-panel__node--tourism"></span>
           </div>
-          <div class="portfolio-workbench__title-block">
-            <h1>Tools</h1>
-            <p class="tools-workbench-header__description">Focused utilities for writing, campaigns, and media.</p>
-          </div>
-          <div class="tools-workbench-header__actions">
-            <p class="tools-workbench-header__status">
-              <span data-tools-directory-stat>10 public tools</span>
-              <span aria-hidden="true">&middot;</span>
-              <span>Local-first</span>
-            </p>
-            <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">
-              <div class="tools-account-dock-inner" data-tools-account="dock-inner">
-                <div class="tools-account-bar" data-tools-account="bar"></div>
+          <div class="portfolio-brand-panel__main">
+            <div class="portfolio-brand-panel__identity" aria-hidden="true">
+              <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="54" height="54" decoding="async">
+            </div>
+            <div class="portfolio-workbench__title-block">
+              <h1 id="tools-workbench-title">Tools</h1>
+              <p class="portfolio-brand-panel__description">Focused utilities for writing, campaigns, and media.</p>
+            </div>
+            <div class="portfolio-brand-panel__actions">
+              <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">
+                <div class="tools-account-dock-inner" data-tools-account="dock-inner">
+                  <div class="tools-account-bar" data-tools-account="bar"></div>
+                </div>
               </div>
             </div>
+          </div>
+          <div class="portfolio-brand-panel__meta directory-brand-panel__meta">
+            <div class="directory-brand-panel__signals" aria-label="Tools highlights">
+              <span class="is-active">Local-first</span>
+              <span>Writing</span>
+              <span>Campaigns</span>
+              <span>Media</span>
+            </div>
+            <ul class="portfolio-proof-strip directory-brand-panel__proof" aria-label="Tools summary">
+              <li>
+                <strong data-tools-directory-stat>10</strong>
+                <span data-tools-directory-stat-label>public tools</span>
+              </li>
+              <li>
+                <strong>5</strong>
+                <span>workflow groups</span>
+              </li>
+              <li>
+                <strong>Local</strong>
+                <span>browser-first</span>
+              </li>
+              <li>
+                <strong>Saved</strong>
+                <span>session support</span>
+              </li>
+            </ul>
           </div>
         </header>
         <section class="tools-resume-panel" data-tools-resume="panel" data-tools-auth-only aria-labelledby="tools-resume-title" hidden aria-hidden="true">
@@ -550,7 +582,7 @@
   </div>
   <script defer src="js/tools/tools-directory.js"></script>
   <script defer src="dist/site-shell.0a877445.js"></script>
-  <script defer src="dist/site-consent.20d7d1c5.js"></script>
-  <script defer src="dist/site-tools-landing.f0015620.js" data-tools-account-src="dist/site-tools-account.18516f4a.js"></script>
+  <script defer src="dist/site-consent.8416bd25.js"></script>
+  <script defer src="dist/site-tools-landing.f0015620.js" data-tools-account-src="dist/site-tools-account.70782bfd.js"></script>
 </body>
 </html>

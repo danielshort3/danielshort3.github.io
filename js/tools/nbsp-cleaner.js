@@ -21,6 +21,7 @@
 
   const TOOL_ID = 'nbsp-cleaner';
   const MAX_IMPORT_BYTES = 24 * 1024 * 1024;
+  const PREVIEW_CHARACTER_BUDGET = 4000;
   const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
   const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
   const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
@@ -29,6 +30,22 @@
   const markSessionDirty = () => {
     try {
       document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
     } catch {}
   };
 
@@ -76,25 +93,29 @@
   const analyze = (text) => {
     const perType = HARD_SPACES.map((h) => ({ ...h, count: 0 }));
     let total = 0;
+    let characterCount = 0;
     for (const ch of text) {
+      characterCount += 1;
       const idx = HARD_SPACES.findIndex((h) => h.char === ch);
       if (idx !== -1) {
         perType[idx].count += 1;
         total += 1;
       }
     }
-    return { perType, total };
+    return { perType, total, characterCount };
   };
 
   const countNonAscii = (text) => {
     const counts = new Map();
+    let total = 0;
     for (const ch of text) {
       if (HARD_SET.has(ch)) continue;
       if (ch.charCodeAt(0) > 127) {
         counts.set(ch, (counts.get(ch) || 0) + 1);
+        total += 1;
       }
     }
-    return counts;
+    return { counts, total };
   };
 
   const renderCounts = (perType, nonAsciiCounts) => {
@@ -109,30 +130,57 @@
         </div>`;
       countsList.appendChild(li);
     });
-    const nonAsciiTotal = [...nonAsciiCounts.values()].reduce((sum, v) => sum + v, 0);
+    let nonAsciiTotal = 0;
+    nonAsciiCounts.forEach((count) => {
+      nonAsciiTotal += count;
+    });
     if (nonAsciiTotal > 0) {
       const li = document.createElement('li');
-      const samples = [...nonAsciiCounts.entries()].slice(0, 3)
-        .map(([ch, c]) => `${codePointLabel(ch)} (${formatNumber(c)}×)`).join(', ');
+      const samples = [];
+      for (const [ch, count] of nonAsciiCounts) {
+        samples.push(`${codePointLabel(ch)} (${formatNumber(count)}×)`);
+        if (samples.length >= 3) break;
+      }
       li.innerHTML = `<strong>${formatNumber(nonAsciiTotal)}×</strong>
         <div>
           <div>Other non-ASCII characters</div>
-          <small>${samples}</small>
+          <small>${samples.join(', ')}</small>
         </div>`;
       countsList.appendChild(li);
     }
   };
 
-  const renderPreview = (text) => {
+  const renderPreview = (text, characterCount) => {
     const parts = [];
+    let plainText = '';
+    let renderedCharacters = 0;
+    const flushPlainText = () => {
+      if (!plainText) return;
+      parts.push(escapeHtml(plainText));
+      plainText = '';
+    };
     for (const ch of text) {
+      if (renderedCharacters >= PREVIEW_CHARACTER_BUDGET) break;
+      renderedCharacters += 1;
       if (HARD_SET.has(ch)) {
+        flushPlainText();
         parts.push(`<span class="nbsp-chip nbsp-hard" title="${codePointLabel(ch)} hard space">␠</span>`);
       } else if (ch.charCodeAt(0) > 127) {
+        flushPlainText();
         parts.push(`<span class="nbsp-chip nbsp-nonascii" title="Non-ASCII ${codePointLabel(ch)}">${escapeHtml(ch)}</span>`);
       } else {
-        parts.push(escapeHtml(ch));
+        plainText += ch;
       }
+    }
+    flushPlainText();
+
+    const totalCharacters = Math.max(renderedCharacters, Number(characterCount) || 0);
+    if (totalCharacters > renderedCharacters) {
+      const omittedCharacters = totalCharacters - renderedCharacters;
+      parts.unshift(
+        `<span class="nbsp-status">Previewing the first ${formatNumber(renderedCharacters)} of ${formatNumber(totalCharacters)} characters. `
+        + `${formatNumber(omittedCharacters)} ${omittedCharacters === 1 ? 'character is' : 'characters are'} omitted from this preview; the full input was analyzed and used for the output.</span><br>`
+      );
     }
     preview.innerHTML = parts.join('') || '<span class="nbsp-status">Preview will appear after you paste text.</span>';
   };
@@ -390,14 +438,13 @@
       output.value = '';
       setCopyStatus('');
       preview.innerHTML = '<span class="nbsp-status">Preview will appear after you paste text.</span>';
-      return;
+      return null;
     }
-    const { perType, total } = analyze(text);
-    const nonAsciiCounts = countNonAscii(text);
+    const { perType, total, characterCount } = analyze(text);
+    const { counts: nonAsciiCounts, total: nonAsciiTotal } = countNonAscii(text);
     renderCounts(perType, nonAsciiCounts);
     const { cleaned, replacedHard, strippedNonAscii } = buildCleaned(text);
     output.value = cleaned;
-    const nonAsciiTotal = [...nonAsciiCounts.values()].reduce((sum, v) => sum + v, 0);
     const findings = [];
     if (total > 0) findings.push(`${formatNumber(total)} hard spaces${replacedHard ? ' replaced' : ' detected (kept)'}`);
     if (nonAsciiTotal > 0) findings.push(`${formatNumber(nonAsciiTotal)} other non-ASCII ${strippedNonAscii ? 'removed' : 'detected (kept)'}`);
@@ -406,14 +453,22 @@
     } else {
       summary.textContent = 'No hard spaces or non-ASCII characters detected. Output matches your input.';
     }
-    renderPreview(text);
+    renderPreview(text, characterCount);
     setCopyStatus('');
     markSessionDirty();
+    return findings.length ? 'with_findings' : 'no_findings';
   };
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    runCleaner();
+    try {
+      const resultBucket = runCleaner();
+      if (resultBucket) reportRunComplete(resultBucket);
+      else reportRunError('validation');
+    } catch (error) {
+      reportRunError('processing');
+      throw error;
+    }
   });
 
   clearBtn?.addEventListener('click', () => {

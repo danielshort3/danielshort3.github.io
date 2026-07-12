@@ -1292,7 +1292,7 @@ function buildPortfolioWorkbenchLegacy() {
         <h3 class="portfolio-inspector__section-title">Tools & Stack</h3>
         ${chipMarkup(unique([...tools, ...focuses]), 12, false)}
       </section>
-      <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}">View case study <span aria-hidden="true">-&gt;</span></a>
+      <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_inspector">View case study <span aria-hidden="true">-&gt;</span></a>
     `;
   };
 
@@ -1858,6 +1858,11 @@ function buildPortfolioWorkbench() {
 
   const renderWorkbenchMedia = (project = {}) => {
     if (project.image) {
+      if (project.imageResponsive === false) {
+        const width = Number(project.imageWidth) > 0 ? ` width="${Number(project.imageWidth)}"` : '';
+        const height = Number(project.imageHeight) > 0 ? ` height="${Number(project.imageHeight)}"` : '';
+        return `<img src="${escapeHtml(project.image)}" alt="Preview of ${escapeHtml(project.title)}" loading="lazy" decoding="async" draggable="false"${width}${height}>`;
+      }
       return buildResponsivePicture(project.image, `Preview of ${project.title}`, {
         width: project.imageWidth,
         height: project.imageHeight,
@@ -1896,7 +1901,7 @@ function buildPortfolioWorkbench() {
                 ${chipMarkup(unique([project.category, project.availability, project.access, ...toList(project.tags)]), 3)}
               </span>
             </button>
-            <a class="tools-workbench-result__open" data-tool-open href="${escapeHtml(getProjectHref(project))}" aria-label="Open ${escapeHtml(project.title)}">
+            <a class="tools-workbench-result__open" data-tool-open data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="tool" data-resource-type="tool" data-source-surface="directory_results" href="${escapeHtml(getProjectHref(project))}" aria-label="Open ${escapeHtml(project.title)}">
               <span>Open</span>${openArrowIcon}
             </a>
           </article>
@@ -1924,6 +1929,15 @@ function buildPortfolioWorkbench() {
       inspector.innerHTML = `<div class="portfolio-inspector__loading">${escapeHtml(emptySelectionText)}</div>`;
       return;
     }
+    const inspectorContentType = directoryKind === 'tools'
+      ? 'tool'
+      : directoryKind === 'games' ? 'game' : 'project';
+    const inspectorResourceType = directoryKind === 'tools'
+      ? 'tool'
+      : directoryKind === 'games' ? 'game' : 'case_study';
+    const inspectorSourceSurface = directoryKind === 'tools'
+      ? 'tools_inspector'
+      : directoryKind === 'games' ? 'games_inspector' : 'portfolio_inspector';
     if (isDirectoryWorkbench && directoryKind === 'tools') {
       const tools = toList(project.tools);
       const tags = toList(project.tags);
@@ -1976,7 +1990,7 @@ function buildPortfolioWorkbench() {
           <h3 class="portfolio-inspector__section-title">${escapeHtml(stackTitle)}</h3>
           ${chipMarkup(unique([project.category, project.availability, project.access, ...tools, ...tags]), 8, false)}
         </section>
-        <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}">Open tool ${openArrowIcon}</a>
+        <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="${escapeHtml(inspectorContentType)}" data-resource-type="${escapeHtml(inspectorResourceType)}" data-source-surface="${escapeHtml(inspectorSourceSurface)}">Open tool ${openArrowIcon}</a>
       `;
       return;
     }
@@ -2021,7 +2035,7 @@ function buildPortfolioWorkbench() {
         <h3 class="portfolio-inspector__section-title">${escapeHtml(stackTitle)}</h3>
         ${chipMarkup(unique([...tools, ...tags, ...focuses]), 12, false)}
       </section>
-      <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}">${escapeHtml(ctaLabel)} <span aria-hidden="true">-&gt;</span></a>
+      <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="${escapeHtml(inspectorContentType)}" data-resource-type="${escapeHtml(inspectorResourceType)}" data-source-surface="${escapeHtml(inspectorSourceSurface)}">${escapeHtml(ctaLabel)} <span aria-hidden="true">-&gt;</span></a>
     `;
   };
 
@@ -2105,10 +2119,14 @@ function buildPortfolioWorkbench() {
     countNode.textContent = formatCountText(projects);
     if (isDirectoryWorkbench && directoryKind === 'tools') {
       const directoryStat = root.querySelector('[data-tools-directory-stat]');
+      const directoryStatLabel = root.querySelector('[data-tools-directory-stat-label]');
       if (directoryStat) {
         const authContext = getDirectoryAuthContext();
         const availabilityLabel = authContext.authed ? 'available' : 'public';
-        directoryStat.textContent = `${allProjects.length} ${availabilityLabel} ${allProjects.length === 1 ? 'tool' : 'tools'}`;
+        directoryStat.textContent = String(allProjects.length);
+        if (directoryStatLabel) {
+          directoryStatLabel.textContent = `${availabilityLabel} ${allProjects.length === 1 ? 'tool' : 'tools'}`;
+        }
       }
     }
     if (emptyState) emptyState.hidden = projects.length > 0;

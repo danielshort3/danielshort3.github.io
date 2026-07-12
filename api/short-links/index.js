@@ -4,7 +4,12 @@
 */
 'use strict';
 
-const { listLinks, upsertLink } = require('../_lib/short-links-store');
+const {
+  isSlugConflictError,
+  listLinks,
+  listLinksPage,
+  upsertLink
+} = require('../_lib/short-links-store');
 const {
   DEFAULT_RANDOM_LENGTH,
   MAX_RANDOM_LENGTH,
@@ -256,6 +261,52 @@ async function handler(req, res){
   }
 
   if (req.method === 'GET') {
+    const params = getRequestUrl(req).searchParams;
+    if (getQueryValue(params, 'pageMode').toLowerCase() === 'storage') {
+      const unsupportedParam = ['q', 'status', 'sort'].find(key => getQueryValue(params, key));
+      if (unsupportedParam) {
+        sendJson(res, 400, {
+          ok: false,
+          error: `Storage pagination does not support ${unsupportedParam}; omit pageMode to use filtered sorting.`
+        });
+        return;
+      }
+      const limit = normalizeLimit(getQueryValue(params, 'limit')) || 100;
+      try {
+        const page = await listLinksPage({
+          limit,
+          cursor: getQueryValue(params, 'cursor')
+        });
+        const links = page.items
+          .map(item => serializeLink(item, normalizeSlug(item?.slug), typeof item?.updatedAt === 'string' ? item.updatedAt : ''))
+          .filter(link => link.slug && link.destination);
+        sendJson(res, 200, {
+          ok: true,
+          basePath: 'go',
+          links,
+          pagination: {
+            mode: 'storage',
+            total: null,
+            limit,
+            cursor: getQueryValue(params, 'cursor'),
+            nextCursor: page.nextCursor
+          }
+        });
+        return;
+      } catch (err) {
+        if (err.code === 'DDB_ENV_MISSING') {
+          sendJson(res, 503, { ok: false, error: err.message });
+          return;
+        }
+        if (err.code === 'INVALID_CURSOR') {
+          sendJson(res, 400, { ok: false, error: err.message });
+          return;
+        }
+        sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
+        return;
+      }
+    }
+
     let items = [];
     try {
       items = await listLinks();
@@ -273,7 +324,6 @@ async function handler(req, res){
       .filter(link => link.slug && link.destination)
       .sort((a, b) => a.slug.localeCompare(b.slug, undefined, { sensitivity: 'base' }) || a.slug.localeCompare(b.slug));
 
-    const params = getRequestUrl(req).searchParams;
     if (hasListQuery(params)) {
       const result = applyListQuery(links, params);
       sendJson(res, 200, {
@@ -299,9 +349,11 @@ async function handler(req, res){
     }
 
     let requestedSlug;
+    let lowerSlugMap;
     try {
       const existingLinks = await listLinks();
-      requestedSlug = await resolveRequestedSlug(body || {}, buildLowerSlugMap(existingLinks));
+      lowerSlugMap = buildLowerSlugMap(existingLinks);
+      requestedSlug = await resolveRequestedSlug(body || {}, lowerSlugMap);
     } catch (err) {
       if (err.code === 'DDB_ENV_MISSING') {
         sendJson(res, 503, { ok: false, error: err.message });
@@ -311,7 +363,7 @@ async function handler(req, res){
       return;
     }
 
-    const slug = requestedSlug.slug;
+    let slug = requestedSlug.slug;
     const destination = normalizeDestination(body.destination, { absolutizeInternalPath: true });
     const permanent = !!body.permanent;
     const hasExpiresAt = !!(body && Object.prototype.hasOwnProperty.call(body, 'expiresAt'));
@@ -342,22 +394,47 @@ async function handler(req, res){
 
     const now = new Date().toISOString();
 
-    let record;
-    try {
-      record = await upsertLink({
-        slug,
-        destination,
-        permanent,
-        expiresAt: hasExpiresAt ? expiresAt : undefined,
-        updatedAt: now,
-        metadata: buildMetadata(body)
-      });
-    } catch (err) {
-      if (err.code === 'DDB_ENV_MISSING') {
-        sendJson(res, 503, { ok: false, error: err.message });
+    let record = null;
+    const writeAttempts = requestedSlug.generated ? RANDOM_SLUG_RETRY_LIMIT : 1;
+    for (let attempt = 0; attempt < writeAttempts && !record; attempt += 1) {
+      try {
+        record = await upsertLink({
+          slug,
+          destination,
+          permanent,
+          expiresAt: permanent ? 0 : (hasExpiresAt ? expiresAt : undefined),
+          updatedAt: now,
+          metadata: buildMetadata(body)
+        });
+      } catch (err) {
+        if (err.code === 'DDB_ENV_MISSING') {
+          sendJson(res, 503, { ok: false, error: err.message });
+          return;
+        }
+        if (isSlugConflictError(err)) {
+          if (requestedSlug.generated && attempt + 1 < writeAttempts) {
+            try {
+              requestedSlug = await resolveRequestedSlug(body || {}, lowerSlugMap);
+              slug = requestedSlug.slug;
+              continue;
+            } catch (retryErr) {
+              sendJson(res, retryErr.statusCode || 409, {
+                ok: false,
+                error: retryErr.message || 'Unable to generate a unique short code right now'
+              });
+              return;
+            }
+          }
+          sendJson(res, 409, { ok: false, error: 'Slug conflicts with an existing link' });
+          return;
+        }
+        sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
         return;
       }
-      sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
+    }
+
+    if (!record) {
+      sendJson(res, 409, { ok: false, error: 'Unable to generate a unique short code right now' });
       return;
     }
 

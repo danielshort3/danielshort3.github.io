@@ -346,6 +346,32 @@
     text-align:right;
   }
 
+  .transcribe-file-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+  }
+
+  .transcribe-file-resume{
+    min-height:34px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 55%, var(--surface-accent) 45%);
+    background:color-mix(in srgb,var(--primary) 12%, transparent);
+    color:var(--text-light);
+    font:inherit;
+    font-size:.8rem;
+    font-weight:800;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+
+  .transcribe-file-resume:hover,
+  .transcribe-file-resume:focus-visible{
+    border-color:var(--primary);
+    background:color-mix(in srgb,var(--primary) 20%, transparent);
+  }
+
   .transcribe-file-remove{
     display:inline-grid;
     place-items:center;
@@ -492,7 +518,7 @@
       text-align:left;
     }
 
-    .transcribe-file-remove{
+    .transcribe-file-actions{
       justify-self:start;
     }
   }

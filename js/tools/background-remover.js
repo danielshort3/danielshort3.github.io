@@ -83,6 +83,26 @@
     } catch {}
   };
 
+  const dispatchToolRunEvent = (eventName, detail = {}) => {
+    try {
+      document.dispatchEvent(new CustomEvent(eventName, {
+        detail: { toolId: TOOL_ID, ...detail }
+      }));
+    } catch {}
+  };
+
+  const classifyRunError = (jobs) => {
+    const summary = Array.from(jobs || [])
+      .map((job) => String(job?.message || '').toLowerCase())
+      .join(' ');
+    if (/permission|denied|notallowed/.test(summary)) return 'permission';
+    if (/network|failed to fetch|download|cdn|offline/.test(summary)) return 'network';
+    if (/not supported|unsupported|content security policy|\bcsp\b|webgl|wasm/.test(summary)) return 'unsupported';
+    if (/too large|file limit|smaller version|invalid/.test(summary)) return 'validation';
+    if (/model|service unavailable/.test(summary)) return 'service';
+    return 'processing';
+  };
+
   const logAsyncError = (scope, err) => {
     const label = String(scope || '').trim() || 'async';
     try {
@@ -94,7 +114,9 @@
     maxFiles: 20,
     // We allow large images, but handle oversize uploads gracefully.
     maxFileBytes: 40 * 1024 * 1024,
+    maxInputBytes: 160 * 1024 * 1024,
     maxPixels: 80_000_000,
+    maxDecodedPixelsTotal: 160_000_000,
     recommendedPixels: 50_000_000,
     // Canvas maximums vary by browser; 16k is a conservative, common cap.
     maxCanvasDim: 16384,
@@ -283,10 +305,37 @@
     cutoutUrl: '',
   });
 
+  const replaceDisplayedObjectUrl = (previousUrl, nextUrl = '') => {
+    if (!previousUrl) return;
+    document.querySelectorAll('img[src]').forEach((image) => {
+      if (image.getAttribute('src') !== previousUrl) return;
+      if (nextUrl) image.setAttribute('src', nextUrl);
+      else image.removeAttribute('src');
+    });
+  };
+
+  const revokeDetachedObjectUrl = (url, replacementUrl = '') => {
+    if (!url) return;
+    replaceDisplayedObjectUrl(url, replacementUrl);
+    URL.revokeObjectURL(url);
+  };
+
+  const replaceJobCutout = (job, blob) => {
+    if (!job || !(blob instanceof Blob)) return '';
+    const previousUrl = job.cutoutUrl;
+    const nextUrl = URL.createObjectURL(blob);
+    job.cutoutBlob = blob;
+    job.cutoutUrl = nextUrl;
+    if (previousUrl && previousUrl !== nextUrl) {
+      revokeDetachedObjectUrl(previousUrl, nextUrl);
+    }
+    return nextUrl;
+  };
+
   const revokeJobUrls = (job) => {
     if (!job) return;
     if (job.maskUrl) URL.revokeObjectURL(job.maskUrl);
-    if (job.cutoutUrl) URL.revokeObjectURL(job.cutoutUrl);
+    if (job.cutoutUrl) revokeDetachedObjectUrl(job.cutoutUrl);
     job.maskUrl = '';
     job.cutoutUrl = '';
   };
@@ -816,9 +865,7 @@
         cutoutCtx.drawImage(active.maskCanvas, 0, 0);
         cutoutCtx.globalCompositeOperation = 'source-over';
         const newCutoutBlob = await canvasToBlob(cutoutCanvas, 'image/png');
-        if (job.cutoutBlob && job.cutoutUrl) URL.revokeObjectURL(job.cutoutUrl);
-        job.cutoutBlob = newCutoutBlob;
-        job.cutoutUrl = URL.createObjectURL(newCutoutBlob);
+        replaceJobCutout(job, newCutoutBlob);
       }
     } catch {}
 
@@ -1155,8 +1202,7 @@
     cutoutCtx.globalCompositeOperation = 'source-over';
     const cutoutBlob = await canvasToBlob(cutoutCanvas, 'image/png');
     job.baseCutoutBlob = cutoutBlob;
-    job.cutoutBlob = cutoutBlob;
-    job.cutoutUrl = URL.createObjectURL(cutoutBlob);
+    replaceJobCutout(job, cutoutBlob);
 
     job.message = `Legacy mode removed ~${removed.toLocaleString('en-US')} pixels (tolerance ${tolerance}).`;
   };
@@ -1263,8 +1309,7 @@
 
     const cutoutBlob = await canvasToBlob(cutoutCanvas, 'image/png');
     job.baseCutoutBlob = cutoutBlob;
-    job.cutoutBlob = cutoutBlob;
-    job.cutoutUrl = URL.createObjectURL(cutoutBlob);
+    replaceJobCutout(job, cutoutBlob);
 
     const modelLabel = modelUsed === 'isnet_quint8' ? 'fast' : 'best';
     job.message = `AI processed at ${processing.maxDim}px (CPU, ${modelLabel} model).${qualityNote}`;
@@ -1293,6 +1338,16 @@
         return;
       }
 
+      const otherDecodedPixels = state.jobs.reduce((total, entry) => {
+        if (entry === job || entry?.status === 'error') return total;
+        return total + Math.max(0, Number(entry?.original?.pixels) || 0);
+      }, 0);
+      if (otherDecodedPixels + job.original.pixels > LIMITS.maxDecodedPixelsTotal) {
+        job.status = 'error';
+        job.message = `This batch would exceed the ${Math.round(LIMITS.maxDecodedPixelsTotal / 1_000_000)} MP decoded-pixel limit. Remove another large image and try again.`;
+        return;
+      }
+
       if (job.original.pixels > LIMITS.recommendedPixels) {
         job.message = `Large image (${Math.round(job.original.pixels / 1_000_000)} MP). Processing may take longer.`;
       }
@@ -1318,15 +1373,22 @@
 
   const processQueue = async () => {
     if (state.working) return;
+    if (!state.jobs.some((job) => job.status === 'queued')) return;
     state.working = true;
     updateLayoutState();
     const currentRunId = state.runId;
+    const runJobIds = new Set();
     updateActionButtons();
+    dispatchToolRunEvent('tools:run-start');
     try {
       for (;;) {
-        if (currentRunId !== state.runId) return;
+        if (currentRunId !== state.runId) {
+          dispatchToolRunEvent('tools:run-cancel');
+          return;
+        }
         const next = state.jobs.find((j) => j.status === 'queued');
         if (!next) break;
+        runJobIds.add(next.id);
         next.status = 'processing';
         renderFileList();
         renderResults();
@@ -1344,6 +1406,24 @@
         }
       }
       setStatus(state.jobs.some((j) => j.status === 'ready') ? 'Done. Review results below.' : 'Add photos to begin.');
+      const runJobs = state.jobs.filter((job) => runJobIds.has(job.id));
+      const readyCount = runJobs.filter((job) => job.status === 'ready').length;
+      const errorCount = runJobs.filter((job) => job.status === 'error').length;
+      if (readyCount > 0) {
+        dispatchToolRunEvent('tools:run-complete', {
+          resultBucket: errorCount > 0 ? 'partial_success' : 'success'
+        });
+      } else {
+        dispatchToolRunEvent('tools:run-error', {
+          errorType: classifyRunError(runJobs)
+        });
+      }
+    } catch (err) {
+      const runJobs = state.jobs.filter((job) => runJobIds.has(job.id));
+      dispatchToolRunEvent('tools:run-error', {
+        errorType: classifyRunError(runJobs)
+      });
+      throw err;
     } finally {
       hideProgress();
       state.working = false;
@@ -1358,11 +1438,30 @@
     if (!list.length) return;
 
     const remaining = Math.max(0, LIMITS.maxFiles - state.jobs.length);
-    const toAdd = list.slice(0, remaining);
-    const skipped = list.length - toAdd.length;
+    const candidates = list.slice(0, remaining);
+    const rejected = [];
+    const toAdd = [];
+    let selectedBytes = state.jobs.reduce((total, job) => total + Math.max(0, Number(job.bytes) || 0), 0);
+
+    candidates.forEach((file) => {
+      if (file.size > LIMITS.maxFileBytes) {
+        rejected.push(`${file.name}: exceeds ${formatBytes(LIMITS.maxFileBytes)} per file`);
+        return;
+      }
+      if (selectedBytes + file.size > LIMITS.maxInputBytes) {
+        rejected.push(`${file.name}: would exceed ${formatBytes(LIMITS.maxInputBytes)} total input`);
+        return;
+      }
+      selectedBytes += file.size;
+      toAdd.push(file);
+    });
+    const overFileLimit = Math.max(0, list.length - candidates.length);
+    if (overFileLimit) rejected.push(`${overFileLimit} file${overFileLimit === 1 ? '' : 's'} exceeded the ${LIMITS.maxFiles}-file limit`);
 
     toAdd.forEach((file) => state.jobs.push(createJob(file)));
-    if (skipped > 0) setStatus(`Added ${toAdd.length} file(s). Skipped ${skipped} due to the ${LIMITS.maxFiles} file limit.`);
+    if (rejected.length) {
+      setStatus(`${toAdd.length ? `Added ${toAdd.length} file${toAdd.length === 1 ? '' : 's'}. ` : ''}Skipped ${rejected.length}: ${rejected.slice(0, 2).join('; ')}${rejected.length > 2 ? '; and more.' : '.'}`);
+    }
     markSessionDirty();
 
     updateSummary();
@@ -1371,6 +1470,7 @@
     updateActionButtons();
 
     if (state.jobs.length) hideOverlay();
+    if (!toAdd.length) return;
     processQueue().catch((err) => logAsyncError('addFiles:processQueue', err));
   };
 

@@ -2,6 +2,19 @@
   'use strict';
 
   const $ = (s, c = document) => c.querySelector(s);
+  const initialQuery = (() => {
+    try {
+      const url = new URL(window.location.href);
+      const query = url.searchParams.get('q') || '';
+      if (url.searchParams.has('q')) {
+        url.searchParams.delete('q');
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
+      }
+      return query;
+    } catch (_) {
+      return '';
+    }
+  })();
 
   const headerForm = $('.nav-search');
   const headerInput = $('.nav-search-input');
@@ -231,13 +244,6 @@
     });
   };
 
-  const setQueryInUrl = (query) => {
-    const url = new URL(location.href);
-    if (query) url.searchParams.set('q', query);
-    else url.searchParams.delete('q');
-    history.replaceState({}, '', url.pathname + url.search);
-  };
-
   let updateTimer = null;
   const scheduleUpdate = (fn) => {
     if (updateTimer) window.clearTimeout(updateTimer);
@@ -271,7 +277,6 @@
     const trimmed = String(query || '').trim();
     activeInput.value = trimmed;
     syncInputs(trimmed, activeInput);
-    setQueryInUrl(trimmed);
 
     const tokens = tokenize(trimmed);
     if (!tokens.length) {
@@ -294,7 +299,6 @@
     return { query: trimmed, tokenCount: tokens.length, totalMatches };
   };
 
-  const initialQuery = new URLSearchParams(location.search).get('q') || '';
   syncInputs(initialQuery);
   activeInput.value = initialQuery;
 

@@ -1082,6 +1082,10 @@ function buildGamesDirectoryWorkbenchData(page) {
       formats: [type],
       results: game.summary ? [game.summary] : [],
       actions: tags.length ? [`Focus areas: ${tags.join(', ')}`] : [],
+      image: game.image ? trimLeadingSlash(game.image) : '',
+      imageWidth: Number(game.imageWidth) || null,
+      imageHeight: Number(game.imageHeight) || null,
+      imageResponsive: false,
       iconHtml: renderGameIconMarkup(game.iconType),
       order: index + 1
     };
@@ -1128,9 +1132,10 @@ function renderDirectoryWorkbenchStaticResults(items, kind) {
     const title = String(item.title || (safeKind === 'games' ? 'Game' : 'Tool')).trim();
     const summary = String(item.summary || '').trim();
     const href = String(item.href || '').trim();
+    const iconContent = String(item.iconHtml || `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`);
     const media = item.iconImage
       ? `<span class="portfolio-result-card__icon"><img src="${escapeHtml(item.iconImage)}" alt="" width="256" height="256" loading="lazy" decoding="async"></span>`
-      : String(item.iconHtml || `<span class="portfolio-result-card__initial">${escapeHtml(title.charAt(0) || '?')}</span>`);
+      : `<span class="portfolio-result-card__icon">${iconContent}</span>`;
     const cardBody = [
       '<span class="portfolio-result-card__body">',
       `  <span class="portfolio-result-card__title">${escapeHtml(title)}</span>`,
@@ -1159,33 +1164,79 @@ function renderDirectoryWorkbenchStaticResults(items, kind) {
   }).join('\n');
 }
 
-function renderToolsWorkbenchHeader(page, publicCount) {
-  const title = page && page.heroTitle ? page.heroTitle : 'Tools';
-  const lead = page && page.heroLead ? page.heroLead : 'Focused utilities for writing, campaigns, and media.';
-  const statusLabel = page && page.statusLabel ? page.statusLabel : 'Local-first';
+function renderDirectoryWorkbenchHeader(page, options = {}) {
+  const kind = String(options.kind || page.id || 'directory').trim();
+  const title = String(options.title || page.heroTitle || page.title || 'Library').trim();
+  const lead = String(options.lead || page.heroLead || '').trim();
+  const itemCount = Number.isFinite(Number(options.itemCount)) ? Number(options.itemCount) : 0;
+  const titleId = String(options.titleId || `${kind}-workbench-title`).trim();
+  const panel = page && page.brandPanel && typeof page.brandPanel === 'object'
+    ? page.brandPanel
+    : {};
+  const signals = Array.isArray(panel.signals)
+    ? panel.signals.map((signal) => String(signal || '').trim()).filter(Boolean).slice(0, 4)
+    : [];
+  const proofPoints = Array.isArray(panel.proofPoints)
+    ? panel.proofPoints.map((point) => ({
+      value: String(point && point.value ? point.value : '').replace(/\{\{count\}\}/g, String(itemCount)).trim(),
+      label: String(point && point.label ? point.label : '').trim()
+    })).filter((point) => point.value && point.label).slice(0, 4)
+    : [];
+  const actionHtml = String(options.actionHtml || '').trim();
+  const signalsHtml = signals.length
+    ? [
+      `<div class="directory-brand-panel__signals" aria-label="${escapeHtml(title)} highlights">`,
+      ...signals.map((signal, index) => `  <span${index === 0 ? ' class="is-active"' : ''}>${escapeHtml(signal)}</span>`),
+      '</div>'
+    ]
+    : [];
+  const proofHtml = proofPoints.length
+    ? [
+      `<ul class="portfolio-proof-strip directory-brand-panel__proof" aria-label="${escapeHtml(title)} summary">`,
+      ...proofPoints.flatMap((point, index) => [
+        '  <li>',
+        `    <strong${kind === 'tools' && index === 0 ? ' data-tools-directory-stat' : ''}>${escapeHtml(point.value)}</strong>`,
+        `    <span${kind === 'tools' && index === 0 ? ' data-tools-directory-stat-label' : ''}>${escapeHtml(point.label)}</span>`,
+        '  </li>'
+      ]),
+      '</ul>'
+    ]
+    : [];
+  const metaHtml = signalsHtml.length || proofHtml.length
+    ? [
+      '  <div class="portfolio-brand-panel__meta directory-brand-panel__meta">',
+      ...signalsHtml.map((line) => `    ${line}`),
+      ...proofHtml.map((line) => `    ${line}`),
+      '  </div>'
+    ]
+    : [];
+
   return [
-    '<header class="portfolio-workbench__header tools-workbench-header">',
-    '  <div class="tools-workbench-header__identity" aria-hidden="true">',
-    '    <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="48" height="48" decoding="async">',
+    `<header class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel" data-directory-brand="${escapeHtml(kind)}">`,
+    '  <div class="portfolio-brand-panel__graph" aria-hidden="true">',
+    '    <span class="portfolio-brand-panel__line portfolio-brand-panel__line--one"></span>',
+    '    <span class="portfolio-brand-panel__line portfolio-brand-panel__line--two"></span>',
+    '    <span class="portfolio-brand-panel__line portfolio-brand-panel__line--three"></span>',
+    '    <span class="portfolio-brand-panel__node portfolio-brand-panel__node--core"></span>',
+    '    <span class="portfolio-brand-panel__node portfolio-brand-panel__node--analytics"></span>',
+    '    <span class="portfolio-brand-panel__node portfolio-brand-panel__node--science"></span>',
+    '    <span class="portfolio-brand-panel__node portfolio-brand-panel__node--tourism"></span>',
     '  </div>',
-    '  <div class="portfolio-workbench__title-block">',
-    `    <h1>${escapeHtml(title)}</h1>`,
-    `    <p class="tools-workbench-header__description">${escapeHtml(lead)}</p>`,
-    '  </div>',
-    '  <div class="tools-workbench-header__actions">',
-    '    <p class="tools-workbench-header__status">',
-    `      <span data-tools-directory-stat>${escapeHtml(publicCount)} public tools</span>`,
-    '      <span aria-hidden="true">&middot;</span>',
-    `      <span>${escapeHtml(statusLabel)}</span>`,
-    '    </p>',
-    '    <div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
-    '      <div class="tools-account-dock-inner" data-tools-account="dock-inner">',
-    '        <div class="tools-account-bar" data-tools-account="bar"></div>',
-    '      </div>',
+    '  <div class="portfolio-brand-panel__main">',
+    '    <div class="portfolio-brand-panel__identity" aria-hidden="true">',
+    '      <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="54" height="54" decoding="async">',
     '    </div>',
+    '    <div class="portfolio-workbench__title-block">',
+    `      <h1 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h1>`,
+    lead ? `      <p class="portfolio-brand-panel__description">${escapeHtml(lead)}</p>` : '',
+    '    </div>',
+    actionHtml ? '    <div class="portfolio-brand-panel__actions">' : '',
+    actionHtml ? indentBlock(actionHtml, '      ') : '',
+    actionHtml ? '    </div>' : '',
     '  </div>',
+    ...metaHtml,
     '</header>'
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 
 function renderDirectoryWorkbenchBody(page, options = {}) {
@@ -1193,12 +1244,13 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   const itemSingular = String(options.itemSingular || 'item').trim();
   const itemPlural = String(options.itemPlural || `${itemSingular}s`).trim();
   const title = String(options.title || page.heroTitle || page.title || 'Library').trim();
+  const titleId = String(options.titleId || `${kind}-workbench-title`).trim();
   const resultsId = `${kind}-results-title`;
   const displaySingular = `${itemSingular.charAt(0).toUpperCase()}${itemSingular.slice(1)}`;
   const headerHtml = options.headerHtml || [
     '<header class="portfolio-workbench__header">',
     '  <div class="portfolio-workbench__title-block">',
-    `    <h1>${escapeHtml(title)}</h1>`,
+    `    <h1 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h1>`,
     '  </div>',
     '</header>'
   ].join('\n');
@@ -1220,7 +1272,7 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   return [
     '<main id="main" class="portfolio-main directory-workbench-main">',
     ...accountDock,
-    `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-label="${escapeHtml(title)}">`,
+    `  <section class="portfolio-workbench" id="${escapeHtml(kind)}-workbench" data-portfolio-workbench data-directory-workbench="${escapeHtml(kind)}" aria-labelledby="${escapeHtml(titleId)}">`,
     '    <div class="portfolio-workbench__shell">',
     indentBlock(headerHtml, '      '),
     ...supplementalLines,
@@ -1272,12 +1324,28 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
 function renderToolsDirectoryBody(page, tools) {
   const data = buildToolsDirectoryWorkbenchData(page, tools);
   const publicCount = data.items.filter((item) => item.visibility === 'public').length;
+  const title = page.heroTitle || 'Tools';
+  const titleId = 'tools-workbench-title';
+  const accountActionHtml = [
+    '<div class="tools-account-dock tools-account-dock--directory" data-tools-account="dock">',
+    '  <div class="tools-account-dock-inner" data-tools-account="dock-inner">',
+    '    <div class="tools-account-bar" data-tools-account="bar"></div>',
+    '  </div>',
+    '</div>'
+  ].join('\n');
   return renderDirectoryWorkbenchBody(page, {
     kind: 'tools',
-    title: page.heroTitle || 'Tools',
+    title,
+    titleId,
     itemSingular: 'tool',
     itemPlural: 'tools',
-    headerHtml: renderToolsWorkbenchHeader(page, publicCount),
+    headerHtml: renderDirectoryWorkbenchHeader(page, {
+      kind: 'tools',
+      title,
+      titleId,
+      itemCount: publicCount,
+      actionHtml: accountActionHtml
+    }),
     supplementalHtml: renderToolsResumePanel(page),
     initialResultsText: `${publicCount} tools`,
     initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'tools')
@@ -1286,11 +1354,20 @@ function renderToolsDirectoryBody(page, tools) {
 
 function renderGamesDirectoryBody(page) {
   const data = buildGamesDirectoryWorkbenchData(page);
+  const title = page.heroTitle || 'Games';
+  const titleId = 'games-workbench-title';
   return renderDirectoryWorkbenchBody(page, {
     kind: 'games',
-    title: page.heroTitle || 'Games',
+    title,
+    titleId,
     itemSingular: 'game',
     itemPlural: 'games',
+    headerHtml: renderDirectoryWorkbenchHeader(page, {
+      kind: 'games',
+      title,
+      titleId,
+      itemCount: data.items.length
+    }),
     initialResultsText: `${data.items.length} games`,
     initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'games')
   });

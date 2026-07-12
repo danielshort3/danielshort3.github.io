@@ -7,6 +7,13 @@
     state: '/api/tools/state',
     activity: '/api/tools/activity'
   };
+  const MAX_KEEPALIVE_BODY_BYTES = 60 * 1024;
+
+  const utf8Bytes = (value) => {
+    const text = String(value || '');
+    if (typeof TextEncoder === 'function') return new TextEncoder().encode(text).byteLength;
+    return unescape(encodeURIComponent(text)).length;
+  };
 
   const readJson = async (res) => {
     let data;
@@ -30,6 +37,8 @@
     if (params?.toolId) search.set('tool', params.toolId);
     if (params?.sessionId) search.set('session', params.sessionId);
     if (params?.limit) search.set('limit', String(params.limit));
+    if (params?.cursor) search.set('cursor', params.cursor);
+    if (typeof params?.expectedVersion !== 'undefined') search.set('version', String(params.expectedVersion));
     const query = search.toString();
     return query ? `${API.state}?${query}` : API.state;
   };
@@ -38,6 +47,7 @@
     const search = new URLSearchParams();
     if (params?.toolId) search.set('tool', params.toolId);
     if (params?.limit) search.set('limit', String(params.limit));
+    if (params?.cursor) search.set('cursor', params.cursor);
     const query = search.toString();
     return query ? `${API.activity}?${query}` : API.activity;
   };
@@ -70,32 +80,33 @@
     return readJson(res);
   };
 
-  const listActivity = async ({ toolId, limit } = {}) => {
-    const res = await window.ToolsAuth.fetchWithAuth(getActivityUrl({ toolId, limit }), { method: 'GET' });
+  const listActivity = async ({ toolId, limit, cursor } = {}) => {
+    const res = await window.ToolsAuth.fetchWithAuth(getActivityUrl({ toolId, limit, cursor }), { method: 'GET' });
     return readJson(res);
   };
 
-  const saveSession = async ({ toolId, sessionId, snapshot, outputSummary, keepalive } = {}) => {
+  const saveSession = async ({ toolId, sessionId, snapshot, outputSummary, expectedVersion, keepalive } = {}) => {
+    const body = JSON.stringify({ toolId, sessionId, snapshot, outputSummary, expectedVersion });
     const res = await window.ToolsAuth.fetchWithAuth(API.state, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ toolId, sessionId, snapshot, outputSummary }),
-      keepalive: !!keepalive
+      body,
+      keepalive: !!keepalive && utf8Bytes(body) <= MAX_KEEPALIVE_BODY_BYTES
     });
     return readJson(res);
   };
 
-  const updateSessionMeta = async ({ toolId, sessionId, title, note, tags, pinned } = {}) => {
+  const updateSessionMeta = async ({ toolId, sessionId, title, note, tags, pinned, expectedVersion } = {}) => {
     const res = await window.ToolsAuth.fetchWithAuth(API.state, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ toolId, sessionId, title, note, tags, pinned })
+      body: JSON.stringify({ toolId, sessionId, title, note, tags, pinned, expectedVersion })
     });
     return readJson(res);
   };
 
-  const listSessions = async ({ toolId, limit } = {}) => {
-    const res = await window.ToolsAuth.fetchWithAuth(getToolStateUrl({ toolId, limit }), { method: 'GET' });
+  const listSessions = async ({ toolId, limit, cursor } = {}) => {
+    const res = await window.ToolsAuth.fetchWithAuth(getToolStateUrl({ toolId, limit, cursor }), { method: 'GET' });
     return readJson(res);
   };
 
@@ -104,8 +115,16 @@
     return readJson(res);
   };
 
-  const deleteSession = async ({ toolId, sessionId }) => {
-    const res = await window.ToolsAuth.fetchWithAuth(getToolStateUrl({ toolId, sessionId }), { method: 'DELETE' });
+  const deleteSession = async ({ toolId, sessionId, expectedVersion }) => {
+    const res = await window.ToolsAuth.fetchWithAuth(getToolStateUrl({ toolId, sessionId, expectedVersion }), { method: 'DELETE' });
+    return readJson(res);
+  };
+
+  const deleteAllAccountData = async () => {
+    const res = await window.ToolsAuth.fetchWithAuth(`${API.state}?all=true`, {
+      method: 'DELETE',
+      headers: { 'X-Tools-Confirm': 'DELETE-ALL' }
+    });
     return readJson(res);
   };
 
@@ -118,6 +137,7 @@
     updateSessionMeta,
     listSessions,
     getSession,
-    deleteSession
+    deleteSession,
+    deleteAllAccountData
   };
 })();

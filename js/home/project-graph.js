@@ -1965,6 +1965,7 @@
 
   const createInspectorHtml = ({ categoryId, item, isOverview = false }) => {
     const category = CATEGORIES[categoryId] || CATEGORIES.projects;
+    const contentType = categoryId === 'projects' ? 'project' : categoryId === 'tools' ? 'tool' : 'game';
     const title = isOverview ? category.label : (item.fullTitle || item.title);
     const summary = isOverview ? category.summary : item.summary;
     const tags = isOverview
@@ -1975,6 +1976,8 @@
       ? `View all ${category.label.toLowerCase()}`
       : `Open ${category.singular}`;
     const related = isOverview ? category.items.slice(0, 3) : getRelatedItems(categoryId, item.id);
+    const contentId = isOverview ? categoryId : item.id;
+    const resourceType = isOverview ? 'library' : (contentType === 'project' ? 'case_study' : contentType);
 
     return `
       <div class="home-graph__inspector-kicker">
@@ -2001,11 +2004,11 @@
       <div class="home-graph__inspector-section home-graph__inspector-section--related">
         <h3>Related ${escapeHtml(category.label.toLowerCase())}</h3>
         <ul class="home-graph__related-list">
-          ${related.map(entry => `<li><a href="${escapeHtml(entry.href)}">${escapeHtml(entry.title)} <span aria-hidden="true">></span></a></li>`).join('')}
+          ${related.map(entry => `<li><a href="${escapeHtml(entry.href)}" data-content-open="true" data-content-id="${escapeHtml(entry.id)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(contentType === 'project' ? 'case_study' : contentType)}" data-source-surface="home_inspector_related">${escapeHtml(entry.title)} <span aria-hidden="true">></span></a></li>`).join('')}
         </ul>
       </div>
       <div class="home-graph__inspector-section">
-        <a class="home-graph__cta" href="${escapeHtml(href)}">${escapeHtml(cta)} ${getLinkIcon()}</a>
+        <a class="home-graph__cta" href="${escapeHtml(href)}" data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(isOverview ? 'directory' : contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_inspector">${escapeHtml(cta)} ${getLinkIcon()}</a>
         <a class="home-graph__library-link" href="${escapeHtml(category.href)}">View in library</a>
       </div>
     `;
@@ -2046,7 +2049,7 @@
         </ul>
       </div>
       <div class="home-graph__inspector-section">
-        <a class="home-graph__cta" href="${escapeHtml(category.href)}">Open ${escapeHtml(category.label.toLowerCase())} library ${getLinkIcon()}</a>
+        <a class="home-graph__cta" href="${escapeHtml(category.href)}" data-content-open="true" data-content-id="${escapeHtml(categoryId)}" data-content-type="directory" data-resource-type="library" data-source-surface="home_group_inspector">Open ${escapeHtml(category.label.toLowerCase())} library ${getLinkIcon()}</a>
       </div>
     `;
   };
@@ -2087,7 +2090,7 @@
         </ul>
       </div>
       <div class="home-graph__inspector-section">
-        <a class="home-graph__cta" href="portfolio">Open project library ${getLinkIcon()}</a>
+        <a class="home-graph__cta" href="portfolio" data-content-open="true" data-content-id="projects" data-content-type="directory" data-resource-type="library" data-source-surface="home_overview">Open project library ${getLinkIcon()}</a>
         <a class="home-graph__library-link" href="tools">View tools</a>
         <a class="home-graph__library-link" href="games">Play games</a>
       </div>
@@ -2183,6 +2186,7 @@
         tools: 'Open tools',
         games: 'Open games'
       }[categoryId] || `Browse ${category.label.toLowerCase()}`;
+      const itemContentType = categoryId === 'projects' ? 'project' : categoryId === 'tools' ? 'tool' : 'game';
 
       return `
         <section class="home-graph__mobile-section home-graph__mobile-section--${escapeHtml(categoryId)}" style="${sectionStyle}" aria-labelledby="home-mobile-${escapeHtml(categoryId)}-title">
@@ -2203,7 +2207,7 @@
                 itemVisual ? `--card-image: url('${escapeHtml(itemVisual)}')` : ''
               ].filter(Boolean).join('; ');
               return `
-                <a class="home-graph__mobile-section-card" href="${escapeHtml(item.href)}" style="${itemStyle}">
+                <a class="home-graph__mobile-section-card" href="${escapeHtml(item.href)}" style="${itemStyle}" data-content-open="true" data-content-id="${escapeHtml(item.id)}" data-content-type="${escapeHtml(itemContentType)}" data-resource-type="${escapeHtml(itemContentType === 'project' ? 'case_study' : itemContentType)}" data-source-surface="home_mobile_card">
                   <span class="home-graph__mobile-section-art${itemVisual ? ' has-visual' : ''}" aria-hidden="true">${itemVisual ? '' : getItemIcon(item, categoryId)}</span>
                   <span class="home-graph__mobile-section-copy">
                     <strong>${escapeHtml(title)}</strong>
@@ -2213,7 +2217,7 @@
               `;
             }).join('')}
           </div>
-          <a class="home-graph__mobile-section-cta" href="${escapeHtml(category.href)}">${escapeHtml(sectionCta)} ${getLinkIcon()}</a>
+          <a class="home-graph__mobile-section-cta" href="${escapeHtml(category.href)}" data-content-open="true" data-content-id="${escapeHtml(categoryId)}" data-content-type="directory" data-resource-type="library" data-source-surface="home_mobile_section">${escapeHtml(sectionCta)} ${getLinkIcon()}</a>
         </section>
       `;
     };
@@ -2376,7 +2380,7 @@
               <ul>
                 ${previewTags.map((tag) => `<li>${escapeHtml(tag)}</li>`).join('')}
               </ul>
-              <a href="${escapeHtml(previewItem.href)}">Open ${escapeHtml(category.singular)} ${getLinkIcon()}</a>
+              <a href="${escapeHtml(previewItem.href)}" data-content-open="true" data-content-id="${escapeHtml(previewItem.id)}" data-content-type="${escapeHtml(categoryId === 'projects' ? 'project' : categoryId === 'tools' ? 'tool' : 'game')}" data-resource-type="${escapeHtml(categoryId === 'projects' ? 'case_study' : categoryId === 'tools' ? 'tool' : 'game')}" data-source-surface="home_mobile_preview">Open ${escapeHtml(category.singular)} ${getLinkIcon()}</a>
             </div>
           ` : ''}
         </section>

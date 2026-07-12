@@ -278,6 +278,16 @@
     line-height:1.5;
   }
 
+  .tools-sessions-load-more{
+    display:flex;
+    justify-content:center;
+    padding-top:4px;
+  }
+
+  .tools-sessions-load-more[hidden]{
+    display:none !important;
+  }
+
   .tools-sessions-bulk{
     display:flex;
     flex-wrap:wrap;

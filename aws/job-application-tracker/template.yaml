@@ -50,11 +50,30 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireGeneratedExports
+            Status: Enabled
+            TagFilters:
+              - Key: purpose
+                Value: export
+            ExpirationInDays: 7
+          - Id: ExpireUnattachedStagingUploads
+            Status: Enabled
+            TagFilters:
+              - Key: purpose
+                Value: staging
+            ExpirationInDays: 1
+          - Id: AbortIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins: !Ref AllowedOrigins
             AllowedMethods:
               - GET
+              - POST
               - PUT
               - HEAD
             AllowedHeaders:
@@ -126,8 +145,24 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:PutObject
+                  - s3:PutObjectTagging
                   - s3:GetObject
+                  - s3:DeleteObject
+                  - s3:AbortMultipartUpload
+                  - s3:ListMultipartUploadParts
                 Resource: !Sub '${AttachmentsBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !GetAtt AttachmentsBucket.Arn
+                Condition:
+                  StringLike:
+                    s3:prefix:
+                      - '*/exports/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucketMultipartUploads
+                Resource: !GetAtt AttachmentsBucket.Arn
 
   TrackerFunction:
     Type: AWS::Lambda::Function
@@ -139,7 +174,8 @@ Resources:
       Code:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref LambdaCodeKey
-      Timeout: 60
+      Timeout: 28
+      MemorySize: 512
       Environment:
         Variables:
           APPLICATIONS_TABLE: !Ref ApplicationsTable
@@ -150,6 +186,10 @@ Resources:
           MAX_ATTACHMENT_COUNT: "12"
           MAX_TAGS: "12"
           MAX_CUSTOM_FIELDS: "12"
+          MAX_EXPORT_APPLICATIONS: "1000"
+          MAX_EXPORT_ATTACHMENTS: "50"
+          MAX_EXPORT_BYTES: "52428800"
+          MAX_EXPORT_METADATA_BYTES: "8388608"
 
   HttpApi:
     Type: AWS::ApiGatewayV2::Api
@@ -201,6 +241,15 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: 'GET /api/analytics/summary'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AnalyticsDashboardRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/dashboard'
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'
@@ -345,6 +394,15 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: 'PATCH /api/prospects/{id}'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ProspectsDeleteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'DELETE /api/prospects/{id}'
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'

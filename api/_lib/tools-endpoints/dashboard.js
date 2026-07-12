@@ -63,7 +63,9 @@ module.exports = async (req, res) => {
       },
       tools,
       recentSessions,
-      recentActivity
+      sessionsNextCursor: recentSessions.nextCursor || '',
+      recentActivity,
+      activityNextCursor: recentActivity.nextCursor || ''
     });
   } catch (err) {
     if (err.code === 'KV_ENV_MISSING' || err.code === 'DDB_ENV_MISSING') {
@@ -73,4 +75,3 @@ module.exports = async (req, res) => {
     sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
   }
 };
-

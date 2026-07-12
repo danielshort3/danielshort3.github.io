@@ -324,6 +324,34 @@
     } catch {}
   };
 
+  const dispatchReportOutcome = (eventName, action, detail = {}) => {
+    try {
+      document.dispatchEvent(new CustomEvent(eventName, {
+        detail: { toolId: TOOL_ID, action, ...detail }
+      }));
+    } catch {}
+  };
+
+  const classifyReportError = (error) => {
+    const message = String(error?.message || '').toLowerCase();
+    if (/admin token|unauthori[sz]ed|forbidden|permission|access denied|\b401\b|\b403\b/.test(message)) {
+      return 'permission';
+    }
+    if (/failed to fetch|network|offline|connection|dns/.test(message)) return 'network';
+    if (/quota|rate limit|too many requests|unavailable|gateway|\b429\b|\b5\d\d\b/.test(message)) {
+      return 'service';
+    }
+    if (/required|invalid|select at least|choose a|configuration|date range|property id/.test(message)) {
+      return 'validation';
+    }
+    return 'processing';
+  };
+
+  const resultBucketFor = (rows, truncated) => {
+    if (truncated) return 'truncated';
+    return Array.isArray(rows) && rows.length ? 'with_results' : 'no_results';
+  };
+
   const normalizePropertyId = (value) => {
     const raw = String(value || '').trim();
     if (!raw) return '';
@@ -1184,13 +1212,16 @@
 
   const runUtmReport = async () => {
     if (utmBusy) return;
+    dispatchReportOutcome('tools:run-start', 'utm_report');
     const propertyId = getPropertyId();
     if (!propertyId) {
       setStatus(utmStatusEl, 'GA4 property ID required.', 'error');
+      dispatchReportOutcome('tools:run-error', 'utm_report', { errorType: 'validation' });
       return;
     }
     if (!startEl.value || !endEl.value) {
       setStatus(utmStatusEl, 'Start/end dates required.', 'error');
+      dispatchReportOutcome('tools:run-error', 'utm_report', { errorType: 'validation' });
       return;
     }
 
@@ -1236,6 +1267,9 @@
       const truncatedNote = lastUtm.truncated ? ' (truncated)' : '';
       setStatus(utmStatusEl, `Done. ${formatNumber(urlsLabel)} URL(s), ${formatNumber(groupsLabel)} group(s)${truncatedNote}.`, 'success');
       markSessionDirty();
+      dispatchReportOutcome('tools:run-complete', 'utm_report', {
+        resultBucket: resultBucketFor(lastUtm.parsedRows, lastUtm.truncated)
+      });
     } catch (err) {
       if (requestId !== utmRequestSeq) return;
       lastUtm = null;
@@ -1245,6 +1279,9 @@
       utmDrilldownEl.replaceChildren();
       setStatus(utmStatusEl, err.message || 'Failed to fetch report.', 'error');
       markSessionDirty();
+      dispatchReportOutcome('tools:run-error', 'utm_report', {
+        errorType: classifyReportError(err)
+      });
     } finally {
       if (requestId === utmRequestSeq) setUtmBusy(false);
     }
@@ -1742,24 +1779,29 @@
 
   const runExploreDrilldown = async () => {
     if (exploreBusy) return;
+    dispatchReportOutcome('tools:run-start', 'explore_drilldown');
     if (!exploreDrill || !Array.isArray(exploreDrill.segmentFilters) || !exploreDrill.segmentFilters.length) {
       setStatus(exploreStatusEl, 'Select a row to drill into first.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_drilldown', { errorType: 'validation' });
       return;
     }
 
     const propertyId = getPropertyId();
     if (!propertyId) {
       setStatus(exploreStatusEl, 'GA4 property ID required.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_drilldown', { errorType: 'validation' });
       return;
     }
     if (!startEl.value || !endEl.value) {
       setStatus(exploreStatusEl, 'Start/end dates required.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_drilldown', { errorType: 'validation' });
       return;
     }
 
     const breakdown = normalizeGa4FieldName(exploreDrill.breakdown);
     if (!breakdown) {
       setStatus(exploreStatusEl, 'Choose a drilldown dimension.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_drilldown', { errorType: 'validation' });
       return;
     }
 
@@ -1768,6 +1810,7 @@
       metrics = getExploreMetrics();
     } catch (err) {
       setStatus(exploreStatusEl, err.message || 'Select at least 1 metric.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_drilldown', { errorType: 'validation' });
       return;
     }
 
@@ -1840,11 +1883,17 @@
       const trunc = lastExplore.truncated ? ' (truncated)' : '';
       setStatus(exploreStatusEl, `Done. ${formatNumber(lastExplore.returnedRows || lastExplore.rows.length)} row(s)${trunc}.`, 'success');
       markSessionDirty();
+      dispatchReportOutcome('tools:run-complete', 'explore_drilldown', {
+        resultBucket: resultBucketFor(lastExplore.rows, lastExplore.truncated)
+      });
     } catch (err) {
       if (requestId !== exploreRequestSeq) return;
       if (pushed) exploreHistory.pop();
       setStatus(exploreStatusEl, err.message || 'Failed to fetch drilldown.', 'error');
       markSessionDirty();
+      dispatchReportOutcome('tools:run-error', 'explore_drilldown', {
+        errorType: classifyReportError(err)
+      });
     } finally {
       if (requestId === exploreRequestSeq) setExploreBusy(false);
     }
@@ -1852,13 +1901,16 @@
 
   const runExploreReport = async () => {
     if (exploreBusy) return;
+    dispatchReportOutcome('tools:run-start', 'explore_report');
     const propertyId = getPropertyId();
     if (!propertyId) {
       setStatus(exploreStatusEl, 'GA4 property ID required.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_report', { errorType: 'validation' });
       return;
     }
     if (!startEl.value || !endEl.value) {
       setStatus(exploreStatusEl, 'Start/end dates required.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_report', { errorType: 'validation' });
       return;
     }
 
@@ -1869,6 +1921,7 @@
       metrics = getExploreMetrics();
     } catch (err) {
       setStatus(exploreStatusEl, err.message || 'Invalid explore configuration.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_report', { errorType: 'validation' });
       return;
     }
 
@@ -1878,6 +1931,7 @@
 
     if (!metrics.length) {
       setStatus(exploreStatusEl, 'Select at least 1 metric.', 'error');
+      dispatchReportOutcome('tools:run-error', 'explore_report', { errorType: 'validation' });
       return;
     }
 
@@ -1930,6 +1984,9 @@
       const trunc = lastExplore.truncated ? ' (truncated)' : '';
       setStatus(exploreStatusEl, `Done. ${formatNumber(lastExplore.returnedRows || lastExplore.rows.length)} row(s)${trunc}.`, 'success');
       markSessionDirty();
+      dispatchReportOutcome('tools:run-complete', 'explore_report', {
+        resultBucket: resultBucketFor(lastExplore.rows, lastExplore.truncated)
+      });
     } catch (err) {
       if (requestId !== exploreRequestSeq) return;
       lastExplore = null;
@@ -1938,6 +1995,9 @@
       exploreDownloadBtn.disabled = true;
       setStatus(exploreStatusEl, err.message || 'Failed to fetch explore report.', 'error');
       markSessionDirty();
+      dispatchReportOutcome('tools:run-error', 'explore_report', {
+        errorType: classifyReportError(err)
+      });
     } finally {
       if (requestId === exploreRequestSeq) setExploreBusy(false);
     }

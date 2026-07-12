@@ -379,6 +379,12 @@
     align-items:center;
   }
 
+  .utmtool-file-input{
+    min-width:0;
+    max-width:100%;
+    color:var(--text-light);
+  }
+
   .utmtool-actions-row{
     display:flex;
     flex-wrap:wrap;
@@ -789,6 +795,17 @@
   @media (max-width: 980px){
     .utmtool-custom-head{
       grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 600px){
+    .utmtool-csv-upload-row{
+      align-items:stretch;
+      flex-direction:column;
+    }
+
+    .utmtool-csv-upload-row .btn-secondary{
+      align-self:flex-start;
     }
   }
 }
