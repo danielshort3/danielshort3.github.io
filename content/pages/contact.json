@@ -48,7 +48,7 @@
       "enabled": true,
       "variant": "default",
       "props": {
-        "html": "<section class=\"hero hero--default alt-band\">\n    <div class=\"wrapper\">\n      <h1>Let's Connect</h1>\n      <p class=\"hero-tagline\">Send a note about a project, tool, idea, or question.<br>I’ll reply when I can.</p>\n        <div class=\"cta-group\">\n          <button id=\"contact-form-toggle\" class=\"btn-primary hero-cta\">Send a Message</button>\n        </div>\n    </div>\n      <a class=\"chevron-hint scroll-indicator\" href=\"#contact-options\" data-smooth-scroll=\"true\">\n        <span class=\"chevron-label\">Scroll for ways to connect</span>\n        <svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z\"/></svg>\n      </a>\n  </section>"
+        "html": "<section class=\"hero hero--default alt-band\">\n    <div class=\"wrapper\">\n      <h1>Let's Connect</h1>\n      <p class=\"hero-tagline\">Send a note about a project, tool, idea, or question.<br>I’ll reply when I can.</p>\n        <div class=\"cta-group\">\n          <button id=\"contact-form-toggle\" class=\"btn-primary hero-cta\">Send a Message</button>\n        </div>\n    </div>\n  </section>"
       }
     },
     {

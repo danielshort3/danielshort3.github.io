@@ -15,6 +15,11 @@
     --brand-success:#166534;
     --brand-risk:#B91C1C;
 
+    /* Personal-site category accents */
+    --category-projects:#155DFC;
+    --category-tools:#0798A6;
+    --category-games:#F97316;
+
     /* Call-to-action blue system */
     --cta-blue:var(--brand-signal-blue);
     --cta-blue-hover:var(--brand-deep-blue);
