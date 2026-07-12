@@ -1076,6 +1076,7 @@
     let storyStartY = 0;
     let storyEndY = 0;
     let storyMeasureToken = 0;
+    let storyAnimationsReady = false;
 
     const getNavOffset = () => {
       if (typeof window.getNavOffset === 'function') {
@@ -1109,18 +1110,24 @@
       if (!isStoryRail) return;
       const main = panel.closest('main') || document.getElementById('main');
       if (!main) return;
-      const mainTop = main.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
+      const scrollTop = window.scrollY || window.pageYOffset || 0;
+      const mainTop = main.getBoundingClientRect().top + scrollTop;
+      const hero = main.querySelector('.hero');
+      const heroRect = hero?.getBoundingClientRect();
       const stops = items.map((item) => {
         const anchor = item.target.querySelector('[data-story-anchor]') || item.target.querySelector('h2') || item.target;
         const anchorRect = anchor.getBoundingClientRect();
         const targetRect = item.target.getBoundingClientRect();
         const stopY = anchorRect.top + (window.scrollY || window.pageYOffset || 0) - mainTop + Math.min(20, anchorRect.height / 2);
+        item.storyStopY = Math.max(0, stopY);
         item.link.style.setProperty('--story-stop-y', `${Math.max(0, stopY)}px`);
         item.target.style.setProperty('--story-anchor-y', `${Math.max(0, anchorRect.top - targetRect.top + Math.min(20, anchorRect.height / 2))}px`);
         return stopY;
       });
       if (!stops.length) return;
-      storyStartY = Math.max(0, stops[0]);
+      storyStartY = heroRect
+        ? Math.max(0, heroRect.top + scrollTop - mainTop + (heroRect.height / 2))
+        : Math.max(0, stops[0]);
       storyEndY = Math.max(storyStartY, stops[stops.length - 1]);
       panel.style.setProperty('--story-start-y', `${storyStartY}px`);
       panel.style.setProperty('--story-end-y', `${storyEndY}px`);
@@ -1274,15 +1281,39 @@
       const topLimit = Math.min(Math.max(0, navOffset), viewportHeight);
       const bottomLimit = viewportHeight;
       const focusSpan = Math.max(0, bottomLimit - topLimit);
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || window.pageYOffset || 0;
+      const atBottom = scrollTop + viewportHeight >= (doc.scrollHeight - 2);
 
       if (isStoryRail && storyEndY > storyStartY) {
-        const main = panel.closest('main') || document.getElementById('main');
-        const mainTop = main
-          ? main.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0)
-          : 0;
-        const focusY = (window.scrollY || window.pageYOffset || 0) + navOffset + (viewportHeight * .34) - mainTop;
-        const progressY = Math.min(storyEndY - storyStartY, Math.max(0, focusY - storyStartY));
-        panel.style.setProperty('--story-progress-y', `${progressY}px`);
+        const railLength = Math.max(0, storyEndY - storyStartY);
+        const progressY = atBottom
+          ? railLength
+          : Math.min(railLength, Math.max(0, scrollTop));
+        const fillHeadY = storyStartY + progressY;
+        panel.style.setProperty('--story-fill-y', `${progressY}px`);
+        items.forEach((item) => {
+          const stopY = Number.isFinite(item.storyStopY) ? item.storyStopY : storyEndY;
+          const cellRamp = 120;
+          const rawProgress = atBottom
+            ? 1
+            : Math.min(1, Math.max(0, (fillHeadY - (stopY - cellRamp)) / cellRamp));
+          const cellProgress = rawProgress * rawProgress * (3 - (2 * rawProgress));
+          const wasComplete = item.target.classList.contains('is-segment-complete');
+          const isComplete = wasComplete ? rawProgress >= .92 : rawProgress >= .999;
+          item.target.style.setProperty('--story-cell-progress', cellProgress.toFixed(4));
+          item.target.classList.toggle('is-segment-complete', isComplete);
+          item.link.classList.toggle('is-segment-complete', isComplete);
+          if (!wasComplete && isComplete && storyAnimationsReady) {
+            item.link.classList.add('story-node-confirm');
+            item.target.classList.add('is-segment-confirming');
+            window.setTimeout(() => {
+              item.link.classList.remove('story-node-confirm');
+              item.target.classList.remove('is-segment-confirming');
+            }, 420);
+          }
+        });
+        storyAnimationsReady = true;
       }
 
       let best = null;
@@ -1305,9 +1336,6 @@
 
       let nextId = best ? best.id : null;
 
-      const doc = document.documentElement;
-      const scrollTop = window.scrollY || window.pageYOffset || 0;
-      const atBottom = scrollTop + viewportHeight >= (doc.scrollHeight - 2);
       const lastItem = items[items.length - 1];
       if (lastItem && atBottom) {
         const rect = lastItem.target.getBoundingClientRect();

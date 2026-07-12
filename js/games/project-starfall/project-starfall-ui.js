@@ -11510,6 +11510,13 @@
           return;
         }
       }
+      const hasWorldMapMonsterGuide = target.hasAttribute && target.hasAttribute('data-starfall-world-map-monsters');
+      if (hasWorldMapMonsterGuide) {
+        const worldMapMonsterGuide = target.getAttribute('data-starfall-world-map-monsters');
+        const enemyIds = String(worldMapMonsterGuide || '').split(',').map((id) => normalizeId(id)).filter(Boolean);
+        this.openMonsterGuideForMap(target.getAttribute('data-starfall-world-map-name') || '', enemyIds);
+        return;
+      }
       const worldProgressDomActionHelper = getQuestHelper('getWorldProgressDomAction');
       if (worldProgressDomActionHelper) {
         const worldProgressAction = worldProgressDomActionHelper(target);
@@ -17074,6 +17081,130 @@
       `;
     }
 
+    getWorldMapSpawnSummary(node) {
+      const mapDefinition = node && (Data.MAPS || []).find((map) => map && map.id === node.mapId) || null;
+      const source = Object.assign({}, mapDefinition || {}, node || {});
+      const groups = Array.isArray(source.spawnGroups) ? source.spawnGroups.filter(Boolean) : [];
+      const enemyScores = new Map();
+      const enemyIds = [];
+      let population = 0;
+      let maxPopulation = 0;
+      const respawnSeconds = [];
+      const addEnemyScore = (enemyId, score) => {
+        const id = normalizeId(enemyId);
+        if (!id) return;
+        if (!enemyScores.has(id)) enemyIds.push(id);
+        enemyScores.set(id, Number(enemyScores.get(id) || 0) + Math.max(0, Number(score || 0)));
+      };
+      groups.forEach((group) => {
+        const weights = Array.isArray(group.enemyWeights) ? group.enemyWeights : Array.isArray(group.enemies) ? group.enemies : [];
+        const groupPopulation = Math.max(0, Number(group.population || group.activePopulation || group.cap || 0));
+        const weightTotal = weights.reduce((sum, entry) => sum + Math.max(0, Number(entry && typeof entry === 'object' ? entry.weight || entry.count || 1 : 1)), 0);
+        weights.forEach((entry) => {
+          const enemyId = entry && typeof entry === 'object' ? entry.enemyId || entry.id : entry;
+          const weight = Math.max(0, Number(entry && typeof entry === 'object' ? entry.weight || entry.count || 1 : 1));
+          addEnemyScore(enemyId, groupPopulation && weightTotal ? groupPopulation * weight / weightTotal : weight);
+        });
+        population += groupPopulation;
+        maxPopulation += Math.max(groupPopulation, Number(group.maxPopulation || groupPopulation || 0));
+        const respawn = Number(group.respawnSeconds || group.respawnDelaySeconds || 0);
+        if (respawn > 0 && !respawnSeconds.includes(respawn)) respawnSeconds.push(respawn);
+      });
+      if (!enemyScores.size) {
+        (source.enemies || []).forEach((enemyId) => addEnemyScore(enemyId, 1));
+      }
+      if (!population) population = Math.max(0, Number(source.population || source.waveMax || 0));
+      if (!maxPopulation) maxPopulation = Math.max(population, Number(source.maxPopulation || population || 0));
+      const totalScore = Array.from(enemyScores.values()).reduce((sum, score) => sum + score, 0);
+      const materialCatalog = Data.MATERIAL_ITEMS || [];
+      const getMaterialName = (materialId) => {
+        const material = Array.isArray(materialCatalog)
+          ? materialCatalog.find((candidate) => candidate && (candidate.materialId === materialId || candidate.id === materialId))
+          : materialCatalog[materialId];
+        return material && (material.name || material.label) || String(materialId || '');
+      };
+      const enemies = enemyIds.map((enemyId) => {
+        const enemy = (Data.ENEMIES || []).find((candidate) => candidate && candidate.id === enemyId) || null;
+        const pool = enemy && enemy.dropPool || {};
+        const materialDrops = (pool.materials || [])
+          .filter((drop) => drop && drop.materialId && !/starcard$/i.test(String(drop.materialId)))
+          .slice()
+          .sort((a, b) => Number(b && b.weight || 0) - Number(a && a.weight || 0));
+        const dropEntries = materialDrops.map((drop) => ({
+          label: getMaterialName(drop.materialId),
+          weight: Math.max(1, Number(drop.weight || 1))
+        })).filter((drop) => drop.label);
+        if ((pool.equipment || []).length) {
+          const equipmentWeight = Math.max(...pool.equipment.map((drop) => Math.max(1, Number(drop && drop.weight || 1))));
+          dropEntries.push({ label: 'Equipment', weight: equipmentWeight });
+        }
+        if (!dropEntries.length && enemy && Array.isArray(enemy.drops)) {
+          enemy.drops.forEach((label, index) => dropEntries.push({ label, weight: Math.max(1, 4 - index) }));
+        }
+        return {
+          id: enemyId,
+          name: enemy ? enemy.name : enemyId,
+          score: Number(enemyScores.get(enemyId) || 0),
+          percent: totalScore ? Math.round(Number(enemyScores.get(enemyId) || 0) / totalScore * 100) : 0,
+          drops: dropEntries.map((drop) => drop.label),
+          dropEntries
+        };
+      }).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+      const dropBands = Array.isArray(source.dropBands)
+        ? source.dropBands.map((band) => typeof band === 'string' ? band : band && (band.label || band.name || band.id)).filter(Boolean)
+        : source.dropBand ? [source.dropBand] : [];
+      const commonDropScores = new Map();
+      enemies.forEach((enemy) => {
+        (enemy.dropEntries || []).forEach((drop) => {
+          if (!drop || !drop.label) return;
+          commonDropScores.set(drop.label, Number(commonDropScores.get(drop.label) || 0) + enemy.score * Number(drop.weight || 1));
+        });
+      });
+      const commonDrops = Array.from(commonDropScores.entries())
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map((entry) => entry[0]);
+      const dropEconomy = Data.DROP_ECONOMY || {};
+      const configuredDropChance = Math.max(0, Number(source.dropChance || 0));
+      const normalDropChance = Number(dropEconomy.normalDropChance || 0);
+      const bossDropChance = Number(dropEconomy.bossLootChance || 0);
+      const dungeonDropRateLabel = source.dungeon || source.isDungeon || source.isBossMap
+        ? [
+          normalDropChance > 0 ? `${Math.round(normalDropChance * 100)}% field` : '',
+          bossDropChance > 0 ? `${Math.round(bossDropChance * 100)}% boss` : ''
+        ].filter(Boolean).join(' / ')
+        : '';
+      const baseDropChance = configuredDropChance || normalDropChance;
+      const dropRateLabel = source.dropRateLabel || (dungeonDropRateLabel
+        ? `${dungeonDropRateLabel} primary roll`
+        : baseDropChance > 0 ? `${Math.round(baseDropChance * 100)}% base primary roll` : '');
+      respawnSeconds.sort((a, b) => a - b);
+      const respawnLabel = respawnSeconds.length > 1
+        ? `${respawnSeconds[0]}-${respawnSeconds[respawnSeconds.length - 1]}s`
+        : respawnSeconds.length ? `${respawnSeconds[0]}s` : source.waveDelay ? `${Number(source.waveDelay)}s` : '';
+      return {
+        enemies,
+        enemyIds: enemies.map((enemy) => enemy.id),
+        enemyLabel: enemies.map((enemy) => `${enemy.name}${enemy.percent ? ` ${enemy.percent}%` : ''}`).join(', '),
+        population,
+        maxPopulation,
+        populationLabel: population ? `${population}${maxPopulation > population ? `-${maxPopulation}` : ''} active` : '',
+        respawnLabel,
+        dropLabel: dropBands.length ? dropBands.slice(0, 3).join(', ') : commonDrops.slice(0, 3).join(', '),
+        dropRateLabel
+      };
+    }
+
+    openMonsterGuideForMap(mapName, enemyIds) {
+      const name = String(mapName || '').trim();
+      const ids = (enemyIds || []).map((id) => normalizeId(id)).filter(Boolean);
+      this.monsterGuideFilter = 'all';
+      this.monsterGuideSearchQuery = name;
+      this.monsterGuideListScroll = 0;
+      if (ids[0] && this.engine && this.engine.selectMonsterGuideEnemy) this.engine.selectMonsterGuideEnemy(ids[0]);
+      this.openPanel('monsters');
+      return true;
+    }
+
     renderWorldMapPanel() {
       const worldMap = this.snapshot.worldMap || {};
       const nodes = worldMap.nodes || [];
@@ -17134,10 +17265,7 @@
             <div class="project-starfall-worldmap-detail">
               ${selected ? (() => {
                 const levelLabel = selected.levelRange && selected.levelRange.length ? `Lv ${selected.levelRange[0]}-${selected.levelRange[1]}` : 'Any level';
-                const enemyNames = (selected.enemies || []).map((enemyId) => {
-                  const enemy = (Data.ENEMIES || []).find((candidate) => candidate.id === enemyId);
-                  return enemy ? enemy.name : enemyId;
-                }).join(', ');
+                const spawnSummary = this.getWorldMapSpawnSummary(selected);
                 const route = selected.route;
                 const routeProgress = route && route.fields
                   ? route.fields.map((field) => `${field.mapName} ${formatAbbreviatedInteger(field.value)}/${formatAbbreviatedInteger(field.goal)}`).join(' - ')
@@ -17154,10 +17282,13 @@
                   ${riftSummary ? `<small>${escapeHtml(riftSummary)}</small>` : ''}
                   ${selected.landmark ? `<small>${escapeHtml(`Landmark: ${selected.landmark}`)}</small>` : ''}
                   ${selected.areaMechanic ? `<small>${escapeHtml(selected.areaMechanic)}</small>` : ''}
-                  ${enemyNames ? `<small>${escapeHtml(enemyNames)}</small>` : ''}
+                  ${spawnSummary.enemyLabel ? `<small>${escapeHtml(`Mobs: ${spawnSummary.enemyLabel}`)}</small>` : ''}
+                  ${spawnSummary.populationLabel || spawnSummary.respawnLabel ? `<small>${escapeHtml([spawnSummary.populationLabel, spawnSummary.respawnLabel && `respawn ${spawnSummary.respawnLabel}`].filter(Boolean).join(' - '))}</small>` : ''}
+                  ${spawnSummary.dropLabel ? `<small>${escapeHtml(`Known drops: ${spawnSummary.dropLabel}${spawnSummary.dropRateLabel ? ` - ${spawnSummary.dropRateLabel}` : ''}`)}</small>` : ''}
                   ${routeProgress ? `<small>${escapeHtml(routeProgress)}</small>` : ''}
                   ${respawnLabel ? `<small>${escapeHtml(respawnLabel)}</small>` : ''}
                   <button type="button" data-starfall-world-map-guide="${escapeHtml(selected.mapId)}">Set Guide</button>
+                  ${spawnSummary.enemyIds.length ? `<button type="button" data-starfall-world-map-monsters="${escapeHtml(spawnSummary.enemyIds.join(','))}" data-starfall-world-map-name="${escapeHtml(selected.name || '')}">Monster Guide</button>` : ''}
                 `;
               })() : '<span>No area selected.</span>'}
             </div>
@@ -26212,10 +26343,15 @@
       const mapY = y + pad + titleH;
       const mapW = boxW - pad * 2;
       const mapH = boxH - pad * 2 - titleH;
+      const legendH = box.compact ? 0 : 12;
+      const plotH = Math.max(18, mapH - legendH);
       const worldW = Math.max(1, Number(runtime.worldWidth || 1));
       const worldH = Math.max(CANVAS_PLAYFIELD_HEIGHT, Number(runtime.worldHeight || CANVAS_STATUS_HUD_Y));
       const toMiniX = (worldX) => mapX + clamp(Number(worldX || 0) / worldW, 0, 1) * mapW;
-      const toMiniY = (worldY) => mapY + clamp(Number(worldY || 0) / worldH, 0, 1) * mapH;
+      const toMiniY = (worldY) => mapY + clamp(Number(worldY || 0) / worldH, 0, 1) * plotH;
+      const nextStep = snapshot.worldMap && snapshot.worldMap.pathHint && snapshot.worldMap.pathHint.nextStep || null;
+      const guidePortalId = normalizeId(nextStep && (nextStep.portalId || nextStep.fromPortalId));
+      const guidePortalLabel = String(nextStep && nextStep.portalLabel || '').trim();
       const staticKey = [
         map.id || '',
         map.name || '',
@@ -26226,16 +26362,18 @@
         boxH,
         worldW,
         worldH,
-        (runtime.platforms || []).length,
-        (runtime.climbables || []).length,
+        (runtime.platforms || []).map((platform) => `${platform.id || ''}:${platform.x}:${platform.y}:${platform.w}:${platform.y2 == null ? '' : platform.y2}`).join(','),
+        (runtime.climbables || []).map((climbable) => `${climbable.id || ''}:${climbable.x}:${climbable.y}:${climbable.h}`).join(','),
         (runtime.stations || []).length,
+        guidePortalId,
+        guidePortalLabel,
         (snapshot.portals || []).map((portal) => `${portal.id || ''}:${portal.locked ? 1 : 0}:${portal.bossPortal ? 1 : 0}`).join(',')
       ].join('|');
       const staticLayer = this.getCachedCanvasLayer('minimapStatic', boxW, boxH, staticKey, (layerCtx) => {
         const localMapX = pad;
         const localMapY = pad + titleH;
         const toLocalX = (worldX) => localMapX + clamp(Number(worldX || 0) / worldW, 0, 1) * mapW;
-        const toLocalY = (worldY) => localMapY + clamp(Number(worldY || 0) / worldH, 0, 1) * mapH;
+        const toLocalY = (worldY) => localMapY + clamp(Number(worldY || 0) / worldH, 0, 1) * plotH;
         this.drawCanvasUiWindowFrame(layerCtx, 0, 0, boxW, boxH, pad + titleH - 1, {
           radius: 9,
           ornament: 'subtle',
@@ -26252,24 +26390,36 @@
         this.drawCanvasUiSlot(layerCtx, localMapX, localMapY, mapW, mapH, { variant: 'dark', radius: 6, stroke: 'rgba(89,216,255,0.22)' });
         layerCtx.save();
         layerCtx.beginPath();
-        layerCtx.rect(localMapX, localMapY, mapW, mapH);
+        layerCtx.rect(localMapX, localMapY, mapW, plotH);
         layerCtx.clip();
         (runtime.platforms || []).forEach((platform, index) => {
           const px = toLocalX(platform.x);
           const py = toLocalY(platform.y);
-          const pw = Math.max(3, Number(platform.w || 0) / worldW * mapW);
-          layerCtx.fillStyle = index === 0 ? 'rgba(126,200,216,0.42)' : 'rgba(255,209,102,0.58)';
-          layerCtx.fillRect(px, py, pw, index === 0 ? 3 : 2);
+          const rightY = toLocalY(platform.y2 == null ? platform.y : platform.y2);
+          const rightX = toLocalX(Number(platform.x || 0) + Number(platform.w || 0));
+          layerCtx.strokeStyle = index === 0 ? 'rgba(126,200,216,0.5)' : 'rgba(255,209,102,0.72)';
+          layerCtx.lineWidth = index === 0 ? 3 : 2;
+          layerCtx.beginPath();
+          layerCtx.moveTo(px, py);
+          layerCtx.lineTo(rightX, rightY);
+          layerCtx.stroke();
         });
         (runtime.climbables || []).forEach((climbable) => {
           const cx = toLocalX(climbable.x + climbable.w / 2);
           const top = toLocalY(climbable.y);
           const bottom = toLocalY(climbable.y + climbable.h);
-          layerCtx.strokeStyle = 'rgba(155,231,255,0.62)';
-          layerCtx.lineWidth = 1;
+          const railGap = box.compact ? 1.5 : 2.2;
+          layerCtx.strokeStyle = 'rgba(155,231,255,0.82)';
+          layerCtx.lineWidth = 1.1;
           layerCtx.beginPath();
-          layerCtx.moveTo(cx, top);
-          layerCtx.lineTo(cx, bottom);
+          layerCtx.moveTo(cx - railGap, top);
+          layerCtx.lineTo(cx - railGap, bottom);
+          layerCtx.moveTo(cx + railGap, top);
+          layerCtx.lineTo(cx + railGap, bottom);
+          for (let rungY = top + 3; rungY < bottom; rungY += 4) {
+            layerCtx.moveTo(cx - railGap, rungY);
+            layerCtx.lineTo(cx + railGap, rungY);
+          }
           layerCtx.stroke();
         });
         (runtime.stations || []).forEach((station) => {
@@ -26282,22 +26432,67 @@
         (snapshot.portals || []).forEach((portal) => {
           const px = toLocalX(portal.x + portal.w / 2);
           const py = toLocalY(portal.y + portal.h / 2);
+          const guided = guidePortalId && normalizeId(portal.id) === guidePortalId || guidePortalLabel && portal.label === guidePortalLabel;
           layerCtx.fillStyle = portal.locked ? '#8a97a5' : portal.bossPortal ? '#c794ff' : '#36c5ff';
           layerCtx.beginPath();
-          layerCtx.moveTo(px, py - 4);
-          layerCtx.lineTo(px + 4, py + 3);
-          layerCtx.lineTo(px - 4, py + 3);
+          const pointsRight = !portal.returnPortal && px >= localMapX + mapW / 2;
+          layerCtx.moveTo(px + (pointsRight ? 5 : -5), py);
+          layerCtx.lineTo(px + (pointsRight ? -3 : 3), py - 4);
+          layerCtx.lineTo(px + (pointsRight ? -3 : 3), py + 4);
           layerCtx.closePath();
           layerCtx.fill();
+          if (guided) {
+            layerCtx.strokeStyle = '#fff3b0';
+            layerCtx.lineWidth = 1.5;
+            layerCtx.beginPath();
+            layerCtx.arc(px, py, 7, 0, Math.PI * 2);
+            layerCtx.stroke();
+            if (!box.compact) this.drawCanvasText(layerCtx, portal.label || 'Guide', clamp(px, localMapX + 28, localMapX + mapW - 28), Math.max(localMapY + 2, py - 13), { color: '#fff3b0', font: '900 7px system-ui', align: 'center', maxWidth: 58, lineHeight: 8, maxLines: 1 });
+          }
         });
         layerCtx.restore();
+        if (!box.compact) {
+          const legendY = localMapY + plotH;
+          layerCtx.fillStyle = 'rgba(9,31,59,0.76)';
+          layerCtx.fillRect(localMapX, legendY, mapW, legendH);
+          const legendItems = [
+            { x: 0.04, color: '#ffffff', label: 'You', kind: 'dot' },
+            { x: 0.25, color: '#ff5a66', label: 'Mob', kind: 'dot' },
+            { x: 0.48, color: '#9be7ff', label: 'Climb', kind: 'line' },
+            { x: 0.75, color: '#36c5ff', label: 'Gate', kind: 'gate' }
+          ];
+          legendItems.forEach((item) => {
+            const itemX = localMapX + mapW * item.x;
+            layerCtx.strokeStyle = item.color;
+            layerCtx.fillStyle = item.color;
+            layerCtx.lineWidth = 1;
+            if (item.kind === 'line') {
+              layerCtx.beginPath();
+              layerCtx.moveTo(itemX, legendY + 3);
+              layerCtx.lineTo(itemX, legendY + 9);
+              layerCtx.stroke();
+            } else if (item.kind === 'gate') {
+              layerCtx.beginPath();
+              layerCtx.moveTo(itemX + 3, legendY + 6);
+              layerCtx.lineTo(itemX - 2, legendY + 3);
+              layerCtx.lineTo(itemX - 2, legendY + 9);
+              layerCtx.closePath();
+              layerCtx.fill();
+            } else {
+              layerCtx.beginPath();
+              layerCtx.arc(itemX, legendY + 6, 2, 0, Math.PI * 2);
+              layerCtx.fill();
+            }
+            this.drawCanvasText(layerCtx, item.label, itemX + 5, legendY + 2, { color: '#dbeaf2', font: '800 6px system-ui', maxWidth: 32, lineHeight: 7, maxLines: 1 });
+          });
+        }
       });
       if (staticLayer) ctx.drawImage(staticLayer, x, y, boxW, boxH);
       this.addCanvasRegion({ type: 'minimap-drag', x, y, w: boxW, h: boxH });
       this.addCanvasRegion({ type: 'minimap-toggle', x: x + boxW - 28, y: y + 2, w: 24, h: 20 });
       ctx.save();
       ctx.beginPath();
-      ctx.rect(mapX, mapY, mapW, mapH);
+      ctx.rect(mapX, mapY, mapW, plotH);
       ctx.clip();
       const camera = snapshot.camera || {};
       if (Number(camera.w || 0) > 0) {
@@ -26305,7 +26500,7 @@
         const vw = Math.max(18, Number(camera.w || 0) / worldW * mapW);
         ctx.strokeStyle = 'rgba(255,255,255,0.72)';
         ctx.lineWidth = 1;
-        ctx.strokeRect(vx, mapY + 2, Math.min(vw, mapX + mapW - vx), mapH - 4);
+        ctx.strokeRect(vx, mapY + 2, Math.min(vw, mapX + mapW - vx), plotH - 4);
       }
       const minimapEnemies = snapshot.minimapEnemies || snapshot.enemies || [];
       for (let index = 0; index < minimapEnemies.length; index += 1) {
@@ -28778,7 +28973,7 @@
         ? `Rift tier ${Number(mapModifiers.rift.tier || 1)} - ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`
         : '';
       const availableBodyH = Math.max(360, Number(this.currentCanvasPanelBody && this.currentCanvasPanelBody.h || 582));
-      const detailH = 118;
+      const detailH = 136;
       const graphW = w;
       const graphMaxH = Math.max(260, Math.min(440, availableBodyH - detailH - 34));
       const graphH = clamp(Math.round(graphW * 0.47), Math.min(300, graphMaxH), graphMaxH);
@@ -28892,10 +29087,7 @@
           h: hitSize
         });
       });
-      const enemyNames = (selected.enemies || []).map((enemyId) => {
-        const enemy = (Data.ENEMIES || []).find((candidate) => candidate.id === enemyId);
-        return enemy ? enemy.name : enemyId;
-      });
+      const spawnSummary = this.getWorldMapSpawnSummary(selected);
       const route = selected.route;
       let dy = graphY + graphH + 10;
       const detailY = dy;
@@ -28916,6 +29108,13 @@
       ].filter(Boolean).join('  ');
       if (summaryText) this.drawCanvasText(ctx, summaryText, detailTextX, dy + 64, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailTextW, lineHeight: 10, maxLines: 1 });
       this.drawCanvasButton(ctx, 'Set Guide', detailX + detailW - 126, detailY + 18, 108, 30, { type: 'world-map-guide', mapId: selected.mapId }, false);
+      if (spawnSummary.enemyIds.length) {
+        this.drawCanvasButton(ctx, 'Monster Guide', detailX + detailW - 126, detailY + 52, 108, 24, {
+          type: 'world-map-monsters',
+          mapName: selected.name || '',
+          enemyIds: spawnSummary.enemyIds
+        }, false);
+      }
       const detailLineY = detailY + 78;
       const detailColGap = 12;
       const detailColW = Math.floor((detailW - 20 - detailColGap) / 2);
@@ -28923,11 +29122,14 @@
         ? pathHint.lockedReason
         : formatDungeonRespawnLabel(selected) || selected.landmark && `Landmark: ${selected.landmark}` || selected.areaMechanic || selected.purpose || 'Portal route available from connected maps.';
       this.drawCanvasText(ctx, purposeText, detailX + 10, detailLineY, { color: pathHint.lockedReason && selected.selected ? '#9a5b36' : '#5f6f7a', font: '9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 2 });
-      const enemyText = enemyNames.length ? `Enemies: ${enemyNames.join(', ')}` : 'No regular monsters listed.';
+      const enemyText = spawnSummary.enemyLabel ? `Mobs: ${spawnSummary.enemyLabel}` : 'No regular monsters listed.';
       this.drawCanvasText(ctx, enemyText, detailX + 10 + detailColW + detailColGap, detailLineY, { color: '#102033', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
+      const cadenceText = [spawnSummary.populationLabel, spawnSummary.respawnLabel && `respawn ${spawnSummary.respawnLabel}`].filter(Boolean).join(' - ');
+      if (cadenceText) this.drawCanvasText(ctx, cadenceText, detailX + 10, detailLineY + 25, { color: '#177645', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
+      if (spawnSummary.dropLabel) this.drawCanvasText(ctx, `Drops: ${spawnSummary.dropLabel}${spawnSummary.dropRateLabel ? ` - ${spawnSummary.dropRateLabel}` : ''} - exact odds in Guide`, detailX + 10 + detailColW + detailColGap, detailLineY + 25, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
       if (route && route.fields && route.fields.length) {
         const routeText = route.fields.map((field) => `${field.mapName} ${formatAbbreviatedInteger(field.value)}/${formatAbbreviatedInteger(field.goal)}`).join('  ');
-        this.drawCanvasText(ctx, routeText, detailX + 10 + detailColW + detailColGap, detailLineY + 14, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
+        this.drawCanvasText(ctx, routeText, detailX + 10 + detailColW + detailColGap, detailLineY + 13, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
       }
       return detailY + detailH - y;
     }
@@ -36038,6 +36240,9 @@
         }
       } else {
         if (region.type === 'monster-guide-select' && this.engine.selectMonsterGuideEnemy) this.engine.selectMonsterGuideEnemy(region.enemyId);
+      }
+      if (region.type === 'world-map-monsters') {
+        this.openMonsterGuideForMap(region.mapName || '', region.enemyIds || []);
       }
       const worldProgressRegionActionHelper = getQuestHelper('getWorldProgressRegionAction');
       if (worldProgressRegionActionHelper) {

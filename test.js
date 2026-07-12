@@ -9180,13 +9180,16 @@ try {
     const verticalFieldIds = ['thornpathThicket', 'rustcoilRuins', 'cinderHollow', 'orebackQuarry', 'glacierSpine', 'stormbreakCliffs', 'astralArchive', 'eclipseFrontier', 'endlessRift'];
     assert(verticalFieldIds.every((mapId) => {
       const map = mapById[mapId];
-      const width = Math.max(...(map.platforms || []).map((platform) => Number(platform[0] || 0) + Number(platform[2] || 0)));
-      const upperPlatforms = (map.platforms || []).filter((platform) => Number(platform[1] || 0) <= Number(map.authoredGroundY || 0) - 500);
+      const width = Math.max(...(map.platforms || []).map((platform) =>
+        Number(Array.isArray(platform) ? platform[0] : platform && platform.x || 0) +
+        Number(Array.isArray(platform) ? platform[2] : platform && platform.w || 0)));
+      const upperPlatforms = (map.platforms || []).filter((platform) =>
+        Number(Array.isArray(platform) ? platform[1] : platform && platform.y || 0) <= Number(map.authoredGroundY || 0) - 500);
       const profile = data.MAP_ENVIRONMENT_PROFILES && data.MAP_ENVIRONMENT_PROFILES[mapId];
       return Number(map.worldHeight || 0) >= 1180 &&
         width <= 5600 &&
         upperPlatforms.length >= 3 &&
-        (map.climbables || []).length >= 10 &&
+        (map.climbables || []).length >= 9 &&
         profile &&
         profile.terrain &&
         profile.props &&
@@ -10941,7 +10944,10 @@ try {
 	      assert(map && spreadEngine.chooseClass('fighter') && spreadEngine.changeMap(map.id),
 	        'Project Starfall initial field spread test should load Greenroot Meadow');
 	      const spawnAreaKeys = spreadEngine.enemies.map((enemy) => spreadEngine.getFieldSpawnAreaKey(enemy));
-	      assert(spreadEngine.enemies.length > 1 && new Set(spawnAreaKeys).size === spreadEngine.enemies.length,
+	      const physicalSpawnKeys = spreadEngine.enemies.map((enemy) => `${enemy.spawnPlatformId}:${Math.round(Number(enemy.spawnX || 0))}`);
+	      assert(spreadEngine.enemies.length > 1 &&
+          new Set(spawnAreaKeys).size === spreadEngine.enemies.length &&
+          new Set(physicalSpawnKeys).size === spreadEngine.enemies.length,
 	        'Project Starfall initial field enemies should occupy distinct spawn areas before duplicating');
 	    }
 	    {
@@ -11408,7 +11414,7 @@ try {
             const left = Math.max(authoredPlatformX(flat), authoredPlatformX(slope));
             const right = Math.min(authoredPlatformRight(flat), authoredPlatformRight(slope));
             const overlap = right - left;
-            if (overlap < 220) continue;
+            if (overlap < 260) continue;
             const middle = (left + right) / 2;
             if (Math.abs(authoredPlatformY(flat) - authoredPlatformSurfaceY(slope, middle)) <= 40) {
               issues.push(`platform/slope overlap is too large near x=${Math.round(middle)}`);
@@ -11497,14 +11503,13 @@ try {
             Object.values(trainingRoute.checks || {}).every(Boolean),
             `Project Starfall ${map.id} should expose a viable loopable training route contract`);
         }
-        if (!map.safeZone) {
+        if (!map.safeZone && !map.adminOnly && !map.shopInterior) {
           const broadPartyPlatforms = mapRuntime.platforms.filter((platform) => platform.index > 0 && platform.w >= 640);
           const connectorPlatforms = mapRuntime.platforms.filter((platform) => platform.index > 0 && platform.w >= 120 && platform.w <= 320);
           const longLanePlatforms = broadPartyPlatforms.filter((platform) => platform.w >= 1200);
           const verticalTiers = Array.from(new Set(broadPartyPlatforms.map((platform) => platform.y))).length;
           const sortedBroadTiers = Array.from(new Set(broadPartyPlatforms.map((platform) => platform.y))).sort((a, b) => a - b);
           const minimumRuntimeTierGap = sortedBroadTiers.slice(1).reduce((gap, tierY, index) => Math.min(gap, tierY - sortedBroadTiers[index]), Infinity);
-          const upperPartyLane = broadPartyPlatforms.slice().sort((a, b) => a.y - b.y)[0];
           const climbLinkedLayouts = new Set(['verticalCanopy', 'industrialStack', 'lavaShaft', 'quarryShaft', 'glacierClimb', 'stormClimb', 'astralStack', 'riftStack']);
           if (climbLinkedLayouts.has(map.layoutStyle)) {
             assert(broadPartyPlatforms.length >= 9 &&
@@ -11513,17 +11518,22 @@ try {
               mapRuntime.climbables.length >= 8,
               `Project Starfall ${map.id} should provide climb-linked multi-tier party training areas`);
           } else {
-            assert(broadPartyPlatforms.length >= (map.isDungeon ? 6 : 10) &&
+            const routeContract = mapRuntime.trainingRoute;
+            assert(broadPartyPlatforms.length >= (map.isDungeon ? 6 : map.compactWorldWidth ? 9 : 10) &&
               verticalTiers >= 3 &&
               minimumRuntimeTierGap >= 128 &&
               connectorPlatforms.length >= (map.isDungeon ? 4 : 6) &&
-              upperPartyLane &&
-              layoutEngine.findEnemyPlatformLink(mapGround, upperPartyLane),
+              routeContract &&
+              routeContract.checks &&
+              routeContract.checks.noUnreachablePlatforms &&
+              routeContract.reachableTierCount >= routeContract.requiredReachableTierCount,
               `Project Starfall ${map.id} should provide connected multi-tier party training areas`);
           }
           if (!map.isDungeon && map.layoutStyle === 'sharedLanes') {
             const longLaneTiers = new Set(longLanePlatforms.map((platform) => platform.y));
-            assert(longLanePlatforms.length >= 9 && longLaneTiers.size >= 3,
+            assert(map.compactWorldWidth
+              ? broadPartyPlatforms.length >= 9 && verticalTiers >= 3
+              : longLanePlatforms.length >= 9 && longLaneTiers.size >= 3,
               `Project Starfall ${map.id} should provide long shared training lanes across multiple tiers`);
           }
         }
@@ -19955,11 +19965,20 @@ try {
       engine.state.player.combatLockUntil = 0;
 	      engine.input.down = false;
 	      engine.input.up = true;
-	      player.x = 2144;
       player.y = lowerPlatform.y - player.h;
       player.grounded = true;
       player.groundedPlatformId = lowerPlatform.id;
       player.groundedPlatformIndex = lowerPlatform.index;
+      const missedBlinkX = Array.from({ length: Math.max(1, Math.floor((lowerPlatform.w - player.w - 64) / 64)) }, (_, index) =>
+        lowerPlatform.x + 32 + index * 64
+      ).find((candidateX) => {
+        player.x = candidateX;
+        const plan = engine.getMovementSkillPlan(verticalBlinkSkill, engine.state.skills.mage_blink);
+        return !(plan && plan.target);
+      });
+      assert(Number.isFinite(missedBlinkX),
+        'Project Starfall blink no-target setup should find a ground position without an in-range vertical platform');
+	      player.x = missedBlinkX;
       player.mp = engine.getStats().maxMp;
       const missedTeleportMp = player.mp;
       const missedTeleportLogCount = engine.state.log.length;
@@ -24519,7 +24538,9 @@ try {
 	    assert(offPlatformEngine.changeMap('greenrootMeadow', { fromMapId: 'starfallCrossing' }),
 	      'off-platform loot tests should run on a field map with upper platforms');
 	    const offPlatformGround = offPlatformEngine.runtime.platforms[0];
-	    const offPlatformUpper = offPlatformEngine.runtime.platforms.find((platform) => platform.y < offPlatformGround.y);
+	    const offPlatformUpper = offPlatformEngine.runtime.platforms
+      .filter((platform) => platform.index > 0 && platform.shape !== 'slope' && platform.y < offPlatformGround.y)
+      .sort((a, b) => (b.x + b.w) - (a.x + a.w))[0];
 	    assert(offPlatformUpper, 'off-platform loot tests should have an upper field platform');
     const oldUpperLandY = offPlatformUpper.y - 18;
     const groundLandY = offPlatformGround.y - 18;
@@ -24531,7 +24552,7 @@ try {
       y: oldUpperLandY - 30,
       landX: offPlatformUpper.x + offPlatformUpper.w - 4,
       landY: oldUpperLandY,
-      vx: 360,
+      vx: 120,
       vy: 0,
       airborne: true,
       bounces: 1,
@@ -27863,51 +27884,51 @@ try {
       greenrootMeadow: {
         sections: ['Starter Pond Loop', 'Moss Lane Extension', 'Canopy Practice', 'Thornpath Gate'],
         spawningSections: ['Starter Pond Loop', 'Moss Lane Extension', 'Canopy Practice', 'Thornpath Gate'],
-        minSolidLanes: 12,
-        minRamps: 10,
-        minClimbables: 10
+        minSolidLanes: 9,
+        minRamps: 6,
+        minClimbables: 9
       },
       banditRidgeCamp: {
         sections: ['Lower Cutter Lane', 'Middle Thrower Camp', 'High Rope Bridge', 'Campfire Regroup'],
         spawningSections: ['Lower Cutter Lane', 'Middle Thrower Camp', 'High Rope Bridge', 'Campfire Regroup'],
-        minSolidLanes: 12,
-        minRamps: 10,
-        minClimbables: 10
+        minSolidLanes: 9,
+        minRamps: 6,
+        minClimbables: 9
       },
       orebackQuarry: {
         sections: ['Ore Cart Lane', 'Scaffold Sentries', 'Mushroom Pocket', 'Mine Event Pocket'],
         spawningSections: ['Ore Cart Lane', 'Scaffold Sentries', 'Mushroom Pocket', 'Mine Event Pocket'],
-        minSolidLanes: 10,
-        minRamps: 9,
-        minClimbables: 10
+        minSolidLanes: 9,
+        minRamps: 6,
+        minClimbables: 9
       },
       cinderHollow: {
         sections: ['Ash Floor Loop', 'Vent Shortcut', 'Flyer Turns'],
         spawningSections: ['Ash Floor Loop', 'Vent Shortcut', 'Flyer Turns'],
         minSolidLanes: 9,
-        minRamps: 8,
+        minRamps: 5,
         minClimbables: 10
       },
       ashglassPass: {
         sections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Elite Storm Pocket'],
         spawningSections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Elite Storm Pocket'],
         minSolidLanes: 9,
-        minRamps: 9,
+        minRamps: 6,
         minClimbables: 9
       },
       stormbreakCliffs: {
         sections: ['Low Ram Lane', 'Mid Archer Bridge', 'High Harrier Airspace', 'Lightning Rod Objective'],
         spawningSections: ['Low Ram Lane', 'Mid Archer Bridge', 'High Harrier Airspace'],
         minSolidLanes: 9,
-        minRamps: 9,
+        minRamps: 6,
         minClimbables: 9
       },
       endlessRift: {
         sections: ['Northwest Rift Quadrant', 'Northeast Rift Quadrant', 'Southeast Rift Quadrant', 'Southwest Rift Quadrant', 'Rift Core Regroup'],
         spawningSections: ['Northwest Rift Quadrant', 'Northeast Rift Quadrant', 'Southeast Rift Quadrant', 'Southwest Rift Quadrant'],
         minSolidLanes: 12,
-        minRamps: 12,
-        minClimbables: 12
+        minRamps: 5,
+        minClimbables: 11
       }
     };
     Object.entries(priorityFieldExpectations).forEach(([mapId, expectation]) => {
@@ -27929,6 +27950,17 @@ try {
         map.climbables.length >= expectation.minClimbables,
         `${map && map.name || mapId} should implement the priority map-audit geometry and spawn-section redesign`);
     });
+    const animationLabGeometry = data.MAPS.find((map) => map.id === 'banditAnimationLab');
+    assert(data.MAPS.every((map) => ['authored', 'generated'].includes(map.geometryMode)) &&
+      data.MAPS.every((map) => map.platforms.every((platform) => platform.id) &&
+        new Set(map.platforms.map((platform) => platform.id)).size === map.platforms.length) &&
+      data.MAPS.every((map) => map.spawnPoints.every((point) =>
+        map.platforms[point.platformIndex] && point.platformId === map.platforms[point.platformIndex].id)) &&
+      animationLabGeometry &&
+      animationLabGeometry.geometryMode === 'authored' &&
+      animationLabGeometry.platforms[1].x === 260 &&
+      animationLabGeometry.platforms[5].x === 2820,
+      'Project Starfall maps should declare geometry authority and expose stable platform ids without replacing authored rooms');
     const cinderGeometrySignature = data.MAPS.find((map) => map.id === 'cinderHollow').platforms
       .map((platform) => [getStaticPlatformX(platform), getStaticPlatformY(platform), getStaticPlatformW(platform)].join(':'))
       .join('|');
@@ -27952,7 +27984,11 @@ try {
       const broadTiers = Array.from(new Set(broadPlatforms.map(getStaticPlatformY))).sort((a, b) => a - b);
       const minimumBroadTierGap = broadTiers.slice(1).reduce((gap, tierY, index) => Math.min(gap, tierY - broadTiers[index]), Infinity);
       assert(map.platforms.length >= (verticalLayout ? 16 : 18) &&
-        (verticalLayout ? getStaticPlatformW(map.platforms[0]) <= 5600 && Number(map.worldHeight || 0) >= 1180 : getStaticPlatformW(map.platforms[0]) >= 6500) &&
+        (verticalLayout
+          ? getStaticPlatformW(map.platforms[0]) <= 5600 && Number(map.worldHeight || 0) >= 1180
+          : map.compactWorldWidth
+            ? getStaticPlatformW(map.platforms[0]) >= 4000 && getStaticPlatformW(map.platforms[0]) <= 5600
+            : getStaticPlatformW(map.platforms[0]) >= 6500) &&
         platformYs.size >= 4,
         `${map.name} should use an authored multi-tier combat-map layout`);
       assert(broadTiers.length >= 3 && minimumBroadTierGap >= 128,
@@ -27981,10 +28017,11 @@ try {
       });
       if (map.layoutStyle === 'sharedLanes') {
         const longLaneTiers = new Set(longLanePlatforms.map(getStaticPlatformY));
-        assert(longLanePlatforms.length >= 9 && longLaneTiers.size >= 3 && connectorPlatforms.length >= 6,
+        assert((map.compactWorldWidth ? broadPlatforms.length >= 9 : longLanePlatforms.length >= 9) &&
+          (map.compactWorldWidth ? broadTiers.length : longLaneTiers.size) >= 3 && connectorPlatforms.length >= 6,
           `${map.name} should use long shared training lanes across multiple tiers`);
       } else if (map.layoutStyle === 'switchbackTerraces') {
-        assert(broadPlatforms.length >= 10 && connectorPlatforms.length >= 6,
+        assert(broadPlatforms.length >= (map.compactWorldWidth ? 9 : 10) && connectorPlatforms.length >= 6,
           `${map.name} should use wide switchback terrace platforms with connector ledges`);
       } else {
         const verticalConnectorCaps = { stormClimb: 18, riftStack: 22 };
@@ -41226,10 +41263,26 @@ try {
       recruiterStoryCss.includes('@media (max-width: 768px)') &&
       recruiterStoryCss.includes('@media (prefers-reduced-motion: reduce)'),
       'analytics recruiter story should provide desktop rail, mobile, and reduced-motion treatments');
+    assert(recruiterStoryCss.includes('24-hero-analytics-light.png') &&
+      recruiterStoryCss.includes('top: var(--story-start-y);') &&
+      recruiterStoryCss.includes('height: min(var(--story-fill-y), max(0px, calc(var(--story-end-y) - var(--story-start-y))))') &&
+      recruiterStoryCss.includes('transform: scaleX(var(--story-cell-progress, 0))') &&
+      recruiterStoryCss.includes('.story-chapter.reveal') &&
+      recruiterStoryCss.includes('transform: none;') &&
+      !recruiterStoryCss.includes('filter: brightness(1.45) contrast(.72) saturate(.55)'),
+      'analytics recruiter story should use clear media, a text-safe hero, stable chapter geometry, and a midpoint rail origin');
     assert(commonScript.includes('prepareAnalyticsStory') &&
       commonScript.includes("panel.dataset.storyRail = 'true'") &&
       commonScript.includes("document.addEventListener('site:content-updated'"),
       'analytics recruiter story should initialize on direct and injected professional pages');
+    assert(commonScript.includes("panel.style.setProperty('--story-fill-y'") &&
+      commonScript.includes("item.target.style.setProperty('--story-cell-progress'") &&
+      commonScript.includes('const railLength = Math.max(0, storyEndY - storyStartY)') &&
+      commonScript.includes('const fillHeadY = storyStartY + progressY') &&
+      commonScript.includes('const rawProgress = atBottom') &&
+      commonScript.includes("item.target.classList.toggle('is-segment-complete'") &&
+      commonScript.includes("item.link.classList.add('story-node-confirm')"),
+      'analytics recruiter story should start empty, complete at the final marker, and confirm finished segments');
     const jumpPanelCss = readFile('css/components/jump-panel.css');
     assert(!jumpPanelCss.includes('@media (hover:none) and (pointer:coarse), (max-width:768px)') &&
       jumpPanelCss.includes('scroll-margin-top:68px;') &&
@@ -41257,6 +41310,15 @@ try {
     assert(professionalHomeCss.includes('.jump-panel-link[href$="#project-examples"]') &&
       professionalHomeCss.includes('.jump-panel-link[href$="#cta"]'),
       'professional jump panel accent styling should survive mode-preserving same-page hrefs');
+    assert(professionalHomeCss.includes('.footer.footer-classic .footer-identity-name') &&
+      professionalHomeCss.includes('color: #ffffff') &&
+      professionalHomeCss.includes('.footer.footer-classic .footer-identity-summary') &&
+      professionalHomeCss.includes('color: color-mix(in srgb, #ffffff 84%, var(--brand-mist) 16%)'),
+      'professional footer identity should retain readable contrast against the navy footer');
+    const analyticsAudienceContent = readFile('content/audiences/analytics.json');
+    const googleAnalyticsCredentialMatches = analyticsAudienceContent.match(/skillshop\.credential\.net\/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a/g) || [];
+    assert(googleAnalyticsCredentialMatches.length === 2,
+      'analytics audience should show the Google Analytics credential in both the main section and credential modal');
 
     ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',

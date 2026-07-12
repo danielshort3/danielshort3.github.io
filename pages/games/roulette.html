@@ -7,7 +7,7 @@
   <title>Double-Zero Roulette | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/games/roulette">
   <meta name="theme-color" content="#072113" />
-  <link rel="stylesheet" href="dist/styles.7ca0dca9.css" />
+  <link rel="stylesheet" href="dist/styles.2e78b967.css" />
   <link rel="stylesheet" href="css/games/roulette.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -266,6 +266,7 @@
         <p class="roulette00-eyebrow">Classic American layout</p>
         <h1>Double-Zero Roulette</h1>
         <p class="roulette00-lead">Place chips directly on the table, spin the wheel, and track hot numbers over the last 200 outcomes.</p>
+        <p class="roulette00-disclaimer">Probability simulation only. All wagers use virtual credits with no cash value.</p>
       </div>
       <div class="roulette00-header-metrics" aria-live="polite">
         <div>
@@ -310,22 +311,34 @@
 
       <article class="roulette00-card roulette00-table-card" aria-label="Roulette betting table">
         <h2>Table</h2>
-        <p class="roulette00-card-note">Left-click adds one selected chip. Right-click (or Shift+click) removes one selected chip.</p>
+        <p class="roulette00-card-note">Choose Add or Remove, then select a table bet. Shift+click or right-click also removes a chip.</p>
 
         <div class="roulette00-toolbar">
           <fieldset class="roulette00-chip-tray" aria-label="Chip values">
             <legend>Chip value</legend>
-            <button type="button" class="roulette00-chip is-selected" data-chip="1">$1</button>
-            <button type="button" class="roulette00-chip" data-chip="5">$5</button>
-            <button type="button" class="roulette00-chip" data-chip="25">$25</button>
-            <button type="button" class="roulette00-chip" data-chip="100">$100</button>
+            <button type="button" class="roulette00-chip is-selected" data-chip="1" aria-pressed="true">$1</button>
+            <button type="button" class="roulette00-chip" data-chip="5" aria-pressed="false">$5</button>
+            <button type="button" class="roulette00-chip" data-chip="25" aria-pressed="false">$25</button>
+            <button type="button" class="roulette00-chip" data-chip="100" aria-pressed="false">$100</button>
+          </fieldset>
+
+          <fieldset class="roulette00-mode-tray" aria-label="Wager editing mode">
+            <legend>Table action</legend>
+            <button type="button" class="roulette00-mode is-selected" data-wager-mode="add" aria-pressed="true">Add</button>
+            <button type="button" class="roulette00-mode" data-wager-mode="remove" aria-pressed="false">Remove</button>
           </fieldset>
 
           <div class="roulette00-actions" aria-label="Bet controls">
             <button id="roulette-undo" type="button" class="roulette00-action">Undo</button>
             <button id="roulette-clear" type="button" class="roulette00-action">Clear bets</button>
             <button id="roulette-rebet" type="button" class="roulette00-action">Rebet</button>
+            <button id="roulette-new-session" type="button" class="roulette00-action roulette00-action-danger" aria-label="Start a new session and reset bankroll">New session</button>
           </div>
+        </div>
+
+        <div class="roulette00-result-key" aria-label="Result highlight key">
+          <span><i class="roulette00-key-swatch is-pocket" aria-hidden="true"></i> Winning pocket</span>
+          <span><i class="roulette00-key-swatch is-paid" aria-hidden="true"></i> Paid bet</span>
         </div>
 
         <div class="roulette00-layout" aria-label="American double-zero layout">
@@ -340,6 +353,7 @@
       <aside class="roulette00-card roulette00-analytics-card" aria-label="Roulette analytics">
         <h2>Hot numbers</h2>
         <p id="roulette-history-meta" class="roulette00-card-note">Tracking 0 of 200 spins.</p>
+        <p class="roulette00-sample-note">Each spin is independent. Hot numbers describe only this session sample and do not predict the next result.</p>
         <ol id="roulette-hot-list" class="roulette00-hot-list"></ol>
 
         <h3>Recent results</h3>
@@ -356,6 +370,23 @@
     </section>
   </main>
 
+  <div class="roulette00-mobile-bar" aria-label="Mobile roulette controls">
+    <div class="roulette00-mobile-stat">
+      <span>Chip</span>
+      <strong id="roulette-mobile-chip">$1</strong>
+    </div>
+    <div class="roulette00-mobile-stat">
+      <span>Wager</span>
+      <strong id="roulette-mobile-total-bet">$0</strong>
+    </div>
+    <div class="roulette00-mobile-stat">
+      <span>Bankroll</span>
+      <strong id="roulette-mobile-bankroll">$2,000</strong>
+    </div>
+    <button id="roulette-mobile-spin" class="roulette00-spin-btn roulette00-mobile-spin" type="button">Spin</button>
+  </div>
+
+  <script defer src="dist/site-shell.58088932.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
   <script defer src="/js/games/roulette/app.js"></script>
 </body>

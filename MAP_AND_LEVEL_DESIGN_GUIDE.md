@@ -64,6 +64,26 @@ The terrain system is platform-definition driven:
 
 This means slopes are not only visual decoration. They directly affect traversal, enemy pathing, camera motion, and combat footing.
 
+### Geometry And Spawn Authoring Contract
+
+Maps must now declare how their collision geometry is produced:
+
+- `geometryMode: "authored"` preserves the map's declared platforms, climbables, and spawn points. Use it for bespoke rooms and layouts whose exact platform arrangement matters.
+- `geometryMode: "generated"` opts into a named `geometryGenerator`. Use it only when the selected builder is the intentional source of truth for that map.
+- Every published platform receives a stable `id`. Spawn points and ramp connections also retain the matching platform IDs so later geometry edits do not silently redirect a mob territory.
+
+Combat population is authored through `spawnGroups`, not by relying on the order of the map-wide `enemies` array. A group declares a section label, `platformIds`, weighted enemy types, target population, respawn cadence, leash distance, party scaling, and actor traversal permissions. The runtime keeps replacements inside that territory and applies the group's cadence independently. Maps without explicit groups receive backward-compatible groups from their spawn sections, but priority fields should always use named groups.
+
+Use platform territories to create readable roles:
+
+- Ground melee packs belong on broad lower lanes.
+- Ranged packs belong on ledges with an obvious approach.
+- Flyers belong in open upper airspace.
+- Support or rare enemies belong in smaller, visually distinct pockets.
+- Regroup sections should have lower pressure than the neighboring combat territories.
+
+The world map and minimap are player-facing summaries of this contract. Keep group labels short, make portal destinations explicit, and expose approximate population and respawn timing before a player enters a field. Exact rare-drop odds remain a Monster Guide mastery reward; the map panel should still reveal common/signature drop categories immediately.
+
 ### How Players Move Through Maps
 
 Player movement is side-scroller traversal through horizontal lanes, jumps, drops, climbables, and slope connections. The engine uses default jump-link limits around 128 px vertical jump and 300 px drop. Camera behavior in `viewport.js` targets the player with a forward-biased X anchor and smoothed Y movement. Because the camera follows vertical movement, long chains of slopes can create constant subtle camera bobbing.
@@ -72,18 +92,18 @@ Movement readability depends on clear flat landings, predictable route options, 
 
 ### Current Slope Usage
 
-Current map generation uses many slopes as standard connectors. In `map-builders.js`, cluster builders commonly add a slope from ground to low lane, low to mid lane, and mid to high lane. That pattern makes slope use feel systematic rather than authored.
+Map generation previously used slopes as standard connectors between nearly every lane. The current builders cap that pattern and combine ramps with climbables, drops, hops, and broad flat tiers. New maps should keep that variety instead of reintroducing a ramp at every lane change.
 
 Current slope counts from the built map data:
 
 | Map Type | Current Slope Pattern | Design Risk |
 | --- | --- | --- |
-| Town hubs | About 4 slopes on 17 platforms | Acceptable only if services remain flat and slopes do not cross UI/service spaces. |
-| Starter/standard fields | Often 9-12 slopes | Too many slopes for normal traversal. The terrain can read as rolling generated hills instead of authored lanes. |
-| Party/farm fields | Often 10-12 slopes | Too many slopes around combat, healing pockets, and reward routes. |
-| Vertical/deep fields | Often 9 slopes | Can work only if slopes support the biome identity. Otherwise ladders, ledges, lifts, or cliff drops should carry verticality. |
-| Endless Rift | 13 slopes | Too many. This should rely more on rift islands, portals, quadrant breaks, and rune steps. |
-| Dungeon/boss arenas | Often 6 slopes | Too many for combat arenas. Boss spaces need broad flat combat lanes and a few deliberate transition ramps. |
+| Town hubs | 4 slopes with 8-9 broad flats | Keep services flat and ramps outside interaction clusters. |
+| Starter/standard fields | 5-6 slopes with at least 10 broad flats | Good baseline; use ramps for section transitions, not every tier change. |
+| Party/farm fields | 6 slopes with 10-13 broad flats | Maintain clear regroup pockets and lane-specific mob territories. |
+| Vertical/deep fields | 6 slopes plus climbables | Let ladders, vines, lifts, ledges, and drops carry most vertical identity. |
+| Endless Rift | 5 slopes with 14 broad flats | Preserve quadrant breaks, floating islands, and rune-style transitions. |
+| Dungeon/boss arenas | 4 slopes with 7 broad flats | Keep the primary boss lane flat and mechanic-readable. |
 
 Current slope grades are also aggressive in some biomes. Greenroot has gentler 64-128 px rises over about 260 px width. Cinder, Quarry, Stormbreak, and Endless Rift often use 160-180 px rises over 240-300 px, which is visually steep and should feel dramatic, not routine.
 
@@ -103,7 +123,7 @@ Readability gets weaker when too many ramps appear close together, because the p
 
 The terrain and prop atlases are strong enough to support polished maps. The environment sheets under `img/project-starfall/environment/terrain/`, `props/`, and `ramps/` are biome-specific and consistent with the GDD. The issue is not asset quality; it is composition.
 
-Important implementation note: `data/environment.js` registers ramp atlases, but `project-starfall-renderer-pixi.js` currently routes slope drawing through a fallback polygon/trim treatment in `drawRampPlatformTerrain()`. Until ramp atlas rendering is fully wired into the slope renderer, every visible slope increases reliance on fallback art. This makes overuse of slopes look cheaper than overuse of flat terrain.
+Important implementation note: `data/environment.js` registers biome ramp atlases and `project-starfall-renderer-pixi.js` now renders slope cells from those atlases in `drawRampPlatformTerrain()`, retaining the fallback only when an asset is unavailable. Slope budgets still matter: repeated ramps create visual rhythm and camera movement even when the artwork is polished.
 
 ### Current Tile And Terrain Consistency
 
@@ -118,17 +138,15 @@ Project Starfall already has distinct terrain identities by map:
 
 Terrain consistency is weakened when the same slope composition is used across all of these areas. Rustcoil should not climb like Greenroot. Cinder should not have every lane connected by the same ramp logic as Frostfen. Astral maps should use rune platforms, lifts, and floating shelves more than natural hills.
 
-### Current Level Design Problems Visible From Files
+### Current Risks To Guard Against
 
-- Slopes are treated as the default lane connector instead of a special authored shape.
-- Several maps have one slope for nearly every major lane change.
-- Boss arenas include too many diagonal surfaces for spaces that should prioritize combat readability.
-- Later maps risk samey traversal because different biomes inherit similar ramp-chain structure.
-- Some slope grades are steep enough that they should be memorable terrain events, not repeated ordinary connectors.
-- Slopes can interfere with camera smoothness because long chains create constant vertical movement.
-- Slopes can interfere with enemy and pickup readability if encounters are placed directly on them.
-- Ramp art assets exist, but the renderer currently appears to use fallback slope drawing rather than full ramp atlas tiles.
-- Current map style works best with broad flat lanes, but slope density reduces the amount of stable combat and decision-making space.
+- Generated maps can become samey if different biomes reuse the same lane grammar without a named route purpose.
+- Boss arenas still share a common skeleton and need mechanic-specific iteration over time.
+- Steep slopes should remain memorable terrain events rather than ordinary connectors.
+- Long vertical chains can still cause camera oscillation even when traversal validation passes.
+- Enemy and pickup placement should remain off slope surfaces.
+- Platform IDs referenced by spawn groups must stay stable when geometry is edited.
+- World-map population, cadence, and drop previews must be updated whenever a spawn group changes.
 
 ## 2. Core Level Design Principles For Project Starfall
 

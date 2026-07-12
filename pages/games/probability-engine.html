@@ -23,6 +23,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
   <link rel="stylesheet" href="css/components/games.css">
   <link rel="stylesheet" href="css/games/probability-engine.css">
   <meta property="og:image:type" content="image/png">
@@ -258,114 +259,147 @@
   </header>
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand">
+      <div class="engine-brand">
         <h1>Probability Engine</h1>
         <p>Build the reels, bend the odds, scale from grimy basement rig to quantum casino core.</p>
+      </div>
+      <div class="save-tools" aria-label="Save management">
+        <button id="export-save-button" type="button">Export Save</button>
+        <button id="import-save-button" type="button">Import Save</button>
+        <button id="reset-save-button" class="danger-button" type="button">Reset Progress</button>
+        <input id="import-save-input" type="file" accept="application/json,.json" hidden>
+        <p id="save-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
       </div>
       <div id="stats" class="stats"></div>
     </header>
 
     <main id="main">
-      <section class="panel machine-stage">
-        <div class="stage-head">
+      <nav class="workspace-tabs" role="tablist" aria-label="Engine systems">
+        <button id="tab-machine" class="workspace-tab" type="button" role="tab" aria-selected="true" aria-controls="workspace-machine" data-workspace-tab="machine">Machine</button>
+        <button id="tab-deck" class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="workspace-deck" data-workspace-tab="deck" tabindex="-1">Deck</button>
+        <button id="tab-market" class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="workspace-market" data-workspace-tab="market" tabindex="-1">Market</button>
+        <button id="tab-lab" class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="workspace-lab" data-workspace-tab="lab" tabindex="-1">Lab</button>
+        <button id="tab-prestige" class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="workspace-prestige" data-workspace-tab="prestige" tabindex="-1">Prestige</button>
+        <button id="tab-log" class="workspace-tab" type="button" role="tab" aria-selected="false" aria-controls="workspace-log" data-workspace-tab="log" tabindex="-1">Log</button>
+      </nav>
+
+      <div id="workspace-machine" class="workspace-panel" role="tabpanel" aria-labelledby="tab-machine" data-workspace-panel="machine">
+        <section class="panel machine-stage">
+          <div class="stage-head">
+            <div>
+              <h2 id="selected-machine-title">Machine 1</h2>
+              <p id="era-text" class="small">Mechanical Basement Rig</p>
+            </div>
+            <div class="controls">
+              <button id="spin-button" type="button">Spin</button>
+              <button id="auto-button" type="button">Auto: Off</button>
+              <button id="buy-machine-button" type="button">Buy Next Machine</button>
+            </div>
+          </div>
+          <div id="lock-row" class="lock-row" aria-label="Reel lock controls"></div>
+          <div id="grid-wrapper">
+            <div id="slot-grid" aria-label="Current symbol grid"></div>
+            <div id="particles" aria-hidden="true"></div>
+          </div>
+          <div class="spin-outcome" aria-labelledby="spin-outcome-title">
+            <strong id="spin-outcome-title">Ready for the first spin</strong>
+            <span id="spin-outcome-detail">Payouts and activated synergies will be explained here.</span>
+          </div>
+          <p id="spin-result-status" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">Ready to spin.</p>
+          <div id="machine-meta" class="machine-meta"></div>
+        </section>
+
+        <section class="panel">
+          <h3>Casino Floor</h3>
+          <div id="machine-list" class="machine-list"></div>
+        </section>
+      </div>
+
+      <div id="workspace-deck" class="workspace-panel" role="tabpanel" aria-labelledby="tab-deck" data-workspace-panel="deck" hidden>
+        <section class="panel two-col">
           <div>
-            <h2 id="selected-machine-title">Machine 1</h2>
-            <p id="era-text" class="small">Mechanical Basement Rig</p>
+            <h3>Deck Builder</h3>
+            <p class="small">Minimum deck size: <span id="min-deck-size">10</span> symbols.</p>
+            <p id="deck-ev-summary" class="small">Expected return per spin: --</p>
+            <div id="deck-list" class="list-block"></div>
           </div>
-          <div class="controls">
-            <button id="spin-button" type="button">Spin</button>
-            <button id="auto-button" type="button">Auto: Off</button>
-            <button id="buy-machine-button" type="button">Buy Next Machine</button>
+          <div>
+            <h3>Inventory</h3>
+            <div id="inventory-list" class="list-block"></div>
           </div>
-        </div>
-        <div id="lock-row" class="lock-row" aria-label="Reel lock controls"></div>
-        <div id="grid-wrapper">
-          <div id="slot-grid" aria-live="polite"></div>
-          <div id="particles"></div>
-        </div>
-        <div id="machine-meta" class="machine-meta"></div>
-      </section>
+        </section>
+      </div>
 
-      <section class="panel">
-        <h3>Casino Floor</h3>
-        <div id="machine-list" class="machine-list"></div>
-      </section>
-
-      <section class="panel two-col">
-        <div>
-          <h3>Deck Builder</h3>
-          <p class="small">Minimum deck size: <span id="min-deck-size">10</span> symbols.</p>
-          <p id="deck-ev-summary" class="small">Expected return per spin: --</p>
-          <div id="deck-list" class="list-block"></div>
-        </div>
-        <div>
-          <h3>Inventory</h3>
-          <div id="inventory-list" class="list-block"></div>
-        </div>
-      </section>
-
-      <section class="panel two-col">
-        <div class="inline-grid">
-          <h3>Symbol Pack Shop</h3>
-          <div class="shop-row">
-            <div class="line">
-              <span>Tri-Symbol Pack</span>
-              <span id="pack-cost" class="cost">0</span>
+      <div id="workspace-market" class="workspace-panel" role="tabpanel" aria-labelledby="tab-market" data-workspace-panel="market" hidden>
+        <section class="panel two-col">
+          <div class="inline-grid">
+            <h3>Symbol Pack Shop</h3>
+            <div class="shop-row">
+              <div class="line">
+                <span>Tri-Symbol Pack</span>
+                <span id="pack-cost" class="cost">0</span>
+              </div>
+              <button id="buy-pack-button" type="button">Buy Pack</button>
+              <p id="pack-odds" class="small"></p>
             </div>
-            <button id="buy-pack-button" type="button">Buy Pack</button>
-            <p id="pack-odds" class="small"></p>
+            <p id="pack-preview" class="small">No pack opened yet.</p>
           </div>
-          <p id="pack-preview" class="small">No pack opened yet.</p>
-        </div>
 
-        <div class="inline-grid">
-          <h3>Machine Upgrades</h3>
-          <div id="upgrade-list" class="inline-grid"></div>
-        </div>
-      </section>
+          <div class="inline-grid">
+            <h3>Machine Upgrades</h3>
+            <div id="upgrade-list" class="inline-grid"></div>
+          </div>
+        </section>
+      </div>
 
-      <section class="panel two-col">
-        <div class="inline-grid">
-          <h3>Crafting Bay</h3>
-          <p class="small">Destroy duplicate symbols for Shards, then fuse targeted high-tier symbols.</p>
-          <div id="recipe-list" class="inline-grid"></div>
-        </div>
+      <div id="workspace-lab" class="workspace-panel" role="tabpanel" aria-labelledby="tab-lab" data-workspace-panel="lab" hidden>
+        <section class="panel two-col">
+          <div class="inline-grid">
+            <h3>Crafting Bay</h3>
+            <p class="small">Destroy duplicate symbols for Shards, then fuse targeted high-tier symbols.</p>
+            <div id="recipe-list" class="inline-grid"></div>
+          </div>
 
-        <div class="inline-grid">
-          <h3>Drink Mixer</h3>
-          <p class="small">Buy ingredients with Influence and mix temporary global buffs.</p>
-          <div id="ingredient-shop" class="inline-grid"></div>
-          <div id="buff-list" class="inline-grid"></div>
-        </div>
-      </section>
+          <div class="inline-grid">
+            <h3>Drink Mixer</h3>
+            <p class="small">Buy ingredients with Influence and mix temporary global buffs.</p>
+            <div id="ingredient-shop" class="inline-grid"></div>
+            <div id="buff-list" class="inline-grid"></div>
+          </div>
+        </section>
+      </div>
 
-      <section class="panel two-col">
-        <div class="inline-grid">
-          <h3>Prestige: Cash Out</h3>
-          <div class="prestige-row">
-            <div class="line">
-              <span>Projected Chips</span>
-              <span id="prestige-gain" class="cost">0</span>
+      <div id="workspace-prestige" class="workspace-panel" role="tabpanel" aria-labelledby="tab-prestige" data-workspace-panel="prestige" hidden>
+        <section class="panel two-col">
+          <div class="inline-grid">
+            <h3>Prestige: Cash Out</h3>
+            <div class="prestige-row">
+              <div class="line">
+                <span>Projected Chips</span>
+                <span id="prestige-gain" class="cost">0</span>
+              </div>
+              <p class="small">Resets Credits, Influence, Shards, Machines, decks, and upgrades. Keeps Chips, Skill Nodes, and Legendary symbols.</p>
+              <button id="prestige-button" type="button">Cash Out &amp; Reboot</button>
             </div>
-            <p class="small">Resets Credits, Influence, Shards, Machines, decks, and upgrades. Keeps Chips, Skill Nodes, and Legendary symbols.</p>
-            <button id="prestige-button" type="button">Cash Out &amp; Reboot</button>
           </div>
-        </div>
 
-        <div class="inline-grid">
-          <h3>Chip Skill Tree</h3>
-          <div id="skill-tree" class="skill-grid"></div>
-        </div>
-      </section>
+          <div class="inline-grid">
+            <h3>Chip Skill Tree</h3>
+            <div id="skill-tree" class="skill-grid"></div>
+          </div>
+        </section>
+      </div>
 
-      <section class="panel">
-        <h3>Event Log</h3>
-        <div id="event-log"></div>
-      </section>
+      <div id="workspace-log" class="workspace-panel" role="tabpanel" aria-labelledby="tab-log" data-workspace-panel="log" hidden>
+        <section class="panel">
+          <h3>Event Log</h3>
+          <div id="event-log"></div>
+        </section>
+      </div>
     </main>
   </div>
 
-  <div id="offline-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="offline-title">
+  <div id="offline-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="offline-title" aria-describedby="offline-summary">
     <div class="modal-card">
       <h2 id="offline-title">Welcome Back</h2>
       <p id="offline-summary"></p>
@@ -374,7 +408,7 @@
   </div>
 
   <script defer src="dist/site-consent.8416bd25.js"></script>
-  <script defer src="dist/site-shell.48da09c4.js"></script>
+  <script defer src="dist/site-shell.58088932.js"></script>
   <script defer src="/js/games/probability-engine/constants.js"></script>
   <script defer src="/js/games/probability-engine/big.js"></script>
   <script defer src="/js/games/probability-engine/symbols.js"></script>

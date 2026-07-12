@@ -124,7 +124,7 @@
       const w = index === 0 ? Math.max(getAuthoredPlatformW(platform), worldWidth - x) : getAuthoredPlatformW(platform);
       const authoredVisual = getAuthoredPlatformVisual(platform);
       const runtimePlatform = {
-        id: `${sourceMap.id}_platform_${index}`,
+        id: normalizeId(!Array.isArray(platform) && platform && platform.id) || `${sourceMap.id}_platform_${index}`,
         index,
         x,
         y,
@@ -499,6 +499,13 @@
     const movementLinkCount = Math.max(1, countGraphLinks(linkCounts, ['walk', 'jump', 'drop', 'ramp-up', 'ramp-down', 'ladder-up', 'ladder-down']));
     const ladderLinkCount = countGraphLinks(linkCounts, ['ladder-up', 'ladder-down']);
     const rampLinkCount = countGraphLinks(linkCounts, ['ramp-up', 'ramp-down']);
+    const verticalLinkCount = ladderLinkCount + rampLinkCount;
+    const reachableBroadTiers = new Set(broadPlatforms
+      .filter((platform) => reachable.has(platform.index))
+      .map((platform) => Math.round(Number(platform.y || 0) / 24) * 24));
+    const authoredBroadTiers = new Set(broadPlatforms
+      .map((platform) => Math.round(Number(platform.y || 0) / 24) * 24));
+    const requiredReachableTierCount = Math.min(map && map.isDungeon ? 2 : 3, authoredBroadTiers.size);
     const minCombatLaneWidth = broadPlatforms.length
       ? Math.min(...broadPlatforms.map((platform) => Number(platform.w || 0)))
       : 0;
@@ -513,7 +520,9 @@
       goodEnemyDensity: combatMap && enemyDensity >= (map && map.isDungeon ? 1.2 : 2),
       sensibleSpawnPlacement: combatMap && spawnCoverage >= 0.75 && (spawnPoints || []).every((point) => trainingPlatformIndices.includes(point.platformIndex)),
       loopableMovement: combatMap && stronglyConnected,
-      reasonableVerticalTravel: combatMap && (climbables || []).length >= (map && map.isDungeon ? 3 : 8) && (rampConnections || []).length >= (map && map.isDungeon ? 4 : 8),
+      reasonableVerticalTravel: combatMap &&
+        verticalLinkCount >= (map && map.isDungeon ? 4 : 6) &&
+        reachableBroadTiers.size >= requiredReachableTierCount,
       noUnreachablePlatforms: combatMap && unreachableTrainingPlatforms.length === 0,
       noAwkwardDeadEnds: combatMap && deadEndPlatforms.length === 0,
       noCrampedCombatLanes: combatMap && minCombatLaneWidth >= 640,
@@ -532,6 +541,8 @@
       enemyDensity: Number(enemyDensity.toFixed(3)),
       spawnDensityPer1000px: Number(spawnDensityPer1000px.toFixed(3)),
       minCombatLaneWidth: Math.round(minCombatLaneWidth),
+      reachableTierCount: reachableBroadTiers.size,
+      requiredReachableTierCount,
       traversalMix: Object.freeze({
         links: linkCounts,
         ladderDependence: Number((ladderLinkCount / movementLinkCount).toFixed(3)),
@@ -565,6 +576,61 @@
       sectionLabel: String(point.sectionLabel || ''),
       weight: Math.max(1, Number(point.weight || 1))
     };
+  }
+
+  function createRuntimeSpawnGroups(map, platforms, spawnPoints) {
+    const sourceGroups = Array.isArray(map && map.spawnGroups) ? map.spawnGroups : [];
+    const runtimePlatforms = Array.isArray(platforms) ? platforms : [];
+    const runtimePoints = Array.isArray(spawnPoints) ? spawnPoints : [];
+    const platformById = new Map(runtimePlatforms.map((platform) => [platform.id, platform]));
+    const seenIds = new Set();
+    return Object.freeze(sourceGroups.map((rawGroup, index) => {
+      const source = rawGroup && typeof rawGroup === 'object' ? rawGroup : {};
+      let id = normalizeId(source.id) || `${map && map.id || 'map'}_spawn_group_${index + 1}`;
+      if (seenIds.has(id)) id = `${id}_${index + 1}`;
+      seenIds.add(id);
+      const platformIds = Array.from(new Set((source.platformIds || [])
+        .map(normalizeId)
+        .filter((platformId) => platformId && platformById.has(platformId))));
+      const platformIndices = platformIds
+        .map((platformId) => platformById.get(platformId))
+        .filter(Boolean)
+        .map((platform) => platform.index);
+      const platformIndexSet = new Set(platformIndices);
+      const spawnPointIds = runtimePoints
+        .filter((point) => point && platformIndexSet.has(point.platformIndex))
+        .map((point) => point.id);
+      const enemyWeights = Object.freeze((source.enemyWeights || source.enemies || [])
+        .map((entry) => Object.freeze({
+          enemyId: normalizeId(entry && typeof entry === 'object' ? entry.enemyId || entry.id : entry),
+          weight: Math.max(0, Number(entry && typeof entry === 'object' ? entry.weight : 1) || 0)
+        }))
+        .filter((entry) => entry.enemyId && entry.weight > 0));
+      if (!platformIds.length || !enemyWeights.length) return null;
+      const population = Math.max(1, Math.floor(Number(source.population || 0)) || 1);
+      const traversal = source.actorTraversal && typeof source.actorTraversal === 'object' ? source.actorTraversal : {};
+      return Object.freeze({
+        id,
+        label: String(source.label || `Spawn Group ${index + 1}`),
+        sectionId: normalizeId(source.sectionId),
+        platformIds: Object.freeze(platformIds),
+        platformIndices: Object.freeze(platformIndices),
+        spawnPointIds: Object.freeze(spawnPointIds),
+        enemyWeights,
+        population,
+        respawnSeconds: Math.max(1, Math.min(60, Number(source.respawnSeconds || map.waveDelay || 5) || 5)),
+        leash: Math.max(90, Math.min(2400, Number(source.leash || 480) || 480)),
+        partyScaling: normalizeId(source.partyScaling) || 'none',
+        maxPopulation: Math.max(population, Math.floor(Number(source.maxPopulation || 0)) || Math.ceil(population * 1.5)),
+        partyBonusPerMember: Math.max(0, Math.min(4, Number(source.partyBonusPerMember == null ? 1 : source.partyBonusPerMember) || 0)),
+        actorTraversal: Object.freeze({
+          mode: normalizeId(traversal.mode) || 'ground',
+          allowLadders: !!traversal.allowLadders,
+          allowRamps: traversal.allowRamps !== false,
+          stayInTerritory: traversal.stayInTerritory !== false
+        })
+      });
+    }).filter(Boolean));
   }
 
   function alignStation(rawStation, index, mapId, platforms, options) {
@@ -650,6 +716,7 @@
     const spawnPoints = (map.spawnPoints || []).map((point, index) => alignSpawnPoint(point, index, map.id, platforms, {
       playfieldHeight: metrics.playfieldHeight
     }));
+    const spawnGroups = createRuntimeSpawnGroups(map, platforms, spawnPoints);
     const footholds = createRuntimeFootholds(map, platforms, platformGraph, {
       playfieldHeight: metrics.playfieldHeight
     });
@@ -689,6 +756,7 @@
       footholds,
       trainingRoute,
       spawnPoints,
+      spawnGroups,
       stations
     };
   }
@@ -721,6 +789,7 @@
     countGraphLinks,
     createTrainingRouteContract,
     alignSpawnPoint,
+    createRuntimeSpawnGroups,
     alignStation,
     createMapRuntime
   };

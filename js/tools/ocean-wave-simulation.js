@@ -11,25 +11,27 @@
   const heightValue = $('#ocean-wave-height-value');
   const lightInput = $('#ocean-wave-light');
   const lightValue = $('#ocean-wave-light-value');
+  const qualityInput = $('#ocean-wave-quality');
   const toggleBtn = $('#ocean-wave-toggle');
   const resetBtn = $('#ocean-wave-reset');
+  const resetCameraBtn = $('#ocean-wave-reset-camera');
+  const randomizeBtn = $('#ocean-wave-randomize');
+  const copyLinkBtn = $('#ocean-wave-copy-link');
   const statusEl = $('#ocean-wave-status');
+  const summaryEl = $('#ocean-wave-summary');
+  const presetButtons = Array.from(document.querySelectorAll('[data-ocean-preset]'));
 
-  if (!stage || !canvas || !windInput || !heightInput || !lightInput || !toggleBtn || !resetBtn || !statusEl) return;
+  if (
+    !stage || !canvas || !windInput || !heightInput || !lightInput || !qualityInput
+    || !toggleBtn || !resetBtn || !resetCameraBtn || !randomizeBtn || !copyLinkBtn
+    || !statusEl || !summaryEl
+  ) return;
 
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) {
     statusEl.textContent = 'Canvas unavailable in this browser.';
     return;
   }
-
-  const TOOL_ID = 'ocean-wave-simulation';
-
-  const markSessionDirty = () => {
-    try {
-      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
-    } catch {}
-  };
 
   const TAU = Math.PI * 2;
   const G = 9.81;
@@ -41,7 +43,19 @@
     wind: 7.5,
     waveHeight: 1,
     sunElevationDeg: 38,
+    qualityMode: 'auto',
+    cameraYawDeg: 0,
+    cameraPitchDeg: -11,
   };
+
+  const PRESETS = {
+    'calm-dawn': { wind: 2.4, waveHeight: 0.45, sunElevationDeg: 11, yawDeg: -18, pitchDeg: -8 },
+    'open-ocean-swell': { wind: 11.5, waveHeight: 2.4, sunElevationDeg: 42, yawDeg: 12, pitchDeg: -14 },
+    'golden-hour': { wind: 6.2, waveHeight: 1.15, sunElevationDeg: 8, yawDeg: 34, pitchDeg: -7 },
+    'storm-front': { wind: 18, waveHeight: 4.6, sunElevationDeg: 17, yawDeg: -28, pitchDeg: -17 },
+  };
+
+  const QUALITY_MODES = new Set(['auto', 'battery', 'quality']);
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -111,6 +125,7 @@
     wind: DEFAULTS.wind,
     waveHeight: DEFAULTS.waveHeight,
     sunElevationDeg: DEFAULTS.sunElevationDeg,
+    qualityMode: DEFAULTS.qualityMode,
     paused: false,
   };
 

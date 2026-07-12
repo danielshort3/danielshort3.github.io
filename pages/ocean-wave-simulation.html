@@ -6,10 +6,10 @@
   <base href="/">
   <title>Ocean Wave Simulation | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/games/ocean-wave-simulation">
-  <meta name="description" content="Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.">
+  <meta name="description" content="Explore wind, swell, light, and camera conditions in a real-time ocean laboratory that runs locally in your browser.">
   <meta property="og:title" content="Ocean Wave Simulation | Daniel Short">
   <meta property="og:site_name" content="Daniel Short">
-  <meta property="og:description" content="Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.">
+  <meta property="og:description" content="Explore wind, swell, light, and camera conditions in a real-time ocean laboratory that runs locally in your browser.">
   <meta property="og:url" content="https://www.danielshort.me/games/ocean-wave-simulation">
   <meta property="og:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta property="og:image:width" content="1672">
@@ -19,11 +19,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:title" content="Ocean Wave Simulation | Daniel Short">
-  <meta name="twitter:description" content="Relaxing animated waves with adjustable wind, wave height, and lighting. Everything runs locally in your browser.">
+  <meta name="twitter:description" content="An interactive ocean conditions laboratory with adjustable wind, swell, lighting, camera, and performance controls.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.7ca0dca9.css">
+  <link rel="stylesheet" href="dist/styles.2e78b967.css">
   <link rel="stylesheet" href="dist/styles-tools.f1eb2bf7.css">
   <link rel="stylesheet" href="css/components/games.css">
   <link rel="stylesheet" href="css/components/ocean-wave-simulation.css">
@@ -43,7 +43,7 @@
     {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://www.linkedin.com/in/danielshort3/","https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/games/ocean-wave-simulation#webpage","url":"https://www.danielshort.me/games/ocean-wave-simulation","name":"Ocean Wave Simulation | Daniel Short","description":"Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/07-website-hero-light-version.png"},"mainEntity":{"@id":"https://www.danielshort.me/games/ocean-wave-simulation#game"},"breadcrumb":{"@id":"https://www.danielshort.me/games/ocean-wave-simulation#breadcrumb"}},{"@type":["VideoGame","WebApplication"],"@id":"https://www.danielshort.me/games/ocean-wave-simulation#game","name":"Ocean Wave Simulation","description":"Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.","url":"https://www.danielshort.me/games/ocean-wave-simulation","image":"https://www.danielshort.me/img/brand/07-website-hero-light-version.png","creator":{"@id":"https://www.danielshort.me/#person"},"applicationCategory":"GameApplication","operatingSystem":"Any","gamePlatform":"Web browser","playMode":"SinglePlayer","isAccessibleForFree":true,"genre":["Parameter sandbox","Realtime canvas","Visual systems"]},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/games/ocean-wave-simulation#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Games","item":"https://www.danielshort.me/games"},{"@type":"ListItem","position":3,"name":"Ocean Wave Simulation","item":"https://www.danielshort.me/games/ocean-wave-simulation"}]}]}
   </script>
 </head>
-<body data-page="ocean-wave-simulation" class="ocean-wave-page tools-tool-page site-page" data-tools-layout="media">
+<body data-page="ocean-wave-simulation" class="ocean-wave-page site-page">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -268,9 +268,9 @@
 
   <section class="hero hero--games ocean-wave-hero">
     <div class="wrapper">
-      <p class="hero-eyebrow">Games - Ocean Wave Simulation</p>
+      <p class="hero-eyebrow">Games - Ocean Conditions Laboratory</p>
       <h1>Ocean Wave Simulation</h1>
-      <p class="ocean-wave-lead">Dial in wind speed, wave height, and sun elevation in a calming real-time ocean surface renderer that runs locally in your browser.</p>
+      <p class="ocean-wave-lead">Explore how wind, swell, and sunlight reshape a procedural sea. This interactive conditions laboratory runs entirely in your browser.</p>
     </div>
   </section>
 
@@ -279,8 +279,8 @@
       <div class="wrapper">
         <div class="ocean-wave-grid">
           <div class="ocean-wave-card ocean-wave-stage-card">
-            <div id="ocean-wave-stage" class="ocean-wave-stage">
-              <canvas id="ocean-wave-canvas" role="img" aria-label="Interactive ocean wave simulation. Drag to change the viewing angle.">Your browser does not support the HTML canvas element.</canvas>
+            <div id="ocean-wave-stage" class="ocean-wave-stage" tabindex="0" role="application" aria-label="Interactive ocean conditions view" aria-describedby="ocean-wave-note ocean-wave-summary">
+              <canvas id="ocean-wave-canvas" role="img" aria-label="Procedural ocean surface reflecting the selected wind, swell, light, and camera conditions.">Your browser does not support the HTML canvas element.</canvas>
               <div class="ocean-wave-hud" aria-hidden="false">
                 <button id="ocean-wave-toggle" type="button" class="btn-icon ocean-wave-toggle" aria-pressed="false" aria-label="Pause animation">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -290,32 +290,56 @@
                 <span id="ocean-wave-status" class="ocean-wave-status" aria-live="polite">Loading...</span>
               </div>
             </div>
-            <p class="ocean-wave-note">Click and drag on the ocean to change the viewing angle. Everything runs locally in your browser. If you have "Reduce motion" enabled, the animation starts paused.</p>
+            <p id="ocean-wave-summary" class="ocean-wave-summary" aria-live="polite">Preparing the current ocean conditions.</p>
+            <p id="ocean-wave-note" class="ocean-wave-note">Drag to look around, or focus the ocean and use the arrow keys. Everything runs locally. If you have "Reduce motion" enabled, the animation starts paused.</p>
           </div>
 
           <div class="ocean-wave-card ocean-wave-controls-card">
-            <h2>Controls</h2>
+            <h2>Conditions laboratory</h2>
             <form id="ocean-wave-controls" class="ocean-wave-controls" novalidate>
+              <fieldset class="ocean-wave-presets">
+                <legend>Conditions presets</legend>
+                <div class="ocean-wave-preset-grid">
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="calm-dawn">Calm Dawn</button>
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="open-ocean-swell">Open-Ocean Swell</button>
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="golden-hour">Golden Hour</button>
+                  <button type="button" class="ocean-wave-preset" data-ocean-preset="storm-front">Storm Front</button>
+                </div>
+              </fieldset>
+
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-wind">Wind speed <span id="ocean-wave-wind-value" class="ocean-wave-value">7.5</span></label>
-                <input id="ocean-wave-wind" type="range" min="0" max="20" value="7.5" step="0.1">
-                <p class="ocean-wave-help">Higher wind increases wave speed and swell length.</p>
+                <label class="ocean-wave-label" for="ocean-wave-wind">Wind speed <output id="ocean-wave-wind-value" class="ocean-wave-value" for="ocean-wave-wind">7.5 m/s</output></label>
+                <input id="ocean-wave-wind" type="range" min="0" max="20" value="7.5" step="0.1" aria-describedby="ocean-wave-wind-help">
+                <p id="ocean-wave-wind-help" class="ocean-wave-help">Higher wind increases wave speed and swell length.</p>
               </div>
 
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-height">Wave height <span id="ocean-wave-height-value" class="ocean-wave-value">1</span></label>
-                <input id="ocean-wave-height" type="range" min="0" max="5.5" value="1" step="0.05">
-                <p class="ocean-wave-help">Scales the overall amplitude of the wave field.</p>
+                <label class="ocean-wave-label" for="ocean-wave-height">Wave height <output id="ocean-wave-height-value" class="ocean-wave-value" for="ocean-wave-height">1.00x</output></label>
+                <input id="ocean-wave-height" type="range" min="0" max="5.5" value="1" step="0.05" aria-describedby="ocean-wave-height-help">
+                <p id="ocean-wave-height-help" class="ocean-wave-help">Scales the overall amplitude of the wave field.</p>
               </div>
 
               <div class="ocean-wave-control">
-                <label class="ocean-wave-label" for="ocean-wave-light">Sun elevation <span id="ocean-wave-light-value" class="ocean-wave-value">38</span></label>
-                <input id="ocean-wave-light" type="range" min="5" max="75" value="38" step="1">
-                <p class="ocean-wave-help">Lower sun adds warmer highlights; higher sun brightens the water evenly.</p>
+                <label class="ocean-wave-label" for="ocean-wave-light">Sun elevation <output id="ocean-wave-light-value" class="ocean-wave-value" for="ocean-wave-light">38 degrees</output></label>
+                <input id="ocean-wave-light" type="range" min="5" max="75" value="38" step="1" aria-describedby="ocean-wave-light-help">
+                <p id="ocean-wave-light-help" class="ocean-wave-help">Lower sun adds warmer highlights; higher sun brightens the water evenly.</p>
+              </div>
+
+              <div class="ocean-wave-control">
+                <label class="ocean-wave-label" for="ocean-wave-quality">Rendering mode</label>
+                <select id="ocean-wave-quality" class="ocean-wave-select" aria-describedby="ocean-wave-quality-help">
+                  <option value="auto">Auto</option>
+                  <option value="battery">Battery - 30 FPS</option>
+                  <option value="quality">Quality</option>
+                </select>
+                <p id="ocean-wave-quality-help" class="ocean-wave-help">Battery mode lowers resolution and caps rendering at 30 frames per second.</p>
               </div>
 
               <div class="ocean-wave-actions">
-                <button id="ocean-wave-reset" type="button" class="btn-ghost">Reset</button>
+                <button id="ocean-wave-randomize" type="button" class="btn-ghost">Randomize</button>
+                <button id="ocean-wave-reset" type="button" class="btn-ghost">Reset conditions</button>
+                <button id="ocean-wave-reset-camera" type="button" class="btn-ghost">Reset camera</button>
+                <button id="ocean-wave-copy-link" type="button" class="btn-primary">Copy scene link</button>
               </div>
             </form>
           </div>
@@ -411,7 +435,7 @@
     </button>
   </div>
   <script defer src="js/tools/ocean-wave-simulation.js"></script>
-  <script defer src="dist/site-shell.48da09c4.js"></script>
+  <script defer src="dist/site-shell.58088932.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

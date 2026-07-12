@@ -2114,7 +2114,30 @@
 
     drawRampPlatformTerrain(snapshot, map, platform, index, profile, style, seed) {
       if (!isSlopePlatform(platform)) return false;
-      this.drawPlatformFallback(this.mapGraphics, map, platform, index);
+      const asset = this.getEnvironmentAsset('ramps', profile);
+      const texture = asset && asset.path ? this.getTexture(asset.path) : null;
+      if (!asset || !texture) return false;
+      const leftY = Number(platform.y || 0);
+      const rightY = Number(platform.y2 || platform.y || 0);
+      const overhang = Math.max(6, Math.min(14, Number(style && style.overhang || 8)));
+      const topPad = Math.max(8, Math.min(14, Number(style && style.topHeight || 18) * 0.55));
+      const bodyDepth = Math.max(22, Math.min(36, Number(style && style.platformBodyDepth || 28)));
+      const drawX = Number(platform.x || 0) - overhang;
+      const drawW = Math.max(1, Number(platform.w || 0) + overhang * 2);
+      const drawY = Math.min(leftY, rightY) - topPad;
+      const drawH = Math.max(36, Math.abs(rightY - leftY) + topPad + bodyDepth);
+      const drawn = this.drawEnvironmentCell(
+        'ramps',
+        profile,
+        this.getRampTerrainCell(platform, index),
+        drawX,
+        drawY,
+        drawW,
+        drawH,
+        { alpha: style && style.bodyAlpha == null ? 1 : Number(style && style.bodyAlpha || 1) }
+      );
+      if (!drawn) return false;
+      this.drawPlatformThemeTrim(this.mapGraphics, map, platform, index);
       return true;
     }
 
@@ -2252,6 +2275,106 @@
       });
     }
 
+    getPortalDirection(portal, runtime) {
+      const explicit = String(portal && portal.direction || '').toLowerCase();
+      if (explicit === 'left' || explicit === 'west') return -1;
+      if (explicit === 'right' || explicit === 'east') return 1;
+      if (portal && portal.returnPortal) return -1;
+      const worldWidth = Math.max(1, Number(runtime && runtime.worldWidth || 1));
+      return Number(portal && portal.x || 0) + Number(portal && portal.w || 0) / 2 < worldWidth * 0.5 ? -1 : 1;
+    }
+
+    getPortalLabelRenderState(portal, runtime, snapshot) {
+      const camera = snapshot && snapshot.camera || {};
+      const cameraLeft = Number(camera.x || 0);
+      const cameraRight = cameraLeft + Math.max(1, Number(camera.w || snapshot && snapshot.width || this.width || 1));
+      const cx = Number(portal.x || 0) + Number(portal.w || 0) / 2;
+      const margin = 170;
+      if (cx < cameraLeft - margin || cx > cameraRight + margin) return null;
+      const edgePad = portal.shopDoor ? 70 : 62;
+      const x = clamp(cx, cameraLeft + edgePad, Math.max(cameraLeft + edgePad, cameraRight - edgePad));
+      return {
+        x,
+        y: Math.max(Number(camera.y || 0) + 18, Number(portal.y || 0) - 13),
+        direction: cx < x ? -1 : cx > x ? 1 : this.getPortalDirection(portal, runtime),
+        edgeCue: Math.abs(cx - x) > 2
+      };
+    }
+
+    drawPortalDirectionMarker(graphics, x, y, direction, color, alpha) {
+      const sign = direction < 0 ? -1 : 1;
+      graphics
+        .moveTo(x + sign * 8, y)
+        .lineTo(x - sign * 4, y - 6)
+        .lineTo(x - sign * 4, y + 6)
+        .closePath()
+        .fill({ color, alpha });
+    }
+
+    renderPortalLabel(graphics, portal, runtime, snapshot, locked, color) {
+      const labelState = this.getPortalLabelRenderState(portal, runtime, snapshot);
+      if (!labelState) return;
+      const vendorType = String(portal.shopVendorType || '').toLowerCase();
+      const shopLabel = {
+        weapon: 'Weapon',
+        armor: 'Armor',
+        supply: 'Supply',
+        special: 'Special'
+      }[vendorType];
+      const rawLabel = String(shopLabel || portal.label || portal.destinationName || 'Portal').trim();
+      const label = rawLabel.length > 22 ? `${rawLabel.slice(0, 21)}...` : rawLabel;
+      const labelY = labelState.y - (vendorType === 'armor' || vendorType === 'special' ? 13 : 0);
+      const markerX = labelState.x + labelState.direction * (Math.min(62, Math.max(30, label.length * 3.2)) + 8);
+      this.drawPortalDirectionMarker(
+        graphics,
+        markerX,
+        labelY + 5,
+        labelState.direction,
+        locked ? 0x8a97a5 : color,
+        labelState.edgeCue ? 0.96 : 0.72
+      );
+      this.drawText('damageText', label, labelState.x, labelY, {
+        fontSize: portal.shopDoor ? 11 : 10,
+        fontWeight: '900',
+        fill: locked ? '#d7dde3' : '#ffffff',
+        stroke: 'rgba(9,31,59,0.96)',
+        strokeWidth: 4,
+        alpha: locked ? 0.78 : 0.98
+      });
+    }
+
+    renderShopDoorPortal(graphics, portal, runtime, snapshot, locked, pulse) {
+      const palettes = {
+        weapon: [0x4e6174, 0xf25f4c, 0xffd166],
+        armor: [0x5d6b7a, 0x2f9d8f, 0xd8e5ec],
+        supply: [0x6c7354, 0x74d680, 0xfff3b0],
+        special: [0x66549a, 0x7bdff2, 0xffe16a]
+      };
+      const palette = palettes[String(portal.shopVendorType || '').toLowerCase()] || [0x5e7d9f, 0xffd166, 0xd8e5ec];
+      const x = Number(portal.x || 0);
+      const y = Number(portal.y || 0);
+      const w = Number(portal.w || 94);
+      const h = Number(portal.h || 118);
+      const alpha = locked ? 0.62 : 1;
+      graphics.ellipse(x + w / 2, y + h + 2, w * 0.58, 8).fill({ color: 0x091f3b, alpha: 0.28 * alpha });
+      graphics.rect(x + 6, y + 22, w - 12, h - 20).fill({ color: palette[0], alpha });
+      graphics
+        .moveTo(x + 2, y + 28)
+        .lineTo(x + w / 2, y)
+        .lineTo(x + w - 2, y + 28)
+        .closePath()
+        .fill({ color: palette[1], alpha });
+      graphics.rect(x + w * 0.29, y + h * 0.38, w * 0.42, h * 0.62)
+        .fill({ color: locked ? 0x576575 : 0x17283a, alpha });
+      graphics.rect(x + w * 0.34, y + h * 0.45, w * 0.32, 12).fill({ color: palette[2], alpha });
+      graphics.circle(x + w * 0.62, y + h * 0.7, 3).fill({ color: palette[2], alpha });
+      if (!locked) {
+        graphics.rect(x + w * 0.29, y + h * 0.38, w * 0.42, h * 0.62)
+          .stroke({ width: 2, color: palette[2], alpha: 0.55 + pulse * 0.3 });
+      }
+      this.renderPortalLabel(graphics, portal, runtime, snapshot, locked, palette[2]);
+    }
+
     renderPortals(graphics, runtime, snapshot) {
       const now = Number(snapshot.nowSec || 0);
       (runtime.portals || []).forEach((portal) => {
@@ -2260,12 +2383,17 @@
         const locked = !!portal.locked;
         const color = locked ? 0x8a97a5 : portal.bossPortal ? 0xb073ff : 0x36c5ff;
         const pulse = 0.5 + Math.sin(now * 3.4 + portal.x * 0.01) * 0.5;
+        if (portal.shopDoor) {
+          this.renderShopDoorPortal(graphics, portal, runtime, snapshot, locked, pulse);
+          return;
+        }
         graphics.ellipse(cx, cy, portal.w * 0.42, portal.h * 0.48)
           .stroke({ width: locked ? 3 : 4, color, alpha: locked ? 0.72 : 0.9 });
         graphics.ellipse(cx, cy, portal.w * (0.18 + pulse * 0.05), portal.h * 0.28)
           .stroke({ width: 2, color, alpha: locked ? 0.46 : 0.64 });
         graphics.rect(portal.x + 4, portal.y + portal.h - 8, portal.w - 8, 5)
           .fill({ color: 0x091f3b, alpha: locked ? 0.62 : 0.76 });
+        this.renderPortalLabel(graphics, portal, runtime, snapshot, locked, color);
       });
     }
 

@@ -329,20 +329,20 @@
     const MAP_FIELD_COMPOSITIONS = Object.freeze({
       greenrootMeadow: createFieldComposition({
         routeSections: [
-          { label: 'Starter Pond Loop', x: 0, w: 2100, tier: 'starter' },
-          { label: 'Moss Lane Extension', x: 2100, w: 2100, tier: 'training' },
-          { label: 'Canopy Practice', x: 4200, w: 2100, tier: 'mobility' },
-          { label: 'Thornpath Gate', x: 6300, w: 2100, tier: 'advance' }
+          { label: 'Starter Pond Loop', x: 0, w: 1050, tier: 'starter' },
+          { label: 'Moss Lane Extension', x: 1050, w: 1050, tier: 'training' },
+          { label: 'Canopy Practice', x: 2100, w: 1050, tier: 'mobility' },
+          { label: 'Thornpath Gate', x: 3150, w: 1050, tier: 'advance' }
         ],
         portalRoles: {
           greenroot_crossing: 'left town return',
           greenroot_thornpath: 'right route advance'
         },
         landmarkBands: [
-          { kind: 'tree', x: 460, w: 1220, label: 'Beginner Grove' },
-          { kind: 'glow', x: 1240, w: 520, label: 'Starter Pond' },
-          { kind: 'vine', x: 3600, w: 960, label: 'Canopy Shortcut' },
-          { kind: 'sign', x: 6880, w: 420, label: 'Thornpath Sign' }
+          { kind: 'tree', x: 260, w: 680, label: 'Beginner Grove' },
+          { kind: 'glow', x: 520, w: 360, label: 'Starter Pond' },
+          { kind: 'vine', x: 2240, w: 640, label: 'Canopy Shortcut' },
+          { kind: 'sign', x: 3540, w: 360, label: 'Thornpath Sign' }
         ],
         spawnZoneLabels: [
           { label: 'Starter pond', platformTier: 'low' },
@@ -437,20 +437,20 @@
       }),
       banditRidgeCamp: createFieldComposition({
         routeSections: [
-          { label: 'Lower Cutter Lane', x: 0, w: 2100, tier: 'frontline' },
-          { label: 'Middle Thrower Camp', x: 2100, w: 2100, tier: 'ranged' },
-          { label: 'High Rope Bridge', x: 4200, w: 2100, tier: 'anti-ranged' },
-          { label: 'Campfire Regroup', x: 6300, w: 2100, tier: 'regroup' }
+          { label: 'Lower Cutter Lane', x: 0, w: 1350, tier: 'frontline' },
+          { label: 'Middle Thrower Camp', x: 1350, w: 1350, tier: 'ranged' },
+          { label: 'High Rope Bridge', x: 2700, w: 1350, tier: 'anti-ranged' },
+          { label: 'Campfire Regroup', x: 4050, w: 1350, tier: 'regroup' }
         ],
         portalRoles: {
           bandit_thornpath: 'ridge return',
           bandit_bramble: 'bramble dungeon gate'
         },
         landmarkBands: [
-          { kind: 'crate', x: 760, w: 880, label: 'Cutter Barricade' },
-          { kind: 'sign', x: 3040, w: 620, label: 'Thrower Camp' },
-          { kind: 'vine', x: 5140, w: 720, label: 'Rope Bridge' },
-          { kind: 'glow', x: 7000, w: 520, label: 'Campfire Regroup' }
+          { kind: 'crate', x: 520, w: 700, label: 'Cutter Barricade' },
+          { kind: 'sign', x: 1760, w: 560, label: 'Thrower Camp' },
+          { kind: 'vine', x: 3040, w: 660, label: 'Rope Bridge' },
+          { kind: 'glow', x: 4500, w: 480, label: 'Campfire Regroup' }
         ],
         spawnZoneLabels: [
           { label: 'Cutter lane', platformTier: 'low' },
@@ -461,10 +461,10 @@
       }),
       orebackQuarry: createFieldComposition({
         routeSections: [
-          { label: 'Ore Cart Lane', x: 0, w: 1300, tier: 'frontline' },
-          { label: 'Scaffold Sentries', x: 1300, w: 1300, tier: 'ranged' },
-          { label: 'Mushroom Pocket', x: 2600, w: 1300, tier: 'support' },
-          { label: 'Mine Event Pocket', x: 3900, w: 1300, tier: 'event' }
+          { label: 'Ore Cart Lane', x: 0, w: 1200, tier: 'frontline' },
+          { label: 'Scaffold Sentries', x: 1200, w: 1200, tier: 'ranged' },
+          { label: 'Mushroom Pocket', x: 2400, w: 1200, tier: 'support' },
+          { label: 'Mine Event Pocket', x: 3600, w: 1200, tier: 'event' }
         ],
         portalRoles: {
           quarry_rustcoil_outpost: 'mine lift return',
@@ -472,10 +472,10 @@
           quarry_cinder_refuge: 'deep road advance'
         },
         landmarkBands: [
-          { kind: 'crate', x: 420, w: 780, label: 'Ore Cart Lane' },
-          { kind: 'tall', x: 1700, w: 680, label: 'Sentry Scaffold' },
-          { kind: 'glow', x: 3020, w: 640, label: 'Glowcap Pocket' },
-          { kind: 'crystal', x: 4280, w: 620, label: 'Mine Event Pocket' }
+          { kind: 'crate', x: 360, w: 700, label: 'Ore Cart Lane' },
+          { kind: 'tall', x: 1540, w: 620, label: 'Sentry Scaffold' },
+          { kind: 'glow', x: 2720, w: 600, label: 'Glowcap Pocket' },
+          { kind: 'crystal', x: 3960, w: 560, label: 'Mine Event Pocket' }
         ],
         spawnZoneLabels: [
           { label: 'Ore cart lane', platformTier: 'low' },
