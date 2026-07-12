@@ -13,18 +13,24 @@ function useDynamo(){
   return hasValue(process.env.TOOLS_DDB_TABLE) || hasValue(process.env.TOOLS_DDB_TABLE_NAME);
 }
 
+function allowKvCompatibility(){
+  if (String(process.env.NODE_ENV || '').trim().toLowerCase() === 'production') return false;
+  return String(process.env.TOOLS_ALLOW_KV_COMPAT || '').trim().toLowerCase() === 'true';
+}
+
 function useKv(){
-  const hasUrl = hasValue(process.env.KV_REST_API_URL) || hasValue(process.env.UPSTASH_REDIS_REST_URL);
-  const hasToken =
-    hasValue(process.env.KV_REST_API_TOKEN) ||
-    hasValue(process.env.KV_REST_API_READ_ONLY_TOKEN) ||
+  const hasVercelKv =
+    hasValue(process.env.KV_REST_API_URL) &&
+    hasValue(process.env.KV_REST_API_TOKEN);
+  const hasUpstashRedis =
+    hasValue(process.env.UPSTASH_REDIS_REST_URL) &&
     hasValue(process.env.UPSTASH_REDIS_REST_TOKEN);
-  return hasUrl && hasToken;
+  return hasVercelKv || hasUpstashRedis;
 }
 
 if (useDynamo()) {
   module.exports = require('./tools-store-ddb');
-} else if (useKv()) {
+} else if (allowKvCompatibility() && useKv()) {
   module.exports = require('./tools-store-kv');
 } else {
   module.exports = require('./tools-store-ddb');

@@ -290,9 +290,13 @@
     });
 
     const directoryStat = document.querySelector('[data-tools-directory-stat]');
+    const directoryStatLabel = document.querySelector('[data-tools-directory-stat-label]');
     if (directoryStat) {
       const availabilityLabel = context.authed ? 'available' : 'public';
-      directoryStat.textContent = `${visibleToolCount} ${availabilityLabel} ${visibleToolCount === 1 ? 'tool' : 'tools'}`;
+      directoryStat.textContent = String(visibleToolCount);
+      if (directoryStatLabel) {
+        directoryStatLabel.textContent = `${availabilityLabel} ${visibleToolCount === 1 ? 'tool' : 'tools'}`;
+      }
     }
   };
 
@@ -426,6 +430,15 @@
         localStorage.setItem(`${ACTIVE_SESSION_PREFIX}${toolId}`, sessionId);
       } else {
         localStorage.removeItem(`${ACTIVE_SESSION_PREFIX}${toolId}`);
+      }
+    } catch {}
+  };
+
+  const clearActiveSessionIds = () => {
+    try {
+      for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+        const key = String(localStorage.key(index) || '');
+        if (key.startsWith(ACTIVE_SESSION_PREFIX)) localStorage.removeItem(key);
       }
     } catch {}
   };
@@ -649,7 +662,9 @@
     const signInButton = `<button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>`;
     const signOutButton = `<button type="button" class="btn-ghost" data-tools-action="sign-out">Sign out</button>`;
     const allowToolActions = !!(toolId && toolActionsEnabled !== false);
-    const saveButton = allowToolActions ? `<button type="button" class="btn-secondary" data-tools-action="save-session">Save session</button>` : '';
+    const saveButton = allowToolActions
+      ? `<button type="button" class="btn-secondary" data-tools-action="save-session" title="Upload this session's inputs and outputs to your account">Save to account</button>`
+      : '';
     const newButton = allowToolActions ? `<button type="button" class="btn-ghost" data-tools-action="new-session">New session</button>` : '';
 
     const statusParts = [];
@@ -687,8 +702,11 @@
     sessions,
     totalSessions,
     lastSyncAt,
+    nextCursor,
     onViewSession,
-    onStatus
+    onStatus,
+    onLoadMore,
+    onSessionsAdded
   } = {}) => {
     if (!hostEl) return { destroy: () => {}, setSessions: () => {} };
 
@@ -725,13 +743,16 @@
         title: String(session?.title || '').trim(),
         note: String(session?.note || '').trim(),
         tags: Array.isArray(session?.tags) ? session.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
-        pinned: Boolean(session?.pinned)
+        pinned: Boolean(session?.pinned),
+        version: Math.max(1, Number(session?.version) || 1),
+        expiresAt: Number(session?.expiresAt) || 0
       };
     };
 
     let sessionsState = Array.isArray(sessions) ? sessions.map(normalizeSession).filter(s => s.toolId && s.sessionId) : [];
     let totalSessionsState = Number(totalSessions) || sessionsState.length;
     let lastSyncState = Number(lastSyncAt) || Date.now();
+    let nextCursorState = String(nextCursor || '').trim();
 
     const buildToolOptions = () => {
       const used = new Set(sessionsState.map(s => s.toolId).filter(Boolean));
@@ -872,6 +893,9 @@
         </div>
         <p class="tools-sessions-summary" data-tools-sessions="summary"></p>
         <div class="tools-dashboard-list" data-tools-sessions="list"></div>
+        <div class="tools-sessions-load-more" data-tools-sessions="load-more" hidden>
+          <button type="button" class="btn-secondary" data-tools-sessions-action="load-more">Load more sessions</button>
+        </div>
       </div>
     `.trim();
 
@@ -881,6 +905,8 @@
     const bulkSummaryEl = $('[data-tools-sessions="bulk-summary"]', hostEl);
     const summaryEl = $('[data-tools-sessions="summary"]', hostEl);
     const listEl = $('[data-tools-sessions="list"]', hostEl);
+    const loadMoreEl = $('[data-tools-sessions="load-more"]', hostEl);
+    const loadMoreButton = $('[data-tools-sessions-action="load-more"]', hostEl);
 
     const updateBulk = () => {
       const count = state.selected.size;
@@ -942,8 +968,17 @@
       `.trim();
     };
 
+    const updateLoadMore = () => {
+      if (!loadMoreEl || !loadMoreButton) return;
+      const available = Boolean(nextCursorState && typeof onLoadMore === 'function');
+      loadMoreEl.hidden = !available;
+      loadMoreButton.disabled = state.busy || !available;
+      loadMoreButton.textContent = state.busy ? 'Loading sessions...' : 'Load more sessions';
+    };
+
     const renderList = () => {
       if (!listEl || !summaryEl) return;
+      updateLoadMore();
       if (!sessionsState.length) {
         summaryEl.textContent = 'No saved sessions yet.';
         listEl.innerHTML = '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
@@ -981,6 +1016,7 @@
     const setBusy = (busy, message) => {
       state.busy = !!busy;
       if (typeof onStatus === 'function') onStatus(message || '');
+      updateLoadMore();
     };
 
     renderAll();
@@ -1017,6 +1053,30 @@
       const toolId = row ? String(row.dataset.sessionTool || '').trim() : '';
       const sessionId = row ? String(row.dataset.sessionId || '').trim() : '';
 
+      if (action === 'load-more') {
+        if (!nextCursorState || typeof onLoadMore !== 'function' || state.busy) return;
+        setBusy(true, 'Loading more sessions...');
+        let loadError = '';
+        try {
+          const data = await onLoadMore(nextCursorState);
+          const incoming = Array.isArray(data?.sessions)
+            ? data.sessions.map(normalizeSession).filter(s => s.toolId && s.sessionId)
+            : [];
+          const existingKeys = new Set(sessionsState.map(getSessionKey));
+          const added = incoming.filter(session => !existingKeys.has(getSessionKey(session)));
+          sessionsState.push(...added);
+          nextCursorState = String(data?.nextCursor || '').trim();
+          lastSyncState = Date.now();
+          if (added.length && typeof onSessionsAdded === 'function') onSessionsAdded(added);
+          renderAll();
+        } catch (err) {
+          loadError = err?.message || 'Unable to load more sessions.';
+        } finally {
+          setBusy(false, loadError);
+        }
+        return;
+      }
+
       if (action === 'view-session') {
         if (!toolId || !sessionId) return;
         if (typeof onViewSession === 'function') onViewSession({ toolId, sessionId });
@@ -1025,10 +1085,11 @@
 
       if (action === 'delete-session') {
         if (!toolId || !sessionId) return;
+        const session = sessionsState.find(s => s.toolId === toolId && s.sessionId === sessionId);
         const ok = window.confirm('Delete this saved session? This cannot be undone.');
         if (!ok) return;
         try {
-          await window.ToolsState.deleteSession({ toolId, sessionId });
+          await window.ToolsState.deleteSession({ toolId, sessionId, expectedVersion: session?.version });
           sessionsState = sessionsState.filter(s => !(s.toolId === toolId && s.sessionId === sessionId));
           state.selected.delete(`${toolId}:${sessionId}`);
           totalSessionsState = Math.max(0, totalSessionsState - 1);
@@ -1048,7 +1109,12 @@
         if (idx < 0) return;
         const nextPinned = !sessionsState[idx].pinned;
         try {
-          const res = await window.ToolsState.updateSessionMeta({ toolId, sessionId, pinned: nextPinned });
+          const res = await window.ToolsState.updateSessionMeta({
+            toolId,
+            sessionId,
+            pinned: nextPinned,
+            expectedVersion: sessionsState[idx].version
+          });
           const updated = normalizeSession(res?.session || { ...sessionsState[idx], pinned: nextPinned });
           sessionsState[idx] = { ...sessionsState[idx], ...updated };
           renderList();
@@ -1173,8 +1239,9 @@
           for (const key of selected) {
             const [toolId, sessionId] = key.split(':');
             if (!toolId || !sessionId) continue;
+            const session = sessionsState.find(s => s.toolId === toolId && s.sessionId === sessionId);
             try {
-              await window.ToolsState.deleteSession({ toolId, sessionId });
+              await window.ToolsState.deleteSession({ toolId, sessionId, expectedVersion: session?.version });
               sessionsState = sessionsState.filter(s => !(s.toolId === toolId && s.sessionId === sessionId));
               totalSessionsState = Math.max(0, totalSessionsState - 1);
               try {
@@ -1239,10 +1306,11 @@
           try { controller.abort(); } catch {}
         }
       },
-      setSessions: ({ sessions: nextSessions, totalSessions: nextTotal, lastSyncAt: nextLastSync } = {}) => {
+      setSessions: ({ sessions: nextSessions, totalSessions: nextTotal, lastSyncAt: nextLastSync, nextCursor: nextPageCursor } = {}) => {
         sessionsState = Array.isArray(nextSessions) ? nextSessions.map(normalizeSession).filter(s => s.toolId && s.sessionId) : [];
         totalSessionsState = Number(nextTotal) || sessionsState.length;
         lastSyncState = Number(nextLastSync) || Date.now();
+        nextCursorState = String(nextPageCursor || '').trim();
         state.selected.clear();
         state.selecting = false;
         renderAll();
@@ -1351,6 +1419,7 @@
       if (actionsEl) {
         actionsEl.innerHTML = `
           <button type="button" class="btn-secondary" data-tools-account-action="refresh">Refresh</button>
+          <button type="button" class="btn-ghost" data-tools-account-action="delete-all-data">Delete account data</button>
           <button type="button" class="btn-ghost" data-tools-account-action="sign-out">Sign out</button>
         `.trim();
       }
@@ -1386,8 +1455,10 @@
             sessions: recentSessions,
             totalSessions,
             lastSyncAt: Date.now(),
+            nextCursor: data?.sessionsNextCursor,
             onViewSession,
-            onStatus: setStatus
+            onStatus: setStatus,
+            onLoadMore: (cursor) => window.ToolsState.listSessions({ limit: 50, cursor })
           });
         }
       }
@@ -1439,7 +1510,7 @@
       setStatus('');
     };
 
-    modalEl.addEventListener('click', (event) => {
+    modalEl.addEventListener('click', async (event) => {
       if (event.target === modalEl) close();
       const actionEl = event.target.closest('[data-tools-account-action]');
       if (actionEl) {
@@ -1452,6 +1523,33 @@
           handlers.signIn();
         } else if (action === 'sign-out') {
           handlers.signOut();
+        } else if (action === 'delete-all-data') {
+          const confirmation = typeof window.prompt === 'function'
+            ? window.prompt('Permanently delete all saved tool sessions and activity? Type DELETE to continue.')
+            : '';
+          if (confirmation !== 'DELETE') {
+            if (confirmation !== null) setStatus('Account data was not deleted.');
+            return;
+          }
+          if (!window.ToolsState?.deleteAllAccountData) {
+            setStatus('Delete-all is unavailable on this page.');
+            return;
+          }
+          actionEl.disabled = true;
+          setStatus('Deleting saved sessions and activity...');
+          try {
+            const result = await window.ToolsState.deleteAllAccountData();
+            clearActiveSessionIds();
+            setSessionParam('');
+            try {
+              document.dispatchEvent(new CustomEvent('tools:account-data-deleted'));
+            } catch {}
+            await refresh();
+            setStatus(`Deleted ${Number(result?.deleted?.deletedCount) || 0} account records.`);
+          } catch (err) {
+            setStatus(err?.message || 'Unable to delete account data.');
+            actionEl.disabled = false;
+          }
         }
         return;
       }
@@ -1519,7 +1617,7 @@
 
     let currentToolId = '';
     let currentSessionId = '';
-    let currentMeta = { title: '', note: '', tags: [], pinned: false };
+    let currentMeta = { title: '', note: '', tags: [], pinned: false, version: 1 };
 
     const setStatus = (message) => {
       if (!statusEl) return;
@@ -1801,6 +1899,7 @@
       const note = String(record?.note || '').trim();
       const tags = Array.isArray(record?.tags) ? record.tags.map(v => String(v || '').trim()).filter(Boolean) : [];
       const pinned = Boolean(record?.pinned);
+      const version = Math.max(1, Number(record?.version) || 1);
       const snapshot = record?.snapshot && typeof record.snapshot === 'object' ? record.snapshot : {};
       const fields = snapshot.fields && typeof snapshot.fields === 'object' ? snapshot.fields : {};
       const fieldMeta = snapshot.fieldMeta && typeof snapshot.fieldMeta === 'object' ? snapshot.fieldMeta : {};
@@ -1846,7 +1945,7 @@
         subtitleEl.textContent = `${info.name}${updated ? ` · Updated ${updated}` : ''}${created && !updated ? ` · Created ${created}` : ''}`;
       }
 
-      currentMeta = { title, note, tags, pinned };
+      currentMeta = { title, note, tags, pinned, version };
 
       if (actionsEl) {
         actionsEl.innerHTML = `
@@ -1993,13 +2092,22 @@
 
         setStatus('Saving session details...');
         try {
-          const res = await window.ToolsState.updateSessionMeta({ toolId: currentToolId, sessionId: currentSessionId, title, note, tags, pinned });
+          const res = await window.ToolsState.updateSessionMeta({
+            toolId: currentToolId,
+            sessionId: currentSessionId,
+            title,
+            note,
+            tags,
+            pinned,
+            expectedVersion: currentMeta.version
+          });
           const meta = res?.session || {};
           currentMeta = {
             title: String(meta.title || '').trim(),
             note: String(meta.note || '').trim(),
             tags: Array.isArray(meta.tags) ? meta.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
-            pinned: Boolean(meta.pinned)
+            pinned: Boolean(meta.pinned),
+            version: Math.max(1, Number(meta.version) || currentMeta.version || 1)
           };
           if (titleEl) titleEl.value = currentMeta.title;
           if (tagsEl) tagsEl.value = currentMeta.tags.join(', ');
@@ -2020,7 +2128,11 @@
         const ok = window.confirm('Delete this saved session? This cannot be undone.');
         if (!ok) return;
         try {
-          await window.ToolsState.deleteSession({ toolId: currentToolId, sessionId: currentSessionId });
+          await window.ToolsState.deleteSession({
+            toolId: currentToolId,
+            sessionId: currentSessionId,
+            expectedVersion: currentMeta.version
+          });
           document.querySelectorAll(`[data-session-tool="${CSS.escape(currentToolId)}"][data-session-id="${CSS.escape(currentSessionId)}"]`).forEach((el) => el.remove());
           try {
             document.dispatchEvent(new CustomEvent('tools:session-deleted', { detail: { toolId: currentToolId, sessionId: currentSessionId } }));
@@ -2130,6 +2242,9 @@
         setActiveSessionId(toolId, '');
         setSessionParam('');
         setStatus('New session (not saved yet).', '');
+        try {
+          document.dispatchEvent(new CustomEvent('tools:new-session', { detail: { toolId } }));
+        } catch {}
       } else if (action === 'save-session') {
         document.dispatchEvent(new CustomEvent('tools:save-session', { detail: { toolId } }));
       } else if (action === 'open-account') {
@@ -2177,7 +2292,9 @@
       title: String(session?.title || '').trim(),
       note: String(session?.note || '').trim(),
       tags: Array.isArray(session?.tags) ? session.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
-      pinned: Boolean(session?.pinned)
+      pinned: Boolean(session?.pinned),
+      version: Math.max(1, Number(session?.version) || 1),
+      expiresAt: Number(session?.expiresAt) || 0
     });
 
     const renderOverview = () => {
@@ -2365,7 +2482,8 @@
           sessionsPanel.setSessions({
             sessions: dashboardState.sessions,
             totalSessions: dashboardState.totalSessions,
-            lastSyncAt: dashboardState.lastSyncAt
+            lastSyncAt: dashboardState.lastSyncAt,
+            nextCursor: data?.sessionsNextCursor
           });
         } else {
           sessionsPanel = initSessionsPanel({
@@ -2373,8 +2491,22 @@
             sessions: dashboardState.sessions,
             totalSessions: dashboardState.totalSessions,
             lastSyncAt: dashboardState.lastSyncAt,
+            nextCursor: data?.sessionsNextCursor,
             onViewSession,
-            onStatus: setDashboardStatus
+            onStatus: setDashboardStatus,
+            onLoadMore: (cursor) => window.ToolsState.listSessions({ limit: 50, cursor }),
+            onSessionsAdded: (added) => {
+              const existing = new Set(dashboardState.sessions.map(session => `${session.toolId}:${session.sessionId}`));
+              added.forEach((session) => {
+                const normalized = normalizeDashboardSession(session);
+                const key = `${normalized.toolId}:${normalized.sessionId}`;
+                if (!normalized.toolId || !normalized.sessionId || existing.has(key)) return;
+                existing.add(key);
+                dashboardState.sessions.push(normalized);
+              });
+              renderOverview();
+              renderPinned();
+            }
           });
         }
       }
@@ -2383,19 +2515,25 @@
     document.addEventListener('tools:auth-changed', () => {
       void loadDashboard();
     });
+    document.addEventListener('tools:account-data-deleted', () => {
+      void loadDashboard();
+    });
 
     await loadDashboard();
   };
 
-  const initToolAutoSave = ({ toolId, root, setStatus }) => {
+  const initToolAutoSave = ({ toolId, root, setStatus, autosaveEnabled = false }) => {
     if (!toolId || !root) return;
 
     const sessionIdFromUrl = getSessionParam() || '';
     const authed = window.ToolsAuth.authIsValid(window.ToolsAuth.getAuth());
     let sessionId = sessionIdFromUrl || (authed ? getActiveSessionId(toolId) : '') || '';
+    let sessionVersion = sessionId ? null : 0;
     let dirty = false;
     let saveInFlight = false;
     let isApplying = false;
+
+    const idleStatus = autosaveEnabled ? 'Cloud autosave on.' : 'Manual account save only.';
 
     const updateStatus = (message) => {
       if (setStatus) setStatus(message, sessionId);
@@ -2415,19 +2553,29 @@
       try {
         const data = await window.ToolsState.getSession({ toolId, sessionId });
         const snapshot = data?.session?.snapshot;
+        sessionVersion = Math.max(1, Number(data?.session?.version) || 1);
         if (snapshot && typeof snapshot === 'object') {
           isApplying = true;
           applyToolFields(root, snapshot.fields || {});
           isApplying = false;
           notifySessionApplied({ toolId, root, sessionId, snapshot });
           updateStatus('Session loaded.');
-          setTimeout(() => updateStatus(''), 1500);
+          setTimeout(() => updateStatus(idleStatus), 1500);
           try {
             await window.ToolsState.logActivity({ toolId, type: 'session_load', summary: `Loaded session ${sessionId}` });
           } catch {}
         }
-      } catch {
-        updateStatus('Unable to load session.');
+      } catch (err) {
+        if (err?.status === 404 || err?.status === 410) {
+          sessionId = '';
+          sessionVersion = 0;
+          dirty = false;
+          setActiveSessionId(toolId, '');
+          setSessionParam('');
+          updateStatus('That saved session is no longer available. New session started.');
+          return;
+        }
+        updateStatus('Unable to load session. Reload to retry or choose New session.');
       }
     };
 
@@ -2435,6 +2583,10 @@
       const auth = window.ToolsAuth.getAuth();
       if (!window.ToolsAuth.authIsValid(auth)) return;
       if (saveInFlight) return;
+      if (sessionId && sessionVersion === null) {
+        updateStatus('Wait for the saved session to finish loading before saving.');
+        return;
+      }
       saveInFlight = true;
       updateStatus('Saving...');
       const saveAction = sessionId ? 'update' : 'create';
@@ -2450,17 +2602,19 @@
           sessionId: sessionId || undefined,
           snapshot,
           outputSummary: outputSummary || undefined,
+          expectedVersion: sessionVersion === null ? undefined : sessionVersion,
           keepalive: !!keepalive
         });
         const nextSessionId = res?.session?.sessionId ? String(res.session.sessionId) : sessionId;
+        sessionVersion = Math.max(1, Number(res?.session?.version) || sessionVersion || 1);
         if (nextSessionId && nextSessionId !== sessionId) {
           sessionId = nextSessionId;
           setActiveSessionId(toolId, sessionId);
           setSessionParam(sessionId);
         }
         dirty = false;
-        updateStatus('Saved.');
-        setTimeout(() => updateStatus(''), 1200);
+        updateStatus('Saved to account.');
+        setTimeout(() => updateStatus(idleStatus), 1200);
         try {
           await window.ToolsState.logActivity({ toolId, type: 'session_save', summary: `Saved session ${sessionId}`, keepalive: !!keepalive });
         } catch {}
@@ -2483,6 +2637,47 @@
       saveSession({ source: 'manual' }).catch((err) => logAsyncError('tools:save-session', err));
     });
 
+    document.addEventListener('tools:new-session', (event) => {
+      if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
+      sessionId = '';
+      sessionVersion = 0;
+      dirty = false;
+      setActiveSessionId(toolId, '');
+      updateStatus('New session (not saved yet).');
+    });
+    document.addEventListener('tools:account-data-deleted', () => {
+      sessionId = '';
+      sessionVersion = 0;
+      dirty = false;
+      setActiveSessionId(toolId, '');
+      updateStatus('Account history deleted. New session started.');
+    });
+    document.addEventListener('tools:session-meta-updated', (event) => {
+      const detail = event?.detail || {};
+      if (String(detail.toolId || '').trim() !== toolId) return;
+      if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
+      const nextVersion = Number(detail.meta?.version);
+      if (Number.isInteger(nextVersion) && nextVersion > 0) sessionVersion = nextVersion;
+    });
+    document.addEventListener('tools:session-deleted', (event) => {
+      const detail = event?.detail || {};
+      if (String(detail.toolId || '').trim() !== toolId) return;
+      if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
+      sessionId = '';
+      sessionVersion = 0;
+      dirty = false;
+      setActiveSessionId(toolId, '');
+      setSessionParam('');
+      updateStatus('Saved session deleted. New session started.');
+    });
+
+    setActiveSessionId(toolId, sessionId);
+    updateStatus(idleStatus);
+
+    applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
+
+    if (!autosaveEnabled) return;
+
     document.addEventListener('tools:session-dirty', (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
       dirty = true;
@@ -2500,11 +2695,6 @@
       if (isApplying) return;
       dirty = true;
     });
-
-    setActiveSessionId(toolId, sessionId);
-    updateStatus('');
-
-    applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
 
     const tick = () => {
       if (dirty) saveSession({ source: 'autosave' }).catch((err) => logAsyncError('tool-autosave:tick-save', err));
@@ -2546,7 +2736,11 @@
     const root = document.getElementById('main');
 
     const autosaveMode = String(document.body?.dataset?.toolsAutosave || '').trim().toLowerCase();
-    const toolActionsEnabled = autosaveMode !== 'false' && autosaveMode !== 'off' && autosaveMode !== '0';
+    const genericSessionsDisabled = new Set(['ga4-utm-performance', 'short-links', 'job-application-tracker']);
+    const toolActionsEnabled = !genericSessionsDisabled.has(toolId) &&
+      autosaveMode !== 'false' && autosaveMode !== 'off' && autosaveMode !== '0';
+    const autosaveEnabled = toolActionsEnabled &&
+      (autosaveMode === 'true' || autosaveMode === 'on' || autosaveMode === '1');
 
     const sessionModal = initSessionModal();
     const accountModal = initAccountModal({ onViewSession: sessionModal.open });
@@ -2598,7 +2792,7 @@
     }
 
     if (toolId && root && toolActionsEnabled) {
-      initToolAutoSave({ toolId, root, setStatus });
+      initToolAutoSave({ toolId, root, setStatus, autosaveEnabled });
     }
   };
 

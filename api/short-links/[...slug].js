@@ -13,14 +13,23 @@ const {
   getRequestBaseUrl
 } = require('../_lib/short-links');
 
+function decodeRequestValue(value){
+  const raw = String(value || '');
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function getSlugFromRequest(req){
   const querySlug = req.query && req.query.slug;
-  if (Array.isArray(querySlug)) return querySlug.join('/');
-  if (typeof querySlug === 'string') return querySlug;
+  if (Array.isArray(querySlug)) return decodeRequestValue(querySlug.join('/'));
+  if (typeof querySlug === 'string') return decodeRequestValue(querySlug);
   try {
     const url = new URL(req.url, getRequestBaseUrl(req));
     const match = url.pathname.match(/\/api\/short-links\/(.+)$/);
-    return match ? decodeURIComponent(match[1]) : '';
+    return match ? decodeRequestValue(match[1]) : '';
   } catch {
     return '';
   }
@@ -49,6 +58,14 @@ function serializeLink(record, fallbackSlug, fallbackUpdatedAt){
 }
 
 module.exports = async (req, res) => {
+  const requestSlug = getSlugFromRequest(req);
+  if (requestSlug.startsWith('test/')) {
+    const testSlug = requestSlug.slice('test/'.length);
+    const testHandler = require('../_lib/short-links-test');
+    await testHandler(req, res, { slug: testSlug });
+    return;
+  }
+
   const adminToken = getAdminToken();
   if (!adminToken) {
     sendJson(res, 503, { ok: false, error: 'SHORTLINKS_ADMIN_TOKEN is not configured' });
@@ -59,7 +76,7 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const slug = normalizeSlug(getSlugFromRequest(req));
+  const slug = normalizeSlug(requestSlug);
   if (!slug) {
     sendJson(res, 400, { ok: false, error: 'Invalid slug' });
     return;

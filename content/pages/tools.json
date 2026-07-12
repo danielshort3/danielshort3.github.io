@@ -43,6 +43,32 @@
   "heroTitle": "Tools",
   "heroLead": "Focused utilities for writing, campaigns, and media.",
   "statusLabel": "Local-first",
+  "brandPanel": {
+    "signals": [
+      "Local-first",
+      "Writing",
+      "Campaigns",
+      "Media"
+    ],
+    "proofPoints": [
+      {
+        "value": "{{count}}",
+        "label": "public tools"
+      },
+      {
+        "value": "5",
+        "label": "workflow groups"
+      },
+      {
+        "value": "Local",
+        "label": "browser-first"
+      },
+      {
+        "value": "Saved",
+        "label": "session support"
+      }
+    ]
+  },
   "filter": {
     "placeholder": "Search tools",
     "clearLabel": "Clear all"

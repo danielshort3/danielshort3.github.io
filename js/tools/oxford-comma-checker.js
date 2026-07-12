@@ -37,6 +37,22 @@
     } catch {}
   };
 
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const escapeHtml = (value) => value
     .replace(/&/g, '&amp;')
@@ -443,7 +459,7 @@
         empty.textContent = 'Waiting for input.';
       }
       renderOutput('', []);
-      return;
+      return null;
     }
     const conjunctions = getConjunctions();
     if (!conjunctions.length) {
@@ -456,7 +472,7 @@
         empty.textContent = 'Choose "and", "or", or "nor" to scan lists.';
       }
       renderOutput(text, []);
-      return;
+      return null;
     }
     const matches = findMatches(text, conjunctions);
     const missing = matches.filter((item) => !item.hasOxford);
@@ -482,11 +498,19 @@
     renderResults(matches);
     renderOutput(text, highlights);
     markSessionDirty();
+    return matches.length ? 'with_findings' : 'no_findings';
   };
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    runAnalysis();
+    try {
+      const resultBucket = runAnalysis();
+      if (resultBucket) reportRunComplete(resultBucket);
+      else reportRunError('validation');
+    } catch (error) {
+      reportRunError('processing');
+      throw error;
+    }
   });
 
   const maybeRerun = () => {

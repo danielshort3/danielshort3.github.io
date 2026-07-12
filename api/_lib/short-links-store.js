@@ -21,6 +21,7 @@ const {
   PutCommand,
   QueryCommand,
   ScanCommand,
+  TransactWriteCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 const {
@@ -31,6 +32,10 @@ const {
   isInternalRecordSlug,
   normalizeSlugLower
 } = require('./short-links');
+
+const SLUG_RESERVATION_PREFIX = '__slug_lower__/';
+const CLICK_RETENTION_DAYS = 90;
+const CLICK_TTL_ATTRIBUTE = 'expiresAt';
 
 function pickEnv(keys){
   for (const key of keys) {
@@ -132,6 +137,48 @@ function sanitizeValue(value, maxLen){
   return cleaned.slice(0, maxLen);
 }
 
+function buildSlugReservationKey(slug){
+  const lower = normalizeSlugLower(slug);
+  return lower ? `${SLUG_RESERVATION_PREFIX}${lower}` : '';
+}
+
+function createSlugConflictError(slug){
+  const err = new Error(`Slug conflicts with an existing link: ${slug}`);
+  err.code = 'SLUG_CONFLICT';
+  err.statusCode = 409;
+  return err;
+}
+
+function isSlugConflictError(err){
+  if (!err) return false;
+  if (err.code === 'SLUG_CONFLICT') return true;
+  if (err.name !== 'TransactionCanceledException') return false;
+  if (Array.isArray(err.CancellationReasons)) {
+    return err.CancellationReasons.some(reason => reason && reason.Code === 'ConditionalCheckFailed');
+  }
+  return /ConditionalCheckFailed/i.test(String(err.message || ''));
+}
+
+function encodeCursor(lastEvaluatedKey){
+  if (!lastEvaluatedKey || typeof lastEvaluatedKey.slug !== 'string') return '';
+  return Buffer.from(JSON.stringify({ slug: lastEvaluatedKey.slug }), 'utf8').toString('base64url');
+}
+
+function decodeCursor(cursor){
+  const raw = typeof cursor === 'string' ? cursor.trim() : '';
+  if (!raw) return undefined;
+  try {
+    const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+    if (!parsed || typeof parsed.slug !== 'string' || !parsed.slug) throw new Error('Invalid cursor');
+    return { slug: parsed.slug };
+  } catch {
+    const err = new Error('Invalid pagination cursor');
+    err.code = 'INVALID_CURSOR';
+    err.statusCode = 400;
+    throw err;
+  }
+}
+
 let cachedDocClient = null;
 let cachedKey = '';
 
@@ -178,12 +225,29 @@ async function getLink(slug){
   return result && result.Item ? result.Item : null;
 }
 
+async function getSlugReservation(slug){
+  const key = buildSlugReservationKey(slug);
+  if (!key) return null;
+  return getLink(key);
+}
+
 async function getLinkWithLegacyFallback(slug){
   const exact = await getLink(slug);
   if (isLinkEntity(exact)) return exact;
 
   const lower = normalizeSlugLower(slug);
-  if (!lower || lower === slug) return null;
+  if (!lower) return null;
+
+  const reservation = await getSlugReservation(lower);
+  const canonicalSlug = reservation && typeof reservation.canonicalSlug === 'string'
+    ? reservation.canonicalSlug
+    : '';
+  if (canonicalSlug && canonicalSlug !== slug) {
+    const canonical = await getLink(canonicalSlug);
+    if (isLinkEntity(canonical)) return canonical;
+  }
+
+  if (lower === slug) return null;
 
   const legacy = await getLink(lower);
   return isLinkEntity(legacy) ? legacy : null;
@@ -225,7 +289,9 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
     ':zero': 0
   };
 
-  if (typeof expiresAt !== 'undefined') {
+  if (permanent) {
+    removeExpressions.push('expiresAt');
+  } else if (typeof expiresAt !== 'undefined') {
     const numericExpiresAt = Number(expiresAt);
     if (Number.isFinite(numericExpiresAt) && numericExpiresAt > 0) {
       setExpressions.push('expiresAt = :expiresAt');
@@ -258,14 +324,50 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
   });
 
   const updateExpression = `SET ${setExpressions.join(', ')}${removeExpressions.length ? ` REMOVE ${removeExpressions.join(', ')}` : ''}`;
-  const result = await client.send(new UpdateCommand({
-    TableName: tableName,
-    Key: { slug },
-    UpdateExpression: updateExpression,
-    ExpressionAttributeValues: values,
-    ReturnValues: 'ALL_NEW'
-  }));
-  return result && result.Attributes ? result.Attributes : null;
+  const reservationKey = buildSlugReservationKey(slug);
+  if (!reservationKey) throw createSlugConflictError(slug);
+
+  try {
+    await client.send(new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: tableName,
+            Key: { slug: reservationKey },
+            ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug',
+            UpdateExpression: 'SET #entityType = :reservationType, #slugLower = :slugLower, #canonicalSlug = :canonicalSlug, #createdAt = if_not_exists(#createdAt, :updatedAt), #updatedAt = :updatedAt',
+            ExpressionAttributeNames: {
+              '#slug': 'slug',
+              '#entityType': 'entityType',
+              '#slugLower': 'slugLower',
+              '#canonicalSlug': 'canonicalSlug',
+              '#createdAt': 'createdAt',
+              '#updatedAt': 'updatedAt'
+            },
+            ExpressionAttributeValues: {
+              ':reservationType': 'slugReservation',
+              ':slugLower': normalizeSlugLower(slug),
+              ':canonicalSlug': slug,
+              ':updatedAt': updatedAt
+            }
+          }
+        },
+        {
+          Update: {
+            TableName: tableName,
+            Key: { slug },
+            UpdateExpression: updateExpression,
+            ExpressionAttributeValues: values
+          }
+        }
+      ]
+    }));
+  } catch (err) {
+    if (isSlugConflictError(err)) throw createSlugConflictError(slug);
+    throw err;
+  }
+
+  return getLink(slug);
 }
 
 async function setLinkDisabled({ slug, disabled, updatedAt }){
@@ -288,9 +390,36 @@ async function setLinkDisabled({ slug, disabled, updatedAt }){
 async function deleteLink(slug){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
-  await client.send(new DeleteCommand({
-    TableName: tableName,
-    Key: { slug }
+  const reservationKey = buildSlugReservationKey(slug);
+  if (!reservationKey || isInternalRecordSlug(slug)) {
+    await client.send(new DeleteCommand({
+      TableName: tableName,
+      Key: { slug }
+    }));
+    return;
+  }
+
+  await client.send(new TransactWriteCommand({
+    TransactItems: [
+      {
+        Delete: {
+          TableName: tableName,
+          Key: { slug }
+        }
+      },
+      {
+        Delete: {
+          TableName: tableName,
+          Key: { slug: reservationKey },
+          ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug',
+          ExpressionAttributeNames: {
+            '#slug': 'slug',
+            '#canonicalSlug': 'canonicalSlug'
+          },
+          ExpressionAttributeValues: { ':canonicalSlug': slug }
+        }
+      }
+    ]
   }));
 }
 
@@ -300,10 +429,16 @@ async function incrementClicks(slug){
   await client.send(new UpdateCommand({
     TableName: tableName,
     Key: { slug },
+    ConditionExpression: 'attribute_exists(#slug) AND (attribute_not_exists(#entityType) OR #entityType = :linkType)',
     UpdateExpression: 'SET clicks = if_not_exists(clicks, :zero) + :one',
+    ExpressionAttributeNames: {
+      '#slug': 'slug',
+      '#entityType': 'entityType'
+    },
     ExpressionAttributeValues: {
       ':zero': 0,
-      ':one': 1
+      ':one': 1,
+      ':linkType': 'link'
     }
   }));
 }
@@ -331,6 +466,35 @@ async function listLinks(){
   return items.filter(isLinkEntity);
 }
 
+async function listLinksPage({ limit, cursor } = {}){
+  const { tableName } = getRequiredEnv();
+  const client = getDocClient();
+  const safeLimit = Number.isFinite(Number(limit)) ? Math.max(1, Math.min(500, Math.floor(Number(limit)))) : 100;
+  const items = [];
+  let startKey = decodeCursor(cursor);
+  let lastEvaluatedKey;
+
+  do {
+    const remaining = safeLimit - items.length;
+    const result = await client.send(new ScanCommand({
+      TableName: tableName,
+      ExclusiveStartKey: startKey,
+      Limit: remaining,
+      FilterExpression: 'attribute_not_exists(#entityType) OR #entityType = :linkType',
+      ExpressionAttributeNames: { '#entityType': 'entityType' },
+      ExpressionAttributeValues: { ':linkType': 'link' }
+    }));
+    if (result && Array.isArray(result.Items)) items.push(...result.Items.filter(isLinkEntity));
+    lastEvaluatedKey = result && result.LastEvaluatedKey ? result.LastEvaluatedKey : undefined;
+    startKey = lastEvaluatedKey;
+  } while (items.length < safeLimit && startKey);
+
+  return {
+    items,
+    nextCursor: encodeCursor(lastEvaluatedKey)
+  };
+}
+
 async function findLinkByLowerSlug(slug){
   const target = normalizeSlugLower(slug);
   if (!target) return null;
@@ -347,6 +511,35 @@ async function listSetTemplates(){
   return items
     .filter(isSetTemplateEntity)
     .sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+}
+
+async function listSetTemplatesPage({ limit, cursor } = {}){
+  const { tableName } = getRequiredEnv();
+  const client = getDocClient();
+  const safeLimit = Number.isFinite(Number(limit)) ? Math.max(1, Math.min(200, Math.floor(Number(limit)))) : 50;
+  const items = [];
+  let startKey = decodeCursor(cursor);
+  let lastEvaluatedKey;
+
+  do {
+    const remaining = safeLimit - items.length;
+    const result = await client.send(new ScanCommand({
+      TableName: tableName,
+      ExclusiveStartKey: startKey,
+      Limit: remaining,
+      FilterExpression: '#entityType = :entityType',
+      ExpressionAttributeNames: { '#entityType': 'entityType' },
+      ExpressionAttributeValues: { ':entityType': 'setTemplate' }
+    }));
+    if (result && Array.isArray(result.Items)) items.push(...result.Items.filter(isSetTemplateEntity));
+    lastEvaluatedKey = result && result.LastEvaluatedKey ? result.LastEvaluatedKey : undefined;
+    startKey = lastEvaluatedKey;
+  } while (items.length < safeLimit && startKey);
+
+  return {
+    items,
+    nextCursor: encodeCursor(lastEvaluatedKey)
+  };
 }
 
 async function saveSetTemplate(template){
@@ -379,19 +572,15 @@ async function recordClick(event){
     statusCode: Number.isFinite(Number(event.statusCode)) ? Number(event.statusCode) : undefined,
     host: sanitizeValue(event.host, 255),
     path: sanitizeValue(event.path, 2048),
-    referer: sanitizeValue(event.referer, 2048),
     refererHost: sanitizeValue(event.refererHost, 255),
     userAgent: sanitizeValue(event.userAgent, 768),
     country: sanitizeValue(event.country, 64),
     region: sanitizeValue(event.region, 128),
     city: sanitizeValue(event.city, 128),
-    timezone: sanitizeValue(event.timezone, 128),
-    latitude: sanitizeValue(event.latitude, 64),
-    longitude: sanitizeValue(event.longitude, 64)
+    timezone: sanitizeValue(event.timezone, 128)
   };
 
-  const ttlDays = 90;
-  item.expiresAt = Math.floor((Date.now() + ttlDays * 24 * 60 * 60 * 1000) / 1000);
+  item[CLICK_TTL_ATTRIBUTE] = Math.floor((Date.now() + CLICK_RETENTION_DAYS * 24 * 60 * 60 * 1000) / 1000);
 
   await client.send(new PutCommand({
     TableName: clicksTableName,
@@ -433,14 +622,21 @@ module.exports = {
   incrementClicks,
   listAllItems,
   listLinks,
+  listLinksPage,
   findLinkByLowerSlug,
   getSetTemplate,
   listSetTemplates,
+  listSetTemplatesPage,
   saveSetTemplate,
   deleteSetTemplate,
   saveGeneratedBatch,
   isSetTemplateEntity,
   isGeneratedBatchEntity,
   recordClick,
-  listClicks
+  listClicks,
+  CLICK_RETENTION_DAYS,
+  CLICK_TTL_ATTRIBUTE,
+  SLUG_RESERVATION_PREFIX,
+  buildSlugReservationKey,
+  isSlugConflictError
 };

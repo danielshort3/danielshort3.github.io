@@ -91,6 +91,32 @@
     outline-offset:2px;
   }
 
+  @media (max-width: 600px){
+    body[data-page="ga4-utm-performance"] .ga4-tabs .wrapper{
+      position:relative;
+    }
+
+    body[data-page="ga4-utm-performance"] .ga4-tabs .wrapper::after{
+      content:"";
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      width:30px;
+      pointer-events:none;
+      background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--bg) 94%, transparent));
+    }
+
+    body[data-page="ga4-utm-performance"] .ga4-tab{
+      scroll-snap-align:start;
+    }
+
+    body[data-page="ga4-utm-performance"] .ga4-tablist{
+      padding-right:30px;
+      scroll-snap-type:x proximity;
+    }
+  }
+
   body[data-page="ga4-utm-performance"] .ga4-quickstart-section{
     padding-top:clamp(1.2rem,3.4vh,1.8rem);
     padding-bottom:clamp(1rem,3vh,1.4rem);

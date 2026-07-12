@@ -144,6 +144,10 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Adaptive AI, Upgrade loops, Combat tuning"
       ],
+      "image": "img/games/stellar-dogfight/raster/background-nebula.png",
+      "imageWidth": 1600,
+      "imageHeight": 900,
+      "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 2l4 6-4 12-4-12 4-6z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 2l4 6-4 12-4-12 4-6z\"></path>\n  <path d=\"M8 14l-4 2 2-4\"></path>\n  <path d=\"M16 14l4 2-2-4\"></path>\n</svg>",
       "order": 1
     },
@@ -179,6 +183,10 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Probability, Distribution tracking, Table state"
       ],
+      "image": "",
+      "imageWidth": null,
+      "imageHeight": null,
+      "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"8\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <circle cx=\"12\" cy=\"12\" r=\"8\"></circle>\n  <circle cx=\"12\" cy=\"12\" r=\"2.1\"></circle>\n  <path d=\"M12 4v2.3M20 12h-2.3M12 20v-2.3M4 12h2.3\"></path>\n</svg>",
       "order": 2
     },
@@ -214,6 +222,10 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Simulation, Synergies, Prestige loops"
       ],
+      "image": "",
+      "imageWidth": null,
+      "imageHeight": null,
+      "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M7 9h10M7 12h10M7 15h10M9 7v10M12 7v10M15 7v10\"></path>\n</svg>",
       "order": 3
     },
@@ -249,6 +261,10 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: RPG systems, Loot economy, Progression"
       ],
+      "image": "img/project-starfall/ui/splash-screen.png",
+      "imageWidth": 1672,
+      "imageHeight": 941,
+      "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\"></path>\n  <path d=\"M12 7.3v6.1M9.2 10.2h5.6\"></path>\n</svg>",
       "order": 4
     },
@@ -284,6 +300,10 @@ window.DIRECTORY_WORKBENCH = {
       "actions": [
         "Focus areas: Parameter sandbox, Realtime canvas, Visual systems"
       ],
+      "image": "",
+      "imageWidth": null,
+      "imageHeight": null,
+      "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n  <path d=\"M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n</svg>",
       "order": 5
     }

@@ -1,6 +1,8 @@
-const { randomUUID } = require('crypto');
+const { createHash, randomUUID } = require('crypto');
+const { once } = require('events');
 const { PassThrough } = require('stream');
 const { Upload } = require('@aws-sdk/lib-storage');
+const { createPresignedPost } = require('@aws-sdk/s3-presigned-post');
 const archiver = require('archiver');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
@@ -11,7 +13,13 @@ const {
   DeleteCommand,
   QueryCommand
 } = require('@aws-sdk/lib-dynamodb');
-const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const {
+  S3Client,
+  GetObjectCommand,
+  HeadObjectCommand,
+  DeleteObjectsCommand,
+  PutObjectTaggingCommand
+} = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
@@ -33,7 +41,11 @@ const {
   MAX_ATTACHMENT_BYTES = '10485760',
   MAX_ATTACHMENT_COUNT = '12',
   MAX_TAGS = '12',
-  MAX_CUSTOM_FIELDS = '12'
+  MAX_CUSTOM_FIELDS = '12',
+  MAX_EXPORT_APPLICATIONS = '1000',
+  MAX_EXPORT_ATTACHMENTS = '50',
+  MAX_EXPORT_BYTES = '52428800',
+  MAX_EXPORT_METADATA_BYTES = '8388608'
 } = process.env;
 
 const allowedOrigins = ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean);
@@ -42,6 +54,22 @@ const maxAttachmentBytes = Math.max(parseInt(MAX_ATTACHMENT_BYTES, 10) || 104857
 const maxAttachmentCount = Math.max(parseInt(MAX_ATTACHMENT_COUNT, 10) || 12, 1);
 const maxTags = Math.max(parseInt(MAX_TAGS, 10) || 12, 1);
 const maxCustomFields = Math.max(parseInt(MAX_CUSTOM_FIELDS, 10) || 12, 1);
+const maxExportApplications = Math.min(Math.max(parseInt(MAX_EXPORT_APPLICATIONS, 10) || 1000, 1), 1000);
+const maxExportAttachments = Math.min(Math.max(parseInt(MAX_EXPORT_ATTACHMENTS, 10) || 50, 1), 50);
+const maxExportBytes = Math.min(Math.max(parseInt(MAX_EXPORT_BYTES, 10) || 52428800, 1048576), 52428800);
+const maxExportMetadataBytes = Math.min(
+  Math.max(parseInt(MAX_EXPORT_METADATA_BYTES, 10) || 8388608, 65536),
+  8388608
+);
+const MAX_LIST_PAGE_SIZE = 500;
+const MAX_QUERY_PAGES = 25;
+const MAX_INTERNAL_QUERY_LIMIT = 10_000;
+const MAX_INTERNAL_QUERY_BYTES = 8 * 1024 * 1024;
+const MAX_ANALYTICS_QUERY_BYTES = 4 * 1024 * 1024;
+const MAX_CURSOR_CHARS = 2_048;
+const STAGING_TAGS = [{ Key: 'purpose', Value: 'staging' }];
+const ATTACHMENT_TAGS = [{ Key: 'purpose', Value: 'attachment' }];
+const STAGING_TAG_XML = '<Tagging><TagSet><Tag><Key>purpose</Key><Value>staging</Value></Tag></TagSet></Tagging>';
 const MAX_TAG_LENGTH = 36;
 const MAX_CUSTOM_FIELD_KEY_LENGTH = 40;
 const MAX_CUSTOM_FIELD_VALUE_LENGTH = 180;
@@ -130,6 +158,9 @@ const normalizeAttachments = (userId, attachments) => {
   if (!Array.isArray(attachments)) {
     throw httpError(400, 'attachments must be an array.');
   }
+  if (attachments.length > maxAttachmentCount) {
+    throw httpError(400, `A maximum of ${maxAttachmentCount} attachments is allowed.`);
+  }
   const now = nowIso();
   const safe = [];
   for (const attachment of attachments) {
@@ -143,8 +174,11 @@ const normalizeAttachments = (userId, attachments) => {
     const rawSize = attachment.size;
     const size = rawSize === undefined || rawSize === null || rawSize === ''
       ? null
-      : parseInt(rawSize, 10);
-    if (Number.isFinite(size)) {
+      : Number(rawSize);
+    if (size !== null && !Number.isSafeInteger(size)) {
+      throw httpError(400, 'Attachment size must be an integer number of bytes.');
+    }
+    if (Number.isSafeInteger(size)) {
       if (size <= 0 || size > maxAttachmentBytes) {
         throw httpError(400, `Attachment size exceeds ${maxAttachmentBytes} bytes.`);
       }
@@ -155,11 +189,87 @@ const normalizeAttachments = (userId, attachments) => {
       contentType: (attachment.contentType || '').toString().trim(),
       kind: (attachment.kind || '').toString().trim(),
       uploadedAt: (attachment.uploadedAt || now).toString().trim(),
-      ...(Number.isFinite(size) ? { size } : {})
+      ...(Number.isSafeInteger(size) ? { size } : {}),
+      ...(String(attachment.etag || '').trim() ? { etag: String(attachment.etag).trim().replace(/^"|"$/g, '') } : {})
     });
-    if (safe.length >= maxAttachmentCount) break;
   }
   return safe;
+};
+
+const verifyUploadedAttachments = async (attachments) => {
+  if (!attachments.length) return [];
+  if (!ATTACHMENTS_BUCKET) throw httpError(500, 'Attachments bucket not configured.');
+  return Promise.all(attachments.map(async (attachment) => {
+    let object;
+    try {
+      object = await s3.send(new HeadObjectCommand({
+        Bucket: ATTACHMENTS_BUCKET,
+        Key: attachment.key
+      }));
+    } catch {
+      throw httpError(400, `Uploaded attachment not found: ${attachment.filename}`);
+    }
+    const actualSize = Number(object?.ContentLength);
+    if (!Number.isFinite(actualSize) || actualSize <= 0 || actualSize > maxAttachmentBytes) {
+      throw httpError(400, `Uploaded attachment exceeds ${maxAttachmentBytes} bytes.`);
+    }
+    if (Number.isFinite(Number(attachment.size)) && actualSize !== Number(attachment.size)) {
+      throw httpError(400, `Uploaded attachment size mismatch: ${attachment.filename}`);
+    }
+    const expectedType = String(attachment.contentType || '').trim().toLowerCase();
+    const actualType = String(object?.ContentType || '').trim().toLowerCase();
+    if (expectedType && actualType && expectedType !== actualType) {
+      throw httpError(400, `Uploaded attachment type mismatch: ${attachment.filename}`);
+    }
+    return {
+      ...attachment,
+      size: actualSize,
+      ...(String(object?.ETag || '').trim()
+        ? { etag: String(object.ETag).trim().replace(/^"|"$/g, '') }
+        : {})
+    };
+  }));
+};
+
+const setAttachmentPurpose = async (attachments, purpose) => {
+  if (!attachments.length) return;
+  if (!ATTACHMENTS_BUCKET) throw httpError(500, 'Attachments bucket not configured.');
+  const tags = purpose === 'staging' ? STAGING_TAGS : ATTACHMENT_TAGS;
+  for (const attachment of attachments) {
+    await s3.send(new PutObjectTaggingCommand({
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: attachment.key,
+      Tagging: { TagSet: tags }
+    }));
+  }
+};
+
+const restageAttachmentsQuietly = async (attachments) => {
+  if (!attachments.length) return;
+  try {
+    await setAttachmentPurpose(attachments, 'staging');
+  } catch (err) {
+    console.warn('Unable to restore staging tags after a failed attachment save.', err?.message || err);
+  }
+};
+
+const deleteAttachmentKeys = async (keys) => {
+  const uniqueKeys = Array.from(new Set((keys || []).filter(Boolean)));
+  if (!uniqueKeys.length) return { deleted: 0, errors: [] };
+  if (!ATTACHMENTS_BUCKET) return { deleted: 0, errors: uniqueKeys };
+  try {
+    const result = await s3.send(new DeleteObjectsCommand({
+      Bucket: ATTACHMENTS_BUCKET,
+      Delete: {
+        Objects: uniqueKeys.map(Key => ({ Key })),
+        Quiet: true
+      }
+    }));
+    const errors = (result?.Errors || []).map(entry => String(entry?.Key || '')).filter(Boolean);
+    return { deleted: uniqueKeys.length - errors.length, errors };
+  } catch {
+    return { deleted: 0, errors: uniqueKeys };
+  }
 };
 
 const normalizePath = (event) => {
@@ -304,7 +414,42 @@ const getUserId = (event) => {
   return userId;
 };
 
-const queryApplications = async (userId, { range, limit, scanForward, recordType } = {}) => {
+const getCursorScope = ({ range, scanForward, recordType } = {}) => createHash('sha256')
+  .update(JSON.stringify({
+    recordType: recordType || '',
+    start: range ? formatDate(range.start) : '',
+    end: range ? formatDate(range.end) : '',
+    scanForward: scanForward !== false
+  }))
+  .digest('hex')
+  .slice(0, 16);
+
+const encodeCursor = (key, scope) => {
+  if (!key || typeof key !== 'object') return '';
+  return Buffer.from(JSON.stringify({ ...key, scope }), 'utf8').toString('base64url');
+};
+
+const decodeCursor = (value, userId, scope) => {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  if (raw.length > MAX_CURSOR_CHARS) throw httpError(400, 'Invalid cursor.');
+  try {
+    const parsed = JSON.parse(Buffer.from(raw, 'base64url').toString('utf8'));
+    if (
+      !parsed ||
+      parsed.userId !== userId ||
+      !String(parsed.applicationId || '').trim() ||
+      parsed.scope !== scope
+    ) {
+      throw new Error('Cursor scope mismatch.');
+    }
+    return { userId: parsed.userId, applicationId: parsed.applicationId };
+  } catch {
+    throw httpError(400, 'Invalid cursor.');
+  }
+};
+
+const queryApplications = async (userId, { range, limit, scanForward, recordType, cursor, withCursor = false } = {}) => {
   const params = {
     TableName: APPLICATIONS_TABLE,
     KeyConditionExpression: 'userId = :userId',
@@ -313,9 +458,11 @@ const queryApplications = async (userId, { range, limit, scanForward, recordType
   };
   const filters = [];
   const names = {};
-  if (Number.isFinite(limit) && limit > 0) {
-    params.Limit = Math.max(1, Math.floor(limit));
-  }
+  const hasExplicitLimit = Number.isFinite(limit) && limit > 0;
+  const targetLimit = hasExplicitLimit
+    ? Math.min(withCursor ? MAX_LIST_PAGE_SIZE : MAX_INTERNAL_QUERY_LIMIT, Math.max(1, Math.floor(limit)))
+    : (withCursor ? MAX_LIST_PAGE_SIZE : MAX_INTERNAL_QUERY_LIMIT);
+  const resultByteLimit = hasExplicitLimit || withCursor ? MAX_INTERNAL_QUERY_BYTES : MAX_ANALYTICS_QUERY_BYTES;
   if (range) {
     filters.push('#appliedDate BETWEEN :start AND :end');
     names['#appliedDate'] = 'appliedDate';
@@ -336,15 +483,36 @@ const queryApplications = async (userId, { range, limit, scanForward, recordType
     params.ExpressionAttributeNames = names;
   }
 
+  const cursorScope = getCursorScope({ range, scanForward, recordType });
   let items = [];
-  let lastKey;
+  let lastKey = decodeCursor(cursor, userId, cursorScope);
+  let pages = 0;
+  let resultBytes = 0;
   do {
-    const result = await dynamo.send(new QueryCommand({ ...params, ExclusiveStartKey: lastKey }));
-    items = items.concat(result.Items || []);
+    const remaining = targetLimit ? Math.max(1, targetLimit - items.length) : undefined;
+    const result = await dynamo.send(new QueryCommand({
+      ...params,
+      ...(remaining ? { Limit: remaining } : {}),
+      ...(lastKey ? { ExclusiveStartKey: lastKey } : {})
+    }));
+    const pageItems = result.Items || [];
+    resultBytes += Buffer.byteLength(JSON.stringify(pageItems), 'utf8');
+    if (resultBytes > resultByteLimit) {
+      throw httpError(413, 'Too much application data to process at once. Narrow the date range.');
+    }
+    items = items.concat(pageItems);
     lastKey = result.LastEvaluatedKey;
-    if (params.Limit) break;
-  } while (lastKey);
-  return items;
+    pages += 1;
+    if (targetLimit && items.length >= targetLimit) break;
+  } while (lastKey && pages < MAX_QUERY_PAGES);
+  if (lastKey && !withCursor && !hasExplicitLimit) {
+    throw httpError(413, 'Too many records to process at once. Narrow the date range.');
+  }
+  const result = {
+    items: targetLimit ? items.slice(0, targetLimit) : items,
+    nextCursor: lastKey ? encodeCursor(lastKey, cursorScope) : ''
+  };
+  return withCursor ? result : result.items;
 };
 
 const getApplication = async (userId, applicationId) => {
@@ -609,12 +777,16 @@ const buildExportData = (items, userId) => {
       const filename = (attachment?.filename || '').toString().trim();
       const safeFilename = sanitizeFilename(filename || `attachment-${index + 1}`);
       const exportPath = `attachments/${folder}/${String(index + 1).padStart(2, '0')}-${safeFilename}`;
+      const size = Number.isFinite(Number(attachment?.size)) ? Number(attachment.size) : 0;
+      const etag = String(attachment?.etag || '').trim().replace(/^"|"$/g, '');
       if (key && key.startsWith(`${userId}/`)) {
-        attachments.push({ key, exportPath });
+        attachments.push({ key, exportPath, size, etag });
       }
       return {
         key,
         filename,
+        size,
+        etag,
         contentType: (attachment?.contentType || '').toString().trim(),
         kind: (attachment?.kind || '').toString().trim(),
         uploadedAt: (attachment?.uploadedAt || '').toString().trim(),
@@ -718,7 +890,11 @@ const handleCreateApplication = async (userId, payload = {}) => {
   const tags = normalizeTags(payload.tags);
   const customFields = normalizeCustomFields(payload.customFields);
   const followUpNote = (payload.followUpNote || '').toString().trim();
-  const attachments = normalizeAttachments(userId, payload.attachments);
+  const requestedAttachments = normalizeAttachments(userId, payload.attachments);
+  if (requestedAttachments.length) {
+    throw httpError(400, 'Create the application before uploading attachments.');
+  }
+  const attachments = [];
   const now = nowIso();
   let statusHistoryDate = now;
   if (statusDateRaw !== undefined && statusDateRaw !== null && statusDateRaw !== '') {
@@ -767,8 +943,22 @@ const handleCreateApplication = async (userId, payload = {}) => {
   if (attachments.length) item.attachments = attachments;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
-    Item: item
+    Item: item,
+    ConditionExpression: 'attribute_not_exists(applicationId)'
   }));
+  if (attachments.length) {
+    try {
+      await setAttachmentPurpose(attachments, 'attachment');
+    } catch (err) {
+      await dynamo.send(new DeleteCommand({
+        TableName: APPLICATIONS_TABLE,
+        Key: { userId, applicationId },
+        ConditionExpression: 'attribute_exists(applicationId)'
+      })).catch(() => {});
+      await restageAttachmentsQuietly(attachments);
+      throw httpError(502, `Application attachments could not be finalized: ${err.message || 'tagging failed'}`);
+    }
+  }
   return item;
 };
 
@@ -979,23 +1169,46 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
     updateExpression += ` REMOVE ${removeFields.join(', ')}`;
   }
 
-  const result = await dynamo.send(new UpdateCommand({
-    TableName: APPLICATIONS_TABLE,
-    Key: { userId, applicationId },
-    UpdateExpression: updateExpression,
-    ExpressionAttributeNames: names,
-    ExpressionAttributeValues: values,
-    ReturnValues: 'ALL_NEW'
-  }));
+  names['#recordType'] = 'recordType';
+  values[':expectedRecordType'] = 'prospect';
+  let result;
+  try {
+    result = await dynamo.send(new UpdateCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId },
+      UpdateExpression: updateExpression,
+      ConditionExpression: 'attribute_exists(applicationId) AND #recordType = :expectedRecordType',
+      ExpressionAttributeNames: names,
+      ExpressionAttributeValues: values,
+      ReturnValues: 'ALL_NEW'
+    }));
+  } catch (err) {
+    if (err?.name === 'ConditionalCheckFailedException') throw httpError(404, 'Prospect not found.');
+    throw err;
+  }
   return result.Attributes;
 };
 
 const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   if (!applicationId) throw httpError(400, 'Missing applicationId.');
+  const existingItem = await getApplication(userId, applicationId);
+  if (existingItem.recordType && existingItem.recordType !== 'application') {
+    throw httpError(404, 'Application not found.');
+  }
   const updates = [];
   const removeFields = [];
   const names = {};
-  const values = { ':updatedAt': nowIso() };
+  const expectedUpdatedAt = String(payload.expectedUpdatedAt || '').trim().slice(0, 64);
+  let nextUpdatedAt = nowIso();
+  if (expectedUpdatedAt && nextUpdatedAt === expectedUpdatedAt) {
+    nextUpdatedAt = new Date(Date.parse(expectedUpdatedAt) + 1).toISOString();
+  }
+  const values = { ':updatedAt': nextUpdatedAt };
+  if (payload.attachments !== undefined && !expectedUpdatedAt) {
+    throw httpError(428, 'expectedUpdatedAt is required when changing attachments.');
+  }
+  let verifiedAttachments = null;
+  let newlyAttached = [];
   const pushStatus = payload.status ? normalizeStatus(payload.status) : null;
   let statusHistoryDate = values[':updatedAt'];
   if (payload.statusDate !== undefined) {
@@ -1080,9 +1293,25 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
       removeFields.push('#customFields');
     }
   }
-  if (payload.attachments) {
+  if (payload.attachments !== undefined) {
     const attachments = normalizeAttachments(userId, payload.attachments);
-    addField('attachments', attachments);
+    verifiedAttachments = await verifyUploadedAttachments(attachments);
+    const existingAttachments = Array.isArray(existingItem.attachments) ? existingItem.attachments : [];
+    const existingKeys = new Set(existingAttachments.map(attachment => attachment?.key).filter(Boolean));
+    newlyAttached = verifiedAttachments.filter(attachment => !existingKeys.has(attachment.key));
+    const expectedStagingPrefix = `${userId}/staging/${applicationId}/`;
+    if (newlyAttached.some(attachment => !attachment.key.startsWith(expectedStagingPrefix))) {
+      throw httpError(400, 'New attachments must use a staging upload created for this application.');
+    }
+    if (verifiedAttachments.length) {
+      try {
+        await setAttachmentPurpose(verifiedAttachments, 'attachment');
+      } catch (err) {
+        await restageAttachmentsQuietly(newlyAttached);
+        throw httpError(502, `Application attachments could not be finalized: ${err.message || 'tagging failed'}`);
+      }
+    }
+    addField('attachments', verifiedAttachments);
   }
   if (pushStatus) {
     addField('status', pushStatus);
@@ -1100,23 +1329,90 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     updateExpression += ` REMOVE ${removeFields.join(', ')}`;
   }
 
-  const result = await dynamo.send(new UpdateCommand({
-    TableName: APPLICATIONS_TABLE,
-    Key: { userId, applicationId },
-    UpdateExpression: updateExpression,
-    ExpressionAttributeNames: names,
-    ExpressionAttributeValues: values,
-    ReturnValues: 'ALL_NEW'
-  }));
+  names['#recordType'] = 'recordType';
+  values[':expectedRecordType'] = 'application';
+  if (expectedUpdatedAt) values[':expectedUpdatedAt'] = expectedUpdatedAt;
+  const conditionExpression = expectedUpdatedAt
+    ? 'attribute_exists(applicationId) AND (attribute_not_exists(#recordType) OR #recordType = :expectedRecordType) AND #updatedAt = :expectedUpdatedAt'
+    : 'attribute_exists(applicationId) AND (attribute_not_exists(#recordType) OR #recordType = :expectedRecordType)';
+  let result;
+  try {
+    result = await dynamo.send(new UpdateCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId },
+      UpdateExpression: updateExpression,
+      ConditionExpression: conditionExpression,
+      ExpressionAttributeNames: names,
+      ExpressionAttributeValues: values,
+      ReturnValues: 'ALL_NEW'
+    }));
+  } catch (err) {
+    await restageAttachmentsQuietly(newlyAttached);
+    if (err?.name === 'ConditionalCheckFailedException') {
+      if (expectedUpdatedAt) throw httpError(409, 'Application changed in another session. Refresh and try again.');
+      throw httpError(404, 'Application not found.');
+    }
+    throw err;
+  }
+  if (verifiedAttachments) {
+    const nextKeys = new Set(verifiedAttachments.map(attachment => attachment.key));
+    const removedKeys = (Array.isArray(existingItem.attachments) ? existingItem.attachments : [])
+      .map(attachment => String(attachment?.key || '').trim())
+      .filter(key => key.startsWith(`${userId}/`) && !nextKeys.has(key));
+    const cleanup = await deleteAttachmentKeys(removedKeys);
+    if (cleanup.errors.length) {
+      await restageAttachmentsQuietly(cleanup.errors.map(key => ({ key })));
+      console.warn(`Unable to clean up ${cleanup.errors.length} replaced attachment(s).`);
+    }
+  }
   return result.Attributes;
 };
 
 const handleDeleteApplication = async (userId, applicationId) => {
   if (!applicationId) throw httpError(400, 'Missing applicationId.');
-  await dynamo.send(new DeleteCommand({
-    TableName: APPLICATIONS_TABLE,
-    Key: { userId, applicationId }
-  }));
+  let deleted;
+  try {
+    deleted = await dynamo.send(new DeleteCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId },
+      ConditionExpression: 'attribute_exists(applicationId) AND (attribute_not_exists(#recordType) OR #recordType = :application)',
+      ExpressionAttributeNames: { '#recordType': 'recordType' },
+      ExpressionAttributeValues: { ':application': 'application' },
+      ReturnValues: 'ALL_OLD'
+    }));
+  } catch (err) {
+    if (err?.name === 'ConditionalCheckFailedException') throw httpError(404, 'Application not found.');
+    throw err;
+  }
+  const item = deleted.Attributes || {};
+  const attachmentKeys = (Array.isArray(item.attachments) ? item.attachments : [])
+    .map(attachment => String(attachment?.key || '').trim())
+    .filter(key => key && key.startsWith(`${userId}/`));
+  const cleanup = await deleteAttachmentKeys(attachmentKeys);
+  if (cleanup.errors.length) {
+    await restageAttachmentsQuietly(cleanup.errors.map(key => ({ key })));
+  }
+  return {
+    ok: true,
+    deletedAttachments: cleanup.deleted,
+    cleanupPending: cleanup.errors.length > 0
+  };
+};
+
+const handleDeleteProspect = async (userId, prospectId) => {
+  if (!prospectId) throw httpError(400, 'Missing prospectId.');
+  try {
+    await dynamo.send(new DeleteCommand({
+      TableName: APPLICATIONS_TABLE,
+      Key: { userId, applicationId: prospectId },
+      ConditionExpression: 'attribute_exists(applicationId) AND #recordType = :prospect',
+      ExpressionAttributeNames: { '#recordType': 'recordType' },
+      ExpressionAttributeValues: { ':prospect': 'prospect' }
+    }));
+  } catch (err) {
+    if (err?.name === 'ConditionalCheckFailedException') throw httpError(404, 'Prospect not found.');
+    throw err;
+  }
   return { ok: true };
 };
 
@@ -1125,29 +1421,44 @@ const handlePresign = async (userId, payload = {}) => {
   const applicationId = (payload.applicationId || '').toString().trim();
   const filename = (payload.filename || '').toString().trim();
   const contentType = (payload.contentType || 'application/octet-stream').toString().trim();
-  const size = parseInt(payload.size, 10);
+  const size = Number(payload.size);
   if (!applicationId || !filename) {
     throw httpError(400, 'applicationId and filename are required.');
   }
-  if (!Number.isFinite(size) || size <= 0) {
+  const application = await getApplication(userId, applicationId);
+  if (application.recordType && application.recordType !== 'application') throw httpError(404, 'Application not found.');
+  if ((Array.isArray(application.attachments) ? application.attachments.length : 0) >= maxAttachmentCount) {
+    throw httpError(400, `A maximum of ${maxAttachmentCount} attachments is allowed.`);
+  }
+  if (!Number.isSafeInteger(size) || size <= 0) {
     throw httpError(400, 'size is required.');
   }
   if (size > maxAttachmentBytes) {
     throw httpError(400, `Attachment exceeds ${maxAttachmentBytes} bytes.`);
   }
-  const safeName = filename.replace(/[^a-zA-Z0-9._-]+/g, '-');
-  const key = `${userId}/${applicationId}/${Date.now()}-${safeName}`;
-  const uploadUrl = await getSignedUrl(
-    s3,
-    new PutObjectCommand({
-      Bucket: ATTACHMENTS_BUCKET,
-      Key: key,
-      ContentType: contentType
-    }),
-    { expiresIn: presignTtl }
-  );
+  const safeName = sanitizeFilename(filename, 'attachment').slice(0, 180);
+  const key = `${userId}/staging/${applicationId}/${randomUUID()}-${safeName}`;
+  const fields = {
+    'Content-Type': contentType,
+    'success_action_status': '201',
+    tagging: STAGING_TAG_XML
+  };
+  const presigned = await createPresignedPost(s3, {
+    Bucket: ATTACHMENTS_BUCKET,
+    Key: key,
+    Fields: fields,
+    Conditions: [
+      { 'Content-Type': contentType },
+      { 'success_action_status': '201' },
+      { tagging: STAGING_TAG_XML },
+      ['content-length-range', size, size]
+    ],
+    Expires: presignTtl
+  });
   return {
-    uploadUrl,
+    uploadUrl: presigned.url,
+    uploadMethod: 'POST',
+    fields: presigned.fields,
     key,
     bucket: ATTACHMENTS_BUCKET,
     expiresIn: presignTtl,
@@ -1187,11 +1498,179 @@ const getExportRange = (payload = {}) => {
   });
 };
 
+const exportRevision = (values) => createHash('sha256')
+  .update(JSON.stringify(values || []))
+  .digest('hex')
+  .slice(0, 12);
+
+const validateExportBudget = (applicationCount, attachmentCount) => {
+  if (applicationCount > maxExportApplications) {
+    throw httpError(413, `Export exceeds ${maxExportApplications} applications. Narrow the date range.`);
+  }
+  if (attachmentCount > maxExportAttachments) {
+    throw httpError(413, `Export exceeds ${maxExportAttachments} attachments. Narrow the date range.`);
+  }
+};
+
+const validateExportMetadata = (...values) => {
+  const bytes = values.reduce((total, value) => total + Buffer.byteLength(String(value || ''), 'utf8'), 0);
+  if (bytes > maxExportMetadataBytes) {
+    throw httpError(413, `Export metadata exceeds ${maxExportMetadataBytes} bytes. Narrow the date range.`);
+  }
+  if (bytes > maxExportBytes) {
+    throw httpError(413, `Export input exceeds ${maxExportBytes} bytes. Narrow the date range.`);
+  }
+  return bytes;
+};
+
+const preflightExportItemsMetadata = (items) => {
+  let bytes = 0;
+  for (const item of items) {
+    bytes += Buffer.byteLength(JSON.stringify(item), 'utf8');
+    if (bytes > maxExportMetadataBytes) {
+      throw httpError(413, `Export metadata exceeds ${maxExportMetadataBytes} bytes. Narrow the date range.`);
+    }
+  }
+  return bytes;
+};
+
+const isMissingObjectError = (err) => {
+  const status = Number(err?.$metadata?.httpStatusCode);
+  return status === 403 || status === 404 || err?.name === 'NotFound' || err?.name === 'NoSuchKey';
+};
+
+const inspectExportAttachments = async (attachments, metadataBytes = 0) => {
+  const available = [];
+  const missing = [];
+  const signature = [];
+  let attachmentBytes = 0;
+  for (const attachment of attachments) {
+    let object;
+    try {
+      object = await s3.send(new HeadObjectCommand({
+        Bucket: ATTACHMENTS_BUCKET,
+        Key: attachment.key
+      }));
+    } catch (err) {
+      if (!isMissingObjectError(err)) throw err;
+      missing.push(attachment);
+      signature.push([attachment.key, 'missing']);
+      continue;
+    }
+    const size = Number(object?.ContentLength);
+    if (!Number.isFinite(size) || size <= 0 || size > maxAttachmentBytes) {
+      throw httpError(413, `Attachment ${attachment.key} exceeds the per-file export limit.`);
+    }
+    attachmentBytes += size;
+    if (metadataBytes + attachmentBytes > maxExportBytes) {
+      throw httpError(413, `Export input exceeds ${maxExportBytes} bytes. Narrow the date range.`);
+    }
+    const ifMatch = String(object?.ETag || '').trim();
+    const etag = ifMatch.replace(/^"|"$/g, '');
+    available.push({ ...attachment, size, etag, ifMatch });
+    signature.push([attachment.key, size, etag]);
+  }
+  return { available, missing, signature, attachmentBytes };
+};
+
+const startArchiveUpload = (key, metadata) => {
+  const uploadStream = new PassThrough();
+  const archive = archiver('zip', { zlib: { level: 6 } });
+  archive.pipe(uploadStream);
+  const uploader = new Upload({
+    client: s3,
+    leavePartsOnError: false,
+    params: {
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key,
+      Body: uploadStream,
+      ContentType: 'application/zip',
+      Tagging: 'purpose=export',
+      Metadata: metadata
+    }
+  });
+  const uploadResult = uploader.done().then(
+    () => ({ error: null }),
+    error => ({ error })
+  );
+  const archiveResult = new Promise((resolve) => {
+    let settled = false;
+    const finish = (error = null) => {
+      if (settled) return;
+      settled = true;
+      resolve({ error });
+    };
+    archive.on('warning', err => {
+      if (err.code !== 'ENOENT') finish(err);
+    });
+    archive.on('error', finish);
+    uploadStream.on('error', finish);
+    uploadStream.on('finish', () => finish());
+    uploadStream.on('close', () => finish());
+  });
+  return { archive, uploadStream, uploader, uploadResult, archiveResult };
+};
+
+const appendBodyToArchive = async (archive, body, name) => {
+  if (!body || typeof body[Symbol.asyncIterator] !== 'function') {
+    throw new Error(`Attachment body is not streamable: ${name}`);
+  }
+  const entry = new PassThrough();
+  archive.append(entry, { name });
+  try {
+    for await (const chunk of body) {
+      if (!entry.write(chunk)) await once(entry, 'drain');
+    }
+    entry.end();
+  } catch (err) {
+    entry.destroy();
+    if (typeof body.destroy === 'function') body.destroy();
+    throw err;
+  }
+};
+
+const abortArchiveUpload = async (context, error) => {
+  try { context.archive.abort(); } catch {}
+  if (!context.uploadStream.destroyed) context.uploadStream.destroy(error);
+  try { await context.uploader.abort(); } catch {}
+  await Promise.all([context.uploadResult, context.archiveResult]);
+};
+
+const finishArchiveUpload = async (context) => {
+  await context.archive.finalize();
+  const [upload, archived] = await Promise.all([context.uploadResult, context.archiveResult]);
+  if (archived.error) throw archived.error;
+  if (upload.error) throw upload.error;
+};
+
+const getCachedExport = async (key) => {
+  try {
+    const object = await s3.send(new HeadObjectCommand({ Bucket: ATTACHMENTS_BUCKET, Key: key }));
+    return object || null;
+  } catch (err) {
+    const status = Number(err?.$metadata?.httpStatusCode);
+    if (status === 404 || err?.name === 'NotFound' || err?.name === 'NoSuchKey') return null;
+    throw err;
+  }
+};
+
+const signExportDownload = async (key) => getSignedUrl(
+  s3,
+  new GetObjectCommand({ Bucket: ATTACHMENTS_BUCKET, Key: key }),
+  { expiresIn: presignTtl }
+);
+
 const handleCreateExport = async (userId, range) => {
   if (!ATTACHMENTS_BUCKET) throw httpError(500, 'Attachments bucket not configured.');
-  const items = await queryApplications(userId, { range, recordType: 'application' });
+  const items = await queryApplications(userId, {
+    range,
+    recordType: 'application',
+    limit: maxExportApplications + 1
+  });
   const sorted = [...items].sort((a, b) => (a.appliedDate || '').localeCompare(b.appliedDate || ''));
   const { exportItems, attachments } = buildExportData(sorted, userId);
+  validateExportBudget(exportItems.length, attachments.length);
+  preflightExportItemsMetadata(exportItems);
   const exportPayload = {
     generatedAt: nowIso(),
     start: formatDate(range.start),
@@ -1199,63 +1678,56 @@ const handleCreateExport = async (userId, range) => {
     totalApplications: exportItems.length,
     items: exportItems
   };
+  const exportJson = JSON.stringify(exportPayload, null, 2);
   const csv = buildExportCsv(exportItems);
-  const key = `${userId}/exports/job-applications-${formatDate(range.start)}-to-${formatDate(range.end)}-${Date.now()}.zip`;
-  const uploadStream = new PassThrough();
-  const archive = archiver('zip', { zlib: { level: 9 } });
-  archive.pipe(uploadStream);
-  archive.append(JSON.stringify(exportPayload, null, 2), { name: 'applications.json' });
-  archive.append(csv, { name: 'applications.csv' });
-
-  let attachmentsExported = 0;
-  let attachmentsMissing = 0;
-  for (const attachment of attachments) {
-    try {
+  const metadataBytes = validateExportMetadata(exportJson, csv);
+  const inspected = await inspectExportAttachments(attachments, metadataBytes);
+  const revision = exportRevision([
+    sorted.map(item => [item.applicationId, item.updatedAt, item.attachments]),
+    inspected.signature
+  ]);
+  const key = `${userId}/exports/job-applications-${formatDate(range.start)}-to-${formatDate(range.end)}-${revision}.zip`;
+  const cached = await getCachedExport(key);
+  if (cached) {
+    return {
+      downloadUrl: await signExportDownload(key),
+      key,
+      expiresIn: presignTtl,
+      start: exportPayload.start,
+      end: exportPayload.end,
+      totalApplications: exportItems.length,
+      attachmentsExported: Number(cached.Metadata?.attachmentsexported) || 0,
+      attachmentsMissing: Number(cached.Metadata?.attachmentsmissing) || 0,
+      inputBytes: Number(cached.Metadata?.inputbytes) || metadataBytes,
+      cached: true
+    };
+  }
+  const inputBytes = metadataBytes + inspected.attachmentBytes;
+  const context = startArchiveUpload(key, {
+    totalapplications: String(exportItems.length),
+    attachmentsexported: String(inspected.available.length),
+    attachmentsmissing: String(inspected.missing.length),
+    inputbytes: String(inputBytes)
+  });
+  try {
+    context.archive.append(exportJson, { name: 'applications.json' });
+    context.archive.append(csv, { name: 'applications.csv' });
+    for (const attachment of inspected.available) {
       const response = await s3.send(new GetObjectCommand({
         Bucket: ATTACHMENTS_BUCKET,
-        Key: attachment.key
+        Key: attachment.key,
+        ...(attachment.ifMatch ? { IfMatch: attachment.ifMatch } : {})
       }));
-      if (response.Body) {
-        archive.append(response.Body, { name: attachment.exportPath });
-        attachmentsExported += 1;
-      } else {
-        attachmentsMissing += 1;
-      }
-    } catch {
-      attachmentsMissing += 1;
+      await appendBodyToArchive(context.archive, response.Body, attachment.exportPath);
     }
+    await finishArchiveUpload(context);
+  } catch (err) {
+    await abortArchiveUpload(context, err);
+    if (err?.statusCode) throw err;
+    throw httpError(502, `Unable to create export: ${err.message || 'archive failed'}`);
   }
 
-  const uploader = new Upload({
-    client: s3,
-    params: {
-      Bucket: ATTACHMENTS_BUCKET,
-      Key: key,
-      Body: uploadStream,
-      ContentType: 'application/zip'
-    }
-  });
-  const uploadPromise = uploader.done();
-  const archivePromise = new Promise((resolve, reject) => {
-    archive.on('warning', err => {
-      if (err.code !== 'ENOENT') reject(err);
-    });
-    archive.on('error', reject);
-    uploadStream.on('finish', resolve);
-    uploadStream.on('close', resolve);
-    uploadStream.on('error', reject);
-  });
-  archive.finalize();
-  await Promise.all([uploadPromise, archivePromise]);
-
-  const downloadUrl = await getSignedUrl(
-    s3,
-    new GetObjectCommand({
-      Bucket: ATTACHMENTS_BUCKET,
-      Key: key
-    }),
-    { expiresIn: presignTtl }
-  );
+  const downloadUrl = await signExportDownload(key);
   return {
     downloadUrl,
     key,
@@ -1263,8 +1735,10 @@ const handleCreateExport = async (userId, range) => {
     start: exportPayload.start,
     end: exportPayload.end,
     totalApplications: exportItems.length,
-    attachmentsExported,
-    attachmentsMissing
+    attachmentsExported: inspected.available.length,
+    attachmentsMissing: inspected.missing.length,
+    inputBytes,
+    cached: false
   };
 };
 
@@ -1273,82 +1747,70 @@ const handleCreateAttachmentZip = async (userId, payload = {}) => {
   const applicationId = (payload.applicationId || '').toString().trim();
   if (!applicationId) throw httpError(400, 'applicationId is required.');
   const item = await getApplication(userId, applicationId);
-  const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+  if (item.recordType && item.recordType !== 'application') throw httpError(404, 'Application not found.');
+  const attachments = normalizeAttachments(userId, Array.isArray(item.attachments) ? item.attachments : []);
   if (!attachments.length) throw httpError(400, 'No attachments to zip.');
+  validateExportBudget(1, attachments.length);
 
   const label = sanitizeFilename(
     [item.company, item.title].filter(Boolean).join('-'),
     sanitizeFilename(applicationId, 'entry')
   );
-  const key = `${userId}/exports/attachments-${sanitizeFilename(applicationId, 'entry')}-${Date.now()}.zip`;
-  const uploadStream = new PassThrough();
-  const archive = archiver('zip', { zlib: { level: 9 } });
-  archive.pipe(uploadStream);
-
-  let attachmentsExported = 0;
-  let attachmentsMissing = 0;
-  for (let index = 0; index < attachments.length; index += 1) {
-    const attachment = attachments[index];
-    const attachmentKey = (attachment?.key || '').toString().trim();
-    const filename = (attachment?.filename || '').toString().trim();
-    if (!attachmentKey || !attachmentKey.startsWith(`${userId}/`)) {
-      attachmentsMissing += 1;
-      continue;
-    }
-    const safeFilename = sanitizeFilename(filename, `attachment-${index + 1}`);
-    const exportPath = `${label}/${String(index + 1).padStart(2, '0')}-${safeFilename}`;
-    try {
+  const metadataBytes = validateExportMetadata(JSON.stringify(attachments.map(attachment => ({
+    key: attachment.key,
+    filename: attachment.filename
+  }))));
+  const inspected = await inspectExportAttachments(attachments, metadataBytes);
+  const revision = exportRevision([item.applicationId, item.updatedAt, inspected.signature]);
+  const key = `${userId}/exports/attachments-${sanitizeFilename(applicationId, 'entry')}-${revision}.zip`;
+  const cached = await getCachedExport(key);
+  if (cached) {
+    return {
+      downloadUrl: await signExportDownload(key),
+      key,
+      expiresIn: presignTtl,
+      attachmentsExported: Number(cached.Metadata?.attachmentsexported) || 0,
+      attachmentsMissing: Number(cached.Metadata?.attachmentsmissing) || 0,
+      inputBytes: Number(cached.Metadata?.inputbytes) || metadataBytes,
+      cached: true
+    };
+  }
+  const inputBytes = metadataBytes + inspected.attachmentBytes;
+  const context = startArchiveUpload(key, {
+    attachmentsexported: String(inspected.available.length),
+    attachmentsmissing: String(inspected.missing.length),
+    inputbytes: String(inputBytes)
+  });
+  try {
+    for (let index = 0; index < inspected.available.length; index += 1) {
+      const attachment = inspected.available[index];
+      const attachmentKey = (attachment?.key || '').toString().trim();
+      const filename = (attachment?.filename || '').toString().trim();
+      const safeFilename = sanitizeFilename(filename, `attachment-${index + 1}`);
+      const exportPath = `${label}/${String(index + 1).padStart(2, '0')}-${safeFilename}`;
       const response = await s3.send(new GetObjectCommand({
         Bucket: ATTACHMENTS_BUCKET,
-        Key: attachmentKey
+        Key: attachmentKey,
+        ...(attachment.ifMatch ? { IfMatch: attachment.ifMatch } : {})
       }));
-      if (response.Body) {
-        archive.append(response.Body, { name: exportPath });
-        attachmentsExported += 1;
-      } else {
-        attachmentsMissing += 1;
-      }
-    } catch {
-      attachmentsMissing += 1;
+      await appendBodyToArchive(context.archive, response.Body, exportPath);
     }
+    await finishArchiveUpload(context);
+  } catch (err) {
+    await abortArchiveUpload(context, err);
+    if (err?.statusCode) throw err;
+    throw httpError(502, `Unable to create attachment archive: ${err.message || 'archive failed'}`);
   }
 
-  const uploader = new Upload({
-    client: s3,
-    params: {
-      Bucket: ATTACHMENTS_BUCKET,
-      Key: key,
-      Body: uploadStream,
-      ContentType: 'application/zip'
-    }
-  });
-  const uploadPromise = uploader.done();
-  const archivePromise = new Promise((resolve, reject) => {
-    archive.on('warning', err => {
-      if (err.code !== 'ENOENT') reject(err);
-    });
-    archive.on('error', reject);
-    uploadStream.on('finish', resolve);
-    uploadStream.on('close', resolve);
-    uploadStream.on('error', reject);
-  });
-  archive.finalize();
-  await Promise.all([uploadPromise, archivePromise]);
-
-  const downloadUrl = await getSignedUrl(
-    s3,
-    new GetObjectCommand({
-      Bucket: ATTACHMENTS_BUCKET,
-      Key: key
-    }),
-    { expiresIn: presignTtl }
-  );
+  const downloadUrl = await signExportDownload(key);
   return {
     downloadUrl,
     key,
     expiresIn: presignTtl,
-    attachmentsExported,
-    attachmentsMissing
+    attachmentsExported: inspected.available.length,
+    attachmentsMissing: inspected.missing.length,
+    inputBytes,
+    cached: false
   };
 };
 
@@ -1407,6 +1869,26 @@ exports.handler = async (event) => {
   try {
     const userId = getUserId(event);
     if (!APPLICATIONS_TABLE) throw httpError(500, 'Applications table not configured.');
+
+    if (routeKey.startsWith('GET /api/analytics/dashboard')) {
+      const range = getRange(event.queryStringParameters || {});
+      const items = await queryApplications(userId, { range, recordType: 'application' });
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify({
+          start: formatDate(range.start),
+          end: formatDate(range.end),
+          summary: buildSummary(items),
+          timeline: { series: buildDailySeries(items, range) },
+          statuses: { statuses: buildStatusBreakdown(items) },
+          calendar: { days: buildDailySeries(items, range) },
+          funnel: buildFunnel(items),
+          timeInStage: buildTimeInStage(items),
+          applications: { items }
+        })
+      };
+    }
 
     if (routeKey.startsWith('GET /api/analytics/summary')) {
       const range = getRange(event.queryStringParameters || {});
@@ -1509,18 +1991,23 @@ exports.handler = async (event) => {
 
     if (routeKey === 'GET /api/applications') {
       const query = event.queryStringParameters || {};
-      const limit = parseInt(query.limit || '0', 10) || 0;
+      const requestedLimit = parseInt(query.limit || '', 10);
+      const limit = Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, MAX_LIST_PAGE_SIZE)
+        : MAX_LIST_PAGE_SIZE;
       const range = (query.start || query.end) ? getRange(query) : null;
-      const items = await queryApplications(userId, {
+      const result = await queryApplications(userId, {
         limit,
         scanForward: false,
         recordType: 'application',
-        range
+        range,
+        cursor: query.cursor,
+        withCursor: true
       });
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
-        body: JSON.stringify({ items })
+        body: JSON.stringify(result)
       };
     }
 
@@ -1534,12 +2021,22 @@ exports.handler = async (event) => {
     }
 
     if (routeKey === 'GET /api/prospects') {
-      const limit = parseInt(event.queryStringParameters?.limit || '0', 10) || 0;
-      const items = await queryApplications(userId, { limit, scanForward: false, recordType: 'prospect' });
+      const query = event.queryStringParameters || {};
+      const requestedLimit = parseInt(query.limit || '', 10);
+      const limit = Number.isFinite(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, MAX_LIST_PAGE_SIZE)
+        : MAX_LIST_PAGE_SIZE;
+      const result = await queryApplications(userId, {
+        limit,
+        scanForward: false,
+        recordType: 'prospect',
+        cursor: query.cursor,
+        withCursor: true
+      });
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
-        body: JSON.stringify({ items })
+        body: JSON.stringify(result)
       };
     }
 
@@ -1602,6 +2099,16 @@ exports.handler = async (event) => {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
         body: JSON.stringify(updated)
+      };
+    }
+
+    if (routeKey.startsWith('DELETE /api/prospects')) {
+      const id = path.split('/').pop();
+      const result = await handleDeleteProspect(userId, id);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(result)
       };
     }
 

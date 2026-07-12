@@ -5,8 +5,18 @@
 */
 'use strict';
 
-const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
-const { getAwsCredentialsFromEnv, getAwsCredentialEnvInfo, getRequiredEnv } = require('../_lib/short-links-store');
+const {
+  DynamoDBClient,
+  DescribeTableCommand,
+  DescribeTimeToLiveCommand
+} = require('@aws-sdk/client-dynamodb');
+const {
+  CLICK_RETENTION_DAYS,
+  CLICK_TTL_ATTRIBUTE,
+  getAwsCredentialsFromEnv,
+  getAwsCredentialEnvInfo,
+  getRequiredEnv
+} = require('../_lib/short-links-store');
 const { getAdminToken, isAdminRequest, sendJson } = require('../_lib/short-links');
 
 function maskAccessKeyId(value){
@@ -73,6 +83,8 @@ module.exports = async (req, res) => {
 
     let clicksTable = null;
     let clicksError = null;
+    let clicksTtl = null;
+    let clicksTtlError = null;
     if (clicksTableName) {
       try {
         const clicksResult = await client.send(new DescribeTableCommand({ TableName: clicksTableName }));
@@ -84,7 +96,21 @@ module.exports = async (req, res) => {
           message: err && err.message ? err.message : ''
         };
       }
+      try {
+        const ttlResult = await client.send(new DescribeTimeToLiveCommand({ TableName: clicksTableName }));
+        clicksTtl = ttlResult && ttlResult.TimeToLiveDescription ? ttlResult.TimeToLiveDescription : null;
+      } catch (err) {
+        clicksTtlError = {
+          name: err && err.name ? err.name : '',
+          code: err && err.code ? err.code : '',
+          message: err && err.message ? err.message : ''
+        };
+      }
     }
+
+    const ttlStatus = clicksTtl && clicksTtl.TimeToLiveStatus ? clicksTtl.TimeToLiveStatus : '';
+    const ttlAttribute = clicksTtl && clicksTtl.AttributeName ? clicksTtl.AttributeName : '';
+    const ttlConfigured = ttlStatus === 'ENABLED' && ttlAttribute === CLICK_TTL_ATTRIBUTE;
 
     sendJson(res, 200, {
       ok: true,
@@ -99,12 +125,23 @@ module.exports = async (req, res) => {
       },
       clicks: {
         configured: !!clicksTableName,
+        retention: {
+          days: CLICK_RETENTION_DAYS,
+          ttlAttribute: CLICK_TTL_ATTRIBUTE,
+          ttlConfigured,
+          ttlStatus,
+          configuredAttribute: ttlAttribute,
+          note: ttlConfigured
+            ? `Click events expire after ${CLICK_RETENTION_DAYS} days.`
+            : `Enable DynamoDB TTL on ${CLICK_TTL_ATTRIBUTE} to enforce ${CLICK_RETENTION_DAYS}-day retention.`
+        },
         table: clicksTableName ? {
           name: clicksTable && clicksTable.TableName ? clicksTable.TableName : clicksTableName,
           status: clicksTable && clicksTable.TableStatus ? clicksTable.TableStatus : '',
           billingMode: clicksTable && clicksTable.BillingModeSummary ? clicksTable.BillingModeSummary.BillingMode : ''
         } : null,
-        error: clicksError
+        error: clicksError,
+        ttlError: clicksTtlError
       }
     });
   } catch (err) {

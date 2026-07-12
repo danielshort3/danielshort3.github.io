@@ -820,7 +820,7 @@ try {
     const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
     const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
-    assert(toolsHtml.includes('<h1>Tools</h1>'), 'tools page should expose the concise Tools h1');
+    assert(toolsHtml.includes('<h1 id="tools-workbench-title">Tools</h1>'), 'tools page should expose the concise Tools h1');
     assert(String(toolsPageRecord.bodyAttributes && toolsPageRecord.bodyAttributes.class || '').includes('portfolio-workbench-page'),
       'tools page should opt into the shared workbench shell');
     assert(toolsHtml.includes('data-portfolio-workbench') &&
@@ -829,16 +829,18 @@ try {
       toolsHtml.includes('class="portfolio-workbench__results"') &&
       toolsHtml.includes('data-portfolio-inspector'),
       'tools page should render the shared filter, results, and inspector workbench anatomy');
-    assert(toolsHtml.includes('tools-workbench-header') &&
+    assert(toolsHtml.includes('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"') &&
+      toolsHtml.includes('data-directory-brand="tools"') &&
       toolsHtml.includes('Focused utilities for writing, campaigns, and media.') &&
-      toolsHtml.includes(`<span data-tools-directory-stat>${publicTools.length} public tools</span>`) &&
-      toolsHtml.includes('<span>Local-first</span>'),
-      'tools page should render its distinct light utility header and live directory status');
-    const toolsHeaderStart = toolsHtml.indexOf('class="portfolio-workbench__header tools-workbench-header"');
+      toolsHtml.includes(`<strong data-tools-directory-stat>${publicTools.length}</strong>`) &&
+      toolsHtml.includes('<span data-tools-directory-stat-label>public tools</span>') &&
+      toolsHtml.includes('<span class="is-active">Local-first</span>'),
+      'tools page should render the shared branded workbench header and live directory status');
+    const toolsHeaderStart = toolsHtml.indexOf('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"');
     const toolsHeaderEnd = toolsHtml.indexOf('</header>', toolsHeaderStart);
     const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory"');
     assert(toolsHeaderStart >= 0 && toolsAccountDockIndex > toolsHeaderStart && toolsAccountDockIndex < toolsHeaderEnd,
-      'tools account action should stay compact and inside the utility header');
+      'tools account action should stay compact and inside the branded header');
     assert(toolsHtml.includes('data-portfolio-search') &&
       toolsHtml.includes('placeholder="Search tools"') &&
       toolsHtml.includes('data-portfolio-sort'),
@@ -935,11 +937,14 @@ try {
       toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('class="portfolio-workbench__layout"'),
       'signed-in resume content should sit between the compact header and the workbench panes');
     const toolsCss = readFile('css/components/tools.css');
-    assert(toolsCss.includes('body[data-page="tools"] .tools-workbench-header') &&
+    const workbenchCss = readFile('css/components/portfolio-workbench.css');
+    assert(!toolsCss.includes('tools-workbench-header') &&
       toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr) minmax(310px,390px);') &&
-      toolsCss.includes('.tools-workbench-result__open') &&
-      toolsCss.includes('background:var(--brand-action-copper);'),
-      'tools CSS should implement the light three-pane launcher and copper selected edge');
+      toolsCss.includes('.tools-workbench-result.is-selected .tools-workbench-result__open') &&
+      workbenchCss.includes('--directory-page-accent: #0798a6;') &&
+      workbenchCss.includes('--directory-page-accent: #f97316;') &&
+      workbenchCss.includes('--workbench-accent-ink:'),
+      'directory CSS should share the Project Library treatment with accessible teal and orange themes');
     assert(toolsCss.includes('@media (max-width:820px)') &&
       toolsCss.includes('grid-template-columns:minmax(0,1fr);') &&
       toolsCss.includes('data-mobile-selection="overlay"') &&
@@ -36636,6 +36641,7 @@ try {
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-s3'], 'package.json missing S3 dependency');
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/client-transcribe'], 'package.json missing Transcribe dependency');
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/lib-dynamodb'], 'package.json missing DynamoDB document client dependency');
+    assert(pkg.dependencies && pkg.dependencies['@aws-sdk/s3-presigned-post'], 'package.json missing S3 presigned POST dependency');
     assert(pkg.dependencies && pkg.dependencies['@aws-sdk/s3-request-presigner'], 'package.json missing S3 presigner dependency');
 
     const buildRunner = readFile('build/build-site.js');
@@ -37405,6 +37411,7 @@ try {
   section('Short links helper logic', () => {
     const helpers = require('./api/_lib/short-links.js');
     const setHelpers = require('./api/_lib/short-links-sets.js');
+    const shortLinksStoreModule = require('./api/_lib/short-links-store.js');
     const shortLinksApi = require('./api/short-links/index.js');
     const shortLinksTestApi = require('./api/short-links/test/[...slug].js');
 
@@ -37412,6 +37419,9 @@ try {
     assert(helpers.normalizeSlug('a/b-C_9') === 'a/b-C_9', 'normalizeSlug should allow nested mixed-case slugs');
     assert(helpers.normalizeSlug('bad slug') === '', 'normalizeSlug should reject spaces');
     assert(helpers.normalizeSlugLower('Ab12Cd') === 'ab12cd', 'normalizeSlugLower should lowercase normalized slugs');
+    assert(shortLinksStoreModule.SLUG_RESERVATION_PREFIX === '__slug_lower__/' &&
+      shortLinksStoreModule.buildSlugReservationKey('Ab12Cd') === '__slug_lower__/ab12cd',
+      'short links should map mixed-case slugs onto one canonical lowercase reservation key');
 
     const randomSlug = helpers.generateRandomSlug(6);
     assert(/^[A-Za-z0-9]{6}$/.test(randomSlug), 'generateRandomSlug should create mixed-case alphanumeric codes');
@@ -37453,8 +37463,56 @@ try {
       'short links test API should allow public IPv4 destinations');
     assert(shortLinksTestApi._internal.isBlockedAddress('::1') === true,
       'short links test API should block loopback IPv6 destinations');
+    assert(shortLinksTestApi._internal.isBlockedAddress('::ffff:7f00:1') === true,
+      'short links test API should block hexadecimal IPv4-mapped loopback destinations');
+    assert(shortLinksTestApi._internal.isBlockedAddress('::ffff:0a00:1') === true,
+      'short links test API should block hexadecimal IPv4-mapped private destinations');
     assert(shortLinksTestApi._internal.isLocalHostname('localhost') === true,
       'short links test API should block localhost hostnames');
+    const shortLinksTestSource = readFile('api/_lib/short-links-test.js');
+    const shortLinksCatchAll = readFile('api/short-links/[...slug].js');
+    const vercelConfig = JSON.parse(readFile('vercel.json'));
+    assert(shortLinksTestSource.includes('lookup: createPinnedLookup(record)') &&
+      shortLinksTestSource.includes('requestOptions.servername = hostname') &&
+      shortLinksTestSource.includes('MAX_REDIRECTS = 5'),
+      'short link health checks should pin validated addresses while preserving TLS hostname checks and redirect bounds');
+    assert(shortLinksCatchAll.includes("requestSlug.startsWith('test/')") &&
+      vercelConfig.rewrites.some(rule => rule.source === '/api/short-links/test/:slug*' &&
+        rule.destination === '/api/short-links/test%2F:slug*'),
+      'short link tests should deploy through the existing catch-all function');
+
+    const shortLinksStore = readFile('api/_lib/short-links-store.js');
+    const shortLinksIndex = readFile('api/short-links/index.js');
+    const shortLinksSets = readFile('api/short-links/sets/[...setId].js');
+    const shortLinksRedirect = readFile('api/go/[...slug].js');
+    const shortLinksHealth = readFile('api/short-links/health.js');
+    assert(shortLinksStore.includes("const SLUG_RESERVATION_PREFIX = '__slug_lower__/'") &&
+      shortLinksStore.includes('new TransactWriteCommand') &&
+      shortLinksStore.includes("ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug'") &&
+      shortLinksStore.includes("Key: { slug: reservationKey }") &&
+      shortLinksStore.includes("ExpressionAttributeValues: { ':canonicalSlug': slug }"),
+      'short links should reserve lowercase slugs atomically to prevent case-insensitive write races');
+    assert(shortLinksStore.includes("removeExpressions.push('expiresAt')") &&
+      shortLinksStore.includes("ConditionExpression: 'attribute_exists(#slug) AND"),
+      'short links should clear stale expiration fields and reject phantom click increments');
+    assert(shortLinksStore.includes('function encodeCursor(lastEvaluatedKey)') &&
+      shortLinksStore.includes('function decodeCursor(cursor)') &&
+      shortLinksStore.includes("err.code = 'INVALID_CURSOR'") &&
+      shortLinksStore.includes('ExclusiveStartKey: startKey') &&
+      shortLinksStore.includes('nextCursor: encodeCursor(lastEvaluatedKey)') &&
+      shortLinksIndex.includes("getQueryValue(params, 'pageMode').toLowerCase() === 'storage'") &&
+      shortLinksSets.includes("String(params.get('pageMode') || '').trim().toLowerCase() === 'storage'"),
+      'short link and set storage pagination should preserve opaque DynamoDB cursors');
+    assert(shortLinksRedirect.includes('const canonicalSlug = normalizeSlug(link.slug) || slug;') &&
+      shortLinksRedirect.includes('incrementClicks(canonicalSlug)') &&
+      !shortLinksRedirect.includes('latitude:') &&
+      !shortLinksRedirect.includes('longitude:'),
+      'short link redirects should write canonical click keys without exact location telemetry');
+    assert(shortLinksHealth.includes('DescribeTimeToLiveCommand') &&
+      shortLinksHealth.includes("ttlConfigured = ttlStatus === 'ENABLED' && ttlAttribute === CLICK_TTL_ATTRIBUTE") &&
+      shortLinksStore.includes('item[CLICK_TTL_ATTRIBUTE] = Math.floor') &&
+      shortLinksStore.includes('const CLICK_RETENTION_DAYS = 90;'),
+      'short links health should verify that click-event TTL is enabled instead of assuming retention');
 
     const template = setHelpers.buildSetTemplateRecord({
       title: ' Data Analyst Resume ',
@@ -37513,6 +37571,11 @@ try {
 
     assert(gamesHtml.includes('data-directory-workbench="games"'),
       'games page should keep the shared directory workbench contract');
+    assert(gamesHtml.includes('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"') &&
+           gamesHtml.includes('data-directory-brand="games"') &&
+           gamesHtml.includes('<h1 id="games-workbench-title">Games and simulations</h1>') &&
+           gamesHtml.includes('Interactive experiments in state, balance, probability, progression, and feedback loops.'),
+      'games page should use the shared branded header with its existing page copy');
     assert(portfolioJs.includes("directoryKind === 'games' || directoryKind === 'tools'"),
       'games and tools workbenches should opt into the shared mobile filter sheet');
     assert(portfolioJs.includes("triggerButton.className = 'portfolio-mobile-filter-trigger'") &&
@@ -37526,9 +37589,9 @@ try {
     assert(workbenchCss.includes('min-height: min(240px, 35dvh);') &&
            workbenchCss.includes('body.portfolio-filter-sheet-open .mobile-site-dock'),
       'mobile filter sheet should preserve a usable scrolling body and hide the site dock while open');
-    assert(workbenchCss.includes('body[data-page="portfolio"] .portfolio-brand-panel__actions') &&
-           workbenchCss.includes('body[data-page="portfolio"] .portfolio-proof-strip {'),
-      'mobile portfolio header should remove redundant actions and use a compact proof strip');
+    assert(workbenchCss.includes('body:is([data-page="portfolio"], .portfolio-workbench-page) .portfolio-brand-panel__actions') &&
+           workbenchCss.includes('body:is([data-page="portfolio"], .portfolio-workbench-page) .portfolio-proof-strip {'),
+      'all mobile workbench headers should remove redundant actions and use a compact proof strip');
   });
 
   section('Job tracker UI additions', () => {
@@ -37581,6 +37644,8 @@ try {
   });
 
   section('QR generator enhanced workflow contracts', () => {
+    const qrHtml = readFile('pages/qr-code-generator.html');
+    const qrScript = readFile('js/tools/qr-code-generator.js');
     checkFileContains('pages/qr-code-generator.html', 'id="qrtool-mode-basic"');
     checkFileContains('pages/qr-code-generator.html', 'id="qrtool-mode-advanced"');
     checkFileContains('pages/qr-code-generator.html', 'id="qrtool-payload-mode"');
@@ -37595,6 +37660,287 @@ try {
     checkFileContains('pages/qr-code-generator.html', 'id="qrtool-config-save"');
     checkFileContains('pages/qr-code-generator.html', 'id="qrtool-config-share"');
     checkFileContains('pages/qr-code-generator.html', 'js/tools/qr-code-generator-utils.js');
+    checkFileContains('pages/qr-code-generator.html', 'js/tools/qr-core.js');
+    assert(qrHtml.indexOf('js/tools/qr-core.js') < qrHtml.indexOf('js/tools/qr-code-generator.js'),
+      'QR encoder should load before the generator application');
+    assert(qrScript.includes('delete safe.wifiPassword') &&
+      qrScript.includes("state.payloadMode === 'wifi' ? {} : { data: state.data }") &&
+      !qrScript.includes('wifiPassword: state.wifiPassword'),
+      'QR persistence should omit Wi-Fi passwords and encoded Wi-Fi payloads');
+    assert(qrScript.includes("if (isWifiPayload)") && qrScript.includes('delete payload.output'),
+      'QR account capture should omit Wi-Fi payload previews');
+    assert(qrScript.includes('Math.round((moduleCount - 17) / 4)') &&
+      !qrScript.includes('qrInstance.typeNumber'),
+      'QR metadata should derive a real version from the rendered module count');
+  });
+
+  section('Tools cloud session privacy contracts', () => {
+    const accountUi = readFile('js/accounts/tools-account-ui.js');
+    const stateApi = readFile('api/_lib/tools-endpoints/state.js');
+    const activityApi = readFile('api/_lib/tools-endpoints/activity.js');
+    const ddbStore = readFile('api/_lib/tools-store-ddb.js');
+    const stateClient = readFile('js/accounts/tools-state.js');
+    const envExample = readFile('.env.example');
+    assert(accountUi.includes('Save to account') && accountUi.includes('Manual account save only.'),
+      'tools account UI should describe manual cloud saving explicitly');
+    assert(accountUi.includes("autosaveMode === 'true'") &&
+      accountUi.includes("autosaveMode === 'on'") &&
+      accountUi.includes('if (!autosaveEnabled) return;'),
+      'tool cloud autosave should require an explicit page opt-in');
+    assert(accountUi.includes("new Set(['ga4-utm-performance', 'short-links', 'job-application-tracker'])"),
+      'sensitive admin and tracker tools should disable generic session snapshots');
+    assert(stateApi.includes('normalizeKnownToolId') && activityApi.includes('normalizeKnownToolId') &&
+      stateApi.includes('const toolId = normalizeToolId(rawToolId);') &&
+      activityApi.includes('const toolId = normalizeToolId(rawToolId);'),
+      'tools APIs should allow scoped legacy reads/deletes while keeping new writes on the catalog allowlist');
+    assert(ddbStore.includes('DEFAULT_MAX_SESSIONS_PER_TOOL = 50') &&
+      ddbStore.includes('DEFAULT_MAX_SESSIONS_PER_USER = 250') &&
+      ddbStore.includes("throw createStoreError('SESSION_QUOTA_EXCEEDED'") &&
+      ddbStore.includes('sessionCount < :limit'),
+      'tools sessions should enforce atomic per-tool and per-account quotas');
+    assert(ddbStore.includes('DEFAULT_SESSION_RETENTION_DAYS = 365') &&
+      ddbStore.includes('DEFAULT_ACTIVITY_RETENTION_DAYS = 90') &&
+      ddbStore.includes("process.env.TOOLS_DDB_TTL_ATTRIBUTE || 'ttl'") &&
+      ddbStore.includes('MAX_ACTIVITY_DATA_BYTES = 32_000') &&
+      ddbStore.includes('items.filter(item => !isExpired(item))') &&
+      ddbStore.includes("throw createStoreError('SESSION_EXPIRED'"),
+      'tools session storage should bound retention and activity payload size');
+    assert(ddbStore.includes('function encodeCursor(key)') &&
+      ddbStore.includes('function decodeCursor(value, expectedPk, expectedPrefix)') &&
+      stateApi.includes('nextCursor: sessions.nextCursor ||') &&
+      activityApi.includes('nextCursor: events.nextCursor ||') &&
+      stateClient.includes("search.set('cursor', params.cursor)") &&
+      accountUi.includes('data-tools-sessions-action="load-more"') &&
+      accountUi.includes('onLoadMore(nextCursorState)') &&
+      accountUi.includes("onLoadMore: (cursor) => window.ToolsState.listSessions({ limit: 50, cursor })"),
+      'tools history should use partition-scoped opaque cursor pagination end to end');
+    assert(ddbStore.includes("throw createStoreError('VERSION_CONFLICT'") &&
+      ddbStore.includes("ConditionExpression: 'attribute_exists(sessionId) AND (attribute_not_exists(#version) OR #version = :currentVersion)'") &&
+      stateApi.includes("sendJson(res, 428, { ok: false, error: 'expectedVersion is required.") &&
+      stateClient.includes('expectedVersion') &&
+      accountUi.includes('let sessionVersion = sessionId ? null : 0;') &&
+      accountUi.includes('expectedVersion: sessionVersion === null ? undefined : sessionVersion'),
+      'tools session mutations should require and conditionally enforce optimistic versions');
+    assert(stateApi.includes("confirmation !== 'DELETE-ALL'") &&
+      ddbStore.includes("ConditionExpression: 'attribute_not_exists(deletingAt) OR deletingAt < :staleBefore'") &&
+      ddbStore.includes("ConditionExpression: 'deletingAt = :deletingAt'") &&
+      ddbStore.includes('const toolIds = new Set(KNOWN_TOOL_IDS);') &&
+      ddbStore.includes('for (let offset = 0; offset < keys.length; offset += 99)') &&
+      ddbStore.includes('commands.slice(offset, offset + 4)') &&
+      accountUi.includes("window.prompt('Permanently delete all saved tool sessions and activity? Type DELETE to continue.')"),
+      'delete-all should require two confirmations, use an owned stale-safe lock, and cover every known tool partition');
+    assert((ddbStore.match(/UpdateExpression: 'SET #sessionCount = if_not_exists\(#sessionCount, :one\) - :one'/g) || []).length >= 2 &&
+      ddbStore.includes("ConditionExpression: 'attribute_not_exists(#sessionCount) OR #sessionCount > :zero'") &&
+      !ddbStore.includes('await Promise.allSettled([\n    client.send(new UpdateCommand({'),
+      'individual session deletion should update quota counters in the same DynamoDB transaction');
+    assert(accountUi.includes('That saved session is no longer available. New session started.') &&
+      accountUi.includes("document.addEventListener('tools:session-meta-updated'") &&
+      accountUi.includes("document.addEventListener('tools:session-deleted'"),
+      'tool pages should recover stale session links and synchronize version-changing account actions');
+    assert(stateClient.includes('const MAX_KEEPALIVE_BODY_BYTES = 60 * 1024;') &&
+      stateClient.includes('keepalive: !!keepalive && utf8Bytes(body) <= MAX_KEEPALIVE_BODY_BYTES'),
+      'page-exit session saves should not exceed the browser keepalive request-body budget');
+    const storeSelector = readFile('api/_lib/tools-store.js');
+    assert(storeSelector.includes("process.env.NODE_ENV || '').trim().toLowerCase() === 'production'") &&
+      storeSelector.includes('TOOLS_ALLOW_KV_COMPAT'),
+      'production tools accounts should fail closed on DynamoDB instead of silently losing lifecycle guarantees through KV');
+    assert(envExample.includes('TOOLS_DDB_TTL_ATTRIBUTE=ttl') &&
+      envExample.includes('TOOLS_MAX_SESSIONS_PER_TOOL=50') &&
+      envExample.includes('TOOLS_DELETE_ALL_MAX_ITEMS=10000') &&
+      envExample.includes('TOOLS_DELETE_LOCK_SECONDS=900'),
+      'tools account deployment examples should document lifecycle and quota controls');
+  });
+
+  section('UTM builder accessibility and browser budgets', () => {
+    const source = readFile('src/utm-batch-builder/app.tsx');
+    const css = readFile('css/components/utm-batch-builder.css');
+    assert(source.includes('useId') &&
+      source.includes('aria-labelledby={fieldLabelId}') &&
+      source.includes('aria-label={`${isTemplateRows ? "Override mode" : "Input mode"} for ${label}`'),
+      'UTM field editors should give every dynamic value and mode control an accessible name');
+    assert(source.includes('htmlFor="utmtool-csv-file"') &&
+      source.includes('id="utmtool-exclude-rules"') &&
+      source.includes('htmlFor="utmtool-preset-name"'),
+      'UTM standalone file, rules, and preset controls should have programmatic labels');
+    assert(source.includes('const UTM_MAX_CSV_BYTES = 5 * 1024 * 1024;') &&
+      source.includes('const UTM_MAX_GENERATED_ROWS = 50_000;') &&
+      source.includes('file.size > UTM_MAX_CSV_BYTES'),
+      'UTM CSV imports and generated rows should have hard browser budgets');
+    assert(css.includes('.utmtool-csv-upload-row') && css.includes('flex-direction:column;'),
+      'UTM CSV actions should stack within narrow mobile cards');
+  });
+
+  section('Tool control accessibility regressions', () => {
+    const shortLinksPage = readFile('pages/short-links.html');
+    const ga4Css = readFile('css/components/ga4-utm-performance.css');
+    assert(shortLinksPage.includes('id="shortlinks-temporary-unit"') &&
+      shortLinksPage.includes('aria-label="Temporary link duration unit"'),
+      'Short Links temporary duration unit should have an accessible name');
+    assert(ga4Css.includes('.ga4-tabs .wrapper::after') && ga4Css.includes('scroll-snap-type:x proximity;'),
+      'GA4 mobile tabs should expose a visible horizontal overflow cue');
+  });
+
+  section('Job tracker attachment lifecycle contracts', () => {
+    const handler = readFile('aws/job-application-tracker/index.js');
+    const template = readFile('aws/job-application-tracker/template.yaml');
+    const trackerClient = readFile('js/tools/job-application-tracker.js');
+    const trackerPackage = JSON.parse(readFile('aws/job-application-tracker/package.json'));
+    const deleteApplicationStart = handler.indexOf('const handleDeleteApplication = async');
+    const conditionalDelete = handler.indexOf("ReturnValues: 'ALL_OLD'", deleteApplicationStart);
+    const attachmentCleanup = handler.indexOf('const cleanup = await deleteAttachmentKeys(attachmentKeys);', deleteApplicationStart);
+    assert(handler.includes('HeadObjectCommand') &&
+      handler.includes('verifyUploadedAttachments') &&
+      handler.includes('Uploaded attachment size mismatch') &&
+      handler.includes('size: actualSize') &&
+      handler.includes("String(object.ETag).trim().replace(/^\"|\"$/g, '')") &&
+      handler.includes("await setAttachmentPurpose(attachments, 'attachment')"),
+      'Job Tracker should verify size, type, and ETag before attaching and retaining uploaded S3 objects');
+    assert(handler.includes('DeleteObjectsCommand') &&
+      handler.includes('deletedAttachments') &&
+      handler.includes('cleanupPending: cleanup.errors.length > 0') &&
+      deleteApplicationStart >= 0 && conditionalDelete > deleteApplicationStart && attachmentCleanup > conditionalDelete,
+      'deleting a Job Tracker application should conditionally delete DynamoDB state before cleaning recorded S3 attachments');
+    assert(handler.includes("ConditionExpression: 'attribute_exists(applicationId) AND #recordType = :expectedRecordType'") &&
+      handler.includes('const conditionExpression = expectedUpdatedAt') &&
+      handler.includes("'attribute_exists(applicationId) AND (attribute_not_exists(#recordType) OR #recordType = :expectedRecordType)'") &&
+      handler.includes('ConditionExpression: conditionExpression') &&
+      handler.includes("throw httpError(404, 'Prospect not found.')") &&
+      handler.includes("throw httpError(404, 'Application not found.')"),
+      'Job Tracker updates should reject wrong record types while continuing to accept legacy applications without recordType');
+    assert(trackerPackage.dependencies?.['@aws-sdk/s3-presigned-post'] &&
+      handler.includes('createPresignedPost(s3, {') &&
+      handler.includes("['content-length-range', size, size]") &&
+      handler.includes("uploadMethod: 'POST'") &&
+      handler.includes('const key = `${userId}/staging/${applicationId}/${randomUUID()}-${safeName}`;') &&
+      trackerClient.includes('const uploadForm = new FormData();') &&
+      trackerClient.includes("uploadForm.append('file', file)") &&
+      trackerClient.includes("method: 'POST'"),
+      'Job Tracker uploads should use exact-size presigned POST policies and randomized staging keys end to end');
+    assert(handler.includes("throw httpError(400, 'Create the application before uploading attachments.')") &&
+      handler.includes('const expectedUpdatedAt = String(payload.expectedUpdatedAt') &&
+      handler.includes("throw httpError(428, 'expectedUpdatedAt is required when changing attachments.')") &&
+      handler.includes('nextUpdatedAt = new Date(Date.parse(expectedUpdatedAt) + 1).toISOString();') &&
+      handler.includes('#updatedAt = :expectedUpdatedAt') &&
+      handler.includes("throw httpError(409, 'Application changed in another session. Refresh and try again.')") &&
+      trackerClient.includes('expectedUpdatedAt: currentUpdatedAt'),
+      'Job Tracker should require application-scoped staging and reject stale attachment updates before cleanup');
+    assert(handler.includes("Tagging: 'purpose=export'") &&
+      template.includes('Id: ExpireGeneratedExports') &&
+      template.includes('ExpirationInDays: 7') &&
+      template.includes('Id: ExpireUnattachedStagingUploads') &&
+      template.includes('Value: staging') &&
+      template.includes('ExpirationInDays: 1') &&
+      template.includes('s3:PutObjectTagging') &&
+      template.includes('s3:DeleteObject') &&
+      template.includes('s3:AbortMultipartUpload') &&
+      template.includes('s3:ListMultipartUploadParts'),
+      'Job Tracker staging files and generated exports should expire and its Lambda should have narrow cleanup permissions');
+    assert(handler.includes('const getCursorScope = ({ range, scanForward, recordType } = {}) =>') &&
+      handler.includes('const encodeCursor = (key, scope) =>') &&
+      handler.includes('const decodeCursor = (value, userId, scope) =>') &&
+      handler.includes('parsed.userId !== userId') &&
+      handler.includes('parsed.scope !== scope') &&
+      handler.includes('nextCursor: lastKey ? encodeCursor(lastKey, cursorScope)') &&
+      handler.includes('const MAX_LIST_PAGE_SIZE = 500;') &&
+      handler.includes('const MAX_QUERY_PAGES = 25;') &&
+      handler.includes('const MAX_INTERNAL_QUERY_BYTES = 8 * 1024 * 1024;') &&
+      handler.includes('const MAX_ANALYTICS_QUERY_BYTES = 4 * 1024 * 1024;') &&
+      handler.includes('resultBytes > resultByteLimit') &&
+      handler.includes('Too much application data to process at once.') &&
+      handler.includes("throw httpError(400, 'Invalid cursor.')"),
+      'Job Tracker queries should use scoped cursors plus bounded pages, records, and serialized data');
+    assert(trackerClient.includes('const requestAllItems = async (path, maxPages = 100) =>') &&
+      trackerClient.includes("new URLSearchParams({ limit: '500' })") &&
+      trackerClient.includes("params.set('cursor', cursor)") &&
+      trackerClient.includes('if (apps.truncated || prospects.truncated)') &&
+      template.includes("RouteKey: 'DELETE /api/prospects/{id}'") &&
+      trackerClient.includes("method: 'DELETE'"),
+      'Job Tracker should consume paginated application/prospect lists and expose a real prospect delete route');
+    assert(handler.includes("routeKey.startsWith('GET /api/analytics/dashboard')") &&
+      template.includes("RouteKey: 'GET /api/analytics/dashboard'") &&
+      trackerClient.includes("requestJson(`/api/analytics/dashboard?${query}`)") &&
+      trackerClient.includes('if (err?.status !== 404 && err?.status !== 405) throw err;') &&
+      trackerClient.includes('const chartResult = await chartPromise;') &&
+      trackerClient.includes('if (chartResult.error) throw chartResult.error;'),
+      'Job Tracker should aggregate dashboard analytics, narrowly gate legacy fallback, and surface chart load failures');
+    assert(handler.includes('limit: maxExportApplications + 1') &&
+      handler.includes('validateExportBudget(exportItems.length, attachments.length)') &&
+      handler.includes('preflightExportItemsMetadata(exportItems)') &&
+      handler.includes('inspectExportAttachments(attachments, metadataBytes)') &&
+      handler.includes('if (metadataBytes + attachmentBytes > maxExportBytes)') &&
+      handler.includes('IfMatch: attachment.ifMatch') &&
+      handler.includes("archiver('zip', { zlib: { level: 6 } })") &&
+      handler.includes('await appendBodyToArchive(context.archive, response.Body') &&
+      handler.includes('await abortArchiveUpload(context, err);') &&
+      handler.includes('const revision = exportRevision(') &&
+      handler.includes('const cached = await getCachedExport(key);'),
+      'Job Tracker exports should verify live object metadata, stream serially, abort failures, and reuse deterministic archives');
+    assert(template.includes('MAX_EXPORT_APPLICATIONS: "1000"') &&
+      template.includes('MAX_EXPORT_ATTACHMENTS: "50"') &&
+      template.includes('MAX_EXPORT_BYTES: "52428800"') &&
+      template.includes('MAX_EXPORT_METADATA_BYTES: "8388608"') &&
+      template.includes('Timeout: 28') &&
+      template.includes('MemorySize: 512'),
+      'Job Tracker deployment should carry explicit synchronous export, runtime, and memory ceilings');
+  });
+
+  section('Local media and text memory guards', () => {
+    const nbspCleaner = readFile('js/tools/nbsp-cleaner.js');
+    const backgroundRemover = readFile('js/tools/background-remover.js');
+    const backgroundRemoverPage = readFile('pages/background-remover.html');
+    assert(nbspCleaner.includes('const PREVIEW_CHARACTER_BUDGET = 4000;') &&
+      nbspCleaner.includes('if (renderedCharacters >= PREVIEW_CHARACTER_BUDGET) break;') &&
+      nbspCleaner.includes('the full input was analyzed and used for the output'),
+      'NBSP Cleaner should bound preview DOM work while clearly preserving full-text processing');
+    assert(backgroundRemover.includes('const replaceJobCutout = (job, blob)') &&
+      backgroundRemover.includes('revokeDetachedObjectUrl(previousUrl, nextUrl)') &&
+      !backgroundRemover.includes('job.cutoutUrl = URL.createObjectURL'),
+      'Background Remover should revoke replaced cutout object URLs without breaking the displayed image');
+    assert(backgroundRemover.includes('maxInputBytes: 160 * 1024 * 1024') &&
+      backgroundRemover.includes('maxDecodedPixelsTotal: 160_000_000') &&
+      backgroundRemover.includes('selectedBytes + file.size > LIMITS.maxInputBytes') &&
+      backgroundRemover.includes('otherDecodedPixels + job.original.pixels > LIMITS.maxDecodedPixelsTotal') &&
+      backgroundRemoverPage.includes('Limits: 20 files · 40 MiB each · 160 MiB / 160 MP total'),
+      'Background Remover should enforce and visibly disclose aggregate input-byte and decoded-pixel budgets');
+    const imageOptimizer = readFile('js/tools/image-optimizer.js');
+    const screenRecorder = readFile('js/tools/screen-recorder.js');
+    assert(imageOptimizer.includes('maxFiles: 20') &&
+      imageOptimizer.includes('maxFileBytes: 25 * MEBIBYTE') &&
+      imageOptimizer.includes('maxInputBytes: 150 * MEBIBYTE') &&
+      imageOptimizer.includes('maxDimension: 12000') &&
+      imageOptimizer.includes('maxDecodedPixelsPerFile: 40_000_000') &&
+      imageOptimizer.includes('maxDecodedPixelsTotal: 120_000_000') &&
+      imageOptimizer.includes('maxEstimatedOutputBytes: 256 * MEBIBYTE') &&
+      imageOptimizer.includes('maxActualOutputBytes: 200 * MEBIBYTE') &&
+      imageOptimizer.includes('const SUPPORTED_INPUT_TYPES = new Set([') &&
+      imageOptimizer.includes('const IMAGE_HEADER_SCAN_BYTES = 4 * MEBIBYTE;') &&
+      imageOptimizer.includes('parsePngDimensions') &&
+      imageOptimizer.includes('parseJpegDimensions') &&
+      imageOptimizer.includes('parseWebpDimensions') &&
+      imageOptimizer.includes('parseAvifDimensions') &&
+      imageOptimizer.indexOf('const headerDimensions = await readImageHeaderDimensions(item.file);') <
+        imageOptimizer.indexOf('decoded = await decodeBitmap(item.file);') &&
+      imageOptimizer.includes('if (selectedBytes + file.size > IMAGE_LIMITS.maxInputBytes)') &&
+      imageOptimizer.includes('otherPixels + dimensions.pixels > IMAGE_LIMITS.maxDecodedPixelsTotal'),
+      'Image Optimizer should preflight codec headers and bound type, file, aggregate input, dimensions, decoded pixels, canvas, and encoded-output memory');
+    assert(imageOptimizer.includes("clearBtn.textContent = state.working ? 'Cancel' : 'Clear'") &&
+      imageOptimizer.includes('state.metadataQueue = state.metadataQueue.then') &&
+      imageOptimizer.includes('PREVIEW_MAX_SIDE = 96') &&
+      imageOptimizer.includes('state.cancelRequested = true;') &&
+      imageOptimizer.includes('throwIfCancelled(operationId);'),
+      'Image Optimizer should serialize metadata work, use bounded thumbnails, and support cancellation');
+    assert(screenRecorder.includes('maxDurationMs: 30 * 60 * 1000') &&
+      screenRecorder.includes('maxAggregateBytes: 192 * MEBIBYTE') &&
+      screenRecorder.includes('maxZipAggregateBytes: 64 * MEBIBYTE') &&
+      screenRecorder.includes('maxSimultaneousRecorders: 2') &&
+      screenRecorder.includes('chunkIntervalMs: 1000') &&
+      screenRecorder.includes('slice(0, RECORDING_LIMITS.maxSimultaneousRecorders)') &&
+      screenRecorder.includes('if (nextTotal > RECORDING_LIMITS.maxAggregateBytes)') &&
+      screenRecorder.includes("stopRecording('duration')") &&
+      screenRecorder.includes("stopRecording('bytes')") &&
+      screenRecorder.includes('aggregateBytes > RECORDING_LIMITS.maxZipAggregateBytes') &&
+      screenRecorder.includes('state.downloadFiles.forEach(triggerFileDownload);'),
+      'Screen Recorder should bound duration, retained chunks, simultaneous encoders, chunk cadence, and ZIP materialization');
   });
 
   section('Data contracts', () => {
@@ -37787,6 +38133,39 @@ try {
     assert(projectEvent.activity_label === 'alpha',
       'custom events should include a safe normalized activity label');
 
+    const sharedSessionValues = new Map();
+    const sharedSessionStorage = {
+      getItem: key => sharedSessionValues.has(key) ? sharedSessionValues.get(key) : null,
+      setItem: (key, value) => sharedSessionValues.set(key, String(value)),
+      removeItem: key => sharedSessionValues.delete(key)
+    };
+    const createConsentedAnalyticsEnv = (pathname) => {
+      const pageEnv = createEnv();
+      pageEnv.document.body.dataset = { page: 'portfolio', audience: 'professional' };
+      pageEnv.window.location = {
+        href: `https://www.danielshort.me${pathname}`,
+        pathname,
+        hostname: 'www.danielshort.me',
+        origin: 'https://www.danielshort.me'
+      };
+      pageEnv.window.sessionStorage = sharedSessionStorage;
+      pageEnv.window.consentAPI = { get: () => ({ analytics: true }) };
+      evalScript('js/analytics/ga4-events.js', pageEnv);
+      return pageEnv;
+    };
+    const firstProjectPage = createConsentedAnalyticsEnv('/portfolio/alpha');
+    firstProjectPage.window.trackProjectView('alpha', { source_surface: 'case_study' });
+    firstProjectPage.window.trackProjectView('beta', { source_surface: 'portfolio_workbench' });
+    const secondProjectPage = createConsentedAnalyticsEnv('/portfolio/gamma');
+    secondProjectPage.window.trackProjectView('gamma', { source_surface: 'case_study' });
+    const sessionMultiEvents = secondProjectPage.dataLayer.filter(x => x && x.event === 'multi_project_view');
+    assert(sessionMultiEvents.length === 1 && sessionMultiEvents[0].view_count === 3,
+      'multi_project_view should count unique project views across page navigations in one session');
+    const thirdProjectPage = createConsentedAnalyticsEnv('/portfolio/delta');
+    thirdProjectPage.window.trackProjectView('delta', { source_surface: 'case_study' });
+    assert(!thirdProjectPage.dataLayer.some(x => x && x.event === 'multi_project_view'),
+      'multi_project_view should remain a once-per-session milestone after it is sent');
+
     const safeStart = env.dataLayer.length;
     assert(env.window.gaEvent('site_search', {
       query_length_bucket: '21-80',
@@ -37814,6 +38193,54 @@ try {
       'private prompt', 'private-upload.pdf', 'private-session', 'Private stack trace'].forEach((secret) => {
       assert(!serializedSearchEvent.includes(secret), `analytics helper should not expose sensitive value: ${secret}`);
     });
+
+    env.window.gaEvent('select_content', {
+      content_type: 'project_resource',
+      content_id: 'alpha',
+      resource_type: 'github',
+      source_surface: 'case_study_resources'
+    });
+    env.window.gaEvent('resume_cta_click', {
+      resume_variant: 'analytics',
+      cta_surface: 'portfolio_header',
+      action_type: 'download_pdf'
+    });
+    env.window.gaEvent('tool_run_error', {
+      tool_id: 'image-optimizer',
+      action: 'optimize',
+      error_type: 'processing',
+      duration_bucket: '3-10s',
+      error_message: 'Private exception detail'
+    });
+    env.window.gaEvent('directory_depth_reached', {
+      directory_type: 'portfolio',
+      source_surface: 'directory_results',
+      percent: 50,
+      result_bucket: '11-plus'
+    });
+    const resourceEvent = env.dataLayer.find(x => x && x.event === 'select_content');
+    const resumeEvent = env.dataLayer.find(x => x && x.event === 'resume_cta_click');
+    const toolErrorEvent = env.dataLayer.find(x => x && x.event === 'tool_run_error');
+    const directoryDepthEvent = env.dataLayer.find(x => x && x.event === 'directory_depth_reached');
+    assert(resourceEvent && resourceEvent.activity_category === 'portfolio' &&
+      resourceEvent.activity_label === 'alpha' && resourceEvent.activity_detail === 'case_study_resources' &&
+      resourceEvent.activity_state === 'github',
+    'project resource clicks should use normalized portfolio fields without sending link text or URLs');
+    assert(resumeEvent && resumeEvent.activity_category === 'career_intent' &&
+      resumeEvent.activity_detail === 'portfolio_header' && resumeEvent.activity_state === 'download_pdf',
+    'resume intent should distinguish HTML views, PDF previews, and downloads through action_type');
+    assert(toolErrorEvent && toolErrorEvent.activity_category === 'reliability' &&
+      toolErrorEvent.activity_label === 'image-optimizer' && toolErrorEvent.activity_detail === 'optimize' &&
+      toolErrorEvent.activity_value === '3-10s' && toolErrorEvent.activity_state === 'processing' &&
+      !JSON.stringify(toolErrorEvent).includes('Private exception detail'),
+    'tool failures should retain only coarse type and duration buckets');
+    assert(directoryDepthEvent && directoryDepthEvent.activity_label === 'portfolio' &&
+      directoryDepthEvent.activity_value === 50,
+    'directory depth should use a once-only percentage milestone instead of raw scroll activity');
+    env.window.gaEvent('chatbot_reset');
+    const resetEvent = env.dataLayer.filter(x => x && x.event === 'chatbot_reset').pop();
+    assert(resetEvent && resetEvent.activity_detail === '' && resetEvent.activity_value === '' && resetEvent.activity_state === '',
+      'normalized optional activity fields should reset on every event so GTM cannot reuse stale dataLayer values');
 
     env.window.gaEvent('nav_link_click', {
       link_url: 'https://www.danielshort.me/contact?email=private%40example.com#form'
@@ -37875,6 +38302,52 @@ try {
     assert(activityCode.includes("document.querySelector('.project-star')") &&
       activityCode.includes("emit('case_study_engaged'") && activityCode.includes('}, 5000);'),
     'project pages should measure sustained STAR proof engagement instead of a page-load proxy');
+    assert(activityCode.includes("emit('directory_depth_reached'") &&
+      activityCode.includes('directoryDepthTracked.add(results)') && activityCode.includes('percent: 50'),
+    'internal workbench scrolling should emit one consent-aware 50% directory milestone');
+    assert(activityCode.includes("document.addEventListener('tools:run-complete'") &&
+      activityCode.includes("document.addEventListener('tools:run-error'") &&
+      activityCode.includes('durationBucket(currentTimeMs() - pendingToolRun.startedAt)') &&
+      !activityCode.includes("document.addEventListener('tools:session-dirty'"),
+    'tool outcomes should use explicit terminal signals and duration buckets, not autosave dirty events');
+    assert(activityCode.includes('[data-content-open][href]') &&
+      activityCode.includes("contentType = 'project_resource'") &&
+      activityCode.includes('window.trackProjectView(normalizedContentId'),
+    'project cards and case-study resources should feed semantic selection and session-depth events');
+
+    [
+      'js/tools/background-remover.js',
+      'js/tools/ga4-utm-performance.js',
+      'js/tools/image-optimizer.js',
+      'js/tools/nbsp-cleaner.js',
+      'js/tools/oxford-comma-checker.js',
+      'js/tools/point-of-view-checker.js',
+      'js/tools/screen-recorder.js',
+      'js/tools/text-compare.js',
+      'js/tools/whisper-transcribe-monitor.js',
+      'js/tools/word-frequency.js'
+    ].forEach((file) => {
+      const code = readFile(file);
+      assert(code.includes('tools:run-complete') && code.includes('tools:run-error'),
+        `${file} should emit explicit privacy-safe terminal run events`);
+    });
+    const utmBuilderSource = readFile('src/utm-batch-builder/app.tsx');
+    assert(utmBuilderSource.includes('tools:run-start') &&
+      utmBuilderSource.includes('tools:run-complete') &&
+      utmBuilderSource.includes('tools:run-error') &&
+      utmBuilderSource.includes('tools:run-cancel'),
+    'UTM generation should explicitly distinguish starts, completions, errors, and cancellations');
+    const utmBuilderHtml = readFile('pages/utm-batch-builder.html');
+    assert(utmBuilderHtml.includes('<script defer src="dist/utm-batch-builder.js"></script>') &&
+      utmBuilderHtml.indexOf('dist/utm-batch-builder.js') < utmBuilderHtml.indexOf('dist/site-tools-account.'),
+    'UTM Batch Builder should load its generated app before the shared tools account bundle');
+
+    const gtmGeneratorCode = readFile('build/gtm/generate-activity-container.js');
+    const gtmContainer = readFile('build/gtm/GTM-MX6DNH8L-activity.json');
+    assert(gtmGeneratorCode.includes('directory_depth_reached') && gtmContainer.includes('directory_depth_reached'),
+      'GTM Directory Behavior should route the directory depth milestone');
+    assert(gtmGeneratorCode.includes('tool_run_error') && gtmContainer.includes('tool_run_error'),
+      'GTM Tool Activation should route explicit tool errors');
   });
 
   section('Portfolio modal analytics hook', () => {
@@ -38344,7 +38817,7 @@ try {
       'pages/ocean-wave-simulation.html': ['js/tools/ocean-wave-simulation.js'],
       'pages/oxford-comma-checker.html': ['js/tools/oxford-comma-checker.js'],
       'pages/point-of-view-checker.html': ['js/tools/point-of-view-checker.js'],
-      'pages/qr-code-generator.html': ['js/tools/qr-code-generator-utils.js', 'js/tools/qr-code-generator.js'],
+      'pages/qr-code-generator.html': ['js/tools/qr-code-generator-utils.js', 'js/tools/qr-core.js', 'js/tools/qr-code-generator.js'],
       'pages/screen-recorder.html': ['js/tools/screen-recorder.js'],
       'pages/text-compare.html': ['js/tools/text-compare-core.js', 'js/tools/text-compare.js'],
       'pages/transcribe.html': ['js/tools/whisper-transcribe-monitor.js'],
@@ -39196,10 +39669,41 @@ try {
     const toolsAuth = fs.readFileSync('js/accounts/tools-auth.js', 'utf8');
     const toolsAccountUi = fs.readFileSync('js/accounts/tools-account-ui.js', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
+    const ledger = fs.readFileSync('api/_lib/transcribe-ledger.js', 'utf8');
+    const envExample = fs.readFileSync('.env.example', 'utf8');
+    const transcribeReadme = fs.readFileSync('aws/transcribe-tool/README.md', 'utf8');
+    const rootPackage = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const ledgerModule = require('./api/_lib/transcribe-ledger.js');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
     const devServer = fs.readFileSync('build/dev.js', 'utf8');
     const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
     const rewrites = Array.isArray(vercel.rewrites) ? vercel.rewrites : [];
+    const reservationPlan = ledgerModule._internal.reservationTransaction({
+      config: {
+        ledgerTable: 'test-table',
+        ledgerTtlAttribute: 'ttl',
+        ledgerLeaseSeconds: 43_200,
+        ledgerStartLeaseSeconds: 300,
+        ledgerRunRetentionDays: 45,
+        ledgerDayRetentionDays: 45,
+        ledgerDailyCostLimitMicros: 25_000_000,
+        ledgerDailyFileLimit: 50,
+        ledgerGlobalDailyCostLimitMicros: 100_000_000,
+        ledgerGlobalDailyFileLimit: 200
+      },
+      sub: 'test-user',
+      jobName: 'test-job',
+      quoteHash: 'test-quote',
+      costMicros: 11_520_000,
+      day: '2026-07-11',
+      now: 1_783_750_000,
+      slotNumber: 1,
+      existingRefunded: false,
+      attemptId: 'test-attempt'
+    });
+    const recoveryPersistStart = toolScript.indexOf('const persistActiveRunRecovery = () =>');
+    const recoveryPersistEnd = toolScript.indexOf('const restoreActiveRunRecovery = () =>', recoveryPersistStart);
+    const recoveryPersistSource = toolScript.slice(recoveryPersistStart, recoveryPersistEnd);
 
     assert(page.includes('id="transcribe-files"') &&
            page.includes('multiple') &&
@@ -39223,13 +39727,17 @@ try {
            toolScript.includes('data-transcribe-file-remove') &&
            toolScript.includes('canRemoveItem') &&
            toolScript.includes("mode: 'popup'") &&
-           toolScript.includes('startBtn.disabled = state.busy || state.analyzing') &&
+           toolScript.includes('startBtn.disabled = state.busy || state.analyzing || !ready;') &&
            toolScript.includes("setView('processing')") &&
            toolScript.includes("setView('results')") &&
            toolScript.includes('probeDuration') &&
            toolScript.includes('state.config.minDurationSeconds') &&
            toolScript.includes('estimatedCost') &&
            toolScript.includes('payload.outputSummary') &&
+           toolScript.includes('configured: false') &&
+           toolScript.includes('state.config = { ...DEFAULT_CONFIG, configured: false }') &&
+           toolScript.includes('const runConfigIsValid = () =>') &&
+           toolScript.includes('state.config.configured === true') &&
            !toolScript.includes('payload.output ='),
       'Transcribe tool should preflight duration/cost and avoid saving transcript bodies in session history');
     assert(toolScript.includes('inspectMp4AudioTrack') &&
@@ -39239,7 +39747,8 @@ try {
       'Transcribe tool should skip video files without audio and explain AWS parse failures');
     assert(toolCss.includes('.transcribe-status-bar') &&
            toolCss.includes('position:sticky') &&
-           toolCss.includes('top:calc(var(--nav-height'),
+           toolCss.includes('top:calc(var(--nav-height') &&
+           toolCss.includes('.transcribe-file-resume'),
       'Transcribe status bar should stay mounted near the top of the screen');
     assert(toolsWorkspaceCss.includes('body[data-tools-layout="text"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="media"]') &&
@@ -39265,15 +39774,106 @@ try {
     assert(endpoint.includes('StartTranscriptionJobCommand') &&
            endpoint.includes('GetTranscriptionJobCommand') &&
            endpoint.includes('DeleteTranscriptionJobCommand') &&
-           endpoint.includes('getSignedUrl') &&
+           endpoint.includes('createPresignedPost') &&
+           endpoint.includes("requestChecksumCalculation: 'WHEN_REQUIRED'") &&
+           rootPackage.dependencies?.['@aws-sdk/s3-presigned-post'] &&
+           !endpoint.includes('getSignedUrl') &&
            endpoint.includes('TRANSCRIBE_SIGNING_SECRET') &&
            endpoint.includes('MIN_DURATION_SECONDS = 15') &&
            endpoint.includes('verifyCognitoIdToken'),
-      'Transcribe endpoint should use signed S3 uploads, Cognito auth, and Amazon Transcribe jobs');
+      'Transcribe endpoint should use exact-policy S3 uploads, Cognito auth, and Amazon Transcribe jobs');
     assert(endpoint.includes('calculateCostUsd') &&
            endpoint.includes('Math.max(MIN_DURATION_SECONDS, Math.ceil(duration))') &&
+           endpoint.includes('AWS_MAX_MEDIA_DURATION_SECONDS = 28_800') &&
+           endpoint.includes('ledgerReservationCostUsd = calculateCostUsd(AWS_MAX_MEDIA_DURATION_SECONDS, pricePerSecond)') &&
            endpoint.includes('cleanupRun'),
-      'Transcribe endpoint should calculate minimum-billed costs and clean up completed runs');
+      'Transcribe endpoint should calculate minimum billing while pessimistically reserving the AWS hard maximum');
+    assert(endpoint.includes('HeadObjectCommand') &&
+           endpoint.includes('inspectUploadedObject') &&
+           endpoint.includes('actualBytes !== expectedBytes') &&
+           endpoint.includes('actualContentType !== expectedContentType'),
+      'Transcribe should verify uploaded S3 object size and content type before starting paid work');
+    assert(endpoint.includes("crypto.createHmac('sha256', secret).update(identity)") &&
+           endpoint.includes('getExistingTranscriptionJob') &&
+           endpoint.includes('idempotent: Boolean(idempotent)') &&
+           endpoint.includes('function sendPendingConfirmation') &&
+           endpoint.includes('sendJson(res, 202, {') &&
+           endpoint.includes("status: 'PENDING_CONFIRMATION'"),
+      'Transcribe quote replays and ambiguous AWS starts should resolve through one deterministic recoverable job');
+    assert(endpoint.includes('const withinStartGrace = ledgerState === RUN_STATE.RESERVED') &&
+           endpoint.includes('const withinSeenGrace = Boolean(ledgerRun?.jobCreated') &&
+           endpoint.includes("reason: 'JOB_NOT_FOUND_AFTER_START_GRACE'") &&
+           endpoint.includes("sendJson(res, 404, { ok: false, status: RUN_STATE.MISSING"),
+      'Transcribe status checks should preserve ambiguous starts through a fixed grace window before refunding a missing job');
+    assert(endpoint.includes("TRANSCRIBE_LEDGER_MODE must be \"required\" or \"disabled\"") &&
+           endpoint.includes("if (requested === 'disabled' && !isProductionRuntime())") &&
+           endpoint.includes("pickEnv(['TRANSCRIBE_DDB_TABLE', 'TOOLS_DDB_TABLE', 'TOOLS_DDB_TABLE_NAME'])") &&
+           endpoint.includes('configured: Boolean(ledgerConfigValid && region && bucket && signingSecret'),
+      'Transcribe should require its durable ledger in production while allowing an explicit local-only opt-out');
+    assert(ledger.includes('new TransactWriteCommand') &&
+           ledger.includes('ledgerDailyFileLimit') &&
+           ledger.includes('ledgerGlobalDailyFileLimit') &&
+           ledger.includes('ledgerMaxConcurrent') &&
+           ledger.includes('startAttemptExpiresAt') &&
+           reservationPlan.transactItems.length === 4 &&
+           reservationPlan.transactItems[0]?.Put?.Item?.state === ledgerModule.RUN_STATE.RESERVED &&
+           reservationPlan.transactItems[1]?.Put?.Item?.ownerJobName === 'test-job' &&
+           reservationPlan.transactItems[2]?.Update?.Key?.pk === 'TRANSCRIBE#test-user' &&
+           reservationPlan.transactItems[3]?.Update?.Key?.pk === 'TRANSCRIBE#GLOBAL' &&
+           ledgerModule._internal.toCostMicros(11.52) === 11_520_000,
+      'Transcribe should atomically reserve user/global daily spend, file counts, and a recoverable concurrency slot');
+    assert(ledger.includes("jobCreatedAt = if_not_exists(jobCreatedAt, :now)") &&
+           ledger.includes('Number(config.ledgerRenewalSeconds) || 60') &&
+           ledger.includes('meaningful.every(code => code === \'ConditionalCheckFailed\')') &&
+           ledger.includes('Key: globalDayKey(record.day)') &&
+           ledger.includes("UpdateExpression: 'SET updatedAt = :now ADD reservedCostMicros :negativeCost, fileCount :negativeOne'"),
+      'Transcribe ledger reconciliation should preserve job creation time, throttle renewals, and refund both user and global counters safely');
+    assert(endpoint.includes("const uploadTagging = '<Tagging><TagSet>") &&
+           endpoint.includes('<Key>tool</Key><Value>amazon-transcribe</Value>') &&
+           endpoint.includes('<Key>retention</Key><Value>temporary</Value>') &&
+           endpoint.includes('tagging: uploadTagging') &&
+           endpoint.includes("['eq', '$tagging', uploadTagging]") &&
+           endpoint.includes("['content-length-range', bytes, bytes]") &&
+           endpoint.includes("method: 'POST'") &&
+           toolScript.includes('const body = new FormData();') &&
+           toolScript.includes("body.append('file', item.file, item.name || 'media')"),
+      'Transcribe uploads should use a tagged exact-size presigned POST from API through browser upload');
+    assert(endpoint.includes('isTrustedTranscriptUrl') &&
+           endpoint.includes("redirect: 'manual'") &&
+           endpoint.includes('config.maxTranscriptFetchBytes') &&
+           endpoint.includes('config.maxTranscriptBytes') &&
+           endpoint.includes('TRANSCRIPT_OUTPUT_TOO_LARGE') &&
+           endpoint.includes('controller.abort()'),
+      'Transcribe downloads should revalidate redirects and enforce fetch plus final-response byte ceilings');
+    assert(toolScript.includes('const POLL_MEDIUM_INTERVAL_MS = 15000;') &&
+           toolScript.includes('const POLL_MAX_INTERVAL_MS = 30000;') &&
+           toolScript.includes('const MAX_TRANSIENT_RETRIES = 5;') &&
+           toolScript.includes('const pollIntervalFor = (startedAt) =>') &&
+           toolScript.includes('transientFailures < MAX_TRANSIENT_RETRIES') &&
+           toolScript.includes('const startReservedRun = async (item) =>') &&
+           toolScript.includes('body: JSON.stringify({ quoteToken: item.quoteToken })') &&
+           toolScript.includes('data-transcribe-file-resume') &&
+           toolScript.includes('const runToken = item.runToken || await startReservedRun(item);'),
+      'Transcribe client should adapt polling, retry transient requests with the same quote, and resume from existing recovery tokens');
+    assert(toolScript.includes("const ACTIVE_RUNS_STORAGE_KEY = 'tools:transcribe:active-runs:v1';") &&
+           toolScript.includes('stored.ownerSub !== ownerSub') &&
+           toolScript.includes("window.addEventListener('pagehide', persistActiveRunRecovery)") &&
+           toolScript.includes('Recovered after this tab reloaded.') &&
+           recoveryPersistStart >= 0 && recoveryPersistEnd > recoveryPersistStart &&
+           !recoveryPersistSource.includes('transcript:') &&
+           !recoveryPersistSource.includes('file: item.file'),
+      'Transcribe should persist only expiring, user-scoped recovery metadata across same-tab reloads');
+    assert(envExample.includes('TRANSCRIBE_DAILY_COST_LIMIT_USD=25') &&
+           envExample.includes('TRANSCRIBE_DAILY_FILE_LIMIT=50') &&
+           envExample.includes('TRANSCRIBE_GLOBAL_DAILY_COST_LIMIT_USD=100') &&
+           envExample.includes('TRANSCRIBE_GLOBAL_DAILY_FILE_LIMIT=200') &&
+           envExample.includes('TRANSCRIBE_MAX_CONCURRENT=2') &&
+           envExample.includes('TRANSCRIBE_LEDGER_RENEWAL_SECONDS=60') &&
+           envExample.includes('TRANSCRIBE_LEDGER_RUN_RETENTION_DAYS=45') &&
+           envExample.includes('TRANSCRIBE_MAX_TRANSCRIPT_FETCH_BYTES=26214400') &&
+           envExample.includes('TRANSCRIBE_MAX_TRANSCRIPT_BYTES=3145728') &&
+           transcribeReadme.includes('TRANSCRIBE_LEDGER_RENEWAL_SECONDS=60'),
+      'Transcribe deployment examples should document user/global budgets, concurrency, renewal, retention, and response controls');
     assert(router.includes("if (endpoint === 'transcribe')") &&
            router.includes('getEndpointSegmentsFromRequest'),
       'tools router should route nested /api/tools/transcribe actions');
@@ -39287,6 +39887,28 @@ try {
       'vercel should rewrite nested Transcribe API actions into the tools catch-all route');
   });
 
+  section('Tools KV transport safety', () => {
+    const kv = readFile('api/_lib/kv.js');
+    const storeSelector = readFile('api/_lib/tools-store.js');
+    const toolsApi = readFile('api/_lib/tools-api.js');
+    const shortLinksApiHelpers = readFile('api/_lib/short-links.js');
+    assert(kv.includes("method: 'POST'") &&
+      kv.includes("'Content-Type': 'application/json'") &&
+      kv.includes('body: JSON.stringify(payload)') &&
+      !kv.includes("parts.join('/')"),
+      'KV commands and private snapshots should travel in POST bodies, not request URLs');
+    assert(kv.includes("err.code = 'KV_READONLY'") &&
+      kv.includes('const requireWrite = !READ_ONLY_COMMANDS.has(normalizedCommand);'),
+      'KV writes should fail closed when only read-only credentials are configured');
+    assert(!storeSelector.includes('KV_REST_API_READ_ONLY_TOKEN') &&
+      storeSelector.includes('hasVercelKv') && storeSelector.includes('hasUpstashRedis'),
+      'tools store selection should require a matched write-capable KV URL/token pair');
+    assert(toolsApi.includes('const MAX_JSON_BODY_BYTES = 512 * 1024;') &&
+      shortLinksApiHelpers.includes('const MAX_JSON_BODY_BYTES = 256 * 1024;') &&
+      toolsApi.includes("err.statusCode = 413") && shortLinksApiHelpers.includes("err.statusCode = 413"),
+      'shared tools and Short Links JSON readers should reject oversized request bodies');
+  });
+
   section('GA4 report race guards', () => {
     const ga4Tool = fs.readFileSync('js/tools/ga4-utm-performance.js', 'utf8');
     assert(ga4Tool.includes('let utmRequestSeq = 0;'), 'GA4 tool missing UTM request sequencing guard');
@@ -39298,6 +39920,112 @@ try {
     assert(ga4Tool.includes('requestId !== utmRequestSeq'), 'GA4 tool should ignore stale UTM responses');
     assert(ga4Tool.includes('requestId !== exploreRequestSeq'), 'GA4 tool should ignore stale Explore responses');
     assert(ga4Tool.includes('requestId !== accessRequestSeq'), 'GA4 tool should ignore stale access responses');
+  });
+
+  section('GA4 server request and cost guardrails', () => {
+    const ga4Api = readFile('api/ga4/report.js');
+    const ga4DataApi = readFile('api/_lib/ga4-data-api.js');
+    const envExample = readFile('.env.example');
+    const reportModule = require('./api/ga4/report.js');
+    const internal = reportModule._internal;
+    const previousMaxDateRange = process.env.GA4_MAX_DATE_RANGE_DAYS;
+    const previousMaxResponseBytes = process.env.GA4_MAX_RESPONSE_BYTES;
+    const previousAllowedProperties = process.env.GA4_ALLOWED_PROPERTY_IDS;
+    const previousDefaultProperty = process.env.GA4_PROPERTY_ID;
+    assert(internal && typeof internal.validateDateRange === 'function',
+      'GA4 report should expose focused validation helpers for regression tests');
+    try {
+      process.env.GA4_MAX_DATE_RANGE_DAYS = '366';
+      process.env.GA4_ALLOWED_PROPERTY_IDS = '12345, 67890, invalid';
+      process.env.GA4_PROPERTY_ID = '12345';
+      const allowedProperties = internal.getAllowedPropertyIds();
+      assert(internal.parseIsoDate('2025-02-29') === null &&
+        internal.validateDateRange('2025-01-31', '2025-01-01').ok === false &&
+        internal.validateDateRange('2025-01-01', '2025-01-31').ok === true &&
+        internal.validateDateRange('2024-01-01', '2025-01-01').ok === false,
+        'GA4 reports should reject impossible, reversed, and over-budget calendar ranges');
+      assert(allowedProperties.size === 2 && allowedProperties.has('12345') && allowedProperties.has('67890'),
+        'GA4 property allowlists should normalize numeric IDs and deduplicate the configured default');
+      process.env.GA4_MAX_RESPONSE_BYTES = '512';
+      const fittedPayload = internal.fitResponsePayload({
+        ok: true,
+        rowCount: 20,
+        returnedRows: 20,
+        truncated: false,
+        rows: Array.from({ length: 20 }, (_, index) => ({ pageLocation: `${index}-${'x'.repeat(200)}` }))
+      });
+      assert(fittedPayload && fittedPayload.responseTruncated === true && fittedPayload.returnedRows < 20 &&
+        Buffer.byteLength(JSON.stringify(fittedPayload), 'utf8') <= 512,
+      'GA4 reports should trim rows to the configured final serialized-response ceiling');
+    } finally {
+      if (typeof previousMaxDateRange === 'undefined') delete process.env.GA4_MAX_DATE_RANGE_DAYS;
+      else process.env.GA4_MAX_DATE_RANGE_DAYS = previousMaxDateRange;
+      if (typeof previousAllowedProperties === 'undefined') delete process.env.GA4_ALLOWED_PROPERTY_IDS;
+      else process.env.GA4_ALLOWED_PROPERTY_IDS = previousAllowedProperties;
+      if (typeof previousDefaultProperty === 'undefined') delete process.env.GA4_PROPERTY_ID;
+      else process.env.GA4_PROPERTY_ID = previousDefaultProperty;
+      if (typeof previousMaxResponseBytes === 'undefined') delete process.env.GA4_MAX_RESPONSE_BYTES;
+      else process.env.GA4_MAX_RESPONSE_BYTES = previousMaxResponseBytes;
+    }
+    assert(internal.timingSafeTokenEqual('same-token', 'same-token') === true &&
+      internal.timingSafeTokenEqual('same-token', 'wrong-token') === false,
+      'GA4 admin token checks should use the timing-safe comparison contract');
+    const cacheKey = internal.buildResponseCacheKey({ kind: 'ping' }, { propertyId: '123' });
+    internal.setCachedResponse(cacheKey, { ok: true, marker: 'test' });
+    assert(internal.getCachedResponse(cacheKey)?.marker === 'test',
+      'GA4 report responses should support a short bounded cache');
+    const previousCacheMaxBytes = process.env.GA4_CACHE_MAX_BYTES;
+    try {
+      process.env.GA4_CACHE_MAX_BYTES = '32';
+      const oversizedKey = internal.buildResponseCacheKey({ kind: 'oversized-test' }, { propertyId: '123' });
+      internal.setCachedResponse(oversizedKey, { payload: 'x'.repeat(128) });
+      assert(internal.getCachedResponse(oversizedKey) === null,
+        'GA4 report cache should refuse entries above the configured byte ceiling');
+    } finally {
+      if (typeof previousCacheMaxBytes === 'undefined') delete process.env.GA4_CACHE_MAX_BYTES;
+      else process.env.GA4_CACHE_MAX_BYTES = previousCacheMaxBytes;
+    }
+    assert(ga4DataApi.includes('new AbortController()') &&
+      ga4DataApi.includes('const deadlineAt = Number(controls.deadlineAt)') &&
+      ga4DataApi.includes('RETRYABLE_STATUSES') &&
+      ga4DataApi.includes('new Set([429, 500, 502, 503, 504])') &&
+      ga4DataApi.includes("if (res.status === 401 && authAttempt === 0)") &&
+      ga4DataApi.includes('clearCachedAccessToken();'),
+      'GA4 upstream requests should time out, retry transient failures, and refresh rejected access tokens');
+    assert(ga4Api.includes('const upstreamDeadlineAt = Date.now() + totalTimeoutMs();') &&
+      ga4Api.includes('{ deadlineAt: upstreamDeadlineAt }') &&
+      ga4Api.includes('fitResponsePayload(payload)') &&
+      ga4Api.includes('const HARD_MAX_RESPONSE_BYTES = 4 * 1024 * 1024;'),
+      'GA4 pagination should share one upstream deadline and final responses should have a hard byte ceiling');
+    assert(ga4Api.includes('getAllowedPropertyIds') &&
+      ga4Api.includes("sendJson(res, 403, { ok: false, error: 'GA4 property is not allowlisted.' })") &&
+      ga4Api.includes('consumeRateLimit(req)') &&
+      ga4Api.indexOf('const providedToken = normalizeAdminToken(getBearerToken(req));') <
+        ga4Api.indexOf('const rate = consumeRateLimit(req);') &&
+      ga4Api.includes("res.setHeader('X-GA4-Cache', 'HIT')") &&
+      ga4Api.includes('while (GA4_RATE_WINDOWS.size > 5_000)') &&
+      ga4Api.includes('ga4ResponseCacheBytes > totalBytes'),
+      'GA4 report access should authenticate before enforcing property allowlists, bounded rate state, and response caching');
+    assert(ga4Api.includes('const utmMaxRows = positiveInteger(process.env.GA4_MAX_UTM_ROWS, 10_000, 25_000);') &&
+      ga4Api.includes('const requestedRows = Math.min(pageSize, maxRows - rawRows.length);') &&
+      ga4Api.includes('{ ...reportBase, limit: requestedRows, offset }') &&
+      ga4Api.includes('const exploreMaxRows = positiveInteger(process.env.GA4_MAX_EXPLORE_ROWS, 5_000, 10_000);') &&
+      ga4Api.includes('const insightsMaxRows = positiveInteger(process.env.GA4_MAX_INSIGHTS_ROWS, 5_000, 10_000);'),
+      'GA4 reports should cap every report kind and never request more UTM rows than remain in the response budget');
+    assert(envExample.includes('GA4_ALLOWED_PROPERTY_IDS=') &&
+      envExample.includes('GA4_MAX_DATE_RANGE_DAYS=366') &&
+      envExample.includes('GA4_MAX_UTM_ROWS=10000') &&
+      envExample.includes('GA4_MAX_EXPLORE_ROWS=5000') &&
+      envExample.includes('GA4_MAX_INSIGHTS_ROWS=5000') &&
+      envExample.includes('GA4_MAX_RESPONSE_BYTES=3145728') &&
+      envExample.includes('GA4_REQUEST_TIMEOUT_MS=10000') &&
+      envExample.includes('GA4_TOTAL_TIMEOUT_MS=25000') &&
+      envExample.includes('GA4_RETRY_ATTEMPTS=3') &&
+      envExample.includes('GA4_CACHE_MAX_ENTRIES=24') &&
+      envExample.includes('GA4_CACHE_MAX_BYTES=2097152') &&
+      envExample.includes('GA4_CACHE_TOTAL_BYTES=8388608') &&
+      envExample.includes('GA4_RATE_LIMIT_PER_MINUTE=30'),
+      'GA4 deployment examples should document the new request and cost ceilings');
   });
 
   section('AWS demo health and warmup contracts', () => {
@@ -39992,10 +40720,23 @@ try {
 
   section('Search page form contract', () => {
     const html = fs.readFileSync('pages/search.html', 'utf8');
+    const sitemapHtml = fs.readFileSync('pages/sitemap.html', 'utf8');
+    const searchCode = readFile('js/search/site-search.js');
+    const sitemapCode = readFile('js/sitemap/sitemap-page.js');
     assert(html.includes('id="search-page-form"'), 'pages/search.html missing in-page search form');
     assert(html.includes('id="search-page-q"'), 'pages/search.html missing in-page search input');
     assert(html.includes('id="search-results"'), 'pages/search.html missing search results container');
     assert(html.includes('id="search-status"'), 'pages/search.html missing search status region');
+    [searchCode, sitemapCode].forEach((code) => {
+      assert(code.includes("url.searchParams.get('q')") && code.includes("url.searchParams.delete('q')"),
+        'search surfaces should capture then remove an initial q parameter before analytics loads');
+      assert(!code.includes("searchParams.set('q'") && !code.includes('searchParams.set("q"'),
+        'search surfaces should never write raw search terms into browser history');
+    });
+    assert(html.indexOf('dist/site-search.') < html.indexOf('dist/site-consent.'),
+      'search should strip an initial q parameter before the consent and analytics bundle runs');
+    assert(sitemapHtml.indexOf('dist/site-sitemap.') < sitemapHtml.indexOf('dist/site-consent.'),
+      'sitemap filtering should strip an initial q parameter before the consent and analytics bundle runs');
   });
 
   section('Privacy CMP', () => {

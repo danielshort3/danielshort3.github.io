@@ -4,6 +4,7 @@
   const TOOL_ID = 'transcribe';
   const API_BASE = '/api/tools/transcribe';
   const DEFAULT_CONFIG = {
+    configured: false,
     service: 'Amazon Transcribe',
     region: 'us-east-2',
     languageCode: 'en-US',
@@ -18,6 +19,12 @@
   };
   const VIDEO_FORMATS = new Set(['mp4', 'webm']);
   const POLL_INTERVAL_MS = 5000;
+  const POLL_MEDIUM_INTERVAL_MS = 15000;
+  const POLL_MAX_INTERVAL_MS = 30000;
+  const MAX_TRANSIENT_RETRIES = 5;
+  const ACTIVE_RUNS_STORAGE_KEY = 'tools:transcribe:active-runs:v1';
+  const ACTIVE_RUNS_MAX_ITEMS = 10;
+  const ACTIVE_RUNS_MAX_TOKEN_CHARS = 8192;
   const DURATION_TIMEOUT_MS = 10000;
   const MAX_CONTAINER_SCAN_BYTES = 8 * 1024 * 1024;
   const MP4_CONTAINER_BOXES = new Set(['moov', 'trak', 'mdia', 'minf', 'dinf', 'stbl', 'edts', 'udta', 'meta']);
@@ -70,9 +77,158 @@
     view: 'upload'
   };
 
+  const getAuthSub = () => {
+    try {
+      const authApi = window.ToolsAuth;
+      const auth = authApi?.getAuth?.();
+      if (!authApi?.authIsValid?.(auth)) return '';
+      return String(authApi?.getUser?.(auth)?.sub || '').trim();
+    } catch {
+      return '';
+    }
+  };
+
+  const tokenExpiryMs = (token) => {
+    try {
+      const body = String(token || '').split('.')[0];
+      if (!body) return 0;
+      const normalized = body.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='));
+      const bytes = Uint8Array.from(decoded, (character) => character.charCodeAt(0));
+      const json = typeof TextDecoder === 'function' ? new TextDecoder().decode(bytes) : decoded;
+      const payload = JSON.parse(json);
+      const expiresAt = Number(payload?.exp) * 1000;
+      return Number.isFinite(expiresAt) ? expiresAt : 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  const clearActiveRunRecovery = () => {
+    try {
+      window.sessionStorage.removeItem(ACTIVE_RUNS_STORAGE_KEY);
+    } catch {}
+  };
+
+  const persistActiveRunRecovery = () => {
+    const ownerSub = getAuthSub();
+    if (!ownerSub) return;
+    const now = Date.now();
+    const items = state.files
+      .filter((item) => {
+        if (item?.status === 'complete' || item?.runErrorType === 'service') return false;
+        return Boolean(item?.runToken) || (Boolean(item?.quoteToken) && item?.uploadComplete === true);
+      })
+      .slice(0, ACTIVE_RUNS_MAX_ITEMS)
+      .map((item) => {
+        const runToken = String(item.runToken || '').slice(0, ACTIVE_RUNS_MAX_TOKEN_CHARS);
+        const quoteToken = String(item.quoteToken || '').slice(0, ACTIVE_RUNS_MAX_TOKEN_CHARS);
+        const expiresAt = tokenExpiryMs(runToken || quoteToken);
+        if (!expiresAt || expiresAt <= now) return null;
+        return {
+          id: String(item.id || '').slice(0, 120),
+          name: String(item.name || 'media').slice(0, 180),
+          extension: String(item.extension || '').slice(0, 16),
+          contentType: String(item.contentType || '').slice(0, 120),
+          bytes: Math.max(0, Number(item.bytes) || 0),
+          durationSeconds: Math.max(0, Number(item.durationSeconds) || 0),
+          billableSeconds: Math.max(0, Number(item.billableSeconds) || 0),
+          estimatedCostUsd: Math.max(0, Number(item.estimatedCostUsd) || 0),
+          runToken,
+          quoteToken,
+          uploadComplete: item.uploadComplete === true,
+          pollStartedAt: Math.max(0, Number(item.pollStartedAt) || 0),
+          expiresAt
+        };
+      })
+      .filter(Boolean);
+    if (!items.length) {
+      clearActiveRunRecovery();
+      return;
+    }
+    try {
+      window.sessionStorage.setItem(ACTIVE_RUNS_STORAGE_KEY, JSON.stringify({ ownerSub, items }));
+    } catch {}
+  };
+
+  const restoreActiveRunRecovery = () => {
+    if (state.files.length) return 0;
+    const ownerSub = getAuthSub();
+    if (!ownerSub) return 0;
+    let stored;
+    try {
+      stored = JSON.parse(window.sessionStorage.getItem(ACTIVE_RUNS_STORAGE_KEY) || 'null');
+    } catch {
+      clearActiveRunRecovery();
+      return 0;
+    }
+    if (!stored || stored.ownerSub !== ownerSub || !Array.isArray(stored.items)) {
+      if (stored?.ownerSub && stored.ownerSub !== ownerSub) clearActiveRunRecovery();
+      return 0;
+    }
+    const now = Date.now();
+    const restored = stored.items.slice(0, ACTIVE_RUNS_MAX_ITEMS).map((item, index) => {
+      const runToken = String(item?.runToken || '').slice(0, ACTIVE_RUNS_MAX_TOKEN_CHARS);
+      const quoteToken = String(item?.quoteToken || '').slice(0, ACTIVE_RUNS_MAX_TOKEN_CHARS);
+      const expiresAt = tokenExpiryMs(runToken || quoteToken);
+      if (!expiresAt || expiresAt <= now) return null;
+      if (!runToken && (!quoteToken || item?.uploadComplete !== true)) return null;
+      return {
+        id: String(item?.id || `recovered-${index}-${Date.now()}`).slice(0, 120),
+        fingerprint: '',
+        file: null,
+        name: String(item?.name || `Recovered file ${index + 1}`).slice(0, 180),
+        extension: String(item?.extension || '').slice(0, 16),
+        contentType: String(item?.contentType || 'application/octet-stream').slice(0, 120),
+        bytes: Math.max(0, Number(item?.bytes) || 0),
+        durationSeconds: Math.max(0, Number(item?.durationSeconds) || 0),
+        billableSeconds: Math.max(0, Number(item?.billableSeconds) || 0),
+        estimatedCostUsd: Math.max(0, Number(item?.estimatedCostUsd) || 0),
+        costUsd: 0,
+        progress: 0,
+        status: 'failed',
+        error: 'Recovered after this tab reloaded. Select Resume to continue the existing job.',
+        runErrorType: 'network',
+        transcript: '',
+        runToken,
+        quoteToken,
+        uploadComplete: item?.uploadComplete === true,
+        pollStartedAt: Math.max(0, Number(item?.pollStartedAt) || 0)
+      };
+    }).filter(Boolean);
+    state.files = restored;
+    if (!restored.length) clearActiveRunRecovery();
+    else persistActiveRunRecovery();
+    return restored.length;
+  };
+
   const markSessionDirty = () => {
     try {
       document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
+  const reportRunComplete = (resultBucket) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-complete', {
+        detail: { toolId: TOOL_ID, resultBucket }
+      }));
+    } catch {}
+  };
+
+  const reportRunError = (errorType) => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-error', {
+        detail: { toolId: TOOL_ID, errorType }
+      }));
+    } catch {}
+  };
+
+  const reportRunCancel = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:run-cancel', {
+        detail: { toolId: TOOL_ID }
+      }));
     } catch {}
   };
 
@@ -84,6 +240,16 @@
     .replace(/'/g, '&#39;');
 
   const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+  const classifyRunError = (error) => {
+    const status = Number(error?.status || 0);
+    const message = cleanText(error?.message).toLowerCase();
+    if (status === 401 || status === 403 || /sign in|not authorized|forbidden/.test(message)) return 'permission';
+    if (status === 408 || status === 504 || /timed? out|timeout/.test(message)) return 'timeout';
+    if (status >= 500 || /service|transcription failed|request failed/.test(message)) return 'service';
+    if (/failed to fetch|network|connection|offline|upload failed|load failed/.test(message)) return 'network';
+    return 'processing';
+  };
 
   const setText = (el, value) => {
     if (el) el.textContent = value || '';
@@ -344,6 +510,21 @@
     return authApi.authIsValid(authApi.getAuth());
   };
 
+  const runConfigIsValid = () => {
+    const numericValues = [
+      state.config.pricePerSecond,
+      state.config.minDurationSeconds,
+      state.config.maxFilesPerRun,
+      state.config.maxFileBytes,
+      state.config.maxTotalCostUsd
+    ].map(Number);
+    return state.config.configured === true &&
+      Boolean(cleanText(state.config.service)) &&
+      Array.isArray(state.config.supportedFormats) &&
+      state.config.supportedFormats.length > 0 &&
+      numericValues.every((value) => Number.isFinite(value) && value > 0);
+  };
+
   const setView = (view) => {
     const next = ['upload', 'processing', 'results'].includes(view) ? view : 'upload';
     state.view = next;
@@ -471,10 +652,17 @@
     !state.analyzing &&
     !['presigning', 'uploading', 'starting', 'transcribing'].includes(String(item?.status || ''));
 
+  const canResumeItem = (item) => !state.busy &&
+    !state.analyzing &&
+    ['failed', 'canceled'].includes(item?.status) &&
+    item?.runErrorType !== 'service' &&
+    (Boolean(item.runToken) || (Boolean(item.quoteToken) && item.uploadComplete === true));
+
   const renderTable = () => {
     if (tableWrapEl) tableWrapEl.hidden = state.files.length === 0;
     fileRowsEl.innerHTML = state.files.map((item) => {
       const removable = canRemoveItem(item);
+      const resumable = canResumeItem(item);
       return `
       <article class="transcribe-file-card" data-tone="${escapeHtml(rowTone(item))}">
         <div class="transcribe-file-main">
@@ -487,14 +675,24 @@
           <span>${escapeHtml(formatUsd(item.estimatedCostUsd || 0))}</span>
         </div>
         <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
-        <button
-          type="button"
-          class="transcribe-file-remove"
-          data-transcribe-file-remove
-          data-id="${escapeHtml(item.id)}"
-          aria-label="Remove ${escapeHtml(item.name)} from queue"
-          ${removable ? '' : 'disabled'}
-        >X</button>
+        <div class="transcribe-file-actions">
+          ${resumable ? `
+            <button
+              type="button"
+              class="transcribe-file-resume"
+              data-transcribe-file-resume
+              data-id="${escapeHtml(item.id)}"
+            >Resume</button>
+          ` : ''}
+          <button
+            type="button"
+            class="transcribe-file-remove"
+            data-transcribe-file-remove
+            data-id="${escapeHtml(item.id)}"
+            aria-label="Remove ${escapeHtml(item.name)} from queue"
+            ${removable ? '' : 'disabled'}
+          >X</button>
+        </div>
       </article>
     `;
     }).join('');
@@ -574,8 +772,9 @@
     const approved = Boolean(approveEl && approveEl.checked);
     if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
     if (startBtn) {
-      startBtn.disabled = state.busy || state.analyzing;
-      startBtn.dataset.ready = authIsReady() && approved && readyCount > 0 ? 'true' : 'false';
+      const ready = authIsReady() && runConfigIsValid() && approved && readyCount > 0;
+      startBtn.disabled = state.busy || state.analyzing || !ready;
+      startBtn.dataset.ready = ready ? 'true' : 'false';
     }
   };
 
@@ -608,12 +807,16 @@
       const res = await fetch(`${API_BASE}/config`, { method: 'GET' });
       const data = await readJson(res);
       state.config = { ...DEFAULT_CONFIG, ...data };
+      if (state.config.configured !== true) {
+        throw new Error('Transcribe is not fully configured on the server.');
+      }
       updateStats();
       updateSummary();
     } catch (err) {
       setStatus(runStatusEl, err?.message || 'Transcribe configuration is unavailable.', 'warning');
-      state.config = { ...DEFAULT_CONFIG };
+      state.config = { ...DEFAULT_CONFIG, configured: false };
       updateStats();
+      updateControls();
     }
   };
 
@@ -786,11 +989,12 @@
     state.activeController = null;
   };
 
-  const uploadFile = (item, uploadUrl, headers = {}) => new Promise((resolve, reject) => {
+  const uploadFile = (item, presign = {}) => new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     state.activeXhr = xhr;
-    xhr.open('PUT', uploadUrl, true);
-    Object.entries(headers || {}).forEach(([key, value]) => {
+    const method = String(presign.method || 'PUT').toUpperCase();
+    xhr.open(method, presign.uploadUrl, true);
+    Object.entries(presign.headers || {}).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
       try {
         xhr.setRequestHeader(key, String(value));
@@ -813,7 +1017,9 @@
         resolve();
         return;
       }
-      reject(new Error(`Upload failed (${xhr.status}).`));
+      const error = new Error(`Upload failed (${xhr.status}).`);
+      error.status = xhr.status;
+      reject(error);
     };
     xhr.onerror = () => {
       state.activeXhr = null;
@@ -823,12 +1029,39 @@
       state.activeXhr = null;
       reject(new Error('Upload canceled.'));
     };
+    if (method === 'POST' && presign.fields && typeof presign.fields === 'object') {
+      const body = new FormData();
+      Object.entries(presign.fields).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        body.append(key, String(value));
+      });
+      body.append('file', item.file, item.name || 'media');
+      xhr.send(body);
+      return;
+    }
     xhr.send(item.file);
   });
 
   const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+  const isTransientRunError = (err) => {
+    const status = Number(err?.status);
+    if (status === 429 || status >= 500) return true;
+    const message = String(err?.message || '').toLowerCase();
+    return !status && /fetch|network|offline|connection|timeout|temporar/.test(message);
+  };
+
+  const pollIntervalFor = (startedAt) => {
+    const elapsed = Math.max(0, Date.now() - Number(startedAt || Date.now()));
+    if (elapsed < 60_000) return POLL_INTERVAL_MS;
+    if (elapsed < 10 * 60_000) return POLL_MEDIUM_INTERVAL_MS;
+    return POLL_MAX_INTERVAL_MS;
+  };
+
   const pollRun = async (item, runToken) => {
+    const pollStartedAt = Number(item.pollStartedAt) || Date.now();
+    item.pollStartedAt = pollStartedAt;
+    let transientFailures = 0;
     while (!state.canceled) {
       const controller = new AbortController();
       state.activeController = controller;
@@ -838,6 +1071,20 @@
           method: 'GET',
           signal: controller.signal
         });
+        transientFailures = 0;
+      } catch (err) {
+        if (!state.canceled && isTransientRunError(err) && transientFailures < MAX_TRANSIENT_RETRIES) {
+          transientFailures += 1;
+          const retryDelay = Math.min(POLL_MAX_INTERVAL_MS, 1000 * (2 ** transientFailures));
+          item.status = 'transcribing';
+          item.error = `Connection interrupted. Retrying (${transientFailures}/${MAX_TRANSIENT_RETRIES})...`;
+          renderTable();
+          renderProcessingList();
+          updateProgress({ stateName: 'visible', ratio: 1, label: `Reconnecting to ${item.name}...` });
+          await sleep(retryDelay);
+          continue;
+        }
+        throw err;
       } finally {
         if (state.activeController === controller) state.activeController = null;
       }
@@ -852,31 +1099,64 @@
         renderProcessingList();
         renderResults();
         markSessionDirty();
+        persistActiveRunRecovery();
         return;
       }
       if (status === 'FAILED') {
         item.status = 'failed';
         item.error = friendlyTranscribeError(data.error || 'Transcription failed.');
+        item.runErrorType = 'service';
         item.costUsd = Number(data.costUsd ?? item.estimatedCostUsd ?? 0);
         renderTable();
         renderProcessingList();
         renderResults();
         markSessionDirty();
+        persistActiveRunRecovery();
         return;
       }
 
       item.status = 'transcribing';
+      item.error = '';
       renderTable();
       renderProcessingList();
       updateProgress({ stateName: 'visible', ratio: 1, label: `Transcribing ${item.name}...` });
-      await sleep(POLL_INTERVAL_MS);
+      await sleep(pollIntervalFor(pollStartedAt));
     }
     throw new Error('Canceled.');
+  };
+
+  const startReservedRun = async (item) => {
+    let start;
+    for (let attempt = 0; attempt <= 3; attempt += 1) {
+      const startController = new AbortController();
+      state.activeController = startController;
+      try {
+        start = await authFetchJson(`${API_BASE}/start`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteToken: item.quoteToken }),
+          signal: startController.signal
+        });
+        break;
+      } catch (err) {
+        if (state.canceled || !isTransientRunError(err) || attempt >= 3) throw err;
+        await sleep(Math.min(8000, 1000 * (2 ** attempt)));
+      } finally {
+        if (state.activeController === startController) state.activeController = null;
+      }
+    }
+    const runToken = String(start?.runToken || '');
+    if (!runToken) throw new Error('The transcription job did not return a recovery token.');
+    item.runToken = runToken;
+    item.pollStartedAt = Number(item.pollStartedAt) || Date.now();
+    persistActiveRunRecovery();
+    return runToken;
   };
 
   const runFile = async (item) => {
     item.status = 'presigning';
     item.error = '';
+    item.runErrorType = '';
     item.progress = 0;
     renderTable();
     updateProgress({ stateName: 'visible', ratio: 0, label: `Preparing ${item.name}...` });
@@ -901,50 +1181,104 @@
     }
 
     if (state.canceled) throw new Error('Canceled.');
+    item.quoteToken = String(presign.quoteToken || '');
 
     item.status = 'uploading';
     renderTable();
-    await uploadFile(item, presign.uploadUrl, presign.headers || {});
+    await uploadFile(item, presign);
+    item.uploadComplete = true;
+    persistActiveRunRecovery();
     if (state.canceled) throw new Error('Canceled.');
 
     item.status = 'starting';
     renderTable();
     updateProgress({ stateName: 'visible', ratio: 1, label: `Starting ${item.name}...` });
 
-    const startController = new AbortController();
-    state.activeController = startController;
-    let start;
-    try {
-      start = await authFetchJson(`${API_BASE}/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quoteToken: presign.quoteToken }),
-        signal: startController.signal
-      });
-    } finally {
-      if (state.activeController === startController) state.activeController = null;
-    }
-
     item.status = 'transcribing';
-    item.runToken = start.runToken;
+    const runToken = await startReservedRun(item);
     renderTable();
-    await pollRun(item, start.runToken);
+    await pollRun(item, runToken);
   };
 
-  const runBatch = async () => {
+  const resumeItem = async (item) => {
+    if (!canResumeItem(item)) return;
+    if (!authIsReady()) {
+      setStatus(runStatusEl, 'Sign in again before resuming this transcription.', 'warning');
+      updateAuthUi();
+      return;
+    }
+    if (!runConfigIsValid()) {
+      setStatus(runStatusEl, 'Transcription configuration is unavailable. Refresh and try again.', 'warning');
+      return;
+    }
+
+    state.canceled = false;
+    item.error = '';
+    item.runErrorType = '';
+    item.status = item.runToken ? 'transcribing' : 'starting';
+    setView('processing');
+    setBusy(true);
+    renderTable();
+    renderProcessingList();
+    setStatus(runStatusEl, `Resuming ${item.name} with its existing job token...`, '');
+    updateProgress({ stateName: 'visible', ratio: 1, label: `Resuming ${item.name}...` });
+
+    try {
+      const runToken = item.runToken || await startReservedRun(item);
+      item.status = 'transcribing';
+      renderTable();
+      await pollRun(item, runToken);
+      setStatus(
+        runStatusEl,
+        item.status === 'complete' ? `${item.name} is complete.` : `${item.name} could not be transcribed.`,
+        item.status === 'complete' ? 'success' : 'warning'
+      );
+    } catch (err) {
+      if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
+        item.status = 'canceled';
+        item.error = 'Canceled.';
+      } else {
+        item.status = 'failed';
+        item.error = friendlyTranscribeError(err?.message || 'Unable to resume transcription.');
+        item.runErrorType = classifyRunError(err);
+      }
+      setStatus(runStatusEl, item.error, 'warning');
+    } finally {
+      setBusy(false);
+      updateProgress({ stateName: 'hidden' });
+      renderTable();
+      renderProcessingList();
+      renderResults();
+      setView('results');
+      updateLayoutState();
+      markSessionDirty();
+      persistActiveRunRecovery();
+    }
+  };
+
+  const runBatch = async ({ reportOutcome = false } = {}) => {
     if (!authIsReady()) {
       setStatus(runStatusEl, 'Sign in before starting transcription jobs.', 'warning');
       updateAuthUi();
+      if (reportOutcome) reportRunError('permission');
+      return;
+    }
+
+    if (!runConfigIsValid()) {
+      setStatus(runStatusEl, 'Transcription configuration is unavailable. Refresh and try again.', 'warning');
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
     const queue = acceptedFiles().filter((item) => item.status === 'ready');
     if (!queue.length) {
       setStatus(runStatusEl, 'No eligible files to transcribe.', 'warning');
+      if (reportOutcome) reportRunError('validation');
       return;
     }
     if (!approveEl || !approveEl.checked) {
       setStatus(runStatusEl, 'Review and approve the estimated charge before starting.', 'warning');
+      if (reportOutcome) reportRunError('validation');
       return;
     }
 
@@ -972,20 +1306,23 @@
         if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
           item.status = 'canceled';
           item.error = 'Canceled.';
+          item.runErrorType = 'processing';
         } else {
           item.status = 'failed';
           item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
+          item.runErrorType = classifyRunError(err);
         }
         renderTable();
         renderProcessingList();
         renderResults();
         markSessionDirty();
+        persistActiveRunRecovery();
       }
     }
 
-    const completed = completedFiles().length;
-    const failed = state.files.filter((item) => item.status === 'failed').length;
-    const canceled = state.files.filter((item) => item.status === 'canceled').length;
+    const completed = queue.filter((item) => item.status === 'complete').length;
+    const failed = queue.filter((item) => item.status === 'failed').length;
+    const canceled = queue.filter((item) => item.status === 'canceled').length;
     const message = state.canceled
       ? `Canceled. ${completed} complete, ${failed} failed, ${canceled} canceled.`
       : `Done. ${completed} complete, ${failed} failed.`;
@@ -996,6 +1333,20 @@
     renderResults();
     setView('results');
     updateLayoutState();
+    persistActiveRunRecovery();
+
+    if (reportOutcome) {
+      if (state.canceled || canceled) {
+        reportRunCancel();
+      } else if (completed > 0) {
+        reportRunComplete(failed ? 'partial_success' : 'all_complete');
+      } else {
+        const errorTypes = queue.map((item) => item.runErrorType).filter(Boolean);
+        const errorType = ['permission', 'network', 'timeout', 'service', 'processing']
+          .find((candidate) => errorTypes.includes(candidate)) || 'service';
+        reportRunError(errorType);
+      }
+    }
   };
 
   const reset = () => {
@@ -1003,6 +1354,7 @@
     state.analyzing = false;
     abortActive();
     state.files = [];
+    clearActiveRunRecovery();
     if (fileEl) fileEl.value = '';
     if (approveEl) approveEl.checked = false;
     setView('upload');
@@ -1072,12 +1424,20 @@
 
   if (fileRowsEl) {
     fileRowsEl.addEventListener('click', (event) => {
+      const resumeBtn = event.target.closest('[data-transcribe-file-resume]');
+      if (resumeBtn && !resumeBtn.disabled) {
+        const id = resumeBtn.getAttribute('data-id');
+        const item = state.files.find((entry) => entry.id === id);
+        if (item && canResumeItem(item)) void resumeItem(item);
+        return;
+      }
       const removeBtn = event.target.closest('[data-transcribe-file-remove]');
       if (!removeBtn || removeBtn.disabled) return;
       const id = removeBtn.getAttribute('data-id');
       const item = state.files.find((entry) => entry.id === id);
       if (!item || !canRemoveItem(item)) return;
       state.files = state.files.filter((entry) => entry.id !== id);
+      persistActiveRunRecovery();
       if (approveEl) approveEl.checked = false;
       setStatus(runStatusEl, `Removed ${item.name} from the queue. Review the updated estimate before starting.`, 'warning');
       renderTable();
@@ -1088,7 +1448,9 @@
 
   formEl.addEventListener('submit', (event) => {
     event.preventDefault();
-    runBatch();
+    void runBatch({ reportOutcome: true }).catch((error) => {
+      reportRunError(classifyRunError(error));
+    });
   });
 
   if (cancelBtn) {
@@ -1098,6 +1460,7 @@
       setStatus(runStatusEl, 'Canceling. Already submitted AWS jobs may still incur cost.', 'warning');
       setBusy(false);
       updateProgress({ stateName: 'hidden' });
+      persistActiveRunRecovery();
     });
   }
 
@@ -1135,7 +1498,16 @@
     });
   }
 
-  document.addEventListener('tools:auth-changed', updateAuthUi);
+  document.addEventListener('tools:auth-changed', () => {
+    updateAuthUi();
+    const restoredCount = restoreActiveRunRecovery();
+    if (!restoredCount) return;
+    setView('results');
+    renderTable();
+    renderResults();
+    setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Select Resume to continue without uploading again.`, 'warning');
+  });
+  window.addEventListener('pagehide', persistActiveRunRecovery);
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
@@ -1159,10 +1531,14 @@
   });
 
   loadConfig().finally(() => {
-    setView('upload');
+    const restoredCount = restoreActiveRunRecovery();
+    setView(restoredCount ? 'results' : 'upload');
     updateAuthUi();
     renderTable();
     renderResults();
+    if (restoredCount) {
+      setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Select Resume to continue without uploading again.`, 'warning');
+    }
   });
   window.setTimeout(updateAuthUi, 250);
   window.setTimeout(updateAuthUi, 1000);

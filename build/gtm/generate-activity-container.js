@@ -24,7 +24,7 @@ const tagGroups = [
     tagId: '30',
     triggerId: '16',
     name: 'Directory Behavior',
-    trigger: '^(directory_filter_apply|directory_search|select_content|project_filter_select)$'
+    trigger: '^(directory_filter_apply|directory_search|directory_depth_reached|select_content|project_filter_select)$'
   },
   {
     tagId: '31',
@@ -42,7 +42,7 @@ const tagGroups = [
     tagId: '33',
     triggerId: '19',
     name: 'Tool Activation',
-    trigger: '^(tool_run_start|tool_run_complete)$'
+    trigger: '^(tool_run_start|tool_run_complete|tool_run_error)$'
   },
   {
     tagId: '34',
