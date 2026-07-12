@@ -5,7 +5,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const { getLinkWithLegacyFallback, incrementClicks, recordClick } = require('../_lib/short-links-store');
+const { getLinkWithLegacyFallback, recordClick } = require('../_lib/short-links-store');
 const { normalizeSlug, getRequestBaseUrl } = require('../_lib/short-links');
 
 function isShortDomainHost(req){
@@ -217,6 +217,9 @@ module.exports = async (req, res) => {
       slug: canonicalSlug,
       clickId,
       clickedAt: now.toISOString(),
+      currentAggregateClicks: Number.isFinite(Number(link.clicks))
+        ? Math.max(0, Math.floor(Number(link.clicks)))
+        : 0,
       destination: getTelemetryUrl(finalUrl),
       statusCode: link.permanent ? 301 : 302,
       host: hostHeader.split(':')[0].trim(),
@@ -230,20 +233,15 @@ module.exports = async (req, res) => {
     };
 
     try {
-      const results = await Promise.allSettled([
-        incrementClicks(canonicalSlug),
-        recordClick(clickEvent)
-      ]);
-      const clickResult = results[1];
-      if (clickResult && clickResult.status === 'rejected') {
-        const reason = clickResult.reason || {};
-        console.warn('Shortlinks click log failed', {
-          slug: canonicalSlug,
-          name: reason.name || '',
-          message: reason.message || ''
-        });
-      }
-    } catch {}
+      await recordClick(clickEvent);
+    } catch (err) {
+      const reason = err || {};
+      console.warn('Shortlinks click telemetry failed', {
+        slug: canonicalSlug,
+        name: reason.name || '',
+        message: reason.message || ''
+      });
+    }
   }
 
   res.statusCode = link.permanent ? 301 : 302;

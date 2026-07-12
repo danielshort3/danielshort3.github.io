@@ -5,7 +5,10 @@
 */
 'use strict';
 
-const { getLinkWithLegacyFallback, listClicks } = require('../../_lib/short-links-store');
+const {
+  getLinkWithLegacyFallback,
+  listClickHistory
+} = require('../../_lib/short-links-store');
 const {
   getAdminToken,
   isAdminRequest,
@@ -34,6 +37,48 @@ function parseLimit(req){
   return Math.max(1, Math.min(500, Math.floor(value)));
 }
 
+function toNonNegativeInteger(value){
+  if (value === null || typeof value === 'undefined' || value === '') return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.max(0, Math.floor(parsed));
+}
+
+function isHistoricalBaseline(item){
+  if (!item || typeof item !== 'object') return false;
+  if (item.clickId === '__historical_baseline__') return true;
+  if (item.entityType === 'clickBaseline') return true;
+  return typeof item.eventType === 'string' && /baseline/i.test(item.eventType);
+}
+
+function buildHistorySummary(item, link, detailedEventsReturned){
+  const baselineAvailable = Boolean(item);
+  const legacyCount = item ? toNonNegativeInteger(item.count) : null;
+  const historicalClicks = item
+    ? (toNonNegativeInteger(item.historicalClicks) ?? legacyCount ?? 0)
+    : null;
+  const recordedEventCount = item ? toNonNegativeInteger(item.recordedEventCount) : null;
+  const linkAggregate = link ? toNonNegativeInteger(link.clicks) : null;
+  const aggregateClicks = item
+    ? (toNonNegativeInteger(item.aggregateClicks) ?? (
+        historicalClicks !== null && recordedEventCount !== null
+          ? historicalClicks + recordedEventCount
+          : linkAggregate
+      ))
+    : linkAggregate;
+
+  return {
+    baselineAvailable,
+    historicalClicks,
+    recordedEventCount,
+    aggregateClicks,
+    reconciledAt: item && typeof item.reconciledAt === 'string' ? item.reconciledAt : '',
+    detailedEventsReturned,
+    retentionMode: 'indefinite-target',
+    retentionVerified: false
+  };
+}
+
 module.exports = async (req, res) => {
   const adminToken = getAdminToken();
   if (!adminToken) {
@@ -60,9 +105,10 @@ module.exports = async (req, res) => {
 
   const limit = parseLimit(req);
   let resolvedSlug = slug;
+  let link = null;
 
   try {
-    const link = await getLinkWithLegacyFallback(slug);
+    link = await getLinkWithLegacyFallback(slug);
     if (link && typeof link.slug === 'string') resolvedSlug = link.slug;
   } catch (err) {
     if (err && err.code === 'DDB_ENV_MISSING') {
@@ -73,7 +119,7 @@ module.exports = async (req, res) => {
 
   let items = [];
   try {
-    items = await listClicks({ slug: resolvedSlug, limit });
+    items = await listClickHistory({ slug: resolvedSlug, limit });
   } catch (err) {
     if (err && err.code === 'DDB_CLICKS_ENV_MISSING') {
       sendJson(res, 503, { ok: false, error: err.message });
@@ -87,7 +133,8 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const clicks = items.map(item => ({
+  const baseline = items.find(isHistoricalBaseline) || null;
+  const clicks = items.filter(item => !isHistoricalBaseline(item)).slice(0, limit).map(item => ({
     clickId: typeof item.clickId === 'string' ? item.clickId : '',
     clickedAt: typeof item.clickedAt === 'string' ? item.clickedAt : '',
     destination: typeof item.destination === 'string' ? item.destination : '',
@@ -105,5 +152,11 @@ module.exports = async (req, res) => {
     longitude: typeof item.longitude === 'string' ? item.longitude : ''
   }));
 
-  sendJson(res, 200, { ok: true, slug: resolvedSlug, limit, clicks });
+  sendJson(res, 200, {
+    ok: true,
+    slug: resolvedSlug,
+    limit,
+    clicks,
+    summary: buildHistorySummary(baseline, link, clicks.length)
+  });
 };

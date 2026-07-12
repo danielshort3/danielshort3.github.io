@@ -260,6 +260,7 @@
   let visibleLinkSlugs = [];
   let selectedSlugs = new Set();
   let linkHealth = new Map();
+  let clickRetentionDurable = false;
   let memorySavedViews = [];
   let activeDetailSlug = '';
   let detailInsightsRequestId = 0;
@@ -941,10 +942,10 @@
   }
 
   async function fetchClickHistoryForExport(slug, limit){
-    if (!slug) return [];
+    if (!slug) return normalizeClickHistoryPayload({ clicks: [] });
     const safeLimit = normalizeExportClickLimit(limit);
     const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${safeLimit}`, { method: 'GET' });
-    return Array.isArray(data?.clicks) ? data.clicks : [];
+    return normalizeClickHistoryPayload(data);
   }
 
   async function exportRedirectsOnly(links){
@@ -973,11 +974,13 @@
       const label = item.shortPath || item.slug || 'link';
       setStatus(listStatusEl, `Exporting click history ${progress} (${label})…`);
       try {
-        const clicks = await fetchClickHistoryForExport(item.slug, clickLimit);
-        item.clickEvents = clicks;
-        totalClicks += clicks.length;
+        const history = await fetchClickHistoryForExport(item.slug, clickLimit);
+        item.clickEvents = history.events;
+        item.clickHistorySummary = history.summary;
+        totalClicks += history.events.length;
       } catch (err) {
         item.clickEvents = [];
+        item.clickHistorySummary = null;
         item.clicksError = err?.message || 'Unable to fetch click history.';
         errors.push(`${item.slug || label}: ${item.clicksError}`);
       }
@@ -990,7 +993,7 @@
       clickHistoryLimitPerLink: clickLimit,
       totals: {
         links: exportLinks.length,
-        clickEvents: totalClicks,
+        detailedClickEvents: totalClicks,
         clickFetchErrors: errors.length
       },
       links: exportLinks
@@ -1010,13 +1013,13 @@
     if (errors.length) {
       setStatus(
         listStatusEl,
-        `Exported ${exportLinks.length} links with ${totalClicks} click events. ${errors.length} link(s) had click history errors.`,
+        `Exported ${exportLinks.length} links with ${totalClicks} detailed click events. ${errors.length} link(s) had click history errors.`,
         'warning'
       );
       return;
     }
 
-    setStatus(listStatusEl, `Exported ${exportLinks.length} links with ${totalClicks} click events to ${filename}.`, 'success');
+    setStatus(listStatusEl, `Exported ${exportLinks.length} links with ${totalClicks} detailed click events to ${filename}.`, 'success');
   }
 
   async function handleExport(){
@@ -1204,6 +1207,53 @@
     return formatTimestamp(value) || 'Unknown time';
   }
 
+  function toClickCount(value){
+    if (value === null || typeof value === 'undefined' || value === '') return null;
+    const count = Number(value);
+    return Number.isFinite(count) ? Math.max(0, Math.floor(count)) : null;
+  }
+
+  function isHistoricalClickBaseline(item){
+    if (!item || typeof item !== 'object') return false;
+    if (item.clickId === '__historical_baseline__') return true;
+    if (item.entityType === 'clickBaseline') return true;
+    return typeof item.eventType === 'string' && /baseline/i.test(item.eventType);
+  }
+
+  function normalizeClickHistoryPayload(payload){
+    const source = payload && typeof payload === 'object' && !Array.isArray(payload)
+      ? payload
+      : { clicks: Array.isArray(payload) ? payload : [] };
+    const rawItems = Array.isArray(source.clicks)
+      ? source.clicks
+      : (Array.isArray(source.events) ? source.events : []);
+    const inlineBaseline = rawItems.find(isHistoricalClickBaseline) || null;
+    const apiSummary = source.summary && typeof source.summary === 'object' ? source.summary : {};
+    const inlineHistorical = inlineBaseline
+      ? (toClickCount(inlineBaseline.historicalClicks) ?? toClickCount(inlineBaseline.count))
+      : null;
+    return {
+      events: rawItems.filter(item => !isHistoricalClickBaseline(item)),
+      summary: {
+        baselineAvailable: apiSummary.baselineAvailable === true || Boolean(inlineBaseline),
+        historicalClicks: toClickCount(apiSummary.historicalClicks) ?? inlineHistorical,
+        recordedEventCount: toClickCount(apiSummary.recordedEventCount),
+        aggregateClicks: toClickCount(apiSummary.aggregateClicks),
+        reconciledAt: typeof apiSummary.reconciledAt === 'string'
+          ? apiSummary.reconciledAt
+          : (typeof inlineBaseline?.reconciledAt === 'string' ? inlineBaseline.reconciledAt : ''),
+        retentionMode: apiSummary.retentionMode === 'indefinite-target' ? 'indefinite-target' : ''
+      }
+    };
+  }
+
+  function getHistoricalBaselineCopy(history){
+    const normalized = normalizeClickHistoryPayload(history);
+    const count = normalized.summary.historicalClicks;
+    if (!normalized.summary.baselineAvailable || count === null || count <= 0) return '';
+    return `${formatCount(count)} earlier aggregate click${count === 1 ? '' : 's'} preserved as a historical baseline.`;
+  }
+
   function getDetailTrendSeries(items, dayCount = 14){
     const days = Math.max(2, Number(dayCount) || 14);
     const now = new Date();
@@ -1221,16 +1271,17 @@
     return counts;
   }
 
-  function renderDetailTrend(host, items){
+  function renderDetailTrend(host, history){
     if (!host) return;
     host.replaceChildren();
-    const validItems = (Array.isArray(items) ? items : []).filter((item) => {
+    const normalized = normalizeClickHistoryPayload(history);
+    const validItems = normalized.events.filter((item) => {
       return Number.isFinite(new Date(String(item?.clickedAt || '')).getTime());
     });
     if (!validItems.length) {
       const empty = document.createElement('p');
       empty.className = 'shortlinks-detail-chart-empty';
-      empty.textContent = 'No recorded click events yet.';
+      empty.textContent = getHistoricalBaselineCopy(normalized) || 'No detailed click events yet.';
       host.appendChild(empty);
       return;
     }
@@ -1261,7 +1312,7 @@
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', `Recorded clicks over the last 14 days. ${recentTotal} event${recentTotal === 1 ? '' : 's'} shown from the latest 100 events.`);
+    svg.setAttribute('aria-label', `Recorded clicks over the last 14 days. ${recentTotal} detailed event${recentTotal === 1 ? '' : 's'} shown.`);
     [padding, height / 2, baseline].forEach((y) => {
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', String(padding));
@@ -1282,17 +1333,18 @@
     host.appendChild(svg);
   }
 
-  function renderDetailActivity(host, items){
+  function renderDetailActivity(host, history){
     if (!host) return;
     host.replaceChildren();
-    const recent = (Array.isArray(items) ? items : [])
+    const normalized = normalizeClickHistoryPayload(history);
+    const recent = normalized.events
       .slice()
       .sort((a, b) => new Date(String(b?.clickedAt || '')).getTime() - new Date(String(a?.clickedAt || '')).getTime())
       .slice(0, 5);
     if (!recent.length) {
       const empty = document.createElement('p');
       empty.className = 'shortlinks-detail-activity-empty';
-      empty.textContent = 'No recent activity to show.';
+      empty.textContent = getHistoricalBaselineCopy(normalized) || 'No detailed click activity to show.';
       host.appendChild(empty);
       return;
     }
@@ -1326,15 +1378,15 @@
     const cleanSlug = normalizeSlugInput(slug);
     if (!cleanSlug) return;
     try {
-      let events = detailInsightsCache.get(cleanSlug);
-      if (!Array.isArray(events)) {
+      let history = detailInsightsCache.get(cleanSlug);
+      if (!history || !Array.isArray(history.events)) {
         const data = await api(`/api/short-links/clicks/${encodeURIComponent(cleanSlug)}?limit=100`, { method: 'GET' });
-        events = Array.isArray(data?.clicks) ? data.clicks : [];
-        detailInsightsCache.set(cleanSlug, events);
+        history = normalizeClickHistoryPayload(data);
+        detailInsightsCache.set(cleanSlug, history);
       }
       if (requestId !== detailInsightsRequestId || normalizeSlugInput(activeDetailSlug) !== cleanSlug) return;
-      renderDetailTrend(chartHost, events);
-      renderDetailActivity(activityHost, events);
+      renderDetailTrend(chartHost, history);
+      renderDetailActivity(activityHost, history);
     } catch (err) {
       if (requestId !== detailInsightsRequestId || normalizeSlugInput(activeDetailSlug) !== cleanSlug) return;
       [chartHost, activityHost].forEach((host) => {
@@ -1510,7 +1562,7 @@
     const totalValue = document.createElement('strong');
     totalValue.textContent = formatCount(link.clicks);
     const totalMeta = document.createElement('span');
-    totalMeta.textContent = 'All time';
+    totalMeta.textContent = 'All-time aggregate';
     totalCard.appendChild(totalTitle);
     totalCard.appendChild(totalValue);
     totalCard.appendChild(totalMeta);
@@ -2838,14 +2890,43 @@
     return { browser, os };
   }
 
-  function renderClickHistory(items){
+  function renderClickHistory(history){
     if (!clicksListEl) return;
     clicksListEl.replaceChildren();
+    const normalized = normalizeClickHistoryPayload(history);
+    const items = normalized.events;
+    const historicalClicks = normalized.summary.historicalClicks;
 
-    if (!Array.isArray(items) || items.length === 0) {
+    if (normalized.summary.baselineAvailable && historicalClicks !== null && historicalClicks > 0) {
+      const baselineCard = document.createElement('article');
+      baselineCard.className = 'shortlinks-click';
+      const top = document.createElement('div');
+      top.className = 'shortlinks-click-top';
+      const title = document.createElement('strong');
+      title.className = 'shortlinks-click-when';
+      title.textContent = 'Historical baseline';
+      const pills = document.createElement('div');
+      pills.className = 'shortlinks-click-pills';
+      const countPill = document.createElement('span');
+      countPill.className = 'tool-pill shortlinks-click-pill-muted';
+      countPill.textContent = `${formatCount(historicalClicks)} click${historicalClicks === 1 ? '' : 's'}`;
+      pills.appendChild(countPill);
+      top.appendChild(title);
+      top.appendChild(pills);
+      const explanation = document.createElement('p');
+      explanation.className = 'shortlinks-clicks-meta';
+      explanation.textContent = 'This is an aggregate carried forward from before detailed per-visit logging. It is not an individual visit.';
+      baselineCard.appendChild(top);
+      baselineCard.appendChild(explanation);
+      clicksListEl.appendChild(baselineCard);
+    }
+
+    if (items.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'shortlinks-clicks-empty';
-      empty.textContent = 'No click events found (history starts after click logging was enabled).';
+      empty.textContent = normalized.summary.baselineAvailable
+        ? 'No detailed click events have been recorded since the historical baseline was reconciled.'
+        : 'No detailed click events found. Detailed history begins when event logging is enabled.';
       clicksListEl.appendChild(empty);
       return;
     }
@@ -2965,11 +3046,33 @@
 
     try {
       const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${CLICK_HISTORY_LIMIT}`, { method: 'GET' });
-      const events = Array.isArray(data.clicks) ? data.clicks : [];
-      renderClickHistory(events);
-      const countLabel = events.length === 1 ? 'event' : 'events';
-      if (clicksMetaEl) clicksMetaEl.textContent = `Showing ${events.length} ${countLabel}.`;
-      setStatus(clicksStatusEl, events.length ? '' : 'No events yet.', events.length ? 'success' : 'success');
+      const history = normalizeClickHistoryPayload(data);
+      const events = history.events;
+      renderClickHistory(history);
+      const bits = [];
+      const recordedTotal = history.summary.recordedEventCount;
+      const countLabel = events.length === 1 ? 'detailed event' : 'detailed events';
+      bits.push(`Showing ${formatCount(events.length)} ${countLabel}${recordedTotal !== null && recordedTotal > events.length ? ` of ${formatCount(recordedTotal)}` : ''}.`);
+      const baselineCopy = getHistoricalBaselineCopy(history);
+      if (baselineCopy) bits.push(baselineCopy);
+      if (history.summary.aggregateClicks !== null) {
+        bits.push(`${formatCount(history.summary.aggregateClicks)} all-time aggregate click${history.summary.aggregateClicks === 1 ? '' : 's'}.`);
+      }
+      bits.push(
+        clickRetentionDurable
+          ? 'Detailed click events are retained indefinitely; automatic expiration is disabled.'
+          : 'Retention target: indefinite. System health will warn until automatic expiration is disabled.'
+      );
+      if (clicksMetaEl) clicksMetaEl.textContent = bits.join(' ');
+      if (events.length) {
+        setStatus(clicksStatusEl, '');
+      } else {
+        setStatus(
+          clicksStatusEl,
+          baselineCopy ? 'Historical total preserved; no detailed events yet.' : 'No detailed events yet.',
+          'success'
+        );
+      }
     } catch (err) {
       if (clicksListEl) clicksListEl.replaceChildren();
       setStatus(clicksStatusEl, err.message, 'error');
@@ -3320,13 +3423,14 @@
 	        bits.push(`Click log${clicksName ? `: ${clicksName}` : ''}${clicksStatus ? ` (${clicksStatus})` : ''}.`);
 	        const retention = clicks.retention && typeof clicks.retention === 'object' ? clicks.retention : null;
 	        if (retention) {
-	          const days = Number.isFinite(Number(retention.days)) ? Number(retention.days) : 0;
 	          const ttlStatus = String(retention.ttlStatus || '').trim();
 	          const ttlAttribute = String(retention.configuredAttribute || retention.ttlAttribute || '').trim();
-	          if (retention.ttlConfigured) {
-	            bits.push(`Click retention: ${days || 90} days (TTL enabled${ttlAttribute ? ` on ${ttlAttribute}` : ''}).`);
+	          if (retention.durable === true && retention.mode === 'indefinite') {
+	            bits.push('Click retention: indefinite (automatic expiration disabled).');
+	          } else if (retention.ttlEnabled) {
+	            bits.push(`Click retention degraded: TTL is ${ttlStatus || 'enabled'}${ttlAttribute ? ` on ${ttlAttribute}` : ''}, so detailed events can still expire.`);
 	          } else {
-	            bits.push(`Click retention target: ${days || 90} days; TTL is not enforced${ttlStatus ? ` (${ttlStatus})` : ''}.`);
+	            bits.push(`Click retention target: indefinite; durability is not verified${ttlStatus ? ` (TTL ${ttlStatus})` : ''}.`);
 	          }
 	        }
 	        if (clicks.error && (clicks.error.name || clicks.error.message)) {
@@ -3355,6 +3459,16 @@
     const base = payload.error ? String(payload.error) : 'Backend check failed';
     const extra = [name, message].filter(Boolean).join(': ');
     return (extra ? `${base} (${extra})` : base) + debug;
+  }
+
+  function isHealthPayloadDegraded(payload){
+    if (!payload || typeof payload !== 'object') return true;
+    if (payload.degraded === true) return true;
+    const clicks = payload.clicks && typeof payload.clicks === 'object' ? payload.clicks : null;
+    if (!clicks || !clicks.configured || clicks.ok === false || clicks.degraded === true) return true;
+    if (clicks.error || clicks.ttlError) return true;
+    const retention = clicks.retention && typeof clicks.retention === 'object' ? clicks.retention : null;
+    return !retention || retention.mode !== 'indefinite' || retention.durable !== true || retention.ttlEnabled === true;
   }
 
   function healthHints(payload){
@@ -4118,7 +4232,8 @@
       detailInsightsCache.clear();
       pruneSelectedSlugs();
       applyFilterAndRender();
-      setSystemHealth('System healthy', 'All services operational', 'success');
+      setSystemHealth('Links loaded', 'Primary table available', '');
+      void refreshHealth();
       void refreshProjectsSection({ ensureMissing: true });
       setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
       markSessionDirty();
@@ -4141,21 +4256,38 @@
   }
 
   async function refreshHealth(){
+    clickRetentionDurable = false;
     setSystemHealth('Checking system', 'Running backend health check', '');
     setStatus(healthStatusEl, 'Checking backend…');
     try {
       const result = await apiInspect('/api/short-links/health');
       const payload = result.data || {};
+      const retention = payload?.clicks?.retention;
+      clickRetentionDurable = Boolean(
+        payload.ok === true &&
+        retention &&
+        retention.mode === 'indefinite' &&
+        retention.durable === true &&
+        retention.ttlDisabled === true
+      );
       const msg = formatHealthPayload(payload) || `Backend check failed (${result.status})`;
       if (payload.ok === true) {
+        if (isHealthPayloadDegraded(payload)) {
+          const reasons = Array.isArray(payload.degradedReasons) ? payload.degradedReasons.filter(Boolean) : [];
+          const summary = reasons[0] || 'Click history needs attention';
+          setStatus(healthStatusEl, msg, 'warning');
+          setSystemHealth('System degraded', summary, 'warning');
+          return;
+        }
         setStatus(healthStatusEl, msg, 'success');
-        setSystemHealth('System healthy', 'All services operational', 'success');
+        setSystemHealth('System healthy', 'Links and durable click history available', 'success');
         return;
       }
       const hint = healthHints(payload);
       setStatus(healthStatusEl, hint ? `${msg} ${hint}` : msg, 'error');
       setSystemHealth('System issue', hint || msg, 'error');
     } catch (err) {
+      clickRetentionDurable = false;
       setStatus(healthStatusEl, err.message || 'Backend check failed.', 'error');
       setSystemHealth('System issue', err.message || 'Backend check failed', 'error');
     }

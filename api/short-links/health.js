@@ -11,7 +11,6 @@ const {
   DescribeTimeToLiveCommand
 } = require('@aws-sdk/client-dynamodb');
 const {
-  CLICK_RETENTION_DAYS,
   CLICK_TTL_ATTRIBUTE,
   getAwsCredentialConfig,
   getAwsCredentialEnvInfo,
@@ -118,10 +117,39 @@ module.exports = async (req, res) => {
 
     const ttlStatus = clicksTtl && clicksTtl.TimeToLiveStatus ? clicksTtl.TimeToLiveStatus : '';
     const ttlAttribute = clicksTtl && clicksTtl.AttributeName ? clicksTtl.AttributeName : '';
-    const ttlConfigured = ttlStatus === 'ENABLED' && ttlAttribute === CLICK_TTL_ATTRIBUTE;
+    const ttlEnabled = ['ENABLED', 'ENABLING', 'DISABLING'].includes(ttlStatus);
+    const ttlDisabled = ttlStatus === 'DISABLED';
+    const clicksTableAvailable = Boolean(clicksTable && clicksTable.TableName);
+    const clicksTableActive = clicksTableAvailable && clicksTable.TableStatus === 'ACTIVE';
+    const clicksHealthy = Boolean(
+      clicksTableName &&
+      clicksTableActive &&
+      !clicksError &&
+      !clicksTtlError &&
+      ttlDisabled
+    );
+    const degradedReasons = [];
+    if (!clicksTableName) degradedReasons.push('Click-event table is not configured.');
+    else if (!clicksTableAvailable) degradedReasons.push('Click-event table is unavailable.');
+    else if (!clicksTableActive) degradedReasons.push(`Click-event table status is ${clicksTable.TableStatus || 'unknown'}.`);
+    if (clicksError) degradedReasons.push('Click-event table check failed.');
+    if (clicksTtlError) degradedReasons.push('Click-event retention check failed.');
+    if (clicksTableName && !clicksTtlError && !ttlStatus) {
+      degradedReasons.push('Click-event TTL status is unavailable.');
+    }
+    if (ttlEnabled) {
+      degradedReasons.push(
+        ttlStatus === 'DISABLING'
+          ? 'Click-event TTL is still disabling; events can continue to expire until DynamoDB reports DISABLED.'
+          : `Click-event TTL is ${ttlStatus.toLowerCase()}; detailed events are not yet retained indefinitely.`
+      );
+    }
 
     sendJson(res, 200, {
       ok: true,
+      degraded: !clicksHealthy,
+      status: clicksHealthy ? 'healthy' : 'degraded',
+      degradedReasons,
       aws: {
         region: env.region,
         ...creds
@@ -132,16 +160,23 @@ module.exports = async (req, res) => {
         billingMode: table && table.BillingModeSummary ? table.BillingModeSummary.BillingMode : ''
       },
       clicks: {
+        ok: clicksHealthy,
+        degraded: !clicksHealthy,
         configured: !!clicksTableName,
         retention: {
-          days: CLICK_RETENTION_DAYS,
+          mode: 'indefinite',
+          days: null,
+          durable: clicksHealthy,
           ttlAttribute: CLICK_TTL_ATTRIBUTE,
-          ttlConfigured,
+          ttlEnabled,
+          ttlDisabled,
           ttlStatus,
           configuredAttribute: ttlAttribute,
-          note: ttlConfigured
-            ? `Click events expire after ${CLICK_RETENTION_DAYS} days.`
-            : `Enable DynamoDB TTL on ${CLICK_TTL_ATTRIBUTE} to enforce ${CLICK_RETENTION_DAYS}-day retention.`
+          note: clicksHealthy
+            ? 'Detailed click events are retained indefinitely; automatic expiration is disabled.'
+            : (ttlEnabled
+                ? `Disable DynamoDB TTL${ttlAttribute ? ` on ${ttlAttribute}` : ''} to retain detailed click events indefinitely.`
+                : 'Indefinite retention cannot be verified until the click-event table and its TTL status are available.')
         },
         table: clicksTableName ? {
           name: clicksTable && clicksTable.TableName ? clicksTable.TableName : clicksTableName,
