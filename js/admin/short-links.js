@@ -9,6 +9,7 @@
   const DEFAULT_BASE_PATH = 'go';
   const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
   const TABLE_LAYOUT_MEDIA_QUERY = '(min-width: 900px)';
+  const MASTER_DETAIL_MEDIA_QUERY = '(min-width: 1240px)';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
@@ -27,6 +28,12 @@
   const adminProjectSummaryEl = document.querySelector('[data-shortlinks="admin-project-summary"]');
   const adminExportSummaryEl = document.querySelector('[data-shortlinks="admin-export-summary"]');
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
+  const systemHealthStatusEl = document.querySelector('[data-shortlinks="system-health-status"]');
+  const systemHealthSummaryEl = document.querySelector('[data-shortlinks="system-health-summary"]');
+  const systemHealthMetaEl = document.querySelector('[data-shortlinks="system-health-meta"]');
+  const projectSyncShortcutButton = document.querySelector('[data-shortlinks="project-sync-shortcut"]');
+  const exportShortcutButton = document.querySelector('[data-shortlinks="export-shortcut"]');
+  const adminToolsEl = document.querySelector('[data-shortlinks="admin-tools"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
   const statusFilterSelect = document.querySelector('[data-shortlinks="status-filter"]');
   const sortSelect = document.querySelector('[data-shortlinks="sort"]');
@@ -50,6 +57,8 @@
   const summaryEl = document.querySelector('[data-shortlinks="summary"]');
   const modeTabEls = Array.from(document.querySelectorAll('[data-shortlinks="mode-tab"]'));
   const modePanelEls = Array.from(document.querySelectorAll('[data-shortlinks-mode-panel]'));
+  const editorPanelEl = document.querySelector('[data-shortlinks-mode-panel="single"]');
+  const editorCloseButton = document.querySelector('[data-shortlinks="editor-close"]');
   const modeSummaryEl = document.querySelector('[data-shortlinks="mode-summary"]');
 
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
@@ -242,6 +251,7 @@
   let projectCatalog = [];
   let ensuringProjectLinks = false;
   let accessCardAttentionTimer = 0;
+  let editorPreviousFocus = null;
 
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
@@ -252,6 +262,10 @@
   let linkHealth = new Map();
   let memorySavedViews = [];
   let activeDetailSlug = '';
+  let detailInsightsRequestId = 0;
+  let detailSelectionDismissed = false;
+  let lastAnnouncedDetailSlug = '';
+  const detailInsightsCache = new Map();
   let projectHealth = { total: 0, missing: 0, mismatched: 0, checked: false };
   let allSets = [];
   let activeSetId = '';
@@ -269,6 +283,15 @@
     el.textContent = String(message || '');
     if (tone) el.dataset.tone = tone;
     else delete el.dataset.tone;
+  }
+
+  function setSystemHealth(summary, meta, tone){
+    if (systemHealthSummaryEl) systemHealthSummaryEl.textContent = String(summary || 'System status');
+    if (systemHealthMetaEl) systemHealthMetaEl.textContent = String(meta || 'Waiting for access');
+    if (systemHealthStatusEl) {
+      if (tone) systemHealthStatusEl.dataset.tone = tone;
+      else delete systemHealthStatusEl.dataset.tone;
+    }
   }
 
   function canCompareProjectLinks(){
@@ -298,12 +321,38 @@
     return modePanelEls.find((panel) => String(panel?.dataset?.shortlinksModePanel || '').trim().toLowerCase() === target) || null;
   }
 
+  function closeEditorOverlay(options = {}){
+    if (!editorPanelEl) return;
+    editorPanelEl.hidden = true;
+    editorPanelEl.classList.remove('is-active');
+    document.body.classList.remove('shortlinks-editor-open');
+    const returnFocus = editorPreviousFocus;
+    editorPreviousFocus = null;
+    if (options.restoreFocus && returnFocus && returnFocus.isConnected && typeof returnFocus.focus === 'function') {
+      returnFocus.focus();
+    }
+  }
+
+  function openEditorOverlay(){
+    if (!editorPanelEl) return;
+    if (editorPanelEl.hidden) editorPreviousFocus = document.activeElement;
+    editorPanelEl.hidden = false;
+    editorPanelEl.classList.add('is-active');
+    document.body.classList.add('shortlinks-editor-open');
+  }
+
   function setActiveMode(mode, options = {}){
-    const fallbackMode = modePanelEls[0]
-      ? String(modePanelEls[0].dataset.shortlinksModePanel || 'single')
-      : 'single';
+    const requestedMode = String(mode || '').trim().toLowerCase();
+    if (requestedMode === 'single') {
+      openEditorOverlay();
+      if (modeSummaryEl) modeSummaryEl.textContent = 'Single link';
+      return;
+    }
+
+    closeEditorOverlay({ restoreFocus: false });
+    const fallbackMode = getModePanel('links') ? 'links' : String(modeTabEls[0]?.dataset?.shortlinksMode || 'links');
     const nextMode = getModePanel(mode)
-      ? String(mode || '').trim().toLowerCase()
+      ? requestedMode
       : fallbackMode;
 
     modeTabEls.forEach((tab) => {
@@ -314,12 +363,14 @@
     });
 
     modePanelEls.forEach((panel) => {
-      const isActive = String(panel?.dataset?.shortlinksModePanel || '').trim().toLowerCase() === nextMode;
+      const panelMode = String(panel?.dataset?.shortlinksModePanel || '').trim().toLowerCase();
+      const isActive = panelMode !== 'single' && panelMode === nextMode;
       panel.classList.toggle('is-active', isActive);
       panel.hidden = !isActive;
     });
 
     const activeTab = modeTabEls.find((tab) => String(tab?.dataset?.shortlinksMode || '').trim().toLowerCase() === nextMode);
+    if (!activeTab && modeTabEls[0]) modeTabEls[0].tabIndex = 0;
     if (modeSummaryEl) {
       modeSummaryEl.textContent = activeTab?.textContent?.trim() || 'Single link';
     }
@@ -338,6 +389,7 @@
     }
 
     accessCard.classList.add('is-attention');
+    if ('open' in accessCard) accessCard.open = true;
     window.clearTimeout(accessCardAttentionTimer);
     accessCardAttentionTimer = window.setTimeout(() => {
       accessCard.classList.remove('is-attention');
@@ -368,10 +420,18 @@
   const tableLayoutQuery = typeof window.matchMedia === 'function'
     ? window.matchMedia(TABLE_LAYOUT_MEDIA_QUERY)
     : null;
+  const masterDetailQuery = typeof window.matchMedia === 'function'
+    ? window.matchMedia(MASTER_DETAIL_MEDIA_QUERY)
+    : null;
 
   function prefersTableLayout(){
     if (tableLayoutQuery) return !!tableLayoutQuery.matches;
     return typeof window.innerWidth === 'number' ? window.innerWidth >= 900 : true;
+  }
+
+  function prefersMasterDetailLayout(){
+    if (masterDetailQuery) return !!masterDetailQuery.matches;
+    return typeof window.innerWidth === 'number' ? window.innerWidth >= 1240 : true;
   }
 
   function getSavedToken(){
@@ -420,18 +480,18 @@
 
   function getSavedMode(){
     const mode = sessionTokenStorage ? String(sessionTokenStorage.getItem(MODE_STORAGE_KEY) || '').trim().toLowerCase() : '';
-    return getModePanel(mode) ? mode : '';
+    return mode !== 'single' && getModePanel(mode) ? mode : '';
   }
 
   function saveActiveMode(mode){
     if (!sessionTokenStorage) return;
     const clean = String(mode || '').trim().toLowerCase();
-    if (!getModePanel(clean)) return;
+    if (clean === 'single' || !getModePanel(clean)) return;
     sessionTokenStorage.setItem(MODE_STORAGE_KEY, clean);
   }
 
   function getInitialMode(){
-    return getSavedMode() || (getSavedToken() ? 'links' : 'single');
+    return getSavedMode() || 'links';
   }
 
   function getSavedViews(){
@@ -539,12 +599,18 @@
   }
 
   function updateAccessMeta(){
+    const hasToken = !!getSavedToken();
     if (accessMetaEl) {
-      accessMetaEl.textContent = getSavedToken()
-        ? (isTokenRemembered() ? 'Token remembered' : 'Token stored for session')
+      accessMetaEl.textContent = hasToken
+        ? (isTokenRemembered() ? 'Token valid · remembered' : 'Token valid')
         : 'Token required';
     }
     if (rememberTokenInput) rememberTokenInput.checked = isTokenRemembered();
+    if (accessCard && 'open' in accessCard) {
+      accessCard.dataset.tone = hasToken ? 'success' : 'warning';
+      accessCard.open = false;
+    }
+    if (!hasToken) setSystemHealth('System status', 'Waiting for access', 'warning');
     updateAdminSummary();
   }
 
@@ -632,7 +698,7 @@
       return { key: 'expiring-soon', label: 'Expires soon', tone: 'warning', note: `Expires in ${formatCountdown(getLinkExpiresMs(link))}` };
     }
 
-    return { key: 'unchecked', label: 'Unchecked', tone: '', note: 'Not tested this session' };
+    return { key: 'active', label: 'Active', tone: 'success', note: 'Not tested this session' };
   }
 
   function getLinkHealthClass(health){
@@ -1101,64 +1167,400 @@
     return wrap;
   }
 
+  function syncActiveDetailRows(){
+    const activeSlug = normalizeSlugInput(activeDetailSlug);
+    document.querySelectorAll('[data-shortlinks-link-slug]').forEach((item) => {
+      const itemSlug = normalizeSlugInput(item.dataset.shortlinksLinkSlug);
+      const isActive = !!activeSlug && itemSlug === activeSlug;
+      item.classList.toggle('is-active', isActive);
+      const trigger = item.querySelector('[data-shortlinks="detail-trigger"]');
+      if (trigger) trigger.setAttribute('aria-current', isActive ? 'true' : 'false');
+    });
+  }
+
+  function getDetailTriggerForSlug(slug){
+    const targetSlug = normalizeSlugInput(slug);
+    return Array.from(listEl.querySelectorAll('[data-shortlinks="detail-trigger"]')).find((trigger) => {
+      const item = trigger.closest('[data-shortlinks-link-slug]');
+      return normalizeSlugInput(item?.dataset?.shortlinksLinkSlug) === targetSlug;
+    }) || null;
+  }
+
+  function focusDetailAction(action){
+    const control = detailPanelEl?.querySelector(`[data-shortlinks-detail-action="${String(action || '')}"]`);
+    if (control && typeof control.focus === 'function') control.focus();
+  }
+
+  function formatRelativeClickTime(value){
+    const timestamp = new Date(String(value || '')).getTime();
+    if (!Number.isFinite(timestamp)) return formatTimestamp(value) || 'Unknown time';
+    const delta = Math.max(0, Date.now() - timestamp);
+    const minutes = Math.max(1, Math.round(delta / 60000));
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours} hr ago`;
+    const days = Math.round(hours / 24);
+    if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
+    return formatTimestamp(value) || 'Unknown time';
+  }
+
+  function getDetailTrendSeries(items, dayCount = 14){
+    const days = Math.max(2, Number(dayCount) || 14);
+    const now = new Date();
+    const endUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const startUtc = endUtc - ((days - 1) * 86400000);
+    const counts = Array.from({ length: days }, () => 0);
+    (Array.isArray(items) ? items : []).forEach((item) => {
+      const clickedAt = new Date(String(item?.clickedAt || '')).getTime();
+      if (!Number.isFinite(clickedAt)) return;
+      const clicked = new Date(clickedAt);
+      const clickedUtc = Date.UTC(clicked.getUTCFullYear(), clicked.getUTCMonth(), clicked.getUTCDate());
+      const index = Math.floor((clickedUtc - startUtc) / 86400000);
+      if (index >= 0 && index < counts.length) counts[index] += 1;
+    });
+    return counts;
+  }
+
+  function renderDetailTrend(host, items){
+    if (!host) return;
+    host.replaceChildren();
+    const validItems = (Array.isArray(items) ? items : []).filter((item) => {
+      return Number.isFinite(new Date(String(item?.clickedAt || '')).getTime());
+    });
+    if (!validItems.length) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-detail-chart-empty';
+      empty.textContent = 'No recorded click events yet.';
+      host.appendChild(empty);
+      return;
+    }
+
+    const counts = getDetailTrendSeries(validItems, 14);
+    const recentTotal = counts.reduce((total, count) => total + count, 0);
+    if (!recentTotal) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-detail-chart-empty';
+      empty.textContent = 'No recorded click events in the last 14 days.';
+      host.appendChild(empty);
+      return;
+    }
+    const width = 520;
+    const height = 126;
+    const padding = 10;
+    const baseline = height - padding;
+    const max = Math.max(1, ...counts);
+    const points = counts.map((count, index) => {
+      const x = padding + (index * ((width - (padding * 2)) / (counts.length - 1)));
+      const y = baseline - ((count / max) * (height - (padding * 2)));
+      return { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) };
+    });
+    const linePoints = points.map(point => `${point.x},${point.y}`).join(' ');
+    const areaPoints = points.map(point => `${point.x} ${point.y}`).join(' L ');
+    const areaPath = `M ${points[0].x} ${baseline} L ${areaPoints} L ${points[points.length - 1].x} ${baseline} Z`;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', `Recorded clicks over the last 14 days. ${recentTotal} event${recentTotal === 1 ? '' : 's'} shown from the latest 100 events.`);
+    [padding, height / 2, baseline].forEach((y) => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(padding));
+      line.setAttribute('x2', String(width - padding));
+      line.setAttribute('y1', String(y));
+      line.setAttribute('y2', String(y));
+      line.setAttribute('class', 'shortlinks-detail-chart-grid');
+      svg.appendChild(line);
+    });
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    area.setAttribute('d', areaPath);
+    area.setAttribute('class', 'shortlinks-detail-chart-area');
+    svg.appendChild(area);
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.setAttribute('points', linePoints);
+    polyline.setAttribute('class', 'shortlinks-detail-chart-line');
+    svg.appendChild(polyline);
+    host.appendChild(svg);
+  }
+
+  function renderDetailActivity(host, items){
+    if (!host) return;
+    host.replaceChildren();
+    const recent = (Array.isArray(items) ? items : [])
+      .slice()
+      .sort((a, b) => new Date(String(b?.clickedAt || '')).getTime() - new Date(String(a?.clickedAt || '')).getTime())
+      .slice(0, 5);
+    if (!recent.length) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-detail-activity-empty';
+      empty.textContent = 'No recent activity to show.';
+      host.appendChild(empty);
+      return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'shortlinks-detail-activity-list';
+    recent.forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'shortlinks-detail-activity-row';
+      const dot = document.createElement('span');
+      dot.className = 'shortlinks-detail-activity-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      const copy = document.createElement('span');
+      const when = document.createElement('strong');
+      when.textContent = formatRelativeClickTime(item?.clickedAt);
+      const browser = summarizeUserAgent(getClickString(item, 'userAgent')).browser;
+      const source = getClickString(item, 'refererHost') || browser || 'Direct visit';
+      const location = formatClickLocation(item);
+      const meta = document.createElement('span');
+      meta.textContent = location ? `${source} · ${location}` : source;
+      copy.appendChild(when);
+      copy.appendChild(meta);
+      row.appendChild(dot);
+      row.appendChild(copy);
+      list.appendChild(row);
+    });
+    host.appendChild(list);
+  }
+
+  async function loadDetailInsights(slug, chartHost, activityHost, requestId){
+    const cleanSlug = normalizeSlugInput(slug);
+    if (!cleanSlug) return;
+    try {
+      let events = detailInsightsCache.get(cleanSlug);
+      if (!Array.isArray(events)) {
+        const data = await api(`/api/short-links/clicks/${encodeURIComponent(cleanSlug)}?limit=100`, { method: 'GET' });
+        events = Array.isArray(data?.clicks) ? data.clicks : [];
+        detailInsightsCache.set(cleanSlug, events);
+      }
+      if (requestId !== detailInsightsRequestId || normalizeSlugInput(activeDetailSlug) !== cleanSlug) return;
+      renderDetailTrend(chartHost, events);
+      renderDetailActivity(activityHost, events);
+    } catch (err) {
+      if (requestId !== detailInsightsRequestId || normalizeSlugInput(activeDetailSlug) !== cleanSlug) return;
+      [chartHost, activityHost].forEach((host) => {
+        if (!host) return;
+        host.replaceChildren();
+        const message = document.createElement('p');
+        message.className = 'shortlinks-detail-activity-empty';
+        message.textContent = err?.message || 'Click history is unavailable.';
+        host.appendChild(message);
+      });
+    }
+  }
+
   function renderDetailPanel(link){
     if (!detailPanelEl) return;
     detailPanelEl.replaceChildren();
+    detailPanelEl.hidden = false;
+    detailInsightsRequestId += 1;
+
     if (!link) {
-      detailPanelEl.hidden = true;
       activeDetailSlug = '';
+      lastAnnouncedDetailSlug = '';
+      const empty = document.createElement('div');
+      empty.className = 'shortlinks-detail-empty';
+      const title = document.createElement('h3');
+      title.textContent = 'Select a link';
+      const copy = document.createElement('p');
+      copy.textContent = 'Choose a redirect from the list to inspect its destination, health, clicks, and actions.';
+      empty.appendChild(title);
+      empty.appendChild(copy);
+      detailPanelEl.appendChild(empty);
+      syncActiveDetailRows();
       return;
     }
 
     activeDetailSlug = normalizeSlugInput(link.slug);
-    detailPanelEl.hidden = false;
+    const requestId = detailInsightsRequestId;
     const shortUrl = buildShortUrl(link.slug);
     const destinationUrl = formatAbsoluteUrl(link.destination);
-    const health = getLinkHealth(link);
     const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
-    const stored = getStoredHealth(link.slug);
+
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'shortlinks-detail-back';
+    back.textContent = '← Back to all links';
+    back.addEventListener('click', () => {
+      const returnTrigger = getDetailTriggerForSlug(link.slug);
+      detailSelectionDismissed = true;
+      renderDetailPanel(null);
+      if (returnTrigger && returnTrigger.isConnected && typeof returnTrigger.focus === 'function') returnTrigger.focus();
+    });
+    detailPanelEl.appendChild(back);
 
     const head = document.createElement('div');
     head.className = 'shortlinks-detail-head';
-    const copy = document.createElement('div');
-    copy.className = 'shortlinks-card-copy';
-    const kicker = document.createElement('p');
-    kicker.className = 'shortlinks-kicker';
-    kicker.textContent = 'Link detail';
+    const titleRow = document.createElement('div');
+    titleRow.className = 'shortlinks-detail-title-row';
     const title = document.createElement('h3');
-    title.className = 'shortlinks-output-title';
     title.textContent = buildPublicPath(link.slug);
-    copy.appendChild(kicker);
-    copy.appendChild(title);
-    head.appendChild(copy);
-    const close = document.createElement('button');
-    close.type = 'button';
-    close.className = 'btn-ghost shortlinks-detail-close';
-    close.textContent = 'Close';
-    close.addEventListener('click', () => renderDetailPanel(null));
-    head.appendChild(close);
+    titleRow.appendChild(title);
+    titleRow.appendChild(makeHealthPill(link));
+    head.appendChild(titleRow);
+
+    const actions = document.createElement('div');
+    actions.className = 'shortlinks-detail-actions shortlinks-action-row shortlinks-action-row-compact';
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'btn-secondary';
+    editButton.dataset.shortlinksDetailAction = 'edit';
+    editButton.textContent = 'Edit';
+    editButton.addEventListener('click', () => {
+      openEditorForLink({
+        slug: link.slug,
+        destination: link.destination,
+        disabled: !!link.disabled,
+        expiresAt
+      });
+    });
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.className = 'btn-secondary';
+    copyButton.dataset.shortlinksDetailAction = 'copy';
+    copyButton.textContent = 'Copy';
+    copyButton.addEventListener('click', async () => {
+      await copyTextToClipboard({
+        text: shortUrl,
+        button: copyButton,
+        statusTarget: listStatusEl,
+        successMessage: `Copied: ${shortUrl}`
+      });
+    });
+    const testButton = document.createElement('button');
+    testButton.type = 'button';
+    testButton.className = 'btn-secondary';
+    testButton.dataset.shortlinksDetailAction = 'test';
+    testButton.textContent = 'Test';
+    testButton.addEventListener('click', async () => {
+      await testRedirect(link.slug, testButton);
+      focusDetailAction('test');
+    });
+    const toggleButton = document.createElement('button');
+    toggleButton.type = 'button';
+    toggleButton.className = link.disabled ? 'btn-secondary' : 'btn-ghost';
+    toggleButton.dataset.shortlinksDetailAction = 'toggle';
+    toggleButton.textContent = link.disabled ? 'Enable' : 'Disable';
+    toggleButton.addEventListener('click', async () => {
+      await setLinkDisabled(link, !link.disabled, listStatusEl);
+      focusDetailAction('toggle');
+    });
+    actions.appendChild(editButton);
+    actions.appendChild(copyButton);
+    actions.appendChild(testButton);
+    actions.appendChild(toggleButton);
+    const detailMenu = buildActionMenu([
+      { label: 'Open short link', href: shortUrl },
+      { label: 'Open destination', href: destinationUrl },
+      { label: 'View click history', onSelect: async () => openClicksModal(link.slug) },
+      { label: 'Delete link', danger: true, onSelect: async () => deleteLinkEntry(link, listStatusEl) }
+    ], {
+      label: 'More',
+      ariaLabel: `${buildPublicPath(link.slug)} more actions`
+    });
+    if (detailMenu) actions.appendChild(detailMenu);
+    head.appendChild(actions);
     detailPanelEl.appendChild(head);
 
-    const status = document.createElement('div');
-    status.className = 'shortlinks-detail-status';
-    status.appendChild(makeHealthPill(link));
-    const statusNote = document.createElement('span');
-    statusNote.textContent = stored?.checkedAt
-      ? `${health.note || health.label} · checked ${formatTimestamp(stored.checkedAt)}`
-      : (health.note || 'Not tested this session');
-    status.appendChild(statusNote);
-    detailPanelEl.appendChild(status);
+    const shortBlock = document.createElement('div');
+    shortBlock.className = 'shortlinks-detail-link-block';
+    const shortLabel = document.createElement('span');
+    shortLabel.textContent = 'Short URL';
+    const shortRow = document.createElement('div');
+    shortRow.className = 'shortlinks-detail-url-row';
+    const shortCode = document.createElement('code');
+    shortCode.textContent = shortUrl;
+    const inlineCopy = document.createElement('button');
+    inlineCopy.type = 'button';
+    inlineCopy.className = 'shortlinks-detail-copy-button';
+    inlineCopy.textContent = 'Copy';
+    inlineCopy.addEventListener('click', async () => {
+      await copyTextToClipboard({
+        text: shortUrl,
+        button: inlineCopy,
+        statusTarget: listStatusEl,
+        successMessage: `Copied: ${shortUrl}`
+      });
+    });
+    shortRow.appendChild(shortCode);
+    shortRow.appendChild(inlineCopy);
+    shortBlock.appendChild(shortLabel);
+    shortBlock.appendChild(shortRow);
+    detailPanelEl.appendChild(shortBlock);
 
+    const destinationBlock = document.createElement('div');
+    destinationBlock.className = 'shortlinks-detail-link-block';
+    const destinationLabel = document.createElement('span');
+    destinationLabel.textContent = 'Destination';
+    const destination = document.createElement('a');
+    destination.className = 'shortlinks-detail-destination';
+    destination.href = destinationUrl;
+    destination.target = '_blank';
+    destination.rel = 'noopener noreferrer';
+    destination.textContent = destinationUrl;
+    destinationBlock.appendChild(destinationLabel);
+    destinationBlock.appendChild(destination);
+    detailPanelEl.appendChild(destinationBlock);
+
+    const overview = document.createElement('div');
+    overview.className = 'shortlinks-detail-overview';
+    const totalCard = document.createElement('section');
+    totalCard.className = 'shortlinks-detail-card shortlinks-detail-total';
+    const totalTitle = document.createElement('h4');
+    totalTitle.textContent = 'Total clicks';
+    const totalValue = document.createElement('strong');
+    totalValue.textContent = formatCount(link.clicks);
+    const totalMeta = document.createElement('span');
+    totalMeta.textContent = 'All time';
+    totalCard.appendChild(totalTitle);
+    totalCard.appendChild(totalValue);
+    totalCard.appendChild(totalMeta);
+
+    const chartCard = document.createElement('section');
+    chartCard.className = 'shortlinks-detail-card shortlinks-detail-chart';
+    const chartTitle = document.createElement('h4');
+    chartTitle.textContent = 'Recent recorded clicks';
+    const chartHost = document.createElement('div');
+    const chartLoading = document.createElement('p');
+    chartLoading.className = 'shortlinks-detail-chart-empty';
+    chartLoading.textContent = 'Loading recent activity…';
+    chartHost.appendChild(chartLoading);
+    chartCard.appendChild(chartTitle);
+    chartCard.appendChild(chartHost);
+    overview.appendChild(totalCard);
+    overview.appendChild(chartCard);
+    detailPanelEl.appendChild(overview);
+
+    const lower = document.createElement('div');
+    lower.className = 'shortlinks-detail-lower';
+    const activityCard = document.createElement('section');
+    activityCard.className = 'shortlinks-detail-card';
+    const activityTitle = document.createElement('h4');
+    activityTitle.textContent = 'Recent activity';
+    const activityHost = document.createElement('div');
+    const activityLoading = document.createElement('p');
+    activityLoading.className = 'shortlinks-detail-activity-empty';
+    activityLoading.textContent = 'Loading click history…';
+    activityHost.appendChild(activityLoading);
+    const historyButton = document.createElement('button');
+    historyButton.type = 'button';
+    historyButton.className = 'btn-ghost shortlinks-detail-history-button';
+    historyButton.textContent = 'View all click history';
+    historyButton.addEventListener('click', () => openClicksModal(link.slug));
+    activityCard.appendChild(activityTitle);
+    activityCard.appendChild(activityHost);
+    activityCard.appendChild(historyButton);
+
+    const metadataCard = document.createElement('section');
+    metadataCard.className = 'shortlinks-detail-card';
+    const metadataTitle = document.createElement('h4');
+    metadataTitle.textContent = 'Link details';
     const grid = document.createElement('dl');
     grid.className = 'shortlinks-detail-grid';
     [
-      ['Short URL', shortUrl],
-      ['Destination', destinationUrl],
-      ['Redirect', link.permanent ? '301 permanent' : '302 temporary'],
-      ['Clicks', `${formatCount(link.clicks)} total`],
       ['Created', formatTimestamp(link.createdAt) || 'Unknown'],
-      ['Updated', formatTimestamp(link.updatedAt) || 'Unknown'],
-      ['Expires', expiresAt ? new Date(expiresAt * 1000).toLocaleString() : 'Never'],
+      ['Last updated', formatTimestamp(link.updatedAt) || 'Unknown'],
+      ['Expiration', expiresAt ? new Date(expiresAt * 1000).toLocaleString() : 'Never'],
+      ['Redirect type', link.permanent ? '301 permanent' : '302 temporary'],
       ['Campaign', link.batchTitle || link.templateTitle || link.label || 'None']
     ].forEach(([label, value]) => {
       const wrap = document.createElement('div');
@@ -1170,45 +1572,23 @@
       wrap.appendChild(dd);
       grid.appendChild(wrap);
     });
-    detailPanelEl.appendChild(grid);
+    metadataCard.appendChild(metadataTitle);
+    metadataCard.appendChild(grid);
+    lower.appendChild(activityCard);
+    lower.appendChild(metadataCard);
+    detailPanelEl.appendChild(lower);
 
-    const actions = document.createElement('div');
-    actions.className = 'shortlinks-detail-actions shortlinks-action-row shortlinks-action-row-compact';
-    const copyButton = document.createElement('button');
-    copyButton.type = 'button';
-    copyButton.className = 'btn-secondary';
-    copyButton.textContent = 'Copy short URL';
-    copyButton.addEventListener('click', async () => {
-      await copyTextToClipboard({
-        text: shortUrl,
-        button: copyButton,
-        statusTarget: listStatusEl,
-        successMessage: `Copied: ${shortUrl}`
-      });
-    });
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'btn-secondary';
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => {
-      openEditorForLink({
-        slug: link.slug,
-        destination: link.destination,
-        disabled: !!link.disabled,
-        expiresAt
-      });
-    });
-    const testButton = document.createElement('button');
-    testButton.type = 'button';
-    testButton.className = 'btn-secondary';
-    testButton.textContent = 'Test';
-    testButton.addEventListener('click', async () => {
-      await testRedirect(link.slug, testButton);
-    });
-    actions.appendChild(copyButton);
-    actions.appendChild(editButton);
-    actions.appendChild(testButton);
-    detailPanelEl.appendChild(actions);
+    if (activeDetailSlug !== lastAnnouncedDetailSlug) {
+      const announcer = document.createElement('p');
+      announcer.className = 'visually-hidden';
+      announcer.setAttribute('role', 'status');
+      announcer.textContent = `Showing details for ${buildPublicPath(link.slug)}.`;
+      detailPanelEl.appendChild(announcer);
+      lastAnnouncedDetailSlug = activeDetailSlug;
+    }
+
+    syncActiveDetailRows();
+    void loadDetailInsights(link.slug, chartHost, activityHost, requestId);
   }
 
   function renderDashboardSummary(){
@@ -1296,7 +1676,7 @@
     const hasToken = !!getSavedToken();
     setAdminBadge(
       adminAccessSummaryEl,
-      hasToken ? 'Token saved' : 'Token required',
+      hasToken ? 'Admin unlocked' : 'Admin locked',
       hasToken ? 'success' : 'warning'
     );
 
@@ -1307,28 +1687,27 @@
     const projectSyncChecked = projectHealth.checked === true && canCompareProjectLinks();
 
     if (!totalProjects) {
-      setAdminBadge(adminProjectSummaryEl, 'Project sync loading', '');
+      setAdminBadge(adminProjectSummaryEl, 'Project sync', '');
     } else if (!projectSyncChecked) {
       const pending = getProjectSyncPendingCopy();
-      setAdminBadge(adminProjectSummaryEl, pending.badge, pending.tone);
+      setAdminBadge(adminProjectSummaryEl, 'Project sync', pending.tone);
     } else {
       setAdminBadge(
         adminProjectSummaryEl,
         projectIssues
-          ? `${formatCount(projectIssues)} sync issue${projectIssues === 1 ? '' : 's'}`
-          : 'Project sync healthy',
+          ? `Project sync (${formatCount(projectIssues)})`
+          : 'Project sync',
         projectIssues ? 'warning' : 'success'
       );
     }
 
     const mode = exportModeSelect ? String(exportModeSelect.value || '').trim() : EXPORT_MODE_REDIRECTS_ONLY;
     if (mode === EXPORT_MODE_WITH_CLICKS) {
-      const clickLimit = normalizeExportClickLimit(exportClickLimitInput?.value);
-      setAdminBadge(adminExportSummaryEl, `JSON export · ${formatCount(clickLimit)} clicks`, 'info');
+      setAdminBadge(adminExportSummaryEl, 'Export', 'info');
       return;
     }
 
-    setAdminBadge(adminExportSummaryEl, 'CSV export ready', '');
+    setAdminBadge(adminExportSummaryEl, 'Export', '');
   }
 
   function getAudienceApi(){
@@ -3294,12 +3673,16 @@
       { key: 'slug', label: 'Slug' },
       { key: 'destination', label: 'Destination' },
       { key: 'clicks', label: 'Clicks' },
+      { key: 'status', label: 'Status' },
       { key: 'actions', label: 'Actions' }
     ].forEach(col => {
       const th = document.createElement('th');
       th.scope = 'col';
       th.textContent = col.label;
       if (col.key === 'select') th.className = 'shortlinks-table-cell-select';
+      if (col.key === 'clicks') th.className = 'shortlinks-table-cell-clicks';
+      if (col.key === 'status') th.className = 'shortlinks-table-cell-status';
+      if (col.key === 'actions') th.className = 'shortlinks-table-cell-actions';
       headRow.appendChild(th);
     });
     thead.appendChild(headRow);
@@ -3315,6 +3698,7 @@
 
       const row = document.createElement('tr');
       row.className = 'shortlinks-row';
+      row.setAttribute('data-shortlinks-link-slug', normalizeSlugInput(link.slug));
       if (link.disabled) row.classList.add('shortlinks-row-disabled');
       if (isExpired) row.classList.add('shortlinks-row-expired');
 
@@ -3324,12 +3708,18 @@
       row.appendChild(selectCell);
 
       const slugCell = document.createElement('td');
-      const slugAnchor = document.createElement('a');
-      slugAnchor.className = 'shortlinks-table-slug';
-      slugAnchor.href = shortUrl;
-      slugAnchor.target = '_blank';
-      slugAnchor.rel = 'noopener noreferrer';
-      slugAnchor.title = shortUrl;
+      const slugAnchor = document.createElement('button');
+      slugAnchor.type = 'button';
+      slugAnchor.className = 'shortlinks-table-slug shortlinks-detail-trigger';
+      slugAnchor.dataset.shortlinks = 'detail-trigger';
+      slugAnchor.setAttribute('aria-controls', 'shortlinks-detail-panel');
+      slugAnchor.setAttribute('aria-current', normalizeSlugInput(activeDetailSlug) === normalizeSlugInput(link.slug) ? 'true' : 'false');
+      slugAnchor.setAttribute('aria-label', `Show details for ${buildPublicPath(link.slug)}`);
+      slugAnchor.title = `Show details for ${shortUrl}`;
+      slugAnchor.addEventListener('click', () => {
+        detailSelectionDismissed = false;
+        renderDetailPanel(link);
+      });
 
       const slugCode = document.createElement('code');
       slugCode.className = 'shortlinks-table-slug-code';
@@ -3345,7 +3735,6 @@
       statusPill.className = 'tool-pill';
       statusPill.textContent = link.permanent ? '301' : '302';
       meta.appendChild(statusPill);
-      meta.appendChild(makeHealthPill(link));
 
       if (expiresAt) {
         const expiresPill = document.createElement('span');
@@ -3391,53 +3780,28 @@
       const clicksPill = document.createElement('button');
       clicksPill.type = 'button';
       clicksPill.className = 'tool-pill shortlinks-pill-button';
-      clicksPill.textContent = `${Number(link.clicks) || 0} clicks`;
+      clicksPill.textContent = String(Number(link.clicks) || 0);
       clicksPill.addEventListener('click', () => {
         openClicksModal(link.slug);
       });
       clicksCell.appendChild(clicksPill);
       row.appendChild(clicksCell);
 
+      const statusCell = document.createElement('td');
+      statusCell.className = 'shortlinks-table-cell-status';
+      statusCell.appendChild(makeHealthPill(link));
+      row.appendChild(statusCell);
+
       const actionsCell = document.createElement('td');
       actionsCell.className = 'shortlinks-table-cell-actions';
 
       const actions = document.createElement('div');
       actions.className = 'shortlinks-table-actions shortlinks-inline-actions';
-
-      const copyButton = makeIconButton({
-        icon: 'copy',
-        label: `Copy ${buildPublicPath(link.slug)}`,
-        onClick: async () => {
-          await copyTextToClipboard({
-            text: shortUrl,
-            button: copyButton,
-            statusTarget: listStatusEl,
-            successMessage: `Copied: ${shortUrl}`
-          });
-        }
-      });
-
-      const openButton = makeIconButton({
-        icon: 'open',
-        label: `Open ${buildPublicPath(link.slug)}`,
-        href: shortUrl
-      });
-
-      const testButton = makeIconButton({
-        icon: 'test',
-        label: `Test ${buildPublicPath(link.slug)}`,
-        onClick: () => {
-          testRedirect(link.slug, testButton);
-        }
-      });
-
-      actions.appendChild(copyButton);
-      actions.appendChild(openButton);
-      actions.appendChild(testButton);
       const rowMenu = buildActionMenu([
         {
           label: 'View details',
           onSelect: async () => {
+            detailSelectionDismissed = false;
             renderDetailPanel(link);
           }
         },
@@ -3463,7 +3827,7 @@
         {
           label: 'Test redirect',
           onSelect: async () => {
-            await testRedirect(link.slug, testButton);
+            await testRedirect(link.slug, null);
           }
         },
         {
@@ -3518,6 +3882,7 @@
 
       const card = document.createElement('article');
       card.className = 'shortlinks-item';
+      card.setAttribute('data-shortlinks-link-slug', normalizeSlugInput(link.slug));
       if (link.disabled) card.classList.add('shortlinks-item-disabled');
       if (isExpired) card.classList.add('shortlinks-item-expired');
 
@@ -3529,9 +3894,21 @@
 
       titleWrap.appendChild(makeSelectionControl(link));
 
+      const detailButton = document.createElement('button');
+      detailButton.type = 'button';
+      detailButton.className = 'shortlinks-detail-trigger shortlinks-mobile-detail-trigger';
+      detailButton.dataset.shortlinks = 'detail-trigger';
+      detailButton.setAttribute('aria-controls', 'shortlinks-detail-panel');
+      detailButton.setAttribute('aria-current', normalizeSlugInput(activeDetailSlug) === normalizeSlugInput(link.slug) ? 'true' : 'false');
+      detailButton.setAttribute('aria-label', `Show details for ${buildPublicPath(link.slug)}`);
+      detailButton.addEventListener('click', () => {
+        detailSelectionDismissed = false;
+        renderDetailPanel(link);
+      });
       const slugCode = document.createElement('code');
       slugCode.className = 'shortlinks-slug';
       slugCode.textContent = buildPublicPath(link.slug);
+      detailButton.appendChild(slugCode);
 
       const meta = document.createElement('div');
       meta.className = 'shortlinks-item-meta';
@@ -3574,7 +3951,7 @@
         meta.appendChild(generatedPill);
       }
       meta.appendChild(clicksPill);
-      titleWrap.appendChild(slugCode);
+      titleWrap.appendChild(detailButton);
       titleWrap.appendChild(meta);
 
       const actions = document.createElement('div');
@@ -3614,6 +3991,7 @@
         {
           label: 'View details',
           onSelect: async () => {
+            detailSelectionDismissed = false;
             renderDetailPanel(link);
           }
         },
@@ -3707,6 +4085,10 @@
 
   function applyFilterAndRender(){
     const filtered = getFilteredLinks();
+    if (prefersMasterDetailLayout() && !detailSelectionDismissed) {
+      const activeVisible = filtered.some((link) => normalizeSlugInput(link?.slug) === normalizeSlugInput(activeDetailSlug));
+      if (!activeVisible) activeDetailSlug = normalizeSlugInput(filtered[0]?.slug);
+    }
     visibleLinkSlugs = filtered.map(link => normalizeSlugInput(link && link.slug)).filter(Boolean);
     listEl.dataset.density = getDensityMode();
     if (prefersTableLayout()) {
@@ -3718,7 +4100,7 @@
     setCount(filtered.length, allLinks.length);
     renderHealthStrip();
     updateSelectionControls();
-    if (activeDetailSlug) renderDetailPanel(getLinkBySlug(activeDetailSlug));
+    renderDetailPanel(activeDetailSlug ? getLinkBySlug(activeDetailSlug) : null);
     renderDashboardSummary();
   }
 
@@ -3733,8 +4115,10 @@
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
       allLinks = Array.isArray(data.links) ? data.links : [];
       linksLoaded = true;
+      detailInsightsCache.clear();
       pruneSelectedSlugs();
       applyFilterAndRender();
+      setSystemHealth('System healthy', 'All services operational', 'success');
       void refreshProjectsSection({ ensureMissing: true });
       setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
       markSessionDirty();
@@ -3743,10 +4127,13 @@
       allLinks = [];
       visibleLinkSlugs = [];
       selectedSlugs = new Set();
+      activeDetailSlug = '';
       clearList();
+      renderDetailPanel(null);
       visibleLinksCount = 0;
       setCount(0, 0);
       setStatus(listStatusEl, err.message, 'error');
+      setSystemHealth('System issue', err.message || 'Unable to load links', 'error');
       renderProjectLinks();
       renderDashboardSummary();
       markSessionDirty();
@@ -3754,6 +4141,7 @@
   }
 
   async function refreshHealth(){
+    setSystemHealth('Checking system', 'Running backend health check', '');
     setStatus(healthStatusEl, 'Checking backend…');
     try {
       const result = await apiInspect('/api/short-links/health');
@@ -3761,12 +4149,15 @@
       const msg = formatHealthPayload(payload) || `Backend check failed (${result.status})`;
       if (payload.ok === true) {
         setStatus(healthStatusEl, msg, 'success');
+        setSystemHealth('System healthy', 'All services operational', 'success');
         return;
       }
       const hint = healthHints(payload);
       setStatus(healthStatusEl, hint ? `${msg} ${hint}` : msg, 'error');
+      setSystemHealth('System issue', hint || msg, 'error');
     } catch (err) {
       setStatus(healthStatusEl, err.message || 'Backend check failed.', 'error');
+      setSystemHealth('System issue', err.message || 'Backend check failed', 'error');
     }
   }
 
@@ -3817,6 +4208,7 @@
       getPermanentButton,
       getTemporaryButton,
       clearButton,
+      editorCloseButton,
       destinationPickerOpen,
       audienceSelect,
       slugModeSelect,
@@ -4504,6 +4896,35 @@
     clearEditor();
   });
 
+  if (editorCloseButton) {
+    editorCloseButton.addEventListener('click', () => {
+      closeEditorOverlay({ restoreFocus: true });
+    });
+  }
+
+  if (editorPanelEl) {
+    editorPanelEl.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeEditorOverlay({ restoreFocus: true });
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(editorPanelEl.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])'))
+        .filter((control) => !control.disabled && control.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
   if (destinationPickerOpen && destinationModal) {
     destinationPickerOpen.addEventListener('click', () => {
       openDestinationPicker();
@@ -4866,6 +5287,26 @@
     });
   }
 
+  if (projectSyncShortcutButton) {
+    projectSyncShortcutButton.addEventListener('click', () => {
+      setActiveMode('projects');
+      if (adminToolsEl && 'open' in adminToolsEl) adminToolsEl.open = true;
+      if (projectsShortcutModeSelect && typeof projectsShortcutModeSelect.focus === 'function') {
+        projectsShortcutModeSelect.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  if (exportShortcutButton) {
+    exportShortcutButton.addEventListener('click', () => {
+      setActiveMode('projects');
+      if (adminToolsEl && 'open' in adminToolsEl) adminToolsEl.open = true;
+      if (exportModeSelect && typeof exportModeSelect.focus === 'function') {
+        exportModeSelect.focus({ preventScroll: true });
+      }
+    });
+  }
+
   if (newLinkFromListButton) {
     newLinkFromListButton.addEventListener('click', () => {
       startNewLinkFromList();
@@ -4906,16 +5347,14 @@
     });
   }
 
-  if (tableLayoutQuery) {
-    const handleTableLayoutChange = () => {
-      applyFilterAndRender();
-    };
-    if (typeof tableLayoutQuery.addEventListener === 'function') {
-      tableLayoutQuery.addEventListener('change', handleTableLayoutChange);
-    } else if (typeof tableLayoutQuery.addListener === 'function') {
-      tableLayoutQuery.addListener(handleTableLayoutChange);
+  [tableLayoutQuery, masterDetailQuery].filter(Boolean).forEach((query) => {
+    const handleLayoutChange = () => applyFilterAndRender();
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', handleLayoutChange);
+    } else if (typeof query.addListener === 'function') {
+      query.addListener(handleLayoutChange);
     }
-  }
+  });
 
   if (exportModeSelect) {
     exportModeSelect.addEventListener('change', () => {
