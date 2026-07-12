@@ -40162,6 +40162,142 @@ try {
     });
   });
 
+  section('AWS demo private proxy contracts', () => {
+    const demoProxySource = fs.readFileSync('api/_lib/demo-proxy.js', 'utf8');
+    const demoRouterSource = fs.readFileSync('api/demos/[...slug].js', 'utf8');
+    const legacySentenceSource = fs.readFileSync('api/sentence-demo/[...slug].js', 'utf8');
+    const awsClientSource = fs.readFileSync('js/demos/aws-client.js', 'utf8');
+    const vercelConfig = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+    const proxyModule = require('./api/_lib/demo-proxy.js');
+    const internal = proxyModule._internal;
+    const expectedDemoRoutes = {
+      shape: '/api/demos/shape/',
+      'digit-generator': '/api/demos/digit-generator/',
+      handwriting: '/api/demos/handwriting/',
+      minesweeper: '/api/demos/minesweeper/',
+      nonogram: '/api/demos/nonogram/',
+      'pizza-tips': '/api/demos/pizza-tips/',
+      'smart-sentence': '/api/demos/smart-sentence/',
+      'covid-outbreak': '/api/demos/covid-outbreak/',
+      'target-empty-package': '/api/demos/target-empty-package/',
+      'retail-loss-sales': '/api/demos/retail-loss-sales/'
+    };
+    const demoFiles = {
+      shape: 'demos/shape-demo.html',
+      'digit-generator': 'demos/digit-generator-demo.html',
+      handwriting: 'demos/handwriting-rating-demo.html',
+      minesweeper: 'demos/minesweeper-demo.html',
+      nonogram: 'demos/nonogram-demo.html',
+      'pizza-tips': 'demos/pizza-tips-demo.html',
+      'smart-sentence': 'demos/sentence-demo.html',
+      'covid-outbreak': 'demos/covid-outbreak-demo.html',
+      'target-empty-package': 'demos/target-empty-package-demo.html',
+      'retail-loss-sales': 'demos/retail-loss-sales-demo.html'
+    };
+
+    assert(internal && Object.keys(internal.DEMO_MANIFEST).length === 10,
+      'demo proxy should expose exactly ten allowlisted buffered Lambda demos');
+    assert(Object.values(internal.DEMO_MANIFEST).every((demo) =>
+      /^DEMO_[A-Z0-9_]+_FUNCTION_ARN$/.test(demo.envKey) && Array.isArray(demo.routes) && demo.routes.length >= 2),
+    'every proxied demo should select its ARN from a server-side env key and define explicit routes');
+    assert(demoProxySource.includes("const { LambdaClient, InvokeCommand } = require('@aws-sdk/client-lambda');") &&
+      demoProxySource.includes("const { resolveAwsCredentials } = require('./aws-credentials');") &&
+      demoProxySource.includes("roleArnEnvKeys: ['DEMO_INVOKE_AWS_ROLE_ARN']") &&
+      demoProxySource.includes('const credentials = config.auth.credentials;'),
+    'demo proxy should use the shared OIDC-first AWS credential provider');
+    assert(demoProxySource.includes("ConditionExpression: 'attribute_not_exists(#count) OR #count < :limit'") &&
+      demoProxySource.includes("Key: { pk, sk }") && demoProxySource.includes("'#ttl': 'ttl'"),
+    'demo proxy should enforce an atomic fixed-window DynamoDB limit with the deployed pk/sk/ttl schema');
+    assert(demoProxySource.includes('MAX_JSON_BODY_BYTES = 512 * 1024') &&
+      demoProxySource.includes('MAX_JSON_RESPONSE_BYTES = 3 * 1024 * 1024') &&
+      demoProxySource.includes("err.code = 'BODY_TOO_LARGE'") &&
+      demoProxySource.includes("err.code = 'DEMO_RESPONSE_TOO_LARGE'"),
+    'demo proxy should bound request and response payloads');
+    assert(demoRouterSource.includes("require('../_lib/demo-proxy')") &&
+      demoRouterSource.includes("decodeURIComponent(item)") &&
+      legacySentenceSource.includes("['smart-sentence'") &&
+      legacySentenceSource.includes('handleDemoRequest(req, res'),
+    'generic demo router and legacy sentence route should decode Vercel flattened paths through the hardened proxy');
+    assert(vercelConfig.rewrites.some((rule) => rule.source === '/api/demos/:demo/:action' &&
+      rule.destination === '/api/demos/:demo%2F:action') &&
+      vercelConfig.rewrites.some((rule) => rule.source === '/api/demos/covid-outbreak/state/:state' &&
+      rule.destination === '/api/demos/covid-outbreak%2Fstate%2F:state'),
+    'Vercel should flatten multi-segment demo API paths into the deployed catch-all function');
+
+    Object.entries(expectedDemoRoutes).forEach(([demoId, endpoint]) => {
+      const source = fs.readFileSync(demoFiles[demoId], 'utf8');
+      assert(source.includes(endpoint), `${demoId} client should use its same-origin demo proxy`);
+      assert(source.includes('allowOverrides: false'), `${demoId} client should ignore query and stored endpoint overrides`);
+      assert(!source.includes('lambda-url.us-east-2.on.aws'), `${demoId} client should not retain a direct Lambda URL fallback`);
+    });
+    assert(awsClientSource.includes('allowOverrides = true') &&
+      awsClientSource.includes("const fromQuery = allowOverrides ? readQuery(queryKeys) : ''") &&
+      awsClientSource.includes('if (allowOverrides && storageKey) storageKeys.unshift(storageKey);') &&
+      !awsClientSource.includes('408, 425, 429, 500'),
+    'shared AWS client should support disabling endpoint overrides and should not retry deliberate rate limits');
+
+    const shapePredict = internal.resolveDemoRoute(['shape', 'predict'], 'POST', []);
+    const covidState = internal.resolveDemoRoute(['covid-outbreak', 'state', 'co'], 'GET', [['date', '2025-01-31']]);
+    assert(shapePredict.ok && shapePredict.upstreamPath === '/predict' && shapePredict.route.maxBodyBytes === 512 * 1024,
+      'shape proxy route should map POST predict with the image body budget');
+    assert(covidState.ok && covidState.upstreamPath === '/state/CO' && covidState.query.date === '2025-01-31',
+      'COVID proxy route should normalize state IDs and preserve its allowlisted date query');
+    assert(JSON.stringify(internal.getQueryEntries({
+      url: '/api/demos/covid-outbreak/state/CO?slug=covid-outbreak%2Fstate%2FCO&...slug=covid-outbreak%2Fstate%2FCO&demo=covid-outbreak&action=state&state=CO&x-vercel-protection-bypass=redacted&x-vercel-set-bypass-cookie=true&date=2025-01-31'
+    })) === JSON.stringify([['date', '2025-01-31']]),
+    'demo proxy should discard Vercel rewrite parameters while preserving real allowlisted queries');
+    assert(internal.resolveDemoRoute(['shape', 'health'], 'POST', []).status === 405 &&
+      internal.resolveDemoRoute(['shape', 'unknown'], 'GET', []).status === 404 &&
+      internal.resolveDemoRoute(['shape', '%2e%2e', 'predict'], 'POST', []).status === 404 &&
+      internal.resolveDemoRoute(['covid-outbreak', 'states'], 'GET', [['refresh', '1']]).status === 400,
+    'demo proxy should reject wrong methods, unknown or traversal paths, and unapproved query controls');
+
+    const inferredMode = internal.proxyMode({ DEMO_INVOKE_AWS_ROLE_ARN: 'arn:aws:iam::123:role/demo' }, 'arn:aws:lambda:us-east-2:123:function:demo:live');
+    const invalidMode = internal.proxyMode({ DEMO_PROXY_MODE: 'surprise', DEMO_INVOKE_AWS_ROLE_ARN: 'role' }, 'function');
+    const disabledMode = internal.proxyMode({ DEMO_PROXY_MODE: 'off', DEMO_INVOKE_AWS_ROLE_ARN: 'role' }, 'function');
+    assert(inferredMode.enabled && inferredMode.code === 'auto' && !invalidMode.enabled &&
+      invalidMode.code === 'DEMO_PROXY_MODE_INVALID' && !disabledMode.enabled && disabledMode.code === 'DEMO_PROXY_DISABLED',
+    'demo proxy mode should infer OIDC only from complete config and fail closed for invalid or disabled modes');
+
+    const runtimeConfig = internal.getRuntimeConfig({
+      VERCEL_ENV: 'production',
+      AWS_AUTH_MODE: 'oidc',
+      DEMO_INVOKE_AWS_ROLE_ARN: 'arn:aws:iam::123456789012:role/demo',
+      DEMO_RATE_LIMIT_TABLE: 'demo-rate-limit',
+      DEMO_HASH_SALT: 'test-salt',
+      DEMO_REQUIRE_DDB_RATE_LIMIT: 'true'
+    }, 'arn:aws:lambda:us-east-2:123:function:demo:live');
+    assert(runtimeConfig.audience === 'sts.amazonaws.com' && runtimeConfig.region === 'us-east-2' &&
+      runtimeConfig.requireDdb && runtimeConfig.auth.source === 'oidc',
+      'demo proxy should use safe OIDC/region defaults and require deployed protection in production');
+
+    const lambdaEvent = internal.buildLambdaEvent({ method: 'POST' }, shapePredict, { b64: 'abc' });
+    assert(lambdaEvent.version === '2.0' && lambdaEvent.rawPath === '/predict' &&
+      lambdaEvent.requestContext.http.method === 'POST' && JSON.parse(lambdaEvent.body).b64 === 'abc' &&
+      lambdaEvent.isBase64Encoded === false,
+    'demo proxy should shape direct invokes like Lambda Function URL v2 events');
+
+    const wrapped = internal.decodeLambdaPayload(Buffer.from(JSON.stringify({
+      statusCode: 200,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ok: true })
+    })), 1024);
+    const plain = internal.decodeLambdaPayload(Buffer.from(JSON.stringify({ ok: true })), 1024);
+    assert(wrapped.statusCode === 200 && JSON.parse(wrapped.bodyText).ok === true &&
+      plain.statusCode === 200 && JSON.parse(plain.bodyText).ok === true,
+    'demo proxy should normalize Function URL envelopes and legacy direct JSON results');
+    let rejectedOversizedResponse = false;
+    try {
+      internal.decodeLambdaPayload(Buffer.from(JSON.stringify({ ok: true, value: 'x'.repeat(100) })), 16);
+    } catch (err) {
+      rejectedOversizedResponse = err.code === 'DEMO_RESPONSE_TOO_LARGE';
+    }
+    assert(rejectedOversizedResponse, 'demo proxy should reject oversized Lambda responses before forwarding them');
+    assert(internal.isAllowedOrigin({ headers: { host: 'www.danielshort.me', origin: 'https://www.danielshort.me' } }) &&
+      !internal.isAllowedOrigin({ headers: { host: 'www.danielshort.me', origin: 'https://evil.example', 'sec-fetch-site': 'cross-site' } }),
+    'demo proxy should accept same-origin traffic and reject cross-site browser requests');
+  });
+
   section('Project demo brand theme', () => {
     const demoThemeCss = fs.readFileSync('css/components/project-demo-theme.css', 'utf8');
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
@@ -40306,10 +40442,14 @@ try {
     const commonJs = fs.readFileSync('js/common/common.js', 'utf8');
     const projectGenerator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
     const chatbotProject = JSON.parse(fs.readFileSync('content/projects/chatbotLora.json', 'utf8'));
+    const chatbotStreamProxy = fs.readFileSync('api/_lib/chatbot-stream-proxy.js', 'utf8');
+    const chatbotStreamRoute = fs.readFileSync('api/chatbot-stream.js', 'utf8');
     const vercel = fs.readFileSync('vercel.json', 'utf8');
     assert(chatbotHtml.includes("const DEFAULT_QWEN_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';"), 'chatbot-demo missing Qwen API URL');
     assert(chatbotHtml.includes("const DEFAULT_BEDROCK_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod/bedrock';"), 'chatbot-demo missing Bedrock API URL');
-    assert(chatbotHtml.includes("const DEFAULT_BEDROCK_STREAM_URL = 'https://6i6akxbdxx5qexaajudxuayoey0iopga.lambda-url.us-east-2.on.aws/';"), 'chatbot-demo missing Bedrock stream URL');
+    assert(chatbotHtml.includes("const DEFAULT_BEDROCK_STREAM_URL = '/api/chatbot-stream';") &&
+           !/https:\/\/[a-z0-9]+\.lambda-url\.[a-z0-9-]+\.on\.aws/i.test(chatbotHtml),
+      'chatbot-demo should use only the same-origin private Bedrock stream proxy');
     assert(chatbotHtml.includes("const DEFAULT_BACKEND_ID = 'bedrock';"), 'chatbot-demo should default to Bedrock');
     assert(chatbotHtml.includes("const BACKEND_DEFAULT_VERSION = 'bedrock-default-2026-05-06';"), 'chatbot-demo should version the Bedrock default migration');
     assert(chatbotHtml.includes('let selectedBackendId = storedDefaultVersion === BACKEND_DEFAULT_VERSION'), 'chatbot-demo should use Bedrock until the default migration has run');
@@ -40370,7 +40510,23 @@ try {
     assert(chatbotHtml.includes("if (selectedBackendId === 'qwen-sagemaker') showQwenStartupNotice();"), 'chatbot-demo should show the startup notice when switching to Qwen');
     assert(chatbotHtml.includes('Press Start server and allow up to about five minutes'), 'chatbot-demo Qwen notice should explain cold-start time');
     assert(chatbotHtml.includes('alwaysOn: true'), 'chatbot-demo should treat Bedrock as always live');
-    assert(chatbotHtml.includes('streamUrl: (RUNTIME_CONFIG.bedrockStreamUrl || DEFAULT_BEDROCK_STREAM_URL).replace(/\\/$/, \'\')'), 'chatbot-demo should configure a Bedrock stream URL');
+    assert(chatbotHtml.includes('streamUrl: DEFAULT_BEDROCK_STREAM_URL') &&
+           chatbotHtml.includes('if (streamUrl.origin !== window.location.origin)') &&
+           chatbotHtml.includes("accept: 'application/x-ndjson'") &&
+           chatbotHtml.includes("credentials: 'same-origin'"),
+      'chatbot-demo should pin streaming to its same-origin NDJSON endpoint');
+    assert((chatbotHtml.match(/maxlength="1200"/g) || []).length === 2,
+      'chatbot-demo should mirror the server prompt limit in both chat inputs');
+    assert(chatbotStreamProxy.includes('InvokeWithResponseStreamCommand') &&
+           chatbotStreamProxy.includes("'CHATBOT_STREAM_FUNCTION_ARN'") &&
+           chatbotStreamProxy.includes("parsed.alias !== 'live'") &&
+           chatbotStreamProxy.includes('MAX_STREAM_BYTES = 512 * 1024') &&
+           chatbotStreamProxy.includes('RESPONSE_STREAM_DELIMITER = Buffer.alloc(8)') &&
+           chatbotStreamProxy.includes('validateStreamPrelude') &&
+           chatbotStreamProxy.includes('normalizeFollowupContext') &&
+           chatbotStreamProxy.includes("delete headers['x-chatbot-session']") &&
+           chatbotStreamRoute.includes("require('./_lib/chatbot-stream-proxy')"),
+      'chatbot stream proxy should use a pinned alias, bounded response streaming, and IP-based rate limiting');
     assert(chatbotHtml.includes('function submitBedrockStream(ctx, requestId, body, backend, liveNode = null)'), 'chatbot-demo missing Bedrock streaming submit helper');
     assert(chatbotHtml.includes("console.log('[chatbot-demo] bedrock:token', text);"), 'chatbot-demo should log Bedrock stream tokens to the console');
     assert(chatbotHtml.includes('renderAssistantAnswer(liveNode, streamedAnswer, liveLinks, {'), 'chatbot-demo should format streamed Bedrock tokens through the markdown renderer immediately');
@@ -40463,7 +40619,8 @@ try {
     assert(!chatbotHtml.includes('id="start-notice"'), 'chatbot-demo should not show the old startup modal on load');
     assert(!chatbotHtml.includes('chatbot-start-deadline'), 'chatbot-demo should not persist startup countdown deadlines');
     assert(vercel.includes('k8bys9gicf.execute-api.us-east-2.amazonaws.com'), 'vercel.json missing new chatbot API host');
-    assert(vercel.includes('6i6akxbdxx5qexaajudxuayoey0iopga.lambda-url.us-east-2.on.aws'), 'vercel.json missing Bedrock stream Function URL');
+    assert(!chatbotHtml.includes('RUNTIME_CONFIG.bedrockStreamUrl'),
+      'chatbot-demo should not accept a runtime override that bypasses the same-origin stream proxy');
     assert(!vercel.includes('ovodkr9oad.execute-api.us-east-2.amazonaws.com'), 'vercel.json still allows old chatbot API host');
     const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;

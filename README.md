@@ -88,7 +88,7 @@ This repo includes a small, Bitly-style redirect service intended for a single t
 - **Redirects:** `https://<your-domain>/go/<slug>` returns a `301` or `302` to the stored destination.
 - **Dashboard:** `pages/short-links.html` (enter your admin token to list/create/update/delete links).
 - **Admin auth:** set `SHORTLINKS_ADMIN_TOKEN` in your Vercel environment (do not commit it).
-- **Storage:** AWS DynamoDB (set `SHORTLINKS_DDB_TABLE`, `AWS_REGION`, and either `SHORTLINKS_AWS_ACCESS_KEY_ID`/`SHORTLINKS_AWS_SECRET_ACCESS_KEY` (preferred) or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`).
+- **Storage:** AWS DynamoDB. In Vercel, set `SHORTLINKS_DDB_TABLE`, `AWS_REGION`, `SHORTLINKS_AWS_ROLE_ARN`, `AWS_AUTH_MODE=oidc`, and `AWS_OIDC_AUDIENCE=sts.amazonaws.com`. Static keys are supported only as a temporary/local fallback.
 
 Generate an admin token locally:
 
@@ -107,7 +107,7 @@ Required configuration:
 
 - Update your Cognito app client **Allowed callback URLs** to include `https://www.danielshort.me/tools/dashboard`.
 - Set `TOOLS_COGNITO_ISSUER` + `TOOLS_COGNITO_CLIENT_ID` in your Vercel environment (used for server-side JWT verification).
-- Create a DynamoDB table with partition key `pk` (string) and sort key `sk` (string), and set `TOOLS_DDB_TABLE` + AWS creds for session/activity storage.
+- Create a DynamoDB table with partition key `pk` (string) and sort key `sk` (string), then set `TOOLS_DDB_TABLE` and the environment-specific `TOOLS_AWS_ROLE_ARN` for Vercel OIDC session/activity storage.
 
 ## Local CMS
 

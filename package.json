@@ -4,8 +4,11 @@
   "private": true,
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
-    "test": "node test.js && node build/validate-seo.js",
+    "test": "node test.js && node tests/aws-credentials.test.js && node tests/aws-data-migrations.test.js && node tests/chatbot-stream-proxy.test.js && node build/validate-seo.js",
+    "test:chatbot-stream": "node tests/chatbot-stream-proxy.test.js",
+    "test:aws-credentials": "node tests/aws-credentials.test.js",
     "test:seo": "node build/validate-seo.js",
+    "test:aws-migrations": "node tests/aws-data-migrations.test.js",
     "test:starfall": "node test.js --suite=starfall-runtime",
     "test:starfall:smoke": "node test.js --suite=starfall-smoke",
     "test:starfall:inventory": "node test.js --suite=starfall-inventory",
@@ -36,6 +39,8 @@
     "analyze:starfall:balance": "node build/analyze-project-starfall-balance.js",
     "record:project-previews": "node build/record-project-previews.js",
     "migrate:content": "node build/migrate-content.js",
+    "migrate:short-links-reservations": "node scripts/migrations/short-links-reservations.js",
+    "migrate:tools-ttl": "node scripts/migrations/tools-ttl-backfill.js",
     "scaffold": "node build/scaffold.js",
     "build": "node build/build-site.js",
     "dev": "node build/dev.js"
@@ -46,11 +51,13 @@
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.1085.0",
     "@aws-sdk/client-dynamodb": "^3.1085.0",
+    "@aws-sdk/client-lambda": "^3.1085.0",
     "@aws-sdk/client-s3": "^3.1085.0",
     "@aws-sdk/client-transcribe": "^3.1085.0",
     "@aws-sdk/lib-dynamodb": "^3.1085.0",
     "@aws-sdk/s3-presigned-post": "^3.1085.0",
-    "@aws-sdk/s3-request-presigner": "^3.1085.0"
+    "@aws-sdk/s3-request-presigner": "^3.1085.0",
+    "@vercel/oidc-aws-credentials-provider": "^3.3.0"
   },
   "devDependencies": {
     "esbuild": "^0.27.2",

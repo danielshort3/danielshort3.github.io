@@ -59,29 +59,9 @@ aws lambda create-function \
   --environment "Variables={DATA_BUCKET=$BUCKET,DATA_KEY=target-empty-package/v1/data.json}"
 ```
 
-## Function URL
+## Private browser access
 
-```bash
-aws lambda create-function-url-config \
-  --function-name target-empty-package \
-  --auth-type NONE \
-  --cors file://aws/target-empty-package/cors.json
-
-aws lambda add-permission \
-  --function-name target-empty-package \
-  --statement-id FunctionURLAllowPublicAccess \
-  --action lambda:InvokeFunctionUrl \
-  --principal "*" \
-  --function-url-auth-type NONE
-```
-
-Function URL:
-
-```
-https://e7axe2ymmx2kadovfvvji23wkq0xmybn.lambda-url.us-east-2.on.aws/
-```
-
-Update `demos/target-empty-package-demo.html` and `vercel.json` connect-src if the Function URL changes.
+Publish an immutable version, point the `live` alias at it, and add the qualified alias ARN to `DemoFunctionArns` in `aws/vercel-oidc/template.yaml`. The browser calls `/api/demos/target-empty-package/*`; it never calls Lambda directly. Do not create an anonymous Function URL or add Lambda origins to the CSP.
 
 ## Endpoints
 

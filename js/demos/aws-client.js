@@ -57,19 +57,20 @@
     defaultUrl = '',
     storageKey = '',
     legacyKeys = [],
-    queryKeys = DEFAULT_QUERY_KEYS
+    queryKeys = DEFAULT_QUERY_KEYS,
+    allowOverrides = true
   } = {}) => {
     const out = [];
-    const fromQuery = readQuery(queryKeys);
+    const fromQuery = allowOverrides ? readQuery(queryKeys) : '';
     if (fromQuery) {
       out.push(normalizeBase(fromQuery));
       if (storageKey) safeSet(storageKey, fromQuery);
     }
 
-    const storageKeys = Array.isArray(legacyKeys)
+    const storageKeys = allowOverrides && Array.isArray(legacyKeys)
       ? legacyKeys.slice()
-      : (legacyKeys ? [legacyKeys] : []);
-    if (storageKey) storageKeys.unshift(storageKey);
+      : (allowOverrides && legacyKeys ? [legacyKeys] : []);
+    if (allowOverrides && storageKey) storageKeys.unshift(storageKey);
     for (const key of storageKeys) {
       const stored = safeGet(key);
       if (stored && stored !== fromQuery) out.push(normalizeBase(stored));
@@ -90,7 +91,7 @@
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+  const RETRYABLE_STATUSES = new Set([408, 425, 500, 502, 503, 504]);
 
   const isRetryableError = (err) => {
     if (!err) return false;
@@ -157,6 +158,8 @@
       const message = data?.error || data?.message || text || `${res.status} ${res.statusText}`;
       const err = new Error(message);
       err.status = res.status;
+      const retryAfter = Number.parseInt(String(res.headers.get('Retry-After') || ''), 10);
+      if (Number.isFinite(retryAfter) && retryAfter > 0) err.retryAfter = retryAfter;
       err.data = data;
       err.url = url;
       throw err;

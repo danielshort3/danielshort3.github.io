@@ -753,6 +753,7 @@
       }
     })();
   </script>
+  <main id="main">
 
   <div id="demo-box" role="application" aria-label="Handwriting rating demo">
     <header class="card-header">
@@ -843,10 +844,11 @@
       </section>
     </div>
   </div>
+  </main>
 
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_FN_URL = "https://wklw5cb75voj4idwbnigdt6p7a0zrxwv.lambda-url.us-east-2.on.aws/"; // Lambda Function URL.
+    const DEFAULT_FN_URL = "/api/demos/handwriting/";
     const STORAGE_KEY = "demo.endpoint.handwriting";
     const LEGACY_KEYS = ["handwriting_fn_url"];
     const {
@@ -861,7 +863,8 @@
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
-      legacyKeys: LEGACY_KEYS
+      legacyKeys: LEGACY_KEYS,
+      allowOverrides: false
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
     const WARM_RETRY_OPTIONS = {
@@ -872,11 +875,7 @@
     };
 
     const postToEndpoint = (urlBase, payload) => {
-      const base = normalizeBase(urlBase);
-      const hasScore = /\/score\/$/.test(base);
-      const finalBase = hasScore ? base.replace(/\/$/, '') : base;
-      const paths = hasScore ? [''] : ['score', ''];
-      return postWithFallback(finalBase, paths, payload);
+      return postWithFallback(normalizeBase(urlBase), ['score'], payload);
     };
 
     const statusEl = document.getElementById('status');
@@ -1420,7 +1419,7 @@
         const payload = { b64, image: b64 };
         const bases = candidates();
         if (!bases.length) {
-          throw new Error('No endpoint configured. Add ?fn=... or set DEFAULT_FN_URL.');
+          throw new Error('Demo service endpoint is unavailable.');
         }
 
         let json = null;

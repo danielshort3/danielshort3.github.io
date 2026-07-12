@@ -18,6 +18,7 @@ const {
   StartTranscriptionJobCommand,
   TranscribeClient
 } = require('@aws-sdk/client-transcribe');
+const { resolveAwsCredentials } = require('../aws-credentials');
 const { getBearerToken, readJson, sendJson } = require('../tools-api');
 const { verifyCognitoIdToken } = require('../cognito-jwt');
 const {
@@ -58,6 +59,26 @@ const MAX_TRANSCRIPT_FETCH_TIMEOUT_MS = 30_000;
 const MAX_TRANSCRIPT_FETCH_BYTES = 50 * 1024 * 1024;
 const MAX_TRANSCRIPT_BYTES = 4 * 1024 * 1024;
 const MAX_FILENAME_CHARS = 120;
+const TRANSCRIBE_STATIC_CREDENTIAL_SETS = Object.freeze([
+  Object.freeze({
+    name: 'transcribe',
+    accessKeyId: 'TRANSCRIBE_AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'TRANSCRIBE_AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'TRANSCRIBE_AWS_SESSION_TOKEN'
+  }),
+  Object.freeze({
+    name: 'tools',
+    accessKeyId: 'TOOLS_AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'TOOLS_AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'TOOLS_AWS_SESSION_TOKEN'
+  }),
+  Object.freeze({
+    name: 'default',
+    accessKeyId: 'AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'AWS_SESSION_TOKEN'
+  })
+]);
 
 let cachedS3Client = null;
 let cachedTranscribeClient = null;
@@ -74,14 +95,13 @@ function pickEnv(keys){
   return '';
 }
 
-function getAwsCredentialsFromEnv(){
-  const accessKeyId = pickEnv(['TRANSCRIBE_AWS_ACCESS_KEY_ID', 'TOOLS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['TRANSCRIBE_AWS_SECRET_ACCESS_KEY', 'TOOLS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['TRANSCRIBE_AWS_SESSION_TOKEN', 'TOOLS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  const creds = { accessKeyId, secretAccessKey };
-  if (sessionToken && accessKeyId.startsWith('ASIA')) creds.sessionToken = sessionToken;
-  return creds;
+function getAwsCredentialConfig(region){
+  return resolveAwsCredentials({
+    service: 'transcribe',
+    region,
+    roleArnEnvKeys: ['TRANSCRIBE_AWS_ROLE_ARN'],
+    staticCredentialSets: TRANSCRIBE_STATIC_CREDENTIAL_SETS
+  });
 }
 
 function isProductionRuntime(){
@@ -172,6 +192,7 @@ function getConfig(){
     throw err;
   }
 
+  const auth = getAwsCredentialConfig(region);
   return {
     region,
     bucket,
@@ -203,7 +224,9 @@ function getConfig(){
     transcriptFetchTimeoutMs,
     maxTranscriptFetchBytes,
     maxTranscriptBytes,
-    awsCredentials: getAwsCredentialsFromEnv()
+    awsCredentials: auth.credentials,
+    awsCredentialsCacheKey: auth.cacheKey,
+    awsCredentialSource: auth.source
   };
 }
 
@@ -252,17 +275,17 @@ function positiveInteger(value, fallback){
 function getClients(){
   const config = getConfig();
   const creds = config.awsCredentials;
-  const key = `${config.region}:${creds ? creds.accessKeyId : 'default'}`;
+  const key = `${config.region}:${config.awsCredentialsCacheKey || 'default'}`;
   if (cachedS3Client && cachedTranscribeClient && cachedClientKey === key) {
     return { s3: cachedS3Client, transcribe: cachedTranscribeClient, config };
   }
   cachedS3Client = new S3Client({
     region: config.region,
-    credentials: creds || undefined,
+    credentials: creds,
     requestChecksumCalculation: 'WHEN_REQUIRED',
     responseChecksumValidation: 'WHEN_REQUIRED'
   });
-  cachedTranscribeClient = new TranscribeClient({ region: config.region, credentials: creds || undefined });
+  cachedTranscribeClient = new TranscribeClient({ region: config.region, credentials: creds });
   cachedClientKey = key;
   return { s3: cachedS3Client, transcribe: cachedTranscribeClient, config };
 }
@@ -572,7 +595,7 @@ async function handlePresign(req, res){
   try {
     clients = getClients();
   } catch (err) {
-    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' ? 503 : 500, {
+    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' || err.statusCode === 503 ? 503 : 500, {
       ok: false,
       error: err.message || 'Transcribe configuration is unavailable.'
     });
@@ -688,7 +711,7 @@ async function handleStart(req, res){
   try {
     clients = getClients();
   } catch (err) {
-    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' ? 503 : 500, {
+    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' || err.statusCode === 503 ? 503 : 500, {
       ok: false,
       error: err.message || 'Transcribe configuration is unavailable.'
     });
@@ -1057,7 +1080,7 @@ async function handleStatus(req, res){
   try {
     clients = getClients();
   } catch (err) {
-    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' ? 503 : 500, {
+    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' || err.statusCode === 503 ? 503 : 500, {
       ok: false,
       error: err.message || 'Transcribe configuration is unavailable.'
     });

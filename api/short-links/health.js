@@ -13,7 +13,7 @@ const {
 const {
   CLICK_RETENTION_DAYS,
   CLICK_TTL_ATTRIBUTE,
-  getAwsCredentialsFromEnv,
+  getAwsCredentialConfig,
   getAwsCredentialEnvInfo,
   getRequiredEnv
 } = require('../_lib/short-links-store');
@@ -52,27 +52,35 @@ module.exports = async (req, res) => {
     return;
   }
 
+  let auth;
+  try {
+    auth = getAwsCredentialConfig(env.region);
+  } catch (err) {
+    sendJson(res, 503, {
+      ok: false,
+      error: err && err.message ? err.message : 'AWS credentials are not configured'
+    });
+    return;
+  }
+
   const envInfo = getAwsCredentialEnvInfo();
+  const staticCredentialsInUse = auth.source === 'static';
   const creds = {
-    accessKeyId: maskAccessKeyId(envInfo.accessKeyId),
-    accessKeyIdSource: envInfo.accessKeyIdSource,
-    secretSource: envInfo.secretSource,
-    sessionTokenSource: envInfo.sessionTokenSource,
-    accessKeyConfigured: envInfo.accessKeyConfigured,
-    secretConfigured: envInfo.secretConfigured,
-    sessionTokenConfigured: envInfo.sessionTokenConfigured,
-    sessionTokenUsed: envInfo.sessionTokenUsed,
-    sessionTokenIgnored: envInfo.sessionTokenIgnored,
-    accessKeyTrimmed: envInfo.accessKeyTrimmed,
-    secretTrimmed: envInfo.secretTrimmed,
-    sessionTokenTrimmed: envInfo.sessionTokenTrimmed,
-    accessKeyLength: envInfo.accessKeyLength,
-    secretLength: envInfo.secretLength,
-    sessionTokenLength: envInfo.sessionTokenLength,
-    secretFingerprint: envInfo.secretFingerprint
+    authMode: auth.authMode,
+    credentialSource: auth.source,
+    roleArnConfigured: auth.roleArnConfigured,
+    roleArnSource: auth.roleArnSource,
+    oidcAudienceConfigured: Boolean(auth.audience),
+    accessKeyId: staticCredentialsInUse ? maskAccessKeyId(envInfo.accessKeyId) : '',
+    accessKeyIdSource: staticCredentialsInUse ? envInfo.accessKeyIdSource : '',
+    sessionTokenConfigured: staticCredentialsInUse && envInfo.sessionTokenConfigured,
+    sessionTokenUsed: staticCredentialsInUse && envInfo.sessionTokenUsed,
+    sessionTokenIgnored: staticCredentialsInUse && envInfo.sessionTokenIgnored,
+    accessKeyTrimmed: staticCredentialsInUse && envInfo.accessKeyTrimmed,
+    secretTrimmed: staticCredentialsInUse && envInfo.secretTrimmed,
+    sessionTokenTrimmed: staticCredentialsInUse && envInfo.sessionTokenTrimmed
   };
-  const credentials = getAwsCredentialsFromEnv();
-  const client = new DynamoDBClient({ region: env.region, credentials: credentials || undefined });
+  const client = new DynamoDBClient({ region: env.region, credentials: auth.credentials });
 
   try {
     const result = await client.send(new DescribeTableCommand({ TableName: env.tableName }));

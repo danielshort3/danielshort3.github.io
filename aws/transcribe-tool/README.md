@@ -8,7 +8,10 @@ Set these in Vercel:
 
 ```bash
 AWS_REGION=us-east-2
+AWS_AUTH_MODE=oidc
+AWS_OIDC_AUDIENCE=sts.amazonaws.com
 TRANSCRIBE_AWS_REGION=us-east-2
+TRANSCRIBE_AWS_ROLE_ARN=<environment-specific-vercel-oidc-role-arn>
 TRANSCRIBE_UPLOAD_BUCKET=<private-upload-bucket>
 TRANSCRIBE_UPLOAD_PREFIX=tools-transcribe/
 TRANSCRIBE_SIGNING_SECRET=<long-random-secret>
@@ -34,11 +37,9 @@ TRANSCRIBE_LEDGER_DAY_RETENTION_DAYS=45
 TRANSCRIBE_TRANSCRIPT_FETCH_TIMEOUT_MS=12000
 TRANSCRIBE_MAX_TRANSCRIPT_FETCH_BYTES=26214400
 TRANSCRIBE_MAX_TRANSCRIPT_BYTES=3145728
-TRANSCRIBE_AWS_ACCESS_KEY_ID=<access-key>
-TRANSCRIBE_AWS_SECRET_ACCESS_KEY=<secret-key>
 ```
 
-`TRANSCRIBE_AWS_SESSION_TOKEN` is optional for temporary credentials.
+Use an exact production or preview trust subject on each OIDC role. Static `TRANSCRIBE_AWS_ACCESS_KEY_ID` and `TRANSCRIBE_AWS_SECRET_ACCESS_KEY` values remain available only for local development or a temporary rollback; remove them from Vercel after OIDC canaries pass. `TRANSCRIBE_AWS_SESSION_TOKEN` is used only with temporary `ASIA...` access keys.
 
 `TRANSCRIBE_DDB_TABLE` may be omitted when `TOOLS_DDB_TABLE` (or the legacy `TOOLS_DDB_TABLE_NAME`) points at the existing tools table. The table must have string partition and sort keys named `pk` and `sk`. The ledger is required by default and fails closed before a paid job starts if it cannot reserve usage. `TRANSCRIBE_LEDGER_MODE=disabled` is accepted only outside production for explicit local testing; production ignores that opt-out.
 
@@ -61,7 +62,7 @@ Create a private bucket in the same region as Transcribe and apply CORS similar 
   "CORSRules": [
     {
       "AllowedOrigins": ["https://www.danielshort.me", "https://danielshort.me"],
-      "AllowedMethods": ["POST"],
+      "AllowedMethods": ["POST", "PUT"],
       "AllowedHeaders": ["content-type", "x-amz-*"],
       "ExposeHeaders": ["ETag"],
       "MaxAgeSeconds": 300

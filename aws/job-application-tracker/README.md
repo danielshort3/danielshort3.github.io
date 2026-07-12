@@ -41,11 +41,17 @@ aws cloudformation deploy \
   --parameter-overrides \
     LambdaCodeBucket=YOUR_BUCKET \
     LambdaCodeKey=job-application-tracker/job-application-tracker.zip \
-    AllowedOrigins="https://www.danielshort.me,https://www.danielshort.me" \
+    LambdaReleaseId=YYYY-MM-DD-release-01 \
+    AllowedOrigins="https://danielshort.me,https://www.danielshort.me" \
     CognitoDomainPrefix=job-tracker-auth \
     CallbackUrls="https://www.danielshort.me/tools/job-application-tracker" \
-    LogoutUrls="https://www.danielshort.me/tools/job-application-tracker"
+    LogoutUrls="https://www.danielshort.me/tools/job-application-tracker" \
+    EnableCanaryAdminPasswordAuth=false
 ```
+
+`LambdaReleaseId` must change for every uploaded package. CloudFormation publishes an immutable function version and moves the `live` alias only after the new version is ready; API Gateway invokes that alias rather than mutable `$LATEST` code.
+
+The stack retains and deletion-protects the Cognito user pool and applications table, enables DynamoDB point-in-time recovery, and retains the attachment bucket and log groups. Review the CloudFormation change set before execution and confirm that it contains no unexpected data-resource replacement or deletion.
 
 5) Update `pages/job-application-tracker.html` with:
 
@@ -74,6 +80,14 @@ Provided via CloudFormation:
 - `MAX_EXPORT_ATTACHMENTS` - synchronous attachment cap (hard-capped at 50).
 - `MAX_EXPORT_BYTES` - maximum total metadata plus attachment input (hard-capped at 50 MiB).
 - `MAX_EXPORT_METADATA_BYTES` - maximum JSON/CSV metadata input (hard-capped at 8 MiB).
+
+Optional deployment parameters:
+
+- `AlertTopicArn` - SNS topic subscribed to the error, throttle, and duration alarms.
+- `ReservedConcurrency` - function concurrency reservation; `0` leaves it unset.
+- `EnableCanaryAdminPasswordAuth` - temporary admin-password auth for a controlled migration canary. Keep `false` during normal operation.
+
+HTTP API access logs and Lambda logs are retained for 30 days. The default API stage applies throttling, and the stack alarms on Lambda errors, throttles, and executions approaching the API timeout.
 
 Uploads are signed browser POSTs with an exact content-length policy and a one-day `purpose=staging` lifecycle tag. Saving the attachment verifies its S3 metadata, persists the actual size/ETag, and changes the tag to `purpose=attachment`.
 

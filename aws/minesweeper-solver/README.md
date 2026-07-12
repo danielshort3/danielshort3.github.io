@@ -1,6 +1,6 @@
 # Minesweeper Solver Demo API
 
-Serverless Minesweeper solver powered by a Double DQN model (PyTorch) and exposed via a Lambda Function URL.
+Serverless Minesweeper solver powered by a Double DQN model (PyTorch) and exposed through the site's IAM-private demo proxy.
 
 ## Docker build + push
 
@@ -47,29 +47,9 @@ Notes:
 - Use `MINE_RATIO` only when you want percentage-based mine density across varying grid sizes.
 ```
 
-## Function URL
+## Private browser access
 
-```bash
-aws lambda create-function-url-config \
-  --function-name minesweeper-solver \
-  --auth-type NONE \
-  --cors file://aws/minesweeper-solver/cors.json
-
-aws lambda add-permission \
-  --function-name minesweeper-solver \
-  --statement-id FunctionURLAllowPublicAccess \
-  --action lambda:InvokeFunctionUrl \
-  --principal "*" \
-  --function-url-auth-type NONE
-```
-
-Function URL:
-
-```
-https://jnvd3mdbyb5f44yh4afzsvqlwy0mdtzy.lambda-url.us-east-2.on.aws/
-```
-
-Update `demos/minesweeper-demo.html` and `vercel.json` connect-src if the Function URL changes.
+Publish an immutable version, point the `live` alias at it, and add the qualified alias ARN to `DemoFunctionArns` in `aws/vercel-oidc/template.yaml`. The browser calls `/api/demos/minesweeper/*`; it never calls Lambda directly. Do not create an anonymous Function URL or add Lambda origins to the CSP.
 
 ## Endpoints
 

@@ -4,6 +4,7 @@
   Env vars required:
   - SHORTLINKS_DDB_TABLE
   - AWS_REGION (or AWS_DEFAULT_REGION)
+  - Prefer SHORTLINKS_AWS_ROLE_ARN for Vercel OIDC credentials
   - Prefer SHORTLINKS_AWS_ACCESS_KEY_ID / SHORTLINKS_AWS_SECRET_ACCESS_KEY to avoid conflicts
   - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
   - Optional (temporary creds only): SHORTLINKS_AWS_SESSION_TOKEN / AWS_SESSION_TOKEN
@@ -24,6 +25,7 @@ const {
   TransactWriteCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
+const { resolveAwsCredentials } = require('./aws-credentials');
 const {
   SET_KEY_PREFIX,
   BATCH_KEY_PREFIX,
@@ -36,6 +38,20 @@ const {
 const SLUG_RESERVATION_PREFIX = '__slug_lower__/';
 const CLICK_RETENTION_DAYS = 90;
 const CLICK_TTL_ATTRIBUTE = 'expiresAt';
+const SHORTLINKS_STATIC_CREDENTIAL_SETS = Object.freeze([
+  Object.freeze({
+    name: 'short-links',
+    accessKeyId: 'SHORTLINKS_AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'SHORTLINKS_AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'SHORTLINKS_AWS_SESSION_TOKEN'
+  }),
+  Object.freeze({
+    name: 'default',
+    accessKeyId: 'AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'AWS_SESSION_TOKEN'
+  })
+]);
 
 function pickEnv(keys){
   for (const key of keys) {
@@ -48,20 +64,17 @@ function pickEnv(keys){
   return { key: '', raw: '' };
 }
 
-function getAwsCredentialsFromEnv(){
-  const accessKeyIdEnv = pickEnv(['SHORTLINKS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKeyEnv = pickEnv(['SHORTLINKS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionTokenEnv = pickEnv(['SHORTLINKS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
+function getAwsCredentialConfig(region){
+  return resolveAwsCredentials({
+    service: 'short-links',
+    region,
+    roleArnEnvKeys: ['SHORTLINKS_AWS_ROLE_ARN'],
+    staticCredentialSets: SHORTLINKS_STATIC_CREDENTIAL_SETS
+  });
+}
 
-  const accessKeyId = accessKeyIdEnv.raw.trim();
-  const secretAccessKey = secretAccessKeyEnv.raw.trim();
-  const sessionToken = sessionTokenEnv.raw.trim();
-
-  if (!accessKeyId || !secretAccessKey) return null;
-
-  const creds = { accessKeyId, secretAccessKey };
-  if (sessionToken && accessKeyId.startsWith('ASIA')) creds.sessionToken = sessionToken;
-  return creds;
+function getAwsCredentialsFromEnv(region){
+  return getAwsCredentialConfig(region).credentials || null;
 }
 
 function getAwsCredentialEnvInfo(){
@@ -184,11 +197,11 @@ let cachedKey = '';
 
 function getDocClient(){
   const { region } = getRequiredEnv();
-  const creds = getAwsCredentialsFromEnv();
-  const key = `${region}:${creds ? creds.accessKeyId : 'default'}`;
+  const auth = getAwsCredentialConfig(region);
+  const key = `${region}:${auth.cacheKey}`;
   if (cachedDocClient && cachedKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region, credentials: creds || undefined });
+  const client = new DynamoDBClient({ region, credentials: auth.credentials });
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });
@@ -610,6 +623,7 @@ async function listClicks({ slug, limit }){
 }
 
 module.exports = {
+  getAwsCredentialConfig,
   getAwsCredentialsFromEnv,
   getAwsCredentialEnvInfo,
   getRequiredEnv,

@@ -2915,8 +2915,8 @@
     if (!payload || typeof payload !== 'object') return '';
     const debugBits = [];
     const aws = payload.aws || {};
-    if (aws.accessKeyIdSource) debugBits.push(`Creds: ${aws.accessKeyIdSource}.`);
-    if (aws.secretFingerprint) debugBits.push(`Secret fp: ${aws.secretFingerprint}.`);
+    if (aws.credentialSource === 'oidc') debugBits.push('Auth: Vercel OIDC.');
+    else if (aws.accessKeyIdSource) debugBits.push(`Creds: ${aws.accessKeyIdSource}.`);
     if (aws.sessionTokenConfigured) {
       debugBits.push(`Session token: ${aws.sessionTokenUsed ? 'used' : 'ignored'}.`);
     }
@@ -2994,7 +2994,9 @@
       return 'AWS rejected the key pair. Re-copy the access key + secret from the same CSV row (no quotes/whitespace) and redeploy. If you have duplicate AWS_* vars in Vercel, set SHORTLINKS_AWS_ACCESS_KEY_ID/SHORTLINKS_AWS_SECRET_ACCESS_KEY instead.';
     }
     if (name === 'AccessDeniedException') {
-      return 'AWS credentials are valid but lack DynamoDB permissions for this table.';
+      return payload.aws && payload.aws.credentialSource === 'oidc'
+        ? 'Vercel OIDC connected successfully, but the Short Links role lacks a required DynamoDB permission for this table.'
+        : 'AWS credentials are valid but lack DynamoDB permissions for this table.';
     }
     if (name === 'ResourceNotFoundException') {
       return 'Table not found. Double-check AWS_REGION and SHORTLINKS_DDB_TABLE.';

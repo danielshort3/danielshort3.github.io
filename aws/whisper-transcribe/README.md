@@ -1,6 +1,6 @@
-# Whisper Transcribe Lambda (Function URL)
+# Whisper Transcribe Lambda (legacy private service)
 
-HTTPS transcription endpoint for the website using Hugging Face `openai/whisper-tiny.en`.
+Legacy Whisper service using Hugging Face `openai/whisper-tiny.en`. The active website transcription tool uses `/api/tools/transcribe` with private S3 uploads and Amazon Transcribe; browser code does not call this Lambda directly.
 
 ## Build + push (Docker)
 
@@ -52,7 +52,7 @@ aws lambda update-function-configuration \
 
 ## Optional: enable larger uploads via S3
 
-Function URLs have strict request payload limits. To support larger uploads (audio/video), the Lambda can issue a presigned S3 POST upload and then transcribe from S3.
+Lambda synchronous requests have strict payload limits. For larger uploads, the service can issue a presigned S3 POST and then transcribe from S3.
 
 ### Create bucket + CORS + lifecycle
 
@@ -85,42 +85,17 @@ aws iam put-role-policy \
   --policy-document file://aws/whisper-transcribe/s3-iam-policy.json
 ```
 
-## Function URL
+## Private invocation
 
-```bash
-aws lambda create-function-url-config \
-  --function-name whisper-transcribe \
-  --auth-type NONE \
-  --cors file://aws/whisper-transcribe/cors.json
-
-aws lambda add-permission \
-  --function-name whisper-transcribe \
-  --statement-id FunctionURLAllowPublicAccess \
-  --action lambda:InvokeFunctionUrl \
-  --principal "*" \
-  --function-url-auth-type NONE
-```
-
-Function URL:
-
-```
-https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/
-```
-
-After creating the Function URL, add it to `vercel.json` `connect-src` if the site is served with that CSP.
+Keep any retained Function URL at `AuthType=AWS_IAM`. It is for signed operational access only and must not be added to the browser CSP. Prefer `aws lambda invoke` for administrative smoke tests. Do not restore anonymous `NONE` access.
 
 ## Request format (audio/video)
 
-### Option A: Raw media upload (recommended)
+### Option A: Raw media payload
 
 POST the file bytes directly and set `Content-Type` to the file's MIME type (examples: `audio/mpeg`, `audio/wav`, `video/mp4`).
 
-```bash
-curl -X POST \
-  -H "Content-Type: audio/mpeg" \
-  --data-binary @sample.mp3 \
-  "https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/transcribe?part_minutes=30"
-```
+When invoking this handler through a signed bridge, send file bytes with the media MIME type. Do not send raw media from the public website to the private Lambda URL.
 
 ### Option B: JSON base64 payload (compat)
 

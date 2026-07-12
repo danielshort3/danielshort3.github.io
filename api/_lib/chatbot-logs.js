@@ -8,9 +8,24 @@ const {
   PutCommand,
   QueryCommand
 } = require('@aws-sdk/lib-dynamodb');
+const { resolveAwsCredentials } = require('./aws-credentials');
 
 let cachedDocClient = null;
 let cachedClientKey = '';
+const CHATBOT_STATIC_CREDENTIAL_SETS = Object.freeze([
+  Object.freeze({
+    name: 'chatbot',
+    accessKeyId: 'CHATBOT_AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'CHATBOT_AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'CHATBOT_AWS_SESSION_TOKEN'
+  }),
+  Object.freeze({
+    name: 'default',
+    accessKeyId: 'AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'AWS_SESSION_TOKEN'
+  })
+]);
 
 function pickEnv(keys) {
   for (const key of keys) {
@@ -36,25 +51,18 @@ function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
-}
-
 function getDocClient() {
   const region = getRegion();
-  const credentials = getAwsCredentialsFromEnv();
-  const key = `${region}:${credentials ? credentials.accessKeyId : 'default'}`;
+  const auth = resolveAwsCredentials({
+    service: 'chatbot-ddb',
+    region,
+    roleArnEnvKeys: ['CHATBOT_DDB_AWS_ROLE_ARN'],
+    staticCredentialSets: CHATBOT_STATIC_CREDENTIAL_SETS
+  });
+  const key = `${region}:${auth.cacheKey}`;
   if (cachedDocClient && cachedClientKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region, credentials: credentials || undefined });
+  const client = new DynamoDBClient({ region, credentials: auth.credentials });
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });

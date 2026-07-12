@@ -69,7 +69,7 @@
   "actions": [
     "Cleaned Project Gutenberg text, split it into sentences, and precomputed embeddings for the fixed corpus.",
     "Compared several embedding models on a sample subset and balanced clustering quality against model size and serverless deployment cost.",
-    "Deployed the selected model behind an AWS Lambda Function URL and built a browser demo that checks `/health` before ranking top-k matches by cosine similarity."
+    "Deployed the selected model behind an immutable AWS Lambda alias and a same-origin IAM proxy, with a browser demo that checks `/health` before ranking top-k matches by cosine similarity."
   ],
   "results": [
     "Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.",
