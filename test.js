@@ -39399,6 +39399,11 @@ try {
            'package.json build script should not rebuild pizza tips model');
 
     const vercel = fs.readFileSync('vercel.json','utf8');
+    const vercelOidcTemplate = fs.readFileSync('aws/vercel-oidc/template.yaml', 'utf8');
+    const toolsRoleBlock = vercelOidcTemplate.split('  ShortLinksRole:')[0];
+    assert(toolsRoleBlock.includes('dynamodb:ConditionCheckItem') &&
+           toolsRoleBlock.includes('dynamodb:TransactWriteItems'),
+      'Vercel Tools OIDC role should allow guarded DynamoDB transaction writes');
     assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
     assert(vercel.includes('Strict-Transport-Security'), 'vercel.json missing HSTS');
     assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
