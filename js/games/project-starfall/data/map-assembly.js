@@ -12,6 +12,8 @@
 
   const SHOP_INTERIOR_WORLD_WIDTH = DataWorld.SHOP_INTERIOR_WORLD_WIDTH || 1280;
   const makeRampConnections = DataMapGeometry.makeRampConnections;
+  const assignStablePlatformIds = DataMapGeometry.assignStablePlatformIds || ((prefix, platforms) => Object.freeze((platforms || []).slice()));
+  const getPlatformDefY = DataMapGeometry.getPlatformDefY;
   const getAuthoredMapWidth = DataMapSizing.getAuthoredMapWidth;
   const TRAINING_LANE_Y = DataMapLayouts.TRAINING_LANE_Y;
   const TOWN_WORLD_HEIGHT = DataMapLayouts.TOWN_WORLD_HEIGHT;
@@ -37,12 +39,47 @@
   const assignTownQuestNpcs = DataMapTown.assignTownQuestNpcs;
   const getMapLayoutRoleFallback = DataMapPresentation.getMapLayoutRoleFallback || ((map) => map && map.safeZone ? 'town' : map && map.bossRoom ? 'bossArena' : map && map.isDungeon ? 'dungeon' : 'trainingField');
 
+  function attachStableSpawnPlatformIds(platforms, spawnPoints) {
+    return Object.freeze((spawnPoints || []).map((point, index) => {
+      const platform = platforms[Number(point && point.platformIndex)];
+      return Object.freeze(Object.assign({}, point, {
+        id: point && point.id || `spawn_${index + 1}`,
+        platformId: String(point && point.platformId || platform && platform.id || '')
+      }));
+    }));
+  }
+
+  function createAuthoredGeometry(map) {
+    const platforms = assignStablePlatformIds(map.id, map.platforms || []);
+    const layoutStyle = map.layoutStyle || 'authored';
+    return Object.assign({}, map, {
+      geometryMode: 'authored',
+      geometryGenerator: '',
+      layoutStyle,
+      layoutRole: map.layoutRole || getMapLayoutRoleFallback(map),
+      worldHeight: Number(map.worldHeight || 0),
+      authoredGroundY: platforms[0] ? getPlatformDefY(platforms[0]) : 520,
+      platforms,
+      terrainVisuals: Array.isArray(map.terrainVisuals) && map.terrainVisuals.length === platforms.length
+        ? Object.freeze(map.terrainVisuals.slice())
+        : makeFieldTerrainVisuals(platforms, layoutStyle),
+      rampConnections: makeRampConnections(map.id, platforms),
+      climbables: Object.freeze((map.climbables || []).map((climbable) => Object.freeze(Object.assign({}, climbable)))),
+      spawnPoints: attachStableSpawnPlatformIds(platforms, map.spawnPoints || [])
+    });
+  }
+
   function applyPartyPlayGeometry(map) {
     if (!map) return map;
+    if (map.geometryMode === 'authored' || map.adminOnly && map.geometryMode !== 'generated') {
+      return createAuthoredGeometry(map);
+    }
     if (map.shopInterior) {
       const width = Math.max(getAuthoredMapWidth(map), Number(map.compactWorldWidth || SHOP_INTERIOR_WORLD_WIDTH));
-      const platforms = [[0, 520, width, 80]];
+      const platforms = assignStablePlatformIds(map.id, [[0, 520, width, 80]]);
       return Object.assign({}, map, {
+        geometryMode: 'generated',
+        geometryGenerator: 'shopInterior',
         layoutStyle: 'shopInterior',
         layoutRole: 'town',
         worldHeight: 0,
@@ -50,17 +87,19 @@
         platforms,
         terrainVisuals: [],
         climbables: [],
-        spawnPoints: [
+        spawnPoints: attachStableSpawnPlatformIds(platforms, [
           { id: `${map.id}_entrance`, x: 180, platformIndex: 0, weight: 1 }
-        ],
+        ]),
         stations: [],
         questNpcs: map.questNpcs || []
       });
     }
     if (map.safeZone) {
       const width = Math.max(getAuthoredMapWidth(map), 3600);
-      const platforms = makeTownPlatforms(width, map.id);
+      const platforms = assignStablePlatformIds(map.id, makeTownPlatforms(width, map.id));
       return Object.assign({}, map, {
+        geometryMode: 'generated',
+        geometryGenerator: 'townVerticalHub',
         layoutStyle: 'townVerticalHub',
         layoutRole: 'town',
         worldHeight: TOWN_WORLD_HEIGHT,
@@ -69,12 +108,12 @@
         terrainVisuals: makeFieldTerrainVisuals(platforms, 'townVerticalHub'),
         rampConnections: makeRampConnections(map.id, platforms),
         climbables: makeTownClimbables(map.id, platforms),
-        spawnPoints: [
+        spawnPoints: attachStableSpawnPlatformIds(platforms, [
           { id: `${map.id}_entry_plaza`, x: 220, platformIndex: 0, weight: 2 },
           { id: `${map.id}_market_walk`, x: 530, platformIndex: 1, weight: 1 },
           { id: `${map.id}_mid_walk`, x: 1120, platformIndex: 4, weight: 1 },
           { id: `${map.id}_high_walk`, x: 1750, platformIndex: 8, weight: 1 }
-        ],
+        ]),
         stations: assignTownStations(map.stations || []),
         questNpcs: assignTownQuestNpcs(map.questNpcs || [])
       });
@@ -82,12 +121,17 @@
     const layoutStyle = getFieldLayoutStyle(map);
     const vertical = isVerticalFieldLayout(layoutStyle);
     const authoredWidth = vertical ? 3600 : getAuthoredMapWidth(map);
-    const width = Math.max(authoredWidth, map.isDungeon ? 4600 : vertical ? 5200 : 8400);
+    const compactWidth = Math.max(0, Number(map.compactWorldWidth || 0));
+    const requestedWidth = compactWidth || authoredWidth;
+    const width = Math.max(requestedWidth, map.isDungeon ? 4600 : vertical ? compactWidth ? 4600 : 5200 : compactWidth ? 4000 : 8400);
     const dungeonSkeleton = map.isDungeon ? getDungeonArenaSkeleton(map.id) : null;
-    const platforms = map.isDungeon
+    const generatedPlatforms = map.isDungeon
       ? makeDungeonArenaPlatforms(width, map.id) || makePartyPlayPlatforms(width, { dungeon: true, variantKey: map.id })
       : makeFieldPlatforms(width, layoutStyle, map.id);
+    const platforms = assignStablePlatformIds(map.id, generatedPlatforms);
     return Object.assign({}, map, {
+      geometryMode: 'generated',
+      geometryGenerator: map.geometryGenerator || (map.isDungeon ? 'dungeonArena' : 'fieldLayout'),
       layoutStyle: map.isDungeon ? 'dungeonArena' : layoutStyle,
       layoutRole: map.layoutRole || getMapLayoutRoleFallback(map),
       arenaSkeleton: dungeonSkeleton ? dungeonSkeleton.id : '',
@@ -98,19 +142,21 @@
       terrainVisuals: makeFieldTerrainVisuals(platforms, map.isDungeon ? 'dungeonArena' : layoutStyle),
       rampConnections: makeRampConnections(map.id, platforms),
       climbables: map.isDungeon ? makeVerticalFieldClimbables(map.id, platforms, 'dungeonArena') : makeFieldClimbables(map.id, platforms, layoutStyle),
-      spawnPoints: map.isDungeon ? makePartyPlaySpawnPoints(platforms) : makeFieldSpawnPoints(platforms)
+      spawnPoints: attachStableSpawnPlatformIds(platforms, map.isDungeon ? makePartyPlaySpawnPoints(platforms) : makeFieldSpawnPoints(platforms))
     });
   }
 
   function makeExpandedTrainingMap(config) {
     const layoutStyle = config.layoutStyle || FIELD_LAYOUT_STYLES[config.id] || 'sharedLanes';
     const width = isVerticalFieldLayout(layoutStyle) ? 5200 : 8400;
-    const platforms = makeFieldPlatforms(width, layoutStyle, config.id);
+    const platforms = assignStablePlatformIds(config.id, makeFieldPlatforms(width, layoutStyle, config.id));
     return {
       id: config.id,
       name: config.name,
       levelRange: config.levelRange,
       safeZone: false,
+      geometryMode: 'generated',
+      geometryGenerator: config.geometryGenerator || 'fieldLayout',
       layoutStyle,
       layoutRole: config.layoutRole || (config.endlessScaling ? 'endlessField' : 'trainingField'),
       scaleEnemies: true,
@@ -128,7 +174,7 @@
       terrainVisuals: makeFieldTerrainVisuals(platforms, layoutStyle),
       rampConnections: makeRampConnections(config.id, platforms),
       climbables: makeFieldClimbables(config.id, platforms, layoutStyle),
-      spawnPoints: makeFieldSpawnPoints(platforms),
+      spawnPoints: attachStableSpawnPlatformIds(platforms, makeFieldSpawnPoints(platforms)),
       stations: [],
       questNpcs: config.questNpcs || []
     };
@@ -136,12 +182,14 @@
 
   function makeBossRoomMap(config) {
     const width = Math.max(4600, Number(config.width || 4600));
-    const platforms = makePartyPlayPlatforms(width, { dungeon: true, variantKey: config.id });
+    const platforms = assignStablePlatformIds(config.id, makePartyPlayPlatforms(width, { dungeon: true, variantKey: config.id }));
     return {
       id: config.id,
       name: config.name,
       levelRange: config.levelRange,
       safeZone: false,
+      geometryMode: 'generated',
+      geometryGenerator: config.geometryGenerator || 'bossArena',
       isDungeon: true,
       bossRoom: true,
       layoutRole: 'bossArena',
@@ -158,7 +206,7 @@
       terrainVisuals: makeFieldTerrainVisuals(platforms, 'bossArena'),
       rampConnections: makeRampConnections(config.id, platforms),
       climbables: makePartyPlayClimbables(config.id, platforms, { dungeon: true }),
-      spawnPoints: makePartyPlaySpawnPoints(platforms),
+      spawnPoints: attachStableSpawnPlatformIds(platforms, makePartyPlaySpawnPoints(platforms)),
       stations: [],
       questNpcs: config.questNpcs || []
     };

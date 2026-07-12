@@ -217,7 +217,7 @@
     if (!PRIORITY_FIELD_LAYOUT_IDS.includes(mapId)) return null;
     const vertical = isVerticalFieldLayout(layoutStyle);
     const lanes = getFieldLaneY(layoutStyle);
-    const worldWidth = Math.max(vertical ? 5200 : 8400, Math.ceil(Number(width || 0) / 100) * 100);
+    const worldWidth = Math.max(vertical ? 4600 : 4000, Math.ceil(Number(width || 0) / 100) * 100);
     const platforms = [makePlatformDef(0, lanes.ground, worldWidth, 80, { kind: 'ground' })];
     const addPlatform = (x, y, w, visualKind) => {
       const safeX = Math.max(120, Math.round(x));
@@ -256,16 +256,15 @@
       const midY = lanes.mid + 10;
       const highY = lanes.high + 20;
       [
-        { lowX: 300, midX: 560, highX: 820, lowW: 1420, midW: 1320, highW: 1220 },
-        { lowX: 2360, midX: 2600, highX: 2860, lowW: 1400, midW: 1320, highW: 1220 },
-        { lowX: 4440, midX: 4700, highX: 4960, lowW: 1420, midW: 1320, highW: 1220 },
-        { lowX: 6320, midX: 6560, highX: 6820, lowW: 1260, midW: 1220, highW: 1120 }
+        { lowX: 320, midX: 580, highX: 840, lowW: 1040, midW: 980, highW: 900 },
+        { lowX: 1520, midX: 1780, highX: 2040, lowW: 1040, midW: 980, highW: 900 },
+        { lowX: 2720, midX: 2980, highX: 3240, lowW: 1100, midW: 1000, highW: 800 }
       ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 260,
-        slopePlan: { lowToMid: [0, 2], midToHigh: [] }
+        rampW: 280,
+        slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
       }, index));
-      addPlatform(1940, lanes.mid - 52, 260, 'hop');
-      addPlatform(5980, lanes.mid - 52, 260, 'hop');
+      addPlatform(1360, lanes.mid - 52, 260, 'hop');
+      addPlatform(2560, lanes.mid - 52, 260, 'hop');
       return platforms;
     }
 
@@ -274,32 +273,27 @@
       const midY = lanes.mid + 6;
       const highY = lanes.high + 14;
       [
-        { lowX: 360, midX: 660, highX: 960, lowW: 1320, midW: 1180, highW: 1060 },
-        { lowX: 2300, midX: 2560, highX: 2880, lowW: 1340, midW: 1200, highW: 1080 },
-        { lowX: 4300, midX: 4580, highX: 4880, lowW: 1340, midW: 1200, highW: 1080 },
-        { lowX: 6260, midX: 6540, highX: 6840, lowW: 1260, midW: 1160, highW: 980 }
+        { lowX: 400, midX: 700, highX: 1000, lowW: 1320, midW: 1180, highW: 1040 },
+        { lowX: 2000, midX: 2300, highX: 2600, lowW: 1320, midW: 1180, highW: 1040 },
+        { lowX: 3600, midX: 3900, highX: 4200, lowW: 1320, midW: 1180, highW: 1040 }
       ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 280,
-        slopePlan: { lowToMid: [1, 3], midToHigh: [0] }
+        rampW: 300,
+        slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
       }, index));
-      addPlatform(6900, midY - 58, 620, 'solidLane');
-      addPlatform(7240, highY - 58, 320, 'hop');
+      addPlatform(3500, midY - 58, 280, 'hop');
       return platforms;
     }
 
     if (mapId === 'orebackQuarry') {
       [
-        { lowX: 300, midX: 620, highX: 940, lowW: 880, midW: 800, highW: 720 },
-        { lowX: 1700, midX: 2020, highX: 2360, lowW: 900, midW: 800, highW: 720 },
-        { lowX: 3100, midX: 3420, highX: 3760, lowW: 900, midW: 800, highW: 720 }
+        { lowX: 400, midX: 700, highX: 1000, lowW: 900, midW: 820, highW: 740 },
+        { lowX: 1780, midX: 2080, highX: 2380, lowW: 920, midW: 820, highW: 740 },
+        { lowX: 3160, midX: 3460, highX: 3760, lowW: 920, midW: 820, highW: 740 }
       ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 280,
-        slopePlan: { lowToMid: [1], midToHigh: [2] }
+        rampW: 300,
+        slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
       }, index));
-      addSlope(2440, lanes.high, lanes.peak, 280);
-      addPlatform(2720, lanes.peak, 820, 'solidLane');
-      addPlatform(4300, lanes.mid - 52, 620, 'solidLane');
-      addFlatConnector(4040, lanes.highConnector, 110);
+      addPlatform(4140, lanes.mid - 52, 440, 'solidLane');
       return platforms;
     }
 
@@ -369,7 +363,7 @@
 
   function makeFieldPlatforms(width, layoutStyle, variantKey) {
     const vertical = isVerticalFieldLayout(layoutStyle);
-    const worldWidth = Math.max(vertical ? 4600 : 6200, Math.ceil(Number(width || 0) / 100) * 100);
+    const worldWidth = Math.max(vertical ? 4600 : 4000, Math.ceil(Number(width || 0) / 100) * 100);
     const priorityPlatforms = makePriorityFieldPlatforms(worldWidth, layoutStyle, variantKey);
     if (priorityPlatforms) return priorityPlatforms;
     const anchors = getFieldZoneAnchors(worldWidth, layoutStyle);
@@ -654,8 +648,8 @@
     add(roofX, lanes.roof, roofW, 'island');
     addSlope(lowMarketX - 220, TOWN_LANE_Y.ground - 8, lanes.low, 300);
     addSlope(midMarketX - 160, lanes.low, lanes.mid, 300);
-    addSlope(highLeftX + highLeftW - 280, lanes.mid, lanes.high, 280);
-    addSlope(highGateX - 280, lanes.mid, lanes.high, 280);
+    addSlope(highLeftX + highLeftW, lanes.high, lanes.mid, 240);
+    addSlope(highGateX + highGateW, lanes.high, lanes.mid, 240);
     add(1960 + shift(29, 26) + profileShift([0, 68, -48, 36]), lanes.roof + 46, 260, 'hop');
     add(3160 + shift(31, 24) + profileShift([0, -62, 54, -40]), lanes.high + 58, 240, 'hop');
     return platforms;

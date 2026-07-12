@@ -1955,6 +1955,49 @@
       display: none;
     }
 
+    @media (max-width: 720px) and (pointer: coarse) {
+      .touch-stick {
+        width: clamp(84px, 25vw, 104px);
+        height: clamp(84px, 25vw, 104px);
+        bottom: calc(12px + env(safe-area-inset-bottom));
+      }
+
+      .touch-stick-move {
+        left: calc(10px + env(safe-area-inset-left));
+      }
+
+      .touch-stick-aim {
+        right: calc(10px + env(safe-area-inset-right));
+      }
+
+      .touch-action-bar {
+        bottom: calc(112px + env(safe-area-inset-bottom));
+        width: min(250px, calc(100% - 32px));
+        gap: 6px;
+      }
+
+      .touch-action-btn {
+        width: 44px;
+        height: 44px;
+      }
+
+      body.is-touch-controls-active .arena-hud {
+        bottom: calc(126px + env(safe-area-inset-bottom));
+        max-width: calc(100% - 20px);
+      }
+
+      body.is-touch-controls-active .arena-objective {
+        bottom: calc(172px + env(safe-area-inset-bottom));
+        max-width: calc(100% - 20px);
+      }
+
+      body.is-touch-controls-active .arena-minimap {
+        width: 92px;
+        height: 92px;
+        bottom: calc(126px + env(safe-area-inset-bottom));
+      }
+    }
+
     body.is-touch-controls-active .arena-hud {
       bottom: calc(142px + env(safe-area-inset-bottom));
       max-width: min(66%, 620px);

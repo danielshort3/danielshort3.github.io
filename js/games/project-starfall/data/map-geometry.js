@@ -69,6 +69,33 @@
     return platform;
   }
 
+  function normalizePlatformIdToken(value, fallback) {
+    const token = String(value || '')
+      .trim()
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toLowerCase();
+    return token || fallback || 'platform';
+  }
+
+  function assignStablePlatformIds(prefix, platforms) {
+    const mapToken = normalizePlatformIdToken(prefix, 'map');
+    const counts = Object.create(null);
+    return Object.freeze((platforms || []).map((platform, index) => {
+      const normalized = Array.isArray(platform)
+        ? makePlatformDef(platform[0], platform[1], platform[2], platform[3], index === 0 ? { kind: 'ground' } : { kind: 'solidLane' })
+        : Object.assign({}, platform || {});
+      const visualKind = index === 0
+        ? 'ground'
+        : normalizePlatformIdToken(getPlatformDefVisualKind(normalized), 'lane');
+      counts[visualKind] = Number(counts[visualKind] || 0) + 1;
+      const suffix = visualKind === 'ground' ? 'ground' : `${visualKind}_${String(counts[visualKind]).padStart(2, '0')}`;
+      normalized.id = String(normalized.id || `${mapToken}_${suffix}`);
+      return Object.freeze(normalized);
+    }));
+  }
+
   function isSlopePlatformDef(platform) {
     return getPlatformDefShape(platform) === 'slope' && Math.abs(getPlatformDefY2(platform) - getPlatformDefY(platform)) >= 1;
   }
@@ -118,8 +145,11 @@
       connections.push(Object.freeze({
         id: `${prefix}_ramp_${connections.length + 1}`,
         rampPlatformIndex: index,
+        rampPlatformId: String(platform && platform.id || ''),
         lowerPlatformIndex: lower.match.index,
+        lowerPlatformId: String(lower.match.platform && lower.match.platform.id || ''),
         upperPlatformIndex: upper.match.index,
+        upperPlatformId: String(upper.match.platform && upper.match.platform.id || ''),
         lowerX: Math.round(lower.x),
         upperX: Math.round(upper.x),
         lowerSide: lower.side,
@@ -141,6 +171,7 @@
     getPlatformDefSurfaceY,
     makePlatformDef,
     makeSlopePlatformDef,
+    assignStablePlatformIds,
     isSlopePlatformDef,
     findRampEndpointPlatformDef,
     makeRampConnections

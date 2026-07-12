@@ -18406,6 +18406,19 @@
         const nodePath = map ? pathsFromCurrentMap.get(map.id) || null : null;
         const lockedReason = map && map.id !== currentMapId && nodePath ? nodePath.lockedReason : map ? '' : 'Area is unavailable.';
         const completed = this.getWorldMapNodeCompletion(map, context);
+        const spawnGroups = map && Array.isArray(map.spawnGroups) ? map.spawnGroups.map((group) => ({
+          id: group.id,
+          label: group.label,
+          sectionId: group.sectionId || '',
+          platformIds: Array.isArray(group.platformIds) ? group.platformIds.slice() : [],
+          enemyWeights: Array.isArray(group.enemyWeights) ? group.enemyWeights.map((entry) => ({ enemyId: entry.enemyId, weight: entry.weight })) : [],
+          population: Math.max(0, Number(group.population || 0)),
+          respawnSeconds: Math.max(0, Number(group.respawnSeconds || 0)),
+          leash: Math.max(0, Number(group.leash || 0)),
+          partyScaling: group.partyScaling || 'none'
+        })) : [];
+        const spawnPopulation = spawnGroups.reduce((total, group) => total + group.population, 0);
+        const spawnCadences = spawnGroups.map((group) => group.respawnSeconds).filter((value) => value > 0);
         const status = map && map.id === currentMapId
           ? 'current'
           : lockedReason
@@ -18435,6 +18448,14 @@
           asset: map ? map.asset : '',
           levelRange: map && Array.isArray(map.levelRange) ? map.levelRange.slice() : [],
           enemies: map && Array.isArray(map.enemies) ? Array.from(new Set(map.enemies)).slice(0, 6) : [],
+          spawnGroups,
+          spawnSummary: {
+            groupCount: spawnGroups.length,
+            population: spawnPopulation,
+            respawnMin: spawnCadences.length ? Math.min(...spawnCadences) : 0,
+            respawnMax: spawnCadences.length ? Math.max(...spawnCadences) : 0,
+            partyScaling: spawnGroups.some((group) => group.partyScaling === 'section-count') ? 'section-count' : 'none'
+          },
           current: !!(map && map.id === currentMapId),
           selected: !!(map && map.id === selectedMapId),
           available: !!(map && !lockedReason),
@@ -26015,7 +26036,61 @@
     }
 
     getFieldRespawnDelay(map) {
-      return Math.min(FIELD_RESPAWN_DELAY_SECONDS, getMapWaveDelay(map));
+      const groups = this.getRuntimeSpawnGroups(map);
+      if (groups.length) return Math.min(...groups.map((group) => group.respawnSeconds));
+      return getMapWaveDelay(map);
+    }
+
+    getRuntimeSpawnGroups(map) {
+      const currentMap = map || getMapDefinitionById(this.state.mapId);
+      if (!currentMap || currentMap.safeZone || currentMap.isDungeon || currentMap.isTrialInstance) return [];
+      if (this.runtime && this.runtime.id === currentMap.id && Array.isArray(this.runtime.spawnGroups)) {
+        return this.runtime.spawnGroups;
+      }
+      return [];
+    }
+
+    getRuntimeSpawnGroupById(spawnGroupId, map) {
+      const id = normalizeId(spawnGroupId);
+      if (!id) return null;
+      return this.getRuntimeSpawnGroups(map).find((group) => group && group.id === id) || null;
+    }
+
+    getSpawnGroupPartySize() {
+      if (typeof this.getActivePrototypePartyMembers !== 'function') return 1;
+      return 1 + this.getActivePrototypePartyMembers().filter((member) => member && Number(member.hp || 0) > 0).length;
+    }
+
+    getSpawnGroupPopulationTarget(group) {
+      if (!group) return 0;
+      const population = Math.max(1, Math.floor(Number(group.population || 0)) || 1);
+      if (group.partyScaling !== 'section-count') return population;
+      const partyBonus = Math.max(0, this.getSpawnGroupPartySize() - 1) * Math.max(0, Number(group.partyBonusPerMember || 0));
+      return Math.min(Math.max(population, Number(group.maxPopulation || population)), Math.floor(population + partyBonus));
+    }
+
+    getSpawnGroupAliveCount(spawnGroupId) {
+      const id = normalizeId(spawnGroupId);
+      if (!id) return 0;
+      return (this.enemies || []).filter((enemy) => enemy && enemy.spawnGroupId === id && Number(enemy.hp || 0) > 0 && !Number(enemy.removeAt || 0)).length;
+    }
+
+    getSpawnGroupEnemyId(group, index) {
+      const weights = group && Array.isArray(group.enemyWeights) ? group.enemyWeights : [];
+      const selected = weightedItem(weights);
+      return normalizeId(selected && selected.enemyId || weights[Number(index || 0) % Math.max(1, weights.length)] && weights[Number(index || 0) % Math.max(1, weights.length)].enemyId);
+    }
+
+    decorateSpawnPointWithGroup(spawn, group) {
+      if (!spawn || !group) return spawn;
+      return Object.assign({}, spawn, {
+        spawnGroupId: group.id,
+        spawnGroupLabel: group.label,
+        spawnGroupLeash: group.leash,
+        spawnActorTraversal: group.actorTraversal,
+        sectionId: group.sectionId || spawn.sectionId || '',
+        sectionLabel: group.label || spawn.sectionLabel || ''
+      });
     }
 
     getWaveMax(map) {
@@ -26023,6 +26098,8 @@
       if (!currentMap || currentMap.safeZone) return 0;
       const fixedSpawns = this.getFixedEnemySpawns(currentMap);
       if (fixedSpawns.length) return fixedSpawns.length;
+      const spawnGroups = this.getRuntimeSpawnGroups(currentMap);
+      if (spawnGroups.length) return spawnGroups.reduce((total, group) => total + this.getSpawnGroupPopulationTarget(group), 0);
       const spawns = currentMap.enemies || [];
       return Math.max(1, Number(currentMap.waveMax) || Math.min(DEFAULT_WAVE_MAX, spawns.length + 2));
     }
@@ -26072,6 +26149,23 @@
           if (!enemyData) break;
           this.enemies.push(this.createEnemy(enemyData, this.chooseFixedEnemySpawnPoint(fixedSpawn, index)));
         }
+        return;
+      }
+      const spawnGroups = this.isTrainingRespawnMap(map) ? this.getRuntimeSpawnGroups(map) : [];
+      if (spawnGroups.length) {
+        const reservations = [];
+        spawnGroups.forEach((group) => {
+          const targetPopulation = this.getSpawnGroupPopulationTarget(group);
+          for (let groupIndex = 0; groupIndex < targetPopulation; groupIndex += 1) {
+            const enemyId = this.getSpawnGroupEnemyId(group, groupIndex);
+            const enemyData = getEnemyDefinitionById(enemyId);
+            if (!enemyData) continue;
+            const spawn = this.chooseInitialFieldSpawnPoint(groupIndex, reservations, group);
+            if (!spawn) continue;
+            this.enemies.push(this.createEnemy(enemyData, spawn));
+            reservations.push(spawn);
+          }
+        });
         return;
       }
       if (map.isDungeon && map.dungeonId) this.refreshDungeonBossRespawnState(map.dungeonId);
@@ -26167,13 +26261,15 @@
         : fallbackPlatformIndex;
       return {
         enemyId: enemy.id,
+        spawnGroupId: normalizeId(enemy.spawnGroupId),
         spawnPointId: normalizeId(enemy.spawnPointId),
         spawnX: Number.isFinite(Number(enemy.spawnX)) ? Number(enemy.spawnX) : Number(enemy.x || 0),
         spawnY: Number.isFinite(Number(enemy.spawnY)) ? Number(enemy.spawnY) : Number(enemy.y || 0),
         spawnPlatformId: normalizeId(enemy.spawnPlatformId || enemy.groundedPlatformId),
         spawnPlatformIndex,
         spawnSectionId: normalizeId(enemy.spawnSectionId),
-        spawnSectionLabel: String(enemy.spawnSectionLabel || '')
+        spawnSectionLabel: String(enemy.spawnSectionLabel || ''),
+        respawnAt: 0
       };
     }
 
@@ -26378,18 +26474,40 @@
       }, 0);
     }
 
-    chooseInitialFieldSpawnPoint(index, reservations) {
-      const points = (this.runtime.spawnPoints || []).filter((point) => point && this.runtime.platforms[point.platformIndex]);
-      if (!points.length) return this.chooseSpawnPoint(index, { initial: true });
+    chooseInitialFieldSpawnPoint(index, reservations, spawnGroup) {
+      const group = spawnGroup && typeof spawnGroup === 'object' ? spawnGroup : null;
+      const groupPlatformIds = new Set(group && group.platformIds || []);
+      let points = (this.runtime.spawnPoints || []).filter((point) => point && this.runtime.platforms[point.platformIndex] && (!group || groupPlatformIds.has(point.platformId)));
+      if (group) {
+        const generatedPoints = (group.platformIndices || []).flatMap((platformIndex, platformOffset) => {
+          const platform = this.runtime.platforms[platformIndex];
+          if (!platform) return [];
+          return [0.14, 0.32, 0.5, 0.68, 0.86].map((ratio, pointOffset) =>
+            this.createSpawnPointOnPlatform(platform, platform.x + platform.w * ratio, `${group.id}_generated_${platformOffset + 1}_${pointOffset + 1}`)
+          ).filter(Boolean);
+        });
+        const uniquePoints = new Map();
+        points.concat(generatedPoints).forEach((point) => {
+          if (!point) return;
+          const key = `${point.platformId}:${Math.round(Number(point.x || 0))}`;
+          if (!uniquePoints.has(key)) uniquePoints.set(key, this.decorateSpawnPointWithGroup(point, group));
+        });
+        points = Array.from(uniquePoints.values());
+      }
+      if (!points.length) return group ? null : this.chooseSpawnPoint(index, { initial: true });
       const player = this.state && this.state.player;
       const playerCenterX = player ? Number(player.x || 0) + Number(player.w || 0) / 2 : -100000;
       const reservedAreaKeys = new Set((reservations || [])
         .map((reserved) => this.getFieldSpawnAreaKey(reserved))
         .filter(Boolean));
+      const reservedPositionKeys = new Set((reservations || [])
+        .map((reserved) => reserved && `${normalizeId(reserved.platformId)}:${Math.round(Number(reserved.x || 0))}`)
+        .filter(Boolean));
       const candidates = points
         .map((point, pointIndex) => {
           const spawn = Object.assign({}, point);
           const areaKey = this.getFieldSpawnAreaKey(spawn);
+          const positionKey = `${normalizeId(spawn.platformId)}:${Math.round(Number(spawn.x || 0))}`;
           const reservationScore = (reservations || []).reduce((score, reserved) => {
             if (!reserved) return score;
             const sameArea = this.getFieldSpawnAreaKey(reserved) === areaKey;
@@ -26406,6 +26524,7 @@
           }, 0);
           return {
             areaKey,
+            positionKey,
             spawn,
             score:
               reservationScore +
@@ -26414,15 +26533,27 @@
           };
         });
       const unusedAreaCandidates = candidates.filter((candidate) => candidate.areaKey && !reservedAreaKeys.has(candidate.areaKey));
-      const scored = (unusedAreaCandidates.length ? unusedAreaCandidates : candidates)
+      const unusedPositionCandidates = candidates.filter((candidate) => candidate.positionKey && !reservedPositionKeys.has(candidate.positionKey));
+      const unusedAreaAndPositionCandidates = unusedAreaCandidates
+        .filter((candidate) => candidate.positionKey && !reservedPositionKeys.has(candidate.positionKey));
+      const scored = (unusedAreaAndPositionCandidates.length
+        ? unusedAreaAndPositionCandidates
+        : unusedPositionCandidates.length
+          ? unusedPositionCandidates
+          : unusedAreaCandidates.length
+            ? unusedAreaCandidates
+            : candidates)
         .sort((a, b) => a.score - b.score);
-      return scored[0] ? scored[0].spawn : this.chooseSpawnPoint(index, { initial: true });
+      const selected = scored[0] ? scored[0].spawn : group ? null : this.chooseSpawnPoint(index, { initial: true });
+      return this.decorateSpawnPointWithGroup(selected, group);
     }
 
     createFieldRespawnCandidates(replacement, index) {
       const runtime = this.runtime || {};
       const platforms = Array.isArray(runtime.platforms) ? runtime.platforms : [];
       const entry = replacement && typeof replacement === 'object' ? replacement : {};
+      const spawnGroup = this.getRuntimeSpawnGroupById(entry.spawnGroupId);
+      const spawnGroupPlatformIds = new Set(spawnGroup && spawnGroup.platformIds || []);
       const origin = replacement && typeof replacement === 'object'
         ? this.chooseWaveReplacementSpawnPoint(replacement, index)
         : this.chooseSpawnPoint(index, { replacement: true });
@@ -26440,11 +26571,13 @@
         if (!spawn) return;
         const platform = this.getSpawnPointPlatform(spawn);
         if (!platform) return;
+        if (spawnGroup && !spawnGroupPlatformIds.has(platform.id)) return;
         const candidateSpawn = Object.assign({}, spawn, {
           y: Number(spawn.y || getPlatformSurfaceY(platform, Number(spawn.x || platform.x + platform.w / 2))),
           platformIndex: platform.index,
           platformId: platform.id
         });
+        if (spawnGroup) Object.assign(candidateSpawn, this.decorateSpawnPointWithGroup(candidateSpawn, spawnGroup));
         if (!candidateSpawn.sectionId) {
           const section = this.getRuntimeSpawnSectionForX(candidateSpawn.x);
           candidateSpawn.sectionId = section ? section.id : '';
@@ -26537,11 +26670,24 @@
       const selected = [];
       const remaining = [];
       const reservations = [];
+      const groupReservations = {};
       const now = nowSeconds();
       pending.forEach((replacement, index) => {
         if (selected.length >= limit) {
           remaining.push(replacement);
           return;
+        }
+        if (Number(replacement && replacement.respawnAt || 0) > now) {
+          remaining.push(replacement);
+          return;
+        }
+        const spawnGroup = this.getRuntimeSpawnGroupById(replacement && replacement.spawnGroupId);
+        if (spawnGroup) {
+          const reservedCount = Number(groupReservations[spawnGroup.id] || 0);
+          if (this.getSpawnGroupAliveCount(spawnGroup.id) + reservedCount >= this.getSpawnGroupPopulationTarget(spawnGroup)) {
+            remaining.push(replacement);
+            return;
+          }
         }
         const spawn = this.chooseFieldWaveReplacementSpawnPoint(replacement, index, { wave, reservations, now });
         if (!spawn || !this.isFieldRespawnSpawnSafe(spawn)) {
@@ -26550,9 +26696,20 @@
         }
         selected.push({ replacement, spawn });
         reservations.push(spawn);
+        if (spawnGroup) groupReservations[spawnGroup.id] = Number(groupReservations[spawnGroup.id] || 0) + 1;
       });
       wave.pending = remaining;
       return selected;
+    }
+
+    getNextWaveRespawnAt(wave, fallbackDelay) {
+      const pending = wave && Array.isArray(wave.pending) ? wave.pending : [];
+      if (!pending.length) return 0;
+      const now = nowSeconds();
+      const scheduled = pending
+        .map((entry) => Number(entry && entry.respawnAt || 0))
+        .filter((value) => value > now);
+      return scheduled.length ? Math.min(...scheduled) : now + WAVE_RESPAWN_BLOCK_RETRY_SECONDS;
     }
 
     isWaveRespawnBlockedByPlayer(wave) {
@@ -26601,10 +26758,14 @@
       if (map.isDungeon && enemy.data && enemy.data.behavior === 'boss') return;
       const wave = this.getWaveState(map.id);
       const replacement = this.createWaveReplacementEntry(enemy);
+      const spawnGroup = this.getRuntimeSpawnGroupById(replacement.spawnGroupId, map);
+      const respawnDelay = spawnGroup ? spawnGroup.respawnSeconds : this.isTrainingRespawnMap(map) ? this.getFieldRespawnDelay(map) : wave.delay;
+      replacement.respawnAt = spawnGroup ? nowSeconds() + respawnDelay : 0;
       wave.firstDefeat = true;
       wave.pending.push(replacement);
       if (this.isTrainingRespawnMap(map)) this.addFieldSpawnPressure(wave, replacement, FIELD_RESPAWN_KILL_PRESSURE);
-      if (!wave.nextAt) wave.nextAt = nowSeconds() + (this.isTrainingRespawnMap(map) ? this.getFieldRespawnDelay(map) : wave.delay);
+      const nextAt = replacement.respawnAt || nowSeconds() + respawnDelay;
+      if (!wave.nextAt || nextAt < wave.nextAt) wave.nextAt = nextAt;
     }
 
     updateWaveSpawns() {
@@ -26621,12 +26782,15 @@
       if (trainingRespawns) {
         const batch = this.selectFieldWaveRespawnBatch(wave, openSlots);
         if (!batch.length) {
-          wave.nextAt = now + WAVE_RESPAWN_BLOCK_RETRY_SECONDS;
+          wave.nextAt = this.getNextWaveRespawnAt(wave, respawnDelay);
           return;
         }
         let spawned = 0;
         batch.forEach((entry) => {
-          const enemyId = this.getWaveReplacementEnemyId(entry.replacement);
+          const spawnGroup = this.getRuntimeSpawnGroupById(entry.replacement && entry.replacement.spawnGroupId, map);
+          const enemyId = spawnGroup
+            ? this.getSpawnGroupEnemyId(spawnGroup, this.getSpawnGroupAliveCount(spawnGroup.id))
+            : this.getWaveReplacementEnemyId(entry.replacement);
           const enemyData = getEnemyDefinitionById(enemyId) || getEnemyDefinitionById((map.enemies || [])[0]);
           if (!enemyData) return;
           this.enemies.push(this.createEnemy(enemyData, entry.spawn));
@@ -26634,7 +26798,7 @@
           spawned += 1;
         });
         wave.spawnedSinceToast = Math.max(0, Number(wave.spawnedSinceToast) || 0) + spawned;
-        wave.nextAt = wave.pending.length ? now + respawnDelay : 0;
+        wave.nextAt = this.getNextWaveRespawnAt(wave, respawnDelay);
         if (spawned && !wave.pending.length) {
           this.toast(`Respawn batch arrived: ${Math.max(spawned, Number(wave.spawnedSinceToast) || spawned)}.`);
           wave.spawnedSinceToast = 0;
@@ -27591,6 +27755,8 @@
         adminSpawned: !!spawnPoint.adminSpawned,
         temporarySpawn: !!spawnPoint.temporarySpawn || !!spawnPoint.temporary,
         preventWaveRespawn: !!spawnPoint.preventWaveRespawn || !!spawnPoint.temporarySpawn || !!spawnPoint.temporary || !!spawnPoint.adminSpawned,
+        spawnGroupId: normalizeId(spawnPoint.spawnGroupId),
+        spawnGroupLabel: String(spawnPoint.spawnGroupLabel || ''),
         spawnPointId: normalizeId(spawnPoint.id || spawnPoint.spawnPointId),
         spawnX: x,
         spawnY: y,
@@ -27598,7 +27764,12 @@
         spawnPlatformIndex: platform ? platform.index : 0,
         spawnSectionId: normalizeId(spawnPoint.sectionId),
         spawnSectionLabel: String(spawnPoint.sectionLabel || ''),
-        wanderLeash: enemyData.behavior === 'flyer' ? ENEMY_WANDER_LEASH_RANGE * 0.9 : ENEMY_WANDER_LEASH_RANGE,
+        spawnActorTraversal: spawnPoint.spawnActorTraversal && typeof spawnPoint.spawnActorTraversal === 'object'
+          ? Object.assign({}, spawnPoint.spawnActorTraversal)
+          : null,
+        wanderLeash: Number(spawnPoint.spawnGroupLeash || 0) > 0
+          ? Math.max(90, Number(spawnPoint.spawnGroupLeash))
+          : enemyData.behavior === 'flyer' ? ENEMY_WANDER_LEASH_RANGE * 0.9 : ENEMY_WANDER_LEASH_RANGE,
         wanderTargetX: x + (Math.random() < 0.5 ? -1 : 1) * Math.min(120, ENEMY_WANDER_LEASH_RANGE * 0.45),
         wanderUntil: nowSeconds() + ENEMY_WANDER_MOVE_MIN_SECONDS + Math.random() * (ENEMY_WANDER_MOVE_MAX_SECONDS - ENEMY_WANDER_MOVE_MIN_SECONDS),
         wanderPauseUntil: 0,
@@ -41309,11 +41480,40 @@
 
     drawPortalLabel(ctx, portal, locked) {
       const cx = portal.x + portal.w / 2;
+      const vendorType = normalizeId(portal && portal.shopVendorType);
+      const shopLabel = {
+        weapon: 'Weapon',
+        armor: 'Armor',
+        supply: 'Supply',
+        special: 'Special'
+      }[vendorType];
+      const rawLabel = String(shopLabel || portal.label || portal.destinationName || 'Portal');
+      const label = rawLabel.length > 22 ? `${rawLabel.slice(0, 21)}...` : rawLabel;
+      const viewLeft = Number(this.camera && this.camera.x || 0);
+      const viewRight = viewLeft + Math.max(1, this.getWorldViewWidth());
+      const edgePad = portal.shopDoor ? 70 : 62;
+      const labelX = clamp(cx, viewLeft + edgePad, Math.max(viewLeft + edgePad, viewRight - edgePad));
+      const labelY = portal.y - 10 - (vendorType === 'armor' || vendorType === 'special' ? 13 : 0);
       ctx.save();
-      ctx.fillStyle = locked ? '#5f6f7a' : '#102033';
-      ctx.font = '900 11px system-ui';
+      ctx.fillStyle = locked ? '#d7dde3' : '#ffffff';
+      ctx.strokeStyle = 'rgba(9,31,59,0.96)';
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.font = `900 ${portal.shopDoor ? 10 : 10}px system-ui`;
       ctx.textAlign = 'center';
-      ctx.fillText(portal.label, cx, portal.y - 10);
+      ctx.strokeText(label, labelX, labelY);
+      ctx.fillText(label, labelX, labelY);
+      if (!portal.shopDoor) {
+        const direction = cx < labelX ? -1 : cx > labelX ? 1 : portal.returnPortal ? -1 : cx < this.runtime.worldWidth / 2 ? -1 : 1;
+        const markerX = labelX + direction * (Math.min(62, Math.max(30, label.length * 3.2)) + 8);
+        ctx.fillStyle = locked ? '#8a97a5' : portal.bossPortal ? '#b073ff' : '#36c5ff';
+        ctx.beginPath();
+        ctx.moveTo(markerX + direction * 8, labelY - 4);
+        ctx.lineTo(markerX - direction * 4, labelY - 10);
+        ctx.lineTo(markerX - direction * 4, labelY + 2);
+        ctx.closePath();
+        ctx.fill();
+      }
       ctx.restore();
     }
 

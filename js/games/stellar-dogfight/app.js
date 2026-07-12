@@ -717,6 +717,7 @@
         commandMenu: document.querySelector("[data-role='command-menu']"),
         commandBackdrop: document.querySelector("[data-role='command-backdrop']"),
         topbarSummary: document.querySelector("[data-role='topbar-summary']"),
+        flightStatus: document.querySelector("[data-role='flight-status']"),
         touchControls: document.querySelector("[data-role='touch-controls']"),
         touchMove: document.querySelector("[data-touch-stick='move']"),
         touchAim: document.querySelector("[data-touch-stick='aim']"),
@@ -5047,7 +5048,7 @@
           abilityTimer: 0,
           abilityCooldown: 0,
           secondaryCooldown: 0,
-          invulnerable: 0
+          invulnerable: 3
         };
       }
 
@@ -10470,6 +10471,15 @@
           : objectiveBase;
         setCachedText(stats.objective, objectiveText);
         setCachedText(stats.objectiveHud, objectiveText);
+        if (dom.flightStatus && now - (state.lastAccessibleHudUpdate || 0) >= 2000) {
+          state.lastAccessibleHudUpdate = now;
+          const hullState = hullPct <= 25 ? "critical hull" : `${Math.round(hullPct)} percent hull`;
+          const shieldState = player.maxShield > 0 ? `${Math.round(shieldPct)} percent shield` : "no shield";
+          setCachedText(
+            dom.flightStatus,
+            `${getRunModeLabel()}, wave ${getWaveDisplay(state.wave)}. ${enemies.length} enemies. ${hullState}, ${shieldState}. Objective: ${objectiveText}.`
+          );
+        }
         if (stats.modeLabel) {
           if (state.training) {
             setCachedText(stats.modeLabel, "Training");

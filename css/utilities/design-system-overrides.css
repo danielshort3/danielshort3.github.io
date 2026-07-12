@@ -2392,6 +2392,14 @@
     font-family: var(--font-sans);
   }
 
+  .footer.footer-classic .footer-identity-name {
+    color: #ffffff;
+  }
+
+  .footer.footer-classic .footer-identity-summary {
+    color: color-mix(in srgb, #ffffff 84%, var(--brand-mist) 16%);
+  }
+
   .site-chatbot__launcher {
     background: var(--cta-blue);
     color: var(--cta-blue-text);

@@ -7,7 +7,7 @@
   <title>Stellar Dogfight | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/games/stellar-dogfight">
   <meta name="theme-color" content="#0b1220" />
-  <link rel="stylesheet" href="dist/styles.7ca0dca9.css" />
+  <link rel="stylesheet" href="dist/styles.2e78b967.css" />
   <link rel="stylesheet" href="css/games/stellar-dogfight.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -770,7 +770,9 @@
 
       <div class="mission-main">
         <div class="arena-frame">
-          <canvas data-role="battlefield"></canvas>
+          <p id="stellar-dogfight-controls" class="visually-hidden">Move with WASD or the left touch stick. Aim with the mouse, keyboard aim keys, controller, or the right touch stick. Open Help for the complete control list.</p>
+          <p id="stellar-dogfight-flight-status" class="visually-hidden" data-role="flight-status" role="status" aria-live="polite" aria-atomic="true">Hangar ready. Choose Play Campaign or Practice.</p>
+          <canvas data-role="battlefield" role="img" tabindex="0" aria-label="Stellar Dogfight combat field" aria-describedby="stellar-dogfight-controls stellar-dogfight-flight-status"></canvas>
           <div class="arena-overlay" data-role="overlay">
             <div class="overlay-card" data-role="overlay-content"></div>
           </div>
@@ -868,6 +870,7 @@
     </section>
   </main>
 
+  <script defer src="dist/site-shell.58088932.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
   <script src="/js/games/stellar-dogfight/data.js"></script>
   <script src="/js/games/stellar-dogfight/audio.js"></script>

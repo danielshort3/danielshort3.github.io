@@ -29,6 +29,19 @@ function platformRight(platform) {
   return platformX(platform) + platformW(platform);
 }
 
+function platformSurfaceY(platform, x) {
+  const y = platformY(platform);
+  const y2 = platformY2(platform);
+  if (platformShape(platform) !== 'slope' || Math.abs(y2 - y) < 1) return y;
+  const ratio = Math.max(0, Math.min(1, (Number(x || 0) - platformX(platform)) / Math.max(1, platformW(platform))));
+  return y + (y2 - y) * ratio;
+}
+
+function platformVisualKind(platform) {
+  if (platformShape(platform) === 'slope') return 'slope';
+  return String(platform && !Array.isArray(platform) && platform.terrainVisual && platform.terrainVisual.kind || 'flat');
+}
+
 function getMapSlopeBudget(map) {
   const role = String(map && map.layoutRole || '');
   if (map && map.shopInterior) return { maxSlopes: 0, maxGrade: 0, maxSlopesPerWindow: 0 };
@@ -72,10 +85,35 @@ function validateMap(map) {
     return Math.max(max, rise / Math.max(1, platformW(entry.platform)));
   }, 0);
   const maxSlopesInWindow = countSlopesInWindow(slopes, 1200);
+  const severeOverlaps = [];
+  for (let leftIndex = 1; leftIndex < platforms.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < platforms.length; rightIndex += 1) {
+      const leftPlatform = platforms[leftIndex];
+      const rightPlatform = platforms[rightIndex];
+      if (platformShape(leftPlatform) !== 'slope' && platformShape(rightPlatform) !== 'slope') continue;
+      const slope = platformShape(leftPlatform) === 'slope' ? leftPlatform : rightPlatform;
+      const flat = platformShape(leftPlatform) === 'slope' ? rightPlatform : leftPlatform;
+      if (['connector', 'hop'].includes(platformVisualKind(flat))) continue;
+      const overlapLeft = Math.max(platformX(flat), platformX(slope));
+      const overlapRight = Math.min(platformRight(flat), platformRight(slope));
+      if (overlapRight - overlapLeft < 260) continue;
+      const middle = (overlapLeft + overlapRight) / 2;
+      if (Math.abs(platformY(flat) - platformSurfaceY(slope, middle)) <= 40) {
+        severeOverlaps.push(Math.round(middle));
+      }
+    }
+  }
+  const platformIds = platforms.map((platform) => String(platform && !Array.isArray(platform) && platform.id || ''));
 
   if (!map || !map.id) issues.push('Map is missing an id.');
   if (!platforms.length) issues.push(`${map.id} has no platforms.`);
   if (!map.shopInterior && !map.layoutRole) issues.push(`${map.id} is missing layoutRole metadata.`);
+  if (!['authored', 'generated'].includes(String(map && map.geometryMode || ''))) {
+    issues.push(`${map.id} is missing an explicit authored/generated geometryMode.`);
+  }
+  if (platformIds.some((id) => !id) || new Set(platformIds).size !== platformIds.length) {
+    issues.push(`${map.id} platform ids must be present and unique.`);
+  }
   if (slopes.length > budget.maxSlopes) {
     issues.push(`${map.id} uses ${slopes.length} slopes; budget is ${budget.maxSlopes}.`);
   }
@@ -93,15 +131,18 @@ function validateMap(map) {
       issues.push(`${map.id} slope platform ${entry.index} is missing a ramp connection.`);
     }
   });
-  if (!map.shopInterior && broadFlats.length < Math.max(2, slopes.length)) {
+  if (!map.shopInterior && !map.adminOnly && broadFlats.length < Math.max(2, slopes.length)) {
     issues.push(`${map.id} has ${broadFlats.length} broad flat lanes for ${slopes.length} slopes; add more flat combat/rest space.`);
   }
+  severeOverlaps.forEach((x) => issues.push(`${map.id} has a severe platform/slope overlap near x=${x}.`));
   (map.spawnPoints || []).forEach((spawn) => {
     const platform = platforms[Number(spawn.platformIndex)];
     if (!platform) {
       issues.push(`${map.id} spawn at x=${spawn.x} references missing platform ${spawn.platformIndex}.`);
     } else if (platformShape(platform) === 'slope') {
       issues.push(`${map.id} spawn at x=${spawn.x} is placed on slope platform ${spawn.platformIndex}.`);
+    } else if (String(spawn.platformId || '') !== String(platform.id || '')) {
+      issues.push(`${map.id} spawn at x=${spawn.x} has stale platformId ${spawn.platformId || '(missing)'}.`);
     }
   });
   if (!map.shopInterior && !map.safeZone && !map.spawnPoints.length) {
