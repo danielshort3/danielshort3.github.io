@@ -1058,14 +1058,18 @@ function renderPortfolioStaticResults(projects) {
       : '';
 
     return [
-      `<a class="portfolio-result-card" role="listitem" href="portfolio/${escapeHtml(encodeURIComponent(id))}" data-project-id="${escapeHtml(id)}">`,
+      `<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem" data-project-id="${escapeHtml(id)}">`,
       `  <span class="portfolio-result-card__media" aria-hidden="true">${media}</span>`,
-      '  <span class="portfolio-result-card__body">',
-      `    <span class="portfolio-result-card__title">${escapeHtml(title)}</span>`,
-      summary ? `    <span class="portfolio-result-card__summary">${escapeHtml(summary)}</span>` : '',
+      '  <div class="portfolio-result-card__body">',
+      `    <h2 class="portfolio-result-card__title">${escapeHtml(title)}</h2>`,
+      summary ? `    <p class="portfolio-result-card__summary">${escapeHtml(summary)}</p>` : '',
       chips ? `    ${chips}` : '',
-      '  </span>',
-      '</a>'
+      '    <div class="portfolio-result-card__actions">',
+      `      <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>`,
+      `      <a class="portfolio-result-card__open" href="portfolio/${escapeHtml(encodeURIComponent(id))}" data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>`,
+      '    </div>',
+      '  </div>',
+      '</article>'
     ].filter(Boolean).join('\n');
   }).filter(Boolean).join('\n');
 }

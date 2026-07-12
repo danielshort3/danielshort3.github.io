@@ -894,6 +894,10 @@
     }
 
     body[data-page="analytics"].home-pattern-page .jump-panel[data-story-rail="true"]::before {
+      content: none;
+    }
+
+    body[data-page="analytics"].home-pattern-page .jump-panel[data-story-rail="true"] .jump-panel-track::before {
       content: "Chapters";
     }
 

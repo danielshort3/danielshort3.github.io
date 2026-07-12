@@ -18,6 +18,7 @@ const manifestPath = path.join(outDir, 'scripts-manifest.json');
 
 const entries = [
   { entry: path.join(root, 'build', 'entries', 'site-shell.entry.js'), baseName: 'site-shell', manifestKey: 'shell' },
+  { entry: path.join(root, 'build', 'entries', 'site-home.entry.js'), baseName: 'site-home', manifestKey: 'home' },
   { entry: path.join(root, 'build', 'entries', 'site-consent.entry.js'), baseName: 'site-consent', manifestKey: 'consent' },
   { entry: path.join(root, 'build', 'entries', 'site-contact.entry.js'), baseName: 'site-contact', manifestKey: 'contact' },
   { entry: path.join(root, 'build', 'entries', 'site-search.entry.js'), baseName: 'site-search', manifestKey: 'search' },

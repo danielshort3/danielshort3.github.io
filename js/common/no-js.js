@@ -5,6 +5,20 @@
     if (!root) return;
     if (root.classList) {
       root.classList.remove('no-js');
+      try {
+        const query = new URLSearchParams(window.location.search || '');
+        const audience = String(query.get('audience') || '').trim().toLowerCase();
+        const mode = String(query.get('mode') || '').trim().toLowerCase();
+        const professionalAudience = ['analytics', 'data-science', 'tourism'].includes(audience);
+        const legacyProfessionalMode = ['professional', 'work', 'career', 'analytics'].includes(mode);
+        const path = String(window.location.pathname || '/').replace(/\.html$/i, '').replace(/\/+$/, '') || '/';
+        const sharedAudiencePage = path === '/portfolio'
+          || path.startsWith('/portfolio/')
+          || path === '/contact';
+        if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
+          root.classList.add('site-realm-query-pending');
+        }
+      } catch {}
       const STORAGE_KEY = 'sitePageTransition';
       const TRANSITION_TTL_MS = 4000;
       const normalizePathname = (pathname) => {

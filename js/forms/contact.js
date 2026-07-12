@@ -71,6 +71,7 @@
       if (!parsed || typeof parsed !== 'object') return null;
       const url = typeof parsed.url === 'string' ? parsed.url.trim() : '';
       const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
+      const audience = typeof parsed.audience === 'string' ? parsed.audience.trim() : '';
       const ts = Number(parsed.ts || 0);
       if (!url && !title) {
         clearStoredContext();
@@ -80,7 +81,7 @@
         clearStoredContext();
         return null;
       }
-      return { url, title };
+      return { url, title, audience };
     } catch {
       clearStoredContext();
       return null;
@@ -95,13 +96,18 @@
     }
     const url = (window.location && window.location.href) ? window.location.href.trim() : '';
     const title = (document.title || '').trim();
-    return { url, title };
+    const audience = typeof window.getSiteAudience === 'function'
+      ? window.getSiteAudience()
+      : String(document.body?.dataset?.audience || 'personal').trim();
+    return { url, title, audience };
   };
 
-  const appendPageContext = (message = '') => {
-    const context = getPageContext();
+  const appendPageContext = (message = '', context = getPageContext()) => {
     if (!context || (!context.url && !context.title)) return message;
-    const label = context.title ? `Page: ${context.title} - ${context.url}` : `Page: ${context.url}`;
+    const audienceLabel = context.audience && context.audience !== 'personal'
+      ? `\nAudience: ${context.audience}`
+      : '';
+    const label = `${context.title ? `Page: ${context.title} - ${context.url}` : `Page: ${context.url}`}${audienceLabel}`;
     if (message.includes(label)) return message;
     return message ? `${message}\n\n${label}` : label;
   };
@@ -319,10 +325,14 @@
       updateSubmitState();
       try {
         const formData = new FormData(form);
+        const pageContext = getPageContext();
         const payload = {
           name: (formData.get('name') || '').toString().trim(),
           email: (formData.get('email') || '').toString().trim(),
-          message: appendPageContext((formData.get('message') || '').toString().trim()),
+          message: appendPageContext((formData.get('message') || '').toString().trim(), pageContext),
+          audience: pageContext.audience || 'personal',
+          pageUrl: pageContext.url || '',
+          pageTitle: pageContext.title || '',
           company: (formData.get('company') || '').toString().trim()
         };
         const res = await fetch(endpoint, {

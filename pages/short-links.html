@@ -21,7 +21,7 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.4cbad3f5.css">
+  <link rel="stylesheet" href="dist/styles.7ca0dca9.css">
   <link rel="stylesheet" href="dist/styles-tools.f1eb2bf7.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -30,7 +30,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.0a877445.js"></script>
+  <script defer src="dist/site-shell.48da09c4.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="twitter:title" content="Short Links (Admin) | Daniel Short">
   <meta name="twitter:description" content="Private dashboard for managing short redirect links.">
@@ -55,6 +55,7 @@
           <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+
           <div class="nav-item nav-item-portfolio">
             <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
               Projects
@@ -392,7 +393,7 @@
                         <label for="shortlinks-audience">Audience target</label>
                         <select id="shortlinks-audience" data-shortlinks="audience">
                           <option value="personal">Personal site</option>
-                          <option value="analytics" selected>Professional site</option>
+                          <option value="analytics" selected>Data Analytics</option>
                           <option value="data-science">Data Science</option>
                           <option value="tourism">Tourism</option>
                         </select>
@@ -535,8 +536,24 @@
                     <form class="contact-form shortlinks-form" data-shortlinks="set-generate">
                       <div class="shortlinks-form-grid shortlinks-form-grid-set">
                         <div class="form-field">
+                          <label for="shortlinks-batch-preset">Generation preset</label>
+                          <select id="shortlinks-batch-preset" data-shortlinks="batch-preset">
+                            <option value="standard" selected>Standard</option>
+                            <option value="company-share">Company share</option>
+                          </select>
+                          <p class="contact-form-note">Company share uses random codes and recommends a temporary expiration.</p>
+                        </div>
+                        <div class="form-field">
                           <label for="shortlinks-batch-title">Generated set name</label>
                           <input id="shortlinks-batch-title" type="text" autocomplete="off" spellcheck="false" placeholder="Data Analyst Resume · Acme · Data Analyst" data-shortlinks="batch-title">
+                        </div>
+                        <div class="form-field">
+                          <label for="shortlinks-batch-company">Company</label>
+                          <input id="shortlinks-batch-company" type="text" autocomplete="organization" maxlength="160" placeholder="Acme" data-shortlinks="batch-company">
+                        </div>
+                        <div class="form-field">
+                          <label for="shortlinks-batch-role">Role</label>
+                          <input id="shortlinks-batch-role" type="text" autocomplete="organization-title" maxlength="160" placeholder="Data Analyst" data-shortlinks="batch-role">
                         </div>
                         <div class="form-field">
                           <label for="shortlinks-batch-random-length">Random length override</label>
@@ -630,7 +647,7 @@
                         <select data-shortlinks="projects-shortcut-mode">
                           <option value="canonical" selected>Canonical project links</option>
                           <option value="personal">Personal project links</option>
-                          <option value="professional">Professional project links</option>
+                          <option value="professional">Data Analytics project links</option>
                         </select>
                       </label>
                       <div class="shortlinks-projects-actions">
@@ -754,7 +771,7 @@
             <span class="shortlinks-view-label">Site version</span>
             <select data-shortlinks="destination-audience">
               <option value="personal">Personal site</option>
-              <option value="analytics" selected>Professional site</option>
+              <option value="analytics" selected>Data Analytics</option>
               <option value="data-science">Data Science</option>
               <option value="tourism">Tourism</option>
             </select>
@@ -829,14 +846,6 @@
             <a href="contact#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
           </div>
         </section>
-        <section class="footer-identity-panel" data-footer-realm="professional" aria-label="Daniel Short footer summary">
-          <h2 class="footer-identity-name">Daniel Short</h2>
-          <p class="footer-identity-summary">Data analyst | BI, reporting, automation</p>
-          <div class="footer-identity-actions">
-            <a href="resume" class="footer-link footer-identity-link" data-resume-home-link="true">Resume</a>
-            <a href="contact#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
-          </div>
-        </section>
       </div>
       <nav class="footer-nav" aria-label="Footer">
         <div class="footer-nav-panel" data-footer-realm="personal">
@@ -849,22 +858,6 @@
           </section>
           <section class="footer-col" aria-labelledby="footer-personal-connect">
             <h2 class="footer-col-title" id="footer-personal-connect">Connect</h2>
-            <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
-          </section>
-        </div>
-        <div class="footer-nav-panel" data-footer-realm="professional">
-          <section class="footer-col" aria-labelledby="footer-professional-work">
-            <h2 class="footer-col-title" id="footer-professional-work">Work</h2>
-            <a href="portfolio?audience=analytics" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
-            <a href="resume" class="footer-link" data-resume-home-link="true">Resume</a>
-            <a href="analytics" class="footer-link">Analytics</a>
-            <a href="data-science" class="footer-link">Data science</a>
-          </section>
-          <section class="footer-col" aria-labelledby="footer-professional-connect">
-            <h2 class="footer-col-title" id="footer-professional-connect">Connect</h2>
-            <a href="contact#contact-modal" class="footer-link" data-contact-modal-link="true">Contact</a>
             <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
@@ -930,7 +923,7 @@
     </button>
   </div>
   <script defer src="js/admin/short-links.js"></script>
-  <script defer src="dist/site-tools-account.3ac318e3.js"></script>
+  <script defer src="dist/site-tools-account.1ce4c44e.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

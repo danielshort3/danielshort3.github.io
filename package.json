@@ -4,7 +4,7 @@
   "private": true,
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
-    "test": "node test.js && node tests/aws-credentials.test.js && node tests/aws-data-migrations.test.js && node tests/chatbot-stream-proxy.test.js && node build/validate-seo.js",
+    "test": "node test.js && node tests/aws-credentials.test.js && node tests/aws-data-migrations.test.js && node tests/chatbot-stream-proxy.test.js && node tests/tools-auth-session.test.js && node build/validate-seo.js",
     "test:chatbot-stream": "node tests/chatbot-stream-proxy.test.js",
     "test:aws-credentials": "node tests/aws-credentials.test.js",
     "test:seo": "node build/validate-seo.js",
@@ -21,6 +21,7 @@
     "test:all": "node test.js --suite=all",
     "build:icons": "node build/resize_logo.js",
     "build:css": "node build/build-css.js",
+    "build:images": "node build/optimize-site-images.js",
     "build:js": "node build/build-js.js",
     "build:utm-batch-builder": "node build/build-utm-batch-builder.js",
     "build:pizza-tips-model": "node build/build-pizza-tips-model.js",

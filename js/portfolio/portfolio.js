@@ -147,16 +147,6 @@ const setupPreviewVideo = (card, options = {}) => {
 const isPublishedProject = (project) => project && project.published !== false;
 
 const FALLBACK_AUDIENCES = {
-  analytics: {
-    key: 'analytics',
-    label: 'Data Analytics',
-    shortLabel: 'Analytics',
-    portfolioPath: '/portfolio?audience=analytics',
-    resumePath: '/resume',
-    featuredProjectIds: ['retailStore', 'targetEmptyPackage', 'pizzaDashboard', 'deliveryTip', 'ufoDashboard'],
-    portfolioTitle: 'Analytics Portfolio',
-    portfolioDescription: 'Featured analytics projects: reporting automation, SQL workflows, dashboarding, forecasting, and technical depth.'
-  },
   personal: {
     key: 'personal',
     label: 'Personal Site',
@@ -166,29 +156,9 @@ const FALLBACK_AUDIENCES = {
     featuredProjectIds: ['retailStore', 'chatbotLora', 'digitGenerator', 'smartSentence', 'website'],
     portfolioTitle: 'Project Library',
     portfolioDescription: 'Machine learning, analytics, software tools, and browser experiments by Daniel Short.'
-  },
-  'data-science': {
-    key: 'data-science',
-    label: 'Data Science',
-    shortLabel: 'Data Science',
-    portfolioPath: '/portfolio?audience=data-science',
-    resumePath: '/resume-data-science',
-    featuredProjectIds: ['smartSentence', 'chatbotLora', 'shapeClassifier', 'digitGenerator', 'handwritingRating'],
-    portfolioTitle: 'Data Science Portfolio',
-    portfolioDescription: 'Machine learning, NLP, modeling, evaluation, and production-minded experimentation.'
-  },
-  tourism: {
-    key: 'tourism',
-    label: 'Tourism Analytics',
-    shortLabel: 'Tourism',
-    portfolioPath: '/portfolio?audience=tourism',
-    resumePath: '/resume-tourism',
-    featuredProjectIds: ['chatbotLora', 'pizzaDashboard', 'covidAnalysis', 'retailStore', 'smartSentence'],
-    portfolioTitle: 'Tourism Analytics Portfolio',
-    portfolioDescription: 'Destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support.'
   }
 };
-const FALLBACK_AUDIENCE_ORDER = ['personal', 'analytics', 'data-science', 'tourism'];
+const FALLBACK_AUDIENCE_ORDER = ['personal'];
 const getAudienceApi = () => window.SITE_AUDIENCE_CONFIG || null;
 const normalizeAudience = (value) => {
   const api = getAudienceApi();
@@ -1555,7 +1525,11 @@ function buildPortfolioWorkbench() {
     if (resumeLink) {
       const resumePath = activeAudience.resumePath || '';
       resumeLink.hidden = !resumePath;
-      if (resumePath) resumeLink.href = resumePath.replace(/^\//, '');
+      if (resumePath) {
+        resumeLink.href = resumePath.replace(/^\//, '');
+      } else {
+        resumeLink.removeAttribute('href');
+      }
     }
     root.querySelectorAll('[data-portfolio-audience-link]').forEach((link) => {
       const linkKey = normalizeAudience(link.dataset.portfolioAudienceLink || 'personal');
@@ -1667,6 +1641,31 @@ function buildPortfolioWorkbench() {
     '',
     140
   );
+  const firstAuthoredText = (value) => toList(value)
+    .map((item) => String(item || '').replace(/\s+/g, ' ').trim())
+    .find(Boolean) || '';
+  const firstAuthoredStatusLabel = (project = {}) => toList(project.resources)
+    .map((resource) => {
+      if (typeof resource === 'string') return resource;
+      return resource && typeof resource === 'object' ? resource.label : '';
+    })
+    .map((label) => String(label || '').replace(/\s+/g, ' ').trim())
+    .find((label) => /\b(?:live|demo|dashboard|report|notebook)\b/i.test(label)) || '';
+  const recruiterScanMarkup = (project = {}) => {
+    if (!isAudienceScopedView) return '';
+    const rows = [
+      ['Outcome', project.cardOutcome || firstAuthoredText(project.results)],
+      ['Contribution', project.cardContribution || firstAuthoredText(project.role) || firstAuthoredText(project.actions)],
+      ['Status', project.cardStatus || firstAuthoredStatusLabel(project)],
+      ['Stack', firstAuthoredText(project.tools)]
+    ].map(([label, value]) => [label, truncate(value, 118)]).filter(([, value]) => value);
+    if (!rows.length) return '';
+    return `
+      <dl class="portfolio-result-scan" aria-label="Recruiter project summary">
+        ${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
+      </dl>
+    `;
+  };
   const filterOptionProjects = isAudienceScopedView ? getVisibleProjects(false) : allProjects;
   const focusOptionLabels = unique(filterOptionProjects.flatMap((project) => getProjectFocuses(project)))
     .sort(prioritySorter(
@@ -1907,8 +1906,31 @@ function buildPortfolioWorkbench() {
           </article>
         `;
       }
+      if (!isDirectoryWorkbench) {
+        const selected = project.id === state.selectedId;
+        const projectHref = getProjectHref(project);
+        return `
+          <article class="portfolio-result-card portfolio-project-result${selected ? ' is-selected' : ''}${isAudienceScopedView ? ' portfolio-project-result--professional' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}">
+            <span class="portfolio-result-card__media${project.image ? '' : ' portfolio-result-card__media--icon'}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
+            <div class="portfolio-result-card__body">
+              <h2 class="portfolio-result-card__title">${escapeHtml(project.title)}</h2>
+              <p class="portfolio-result-card__summary">${escapeHtml(getSummary(project))}</p>
+              ${chipMarkup(visibleChips, 4)}
+              ${recruiterScanMarkup(project)}
+              <div class="portfolio-result-meta">
+                <span>${calendarIcon}${escapeHtml(projectSignalLabel(project, index, signalPrefix))}</span>
+                <span>${formatIcon}${escapeHtml(getPrimaryFormat(project))}</span>
+              </div>
+              <div class="portfolio-result-card__actions">
+                <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="${selected ? 'true' : 'false'}" aria-label="Show details for ${escapeHtml(project.title)}">Details</button>
+                <a class="portfolio-result-card__open" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results" href="${escapeHtml(projectHref)}">View case study ${openArrowIcon}</a>
+              </div>
+            </div>
+          </article>
+        `;
+      }
       return `
-        <button type="button" class="portfolio-result-card${project.id === state.selectedId ? ' is-selected' : ''}" role="listitem" data-project-id="${escapeHtml(project.id)}"${visibilityAttr} aria-pressed="${project.id === state.selectedId ? 'true' : 'false'}">
+        <button type="button" class="portfolio-result-card${project.id === state.selectedId ? ' is-selected' : ''}" role="listitem" data-directory-details data-project-id="${escapeHtml(project.id)}"${visibilityAttr} aria-pressed="${project.id === state.selectedId ? 'true' : 'false'}">
           <span class="portfolio-result-card__media${project.image ? '' : ' portfolio-result-card__media--icon'}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
           <span class="portfolio-result-card__body">
             <span class="portfolio-result-card__title">${escapeHtml(project.title)}</span>
@@ -2045,7 +2067,9 @@ function buildPortfolioWorkbench() {
     resultHost.querySelectorAll('[data-project-id]').forEach((card) => {
       const selected = card.dataset.projectId === state.selectedId;
       card.classList.toggle('is-selected', selected);
-      const selectionControl = card.matches('button') ? card : card.querySelector('[data-tool-details]');
+      const selectionControl = card.matches('[data-directory-details]')
+        ? card
+        : card.querySelector('[data-project-details], [data-tool-details]');
       if (selectionControl) selectionControl.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
     renderInspector(selectedProject);
@@ -2179,21 +2203,14 @@ function buildPortfolioWorkbench() {
   });
 
   resultHost.addEventListener('pointerdown', (event) => {
-    if (event.target.closest('[data-tool-open], a[href]')) return;
-    if (!event.target.closest('[data-project-id]')) return;
+    if (!event.target.closest('[data-project-details], [data-tool-details], [data-directory-details]')) return;
     pendingSelectionScrollTop = resultHost.scrollTop;
   });
 
-  resultHost.addEventListener('mousedown', (event) => {
-    if (event.target.closest('[data-tool-open], a[href]')) return;
-    if (!event.target.closest('[data-project-id]')) return;
-    if (isDirectoryWorkbench && directoryKind === 'tools') return;
-    event.preventDefault();
-  });
-
   resultHost.addEventListener('click', (event) => {
-    if (event.target.closest('[data-tool-open], a[href]')) return;
-    const card = event.target.closest('[data-project-id]');
+    const detailsButton = event.target.closest('[data-project-details], [data-tool-details], [data-directory-details]');
+    if (!detailsButton) return;
+    const card = detailsButton.closest('[data-project-id]');
     if (!card) return;
     if (card.dataset.projectId === state.selectedId) {
       pendingSelectionScrollTop = null;

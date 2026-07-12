@@ -21,6 +21,17 @@
     --hero-art-layer: url("../img/brand/26-hero-tourism-light.png");
   }
 
+  @supports (background-image: image-set(url("../img/brand/27-hero-mobile-light.webp") type("image/webp"))) {
+    body,
+    body[data-page="analytics"] {
+      --hero-mobile-art-layer: image-set(
+        url("../img/brand/27-hero-mobile-light.avif") type("image/avif"),
+        url("../img/brand/27-hero-mobile-light.webp") type("image/webp"),
+        url("../img/brand/27-hero-mobile-light.png") type("image/png")
+      );
+    }
+  }
+
   /* Phase 1: shared interaction behavior on safe/shared controls only */
   :is(
     .btn-primary,
@@ -4760,6 +4771,16 @@
   html.site-realm-professional-home body[data-page="home"].home-pattern-page {
     --hero-art-layer: url("../img/brand/07-website-hero-light-version.png");
     --hero-mobile-art-layer: url("../img/brand/27-hero-mobile-light.png");
+  }
+
+  @supports (background-image: image-set(url("../img/brand/27-hero-mobile-light.webp") type("image/webp"))) {
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page {
+      --hero-mobile-art-layer: image-set(
+        url("../img/brand/27-hero-mobile-light.avif") type("image/avif"),
+        url("../img/brand/27-hero-mobile-light.webp") type("image/webp"),
+        url("../img/brand/27-hero-mobile-light.png") type("image/png")
+      );
+    }
   }
 
   html.site-realm-professional-home body[data-page="home"].home-pattern-page .hero.hero--default {

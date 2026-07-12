@@ -6,9 +6,10 @@
   "homePath": "/analytics",
   "portfolioPath": "/portfolio?audience=analytics",
   "portfolioAllPath": "/portfolio?audience=analytics",
-  "resumePath": "/resume",
-  "resumePreviewPath": "/resume-pdf",
-  "resumeDownloadPath": "/documents/Resume.pdf",
+  "contactPath": "/contact?audience=analytics",
+  "resumePath": "/resume-analytics",
+  "resumePreviewPath": "/resume-analytics-pdf",
+  "resumeDownloadPath": "/documents/Resume-Analytics.pdf",
   "featuredProjectIds": [
     "retailStore",
     "targetEmptyPackage",

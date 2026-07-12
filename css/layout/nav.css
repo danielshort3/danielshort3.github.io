@@ -865,3 +865,10 @@
     }
   }
 }
+@layer layout {
+  html.site-realm-query-pending #combined-header-nav,
+  html.site-realm-query-pending .mobile-site-dock,
+  html.site-realm-query-pending .footer.footer-classic {
+    visibility: hidden;
+  }
+}

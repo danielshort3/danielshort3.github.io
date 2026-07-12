@@ -16,6 +16,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const headerTemplatePath = path.join(root, 'build', 'templates', 'header.partial.html');
+const HEADER_AUDIENCES = ['personal', 'analytics', 'data-science', 'tourism'];
 const audienceApi = require(path.join(root, 'js', 'common', 'audience-config.js'));
 const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
   ? audienceApi.normalizeAudience
@@ -39,9 +40,19 @@ function exists(relPath) {
   return fs.existsSync(path.join(root, relPath));
 }
 
-function loadHeaderTemplate() {
-  const raw = fs.readFileSync(headerTemplatePath, 'utf8');
-  return raw.trim();
+function loadHeaderTemplates() {
+  const templates = new Map();
+  HEADER_AUDIENCES.forEach((audience) => {
+    const templatePath = audience === 'personal'
+      ? headerTemplatePath
+      : path.join(root, 'build', 'templates', `header.${audience}.partial.html`);
+    if (!fs.existsSync(templatePath)) return;
+    templates.set(audience, fs.readFileSync(templatePath, 'utf8').trim());
+  });
+  if (!templates.has('personal')) {
+    throw new Error('Personal header template is missing');
+  }
+  return templates;
 }
 
 function walkHtmlFiles(dirRelPath) {
@@ -150,17 +161,8 @@ function detectAudienceForFile(html, relPath) {
   return detectAudienceFromPath(relPathToRoute(relPath));
 }
 
-function withAudienceBranding(headerHtml, audienceKey) {
-  const audience = getAudience(audienceKey);
-  const label = String(audience && audience.brandNavPrimary ? audience.brandNavPrimary : 'Projects, Tools, and Games');
-  return headerHtml.replace(
-    /(<span class="brand-tagline-chunk" data-brand-tagline-primary="true">)([\s\S]*?)(<\/span>)/i,
-    `$1${label}$3`
-  );
-}
-
 function main() {
-  const headerHtml = loadHeaderTemplate();
+  const headerTemplates = loadHeaderTemplates();
 
   const rootHtmlFiles = listRootHtmlFiles();
   const pagesHtmlFiles = walkHtmlFiles('pages');
@@ -179,7 +181,7 @@ function main() {
     if (!exists(relPath)) return;
     const html = read(relPath);
     const audienceKey = detectAudienceForFile(html, relPath);
-    const pageHeaderHtml = withAudienceBranding(headerHtml, audienceKey);
+    const pageHeaderHtml = headerTemplates.get(audienceKey) || headerTemplates.get('personal');
     const replaced = replaceHeader(html, pageHeaderHtml);
     const result = replaced.changed ? replaced : insertHeaderAfterSkipLink(html, pageHeaderHtml);
     if (!result.changed) {

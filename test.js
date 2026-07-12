@@ -36925,6 +36925,11 @@ try {
       'chatbot widget should be scoped to public personal-site pages, tools, and games');
     assert(widget.includes('window.visualViewport') && widget.includes("root.dataset.keyboard") && widget.includes('--site-chatbot-keyboard-offset'),
       'chatbot widget should track mobile keyboard viewport changes');
+    assert(widget.includes("if (!document.body)") &&
+      widget.includes("document.addEventListener('DOMContentLoaded', setupChromeOffsetTracking, { once: true })") &&
+      widget.includes('mutationObserver.observe(document.body') &&
+      widget.includes('mutationObserver.disconnect();'),
+      'chatbot chrome tracking should wait for a body node and fail safely before attaching its MutationObserver');
     assert(widget.includes('NUDGE_STORAGE_KEY') &&
       widget.includes('NUDGE_DESKTOP_DELAY_MS = 6000') &&
       widget.includes('NUDGE_MOBILE_DELAY_MS = 10000') &&
@@ -37380,6 +37385,9 @@ try {
       'data-shortlinks="set-editor"',
       'data-shortlinks="set-rows"',
       'data-shortlinks="set-generate"',
+      'data-shortlinks="batch-preset"',
+      'data-shortlinks="batch-company"',
+      'data-shortlinks="batch-role"',
       'data-shortlinks="batch-results"',
       'data-shortlinks="export-mode"',
       'data-shortlinks="export-click-limit"',
@@ -37434,6 +37442,13 @@ try {
     assert((html.match(/id="privacy-settings-link-footer"/g) || []).length === 1, 'pages/short-links.html should include one footer cookie settings control');
     assert(!html.includes('data-cookie-settings="true"'), 'pages/short-links.html should not include a floating cookie settings widget');
     assert((html.match(/data-speed-dial="true"/g) || []).length === 1, 'pages/short-links.html should include one speed dial');
+    assert(!html.includes('>Professional site</option>') &&
+      html.includes('<option value="analytics" selected>Data Analytics</option>') &&
+      html.includes('<option value="professional">Data Analytics project links</option>'),
+      'short links audience controls should label the analytics variant explicitly while retaining the legacy project mode value');
+    assert(html.includes('<option value="company-share">Company share</option>') &&
+      html.includes('Company share uses random codes and recommends a temporary expiration.'),
+      'short links templates should offer an explicit company-share preset');
   });
 
   section('Short links helper logic', () => {
@@ -37550,6 +37565,7 @@ try {
     const shortLinksClicks = readFile('api/short-links/clicks/[...slug].js');
     const shortLinksHealth = readFile('api/short-links/health.js');
     const shortLinksAdmin = readFile('js/admin/short-links.js');
+    const shortLinksManifest = JSON.parse(readFile('dist/shortlinks-destinations.json'));
     assert(shortLinksStore.includes("const SLUG_RESERVATION_PREFIX = '__slug_lower__/'") &&
       shortLinksStore.includes('new TransactWriteCommand') &&
       shortLinksStore.includes("ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug'") &&
@@ -37599,6 +37615,27 @@ try {
       shortLinksAdmin.includes("setSystemHealth('System degraded'") &&
       !shortLinksAdmin.includes("setSystemHealth('System healthy', 'All services operational'"),
       'short links admin should explain aggregate versus detailed clicks and never hide click-history degradation');
+    assert(shortLinksAdmin.includes("label: 'Data Analytics'") &&
+      shortLinksAdmin.includes("resumePath: '/resume-analytics'") &&
+      shortLinksAdmin.includes("resumePreviewPath: '/resume-analytics-pdf'") &&
+      shortLinksAdmin.includes("resumeDownloadPath: '/documents/Resume-Analytics.pdf'"),
+      'short links analytics fallbacks should use analytics-specific names and destinations');
+    assert((shortLinksAdmin.match(/params\.delete\('mode'\)/g) || []).length >= 3 &&
+      shortLinksAdmin.includes("if (audience.key !== 'personal') params.set('audience', audience.key)") &&
+      shortLinksAdmin.includes("if (config.audienceKey !== 'personal') params.set('audience', config.audienceKey)") &&
+      /function buildShareShortUrl[\s\S]*?return baseShortUrl \|\| '';/.test(shortLinksAdmin),
+      'new short-link destinations should store audience context, remove legacy mode, and keep the public short URL opaque');
+    assert(shortLinksAdmin.includes("type: 'company-share'") &&
+      shortLinksAdmin.includes('company,') &&
+      shortLinksAdmin.includes('title') &&
+      shortLinksAdmin.includes("batchExpirationModeSelect.value = 'temporary'"),
+      'company-share generation should pass company and role context and recommend temporary expiration');
+    const destinationPaths = new Set(shortLinksManifest.pages.map((page) => page.path));
+    const destinationLabels = new Map(shortLinksManifest.pages.map((page) => [page.path, page.label]));
+    assert(!destinationPaths.has('/resume') && !destinationPaths.has('/resume-pdf') &&
+      destinationLabels.get('/resume-analytics') === 'Data Analytics Resume' &&
+      destinationLabels.get('/resume-analytics-pdf') === 'Data Analytics Resume PDF',
+      'short-link destination manifest should omit legacy resume aliases and label analytics resume destinations clearly');
 
     const template = setHelpers.buildSetTemplateRecord({
       title: ' Data Analyst Resume ',
@@ -37624,6 +37661,16 @@ try {
     assert(timing.ok === true, 'resolveBatchTiming should accept temporary durations');
     assert(timing.permanent === false, 'resolveBatchTiming should mark temporary batches as non-permanent');
     assert(timing.durationUnit === 'weeks', 'resolveBatchTiming should preserve supported duration units');
+    const companyContext = setHelpers.normalizeGenerationContext({
+      type: 'company-share',
+      company: 'Acme',
+      title: 'Data Analyst'
+    });
+    assert(companyContext.type === 'company-share' && companyContext.company === 'Acme' && companyContext.title === 'Data Analyst',
+      'short-link batch helpers should preserve normalized company-share context');
+    assert(setHelpers.buildBatchTitle('', template.title, companyContext).includes('Acme') &&
+      setHelpers.buildBatchTitle('', template.title, companyContext).includes('Data Analyst'),
+      'company-share batch titles should include company and role when no explicit title is supplied');
   });
 
   section('Root/pages drift guard', () => {
@@ -37648,6 +37695,16 @@ try {
     featured.forEach((id) => {
       assert(html.includes(`href="portfolio/${id}"`), `pages/portfolio.html missing featured href for ${id}`);
     });
+    const projectPageGenerator = require('./build/generate-project-pages.js');
+    const publishedProjects = pdata.window.PROJECTS.filter(projectPageGenerator.isPublishedProject);
+    const staticResults = projectPageGenerator.renderPortfolioStaticResults(publishedProjects);
+    assert((staticResults.match(/<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem"/g) || []).length === publishedProjects.length,
+      'no-JS portfolio results should render every published project as a listitem article');
+    assert((staticResults.match(/data-project-details aria-pressed="false" aria-disabled="true" disabled/g) || []).length === publishedProjects.length,
+      'no-JS portfolio articles should label their unavailable details buttons honestly');
+    assert((staticResults.match(/class="portfolio-result-card__open" href="portfolio\//g) || []).length === publishedProjects.length &&
+      !staticResults.includes('<a class="portfolio-result-card"'),
+      'no-JS portfolio articles should provide one direct case-study link instead of wrapping the whole card in an anchor');
   });
 
   section('Portfolio, games, and tools responsive workbench contracts', () => {
@@ -37664,6 +37721,26 @@ try {
       'games page should use the shared branded header with its existing page copy');
     assert(portfolioJs.includes("directoryKind === 'games' || directoryKind === 'tools'"),
       'games and tools workbenches should opt into the shared mobile filter sheet');
+    assert(portfolioJs.includes('<article class="portfolio-result-card portfolio-project-result') &&
+      portfolioJs.includes('data-project-details aria-pressed=') &&
+      portfolioJs.includes('class="portfolio-result-card__open"') &&
+      portfolioJs.includes('data-source-surface="portfolio_results"'),
+      'hydrated portfolio results should separate the details button from the direct case-study link inside a listitem article');
+    assert(portfolioJs.includes("const detailsButton = event.target.closest('[data-project-details], [data-tool-details], [data-directory-details]')") &&
+      portfolioJs.includes("const card = detailsButton.closest('[data-project-id]')") &&
+      portfolioJs.includes("card.querySelector('[data-project-details], [data-tool-details]')"),
+      'workbench selection should run only from an explicit details control while direct links navigate independently');
+    assert(portfolioJs.includes("['Outcome', project.cardOutcome || firstAuthoredText(project.results)]") &&
+      portfolioJs.includes("['Contribution', project.cardContribution || firstAuthoredText(project.role) || firstAuthoredText(project.actions)]") &&
+      portfolioJs.includes("['Status', project.cardStatus || firstAuthoredStatusLabel(project)]") &&
+      portfolioJs.includes("['Stack', firstAuthoredText(project.tools)]") &&
+      portfolioJs.includes('/\\b(?:live|demo|dashboard|report|notebook)\\b/i.test(label)') &&
+      portfolioJs.includes("if (!isAudienceScopedView) return '';"),
+      'professional portfolio cards should derive recruiter scan rows only from authored project fields, omit unsupported status claims, and keep personal cards compact');
+    assert(portfolioJs.includes('class="portfolio-result-card tools-workbench-result') &&
+      portfolioJs.includes('data-tool-details') &&
+      portfolioJs.includes('data-tool-open'),
+      'portfolio card semantics should leave the tools workbench selection and launch controls intact');
     assert(portfolioJs.includes("triggerButton.className = 'portfolio-mobile-filter-trigger'") &&
            portfolioJs.includes("backdrop.className = 'portfolio-filter-backdrop'"),
       'mobile filters should expose an external trigger and dismissible backdrop');
@@ -37675,9 +37752,17 @@ try {
     assert(workbenchCss.includes('min-height: min(240px, 35dvh);') &&
            workbenchCss.includes('body.portfolio-filter-sheet-open .mobile-site-dock'),
       'mobile filter sheet should preserve a usable scrolling body and hide the site dock while open');
+    assert(workbenchCss.includes('.portfolio-result-scan') &&
+      workbenchCss.includes('.portfolio-result-card__actions') &&
+      workbenchCss.includes('.portfolio-result-card__details') &&
+      workbenchCss.includes('.portfolio-result-card__open') &&
+      /\.portfolio-result-card__details,\s*\.portfolio-result-card__open\s*\{[\s\S]*?min-height:\s*44px;/.test(workbenchCss),
+      'portfolio workbench CSS should style recruiter scan rows and independent 44px card actions');
     assert(workbenchCss.includes('body:is([data-page="portfolio"], .portfolio-workbench-page) .portfolio-brand-panel__actions') &&
-           workbenchCss.includes('body:is([data-page="portfolio"], .portfolio-workbench-page) .portfolio-proof-strip {'),
-      'all mobile workbench headers should remove redundant actions and use a compact proof strip');
+           workbenchCss.includes('body:is([data-page="portfolio"], .portfolio-workbench-page) .portfolio-proof-strip {') &&
+           workbenchCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr));') &&
+           workbenchCss.includes('overflow: visible;'),
+      'all mobile workbench headers should remove redundant actions and use a compact 2x2 proof strip');
   });
 
   section('Job tracker UI additions', () => {
@@ -38476,7 +38561,13 @@ try {
   section('Navigation markup and branding', () => {
     checkFileContains('build/templates/header.partial.html', 'div id="primary-menu" class="nav-row"');
     const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
+    const analyticsHeaderTemplate = fs.readFileSync('build/templates/header.analytics.partial.html', 'utf8');
+    const dataScienceHeaderTemplate = fs.readFileSync('build/templates/header.data-science.partial.html', 'utf8');
+    const tourismHeaderTemplate = fs.readFileSync('build/templates/header.tourism.partial.html', 'utf8');
     const footerTemplate = fs.readFileSync('build/templates/footer.partial.html', 'utf8');
+    const analyticsFooterTemplate = fs.readFileSync('build/templates/footer.analytics.partial.html', 'utf8');
+    const dataScienceFooterTemplate = fs.readFileSync('build/templates/footer.data-science.partial.html', 'utf8');
+    const tourismFooterTemplate = fs.readFileSync('build/templates/footer.tourism.partial.html', 'utf8');
     assert(headerTemplate.includes('class="brand-logo"'), 'nav markup missing brand-logo');
     assert(headerTemplate.includes('img/brand/00-ds-logo-master-full-color.svg'), 'nav should use approved DS brand logo asset');
     assert(!headerTemplate.includes('ds-decision-path-logo'), 'nav should not use the retired decision-path logo');
@@ -38494,16 +38585,30 @@ try {
     assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
     assert(footerTemplate.includes('class="footer-identity"') &&
       footerTemplate.includes('data-footer-realm="personal"') &&
-      footerTemplate.includes('data-footer-realm="professional"'),
-      'footer should render personal and professional identity rail variants');
+      !footerTemplate.includes('data-footer-realm="professional"'),
+      'personal footer should render only the personal identity and navigation panels');
     const footerPersonalBrowse = footerTemplate.slice(footerTemplate.indexOf('id="footer-personal-browse"'), footerTemplate.indexOf('id="footer-personal-connect"'));
-    const footerProfessional = footerTemplate.slice(footerTemplate.indexOf('id="footer-professional-work"'), footerTemplate.indexOf('id="footer-professional-connect"'));
     assert(footerPersonalBrowse.includes('href="games"') && footerPersonalBrowse.includes('>Games</a>') &&
       footerPersonalBrowse.includes('href="tools"') && footerPersonalBrowse.includes('>Tools</a>'),
       'personal footer should keep Tools and Games in the Browse group');
-    assert(footerProfessional.includes('href="resume"') && footerProfessional.includes('>Resume</a>') &&
-      footerProfessional.includes('href="analytics"') && footerProfessional.includes('>Analytics</a>'),
-      'professional footer should prioritize resume and professional route links');
+    [
+      [analyticsFooterTemplate, 'analytics', 'resume-analytics'],
+      [dataScienceFooterTemplate, 'data-science', 'resume-data-science'],
+      [tourismFooterTemplate, 'tourism', 'resume-tourism']
+    ].forEach(([template, homePath, resumePath]) => {
+      assert(template.includes('data-footer-realm="professional"') &&
+        !template.includes('data-footer-realm="personal"') &&
+        template.includes(`href="${homePath}"`) &&
+        template.includes(`href="portfolio?audience=${homePath}"`) &&
+        template.includes(`href="${resumePath}"`) &&
+        template.includes(`href="contact?audience=${homePath}#contact-modal"`),
+        `${homePath} footer should expose only its audience-specific professional links`);
+    });
+    assert(!analyticsFooterTemplate.includes('href="data-science"') &&
+      !analyticsFooterTemplate.includes('href="tourism"') &&
+      !dataScienceFooterTemplate.includes('href="analytics"') &&
+      !tourismFooterTemplate.includes('href="analytics"'),
+      'professional footers should not cross-link audience landing pages');
     assert(footerTemplate.includes('href="contact#contact-modal"') &&
       footerTemplate.includes('data-contact-modal-link="true"') &&
       footerTemplate.includes('>Contact</a>'),
@@ -38512,6 +38617,15 @@ try {
       'footer should keep one shared cookie settings control');
     assert(!footerTemplate.includes('data-site-realm-switch'),
       'footer should not expose personal/professional realm switch links');
+    assert(!/(?:href="(?:\/?(?:analytics|data-science|tourism|resume(?:-|")))|portfolio\?audience=)/i.test(footerTemplate),
+      'personal footer raw HTML should not expose professional routes');
+    ['index.html', 'pages/contact.html', 'pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].forEach((file) => {
+      const footerMatch = readFile(file).match(/<footer\b[\s\S]*?<\/footer>/i);
+      const footerHtml = footerMatch ? footerMatch[0] : '';
+      assert(footerHtml && !footerHtml.includes('data-footer-realm="professional"') &&
+        !/(?:href="(?:\/?(?:analytics|data-science|tourism|resume(?:-|")))|portfolio\?audience=)/i.test(footerHtml),
+        `${file} should include only a personal, professional-route-free footer`);
+    });
     const footerContent = JSON.parse(readFile('content/site/footer.json'));
     assert(!JSON.stringify(footerContent).includes('data-site-realm-switch') &&
       !JSON.stringify(footerContent).includes('/?mode=professional'),
@@ -38524,6 +38638,33 @@ try {
     assert(footerRenderer.includes('summary ? `  <p class="footer-identity-summary">') &&
       footerRenderer.includes(".filter(Boolean).join('\\n')"),
       'footer renderer should omit the summary element when a realm has no summary');
+    const generatedAudienceConfig = require('./js/common/audience-config.js');
+    ['personal', 'analytics', 'data-science', 'tourism'].forEach((audienceKey) => {
+      const sourceAudience = JSON.parse(readFile(`content/audiences/${audienceKey}.json`));
+      const generatedAudience = generatedAudienceConfig.getAudience(audienceKey);
+      ['homePath', 'portfolioPath', 'portfolioAllPath', 'contactPath', 'resumePath', 'resumePreviewPath', 'resumeDownloadPath'].forEach((field) => {
+        assert(generatedAudience[field] === sourceAudience[field], `${audienceKey} generated ${field} should match its audience JSON source`);
+      });
+    });
+    const siteRealmScript = readFile('js/common/site-realm.js');
+    const portfolioAudienceScript = readFile('js/portfolio/portfolio.js');
+    assert(siteRealmScript.includes('applyAudienceFooter(audience)') &&
+      siteRealmScript.includes('audience.contactPath') &&
+      siteRealmScript.includes('audience.resumePreviewPath') &&
+      siteRealmScript.includes('audience.resumeDownloadPath'),
+      'shared professional views should hydrate header, footer, contact, and resume routes from audience config');
+    assert(!portfolioAudienceScript.includes("analytics: {\n    key: 'analytics'") &&
+      !portfolioAudienceScript.includes("'data-science': {\n    key: 'data-science'") &&
+      !portfolioAudienceScript.includes("tourism: {\n    key: 'tourism'"),
+      'portfolio runtime should not duplicate authored professional audience configuration');
+    const commonContactScript = readFile('js/common/common.js');
+    const contactFormScript = readFile('js/forms/contact.js');
+    assert(commonContactScript.includes("window.getSiteAudience === 'function'") &&
+      commonContactScript.includes('JSON.stringify({ title, url, audience, ts: Date.now() })') &&
+      contactFormScript.includes('audience: pageContext.audience') &&
+      contactFormScript.includes('pageUrl: pageContext.url') &&
+      contactFormScript.includes('pageTitle: pageContext.title'),
+      'contact submissions should retain the originating audience and page context');
     assert(!footerTemplate.includes('Personal site</p>') && !footerTemplate.includes('Professional view</p>'),
       'footer should not render visible personal/professional view labels');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
@@ -38533,6 +38674,34 @@ try {
     assert(headerTemplate.includes('aria-controls="nav-search-q" aria-expanded="false"'), 'header search button should control the expandable input');
     assert(!headerTemplate.includes('role="button"'), 'header nav links should not be forced to role="button"');
     assert(!headerTemplate.includes('id="nav-dropdown-resume"'), 'header should not expose a resume dropdown');
+    [
+      [analyticsHeaderTemplate, 'analytics', 'resume-analytics'],
+      [dataScienceHeaderTemplate, 'data-science', 'resume-data-science'],
+      [tourismHeaderTemplate, 'tourism', 'resume-tourism']
+    ].forEach(([template, audience, resumePath]) => {
+      assert(template.includes(`href="${audience}"`) &&
+        template.includes(`href="portfolio?audience=${audience}"`) &&
+        template.includes(`href="${resumePath}"`) &&
+        template.includes(`href="contact?audience=${audience}"`) &&
+        !template.includes('nav-item-tools') &&
+        !template.includes('nav-item-games') &&
+        !template.includes('class="nav-search"'),
+        `${audience} header should contain only audience-correct professional navigation`);
+      ['analytics', 'data-science', 'tourism'].filter((key) => key !== audience).forEach((other) => {
+        assert(!template.includes(`audience=${other}`), `${audience} header should not cross-link ${other}`);
+      });
+    });
+    [
+      ['pages/analytics.html', 'analytics'],
+      ['pages/data-science.html', 'data-science'],
+      ['pages/tourism.html', 'tourism']
+    ].forEach(([file, audience]) => {
+      const html = readFile(file);
+      assert(!/href="\/?portfolio\/[^"?]+"/i.test(html) &&
+        !html.includes('href="contact#contact-modal"') &&
+        html.includes(`?audience=${audience}`),
+        `${file} should preserve its audience on project and contact links before JavaScript runs`);
+    });
     ['nav-item-portfolio', 'nav-item-tools', 'nav-item-games', 'nav-item-contact'].forEach((className) => {
       assert(headerTemplate.includes(className), `header missing ${className}`);
     });
@@ -38589,9 +38758,9 @@ try {
     assert(varsCss.includes('--brand-canvas:#F9F9FA;'), 'variables.css missing Canvas token');
     assert(varsCss.includes('--brand-action-copper:#D97706;'), 'variables.css missing Action Copper token');
     assert(varsCss.includes('--category-projects:#155DFC;') &&
-      varsCss.includes('--category-tools:#0798A6;') &&
-      varsCss.includes('--category-games:#F97316;'),
-      'variables.css should define the shared Projects, Tools, and Games category accents');
+      varsCss.includes('--category-tools:#087F8C;') &&
+      varsCss.includes('--category-games:#C94B0A;'),
+      'variables.css should define shared category accents with AA-safe Tools and Games colors for white labels');
     assert(varsCss.includes('--font-sans:"Inter"'), 'variables.css should define Inter as the primary font');
     assert(varsCss.includes('--font-mono:"IBM Plex Mono"'), 'variables.css should define IBM Plex Mono for code/tool labels');
     assert(!varsCss.includes('#06B6D4'), 'variables.css should not keep the old cyan palette value');
@@ -38790,8 +38959,18 @@ try {
     assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');
 
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
+    const homeStylesCss = fs.readFileSync('css/styles-home.css', 'utf8');
+    const workbenchStylesCss = fs.readFileSync('css/styles-workbench.css', 'utf8');
     assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
     assert(stylesCss.includes('@import url("components/home-scroll.css");'), 'styles.css should include shared audience scroll polish');
+    assert(!stylesCss.includes('@import url("components/home-project-graph.css");'),
+      'styles.css should leave the personal homepage graph in its route bundle');
+    assert(!stylesCss.includes('@import url("components/portfolio-workbench.css");'),
+      'styles.css should leave directory workbenches in their route bundle');
+    assert(homeStylesCss.includes('@import url("components/home-project-graph.css");'),
+      'styles-home.css should include the personal homepage graph styles');
+    assert(workbenchStylesCss.includes('@import url("components/portfolio-workbench.css");'),
+      'styles-workbench.css should include the directory workbench styles');
     ['css/base/base.css','css/components/buttons.css','css/layout/nav.css','css/utilities/design-system-overrides.css'].forEach((file) => {
       assert(!fs.readFileSync(file, 'utf8').includes('Poppins'), `${file} should not reference Poppins`);
     });
@@ -38802,12 +38981,10 @@ try {
 
     const routeStyles = JSON.parse(fs.readFileSync('build/route-component-styles.json', 'utf8'));
     assert(Array.isArray(routeStyles['/']), 'route styles manifest missing home entry');
-    assert(routeStyles['/'].length === 0, '/ route styles should rely on the bundled home graph CSS');
+    assert(routeStyles['/'].length === 0, '/ route styles should rely on the hashed home-only CSS bundle');
     assert(!routeStyles['/analytics'], 'route styles manifest should not include hidden analytics entry');
     assert(!routeStyles['/data-science'], 'route styles manifest should not include hidden data-science entry');
     assert(!routeStyles['/tourism'], 'route styles manifest should not include hidden tourism entry');
-    assert(stylesCss.includes('@import url("components/home-project-graph.css");'),
-      'styles.css should eagerly import the personal homepage graph styles');
     assert(!routeStyles['/resume-analytics'], 'route styles manifest should not include hidden resume analytics entry');
     assert(Array.isArray(routeStyles['/search']), 'route styles manifest missing search entry');
     assert(Array.isArray(routeStyles['/games/project-starfall']) && routeStyles['/games/project-starfall'].includes('css/games/project-starfall.css'),
@@ -38858,20 +39035,31 @@ try {
     const cssManifest = JSON.parse(fs.readFileSync(cssManifestPath, 'utf8'));
     const scriptsManifest = JSON.parse(fs.readFileSync(scriptsManifestPath, 'utf8'));
     assert(cssManifest.file && /^styles\.[0-9a-f]{8}\.css$/.test(cssManifest.file), 'CSS manifest entry invalid');
+    assert(cssManifest.homeFile && /^styles-home\.[0-9a-f]{8}\.css$/.test(cssManifest.homeFile), 'Home CSS manifest entry invalid');
+    assert(cssManifest.workbenchFile && /^styles-workbench\.[0-9a-f]{8}\.css$/.test(cssManifest.workbenchFile), 'Workbench CSS manifest entry invalid');
     assert(cssManifest.toolsFile && /^styles-tools\.[0-9a-f]{8}\.css$/.test(cssManifest.toolsFile), 'Tools CSS manifest entry invalid');
-    ['shell','consent','contact','search','contributions','sitemap','privacy','toolsAccount','toolsLanding'].forEach((key) => {
+    ['shell','home','consent','contact','search','contributions','sitemap','privacy','toolsAccount','toolsLanding'].forEach((key) => {
       assert(typeof scriptsManifest[key] === 'string' && /^site-[a-z-]+\.[0-9a-f]{8}\.js$/.test(scriptsManifest[key]), `Scripts manifest entry invalid for ${key}`);
       assert(fs.existsSync(`dist/${scriptsManifest[key]}`), `dist/${scriptsManifest[key]} missing`);
     });
-    assert(!scriptsManifest.home, 'home scripts manifest entry should not be generated without a home-only bundle');
     hashedCss = cssManifest.file;
+    const hashedHomeCss = cssManifest.homeFile;
+    const hashedWorkbenchCss = cssManifest.workbenchFile;
     const hashedToolsCss = cssManifest.toolsFile;
     assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
+    assert(fs.existsSync(`dist/${hashedHomeCss}`), `dist/${hashedHomeCss} missing`);
+    assert(fs.existsSync(`dist/${hashedWorkbenchCss}`), `dist/${hashedWorkbenchCss} missing`);
     assert(fs.existsSync(`dist/${hashedToolsCss}`), `dist/${hashedToolsCss} missing`);
     assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
+    assert(fs.existsSync('dist/styles-home.css'), 'dist/styles-home.css missing');
+    assert(fs.existsSync('dist/styles-workbench.css'), 'dist/styles-workbench.css missing');
     assert(fs.existsSync('dist/styles-tools.css'), 'dist/styles-tools.css missing');
     assert(fs.existsSync('dist/site-shell.js'), 'dist/site-shell.js missing');
+    assert(fs.existsSync('dist/site-home.js'), 'dist/site-home.js missing');
     assert(fs.existsSync('dist/site-tools-account.js'), 'dist/site-tools-account.js missing');
+    [hashedCss, hashedHomeCss, hashedWorkbenchCss, hashedToolsCss, scriptsManifest.home].forEach((fileName) => {
+      assert(fs.existsSync(`public/dist/${fileName}`), `public/dist/${fileName} missing`);
+    });
 
     const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS
       .filter(p => p && p.published !== false)
@@ -38908,6 +39096,19 @@ try {
         `${f} missing tools stylesheet reference`
       );
     });
+
+    const homeHtml = readFile('index.html');
+    assert(homeHtml.includes(`dist/${hashedHomeCss}`) || homeHtml.includes('dist/styles-home.css'),
+      'index.html missing home-only stylesheet reference');
+    assert(htmlHasManagedBundle(homeHtml, 'site-home'), 'index.html missing home-only graph bundle');
+    assert(!homeHtml.includes('js/home/project-graph.js'), 'index.html should not load the unbundled home graph script');
+    ['pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].forEach((file) => {
+      const html = readFile(file);
+      assert(html.includes(`dist/${hashedWorkbenchCss}`) || html.includes('dist/styles-workbench.css'),
+        `${file} missing workbench stylesheet reference`);
+    });
+    assert(!readFile('pages/portfolio/nonogram.html').includes(`dist/${hashedWorkbenchCss}`),
+      'project detail pages should not load the directory workbench bundle');
 
     assert(htmlHasManagedBundle(readFile('pages/contact.html'), 'site-contact'), 'pages/contact.html missing contact bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/search.html'), 'site-search'), 'pages/search.html missing search bundle reference');
@@ -38953,7 +39154,7 @@ try {
     assert(!readFile('index.html').includes('http-equiv="refresh"'), 'index.html should be a real homepage, not a redirect');
     checkFileContains('pages/search.html', 'css/components/search.css');
     checkFileContains('pages/contact.html', 'css/components/contact-card.css');
-    checkFileContains('index.html', 'js/home/project-graph.js');
+    assert(htmlHasManagedBundle(readFile('index.html'), 'site-home'), 'index.html missing managed home graph script');
     checkFileContains('pages/portfolio/nonogram.html', 'css/components/project-page.css');
   });
 
@@ -39090,7 +39291,7 @@ try {
       'homepage graph should use a progressive desktop group drawer while retaining compact responsive layouts');
     assert(graphJs.includes('createMobileClassicDeckHtml') &&
       graphJs.includes('mobileDeck.innerHTML = createMobileClassicDeckHtml()') &&
-      graphJs.includes('<h2 id="home-mobile-hero-title">Daniel Short</h2>') &&
+      graphJs.includes('<h1 id="home-mobile-hero-title">Daniel Short</h1>') &&
       graphJs.includes('<a href="portfolio">Projects</a>') &&
       graphJs.includes('<a href="tools">Tools</a>') &&
       graphJs.includes('<a href="games">Games</a>') &&
@@ -39099,10 +39300,11 @@ try {
       graphCss.includes('.home-graph__mobile-deck') &&
       graphCss.includes('.home-graph__mobile-classic') &&
       graphCss.includes('.home-graph__mobile-hero') &&
+      graphCss.includes('.home-graph__mobile-hero h1') &&
       graphCss.includes('.home-graph__mobile-section-card') &&
       graphCss.includes('@media (max-width: 768px)') &&
       !graphCss.includes('@media (max-width: 640px)'),
-      'homepage mobile layout should switch at 768px to a card-first Daniel Short introduction with direct library paths and featured content');
+      'homepage mobile layout should switch at 768px to a card-first, H1-led Daniel Short introduction with direct library paths and featured content');
     assert(graphJs.includes('getGroupKey(categoryId, group.id)') &&
       graphJs.includes('entry.type === \'group\'') &&
       graphJs.includes('groupPoints.set(entry.groupId') &&
@@ -39319,6 +39521,11 @@ try {
       'img/brand/25-hero-data-science-light.png',
       'img/brand/26-hero-tourism-light.png',
       'img/brand/27-hero-mobile-light.png',
+      'img/brand/27-hero-mobile-light.avif',
+      'img/brand/27-hero-mobile-light.webp',
+      'img/project-starfall/ui/start-screen.png',
+      'img/project-starfall/ui/start-screen.avif',
+      'img/project-starfall/ui/start-screen.webp',
       'img/brand/analytics-project-examples-bg.png',
       'img/brand/analytics-business-results-bg.png',
       'img/brand/analytics-work-experience-bg.png',
@@ -39342,6 +39549,34 @@ try {
       'img/brand/home-certifications-bg.png',
       'img/brand/home-analytics-cta-bg.png'
     ].forEach((file) => assert(!fs.existsSync(file), `${file} should be removed after section background rename`));
+
+    [
+      ['img/brand/27-hero-mobile-light.png', 'img/brand/27-hero-mobile-light.avif'],
+      ['img/brand/27-hero-mobile-light.png', 'img/brand/27-hero-mobile-light.webp'],
+      ['img/project-starfall/ui/start-screen.png', 'img/project-starfall/ui/start-screen.avif'],
+      ['img/project-starfall/ui/start-screen.png', 'img/project-starfall/ui/start-screen.webp']
+    ].forEach(([source, optimized]) => {
+      assert(fs.statSync(optimized).size < fs.statSync(source).size, `${optimized} should be smaller than ${source}`);
+      assert(fs.existsSync(`public/${optimized}`), `public/${optimized} missing`);
+    });
+
+    const imageOptimizer = readFile('build/optimize-site-images.js');
+    const homeGraphCss = readFile('css/components/home-project-graph.css');
+    const brandOverrideCss = readFile('css/utilities/design-system-overrides.css');
+    const starfallLoadingCss = readFile('css/games/project-starfall/loading.css');
+    const homeGraphJs = readFile('js/home/project-graph.js');
+    assert(imageOptimizer.includes('sharp') &&
+      imageOptimizer.includes('27-hero-mobile-light.png') &&
+      imageOptimizer.includes('start-screen.png'),
+      'image optimization build should generate mobile hero and Project Starfall variants with Sharp');
+    assert(homeGraphCss.includes('27-hero-mobile-light.avif') && homeGraphCss.includes('27-hero-mobile-light.webp'),
+      'homepage mobile hero should prefer AVIF/WebP with its PNG fallback');
+    assert(brandOverrideCss.includes('27-hero-mobile-light.avif') && brandOverrideCss.includes('27-hero-mobile-light.webp'),
+      'shared mobile hero artwork should prefer AVIF/WebP with its PNG fallback');
+    assert(starfallLoadingCss.includes('start-screen.avif') && starfallLoadingCss.includes('start-screen.webp'),
+      'Project Starfall start screen should prefer AVIF/WebP with its PNG fallback');
+    assert(homeGraphJs.includes("'project-starfall': '/img/project-starfall/ui/start-screen.webp'"),
+      'homepage Project Starfall preview should use the optimized WebP image');
 
     const generator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
     assert(!generator.includes('project-case-study'), 'project generator should not render removed Key Decisions panel content');
@@ -39488,6 +39723,10 @@ try {
            devServer.includes('resolveSourceStaticFallback') &&
            devServer.includes('resolveLocalStaticFile(rewrittenPathname)'),
            'local dev server should fall back to source static assets when public/ is stale or mid-rebuild');
+    assert(devServer.includes("const demosApiPath = path.join(root, 'api', 'demos', '[...slug].js')") &&
+           devServer.includes("pathname === '/api/demos' || pathname.startsWith('/api/demos/')") &&
+           devServer.includes('loadDemosApi()(req, res)'),
+           'local dev server should route shared demo APIs instead of returning the HTML 404 page inside project embeds');
 
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     assert(pkg.scripts && pkg.scripts['build:projects'], 'package.json missing build:projects script');
@@ -39552,7 +39791,14 @@ try {
     const hasPortfolio = rewrites.some(r => r.source === '/portfolio' && r.destination === '/pages/portfolio');
     const hasPortfolioHtml = rewrites.some(r => r.source === '/portfolio.html' && r.destination === '/pages/portfolio');
     const hasProjectRewrite = rewrites.some(r => r.source === '/portfolio/:project' && r.destination === '/pages/portfolio/:project');
-    const hasRootRedirect = redirects.some(r => r.source === '/' && r.destination === '/analytics');
+    const legacyModeAliases = new Set(['professional', 'work', 'career', 'analytics']);
+    const legacyModeRedirects = redirects.filter(r =>
+      r.source === '/' &&
+      r.destination === '/analytics' &&
+      r.permanent === false &&
+      Array.isArray(r.has) &&
+      r.has.some(entry => entry && entry.type === 'query' && entry.key === 'mode' && legacyModeAliases.has(entry.value))
+    );
     const hasIndexRedirect = redirects.some(r => r.source === '/index.html' && r.destination === '/');
     const hasDshortRootRedirect = redirects.some(r =>
       r.source === '/' &&
@@ -39574,7 +39820,8 @@ try {
     const hasResumeTourismPdf = rewrites.some(r => r.source === '/resume-tourism-pdf' && r.destination === '/pages/resume-tourism-pdf');
     assert(hasPortfolio && hasPortfolioHtml, 'portfolio rewrites missing');
     assert(hasProjectRewrite, 'project rewrite missing (/portfolio/:project)');
-    assert(!hasRootRedirect, 'root should not redirect to /analytics');
+    assert(legacyModeRedirects.length === legacyModeAliases.size,
+      'legacy professional root modes should redirect temporarily to the analytics landing page');
     assert(hasIndexRedirect, '/index.html redirect to / missing');
     assert(hasDshortRootRedirect, 'dshort.me root redirect to personal homepage missing');
     assert(hasAnalytics && hasAnalyticsHtml, 'analytics rewrites missing for hidden professional realm');
@@ -39582,6 +39829,10 @@ try {
     assert(hasTourism && hasTourismHtml, 'tourism rewrites missing for hidden professional realm');
     assert(hasResumeAnalytics && hasResumeDataScience && hasResumeTourism, 'professional resume rewrites missing');
     assert(hasResumeAnalyticsPdf && hasResumeDataSciencePdf && hasResumeTourismPdf, 'professional resume PDF preview rewrites missing');
+    assert(redirects.some(r => r.source === '/resume' && r.destination === '/resume-analytics' && r.permanent === true) &&
+      redirects.some(r => r.source === '/resume-pdf' && r.destination === '/resume-analytics-pdf' && r.permanent === true) &&
+      redirects.some(r => r.source === '/documents/Resume.pdf' && r.destination === '/documents/Resume-Analytics.pdf' && r.permanent === true),
+      'legacy analytics resume URLs should redirect permanently to analytics-specific URLs');
     const hasDestinationAnalyticsRedirect = redirects.some(r => r.source === '/destination-analytics' && r.destination === '/tourism' && r.permanent === true);
     const hasContributionsRedirect = redirects.some(r => r.source === '/contributions' && r.destination === '/tourism' && r.permanent === true);
     assert(hasDestinationAnalyticsRedirect && hasContributionsRedirect, 'legacy professional aliases should redirect permanently to tourism');
@@ -39723,10 +39974,17 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
-    const hasProfessionalModeNoindex = (source) => headers.some(h =>
+    const hasProfessionalModeNoindex = (source, mode) => headers.some(h =>
       h && h.source === source &&
       Array.isArray(h.has) &&
-      h.has.some(x => x && x.type === 'query' && x.key === 'mode' && x.value === 'professional') &&
+      h.has.some(x => x && x.type === 'query' && x.key === 'mode' && x.value === mode) &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
+    );
+    const hasAudienceNoindex = (audience) => headers.some(h =>
+      h && h.source === '/:path*' &&
+      Array.isArray(h.has) &&
+      h.has.some(x => x && x.type === 'query' && x.key === 'audience' && x.value === audience) &&
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
     );
@@ -39765,8 +40023,13 @@ try {
       assert(hasNoindexHeaderFor(route), `${route} PDF noindex header missing`);
     });
     assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
-    assert(hasProfessionalModeNoindex('/'), 'professional root mode should send a query-scoped noindex, nofollow robots header');
-    assert(hasProfessionalModeNoindex('/:path*'), 'professional mode on non-root routes should send a query-scoped noindex, nofollow robots header');
+    ['professional', 'work', 'career', 'analytics'].forEach((mode) => {
+      assert(hasProfessionalModeNoindex('/', mode), `${mode} root mode should send a query-scoped noindex, nofollow robots header`);
+      assert(hasProfessionalModeNoindex('/:path*', mode), `${mode} mode on non-root routes should send a query-scoped noindex, nofollow robots header`);
+    });
+    ['analytics', 'data-science', 'tourism'].forEach((audience) => {
+      assert(hasAudienceNoindex(audience), `${audience} audience query should send a noindex, nofollow robots header`);
+    });
   });
 
   section('Search index', () => {
@@ -39912,7 +40175,8 @@ try {
            !endpoint.includes('getSignedUrl') &&
            endpoint.includes('TRANSCRIBE_SIGNING_SECRET') &&
            endpoint.includes('MIN_DURATION_SECONDS = 15') &&
-           endpoint.includes('verifyCognitoIdToken'),
+           endpoint.includes("require('../tools-auth-session')") &&
+           endpoint.includes('authenticateToolsRequest(req)'),
       'Transcribe endpoint should use exact-policy S3 uploads, Cognito auth, and Amazon Transcribe jobs');
     assert(endpoint.includes('calculateCostUsd') &&
            endpoint.includes('Math.max(MIN_DURATION_SECONDS, Math.ceil(duration))') &&
@@ -40850,6 +41114,11 @@ try {
     assert(!portfolioHtml.includes('id="see-more"'), 'portfolio page should not include see-more toggle');
     assert(!portfolioHtml.includes('Which hiring track?'), 'portfolio page should not include audience filter copy');
     assert(!portfolioHtml.includes('use the filters'), 'portfolio hero copy should not reference filters');
+    assert(!portfolioHtml.includes('href="resume"') &&
+      !portfolioHtml.includes('portfolio?audience=analytics') &&
+      !portfolioHtml.includes('portfolio?audience=data-science') &&
+      !portfolioHtml.includes('portfolio?audience=tourism'),
+      'personal portfolio raw HTML should not expose professional resume or audience routes');
 
     const portfolioScript = readFile('js/portfolio/portfolio.js');
     assert(!portfolioScript.includes('function initSeeMore'), 'portfolio script should not include see-more initializer');
@@ -40872,28 +41141,30 @@ try {
     checkFileContains('index.html', 'rel="canonical" href="https://www.danielshort.me/"');
     assert(!readFile('index.html').includes('name="robots" content="noindex, follow"'), 'index.html should be indexable');
     const siteRealm = readFile('js/common/site-realm.js');
-    assert(siteRealm.includes('return PERSONAL_MODE;') &&
-      !siteRealm.includes('return normalizeMode(readStoredRealm())') &&
+    assert(siteRealm.includes('|| (queryMode() === PROFESSIONAL_MODE ? LEGACY_AUDIENCE : PERSONAL_MODE)') &&
+      !siteRealm.includes('readStoredRealm') &&
       !siteRealm.includes('localStorage.setItem(STORAGE_KEY'),
       'site realm should default to the public homepage version instead of persisting recruiter mode');
     assert(siteRealm.includes('meta[name="robots"][data-site-realm-robots="professional"]') &&
       siteRealm.includes("robots.setAttribute('content', 'noindex, nofollow')") &&
-      siteRealm.includes('const isProfessionalView = mode === PROFESSIONAL_MODE') &&
       siteRealm.includes('const staticNoindex = Array.from') &&
-      siteRealm.includes('applyProfessionalRobots(mode)'),
+      siteRealm.includes('applyProfessionalRobots(isProfessional)'),
       'every professional realm view should provide one noindex, nofollow robots directive without duplicating static metadata');
-    assert(siteRealm.includes("document.documentElement.classList.toggle('site-realm-professional-home', isProfessionalHome)") &&
-      siteRealm.includes("document.body.dataset.siteRealmHome = PROFESSIONAL_MODE"),
-      'root mode=professional should expose a scoped professional-home state without redirecting');
-    assert(siteRealm.includes("const PROFESSIONAL_HOME_SOURCE = '/analytics'") &&
-      siteRealm.includes('document.body.dataset.page = PROFESSIONAL_AUDIENCE') &&
-      siteRealm.includes("window.fetch(sourceUrl.toString(), { credentials: 'same-origin' })") &&
-      siteRealm.includes("sourceDoc.getElementById('main')") &&
-      siteRealm.includes('ensureProfessionalHomeStyles(sourceDoc)'),
-      'root mode=professional should reuse the analytics page markup and route styles instead of rendering a separate professional homepage');
-    assert(siteRealm.includes('if (isHashOnlyHref(href)) return currentHashHref') &&
-      siteRealm.includes("document.dispatchEvent(new CustomEvent('site:content-updated'"),
-      'professional mode should preserve current mode on same-page hash links and notify dynamic content initializers');
+    assert(siteRealm.includes('window.location.replace(analytics.homePath') &&
+      siteRealm.includes("url.searchParams.set('audience', LEGACY_AUDIENCE)") &&
+      siteRealm.includes("url.searchParams.delete('mode')") &&
+      siteRealm.includes('window.history.replaceState'),
+      'legacy professional mode should redirect at the root and canonicalize shared non-root pages to an explicit analytics audience');
+    assert(!siteRealm.includes('PROFESSIONAL_HOME_SOURCE') &&
+      !siteRealm.includes('window.fetch(sourceUrl.toString()') &&
+      !siteRealm.includes("url.searchParams.set('mode', PROFESSIONAL_MODE)"),
+      'professional routing should not fetch an alternate homepage or propagate the legacy mode parameter');
+    assert(siteRealm.includes("path === '/portfolio'") &&
+      siteRealm.includes("path.startsWith('/portfolio/')") &&
+      siteRealm.includes("path === '/contact'") &&
+      siteRealm.includes('new URL(raw, document.baseURI || window.location.href)') &&
+      siteRealm.includes("url.searchParams.set('audience', audienceKey)"),
+      'professional shared-page links should resolve from the document base and preserve only the explicit audience context');
     [
       'pages/analytics.html',
       'pages/data-science.html',
@@ -40914,8 +41185,12 @@ try {
     assert(commonScript.includes('const samePageHashFromHref = (href) =>') &&
       commonScript.includes("document.addEventListener('site:content-updated'") &&
       commonScript.includes("panel.dataset.jumpPanelSpyBound === 'yes'") &&
-      commonScript.includes("history.pushState(null, '', currentHashUrl(hash))"),
-      'same-page smooth scroll and jump panel spy should support mode-preserving hash URLs after professional homepage injection');
+      commonScript.includes("history.pushState(null, '', currentHashUrl(hash))") &&
+      commonScript.includes("target.setAttribute('tabindex', '-1')") &&
+      commonScript.includes('target.focus({ preventScroll: true })') &&
+      commonScript.includes('reducedMotion: prefersReducedMotion()') &&
+      commonScript.includes('activeSmoothScrollCancel'),
+      'same-page smooth scroll should update history, honor reduced motion and cancellation, and focus its temporary-tabindex target');
     assert(commonScript.includes('normalizeAudienceSectionOrder') &&
       commonScript.includes('sortWorkCardsNewestFirst') &&
       commonScript.includes("grid.dataset.workOrder = 'newest-first'"),
@@ -40959,8 +41234,15 @@ try {
     assert(!jumpPanelCss.includes('@media (hover:none) and (pointer:coarse), (max-width:768px)') &&
       jumpPanelCss.includes('scroll-margin-top:68px;') &&
       jumpPanelCss.includes('overflow-x:clip;') &&
-      jumpPanelCss.includes('overflow-y:visible;'),
-      'professional mobile jump navigation should stay mobile-width-only and clear both sticky navigation bars');
+      jumpPanelCss.includes('overflow-y:visible;') &&
+      jumpPanelCss.includes('.jump-panel-step') &&
+      jumpPanelCss.includes('.jump-panel.can-scroll-prev.can-scroll-next .jump-panel-track') &&
+      commonScript.includes('setupProfessionalJumpRail') &&
+      commonScript.includes("button.setAttribute('aria-controls', track.id)") &&
+      commonScript.includes("panel.classList.toggle('can-scroll-next', canScrollNext)") &&
+      commonScript.includes('currentIndex + (direction > 0 ? 1 : -1)') &&
+      commonScript.includes('railControls?.centerLink(activeItem.link)'),
+      'professional mobile jump navigation should provide accessible edge controls, index-based stepping, fades, and active-link centering');
     const animationsScript = readFile('js/animations/animations.js');
     assert(animationsScript.includes("document.addEventListener('site:content-updated'") &&
       animationsScript.includes('let revealObserver = null') &&
@@ -41013,9 +41295,12 @@ try {
     checkFileContains('contact.html', 'id="contact-form"');
     checkFileContains('pages/contact.html', 'action="/api/contact"');
     assert(fs.existsSync('api/contact.js'), 'api/contact.js missing');
-    assert(readFile('pages/resume.html').includes('href="documents/Resume.pdf" class="btn-primary" download>Download PDF</a>') &&
-      readFile('pages/resume-pdf.html').includes('href="documents/Resume.pdf" class="btn-primary" download>Download PDF</a>'),
-      'the primary resume and PDF preview routes should emphasize Download PDF');
+    assert(readFile('pages/resume-analytics.html').includes('href="documents/Resume-Analytics.pdf" class="btn-primary" download>Download PDF</a>') &&
+      readFile('pages/resume-analytics.html').includes('href="resume-analytics-pdf" class="btn-secondary">Preview PDF</a>') &&
+      readFile('pages/resume-analytics-pdf.html').includes('href="resume-analytics" class="btn-secondary">View digital resume</a>') &&
+      readFile('pages/resume-analytics-pdf.html').includes('src="documents/Resume-Analytics.pdf" title="Resume PDF preview"') &&
+      readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-fallback"'),
+      'analytics resume and PDF preview routes should use analytics-specific URLs and document names');
   });
 
   section('Search page form contract', () => {

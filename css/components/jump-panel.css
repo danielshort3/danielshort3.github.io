@@ -32,6 +32,14 @@
     will-change:width, transform, opacity;
   }
 
+  body:is([data-page="home"], .home-pattern-page) .jump-panel-track{
+    display:contents;
+  }
+
+  body:is([data-page="home"], .home-pattern-page) .jump-panel-step{
+    display:none;
+  }
+
   body:is([data-page="home"], .home-pattern-page) .jump-panel:hover,
   body:is([data-page="home"], .home-pattern-page) .jump-panel:focus-within{
     width:var(--jump-expanded);
@@ -321,15 +329,15 @@
       bottom:auto;
       left:auto;
       z-index:2250;
-      display:flex;
+      display:grid;
+      grid-template-columns:44px minmax(0, 1fr) 44px;
       width:100%;
       max-width:none;
       box-sizing:border-box;
-      flex-direction:row;
       align-items:center;
-      gap:4px;
-      padding:7px max(14px, env(safe-area-inset-left, 0px));
-      overflow-x:auto;
+      gap:2px;
+      padding:7px max(8px, env(safe-area-inset-left, 0px));
+      overflow:hidden;
       border:0;
       border-block:1px solid rgba(96,121,160,.16);
       border-radius:0;
@@ -344,14 +352,100 @@
 
     html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel::before,
     body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel::before {
+      content:none;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-track,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-track {
+      display:flex;
+      min-width:0;
+      gap:4px;
+      padding-inline:4px;
+      overflow-x:auto;
+      overscroll-behavior-x:contain;
+      scrollbar-width:none;
+      scroll-snap-type:x proximity;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-track::-webkit-scrollbar,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-track::-webkit-scrollbar {
+      display:none;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-track::before,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-track::before {
       content:"On this page";
       flex:0 0 auto;
+      align-self:center;
       margin-right:4px;
       color:#64748b;
       font-size:.68rem;
       font-weight:800;
       letter-spacing:.08em;
       text-transform:uppercase;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-step,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-step {
+      display:grid;
+      place-items:center;
+      width:44px;
+      height:44px;
+      padding:0;
+      border:1px solid rgba(96,121,160,.22);
+      border-radius:999px;
+      background:#ffffff;
+      color:#21304a;
+      cursor:pointer;
+      transition:background .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-step:is(:hover, :focus-visible):not(:disabled),
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-step:is(:hover, :focus-visible):not(:disabled) {
+      border-color:var(--primary);
+      background:color-mix(in srgb, var(--primary) 10%, #ffffff);
+      color:var(--brand-midnight, #091f3b);
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-step:focus-visible,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-step:focus-visible {
+      outline:3px solid color-mix(in srgb, var(--primary) 58%, #ffffff);
+      outline-offset:1px;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-step:disabled,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-step:disabled {
+      opacity:.3;
+      cursor:default;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-step svg,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel-step svg {
+      width:20px;
+      height:20px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:2.2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel.can-scroll-next:not(.can-scroll-prev) .jump-panel-track,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel.can-scroll-next:not(.can-scroll-prev) .jump-panel-track {
+      -webkit-mask-image:linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+      mask-image:linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel.can-scroll-prev:not(.can-scroll-next) .jump-panel-track,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel.can-scroll-prev:not(.can-scroll-next) .jump-panel-track {
+      -webkit-mask-image:linear-gradient(to right, transparent 0, #000 28px, #000 100%);
+      mask-image:linear-gradient(to right, transparent 0, #000 28px, #000 100%);
+    }
+
+    html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel.can-scroll-prev.can-scroll-next .jump-panel-track,
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]).home-pattern-page .jump-panel.can-scroll-prev.can-scroll-next .jump-panel-track {
+      -webkit-mask-image:linear-gradient(to right, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+      mask-image:linear-gradient(to right, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
     }
 
     html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-link,
@@ -362,6 +456,7 @@
       padding:0 12px;
       border-radius:999px;
       background:#f6f9fd;
+      scroll-snap-align:center;
     }
 
     html.site-realm-professional-home body[data-page="home"].home-pattern-page .jump-panel-dot,

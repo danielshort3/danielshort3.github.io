@@ -13,6 +13,8 @@ const cssDir = path.join(root, 'css');
 const outDir = path.join(root, 'dist');
 const entries = [
   { entry: path.join(cssDir, 'styles.css'), baseName: 'styles', manifestKey: 'file' },
+  { entry: path.join(cssDir, 'styles-home.css'), baseName: 'styles-home', manifestKey: 'homeFile' },
+  { entry: path.join(cssDir, 'styles-workbench.css'), baseName: 'styles-workbench', manifestKey: 'workbenchFile' },
   { entry: path.join(cssDir, 'styles-tools.css'), baseName: 'styles-tools', manifestKey: 'toolsFile' }
 ];
 

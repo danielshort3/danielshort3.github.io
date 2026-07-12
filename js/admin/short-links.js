@@ -105,7 +105,10 @@
   const setDeleteButton = document.querySelector('[data-shortlinks="set-delete"]');
   const setEditorStatusEl = document.querySelector('[data-shortlinks="set-editor-status"]');
   const setGenerateForm = document.querySelector('[data-shortlinks="set-generate"]');
+  const batchPresetSelect = document.querySelector('[data-shortlinks="batch-preset"]');
   const batchTitleInput = document.querySelector('[data-shortlinks="batch-title"]');
+  const batchCompanyInput = document.querySelector('[data-shortlinks="batch-company"]');
+  const batchRoleInput = document.querySelector('[data-shortlinks="batch-role"]');
   const batchRandomLengthInput = document.querySelector('[data-shortlinks="batch-random-length"]');
   const batchExpirationModeSelect = document.querySelector('[data-shortlinks="batch-expiration-mode"]');
   const batchDurationFields = document.querySelector('[data-shortlinks="batch-duration-fields"]');
@@ -189,20 +192,20 @@
       label: 'Personal Site',
       shortLabel: 'Personal',
       homePath: '/',
-      portfolioPath: '/portfolio?audience=personal',
+      portfolioPath: '/portfolio',
       resumePath: '',
       resumePreviewPath: '',
       resumeDownloadPath: ''
     },
     analytics: {
       key: 'analytics',
-      label: 'Professional Site',
-      shortLabel: 'Professional',
+      label: 'Data Analytics',
+      shortLabel: 'Analytics',
       homePath: '/analytics',
       portfolioPath: '/portfolio?audience=analytics',
-      resumePath: '/resume',
-      resumePreviewPath: '/resume-pdf',
-      resumeDownloadPath: '/documents/Resume.pdf'
+      resumePath: '/resume-analytics',
+      resumePreviewPath: '/resume-analytics-pdf',
+      resumeDownloadPath: '/documents/Resume-Analytics.pdf'
     },
     'data-science': {
       key: 'data-science',
@@ -237,7 +240,7 @@
   const FALLBACK_DESTINATIONS = [
     { path: '/', label: 'Home', group: 'Pages' },
     { path: '/portfolio', label: 'Portfolio', group: 'Portfolio' },
-    { path: '/resume', label: 'Resume', group: 'Pages' },
+    { path: '/resume-analytics', label: 'Data Analytics Resume', group: 'Pages' },
     { path: '/contact', label: 'Contact', group: 'Pages' },
     { path: '/tools', label: 'Tools', group: 'Tools' }
   ];
@@ -1849,7 +1852,7 @@
       case 'professional':
         return {
           mode: 'professional',
-          label: 'Professional',
+          label: 'Data Analytics',
           audienceKey: 'analytics',
           slugPrefix: 'p/professional'
         };
@@ -1971,6 +1974,7 @@
     const audience = getAudienceConfig(audienceKey);
     const path = normalizeSitePath(info.pathname);
     const params = new URLSearchParams(info.searchParams);
+    params.delete('mode');
 
     if (path === '/' || isAudienceHomePath(path)) {
       return buildAbsoluteSiteUrl(audience.homePath);
@@ -1986,7 +1990,7 @@
     }
     if (isPortfolioPath(path)) {
       params.delete('audience');
-      params.set('audience', audience.key);
+      if (audience.key !== 'personal') params.set('audience', audience.key);
       return buildAbsoluteSiteUrl(path, params, info.hash);
     }
 
@@ -2000,6 +2004,7 @@
     const audience = getAudienceConfig(audienceKey);
     const path = normalizeSitePath(info.pathname);
     const params = new URLSearchParams(info.searchParams);
+    params.delete('mode');
 
     if (path === '/' || isAudienceHomePath(path)) {
       return buildAbsoluteSiteUrl(audience.homePath);
@@ -2015,6 +2020,7 @@
     }
     if (isPortfolioPath(path)) {
       params.delete('audience');
+      if (audience.key !== 'personal') params.set('audience', audience.key);
       return buildAbsoluteSiteUrl(path, params, info.hash);
     }
 
@@ -2032,18 +2038,7 @@
 
   function buildShareShortUrl(slug, destination, audienceKey){
     const baseShortUrl = buildShortUrl(slug);
-    if (!baseShortUrl) return '';
-
-    const info = parseInternalSiteDestination(destination);
-    if (!info || !isPortfolioPath(info.pathname)) return baseShortUrl;
-
-    try {
-      const url = new URL(baseShortUrl);
-      url.searchParams.set('audience', normalizeAudienceKey(audienceKey));
-      return url.toString();
-    } catch {
-      return baseShortUrl;
-    }
+    return baseShortUrl || '';
   }
 
   function buildBaseSlugFromPath(pathname){
@@ -2259,8 +2254,9 @@
     const info = parseInternalSiteDestination(pathname);
     const path = info ? info.pathname : normalizeSitePath(pathname);
     const params = info ? new URLSearchParams(info.searchParams) : new URLSearchParams();
+    params.delete('mode');
     params.delete('audience');
-    params.set('audience', config.audienceKey);
+    if (config.audienceKey !== 'personal') params.set('audience', config.audienceKey);
     return buildAbsoluteSiteUrl(path, params, info ? info.hash : '');
   }
 
@@ -4451,6 +4447,27 @@
     if (batchDurationFields) batchDurationFields.hidden = mode !== 'temporary';
   }
 
+  function syncBatchPreset(options = {}){
+    const preset = String(batchPresetSelect?.value || 'standard').trim().toLowerCase();
+    if (preset !== 'company-share') {
+      syncBatchTimingVisibility();
+      return;
+    }
+    if (batchExpirationModeSelect) batchExpirationModeSelect.value = 'temporary';
+    if (batchDurationValueInput && !Number(batchDurationValueInput.value)) {
+      batchDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
+    }
+    if (batchDurationUnitSelect && !batchDurationUnitSelect.value) {
+      batchDurationUnitSelect.value = DEFAULT_SET_DURATION_UNIT;
+    }
+    const activeSet = getSetById(activeSetId);
+    if (batchTitleInput && activeSet && batchTitleInput.value.trim() === String(activeSet.title || '').trim()) {
+      batchTitleInput.value = '';
+    }
+    syncBatchTimingVisibility();
+    if (options.focusCompany && batchCompanyInput) batchCompanyInput.focus({ preventScroll: true });
+  }
+
   function createSetRow(entry = {}){
     if (!setRowsEl) return null;
     setRowCounter += 1;
@@ -4563,6 +4580,9 @@
     if (setDefaultDurationValueInput) setDefaultDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
     if (setDefaultDurationUnitSelect) setDefaultDurationUnitSelect.value = DEFAULT_SET_DURATION_UNIT;
     if (batchTitleInput) batchTitleInput.value = '';
+    if (batchPresetSelect) batchPresetSelect.value = 'standard';
+    if (batchCompanyInput) batchCompanyInput.value = '';
+    if (batchRoleInput) batchRoleInput.value = '';
     if (batchRandomLengthInput) batchRandomLengthInput.value = String(DEFAULT_RANDOM_LENGTH);
     if (batchExpirationModeSelect) batchExpirationModeSelect.value = 'permanent';
     if (batchDurationValueInput) batchDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
@@ -4590,6 +4610,9 @@
     if (setDefaultDurationValueInput) setDefaultDurationValueInput.value = String(normalizeDurationValue(item.defaultDurationValue, DEFAULT_SET_DURATION_VALUE));
     if (setDefaultDurationUnitSelect) setDefaultDurationUnitSelect.value = normalizeDurationUnit(item.defaultDurationUnit);
     if (batchTitleInput) batchTitleInput.value = String(item.title || '');
+    if (batchPresetSelect) batchPresetSelect.value = 'standard';
+    if (batchCompanyInput) batchCompanyInput.value = '';
+    if (batchRoleInput) batchRoleInput.value = '';
     if (batchRandomLengthInput) batchRandomLengthInput.value = String(clampRandomLength(item.defaultRandomLength, DEFAULT_RANDOM_LENGTH));
     if (batchExpirationModeSelect) batchExpirationModeSelect.value = normalizeExpirationMode(item.defaultExpirationMode);
     if (batchDurationValueInput) batchDurationValueInput.value = String(normalizeDurationValue(item.defaultDurationValue, DEFAULT_SET_DURATION_VALUE));
@@ -4911,12 +4934,26 @@
       return;
     }
 
+    const preset = String(batchPresetSelect?.value || 'standard').trim().toLowerCase();
+    const company = String(batchCompanyInput?.value || '').trim();
+    const title = String(batchRoleInput?.value || '').trim();
+    const isCompanyShare = preset === 'company-share' || Boolean(company || title);
+    if (isCompanyShare && (!company || !title)) {
+      setStatus(batchStatusEl, 'Company shares require both a company and role.', 'error');
+      return;
+    }
+
     const payload = {
       batchTitle: String(batchTitleInput?.value || '').trim(),
       randomLength: clampRandomLength(batchRandomLengthInput?.value, DEFAULT_RANDOM_LENGTH),
       expirationMode: normalizeExpirationMode(batchExpirationModeSelect?.value),
       durationValue: normalizeDurationValue(batchDurationValueInput?.value, DEFAULT_SET_DURATION_VALUE),
-      durationUnit: normalizeDurationUnit(batchDurationUnitSelect?.value)
+      durationUnit: normalizeDurationUnit(batchDurationUnitSelect?.value),
+      context: isCompanyShare ? {
+        type: 'company-share',
+        company,
+        title
+      } : {}
     };
 
     setStatus(batchStatusEl, 'Generating short links...');
@@ -5536,6 +5573,13 @@
   if (batchExpirationModeSelect) {
     batchExpirationModeSelect.addEventListener('change', () => {
       syncBatchTimingVisibility();
+      markSessionDirty();
+    });
+  }
+
+  if (batchPresetSelect) {
+    batchPresetSelect.addEventListener('change', () => {
+      syncBatchPreset({ focusCompany: batchPresetSelect.value === 'company-share' });
       markSessionDirty();
     });
   }

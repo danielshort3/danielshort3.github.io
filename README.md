@@ -100,14 +100,32 @@ Generate an admin token locally:
 This repo includes an optional account layer for tools under `/tools`:
 
 - **Dashboard:** `/tools/dashboard` (shows signed-in tool usage, recent sessions, and activity).
-- **Auth:** Amazon Cognito Hosted UI (PKCE) configured in `js/accounts/tools-config.js`; sign-in requests `select_account` by default so Google prompts for the intended account.
+- **Auth:** Amazon Cognito Hosted UI (PKCE) configured in `js/accounts/tools-config.js`; sign-in requests `select_account` by default so Google prompts for the intended account. In the default `dual` migration mode, a verified ID token is also exchanged for an AES-256-GCM authenticated, Secure, HttpOnly, `SameSite=Lax`, same-origin `__Host-` session cookie.
 - **Storage:** AWS DynamoDB (see `.env.example`).
 
 Required configuration:
 
 - Update your Cognito app client **Allowed callback URLs** to include `https://www.danielshort.me/tools/dashboard`.
 - Set `TOOLS_COGNITO_ISSUER` + `TOOLS_COGNITO_CLIENT_ID` in your Vercel environment (used for server-side JWT verification).
+- Set `TOOLS_SESSION_SECRETS` to one or more comma-separated 32-byte base64url (or 64-character hex) keys. The first encrypts new cookies; all keys decrypt during rotation. Keep `TOOLS_AUTH_BEARER_FALLBACK=true` during the staged rollout, and retain the previous key after the new key until old cookies expire.
+- `TOOLS_SESSION_TTL_SECONDS` is optional (default `28800`; clamped to 900–86400 seconds). `TOOLS_AUTH_BEARER_FALLBACK` is optional and defaults to `true` when omitted.
 - Create a DynamoDB table with partition key `pk` (string) and sort key `sk` (string), then set `TOOLS_DDB_TABLE` and the environment-specific `TOOLS_AWS_ROLE_ARN` for Vercel OIDC session/activity storage.
+
+Session rollout notes:
+
+- The server cookie contains only bounded subject, email, display-name, group, issued-at, and expiry claims. Cognito ID/access/refresh tokens are never written to server storage or placed in the cookie.
+- `sessionMode: 'dual'` preserves the current Job Tracker flow while same-origin tools APIs authenticate the cookie first. During migration, the browser also sends the existing ID-token header so the configured Bearer fallback still works if the cookie is missing or expired.
+- Do not change the client to `sessionMode: 'cookie'` or disable Bearer fallback until Job Tracker has a same-origin backend-for-frontend route and Preview/Production auth canaries pass. Cookie-only mode intentionally rejects cross-origin authenticated API requests.
+- Logout clears the browser state immediately and expires the cookie. Sessions are stateless and cannot be individually revoked server-side, so keep `TOOLS_SESSION_TTL_SECONDS` bounded (the implementation caps it at 24 hours).
+
+Activation checklist (must be verified after deployment):
+
+1. Add the Cognito variables and `TOOLS_SESSION_SECRETS` to Preview first; keep the checked-in client in `dual` mode and Bearer fallback enabled.
+2. Sign in, confirm `/api/tools/auth/exchange` sets `__Host-tools_session` with `Secure`, `HttpOnly`, `SameSite=Lax`, and `Path=/`, then verify `/api/tools/auth/session`, a saved-session mutation, and Transcribe authentication.
+3. Sign out and verify `/api/tools/auth/logout` sends `Max-Age=0`; repeat after manually clearing the cookie to confirm the dual-mode Bearer path still works.
+4. Repeat the canary in Production before considering `sessionMode: 'cookie'` or `TOOLS_AUTH_BEARER_FALLBACK=false`.
+
+The CSP keeps `object-src 'none'`; resume PDFs therefore use titled same-origin iframes with visible download fallbacks. `frame-ancestors 'self'` is intentional so the portfolio can embed its own demo pages while external sites remain unable to frame them. Inline script/style allowances remain temporarily for compatibility and should be removed only through a separately tested nonce/hash migration.
 
 ## Local CMS
 

@@ -1472,6 +1472,10 @@
   }
 
   function setupChromeOffsetTracking() {
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', setupChromeOffsetTracking, { once: true });
+      return;
+    }
     updateChromeOffset();
     window.addEventListener('resize', requestChromeOffsetUpdate, { passive: true });
     window.addEventListener('orientationchange', requestChromeOffsetUpdate, { passive: true });
@@ -1485,11 +1489,15 @@
       updateChromeOffset();
       requestNudgeCheck();
     });
-    mutationObserver.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['data-consent-banner'],
-      childList: true
-    });
+    try {
+      mutationObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['data-consent-banner'],
+        childList: true
+      });
+    } catch {
+      mutationObserver.disconnect();
+    }
 
     let resizeObserver = null;
     function observeConsentBanner() {

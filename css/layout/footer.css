@@ -150,6 +150,16 @@
     display:inline-flex;
   }
 
+  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-identity-panel[data-footer-realm="professional"],
+  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-nav-panel[data-footer-realm="professional"]{
+    display:grid;
+  }
+
+  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-identity-panel[data-footer-realm="personal"],
+  body[data-audience]:not([data-audience="personal"]) .footer.footer-classic .footer-nav-panel[data-footer-realm="personal"]{
+    display:none;
+  }
+
   .footer.footer-classic .footer-bottom{
     grid-area:bottom;
     display:flex;
