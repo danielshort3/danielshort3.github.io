@@ -37737,6 +37737,14 @@ try {
       accountUi.includes("document.addEventListener('tools:session-meta-updated'") &&
       accountUi.includes("document.addEventListener('tools:session-deleted'"),
       'tool pages should recover stale session links and synchronize version-changing account actions');
+    assert(accountUi.includes("'transcribe': ['whisper-transcribe-monitor']") &&
+      accountUi.includes('const loaded = await readCompatibleSession();') &&
+      accountUi.includes('sessionStorageToolId = loaded.storageToolId;') &&
+      accountUi.includes('buildSnapshot({ toolId: sessionStorageToolId, root })') &&
+      accountUi.includes('captureToolPayload({ toolId, root, sessionId, snapshot })') &&
+      accountUi.includes('toolId: sessionStorageToolId') &&
+      accountUi.includes('Session summary loaded; media and transcript text are not stored.'),
+      'Transcribe should reopen legacy Whisper sessions without moving their storage key or claiming transcript restoration');
     assert(stateClient.includes('const MAX_KEEPALIVE_BODY_BYTES = 60 * 1024;') &&
       stateClient.includes('keepalive: !!keepalive && utf8Bytes(body) <= MAX_KEEPALIVE_BODY_BYTES'),
       'page-exit session saves should not exceed the browser keepalive request-body budget');

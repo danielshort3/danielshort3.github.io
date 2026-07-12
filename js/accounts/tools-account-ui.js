@@ -22,6 +22,19 @@
     'whisper-transcribe-monitor': { name: 'File Transcriber', href: '/tools/transcribe' }
   };
 
+  const TOOL_SESSION_READ_ALIASES = {
+    'transcribe': ['whisper-transcribe-monitor']
+  };
+
+  const getCompatibleSessionToolIds = (toolId) => {
+    const primary = String(toolId || '').trim();
+    if (!primary) return [];
+    const aliases = Array.isArray(TOOL_SESSION_READ_ALIASES[primary])
+      ? TOOL_SESSION_READ_ALIASES[primary]
+      : [];
+    return [primary, ...aliases];
+  };
+
   const $ = (sel, root = document) => root.querySelector(sel);
 
   const getToolInfo = (toolId) => {
@@ -2528,6 +2541,7 @@
     const sessionIdFromUrl = getSessionParam() || '';
     const authed = window.ToolsAuth.authIsValid(window.ToolsAuth.getAuth());
     let sessionId = sessionIdFromUrl || (authed ? getActiveSessionId(toolId) : '') || '';
+    let sessionStorageToolId = toolId;
     let sessionVersion = sessionId ? null : 0;
     let dirty = false;
     let saveInFlight = false;
@@ -2546,12 +2560,29 @@
       return;
     }
 
+    const readCompatibleSession = async () => {
+      const candidates = getCompatibleSessionToolIds(toolId);
+      let unavailableError = null;
+      for (const candidateToolId of candidates) {
+        try {
+          const data = await window.ToolsState.getSession({ toolId: candidateToolId, sessionId });
+          return { data, storageToolId: candidateToolId };
+        } catch (err) {
+          if (err?.status !== 404 && err?.status !== 410) throw err;
+          unavailableError = err;
+        }
+      }
+      throw unavailableError || new Error('Session not found.');
+    };
+
     const applySession = async () => {
       const auth = window.ToolsAuth.getAuth();
       if (!window.ToolsAuth.authIsValid(auth) || !sessionId) return;
       updateStatus('Loading session...');
       try {
-        const data = await window.ToolsState.getSession({ toolId, sessionId });
+        const loaded = await readCompatibleSession();
+        const data = loaded.data;
+        sessionStorageToolId = loaded.storageToolId;
         const snapshot = data?.session?.snapshot;
         sessionVersion = Math.max(1, Number(data?.session?.version) || 1);
         if (snapshot && typeof snapshot === 'object') {
@@ -2559,7 +2590,9 @@
           applyToolFields(root, snapshot.fields || {});
           isApplying = false;
           notifySessionApplied({ toolId, root, sessionId, snapshot });
-          updateStatus('Session loaded.');
+          updateStatus(toolId === 'transcribe'
+            ? 'Session summary loaded; media and transcript text are not stored.'
+            : 'Session loaded.');
           setTimeout(() => updateStatus(idleStatus), 1500);
           try {
             await window.ToolsState.logActivity({ toolId, type: 'session_load', summary: `Loaded session ${sessionId}` });
@@ -2568,6 +2601,7 @@
       } catch (err) {
         if (err?.status === 404 || err?.status === 410) {
           sessionId = '';
+          sessionStorageToolId = toolId;
           sessionVersion = 0;
           dirty = false;
           setActiveSessionId(toolId, '');
@@ -2591,14 +2625,14 @@
       updateStatus('Saving...');
       const saveAction = sessionId ? 'update' : 'create';
 
-      const snapshot = buildSnapshot({ toolId, root });
+      const snapshot = buildSnapshot({ toolId: sessionStorageToolId, root });
       const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
       const outputSummary = String(captured?.outputSummary || '').trim();
       if (typeof captured?.output !== 'undefined') snapshot.output = captured.output;
       if (captured?.inputs && typeof captured.inputs === 'object') snapshot.inputs = captured.inputs;
       try {
         const res = await window.ToolsState.saveSession({
-          toolId,
+          toolId: sessionStorageToolId,
           sessionId: sessionId || undefined,
           snapshot,
           outputSummary: outputSummary || undefined,
@@ -2640,6 +2674,7 @@
     document.addEventListener('tools:new-session', (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
       sessionId = '';
+      sessionStorageToolId = toolId;
       sessionVersion = 0;
       dirty = false;
       setActiveSessionId(toolId, '');
@@ -2647,6 +2682,7 @@
     });
     document.addEventListener('tools:account-data-deleted', () => {
       sessionId = '';
+      sessionStorageToolId = toolId;
       sessionVersion = 0;
       dirty = false;
       setActiveSessionId(toolId, '');
@@ -2654,16 +2690,17 @@
     });
     document.addEventListener('tools:session-meta-updated', (event) => {
       const detail = event?.detail || {};
-      if (String(detail.toolId || '').trim() !== toolId) return;
+      if (String(detail.toolId || '').trim() !== sessionStorageToolId) return;
       if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
       const nextVersion = Number(detail.meta?.version);
       if (Number.isInteger(nextVersion) && nextVersion > 0) sessionVersion = nextVersion;
     });
     document.addEventListener('tools:session-deleted', (event) => {
       const detail = event?.detail || {};
-      if (String(detail.toolId || '').trim() !== toolId) return;
+      if (String(detail.toolId || '').trim() !== sessionStorageToolId) return;
       if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
       sessionId = '';
+      sessionStorageToolId = toolId;
       sessionVersion = 0;
       dirty = false;
       setActiveSessionId(toolId, '');
