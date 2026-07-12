@@ -813,34 +813,17 @@
       }
     };
 
-    const expanded = {
-      projects: {
-        center: { x: .66, y: .5 },
-        categories: {
-          projects: { x: .43, y: .38 },
-          tools: { x: .94, y: .5 },
-          games: { x: .66, y: .82 }
-        }
-      },
-      tools: {
-        center: { x: .33, y: .52 },
-        categories: {
-          projects: { x: .16, y: .2 },
-          tools: { x: .55, y: .3 },
-          games: { x: .32, y: .82 }
-        }
-      },
-      games: {
-        center: { x: .5, y: .37 },
-        categories: {
-          projects: { x: .27, y: .25 },
-          tools: { x: .74, y: .27 },
-          games: { x: .5, y: .6 }
-        }
+    if (!activeCategoryId || !CATEGORIES[activeCategoryId]) return overview;
+
+    const supporting = CATEGORY_ORDER.filter((categoryId) => categoryId !== activeCategoryId);
+    return {
+      center: { x: .1, y: .52 },
+      categories: {
+        [activeCategoryId]: { x: .28, y: .52 },
+        [supporting[0]]: { x: .22, y: .24 },
+        [supporting[1]]: { x: .22, y: .8 }
       }
     };
-
-    return expanded[activeCategoryId] || overview;
   };
 
   const getDesktopGraphLayout = (metrics, activeCategoryId) => {
@@ -1791,6 +1774,100 @@
     return group?.id || '';
   };
 
+  const getDrawerNodeSlots = (count) => {
+    const layouts = {
+      1: [[50, 52]],
+      2: [[30, 52], [70, 52]],
+      3: [[18, 52], [50, 52], [82, 52]],
+      4: [[29, 28], [71, 28], [29, 72], [71, 72]],
+      5: [[25, 27], [75, 27], [16, 72], [50, 72], [84, 72]],
+      6: [[16, 27], [50, 27], [84, 27], [16, 72], [50, 72], [84, 72]]
+    };
+    const slots = layouts[Math.min(6, Math.max(1, count))] || layouts[6];
+    return Array.from({ length: count }, (_, index) => {
+      const slot = slots[index] || [16 + ((index % 3) * 34), 27 + (Math.floor(index / 3) * 45)];
+      return { x: slot[0], y: slot[1] };
+    });
+  };
+
+  const getDesktopGroupDrawerLayout = (categoryId, metrics, graphLayout, dimensions, selectedKey) => {
+    const groups = getCategoryGroups(categoryId);
+    const selectedGroupId = getSelectedGroupIdForLayout(categoryId, selectedKey) || groups[0]?.id || '';
+    const selectedGroup = groups.find((group) => group.id === selectedGroupId) || groups[0] || null;
+    const selectedItemKey = parseItemKey(selectedKey);
+    const selectedItemId = selectedItemKey?.categoryId === categoryId
+      && selectedGroup?.items.some((item) => item.id === selectedItemKey.itemId)
+      ? selectedItemKey.itemId
+      : '';
+    const drawerWidth = clamp(Math.round(metrics.safe.width * .37), 340, 420);
+    const drawerHeight = clamp(Math.round(metrics.safe.height * .72), 330, 390);
+    const drawerLeft = metrics.safe.right - drawerWidth - 18;
+    const groupHalfWidth = clamp(Math.round(metrics.safe.width * .1), 92, 112);
+    const groupHalfHeight = 29;
+    const groupX = clamp(
+      drawerLeft - groupHalfWidth - 52,
+      metrics.safe.left + groupHalfWidth,
+      metrics.safe.right - drawerWidth - groupHalfWidth - 32
+    );
+    const rowGap = groups.length >= 4 ? 72 : groups.length === 3 ? 92 : 116;
+    const groupCenterY = metrics.safe.top + (metrics.safe.height / 2);
+    const firstGroupY = groupCenterY - ((Math.max(0, groups.length - 1) * rowGap) / 2);
+    const entries = groups.map((group, groupIndex) => {
+      const point = clampPoint({
+        x: groupX,
+        y: firstGroupY + (groupIndex * rowGap)
+      }, metrics.safe, groupHalfWidth, groupHalfHeight);
+      return {
+        type: 'group',
+        id: getGroupKey(categoryId, group.id),
+        groupId: group.id,
+        label: group.label,
+        items: group.items,
+        x: point.x,
+        y: point.y,
+        halfWidth: groupHalfWidth,
+        halfHeight: groupHalfHeight,
+        index: groupIndex
+      };
+    });
+    const selectedGroupEntry = entries.find((entry) => entry.groupId === selectedGroupId) || entries[0] || null;
+    const drawerY = clamp(
+      selectedGroupEntry?.y || groupCenterY,
+      metrics.safe.top + (drawerHeight / 2),
+      metrics.safe.bottom - (drawerHeight / 2)
+    );
+    const slots = getDrawerNodeSlots(selectedGroup?.items.length || 0);
+
+    return {
+      entries,
+      positions: [],
+      nodeSize: dimensions.size,
+      nodeWidth: dimensions.width,
+      nodeHeight: dimensions.height,
+      showLabels: false,
+      selectedGroupId,
+      drawer: selectedGroup ? {
+        id: `home-graph-drawer-${categoryId}`,
+        categoryId,
+        groupId: selectedGroup.id,
+        label: selectedGroup.label,
+        left: drawerLeft,
+        top: drawerY - (drawerHeight / 2),
+        x: drawerLeft + (drawerWidth / 2),
+        y: drawerY,
+        width: drawerWidth,
+        height: drawerHeight,
+        selectedItemId,
+        items: selectedGroup.items.map((item, index) => ({
+          item,
+          index,
+          x: slots[index]?.x || 50,
+          y: slots[index]?.y || 50
+        }))
+      } : null
+    };
+  };
+
   const getCompactItemPositions = (selectedGroup, groupPoint, origin, metrics, dimensions, itemOrder) => {
     if (!selectedGroup) return [];
 
@@ -1890,7 +1967,8 @@
       nodeSize: dimensions.size,
       nodeWidth: dimensions.width,
       nodeHeight: dimensions.height,
-      showLabels: false
+      showLabels: false,
+      selectedGroupId
     };
   };
 
@@ -1909,8 +1987,8 @@
       };
     }
 
-    if (dimensions.showLabels) {
-      return getGroupedItemLayout(categoryId, metrics, graphLayout, dimensions);
+    if (!metrics.isNarrow) {
+      return getDesktopGroupDrawerLayout(categoryId, metrics, graphLayout, dimensions, selectedKey);
     }
 
     if (metrics.isCompact) {
@@ -1933,7 +2011,9 @@
       nodeSize: itemLayout.nodeSize,
       nodeWidth: itemLayout.nodeWidth,
       nodeHeight: itemLayout.nodeHeight,
-      showLabels: itemLayout.showLabels
+      showLabels: itemLayout.showLabels,
+      selectedGroupId: itemLayout.selectedGroupId || '',
+      drawer: itemLayout.drawer || null
     };
   };
 
@@ -1963,6 +2043,47 @@
       .map(entry => entry.item);
   };
 
+  const createDesktopGroupDrawerHtml = ({ categoryId, drawer, selectedKey }) => {
+    if (!drawer?.items?.length) return '';
+    const category = CATEGORIES[categoryId] || CATEGORIES.projects;
+    const titleId = `${drawer.id}-title`;
+    const synapses = drawer.items.map((entry) => {
+      const selected = selectedKey === getItemKey(categoryId, entry.item.id);
+      const controlX = Math.max(14, entry.x - 18);
+      return `<path class="home-graph__drawer-synapse${selected ? ' is-active' : ''}" d="M 2 50 C 18 50, ${controlX} ${entry.y}, ${entry.x} ${entry.y}"></path>`;
+    }).join('');
+    const selectedEntry = drawer.items.find((entry) => selectedKey === getItemKey(categoryId, entry.item.id));
+    const outputSynapse = selectedEntry
+      ? `<path class="home-graph__drawer-synapse home-graph__drawer-synapse--output is-active" d="M ${selectedEntry.x} ${selectedEntry.y} C ${Math.min(88, selectedEntry.x + 18)} ${selectedEntry.y}, 88 50, 100 50"></path>`
+      : '';
+    const nodes = drawer.items.map((entry) => {
+      const item = entry.item;
+      const selected = selectedKey === getItemKey(categoryId, item.id);
+      const title = item.fullTitle || item.title;
+      return `
+        <button type="button" class="home-graph__layer-node${selected ? ' is-selected' : ''}" data-graph-item="${escapeHtml(getItemKey(categoryId, item.id))}" data-category-id="${escapeHtml(categoryId)}" data-item-id="${escapeHtml(item.id)}" data-group-id="${escapeHtml(drawer.groupId)}" aria-label="${escapeHtml(title)}" aria-pressed="${selected ? 'true' : 'false'}" title="${escapeHtml(title)}" style="--node-x: ${entry.x}%; --node-y: ${entry.y}%; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index};">
+          <span class="home-graph__layer-soma" aria-hidden="true">${getItemIcon(item, categoryId)}</span>
+          <span class="home-graph__layer-label">${escapeHtml(item.title)}</span>
+        </button>
+      `;
+    }).join('');
+
+    return `
+      <section class="home-graph__group-drawer is-open" id="${escapeHtml(drawer.id)}" data-graph-drawer data-category-id="${escapeHtml(categoryId)}" data-group-id="${escapeHtml(drawer.groupId)}" aria-labelledby="${escapeHtml(titleId)}" style="--drawer-left: ${drawer.left}px; --drawer-top: ${drawer.top}px; --drawer-width: ${drawer.width}px; --drawer-height: ${drawer.height}px; --accent: ${escapeHtml(category.accent)};">
+        <h3 class="home-graph__drawer-title" id="${escapeHtml(titleId)}">${escapeHtml(drawer.label)} layer</h3>
+        <div class="home-graph__drawer-network">
+          <svg class="home-graph__drawer-synapses" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            ${synapses}
+            ${outputSynapse}
+            <circle class="home-graph__drawer-input" cx="2" cy="50" r="1.5"></circle>
+            <circle class="home-graph__drawer-output" cx="99" cy="50" r="1.5"></circle>
+          </svg>
+          ${nodes}
+        </div>
+      </section>
+    `;
+  };
+
   const createInspectorHtml = ({ categoryId, item, isOverview = false }) => {
     const category = CATEGORIES[categoryId] || CATEGORIES.projects;
     const contentType = categoryId === 'projects' ? 'project' : categoryId === 'tools' ? 'tool' : 'game';
@@ -1978,11 +2099,14 @@
     const related = isOverview ? category.items.slice(0, 3) : getRelatedItems(categoryId, item.id);
     const contentId = isOverview ? categoryId : item.id;
     const resourceType = isOverview ? 'library' : (contentType === 'project' ? 'case_study' : contentType);
+    const closeButton = isOverview
+      ? ''
+      : '<button type="button" class="home-graph__inspector-close" data-graph-close aria-label="Show overview">x</button>';
 
     return `
       <div class="home-graph__inspector-kicker">
         <span>Preview</span>
-        <button type="button" class="home-graph__inspector-close" data-graph-close aria-label="Show overview">x</button>
+        ${closeButton}
       </div>
       <div class="home-graph__inspector-head">
         <span class="home-graph__inspector-icon" style="--accent: ${escapeHtml(category.accent)}">${isOverview ? getCategoryIcon(category.icon) : getItemIcon(item, categoryId)}</span>
@@ -2061,7 +2185,6 @@
     return `
       <div class="home-graph__inspector-kicker">
         <span>Preview</span>
-        <button type="button" class="home-graph__inspector-close" data-graph-close aria-label="Close preview">x</button>
       </div>
       <div class="home-graph__inspector-head">
         <span class="home-graph__inspector-icon" style="--accent: var(--home-graph-blue)">${getCategoryIcon('folder')}</span>
@@ -2420,6 +2543,7 @@
     };
 
     const usesMobileDeck = () => window.matchMedia?.('(max-width: 768px)').matches || window.innerWidth <= 768;
+    const usesDesktopDrawer = () => !usesMobileDeck() && !getGraphMetrics(map).isNarrow;
     const getCurrentMobileCategoryId = () => (state.active && CATEGORIES[state.active] ? state.active : 'projects');
 
     const getMobileDepth = (categoryId = state.active, itemId = '') => {
@@ -2551,7 +2675,12 @@
       state.mobileTopicId = getMobileDepthTopics(categoryId, group)[0]?.id || '';
       if (shouldUpdateLayout) {
         render();
-        if (options.focusInspector) {
+        if (options.focusGroup) {
+          requestAnimationFrame(() => {
+            const groupButton = $(`[data-graph-group][data-group-id="${group.id}"]`, itemHost);
+            groupButton?.focus?.({ preventScroll: true });
+          });
+        } else if (options.focusInspector) {
           const heading = $('.home-graph__inspector-title', inspector);
           if (heading) heading.setAttribute('tabindex', '-1');
           heading?.focus?.({ preventScroll: true });
@@ -2568,10 +2697,29 @@
       $$('[data-graph-group]', root).forEach((node) => {
         node.classList.toggle('is-selected', node.dataset.graphGroup === state.selectedKey);
       });
-      if (options.focusInspector) {
+      if (options.focusGroup) {
+        const groupButton = $(`[data-graph-group][data-group-id="${group.id}"]`, itemHost);
+        groupButton?.focus?.({ preventScroll: true });
+      } else if (options.focusInspector) {
         const heading = $('.home-graph__inspector-title', inspector);
         if (heading) heading.setAttribute('tabindex', '-1');
         heading?.focus?.({ preventScroll: true });
+      }
+    };
+
+    const selectDesktopDrawerGroup = (categoryId, groupId, options = {}) => {
+      const group = getCategoryGroupById(categoryId, groupId) || getCategoryGroups(categoryId)[0];
+      const item = group?.items?.[0];
+      if (!group || !item) return;
+      state.active = categoryId;
+      state.selectedKey = getItemKey(categoryId, item.id);
+      syncMobileDepth(categoryId, item.id);
+      render();
+      if (options.focusDrawer) {
+        requestAnimationFrame(() => {
+          const node = $(`[data-graph-drawer] [data-item-id="${item.id}"]`, itemHost);
+          node?.focus?.({ preventScroll: true });
+        });
       }
     };
 
@@ -2581,6 +2729,16 @@
       state.active = categoryId;
       state.selectedKey = getItemKey(categoryId, item.id);
       syncMobileDepth(categoryId, item.id);
+      if (options.updateLayout) {
+        render();
+        if (options.focusItem) {
+          requestAnimationFrame(() => {
+            const node = $(`[data-graph-drawer] [data-item-id="${item.id}"]`, itemHost);
+            node?.focus?.({ preventScroll: true });
+          });
+        }
+        return;
+      }
       inspector.classList.remove('is-closed');
       inspector.classList.remove('is-overview');
       inspector.style.setProperty('--accent', category.accent);
@@ -2589,7 +2747,10 @@
         node.classList.toggle('is-selected', node.dataset.graphItem === state.selectedKey);
       });
       $$('[data-graph-group]', root).forEach((node) => {
-        node.classList.remove('is-selected');
+        node.classList.toggle(
+          'is-selected',
+          node.dataset.groupId === getSelectedGroupIdForLayout(categoryId, state.selectedKey)
+        );
       });
       if (options.focusInspector) {
         const heading = $('.home-graph__inspector-title', inspector);
@@ -2687,6 +2848,7 @@
         const groupPoints = new Map();
         layout.items.filter(entry => entry.type === 'group').forEach((entry) => {
           const groupPoint = { x: entry.x, y: entry.y };
+          const selected = entry.groupId === layout.selectedGroupId;
           const groupBox = {
             halfWidth: entry.halfWidth || 86,
             halfHeight: entry.halfHeight || 16
@@ -2694,12 +2856,34 @@
           groupPoints.set(entry.groupId, groupPoint);
           lineSpecs.push({
             key: `group:${state.active}:${entry.groupId}`,
-            className: 'home-graph__line home-graph__line--group',
+            className: `home-graph__line home-graph__line--group${selected ? ' is-active' : ''}`,
             d: makeEdgeConnectorPath(activeCategoryPoint, groupPoint, getCategoryLineBox(state.active), groupBox, .48),
             color: CATEGORIES[state.active]?.accent || 'var(--home-graph-blue)',
-            opacity: '.56'
+            opacity: selected ? '.78' : '.28'
           });
         });
+
+        if (layout.drawer) {
+          const drawerGroup = layout.items.find((entry) => (
+            entry.type === 'group' && entry.groupId === layout.drawer.groupId
+          ));
+          const drawerGroupPoint = groupPoints.get(layout.drawer.groupId);
+          if (drawerGroup && drawerGroupPoint) {
+            lineSpecs.push({
+              key: `drawer:${state.active}:${layout.drawer.groupId}`,
+              className: 'home-graph__line home-graph__line--drawer is-active',
+              d: makeEdgeConnectorPath(
+                drawerGroupPoint,
+                { x: layout.drawer.left, y: layout.drawer.y },
+                { halfWidth: drawerGroup.halfWidth || 106, halfHeight: drawerGroup.halfHeight || 29 },
+                { halfWidth: 0, halfHeight: 0 },
+                .5
+              ),
+              color: CATEGORIES[state.active]?.accent || 'var(--home-graph-blue)',
+              opacity: '.86'
+            });
+          }
+        }
 
         layout.items.filter(entry => entry.type === 'item').forEach((entry) => {
           const fromPoint = groupPoints.get(entry.groupId) || activeCategoryPoint;
@@ -2774,7 +2958,7 @@
         categoryEl.innerHTML = `
             <div class="home-graph__halo" aria-hidden="true">${buildCategoryDots(categoryId)}</div>
             <div class="home-graph__category-card">
-              <button type="button" class="home-graph__category-button" data-graph-category-button="${escapeHtml(categoryId)}" aria-label="${active ? 'Collapse' : 'Expand'} ${escapeHtml(category.label)}" title="${escapeHtml(category.label)}"></button>
+              <button type="button" class="home-graph__category-button" data-graph-category-button="${escapeHtml(categoryId)}" aria-label="${active ? 'Collapse' : 'Expand'} ${escapeHtml(category.label)}" aria-expanded="${active}" aria-controls="home-graph-layer-host" title="${escapeHtml(category.label)}"></button>
               <span class="home-graph__category-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>
               <span class="home-graph__category-copy">
                 <span class="home-graph__category-title">${escapeHtml(category.label)}</span>
@@ -2794,13 +2978,21 @@
         return;
       }
 
-      itemHost.innerHTML = layout.items.map((pos) => {
+      const entriesHtml = layout.items.map((pos) => {
         const entry = pos;
         if (entry.type === 'group') {
-          const selected = state.selectedKey === entry.id;
+          const selected = entry.groupId === layout.selectedGroupId;
           const groupTitle = `${entry.label}: ${entry.items.length} ${category.singular}${entry.items.length === 1 ? '' : 's'}`;
+          const drawerId = selected && layout.drawer ? layout.drawer.id : '';
+          const disclosureAttribute = layout.drawer || layout.metrics.isCompact
+            ? ` aria-expanded="${selected}"`
+            : '';
+          const groupIcon = layout.drawer
+            ? `<span class="home-graph__group-icon" aria-hidden="true">${getMobileGroupIcon(state.active, entry.groupId)}</span>`
+            : '';
           return `
-            <button type="button" class="home-graph__group-label${selected ? ' is-selected' : ''}" data-graph-group="${escapeHtml(entry.id)}" data-category-id="${escapeHtml(state.active)}" data-group-id="${escapeHtml(entry.groupId)}" aria-label="${escapeHtml(groupTitle)}" title="${escapeHtml(groupTitle)}" style="--x: ${pos.x}px; --y: ${pos.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --cluster-width: ${entry.haloWidth || 276}px; --cluster-height: ${entry.haloHeight || 204}px;">
+            <button type="button" class="home-graph__group-label${selected ? ' is-selected' : ''}" data-graph-group="${escapeHtml(entry.id)}" data-category-id="${escapeHtml(state.active)}" data-group-id="${escapeHtml(entry.groupId)}" aria-label="${escapeHtml(groupTitle)}"${disclosureAttribute}${drawerId ? ` aria-controls="${escapeHtml(drawerId)}"` : ''} title="${escapeHtml(groupTitle)}" style="--x: ${pos.x}px; --y: ${pos.y}px; --accent: ${escapeHtml(category.accent)}; --node-index: ${entry.index}; --cluster-width: ${entry.haloWidth || 276}px; --cluster-height: ${entry.haloHeight || 204}px;">
+              ${groupIcon}
               <span>${escapeHtml(entry.label)}</span>
               <span class="home-graph__group-count">${entry.items.length}</span>
             </button>
@@ -2819,6 +3011,10 @@
           </button>
         `;
       }).join('');
+      const drawerHtml = layout.drawer
+        ? createDesktopGroupDrawerHtml({ categoryId: state.active, drawer: layout.drawer, selectedKey: state.selectedKey })
+        : '';
+      itemHost.innerHTML = `${entriesHtml}${drawerHtml}`;
     };
 
     const renderMobileDeck = (options = {}) => {
@@ -2839,6 +3035,11 @@
       updateOverviewState();
       const layout = computeGraphLayout(map, state.active, state.selectedKey);
       state.latestLayout = layout;
+      if (layout.drawer) {
+        root.dataset.graphLayout = 'drawer';
+      } else {
+        delete root.dataset.graphLayout;
+      }
       if (center) {
         center.style.setProperty('--center-x', `${layout.center.x}px`);
         center.style.setProperty('--center-y', `${layout.center.y}px`);
@@ -2867,7 +3068,15 @@
 
     const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-    const renderAfterCondense = (callback) => {
+    const focusCategoryControl = (categoryId) => {
+      if (!categoryId) return;
+      requestAnimationFrame(() => {
+        const button = $(`[data-graph-category-button="${categoryId}"]`, categoryHost);
+        button?.focus?.({ preventScroll: true });
+      });
+    };
+
+    const renderAfterCondense = (callback, options = {}) => {
       hideTooltip();
       clearTimeout(state.transitionTimer);
       itemHost.classList.add('is-condensing');
@@ -2877,22 +3086,24 @@
         itemHost.classList.remove('is-condensing');
         svg.classList.remove('is-condensing');
         render();
+        focusCategoryControl(options.focusCategoryId);
       }, prefersReducedMotion() ? 0 : 150);
     };
 
-    const collapseGraph = () => {
+    const collapseGraph = (options = {}) => {
       if (!state.active) {
         selectOverview(null);
+        focusCategoryControl(options.focusCategoryId);
         return;
       }
 
       renderAfterCondense(() => {
         state.active = null;
         state.selectedKey = '';
-      });
+      }, options);
     };
 
-    const selectCategory = (categoryId, itemId = null) => {
+    const selectCategory = (categoryId, itemId = null, options = {}) => {
       if (!CATEGORIES[categoryId]) return;
       if (categoryId === state.active) {
         if (itemId) {
@@ -2904,24 +3115,29 @@
           syncMobileDepth(categoryId);
           render();
         } else {
-          collapseGraph();
+          collapseGraph(options);
         }
         return;
       }
 
+      const preferredItemId = itemId || (
+        usesDesktopDrawer()
+          ? getCategoryGroups(categoryId)[0]?.items?.[0]?.id || null
+          : null
+      );
       if (usesMobileDeck()) {
         state.active = categoryId;
-        state.selectedKey = itemId ? getItemKey(categoryId, itemId) : '';
-        syncMobileDepth(categoryId, itemId || '');
+        state.selectedKey = preferredItemId ? getItemKey(categoryId, preferredItemId) : '';
+        syncMobileDepth(categoryId, preferredItemId || '');
         render();
         return;
       }
 
       renderAfterCondense(() => {
         state.active = categoryId;
-        state.selectedKey = itemId ? getItemKey(categoryId, itemId) : '';
-        syncMobileDepth(categoryId, itemId || '');
-      });
+        state.selectedKey = preferredItemId ? getItemKey(categoryId, preferredItemId) : '';
+        syncMobileDepth(categoryId, preferredItemId || '');
+      }, options);
     };
 
     const selectMobileGroup = (groupId) => {
@@ -2959,7 +3175,10 @@
       }
       const button = event.target.closest('[data-graph-category-button]');
       if (button) {
-        selectCategory(button.dataset.graphCategoryButton);
+        const categoryId = button.dataset.graphCategoryButton;
+        selectCategory(categoryId, null, {
+          focusCategoryId: event.detail === 0 ? categoryId : ''
+        });
         return;
       }
       const categoryEl = event.target.closest('[data-graph-category]');
@@ -3004,15 +3223,26 @@
     itemHost.addEventListener('click', (event) => {
       const group = event.target.closest('[data-graph-group]');
       if (group) {
+        if (usesDesktopDrawer()) {
+          selectDesktopDrawerGroup(group.dataset.categoryId, group.dataset.groupId, {
+            focusDrawer: event.detail === 0
+          });
+          return;
+        }
         selectInspectorGroup(group.dataset.categoryId, group.dataset.groupId, {
           focusInspector: window.innerWidth <= 940,
+          focusGroup: event.detail === 0,
           updateLayout: true
         });
         return;
       }
       const node = event.target.closest('[data-graph-item]');
       if (!node) return;
-      selectInspectorItem(node.dataset.categoryId, node.dataset.itemId, { focusInspector: window.innerWidth <= 940 });
+      selectInspectorItem(node.dataset.categoryId, node.dataset.itemId, {
+        focusInspector: window.innerWidth <= 940,
+        updateLayout: usesDesktopDrawer(),
+        focusItem: event.detail === 0
+      });
     });
 
     mobileDeck.addEventListener('click', (event) => {
@@ -3079,11 +3309,14 @@
     inspector.addEventListener('click', (event) => {
       const close = event.target.closest('[data-graph-close]');
       if (!close) return;
+      const returnCategoryId = state.active;
       selectOverview(state.active);
+      if (state.latestLayout?.drawer) render();
+      focusCategoryControl(returnCategoryId);
     });
 
     map.addEventListener('click', (event) => {
-      const interactive = event.target.closest?.('[data-graph-category], [data-graph-group], [data-graph-item], [data-graph-center], [data-graph-tooltip], [data-graph-mobile-deck]');
+      const interactive = event.target.closest?.('[data-graph-category], [data-graph-group], [data-graph-item], [data-graph-center], [data-graph-tooltip], [data-graph-mobile-deck], [data-graph-drawer]');
       if (interactive) return;
       collapseGraph();
     });

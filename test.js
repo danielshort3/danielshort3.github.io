@@ -37359,8 +37359,10 @@ try {
       'data-shortlinks="auth"',
       'data-shortlinks="remember-token"',
       'data-shortlinks="summary"',
+      'data-shortlinks="system-health-summary"',
       'data-shortlinks="mode-tab"',
       'data-shortlinks-mode-panel="single"',
+      'data-shortlinks-mode-panel="projects"',
       'data-shortlinks="editor"',
       'data-shortlinks="audience-field"',
       'data-shortlinks="audience"',
@@ -37372,6 +37374,7 @@ try {
       'data-shortlinks="random-length"',
       'data-shortlinks="create-link"',
       'data-shortlinks="editor-meta"',
+      'data-shortlinks="editor-close"',
       'data-shortlinks="projects-list"',
       'data-shortlinks="sets-list"',
       'data-shortlinks="set-editor"',
@@ -37394,6 +37397,7 @@ try {
       'data-shortlinks="test-selected"',
       'data-shortlinks="export-view"',
       'data-shortlinks="clear-selection"',
+      'data-shortlinks="master-detail"',
       'data-shortlinks="detail-panel"',
       'data-shortlinks="list"'
     ].forEach((snippet) => {
@@ -37403,11 +37407,29 @@ try {
     assert(css.includes('.shortlinks-mode-panel[hidden]'), 'short links CSS should preserve hidden tab panel behavior');
     assert(css.includes('.shortlinks-health-strip'), 'short links CSS should style health metrics');
     assert(css.includes('.shortlinks-detail-panel'), 'short links CSS should style the detail panel');
+    assert(css.includes('.shortlinks-master-detail') && css.includes('.shortlinks-table tbody tr.is-active'),
+      'short links CSS should style the master-detail workbench and selected link row');
+    assert(css.includes('.shortlinks-editor-overlay') && html.includes('role="dialog"') && html.includes('aria-modal="true"'),
+      'short links should open the single-link editor as an accessible overlay');
+    assert(html.includes('id="shortlinks-detail-panel"') && html.includes('aria-label="Selected link details"'),
+      'short links detail inspector should have a persistent accessible region');
     const adminJs = readFile('js/admin/short-links.js');
     assert(adminJs.includes('shortlinks_active_mode'), 'short links should remember the active workspace mode');
     assert(adminJs.includes('shortlinks_saved_views'), 'short links should store saved filter views');
     assert(adminJs.includes('testSelectedLinks'), 'short links should support bulk health checks');
     assert(adminJs.includes('shortlinks-icon-button'), 'short links should render icon quick actions');
+    assert(adminJs.includes('syncActiveDetailRows') &&
+      adminJs.includes('data-shortlinks-link-slug') &&
+      adminJs.includes("dataset.shortlinks = 'detail-trigger'") &&
+      adminJs.includes("setAttribute('aria-controls', 'shortlinks-detail-panel')") &&
+      adminJs.includes('prefersMasterDetailLayout'),
+      'short links should keep row selection synchronized with the accessible persistent inspector');
+    assert(adminJs.includes("mode !== 'single'") && adminJs.includes("clean === 'single'") &&
+      adminJs.includes('closeEditorOverlay({ restoreFocus: true })'),
+      'short links should keep a visible workspace tab selected while the editor overlay is open');
+    assert(adminJs.includes('focusDetailAction') && adminJs.includes('getDetailTriggerForSlug') &&
+      !adminJs.includes('renderLegacyDetailPanel'),
+      'short links should restore detail-action focus and avoid retaining the legacy inspector renderer');
     assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
     assert((html.match(/id="privacy-settings-link-footer"/g) || []).length === 1, 'pages/short-links.html should include one footer cookie settings control');
     assert(!html.includes('data-cookie-settings="true"'), 'pages/short-links.html should not include a floating cookie settings widget');
@@ -38998,13 +39020,16 @@ try {
       graphCss.includes('-webkit-line-clamp: 2') &&
       graphCss.includes('border-radius: 50%'),
       'homepage graph item nodes should show wrapped labeled rows on roomy screens and stay compact on constrained screens');
-    assert(graphJs.includes('getGroupedFanSlot') &&
-      graphJs.includes("tools: { x: .94, y: .5 }") &&
-      graphJs.includes("width: showLabels ? clamp(Math.round(metrics.width * .12), 132, 154) : size") &&
-      graphJs.includes('height: showLabels ? 44 : size') &&
-      graphJs.includes('const categoryBottom = Math.max') &&
-      graphJs.includes('Math.ceil(Math.sqrt(count * 1.15))'),
-      'homepage graph should use radial desktop group slots and a compact mobile icon grid that avoids branch-card overlap');
+    assert(graphJs.includes('getDesktopGroupDrawerLayout') &&
+      graphJs.includes('getDrawerNodeSlots') &&
+      graphJs.includes('if (!metrics.isNarrow)') &&
+      graphJs.includes('selectedGroupId: itemLayout.selectedGroupId') &&
+      graphJs.includes('drawer: itemLayout.drawer') &&
+      graphJs.includes('const groupIcon = layout.drawer') &&
+      graphJs.includes('const disclosureAttribute = layout.drawer || layout.metrics.isCompact') &&
+      graphCss.includes('.home-graph__group-drawer') &&
+      graphCss.includes('.home-graph__layer-node'),
+      'homepage graph should use a progressive desktop group drawer while retaining compact responsive layouts');
     assert(graphJs.includes('createMobileClassicDeckHtml') &&
       graphJs.includes('mobileDeck.innerHTML = createMobileClassicDeckHtml()') &&
       graphJs.includes('<h2 id="home-mobile-hero-title">Daniel Short</h2>') &&
@@ -39024,31 +39049,35 @@ try {
       graphJs.includes('entry.type === \'group\'') &&
       graphJs.includes('groupPoints.set(entry.groupId') &&
       graphJs.includes("key: `group:${state.active}:${entry.groupId}`") &&
-      graphJs.includes('className: \'home-graph__line home-graph__line--group\'') &&
-      graphJs.includes('metrics.isCompact') &&
+      graphJs.includes("key: `drawer:${state.active}:${layout.drawer.groupId}`") &&
+      graphJs.includes("className: 'home-graph__line home-graph__line--drawer is-active'") &&
       graphJs.includes('getCompactGroupedItemLayout(categoryId, metrics, graphLayout, dimensions, selectedKey)') &&
-      graphJs.includes('updateLayout: true') &&
-      graphJs.includes('halfWidth: groupHalfWidth') &&
-      graphJs.includes('makeEdgeConnectorPath(activeCategoryPoint, groupPoint') &&
-      graphJs.includes('makeEdgeConnectorPath(fromPoint, itemPoint') &&
-      graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
-      graphJs.includes('keepEntryNearCluster') &&
-      graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
+      graphJs.includes('selectDesktopDrawerGroup') &&
+      graphJs.includes('updateLayout: usesDesktopDrawer()') &&
+      graphJs.includes('aria-expanded=') &&
+      graphJs.includes('aria-controls=') &&
+      graphJs.includes('aria-controls="home-graph-layer-host"') &&
+      graphJs.includes('focusCategoryControl') &&
+      graphJs.includes('focusGroup: event.detail === 0') &&
+      graphJs.includes("const closeButton = isOverview") &&
+      graphJs.includes('data-graph-drawer') &&
       graphCss.includes('.home-graph__line--group') &&
+      graphCss.includes('.home-graph__line--drawer') &&
       graphCss.includes('.home-graph__group-label') &&
-      graphCss.includes('.home-graph__group-label::before') &&
-      graphCss.includes('.home-graph__group-count') &&
-      graphCss.includes('.home-graph__group-label:is(:hover, :focus-visible)') &&
-      graphCss.includes('.home-graph__category.is-supporting .home-graph__category-title') &&
-      graphCss.includes('grid-template-columns: 36px 28px') &&
-      graphCss.includes('width: 88px') &&
-      graphCss.includes('stroke-dasharray: 12 11'),
-      'homepage graph should route edge-anchored lines through interactive subcategory hubs and shrink non-focused categories');
+      graphCss.includes('.home-graph__group-icon') &&
+      graphCss.includes('.home-graph__drawer-synapse') &&
+      graphCss.includes('.home-graph__layer-node:focus-visible') &&
+      graphCss.includes('.home-graph__inspector-close:focus-visible') &&
+      graphCss.includes('outline: 3px solid') &&
+      graphCss.includes('@media (min-width: 941px)'),
+      'homepage graph should route the active subcategory into an accessible desktop neural-layer drawer');
     assert(!graphJs.includes('const stackStep = dimensions.height') &&
-      graphJs.includes('getClusteredLabelItemPoint(groupPoint, itemIndex, group.items.length') &&
-      graphJs.includes('getBranchingItemPoint(groupPoint, origin, itemIndex, itemCount') &&
-      personalAudience.includes('home-graph-20260709-hybrid-v1'),
-      'homepage graph item placement should cluster project labels around each subcategory instead of using tabular child-node grids');
+      graphJs.includes('selectedGroup.items.map((item, index)') &&
+      graphJs.includes('getSelectedGroupIdForLayout(categoryId, selectedKey) || groups[0]?.id') &&
+      graphJs.includes("event.target.closest?.('[data-graph-category], [data-graph-group], [data-graph-item]") &&
+      personalAudience.includes('id=\\"home-graph-layer-host\\"') &&
+      personalAudience.includes('home-graph-20260711-layer-drawer-v1'),
+      'homepage graph should reveal only one selected group in the desktop drawer and preserve collapse-safe interaction boundaries');
     assert(graphJs.includes("map.addEventListener('click'") &&
       graphJs.includes("center?.addEventListener('click', () => collapseGraph())"),
       'homepage graph should collapse the active branch from the center logo or empty canvas space');
