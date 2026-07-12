@@ -9,7 +9,7 @@
   - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
   - Optional (temporary creds only): SHORTLINKS_AWS_SESSION_TOKEN / AWS_SESSION_TOKEN
 
-  Optional click log table:
+  Click log table (required for synchronized click tracking):
   - SHORTLINKS_DDB_CLICKS_TABLE
 */
 'use strict';
@@ -36,7 +36,7 @@ const {
 } = require('./short-links');
 
 const SLUG_RESERVATION_PREFIX = '__slug_lower__/';
-const CLICK_RETENTION_DAYS = 90;
+const CLICK_BASELINE_ID = '__historical_baseline__';
 const CLICK_TTL_ATTRIBUTE = 'expiresAt';
 const SHORTLINKS_STATIC_CREDENTIAL_SETS = Object.freeze([
   Object.freeze({
@@ -233,9 +233,41 @@ async function getLink(slug){
   const client = getDocClient();
   const result = await client.send(new GetCommand({
     TableName: tableName,
-    Key: { slug }
+    Key: { slug },
+    ConsistentRead: true
   }));
   return result && result.Item ? result.Item : null;
+}
+
+async function getClickHistoryState(slug){
+  const clicksTableName = getClicksTableName();
+  if (!clicksTableName) {
+    return { configured: false, hasRows: false, baseline: null };
+  }
+
+  const client = getDocClient();
+  const result = await client.send(new QueryCommand({
+    TableName: clicksTableName,
+    KeyConditionExpression: 'slug = :slug',
+    ExpressionAttributeValues: { ':slug': slug },
+    ScanIndexForward: false,
+    ConsistentRead: true,
+    Limit: 1
+  }));
+  const items = result && Array.isArray(result.Items) ? result.Items : [];
+  const item = items[0] || null;
+  const baseline = item && item.clickId === CLICK_BASELINE_ID && item.entityType === 'clickBaseline'
+    ? item
+    : null;
+  if (baseline && (!Number.isSafeInteger(baseline.aggregateClicks) || baseline.aggregateClicks < 0)) {
+    throw createSlugConflictError(slug);
+  }
+  return {
+    configured: true,
+    clicksTableName,
+    hasRows: items.length > 0,
+    baseline
+  };
 }
 
 async function getSlugReservation(slug){
@@ -279,6 +311,26 @@ async function putItem(item){
 async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, metadata }){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
+  const currentLink = await getLink(slug);
+  const currentIsLink = isLinkEntity(currentLink);
+  if (currentLink && !currentIsLink) throw createSlugConflictError(slug);
+  const currentClicksPresent = Boolean(
+    currentIsLink && Object.prototype.hasOwnProperty.call(currentLink, 'clicks')
+  );
+  const currentClicks = currentClicksPresent ? currentLink.clicks : 0;
+  if (!Number.isSafeInteger(currentClicks) || currentClicks < 0) {
+    throw createSlugConflictError(slug);
+  }
+  const clickHistoryState = await getClickHistoryState(slug);
+  if (clickHistoryState.hasRows && !clickHistoryState.baseline) {
+    throw createSlugConflictError(slug);
+  }
+  const initialClicks = clickHistoryState.baseline
+    ? clickHistoryState.baseline.aggregateClicks
+    : 0;
+  if (currentIsLink && clickHistoryState.baseline && currentClicks !== initialClicks) {
+    throw createSlugConflictError(slug);
+  }
   const setExpressions = [
     'entityType = :entityType',
     'slugLower = :slugLower',
@@ -287,7 +339,7 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
     'updatedAt = :updatedAt',
     'disabled = if_not_exists(disabled, :disabled)',
     'createdAt = if_not_exists(createdAt, :createdAt)',
-    'clicks = if_not_exists(clicks, :zero)'
+    'clicks = if_not_exists(clicks, :initialClicks)'
   ];
 
   const removeExpressions = [];
@@ -299,7 +351,7 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
     ':updatedAt': updatedAt,
     ':disabled': false,
     ':createdAt': updatedAt,
-    ':zero': 0
+    ':initialClicks': initialClicks
   };
 
   if (permanent) {
@@ -340,41 +392,82 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, 
   const reservationKey = buildSlugReservationKey(slug);
   if (!reservationKey) throw createSlugConflictError(slug);
 
+  const linkCondition = currentIsLink
+    ? {
+        ConditionExpression: `(attribute_not_exists(#entityType) OR #entityType = :entityType) AND ${currentClicksPresent ? '#clicks = :priorClicks' : 'attribute_not_exists(#clicks)'}`,
+        ExpressionAttributeNames: {
+          '#entityType': 'entityType',
+          '#clicks': 'clicks'
+        }
+      }
+    : {
+        ConditionExpression: 'attribute_not_exists(#slug)',
+        ExpressionAttributeNames: { '#slug': 'slug' }
+      };
+  if (currentClicksPresent) values[':priorClicks'] = currentClicks;
+
   try {
-    await client.send(new TransactWriteCommand({
-      TransactItems: [
-        {
-          Update: {
-            TableName: tableName,
-            Key: { slug: reservationKey },
-            ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug',
-            UpdateExpression: 'SET #entityType = :reservationType, #slugLower = :slugLower, #canonicalSlug = :canonicalSlug, #createdAt = if_not_exists(#createdAt, :updatedAt), #updatedAt = :updatedAt',
-            ExpressionAttributeNames: {
-              '#slug': 'slug',
-              '#entityType': 'entityType',
-              '#slugLower': 'slugLower',
-              '#canonicalSlug': 'canonicalSlug',
-              '#createdAt': 'createdAt',
-              '#updatedAt': 'updatedAt'
-            },
-            ExpressionAttributeValues: {
-              ':reservationType': 'slugReservation',
-              ':slugLower': normalizeSlugLower(slug),
-              ':canonicalSlug': slug,
-              ':updatedAt': updatedAt
-            }
-          }
-        },
-        {
-          Update: {
-            TableName: tableName,
-            Key: { slug },
-            UpdateExpression: updateExpression,
-            ExpressionAttributeValues: values
+    const transactItems = [
+      {
+        Update: {
+          TableName: tableName,
+          Key: { slug: reservationKey },
+          ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug',
+          UpdateExpression: 'SET #entityType = :reservationType, #slugLower = :slugLower, #canonicalSlug = :canonicalSlug, #createdAt = if_not_exists(#createdAt, :updatedAt), #updatedAt = :updatedAt',
+          ExpressionAttributeNames: {
+            '#slug': 'slug',
+            '#entityType': 'entityType',
+            '#slugLower': 'slugLower',
+            '#canonicalSlug': 'canonicalSlug',
+            '#createdAt': 'createdAt',
+            '#updatedAt': 'updatedAt'
+          },
+          ExpressionAttributeValues: {
+            ':reservationType': 'slugReservation',
+            ':slugLower': normalizeSlugLower(slug),
+            ':canonicalSlug': slug,
+            ':updatedAt': updatedAt
           }
         }
-      ]
-    }));
+      },
+      {
+        Update: {
+          TableName: tableName,
+          Key: { slug },
+          ...linkCondition,
+          UpdateExpression: updateExpression,
+          ExpressionAttributeValues: values
+        }
+      }
+    ];
+
+    if (clickHistoryState.configured) {
+      const baselineCondition = clickHistoryState.baseline
+        ? {
+            ConditionExpression: '#entityType = :baselineType AND #aggregateClicks = :aggregateClicks',
+            ExpressionAttributeNames: {
+              '#entityType': 'entityType',
+              '#aggregateClicks': 'aggregateClicks'
+            },
+            ExpressionAttributeValues: {
+              ':baselineType': 'clickBaseline',
+              ':aggregateClicks': initialClicks
+            }
+          }
+        : {
+            ConditionExpression: 'attribute_not_exists(#clickId)',
+            ExpressionAttributeNames: { '#clickId': 'clickId' }
+          };
+      transactItems.push({
+        ConditionCheck: {
+          TableName: clickHistoryState.clicksTableName,
+          Key: { slug, clickId: CLICK_BASELINE_ID },
+          ...baselineCondition
+        }
+      });
+    }
+
+    await client.send(new TransactWriteCommand({ TransactItems: transactItems }));
   } catch (err) {
     if (isSlugConflictError(err)) throw createSlugConflictError(slug);
     throw err;
@@ -433,26 +526,6 @@ async function deleteLink(slug){
         }
       }
     ]
-  }));
-}
-
-async function incrementClicks(slug){
-  const { tableName } = getRequiredEnv();
-  const client = getDocClient();
-  await client.send(new UpdateCommand({
-    TableName: tableName,
-    Key: { slug },
-    ConditionExpression: 'attribute_exists(#slug) AND (attribute_not_exists(#entityType) OR #entityType = :linkType)',
-    UpdateExpression: 'SET clicks = if_not_exists(clicks, :zero) + :one',
-    ExpressionAttributeNames: {
-      '#slug': 'slug',
-      '#entityType': 'entityType'
-    },
-    ExpressionAttributeValues: {
-      ':zero': 0,
-      ':one': 1,
-      ':linkType': 'link'
-    }
   }));
 }
 
@@ -567,19 +640,16 @@ async function saveGeneratedBatch(batch){
   return putItem(batch);
 }
 
-async function recordClick(event){
-  const clicksTableName = getClicksTableName();
-  if (!clicksTableName) return;
-  const client = getDocClient();
-
+function buildClickEventItem(event){
   const slug = typeof event.slug === 'string' ? event.slug : '';
   const clickId = typeof event.clickId === 'string' ? event.clickId : '';
   const clickedAt = typeof event.clickedAt === 'string' ? event.clickedAt : '';
-  if (!slug || !clickId || !clickedAt) return;
+  if (!slug || !clickId || !clickedAt) return null;
 
-  const item = {
+  return {
     slug,
     clickId,
+    entityType: 'clickEvent',
     clickedAt,
     destination: sanitizeValue(event.destination, 2048),
     statusCode: Number.isFinite(Number(event.statusCode)) ? Number(event.statusCode) : undefined,
@@ -592,16 +662,124 @@ async function recordClick(event){
     city: sanitizeValue(event.city, 128),
     timezone: sanitizeValue(event.timezone, 128)
   };
-
-  item[CLICK_TTL_ATTRIBUTE] = Math.floor((Date.now() + CLICK_RETENTION_DAYS * 24 * 60 * 60 * 1000) / 1000);
-
-  await client.send(new PutCommand({
-    TableName: clicksTableName,
-    Item: item
-  }));
 }
 
-async function listClicks({ slug, limit }){
+function buildClickTransaction({ tableName, clicksTableName, item, currentAggregateClicks }){
+  const crypto = require('crypto');
+  const aggregateBeforeClick = Number.isFinite(Number(currentAggregateClicks))
+    ? Math.max(0, Math.floor(Number(currentAggregateClicks)))
+    : 0;
+  const requestToken = crypto
+    .createHash('sha256')
+    .update(`${item.slug}\u0000${item.clickId}\u0000${aggregateBeforeClick}`, 'utf8')
+    .digest('hex')
+    .slice(0, 36);
+
+  return {
+    ClientRequestToken: requestToken,
+    TransactItems: [
+      {
+        Update: {
+          TableName: tableName,
+          Key: { slug: item.slug },
+          ConditionExpression: 'attribute_exists(#slug) AND (attribute_not_exists(#entityType) OR #entityType = :linkType) AND ((attribute_not_exists(#clicks) AND :aggregateBeforeClick = :zero) OR #clicks = :aggregateBeforeClick)',
+          UpdateExpression: 'SET clicks = if_not_exists(clicks, :zero) + :one',
+          ExpressionAttributeNames: {
+            '#slug': 'slug',
+            '#entityType': 'entityType',
+            '#clicks': 'clicks'
+          },
+          ExpressionAttributeValues: {
+            ':zero': 0,
+            ':one': 1,
+            ':linkType': 'link',
+            ':aggregateBeforeClick': aggregateBeforeClick
+          }
+        }
+      },
+      {
+        Put: {
+          TableName: clicksTableName,
+          Item: item,
+          ConditionExpression: 'attribute_not_exists(#slug) AND attribute_not_exists(#clickId)',
+          ExpressionAttributeNames: {
+            '#slug': 'slug',
+            '#clickId': 'clickId'
+          }
+        }
+      },
+      {
+        Update: {
+          TableName: clicksTableName,
+          Key: {
+            slug: item.slug,
+            clickId: CLICK_BASELINE_ID
+          },
+          ConditionExpression: 'attribute_not_exists(#clickId) OR (#entityType = :entityType AND #aggregateClicks = :aggregateBeforeClick AND attribute_exists(#historicalClicks) AND attribute_exists(#recordedEventCount))',
+          UpdateExpression: 'SET #entityType = if_not_exists(#entityType, :entityType), #historicalClicks = if_not_exists(#historicalClicks, :aggregateBeforeClick), #recordedEventCount = if_not_exists(#recordedEventCount, :zero) + :one, #aggregateClicks = if_not_exists(#aggregateClicks, :aggregateBeforeClick) + :one, #reconciledAt = if_not_exists(#reconciledAt, :clickedAt), #createdAt = if_not_exists(#createdAt, :clickedAt), #updatedAt = :clickedAt',
+          ExpressionAttributeNames: {
+            '#clickId': 'clickId',
+            '#entityType': 'entityType',
+            '#historicalClicks': 'historicalClicks',
+            '#recordedEventCount': 'recordedEventCount',
+            '#aggregateClicks': 'aggregateClicks',
+            '#reconciledAt': 'reconciledAt',
+            '#createdAt': 'createdAt',
+            '#updatedAt': 'updatedAt'
+          },
+          ExpressionAttributeValues: {
+            ':entityType': 'clickBaseline',
+            ':aggregateBeforeClick': aggregateBeforeClick,
+            ':zero': 0,
+            ':one': 1,
+            ':clickedAt': item.clickedAt
+          }
+        }
+      }
+    ]
+  };
+}
+
+function isClickTransactionConflict(err){
+  return Boolean(err && err.name === 'TransactionCanceledException');
+}
+
+async function recordClick(event){
+  const clicksTableName = getClicksTableName();
+  if (!clicksTableName) return false;
+
+  const item = buildClickEventItem(event);
+  if (!item) return false;
+
+  const { tableName } = getRequiredEnv();
+  const client = getDocClient();
+  let currentAggregateClicks = Number.isFinite(Number(event.currentAggregateClicks))
+    ? Math.max(0, Math.floor(Number(event.currentAggregateClicks)))
+    : 0;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      await client.send(new TransactWriteCommand(buildClickTransaction({
+        tableName,
+        clicksTableName,
+        item,
+        currentAggregateClicks
+      })));
+      return true;
+    } catch (err) {
+      if (!isClickTransactionConflict(err) || attempt === 4) throw err;
+      const latestLink = await getLink(item.slug);
+      if (!isLinkEntity(latestLink)) throw err;
+      currentAggregateClicks = Number.isFinite(Number(latestLink.clicks))
+        ? Math.max(0, Math.floor(Number(latestLink.clicks)))
+        : 0;
+    }
+  }
+
+  return false;
+}
+
+async function listClickHistory({ slug, limit }){
   const clicksTableName = getClicksTableName();
   if (!clicksTableName) {
     const err = new Error('SHORTLINKS_DDB_CLICKS_TABLE is not configured');
@@ -616,7 +794,8 @@ async function listClicks({ slug, limit }){
     KeyConditionExpression: 'slug = :slug',
     ExpressionAttributeValues: { ':slug': slug },
     ScanIndexForward: false,
-    Limit: safeLimit
+    ConsistentRead: true,
+    Limit: safeLimit + 1
   }));
 
   return result && Array.isArray(result.Items) ? result.Items : [];
@@ -633,7 +812,6 @@ module.exports = {
   upsertLink,
   setLinkDisabled,
   deleteLink,
-  incrementClicks,
   listAllItems,
   listLinks,
   listLinksPage,
@@ -646,10 +824,12 @@ module.exports = {
   saveGeneratedBatch,
   isSetTemplateEntity,
   isGeneratedBatchEntity,
+  buildClickEventItem,
+  buildClickTransaction,
   recordClick,
-  listClicks,
-  CLICK_RETENTION_DAYS,
+  listClickHistory,
   CLICK_TTL_ATTRIBUTE,
+  CLICK_BASELINE_ID,
   SLUG_RESERVATION_PREFIX,
   buildSlugReservationKey,
   isSlugConflictError

@@ -37451,6 +37451,40 @@ try {
       shortLinksStoreModule.buildSlugReservationKey('Ab12Cd') === '__slug_lower__/ab12cd',
       'short links should map mixed-case slugs onto one canonical lowercase reservation key');
 
+    const durableClickEvent = shortLinksStoreModule.buildClickEventItem({
+      slug: 'Alpha',
+      clickId: '2026-07-12T12:00:00.000Z#abc12345',
+      clickedAt: '2026-07-12T12:00:00.000Z',
+      currentAggregateClicks: 46,
+      destination: 'https://www.danielshort.me/contact'
+    });
+    assert(durableClickEvent.entityType === 'clickEvent' &&
+      !Object.prototype.hasOwnProperty.call(durableClickEvent, 'expiresAt') &&
+      !Object.prototype.hasOwnProperty.call(durableClickEvent, 'currentAggregateClicks'),
+      'new short-link click events should be durable and omit transaction-only state');
+    const clickTransaction = shortLinksStoreModule.buildClickTransaction({
+      tableName: 'links-table',
+      clicksTableName: 'clicks-table',
+      item: durableClickEvent,
+      currentAggregateClicks: 46
+    });
+    assert(Array.isArray(clickTransaction.TransactItems) && clickTransaction.TransactItems.length === 3 &&
+      clickTransaction.TransactItems[0].Update.TableName === 'links-table' &&
+      clickTransaction.TransactItems[0].Update.ConditionExpression.includes('#clicks = :aggregateBeforeClick') &&
+      clickTransaction.TransactItems[1].Put.TableName === 'clicks-table' &&
+      clickTransaction.TransactItems[2].Update.Key.clickId === '__historical_baseline__' &&
+      clickTransaction.TransactItems[2].Update.ConditionExpression.includes('#aggregateClicks = :aggregateBeforeClick') &&
+      clickTransaction.TransactItems[2].Update.ExpressionAttributeValues[':aggregateBeforeClick'] === 46,
+      'one click transaction should update the aggregate, detailed event, and historical baseline together');
+    const retriedClickTransaction = shortLinksStoreModule.buildClickTransaction({
+      tableName: 'links-table',
+      clicksTableName: 'clicks-table',
+      item: durableClickEvent,
+      currentAggregateClicks: 47
+    });
+    assert(retriedClickTransaction.ClientRequestToken !== clickTransaction.ClientRequestToken,
+      'click transaction retries should use the refreshed aggregate in their idempotency token');
+
     const randomSlug = helpers.generateRandomSlug(6);
     assert(/^[A-Za-z0-9]{6}$/.test(randomSlug), 'generateRandomSlug should create mixed-case alphanumeric codes');
     assert(helpers.normalizeRandomLength(3, 6) === 4, 'normalizeRandomLength should clamp to min');
@@ -37513,7 +37547,9 @@ try {
     const shortLinksIndex = readFile('api/short-links/index.js');
     const shortLinksSets = readFile('api/short-links/sets/[...setId].js');
     const shortLinksRedirect = readFile('api/go/[...slug].js');
+    const shortLinksClicks = readFile('api/short-links/clicks/[...slug].js');
     const shortLinksHealth = readFile('api/short-links/health.js');
+    const shortLinksAdmin = readFile('js/admin/short-links.js');
     assert(shortLinksStore.includes("const SLUG_RESERVATION_PREFIX = '__slug_lower__/'") &&
       shortLinksStore.includes('new TransactWriteCommand') &&
       shortLinksStore.includes("ConditionExpression: 'attribute_not_exists(#slug) OR #canonicalSlug = :canonicalSlug'") &&
@@ -37532,15 +37568,37 @@ try {
       shortLinksSets.includes("String(params.get('pageMode') || '').trim().toLowerCase() === 'storage'"),
       'short link and set storage pagination should preserve opaque DynamoDB cursors');
     assert(shortLinksRedirect.includes('const canonicalSlug = normalizeSlug(link.slug) || slug;') &&
-      shortLinksRedirect.includes('incrementClicks(canonicalSlug)') &&
+      shortLinksRedirect.includes('currentAggregateClicks:') &&
+      shortLinksRedirect.includes('await recordClick(clickEvent)') &&
+      shortLinksStore.includes('function buildClickTransaction') &&
+      shortLinksStore.includes('async function getClickHistoryState') &&
+      shortLinksStore.includes('clicks = if_not_exists(clicks, :initialClicks)') &&
+      shortLinksStore.includes('for (let attempt = 0; attempt < 5; attempt += 1)') &&
+      shortLinksStore.includes("'#recordedEventCount': 'recordedEventCount'") &&
+      !shortLinksStore.includes('CLICK_RETENTION_DAYS') &&
       !shortLinksRedirect.includes('latitude:') &&
       !shortLinksRedirect.includes('longitude:'),
-      'short link redirects should write canonical click keys without exact location telemetry');
+      'short link redirects should atomically reconcile aggregate and detailed click counts without exact location telemetry');
     assert(shortLinksHealth.includes('DescribeTimeToLiveCommand') &&
-      shortLinksHealth.includes("ttlConfigured = ttlStatus === 'ENABLED' && ttlAttribute === CLICK_TTL_ATTRIBUTE") &&
-      shortLinksStore.includes('item[CLICK_TTL_ATTRIBUTE] = Math.floor') &&
-      shortLinksStore.includes('const CLICK_RETENTION_DAYS = 90;'),
-      'short links health should verify that click-event TTL is enabled instead of assuming retention');
+      shortLinksHealth.includes("const ttlDisabled = ttlStatus === 'DISABLED';") &&
+      shortLinksHealth.includes("mode: 'indefinite'") &&
+      shortLinksHealth.includes('degraded: !clicksHealthy') &&
+      shortLinksHealth.includes('Disable DynamoDB TTL'),
+      'short links health should require disabled TTL for indefinite click retention and report degradation otherwise');
+    assert(shortLinksClicks.includes('listClickHistory') &&
+      shortLinksClicks.includes('summary: buildHistorySummary') &&
+      shortLinksClicks.includes('historicalClicks') &&
+      shortLinksClicks.includes("retentionMode: 'indefinite-target'") &&
+      shortLinksClicks.includes('retentionVerified: false') &&
+      shortLinksStore.includes('ConsistentRead: true') &&
+      shortLinksStore.includes('Limit: safeLimit + 1'),
+      'short link click history should separate the historical aggregate baseline from detailed events');
+    assert(shortLinksAdmin.includes('Historical baseline') &&
+      shortLinksAdmin.includes('Retention target: indefinite.') &&
+      shortLinksAdmin.includes('clickRetentionDurable') &&
+      shortLinksAdmin.includes("setSystemHealth('System degraded'") &&
+      !shortLinksAdmin.includes("setSystemHealth('System healthy', 'All services operational'"),
+      'short links admin should explain aggregate versus detailed clicks and never hide click-history degradation');
 
     const template = setHelpers.buildSetTemplateRecord({
       title: ' Data Analyst Resume ',
