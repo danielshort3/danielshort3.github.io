@@ -20,6 +20,18 @@ const { logActivity, listActivity } = require('../tools-store');
 
 const pickQuery = (value) => Array.isArray(value) ? value[0] : value;
 
+function logStorageError(err){
+  const cancellationReasons = Array.isArray(err?.CancellationReasons)
+    ? err.CancellationReasons.map(reason => String(reason?.Code || '')).filter(Boolean).slice(0, 8)
+    : [];
+  console.error('[tools-activity] storage error', {
+    name: String(err?.name || ''),
+    code: String(err?.code || ''),
+    statusCode: Number(err?.$metadata?.httpStatusCode) || 0,
+    cancellationReasons
+  });
+}
+
 function sendStorageError(res, err){
   if (err?.code === 'ACTIVITY_TOO_LARGE') {
     sendJson(res, 413, { ok: false, error: err.message });
@@ -33,6 +45,7 @@ function sendStorageError(res, err){
     sendJson(res, 503, { ok: false, error: err.message });
     return;
   }
+  logStorageError(err);
   sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
 }
 
