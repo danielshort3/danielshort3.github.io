@@ -816,10 +816,10 @@
 
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "https://e7axe2ymmx2kadovfvvji23wkq0xmybn.lambda-url.us-east-2.on.aws/";
+    const DEFAULT_API_URL = "/api/demos/target-empty-package/";
     const STORAGE_KEY = "demo.endpoint.targetEmptyPackage";
     const { resolveEndpoint, joinUrl, getJson, retryRequest } = window.DemoAws;
-    const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
+    const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY, allowOverrides: false };
     const WARM_RETRY_OPTIONS = {
       retries: 12,
       baseDelayMs: 1000,

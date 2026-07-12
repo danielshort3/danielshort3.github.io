@@ -654,7 +654,7 @@
   <script src="js/demos/pizza-tips-meta.js"></script>
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_FN_URL = 'https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/';
+    const DEFAULT_FN_URL = '/api/demos/pizza-tips/';
     const STORAGE_KEY = "demo.endpoint.pizza";
     const {
       resolveEndpoint,
@@ -709,7 +709,7 @@
       minTemp: 'Min Temp'
     };
 
-    const endpointConfig = { defaultUrl: DEFAULT_FN_URL, storageKey: STORAGE_KEY };
+    const endpointConfig = { defaultUrl: DEFAULT_FN_URL, storageKey: STORAGE_KEY, allowOverrides: false };
     const WARM_RETRY_OPTIONS = {
       retries: 12,
       baseDelayMs: 1000,
@@ -1003,7 +1003,7 @@
     }
 
 
-    const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['', 'predict'], payload);
+    const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict'], payload);
 
     function currentPayload(includeGrid = false) {
       const confidenceValue = Number(confidenceSelect.value) || DEFAULTS.confidenceLevel;

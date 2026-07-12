@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
+const { resolveAwsCredentials } = require('../api/_lib/aws-credentials');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
@@ -56,20 +57,36 @@ function pickEnv(keys) {
   return '';
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
+function getAwsCredentialConfig() {
+  return resolveAwsCredentials({
+    service: 'chatbot-build-embeddings',
+    region: getRegion(),
+    roleArnEnvKeys: ['CHATBOT_BEDROCK_AWS_ROLE_ARN'],
+    staticCredentialSets: [
+      {
+        name: 'chatbot',
+        accessKeyId: 'CHATBOT_AWS_ACCESS_KEY_ID',
+        secretAccessKey: 'CHATBOT_AWS_SECRET_ACCESS_KEY',
+        sessionToken: 'CHATBOT_AWS_SESSION_TOKEN'
+      },
+      {
+        name: 'default',
+        accessKeyId: 'AWS_ACCESS_KEY_ID',
+        secretAccessKey: 'AWS_SECRET_ACCESS_KEY',
+        sessionToken: 'AWS_SESSION_TOKEN'
+      }
+    ]
+  });
 }
 
 function hasBedrockBuildConfig() {
-  return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
+  let auth;
+  try {
+    auth = getAwsCredentialConfig();
+  } catch {
+    return false;
+  }
+  return auth.source !== 'default' || Boolean(pickEnv([
     'AWS_PROFILE',
     'AWS_SHARED_CREDENTIALS_FILE',
     'AWS_WEB_IDENTITY_TOKEN_FILE',
@@ -461,10 +478,10 @@ async function applyEmbeddings(knowledge) {
     return knowledge;
   }
 
-  const credentials = getAwsCredentialsFromEnv();
+  const auth = getAwsCredentialConfig();
   const client = new BedrockRuntimeClient({
     region: getRegion(),
-    credentials: credentials || undefined
+    credentials: auth.credentials
   });
   const cache = loadExistingEmbeddingCache(config.modelId, config.dimensions);
 

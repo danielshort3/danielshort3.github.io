@@ -1,11 +1,11 @@
 ## Pizza Tips Prediction Lambda
 
-Server-side linear regression for pizza tip predictions. Keeps coefficients private and exposes a single POST `/predict`-style handler via a Lambda Function URL.
+Server-side linear regression for pizza tip predictions. Keeps coefficients private and exposes a single POST `/predict` handler through the site's IAM-private demo proxy.
 
 ### AWS resources
 
 - **Lambda**: `pizza-tips-predict` (runtime `nodejs24.x`)
-- **Lambda Function URL**: `https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/`
+- **Browser route**: `/api/demos/pizza-tips/predict`
 
 ### Environment variables
 
@@ -13,7 +13,7 @@ Server-side linear regression for pizza tip predictions. Keeps coefficients priv
 CONFIDENCE_LEVEL=0.9
 ```
 
-CORS is configured on the Lambda Function URL. The handler does not append CORS headers.
+The same-origin proxy owns browser access, origin checks, rate limits, and response sanitization.
 
 ### Request
 
@@ -89,7 +89,7 @@ aws lambda update-function-code \
   --zip-file fileb://aws/pizza-tips-predict.zip
 ```
 
-After deploying, update the Function URL constant in `demos/pizza-tips-demo.html` and add the URL to the `connect-src` directive in `vercel.json`.
+After deploying, publish an immutable version, move the `live` alias, and keep its qualified ARN in the OIDC stack's `DemoFunctionArns` parameter. The browser route and CSP do not change.
 
 ### City boundaries
 

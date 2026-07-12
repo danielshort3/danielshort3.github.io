@@ -7,6 +7,7 @@ const {
   ConverseStreamCommand,
   InvokeModelCommand
 } = require('@aws-sdk/client-bedrock-runtime');
+const { resolveAwsCredentials } = require('./_lib/aws-credentials');
 const { loadKnowledge, publicSources, retrieveKnowledge } = require('./_lib/chatbot-knowledge');
 const chatbotLogsApi = require('./_lib/chatbot-logs-api');
 const { recordChatbotLog } = require('./_lib/chatbot-logs');
@@ -22,6 +23,20 @@ const DEFAULT_MODEL_ID = 'us.amazon.nova-lite-v1:0';
 const DEFAULT_EMBED_MODEL_ID = 'amazon.titan-embed-text-v2:0';
 const DEFAULT_EMBED_DIMENSIONS = 512;
 const MAX_CONTEXT_CHARS = 7000;
+const CHATBOT_STATIC_CREDENTIAL_SETS = Object.freeze([
+  Object.freeze({
+    name: 'chatbot',
+    accessKeyId: 'CHATBOT_AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'CHATBOT_AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'CHATBOT_AWS_SESSION_TOKEN'
+  }),
+  Object.freeze({
+    name: 'default',
+    accessKeyId: 'AWS_ACCESS_KEY_ID',
+    secretAccessKey: 'AWS_SECRET_ACCESS_KEY',
+    sessionToken: 'AWS_SESSION_TOKEN'
+  })
+]);
 const FOLLOWUP_MAX_CHARS = 96;
 const FOLLOWUP_STOPWORDS = new Set([
   'a', 'about', 'an', 'and', 'are', 'as', 'at', 'best', 'can', 'could', 'daniel',
@@ -70,21 +85,24 @@ function getRegion() {
   return pickEnv(['CHATBOT_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']) || 'us-east-2';
 }
 
-function getAwsCredentialsFromEnv() {
-  const accessKeyId = pickEnv(['CHATBOT_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
-  const secretAccessKey = pickEnv(['CHATBOT_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
-  const sessionToken = pickEnv(['CHATBOT_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
-  if (!accessKeyId || !secretAccessKey) return null;
-  return {
-    accessKeyId,
-    secretAccessKey,
-    ...(sessionToken ? { sessionToken } : {})
-  };
+function getBedrockCredentialConfig(region = getRegion()) {
+  return resolveAwsCredentials({
+    service: 'chatbot-bedrock',
+    region,
+    roleArnEnvKeys: ['CHATBOT_BEDROCK_AWS_ROLE_ARN'],
+    staticCredentialSets: CHATBOT_STATIC_CREDENTIAL_SETS
+  });
 }
 
 function hasBedrockConfiguration() {
-  if (!isProductionRuntime()) return true;
-  return Boolean(getAwsCredentialsFromEnv()) || Boolean(pickEnv([
+  let auth;
+  try {
+    auth = getBedrockCredentialConfig();
+  } catch {
+    return false;
+  }
+  if (!isProductionRuntime() || auth.source !== 'default') return true;
+  return Boolean(pickEnv([
     'AWS_PROFILE',
     'AWS_SHARED_CREDENTIALS_FILE',
     'AWS_WEB_IDENTITY_TOKEN_FILE',
@@ -95,13 +113,13 @@ function hasBedrockConfiguration() {
 
 function getBedrockClient() {
   const region = getRegion();
-  const credentials = getAwsCredentialsFromEnv();
-  const key = `${region}:${credentials ? credentials.accessKeyId : 'default'}`;
+  const auth = getBedrockCredentialConfig(region);
+  const key = `${region}:${auth.cacheKey}`;
   if (cachedBedrockClient && cachedBedrockKey === key) return cachedBedrockClient;
 
   cachedBedrockClient = new BedrockRuntimeClient({
     region,
-    credentials: credentials || undefined
+    credentials: auth.credentials
   });
   cachedBedrockKey = key;
   return cachedBedrockClient;

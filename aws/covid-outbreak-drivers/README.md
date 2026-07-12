@@ -62,27 +62,9 @@ aws lambda create-function \
   --environment "Variables={DATA_BUCKET=$BUCKET,DATA_PREFIX=covid-outbreak/v1}"
 ```
 
-## Function URL
+## Private browser access
 
-```bash
-aws lambda create-function-url-config \
-  --function-name covid-outbreak-drivers \
-  --auth-type NONE \
-  --cors file://aws/covid-outbreak-drivers/cors.json
-
-aws lambda add-permission \
-  --function-name covid-outbreak-drivers \
-  --statement-id FunctionURLAllowPublicAccess \
-  --action lambda:InvokeFunctionUrl \
-  --principal "*" \
-  --function-url-auth-type NONE
-```
-
-Function URL:
-
-```
-https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/
-```
+Publish an immutable version, point the `live` alias at it, and add that qualified alias ARN to the production OIDC stack's `DemoFunctionArns` parameter. The browser calls `/api/demos/covid-outbreak/*`; Vercel validates the route, rate-limits it, assumes the environment-specific OIDC role, and invokes the alias. Do not create an anonymous Function URL or add Lambda origins to the site CSP.
 
 ## Endpoints
 

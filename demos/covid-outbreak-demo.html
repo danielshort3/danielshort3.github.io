@@ -651,6 +651,7 @@
   </script>
 </head>
 <body>
+  <main id="main">
   <div id="demo-box" role="application" aria-label="COVID outbreak drivers demo">
     <header class="card-header">
       <div class="header-copy">
@@ -739,13 +740,14 @@
       </section>
     </div>
   </div>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-composite-projections@1/dist/d3-composite-projections.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
+    const DEFAULT_API_URL = "/api/demos/covid-outbreak/";
     const STORAGE_KEY = "demo.endpoint.covid";
     const LEGACY_KEYS = ["covid_outbreak_api"];
     const { resolveEndpoint, getJson, joinUrl, retryRequest } = window.DemoAws;
@@ -911,7 +913,8 @@
     const endpointConfig = {
       defaultUrl: DEFAULT_API_URL,
       storageKey: STORAGE_KEY,
-      legacyKeys: LEGACY_KEYS
+      legacyKeys: LEGACY_KEYS,
+      allowOverrides: false
     };
     const WARM_RETRY_OPTIONS = {
       retries: 12,

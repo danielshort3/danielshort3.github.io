@@ -31,7 +31,7 @@ function ledgerError(code, message){
 
 function getClient(config){
   const credentials = config.awsCredentials || undefined;
-  const key = [config.region, credentials?.accessKeyId || 'default', credentials?.sessionToken || ''].join(':');
+  const key = [config.region, config.awsCredentialsCacheKey || 'default'].join(':');
   if (cachedClient && cachedClientKey === key) return cachedClient;
   const base = new DynamoDBClient({
     region: config.region,

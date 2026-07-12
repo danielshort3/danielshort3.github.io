@@ -1,0 +1,27 @@
+{
+  "CORSRules": [
+    {
+      "ID": "PreviewPresignedUploads",
+      "AllowedHeaders": [
+        "content-type",
+        "x-amz-date",
+        "x-amz-security-token",
+        "authorization"
+      ],
+      "AllowedMethods": [
+        "POST",
+        "PUT"
+      ],
+      "AllowedOrigins": [
+        "https://*.vercel.app",
+        "http://localhost:*",
+        "http://127.0.0.1:*"
+      ],
+      "ExposeHeaders": [
+        "etag",
+        "x-amz-request-id"
+      ],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}

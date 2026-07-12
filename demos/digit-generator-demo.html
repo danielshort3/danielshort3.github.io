@@ -597,6 +597,7 @@
       }
     })();
   </script>
+  <main id="main">
 
   <div id="demo-box" role="application" aria-label="Digit generator demo">
     <header class="card-header">
@@ -681,10 +682,11 @@
       </aside>
     </div>
   </div>
+  </main>
 
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
-    const DEFAULT_FN_URL = "https://w7jbsr55oggohong42ii6wo3jq0bvkvq.lambda-url.us-east-2.on.aws/";
+    const DEFAULT_FN_URL = "/api/demos/digit-generator/";
     const STORAGE_KEY = "demo.endpoint.digit";
     const LEGACY_KEYS = ["digit_fn_url"];
     const {
@@ -706,7 +708,8 @@
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
-      legacyKeys: LEGACY_KEYS
+      legacyKeys: LEGACY_KEYS,
+      allowOverrides: false
     };
     const WARM_RETRY_OPTIONS = {
       retries: 12,
@@ -715,7 +718,7 @@
       maxDelayMs: 10000
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
-    const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'generate', 'sample'], payload);
+    const postToEndpoint = (base, payload) => postWithFallback(base, ['generate'], payload);
 
     const gridEl = document.getElementById('grid');
     const gridShell = document.querySelector('.grid-shell');

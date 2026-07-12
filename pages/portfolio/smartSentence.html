@@ -361,7 +361,7 @@
             <ul class="project-star-list">
               <li>Cleaned Project Gutenberg text, split it into sentences, and precomputed embeddings for the fixed corpus.</li>
               <li>Compared several embedding models on a sample subset and balanced clustering quality against model size and serverless deployment cost.</li>
-              <li>Deployed the selected model behind an AWS Lambda Function URL and built a browser demo that checks `/health` before ranking top-k matches by cosine similarity.</li>
+              <li>Deployed the selected model behind an immutable AWS Lambda alias and a same-origin IAM proxy, with a browser demo that checks `/health` before ranking top-k matches by cosine similarity.</li>
             </ul>
           </dd>
         </div>

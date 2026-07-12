@@ -1132,7 +1132,7 @@
             <section class="chat-messages" id="regular-messages" aria-live="polite"></section>
             <section class="chat-composer">
               <form class="chat-form" id="regular-form" novalidate>
-                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" rows="1" autocomplete="off" required></textarea>
+                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" rows="1" maxlength="1200" autocomplete="off" required></textarea>
                 <button class="chat-send" id="regular-send" type="submit">Send</button>
               </form>
             </section>
@@ -1168,7 +1168,7 @@
               <section class="chat-messages" id="popup-messages" aria-live="polite"></section>
               <section class="chat-composer">
                 <form class="chat-form" id="popup-form" novalidate>
-                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" rows="1" autocomplete="off" required></textarea>
+                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" rows="1" maxlength="1200" autocomplete="off" required></textarea>
                   <button class="chat-send" id="popup-send" type="submit">Send</button>
                 </form>
               </section>
@@ -1183,7 +1183,7 @@
   <script>
     const DEFAULT_QWEN_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';
     const DEFAULT_BEDROCK_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod/bedrock';
-    const DEFAULT_BEDROCK_STREAM_URL = 'https://6i6akxbdxx5qexaajudxuayoey0iopga.lambda-url.us-east-2.on.aws/';
+    const DEFAULT_BEDROCK_STREAM_URL = '/api/chatbot-stream';
     const DEFAULT_BACKEND_ID = 'bedrock';
     const BACKEND_STORAGE_KEY = 'demo.endpoint.chatbot.backend';
     const BACKEND_DEFAULT_VERSION_KEY = 'demo.endpoint.chatbot.backend.defaultVersion';
@@ -1208,7 +1208,7 @@
           defaultUrl: RUNTIME_CONFIG.bedrockApiUrl || DEFAULT_BEDROCK_API_URL,
           storageKey: 'demo.endpoint.chatbot.bedrock'
         }).replace(/\/$/, ''),
-        streamUrl: (RUNTIME_CONFIG.bedrockStreamUrl || DEFAULT_BEDROCK_STREAM_URL).replace(/\/$/, ''),
+        streamUrl: DEFAULT_BEDROCK_STREAM_URL,
         billingModel: 'on_demand_tokens',
         alwaysOn: true
       }
@@ -2582,10 +2582,19 @@
       if (!backend.streamUrl) {
         throw new Error('Bedrock stream URL is not configured');
       }
-      const response = await fetch(backend.streamUrl, {
+      const streamUrl = new URL(backend.streamUrl, window.location.href);
+      if (streamUrl.origin !== window.location.origin) {
+        throw new Error('Bedrock stream must use the same website origin');
+      }
+      const response = await fetch(streamUrl.href, {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          accept: 'application/x-ndjson',
+          'content-type': 'application/json'
+        },
         body: JSON.stringify(body),
+        cache: 'no-store',
+        credentials: 'same-origin',
         signal: ctx.controller.signal
       });
       if (!response.ok) {
