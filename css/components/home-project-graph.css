@@ -5,9 +5,9 @@
     --home-graph-soft: #f7faff;
     --home-graph-line: rgba(53, 79, 123, .14);
     --home-graph-line-strong: rgba(42, 69, 118, .2);
-    --home-graph-blue: #155dfc;
-    --home-graph-teal: #0798a6;
-    --home-graph-orange: #f97316;
+    --home-graph-blue: var(--category-projects);
+    --home-graph-teal: var(--category-tools);
+    --home-graph-orange: var(--category-games);
     --home-graph-surface: rgba(255, 255, 255, .96);
     --home-graph-shadow: 0 22px 64px rgba(15, 31, 63, .12);
     --home-graph-footer-space: 152px;

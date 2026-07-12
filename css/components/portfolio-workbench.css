@@ -5,18 +5,18 @@
   }
 
   body[data-page="portfolio"] {
-    --directory-page-accent: #155dfc;
+    --directory-page-accent: var(--category-projects);
     --directory-page-secondary: var(--brand-action-copper);
   }
 
   body[data-page="tools"] {
-    --directory-page-accent: #0798a6;
-    --directory-page-secondary: #0798a6;
+    --directory-page-accent: var(--category-tools);
+    --directory-page-secondary: var(--category-tools);
   }
 
   body[data-page="games"] {
-    --directory-page-accent: #f97316;
-    --directory-page-secondary: #f97316;
+    --directory-page-accent: var(--category-games);
+    --directory-page-secondary: var(--category-games);
   }
 
   .portfolio-main {

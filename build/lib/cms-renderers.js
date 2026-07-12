@@ -613,6 +613,7 @@ function renderFooter({ footer, year }) {
     const realm = String(variant.id || 'personal').trim();
     const name = variant.name || footer.copyrightName || 'Daniel Short';
     const eyebrow = String(variant.eyebrow || '').trim();
+    const summary = String(variant.summary || '').trim();
     const identityLinks = (Array.isArray(variant.links) ? variant.links : [])
       .map((link) => renderFooterLink(link, 'footer-link footer-identity-link'))
       .join('\n');
@@ -620,7 +621,7 @@ function renderFooter({ footer, year }) {
       `<section class="footer-identity-panel" data-footer-realm="${escapeHtml(realm)}" aria-label="${escapeHtml(`${name} footer summary`)}">`,
       eyebrow ? `  <p class="footer-identity-eyebrow">${escapeHtml(eyebrow)}</p>` : '',
       `  <h2 class="footer-identity-name">${escapeHtml(name)}</h2>`,
-      `  <p class="footer-identity-summary">${escapeHtml(variant.summary || '')}</p>`,
+      summary ? `  <p class="footer-identity-summary">${escapeHtml(summary)}</p>` : '',
       identityLinks ? `  <div class="footer-identity-actions">\n${indentBlock(identityLinks, '    ')}\n  </div>` : '',
       '</section>'
     ].filter(Boolean).join('\n');

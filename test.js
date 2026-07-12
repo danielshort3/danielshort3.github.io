@@ -941,10 +941,16 @@ try {
     assert(!toolsCss.includes('tools-workbench-header') &&
       toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr) minmax(310px,390px);') &&
       toolsCss.includes('.tools-workbench-result.is-selected .tools-workbench-result__open') &&
-      workbenchCss.includes('--directory-page-accent: #0798a6;') &&
-      workbenchCss.includes('--directory-page-accent: #f97316;') &&
+      workbenchCss.includes('--directory-page-accent: var(--category-tools);') &&
+      workbenchCss.includes('--directory-page-accent: var(--category-games);') &&
       workbenchCss.includes('--workbench-accent-ink:'),
       'directory CSS should share the Project Library treatment with accessible teal and orange themes');
+    assert(toolsCss.includes('.portfolio-brand-panel .btn-ghost') &&
+      toolsCss.includes('border-color:rgba(255,255,255,.72);') &&
+      toolsCss.includes('color:#ffffff;') &&
+      toolsCss.includes('.portfolio-brand-panel .btn-ghost:is(:hover,:focus-visible)') &&
+      toolsCss.includes('color:var(--workbench-accent-ink);'),
+      'tools workbench account ghost buttons should remain legible at rest, hover, and keyboard focus');
     assert(toolsCss.includes('@media (max-width:820px)') &&
       toolsCss.includes('grid-template-columns:minmax(0,1fr);') &&
       toolsCss.includes('data-mobile-selection="overlay"') &&
@@ -38430,6 +38436,14 @@ try {
     assert(!JSON.stringify(footerContent).includes('data-site-realm-switch') &&
       !JSON.stringify(footerContent).includes('/?mode=professional'),
       'footer content source should not retain personal/professional realm switch records');
+    const retiredPersonalFooterSummary = 'Projects, browser tools, games, and machine-learning experiments.';
+    assert(!footerTemplate.includes(retiredPersonalFooterSummary) &&
+      !JSON.stringify(footerContent).includes(retiredPersonalFooterSummary),
+      'personal footer should omit the redundant projects, tools, games, and experiments summary');
+    const footerRenderer = readFile('build/lib/cms-renderers.js');
+    assert(footerRenderer.includes('summary ? `  <p class="footer-identity-summary">') &&
+      footerRenderer.includes(".filter(Boolean).join('\\n')"),
+      'footer renderer should omit the summary element when a realm has no summary');
     assert(!footerTemplate.includes('Personal site</p>') && !footerTemplate.includes('Professional view</p>'),
       'footer should not render visible personal/professional view labels');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
@@ -38454,6 +38468,7 @@ try {
 
   section('Navigation CSS and mobile layout', () => {
     const navCss = fs.readFileSync('css/layout/nav.css', 'utf8');
+    const navOverrideCss = fs.readFileSync('css/utilities/design-system-overrides.css', 'utf8');
     assert(navCss.includes('--brand-logo-size'), 'nav.css missing brand logo scale variable');
     assert(navCss.includes('grid-template-columns:repeat(4, minmax(0, 1fr)) auto;'), 'desktop nav should reserve four menu slots plus compact search');
     assert(!navCss.includes('grid-template-columns:repeat(5, minmax(0, 1fr)) auto;'), 'desktop nav should not reserve a removed Home menu slot');
@@ -38463,6 +38478,13 @@ try {
     assert(navCss.includes('.nav-project-card:nth-child(1) .nav-project-rank::before{content:"01";}'), 'portfolio dropdown rank labels should render as quiet numeric labels');
     assert(navCss.includes('.nav-project-rank') && navCss.includes('background:transparent;'), 'portfolio dropdown rank labels should not use filled badges');
     assert(navCss.includes('.nav-dropdown-inner.nav-dropdown-inner-simple'), 'simple dropdowns should have a shared one-column inner shell');
+    assert(navOverrideCss.includes('.nav-item-portfolio > .nav-link::after') &&
+      navOverrideCss.includes('background: var(--category-projects);') &&
+      navOverrideCss.includes('.nav-item-tools > .nav-link::after') &&
+      navOverrideCss.includes('background: var(--category-tools);') &&
+      navOverrideCss.includes('.nav-item-games > .nav-link::after') &&
+      navOverrideCss.includes('background: var(--category-games);'),
+      'Projects, Tools, and Games nav underlines should use their category accent tokens');
 
     const utilCss = fs.readFileSync('css/utilities/layout.css', 'utf8');
     assert(utilCss.includes('--brand-title-size'), 'utilities/layout.css missing mobile brand sizing overrides');
@@ -38486,6 +38508,10 @@ try {
     assert(varsCss.includes('--brand-deep-blue:#0145C8;'), 'variables.css missing Deep Blue token');
     assert(varsCss.includes('--brand-canvas:#F9F9FA;'), 'variables.css missing Canvas token');
     assert(varsCss.includes('--brand-action-copper:#D97706;'), 'variables.css missing Action Copper token');
+    assert(varsCss.includes('--category-projects:#155DFC;') &&
+      varsCss.includes('--category-tools:#0798A6;') &&
+      varsCss.includes('--category-games:#F97316;'),
+      'variables.css should define the shared Projects, Tools, and Games category accents');
     assert(varsCss.includes('--font-sans:"Inter"'), 'variables.css should define Inter as the primary font');
     assert(varsCss.includes('--font-mono:"IBM Plex Mono"'), 'variables.css should define IBM Plex Mono for code/tool labels');
     assert(!varsCss.includes('#06B6D4'), 'variables.css should not keep the old cyan palette value');
@@ -39404,6 +39430,12 @@ try {
     assert(toolsRoleBlock.includes('dynamodb:ConditionCheckItem') &&
            toolsRoleBlock.includes('dynamodb:TransactWriteItems'),
       'Vercel Tools OIDC role should allow guarded DynamoDB transaction writes');
+    const transcribeRoleBlock = (vercelOidcTemplate.split('  TranscribeRole:')[1] || '')
+      .split('  ChatbotBedrockRole:')[0];
+    assert(transcribeRoleBlock.includes('dynamodb:PutItem') &&
+           transcribeRoleBlock.includes('dynamodb:TransactWriteItems') &&
+           transcribeRoleBlock.includes("table/${ToolsTableName}"),
+      'Vercel Transcribe OIDC role should allow table-scoped transactional ledger puts');
     assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
     assert(vercel.includes('Strict-Transport-Security'), 'vercel.json missing HSTS');
     assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
@@ -40875,6 +40907,17 @@ try {
     assert(distCss.includes('#smartSentence-modal .modal-body{overflow-x:hidden}'), 'sentence modal missing overflow-x hidden');
 
     checkFileContains('pages/contact.html', 'id="contact-modal"');
+    const contactContent = readFile('content/pages/contact.json');
+    const rootContactHtml = readFile('contact.html');
+    const pageContactHtml = readFile('pages/contact.html');
+    [contactContent, rootContactHtml, pageContactHtml].forEach((content) => {
+      assert(!content.includes('Scroll for ways to connect') &&
+        !content.includes('chevron-hint scroll-indicator'),
+        'personal Contact page should not render the removed scroll-for-ways panel');
+    });
+    assert(rootContactHtml.includes('id="contact-form-toggle"') &&
+      pageContactHtml.includes('id="contact-options"'),
+      'Contact page should preserve the message action and connection options after removing the scroll panel');
     ['Resume.pdf','Resume-Analytics.pdf','Resume-Data-Science.pdf','Resume-Tourism.pdf'].forEach((file) => {
       assert(fs.existsSync(path.join('documents', file)), `${file} should be restored for the hidden professional realm`);
       assert(fs.existsSync(path.join('public', 'documents', file)), `${file} should be copied to public documents`);

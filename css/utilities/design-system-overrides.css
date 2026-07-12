@@ -695,6 +695,18 @@
     background: var(--brand-action-copper);
   }
 
+  .nav-item-portfolio > .nav-link::after {
+    background: var(--category-projects);
+  }
+
+  .nav-item-tools > .nav-link::after {
+    background: var(--category-tools);
+  }
+
+  .nav-item-games > .nav-link::after {
+    background: var(--category-games);
+  }
+
   .nav-search-input,
   .nav-search-button {
     background: #ffffff;

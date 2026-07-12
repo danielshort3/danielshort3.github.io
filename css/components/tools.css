@@ -1083,6 +1083,18 @@
     box-shadow:0 10px 22px rgba(0,0,0,.18);
   }
 
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .btn-ghost {
+    border-color:rgba(255,255,255,.72);
+    background:rgba(255,255,255,.12);
+    color:#ffffff;
+  }
+
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .btn-ghost:is(:hover,:focus-visible) {
+    border-color:#ffffff;
+    background:#ffffff;
+    color:var(--workbench-accent-ink);
+  }
+
   body[data-page="tools"] .tools-workbench-result.is-selected .tools-workbench-result__open {
     color:#ffffff;
   }
