@@ -1355,6 +1355,7 @@
       const panelRect = panel.getBoundingClientRect();
       const panelStyle = window.getComputedStyle(panel);
       const storyRailOffset = Number.parseFloat(panelStyle.getPropertyValue('--story-rail-x')) || 23;
+      const storyOriginClearance = Number.parseFloat(panelStyle.getPropertyValue('--story-origin-clearance')) || 0;
       const isMobileStoryRail = window.matchMedia('(max-width: 768px)').matches;
       if (heroIdentity && heroWrapper) {
         const identityRect = heroIdentity.getBoundingClientRect();
@@ -1394,7 +1395,7 @@
       });
       if (!stops.length) return;
       storyStartY = heroOriginRect
-        ? Math.max(0, heroOriginRect.top + scrollTop - mainTop + (heroOriginRect.height / 2))
+        ? Math.max(0, heroOriginRect.top + scrollTop - mainTop + (heroOriginRect.height / 2) + storyOriginClearance)
         : Math.max(0, stops[0]);
       storyEndY = Math.max(storyStartY, stops[stops.length - 1]);
       panel.style.setProperty('--story-start-y', `${storyStartY}px`);
