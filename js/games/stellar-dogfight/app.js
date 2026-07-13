@@ -5472,6 +5472,7 @@
         state.contracts = rollContracts();
         state.runStart = performance.now();
         state.waveStart = performance.now();
+        state.lastAccessibleHudUpdate = 0;
         captureRunUnlockBaseline();
         unlockAchievement("first-sortie");
         setupWorld();
@@ -5490,6 +5491,10 @@
         hideOverlay();
         setMode("flight");
         playAudioCue("launch");
+        showTip("launch-protection", "Launch protection", "Damage immunity is active for the first 3 seconds.", {
+          kind: "info",
+          duration: 3400
+        });
         maybeShowRunQuickTip();
         if (state.sectorMod) {
           logEvent(`Sector 01 anomaly: ${state.sectorMod.name}.`);

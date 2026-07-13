@@ -1,4 +1,4 @@
-/* Ocean wave simulation tool */
+/* Ocean conditions laboratory */
 @layer components {
   .ocean-wave-hero{
     padding:clamp(3.2rem,7vh,4.6rem) 0;
@@ -115,6 +115,10 @@
   .ocean-wave-stage.ocean-wave-dragging{
     cursor:grabbing;
   }
+  .ocean-wave-stage:focus-visible{
+    outline:3px solid color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+    outline-offset:4px;
+  }
   .ocean-wave-stage::before{
     content:"";
     position:absolute;
@@ -175,10 +179,69 @@
     font-size:.98rem;
     line-height:1.6;
   }
+  .ocean-wave-summary{
+    margin:0;
+    padding:12px 14px;
+    border-left:3px solid color-mix(in srgb,var(--primary) 72%, #ffffff 28%);
+    border-radius:0 12px 12px 0;
+    background:color-mix(in srgb,var(--surface) 88%, #071722 12%);
+    color:var(--text-light);
+    font-size:.96rem;
+    line-height:1.6;
+  }
 
   .ocean-wave-controls{
     display:grid;
     gap:16px;
+  }
+  .ocean-wave-presets{
+    display:grid;
+    gap:10px;
+    margin:0;
+    padding:0;
+    border:0;
+    min-width:0;
+  }
+  .ocean-wave-presets legend{
+    margin:0 0 10px;
+    padding:0;
+    font-family:'Inter';
+    font-size:.95rem;
+    font-weight:700;
+    color:var(--text-light);
+  }
+  .ocean-wave-preset-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .ocean-wave-preset{
+    min-height:42px;
+    padding:9px 10px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    border-radius:10px;
+    background:color-mix(in srgb,var(--surface) 88%, #050b12 12%);
+    color:var(--text-light);
+    font-family:'Inter';
+    font-size:.86rem;
+    font-weight:650;
+    line-height:1.25;
+    cursor:pointer;
+    transition:border-color .18s ease,background-color .18s ease,transform .18s ease;
+  }
+  .ocean-wave-preset:hover{
+    border-color:color-mix(in srgb,var(--primary) 64%, transparent);
+    transform:translateY(-1px);
+  }
+  .ocean-wave-preset.is-active{
+    border-color:color-mix(in srgb,var(--primary) 80%, #ffffff 20%);
+    background:color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 34%, transparent);
+  }
+  .ocean-wave-preset:focus-visible,
+  .ocean-wave-select:focus-visible{
+    outline:2px solid color-mix(in srgb,var(--primary) 76%, #ffffff 24%);
+    outline-offset:2px;
   }
   .ocean-wave-control{
     display:grid;
@@ -213,6 +276,18 @@
   .ocean-wave-controls input[type="range"]{
     width:100%;
     accent-color:var(--primary);
+  }
+  .ocean-wave-select{
+    width:100%;
+    min-height:44px;
+    padding:10px 38px 10px 12px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    border-radius:10px;
+    background:color-mix(in srgb,var(--surface) 88%, #050b12 12%);
+    color:var(--text-light);
+    font-family:'Inter';
+    font-size:.95rem;
+    font-weight:600;
   }
   .ocean-wave-controls input[type="range"]::-webkit-slider-runnable-track{
     height:8px;
@@ -260,5 +335,53 @@
     gap:10px;
     flex-wrap:wrap;
     margin-top:6px;
+  }
+  .ocean-wave-actions button{
+    min-height:44px;
+    font-family:'Inter';
+  }
+
+  @media (max-width:760px){
+    .ocean-wave-page .ocean-wave-section{
+      padding-bottom:calc(7.5rem + env(safe-area-inset-bottom));
+    }
+    .ocean-wave-card{
+      padding:1.15rem;
+    }
+    .ocean-wave-hud{
+      left:10px;
+      bottom:calc(10px + env(safe-area-inset-bottom));
+      gap:8px;
+    }
+    .ocean-wave-status{
+      padding:8px 10px;
+      font-size:.82rem;
+    }
+    .ocean-wave-actions{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      width:100%;
+    }
+    .ocean-wave-actions button{
+      width:100%;
+      min-width:0;
+      white-space:normal;
+    }
+  }
+
+  @media (max-width:420px){
+    .ocean-wave-preset-grid,
+    .ocean-wave-actions{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .ocean-wave-preset{
+      transition:none;
+    }
+    .ocean-wave-preset:hover{
+      transform:none;
+    }
   }
 }

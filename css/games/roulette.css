@@ -406,6 +406,7 @@ body.roulette00-page {
   color: #f3e6cc;
   border-radius: 999px;
   min-width: 62px;
+  min-height: 44px;
   padding: 8px 14px;
   cursor: pointer;
   font-weight: 700;
@@ -430,6 +431,7 @@ body.roulette00-page {
 
 .roulette00-mode {
   min-width: 66px;
+  min-height: 44px;
   border: 1px solid rgba(242, 203, 130, 0.42);
   border-radius: 10px;
   padding: 8px 12px;
@@ -448,6 +450,11 @@ body.roulette00-page {
   border-color: rgba(255, 232, 175, 0.92);
   background: linear-gradient(140deg, rgba(250, 218, 152, 0.95), rgba(196, 138, 52, 0.95));
   color: #1f1204;
+}
+
+.roulette00-mode:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .roulette00-chip:disabled {
@@ -941,7 +948,23 @@ body.roulette00-page {
   }
 
   .roulette00-header-metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .roulette00-header-metrics div {
+    min-width: 0;
+    padding: 8px;
+  }
+
+  .roulette00-header-metrics span {
+    font-size: 0.68rem;
+  }
+
+  .roulette00-header-metrics strong {
+    overflow: hidden;
+    font-size: 0.96rem;
+    text-overflow: ellipsis;
   }
 
   .roulette00-chip-tray {
