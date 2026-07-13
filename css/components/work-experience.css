@@ -16,6 +16,36 @@
     font-size:1.02rem;
   }
 
+  .work-experience-summary{
+    display:inline-flex;
+    flex-wrap:wrap;
+    align-items:baseline;
+    justify-content:center;
+    gap:.3rem .55rem;
+    max-width:100%;
+    margin:16px 0 0;
+    padding:10px 14px;
+    border:1px solid color-mix(in srgb,var(--brand-signal-blue, #005fed) 20%, transparent);
+    border-left:3px solid var(--brand-signal-blue, #005fed);
+    border-radius:7px;
+    background:color-mix(in srgb,var(--brand-mist, #eef2f7) 72%, #ffffff 28%);
+    color:var(--brand-midnight, #091f3b);
+    line-height:1.35;
+  }
+
+  .work-experience-summary__value{
+    color:var(--brand-deep-blue, #0145c8);
+    font-size:1.2rem;
+    font-weight:850;
+    letter-spacing:-.025em;
+    white-space:nowrap;
+  }
+
+  .work-experience-summary__label{
+    font-size:.92rem;
+    font-weight:650;
+  }
+
   .work-grid{
     display:grid;
     grid-template-columns:repeat(3, minmax(0, 1fr));

@@ -370,7 +370,7 @@ function sortLegacyWorkCards(html) {
 
   const sorted = cards
     .slice()
-    .sort((a, b) => (b.rank - a.rank) || (a.index - b.index));
+    .sort((a, b) => (a.rank - b.rank) || (a.index - b.index));
   let replacementIndex = 0;
   return source.replace(cardPattern, () => sorted[replacementIndex++].html);
 }

@@ -153,8 +153,8 @@
 
   const camera = {
     height: 6.2,
-    yaw: 0,
-    pitch: -11 * DEG,
+    yaw: DEFAULTS.cameraYawDeg * DEG,
+    pitch: DEFAULTS.cameraPitchDeg * DEG,
     minPitch: -32 * DEG,
     maxPitch: 10 * DEG,
     maxDistance: 260,
@@ -180,6 +180,7 @@
   let waves = [];
   let rafId = 0;
   let lastFrame = null;
+  let lastRenderedAt = null;
   let simTimeSec = 0;
 
   const setToggleIcon = (paused) => {
@@ -196,14 +197,83 @@
 
   const fmt = (n, digits = 1) => Number(n).toFixed(digits);
 
+  const getWindDescription = () => {
+    if (state.wind < 1.5) return 'calm air';
+    if (state.wind < 6) return 'light breeze';
+    if (state.wind < 12) return 'fresh breeze';
+    if (state.wind < 17) return 'strong wind';
+    return 'gale-force wind';
+  };
+
+  const getWaveDescription = () => {
+    if (state.waveHeight < 0.7) return 'gentle ripples';
+    if (state.waveHeight < 1.8) return 'rolling swell';
+    if (state.waveHeight < 3.3) return 'rough sea';
+    return 'steep storm waves';
+  };
+
+  const getLightDescription = () => {
+    if (state.sunElevationDeg < 15) return 'golden low-angle light';
+    if (state.sunElevationDeg < 35) return 'low daylight';
+    if (state.sunElevationDeg < 58) return 'clear daylight';
+    return 'high overhead light';
+  };
+
+  const getQualityLabel = () => {
+    if (state.qualityMode === 'battery') return 'Battery 30 FPS';
+    if (state.qualityMode === 'quality') return 'Quality';
+    return 'Auto';
+  };
+
+  const updateConditionSummary = () => {
+    const yawDeg = Math.round(camera.yaw / DEG);
+    const pitchDeg = Math.round(camera.pitch / DEG);
+    summaryEl.textContent = `${getWindDescription()} at ${fmt(state.wind, 1)} meters per second, `
+      + `${getWaveDescription()} at ${fmt(state.waveHeight, 2)} times height, and ${getLightDescription()} `
+      + `at ${Math.round(state.sunElevationDeg)} degrees. Camera heading ${yawDeg} degrees, pitch ${pitchDeg} degrees. `
+      + `Animation ${state.paused ? 'paused' : 'running'} in ${getQualityLabel()} mode.`;
+  };
+
+  const buildSceneUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('wind', fmt(state.wind, 1));
+    url.searchParams.set('waves', fmt(state.waveHeight, 2));
+    url.searchParams.set('sun', String(Math.round(state.sunElevationDeg)));
+    url.searchParams.set('yaw', String(Math.round(camera.yaw / DEG)));
+    url.searchParams.set('pitch', String(Math.round(camera.pitch / DEG)));
+    url.searchParams.set('quality', state.qualityMode);
+    return url;
+  };
+
+  const replaceSceneUrl = () => {
+    if (!window.history || typeof window.history.replaceState !== 'function') return;
+    const url = buildSceneUrl();
+    try {
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch {}
+  };
+
+  const scheduleSceneUrlUpdate = (() => {
+    let timeoutId = 0;
+    return () => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(replaceSceneUrl, 180);
+    };
+  })();
+
   const syncUI = () => {
     windValue.textContent = `${fmt(state.wind, 1)} m/s`;
-    heightValue.textContent = `${fmt(state.waveHeight, 2)}×`;
-    lightValue.textContent = `${Math.round(state.sunElevationDeg)}°`;
+    heightValue.textContent = `${fmt(state.waveHeight, 2)}x`;
+    lightValue.textContent = `${Math.round(state.sunElevationDeg)} degrees`;
+    windInput.setAttribute('aria-valuetext', `${fmt(state.wind, 1)} meters per second, ${getWindDescription()}`);
+    heightInput.setAttribute('aria-valuetext', `${fmt(state.waveHeight, 2)} times height, ${getWaveDescription()}`);
+    lightInput.setAttribute('aria-valuetext', `${Math.round(state.sunElevationDeg)} degrees, ${getLightDescription()}`);
+    qualityInput.value = state.qualityMode;
     toggleBtn.setAttribute('aria-pressed', state.paused ? 'true' : 'false');
     toggleBtn.setAttribute('aria-label', state.paused ? 'Play animation' : 'Pause animation');
     setToggleIcon(state.paused);
-    setStatus(state.paused ? 'Paused' : 'Running');
+    setStatus(`${state.paused ? 'Paused' : 'Running'} - ${getQualityLabel()}`);
+    updateConditionSummary();
   };
 
   const updateLight = () => {
@@ -381,18 +451,28 @@
     }
   };
 
-  const resize = () => {
-    const rect = stage.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-
+  const getQualityProfile = () => {
+    if (state.qualityMode === 'battery') {
+      return { dprMax: 1.5, maxPixels: 115000, scale: 0.68, maxW: 720, maxH: 520 };
+    }
+    if (state.qualityMode === 'quality') {
+      return { dprMax: 2.5, maxPixels: 280000, scale: 1, maxW: 1080, maxH: 760 };
+    }
     const cores = typeof navigator !== 'undefined' && Number.isFinite(navigator.hardwareConcurrency)
       ? navigator.hardwareConcurrency
       : 4;
-    const quality = cores >= 8
+    return cores >= 8
       ? { dprMax: 2.25, maxPixels: 210000, scale: 0.9, maxW: 920, maxH: 700 }
       : cores >= 6
         ? { dprMax: 2.1, maxPixels: 185000, scale: 0.84, maxW: 860, maxH: 660 }
         : { dprMax: 2, maxPixels: 160000, scale: 0.78, maxW: 820, maxH: 620 };
+  };
+
+  const resize = () => {
+    const rect = stage.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const quality = getQualityProfile();
 
     const dpr = Math.min(quality.dprMax, window.devicePixelRatio || 1);
     const targetW = rect.width * dpr;
@@ -474,6 +554,7 @@
   stage.addEventListener('pointerdown', (event) => {
     if (event.target && event.target.closest && event.target.closest('button')) return;
     if (event.pointerType === 'mouse' && event.button !== 0) return;
+    stage.focus({ preventScroll: true });
     draggingPointerId = event.pointerId;
     dragStartX = event.clientX;
     dragStartY = event.clientY;
@@ -500,15 +581,40 @@
     draggingPointerId = null;
     stage.classList.remove('ocean-wave-dragging');
     if (stage.hasPointerCapture && stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
-    markSessionDirty();
+    updateConditionSummary();
+    scheduleSceneUrlUpdate();
   };
 
   stage.addEventListener('pointerup', endDrag);
   stage.addEventListener('pointercancel', endDrag);
   stage.addEventListener('lostpointercapture', () => {
+    if (draggingPointerId === null) return;
     draggingPointerId = null;
     stage.classList.remove('ocean-wave-dragging');
-    markSessionDirty();
+    updateConditionSummary();
+    scheduleSceneUrlUpdate();
+  });
+
+  stage.addEventListener('keydown', (event) => {
+    if (event.target !== stage) return;
+    const yawStep = (event.shiftKey ? 12 : 5) * DEG;
+    const pitchStep = (event.shiftKey ? 7 : 3) * DEG;
+    let handled = true;
+
+    if (event.key === 'ArrowLeft') camera.yaw = wrapAngle(camera.yaw - yawStep);
+    else if (event.key === 'ArrowRight') camera.yaw = wrapAngle(camera.yaw + yawStep);
+    else if (event.key === 'ArrowUp') camera.pitch = clamp(camera.pitch - pitchStep, camera.minPitch, camera.maxPitch);
+    else if (event.key === 'ArrowDown') camera.pitch = clamp(camera.pitch + pitchStep, camera.minPitch, camera.maxPitch);
+    else if (event.key === 'Home') {
+      camera.yaw = DEFAULTS.cameraYawDeg * DEG;
+      camera.pitch = DEFAULTS.cameraPitchDeg * DEG;
+    } else handled = false;
+
+    if (!handled) return;
+    event.preventDefault();
+    markCameraDirty();
+    updateConditionSummary();
+    scheduleSceneUrlUpdate();
   });
 
   const renderFrame = (t) => {
@@ -820,6 +926,7 @@
   const start = () => {
     if (rafId) return;
     lastFrame = null;
+    lastRenderedAt = null;
     rafId = window.requestAnimationFrame(tick);
   };
 
@@ -828,12 +935,19 @@
     window.cancelAnimationFrame(rafId);
     rafId = 0;
     lastFrame = null;
+    lastRenderedAt = null;
   };
 
   const tick = (ts) => {
+    const minimumFrameInterval = state.qualityMode === 'battery' ? 1000 / 30 : 0;
+    if (lastRenderedAt !== null && ts - lastRenderedAt < minimumFrameInterval - 1) {
+      rafId = window.requestAnimationFrame(tick);
+      return;
+    }
     if (!lastFrame) lastFrame = ts;
     const dt = clamp((ts - lastFrame) / 1000, 0, 0.05);
     lastFrame = ts;
+    lastRenderedAt = ts;
     simTimeSec += dt;
     if (cameraDirty) {
       cameraDirty = false;
@@ -855,9 +969,83 @@
     state.wind = clamp(parseFloat(windInput.value || DEFAULTS.wind), 0, 20);
     state.waveHeight = clamp(parseFloat(heightInput.value || DEFAULTS.waveHeight), 0, MAX_WAVE_HEIGHT);
     state.sunElevationDeg = clamp(parseFloat(lightInput.value || DEFAULTS.sunElevationDeg), 5, 75);
+    state.qualityMode = QUALITY_MODES.has(qualityInput.value) ? qualityInput.value : DEFAULTS.qualityMode;
     buildWaves();
     updateLight();
     syncUI();
+  };
+
+  let activePreset = '';
+
+  const setActivePreset = (presetName = '') => {
+    activePreset = presetName;
+    presetButtons.forEach((button) => {
+      const active = button.dataset.oceanPreset === activePreset;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  };
+
+  const syncInputsFromState = () => {
+    windInput.value = fmt(state.wind, 1);
+    heightInput.value = fmt(state.waveHeight, 2);
+    lightInput.value = String(Math.round(state.sunElevationDeg));
+    qualityInput.value = state.qualityMode;
+  };
+
+  const applyConditions = (conditions, presetName = '') => {
+    state.wind = clamp(Number(conditions.wind), 0, 20);
+    state.waveHeight = clamp(Number(conditions.waveHeight), 0, MAX_WAVE_HEIGHT);
+    state.sunElevationDeg = clamp(Number(conditions.sunElevationDeg), 5, 75);
+    if (Number.isFinite(conditions.yawDeg)) camera.yaw = wrapAngle(conditions.yawDeg * DEG);
+    if (Number.isFinite(conditions.pitchDeg)) {
+      camera.pitch = clamp(conditions.pitchDeg * DEG, camera.minPitch, camera.maxPitch);
+    }
+    syncInputsFromState();
+    buildWaves();
+    rebuildCameraRays();
+    syncUI();
+    setActivePreset(presetName);
+    renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
+  };
+
+  const restoreSceneFromUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const readNumber = (key, fallback) => {
+      const value = Number(params.get(key));
+      return params.has(key) && Number.isFinite(value) ? value : fallback;
+    };
+
+    state.wind = clamp(readNumber('wind', DEFAULTS.wind), 0, 20);
+    state.waveHeight = clamp(readNumber('waves', DEFAULTS.waveHeight), 0, MAX_WAVE_HEIGHT);
+    state.sunElevationDeg = clamp(readNumber('sun', DEFAULTS.sunElevationDeg), 5, 75);
+    const qualityMode = params.get('quality');
+    state.qualityMode = QUALITY_MODES.has(qualityMode) ? qualityMode : DEFAULTS.qualityMode;
+    camera.yaw = wrapAngle(readNumber('yaw', DEFAULTS.cameraYawDeg) * DEG);
+    camera.pitch = clamp(
+      readNumber('pitch', DEFAULTS.cameraPitchDeg) * DEG,
+      camera.minPitch,
+      camera.maxPitch
+    );
+    syncInputsFromState();
+  };
+
+  const copyText = async (text) => {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand('copy');
+    textarea.remove();
+    if (!copied) throw new Error('Copy command was unavailable.');
   };
 
   const debounce = (fn, ms) => {
@@ -872,39 +1060,84 @@
     state.wind = clamp(parseFloat(windInput.value), 0, 20);
     buildWaves();
     syncUI();
+    setActivePreset();
     renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
   });
 
   heightInput.addEventListener('input', () => {
     state.waveHeight = clamp(parseFloat(heightInput.value), 0, MAX_WAVE_HEIGHT);
     syncUI();
+    setActivePreset();
     renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
   });
 
   lightInput.addEventListener('input', () => {
     state.sunElevationDeg = clamp(parseFloat(lightInput.value), 5, 75);
     updateLight();
     syncUI();
+    setActivePreset();
     renderFrame(simTimeSec);
+    scheduleSceneUrlUpdate();
+  });
+
+  qualityInput.addEventListener('change', () => {
+    state.qualityMode = QUALITY_MODES.has(qualityInput.value) ? qualityInput.value : DEFAULTS.qualityMode;
+    lastFrame = null;
+    lastRenderedAt = null;
+    resize();
+    syncUI();
+    scheduleSceneUrlUpdate();
   });
 
   toggleBtn.addEventListener('click', () => {
     setPaused(!state.paused);
-    markSessionDirty();
   });
 
   resetBtn.addEventListener('click', () => {
-    windInput.value = DEFAULTS.wind;
-    heightInput.value = DEFAULTS.waveHeight;
-    lightInput.value = DEFAULTS.sunElevationDeg;
-    camera.yaw = 0;
-    camera.pitch = -11 * DEG;
-    camera.pitch = clamp(camera.pitch, camera.minPitch, camera.maxPitch);
-    syncFromInputs();
+    applyConditions(DEFAULTS);
+  });
+
+  resetCameraBtn.addEventListener('click', () => {
+    camera.yaw = DEFAULTS.cameraYawDeg * DEG;
+    camera.pitch = clamp(DEFAULTS.cameraPitchDeg * DEG, camera.minPitch, camera.maxPitch);
     cameraDirty = false;
     rebuildCameraRays();
+    syncUI();
     renderFrame(simTimeSec);
-    markSessionDirty();
+    scheduleSceneUrlUpdate();
+    stage.focus({ preventScroll: true });
+  });
+
+  randomizeBtn.addEventListener('click', () => {
+    applyConditions({
+      wind: 1.5 + Math.random() * 17.5,
+      waveHeight: 0.25 + Math.random() * 4.9,
+      sunElevationDeg: 6 + Math.random() * 66,
+      yawDeg: -60 + Math.random() * 120,
+      pitchDeg: -22 + Math.random() * 22,
+    });
+  });
+
+  presetButtons.forEach((button) => {
+    button.setAttribute('aria-pressed', 'false');
+    button.addEventListener('click', () => {
+      const presetName = button.dataset.oceanPreset;
+      const preset = PRESETS[presetName];
+      if (preset) applyConditions(preset, presetName);
+    });
+  });
+
+  copyLinkBtn.addEventListener('click', async () => {
+    const url = buildSceneUrl();
+    replaceSceneUrl();
+    try {
+      await copyText(url.toString());
+      setStatus('Scene link copied');
+    } catch {
+      setStatus('Copy unavailable - use the URL in the address bar');
+    }
   });
 
   const onResize = debounce(() => {
@@ -917,82 +1150,7 @@
     else if (!state.paused) start();
   });
 
-  document.addEventListener('tools:session-capture', (event) => {
-    const detail = event?.detail;
-    if (!detail || detail.toolId !== TOOL_ID) return;
-
-    const payload = detail.payload;
-    if (!payload || typeof payload !== 'object') return;
-
-    const degYaw = Math.round((camera.yaw / DEG) % 360);
-    const degPitch = Math.round(camera.pitch / DEG);
-    const wind = clamp(state.wind, 0, 20);
-    const waveHeight = clamp(state.waveHeight, 0, MAX_WAVE_HEIGHT);
-    const sunElevation = clamp(state.sunElevationDeg, 5, 75);
-
-    payload.inputs = {
-      Wind: `${fmt(wind, 1)} m/s`,
-      'Wave height': `${fmt(waveHeight, 2)}×`,
-      'Sun elevation': `${Math.round(sunElevation)}°`,
-      Paused: state.paused ? 'Yes' : 'No',
-      'Camera yaw': `${degYaw}°`,
-      'Camera pitch': `${degPitch}°`
-    };
-
-    const statusBits = [payload.inputs.Wind, payload.inputs['Wave height'], payload.inputs['Sun elevation']];
-    if (state.paused) statusBits.push('Paused');
-    payload.outputSummary = statusBits.filter(Boolean).join(' · ');
-
-    const buildPreview = () => {
-      try {
-        const srcW = canvas.width;
-        const srcH = canvas.height;
-        if (!srcW || !srcH) return '';
-        const maxDim = 320;
-        const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
-        const w = Math.max(1, Math.round(srcW * scale));
-        const h = Math.max(1, Math.round(srcH * scale));
-        const temp = document.createElement('canvas');
-        temp.width = w;
-        temp.height = h;
-        const tctx = temp.getContext('2d', { alpha: false });
-        if (!tctx) return '';
-        tctx.drawImage(canvas, 0, 0, w, h);
-        return temp.toDataURL('image/png');
-      } catch {
-        return '';
-      }
-    };
-
-    const dataUrl = buildPreview();
-    if (!dataUrl) return;
-
-    payload.output = {
-      kind: 'image',
-      summary: payload.outputSummary,
-      dataUrl
-    };
-  });
-
-  document.addEventListener('tools:session-applied', (event) => {
-    const detail = event?.detail;
-    if (!detail || detail.toolId !== TOOL_ID) return;
-    const snapshot = detail.snapshot;
-    const saved = snapshot?.inputs && typeof snapshot.inputs === 'object' ? snapshot.inputs : null;
-    if (!saved) return;
-
-    const paused = String(saved.Paused || '').toLowerCase();
-    if (paused === 'yes' || paused === 'true') setPaused(true);
-    if (paused === 'no' || paused === 'false') setPaused(false);
-
-    const yawMatch = String(saved['Camera yaw'] || '').match(/-?\d+/);
-    const pitchMatch = String(saved['Camera pitch'] || '').match(/-?\d+/);
-    if (yawMatch) camera.yaw = wrapAngle(Number(yawMatch[0]) * DEG);
-    if (pitchMatch) camera.pitch = clamp(Number(pitchMatch[0]) * DEG, camera.minPitch, camera.maxPitch);
-    rebuildCameraRays();
-    renderFrame(simTimeSec);
-  });
-
+  restoreSceneFromUrl();
   buildNoise();
   syncFromInputs();
   resize();

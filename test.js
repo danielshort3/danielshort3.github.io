@@ -38935,8 +38935,11 @@ try {
       !brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .project-text,\n    body[data-page="portfolio"] .project-card .project-text {\n      min-height: auto;'),
       'portfolio card text panels should keep their measured min-height across mobile overrides');
     assert(brandOverrideCss.includes('--home-section-pad: clamp(3.2rem, 5vw, 4.4rem);'), 'analytics homepage desktop sections should share a consistent vertical padding token');
-    assert(brandOverrideCss.includes('body[data-page="analytics"] .section-title::before,\n    body[data-page="analytics"] .project-examples-head h2::before') &&
-      brandOverrideCss.includes('margin-inline: auto;'), 'analytics homepage section accents should align consistently');
+    const recruiterStoryCssForAccent = readFile('css/components/recruiter-story.css');
+    assert(!brandOverrideCss.includes('body[data-page="analytics"] .section-title::before,\n    body[data-page="analytics"] .project-examples-head h2::before') &&
+      recruiterStoryCssForAccent.includes('content: none !important;') &&
+      recruiterStoryCssForAccent.includes('@keyframes story-title-confirm'),
+      'analytics homepage headings should own section confirmation without a separate accent bar');
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .hero .cta-group .btn-ghost') &&
       brandOverrideCss.includes('background: #ffffff;') &&
       brandOverrideCss.includes('color: var(--brand-ink);'),
@@ -41229,13 +41232,33 @@ try {
       commonScript.includes('activeSmoothScrollCancel'),
       'same-page smooth scroll should update history, honor reduced motion and cancellation, and focus its temporary-tabindex target');
     assert(commonScript.includes('normalizeAudienceSectionOrder') &&
-      commonScript.includes('sortWorkCardsNewestFirst') &&
-      commonScript.includes("grid.dataset.workOrder = 'newest-first'"),
-      'professional pages should keep proof-first section order and reverse-chronological experience after dynamic content updates');
+      commonScript.includes('sortWorkCardsOldestFirst') &&
+      commonScript.includes("grid.dataset.workOrder = 'oldest-first'"),
+      'professional pages should keep proof-first section order and chronological experience after dynamic content updates');
+    const workExperienceCss = readFile('css/components/work-experience.css');
+    const workSummaryUpdateCalls = commonScript.match(/updateWorkExperienceSummaries\(\);/g) || [];
+    assert(commonScript.includes('parseWorkExperienceRange') &&
+      commonScript.includes('mergeWorkExperienceIntervals') &&
+      commonScript.includes('formatWorkExperienceDuration') &&
+      commonScript.includes('interval.start > previous.end + 1') &&
+      commonScript.includes('interval.end - interval.start + 1') &&
+      commonScript.includes("if (years < 1) return 'Under 1 year'") &&
+      commonScript.includes("return `${years}+ ${years === 1 ? 'year' : 'years'}`") &&
+      !commonScript.includes('remainingMonths') &&
+      commonScript.includes("label.textContent = ' of professional analytics experience'") &&
+      commonScript.includes('summary.dataset.totalMonths = String(totalMonths)') &&
+      commonScript.includes("heading.insertAdjacentElement('afterend', summary)") &&
+      workSummaryUpdateCalls.length === 2,
+      'professional work sections should calculate an inclusive, overlap-safe experience duration while displaying completed years with a plus sign');
+    assert(workExperienceCss.includes('.work-experience-summary') &&
+      workExperienceCss.includes('.work-experience-summary__value') &&
+      workExperienceCss.includes('.work-experience-summary__label') &&
+      workExperienceCss.includes('white-space:nowrap;'),
+      'work experience duration should have a clear responsive summary treatment');
     const cmsWidgets = readFile('api/_lib/cms-widgets.js');
     assert(cmsWidgets.includes('page && page.sectionOrder') &&
       cmsWidgets.includes('sortLegacyWorkCards(html)'),
-      'visual-page rendering should apply authored section order and reverse-chronological work cards before first paint');
+      'visual-page rendering should apply authored section order and chronological work cards before first paint');
     [
       ['content/audiences/analytics.json', 'pages/analytics.html'],
       ['content/audiences/data-science.json', 'pages/data-science.html'],
@@ -41254,9 +41277,9 @@ try {
           html.indexOf('id="project-examples"') < html.indexOf('id="work-experience"'),
           `${outputPath} should render results, projects, then experience before JavaScript runs`);
       }
-      assert(html.indexOf('<h3 class="work-company">Visit Grand Junction</h3>') < html.indexOf('<h3 class="work-company">Randall Reilly</h3>') &&
-        html.indexOf('<h3 class="work-company">Randall Reilly</h3>') < html.indexOf('<h3 class="work-company">Target</h3>'),
-        `${outputPath} should render experience in reverse chronological order`);
+      assert(html.indexOf('<h3 class="work-company">Target</h3>') < html.indexOf('<h3 class="work-company">Randall Reilly</h3>') &&
+        html.indexOf('<h3 class="work-company">Randall Reilly</h3>') < html.indexOf('<h3 class="work-company">Visit Grand Junction</h3>'),
+        `${outputPath} should render experience in chronological order`);
     });
     const recruiterStoryCss = readFile('css/components/recruiter-story.css');
     assert(recruiterStoryCss.includes('.jump-panel[data-story-rail="true"]') &&
@@ -41270,19 +41293,123 @@ try {
       recruiterStoryCss.includes('.story-chapter.reveal') &&
       recruiterStoryCss.includes('transform: none;') &&
       !recruiterStoryCss.includes('filter: brightness(1.45) contrast(.72) saturate(.55)'),
-      'analytics recruiter story should use clear media, a text-safe hero, stable chapter geometry, and a midpoint rail origin');
+      'analytics recruiter story should use clear media, a text-safe hero, stable chapter geometry, and a title-aligned rail');
+    assert(recruiterStoryCss.includes('--story-rail-x: 23px') &&
+      recruiterStoryCss.includes('content: attr(data-story-chapter);') &&
+      recruiterStoryCss.includes('left: calc(var(--story-rail-x) + 17px);') &&
+      recruiterStoryCss.includes('var(--story-cell-fill, 0%)') &&
+      recruiterStoryCss.includes('calc(var(--story-hero-connector-width) - 22px)') &&
+      recruiterStoryCss.includes('box-shadow: 0 0 0 3px var(--story-canvas);') &&
+      recruiterStoryCss.includes('.jump-panel[data-story-rail="true"]:is(.is-condensed, .is-hidden)') &&
+      recruiterStoryCss.includes('pointer-events: none;'),
+      'analytics recruiter story should keep one noninteractive mobile rail with junction-owned markers and edge-starting animated branches');
     assert(commonScript.includes('prepareAnalyticsStory') &&
       commonScript.includes("panel.dataset.storyRail = 'true'") &&
       commonScript.includes("document.addEventListener('site:content-updated'"),
       'analytics recruiter story should initialize on direct and injected professional pages');
     assert(commonScript.includes("panel.style.setProperty('--story-fill-y'") &&
       commonScript.includes("item.target.style.setProperty('--story-cell-progress'") &&
-      commonScript.includes('const railLength = Math.max(0, storyEndY - storyStartY)') &&
-      commonScript.includes('const fillHeadY = storyStartY + progressY') &&
-      commonScript.includes('const rawProgress = atBottom') &&
+      commonScript.includes("item.target.style.setProperty('--story-cell-fill'") &&
+      commonScript.includes("const heroIdentity = main.querySelector('.hero-identity')") &&
+      commonScript.includes("const heroOrigin = heroIdentity || main.querySelector('.hero h1')") &&
+      commonScript.includes("heroWrapper.style.setProperty('--story-hero-origin-y'") &&
+      commonScript.includes("heroIdentity.style.setProperty('--story-hero-connector-width'") &&
+      commonScript.includes("item.target.style.setProperty('--story-branch-width'") &&
+      commonScript.includes("panelStyle.getPropertyValue('--story-rail-x')") &&
+      commonScript.includes('document.createRange()') &&
+      commonScript.includes("item.target.querySelector('#cta-link')") &&
+      commonScript.includes('heroOriginRect.height / 2') &&
+      commonScript.includes('const STORY_FIRST_ACTIVATE_RATIO = .60') &&
+      commonScript.includes('const STORY_ACTIVATE_RATIO = .70') &&
+      commonScript.includes('const STORY_FIRST_RETRACT_RATIO = .64') &&
+      commonScript.includes('const STORY_RETRACT_RATIO = .78') &&
+      commonScript.includes('let storyInputIntent = false') &&
+      commonScript.includes('const STORY_STEP_DURATION_MS = 620') &&
+      commonScript.includes('const STORY_MAX_DURATION_MS = 850') &&
+      commonScript.includes('let storyRenderedFill = 0') &&
+      commonScript.includes('let storyTargetIndex = -1') &&
+      commonScript.includes('let storyAnimationFrame = 0') &&
+      commonScript.includes('getStoryActivationLine(candidateIndex, viewportHeight)') &&
+      commonScript.includes('getStoryRetractionLine(nextIndex, viewportHeight)') &&
+      commonScript.includes('const atStoryStart = scrollTop <= 2 && storyIndexFromHash() < 0') &&
+      commonScript.includes('const nextMilestone = atStoryStart') &&
+      commonScript.includes('const canResolveStory = storyInputIntent || storyIndexFromHash() >= 0') &&
+      commonScript.includes("window.addEventListener('wheel', markStoryInputIntent") &&
+      commonScript.includes("window.addEventListener('touchmove', markStoryInputIntent") &&
+      commonScript.includes("window.addEventListener('pointerdown', markStoryInputIntent") &&
+      commonScript.includes("if (storyIndexFromHash() < 0) resetStoryToStart()") &&
+      commonScript.includes('requestAnimationFrame(stepStoryAnimation)') &&
+      commonScript.includes('cancelAnimationFrame(storyAnimationFrame)') &&
+      commonScript.includes("window.matchMedia('(prefers-reduced-motion: reduce)')") &&
+      commonScript.includes('if (atBottom) return items.length - 1') &&
+      !commonScript.includes(': Math.min(railLength, Math.max(0, scrollTop))') &&
+      commonScript.includes("item.target.style.setProperty('--story-title-opacity'") &&
+      commonScript.includes("item.target.style.setProperty('--story-title-shift'") &&
       commonScript.includes("item.target.classList.toggle('is-segment-complete'") &&
       commonScript.includes("item.link.classList.add('story-node-confirm')"),
-      'analytics recruiter story should start empty, complete at the final marker, and confirm finished segments');
+      'analytics recruiter story should remain neutral through restored first load, then select viewport milestones from real input with bounded motion and reduced-motion support');
+    assert(commonScript.includes("const ANALYTICS_CREDENTIAL_GROUPS = Object.freeze(['degree', 'google', 'ibm'])") &&
+      commonScript.includes('groupAnalyticsCredentialCards') &&
+      commonScript.includes("document.querySelector('#certifications .cert-track')") &&
+      commonScript.includes("document.querySelector('#certifications-modal .cert-modal-grid')") &&
+      recruiterStoryCss.includes('.cert[data-credential-group="degree"]') &&
+      recruiterStoryCss.includes('.cert[data-credential-group="google"]') &&
+      recruiterStoryCss.includes('.cert[data-credential-group="ibm"]') &&
+      !recruiterStoryCss.includes('.cert:nth-child(-n + 2)') &&
+      !recruiterStoryCss.includes('.cert:nth-child(n + 6)'),
+      'analytics credentials should render as durable degree, Google, and IBM groups in 2/3/2 order');
+    assert(recruiterStoryCss.includes('grid-auto-rows: 1fr;') &&
+      commonScript.includes('groupAnalyticsWorkCardMeta') &&
+      recruiterStoryCss.includes('.work-card-meta') &&
+      recruiterStoryCss.includes('box-sizing: border-box;') &&
+      recruiterStoryCss.includes('height: auto;') &&
+      recruiterStoryCss.includes('align-self: stretch;') &&
+      recruiterStoryCss.includes('body[data-page="analytics"].home-pattern-page .jump-panel[data-story-rail="true"]::after') &&
+      recruiterStoryCss.includes('.hero-identity::before') &&
+      recruiterStoryCss.includes('.hero-identity::after') &&
+      recruiterStoryCss.includes('content: "00";') &&
+      recruiterStoryCss.includes('var(--story-branch-width') &&
+      recruiterStoryCss.includes('.jump-panel-reveal {') &&
+      recruiterStoryCss.includes('display: none !important;') &&
+      recruiterStoryCss.includes('grid-auto-rows: auto;') &&
+      recruiterStoryCss.includes('.hero-identity .hero-eyebrow') &&
+      recruiterStoryCss.includes('#about-me .icon-info:is(:hover, :focus-visible)') &&
+      recruiterStoryCss.includes('#certifications .cert:is(:hover, :focus-visible)') &&
+      recruiterStoryCss.includes('transform: translateY(-2px) !important;'),
+      'analytics experience cards should share row height and skill and credential cards should share restrained hover motion');
+    assert(recruiterStoryCss.includes('.project-examples-actions {') &&
+      recruiterStoryCss.includes('justify-content: center;') &&
+      recruiterStoryCss.includes('margin: 18px auto 0;') &&
+      recruiterStoryCss.includes('.story-chapter.is-current') &&
+      recruiterStoryCss.includes('background-color: color-mix(in srgb, var(--story-blue) 5%, #ffffff 95%)') &&
+      recruiterStoryCss.includes('.story-chapter.is-segment-confirming [data-story-anchor]') &&
+      !recruiterStoryCss.includes('@keyframes story-segment-confirm'),
+      'analytics section actions should center consistently and current chapters should gain a title-led confirmation plus surface cue');
+    assert(recruiterStoryCss.includes('.story-chapter [data-story-anchor]') &&
+      recruiterStoryCss.includes('opacity: var(--story-title-opacity, .68)') &&
+      recruiterStoryCss.includes('transform: translate3d(var(--story-title-shift, 6px), 0, 0)') &&
+      recruiterStoryCss.includes('@media (min-width: 1180px)') &&
+      recruiterStoryCss.includes('grid-template-columns: repeat(3, minmax(0, 1fr))') &&
+      !recruiterStoryCss.includes('.project-examples-card:nth-child(3)'),
+      'analytics story headings should focus with connector progress and project cards should use either three columns or one');
+    assert(commonScript.includes('ANALYTICS_STORY_CARD_SELECTORS') &&
+      commonScript.includes("card.classList.add('story-cascade-card')") &&
+      commonScript.includes("card.style.setProperty('--story-card-delay', `${90 + (index * 55)}ms`)") &&
+      commonScript.includes("card.classList.remove('ripple-in')") &&
+      commonScript.includes("if (isComplete) item.target.classList.add('has-revealed-cards')") &&
+      recruiterStoryCss.includes('.story-chapter .story-cascade-card') &&
+      recruiterStoryCss.includes('opacity: .9;') &&
+      recruiterStoryCss.includes('translate: 0 8px;') &&
+      recruiterStoryCss.includes('.story-chapter.has-revealed-cards .story-cascade-card') &&
+      recruiterStoryCss.includes('story-card-reveal .46s cubic-bezier(.22, 1, .36, 1)') &&
+      recruiterStoryCss.includes('story-card-glow .72s ease-out') &&
+      recruiterStoryCss.includes('drop-shadow(0 0 12px rgba(0, 95, 237, .22))') &&
+      recruiterStoryCss.includes('@keyframes story-card-reveal') &&
+      recruiterStoryCss.includes('@keyframes story-card-glow') &&
+      recruiterStoryCss.includes('.story-cascade-card:is(:focus-visible, :focus-within)') &&
+      recruiterStoryCss.includes('filter: none !important;') &&
+      recruiterStoryCss.includes('translate: none !important;'),
+      'analytics story cards should cascade once with a brief glow after title completion, without competing motion, and should honor focus and reduced motion');
     const jumpPanelCss = readFile('css/components/jump-panel.css');
     assert(!jumpPanelCss.includes('@media (hover:none) and (pointer:coarse), (max-width:768px)') &&
       jumpPanelCss.includes('scroll-margin-top:68px;') &&
@@ -41316,6 +41443,9 @@ try {
       professionalHomeCss.includes('color: color-mix(in srgb, #ffffff 84%, var(--brand-mist) 16%)'),
       'professional footer identity should retain readable contrast against the navy footer');
     const analyticsAudienceContent = readFile('content/audiences/analytics.json');
+    assert(!analyticsAudienceContent.includes('Follow the work') &&
+      !analyticsAudienceContent.includes('chevron-hint scroll-indicator'),
+      'analytics hero should omit the removed follow-the-work chevron');
     const googleAnalyticsCredentialMatches = analyticsAudienceContent.match(/skillshop\.credential\.net\/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a/g) || [];
     assert(googleAnalyticsCredentialMatches.length === 2,
       'analytics audience should show the Google Analytics credential in both the main section and credential modal');
@@ -41578,6 +41708,12 @@ try {
       'stellar dogfight demo should not load the experimental Pixi renderer by default');
     assert(demoHtml.includes('<script src="/js/games/stellar-dogfight/app.js"></script>'),
       'stellar dogfight demo should load runtime script');
+    assert(htmlHasManagedBundle(demoHtml, 'site-shell'),
+      'stellar dogfight demo should load the shared site shell for responsive navigation');
+    assert(demoHtml.includes('data-role="flight-status"') &&
+           demoHtml.includes('aria-label="Stellar Dogfight combat field"') &&
+           demoHtml.includes('aria-describedby="stellar-dogfight-controls stellar-dogfight-flight-status"'),
+      'stellar dogfight battlefield should expose concise accessible controls and flight status');
     assert(demoHtml.indexOf('/js/games/stellar-dogfight/unlocks.js') < demoHtml.indexOf('/js/games/stellar-dogfight/app.js'),
       'stellar dogfight unlock pacing script should load before the runtime');
     assert(demoHtml.indexOf('/js/games/stellar-dogfight/art.js') < demoHtml.indexOf('/js/games/stellar-dogfight/app.js'),
@@ -41683,6 +41819,14 @@ try {
            demoCss.includes('touch-action: none') &&
            demoCss.includes('env(safe-area-inset-bottom)'),
       'stellar dogfight CSS should style safe mobile tap controls');
+    assert(demoCss.includes('@media (max-width: 720px) and (pointer: coarse)') &&
+           demoCss.includes('width: 44px;') &&
+           demoCss.includes('bottom: calc(112px + env(safe-area-inset-bottom));'),
+      'stellar dogfight CSS should preserve visible, safe-area-aware mobile touch actions');
+    assert(demoCss.includes('body.is-playing .mobile-site-dock') &&
+           demoCss.includes('body.is-playing.has-mobile-site-dock') &&
+           demoCss.includes('padding-bottom: 0;'),
+      'stellar dogfight should reserve the full mobile viewport for active combat');
     assert(demoCss.includes('body.is-hangar') &&
            demoCss.includes('height: var(--viewport-height);') &&
            demoCss.includes('overflow: hidden;') &&
@@ -41823,6 +41967,10 @@ try {
       'stellar dogfight result overlay should emphasize rewards and collapse detailed debriefs');
     assert(runtimeJs.includes('function updateTabBadges() {') && runtimeJs.includes('function markPanelSeen(target) {'),
       'stellar dogfight runtime should track first-visit UI badges');
+    assert(runtimeJs.includes('invulnerable: 3') && runtimeJs.includes('showTip("launch-protection"'),
+      'stellar dogfight should protect players while they orient at the start of a sortie');
+    assert(runtimeJs.includes('state.lastAccessibleHudUpdate') && runtimeJs.includes('dom.flightStatus'),
+      'stellar dogfight should publish a throttled accessible combat summary');
     assert(runtimeJs.includes('function renderStatusIcons() {'),
       'stellar dogfight runtime should include status icon rendering');
     assert(runtimeJs.includes('setOverlay("choice-event");'),
@@ -42008,6 +42156,17 @@ try {
     checkFileContains('pages/games/roulette.html', 'id="roulette-number-grid"');
     checkFileContains('pages/games/roulette.html', 'id="roulette-hot-list"');
     checkFileContains('pages/games/roulette.html', '/js/games/roulette/app.js');
+    const rouletteHtml = fs.readFileSync('pages/games/roulette.html', 'utf8');
+    assert(htmlHasManagedBundle(rouletteHtml, 'site-shell'),
+      'roulette should load the shared site shell for responsive navigation');
+    assert(rouletteHtml.includes('data-wager-mode="add"') &&
+           rouletteHtml.includes('data-wager-mode="remove"') &&
+           rouletteHtml.includes('id="roulette-mobile-spin"') &&
+           rouletteHtml.includes('id="roulette-new-session"'),
+      'roulette should expose touch wager modes, mobile spin controls, and a new-session path');
+    assert(rouletteHtml.includes('virtual credits with no cash value') &&
+           rouletteHtml.includes('Each spin is independent'),
+      'roulette should identify virtual currency and explain independent outcomes');
     const rouletteJs = fs.readFileSync('js/games/roulette/app.js', 'utf8');
     assert(rouletteJs.includes('const WHEEL_ORDER = ['), 'roulette demo missing wheel order constant');
     assert(rouletteJs.includes('const MAX_HISTORY = 200;'), 'roulette demo should track 200-spin history');
@@ -42019,6 +42178,79 @@ try {
     assert(rouletteJs.includes('finalBallMod = normalizeDeg(pocketLocalAngle + finalWheelMod);'),
       'roulette demo ball should land based on wheel + pocket angle');
     assert(rouletteJs.includes('id: "basket-first-five"'), 'roulette demo missing first five basket bet');
+    assert(rouletteJs.includes('availableAfterReturningCurrentBets') &&
+           rouletteJs.includes('type: "snapshot"') &&
+           rouletteJs.includes('Rebet undone.'),
+      'roulette rebet should preflight affordability and remain undoable');
+    assert(rouletteJs.includes('function setWagerMode(nextMode') &&
+           rouletteJs.includes('button.setAttribute("aria-pressed", String(selected))'),
+      'roulette wager modes and chip selection should expose pressed state');
+    assert(rouletteJs.includes('reducedMotionQuery') &&
+           rouletteJs.includes('is-winning-pocket') &&
+           rouletteJs.includes('is-paid'),
+      'roulette should support reduced motion and distinguish pocket from payout highlights');
+    const rouletteCss = fs.readFileSync('css/games/roulette.css', 'utf8');
+    assert(rouletteCss.includes('.roulette00-mobile-bar') &&
+           rouletteCss.includes('@media (prefers-reduced-motion: reduce)') &&
+           rouletteCss.includes('.roulette00-bet.is-paid'),
+      'roulette CSS should provide sticky mobile controls and reduced-motion payout feedback');
+  });
+
+  section('Probability Engine game', () => {
+    const probabilityHtml = fs.readFileSync('pages/games/probability-engine.html', 'utf8');
+    const probabilityCss = fs.readFileSync('css/games/probability-engine.css', 'utf8');
+    const probabilityJs = fs.readFileSync('js/games/probability-engine/app.js', 'utf8');
+    assert(/<link rel="stylesheet" href="dist\/styles(?:\.[a-f0-9]+)?\.css">/.test(probabilityHtml),
+      'Probability Engine should load the shared site stylesheet');
+    assert((probabilityHtml.match(/data-workspace-tab=/g) || []).length === 6 &&
+           (probabilityHtml.match(/data-workspace-panel=/g) || []).length === 6 &&
+           probabilityHtml.includes('role="tablist"'),
+      'Probability Engine should organize existing systems into six accessible workspaces');
+    assert(probabilityHtml.includes('id="spin-result-status"') &&
+           !probabilityHtml.includes('id="slot-grid" aria-live='),
+      'Probability Engine should announce concise outcomes instead of the entire reel grid');
+    assert(probabilityHtml.includes('id="export-save-button"') &&
+           probabilityHtml.includes('id="import-save-button"') &&
+           probabilityHtml.includes('id="reset-save-button"'),
+      'Probability Engine should expose save export, import, and reset controls');
+    assert(probabilityJs.includes('function activateWorkspace(name, focusTab = false)') &&
+           probabilityJs.includes('function exportSave(state)') &&
+           probabilityJs.includes('function openOfflineModal()'),
+      'Probability Engine should implement workspace, save, and offline-modal controllers');
+    assert(probabilityJs.includes('machine.lastOutcome = {') &&
+           probabilityJs.includes('dom.spinResultStatus.textContent'),
+      'Probability Engine should retain and announce payout and synergy explanations');
+    assert(probabilityCss.includes('.workspace-panel[hidden]') &&
+           probabilityCss.includes('@media (prefers-reduced-motion: reduce)') &&
+           probabilityCss.includes('pointer-events: auto;') &&
+           probabilityCss.includes('z-index: 3200;'),
+      'Probability Engine should hide inactive workspaces, respect reduced motion, and keep its offline modal interactive above the shared shell');
+  });
+
+  section('Ocean Wave Simulation game', () => {
+    const oceanHtml = fs.readFileSync('pages/ocean-wave-simulation.html', 'utf8');
+    const oceanCss = fs.readFileSync('css/components/ocean-wave-simulation.css', 'utf8');
+    const oceanJs = fs.readFileSync('js/tools/ocean-wave-simulation.js', 'utf8');
+    assert((oceanHtml.match(/data-ocean-preset=/g) || []).length === 4 &&
+           oceanHtml.includes('id="ocean-wave-randomize"') &&
+           oceanHtml.includes('id="ocean-wave-reset-camera"') &&
+           oceanHtml.includes('id="ocean-wave-copy-link"'),
+      'Ocean Wave should expose four presets plus randomize, camera reset, and sharing');
+    assert(oceanHtml.includes('id="ocean-wave-quality"') &&
+           oceanHtml.includes('aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home"') &&
+           oceanHtml.includes('id="ocean-wave-summary"'),
+      'Ocean Wave should expose rendering quality, keyboard camera controls, and condition summary');
+    assert(oceanJs.includes("const PRESETS = {") &&
+           oceanJs.includes("new URLSearchParams(window.location.search)") &&
+           oceanJs.includes("state.qualityMode === 'battery'") &&
+           oceanJs.includes("stage.addEventListener('keydown'"),
+      'Ocean Wave should restore shareable scenes, cap battery rendering, and support keyboard camera input');
+    assert(!oceanJs.includes('tools:session-dirty') && !oceanJs.includes('tools:session-capture'),
+      'Ocean Wave should not retain inactive tools-account session hooks');
+    assert(oceanCss.includes('.ocean-wave-presets') &&
+           oceanCss.includes('.ocean-wave-select') &&
+           oceanCss.includes('env(safe-area-inset-bottom)'),
+      'Ocean Wave should style presets, quality controls, and mobile dock clearance');
   });
 
   section('UTM Batch Builder core', () => {

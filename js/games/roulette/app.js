@@ -30,6 +30,11 @@
     undoButton: document.getElementById("roulette-undo"),
     clearButton: document.getElementById("roulette-clear"),
     rebetButton: document.getElementById("roulette-rebet"),
+    newSessionButton: document.getElementById("roulette-new-session"),
+    mobileSpinButton: document.getElementById("roulette-mobile-spin"),
+    mobileChip: document.getElementById("roulette-mobile-chip"),
+    mobileTotalBet: document.getElementById("roulette-mobile-total-bet"),
+    mobileBankroll: document.getElementById("roulette-mobile-bankroll"),
     topZone: document.getElementById("roulette-top-zone"),
     numberGrid: document.getElementById("roulette-number-grid"),
     columnRow: document.getElementById("roulette-column-row"),
@@ -50,12 +55,14 @@
   }
 
   const chipButtons = Array.from(document.querySelectorAll("[data-chip]"));
+  const modeButtons = Array.from(document.querySelectorAll("[data-wager-mode]"));
   const betDefinitions = new Map();
   const betButtons = new Map();
 
   const state = {
     bankroll: STARTING_BANKROLL,
     selectedChip: CHIP_VALUES[0],
+    wagerMode: "add",
     activeBets: new Map(),
     betOperations: [],
     lastBetSnapshot: new Map(),
@@ -69,7 +76,13 @@
   };
 
   const storageSupported = hasLocalStorageSupport();
+  const reducedMotionQuery = typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
   let persistTimer = 0;
+  let newSessionArmed = false;
+  let newSessionTimer = 0;
+  let highlightTimer = 0;
 
   function hasLocalStorageSupport() {
     try {
@@ -303,6 +316,7 @@
       savedAt: Date.now(),
       bankroll: Math.max(0, Math.round(Number(state.bankroll || 0))),
       selectedChip: CHIP_VALUES.includes(state.selectedChip) ? state.selectedChip : CHIP_VALUES[0],
+      wagerMode: state.wagerMode === "remove" ? "remove" : "add",
       activeBets: serializeBetMap(state.activeBets),
       lastBetSnapshot: serializeBetMap(state.lastBetSnapshot),
       history: state.history.slice(0, MAX_HISTORY),
@@ -343,6 +357,7 @@
   function applySessionSnapshot(payload) {
     const bankroll = Number(payload && payload.bankroll);
     const selectedChip = Number(payload && payload.selectedChip);
+    const wagerMode = String(payload && payload.wagerMode || "add");
     const spins = Number(payload && payload.spins);
     const activeBets = parseBetEntries(payload && payload.activeBets);
     const lastBetSnapshot = parseBetEntries(payload && payload.lastBetSnapshot);
@@ -353,6 +368,7 @@
 
     state.bankroll = Number.isFinite(bankroll) && bankroll >= 0 ? Math.round(bankroll) : STARTING_BANKROLL;
     state.selectedChip = CHIP_VALUES.includes(selectedChip) ? selectedChip : CHIP_VALUES[0];
+    state.wagerMode = wagerMode === "remove" ? "remove" : "add";
     state.activeBets = activeBets;
     state.lastBetSnapshot = lastBetSnapshot;
     state.history = history;
@@ -420,7 +436,7 @@
     button.type = "button";
     button.className = `roulette00-bet ${options.extraClass || ""}`.trim();
     button.dataset.betId = betId;
-    button.setAttribute("aria-label", `${definition.label} bet. Pays ${definition.payout} to 1.`);
+    button.setAttribute("aria-label", `${definition.label} bet. Pays ${definition.payout} to 1. No current wager.`);
 
     const label = document.createElement("span");
     label.className = "roulette00-bet-text";
@@ -440,7 +456,7 @@
     }
 
     button.addEventListener("click", (event) => {
-      if (event.shiftKey) {
+      if (event.shiftKey || state.wagerMode === "remove") {
         event.preventDefault();
         applyWager(betId, -state.selectedChip);
         return;
@@ -554,6 +570,7 @@
     }
 
     const chipTotal = button.querySelector(".roulette00-chip-total");
+    const definition = betDefinitions.get(betId);
     const amount = state.activeBets.get(betId) || 0;
 
     if (amount > 0) {
@@ -562,6 +579,19 @@
     } else {
       chipTotal.textContent = "";
       button.classList.remove("has-chip");
+    }
+
+    if (definition) {
+      const wagerText = amount > 0
+        ? `Current wager ${formatCurrency(amount)}.`
+        : "No current wager.";
+      const actionText = state.wagerMode === "remove"
+        ? `Activate to remove ${formatCurrency(state.selectedChip)}.`
+        : `Activate to add ${formatCurrency(state.selectedChip)}.`;
+      button.setAttribute(
+        "aria-label",
+        `${definition.label} bet. Pays ${definition.payout} to 1. ${wagerText} ${actionText}`
+      );
     }
   }
 
@@ -584,9 +614,22 @@
   }
 
   function updatePrimaryMetrics() {
-    refs.bankroll.textContent = formatCurrency(state.bankroll);
-    refs.totalBet.textContent = formatCurrency(sumMap(state.activeBets));
+    const bankroll = formatCurrency(state.bankroll);
+    const totalBet = formatCurrency(sumMap(state.activeBets));
+
+    refs.bankroll.textContent = bankroll;
+    refs.totalBet.textContent = totalBet;
     refs.spinCount.textContent = String(state.spins);
+
+    if (refs.mobileBankroll) {
+      refs.mobileBankroll.textContent = bankroll;
+    }
+    if (refs.mobileTotalBet) {
+      refs.mobileTotalBet.textContent = totalBet;
+    }
+    if (refs.mobileChip) {
+      refs.mobileChip.textContent = formatCurrency(state.selectedChip);
+    }
   }
 
   function updateControlAvailability() {
@@ -598,8 +641,18 @@
     refs.undoButton.disabled = state.spinning || !hasUndo;
     refs.clearButton.disabled = state.spinning || !hasCurrentBets;
     refs.rebetButton.disabled = state.spinning || !hasLastBet;
+    if (refs.newSessionButton) {
+      refs.newSessionButton.disabled = state.spinning;
+    }
+    if (refs.mobileSpinButton) {
+      refs.mobileSpinButton.disabled = state.spinning;
+    }
 
     chipButtons.forEach((button) => {
+      button.disabled = state.spinning;
+    });
+
+    modeButtons.forEach((button) => {
       button.disabled = state.spinning;
     });
 
@@ -609,8 +662,10 @@
   }
 
   function clearHighlights() {
+    window.clearTimeout(highlightTimer);
+    highlightTimer = 0;
     state.highlightedButtons.forEach((button) => {
-      button.classList.remove("is-winning");
+      button.classList.remove("is-winning-pocket", "is-paid");
     });
     state.highlightedButtons.clear();
   }
@@ -623,17 +678,20 @@
       if (!button) {
         return;
       }
-      button.classList.add("is-winning");
+      button.classList.add("is-paid");
       state.highlightedButtons.add(button);
     });
 
     const straightButton = betButtons.get(`straight-${winningPocket}`);
     if (straightButton) {
-      straightButton.classList.add("is-winning");
+      straightButton.classList.add("is-winning-pocket");
       state.highlightedButtons.add(straightButton);
     }
 
-    window.setTimeout(clearHighlights, 2200);
+    highlightTimer = window.setTimeout(() => {
+      highlightTimer = 0;
+      clearHighlights();
+    }, 2200);
   }
 
   function updateRecentList() {
@@ -674,6 +732,7 @@
 
     const ranked = Array.from(counts.entries())
       .map(([pocket, count]) => ({ pocket, count }))
+      .filter((entry) => entry.count > 0)
       .sort((a, b) => {
         if (b.count !== a.count) {
           return b.count - a.count;
@@ -713,6 +772,7 @@
 
   function refreshUiFromState() {
     setSelectedChip(state.selectedChip, { skipSave: true });
+    setWagerMode(state.wagerMode, { skipSave: true });
     updateAllBetChipDisplays();
     updateLastPocketDisplay();
     updatePrimaryMetrics();
@@ -763,7 +823,7 @@
     state.bankroll -= delta;
 
     if (settings.record) {
-      state.betOperations.push({ betId, delta });
+      state.betOperations.push({ type: "wager", betId, delta });
     }
 
     updateBetChipDisplay(betId);
@@ -802,6 +862,14 @@
   }
 
   function animateSpin(targets) {
+    if (reducedMotionQuery && reducedMotionQuery.matches) {
+      state.wheelRotationDeg = normalizeDeg(targets.finalWheelMod);
+      refs.wheel.style.transform = `rotate(${state.wheelRotationDeg}deg)`;
+      state.ballRotationDeg = normalizeDeg(targets.finalBallMod);
+      renderBallPosition();
+      return Promise.resolve();
+    }
+
     return new Promise((resolve) => {
       refs.wheel.style.transition = `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.12, 0.84, 0.2, 1)`;
       refs.ball.style.transition = `transform ${Math.round(SPIN_DURATION_MS * 0.92)}ms cubic-bezier(0.1, 0.84, 0.24, 1)`;
@@ -918,6 +986,17 @@
       return;
     }
 
+    if (lastOperation.type === "snapshot") {
+      state.activeBets = new Map(lastOperation.activeBets);
+      state.bankroll = lastOperation.bankroll;
+      updateAllBetChipDisplays();
+      updatePrimaryMetrics();
+      updateControlAvailability();
+      queueAutoSave();
+      setStatus("Rebet undone. Your previous table layout was restored.", "neutral");
+      return;
+    }
+
     applyWager(lastOperation.betId, -lastOperation.delta, { record: false, silent: true });
     setStatus("Last chip placement undone.", "neutral");
   }
@@ -956,26 +1035,21 @@
     }
 
     const currentTotal = sumMap(state.activeBets);
-    if (currentTotal > 0) {
-      state.bankroll += currentTotal;
-      state.activeBets.clear();
-      state.betOperations.length = 0;
-    }
-
     const required = sumMap(state.lastBetSnapshot);
-    if (required > state.bankroll) {
-      updateAllBetChipDisplays();
-      updatePrimaryMetrics();
-      updateControlAvailability();
-      queueAutoSave();
+    const availableAfterReturningCurrentBets = state.bankroll + currentTotal;
+
+    if (required > availableAfterReturningCurrentBets) {
       setStatus("Insufficient bankroll to rebet the previous pattern.", "warn");
       return;
     }
 
-    state.lastBetSnapshot.forEach((amount, betId) => {
-      state.activeBets.set(betId, amount);
-      state.bankroll -= amount;
+    state.betOperations.push({
+      type: "snapshot",
+      activeBets: new Map(state.activeBets),
+      bankroll: state.bankroll
     });
+    state.activeBets = new Map(state.lastBetSnapshot);
+    state.bankroll = availableAfterReturningCurrentBets - required;
 
     updateAllBetChipDisplays();
     updatePrimaryMetrics();
@@ -983,6 +1057,62 @@
     queueAutoSave();
 
     setStatus("Previous bet pattern reapplied.", "neutral");
+  }
+
+  function resetNewSessionControl() {
+    newSessionArmed = false;
+    window.clearTimeout(newSessionTimer);
+    newSessionTimer = 0;
+
+    if (!refs.newSessionButton) {
+      return;
+    }
+
+    refs.newSessionButton.textContent = "New session";
+    refs.newSessionButton.classList.remove("is-confirming");
+    refs.newSessionButton.setAttribute("aria-label", "Start a new session and reset bankroll");
+  }
+
+  function handleNewSession() {
+    if (state.spinning) {
+      return;
+    }
+
+    if (!newSessionArmed) {
+      newSessionArmed = true;
+      refs.newSessionButton.textContent = "Confirm reset";
+      refs.newSessionButton.classList.add("is-confirming");
+      refs.newSessionButton.setAttribute(
+        "aria-label",
+        "Confirm new session. This resets bankroll, bets, spin history, and statistics."
+      );
+      setStatus("Select Confirm reset within 5 seconds to start a fresh session.", "warn");
+      newSessionTimer = window.setTimeout(() => {
+        resetNewSessionControl();
+        setStatus("New session reset canceled.", "neutral");
+      }, 5000);
+      return;
+    }
+
+    resetNewSessionControl();
+    state.bankroll = STARTING_BANKROLL;
+    state.selectedChip = CHIP_VALUES[0];
+    state.wagerMode = "add";
+    state.activeBets = new Map();
+    state.betOperations.length = 0;
+    state.lastBetSnapshot = new Map();
+    state.history = [];
+    state.lastPocket = "";
+    state.spins = 0;
+    state.wheelRotationDeg = 0;
+    state.ballRotationDeg = 0;
+    refs.wheel.style.transition = "";
+    refs.ball.style.transition = "";
+    refs.wheel.style.transform = "rotate(0deg)";
+    clearHighlights();
+    refreshUiFromState();
+    saveSession({ silent: true });
+    setStatus("New session started with 2,000 virtual credits.", "good");
   }
 
   function setSelectedChip(nextValue, options = {}) {
@@ -999,8 +1129,36 @@
     state.selectedChip = chipValue;
     chipButtons.forEach((button) => {
       const value = Number(button.dataset.chip || 0);
-      button.classList.toggle("is-selected", value === chipValue);
+      const selected = value === chipValue;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
     });
+
+    if (refs.mobileChip) {
+      refs.mobileChip.textContent = formatCurrency(chipValue);
+    }
+
+    updateAllBetChipDisplays();
+
+    if (!settings.skipSave) {
+      queueAutoSave();
+    }
+  }
+
+  function setWagerMode(nextMode, options = {}) {
+    const settings = {
+      skipSave: false,
+      ...options
+    };
+    const mode = nextMode === "remove" ? "remove" : "add";
+
+    state.wagerMode = mode;
+    modeButtons.forEach((button) => {
+      const selected = button.dataset.wagerMode === mode;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    updateAllBetChipDisplays();
 
     if (!settings.skipSave) {
       queueAutoSave();
@@ -1019,6 +1177,18 @@
     refs.undoButton.addEventListener("click", handleUndo);
     refs.clearButton.addEventListener("click", clearCurrentBets);
     refs.rebetButton.addEventListener("click", reapplyLastBet);
+    if (refs.newSessionButton) {
+      refs.newSessionButton.addEventListener("click", handleNewSession);
+    }
+    if (refs.mobileSpinButton) {
+      refs.mobileSpinButton.addEventListener("click", () => {
+        handleSpin().catch(() => {
+          state.spinning = false;
+          updateControlAvailability();
+          setStatus("Spin failed. Try again.", "warn");
+        });
+      });
+    }
 
     chipButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -1028,6 +1198,21 @@
         }
 
         setSelectedChip(chipValue);
+      });
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (state.spinning) {
+          return;
+        }
+        setWagerMode(button.dataset.wagerMode);
+        setStatus(
+          state.wagerMode === "remove"
+            ? "Remove mode active. Select a wager to return one chip."
+            : "Add mode active. Select a wager to place one chip.",
+          "neutral"
+        );
       });
     });
 

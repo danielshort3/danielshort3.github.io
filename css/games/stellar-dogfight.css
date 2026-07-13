@@ -1955,6 +1955,31 @@
       display: none;
     }
 
+    body.is-touch-controls-active .arena-hud {
+      bottom: calc(142px + env(safe-area-inset-bottom));
+      max-width: min(66%, 620px);
+    }
+
+    body.is-touch-controls-active .arena-objective {
+      bottom: calc(188px + env(safe-area-inset-bottom));
+    }
+
+    body.is-touch-controls-active .arena-minimap {
+      width: 112px;
+      height: 112px;
+      bottom: calc(142px + env(safe-area-inset-bottom));
+    }
+
+    @media (max-width: 720px) {
+      body.is-playing .mobile-site-dock {
+        display: none;
+      }
+
+      body.is-playing.has-mobile-site-dock {
+        padding-bottom: 0;
+      }
+    }
+
     @media (max-width: 720px) and (pointer: coarse) {
       .touch-stick {
         width: clamp(84px, 25vw, 104px);
@@ -1996,21 +2021,6 @@
         height: 92px;
         bottom: calc(126px + env(safe-area-inset-bottom));
       }
-    }
-
-    body.is-touch-controls-active .arena-hud {
-      bottom: calc(142px + env(safe-area-inset-bottom));
-      max-width: min(66%, 620px);
-    }
-
-    body.is-touch-controls-active .arena-objective {
-      bottom: calc(188px + env(safe-area-inset-bottom));
-    }
-
-    body.is-touch-controls-active .arena-minimap {
-      width: 112px;
-      height: 112px;
-      bottom: calc(142px + env(safe-area-inset-bottom));
     }
 
     .btn.btn-mini {

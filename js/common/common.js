@@ -187,15 +187,133 @@
     return Number.isFinite(parsed) ? parsed : 0;
   };
 
-  const sortWorkCardsNewestFirst = (root = document) => {
-    $$('.work-grid:not([data-work-order="newest-first"])', root).forEach((grid) => {
+  const WORK_EXPERIENCE_MONTHS = Object.freeze({
+    jan: 0,
+    january: 0,
+    feb: 1,
+    february: 1,
+    mar: 2,
+    march: 2,
+    apr: 3,
+    april: 3,
+    may: 4,
+    jun: 5,
+    june: 5,
+    jul: 6,
+    july: 6,
+    aug: 7,
+    august: 7,
+    sep: 8,
+    sept: 8,
+    september: 8,
+    oct: 9,
+    october: 9,
+    nov: 10,
+    november: 10,
+    dec: 11,
+    december: 11
+  });
+
+  const parseWorkExperienceRange = (value, now = new Date()) => {
+    const text = String(value || '').trim();
+    const matches = [...text.matchAll(/\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{4})\b/gi)];
+    if (!matches.length) return null;
+    const monthIndex = (match) => {
+      const month = WORK_EXPERIENCE_MONTHS[String(match?.[1] || '').toLowerCase()];
+      const year = Number.parseInt(match?.[2], 10);
+      return Number.isInteger(month) && Number.isFinite(year) ? (year * 12) + month : Number.NaN;
+    };
+    const start = monthIndex(matches[0]);
+    const currentMonth = (now.getFullYear() * 12) + now.getMonth();
+    const parsedEnd = /\bpresent\b/i.test(text)
+      ? currentMonth
+      : monthIndex(matches[matches.length - 1]);
+    const end = Math.min(parsedEnd, currentMonth);
+    if (start > currentMonth) return null;
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+    return { start, end };
+  };
+
+  const mergeWorkExperienceIntervals = (intervals) => {
+    const sorted = intervals
+      .filter((interval) => interval && Number.isFinite(interval.start) && Number.isFinite(interval.end))
+      .map((interval) => ({ start: interval.start, end: interval.end }))
+      .sort((a, b) => (a.start - b.start) || (a.end - b.end));
+    return sorted.reduce((merged, interval) => {
+      const previous = merged[merged.length - 1];
+      if (!previous || interval.start > previous.end + 1) {
+        merged.push(interval);
+      } else {
+        previous.end = Math.max(previous.end, interval.end);
+      }
+      return merged;
+    }, []);
+  };
+
+  const formatWorkExperienceDuration = (totalMonths) => {
+    const months = Math.max(0, Math.floor(Number(totalMonths) || 0));
+    const years = Math.floor(months / 12);
+    if (years < 1) return 'Under 1 year';
+    return `${years}+ ${years === 1 ? 'year' : 'years'}`;
+  };
+
+  const updateWorkExperienceSummaries = (root = document) => {
+    $$('.work-grid', root).forEach((grid) => {
+      const section = grid.closest('#work-experience, .work-band');
+      const head = section?.querySelector('.work-head');
+      if (!head) return;
+      const timeframes = $$('.work-timeframe', grid);
+      const intervals = timeframes.map((node) => parseWorkExperienceRange(node.textContent));
+      const mergedIntervals = mergeWorkExperienceIntervals(intervals);
+      const totalMonths = mergedIntervals.reduce(
+        (total, interval) => total + Math.max(1, interval.end - interval.start + 1),
+        0
+      );
+      let summary = head.querySelector('[data-work-experience-summary]');
+      if (!mergedIntervals.length || totalMonths <= 0) {
+        summary?.remove();
+        return;
+      }
+      if (!summary) {
+        summary = document.createElement('p');
+        summary.className = 'work-experience-summary';
+        summary.dataset.workExperienceSummary = 'true';
+        const value = document.createElement('strong');
+        value.className = 'work-experience-summary__value';
+        const label = document.createElement('span');
+        label.className = 'work-experience-summary__label';
+        summary.append(value, label);
+        const heading = head.querySelector('h2');
+        if (heading) {
+          heading.insertAdjacentElement('afterend', summary);
+        } else {
+          head.appendChild(summary);
+        }
+      }
+      const duration = formatWorkExperienceDuration(totalMonths);
+      const roleCount = intervals.filter(Boolean).length;
+      const value = summary.querySelector('.work-experience-summary__value');
+      const label = summary.querySelector('.work-experience-summary__label');
+      if (value) value.textContent = duration;
+      if (label) label.textContent = ' of professional analytics experience';
+      summary.dataset.totalMonths = String(totalMonths);
+      summary.dataset.roleCount = String(roleCount);
+      summary.setAttribute(
+        'aria-label',
+        `${duration} of professional analytics experience, calculated from ${roleCount} listed ${roleCount === 1 ? 'role' : 'roles'}.`
+      );
+    });
+  };
+
+  const sortWorkCardsOldestFirst = (root = document) => {
+    $$('.work-grid:not([data-work-order="oldest-first"])', root).forEach((grid) => {
       const cards = $$('.work-card', grid);
       if (cards.length < 2) return;
       cards
         .map((card, index) => ({ card, index, rank: workDateRank($('.work-timeframe', card)?.textContent) }))
-        .sort((a, b) => (b.rank - a.rank) || (a.index - b.index))
+        .sort((a, b) => (a.rank - b.rank) || (a.index - b.index))
         .forEach(({ card }) => grid.appendChild(card));
-      grid.dataset.workOrder = 'newest-first';
+      grid.dataset.workOrder = 'oldest-first';
     });
   };
 
@@ -240,6 +358,52 @@
     { id: 'certifications', label: 'Education & Credentials' },
     { id: 'cta', label: 'Start a Conversation' }
   ]);
+
+  const ANALYTICS_STORY_CARD_SELECTORS = Object.freeze({
+    'selected-outcomes': '.home-proof-kpis > .home-proof-item',
+    'work-experience': '.work-grid > .work-card',
+    'project-examples': '.project-examples-grid > .project-examples-card',
+    'about-me': '.grid-container > .icon-info.skill-link',
+    certifications: '.cert-track > .cert',
+    cta: '#cta-link'
+  });
+
+  const ANALYTICS_CREDENTIAL_GROUPS = Object.freeze(['degree', 'google', 'ibm']);
+
+  const groupAnalyticsWorkCardMeta = (root = document) => {
+    $$('.work-card:not([data-work-meta-grouped="true"])', root).forEach((card) => {
+      const company = card.querySelector('.work-company');
+      const role = card.querySelector('.work-role');
+      const timeframe = card.querySelector('.work-timeframe');
+      if (!company || !role || !timeframe) return;
+      const meta = document.createElement('div');
+      meta.className = 'work-card-meta';
+      company.before(meta);
+      meta.append(company, role, timeframe);
+      card.dataset.workMetaGrouped = 'true';
+    });
+  };
+
+  const getAnalyticsCredentialGroup = (card) => {
+    const text = `${card?.querySelector('img')?.alt || ''} ${card?.textContent || ''}`.toLowerCase();
+    if (text.includes('google')) return 'google';
+    if (text.includes('ibm')) return 'ibm';
+    return 'degree';
+  };
+
+  const groupAnalyticsCredentialCards = (container, selector) => {
+    if (!container || container.dataset.credentialsGrouped === 'true') return;
+    const cards = $$(selector, container);
+    cards.forEach((card) => {
+      card.dataset.credentialGroup = getAnalyticsCredentialGroup(card);
+    });
+    ANALYTICS_CREDENTIAL_GROUPS.forEach((group) => {
+      cards
+        .filter((card) => card.dataset.credentialGroup === group)
+        .forEach((card) => container.appendChild(card));
+    });
+    container.dataset.credentialsGrouped = 'true';
+  };
 
   const ANALYTICS_SKILL_STORIES = Object.freeze([
     {
@@ -292,6 +456,8 @@
     const panel = document.querySelector('.jump-panel');
     if (!main || !panel) return;
 
+    groupAnalyticsWorkCardMeta(main);
+
     panel.dataset.storyRail = 'true';
     panel.setAttribute('aria-label', 'Explore Daniel Short\'s analytics story');
     const hideButton = panel.querySelector('[data-jump-hide]');
@@ -323,14 +489,6 @@
       if (label) label.textContent = chapter.label;
       panel.insertBefore(link, hideButton || null);
     });
-
-    const cue = main.querySelector('.hero .chevron-hint');
-    if (cue) {
-      cue.classList.add('story-entry-cue');
-      cue.setAttribute('href', '#selected-outcomes');
-      const label = cue.querySelector('.chevron-label');
-      if (label) label.textContent = 'Follow the work';
-    }
 
     const projectCards = $$('#project-examples .project-examples-card', main);
     projectCards.forEach((card, index) => {
@@ -376,6 +534,15 @@
       skillGrid.dataset.storySkills = 'true';
     }
 
+    groupAnalyticsCredentialCards(
+      document.querySelector('#certifications .cert-track'),
+      ':scope > .cert'
+    );
+    groupAnalyticsCredentialCards(
+      document.querySelector('#certifications-modal .cert-modal-grid'),
+      ':scope > .cert-card'
+    );
+
     const ctaActions = main.querySelector('#cta-link > div');
     if (ctaActions && ctaActions.dataset.storyCta !== 'true') {
       ctaActions.classList.add('story-cta-actions');
@@ -393,6 +560,17 @@
       ctaActions.append(resumeLink, linkedInLink);
       ctaActions.dataset.storyCta = 'true';
     }
+
+    Object.entries(ANALYTICS_STORY_CARD_SELECTORS).forEach(([chapterId, selector]) => {
+      const chapter = document.getElementById(chapterId);
+      if (!chapter) return;
+      $$(selector, chapter).forEach((card, index) => {
+        card.classList.add('story-cascade-card');
+        card.style.setProperty('--story-card-index', String(index));
+        card.style.setProperty('--story-card-delay', `${90 + (index * 55)}ms`);
+        if (card.classList.contains('project-examples-card')) card.classList.remove('ripple-in');
+      });
+    });
   };
 
   const loadedScripts = new Map();
@@ -422,7 +600,8 @@
     normalizeAudienceSectionOrder();
     prepareAnalyticsStory();
     initSmoothScrollLinks();
-    sortWorkCardsNewestFirst();
+    sortWorkCardsOldestFirst();
+    updateWorkExperienceSummaries();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
     }
@@ -446,7 +625,8 @@
     normalizeAudienceSectionOrder();
     prepareAnalyticsStory();
     initSmoothScrollLinks();
-    sortWorkCardsNewestFirst();
+    sortWorkCardsOldestFirst();
+    updateWorkExperienceSummaries();
     if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();
     }
@@ -1077,6 +1257,38 @@
     let storyEndY = 0;
     let storyMeasureToken = 0;
     let storyAnimationsReady = false;
+    let storyRenderedFill = 0;
+    let storyTargetIndex = -1;
+    let storyAnimationFrame = 0;
+    let storyAnimationToken = 0;
+    let storyLastScrollY = window.scrollY || window.pageYOffset || 0;
+    let storyInitialized = false;
+    let storyInputIntent = false;
+    const STORY_FIRST_ACTIVATE_RATIO = .60;
+    const STORY_ACTIVATE_RATIO = .70;
+    const STORY_FIRST_RETRACT_RATIO = .64;
+    const STORY_RETRACT_RATIO = .78;
+    const STORY_STEP_DURATION_MS = 620;
+    const STORY_MAX_DURATION_MS = 850;
+    const storyMotionQuery = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+
+    const prefersReducedStoryMotion = () => Boolean(storyMotionQuery?.matches);
+    const storyScrollKeys = new Set([
+      'ArrowDown',
+      'ArrowUp',
+      'End',
+      'Home',
+      'PageDown',
+      'PageUp',
+      ' ',
+      'Spacebar'
+    ]);
+    const markStoryInputIntent = (event) => {
+      if (event?.type === 'keydown' && !storyScrollKeys.has(event.key)) return;
+      storyInputIntent = true;
+    };
 
     const getNavOffset = () => {
       if (typeof window.getNavOffset === 'function') {
@@ -1106,14 +1318,53 @@
       railControls?.updateControls();
     };
 
+    const remapStoryFill = (fill, previousStops, nextStops) => {
+      const oldBreakpoints = [0, ...previousStops];
+      const newBreakpoints = [0, ...nextStops];
+      if (oldBreakpoints.length !== newBreakpoints.length || oldBreakpoints.length < 2) {
+        return fill;
+      }
+      for (let index = 0; index < oldBreakpoints.length - 1; index += 1) {
+        const oldStart = oldBreakpoints[index];
+        const oldEnd = oldBreakpoints[index + 1];
+        if (fill > oldEnd && index < oldBreakpoints.length - 2) continue;
+        const span = Math.max(1, oldEnd - oldStart);
+        const progress = Math.min(1, Math.max(0, (fill - oldStart) / span));
+        const newStart = newBreakpoints[index];
+        const newEnd = newBreakpoints[index + 1];
+        return newStart + ((newEnd - newStart) * progress);
+      }
+      return newBreakpoints[newBreakpoints.length - 1];
+    };
+
     const measureStoryRail = () => {
       if (!isStoryRail) return;
       const main = panel.closest('main') || document.getElementById('main');
       if (!main) return;
+      const previousStops = items.map((item) => (
+        Number.isFinite(item.storyStopY) ? Math.max(0, item.storyStopY - storyStartY) : 0
+      ));
+      const previousFill = storyRenderedFill;
+      const hadStoryGeometry = storyInitialized && storyEndY > storyStartY;
       const scrollTop = window.scrollY || window.pageYOffset || 0;
       const mainTop = main.getBoundingClientRect().top + scrollTop;
-      const hero = main.querySelector('.hero');
-      const heroRect = hero?.getBoundingClientRect();
+      const heroIdentity = main.querySelector('.hero-identity');
+      const heroOrigin = heroIdentity || main.querySelector('.hero h1');
+      const heroOriginRect = heroOrigin?.getBoundingClientRect();
+      const heroWrapper = main.querySelector('.hero.hero--default > .wrapper');
+      const panelRect = panel.getBoundingClientRect();
+      const panelStyle = window.getComputedStyle(panel);
+      const storyRailOffset = Number.parseFloat(panelStyle.getPropertyValue('--story-rail-x')) || 23;
+      const isMobileStoryRail = window.matchMedia('(max-width: 768px)').matches;
+      if (heroIdentity && heroWrapper) {
+        const identityRect = heroIdentity.getBoundingClientRect();
+        const wrapperRect = heroWrapper.getBoundingClientRect();
+        const originY = identityRect.top - wrapperRect.top + (identityRect.height / 2);
+        const railX = panelRect.left + storyRailOffset;
+        const connectorWidth = Math.max(0, identityRect.left - railX);
+        heroWrapper.style.setProperty('--story-hero-origin-y', `${Math.max(0, originY)}px`);
+        heroIdentity.style.setProperty('--story-hero-connector-width', `${connectorWidth}px`);
+      }
       const stops = items.map((item) => {
         const anchor = item.target.querySelector('[data-story-anchor]') || item.target.querySelector('h2') || item.target;
         const anchorRect = anchor.getBoundingClientRect();
@@ -1122,16 +1373,42 @@
         item.storyStopY = Math.max(0, stopY);
         item.link.style.setProperty('--story-stop-y', `${Math.max(0, stopY)}px`);
         item.target.style.setProperty('--story-anchor-y', `${Math.max(0, anchorRect.top - targetRect.top + Math.min(20, anchorRect.height / 2))}px`);
+        const connectorTarget = item.id === 'cta'
+          ? item.target.querySelector('#cta-link')
+          : null;
+        if (isMobileStoryRail || connectorTarget) {
+          const branchStyle = window.getComputedStyle(item.target, '::after');
+          const branchLeft = Number.parseFloat(branchStyle.left) || 0;
+          let connectorLeft = connectorTarget?.getBoundingClientRect().left ?? anchorRect.left;
+          if (isMobileStoryRail && !connectorTarget && document.createRange) {
+            const textRange = document.createRange();
+            textRange.selectNodeContents(anchor);
+            const textRect = textRange.getBoundingClientRect();
+            if (textRect.width > 0) connectorLeft = textRect.left;
+          }
+          const branchGap = connectorTarget ? 0 : 4;
+          const branchWidth = Math.max(0, connectorLeft - targetRect.left - branchLeft - branchGap);
+          item.target.style.setProperty('--story-branch-width', `${branchWidth}px`);
+        }
         return stopY;
       });
       if (!stops.length) return;
-      storyStartY = heroRect
-        ? Math.max(0, heroRect.top + scrollTop - mainTop + (heroRect.height / 2))
+      storyStartY = heroOriginRect
+        ? Math.max(0, heroOriginRect.top + scrollTop - mainTop + (heroOriginRect.height / 2))
         : Math.max(0, stops[0]);
       storyEndY = Math.max(storyStartY, stops[stops.length - 1]);
       panel.style.setProperty('--story-start-y', `${storyStartY}px`);
       panel.style.setProperty('--story-end-y', `${storyEndY}px`);
       panel.classList.add('is-rail-ready');
+      if (hadStoryGeometry) {
+        const nextStops = items.map((item) => getStoryStopDistance(items.indexOf(item)));
+        const geometryChanged = nextStops.some((stop, index) => Math.abs(stop - previousStops[index]) > .5);
+        if (geometryChanged) {
+          const remappedFill = remapStoryFill(previousFill, previousStops, nextStops);
+          renderStoryFill(remappedFill, { confirm: false });
+          retargetStoryMilestone(storyTargetIndex, { force: true, confirm: false });
+        }
+      }
     };
 
     const requestStoryMeasure = () => {
@@ -1143,11 +1420,228 @@
       });
     };
 
+    const clampStoryFill = (value) => Math.min(
+      Math.max(0, storyEndY - storyStartY),
+      Math.max(0, Number(value) || 0)
+    );
+
+    const storyEaseInOutCubic = (progress) => (
+      progress < .5
+        ? 4 * progress * progress * progress
+        : 1 - (Math.pow((-2 * progress) + 2, 3) / 2)
+    );
+
+    const getStoryStopDistance = (index) => {
+      if (index < 0) return 0;
+      const stopY = Number.isFinite(items[index]?.storyStopY)
+        ? items[index].storyStopY
+        : storyEndY;
+      return clampStoryFill(stopY - storyStartY);
+    };
+
+    const clearStoryConfirmation = (item) => {
+      if (!item) return;
+      if (item.storyConfirmTimer) {
+        window.clearTimeout(item.storyConfirmTimer);
+        item.storyConfirmTimer = 0;
+      }
+      item.link.classList.remove('story-node-confirm');
+      item.target.classList.remove('is-segment-confirming');
+    };
+
+    const renderStoryFill = (nextFill, { confirm = true } = {}) => {
+      const previousFill = storyRenderedFill;
+      storyRenderedFill = clampStoryFill(nextFill);
+      const fillHeadY = storyStartY + storyRenderedFill;
+      const movingForward = storyRenderedFill >= previousFill;
+      panel.style.setProperty('--story-fill-y', `${storyRenderedFill}px`);
+      items.forEach((item) => {
+        const stopY = Number.isFinite(item.storyStopY) ? item.storyStopY : storyEndY;
+        const cellRamp = 120;
+        const rawProgress = Math.min(1, Math.max(0, (fillHeadY - (stopY - cellRamp)) / cellRamp));
+        const cellProgress = rawProgress * rawProgress * (3 - (2 * rawProgress));
+        const wasComplete = item.target.classList.contains('is-segment-complete');
+        const isComplete = wasComplete ? rawProgress >= .92 : rawProgress >= .999;
+        item.target.style.setProperty('--story-cell-progress', cellProgress.toFixed(4));
+        item.target.style.setProperty('--story-cell-fill', `${(cellProgress * 100).toFixed(2)}%`);
+        item.target.style.setProperty('--story-title-opacity', (.68 + (.32 * cellProgress)).toFixed(3));
+        item.target.style.setProperty('--story-title-shift', `${((1 - cellProgress) * 6).toFixed(2)}px`);
+        item.target.classList.toggle('is-segment-complete', isComplete);
+        item.link.classList.toggle('is-segment-complete', isComplete);
+        if (isComplete) item.target.classList.add('has-revealed-cards');
+        if (!isComplete) clearStoryConfirmation(item);
+        if (
+          !wasComplete &&
+          isComplete &&
+          movingForward &&
+          confirm &&
+          storyAnimationsReady &&
+          !prefersReducedStoryMotion()
+        ) {
+          clearStoryConfirmation(item);
+          item.link.classList.add('story-node-confirm');
+          item.target.classList.add('is-segment-confirming');
+          item.storyConfirmTimer = window.setTimeout(() => {
+            clearStoryConfirmation(item);
+          }, 420);
+        }
+      });
+    };
+
+    const getReachedStoryIndex = () => {
+      let reachedIndex = -1;
+      items.forEach((item, index) => {
+        if (getStoryStopDistance(index) <= storyRenderedFill + .5) reachedIndex = index;
+      });
+      return reachedIndex;
+    };
+
+    const retargetStoryMilestone = (index, { immediate = false, confirm = true, force = false } = {}) => {
+      if (!isStoryRail || storyEndY <= storyStartY) return;
+      const numericIndex = Number(index);
+      const normalizedIndex = Number.isFinite(numericIndex)
+        ? Math.min(items.length - 1, Math.max(-1, numericIndex))
+        : -1;
+      if (!force && normalizedIndex === storyTargetIndex) return;
+      const previousTargetIndex = storyTargetIndex;
+      storyTargetIndex = normalizedIndex;
+      panel.dataset.storyMilestone = normalizedIndex < 0
+        ? 'start'
+        : String(normalizedIndex + 1).padStart(2, '0');
+      const targetFill = getStoryStopDistance(normalizedIndex);
+      storyAnimationToken += 1;
+      const animationToken = storyAnimationToken;
+      if (storyAnimationFrame) {
+        cancelAnimationFrame(storyAnimationFrame);
+        storyAnimationFrame = 0;
+      }
+      const delta = targetFill - storyRenderedFill;
+      if (immediate || prefersReducedStoryMotion() || Math.abs(delta) < .5) {
+        panel.dataset.storyAnimating = 'false';
+        renderStoryFill(targetFill, { confirm: false });
+        return;
+      }
+      const reachedIndex = getReachedStoryIndex();
+      const crossedMilestones = Math.max(
+        1,
+        Math.abs(normalizedIndex - (reachedIndex >= 0 ? reachedIndex : previousTargetIndex))
+      );
+      const duration = Math.min(
+        STORY_MAX_DURATION_MS,
+        STORY_STEP_DURATION_MS + (Math.max(0, crossedMilestones - 1) * 115)
+      );
+      const startFill = storyRenderedFill;
+      const startTime = performance.now();
+      panel.dataset.storyAnimating = 'true';
+      const stepStoryAnimation = (time) => {
+        if (animationToken !== storyAnimationToken) return;
+        const elapsed = Math.min(1, Math.max(0, (time - startTime) / duration));
+        renderStoryFill(startFill + (delta * storyEaseInOutCubic(elapsed)), { confirm });
+        if (elapsed < 1) {
+          storyAnimationFrame = requestAnimationFrame(stepStoryAnimation);
+          return;
+        }
+        storyAnimationFrame = 0;
+        panel.dataset.storyAnimating = 'false';
+        renderStoryFill(targetFill, { confirm });
+      };
+      storyAnimationFrame = requestAnimationFrame(stepStoryAnimation);
+    };
+
+    const resetStoryToStart = () => {
+      storyInputIntent = false;
+      manualOverrideId = null;
+      storyLastScrollY = window.scrollY || window.pageYOffset || 0;
+      items.forEach((item) => {
+        clearStoryConfirmation(item);
+        item.target.classList.remove('has-revealed-cards', 'is-current', 'is-complete', 'is-segment-complete');
+        item.link.classList.remove('is-active', 'is-complete', 'is-segment-complete');
+        item.link.removeAttribute('aria-current');
+        item.target.style.setProperty('--story-cell-progress', '0');
+        item.target.style.setProperty('--story-cell-fill', '0%');
+        item.target.style.setProperty('--story-title-opacity', '.68');
+        item.target.style.setProperty('--story-title-shift', '6px');
+      });
+      storyRenderedFill = 0;
+      storyTargetIndex = -1;
+      panel.dataset.storyMilestone = 'start';
+      panel.dataset.storyAnimating = 'false';
+      panel.style.setProperty('--story-fill-y', '0px');
+      retargetStoryMilestone(-1, { immediate: true, confirm: false, force: true });
+      activeId = null;
+      setActive(null);
+    };
+
+    const getStoryAnchorTop = (item) => {
+      const anchor = item?.target.querySelector('[data-story-anchor]') || item?.target;
+      return anchor ? anchor.getBoundingClientRect().top : Number.POSITIVE_INFINITY;
+    };
+
+    const getStoryActivationLine = (index, viewportHeight) => (
+      viewportHeight * (index === 0 ? STORY_FIRST_ACTIVATE_RATIO : STORY_ACTIVATE_RATIO)
+    );
+
+    const getStoryRetractionLine = (index, viewportHeight) => (
+      viewportHeight * (index === 0 ? STORY_FIRST_RETRACT_RATIO : STORY_RETRACT_RATIO)
+    );
+
+    const resolveStoryMilestone = (direction, viewportHeight, atBottom, { initial = false } = {}) => {
+      if (atBottom) return items.length - 1;
+      let nextIndex = initial ? -1 : storyTargetIndex;
+      if (direction > 0 || initial) {
+        while (nextIndex + 1 < items.length) {
+          const candidateIndex = nextIndex + 1;
+          if (
+            getStoryAnchorTop(items[candidateIndex]) > getStoryActivationLine(candidateIndex, viewportHeight)
+          ) break;
+          nextIndex += 1;
+        }
+      } else if (direction < 0) {
+        while (
+          nextIndex >= 0 &&
+          getStoryAnchorTop(items[nextIndex]) > getStoryRetractionLine(nextIndex, viewportHeight)
+        ) {
+          nextIndex -= 1;
+        }
+      }
+      return nextIndex;
+    };
+
+    const storyIndexFromHash = () => {
+      const hash = String(window.location?.hash || '').replace(/^#/, '');
+      if (!hash) return -1;
+      let id = hash;
+      try {
+        id = decodeURIComponent(hash);
+      } catch {}
+      return items.findIndex((item) => item.id === id);
+    };
+
+    const initializeStoryMilestone = (scrollTop, viewportHeight, atBottom) => {
+      const hashIndex = storyIndexFromHash();
+      const initialIndex = hashIndex >= 0
+        ? hashIndex
+        : -1;
+      storyInitialized = true;
+      retargetStoryMilestone(initialIndex, { immediate: true, confirm: false, force: true });
+      if (initialIndex < 0) {
+        activeId = null;
+        setActive(null);
+      }
+      storyLastScrollY = scrollTop;
+      storyAnimationsReady = true;
+      return initialIndex;
+    };
+
     const setManualActive = (item, event) => {
       if (!item) return;
       if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
       if (event && typeof event.button === 'number' && event.button !== 0) return;
       manualOverrideId = item.id;
+      if (isStoryRail) {
+        const itemIndex = items.indexOf(item);
+        retargetStoryMilestone(itemIndex, { immediate: prefersReducedStoryMotion() });
+      }
       activeId = item.id;
       setActive(item.id);
     };
@@ -1276,7 +1770,6 @@
         setActive(null);
         return;
       }
-      if (manualOverrideId) return;
       const navOffset = getNavOffset();
       const topLimit = Math.min(Math.max(0, navOffset), viewportHeight);
       const bottomLimit = viewportHeight;
@@ -1284,63 +1777,55 @@
       const doc = document.documentElement;
       const scrollTop = window.scrollY || window.pageYOffset || 0;
       const atBottom = scrollTop + viewportHeight >= (doc.scrollHeight - 2);
+      const autoScrolling = isJumpPanelAutoScrolling();
+      const manualLocked = Boolean(manualOverrideId && autoScrolling);
+      if (manualOverrideId && !manualLocked) manualOverrideId = null;
+      let nextId = null;
 
       if (isStoryRail && storyEndY > storyStartY) {
-        const railLength = Math.max(0, storyEndY - storyStartY);
-        const progressY = atBottom
-          ? railLength
-          : Math.min(railLength, Math.max(0, scrollTop));
-        const fillHeadY = storyStartY + progressY;
-        panel.style.setProperty('--story-fill-y', `${progressY}px`);
-        items.forEach((item) => {
-          const stopY = Number.isFinite(item.storyStopY) ? item.storyStopY : storyEndY;
-          const cellRamp = 120;
-          const rawProgress = atBottom
+        if (!storyInitialized) {
+          initializeStoryMilestone(scrollTop, viewportHeight, atBottom);
+        } else if (!manualLocked) {
+          const scrollDirection = scrollTop > storyLastScrollY + 1
             ? 1
-            : Math.min(1, Math.max(0, (fillHeadY - (stopY - cellRamp)) / cellRamp));
-          const cellProgress = rawProgress * rawProgress * (3 - (2 * rawProgress));
-          const wasComplete = item.target.classList.contains('is-segment-complete');
-          const isComplete = wasComplete ? rawProgress >= .92 : rawProgress >= .999;
-          item.target.style.setProperty('--story-cell-progress', cellProgress.toFixed(4));
-          item.target.classList.toggle('is-segment-complete', isComplete);
-          item.link.classList.toggle('is-segment-complete', isComplete);
-          if (!wasComplete && isComplete && storyAnimationsReady) {
-            item.link.classList.add('story-node-confirm');
-            item.target.classList.add('is-segment-confirming');
-            window.setTimeout(() => {
-              item.link.classList.remove('story-node-confirm');
-              item.target.classList.remove('is-segment-confirming');
-            }, 420);
+            : (scrollTop < storyLastScrollY - 1 ? -1 : 0);
+          const atStoryStart = scrollTop <= 2 && storyIndexFromHash() < 0;
+          const canResolveStory = storyInputIntent || storyIndexFromHash() >= 0;
+          const nextMilestone = atStoryStart || !canResolveStory
+            ? -1
+            : resolveStoryMilestone(scrollDirection, viewportHeight, atBottom);
+          if (nextMilestone !== storyTargetIndex) retargetStoryMilestone(nextMilestone);
+        }
+        storyLastScrollY = scrollTop;
+        nextId = manualLocked
+          ? manualOverrideId
+          : (storyTargetIndex >= 0 ? items[storyTargetIndex]?.id || null : null);
+      } else {
+        let best = null;
+        let bestRatio = 0;
+        let bestDistance = Infinity;
+
+        items.forEach((item) => {
+          const rect = item.target.getBoundingClientRect();
+          const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
+          if (visible <= 0) return;
+          const denom = Math.min(rect.height || 0, focusSpan) || 1;
+          const ratio = visible / denom;
+          const distance = Math.abs(rect.top - topLimit);
+          if (ratio > bestRatio || (Math.abs(ratio - bestRatio) < 0.001 && distance < bestDistance)) {
+            bestRatio = ratio;
+            bestDistance = distance;
+            best = item;
           }
         });
-        storyAnimationsReady = true;
-      }
 
-      let best = null;
-      let bestRatio = 0;
-      let bestDistance = Infinity;
-
-      items.forEach((item) => {
-        const rect = item.target.getBoundingClientRect();
-        const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
-        if (visible <= 0) return;
-        const denom = Math.min(rect.height || 0, focusSpan) || 1;
-        const ratio = visible / denom;
-        const distance = Math.abs(rect.top - topLimit);
-        if (ratio > bestRatio || (Math.abs(ratio - bestRatio) < 0.001 && distance < bestDistance)) {
-          bestRatio = ratio;
-          bestDistance = distance;
-          best = item;
+        nextId = best ? best.id : null;
+        const lastItem = items[items.length - 1];
+        if (lastItem && atBottom) {
+          const rect = lastItem.target.getBoundingClientRect();
+          const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
+          if (visible > 0) nextId = lastItem.id;
         }
-      });
-
-      let nextId = best ? best.id : null;
-
-      const lastItem = items[items.length - 1];
-      if (lastItem && atBottom) {
-        const rect = lastItem.target.getBoundingClientRect();
-        const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
-        if (visible > 0) nextId = lastItem.id;
       }
 
       if (nextId === activeId) return;
@@ -1354,6 +1839,29 @@
       requestAnimationFrame(update);
     };
 
+    const syncStoryLocation = () => {
+      if (!isStoryRail || !storyInitialized) return;
+      const hashIndex = storyIndexFromHash();
+      if (hashIndex < 0) return;
+      manualOverrideId = items[hashIndex].id;
+      retargetStoryMilestone(hashIndex, {
+        immediate: prefersReducedStoryMotion(),
+        confirm: false,
+        force: true
+      });
+      activeId = items[hashIndex].id;
+      setActive(activeId);
+    };
+
+    const handleStoryMotionChange = () => {
+      if (!storyInitialized || !prefersReducedStoryMotion()) return;
+      retargetStoryMilestone(storyTargetIndex, {
+        immediate: true,
+        confirm: false,
+        force: true
+      });
+    };
+
     measureStoryRail();
     requestUpdate();
     const handleScroll = () => {
@@ -1361,9 +1869,7 @@
       if (!autoScrolling) {
         clearPanelFocusOnScroll();
         setPanelCondensed(true);
-      }
-      if (manualOverrideId) {
-        manualOverrideId = null;
+        if (manualOverrideId) manualOverrideId = null;
       }
       requestUpdate();
     };
@@ -1375,9 +1881,27 @@
       requestStoryMeasure();
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('wheel', markStoryInputIntent, { passive: true });
+    window.addEventListener('touchmove', markStoryInputIntent, { passive: true });
+    window.addEventListener('pointerdown', markStoryInputIntent, { passive: true });
+    window.addEventListener('keydown', markStoryInputIntent);
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('hashchange', syncStoryLocation);
+    window.addEventListener('popstate', syncStoryLocation);
+    window.addEventListener('pageshow', () => {
+      if (storyIndexFromHash() < 0) resetStoryToStart();
+      requestStoryMeasure();
+      requestUpdate();
+    });
     document.addEventListener('navheightchange', requestUpdate);
+    if (storyMotionQuery) {
+      if (typeof storyMotionQuery.addEventListener === 'function') {
+        storyMotionQuery.addEventListener('change', handleStoryMotionChange);
+      } else if (typeof storyMotionQuery.addListener === 'function') {
+        storyMotionQuery.addListener(handleStoryMotionChange);
+      }
+    }
     if (isStoryRail) {
       if (document.fonts?.ready && typeof document.fonts.ready.then === 'function') {
         document.fonts.ready.then(requestStoryMeasure).catch(() => {});

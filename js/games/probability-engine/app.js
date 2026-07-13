@@ -31,7 +31,12 @@
 
 const dom = {
   body: document.body,
+  appShell: document.querySelector(".app-shell"),
+  modalBackground: Array.from(document.querySelectorAll("body > .skip-link, body > #combined-header-nav, body > .app-shell")),
   stats: document.getElementById("stats"),
+  workspaceTablist: document.querySelector(".workspace-tabs"),
+  workspaceTabs: Array.from(document.querySelectorAll("[data-workspace-tab]")),
+  workspacePanels: Array.from(document.querySelectorAll("[data-workspace-panel]")),
   selectedMachineTitle: document.getElementById("selected-machine-title"),
   eraText: document.getElementById("era-text"),
   spinButton: document.getElementById("spin-button"),
@@ -42,6 +47,9 @@ const dom = {
   particles: document.getElementById("particles"),
   lockRow: document.getElementById("lock-row"),
   machineMeta: document.getElementById("machine-meta"),
+  spinOutcomeTitle: document.getElementById("spin-outcome-title"),
+  spinOutcomeDetail: document.getElementById("spin-outcome-detail"),
+  spinResultStatus: document.getElementById("spin-result-status"),
   machineList: document.getElementById("machine-list"),
   deckList: document.getElementById("deck-list"),
   deckEvSummary: document.getElementById("deck-ev-summary"),
@@ -58,6 +66,11 @@ const dom = {
   prestigeButton: document.getElementById("prestige-button"),
   skillTree: document.getElementById("skill-tree"),
   eventLog: document.getElementById("event-log"),
+  exportSaveButton: document.getElementById("export-save-button"),
+  importSaveButton: document.getElementById("import-save-button"),
+  importSaveInput: document.getElementById("import-save-input"),
+  resetSaveButton: document.getElementById("reset-save-button"),
+  saveStatus: document.getElementById("save-status"),
   offlineModal: document.getElementById("offline-modal"),
   offlineSummary: document.getElementById("offline-summary"),
   claimOfflineButton: document.getElementById("claim-offline-button")
@@ -65,6 +78,14 @@ const dom = {
 let lastLiveUiRenderAt = 0;
 let deckInsightCacheKey = "";
 let deckInsightCacheValue = null;
+let lastFocusedBeforeOffline = null;
+const reducedMotionQuery = typeof window.matchMedia === "function"
+  ? window.matchMedia("(prefers-reduced-motion: reduce)")
+  : { matches: false };
+
+function prefersReducedMotion() {
+  return Boolean(reducedMotionQuery.matches);
+}
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -124,6 +145,15 @@ function formatSeconds(totalSeconds) {
     return `${m}m ${s}s`;
   }
   return `${s}s`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function getSymbolById(id) {
@@ -196,7 +226,8 @@ function createMachineState(index, owned) {
     jackpotReady: false,
     lockedCols: [false, false, false, false],
     totalEarned: Big.zero(),
-    totalSynergies: 0
+    totalSynergies: 0,
+    lastOutcome: null
   };
 }
 
@@ -299,7 +330,8 @@ function serializeMachine(machine) {
     jackpotReady: machine.jackpotReady,
     lockedCols: machine.lockedCols,
     totalEarned: machine.totalEarned.toArray(),
-    totalSynergies: machine.totalSynergies
+    totalSynergies: machine.totalSynergies,
+    lastOutcome: machine.lastOutcome
   };
 }
 
@@ -307,43 +339,58 @@ function deserializeMachine(raw, fallback) {
   const machine = {
     ...fallback,
     ...raw,
+    id: fallback.id,
+    name: fallback.name,
     deck: Array.isArray(raw.deck) ? raw.deck.filter((id) => SYMBOLS[id]) : fallback.deck,
     grid: Array.isArray(raw.grid) ? raw.grid.filter((id) => SYMBOLS[id]) : fallback.grid,
     lastReward: Big.from(raw.lastReward || fallback.lastReward),
     averageWin: Big.from(raw.averageWin || fallback.averageWin),
     totalEarned: Big.from(raw.totalEarned || fallback.totalEarned),
+    lastOutcome: raw.lastOutcome && typeof raw.lastOutcome === "object"
+      ? {
+        synergyTotal: Number.isFinite(Number(raw.lastOutcome.synergyTotal))
+          ? Math.max(0, Number(raw.lastOutcome.synergyTotal))
+          : 0,
+        topSynergies: String(raw.lastOutcome.topSynergies || "").slice(0, 300),
+        jackpotActive: Boolean(raw.lastOutcome.jackpotActive)
+      }
+      : null,
     spinTimer: null,
     spinInterval: null
   };
   return machine;
 }
 
+function buildSavePayload(state) {
+  return {
+    version: state.version,
+    wallet: state.wallet.toArray(),
+    influence: state.influence.toArray(),
+    shards: state.shards.toArray(),
+    chips: state.chips,
+    lifetimeCash: state.lifetimeCash.toArray(),
+    runCash: state.runCash.toArray(),
+    totalSpins: state.totalSpins,
+    avgWin: state.avgWin.toArray(),
+    entropy: state.entropy,
+    autoSpin: state.autoSpin,
+    selectedMachine: state.selectedMachine,
+    upgrades: state.upgrades,
+    ingredients: state.ingredients,
+    buffs: state.buffs,
+    skillTree: state.skillTree,
+    inventory: state.inventory,
+    packPurchases: state.packPurchases,
+    logs: state.logs.slice(0, 60),
+    machinePurchaseProgress: state.machinePurchaseProgress,
+    machines: state.machines.map(serializeMachine),
+    timestamp: Date.now()
+  };
+}
+
 function saveGame(state) {
   try {
-    const payload = {
-      version: state.version,
-      wallet: state.wallet.toArray(),
-      influence: state.influence.toArray(),
-      shards: state.shards.toArray(),
-      chips: state.chips,
-      lifetimeCash: state.lifetimeCash.toArray(),
-      runCash: state.runCash.toArray(),
-      totalSpins: state.totalSpins,
-      avgWin: state.avgWin.toArray(),
-      entropy: state.entropy,
-      autoSpin: state.autoSpin,
-      selectedMachine: state.selectedMachine,
-      upgrades: state.upgrades,
-      ingredients: state.ingredients,
-      buffs: state.buffs,
-      skillTree: state.skillTree,
-      inventory: state.inventory,
-      packPurchases: state.packPurchases,
-      logs: state.logs.slice(0, 60),
-      machinePurchaseProgress: state.machinePurchaseProgress,
-      machines: state.machines.map(serializeMachine),
-      timestamp: Date.now()
-    };
+    const payload = buildSavePayload(state);
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
     state.lastSave = Date.now();
   } catch (error) {
@@ -395,7 +442,12 @@ function loadGame() {
         ...(parsed.inventory || {})
       },
       packPurchases: Number(parsed.packPurchases || 0),
-      logs: Array.isArray(parsed.logs) ? parsed.logs.slice(0, 60) : [],
+      logs: Array.isArray(parsed.logs)
+        ? parsed.logs.slice(0, 60).map((entry) => ({
+          message: String(entry && entry.message ? entry.message : "").slice(0, 500),
+          tone: ["good", "warn", "bad"].includes(entry && entry.tone) ? entry.tone : "warn"
+        }))
+        : [],
       machinePurchaseProgress: Number(parsed.machinePurchaseProgress || 1),
       machines: fallback.machines,
       offline: {
@@ -795,18 +847,23 @@ function runSpin(state, machineIndex, isAuto = false) {
   state.wallet = state.wallet.sub(cost);
   machine.spinning = true;
   machine.lastSpinAt = Date.now();
+  if (state.selectedMachine === machineIndex) {
+    dom.spinResultStatus.textContent = `${machine.name} spinning.`;
+  }
   renderLiveUi(state, true);
 
   if (machine.spinInterval) {
     clearInterval(machine.spinInterval);
   }
 
-  machine.spinInterval = setInterval(() => {
-    machine.grid = generateRandomGrid(state, machine, false);
-    if (state.selectedMachine === machineIndex) {
-      renderGrid(state);
-    }
-  }, 70);
+  if (!prefersReducedMotion()) {
+    machine.spinInterval = setInterval(() => {
+      machine.grid = generateRandomGrid(state, machine, false);
+      if (state.selectedMachine === machineIndex) {
+        renderGrid(state);
+      }
+    }, 70);
+  }
 
   const jackpotNow = machine.jackpotReady;
   machine.jackpotReady = false;
@@ -857,6 +914,12 @@ function runSpin(state, machineIndex, isAuto = false) {
       .map((entry) => `${entry.label} x${entry.count}`)
       .join(", ");
 
+    machine.lastOutcome = {
+      synergyTotal: result.synergies.total,
+      topSynergies,
+      jackpotActive: result.jackpotActive
+    };
+
     if (result.jackpotActive) {
       spawnFloatingText("JACKPOT", "#ffd166");
       spawnParticles(20, "#ffd166");
@@ -876,8 +939,15 @@ function runSpin(state, machineIndex, isAuto = false) {
       spawnParticles(9, "#6efacc");
     }
 
+    if (state.selectedMachine === machineIndex) {
+      const synergyMessage = result.synergies.total > 0
+        ? `${result.synergies.total} synergy activations${topSynergies ? `: ${topSynergies}` : ""}`
+        : "no synergy activations";
+      dom.spinResultStatus.textContent = `${machine.name} paid ${formatBig(result.reward)} Credits with ${synergyMessage}.`;
+    }
+
     renderSpinOutcomeUi(state, machine.id);
-  }, getSpinDelayMs(state));
+  }, prefersReducedMotion() ? 80 : getSpinDelayMs(state));
 }
 
 function getPackWeights(state) {
@@ -1264,6 +1334,9 @@ function updateEra(state) {
 }
 
 function spawnParticles(count, color) {
+  if (prefersReducedMotion()) {
+    return;
+  }
   const rect = dom.gridWrapper.getBoundingClientRect();
   for (let i = 0; i < count; i += 1) {
     const particle = document.createElement("div");
@@ -1279,6 +1352,9 @@ function spawnParticles(count, color) {
 }
 
 function spawnFloatingText(text, color) {
+  if (prefersReducedMotion()) {
+    return;
+  }
   const label = document.createElement("div");
   label.className = "floater";
   label.textContent = text;
@@ -1288,6 +1364,9 @@ function spawnFloatingText(text, color) {
 }
 
 function triggerBoardShake() {
+  if (prefersReducedMotion()) {
+    return;
+  }
   dom.gridWrapper.classList.remove("shake");
   void dom.gridWrapper.offsetWidth;
   dom.gridWrapper.classList.add("shake");
@@ -1374,6 +1453,40 @@ function renderMachineMeta(state) {
     <div class="meta-item">Deck Size<strong>${machine.deck.length}</strong></div>
     <div class="meta-item">Machine Earned<strong>${formatBig(machine.totalEarned)}</strong></div>
   `;
+}
+
+function renderOutcomeSummary(state) {
+  const machine = state.machines[state.selectedMachine];
+  if (!machine || !machine.owned) {
+    dom.spinOutcomeTitle.textContent = "Machine unavailable";
+    dom.spinOutcomeDetail.textContent = "Select an owned machine to inspect its latest result.";
+    return;
+  }
+
+  if (machine.spinning) {
+    dom.spinOutcomeTitle.textContent = `${machine.name} is spinning`;
+    dom.spinOutcomeDetail.textContent = "The final payout and activated synergies will appear when the reels settle.";
+    return;
+  }
+
+  if (!machine.lastOutcome) {
+    dom.spinOutcomeTitle.textContent = "Ready for the first spin";
+    dom.spinOutcomeDetail.textContent = "Payouts combine symbol values, adjacency effects, patrons, entropy, and any active buffs.";
+    return;
+  }
+
+  const outcome = machine.lastOutcome;
+  dom.spinOutcomeTitle.textContent = `${formatBig(machine.lastReward)} Credits paid`;
+  if (outcome.jackpotActive) {
+    dom.spinOutcomeDetail.textContent = outcome.topSynergies
+      ? `Jackpot Mode resolved with ${outcome.synergyTotal} synergy activations: ${outcome.topSynergies}.`
+      : "Jackpot Mode supplied the enhanced payout; no additional synergy activated.";
+    return;
+  }
+
+  dom.spinOutcomeDetail.textContent = outcome.synergyTotal > 0
+    ? `${outcome.synergyTotal} synergy activations contributed to the payout: ${outcome.topSynergies || "multiple symbol interactions"}.`
+    : "No synergy activated; this payout came from symbol values and current machine modifiers.";
 }
 
 function renderMachineList(state) {
@@ -1739,7 +1852,7 @@ function renderSkillTree(state) {
 
 function renderEventLog(state) {
   dom.eventLog.innerHTML = state.logs.slice(0, 30).map((entry) => `
-    <div class="log-line ${entry.tone || "warn"}">${entry.message}</div>
+    <div class="log-line ${["good", "warn", "bad"].includes(entry.tone) ? entry.tone : "warn"}">${escapeHtml(entry.message)}</div>
   `).join("");
 }
 
@@ -1789,6 +1902,7 @@ function renderSpinOutcomeUi(state, machineIndex) {
   if (state.selectedMachine === machineIndex) {
     renderGrid(state);
     renderLockControls(state);
+    renderOutcomeSummary(state);
   }
 }
 
@@ -1797,6 +1911,7 @@ function renderAll(state) {
   const deckContext = buildDeckBuilderContext(state);
   renderGrid(state);
   renderLockControls(state);
+  renderOutcomeSummary(state);
   renderMachineList(state);
   renderDeck(state, deckContext);
   renderInventory(state, deckContext);
@@ -1841,7 +1956,164 @@ function stepSimulation(state) {
   renderLiveUi(state);
 }
 
+function activateWorkspace(name, focusTab = false) {
+  const selectedTab = dom.workspaceTabs.find((tab) => tab.dataset.workspaceTab === name);
+  const selectedPanel = dom.workspacePanels.find((panel) => panel.dataset.workspacePanel === name);
+  if (!selectedTab || !selectedPanel) {
+    return;
+  }
+
+  for (const tab of dom.workspaceTabs) {
+    const selected = tab === selectedTab;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+  }
+  for (const panel of dom.workspacePanels) {
+    panel.hidden = panel !== selectedPanel;
+  }
+
+  if (focusTab) {
+    selectedTab.focus();
+  }
+}
+
+function openOfflineModal() {
+  lastFocusedBeforeOffline = document.activeElement instanceof HTMLElement
+    ? document.activeElement
+    : null;
+  for (const element of dom.modalBackground) {
+    element.setAttribute("inert", "");
+  }
+  dom.offlineModal.classList.remove("hidden");
+  dom.offlineModal.setAttribute("aria-hidden", "false");
+  window.requestAnimationFrame(() => dom.claimOfflineButton.focus());
+}
+
+function closeOfflineModal() {
+  dom.offlineModal.classList.add("hidden");
+  dom.offlineModal.setAttribute("aria-hidden", "true");
+  for (const element of dom.modalBackground) {
+    element.removeAttribute("inert");
+  }
+  if (lastFocusedBeforeOffline && lastFocusedBeforeOffline.isConnected) {
+    lastFocusedBeforeOffline.focus();
+  }
+  lastFocusedBeforeOffline = null;
+}
+
+function validateImportedSave(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("The selected file is not a Probability Engine save.");
+  }
+  if (Number(payload.version) !== 1) {
+    throw new Error("This save version is not supported.");
+  }
+  if (!Array.isArray(payload.wallet) || !Array.isArray(payload.machines)) {
+    throw new Error("The save is missing required game state.");
+  }
+}
+
+function exportSave(state) {
+  saveGame(state);
+  const payload = buildSavePayload(state);
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  const objectUrl = URL.createObjectURL(blob);
+  link.href = objectUrl;
+  link.download = `probability-engine-save-${date}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  dom.saveStatus.textContent = "Save exported.";
+}
+
 function bindEvents(stateRef) {
+  dom.workspaceTablist.addEventListener("click", (event) => {
+    const target = event.target instanceof Element
+      ? event.target.closest("[data-workspace-tab]")
+      : null;
+    if (!(target instanceof HTMLButtonElement)) {
+      return;
+    }
+    activateWorkspace(target.dataset.workspaceTab || "machine");
+  });
+
+  dom.workspaceTablist.addEventListener("keydown", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLButtonElement) || !target.dataset.workspaceTab) {
+      return;
+    }
+    const currentIndex = dom.workspaceTabs.indexOf(target);
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % dom.workspaceTabs.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex = (currentIndex - 1 + dom.workspaceTabs.length) % dom.workspaceTabs.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = dom.workspaceTabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    activateWorkspace(dom.workspaceTabs[nextIndex].dataset.workspaceTab || "machine", true);
+  });
+
+  dom.exportSaveButton.addEventListener("click", () => {
+    exportSave(stateRef.current);
+  });
+
+  dom.importSaveButton.addEventListener("click", () => {
+    dom.importSaveInput.value = "";
+    dom.importSaveInput.click();
+  });
+
+  dom.importSaveInput.addEventListener("change", async () => {
+    const [file] = dom.importSaveInput.files || [];
+    if (!file) {
+      return;
+    }
+    try {
+      const payload = JSON.parse(await file.text());
+      validateImportedSave(payload);
+      localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+      dom.saveStatus.textContent = "Save imported. Reloading the engine.";
+      window.setTimeout(() => window.location.reload(), 350);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "The save could not be imported.";
+      dom.saveStatus.textContent = `Import failed. ${message}`;
+    }
+  });
+
+  dom.resetSaveButton.addEventListener("click", () => {
+    const confirmed = window.confirm("Reset all Probability Engine progress? Export a save first if you may want it back.");
+    if (!confirmed) {
+      dom.saveStatus.textContent = "Reset canceled.";
+      return;
+    }
+    localStorage.removeItem(SAVE_KEY);
+    window.location.reload();
+  });
+
+  dom.offlineModal.addEventListener("keydown", (event) => {
+    if (dom.offlineModal.classList.contains("hidden")) {
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      dom.claimOfflineButton.focus();
+      return;
+    }
+    if (event.key === "Tab") {
+      event.preventDefault();
+      dom.claimOfflineButton.focus();
+    }
+  });
+
   dom.spinButton.addEventListener("click", () => {
     runSpin(stateRef.current, stateRef.current.selectedMachine, false);
     renderAll(stateRef.current);
@@ -2024,7 +2296,7 @@ function bindEvents(stateRef) {
     }
     state.offline.pendingGain = Big.zero();
     state.offline.awaySeconds = 0;
-    dom.offlineModal.classList.add("hidden");
+    closeOfflineModal();
     renderAll(state);
   });
 
@@ -2038,17 +2310,18 @@ function initialize() {
     current: loadGame()
   };
 
-  if (stateRef.current.offline.pendingGain.gt(0)) {
-    dom.offlineSummary.textContent = `You were away for ${formatSeconds(stateRef.current.offline.awaySeconds)}. Estimated offline gain: ${formatBig(stateRef.current.offline.pendingGain)} Credits.`;
-    dom.offlineModal.classList.remove("hidden");
-  }
-
   if (stateRef.current.logs.length === 0) {
     addLog(stateRef.current, "Probability Engine online.", "good");
   }
 
   bindEvents(stateRef);
   renderAll(stateRef.current);
+  activateWorkspace("machine");
+
+  if (stateRef.current.offline.pendingGain.gt(0)) {
+    dom.offlineSummary.textContent = `You were away for ${formatSeconds(stateRef.current.offline.awaySeconds)}. Estimated offline gain: ${formatBig(stateRef.current.offline.pendingGain)} Credits.`;
+    openOfflineModal();
+  }
 
   setInterval(() => {
     stepSimulation(stateRef.current);

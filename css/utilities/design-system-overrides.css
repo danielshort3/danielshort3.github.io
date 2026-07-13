@@ -1574,11 +1574,6 @@
       text-align: center;
     }
 
-    body[data-page="analytics"] .section-title::before,
-    body[data-page="analytics"] .project-examples-head h2::before {
-      margin-inline: auto;
-    }
-
     body[data-page="analytics"] .project-examples-subtitle,
     body[data-page="analytics"] .home-proof-head p,
     body[data-page="analytics"] .skill-subtitle,
