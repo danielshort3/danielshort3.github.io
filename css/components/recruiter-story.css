@@ -10,6 +10,7 @@
     --story-content-offset: 124px;
     --story-hero-content-offset: 108px;
     --story-hero-connector-width: calc(var(--story-hero-content-offset) - 30px);
+    --story-origin-clearance: 30px;
     --story-rail-x: 23px;
     --story-rail-width: 52px;
   }
@@ -974,6 +975,7 @@
       --story-content-offset: 0px;
       --story-hero-content-offset: 48px;
       --story-hero-connector-width: 32px;
+      --story-origin-clearance: 22px;
       --story-rail-x: 23px;
     }
 

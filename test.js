@@ -41295,6 +41295,8 @@ try {
       !recruiterStoryCss.includes('filter: brightness(1.45) contrast(.72) saturate(.55)'),
       'analytics recruiter story should use clear media, a text-safe hero, stable chapter geometry, and a title-aligned rail');
     assert(recruiterStoryCss.includes('--story-rail-x: 23px') &&
+      recruiterStoryCss.includes('--story-origin-clearance: 30px') &&
+      recruiterStoryCss.includes('--story-origin-clearance: 22px') &&
       recruiterStoryCss.includes('content: attr(data-story-chapter);') &&
       recruiterStoryCss.includes('left: calc(var(--story-rail-x) + 17px);') &&
       recruiterStoryCss.includes('var(--story-cell-fill, 0%)') &&
@@ -41316,6 +41318,7 @@ try {
       commonScript.includes("heroIdentity.style.setProperty('--story-hero-connector-width'") &&
       commonScript.includes("item.target.style.setProperty('--story-branch-width'") &&
       commonScript.includes("panelStyle.getPropertyValue('--story-rail-x')") &&
+      commonScript.includes("panelStyle.getPropertyValue('--story-origin-clearance')") &&
       commonScript.includes('document.createRange()') &&
       commonScript.includes("item.target.querySelector('#cta-link')") &&
       commonScript.includes('heroOriginRect.height / 2') &&
