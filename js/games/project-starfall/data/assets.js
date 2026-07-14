@@ -18,7 +18,7 @@
   const ADVANCED_SKILL_ICON_ROOT = `${ASSET_ROOT}/skills/advanced`;
   const CARD_ICON_ROOT = `${ASSET_ROOT}/cards/icons`;
   const GENERIC_PLAYER_ASSET = `${ASSET_ROOT}/characters/generic-player.png`;
-  const EQUIPMENT_VISUAL_ROOT = `${ASSET_ROOT}/equipment-layers`;
+  const EQUIPMENT_ATLAS_ROOT = `${ASSET_ROOT}/equipment-atlases`;
   const CHARACTER_SLOT_PEDESTAL_ASSET = `${ASSET_ROOT}/ui/character-slot-pedestal.png`;
   const LEVEL_CAP = null;
   const SPECIALIZATION_LEVEL = 60;
@@ -40,7 +40,10 @@
   });
 
   const CLASS_ASSETS = Object.freeze(Object.keys(CLASS_FILE_IDS).reduce((assets, classId) => {
-    assets[classId] = `${ASSET_ROOT}/characters/${CLASS_FILE_IDS[classId]}.png`;
+    // The generated class portraits are currently byte-identical. Point every
+    // class at the shared file until class-specific art is authored so the
+    // browser only transfers and decodes one copy.
+    assets[classId] = GENERIC_PLAYER_ASSET;
     return assets;
   }, {}));
 
@@ -205,7 +208,7 @@
     ADVANCED_SKILL_ICON_ROOT,
     CARD_ICON_ROOT,
     GENERIC_PLAYER_ASSET,
-    EQUIPMENT_VISUAL_ROOT,
+    EQUIPMENT_ATLAS_ROOT,
     CHARACTER_SLOT_PEDESTAL_ASSET,
     LEVEL_CAP,
     SPECIALIZATION_LEVEL,

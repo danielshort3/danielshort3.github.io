@@ -1970,9 +1970,29 @@
       bottom: calc(142px + env(safe-area-inset-bottom));
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 768px) {
+      body.is-hangar.has-mobile-site-masthead {
+        --stellar-hangar-top-clearance: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + var(--page-pad));
+        padding-top: var(--stellar-hangar-top-clearance);
+      }
+
+      body.is-hangar.has-mobile-site-dock {
+        --stellar-hangar-bottom-clearance: var(--mobile-site-dock-clearance, calc(88px + env(safe-area-inset-bottom, 0px)));
+        padding-bottom: var(--stellar-hangar-bottom-clearance);
+      }
+
+      body.is-hangar.has-mobile-site-masthead.has-mobile-site-dock .mission-shell {
+        height: calc(var(--viewport-height) - var(--stellar-hangar-top-clearance) - var(--stellar-hangar-bottom-clearance));
+      }
+
+      body.is-playing .mobile-site-masthead,
       body.is-playing .mobile-site-dock {
         display: none;
+      }
+
+      body.is-playing.has-mobile-site-masthead,
+      body.is-playing.has-mobile-site-dock {
+        padding: 0;
       }
 
       body.is-playing.has-mobile-site-dock {

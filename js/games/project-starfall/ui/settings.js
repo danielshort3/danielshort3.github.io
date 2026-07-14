@@ -33,7 +33,7 @@
     { id: 'ultra', label: 'Ultra', width: 1920, height: 1080 }
   ]);
   const FRAME_RATE_LIMIT_OPTIONS = Object.freeze([60, 120, 240, 0]);
-  const DEFAULT_FRAME_RATE_LIMIT = 120;
+  const DEFAULT_FRAME_RATE_LIMIT = 60;
   const DEFAULT_USER_SETTINGS = Object.freeze({
     video: Object.freeze({ viewportPreset: 'standard', width: 1280, height: 806, hudScale: 1, frameRateLimit: DEFAULT_FRAME_RATE_LIMIT }),
     audio: Object.freeze({ sfxEnabled: false, sfxVolume: 0.42, musicEnabled: false, musicVolume: 0.25 }),

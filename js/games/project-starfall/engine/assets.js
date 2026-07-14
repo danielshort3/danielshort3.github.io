@@ -53,6 +53,31 @@
     };
   }
 
+  function makeEquipmentAtlasPreviewAnimation(atlas) {
+    if (!atlas || !atlas.sheet) return null;
+    const frameCount = Math.max(1, Array.isArray(atlas.angles) ? atlas.angles.length : 8);
+    const variants = Array.isArray(atlas.variants) && atlas.variants.length
+      ? atlas.variants
+      : ['default'];
+    const states = variants.reduce((result, variant, row) => {
+      const id = normalizeId(variant) || `variant${row + 1}`;
+      result[id] = {
+        row,
+        frames: frameCount,
+        fps: 4,
+        loop: true,
+        loopDelay: 0.25
+      };
+      return result;
+    }, {});
+    return {
+      sheet: atlas.sheet,
+      frameWidth: Math.max(1, Number(atlas.frameWidth || 128) || 128),
+      frameHeight: Math.max(1, Number(atlas.frameHeight || atlas.frameWidth || 128) || 128),
+      states
+    };
+  }
+
   function normalizeAssetSourceType(value) {
     return normalizeId(value).toLowerCase() === 'procedural' ? 'procedural' : 'ai';
   }
@@ -321,7 +346,20 @@
         tags: ['pet', 'companion']
       });
     }
-    Object.entries(source.EQUIPMENT_VISUALS || {}).forEach(([id, visual]) => collector.add({ path: visual && visual.animation && visual.animation.sheet, label: `${visual.name || id} equipment visual`, category: 'Equipment', kind: 'animation', animation: visual && visual.animation, sourceId: id, sourceType: 'procedural', tags: [visual && visual.layer] }));
+    Object.entries(source.EQUIPMENT_VISUALS || {}).forEach(([id, visual]) => {
+      const atlasAnimation = makeEquipmentAtlasPreviewAnimation(visual && visual.atlas);
+      const animation = atlasAnimation || visual && visual.animation;
+      collector.add({
+        path: animation && animation.sheet,
+        label: `${visual && visual.name || id} equipment visual`,
+        category: 'Equipment',
+        kind: 'animation',
+        animation,
+        sourceId: id,
+        sourceType: 'procedural',
+        tags: [visual && visual.layer, visual && visual.kind, atlasAnimation ? 'atlas' : 'sheet']
+      });
+    });
     Object.entries(source.ENEMY_ANIMATION_ASSETS || {}).forEach(([id, animation]) => collector.add({ path: animation && animation.sheet, label: `${id} enemy animation`, category: 'Enemies', kind: 'animation', animation, sourceId: id, sourceType: 'ai' }));
     Object.entries(source.ENEMY_PROJECTILE_ANIMATION_ASSETS || {}).forEach(([id, animation]) => collector.add({ path: animation && animation.sheet, label: `${id} enemy projectile`, category: 'Enemies', kind: 'animation', animation, sourceId: id, sourceType: 'ai', tags: ['projectile'] }));
     (source.ENEMIES || []).forEach((enemy) => {
@@ -360,6 +398,7 @@
   const api = {
     formatAssetPreviewLabel,
     getAnimationPreviewMeta,
+    makeEquipmentAtlasPreviewAnimation,
     normalizeAssetSourceType,
     getAssetPreviewSourceLabel,
     getAssetBackupPath,

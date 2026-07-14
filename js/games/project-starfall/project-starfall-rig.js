@@ -795,7 +795,7 @@
     const elapsed = Math.max(0, Number(settings.elapsed) || 0);
     const equipment = settings.equipment || {};
     const visuals = {
-      weapon: equipmentVisual(rig, equippedItem(equipment, 'weapon'), rig.equipmentVisuals && rig.equipmentVisuals.training_sword),
+      weapon: equipmentVisual(rig, equippedItem(equipment, 'weapon')),
       offhand: equipmentVisual(rig, equippedItem(equipment, 'offhand')),
       chest: equipmentVisual(rig, equippedItem(equipment, 'chest')),
       boots: equipmentVisual(rig, equippedItem(equipment, 'boots')),

@@ -3,6 +3,10 @@
 
   const ONBOARDING_STEPS = Object.freeze([
     Object.freeze({ id: 'choose_class', event: 'classSelected', title: 'Choose a class', summary: 'Pick Fighter, Mage, or Archer to enter Starfall Crossing.' }),
+    Object.freeze({ id: 'learn_move', event: 'move', title: 'Move through town', summary: 'Use the arrow keys or WASD to move. You can change either movement binding in Keybinds.' }),
+    Object.freeze({ id: 'learn_jump', event: 'jump', title: 'Practice jumping', summary: 'Press Space to jump onto platforms and clear low obstacles.' }),
+    Object.freeze({ id: 'learn_attack', event: 'attack', title: 'Practice a basic attack', summary: 'Press J or Left Shift to use your equipped weapon.' }),
+    Object.freeze({ id: 'learn_interact', event: 'interact', title: 'Use an interaction', summary: 'Press F at a station, Y near an NPC, or Up/W at a portal.' }),
     Object.freeze({ id: 'open_worldmap', event: 'openPanel', panelId: 'worldmap', title: 'Check the world map', summary: 'Open the world map to see the current route and nearby areas.' }),
     Object.freeze({ id: 'travel_greenroot', event: 'travel', mapId: 'greenrootMeadow', title: 'Travel to Greenroot', summary: 'Use the Greenroot Gate or world map to enter the first field.' }),
     Object.freeze({ id: 'defeat_enemy', event: 'defeat', title: 'Defeat an enemy', summary: 'Use basic attacks or a bound skill to defeat a field enemy.' }),

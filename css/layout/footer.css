@@ -289,7 +289,7 @@
     }
     .footer.footer-classic .footer-col{
       grid-template-columns:1fr;
-      gap:1px;
+      gap:4px;
     }
     .footer.footer-classic .footer-col-title{
       margin-bottom:2px;
@@ -304,6 +304,9 @@
     .footer.footer-classic .footer-link{
       justify-content:flex-start;
       text-align:left;
+      box-sizing:border-box;
+      min-height:44px;
+      padding-block:6px;
     }
     .footer.footer-classic .footer-bottom{
       gap:.36rem;
@@ -311,7 +314,10 @@
     }
     .footer.footer-classic .footer-utility{
       display:flex;
-      gap:.2rem .86rem;
+      gap:.3rem .86rem;
+    }
+    .footer.footer-classic .footer-utility .footer-link{
+      min-height:44px;
     }
     .footer.footer-classic .footer-meta{
       padding-top:0;

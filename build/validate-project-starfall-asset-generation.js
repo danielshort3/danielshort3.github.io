@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const sharp = require('sharp');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -66,6 +67,30 @@ async function assertImage(filePath, expected, label) {
   return metadata;
 }
 
+function cellVisibleAlpha(raw, sheetWidth, cellSize, row, column, threshold) {
+  const x0 = column * cellSize;
+  const y0 = row * cellSize;
+  let visible = 0;
+  for (let y = 0; y < cellSize; y += 1) {
+    for (let x = 0; x < cellSize; x += 1) {
+      if (raw[(((y0 + y) * sheetWidth) + x0 + x) * 4 + 3] > threshold) visible += 1;
+    }
+  }
+  return visible;
+}
+
+function cellEdgeHasAlpha(raw, sheetWidth, cellSize, row, column, threshold) {
+  const x0 = column * cellSize;
+  const y0 = row * cellSize;
+  for (let offset = 0; offset < cellSize; offset += 1) {
+    if (raw[((y0 * sheetWidth) + x0 + offset) * 4 + 3] > threshold) return true;
+    if (raw[(((y0 + cellSize - 1) * sheetWidth) + x0 + offset) * 4 + 3] > threshold) return true;
+    if (raw[(((y0 + offset) * sheetWidth) + x0) * 4 + 3] > threshold) return true;
+    if (raw[(((y0 + offset) * sheetWidth) + x0 + cellSize - 1) * 4 + 3] > threshold) return true;
+  }
+  return false;
+}
+
 function itemIconFileName(itemId) {
   return `${String(itemId || '').replace(/_/g, '-')}.png`;
 }
@@ -107,19 +132,73 @@ async function validatePlayers(manifest, data) {
   }
 }
 
-async function validateEquipmentLayers(manifest, data) {
-  const contract = manifest.contracts.equipmentLayers;
+async function validateEquipmentAtlases(manifest, data) {
+  const contract = manifest.contracts.equipmentAtlases;
+  const attachments = require(path.join(ROOT, 'js/games/project-starfall/engine/equipment-attachments.js'));
   const visuals = Object.values(data.EQUIPMENT_VISUALS || {});
-  assert(visuals.length > 0, 'Project Starfall equipment visuals should be populated');
+  assert(visuals.length === contract.visualCount,
+    `Project Starfall should expose ${contract.visualCount} equipment visuals, got ${visuals.length}`);
+
+  const expectedFiles = new Set();
   for (const visual of visuals) {
-    assert(visual.animation && String(visual.animation.sheet || '').startsWith(`${contract.folder}/`),
-      `${visual.id || 'equipment visual'} should use the equipment-layer folder`);
-    await assertImage(visual.animation.sheet, {
-      width: contract.sheetWidth,
-      height: contract.sheetHeight,
+    const atlas = visual && visual.atlas;
+    const label = visual && visual.id || 'equipment visual';
+    assert(visual && visual.renderMode === 'atlas', `${label} should use atlas rendering`);
+    assert(atlas && String(atlas.sheet || '').startsWith(`${contract.folder}/`),
+      `${label} should use the equipment-atlas folder`);
+    assert(atlas.frameWidth === contract.cellSize && atlas.frameHeight === contract.cellSize,
+      `${label} atlas cells should be ${contract.cellSize}x${contract.cellSize}`);
+    assert(atlas.pivotX === contract.cellSize / 2 && atlas.pivotY === contract.cellSize / 2,
+      `${label} atlas should use the centered ${contract.cellSize / 2}px pivot`);
+
+    const kind = String(atlas.kind || visual.kind || '').toLowerCase();
+    assert(kind && kind === String(visual.kind || '').toLowerCase(),
+      `${label} atlas kind should match its visual kind`);
+    const expectedAngles = attachments.getEquipmentAngleSet(kind);
+    assert(expectedAngles.length === contract.angleCount,
+      `${label} shared angle set should contain ${contract.angleCount} angles`);
+    assertArrayEquals(atlas.angles || [], expectedAngles, `${label} atlas angles`);
+
+    const expectedVariants = kind === 'bow' ? contract.bowVariants : contract.defaultVariants;
+    assertArrayEquals(atlas.variants || [], expectedVariants, `${label} atlas variants`);
+    const expectedWidth = contract.cellSize * contract.columns;
+    const expectedHeight = contract.cellSize * expectedVariants.length;
+    assert(expectedWidth === contract.sheetWidth, 'Equipment atlas manifest sheet width is internally inconsistent');
+    assert(expectedHeight === (kind === 'bow' ? contract.bowSheetHeight : contract.defaultSheetHeight),
+      `${label} equipment atlas manifest height is internally inconsistent`);
+
+    const expectedPath = `${contract.folder}/${visual.fileId}-atlas.png`;
+    assert(atlas.sheet === expectedPath, `${label} atlas should use ${expectedPath}`);
+    expectedFiles.add(path.basename(expectedPath));
+    await assertImage(atlas.sheet, {
+      width: expectedWidth,
+      height: expectedHeight,
       alpha: true
-    }, `${visual.id || visual.animation.sheet} equipment layer sheet`);
+    }, `${label} equipment atlas`);
+
+    const decoded = await sharp(fullPath(atlas.sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let row = 0; row < expectedVariants.length; row += 1) {
+      for (let column = 0; column < contract.columns; column += 1) {
+        const cellLabel = `${label} ${expectedVariants[row]} angle ${atlas.angles[column]}`;
+        assert(cellVisibleAlpha(decoded.data, decoded.info.width, contract.cellSize, row, column, contract.alphaThreshold) >= contract.minimumVisiblePixelsPerCell,
+          `${cellLabel} should not be empty`);
+        if (contract.transparentCellEdges) {
+          assert(!cellEdgeHasAlpha(decoded.data, decoded.info.width, contract.cellSize, row, column, contract.alphaThreshold),
+            `${cellLabel} should not touch a cell edge`);
+        }
+      }
+    }
   }
+
+  assert(expectedFiles.size === contract.visualCount,
+    `Project Starfall equipment visuals should map to ${contract.visualCount} unique atlas files`);
+  const actualFiles = fs.readdirSync(fullPath(contract.folder)).filter((file) => file.endsWith('-atlas.png')).sort();
+  const missingFiles = Array.from(expectedFiles).filter((file) => !actualFiles.includes(file));
+  const unexpectedFiles = actualFiles.filter((file) => !expectedFiles.has(file));
+  assert(!missingFiles.length && !unexpectedFiles.length && actualFiles.length === contract.visualCount,
+    `Equipment atlas folder should contain exactly ${contract.visualCount} registered files` +
+      `${missingFiles.length ? `; missing ${missingFiles.join(', ')}` : ''}` +
+      `${unexpectedFiles.length ? `; unexpected ${unexpectedFiles.join(', ')}` : ''}`);
 }
 
 async function validateEnemies(manifest, data) {
@@ -176,13 +255,21 @@ async function validateFx(manifest, data) {
 
   const enemyFxContract = manifest.contracts.enemyCombatFx;
   assertArrayEquals(data.ENEMY_COMBAT_FX_ANIMATION_ROWS || [], enemyFxContract.rows, 'Enemy combat FX animation rows');
+  const enemyFxHashes = new Map();
   for (const [id, animation] of Object.entries(data.ENEMY_COMBAT_FX_ANIMATION_ASSETS || {})) {
     await assertImage(animation.sheet, {
       width: enemyFxContract.sheetWidth,
       height: enemyFxContract.sheetHeight,
       alpha: true
     }, `${id} enemy combat FX sheet`);
+    const pixels = await sharp(fullPath(animation.sheet)).ensureAlpha().raw().toBuffer();
+    const digest = crypto.createHash('sha256').update(pixels).digest('hex');
+    assert(!enemyFxHashes.has(digest),
+      `${id} enemy combat FX sheet duplicates ${enemyFxHashes.get(digest) || 'another enemy'} at the rendered-pixel level`);
+    enemyFxHashes.set(digest, id);
   }
+  assert(enemyFxHashes.size === Object.keys(data.ENEMY_COMBAT_FX_ANIMATION_ASSETS || {}).length,
+    'Every enemy combat FX sheet should have a unique file digest');
 
   const projectileContract = manifest.contracts.enemyProjectiles;
   for (const [id, animation] of Object.entries(data.ENEMY_PROJECTILE_ANIMATION_ASSETS || {})) {
@@ -397,7 +484,7 @@ async function validateManifest() {
 
   const requiredContractKeys = [
     'players',
-    'equipmentLayers',
+    'equipmentAtlases',
     'enemies',
     'enemyProjectiles',
     'globalFx',
@@ -421,7 +508,7 @@ async function validateManifest() {
   });
 
   await validatePlayers(manifest, data);
-  await validateEquipmentLayers(manifest, data);
+  await validateEquipmentAtlases(manifest, data);
   await validateEnemies(manifest, data);
   await validateFx(manifest, data);
   await validateItemsAndCards(manifest, data);
@@ -448,4 +535,3 @@ validateManifest().catch((error) => {
   console.error(error && error.stack || error);
   process.exitCode = 1;
 });
-

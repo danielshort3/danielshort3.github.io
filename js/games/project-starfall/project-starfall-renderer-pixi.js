@@ -4,6 +4,7 @@
   const CoreMath = (typeof require === 'function' ? require('./core/math.js') : null) || global.ProjectStarfallCore || {};
   const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
+  const EngineVisuals = (typeof require === 'function' ? require('./engine/visuals.js') : null) || global.ProjectStarfallEngineModules && global.ProjectStarfallEngineModules.visuals || {};
   const hashString = CoreMath.hashString || function hashStringFallback(value) {
     const text = String(value || '');
     let hash = 2166136261;
@@ -72,12 +73,23 @@
   const MAP_BACKGROUND_PARALLAX = 0.42;
   const MAP_BACKGROUND_TILE_OVERLAP_PX = 2;
   const FRAME_TEXTURE_CACHE_LIMIT = 420;
+  const BASE_TEXTURE_CACHE_LIMIT = 256;
   const TRIMMED_TEXTURE_CACHE_LIMIT = 520;
   const COMPOSITE_TEXTURE_CACHE_LIMIT = 180;
   const RIG_TEXTURE_CACHE_LIMIT = 220;
   const ENVIRONMENT_TEXTURE_CACHE_LIMIT = 360;
   const MAP_SCENERY_PLACEMENT_CACHE_LIMIT = 24;
   const ASSET_FRAME_CACHE_LIMIT = CoreAssets.DEFAULT_ASSET_FRAME_CACHE_LIMIT || 512;
+  const PLAYER_SPRITE_REGISTRATION = EngineVisuals.PLAYER_SPRITE_REGISTRATION || Object.freeze({
+    originX: 80,
+    groundY: 154,
+    authoredBodyHeight: 143
+  });
+  const ENEMY_SPRITE_REGISTRATION = EngineVisuals.ENEMY_SPRITE_REGISTRATION || Object.freeze({
+    originX: 64,
+    groundY: 118,
+    authoredBodyHeight: 102
+  });
   const assetFrameCache = new Map();
   const MAP_DERIVED_CACHE_PATHS = Object.freeze([
     'img/project-starfall/maps/',
@@ -232,6 +244,7 @@
       this.width = 0;
       this.height = 0;
       this.resolution = 1;
+      this.baseTextureCacheLimit = BASE_TEXTURE_CACHE_LIMIT;
       this.textures = new Map();
       this.frameTextures = new Map();
       this.compositeTextures = new Map();
@@ -278,15 +291,118 @@
 
     setCacheValue(cache, key, value, limit) {
       if (!cache || !key || !value) return value;
-      if (cache.has(key)) cache.delete(key);
+      if (cache.has(key)) {
+        if (cache.get(key) === value) cache.delete(key);
+        else this.deleteCacheValue(cache, key);
+      }
       cache.set(key, value);
       const maxSize = Math.max(1, Number(limit || 0));
       while (cache.size > maxSize) {
         const oldest = cache.keys().next().value;
         if (oldest == null) break;
-        cache.delete(oldest);
+        this.deleteCacheValue(cache, oldest);
       }
       return value;
+    }
+
+    destroyTexture(texture, destroySource) {
+      const whiteTexture = this.PIXI && this.PIXI.Texture && this.PIXI.Texture.WHITE;
+      if (!texture || texture === whiteTexture || typeof texture.destroy !== 'function') return false;
+      try {
+        texture.destroy(!!destroySource);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    releaseCacheValue(cache, value) {
+      if (!value) return false;
+      if (cache === this.mapSceneryPlacementCache) return false;
+      if (cache === this.compositeTextures || cache === this.rigTextures) {
+        return this.destroyTexture(value.texture || value, true);
+      }
+      if (cache === this.trimmedTextures) {
+        return value.canvas ? this.destroyTexture(value.texture || value, true) : false;
+      }
+      if (cache === this.runtimeTextures) return this.destroyTexture(value.texture || value, true);
+      if (cache === this.frameTextures || cache === this.environmentTextures) {
+        return this.destroyTexture(value.texture || value, false);
+      }
+      return false;
+    }
+
+    deleteCacheValue(cache, key) {
+      if (!cache || !cache.has(key)) return false;
+      const value = cache.get(key);
+      cache.delete(key);
+      this.releaseCacheValue(cache, value);
+      return true;
+    }
+
+    clearOwnedCache(cache) {
+      if (!cache || typeof cache.keys !== 'function') return;
+      Array.from(cache.keys()).forEach((key) => this.deleteCacheValue(cache, key));
+    }
+
+    releaseBaseTexture(path, texture) {
+      const src = String(path || '').trim();
+      if (!src || !texture) return false;
+      const shared = Array.from(this.textures.entries()).some(([otherPath, otherTexture]) => otherPath !== src && otherTexture === texture);
+      if (shared) return false;
+      const assets = this.PIXI && this.PIXI.Assets;
+      if (assets && typeof assets.unload === 'function') {
+        try {
+          const result = assets.unload(src);
+          if (result && typeof result.catch === 'function') result.catch(() => undefined);
+          return true;
+        } catch {
+          // Fall through to direct destruction for renderer-owned fallback textures.
+        }
+      }
+      return this.destroyTexture(texture, true);
+    }
+
+    deleteBaseTexture(path) {
+      if (!this.textures.has(path)) return false;
+      const texture = this.textures.get(path);
+      this.textures.delete(path);
+      this.releaseBaseTexture(path, texture);
+      return true;
+    }
+
+    pruneTextureDerivativesForAsset(assetPath) {
+      const path = String(assetPath || '').trim();
+      if (!path) return 0;
+      let pruned = 0;
+      [this.trimmedTextures, this.compositeTextures, this.frameTextures, this.environmentTextures].forEach((cache) => {
+        Array.from(cache.keys()).forEach((key) => {
+          if (!String(key || '').includes(path)) return;
+          if (this.deleteCacheValue(cache, key)) pruned += 1;
+        });
+      });
+      return pruned;
+    }
+
+    setBaseTextureValue(path, texture, limit) {
+      const src = String(path || '').trim();
+      if (!src || !texture) return texture;
+      if (this.textures.has(src)) {
+        if (this.textures.get(src) === texture) this.textures.delete(src);
+        else {
+          this.pruneTextureDerivativesForAsset(src);
+          this.deleteBaseTexture(src);
+        }
+      }
+      this.textures.set(src, texture);
+      const maxSize = Math.max(1, Number(limit || this.baseTextureCacheLimit || BASE_TEXTURE_CACHE_LIMIT));
+      while (this.textures.size > maxSize) {
+        const oldest = this.textures.keys().next().value;
+        if (oldest == null) break;
+        this.pruneTextureDerivativesForAsset(oldest);
+        this.deleteBaseTexture(oldest);
+      }
+      return texture;
     }
 
     normalizeRetainedAssetPaths(assetPaths) {
@@ -315,7 +431,7 @@
       Array.from(cache.keys()).forEach((key) => {
         if (!this.isMapDerivedCacheKey(key)) return;
         if (this.cacheKeyHasRetainedAsset(key, retainedAssets)) return;
-        cache.delete(key);
+        this.deleteCacheValue(cache, key);
         pruned += 1;
       });
       return pruned;
@@ -341,15 +457,21 @@
       const trimmedTextures = this.pruneCacheByRetainedAssets(this.trimmedTextures, retainedAssets);
       const compositeTextures = this.pruneCacheByRetainedAssets(this.compositeTextures, retainedAssets);
       const environmentTextures = this.pruneCacheByRetainedAssets(this.environmentTextures, retainedAssets);
+      let baseTextures = 0;
+      Array.from(this.textures.keys()).forEach((path) => {
+        if (!this.isMapDerivedCacheKey(path) || retainedAssets.has(path)) return;
+        if (this.deleteBaseTexture(path)) baseTextures += 1;
+      });
       const idlePrewarmJobs = this.pruneIdlePrewarmQueue(retainedAssets);
       return {
         frameTextures,
         trimmedTextures,
         compositeTextures,
         environmentTextures,
+        baseTextures,
         idlePrewarmJobs,
         retainedAssetCount: retainedAssets.size,
-        totalPruned: frameTextures + trimmedTextures + compositeTextures + environmentTextures + idlePrewarmJobs
+        totalPruned: frameTextures + trimmedTextures + compositeTextures + environmentTextures + baseTextures + idlePrewarmJobs
       };
     }
 
@@ -758,7 +880,7 @@
           return this.PIXI.Texture.from(src);
         })
         .then((texture) => {
-          if (texture) this.textures.set(src, this.applyPixelArtTextureSettings(texture));
+          if (texture) this.setBaseTextureValue(src, this.applyPixelArtTextureSettings(texture));
           this.loadingTextures.delete(src);
           return texture || null;
         })
@@ -767,7 +889,7 @@
           const backupPath = this.getAssetBackupPath(src);
           if (!backupPath || backupPath === src) return null;
           return this.loadTexture(backupPath).then((texture) => {
-            if (texture) this.textures.set(src, texture);
+            if (texture) this.setBaseTextureValue(src, texture);
             return texture || null;
           });
         });
@@ -784,7 +906,11 @@
       const src = getAssetSourcePath(path);
       if (!src) return null;
       const texture = this.textures.get(src);
-      if (texture) return texture;
+      if (texture) {
+        this.textures.delete(src);
+        this.textures.set(src, texture);
+        return texture;
+      }
       this.loadTexture(src);
       return null;
     }
@@ -2357,6 +2483,20 @@
       const h = Number(portal.h || 118);
       const alpha = locked ? 0.62 : 1;
       graphics.ellipse(x + w / 2, y + h + 2, w * 0.58, 8).fill({ color: 0x091f3b, alpha: 0.28 * alpha });
+      const facadeW = Math.max(w, Number(portal.facadeWidth || 154));
+      const facadeH = Math.max(h, Number(portal.facadeHeight || 142));
+      const facadeDrawn = this.drawEnvironmentStructureCell(
+        portal.facadeCell || 'marketAwning',
+        x + w / 2 - facadeW / 2,
+        y + h - facadeH,
+        facadeW,
+        facadeH,
+        { alpha }
+      );
+      if (facadeDrawn) {
+        this.renderPortalLabel(graphics, portal, runtime, snapshot, locked, palette[2]);
+        return;
+      }
       graphics.rect(x + 6, y + 22, w - 12, h - 20).fill({ color: palette[0], alpha });
       graphics
         .moveTo(x + 2, y + 28)
@@ -2403,6 +2543,13 @@
         const accent = colorToNumber(npc.accent, 0xffd166);
         const cx = npc.x + npc.w / 2;
         graphics.ellipse(cx, npc.y + npc.h - 2, npc.w * 0.62, 5).fill({ color: 0x091f3b, alpha: 0.34 });
+        const npcTexture = this.getTexture(npc.asset);
+        if (npcTexture && this.drawActorTexture(npcTexture, npc, {
+          key: `quest-npc:${npc.asset}`,
+          kind: 'party'
+        })) {
+          return;
+        }
         graphics.rect(npc.x + 6, npc.y + 22, npc.w - 12, npc.h - 28).fill({ color, alpha: 1 });
         graphics.rect(npc.x + 8, npc.y + 30, npc.w - 16, 8).fill({ color: accent, alpha: 1 });
         graphics.circle(cx, npc.y + 15, npc.w * 0.33).fill({ color: 0xf3d4b2, alpha: 1 });
@@ -2750,6 +2897,7 @@
       (snapshot.partyMembers || []).forEach((member) => {
         if (!member) return;
         const box = { x: member.x, y: member.y, w: member.w, h: member.h };
+        this.renderActorAtlasLayers(member, box, 1, true);
         if (!this.renderActorComposite(member, box, 1) && !this.renderActorSprite(member, box, 1) && !this.renderActorRig(member, box, 1)) {
           this.frameStats.actorFallbacks += 1;
           this.drawSolidRect('entities', member.x + member.w * 0.1, member.y + member.h * 0.24, member.w * 0.8, member.h * 0.54, {
@@ -2761,6 +2909,7 @@
             alpha: 1
           });
         }
+        this.renderActorAtlasLayers(member, box, 1, false);
         const ratio = clamp(Number(member.hp || 0) / Math.max(1, Number(member.maxHp || 1)), 0, 1);
         this.drawSolidRect('damage', member.x + 3, member.y - 11, member.w - 6, 4, { tint: 0x091f3b, alpha: 0.55 });
         this.drawSolidRect('damage', member.x + 3, member.y - 11, (member.w - 6) * ratio, 4, { tint: 0x68d58d, alpha: 1 });
@@ -2800,6 +2949,7 @@
       const player = snapshot.player;
       if (!player || !player.visible) return;
       const box = { x: player.x, y: player.y, w: player.w, h: player.h };
+      this.renderActorAtlasLayers(player, box, 1, true);
       let playerDrawn = this.renderActorComposite(player, box, 1);
       if (!playerDrawn) playerDrawn = this.renderActorSprite(player, box, 1);
       if (!playerDrawn) playerDrawn = this.renderActorRig(player, box, 1);
@@ -2816,9 +2966,56 @@
         this.drawSolidRect('entities', player.x + player.w * 0.08, player.y + player.h * 0.74, player.w * 0.3, player.h * 0.24, { tint: 0x263547, alpha: 1 });
         this.drawSolidRect('entities', player.x + player.w * 0.62, player.y + player.h * 0.74, player.w * 0.3, player.h * 0.24, { tint: 0x263547, alpha: 1 });
       }
+      this.renderActorAtlasLayers(player, box, 1, false);
       if (player.shield > 0) {
         this.drawShape('damage', 'ring', player.x + player.w / 2, player.y + player.h / 2, 60, 88, { tint: 0x68a9ff, alpha: 0.65 });
       }
+    }
+
+    renderActorAtlasLayers(actor, box, alpha, behindActor) {
+      if (!actor || !box) return 0;
+      const layers = Array.isArray(actor.equipmentLayers) ? actor.equipmentLayers : [];
+      const registration = PLAYER_SPRITE_REGISTRATION;
+      const authoredBodyHeight = Math.max(1, Number(registration.authoredBodyHeight || 143));
+      const bodyScale = Math.max(0.01, Number(box.h || 0) / authoredBodyHeight);
+      const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : 80;
+      const groundY = Number.isFinite(Number(registration.groundY)) ? Number(registration.groundY) : 154;
+      const facing = Number(actor.facing || 1) < 0 ? -1 : 1;
+      let drawn = 0;
+      layers.forEach((layer) => {
+        const part = layer && layer.atlasPart;
+        if (!part || !part.frame || !part.socket || !part.pivot) return;
+        if ((Number(layer.order || 0) < 0) !== !!behindActor) return;
+        const frame = part.frame;
+        const texture = this.getFrameTexture(frame);
+        if (texture) {
+          const frameWidth = Math.max(1, Number(frame.frameWidth || texture.width || 128));
+          const frameHeight = Math.max(1, Number(frame.frameHeight || texture.height || frameWidth));
+          const scaleX = Math.max(0.05, Number(part.scaleX || 1));
+          const scaleY = Math.max(0.05, Number(part.scaleY || 1));
+          const worldX = Number(box.x || 0) + Number(box.w || 0) / 2 + facing * (Number(part.socket.x || 0) - originX) * bodyScale;
+          const worldY = Number(box.y || 0) + Number(box.h || 0) + (Number(part.socket.y || 0) - groundY) * bodyScale;
+          if (this.drawTexture('entities', texture, worldX, worldY, frameWidth * bodyScale * scaleX, frameHeight * bodyScale * scaleY, {
+            alpha,
+            anchorX: Number(part.pivot.x || 0) / frameWidth,
+            anchorY: Number(part.pivot.y || 0) / frameHeight,
+            flipX: facing < 0
+          })) {
+            drawn += 1;
+          }
+          return;
+        }
+        const fallbackTexture = this.getFrameTexture(layer.fallbackFrame);
+        if (fallbackTexture && this.drawActorTexture(fallbackTexture, box, {
+          alpha,
+          flipX: facing < 0,
+          kind: actor.kind || '',
+          registration
+        })) {
+          drawn += 1;
+        }
+      });
+      return drawn;
     }
 
     getActorCompositeFrames(actor) {
@@ -2870,11 +3067,13 @@
       const compositeKey = this.getCompositeFrameTextureKey(frames);
       const compositeTexture = this.getCompositeFrameTexture(frames, compositeKey);
       if (!compositeTexture) return false;
+      const kind = String(actor.kind || '');
       return this.drawActorTexture(compositeTexture, box, {
         alpha,
         flipX: Number(actor.facing || 1) < 0,
         key: `composite:${compositeKey}`,
-        kind: actor.kind || ''
+        kind,
+        registration: kind === 'player' || kind === 'party' ? PLAYER_SPRITE_REGISTRATION : null
       });
     }
 
@@ -3143,13 +3342,17 @@
     renderActorSprite(actor, box, alpha) {
       const frameTexture = this.getFrameTexture(actor.animationFrame);
       if (frameTexture) {
+        const kind = String(actor.kind || '');
         return this.drawActorTexture(frameTexture, box, {
           alpha,
           flipX: Number(actor.facing || 1) < 0,
           key: `frame:${this.getFrameTextureKey(actor.animationFrame)}`,
-          kind: actor.kind || '',
+          kind,
           airborne: actor.behavior === 'flyer',
-          trim: actor.kind !== 'enemy'
+          trim: actor.kind !== 'enemy',
+          registration: kind === 'enemy'
+            ? ENEMY_SPRITE_REGISTRATION
+            : kind === 'player' || kind === 'party' ? PLAYER_SPRITE_REGISTRATION : null
         });
       }
       const assetTexture = this.getTexture(actor.asset);
@@ -3166,6 +3369,29 @@
     drawActorTexture(texture, box, options) {
       if (!texture || !box) return false;
       const settings = options || {};
+      const registration = settings.registration;
+      if (registration) {
+        const contentW = Math.max(1, Number(texture.width || 1));
+        const contentH = Math.max(1, Number(texture.height || 1));
+        const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : 80;
+        const groundY = Number.isFinite(Number(registration.groundY)) ? Number(registration.groundY) : 154;
+        const authoredBodyHeight = Math.max(1, Number(registration.authoredBodyHeight) || 143);
+        const scale = Math.max(0.01, Number(box.h || 0) / authoredBodyHeight);
+        return this.drawTexture(
+          'entities',
+          texture,
+          Number(box.x || 0) + Number(box.w || 0) / 2,
+          Number(box.y || 0) + Number(box.h || 0),
+          contentW * scale,
+          contentH * scale,
+          {
+            alpha: settings.alpha,
+            flipX: !!settings.flipX,
+            anchorX: originX / contentW,
+            anchorY: groundY / contentH
+          }
+        );
+      }
       const display = settings.trim === false
         ? { texture, width: Math.max(1, Number(texture.width || 1)), height: Math.max(1, Number(texture.height || 1)) }
         : this.getTrimmedTexture(texture, settings.key) || { texture };
@@ -3249,16 +3475,18 @@
       if (this.app && typeof this.app.destroy === 'function') {
         this.app.destroy(true);
       }
+      this.clearOwnedCache(this.compositeTextures);
+      this.clearOwnedCache(this.trimmedTextures);
+      this.clearOwnedCache(this.frameTextures);
+      this.clearOwnedCache(this.rigTextures);
+      this.clearOwnedCache(this.environmentTextures);
+      this.clearOwnedCache(this.runtimeTextures);
+      Array.from(this.textures.keys()).forEach((path) => this.deleteBaseTexture(path));
       this.idlePrewarmQueue = [];
       this.idlePrewarmKeys.clear();
       this.idlePrewarmScheduled = false;
-      this.compositeTextures.clear();
-      this.trimmedTextures.clear();
-      this.frameTextures.clear();
-      this.rigTextures.clear();
-      this.environmentTextures.clear();
       if (this.mapSceneryPlacementCache) this.mapSceneryPlacementCache.clear();
-      this.runtimeTextures.clear();
+      this.loadingTextures.clear();
       this.app = null;
       this.ready = false;
     }

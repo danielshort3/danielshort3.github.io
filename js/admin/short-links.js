@@ -3440,7 +3440,7 @@
 	          const errName = clicks.ttlError.name ? String(clicks.ttlError.name) : '';
 	          const errMsg = clicks.ttlError.message ? String(clicks.ttlError.message) : '';
 	          const compact = [errName, errMsg].filter(Boolean).join(': ');
-	          const clipped = compact.length > 140 ? `${compact.slice(0, 137)}â€¦` : compact;
+	          const clipped = compact.length > 140 ? `${compact.slice(0, 137)}…` : compact;
 	          if (clipped) bits.push(`TTL status error: ${clipped}.`);
 	        }
 	      } else {

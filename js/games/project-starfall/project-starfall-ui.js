@@ -1095,8 +1095,8 @@
   const VIEWPORT_PRESETS = getSettingsValue('VIEWPORT_PRESETS') || Object.freeze([
     { id: 'standard', label: 'Standard', width: 1280, height: 806 }
   ]);
-  const FRAME_RATE_LIMIT_OPTIONS = getSettingsValue('FRAME_RATE_LIMIT_OPTIONS') || Object.freeze([120]);
-  const DEFAULT_FRAME_RATE_LIMIT = getSettingsValue('DEFAULT_FRAME_RATE_LIMIT') || 120;
+  const FRAME_RATE_LIMIT_OPTIONS = getSettingsValue('FRAME_RATE_LIMIT_OPTIONS') || Object.freeze([60]);
+  const DEFAULT_FRAME_RATE_LIMIT = getSettingsValue('DEFAULT_FRAME_RATE_LIMIT') || 60;
   const DEFAULT_USER_SETTINGS = getSettingsValue('DEFAULT_USER_SETTINGS') || Object.freeze({
     video: Object.freeze({ viewportPreset: 'standard', width: 1280, height: 806, hudScale: 1, frameRateLimit: DEFAULT_FRAME_RATE_LIMIT }),
     audio: Object.freeze({ sfxEnabled: false, sfxVolume: 1, musicEnabled: false, musicVolume: 1 }),
@@ -5167,6 +5167,10 @@
       this.pendingUiRefreshFrame = 0;
       this.pendingCanvasDrawFrame = 0;
       this.pendingCanvasDrawForce = false;
+      this.pendingRunningCanvasDraw = false;
+      this.pendingRunningCanvasDrawForce = false;
+      this.pendingRunningCanvasDrawFrameId = -1;
+      this.canvasDrawRevision = 0;
       this.pendingCanvasHoverFrame = 0;
       this.pendingCanvasHoverPoint = null;
       this.windowDragStats = {
@@ -5237,6 +5241,7 @@
         keyup: (event) => this.handleKeyboard(event, false),
         blur: () => this.clearHoldInputs()
       };
+      this.fullscreenChangeHandler = () => this.handleFullscreenChange();
 	      this.pointerHandlers = {
 	        pointerdown: (event) => this.handlePointerDown(event),
 	        pointermove: (event) => this.handlePointerMove(event),
@@ -5808,6 +5813,9 @@
         window.addEventListener('beforeunload', () => this.saveActiveCharacter({ silent: true, force: true }));
         this.characterAutoSaveInterval = window.setInterval(() => this.saveActiveCharacter({ silent: true }), 5000);
       }
+      if (typeof document !== 'undefined' && document.addEventListener) {
+        document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
+      }
       this.render();
     }
 
@@ -5937,6 +5945,7 @@
     startPortalTransition(portalId) {
       const target = this.getPortalTransitionTarget(portalId);
       if (!target) return false;
+      this.recordControlOnboardingEvent(ACTION_BY_ID.interact || { id: 'interact', onboardingEvent: 'interact' });
       this.runMapTransition(target.mapId, target.label, () => this.engine.usePortal(target.portal.id));
       return true;
     }
@@ -8049,7 +8058,16 @@
         return;
       }
       if (this.handleQuestPromptKey(event, isDown)) return;
+      if (this.questPrompt) {
+        if (isDown && event.preventDefault) event.preventDefault();
+        return;
+      }
       if (this.handlePanelTabCycleKey(event, isDown)) return;
+      if (this.isModalOpen || this.isCommandOpen) {
+        if (this.shouldIgnoreGameKey(event.target)) return;
+        this.handleModalKey(event, isDown);
+        return;
+      }
       if (this.shouldIgnoreGameKey(event.target)) return;
       if (this.handleFixedMovementKey(event, isDown)) return;
       const code = event.code || '';
@@ -8073,10 +8091,15 @@
           });
           if (!dispatch.handled) return;
           if (dispatch.mode === 'hold') {
+            if (isDown && !event.repeat) {
+              this.recordControlOnboardingEvent(action);
+              if (dispatch.input === 'up') this.startPortalTransition();
+            }
             this.engine.setInput(dispatch.input, dispatch.inputValue);
             return;
           }
           if (dispatch.mode === 'attack') {
+            if (isDown && !event.repeat) this.recordControlOnboardingEvent(action);
             this.handleAttackKey(code, isDown, event);
             return;
           }
@@ -8084,14 +8107,22 @@
             this.handleSkillKey(action, code, isDown, event);
             return;
           }
-          if (dispatch.shouldTriggerAction) this.triggerKeybindAction(action);
+          if (dispatch.shouldTriggerAction) {
+            this.recordControlOnboardingEvent(action);
+            this.triggerKeybindAction(action);
+          }
           return;
         }
         if (action.type === 'hold') {
+          if (isDown && !event.repeat) {
+            this.recordControlOnboardingEvent(action);
+            if (action.input === 'up') this.startPortalTransition();
+          }
           this.engine.setInput(action.input, isDown);
           return;
         }
         if (action.action === 'attack') {
+          if (isDown && !event.repeat) this.recordControlOnboardingEvent(action);
           this.handleAttackKey(code, isDown, event);
           return;
         }
@@ -8099,8 +8130,21 @@
           this.handleSkillKey(action, code, isDown, event);
           return;
         }
-        if (isDown && !event.repeat) this.triggerKeybindAction(action);
+        if (isDown && !event.repeat) {
+          this.recordControlOnboardingEvent(action);
+          this.triggerKeybindAction(action);
+        }
       });
+    }
+
+    recordControlOnboardingEvent(action) {
+      const eventType = String(action && action.onboardingEvent || '');
+      if (!eventType || !this.engine || typeof this.engine.recordOnboardingEvent !== 'function') return false;
+      return !!this.engine.recordOnboardingEvent(eventType, {
+        actionId: action.id || '',
+        input: action.input || '',
+        action: action.action || ''
+      }, { silent: true });
     }
 
     handleAdminCommandInputKey(event, isDown) {
@@ -8162,23 +8206,23 @@
         });
         if (!metadata.handled) return false;
         if (metadata.shouldPreventDefault && event && event.preventDefault) event.preventDefault();
-        if (metadata.shouldTryEnterActivePortal && this.engine && this.engine.tryEnterActivePortal) {
-          this.engine.tryEnterActivePortal();
-        }
+        if (metadata.shouldTryEnterActivePortal) this.startPortalTransition();
         if (metadata.shouldSetInput) this.engine.setInput(metadata.input, metadata.inputValue);
         return true;
       }
       const input = FIXED_MOVEMENT_KEYS[event && event.code];
       if (!input) return false;
       if (event.preventDefault) event.preventDefault();
-      if (input === 'up' && isDown && !(event && event.repeat) && this.engine && this.engine.tryEnterActivePortal) {
-        this.engine.tryEnterActivePortal();
-      }
+      if (input === 'up' && isDown && !(event && event.repeat)) this.startPortalTransition();
       this.engine.setInput(input, isDown);
       return true;
     }
 
     handleEscapeMenuKey() {
+      if (this.isFocusModeActive && this.isFocusModeActive()) {
+        this.setFocusMode(false, 'Focus mode closed.');
+        return;
+      }
       const escapeMenuInputActionHelper = getInputHelper('getEscapeMenuInputAction');
       if (escapeMenuInputActionHelper) {
         const getEscapeState = (extra) => Object.assign({
@@ -10291,7 +10335,7 @@
 	    }
 
     handleModalKey(event, isDown) {
-      if (!isDown) return;
+      if (!isDown) return false;
       const code = event.code || '';
       const modalKeyboardInputMetadataHelper = getInputHelper('getModalKeyboardInputMetadata');
       if (modalKeyboardInputMetadataHelper) {
@@ -10304,40 +10348,41 @@
             actions: this.getActionsForCode(code)
           });
         }
-        if (!metadata.handled) return;
+        if (!metadata.handled) return false;
         if (metadata.shouldPreventDefault && event.preventDefault) event.preventDefault();
         if (metadata.shouldClosePanel) {
           this.closePanel();
-          return;
+          return true;
         }
         if (metadata.shouldFocusAdjacentControl) {
           this.focusAdjacentModalControl(metadata.focusDirection);
-          return;
+          return true;
         }
         if (metadata.shouldTriggerActions) {
           metadata.actions.forEach((action) => {
             this.triggerKeybindAction(action);
           });
         }
-        return;
+        return true;
       }
       if (code === 'Escape') {
         if (event.preventDefault) event.preventDefault();
         this.closePanel();
-        return;
+        return true;
       }
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(code)) {
         if (event.preventDefault) event.preventDefault();
         this.focusAdjacentModalControl(code === 'ArrowLeft' || code === 'ArrowUp' ? -1 : 1);
-        return;
+        return true;
       }
       const actions = this.getActionsForCode(code)
-        .filter((action) => action.type === 'panel' || ['save', 'load', 'reset', 'boost'].includes(action.action));
-      if (!actions.length) return;
+        .filter((action) => action.type === 'panel' || ['save', 'load', 'fullscreen'].includes(action.action));
+      if (!actions.length) return false;
       if (event.preventDefault) event.preventDefault();
       actions.forEach((action) => {
         if (!event.repeat) this.triggerKeybindAction(action);
       });
+      return true;
     }
 
     shouldIgnoreGameKey(target) {
@@ -13241,14 +13286,24 @@
       }
     }
 
+    isWorldwrightModeActive() {
+      return !!(
+        this.adminConsole && this.adminConsole.open &&
+        this.isModalOpen &&
+        (this.openWindows || []).includes('worldwright')
+      );
+    }
+
     handleAction(action) {
       return this.profileUiAction(`action:${action || 'unknown'}`, () => {
         let result = false;
         if (this.mapTransition && this.mapTransition.active) return false;
+        if (ACTION_BY_ID[action]) this.recordControlOnboardingEvent(ACTION_BY_ID[action]);
         if (action === 'menu') {
           this.toggleCommandPanel();
           return true;
         }
+        if (action === 'fullscreen') return this.toggleFullscreen();
         if (action === 'minimap') return this.toggleMinimapCompact();
         if (action === 'attack') result = this.engine.basicAttack();
         if (action === 'party') result = this.engine.usePartySkill();
@@ -13284,14 +13339,15 @@
         }
         if (action === 'save') result = this.saveActiveCharacter({ manual: true, silent: false, force: true });
         if (action === 'load') result = this.openCharacterSelect();
-        if (action === 'reset') {
-          result = this.deleteSelectedCharacter();
-          this.closePanel();
-        }
+        // Character deletion is intentionally available only through the named,
+        // visible character-select confirmation flow.
+        if (action === 'reset') return false;
         if (action === 'attunement') result = this.openPotentialPrompt('', { consumableId: 'potential_cube', allowEmpty: true });
         if (action === 'performanceDebug' && this.engine.cyclePerformanceDebugMode) result = this.engine.cyclePerformanceDebugMode();
         if (action === 'combatMetrics' && this.engine.toggleCombatMetricsPanel) result = this.engine.toggleCombatMetricsPanel();
-        if (action === 'boost') result = this.engine.grantPrototypeLevel(100);
+        if (action === 'boost' && this.isWorldwrightModeActive() && this.engine.grantPrototypeLevel) {
+          result = this.engine.grantPrototypeLevel(100);
+        }
         return result;
       });
     }
@@ -15117,6 +15173,7 @@
       this.ensureWindow(nextPanel);
       this.raiseWindow(nextPanel);
       if (!this.openWindows.includes(nextPanel)) this.openWindows.push(nextPanel);
+      this.clearHoldInputs();
       this.isModalOpen = true;
       if (this.engine && this.engine.recordOnboardingEvent) this.engine.recordOnboardingEvent('openPanel', { panelId: nextPanel }, { silent: true });
       this.renderCommandPanel();
@@ -15185,6 +15242,7 @@
       this.isCommandOpen = commandPanelOpenStateHelper
         ? commandPanelOpenStateHelper(forceOpen, this.isCommandOpen)
         : typeof forceOpen === 'boolean' ? forceOpen : !this.isCommandOpen;
+      if (this.isCommandOpen) this.clearHoldInputs();
       this.renderCommandPanel();
       this.queueUiRefresh({ domains: ['session'], command: true, draw: true });
     }
@@ -15195,15 +15253,94 @@
       }
     }
 
+    getFullscreenHost() {
+      const stage = this.elements && this.elements.stage;
+      return stage && typeof stage.closest === 'function'
+        ? stage.closest('.project-starfall-stage-panel') || stage
+        : stage || null;
+    }
+
+    isFullscreenActive() {
+      if (typeof document === 'undefined') return false;
+      return !!(document.fullscreenElement && document.fullscreenElement === this.getFullscreenHost());
+    }
+
+    isFocusModeActive() {
+      const host = this.getFullscreenHost();
+      return !!(host && host.getAttribute && host.getAttribute('data-starfall-focus-mode') === 'true');
+    }
+
+    setFocusMode(active, message) {
+      const host = this.getFullscreenHost();
+      if (!host || !host.setAttribute || !host.removeAttribute) return false;
+      if (active) host.setAttribute('data-starfall-focus-mode', 'true');
+      else host.removeAttribute('data-starfall-focus-mode');
+      if (host.classList) host.classList.toggle('is-focused-fullscreen', !!active);
+      this.clearHoldInputs();
+      this.requestCanvasDraw({ force: true, coalesce: true });
+      if (active) this.focusCanvas();
+      if (message) this.showToast(message);
+      return true;
+    }
+
+    handleFullscreenChange() {
+      const active = this.isFullscreenActive();
+      const host = this.getFullscreenHost();
+      if (host && host.classList) {
+        host.classList.toggle('is-focused-fullscreen', active);
+      }
+      this.clearHoldInputs();
+      this.requestCanvasDraw({ force: true, coalesce: true });
+      if (active) this.focusCanvas();
+      return active;
+    }
+
+    toggleFullscreen() {
+      const doc = typeof document !== 'undefined' ? document : null;
+      const host = this.getFullscreenHost();
+      if (!doc || !host) return false;
+      if (this.isFocusModeActive()) {
+        return this.setFocusMode(false, 'Focus mode closed.');
+      }
+      if (typeof host.requestFullscreen !== 'function') {
+        return this.setFocusMode(true, 'Focus mode enabled. Press Escape to exit.');
+      }
+      try {
+        if (doc.fullscreenElement) {
+          if (typeof doc.exitFullscreen !== 'function') return false;
+          Promise.resolve(doc.exitFullscreen()).catch(() => {
+            this.showToast('Could not exit fullscreen.');
+          });
+          return true;
+        }
+        Promise.resolve(host.requestFullscreen({ navigationUI: 'hide' })).then(() => {
+          this.focusCanvas();
+        }).catch(() => {
+          this.setFocusMode(true, 'Fullscreen was blocked. Focus mode enabled.');
+        });
+        return true;
+      } catch (error) {
+        if (doc.fullscreenElement) {
+          this.showToast('Could not exit fullscreen.');
+          return false;
+        }
+        return this.setFocusMode(true, 'Fullscreen was blocked. Focus mode enabled.');
+      }
+    }
+
     requestCanvasDraw(options) {
       const settings = options || {};
       const shouldCoalesce = settings.force ? !!settings.coalesce : settings.coalesce !== false;
       this.canvasDrawStats = this.canvasDrawStats || { requests: 0, immediate: 0, deferred: 0, skippedWhileRunning: 0 };
       if (!this.engine || !this.engine.draw) return false;
-      if (shouldCoalesce && this.engine.running) {
+      if (this.engine.running) {
         const frameId = Number(this.engine.frameId || 0);
-        if (this.lastRunningCoalescedCanvasDrawFrame === frameId) return false;
-        this.lastRunningCoalescedCanvasDrawFrame = frameId;
+        this.pendingRunningCanvasDrawForce = this.pendingRunningCanvasDrawForce || !!settings.force;
+        if (this.pendingRunningCanvasDraw && this.pendingRunningCanvasDrawFrameId === frameId) return false;
+        this.pendingRunningCanvasDraw = true;
+        this.pendingRunningCanvasDrawFrameId = frameId;
+        this.canvasDrawRevision = Math.max(0, Number(this.canvasDrawRevision || 0)) + 1;
+        if (settings.force) this.canvasOverlayLayerCache = null;
         this.canvasDrawStats.requests += 1;
         this.canvasDrawStats.deferred += 1;
         this.canvasDrawStats.skippedWhileRunning += 1;
@@ -15217,10 +15354,11 @@
         this.canvasDrawStats.deferred += 1;
         this.pendingCanvasDrawFrame = window.requestAnimationFrame(() => {
           this.pendingCanvasDrawFrame = 0;
+          const force = this.pendingCanvasDrawForce;
           this.pendingCanvasDrawForce = false;
           if (!this.engine || !this.engine.draw) return;
           if (this.engine.running) {
-            this.canvasDrawStats.skippedWhileRunning += 1;
+            this.requestCanvasDraw({ force, coalesce: true });
             return;
           }
           this.canvasDrawStats.immediate += 1;
@@ -15229,11 +15367,6 @@
         return false;
       }
       this.canvasDrawStats.requests += 1;
-      if (this.engine.running) {
-        this.canvasDrawStats.deferred += 1;
-        this.canvasDrawStats.skippedWhileRunning += 1;
-        return false;
-      }
       this.canvasDrawStats.immediate += 1;
       this.engine.draw();
       return true;
@@ -16266,6 +16399,7 @@
       const onboarding = snapshot.onboarding || {};
       const nextStep = onboarding.hidden ? null : onboarding.nextStep;
       const combatRates = this.getCombatMetricRates();
+      const coarsePointer = typeof global.matchMedia === 'function' && global.matchMedia('(pointer: coarse)').matches;
       hud.innerHTML = `
         <div class="project-starfall-hud-main">
           <span class="project-starfall-hud-class">${escapeHtml(className)}</span>
@@ -16284,6 +16418,11 @@
           <div class="project-starfall-guide-strip">
             <span><strong>Guide ${Number(onboarding.completeCount || 0) + 1}/${Number(onboarding.total || 0)}:</strong> ${escapeHtml(nextStep.title)} - ${escapeHtml(nextStep.summary)}</span>
             <button type="button" data-starfall-dismiss-guide>Hide</button>
+          </div>
+        ` : ''}
+        ${coarsePointer ? `
+          <div class="project-starfall-guide-strip project-starfall-input-notice" role="note">
+            <span><strong>Keyboard required:</strong> Touch movement controls are not available yet. Use a hardware keyboard or desktop browser.</span>
           </div>
         ` : ''}
         ${combatRates.showPanel ? this.renderCombatMetricsPanel(combatRates) : ''}
@@ -21663,7 +21802,7 @@
         <div class="project-starfall-keybind-workspace">
           <section class="project-starfall-keyboard-wrap" aria-label="Virtual keyboard">
             <h3>Keyboard</h3>
-            <p class="project-starfall-fixed-movement">Movement is fixed to the arrow keys. Drag Jump, combat, panels, and skills onto the keyboard. Drag usable items from inventory to assign item hotkeys.</p>
+            <p class="project-starfall-fixed-movement">Movement defaults to the arrow keys and WASD. Drag movement, Jump, combat, panels, and skills onto the keyboard to rebind them. Drag usable items from inventory to assign item hotkeys.</p>
             ${this.renderVirtualKeyboard()}
             <div class="project-starfall-default-bind-tray" aria-label="Unassigned buttons">
               <div class="project-starfall-bind-list">
@@ -23863,7 +24002,8 @@
 	          combatMetricsPanelState: this.combatMetricsPanelState || {},
 	          inventorySellSettingsOpen: !!this.inventorySellSettingsOpen,
 	          storageTab: this.storageTab || '',
-	          petPotionPickerKind: this.petPotionPickerKind || ''
+	          petPotionPickerKind: this.petPotionPickerKind || '',
+	          canvasDrawRevision: Number(this.canvasDrawRevision || 0)
 	        });
 	      }
 	      const player = state.player || {};
@@ -23886,6 +24026,7 @@
 	        Math.round(Number(width || 0)),
 	        Math.round(Number(height || 0)),
 	        Number(snapshot && snapshot.cacheRevision || 0),
+	        Number(this.canvasDrawRevision || 0),
 	        this.getCanvasAssetReadyCacheKey ? this.getCanvasAssetReadyCacheKey() : '',
 	        state.mapId || '',
 	        player.classId || '',
@@ -24017,8 +24158,13 @@
 	    }
 
 	    drawCanvasWindows(ctx, width, height, snapshot) {
-	      if (this.drawCachedCanvasOverlay(ctx, width, height, snapshot)) return;
+	      const hadPendingDraw = !!this.pendingRunningCanvasDraw;
+	      this.pendingRunningCanvasDraw = false;
+	      this.pendingRunningCanvasDrawForce = false;
+	      this.pendingRunningCanvasDrawFrameId = -1;
+	      if (this.drawCachedCanvasOverlay(ctx, width, height, snapshot)) return hadPendingDraw;
 	      this.drawCanvasWindowsLive(ctx, width, height, snapshot);
+	      return hadPendingDraw;
 	    }
 
 	    drawCanvasWindowsLive(ctx, width, height, snapshot) {
@@ -25614,7 +25760,14 @@
       const getStationPromptContextHelper = getHudWorldPromptHelper('getStationPromptContext');
       const getStationPromptLayoutHelper = getHudWorldPromptHelper('getStationPromptLayout');
       if (getStationPromptContextHelper && getStationPromptLayoutHelper) {
-        const prompt = getStationPromptContextHelper(this.snapshot, { openWindows: this.openWindows });
+        const prompt = getStationPromptContextHelper(this.snapshot, {
+          openWindows: this.openWindows,
+          keyLabels: {
+            moveUp: this.getPrimaryKeyLabel('moveUp'),
+            npcTalk: this.getPrimaryKeyLabel('npcTalk'),
+            interact: this.getPrimaryKeyLabel('interact')
+          }
+        });
         if (!prompt) return;
         const box = getStationPromptLayoutHelper(width, height, bottomY, prompt.target, {
           camera: this.snapshot && this.snapshot.camera
@@ -25678,7 +25831,11 @@
       const title = questNpc ? questNpc.name : station ? station.name : portal ? portal.label : '';
       if (!title) return;
       const promptAction = portal ? 'portal' : questNpc ? 'npcTalk' : 'interact';
-      const hint = portal ? 'Up Travel' : questNpc ? 'Y Talk' : 'F Use';
+      const hint = portal
+        ? `${this.getPrimaryKeyLabel('moveUp')} Travel`
+        : questNpc
+          ? `${this.getPrimaryKeyLabel('npcTalk')} Talk`
+          : `${this.getPrimaryKeyLabel('interact')} Use`;
       const boxW = Math.min(320, Math.max(220, width - 32));
       const boxH = 42;
       const target = questNpc || station || portal || null;
@@ -27640,6 +27797,7 @@
         {
           title: 'Settings',
           items: [
+            { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
             { label: 'Settings', panel: 'settings', iconId: 'settings' },
             { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
             { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
@@ -34318,7 +34476,7 @@
 
     drawKeybindsCanvas(ctx, x, y, w) {
       let cy = this.drawCanvasText(ctx, 'Keyboard', x, y, { color: '#102033', font: '900 13px system-ui' }) + 8;
-      cy = this.drawCanvasText(ctx, 'Movement is fixed to the arrow keys. Drag Jump, combat, panels, and skills onto the keyboard. Drag usable items from inventory to assign item hotkeys.', x, cy, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w, lineHeight: 12 }) + 8;
+      cy = this.drawCanvasText(ctx, 'Movement defaults to the arrow keys and WASD. Drag movement, Jump, combat, panels, and skills onto the keyboard to rebind them.', x, cy, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w, lineHeight: 12 }) + 8;
       const keyboardHeight = this.drawKeyboardCanvas(ctx, x, cy, w);
       cy += keyboardHeight + 14;
       cy = this.drawCanvasText(ctx, 'Unassigned Buttons', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 6;

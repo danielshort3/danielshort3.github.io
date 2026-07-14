@@ -120,6 +120,32 @@ function readFile(file) {
   return fs.readFileSync(file, 'utf8');
 }
 
+function listFilesRecursive(relativeDir) {
+  const start = path.join(__dirname, relativeDir);
+  const files = [];
+  const stack = [start];
+  while (stack.length) {
+    const current = stack.pop();
+    fs.readdirSync(current, { withFileTypes: true }).forEach((entry) => {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        return;
+      }
+      if (entry.isFile()) files.push(path.relative(__dirname, fullPath).replace(/\\/g, '/'));
+    });
+  }
+  return files.sort();
+}
+
+function readProjectStarfallPageContractSource() {
+  return [
+    readFile('pages/games/project-starfall.html'),
+    readFile('build/entries/project-starfall.entry.js'),
+    ...listFilesRecursive('js/games/project-starfall')
+  ].join('\n');
+}
+
 function readCssWithImports(file, seen = new Set()) {
   assert(fs.existsSync(file), `${file} does not exist`);
   const absFile = path.resolve(__dirname, file);
@@ -1019,7 +1045,7 @@ try {
   });
 
   section('Project Starfall fast contracts', () => {
-    const page = readFile('pages/games/project-starfall.html');
+    const page = readProjectStarfallPageContractSource();
     const gamesPage = readFile('pages/games.html');
     const data = require('./js/games/project-starfall/project-starfall-data.js');
     const dataAssetsCode = readFile('js/games/project-starfall/data/assets.js');
@@ -3191,6 +3217,7 @@ try {
       uiSettingsCode.includes("{ id: 'ultra', label: 'Ultra', width: 1920, height: 1080 }") &&
       uiSettingsCode.includes('const FRAME_RATE_LIMIT_OPTIONS = Object.freeze') &&
       uiSettingsCode.includes('const FRAME_RATE_LIMIT_OPTIONS = Object.freeze([60, 120, 240, 0])') &&
+      uiSettingsCode.includes('const DEFAULT_FRAME_RATE_LIMIT = 60') &&
       uiSettingsCode.includes('const DEFAULT_USER_SETTINGS = Object.freeze') &&
       uiSettingsCode.includes('audio: Object.freeze({ sfxEnabled: false, sfxVolume: 0.42, musicEnabled: false, musicVolume: 0.25 })') &&
       uiSettingsCode.includes("accessibility: Object.freeze({ reducedEffects: false, damageNumbers: 'normal' })") &&
@@ -3212,8 +3239,8 @@ try {
       uiCode.includes('function getSettingsValue(name)') &&
       uiCode.includes("const SETTINGS_STORAGE_KEY = getSettingsValue('SETTINGS_STORAGE_KEY') || 'projectStarfallPrototypeSettings.v1'") &&
       uiCode.includes("const VIEWPORT_PRESETS = getSettingsValue('VIEWPORT_PRESETS') || Object.freeze") &&
-      uiCode.includes("const FRAME_RATE_LIMIT_OPTIONS = getSettingsValue('FRAME_RATE_LIMIT_OPTIONS') || Object.freeze([120])") &&
-      uiCode.includes("const DEFAULT_FRAME_RATE_LIMIT = getSettingsValue('DEFAULT_FRAME_RATE_LIMIT') || 120") &&
+      uiCode.includes("const FRAME_RATE_LIMIT_OPTIONS = getSettingsValue('FRAME_RATE_LIMIT_OPTIONS') || Object.freeze([60])") &&
+      uiCode.includes("const DEFAULT_FRAME_RATE_LIMIT = getSettingsValue('DEFAULT_FRAME_RATE_LIMIT') || 60") &&
       uiCode.includes("const DEFAULT_USER_SETTINGS = getSettingsValue('DEFAULT_USER_SETTINGS') || Object.freeze") &&
       !uiCode.includes('UiSettings.' + 'SETTINGS_STORAGE_KEY ||') &&
       !uiCode.includes('UiSettings.' + 'VIEWPORT_PRESETS ||') &&
@@ -4246,8 +4273,8 @@ try {
       uiKeybindingsCode.includes('const KEY_LABELS = Object.freeze') &&
       uiKeybindingsCode.includes('const KEYBOARD_ROWS = Object.freeze') &&
       uiKeybindingsCode.includes('const ACTION_ICONS = Object.freeze') &&
-      uiKeybindingsCode.includes("ArrowUp: 'up'") &&
-      uiKeybindingsCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyW'] }") &&
+      uiKeybindingsCode.includes("{ id: 'moveUp', label: 'Move Up / Travel', type: 'hold', input: 'up', defaultKeys: ['ArrowUp', 'KeyW']") &&
+      uiKeybindingsCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyV'] }") &&
       uiKeybindingsCode.includes("return Object.freeze(['CapsLock', 'MetaLeft', 'MetaRight', 'Backspace', ...movementCodes])") &&
       uiKeybindingsCode.includes("CapsLock: 'Caps'") &&
       uiKeybindingsCode.includes("{ code: 'Space', label: 'Space', units: 6.2 }") &&
@@ -4333,7 +4360,7 @@ try {
       uiKeybindingsCode.includes('function getApplyLoadedSaveKeybindsStateAction(metadata)') &&
       uiKeybindingsCode.includes('function isAssignableKeyCode(code)') &&
       uiKeybindingsCode.includes('function createDefaultKeybinds()') &&
-      uiKeybindingsCode.includes('function normalizeKeyList(value, fallback, used)') &&
+      uiKeybindingsCode.includes('function normalizeKeyList(value, fallback, used, options)') &&
       uiKeybindingsCode.includes('function normalizeLegacyKeybindMenuKeys(value)') &&
       uiKeybindingsCode.includes('function normalizeKeybinds(value)') &&
       uiKeybindingsCode.includes('function removeSkillKeybinds(bindings)') &&
@@ -4491,8 +4518,8 @@ try {
       uiCode.includes("getKeybindingNormalizationHelper('normalizeLegacyKeybindMenuKeys')") &&
       uiCode.includes("getKeybindingNormalizationHelper('normalizeKeybinds')") &&
       uiCode.includes("getKeybindingNormalizationHelper('removeSkillKeybinds')") &&
-      !uiCode.includes("ArrowUp: 'up'") &&
-      !uiCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyW'] }") &&
+      !uiCode.includes("{ id: 'moveUp', label: 'Move Up / Travel', type: 'hold', input: 'up', defaultKeys: ['ArrowUp', 'KeyW']") &&
+      !uiCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyV'] }") &&
       !uiCode.includes("Object.freeze(['CapsLock', 'MetaLeft', 'MetaRight', 'Backspace', ...FIXED_MOVEMENT_KEY_CODES])") &&
       !uiCode.includes("CapsLock: 'Caps'") &&
       !uiCode.includes("{ code: 'Space', label: 'Space', units: 6.2 }") &&
@@ -5783,7 +5810,8 @@ try {
       engineAssetsCode.includes('settings.assetPaths'),
       'Project Starfall asset preview catalog shaping and asset path/load helpers should live in the engine asset module');
     assert(engineViewportCode.includes('const PLAYFIELD_WIDTH = 1280') &&
-      engineViewportCode.includes('const VIEW_HEIGHT = PLAYFIELD_HEIGHT + SOLID_PLATFORM_HEIGHT + CANVAS_STATUS_HUD_HEIGHT') &&
+      engineViewportCode.includes('const LOGICAL_VIEW_HEIGHT = 806') &&
+      engineViewportCode.includes('const VIEW_HEIGHT = LOGICAL_VIEW_HEIGHT') &&
       engineViewportCode.includes('const DEFAULT_WORLD_ZOOM = 1.32') &&
       engineViewportCode.includes('const DEFAULT_USER_SETTINGS = Object.freeze') &&
       engineViewportCode.includes('function createUserSettings(value)') &&
@@ -7920,8 +7948,178 @@ try {
     });
   }, { suites: ['default', 'starfall-smoke'] });
 
+  section('Project Starfall modular equipment atlas contracts', () => {
+    const page = readProjectStarfallPageContractSource();
+    const data = require('./js/games/project-starfall/project-starfall-data.js');
+    const equipmentAttachments = require('./js/games/project-starfall/engine/equipment-attachments.js');
+    const equipmentAssets = require('./js/games/project-starfall/engine/assets.js');
+    const { createProjectStarfallEngine } = require('./js/games/project-starfall/project-starfall-engine.js');
+    const visualEntries = Object.entries(data.EQUIPMENT_VISUALS || {});
+    const catalogItems = [].concat(data.SHOP_ITEMS || [], data.RANDOM_EQUIPMENT_ITEMS || [], data.BOSS_EQUIPMENT_ITEMS || []);
+    const attachmentScript = 'js/games/project-starfall/engine/equipment-attachments.js';
+    const engineScript = 'js/games/project-starfall/project-starfall-engine.js';
+    const expectedKindCounts = {
+      sword: 9,
+      axe: 4,
+      wand: 2,
+      staff: 10,
+      bow: 11,
+      chest: 11,
+      boots: 11,
+      head: 8,
+      gloves: 11,
+      ring: 1,
+      amulet: 1,
+      shield: 1,
+      grip: 1,
+      core: 1,
+      focus: 1,
+      scope: 1,
+      kit: 1
+    };
+    const expectedSlotCounts = {
+      weapon: 36,
+      chest: 11,
+      boots: 11,
+      gloves: 11,
+      head: 8,
+      offhand: 6,
+      ring: 1,
+      amulet: 1
+    };
+    const kindCounts = {};
+    const slotCounts = {};
+    const weaponKinds = new Set(['sword', 'axe', 'wand', 'staff', 'bow']);
+    const limbKinds = new Set(['boots', 'gloves', 'grip', 'ring', 'focus']);
+
+    assert(page.includes(attachmentScript) &&
+      page.indexOf(attachmentScript) < page.indexOf(engineScript),
+      'Project Starfall should load shared equipment attachments before the main engine');
+    const engine = createProjectStarfallEngine(null, data);
+    assert(visualEntries.length === 85 && catalogItems.length === 115 &&
+      new Set(catalogItems.map((item) => item.id)).size === 115,
+      'Project Starfall should expose 85 modular visuals for its 115 unique equipment catalog items');
+
+    let atlasPixelArea = 0;
+    visualEntries.forEach(([visualId, visual]) => {
+      const atlas = visual && visual.atlas;
+      kindCounts[visual && visual.kind] = Number(kindCounts[visual && visual.kind] || 0) + 1;
+      slotCounts[visual && visual.slot] = Number(slotCounts[visual && visual.slot] || 0) + 1;
+      assert(visual && visual.id === visualId && visual.fileId && visual.slot && visual.kind &&
+        visual.layer && Number.isFinite(Number(visual.order)) &&
+        visual.renderMode === 'atlas' && atlas && !visual.animation,
+        `${visualId} should expose explicit slot/kind metadata and use only modular atlas rendering`);
+      const expectedAngles = equipmentAttachments.getEquipmentAngleSet(visual.kind);
+      const expectedVariants = visual.kind === 'bow' ? ['rest', 'draw', 'release'] : ['default'];
+      assert(atlas.sheet === `${data.EQUIPMENT_ATLAS_ROOT}/${visual.fileId}-atlas.png` &&
+        atlas.frameWidth === 128 && atlas.frameHeight === 128 &&
+        atlas.pivotX === 64 && atlas.pivotY === 64 &&
+        Array.isArray(atlas.angles) && atlas.angles.length === 8 &&
+        atlas.angles.join(',') === expectedAngles.join(',') &&
+        atlas.variants.join(',') === expectedVariants.join(','),
+        `${visualId} should declare its eight-angle ${visual.kind} atlas family and variants`);
+
+      const atlasPath = path.join(__dirname, atlas.sheet);
+      assert(fs.existsSync(atlasPath), `${visualId} equipment atlas should exist`);
+      const dimensions = readPngDimensions(atlasPath);
+      assert(dimensions.width === atlas.frameWidth * atlas.angles.length &&
+        dimensions.height === atlas.frameHeight * atlas.variants.length,
+        `${visualId} atlas should keep one 128px cell per declared angle and variant`);
+      atlasPixelArea += dimensions.width * dimensions.height;
+      const png = decodePngRgba(atlasPath);
+      atlas.variants.forEach((variant, rowIndex) => {
+        atlas.angles.forEach((angle, angleIndex) => {
+          const cellX = angleIndex * atlas.frameWidth;
+          const cellY = rowIndex * atlas.frameHeight;
+          assert(getPngAlphaArea(png, cellX, cellY, atlas.frameWidth, atlas.frameHeight, 8) >= 8,
+            `${visualId} ${variant} ${angle} degree atlas cell should contain visible art`);
+          assert(!pngFrameTouchesEdge(png, cellX, cellY, atlas.frameWidth, 8),
+            `${visualId} ${variant} ${angle} degree atlas cell should keep a transparent border`);
+        });
+      });
+
+      const expectedPartCount = ['boots', 'gloves', 'grip'].includes(visual.kind) ? 2 : 1;
+      const maxAngleError = weaponKinds.has(visual.kind) ? 8 : limbKinds.has(visual.kind) ? 3 : 12;
+      const resolvedModes = new Set();
+      let resolvedPartCount = 0;
+      data.PLAYER_ANIMATION_ROWS.forEach((stateId) => {
+        const animationState = data.GENERIC_PLAYER_ANIMATION_ASSET.states[stateId];
+        assert(animationState && Number(animationState.frames) === 6,
+          `Project Starfall ${stateId} body animation should expose six attachment frames`);
+        for (let frameIndex = 0; frameIndex < animationState.frames; frameIndex += 1) {
+          const parts = equipmentAttachments.resolveEquipmentAtlasParts(visual, stateId, frameIndex);
+          assert(parts.length === expectedPartCount,
+            `${visualId} ${stateId}:${frameIndex} should resolve ${expectedPartCount} atlas part${expectedPartCount === 1 ? '' : 's'}`);
+          parts.forEach((part) => {
+            assert(part.frame.sheet === atlas.sheet &&
+              part.frame.frameIndex >= 0 && part.frame.frameIndex < atlas.angles.length &&
+              part.frame.row === equipmentAttachments.getEquipmentAtlasVariantRow(visual.kind, stateId, frameIndex) &&
+              part.frame.frameWidth === atlas.frameWidth && part.frame.frameHeight === atlas.frameHeight &&
+              part.angleError <= maxAngleError,
+              `${visualId} ${stateId}:${frameIndex} should resolve a valid ${visual.kind} family atlas cell within ${maxAngleError} degrees`);
+            resolvedModes.add(part.mode);
+          });
+          resolvedPartCount += parts.length;
+        }
+      });
+      assert(resolvedPartCount === 60 * expectedPartCount,
+        `${visualId} should resolve every one of the 60 shared body attachment frames`);
+      if (weaponKinds.has(visual.kind)) {
+        assert(['held', 'stowed', 'dropped'].every((mode) => resolvedModes.has(mode)),
+          `${visualId} should resolve held, stowed, and dropped weapon modes`);
+      }
+    });
+
+    assert(Object.keys(kindCounts).length === Object.keys(expectedKindCounts).length &&
+      Object.entries(expectedKindCounts).every(([kind, count]) => kindCounts[kind] === count),
+      'Project Starfall modular atlases should cover every equipment kind with the expected 85-visual distribution');
+    assert(Object.keys(slotCounts).length === Object.keys(expectedSlotCounts).length &&
+      Object.entries(expectedSlotCounts).every(([slot, count]) => slotCounts[slot] === count),
+      'Project Starfall modular atlases should cover every equipment slot with explicit metadata');
+
+    const resolvedCatalogVisuals = catalogItems.map((item) => engine.getEquipmentVisual(item));
+    const aliasedCatalogItems = catalogItems.filter((item) => item.visualId && item.visualId !== item.id);
+    assert(resolvedCatalogVisuals.every((visual, index) => visual &&
+      visual.id === (catalogItems[index].visualId || catalogItems[index].id)) &&
+      aliasedCatalogItems.length === 30,
+      'Project Starfall should resolve all 115 catalog items, including all 30 shared-visual aliases');
+
+    const partyVisualAliases = {
+      party_plate: 'bulwark_plate',
+      party_robes: 'runewoven_robes',
+      party_leathers: 'pathfinder_leathers'
+    };
+    Object.entries(partyVisualAliases).forEach(([partyVisualId, atlasVisualId]) => {
+      assert(engine.getEquipmentVisual({ id: partyVisualId, visualId: partyVisualId, slot: 'chest' }) === data.EQUIPMENT_VISUALS[atlasVisualId],
+        `${partyVisualId} should resolve to the ${atlasVisualId} modular armor atlas`);
+    });
+
+    const loaderAssetPaths = equipmentAssets.collectAssetPaths(data);
+    const loaderAssetSet = new Set(loaderAssetPaths);
+    assert(visualEntries.every(([, visual]) => loaderAssetSet.has(visual.atlas.sheet)) &&
+      loaderAssetPaths.every((assetPath) => !assetPath.includes('/equipment-layers/')),
+      'Project Starfall active asset loading should include every modular atlas and exclude every legacy equipment-layer sheet');
+    assert(engine.chooseClass('fighter'), 'Project Starfall modular atlas checks should choose Fighter');
+    const activeMapAssets = engine.getMapAssetSet(engine.state.mapId);
+    assert(activeMapAssets.every((assetPath) => !assetPath.includes('/equipment-layers/')),
+      'Project Starfall current-map loading should not decode legacy equipment-layer sheets');
+
+    const legacyPixelArea = visualEntries.length * 960 * 1600;
+    const decodedPixelAreaReduction = 1 - atlasPixelArea / legacyPixelArea;
+    assert(decodedPixelAreaReduction >= 0.8,
+      `Project Starfall modular equipment atlases should reduce decoded pixel area by at least 80% (actual ${Math.round(decodedPixelAreaReduction * 100)}%)`);
+
+    const atlasValidationOutput = childProcess.execFileSync(process.execPath, ['build/generate-project-starfall-equipment-atlases.js', '--all', '--validate'], {
+      cwd: __dirname,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    });
+    assert(atlasValidationOutput.includes('Validated 85 equipment atlases from 85 recognized ProjectStarfallData visuals'),
+      'Project Starfall equipment atlas generator should validate the complete 85-visual output set');
+  }, { suites: ['default', 'starfall-smoke', 'starfall-assets'] });
+
   section('Project Starfall runtime contracts', () => {
-    const page = readFile('pages/games/project-starfall.html');
+    const page = readProjectStarfallPageContractSource();
     const gamesPage = readFile('pages/games.html');
     const data = require('./js/games/project-starfall/project-starfall-data.js');
     const coreMathCode = readFile('js/games/project-starfall/core/math.js');
@@ -8084,6 +8282,7 @@ try {
     const mainCode = readFile('js/games/project-starfall/project-starfall-main.js');
     const starfallCss = readCssWithImports('css/games/project-starfall.css');
     const spriteGeneratorCode = readFile('build/generate-project-starfall-action-sprites.js');
+    const equipmentAtlasGeneratorCode = readFile('build/generate-project-starfall-equipment-atlases.js');
     const aiEnemySheetProcessorCode = readFile('build/process-project-starfall-ai-enemy-sheets.js');
     const environmentGeneratorCode = readFile('build/generate-project-starfall-environment-assets.js');
     const environmentImagegenProcessorCode = readFile('build/process-project-starfall-environment-imagegen-assets.js');
@@ -8442,9 +8641,10 @@ try {
     assert(mainCode.includes('const renderReady = engine.whenRenderAssetsLoaded') &&
       mainCode.includes('Promise.allSettled(pending).then(beginGame, beginGame);') &&
       engineCode.includes('whenRenderAssetsLoaded()') &&
+      engineCode.includes('const assetPaths = this.getMapCriticalAssetSet(this.state && this.state.mapId);') &&
       starfallRendererCode.includes('await this.primeTextures(this.assetPaths);') &&
       uiCode.includes('const revealGame = percent >= 100 && !!this.isInitialLoadComplete;'),
-      'Project Starfall boot should keep the loader visible until image and renderer textures are ready');
+      'Project Starfall boot should keep the loader visible until current-map image and renderer textures are ready');
     assert(starfallRendererCode.includes('this.idlePrewarmBatchMs = 1') &&
       starfallRendererCode.includes('this.idlePrewarmMaxJobsPerBatch = 1') &&
       starfallRendererCode.includes('this.idlePrewarmMaxPending = 2') &&
@@ -8453,9 +8653,10 @@ try {
       !starfallRendererCode.includes('timeout: 1200') &&
       engineCode.includes('const activeCombatMap =') &&
       engineCode.includes('if (this.running && activeCombatMap) return true;') &&
-      engineCode.includes('const shouldIncludeIdle = !!settings.includeIdle && !this.shouldPausePixiIdlePrewarm()') &&
-      engineCode.includes('this.schedulePixiPrewarm({ includeIdle: shouldIncludeIdle });'),
-      'Project Starfall Pixi idle prewarm should stay optional, tiny, and paused during active combat to avoid untracked main-thread spikes');
+      engineCode.includes('renderer.prewarmTextures(immediate)') &&
+      !engineCode.includes('getIdlePixiAssetSet(') &&
+      !engineCode.includes('renderer.scheduleIdlePrewarm('),
+      'Project Starfall Pixi prewarm should stay current-map scoped and never queue the complete asset catalog');
 
     [
       ['js/games/project-starfall/core/math.js', 'ProjectStarfallCore'],
@@ -8619,13 +8820,11 @@ try {
       ['js/games/project-starfall/project-starfall-main.js', 'ProjectStarfall']
     ].forEach(([scriptPath, expectedText], index, scripts) => {
       checkFileContains(scriptPath, expectedText);
-      const currentMatch = page.match(new RegExp(`src="${scriptPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?v=\\d+)?"`));
-      const currentIndex = currentMatch ? currentMatch.index : -1;
+      const currentIndex = page.indexOf(scriptPath);
       assert(currentIndex >= 0, `Project Starfall page missing script ${scriptPath}`);
       if (index > 0) {
         const [previousPath] = scripts[index - 1];
-        const previousMatch = page.match(new RegExp(`src="${previousPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\?v=\\d+)?"`));
-        const previousIndex = previousMatch ? previousMatch.index : -1;
+        const previousIndex = page.indexOf(previousPath);
         assert(previousIndex < currentIndex, `Project Starfall script order is wrong for ${scriptPath}`);
       }
     });
@@ -9418,9 +9617,8 @@ try {
     assert(data.GENERIC_PLAYER_ANIMATION_ASSET.states.jump.fps === 10 &&
       Object.values(data.BASE_CLASSES).every((classData) => classData.animation.states.jump.fps === 10) &&
       Object.values(data.ADVANCED_CLASSES).every((classData) => classData.animation.states.jump.fps === 10) &&
-      Object.values(data.EQUIPMENT_VISUALS).every((visual) => visual.animation.states.jump.fps === 10) &&
       fighterRig.animationStates.jump.fps === 10,
-      'Project Starfall jump animation should play 25% faster at 10 fps across player, equipment, and runtime rig animation layers');
+      'Project Starfall jump animation should play at 10 fps across player and runtime rig animation layers');
     ['weapon', 'offhand', 'head', 'chest', 'gloves', 'boots', 'ring', 'amulet'].forEach((slot) => {
       assert(fighterRig.attachments && fighterRig.attachments[slot] && fighterRig.equipmentSlots[slot],
         `Project Starfall Fighter rig should define an attachment for ${slot}`);
@@ -9484,6 +9682,9 @@ try {
       'Project Starfall Fighter rig should use separated foot contact shadows instead of a solid bottom bar');
     assert(starfallRig && typeof starfallRig.drawCharacter === 'function' && typeof starfallRig.resolvePose === 'function',
       'Project Starfall rig renderer should expose drawCharacter and resolvePose');
+    assert(rigCode.includes("weapon: equipmentVisual(rig, equippedItem(equipment, 'weapon'))") &&
+      !rigCode.includes("weapon: equipmentVisual(rig, equippedItem(equipment, 'weapon'), rig.equipmentVisuals"),
+      'Project Starfall procedural fallback should render a weapon only when the weapon slot is equipped');
     {
       const multiplyMatrix = (a, b) => [
         a[0] * b[0] + a[2] * b[1],
@@ -9705,8 +9906,8 @@ try {
     assert(data.GENERIC_PLAYER_ANIMATION_ASSET &&
       data.GENERIC_PLAYER_ANIMATION_ASSET.sheet === 'img/project-starfall/animations/players/generic-player-sheet.png',
       'Project Starfall should expose one shared generic player animation sheet');
-    assert(data.EQUIPMENT_VISUAL_ROOT === 'img/project-starfall/equipment-layers',
-      'Project Starfall equipment layers should stay in the equipment-layers asset folder');
+    assert(data.EQUIPMENT_ATLAS_ROOT === 'img/project-starfall/equipment-atlases',
+      'Project Starfall modular equipment visuals should stay in the equipment-atlases asset folder');
     const playableClasses = [
       ...Object.values(data.BASE_CLASSES),
       ...Object.values(data.ADVANCED_CLASSES)
@@ -9722,17 +9923,17 @@ try {
       'Project Starfall skill icon roots should separate base and advanced generated icons');
     assert(Object.keys(data.CLASS_FILE_IDS || {}).length === playableClasses.length,
       'Project Starfall should define a file id for every playable class');
-    assert(classAssets.size === playableClasses.length && !classAssets.has(data.GENERIC_PLAYER_ASSET),
-      'Project Starfall classes should each render a unique class portrait instead of the generic fallback');
-    assert(classAnimationSheets.size === playableClasses.length && !classAnimationSheets.has(data.GENERIC_PLAYER_ANIMATION_ASSET.sheet),
-      'Project Starfall classes should each render a unique class animation sheet instead of the generic fallback');
+    assert(classAssets.size === 1 && classAssets.has(data.GENERIC_PLAYER_ASSET),
+      'Project Starfall byte-identical class portraits should resolve to one shared generic asset');
+    assert(classAnimationSheets.size === 1 && classAnimationSheets.has(data.GENERIC_PLAYER_ANIMATION_ASSET.sheet),
+      'Project Starfall byte-identical class animations should resolve to one shared generic sheet');
     playableClasses.forEach((classData) => {
       const fileId = data.CLASS_FILE_IDS[classData.id];
       assert(fileId, `${classData.id} should have a generated class file id`);
-      assert(classData.asset === `img/project-starfall/characters/${fileId}.png`,
-        `${classData.id} should point to its generated class portrait`);
-      assert(classData.animation.sheet === `img/project-starfall/animations/players/${fileId}-sheet.png`,
-        `${classData.id} should point to its generated class animation sheet`);
+      assert(classData.asset === data.GENERIC_PLAYER_ASSET,
+        `${classData.id} should reuse the generic portrait until unique class art exists`);
+      assert(classData.animation === data.GENERIC_PLAYER_ANIMATION_ASSET,
+        `${classData.id} should reuse the generic animation definition until unique class art exists`);
     });
     assert(Object.keys(data.ENEMY_ANIMATION_ASSETS || {}).length === data.ENEMIES.length,
       'Project Starfall should define one enemy animation sheet per enemy');
@@ -10136,11 +10337,15 @@ try {
         global.Image = MockImage;
         const assetEngine = createProjectStarfallEngine(null, data);
         const initialProgress = assetEngine.getAssetLoadProgress();
+        const criticalAssetCount = assetEngine.getMapCriticalAssetSet(assetEngine.state.mapId).length;
+        const completeCatalogCount = require('./js/games/project-starfall/engine/assets.js').collectAssetPaths(data).length;
         assert(initialProgress.total === mockImages.length &&
+          initialProgress.total === criticalAssetCount &&
           initialProgress.total > 10 &&
+          initialProgress.total < completeCatalogCount / 10 &&
           initialProgress.percent === 0 &&
           !initialProgress.complete,
-          'Project Starfall asset loading should start with a tracked 0% progress state');
+          'Project Starfall initial loading should track only current-map critical assets instead of the complete catalog');
         let latestProgress = null;
         assetEngine.setAssetLoadProgressHandler((progress) => { latestProgress = progress; });
         mockImages[0].complete = true;
@@ -10164,6 +10369,9 @@ try {
           completeProgress.percent === 100 &&
           completeProgress.settled === completeProgress.total,
           'Project Starfall asset loading should reach 100% after every unique asset settles');
+        assetEngine.recordAssetLoadResult('img/project-starfall/not-in-initial-load.png', true);
+        assert(assetEngine.getAssetLoadProgress().settled === completeProgress.settled,
+          'Project Starfall background asset requests should not corrupt completed initial-load progress');
       } finally {
         global.Image = originalImage;
       }
@@ -10602,8 +10810,12 @@ try {
       const itemAssetValues = Array.from(new Set(Object.values(data.ITEM_ASSETS || {})));
       const itemPreviewEntries = itemAssetValues.map((assetPath) => assetPreviewCatalog.find((entry) => entry.path === assetPath)).filter(Boolean);
       const playerPreviewEntries = assetPreviewCatalog.filter((entry) => (entry.categories || [entry.category]).includes('Players'));
+      const playerAssetPaths = new Set([
+        data.GENERIC_PLAYER_ASSET,
+        ...Object.values(data.PLAYER_ANIMATION_ASSETS || {}).map((asset) => asset && asset.sheet)
+      ].filter(Boolean));
       const equipmentVisualEntries = Object.values(data.EQUIPMENT_VISUALS || {})
-        .map((visual) => assetPreviewCatalog.find((entry) => entry.path === (visual.animation && visual.animation.sheet)))
+        .map((visual) => assetPreviewCatalog.find((entry) => entry.path === (visual.atlas && visual.atlas.sheet)))
         .filter(Boolean);
       assert(assetPreviewCatalog.length > 100 &&
         assetPreviewCatalog.length === assetPreviewPaths.size &&
@@ -10611,7 +10823,8 @@ try {
         assetPreviewCatalog.every((entry) => ['ai', 'procedural'].includes(entry.sourceType) && entry.sourceLabel) &&
         assetPreviewCatalog.some((entry) => entry.sourceType === 'ai') &&
         assetPreviewCatalog.some((entry) => entry.sourceType === 'procedural') &&
-        playerPreviewEntries.length >= Object.keys(data.CLASS_FILE_IDS || {}).length &&
+        playerPreviewEntries.length >= playerAssetPaths.size &&
+        Array.from(playerAssetPaths).every((assetPath) => playerPreviewEntries.some((entry) => entry.path === assetPath)) &&
         playerPreviewEntries.every((entry) => entry.sourceType === 'procedural') &&
         equipmentVisualEntries.length === Object.keys(data.EQUIPMENT_VISUALS || {}).length &&
         equipmentVisualEntries.every((entry) => entry.sourceType === 'procedural') &&
@@ -11239,17 +11452,17 @@ try {
         accessibility: { reducedEffects: true, damageNumbers: 'minimal' }
       }, { silent: true }), 'Project Starfall should accept normalized user settings');
       const settingsSnapshot = settingsEngine.snapshot();
-      assert(settingsCanvas.width === 1600 &&
-        settingsCanvas.height === 930 &&
+      assert(settingsCanvas.width === 1280 &&
+        settingsCanvas.height === 806 &&
         settingsSnapshot.settings.video.viewportPreset === 'large' &&
-        settingsSnapshot.runtime.playfieldWidth === 1600 &&
-        settingsSnapshot.runtime.playfieldHeight === 790 &&
-        settingsSnapshot.runtime.statusHudHeight === 92 &&
+        settingsSnapshot.runtime.playfieldWidth === 1280 &&
+        settingsSnapshot.runtime.playfieldHeight === 674 &&
+        settingsSnapshot.runtime.statusHudHeight === 84 &&
         settingsSnapshot.camera.w > 0 &&
         settingsSnapshot.camera.w < settingsSnapshot.runtime.playfieldWidth &&
         settingsEngine.getAudioState().sfxEnabled === true &&
         settingsEngine.shouldReduceEffects() === true,
-        'Project Starfall settings should resize the canvas, runtime, camera, audio state, and accessibility flags');
+        'Project Starfall display settings should preserve fixed logical geometry while updating camera, audio, and accessibility state');
       const cameraEngine = createProjectStarfallEngine(null, data);
       assert(cameraEngine.chooseClass('fighter'), 'Project Starfall camera setup should choose fighter');
       cameraEngine.state.player.x = 1840;
@@ -11931,8 +12144,16 @@ try {
       assert(guideEngine.chooseClass('mage'), 'Project Starfall onboarding setup should choose mage');
       let onboarding = guideEngine.snapshot().onboarding;
       assert(onboarding.completedIds.includes('choose_class') &&
+        onboarding.nextStep && onboarding.nextStep.id === 'learn_move',
+        'Project Starfall onboarding should complete class selection and advance to movement practice');
+      ['move', 'jump', 'attack', 'interact'].forEach((eventName) => {
+        assert(guideEngine.recordOnboardingEvent(eventName),
+          `Project Starfall onboarding should accept the ${eventName} practice event`);
+      });
+      onboarding = guideEngine.snapshot().onboarding;
+      assert(['learn_move', 'learn_jump', 'learn_attack', 'learn_interact'].every((stepId) => onboarding.completedIds.includes(stepId)) &&
         onboarding.nextStep && onboarding.nextStep.id === 'open_worldmap',
-        'Project Starfall onboarding should complete class selection and advance to the world map step');
+        'Project Starfall onboarding should teach movement, jumping, attacking, and interaction before the world map step');
       assert(guideEngine.recordOnboardingEvent('openPanel', { panelId: 'worldmap' }),
         'Project Starfall onboarding should accept a world map panel event');
       onboarding = guideEngine.snapshot().onboarding;
@@ -12002,7 +12223,7 @@ try {
       const visualCacheEngine = createProjectStarfallEngine(null, data);
       assert(visualCacheEngine.chooseClass('fighter'), 'Project Starfall visual layer cache setup should choose fighter');
       const visualIds = Object.keys(data.EQUIPMENT_VISUALS || {})
-        .filter((visualId) => data.EQUIPMENT_VISUALS[visualId] && data.EQUIPMENT_VISUALS[visualId].animation && data.EQUIPMENT_VISUALS[visualId].animation.sheet);
+        .filter((visualId) => data.EQUIPMENT_VISUALS[visualId] && data.EQUIPMENT_VISUALS[visualId].atlas && data.EQUIPMENT_VISUALS[visualId].atlas.sheet);
       assert(visualIds.length >= 2, 'Project Starfall visual layer cache tests need at least two equipment visuals');
       visualCacheEngine.state.equipment.head = { id: visualIds[0], visualId: visualIds[0], slot: 'head', uid: 'visual-cache-head-a' };
       const visualLayersA = visualCacheEngine.getEquippedVisualLayers();
@@ -12654,6 +12875,7 @@ try {
       let scheduledFrames = 0;
       let canceledFrame = 0;
       global.window = {
+        devicePixelRatio: 2,
         requestAnimationFrame() {
           scheduledFrames += 1;
           return scheduledFrames;
@@ -12665,6 +12887,10 @@ try {
       try {
         const pacingEngine = createProjectStarfallEngine(null, data);
         assert(pacingEngine.chooseClass('fighter'), 'Project Starfall frame pacing setup should choose fighter');
+        assert(pacingEngine.getFrameRateLimit() === 60,
+          'Project Starfall should default to a battery- and GPU-friendly 60 FPS cap');
+        assert(pacingEngine.getRendererResolutionScale() === 1.5,
+          'Project Starfall should cap standard-viewport renderer resolution below 2x device scale');
         pacingEngine.applyUserSettings({ video: { frameRateLimit: 120 } }, { silent: true });
         let updates = 0;
         let draws = 0;
@@ -12698,6 +12924,27 @@ try {
           draws === 1 &&
           pacingEngine.getFrameRateLimit() === 0,
           'Project Starfall frame pacing should allow the uncapped display-rate setting');
+        const countPacedFrames = (displayHz, targetFps) => {
+          const engine = createProjectStarfallEngine(null, data);
+          engine.chooseClass('fighter');
+          engine.applyUserSettings({ video: { frameRateLimit: targetFps } }, { silent: true });
+          let processed = 0;
+          engine.update = () => { processed += 1; };
+          engine.draw = () => {};
+          engine.running = true;
+          engine.lastFrame = 1000;
+          engine.framePacingDeadline = 0;
+          engine.framePacingIntervalMs = 0;
+          for (let index = 1; index <= displayHz; index += 1) {
+            engine.frame(1000 + index * (1000 / displayHz));
+          }
+          engine.running = false;
+          return processed;
+        };
+        assert(Math.abs(countPacedFrames(90, 60) - 60) <= 1 &&
+          Math.abs(countPacedFrames(144, 120) - 120) <= 1 &&
+          Math.abs(countPacedFrames(165, 120) - 120) <= 1,
+          'Project Starfall accumulated frame deadlines should hold 60/120 FPS targets on 90, 144, and 165 Hz displays');
         pacingEngine.stop();
         assert(canceledFrame > 0, 'Project Starfall frame pacing should cancel the pending animation frame on stop');
       } finally {
@@ -15726,19 +15973,23 @@ try {
         'Project Starfall should fire one immediate basic attack when a held attack starts');
       ui.handleKeyboard({ code: 'KeyE', target: null, preventDefault() {} }, true);
       assert(ui.openWindows.includes('equipment'), 'Project Starfall equipment key should open the equipment popup');
-      assertHeldInputs(engine, ['right', 'attack'], true,
-        'Project Starfall panel hotkeys should preserve held movement and attack inputs while opening popups');
+      assertHeldInputs(engine, ['right', 'attack'], false,
+        'Project Starfall panel hotkeys should clear held movement and attack inputs when opening popups');
       ui.handleKeyboard({ code: 'KeyE', target: null, preventDefault() {} }, true);
       assert(!ui.openWindows.includes('equipment'), 'Project Starfall equipment key should close the equipment popup');
-      assertHeldInputs(engine, ['right', 'attack'], true,
-        'Project Starfall panel hotkeys should preserve held movement and attack inputs while closing popups');
+      assertHeldInputs(engine, ['right', 'attack'], false,
+        'Project Starfall panel hotkeys should keep gameplay inputs released while closing popups');
       ui.handleKeyboard({ code: 'Backslash', target: null, preventDefault() {} }, true);
       assert(ui.openWindows.includes('keybinds'), 'Project Starfall Backslash should open the keybind popup');
       ui.handleKeyboard({ code: 'F3', target: null, preventDefault() {} }, true);
+      assert(engine.debugCycles === 0,
+        'Project Starfall open panels should block performance debug actions that are not modal controls');
+      assertHeldInputs(engine, ['right', 'attack'], false,
+        'Project Starfall performance debug hotkey should not restore inputs cleared by an open panel');
+      ui.handleKeyboard({ code: 'Backslash', target: null, preventDefault() {} }, true);
+      ui.handleKeyboard({ code: 'F3', target: null, preventDefault() {} }, true);
       assert(engine.debugCycles === 1,
-        'Project Starfall F3 should cycle the performance debug overlay');
-      assertHeldInputs(engine, ['right', 'attack'], true,
-        'Project Starfall performance debug hotkey should preserve held movement and attack inputs');
+        'Project Starfall F3 should cycle the performance debug overlay after the popup closes');
       ui.clearHoldInputs();
       assertHeldInputs(engine, ['right', 'attack'], false,
         'Project Starfall clearHoldInputs should still clear held controls for blur and reset paths');
@@ -16126,8 +16377,8 @@ try {
       ui.handleKeyboard({ code: 'ArrowRight', target: null, preventDefault() {} }, true);
       ui.handleKeyboard({ code: 'KeyF', target: null, preventDefault() {} }, true);
       assert(ui.openWindows.includes('equipment'), 'Project Starfall interact key should open station and NPC popups');
-      assertHeldInputs(engine, ['right'], true,
-        'Project Starfall interact-opened panels should not cancel current movement input');
+      assertHeldInputs(engine, ['right'], false,
+        'Project Starfall interact-opened panels should cancel current movement input');
     }
     {
       const { ui } = createUiInputHarness();
@@ -17059,6 +17310,7 @@ try {
           },
           camera: { x: 0, y: 0, zoom: 1 }
         },
+        keybinds: { moveUp: ['ArrowUp', 'KeyW'], npcTalk: ['KeyY'], interact: ['KeyF'] },
         monsterGuideSearchFocused: false,
         addCanvasRegion(region) { regions.push(region); },
         drawRoundRect() {},
@@ -17496,12 +17748,15 @@ try {
       pixiRigEngine.state.equipment.chest = { id: 'stitched_vest', visualId: 'stitched_vest', slot: 'chest' };
       pixiRigEngine.state.equipment.boots = { id: 'traveler_boots', visualId: 'traveler_boots', slot: 'boots' };
       const pixiPlayerSnapshot = pixiRigEngine.getPlayerRenderSnapshot();
+      const pixiPlayerEquipmentVisualIds = new Set((pixiPlayerSnapshot.equipmentLayers || []).map((layer) => layer.visualId));
       assert(pixiPlayerSnapshot.rigRender &&
         pixiPlayerSnapshot.rigRender.rig === data.PLAYER_RIGS.fighter &&
-        pixiPlayerSnapshot.rigRender.equipment.weapon.visualId === 'iron_sword' &&
-        pixiPlayerSnapshot.rigRender.equipment.chest.visualId === 'stitched_vest' &&
+        Object.keys(pixiPlayerSnapshot.rigRender.equipment || {}).length === 0 &&
+        pixiPlayerEquipmentVisualIds.has('iron_sword') &&
+        pixiPlayerEquipmentVisualIds.has('stitched_vest') &&
+        pixiPlayerEquipmentVisualIds.has('traveler_boots') &&
         pixiPlayerSnapshot.rigRender.palette.id === data.CHARACTER_LOOKS[0].id,
-        'Project Starfall Pixi player snapshots should include the runtime rig, equipment, and palette needed for fallback rig textures');
+        'Project Starfall Pixi player snapshots should keep modular equipment layers separate from the unequipped fallback rig texture');
       assert(pixiPlayerSnapshot.asset === data.GENERIC_PLAYER_ASSET &&
         pixiPlayerSnapshot.animationFrame &&
         pixiPlayerSnapshot.animationFrame.sheet === data.PLAYER_ANIMATION_ASSETS.fighter.sheet,
@@ -17748,6 +18003,53 @@ try {
           simplifiedSplatShapes === 2 &&
           simplifiedCriticalBursts === 1,
           'Project Starfall Pixi simplified damage splats should skip ordinary enemy backplates while preserving critical and player readability cues');
+        const destroyedTextures = [];
+        const unloadedTextures = [];
+        const makeDisposableTexture = (id) => ({
+          destroy(destroySource) {
+            destroyedTextures.push(`${id}:${!!destroySource}`);
+          }
+        });
+        renderer.PIXI.Assets = {
+          unload(assetPath) {
+            unloadedTextures.push(assetPath);
+            return Promise.resolve();
+          }
+        };
+        const oldMapPath = 'img/project-starfall/maps/old-map.webp';
+        const retainedMapPath = 'img/project-starfall/maps/current-map.webp';
+        renderer.textures.set(oldMapPath, makeDisposableTexture('old-base'));
+        renderer.textures.set(retainedMapPath, makeDisposableTexture('retained-base'));
+        renderer.frameTextures.set(`${oldMapPath}:0:0:64:64`, makeDisposableTexture('old-frame'));
+        renderer.trimmedTextures.set(`${oldMapPath}:trimmed`, { texture: makeDisposableTexture('old-trimmed'), canvas: {} });
+        renderer.compositeTextures.set(`${oldMapPath}:composite`, { texture: makeDisposableTexture('old-composite'), canvas: {} });
+        renderer.environmentTextures.set(`${oldMapPath}:0:64:4`, makeDisposableTexture('old-environment'));
+        const pruneResult = renderer.pruneMapDerivedCaches([retainedMapPath]);
+        assert(pruneResult.baseTextures === 1 &&
+          pruneResult.frameTextures === 1 &&
+          pruneResult.trimmedTextures === 1 &&
+          pruneResult.compositeTextures === 1 &&
+          pruneResult.environmentTextures === 1 &&
+          pruneResult.totalPruned >= 5 &&
+          unloadedTextures.includes(oldMapPath) &&
+          renderer.textures.has(retainedMapPath) &&
+          destroyedTextures.includes('old-frame:false') &&
+          destroyedTextures.includes('old-environment:false') &&
+          destroyedTextures.includes('old-trimmed:true') &&
+          destroyedTextures.includes('old-composite:true'),
+          'Project Starfall Pixi map pruning should release derived textures and unload unretained base map assets');
+        const evictedBasePath = 'img/project-starfall/equipment-atlases/evicted-atlas.png';
+        renderer.setBaseTextureValue(evictedBasePath, makeDisposableTexture('evicted-base'), 1);
+        renderer.setBaseTextureValue('img/project-starfall/equipment-atlases/retained-atlas.png', makeDisposableTexture('retained-base-atlas'), 1);
+        assert(!renderer.textures.has(evictedBasePath) && unloadedTextures.includes(evictedBasePath),
+          'Project Starfall Pixi base texture LRU should unload inactive non-map assets instead of growing without bound');
+        const evictedTexture = makeDisposableTexture('evicted-composite');
+        renderer.setCacheValue(renderer.compositeTextures, 'eviction:first', { texture: evictedTexture, canvas: {} }, 1);
+        renderer.setCacheValue(renderer.compositeTextures, 'eviction:second', { texture: makeDisposableTexture('retained-composite'), canvas: {} }, 1);
+        assert(!renderer.compositeTextures.has('eviction:first') &&
+          renderer.compositeTextures.has('eviction:second') &&
+          destroyedTextures.includes('evicted-composite:true'),
+          'Project Starfall Pixi LRU eviction should destroy renderer-owned generated textures');
       } finally {
         global.document = originalDocument;
       }
@@ -18005,7 +18307,7 @@ try {
         jump: ['Space'],
         attack: ['KeyJ'],
         inventory: ['KeyI'],
-        'item:minorPotion': ['KeyV'],
+        'item:minorPotion': ['KeyX'],
         'skill:mage_blink': ['KeyQ'],
         'skill:sniper_eagle_eye': ['KeyR']
       };
@@ -18024,7 +18326,7 @@ try {
         'Project Starfall skill keybind reset should preserve non-skill bindings');
       assert(ui.keybinds.partyPanel[0] === 'KeyP',
         'Project Starfall keybind normalization should add the Party UI to P by default');
-      assert(ui.keybinds['item:minorPotion'][0] === 'KeyV',
+      assert(ui.keybinds['item:minorPotion'][0] === 'KeyX',
         'Project Starfall skill keybind reset should preserve item bindings');
       assert(!ui.rebindingAction && !ui.selectedBindActionId && saved === 1,
         'Project Starfall skill keybind reset should clear active skill selections and persist the cleanup');
@@ -18067,7 +18369,7 @@ try {
               attack: ['KeyJ', 'ShiftLeft'],
               npcTalk: ['KeyY'],
               inventory: ['KeyI'],
-              'item:minorPotion': ['KeyV']
+              'item:minorPotion': ['KeyX']
             }
           })
         },
@@ -18082,7 +18384,7 @@ try {
       });
       assert(ui.applyLoadedSaveData(),
         'Project Starfall UI should apply keybinds from loaded save metadata');
-      assert(ui.keybinds.npcTalk[0] === 'KeyY' && ui.keybinds.attack.includes('ShiftLeft') && ui.keybinds['item:minorPotion'][0] === 'KeyV',
+      assert(ui.keybinds.npcTalk[0] === 'KeyY' && ui.keybinds.attack.includes('ShiftLeft') && ui.keybinds['item:minorPotion'][0] === 'KeyX',
         'Project Starfall loaded save keybinds should preserve action, hold, and item bindings');
       assert(!ui.rebindingAction && !ui.selectedBindActionId && !ui.draggingBindActionId && saved === 1 && rendered === 2,
         'Project Starfall applying saved keybinds should clear rebinding state, persist, and redraw keybind UI');
@@ -18967,8 +19269,14 @@ try {
       teleportLockEngine.state.player.facing = 1;
       const beforeAttackBlinkX = teleportLockEngine.state.player.x;
       assert(teleportLockEngine.basicAttack(), 'attack teleport lock setup should start with a basic attack');
-      assert(teleportLockEngine.state.player.movementLockUntil > Date.now() / 1000,
-        'Project Starfall basic attacks should create a short movement-only lock');
+      const attackLockNow = Date.now() / 1000;
+      const movementLockRemaining = teleportLockEngine.state.player.movementLockUntil - attackLockNow;
+      const combatLockRemaining = teleportLockEngine.state.player.combatLockUntil - attackLockNow;
+      assert(movementLockRemaining >= 0.1 &&
+        movementLockRemaining <= 0.18 &&
+        combatLockRemaining >= 0.3 &&
+        movementLockRemaining < combatLockRemaining,
+        'Project Starfall basic attacks should root movement only for the active strike window while preserving action recovery');
       assert(teleportLockEngine.useSkill('mage_blink') &&
         teleportLockEngine.state.player.x > beforeAttackBlinkX,
         'Project Starfall teleport skills should remain usable during the post-attack movement lock');
@@ -27437,7 +27745,7 @@ try {
         `Project Starfall enemy ${enemy.id} should have a tracked compact source sheet`);
       const compactFrameCounts = enemy.animation && enemy.animation.frameWidth === 128
         ? requiredEnemyAnimationStates.reduce((counts, stateId) => {
-          counts[stateId] = stateId === 'hit' ? 1 : 3;
+          counts[stateId] = 3;
           return counts;
         }, {})
         : null;
@@ -27485,9 +27793,14 @@ try {
       compactBanditProcessorCode.includes("asset-sources/project-starfall/enemies/compact") &&
       compactBanditProcessorCode.includes('clearGuidePixels') &&
       compactBanditProcessorCode.includes('clearTransparentColorData') &&
+      compactBanditProcessorCode.includes('getSharedEnemyScale') &&
+      compactBanditProcessorCode.includes('constrainEnemyRenderBounds') &&
+      compactBanditProcessorCode.includes('getEnemySheetQuality') &&
+      compactBanditProcessorCode.includes("kernel: 'lanczos3'") &&
       !compactBanditProcessorCode.includes('processEnemyFromProceduralSprite') &&
       !compactBanditProcessorCode.includes('--procedural-refresh') &&
       compactBanditProcessorCode.includes('--write-prompts') &&
+      compactBanditProcessorCode.includes('--source requires exactly one --enemy selection') &&
       compactBanditProcessorCode.includes('--audit') &&
       compactBanditProcessorCode.includes('exactly ${ENEMY_COLUMNS} columns by ${ENEMY_ROWS} rows'),
       'Project Starfall compact enemy processor should support all tracked generated sources, compact prompt manifests, validation, guide cleanup, and standard-sheet migration without procedural enemy art');
@@ -28216,17 +28529,17 @@ try {
         [2, 3, 4, 5].every((count) => (set.pieceBonuses || []).some((bonus) => Number(bonus.pieces) === count)),
         `${set.name} should define class-filtered weapons, universal armor, boss-only rarity, and 2/3/4/5 piece bonuses`);
     });
-    assert(Object.keys(data.EQUIPMENT_VISUALS || {}).length >= data.SHOP_ITEMS.length + 2 &&
+    assert(Object.keys(data.EQUIPMENT_VISUALS || {}).length === 85 &&
       data.EQUIPMENT_VISUALS.fieldguard_helm &&
       data.EQUIPMENT_VISUALS.fieldguard_helm.layer === 'head' &&
       data.EQUIPMENT_VISUALS.trailwoven_gloves &&
       data.EQUIPMENT_VISUALS.trailwoven_gloves.layer === 'gloves',
-      'Project Starfall should define equipment visual layer sheets for shop gear plus shared head and glove paper-doll defaults');
+      'Project Starfall should define modular atlases for item-specific gear plus shared head and glove paper-doll defaults');
     data.SHOP_ITEMS.forEach((item) => {
       const visual = data.EQUIPMENT_VISUALS[item.visualId || item.id];
-      assert(visual && visual.animation && visual.animation.sheet.startsWith('img/project-starfall/equipment-layers/'),
-        `${item.id} should have a synchronized equipment-layer animation sheet`);
-      assertAnimationStates(visual.animation, requiredPlayerAnimationStates, `Equipment visual ${item.id}`, playerFrameCounts);
+      assert(visual && visual.renderMode === 'atlas' && visual.atlas &&
+        visual.atlas.sheet.startsWith('img/project-starfall/equipment-atlases/'),
+        `${item.id} should resolve to a modular equipment atlas`);
     });
 	    []
 	      .concat(data.SHOP_ITEMS || [], data.RANDOM_EQUIPMENT_ITEMS || [], data.BOSS_EQUIPMENT_ITEMS || [])
@@ -28238,8 +28551,8 @@ try {
 	    const directDropVisualItems = [].concat(data.RANDOM_EQUIPMENT_ITEMS || [], data.BOSS_EQUIPMENT_ITEMS || []);
 	    assert(directDropVisualItems.every((item) => item.visualId === item.id &&
 	      data.EQUIPMENT_VISUALS[item.id] &&
-	      data.EQUIPMENT_VISUALS[item.id].animation &&
-	      data.EQUIPMENT_VISUALS[item.id].animation.sheet.endsWith(`${item.id.replace(/_/g, '-')}-sheet.png`)),
+	      data.EQUIPMENT_VISUALS[item.id].atlas &&
+	      data.EQUIPMENT_VISUALS[item.id].atlas.sheet.endsWith(`${item.id.replace(/_/g, '-')}-atlas.png`)),
 	      'Project Starfall random and boss gear should resolve item-specific paper-doll visuals before shared visual fallbacks');
 	    const restorativeConsumableIds = [
 	      'minor_health_potion',
@@ -28840,9 +29153,10 @@ try {
         `${classId} player animation sheet should keep the 6x10 160px grid`);
     });
     Object.entries(data.EQUIPMENT_VISUALS || {}).forEach(([itemId, visual]) => {
-      const dimensions = readPngDimensions(path.join(__dirname, visual.animation.sheet));
-      assert(dimensions.width === 960 && dimensions.height === 1600,
-        `${itemId} equipment visual should keep the 6x10 160px grid`);
+      const dimensions = readPngDimensions(path.join(__dirname, visual.atlas.sheet));
+      assert(dimensions.width === visual.atlas.angles.length * visual.atlas.frameWidth &&
+        dimensions.height === visual.atlas.variants.length * visual.atlas.frameHeight,
+        `${itemId} equipment visual should match its declared modular atlas grid`);
     });
     data.ENEMIES.forEach((enemy) => {
       const dimensions = readPngDimensions(path.join(__dirname, enemy.animation.sheet));
@@ -29043,7 +29357,8 @@ try {
       staticEngineViewportCode.includes('const PLAYFIELD_HEIGHT = 640') &&
       staticEngineViewportCode.includes('const SOLID_PLATFORM_HEIGHT = 48') &&
       staticEngineViewportCode.includes('const CANVAS_STATUS_HUD_HEIGHT = 84') &&
-      staticEngineViewportCode.includes('const VIEW_HEIGHT = PLAYFIELD_HEIGHT + SOLID_PLATFORM_HEIGHT + CANVAS_STATUS_HUD_HEIGHT') &&
+      staticEngineViewportCode.includes('const LOGICAL_VIEW_HEIGHT = 806') &&
+      staticEngineViewportCode.includes('const VIEW_HEIGHT = LOGICAL_VIEW_HEIGHT') &&
       staticEngineViewportCode.includes('const VIEWPORT_PRESETS = Object.freeze') &&
       staticEngineViewportCode.includes('DEFAULT_USER_SETTINGS') &&
       engineCode.includes('applyUserSettings(settings, options)') &&
@@ -29258,7 +29573,7 @@ try {
       starfallCss.includes('.project-starfall-resource-marks'),
       'Project Starfall should show branch-specific class resource widgets in DOM and canvas HUDs');
     assert(starfallCss.includes('grid-template-columns: 74px minmax(108px, 1fr);') &&
-      starfallCss.includes('aspect-ratio: var(--starfall-stage-aspect, 1280 / 806);') &&
+      starfallCss.includes('aspect-ratio: var(--starfall-logical-stage-ratio);') &&
       starfallCss.includes('min-height: 0;') &&
       starfallCss.includes('.project-starfall-meter-label') &&
       starfallCss.includes('text-overflow: ellipsis;') &&
@@ -29526,7 +29841,7 @@ try {
       drawWorldMapCode.includes('getWorldMapLabelBox') &&
       drawWorldMapCode.includes('hoveredMapId') &&
       drawWorldMapCode.includes('availableBodyH') &&
-      drawWorldMapCode.includes('const detailH = 118') &&
+      drawWorldMapCode.includes('const detailH = 136') &&
       !drawWorldMapCode.includes('worldMap.areas') &&
       !drawWorldMapCode.includes("type: 'map'") &&
       !drawWorldMapCode.includes("type: 'start-dungeon'") &&
@@ -29623,8 +29938,10 @@ try {
       ['engine running overlay cache age', engineCode.includes('const cacheMaxAgeMs = this.running ? Number.POSITIVE_INFINITY : OVERLAY_SNAPSHOT_CACHE_MS;')],
       ['ui modal overlay snapshot key provider', uiCode.includes('getOverlayModalSnapshotKey()') &&
         uiCode.includes('modalKey: this.getOverlayModalSnapshotKey()')],
-      ['ui running canvas draw coalescing state', uiCode.includes('lastRunningCoalescedCanvasDrawFrame') &&
-        uiCode.includes('if (shouldCoalesce && canSchedule)') &&
+      ['ui running canvas draw dirty state', uiCode.includes('pendingRunningCanvasDraw') &&
+        uiCode.includes('pendingRunningCanvasDrawFrameId') &&
+        uiCode.includes('canvasDrawRevision') &&
+        uiCode.includes('if (this.engine.running)') &&
         uiCode.includes('if (this.pendingCanvasDrawFrame) return false;')],
       ['ui pointer move coalesced redraw calls', uiCode.includes('this.requestCanvasDraw({ coalesce: true });') &&
         uiCode.includes("getAdminConfigHelper('getAdminRateSliderMoveAction')") &&
@@ -32140,7 +32457,7 @@ try {
       'Project Starfall quest guidance should cache static snapshots and refresh dynamic navigation targets with mutation-sensitive keys');
     const mapDungeonLookupHotPathBodies = [
       engineCode.match(/getQuestNpcLocation\(npcId, mapId\) \{([\s\S]*?)\n\s*getQuestNpcTalkState/) || [],
-      engineCode.match(/getQuestNpcSnapshot\(mapId\) \{([\s\S]*?)\n\s*getQuestNpcPrompt/) || [],
+      engineCode.match(/getQuestNpcSnapshot\(mapId, context\) \{([\s\S]*?)\n\s*getQuestNpcPrompt/) || [],
       engineCode.match(/getRouteFieldStatus\(route, field, context\) \{([\s\S]*?)\n\s*getRouteSummary/) || [],
       engineCode.match(/getQuestGuidanceSnapshot\(\) \{([\s\S]*?)\n\s*awardMapKillQuestReward/) || [],
       engineCode.match(/getPortalBlockReason\(portal, context\) \{([\s\S]*?)\n\s*getPortalSummary/) || [],
@@ -32452,7 +32769,7 @@ try {
       starfallCss.includes('.project-starfall-hud-metric') &&
       starfallCss.includes('.project-starfall-settings-panel') &&
       starfallCss.includes('.project-starfall-settings-grid') &&
-      starfallCss.includes('--starfall-stage-aspect') &&
+      starfallCss.includes('--starfall-logical-stage-ratio') &&
       starfallCss.includes('.project-starfall-party-member.is-ally') &&
       starfallCss.includes('.project-starfall-panel-actions'),
       'Project Starfall UI should expose audio controls, onboarding guide messaging, and simulated party finder controls in DOM and canvas layers');
@@ -33369,6 +33686,7 @@ try {
       uiSettingsCode.includes("{ id: 'ultra', label: 'Ultra', width: 1920, height: 1080 }") &&
       uiSettingsCode.includes('const FRAME_RATE_LIMIT_OPTIONS = Object.freeze') &&
       uiSettingsCode.includes('const FRAME_RATE_LIMIT_OPTIONS = Object.freeze([60, 120, 240, 0])') &&
+      uiSettingsCode.includes('const DEFAULT_FRAME_RATE_LIMIT = 60') &&
       uiSettingsCode.includes('const DEFAULT_USER_SETTINGS = Object.freeze') &&
       uiSettingsCode.includes('audio: Object.freeze({ sfxEnabled: false, sfxVolume: 0.42, musicEnabled: false, musicVolume: 0.25 })') &&
       uiSettingsCode.includes("accessibility: Object.freeze({ reducedEffects: false, damageNumbers: 'normal' })") &&
@@ -33390,8 +33708,8 @@ try {
       uiCode.includes('function getSettingsValue(name)') &&
       uiCode.includes("const SETTINGS_STORAGE_KEY = getSettingsValue('SETTINGS_STORAGE_KEY') || 'projectStarfallPrototypeSettings.v1'") &&
       uiCode.includes("const VIEWPORT_PRESETS = getSettingsValue('VIEWPORT_PRESETS') || Object.freeze") &&
-      uiCode.includes("const FRAME_RATE_LIMIT_OPTIONS = getSettingsValue('FRAME_RATE_LIMIT_OPTIONS') || Object.freeze([120])") &&
-      uiCode.includes("const DEFAULT_FRAME_RATE_LIMIT = getSettingsValue('DEFAULT_FRAME_RATE_LIMIT') || 120") &&
+      uiCode.includes("const FRAME_RATE_LIMIT_OPTIONS = getSettingsValue('FRAME_RATE_LIMIT_OPTIONS') || Object.freeze([60])") &&
+      uiCode.includes("const DEFAULT_FRAME_RATE_LIMIT = getSettingsValue('DEFAULT_FRAME_RATE_LIMIT') || 60") &&
       uiCode.includes("const DEFAULT_USER_SETTINGS = getSettingsValue('DEFAULT_USER_SETTINGS') || Object.freeze") &&
       !uiCode.includes('UiSettings.' + 'SETTINGS_STORAGE_KEY ||') &&
       !uiCode.includes('UiSettings.' + 'VIEWPORT_PRESETS ||') &&
@@ -34424,8 +34742,8 @@ try {
       uiKeybindingsCode.includes('const KEY_LABELS = Object.freeze') &&
       uiKeybindingsCode.includes('const KEYBOARD_ROWS = Object.freeze') &&
       uiKeybindingsCode.includes('const ACTION_ICONS = Object.freeze') &&
-      uiKeybindingsCode.includes("ArrowUp: 'up'") &&
-      uiKeybindingsCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyW'] }") &&
+      uiKeybindingsCode.includes("{ id: 'moveUp', label: 'Move Up / Travel', type: 'hold', input: 'up', defaultKeys: ['ArrowUp', 'KeyW']") &&
+      uiKeybindingsCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyV'] }") &&
       uiKeybindingsCode.includes("return Object.freeze(['CapsLock', 'MetaLeft', 'MetaRight', 'Backspace', ...movementCodes])") &&
       uiKeybindingsCode.includes("CapsLock: 'Caps'") &&
       uiKeybindingsCode.includes("{ code: 'Space', label: 'Space', units: 6.2 }") &&
@@ -34511,7 +34829,7 @@ try {
       uiKeybindingsCode.includes('function getApplyLoadedSaveKeybindsStateAction(metadata)') &&
       uiKeybindingsCode.includes('function isAssignableKeyCode(code)') &&
       uiKeybindingsCode.includes('function createDefaultKeybinds()') &&
-      uiKeybindingsCode.includes('function normalizeKeyList(value, fallback, used)') &&
+      uiKeybindingsCode.includes('function normalizeKeyList(value, fallback, used, options)') &&
       uiKeybindingsCode.includes('function normalizeLegacyKeybindMenuKeys(value)') &&
       uiKeybindingsCode.includes('function normalizeKeybinds(value)') &&
       uiKeybindingsCode.includes('function removeSkillKeybinds(bindings)') &&
@@ -34669,8 +34987,8 @@ try {
       uiCode.includes("getKeybindingNormalizationHelper('normalizeLegacyKeybindMenuKeys')") &&
       uiCode.includes("getKeybindingNormalizationHelper('normalizeKeybinds')") &&
       uiCode.includes("getKeybindingNormalizationHelper('removeSkillKeybinds')") &&
-      !uiCode.includes("ArrowUp: 'up'") &&
-      !uiCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyW'] }") &&
+      !uiCode.includes("{ id: 'moveUp', label: 'Move Up / Travel', type: 'hold', input: 'up', defaultKeys: ['ArrowUp', 'KeyW']") &&
+      !uiCode.includes("{ id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyV'] }") &&
       !uiCode.includes("Object.freeze(['CapsLock', 'MetaLeft', 'MetaRight', 'Backspace', ...FIXED_MOVEMENT_KEY_CODES])") &&
       !uiCode.includes("CapsLock: 'Caps'") &&
       !uiCode.includes("{ code: 'Space', label: 'Space', units: 6.2 }") &&
@@ -35863,13 +36181,18 @@ try {
       spriteGeneratorCode.includes('function makeClassCharacter') &&
       spriteGeneratorCode.includes('function makeClassSheet') &&
 	      spriteGeneratorCode.includes('function drawClassPlayer') &&
-	      spriteGeneratorCode.includes('function makeEquipmentSheet') &&
 	      spriteGeneratorCode.includes('async function generatePlayerAssets') &&
 	      spriteGeneratorCode.includes("onlyTarget === 'equipment'") &&
+	      spriteGeneratorCode.includes("require('./generate-project-starfall-equipment-atlases.js')") &&
+	      equipmentAtlasGeneratorCode.includes("require('../js/games/project-starfall/engine/equipment-attachments.js')") &&
+	      equipmentAtlasGeneratorCode.includes('const EXPECTED_VISUAL_COUNT = 85') &&
+	      equipmentAtlasGeneratorCode.includes('function makeAtlas(item)') &&
+	      equipmentAtlasGeneratorCode.includes('async function validateAtlas(item)') &&
+	      equipmentAtlasGeneratorCode.includes('function validateOutputFileCount()') &&
 	      spriteGeneratorCode.includes('playerTargets.includes(onlyTarget)') &&
 	      spriteGeneratorCode.includes('function drawBossRoomMap(map)') &&
 	      spriteGeneratorCode.includes("onlyTarget === 'boss-rooms'") &&
-	      spriteGeneratorCode.includes('const EQUIPMENT = Object.freeze') &&
+	      equipmentAtlasGeneratorCode.includes('const EQUIPMENT = Object.freeze') &&
 	      !spriteGeneratorCode.includes('function makeDropIcon') &&
 	      !spriteGeneratorCode.includes('function generateItemAssets') &&
 	      !spriteGeneratorCode.includes('const DROP_ICONS = Object.freeze') &&
@@ -35884,7 +36207,7 @@ try {
       aiEnemySheetProcessorCode.includes('buildPromptManifest()') &&
 	      spriteGeneratorCode.includes('generic-player-sheet.png') &&
 	      !spriteGeneratorCode.includes('function makePixelFighterCharacter'),
-	      'Project Starfall sprite tooling should generate actors and maps while item icons stay on authored transparent assets');
+	      'Project Starfall sprite tooling should generate actors and maps, delegate equipment to modular atlas generation, and keep item icons on authored transparent assets');
     assert(skillIconProcessorCode.includes('const SHEETS = Object.freeze') &&
       skillIconProcessorCode.includes('function makeTransparent') &&
       skillIconProcessorCode.includes('function getAlphaBounds') &&
@@ -35926,7 +36249,8 @@ try {
       uiCode.includes('project-starfall-upgrade-outcome') &&
       uiCode.includes('getClassRoleProfile') &&
       uiCode.includes('project-starfall-role-card') &&
-      uiKeybindingsCode.includes('Level 100 Boost') &&
+      !uiKeybindingsCode.includes('Level 100 Boost') &&
+      !uiKeybindingsCode.includes("label: 'Delete Character'") &&
       uiKeybindingsCode.includes("const KEYBIND_STORAGE_KEY = 'projectStarfallKeybinds.v4'") &&
       uiCode.includes("const KEYBIND_STORAGE_KEY = getKeybindingValue('KEYBIND_STORAGE_KEY') || 'projectStarfallKeybinds.v4'") &&
       uiCode.includes('ATTACK_HOLD_DEFAULT_KEY') &&
@@ -35937,8 +36261,12 @@ try {
       uiCode.includes('getVisibleSkillCooldown') &&
       uiCode.includes('FIXED_MOVEMENT_KEYS') &&
       uiCode.includes('handleFixedMovementKey') &&
-      uiCode.includes('this.engine.tryEnterActivePortal') &&
-      uiKeybindingsCode.includes("ArrowLeft: 'left'") &&
+      uiCode.includes('this.startPortalTransition()') &&
+      !uiCode.includes('this.engine.tryEnterActivePortal') &&
+      uiKeybindingsCode.includes("id: 'moveLeft'") &&
+      uiKeybindingsCode.includes("id: 'moveRight'") &&
+      uiKeybindingsCode.includes("id: 'moveUp'") &&
+      uiKeybindingsCode.includes("id: 'moveDown'") &&
       uiCode.includes('ITEM_BIND_PREFIX') &&
       uiCode.includes('DEFAULT_TRAY_ACTION_IDS') &&
       uiCode.includes('BLOCKED_BINDING_KEYS') &&
@@ -35965,7 +36293,7 @@ try {
       uiKeybindingsCode.includes("defaultKeys: ['KeyE']") &&
       uiKeybindingsCode.includes("defaultKeys: ['KeyF']") &&
       uiKeybindingsCode.includes("defaultKeys: ['KeyP']") &&
-      uiKeybindingsCode.includes("defaultKeys: ['KeyW']") &&
+      uiKeybindingsCode.includes("defaultKeys: ['KeyV']") &&
       uiKeybindingsCode.includes("defaultKeys: ['KeyN']") &&
       uiKeybindingsCode.includes("defaultKeys: ['KeyM']") &&
       uiKeybindingsCode.includes("defaultKeys: ['KeyK']") &&
@@ -36301,7 +36629,7 @@ try {
       uiCode.includes('skill:${skill.id}') &&
       uiCode.includes('ITEM_BIND_PREFIX}${item.id}') &&
       uiCode.includes('assignActionToKey') &&
-      uiCode.includes('Movement is fixed to the arrow keys') &&
+      uiCode.includes('Movement defaults to the arrow keys and WASD') &&
       uiCode.includes("addEventListener('contextmenu'") &&
       uiCode.includes('handleCanvasContextMenu') &&
       uiCode.includes('renderCommandPanel') &&
@@ -36581,10 +36909,18 @@ try {
         `Project Starfall pet ${stateId} animation should use an authored transparent sprite row`);
     });
     Object.entries(data.EQUIPMENT_VISUALS || {}).forEach(([itemId, visual]) => {
-      const png = assertResolvedPng(visual.animation.sheet, 960, 1600, `${itemId} equipment visual sheet`);
-      const basicRow = data.PLAYER_ANIMATION_ROWS.indexOf('basic');
-      assert(countFramePixelDiff(png, 160, basicRow, 0, 1, 32) >= 40,
-        `${itemId} equipment visual should move between basic attack frames`);
+      const atlas = visual.atlas;
+      const png = assertResolvedPng(atlas.sheet,
+        atlas.angles.length * atlas.frameWidth,
+        atlas.variants.length * atlas.frameHeight,
+        `${itemId} equipment visual atlas`);
+      atlas.variants.forEach((variant, row) => {
+        atlas.angles.forEach((angle, column) => {
+          assert(getPngAlphaArea(png, column * atlas.frameWidth, row * atlas.frameHeight,
+            atlas.frameWidth, atlas.frameHeight, 8) >= 8,
+          `${itemId} ${variant} ${angle} degree equipment cell should contain visible art`);
+        });
+      });
     });
 
     const enemyAttackFrameHashesByKind = new Map();
@@ -36608,11 +36944,25 @@ try {
             `${enemy.id} ${stateId}:${frame + 1} enemy animation frame should leave a transparent cell border`);
         }
       });
-      ['idle', 'move', 'attack', 'projectile', 'buff', 'defeat'].forEach((stateId) => {
+      const minimumEnemyMotionByState = {
+        idle: 300,
+        move: 700,
+        telegraph: 450,
+        attack: 700,
+        projectile: 500,
+        buff: 700,
+        hit: 450,
+        defeat: 500
+      };
+      data.ENEMY_ANIMATION_ROWS.forEach((stateId) => {
+        const state = enemy.animation.states && enemy.animation.states[stateId];
+        if (Number(state && state.frames || 1) < 3) return;
         const row = data.ENEMY_ANIMATION_ROWS.indexOf(stateId);
-        const minimumChangedPixels = Math.round((stateId === 'idle' ? 300 : 900) * Math.pow(frameSize / 160, 2));
-        assert(countFramePixelDiff(png, frameSize, row, 0, 1, 32) >= minimumChangedPixels,
-          `${enemy.id} ${stateId} animation should use visibly distinct frames`);
+        const minimumChangedPixels = Math.round(minimumEnemyMotionByState[stateId] * Math.pow(frameSize / 160, 2));
+        [[0, 1], [1, 2]].forEach(([fromFrame, toFrame]) => {
+          assert(countFramePixelDiff(png, frameSize, row, fromFrame, toFrame, 32) >= minimumChangedPixels,
+            `${enemy.id} ${stateId} animation frames ${fromFrame + 1}-${toFrame + 1} should be visibly distinct`);
+        });
       });
       const attackHash = hashAnimationFrame(png, frameSize, data.ENEMY_ANIMATION_ROWS.indexOf('attack'), 0);
       const kindHashes = enemyAttackFrameHashesByKind.get(enemy.family) || new Map();
@@ -37454,11 +37804,21 @@ try {
     assert(css.includes('.shortlinks-detail-panel'), 'short links CSS should style the detail panel');
     assert(css.includes('.shortlinks-master-detail') && css.includes('.shortlinks-table tbody tr.is-active'),
       'short links CSS should style the master-detail workbench and selected link row');
+    assert(css.includes('@media (max-width: 768px)') &&
+      css.includes('body[data-page="short-links"] .shortlinks-command-popover') &&
+      css.includes('position:fixed;') &&
+      css.includes('right:max(12px, env(safe-area-inset-right, 0px));') &&
+      css.includes('left:max(12px, env(safe-area-inset-left, 0px));') &&
+      css.includes('overflow-y:auto;') &&
+      css.includes('@media (max-width: 560px)'),
+      'short links mobile command popovers should stay inside the viewport and scroll internally');
     assert(css.includes('.shortlinks-editor-overlay') && html.includes('role="dialog"') && html.includes('aria-modal="true"'),
       'short links should open the single-link editor as an accessible overlay');
     assert(html.includes('id="shortlinks-detail-panel"') && html.includes('aria-label="Selected link details"'),
       'short links detail inspector should have a persistent accessible region');
     const adminJs = readFile('js/admin/short-links.js');
+    assert(!adminJs.includes('â€¦'),
+      'short links status copy should not contain a mojibake ellipsis');
     assert(adminJs.includes('shortlinks_active_mode'), 'short links should remember the active workspace mode');
     assert(adminJs.includes('shortlinks_saved_views'), 'short links should store saved filter views');
     assert(adminJs.includes('testSelectedLinks'), 'short links should support bulk health checks');
@@ -37805,6 +38165,7 @@ try {
   section('Job tracker UI additions', () => {
     const trackerHtml = fs.readFileSync('pages/job-application-tracker.html', 'utf8');
     const trackerJs = fs.readFileSync('js/tools/job-application-tracker.js', 'utf8');
+    const trackerCss = fs.readFileSync('css/components/job-application-tracker.css', 'utf8');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="account"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="entries"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-form"');
@@ -37849,6 +38210,21 @@ try {
       'job tracker missing lazy fflate source constant');
     assert(trackerJs.includes('await ensureFflate();'), 'job tracker should load fflate on demand');
     assert(trackerJs.includes('ensureChartJs()'), 'job tracker should load Chart.js on demand');
+    const updateAuthUiCode = trackerJs.slice(
+      trackerJs.indexOf('const updateAuthUI'),
+      trackerJs.indexOf('const requestJson')
+    );
+    assert(trackerJs.includes("const isStartHere = button.dataset.jobtrackTab === 'account';") &&
+      trackerJs.includes('const disabled = !authed && !isStartHere;') &&
+      trackerJs.includes("button.dataset.jobtrackLocked = 'true';"),
+      'signed-out job tracker should keep Start Here available and mark protected tabs as locked');
+    assert(updateAuthUiCode && !updateAuthUiCode.includes('openAuthModal()'),
+      'job tracker should not cover the signed-out Start Here screen with an automatic auth modal');
+    assert(trackerCss.includes('.jobtrack-tab[data-jobtrack-locked="true"]') &&
+      trackerCss.includes('content:"Sign in to unlock the four tracking sections.";') &&
+      trackerCss.includes('.jobtrack-tabs:has(.jobtrack-tab[data-jobtrack-locked="true"]) [data-jobtrack-panel="account"] .jobtrack-card') &&
+      trackerCss.includes('@media (max-width: 720px)'),
+      'job tracker should present a readable, compact signed-out state with explicit locked navigation');
   });
 
   section('QR generator enhanced workflow contracts', () => {
@@ -38602,6 +38978,7 @@ try {
     const dataScienceHeaderTemplate = fs.readFileSync('build/templates/header.data-science.partial.html', 'utf8');
     const tourismHeaderTemplate = fs.readFileSync('build/templates/header.tourism.partial.html', 'utf8');
     const footerTemplate = fs.readFileSync('build/templates/footer.partial.html', 'utf8');
+    const footerCss = fs.readFileSync('css/layout/footer.css', 'utf8');
     const analyticsFooterTemplate = fs.readFileSync('build/templates/footer.analytics.partial.html', 'utf8');
     const dataScienceFooterTemplate = fs.readFileSync('build/templates/footer.data-science.partial.html', 'utf8');
     const tourismFooterTemplate = fs.readFileSync('build/templates/footer.tourism.partial.html', 'utf8');
@@ -38619,6 +38996,10 @@ try {
     assert(!headerTemplate.includes('<a href="/" class="nav-link" data-entry-home-link="true">Home</a>'),
       'header should not render a separate Home nav link');
     assert(!footerTemplate.includes('data-entry-home-link'), 'footer should not include entry-home markers');
+    assert(footerCss.includes('@media (max-width: 640px)') &&
+      footerCss.includes('min-height:44px;') &&
+      footerCss.includes('padding-block:6px;'),
+      'classic footer links should preserve useful mobile pointer targets');
     assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
     assert(footerTemplate.includes('class="footer-identity"') &&
       footerTemplate.includes('data-footer-realm="personal"') &&
@@ -39204,6 +39585,7 @@ try {
     const graphCss = readFile('css/components/home-project-graph.css');
     const graphJs = readFile('js/home/project-graph.js');
     const mobileDockCss = readFile('css/components/mobile-site-dock.css');
+    const navigationJs = readFile('js/navigation/navigation.js');
     checkFileContains('index.html', 'home-pattern-page');
     checkFileContains('index.html', 'class="home-graph"');
     checkFileContains('index.html', 'data-home-graph');
@@ -39455,6 +39837,14 @@ try {
       mobileDockCss.includes('width: 64px') &&
       mobileDockCss.includes('height: 64px'),
       'shared mobile dock should stay compact while preserving 44px or larger navigation targets and matching body clearance');
+    assert(navigationJs.includes('M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7') &&
+      navigationJs.includes('<rect x="3" y="7" width="18" height="13" rx="2.25"></rect>') &&
+      !navigationJs.includes('M14.5 5.5a4.8 4.8 0 0 0 4 6.9'),
+      'shared mobile dock should use a recognizable toolbox glyph for Tools');
+    assert(mobileDockCss.includes('.mobile-site-dock[data-mobile-dock-layout="personal"]') &&
+      mobileDockCss.includes('grid-template-columns: minmax(44px, 1fr) minmax(44px, 1fr) 64px minmax(44px, 1fr) minmax(80px, 1.6fr)') &&
+      mobileDockCss.includes('.mobile-site-dock[data-mobile-dock-layout="personal"] .mobile-site-dock__contact .mobile-site-dock__item'),
+      'personal mobile dock should make Contact visibly wider than the other outer navigation items');
   });
 
   section('Project-first public copy', () => {
@@ -40797,6 +41187,9 @@ try {
            projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-demo-panel-inner{\n      gap:0;\n      padding:0;') &&
            projectCss.includes('.project-demo-panel[data-demo-panel="demo"] .project-media{\n      border:0;'),
       'project demo pages should show the iframe first and move instructions into a compact tooltip on desktop and mobile');
+    assert(projectCss.includes('.project-demo-help-trigger{\n    width:44px;\n    height:44px;') &&
+           projectCss.includes('.project-demo-help-trigger{\n      width:44px;\n      height:44px;'),
+      'project demo help controls should retain a 44px pointer target on desktop and mobile');
     assert(projectCss.includes('.project-star .section-title{\n    margin:0;') &&
            projectCss.includes('.project-star .section-title + *{\n    margin-top:var(--project-section-title-gap);') &&
            projectCss.includes('.project-section .section-title{\n    margin:0;') &&
@@ -41493,9 +41886,33 @@ try {
     assert(readFile('pages/resume-analytics.html').includes('href="documents/Resume-Analytics.pdf" class="btn-primary" download>Download PDF</a>') &&
       readFile('pages/resume-analytics.html').includes('href="resume-analytics-pdf" class="btn-secondary">Preview PDF</a>') &&
       readFile('pages/resume-analytics-pdf.html').includes('href="resume-analytics" class="btn-secondary">View digital resume</a>') &&
-      readFile('pages/resume-analytics-pdf.html').includes('src="documents/Resume-Analytics.pdf" title="Resume PDF preview"') &&
+      readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-preview"') &&
+      readFile('pages/resume-analytics-pdf.html').includes('src="img/resume-previews/resume-analytics-preview.png"') &&
+      !readFile('pages/resume-analytics-pdf.html').includes('<iframe') &&
       readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-fallback"'),
       'analytics resume and PDF preview routes should use analytics-specific URLs and document names');
+    [
+      ['analytics', 'Analytics', 'resume-analytics-preview.png'],
+      ['data-science', 'Data-Science', 'resume-data-science-preview.png'],
+      ['tourism', 'Tourism', 'resume-tourism-preview.png']
+    ].forEach(([slug, documentLabel, previewFile]) => {
+      const previewHtml = readFile(`pages/resume-${slug}-pdf.html`);
+      const resumeContent = readFile(`content/resumes/${slug}.json`);
+      const previewPath = `img/resume-previews/${previewFile}`;
+      assert(previewHtml.includes('class="resume-pdf-preview"') &&
+        previewHtml.includes(`src="${previewPath}"`) &&
+        previewHtml.includes(`href="documents/Resume-${documentLabel}.pdf"`) &&
+        !previewHtml.includes('<iframe') &&
+        resumeContent.includes(previewPath),
+        `${slug} PDF wrapper should use a durable generated first-page preview instead of a native iframe`);
+      assert(fs.existsSync(previewPath) && fs.existsSync(path.join('public', previewPath)),
+        `${slug} resume preview image should be published with the site`);
+    });
+    const resumeCss = readFile('css/components/resume.css');
+    assert(resumeCss.includes('.resume-pdf-preview') &&
+      resumeCss.includes('.resume-pdf-preview img') &&
+      resumeCss.includes('.resume-pdf-caption'),
+      'resume PDF wrappers should style the resilient first-page preview and caption');
   });
 
   section('Search page form contract', () => {
@@ -41826,8 +42243,11 @@ try {
            demoCss.includes('width: 44px;') &&
            demoCss.includes('bottom: calc(112px + env(safe-area-inset-bottom));'),
       'stellar dogfight CSS should preserve visible, safe-area-aware mobile touch actions');
-    assert(demoCss.includes('body.is-playing .mobile-site-dock') &&
+    assert(demoCss.includes('body.is-playing .mobile-site-masthead') &&
+           demoCss.includes('body.is-playing .mobile-site-dock') &&
+           demoCss.includes('body.is-playing.has-mobile-site-masthead') &&
            demoCss.includes('body.is-playing.has-mobile-site-dock') &&
+           demoCss.includes('padding: 0;') &&
            demoCss.includes('padding-bottom: 0;'),
       'stellar dogfight should reserve the full mobile viewport for active combat');
     assert(demoCss.includes('body.is-hangar') &&
@@ -42197,6 +42617,10 @@ try {
            rouletteCss.includes('@media (prefers-reduced-motion: reduce)') &&
            rouletteCss.includes('.roulette00-bet.is-paid'),
       'roulette CSS should provide sticky mobile controls and reduced-motion payout feedback');
+    assert(rouletteCss.includes('body.roulette00-page.has-mobile-site-masthead') &&
+           rouletteCss.includes('body.has-mobile-site-dock .roulette00-mobile-bar') &&
+           rouletteCss.includes('bottom: var(--mobile-site-dock-clearance'),
+      'roulette mobile header and primary control bar should clear the shared site chrome');
   });
 
   section('Probability Engine game', () => {
@@ -42228,6 +42652,10 @@ try {
            probabilityCss.includes('pointer-events: auto;') &&
            probabilityCss.includes('z-index: 3200;'),
       'Probability Engine should hide inactive workspaces, respect reduced motion, and keep its offline modal interactive above the shared shell');
+    assert(probabilityCss.includes('body.has-mobile-site-masthead .app-shell') &&
+           probabilityCss.includes('body.has-mobile-site-dock .app-shell') &&
+           probabilityCss.includes('padding-bottom: calc(var(--mobile-site-dock-clearance'),
+      'Probability Engine should keep its first and final controls clear of shared mobile chrome');
   });
 
   section('Ocean Wave Simulation game', () => {

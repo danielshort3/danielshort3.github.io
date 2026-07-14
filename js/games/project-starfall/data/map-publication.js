@@ -202,6 +202,7 @@
     const worldMapNodes = settings.WORLD_MAP_NODES || DataWorld.WORLD_MAP_NODES || EMPTY_ARRAY;
     const mapAssets = settings.MAP_ASSETS || DataAssets.MAP_ASSETS || EMPTY_OBJECT;
     const stationAssets = settings.STATION_ASSETS || DataAssets.STATION_ASSETS || EMPTY_OBJECT;
+    const defaultQuestNpcAsset = settings.DEFAULT_QUEST_NPC_ASSET || DataAssets.GENERIC_PLAYER_ASSET || '';
     const mapEnvironmentProfiles = settings.MAP_ENVIRONMENT_PROFILES || DataEnvironment.MAP_ENVIRONMENT_PROFILES || EMPTY_OBJECT;
     const mapPortals = settings.MAP_PORTALS || DataMapPortals.MAP_PORTALS || EMPTY_OBJECT;
 
@@ -247,7 +248,9 @@
         spawnPoints,
         spawnGroups,
         stations: (map.stations || []).map((station) => attachAsset(Object.assign({}, getStationServiceIntent(station.id), station), stationAssets[station.id])),
-        questNpcs: (map.questNpcs || []).map((npc) => Object.freeze(Object.assign({}, npc, {
+        questNpcs: (map.questNpcs || []).map((npc) => Object.freeze(Object.assign({
+          asset: defaultQuestNpcAsset
+        }, npc, {
           questIds: Object.freeze((npc.questIds || []).slice())
         }))),
         portals: (map.portals || mapPortals[map.id] || []).map((portal) => {

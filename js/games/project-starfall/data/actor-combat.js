@@ -15,7 +15,7 @@
   function createActorCombatData(options) {
     const settings = options || {};
     const ASSET_ROOT = settings.ASSET_ROOT || DataAssets.ASSET_ROOT;
-    const EQUIPMENT_VISUAL_ROOT = settings.EQUIPMENT_VISUAL_ROOT || DataAssets.EQUIPMENT_VISUAL_ROOT;
+    const EQUIPMENT_ATLAS_ROOT = settings.EQUIPMENT_ATLAS_ROOT || DataAssets.EQUIPMENT_ATLAS_ROOT;
     const CLASS_FILE_IDS = settings.CLASS_FILE_IDS || DataAssets.CLASS_FILE_IDS;
     const CLASS_ASSETS = settings.CLASS_ASSETS || DataAssets.CLASS_ASSETS;
     const ENEMY_ASSETS = settings.ENEMY_ASSETS || DataAssets.ENEMY_ASSETS;
@@ -29,7 +29,7 @@
 
     const animationData = DataAnimations.createAnimationData({
       ASSET_ROOT,
-      EQUIPMENT_VISUAL_ROOT,
+      EQUIPMENT_ATLAS_ROOT,
       CLASS_FILE_IDS,
       createEquipmentVisualData: settings.createEquipmentVisualData || DataEquipmentVisuals.createEquipmentVisualData
     });
@@ -75,6 +75,7 @@
       CLASS_ICON_ASSETS,
       ANIMATION_ROOT: animationData.ANIMATION_ROOT,
       COMBAT_FX_ANIMATION_ROOT: animationData.COMBAT_FX_ANIMATION_ROOT,
+      EQUIPMENT_ATLAS_ROOT: animationData.EQUIPMENT_ATLAS_ROOT,
       PLAYER_ANIMATION_ROWS: animationData.PLAYER_ANIMATION_ROWS,
       ENEMY_ANIMATION_ROWS: animationData.ENEMY_ANIMATION_ROWS,
       PET_ANIMATION_ROWS: animationData.PET_ANIMATION_ROWS,

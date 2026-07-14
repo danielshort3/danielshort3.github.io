@@ -26,7 +26,8 @@ const entries = [
   { entry: path.join(root, 'build', 'entries', 'site-sitemap.entry.js'), baseName: 'site-sitemap', manifestKey: 'sitemap' },
   { entry: path.join(root, 'build', 'entries', 'site-privacy.entry.js'), baseName: 'site-privacy', manifestKey: 'privacy' },
   { entry: path.join(root, 'build', 'entries', 'site-tools-account.entry.js'), baseName: 'site-tools-account', manifestKey: 'toolsAccount' },
-  { entry: path.join(root, 'build', 'entries', 'site-tools-landing.entry.js'), baseName: 'site-tools-landing', manifestKey: 'toolsLanding' }
+  { entry: path.join(root, 'build', 'entries', 'site-tools-landing.entry.js'), baseName: 'site-tools-landing', manifestKey: 'toolsLanding' },
+  { entry: path.join(root, 'build', 'entries', 'project-starfall.entry.js'), baseName: 'project-starfall', manifestKey: 'projectStarfall' }
 ];
 
 function ensureDir(dirPath) {

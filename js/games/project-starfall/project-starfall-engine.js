@@ -12,6 +12,10 @@
   const CoreSettings = (typeof require === 'function' ? require('./core/settings.js') : null) || global.ProjectStarfallCore || {};
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
   const EngineModules = global.ProjectStarfallEngineModules || {};
+  const EquipmentAttachments = (typeof require === 'function' ? require('./engine/equipment-attachments.js') : null) || EngineModules.equipmentAttachments || {};
+  const resolveEquipmentAtlasParts = typeof EquipmentAttachments.resolveEquipmentAtlasParts === 'function'
+    ? EquipmentAttachments.resolveEquipmentAtlasParts
+    : function resolveEquipmentAtlasPartsFallback() { return []; };
   const EngineAssets = (typeof require === 'function' ? require('./engine/assets.js') : null) || EngineModules.assets || {};
 
   function getEngineAssetHelper(name) {
@@ -302,6 +306,48 @@
     return typeof EngineVisuals[name] === 'function' ? EngineVisuals[name] : null;
   }
 
+  function getEngineVisualValue(name, fallback) {
+    return typeof EngineVisuals[name] === 'undefined' ? fallback : EngineVisuals[name];
+  }
+
+  const PLAYER_SPRITE_REGISTRATION = getEngineVisualValue('PLAYER_SPRITE_REGISTRATION', Object.freeze({
+    originX: 80,
+    groundY: 154,
+    authoredBodyHeight: 143
+  }));
+  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION });
+  const ENEMY_SPRITE_REGISTRATION = getEngineVisualValue('ENEMY_SPRITE_REGISTRATION', Object.freeze({
+    originX: 64,
+    groundY: 118,
+    authoredBodyHeight: 102
+  }));
+  const ENEMY_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: ENEMY_SPRITE_REGISTRATION });
+
+  function createEnemySpriteRenderBox(enemy) {
+    const helper = getEngineVisualHelper('createEnemySpriteRenderBox');
+    if (helper) return helper(enemy);
+    const data = enemy && enemy.data || {};
+    const enemyId = normalizeId(enemy && enemy.id || data.id);
+    const size = enemyId === 'stormbreakRoc'
+      ? 178
+      : enemyId === 'astralArchivist'
+        ? 154
+        : data.behavior === 'boss'
+          ? 150
+          : enemyId === 'mossback' || enemyId === 'orebackBeetle'
+            ? 92
+            : data.behavior === 'flyer' ? 76 : 86;
+    const grounded = data.behavior !== 'flyer';
+    return {
+      x: Number(enemy && enemy.x || 0) + Number(enemy && enemy.w || 0) / 2 - size / 2,
+      y: grounded
+        ? Number(enemy && enemy.y || 0) + Number(enemy && enemy.h || 0) - size - 2
+        : Number(enemy && enemy.y || 0) + Number(enemy && enemy.h || 0) / 2 - size / 2,
+      w: size,
+      h: size
+    };
+  }
+
   const EngineMapModifiers = (typeof require === 'function' ? require('./engine/map-modifiers.js') : null) || EngineModules.mapModifiers || {};
 
   function getEngineMapModifierHelper(name) {
@@ -504,6 +550,14 @@
   const collectAnimationAssetPaths = COLLECT_ANIMATION_ASSET_PATHS || function collectAnimationAssetPathsFallback() {
     return undefined;
   };
+  function collectEquipmentVisualAssetPaths(visual, paths) {
+    if (!visual) return;
+    if (visual.renderMode === 'atlas' && visual.atlas && visual.atlas.sheet) {
+      addAssetPath(paths, visual.atlas.sheet);
+      return;
+    }
+    collectAnimationAssetPaths(visual.animation, paths);
+  }
   const COLLECT_ENVIRONMENT_ASSET_PATHS = getEngineAssetHelper('collectEnvironmentAssetPaths');
   const collectEnvironmentAssetPaths = COLLECT_ENVIRONMENT_ASSET_PATHS || function collectEnvironmentAssetPathsFallback() {
     return undefined;
@@ -714,7 +768,7 @@
     Object.freeze({ id: 'ultra', label: 'Ultra', width: 1920, height: 1080 })
   ]));
   const FRAME_RATE_LIMIT_OPTIONS = getEngineViewportValue('FRAME_RATE_LIMIT_OPTIONS', Object.freeze([60, 120, 240, 0]));
-  const DEFAULT_FRAME_RATE_LIMIT = getEngineViewportValue('DEFAULT_FRAME_RATE_LIMIT', 120);
+  const DEFAULT_FRAME_RATE_LIMIT = getEngineViewportValue('DEFAULT_FRAME_RATE_LIMIT', 60);
   const FRAME_RATE_LIMIT_TOLERANCE_MS = 0.35;
   const PIXI_PREWARM_KEY_CHECK_INTERVAL_SECONDS = 0.5;
   const DEFAULT_USER_SETTINGS = getEngineViewportValue('DEFAULT_USER_SETTINGS', Object.freeze({
@@ -953,6 +1007,7 @@
   }))));
   const COMBAT_ACTION_LOCK_SECONDS = 0.1;
   const GLOBAL_COMBAT_ACTION_DELAY_SECONDS = 0.35;
+  const BASIC_ATTACK_MOVEMENT_LOCK_SECONDS = 0.14;
   const COMBAT_METRICS_ROLLING_WINDOW_SECONDS = getEngineCombatMetricsValue('COMBAT_METRICS_ROLLING_WINDOW_SECONDS', 60);
   const ENEMY_COMBAT_HUD_SECONDS = 3;
   const ENEMY_CONTACT_DAMAGE_COOLDOWN_SECONDS = 1.35;
@@ -10327,6 +10382,8 @@
       this.activePrototypePartyMembersCache = null;
       this.camera = { x: 0, y: 0 };
       this.lastFrame = 0;
+      this.framePacingDeadline = 0;
+      this.framePacingIntervalMs = 0;
       this.frameRequestId = 0;
       this.skippedFrameCount = 0;
       this.running = false;
@@ -10410,7 +10467,6 @@
       this.enemySeparationCandidateBuffer = [];
       this.pixiPrewarmKey = '';
       this.pixiPrewarmKeyNextCheckAt = 0;
-      this.pixiIdlePrewarmStarted = false;
       this.changeBatchDepth = 0;
       this.changeBatchDirty = false;
       this.changeBatchDomains = new Set();
@@ -10465,6 +10521,7 @@
       this.toastThrottleState = {};
       this.assetRefreshQueued = false;
       this.assetLoadProgress = createAssetLoadProgress(0, 0, 0, 0, true);
+      this.assetLoadTrackedPaths = new Set();
       this.assetLoadSettledPaths = new Set();
       this.onAssetLoadProgress = function noop() {};
       this.resolveAssetLoadPromise = null;
@@ -10477,7 +10534,8 @@
     }
 
     loadAssets() {
-      const assetPaths = collectAssetPaths(this.data || Data);
+      const assetPaths = this.getMapCriticalAssetSet(this.state && this.state.mapId);
+      this.assetLoadTrackedPaths = new Set(assetPaths.map((assetPath) => normalizeId(getAssetSourcePath(assetPath))).filter(Boolean));
       this.assetLoadSettledPaths = new Set();
       this.assetLoadProgress = createAssetLoadProgress(assetPaths.length, 0, 0, 0, assetPaths.length <= 0 || typeof Image === 'undefined');
       this.emitAssetLoadProgress();
@@ -10507,7 +10565,7 @@
 
     recordAssetLoadResult(assetPath, loaded) {
       const path = normalizeId(assetPath);
-      if (!path || this.assetLoadSettledPaths.has(path)) return;
+      if (!path || !this.assetLoadTrackedPaths.has(path) || this.assetLoadSettledPaths.has(path)) return;
       this.assetLoadSettledPaths.add(path);
       const current = this.assetLoadProgress || createAssetLoadProgress(0, 0, 0, 0, true);
       this.assetLoadProgress = createAssetLoadProgress(
@@ -10569,6 +10627,7 @@
       addAssetPath(paths, runtime.asset || map.asset);
       collectAnimationAssetPaths(data.PET_ANIMATION_ASSET, paths);
       (runtime.stations || map.stations || []).forEach((station) => addAssetPath(paths, station && station.asset));
+      (runtime.questNpcs || map.questNpcs || []).forEach((npc) => addAssetPath(paths, npc && npc.asset));
       collectMapEnvironmentAssetPaths(map, data, paths);
       collectAnimationAssetPaths(data.GENERIC_PLAYER_ANIMATION_ASSET, paths);
       const player = this.state && this.state.player || {};
@@ -10579,7 +10638,7 @@
         collectAnimationAssetPaths(classData.animation, paths);
       });
       this.getEquippedVisualLayers().forEach((layer) => {
-        collectAnimationAssetPaths(layer && layer.visual && layer.visual.animation, paths);
+        collectEquipmentVisualAssetPaths(layer && layer.visual, paths);
       });
       this.getActivePrototypePartyMembers().forEach((member) => {
         const classData = getPartyClassData(member.classId) || data.BASE_CLASSES && data.BASE_CLASSES[getPartyBaseClassId(member.classId)] || null;
@@ -10587,7 +10646,7 @@
         addAssetPath(paths, classData.asset);
         collectAnimationAssetPaths(classData.animation, paths);
         this.getEquippedVisualLayers(this.getPartyMemberEquipment(member)).forEach((layer) => {
-          collectAnimationAssetPaths(layer && layer.visual && layer.visual.animation, paths);
+          collectEquipmentVisualAssetPaths(layer && layer.visual, paths);
         });
       });
       (map.enemies || []).map(normalizeId).filter(Boolean).forEach((enemyId) => {
@@ -10745,6 +10804,13 @@
           .then(() => progress));
     }
 
+    queueCurrentAssetPreload(label) {
+      const mapId = this.state && this.state.mapId;
+      if (!mapId) return Promise.resolve(false);
+      return this.preloadMapAssets(mapId, { label: label || `current:${mapId}` })
+        .then(() => true, () => false);
+    }
+
     getMapCriticalAssetSet(mapId) {
       const paths = this.getMapAssetSet(mapId);
       if (normalizeId(mapId) === normalizeId(this.state && this.state.mapId)) {
@@ -10766,6 +10832,7 @@
       addAssetPath(paths, runtime.asset || map.asset);
       collectAnimationAssetPaths(data.PET_ANIMATION_ASSET, paths);
       (runtime.stations || map.stations || []).forEach((station) => addAssetPath(paths, station && station.asset));
+      (runtime.questNpcs || map.questNpcs || []).forEach((npc) => addAssetPath(paths, npc && npc.asset));
       collectMapEnvironmentAssetPaths(map, data, paths);
       collectAnimationAssetPaths(data.GENERIC_PLAYER_ANIMATION_ASSET, paths);
 
@@ -10777,7 +10844,7 @@
         collectAnimationAssetPaths(classData.animation, paths);
       });
       this.getEquippedVisualLayers().forEach((layer) => {
-        collectAnimationAssetPaths(layer && layer.visual && layer.visual.animation, paths);
+        collectEquipmentVisualAssetPaths(layer && layer.visual, paths);
       });
 
       this.getActivePrototypePartyMembers().forEach((member) => {
@@ -10786,7 +10853,7 @@
         addAssetPath(paths, classData.asset);
         collectAnimationAssetPaths(classData.animation, paths);
         this.getEquippedVisualLayers(this.getPartyMemberEquipment(member)).forEach((layer) => {
-          collectAnimationAssetPaths(layer && layer.visual && layer.visual.animation, paths);
+          collectEquipmentVisualAssetPaths(layer && layer.visual, paths);
         });
       });
 
@@ -10808,11 +10875,6 @@
       });
 
       return Array.from(new Set(paths));
-    }
-
-    getIdlePixiAssetSet(currentAssets) {
-      const immediate = new Set((currentAssets || []).map(normalizeId).filter(Boolean));
-      return collectAssetPaths(this.data || Data).filter((assetPath) => !immediate.has(assetPath));
     }
 
     getRendererFrameCacheKey(frame) {
@@ -10893,6 +10955,10 @@
           });
         }
       }
+      (Array.isArray(actor.equipmentLayers) ? actor.equipmentLayers : []).forEach((layer) => {
+        if (!layer || !layer.atlasPart || !layer.atlasPart.frame) return;
+        this.addRendererFramePrewarmJob(jobs, layer.atlasPart.frame);
+      });
     }
 
     addRendererFramePrewarmJob(jobs, frame) {
@@ -10922,7 +10988,10 @@
       if (!animation || !animation.states || !Array.isArray(states)) return;
       const maxFrames = Math.max(1, Math.floor(Number(options && options.maxFrames || 2) || 2));
       const layers = (visualLayers || [])
-        .filter((layer) => layer && layer.visual && layer.visual.animation)
+        .filter((layer) => layer && layer.visual && (
+          layer.visual.renderMode === 'atlas' && layer.visual.atlas && layer.visual.atlas.sheet ||
+          layer.visual.animation && layer.visual.animation.sheet
+        ))
         .sort((a, b) => Number(a.visual.order || 0) - Number(b.visual.order || 0));
       states.forEach((stateId) => {
         const frameDef = animation.states[normalizeId(stateId)];
@@ -10933,23 +11002,30 @@
           const baseFrame = this.getRendererAnimationFrameForIndex(animation, stateId, frameIndex);
           this.addRendererFramePrewarmJob(jobs, baseFrame);
           if (!baseFrame || !layers.length) continue;
-          const frames = [];
+          const legacyFrames = [];
           let insertedBaseFrame = false;
           layers.forEach((layer) => {
+            if (layer.visual.renderMode === 'atlas' && layer.visual.atlas && layer.visual.atlas.sheet) {
+              resolveEquipmentAtlasParts(layer.visual, stateId, frameIndex).forEach((part) => {
+                this.addRendererFramePrewarmJob(jobs, part && part.frame);
+              });
+              return;
+            }
+            if (!layer.visual.animation) return;
             const frame = this.getRendererAnimationFrameForIndex(layer.visual.animation, stateId, frameIndex);
             if (!frame) return;
             if (!insertedBaseFrame && Number(layer.visual.order || 0) >= 0) {
-              frames.push(baseFrame);
+              legacyFrames.push(baseFrame);
               insertedBaseFrame = true;
             }
-            frames.push(frame);
+            legacyFrames.push(frame);
           });
-          if (!insertedBaseFrame) frames.push(baseFrame);
-          if (frames.length <= 1) continue;
+          if (!insertedBaseFrame) legacyFrames.push(baseFrame);
+          if (legacyFrames.length <= 1) continue;
           jobs.push({
             type: 'actorComposite',
-            frames,
-            key: this.getRendererCompositePrewarmKey(frames)
+            frames: legacyFrames,
+            key: this.getRendererCompositePrewarmKey(legacyFrames)
           });
         }
       });
@@ -10970,7 +11046,7 @@
         jobs,
         this.getPlayerAnimation(),
         this.getEquippedVisualLayers(),
-        ['idle', 'run', 'jump', 'fall', 'climb', 'basic', 'skill', 'party', 'hit'],
+        ['idle', 'run', 'jump', 'fall', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'],
         { maxFrames: settings.critical ? 1 : 2 }
       );
       this.getActivePrototypePartyMembers().forEach((member) => {
@@ -10978,7 +11054,7 @@
           jobs,
           Data.GENERIC_PLAYER_ANIMATION_ASSET,
           this.getEquippedVisualLayers(this.getPartyMemberEquipment(member)),
-          ['idle', 'run', 'climb', 'basic', 'skill', 'party', 'hit'],
+          ['idle', 'run', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'],
           { maxFrames: settings.critical ? 1 : 2 }
         );
       });
@@ -11022,16 +11098,20 @@
         jobs,
         this.getPlayerAnimation(),
         this.getEquippedVisualLayers(),
-        ['idle', 'run', 'jump', 'fall', 'climb', 'basic', 'skill', 'party', 'hit'],
+        ['idle', 'run', 'jump', 'fall', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'],
         { maxFrames: 2 }
       );
       this.getPartyRenderSnapshots().forEach((member) => {
         this.addActorFramePrewarmJobs(jobs, member);
+        const memberVisualLayers = Array.from((member.equipmentLayers || []).reduce((byVisual, layer) => {
+          if (layer && layer.visual) byVisual.set(layer.visualId || layer.visual.id || byVisual.size, { item: layer.item, visual: layer.visual });
+          return byVisual;
+        }, new Map()).values());
         this.addLayeredAnimationStatePrewarmJobs(
           jobs,
           Data.GENERIC_PLAYER_ANIMATION_ASSET,
-          this.getEquippedVisualLayers(this.getPartyMemberEquipment(member)),
-          ['idle', 'run', 'climb', 'basic', 'skill', 'party', 'hit'],
+          memberVisualLayers,
+          ['idle', 'run', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'],
           { maxFrames: 2 }
         );
       });
@@ -11140,20 +11220,15 @@
       ].join('|');
     }
 
-    schedulePixiPrewarm(options) {
+    schedulePixiPrewarm() {
       const renderer = this.rendererBackend;
       if (!renderer || typeof renderer.prewarmTextures !== 'function') return;
-      const settings = options || {};
       const immediate = this.getCurrentPixiAssetSet();
-      const pauseIdlePrewarm = this.shouldPausePixiIdlePrewarm();
       renderer.prewarmTextures(immediate).then(() => {
         if (!this.shouldPausePixiIdlePrewarm() && renderer && typeof renderer.prewarmActorFrames === 'function') {
           renderer.prewarmActorFrames(this.getCurrentActorFramePrewarmJobs());
         }
       });
-      if (settings.includeIdle && !pauseIdlePrewarm && typeof renderer.scheduleIdlePrewarm === 'function') {
-        renderer.scheduleIdlePrewarm(this.getIdlePixiAssetSet(immediate).map((path) => ({ type: 'texture', path })));
-      }
     }
 
     shouldPausePixiIdlePrewarm() {
@@ -11176,15 +11251,13 @@
       const renderer = this.rendererBackend;
       if (!renderer || !renderer.ready || this.rendererBackendStatus !== 'pixi') return;
       const settings = options || {};
-      const shouldIncludeIdle = !!settings.includeIdle && !this.shouldPausePixiIdlePrewarm() && (!this.pixiIdlePrewarmStarted || settings.forceIdle);
       const now = nowSeconds();
-      if (!settings.force && !shouldIncludeIdle && this.pixiPrewarmKey && now < Number(this.pixiPrewarmKeyNextCheckAt || 0)) return;
+      if (!settings.force && this.pixiPrewarmKey && now < Number(this.pixiPrewarmKeyNextCheckAt || 0)) return;
       const key = this.getPixiPrewarmKey();
       this.pixiPrewarmKeyNextCheckAt = now + PIXI_PREWARM_KEY_CHECK_INTERVAL_SECONDS;
-      if (!settings.force && key === this.pixiPrewarmKey && !shouldIncludeIdle) return;
+      if (!settings.force && key === this.pixiPrewarmKey) return;
       this.pixiPrewarmKey = key;
-      if (shouldIncludeIdle) this.pixiIdlePrewarmStarted = true;
-      this.schedulePixiPrewarm({ includeIdle: shouldIncludeIdle });
+      this.schedulePixiPrewarm();
     }
 
     setupRendererBackend() {
@@ -11247,7 +11320,13 @@
 
     getRendererResolutionScale() {
       const ratio = typeof window !== 'undefined' && Number(window.devicePixelRatio) || 1;
-      return clamp(ratio, 0.5, 2);
+      const viewport = this.getViewportMetrics();
+      const pixelArea = Math.max(1, Number(viewport.width || 0) * Number(viewport.height || 0));
+      const quality = this.visualQuality && this.visualQuality.level || 'normal';
+      const maxResolution = quality === 'reduced' || quality === 'minimal'
+        ? 1
+        : pixelArea >= 1500000 ? 1.25 : 1.5;
+      return clamp(ratio, 0.75, maxResolution);
     }
 
     setRendererBackend(value) {
@@ -11462,6 +11541,10 @@
       const previousSettings = this.getUserSettings();
       this.userSettings = createUserSettings(settings || previousSettings);
       this.viewport = createViewportMetrics(this.userSettings);
+      if (previousSettings.video.frameRateLimit !== this.userSettings.video.frameRateLimit) {
+        this.framePacingDeadline = 0;
+        this.framePacingIntervalMs = 0;
+      }
       this.applyCanvasSize();
       if (previousViewport.width !== this.viewport.width ||
         previousViewport.height !== this.viewport.height ||
@@ -11603,7 +11686,10 @@
             : '';
       const frameDef = animation.states[resolvedState];
       if (!frameDef) return null;
-      const elapsed = Math.max(0, nowSeconds() - Number(actor && actor.animationStartedAt || 0));
+      const now = nowSeconds();
+      const elapsed = getEngineVisualHelper('getActorAnimationElapsed')
+        ? getEngineVisualHelper('getActorAnimationElapsed')(frameDef, actor, now, (sourceFrameDef) => this.getAnimationDuration(sourceFrameDef))
+        : Math.max(0, now - Number(actor && actor.animationStartedAt || 0));
       const frameIndex = resolvedState === 'climb' && actor && actor.climbing && !actor.climbMoving
         ? 0
         : this.getWeightedAnimationFrameIndex(frameDef, elapsed);
@@ -11614,10 +11700,10 @@
       });
     }
 
-    drawAnimationFrame(ctx, image, frameDef, x, y, width, height, facing) {
+    drawAnimationFrame(ctx, image, frameDef, x, y, width, height, facing, options) {
       if (!ctx || !image || !frameDef) return false;
       if (getEngineVisualHelper('createAnimationFrameDrawState')) {
-        const drawState = getEngineVisualHelper('createAnimationFrameDrawState')(frameDef, x, y, width, height, facing);
+        const drawState = getEngineVisualHelper('createAnimationFrameDrawState')(frameDef, x, y, width, height, facing, options);
         if (!drawState) return false;
         ctx.save();
         ctx.translate(drawState.translateX, drawState.translateY);
@@ -11640,7 +11726,19 @@
       const frameHeight = Number(frameDef.frameHeight) || 160;
       const sourceX = Math.max(0, Number(frameDef.frameIndex || 0)) * frameWidth;
       const sourceY = Math.max(0, Number(frameDef.row || 0)) * frameHeight;
+      const registration = options && options.registration;
       ctx.save();
+      if (registration) {
+        const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : 80;
+        const groundY = Number.isFinite(Number(registration.groundY)) ? Number(registration.groundY) : 154;
+        const authoredBodyHeight = Math.max(1, Number(registration.authoredBodyHeight) || 143);
+        const scale = Math.max(0.01, Number(height || 0) / authoredBodyHeight);
+        ctx.translate(Number(x || 0) + Number(width || 0) / 2, Number(y || 0) + Number(height || 0));
+        ctx.scale((Number(facing) || 1) < 0 ? -1 : 1, 1);
+        ctx.drawImage(image, sourceX, sourceY, frameWidth, frameHeight, -originX * scale, -groundY * scale, frameWidth * scale, frameHeight * scale);
+        ctx.restore();
+        return true;
+      }
       ctx.translate(x + width / 2, y + height / 2);
       ctx.scale((Number(facing) || 1) < 0 ? -1 : 1, 1);
       ctx.drawImage(image, sourceX, sourceY, frameWidth, frameHeight, -width / 2, -height / 2, width, height);
@@ -11724,6 +11822,13 @@
       const visualId = normalizeId(item && item.visualId);
       if (itemId && visuals[itemId]) return visuals[itemId];
       if (visualId && visualId !== itemId && visuals[visualId]) return visuals[visualId];
+      const partyVisualAliases = {
+        party_plate: 'bulwark_plate',
+        party_robes: 'runewoven_robes',
+        party_leathers: 'pathfinder_leathers'
+      };
+      const partyVisualId = partyVisualAliases[visualId] || partyVisualAliases[itemId] || '';
+      if (partyVisualId && visuals[partyVisualId]) return visuals[partyVisualId];
       const slot = normalizeId(item && item.slot);
       const fallbackId = slot === 'head'
         ? 'fieldguard_helm'
@@ -11762,7 +11867,7 @@
         cacheKeys[index] = item ? String(item.visualId || item.id || item.slot || slot) : '';
         if (!item) continue;
         const visual = this.getEquipmentVisual(item);
-        if (visual && visual.animation && visual.animation.sheet) layers.push({ item, visual });
+        if (visual && (visual.atlas && visual.atlas.sheet || visual.animation && visual.animation.sheet)) layers.push({ item, visual });
       }
       layers.sort((a, b) => {
         const layerDelta = Number(a.visual.order || 0) - Number(b.visual.order || 0);
@@ -11772,22 +11877,113 @@
       return layers;
     }
 
+    getEquipmentRenderLayers(equipment, animationState, actor, baseFrame) {
+      const state = normalizeId(animationState) || 'idle';
+      const frameIndex = Math.max(0, Number(baseFrame && baseFrame.frameIndex || 0) || 0);
+      const layers = [];
+      this.getEquippedVisualLayers(equipment).forEach((layer) => {
+        const visual = layer.visual;
+        if (visual && visual.renderMode === 'atlas' && visual.atlas && visual.atlas.sheet) {
+          const parts = resolveEquipmentAtlasParts(visual, state, frameIndex);
+          const fallbackFrame = visual.animation
+            ? this.getRendererAnimationFrame(visual.animation, state, actor)
+            : null;
+          if (parts.length) {
+            parts.forEach((part, index) => layers.push({
+              atlasPart: part,
+              fallbackFrame: index === 0 ? fallbackFrame : null,
+              item: layer.item,
+              visual,
+              order: Number(part.order || 0),
+              layer: visual.layer || '',
+              visualId: visual.id || ''
+            }));
+            return;
+          }
+        }
+        if (!visual || !visual.animation) return;
+        const frame = this.getRendererAnimationFrame(visual.animation, state, actor);
+        if (!frame) return;
+        layers.push({
+          frame,
+          item: layer.item,
+          visual,
+          order: Number(visual.order || 0),
+          layer: visual.layer || '',
+          visualId: visual.id || ''
+        });
+      });
+      return layers.sort((a, b) => Number(a.order || 0) - Number(b.order || 0) || String(a.visualId).localeCompare(String(b.visualId)));
+    }
+
+    getLegacyRigEquipment(equipment) {
+      const source = equipment || {};
+      const result = {};
+      RIG_EQUIPMENT_SLOTS.forEach((slot) => {
+        const item = source[slot];
+        const visual = item ? this.getEquipmentVisual(item) : null;
+        if (item && (!visual || visual.renderMode !== 'atlas')) result[slot] = item;
+      });
+      if (source.palette) result.palette = source.palette;
+      return result;
+    }
+
+    drawEquipmentAtlasPart(ctx, part, x, y, width, height, facing) {
+      const frame = part && part.frame;
+      const image = frame ? this.getAsset(frame.sheet) : null;
+      if (!ctx || !image || !part.socket || !part.pivot) return false;
+      const authoredBodyHeight = Math.max(1, Number(PLAYER_SPRITE_REGISTRATION.authoredBodyHeight || 143));
+      const scale = Math.max(0.01, Number(height || 0) / authoredBodyHeight);
+      const scaleX = Math.max(0.05, Number(part.scaleX || 1));
+      const scaleY = Math.max(0.05, Number(part.scaleY || 1));
+      const frameWidth = Math.max(1, Number(frame.frameWidth || 128));
+      const frameHeight = Math.max(1, Number(frame.frameHeight || frameWidth));
+      ctx.save();
+      const previousSmoothing = ctx.imageSmoothingEnabled;
+      ctx.imageSmoothingEnabled = false;
+      ctx.translate(Number(x || 0) + Number(width || 0) / 2, Number(y || 0) + Number(height || 0));
+      ctx.scale((Number(facing || 1) < 0 ? -1 : 1) * scale, scale);
+      ctx.drawImage(
+        image,
+        Math.max(0, Number(frame.frameIndex || 0)) * frameWidth,
+        Math.max(0, Number(frame.row || 0)) * frameHeight,
+        frameWidth,
+        frameHeight,
+        Number(part.socket.x || 0) - Number(PLAYER_SPRITE_REGISTRATION.originX || 80) - Number(part.pivot.x || 0) * scaleX,
+        Number(part.socket.y || 0) - Number(PLAYER_SPRITE_REGISTRATION.groundY || 154) - Number(part.pivot.y || 0) * scaleY,
+        frameWidth * scaleX,
+        frameHeight * scaleY
+      );
+      ctx.imageSmoothingEnabled = previousSmoothing;
+      ctx.restore();
+      return true;
+    }
+
+    drawEquipmentRenderLayer(ctx, layer, x, y, width, height, facing) {
+      if (!layer) return false;
+      if (layer.atlasPart && this.drawEquipmentAtlasPart(ctx, layer.atlasPart, x, y, width, height, facing)) return true;
+      const frame = layer.frame || layer.fallbackFrame;
+      const image = frame ? this.getAsset(frame.sheet) : null;
+      if (!frame || !image) return false;
+      return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, PLAYER_SPRITE_DRAW_OPTIONS);
+    }
+
     drawEquipmentLayer(ctx, layer, state, actor, x, y, width, height, facing) {
       if (!layer || !layer.visual || !layer.visual.animation) return false;
       const frame = this.getAnimationFrame(layer.visual.animation, state, actor);
       const image = frame ? this.getAsset(layer.visual.animation.sheet) : null;
       if (!image) return false;
-      return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing);
+      return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, PLAYER_SPRITE_DRAW_OPTIONS);
     }
 
-    drawPlayerRig(ctx, rig, animationState) {
+    drawPlayerRig(ctx, rig, animationState, equipment) {
       if (!Rig || !Rig.drawCharacter || !rig) return false;
       const player = this.state.player;
       const look = getCharacterLook(player.lookId);
       return Rig.drawCharacter(ctx, player, rig, {
         state: animationState,
         elapsed: Math.max(0, nowSeconds() - Number(player.animationStartedAt || 0)),
-        equipment: this.state.equipment || {},
+        equipment: equipment || this.state.equipment || {},
         palette: look || {},
         scale: player.h / Math.max(1, Number(rig.height || player.h))
       });
@@ -13746,6 +13942,8 @@
       if (this.state.player && this.state.player.classId) this.snapCameraToPlayer();
       this.running = true;
       this.lastFrame = 0;
+      this.framePacingDeadline = 0;
+      this.framePacingIntervalMs = 0;
       this.scheduleNextFrame();
       this.emitChange();
     }
@@ -13790,6 +13988,7 @@
       this.enemyUpdateSequence = 0;
       this.pixiPrewarmKey = '';
       this.maybeSchedulePixiPrewarm({ includeIdle: true, force: true });
+      this.queueCurrentAssetPreload(`class:${classId}`);
       return true;
     }
 
@@ -13845,9 +14044,34 @@
     shouldSkipFrameForPacing(timestamp) {
       if (!this.lastFrame) return false;
       const targetIntervalMs = this.getTargetFrameIntervalMs();
-      if (!targetIntervalMs) return false;
-      const elapsedMs = Math.max(0, Number(timestamp || 0) - Number(this.lastFrame || 0));
-      return elapsedMs + FRAME_RATE_LIMIT_TOLERANCE_MS < targetIntervalMs;
+      if (!targetIntervalMs) {
+        this.framePacingDeadline = 0;
+        this.framePacingIntervalMs = 0;
+        return false;
+      }
+      if (!this.framePacingDeadline || Math.abs(Number(this.framePacingIntervalMs || 0) - targetIntervalMs) > 0.001) {
+        this.framePacingIntervalMs = targetIntervalMs;
+        this.framePacingDeadline = Number(this.lastFrame || timestamp || 0) + targetIntervalMs;
+      }
+      return Number(timestamp || 0) + FRAME_RATE_LIMIT_TOLERANCE_MS < this.framePacingDeadline;
+    }
+
+    advanceFramePacingDeadline(timestamp, targetIntervalMs) {
+      if (!targetIntervalMs) {
+        this.framePacingDeadline = 0;
+        this.framePacingIntervalMs = 0;
+        return;
+      }
+      if (!this.framePacingDeadline || Math.abs(Number(this.framePacingIntervalMs || 0) - targetIntervalMs) > 0.001) {
+        this.framePacingIntervalMs = targetIntervalMs;
+        this.framePacingDeadline = Number(this.lastFrame || timestamp || 0) + targetIntervalMs;
+      }
+      if (this.framePacingDeadline <= Number(timestamp || 0) + FRAME_RATE_LIMIT_TOLERANCE_MS) {
+        const elapsedIntervals = Math.floor(
+          (Number(timestamp || 0) + FRAME_RATE_LIMIT_TOLERANCE_MS - this.framePacingDeadline) / targetIntervalMs
+        ) + 1;
+        this.framePacingDeadline += Math.max(1, elapsedIntervals) * targetIntervalMs;
+      }
     }
 
     frame(timestamp) {
@@ -13862,6 +14086,7 @@
       const targetIntervalMs = this.getTargetFrameIntervalMs();
       const frameMs = this.lastFrame ? Math.max(0, nextTimestamp - this.lastFrame) : targetIntervalMs || 16;
       const delta = this.lastFrame ? clamp(frameMs / 1000, 0.001, 0.033) : clamp(frameMs / 1000, 0.001, 0.033);
+      this.advanceFramePacingDeadline(nextTimestamp, targetIntervalMs);
       this.lastFrame = nextTimestamp;
       this.frameId += 1;
       this.invalidateFrameStatsCache();
@@ -15049,10 +15274,17 @@
       const settings = options || {};
       const duration = Math.max(0, Number(seconds || COMBAT_ACTION_LOCK_SECONDS));
       if (!duration || !this.state.player) return;
-      const until = nowSeconds() + duration;
+      const startedAt = nowSeconds();
+      const until = startedAt + duration;
       this.state.player.combatLockUntil = Math.max(Number(this.state.player.combatLockUntil || 0), until);
       if (settings.movementLock) {
-        this.state.player.movementLockUntil = Math.max(Number(this.state.player.movementLockUntil || 0), until);
+        const movementDuration = settings.movementLockSeconds == null
+          ? duration
+          : Math.max(0, Math.min(duration, Number(settings.movementLockSeconds) || 0));
+        this.state.player.movementLockUntil = Math.max(
+          Number(this.state.player.movementLockUntil || 0),
+          startedAt + movementDuration
+        );
       }
     }
 
@@ -16936,10 +17168,12 @@
       return null;
     }
 
-    getQuestNpcTalkState(npc) {
+    getQuestNpcTalkState(npc, context) {
       if (!npc) return null;
-      const quest = this.getActiveQuest();
-      const summary = quest ? this.getQuestSummary(quest) : null;
+      const progress = context && context.progress || this.getProgressState();
+      const snapshotContext = context && context.progress ? context : { progress };
+      const quest = getById(Data.QUESTS || [], progress.activeQuestId);
+      const summary = quest ? this.getQuestSummary(quest, snapshotContext) : null;
       if (!quest || !summary || summary.complete) return null;
       const objective = (summary.objectives || []).find((candidate) =>
         !candidate.complete &&
@@ -17003,12 +17237,14 @@
       return true;
     }
 
-    getQuestNpcIconStates(npc) {
+    getQuestNpcIconStates(npc, context) {
       if (!npc) return [];
+      const progress = context && context.progress || this.getProgressState();
+      const snapshotContext = context && context.progress ? context : { progress };
       const states = (npc.questIds || []).map((questId) => {
         const quest = getById(Data.QUESTS || [], questId);
-        const summary = this.getQuestSummary(quest);
-        const availability = this.getQuestAvailability(questId);
+        const summary = this.getQuestSummary(quest, snapshotContext);
+        const availability = this.getQuestAvailability(questId, snapshotContext);
         return quest && summary ? Object.assign({}, availability, {
           title: quest.title,
           summary: quest.summary,
@@ -17019,7 +17255,7 @@
       const mapKill = this.getMapKillQuestOwner(npc.mapId);
       const mapKillSummary = mapKill && mapKill.id === npc.id ? this.getMapKillQuestSummary(npc.mapId) : null;
       if (mapKillSummary) states.push(mapKillSummary);
-      const talkState = this.getQuestNpcTalkState(npc);
+      const talkState = this.getQuestNpcTalkState(npc, snapshotContext);
       const claimable = states
         .filter((state) => state.claimable)
         .map((state) => Object.assign({}, state, { action: 'claim', icon: '?', iconType: 'reward' }));
@@ -17033,9 +17269,11 @@
       return claimable.concat(talk, active, available);
     }
 
-    getQuestNpcSnapshot(mapId) {
+    getQuestNpcSnapshot(mapId, context) {
       const map = getMapDefinitionById(mapId || this.state.mapId);
       if (!map) return { mapId: '', npcs: [] };
+      const progress = context && context.progress || this.getProgressState();
+      const snapshotContext = context && context.progress ? context : { progress };
       const cacheKey = [
         map.id,
         map.id === this.state.mapId ? this.runtime && this.runtime.id || '' : 'static',
@@ -17051,8 +17289,8 @@
         npcs: (runtime.questNpcs || []).map((npc) => {
           const quests = (npc.questIds || []).map((questId) => {
             const quest = getById(Data.QUESTS || [], questId);
-            const summary = this.getQuestSummary(quest);
-            return summary ? Object.assign({}, summary, this.getQuestAvailability(questId)) : null;
+            const summary = this.getQuestSummary(quest, snapshotContext);
+            return summary ? Object.assign({}, summary, this.getQuestAvailability(questId, snapshotContext)) : null;
           }).filter(Boolean);
           const mapKill = this.getMapKillQuestOwner(npc.mapId);
           const mapKillQuest = mapKill && mapKill.id === npc.id ? this.getMapKillQuestSummary(npc.mapId) : null;
@@ -17063,7 +17301,7 @@
             quests,
             availableQuests,
             claimableQuests,
-            iconStates: this.getQuestNpcIconStates(npc)
+            iconStates: this.getQuestNpcIconStates(npc, snapshotContext)
           });
         })
       };
@@ -17216,7 +17454,7 @@
         claimedQuestIds: progress.claimedQuestIds.slice(),
         availableQuests: quests.filter((quest) => quest.available),
         claimableQuests: quests.filter((quest) => quest.claimable),
-        questNpcs: this.getQuestNpcSnapshot(),
+        questNpcs: this.getQuestNpcSnapshot(undefined, context),
 	        completedTrials: Object.assign({}, progress.completedTrials),
 	        trialInstance: this.getTrialInstanceSnapshot(context)
 	      };
@@ -27684,8 +27922,9 @@
         const affix = getById(Data.ELITE_AFFIXES || [], affixId);
         return Math.max(duration, Number(affix && affix.weakPointDuration || 0));
       }, 0);
+      const enemyUid = `enemy-${++generatedEnemyUid}`;
       const enemy = {
-        uid: `enemy-${++generatedEnemyUid}`,
+        uid: enemyUid,
         id: enemyData.id,
         name: enemyData.name,
         data: enemyData,
@@ -27744,6 +27983,7 @@
         isEncounterBoss: false,
         animationState: 'idle',
         animationStartedAt: 0,
+        animationPhaseOffset: seededUnit(enemyData.id, enemyUid),
         animationDuration: 0,
         animationLoop: true,
         actionLockUntil: 0,
@@ -30586,7 +30826,10 @@
       const cooldownMultiplier = runeFieldProfile ? Math.min(1, Math.max(0.55, Number(runeFieldProfile.playerHasteCooldownMultiplier || 1))) : 1;
       const attackCooldown = baseCooldown * cooldownMultiplier;
       player.attackTimer = time + attackCooldown;
-      this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, { movementLock: true });
+      this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, {
+        movementLock: true,
+        movementLockSeconds: BASIC_ATTACK_MOVEMENT_LOCK_SECONDS
+      });
       this.setActorAnimation(player, 'basic', attackCooldown, { force: true, lock: true, loop: false });
       this.playAudioCue('attack');
       if (classData.weaponType === 'melee') {
@@ -36719,6 +36962,7 @@
       this.recordProgressEvent('equip', { itemId: item.id, slot: item.slot }, { noEmit: true });
       this.playAudioCue('uiConfirm');
       this.toast(`Equipped ${item.name}.`, { noEmit: true });
+      this.queueCurrentAssetPreload(`equipment:${item.id || item.uid || item.slot}`);
       if (!settings.noEmit) this.emitUiChange({ domains: ['hud', 'inventory', 'equipment'], reason: 'equipItem', persist: true });
       return true;
     }
@@ -37646,6 +37890,7 @@
       this.recordProgressEvent('advancedClass', { advancedId, baseClass: player.classId }, { noEmit: true });
       this.syncRosterUnlocks({ silent: true });
       this.toast(`${branch.name} advanced batch opened.`, { noEmit: true });
+      this.queueCurrentAssetPreload(`advanced-class:${advancedId}`);
       this.emitUiChange({ domains: ['hud', 'skills'], reason: 'advancedClass', persist: true });
       return true;
     }
@@ -37894,6 +38139,7 @@
         this.beginMapAnalyticsVisit(map.id, { previousMapId });
         this.pruneRendererMapDerivedCaches(previousMapId);
         this.maybeSchedulePixiPrewarm({ includeIdle: false, force: true });
+        this.queueCurrentAssetPreload(`map-change:${map.id}`);
         this.recordProgressEvent('travel', { mapId: map.id, channelId: this.getCurrentChannelId() });
         this.recordDebugEvent('map', 'change-complete', { fromMapId: previousMapId, toMapId: map.id, channelId: this.getCurrentChannelId() });
         this.toast(`${map.name} loaded on ${getMapChannelLabel(this.state.channelId)}.`, { noEmit: true });
@@ -38005,6 +38251,7 @@
       if (!this.restoreTrialInstanceRuntime()) this.spawnInitialEnemies();
       this.recalculateVitals();
       this.snapCameraToPlayer();
+      this.queueCurrentAssetPreload(`restore:${this.state.mapId || 'map'}`);
       this.toast('Demo loaded.');
       return true;
     }
@@ -39648,7 +39895,7 @@
         player,
         rig,
         animationState,
-        this.state.equipment || {},
+        this.getLegacyRigEquipment(this.state.equipment),
         getCharacterLook(player.lookId) || {}
       );
     }
@@ -39662,7 +39909,7 @@
         member,
         rig,
         animationState,
-        equipment || {},
+        this.getLegacyRigEquipment(equipment),
         equipment && equipment.palette || {}
       );
     }
@@ -39672,6 +39919,7 @@
       if (!player.classId) return { visible: false };
       const animationState = this.getActorAnimationState(player, this.derivePlayerAnimationState());
       const animation = this.getPlayerAnimation();
+      const animationFrame = this.getRendererAnimationFrame(animation, animationState, player);
       return {
         visible: true,
         kind: 'player',
@@ -39684,13 +39932,8 @@
         asset: Data.GENERIC_PLAYER_ASSET || '',
         classColor: this.skillColor(player.advancedClassId || player.classId),
         rigRender: this.getPlayerRigRenderDescriptor(animationState),
-        animationFrame: this.getRendererAnimationFrame(animation, animationState, player),
-        equipmentLayers: this.getEquippedVisualLayers().map((layer) => ({
-          frame: this.getRendererAnimationFrame(layer.visual.animation, animationState, player),
-          order: Number(layer.visual.order || 0),
-          layer: layer.visual.layer || '',
-          visualId: layer.visual.id || ''
-        })).filter((layer) => layer.frame)
+        animationFrame,
+        equipmentLayers: this.getEquipmentRenderLayers(this.state.equipment, animationState, player, animationFrame)
       };
     }
 
@@ -39705,20 +39948,7 @@
       if (enemy.id === 'emberjawGolem') color = '#373037';
       const animation = this.getEnemyAnimation(enemy);
       const animationState = this.getActorAnimationState(enemy, this.deriveEnemyAnimationState(enemy));
-      const bossDrawSize = enemy.data.behavior === 'boss'
-        ? enemy.id === 'stormbreakRoc'
-          ? { w: 178, h: 136 }
-          : enemy.id === 'astralArchivist'
-            ? { w: 132, h: 154 }
-            : { w: 150, h: 150 }
-        : null;
-      const drawWidth = bossDrawSize ? bossDrawSize.w : enemy.id === 'mossback' || enemy.id === 'orebackBeetle' ? 92 : enemy.data.behavior === 'flyer' ? 76 : 82;
-      const drawHeight = bossDrawSize ? bossDrawSize.h : enemy.data.behavior === 'flyer' ? 76 : 86;
-      const enemyGrounded = enemy.data.behavior !== 'flyer';
-      const drawX = enemy.x + enemy.w / 2 - drawWidth / 2;
-      const drawY = enemyGrounded
-        ? enemy.y + enemy.h - drawHeight - 2
-        : enemy.y + enemy.h / 2 - drawHeight / 2;
+      const renderBox = createEnemySpriteRenderBox(enemy);
       return {
         kind: 'enemy',
         id: enemy.id,
@@ -39740,7 +39970,7 @@
         color,
         asset: enemy.data.asset || '',
         animationFrame: this.getRendererAnimationFrame(animation, animationState, enemy),
-        renderBox: { x: drawX, y: drawY, w: drawWidth, h: drawHeight },
+        renderBox,
         questTarget: !!(questGuidance && questGuidance.active && Array.isArray(questGuidance.targetEnemyIds) && questGuidance.targetEnemyIds.includes(enemy.id))
       };
     }
@@ -39752,6 +39982,7 @@
           const animationState = this.getActorAnimationState(member, member.animationState || (member.mode === 'engage' ? 'run' : 'idle'));
           const animation = this.getClassPlayerAnimation(member.classId);
           const equipment = this.getPartyMemberEquipment(member);
+          const animationFrame = this.getRendererAnimationFrame(animation, animationState, member);
           return {
             kind: 'party',
             id: member.id || member.templateId || member.classId,
@@ -39766,13 +39997,8 @@
             asset: Data.GENERIC_PLAYER_ASSET || '',
             classColor: this.skillColor(member.classId),
             rigRender: this.getPartyRigRenderDescriptor(member, animationState, equipment),
-            animationFrame: this.getRendererAnimationFrame(animation, animationState, member),
-            equipmentLayers: this.getEquippedVisualLayers(equipment).map((layer) => ({
-              frame: this.getRendererAnimationFrame(layer.visual.animation, animationState, member),
-              order: Number(layer.visual.order || 0),
-              layer: layer.visual.layer || '',
-              visualId: layer.visual.id || ''
-            })).filter((layer) => layer.frame)
+            animationFrame,
+            equipmentLayers: this.getEquipmentRenderLayers(equipment, animationState, member, animationFrame)
           };
         });
     }
@@ -41200,7 +41426,7 @@
         [climbable.id || '', Math.round(climbable.x || 0), Math.round(climbable.y || 0), Math.round(climbable.w || 0), Math.round(climbable.h || 0)].join(',')
       ).join(';');
       const npcKey = (runtime.questNpcs || []).map((npc) =>
-        [npc.id || '', Math.round(npc.x || 0), Math.round(npc.y || 0), Math.round(npc.w || 0), Math.round(npc.h || 0), npc.name || ''].join(',')
+        [npc.id || '', Math.round(npc.x || 0), Math.round(npc.y || 0), Math.round(npc.w || 0), Math.round(npc.h || 0), npc.name || '', npc.asset || ''].join(',')
       ).join(';');
       const stationKey = (runtime.stations || []).map((station) =>
         [station.id || '', Math.round(station.x || 0), Math.round(station.y || 0), Math.round(station.w || 0), Math.round(station.h || 0), station.asset || ''].join(',')
@@ -41354,6 +41580,25 @@
       ctx.beginPath();
       ctx.ellipse(cx, npc.y + npc.h - 2, npc.w * 0.62, 5, 0, 0, Math.PI * 2);
       ctx.fill();
+      const npcImage = this.getAsset(npc.asset);
+      if (npcImage) {
+        const sourceWidth = Math.max(1, Number(npcImage.naturalWidth || npcImage.width || 1));
+        const sourceHeight = Math.max(1, Number(npcImage.naturalHeight || npcImage.height || 1));
+        const sourceX = Math.round(sourceWidth * 0.28);
+        const sourceY = Math.round(sourceHeight * 0.1);
+        const cropWidth = Math.max(1, Math.round(sourceWidth * 0.44));
+        const cropHeight = Math.max(1, Math.round(sourceHeight * 0.86));
+        const previousSmoothing = ctx.imageSmoothingEnabled;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(npcImage, sourceX, sourceY, cropWidth, cropHeight, npc.x, npc.y, npc.w, npc.h);
+        ctx.imageSmoothingEnabled = previousSmoothing;
+        ctx.fillStyle = '#102033';
+        ctx.font = '900 11px system-ui';
+        ctx.textAlign = 'center';
+        ctx.fillText(npc.name.split(' ')[0], cx, npc.y - 8);
+        ctx.restore();
+        return;
+      }
       ctx.fillStyle = color;
       ctx.fillRect(npc.x + 6, npc.y + 22, npc.w - 12, npc.h - 28);
       ctx.fillStyle = accent;
@@ -41415,6 +41660,21 @@
       const y = Number(portal.y || 0);
       const w = Number(portal.w || 94);
       const h = Number(portal.h || 118);
+      const facadeW = Math.max(w, Number(portal.facadeWidth || 154));
+      const facadeH = Math.max(h, Number(portal.facadeHeight || 142));
+      const facadeDrawn = this.drawEnvironmentStructureCell(
+        ctx,
+        portal.facadeCell || 'marketAwning',
+        x + w / 2 - facadeW / 2,
+        y + h - facadeH,
+        facadeW,
+        facadeH,
+        { alpha: locked ? 0.62 : 1 }
+      );
+      if (facadeDrawn) {
+        this.drawPortalLabel(ctx, portal, locked);
+        return;
+      }
       ctx.save();
       ctx.globalAlpha = locked ? 0.62 : 1;
       ctx.fillStyle = 'rgba(9,31,59,0.28)';
@@ -41604,6 +41864,13 @@
       const drawY = player.y;
       const drawW = player.w;
       const drawH = player.h;
+      const equipmentLayers = this.getEquipmentRenderLayers(this.state.equipment, animationState, player, animationFrame);
+      const drawEquipmentLayers = (behindActor) => {
+        equipmentLayers.forEach((layer) => {
+          if ((Number(layer.order || 0) < 0) !== !!behindActor) return;
+          this.drawEquipmentRenderLayer(ctx, layer, drawX, drawY, drawW, drawH, player.facing);
+        });
+      };
       const drawShield = () => {
         if (player.shield > 0) {
           ctx.strokeStyle = 'rgba(104,169,255,0.65)';
@@ -41613,6 +41880,7 @@
           ctx.stroke();
         }
       };
+      drawEquipmentLayers(true);
       if (animationImage && this.drawAnimationFrame(
         ctx,
         animationImage,
@@ -41621,11 +41889,10 @@
         drawY,
         drawW,
         drawH,
-        player.facing
+        player.facing,
+        PLAYER_SPRITE_DRAW_OPTIONS
       )) {
-        this.getEquippedVisualLayers().forEach((layer) => {
-          this.drawEquipmentLayer(ctx, layer, animationState, player, drawX, drawY, drawW, drawH, player.facing);
-        });
+        drawEquipmentLayers(false);
         drawShield();
         return;
       }
@@ -41635,11 +41902,13 @@
         ctx.scale(player.facing, 1);
         ctx.drawImage(playerImage, -player.w / 2, -player.h / 2, player.w, player.h);
         ctx.restore();
+        drawEquipmentLayers(false);
         drawShield();
         return;
       }
       const playerRig = this.getPlayerRig();
-      if (playerRig && this.drawPlayerRig(ctx, playerRig, animationState)) {
+      if (playerRig && this.drawPlayerRig(ctx, playerRig, animationState, this.getLegacyRigEquipment(this.state.equipment))) {
+        drawEquipmentLayers(false);
         drawShield();
         return;
       }
@@ -41670,6 +41939,7 @@
         ctx.stroke();
       }
       ctx.restore();
+      drawEquipmentLayers(false);
       drawShield();
     }
 
@@ -41685,15 +41955,18 @@
       const animation = this.getClassPlayerAnimation(member.classId);
       const animationFrame = this.getAnimationFrame(animation, animationState, member);
       const animationImage = animationFrame && animation ? this.getAsset(animation.sheet) : null;
+      const equipment = this.getPartyMemberEquipment(member);
+      const equipmentLayers = this.getEquipmentRenderLayers(equipment, animationState, member, animationFrame);
+      const drawEquipmentLayers = (behindActor) => {
+        equipmentLayers.forEach((layer) => {
+          if ((Number(layer.order || 0) < 0) !== !!behindActor) return;
+          this.drawEquipmentRenderLayer(ctx, layer, member.x, member.y, member.w, member.h, member.facing);
+        });
+      };
       let actorDrawn = false;
+      drawEquipmentLayers(true);
       if (animationImage) {
-        actorDrawn = this.drawAnimationFrame(ctx, animationImage, animationFrame, member.x, member.y, member.w, member.h, member.facing);
-        if (actorDrawn) {
-          const equipment = this.getPartyMemberEquipment(member);
-          this.getEquippedVisualLayers(equipment).forEach((layer) => {
-            this.drawEquipmentLayer(ctx, layer, animationState, member, member.x, member.y, member.w, member.h, member.facing);
-          });
-        }
+        actorDrawn = this.drawAnimationFrame(ctx, animationImage, animationFrame, member.x, member.y, member.w, member.h, member.facing, PLAYER_SPRITE_DRAW_OPTIONS);
       }
       if (!actorDrawn) {
         const image = this.getAsset(Data.GENERIC_PLAYER_ASSET);
@@ -41708,11 +41981,11 @@
       }
       const rig = Data.PLAYER_RIGS && (Data.PLAYER_RIGS[member.classId] || Data.PLAYER_RIGS[getPartyBaseClassId(member.classId)]);
       if (!actorDrawn && rig && Rig && Rig.drawCharacter) {
-        const equipment = this.getPartyMemberEquipment(member);
+        const rigEquipment = this.getLegacyRigEquipment(equipment);
         Rig.drawCharacter(ctx, member, rig, {
           state: animationState,
           elapsed: Math.max(0, nowSeconds() - Number(member.animationStartedAt || 0)),
-          equipment,
+          equipment: rigEquipment,
           palette: equipment.palette,
           scale: member.h / Math.max(1, Number(rig.height || member.h))
         });
@@ -41730,6 +42003,7 @@
         ctx.fill();
         ctx.restore();
       }
+      drawEquipmentLayers(false);
       const hpRatio = clamp(Number(member.hp || 0) / Math.max(1, Number(member.maxHp || 1)), 0, 1);
       ctx.save();
       ctx.fillStyle = 'rgba(9,31,59,0.55)';
@@ -41882,13 +42156,11 @@
       const animationImage = animationFrame && animation ? this.getAsset(animation.sheet) : null;
       const enemyImage = this.getAsset(enemy.data.asset);
       ctx.fillStyle = enemy.telegraph > 0 ? '#ffe16a' : color;
-      const drawWidth = enemy.id === 'emberjawGolem' ? 150 : enemy.id === 'mossback' || enemy.id === 'orebackBeetle' ? 92 : enemy.data.behavior === 'flyer' ? 76 : 82;
-      const drawHeight = enemy.id === 'emberjawGolem' ? 150 : enemy.data.behavior === 'flyer' ? 76 : 86;
-      const enemyGrounded = enemy.data.behavior !== 'flyer';
-      const drawX = x + enemy.w / 2 - drawWidth / 2;
-      const drawY = enemyGrounded
-        ? y + enemy.h - drawHeight - 2
-        : y + enemy.h / 2 - drawHeight / 2;
+      const renderBox = createEnemySpriteRenderBox(enemy);
+      const drawX = renderBox.x;
+      const drawY = renderBox.y;
+      const drawWidth = renderBox.w;
+      const drawHeight = renderBox.h;
       if (animationImage) {
         ctx.save();
         ctx.globalAlpha = enemy.hp <= 0 ? 0.86 : enemy.telegraph > 0 ? 0.78 : 1;
@@ -41900,7 +42172,8 @@
           drawY,
           drawWidth,
           drawHeight,
-          enemy.facing
+          enemy.facing,
+          ENEMY_SPRITE_DRAW_OPTIONS
         );
         ctx.restore();
       } else if (enemyImage) {

@@ -938,9 +938,19 @@ body.roulette00-page {
 
 }
 
+@media (max-width: 768px) {
+  body.roulette00-page.has-mobile-site-masthead {
+    padding-top: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 12px);
+  }
+}
+
 @media (max-width: 640px) {
   body.roulette00-page {
     padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  body.roulette00-page.has-mobile-site-dock {
+    padding-bottom: calc(var(--mobile-site-dock-clearance, calc(88px + env(safe-area-inset-bottom, 0px))) + 80px);
   }
 
   .roulette00-disclaimer {
@@ -999,6 +1009,10 @@ body.roulette00-page {
     background: rgba(3, 17, 11, 0.96);
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.58);
     backdrop-filter: blur(14px);
+  }
+
+  body.has-mobile-site-dock .roulette00-mobile-bar {
+    bottom: var(--mobile-site-dock-clearance, calc(88px + env(safe-area-inset-bottom, 0px)));
   }
 
   .roulette00-mobile-stat {
