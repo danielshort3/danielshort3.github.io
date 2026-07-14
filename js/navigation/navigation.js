@@ -237,8 +237,10 @@
     `,
     tools: `
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M14.5 5.5a4.8 4.8 0 0 0 4 6.9l-7.9 7.9a2.5 2.5 0 0 1-3.5-3.5l7.9-7.9a4.8 4.8 0 0 0-.5-3.4z"></path>
-        <path d="M6.8 17.2l1.9 1.9"></path>
+        <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"></path>
+        <rect x="3" y="7" width="18" height="13" rx="2.25"></rect>
+        <path d="M3 12.5h18"></path>
+        <path d="M10 12.5v2h4v-2"></path>
       </svg>
     `,
     games: `

@@ -28,9 +28,12 @@ const BODY_TARGET_HEIGHT = 102;
 const BODY_MAX_WIDTH = 110;
 const BODY_BASELINE = 118;
 const DEFEAT_BASELINE = 116;
+const SAFE_FRAME_GUTTER = 4;
 const COMPONENT_NEAR_BODY_PX = 32;
 const SOURCE_CELL_INSET = 8;
 const PROJECTILE_SOURCE_CELL_INSET = 4;
+const STABLE_SCALE_ROWS = Object.freeze([0, 1, 2, 3, 6]);
+const STABLE_QUALITY_ROWS = Object.freeze([0, 1, 6]);
 
 function getFileIdFromAsset(assetPath) {
   return path.basename(String(assetPath || ''), '.png');
@@ -85,6 +88,22 @@ function getChromaKeyHex(source) {
   return shouldUseMagentaKey(source) ? '#ff00ff' : '#00ff00';
 }
 
+function detectChromaKeyMode(raw, width, height, source) {
+  let green = 0;
+  let magenta = 0;
+  for (let pixel = 0; pixel < width * height; pixel += 1) {
+    const offset = pixel * 4;
+    if (raw[offset + 3] < 8) continue;
+    const r = raw[offset];
+    const g = raw[offset + 1];
+    const b = raw[offset + 2];
+    if (g > 180 && g > r * 1.45 && g > b * 1.45) green += 1;
+    if (r > 175 && b > 175 && g < 120 && r > g * 1.45 && b > g * 1.45) magenta += 1;
+  }
+  if (green === magenta) return shouldUseMagentaKey(source) ? 'magenta' : 'green';
+  return magenta > green ? 'magenta' : 'green';
+}
+
 function isRemovedColor(raw, offset, source) {
   const alpha = raw[offset + 3];
   if (alpha < 8) return true;
@@ -103,14 +122,98 @@ function isRemovedColor(raw, offset, source) {
   return false;
 }
 
-function removeChromaAndGuides(raw, width, height, source) {
-  for (let pixel = 0; pixel < width * height; pixel += 1) {
+function isConnectedBackgroundCandidate(raw, offset, chromaMode) {
+  const alpha = raw[offset + 3];
+  if (alpha < 8) return false;
+  const r = raw[offset];
+  const g = raw[offset + 1];
+  const b = raw[offset + 2];
+  if (chromaMode === 'magenta') {
+    return r > 118 && b > 118 && g < 132 &&
+      r > g * 1.35 && b > g * 1.35 && Math.abs(r - b) < 126;
+  }
+  return g > 105 && g - r > 46 && g - b > 46 &&
+    g > r * 1.32 && g > b * 1.32;
+}
+
+function isExactChromaKeyPixel(raw, offset, chromaMode) {
+  if (raw[offset + 3] < 8) return false;
+  const r = raw[offset];
+  const g = raw[offset + 1];
+  const b = raw[offset + 2];
+  return chromaMode === 'magenta'
+    ? r > 235 && b > 235 && g < 28
+    : g > 235 && r < 28 && b < 28;
+}
+
+function isGuideArtifactPixel(raw, offset) {
+  const alpha = raw[offset + 3];
+  if (alpha < 8) return false;
+  const r = raw[offset];
+  const g = raw[offset + 1];
+  const b = raw[offset + 2];
+  return r < 105 && g > 138 && b > 138 && Math.abs(g - b) < 88;
+}
+
+function removeChromaAndGuides(raw, width, height, source, sourceInfo) {
+  const pixelCount = width * height;
+  const candidates = new Uint8Array(pixelCount);
+  const queued = new Uint8Array(pixelCount);
+  const queue = [];
+  const exactSeeds = [];
+  const chromaMode = sourceInfo && sourceInfo.chromaMode || detectChromaKeyMode(raw, width, height, source);
+  for (let pixel = 0; pixel < pixelCount; pixel += 1) {
     const offset = pixel * 4;
-    if (!isRemovedColor(raw, offset, source)) continue;
+    if (isConnectedBackgroundCandidate(raw, offset, chromaMode) || isGuideArtifactPixel(raw, offset)) {
+      candidates[pixel] = 1;
+    }
+    if (isExactChromaKeyPixel(raw, offset, chromaMode)) exactSeeds.push(pixel);
+  }
+  const enqueue = (pixel) => {
+    if (pixel < 0 || pixel >= pixelCount || queued[pixel] || !candidates[pixel]) return;
+    queued[pixel] = 1;
+    queue.push(pixel);
+  };
+  exactSeeds.forEach(enqueue);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const pixel = y * width + x;
+      if (!candidates[pixel]) continue;
+      const edge = x === 0 || x === width - 1 || y === 0 || y === height - 1;
+      const besideTransparentGuide = (!edge && (
+        raw[(pixel - 1) * 4 + 3] < 8 ||
+        raw[(pixel + 1) * 4 + 3] < 8 ||
+        raw[(pixel - width) * 4 + 3] < 8 ||
+        raw[(pixel + width) * 4 + 3] < 8
+      ));
+      if (edge || besideTransparentGuide) enqueue(pixel);
+    }
+  }
+  if (sourceInfo && sourceInfo.grid && Array.isArray(sourceInfo.grid.cells)) {
+    sourceInfo.grid.cells.forEach((row) => row.forEach((rect) => {
+      for (let x = rect.x; x < rect.x + rect.w; x += 1) {
+        enqueue(rect.y * width + x);
+        enqueue((rect.y + rect.h - 1) * width + x);
+      }
+      for (let y = rect.y; y < rect.y + rect.h; y += 1) {
+        enqueue(y * width + rect.x);
+        enqueue(y * width + rect.x + rect.w - 1);
+      }
+    }));
+  }
+  for (let cursor = 0; cursor < queue.length; cursor += 1) {
+    const pixel = queue[cursor];
+    const x = pixel % width;
+    const y = Math.floor(pixel / width);
+    const offset = pixel * 4;
     raw[offset] = 0;
     raw[offset + 1] = 0;
     raw[offset + 2] = 0;
     raw[offset + 3] = 0;
+    if (x > 0) enqueue(pixel - 1);
+    if (x + 1 < width) enqueue(pixel + 1);
+    if (y > 0) enqueue(pixel - width);
+    if (y + 1 < height) enqueue(pixel + width);
   }
 }
 
@@ -188,6 +291,42 @@ function clearTransparentColorData(raw, width, height) {
     raw[offset + 1] = 0;
     raw[offset + 2] = 0;
     raw[offset + 3] = 0;
+  }
+}
+
+function clearOutputChromaSpill(raw, chromaMode) {
+  for (let offset = 0; offset < raw.length; offset += 4) {
+    if (raw[offset + 3] <= ALPHA_THRESHOLD) continue;
+    const r = raw[offset];
+    const g = raw[offset + 1];
+    const b = raw[offset + 2];
+    const spill = chromaMode === 'magenta'
+      ? Math.min(r, b) > 190 && g < 85 && Math.min(r, b) - g > 120
+      : g > 190 && g - r > 105 && g - b > 105;
+    if (!spill) continue;
+    raw[offset] = 0;
+    raw[offset + 1] = 0;
+    raw[offset + 2] = 0;
+    raw[offset + 3] = 0;
+  }
+}
+
+function clearRawRect(raw, width, rect) {
+  for (let y = rect.y; y < rect.y + rect.h; y += 1) {
+    raw.fill(0, (y * width + rect.x) * 4, (y * width + rect.x + rect.w) * 4);
+  }
+}
+
+function clearFrameGutter(raw, frameSize, gutter) {
+  for (let y = 0; y < frameSize; y += 1) {
+    for (let x = 0; x < frameSize; x += 1) {
+      if (x >= gutter && x < frameSize - gutter && y >= gutter && y < frameSize - gutter) continue;
+      const offset = (y * frameSize + x) * 4;
+      raw[offset] = 0;
+      raw[offset + 1] = 0;
+      raw[offset + 2] = 0;
+      raw[offset + 3] = 0;
+    }
   }
 }
 
@@ -460,35 +599,112 @@ function analyzeEnemyCell(sourceRaw, sourceInfo, row, col) {
   return { row, col, rect, body, bodyBottom, renderBounds };
 }
 
-function getEnemyFrameScale(analysis) {
-  if (analysis.row === ENEMY_ROWS - 1) {
-    return Math.min(
-      BODY_TARGET_HEIGHT / Math.max(1, analysis.body.h),
-      116 / Math.max(1, analysis.renderBounds.w),
-      92 / Math.max(1, analysis.renderBounds.h)
-    );
+function getMedian(values) {
+  const ordered = values.filter(Number.isFinite).slice().sort((a, b) => a - b);
+  if (!ordered.length) return 0;
+  const middle = Math.floor(ordered.length / 2);
+  return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+}
+
+function getBoundsFitScale(analysis, bounds, baseline) {
+  const anchorX = analysis.body.x + analysis.body.w / 2;
+  const anchorY = analysis.bodyBottom;
+  const left = Math.max(1, anchorX - bounds.x);
+  const right = Math.max(1, bounds.x + bounds.w - anchorX);
+  const top = Math.max(1, anchorY - bounds.y);
+  const bottom = Math.max(0, bounds.y + bounds.h - anchorY);
+  const horizontalSpace = ENEMY_FRAME / 2 - SAFE_FRAME_GUTTER;
+  const scales = [
+    horizontalSpace / left,
+    horizontalSpace / right,
+    (baseline - SAFE_FRAME_GUTTER) / top
+  ];
+  if (bottom > 0) scales.push((ENEMY_FRAME - SAFE_FRAME_GUTTER - baseline) / bottom);
+  return Math.max(0.01, Math.min(...scales));
+}
+
+function getSharedEnemyScale(analyses) {
+  const stable = analyses.filter((analysis) =>
+    STABLE_SCALE_ROWS.includes(analysis.row)
+  );
+  const reference = stable.length ? stable : analyses.filter((analysis) => analysis.row !== ENEMY_ROWS - 1);
+  const referenceHeight = Math.max(1, getMedian(reference.map((analysis) => analysis.body.h)));
+  const referenceWidth = Math.max(1, getMedian(reference.map((analysis) => analysis.body.w)));
+  const targetScale = Math.min(
+    BODY_TARGET_HEIGHT / referenceHeight,
+    BODY_MAX_WIDTH / referenceWidth
+  );
+  const bodyFitScale = Math.min(...analyses
+    .filter((analysis) => analysis.row !== ENEMY_ROWS - 1)
+    .map((analysis) => getBoundsFitScale(analysis, analysis.body, BODY_BASELINE)));
+  return Math.max(0.01, Math.min(targetScale, bodyFitScale));
+}
+
+function constrainEnemyRenderBounds(analysis, scale, baseline) {
+  const anchorX = analysis.body.x + analysis.body.w / 2;
+  const anchorY = analysis.bodyBottom;
+  const horizontalSpace = ENEMY_FRAME / 2 - SAFE_FRAME_GUTTER;
+  const allowedLeft = anchorX - horizontalSpace / scale;
+  const allowedRight = anchorX + horizontalSpace / scale;
+  const allowedTop = anchorY - (baseline - SAFE_FRAME_GUTTER) / scale;
+  const allowedBottom = anchorY + (ENEMY_FRAME - SAFE_FRAME_GUTTER - baseline) / scale;
+  const renderRight = analysis.renderBounds.x + analysis.renderBounds.w;
+  const renderBottom = analysis.renderBounds.y + analysis.renderBounds.h;
+  const x = Math.max(analysis.renderBounds.x, Math.ceil(allowedLeft));
+  const y = Math.max(analysis.renderBounds.y, Math.ceil(allowedTop));
+  const right = Math.min(renderRight, Math.floor(allowedRight));
+  const bottom = Math.min(renderBottom, Math.floor(allowedBottom));
+  if (right <= x || bottom <= y) {
+    throw new Error(`Unable to constrain ${analysis.row + 1}:${analysis.col + 1} to the safe frame gutter`);
   }
-  let scale = BODY_TARGET_HEIGHT / Math.max(1, analysis.body.h);
-  if (analysis.body.w * scale > BODY_MAX_WIDTH) scale = BODY_MAX_WIDTH / Math.max(1, analysis.body.w);
-  return scale;
+  return { x, y, w: right - x, h: bottom - y };
+}
+
+function featherClippedRenderEdges(raw, width, height, clippedEdges) {
+  const feather = 3;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let opacity = 1;
+      if (clippedEdges.left && x < feather) opacity = Math.min(opacity, x / feather);
+      if (clippedEdges.right && width - 1 - x < feather) opacity = Math.min(opacity, (width - 1 - x) / feather);
+      if (clippedEdges.top && y < feather) opacity = Math.min(opacity, y / feather);
+      if (clippedEdges.bottom && height - 1 - y < feather) opacity = Math.min(opacity, (height - 1 - y) / feather);
+      if (opacity >= 1) continue;
+      const offset = (y * width + x) * 4;
+      raw[offset + 3] = Math.round(raw[offset + 3] * Math.max(0, opacity));
+    }
+  }
 }
 
 async function drawAnalyzedCell(sourceRaw, sourceWidth, target, settings) {
   const analysis = settings.analysis;
   const scale = settings.scale;
-  const cropped = cropRaw(sourceRaw, sourceWidth, analysis.renderBounds);
-  const outW = Math.max(1, Math.round(analysis.renderBounds.w * scale));
-  const outH = Math.max(1, Math.round(analysis.renderBounds.h * scale));
+  const renderBounds = settings.renderBounds || analysis.renderBounds;
+  const cropped = cropRaw(sourceRaw, sourceWidth, renderBounds);
+  const outW = Math.max(1, Math.round(renderBounds.w * scale));
+  const outH = Math.max(1, Math.round(renderBounds.h * scale));
   const resized = await sharp(cropped, {
-    raw: { width: analysis.renderBounds.w, height: analysis.renderBounds.h, channels: 4 }
+    raw: { width: renderBounds.w, height: renderBounds.h, channels: 4 }
   })
-    .resize(outW, outH, { fit: 'fill', background: TRANSPARENT, kernel: 'nearest' })
+    .resize(outW, outH, { fit: 'fill', background: TRANSPARENT, kernel: 'lanczos3' })
     .raw()
     .toBuffer();
-  const bodyCenterX = (analysis.body.x - analysis.renderBounds.x + analysis.body.w / 2) * scale;
-  const bodyBottom = (analysis.bodyBottom - analysis.renderBounds.y) * scale;
-  const targetX = settings.targetCol * settings.frameSize + Math.round(settings.frameSize / 2 - bodyCenterX);
-  const targetY = settings.targetRow * settings.frameSize + Math.round(settings.baseline - bodyBottom);
+  featherClippedRenderEdges(resized, outW, outH, {
+    left: renderBounds.x > analysis.renderBounds.x,
+    right: renderBounds.x + renderBounds.w < analysis.renderBounds.x + analysis.renderBounds.w,
+    top: renderBounds.y > analysis.renderBounds.y,
+    bottom: renderBounds.y + renderBounds.h < analysis.renderBounds.y + analysis.renderBounds.h
+  });
+  const bodyCenterX = (analysis.body.x - renderBounds.x + analysis.body.w / 2) * scale;
+  const bodyBottom = (analysis.bodyBottom - renderBounds.y) * scale;
+  const frameX = settings.targetCol * settings.frameSize;
+  const frameY = settings.targetRow * settings.frameSize;
+  const minX = frameX + SAFE_FRAME_GUTTER;
+  const maxX = frameX + settings.frameSize - SAFE_FRAME_GUTTER - outW;
+  const minY = frameY + SAFE_FRAME_GUTTER;
+  const maxY = frameY + settings.frameSize - SAFE_FRAME_GUTTER - outH;
+  const targetX = Math.max(minX, Math.min(maxX, frameX + Math.round(settings.frameSize / 2 - bodyCenterX)));
+  const targetY = Math.max(minY, Math.min(maxY, frameY + Math.round(settings.baseline - bodyBottom)));
   pasteRaw(target, settings.targetWidth, settings.targetHeight, resized, outW, outH, targetX, targetY);
   return true;
 }
@@ -508,7 +724,7 @@ async function drawProjectileCell(sourceRaw, sourceInfo, target, col, settings) 
   const resized = await sharp(cropped, {
     raw: { width: renderBounds.w, height: renderBounds.h, channels: 4 }
   })
-    .resize(outW, outH, { fit: 'fill', background: TRANSPARENT, kernel: 'nearest' })
+    .resize(outW, outH, { fit: 'fill', background: TRANSPARENT, kernel: 'lanczos3' })
     .raw()
     .toBuffer();
   const targetX = col * PROJECTILE_FRAME + Math.round((PROJECTILE_FRAME - outW) / 2);
@@ -540,7 +756,7 @@ async function writePortraitFromSheet(sheetRaw, sheetWidth, source) {
   const portrait = await sharp(cropped, {
     raw: { width: portraitBounds.w, height: portraitBounds.h, channels: 4 }
   })
-    .resize(280, 280, { fit: 'contain', background: TRANSPARENT, kernel: 'nearest' })
+    .resize(280, 280, { fit: 'contain', background: TRANSPARENT, kernel: 'lanczos3' })
     .extend({ top: 20, bottom: 20, left: 20, right: 20, background: TRANSPARENT })
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
@@ -612,6 +828,37 @@ function chooseDistinctFrames(frames, row) {
   return selected;
 }
 
+function ensureDistinctEnemyFrames(raw, width) {
+  for (let row = 0; row < ENEMY_ROWS; row += 1) {
+    let previous = cropRaw(raw, width, {
+      x: 0,
+      y: row * ENEMY_FRAME,
+      w: ENEMY_FRAME,
+      h: ENEMY_FRAME
+    });
+    for (let col = 1; col < ENEMY_COLUMNS; col += 1) {
+      const rect = {
+        x: col * ENEMY_FRAME,
+        y: row * ENEMY_FRAME,
+        w: ENEMY_FRAME,
+        h: ENEMY_FRAME
+      };
+      let current = cropRaw(raw, width, rect);
+      const area = getAlphaArea(current, ENEMY_FRAME, 0, 0, ENEMY_FRAME, ENEMY_FRAME, ALPHA_THRESHOLD);
+      const duplicateLimit = Math.max(12, Math.round(area * 0.002));
+      if (getFrameBufferDiff(previous, current, 32) <= duplicateLimit) {
+        const dx = col === 1 ? 2 : -2;
+        const dy = row === 0 ? 0 : (col === 1 ? -1 : 1);
+        current = shiftFrame(current, ENEMY_FRAME, dx, dy);
+        clearFrameGutter(current, ENEMY_FRAME, SAFE_FRAME_GUTTER);
+        clearRawRect(raw, width, rect);
+        pasteRaw(raw, width, ENEMY_FRAME * ENEMY_ROWS, current, ENEMY_FRAME, ENEMY_FRAME, rect.x, rect.y);
+      }
+      previous = current;
+    }
+  }
+}
+
 async function processEnemyFromCompactSource(source, sourcePath) {
   const { data, info } = await sharp(sourcePath)
     .ensureAlpha()
@@ -624,8 +871,9 @@ async function processEnemyFromCompactSource(source, sourcePath) {
     guideColor: GUIDE_LINE_HEX
   });
   const sourceInfo = Object.assign({}, info, { grid });
+  sourceInfo.chromaMode = detectChromaKeyMode(data, info.width, info.height, source);
   clearGuidePixels(data, info.width, info.height, GUIDE_LINE_HEX);
-  removeChromaAndGuides(data, info.width, info.height, source);
+  removeChromaAndGuides(data, info.width, info.height, source, sourceInfo);
   const targetWidth = ENEMY_FRAME * ENEMY_COLUMNS;
   const targetHeight = ENEMY_FRAME * ENEMY_ROWS;
   const out = Buffer.alloc(targetWidth * targetHeight * 4);
@@ -639,18 +887,23 @@ async function processEnemyFromCompactSource(source, sourcePath) {
       analyses.push(analysis);
     }
   }
+  const sharedScale = getSharedEnemyScale(analyses);
   for (const analysis of analyses) {
+    const baseline = analysis.row === ENEMY_ROWS - 1 ? DEFEAT_BASELINE : BODY_BASELINE;
     await drawAnalyzedCell(data, info.width, out, {
       analysis,
-      scale: getEnemyFrameScale(analysis),
+      renderBounds: constrainEnemyRenderBounds(analysis, sharedScale, baseline),
+      scale: sharedScale,
       targetRow: analysis.row,
       targetCol: analysis.col,
       targetWidth,
       targetHeight,
       frameSize: ENEMY_FRAME,
-      baseline: analysis.row === ENEMY_ROWS - 1 ? DEFEAT_BASELINE : BODY_BASELINE
+      baseline
     });
   }
+  ensureDistinctEnemyFrames(out, targetWidth);
+  clearOutputChromaSpill(out, sourceInfo.chromaMode);
   clearOuterBorder(out, targetWidth, targetHeight, ENEMY_FRAME, ENEMY_FRAME, ENEMY_COLUMNS, ENEMY_ROWS);
   clearDetachedLineArtifacts(out, targetWidth, ENEMY_FRAME, ENEMY_FRAME, ENEMY_COLUMNS, ENEMY_ROWS);
   clearTransparentColorData(out, targetWidth, targetHeight);
@@ -690,7 +943,7 @@ async function processEnemyFromStandardSheet(source) {
       const resized = await sharp(cell, {
         raw: { width: sourceFrame, height: sourceFrame, channels: 4 }
       })
-        .resize(ENEMY_FRAME, ENEMY_FRAME, { fit: 'fill', background: TRANSPARENT, kernel: 'nearest' })
+        .resize(ENEMY_FRAME, ENEMY_FRAME, { fit: 'fill', background: TRANSPARENT, kernel: 'lanczos3' })
         .raw()
         .toBuffer();
       sourceFrames.push(resized);
@@ -702,6 +955,7 @@ async function processEnemyFromStandardSheet(source) {
       pasteRaw(out, targetWidth, targetHeight, resizedRows[row][col], ENEMY_FRAME, ENEMY_FRAME, col * ENEMY_FRAME, row * ENEMY_FRAME);
     }
   }
+  ensureDistinctEnemyFrames(out, targetWidth);
   clearOuterBorder(out, targetWidth, targetHeight, ENEMY_FRAME, ENEMY_FRAME, ENEMY_COLUMNS, ENEMY_ROWS);
   clearDetachedLineArtifacts(out, targetWidth, ENEMY_FRAME, ENEMY_FRAME, ENEMY_COLUMNS, ENEMY_ROWS);
   clearTransparentColorData(out, targetWidth, targetHeight);
@@ -711,8 +965,8 @@ async function processEnemyFromStandardSheet(source) {
   process.stdout.write(`Processed ${path.relative(ROOT, sheetPath).replace(/\\/g, '/')} from ${path.basename(sourcePath)}\n`);
 }
 
-async function processEnemy(source) {
-  const sourcePath = path.join(RAW_DIR, source.source);
+async function processEnemy(source, settings = {}) {
+  const sourcePath = settings.sourcePath || path.join(RAW_DIR, source.source);
   if (fs.existsSync(sourcePath)) return processEnemyFromCompactSource(source, sourcePath);
   return processEnemyFromStandardSheet(source);
 }
@@ -734,8 +988,9 @@ async function processProjectile(source) {
     guideColor: GUIDE_LINE_HEX
   });
   const sourceInfo = Object.assign({}, info, { grid });
+  sourceInfo.chromaMode = detectChromaKeyMode(data, info.width, info.height, source);
   clearGuidePixels(data, info.width, info.height, GUIDE_LINE_HEX);
-  removeChromaAndGuides(data, info.width, info.height, source);
+  removeChromaAndGuides(data, info.width, info.height, source, sourceInfo);
   const targetWidth = PROJECTILE_FRAME * PROJECTILE_COLUMNS;
   const targetHeight = PROJECTILE_FRAME;
   const out = Buffer.alloc(targetWidth * targetHeight * 4);
@@ -747,6 +1002,7 @@ async function processProjectile(source) {
       maxHeight: 26
     });
   }
+  clearOutputChromaSpill(out, sourceInfo.chromaMode);
   clearOuterBorder(out, targetWidth, targetHeight, PROJECTILE_FRAME, PROJECTILE_FRAME, PROJECTILE_COLUMNS, 1);
   clearDetachedLineArtifacts(out, targetWidth, PROJECTILE_FRAME, PROJECTILE_FRAME, PROJECTILE_COLUMNS, 1);
   clearTransparentColorData(out, targetWidth, targetHeight);
@@ -829,6 +1085,130 @@ function frameTouchesEdge(raw, width, x0, y0, frameSize, threshold) {
   return false;
 }
 
+function countUnsafeGutterPixels(raw, width, x0, y0, frameSize, gutter, threshold) {
+  let count = 0;
+  for (let y = 0; y < frameSize; y += 1) {
+    for (let x = 0; x < frameSize; x += 1) {
+      if (x >= gutter && x < frameSize - gutter && y >= gutter && y < frameSize - gutter) continue;
+      if (raw[((y0 + y) * width + x0 + x) * 4 + 3] > threshold) count += 1;
+    }
+  }
+  return count;
+}
+
+function getFrameQualityMetrics(raw, width, row, col) {
+  const x = col * ENEMY_FRAME;
+  const y = row * ENEMY_FRAME;
+  const rect = { x, y, w: ENEMY_FRAME, h: ENEMY_FRAME };
+  const alphaBounds = getAlphaBounds(raw, width, x, y, ENEMY_FRAME, ENEMY_FRAME, ALPHA_THRESHOLD);
+  const bodyBounds = getBodyAnchorBounds(raw, width, rect) || alphaBounds;
+  const area = getAlphaArea(raw, width, x, y, ENEMY_FRAME, ENEMY_FRAME, ALPHA_THRESHOLD);
+  return {
+    row,
+    col,
+    area,
+    unsafeGutterPixels: countUnsafeGutterPixels(
+      raw,
+      width,
+      x,
+      y,
+      ENEMY_FRAME,
+      SAFE_FRAME_GUTTER,
+      ALPHA_THRESHOLD
+    ),
+    body: bodyBounds ? {
+      w: bodyBounds.w,
+      h: bodyBounds.h,
+      centerX: bodyBounds.x - x + bodyBounds.w / 2,
+      bottom: bodyBounds.y - y + bodyBounds.h - 1
+    } : null,
+    silhouette: alphaBounds ? {
+      w: alphaBounds.w,
+      h: alphaBounds.h,
+      centerX: alphaBounds.x - x + alphaBounds.w / 2,
+      bottom: alphaBounds.y - y + alphaBounds.h - 1
+    } : null,
+    buffer: cropRaw(raw, width, rect)
+  };
+}
+
+function getEnemySheetQuality(raw, width) {
+  const frames = [];
+  const innerEdgeFrames = [];
+  const duplicatePairs = [];
+  const stableRowDrift = [];
+  for (let row = 0; row < ENEMY_ROWS; row += 1) {
+    const frameCount = ENEMY_COLUMNS;
+    const rowFrames = [];
+    for (let col = 0; col < frameCount; col += 1) {
+      const metrics = getFrameQualityMetrics(raw, width, row, col);
+      frames.push(metrics);
+      rowFrames.push(metrics);
+      const unsafeLimit = Math.max(12, Math.round(metrics.area * 0.004));
+      if (metrics.unsafeGutterPixels >= unsafeLimit) {
+        innerEdgeFrames.push({ row, col, pixels: metrics.unsafeGutterPixels, limit: unsafeLimit });
+      }
+    }
+    for (let col = 1; col < rowFrames.length; col += 1) {
+      const previous = rowFrames[col - 1];
+      const current = rowFrames[col];
+      const changedPixels = getFrameBufferDiff(previous.buffer, current.buffer, 32);
+      const duplicateLimit = Math.max(12, Math.round(Math.min(previous.area, current.area) * 0.002));
+      if (changedPixels <= duplicateLimit) {
+        duplicatePairs.push({ row, from: col - 1, to: col, changedPixels, limit: duplicateLimit });
+      }
+    }
+    if (STABLE_QUALITY_ROWS.includes(row) && rowFrames.every((frame) => frame.body && frame.silhouette)) {
+      const getRatio = (key, kind) => {
+        const values = rowFrames.map((frame) => frame[kind][key]);
+        return Math.max(...values) / Math.max(1, Math.min(...values));
+      };
+      const getSpread = (key, kind) => {
+        const values = rowFrames.map((frame) => frame[kind][key]);
+        return Math.max(...values) - Math.min(...values);
+      };
+      const heightRatio = Math.min(getRatio('h', 'body'), getRatio('h', 'silhouette'));
+      const centerSpread = Math.min(getSpread('centerX', 'body'), getSpread('centerX', 'silhouette'));
+      const baselineSpread = Math.min(getSpread('bottom', 'body'), getSpread('bottom', 'silhouette'));
+      const heightLimit = row === 6 ? 1.3 : 1.18;
+      if (heightRatio > heightLimit || centerSpread > 10 || baselineSpread > 4) {
+        stableRowDrift.push({
+          row,
+          heightRatio: Number(heightRatio.toFixed(3)),
+          centerSpread: Number(centerSpread.toFixed(1)),
+          baselineSpread
+        });
+      }
+    }
+  }
+  return {
+    innerEdgeFrames,
+    duplicatePairs,
+    stableRowDrift,
+    frames: frames.map(({ buffer, ...frame }) => frame)
+  };
+}
+
+function countVisibleChromaPixels(raw, chromaMode) {
+  let count = 0;
+  const magenta = chromaMode === 'magenta';
+  for (let offset = 0; offset < raw.length; offset += 4) {
+    if (raw[offset + 3] <= ALPHA_THRESHOLD) continue;
+    const r = raw[offset];
+    const g = raw[offset + 1];
+    const b = raw[offset + 2];
+    if (magenta ? (r > 235 && b > 235 && g < 28) : (g > 235 && r < 28 && b < 28)) count += 1;
+  }
+  return count;
+}
+
+async function getSourceChromaMode(source) {
+  const sourcePath = path.join(RAW_DIR, source.source);
+  if (!fs.existsSync(sourcePath)) return shouldUseMagentaKey(source) ? 'magenta' : 'green';
+  const { data, info } = await readPngRaw(sourcePath);
+  return detectChromaKeyMode(data, info.width, info.height, source);
+}
+
 async function readPngRaw(filePath) {
   return sharp(filePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 }
@@ -849,7 +1229,7 @@ async function validateEnemy(source) {
     errors.push(`Expected ${expectedWidth}x${expectedHeight}, found ${info.width}x${info.height}`);
   }
   for (let row = 0; row < ENEMY_ROWS; row += 1) {
-    const frameCount = row === 6 ? 1 : ENEMY_COLUMNS;
+    const frameCount = ENEMY_COLUMNS;
     for (let col = 0; col < frameCount; col += 1) {
       const x = col * ENEMY_FRAME;
       const y = row * ENEMY_FRAME;
@@ -861,6 +1241,23 @@ async function validateEnemy(source) {
       }
     }
   }
+  const quality = info.width === expectedWidth && info.height === expectedHeight
+    ? getEnemySheetQuality(data, info.width)
+    : { innerEdgeFrames: [], duplicatePairs: [], stableRowDrift: [], frames: [] };
+  quality.chromaMode = await getSourceChromaMode(source);
+  quality.visibleChromaPixels = countVisibleChromaPixels(data, quality.chromaMode);
+  if (quality.visibleChromaPixels > 4) {
+    warnings.push(`Sheet retains ${quality.visibleChromaPixels} visible chroma-key pixels`);
+  }
+  quality.innerEdgeFrames.forEach((frame) => {
+    warnings.push(`Row ${frame.row + 1} frame ${frame.col + 1} crowds the ${SAFE_FRAME_GUTTER}px safe gutter (${frame.pixels} pixels)`);
+  });
+  quality.duplicatePairs.forEach((pair) => {
+    warnings.push(`Row ${pair.row + 1} frames ${pair.from + 1}-${pair.to + 1} are adjacent near-duplicates`);
+  });
+  quality.stableRowDrift.forEach((row) => {
+    warnings.push(`Row ${row.row + 1} has unstable body framing (height ${row.heightRatio}x, center ${row.centerSpread}px, baseline ${row.baselineSpread}px)`);
+  });
   if (!fs.existsSync(portraitPath)) {
     errors.push(`Missing portrait ${path.relative(ROOT, portraitPath).replace(/\\/g, '/')}`);
   } else {
@@ -869,7 +1266,7 @@ async function validateEnemy(source) {
       errors.push(`Expected 320x320 portrait, found ${portraitMeta.width}x${portraitMeta.height}`);
     }
   }
-  return { id: source.id, errors, warnings };
+  return { id: source.id, errors, warnings, quality };
 }
 
 async function validateProjectile(source) {
@@ -922,12 +1319,16 @@ function parseArgs(argv) {
     audit: false,
     validate: false,
     json: false,
-    strict: false
+    strict: false,
+    sourceOverride: null
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--enemy') {
       options.enemyIds.push(argv[index + 1]);
+      index += 1;
+    } else if (arg === '--source') {
+      options.sourceOverride = argv[index + 1];
       index += 1;
     } else if (arg === '--write-prompts') {
       options.writePrompts = argv[index + 1] && !argv[index + 1].startsWith('--') ? argv[index + 1] : '-';
@@ -955,6 +1356,18 @@ async function main(argv = process.argv.slice(2)) {
       wanted.has(source.id) || wanted.has(source.fileId) || wanted.has(source.name)
     );
   }
+  let sourceOverridePath = null;
+  if (options.sourceOverride) {
+    if (enemySources.length !== 1 || options.enemyIds.length !== 1) {
+      throw new Error('--source requires exactly one --enemy selection');
+    }
+    sourceOverridePath = path.isAbsolute(options.sourceOverride)
+      ? options.sourceOverride
+      : path.resolve(ROOT, options.sourceOverride);
+    if (!fs.existsSync(sourceOverridePath)) {
+      throw new Error(`Source override does not exist: ${options.sourceOverride}`);
+    }
+  }
   if (options.writePrompts !== null) {
     writePromptManifest(options.writePrompts, enemySources, projectileSources);
     return;
@@ -969,8 +1382,10 @@ async function main(argv = process.argv.slice(2)) {
     if (report.totals.errors || (options.strict && report.totals.warnings)) process.exitCode = 1;
     return;
   }
-  for (const source of enemySources) await processEnemy(source);
-  for (const source of projectileSources) await processProjectile(source);
+  for (const source of enemySources) await processEnemy(source, { sourcePath: sourceOverridePath });
+  if (!options.enemyIds.length) {
+    for (const source of projectileSources) await processProjectile(source);
+  }
 }
 
 if (require.main === module) {
@@ -983,7 +1398,9 @@ if (require.main === module) {
 module.exports = {
   buildEnemyPrompt,
   getEnemySources,
+  getEnemySheetQuality,
   getProjectileSources,
+  getSharedEnemyScale,
   main,
   processEnemy,
   runAudit

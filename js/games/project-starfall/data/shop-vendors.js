@@ -2,10 +2,10 @@
   'use strict';
 
   const SHOP_VENDOR_TYPES = Object.freeze([
-    Object.freeze({ id: 'weapon', label: 'Weapon Shop', panelLabel: 'Weapons', x: 560, platformIndex: 1 }),
-    Object.freeze({ id: 'armor', label: 'Armor Shop', panelLabel: 'Armor', x: 780, platformIndex: 1 }),
-    Object.freeze({ id: 'supply', label: 'Supply Shop', panelLabel: 'Supplies', x: 1000, platformIndex: 1 }),
-    Object.freeze({ id: 'special', label: 'Special Shop', panelLabel: 'Specials', x: 1220, platformIndex: 1 })
+    Object.freeze({ id: 'weapon', label: 'Weapon Shop', panelLabel: 'Weapons', x: 560, platformIndex: 1, facadeCell: 'cinderForge', facadeWidth: 154, facadeHeight: 142 }),
+    Object.freeze({ id: 'armor', label: 'Armor Shop', panelLabel: 'Armor', x: 780, platformIndex: 1, facadeCell: 'rustcoilWorkshop', facadeWidth: 154, facadeHeight: 142 }),
+    Object.freeze({ id: 'supply', label: 'Supply Shop', panelLabel: 'Supplies', x: 1000, platformIndex: 1, facadeCell: 'marketAwning', facadeWidth: 154, facadeHeight: 142 }),
+    Object.freeze({ id: 'special', label: 'Special Shop', panelLabel: 'Specials', x: 1220, platformIndex: 1, facadeCell: 'astralObservatory', facadeWidth: 154, facadeHeight: 142 })
   ]);
 
   const TOWN_SHOP_THEME_BY_TOWN = Object.freeze({
@@ -63,6 +63,9 @@
       destinationMapId: getTownShopInteriorMapId(townId, type.id),
       shopDoor: true,
       shopVendorType: type.id,
+      facadeCell: type.facadeCell,
+      facadeWidth: type.facadeWidth,
+      facadeHeight: type.facadeHeight,
       x: type.x,
       platformIndex: type.platformIndex
     }));

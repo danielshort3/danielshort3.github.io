@@ -4,7 +4,7 @@
   function createAnimationData(options) {
     const settings = options || {};
     const ASSET_ROOT = settings.ASSET_ROOT || 'img/project-starfall';
-    const EQUIPMENT_VISUAL_ROOT = settings.EQUIPMENT_VISUAL_ROOT || `${ASSET_ROOT}/equipment-layers`;
+    const EQUIPMENT_ATLAS_ROOT = settings.EQUIPMENT_ATLAS_ROOT || `${ASSET_ROOT}/equipment-atlases`;
     const CLASS_FILE_IDS = settings.CLASS_FILE_IDS || {};
     const createEquipmentVisualData = settings.createEquipmentVisualData;
 
@@ -126,8 +126,36 @@
       return makeSheetAnimation(`${ANIMATION_ROOT}/players/${fileId}-sheet.png`, PLAYER_ANIMATION_ROWS, PLAYER_ANIMATION_CONFIG);
     }
 
-    function makeEquipmentVisualAnimation(fileId) {
-      return makeSheetAnimation(`${EQUIPMENT_VISUAL_ROOT}/${fileId}-sheet.png`, PLAYER_ANIMATION_ROWS, PLAYER_ANIMATION_CONFIG);
+    const EQUIPMENT_ATLAS_ANGLE_SETS = Object.freeze({
+      weapon: Object.freeze([-62, -34, -7, 8, 25, 42, 62, 78]),
+      body: Object.freeze([-42, -18, -7, 0, 16, 42, 72, 90]),
+      limb: Object.freeze([-15, -7, 0, 5, 10, 15, 20, 30])
+    });
+    const EQUIPMENT_ATLAS_WEAPON_KINDS = Object.freeze(['sword', 'axe', 'wand', 'staff', 'bow']);
+    const EQUIPMENT_ATLAS_LIMB_KINDS = Object.freeze(['boots', 'gloves', 'grip', 'ring', 'focus']);
+
+    function getEquipmentAtlasAngles(kind) {
+      const itemKind = String(kind || '').toLowerCase();
+      if (EQUIPMENT_ATLAS_WEAPON_KINDS.includes(itemKind)) return EQUIPMENT_ATLAS_ANGLE_SETS.weapon;
+      if (EQUIPMENT_ATLAS_LIMB_KINDS.includes(itemKind)) return EQUIPMENT_ATLAS_ANGLE_SETS.limb;
+      return EQUIPMENT_ATLAS_ANGLE_SETS.body;
+    }
+
+    function makeEquipmentVisualAtlas(fileId, kind) {
+      const itemKind = String(kind || '').toLowerCase();
+      const variants = itemKind === 'bow'
+        ? Object.freeze(['rest', 'draw', 'release'])
+        : Object.freeze(['default']);
+      return Object.freeze({
+        sheet: `${EQUIPMENT_ATLAS_ROOT}/${fileId}-atlas.png`,
+        frameWidth: 128,
+        frameHeight: 128,
+        pivotX: 64,
+        pivotY: 64,
+        angles: getEquipmentAtlasAngles(itemKind),
+        variants,
+        kind: itemKind
+      });
     }
 
     function mergeAnimationOverrides(base, specific) {
@@ -147,13 +175,24 @@
       );
     }
 
+    function compactFrameHolds(holds, fallback) {
+      const source = Array.isArray(holds) && holds.length ? holds : fallback;
+      if (!Array.isArray(source) || !source.length) return [1, 1, 1];
+      if (source.length === 3) return source.map((hold) => Math.max(1, Math.round(Number(hold) || 1)));
+      return [source[0], source[Math.floor(source.length / 2)], source[source.length - 1]]
+        .map((hold) => Math.max(1, Math.round(Number(hold) || 1)));
+    }
+
     function makeCompactEnemyAnimationAsset(fileId, enemyId) {
       const compactConfig = Object.freeze(ENEMY_ANIMATION_ROWS.reduce((config, stateId) => {
         const base = ENEMY_ANIMATION_CONFIG[stateId] || {};
-        config[stateId] = Object.assign({}, base, {
-          frames: stateId === 'hit' ? 1 : 3,
-          fps: stateId === 'idle' ? 5 : stateId === 'move' ? 9 : stateId === 'defeat' ? 7 : base.fps || 10,
-          holds: stateId === 'hit' ? [2] : stateId === 'idle' ? [4, 2, 4] : stateId === 'defeat' ? [1, 2, 5] : [1, 1, 2]
+        const timingOverride = ENEMY_ANIMATION_TIMING_OVERRIDES[enemyId] && ENEMY_ANIMATION_TIMING_OVERRIDES[enemyId][stateId] || {};
+        const fallbackHolds = stateId === 'idle' ? [4, 2, 4] : stateId === 'defeat' ? [1, 2, 5] : [1, 1, 2];
+        const fallbackFps = stateId === 'idle' ? 5 : stateId === 'move' ? 9 : stateId === 'defeat' ? 7 : base.fps || 10;
+        config[stateId] = Object.assign({}, base, timingOverride, {
+          frames: 3,
+          fps: Number(timingOverride.fps || fallbackFps),
+          holds: compactFrameHolds(timingOverride.holds, fallbackHolds)
         });
         return config;
       }, {}));
@@ -203,13 +242,16 @@
     const GENERIC_PLAYER_ANIMATION_ASSET = makePlayerAnimationAsset('generic-player');
 
     const PLAYER_ANIMATION_ASSETS = Object.freeze(Object.keys(CLASS_FILE_IDS).reduce((assets, classId) => {
-      assets[classId] = makePlayerAnimationAsset(CLASS_FILE_IDS[classId]);
+      // Class sheets currently contain the same pixels. Reuse the generic
+      // definition so one decoded sheet serves every class until unique art
+      // replaces the generated duplicates.
+      assets[classId] = GENERIC_PLAYER_ANIMATION_ASSET;
       return assets;
     }, {}));
 
     const equipmentVisualData = typeof createEquipmentVisualData === 'function'
       ? createEquipmentVisualData({
-          makeEquipmentVisualAnimation
+          makeEquipmentVisualAtlas
         })
       : Object.freeze({});
     const EQUIPMENT_VISUALS = equipmentVisualData.EQUIPMENT_VISUALS;
@@ -529,6 +571,7 @@
     return Object.freeze({
       ANIMATION_ROOT,
       COMBAT_FX_ANIMATION_ROOT,
+      EQUIPMENT_ATLAS_ROOT,
       PLAYER_ANIMATION_ROWS,
       ENEMY_ANIMATION_ROWS,
       PET_ANIMATION_ROWS,
@@ -559,7 +602,9 @@
       PET_ANIMATION_ASSET,
       BUFF_CAST_VISUALS,
       CORE_ANIMATION_ASSETS,
-      makeEquipmentVisualAnimation,
+      makeEquipmentVisualAtlas,
+      EQUIPMENT_ATLAS_ANGLE_SETS,
+      getEquipmentAtlasAngles,
       makeCombatFxAnimationAsset,
       getEnemyAnimationBehavior
     });

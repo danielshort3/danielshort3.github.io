@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const Data = require('../js/games/project-starfall/project-starfall-data.js');
+const { getEquipmentAttachment } = require('./project-starfall-player-equipment-rig.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const FRAME = 160;
@@ -16,7 +17,6 @@ const PLAYER_DIR = path.join(ROOT, 'img/project-starfall/animations/players');
 const CHARACTER_DIR = path.join(ROOT, 'img/project-starfall/characters');
 const ENEMY_DIR = path.join(ROOT, 'img/project-starfall/enemies');
 const ENEMY_SHEET_DIR = path.join(ROOT, 'img/project-starfall/animations/enemies');
-const EQUIPMENT_DIR = path.join(ROOT, 'img/project-starfall/equipment-layers');
 const MAP_DIR = path.join(ROOT, 'img/project-starfall/maps');
 const PORTAL_DIR = path.join(ROOT, 'img/project-starfall/animations/portals');
 const GENERIC_CHARACTER_PATH = path.join(CHARACTER_DIR, 'generic-player.png');
@@ -907,24 +907,271 @@ function kitLayer(item, row, frame) {
   ]);
 }
 
+function equipmentColor(item, keys, fallback) {
+  for (const key of keys) {
+    if (item && item[key]) return item[key];
+  }
+  return fallback;
+}
+
+function attachmentGroup(anchor, body) {
+  return `<g transform="translate(${anchor.x} ${anchor.y}) rotate(${anchor.angle || 0})">${body}</g>`;
+}
+
+function safeWeaponAnchor(source, length) {
+  const anchor = Object.assign({}, source || { x: 80, y: 90, angle: 0 });
+  const radians = Number(anchor.angle || 0) * Math.PI / 180;
+  const endX = anchor.x + Math.cos(radians) * length;
+  const endY = anchor.y + Math.sin(radians) * length;
+  const minX = Math.min(anchor.x - 8, endX - 8);
+  const maxX = Math.max(anchor.x + 8, endX + 8);
+  const minY = Math.min(anchor.y - 12, endY - 12);
+  const maxY = Math.max(anchor.y + 12, endY + 12);
+  if (minX < 5) anchor.x += 5 - minX;
+  if (maxX > FRAME - 5) anchor.x -= maxX - (FRAME - 5);
+  if (minY < 5) anchor.y += 5 - minY;
+  if (maxY > FRAME - 5) anchor.y -= maxY - (FRAME - 5);
+  return anchor;
+}
+
+function swordLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const blade = equipmentColor(item, ['blade', 'metal'], '#c9d5dd');
+  const bright = equipmentColor(item, ['bright', 'shine', 'edge'], '#f4fbff');
+  const grip = equipmentColor(item, ['grip', 'haft', 'dark'], '#765039');
+  const anchor = safeWeaponAnchor(rig.weapon, 48);
+  return attachmentGroup(anchor, box([
+    px(-6, -3, 15, 6, grip),
+    px(5, -7, 5, 14, bright),
+    px(9, -4, 38, 8, blade),
+    px(13, -3, 31, 2, bright),
+    polygon('47,-4 55,0 47,4', bright)
+  ]));
+}
+
+function axeLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const haft = equipmentColor(item, ['haft', 'grip', 'dark'], '#765039');
+  const blade = equipmentColor(item, ['blade', 'metal'], '#c9d5dd');
+  const bright = equipmentColor(item, ['bright', 'shine', 'edge'], '#f4fbff');
+  const anchor = safeWeaponAnchor(rig.weapon, 45);
+  return attachmentGroup(anchor, box([
+    px(-6, -3, 45, 6, haft),
+    px(33, -14, 16, 28, blade),
+    polygon('38,-14 54,-8 49,0 38,-2', bright),
+    px(5, -5, 7, 10, haft)
+  ]));
+}
+
+function wandLayerV2(item, row, frame, staff) {
+  const rig = getEquipmentAttachment(row, frame);
+  const length = staff ? 52 : 36;
+  const rod = equipmentColor(item, ['rod', 'haft', 'grip'], '#765039');
+  const gem = equipmentColor(item, ['gem', 'core', 'bright'], '#c6f4ff');
+  const glow = equipmentColor(item, ['glow', 'accent', 'bright'], '#8bd7ff');
+  const anchor = safeWeaponAnchor(rig.weapon, length + 12);
+  return attachmentGroup(anchor, box([
+    px(-5, -3, length + 5, 6, rod),
+    px(length - 1, -7, 12, 14, gem),
+    px(length + 2, -4, 6, 5, '#ffffff', ' opacity="0.72"'),
+    px(length - 6, -12, 23, 24, glow, ' opacity="0.18"')
+  ]));
+}
+
+function bowLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const height = item.long ? 58 : 50;
+  const wood = equipmentColor(item, ['wood', 'leather', 'haft'], '#8a5c2f');
+  const string = equipmentColor(item, ['string', 'bright', 'trim'], '#f5efd6');
+  const arrow = equipmentColor(item, ['arrow', 'accent', 'bright'], '#ffe16a');
+  const anchor = Object.assign({}, rig.weapon, { angle: rig.bowAngle || 0 });
+  anchor.x = Math.max(35, Math.min(125, anchor.x));
+  anchor.y = Math.max(height / 2 + 6, Math.min(FRAME - height / 2 - 6, anchor.y));
+  const firing = row === 'basic' || row === 'skill';
+  return attachmentGroup(anchor, box([
+    px(-2, -height / 2, 5, height, wood),
+    px(2, -height / 2 + 4, 6, 8, wood),
+    px(2, height / 2 - 12, 6, 8, wood),
+    svgPath(`M 1 ${-height / 2 + 2} L ${firing ? -12 : 1} 0 L 1 ${height / 2 - 2}`, 'none', string, ' stroke-width="2"'),
+    firing ? px(-18, -2, 51, 4, arrow) : px(-8, -2, 30, 4, arrow, ' opacity="0.82"'),
+    firing ? polygon('33,-4 41,0 33,4', arrow) : ''
+  ]));
+}
+
+function chestLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const torso = rig.torso;
+  const cloth = equipmentColor(item, ['cloth', 'metal', 'leather', 'core'], '#6d7682');
+  const trim = equipmentColor(item, ['trim', 'edge', 'bright', 'accent'], '#d6a86d');
+  const stitch = equipmentColor(item, ['stitch', 'dark', 'sole'], '#392b2b');
+  const width = Math.max(22, torso.width);
+  const height = Math.max(27, torso.height - 4);
+  return attachmentGroup(torso, box([
+    polygon(`${-width / 2},${-height / 2 + 5} ${-width / 2 + 4},${height / 2} ${width / 2 - 4},${height / 2} ${width / 2},${-height / 2 + 5} 0,${-height / 2}`, cloth),
+    px(-width / 2 + 3, -height / 2 + 6, width - 6, 5, trim),
+    px(-2, -height / 2 + 7, 4, height - 11, stitch),
+    px(-width / 2 + 4, height / 2 - 5, width - 8, 5, trim)
+  ]));
+}
+
+function bootsLayerV2(item, row, frame) {
+  const leather = equipmentColor(item, ['leather', 'cloth', 'metal'], '#6f412b');
+  const sole = equipmentColor(item, ['sole', 'dark', 'edge'], '#2b1d1b');
+  const buckle = equipmentColor(item, ['buckle', 'trim', 'bright'], '#d6a14a');
+  const rig = getEquipmentAttachment(row, frame);
+  return box(rig.feet.map((foot, index) => attachmentGroup(foot, box([
+    px(-8, -8, 17, 10, leather),
+    px(-9, 0, 20, 4, sole),
+    index === 0 ? px(3, -7, 4, 4, buckle) : ''
+  ]))));
+}
+
+function headLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const metal = equipmentColor(item, ['metal', 'cloth', 'leather'], '#667481');
+  const dark = equipmentColor(item, ['dark', 'sole', 'stitch'], '#29313a');
+  const trim = equipmentColor(item, ['trim', 'edge', 'bright', 'accent'], '#d3dde5');
+  return attachmentGroup(rig.head, box([
+    px(-17, -16, 34, 9, dark),
+    px(-14, -23, 28, 12, metal),
+    px(-10, -27, 5, 7, trim),
+    px(-2, -29, 5, 9, trim),
+    px(7, -27, 5, 7, trim),
+    px(10, -11, 9, 5, trim)
+  ]));
+}
+
+function glovesLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const dark = equipmentColor(item, ['dark', 'leather', 'cloth'], '#4b3429');
+  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#8b6a52');
+  const edge = equipmentColor(item, ['edge', 'bright', 'buckle'], '#d3dde5');
+  return box([rig.offHand, rig.mainHand].map((hand) => attachmentGroup(hand, box([
+    px(-6, -5, 13, 11, dark),
+    px(-4, -3, 11, 8, metal),
+    px(3, -4, 5, 4, edge)
+  ]))));
+}
+
+function ringLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#f7d879');
+  const glow = equipmentColor(item, ['glow', 'accent', 'bright'], '#ffe16a');
+  return attachmentGroup(rig.mainHand, box([
+    px(1, -2, 6, 5, metal),
+    px(4, -4, 4, 4, glow, ' opacity="0.78"')
+  ]));
+}
+
+function amuletLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#d9b967');
+  const gem = equipmentColor(item, ['gem', 'glow', 'accent'], '#8bd7ff');
+  return attachmentGroup(rig.torso, box([
+    svgPath('M -10 -12 L 0 -2 L 10 -12', 'none', metal, ' stroke-width="3"'),
+    px(-5, -3, 10, 10, gem),
+    px(-2, -1, 4, 4, '#ffffff', ' opacity="0.68"')
+  ]));
+}
+
+function shieldLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const face = equipmentColor(item, ['face', 'cloth', 'metal'], '#466d91');
+  const trim = equipmentColor(item, ['trim', 'edge', 'bright'], '#d5ecff');
+  const metal = equipmentColor(item, ['metal', 'dark'], '#6fa8d9');
+  return attachmentGroup(rig.shield, box([
+    polygon('-16,-17 16,-17 14,11 0,20 -14,11', trim),
+    polygon('-12,-13 12,-13 10,8 0,15 -10,8', face),
+    px(-3, -11, 6, 23, metal),
+    px(-10, -3, 20, 6, metal)
+  ]));
+}
+
+function gripLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const dark = equipmentColor(item, ['dark', 'leather'], '#4d1f24');
+  const metal = equipmentColor(item, ['metal', 'cloth'], '#a22d36');
+  const edge = equipmentColor(item, ['edge', 'bright', 'trim'], '#ff6b5e');
+  return box([rig.offHand, rig.mainHand].map((hand) => attachmentGroup(hand, box([
+    px(-7, -6, 15, 13, dark),
+    px(-5, -4, 13, 10, metal),
+    polygon('5,-5 12,-2 6,1', edge)
+  ]))));
+}
+
+function coreLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const core = equipmentColor(item, ['core', 'gem', 'metal'], '#ff6b35');
+  const glow = equipmentColor(item, ['glow', 'bright', 'accent'], '#ffc15e');
+  const anchor = { x: rig.torso.x - 19, y: rig.torso.y - 7, angle: rig.torso.angle };
+  return attachmentGroup(anchor, box([
+    px(-12, -12, 24, 24, glow, ' opacity="0.18"'),
+    polygon('0,-8 8,0 0,8 -8,0', core),
+    px(-2, -4, 5, 5, glow)
+  ]));
+}
+
+function focusLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const core = equipmentColor(item, ['core', 'gem', 'metal'], '#28c7b7');
+  const glow = equipmentColor(item, ['glow', 'bright', 'accent'], '#b8fff2');
+  const anchor = {
+    x: Math.max(16, Math.min(FRAME - 16, rig.mainHand.x + 8)),
+    y: Math.max(16, Math.min(FRAME - 16, rig.mainHand.y - 13)),
+    angle: 0
+  };
+  return attachmentGroup(anchor, box([
+    px(-13, -13, 26, 26, glow, ' opacity="0.16"'),
+    polygon('0,-9 9,0 0,9 -9,0', core),
+    px(-2, -5, 5, 5, glow)
+  ]));
+}
+
+function scopeLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const metal = equipmentColor(item, ['metal', 'dark'], '#4b5663');
+  const trim = equipmentColor(item, ['trim', 'edge', 'bright'], '#d8c25f');
+  const lens = equipmentColor(item, ['lens', 'glow', 'accent'], '#ffe16a');
+  const anchor = { x: rig.head.x + 12, y: rig.head.y + 2, angle: rig.head.angle };
+  return attachmentGroup(anchor, box([
+    px(-5, -4, 20, 8, metal),
+    px(11, -5, 7, 10, trim),
+    px(13, -3, 4, 6, lens)
+  ]));
+}
+
+function kitLayerV2(item, row, frame) {
+  const rig = getEquipmentAttachment(row, frame);
+  const leather = equipmentColor(item, ['leather', 'cloth', 'dark'], '#8a5a36');
+  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#b7c3ca');
+  const cord = equipmentColor(item, ['cord', 'edge', 'stitch'], '#3f2c24');
+  const anchor = { x: rig.torso.x - 18, y: rig.torso.y + 13, angle: rig.torso.angle };
+  return attachmentGroup(anchor, box([
+    px(-9, -7, 19, 15, leather),
+    px(-7, -5, 15, 4, metal),
+    px(7, 1, 15, 4, cord),
+    px(18, -1, 5, 9, metal)
+  ]));
+}
+
 function drawEquipmentLayer(item, row, frame) {
-  if (item.kind === 'sword') return swordLayer(item, row, frame);
-  if (item.kind === 'axe') return axeLayer(item, row, frame);
-  if (item.kind === 'wand') return wandLayer(item, row, frame, false);
-  if (item.kind === 'staff') return wandLayer(item, row, frame, true);
-  if (item.kind === 'bow') return bowLayer(item, row, frame);
-  if (item.kind === 'chest') return chestLayer(item, row, frame);
-  if (item.kind === 'boots') return bootsLayer(item, row, frame);
-  if (item.kind === 'head') return headLayer(item, row, frame);
-  if (item.kind === 'gloves') return glovesLayer(item, row, frame);
-  if (item.kind === 'ring') return ringLayer(item, row, frame);
-  if (item.kind === 'amulet') return amuletLayer(item, row, frame);
-  if (item.kind === 'shield') return shieldLayer(item, row, frame);
-  if (item.kind === 'grip') return gripLayer(item, row, frame);
-  if (item.kind === 'core') return coreLayer(item, row, frame);
-  if (item.kind === 'focus') return focusLayer(item, row, frame);
-  if (item.kind === 'scope') return scopeLayer(item, row, frame);
-  if (item.kind === 'kit') return kitLayer(item, row, frame);
+  if (item.kind === 'sword') return swordLayerV2(item, row, frame);
+  if (item.kind === 'axe') return axeLayerV2(item, row, frame);
+  if (item.kind === 'wand') return wandLayerV2(item, row, frame, false);
+  if (item.kind === 'staff') return wandLayerV2(item, row, frame, true);
+  if (item.kind === 'bow') return bowLayerV2(item, row, frame);
+  if (item.kind === 'chest') return chestLayerV2(item, row, frame);
+  if (item.kind === 'boots') return bootsLayerV2(item, row, frame);
+  if (item.kind === 'head') return headLayerV2(item, row, frame);
+  if (item.kind === 'gloves') return glovesLayerV2(item, row, frame);
+  if (item.kind === 'ring') return ringLayerV2(item, row, frame);
+  if (item.kind === 'amulet') return amuletLayerV2(item, row, frame);
+  if (item.kind === 'shield') return shieldLayerV2(item, row, frame);
+  if (item.kind === 'grip') return gripLayerV2(item, row, frame);
+  if (item.kind === 'core') return coreLayerV2(item, row, frame);
+  if (item.kind === 'focus') return focusLayerV2(item, row, frame);
+  if (item.kind === 'scope') return scopeLayerV2(item, row, frame);
+  if (item.kind === 'kit') return kitLayerV2(item, row, frame);
   return '';
 }
 
@@ -2972,7 +3219,7 @@ function drawPortalSprite(portal, frame) {
 function makeSheet(renderer, rows) {
   const sheetRows = rows || ROWS;
   const body = sheetRows.map((row, rowIndex) => Array.from({ length: COLS }, (_, frame) => {
-    return group(frame * FRAME, rowIndex * FRAME, renderer(row, frame));
+    return `<svg x="${frame * FRAME}" y="${rowIndex * FRAME}" width="${FRAME}" height="${FRAME}" viewBox="0 0 ${FRAME} ${FRAME}" overflow="hidden">${renderer(row, frame)}</svg>`;
   }).join('')).join('');
   return svg(COLS * FRAME, sheetRows.length * FRAME, body);
 }
@@ -3026,10 +3273,6 @@ async function makeClassSheet(variant) {
   return writePng(makeSheet((row, frame) => drawClassPlayer(variant, row, frame)), path.join(PLAYER_DIR, `${variant.fileId}-sheet.png`));
 }
 
-async function makeEquipmentSheet(item) {
-  return writePng(makeSheet((row, frame) => drawEquipmentLayer(item, row, frame)), path.join(EQUIPMENT_DIR, `${item.fileId}-sheet.png`));
-}
-
 async function makeMapBackground(map) {
   const targetDir = String(map.id || '').endsWith('_trial') ? path.join(MAP_DIR, 'trials') : MAP_DIR;
   return writeWebp(svg(1280, 640, drawMapBackground(map)), path.join(targetDir, `${map.fileId}.webp`));
@@ -3064,9 +3307,6 @@ async function generatePlayerAssets(generated) {
     generated.push(await makeClassCharacter(variant));
     generated.push(await makeClassSheet(variant));
   }
-  for (const item of EQUIPMENT) {
-    generated.push(await makeEquipmentSheet(item));
-  }
 }
 
 async function validatePlayerAssets() {
@@ -3076,10 +3316,7 @@ async function validatePlayerAssets() {
     await validatePngDimensions(path.join(CHARACTER_DIR, `${variant.fileId}.png`), 320, 320);
     await validatePngDimensions(path.join(PLAYER_DIR, `${variant.fileId}-sheet.png`), COLS * FRAME, ROWS.length * FRAME);
   }
-  for (const item of EQUIPMENT) {
-    await validatePngDimensions(path.join(EQUIPMENT_DIR, `${item.fileId}-sheet.png`), COLS * FRAME, ROWS.length * FRAME);
-  }
-  console.log(`Validated ${CLASS_VARIANTS.length} procedural class portraits/player sheets, the generic player sheet, and ${EQUIPMENT.length} equipment effect sheets`);
+  console.log(`Validated ${CLASS_VARIANTS.length} procedural class portraits/player sheets and the generic player sheet`);
 }
 
 async function generateAllAssets(generated) {
@@ -3106,6 +3343,11 @@ async function main() {
     return;
   }
   if (validateOnly) {
+    if (onlyTarget === 'equipment') {
+      const equipmentAtlasGenerator = require('./generate-project-starfall-equipment-atlases.js');
+      await equipmentAtlasGenerator.main(['--all', '--validate']);
+      return;
+    }
     if (onlyTarget && !playerTargets.includes(onlyTarget)) {
       throw new Error(`Validation is only supported for procedural player targets, received: ${onlyTarget}`);
     }
@@ -3115,9 +3357,9 @@ async function main() {
   if (onlyTarget === 'portals') {
     await generatePortalAssets(generated);
   } else if (onlyTarget === 'equipment') {
-    for (const item of EQUIPMENT) {
-      generated.push(await makeEquipmentSheet(item));
-    }
+    const equipmentAtlasGenerator = require('./generate-project-starfall-equipment-atlases.js');
+    await equipmentAtlasGenerator.main(['--all']);
+    return;
   } else if (playerTargets.includes(onlyTarget)) {
     await generatePlayerAssets(generated);
   } else if (onlyTarget === 'maps') {

@@ -2969,4 +2969,52 @@
       text-align:left;
     }
   }
+
+  @media (max-width: 768px){
+    body[data-page="short-links"]{
+      --shortlinks-popover-bottom-clearance:var(--mobile-site-dock-clearance, 0px);
+    }
+
+    body[data-page="short-links"] .shortlinks-command-popover{
+      position:fixed;
+      top:auto;
+      right:max(12px, env(safe-area-inset-right, 0px));
+      bottom:calc(var(--shortlinks-popover-bottom-clearance) + 12px);
+      left:max(12px, env(safe-area-inset-left, 0px));
+      box-sizing:border-box;
+      width:auto;
+      max-width:none;
+      max-height:50vh;
+      max-height:min(
+        50dvh,
+        calc(
+          100dvh
+          - var(--mobile-site-masthead-height, 62px)
+          - var(--shortlinks-popover-bottom-clearance)
+          - 24px
+        )
+      );
+      overflow-x:hidden;
+      overflow-y:auto;
+      overscroll-behavior:contain;
+      scrollbar-gutter:stable;
+    }
+
+    body[data-page="short-links"] .shortlinks-account-popover :is(
+      .tools-account-dock,
+      .tools-account-dock-inner,
+      .tools-account-bar
+    ){
+      width:100%;
+      min-width:0;
+      max-width:100%;
+      margin-inline:0;
+    }
+  }
+
+  @media (max-width: 560px){
+    body[data-page="short-links"]{
+      --shortlinks-popover-bottom-clearance:0px;
+    }
+  }
 }

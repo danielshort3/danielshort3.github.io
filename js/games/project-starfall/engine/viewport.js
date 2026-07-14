@@ -31,8 +31,10 @@
   const CANVAS_STATUS_HUD_HEIGHT = 84;
   const HUD_TOP = PLAYFIELD_HEIGHT + SOLID_PLATFORM_HEIGHT;
   const WORLD_HEIGHT = HUD_TOP;
-  const VIEW_WIDTH = PLAYFIELD_WIDTH;
-  const VIEW_HEIGHT = PLAYFIELD_HEIGHT + SOLID_PLATFORM_HEIGHT + CANVAS_STATUS_HUD_HEIGHT;
+  const LOGICAL_VIEW_WIDTH = 1280;
+  const LOGICAL_VIEW_HEIGHT = 806;
+  const VIEW_WIDTH = LOGICAL_VIEW_WIDTH;
+  const VIEW_HEIGHT = LOGICAL_VIEW_HEIGHT;
   const VIEWPORT_WIDTH_MIN = 1024;
   const VIEWPORT_WIDTH_MAX = 1920;
   const VIEWPORT_HEIGHT_MIN = 704;
@@ -45,7 +47,7 @@
     Object.freeze({ id: 'ultra', label: 'Ultra', width: 1920, height: 1080 })
   ]);
   const FRAME_RATE_LIMIT_OPTIONS = Object.freeze([60, 120, 240, 0]);
-  const DEFAULT_FRAME_RATE_LIMIT = 120;
+  const DEFAULT_FRAME_RATE_LIMIT = 60;
   const DEFAULT_USER_SETTINGS = Object.freeze({
     video: Object.freeze({ viewportPreset: 'standard', width: 1280, height: 806, hudScale: 1, frameRateLimit: DEFAULT_FRAME_RATE_LIMIT }),
     audio: Object.freeze({ sfxEnabled: false, sfxVolume: 0.42, musicEnabled: false, musicVolume: 0.25 }),
@@ -102,14 +104,22 @@
 
   function createViewportMetrics(settings) {
     const normalized = createUserSettings(settings);
-    const width = normalized.video.width;
-    const height = normalized.video.height;
+    const displayWidth = normalized.video.width;
+    const displayHeight = normalized.video.height;
+    const width = LOGICAL_VIEW_WIDTH;
+    const height = LOGICAL_VIEW_HEIGHT;
     const solidPlatformHeight = SOLID_PLATFORM_HEIGHT;
-    const statusHudHeight = Math.round(CANVAS_STATUS_HUD_HEIGHT * normalized.video.hudScale);
+    const statusHudHeight = CANVAS_STATUS_HUD_HEIGHT;
     const playfieldHeight = Math.max(520, height - solidPlatformHeight - statusHudHeight);
     return {
       width,
       height,
+      logicalWidth: width,
+      logicalHeight: height,
+      displayWidth,
+      displayHeight,
+      displayScale: Math.min(displayWidth / width, displayHeight / height),
+      hudScale: normalized.video.hudScale,
       playfieldHeight,
       solidPlatformHeight,
       statusHudHeight,
@@ -140,6 +150,8 @@
     CANVAS_STATUS_HUD_HEIGHT,
     HUD_TOP,
     WORLD_HEIGHT,
+    LOGICAL_VIEW_WIDTH,
+    LOGICAL_VIEW_HEIGHT,
     VIEW_WIDTH,
     VIEW_HEIGHT,
     VIEWPORT_WIDTH_MIN,

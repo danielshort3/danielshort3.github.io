@@ -12,6 +12,64 @@
   const normalizeId = CoreIds.normalizeId || function normalizeIdFallback(value) {
     return String(value || '').trim();
   };
+  const PLAYER_SPRITE_REGISTRATION = Object.freeze({
+    originX: 80,
+    groundY: 154,
+    authoredBodyHeight: 143
+  });
+  const ENEMY_SPRITE_REGISTRATION = Object.freeze({
+    originX: 64,
+    groundY: 118,
+    authoredBodyHeight: 102
+  });
+  const ENEMY_SPRITE_RENDER_PROFILES = Object.freeze({
+    default: Object.freeze({ size: 86, grounded: true }),
+    sturdy: Object.freeze({ size: 92, grounded: true }),
+    flyer: Object.freeze({ size: 76, grounded: false }),
+    boss: Object.freeze({ size: 150, grounded: true }),
+    stormbreakRoc: Object.freeze({ size: 178, grounded: true }),
+    astralArchivist: Object.freeze({ size: 154, grounded: true })
+  });
+
+  function getEnemySpriteRenderProfile(enemy) {
+    const source = enemy || {};
+    const data = source.data || source;
+    const enemyId = normalizeId(source.id || data.id);
+    if (enemyId === 'stormbreakRoc') return ENEMY_SPRITE_RENDER_PROFILES.stormbreakRoc;
+    if (enemyId === 'astralArchivist') return ENEMY_SPRITE_RENDER_PROFILES.astralArchivist;
+    if (data.behavior === 'boss') return ENEMY_SPRITE_RENDER_PROFILES.boss;
+    if (enemyId === 'mossback' || enemyId === 'orebackBeetle') return ENEMY_SPRITE_RENDER_PROFILES.sturdy;
+    if (data.behavior === 'flyer') return ENEMY_SPRITE_RENDER_PROFILES.flyer;
+    return ENEMY_SPRITE_RENDER_PROFILES.default;
+  }
+
+  function createEnemySpriteRenderBox(enemy) {
+    if (!enemy) return { x: 0, y: 0, w: 0, h: 0 };
+    const profile = getEnemySpriteRenderProfile(enemy);
+    const size = Math.max(1, Number(profile.size || 0));
+    const x = Number(enemy.x || 0);
+    const y = Number(enemy.y || 0);
+    const width = Number(enemy.w || 0);
+    const height = Number(enemy.h || 0);
+    return {
+      x: x + width / 2 - size / 2,
+      y: profile.grounded ? y + height - size - 2 : y + height / 2 - size / 2,
+      w: size,
+      h: size
+    };
+  }
+
+  function getActorAnimationElapsed(frameDef, actor, now, getAnimationDuration) {
+    const source = actor || {};
+    const elapsed = Math.max(0, Number(now || 0) - Number(source.animationStartedAt || 0));
+    if (!frameDef || !frameDef.loop || source.animationLoop === false) return elapsed;
+    const phase = clamp(Number(source.animationPhaseOffset || 0), 0, 0.999999);
+    if (phase <= 0) return elapsed;
+    const duration = typeof getAnimationDuration === 'function'
+      ? Math.max(0.01, Number(getAnimationDuration(frameDef)) || 0.01)
+      : Math.max(0.01, Math.max(1, Number(frameDef.frames || 1)) / Math.max(1, Number(frameDef.fps || 1)));
+    return elapsed + duration * phase;
+  }
 
   function getEffectDrawBox(effect) {
     if (!effect) return { x: 0, y: 0, w: 0, h: 0 };
@@ -487,6 +545,24 @@
   function createAnimationFrameDrawState(frameDef, x, y, width, height, facing, options) {
     const source = createAnimationFrameSourceRect(frameDef, options);
     if (!source) return null;
+    const settings = options || {};
+    const registration = settings.registration;
+    if (registration) {
+      const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : PLAYER_SPRITE_REGISTRATION.originX;
+      const groundY = Number.isFinite(Number(registration.groundY)) ? Number(registration.groundY) : PLAYER_SPRITE_REGISTRATION.groundY;
+      const authoredBodyHeight = Math.max(1, Number(registration.authoredBodyHeight) || PLAYER_SPRITE_REGISTRATION.authoredBodyHeight);
+      const scale = Math.max(0.01, Number(height || 0) / authoredBodyHeight);
+      return Object.assign({}, source, {
+        translateX: Number(x || 0) + Number(width || 0) / 2,
+        translateY: Number(y || 0) + Number(height || 0),
+        scaleX: (Number(facing) || 1) < 0 ? -1 : 1,
+        scaleY: 1,
+        drawX: -originX * scale,
+        drawY: -groundY * scale,
+        drawWidth: source.frameWidth * scale,
+        drawHeight: source.frameHeight * scale
+      });
+    }
     return Object.assign({}, source, {
       translateX: x + width / 2,
       translateY: y + height / 2,
@@ -1363,6 +1439,12 @@
   }
 
   const api = {
+    PLAYER_SPRITE_REGISTRATION,
+    ENEMY_SPRITE_REGISTRATION,
+    ENEMY_SPRITE_RENDER_PROFILES,
+    getEnemySpriteRenderProfile,
+    createEnemySpriteRenderBox,
+    getActorAnimationElapsed,
     getEffectDrawBox,
     isEffectVisible,
     getEnemyDrawBox,

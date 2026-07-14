@@ -1341,6 +1341,7 @@
       {
         title: 'Settings',
         items: [
+          { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
           { label: 'Settings', panel: 'settings', iconId: 'settings' },
           { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
           { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
@@ -1545,6 +1546,7 @@
       Math.round(Number(width || 0)),
       Math.round(Number(height || 0)),
       Number(snapshot && snapshot.cacheRevision || 0),
+      Number(source.canvasDrawRevision || 0),
       source.assetReadyKey == null ? '' : source.assetReadyKey,
       state.mapId || '',
       player.classId || '',
@@ -1703,6 +1705,7 @@
   function getStationPromptContext(snapshot, options) {
     const source = snapshot || {};
     const settings = options || {};
+    const keyLabels = settings.keyLabels || {};
     const player = source.state ? source.state.player : null;
     if (!player) return null;
     const stationId = player.activeStation;
@@ -1721,7 +1724,11 @@
     return {
       title,
       promptAction: portal ? 'portal' : questNpc ? 'npcTalk' : 'interact',
-      hint: portal ? 'Up Travel' : questNpc ? 'Y Talk' : 'F Use',
+      hint: portal
+        ? `${keyLabels.moveUp || 'Up'} Travel`
+        : questNpc
+          ? `${keyLabels.npcTalk || 'Y'} Talk`
+          : `${keyLabels.interact || 'F'} Use`,
       hintColor: portal ? '#2f7dd6' : '#177645',
       kindLabel: questNpc && questNpc.servicePanelId ? 'Service NPC' : questNpc ? 'Quest NPC' : portal ? 'Portal' : 'Station',
       target: questNpc || station || portal || null,

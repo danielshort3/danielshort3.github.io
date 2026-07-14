@@ -591,7 +591,7 @@
     }
     const allowedActionNames = Array.isArray(currentState.allowedActionNames)
       ? currentState.allowedActionNames
-      : ['save', 'load', 'reset', 'boost'];
+      : ['save', 'load', 'fullscreen'];
     const actions = Array.isArray(currentState.actions)
       ? currentState.actions.filter((action) => isModalKeybindAction(action, allowedActionNames))
       : [];

@@ -40,7 +40,7 @@
     "img/project-starfall/environment/structures",
     "img/project-starfall/environment/structures/source",
     "img/project-starfall/environment/terrain",
-    "img/project-starfall/equipment-layers",
+    "img/project-starfall/equipment-atlases",
     "img/project-starfall/items/icons",
     "img/project-starfall/items/source",
     "img/project-starfall/items/sheets",
@@ -99,14 +99,29 @@
       ],
       "processor": "build/process-project-starfall-player-ai-assets.js --validate"
     },
-    "equipmentLayers": {
-      "folder": "img/project-starfall/equipment-layers",
-      "pattern": "<equipment-file-id>-sheet.png",
-      "frameSize": 160,
-      "columns": 6,
-      "rowsFrom": "contracts.players.rows",
-      "sheetWidth": 960,
-      "sheetHeight": 1600
+    "equipmentAtlases": {
+      "folder": "img/project-starfall/equipment-atlases",
+      "pattern": "<equipment-file-id>-atlas.png",
+      "cellSize": 128,
+      "columns": 8,
+      "angleCount": 8,
+      "anglesFrom": "ProjectStarfallEquipmentAttachments.ATLAS_ANGLE_SETS",
+      "visualCount": 85,
+      "defaultVariants": [
+        "default"
+      ],
+      "bowVariants": [
+        "rest",
+        "draw",
+        "release"
+      ],
+      "sheetWidth": 1024,
+      "defaultSheetHeight": 128,
+      "bowSheetHeight": 384,
+      "alphaThreshold": 8,
+      "minimumVisiblePixelsPerCell": 8,
+      "transparentCellEdges": true,
+      "processor": "build/generate-project-starfall-equipment-atlases.js --all --validate"
     },
     "enemies": {
       "sourceFolder": "asset-sources/project-starfall/enemies/compact",
@@ -380,6 +395,7 @@
   },
   "buildScripts": [
     "build/process-project-starfall-player-ai-assets.js",
+    "build/generate-project-starfall-equipment-atlases.js",
     "build/process-project-starfall-compact-bandits.js",
     "build/process-project-starfall-ai-item-icons.js",
     "build/process-project-starfall-card-icons.js",

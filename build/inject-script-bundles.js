@@ -23,7 +23,8 @@ const managedHrefs = {
   sitemap: resolveHref('site-sitemap.js', manifest.sitemap),
   privacy: resolveHref('site-privacy.js', manifest.privacy),
   toolsAccount: resolveHref('site-tools-account.js', manifest.toolsAccount),
-  toolsLanding: resolveHref('site-tools-landing.js', manifest.toolsLanding)
+  toolsLanding: resolveHref('site-tools-landing.js', manifest.toolsLanding),
+  projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall)
 };
 
 function loadManifest() {
@@ -145,12 +146,30 @@ function processHtml(html, relPath) {
   let consentInserted = false;
   let contributionsInserted = false;
   let toolsInserted = false;
+  let projectStarfallInserted = false;
 
   const isToolsLanding = relPath === 'pages/tools.html';
+  const isProjectStarfall = relPath === 'pages/games/project-starfall.html';
 
   lines.forEach((line) => {
     const trimmed = line.trim();
     const indent = lineIndent(line);
+
+    if (isProjectStarfall && (
+      /^<script\s+defer\s+src="js\/games\/project-starfall\/.+\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
+      || isManagedLine(trimmed, 'project-starfall')
+    )) {
+      return;
+    }
+
+    if (isProjectStarfall && /^<script\s+defer\s+src="js\/vendor\/pixi\.min\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)) {
+      out.push(line);
+      if (!projectStarfallInserted) {
+        out.push(`${indent}<script defer src="${managedHrefs.projectStarfall}"></script>`);
+        projectStarfallInserted = true;
+      }
+      return;
+    }
 
     if (
       /^<script\s+defer\s+src="js\/common\/common\.js"><\/script>$/i.test(trimmed)
@@ -287,6 +306,14 @@ function processHtml(html, relPath) {
       normalized,
       toolsScript,
       (trimmed) => isManagedLine(trimmed, 'site-consent') || /^<script\s+src="js\/privacy\/config\.js"><\/script>$/i.test(trimmed) || /^<script\s+defer\s+src="js\/privacy\/consent_manager\.js"><\/script>$/i.test(trimmed)
+    );
+  }
+
+  if (isProjectStarfall && !projectStarfallInserted) {
+    normalized = insertManagedScriptBefore(
+      normalized,
+      `<script defer src="${managedHrefs.projectStarfall}"></script>`,
+      (trimmed) => isManagedLine(trimmed, 'site-shell') || isManagedLine(trimmed, 'site-consent')
     );
   }
 

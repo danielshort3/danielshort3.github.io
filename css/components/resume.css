@@ -488,18 +488,46 @@
   }
 
   .resume-pdf{
-    margin-top:16px;
+    max-width:920px;
+    margin:24px auto 0;
     border-radius:16px;
     overflow:hidden;
     border:1px solid color-mix(in srgb,var(--primary) 25%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #050b12 10%);
     box-shadow:0 18px 38px rgba(0,0,0,.3);
   }
-  .resume-pdf iframe{
-    width:100%;
-    height:clamp(480px, 70vh, 900px);
-    border:0;
+  .resume-pdf-preview{
     display:block;
-    background:var(--surface);
+    width:100%;
+    background:#ffffff;
+    color:inherit;
+    text-decoration:none;
+  }
+  .resume-pdf-preview img{
+    display:block;
+    width:100%;
+    height:auto;
+    background:#ffffff;
+  }
+  .resume-pdf-preview:focus-visible{
+    position:relative;
+    z-index:1;
+    outline:3px solid color-mix(in srgb,var(--primary) 76%, #ffffff 24%);
+    outline-offset:-5px;
+  }
+  .resume-pdf-caption{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 16px;
+    color:color-mix(in srgb,var(--text-muted) 88%, #ffffff 12%);
+    font-size:.84rem;
+    line-height:1.4;
+  }
+  .resume-pdf-caption span:last-child{
+    color:color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+    font-weight:700;
   }
   .resume-pdf-fallback{
     margin:12px 0 0;
@@ -700,6 +728,10 @@
       border-radius:0;
       box-shadow:none;
     }
+    .resume-pdf-caption{
+      padding:10px var(--mobile-page-gutter, 14px);
+      font-size:.8rem;
+    }
   }
   @media (max-width: 340px){
     .resume-actions > *{
@@ -772,6 +804,22 @@
 }
 
 @media (max-width: 640px){
+  body.resume-pdf-page .resume-actions{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px;
+  }
+  body.resume-pdf-page .resume-actions > *{
+    box-sizing:border-box;
+    width:100%;
+    min-width:0;
+    min-height:44px;
+    padding:10px 8px;
+    font-size:.9rem;
+  }
+  body.resume-pdf-page .resume-actions > :first-child{
+    grid-column:1 / -1;
+  }
   body.resume-page .resume-actions{
     display:grid;
     grid-template-columns:repeat(2, minmax(0, 1fr));

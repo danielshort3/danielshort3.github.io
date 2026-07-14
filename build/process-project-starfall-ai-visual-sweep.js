@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const sharp = require('sharp');
 const {
   GUIDE_LINE_HEX,
@@ -102,6 +103,7 @@ const MAP_DERIVATIONS = Object.freeze([
 const BASIC_FX_ROWS = Object.freeze([1, 2, 4, 0]);
 const ENEMY_FX_ROWS = Object.freeze([1, 0, 2, 3, 4]);
 const SKILL_FX_ROWS = Object.freeze([1, 2, 4, 3]);
+const ENEMY_FX_HUE_SLOT_COUNT = 60;
 const MAGE_PROJECTILE_SOURCE_ROWS = Object.freeze({
   magic: 0,
   fire: 1,
@@ -686,6 +688,44 @@ function hashHue(value) {
   return hash;
 }
 
+function hashIdentity32(value) {
+  const text = String(value || '');
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function buildEnemyFxIdentityMap(enemyIds) {
+  const ids = Array.from(new Set((enemyIds || []).map((id) => String(id || '')).filter(Boolean))).sort();
+  if (ids.length > ENEMY_FX_HUE_SLOT_COUNT) {
+    throw new Error(`Enemy combat FX palette supports ${ENEMY_FX_HUE_SLOT_COUNT} unique hue slots, got ${ids.length} enemies`);
+  }
+  const identities = new Map();
+  const usedHueSlots = new Set();
+
+  for (const enemyId of ids) {
+    const hash = hashIdentity32(`project-starfall:enemy-fx:${enemyId}`);
+    let hueSlot = hash % ENEMY_FX_HUE_SLOT_COUNT;
+    let probes = 0;
+    while (usedHueSlots.has(hueSlot)) {
+      hueSlot = (hueSlot + 23) % ENEMY_FX_HUE_SLOT_COUNT;
+      probes += 1;
+      if (probes >= ENEMY_FX_HUE_SLOT_COUNT) throw new Error('Enemy combat FX palette exhausted all available hue slots');
+    }
+    usedHueSlots.add(hueSlot);
+    identities.set(enemyId, Object.freeze({
+      hue: hueSlot * (360 / ENEMY_FX_HUE_SLOT_COUNT),
+      saturation: 0.88 + ((hash >>> 9) % 9) * 0.04,
+      brightness: 0.92 + ((hash >>> 17) % 7) * 0.025
+    }));
+  }
+
+  return identities;
+}
+
 function getSkillById(skillId) {
   return (Data.SKILLS || []).find((skill) => skill && skill.id === skillId) || null;
 }
@@ -751,6 +791,42 @@ async function composeRows(rowIndexes, target, options) {
     .toFile(target);
 }
 
+function getEnemyCombatFxEntries() {
+  return Object.entries(Data.ENEMY_COMBAT_FX_ANIMATION_ASSETS || {});
+}
+
+function getEnemyFxSelection(argv) {
+  const args = argv || process.argv.slice(2);
+  const inline = args.find((argument) => String(argument).startsWith('--enemy='));
+  const optionIndex = args.indexOf('--enemy');
+  const value = inline
+    ? String(inline).slice('--enemy='.length)
+    : optionIndex >= 0 ? args[optionIndex + 1] : '';
+  return String(value || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+async function processEnemyCombatFx(written, onlyEnemyIds) {
+  const enemyEntries = getEnemyCombatFxEntries();
+  const identities = buildEnemyFxIdentityMap(enemyEntries.map(([enemyId]) => enemyId));
+  const selectedIds = new Set(onlyEnemyIds || []);
+  if (selectedIds.size) {
+    const knownIds = new Set(enemyEntries.map(([enemyId]) => enemyId));
+    const unknownIds = Array.from(selectedIds).filter((enemyId) => !knownIds.has(enemyId));
+    if (unknownIds.length) throw new Error(`Unknown enemy combat FX id(s): ${unknownIds.join(', ')}`);
+  }
+
+  for (const [enemyId, animation] of enemyEntries) {
+    if (selectedIds.size && !selectedIds.has(enemyId)) continue;
+    const identity = identities.get(enemyId);
+    const target = path.join(ROOT, animation.sheet);
+    await composeRows(ENEMY_FX_ROWS, target, identity);
+    written.push(rel(target));
+  }
+}
+
 async function processDerivedCombatFx(written) {
   const basicEntries = Object.entries(Data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {});
   for (const [classId, animation] of basicEntries) {
@@ -767,16 +843,7 @@ async function processDerivedCombatFx(written) {
     written.push(rel(target));
   }
 
-  const enemyEntries = Object.entries(Data.ENEMY_COMBAT_FX_ANIMATION_ASSETS || {});
-  for (const [enemyId, animation] of enemyEntries) {
-    const target = path.join(ROOT, animation.sheet);
-    await composeRows(ENEMY_FX_ROWS, target, {
-      hue: hashHue(enemyId),
-      saturation: 0.88 + (hashHue(enemyId) % 7) / 20,
-      brightness: 0.92 + (hashHue(enemyId) % 5) / 30
-    });
-    written.push(rel(target));
-  }
+  await processEnemyCombatFx(written);
 
   const skillEntries = Object.entries(Data.SKILL_FX_ANIMATION_ASSETS || {});
   for (const [skillId, animation] of skillEntries) {
@@ -1090,6 +1157,37 @@ async function validateAnimationSheet(animation, options) {
   await validateCellMargins(filePath, metadata.width / frameWidth, metadata.height / frameHeight, frameWidth, frameHeight, options);
 }
 
+async function validateEnemyCombatFxUniqueness() {
+  const enemyEntries = getEnemyCombatFxEntries();
+  const identities = buildEnemyFxIdentityMap(enemyEntries.map(([enemyId]) => enemyId));
+  if (identities.size !== enemyEntries.length) {
+    throw new Error(`Enemy combat FX palette contains ${identities.size} identities for ${enemyEntries.length} enemies`);
+  }
+
+  const identityKeys = new Map();
+  for (const [enemyId, identity] of identities) {
+    const key = `${identity.hue}|${identity.saturation.toFixed(3)}|${identity.brightness.toFixed(3)}`;
+    if (identityKeys.has(key)) {
+      throw new Error(`Enemy combat FX palette collision: ${identityKeys.get(key)} and ${enemyId} both use ${key}`);
+    }
+    identityKeys.set(key, enemyId);
+  }
+
+  const outputHashes = new Map();
+  for (const [enemyId, animation] of enemyEntries) {
+    await validateAnimationSheet(animation, { minMargin: 8 });
+    const filePath = path.join(ROOT, animation.sheet);
+    const pixels = await sharp(filePath).ensureAlpha().raw().toBuffer();
+    const digest = crypto.createHash('sha256').update(pixels).digest('hex');
+    if (outputHashes.has(digest)) {
+      throw new Error(`Enemy combat FX output collision: ${outputHashes.get(digest)} and ${enemyId} have identical rendered pixels`);
+    }
+    outputHashes.set(digest, enemyId);
+  }
+
+  return Object.freeze({ identities: identities.size, outputs: outputHashes.size });
+}
+
 async function validateOutputs() {
   await Promise.all(MENU_ICON_ORDER.map((id) => validateCellMargins(path.join(ROOT, Data.MENU_ICON_ASSETS[id]), 1, 1, 64, 64, {
     minMargin: 6,
@@ -1108,7 +1206,7 @@ async function validateOutputs() {
     minMargin: 8
   })));
   await Promise.all(Object.values(Data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {}).map((animation) => validateAnimationSheet(animation, { minMargin: 8 })));
-  await Promise.all(Object.values(Data.ENEMY_COMBAT_FX_ANIMATION_ASSETS || {}).map((animation) => validateAnimationSheet(animation, { minMargin: 8 })));
+  await validateEnemyCombatFxUniqueness();
   await Promise.all(Object.values(Data.SKILL_FX_ANIMATION_ASSETS || {}).map((animation) => validateAnimationSheet(animation, { minMargin: 8 })));
   if (Data.BASIC_ATTACK_FX_ANIMATION_ASSETS && Data.BASIC_ATTACK_FX_ANIMATION_ASSETS.mage) {
     await validateHorizontalProjectileRow(path.join(ROOT, Data.BASIC_ATTACK_FX_ANIMATION_ASSETS.mage.sheet), 'Basic mage', 1);
@@ -1151,6 +1249,13 @@ async function main() {
     return;
   }
 
+  if (process.argv.includes('--only-enemy-fx')) {
+    await processEnemyCombatFx(written, getEnemyFxSelection());
+    await validateEnemyCombatFxUniqueness();
+    written.forEach((file) => process.stdout.write(`Processed ${file}\n`));
+    return;
+  }
+
   await processMenuIcons(written);
   await processRateCoupons(written);
   await processPortals(written);
@@ -1172,5 +1277,8 @@ if (require.main === module) {
 module.exports = {
   MAP_DERIVATIONS,
   SOURCE_FILES,
+  buildEnemyFxIdentityMap,
+  processEnemyCombatFx,
+  validateEnemyCombatFxUniqueness,
   validateOutputs
 };

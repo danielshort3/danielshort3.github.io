@@ -1,12 +1,22 @@
 @layer components {
   .project-starfall-layout {
+    --starfall-logical-stage-width: 1280px;
+    --starfall-logical-stage-height: 806px;
+    --starfall-logical-stage-ratio: 1280 / 806;
+    --starfall-stage-viewport-fit-width: max(320px, calc(158.8089vh - 152px));
+    --starfall-stage-viewport-fit-width: max(320px, calc(158.8089dvh - 152px));
     display: block;
     position: relative;
   }
 
   .project-starfall-stage-panel {
     width: 100%;
-    max-width: var(--starfall-stage-max-width, 1280px);
+    max-width: min(
+      var(--starfall-stage-max-width, var(--starfall-logical-stage-width)),
+      var(--starfall-logical-stage-width),
+      calc(100vw - 32px),
+      var(--starfall-stage-viewport-fit-width)
+    );
     margin-inline: auto;
     border: 1px solid rgba(245, 207, 114, 0.42);
     border-radius: 8px;
@@ -16,14 +26,19 @@
       0 18px 46px rgba(0,0,0,0.32),
       inset 0 0 0 1px rgba(255,255,255,0.06);
     overflow: hidden;
+    isolation: isolate;
+    scroll-margin-block-start: 88px;
   }
 
   .project-starfall-canvas-wrap {
     position: relative;
+    width: 100%;
+    max-width: var(--starfall-logical-stage-width);
     background:
       linear-gradient(180deg, #102033, #071323);
-    aspect-ratio: var(--starfall-stage-aspect, 1280 / 806);
+    aspect-ratio: var(--starfall-logical-stage-ratio);
     min-height: 0;
+    overflow: hidden;
   }
 
   #project-starfall-canvas {
@@ -32,10 +47,12 @@
     display: block;
     width: 100%;
     height: 100%;
+    aspect-ratio: var(--starfall-logical-stage-ratio);
     min-height: 0;
     background: #dff7ff;
     opacity: 1;
     transition: opacity 420ms ease;
+    touch-action: none;
   }
 
   .project-starfall-pixi-stage {
@@ -48,6 +65,33 @@
     pointer-events: none;
     opacity: 1;
     transition: opacity 420ms ease;
+  }
+
+  .project-starfall-stage-panel:fullscreen,
+  .project-starfall-stage-panel[data-starfall-focus-mode="true"] {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: #050d18;
+    box-shadow: none;
+  }
+
+  .project-starfall-stage-panel:fullscreen .project-starfall-canvas-wrap,
+  .project-starfall-stage-panel[data-starfall-focus-mode="true"] .project-starfall-canvas-wrap {
+    width: min(100vw, 158.8089vh);
+    width: min(100vw, 158.8089dvh);
+    max-width: none;
+    max-height: 100vh;
+    max-height: 100dvh;
   }
 
   .project-starfall-canvas-wrap.is-pixi-renderer #project-starfall-canvas {
@@ -112,5 +156,16 @@
 
   .project-starfall-page #pcz-banner.pcz-exit {
     display: none !important;
+  }
+
+  @media (max-width: 700px) {
+    .project-starfall-layout {
+      --starfall-stage-viewport-fit-width: calc(100vw - 16px);
+    }
+
+    .project-starfall-stage-panel {
+      max-width: min(100%, calc(100vw - 16px));
+      border-radius: 4px;
+    }
   }
 }

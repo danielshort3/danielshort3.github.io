@@ -3260,9 +3260,20 @@
 	      }
 	    }
 	    tabs.buttons.forEach((button) => {
-	      const disabled = !authed;
+	      const isStartHere = button.dataset.jobtrackTab === 'account';
+	      const disabled = !authed && !isStartHere;
+	      const label = (button.textContent || '').trim();
 	      button.disabled = disabled;
 	      button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+	      if (disabled) {
+	        button.dataset.jobtrackLocked = 'true';
+	        button.setAttribute('aria-label', `${label} (sign in required)`);
+	        button.title = 'Sign in to unlock this section';
+	      } else {
+	        delete button.dataset.jobtrackLocked;
+	        button.removeAttribute('aria-label');
+	        button.removeAttribute('title');
+	      }
 	    });
 	    els.jumpEntryButtons.forEach((button) => {
 	      button.disabled = !authed;
@@ -3296,8 +3307,6 @@
 	    }
 	    if (authed) {
 	      closeAuthModal();
-	    } else {
-	      openAuthModal();
 	    }
 	    startAuthWatcher();
 	  };

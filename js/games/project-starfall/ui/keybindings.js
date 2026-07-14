@@ -2,12 +2,10 @@
   'use strict';
 
   const KEYBIND_STORAGE_KEY = 'projectStarfallKeybinds.v4';
-  const FIXED_MOVEMENT_KEYS = Object.freeze({
-    ArrowLeft: 'left',
-    ArrowRight: 'right',
-    ArrowUp: 'up',
-    ArrowDown: 'down'
-  });
+  // Movement now uses the same bindable action pipeline as every other control.
+  // Keep the legacy map exported for compatibility with older UI callers, but
+  // leave it empty so movement keys are not intercepted before keybind lookup.
+  const FIXED_MOVEMENT_KEYS = Object.freeze({});
 
   function createFixedMovementKeyCodes(keys) {
     return Object.freeze(Object.keys(keys && typeof keys === 'object' ? keys : {}));
@@ -15,11 +13,15 @@
 
   const FIXED_MOVEMENT_KEY_CODES = createFixedMovementKeyCodes(FIXED_MOVEMENT_KEYS);
   const KEYBIND_ACTIONS = Object.freeze([
-    { id: 'jump', label: 'Jump', type: 'hold', input: 'jump', defaultKeys: ['Space'] },
-    { id: 'attack', label: 'Attack', type: 'action', action: 'attack', defaultKeys: ['KeyJ', 'ShiftLeft'] },
+    { id: 'moveLeft', label: 'Move Left', type: 'hold', input: 'left', defaultKeys: ['ArrowLeft', 'KeyA'], allowMultiple: true, maxKeys: 2, onboardingEvent: 'move' },
+    { id: 'moveRight', label: 'Move Right', type: 'hold', input: 'right', defaultKeys: ['ArrowRight', 'KeyD'], allowMultiple: true, maxKeys: 2, onboardingEvent: 'move' },
+    { id: 'moveUp', label: 'Move Up / Travel', type: 'hold', input: 'up', defaultKeys: ['ArrowUp', 'KeyW'], allowMultiple: true, maxKeys: 2, onboardingEvent: 'move' },
+    { id: 'moveDown', label: 'Move Down', type: 'hold', input: 'down', defaultKeys: ['ArrowDown', 'KeyS'], allowMultiple: true, maxKeys: 2, onboardingEvent: 'move' },
+    { id: 'jump', label: 'Jump', type: 'hold', input: 'jump', defaultKeys: ['Space'], onboardingEvent: 'jump' },
+    { id: 'attack', label: 'Attack', type: 'action', action: 'attack', defaultKeys: ['KeyJ', 'ShiftLeft'], onboardingEvent: 'attack' },
     { id: 'party', label: 'Party Skill', type: 'action', action: 'party', defaultKeys: ['KeyL'] },
-    { id: 'interact', label: 'Interact', type: 'action', action: 'interact', defaultKeys: ['KeyF'] },
-    { id: 'npcTalk', label: 'Talk to NPC', type: 'action', action: 'npcTalk', defaultKeys: ['KeyY'] },
+    { id: 'interact', label: 'Interact', type: 'action', action: 'interact', defaultKeys: ['KeyF'], onboardingEvent: 'interact' },
+    { id: 'npcTalk', label: 'Talk to NPC', type: 'action', action: 'npcTalk', defaultKeys: ['KeyY'], onboardingEvent: 'interact' },
     { id: 'loot', label: 'Loot', type: 'hold', input: 'loot', action: 'loot', defaultKeys: ['KeyZ'] },
     { id: 'menu', label: 'Menu', type: 'action', action: 'menu', defaultKeys: ['Escape'] },
     { id: 'keybinds', label: 'Keybind Menu', type: 'panel', panel: 'keybinds', defaultKeys: ['Backslash'] },
@@ -28,7 +30,7 @@
     { id: 'equipment', label: 'Equipment Popup', type: 'panel', panel: 'equipment', defaultKeys: ['KeyE'] },
     { id: 'partyPanel', label: 'Party Popup', type: 'panel', panel: 'partyPanel', defaultKeys: ['KeyP'] },
     { id: 'pet', label: 'Pet Popup', type: 'panel', panel: 'pet', defaultKeys: ['KeyT'] },
-    { id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyW'] },
+    { id: 'worldmap', label: 'World Map', type: 'panel', panel: 'worldmap', defaultKeys: ['KeyV'] },
     { id: 'monsters', label: 'Monster Guide', type: 'panel', panel: 'monsters', defaultKeys: ['KeyN'] },
     { id: 'skills', label: 'Skills Popup', type: 'panel', panel: 'skills', defaultKeys: ['KeyK'] },
     { id: 'quests', label: 'Quest Popup', type: 'panel', panel: 'quests', defaultKeys: ['KeyQ'] },
@@ -44,10 +46,9 @@
     { id: 'log', label: 'Session Log Popup', type: 'panel', panel: 'log', defaultKeys: ['KeyG'] },
     { id: 'save', label: 'Save Character', type: 'action', action: 'save', defaultKeys: ['F6'] },
     { id: 'load', label: 'Character Select', type: 'action', action: 'load', defaultKeys: ['F7'] },
-    { id: 'reset', label: 'Delete Character', type: 'action', action: 'reset', defaultKeys: ['F8'] },
     { id: 'performanceDebug', label: 'Performance Debug', type: 'action', action: 'performanceDebug', defaultKeys: ['F3'] },
     { id: 'combatMetrics', label: 'Combat Metrics', type: 'action', action: 'combatMetrics', defaultKeys: ['F4'] },
-    { id: 'boost', label: 'Level 100 Boost', type: 'action', action: 'boost', defaultKeys: ['KeyB'] },
+    { id: 'fullscreen', label: 'Focus / Fullscreen', type: 'action', action: 'fullscreen', defaultKeys: [] },
     { id: 'settings', label: 'Settings Popup', type: 'panel', panel: 'settings', defaultKeys: ['F10'] },
     { id: 'admin', label: 'Admin Settings', type: 'panel', panel: 'admin', defaultKeys: [] }
   ]);
@@ -181,6 +182,10 @@
   ]);
 
   const ACTION_ICONS = Object.freeze({
+    moveLeft: 'LEFT',
+    moveRight: 'RIGHT',
+    moveUp: 'UP',
+    moveDown: 'DOWN',
     jump: '^',
     attack: 'ATK',
     party: 'PTY',
@@ -213,8 +218,7 @@
     save: 'SAV',
     load: 'LOD',
     logout: 'OUT',
-    reset: 'RST',
-    boost: '100',
+    fullscreen: 'FULL',
     beta: 'BETA',
     admin: 'ADM',
     assetPreview: 'AST'
@@ -479,7 +483,7 @@
 
   function getCoreActionGroup(action) {
     const entry = action || {};
-    if (entry.id === 'jump') return 'Movement';
+    if (entry.id === 'jump' || String(entry.id || '').startsWith('move')) return 'Movement';
     if (['attack', 'party', 'interact', 'npcTalk', 'loot'].includes(entry.id)) return 'Combat';
     if (entry.id === 'menu' || entry.type === 'panel') return 'Menu/Panels';
     return 'System';
@@ -1835,9 +1839,16 @@
   function createDefaultKeybinds() {
     const used = new Set();
     const bindings = KEYBIND_ACTIONS.reduce((nextBindings, action) => {
-      const key = (action.defaultKeys || []).find((code) => isAssignableKeyCode(code) && !used.has(code));
-      nextBindings[action.id] = key ? [key] : [];
-      if (key) used.add(key);
+      const maxKeys = action.allowMultiple
+        ? Math.max(1, Math.floor(Number(action.maxKeys || action.defaultKeys && action.defaultKeys.length || 1)))
+        : 1;
+      const keys = (action.defaultKeys || [])
+        .map((code) => String(code || '').trim())
+        .filter((code, index, source) => code && source.indexOf(code) === index)
+        .filter((code) => isAssignableKeyCode(code) && !used.has(code))
+        .slice(0, maxKeys);
+      nextBindings[action.id] = keys;
+      keys.forEach((key) => used.add(key));
       return nextBindings;
     }, {});
     if (isAssignableKeyCode(ATTACK_HOLD_DEFAULT_KEY) && !used.has(ATTACK_HOLD_DEFAULT_KEY)) {
@@ -1846,13 +1857,30 @@
     return bindings;
   }
 
-  function normalizeKeyList(value, fallback, used) {
-    const list = (Array.isArray(value) ? value : [value]).concat(fallback || []);
-    const key = list
+  function normalizeKeyList(value, fallback, used, options) {
+    const settings = options || {};
+    const source = (Array.isArray(value) ? value : [value])
       .map((key) => String(key || '').trim())
-      .find((code) => isAssignableKeyCode(code) && !(used && used.has(code)));
-    if (key && used) used.add(key);
-    return key ? [key] : [];
+      .filter(Boolean);
+    const fallbackKeys = (Array.isArray(fallback) ? fallback : [fallback])
+      .map((key) => String(key || '').trim())
+      .filter(Boolean);
+    const list = source.length ? source : fallbackKeys;
+    const maxKeys = settings.allowMultiple
+      ? Math.max(1, Math.floor(Number(settings.maxKeys || list.length || 1)))
+      : 1;
+    let keys = list
+      .filter((code, index, entries) => entries.indexOf(code) === index)
+      .filter((code) => isAssignableKeyCode(code) && !(used && used.has(code)))
+      .slice(0, maxKeys);
+    if (!keys.length && source.length && fallbackKeys.length) {
+      keys = fallbackKeys
+        .filter((code, index, entries) => entries.indexOf(code) === index)
+        .filter((code) => isAssignableKeyCode(code) && !(used && used.has(code)))
+        .slice(0, maxKeys);
+    }
+    if (used) keys.forEach((key) => used.add(key));
+    return keys;
   }
 
   function normalizeLegacyKeybindMenuKeys(value) {
@@ -1868,7 +1896,10 @@
     const used = new Set();
     KEYBIND_ACTIONS.forEach((action) => {
       const source = action.id === 'keybinds' ? normalizeLegacyKeybindMenuKeys(value[action.id]) : value[action.id];
-      defaults[action.id] = normalizeKeyList(source, action.defaultKeys, used);
+      defaults[action.id] = normalizeKeyList(source, action.defaultKeys, used, {
+        allowMultiple: !!action.allowMultiple,
+        maxKeys: action.maxKeys
+      });
     });
     Object.keys(value).forEach((id) => {
       if (!id.startsWith(SKILL_BIND_PREFIX)) return;

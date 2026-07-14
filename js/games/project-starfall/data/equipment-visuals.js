@@ -10,8 +10,17 @@
     if (slot === 'weapon') {
       if (text.includes('bow') || text.includes('string') || text.includes('repeater') || text.includes('recurve')) return 'bow';
       if (text.includes('axe') || text.includes('cleaver') || text.includes('maul')) return 'axe';
+      if (text.includes('wand')) return 'wand';
       if (text.includes('staff') || text.includes('scepter') || text.includes('rod') || text.includes('codex') || text.includes('focus')) return 'staff';
       return 'sword';
+    }
+    if (slot === 'offhand') {
+      if (text.includes('shield')) return 'shield';
+      if (text.includes('grip')) return 'grip';
+      if (text.includes('core')) return 'core';
+      if (text.includes('focus')) return 'focus';
+      if (text.includes('scope')) return 'scope';
+      if (text.includes('kit')) return 'kit';
     }
     if (slot === 'amulet') return 'amulet';
     if (slot === 'ring') return 'ring';
@@ -29,21 +38,43 @@
     amulet: Object.freeze({ layer: 'accessory', order: 47 })
   });
 
-  function makeEquipmentVisualDefinition(config, makeEquipmentVisualAnimation) {
-    const id = String(config && config.id || '').trim();
+  function inferEquipmentVisualSlot(config) {
     const slot = String(config && config.slot || '').trim();
+    if (slot) return slot;
+    const layer = String(config && config.layer || '').trim();
+    if (layer === 'weapon') return 'weapon';
+    if (layer === 'offhand') return 'offhand';
+    if (layer === 'head') return 'head';
+    if (layer === 'chest') return 'chest';
+    if (layer === 'gloves') return 'gloves';
+    if (layer === 'boots') return 'boots';
+    if (layer === 'aura') return 'ring';
+    return 'chest';
+  }
+
+  function makeEquipmentVisualDefinition(config, makeEquipmentVisualAtlas) {
+    const id = String(config && config.id || '').trim();
+    const slot = inferEquipmentVisualSlot(config);
     const meta = EQUIPMENT_VISUAL_SLOT_META[slot] || EQUIPMENT_VISUAL_SLOT_META.chest;
     const fileId = String(config && config.fileId || equipmentVisualFileId(id));
-    return Object.freeze({
+    const kind = config && config.kind || inferEquipmentVisualKind(id, slot);
+    const atlas = typeof makeEquipmentVisualAtlas === 'function'
+      ? makeEquipmentVisualAtlas(fileId, kind, id)
+      : null;
+    const visual = {
       id,
       fileId,
       slot,
-      kind: config && config.kind || inferEquipmentVisualKind(id, slot),
+      kind,
       layer: config && config.layer || meta.layer,
       order: config && config.order || meta.order,
-      assetId: config && config.assetId || '',
-      animation: makeEquipmentVisualAnimation(fileId)
-    });
+      assetId: config && config.assetId || ''
+    };
+    if (atlas) {
+      visual.renderMode = 'atlas';
+      visual.atlas = atlas;
+    }
+    return Object.freeze(visual);
   }
 
   const EXTRA_EQUIPMENT_VISUAL_CONFIGS = Object.freeze([
@@ -137,17 +168,9 @@
     Object.freeze({ id: 'trap_kit', fileId: 'trap-kit', layer: 'offhand', order: 55 })
   ]);
 
-  function createBaseEquipmentVisuals(makeEquipmentVisualAnimation) {
+  function createBaseEquipmentVisuals(makeEquipmentVisualAtlas) {
     return Object.freeze(BASE_EQUIPMENT_VISUAL_CONFIGS.reduce((visuals, config) => {
-      const visual = {
-        id: config.id,
-        fileId: config.fileId,
-        layer: config.layer,
-        order: config.order
-      };
-      if (config.assetId) visual.assetId = config.assetId;
-      visual.animation = makeEquipmentVisualAnimation(config.fileId);
-      visuals[config.id] = Object.freeze(visual);
+      visuals[config.id] = makeEquipmentVisualDefinition(config, makeEquipmentVisualAtlas);
       return visuals;
     }, {}));
   }
@@ -245,16 +268,16 @@
 
   function createEquipmentVisualData(options) {
     const settings = options || {};
-    const makeEquipmentVisualAnimation = settings.makeEquipmentVisualAnimation;
-    if (typeof makeEquipmentVisualAnimation !== 'function') {
-      throw new TypeError('createEquipmentVisualData requires makeEquipmentVisualAnimation');
+    const makeEquipmentVisualAtlas = settings.makeEquipmentVisualAtlas;
+    if (typeof makeEquipmentVisualAtlas !== 'function') {
+      throw new TypeError('createEquipmentVisualData requires makeEquipmentVisualAtlas');
     }
 
-    const BASE_EQUIPMENT_VISUALS = createBaseEquipmentVisuals(makeEquipmentVisualAnimation);
+    const BASE_EQUIPMENT_VISUALS = createBaseEquipmentVisuals(makeEquipmentVisualAtlas);
     const EQUIPMENT_VISUALS = Object.freeze(Object.assign({},
       BASE_EQUIPMENT_VISUALS,
       EXTRA_EQUIPMENT_VISUAL_CONFIGS.reduce((visuals, config) => {
-        visuals[config.id] = makeEquipmentVisualDefinition(config, makeEquipmentVisualAnimation);
+        visuals[config.id] = makeEquipmentVisualDefinition(config, makeEquipmentVisualAtlas);
         return visuals;
       }, {})
     ));
@@ -276,6 +299,7 @@
   const api = {
     equipmentVisualFileId,
     inferEquipmentVisualKind,
+    inferEquipmentVisualSlot,
     createEquipmentVisualData,
     EQUIPMENT_VISUAL_SLOT_META,
     EXTRA_EQUIPMENT_VISUAL_CONFIGS,

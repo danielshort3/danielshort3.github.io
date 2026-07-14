@@ -193,8 +193,8 @@
     flex:0 0 auto;
   }
   .project-demo-help-trigger{
-    width:36px;
-    height:36px;
+    width:44px;
+    height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -635,8 +635,8 @@
       padding:var(--mobile-card-pad) var(--mobile-page-gutter) 0;
     }
     .project-demo-help-trigger{
-      width:34px;
-      height:34px;
+      width:44px;
+      height:44px;
     }
     .project-demo-tooltip{
       width:min(360px, calc(100vw - (var(--mobile-page-gutter, 14px) * 2)));
