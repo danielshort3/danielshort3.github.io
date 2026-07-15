@@ -27,8 +27,19 @@
   const ACTIVE_RUNS_MAX_TOKEN_CHARS = 8192;
   const DURATION_TIMEOUT_MS = 10000;
   const MAX_CONTAINER_SCAN_BYTES = 8 * 1024 * 1024;
+  const MP4_SUSPICIOUS_STTS_DELTA_SECONDS = 120;
+  const MP4_TIMELINE_OVERFLOW_SECONDS = 120;
   const MP4_CONTAINER_BOXES = new Set(['moov', 'trak', 'mdia', 'minf', 'dinf', 'stbl', 'edts', 'udta', 'meta']);
   const WEBM_CONTAINER_IDS = new Set([0x18538067, 0x1654AE6B, 0xAE]);
+
+  const isMp4TimelineSuspicious = ({ maxDeltaSeconds, timelineSeconds, mediaDurationSeconds }) =>
+    Number(maxDeltaSeconds) >= MP4_SUSPICIOUS_STTS_DELTA_SECONDS &&
+    Number(timelineSeconds) - Number(mediaDurationSeconds) >= MP4_TIMELINE_OVERFLOW_SECONDS;
+
+  if (typeof module !== 'undefined' && module.exports && typeof document === 'undefined') {
+    module.exports = { isMp4TimelineSuspicious };
+    return;
+  }
 
   const $id = (id) => document.getElementById(id);
 
@@ -116,7 +127,7 @@
     const now = Date.now();
     const items = state.files
       .filter((item) => {
-        if (item?.status === 'complete' || item?.runErrorType === 'service') return false;
+        if (['complete', 'partial'].includes(item?.status) || item?.runErrorType === 'service') return false;
         return Boolean(item?.runToken) || (Boolean(item?.quoteToken) && item?.uploadComplete === true);
       })
       .slice(0, ACTIVE_RUNS_MAX_ITEMS)
@@ -382,6 +393,102 @@
     return { type, size, headerSize };
   };
 
+  const listMp4ChildBoxes = (view, start, end) => {
+    const children = [];
+    let offset = start;
+    while (offset + 8 <= end && offset + 8 <= view.byteLength) {
+      const box = readMp4BoxHeader(view, offset);
+      if (!box || offset + box.size > end || offset + box.size > view.byteLength) break;
+      children.push({
+        ...box,
+        offset,
+        payloadStart: offset + box.headerSize,
+        payloadEnd: offset + box.size
+      });
+      offset += box.size;
+    }
+    return children;
+  };
+
+  const findMp4ChildBox = (view, parent, type) => listMp4ChildBoxes(
+    view,
+    parent.payloadStart,
+    parent.payloadEnd
+  ).find((box) => box.type === type) || null;
+
+  const readMp4AudioTimeline = (view, audioMdia) => {
+    const mdhd = findMp4ChildBox(view, audioMdia, 'mdhd');
+    const minf = findMp4ChildBox(view, audioMdia, 'minf');
+    const stbl = minf ? findMp4ChildBox(view, minf, 'stbl') : null;
+    const stts = stbl ? findMp4ChildBox(view, stbl, 'stts') : null;
+    if (!mdhd || !stts || mdhd.payloadStart + 20 > mdhd.payloadEnd || stts.payloadStart + 8 > stts.payloadEnd) {
+      return { checked: false, malformedTimeline: false };
+    }
+
+    const mdhdVersion = view.getUint8(mdhd.payloadStart);
+    const timescaleOffset = mdhdVersion === 1 ? mdhd.payloadStart + 20 : mdhd.payloadStart + 12;
+    const durationOffset = mdhdVersion === 1 ? mdhd.payloadStart + 24 : mdhd.payloadStart + 16;
+    const durationBytes = mdhdVersion === 1 ? 8 : 4;
+    if (timescaleOffset + 4 > mdhd.payloadEnd || durationOffset + durationBytes > mdhd.payloadEnd) {
+      return { checked: false, malformedTimeline: false };
+    }
+
+    const timescale = view.getUint32(timescaleOffset);
+    const mediaDurationTicks = mdhdVersion === 1
+      ? view.getUint32(durationOffset) * 4294967296 + view.getUint32(durationOffset + 4)
+      : view.getUint32(durationOffset);
+    const entryCount = view.getUint32(stts.payloadStart + 4);
+    const entriesStart = stts.payloadStart + 8;
+    if (!timescale || entryCount > Math.floor((stts.payloadEnd - entriesStart) / 8)) {
+      return { checked: false, malformedTimeline: false };
+    }
+
+    let timelineTicks = 0;
+    let maxDeltaTicks = 0;
+    for (let index = 0; index < entryCount; index += 1) {
+      const entryOffset = entriesStart + index * 8;
+      const sampleCount = view.getUint32(entryOffset);
+      const sampleDelta = view.getUint32(entryOffset + 4);
+      timelineTicks += sampleCount * sampleDelta;
+      maxDeltaTicks = Math.max(maxDeltaTicks, sampleDelta);
+    }
+
+    const mediaDurationSeconds = mediaDurationTicks / timescale;
+    const timelineSeconds = timelineTicks / timescale;
+    const maxDeltaSeconds = maxDeltaTicks / timescale;
+    const malformedTimeline = isMp4TimelineSuspicious({
+      maxDeltaSeconds,
+      timelineSeconds,
+      mediaDurationSeconds
+    });
+    return {
+      checked: true,
+      malformedTimeline,
+      mediaDurationSeconds,
+      timelineSeconds,
+      maxDeltaSeconds
+    };
+  };
+
+  const inspectMp4Structure = (view) => {
+    const moov = listMp4ChildBoxes(view, 0, view.byteLength).find((box) => box.type === 'moov');
+    if (!moov) return { checked: false, hasAudio: true, malformedTimeline: false };
+    const tracks = listMp4ChildBoxes(view, moov.payloadStart, moov.payloadEnd)
+      .filter((box) => box.type === 'trak');
+    let hasAudio = false;
+    for (const track of tracks) {
+      const mdia = findMp4ChildBox(view, track, 'mdia');
+      const hdlr = mdia ? findMp4ChildBox(view, mdia, 'hdlr') : null;
+      if (!mdia || !hdlr || readAscii(view, hdlr.payloadStart + 8, 4) !== 'soun') continue;
+      hasAudio = true;
+      const timeline = readMp4AudioTimeline(view, mdia);
+      if (timeline.malformedTimeline) {
+        return { checked: true, hasAudio: true, ...timeline };
+      }
+    }
+    return { checked: true, hasAudio, malformedTimeline: false };
+  };
+
   const mp4BoxesContainAudio = (view, start, end, depth = 0) => {
     if (!view || depth > 8) return false;
     let offset = start;
@@ -416,6 +523,8 @@
         const moovBuffer = await readSlice(file, offset, box.size);
         if (!moovBuffer) return { checked: false, hasAudio: true };
         const moovView = new DataView(moovBuffer);
+        const structure = inspectMp4Structure(moovView);
+        if (structure.checked) return structure;
         return { checked: true, hasAudio: mp4BoxesContainAudio(moovView, 0, moovView.byteLength) };
       }
       if (!Number.isFinite(box.size) || box.size <= 0) break;
@@ -500,9 +609,12 @@
 
   const completedFiles = () => state.files.filter((item) => item.status === 'complete');
 
+  const partialFiles = () => state.files.filter((item) => item.status === 'partial');
+
   const estimatedTotal = () => acceptedFiles().reduce((sum, item) => sum + Number(item.estimatedCostUsd || 0), 0);
 
-  const finalTotal = () => completedFiles().reduce((sum, item) => sum + Number(item.costUsd || item.estimatedCostUsd || 0), 0);
+  const finalTotal = () => [...completedFiles(), ...partialFiles()]
+    .reduce((sum, item) => sum + Number(item.costUsd || item.estimatedCostUsd || 0), 0);
 
   const countedForRunLimit = () => state.files.filter((item) => !['checking', 'skipped'].includes(item.status)).length;
 
@@ -537,7 +649,8 @@
   };
 
   const updateLayoutState = () => {
-    const hasResults = state.files.some((item) => item.transcript || item.status === 'complete' || item.status === 'failed');
+    const hasResults = state.files.some((item) =>
+      item.transcript || ['complete', 'partial', 'failed'].includes(item.status));
     const hasFiles = state.files.length > 0;
     const nextState = state.view === 'processing' || state.busy
       ? 'working'
@@ -612,6 +725,7 @@
     const readyCount = acceptedFiles().length;
     const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
     const completedCount = completedFiles().length;
+    const partialCount = partialFiles().length;
     const failedCount = state.files.filter((item) => item.status === 'failed').length;
     const totalCost = estimatedTotal();
     const runCost = finalTotal();
@@ -623,9 +737,20 @@
     }
 
     const parts = [`${readyCount} ready`, `${skippedCount} skipped`];
-    if (completedCount || failedCount) parts.push(`${completedCount} complete`, `${failedCount} failed`);
-    setStatus(summaryEl, `${parts.join(' · ')}. Estimated total ${formatUsd(totalCost)}.`, skippedCount ? 'warning' : 'success');
-    setText(totalEl, completedCount ? `Completed run total: ${formatUsd(runCost)} · Estimated total: ${formatUsd(totalCost)}` : `Estimated total: ${formatUsd(totalCost)}`);
+    if (completedCount || partialCount || failedCount) {
+      parts.push(`${completedCount} complete`, `${partialCount} partial`, `${failedCount} failed`);
+    }
+    setStatus(
+      summaryEl,
+      `${parts.join(' · ')}. Estimated total ${formatUsd(totalCost)}.`,
+      skippedCount || partialCount || failedCount ? 'warning' : 'success'
+    );
+    setText(
+      totalEl,
+      completedCount || partialCount
+        ? `Final run total: ${formatUsd(runCost)} · Estimated total: ${formatUsd(totalCost)}`
+        : `Estimated total: ${formatUsd(totalCost)}`
+    );
   };
 
   const statusLabel = (item) => {
@@ -637,6 +762,10 @@
     if (item.status === 'starting') return 'Starting job';
     if (item.status === 'transcribing') return 'Transcribing';
     if (item.status === 'complete') return 'Complete';
+    if (item.status === 'partial') {
+      const endedAt = Number(item.transcriptEndSeconds);
+      return endedAt > 0 ? `Partial: ended near ${formatClock(endedAt)}` : 'Partial transcript';
+    }
     if (item.status === 'failed') return `Failed: ${item.error || 'Transcription failed'}`;
     if (item.status === 'canceled') return 'Canceled';
     return cleanText(item.status) || 'Pending';
@@ -644,6 +773,7 @@
 
   const rowTone = (item) => {
     if (item.status === 'skipped') return 'warning';
+    if (item.status === 'partial') return 'warning';
     if (item.status === 'failed') return 'error';
     if (item.status === 'complete') return 'success';
     if (item.status === 'uploading' || item.status === 'transcribing') return 'active';
@@ -725,15 +855,17 @@
 
   const renderResults = () => {
     if (!resultsEl) return;
-    const resultItems = state.files.filter((item) => item.transcript || item.status === 'complete' || item.status === 'failed');
+    const resultItems = state.files.filter((item) =>
+      item.transcript || ['complete', 'partial', 'failed'].includes(item.status));
     const completedCount = completedFiles().length;
+    const partialCount = partialFiles().length;
     const failedCount = state.files.filter((item) => item.status === 'failed').length;
     const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
     if (resultsSummaryEl) {
       setText(
         resultsSummaryEl,
         resultItems.length
-          ? `${completedCount} complete · ${failedCount} failed · ${skippedCount} skipped · Final cost ${formatUsd(finalTotal())}`
+          ? `${completedCount} complete · ${partialCount} partial · ${failedCount} failed · ${skippedCount} skipped · Final cost ${formatUsd(finalTotal())}`
           : 'Completed transcripts will appear below.'
       );
     }
@@ -744,10 +876,13 @@
     resultsEl.innerHTML = resultItems.map((item) => {
       const transcript = String(item.transcript || '').trim();
       const isComplete = item.status === 'complete';
+      const isPartial = item.status === 'partial';
       const resumable = canResumeItem(item);
       const status = isComplete
         ? `Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)} · ${item.billableSeconds || 0} billable sec`
-        : item.error || 'Transcription failed.';
+        : isPartial
+          ? `${item.error || 'The transcript may have ended before the source media.'} Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)}.`
+          : item.error || 'Transcription failed.';
       return `
         <article class="transcribe-result" data-status="${escapeHtml(item.status)}" data-id="${escapeHtml(item.id)}">
           <div class="transcribe-result-header">
@@ -951,6 +1086,12 @@
           renderTable();
           continue;
         }
+        if (audioTrack.malformedTimeline) {
+          item.status = 'skipped';
+          item.skipReason = 'Malformed MP4 timing detected. Repair/remux the file or export audio-only before transcribing.';
+          renderTable();
+          continue;
+        }
       }
 
       item.billableSeconds = billableSeconds(item.durationSeconds);
@@ -1095,10 +1236,22 @@
 
       const status = String(data.status || '').toUpperCase();
       if (status === 'COMPLETED') {
-        item.status = 'complete';
         item.transcript = String(data.transcript || '').trim();
         item.costUsd = Number(data.costUsd || item.estimatedCostUsd || 0);
         item.billableSeconds = Number(data.billableSeconds || item.billableSeconds || 0);
+        item.durationSeconds = Number(data.durationSeconds || item.durationSeconds || 0);
+        item.transcriptEndSeconds = Math.max(0, Number(data.transcriptEndSeconds) || 0);
+        item.transcriptGapSeconds = Math.max(0, Number(data.transcriptGapSeconds) || 0);
+        if (String(data.coverageStatus || '').toUpperCase() === 'SUSPECTED_EARLY_END') {
+          item.status = 'partial';
+          item.runErrorType = 'service';
+          item.error = friendlyTranscribeError(data.warning ||
+            `Amazon Transcribe stopped near ${formatClock(item.transcriptEndSeconds)} of ${formatClock(item.durationSeconds)}. The transcript may be partial; remux the media or export audio-only, then retry.`);
+        } else {
+          item.status = 'complete';
+          item.error = '';
+          item.runErrorType = '';
+        }
         renderTable();
         renderProcessingList();
         renderResults();
@@ -1234,7 +1387,11 @@
       await pollRun(item, runToken);
       setStatus(
         runStatusEl,
-        item.status === 'complete' ? `${item.name} is complete.` : `${item.name} could not be transcribed.`,
+        item.status === 'complete'
+          ? `${item.name} is complete.`
+          : item.status === 'partial'
+            ? `${item.name} produced a partial transcript. Repair the media and submit it as a new file.`
+            : `${item.name} could not be transcribed.`,
         item.status === 'complete' ? 'success' : 'warning'
       );
     } catch (err) {
@@ -1325,12 +1482,13 @@
     }
 
     const completed = queue.filter((item) => item.status === 'complete').length;
+    const partial = queue.filter((item) => item.status === 'partial').length;
     const failed = queue.filter((item) => item.status === 'failed').length;
     const canceled = queue.filter((item) => item.status === 'canceled').length;
     const message = state.canceled
       ? `Canceled. ${completed} complete, ${failed} failed, ${canceled} canceled.`
-      : `Done. ${completed} complete, ${failed} failed.`;
-    setStatus(runStatusEl, message, failed || canceled ? 'warning' : 'success');
+      : `Done. ${completed} complete, ${partial} partial, ${failed} failed.`;
+    setStatus(runStatusEl, message, partial || failed || canceled ? 'warning' : 'success');
     setBusy(false);
     updateProgress({ stateName: 'hidden' });
     renderTable();
@@ -1342,8 +1500,8 @@
     if (reportOutcome) {
       if (state.canceled || canceled) {
         reportRunCancel();
-      } else if (completed > 0) {
-        reportRunComplete(failed ? 'partial_success' : 'all_complete');
+      } else if (completed > 0 || partial > 0) {
+        reportRunComplete(partial || failed ? 'partial_success' : 'all_complete');
       } else {
         const errorTypes = queue.map((item) => item.runErrorType).filter(Boolean);
         const errorType = ['permission', 'network', 'timeout', 'service', 'processing']
@@ -1527,6 +1685,7 @@
     const accepted = acceptedFiles();
     const skipped = state.files.filter((item) => item.status === 'skipped');
     const completed = completedFiles();
+    const partial = partialFiles();
     const failed = state.files.filter((item) => item.status === 'failed');
     payload.inputs = {
       Files: `${state.files.length} selected`,
@@ -1534,8 +1693,8 @@
       Skipped: String(skipped.length),
       'Estimated total': formatUsd(estimatedTotal())
     };
-    payload.outputSummary = completed.length || failed.length
-      ? `${completed.length} complete · ${failed.length} failed · ${formatUsd(finalTotal())} run cost`
+    payload.outputSummary = completed.length || partial.length || failed.length
+      ? `${completed.length} complete · ${partial.length} partial · ${failed.length} failed · ${formatUsd(finalTotal())} run cost`
       : 'No transcripts saved in session history.';
   });
 

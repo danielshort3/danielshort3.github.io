@@ -287,7 +287,9 @@
     border-color:color-mix(in srgb,var(--success) 32%, transparent);
   }
 
-  .transcribe-file-card[data-tone="warning"]{
+  .transcribe-file-card[data-tone="warning"],
+  .transcribe-process-card[data-tone="warning"],
+  .transcribe-result[data-status="partial"]{
     border-color:color-mix(in srgb,var(--warning) 38%, transparent);
     background:color-mix(in srgb,var(--warning) 8%, color-mix(in srgb,var(--surface) 94%, #02060c 6%));
   }

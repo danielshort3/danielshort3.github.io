@@ -54,6 +54,8 @@ const DEFAULT_LEDGER_DAY_RETENTION_DAYS = 45;
 const DEFAULT_TRANSCRIPT_FETCH_TIMEOUT_MS = 12_000;
 const DEFAULT_MAX_TRANSCRIPT_FETCH_BYTES = 25 * 1024 * 1024;
 const DEFAULT_MAX_TRANSCRIPT_BYTES = 3 * 1024 * 1024;
+const TRANSCRIPT_EARLY_END_MIN_GAP_SECONDS = 120;
+const TRANSCRIPT_EARLY_END_MAX_COVERAGE_RATIO = 0.8;
 const MAX_LEDGER_CONCURRENT = 10;
 const MAX_TRANSCRIPT_FETCH_TIMEOUT_MS = 30_000;
 const MAX_TRANSCRIPT_FETCH_BYTES = 50 * 1024 * 1024;
@@ -995,6 +997,40 @@ function extractTranscript(data){
   return joined;
 }
 
+function analyzeTranscriptCoverage(data, expectedDurationSeconds){
+  const results = data && data.results && typeof data.results === 'object' ? data.results : {};
+  const timedEntries = [
+    ...(Array.isArray(results.items) ? results.items : []),
+    ...(Array.isArray(results.audio_segments) ? results.audio_segments : [])
+  ];
+  let transcriptEndSeconds = 0;
+  for (const entry of timedEntries) {
+    const endSeconds = Number(entry && (entry.end_time ?? entry.endTime));
+    if (Number.isFinite(endSeconds) && endSeconds > transcriptEndSeconds) {
+      transcriptEndSeconds = endSeconds;
+    }
+  }
+
+  const expected = Number(expectedDurationSeconds);
+  const hasExpectedDuration = Number.isFinite(expected) && expected > 0;
+  const transcriptGapSeconds = hasExpectedDuration
+    ? Math.max(0, expected - transcriptEndSeconds)
+    : 0;
+  const coverageRatio = hasExpectedDuration
+    ? Math.min(1, Math.max(0, transcriptEndSeconds / expected))
+    : 1;
+  const suspectedEarlyEnd = transcriptEndSeconds > 0 &&
+    transcriptGapSeconds >= TRANSCRIPT_EARLY_END_MIN_GAP_SECONDS &&
+    coverageRatio <= TRANSCRIPT_EARLY_END_MAX_COVERAGE_RATIO;
+
+  return {
+    coverageStatus: suspectedEarlyEnd ? 'SUSPECTED_EARLY_END' : 'OK',
+    transcriptEndSeconds: Number(transcriptEndSeconds.toFixed(3)),
+    transcriptGapSeconds: Number(transcriptGapSeconds.toFixed(3)),
+    coverageRatio: Number(coverageRatio.toFixed(6))
+  };
+}
+
 function isTrustedTranscriptUrl(value){
   try {
     const url = new URL(String(value || ''));
@@ -1204,9 +1240,16 @@ async function handleStatus(req, res){
     }
     const uri = String(job?.Transcript?.TranscriptFileUri || '').trim();
     let transcript = '';
+    let coverage = {
+      coverageStatus: 'OK',
+      transcriptEndSeconds: 0,
+      transcriptGapSeconds: 0,
+      coverageRatio: 1
+    };
     try {
       const data = await fetchTranscriptData(uri, config);
       transcript = extractTranscript(data);
+      coverage = analyzeTranscriptCoverage(data, run.durationSeconds);
       if (Buffer.byteLength(JSON.stringify(transcript), 'utf8') > config.maxTranscriptBytes) {
         const sizeError = new Error('Transcript is too large to return in one response.');
         sizeError.code = 'TRANSCRIPT_OUTPUT_TOO_LARGE';
@@ -1222,6 +1265,15 @@ async function handleStatus(req, res){
       });
       return;
     }
+    if (coverage.coverageStatus === 'SUSPECTED_EARLY_END') {
+      console.warn('Amazon Transcribe output may have ended early', {
+        jobName: run.jobName,
+        expectedDurationSeconds: Number(run.durationSeconds) || 0,
+        transcriptEndSeconds: coverage.transcriptEndSeconds,
+        transcriptGapSeconds: coverage.transcriptGapSeconds,
+        coverageRatio: coverage.coverageRatio
+      });
+    }
     const cleanup = await cleanupRun({ s3, transcribe, run });
     sendJson(res, 200, {
       ok: true,
@@ -1230,6 +1282,10 @@ async function handleStatus(req, res){
       costUsd: run.estimatedCostUsd,
       billableSeconds: run.billableSeconds,
       durationSeconds: run.durationSeconds,
+      ...coverage,
+      warning: coverage.coverageStatus === 'SUSPECTED_EARLY_END'
+        ? 'Amazon Transcribe stopped producing timed output well before the file duration. The remaining media may be silent or unreadable. This transcript may be partial; remux the media or export audio-only, then transcribe the repaired file.'
+        : '',
       cleanedUp: cleanup.uploadDeleted,
       uploadCleanedUp: cleanup.uploadDeleted,
       jobRetained: cleanup.jobRetained
@@ -1278,6 +1334,7 @@ const handleTranscribe = async (req, res, segments = []) => {
 };
 
 handleTranscribe._internal = {
+  analyzeTranscriptCoverage,
   isMissingTranscriptionJobError
 };
 

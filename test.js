@@ -40508,6 +40508,7 @@ try {
     const rootPackage = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     const endpointModule = require('./api/_lib/tools-endpoints/transcribe.js');
     const ledgerModule = require('./api/_lib/transcribe-ledger.js');
+    const transcribeToolModule = require('./js/tools/whisper-transcribe-monitor.js');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
     const devServer = fs.readFileSync('build/dev.js', 'utf8');
     const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
@@ -40538,6 +40539,8 @@ try {
     const recoveryPersistStart = toolScript.indexOf('const persistActiveRunRecovery = () =>');
     const recoveryPersistEnd = toolScript.indexOf('const restoreActiveRunRecovery = () =>', recoveryPersistStart);
     const recoveryPersistSource = toolScript.slice(recoveryPersistStart, recoveryPersistEnd);
+    const analyzeTranscriptCoverage = endpointModule._internal.analyzeTranscriptCoverage;
+    const isMp4TimelineSuspicious = transcribeToolModule.isMp4TimelineSuspicious;
     const missingJobError = endpointModule._internal.isMissingTranscriptionJobError;
 
     assert(page.includes('id="transcribe-files"') &&
@@ -40576,10 +40579,32 @@ try {
            !toolScript.includes('payload.output ='),
       'Transcribe tool should preflight duration/cost and avoid saving transcript bodies in session history');
     assert(toolScript.includes('inspectMp4AudioTrack') &&
+           toolScript.includes('inspectMp4Structure') &&
+           toolScript.includes('readMp4AudioTimeline') &&
+           toolScript.includes('MP4_SUSPICIOUS_STTS_DELTA_SECONDS = 120') &&
+           toolScript.includes('const isMp4TimelineSuspicious =') &&
+           toolScript.includes('Number(timelineSeconds) - Number(mediaDurationSeconds) >= MP4_TIMELINE_OVERFLOW_SECONDS') &&
            toolScript.includes('inspectWebmAudioTrack') &&
            toolScript.includes('No audio track found.') &&
+           toolScript.includes('Malformed MP4 timing detected.') &&
            toolScript.includes('failed to parse audio file'),
-      'Transcribe tool should skip video files without audio and explain AWS parse failures');
+      'Transcribe tool should skip video files without audio or with grossly malformed MP4 timing and explain AWS parse failures');
+    assert(isMp4TimelineSuspicious({
+      maxDeltaSeconds: 1549.068,
+      timelineSeconds: 5225.129,
+      mediaDurationSeconds: 1709
+    }) &&
+           !isMp4TimelineSuspicious({
+             maxDeltaSeconds: 0.022,
+             timelineSeconds: 1708.1,
+             mediaDurationSeconds: 1708
+           }) &&
+           !isMp4TimelineSuspicious({
+             maxDeltaSeconds: 180,
+             timelineSeconds: 1750,
+             mediaDurationSeconds: 1708
+           }),
+      'Transcribe MP4 preflight should reject the observed corrupt timeline while tolerating normal timing and bounded gaps');
     assert(toolCss.includes('.transcribe-status-bar') &&
            toolCss.includes('position:sticky') &&
            toolCss.includes('top:calc(var(--nav-height') &&
@@ -40636,6 +40661,24 @@ try {
            }) &&
            !missingJobError({ name: 'AccessDeniedException', $metadata: { httpStatusCode: 403 } }),
       'Transcribe should recognize the AWS missing-job BadRequest without masking other AWS failures');
+    const malformedCoverage = analyzeTranscriptCoverage({
+      results: {
+        items: [{ end_time: '960.094' }],
+        audio_segments: [{ end_time: '960.210' }]
+      }
+    }, 1708.067);
+    const completeCoverage = analyzeTranscriptCoverage({
+      results: { items: [{ end_time: '1689.2' }] }
+    }, 1708.067);
+    const highRatioCoverage = analyzeTranscriptCoverage({
+      results: { items: [{ end_time: '850' }] }
+    }, 1000);
+    assert(malformedCoverage.coverageStatus === 'SUSPECTED_EARLY_END' &&
+           malformedCoverage.transcriptEndSeconds === 960.21 &&
+           malformedCoverage.transcriptGapSeconds > 747 &&
+           completeCoverage.coverageStatus === 'OK' &&
+           highRatioCoverage.coverageStatus === 'OK',
+      'Transcribe should conservatively detect a large early transcript cutoff without flagging normal tail gaps');
     assert(endpoint.includes('calculateCostUsd') &&
            endpoint.includes('Math.max(MIN_DURATION_SECONDS, Math.ceil(duration))') &&
            endpoint.includes('AWS_MAX_MEDIA_DURATION_SECONDS = 28_800') &&
@@ -40715,6 +40758,15 @@ try {
            toolScript.includes('data-transcribe-action="resume"') &&
            toolScript.includes("if (action === 'resume')"),
       'Transcribe client should adapt polling, retry transient requests with the same quote, and resume from existing recovery tokens');
+    assert(endpoint.includes("coverageStatus: suspectedEarlyEnd ? 'SUSPECTED_EARLY_END' : 'OK'") &&
+           endpoint.includes('transcriptEndSeconds') &&
+           endpoint.includes('transcriptGapSeconds') &&
+           toolScript.includes("item.status = 'partial';") &&
+           toolScript.includes("['complete', 'partial'].includes(item?.status)") &&
+           toolScript.includes('const partialFiles = () =>') &&
+           toolScript.includes('${partialCount} partial') &&
+           toolCss.includes('.transcribe-result[data-status="partial"]'),
+      'Transcribe should preserve suspected early output as a charged partial transcript with warning UI');
     assert(toolScript.includes("const ACTIVE_RUNS_STORAGE_KEY = 'tools:transcribe:active-runs:v1';") &&
            toolScript.includes('stored.ownerSub !== ownerSub') &&
            toolScript.includes("window.addEventListener('pagehide', persistActiveRunRecovery)") &&
