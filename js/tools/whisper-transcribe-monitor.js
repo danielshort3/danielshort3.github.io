@@ -244,6 +244,8 @@
   const classifyRunError = (error) => {
     const status = Number(error?.status || 0);
     const message = cleanText(error?.message).toLowerCase();
+    const terminalStatus = cleanText(error?.data?.status).toUpperCase();
+    if (terminalStatus === 'MISSING' || status === 404 || status === 410) return 'service';
     if (status === 401 || status === 403 || /sign in|not authorized|forbidden/.test(message)) return 'permission';
     if (status === 408 || status === 504 || /timed? out|timeout/.test(message)) return 'timeout';
     if (status >= 500 || /service|transcription failed|request failed/.test(message)) return 'service';
@@ -742,6 +744,7 @@
     resultsEl.innerHTML = resultItems.map((item) => {
       const transcript = String(item.transcript || '').trim();
       const isComplete = item.status === 'complete';
+      const resumable = canResumeItem(item);
       const status = isComplete
         ? `Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)} · ${item.billableSeconds || 0} billable sec`
         : item.error || 'Transcription failed.';
@@ -752,10 +755,11 @@
               <h3>${escapeHtml(item.name)}</h3>
               <p>${escapeHtml(status)}</p>
             </div>
-            ${transcript ? `
+            ${transcript || resumable ? `
               <div class="transcribe-result-actions">
-                <button type="button" class="btn-secondary" data-transcribe-action="copy" data-id="${escapeHtml(item.id)}">Copy</button>
-                <button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}">Download</button>
+                ${resumable ? `<button type="button" class="btn-secondary" data-transcribe-action="resume" data-id="${escapeHtml(item.id)}">Resume</button>` : ''}
+                ${transcript ? `<button type="button" class="btn-secondary" data-transcribe-action="copy" data-id="${escapeHtml(item.id)}">Copy</button>` : ''}
+                ${transcript ? `<button type="button" class="btn-secondary" data-transcribe-action="download" data-id="${escapeHtml(item.id)}">Download</button>` : ''}
               </div>
             ` : ''}
           </div>
@@ -1240,7 +1244,7 @@
       } else {
         item.status = 'failed';
         item.error = friendlyTranscribeError(err?.message || 'Unable to resume transcription.');
-        item.runErrorType = classifyRunError(err);
+        item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
       }
       setStatus(runStatusEl, item.error, 'warning');
     } finally {
@@ -1310,7 +1314,7 @@
         } else {
           item.status = 'failed';
           item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
-          item.runErrorType = classifyRunError(err);
+          item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
         }
         renderTable();
         renderProcessingList();
@@ -1474,8 +1478,13 @@
       const action = actionBtn.getAttribute('data-transcribe-action');
       const id = actionBtn.getAttribute('data-id');
       const item = state.files.find((entry) => entry.id === id);
+      if (!item) return;
+      if (action === 'resume') {
+        await resumeItem(item);
+        return;
+      }
       const transcript = String(item?.transcript || '').trim();
-      if (!item || !transcript) return;
+      if (!transcript) return;
       if (action === 'copy') {
         try {
           await navigator.clipboard.writeText(transcript);

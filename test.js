@@ -40502,9 +40502,11 @@ try {
     const toolsAccountUi = fs.readFileSync('js/accounts/tools-account-ui.js', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
     const ledger = fs.readFileSync('api/_lib/transcribe-ledger.js', 'utf8');
+    const vercelOidcTemplate = fs.readFileSync('aws/vercel-oidc/template.yaml', 'utf8');
     const envExample = fs.readFileSync('.env.example', 'utf8');
     const transcribeReadme = fs.readFileSync('aws/transcribe-tool/README.md', 'utf8');
     const rootPackage = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const endpointModule = require('./api/_lib/tools-endpoints/transcribe.js');
     const ledgerModule = require('./api/_lib/transcribe-ledger.js');
     const router = fs.readFileSync('api/tools/[...slug].js', 'utf8');
     const devServer = fs.readFileSync('build/dev.js', 'utf8');
@@ -40536,6 +40538,7 @@ try {
     const recoveryPersistStart = toolScript.indexOf('const persistActiveRunRecovery = () =>');
     const recoveryPersistEnd = toolScript.indexOf('const restoreActiveRunRecovery = () =>', recoveryPersistStart);
     const recoveryPersistSource = toolScript.slice(recoveryPersistStart, recoveryPersistEnd);
+    const missingJobError = endpointModule._internal.isMissingTranscriptionJobError;
 
     assert(page.includes('id="transcribe-files"') &&
            page.includes('multiple') &&
@@ -40615,6 +40618,24 @@ try {
            endpoint.includes("require('../tools-auth-session')") &&
            endpoint.includes('authenticateToolsRequest(req)'),
       'Transcribe endpoint should use exact-policy S3 uploads, Cognito auth, and Amazon Transcribe jobs');
+    assert(missingJobError({
+      name: 'BadRequestException',
+      message: "The requested job couldn't be found. Check the job name and try your request again.",
+      $metadata: { httpStatusCode: 400 }
+    }) &&
+           missingJobError({
+             name: 'BadRequestException',
+             Message: 'The requested job could not be found.',
+             $metadata: { httpStatusCode: 400 }
+           }) &&
+           missingJobError({ name: 'NotFoundException', $metadata: { httpStatusCode: 404 } }) &&
+           !missingJobError({
+             name: 'BadRequestException',
+             message: 'The transcription job name is invalid.',
+             $metadata: { httpStatusCode: 400 }
+           }) &&
+           !missingJobError({ name: 'AccessDeniedException', $metadata: { httpStatusCode: 403 } }),
+      'Transcribe should recognize the AWS missing-job BadRequest without masking other AWS failures');
     assert(endpoint.includes('calculateCostUsd') &&
            endpoint.includes('Math.max(MIN_DURATION_SECONDS, Math.ceil(duration))') &&
            endpoint.includes('AWS_MAX_MEDIA_DURATION_SECONDS = 28_800') &&
@@ -40671,6 +40692,9 @@ try {
            toolScript.includes('const body = new FormData();') &&
            toolScript.includes("body.append('file', item.file, item.name || 'media')"),
       'Transcribe uploads should use a tagged exact-size presigned POST from API through browser upload');
+    assert(vercelOidcTemplate.includes("Action:\n                  - transcribe:StartTranscriptionJob\n                  - transcribe:TagResource\n                Resource: '*'") &&
+           transcribeReadme.includes('"transcribe:TagResource"'),
+      'Transcribe deployment policy should allow tagged starts using the AWS-required wildcard resource scope');
     assert(endpoint.includes('isTrustedTranscriptUrl') &&
            endpoint.includes("redirect: 'manual'") &&
            endpoint.includes('config.maxTranscriptFetchBytes') &&
@@ -40686,7 +40710,10 @@ try {
            toolScript.includes('const startReservedRun = async (item) =>') &&
            toolScript.includes('body: JSON.stringify({ quoteToken: item.quoteToken })') &&
            toolScript.includes('data-transcribe-file-resume') &&
-           toolScript.includes('const runToken = item.runToken || await startReservedRun(item);'),
+           toolScript.includes('const runToken = item.runToken || await startReservedRun(item);') &&
+           toolScript.match(/item\.runToken && isTransientRunError\(err\) \? 'network'/g)?.length >= 2 &&
+           toolScript.includes('data-transcribe-action="resume"') &&
+           toolScript.includes("if (action === 'resume')"),
       'Transcribe client should adapt polling, retry transient requests with the same quote, and resume from existing recovery tokens');
     assert(toolScript.includes("const ACTIVE_RUNS_STORAGE_KEY = 'tools:transcribe:active-runs:v1';") &&
            toolScript.includes('stored.ownerSub !== ownerSub') &&
