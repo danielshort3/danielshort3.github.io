@@ -182,7 +182,24 @@
       ],
       "sheetWidth": 960,
       "sheetHeight": 640,
-      "processor": "build/process-project-starfall-ai-skill-fx.js --validate"
+      "expectedFrameCount": 24,
+      "generator": "build/generate-project-starfall-combat-fx.js --only skills",
+      "processor": "build/process-project-starfall-ai-skill-fx.js --validate",
+      "qualityValidator": "build/validate-project-starfall-asset-generation.js",
+      "quality": {
+        "alphaThreshold": 8,
+        "minimumVisiblePixelsPerCell": 1,
+        "gutterPixels": 8,
+        "transparentRgbMustBeZero": true,
+        "uniqueRenderedSheetPixels": true,
+        "uniqueFramesWithinSheet": true,
+        "chromaAlphaThreshold": 0,
+        "chromaTolerance": 24,
+        "forbiddenChromaKeys": [
+          "#00ff00",
+          "#ff00ff"
+        ]
+      }
     },
     "basicAttackFx": {
       "folder": "img/project-starfall/animations/combat-fx/basic",
@@ -400,6 +417,7 @@
     "build/process-project-starfall-ai-item-icons.js",
     "build/process-project-starfall-card-icons.js",
     "build/process-project-starfall-skill-icons.js",
+    "build/generate-project-starfall-combat-fx.js",
     "build/process-project-starfall-ai-skill-fx.js",
     "build/process-project-starfall-environment-imagegen-assets.js",
     "build/process-project-starfall-map-backgrounds.js",

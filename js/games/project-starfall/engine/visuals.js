@@ -654,6 +654,25 @@
       : 0.35;
     const resolvedDuration = Math.max(0.01, Number(duration || fallbackDuration) || fallbackDuration);
     const elapsed = clamp(resolvedDuration - Number(ttl || 0), 0, resolvedDuration);
+    if (frameDef && frameDef.loop === false) {
+      const frameCount = Math.max(1, Math.floor(Number(frameDef.frames || 1) || 1));
+      const sequence = Array.isArray(frameDef.sequence) && frameDef.sequence.length
+        ? frameDef.sequence
+        : null;
+      const stepCount = sequence ? sequence.length : frameCount;
+      const progress = clamp(elapsed / resolvedDuration, 0, 0.999999);
+      const stepIndex = Math.min(stepCount - 1, Math.floor(progress * stepCount + 1e-7));
+      const frameIndex = sequence
+        ? clamp(Math.floor(Number(sequence[stepIndex] || 0) || 0), 0, frameCount - 1)
+        : Math.min(frameCount - 1, stepIndex);
+      return {
+        sheet: animation.sheet,
+        row: Number(frameDef.row || 0),
+        frameIndex,
+        frameWidth: Number(animation.frameWidth || 160),
+        frameHeight: Number(animation.frameHeight || 160)
+      };
+    }
     if (typeof settings.createCombatFxAnimationFrame === 'function') {
       return settings.createCombatFxAnimationFrame(animation, stateId, elapsed);
     }
@@ -663,7 +682,7 @@
   function getEffectCombatFxState(effect, fallback) {
     if (!effect) return fallback || 'impact';
     if (effect.combatFxState) return effect.combatFxState;
-    if (effect.type === 'skillCast' || effect.type === 'cast' || effect.type === 'arrowRelease') return 'cast';
+    if (effect.type === 'skillCast' || effect.type === 'cast' || effect.type === 'arrowRelease' || effect.type === 'partyBuff') return 'cast';
     if (effect.type === 'skillArea' || effect.type === 'field' || effect.type === 'shockBurst') return 'area';
     if (effect.type === 'slash') return effect.enemyFxId ? 'melee' : 'trail';
     if (effect.type === 'bossPhase' || effect.type === 'telegraph') return 'telegraph';
@@ -706,13 +725,23 @@
     };
   }
 
-  function createEffectCombatFxDrawState(effect, state) {
+  function createEffectCombatFxDrawState(effect, state, options) {
     if (!effect || effect.type === 'chainLine') return null;
+    const settings = options || {};
     const duration = Math.max(0.01, Number(effect.duration || effect.ttl || 0.36));
     const ttl = Number(effect.ttl || 0);
-    const alpha = clamp(ttl / duration, 0, 1);
+    const lifeRatio = clamp(ttl / duration, 0, 1);
     const radius = Math.max(18, Number(effect.r || effect.radius || 42));
     const resolvedState = state || getEffectCombatFxState(effect);
+    const frameDef = settings.frameDef || null;
+    const oneShot = frameDef
+      ? frameDef.loop === false
+      : resolvedState === 'cast' || resolvedState === 'impact' || resolvedState === 'trail' || resolvedState === 'melee';
+    const frameCount = Math.max(1, Math.floor(Number(frameDef && frameDef.frames || 6) || 6));
+    const fadeWindow = 1 / frameCount;
+    const fadeAlpha = oneShot ? clamp(lifeRatio / fadeWindow, 0, 1) : lifeRatio;
+    const baseAlpha = effect.alpha == null ? 1 : clamp(Number(effect.alpha), 0, 1);
+    const alpha = baseAlpha * fadeAlpha;
     const size = resolvedState === 'area'
       ? Math.max(124, radius * 2.15)
       : resolvedState === 'melee' || resolvedState === 'trail'
@@ -722,7 +751,9 @@
       state: resolvedState,
       duration,
       ttl,
+      lifeRatio,
       alpha,
+      oneShot,
       radius,
       size,
       elapsed: Number.isFinite(Number(effect.visualAge)) ? Number(effect.visualAge) : null,

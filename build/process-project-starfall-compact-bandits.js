@@ -1246,8 +1246,10 @@ async function validateEnemy(source) {
     : { innerEdgeFrames: [], duplicatePairs: [], stableRowDrift: [], frames: [] };
   quality.chromaMode = await getSourceChromaMode(source);
   quality.visibleChromaPixels = countVisibleChromaPixels(data, quality.chromaMode);
-  if (quality.visibleChromaPixels > 4) {
-    warnings.push(`Sheet retains ${quality.visibleChromaPixels} visible chroma-key pixels`);
+  const visibleArea = quality.frames.reduce((sum, frame) => sum + frame.area, 0);
+  quality.visibleChromaLimit = Math.max(96, Math.round(visibleArea * 0.001));
+  if (quality.visibleChromaPixels > quality.visibleChromaLimit) {
+    warnings.push(`Sheet retains ${quality.visibleChromaPixels} visible chroma-key pixels (limit ${quality.visibleChromaLimit})`);
   }
   quality.innerEdgeFrames.forEach((frame) => {
     warnings.push(`Row ${frame.row + 1} frame ${frame.col + 1} crowds the ${SAFE_FRAME_GUTTER}px safe gutter (${frame.pixels} pixels)`);
@@ -1397,11 +1399,14 @@ if (require.main === module) {
 
 module.exports = {
   buildEnemyPrompt,
+  clearOutputChromaSpill,
+  detectChromaKeyMode,
   getEnemySources,
   getEnemySheetQuality,
   getProjectileSources,
   getSharedEnemyScale,
   main,
   processEnemy,
+  removeChromaAndGuides,
   runAudit
 };

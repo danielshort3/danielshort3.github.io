@@ -2646,7 +2646,12 @@
         const type = String(effect.type || '');
         const color = colorToNumber(effect.color, type === 'shockBurst' ? 0x7bdff2 : type === 'field' ? 0x68d58d : 0xffd166);
         const ttl = Math.max(0, Number(effect.ttl || effect.life || 0));
-        const alpha = clamp(Number(effect.alpha == null ? 0.7 : effect.alpha) * (ttl ? clamp(ttl, 0.18, 1) : 1), 0, 1);
+        const duration = Math.max(0.01, Number(effect.duration || effect.baseDuration || ttl || 1));
+        const lifeRatio = ttl > 0 ? clamp(ttl / duration, 0, 1) : 1;
+        const combatFxDrawState = effect.combatFxDrawState || null;
+        const alpha = combatFxDrawState
+          ? clamp(Number(combatFxDrawState.alpha || 0), 0, 1)
+          : clamp(Number(effect.alpha == null ? 0.7 : effect.alpha) * lifeRatio, 0, 1);
         const x = Number(effect.x || 0);
         const y = Number(effect.y || 0);
         const isRuneFieldEffect = type === 'field' && effect.runeField;
@@ -2659,14 +2664,18 @@
         if (effect.animationFrame && type !== 'chainLine') {
           const texture = this.getFrameTexture(effect.animationFrame);
           if (texture) {
-            const radius = Math.max(18, Number(effect.r || effect.radius || 42));
-            const size = type === 'skillArea' || type === 'field'
-              ? Math.max(124, radius * 2.15)
-              : type === 'slash' || type === 'impact'
-                ? Math.max(96, radius * 2.2)
-                : Math.max(86, radius * 1.85);
+            const radius = combatFxDrawState
+              ? Number(combatFxDrawState.radius || 42)
+              : Math.max(18, Number(effect.r || effect.radius || 42));
+            const size = combatFxDrawState
+              ? Number(combatFxDrawState.size || 86)
+              : type === 'skillArea' || type === 'field'
+                ? Math.max(124, radius * 2.15)
+                : type === 'slash' || type === 'impact'
+                  ? Math.max(96, radius * 2.2)
+                  : Math.max(86, radius * 1.85);
             this.drawTexture('vfx', texture, x, y, size, size, {
-              alpha: Math.max(0.18, alpha),
+              alpha,
               blendMode: 'add',
               flipX: Number(effect.facing || 1) < 0
             });

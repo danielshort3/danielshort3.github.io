@@ -6749,7 +6749,7 @@ try {
       engineVisualsCode.includes('function getEffectCombatFxState(effect, fallback)') &&
       engineVisualsCode.includes('function getProjectileCombatFxSize(projectile)') &&
       engineVisualsCode.includes('function createProjectileCombatFxDrawState(projectile, options)') &&
-      engineVisualsCode.includes('function createEffectCombatFxDrawState(effect, state)') &&
+      engineVisualsCode.includes('function createEffectCombatFxDrawState(effect, state, options)') &&
       engineVisualsCode.includes('function createFxAnimationDrawState(effect, animation, options)') &&
       engineVisualsCode.includes('function createLootPickupEffectDrawState(effect)') &&
       engineVisualsCode.includes('function createUpgradeResultEffectDrawState(effect)') &&
@@ -9516,11 +9516,17 @@ try {
     const activeCombatSkills = data.SKILLS.filter((skill) => skill.category !== 'passive');
     const playerFrameCounts = { run: 6, jump: 6, fall: 6, climb: 6, basic: 6, skill: 6 };
     const fighterRig = data.PLAYER_RIGS && data.PLAYER_RIGS.fighter;
-    const assertEffectLoopDelay = (animation, states, label) => {
+    const assertEffectLoopDelay = (animation, states, label, oneShotStates = []) => {
+      const oneShot = new Set(oneShotStates);
       states.forEach((stateId) => {
         const state = animation && animation.states && animation.states[stateId];
+        if (oneShot.has(stateId)) {
+          assert(state && state.loop === false && Number(state.loopDelay || 0) === 0,
+            `${label} ${stateId} effect animation should play once without a loop delay`);
+          return;
+        }
         assert(state && state.loop === true && Number(state.loopDelay || 0) > 0,
-          `${label} ${stateId} effect animation should loop with a short delay`);
+          `${label} ${stateId} looping effect animation should include a short delay`);
       });
     };
     const assertAnimationStates = (animation, states, label, expectedFrameCounts, expectedFrameSize = 160) => {
@@ -9566,15 +9572,15 @@ try {
     assertEffectLoopDelay(data.ENEMY_PROJECTILE_ANIMATION_ASSETS.banditThrower, ['projectile'], 'Enemy projectile FX banditThrower');
     activeCombatSkills.forEach((skill) => {
       assertAnimationStates(data.SKILL_FX_ANIMATION_ASSETS[skill.id], requiredSkillFxAnimationRows, `Skill combat FX ${skill.id}`);
-      assertEffectLoopDelay(data.SKILL_FX_ANIMATION_ASSETS[skill.id], requiredSkillFxAnimationRows, `Skill combat FX ${skill.id}`);
+      assertEffectLoopDelay(data.SKILL_FX_ANIMATION_ASSETS[skill.id], requiredSkillFxAnimationRows, `Skill combat FX ${skill.id}`, ['cast', 'impact']);
     });
     Object.entries(data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {}).forEach(([classId, animation]) => {
       assertAnimationStates(animation, requiredBasicAttackFxAnimationRows, `Basic attack combat FX ${classId}`);
-      assertEffectLoopDelay(animation, requiredBasicAttackFxAnimationRows, `Basic attack combat FX ${classId}`);
+      assertEffectLoopDelay(animation, requiredBasicAttackFxAnimationRows, `Basic attack combat FX ${classId}`, ['cast', 'impact', 'trail']);
     });
     data.ENEMIES.forEach((enemy) => {
       assertAnimationStates(data.ENEMY_COMBAT_FX_ANIMATION_ASSETS[enemy.id], requiredEnemyCombatFxAnimationRows, `Enemy combat FX ${enemy.id}`);
-      assertEffectLoopDelay(data.ENEMY_COMBAT_FX_ANIMATION_ASSETS[enemy.id], requiredEnemyCombatFxAnimationRows, `Enemy combat FX ${enemy.id}`);
+      assertEffectLoopDelay(data.ENEMY_COMBAT_FX_ANIMATION_ASSETS[enemy.id], requiredEnemyCombatFxAnimationRows, `Enemy combat FX ${enemy.id}`, ['melee', 'impact']);
     });
     assert(combatFxGeneratorCode.includes('--only all') &&
       combatFxGeneratorCode.includes('process-project-starfall-ai-skill-fx.js') &&
@@ -29378,9 +29384,9 @@ try {
 	      uiCode.includes('const minimapPartyMembers = snapshot.minimapPartyMembers') &&
       uiCode.includes('member.classColor ||') &&
       engineCode.includes('shouldShowDamageSplat(target, amount, options)') &&
-      engineCode.includes("const enemyGrounded = enemy.data.behavior !== 'flyer';") &&
-      engineCode.includes('const drawY = enemyGrounded') &&
-      engineCode.includes('? y + enemy.h - drawHeight - 2') &&
+      engineCode.includes('const renderBox = createEnemySpriteRenderBox(enemy);') &&
+      engineCode.includes('const drawX = renderBox.x;') &&
+      engineCode.includes('const drawY = renderBox.y;') &&
       engineViewportCode.includes('const DEFAULT_WORLD_ZOOM = 1.32') &&
       engineCode.includes('getWorldViewWidth(width)') &&
       engineCode.includes('getWorldViewHeight(height)') &&
@@ -33200,7 +33206,7 @@ try {
       engineVisualsCode.includes('function getEffectCombatFxState(effect, fallback)') &&
       engineVisualsCode.includes('function getProjectileCombatFxSize(projectile)') &&
       engineVisualsCode.includes('function createProjectileCombatFxDrawState(projectile, options)') &&
-      engineVisualsCode.includes('function createEffectCombatFxDrawState(effect, state)') &&
+      engineVisualsCode.includes('function createEffectCombatFxDrawState(effect, state, options)') &&
       engineVisualsCode.includes('function createFxAnimationDrawState(effect, animation, options)') &&
       engineVisualsCode.includes('function createLootPickupEffectDrawState(effect)') &&
       engineVisualsCode.includes('function createUpgradeResultEffectDrawState(effect)') &&
@@ -36986,7 +36992,8 @@ try {
     };
     activeCombatSkills.forEach((skill) => {
       const png = assertCombatFxSheet(data.SKILL_FX_ANIMATION_ASSETS[skill.id], ['cast', 'projectile', 'impact', 'area'], `Skill ${skill.id}`);
-      assert(!visiblePngHasDarkGreenChroma(png), `Skill ${skill.id} combat FX should not keep dark chroma-key squares`);
+      assert(!visiblePngHasNeonGreen(png) && !visiblePngHasMagentaChroma(png),
+        `Skill ${skill.id} combat FX should not keep visible green or magenta chroma-key pixels`);
     });
     Object.entries(data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {}).forEach(([classId, animation]) => {
       const png = assertCombatFxSheet(animation, ['cast', 'projectile', 'impact', 'trail'], `Basic ${classId}`);
