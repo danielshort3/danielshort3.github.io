@@ -255,6 +255,7 @@
     const startY = player.y + player.h / 2;
     const hitOffset = Number(effect.hitOffset || Math.max(78, distance * 0.48));
     return {
+      skillId: String(skill.id || ''),
       effect,
       direction,
       preservesAirMomentum,
@@ -280,7 +281,10 @@
       x: movementApplication.startX,
       y: movementApplication.startY,
       r: 44,
-      ttl: 0.28
+      ttl: 0.28,
+      duration: 0.28,
+      skillId: movementApplication.skillId || '',
+      combatFxState: 'cast'
     };
   }
 
@@ -290,7 +294,9 @@
       x: player.x + player.w / 2,
       y: player.y + player.h / 2,
       r: 58,
-      ttl: 0.32
+      ttl: 0.32,
+      duration: 0.32,
+      combatFxState: 'impact'
     };
   }
 
@@ -375,7 +381,9 @@
         yOffset: skillId.includes('blink') ? 28 : 34,
         r: Number(effect.damageRadius || 74),
         ttl: 0.28,
-        duration: 0.28
+        duration: 0.28,
+        skillId,
+        combatFxState: skillId.includes('roll') || skillId.includes('blink') ? 'cast' : 'impact'
       }
     };
   }

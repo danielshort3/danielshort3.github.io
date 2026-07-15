@@ -63,7 +63,10 @@
       collectAnimationBackupPaths(paths, settings.BASIC_ATTACK_FX_ANIMATION_ASSETS);
       collectAnimationBackupPaths(paths, settings.ENEMY_COMBAT_FX_ANIMATION_ASSETS);
       collectAnimationBackupPaths(paths, settings.ENEMY_PROJECTILE_ANIMATION_ASSETS);
-      collectAnimationBackupPaths(paths, settings.SKILL_FX_ANIMATION_ASSETS);
+      // Skill FX sheets are deterministic outputs of the semantic combat-FX
+      // generator. Do not advertise the legacy procedural copies: production
+      // intentionally excludes that folder, so its fallback URLs cannot recover
+      // a failed primary request.
       collectAnimationBackupPaths(paths, settings.PORTAL_ANIMATION_ASSETS);
       return paths;
     })());

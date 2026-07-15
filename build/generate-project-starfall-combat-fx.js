@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const sharp = require('sharp');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -11,6 +12,19 @@ const { processSkillFxSheets } = require('./process-project-starfall-ai-skill-fx
 
 const DEFAULT_FRAME_SIZE = 160;
 const DEFAULT_FRAMES = 6;
+const SKILL_FRAME_GUTTER = 8;
+const SKILL_CONTENT_SCALE = 0.82;
+const SKILL_CONTENT_OFFSET = DEFAULT_FRAME_SIZE * (1 - SKILL_CONTENT_SCALE) / 2;
+const SKILL_SOURCE_DIR = path.join(ROOT, 'img/project-starfall/animations/combat-fx/skills/source');
+const SKILL_ACTION_PROFILES = Object.freeze([
+  'melee',
+  'mobility',
+  'guard',
+  'buff',
+  'projectile',
+  'trap',
+  'area'
+]);
 
 const CLASS_PALETTES = Object.freeze({
   fighter: Object.freeze({ color: '#f25f4c', accent: '#ffd166' }),
@@ -49,6 +63,23 @@ function getOnlyMode(args) {
   return 'all';
 }
 
+function getArgValue(args, flag) {
+  const equalsArg = args.find((arg) => String(arg || '').startsWith(`${flag}=`));
+  if (equalsArg) return equalsArg.split('=').slice(1).join('=').trim();
+  const index = args.indexOf(flag);
+  return index >= 0 ? String(args[index + 1] || '').trim() : '';
+}
+
+function normalizeId(value) {
+  return String(value || '')
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/[_\s]+/g, '-')
+    .replace(/[^a-z0-9-]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+}
+
 function normalizeMode(mode) {
   const value = String(mode || '').trim().toLowerCase();
   if (!value || value === 'all' || value === '*') return 'all';
@@ -59,9 +90,9 @@ function normalizeMode(mode) {
 
 function usage() {
   return [
-    'Usage: node build/generate-project-starfall-combat-fx.js --only all',
+    'Usage: node build/generate-project-starfall-combat-fx.js --only all [--skill <skill-id>]',
     'Modes: --only all, --only skills, --only basic, --only enemies',
-    'Skill FX sheets are source-backed by build/process-project-starfall-ai-skill-fx.js.'
+    'Dedicated skill sources take priority; remaining skills use deterministic semantic profiles.'
   ].join('\n');
 }
 
@@ -148,13 +179,63 @@ function enemyPalette(enemy) {
   return ENEMY_PALETTES.default;
 }
 
-function skillPalette(skill) {
+function skillPalette(skill, identity) {
   const visual = skill && skill.visualId && Data.SKILL_VISUALS && Data.SKILL_VISUALS[skill.visualId];
   const classPalette = CLASS_PALETTES[skill && skill.owner] || CLASS_PALETTES.fighter;
+  const baseColor = visual && visual.color || classPalette.color;
+  const baseAccent = visual && visual.accent || classPalette.accent;
+  const seed = Number(identity && identity.seed || 0);
+  const colorMix = 0.025 + (seed % 7) * 0.008;
+  const accentMix = 0.02 + ((seed >>> 5) % 6) * 0.007;
   return {
-    color: visual && visual.color || classPalette.color,
-    accent: visual && visual.accent || classPalette.accent
+    color: mixHex(baseColor, seed & 1 ? baseAccent : '#ffffff', colorMix),
+    accent: mixHex(baseAccent, seed & 2 ? baseColor : '#ffffff', accentMix)
   };
+}
+
+function inferSkillActionProfile(skill) {
+  const id = String(skill && skill.id || '').toLowerCase();
+  const type = String(skill && skill.type || '').toLowerCase();
+  const purpose = String(skill && skill.purpose || '').toLowerCase();
+  const roleTags = Array.isArray(skill && skill.roleTags) ? skill.roleTags : [];
+  const targetingMode = String(skill && skill.targeting && skill.targeting.mode || '').toLowerCase();
+
+  if (skill && skill.movementEffect || skill && skill.category === 'mobility' || /\b(mobility|movement)\b/.test(type)) return 'mobility';
+  if (/snare_trap|spike_trap|tripwire|trapper_detonate|kill_zone|tactical_field/.test(id)) return 'trap';
+  if (targetingMode === 'projectile' || targetingMode === 'chain' || /shot|arrow|bolt|fireball/.test(id)) return 'projectile';
+  if (/fighter_guard|shield|barrier|oath|impact_guard|retaliation|last_stand/.test(id) || /\bdefense\b/.test(type)) return 'guard';
+  if (skill && skill.category === 'buff' || /\bbuff\b|\bparty\b|\bstance\b|\bsustain\b/.test(type)) return 'buff';
+  if (/\barea\b|\bburst\b|\bfinisher\b|\bresource\b/.test(type) ||
+    purpose === 'mobbing' || purpose === 'finisher' || purpose === 'resource' ||
+    roleTags.includes('Mobbing') || /slam|burst|wildfire|circle|glyph|wave|detonation|cleave/.test(id)) return 'area';
+  return 'melee';
+}
+
+function buildSkillFxIdentityMap(skillIds) {
+  const ids = Array.from(new Set((skillIds || []).map((id) => String(id || '')).filter(Boolean))).sort();
+  const identities = new Map();
+  const usedSeeds = new Set();
+  ids.forEach((skillId) => {
+    let seed = hashString(`project-starfall:skill-fx:${skillId}`);
+    while (usedSeeds.has(seed)) seed = (seed + 0x9e3779b9) >>> 0;
+    usedSeeds.add(seed);
+    identities.set(skillId, Object.freeze({
+      seed,
+      phase: ((seed >>> 7) % 360) * Math.PI / 180,
+      signatureSides: 3 + ((seed >>> 13) % 6),
+      signatureInset: 22 + ((seed >>> 19) % 11)
+    }));
+  });
+  return identities;
+}
+
+function getSkillSourcePath(entry) {
+  return path.join(SKILL_SOURCE_DIR, path.basename(entry && entry.animation && entry.animation.sheet || ''));
+}
+
+function hasDedicatedSkillSource(entry) {
+  const sourcePath = getSkillSourcePath(entry);
+  return !!path.basename(sourcePath) && fs.existsSync(sourcePath);
 }
 
 function inferMotif(meta) {
@@ -373,6 +454,119 @@ function drawBuff(row, frame, frames, palette, motif, seed) {
   return parts.join('');
 }
 
+function drawActionProfileSignature(profile, rowId, frame, frames, palette, identity) {
+  const p = frame / Math.max(1, frames - 1);
+  const pulse = Math.sin(p * Math.PI);
+  const seed = Number(identity && identity.seed || 0);
+  const phase = Number(identity && identity.phase || 0);
+  const opacity = (0.28 + pulse * 0.38).toFixed(2);
+  const parts = [];
+
+  if (profile === 'melee') {
+    parts.push(pathShape(`M35 ${112 - pulse * 28} Q80 ${34 + (seed % 9)} 129 ${102 + pulse * 8}`, {
+      fill: 'none', stroke: palette.accent, 'stroke-width': 5, 'stroke-linecap': 'round', 'stroke-opacity': opacity
+    }));
+  } else if (profile === 'mobility') {
+    for (let index = 0; index < 3; index += 1) {
+      const y = 58 + index * 24 + Math.sin(phase + index + p * Math.PI * 2) * 5;
+      parts.push(pathShape(`M${25 + index * 5} ${y.toFixed(1)} L${91 + pulse * 18} ${y.toFixed(1)} L${78 + pulse * 15} ${(y - 10).toFixed(1)} M${91 + pulse * 18} ${y.toFixed(1)} L${78 + pulse * 15} ${(y + 10).toFixed(1)}`, {
+        fill: 'none', stroke: index === 1 ? palette.accent : palette.color, 'stroke-width': 3 + index, 'stroke-linecap': 'round', 'stroke-opacity': opacity
+      }));
+    }
+  } else if (profile === 'guard') {
+    parts.push(pathShape('M80 30 L119 50 L109 106 Q80 136 51 106 L41 50 Z', {
+      fill: palette.color, 'fill-opacity': 0.08 + pulse * 0.1, stroke: palette.accent, 'stroke-width': 4, 'stroke-opacity': opacity
+    }));
+  } else if (profile === 'buff') {
+    const rayCount = 5 + (seed % 4);
+    for (let index = 0; index < rayCount; index += 1) {
+      const angle = phase + index / rayCount * Math.PI * 2;
+      const inner = 31 + pulse * 7;
+      const outer = 51 + pulse * 11;
+      parts.push(pathShape(`M${(80 + Math.cos(angle) * inner).toFixed(1)} ${(82 + Math.sin(angle) * inner).toFixed(1)} L${(80 + Math.cos(angle) * outer).toFixed(1)} ${(82 + Math.sin(angle) * outer).toFixed(1)}`, {
+        fill: 'none', stroke: index % 2 ? palette.accent : palette.color, 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-opacity': opacity
+      }));
+    }
+  } else if (profile === 'projectile') {
+    parts.push(pathShape(`M24 ${82 + Math.sin(phase + p * Math.PI * 2) * 5} L136 82`, {
+      fill: 'none', stroke: palette.accent, 'stroke-width': rowId === 'projectile' ? 3 : 2, 'stroke-dasharray': '9 12', 'stroke-opacity': opacity
+    }));
+  } else if (profile === 'trap') {
+    const teeth = 5 + (seed % 3);
+    const points = [];
+    for (let index = 0; index < teeth; index += 1) {
+      const x = 42 + index * (76 / Math.max(1, teeth - 1));
+      points.push([x, index % 2 ? 118 : 91 - pulse * 8]);
+    }
+    parts.push(polygon(points, { fill: 'none', stroke: palette.accent, 'stroke-width': 4, 'stroke-linejoin': 'round', 'stroke-opacity': opacity }));
+  } else if (profile === 'area') {
+    parts.push(shape('ellipse', { cx: 80, cy: 110, rx: 54 + pulse * 12, ry: 16 + pulse * 6, fill: 'none', stroke: palette.accent, 'stroke-width': 4, 'stroke-opacity': opacity }));
+    parts.push(shape('ellipse', { cx: 80, cy: 110, rx: 34 + pulse * 8, ry: 9 + pulse * 4, fill: 'none', stroke: palette.color, 'stroke-width': 3, 'stroke-opacity': opacity }));
+  }
+
+  const sides = Math.max(3, Number(identity && identity.signatureSides || 5));
+  const signatureRadius = Math.max(18, Number(identity && identity.signatureInset || 26));
+  const signaturePoints = [];
+  for (let index = 0; index < sides; index += 1) {
+    const angle = phase + p * Math.PI * 0.75 + index / sides * Math.PI * 2;
+    signaturePoints.push([
+      (80 + Math.cos(angle) * signatureRadius).toFixed(1),
+      (82 + Math.sin(angle) * signatureRadius).toFixed(1)
+    ]);
+  }
+  parts.push(polygon(signaturePoints, {
+    fill: 'none', stroke: palette.color, 'stroke-width': 2, 'stroke-dasharray': `${3 + seed % 5} ${5 + (seed >>> 4) % 6}`, 'stroke-opacity': (0.2 + pulse * 0.24).toFixed(2)
+  }));
+  return parts.join('');
+}
+
+function drawSkillFrame(profile, rowId, frame, state, palette, motif, seed, identity) {
+  const frames = Math.max(1, Number(state.frames || DEFAULT_FRAMES));
+  let core = '';
+  if (profile === 'melee') {
+    core = rowId === 'cast' || rowId === 'projectile'
+      ? drawTrail(rowId, frame, frames, palette, motif, seed)
+      : rowId === 'area'
+        ? drawArea(rowId, frame, frames, palette, motif, seed)
+        : drawImpact(rowId, frame, frames, palette, motif, seed);
+  } else if (profile === 'mobility') {
+    core = rowId === 'impact'
+      ? drawImpact(rowId, frame, frames, palette, motif, seed)
+      : rowId === 'area'
+        ? drawArea(rowId, frame, frames, palette, motif, seed)
+        : drawTrail(rowId, frame, frames, palette, motif, seed);
+  } else if (profile === 'guard') {
+    core = rowId === 'cast'
+      ? drawCast(rowId, frame, frames, palette, 'shield', seed)
+      : rowId === 'area'
+        ? drawBuff(rowId, frame, frames, palette, 'shield', seed)
+        : rowId === 'projectile'
+          ? drawProjectile(rowId, frame, frames, palette, 'shield', seed)
+          : drawImpact(rowId, frame, frames, palette, 'shield', seed);
+  } else if (profile === 'buff') {
+    core = rowId === 'projectile'
+      ? drawCast(rowId, frame, frames, palette, motif, seed)
+      : drawBuff(rowId, frame, frames, palette, motif, seed);
+  } else if (profile === 'trap') {
+    core = rowId === 'area'
+      ? drawArea(rowId, frame, frames, palette, 'trap', seed)
+      : rowId === 'impact'
+        ? drawImpact(rowId, frame, frames, palette, 'trap', seed)
+        : rowId === 'projectile'
+          ? drawProjectile(rowId, frame, frames, palette, 'trap', seed)
+          : drawCast(rowId, frame, frames, palette, 'trap', seed);
+  } else if (profile === 'area') {
+    core = rowId === 'area'
+      ? drawArea(rowId, frame, frames, palette, motif, seed)
+      : rowId === 'impact'
+        ? drawImpact(rowId, frame, frames, palette, motif, seed)
+        : drawCast(rowId, frame, frames, palette, motif, seed);
+  } else {
+    core = drawFrame(rowId, frame, state, palette, motif, seed);
+  }
+  return core + drawActionProfileSignature(profile, rowId, frame, frames, palette, identity);
+}
+
 function drawFrame(rowId, frame, state, palette, motif, seed) {
   const frames = Math.max(1, Number(state.frames || DEFAULT_FRAMES));
   if (rowId === 'cast') return drawCast(rowId, frame, frames, palette, motif, seed);
@@ -399,8 +593,12 @@ function makeSheetSvg(entry) {
   const frames = Math.max(DEFAULT_FRAMES, ...rows.map(([, state]) => Number(state.frames || DEFAULT_FRAMES)));
   const width = frameSize * frames;
   const height = frameHeight * rows.length;
-  const seed = hashString(`${entry.kind}:${entry.id}`);
+  const identity = entry.identity || Object.freeze({ seed: hashString(`${entry.kind}:${entry.id}`) });
+  const seed = Number(identity.seed || hashString(`${entry.kind}:${entry.id}`));
   const motif = inferMotif(entry.meta || {});
+  const profile = entry.profile || '';
+  const contentScale = entry.kind === 'skill' ? SKILL_CONTENT_SCALE : 1;
+  const contentOffset = entry.kind === 'skill' ? SKILL_CONTENT_OFFSET : 0;
   const palette = {
     color: entry.palette.color,
     accent: entry.palette.accent
@@ -412,12 +610,14 @@ function makeSheetSvg(entry) {
     const rowFrames = Math.max(1, Number(state.frames || DEFAULT_FRAMES));
     for (let frame = 0; frame < frames; frame += 1) {
       const stateFrame = Math.min(rowFrames - 1, frame);
-      const x = frame * frameSize;
-      const y = rowIndex * frameHeight;
+      const x = frame * frameSize + contentOffset;
+      const y = rowIndex * frameHeight + contentOffset;
       const frameSeed = seed + rowIndex * 101 + frame * 37;
-	      parts.push(`<g transform="translate(${x} ${y})">`);
+	      parts.push(`<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${contentScale})">`);
 	      parts.push(shape('ellipse', { cx: 80, cy: 124, rx: 52, ry: 12, fill: mixHex(palette.color, '#000000', 0.25), 'fill-opacity': 0.08 }));
-	      parts.push(drawFrame(rowId, stateFrame, state, palette, motif, frameSeed));
+	      parts.push(entry.kind === 'skill'
+	        ? drawSkillFrame(profile, rowId, stateFrame, state, palette, motif, frameSeed, identity)
+	        : drawFrame(rowId, stateFrame, state, palette, motif, frameSeed));
 	      parts.push(drawMotifSignature(motif, rowId, stateFrame, rowFrames, palette, frameSeed));
 	      parts.push('</g>');
     }
@@ -435,14 +635,19 @@ function buildEntries() {
     enemies[enemy.id] = enemy;
     return enemies;
   }, {}));
+  const skillIds = Object.keys(Data.SKILL_FX_ANIMATION_ASSETS || {});
+  const skillIdentities = buildSkillFxIdentityMap(skillIds);
   const skillEntries = Object.entries(Data.SKILL_FX_ANIMATION_ASSETS || {}).map(([id, animation]) => {
     const skill = skillsById[id] || {};
+    const identity = skillIdentities.get(id);
     return {
       kind: 'skill',
       id,
       animation,
       meta: Object.assign({}, skill, { visualKind: skill.visualId && Data.SKILL_VISUALS && Data.SKILL_VISUALS[skill.visualId] && Data.SKILL_VISUALS[skill.visualId].kind || '' }),
-      palette: skillPalette(skill)
+      profile: inferSkillActionProfile(skill),
+      identity,
+      palette: skillPalette(skill, identity)
     };
   });
   const basicEntries = Object.entries(Data.BASIC_ATTACK_FX_ANIMATION_ASSETS || {}).map(([id, animation]) => ({
@@ -465,48 +670,264 @@ function buildEntries() {
   return { skills: skillEntries, basic: basicEntries, enemies: enemyEntries };
 }
 
-async function writeEntry(entry) {
-  const outputPath = path.join(ROOT, entry.animation.sheet);
-  ensureDir(outputPath);
+function clearTransparentRgb(data) {
+  for (let offset = 0; offset < data.length; offset += 4) {
+    if (data[offset + 3] !== 0) continue;
+    data[offset] = 0;
+    data[offset + 1] = 0;
+    data[offset + 2] = 0;
+  }
+  return data;
+}
+
+function clearNegligibleChromaArtifacts(data) {
+  const keys = [[0, 255, 0], [255, 0, 255]];
+  for (let offset = 0; offset < data.length; offset += 4) {
+    const alpha = data[offset + 3];
+    if (alpha > 8) continue;
+    const matchesKey = keys.some((key) => {
+      const red = data[offset] - key[0];
+      const green = data[offset + 1] - key[1];
+      const blue = data[offset + 2] - key[2];
+      return red * red + green * green + blue * blue <= 48 * 48;
+    });
+    if (!matchesKey) continue;
+    data[offset] = 0;
+    data[offset + 1] = 0;
+    data[offset + 2] = 0;
+    data[offset + 3] = 0;
+  }
+  return data;
+}
+
+function validateSemanticSheetData(data, width, height, label = 'semantic skill FX sheet') {
+  const expectedWidth = DEFAULT_FRAME_SIZE * DEFAULT_FRAMES;
+  const expectedHeight = DEFAULT_FRAME_SIZE * 4;
+  if (width !== expectedWidth || height !== expectedHeight) {
+    throw new Error(`${label} should be ${expectedWidth}x${expectedHeight}, got ${width}x${height}`);
+  }
+  let transparentRgbPixels = 0;
+  const frameHashes = new Map();
+  const frames = [];
+  for (let offset = 0; offset < data.length; offset += 4) {
+    if (data[offset + 3] === 0 && (data[offset] || data[offset + 1] || data[offset + 2])) transparentRgbPixels += 1;
+  }
+  if (transparentRgbPixels) throw new Error(`${label} contains ${transparentRgbPixels} transparent pixel(s) with hidden RGB data`);
+
+  for (let row = 0; row < 4; row += 1) {
+    for (let column = 0; column < DEFAULT_FRAMES; column += 1) {
+      const frame = Buffer.alloc(DEFAULT_FRAME_SIZE * DEFAULT_FRAME_SIZE * 4);
+      let minX = DEFAULT_FRAME_SIZE;
+      let minY = DEFAULT_FRAME_SIZE;
+      let maxX = -1;
+      let maxY = -1;
+      let visiblePixels = 0;
+      for (let y = 0; y < DEFAULT_FRAME_SIZE; y += 1) {
+        const sourceStart = (((row * DEFAULT_FRAME_SIZE + y) * width) + column * DEFAULT_FRAME_SIZE) * 4;
+        const destinationStart = y * DEFAULT_FRAME_SIZE * 4;
+        data.copy(frame, destinationStart, sourceStart, sourceStart + DEFAULT_FRAME_SIZE * 4);
+        for (let x = 0; x < DEFAULT_FRAME_SIZE; x += 1) {
+          if (data[sourceStart + x * 4 + 3] === 0) continue;
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+          visiblePixels += 1;
+        }
+      }
+      const frameName = `row ${row + 1}, frame ${column + 1}`;
+      if (!visiblePixels) throw new Error(`${label} has an empty ${frameName}`);
+      if (minX < SKILL_FRAME_GUTTER || minY < SKILL_FRAME_GUTTER ||
+          maxX >= DEFAULT_FRAME_SIZE - SKILL_FRAME_GUTTER || maxY >= DEFAULT_FRAME_SIZE - SKILL_FRAME_GUTTER) {
+        throw new Error(`${label} ${frameName} violates the ${SKILL_FRAME_GUTTER}px safety gutter (${minX},${minY})-(${maxX},${maxY})`);
+      }
+      const hash = crypto.createHash('sha256').update(frame).digest('hex');
+      if (frameHashes.has(hash)) throw new Error(`${label} has duplicate frames: ${frameHashes.get(hash)} and ${frameName}`);
+      frameHashes.set(hash, frameName);
+      frames.push({ row, column, visiblePixels, minX, minY, maxX, maxY, hash });
+    }
+  }
+  return { frames, transparentRgbPixels };
+}
+
+async function renderEntryBuffer(entry) {
   const svg = makeSheetSvg(entry);
-  await sharp(Buffer.from(svg))
+  const { data, info } = await sharp(Buffer.from(svg))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  clearNegligibleChromaArtifacts(data);
+  clearTransparentRgb(data);
+  if (entry.kind === 'skill') {
+    validateSemanticSheetData(data, info.width, info.height, `generated skill FX ${entry.id}`);
+  }
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 }
+  })
     .png({ compressionLevel: 9, adaptiveFiltering: true })
-    .toFile(outputPath);
+    .toBuffer();
+}
+
+async function validateSkillFxBuffer(buffer, entryOrLabel) {
+  const { data, info } = await sharp(buffer)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const label = typeof entryOrLabel === 'string'
+    ? entryOrLabel
+    : `skill FX ${entryOrLabel && entryOrLabel.id || 'sheet'}`;
+  return validateSemanticSheetData(data, info.width, info.height, label);
+}
+
+function selectSkillEntries(entries, requestedIds) {
+  const requested = (Array.isArray(requestedIds) ? requestedIds : [requestedIds])
+    .map(normalizeId)
+    .filter(Boolean);
+  if (!requested.length) return entries.slice();
+  const requestedSet = new Set(requested);
+  const selected = entries.filter((entry) => {
+    const fileId = path.basename(entry.animation.sheet, path.extname(entry.animation.sheet));
+    return requestedSet.has(normalizeId(entry.id)) || requestedSet.has(normalizeId(fileId));
+  });
+  const matched = new Set();
+  selected.forEach((entry) => {
+    const normalizedId = normalizeId(entry.id);
+    const normalizedFileId = normalizeId(path.basename(entry.animation.sheet, path.extname(entry.animation.sheet)));
+    requested.forEach((id) => {
+      if (id === normalizedId || id === normalizedFileId) matched.add(id);
+    });
+  });
+  const unknown = requested.filter((id) => !matched.has(id));
+  if (unknown.length) throw new Error(`Unknown skill FX id(s): ${unknown.join(', ')}`);
+  return selected;
+}
+
+function outputPathFor(entry, outputDir) {
+  return outputDir
+    ? path.join(path.resolve(outputDir), path.basename(entry.animation.sheet))
+    : path.join(ROOT, entry.animation.sheet);
+}
+
+async function writeEntry(entry, options = {}) {
+  const outputPath = outputPathFor(entry, options.outputDir);
+  const buffer = await renderEntryBuffer(entry);
+  ensureDir(outputPath);
+  await fs.promises.writeFile(outputPath, buffer);
   return outputPath;
 }
 
-async function main() {
-  const mode = normalizeMode(getOnlyMode(process.argv.slice(2)));
+async function processSemanticSkillFx(options = {}) {
+  const allEntries = buildEntries().skills;
+  const selected = selectSkillEntries(allEntries, options.skillIds || options.skill || []);
+  const shouldWrite = options.write !== false;
+  const useDedicatedSources = shouldWrite && !options.outputDir && options.preferSources !== false;
+  const outputPaths = [];
+  const semanticBuffers = new Map();
+  const semanticHashes = new Map();
+
+  // Establish a deterministic semantic fallback for every selected skill first.
+  for (const entry of selected) {
+    const buffer = await renderEntryBuffer(entry);
+    const digest = crypto.createHash('sha256').update(buffer).digest('hex');
+    if (semanticHashes.has(digest)) {
+      throw new Error(`Semantic skill FX collision: ${semanticHashes.get(digest)} and ${entry.id}`);
+    }
+    semanticHashes.set(digest, entry.id);
+    semanticBuffers.set(entry.id, buffer);
+    const outputPath = outputPathFor(entry, options.outputDir);
+    outputPaths.push(outputPath);
+    if (shouldWrite) {
+      ensureDir(outputPath);
+      await fs.promises.writeFile(outputPath, buffer);
+    }
+  }
+
+  // A dedicated source may replace only its own semantic fallback, never a
+  // source-less sibling. This runs last so later build stages cannot erase it.
+  const sourceBacked = [];
+  if (useDedicatedSources) {
+    for (const entry of selected.filter(hasDedicatedSkillSource)) {
+      await processSkillFxSheets({ only: entry.id });
+      sourceBacked.push(entry.id);
+    }
+  }
+
+  const finalHashes = new Map();
+  for (let index = 0; index < selected.length; index += 1) {
+    const entry = selected[index];
+    const finalBuffer = shouldWrite
+      ? await fs.promises.readFile(outputPaths[index])
+      : semanticBuffers.get(entry.id);
+    await validateSkillFxBuffer(finalBuffer, entry);
+    const digest = crypto.createHash('sha256').update(finalBuffer).digest('hex');
+    if (finalHashes.has(digest)) {
+      throw new Error(`Final skill FX collision: ${finalHashes.get(digest)} and ${entry.id}`);
+    }
+    finalHashes.set(digest, entry.id);
+  }
+
+  return {
+    processed: selected.length,
+    generated: selected.length - sourceBacked.length,
+    sourceBacked: sourceBacked.length,
+    sourceBackedIds: sourceBacked,
+    outputPaths,
+    entries: selected,
+    buffers: options.returnBuffers ? semanticBuffers : undefined
+  };
+}
+
+async function main(argv = process.argv.slice(2)) {
+  if (argv.includes('--help') || argv.includes('-h')) {
+    console.log(usage());
+    return;
+  }
+  const mode = normalizeMode(getOnlyMode(argv));
+  const requestedSkill = getArgValue(argv, '--skill');
   const entries = buildEntries();
-  if (mode === 'skills') {
-    const result = await processSkillFxSheets();
-    console.log(`Processed ${result.validated} Project Starfall skill FX sheets; ${result.processed} source-backed sheet(s) written, ${result.missingSources} existing runtime sheet(s) reused.`);
+  if (requestedSkill || mode === 'skills') {
+    if (requestedSkill && mode !== 'all' && mode !== 'skills') {
+      throw new Error(`--skill cannot be combined with --only ${mode}`);
+    }
+    const result = await processSemanticSkillFx({ skill: requestedSkill });
+    console.log(`Generated ${result.processed} semantic Project Starfall skill FX sheet(s); ${result.sourceBacked} dedicated source sheet(s) applied last.`);
     return;
   }
   const selected = mode === 'all'
     ? entries.basic.concat(entries.enemies)
     : entries[mode];
-  if (!selected) {
-    console.error(`Unknown mode: ${mode}\n${usage()}`);
-    process.exitCode = 1;
-    return;
-  }
+  if (!selected) throw new Error(`Unknown mode: ${mode}\n${usage()}`);
+
   let skillResult = null;
-  if (mode === 'all') {
-    skillResult = await processSkillFxSheets();
-  }
-  let count = 0;
-  for (const entry of selected) {
-    await writeEntry(entry);
-    count += 1;
-  }
+  if (mode === 'all') skillResult = await processSemanticSkillFx();
+  for (const entry of selected) await writeEntry(entry);
   const skillSummary = skillResult
-    ? ` Processed ${skillResult.validated} skill FX sheets; ${skillResult.processed} source-backed sheet(s) written, ${skillResult.missingSources} existing runtime sheet(s) reused.`
+    ? ` Generated ${skillResult.processed} semantic skill FX sheets; ${skillResult.sourceBacked} dedicated source sheet(s) applied last.`
     : '';
-  console.log(`Generated ${count} Project Starfall combat FX sheets (${mode}).${skillSummary}`);
+  console.log(`Generated ${selected.length} Project Starfall combat FX sheets (${mode}).${skillSummary}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error && error.stack || error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  SKILL_ACTION_PROFILES,
+  SKILL_FRAME_GUTTER,
+  buildEntries,
+  buildSkillFxIdentityMap,
+  clearNegligibleChromaArtifacts,
+  hasDedicatedSkillSource,
+  inferSkillActionProfile,
+  main,
+  makeSheetSvg,
+  processSemanticSkillFx,
+  renderEntryBuffer,
+  selectSkillEntries,
+  validateSemanticSheetData,
+  validateSkillFxBuffer,
+  writeEntry
+};

@@ -1007,6 +1007,7 @@
   }))));
   const COMBAT_ACTION_LOCK_SECONDS = 0.1;
   const GLOBAL_COMBAT_ACTION_DELAY_SECONDS = 0.35;
+  const SKILL_FX_CONTACT_DELAY_SECONDS = 2 / 12;
   const BASIC_ATTACK_MOVEMENT_LOCK_SECONDS = 0.14;
   const COMBAT_METRICS_ROLLING_WINDOW_SECONDS = getEngineCombatMetricsValue('COMBAT_METRICS_ROLLING_WINDOW_SECONDS', 60);
   const ENEMY_COMBAT_HUD_SECONDS = 3;
@@ -2636,6 +2637,26 @@
       });
     } catch (error) {
       target.animationFrame = value;
+    }
+    return target;
+  }
+
+  function setTransientRendererCombatFxDrawState(target, drawState) {
+    if (!target || typeof target !== 'object') return target;
+    const value = drawState || null;
+    if (Object.prototype.hasOwnProperty.call(target, 'combatFxDrawState')) {
+      target.combatFxDrawState = value;
+      return target;
+    }
+    try {
+      Object.defineProperty(target, 'combatFxDrawState', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: false
+      });
+    } catch (error) {
+      target.combatFxDrawState = value;
     }
     return target;
   }
@@ -9057,6 +9078,7 @@
     const startY = player.y + player.h / 2;
     const hitOffset = Number(effect.hitOffset || Math.max(78, distance * 0.48));
     return {
+      skillId: String(skill.id || ''),
       effect,
       direction,
       preservesAirMomentum,
@@ -9082,7 +9104,10 @@
       x: movementApplication.startX,
       y: movementApplication.startY,
       r: 44,
-      ttl: 0.28
+      ttl: 0.28,
+      duration: 0.28,
+      skillId: movementApplication.skillId || '',
+      combatFxState: 'cast'
     };
   };
 
@@ -9092,7 +9117,9 @@
       x: player.x + player.w / 2,
       y: player.y + player.h / 2,
       r: 58,
-      ttl: 0.32
+      ttl: 0.32,
+      duration: 0.32,
+      combatFxState: 'impact'
     };
   };
 
@@ -9177,7 +9204,9 @@
         yOffset: skillId.includes('blink') ? 28 : 34,
         r: Number(effect.damageRadius || 74),
         ttl: 0.28,
-        duration: 0.28
+        duration: 0.28,
+        skillId,
+        combatFxState: skillId.includes('roll') || skillId.includes('blink') ? 'cast' : 'impact'
       }
     };
   };
@@ -10616,6 +10645,37 @@
       return this.assetLoadPromise;
     }
 
+    collectCurrentSkillFxAssetPaths(paths) {
+      const data = this.data || Data;
+      const player = this.state && this.state.player || {};
+      const ownerIds = new Set([
+        normalizeId(player.classId),
+        normalizeId(player.advancedClassId)
+      ].filter(Boolean));
+      const activeClass = player.advancedClassId && data.ADVANCED_CLASSES && data.ADVANCED_CLASSES[player.advancedClassId] || null;
+      const partySkillIds = new Set([
+        normalizeId(activeClass && activeClass.partySkillId)
+      ].filter(Boolean));
+      this.getActivePrototypePartyMembers().forEach((member) => {
+        const classId = normalizeId(member && member.classId);
+        const baseClassId = normalizeId(getPartyBaseClassId(classId));
+        if (classId) ownerIds.add(classId);
+        if (baseClassId) ownerIds.add(baseClassId);
+        const classData = classId && data.ADVANCED_CLASSES && data.ADVANCED_CLASSES[classId] || getPartyClassData(classId);
+        const partySkillId = normalizeId(classData && classData.partySkillId);
+        if (partySkillId) partySkillIds.add(partySkillId);
+      });
+      const animations = data.SKILL_FX_ANIMATION_ASSETS || {};
+      (data.SKILLS || []).forEach((skill) => {
+        if (!skill || String(skill.category || '').toLowerCase() === 'passive') return;
+        const skillId = normalizeId(skill.id);
+        if (!ownerIds.has(normalizeId(skill.owner)) && !partySkillIds.has(skillId)) return;
+        collectAnimationAssetPaths(animations[skillId], paths);
+      });
+      partySkillIds.forEach((skillId) => collectAnimationAssetPaths(animations[skillId], paths));
+      return paths;
+    }
+
     getMapAssetSet(mapId) {
       const data = this.data || Data;
       const paths = [];
@@ -10637,6 +10697,7 @@
         addAssetPath(paths, classData.asset);
         collectAnimationAssetPaths(classData.animation, paths);
       });
+      this.collectCurrentSkillFxAssetPaths(paths);
       this.getEquippedVisualLayers().forEach((layer) => {
         collectEquipmentVisualAssetPaths(layer && layer.visual, paths);
       });
@@ -10843,6 +10904,7 @@
         addAssetPath(paths, classData.asset);
         collectAnimationAssetPaths(classData.animation, paths);
       });
+      this.collectCurrentSkillFxAssetPaths(paths);
       this.getEquippedVisualLayers().forEach((layer) => {
         collectEquipmentVisualAssetPaths(layer && layer.visual, paths);
       });
@@ -30205,17 +30267,28 @@
       for (let index = 0; index < initialLength; index += 1) {
         const effect = effects[index];
         if (!effect) continue;
+        let activeDelta = Math.max(0, Number(delta || 0));
+        const activationDelay = Math.max(0, Number(effect.activationDelay || 0));
+        if (activationDelay > 0) {
+          effect.activationDelay = Math.max(0, activationDelay - activeDelta);
+          activeDelta = Math.max(0, activeDelta - activationDelay);
+          if (activeDelta <= 0) {
+            effects[writeIndex] = effect;
+            writeIndex += 1;
+            continue;
+          }
+        }
         const previousTtl = Math.max(0, Number(effect.ttl || 0));
         if (effect.visualAge == null && effect.type === 'field') {
           effect.visualAge = Math.max(0, Number(effect.duration || previousTtl || 0) - previousTtl);
         }
         if (effect.visualAge != null) {
-          effect.visualAge = Math.max(0, Number(effect.visualAge || 0) + Math.max(0, Number(delta || 0)));
+          effect.visualAge = Math.max(0, Number(effect.visualAge || 0) + activeDelta);
         }
-        effect.ttl -= delta;
+        effect.ttl -= activeDelta;
         if (effect.type === 'damageSplat') {
           const previousAge = Number(effect.age) || 0;
-          effect.age = previousAge + delta;
+          effect.age = previousAge + activeDelta;
           if (effect.age <= 0) {
             if (effect.ttl > 0) {
               effects[writeIndex] = effect;
@@ -30223,12 +30296,12 @@
             }
             continue;
           }
-          const visibleDelta = previousAge < 0 ? effect.age : delta;
+          const visibleDelta = previousAge < 0 ? effect.age : activeDelta;
           effect.x += (Number(effect.vx) || 0) * visibleDelta;
           effect.y += (Number(effect.vy) || 0) * visibleDelta;
           effect.vy += 38 * visibleDelta;
         } else if (effect.type === 'field') {
-          this.applyFieldTick(effect, Math.min(delta, previousTtl));
+          this.applyFieldTick(effect, Math.min(activeDelta, previousTtl));
         }
         if (effect.ttl > 0) {
           effects[writeIndex] = effect;
@@ -31592,12 +31665,18 @@
       const defaultForward = type === 'arrowRelease' ? 52 : type === 'cast' ? 42 : 72;
       const forward = clamp(Number.isFinite(measuredForward) ? measuredForward : defaultForward, 34, type === 'arrowRelease' ? 170 : 154);
       const color = options.color || visual && visual.color || this.skillColor(skill.owner || player.advancedClassId || player.classId);
+      const duration = Math.max(0.01, Number(options.duration || options.ttl || 0.28) || 0.28);
+      const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
+      const activationDelay = Number.isFinite(Number(options.activationDelay))
+        ? Math.max(0, Number(options.activationDelay))
+        : SKILL_FX_CONTACT_DELAY_SECONDS;
       this.pushPlayerActionEffect(type, {
         forward,
         yOffset: Number(options.yOffset || (type === 'cast' ? 28 : 34)),
         r: Number(options.r || options.radius || (type === 'arrowRelease' ? 42 : type === 'cast' ? 48 : 58)),
-        ttl: Number(options.ttl || 0.28),
-        duration: Number(options.duration || options.ttl || 0.28),
+        ttl,
+        duration,
+        activationDelay,
         color,
         accentColor: options.accentColor || visual && visual.accent || '#ffffff',
         skillId: skill.id,
@@ -31614,6 +31693,8 @@
       if (!skill) return false;
       const options = settings || {};
       const color = visual && visual.color || this.skillColor(skill.owner || this.state.player.classId);
+      const duration = Math.max(0.01, Number(options.duration || options.ttl || 0.32) || 0.32);
+      const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       this.effects.push({
         type: 'skillCast',
         skillId: skill.id,
@@ -31623,8 +31704,9 @@
         x: Number(options.x) || this.state.player.x + this.state.player.w / 2,
         y: Number(options.y) || this.state.player.y + 30,
         r: Number(options.r) || 44,
-        ttl: Number(options.ttl) || 0.32,
-        duration: Number(options.duration) || Number(options.ttl) || 0.32,
+        ttl,
+        duration,
+        activationDelay: Math.max(0, Number(options.activationDelay || 0)),
         facing: Number(options.facing) || this.state.player.facing || 1,
         color,
         accentColor: visual && visual.accent || '#ffffff',
@@ -31641,6 +31723,12 @@
       const lineIndex = Math.max(0, Math.floor(Number(options.lineIndex || 0) || 0));
       const color = visual && visual.color || options.color || this.skillColor(skill.owner || this.state.player.classId);
       const visualKind = visual && visual.kind || this.getSkillEffectKind(skill, 'impact');
+      const defaultDuration = 0.3 + lineIndex * 0.035;
+      const duration = Math.max(0.01, Number(options.duration || options.ttl || defaultDuration) || defaultDuration);
+      const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
+      const activationDelay = Number.isFinite(Number(options.activationDelay))
+        ? Math.max(0, Number(options.activationDelay))
+        : options.projectile ? 0 : SKILL_FX_CONTACT_DELAY_SECONDS;
       this.effects.push({
         type: 'skillImpact',
         skillId: skill.id,
@@ -31651,8 +31739,9 @@
         x: Number(x) + (lineCount > 1 ? (lineIndex - (lineCount - 1) / 2) * 10 : 0),
         y: Number(y) + (lineCount > 1 ? (lineIndex % 2 ? 5 : -5) : 0),
         r: Number(options.r) || 36 + Math.min(18, lineCount * 3),
-        ttl: Number(options.ttl) || 0.26 + lineIndex * 0.035,
-        duration: Number(options.duration) || 0.3 + lineIndex * 0.035,
+        ttl,
+        duration,
+        activationDelay,
         facing: Number(options.facing) || this.state.player.facing || 1,
         lineIndex,
         lineCount,
@@ -31668,6 +31757,11 @@
       if (!skill) return false;
       const options = settings || {};
       const color = visual && visual.color || options.color || this.skillColor(skill.owner || this.state.player.classId);
+      const duration = Math.max(0.01, Number(options.duration || options.ttl || 0.42) || 0.42);
+      const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
+      const activationDelay = Number.isFinite(Number(options.activationDelay))
+        ? Math.max(0, Number(options.activationDelay))
+        : SKILL_FX_CONTACT_DELAY_SECONDS;
       this.effects.push({
         type: 'skillArea',
         skillId: skill.id,
@@ -31677,8 +31771,9 @@
         x,
         y,
         r: Math.max(28, Number(radius || options.r || 72)),
-        ttl: Number(options.ttl) || 0.42,
-        duration: Number(options.duration) || 0.42,
+        ttl,
+        duration,
+        activationDelay,
         facing: Number(options.facing) || this.state.player.facing || 1,
         color,
         accentColor: visual && visual.accent || options.accentColor || '#ffffff',
@@ -32792,7 +32887,9 @@
         player.vx = skillMovementInstantVelocityState.vx;
         const skillMovementBlinkEndEffect = getSkillMovementBlinkEndEffectPlanForMovement(player);
         this.effects.push(Object.assign({}, skillMovementBlinkEndEffect, {
-          color: this.skillColor(skill.owner)
+          color: this.skillColor(skill.owner),
+          skillId: skill.id,
+          combatFxState: 'impact'
         }));
       } else {
         const skillMobilityState = getSkillMovementMobilityStatePlanForMovement(skill, player, movementApplication, nowSeconds());
@@ -32865,13 +32962,16 @@
       const player = this.state.player;
       const visual = this.getBuffCastVisual(buffId, skill);
       const settings = options || {};
+      const duration = Math.max(0.01, Number(settings.duration || settings.ttl || 0.78) || 0.78);
+      const ttl = Math.max(0.01, Number(settings.ttl || duration) || duration);
       this.effects.push({
         type: 'partyBuff',
+        combatFxState: 'cast',
         x: player.x + player.w / 2,
         y: player.y + 22,
         r: Number(settings.r || 108),
-        ttl: Number(settings.ttl || 0.78),
-        duration: Number(settings.duration || settings.ttl || 0.78),
+        ttl,
+        duration,
         color: visual.color || this.skillColor(skill && skill.owner),
         accentColor: visual.accent || '#ffffff',
         visualStyle: visual.style || 'aura',
@@ -39713,6 +39813,22 @@
         : 0.35;
       const resolvedDuration = Math.max(0.01, Number(duration || fallbackDuration) || fallbackDuration);
       const elapsed = clamp(resolvedDuration - Number(ttl || 0), 0, resolvedDuration);
+      if (frameDef && frameDef.loop === false) {
+        const frameCount = Math.max(1, Math.floor(Number(frameDef.frames || 1) || 1));
+        const sequence = Array.isArray(frameDef.sequence) && frameDef.sequence.length ? frameDef.sequence : null;
+        const stepCount = sequence ? sequence.length : frameCount;
+        const progress = clamp(elapsed / resolvedDuration, 0, 0.999999);
+        const stepIndex = Math.min(stepCount - 1, Math.floor(progress * stepCount + 1e-7));
+        return {
+          sheet: animation.sheet,
+          row: Number(frameDef.row || 0),
+          frameIndex: sequence
+            ? clamp(Math.floor(Number(sequence[stepIndex] || 0) || 0), 0, frameCount - 1)
+            : Math.min(frameCount - 1, stepIndex),
+          frameWidth: Number(animation.frameWidth || 160),
+          frameHeight: Number(animation.frameHeight || 160)
+        };
+      }
       return this.getCombatFxAnimationFrame(animation, stateId, elapsed);
     }
 
@@ -39757,7 +39873,7 @@
       }
       if (!effect) return fallback || 'impact';
       if (effect.combatFxState) return effect.combatFxState;
-      if (effect.type === 'skillCast' || effect.type === 'cast' || effect.type === 'arrowRelease') return 'cast';
+      if (effect.type === 'skillCast' || effect.type === 'cast' || effect.type === 'arrowRelease' || effect.type === 'partyBuff') return 'cast';
       if (effect.type === 'skillArea' || effect.type === 'field' || effect.type === 'shockBurst') return 'area';
       if (effect.type === 'slash') return effect.enemyFxId ? 'melee' : 'trail';
       if (effect.type === 'bossPhase' || effect.type === 'telegraph') return 'telegraph';
@@ -40061,9 +40177,18 @@
 
     getWorldEffectRenderSnapshot(effect) {
       if (!effect) return effect;
+      if (Number(effect.activationDelay || 0) > 0) return null;
       if (effect.type === 'bossHazard') return setTransientRendererAnimationFrame(effect, null);
+      const animation = this.getEffectCombatFxAnimation(effect);
+      const state = animation ? this.getEffectCombatFxState(effect) : '';
       const animationFrame = this.getEffectRendererAnimationFrame(effect);
-      return setTransientRendererAnimationFrame(effect, animationFrame);
+      const drawState = animation && getEngineVisualHelper('createEffectCombatFxDrawState')
+        ? getEngineVisualHelper('createEffectCombatFxDrawState')(effect, state, {
+          frameDef: animation.states && animation.states[state]
+        })
+        : null;
+      setTransientRendererAnimationFrame(effect, animationFrame);
+      return setTransientRendererCombatFxDrawState(effect, drawState);
     }
 
     buildRendererSnapshot(width, height, playfieldHeight, map, visualDrawLists) {
@@ -43566,10 +43691,13 @@
     drawEffectCombatFx(ctx, effect, fallbackState) {
       const animation = this.getEffectCombatFxAnimation(effect);
       if (!animation || !effect) return false;
+      if (Number(effect.activationDelay || 0) > 0) return false;
       if (effect.type === 'chainLine') return false;
       const state = this.getEffectCombatFxState(effect, fallbackState);
       const drawState = getEngineVisualHelper('createEffectCombatFxDrawState')
-        ? getEngineVisualHelper('createEffectCombatFxDrawState')(effect, state)
+        ? getEngineVisualHelper('createEffectCombatFxDrawState')(effect, state, {
+          frameDef: animation.states && animation.states[state]
+        })
         : null;
       const duration = drawState ? drawState.duration : Math.max(0.01, Number(effect.duration || effect.ttl || 0.36));
       const ttl = drawState ? drawState.ttl : Number(effect.ttl || 0);
@@ -44402,6 +44530,7 @@
     }
 
     drawEffect(ctx, effect) {
+      if (!effect || Number(effect.activationDelay || 0) > 0) return;
       if (effect.type === 'damageSplat') {
         this.drawDamageSplat(ctx, effect);
         return;

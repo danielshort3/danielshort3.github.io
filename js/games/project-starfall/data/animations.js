@@ -64,13 +64,13 @@
     });
 
     const COMBAT_FX_ANIMATION_CONFIG = Object.freeze({
-      cast: { frames: 6, fps: 16, loop: true, loopDelay: 0.18 },
+      cast: { frames: 6, fps: 16, loop: false },
       projectile: { frames: 6, fps: 18, loop: true, loopDelay: 0.18 },
-      impact: { frames: 6, fps: 20, loop: true, loopDelay: 0.18 },
+      impact: { frames: 6, fps: 20, loop: false },
       area: { frames: 6, fps: 14, loop: true, loopDelay: 0.18 },
-      trail: { frames: 6, fps: 18, loop: true, loopDelay: 0.18 },
+      trail: { frames: 6, fps: 18, loop: false },
       telegraph: { frames: 6, fps: 12, loop: true, loopDelay: 0.18 },
-      melee: { frames: 6, fps: 18, loop: true, loopDelay: 0.18 },
+      melee: { frames: 6, fps: 18, loop: false },
       buff: { frames: 6, fps: 12, loop: true, loopDelay: 0.18 }
     });
 

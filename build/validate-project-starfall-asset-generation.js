@@ -91,6 +91,124 @@ function cellEdgeHasAlpha(raw, sheetWidth, cellSize, row, column, threshold) {
   return false;
 }
 
+function hashCellPixels(raw, sheetWidth, cellSize, row, column) {
+  const hash = crypto.createHash('sha256');
+  const x0 = column * cellSize;
+  const y0 = row * cellSize;
+  const rowBytes = cellSize * 4;
+  for (let y = 0; y < cellSize; y += 1) {
+    const offset = (((y0 + y) * sheetWidth) + x0) * 4;
+    hash.update(raw.subarray(offset, offset + rowBytes));
+  }
+  return hash.digest('hex');
+}
+
+function isNearChromaKey(red, green, blue, target, tolerance) {
+  const redDelta = red - target[0];
+  const greenDelta = green - target[1];
+  const blueDelta = blue - target[2];
+  return redDelta * redDelta + greenDelta * greenDelta + blueDelta * blueDelta <= tolerance * tolerance;
+}
+
+function validateSkillFxPixels(id, raw, sheetWidth, contract, renderedHashes) {
+  const frameSize = contract.frameSize;
+  const rowCount = Array.isArray(contract.rows) ? contract.rows.length : Number(contract.rows || 0);
+  const expectedFrameCount = Number(contract.expectedFrameCount || (contract.columns * rowCount));
+  const quality = contract.quality || {};
+  const alphaThreshold = Number(quality.alphaThreshold ?? 8);
+  const minimumVisiblePixels = Number(quality.minimumVisiblePixelsPerCell ?? 1);
+  const gutter = Number(quality.gutterPixels ?? 8);
+  const chromaAlphaThreshold = Number(quality.chromaAlphaThreshold ?? 0);
+  const chromaTolerance = Number(quality.chromaTolerance ?? 24);
+  const chromaTargets = [
+    { label: 'green', rgb: [0, 255, 0] },
+    { label: 'magenta', rgb: [255, 0, 255] }
+  ];
+
+  assert(contract.columns * rowCount === expectedFrameCount,
+    `Skill FX contract should describe ${expectedFrameCount} frames`);
+  assert(expectedFrameCount === 24, `Skill FX sheets should contain exactly 24 frames, got ${expectedFrameCount}`);
+  assert(gutter >= 8, `Skill FX quality gutter should be at least 8px, got ${gutter}`);
+
+  let transparentResidue = null;
+  let chromaResidue = null;
+  for (let offset = 0; offset < raw.length; offset += 4) {
+    const red = raw[offset];
+    const green = raw[offset + 1];
+    const blue = raw[offset + 2];
+    const alpha = raw[offset + 3];
+    if (!transparentResidue && alpha === 0 && (red !== 0 || green !== 0 || blue !== 0)) {
+      const pixelIndex = offset / 4;
+      transparentResidue = {
+        x: pixelIndex % sheetWidth,
+        y: Math.floor(pixelIndex / sheetWidth),
+        rgba: `${red},${green},${blue},${alpha}`
+      };
+    }
+    if (!chromaResidue && alpha > chromaAlphaThreshold) {
+      const match = chromaTargets.find((target) =>
+        isNearChromaKey(red, green, blue, target.rgb, chromaTolerance));
+      if (match) {
+        const pixelIndex = offset / 4;
+        chromaResidue = {
+          key: match.label,
+          x: pixelIndex % sheetWidth,
+          y: Math.floor(pixelIndex / sheetWidth),
+          rgba: `${red},${green},${blue},${alpha}`
+        };
+      }
+    }
+    if (transparentResidue && chromaResidue) break;
+  }
+  assert(!transparentResidue,
+    `${id} skill FX sheet has nonzero RGB hidden under transparent alpha at ` +
+      `${transparentResidue && transparentResidue.x},${transparentResidue && transparentResidue.y}` +
+      `${transparentResidue ? ` (${transparentResidue.rgba})` : ''}`);
+  assert(!chromaResidue,
+    `${id} skill FX sheet retains near-pure ${chromaResidue && chromaResidue.key} chroma-key pixels at ` +
+      `${chromaResidue && chromaResidue.x},${chromaResidue && chromaResidue.y}` +
+      `${chromaResidue ? ` (${chromaResidue.rgba})` : ''}`);
+
+  const frameHashes = new Map();
+  for (let row = 0; row < rowCount; row += 1) {
+    for (let column = 0; column < contract.columns; column += 1) {
+      const rowName = Array.isArray(contract.rows) ? contract.rows[row] : `row ${row + 1}`;
+      const frameLabel = `${rowName} frame ${column + 1}`;
+      const x0 = column * frameSize;
+      const y0 = row * frameSize;
+      let visible = 0;
+      let gutterPixel = null;
+      for (let y = 0; y < frameSize; y += 1) {
+        for (let x = 0; x < frameSize; x += 1) {
+          const alpha = raw[(((y0 + y) * sheetWidth) + x0 + x) * 4 + 3];
+          if (alpha <= alphaThreshold) continue;
+          visible += 1;
+          if (!gutterPixel && (x < gutter || x >= frameSize - gutter || y < gutter || y >= frameSize - gutter)) {
+            gutterPixel = { x, y, alpha };
+          }
+        }
+      }
+      assert(visible >= minimumVisiblePixels,
+        `${id} skill FX ${frameLabel} should not be empty (found ${visible} visible pixels)`);
+      assert(!gutterPixel,
+        `${id} skill FX ${frameLabel} enters the required ${gutter}px gutter at ` +
+          `${gutterPixel && gutterPixel.x},${gutterPixel && gutterPixel.y}`);
+
+      const frameDigest = hashCellPixels(raw, sheetWidth, frameSize, row, column);
+      assert(!frameHashes.has(frameDigest),
+        `${id} skill FX ${frameLabel} exactly duplicates ${frameHashes.get(frameDigest) || 'another frame'}`);
+      frameHashes.set(frameDigest, frameLabel);
+    }
+  }
+  assert(frameHashes.size === expectedFrameCount,
+    `${id} skill FX sheet should contain ${expectedFrameCount} distinct, nonempty frames`);
+
+  const sheetDigest = crypto.createHash('sha256').update(raw).digest('hex');
+  assert(!renderedHashes.has(sheetDigest),
+    `${id} skill FX sheet duplicates ${renderedHashes.get(sheetDigest) || 'another skill'} at the rendered-pixel level`);
+  renderedHashes.set(sheetDigest, id);
+}
+
 function itemIconFileName(itemId) {
   return `${String(itemId || '').replace(/_/g, '-')}.png`;
 }
@@ -235,13 +353,20 @@ async function validateFx(manifest, data) {
 
   const skillContract = manifest.contracts.skillFx;
   assertArrayEquals(data.SKILL_FX_ANIMATION_ROWS || [], skillContract.rows, 'Skill FX animation rows');
+  const skillFxHashes = new Map();
   for (const [id, animation] of Object.entries(data.SKILL_FX_ANIMATION_ASSETS || {})) {
     await assertImage(animation.sheet, {
       width: skillContract.sheetWidth,
       height: skillContract.sheetHeight,
       alpha: true
     }, `${id} skill FX sheet`);
+    assert(animation.frameWidth === skillContract.frameSize && animation.frameHeight === skillContract.frameSize,
+      `${id} skill FX animation should use ${skillContract.frameSize}px frames`);
+    const decoded = await sharp(fullPath(animation.sheet)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    validateSkillFxPixels(id, decoded.data, decoded.info.width, skillContract, skillFxHashes);
   }
+  assert(skillFxHashes.size === Object.keys(data.SKILL_FX_ANIMATION_ASSETS || {}).length,
+    'Every skill FX sheet should be unique at the rendered-pixel level');
 
   const basicContract = manifest.contracts.basicAttackFx;
   assertArrayEquals(data.BASIC_ATTACK_FX_ANIMATION_ROWS || [], basicContract.rows, 'Basic attack FX animation rows');

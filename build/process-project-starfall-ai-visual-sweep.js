@@ -11,6 +11,7 @@ const {
   getGridCellRect,
   isGuidePixelRgba
 } = require('./project-starfall-sheet-grid.js');
+const { processSemanticSkillFx } = require('./generate-project-starfall-combat-fx.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const Data = require('../js/games/project-starfall/project-starfall-data.js');
@@ -102,7 +103,6 @@ const MAP_DERIVATIONS = Object.freeze([
 
 const BASIC_FX_ROWS = Object.freeze([1, 2, 4, 0]);
 const ENEMY_FX_ROWS = Object.freeze([1, 0, 2, 3, 4]);
-const SKILL_FX_ROWS = Object.freeze([1, 2, 4, 3]);
 const ENEMY_FX_HUE_SLOT_COUNT = 60;
 const MAGE_PROJECTILE_SOURCE_ROWS = Object.freeze({
   magic: 0,
@@ -679,15 +679,6 @@ async function tintBuffer(buffer, hue, saturation, brightness) {
     .toBuffer();
 }
 
-function hashHue(value) {
-  const text = String(value || '');
-  let hash = 0;
-  for (let index = 0; index < text.length; index += 1) {
-    hash = (hash * 31 + text.charCodeAt(index)) % 360;
-  }
-  return hash;
-}
-
 function hashIdentity32(value) {
   const text = String(value || '');
   let hash = 0x811c9dc5;
@@ -808,6 +799,19 @@ function getEnemyFxSelection(argv) {
     .filter(Boolean);
 }
 
+function getSkillFxSelection(argv) {
+  const args = argv || process.argv.slice(2);
+  const inline = args.find((argument) => String(argument).startsWith('--skill='));
+  const optionIndex = args.indexOf('--skill');
+  const value = inline
+    ? String(inline).slice('--skill='.length)
+    : optionIndex >= 0 ? args[optionIndex + 1] : '';
+  return String(value || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
 async function processEnemyCombatFx(written, onlyEnemyIds) {
   const enemyEntries = getEnemyCombatFxEntries();
   const identities = buildEnemyFxIdentityMap(enemyEntries.map(([enemyId]) => enemyId));
@@ -845,19 +849,8 @@ async function processDerivedCombatFx(written) {
 
   await processEnemyCombatFx(written);
 
-  const skillEntries = Object.entries(Data.SKILL_FX_ANIMATION_ASSETS || {});
-  for (const [skillId, animation] of skillEntries) {
-    const target = path.join(ROOT, animation.sheet);
-    const skill = getSkillById(skillId);
-    const projectileOverride = makeMageProjectileRowOverride(getMageProjectileTypeForSkill(skill));
-    await composeRows(SKILL_FX_ROWS, target, {
-      hue: hashHue(skillId),
-      saturation: 0.95 + (hashHue(skillId) % 9) / 30,
-      brightness: 0.96 + (hashHue(skillId) % 4) / 40,
-      rowOverrides: projectileOverride ? { 1: projectileOverride } : null
-    });
-    written.push(rel(target));
-  }
+  const skillResult = await processSemanticSkillFx();
+  skillResult.outputPaths.forEach((target) => written.push(rel(target)));
 
   const projectile = Data.ENEMY_PROJECTILE_ANIMATION_ASSETS && Data.ENEMY_PROJECTILE_ANIMATION_ASSETS.banditThrower;
   if (projectile && projectile.sheet) {
@@ -905,19 +898,13 @@ async function processBasicMageCombatFx(written) {
 async function processMageProjectileCombatFx(written) {
   await processBasicMageCombatFx(written);
   const skillEntries = Object.entries(Data.SKILL_FX_ANIMATION_ASSETS || {});
-  for (const [skillId, animation] of skillEntries) {
-    const skill = getSkillById(skillId);
-    const projectileType = getMageProjectileTypeForSkill(skill);
-    const projectileOverride = makeMageProjectileRowOverride(projectileType);
-    if (!projectileOverride) continue;
+  const projectileEntries = skillEntries.filter(([skillId]) => getMageProjectileTypeForSkill(getSkillById(skillId)));
+  if (projectileEntries.length) {
+    const skillResult = await processSemanticSkillFx({ skillIds: projectileEntries.map(([skillId]) => skillId) });
+    skillResult.outputPaths.forEach((target) => written.push(rel(target)));
+  }
+  for (const [skillId, animation] of projectileEntries) {
     const target = path.join(ROOT, animation.sheet);
-    await composeRows(SKILL_FX_ROWS, target, {
-      hue: hashHue(skillId),
-      saturation: 0.95 + (hashHue(skillId) % 9) / 30,
-      brightness: 0.96 + (hashHue(skillId) % 4) / 40,
-      rowOverrides: { 1: projectileOverride }
-    });
-    written.push(rel(target));
     await validateAnimationSheet(animation, { minMargin: 8 });
     await validateHorizontalProjectileRow(target, `Skill ${skillId}`, 1);
   }
@@ -1229,6 +1216,7 @@ async function validateOutputs() {
 }
 
 async function main() {
+  const args = process.argv.slice(2);
   const validateOnly = process.argv.includes('--validate');
   if (validateOnly) {
     await validateOutputs();
@@ -1237,6 +1225,13 @@ async function main() {
   }
 
   const written = [];
+  const selectedSkillIds = getSkillFxSelection(args);
+  if (process.argv.includes('--only-skill-fx') || selectedSkillIds.length) {
+    const result = await processSemanticSkillFx({ skillIds: selectedSkillIds });
+    result.outputPaths.forEach((target) => process.stdout.write(`Processed ${rel(target)}\n`));
+    return;
+  }
+
   if (process.argv.includes('--only-mage-projectiles')) {
     await processMageProjectileCombatFx(written);
     written.forEach((file) => process.stdout.write(`Processed ${file}\n`));
@@ -1278,7 +1273,10 @@ module.exports = {
   MAP_DERIVATIONS,
   SOURCE_FILES,
   buildEnemyFxIdentityMap,
+  getSkillFxSelection,
   processEnemyCombatFx,
+  processDerivedCombatFx,
+  processMageProjectileCombatFx,
   validateEnemyCombatFxUniqueness,
   validateOutputs
 };
