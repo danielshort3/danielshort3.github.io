@@ -429,6 +429,23 @@ function isMissingObjectError(err){
   return status === 404 || name === 'notfound' || name === 'nosuchkey';
 }
 
+function isMissingTranscriptionJobError(err){
+  const status = Number(err && err.$metadata && err.$metadata.httpStatusCode);
+  const name = String(err && (err.name || err.Code || err.code) || '').toLowerCase();
+  const message = String(err && (err.message || err.Message) || '').replace(/[’`]/g, "'");
+  if (status === 404 || name === 'notfoundexception') return true;
+  return name === 'badrequestexception' &&
+    /(?:requested|transcription) (?:job|resource) (?:could not|couldn't|cannot|can't) be found/i.test(message);
+}
+
+function logAwsError(context, err){
+  console.error(`[transcribe] ${context}`, {
+    name: String(err && (err.name || err.Code || err.code) || 'Error'),
+    statusCode: Number(err && err.$metadata && err.$metadata.httpStatusCode) || undefined,
+    requestId: String(err && err.$metadata && err.$metadata.requestId || '') || undefined
+  });
+}
+
 function isDefinitiveStartRejection(err){
   const status = Number(err && err.$metadata && err.$metadata.httpStatusCode);
   const name = String(err && (err.name || err.Code || err.code) || '');
@@ -495,9 +512,7 @@ async function getExistingTranscriptionJob(transcribe, jobName){
     const out = await transcribe.send(new GetTranscriptionJobCommand({ TranscriptionJobName: jobName }));
     return out && out.TranscriptionJob || null;
   } catch (err) {
-    const status = Number(err && err.$metadata && err.$metadata.httpStatusCode);
-    const name = String(err && (err.name || err.Code || err.code) || '').toLowerCase();
-    if (status === 404 || name === 'notfoundexception') return null;
+    if (isMissingTranscriptionJobError(err)) return null;
     throw err;
   }
 }
@@ -923,6 +938,8 @@ async function handleStart(req, res){
       return;
     }
 
+    logAwsError('StartTranscriptionJob rejected', err);
+
     try {
       await refundRun({
         config,
@@ -937,16 +954,14 @@ async function handleStart(req, res){
       return;
     }
 
-    if (err && err.name === 'BadRequestException') {
-      await Promise.allSettled([
-        s3.send(new DeleteObjectCommand({ Bucket: quote.bucket, Key: quote.key }))
-      ]);
-    }
-    sendJson(res, err && err.name === 'BadRequestException' ? 400 : 500, {
+    await Promise.allSettled([
+      s3.send(new DeleteObjectCommand({ Bucket: quote.bucket, Key: quote.key }))
+    ]);
+    sendJson(res, err && err.name === 'BadRequestException' ? 400 : 503, {
       ok: false,
       error: err && err.name === 'BadRequestException'
         ? (err.message || 'Unable to start transcription job.')
-        : 'Unable to start transcription job. Retry this request.'
+        : 'Transcription service is temporarily unavailable. Please try again later.'
     });
   }
 }
@@ -1043,12 +1058,6 @@ async function fetchTranscriptData(uri, config){
   }
 }
 
-function isMissingTranscriptionJobError(err){
-  const status = Number(err && err.$metadata && err.$metadata.httpStatusCode);
-  const name = String(err && (err.name || err.Code || err.code) || '').toLowerCase();
-  return status === 404 || name === 'notfoundexception';
-}
-
 async function getTranscriptionJobForStatus(transcribe, jobName){
   const retryDelays = [0, 250, 750];
   let lastError;
@@ -1110,6 +1119,7 @@ async function handleStatus(req, res){
     job = await getTranscriptionJobForStatus(transcribe, run.jobName);
   } catch (err) {
     if (!isMissingTranscriptionJobError(err)) {
+      logAwsError('GetTranscriptionJob failed', err);
       sendJson(res, 502, { ok: false, error: 'Unable to check the transcription job. Retry this request.' });
       return;
     }
@@ -1258,7 +1268,7 @@ async function handleStatus(req, res){
   });
 }
 
-module.exports = async (req, res, segments = []) => {
+const handleTranscribe = async (req, res, segments = []) => {
   const action = String(Array.isArray(segments) ? segments[0] : '').trim().toLowerCase();
   if (action === 'config' || !action) return handleConfig(req, res);
   if (action === 'presign') return handlePresign(req, res);
@@ -1266,3 +1276,9 @@ module.exports = async (req, res, segments = []) => {
   if (action === 'status') return handleStatus(req, res);
   sendJson(res, 404, { ok: false, error: 'Not Found' });
 };
+
+handleTranscribe._internal = {
+  isMissingTranscriptionJobError
+};
+
+module.exports = handleTranscribe;

@@ -170,7 +170,9 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action: transcribe:StartTranscriptionJob
+                Action:
+                  - transcribe:StartTranscriptionJob
+                  - transcribe:TagResource
                 Resource: '*'
               - Effect: Allow
                 Action:
