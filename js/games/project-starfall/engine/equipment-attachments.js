@@ -53,7 +53,7 @@ const ATTACHMENTS = Object.freeze({
     A([75, 91, 32, 35, -12], [75, 43, -8], [106, 75, -12], [37, 82, -12], [[102, 135, 18], [45, 134, -8]], { weapon: [103, 74, 30] }),
     A([78, 92, 32, 35, -12], [78, 44, -8], [108, 76, -12], [40, 83, -12], [[108, 139, 16], [46, 137, -8]], { weapon: [105, 75, 30] }),
     A([76, 91, 32, 35, -12], [76, 43, -8], [105, 75, -12], [39, 83, -12], [[101, 137, 18], [46, 137, -8]], { weapon: [102, 74, 30] }),
-    A([77, 98, 32, 35, -10], [77, 50, -7], [106, 82, -10], [41, 89, -10], [[102, 147, 12], [49, 145, -6]], { weapon: [103, 81, 35] })
+    A([77, 98, 32, 35, -10], [77, 50, -7], [106, 82, -10], [41, 89, -10], [[102, 147, 12], [49, 145, -6]], { weapon: [103, 81, 30] })
   ]),
   jump: Object.freeze([
     A([77, 115, 32, 33, 2], [77, 75, 0], [103, 124], [48, 125], [[100, 147, 2], [58, 148, -4]], { weapon: [100, 122, 42] }),
@@ -121,11 +121,45 @@ const ATTACHMENTS = Object.freeze({
   ])
 });
 
+const PLAYER_FRAME_REGISTRATIONS = Object.freeze({
+  idle: Object.freeze([
+    Object.freeze({ originX: 81, groundY: 153, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 80, groundY: 153, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 76, groundY: 151, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 78, groundY: 153, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 79, groundY: 152, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 77, groundY: 153, authoredBodyHeight: 143 })
+  ]),
+  run: Object.freeze([
+    Object.freeze({ originX: 78, groundY: 149, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 77, groundY: 149, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 75, groundY: 138, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 78, groundY: 144, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 76, groundY: 141, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 77, groundY: 150, authoredBodyHeight: 143 })
+  ])
+});
+
 function getEquipmentAttachment(row, frame) {
   const rowId = ATTACHMENTS[row] ? row : 'idle';
   const frames = ATTACHMENTS[rowId];
   const frameIndex = Math.max(0, Math.min(frames.length - 1, Math.floor(Number(frame) || 0)));
   return frames[frameIndex];
+}
+
+function getPlayerSpriteRegistration(row, frame, fallback) {
+  const base = fallback || {};
+  const registrations = PLAYER_FRAME_REGISTRATIONS[String(row || '').toLowerCase()];
+  const frameIndex = Math.max(0, Math.floor(Number(frame) || 0));
+  const registration = registrations && registrations[frameIndex];
+  if (registration && (!base.authoredBodyHeight || Number(base.authoredBodyHeight) === registration.authoredBodyHeight)) {
+    return registration;
+  }
+  return Object.freeze({
+    originX: registration ? registration.originX : Number.isFinite(Number(base.originX)) ? Number(base.originX) : 80,
+    groundY: registration ? registration.groundY : Number.isFinite(Number(base.groundY)) ? Number(base.groundY) : 154,
+    authoredBodyHeight: Math.max(1, Number(base.authoredBodyHeight) || 143)
+  });
 }
 
 function getEquipmentAngleSet(kind) {
@@ -259,7 +293,9 @@ const api = Object.freeze({
   ATLAS_ANGLE_SETS,
   ROWS,
   ATTACHMENTS,
+  PLAYER_FRAME_REGISTRATIONS,
   getEquipmentAttachment,
+  getPlayerSpriteRegistration,
   getEquipmentAngleSet,
   getNearestAtlasAngle,
   getEquipmentAtlasVariantRow,

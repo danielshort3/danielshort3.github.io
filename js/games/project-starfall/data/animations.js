@@ -22,12 +22,12 @@
     const ENEMY_COMBAT_FX_ANIMATION_ROWS = Object.freeze(['telegraph', 'melee', 'projectile', 'buff', 'impact']);
 
     const PLAYER_ANIMATION_CONFIG = Object.freeze({
-      idle: { frames: 6, fps: 6, loop: true },
-      run: { frames: 6, fps: 12, loop: true },
+      idle: { frames: 6, fps: 5, loop: true, sequence: [0, 1, 2, 3, 4, 5, 4, 3, 2, 1] },
+      run: { frames: 6, fps: 10, loop: true },
       jump: { frames: 6, fps: 10, loop: false, holds: [1, 1, 2, 2, 3, 3] },
       fall: { frames: 6, fps: 8, loop: false, holds: [1, 1, 2, 2, 3, 4] },
       climb: { frames: 6, fps: 8, loop: true },
-      basic: { frames: 6, fps: 14, loop: false },
+      basic: { frames: 6, fps: 16, loop: false },
       skill: { frames: 6, fps: 12, loop: false },
       party: { frames: 6, fps: 12, loop: false },
       hit: { frames: 6, fps: 16, loop: false },
@@ -133,6 +133,13 @@
     });
     const EQUIPMENT_ATLAS_WEAPON_KINDS = Object.freeze(['sword', 'axe', 'wand', 'staff', 'bow']);
     const EQUIPMENT_ATLAS_LIMB_KINDS = Object.freeze(['boots', 'gloves', 'grip', 'ring', 'focus']);
+    const EQUIPMENT_ATLAS_GRIP_OFFSETS = Object.freeze({
+      sword: Object.freeze({ x: -28, y: 0 }),
+      axe: Object.freeze({ x: -27, y: 0 }),
+      wand: Object.freeze({ x: -22, y: 0 }),
+      staff: Object.freeze({ x: -30, y: 0 }),
+      bow: Object.freeze({ x: 10, y: 0 })
+    });
 
     function getEquipmentAtlasAngles(kind) {
       const itemKind = String(kind || '').toLowerCase();
@@ -141,8 +148,21 @@
       return EQUIPMENT_ATLAS_ANGLE_SETS.body;
     }
 
+    function getEquipmentAtlasPivots(kind, angles) {
+      const offset = EQUIPMENT_ATLAS_GRIP_OFFSETS[String(kind || '').toLowerCase()];
+      if (!offset) return null;
+      return Object.freeze(angles.map((angle) => {
+        const radians = Number(angle || 0) * Math.PI / 180;
+        return Object.freeze({
+          x: Math.round(64 + offset.x * Math.cos(radians) - offset.y * Math.sin(radians)),
+          y: Math.round(64 + offset.x * Math.sin(radians) + offset.y * Math.cos(radians))
+        });
+      }));
+    }
+
     function makeEquipmentVisualAtlas(fileId, kind) {
       const itemKind = String(kind || '').toLowerCase();
+      const angles = getEquipmentAtlasAngles(itemKind);
       const variants = itemKind === 'bow'
         ? Object.freeze(['rest', 'draw', 'release'])
         : Object.freeze(['default']);
@@ -152,7 +172,8 @@
         frameHeight: 128,
         pivotX: 64,
         pivotY: 64,
-        angles: getEquipmentAtlasAngles(itemKind),
+        pivots: getEquipmentAtlasPivots(itemKind, angles),
+        angles,
         variants,
         kind: itemKind
       });
@@ -604,7 +625,9 @@
       CORE_ANIMATION_ASSETS,
       makeEquipmentVisualAtlas,
       EQUIPMENT_ATLAS_ANGLE_SETS,
+      EQUIPMENT_ATLAS_GRIP_OFFSETS,
       getEquipmentAtlasAngles,
+      getEquipmentAtlasPivots,
       makeCombatFxAnimationAsset,
       getEnemyAnimationBehavior
     });

@@ -7996,6 +7996,36 @@ try {
       page.indexOf(attachmentScript) < page.indexOf(engineScript),
       'Project Starfall should load shared equipment attachments before the main engine');
     const engine = createProjectStarfallEngine(null, data);
+    const registeredPlayerSheetPng = decodePngRgba(path.join(__dirname, data.GENERIC_PLAYER_ANIMATION_ASSET.sheet));
+    const expectedPlayerTimings = {
+      idle: { fps: 5, sequence: '0,1,2,3,4,5,4,3,2,1' },
+      run: { fps: 10 },
+      basic: { fps: 16 }
+    };
+    Object.entries(expectedPlayerTimings).forEach(([stateId, expected]) => {
+      const animationState = data.GENERIC_PLAYER_ANIMATION_ASSET.states[stateId];
+      assert(animationState && animationState.fps === expected.fps &&
+        (!expected.sequence || animationState.sequence.join(',') === expected.sequence),
+        `Project Starfall ${stateId} playback should use the stabilized animation timing`);
+    });
+    ['idle', 'run'].forEach((stateId) => {
+      const row = data.PLAYER_ANIMATION_ROWS.indexOf(stateId);
+      const registeredBottomOffsets = [];
+      for (let frameIndex = 0; frameIndex < 6; frameIndex += 1) {
+        const attachment = equipmentAttachments.getEquipmentAttachment(stateId, frameIndex);
+        const registration = equipmentAttachments.getPlayerSpriteRegistration(stateId, frameIndex, {
+          originX: 80,
+          groundY: 154,
+          authoredBodyHeight: 143
+        });
+        const stats = getPngFrameAlphaStats(registeredPlayerSheetPng, frameIndex * 160, row * 160, 160, 160, 20);
+        assert(stats && registration.originX === attachment.torso.x && registration.authoredBodyHeight === 143,
+          `Project Starfall ${stateId}:${frameIndex} should register the body on its authored root`);
+        registeredBottomOffsets.push(stats.bounds.maxY - registration.groundY);
+      }
+      assert(Math.max(...registeredBottomOffsets) - Math.min(...registeredBottomOffsets) <= 1,
+        `Project Starfall ${stateId} should keep its visible ground contact stable across the loop`);
+    });
     assert(visualEntries.length === 85 && catalogItems.length === 115 &&
       new Set(catalogItems.map((item) => item.id)).size === 115,
       'Project Starfall should expose 85 modular visuals for its 115 unique equipment catalog items');
@@ -8065,6 +8095,12 @@ try {
       assert(resolvedPartCount === 60 * expectedPartCount,
         `${visualId} should resolve every one of the 60 shared body attachment frames`);
       if (weaponKinds.has(visual.kind)) {
+        const pivotRadii = atlas.pivots.map((pivot) => Math.hypot(pivot.x - atlas.pivotX, pivot.y - atlas.pivotY));
+        assert(Array.isArray(atlas.pivots) && atlas.pivots.length === atlas.angles.length &&
+          atlas.pivots.every((pivot) => Number.isFinite(pivot.x) && Number.isFinite(pivot.y) &&
+            pivot.x > 0 && pivot.x < atlas.frameWidth && pivot.y > 0 && pivot.y < atlas.frameHeight) &&
+          Math.min(...pivotRadii) >= 8 && Math.max(...pivotRadii) - Math.min(...pivotRadii) <= 1.5,
+          `${visualId} should rotate around a stable authored grip rather than the atlas-cell center`);
         assert(['held', 'stowed', 'dropped'].every((mode) => resolvedModes.has(mode)),
           `${visualId} should resolve held, stowed, and dropped weapon modes`);
       }
@@ -8076,6 +8112,12 @@ try {
     assert(Object.keys(slotCounts).length === Object.keys(expectedSlotCounts).length &&
       Object.entries(expectedSlotCounts).every(([slot, count]) => slotCounts[slot] === count),
       'Project Starfall modular atlases should cover every equipment slot with explicit metadata');
+
+    const trainingSwordVisual = data.EQUIPMENT_VISUALS.training_sword;
+    const runStartWeapon = equipmentAttachments.resolveEquipmentAtlasParts(trainingSwordVisual, 'run', 0)[0];
+    const runEndWeapon = equipmentAttachments.resolveEquipmentAtlasParts(trainingSwordVisual, 'run', 5)[0];
+    assert(runStartWeapon.orientationAngle === runEndWeapon.orientationAngle,
+      'Project Starfall run should not snap the held weapon to a different atlas angle at the loop seam');
 
     const resolvedCatalogVisuals = catalogItems.map((item) => engine.getEquipmentVisual(item));
     const aliasedCatalogItems = catalogItems.filter((item) => item.visualId && item.visualId !== item.id);
