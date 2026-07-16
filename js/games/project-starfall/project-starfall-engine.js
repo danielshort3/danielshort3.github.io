@@ -16,6 +16,9 @@
   const resolveEquipmentAtlasParts = typeof EquipmentAttachments.resolveEquipmentAtlasParts === 'function'
     ? EquipmentAttachments.resolveEquipmentAtlasParts
     : function resolveEquipmentAtlasPartsFallback() { return []; };
+  const resolvePlayerSpriteRegistration = typeof EquipmentAttachments.getPlayerSpriteRegistration === 'function'
+    ? EquipmentAttachments.getPlayerSpriteRegistration
+    : function resolvePlayerSpriteRegistrationFallback(row, frame, fallback) { return fallback; };
   const EngineAssets = (typeof require === 'function' ? require('./engine/assets.js') : null) || EngineModules.assets || {};
 
   function getEngineAssetHelper(name) {
@@ -315,7 +318,16 @@
     groundY: 154,
     authoredBodyHeight: 143
   }));
-  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION });
+  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: true });
+
+  function getPlayerSpriteDrawOptions(animationState, frameDef) {
+    const registration = resolvePlayerSpriteRegistration(
+      animationState,
+      frameDef && frameDef.frameIndex,
+      PLAYER_SPRITE_REGISTRATION
+    );
+    return { registration, pixelated: true };
+  }
   const ENEMY_SPRITE_REGISTRATION = getEngineVisualValue('ENEMY_SPRITE_REGISTRATION', Object.freeze({
     originX: 64,
     groundY: 118,
@@ -11768,6 +11780,7 @@
         const drawState = getEngineVisualHelper('createAnimationFrameDrawState')(frameDef, x, y, width, height, facing, options);
         if (!drawState) return false;
         ctx.save();
+        if (options && options.pixelated) ctx.imageSmoothingEnabled = false;
         ctx.translate(drawState.translateX, drawState.translateY);
         ctx.scale(drawState.scaleX, drawState.scaleY);
         ctx.drawImage(
@@ -11790,6 +11803,7 @@
       const sourceY = Math.max(0, Number(frameDef.row || 0)) * frameHeight;
       const registration = options && options.registration;
       ctx.save();
+      if (options && options.pixelated) ctx.imageSmoothingEnabled = false;
       if (registration) {
         const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : 80;
         const groundY = Number.isFinite(Number(registration.groundY)) ? Number(registration.groundY) : 154;
@@ -11990,11 +12004,12 @@
       return result;
     }
 
-    drawEquipmentAtlasPart(ctx, part, x, y, width, height, facing) {
+    drawEquipmentAtlasPart(ctx, part, x, y, width, height, facing, registration) {
       const frame = part && part.frame;
       const image = frame ? this.getAsset(frame.sheet) : null;
       if (!ctx || !image || !part.socket || !part.pivot) return false;
-      const authoredBodyHeight = Math.max(1, Number(PLAYER_SPRITE_REGISTRATION.authoredBodyHeight || 143));
+      const spriteRegistration = registration || PLAYER_SPRITE_REGISTRATION;
+      const authoredBodyHeight = Math.max(1, Number(spriteRegistration.authoredBodyHeight || 143));
       const scale = Math.max(0.01, Number(height || 0) / authoredBodyHeight);
       const scaleX = Math.max(0.05, Number(part.scaleX || 1));
       const scaleY = Math.max(0.05, Number(part.scaleY || 1));
@@ -12011,8 +12026,8 @@
         Math.max(0, Number(frame.row || 0)) * frameHeight,
         frameWidth,
         frameHeight,
-        Number(part.socket.x || 0) - Number(PLAYER_SPRITE_REGISTRATION.originX || 80) - Number(part.pivot.x || 0) * scaleX,
-        Number(part.socket.y || 0) - Number(PLAYER_SPRITE_REGISTRATION.groundY || 154) - Number(part.pivot.y || 0) * scaleY,
+        Number(part.socket.x || 0) - Number(spriteRegistration.originX || 80) - Number(part.pivot.x || 0) * scaleX,
+        Number(part.socket.y || 0) - Number(spriteRegistration.groundY || 154) - Number(part.pivot.y || 0) * scaleY,
         frameWidth * scaleX,
         frameHeight * scaleY
       );
@@ -12021,13 +12036,16 @@
       return true;
     }
 
-    drawEquipmentRenderLayer(ctx, layer, x, y, width, height, facing) {
+    drawEquipmentRenderLayer(ctx, layer, x, y, width, height, facing, registration) {
       if (!layer) return false;
-      if (layer.atlasPart && this.drawEquipmentAtlasPart(ctx, layer.atlasPart, x, y, width, height, facing)) return true;
+      if (layer.atlasPart && this.drawEquipmentAtlasPart(ctx, layer.atlasPart, x, y, width, height, facing, registration)) return true;
       const frame = layer.frame || layer.fallbackFrame;
       const image = frame ? this.getAsset(frame.sheet) : null;
       if (!frame || !image) return false;
-      return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, PLAYER_SPRITE_DRAW_OPTIONS);
+      return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, {
+        registration: registration || PLAYER_SPRITE_REGISTRATION,
+        pixelated: true
+      });
     }
 
     drawEquipmentLayer(ctx, layer, state, actor, x, y, width, height, facing) {
@@ -40036,6 +40054,7 @@
       const animationState = this.getActorAnimationState(player, this.derivePlayerAnimationState());
       const animation = this.getPlayerAnimation();
       const animationFrame = this.getRendererAnimationFrame(animation, animationState, player);
+      const registration = resolvePlayerSpriteRegistration(animationState, animationFrame && animationFrame.frameIndex, PLAYER_SPRITE_REGISTRATION);
       return {
         visible: true,
         kind: 'player',
@@ -40048,6 +40067,7 @@
         asset: Data.GENERIC_PLAYER_ASSET || '',
         classColor: this.skillColor(player.advancedClassId || player.classId),
         rigRender: this.getPlayerRigRenderDescriptor(animationState),
+        registration,
         animationFrame,
         equipmentLayers: this.getEquipmentRenderLayers(this.state.equipment, animationState, player, animationFrame)
       };
@@ -40099,6 +40119,7 @@
           const animation = this.getClassPlayerAnimation(member.classId);
           const equipment = this.getPartyMemberEquipment(member);
           const animationFrame = this.getRendererAnimationFrame(animation, animationState, member);
+          const registration = resolvePlayerSpriteRegistration(animationState, animationFrame && animationFrame.frameIndex, PLAYER_SPRITE_REGISTRATION);
           return {
             kind: 'party',
             id: member.id || member.templateId || member.classId,
@@ -40113,6 +40134,7 @@
             asset: Data.GENERIC_PLAYER_ASSET || '',
             classColor: this.skillColor(member.classId),
             rigRender: this.getPartyRigRenderDescriptor(member, animationState, equipment),
+            registration,
             animationFrame,
             equipmentLayers: this.getEquipmentRenderLayers(equipment, animationState, member, animationFrame)
           };
@@ -41989,11 +42011,13 @@
       const drawY = player.y;
       const drawW = player.w;
       const drawH = player.h;
+      const spriteDrawOptions = getPlayerSpriteDrawOptions(animationState, animationFrame);
+      const registration = spriteDrawOptions.registration;
       const equipmentLayers = this.getEquipmentRenderLayers(this.state.equipment, animationState, player, animationFrame);
       const drawEquipmentLayers = (behindActor) => {
         equipmentLayers.forEach((layer) => {
           if ((Number(layer.order || 0) < 0) !== !!behindActor) return;
-          this.drawEquipmentRenderLayer(ctx, layer, drawX, drawY, drawW, drawH, player.facing);
+          this.drawEquipmentRenderLayer(ctx, layer, drawX, drawY, drawW, drawH, player.facing, registration);
         });
       };
       const drawShield = () => {
@@ -42015,7 +42039,7 @@
         drawW,
         drawH,
         player.facing,
-        PLAYER_SPRITE_DRAW_OPTIONS
+        spriteDrawOptions
       )) {
         drawEquipmentLayers(false);
         drawShield();
@@ -42081,17 +42105,19 @@
       const animationFrame = this.getAnimationFrame(animation, animationState, member);
       const animationImage = animationFrame && animation ? this.getAsset(animation.sheet) : null;
       const equipment = this.getPartyMemberEquipment(member);
+      const spriteDrawOptions = getPlayerSpriteDrawOptions(animationState, animationFrame);
+      const registration = spriteDrawOptions.registration;
       const equipmentLayers = this.getEquipmentRenderLayers(equipment, animationState, member, animationFrame);
       const drawEquipmentLayers = (behindActor) => {
         equipmentLayers.forEach((layer) => {
           if ((Number(layer.order || 0) < 0) !== !!behindActor) return;
-          this.drawEquipmentRenderLayer(ctx, layer, member.x, member.y, member.w, member.h, member.facing);
+          this.drawEquipmentRenderLayer(ctx, layer, member.x, member.y, member.w, member.h, member.facing, registration);
         });
       };
       let actorDrawn = false;
       drawEquipmentLayers(true);
       if (animationImage) {
-        actorDrawn = this.drawAnimationFrame(ctx, animationImage, animationFrame, member.x, member.y, member.w, member.h, member.facing, PLAYER_SPRITE_DRAW_OPTIONS);
+        actorDrawn = this.drawAnimationFrame(ctx, animationImage, animationFrame, member.x, member.y, member.w, member.h, member.facing, spriteDrawOptions);
       }
       if (!actorDrawn) {
         const image = this.getAsset(Data.GENERIC_PLAYER_ASSET);

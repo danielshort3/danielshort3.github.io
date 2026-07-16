@@ -2984,7 +2984,7 @@
     renderActorAtlasLayers(actor, box, alpha, behindActor) {
       if (!actor || !box) return 0;
       const layers = Array.isArray(actor.equipmentLayers) ? actor.equipmentLayers : [];
-      const registration = PLAYER_SPRITE_REGISTRATION;
+      const registration = actor.registration || PLAYER_SPRITE_REGISTRATION;
       const authoredBodyHeight = Math.max(1, Number(registration.authoredBodyHeight || 143));
       const bodyScale = Math.max(0.01, Number(box.h || 0) / authoredBodyHeight);
       const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : 80;
@@ -3082,7 +3082,9 @@
         flipX: Number(actor.facing || 1) < 0,
         key: `composite:${compositeKey}`,
         kind,
-        registration: kind === 'player' || kind === 'party' ? PLAYER_SPRITE_REGISTRATION : null
+        registration: kind === 'player' || kind === 'party'
+          ? actor.registration || PLAYER_SPRITE_REGISTRATION
+          : null
       });
     }
 
@@ -3361,7 +3363,7 @@
           trim: actor.kind !== 'enemy',
           registration: kind === 'enemy'
             ? ENEMY_SPRITE_REGISTRATION
-            : kind === 'player' || kind === 'party' ? PLAYER_SPRITE_REGISTRATION : null
+            : kind === 'player' || kind === 'party' ? actor.registration || PLAYER_SPRITE_REGISTRATION : null
         });
       }
       const assetTexture = this.getTexture(actor.asset);
