@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const shortLinksClicksMigration = require('../scripts/migrations/short-links-clicks-reconcile');
 const shortLinksMigration = require('../scripts/migrations/short-links-reservations');
+const transcribeHistoryMigration = require('../scripts/migrations/transcribe-history-backfill');
 const toolsTtlMigration = require('../scripts/migrations/tools-ttl-backfill');
 const { requireApplyGuards, resolveTarget } = require('../scripts/migrations/_shared');
 
@@ -17,6 +18,14 @@ async function run(){
     2,
     'click reconciliation should strongly read both the link and click table scans'
   );
+  const transcribeMigrationSource = fs.readFileSync(
+    require.resolve('../scripts/migrations/transcribe-history-backfill'),
+    'utf8'
+  );
+  assert.match(transcribeMigrationSource, /ConsistentRead: true/);
+  assert.match(transcribeMigrationSource, /IfNoneMatch: '\*'/);
+  assert.doesNotMatch(transcribeMigrationSource, /ListTranscriptionJobsCommand/);
+  assert.doesNotMatch(transcribeMigrationSource, /--subject/);
   const now = Date.UTC(2026, 6, 11, 12, 0, 0);
   const shortAnalysis = shortLinksMigration._internal.analyzeItems([
     { slug: 'Alpha', entityType: 'link' },
@@ -344,6 +353,132 @@ async function run(){
   assert.throws(
     () => toolsTtlMigration._internal.assertSafeAnalysis(invalidTtl),
     err => err?.code === 'PREFLIGHT_FAILED'
+  );
+
+  const backfillNow = Math.floor(Date.UTC(2026, 6, 16, 12, 0, 0) / 1000);
+  const backfillJobA = `site-transcribe-${'a'.repeat(64)}`;
+  const backfillJobB = `site-transcribe-${'b'.repeat(64)}`;
+  const backfillJobC = `site-transcribe-${'c'.repeat(64)}`;
+  const backfillJobD = `site-transcribe-${'d'.repeat(64)}`;
+  const backfillConfig = {
+    subject: 'owner-123',
+    bucket: 'private-transcribe-bucket',
+    prefix: 'tools-transcribe/',
+    retentionDays: 90,
+    completedAfter: backfillNow - 4 * 86400,
+    completedBefore: backfillNow + 3600,
+    expectedCount: 2,
+    nowSeconds: backfillNow
+  };
+  const existingHistoryKey = `tools-transcribe/${backfillConfig.subject}/history/${backfillJobB}.txt`;
+  const backfillAnalysis = transcribeHistoryMigration._internal.classifyRunItems([
+    {
+      pk: `TRANSCRIBE#${backfillConfig.subject}`,
+      sk: `RUN#${backfillJobA}`,
+      entityType: 'transcribe_run',
+      state: 'COMPLETED',
+      jobName: backfillJobA,
+      quoteHash: '1'.repeat(64),
+      terminalAt: backfillNow - 2 * 86400
+    },
+    {
+      pk: `TRANSCRIBE#${backfillConfig.subject}`,
+      sk: `RUN#${backfillJobB}`,
+      entityType: 'transcribe_run',
+      state: 'COMPLETED',
+      jobName: backfillJobB,
+      quoteHash: '2'.repeat(64),
+      terminalAt: backfillNow - 86400,
+      historySk: `HISTORY#0000000000001#${backfillJobB}`,
+      transcriptObjectKey: existingHistoryKey,
+      transcriptSha256: '3'.repeat(64),
+      historyCreatedAt: (backfillNow - 86400) * 1000,
+      historyExpiresAt: backfillNow + 89 * 86400
+    },
+    {
+      pk: `TRANSCRIBE#${backfillConfig.subject}`,
+      sk: `RUN#${backfillJobC}`,
+      entityType: 'transcribe_run',
+      state: 'COMPLETED',
+      jobName: backfillJobC,
+      quoteHash: '4'.repeat(64),
+      terminalAt: backfillNow - 3600,
+      historyDeletedAt: backfillNow - 1800
+    },
+    {
+      pk: `TRANSCRIBE#${backfillConfig.subject}`,
+      sk: `RUN#${backfillJobD}`,
+      entityType: 'transcribe_run',
+      state: 'COMPLETED',
+      jobName: backfillJobD,
+      quoteHash: '5'.repeat(64),
+      terminalAt: backfillNow - 8 * 86400
+    },
+    {
+      pk: `TRANSCRIBE#${backfillConfig.subject}`,
+      sk: 'RUN#refunded',
+      entityType: 'transcribe_run',
+      state: 'REFUNDED',
+      jobName: 'refunded',
+      terminalAt: backfillNow - 1800
+    }
+  ], backfillConfig);
+  assert.equal(backfillAnalysis.summary.queried, 5);
+  assert.equal(backfillAnalysis.summary.completed, 4);
+  assert.equal(backfillAnalysis.summary.candidates, 1);
+  assert.equal(backfillAnalysis.summary.alreadyBackfilled, 1);
+  assert.equal(backfillAnalysis.summary.deleted, 1);
+  assert.equal(backfillAnalysis.summary.outsideWindow, 1);
+  assert.equal(backfillAnalysis.summary.nonCompleted, 1);
+  assert.equal(backfillAnalysis.summary.invalid, 0);
+  assert.equal(backfillAnalysis.summary.eligible, 2);
+  transcribeHistoryMigration._internal.assertSafeAnalysis(backfillAnalysis, backfillConfig);
+  assert.throws(
+    () => transcribeHistoryMigration._internal.assertSafeAnalysis(
+      backfillAnalysis,
+      { ...backfillConfig, expectedCount: 3 }
+    ),
+    err => err?.code === 'EXPECTED_COUNT_MISMATCH'
+  );
+  assert.equal(
+    transcribeHistoryMigration._internal.deriveFilenameFromMediaUri(
+      `s3://${backfillConfig.bucket}/${backfillConfig.prefix}${backfillConfig.subject}/1784100000000-${'f'.repeat(20)}-meeting_audio.mp3`,
+      backfillConfig
+    ),
+    'meeting_audio.mp3'
+  );
+  assert.throws(
+    () => transcribeHistoryMigration._internal.deriveFilenameFromMediaUri(
+      `s3://${backfillConfig.bucket}/${backfillConfig.prefix}other-owner/1784100000000-${'f'.repeat(20)}-meeting_audio.mp3`,
+      backfillConfig
+    ),
+    err => err?.code === 'OWNERSHIP_MISMATCH'
+  );
+  const resolvedBackfill = transcribeHistoryMigration._internal.resolveBackfillConfig({
+    environment: 'production',
+    table: 'tools-production-table',
+    bucket: 'private-transcribe-bucket',
+    region: 'us-east-2',
+    'expected-count': '2',
+    'completed-after': '2026-07-13T00:00:00.000Z',
+    'completed-before': '2026-07-17T00:00:00.000Z'
+  }, {
+    TRANSCRIBE_BACKFILL_SUB: backfillConfig.subject
+  }, backfillNow);
+  assert.equal(resolvedBackfill.subject, backfillConfig.subject);
+  assert.equal(resolvedBackfill.prefix, 'tools-transcribe/');
+  assert.equal(resolvedBackfill.expectedCount, 2);
+  assert.throws(
+    () => transcribeHistoryMigration._internal.resolveBackfillConfig({
+      environment: 'production',
+      table: 'tools-production-table',
+      bucket: 'private-transcribe-bucket',
+      region: 'us-east-2',
+      'expected-count': '2',
+      'completed-after': '2026-07-13T00:00:00.000Z',
+      'completed-before': '2026-07-17T00:00:00.000Z'
+    }, {}, backfillNow),
+    err => err?.code === 'SUBJECT_REQUIRED'
   );
 
   assert.throws(

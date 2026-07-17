@@ -8,13 +8,14 @@
     service: 'Amazon Transcribe',
     region: 'us-east-2',
     languageCode: 'en-US',
-    pricePerSecond: 0.0004,
-    pricePerMinute: 0.024,
+    pricePerSecond: 0.0001,
+    pricePerMinute: 0.006,
     minDurationSeconds: 15,
     minBillableSeconds: 15,
     maxFilesPerRun: 10,
     maxFileBytes: 500 * 1024 * 1024,
-    maxTotalCostUsd: 10,
+    maxTotalCostUsd: 100,
+    maxServiceDurationSeconds: 8 * 60 * 60,
     supportedFormats: ['amr', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm']
   };
   const VIDEO_FORMATS = new Set(['mp4', 'webm']);
@@ -25,6 +26,8 @@
   const ACTIVE_RUNS_STORAGE_KEY = 'tools:transcribe:active-runs:v1';
   const ACTIVE_RUNS_MAX_ITEMS = 10;
   const ACTIVE_RUNS_MAX_TOKEN_CHARS = 8192;
+  const HISTORY_PAGE_SIZE = 20;
+  const NOTIFICATION_PREFERENCE_KEY = 'tools:transcribe:notifications:v1';
   const DURATION_TIMEOUT_MS = 10000;
   const MAX_CONTAINER_SCAN_BYTES = 8 * 1024 * 1024;
   const MP4_SUSPICIOUS_STTS_DELTA_SECONDS = 120;
@@ -36,8 +39,13 @@
     Number(maxDeltaSeconds) >= MP4_SUSPICIOUS_STTS_DELTA_SECONDS &&
     Number(timelineSeconds) - Number(mediaDurationSeconds) >= MP4_TIMELINE_OVERFLOW_SECONDS;
 
+  const isRecoverableItem = (item) =>
+    ['failed', 'canceled'].includes(String(item?.status || '')) &&
+    item?.runErrorType !== 'service' &&
+    (Boolean(item?.runToken) || (Boolean(item?.quoteToken) && item?.uploadComplete === true));
+
   if (typeof module !== 'undefined' && module.exports && typeof document === 'undefined') {
-    module.exports = { isMp4TimelineSuspicious };
+    module.exports = { isMp4TimelineSuspicious, isRecoverableItem };
     return;
   }
 
@@ -66,6 +74,7 @@
   const cancelBtn = $id('transcribe-cancel');
   const resetBtn = $id('transcribe-reset');
   const newBtn = $id('transcribe-new');
+  const resumeAllBtn = $id('transcribe-resume-all');
   const runStatusEl = $id('transcribe-run-status');
   const processingCopyEl = $id('transcribe-processing-copy');
   const processingRowsEl = $id('transcribe-processing-rows');
@@ -74,6 +83,28 @@
   const progressLabelEl = $id('transcribe-progress-label');
   const progressBarEl = $id('transcribe-progress');
   const resultsEl = $id('transcribe-results');
+  const usageEl = $id('transcribe-usage');
+  const usageValueEl = $id('transcribe-usage-value');
+  const usageProgressEl = $id('transcribe-usage-progress');
+  const usageResetEl = $id('transcribe-usage-reset');
+  const historyOpenBtn = $id('transcribe-history-open');
+  const historyDialogEl = $id('transcribe-history-dialog');
+  const historyCloseBtn = $id('transcribe-history-close');
+  const historyRefreshBtn = $id('transcribe-history-refresh');
+  const historyStatusEl = $id('transcribe-history-status');
+  const historyListViewEl = $id('transcribe-history-list-view');
+  const historyListEl = $id('transcribe-history-list');
+  const historyLoadMoreBtn = $id('transcribe-history-load-more');
+  const historyDetailEl = $id('transcribe-history-detail');
+  const historyBackBtn = $id('transcribe-history-back');
+  const historyDetailNameEl = $id('transcribe-history-detail-name');
+  const historyDetailMetaEl = $id('transcribe-history-detail-meta');
+  const historyTranscriptEl = $id('transcribe-history-transcript');
+  const historyCopyBtn = $id('transcribe-history-copy');
+  const historyDownloadBtn = $id('transcribe-history-download');
+  const historyDeleteBtn = $id('transcribe-history-delete');
+  const historyPrivacyEl = $id('transcribe-history-privacy');
+  const notificationsBtn = $id('transcribe-notifications');
 
   if (!formEl || !fileEl || !startBtn || !fileRowsEl) return;
 
@@ -85,7 +116,17 @@
     activeXhr: null,
     activeController: null,
     analyzing: false,
-    view: 'upload'
+    view: 'upload',
+    accountSub: '',
+    usage: null,
+    usageLoading: false,
+    usageRequestId: 0,
+    historyItems: [],
+    historyNextCursor: '',
+    historyLoading: false,
+    historyDetail: null,
+    historyRequestId: 0,
+    notificationsEnabled: false
   };
 
   const getAuthSub = () => {
@@ -317,6 +358,43 @@
     }).format(num);
   };
 
+  const formatUsageUsd = (value) => new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Math.max(0, Number(value) || 0));
+
+  const historyDate = (value) => {
+    if (typeof value === 'number' || /^\d+$/.test(String(value || ''))) {
+      const numeric = Number(value);
+      return new Date(numeric > 10_000_000_000 ? numeric : numeric * 1000);
+    }
+    return new Date(String(value || ''));
+  };
+
+  const formatHistoryDate = (value) => {
+    const date = historyDate(value);
+    if (!Number.isFinite(date.getTime())) return 'Date unavailable';
+    return new Intl.DateTimeFormat('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(date);
+  };
+
+  const formatUtcReset = (value) => {
+    const date = historyDate(value);
+    if (!Number.isFinite(date.getTime())) return 'Resets at 00:00 UTC.';
+    return `Resets ${new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'UTC',
+      timeZoneName: 'short'
+    }).format(date)}.`;
+  };
+
   const getExtension = (name) => {
     const match = String(name || '').toLowerCase().match(/\.([a-z0-9]+)$/);
     return match ? match[1] : '';
@@ -325,6 +403,18 @@
   const safeDownloadName = (name) => {
     const base = String(name || 'transcript').replace(/\.[^.]+$/, '') || 'transcript';
     return `${base.replace(/[^a-zA-Z0-9._-]+/g, '_') || 'transcript'}-transcript.txt`;
+  };
+
+  const downloadTranscript = (name, transcript) => {
+    const blob = new Blob([String(transcript || '')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeDownloadName(name);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const fileFingerprint = (file) => [
@@ -630,7 +720,8 @@
       state.config.minDurationSeconds,
       state.config.maxFilesPerRun,
       state.config.maxFileBytes,
-      state.config.maxTotalCostUsd
+      state.config.maxTotalCostUsd,
+      state.config.maxServiceDurationSeconds
     ].map(Number);
     return state.config.configured === true &&
       Boolean(cleanText(state.config.service)) &&
@@ -701,22 +792,41 @@
       setAuthPill('warning', 'Loading auth');
       setStatus(authStatusEl, 'Loading tools account sign-in.', 'warning');
       if (signInBtn) signInBtn.disabled = true;
+      if (historyOpenBtn) historyOpenBtn.disabled = true;
+      renderUsage();
       updateControls();
       return;
     }
 
     const authed = authIsReady();
+    const accountSub = authed ? getAuthSub() : '';
+    if (state.accountSub !== accountSub) {
+      state.accountSub = accountSub;
+      state.usageRequestId += 1;
+      state.historyRequestId += 1;
+      state.usage = null;
+      state.usageLoading = false;
+      state.historyItems = [];
+      state.historyNextCursor = '';
+      state.historyLoading = false;
+      state.historyDetail = null;
+      if (historyDialogEl?.open) closeHistory();
+      showHistoryList();
+    }
     if (authed) {
       const user = window.ToolsAuth.getUser ? window.ToolsAuth.getUser(window.ToolsAuth.getAuth()) : {};
       const label = cleanText(user.email || user.name) || 'Signed in';
       setAuthPill('ok', 'Signed in');
       setStatus(authStatusEl, `${label} can start transcription jobs.`, 'success');
       if (signInBtn) signInBtn.disabled = true;
+      if (historyOpenBtn) historyOpenBtn.disabled = false;
     } else {
       setAuthPill('err', 'Sign in required');
       setStatus(authStatusEl, 'Sign in before uploading files or starting paid transcription jobs.', 'warning');
       if (signInBtn) signInBtn.disabled = false;
+      if (historyOpenBtn) historyOpenBtn.disabled = true;
     }
+    renderUsage();
     updateControls();
   };
 
@@ -784,11 +894,9 @@
     !state.analyzing &&
     !['presigning', 'uploading', 'starting', 'transcribing'].includes(String(item?.status || ''));
 
-  const canResumeItem = (item) => !state.busy &&
-    !state.analyzing &&
-    ['failed', 'canceled'].includes(item?.status) &&
-    item?.runErrorType !== 'service' &&
-    (Boolean(item.runToken) || (Boolean(item.quoteToken) && item.uploadComplete === true));
+  const canResumeItem = (item) => !state.busy && !state.analyzing && isRecoverableItem(item);
+
+  const resumableFiles = () => state.files.filter(isRecoverableItem);
 
   const renderTable = () => {
     if (tableWrapEl) tableWrapEl.hidden = state.files.length === 0;
@@ -856,16 +964,23 @@
   const renderResults = () => {
     if (!resultsEl) return;
     const resultItems = state.files.filter((item) =>
-      item.transcript || ['complete', 'partial', 'failed'].includes(item.status));
+      item.transcript || ['complete', 'partial', 'failed', 'canceled'].includes(item.status));
     const completedCount = completedFiles().length;
     const partialCount = partialFiles().length;
     const failedCount = state.files.filter((item) => item.status === 'failed').length;
+    const canceledCount = state.files.filter((item) => item.status === 'canceled').length;
     const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
+    const resumeCount = resumableFiles().length;
+    if (resumeAllBtn) {
+      resumeAllBtn.hidden = resumeCount === 0;
+      resumeAllBtn.disabled = state.busy || state.analyzing || resumeCount === 0;
+      setText(resumeAllBtn, `Resume all ${resumeCount} pending`);
+    }
     if (resultsSummaryEl) {
       setText(
         resultsSummaryEl,
         resultItems.length
-          ? `${completedCount} complete · ${partialCount} partial · ${failedCount} failed · ${skippedCount} skipped · Final cost ${formatUsd(finalTotal())}`
+          ? `${completedCount} complete · ${partialCount} partial · ${failedCount} failed · ${canceledCount} canceled · ${skippedCount} skipped · Final cost ${formatUsd(finalTotal())}`
           : 'Completed transcripts will appear below.'
       );
     }
@@ -915,6 +1030,12 @@
       startBtn.disabled = state.busy || state.analyzing || !ready;
       startBtn.dataset.ready = ready ? 'true' : 'false';
     }
+    if (resumeAllBtn) {
+      const count = resumableFiles().length;
+      resumeAllBtn.hidden = count === 0;
+      resumeAllBtn.disabled = state.busy || state.analyzing || count === 0;
+      setText(resumeAllBtn, `Resume all ${count} pending`);
+    }
   };
 
   const readJson = async (res) => {
@@ -941,6 +1062,335 @@
     return readJson(res);
   };
 
+  const renderUsage = () => {
+    const configuredLimit = Math.max(0, Number(state.config.dailyCostLimitUsd || 100) || 100);
+    if (!authIsReady()) {
+      setText(usageValueEl, `-- / ${formatUsageUsd(configuredLimit)}`);
+      if (usageProgressEl) {
+        usageProgressEl.max = configuredLimit;
+        usageProgressEl.value = 0;
+        usageProgressEl.textContent = 'Usage unavailable';
+      }
+      setText(usageResetEl, 'Sign in to view your UTC-day usage.');
+      if (usageEl) usageEl.dataset.tone = '';
+      return;
+    }
+    if (state.usageLoading && !state.usage) {
+      setText(usageValueEl, `Loading / ${formatUsageUsd(configuredLimit)}`);
+      setText(usageResetEl, 'Checking today\'s reserved usage...');
+      return;
+    }
+    if (!state.usage) {
+      setText(usageValueEl, `-- / ${formatUsageUsd(configuredLimit)}`);
+      setText(usageResetEl, 'Usage is temporarily unavailable.');
+      return;
+    }
+    const usedUsd = Math.max(0, Number(state.usage.usedUsd) || 0);
+    const limitUsd = Math.max(0, Number(state.usage.limitUsd) || configuredLimit);
+    const remainingUsd = Math.max(0, Number(state.usage.remainingUsd ?? (limitUsd - usedUsd)) || 0);
+    const fileCount = Math.max(0, Number(state.usage.fileCount) || 0);
+    setText(usageValueEl, `${formatUsageUsd(usedUsd)} / ${formatUsageUsd(limitUsd)}`);
+    if (usageProgressEl) {
+      usageProgressEl.max = limitUsd || 100;
+      usageProgressEl.value = Math.min(usedUsd, limitUsd || usedUsd);
+      usageProgressEl.textContent = `${formatUsageUsd(usedUsd)} of ${formatUsageUsd(limitUsd)}`;
+    }
+    setText(
+      usageResetEl,
+      `${formatUsageUsd(remainingUsd)} remaining · ${fileCount} file${fileCount === 1 ? '' : 's'} · ${formatUtcReset(state.usage.resetsAt)}`
+    );
+    if (usageEl) {
+      const ratio = limitUsd > 0 ? usedUsd / limitUsd : 0;
+      usageEl.dataset.tone = ratio >= 1 ? 'error' : ratio >= .8 ? 'warning' : '';
+    }
+  };
+
+  const loadUsage = async () => {
+    const sub = getAuthSub();
+    const requestId = ++state.usageRequestId;
+    if (!sub) {
+      state.usage = null;
+      state.usageLoading = false;
+      renderUsage();
+      return;
+    }
+    state.usageLoading = true;
+    renderUsage();
+    try {
+      const data = await authFetchJson(`${API_BASE}/usage`, { method: 'GET' });
+      if (requestId !== state.usageRequestId || sub !== getAuthSub()) return;
+      state.usage = data?.usage && typeof data.usage === 'object' ? data.usage : null;
+    } catch {
+      if (requestId !== state.usageRequestId || sub !== getAuthSub()) return;
+      state.usage = null;
+    } finally {
+      if (requestId === state.usageRequestId) {
+        state.usageLoading = false;
+        renderUsage();
+      }
+    }
+  };
+
+  const historyItemId = (item) => cleanText(item?.id || item?.jobName);
+
+  const historyItemMeta = (item) => {
+    const status = String(item?.status || '').toUpperCase() === 'PARTIAL' ? 'Needs review' : 'Complete';
+    const cost = Number(item?.costUsd);
+    const parts = [status, formatHistoryDate(item?.completedAt)];
+    if (item?.costUsd !== null && item?.costUsd !== undefined && Number.isFinite(cost)) parts.push(formatUsd(cost));
+    if (Number(item?.durationSeconds) > 0) parts.push(formatClock(item.durationSeconds));
+    return parts.join(' · ');
+  };
+
+  const renderHistoryList = () => {
+    if (!historyListEl) return;
+    if (!state.historyItems.length) {
+      historyListEl.innerHTML = state.historyLoading
+        ? '<p class="transcribe-empty">Loading transcript history...</p>'
+        : '<p class="transcribe-empty">No saved transcripts yet. New completed transcripts will appear here.</p>';
+    } else {
+      historyListEl.innerHTML = state.historyItems.map((item) => `
+        <article class="transcribe-history-item">
+          <div>
+            <h3>${escapeHtml(item.filename || 'media')}</h3>
+            <p>${escapeHtml(historyItemMeta(item))}</p>
+          </div>
+          <div class="transcribe-history-item-actions">
+            <button type="button" class="btn-secondary" data-transcribe-history-action="view" data-id="${escapeHtml(historyItemId(item))}">View transcript</button>
+          </div>
+        </article>
+      `).join('');
+    }
+    if (historyLoadMoreBtn) {
+      historyLoadMoreBtn.hidden = !state.historyNextCursor;
+      historyLoadMoreBtn.disabled = state.historyLoading;
+    }
+    if (historyRefreshBtn) historyRefreshBtn.disabled = state.historyLoading;
+    setStatus(
+      historyStatusEl,
+      state.historyLoading
+        ? 'Loading transcript history...'
+        : state.historyItems.length
+          ? `${state.historyItems.length} saved transcript${state.historyItems.length === 1 ? '' : 's'} loaded.`
+          : 'No saved transcripts yet.',
+      ''
+    );
+  };
+
+  const showHistoryList = () => {
+    state.historyDetail = null;
+    if (historyDetailEl) historyDetailEl.hidden = true;
+    if (historyListViewEl) historyListViewEl.hidden = false;
+    if (historyTranscriptEl) historyTranscriptEl.value = '';
+    renderHistoryList();
+  };
+
+  const renderHistoryDetail = () => {
+    const item = state.historyDetail;
+    if (!item) {
+      showHistoryList();
+      return;
+    }
+    if (historyListViewEl) historyListViewEl.hidden = true;
+    if (historyDetailEl) historyDetailEl.hidden = false;
+    setText(historyDetailNameEl, item.filename || 'Transcript');
+    setText(historyDetailMetaEl, historyItemMeta(item));
+    if (historyTranscriptEl) historyTranscriptEl.value = String(item.transcript || '');
+  };
+
+  const loadHistory = async ({ append = false } = {}) => {
+    const sub = getAuthSub();
+    if (!sub || state.historyLoading) return;
+    const cursor = append ? state.historyNextCursor : '';
+    const requestId = ++state.historyRequestId;
+    let loadError = '';
+    state.historyLoading = true;
+    if (!append) {
+      state.historyItems = [];
+      state.historyNextCursor = '';
+    }
+    renderHistoryList();
+    const params = new URLSearchParams({ limit: String(HISTORY_PAGE_SIZE) });
+    if (cursor) params.set('cursor', cursor);
+    try {
+      const data = await authFetchJson(`${API_BASE}/history?${params.toString()}`, { method: 'GET' });
+      if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const knownIds = new Set(state.historyItems.map(historyItemId));
+      state.historyItems = append
+        ? [...state.historyItems, ...items.filter((item) => !knownIds.has(historyItemId(item)))]
+        : items;
+      state.historyNextCursor = cleanText(data?.nextCursor);
+    } catch (err) {
+      if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
+      loadError = err?.message || 'Unable to load transcript history.';
+    } finally {
+      if (requestId === state.historyRequestId) {
+        state.historyLoading = false;
+        renderHistoryList();
+        if (loadError) setStatus(historyStatusEl, loadError, 'error');
+      }
+    }
+  };
+
+  const loadHistoryDetail = async (id) => {
+    const safeId = cleanText(id);
+    const sub = getAuthSub();
+    if (!safeId || !sub) return;
+    const requestId = ++state.historyRequestId;
+    setStatus(historyStatusEl, 'Loading transcript...', '');
+    try {
+      const data = await authFetchJson(`${API_BASE}/history?job=${encodeURIComponent(safeId)}`, { method: 'GET' });
+      if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
+      state.historyDetail = data?.item && typeof data.item === 'object' ? data.item : null;
+      if (!state.historyDetail) throw new Error('The saved transcript was not found.');
+      renderHistoryDetail();
+      setStatus(historyStatusEl, '', '');
+      historyBackBtn?.focus();
+    } catch (err) {
+      if (requestId !== state.historyRequestId || sub !== getAuthSub()) return;
+      setStatus(historyStatusEl, err?.message || 'Unable to load this transcript.', 'error');
+    }
+  };
+
+  const openHistory = () => {
+    if (!authIsReady()) {
+      setStatus(runStatusEl, 'Sign in to view your private transcript history.', 'warning');
+      return;
+    }
+    showHistoryList();
+    if (typeof historyDialogEl?.showModal === 'function') historyDialogEl.showModal();
+    else historyDialogEl?.setAttribute('open', '');
+    void loadHistory();
+  };
+
+  const closeHistory = () => {
+    if (typeof historyDialogEl?.close === 'function' && historyDialogEl.open) historyDialogEl.close();
+    else historyDialogEl?.removeAttribute('open');
+  };
+
+  const deleteHistoryDetail = async () => {
+    const item = state.historyDetail;
+    const id = historyItemId(item);
+    if (!id || !window.confirm(`Delete the saved transcript for "${item.filename || 'this file'}"?`)) return;
+    if (historyDeleteBtn) historyDeleteBtn.disabled = true;
+    try {
+      await authFetchJson(`${API_BASE}/history?job=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      state.historyItems = state.historyItems.filter((entry) => historyItemId(entry) !== id);
+      showHistoryList();
+      setStatus(historyStatusEl, 'Saved transcript deleted.', 'success');
+    } catch (err) {
+      setStatus(historyStatusEl, err?.message || 'Unable to delete this transcript.', 'error');
+    } finally {
+      if (historyDeleteBtn) historyDeleteBtn.disabled = false;
+    }
+  };
+
+  const notificationApiAvailable = () =>
+    typeof window.Notification === 'function' &&
+    typeof window.Notification.requestPermission === 'function';
+
+  const readNotificationPreference = () => {
+    try {
+      return window.localStorage.getItem(NOTIFICATION_PREFERENCE_KEY) === 'on';
+    } catch {
+      return false;
+    }
+  };
+
+  const saveNotificationPreference = (enabled) => {
+    try {
+      window.localStorage.setItem(NOTIFICATION_PREFERENCE_KEY, enabled ? 'on' : 'off');
+    } catch {}
+  };
+
+  const updateNotificationUi = () => {
+    if (!notificationsBtn) return;
+    notificationsBtn.title = 'Completion and failure alerts work while this page remains open.';
+    if (!notificationApiAvailable()) {
+      state.notificationsEnabled = false;
+      notificationsBtn.disabled = true;
+      notificationsBtn.dataset.state = 'unsupported';
+      notificationsBtn.setAttribute('aria-pressed', 'false');
+      setText(notificationsBtn, 'Notifications unavailable');
+      return;
+    }
+    const permission = window.Notification.permission;
+    if (permission === 'denied') {
+      state.notificationsEnabled = false;
+      notificationsBtn.disabled = true;
+      notificationsBtn.dataset.state = 'denied';
+      notificationsBtn.setAttribute('aria-pressed', 'false');
+      setText(notificationsBtn, 'Notifications blocked');
+      return;
+    }
+    state.notificationsEnabled = permission === 'granted' && readNotificationPreference();
+    notificationsBtn.disabled = false;
+    notificationsBtn.dataset.state = state.notificationsEnabled ? 'enabled' : 'off';
+    notificationsBtn.setAttribute('aria-pressed', state.notificationsEnabled ? 'true' : 'false');
+    setText(notificationsBtn, state.notificationsEnabled ? 'Notifications on' : 'Notifications off');
+  };
+
+  const toggleNotifications = async () => {
+    if (!notificationApiAvailable()) return;
+    if (window.Notification.permission === 'granted') {
+      saveNotificationPreference(!state.notificationsEnabled);
+      updateNotificationUi();
+      setStatus(
+        runStatusEl,
+        state.notificationsEnabled
+          ? 'Browser alerts are on while this page remains open.'
+          : 'Browser alerts are off.',
+        state.notificationsEnabled ? 'success' : ''
+      );
+      return;
+    }
+    let permission = window.Notification.permission;
+    if (permission === 'default') {
+      try {
+        permission = await window.Notification.requestPermission();
+      } catch {
+        permission = 'denied';
+      }
+    }
+    saveNotificationPreference(permission === 'granted');
+    updateNotificationUi();
+    setStatus(
+      runStatusEl,
+      permission === 'granted'
+        ? 'Browser alerts are on while this page remains open.'
+        : 'Notifications were not enabled. You can change this site permission in your browser settings.',
+      permission === 'granted' ? 'success' : 'warning'
+    );
+  };
+
+  const notifyItem = (item) => {
+    const status = String(item?.status || '');
+    if (!state.notificationsEnabled || !['complete', 'partial', 'failed'].includes(status)) return;
+    if (item.notifiedStatus === status) return;
+    item.notifiedStatus = status;
+    const title = status === 'complete'
+      ? 'Transcription complete'
+      : status === 'partial'
+        ? 'Transcript needs review'
+        : 'Transcription failed';
+    const body = status === 'complete'
+      ? `${item.name} is ready.`
+      : status === 'partial'
+        ? `${item.name} may have ended early.`
+        : `${item.name} could not be transcribed.`;
+    try {
+      const notification = new window.Notification(title, {
+        body,
+        tag: `transcribe-${item.id || item.name}-${status}`
+      });
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } catch {}
+  };
+
   const loadConfig = async () => {
     try {
       const res = await fetch(`${API_BASE}/config`, { method: 'GET' });
@@ -951,6 +1401,11 @@
       }
       updateStats();
       updateSummary();
+      if (historyPrivacyEl) {
+        const days = Math.max(1, Number(state.config.historyRetentionDays) || 90);
+        setText(historyPrivacyEl, `History stores only the filename and transcript text for ${days} days. Your original media file is not retained here.`);
+      }
+      renderUsage();
     } catch (err) {
       setStatus(runStatusEl, err?.message || 'Transcribe configuration is unavailable.', 'warning');
       state.config = { ...DEFAULT_CONFIG, configured: false };
@@ -1075,6 +1530,12 @@
       if (item.durationSeconds < Number(state.config.minDurationSeconds || 15)) {
         item.status = 'skipped';
         item.skipReason = `Under ${state.config.minDurationSeconds || 15} seconds.`;
+        renderTable();
+        continue;
+      }
+      if (item.durationSeconds > Number(state.config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds)) {
+        item.status = 'skipped';
+        item.skipReason = `Exceeds Amazon Transcribe's ${formatClock(state.config.maxServiceDurationSeconds)} media limit.`;
         renderTable();
         continue;
       }
@@ -1257,6 +1718,9 @@
         renderResults();
         markSessionDirty();
         persistActiveRunRecovery();
+        notifyItem(item);
+        void loadUsage();
+        if (historyDialogEl?.open) void loadHistory();
         return;
       }
       if (status === 'FAILED') {
@@ -1269,6 +1733,8 @@
         renderResults();
         markSessionDirty();
         persistActiveRunRecovery();
+        notifyItem(item);
+        void loadUsage();
         return;
       }
 
@@ -1307,6 +1773,7 @@
     item.runToken = runToken;
     item.pollStartedAt = Number(item.pollStartedAt) || Date.now();
     persistActiveRunRecovery();
+    void loadUsage();
     return runToken;
   };
 
@@ -1357,10 +1824,11 @@
     await pollRun(item, runToken);
   };
 
-  const resumeItem = async (item) => {
-    if (!canResumeItem(item)) return;
+  const resumeQueue = async (items) => {
+    const queue = Array.from(items || []).filter(isRecoverableItem);
+    if (!queue.length) return;
     if (!authIsReady()) {
-      setStatus(runStatusEl, 'Sign in again before resuming this transcription.', 'warning');
+      setStatus(runStatusEl, 'Sign in again before resuming these transcriptions.', 'warning');
       updateAuthUi();
       return;
     }
@@ -1370,52 +1838,78 @@
     }
 
     state.canceled = false;
-    item.error = '';
-    item.runErrorType = '';
-    item.status = item.runToken ? 'transcribing' : 'starting';
     setView('processing');
     setBusy(true);
-    renderTable();
     renderProcessingList();
-    setStatus(runStatusEl, `Resuming ${item.name} with its existing job token...`, '');
-    updateProgress({ stateName: 'visible', ratio: 1, label: `Resuming ${item.name}...` });
+    setStatus(runStatusEl, `Resuming ${queue.length} pending transcription${queue.length === 1 ? '' : 's'}...`, '');
+    setText(processingCopyEl, `Resuming ${queue.length} existing job${queue.length === 1 ? '' : 's'} in sequence.`);
+    updateProgress({ stateName: 'visible', ratio: 0, label: 'Preparing recovered jobs...' });
 
-    try {
-      const runToken = item.runToken || await startReservedRun(item);
-      item.status = 'transcribing';
-      renderTable();
-      await pollRun(item, runToken);
-      setStatus(
-        runStatusEl,
-        item.status === 'complete'
-          ? `${item.name} is complete.`
-          : item.status === 'partial'
-            ? `${item.name} produced a partial transcript. Repair the media and submit it as a new file.`
-            : `${item.name} could not be transcribed.`,
-        item.status === 'complete' ? 'success' : 'warning'
-      );
-    } catch (err) {
-      if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
-        item.status = 'canceled';
-        item.error = 'Canceled.';
-      } else {
-        item.status = 'failed';
-        item.error = friendlyTranscribeError(err?.message || 'Unable to resume transcription.');
-        item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
-      }
-      setStatus(runStatusEl, item.error, 'warning');
-    } finally {
-      setBusy(false);
-      updateProgress({ stateName: 'hidden' });
+    for (let index = 0; index < queue.length; index += 1) {
+      const item = queue[index];
+      if (state.canceled) break;
+      item.error = '';
+      item.runErrorType = '';
+      item.status = item.runToken ? 'transcribing' : 'starting';
+      setStatus(runStatusEl, `Resuming ${index + 1} of ${queue.length}: ${item.name}`, '');
+      setText(processingCopyEl, `Resuming ${index + 1} of ${queue.length}: ${item.name}`);
+      updateProgress({ stateName: 'visible', ratio: index / queue.length, label: `Resuming ${item.name}...` });
       renderTable();
       renderProcessingList();
-      renderResults();
-      setView('results');
-      updateLayoutState();
-      markSessionDirty();
-      persistActiveRunRecovery();
+      try {
+        const runToken = item.runToken || await startReservedRun(item);
+        item.status = 'transcribing';
+        renderTable();
+        await pollRun(item, runToken);
+      } catch (err) {
+        if (state.canceled || err?.name === 'AbortError' || err?.message === 'Canceled.') {
+          item.status = 'canceled';
+          item.error = 'Canceled.';
+          item.runErrorType = 'processing';
+        } else {
+          item.status = 'failed';
+          item.error = friendlyTranscribeError(err?.message || 'Unable to resume transcription.');
+          item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
+          notifyItem(item);
+        }
+        renderTable();
+        renderProcessingList();
+        renderResults();
+        markSessionDirty();
+        persistActiveRunRecovery();
+      }
+      updateProgress({
+        stateName: 'visible',
+        ratio: (index + 1) / queue.length,
+        label: `${index + 1} of ${queue.length} recovered jobs finished`
+      });
     }
+
+    const completed = queue.filter((item) => item.status === 'complete').length;
+    const partial = queue.filter((item) => item.status === 'partial').length;
+    const failed = queue.filter((item) => item.status === 'failed').length;
+    const canceled = queue.filter((item) => item.status === 'canceled').length;
+    setStatus(
+      runStatusEl,
+      state.canceled
+        ? `Resume canceled. ${completed} complete, ${partial} partial, ${failed} failed, ${canceled} canceled.`
+        : `Resume finished. ${completed} complete, ${partial} partial, ${failed} failed.`,
+      partial || failed || canceled ? 'warning' : 'success'
+    );
+    setBusy(false);
+    updateProgress({ stateName: 'hidden' });
+    renderTable();
+    renderProcessingList();
+    renderResults();
+    setView('results');
+    updateLayoutState();
+    markSessionDirty();
+    persistActiveRunRecovery();
+    void loadUsage();
+    if (historyDialogEl?.open) void loadHistory();
   };
+
+  const resumeItem = async (item) => resumeQueue([item]);
 
   const runBatch = async ({ reportOutcome = false } = {}) => {
     if (!authIsReady()) {
@@ -1472,6 +1966,7 @@
           item.status = 'failed';
           item.error = friendlyTranscribeError(err?.message || 'Transcription failed.');
           item.runErrorType = item.runToken && isTransientRunError(err) ? 'network' : classifyRunError(err);
+          notifyItem(item);
         }
         renderTable();
         renderProcessingList();
@@ -1496,6 +1991,8 @@
     setView('results');
     updateLayoutState();
     persistActiveRunRecovery();
+    void loadUsage();
+    if (historyDialogEl?.open) void loadHistory();
 
     if (reportOutcome) {
       if (state.canceled || canceled) {
@@ -1549,6 +2046,50 @@
       signInWithPopup();
     });
   }
+
+  if (notificationsBtn) {
+    notificationsBtn.addEventListener('click', () => {
+      void toggleNotifications();
+    });
+  }
+
+  if (historyOpenBtn) historyOpenBtn.addEventListener('click', openHistory);
+  if (historyCloseBtn) historyCloseBtn.addEventListener('click', closeHistory);
+  if (historyRefreshBtn) historyRefreshBtn.addEventListener('click', () => {
+    showHistoryList();
+    void loadHistory();
+  });
+  if (historyLoadMoreBtn) historyLoadMoreBtn.addEventListener('click', () => {
+    void loadHistory({ append: true });
+  });
+  if (historyBackBtn) historyBackBtn.addEventListener('click', showHistoryList);
+  if (historyListEl) {
+    historyListEl.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-transcribe-history-action="view"]');
+      if (!button) return;
+      void loadHistoryDetail(button.getAttribute('data-id'));
+    });
+  }
+  if (historyCopyBtn) {
+    historyCopyBtn.addEventListener('click', async () => {
+      const transcript = String(state.historyDetail?.transcript || '');
+      if (!transcript) return;
+      try {
+        await navigator.clipboard.writeText(transcript);
+        setStatus(historyStatusEl, 'Transcript copied.', 'success');
+      } catch {
+        setStatus(historyStatusEl, 'Copy failed. Select the transcript text manually.', 'error');
+      }
+    });
+  }
+  if (historyDownloadBtn) {
+    historyDownloadBtn.addEventListener('click', () => {
+      const transcript = String(state.historyDetail?.transcript || '');
+      if (!transcript) return;
+      downloadTranscript(state.historyDetail?.filename, transcript);
+    });
+  }
+  if (historyDeleteBtn) historyDeleteBtn.addEventListener('click', () => void deleteHistoryDetail());
 
   fileEl.addEventListener('change', () => {
     analyzeSelectedFiles(fileEl.files);
@@ -1628,6 +2169,12 @@
 
   if (resetBtn) resetBtn.addEventListener('click', reset);
   if (newBtn) newBtn.addEventListener('click', reset);
+  if (resumeAllBtn) {
+    resumeAllBtn.addEventListener('click', () => {
+      const queue = resumableFiles();
+      void resumeQueue(queue);
+    });
+  }
 
   if (resultsEl) {
     resultsEl.addEventListener('click', async (event) => {
@@ -1652,29 +2199,24 @@
         }
       }
       if (action === 'download') {
-        const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = safeDownloadName(item.name);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        downloadTranscript(item.name, transcript);
       }
     });
   }
 
   document.addEventListener('tools:auth-changed', () => {
     updateAuthUi();
+    updateNotificationUi();
+    void loadUsage();
     const restoredCount = restoreActiveRunRecovery();
     if (!restoredCount) return;
     setView('results');
     renderTable();
     renderResults();
-    setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Select Resume to continue without uploading again.`, 'warning');
+    setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Resume one or continue all pending jobs without uploading again.`, 'warning');
   });
   window.addEventListener('pagehide', persistActiveRunRecovery);
+  document.addEventListener('visibilitychange', updateNotificationUi);
 
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
@@ -1702,10 +2244,12 @@
     const restoredCount = restoreActiveRunRecovery();
     setView(restoredCount ? 'results' : 'upload');
     updateAuthUi();
+    updateNotificationUi();
+    void loadUsage();
     renderTable();
     renderResults();
     if (restoredCount) {
-      setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Select Resume to continue without uploading again.`, 'warning');
+      setStatus(runStatusEl, `Recovered ${restoredCount} unfinished transcription job${restoredCount === 1 ? '' : 's'}. Resume one or continue all pending jobs without uploading again.`, 'warning');
     }
   });
   window.setTimeout(updateAuthUi, 250);

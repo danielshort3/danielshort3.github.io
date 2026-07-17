@@ -10,7 +10,13 @@
 'use strict';
 
 const crypto = require('crypto');
-const { DeleteObjectCommand, HeadObjectCommand, S3Client } = require('@aws-sdk/client-s3');
+const {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client
+} = require('@aws-sdk/client-s3');
 const { createPresignedPost } = require('@aws-sdk/s3-presigned-post');
 const {
   DeleteTranscriptionJobCommand,
@@ -23,9 +29,14 @@ const { readJson, sendJson } = require('../tools-api');
 const { authenticateToolsRequest } = require('../tools-auth-session');
 const {
   RUN_STATE,
+  deleteTranscriptHistoryMetadata,
+  getDailyUsage,
   getRun,
+  getTranscriptHistory,
+  listTranscriptHistory,
   markJobCreated,
   markRunTerminal,
+  persistTranscriptHistoryMetadata,
   refundRun,
   reserveRun
 } = require('../transcribe-ledger');
@@ -33,15 +44,15 @@ const {
 const SUPPORTED_FORMATS = new Set(['mp3', 'mp4', 'wav', 'flac', 'ogg', 'webm', 'm4a', 'amr']);
 const VIDEO_FORMATS = new Set(['mp4', 'webm']);
 const MIN_DURATION_SECONDS = 15;
-const DEFAULT_PRICE_PER_SECOND = 0.0004;
+const DEFAULT_PRICE_PER_SECOND = 0.0001;
 const DEFAULT_MAX_FILES_PER_RUN = 10;
 const DEFAULT_MAX_FILE_BYTES = 500 * 1024 * 1024;
-const DEFAULT_MAX_TOTAL_COST_USD = 10;
+const DEFAULT_MAX_TOTAL_COST_USD = 100;
 const DEFAULT_UPLOAD_TTL_SECONDS = 15 * 60;
 const DEFAULT_TOKEN_TTL_SECONDS = 2 * 60 * 60;
 const DEFAULT_RUN_TOKEN_TTL_SECONDS = 24 * 60 * 60;
 const AWS_MAX_MEDIA_DURATION_SECONDS = 28_800;
-const DEFAULT_DAILY_COST_LIMIT_USD = 25;
+const DEFAULT_DAILY_COST_LIMIT_USD = 100;
 const DEFAULT_DAILY_FILE_LIMIT = 50;
 const DEFAULT_GLOBAL_DAILY_COST_LIMIT_USD = 100;
 const DEFAULT_GLOBAL_DAILY_FILE_LIMIT = 200;
@@ -51,6 +62,9 @@ const DEFAULT_LEDGER_LEASE_SECONDS = 12 * 60 * 60;
 const DEFAULT_LEDGER_RENEWAL_SECONDS = 60;
 const DEFAULT_LEDGER_RUN_RETENTION_DAYS = 45;
 const DEFAULT_LEDGER_DAY_RETENTION_DAYS = 45;
+const DEFAULT_HISTORY_RETENTION_DAYS = 90;
+const MAX_HISTORY_RETENTION_DAYS = 3650;
+const HISTORY_CURSOR_TTL_SECONDS = 60 * 60;
 const DEFAULT_TRANSCRIPT_FETCH_TIMEOUT_MS = 12_000;
 const DEFAULT_MAX_TRANSCRIPT_FETCH_BYTES = 25 * 1024 * 1024;
 const DEFAULT_MAX_TRANSCRIPT_BYTES = 3 * 1024 * 1024;
@@ -122,6 +136,25 @@ function getLedgerMode(){
   return 'required';
 }
 
+function parseTrustedCostSubjects(value){
+  return new Set(String(value || '')
+    .split(/[\s,]+/)
+    .map(subject => subject.trim())
+    .filter(subject => /^[A-Za-z0-9:_-]{1,128}$/.test(subject))
+    .slice(0, 50));
+}
+
+function getReservationCost(config, sub, quotedCostUsd){
+  const maxCostUsd = positiveNumber(config?.ledgerReservationCostUsd, 0);
+  const quoted = Number(quotedCostUsd);
+  const subject = String(sub || '').trim();
+  const trusted = config?.trustedCostSubjects instanceof Set && config.trustedCostSubjects.has(subject);
+  if (!trusted || !Number.isFinite(quoted) || quoted <= 0) {
+    return { costUsd: maxCostUsd, basis: 'max_duration' };
+  }
+  return { costUsd: Math.min(quoted, maxCostUsd), basis: 'trusted_quote' };
+}
+
 function getConfig(){
   const region = pickEnv(['TRANSCRIBE_AWS_REGION', 'AWS_REGION', 'AWS_DEFAULT_REGION']);
   const bucket = pickEnv(['TRANSCRIBE_UPLOAD_BUCKET']);
@@ -142,6 +175,7 @@ function getConfig(){
   const ledgerTtlAttribute = /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(ledgerTtlAttributeRaw) ? ledgerTtlAttributeRaw : 'ttl';
   const ledgerDailyCostLimitUsd = positiveNumber(process.env.TRANSCRIBE_DAILY_COST_LIMIT_USD, DEFAULT_DAILY_COST_LIMIT_USD);
   const ledgerReservationCostUsd = calculateCostUsd(AWS_MAX_MEDIA_DURATION_SECONDS, pricePerSecond);
+  const trustedCostSubjects = parseTrustedCostSubjects(process.env.TRANSCRIBE_TRUSTED_COST_SUBS);
   const ledgerDailyFileLimit = positiveInteger(process.env.TRANSCRIBE_DAILY_FILE_LIMIT, DEFAULT_DAILY_FILE_LIMIT);
   const ledgerGlobalDailyCostLimitUsd = positiveNumber(
     process.env.TRANSCRIBE_GLOBAL_DAILY_COST_LIMIT_USD,
@@ -160,6 +194,10 @@ function getConfig(){
   const ledgerStartLeaseSeconds = positiveInteger(process.env.TRANSCRIBE_LEDGER_START_LEASE_SECONDS, DEFAULT_LEDGER_START_LEASE_SECONDS);
   const ledgerRunRetentionDays = positiveInteger(process.env.TRANSCRIBE_LEDGER_RUN_RETENTION_DAYS, DEFAULT_LEDGER_RUN_RETENTION_DAYS);
   const ledgerDayRetentionDays = positiveInteger(process.env.TRANSCRIBE_LEDGER_DAY_RETENTION_DAYS, DEFAULT_LEDGER_DAY_RETENTION_DAYS);
+  const historyRetentionDays = Math.min(
+    positiveInteger(process.env.TRANSCRIBE_HISTORY_RETENTION_DAYS, DEFAULT_HISTORY_RETENTION_DAYS),
+    MAX_HISTORY_RETENTION_DAYS
+  );
   const transcriptFetchTimeoutMs = Math.min(
     positiveInteger(process.env.TRANSCRIBE_TRANSCRIPT_FETCH_TIMEOUT_MS, DEFAULT_TRANSCRIPT_FETCH_TIMEOUT_MS),
     MAX_TRANSCRIPT_FETCH_TIMEOUT_MS
@@ -214,6 +252,7 @@ function getConfig(){
     ledgerDailyCostLimitUsd,
     ledgerDailyCostLimitMicros: Math.round(ledgerDailyCostLimitUsd * 1_000_000),
     ledgerReservationCostUsd,
+    trustedCostSubjects,
     ledgerDailyFileLimit,
     ledgerGlobalDailyCostLimitMicros: Math.round(ledgerGlobalDailyCostLimitUsd * 1_000_000),
     ledgerGlobalDailyFileLimit,
@@ -223,6 +262,7 @@ function getConfig(){
     ledgerRenewalSeconds,
     ledgerRunRetentionDays,
     ledgerDayRetentionDays,
+    historyRetentionDays,
     transcriptFetchTimeoutMs,
     maxTranscriptFetchBytes,
     maxTranscriptBytes,
@@ -260,6 +300,10 @@ function getPublicConfig(){
     maxServiceDurationSeconds: AWS_MAX_MEDIA_DURATION_SECONDS,
     dailyFileLimit: positiveInteger(process.env.TRANSCRIBE_DAILY_FILE_LIMIT, DEFAULT_DAILY_FILE_LIMIT),
     maxConcurrent: Math.min(positiveInteger(process.env.TRANSCRIBE_MAX_CONCURRENT, DEFAULT_MAX_CONCURRENT), MAX_LEDGER_CONCURRENT),
+    historyRetentionDays: Math.min(
+      positiveInteger(process.env.TRANSCRIBE_HISTORY_RETENTION_DAYS, DEFAULT_HISTORY_RETENTION_DAYS),
+      MAX_HISTORY_RETENTION_DAYS
+    ),
     configured: Boolean(ledgerConfigValid && region && bucket && signingSecret && signingSecret.length >= 24 && (!ledgerEnabled || ledgerTable))
   };
 }
@@ -341,6 +385,85 @@ function verifyToken(token, secret, expectedType){
     throw err;
   }
   return payload;
+}
+
+function firstQueryValue(value){
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizeHistoryJobName(value){
+  const jobName = String(value || '').trim();
+  return /^site-transcribe-[a-f0-9]{64}$/.test(jobName) ? jobName : '';
+}
+
+function historyCursorOwner(sub, secret){
+  return crypto.createHmac('sha256', secret)
+    .update(`transcribe-history\n${String(sub || '')}`)
+    .digest('hex');
+}
+
+function encodeHistoryCursor(lastEvaluatedKey, sub, config){
+  const sk = String(lastEvaluatedKey?.sk || '');
+  if (!sk.startsWith('HISTORY#')) return '';
+  const now = Math.floor(Date.now() / 1000);
+  return signToken({
+    type: 'history_cursor',
+    owner: historyCursorOwner(sub, config.signingSecret),
+    sk,
+    iat: now,
+    exp: now + HISTORY_CURSOR_TTL_SECONDS
+  }, config.signingSecret);
+}
+
+function decodeHistoryCursor(value, sub, config){
+  const cursor = String(value || '').trim();
+  if (!cursor) return undefined;
+  if (cursor.length > 2048) {
+    const err = new Error('Invalid transcription history cursor.');
+    err.code = 'HISTORY_CURSOR_INVALID';
+    throw err;
+  }
+  const payload = verifyToken(cursor, config.signingSecret, 'history_cursor');
+  const expectedOwner = historyCursorOwner(sub, config.signingSecret);
+  const suppliedOwner = String(payload.owner || '');
+  const ownerMatches = suppliedOwner.length === expectedOwner.length && crypto.timingSafeEqual(
+    Buffer.from(suppliedOwner, 'utf8'),
+    Buffer.from(expectedOwner, 'utf8')
+  );
+  const sk = String(payload.sk || '');
+  if (!ownerMatches || !sk.startsWith('HISTORY#')) {
+    const err = new Error('Invalid transcription history cursor.');
+    err.code = 'HISTORY_CURSOR_INVALID';
+    throw err;
+  }
+  return { pk: `TRANSCRIBE#${sub}`, sk };
+}
+
+function microsToUsd(value){
+  return Number((Math.max(0, Number(value) || 0) / 1_000_000).toFixed(6));
+}
+
+function publicHistoryItem(record){
+  if (!record) return null;
+  const quotedCostMicros = Number(record.quotedCostMicros);
+  return {
+    id: String(record.jobName || ''),
+    filename: String(record.filename || 'media'),
+    status: String(record.status || RUN_STATE.COMPLETED).toUpperCase(),
+    completedAt: Math.max(0, Number(record.completedAt) || 0),
+    costUsd: Number.isFinite(quotedCostMicros) && quotedCostMicros > 0
+      ? microsToUsd(quotedCostMicros)
+      : null,
+    reservedCostUsd: microsToUsd(record.costMicros),
+    durationSeconds: Math.max(0, Number(record.durationSeconds) || 0),
+    billableSeconds: Math.max(0, Number(record.billableSeconds) || 0),
+    transcriptBytes: Math.max(0, Number(record.transcriptBytes) || 0),
+    coverageStatus: String(record.coverageStatus || 'OK').toUpperCase(),
+    transcriptEndSeconds: Math.max(0, Number(record.transcriptEndSeconds) || 0),
+    transcriptGapSeconds: Math.max(0, Number(record.transcriptGapSeconds) || 0),
+    coverageRatio: Math.max(0, Math.min(1, Number(record.coverageRatio) || 0)),
+    expiresAt: Math.max(0, Number(record.expiresAt) || 0) * 1000
+  };
 }
 
 async function requireUser(req, res){
@@ -576,6 +699,7 @@ function publicConfig(config){
     maxServiceDurationSeconds: config.maxServiceDurationSeconds,
     dailyFileLimit: config.dailyFileLimit,
     maxConcurrent: config.maxConcurrent,
+    historyRetentionDays: config.historyRetentionDays,
     supportedFormats: Array.from(SUPPORTED_FORMATS).sort()
   };
 }
@@ -587,6 +711,141 @@ async function handleConfig(req, res){
     return;
   }
   sendJson(res, 200, publicConfig(getPublicConfig()));
+}
+
+async function handleUsage(req, res){
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
+    return;
+  }
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  let config;
+  try {
+    ({ config } = getClients());
+  } catch (err) {
+    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' || err.statusCode === 503 ? 503 : 500, {
+      ok: false,
+      error: err.message || 'Transcribe configuration is unavailable.'
+    });
+    return;
+  }
+  try {
+    const usage = await getDailyUsage({ config, sub: user.sub });
+    sendJson(res, 200, {
+      ok: true,
+      usage: {
+        day: usage.day,
+        resetsAt: usage.resetsAt,
+        usedUsd: microsToUsd(usage.usedMicros),
+        limitUsd: microsToUsd(usage.limitMicros),
+        remainingUsd: microsToUsd(usage.remainingMicros),
+        fileCount: usage.fileCount,
+        basis: 'reserved'
+      }
+    });
+  } catch {
+    sendJson(res, 503, { ok: false, error: 'Unable to load transcription usage. Retry this request.' });
+  }
+}
+
+async function handleHistory(req, res){
+  if (!['GET', 'DELETE'].includes(req.method)) {
+    res.setHeader('Allow', 'GET, DELETE');
+    sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
+    return;
+  }
+  const user = await requireUser(req, res);
+  if (!user) return;
+
+  let clients;
+  try {
+    clients = getClients();
+  } catch (err) {
+    sendJson(res, err.code === 'TRANSCRIBE_ENV_MISSING' || err.statusCode === 503 ? 503 : 500, {
+      ok: false,
+      error: err.message || 'Transcribe configuration is unavailable.'
+    });
+    return;
+  }
+  const { s3, config } = clients;
+  const rawJobName = String(firstQueryValue(req.query?.job || req.query?.id) || '').trim();
+  const jobName = normalizeHistoryJobName(rawJobName);
+  if (rawJobName && !jobName) {
+    sendJson(res, 400, { ok: false, error: 'Invalid transcription history id.' });
+    return;
+  }
+
+  if (req.method === 'DELETE') {
+    if (!jobName) {
+      sendJson(res, 400, { ok: false, error: 'A transcription history id is required.' });
+      return;
+    }
+    let history;
+    try {
+      history = await getTranscriptHistory({ config, sub: user.sub, jobName });
+      const objectKey = transcriptHistoryObjectKey(config, user.sub, jobName);
+      if (history && !isOwnedTranscriptHistoryKey(config, user.sub, jobName, history.transcriptObjectKey)) {
+        sendJson(res, 409, { ok: false, error: 'Transcript history record is invalid.' });
+        return;
+      }
+      const result = await deleteTranscriptHistoryMetadata({ config, sub: user.sub, jobName });
+      await s3.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: objectKey }));
+      sendJson(res, 200, { ok: true, deleted: Boolean(result?.deleted), id: jobName });
+    } catch {
+      sendJson(res, 503, { ok: false, error: 'Unable to delete transcript history. Retry this request.' });
+    }
+    return;
+  }
+
+  if (jobName) {
+    let history;
+    try {
+      history = await getTranscriptHistory({ config, sub: user.sub, jobName });
+      if (!history) {
+        sendJson(res, 404, { ok: false, error: 'Transcript history was not found.' });
+        return;
+      }
+      const transcript = await readTranscriptHistoryObject({ s3, config, sub: user.sub, history });
+      sendJson(res, 200, { ok: true, item: { ...publicHistoryItem(history), transcript } });
+    } catch (err) {
+      if (isMissingObjectError(err)) {
+        sendJson(res, 410, { ok: false, error: 'This saved transcript has expired.' });
+        return;
+      }
+      sendJson(res, 503, { ok: false, error: 'Unable to load transcript history. Retry this request.' });
+    }
+    return;
+  }
+
+  let exclusiveStartKey;
+  try {
+    exclusiveStartKey = decodeHistoryCursor(firstQueryValue(req.query?.cursor), user.sub, config);
+  } catch {
+    sendJson(res, 400, { ok: false, error: 'Invalid or expired transcription history cursor.' });
+    return;
+  }
+  try {
+    const result = await listTranscriptHistory({
+      config,
+      sub: user.sub,
+      limit: firstQueryValue(req.query?.limit),
+      exclusiveStartKey
+    });
+    sendJson(res, 200, {
+      ok: true,
+      items: result.items.map(publicHistoryItem).filter(Boolean),
+      nextCursor: encodeHistoryCursor(result.lastEvaluatedKey, user.sub, config)
+    });
+  } catch (err) {
+    if (err?.code === 'LEDGER_INVALID_CURSOR') {
+      sendJson(res, 400, { ok: false, error: 'Invalid transcription history cursor.' });
+      return;
+    }
+    sendJson(res, 503, { ok: false, error: 'Unable to load transcript history. Retry this request.' });
+  }
 }
 
 async function handlePresign(req, res){
@@ -639,6 +898,10 @@ async function handlePresign(req, res){
   }
   if (!Number.isFinite(durationSeconds) || durationSeconds < MIN_DURATION_SECONDS) {
     sendJson(res, 400, { ok: false, error: `File must be at least ${MIN_DURATION_SECONDS} seconds long.` });
+    return;
+  }
+  if (durationSeconds > AWS_MAX_MEDIA_DURATION_SECONDS) {
+    sendJson(res, 400, { ok: false, error: 'File exceeds Amazon Transcribe\'s 8-hour media limit.' });
     return;
   }
 
@@ -755,7 +1018,7 @@ async function handleStart(req, res){
     !Number.isSafeInteger(quoteBytes) || quoteBytes <= 0 || quoteBytes > config.maxFileBytes ||
     !SUPPORTED_FORMATS.has(String(quote.format || '').toLowerCase()) ||
     !Number.isFinite(quoteIat) || !Number.isFinite(quoteExp) || quoteExp <= quoteIat ||
-    !Number.isFinite(quoteCost) || quoteCost < 0
+    !Number.isFinite(quoteCost) || quoteCost <= 0
   ) {
     sendJson(res, 400, { ok: false, error: 'Quote contains invalid upload details.' });
     return;
@@ -801,6 +1064,7 @@ async function handleStart(req, res){
   }
 
   const attemptId = crypto.randomBytes(18).toString('base64url');
+  const reservationCost = getReservationCost(config, user.sub, quoteCost);
   let reservation;
   try {
     reservation = await reserveRun({
@@ -808,9 +1072,11 @@ async function handleStart(req, res){
       sub: user.sub,
       jobName,
       quoteHash,
-      // Browser-probed duration is useful UX but not a trust boundary. Reserve
-      // the AWS hard maximum duration so a direct caller cannot understate cost.
-      costUsd: config.ledgerReservationCostUsd,
+      // Owner-controlled subjects may opt into their signed browser estimate.
+      // All other callers reserve the AWS hard maximum so they cannot understate cost.
+      costUsd: reservationCost.costUsd,
+      quotedCostUsd: quoteCost,
+      reservationBasis: reservationCost.basis,
       attemptId
     });
   } catch (err) {
@@ -983,6 +1249,89 @@ async function cleanupRun({ s3, transcribe, run, deleteJob = false }){
     jobDeleted: deleteJob && results[1] && results[1].status === 'fulfilled',
     jobRetained: !deleteJob
   };
+}
+
+function transcriptHistoryObjectKey(config, sub, jobName){
+  return `${config.prefix}${sub}/history/${jobName}.txt`;
+}
+
+function isOwnedTranscriptHistoryKey(config, sub, jobName, value){
+  return String(value || '') === transcriptHistoryObjectKey(config, sub, jobName);
+}
+
+async function putTranscriptHistoryObject({ s3, config, sub, jobName, transcript }){
+  const body = Buffer.from(String(transcript || ''), 'utf8');
+  if (body.length > config.maxTranscriptBytes) {
+    const err = new Error('Transcript is too large to save in history.');
+    err.code = 'TRANSCRIPT_OUTPUT_TOO_LARGE';
+    throw err;
+  }
+  const objectKey = transcriptHistoryObjectKey(config, sub, jobName);
+  const sha256 = crypto.createHash('sha256').update(body).digest('hex');
+  await s3.send(new PutObjectCommand({
+    Bucket: config.bucket,
+    Key: objectKey,
+    Body: body,
+    ContentLength: body.length,
+    ContentType: 'text/plain; charset=utf-8',
+    CacheControl: 'private, no-store',
+    Tagging: 'tool=amazon-transcribe&retention=history',
+    Metadata: { sha256 }
+  }));
+  return { objectKey, bytes: body.length, sha256 };
+}
+
+async function bodyToBoundedBuffer(body, maxBytes){
+  if (!body) throw new Error('Transcript history object has no body.');
+  if (Buffer.isBuffer(body) || body instanceof Uint8Array) {
+    const result = Buffer.from(body);
+    if (result.length > maxBytes) throw new Error('Transcript history object is too large.');
+    return result;
+  }
+  if (typeof body[Symbol.asyncIterator] === 'function') {
+    const chunks = [];
+    let bytes = 0;
+    for await (const rawChunk of body) {
+      const chunk = Buffer.from(rawChunk);
+      bytes += chunk.length;
+      if (bytes > maxBytes) throw new Error('Transcript history object is too large.');
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks, bytes);
+  }
+  if (typeof body.transformToByteArray === 'function') {
+    const result = Buffer.from(await body.transformToByteArray());
+    if (result.length > maxBytes) throw new Error('Transcript history object is too large.');
+    return result;
+  }
+  throw new Error('Transcript history object could not be read.');
+}
+
+async function readTranscriptHistoryObject({ s3, config, sub, history }){
+  const jobName = normalizeHistoryJobName(history?.jobName);
+  const objectKey = String(history?.transcriptObjectKey || '');
+  if (!jobName || !isOwnedTranscriptHistoryKey(config, sub, jobName, objectKey)) {
+    const err = new Error('Transcript history record is invalid.');
+    err.code = 'TRANSCRIPT_HISTORY_INVALID';
+    throw err;
+  }
+  const result = await s3.send(new GetObjectCommand({
+    Bucket: config.bucket,
+    Key: objectKey
+  }));
+  const declaredBytes = Number(result?.ContentLength);
+  if (Number.isFinite(declaredBytes) && declaredBytes > config.maxTranscriptBytes) {
+    throw new Error('Transcript history object is too large.');
+  }
+  const body = await bodyToBoundedBuffer(result?.Body, config.maxTranscriptBytes);
+  const expectedHash = String(history.transcriptSha256 || '').trim().toLowerCase();
+  const actualHash = crypto.createHash('sha256').update(body).digest('hex');
+  if (!/^[a-f0-9]{64}$/.test(expectedHash) || actualHash !== expectedHash) {
+    const err = new Error('Transcript history integrity check failed.');
+    err.code = 'TRANSCRIPT_HISTORY_INTEGRITY';
+    throw err;
+  }
+  return body.toString('utf8');
 }
 
 function extractTranscript(data){
@@ -1232,8 +1581,15 @@ async function handleStatus(req, res){
 
   const status = String(job && job.TranscriptionJobStatus || '').toUpperCase();
   if (status === 'COMPLETED') {
+    let terminalRecord;
     try {
-      await markRunTerminal({ config, sub: user.sub, jobName: run.jobName, quoteHash, status: RUN_STATE.COMPLETED });
+      terminalRecord = await markRunTerminal({
+        config,
+        sub: user.sub,
+        jobName: run.jobName,
+        quoteHash,
+        status: RUN_STATE.COMPLETED
+      });
     } catch {
       sendJson(res, 503, { ok: false, error: 'Unable to finalize the completed transcription job. Retry this request.' });
       return;
@@ -1273,6 +1629,44 @@ async function handleStatus(req, res){
         transcriptGapSeconds: coverage.transcriptGapSeconds,
         coverageRatio: coverage.coverageRatio
       });
+    }
+    let historyObject;
+    try {
+      historyObject = await putTranscriptHistoryObject({
+        s3,
+        config,
+        sub: user.sub,
+        jobName: run.jobName,
+        transcript
+      });
+      const historyResult = await persistTranscriptHistoryMetadata({
+        config,
+        sub: user.sub,
+        jobName: run.jobName,
+        quoteHash,
+        filename: safeFilename(run.filename || 'media'),
+        transcriptObjectKey: historyObject.objectKey,
+        transcriptBytes: historyObject.bytes,
+        transcriptSha256: historyObject.sha256,
+        historyStatus: coverage.coverageStatus === 'SUSPECTED_EARLY_END' ? 'PARTIAL' : RUN_STATE.COMPLETED,
+        durationSeconds: run.durationSeconds,
+        billableSeconds: run.billableSeconds,
+        coverageStatus: coverage.coverageStatus,
+        transcriptEndSeconds: coverage.transcriptEndSeconds,
+        transcriptGapSeconds: coverage.transcriptGapSeconds,
+        coverageRatio: coverage.coverageRatio,
+        terminalRecord
+      });
+      if (!historyResult?.persisted) {
+        await s3.send(new DeleteObjectCommand({ Bucket: config.bucket, Key: historyObject.objectKey }));
+      }
+    } catch (err) {
+      console.error('Unable to save completed transcript history', {
+        jobName: run.jobName,
+        code: String(err?.code || err?.name || 'UNKNOWN')
+      });
+      sendJson(res, 503, { ok: false, error: 'The transcription completed, but its history could not be saved. Retry this request.' });
+      return;
     }
     const cleanup = await cleanupRun({ s3, transcribe, run });
     sendJson(res, 200, {
@@ -1327,6 +1721,8 @@ async function handleStatus(req, res){
 const handleTranscribe = async (req, res, segments = []) => {
   const action = String(Array.isArray(segments) ? segments[0] : '').trim().toLowerCase();
   if (action === 'config' || !action) return handleConfig(req, res);
+  if (action === 'usage') return handleUsage(req, res);
+  if (action === 'history') return handleHistory(req, res);
   if (action === 'presign') return handlePresign(req, res);
   if (action === 'start') return handleStart(req, res);
   if (action === 'status') return handleStatus(req, res);
@@ -1335,7 +1731,18 @@ const handleTranscribe = async (req, res, segments = []) => {
 
 handleTranscribe._internal = {
   analyzeTranscriptCoverage,
-  isMissingTranscriptionJobError
+  decodeHistoryCursor,
+  encodeHistoryCursor,
+  extractTranscript,
+  fetchTranscriptData,
+  getReservationCost,
+  isTrustedTranscriptUrl,
+  normalizeHistoryJobName,
+  publicHistoryItem,
+  isMissingTranscriptionJobError,
+  parseTrustedCostSubjects,
+  safeFilename,
+  transcriptHistoryObjectKey
 };
 
 module.exports = handleTranscribe;

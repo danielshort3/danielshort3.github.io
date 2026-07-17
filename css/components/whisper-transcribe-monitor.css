@@ -54,6 +54,75 @@
     flex-wrap:wrap;
   }
 
+  .transcribe-status-main{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex:1 1 520px;
+    min-width:0;
+  }
+
+  .transcribe-usage{
+    display:grid;
+    gap:4px;
+    flex:1 1 230px;
+    min-width:190px;
+    max-width:300px;
+    padding:7px 10px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
+  }
+
+  .transcribe-usage-heading{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    color:var(--text-muted);
+    font-size:.72rem;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+
+  .transcribe-usage-heading strong{
+    color:var(--text-light);
+    font-size:.82rem;
+    letter-spacing:0;
+    text-transform:none;
+    white-space:nowrap;
+  }
+
+  .transcribe-usage progress{
+    width:100%;
+    height:7px;
+    accent-color:var(--primary);
+  }
+
+  .transcribe-usage-reset{
+    color:var(--text-muted);
+    font-size:.68rem;
+    line-height:1.35;
+  }
+
+  .transcribe-usage[data-tone="warning"]{
+    border-color:color-mix(in srgb,var(--warning) 48%, transparent);
+  }
+
+  .transcribe-usage[data-tone="error"]{
+    border-color:color-mix(in srgb,var(--danger) 52%, transparent);
+  }
+
+  #transcribe-notifications[data-state="enabled"]{
+    border-color:color-mix(in srgb,var(--success) 52%, var(--surface-accent) 48%);
+    color:color-mix(in srgb,var(--success) 78%, var(--text-light) 22%);
+  }
+
+  #transcribe-notifications[data-state="denied"],
+  #transcribe-notifications[data-state="unsupported"]{
+    border-color:color-mix(in srgb,var(--warning) 48%, var(--surface-accent) 52%);
+  }
+
   body[data-page="transcribe"] .health-pill{
     display:inline-flex;
     align-items:center;
@@ -505,7 +574,150 @@
     resize:vertical;
   }
 
+  .transcribe-history-dialog{
+    width:min(820px,calc(100vw - 24px));
+    max-height:min(82vh,840px);
+    margin:auto;
+    padding:0;
+    overflow:hidden;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    border-radius:12px;
+    background:var(--surface);
+    color:var(--text-light);
+    box-shadow:0 28px 70px rgba(0,0,0,.58);
+  }
+
+  .transcribe-history-dialog::backdrop{
+    background:color-mix(in srgb,var(--bg) 82%, transparent);
+    backdrop-filter:blur(5px);
+  }
+
+  .transcribe-history-shell{
+    display:grid;
+    gap:14px;
+    max-height:min(82vh,840px);
+    padding:clamp(18px,3vw,28px);
+    overflow-y:auto;
+  }
+
+  .transcribe-history-header,
+  .transcribe-history-detail-heading,
+  .transcribe-history-toolbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .transcribe-history-header h2,
+  .transcribe-history-detail-heading h3{
+    margin:3px 0 0;
+    color:var(--text-light);
+    line-height:1.2;
+  }
+
+  .transcribe-history-header h2{
+    font-size:clamp(1.35rem,2.6vw,1.9rem);
+  }
+
+  .transcribe-history-detail-heading h3{
+    font-size:1.05rem;
+    overflow-wrap:anywhere;
+  }
+
+  .transcribe-history-privacy,
+  .transcribe-history-status,
+  .transcribe-history-detail-heading p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.88rem;
+    line-height:1.55;
+  }
+
+  .transcribe-history-privacy{
+    padding:11px 13px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--primary) 7%, transparent);
+  }
+
+  .transcribe-history-list{
+    display:grid;
+    gap:9px;
+  }
+
+  .transcribe-history-item{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+    gap:12px;
+    padding:12px 13px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
+  }
+
+  .transcribe-history-item h3{
+    margin:0 0 4px;
+    color:var(--text-light);
+    font-size:.96rem;
+    line-height:1.3;
+    overflow-wrap:anywhere;
+  }
+
+  .transcribe-history-item p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.8rem;
+    line-height:1.45;
+  }
+
+  .transcribe-history-item-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .transcribe-history-load-more{
+    margin-top:12px;
+  }
+
+  .transcribe-history-detail{
+    display:grid;
+    gap:14px;
+  }
+
+  .transcribe-history-detail[hidden]{
+    display:none;
+  }
+
+  .transcribe-history-back{
+    justify-self:start;
+  }
+
+  .transcribe-history-detail textarea{
+    width:100%;
+    min-height:min(48vh,420px);
+    resize:vertical;
+  }
+
+  .transcribe-history-delete{
+    border-color:color-mix(in srgb,var(--danger) 48%, var(--surface-accent) 52%);
+    color:color-mix(in srgb,var(--danger) 82%, var(--text-light) 18%);
+  }
+
   @media (max-width: 860px){
+    .transcribe-status-main{
+      align-items:stretch;
+      flex-direction:column;
+    }
+
+    .transcribe-usage{
+      max-width:none;
+      flex:0 0 auto;
+    }
+
     .transcribe-stats{
       grid-template-columns:repeat(2,minmax(0,1fr));
     }
@@ -526,9 +738,23 @@
   }
 
   @media (max-width: 620px){
+    .transcribe-status-bar{
+      position:relative;
+      top:auto;
+    }
+
     .transcribe-status-bar,
     .transcribe-result-header{
       align-items:stretch;
+    }
+
+    .transcribe-status-actions{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .transcribe-status-actions #transcribe-sign-in{
+      grid-column:1 / -1;
     }
 
     .transcribe-status-actions,
@@ -540,6 +766,24 @@
     .transcribe-result-actions > *,
     .transcribe-actions > *{
       flex:1 1 auto;
+    }
+
+    .transcribe-status-main,
+    .transcribe-usage{
+      width:100%;
+    }
+
+    .transcribe-history-item{
+      grid-template-columns:1fr;
+      align-items:start;
+    }
+
+    .transcribe-history-item-actions{
+      justify-self:start;
+    }
+
+    .transcribe-history-detail-heading .transcribe-result-actions{
+      width:100%;
     }
 
     .transcribe-stats{
