@@ -48,6 +48,7 @@
     "migrate:content": "node build/migrate-content.js",
     "migrate:short-links-clicks": "node scripts/migrations/short-links-clicks-reconcile.js",
     "migrate:short-links-reservations": "node scripts/migrations/short-links-reservations.js",
+    "migrate:transcribe-history": "node scripts/migrations/transcribe-history-backfill.js",
     "migrate:tools-ttl": "node scripts/migrations/tools-ttl-backfill.js",
     "scaffold": "node build/scaffold.js",
     "build": "node build/build-site.js",

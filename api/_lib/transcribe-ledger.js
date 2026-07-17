@@ -5,11 +5,15 @@ const {
   DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
+  QueryCommand,
   TransactWriteCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 
 const DAY_SECONDS = 24 * 60 * 60;
+const MAX_REVERSE_TIMESTAMP = 9_999_999_999_999;
+const DEFAULT_HISTORY_PAGE_SIZE = 20;
+const MAX_HISTORY_PAGE_SIZE = 50;
 const RUN_STATE = Object.freeze({
   RESERVED: 'RESERVED',
   RUNNING: 'RUNNING',
@@ -19,6 +23,10 @@ const RUN_STATE = Object.freeze({
   MISSING: 'MISSING'
 });
 const TERMINAL_STATES = new Set([RUN_STATE.REFUNDED, RUN_STATE.COMPLETED, RUN_STATE.FAILED, RUN_STATE.MISSING]);
+const RESERVATION_BASIS = Object.freeze({
+  MAX_DURATION: 'max_duration',
+  TRUSTED_QUOTE: 'trusted_quote'
+});
 
 let cachedClient = null;
 let cachedClientKey = '';
@@ -64,6 +72,12 @@ function slotKey(sub, slotNumber){
   return { pk: userPk(sub), sk: `SLOT#${String(slotNumber).padStart(3, '0')}` };
 }
 
+function historySortKey(completedAtMs, jobName){
+  const timestamp = Math.max(0, Math.min(MAX_REVERSE_TIMESTAMP, Math.floor(Number(completedAtMs) || 0)));
+  const reverseTimestamp = String(MAX_REVERSE_TIMESTAMP - timestamp).padStart(13, '0');
+  return `HISTORY#${reverseTimestamp}#${String(jobName || '').trim()}`;
+}
+
 function utcDay(nowSeconds){
   return new Date(nowSeconds * 1000).toISOString().slice(0, 10);
 }
@@ -87,6 +101,12 @@ function toCostMicros(value){
   return Math.round(cost * 1_000_000);
 }
 
+function normalizeReservationBasis(value){
+  return value === RESERVATION_BASIS.TRUSTED_QUOTE
+    ? RESERVATION_BASIS.TRUSTED_QUOTE
+    : RESERVATION_BASIS.MAX_DURATION;
+}
+
 function isEnabled(config){
   return config?.ledgerEnabled !== false;
 }
@@ -105,6 +125,107 @@ async function getRun({ config, sub, jobName }){
   return out?.Item || null;
 }
 
+async function getDailyUsage({ config, sub, nowSeconds = Math.floor(Date.now() / 1000) }){
+  const day = utcDay(nowSeconds);
+  const resetAtSeconds = startOfUtcDaySeconds(day) + DAY_SECONDS;
+  const limitMicros = Math.max(0, Number(config?.ledgerDailyCostLimitMicros) || 0);
+  if (!isEnabled(config)) {
+    return {
+      day,
+      resetsAt: new Date(resetAtSeconds * 1000).toISOString(),
+      usedMicros: 0,
+      limitMicros,
+      remainingMicros: limitMicros,
+      fileCount: 0,
+      ledgerDisabled: true
+    };
+  }
+  const out = await getClient(config).send(new GetCommand({
+    TableName: config.ledgerTable,
+    Key: dayKey(sub, day),
+    ConsistentRead: true
+  }));
+  const record = out?.Item || null;
+  const usedMicros = Math.max(0, Number(record?.reservedCostMicros) || 0);
+  return {
+    day,
+    resetsAt: new Date(resetAtSeconds * 1000).toISOString(),
+    usedMicros,
+    limitMicros,
+    remainingMicros: Math.max(0, limitMicros - usedMicros),
+    fileCount: Math.max(0, Number(record?.fileCount) || 0),
+    ledgerDisabled: false
+  };
+}
+
+function normalizeHistoryLimit(value){
+  const parsed = Number.parseInt(String(value || ''), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_HISTORY_PAGE_SIZE;
+  return Math.min(parsed, MAX_HISTORY_PAGE_SIZE);
+}
+
+function validateHistoryStartKey(sub, value){
+  if (!value) return undefined;
+  const pk = String(value.pk || '');
+  const sk = String(value.sk || '');
+  if (pk !== userPk(sub) || !sk.startsWith('HISTORY#')) {
+    throw ledgerError('LEDGER_INVALID_CURSOR', 'The transcription history cursor is invalid.');
+  }
+  return { pk, sk };
+}
+
+function historyItemIsExpired(item, nowSeconds = Math.floor(Date.now() / 1000)){
+  const expiresAt = Number(item?.historyExpiresAt || item?.ttl) || 0;
+  return expiresAt > 0 && expiresAt <= nowSeconds;
+}
+
+function toHistorySummary(item){
+  if (!item || historyItemIsExpired(item)) return null;
+  const jobName = String(item.jobName || '').trim();
+  if (!jobName) return null;
+  return {
+    jobName,
+    filename: String(item.filename || 'media').trim() || 'media',
+    status: String(item.historyStatus || RUN_STATE.COMPLETED).toUpperCase(),
+    completedAt: Math.max(0, Number(item.completedAt) || 0),
+    costMicros: Math.max(0, Number(item.costMicros) || 0),
+    quotedCostMicros: Math.max(0, Number(item.quotedCostMicros) || 0),
+    durationSeconds: Math.max(0, Number(item.durationSeconds) || 0),
+    billableSeconds: Math.max(0, Number(item.billableSeconds) || 0),
+    transcriptBytes: Math.max(0, Number(item.transcriptBytes) || 0),
+    coverageStatus: String(item.coverageStatus || 'OK').toUpperCase(),
+    transcriptEndSeconds: Math.max(0, Number(item.transcriptEndSeconds) || 0),
+    transcriptGapSeconds: Math.max(0, Number(item.transcriptGapSeconds) || 0),
+    coverageRatio: Math.max(0, Math.min(1, Number(item.coverageRatio) || 0)),
+    expiresAt: Math.max(0, Number(item.historyExpiresAt || item.ttl) || 0)
+  };
+}
+
+async function listTranscriptHistory({ config, sub, limit, exclusiveStartKey }){
+  if (!isEnabled(config)) return { items: [], lastEvaluatedKey: null };
+  const safeStartKey = validateHistoryStartKey(sub, exclusiveStartKey);
+  const result = await getClient(config).send(new QueryCommand({
+    TableName: config.ledgerTable,
+    KeyConditionExpression: '#pk = :pk AND begins_with(#sk, :prefix)',
+    ExpressionAttributeNames: { '#pk': 'pk', '#sk': 'sk' },
+    ExpressionAttributeValues: {
+      ':pk': userPk(sub),
+      ':prefix': 'HISTORY#'
+    },
+    ScanIndexForward: true,
+    ConsistentRead: true,
+    Limit: normalizeHistoryLimit(limit),
+    ExclusiveStartKey: safeStartKey
+  }));
+  const items = Array.isArray(result?.Items)
+    ? result.Items.map(toHistorySummary).filter(Boolean)
+    : [];
+  return {
+    items,
+    lastEvaluatedKey: validateHistoryStartKey(sub, result?.LastEvaluatedKey) || null
+  };
+}
+
 function ensureMatchingRun(record, quoteHash){
   if (!record) return;
   if (String(record.quoteHash || '') !== String(quoteHash || '')) {
@@ -112,7 +233,21 @@ function ensureMatchingRun(record, quoteHash){
   }
 }
 
-function reservationTransaction({ config, sub, jobName, quoteHash, costMicros, day, now, slotNumber, existingRefunded, attemptId }){
+function reservationTransaction({
+  config,
+  sub,
+  jobName,
+  quoteHash,
+  costMicros,
+  quotedCostMicros = costMicros,
+  reservationBasis = 'max_duration',
+  day,
+  now,
+  slotNumber,
+  existingRefunded,
+  attemptId
+}){
+  const recordedReservationBasis = normalizeReservationBasis(reservationBasis);
   const leaseExpiresAt = now + config.ledgerLeaseSeconds;
   const runExpiresAt = now + (config.ledgerRunRetentionDays * DAY_SECONDS);
   const dayExpiresAt = startOfUtcDaySeconds(day) + ((config.ledgerDayRetentionDays + 1) * DAY_SECONDS);
@@ -129,6 +264,8 @@ function reservationTransaction({ config, sub, jobName, quoteHash, costMicros, d
     jobCreated: false,
     day,
     costMicros,
+    quotedCostMicros,
+    reservationBasis: recordedReservationBasis,
     fileCount: 1,
     slotNumber,
     reservedAt: now,
@@ -144,7 +281,7 @@ function reservationTransaction({ config, sub, jobName, quoteHash, costMicros, d
           TableName: config.ledgerTable,
           Key: runKey(sub, jobName),
           ConditionExpression: '#state = :refunded AND quoteHash = :quoteHash',
-          UpdateExpression: 'SET #state = :reserved, jobCreated = :false, #day = :day, costMicros = :cost, fileCount = :one, slotNumber = :slot, reservedAt = :now, updatedAt = :now, leaseExpiresAt = :lease, startAttemptId = :attemptId, startAttemptExpiresAt = :attemptExpiresAt, #ttl = :expiresAt REMOVE terminalAt, terminalStatus, refundedAt, refundReason',
+          UpdateExpression: 'SET #state = :reserved, jobCreated = :false, #day = :day, costMicros = :cost, quotedCostMicros = :quotedCost, reservationBasis = :reservationBasis, fileCount = :one, slotNumber = :slot, reservedAt = :now, updatedAt = :now, leaseExpiresAt = :lease, startAttemptId = :attemptId, startAttemptExpiresAt = :attemptExpiresAt, #ttl = :expiresAt REMOVE terminalAt, terminalStatus, refundedAt, refundReason',
           ExpressionAttributeNames: { '#state': 'state', '#day': 'day', '#ttl': config.ledgerTtlAttribute || 'ttl' },
           ExpressionAttributeValues: {
             ':refunded': RUN_STATE.REFUNDED,
@@ -153,6 +290,8 @@ function reservationTransaction({ config, sub, jobName, quoteHash, costMicros, d
             ':false': false,
             ':day': day,
             ':cost': costMicros,
+            ':quotedCost': quotedCostMicros,
+            ':reservationBasis': recordedReservationBasis,
             ':one': 1,
             ':slot': slotNumber,
             ':now': now,
@@ -323,13 +462,14 @@ async function claimStaleStartAttempt({ config, sub, jobName, quoteHash, attempt
   }
 }
 
-async function reserveRun({ config, sub, jobName, quoteHash, costUsd, attemptId }){
+async function reserveRun({ config, sub, jobName, quoteHash, costUsd, quotedCostUsd = costUsd, reservationBasis = 'max_duration', attemptId }){
+  const recordedReservationBasis = normalizeReservationBasis(reservationBasis);
   if (!isEnabled(config)) {
     return {
       reserved: true,
       idempotent: false,
       startAllowed: true,
-      record: { jobName, quoteHash, state: RUN_STATE.RESERVED, ledgerDisabled: true }
+      record: { jobName, quoteHash, state: RUN_STATE.RESERVED, ledgerDisabled: true, reservationBasis: recordedReservationBasis }
     };
   }
   if (!config.ledgerTable) throw ledgerError('LEDGER_NOT_CONFIGURED', 'The transcription usage ledger is not configured.');
@@ -337,6 +477,7 @@ async function reserveRun({ config, sub, jobName, quoteHash, costUsd, attemptId 
   const now = Math.floor(Date.now() / 1000);
   const day = utcDay(now);
   const costMicros = toCostMicros(costUsd);
+  const quotedCostMicros = toCostMicros(quotedCostUsd);
   if (costMicros > config.ledgerDailyCostLimitMicros) {
     throw ledgerError('LEDGER_DAILY_COST_LIMIT', 'This transcription exceeds your daily transcription cost limit.');
   }
@@ -361,6 +502,8 @@ async function reserveRun({ config, sub, jobName, quoteHash, costUsd, attemptId 
       jobName,
       quoteHash,
       costMicros,
+      quotedCostMicros,
+      reservationBasis: recordedReservationBasis,
       day,
       now,
       slotNumber,
@@ -559,6 +702,180 @@ async function markRunTerminal({ config, sub, jobName, quoteHash, status }){
   return updated;
 }
 
+async function persistTranscriptHistoryMetadata({
+  config,
+  sub,
+  jobName,
+  quoteHash,
+  filename,
+  transcriptObjectKey,
+  transcriptBytes,
+  transcriptSha256,
+  historyStatus,
+  durationSeconds,
+  billableSeconds,
+  coverageStatus,
+  transcriptEndSeconds,
+  transcriptGapSeconds,
+  coverageRatio,
+  terminalRecord
+}){
+  if (!isEnabled(config)) return { persisted: false, ledgerDisabled: true };
+  const record = terminalRecord || await getRun({ config, sub, jobName });
+  ensureMatchingRun(record, quoteHash);
+  if (!record || String(record.state || '') !== RUN_STATE.COMPLETED) {
+    throw ledgerError('LEDGER_HISTORY_STATE', 'Only a completed transcription can be saved to history.');
+  }
+  if (Number(record.historyDeletedAt) > 0) {
+    return { persisted: false, deleted: true, record };
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+  const completedAtSeconds = Math.max(1, Number(record.terminalAt) || now);
+  const completedAt = completedAtSeconds * 1000;
+  const retentionDays = Math.max(1, Number(config.historyRetentionDays) || 90);
+  const historyExpiresAt = completedAtSeconds + (retentionDays * DAY_SECONDS);
+  const historySk = historySortKey(completedAt, jobName);
+  const safeStatus = String(historyStatus || '').toUpperCase() === 'PARTIAL' ? 'PARTIAL' : RUN_STATE.COMPLETED;
+  const safeCoverageStatus = String(coverageStatus || 'OK').toUpperCase() === 'SUSPECTED_EARLY_END'
+    ? 'SUSPECTED_EARLY_END'
+    : 'OK';
+  const safeFilename = String(filename || 'media').trim() || 'media';
+  const objectKey = String(transcriptObjectKey || '').trim();
+  const byteCount = Math.max(0, Number(transcriptBytes) || 0);
+  const sha256 = String(transcriptSha256 || '').trim().toLowerCase();
+  if (!objectKey || !/^[a-f0-9]{64}$/.test(sha256)) {
+    throw ledgerError('LEDGER_HISTORY_INVALID', 'The transcript history record is invalid.');
+  }
+
+  const historyItem = ttlItem(config, {
+    pk: userPk(sub),
+    sk: historySk,
+    entityType: 'transcribe_history',
+    jobName,
+    filename: safeFilename,
+    historyStatus: safeStatus,
+    completedAt,
+    costMicros: Math.max(0, Number(record.costMicros) || 0),
+    quotedCostMicros: Math.max(0, Number(record.quotedCostMicros) || 0),
+    durationSeconds: Math.max(0, Number(durationSeconds) || 0),
+    billableSeconds: Math.max(0, Number(billableSeconds) || 0),
+    transcriptBytes: byteCount,
+    coverageStatus: safeCoverageStatus,
+    transcriptEndSeconds: Math.max(0, Number(transcriptEndSeconds) || 0),
+    transcriptGapSeconds: Math.max(0, Number(transcriptGapSeconds) || 0),
+    coverageRatio: Math.max(0, Math.min(1, Number(coverageRatio) || 0)),
+    historyExpiresAt
+  }, historyExpiresAt);
+
+  try {
+    await getClient(config).send(new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: config.ledgerTable,
+            Key: runKey(sub, jobName),
+            ConditionExpression: 'quoteHash = :quoteHash AND #state = :completed AND attribute_not_exists(historyDeletedAt)',
+            UpdateExpression: 'SET filename = :filename, historyStatus = :historyStatus, historySk = :historySk, transcriptObjectKey = :objectKey, transcriptBytes = :transcriptBytes, transcriptSha256 = :sha256, historyCreatedAt = :completedAt, historyExpiresAt = :historyExpiresAt, durationSeconds = :durationSeconds, billableSeconds = :billableSeconds, coverageStatus = :coverageStatus, transcriptEndSeconds = :transcriptEndSeconds, transcriptGapSeconds = :transcriptGapSeconds, coverageRatio = :coverageRatio, updatedAt = :now, #ttl = :historyExpiresAt',
+            ExpressionAttributeNames: { '#state': 'state', '#ttl': config.ledgerTtlAttribute || 'ttl' },
+            ExpressionAttributeValues: {
+              ':quoteHash': quoteHash,
+              ':completed': RUN_STATE.COMPLETED,
+              ':filename': safeFilename,
+              ':historyStatus': safeStatus,
+              ':historySk': historySk,
+              ':objectKey': objectKey,
+              ':transcriptBytes': byteCount,
+              ':sha256': sha256,
+              ':completedAt': completedAt,
+              ':historyExpiresAt': historyExpiresAt,
+              ':durationSeconds': historyItem.durationSeconds,
+              ':billableSeconds': historyItem.billableSeconds,
+              ':coverageStatus': safeCoverageStatus,
+              ':transcriptEndSeconds': historyItem.transcriptEndSeconds,
+              ':transcriptGapSeconds': historyItem.transcriptGapSeconds,
+              ':coverageRatio': historyItem.coverageRatio,
+              ':now': now
+            }
+          }
+        },
+        {
+          Put: {
+            TableName: config.ledgerTable,
+            Item: historyItem
+          }
+        }
+      ]
+    }));
+  } catch (err) {
+    if (!isConditionalFailure(err)) throw err;
+    const latest = await getRun({ config, sub, jobName });
+    ensureMatchingRun(latest, quoteHash);
+    if (Number(latest?.historyDeletedAt) > 0) {
+      return { persisted: false, deleted: true, record: latest };
+    }
+    throw err;
+  }
+  return { persisted: true, deleted: false, history: toHistorySummary(historyItem), record: historyItem };
+}
+
+async function getTranscriptHistory({ config, sub, jobName }){
+  const record = await getRun({ config, sub, jobName });
+  if (!record || Number(record.historyDeletedAt) > 0 || historyItemIsExpired(record)) return null;
+  const historySk = String(record.historySk || '');
+  const transcriptObjectKey = String(record.transcriptObjectKey || '');
+  if (!historySk.startsWith('HISTORY#') || !transcriptObjectKey) return null;
+  const summary = toHistorySummary({
+    ...record,
+    completedAt: Number(record.historyCreatedAt) || (Number(record.terminalAt) || 0) * 1000
+  });
+  if (!summary) return null;
+  return {
+    ...summary,
+    historySk,
+    transcriptObjectKey,
+    transcriptSha256: String(record.transcriptSha256 || '').trim().toLowerCase()
+  };
+}
+
+async function deleteTranscriptHistoryMetadata({ config, sub, jobName }){
+  if (!isEnabled(config)) return { deleted: false, ledgerDisabled: true };
+  const record = await getRun({ config, sub, jobName });
+  const historySk = String(record?.historySk || '');
+  if (!record || !historySk.startsWith('HISTORY#')) return { deleted: false };
+  const now = Math.floor(Date.now() / 1000);
+  try {
+    await getClient(config).send(new TransactWriteCommand({
+      TransactItems: [
+        {
+          Update: {
+            TableName: config.ledgerTable,
+            Key: runKey(sub, jobName),
+            ConditionExpression: 'historySk = :historySk',
+            UpdateExpression: 'SET historyDeletedAt = :now, updatedAt = :now REMOVE filename, historyStatus, historySk, transcriptObjectKey, transcriptBytes, transcriptSha256, historyCreatedAt, historyExpiresAt, durationSeconds, billableSeconds, coverageStatus, transcriptEndSeconds, transcriptGapSeconds, coverageRatio',
+            ExpressionAttributeValues: {
+              ':historySk': historySk,
+              ':now': now
+            }
+          }
+        },
+        {
+          Delete: {
+            TableName: config.ledgerTable,
+            Key: { pk: userPk(sub), sk: historySk }
+          }
+        }
+      ]
+    }));
+  } catch (err) {
+    if (!isConditionalFailure(err)) throw err;
+    const latest = await getRun({ config, sub, jobName });
+    if (!latest || !String(latest.historySk || '').startsWith('HISTORY#')) return { deleted: false };
+    throw err;
+  }
+  return { deleted: true };
+}
+
 async function refundRun({ config, sub, jobName, quoteHash, attemptId, reason }){
   if (!isEnabled(config)) return null;
   const record = await getRun({ config, sub, jobName });
@@ -635,18 +952,26 @@ async function refundRun({ config, sub, jobName, quoteHash, attemptId, reason })
 
 module.exports = {
   RUN_STATE,
+  deleteTranscriptHistoryMetadata,
+  getDailyUsage,
   getRun,
+  getTranscriptHistory,
+  listTranscriptHistory,
   markJobCreated,
   markRunTerminal,
+  persistTranscriptHistoryMetadata,
   refundRun,
   renewRunLease,
   reserveRun,
   _internal: {
     dayKey,
     globalDayKey,
+    historySortKey,
+    normalizeHistoryLimit,
     reservationTransaction,
     runKey,
     slotKey,
+    toHistorySummary,
     toCostMicros,
     utcDay
   }

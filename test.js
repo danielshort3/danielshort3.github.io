@@ -40544,6 +40544,7 @@ try {
     const toolsAccountUi = fs.readFileSync('js/accounts/tools-account-ui.js', 'utf8');
     const endpoint = fs.readFileSync('api/_lib/tools-endpoints/transcribe.js', 'utf8');
     const ledger = fs.readFileSync('api/_lib/transcribe-ledger.js', 'utf8');
+    const historyMigration = fs.readFileSync('scripts/migrations/transcribe-history-backfill.js', 'utf8');
     const vercelOidcTemplate = fs.readFileSync('aws/vercel-oidc/template.yaml', 'utf8');
     const envExample = fs.readFileSync('.env.example', 'utf8');
     const transcribeReadme = fs.readFileSync('aws/transcribe-tool/README.md', 'utf8');
@@ -40563,7 +40564,7 @@ try {
         ledgerStartLeaseSeconds: 300,
         ledgerRunRetentionDays: 45,
         ledgerDayRetentionDays: 45,
-        ledgerDailyCostLimitMicros: 25_000_000,
+        ledgerDailyCostLimitMicros: 100_000_000,
         ledgerDailyFileLimit: 50,
         ledgerGlobalDailyCostLimitMicros: 100_000_000,
         ledgerGlobalDailyFileLimit: 200
@@ -40571,12 +40572,39 @@ try {
       sub: 'test-user',
       jobName: 'test-job',
       quoteHash: 'test-quote',
-      costMicros: 11_520_000,
+      costMicros: 2_880_000,
+      quotedCostMicros: 125_000,
+      reservationBasis: 'max_duration',
       day: '2026-07-11',
       now: 1_783_750_000,
       slotNumber: 1,
       existingRefunded: false,
       attemptId: 'test-attempt'
+    });
+    const refundedReservationPlan = ledgerModule._internal.reservationTransaction({
+      config: {
+        ledgerTable: 'test-table',
+        ledgerTtlAttribute: 'ttl',
+        ledgerLeaseSeconds: 43_200,
+        ledgerStartLeaseSeconds: 300,
+        ledgerRunRetentionDays: 45,
+        ledgerDayRetentionDays: 45,
+        ledgerDailyCostLimitMicros: 100_000_000,
+        ledgerDailyFileLimit: 50,
+        ledgerGlobalDailyCostLimitMicros: 100_000_000,
+        ledgerGlobalDailyFileLimit: 200
+      },
+      sub: 'trusted-user',
+      jobName: 'refunded-job',
+      quoteHash: 'refunded-quote',
+      costMicros: 125_000,
+      quotedCostMicros: 125_000,
+      reservationBasis: 'trusted_quote',
+      day: '2026-07-11',
+      now: 1_783_750_000,
+      slotNumber: 1,
+      existingRefunded: true,
+      attemptId: 'retry-attempt'
     });
     const recoveryPersistStart = toolScript.indexOf('const persistActiveRunRecovery = () =>');
     const recoveryPersistEnd = toolScript.indexOf('const restoreActiveRunRecovery = () =>', recoveryPersistStart);
@@ -40584,6 +40612,50 @@ try {
     const analyzeTranscriptCoverage = endpointModule._internal.analyzeTranscriptCoverage;
     const isMp4TimelineSuspicious = transcribeToolModule.isMp4TimelineSuspicious;
     const missingJobError = endpointModule._internal.isMissingTranscriptionJobError;
+    const trustedReservation = endpointModule._internal.getReservationCost({
+      ledgerReservationCostUsd: 2.88,
+      trustedCostSubjects: new Set(['trusted-user'])
+    }, 'trusted-user', 0.125);
+    const untrustedReservation = endpointModule._internal.getReservationCost({
+      ledgerReservationCostUsd: 2.88,
+      trustedCostSubjects: new Set(['trusted-user'])
+    }, 'other-user', 0.125);
+    const parsedTrustedSubjects = endpointModule._internal.parseTrustedCostSubjects(
+      'trusted-user, trusted-user-2\nCaseSensitive invalid.subject'
+    );
+    const isRecoverableItem = transcribeToolModule.isRecoverableItem;
+    const historyJobName = `site-transcribe-${'a'.repeat(64)}`;
+    const historyConfig = {
+      prefix: 'tools-transcribe/',
+      signingSecret: 'test-history-signing-secret-that-is-long-enough'
+    };
+    const encodedHistoryCursor = endpointModule._internal.encodeHistoryCursor(
+      { pk: 'TRANSCRIBE#history-user', sk: 'HISTORY#0000000000001#test' },
+      'history-user',
+      historyConfig
+    );
+    const decodedHistoryCursor = endpointModule._internal.decodeHistoryCursor(
+      encodedHistoryCursor,
+      'history-user',
+      historyConfig
+    );
+    let crossAccountCursorRejected = false;
+    try {
+      endpointModule._internal.decodeHistoryCursor(encodedHistoryCursor, 'other-user', historyConfig);
+    } catch {
+      crossAccountCursorRejected = true;
+    }
+    const publicHistoryItem = endpointModule._internal.publicHistoryItem({
+      jobName: historyJobName,
+      filename: '<script>alert(1)</script>.mp3',
+      status: 'COMPLETED',
+      completedAt: 1_783_750_000_000,
+      costMicros: 1_250_000,
+      quotedCostMicros: 1_250_000,
+      transcriptObjectKey: 'must-not-leak',
+      transcriptSha256: 'must-not-leak',
+      expiresAt: 1_800_000_000
+    });
 
     assert(page.includes('id="transcribe-files"') &&
            page.includes('multiple') &&
@@ -40597,6 +40669,17 @@ try {
       'Transcribe page should expose staged bulk upload, cost review, processing, and results UI');
     assert(!page.includes('AWS Lambda') && !page.includes('Warming up'),
       'Transcribe page should not mention the old Whisper Lambda warmup flow');
+    assert(page.includes('id="transcribe-resume-all"') &&
+           page.includes('id="transcribe-usage-value"') &&
+           page.includes('id="transcribe-usage-progress"') &&
+           page.includes('id="transcribe-history-open"') &&
+           page.includes('<dialog class="transcribe-history-dialog"') &&
+           page.includes('aria-labelledby="transcribe-history-title"') &&
+           page.includes('id="transcribe-history-list"') &&
+           page.includes('id="transcribe-history-transcript"') &&
+           page.includes('id="transcribe-notifications"') &&
+           page.includes('aria-pressed="false"'),
+      'Transcribe page should expose bulk resume, daily usage, accessible private history, and notification controls');
 
     assert(toolScript.includes("const TOOL_ID = 'transcribe'") &&
            toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
@@ -40612,6 +40695,7 @@ try {
            toolScript.includes("setView('results')") &&
            toolScript.includes('probeDuration') &&
            toolScript.includes('state.config.minDurationSeconds') &&
+           toolScript.includes('item.durationSeconds > Number(state.config.maxServiceDurationSeconds') &&
            toolScript.includes('estimatedCost') &&
            toolScript.includes('payload.outputSummary') &&
            toolScript.includes('configured: false') &&
@@ -40647,11 +40731,20 @@ try {
              mediaDurationSeconds: 1708
            }),
       'Transcribe MP4 preflight should reject the observed corrupt timeline while tolerating normal timing and bounded gaps');
+    assert(isRecoverableItem({ status: 'failed', runErrorType: 'network', runToken: 'run' }) &&
+           isRecoverableItem({ status: 'canceled', quoteToken: 'quote', uploadComplete: true }) &&
+           !isRecoverableItem({ status: 'failed', runErrorType: 'service', runToken: 'run' }) &&
+           !isRecoverableItem({ status: 'failed', quoteToken: 'quote', uploadComplete: false }) &&
+           !isRecoverableItem({ status: 'complete', runToken: 'run' }),
+      'Transcribe bulk recovery should select only retry-safe failed or canceled items');
     assert(toolCss.includes('.transcribe-status-bar') &&
            toolCss.includes('position:sticky') &&
            toolCss.includes('top:calc(var(--nav-height') &&
-           toolCss.includes('.transcribe-file-resume'),
-      'Transcribe status bar should stay mounted near the top of the screen');
+           toolCss.includes('.transcribe-file-resume') &&
+           toolCss.includes('.transcribe-usage') &&
+           toolCss.includes('.transcribe-history-dialog') &&
+           toolCss.includes('.transcribe-history-item'),
+      'Transcribe status, usage, recovery, and history surfaces should use the site-native responsive layout');
     assert(toolsWorkspaceCss.includes('body[data-tools-layout="text"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="media"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="admin"]') &&
@@ -40722,11 +40815,23 @@ try {
            highRatioCoverage.coverageStatus === 'OK',
       'Transcribe should conservatively detect a large early transcript cutoff without flagging normal tail gaps');
     assert(endpoint.includes('calculateCostUsd') &&
+           endpoint.includes('DEFAULT_PRICE_PER_SECOND = 0.0001') &&
            endpoint.includes('Math.max(MIN_DURATION_SECONDS, Math.ceil(duration))') &&
            endpoint.includes('AWS_MAX_MEDIA_DURATION_SECONDS = 28_800') &&
+           endpoint.includes('durationSeconds > AWS_MAX_MEDIA_DURATION_SECONDS') &&
            endpoint.includes('ledgerReservationCostUsd = calculateCostUsd(AWS_MAX_MEDIA_DURATION_SECONDS, pricePerSecond)') &&
+           trustedReservation.costUsd === 0.125 &&
+           trustedReservation.basis === 'trusted_quote' &&
+           untrustedReservation.costUsd === 2.88 &&
+           untrustedReservation.basis === 'max_duration' &&
+           parsedTrustedSubjects.has('trusted-user') &&
+           parsedTrustedSubjects.has('trusted-user-2') &&
+           parsedTrustedSubjects.has('CaseSensitive') &&
+           !parsedTrustedSubjects.has('trusted') &&
+           !parsedTrustedSubjects.has('casesensitive') &&
+           !parsedTrustedSubjects.has('invalid.subject') &&
            endpoint.includes('cleanupRun'),
-      'Transcribe endpoint should calculate minimum billing while pessimistically reserving the AWS hard maximum');
+      'Transcribe endpoint should price current Ohio usage and limit trusted quote reservations to owner-controlled subjects');
     assert(endpoint.includes('HeadObjectCommand') &&
            endpoint.includes('inspectUploadedObject') &&
            endpoint.includes('actualBytes !== expectedBytes') &&
@@ -40756,11 +40861,17 @@ try {
            ledger.includes('startAttemptExpiresAt') &&
            reservationPlan.transactItems.length === 4 &&
            reservationPlan.transactItems[0]?.Put?.Item?.state === ledgerModule.RUN_STATE.RESERVED &&
+           reservationPlan.transactItems[0]?.Put?.Item?.quotedCostMicros === 125_000 &&
+           reservationPlan.transactItems[0]?.Put?.Item?.reservationBasis === 'max_duration' &&
            reservationPlan.transactItems[1]?.Put?.Item?.ownerJobName === 'test-job' &&
            reservationPlan.transactItems[2]?.Update?.Key?.pk === 'TRANSCRIBE#test-user' &&
+           reservationPlan.transactItems[2]?.Update?.ExpressionAttributeValues?.[':remainingCost'] === 97_120_000 &&
            reservationPlan.transactItems[3]?.Update?.Key?.pk === 'TRANSCRIBE#GLOBAL' &&
-           ledgerModule._internal.toCostMicros(11.52) === 11_520_000,
-      'Transcribe should atomically reserve user/global daily spend, file counts, and a recoverable concurrency slot');
+           reservationPlan.transactItems[3]?.Update?.ExpressionAttributeValues?.[':remainingCost'] === 97_120_000 &&
+           refundedReservationPlan.transactItems[0]?.Update?.ExpressionAttributeValues?.[':quotedCost'] === 125_000 &&
+           refundedReservationPlan.transactItems[0]?.Update?.ExpressionAttributeValues?.[':reservationBasis'] === 'trusted_quote' &&
+           ledgerModule._internal.toCostMicros(2.88) === 2_880_000,
+      'Transcribe should atomically reserve user/global $100 daily spend, file counts, and a recoverable concurrency slot');
     assert(ledger.includes("jobCreatedAt = if_not_exists(jobCreatedAt, :now)") &&
            ledger.includes('Number(config.ledgerRenewalSeconds) || 60') &&
            ledger.includes('meaningful.every(code => code === \'ConditionalCheckFailed\')') &&
@@ -40800,6 +40911,33 @@ try {
            toolScript.includes('data-transcribe-action="resume"') &&
            toolScript.includes("if (action === 'resume')"),
       'Transcribe client should adapt polling, retry transient requests with the same quote, and resume from existing recovery tokens');
+    assert(toolScript.includes('const resumeQueue = async (items) =>') &&
+           toolScript.includes('const queue = Array.from(items || []).filter(isRecoverableItem);') &&
+           toolScript.includes('for (let index = 0; index < queue.length; index += 1)') &&
+           toolScript.includes('const queue = resumableFiles();') &&
+           toolScript.includes('void resumeQueue(queue);') &&
+           !toolScript.includes('Promise.all(queue.map'),
+      'Transcribe Resume all should snapshot retry-safe jobs and process them sequentially');
+    assert(toolScript.includes("authFetchJson(`${API_BASE}/usage`") &&
+           toolScript.includes('state.usage.usedUsd') &&
+           toolScript.includes('state.usage.limitUsd') &&
+           toolScript.includes('formatUtcReset(state.usage.resetsAt)') &&
+           toolScript.includes('void loadUsage();'),
+      'Transcribe client should load and refresh authenticated reserved usage out of the daily limit');
+    assert(toolScript.includes("authFetchJson(`${API_BASE}/history?") &&
+           toolScript.includes('data-transcribe-history-action="view"') &&
+           toolScript.includes('historyTranscriptEl.value = String(item.transcript || \'\');') &&
+           toolScript.includes('sub !== getAuthSub()') &&
+           toolScript.includes('state.historyRequestId += 1;') &&
+           toolScript.includes('escapeHtml(item.filename') &&
+           !toolScript.includes('historyTranscriptEl.innerHTML'),
+      'Transcribe history should lazy-load escaped, account-scoped summaries and assign transcript text safely');
+    assert(toolScript.includes("typeof window.Notification === 'function'") &&
+           toolScript.includes('window.Notification.requestPermission()') &&
+           toolScript.includes("['complete', 'partial', 'failed'].includes(status)") &&
+           toolScript.includes('if (item.notifiedStatus === status) return;') &&
+           toolScript.includes('Completion and failure alerts work while this page remains open.'),
+      'Transcribe notifications should be explicit, page-lifetime browser alerts deduplicated by terminal status');
     assert(endpoint.includes("coverageStatus: suspectedEarlyEnd ? 'SUSPECTED_EARLY_END' : 'OK'") &&
            endpoint.includes('transcriptEndSeconds') &&
            endpoint.includes('transcriptGapSeconds') &&
@@ -40817,17 +40955,64 @@ try {
            !recoveryPersistSource.includes('transcript:') &&
            !recoveryPersistSource.includes('file: item.file'),
       'Transcribe should persist only expiring, user-scoped recovery metadata across same-tab reloads');
-    assert(envExample.includes('TRANSCRIBE_DAILY_COST_LIMIT_USD=25') &&
+    assert(envExample.includes('TRANSCRIBE_MAX_TOTAL_COST_USD=100') &&
+           envExample.includes('TRANSCRIBE_PRICE_PER_SECOND=0.0001') &&
+           envExample.includes('TRANSCRIBE_DAILY_COST_LIMIT_USD=100') &&
+           envExample.includes('TRANSCRIBE_TRUSTED_COST_SUBS=') &&
            envExample.includes('TRANSCRIBE_DAILY_FILE_LIMIT=50') &&
            envExample.includes('TRANSCRIBE_GLOBAL_DAILY_COST_LIMIT_USD=100') &&
            envExample.includes('TRANSCRIBE_GLOBAL_DAILY_FILE_LIMIT=200') &&
            envExample.includes('TRANSCRIBE_MAX_CONCURRENT=2') &&
            envExample.includes('TRANSCRIBE_LEDGER_RENEWAL_SECONDS=60') &&
            envExample.includes('TRANSCRIBE_LEDGER_RUN_RETENTION_DAYS=45') &&
+           envExample.includes('TRANSCRIBE_HISTORY_RETENTION_DAYS=90') &&
            envExample.includes('TRANSCRIBE_MAX_TRANSCRIPT_FETCH_BYTES=26214400') &&
            envExample.includes('TRANSCRIBE_MAX_TRANSCRIPT_BYTES=3145728') &&
            transcribeReadme.includes('TRANSCRIBE_LEDGER_RENEWAL_SECONDS=60'),
       'Transcribe deployment examples should document user/global budgets, concurrency, renewal, retention, and response controls');
+    assert(endpoint.includes("if (action === 'usage') return handleUsage(req, res);") &&
+           endpoint.includes("if (action === 'history') return handleHistory(req, res);") &&
+           endpoint.includes('getDailyUsage({ config, sub: user.sub })') &&
+           endpoint.includes('putTranscriptHistoryObject') &&
+           endpoint.includes("Tagging: 'tool=amazon-transcribe&retention=history'") &&
+           endpoint.includes('persistTranscriptHistoryMetadata') &&
+           endpoint.indexOf('persistTranscriptHistoryMetadata') < endpoint.lastIndexOf('const cleanup = await cleanupRun') &&
+           endpoint.includes('readTranscriptHistoryObject') &&
+           endpoint.includes('CacheControl: \'private, no-store\''),
+      'Transcribe API should save private transcript text before media cleanup and expose authenticated usage/history routes');
+    assert(endpointModule._internal.normalizeHistoryJobName(historyJobName) === historyJobName &&
+           endpointModule._internal.normalizeHistoryJobName('site-transcribe-invalid') === '' &&
+           endpointModule._internal.transcriptHistoryObjectKey(historyConfig, 'history-user', historyJobName) ===
+             `tools-transcribe/history-user/history/${historyJobName}.txt` &&
+           decodedHistoryCursor.pk === 'TRANSCRIBE#history-user' &&
+           decodedHistoryCursor.sk === 'HISTORY#0000000000001#test' &&
+           crossAccountCursorRejected &&
+           publicHistoryItem.filename === '<script>alert(1)</script>.mp3' &&
+           publicHistoryItem.costUsd === 1.25 &&
+           endpointModule._internal.publicHistoryItem({
+             jobName: historyJobName,
+             costMicros: 11_520_000
+           }).costUsd === null &&
+           !Object.prototype.hasOwnProperty.call(publicHistoryItem, 'transcriptObjectKey') &&
+           !Object.prototype.hasOwnProperty.call(publicHistoryItem, 'transcriptSha256'),
+      'Transcribe history identifiers, object keys, cursors, and public metadata should remain normalized and owner-scoped');
+    assert(ledgerModule._internal.historySortKey(2_000, 'new') < ledgerModule._internal.historySortKey(1_000, 'old') &&
+           ledger.includes("begins_with(#sk, :prefix)") &&
+           ledger.includes("':prefix': 'HISTORY#'") &&
+           ledger.includes('historyDeletedAt') &&
+           vercelOidcTemplate.includes('- dynamodb:Query'),
+      'Transcribe history should list newest-first from the user partition and have the required query/delete IAM contract');
+    assert(rootPackage.scripts?.['migrate:transcribe-history'] ===
+             'node scripts/migrations/transcribe-history-backfill.js' &&
+           historyMigration.includes('TRANSCRIBE_BACKFILL_SUB') &&
+           historyMigration.includes('ConsistentRead: true') &&
+           historyMigration.includes("IfNoneMatch: '*'") &&
+           historyMigration.includes('expectedCount') &&
+           historyMigration.includes('completedAfter') &&
+           historyMigration.includes('completedBefore') &&
+           !historyMigration.includes('ListTranscriptionJobsCommand') &&
+           transcribeReadme.includes('npm run migrate:transcribe-history'),
+      'Legacy Transcribe history should use a dry-run-first, owner-scoped, count-and-date-guarded migration');
     assert(router.includes("if (endpoint === 'transcribe')") &&
            router.includes('getEndpointSegmentsFromRequest'),
       'tools router should route nested /api/tools/transcribe actions');

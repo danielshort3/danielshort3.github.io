@@ -281,12 +281,24 @@
     <section class="surface-band tools-section whispermon-section">
       <div class="wrapper whispermon-grid">
         <article class="whispermon-card whispermon-card-wide transcribe-shell" id="transcribe-shell" data-transcribe-view-state="upload">
-          <div class="transcribe-status-bar" aria-label="Account status">
-            <div class="health-row transcribe-health-row" role="status" aria-live="polite">
-              <span id="transcribe-auth-pill" class="health-pill" data-state="warning">Loading auth</span>
-              <span class="transcribe-status-meta" id="transcribe-auth-status">Checking tools account sign-in.</span>
+          <div class="transcribe-status-bar" aria-label="Transcription account and usage status">
+            <div class="transcribe-status-main">
+              <div class="health-row transcribe-health-row" role="status" aria-live="polite">
+                <span id="transcribe-auth-pill" class="health-pill" data-state="warning">Loading auth</span>
+                <span class="transcribe-status-meta" id="transcribe-auth-status">Checking tools account sign-in.</span>
+              </div>
+              <div class="transcribe-usage" id="transcribe-usage" aria-live="polite">
+                <div class="transcribe-usage-heading">
+                  <span>Today's usage</span>
+                  <strong id="transcribe-usage-value">-- / $100.00</strong>
+                </div>
+                <progress id="transcribe-usage-progress" value="0" max="100">Usage unavailable</progress>
+                <span class="transcribe-usage-reset" id="transcribe-usage-reset">Sign in to view your UTC-day usage.</span>
+              </div>
             </div>
             <div class="transcribe-status-actions">
+              <button type="button" class="btn-secondary" id="transcribe-history-open" disabled>History</button>
+              <button type="button" class="btn-secondary" id="transcribe-notifications" aria-pressed="false">Notifications off</button>
               <button type="button" class="btn-secondary" id="transcribe-sign-in">Sign in</button>
             </div>
           </div>
@@ -310,7 +322,7 @@
               <div class="transcribe-stats" aria-label="Transcription settings">
                 <div class="transcribe-stat">
                   <div class="transcribe-stat-label">Price</div>
-                  <div class="transcribe-stat-value" id="transcribe-stat-price">$0.024 / min</div>
+                  <div class="transcribe-stat-value" id="transcribe-stat-price">$0.006 / min</div>
                 </div>
                 <div class="transcribe-stat">
                   <div class="transcribe-stat-label">Minimum</div>
@@ -375,12 +387,51 @@
                 <p class="transcribe-empty">Completed transcripts will appear here.</p>
               </div>
               <div class="form-actions transcribe-actions">
+                <button type="button" class="btn-primary" id="transcribe-resume-all" hidden>Resume all pending</button>
                 <button type="button" class="btn-primary" id="transcribe-new">Transcribe more files</button>
               </div>
             </section>
 
             <div class="contact-form-status" id="transcribe-run-status" role="status" aria-live="polite"></div>
           </form>
+
+          <dialog class="transcribe-history-dialog" id="transcribe-history-dialog" aria-labelledby="transcribe-history-title">
+            <div class="transcribe-history-shell">
+              <div class="transcribe-history-header">
+                <div>
+                  <p class="transcribe-kicker">Private account history</p>
+                  <h2 id="transcribe-history-title">Previous transcripts</h2>
+                </div>
+                <button type="button" class="btn-ghost" id="transcribe-history-close">Close</button>
+              </div>
+              <p class="transcribe-history-privacy" id="transcribe-history-privacy">
+                History stores only the filename and transcript text. Your original media file is not retained here.
+              </p>
+              <div class="transcribe-history-toolbar">
+                <button type="button" class="btn-secondary" id="transcribe-history-refresh">Refresh</button>
+              </div>
+              <div class="transcribe-history-status" id="transcribe-history-status" role="status" aria-live="polite"></div>
+              <section id="transcribe-history-list-view" aria-label="Saved transcript list">
+                <div class="transcribe-history-list" id="transcribe-history-list"></div>
+                <button type="button" class="btn-secondary transcribe-history-load-more" id="transcribe-history-load-more" hidden>Load more</button>
+              </section>
+              <section class="transcribe-history-detail" id="transcribe-history-detail" aria-label="Saved transcript" hidden>
+                <button type="button" class="btn-ghost transcribe-history-back" id="transcribe-history-back">Back to history</button>
+                <div class="transcribe-history-detail-heading">
+                  <div>
+                    <h3 id="transcribe-history-detail-name">Transcript</h3>
+                    <p id="transcribe-history-detail-meta"></p>
+                  </div>
+                  <div class="transcribe-result-actions">
+                    <button type="button" class="btn-secondary" id="transcribe-history-copy">Copy</button>
+                    <button type="button" class="btn-secondary" id="transcribe-history-download">Download</button>
+                    <button type="button" class="btn-secondary transcribe-history-delete" id="transcribe-history-delete">Delete</button>
+                  </div>
+                </div>
+                <textarea id="transcribe-history-transcript" readonly aria-label="Transcript text"></textarea>
+              </section>
+            </div>
+          </dialog>
         </article>
       </div>
     </section>
