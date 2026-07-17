@@ -39,7 +39,7 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
 </head>
-<body data-page="transcribe" class="transcribe-page tools-tool-page site-page" data-tools-layout="media" data-tools-state="empty">
+<body data-page="transcribe" class="transcribe-page tools-tool-page site-page" data-tools-layout="media" data-tools-state="empty" data-tools-autosave="false">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -273,6 +273,19 @@
   <div class="tools-account-dock" data-tools-account="dock">
     <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">
       <div class="tools-account-bar" data-tools-account="bar"></div>
+      <div class="transcribe-account-tools" data-tools-account="tool-controls" aria-label="Transcription usage and controls" hidden>
+        <div class="transcribe-usage" id="transcribe-usage" role="group" tabindex="0" aria-label="Today's transcription usage" aria-describedby="transcribe-usage-tooltip">
+          <div class="transcribe-usage-heading">
+            <span>Usage</span>
+            <strong id="transcribe-usage-value" aria-live="polite">-- / $100</strong>
+            <span class="transcribe-usage-info" aria-hidden="true">i</span>
+          </div>
+          <progress class="visually-hidden" id="transcribe-usage-progress" value="0" max="100">Usage unavailable</progress>
+          <span class="transcribe-usage-tooltip" id="transcribe-usage-tooltip" role="tooltip">Sign in to view your UTC-day usage.</span>
+        </div>
+        <button type="button" class="btn-secondary" id="transcribe-history-open" disabled>History</button>
+        <button type="button" class="btn-secondary" id="transcribe-notifications" aria-pressed="false">Notifications off</button>
+      </div>
     </div>
   </div>
 
@@ -281,28 +294,6 @@
     <section class="surface-band tools-section whispermon-section">
       <div class="wrapper whispermon-grid">
         <article class="whispermon-card whispermon-card-wide transcribe-shell" id="transcribe-shell" data-transcribe-view-state="upload">
-          <div class="transcribe-status-bar" aria-label="Transcription account and usage status">
-            <div class="transcribe-status-main">
-              <div class="health-row transcribe-health-row" role="status" aria-live="polite">
-                <span id="transcribe-auth-pill" class="health-pill" data-state="warning">Loading auth</span>
-                <span class="transcribe-status-meta" id="transcribe-auth-status">Checking tools account sign-in.</span>
-              </div>
-              <div class="transcribe-usage" id="transcribe-usage" aria-live="polite">
-                <div class="transcribe-usage-heading">
-                  <span>Today's usage</span>
-                  <strong id="transcribe-usage-value">-- / $100.00</strong>
-                </div>
-                <progress id="transcribe-usage-progress" value="0" max="100">Usage unavailable</progress>
-                <span class="transcribe-usage-reset" id="transcribe-usage-reset">Sign in to view your UTC-day usage.</span>
-              </div>
-            </div>
-            <div class="transcribe-status-actions">
-              <button type="button" class="btn-secondary" id="transcribe-history-open" disabled>History</button>
-              <button type="button" class="btn-secondary" id="transcribe-notifications" aria-pressed="false">Notifications off</button>
-              <button type="button" class="btn-secondary" id="transcribe-sign-in">Sign in</button>
-            </div>
-          </div>
-
           <form id="transcribe-form" class="contact-form" novalidate>
             <section class="transcribe-view transcribe-view-upload" id="transcribe-upload-view" data-transcribe-view="upload" aria-labelledby="transcribe-upload-title">
               <div class="transcribe-view-heading">
@@ -524,7 +515,7 @@
     </button>
   </div>
   <script defer src="js/tools/whisper-transcribe-monitor.js"></script>
-  <script defer src="dist/site-tools-account.1ce4c44e.js"></script>
+  <script defer src="dist/site-tools-account.ea838f2f.js"></script>
   <script defer src="dist/site-shell.c3192523.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
