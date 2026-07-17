@@ -40672,14 +40672,20 @@ try {
     assert(page.includes('id="transcribe-resume-all"') &&
            page.includes('id="transcribe-usage-value"') &&
            page.includes('id="transcribe-usage-progress"') &&
+           page.includes('aria-describedby="transcribe-usage-tooltip"') &&
+           page.includes('id="transcribe-usage-tooltip" role="tooltip"') &&
            page.includes('id="transcribe-history-open"') &&
            page.includes('<dialog class="transcribe-history-dialog"') &&
            page.includes('aria-labelledby="transcribe-history-title"') &&
            page.includes('id="transcribe-history-list"') &&
            page.includes('id="transcribe-history-transcript"') &&
            page.includes('id="transcribe-notifications"') &&
-           page.includes('aria-pressed="false"'),
-      'Transcribe page should expose bulk resume, daily usage, accessible private history, and notification controls');
+           page.includes('aria-pressed="false"') &&
+           page.includes('data-tools-account="tool-controls"') &&
+           page.includes('data-tools-autosave="false"') &&
+           !page.includes('transcribe-status-bar') &&
+           !page.includes('id="transcribe-sign-in"'),
+      'Transcribe page should combine usage, private history, and notification controls into the shared account bar without a duplicate status bar');
 
     assert(toolScript.includes("const TOOL_ID = 'transcribe'") &&
            toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
@@ -40689,7 +40695,8 @@ try {
            toolScript.includes('Already added.') &&
            toolScript.includes('data-transcribe-file-remove') &&
            toolScript.includes('canRemoveItem') &&
-           toolScript.includes("mode: 'popup'") &&
+           toolsAccountUi.includes("return toolId === 'transcribe'") &&
+           toolsAccountUi.includes("? { mode: 'popup', returnTo }") &&
            toolScript.includes('startBtn.disabled = state.busy || state.analyzing || !ready;') &&
            toolScript.includes("setView('processing')") &&
            toolScript.includes("setView('results')") &&
@@ -40737,14 +40744,17 @@ try {
            !isRecoverableItem({ status: 'failed', quoteToken: 'quote', uploadComplete: false }) &&
            !isRecoverableItem({ status: 'complete', runToken: 'run' }),
       'Transcribe bulk recovery should select only retry-safe failed or canceled items');
-    assert(toolCss.includes('.transcribe-status-bar') &&
-           toolCss.includes('position:sticky') &&
-           toolCss.includes('top:calc(var(--nav-height') &&
+    assert(toolCss.includes('.transcribe-account-tools') &&
+           toolCss.includes('.transcribe-account-tools[hidden]') &&
+           toolCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))') &&
+           !toolCss.includes('.transcribe-status-bar') &&
            toolCss.includes('.transcribe-file-resume') &&
            toolCss.includes('.transcribe-usage') &&
+           toolCss.includes('.transcribe-usage-tooltip') &&
+           toolCss.includes('.transcribe-usage:focus .transcribe-usage-tooltip') &&
            toolCss.includes('.transcribe-history-dialog') &&
            toolCss.includes('.transcribe-history-item'),
-      'Transcribe status, usage, recovery, and history surfaces should use the site-native responsive layout');
+      'Transcribe account controls, usage, recovery, and history surfaces should use the site-native responsive layout');
     assert(toolsWorkspaceCss.includes('body[data-tools-layout="text"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="media"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="admin"]') &&
@@ -40921,9 +40931,18 @@ try {
     assert(toolScript.includes("authFetchJson(`${API_BASE}/usage`") &&
            toolScript.includes('state.usage.usedUsd') &&
            toolScript.includes('state.usage.limitUsd') &&
+           toolScript.includes('formatUsageLimitUsd(limitUsd)') &&
            toolScript.includes('formatUtcReset(state.usage.resetsAt)') &&
+           toolScript.includes('setText(usageTooltipEl, usageDetails)') &&
+           !toolScript.includes('signInBtn') &&
+           !toolScript.includes('signInWithPopup') &&
+           toolsAccountUi.includes('const toolControlsEl =') &&
+           toolsAccountUi.includes('slot.replaceWith(toolControlsEl);') &&
+           toolsAccountUi.includes('toolControlsEl.hidden = false;') &&
+           toolsAccountUi.includes("const compactToolBar = toolId === 'transcribe';") &&
+           toolsAccountUi.includes("compactToolBar ? 'Signed in'") &&
            toolScript.includes('void loadUsage();'),
-      'Transcribe client should load and refresh authenticated reserved usage out of the daily limit');
+      'Transcribe should use the shared popup sign-in, preserve its combined account controls across rerenders, and keep detailed usage in the tooltip');
     assert(toolScript.includes("authFetchJson(`${API_BASE}/history?") &&
            toolScript.includes('data-transcribe-history-action="view"') &&
            toolScript.includes('historyTranscriptEl.value = String(item.transcript || \'\');') &&

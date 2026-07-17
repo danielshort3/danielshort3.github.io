@@ -657,11 +657,14 @@
 
   const renderAccountBar = ({ barEl, toolId, sessionId, statusText, toolActionsEnabled } = {}) => {
     if (!barEl) return;
+    const toolControlsEl = barEl.querySelector('[data-tools-account="tool-controls"]') ||
+      barEl.parentElement?.querySelector('[data-tools-account="tool-controls"]') || null;
+    const compactToolBar = toolId === 'transcribe';
     const auth = window.ToolsAuth.getAuth();
     const authed = window.ToolsAuth.authIsValid(auth);
     const user = authed ? window.ToolsAuth.getUser(auth) : { email: '', name: '', sub: '' };
     const label = authed
-      ? `Signed in${user.email ? ` as ${user.email}` : ''}`
+      ? (compactToolBar ? 'Signed in' : `Signed in${user.email ? ` as ${user.email}` : ''}`)
       : 'Not signed in';
     const pillClass = authed ? 'tools-account-pill is-authed' : 'tools-account-pill';
     const toolInfo = toolId ? getToolInfo(toolId) : null;
@@ -679,13 +682,15 @@
       ? `<button type="button" class="btn-secondary" data-tools-action="save-session" title="Upload this session's inputs and outputs to your account">Save to account</button>`
       : '';
     const newButton = allowToolActions ? `<button type="button" class="btn-ghost" data-tools-action="new-session">New session</button>` : '';
-
+    const toolControlsSlot = toolControlsEl
+      ? '<span data-tools-account="tool-controls-slot"></span>'
+      : '';
     const statusParts = [];
-    if (toolId) {
+    if (toolId && !compactToolBar) {
       statusParts.push(`<a class="tools-account-tools-link" href="tools">← Tools</a>`);
       statusParts.push(escapeHtml(toolInfo?.name || toolId));
     }
-    if (sessionId) statusParts.push(`Session ${escapeHtml(sessionId.slice(0, 10))}…`);
+    if (sessionId && !compactToolBar) statusParts.push(`Session ${escapeHtml(sessionId.slice(0, 10))}…`);
     if (statusText) statusParts.push(escapeHtml(statusText));
 
     const sessionLine = statusParts.length
@@ -698,9 +703,16 @@
       ${accountButton}
       ${allowToolActions && authed ? saveButton : ''}
       ${allowToolActions && authed ? newButton : ''}
+      ${toolControlsSlot}
       ${authed ? signOutButton : signInButton}
       ${sessionLine}
     `.trim();
+
+    if (toolControlsEl) {
+      const slot = barEl.querySelector('[data-tools-account="tool-controls-slot"]');
+      if (slot) slot.replaceWith(toolControlsEl);
+      toolControlsEl.hidden = false;
+    }
   };
 
   const getSignInOptions = (toolId) => {

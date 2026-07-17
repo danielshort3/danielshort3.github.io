@@ -20,65 +20,35 @@
     margin-inline:auto;
   }
 
-  .transcribe-status-bar{
-    position:sticky;
-    top:calc(var(--nav-height, 72px) + 18px);
-    z-index:15;
+  .transcribe-account-tools{
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap:wrap;
-    margin:-4px -4px 16px;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 94%, #02060c 6%);
-    box-shadow:0 12px 26px rgba(0,0,0,.24);
-    backdrop-filter:blur(10px);
-  }
-
-  body[data-page="transcribe"] .transcribe-health-row{
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
     gap:10px;
     flex-wrap:wrap;
-    margin:0;
-  }
-
-  .transcribe-status-actions{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
-  }
-
-  .transcribe-status-main{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    flex:1 1 520px;
     min-width:0;
   }
 
+  .transcribe-account-tools[hidden]{
+    display:none;
+  }
+
   .transcribe-usage{
-    display:grid;
-    gap:4px;
-    flex:1 1 230px;
-    min-width:190px;
-    max-width:300px;
-    padding:7px 10px;
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    flex:0 1 auto;
+    min-width:0;
+    padding:8px 10px;
     border-radius:8px;
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
     background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
+    cursor:help;
   }
 
   .transcribe-usage-heading{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    gap:10px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
     color:var(--text-muted);
     font-size:.72rem;
     letter-spacing:.04em;
@@ -93,16 +63,62 @@
     white-space:nowrap;
   }
 
-  .transcribe-usage progress{
-    width:100%;
-    height:7px;
-    accent-color:var(--primary);
+  .transcribe-usage-info{
+    display:inline-grid;
+    place-items:center;
+    width:16px;
+    height:16px;
+    border:1px solid color-mix(in srgb,var(--text-muted) 72%, transparent);
+    border-radius:999px;
+    color:var(--text-muted);
+    font-size:.62rem;
+    font-weight:700;
+    line-height:1;
+    text-transform:none;
   }
 
-  .transcribe-usage-reset{
-    color:var(--text-muted);
-    font-size:.68rem;
-    line-height:1.35;
+  .transcribe-usage-tooltip{
+    position:absolute;
+    top:calc(100% + 9px);
+    left:50%;
+    z-index:30;
+    width:max-content;
+    max-width:min(320px,calc(100vw - 32px));
+    padding:8px 10px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border-radius:7px;
+    background:color-mix(in srgb,var(--surface) 96%, #02060c 4%);
+    box-shadow:0 10px 24px rgba(0,0,0,.28);
+    color:var(--text-light);
+    font-size:.72rem;
+    line-height:1.4;
+    text-align:left;
+    opacity:0;
+    pointer-events:none;
+    transform:translate(-50%,-4px);
+    transition:opacity .14s ease,transform .14s ease;
+  }
+
+  .transcribe-usage-tooltip::before{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:100%;
+    border:6px solid transparent;
+    border-bottom-color:color-mix(in srgb,var(--surface) 96%, #02060c 4%);
+    transform:translateX(-50%);
+  }
+
+  .transcribe-usage:hover .transcribe-usage-tooltip,
+  .transcribe-usage:focus .transcribe-usage-tooltip,
+  .transcribe-usage:focus-within .transcribe-usage-tooltip{
+    opacity:1;
+    transform:translate(-50%,0);
+  }
+
+  .transcribe-usage:focus-visible{
+    outline:2px solid var(--focus-ring,var(--primary));
+    outline-offset:3px;
   }
 
   .transcribe-usage[data-tone="warning"]{
@@ -121,53 +137,6 @@
   #transcribe-notifications[data-state="denied"],
   #transcribe-notifications[data-state="unsupported"]{
     border-color:color-mix(in srgb,var(--warning) 48%, var(--surface-accent) 52%);
-  }
-
-  body[data-page="transcribe"] .health-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:7px;
-    padding:6px 11px;
-    border-radius:999px;
-    border:1px solid var(--surface-accent);
-    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
-    font-size:.7rem;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-    color:var(--text-muted);
-    white-space:nowrap;
-  }
-
-  body[data-page="transcribe"] .health-pill::before{
-    content:"";
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:currentColor;
-  }
-
-  body[data-page="transcribe"] .health-pill[data-state="ok"]{
-    color:var(--success);
-    border-color:color-mix(in srgb,var(--success) 52%, var(--surface-accent) 48%);
-  }
-
-  body[data-page="transcribe"] .health-pill[data-state="err"]{
-    color:var(--danger);
-    border-color:color-mix(in srgb,var(--danger) 52%, var(--surface-accent) 48%);
-  }
-
-  body[data-page="transcribe"] .health-pill[data-state="warning"]{
-    color:var(--warning);
-    border-color:color-mix(in srgb,var(--warning) 52%, var(--surface-accent) 48%);
-  }
-
-  body[data-page="transcribe"] .transcribe-status-meta,
-  body[data-page="transcribe"] .transcribe-status-meta[data-tone="success"],
-  body[data-page="transcribe"] .transcribe-status-meta[data-tone="warning"],
-  body[data-page="transcribe"] .transcribe-status-meta[data-tone="error"]{
-    color:var(--text-muted);
-    font-size:.86rem;
-    line-height:1.5;
   }
 
   .transcribe-view{
@@ -708,13 +677,7 @@
   }
 
   @media (max-width: 860px){
-    .transcribe-status-main{
-      align-items:stretch;
-      flex-direction:column;
-    }
-
     .transcribe-usage{
-      max-width:none;
       flex:0 0 auto;
     }
 
@@ -738,37 +701,51 @@
   }
 
   @media (max-width: 620px){
-    .transcribe-status-bar{
-      position:relative;
-      top:auto;
-    }
-
-    .transcribe-status-bar,
     .transcribe-result-header{
       align-items:stretch;
     }
 
-    .transcribe-status-actions{
+    .transcribe-account-tools{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
+      flex:1 0 100%;
+      order:10;
+      width:100%;
     }
 
-    .transcribe-status-actions #transcribe-sign-in{
+    .transcribe-account-tools .transcribe-usage{
       grid-column:1 / -1;
     }
 
-    .transcribe-status-actions,
+    .transcribe-account-tools > button{
+      width:100%;
+    }
+
+    .transcribe-usage-tooltip{
+      left:0;
+      transform:translateY(-4px);
+    }
+
+    .transcribe-usage-tooltip::before{
+      left:24px;
+      transform:none;
+    }
+
+    .transcribe-usage:hover .transcribe-usage-tooltip,
+    .transcribe-usage:focus .transcribe-usage-tooltip,
+    .transcribe-usage:focus-within .transcribe-usage-tooltip{
+      transform:translateY(0);
+    }
+
     .transcribe-result-actions{
       width:100%;
     }
 
-    .transcribe-status-actions > *,
     .transcribe-result-actions > *,
     .transcribe-actions > *{
       flex:1 1 auto;
     }
 
-    .transcribe-status-main,
     .transcribe-usage{
       width:100%;
     }

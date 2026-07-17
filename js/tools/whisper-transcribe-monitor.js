@@ -51,9 +51,6 @@
 
   const $id = (id) => document.getElementById(id);
 
-  const authPillEl = $id('transcribe-auth-pill');
-  const authStatusEl = $id('transcribe-auth-status');
-  const signInBtn = $id('transcribe-sign-in');
   const shellEl = $id('transcribe-shell');
   const uploadViewEl = $id('transcribe-upload-view');
   const processingViewEl = $id('transcribe-processing-view');
@@ -86,7 +83,7 @@
   const usageEl = $id('transcribe-usage');
   const usageValueEl = $id('transcribe-usage-value');
   const usageProgressEl = $id('transcribe-usage-progress');
-  const usageResetEl = $id('transcribe-usage-reset');
+  const usageTooltipEl = $id('transcribe-usage-tooltip');
   const historyOpenBtn = $id('transcribe-history-open');
   const historyDialogEl = $id('transcribe-history-dialog');
   const historyCloseBtn = $id('transcribe-history-close');
@@ -313,12 +310,6 @@
     if (!el) return;
     el.textContent = message || '';
     el.dataset.tone = tone || '';
-  };
-
-  const setAuthPill = (stateName, label) => {
-    if (!authPillEl) return;
-    authPillEl.dataset.state = stateName || '';
-    authPillEl.textContent = label || '';
   };
 
   const formatNumber = (value, digits = 2) => {
@@ -789,9 +780,6 @@
 
   const updateAuthUi = () => {
     if (!window.ToolsAuth) {
-      setAuthPill('warning', 'Loading auth');
-      setStatus(authStatusEl, 'Loading tools account sign-in.', 'warning');
-      if (signInBtn) signInBtn.disabled = true;
       if (historyOpenBtn) historyOpenBtn.disabled = true;
       renderUsage();
       updateControls();
@@ -814,16 +802,8 @@
       showHistoryList();
     }
     if (authed) {
-      const user = window.ToolsAuth.getUser ? window.ToolsAuth.getUser(window.ToolsAuth.getAuth()) : {};
-      const label = cleanText(user.email || user.name) || 'Signed in';
-      setAuthPill('ok', 'Signed in');
-      setStatus(authStatusEl, `${label} can start transcription jobs.`, 'success');
-      if (signInBtn) signInBtn.disabled = true;
       if (historyOpenBtn) historyOpenBtn.disabled = false;
     } else {
-      setAuthPill('err', 'Sign in required');
-      setStatus(authStatusEl, 'Sign in before uploading files or starting paid transcription jobs.', 'warning');
-      if (signInBtn) signInBtn.disabled = false;
       if (historyOpenBtn) historyOpenBtn.disabled = true;
     }
     renderUsage();
@@ -1062,46 +1042,57 @@
     return readJson(res);
   };
 
+  const formatUsageLimitUsd = (value) => {
+    const amount = Math.max(0, Number(value) || 0);
+    return Number.isInteger(amount) ? `$${amount.toFixed(0)}` : formatUsageUsd(amount);
+  };
+
   const renderUsage = () => {
     const configuredLimit = Math.max(0, Number(state.config.dailyCostLimitUsd || 100) || 100);
+    const formattedConfiguredLimit = formatUsageLimitUsd(configuredLimit);
     if (!authIsReady()) {
-      setText(usageValueEl, `-- / ${formatUsageUsd(configuredLimit)}`);
+      setText(usageValueEl, `-- / ${formattedConfiguredLimit}`);
       if (usageProgressEl) {
         usageProgressEl.max = configuredLimit;
         usageProgressEl.value = 0;
         usageProgressEl.textContent = 'Usage unavailable';
       }
-      setText(usageResetEl, 'Sign in to view your UTC-day usage.');
-      if (usageEl) usageEl.dataset.tone = '';
+      setText(usageTooltipEl, 'Sign in to view your UTC-day usage.');
+      if (usageEl) {
+        usageEl.dataset.tone = '';
+        usageEl.setAttribute('aria-label', 'Today\'s transcription usage is available after sign-in');
+      }
       return;
     }
     if (state.usageLoading && !state.usage) {
-      setText(usageValueEl, `Loading / ${formatUsageUsd(configuredLimit)}`);
-      setText(usageResetEl, 'Checking today\'s reserved usage...');
+      setText(usageValueEl, `Loading / ${formattedConfiguredLimit}`);
+      setText(usageTooltipEl, 'Checking today\'s reserved usage...');
+      if (usageEl) usageEl.setAttribute('aria-label', 'Loading today\'s transcription usage');
       return;
     }
     if (!state.usage) {
-      setText(usageValueEl, `-- / ${formatUsageUsd(configuredLimit)}`);
-      setText(usageResetEl, 'Usage is temporarily unavailable.');
+      setText(usageValueEl, `-- / ${formattedConfiguredLimit}`);
+      setText(usageTooltipEl, 'Usage is temporarily unavailable.');
+      if (usageEl) usageEl.setAttribute('aria-label', 'Today\'s transcription usage is temporarily unavailable');
       return;
     }
     const usedUsd = Math.max(0, Number(state.usage.usedUsd) || 0);
     const limitUsd = Math.max(0, Number(state.usage.limitUsd) || configuredLimit);
     const remainingUsd = Math.max(0, Number(state.usage.remainingUsd ?? (limitUsd - usedUsd)) || 0);
     const fileCount = Math.max(0, Number(state.usage.fileCount) || 0);
-    setText(usageValueEl, `${formatUsageUsd(usedUsd)} / ${formatUsageUsd(limitUsd)}`);
+    const formattedUsage = `${formatUsageUsd(usedUsd)} / ${formatUsageLimitUsd(limitUsd)}`;
+    setText(usageValueEl, formattedUsage);
     if (usageProgressEl) {
       usageProgressEl.max = limitUsd || 100;
       usageProgressEl.value = Math.min(usedUsd, limitUsd || usedUsd);
       usageProgressEl.textContent = `${formatUsageUsd(usedUsd)} of ${formatUsageUsd(limitUsd)}`;
     }
-    setText(
-      usageResetEl,
-      `${formatUsageUsd(remainingUsd)} remaining · ${fileCount} file${fileCount === 1 ? '' : 's'} · ${formatUtcReset(state.usage.resetsAt)}`
-    );
+    const usageDetails = `${formatUsageUsd(remainingUsd)} remaining · ${fileCount} file${fileCount === 1 ? '' : 's'} · ${formatUtcReset(state.usage.resetsAt)}`;
+    setText(usageTooltipEl, usageDetails);
     if (usageEl) {
       const ratio = limitUsd > 0 ? usedUsd / limitUsd : 0;
       usageEl.dataset.tone = ratio >= 1 ? 'error' : ratio >= .8 ? 'warning' : '';
+      usageEl.setAttribute('aria-label', `Today\'s transcription usage: ${formattedUsage}`);
     }
   };
 
@@ -2024,28 +2015,6 @@
     renderResults();
     markSessionDirty();
   };
-
-  const signInReturnTo = () => `${window.location.pathname}${window.location.search}${window.location.hash}`;
-
-  const signInWithPopup = () => {
-    if (!window.ToolsAuth || !window.ToolsAuth.signIn) return;
-    setStatus(runStatusEl, 'Opening sign-in in a new window. Your selected files will stay here.', '');
-    window.ToolsAuth.signIn({ mode: 'popup', returnTo: signInReturnTo() })
-      .then((result) => {
-        if (result?.mode === 'popup') {
-          setStatus(runStatusEl, 'Finish sign-in in the new window, then return here to start transcription.', '');
-        }
-      })
-      .catch((err) => {
-        setStatus(runStatusEl, err?.message || 'Unable to open sign-in.', 'warning');
-      });
-  };
-
-  if (signInBtn) {
-    signInBtn.addEventListener('click', () => {
-      signInWithPopup();
-    });
-  }
 
   if (notificationsBtn) {
     notificationsBtn.addEventListener('click', () => {
