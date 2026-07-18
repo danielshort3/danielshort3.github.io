@@ -1059,21 +1059,58 @@
   }
 
   body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-bar {
-    display:flex;
-    justify-content:flex-end;
-    gap:.45rem;
+    display:block;
   }
 
-  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-pill:not(.is-authed),
-  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-status {
-    display:none;
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel {
+    overflow:visible;
+  }
+
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel::before {
+    border-radius:inherit;
+  }
+
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel:has(.tools-account-disclosure-root.is-open) {
+    z-index:10;
+  }
+
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel__main {
+    z-index:2;
   }
 
   body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel :is(.btn-primary,.btn-secondary,.btn-ghost) {
-    min-height:40px;
+    min-height:44px;
     padding:.65rem .9rem;
     border-radius:7px;
     font-size:.8rem;
+  }
+
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-structure {
+    display:flex;
+    justify-content:flex-end;
+  }
+
+  body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-disclosure {
+    inset-inline-start:auto;
+    inset-inline-end:0;
+  }
+
+  @media (max-width:820px) {
+    body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel__actions {
+      display:flex;
+      grid-column:1 / -1;
+      justify-content:flex-start;
+      width:100%;
+    }
+
+    body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-structure {
+      justify-content:flex-start;
+    }
+
+    body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .tools-account-disclosure {
+      inset-inline-start:0;
+      inset-inline-end:auto;
+    }
   }
 
   body[data-page="tools"] [data-directory-workbench="tools"] .portfolio-brand-panel .btn-primary {

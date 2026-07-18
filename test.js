@@ -940,10 +940,48 @@ try {
       !directoryJs.includes('renderResumeSignedOut') &&
       directoryJs.includes('!window.ToolsAuth.authIsValid(auth)'),
       'tools directory resume panel should stay hidden until the visitor is signed in');
-    assert(catalogJs.includes('const dashboardButton = authed') &&
-      catalogJs.includes('tools-account-dashboard-link') &&
-      catalogJs.includes('href="/tools/dashboard"'),
-      'tools account bar should show a dashboard button only after sign-in');
+    assert(catalogJs.includes('data-tools-action="toggle-account"') &&
+      catalogJs.includes('aria-expanded="false"') &&
+      catalogJs.includes('aria-controls="tools-account-disclosure"') &&
+      catalogJs.includes('id="tools-account-disclosure"') &&
+      catalogJs.includes('hidden inert') &&
+      catalogJs.includes('data-tools-account="saved-work" href="/tools/dashboard"') &&
+      !catalogJs.includes('role="menu"') &&
+      !catalogJs.includes('role="menuitem"'),
+      'tools account bar should expose saved work through an accessible disclosure with native Tab navigation');
+    const accountDisclosureCode = catalogJs.slice(
+      catalogJs.indexOf('const createDisclosureController'),
+      catalogJs.indexOf('const initSessionsPanel')
+    );
+    const accountStatusCode = catalogJs.slice(
+      catalogJs.indexOf('const setStatus = (nextStatus, nextSessionId)'),
+      catalogJs.indexOf('const setPersistenceState')
+    );
+    const accountSyncCode = catalogJs.slice(
+      catalogJs.indexOf('const syncAccountBarState'),
+      catalogJs.indexOf('const getSignInOptions')
+    );
+    assert(accountDisclosureCode.includes("setAttribute('aria-expanded', String(nextExpanded))") &&
+      accountDisclosureCode.includes("toggleAttribute('hidden', !nextExpanded)") &&
+      accountDisclosureCode.includes("toggleAttribute('inert', !nextExpanded)") &&
+      accountDisclosureCode.includes("event.key !== 'Escape'") &&
+      accountDisclosureCode.includes("document.addEventListener('pointerdown'") &&
+      accountDisclosureCode.includes("addEventListener('focusout'") &&
+      accountDisclosureCode.includes('focus({ preventScroll: true })'),
+      'account disclosure should close on Escape, outside interaction, and focus exit while restoring focus when appropriate');
+    assert(accountStatusCode.includes('statusText = String(nextStatus || \'\').trim();') &&
+      !accountStatusCode.includes('innerHTML') &&
+      !catalogJs.includes('data-tools-action="new-session"') &&
+      !catalogJs.includes('tools-account-pill'),
+      'account status changes should preserve stable controls and the bar should omit permanent identity pills and New session');
+    assert(accountSyncCode.indexOf("refs.extensionsEl?.toggleAttribute('hidden', !hasExtensions)") <
+      accountSyncCode.indexOf("refs.statusEl.textContent = statusText || ''"),
+      'account status should enter the accessibility tree before its live text changes');
+    assert(catalogJs.includes('await window.ToolsAuth.ensureFreshAuth();') &&
+      catalogJs.includes("source: 'tools-account-bootstrap'") &&
+      catalogJs.includes("refs.embeddedActionsEl?.querySelector('a:not([hidden]),button:not([hidden])')") &&
+      catalogJs.includes("disclosureController.close({ restoreFocus: !capabilities.embedded })"),
+      'account bootstrap and auth transitions should restore dual-mode sessions, resync tool UI, and preserve focus in standard and embedded bars');
     assert(catalogJs.includes('applyToolsAuthenticatedContentVisibility') &&
       catalogJs.includes('[data-tools-auth-only]'),
       'tools account UI should centrally manage signed-in-only tools content');
@@ -964,6 +1002,11 @@ try {
       'signed-in resume content should sit between the compact header and the workbench panes');
     const toolsCss = readFile('css/components/tools.css');
     const workbenchCss = readFile('css/components/portfolio-workbench.css');
+    assert(toolsCss.includes('.portfolio-brand-panel {\n    overflow:visible;') &&
+      toolsCss.includes('.portfolio-brand-panel:has(.tools-account-disclosure-root.is-open)') &&
+      toolsCss.includes('.portfolio-brand-panel__main {\n    z-index:2;') &&
+      toolsCss.includes('.portfolio-brand-panel .tools-account-disclosure {'),
+      'Tools directory account options should escape the branded panel without falling behind later content');
     assert(!toolsCss.includes('tools-workbench-header') &&
       toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr) minmax(310px,390px);') &&
       toolsCss.includes('.tools-workbench-result.is-selected .tools-workbench-result__open') &&
@@ -38314,14 +38357,27 @@ try {
     const ddbStore = readFile('api/_lib/tools-store-ddb.js');
     const stateClient = readFile('js/accounts/tools-state.js');
     const envExample = readFile('.env.example');
-    assert(accountUi.includes('Save to account') && accountUi.includes('Manual account save only.'),
-      'tools account UI should describe manual cloud saving explicitly');
-    assert(accountUi.includes("autosaveMode === 'true'") &&
-      accountUi.includes("autosaveMode === 'on'") &&
+    assert(accountUi.includes('data-tools-action="save-session" hidden>Save') &&
+      accountUi.includes("const manualSaveVisible = capabilities.persistence === 'manual'") &&
+      accountUi.includes("updatePersistence('dirty')") &&
+      !accountUi.includes('Save to account') &&
+      !accountUi.includes('Manual account save only.'),
+      'manual cloud saving should appear only after a tool becomes dirty');
+    assert(accountUi.includes("['true', 'on', '1'].includes(normalizedMode)") &&
+      accountUi.includes("persistenceMode === 'autosave'") &&
       accountUi.includes('if (!autosaveEnabled) return;'),
       'tool cloud autosave should require an explicit page opt-in');
-    assert(accountUi.includes("new Set(['ga4-utm-performance', 'short-links', 'job-application-tracker'])"),
-      'sensitive admin and tracker tools should disable generic session snapshots');
+    assert(accountUi.includes("'ga4-utm-performance': { persistence: 'none' }") &&
+      accountUi.includes("'job-application-tracker': { persistence: 'custom' }") &&
+      accountUi.includes("'short-links': { persistence: 'none', embedded: true }") &&
+      accountUi.includes("'transcribe': { persistence: 'custom', signInMode: 'popup' }") &&
+      accountUi.includes('if (!configured.persistence &&') &&
+      accountUi.includes('let dirtyGeneration = 0;') &&
+      accountUi.includes('dirtyGeneration !== saveGeneration') &&
+      accountUi.includes('const loadGeneration = dirtyGeneration;') &&
+      accountUi.includes('dirtyGeneration !== loadGeneration') &&
+      accountUi.includes("logAsyncError('tool-autosave:log-save', err)"),
+      'tool capability policy should protect custom persistence and preserve edits made during in-flight loads and saves');
     assert(stateApi.includes('normalizeKnownToolId') && activityApi.includes('normalizeKnownToolId') &&
       stateApi.includes('const toolId = normalizeToolId(rawToolId);') &&
       activityApi.includes('const toolId = normalizeToolId(rawToolId);'),
@@ -38370,14 +38426,10 @@ try {
       accountUi.includes("document.addEventListener('tools:session-meta-updated'") &&
       accountUi.includes("document.addEventListener('tools:session-deleted'"),
       'tool pages should recover stale session links and synchronize version-changing account actions');
-    assert(accountUi.includes("'transcribe': ['whisper-transcribe-monitor']") &&
-      accountUi.includes('const loaded = await readCompatibleSession();') &&
-      accountUi.includes('sessionStorageToolId = loaded.storageToolId;') &&
-      accountUi.includes('buildSnapshot({ toolId: sessionStorageToolId, root })') &&
-      accountUi.includes('captureToolPayload({ toolId, root, sessionId, snapshot })') &&
-      accountUi.includes('toolId: sessionStorageToolId') &&
-      accountUi.includes('Session summary loaded; media and transcript text are not stored.'),
-      'Transcribe should reopen legacy Whisper sessions without moving their storage key or claiming transcript restoration');
+    assert(accountUi.includes("'transcribe': { persistence: 'custom', signInMode: 'popup' }") &&
+      !accountUi.includes('TOOL_SESSION_READ_ALIASES') &&
+      !accountUi.includes('Session summary loaded; media and transcript text are not stored.'),
+      'Transcribe should use its dedicated private history instead of the generic tool-session snapshot path');
     assert(stateClient.includes('const MAX_KEEPALIVE_BODY_BYTES = 60 * 1024;') &&
       stateClient.includes('keepalive: !!keepalive && utf8Bytes(body) <= MAX_KEEPALIVE_BODY_BYTES'),
       'page-exit session saves should not exceed the browser keepalive request-body budget');
@@ -39418,7 +39470,14 @@ try {
       toolsCss.includes('position:absolute;'),
       'tools workbench mobile rows should preserve readable launcher content and a direct Open action');
     assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
-    assert(toolsAccountCss.includes('.tools-account-bar:empty'), 'empty tools account bars should not render as orphan containers');
+    assert(toolsAccountCss.includes('.tools-account-structure') &&
+      toolsAccountCss.includes('grid-template-areas:"context account extensions";') &&
+      toolsAccountCss.includes('.tools-account-disclosure[hidden]') &&
+      toolsAccountCss.includes('display:none !important;') &&
+      toolsAccountCss.includes('min-block-size:44px;') &&
+      toolsAccountCss.includes('inset-inline-start:0;') &&
+      toolsAccountCss.includes('inset-inline-end:0;'),
+      'tools account bars should use stable responsive regions, reliably hidden disclosures, and touch-sized controls');
     assert(siteChatbotCss.includes('right: calc(100% + 8px);'), 'chatbot launcher tooltip should sit inward with a button gap');
     assert(cookieSettingsCss.includes('left:calc(100% + 8px);'), 'cookie tooltip should sit inward with a button gap');
     assert(privacyCss.includes('--pcz-surface: #ffffff;'), 'cookie consent popup should use a light readable surface');
@@ -40695,8 +40754,8 @@ try {
            toolScript.includes('Already added.') &&
            toolScript.includes('data-transcribe-file-remove') &&
            toolScript.includes('canRemoveItem') &&
-           toolsAccountUi.includes("return toolId === 'transcribe'") &&
-           toolsAccountUi.includes("? { mode: 'popup', returnTo }") &&
+           toolsAccountUi.includes("'transcribe': { persistence: 'custom', signInMode: 'popup' }") &&
+           toolsAccountUi.includes("capabilities.signInMode === 'popup'") &&
            toolScript.includes('startBtn.disabled = state.busy || state.analyzing || !ready;') &&
            toolScript.includes("setView('processing')") &&
            toolScript.includes("setView('results')") &&
@@ -40753,7 +40812,8 @@ try {
            toolCss.includes('.transcribe-usage-tooltip') &&
            toolCss.includes('.transcribe-usage:focus .transcribe-usage-tooltip') &&
            toolCss.includes('.transcribe-history-dialog') &&
-           toolCss.includes('.transcribe-history-item'),
+           toolCss.includes('.transcribe-history-item') &&
+           !toolCss.includes('order:10'),
       'Transcribe account controls, usage, recovery, and history surfaces should use the site-native responsive layout');
     assert(toolsWorkspaceCss.includes('body[data-tools-layout="text"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="media"]') &&
@@ -40772,8 +40832,8 @@ try {
            toolsAuth.includes("params.set('prompt', authPrompt)") &&
            toolsAuth.includes('Sign-in popup was blocked'),
       'Tools auth should support popup sign-in and account selection without active-tab redirect fallback');
-    assert(toolsAccountUi.includes("toolId === 'transcribe'") &&
-           toolsAccountUi.includes("{ mode: 'popup', returnTo }"),
+    assert(toolsAccountUi.includes("'transcribe': { persistence: 'custom', signInMode: 'popup' }") &&
+           toolsAccountUi.includes("capabilities.signInMode === 'popup'"),
       'Tools account UI should use popup sign-in on the Transcribe tool');
 
     assert(endpoint.includes('StartTranscriptionJobCommand') &&
@@ -40936,13 +40996,13 @@ try {
            toolScript.includes('setText(usageTooltipEl, usageDetails)') &&
            !toolScript.includes('signInBtn') &&
            !toolScript.includes('signInWithPopup') &&
-           toolsAccountUi.includes('const toolControlsEl =') &&
-           toolsAccountUi.includes('slot.replaceWith(toolControlsEl);') &&
-           toolsAccountUi.includes('toolControlsEl.hidden = false;') &&
-           toolsAccountUi.includes("const compactToolBar = toolId === 'transcribe';") &&
-           toolsAccountUi.includes("compactToolBar ? 'Signed in'") &&
-           toolScript.includes('void loadUsage();'),
-      'Transcribe should use the shared popup sign-in, preserve its combined account controls across rerenders, and keep detailed usage in the tooltip');
+            toolsAccountUi.includes('let toolControlsEl =') &&
+            toolsAccountUi.includes('toolControlsEl.parentElement !== extensionsEl') &&
+            toolsAccountUi.includes('extensionsEl.appendChild(toolControlsEl);') &&
+            toolsAccountUi.includes('toolControlsEl.hidden = false;') &&
+            !toolsAccountUi.includes('compactToolBar') &&
+            toolScript.includes('void loadUsage();'),
+      'Transcribe should use shared popup sign-in, mount its combined controls once, and keep detailed usage in the tooltip');
     assert(toolScript.includes("authFetchJson(`${API_BASE}/history?") &&
            toolScript.includes('data-transcribe-history-action="view"') &&
            toolScript.includes('historyTranscriptEl.value = String(item.transcript || \'\');') &&
@@ -42026,7 +42086,8 @@ try {
       recruiterStoryCss.includes('left: calc(var(--story-rail-x) + 17px);') &&
       recruiterStoryCss.includes('var(--story-cell-fill, 0%)') &&
       recruiterStoryCss.includes('calc(var(--story-hero-connector-width) - 22px)') &&
-      recruiterStoryCss.includes('box-shadow: 0 0 0 3px var(--story-canvas);') &&
+      recruiterStoryCss.includes('.hero-identity.is-story-active::after') &&
+      recruiterStoryCss.includes('box-shadow: 0 0 0 4px rgba(0, 95, 237, .1);') &&
       recruiterStoryCss.includes('.jump-panel[data-story-rail="true"]:is(.is-condensed, .is-hidden)') &&
       recruiterStoryCss.includes('pointer-events: none;'),
       'analytics recruiter story should keep one noninteractive mobile rail with junction-owned markers and edge-starting animated branches');
@@ -42076,6 +42137,23 @@ try {
       commonScript.includes("item.target.classList.toggle('is-segment-complete'") &&
       commonScript.includes("item.link.classList.add('story-node-confirm')"),
       'analytics recruiter story should remain neutral through restored first load, then select viewport milestones from real input with bounded motion and reduced-motion support');
+    assert(commonScript.includes("storyOrigin.classList.add('is-story-active')") &&
+      commonScript.includes("storyOrigin.classList.toggle('is-story-active', !isComplete)") &&
+      commonScript.includes("storyOrigin.classList.toggle('is-story-complete', isComplete)") &&
+      commonScript.includes("storyOrigin.classList.add('story-node-confirm')") &&
+      commonScript.includes('renderStoryOriginState(normalizedIndex >= 0, { confirm })') &&
+      !commonScript.includes('const isComplete = storyRenderedFill > .5') &&
+      recruiterStoryCss.includes('.hero-identity.is-story-active::after') &&
+      recruiterStoryCss.includes('.hero-identity.is-story-complete::after') &&
+      recruiterStoryCss.includes('.hero-identity.story-node-confirm::after') &&
+      recruiterStoryCss.includes('transform: translateY(-50%) scale(1.08)') &&
+      recruiterStoryCss.includes('transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;'),
+      'analytics story origin 00 should share active, completed, and confirmation behavior with chapter nodes');
+    const reducedStoryCss = recruiterStoryCss.slice(recruiterStoryCss.indexOf('@media (prefers-reduced-motion: reduce)'));
+    assert(reducedStoryCss.includes('.hero-identity::after,') &&
+      reducedStoryCss.includes('transition: none !important;') &&
+      reducedStoryCss.includes('animation: none !important;'),
+      'analytics story origin 00 should disable its transition and confirmation pulse when reduced motion is requested');
     assert(commonScript.includes("const ANALYTICS_CREDENTIAL_GROUPS = Object.freeze(['degree', 'google', 'ibm'])") &&
       commonScript.includes('groupAnalyticsCredentialCards') &&
       commonScript.includes("document.querySelector('#certifications .cert-track')") &&

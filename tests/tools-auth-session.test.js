@@ -341,6 +341,34 @@ async function run(){
   assert.strictEqual(fetchCalls[0].options.headers.get('Authorization'), 'Bearer dual-mode-token');
   assert.strictEqual(fetchCalls[0].options.credentials, 'same-origin');
 
+  authStorage.clear();
+  fetchCalls.length = 0;
+  clientContext.fetch = async (url, options) => {
+    fetchCalls.push({ url, options });
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        source: 'cookie',
+        expiresAt: now + 3600,
+        user: {
+          sub: claims.sub,
+          email: claims.email,
+          name: claims.name,
+          groups: claims['cognito:groups']
+        }
+      })
+    };
+  };
+  const restoredDualAuth = await clientContext.window.ToolsAuth.ensureFreshAuth();
+  assert.strictEqual(fetchCalls.length, 1);
+  assert.strictEqual(fetchCalls[0].url, '/api/tools/auth/session');
+  assert.strictEqual(fetchCalls[0].options.credentials, 'same-origin');
+  assert.strictEqual(restoredDualAuth.sessionOnly, true);
+  assert.strictEqual(restoredDualAuth.claims.email, claims.email);
+  assert.strictEqual(JSON.parse(authStorage.get('toolsAuth')).sessionOnly, true);
+
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
   const policies = vercel.headers
     .flatMap((entry) => entry.headers || [])

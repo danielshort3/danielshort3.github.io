@@ -460,6 +460,10 @@
 
     panel.dataset.storyRail = 'true';
     panel.setAttribute('aria-label', 'Explore Daniel Short\'s analytics story');
+    const storyOrigin = main.querySelector('.hero-identity');
+    if (storyOrigin && !storyOrigin.matches('.is-story-active, .is-story-complete')) {
+      storyOrigin.classList.add('is-story-active');
+    }
     const hideButton = panel.querySelector('[data-jump-hide]');
     const linkById = new Map();
     $$('.jump-panel-link', panel).forEach((link) => {
@@ -1227,6 +1231,8 @@
     const panel = document.querySelector('.jump-panel');
     if (!panel) return;
     const isStoryRail = panel.dataset.storyRail === 'true';
+    const storyMain = isStoryRail ? (panel.closest('main') || document.getElementById('main')) : null;
+    const storyOrigin = storyMain?.querySelector('.hero-identity') || null;
     const links = $$('.jump-panel-link', panel);
     const railControls = setupProfessionalJumpRail(panel, links);
     const hideBtn = panel.querySelector('[data-jump-hide]');
@@ -1261,6 +1267,7 @@
     let storyTargetIndex = -1;
     let storyAnimationFrame = 0;
     let storyAnimationToken = 0;
+    let storyOriginConfirmTimer = 0;
     let storyLastScrollY = window.scrollY || window.pageYOffset || 0;
     let storyInitialized = false;
     let storyInputIntent = false;
@@ -1275,6 +1282,36 @@
       : null;
 
     const prefersReducedStoryMotion = () => Boolean(storyMotionQuery?.matches);
+    const clearStoryOriginConfirmation = () => {
+      if (!storyOrigin) return;
+      if (storyOriginConfirmTimer) {
+        window.clearTimeout(storyOriginConfirmTimer);
+        storyOriginConfirmTimer = 0;
+      }
+      storyOrigin.classList.remove('story-node-confirm');
+    };
+    const renderStoryOriginState = (isComplete, { confirm = true } = {}) => {
+      if (!storyOrigin) return;
+      const wasComplete = storyOrigin.classList.contains('is-story-complete');
+      storyOrigin.classList.toggle('is-story-active', !isComplete);
+      storyOrigin.classList.toggle('is-story-complete', isComplete);
+      if (!isComplete) {
+        clearStoryOriginConfirmation();
+        return;
+      }
+      if (
+        !wasComplete &&
+        confirm &&
+        storyAnimationsReady &&
+        !prefersReducedStoryMotion()
+      ) {
+        clearStoryOriginConfirmation();
+        storyOrigin.classList.add('story-node-confirm');
+        storyOriginConfirmTimer = window.setTimeout(() => {
+          clearStoryOriginConfirmation();
+        }, 420);
+      }
+    };
     const storyScrollKeys = new Set([
       'ArrowDown',
       'ArrowUp',
@@ -1506,6 +1543,7 @@
       if (!force && normalizedIndex === storyTargetIndex) return;
       const previousTargetIndex = storyTargetIndex;
       storyTargetIndex = normalizedIndex;
+      renderStoryOriginState(normalizedIndex >= 0, { confirm });
       panel.dataset.storyMilestone = normalizedIndex < 0
         ? 'start'
         : String(normalizedIndex + 1).padStart(2, '0');

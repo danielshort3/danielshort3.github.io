@@ -22,17 +22,29 @@
     'whisper-transcribe-monitor': { name: 'File Transcriber', href: '/tools/transcribe' }
   };
 
-  const TOOL_SESSION_READ_ALIASES = {
-    'transcribe': ['whisper-transcribe-monitor']
+  const TOOL_ACCOUNT_CAPABILITIES = {
+    'ga4-utm-performance': { persistence: 'none' },
+    'job-application-tracker': { persistence: 'custom' },
+    'short-links': { persistence: 'none', embedded: true },
+    'transcribe': { persistence: 'custom', signInMode: 'popup' },
+    'whisper-transcribe-monitor': { persistence: 'custom', signInMode: 'popup' }
   };
 
-  const getCompatibleSessionToolIds = (toolId) => {
-    const primary = String(toolId || '').trim();
-    if (!primary) return [];
-    const aliases = Array.isArray(TOOL_SESSION_READ_ALIASES[primary])
-      ? TOOL_SESSION_READ_ALIASES[primary]
-      : [];
-    return [primary, ...aliases];
+  const getToolAccountCapabilities = ({ page, toolId, autosaveMode } = {}) => {
+    const normalizedMode = String(autosaveMode || '').trim().toLowerCase();
+    const configured = TOOL_ACCOUNT_CAPABILITIES[toolId] || {};
+    let persistence = (!toolId || page === 'tools-dashboard') ? 'none' : (configured.persistence || 'manual');
+
+    if (!configured.persistence && ['true', 'on', '1'].includes(normalizedMode)) persistence = 'autosave';
+    if (!configured.persistence && ['false', 'off', '0'].includes(normalizedMode)) persistence = 'none';
+
+    return {
+      persistence,
+      embedded: configured.embedded === true,
+      signInMode: configured.signInMode || 'redirect',
+      showToolsLink: Boolean((toolId && page !== 'short-links') || page === 'tools-dashboard'),
+      showSavedWorkLink: page !== 'tools-dashboard'
+    };
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -655,69 +667,174 @@
     } catch {}
   };
 
-  const renderAccountBar = ({ barEl, toolId, sessionId, statusText, toolActionsEnabled } = {}) => {
-    if (!barEl) return;
-    const toolControlsEl = barEl.querySelector('[data-tools-account="tool-controls"]') ||
+  const createDisclosureController = ({ rootEl, triggerEl, panelEl } = {}) => {
+    const setExpanded = (nextExpanded) => {
+      if (!rootEl || !triggerEl || !panelEl) return;
+      triggerEl.setAttribute('aria-expanded', String(nextExpanded));
+      panelEl.toggleAttribute('hidden', !nextExpanded);
+      panelEl.toggleAttribute('inert', !nextExpanded);
+      rootEl.classList.toggle('is-open', nextExpanded);
+    };
+
+    const isOpen = () => triggerEl?.getAttribute('aria-expanded') === 'true';
+    const close = ({ restoreFocus = false } = {}) => {
+      if (!isOpen()) return;
+      setExpanded(false);
+      if (restoreFocus && !triggerEl.hidden) triggerEl.focus({ preventScroll: true });
+    };
+    const open = () => setExpanded(true);
+    const toggle = () => (isOpen() ? close() : open());
+
+    triggerEl?.addEventListener('click', toggle);
+    rootEl?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !isOpen()) return;
+      event.preventDefault();
+      close({ restoreFocus: true });
+    });
+    rootEl?.addEventListener('focusout', (event) => {
+      if (!isOpen() || (event.relatedTarget && rootEl.contains(event.relatedTarget))) return;
+      window.setTimeout(() => {
+        if (!rootEl.contains(document.activeElement)) close();
+      }, 0);
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (isOpen() && !rootEl?.contains(event.target)) close();
+    });
+
+    return { close, isOpen, open, toggle };
+  };
+
+  const ensureAccountBarStructure = ({ barEl, capabilities } = {}) => {
+    if (!barEl) return null;
+    let toolControlsEl = barEl.querySelector('[data-tools-account="tool-controls"]') ||
       barEl.parentElement?.querySelector('[data-tools-account="tool-controls"]') || null;
-    const compactToolBar = toolId === 'transcribe';
+    let structureEl = barEl.querySelector('[data-tools-account="structure"]');
+
+    if (!structureEl) {
+      barEl.innerHTML = `
+        <div class="tools-account-structure" data-tools-account="structure">
+          <nav class="tools-account-context" data-tools-account="context" aria-label="Tool navigation">
+            <a class="tools-account-tools-link" href="/tools"><span aria-hidden="true">←</span><span>All tools</span></a>
+          </nav>
+          <div class="tools-account-actions" data-tools-account="actions" role="group" aria-label="Account actions">
+            <button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>
+            <div class="tools-account-disclosure-root" data-tools-account="disclosure-root" hidden>
+              <button type="button" class="btn-secondary tools-account-trigger" data-tools-action="toggle-account" aria-expanded="false" aria-controls="tools-account-disclosure">
+                <span>Account</span>
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m4 6 4 4 4-4"></path></svg>
+              </button>
+              <div class="tools-account-disclosure" id="tools-account-disclosure" data-tools-account="disclosure" hidden inert>
+                <p class="tools-account-identity" data-tools-account="identity"></p>
+                <a class="tools-account-disclosure-action" data-tools-account="saved-work" href="/tools/dashboard">Saved work</a>
+                <button type="button" class="tools-account-disclosure-action" data-tools-action="open-account">Account &amp; history</button>
+                <button type="button" class="tools-account-disclosure-action tools-account-disclosure-signout" data-tools-action="sign-out">Sign out</button>
+              </div>
+            </div>
+            <div class="tools-account-embedded-actions" data-tools-account="embedded-actions" hidden>
+              <p class="tools-account-identity" data-tools-account="identity"></p>
+              <a class="tools-account-disclosure-action" data-tools-account="saved-work" href="/tools/dashboard">Saved work</a>
+              <button type="button" class="tools-account-disclosure-action" data-tools-action="open-account">Account &amp; history</button>
+              <button type="button" class="tools-account-disclosure-action tools-account-disclosure-signout" data-tools-action="sign-out">Sign out</button>
+            </div>
+          </div>
+          <div class="tools-account-extensions" data-tools-account="extensions" hidden>
+            <button type="button" class="btn-secondary tools-account-save" data-tools-action="save-session" hidden>Save</button>
+            <p class="tools-account-status" data-tools-account="status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+          </div>
+        </div>
+      `.trim();
+      structureEl = barEl.querySelector('[data-tools-account="structure"]');
+    }
+
+    const extensionsEl = structureEl?.querySelector('[data-tools-account="extensions"]') || null;
+    if (!toolControlsEl) {
+      toolControlsEl = barEl.parentElement?.querySelector('[data-tools-account="tool-controls"]') || null;
+    }
+    if (toolControlsEl && extensionsEl && toolControlsEl.parentElement !== extensionsEl) {
+      extensionsEl.appendChild(toolControlsEl);
+    }
+    if (toolControlsEl) {
+      toolControlsEl.hidden = false;
+      if (!toolControlsEl.hasAttribute('role')) toolControlsEl.setAttribute('role', 'group');
+    }
+
+    barEl.setAttribute('role', 'region');
+    barEl.setAttribute('aria-label', capabilities?.embedded ? 'Account options' : 'Tool account and saved work');
+    barEl.dataset.toolsAccountEmbedded = String(capabilities?.embedded === true);
+
+    return {
+      barEl,
+      structureEl,
+      contextEl: structureEl?.querySelector('[data-tools-account="context"]') || null,
+      actionsEl: structureEl?.querySelector('[data-tools-account="actions"]') || null,
+      signInButton: structureEl?.querySelector('[data-tools-action="sign-in"]') || null,
+      accountDisclosureRoot: structureEl?.querySelector('[data-tools-account="disclosure-root"]') || null,
+      accountTrigger: structureEl?.querySelector('[data-tools-action="toggle-account"]') || null,
+      accountDisclosureEl: structureEl?.querySelector('[data-tools-account="disclosure"]') || null,
+      embeddedActionsEl: structureEl?.querySelector('[data-tools-account="embedded-actions"]') || null,
+      extensionsEl,
+      saveButton: structureEl?.querySelector('[data-tools-action="save-session"]') || null,
+      statusEl: structureEl?.querySelector('[data-tools-account="status"]') || null,
+      toolControlsEl
+    };
+  };
+
+  const syncAccountBarState = ({ refs, capabilities, disclosureController, saveState, statusText } = {}) => {
+    if (!refs) return;
     const auth = window.ToolsAuth.getAuth();
     const authed = window.ToolsAuth.authIsValid(auth);
     const user = authed ? window.ToolsAuth.getUser(auth) : { email: '', name: '', sub: '' };
-    const label = authed
-      ? (compactToolBar ? 'Signed in' : `Signed in${user.email ? ` as ${user.email}` : ''}`)
-      : 'Not signed in';
-    const pillClass = authed ? 'tools-account-pill is-authed' : 'tools-account-pill';
-    const toolInfo = toolId ? getToolInfo(toolId) : null;
+    const activeElement = document.activeElement;
+    const accountHadFocus = Boolean(refs.accountDisclosureRoot?.contains(activeElement) || refs.embeddedActionsEl?.contains(activeElement));
+    const signInHadFocus = activeElement === refs.signInButton;
 
-    const accountButton = authed
-      ? `<button type="button" class="btn-secondary" data-tools-action="open-account">Account</button>`
-      : '';
-    const dashboardButton = authed
-      ? `<a class="btn-secondary tools-account-dashboard-link" href="/tools/dashboard">Dashboard</a>`
-      : '';
-    const signInButton = `<button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>`;
-    const signOutButton = `<button type="button" class="btn-ghost" data-tools-action="sign-out">Sign out</button>`;
-    const allowToolActions = !!(toolId && toolActionsEnabled !== false);
-    const saveButton = allowToolActions
-      ? `<button type="button" class="btn-secondary" data-tools-action="save-session" title="Upload this session's inputs and outputs to your account">Save to account</button>`
-      : '';
-    const newButton = allowToolActions ? `<button type="button" class="btn-ghost" data-tools-action="new-session">New session</button>` : '';
-    const toolControlsSlot = toolControlsEl
-      ? '<span data-tools-account="tool-controls-slot"></span>'
-      : '';
-    const statusParts = [];
-    if (toolId && !compactToolBar) {
-      statusParts.push(`<a class="tools-account-tools-link" href="tools">← Tools</a>`);
-      statusParts.push(escapeHtml(toolInfo?.name || toolId));
+    if (!authed) disclosureController?.close();
+    refs.contextEl?.toggleAttribute('hidden', !capabilities.showToolsLink);
+    refs.signInButton?.toggleAttribute('hidden', authed);
+    refs.accountDisclosureRoot?.toggleAttribute('hidden', !authed || capabilities.embedded);
+    refs.embeddedActionsEl?.toggleAttribute('hidden', !authed || !capabilities.embedded);
+
+    const identity = user.email ? `Signed in as ${user.email}` : 'Signed in';
+    refs.structureEl?.querySelectorAll('[data-tools-account="identity"]').forEach((el) => {
+      el.textContent = identity;
+    });
+    refs.structureEl?.querySelectorAll('[data-tools-account="saved-work"]').forEach((el) => {
+      el.toggleAttribute('hidden', !capabilities.showSavedWorkLink);
+    });
+
+    const retryable = saveState === 'error';
+    const manualSaveVisible = capabilities.persistence === 'manual' && ['dirty', 'saving', 'error'].includes(saveState);
+    const autosaveRetryVisible = capabilities.persistence === 'autosave' && retryable;
+    const saveVisible = authed && (manualSaveVisible || autosaveRetryVisible);
+    if (refs.saveButton) {
+      refs.saveButton.textContent = saveState === 'saving' ? 'Saving…' : (retryable ? 'Retry save' : 'Save');
+      refs.saveButton.disabled = saveState === 'saving';
+      refs.saveButton.toggleAttribute('hidden', !saveVisible);
     }
-    if (sessionId && !compactToolBar) statusParts.push(`Session ${escapeHtml(sessionId.slice(0, 10))}…`);
-    if (statusText) statusParts.push(escapeHtml(statusText));
 
-    const sessionLine = statusParts.length
-      ? `<span class="tools-account-status">${statusParts.join(' · ')}</span>`
-      : '';
+    const hasExtensions = Boolean(refs.toolControlsEl || saveVisible || statusText);
+    refs.extensionsEl?.toggleAttribute('hidden', !hasExtensions);
+    if (refs.statusEl) {
+      refs.statusEl.textContent = statusText || '';
+      refs.statusEl.toggleAttribute('hidden', !statusText);
+      refs.statusEl.dataset.tone = retryable ? 'error' : 'neutral';
+    }
+    refs.barEl.dataset.authState = authed ? 'signed-in' : 'signed-out';
+    refs.barEl.dataset.persistence = capabilities.persistence;
 
-    barEl.innerHTML = `
-      <span class="${pillClass}" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</span>
-      ${dashboardButton}
-      ${accountButton}
-      ${allowToolActions && authed ? saveButton : ''}
-      ${allowToolActions && authed ? newButton : ''}
-      ${toolControlsSlot}
-      ${authed ? signOutButton : signInButton}
-      ${sessionLine}
-    `.trim();
-
-    if (toolControlsEl) {
-      const slot = barEl.querySelector('[data-tools-account="tool-controls-slot"]');
-      if (slot) slot.replaceWith(toolControlsEl);
-      toolControlsEl.hidden = false;
+    if (!authed && accountHadFocus && refs.signInButton && !refs.signInButton.hidden) {
+      refs.signInButton.focus({ preventScroll: true });
+    } else if (authed && signInHadFocus) {
+      const nextAccountControl = capabilities.embedded
+        ? refs.embeddedActionsEl?.querySelector('a:not([hidden]),button:not([hidden])')
+        : refs.accountTrigger;
+      nextAccountControl?.focus({ preventScroll: true });
     }
   };
 
-  const getSignInOptions = (toolId) => {
+  const getSignInOptions = (capabilities = {}) => {
     const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    return toolId === 'transcribe'
+    return capabilities.signInMode === 'popup'
       ? { mode: 'popup', returnTo }
       : { returnTo };
   };
@@ -2181,7 +2298,7 @@
     return { open, close };
   };
 
-  const initAccountBar = ({ toolId, root, toolActionsEnabled, onOpenAccount } = {}) => {
+  const initAccountBar = ({ toolId, capabilities, onOpenAccount } = {}) => {
     const barEl = (() => {
       let existing = $('[data-tools-account="bar"]');
       if (!existing) {
@@ -2237,29 +2354,66 @@
 
       return existing;
     })();
-    if (!barEl) return { barEl: null, setStatus: () => {} };
+    if (!barEl) return {
+      barEl: null,
+      setStatus: () => {},
+      setTransientStatus: () => {},
+      setPersistenceState: () => {}
+    };
 
     let sessionId = '';
     let statusText = '';
+    let saveState = 'clean';
+    let statusGeneration = 0;
+    const refs = ensureAccountBarStructure({ barEl, capabilities });
+    const disclosureController = createDisclosureController({
+      rootEl: refs?.accountDisclosureRoot,
+      triggerEl: refs?.accountTrigger,
+      panelEl: refs?.accountDisclosureEl
+    });
+
+    const sync = () => {
+      syncAccountBarState({ refs, capabilities, disclosureController, saveState, statusText });
+    };
 
     const setStatus = (nextStatus, nextSessionId) => {
       if (typeof nextSessionId === 'string') sessionId = nextSessionId;
+      statusGeneration += 1;
       statusText = String(nextStatus || '').trim();
-      renderAccountBar({ barEl, toolId, sessionId, statusText, toolActionsEnabled });
+      if (refs?.barEl) refs.barEl.dataset.sessionState = sessionId ? 'saved' : 'new';
+      sync();
     };
 
-    renderAccountBar({ barEl, toolId, sessionId, statusText, toolActionsEnabled });
+    const setTransientStatus = (nextStatus, delay = 1500) => {
+      setStatus(nextStatus);
+      const generation = statusGeneration;
+      window.setTimeout(() => {
+        if (statusGeneration === generation) setStatus('');
+      }, delay);
+    };
+
+    const setPersistenceState = (nextState) => {
+      saveState = ['clean', 'dirty', 'saving', 'saved', 'error'].includes(nextState)
+        ? nextState
+        : 'clean';
+      sync();
+    };
+
+    sync();
 
     barEl.addEventListener('click', (event) => {
       const button = event.target.closest('[data-tools-action]');
-      if (!button) return;
+      const savedWorkLink = event.target.closest('[data-tools-account="saved-work"]');
+      if (savedWorkLink) disclosureController.close();
+      if (!button || button.dataset.toolsAction === 'toggle-account') return;
       const action = button.dataset.toolsAction;
       if (action === 'sign-in') {
-        window.ToolsAuth.signIn(getSignInOptions(toolId))
+        window.ToolsAuth.signIn(getSignInOptions(capabilities))
           .catch((err) => setStatus(err?.message || 'Unable to start sign-in.'));
       } else if (action === 'sign-out') {
+        disclosureController.close({ restoreFocus: !capabilities.embedded });
         window.ToolsAuth.signOut();
-        setStatus('Signed out.');
+        setTransientStatus('Signed out.');
         try {
           document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: 'tools-account-ui' } }));
         } catch {}
@@ -2273,18 +2427,21 @@
       } else if (action === 'save-session') {
         document.dispatchEvent(new CustomEvent('tools:save-session', { detail: { toolId } }));
       } else if (action === 'open-account') {
+        disclosureController.close({ restoreFocus: true });
         if (typeof onOpenAccount === 'function') onOpenAccount();
       }
     });
 
     document.addEventListener('tools:auth-changed', (event) => {
       const source = String(event?.detail?.source || '').trim();
-      if (source && source.startsWith('tools-account')) return;
-      statusText = '';
-      renderAccountBar({ barEl, toolId, sessionId, statusText, toolActionsEnabled });
+      if (source !== 'tools-account-ui' && !['saving', 'error'].includes(saveState)) {
+        statusGeneration += 1;
+        statusText = '';
+      }
+      sync();
     });
 
-    return { barEl, setStatus };
+    return { barEl, setStatus, setTransientStatus, setPersistenceState };
   };
 
   const initDashboard = async ({ setStatus, onViewSession } = {}) => {
@@ -2547,65 +2704,67 @@
     await loadDashboard();
   };
 
-  const initToolAutoSave = ({ toolId, root, setStatus, autosaveEnabled = false }) => {
+  const initToolAutoSave = ({ toolId, root, setStatus, setPersistenceState, persistenceMode = 'manual' }) => {
     if (!toolId || !root) return;
 
     const sessionIdFromUrl = getSessionParam() || '';
     const authed = window.ToolsAuth.authIsValid(window.ToolsAuth.getAuth());
+    const autosaveEnabled = persistenceMode === 'autosave';
     let sessionId = sessionIdFromUrl || (authed ? getActiveSessionId(toolId) : '') || '';
-    let sessionStorageToolId = toolId;
     let sessionVersion = sessionId ? null : 0;
     let dirty = false;
+    let dirtyGeneration = 0;
     let saveInFlight = false;
     let isApplying = false;
-
-    const idleStatus = autosaveEnabled ? 'Cloud autosave on.' : 'Manual account save only.';
+    let statusClearTimer = 0;
 
     const updateStatus = (message) => {
+      if (statusClearTimer) {
+        window.clearTimeout(statusClearTimer);
+        statusClearTimer = 0;
+      }
       if (setStatus) setStatus(message, sessionId);
     };
 
-    if (!authed) {
-      if (sessionIdFromUrl) {
-        updateStatus('Sign in to load this saved session.');
-      }
-      return;
-    }
+    const clearStatusAfter = (delay = 1200) => {
+      if (statusClearTimer) window.clearTimeout(statusClearTimer);
+      statusClearTimer = window.setTimeout(() => {
+        statusClearTimer = 0;
+        if (setStatus) setStatus('', sessionId);
+      }, delay);
+    };
 
-    const readCompatibleSession = async () => {
-      const candidates = getCompatibleSessionToolIds(toolId);
-      let unavailableError = null;
-      for (const candidateToolId of candidates) {
-        try {
-          const data = await window.ToolsState.getSession({ toolId: candidateToolId, sessionId });
-          return { data, storageToolId: candidateToolId };
-        } catch (err) {
-          if (err?.status !== 404 && err?.status !== 410) throw err;
-          unavailableError = err;
-        }
-      }
-      throw unavailableError || new Error('Session not found.');
+    const updatePersistence = (nextState) => {
+      if (setPersistenceState) setPersistenceState(nextState);
     };
 
     const applySession = async () => {
       const auth = window.ToolsAuth.getAuth();
       if (!window.ToolsAuth.authIsValid(auth) || !sessionId) return;
+      const loadGeneration = dirtyGeneration;
       updateStatus('Loading session...');
       try {
-        const loaded = await readCompatibleSession();
-        const data = loaded.data;
-        sessionStorageToolId = loaded.storageToolId;
+        const data = await window.ToolsState.getSession({ toolId, sessionId });
         const snapshot = data?.session?.snapshot;
         sessionVersion = Math.max(1, Number(data?.session?.version) || 1);
         if (snapshot && typeof snapshot === 'object') {
-          isApplying = true;
-          applyToolFields(root, snapshot.fields || {});
-          isApplying = false;
-          notifySessionApplied({ toolId, root, sessionId, snapshot });
-          updateStatus(toolId === 'transcribe'
-            ? 'Session summary loaded; media and transcript text are not stored.'
-            : 'Session loaded.');
-          setTimeout(() => updateStatus(idleStatus), 1500);
+          if (dirtyGeneration !== loadGeneration) {
+            dirty = true;
+            updatePersistence('dirty');
+            updateStatus('Session loaded. Your newer changes were kept.');
+          } else {
+            isApplying = true;
+            try {
+              applyToolFields(root, snapshot.fields || {});
+            } finally {
+              isApplying = false;
+            }
+            notifySessionApplied({ toolId, root, sessionId, snapshot });
+            dirty = false;
+            updatePersistence('clean');
+            updateStatus('Session loaded.');
+          }
+          clearStatusAfter(1500);
           try {
             await window.ToolsState.logActivity({ toolId, type: 'session_load', summary: `Loaded session ${sessionId}` });
           } catch {}
@@ -2613,15 +2772,15 @@
       } catch (err) {
         if (err?.status === 404 || err?.status === 410) {
           sessionId = '';
-          sessionStorageToolId = toolId;
           sessionVersion = 0;
           dirty = false;
+          updatePersistence('clean');
           setActiveSessionId(toolId, '');
           setSessionParam('');
           updateStatus('That saved session is no longer available. New session started.');
           return;
         }
-        updateStatus('Unable to load session. Reload to retry or choose New session.');
+        updateStatus('Unable to load session. Reload to retry.');
       }
     };
 
@@ -2633,18 +2792,21 @@
         updateStatus('Wait for the saved session to finish loading before saving.');
         return;
       }
+      const saveGeneration = dirtyGeneration;
+      let saveFailed = false;
       saveInFlight = true;
-      updateStatus('Saving...');
+      updatePersistence('saving');
+      updateStatus('Saving…');
       const saveAction = sessionId ? 'update' : 'create';
 
-      const snapshot = buildSnapshot({ toolId: sessionStorageToolId, root });
+      const snapshot = buildSnapshot({ toolId, root });
       const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
       const outputSummary = String(captured?.outputSummary || '').trim();
       if (typeof captured?.output !== 'undefined') snapshot.output = captured.output;
       if (captured?.inputs && typeof captured.inputs === 'object') snapshot.inputs = captured.inputs;
       try {
         const res = await window.ToolsState.saveSession({
-          toolId: sessionStorageToolId,
+          toolId,
           sessionId: sessionId || undefined,
           snapshot,
           outputSummary: outputSummary || undefined,
@@ -2658,12 +2820,16 @@
           setActiveSessionId(toolId, sessionId);
           setSessionParam(sessionId);
         }
-        dirty = false;
-        updateStatus('Saved to account.');
-        setTimeout(() => updateStatus(idleStatus), 1200);
-        try {
-          await window.ToolsState.logActivity({ toolId, type: 'session_save', summary: `Saved session ${sessionId}`, keepalive: !!keepalive });
-        } catch {}
+        dirty = dirtyGeneration !== saveGeneration;
+        updatePersistence(dirty ? 'dirty' : 'clean');
+        updateStatus(dirty ? 'Saved. More changes are waiting.' : 'Saved.');
+        clearStatusAfter();
+        window.ToolsState.logActivity({
+          toolId,
+          type: 'session_save',
+          summary: `Saved session ${sessionId}`,
+          keepalive: !!keepalive
+        }).catch((err) => logAsyncError('tool-autosave:log-save', err));
         if (typeof window.gaEvent === 'function') {
           window.gaEvent('tool_session_save', {
             tool_id: toolId,
@@ -2672,9 +2838,13 @@
           });
         }
       } catch (err) {
+        saveFailed = true;
+        dirty = true;
+        updatePersistence('error');
         updateStatus(err?.message || 'Save failed.');
       } finally {
         saveInFlight = false;
+        if (!saveFailed && dirty) updatePersistence('dirty');
       }
     };
 
@@ -2686,64 +2856,69 @@
     document.addEventListener('tools:new-session', (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
       sessionId = '';
-      sessionStorageToolId = toolId;
       sessionVersion = 0;
       dirty = false;
+      dirtyGeneration = 0;
+      updatePersistence('clean');
       setActiveSessionId(toolId, '');
       updateStatus('New session (not saved yet).');
     });
     document.addEventListener('tools:account-data-deleted', () => {
       sessionId = '';
-      sessionStorageToolId = toolId;
       sessionVersion = 0;
       dirty = false;
+      dirtyGeneration = 0;
+      updatePersistence('clean');
       setActiveSessionId(toolId, '');
       updateStatus('Account history deleted. New session started.');
     });
     document.addEventListener('tools:session-meta-updated', (event) => {
       const detail = event?.detail || {};
-      if (String(detail.toolId || '').trim() !== sessionStorageToolId) return;
+      if (String(detail.toolId || '').trim() !== toolId) return;
       if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
       const nextVersion = Number(detail.meta?.version);
       if (Number.isInteger(nextVersion) && nextVersion > 0) sessionVersion = nextVersion;
     });
     document.addEventListener('tools:session-deleted', (event) => {
       const detail = event?.detail || {};
-      if (String(detail.toolId || '').trim() !== sessionStorageToolId) return;
+      if (String(detail.toolId || '').trim() !== toolId) return;
       if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
       sessionId = '';
-      sessionStorageToolId = toolId;
       sessionVersion = 0;
       dirty = false;
+      dirtyGeneration = 0;
+      updatePersistence('clean');
       setActiveSessionId(toolId, '');
       setSessionParam('');
       updateStatus('Saved session deleted. New session started.');
     });
 
-    setActiveSessionId(toolId, sessionId);
-    updateStatus(idleStatus);
-
-    applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
-
-    if (!autosaveEnabled) return;
+    const markDirty = () => {
+      if (isApplying) return;
+      dirty = true;
+      dirtyGeneration += 1;
+      if (!saveInFlight) updatePersistence('dirty');
+    };
 
     document.addEventListener('tools:session-dirty', (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
-      dirty = true;
+      markDirty();
     });
+    root.addEventListener('input', markDirty);
+    root.addEventListener('change', markDirty);
+    root.addEventListener('submit', markDirty);
 
-    root.addEventListener('input', () => {
-      if (isApplying) return;
-      dirty = true;
-    });
-    root.addEventListener('change', () => {
-      if (isApplying) return;
-      dirty = true;
-    });
-    root.addEventListener('submit', () => {
-      if (isApplying) return;
-      dirty = true;
-    });
+    setActiveSessionId(toolId, sessionId);
+    updatePersistence('clean');
+
+    if (authed) {
+      updateStatus('');
+      applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
+    } else if (sessionIdFromUrl) {
+      updateStatus('Sign in to load this saved session.');
+    }
+
+    if (!autosaveEnabled) return;
 
     const tick = () => {
       if (dirty) saveSession({ source: 'autosave' }).catch((err) => logAsyncError('tool-autosave:tick-save', err));
@@ -2780,34 +2955,39 @@
     }
     if (redirectHandled) return;
 
+    try {
+      await window.ToolsAuth.ensureFreshAuth();
+    } catch {}
+    try {
+      document.dispatchEvent(new CustomEvent('tools:auth-changed', {
+        detail: { source: 'tools-account-bootstrap' }
+      }));
+    } catch {}
+
     const page = String(document.body?.dataset?.page || '').trim();
     const toolId = page && page !== 'tools' ? page : '';
     const root = document.getElementById('main');
 
     const autosaveMode = String(document.body?.dataset?.toolsAutosave || '').trim().toLowerCase();
-    const genericSessionsDisabled = new Set(['ga4-utm-performance', 'short-links', 'job-application-tracker']);
-    const toolActionsEnabled = !genericSessionsDisabled.has(toolId) &&
-      autosaveMode !== 'false' && autosaveMode !== 'off' && autosaveMode !== '0';
-    const autosaveEnabled = toolActionsEnabled &&
-      (autosaveMode === 'true' || autosaveMode === 'on' || autosaveMode === '1');
+    const capabilities = getToolAccountCapabilities({ page, toolId, autosaveMode });
+    const genericPersistenceEnabled = ['manual', 'autosave'].includes(capabilities.persistence);
 
     const sessionModal = initSessionModal();
     const accountModal = initAccountModal({ onViewSession: sessionModal.open });
-    const { setStatus } = initAccountBar({
+    const { setStatus, setTransientStatus, setPersistenceState } = initAccountBar({
       toolId: page === 'tools-dashboard' ? '' : toolId,
-      root,
-      toolActionsEnabled,
+      capabilities,
       onOpenAccount: accountModal.open
     });
 
     accountModal.setHandlers({
       signIn: () => {
-        window.ToolsAuth.signIn(getSignInOptions(toolId))
+        window.ToolsAuth.signIn(getSignInOptions(capabilities))
           .catch((err) => setStatus(err?.message || 'Unable to start sign-in.'));
       },
       signOut: () => {
         window.ToolsAuth.signOut();
-        setStatus('Signed out.');
+        setTransientStatus('Signed out.');
         accountModal.refresh().catch((err) => logAsyncError('account-modal:refresh-after-signout', err));
         try {
           document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: 'tools-account-ui' } }));
@@ -2831,7 +3011,7 @@
     }
 
     if (page === 'tools-dashboard') {
-      initDashboard({ setStatus, onViewSession: sessionModal.open }).catch((err) => logAsyncError('dashboard:init', err));
+      initDashboard({ onViewSession: sessionModal.open }).catch((err) => logAsyncError('dashboard:init', err));
       return;
     }
 
@@ -2840,8 +3020,14 @@
       window.ToolsState.logActivity({ toolId, type: 'tool_open', summary: 'Opened tool' }).catch((err) => logAsyncError('activity:tool_open', err));
     }
 
-    if (toolId && root && toolActionsEnabled) {
-      initToolAutoSave({ toolId, root, setStatus, autosaveEnabled });
+    if (toolId && root && genericPersistenceEnabled) {
+      initToolAutoSave({
+        toolId,
+        root,
+        setStatus,
+        setPersistenceState,
+        persistenceMode: capabilities.persistence
+      });
     }
   };
 
