@@ -31,6 +31,9 @@
   "/games/roulette": [
     "css/games/roulette.css"
   ],
+  "/games/stormbreak": [
+    "css/games/stormbreak.css"
+  ],
   "/portfolio/*": [
     "css/components/project-page.css"
   ],

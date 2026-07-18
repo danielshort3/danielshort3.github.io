@@ -269,6 +269,14 @@
           tags: ['RPG systems', 'Loot economy', 'Progression']
         },
         {
+          id: 'stormbreak',
+          title: 'Stormbreak: Idle Olympus',
+          href: 'games/stormbreak',
+          snippet: 'Farm mythic hordes with active lightning and compounding idle upgrades.',
+          summary: 'Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.',
+          tags: ['Idle action', 'Upgrade loops', 'Mythic farming']
+        },
+        {
           id: 'stellar-dogfight',
           title: 'Stellar Dogfight',
           href: 'games/stellar-dogfight',
@@ -343,7 +351,7 @@
     games: [
       {
         label: 'Playable Systems',
-        itemIds: ['project-starfall', 'stellar-dogfight', 'roulette']
+        itemIds: ['project-starfall', 'stormbreak', 'stellar-dogfight', 'roulette']
       },
       {
         label: 'Simulations',
@@ -392,7 +400,7 @@
     },
     games: {
       'playable-systems': [
-        { label: 'RPG', itemIds: ['project-starfall'] },
+        { label: 'RPG / Idle', itemIds: ['project-starfall', 'stormbreak'] },
         { label: 'Arcade', itemIds: ['stellar-dogfight', 'roulette'] }
       ],
       simulations: [
@@ -447,6 +455,7 @@
     rocket: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 14.8l-2 4.7 4.7-2M9.2 14.8L5.5 11l4.1-1.1c1.3-2.7 3.8-5.1 8.5-5.8 0 4.7-2.9 7.9-5.8 9.4l-1.1 4-2-2.7z"></path><circle cx="15" cy="8.7" r="1.5"></circle></svg>',
     jet: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l4 8 4 2-4 1.7-1.8 5.3L12 16l-2.2 4.5L8 15.2 4 13.5l4-2 4-8z"></path></svg>',
     roulette: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2.4"></circle><path d="M12 4v5.6M12 14.4V20M4 12h5.6M14.4 12H20M6.3 6.3l4 4M13.7 13.7l4 4M17.7 6.3l-4 4M10.3 13.7l-4 4"></path></svg>',
+    bolt: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2.8 5.7 13h5l-1 8.2 8.6-11.4h-5.2l.4-7z"></path></svg>',
     cube: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.8l7 4v8.4l-7 4-7-4V7.8l7-4z"></path><path d="M5.3 8.1L12 12l6.7-3.9M12 12v8"></path></svg>',
     wave: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 16.5c2.4 0 2.4-2 4.8-2s2.4 2 4.8 2 2.4-2 4.8-2 2.4 2 4.8 2"></path><path d="M4.5 11.5c3.5-5.2 9.3-6 14.8-2.2"></path></svg>'
   };
@@ -479,6 +488,7 @@
     'background-remover': 'eraser',
     'screen-recorder': 'recorder',
     'project-starfall': 'rocket',
+    stormbreak: 'bolt',
     'stellar-dogfight': 'jet',
     roulette: 'roulette',
     'probability-engine': 'cube',
@@ -503,6 +513,7 @@
     nonogram: '/img/projects/nonogram-640.webp',
     website: '/img/projects/website-640.webp',
     'project-starfall': '/img/project-starfall/ui/start-screen.webp',
+    stormbreak: '/img/games/stormbreak/temple-of-ash.webp',
     'stellar-dogfight': '/img/games/stellar-dogfight/raster/background-nebula.png'
   });
 

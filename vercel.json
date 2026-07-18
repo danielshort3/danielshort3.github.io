@@ -108,6 +108,8 @@
     { "source": "/games/roulette.html", "destination": "/pages/games/roulette" },
     { "source": "/games/probability-engine", "destination": "/pages/games/probability-engine" },
     { "source": "/games/probability-engine.html", "destination": "/pages/games/probability-engine" },
+    { "source": "/games/stormbreak", "destination": "/pages/games/stormbreak" },
+    { "source": "/games/stormbreak.html", "destination": "/pages/games/stormbreak" },
     { "source": "/games/ocean-wave-simulation", "destination": "/pages/ocean-wave-simulation" },
     { "source": "/games/ocean-wave-simulation.html", "destination": "/pages/ocean-wave-simulation" },
     { "source": "/games",             "destination": "/pages/games" },

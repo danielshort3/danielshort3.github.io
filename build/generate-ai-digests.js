@@ -1481,6 +1481,7 @@ function renderLlmsTxt(pages) {
     '/games/roulette',
     '/games/probability-engine',
     '/games/project-starfall',
+    '/games/stormbreak',
     '/games/ocean-wave-simulation'
   ];
   const optionalPages = [
