@@ -639,7 +639,8 @@ try {
       'pages/ga4-utm-performance.html': 'GA4 UTM Performance | Daniel Short',
       'pages/games/probability-engine.html': 'Probability Engine | Daniel Short',
       'pages/games/stellar-dogfight.html': 'Stellar Dogfight | Daniel Short',
-      'pages/games/roulette.html': 'Double-Zero Roulette | Daniel Short'
+      'pages/games/roulette.html': 'Double-Zero Roulette | Daniel Short',
+      'pages/games/stormbreak.html': 'Stormbreak: Idle Olympus | Daniel Short'
     };
     Object.entries(expectedTitles).forEach(([file, title]) => {
       checkFileContains(file, `<title>${title}</title>`);
@@ -678,6 +679,7 @@ try {
     checkFileContains('pages/games.html', 'href="games/roulette"');
     checkFileContains('pages/games.html', 'href="games/stellar-dogfight"');
     checkFileContains('pages/games.html', 'href="games/project-starfall"');
+    checkFileContains('pages/games.html', 'href="games/stormbreak"');
     checkFileContains('pages/games/probability-engine.html', '<link rel="canonical" href="https://www.danielshort.me/games/probability-engine">');
     checkFileContains('pages/games/probability-engine.html', '<meta name="description"');
 
@@ -715,6 +717,7 @@ try {
       'pages/sitemap.html',
       'pages/games.html',
       'pages/games/project-starfall.html',
+      'pages/games/stormbreak.html',
       'pages/ocean-wave-simulation.html',
       'pages/privacy.html',
       '404.html',
@@ -731,14 +734,14 @@ try {
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
       checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
-    ['pages/games.html','pages/games/project-starfall.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
+    ['pages/games.html','pages/games/project-starfall.html','pages/games/stormbreak.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
       checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
 
     ['404.html','dshort.html', ...privateToolPages].forEach((f) => {
       checkFileContains(f, 'noindex, nofollow');
     });
-    ['pages/games.html','pages/games/project-starfall.html','pages/ocean-wave-simulation.html'].forEach((f) => {
+    ['pages/games.html','pages/games/project-starfall.html','pages/games/stormbreak.html','pages/ocean-wave-simulation.html'].forEach((f) => {
       assert(!readFile(f).includes('noindex, nofollow'), `${f} should be public indexable game content`);
     });
 
@@ -758,7 +761,7 @@ try {
     assert(!readFile('pages/tools-dashboard.html').includes('id="tool-jsonld"'),
       'tools dashboard should not include WebApplication JSON-LD');
 
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/games/project-starfall.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/games/project-starfall.html','pages/games/stormbreak.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
       checkFileContains(f, 'og:image');
     });
 
@@ -37157,7 +37160,7 @@ try {
       ['ready', 'partial', 'skipped'].includes(knowledge.embeddings.status),
       'chatbot knowledge should record Bedrock embedding metadata even when vectors are unavailable');
     const knowledgeUrls = new Set(knowledge.pages.map((page) => page && page.url));
-    ['/', '/contact', '/portfolio', '/tools', '/games', '/games/roulette', '/games/stellar-dogfight', '/games/probability-engine', '/games/project-starfall', '/games/ocean-wave-simulation'].forEach((url) => {
+    ['/', '/contact', '/portfolio', '/tools', '/games', '/games/roulette', '/games/stellar-dogfight', '/games/probability-engine', '/games/project-starfall', '/games/stormbreak', '/games/ocean-wave-simulation'].forEach((url) => {
       assert(knowledgeUrls.has(url), `chatbot knowledge missing ${url}`);
     });
     ['/privacy', '/analytics', '/data-science', '/tourism', '/destination-analytics', '/contributions', '/tools/dashboard', '/tools/short-links', '/tools/ga4-utm-performance', '/tools/job-application-tracker', '/tools/transcribe', '/resume-analytics', '/resume-analytics-pdf', '/chatbot-demo'].forEach((url) => {
@@ -37622,7 +37625,7 @@ try {
     assert(manifest.origin === 'https://www.danielshort.me', 'AI digest manifest should use the public site origin');
     assert(Array.isArray(manifest.pages) && manifest.pages.length >= 10, 'AI digest manifest should include public pages');
     const urls = new Set(manifest.pages.map((page) => String(page && page.url || '').trim()));
-    ['/', '/portfolio', '/contact', '/tools/text-compare', '/games', '/games/roulette', '/games/stellar-dogfight', '/games/probability-engine', '/games/project-starfall', '/games/ocean-wave-simulation'].forEach((url) => {
+    ['/', '/portfolio', '/contact', '/tools/text-compare', '/games', '/games/roulette', '/games/stellar-dogfight', '/games/probability-engine', '/games/project-starfall', '/games/stormbreak', '/games/ocean-wave-simulation'].forEach((url) => {
       assert(urls.has(url), `AI digest manifest missing ${url}`);
     });
     ['/analytics', '/data-science', '/tourism', '/search', '/tools/dashboard', '/tools/short-links', '/tools/job-application-tracker', '/resume-analytics', '/resume-analytics-pdf'].forEach((url) => {
@@ -37646,7 +37649,7 @@ try {
       homeDigest.includes('Browser games and simulations') &&
       homeDigest.includes('16 published projects') &&
       homeDigest.includes('10 public tools') &&
-      homeDigest.includes('5 games'),
+      homeDigest.includes('6 games'),
       'home AI digest should reuse personal-site graph labels and counts');
     ['Summary', 'Key Details', 'Evidence', 'Context', 'Topics'].forEach((heading) => {
       assert(!homeDigest.includes(`>${heading}<`), `home AI digest should not add synthetic ${heading} heading`);
@@ -39524,6 +39527,8 @@ try {
       'route styles manifest missing stellar dogfight CSS entry');
     assert(Array.isArray(routeStyles['/games/roulette']) && routeStyles['/games/roulette'].includes('css/games/roulette.css'),
       'route styles manifest missing roulette CSS entry');
+    assert(Array.isArray(routeStyles['/games/stormbreak']) && routeStyles['/games/stormbreak'].includes('css/games/stormbreak.css'),
+      'route styles manifest missing stormbreak CSS entry');
     assert(Array.isArray(routeStyles['/portfolio/*']), 'route styles manifest missing portfolio wildcard entry');
   });
 
@@ -39718,6 +39723,7 @@ try {
     checkFileContains('js/home/project-graph.js', 'getToggleIcon(active)');
     assert(!graphJs.includes('getNodeInitial'), 'homepage graph should use themed SVG icons instead of text initials');
     checkFileContains('js/home/project-graph.js', "id: 'project-starfall'");
+    checkFileContains('js/home/project-graph.js', "id: 'stormbreak'");
     checkFileContains('js/home/project-graph.js', "id: 'text-compare'");
     checkFileContains('js/home/project-graph.js', "id: 'chatbotLora'");
     ['short-links', 'ga4-utm-performance', 'job-application-tracker', 'transcribe'].forEach((toolId) => {
@@ -40384,6 +40390,8 @@ try {
     const hasGameRouletteHtml = rewrites.some(r => r.source === '/games/roulette.html' && r.destination === '/pages/games/roulette');
     const hasProbabilityEngine = rewrites.some(r => r.source === '/games/probability-engine' && r.destination === '/pages/games/probability-engine');
     const hasProbabilityEngineHtml = rewrites.some(r => r.source === '/games/probability-engine.html' && r.destination === '/pages/games/probability-engine');
+    const hasStormbreak = rewrites.some(r => r.source === '/games/stormbreak' && r.destination === '/pages/games/stormbreak');
+    const hasStormbreakHtml = rewrites.some(r => r.source === '/games/stormbreak.html' && r.destination === '/pages/games/stormbreak');
     assert(hasGames, 'games landing rewrite missing');
     assert(hasProjectStarfall && hasProjectStarfallHtml, 'project starfall rewrites missing');
     assert(!hasGameSlot, 'slot machine should not be publicly rewritten');
@@ -40393,6 +40401,7 @@ try {
     assert(hasGameRoulette, 'roulette games rewrite missing');
     assert(hasGameRouletteHtml, 'roulette html rewrite missing');
     assert(hasProbabilityEngine && hasProbabilityEngineHtml, 'probability engine rewrites missing');
+    assert(hasStormbreak && hasStormbreakHtml, 'stormbreak rewrites missing');
     const hasToolsDashboard = rewrites.some(r => r.source === '/tools/dashboard' && r.destination === '/pages/tools-dashboard');
     const hasToolsDashboardHtml = rewrites.some(r => r.source === '/tools/dashboard.html' && r.destination === '/pages/tools-dashboard');
     assert(hasToolsDashboard && hasToolsDashboardHtml, 'tools dashboard rewrites missing');
@@ -42258,7 +42267,7 @@ try {
 
     ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
-     'pages/games/probability-engine.html','pages/games/stellar-dogfight.html','pages/games/roulette.html','demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
+     'pages/games/probability-engine.html','pages/games/stellar-dogfight.html','pages/games/roulette.html','pages/games/stormbreak.html','demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
     ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html']
@@ -42443,6 +42452,7 @@ try {
     const standaloneTrackedPages = [
       'pages/games/roulette.html',
       'pages/games/stellar-dogfight.html',
+      'pages/games/stormbreak.html',
       'demos/baby-names-demo.html',
       'demos/chatbot-demo.html',
       'demos/covid-outbreak-demo.html',
@@ -42981,6 +42991,71 @@ try {
   });
 
   section('Slot machine demo', () => {
+  });
+
+  section('Stormbreak game', () => {
+    const stormbreakHtml = readFile('pages/games/stormbreak.html');
+    const stormbreakCss = readFile('css/games/stormbreak.css');
+    const stormbreakJs = readFile('js/games/stormbreak/app.js');
+    const gamesConfig = JSON.parse(readFile('content/pages/games.json'));
+    const stormbreakEntry = gamesConfig.games.find((game) => game && game.id === 'stormbreak');
+    const oceanWaveEntry = gamesConfig.games.find((game) => game && game.id === 'ocean-wave-simulation');
+
+    assert(stormbreakEntry &&
+           stormbreakEntry.title === 'Stormbreak: Idle Olympus' &&
+           stormbreakEntry.href === 'games/stormbreak' &&
+           stormbreakEntry.image === 'img/games/stormbreak/temple-of-ash.webp' &&
+           stormbreakEntry.imageWidth === 1536 && stormbreakEntry.imageHeight === 1024 &&
+           stormbreakEntry.order === 5 && oceanWaveEntry && oceanWaveEntry.order === 6,
+      'Stormbreak should occupy the fifth games-directory slot with its generated Temple of Ash preview');
+    assert(stormbreakHtml.includes('<link rel="canonical" href="https://www.danielshort.me/games/stormbreak">') &&
+           stormbreakHtml.includes('class="stormbreak-game" data-stormbreak-root') &&
+           stormbreakHtml.includes('id="stormbreak-canvas" width="960" height="540"') &&
+           stormbreakHtml.includes('data-stormbreak-loading'),
+      'Stormbreak should expose a canonical, progressively enhanced 960 by 540 game stage');
+    assert(stormbreakHtml.includes('class="stormbreak-hud"') &&
+           stormbreakHtml.includes('class="ability-button') && stormbreakHtml.includes('data-ability=') &&
+           stormbreakHtml.includes('class="upgrade-row') && stormbreakHtml.includes('data-upgrade=') &&
+           stormbreakHtml.includes('class="zone-row') && stormbreakHtml.includes('data-zone=') &&
+           stormbreakHtml.includes('data-action='),
+      'Stormbreak should expose battle, ability, upgrade, zone, and utility controls to the engine');
+    assert(stormbreakHtml.includes('<link rel="stylesheet" href="css/games/stormbreak.css">') &&
+           stormbreakHtml.includes('<script defer src="/js/games/stormbreak/app.js"></script>'),
+      'Stormbreak should load its custom stylesheet and external engine');
+
+    const stormbreakSources = `${stormbreakHtml}\n${stormbreakCss}\n${stormbreakJs}`;
+    [
+      'img/games/stormbreak/temple-of-ash.png',
+      'img/games/stormbreak/mythic-atlas.png',
+      'img/games/stormbreak/zeus-sprite-strip.png'
+    ].forEach((assetPath) => {
+      assert(fs.existsSync(assetPath) && stormbreakSources.includes(assetPath),
+        `Stormbreak should deploy and reference generated art: ${assetPath}`);
+    });
+    assert(stormbreakCss.includes('@media (prefers-reduced-motion: reduce)') &&
+           stormbreakCss.includes('env(safe-area-inset-bottom)'),
+      'Stormbreak CSS should respect reduced motion and mobile safe-area clearance');
+
+    const offlineCapReferences = stormbreakJs.match(/\bOFFLINE_CAP_MS\b/g) || [];
+    const boundedEffectReferences = ['MAX_DAMAGE_SPLATS', 'MAX_EFFECTS', 'MAX_PARTICLES']
+      .map((name) => (stormbreakJs.match(new RegExp(`\\b${name}\\b`, 'g')) || []).length);
+    assert(/\bSAVE_KEY\s*=\s*['"][^'"]*(?::|-)v1['"]/.test(stormbreakJs) &&
+           /\bSAVE_SCHEMA_VERSION\s*=\s*1\b/.test(stormbreakJs),
+      'Stormbreak persistence should use a versioned storage key and schema');
+    assert(offlineCapReferences.length >= 2 &&
+           /\bOFFLINE_CAP_MS\s*=\s*4\s*\*\s*60\s*\*\s*60\s*\*\s*1000\b/.test(stormbreakJs),
+      'Stormbreak offline rewards should enforce the documented four-hour cap');
+    assert(/function\s+pushBounded\s*\(/.test(stormbreakJs) &&
+           (stormbreakJs.match(/\bpushBounded\s*\(/g) || []).length >= 4 &&
+           boundedEffectReferences.every((count) => count >= 2),
+      'Stormbreak should bound transient combat splats, effects, and particles');
+    assert(/function\s+trackMilestone\s*\(/.test(stormbreakJs) &&
+           stormbreakJs.includes('window.gaEvent') &&
+           stormbreakJs.includes('game_milestone') &&
+           stormbreakJs.includes('stormbreak_idle_olympus'),
+      'Stormbreak milestones should use the shared consent-aware analytics helper');
+    assert(/window\.StormbreakGame\s*=\s*Object\.freeze\(\{[\s\S]*?\bgetState\b/.test(stormbreakJs),
+      'Stormbreak should expose a read-only getState testing surface');
   });
 
   section('Roulette game', () => {

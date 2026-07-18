@@ -40,6 +40,7 @@ The public canonical HTML is authoritative. Optional /ai/ summaries contain the 
 - [Double-Zero Roulette](https://www.danielshort.me/games/roulette): Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.
 - [Probability Engine](https://www.danielshort.me/games/probability-engine): Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.
 - [Project Starfall](https://www.danielshort.me/games/project-starfall): Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.
+- [Stormbreak: Idle Olympus](https://www.danielshort.me/games/stormbreak): Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.
 - [Ocean Wave Simulation](https://www.danielshort.me/games/ocean-wave-simulation): Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.
 
 ## Optional

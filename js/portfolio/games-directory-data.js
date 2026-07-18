@@ -49,8 +49,18 @@ window.DIRECTORY_WORKBENCH = {
           "field": "tags"
         },
         {
+          "value": "idle-action",
+          "label": "Idle action",
+          "field": "tags"
+        },
+        {
           "value": "loot-economy",
           "label": "Loot economy",
+          "field": "tags"
+        },
+        {
+          "value": "mythic-farming",
+          "label": "Mythic farming",
           "field": "tags"
         },
         {
@@ -269,6 +279,45 @@ window.DIRECTORY_WORKBENCH = {
       "order": 4
     },
     {
+      "id": "stormbreak",
+      "title": "Stormbreak: Idle Olympus",
+      "subtitle": "Browser Game",
+      "summary": "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.",
+      "href": "games/stormbreak",
+      "type": "Browser Game",
+      "category": "Browser Game",
+      "tags": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "tools": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "concepts": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "formats": [
+        "Browser Game"
+      ],
+      "results": [
+        "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop."
+      ],
+      "actions": [
+        "Focus areas: Idle action, Upgrade loops, Mythic farming"
+      ],
+      "image": "img/games/stormbreak/temple-of-ash.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
+      "imageResponsive": false,
+      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"9\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <path d=\"M18.7 6.1A9 9 0 1 0 19.8 16\"></path>\n  <path d=\"M13.4 2.8 7.8 13h4l-1.2 8.2L17 10.6h-4.1l.5-7.8z\"></path>\n  <path d=\"m18.3 8.2 2.3-1.4M19.2 11.3l2.7.1M18.1 14.2l2.2 1.6\"></path>\n</svg>",
+      "order": 5
+    },
+    {
       "id": "ocean-wave-simulation",
       "title": "Ocean Wave Simulation",
       "subtitle": "Simulation",
@@ -305,7 +354,7 @@ window.DIRECTORY_WORKBENCH = {
       "imageHeight": null,
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n  <path d=\"M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n</svg>",
-      "order": 5
+      "order": 6
     }
   ]
 };

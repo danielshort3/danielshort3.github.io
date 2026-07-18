@@ -1,0 +1,1700 @@
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/Inter-Latin.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
+body.stormbreak-page {
+  --sb-ink: #f7fbff;
+  --sb-muted: #9dabb9;
+  --sb-muted-strong: #c3ced8;
+  --sb-night: #071827;
+  --sb-navy: #0b1f32;
+  --sb-navy-deep: #06131f;
+  --sb-surface: #0d2539;
+  --sb-surface-raised: #102c45;
+  --sb-line: #355066;
+  --sb-line-soft: #213a4e;
+  --sb-signal: #1976d2;
+  --sb-signal-bright: #4da8ff;
+  --sb-gold: #ffb126;
+  --sb-gold-bright: #ffd166;
+  --sb-magenta: #eb5aa8;
+  --sb-green: #9bd358;
+  --sb-danger: #e44e55;
+  --sb-radius: 4px;
+  --sb-radius-lg: 8px;
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--sb-ink);
+  background: var(--sb-night);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+}
+
+.stormbreak-page *,
+.stormbreak-page *::before,
+.stormbreak-page *::after {
+  box-sizing: border-box;
+}
+
+.stormbreak-page > .footer,
+.stormbreak-page .speed-dial {
+  display: none !important;
+}
+
+.stormbreak-page .mono,
+.stormbreak-page [data-bind="gold"],
+.stormbreak-page [data-bind="ambrosia"],
+.stormbreak-page [data-upgrade-level],
+.stormbreak-page [data-upgrade-cost],
+.stormbreak-page [data-ability-cooldown] {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.stormbreak-main {
+  width: 100%;
+  min-height: calc(100svh - 72px);
+  padding: clamp(4px, 0.7vw, 10px);
+  background:
+    radial-gradient(circle at 30% 0%, rgba(25, 118, 210, 0.1), transparent 35%),
+    var(--sb-navy-deep);
+}
+
+.stormbreak-game {
+  width: min(100%, 1600px);
+  margin-inline: auto;
+  overflow: clip;
+  border: 1px solid var(--sb-line);
+  border-radius: var(--sb-radius);
+  background: var(--sb-night);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+  isolation: isolate;
+}
+
+.stormbreak-game button {
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stormbreak-game button:focus-visible,
+.stormbreak-dialog button:focus-visible,
+#stormbreak-canvas:focus-visible {
+  outline: 3px solid var(--sb-gold-bright);
+  outline-offset: -3px;
+}
+
+.stormbreak-game button:disabled {
+  cursor: not-allowed;
+}
+
+.stormbreak-topbar {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.72fr) minmax(390px, 2.15fr) minmax(300px, 1fr);
+  min-height: 76px;
+  border-bottom: 1px solid var(--sb-line);
+  background: #091b2b;
+}
+
+.stormbreak-title-block,
+.stormbreak-mission,
+.stormbreak-player {
+  min-width: 0;
+}
+
+.stormbreak-title-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px clamp(16px, 2.3vw, 40px);
+  border-right: 1px solid var(--sb-line);
+}
+
+.stormbreak-title-block h1 {
+  margin: 0;
+  color: var(--sb-ink);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: clamp(1.22rem, 2vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.stormbreak-title-block p {
+  margin: 4px 0 0;
+  color: var(--sb-muted);
+  font-size: 0.86rem;
+  line-height: 1.2;
+}
+
+.stormbreak-mission {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(230px, 1.4fr);
+  align-items: center;
+  gap: clamp(14px, 2vw, 34px);
+  padding: 10px clamp(14px, 2vw, 30px);
+  border-right: 1px solid var(--sb-line);
+}
+
+.mission-location,
+.mission-objective,
+.player-xp-row,
+.upgrade-heading,
+.zone-reward {
+  display: flex;
+  align-items: center;
+}
+
+.mission-location {
+  min-width: 0;
+  gap: 9px;
+  color: var(--sb-muted-strong);
+  font-size: clamp(0.76rem, 1vw, 0.9rem);
+  white-space: nowrap;
+}
+
+.mission-location svg {
+  width: 18px;
+  flex: 0 0 18px;
+  fill: none;
+  stroke: var(--sb-muted);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 1.6;
+}
+
+.mission-location [data-bind="zone-name"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mission-location strong {
+  color: var(--sb-gold);
+  font-weight: 700;
+}
+
+.mission-divider {
+  color: var(--sb-line);
+}
+
+.mission-objective {
+  min-width: 0;
+  justify-content: center;
+  gap: 12px;
+}
+
+.mission-objective > div {
+  width: min(100%, 310px);
+  min-width: 100px;
+  color: var(--sb-ink);
+  font-size: clamp(0.84rem, 1.15vw, 1rem);
+  font-weight: 700;
+}
+
+.objective-mark {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  color: var(--sb-gold);
+}
+
+.objective-mark svg {
+  width: 100%;
+  height: 100%;
+  fill: rgba(255, 177, 38, 0.2);
+  stroke: currentColor;
+  stroke-linejoin: miter;
+  stroke-width: 1.7;
+}
+
+.boss-track {
+  height: 8px;
+  margin-top: 7px;
+  overflow: hidden;
+  border: 1px solid #81909b;
+  border-radius: 2px;
+  background: #050c12;
+}
+
+.boss-track span {
+  display: block;
+  width: var(--boss-progress, 0%);
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--sb-danger) 0 18px, #b7343c 18px 19px);
+}
+
+.objective-progress {
+  flex: 0 0 auto;
+  color: var(--sb-muted);
+  font-size: 0.72rem;
+}
+
+.stormbreak-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px clamp(12px, 1.5vw, 20px);
+}
+
+.zeus-portrait {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border: 1px solid var(--sb-gold);
+  border-radius: 3px;
+  background-color: #18293b;
+  background-image: url("../../img/games/stormbreak/zeus-portrait.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  image-rendering: pixelated;
+}
+
+.player-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.player-copy > strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: clamp(0.84rem, 1vw, 0.96rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.player-xp-row {
+  gap: 10px;
+}
+
+.player-xp-row .meter {
+  flex: 1;
+}
+
+.player-xp-row > .mono {
+  color: var(--sb-muted-strong);
+  font-size: 0.72rem;
+}
+
+.stormbreak-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(350px, 0.96fr);
+  align-items: stretch;
+}
+
+.stormbreak-battle {
+  min-width: 0;
+  border-right: 1px solid var(--sb-line);
+  background: var(--sb-night);
+}
+
+.stormbreak-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-bottom: 1px solid var(--sb-line);
+  background: #07111d url("../../img/games/stormbreak/temple-of-ash.webp") center / cover no-repeat;
+}
+
+#stormbreak-canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  touch-action: manipulation;
+}
+
+.stormbreak-loading {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  color: var(--sb-muted-strong);
+  background: rgba(4, 14, 24, 0.91);
+  text-align: center;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.stormbreak-loading[hidden],
+.stormbreak-game.is-ready .stormbreak-loading {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stormbreak-loading strong {
+  color: var(--sb-ink);
+  font-size: 0.96rem;
+  letter-spacing: 0.02em;
+}
+
+.stormbreak-loading > span:last-child {
+  font-size: 0.78rem;
+}
+
+.loading-bolt {
+  width: 46px;
+  height: 46px;
+  color: var(--sb-gold);
+  animation: stormbreak-pulse 1.1s steps(2, end) infinite;
+}
+
+.loading-bolt svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  filter: drop-shadow(0 0 12px rgba(255, 177, 38, 0.55));
+}
+
+.stormbreak-noscript {
+  position: absolute;
+  z-index: 5;
+  inset: auto 12px 12px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--sb-danger);
+  border-radius: var(--sb-radius);
+  color: var(--sb-ink);
+  background: #4e151c;
+  text-align: center;
+}
+
+.stormbreak-hud {
+  display: grid;
+  grid-template-columns: minmax(255px, 1.05fr) minmax(165px, 0.68fr) minmax(330px, 1.65fr);
+  gap: 0;
+  min-height: 142px;
+  background: #091c2c;
+}
+
+.vitals {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  padding: 18px clamp(14px, 2vw, 26px);
+  border-right: 1px solid var(--sb-line);
+}
+
+.vital-row {
+  display: grid;
+  grid-template-columns: 24px 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.vital-icon {
+  width: 23px;
+  height: 23px;
+}
+
+.vital-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  stroke: rgba(255, 255, 255, 0.34);
+  stroke-width: 0.8;
+}
+
+.vital-icon--hp {
+  color: var(--sb-danger);
+}
+
+.vital-icon--xp {
+  color: var(--sb-signal-bright);
+}
+
+.vital-label {
+  color: var(--sb-muted-strong);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.vital-meter {
+  position: relative;
+  min-width: 0;
+}
+
+.vital-value {
+  position: absolute;
+  inset: 50% 8px auto auto;
+  z-index: 1;
+  color: var(--sb-ink);
+  font-size: clamp(0.61rem, 0.84vw, 0.72rem);
+  font-weight: 700;
+  line-height: 1;
+  transform: translateY(-50%);
+  text-shadow: 0 1px 2px #000;
+}
+
+.meter {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid #142a3b;
+  border-radius: 3px;
+  background: #040d15;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.meter-fill {
+  display: block;
+  width: calc(var(--progress, 0) * 1%);
+  min-width: 0;
+  max-width: 100%;
+  height: 100%;
+  transition: width 220ms ease;
+}
+
+.meter--hp .meter-fill {
+  background: var(--sb-danger);
+}
+
+.meter--xp .meter-fill {
+  background: var(--sb-signal);
+}
+
+.auto-toggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 15px;
+  border-right: 1px solid var(--sb-line) !important;
+  background: #081724;
+}
+
+.auto-toggle:hover {
+  background: #0c2335;
+}
+
+.auto-title {
+  grid-row: 1;
+  color: var(--sb-green);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+}
+
+.auto-state {
+  grid-column: 1;
+  grid-row: 2 / span 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  min-width: 48px;
+  min-height: 27px;
+  padding: 4px 8px;
+  border: 1px solid var(--sb-green);
+  border-radius: 3px;
+  color: var(--sb-green);
+  background: rgba(155, 211, 88, 0.12);
+  font-weight: 800;
+  text-align: center;
+}
+
+.auto-toggle[aria-pressed="false"] .auto-title,
+.auto-toggle[aria-pressed="false"] .auto-state {
+  color: var(--sb-muted);
+  border-color: var(--sb-line);
+  background: transparent;
+}
+
+.auto-copy {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--sb-muted-strong);
+  font-size: 0.69rem;
+  line-height: 1.35;
+}
+
+.auto-rate {
+  grid-column: 2;
+  grid-row: 3;
+  color: var(--sb-green);
+  font-size: 0.68rem;
+}
+
+.ability-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  align-items: stretch;
+  gap: clamp(8px, 1vw, 14px);
+  padding: 10px clamp(10px, 1.4vw, 18px);
+}
+
+.ability-button {
+  --ability-accent: var(--sb-signal-bright);
+  position: relative;
+  display: grid;
+  grid-template-rows: 62px auto auto;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: 120px !important;
+  overflow: visible;
+  border: 1px solid var(--sb-line) !important;
+  border-radius: var(--sb-radius) !important;
+  background: #07131e;
+  text-align: center !important;
+}
+
+.ability-button:hover:not(:disabled) {
+  border-color: var(--ability-accent) !important;
+  background: #0c2133;
+  transform: translateY(-1px);
+}
+
+.ability-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ability-button:disabled,
+.ability-button.is-cooling-down {
+  color: var(--sb-muted);
+}
+
+.ability-button kbd {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+}
+
+.ability-ring {
+  position: relative;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--ability-accent) var(--cooldown-progress, 100%), #1b2b3a 0);
+  transform: rotate(18deg);
+}
+
+.ability-ring::before {
+  position: absolute;
+  inset: 5px;
+  border-radius: inherit;
+  background: #07131e;
+  content: "";
+}
+
+.ability-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--ability-accent);
+  transform: rotate(-18deg);
+}
+
+.ability-icon svg {
+  width: 38px;
+  height: 38px;
+  overflow: visible;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, currentColor 64%, transparent));
+}
+
+.ability-button--storm {
+  --ability-accent: #78b9ff;
+}
+
+.ability-button--storm .ability-icon svg {
+  fill: none;
+}
+
+.ability-button--aegis {
+  --ability-accent: #90cfff;
+}
+
+.ability-button--aegis .ability-icon svg {
+  fill: rgba(77, 168, 255, 0.2);
+  stroke-width: 1.8;
+}
+
+.ability-button--bolt {
+  --ability-accent: var(--sb-gold-bright);
+}
+
+.ability-button > strong {
+  font-size: 0.85rem;
+  line-height: 1.1;
+}
+
+.ability-cooldown {
+  color: var(--sb-muted);
+  font-size: 0.64rem;
+}
+
+.stormbreak-status {
+  min-height: 28px;
+  margin: 0;
+  padding: 6px 12px;
+  border-top: 1px solid var(--sb-line-soft);
+  color: var(--sb-muted);
+  background: #06131f;
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.stormbreak-rail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  background: #081a29;
+}
+
+.resource-strip {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--sb-line);
+  background: #091c2c;
+}
+
+.resource-row {
+  display: grid;
+  grid-template-columns: 25px minmax(78px, 1fr) minmax(74px, auto) minmax(54px, auto);
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px clamp(12px, 1.5vw, 20px);
+  color: var(--sb-muted-strong);
+  font-size: 0.82rem;
+}
+
+.resource-row + .resource-row {
+  border-top: 1px solid var(--sb-line-soft);
+}
+
+.resource-row strong {
+  color: var(--sb-ink);
+  font-size: 0.83rem;
+  text-align: right;
+}
+
+.resource-icon {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+}
+
+.resource-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  stroke: rgba(255, 255, 255, 0.54);
+  stroke-width: 1;
+}
+
+.resource-icon--gold,
+.resource-rate--gold {
+  color: var(--sb-gold);
+}
+
+.resource-icon--ambrosia,
+.resource-rate--ambrosia {
+  color: var(--sb-magenta);
+}
+
+.resource-rate {
+  font-size: 0.67rem;
+  text-align: right;
+}
+
+.progression-section {
+  min-width: 0;
+  border-bottom: 1px solid var(--sb-line);
+}
+
+.progression-section > h2 {
+  margin: 0;
+  padding: 10px 13px 8px;
+  color: var(--sb-muted-strong);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.section-help {
+  display: inline-grid;
+  width: 15px;
+  height: 15px;
+  margin-left: 5px;
+  place-items: center;
+  border: 1px solid var(--sb-muted);
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 0.58rem;
+  text-transform: none;
+}
+
+.upgrade-list,
+.zone-list {
+  display: grid;
+}
+
+.upgrade-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) minmax(92px, auto);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 88px !important;
+  padding: 10px 12px;
+  border-top: 1px solid var(--sb-line-soft) !important;
+  border-radius: 0 !important;
+  background: #0a2032;
+}
+
+.upgrade-row:hover:not(:disabled) {
+  background: #102b41;
+}
+
+.upgrade-row:active:not(:disabled) .upgrade-cta {
+  transform: translateY(1px);
+}
+
+.upgrade-icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: var(--sb-radius);
+  background: #0a1722;
+}
+
+.upgrade-icon svg {
+  width: 40px;
+  height: 40px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 1.7;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, currentColor 54%, transparent));
+}
+
+.upgrade-row--lightning .upgrade-icon {
+  color: var(--sb-gold-bright);
+}
+
+.upgrade-row--harvest .upgrade-icon {
+  color: var(--sb-green);
+}
+
+.upgrade-row--harvest .upgrade-icon svg {
+  fill: rgba(155, 211, 88, 0.24);
+}
+
+.upgrade-row--aegis .upgrade-icon {
+  color: var(--sb-signal-bright);
+}
+
+.upgrade-row--aegis .upgrade-icon svg {
+  fill: rgba(77, 168, 255, 0.17);
+}
+
+.upgrade-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: var(--sb-muted);
+  font-size: clamp(0.66rem, 0.85vw, 0.75rem);
+  line-height: 1.25;
+}
+
+.upgrade-heading {
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--sb-ink);
+}
+
+.upgrade-heading strong {
+  overflow: hidden;
+  font-size: clamp(0.84rem, 1vw, 0.96rem);
+  text-overflow: ellipsis;
+}
+
+.upgrade-heading > span {
+  flex: 0 0 auto;
+  color: var(--sb-muted-strong);
+  font-size: 0.66rem;
+}
+
+.upgrade-effect {
+  color: var(--sb-muted-strong);
+}
+
+.upgrade-action {
+  display: grid;
+  align-self: stretch;
+  align-content: center;
+  gap: 6px;
+  padding-left: 10px;
+  border-left: 1px solid var(--sb-line-soft);
+}
+
+.upgrade-cost {
+  color: var(--sb-ink);
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+.upgrade-cost > span:first-child {
+  color: var(--sb-gold);
+}
+
+.upgrade-cta,
+.zone-status {
+  display: inline-flex;
+  min-height: 33px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: 1px solid #2b72b8;
+  border-radius: var(--sb-radius);
+  color: var(--sb-ink);
+  background: #145493;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.upgrade-row:disabled .upgrade-cta {
+  border-color: var(--sb-line);
+  color: var(--sb-muted);
+  background: #142535;
+}
+
+.zone-section {
+  flex: 1 0 auto;
+}
+
+.zone-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) minmax(70px, auto);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 76px !important;
+  padding: 5px 11px;
+  border-top: 1px solid var(--sb-line-soft) !important;
+  border-radius: 0 !important;
+  background: #0a1e2f;
+}
+
+.zone-row:hover:not(:disabled) {
+  background: #102b41;
+}
+
+.zone-row.is-selected,
+.zone-row[aria-pressed="true"] {
+  box-shadow: inset 3px 0 var(--sb-gold), inset 0 0 0 1px var(--sb-gold);
+  background: #0d2537;
+}
+
+.zone-thumb {
+  display: block;
+  width: 84px;
+  height: 58px;
+  border: 1px solid var(--sb-line);
+  border-radius: 2px;
+  background-image: url("../../img/games/stormbreak/temple-of-ash.webp");
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.zone-thumb--temple {
+  background-position: 8% 34%;
+  background-size: 350%;
+}
+
+.zone-thumb--cyclops {
+  background-position: 45% 4%;
+  background-size: 250%;
+  filter: saturate(0.7) brightness(1.25) hue-rotate(4deg);
+}
+
+.zone-thumb--elysium {
+  background-position: 70% 12%;
+  background-size: 280%;
+  filter: saturate(0.6) brightness(1.5) hue-rotate(38deg);
+}
+
+.zone-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  color: var(--sb-muted);
+  font-size: 0.64rem;
+  line-height: 1.2;
+}
+
+.zone-copy strong {
+  overflow: hidden;
+  color: var(--sb-ink);
+  font-size: clamp(0.76rem, 0.95vw, 0.88rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zone-reward {
+  flex-wrap: wrap;
+  gap: 3px 12px;
+}
+
+.zone-reward b {
+  color: var(--sb-gold);
+  font-weight: 600;
+}
+
+.zone-reward b + b {
+  color: var(--sb-magenta);
+}
+
+.zone-status {
+  min-width: 70px;
+}
+
+.zone-row.is-locked,
+.zone-row:disabled {
+  color: var(--sb-muted);
+  background: #0a1722;
+  opacity: 0.68;
+}
+
+.zone-status--locked {
+  min-width: 44px;
+  border-color: transparent;
+  color: var(--sb-muted);
+  background: transparent;
+}
+
+.zone-status--locked svg {
+  width: 25px;
+  height: 25px;
+  fill: currentColor;
+  stroke: #07131e;
+  stroke-width: 1.2;
+}
+
+.rail-controls {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(3, minmax(68px, 0.8fr));
+  min-height: 95px;
+  margin-top: auto;
+  background: #071827;
+}
+
+.rail-keymap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  border-right: 1px solid var(--sb-line);
+}
+
+.rail-keymap > span {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: var(--sb-muted-strong);
+  font-size: 0.62rem;
+}
+
+kbd {
+  display: inline-grid;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 3px 6px;
+  place-items: center;
+  border: 1px solid #526575;
+  border-bottom-color: #263846;
+  border-radius: 3px;
+  color: var(--sb-muted-strong);
+  background: #172a39;
+  box-shadow: inset 0 -2px rgba(0, 0, 0, 0.34);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.63rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rail-controls > button {
+  display: grid;
+  grid-template-rows: 28px auto 19px;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  padding: 7px 4px;
+  border-right: 1px solid var(--sb-line-soft) !important;
+  background: #071827;
+  font-size: 0.69rem;
+  text-align: center !important;
+}
+
+.rail-controls > button:last-child {
+  border-right: 0 !important;
+}
+
+.rail-controls > button:hover {
+  color: var(--sb-signal-bright);
+  background: #10283b;
+}
+
+.rail-controls > button[aria-pressed="true"] {
+  color: var(--sb-gold-bright);
+}
+
+.rail-controls > button svg {
+  width: 27px;
+  height: 27px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+}
+
+.rail-controls > button[data-action="sound"] svg,
+.rail-controls > button[data-action="reset"] svg {
+  fill: none;
+}
+
+.rail-controls > button kbd {
+  min-width: 19px;
+  min-height: 19px;
+  padding: 2px 4px;
+  font-size: 0.54rem;
+}
+
+.stormbreak-dialog {
+  width: min(calc(100% - 28px), 430px);
+  max-width: 430px;
+  margin: auto;
+  padding: 25px;
+  border: 1px solid var(--sb-line);
+  border-radius: var(--sb-radius-lg);
+  color: var(--sb-ink);
+  background: var(--sb-navy);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.65);
+  font-family: "Inter", system-ui, sans-serif;
+  text-align: center;
+}
+
+.stormbreak-dialog::backdrop {
+  background: rgba(2, 8, 14, 0.78);
+  backdrop-filter: blur(3px);
+}
+
+.stormbreak-dialog h2 {
+  margin: 12px 0 8px;
+  color: var(--sb-ink);
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+.stormbreak-dialog p {
+  margin: 0;
+  color: var(--sb-muted-strong);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.dialog-mark {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.dialog-mark svg {
+  width: 35px;
+  height: 35px;
+  fill: currentColor;
+  stroke: #5f3c00;
+  stroke-width: 1;
+}
+
+.dialog-mark--gold {
+  color: var(--sb-gold);
+  background: rgba(255, 177, 38, 0.1);
+}
+
+.dialog-mark--danger {
+  color: #ff8c92;
+  background: rgba(228, 78, 85, 0.12);
+}
+
+.stormbreak-dialog .offline-reward {
+  margin: 16px 0 0;
+  padding: 13px;
+  border-block: 1px solid var(--sb-line-soft);
+  color: var(--sb-gold-bright);
+  font-size: 1rem;
+}
+
+.dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.stormbreak-dialog .button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--sb-radius);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.stormbreak-dialog .button--primary {
+  border-color: #2d86d7;
+  color: #fff;
+  background: var(--sb-signal);
+}
+
+.stormbreak-dialog .button--danger {
+  border-color: #ff737b;
+  color: #fff;
+  background: #b9313a;
+}
+
+.stormbreak-dialog .button--quiet {
+  border-color: var(--sb-line);
+  color: var(--sb-muted-strong);
+  background: #0a1926;
+}
+
+.stormbreak-dialog .button:hover {
+  filter: brightness(1.13);
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@keyframes stormbreak-pulse {
+  0%,
+  100% {
+    opacity: 0.62;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@media (max-width: 1350px) and (min-width: 1180px) {
+  .stormbreak-topbar {
+    grid-template-columns: minmax(175px, 0.68fr) minmax(390px, 1.8fr) minmax(270px, 0.9fr);
+  }
+
+  .stormbreak-layout {
+    grid-template-columns: minmax(0, 2fr) minmax(350px, 1fr);
+  }
+
+  .stormbreak-hud {
+    grid-template-columns: minmax(230px, 1fr) minmax(145px, 0.62fr) minmax(310px, 1.45fr);
+  }
+
+  .vitals {
+    padding-inline: 14px;
+  }
+
+  .ability-bar {
+    gap: 7px;
+    padding-inline: 8px;
+  }
+
+  .upgrade-row {
+    grid-template-columns: 50px minmax(0, 1fr) minmax(84px, auto);
+    gap: 9px;
+    padding-inline: 9px;
+  }
+
+  .upgrade-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .zone-row {
+    grid-template-columns: 72px minmax(0, 1fr) minmax(62px, auto);
+    padding-inline: 8px;
+  }
+
+  .zone-thumb {
+    width: 72px;
+    height: 54px;
+  }
+
+  .rail-controls {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .rail-keymap {
+    display: none;
+  }
+}
+
+@media (max-width: 1179px) {
+  .stormbreak-main {
+    padding: 6px;
+  }
+
+  .stormbreak-topbar {
+    grid-template-columns: minmax(170px, 0.65fr) minmax(360px, 1.7fr) minmax(245px, 0.85fr);
+  }
+
+  .stormbreak-mission {
+    gap: 12px;
+    padding-inline: 14px;
+  }
+
+  .stormbreak-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stormbreak-battle {
+    border-right: 0;
+    border-bottom: 1px solid var(--sb-line);
+  }
+
+  .stormbreak-hud {
+    grid-template-columns: minmax(260px, 1.1fr) minmax(170px, 0.7fr) minmax(360px, 1.55fr);
+  }
+
+  .stormbreak-rail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .resource-strip,
+  .rail-controls {
+    grid-column: 1 / -1;
+  }
+
+  .upgrade-section {
+    border-right: 1px solid var(--sb-line);
+  }
+
+  .zone-section {
+    height: 100%;
+  }
+
+  .rail-controls {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .stormbreak-topbar {
+    grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.65fr);
+  }
+
+  .stormbreak-mission {
+    border-right: 0;
+  }
+
+  .stormbreak-player {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--sb-line-soft);
+  }
+
+  .zeus-portrait {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .player-copy {
+    display: grid;
+    grid-template-columns: auto minmax(140px, 1fr);
+    align-items: center;
+    gap: 16px;
+  }
+
+  .player-copy > strong {
+    margin-bottom: 0;
+  }
+
+  .stormbreak-hud {
+    grid-template-columns: minmax(250px, 1.2fr) minmax(155px, 0.8fr);
+  }
+
+  .ability-bar {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--sb-line);
+  }
+
+  .auto-toggle {
+    border-right: 0 !important;
+  }
+
+  .ability-button {
+    min-height: 112px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body.stormbreak-page {
+    overscroll-behavior-y: contain;
+  }
+
+  .stormbreak-main {
+    min-height: calc(100svh - 60px);
+    padding: 3px 3px max(3px, env(safe-area-inset-bottom));
+  }
+
+  .stormbreak-game {
+    border-radius: 0;
+  }
+
+  .stormbreak-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .stormbreak-title-block {
+    min-height: 63px;
+    padding: 10px 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--sb-line-soft);
+  }
+
+  .stormbreak-title-block h1 {
+    font-size: 1.28rem;
+  }
+
+  .stormbreak-mission {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    min-height: 96px;
+    padding: 10px 12px;
+    border-right: 0;
+  }
+
+  .mission-location {
+    justify-content: center;
+  }
+
+  .mission-objective {
+    justify-content: center;
+  }
+
+  .mission-objective > div {
+    max-width: 260px;
+  }
+
+  .stormbreak-player {
+    grid-column: auto;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  .player-copy {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .player-copy > strong {
+    font-size: 0.78rem;
+  }
+
+  .stormbreak-hud {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vitals {
+    border-right: 0;
+    border-bottom: 1px solid var(--sb-line);
+  }
+
+  .auto-toggle {
+    grid-template-columns: minmax(56px, auto) minmax(0, 1fr);
+    min-height: 92px !important;
+    border-bottom: 1px solid var(--sb-line) !important;
+  }
+
+  .ability-bar {
+    position: sticky;
+    z-index: 4;
+    bottom: max(3px, env(safe-area-inset-bottom));
+    grid-column: auto;
+    gap: 6px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    border-top: 0;
+    background: rgba(6, 19, 31, 0.97);
+  }
+
+  .ability-button {
+    grid-template-rows: 54px auto auto;
+    min-height: 108px !important;
+  }
+
+  .ability-ring {
+    width: 54px;
+    height: 54px;
+  }
+
+  .ability-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .ability-icon svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .stormbreak-rail {
+    display: flex;
+  }
+
+  .upgrade-section {
+    border-right: 0;
+  }
+
+  .rail-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .rail-keymap {
+    display: none;
+  }
+
+  .rail-controls > button {
+    min-height: 76px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stormbreak-main {
+    padding-inline: 0;
+  }
+
+  .stormbreak-game {
+    border-inline: 0;
+  }
+
+  .mission-location {
+    gap: 6px;
+    font-size: 0.7rem;
+  }
+
+  .mission-divider {
+    display: none;
+  }
+
+  .mission-location strong {
+    margin-left: auto;
+  }
+
+  .mission-objective {
+    gap: 8px;
+  }
+
+  .objective-mark {
+    width: 25px;
+    height: 25px;
+    flex-basis: 25px;
+  }
+
+  .mission-objective > div {
+    font-size: 0.78rem;
+  }
+
+  .objective-progress {
+    font-size: 0.62rem;
+  }
+
+  .vitals {
+    gap: 12px;
+    padding: 15px 10px;
+  }
+
+  .vital-row {
+    grid-template-columns: 21px 27px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .vital-icon {
+    width: 21px;
+    height: 21px;
+  }
+
+  .vital-value {
+    font-size: 0.57rem;
+  }
+
+  .ability-button kbd {
+    top: -3px;
+    left: -3px;
+  }
+
+  .resource-row {
+    grid-template-columns: 22px minmax(70px, 1fr) minmax(62px, auto) minmax(48px, auto);
+    gap: 7px;
+    padding-inline: 10px;
+  }
+
+  .upgrade-row {
+    grid-template-columns: 48px minmax(0, 1fr) 78px;
+    gap: 8px;
+    min-height: 84px !important;
+    padding: 8px;
+  }
+
+  .upgrade-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .upgrade-icon svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .upgrade-action {
+    gap: 5px;
+    padding-left: 7px;
+  }
+
+  .upgrade-cta {
+    min-height: 36px;
+    padding-inline: 5px;
+    font-size: 0.65rem;
+  }
+
+  .upgrade-heading > span {
+    display: none;
+  }
+
+  .upgrade-copy {
+    font-size: 0.61rem;
+  }
+
+  .zone-row {
+    grid-template-columns: 64px minmax(0, 1fr) 62px;
+    gap: 8px;
+    min-height: 74px !important;
+    padding: 5px 8px;
+  }
+
+  .zone-thumb {
+    width: 64px;
+    height: 50px;
+  }
+
+  .zone-copy {
+    font-size: 0.58rem;
+  }
+
+  .zone-copy strong {
+    font-size: 0.72rem;
+  }
+
+  .zone-reward {
+    gap: 1px 7px;
+  }
+
+  .zone-status {
+    min-width: 62px;
+    padding-inline: 4px;
+    font-size: 0.65rem;
+  }
+
+  .dialog-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stormbreak-page *,
+  .stormbreak-page *::before,
+  .stormbreak-page *::after,
+  .stormbreak-dialog,
+  .stormbreak-dialog::backdrop {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .loading-bolt {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .stormbreak-game,
+  .stormbreak-game button,
+  .stormbreak-dialog,
+  .meter,
+  .boss-track {
+    border-color: CanvasText;
+  }
+
+  .meter-fill,
+  .boss-track span {
+    background: Highlight;
+  }
+}

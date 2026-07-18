@@ -390,6 +390,15 @@ function renderGameIconMarkup(iconType) {
         '  <path d="M12 7.3v6.1M9.2 10.2h5.6"></path>',
         '</svg>'
       ].join('\n');
+    case 'stormbreak':
+      return [
+        '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',
+        '  <circle cx="12" cy="12" r="9" class="icon-fill" opacity=".12"></circle>',
+        '  <path d="M18.7 6.1A9 9 0 1 0 19.8 16"></path>',
+        '  <path d="M13.4 2.8 7.8 13h4l-1.2 8.2L17 10.6h-4.1l.5-7.8z"></path>',
+        '  <path d="m18.3 8.2 2.3-1.4M19.2 11.3l2.7.1M18.1 14.2l2.2 1.6"></path>',
+        '</svg>'
+      ].join('\n');
     case 'ocean':
       return [
         '<svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">',

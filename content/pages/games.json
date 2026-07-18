@@ -122,6 +122,23 @@
       "order": 4
     },
     {
+      "id": "stormbreak",
+      "title": "Stormbreak: Idle Olympus",
+      "href": "games/stormbreak",
+      "summary": "Command Zeus, farm mythic hordes, and turn lightning, loot, and offline gains into a compounding idle-action loop.",
+      "image": "img/games/stormbreak/temple-of-ash.webp",
+      "imageWidth": 1536,
+      "imageHeight": 1024,
+      "imageAlt": "Pixel-art Temple of Ash arena from Stormbreak: Idle Olympus",
+      "tags": [
+        "Idle action",
+        "Upgrade loops",
+        "Mythic farming"
+      ],
+      "iconType": "stormbreak",
+      "order": 5
+    },
+    {
       "id": "ocean-wave-simulation",
       "title": "Ocean Wave Simulation",
       "href": "games/ocean-wave-simulation",
@@ -132,7 +149,7 @@
         "Visual systems"
       ],
       "iconType": "ocean",
-      "order": 5
+      "order": 6
     }
   ]
 }
