@@ -780,7 +780,10 @@
 
   const updateAuthUi = () => {
     if (!window.ToolsAuth) {
-      if (historyOpenBtn) historyOpenBtn.disabled = true;
+      if (historyOpenBtn) {
+        historyOpenBtn.disabled = true;
+        historyOpenBtn.hidden = true;
+      }
       renderUsage();
       updateControls();
       return;
@@ -802,9 +805,15 @@
       showHistoryList();
     }
     if (authed) {
-      if (historyOpenBtn) historyOpenBtn.disabled = false;
+      if (historyOpenBtn) {
+        historyOpenBtn.disabled = false;
+        historyOpenBtn.hidden = false;
+      }
     } else {
-      if (historyOpenBtn) historyOpenBtn.disabled = true;
+      if (historyOpenBtn) {
+        historyOpenBtn.disabled = true;
+        historyOpenBtn.hidden = true;
+      }
     }
     renderUsage();
     updateControls();

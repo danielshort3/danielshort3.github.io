@@ -201,7 +201,7 @@
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    min-height:42px;
+    min-height:44px;
     padding:10px 14px;
     border:1px solid var(--shortlinks-border);
     border-radius:8px;
@@ -2066,15 +2066,18 @@
     box-shadow:none;
   }
 
-  .shortlinks-account-popover .tools-account-status{
-    order:-1;
-    padding-bottom:8px;
-    border-bottom:1px solid var(--shortlinks-workbench-border);
+  .shortlinks-account-popover .tools-account-structure{
+    display:block;
+  }
+
+  .shortlinks-account-popover .tools-account-actions,
+  .shortlinks-account-popover .tools-account-embedded-actions{
+    width:100%;
   }
 
   .shortlinks-command-controls :is(.btn-primary, .btn-secondary, .btn-ghost),
   .shortlinks-account-menu > summary{
-    min-height:38px;
+    min-height:44px;
     padding:8px 13px;
     border-radius:6px;
     font-size:.82rem;

@@ -576,7 +576,7 @@
     const current = loadAuth();
     if (authIsValid(current)) return current;
     if (!current) {
-      if (config.sessionMode !== 'cookie') return null;
+      if (config.sessionMode === 'legacy') return null;
       try {
         const res = await fetch(SESSION_API.session, { method: 'GET', credentials: 'same-origin' });
         if (!res.ok) return null;
