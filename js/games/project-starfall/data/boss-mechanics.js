@@ -1,6 +1,51 @@
 (function initProjectStarfallDataBossMechanics(global) {
   'use strict';
 
+  const BOSS_SPATIAL_RESPONSE_CHECKS = Object.freeze({
+    rootWave: Object.freeze({ type: 'avoidHazard', label: 'Clear the marked root lane before impact.' }),
+    thornVolley: Object.freeze({ type: 'dodgeProjectiles', label: 'Avoid every projectile in the thorn volley.' }),
+    addWave: Object.freeze({ type: 'clearAdds', label: 'Defeat the full summoned wave.' }),
+    vineCage: Object.freeze({ type: 'avoidHazard', label: 'Escape the cage impact area.' }),
+    crownExpose: Object.freeze({ type: 'damageWindow', label: 'Reach the called crown section and damage the boss during Crowned Root.', requireSection: true, windowSeconds: 2.5 }),
+    gearSlam: Object.freeze({ type: 'avoidHazard', label: 'Clear the marked slam before impact.' }),
+    gearLane: Object.freeze({ type: 'reachSection', label: 'Reach the called gear-switch section without being hit.', requireNoHit: true }),
+    plateExpose: Object.freeze({ type: 'damageWindow', label: 'Reach the called switch section and damage the boss while its plates are open.', requireSection: true, windowSeconds: 2.5 }),
+    overclock: Object.freeze({ type: 'reachSection', label: 'Reach the overclock control section without being hit.', requireNoHit: true }),
+    rockfall: Object.freeze({ type: 'avoidHazard', label: 'Clear the rockfall impact area.' }),
+    quakeAnchor: Object.freeze({ type: 'avoidHazard', label: 'Avoid the quake-anchor lane.' }),
+    corePulse: Object.freeze({ type: 'reachSection', label: 'Reach the called core-control section without being hit.', requireNoHit: true }),
+    fireCrack: Object.freeze({ type: 'avoidHazard', label: 'Cross clear of the fire-crack lane before eruption.' }),
+    lavaCharge: Object.freeze({ type: 'reachSection', label: 'Reach the safe-pocket section without being hit.', requireNoHit: true }),
+    overheat: Object.freeze({ type: 'damageWindow', label: 'Reach the called vent section and damage the boss during overheat.', requireSection: true, windowSeconds: 2.5 }),
+    iceShockwave: Object.freeze({ type: 'avoidHazard', label: 'Jump or move clear of the frost ring.' }),
+    iceWall: Object.freeze({ type: 'avoidHazard', label: 'Clear the ice-wall impact line.' }),
+    whiteout: Object.freeze({ type: 'avoidHazard', label: 'Leave the whiteout lane before impact.' }),
+    windBolt: Object.freeze({ type: 'dodgeProjectiles', label: 'Avoid every projectile in the wind-bolt volley.' }),
+    lightningRod: Object.freeze({ type: 'avoidHazard', label: 'Clear the lightning-rod strike area.' }),
+    windLane: Object.freeze({ type: 'avoidHazard', label: 'Cross clear of the wind lane before impact.' }),
+    divebomb: Object.freeze({ type: 'avoidHazard', label: 'Clear the divebomb lane before impact.' }),
+    runePages: Object.freeze({ type: 'dodgeProjectiles', label: 'Avoid every projectile in the rune-page volley.' }),
+    memorySeal: Object.freeze({ type: 'avoidHazard', label: 'Rotate off the sealed archive section.' }),
+    mirrorEcho: Object.freeze({ type: 'avoidHazard', label: 'Clear the mirrored echo lane.' }),
+    solarFlare: Object.freeze({ type: 'avoidHazard', label: 'Move clear before the solar zone blooms.' }),
+    lunarMark: Object.freeze({ type: 'avoidHazard', label: 'Split clear of the lunar mark.' }),
+    eclipseSigils: Object.freeze({ type: 'reachSection', label: 'Regroup on the eclipse dais without being hit.', requireNoHit: true })
+  });
+
+  function freezeBossSpatialResponseCheck(actionId, value) {
+    const source = value && typeof value === 'object'
+      ? value
+      : BOSS_SPATIAL_RESPONSE_CHECKS[actionId] || null;
+    if (!source || !source.type) return null;
+    return Object.freeze({
+      type: source.type,
+      label: source.label || '',
+      requireNoHit: source.requireNoHit !== false,
+      requireSection: source.requireSection !== false,
+      windowSeconds: Math.max(0, Number(source.windowSeconds || 0))
+    });
+  }
+
   function freezeBossSpatialActionHooks(hooks) {
     return Object.freeze(Object.keys(hooks || {}).reduce((entries, actionId) => {
       const hook = hooks[actionId] || {};
@@ -9,9 +54,11 @@
         sectionId: hook.sectionId || '',
         role: hook.role || '',
         targetTier: hook.targetTier || 'ground',
+        targetAnchor: hook.targetAnchor || 'sectionCenter',
         label: hook.label || '',
         response: hook.response || '',
-        objective: hook.objective || ''
+        objective: hook.objective || '',
+        responseCheck: freezeBossSpatialResponseCheck(actionId, hook.responseCheck)
       });
       return entries;
     }, {}));
@@ -200,16 +247,17 @@
       rewardAbuseControl: 'Solar and lunar rotations alternate with totality so the safest lane cannot solve the whole room.',
       partyRoleHook: 'Full parties split solar and lunar duties, then regroup on the eclipse dais for totality.',
       hooks: {
-        solarFlare: { sectionId: 'eclipseThrone_solar_lane', role: 'solar-zone', targetTier: 'ground', label: 'Solar Lane', response: 'Solar flare heats the solar lane.', objective: 'Move through the solar zone before it blooms.' },
-        lunarMark: { sectionId: 'eclipseThrone_lunar_lane', role: 'lunar-zone', targetTier: 'ground', label: 'Lunar Lane', response: 'Lunar mark inverts the lunar lane.', objective: 'Split lunar-mark players away from solar traffic.' },
-        eclipseSigils: { sectionId: 'eclipseThrone_eclipse_dais', role: 'totality-regroup', targetTier: 'mid', label: 'Eclipse Dais', response: 'Totality sigils rotate around the eclipse dais.', objective: 'Regroup on the dais after solar and lunar calls.' },
+        solarFlare: { sectionId: 'eclipseThrone_solar_lane', role: 'solar-zone', targetTier: 'ground', label: 'Solar Lane', response: 'Solar flare marks the solar lane as dangerous.', objective: 'Clear the Solar Lane before the flare blooms.' },
+        lunarMark: { sectionId: 'eclipseThrone_lunar_lane', role: 'lunar-zone', targetTier: 'ground', label: 'Lunar Lane', response: 'Lunar mark calls a focused danger zone.', objective: 'Split clear of the Lunar Lane before the mark resolves.' },
+        eclipseSigils: { sectionId: 'eclipseThrone_eclipse_dais', role: 'totality-regroup', targetTier: 'high', targetAnchor: 'platformCenter', label: 'Eclipse Dais', response: 'Totality leaves the central eclipse dais safe.', objective: 'Regroup inside the Eclipse Dais safe zone.' },
         addWave: { sectionId: 'eclipseThrone_mote_shelf', role: 'mote-clear', targetTier: 'high', label: 'Mote Shelf Adds', response: 'Motes reinforce the upper shelf during zone rotation.', objective: 'Clear mote shelf adds before totality.' }
       }
     })
   });
 
   const api = {
-    BOSS_SPATIAL_MECHANICS
+    BOSS_SPATIAL_MECHANICS,
+    BOSS_SPATIAL_RESPONSE_CHECKS
   };
 
   const modules = global.ProjectStarfallDataModules || {};

@@ -139,7 +139,6 @@ function renderDropdownLink(link, extraClasses = '') {
   const attrs = {
     href: trimLeadingSlash(link.href || ''),
     class: classes || 'nav-dropdown-link',
-    role: 'listitem',
     ...(link.target ? { target: link.target } : {}),
     ...(link.rel ? { rel: link.rel } : {}),
     ...(link.download ? { download: true } : {}),
@@ -176,7 +175,7 @@ function renderPortfolioProjectCard(project, rank, audienceKey = '') {
   };
 
   return [
-    `<a href="portfolio/${escapeHtml(project.id)}${audienceKey ? `?audience=${encodeURIComponent(audienceKey)}` : ''}" class="nav-project-card" data-project-id="${escapeHtml(project.id)}" role="listitem">`,
+    `<a href="portfolio/${escapeHtml(project.id)}${audienceKey ? `?audience=${encodeURIComponent(audienceKey)}` : ''}" class="nav-project-card" data-project-id="${escapeHtml(project.id)}">`,
     `  <span class="nav-project-rank">#${rank}</span>`,
     `  <span${attrsToString(thumbAttrs)}></span>`,
     '  <span class="nav-project-meta">',
@@ -248,7 +247,7 @@ function renderToolsDropdown(toolsNav, toolsPage, tools) {
       return [
         '<div class="nav-dropdown-group">',
         `  <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(category.title || '')}</div>`,
-        '  <div class="nav-dropdown-list" role="list">',
+        '  <div class="nav-dropdown-list">',
         indentBlock(links, '    '),
         '  </div>',
         '</div>'
@@ -341,7 +340,7 @@ function renderGamesDropdown(gamesNav, gamesPage) {
     '            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-games">',
     '              <div class="nav-dropdown-column nav-dropdown-column-list">',
     `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(gamesNav.header || 'Games')}</div>`,
-    '                <div class="nav-dropdown-list" role="list">',
+    '                <div class="nav-dropdown-list">',
     indentBlock(gameLinks, '                  '),
     '                </div>',
     footerLinks ? '                <div class="nav-dropdown-footer nav-dropdown-footer-inline">' : '',
@@ -558,7 +557,7 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
     '            <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">',
     '              <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">',
     `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(portfolio.header || 'Featured Projects')}</div>`,
-    '                <div class="nav-project-grid nav-project-stack" role="list">',
+    '                <div class="nav-project-grid nav-project-stack">',
     indentBlock(featuredCards, '                  '),
     '                </div>',
     '                <div class="nav-dropdown-footer nav-dropdown-footer-inline">',
@@ -581,7 +580,7 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
       '            <div class="nav-dropdown-inner nav-dropdown-inner-simple">',
       '              <div class="nav-dropdown-column nav-dropdown-column-list">',
       `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(resume.header || 'Resume shortcuts')}</div>`,
-      '                <div class="nav-dropdown-list" role="list">',
+      '                <div class="nav-dropdown-list">',
       indentBlock(resumeLinks, '                  '),
       '                </div>',
       '              </div>',
@@ -598,7 +597,7 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
     '            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-contact">',
     '              <div class="nav-dropdown-column nav-dropdown-column-list">',
     `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(contact.header || 'Get in touch')}</div>`,
-    '                <div class="nav-dropdown-list" role="list">',
+    '                <div class="nav-dropdown-list">',
     indentBlock(contactLinks, '                  '),
     '                </div>',
     '              </div>',

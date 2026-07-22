@@ -370,24 +370,39 @@ async function run(){
   assert.strictEqual(JSON.parse(authStorage.get('toolsAuth')).sessionOnly, true);
 
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
-  const policies = vercel.headers
-    .flatMap((entry) => entry.headers || [])
-    .filter((header) => header.key === 'Content-Security-Policy')
-    .map((header) => String(header.value || ''));
-  assert(policies.length >= 1);
-  for (const policy of policies) {
+  const policyEntries = vercel.headers
+    .map((entry) => ({
+      source: entry.source,
+      policy: String((entry.headers || []).find(header => header.key === 'Content-Security-Policy')?.value || '')
+    }))
+    .filter(entry => entry.policy);
+  const isolatedTrackerRoutes = new Set([
+    '/tools/job-application-tracker',
+    '/tools/job-application-tracker.html',
+    '/pages/job-application-tracker',
+    '/pages/job-application-tracker.html'
+  ]);
+  assert(policyEntries.length >= 1);
+  for (const { source, policy } of policyEntries) {
     for (const directive of [
       "base-uri 'self'",
       "object-src 'none'",
       "form-action 'self'",
-      "frame-ancestors 'self'",
       "script-src-attr 'none'",
       "manifest-src 'self'"
     ]) {
       assert(policy.includes(directive), `CSP missing ${directive}`);
     }
-    assert(/script-src [^;]*'unsafe-inline'/.test(policy), 'CSP migration should retain script-src unsafe-inline for now');
-    assert(/style-src [^;]*'unsafe-inline'/.test(policy), 'CSP migration should retain style-src unsafe-inline for now');
+    if (isolatedTrackerRoutes.has(source)) {
+      assert(policy.includes("frame-ancestors 'none'"), `${source} should not be framed`);
+      assert(policy.includes("script-src 'self'; script-src-elem 'self'; script-src-attr 'none'"), `${source} scripts should be self-only`);
+      assert(policy.includes("style-src-attr 'unsafe-inline'"), `${source} should retain only its existing inline style attributes`);
+      assert(!/script-src [^;]*'unsafe-inline'/.test(policy), `${source} should not allow inline scripts`);
+    } else {
+      assert(policy.includes("frame-ancestors 'self'"), 'CSP missing frame-ancestors self');
+      assert(/script-src [^;]*'unsafe-inline'/.test(policy), 'CSP migration should retain script-src unsafe-inline for now');
+      assert(/style-src [^;]*'unsafe-inline'/.test(policy), 'CSP migration should retain style-src unsafe-inline for now');
+    }
     assert(!/frame-ancestors [^;]*https?:/i.test(policy), 'frame-ancestors should not allow external origins');
   }
 

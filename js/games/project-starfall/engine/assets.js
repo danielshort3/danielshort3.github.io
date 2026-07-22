@@ -146,8 +146,8 @@
       source.MAP_ENVIRONMENT_PROFILES && source.MAP_ENVIRONMENT_PROFILES[map.id] ||
       source.MAP_ENVIRONMENT_PROFILES && source.MAP_ENVIRONMENT_PROFILES.greenrootMeadow);
     const assets = source.ENVIRONMENT_ASSETS || {};
-    ['terrain', 'props'].forEach((kind) => {
-      const id = profile && profile[kind];
+    ['terrain', 'props', 'ramps'].forEach((kind) => {
+      const id = profile && (profile[kind] || (kind === 'ramps' ? profile.terrain : ''));
       const asset = id && assets[kind] && assets[kind][id];
       addAssetPath(paths, asset && asset.path);
     });
@@ -320,20 +320,20 @@
     }, addOptions || {}));
 
     add(source.WORLD_MAP_ATLAS && source.WORLD_MAP_ATLAS.asset, 'World Map Atlas', 'Maps', { tags: ['world map', 'atlas'], sourceType: 'ai' });
-    add(source.GENERIC_PLAYER_ASSET, 'Generic Player Portrait', 'Players', { sourceType: 'procedural' });
+    add(source.GENERIC_PLAYER_ASSET, 'Generic Player Portrait', 'Players', { sourceType: 'ai' });
     add(source.CHARACTER_SLOT_PEDESTAL_ASSET, 'Character Slot Pedestal', 'UI', { sourceType: 'ai', tags: ['character select', 'pedestal'] });
     Object.entries(source.UI_ASSETS || {}).forEach(([id, path]) => add(path, id, 'UI', { sourceType: 'ai' }));
     Object.entries(source.MENU_ICON_ASSETS || {}).forEach(([id, path]) => add(path, `${id} menu icon`, 'UI', { tags: ['menu icon'], sourceType: 'ai' }));
-    Object.entries(source.CLASS_ASSETS || {}).forEach(([id, path]) => add(path, `${id} class portrait`, 'Players', { sourceId: id, sourceType: 'procedural' }));
+    Object.entries(source.CLASS_ASSETS || {}).forEach(([id, path]) => add(path, `${id} class portrait`, 'Players', { sourceId: id, sourceType: 'ai' }));
     Object.values(source.BASE_CLASSES || {}).forEach((classData) => {
-      add(classData.asset, `${classData.name || classData.id} portrait`, 'Players', { sourceId: classData.id, sourceType: 'procedural' });
-      if (classData.animation) collector.add({ path: classData.animation.sheet, label: `${classData.name || classData.id} animation`, category: 'Players', kind: 'animation', animation: classData.animation, sourceId: classData.id, sourceType: 'procedural' });
+      add(classData.asset, `${classData.name || classData.id} portrait`, 'Players', { sourceId: classData.id, sourceType: 'ai' });
+      if (classData.animation) collector.add({ path: classData.animation.sheet, label: `${classData.name || classData.id} animation`, category: 'Players', kind: 'animation', animation: classData.animation, sourceId: classData.id, sourceType: 'ai' });
     });
     Object.values(source.ADVANCED_CLASSES || {}).forEach((classData) => {
-      add(classData.asset, `${classData.name || classData.id} portrait`, 'Players', { sourceId: classData.id, sourceType: 'procedural' });
-      if (classData.animation) collector.add({ path: classData.animation.sheet, label: `${classData.name || classData.id} animation`, category: 'Players', kind: 'animation', animation: classData.animation, sourceId: classData.id, sourceType: 'procedural' });
+      add(classData.asset, `${classData.name || classData.id} portrait`, 'Players', { sourceId: classData.id, sourceType: 'ai' });
+      if (classData.animation) collector.add({ path: classData.animation.sheet, label: `${classData.name || classData.id} animation`, category: 'Players', kind: 'animation', animation: classData.animation, sourceId: classData.id, sourceType: 'ai' });
     });
-    Object.entries(source.PLAYER_ANIMATION_ASSETS || {}).forEach(([id, animation]) => collector.add({ path: animation && animation.sheet, label: `${id} player animation`, category: 'Players', kind: 'animation', animation, sourceId: id, sourceType: 'procedural' }));
+    Object.entries(source.PLAYER_ANIMATION_ASSETS || {}).forEach(([id, animation]) => collector.add({ path: animation && animation.sheet, label: `${id} player animation`, category: 'Players', kind: 'animation', animation, sourceId: id, sourceType: 'ai' }));
     if (source.PET_ANIMATION_ASSET) {
       collector.add({
         path: source.PET_ANIMATION_ASSET.sheet,

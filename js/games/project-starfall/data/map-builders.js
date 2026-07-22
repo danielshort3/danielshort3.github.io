@@ -212,6 +212,328 @@
     return platforms;
   }
 
+  function makeBanditRidgeCampPlatforms(width) {
+    const worldWidth = Math.max(5400, Math.ceil(Number(width || 0) / 100) * 100);
+    const sectionIds = Object.freeze({
+      lower: 'banditRidgeCamp_lower_cutter_lane',
+      middle: 'banditRidgeCamp_middle_thrower_camp',
+      high: 'banditRidgeCamp_high_rope_bridge',
+      regroup: 'banditRidgeCamp_campfire_regroup'
+    });
+    const makeNamedFlat = (id, sectionId, x, y, w, routeRole, visualKind, variant) => Object.assign(
+      makePlatformDef(x, y, w, visualKind === 'hop' ? 20 : 22, {
+        kind: visualKind || 'solidLane',
+        variant: variant || routeRole
+      }),
+      { id, sectionId, routeRole }
+    );
+    const makeNamedSlope = (id, sectionId, x, y, y2, w, routeRole) => Object.assign(
+      makeSlopePlatformDef(x, y, y2, w, 24, { kind: 'slope', variant: routeRole }),
+      { id, sectionId, routeRole }
+    );
+
+    return [
+      makeNamedFlat('bandit_ridge_camp_ground', '', 0, 520, worldWidth, 'ground-throughline', 'ground'),
+
+      // Lower Cutter Approach: a safe arrival, a broad melee lane, and one elevated bypass.
+      makeNamedSlope('bandit_ridge_camp_lower_approach_slope', sectionIds.lower, 60, 520, 456, 260, 'entry-approach'),
+      makeNamedFlat('bandit_ridge_camp_lower_barricade_lane', sectionIds.lower, 320, 456, 820, 'frontline-barricade', 'solidLane', 'dirt-terrace'),
+      makeNamedFlat('bandit_ridge_camp_lower_flank', sectionIds.lower, 440, 324, 720, 'frontline-flank', 'solidLane', 'wood-scaffold'),
+      makeNamedFlat('bandit_ridge_camp_lower_barricade_step', sectionIds.lower, 170, 390, 180, 'barricade-step', 'connector', 'wood-step'),
+      makeNamedFlat('bandit_ridge_camp_lower_bypass_step', sectionIds.lower, 1050, 390, 190, 'flank-step', 'connector', 'wood-step'),
+
+      // Middle Thrower Camp: two staggered perches with a main deck and alternate rope access.
+      makeNamedFlat('bandit_ridge_camp_thrower_deck', sectionIds.middle, 1370, 456, 1010, 'thrower-camp-deck', 'solidLane', 'camp-deck'),
+      makeNamedFlat('bandit_ridge_camp_thrower_perch_west', sectionIds.middle, 1450, 324, 720, 'thrower-perch-west', 'solidLane', 'lookout-deck'),
+      makeNamedFlat('bandit_ridge_camp_thrower_perch_east', sectionIds.middle, 1990, 194, 650, 'thrower-perch-east', 'solidLane', 'lookout-deck'),
+      makeNamedSlope('bandit_ridge_camp_thrower_camp_slope', sectionIds.middle, 2120, 324, 456, 250, 'camp-deck-ramp'),
+      makeNamedFlat('bandit_ridge_camp_thrower_crate_step', sectionIds.middle, 1260, 390, 180, 'camp-flank-step', 'connector', 'crate-step'),
+      makeNamedFlat('bandit_ridge_camp_thrower_watch_step', sectionIds.middle, 2430, 259, 220, 'lookout-step', 'connector', 'wood-step'),
+
+      // High Rope Bridge: a distinct bridge line with two approach ropes and a drop return below it.
+      makeNamedFlat('bandit_ridge_camp_bridge_approach', sectionIds.high, 2780, 324, 720, 'bridge-approach', 'solidLane', 'watch-terrace'),
+      Object.assign(
+        makeNamedFlat('bandit_ridge_camp_rope_bridge', sectionIds.high, 2920, 194, 960, 'rope-bridge-drop-loop', 'solidLane', 'rope-bridge'),
+        { dropShortcut: true, dropTargetPlatformId: 'bandit_ridge_camp_bridge_return_lane' }
+      ),
+      makeNamedFlat('bandit_ridge_camp_bridge_return_lane', sectionIds.high, 3200, 456, 760, 'bridge-drop-return', 'solidLane', 'dirt-return'),
+      makeNamedSlope('bandit_ridge_camp_bridge_return_slope', sectionIds.high, 2920, 520, 456, 280, 'return-lane-approach'),
+      makeNamedFlat('bandit_ridge_camp_bridge_west_tower_step', sectionIds.high, 2700, 259, 200, 'bridge-west-tower', 'connector', 'tower-step'),
+      makeNamedFlat('bandit_ridge_camp_bridge_drop_step', sectionIds.high, 3540, 390, 200, 'bridge-drop-marker', 'connector', 'barricade-step'),
+      makeNamedFlat('bandit_ridge_camp_bridge_east_tower_step', sectionIds.high, 3830, 259, 180, 'bridge-east-tower', 'connector', 'tower-step'),
+
+      // Campfire Regroup: broad safe footing, a gate lookout, and no routine spawn ownership.
+      makeNamedFlat('bandit_ridge_camp_regroup_plateau', sectionIds.regroup, 4170, 456, 900, 'campfire-safe-plateau', 'solidLane', 'campfire-terrace'),
+      makeNamedFlat('bandit_ridge_camp_exit_lookout', sectionIds.regroup, 4440, 324, 600, 'exit-lookout', 'solidLane', 'lookout-deck'),
+      makeNamedFlat('bandit_ridge_camp_exit_gate_perch', sectionIds.regroup, 4760, 194, 480, 'dungeon-gate-perch', 'solidLane', 'gate-perch'),
+      makeNamedSlope('bandit_ridge_camp_regroup_slope', sectionIds.regroup, 4050, 520, 456, 260, 'regroup-approach'),
+      makeNamedFlat('bandit_ridge_camp_regroup_gate_step', sectionIds.regroup, 5060, 390, 200, 'dungeon-gate-step', 'connector', 'gate-step')
+    ];
+  }
+
+  function makeBanditRidgeCampClimbables(platforms) {
+    const source = Array.isArray(platforms) ? platforms : [];
+    const platformIndexById = new Map(source.map((platform, index) => [String(platform && platform.id || ''), index]));
+    const connect = (topId, bottomId, key) => makeClimbableBetweenPlatforms(
+      'banditRidgeCamp',
+      source,
+      platformIndexById.get(topId),
+      platformIndexById.get(bottomId),
+      key,
+      'rope'
+    );
+    return [
+      connect('bandit_ridge_camp_lower_barricade_lane', 'bandit_ridge_camp_ground', 'lower_entry'),
+      connect('bandit_ridge_camp_lower_flank', 'bandit_ridge_camp_lower_barricade_lane', 'lower_flank'),
+      connect('bandit_ridge_camp_thrower_deck', 'bandit_ridge_camp_ground', 'thrower_deck'),
+      connect('bandit_ridge_camp_thrower_perch_west', 'bandit_ridge_camp_thrower_deck', 'thrower_west'),
+      connect('bandit_ridge_camp_thrower_perch_east', 'bandit_ridge_camp_thrower_perch_west', 'thrower_east_main'),
+      connect('bandit_ridge_camp_thrower_perch_east', 'bandit_ridge_camp_thrower_deck', 'thrower_east_flank'),
+      connect('bandit_ridge_camp_bridge_approach', 'bandit_ridge_camp_ground', 'bridge_approach'),
+      connect('bandit_ridge_camp_rope_bridge', 'bandit_ridge_camp_bridge_approach', 'bridge_west'),
+      connect('bandit_ridge_camp_rope_bridge', 'bandit_ridge_camp_bridge_return_lane', 'bridge_east'),
+      connect('bandit_ridge_camp_bridge_return_lane', 'bandit_ridge_camp_ground', 'bridge_return'),
+      connect('bandit_ridge_camp_regroup_plateau', 'bandit_ridge_camp_ground', 'regroup'),
+      connect('bandit_ridge_camp_exit_lookout', 'bandit_ridge_camp_regroup_plateau', 'exit_lookout'),
+      connect('bandit_ridge_camp_exit_gate_perch', 'bandit_ridge_camp_exit_lookout', 'exit_gate')
+    ].filter(Boolean);
+  }
+
+  function makeThornpathFractureCanopyPlatforms(width) {
+    const worldWidth = Math.max(5200, Math.ceil(Number(width || 0) / 100) * 100);
+    const lanes = getFieldLaneY('verticalCanopy');
+    const sectionIds = Object.freeze({
+      return: 'thornpathThicket_meadow_return',
+      canopy: 'thornpathThicket_fracture_canopy',
+      fork: 'thornpathThicket_observatory_fork'
+    });
+    const makeNamedFlat = (id, sectionId, x, y, w, routeRole, visualKind, variant) => Object.assign(
+      makePlatformDef(x, y, w, visualKind === 'hop' ? 20 : 22, {
+        kind: visualKind || 'solidLane',
+        variant: variant || routeRole
+      }),
+      { id, sectionId, routeRole }
+    );
+    const makeNamedSlope = (id, sectionId, x, y, y2, w, routeRole) => Object.assign(
+      makeSlopePlatformDef(x, y, y2, w, 24, { kind: 'slope', variant: routeRole }),
+      { id, sectionId, routeRole }
+    );
+
+    return [
+      makeNamedFlat('thornpath_fracture_canopy_ground', '', 0, lanes.ground, worldWidth, 'ground-throughline', 'ground'),
+
+      // Meadow Return: introduce the broken starstone roots before the route commits upward.
+      makeNamedSlope('thornpath_rootfall_entry_slope', sectionIds.return, 80, lanes.ground, lanes.low, 260, 'rootfall-entry'),
+      makeNamedFlat('thornpath_rootfall_lane', sectionIds.return, 340, lanes.low, 820, 'rootfall-frontline', 'solidLane', 'starstone-root'),
+      makeNamedFlat('thornpath_rootfall_relay_shelf', sectionIds.return, 180, lanes.mid, 650, 'rootfall-relay', 'solidLane', 'fractured-bough'),
+      makeNamedFlat('thornpath_rootfall_overlook', sectionIds.return, 470, lanes.high, 680, 'rootfall-overlook', 'solidLane', 'relay-canopy'),
+      makeNamedFlat('thornpath_rootfall_step', sectionIds.return, 760, lanes.lowConnector, 180, 'rootfall-step', 'connector', 'root-step'),
+      makeNamedFlat('thornpath_rootfall_shard_step', sectionIds.return, 930, lanes.highConnector, 170, 'rootfall-shard-step', 'connector', 'starstone-step'),
+
+      // Fracture Canopy: four offset tiers create a readable ascent and a deliberate drop reset.
+      makeNamedSlope('thornpath_relay_entry_slope', sectionIds.canopy, 1260, lanes.ground, lanes.low, 260, 'relay-entry'),
+      makeNamedFlat('thornpath_relay_lower_walk', sectionIds.canopy, 1520, lanes.low, 930, 'relay-lower-control', 'solidLane', 'rootwalk'),
+      makeNamedFlat('thornpath_relay_mid_deck', sectionIds.canopy, 1780, lanes.mid, 1050, 'relay-mid-control', 'solidLane', 'suspended-relay'),
+      makeNamedFlat('thornpath_relay_high_bough', sectionIds.canopy, 2240, lanes.high, 980, 'relay-high-control', 'solidLane', 'fractured-bough'),
+      Object.assign(
+        makeNamedFlat('thornpath_relay_shard_perch', sectionIds.canopy, 2600, lanes.peak, 740, 'relay-drop-reset', 'solidLane', 'starstone-perch'),
+        { dropShortcut: true, dropTargetPlatformId: 'thornpath_relay_mid_deck' }
+      ),
+      makeNamedFlat('thornpath_relay_lower_step', sectionIds.canopy, 2230, lanes.lowConnector, 180, 'relay-lower-step', 'connector', 'root-step'),
+      makeNamedFlat('thornpath_relay_shard_step', sectionIds.canopy, 2890, lanes.highConnector, 180, 'relay-shard-step', 'connector', 'starstone-step'),
+
+      // Observatory Fork: the right branch advances to Bandit Ridge; the upper-left relay reaches Rustcoil.
+      makeNamedSlope('thornpath_fork_entry_slope', sectionIds.fork, 3460, lanes.ground, lanes.low, 260, 'fork-entry'),
+      makeNamedFlat('thornpath_fork_lower_lane', sectionIds.fork, 3720, lanes.low, 920, 'fork-regroup', 'solidLane', 'fork-rootwalk'),
+      makeNamedFlat('thornpath_fork_ridge_branch', sectionIds.fork, 4300, lanes.mid, 760, 'ridge-fracture-branch', 'solidLane', 'ridge-beacon'),
+      makeNamedFlat('thornpath_fork_observatory_branch', sectionIds.fork, 3560, lanes.high, 720, 'observatory-relay-branch', 'solidLane', 'observatory-relay'),
+      makeNamedFlat('thornpath_fork_beacon_perch', sectionIds.fork, 4400, lanes.peak, 600, 'fork-beacon-overlook', 'solidLane', 'starstone-beacon'),
+      makeNamedFlat('thornpath_fork_root_step', sectionIds.fork, 4000, lanes.lowConnector, 180, 'fork-root-step', 'connector', 'root-step'),
+      makeNamedFlat('thornpath_fork_shard_step', sectionIds.fork, 4210, lanes.highConnector, 170, 'fork-shard-step', 'connector', 'starstone-step')
+    ];
+  }
+
+  function makeThornpathFractureCanopyClimbables(platforms) {
+    const source = Array.isArray(platforms) ? platforms : [];
+    const platformIndexById = new Map(source.map((platform, index) => [String(platform && platform.id || ''), index]));
+    const connect = (topId, bottomId, key) => makeClimbableBetweenPlatforms(
+      'thornpathThicket',
+      source,
+      platformIndexById.get(topId),
+      platformIndexById.get(bottomId),
+      key,
+      'vine'
+    );
+    return [
+      connect('thornpath_rootfall_relay_shelf', 'thornpath_rootfall_lane', 'rootfall_relay'),
+      connect('thornpath_rootfall_overlook', 'thornpath_rootfall_relay_shelf', 'rootfall_overlook'),
+      connect('thornpath_relay_mid_deck', 'thornpath_relay_lower_walk', 'relay_mid'),
+      connect('thornpath_relay_high_bough', 'thornpath_relay_mid_deck', 'relay_high'),
+      connect('thornpath_relay_shard_perch', 'thornpath_relay_high_bough', 'relay_perch'),
+      connect('thornpath_relay_shard_perch', 'thornpath_relay_mid_deck', 'relay_perch_flank'),
+      connect('thornpath_fork_ridge_branch', 'thornpath_fork_lower_lane', 'ridge_branch'),
+      connect('thornpath_fork_observatory_branch', 'thornpath_fork_lower_lane', 'observatory_branch')
+    ].filter(Boolean);
+  }
+
+  function makeFrostfenMarshRunPlatforms(width) {
+    const worldWidth = Math.max(5600, Math.ceil(Number(width || 0) / 100) * 100);
+    const lanes = getFieldLaneY('switchbackTerraces');
+    const sectionIds = Object.freeze({
+      marsh: 'frostfenOutskirts_frozen_marsh',
+      shelf: 'frostfenOutskirts_rimeglass_shelf',
+      grove: 'frostfenOutskirts_oracle_grove'
+    });
+    const makeNamedFlat = (id, sectionId, x, y, w, routeRole, visualKind, variant) => Object.assign(
+      makePlatformDef(x, y, w, visualKind === 'hop' ? 20 : 22, {
+        kind: visualKind || 'solidLane',
+        variant: variant || routeRole
+      }),
+      { id, sectionId, routeRole }
+    );
+    const makeNamedSlope = (id, sectionId, x, y, y2, w, routeRole) => Object.assign(
+      makeSlopePlatformDef(x, y, y2, w, 24, { kind: 'slope', variant: routeRole }),
+      { id, sectionId, routeRole }
+    );
+
+    return [
+      makeNamedFlat('frostfen_marsh_run_ground', '', 0, lanes.ground, worldWidth, 'ground-throughline', 'ground'),
+
+      // Frozen Marsh: a long low runway makes the ice profile readable before the route climbs.
+      makeNamedSlope('frostfen_marsh_entry_slope', sectionIds.marsh, 80, lanes.ground, lanes.low, 300, 'marsh-entry'),
+      makeNamedFlat('frostfen_marsh_runway', sectionIds.marsh, 380, lanes.low, 920, 'marsh-slide-runway', 'solidLane', 'rime-runway'),
+      makeNamedFlat('frostfen_marsh_windbreak', sectionIds.marsh, 180, lanes.mid, 720, 'marsh-windbreak', 'solidLane', 'snowbreak-shelf'),
+      makeNamedFlat('frostfen_marsh_signal_overlook', sectionIds.marsh, 520, lanes.high, 700, 'signal-overlook', 'solidLane', 'signal-wreck'),
+      makeNamedFlat('frostfen_marsh_runout_step', sectionIds.marsh, 230, lanes.lowConnector, 180, 'marsh-runout-step', 'connector', 'ice-step'),
+      makeNamedFlat('frostfen_marsh_signal_step', sectionIds.marsh, 980, lanes.highConnector, 180, 'signal-step', 'connector', 'rime-step'),
+
+      // Rimeglass Shelf: offset shelves create a parallel upper route and a sheltered recovery pocket.
+      makeNamedSlope('frostfen_shelf_entry_slope', sectionIds.shelf, 1520, lanes.ground, lanes.low, 320, 'shelf-entry'),
+      makeNamedFlat('frostfen_shelf_lower_run', sectionIds.shelf, 1840, lanes.low, 1120, 'shelf-lower-run', 'solidLane', 'packed-snow-run'),
+      makeNamedFlat('frostfen_rimeglass_shelf', sectionIds.shelf, 1660, lanes.mid, 1040, 'rimeglass-main-shelf', 'solidLane', 'rimeglass-shelf'),
+      makeNamedFlat('frostfen_shelf_upper_drift', sectionIds.shelf, 2300, lanes.high, 1040, 'shelf-upper-route', 'solidLane', 'wind-carved-drift'),
+      makeNamedFlat('frostfen_shelf_shelter_pocket', sectionIds.shelf, 2860, lanes.mid, 720, 'shelf-shelter-pocket', 'solidLane', 'snowbreak-pocket'),
+      makeNamedFlat('frostfen_shelf_lower_step', sectionIds.shelf, 2780, lanes.lowConnector, 180, 'shelf-lower-step', 'connector', 'ice-step'),
+      makeNamedFlat('frostfen_shelf_upper_step', sectionIds.shelf, 2160, lanes.highConnector, 180, 'shelf-upper-step', 'connector', 'rime-step'),
+
+      // Oracle Grove: the bloom perch overlaps a broad lower recovery lane for a deliberate drop reset.
+      makeNamedSlope('frostfen_grove_entry_slope', sectionIds.grove, 3720, lanes.ground, lanes.low, 300, 'grove-entry'),
+      makeNamedFlat('frostfen_oracle_recovery_run', sectionIds.grove, 4020, lanes.low, 1180, 'oracle-drop-recovery', 'solidLane', 'grove-recovery-run'),
+      makeNamedFlat('frostfen_oracle_grove_shelf', sectionIds.grove, 3820, lanes.mid, 920, 'oracle-control-shelf', 'solidLane', 'oracle-grove'),
+      Object.assign(
+        makeNamedFlat('frostfen_oracle_bloom_perch', sectionIds.grove, 4440, lanes.high, 760, 'oracle-drop-reset', 'solidLane', 'icebloom-perch'),
+        { dropShortcut: true, dropTargetPlatformId: 'frostfen_oracle_recovery_run' }
+      ),
+      makeNamedFlat('frostfen_oracle_exit_shelf', sectionIds.grove, 4780, lanes.mid, 660, 'glacier-exit-shelf', 'solidLane', 'rime-relay-exit'),
+      makeNamedFlat('frostfen_grove_lower_step', sectionIds.grove, 4280, lanes.lowConnector, 180, 'grove-lower-step', 'connector', 'ice-step'),
+      makeNamedFlat('frostfen_grove_bloom_step', sectionIds.grove, 4760, lanes.highConnector, 180, 'grove-bloom-step', 'connector', 'rime-step')
+    ];
+  }
+
+  function makeFrostfenMarshRunClimbables(platforms) {
+    const source = Array.isArray(platforms) ? platforms : [];
+    const platformIndexById = new Map(source.map((platform, index) => [String(platform && platform.id || ''), index]));
+    const connect = (topId, bottomId, key) => makeClimbableBetweenPlatforms(
+      'frostfenOutskirts',
+      source,
+      platformIndexById.get(topId),
+      platformIndexById.get(bottomId),
+      key,
+      'frost_ladder'
+    );
+    return [
+      connect('frostfen_marsh_windbreak', 'frostfen_marsh_runway', 'marsh_windbreak'),
+      connect('frostfen_marsh_signal_overlook', 'frostfen_marsh_windbreak', 'marsh_signal'),
+      connect('frostfen_rimeglass_shelf', 'frostfen_shelf_lower_run', 'rimeglass_shelf'),
+      connect('frostfen_shelf_upper_drift', 'frostfen_rimeglass_shelf', 'upper_drift'),
+      connect('frostfen_oracle_grove_shelf', 'frostfen_oracle_recovery_run', 'oracle_shelf'),
+      connect('frostfen_oracle_bloom_perch', 'frostfen_oracle_grove_shelf', 'oracle_bloom')
+    ].filter(Boolean);
+  }
+
+  function makeRustcoilOrreryCircuitPlatforms(width) {
+    const worldWidth = Math.max(5200, Math.ceil(Number(width || 0) / 100) * 100);
+    const lanes = getFieldLaneY('industrialStack');
+    const sectionIds = Object.freeze({
+      yard: 'rustcoilRuins_surveyor_yard',
+      switchworks: 'rustcoilRuins_coil_switchworks',
+      gearwell: 'rustcoilRuins_warden_gearwell'
+    });
+    const makeNamedFlat = (id, sectionId, x, y, w, routeRole, visualKind, variant) => Object.assign(
+      makePlatformDef(x, y, w, visualKind === 'hop' ? 20 : 22, {
+        kind: visualKind || 'solidLane',
+        variant: variant || routeRole
+      }),
+      { id, sectionId, routeRole }
+    );
+    const makeNamedSlope = (id, sectionId, x, y, y2, w, routeRole) => Object.assign(
+      makeSlopePlatformDef(x, y, y2, w, 24, { kind: 'slope', variant: routeRole }),
+      { id, sectionId, routeRole }
+    );
+
+    return [
+      makeNamedFlat('rustcoil_orrery_circuit_ground', '', 0, lanes.ground, worldWidth, 'ground-throughline', 'ground'),
+
+      // Surveyor Yard: a clear quest arrival flows into the first broken orrery loop.
+      makeNamedSlope('rustcoil_yard_entry_slope', sectionIds.yard, 680, lanes.ground, lanes.low, 260, 'surveyor-yard-entry'),
+      makeNamedFlat('rustcoil_yard_ratchet_lane', sectionIds.yard, 700, lanes.low, 760, 'yard-ratchet-lane', 'solidLane', 'ratchet-track'),
+      makeNamedFlat('rustcoil_yard_service_gantry', sectionIds.yard, 420, lanes.mid, 800, 'yard-service-gantry', 'solidLane', 'service-gantry'),
+      makeNamedFlat('rustcoil_yard_broken_orrery', sectionIds.yard, 720, lanes.high, 720, 'yard-orrery-overlook', 'solidLane', 'broken-orrery'),
+      makeNamedFlat('rustcoil_yard_ratchet_step', sectionIds.yard, 1170, lanes.lowConnector, 180, 'yard-ratchet-step', 'connector', 'gear-step'),
+      makeNamedFlat('rustcoil_yard_orrery_step', sectionIds.yard, 1210, lanes.highConnector, 180, 'yard-orrery-step', 'connector', 'orrery-step'),
+
+      // Coil Switchworks: parallel catwalks make a readable loop around the central conveyor.
+      makeNamedSlope('rustcoil_switchworks_entry_slope', sectionIds.switchworks, 1510, lanes.ground, lanes.low, 260, 'switchworks-entry'),
+      makeNamedFlat('rustcoil_switchworks_conveyor', sectionIds.switchworks, 1770, lanes.low, 1000, 'switchworks-conveyor', 'solidLane', 'coil-conveyor'),
+      makeNamedFlat('rustcoil_switchworks_west_catwalk', sectionIds.switchworks, 1530, lanes.mid, 940, 'switchworks-west-catwalk', 'solidLane', 'switch-catwalk'),
+      makeNamedFlat('rustcoil_switchworks_return_deck', sectionIds.switchworks, 2300, lanes.mid, 1000, 'switchworks-return-deck', 'solidLane', 'return-deck'),
+      makeNamedFlat('rustcoil_switchworks_east_catwalk', sectionIds.switchworks, 2440, lanes.high, 800, 'switchworks-east-catwalk', 'solidLane', 'sentry-catwalk'),
+      makeNamedFlat('rustcoil_switchworks_conveyor_step', sectionIds.switchworks, 2270, lanes.lowConnector, 180, 'switchworks-conveyor-step', 'connector', 'coil-step'),
+      makeNamedFlat('rustcoil_switchworks_catwalk_step', sectionIds.switchworks, 2260, lanes.highConnector, 180, 'switchworks-catwalk-step', 'connector', 'relay-step'),
+
+      // Warden Gearwell: climb the gear ring and relay dais, then drop from the starcoil to reset.
+      makeNamedSlope('rustcoil_warden_entry_slope', sectionIds.gearwell, 3410, lanes.ground, lanes.low, 260, 'warden-gearwell-entry'),
+      makeNamedFlat('rustcoil_warden_return_belt', sectionIds.gearwell, 3670, lanes.low, 1040, 'warden-drop-return', 'solidLane', 'return-belt'),
+      makeNamedFlat('rustcoil_warden_gear_ring', sectionIds.gearwell, 3440, lanes.mid, 820, 'warden-gear-ring', 'solidLane', 'gear-ring'),
+      makeNamedFlat('rustcoil_warden_relay_dais', sectionIds.gearwell, 4200, lanes.high, 800, 'warden-relay-dais', 'solidLane', 'relay-dais'),
+      Object.assign(
+        makeNamedFlat('rustcoil_warden_starcoil_perch', sectionIds.gearwell, 3940, lanes.peak, 780, 'warden-starcoil-drop', 'solidLane', 'starcoil-perch'),
+        { dropShortcut: true, dropTargetPlatformId: 'rustcoil_warden_return_belt' }
+      ),
+      makeNamedFlat('rustcoil_warden_belt_step', sectionIds.gearwell, 4700, lanes.lowConnector, 180, 'warden-belt-step', 'connector', 'gear-step'),
+      makeNamedFlat('rustcoil_warden_relay_step', sectionIds.gearwell, 4760, lanes.highConnector, 180, 'warden-relay-step', 'connector', 'relay-step'),
+      Object.assign(
+        makeNamedFlat('rustcoil_warden_starcoil_service_bridge', sectionIds.gearwell, 4300, 490, 600, 'warden-starcoil-service-bridge', 'connector', 'starcoil-service-bridge'),
+        {
+          terrainVisual: { kind: 'connector', variant: 'starcoil-service-bridge', longSpan: true }
+        }
+      )
+    ];
+  }
+
+  function makeRustcoilOrreryCircuitClimbables(platforms) {
+    const source = Array.isArray(platforms) ? platforms : [];
+    const platformIndexById = new Map(source.map((platform, index) => [String(platform && platform.id || ''), index]));
+    const connect = (topId, bottomId, key) => makeClimbableBetweenPlatforms(
+      'rustcoilRuins',
+      source,
+      platformIndexById.get(topId),
+      platformIndexById.get(bottomId),
+      key,
+      'lift'
+    );
+    return [
+      connect('rustcoil_yard_service_gantry', 'rustcoil_yard_ratchet_lane', 'yard_service'),
+      connect('rustcoil_yard_broken_orrery', 'rustcoil_yard_service_gantry', 'yard_orrery'),
+      connect('rustcoil_switchworks_west_catwalk', 'rustcoil_switchworks_conveyor', 'switchworks_west'),
+      connect('rustcoil_switchworks_return_deck', 'rustcoil_switchworks_conveyor', 'switchworks_return'),
+      connect('rustcoil_switchworks_east_catwalk', 'rustcoil_switchworks_return_deck', 'switchworks_east'),
+      connect('rustcoil_warden_gear_ring', 'rustcoil_warden_return_belt', 'warden_ring'),
+      connect('rustcoil_warden_relay_dais', 'rustcoil_warden_gear_ring', 'warden_relay'),
+      connect('rustcoil_warden_starcoil_perch', 'rustcoil_warden_relay_dais', 'warden_starcoil')
+    ].filter(Boolean);
+  }
+
   function makePriorityFieldPlatforms(width, layoutStyle, variantKey) {
     const mapId = String(variantKey || '');
     if (!PRIORITY_FIELD_LAYOUT_IDS.includes(mapId)) return null;
@@ -252,36 +574,36 @@
     };
 
     if (mapId === 'greenrootMeadow') {
-      const lowY = lanes.low;
-      const midY = lanes.mid + 10;
-      const highY = lanes.high + 20;
-      [
-        { lowX: 320, midX: 580, highX: 840, lowW: 1040, midW: 980, highW: 900 },
-        { lowX: 1520, midX: 1780, highX: 2040, lowW: 1040, midW: 980, highW: 900 },
-        { lowX: 2720, midX: 2980, highX: 3240, lowW: 1100, midW: 1000, highW: 800 }
-      ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 280,
-        slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
-      }, index));
-      addPlatform(1360, lanes.mid - 52, 260, 'hop');
-      addPlatform(2560, lanes.mid - 52, 260, 'hop');
+      // The opening field is an authored journey, not a repeated lane pack:
+      // arrival shelf -> combat basin -> reward overlook -> broken bridge -> beacon.
+      addPlatform(80, lanes.low, 920, 'solidLane');
+      addSlope(1000, lanes.ground, lanes.low, 260);
+      addPlatform(1260, lanes.low, 720, 'solidLane');
+      addPlatform(600, lanes.mid, 640, 'solidLane');
+      addPlatform(1780, lanes.lowConnector, 180, 'connector');
+      addSlope(1960, lanes.ground, lanes.lowConnector, 300);
+      addPlatform(2260, lanes.lowConnector, 860, 'solidLane');
+      addPlatform(2480, lanes.highConnector, 520, 'solidLane');
+      addSlope(3120, lanes.lowConnector, lanes.low, 260);
+      addPlatform(3380, lanes.low, 660, 'solidLane');
+      addPlatform(3720, lanes.mid, 320, 'solidLane');
       return platforms;
     }
 
+    if (mapId === 'thornpathThicket') {
+      return makeThornpathFractureCanopyPlatforms(worldWidth);
+    }
+
     if (mapId === 'banditRidgeCamp') {
-      const lowY = lanes.low;
-      const midY = lanes.mid + 6;
-      const highY = lanes.high + 14;
-      [
-        { lowX: 400, midX: 700, highX: 1000, lowW: 1320, midW: 1180, highW: 1040 },
-        { lowX: 2000, midX: 2300, highX: 2600, lowW: 1320, midW: 1180, highW: 1040 },
-        { lowX: 3600, midX: 3900, highX: 4200, lowW: 1320, midW: 1180, highW: 1040 }
-      ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 300,
-        slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
-      }, index));
-      addPlatform(3500, midY - 58, 280, 'hop');
-      return platforms;
+      return makeBanditRidgeCampPlatforms(worldWidth);
+    }
+
+    if (mapId === 'frostfenOutskirts') {
+      return makeFrostfenMarshRunPlatforms(worldWidth);
+    }
+
+    if (mapId === 'rustcoilRuins') {
+      return makeRustcoilOrreryCircuitPlatforms(worldWidth);
     }
 
     if (mapId === 'orebackQuarry') {
@@ -676,6 +998,14 @@
     makePartyPlayClimbables,
     makePartyPlaySpawnPoints,
     makeDungeonArenaPlatforms,
+    makeBanditRidgeCampPlatforms,
+    makeBanditRidgeCampClimbables,
+    makeThornpathFractureCanopyPlatforms,
+    makeThornpathFractureCanopyClimbables,
+    makeFrostfenMarshRunPlatforms,
+    makeFrostfenMarshRunClimbables,
+    makeRustcoilOrreryCircuitPlatforms,
+    makeRustcoilOrreryCircuitClimbables,
     makePriorityFieldPlatforms,
     makeFieldPlatforms,
     makeTerrainIslandSegments,

@@ -11,6 +11,7 @@
     "runtimeData": "js/games/project-starfall/project-starfall-data.js"
   },
   "requiredFolders": [
+    "asset-sources/project-starfall/players/class-families",
     "asset-sources/project-starfall/players/classes",
     "asset-sources/project-starfall/players/equipment",
     "asset-sources/project-starfall/enemies/compact",
@@ -59,12 +60,16 @@
   ],
   "contracts": {
     "players": {
-      "sourceFolder": "asset-sources/project-starfall/players/classes",
-      "sourcePattern": "<file-id>-source.png",
+      "artVersion": "v5",
+      "sourceFolder": "asset-sources/project-starfall/players/class-families",
+      "sourcePattern": "<family-id>-v5-source.png",
+      "generationSourcePattern": "<family-id>-v5-generated-chroma.png",
       "portraitFolder": "img/project-starfall/characters",
-      "portraitPattern": "<file-id>.png",
+      "portraitPattern": "<family-id>-v5.png",
       "animationFolder": "img/project-starfall/animations/players",
-      "animationPattern": "<file-id>-sheet.png",
+      "animationPattern": "<family-id>-sheet-v5.png",
+      "fallbackPortrait": "img/project-starfall/characters/generic-player-v4.png",
+      "fallbackAnimation": "img/project-starfall/animations/players/generic-player-sheet-v4.png",
       "frameSize": 160,
       "columns": 6,
       "rows": [
@@ -83,6 +88,25 @@
       "sheetHeight": 1600,
       "portraitWidth": 320,
       "portraitHeight": 320,
+      "families": [
+        "fighter",
+        "mage",
+        "archer"
+      ],
+      "classFamilies": {
+        "fighter": "fighter",
+        "guardian": "fighter",
+        "berserker": "fighter",
+        "duelist": "fighter",
+        "mage": "mage",
+        "fireMage": "mage",
+        "runeMage": "mage",
+        "stormMage": "mage",
+        "archer": "archer",
+        "sniper": "archer",
+        "trapper": "archer",
+        "beastArcher": "archer"
+      },
       "classes": [
         "fighter",
         "mage",
@@ -101,7 +125,8 @@
     },
     "equipmentAtlases": {
       "folder": "img/project-starfall/equipment-atlases",
-      "pattern": "<equipment-file-id>-atlas.png",
+      "pattern": "<equipment-file-id>-atlas-v2.png",
+      "version": 2,
       "cellSize": 128,
       "columns": 8,
       "angleCount": 8,
@@ -356,7 +381,7 @@
           "path": "img/project-starfall/environment/structures/town-landmarks.png",
           "source": "img/project-starfall/environment/structures/source/ai-town-landmarks.png",
           "width": 1024,
-          "height": 512,
+          "height": 768,
           "cellSize": 256,
           "columns": 4,
           "rows": 2

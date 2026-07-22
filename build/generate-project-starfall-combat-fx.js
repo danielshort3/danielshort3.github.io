@@ -90,7 +90,7 @@ function normalizeMode(mode) {
 
 function usage() {
   return [
-    'Usage: node build/generate-project-starfall-combat-fx.js --only all [--skill <skill-id>]',
+    'Usage: node build/generate-project-starfall-combat-fx.js --only all [--skill <skill-id>] [--enemy <enemy-id,...>] [--output-dir <path>]',
     'Modes: --only all, --only skills, --only basic, --only enemies',
     'Dedicated skill sources take priority; remaining skills use deterministic semantic profiles.'
   ].join('\n');
@@ -779,7 +779,7 @@ async function validateSkillFxBuffer(buffer, entryOrLabel) {
   return validateSemanticSheetData(data, info.width, info.height, label);
 }
 
-function selectSkillEntries(entries, requestedIds) {
+function selectEntries(entries, requestedIds, label) {
   const requested = (Array.isArray(requestedIds) ? requestedIds : [requestedIds])
     .map(normalizeId)
     .filter(Boolean);
@@ -798,8 +798,12 @@ function selectSkillEntries(entries, requestedIds) {
     });
   });
   const unknown = requested.filter((id) => !matched.has(id));
-  if (unknown.length) throw new Error(`Unknown skill FX id(s): ${unknown.join(', ')}`);
+  if (unknown.length) throw new Error(`Unknown ${label || 'combat'} FX id(s): ${unknown.join(', ')}`);
   return selected;
+}
+
+function selectSkillEntries(entries, requestedIds) {
+  return selectEntries(entries, requestedIds, 'skill');
 }
 
 function outputPathFor(entry, outputDir) {
@@ -884,6 +888,8 @@ async function main(argv = process.argv.slice(2)) {
   }
   const mode = normalizeMode(getOnlyMode(argv));
   const requestedSkill = getArgValue(argv, '--skill');
+  const requestedEnemy = getArgValue(argv, '--enemy');
+  const outputDir = getArgValue(argv, '--output-dir');
   const entries = buildEntries();
   if (requestedSkill || mode === 'skills') {
     if (requestedSkill && mode !== 'all' && mode !== 'skills') {
@@ -893,14 +899,18 @@ async function main(argv = process.argv.slice(2)) {
     console.log(`Generated ${result.processed} semantic Project Starfall skill FX sheet(s); ${result.sourceBacked} dedicated source sheet(s) applied last.`);
     return;
   }
-  const selected = mode === 'all'
+  if (requestedEnemy && mode !== 'enemies') {
+    throw new Error(`--enemy cannot be combined with --only ${mode}`);
+  }
+  let selected = mode === 'all'
     ? entries.basic.concat(entries.enemies)
     : entries[mode];
   if (!selected) throw new Error(`Unknown mode: ${mode}\n${usage()}`);
+  if (requestedEnemy) selected = selectEntries(selected, requestedEnemy.split(','), 'enemy');
 
   let skillResult = null;
   if (mode === 'all') skillResult = await processSemanticSkillFx();
-  for (const entry of selected) await writeEntry(entry);
+  for (const entry of selected) await writeEntry(entry, { outputDir });
   const skillSummary = skillResult
     ? ` Generated ${skillResult.processed} semantic skill FX sheets; ${skillResult.sourceBacked} dedicated source sheet(s) applied last.`
     : '';

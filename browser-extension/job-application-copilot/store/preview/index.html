@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280, initial-scale=1">
+  <title>Job Application Copilot — Store screenshot preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --midnight: #091f3b;
+      --signal-blue: #005fed;
+      --canvas: #f3f6fa;
+      --border: #d8e0ea;
+      --ink: #010414;
+      --slate: #475569;
+      --surface: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 1280px;
+      height: 800px;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .browser-frame {
+      display: grid;
+      grid-template-rows: 56px 1fr;
+      width: 100%;
+      height: 100%;
+      background: var(--surface);
+    }
+
+    .browser-bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 18px;
+      padding: 0 22px;
+      border-bottom: 1px solid #cbd5e1;
+      background: #e8edf4;
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .browser-dots span {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: #94a3b8;
+    }
+
+    .address {
+      max-width: 650px;
+      padding: 9px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      color: #64748b;
+      background: #ffffff;
+      font-size: 13px;
+    }
+
+    .preview-label {
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      min-height: 0;
+    }
+
+    .application {
+      min-width: 0;
+      padding: 42px 64px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 16% 4%, rgba(0, 95, 237, 0.08), transparent 300px),
+        #f8fafc;
+    }
+
+    .application-shell {
+      max-width: 690px;
+      margin: 0 auto;
+    }
+
+    .company {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 34px;
+      color: var(--midnight);
+      font-weight: 800;
+    }
+
+    .company-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 9px;
+      color: #ffffff;
+      background: var(--signal-blue);
+      font-size: 13px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--signal-blue);
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--midnight);
+      font-size: 34px;
+      letter-spacing: -0.035em;
+    }
+
+    .meta {
+      margin: 10px 0 28px;
+      color: var(--slate);
+      font-size: 14px;
+    }
+
+    .form-card {
+      padding: 26px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: 0 14px 40px rgba(9, 31, 59, 0.08);
+    }
+
+    .form-card h2 {
+      margin: 0 0 22px;
+      color: var(--midnight);
+      font-size: 18px;
+    }
+
+    .field {
+      margin-top: 20px;
+    }
+
+    .field:first-of-type {
+      margin-top: 0;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .fake-input,
+    .fake-textarea {
+      width: 100%;
+      border: 1px solid #b7c3d2;
+      border-radius: 9px;
+      color: #64748b;
+      background: #ffffff;
+      font-size: 14px;
+    }
+
+    .fake-input {
+      height: 42px;
+      padding: 10px 12px;
+    }
+
+    .fake-textarea {
+      height: 96px;
+      padding: 12px;
+    }
+
+    .notice {
+      margin-top: 18px;
+      padding: 11px 14px;
+      border-left: 3px solid var(--signal-blue);
+      color: #475569;
+      background: #eff6ff;
+      font-size: 12px;
+    }
+
+    .panel-frame {
+      width: 420px;
+      height: 744px;
+      border: 0;
+      border-left: 1px solid #cbd5e1;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <main class="browser-frame" aria-label="Synthetic screenshot frame">
+    <header class="browser-bar">
+      <div class="browser-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="address">jobs.example/apply/data-analyst</div>
+      <div class="preview-label">Synthetic preview</div>
+    </header>
+    <div class="workspace">
+      <section class="application" aria-label="Synthetic job application">
+        <div class="application-shell">
+          <div class="company"><span class="company-mark">EA</span> Example Analytics</div>
+          <p class="eyebrow">Application</p>
+          <h1>Data Analyst</h1>
+          <p class="meta">Denver, Colorado · Full time</p>
+          <div class="form-card">
+            <h2>About you</h2>
+            <div class="field">
+              <label>Email address</label>
+              <div class="fake-input">candidate@example.com</div>
+            </div>
+            <div class="field">
+              <label>Why are you interested in this role?</label>
+              <div class="fake-textarea">I am interested in applying my experience building transparent analytics tools in a collaborative environment.</div>
+            </div>
+            <div class="notice">Answers shown here are synthetic. No application can be submitted from this preview.</div>
+          </div>
+        </div>
+      </section>
+      <iframe class="panel-frame" src="../../dist/sidepanel/sidepanel.html?preview=1" title="Job Application Copilot side panel preview"></iframe>
+    </div>
+  </main>
+</body>
+</html>
+

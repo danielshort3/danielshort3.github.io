@@ -58,8 +58,8 @@
           destinationMapId: 'banditRidgeCamp',
           routeId: 'forest',
           requiredMapId: 'thornpathThicket',
-          x: 7330,
-          platformIndex: 0,
+          x: 4900,
+          platformIndex: 16,
         }),
         Object.freeze({
           id: 'thornpath_rustcoil_outpost',
@@ -67,8 +67,8 @@
           destinationMapId: 'rustcoilOutpost',
           routeId: 'forest',
           requiredMapId: 'thornpathThicket',
-          x: 7460,
-          platformIndex: 0,
+          x: 4100,
+          platformIndex: 17,
         }),
       ]),
       banditRidgeCamp: Object.freeze([
@@ -296,8 +296,8 @@
           destinationMapId: 'glacierSpine',
           routeId: 'frostfen',
           requiredMapId: 'frostfenOutskirts',
-          x: 8060,
-          platformIndex: 0,
+          x: 5320,
+          platformIndex: 18,
         }),
       ]),
       glacierSpine: Object.freeze([

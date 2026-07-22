@@ -148,6 +148,8 @@ function collectDistArtifacts(cssManifest, jsManifest) {
     'styles-home.css',
     'styles-workbench.css',
     'styles-tools.css',
+    'styles-professional.css',
+    'styles-analytics.css',
     'styles-manifest.json',
     'scripts-manifest.json',
     'utm-batch-builder.js',
@@ -370,6 +372,12 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
   if (cssHrefs.tools) {
     next = next.replace(/href=(["'])dist\/styles-tools\.css\1/g, `href="dist/${cssHrefs.tools}"`);
   }
+  if (cssHrefs.professional) {
+    next = next.replace(/href=(["'])dist\/styles-professional\.css\1/g, `href="dist/${cssHrefs.professional}"`);
+  }
+  if (cssHrefs.analytics) {
+    next = next.replace(/href=(["'])dist\/styles-analytics\.css\1/g, `href="dist/${cssHrefs.analytics}"`);
+  }
   return next;
 }
 
@@ -551,7 +559,9 @@ function copyStatic(){
     base: cssManifest && typeof cssManifest.file === 'string' ? cssManifest.file : null,
     home: cssManifest && typeof cssManifest.homeFile === 'string' ? cssManifest.homeFile : null,
     workbench: cssManifest && typeof cssManifest.workbenchFile === 'string' ? cssManifest.workbenchFile : null,
-    tools: cssManifest && typeof cssManifest.toolsFile === 'string' ? cssManifest.toolsFile : null
+    tools: cssManifest && typeof cssManifest.toolsFile === 'string' ? cssManifest.toolsFile : null,
+    professional: cssManifest && typeof cssManifest.professionalFile === 'string' ? cssManifest.professionalFile : null,
+    analytics: cssManifest && typeof cssManifest.analyticsFile === 'string' ? cssManifest.analyticsFile : null
   };
   if (!cssHrefs.base) {
     log('No CSS manifest found; leaving dist/styles.css references intact.');
@@ -577,6 +587,8 @@ function copyStatic(){
     if (cssHrefs.home) rewrittenTargets.push(`dist/${cssHrefs.home}`);
     if (cssHrefs.workbench) rewrittenTargets.push(`dist/${cssHrefs.workbench}`);
     if (cssHrefs.tools) rewrittenTargets.push(`dist/${cssHrefs.tools}`);
+    if (cssHrefs.professional) rewrittenTargets.push(`dist/${cssHrefs.professional}`);
+    if (cssHrefs.analytics) rewrittenTargets.push(`dist/${cssHrefs.analytics}`);
     log(`Rewrote CSS links in ${rewrote} HTML files to ${rewrittenTargets.join(', ')}`);
   }
   rewriteGoogleMapsEmbedsInPublic();

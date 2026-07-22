@@ -1,0 +1,31 @@
+{
+  "fixtureVersion": 1,
+  "source": "Sanitized structural capture of a public Ashby application",
+  "url": "https://jobs.ashbyhq.com/airwallex/00beff32-99b6-4cf5-8d9e-399a1f07bbe6/application",
+  "applicationForm": {
+    "selector": "[data-testid=\"application-form\"]",
+    "tagName": "FORM",
+    "data-testid": "application-form",
+    "fields": [
+      { "tagName": "INPUT", "type": "text", "name": "_systemfield_name", "label": "Name" },
+      { "tagName": "INPUT", "type": "email", "name": "_systemfield_email", "label": "Email" },
+      { "tagName": "INPUT", "type": "tel", "name": "_systemfield_phone", "label": "Phone" },
+      { "tagName": "TEXTAREA", "name": "project_proud_of", "label": "What project are you most proud of?" },
+      { "tagName": "SELECT", "name": "sponsorship", "label": "Will you require sponsorship?" },
+      { "tagName": "INPUT", "type": "file", "name": "_systemfield_resume", "label": "Resume" },
+      { "tagName": "TEXTAREA", "name": "g-recaptcha-response", "label": "reCAPTCHA response" },
+      { "tagName": "INPUT", "type": "checkbox", "name": "privacy", "label": "I acknowledge the privacy policy" },
+      { "tagName": "BUTTON", "type": "submit", "name": "submit", "label": "Submit application" }
+    ]
+  },
+  "auxiliaryForms": [
+    {
+      "selector": "form.newsletter",
+      "tagName": "FORM",
+      "className": "newsletter subscribe",
+      "fields": [
+        { "tagName": "INPUT", "type": "email", "name": "newsletter_email", "label": "Email updates" }
+      ]
+    }
+  ]
+}

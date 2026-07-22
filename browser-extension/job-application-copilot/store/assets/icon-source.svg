@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Job Application Copilot icon</title>
+  <desc id="desc">A cited document with a verified check on a midnight blue field.</desc>
+  <defs>
+    <linearGradient id="background" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0d2b51"/>
+      <stop offset="1" stop-color="#091f3b"/>
+    </linearGradient>
+    <filter id="shadow" x="78" y="62" width="372" height="404" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#010414" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <g id="icon-artwork" transform="translate(51.2 51.2) scale(0.8)">
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#background)"/>
+  <path d="M84 364C130 300 150 278 201 244C257 208 311 180 430 138" fill="none" stroke="#005fed" stroke-width="28" stroke-linecap="round" opacity="0.34"/>
+  <g filter="url(#shadow)">
+    <path d="M128 86H311L390 165V400C390 424 371 444 347 444H128C104 444 84 424 84 400V130C84 106 104 86 128 86Z" fill="#ffffff"/>
+    <path d="M311 86V144C311 156 321 165 333 165H390L311 86Z" fill="#d8e0ea"/>
+  </g>
+  <rect x="132" y="194" width="174" height="24" rx="12" fill="#005fed"/>
+  <rect x="132" y="246" width="198" height="18" rx="9" fill="#b7c3d2"/>
+  <rect x="132" y="286" width="154" height="18" rx="9" fill="#b7c3d2"/>
+  <path d="M135 350H241" fill="none" stroke="#d97706" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="365" cy="369" r="74" fill="#166534" stroke="#ffffff" stroke-width="16"/>
+  <path d="M329 369L353 393L402 340" fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
+

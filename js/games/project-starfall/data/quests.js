@@ -35,11 +35,11 @@
     const QUESTS = Object.freeze([
       Object.freeze({
         id: 'first_steps',
-        title: 'First Steps in Greenroot',
-        summary: 'Scout the starter meadow, learn the loot loop, and return with early materials.',
+        title: 'First Expedition',
+        summary: 'Reach Starfall Verge, defeat its first frontier threats, and recover a dropped field material.',
         objectives: Object.freeze([
-          Object.freeze({ id: 'travel_greenroot', type: 'travel', mapId: 'greenrootMeadow', count: 1, label: 'Travel to Greenroot Meadow' }),
-          Object.freeze({ id: 'defeat_slimelets', type: 'defeat', enemyId: 'slimelet', count: 3, label: 'Defeat 3 Slimelets' }),
+          Object.freeze({ id: 'travel_greenroot', type: 'travel', mapId: 'greenrootMeadow', count: 1, label: 'Reach Starfall Verge' }),
+          Object.freeze({ id: 'defeat_glassbacks_intro', type: 'defeat', enemyId: 'glassback', count: 3, label: 'Defeat 3 Glassbacks' }),
           Object.freeze({ id: 'loot_drop', type: 'loot', count: 1, label: 'Loot 1 dropped item' })
         ]),
         rewards: Object.freeze({ xp: 90, currency: 60, materials: Object.freeze({ upgradeDust: 2 }), statUpgradePoints: 1 }),
@@ -61,6 +61,7 @@
         id: 'trial_ready',
         title: 'Ready for Advancement',
         summary: 'Reach the trial tier and complete any branch trial before choosing an advanced class.',
+        requiredLevel: 20,
         objectives: Object.freeze([
           Object.freeze({ id: 'reach_20', type: 'level', level: 20, label: 'Reach Level 20' }),
           Object.freeze({ id: 'complete_trial', type: 'trialComplete', count: 1, label: 'Complete any class trial' })
@@ -82,14 +83,14 @@
       quest({
         id: 'greenroot_samples',
         chainId: 'greenroot_relief',
-        title: 'Greenroot Field Samples',
-        summary: 'Collect ooze samples and clear the meadow so the guide can stock supplies for new scouts.',
+        title: 'Verge Field Samples',
+        summary: 'Recover stable star-glass so the repair crew can reinforce the frontier beacon.',
         requiredQuestIds: ['first_steps'],
         objectives: [
-          { id: 'defeat_dew_slimes', type: 'defeat', enemyId: 'dewSlime', mapId: 'greenrootMeadow', count: 4, label: 'Defeat 4 Dew Slimes' },
-          { id: 'collect_gel_drops', type: 'loot', materialId: 'gelDrop', count: 2, label: 'Collect 2 Gel Drops' }
+          { id: 'defeat_glassbacks', type: 'defeat', enemyId: 'glassback', mapId: 'greenrootMeadow', count: 4, label: 'Defeat 4 Glassbacks' },
+          { id: 'collect_star_glass', type: 'loot', materialId: 'starGlassChip', count: 2, label: 'Collect 2 Star-glass Chips' }
         ],
-        rewards: { xp: 140, currency: 80, materials: { upgradeDust: 3, gelDrop: 1 }, consumables: { minor_health_potion: 2 } }
+        rewards: { xp: 140, currency: 80, materials: { upgradeDust: 3, starGlassChip: 1 }, consumables: { minor_health_potion: 2 } }
       }),
       quest({
         id: 'ridge_courier',

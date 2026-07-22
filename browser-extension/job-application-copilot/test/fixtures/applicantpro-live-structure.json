@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "adapter": "applicantpro",
+  "captchaPresent": true,
+  "applicationForm": {
+    "id": "apply",
+    "fields": [
+      {
+        "tagName": "INPUT",
+        "type": "hidden",
+        "name": "listing_id",
+        "id": "",
+        "label": "Listing identifier",
+        "riskClass": "F0_EXCLUDED"
+      },
+      {
+        "tagName": "INPUT",
+        "type": "text",
+        "name": "first_name",
+        "id": "first_name",
+        "label": "First Name",
+        "riskClass": "F1_VERIFIED"
+      },
+      {
+        "tagName": "INPUT",
+        "type": "text",
+        "name": "last_name",
+        "id": "last_name",
+        "label": "Last Name",
+        "riskClass": "F1_VERIFIED"
+      },
+      {
+        "tagName": "INPUT",
+        "type": "email",
+        "name": "email",
+        "id": "email",
+        "label": "Email",
+        "autocomplete": "off",
+        "riskClass": "F1_VERIFIED"
+      },
+      {
+        "tagName": "INPUT",
+        "type": "text",
+        "name": "contact_number",
+        "id": "contact_number",
+        "label": "Phone Number",
+        "riskClass": "F1_VERIFIED"
+      },
+      {
+        "tagName": "SELECT",
+        "type": "select-one",
+        "name": "contact_number_type",
+        "id": "contact_number_type",
+        "label": "Number Type",
+        "options": ["Home", "Cell", "Work"],
+        "riskClass": "F0_EXCLUDED"
+      },
+      {
+        "tagName": "SELECT",
+        "type": "select-one",
+        "name": "text_approval",
+        "id": "text_approval",
+        "label": "What is your preferred method of communication?",
+        "options": ["Email", "Text Message"],
+        "riskClass": "F2_REVIEW"
+      },
+      {
+        "tagName": "SELECT",
+        "type": "select-one",
+        "name": "applicant_consent_approval",
+        "id": "applicant_consent_approval",
+        "label": "Please indicate if you agree to the Applicant Communication Policy.",
+        "options": [
+          "Yes, I agree to be contacted by text messages",
+          "No, I do not agree to receive text messages"
+        ],
+        "riskClass": "F4_CONSENT"
+      },
+      {
+        "tagName": "INPUT",
+        "type": "checkbox",
+        "name": "info_use_consent",
+        "id": "info_use_consent",
+        "label": "I agree to the Privacy Policy and Terms of Service.",
+        "riskClass": "F4_CONSENT"
+      }
+    ]
+  },
+  "auxiliaryForms": [
+    {
+      "id": "refer-widget-form",
+      "fields": [
+        {
+          "tagName": "INPUT",
+          "type": "text",
+          "name": "email",
+          "id": "refer-email",
+          "label": "Email"
+        },
+        {
+          "tagName": "INPUT",
+          "type": "text",
+          "name": "location",
+          "id": "refer-location",
+          "label": "Location"
+        }
+      ]
+    },
+    {
+      "id": "faq_bar_form",
+      "fields": [
+        {
+          "tagName": "INPUT",
+          "type": "text",
+          "name": "searchCriteria",
+          "id": "faq_bar_searchCriteria",
+          "label": "Search the FAQ here"
+        }
+      ]
+    }
+  ]
+}

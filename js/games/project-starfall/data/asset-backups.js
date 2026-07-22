@@ -36,6 +36,12 @@
       if (sourcePath && backupPath) paths[sourcePath] = backupPath;
     }
 
+    function addSharedAssetBackupPath(paths, assetPath, backupPath) {
+      const sourcePath = assetSourcePath(assetPath);
+      const fallbackPath = assetSourcePath(backupPath);
+      if (sourcePath && fallbackPath) paths[sourcePath] = fallbackPath;
+    }
+
     function collectAnimationBackupPaths(paths, value) {
       if (!value || typeof value !== 'object') return;
       Object.keys(value).forEach((key) => {
@@ -52,9 +58,25 @@
       const paths = {};
       addAssetBackupPath(paths, settings.GENERIC_PLAYER_ASSET);
       collectAnimationBackupPaths(paths, settings.GENERIC_PLAYER_ANIMATION_ASSET);
+      const genericPlayerBackup = proceduralBackupPath(settings.GENERIC_PLAYER_ASSET);
+      const genericAnimationSheet = settings.GENERIC_PLAYER_ANIMATION_ASSET && settings.GENERIC_PLAYER_ANIMATION_ASSET.sheet;
+      const genericAnimationBackup = proceduralBackupPath(genericAnimationSheet);
+      Object.values(settings.CLASS_ASSETS || {}).forEach((assetPath) => {
+        addSharedAssetBackupPath(paths, assetPath, genericPlayerBackup);
+      });
+      Object.values(settings.PLAYER_ANIMATION_ASSETS || {}).forEach((animation) => {
+        addSharedAssetBackupPath(paths, animation && animation.sheet, genericAnimationBackup);
+      });
       Object.values(settings.MENU_ICON_ASSETS || {}).forEach((assetPath) => addAssetBackupPath(paths, assetPath));
       Object.values(settings.CLASS_TRIAL_ASSETS || {}).forEach((assetPath) => addAssetBackupPath(paths, assetPath));
-      AI_DERIVED_MAP_BACKUP_KEYS.forEach((key) => addAssetBackupPath(paths, settings.MAP_ASSETS && settings.MAP_ASSETS[key]));
+      AI_DERIVED_MAP_BACKUP_KEYS.forEach((key) => {
+        const assetPath = settings.MAP_ASSETS && settings.MAP_ASSETS[key];
+        if (key === 'eclipseThrone') {
+          addSharedAssetBackupPath(paths, assetPath, `${ASSET_BACKUP_ROOT}/maps/eclipse-throne.webp`);
+          return;
+        }
+        addAssetBackupPath(paths, assetPath);
+      });
       Object.values(settings.ITEM_ASSETS || {}).forEach((assetPath) => addAssetBackupPath(paths, assetPath));
       (settings.ITEM_SHEET_BACKUP_ASSETS || []).forEach((assetPath) => addAssetBackupPath(paths, assetPath));
       Object.values(settings.CARD_ASSETS || {}).forEach((assetPath) => addAssetBackupPath(paths, assetPath));

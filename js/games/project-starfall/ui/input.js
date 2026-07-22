@@ -8,6 +8,7 @@
     'data-starfall-action',
     'data-starfall-open-panel',
     'data-starfall-command-toggle',
+    'data-starfall-command-channel',
     'data-starfall-close',
     'data-starfall-rebind',
     'data-starfall-bind-action',
@@ -209,6 +210,12 @@
   const DOM_COMMAND_PANEL_TARGET_SELECTOR = DOM_COMMAND_PANEL_TARGET_ATTRIBUTES
     .map((attribute) => `[${attribute}]`)
     .join(', ');
+  const DOM_TOUCH_CONTROL_TARGET_ATTRIBUTES = Object.freeze([
+    'data-starfall-touch-action'
+  ]);
+  const DOM_TOUCH_CONTROL_TARGET_SELECTOR = DOM_TOUCH_CONTROL_TARGET_ATTRIBUTES
+    .map((attribute) => `[${attribute}]`)
+    .join(', ');
 
   function copySet(value) {
     if (value && typeof value.forEach === 'function') {
@@ -364,7 +371,7 @@
       shouldCommitAdminRatePreview: !!settings.shouldCommitAdminRatePreview,
       shouldStopPlinkoDropHold: true,
       plinkoStopOptions: settings.keepConsumedClick ? { keepConsumedClick: true } : null,
-      shouldReleaseAttackInput: true,
+      shouldReleaseAttackInput: !settings.preserveTouchAttack,
       shouldStopPotentialPromptDomDrag: true
     };
   }
@@ -385,6 +392,63 @@
       shouldBasicAttack: handled,
       shouldFocusCanvas: handled,
       shouldPreventDefault: handled
+    };
+  }
+
+  function getTouchControlTarget(target, selector) {
+    const source = target || null;
+    const touchSelector = selector || DOM_TOUCH_CONTROL_TARGET_SELECTOR;
+    return source && typeof source.closest === 'function'
+      ? source.closest(touchSelector)
+      : null;
+  }
+
+  function getTouchControlPointerAction(event, options) {
+    const source = event || {};
+    const settings = options || {};
+    const target = getTouchControlTarget(source.target, settings.selector);
+    const pointerId = source.pointerId == null ? '' : String(source.pointerId);
+    const pointerType = String(source.pointerType || 'touch');
+    const actionId = target && typeof target.getAttribute === 'function'
+      ? String(target.getAttribute('data-starfall-touch-action') || '')
+      : '';
+    const inRoot = !!(target && settings.root && typeof settings.root.contains === 'function' && settings.root.contains(target));
+    const disabled = !!(target && (target.disabled || target.getAttribute && target.getAttribute('aria-disabled') === 'true'));
+    const unsupportedMouseButton = pointerType === 'mouse' && Number(source.button || 0) !== 0;
+    const handled = !!(target && pointerId && actionId && inRoot && !disabled && !unsupportedMouseButton);
+    return {
+      handled,
+      target,
+      actionId,
+      pointerId,
+      pointerKey: handled ? `touch:${pointerId}` : '',
+      pointerType,
+      disabled,
+      inRoot,
+      shouldSetPointerCapture: handled && Number.isFinite(Number(source.pointerId)) && typeof target.setPointerCapture === 'function',
+      shouldPreventDefault: handled,
+      shouldFocusCanvas: handled
+    };
+  }
+
+  function getTouchControlReleaseAction(event, activePointers) {
+    const source = event || {};
+    const pointers = activePointers && typeof activePointers.get === 'function' ? activePointers : new Map();
+    const pointerId = source.pointerId == null ? '' : String(source.pointerId);
+    const pointer = pointerId ? pointers.get(pointerId) || null : null;
+    return {
+      handled: !!pointer,
+      pointerId,
+      pointer,
+      actionId: pointer && pointer.actionId || '',
+      pointerKey: pointer && pointer.pointerKey || (pointerId ? `touch:${pointerId}` : ''),
+      target: pointer && pointer.target || null,
+      shouldReleasePointerCapture: !!(
+        pointer &&
+        pointer.target &&
+        Number.isFinite(Number(source.pointerId)) &&
+        typeof pointer.target.releasePointerCapture === 'function'
+      )
     };
   }
 
@@ -946,6 +1010,9 @@
       getReleaseAttackInputStateAction,
       getDomPointerReleaseCleanupMetadata,
       getDomAttackButtonPointerAction,
+      getTouchControlTarget,
+      getTouchControlPointerAction,
+      getTouchControlReleaseAction,
       getOutOfRootClickAction,
       getDomClickTarget,
       getDomInputTarget,
@@ -980,7 +1047,9 @@
       DOM_CHARACTER_TAB_TARGET_ATTRIBUTES,
       DOM_CHARACTER_TAB_TARGET_SELECTOR,
       DOM_COMMAND_PANEL_TARGET_ATTRIBUTES,
-      DOM_COMMAND_PANEL_TARGET_SELECTOR
+      DOM_COMMAND_PANEL_TARGET_SELECTOR,
+      DOM_TOUCH_CONTROL_TARGET_ATTRIBUTES,
+      DOM_TOUCH_CONTROL_TARGET_SELECTOR
     });
   }
 
@@ -997,6 +1066,8 @@
     DOM_CHARACTER_TAB_TARGET_SELECTOR,
     DOM_COMMAND_PANEL_TARGET_ATTRIBUTES,
     DOM_COMMAND_PANEL_TARGET_SELECTOR,
+    DOM_TOUCH_CONTROL_TARGET_ATTRIBUTES,
+    DOM_TOUCH_CONTROL_TARGET_SELECTOR,
     getAttackKeyInputMetadata,
     getAttackKeyInputStateAction,
     getSkillKeyInputMetadata,
@@ -1007,6 +1078,9 @@
     getReleaseAttackInputStateAction,
     getDomPointerReleaseCleanupMetadata,
     getDomAttackButtonPointerAction,
+    getTouchControlTarget,
+    getTouchControlPointerAction,
+    getTouchControlReleaseAction,
     getOutOfRootClickAction,
     getDomClickTarget,
     getDomInputTarget,

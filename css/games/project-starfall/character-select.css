@@ -341,9 +341,9 @@
 
   .project-starfall-character-preview {
     grid-area: 1 / 1;
-    width: 148px;
+    width: 168px;
     height: 168px;
-    image-rendering: pixelated;
+    image-rendering: auto;
   }
 
   .project-starfall-character-slot.has-preview-frame .project-starfall-character-art-fallback {
@@ -504,7 +504,8 @@
   }
 
   .project-starfall-character-create-modal.is-class-step {
-    width: min(700px, 100%);
+    width: min(960px, 100%);
+    max-height: min(620px, calc(100% - 24px));
   }
 
   .project-starfall-character-modal-header {
@@ -708,6 +709,328 @@
     height: 46px;
   }
 
+  .project-starfall-character-class-picker {
+    display: grid;
+    grid-template-columns: 184px minmax(0, 1fr);
+    gap: 14px;
+    min-height: 332px;
+  }
+
+  .project-starfall-character-class-picker > .project-starfall-character-choice-group {
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 9px;
+  }
+
+  .project-starfall-character-class-picker > .project-starfall-character-choice-group button {
+    position: relative;
+    grid-template-columns: 50px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    justify-items: stretch;
+    align-items: center;
+    gap: 2px 9px;
+    min-height: 84px;
+    overflow: hidden;
+    padding: 9px 10px;
+    text-align: left;
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  }
+
+  .project-starfall-character-class-picker > .project-starfall-character-choice-group button:hover {
+    border-color: rgba(235, 248, 255, 0.52);
+    transform: translateY(-1px);
+  }
+
+  .project-starfall-character-class-picker > .project-starfall-character-choice-group button:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+  }
+
+  .project-starfall-character-class-picker > .project-starfall-character-choice-group button.is-selected {
+    border-color: var(--starfall-class-accent, #59d8ff);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--starfall-class-accent, #59d8ff) 20%, transparent), transparent 68%),
+      linear-gradient(180deg, #1f3b54, #071323);
+    box-shadow:
+      inset 4px 0 0 var(--starfall-class-accent, #59d8ff),
+      0 0 0 1px color-mix(in srgb, var(--starfall-class-accent, #59d8ff) 72%, transparent),
+      0 10px 22px rgba(0, 0, 0, 0.26);
+    color: #ffffff;
+  }
+
+  .project-starfall-character-choice-art-frame {
+    grid-row: 1 / 3;
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 58px;
+    border: 1px solid rgba(235, 248, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(2, 12, 22, 0.46);
+  }
+
+  .project-starfall-character-choice-copy {
+    display: grid;
+    align-self: end;
+    min-width: 0;
+  }
+
+  .project-starfall-character-choice-copy strong {
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-character-choice-copy small,
+  .project-starfall-character-choice-state {
+    color: rgba(235, 248, 255, 0.68);
+    font-size: 0.67rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .project-starfall-character-choice-state {
+    align-self: start;
+    color: rgba(235, 248, 255, 0.52);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-character-choice-group button.is-selected .project-starfall-character-choice-state {
+    color: var(--starfall-class-accent, #59d8ff);
+  }
+
+  .project-starfall-character-class-review {
+    display: grid;
+    grid-template-columns: minmax(250px, 0.86fr) minmax(290px, 1.14fr);
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--starfall-class-accent, #59d8ff) 58%, rgba(255, 255, 255, 0.16));
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 22% 35%, color-mix(in srgb, var(--starfall-class-accent, #59d8ff) 13%, transparent), transparent 38%),
+      linear-gradient(135deg, rgba(4, 15, 27, 0.78), rgba(11, 30, 48, 0.9));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .project-starfall-character-review-stage {
+    position: relative;
+    display: grid;
+    place-items: end center;
+    min-height: 330px;
+    overflow: hidden;
+    border-right: 1px solid rgba(235, 248, 255, 0.1);
+    background:
+      linear-gradient(180deg, rgba(5, 18, 31, 0.16), rgba(5, 18, 31, 0.76)),
+      repeating-linear-gradient(90deg, transparent 0 39px, rgba(235, 248, 255, 0.025) 40px);
+  }
+
+  .project-starfall-character-review-stage::before {
+    content: "";
+    position: absolute;
+    inset: 18px 16px 42px;
+    border: 1px solid color-mix(in srgb, var(--starfall-class-accent, #59d8ff) 30%, transparent);
+    clip-path: polygon(0 0, 24px 0, 24px 2px, 2px 2px, 2px 24px, 0 24px, 0 100%, 24px 100%, 24px calc(100% - 2px), 2px calc(100% - 2px), 2px calc(100% - 24px), 0 calc(100% - 24px), 0 0, 100% 0, 100% 24px, calc(100% - 2px) 24px, calc(100% - 2px) 2px, calc(100% - 24px) 2px, calc(100% - 24px) 0, 100% 0, 100% 100%, calc(100% - 24px) 100%, calc(100% - 24px) calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) calc(100% - 24px), 100% calc(100% - 24px));
+    opacity: 0.75;
+    pointer-events: none;
+  }
+
+  .project-starfall-character-review-platform {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    width: min(230px, 86%);
+    height: 58px;
+    background: url("../../../img/project-starfall/ui/character-slot-pedestal.png") center / contain no-repeat;
+    filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.46));
+    opacity: 0.72;
+    transform: translateX(-50%);
+  }
+
+  .project-starfall-character-review-art {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: end center;
+    width: 260px;
+    height: 260px;
+    margin-bottom: 26px;
+  }
+
+  .project-starfall-character-review-fallback,
+  .project-starfall-character-create-preview {
+    grid-area: 1 / 1;
+    width: 260px;
+    height: 260px;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 12px 12px rgba(0, 0, 0, 0.34));
+    pointer-events: none;
+  }
+
+  .project-starfall-character-create-preview {
+    image-rendering: auto;
+  }
+
+  .project-starfall-character-review-art.has-preview-frame .project-starfall-character-review-fallback {
+    opacity: 0;
+  }
+
+  .project-starfall-character-review-motion {
+    position: absolute;
+    right: 12px;
+    bottom: 10px;
+    z-index: 2;
+    color: rgba(235, 248, 255, 0.58);
+    font-size: 0.64rem;
+    font-weight: 850;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-character-review-dossier {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-width: 0;
+    padding: 18px;
+  }
+
+  .project-starfall-character-review-title {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(235, 248, 255, 0.12);
+    padding-bottom: 9px;
+  }
+
+  .project-starfall-character-review-title .project-starfall-kicker {
+    margin: 0 0 3px;
+    color: var(--starfall-class-accent, #59d8ff);
+  }
+
+  .project-starfall-character-review-title h4,
+  .project-starfall-character-class-review.is-empty h4 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.42rem;
+    line-height: 1;
+  }
+
+  .project-starfall-character-review-description,
+  .project-starfall-character-role-summary,
+  .project-starfall-character-class-review.is-empty p {
+    margin: 0;
+    color: rgba(235, 248, 255, 0.78);
+    font-size: 0.78rem;
+    font-weight: 750;
+    line-height: 1.4;
+  }
+
+  .project-starfall-character-class-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin: 0;
+  }
+
+  .project-starfall-character-class-facts div {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 8px 9px;
+    border-left: 2px solid color-mix(in srgb, var(--starfall-class-accent, #59d8ff) 72%, transparent);
+    background: rgba(235, 248, 255, 0.055);
+  }
+
+  .project-starfall-character-class-facts dt,
+  .project-starfall-character-starter-weapon small {
+    color: rgba(235, 248, 255, 0.6);
+    font-size: 0.64rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-character-class-facts dd {
+    margin: 0;
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-starfall-character-role-summary {
+    padding-left: 9px;
+    border-left: 2px solid rgba(235, 248, 255, 0.18);
+  }
+
+  .project-starfall-character-starter-weapon {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding: 9px 10px;
+    border: 1px solid rgba(235, 248, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(2, 12, 22, 0.48);
+  }
+
+  .project-starfall-character-starter-art {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+  }
+
+  .project-starfall-character-starter-weapon > span {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .project-starfall-character-starter-weapon strong {
+    color: #ffffff;
+    font-size: 0.86rem;
+  }
+
+  .project-starfall-character-starter-weapon span span {
+    color: var(--starfall-class-accent, #59d8ff);
+    font-size: 0.7rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-character-class-review.is-empty {
+    grid-template-columns: 1fr;
+    place-content: center;
+    justify-items: center;
+    gap: 10px;
+    min-height: 332px;
+    padding: 34px;
+    text-align: center;
+  }
+
+  .project-starfall-character-class-review-empty-mark {
+    width: 84px;
+    height: 84px;
+    border: 1px solid rgba(89, 216, 255, 0.34);
+    background:
+      linear-gradient(90deg, transparent 48%, rgba(89, 216, 255, 0.26) 49% 51%, transparent 52%),
+      linear-gradient(transparent 48%, rgba(89, 216, 255, 0.26) 49% 51%, transparent 52%);
+    box-shadow: inset 0 0 22px rgba(89, 216, 255, 0.08);
+    transform: rotate(45deg);
+  }
+
+  .project-starfall-character-create-modal.is-class-step > .project-starfall-character-actions {
+    grid-template-columns: minmax(240px, auto) minmax(92px, 120px);
+    justify-content: end;
+  }
+
   .project-starfall-character-command-message,
   .project-starfall-character-error {
     margin: 0;
@@ -719,5 +1042,190 @@
 
   .project-starfall-character-error {
     color: #ffd166;
+  }
+}
+
+@layer overrides {
+  .project-starfall-page .project-starfall-character-header {
+    border-color: rgba(231, 183, 72, 0.48);
+    background: rgba(3, 11, 20, 0.9);
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.42),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+  }
+
+  .project-starfall-page .project-starfall-character-header .project-starfall-kicker {
+    color: #f0c45d;
+  }
+
+  .project-starfall-page .project-starfall-character-header h2,
+  .project-starfall-page .project-starfall-character-summary h3,
+  .project-starfall-page .project-starfall-character-profile h3,
+  .project-starfall-page .project-starfall-character-command-strip h3,
+  .project-starfall-page .project-starfall-character-create-modal h3,
+  .project-starfall-page .project-starfall-character-review-title h4,
+  .project-starfall-page .project-starfall-character-class-review.is-empty h4 {
+    color: #ffffff;
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-character-summary-meta,
+    .project-starfall-character-summary-message,
+    .project-starfall-character-command-message
+  ) {
+    color: rgba(235, 244, 252, 0.88);
+  }
+
+  .project-starfall-page :is(
+    .project-starfall-character-review-description,
+    .project-starfall-character-role-summary,
+    .project-starfall-character-class-review.is-empty p
+  ) {
+    color: rgba(235, 248, 255, 0.78);
+  }
+
+  .project-starfall-page .project-starfall-character-review-title .project-starfall-kicker {
+    color: var(--starfall-class-accent, #59d8ff);
+  }
+
+  @media (max-width: 980px) {
+    .project-starfall-page .project-starfall-character-class-picker {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .project-starfall-page .project-starfall-character-class-picker > .project-starfall-character-choice-group {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .project-starfall-page .project-starfall-character-class-picker > .project-starfall-character-choice-group button {
+      min-height: 72px;
+    }
+
+    .project-starfall-page .project-starfall-character-class-review {
+      grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
+    }
+
+    .project-starfall-page .project-starfall-character-review-stage {
+      min-height: 306px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .project-starfall-page .project-starfall-canvas-wrap:has(.project-starfall-class-select:not([hidden])) {
+      aspect-ratio: auto;
+      min-height: 760px;
+    }
+
+    .project-starfall-page .project-starfall-class-select {
+      overflow: hidden;
+    }
+
+    .project-starfall-page .project-starfall-character-select {
+      height: 100%;
+      min-height: 100%;
+      overflow: hidden;
+    }
+
+    .project-starfall-page .project-starfall-character-create-modal.is-class-step {
+      gap: 11px;
+      max-height: none;
+      overflow: visible;
+      padding: 13px;
+    }
+
+    .project-starfall-page .project-starfall-character-modal-layer {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .project-starfall-page .project-starfall-character-modal-header {
+      gap: 5px;
+    }
+
+    .project-starfall-page .project-starfall-character-class-picker > .project-starfall-character-choice-group {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .project-starfall-page .project-starfall-character-class-picker > .project-starfall-character-choice-group button {
+      grid-template-columns: 34px minmax(0, 1fr);
+      min-height: 64px;
+      padding: 6px;
+    }
+
+    .project-starfall-page .project-starfall-character-choice-art-frame {
+      width: 34px;
+      height: 46px;
+    }
+
+    .project-starfall-page .project-starfall-character-choice-art {
+      width: 32px;
+      height: 38px;
+    }
+
+    .project-starfall-page .project-starfall-character-choice-copy strong {
+      font-size: 0.75rem;
+    }
+
+    .project-starfall-page .project-starfall-character-choice-copy small {
+      font-size: 0.58rem;
+    }
+
+    .project-starfall-page .project-starfall-character-choice-state {
+      display: none;
+    }
+
+    .project-starfall-page .project-starfall-character-class-review {
+      grid-template-columns: 1fr;
+    }
+
+    .project-starfall-page .project-starfall-character-review-stage {
+      min-height: 220px;
+      border-right: 0;
+      border-bottom: 1px solid rgba(235, 248, 255, 0.1);
+    }
+
+    .project-starfall-page .project-starfall-character-review-art,
+    .project-starfall-page .project-starfall-character-review-fallback,
+    .project-starfall-page .project-starfall-character-create-preview {
+      width: 210px;
+      height: 210px;
+    }
+
+    .project-starfall-page .project-starfall-character-review-art {
+      margin-bottom: 15px;
+    }
+
+    .project-starfall-page .project-starfall-character-review-platform {
+      bottom: 8px;
+      width: 190px;
+    }
+
+    .project-starfall-page .project-starfall-character-review-motion {
+      bottom: 6px;
+    }
+
+    .project-starfall-page .project-starfall-character-review-dossier {
+      gap: 8px;
+      padding: 13px;
+    }
+
+    .project-starfall-page .project-starfall-character-class-review.is-empty {
+      min-height: 230px;
+      padding: 24px;
+    }
+
+    .project-starfall-page .project-starfall-character-create-modal.is-class-step > .project-starfall-character-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-starfall-page .project-starfall-character-class-picker > .project-starfall-character-choice-group button {
+      transition: none;
+    }
   }
 }

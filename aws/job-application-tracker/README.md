@@ -4,31 +4,24 @@ Private tracker API with Cognito auth, DynamoDB storage, S3 attachments, and ana
 
 ## Deploy
 
-1) Install Lambda dependencies (only needed after dependency changes):
+1) Install the packaging dependency tree:
 
 ```bash
-cd aws/job-application-tracker
-npm install
+npm --prefix aws/job-application-tracker ci
 ```
 
-2) Zip the Lambda code:
+2) Build a clean Lambda ZIP from the explicit runtime allowlist:
 
 ```bash
-python3 - <<'PY'
-import zipfile, pathlib
-root = pathlib.Path('aws/job-application-tracker')
-zip_path = root / 'job-application-tracker.zip'
-with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-    for path in root.rglob('*'):
-        if path.is_file() and path.name != 'job-application-tracker.zip':
-            zf.write(path, path.relative_to(root))
-PY
+npm --prefix aws/job-application-tracker run package:lambda
 ```
+
+The packaging script creates a temporary clean install with `npm ci --omit=dev`, removes dependency-owned documentation/tests/examples/source maps, smoke-loads the staged handler, and writes `aws/job-application-tracker/dist/job-application-tracker.zip`. The archive validator permits only `index.js` and files under the clean production `node_modules/` tree. It rejects source tests, README files, deployment templates, scripts, nested ZIPs, and every other top-level path, so an older deployment ZIP can never be embedded recursively. ZIP entry order, timestamps, and permissions are fixed for deterministic output.
 
 3) Upload to S3:
 
 ```bash
-aws s3 cp aws/job-application-tracker/job-application-tracker.zip s3://YOUR_BUCKET/job-application-tracker/job-application-tracker.zip
+aws s3 cp aws/job-application-tracker/dist/job-application-tracker.zip s3://YOUR_BUCKET/job-application-tracker/job-application-tracker.zip
 ```
 
 4) Deploy CloudFormation:
@@ -98,6 +91,88 @@ Application deletion removes the DynamoDB record first, then deletes S3 objects.
 ## Auth
 
 API Gateway uses a Cognito JWT authorizer. The Lambda reads the `sub` claim from `event.requestContext.authorizer.jwt.claims` and enforces per-user row security by partition key. The front-end uses the Cognito Hosted UI with PKCE and sends the ID token as `Authorization: Bearer <token>`.
+
+## Idempotent application capture
+
+`POST /api/applications/capture` creates a normal application record from a browser capture while making client retries safe. It uses the same Cognito JWT authorizer and the existing applications table; no additional table or data migration is required.
+
+The JSON body uses a strict capture-specific allowlist. It does not accept all normal `POST /api/applications` fields.
+
+Required fields:
+
+- `captureId`
+- `company`
+- `title`
+- `appliedDate`
+
+Optional fields:
+
+- `protocolVersion`
+- `jobUrl`
+- `location`
+- `source`
+- `postingDate`
+- `status`
+- `tags`
+
+Every other key is rejected, even when its value is empty. In particular, `notes`, `customFields`, `attachments`, application questions, and generated answers are not accepted by the capture endpoint.
+
+```json
+{
+  "protocolVersion": 1,
+  "captureId": "550e8400-e29b-41d4-a716-446655440000",
+  "company": "Acme Corp",
+  "title": "Data Analyst",
+  "appliedDate": "2025-01-15",
+  "jobUrl": "https://acme.example/jobs/123",
+  "location": "Denver, CO",
+  "source": "Company website",
+  "postingDate": "2025-01-10",
+  "status": "Applied",
+  "tags": ["analytics", "remote"]
+}
+```
+
+Capture requirements and behavior:
+
+- The decoded JSON body is limited to 32 KiB and must be an object.
+- `protocolVersion` is optional; when supplied, it must be `1`.
+- `captureId` must be 8-128 supported ASCII characters and should be a UUID generated once by the client.
+- `company`, `title`, and `appliedDate` are required. Dates use `YYYY-MM-DD`; a supplied job URL must use HTTP or HTTPS.
+- `status` defaults to `Applied` and, when supplied, must normalize to `Applied`, `Screening`, `Interview`, `Offer`, `Rejected`, or `Withdrawn`.
+- `tags` must be an array of at most 12 non-empty strings, each at most 36 characters, with no case-insensitive duplicates.
+- The Lambda derives a deterministic application ID from the authenticated Cognito user ID plus `captureId`, then writes with `attribute_not_exists(applicationId)`.
+- A new capture returns `201`; an identical retry returns `200`. Both responses use `{ "item": { ... }, "created": <boolean>, "captureId": "..." }`. Reusing the same `captureId` with different normalized application data returns `409`.
+- Stored capture records have `recordType: "application"` and include `captureId`, an opaque `captureFingerprint`, and `captureSource: "application-capture-api"` alongside the normal application fields.
+- Attachments are intentionally rejected during creation. Create or replay the application first, then use `/api/attachments/presign` and the existing optimistic `PATCH /api/applications/{id}` attachment flow.
+
+New capture response (`201`):
+
+```json
+{
+  "item": {
+    "applicationId": "APP#CAPTURE#...",
+    "company": "Acme Corp",
+    "title": "Data Analyst"
+  },
+  "created": true,
+  "captureId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+Identical retry response (`200`):
+
+```json
+{
+  "item": {
+    "applicationId": "APP#CAPTURE#...",
+    "company": "Acme Corp",
+    "title": "Data Analyst"
+  },
+  "created": false,
+  "captureId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
 
 ## Example API responses
 

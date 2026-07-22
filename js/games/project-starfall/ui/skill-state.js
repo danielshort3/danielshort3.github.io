@@ -200,6 +200,10 @@
     const getAttribute = source && typeof source.getAttribute === 'function'
       ? (name) => source.getAttribute(name)
       : () => null;
+    const unlockModifierId = getAttribute('data-starfall-skill-modifier-unlock');
+    if (unlockModifierId) return { handled: true, type: 'unlockSkillModifier', modifierId: unlockModifierId };
+    const selectModifierId = getAttribute('data-starfall-skill-modifier-select');
+    if (selectModifierId) return { handled: true, type: 'selectSkillModifier', modifierId: selectModifierId };
     const skillId = getAttribute('data-starfall-skill');
     if (skillId) return { handled: true, type: 'rankSkill', skillId };
     const ownerId = getAttribute('data-starfall-skill-tab');
@@ -209,6 +213,8 @@
 
   function getSkillPanelRegionAction(region) {
     const source = region || {};
+    if (source.type === 'skill-modifier-unlock') return { handled: true, type: 'unlockSkillModifier', modifierId: source.modifierId };
+    if (source.type === 'skill-modifier-select') return { handled: true, type: 'selectSkillModifier', modifierId: source.modifierId };
     if (source.type === 'skill-rank') return { handled: true, type: 'rankSkill', skillId: source.skillId };
     if (source.type === 'skill-tab') return { handled: true, type: 'selectOwner', ownerId: source.owner };
     if (source.type === 'advanced') return { handled: true, type: 'chooseAdvancedClass', advancedId: source.advancedId };

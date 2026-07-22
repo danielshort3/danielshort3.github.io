@@ -305,15 +305,16 @@
     });
   };
 
-  const sortWorkCardsOldestFirst = (root = document) => {
-    $$('.work-grid:not([data-work-order="oldest-first"])', root).forEach((grid) => {
+  const sortWorkCardsByRecency = (root = document) => {
+    const newestFirst = document.body?.matches('[data-page="analytics"]');
+    $$('.work-grid', root).forEach((grid) => {
       const cards = $$('.work-card', grid);
       if (cards.length < 2) return;
       cards
         .map((card, index) => ({ card, index, rank: workDateRank($('.work-timeframe', card)?.textContent) }))
-        .sort((a, b) => (a.rank - b.rank) || (a.index - b.index))
+        .sort((a, b) => ((newestFirst ? b.rank - a.rank : a.rank - b.rank)) || (a.index - b.index))
         .forEach(({ card }) => grid.appendChild(card));
-      grid.dataset.workOrder = 'oldest-first';
+      grid.dataset.workOrder = newestFirst ? 'newest-first' : 'oldest-first';
     });
   };
 
@@ -604,7 +605,7 @@
     normalizeAudienceSectionOrder();
     prepareAnalyticsStory();
     initSmoothScrollLinks();
-    sortWorkCardsOldestFirst();
+    sortWorkCardsByRecency();
     updateWorkExperienceSummaries();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
@@ -629,7 +630,7 @@
     normalizeAudienceSectionOrder();
     prepareAnalyticsStory();
     initSmoothScrollLinks();
-    sortWorkCardsOldestFirst();
+    sortWorkCardsByRecency();
     updateWorkExperienceSummaries();
     if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();

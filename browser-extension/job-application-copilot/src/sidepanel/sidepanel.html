@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Job Application Copilot</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <a class="skip-link" href="#privacy-onboarding" data-skip-link>Skip to privacy notice</a>
+
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Local application assistant</p>
+      <h1>Job Application Copilot</h1>
+    </div>
+    <div class="header-status" aria-label="Connection status">
+      <span class="status-dot" data-vault-indicator="locked">Vault locked</span>
+      <span class="status-dot" data-ollama-indicator="unknown">Ollama unchecked</span>
+    </div>
+  </header>
+
+  <section id="privacy-onboarding" class="privacy-onboarding" data-privacy-onboarding aria-labelledby="privacy-onboarding-title">
+    <div class="card privacy-onboarding-card">
+      <p class="eyebrow">Before you begin</p>
+      <h2 id="privacy-onboarding-title">Review how your data is handled</h2>
+      <p class="muted">Job Application Copilot works only after you acknowledge these local-processing and optional-transfer boundaries.</p>
+      <ul class="disclosure-list">
+        <li><strong>Application page:</strong> Analyze reads the current page URL and form structure, including labels and nearby text. It also reads a visible job-description section when available. It does not read values already entered in fields. "Use selected page text" reads only text you explicitly select.</li>
+        <li><strong>Local Ollama:</strong> Selected documents, verified profile and custom links, relevant custom thoughts (including compensation preferences), and field context are processed through Ollama at <code>127.0.0.1</code>. Cloud and remote models are blocked, and Ollama cloud must be disabled.</li>
+        <li><strong>Optional U.S. employment eligibility:</strong> Explicit work-authorization and sponsorship choices are encrypted locally and used only through deterministic Yes/No rules. Unlike other verified facts, they are never sent to Ollama and never imply citizenship or immigration status.</li>
+        <li><strong>Encrypted storage:</strong> Sources, retained files, verified facts, custom links and thoughts, application packets, embeddings, citations, and drafts are encrypted in this browser profile. Your vault passphrase is never stored or transmitted.</li>
+        <li><strong>Optional website handoff:</strong> Only after your explicit confirmation, selected job metadata and selected resume or cover-letter files can be sent over HTTPS to <code>danielshort.me</code> for final tracker review. Custom links, thoughts, and compensation preferences are never included.</li>
+        <li><strong>Sensitive actions stay manual:</strong> CAPTCHA pauses filling. Consent, signature, demographic, identity, security-code, employer file-upload, navigation, and submit controls are excluded.</li>
+        <li><strong>Employment-status boundaries:</strong> Citizenship, immigration or visa status, I-9/E-Verify, export-control, and protected demographic self-identification stay manual and out of model context.</li>
+        <li><strong>Your control:</strong> The extension never submits an application and contains no advertising, analytics, or cloud AI integration.</li>
+      </ul>
+      <p><a href="https://www.danielshort.me/job-application-copilot/privacy" target="_blank" rel="noopener noreferrer">Read the full Job Application Copilot privacy policy</a>.</p>
+      <form class="stack" data-privacy-consent-form>
+        <label class="confirmation">
+          <input name="acknowledged" type="checkbox" required>
+          <span>I understand these data practices and choose to continue.</span>
+        </label>
+        <button class="button button-primary" type="submit" data-privacy-accept>Accept and continue</button>
+      </form>
+    </div>
+  </section>
+
+  <div data-operational-shell hidden>
+  <nav class="tab-list" role="tablist" aria-label="Copilot sections">
+    <button id="sources-tab" class="tab-button" type="button" role="tab" aria-selected="true" aria-controls="sources-panel" data-tab="sources"><span class="tab-step" aria-hidden="true">1</span> Setup</button>
+    <button id="application-tab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="application-panel" data-tab="application" tabindex="-1"><span class="tab-step" aria-hidden="true">2</span> Apply</button>
+    <button id="settings-tab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="settings-panel" data-tab="settings" tabindex="-1">Settings</button>
+  </nav>
+
+  <main id="main">
+    <section id="sources-panel" class="tab-panel" role="tabpanel" aria-labelledby="sources-tab" data-panel="sources">
+      <section class="card vault-gate" data-vault-gate>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Encrypted local vault</p>
+            <h2 data-vault-gate-title>Create your vault</h2>
+          </div>
+          <span class="badge">AES-GCM</span>
+        </div>
+        <p class="muted" data-vault-gate-copy>Your documents, notes, verified facts, retrieval data, and exact page caches are encrypted before IndexedDB storage. The passphrase is never stored.</p>
+        <form class="stack" data-vault-form>
+          <label>
+            <span>Vault passphrase</span>
+            <input name="passphrase" type="password" minlength="8" autocomplete="off" spellcheck="false" required aria-describedby="vault-passphrase-help">
+          </label>
+          <p id="vault-passphrase-help" class="field-help">Use at least 8 characters. Losing this passphrase means resetting the local vault.</p>
+          <button class="button button-primary" type="submit" data-vault-submit>Create encrypted vault</button>
+        </form>
+      </section>
+
+      <div class="vault-content" data-vault-content hidden>
+        <section class="card profile-card">
+          <div class="profile-intro">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Trusted profile</p>
+              <h2>Verified profile</h2>
+            </div>
+            <span class="badge badge-success" data-profile-count>0 of 16 saved</span>
+          </div>
+          <p class="muted">Set this up once, then add supporting sources below. Open only the section you need.</p>
+          </div>
+          <form class="profile-form" data-profile-form autocomplete="off">
+            <div class="profile-section-list">
+            <details class="disclosure profile-disclosure" open>
+              <summary class="disclosure-summary">
+                <span>
+                  <span class="eyebrow">5 fields</span>
+                  <strong>Identity and contact</strong>
+                </span>
+              </summary>
+              <div class="disclosure-body">
+              <fieldset class="profile-group">
+                <legend class="visually-hidden">Identity and contact</legend>
+              <div class="form-grid profile-grid">
+                <label>
+                  <span>First name</span>
+                  <input name="first_name" type="text" maxlength="200" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Last name</span>
+                  <input name="last_name" type="text" maxlength="200" autocomplete="off" spellcheck="false">
+                </label>
+                <label class="form-grid-full">
+                  <span>Full name</span>
+                  <input name="full_name" type="text" maxlength="400" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Email address</span>
+                  <input name="email" type="email" maxlength="320" placeholder="you@example.com" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Phone number</span>
+                  <input name="phone" type="tel" maxlength="100" placeholder="(555) 555-0123" autocomplete="off" spellcheck="false">
+                </label>
+              </div>
+              </fieldset>
+              </div>
+            </details>
+
+            <details class="disclosure profile-disclosure">
+              <summary class="disclosure-summary">
+                <span>
+                  <span class="eyebrow">5 fields</span>
+                  <strong>Address</strong>
+                </span>
+              </summary>
+              <div class="disclosure-body">
+              <fieldset class="profile-group">
+                <legend class="visually-hidden">Address</legend>
+              <div class="form-grid profile-grid">
+                <label class="form-grid-full">
+                  <span>Street address</span>
+                  <input name="street_address" type="text" maxlength="500" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>City</span>
+                  <input name="city" type="text" maxlength="200" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>State or province</span>
+                  <input name="state_province" type="text" maxlength="200" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Postal code</span>
+                  <input name="postal_code" type="text" maxlength="40" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Country</span>
+                  <input name="country" type="text" maxlength="200" autocomplete="off" spellcheck="false">
+                </label>
+              </div>
+              </fieldset>
+              </div>
+            </details>
+
+            <details class="disclosure profile-disclosure">
+              <summary class="disclosure-summary">
+                <span>
+                  <span class="eyebrow">4 fields</span>
+                  <strong>Professional links</strong>
+                </span>
+              </summary>
+              <div class="disclosure-body">
+              <fieldset class="profile-group">
+                <legend class="visually-hidden">Professional links</legend>
+              <div class="form-grid profile-grid">
+                <label class="form-grid-full">
+                  <span>LinkedIn URL</span>
+                  <input name="linkedin" type="url" maxlength="2000" placeholder="https://www.linkedin.com/in/..." autocomplete="off" spellcheck="false">
+                </label>
+                <label class="form-grid-full">
+                  <span>Website URL</span>
+                  <input name="website" type="url" maxlength="2000" placeholder="https://..." autocomplete="off" spellcheck="false">
+                </label>
+                <label class="form-grid-full">
+                  <span>Portfolio URL</span>
+                  <input name="portfolio" type="url" maxlength="2000" placeholder="https://..." autocomplete="off" spellcheck="false">
+                </label>
+                <label class="form-grid-full">
+                  <span>GitHub URL</span>
+                  <input name="github" type="url" maxlength="2000" placeholder="https://github.com/..." autocomplete="off" spellcheck="false">
+                </label>
+              </div>
+              </fieldset>
+              </div>
+            </details>
+
+            <details class="disclosure profile-disclosure">
+              <summary class="disclosure-summary">
+                <span>
+                  <span class="eyebrow">Optional</span>
+                  <strong>Work authorization</strong>
+                </span>
+                <span class="badge">U.S. only</span>
+              </summary>
+              <div class="disclosure-body">
+              <fieldset class="profile-group">
+                <legend class="visually-hidden">Employment eligibility (optional)</legend>
+              <p class="muted"><strong>This optional section applies only to U.S. employment.</strong></p>
+              <p class="muted">Only your explicit Yes or No selections are used. These answers stay out of Ollama prompts and never imply citizenship, visa type, or immigration status.</p>
+              <div class="form-grid profile-grid">
+                <label>
+                  <span>Authorized to work in the U.S.</span>
+                  <select name="authorized_to_work_us" autocomplete="off">
+                    <option value="">Not answered</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Requires sponsorship now</span>
+                  <small>U.S. employment sponsorship</small>
+                  <select name="sponsorship_now" autocomplete="off">
+                    <option value="">Not answered</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Requires sponsorship in the future</span>
+                  <small>U.S. employment sponsorship</small>
+                  <select name="sponsorship_future" autocomplete="off">
+                    <option value="">Not answered</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </label>
+              </div>
+              <p class="muted profile-eligibility-note">I-9, E-Verify, export-control, citizenship, and protected demographic self-identification questions remain manual.</p>
+              </fieldset>
+              </div>
+            </details>
+            </div>
+
+            <div class="profile-save-bar">
+              <span class="muted profile-save-status" data-profile-save-status role="status" aria-live="polite">Changes are encrypted when you save.</span>
+              <button class="button button-primary" type="submit" data-profile-submit>Save profile changes</button>
+            </div>
+          </form>
+        </section>
+
+        <details class="card reusable-context-card disclosure-card" aria-labelledby="reusable-context-heading">
+          <summary class="disclosure-summary">
+            <span>
+              <span class="eyebrow">Reusable local context</span>
+              <strong id="reusable-context-heading">Custom links and thoughts</strong>
+            </span>
+            <span class="badge">Source-cited</span>
+          </summary>
+          <div class="disclosure-body">
+          <p class="muted">Add application fields that are unique to you, plus preferences or context you want local Ollama to consider.</p>
+
+          <div class="disclosure-stack">
+            <details class="disclosure">
+              <summary class="disclosure-summary">
+                <span>
+                  <span class="eyebrow">Exact profile values</span>
+                  <strong>Custom links</strong>
+                </span>
+                <span class="badge" data-custom-link-count>0 saved</span>
+              </summary>
+              <div class="disclosure-body">
+                <p class="muted">Use the employer's field label, such as Tableau Public or writing samples. Matching stays exact and context-safe.</p>
+                <form class="stack" data-custom-profile-form="custom_link" autocomplete="off">
+                  <label>
+                    <span>Field label</span>
+                    <input name="label" type="text" maxlength="120" placeholder="Tableau Public profile" autocomplete="off" spellcheck="false" required>
+                  </label>
+                  <label>
+                    <span>URL</span>
+                    <input name="value" type="url" maxlength="2000" placeholder="https://..." autocomplete="off" spellcheck="false" required>
+                  </label>
+                  <button class="button button-secondary" type="submit">Add custom link</button>
+                </form>
+                <div class="record-list compact-record-list" data-custom-link-list aria-live="polite"></div>
+              </div>
+            </details>
+
+            <details class="disclosure">
+              <summary class="disclosure-summary">
+                <span>
+                  <span class="eyebrow">Model context</span>
+                  <strong>Answers, stories, and preferences</strong>
+                </span>
+                <span class="badge" data-custom-thought-count>0 saved</span>
+              </summary>
+              <div class="disclosure-body">
+                <p class="muted">Relevant thoughts are sent only to local Ollama and shown as citations. Save a reusable STAR story, approved answer, preference, or explanation here.</p>
+                <form class="stack" data-custom-profile-form="custom_thought" autocomplete="off">
+                  <label>
+                    <span>Topic</span>
+                    <input name="label" type="text" maxlength="120" placeholder="Salary expectation" autocomplete="off" spellcheck="false" required>
+                  </label>
+                  <label>
+                    <span>Your thought</span>
+                    <textarea name="value" rows="4" maxlength="4000" placeholder="I am targeting..." autocomplete="off" spellcheck="false" required></textarea>
+                  </label>
+                  <p class="field-help">Do not store passwords, government IDs, medical information, protected demographic information, citizenship or visa status, attestations, or signatures here.</p>
+                  <button class="button button-secondary" type="submit">Add custom thought</button>
+                </form>
+                <div class="record-list compact-record-list" data-custom-thought-list aria-live="polite"></div>
+              </div>
+            </details>
+          </div>
+          </div>
+        </details>
+
+        <details class="card supporting-sources-card disclosure-card">
+          <summary class="disclosure-summary">
+            <span>
+              <span class="eyebrow">Encrypted evidence</span>
+              <strong>Supporting sources</strong>
+            </span>
+            <span class="badge" data-document-count>0 sources</span>
+          </summary>
+          <div class="disclosure-body">
+          <p class="muted">Add resumes, cover letters, job descriptions, and research only when you need them.</p>
+
+          <div class="disclosure-stack">
+          <details class="disclosure">
+            <summary class="disclosure-summary">
+              <span>
+                <span class="eyebrow">Candidate evidence</span>
+                <strong>Import documents</strong>
+              </span>
+              <span class="badge">Local parser</span>
+            </summary>
+            <div class="disclosure-body">
+              <p class="muted">PDF, DOCX, TXT, and HTML are parsed in a dedicated extension worker. Legacy DOC and image-only PDFs are rejected.</p>
+              <form class="stack" data-document-form>
+                <label>
+                  <span>Source role</span>
+                  <select name="sourceRole">
+                    <option value="candidate_evidence">Resume / candidate evidence</option>
+                    <option value="style_example">Cover letter / style evidence</option>
+                    <option value="job_requirement">Position or job description / requirement</option>
+                    <option value="company_context">Company notes / context</option>
+                    <option value="user_verified">Verified material</option>
+                  </select>
+                </label>
+                <label class="file-picker">
+                  <span>Choose documents</span>
+                  <input name="documents" type="file" accept=".pdf,.docx,.txt,.md,.html,.htm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown,text/html" multiple required>
+                  <small>Original bytes for every supported import are retained inside the encrypted vault. Only retained PDF/DOCX files can be explicitly attached to the tracker later.</small>
+                </label>
+                <button class="button button-secondary" type="submit">Import selected files</button>
+              </form>
+              <div class="progress" data-import-progress hidden>
+              <span data-import-progress-label>Preparing import...</span>
+                <progress max="1" value="0"></progress>
+              </div>
+            </div>
+          </details>
+
+          <details class="disclosure">
+            <summary class="disclosure-summary">
+              <span>
+                <span class="eyebrow">Manual research only</span>
+                <strong>Add a pasted note</strong>
+              </span>
+              <span class="badge">No web fetch</span>
+            </summary>
+            <div class="disclosure-body">
+              <p class="muted">Paste company or role research you reviewed yourself. A URL is attribution only; the extension never fetches it.</p>
+              <form class="stack" data-note-form autocomplete="off">
+                <label>
+                  <span>Source role</span>
+                  <select name="sourceRole">
+                    <option value="company_context">Company notes / context</option>
+                    <option value="job_requirement">Position notes / requirement</option>
+                    <option value="user_verified">Verified material</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Title <small>optional</small></span>
+                  <input name="title" type="text" maxlength="500" placeholder="Company careers page notes" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Source URL <small>optional, HTTP(S) only</small></span>
+                  <input name="url" type="url" maxlength="2048" placeholder="https://example.com/careers" autocomplete="off" spellcheck="false">
+                </label>
+                <label>
+                  <span>Research note</span>
+                  <textarea name="text" rows="6" maxlength="50000" placeholder="Paste only information you want available as evidence..." spellcheck="false" required></textarea>
+                </label>
+                <button class="button button-secondary" type="submit">Encrypt and add note</button>
+              </form>
+            </div>
+          </details>
+
+          <details class="disclosure">
+            <summary class="disclosure-summary">
+              <span>
+                <span class="eyebrow">Encrypted sources</span>
+                <strong>Source library</strong>
+              </span>
+            </summary>
+            <div class="disclosure-body">
+              <div class="record-list" data-document-list aria-live="polite"></div>
+            </div>
+          </details>
+          </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="application-panel" class="tab-panel" role="tabpanel" aria-labelledby="application-tab" data-panel="application" hidden>
+      <section class="card application-toolbar application-context">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Current application</p>
+            <h2>Fill this application</h2>
+          </div>
+          <span class="badge" data-adapter-badge>Not scanned</span>
+        </div>
+        <p class="muted" data-page-status>Open a job application form, then analyze the active page. Nothing is submitted automatically.</p>
+        <button class="button button-primary application-primary-action" type="button" data-action="scan-active-page">Analyze current page</button>
+        <details class="inline-disclosure job-summary" data-job-summary hidden>
+          <summary>
+            <span data-job-heading>Application details</span>
+            <span class="badge" data-field-count>0 fields</span>
+          </summary>
+          <div class="disclosure-body">
+            <dl class="metadata-list" data-job-metadata></dl>
+            <div class="job-context-status">
+              <div>
+                <strong data-job-context-heading>No job description captured</strong>
+                <span class="muted" data-job-context-copy>Capture it automatically, use selected page text, or paste a correction.</span>
+              </div>
+              <span class="badge badge-review" data-job-context-badge>Missing</span>
+            </div>
+            <p class="job-context-preview" data-job-context-preview>No description is attached to this application yet.</p>
+            <details class="inline-disclosure">
+              <summary>Job context options</summary>
+              <div class="disclosure-body compact-stack">
+                <div class="compact-actions">
+                  <button class="button button-secondary button-small" type="button" data-action="refresh-job-context">Capture current page</button>
+                  <button class="button button-quiet button-small" type="button" data-action="capture-selected-job-text">Use selected page text</button>
+                </div>
+                <div class="saved-context-picker" data-saved-context-picker hidden>
+                  <label>
+                    <span>Saved job context</span>
+                    <select data-job-context-picker aria-label="Saved job context"></select>
+                  </label>
+                  <button class="button button-secondary button-small" type="button" data-action="use-saved-job-context">Attach</button>
+                </div>
+                <details class="inline-disclosure manual-context-editor">
+                  <summary>Paste or correct details</summary>
+                  <div class="disclosure-body">
+                    <form class="form-grid" data-job-context-form>
+                      <label>
+                        <span>Company</span>
+                        <input name="company" type="text" maxlength="240" autocomplete="organization">
+                      </label>
+                      <label>
+                        <span>Job title</span>
+                        <input name="title" type="text" maxlength="240" autocomplete="organization-title">
+                      </label>
+                      <label class="form-grid-full">
+                        <span>Job URL</span>
+                        <input name="jobUrl" type="url" maxlength="2048">
+                      </label>
+                      <label>
+                        <span>Location</span>
+                        <input name="location" type="text" maxlength="240">
+                      </label>
+                      <label class="form-grid-full">
+                        <span>Job description or selected requirements</span>
+                        <textarea name="description" rows="7" maxlength="20000"></textarea>
+                      </label>
+                      <button class="button button-secondary form-grid-full" type="submit">Save encrypted context</button>
+                    </form>
+                  </div>
+                </details>
+              </div>
+            </details>
+          </div>
+        </details>
+      </section>
+
+      <section class="notice notice-warning" data-discovery-notice hidden role="status" aria-live="polite">
+        <strong data-discovery-notice-title>Some application controls need manual handling.</strong>
+        <span data-discovery-notice-copy></span>
+      </section>
+
+      <section class="notice notice-warning" data-captcha-notice hidden role="alert">
+        <strong>Interactive CAPTCHA challenge detected—filling paused. Complete it, then rescan.</strong>
+        <span>Generated answers remain available to copy, but page filling is disabled.</span>
+      </section>
+
+      <section class="notice notice-warning" data-stale-notice hidden role="alert">
+        <strong>The form changed after analysis.</strong>
+        <span>Filling is paused until you rescan and review fresh field fingerprints.</span>
+      </section>
+
+      <section class="notice notice-warning" data-generation-notice hidden role="status">
+        <strong>Some answers used safe local recovery.</strong>
+        <span data-generation-notice-copy></span>
+      </section>
+
+      <section class="analysis-progress" data-analysis-progress hidden aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <div>
+          <strong data-analysis-progress-title>Analyzing active page</strong>
+          <p data-analysis-progress-copy>Scanning safe fields...</p>
+        </div>
+      </section>
+
+      <section class="field-workspace" data-field-workspace aria-labelledby="answers-heading" hidden>
+        <div class="section-heading field-workspace-heading">
+          <div>
+            <p class="eyebrow">Review before filling</p>
+            <h2 id="answers-heading">Prepared answers</h2>
+          </div>
+          <span class="badge" data-retrieval-mode hidden>Lexical fallback</span>
+        </div>
+        <section class="batch-fill" data-batch-fill hidden aria-labelledby="batch-fill-heading">
+          <div class="batch-fill-heading">
+            <div>
+              <h3 id="batch-fill-heading" data-preflight-heading>Ready answers</h3>
+              <p data-preflight-summary>Review the prepared answers before filling.</p>
+            </div>
+          </div>
+          <div class="preflight-stats" data-preflight-stats aria-label="Application preflight summary"></div>
+          <details class="inline-disclosure clarification-batch" data-clarification-batch hidden>
+            <summary data-clarification-summary>Clarify answers once</summary>
+            <div class="disclosure-body">
+              <form class="stack" data-batch-clarification-form>
+                <p class="muted">Add missing facts once, then regenerate only the affected answers. Blank fields are ignored.</p>
+                <div class="stack" data-batch-clarification-list></div>
+                <button class="button button-secondary button-small" type="submit">Save and strengthen answers</button>
+              </form>
+            </div>
+          </details>
+          <label class="batch-review">
+            <input type="checkbox" data-batch-review>
+            <span>
+              <strong data-batch-review-copy>I reviewed the drafted answers and sources.</strong>
+              <small>One review unlocks those answers for this analysis.</small>
+            </span>
+          </label>
+          <div class="batch-actions">
+            <button class="button button-primary button-small" type="button" data-action="fill-all-ready" disabled>Fill ready fields</button>
+            <button class="button button-secondary button-small" type="button" data-action="fill-verified-only" disabled>Fill verified</button>
+            <button class="button button-quiet button-small" type="button" data-action="toggle-unresolved">Review issues</button>
+          </div>
+          <p class="batch-fill-status" data-batch-fill-status role="status" aria-live="polite" aria-atomic="true"></p>
+        </section>
+        <div class="empty-state" data-answer-empty>
+          <strong>No analyzed fields yet</strong>
+          <p>Proposals appear here with their confidence, risk class, and exact evidence citations.</p>
+        </div>
+        <div class="answer-list" data-answer-list></div>
+      </section>
+
+      <details class="card tracker-card disclosure-card" data-tracker-card hidden>
+        <summary class="disclosure-summary">
+          <span>
+            <span class="eyebrow">Website handoff</span>
+            <strong>Send to application tracker</strong>
+          </span>
+          <span class="badge">Review required</span>
+        </summary>
+        <div class="disclosure-body">
+          <p class="muted">Review the details below, then open the tracker. The tracker still requires sign-in and a separate Save.</p>
+          <form class="form-grid" data-tracker-form>
+          <label>
+            <span>Company</span>
+            <input name="company" type="text" maxlength="200" required>
+          </label>
+          <label>
+            <span>Job title</span>
+            <input name="title" type="text" maxlength="200" required>
+          </label>
+          <label class="form-grid-full">
+            <span>Job URL</span>
+            <input name="jobUrl" type="url" maxlength="2048">
+          </label>
+          <label>
+            <span>Location</span>
+            <input name="location" type="text" maxlength="240">
+          </label>
+          <label>
+            <span>Source</span>
+            <input name="source" type="text" maxlength="120">
+          </label>
+          <label>
+            <span>Posting date</span>
+            <input name="postingDate" type="date">
+          </label>
+          <label>
+            <span>Applied date</span>
+            <input name="appliedDate" type="date" required>
+          </label>
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option>Applied</option>
+              <option>Screening</option>
+              <option>Interview</option>
+              <option>Offer</option>
+              <option>Rejected</option>
+              <option>Withdrawn</option>
+            </select>
+          </label>
+          <label>
+            <span>Tags <small>comma separated</small></span>
+            <input name="tags" type="text" maxlength="739" placeholder="Analytics, Remote">
+          </label>
+          <label>
+            <span>Resume attachment</span>
+            <select name="resumeRecordId">
+              <option value="">No resume</option>
+            </select>
+          </label>
+          <label>
+            <span>Cover-letter attachment</span>
+            <select name="coverRecordId">
+              <option value="">No cover letter</option>
+            </select>
+          </label>
+          <p class="handoff-boundary form-grid-full">Opening the tracker transfers only the displayed metadata and selected files. It never submits the job application.</p>
+          <button class="button button-primary form-grid-full" type="submit">Review in tracker</button>
+        </form>
+        </div>
+      </details>
+    </section>
+
+    <section id="settings-panel" class="tab-panel" role="tabpanel" aria-labelledby="settings-tab" data-panel="settings" hidden>
+      <section class="card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Loopback only</p>
+            <h2>Ollama connection</h2>
+          </div>
+          <span class="badge">127.0.0.1</span>
+        </div>
+        <p class="muted">The extension can connect only to <code>http://127.0.0.1:11434</code>. Configure the exact extension origin and disable Ollama cloud before use; remote model metadata is rejected at runtime.</p>
+        <div class="status-panel" data-ollama-status>
+          <strong>Not checked</strong>
+          <span>Start Ollama, configure its extension origin, then test the connection.</span>
+        </div>
+        <button class="button button-secondary" type="button" data-action="check-ollama">Check Ollama</button>
+        <details class="inline-disclosure setup-disclosure">
+          <summary>Show setup commands</summary>
+          <div class="disclosure-body">
+            <div class="origin-command">
+              <span>Required Ollama origin</span>
+              <code data-ollama-origin>OLLAMA_ORIGINS=chrome-extension://&lt;extension-id&gt;</code>
+              <button class="button button-quiet button-small" type="button" data-action="copy-origin">Copy</button>
+            </div>
+            <div class="origin-command">
+              <span>Required local-only setting</span>
+              <code data-ollama-no-cloud>OLLAMA_NO_CLOUD=1</code>
+              <button class="button button-quiet button-small" type="button" data-action="copy-no-cloud">Copy</button>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <details class="card disclosure-card">
+        <summary class="disclosure-summary">
+          <span>
+            <span class="eyebrow">Local model preferences</span>
+            <strong>Models</strong>
+          </span>
+          <span class="badge">Non-sensitive</span>
+        </summary>
+        <div class="disclosure-body">
+          <form class="stack" data-settings-form>
+            <datalist id="ollama-model-list"></datalist>
+            <label>
+              <span>Generation model</span>
+              <input name="generationModel" type="text" list="ollama-model-list" maxlength="200" required>
+            </label>
+            <label>
+              <span>Fallback generation model</span>
+              <input name="fallbackGenerationModel" type="text" list="ollama-model-list" maxlength="200" required>
+            </label>
+            <label>
+              <span>Embedding model</span>
+              <input name="embeddingModel" type="text" list="ollama-model-list" maxlength="200" required>
+            </label>
+            <button class="button button-secondary" type="submit">Save local model settings</button>
+          </form>
+        </div>
+      </details>
+
+      <details class="card disclosure-card">
+        <summary class="disclosure-summary">
+          <span>
+            <span class="eyebrow">Your choice</span>
+            <strong>Privacy notice and consent</strong>
+          </span>
+          <span class="badge" data-privacy-version>Version 4</span>
+        </summary>
+        <div class="disclosure-body">
+          <p class="muted">Review the disclosure at any time. Withdrawing consent immediately locks the vault, clears decrypted session state, and blocks Copilot features without deleting the encrypted vault.</p>
+          <div class="button-row">
+            <button class="button button-secondary" type="button" data-action="review-privacy">Review privacy notice</button>
+            <button class="button button-danger" type="button" data-action="withdraw-privacy">Withdraw consent and lock</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="card danger-card disclosure-card">
+        <summary class="disclosure-summary">
+          <span>
+            <span class="eyebrow">Local data controls</span>
+            <strong>Encrypted vault</strong>
+          </span>
+        </summary>
+        <div class="disclosure-body">
+          <p class="muted">Lock clears the session key. Reset permanently deletes the encrypted IndexedDB vault from this browser profile.</p>
+          <div class="button-row">
+            <button class="button button-secondary" type="button" data-action="lock-vault">Lock vault</button>
+            <button class="button button-danger" type="button" data-action="reset-vault">Reset vault...</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="card disclosure-card">
+        <summary class="disclosure-summary">
+          <span>
+            <span class="eyebrow">Privacy-safe diagnostics</span>
+            <strong>Sanitized ATS fixture</strong>
+          </span>
+          <span class="badge">No answers</span>
+        </summary>
+        <div class="disclosure-body">
+          <p class="muted">Export the last scanned structure for adapter debugging. The JSON contains an opaque structure signature, recognized field labels, types, options, fill mode, and bounded context or exclusion counts—never page URLs, entered values, answers, secrets, hidden-field details, source documents, or arbitrary page text.</p>
+          <button class="button button-secondary" type="button" data-action="export-sanitized-fixture">Export sanitized fixture</button>
+        </div>
+      </details>
+    </section>
+  </main>
+  </div>
+
+  <div class="toast" data-toast role="status" aria-live="polite" hidden></div>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

@@ -10,8 +10,13 @@
 
   if (!modal || !modalContent || !openers.length) return;
 
+  const modalAccessibility = typeof window.createModalAccessibility === 'function'
+    ? window.createModalAccessibility(modal)
+    : null;
+  if (!modalAccessibility) return;
   const focusableSelectors = 'a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])';
-  const getFocusables = () => modalContent.querySelectorAll(focusableSelectors);
+  const getFocusables = () => Array.from(modalContent.querySelectorAll(focusableSelectors))
+    .filter((node) => !node.disabled && !node.closest('[hidden], [inert], [aria-hidden="true"]'));
   const trapFocus = (event) => {
     if (event.key !== 'Tab') return;
     const nodes = getFocusables();
@@ -54,20 +59,30 @@
   const openModal = (opts = {}) => {
     if (modal.classList.contains('active')) return;
     previousFocus = document.activeElement;
+    modalAccessibility.show();
     modal.classList.add('active');
     document.body.classList.add('modal-open');
     modalContent.focus({ preventScroll: true });
+    modalAccessibility.isolateBackground();
     modalContent.addEventListener('keydown', trapFocus);
     if (!opts.skipURL) updateURLState(true);
   };
 
   const closeModal = (opts = {}) => {
     if (!modal.classList.contains('active')) return;
+    modalAccessibility.restoreBackground();
     modal.classList.remove('active');
+    modalAccessibility.hide();
     document.body.classList.remove('modal-open');
     modalContent.removeEventListener('keydown', trapFocus);
-    if (previousFocus && typeof previousFocus.focus === 'function') {
-      previousFocus.focus();
+    const focusTarget = previousFocus
+      && previousFocus !== document.body
+      && document.contains(previousFocus)
+      && typeof previousFocus.focus === 'function'
+      ? previousFocus
+      : openers[0];
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      focusTarget.focus({ preventScroll: true });
     }
     if (!opts.skipURL) updateURLState(false);
   };

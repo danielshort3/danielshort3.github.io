@@ -64,8 +64,8 @@
     ].map(attachEquipmentItemAssets));
 
     const RANDOM_EQUIPMENT_ITEMS = Object.freeze([
-      { id: 'adventurer_cutlass', name: 'Adventurer Cutlass', slot: 'weapon', rarity: 'Common', level: 8, classId: 'any', stats: { power: 18, speed: 3 }, source: 'World drop', visualId: 'copper_sword', assetId: 'adventurer_cutlass', dropOnly: true },
-      { id: 'balanced_focus', name: 'Balanced Focus', slot: 'weapon', rarity: 'Uncommon', level: 18, classId: 'any', stats: { power: 32, resourceGain: 3 }, source: 'World drop', visualId: 'birch_wand', assetId: 'balanced_focus', dropOnly: true },
+      { id: 'adventurer_cutlass', name: 'Adventurer Cutlass', slot: 'weapon', rarity: 'Common', level: 8, classId: 'fighter', stats: { power: 18, speed: 3 }, source: 'World drop', visualId: 'copper_sword', assetId: 'adventurer_cutlass', dropOnly: true },
+      { id: 'balanced_focus', name: 'Balanced Focus', slot: 'weapon', rarity: 'Uncommon', level: 18, classId: 'mage', stats: { power: 32, resourceGain: 3 }, source: 'World drop', visualId: 'birch_wand', assetId: 'balanced_focus', dropOnly: true },
       { id: 'wanderer_charm', name: 'Wanderer Charm', slot: 'amulet', rarity: 'Uncommon', level: 12, classId: 'any', stats: { hp: 36, resourceGain: 2 }, source: 'World drop', assetId: 'wanderer_charm', dropOnly: true },
       { id: 'fieldguard_helm', name: 'Fieldguard Helm', slot: 'head', rarity: 'Common', level: 10, classId: 'any', stats: { hp: 34, defense: 5 }, source: 'World drop', assetId: 'fieldguard_helm', dropOnly: true },
       { id: 'trailwoven_gloves', name: 'Trailwoven Gloves', slot: 'gloves', rarity: 'Common', level: 14, classId: 'any', stats: { power: 6, speed: 5 }, source: 'World drop', assetId: 'trailwoven_gloves', dropOnly: true },
@@ -100,6 +100,7 @@
       normalDropChance: 0.08,
       eliteDropChance: 0.45,
       bossLootChance: 0.7,
+      equipmentLevelLeeway: 8,
       bossPity: Object.freeze({
         epicStart: 8,
         epicStep: 0.01,

@@ -2800,6 +2800,45 @@
     return remainingHours ? `${days}d ${remainingHours}h` : `${days}d`;
   }
 
+  function formatRiftOperationStatus(value, options) {
+    const rift = value && typeof value === 'object' ? value : {};
+    const settings = options || {};
+    const tier = Math.max(1, Math.floor(Number(rift.tier || 1) || 1));
+    const tierScore = Math.max(0, Number(rift.score || 0));
+    const nextTierScore = Math.max(500, Number(rift.nextTierScore || tier * 500));
+    if (!Number(rift.operationVersion || 0)) {
+      return {
+        active: false,
+        headline: `Rift tier ${tier} - score ${formatAbbreviatedInteger(tierScore)}/${formatAbbreviatedInteger(nextTierScore)}`,
+        record: '',
+        reward: ''
+      };
+    }
+    const nowMs = Number.isFinite(Number(settings.nowMs)) ? Number(settings.nowMs) : Date.now();
+    const remainingSeconds = rift.active
+      ? Math.max(0, Math.ceil((Math.max(0, Number(rift.endsAt || 0)) - nowMs) / 1000))
+      : 0;
+    const runScore = Math.max(0, Number(rift.runScore || 0));
+    const personalBest = rift.personalBest || {};
+    const weeklyBest = rift.weeklyBest || {};
+    const lastRun = rift.lastRun || null;
+    const headline = rift.active
+      ? `Rift Operation - ${formatMetricEta(remainingSeconds)} remaining - Tier ${tier} - ${formatAbbreviatedInteger(tierScore)}/${formatAbbreviatedInteger(nextTierScore)} - run ${formatAbbreviatedInteger(runScore)}`
+      : lastRun
+        ? `Rift Operation ready - last ${lastRun.cleared ? 'clear' : lastRun.reason || 'run'} T${Math.max(1, Number(lastRun.tier || 1))} / ${formatAbbreviatedInteger(lastRun.score || 0)}`
+        : 'Rift Operation ready - survive six minutes to clear';
+    const record = `Personal best T${Math.max(1, Number(personalBest.tier || rift.bestTier || 1))} / ${formatAbbreviatedInteger(personalBest.score || 0)} - weekly T${Math.max(1, Number(weeklyBest.tier || 1))} / ${formatAbbreviatedInteger(weeklyBest.score || 0)}`;
+    const reward = rift.weeklyRewardClaimed
+      ? 'Weekly cache secured'
+      : 'Weekly cache available on the next clear';
+    return {
+      active: !!rift.active,
+      headline,
+      record,
+      reward
+    };
+  }
+
   function formatMeterPercent(value, max) {
     const helper = getMetricFormattingHelper('formatMeterPercent');
     if (helper) return helper(value, max, { clamp });
@@ -4986,7 +5025,8 @@
 	      this.minimapDrag = null;
       this.minimapState = { x: 0, y: 0, compact: false, userPlaced: false };
       this.questTrackerDrag = null;
-      this.questTrackerState = { x: 0, y: 0, compact: false, userPlaced: false };
+      this.questTrackerState = { x: 0, y: 0, compact: true, userPlaced: false };
+	      this.lastHudStatusSignature = '';
 	      this.combatMetricsDrag = null;
 	      this.combatMetricsPanelState = { x: 0, y: 0, userPlaced: false };
 	      this.upgradePromptDrag = null;
@@ -5213,6 +5253,9 @@
       this.characterSelectRenderKey = '';
       this.characterSelectPreviewFrame = 0;
       this.characterSelectPreviewStartedAt = 0;
+      this.characterSelectPreviewAssetPreloadKey = '';
+      this.characterSelectPreviewAssetPreloadPromise = null;
+      this.characterCreateReturnFocus = null;
       this.characterAutoSaveTimer = 0;
       this.characterAutoSaveIdleHandle = 0;
       this.characterAutoSavePending = false;
@@ -5225,6 +5268,11 @@
       this.engineChangeRevision = 0;
       this.heldAttackKeys = new Set();
       this.heldSkillKeys = new Map();
+      this.touchControlPointers = new Map();
+      this.touchControlActionCounts = new Map();
+      this.touchControlsRenderKey = '';
+      this.commandDeckReturnFocus = null;
+      this.commandDeckWasInteractive = false;
       this.activeSkillOwner = '';
       this.characterPanelTab = 'overview';
       this.hoveredSkillId = '';
@@ -5246,8 +5294,8 @@
 	        pointerdown: (event) => this.handlePointerDown(event),
 	        pointermove: (event) => this.handlePointerMove(event),
 	        pointerup: (event) => this.handlePointerUp(event),
-	        pointercancel: () => this.handlePointerCancel(),
-	        pointerleave: () => this.handlePointerCancel()
+	        pointercancel: (event) => this.handlePointerCancel(event),
+	        pointerleave: (event) => this.handlePointerCancel(event)
 	      };
       this.canvasHandlers = {
         contextmenu: (event) => this.handleCanvasContextMenu(event),
@@ -6807,11 +6855,82 @@
       return true;
     }
 
-    openCharacterCreate(slotId) {
+    focusCharacterCreateElement(element) {
+      if (!element || typeof element.focus !== 'function') return false;
+      try {
+        element.focus({ preventScroll: true });
+      } catch {
+        element.focus();
+      }
+      return true;
+    }
+
+    captureCharacterCreateReturnFocus(slotId, trigger) {
+      const host = this.elements && this.elements.classSelect;
+      const activeElement = global.document && global.document.activeElement;
+      const candidate = trigger && typeof trigger.focus === 'function'
+        ? trigger
+        : activeElement && host && typeof host.contains === 'function' && host.contains(activeElement)
+          ? activeElement
+          : null;
+      this.characterCreateReturnFocus = {
+        element: candidate,
+        slotId: String(slotId || '')
+      };
+      return this.characterCreateReturnFocus;
+    }
+
+    findCharacterCreateReturnFocusTarget(origin) {
+      const focusOrigin = origin || this.characterCreateReturnFocus || {};
+      const element = focusOrigin.element;
+      const documentRoot = global.document;
+      const elementConnected = !!(element && typeof element.focus === 'function' && element.isConnected !== false &&
+        (!documentRoot || typeof documentRoot.contains !== 'function' || documentRoot.contains(element)));
+      if (elementConnected) return element;
+      const host = this.elements && this.elements.classSelect;
+      if (!host || typeof host.querySelectorAll !== 'function') return null;
+      const slotId = String(focusOrigin.slotId || '');
+      return Array.from(host.querySelectorAll('[data-starfall-character-slot]') || [])
+        .find((button) => button && typeof button.getAttribute === 'function' && button.getAttribute('data-starfall-character-slot') === slotId) || null;
+    }
+
+    restoreCharacterCreateFocus(origin) {
+      const target = this.findCharacterCreateReturnFocusTarget(origin);
+      this.characterCreateReturnFocus = null;
+      return this.focusCharacterCreateElement(target);
+    }
+
+    getCharacterCreateModalElement() {
+      const host = this.elements && this.elements.classSelect;
+      if (!host || typeof host.querySelector !== 'function') return null;
+      return host.querySelector('[data-starfall-character-create-modal]');
+    }
+
+    focusCharacterCreatePrimaryControl() {
+      const draft = this.characterCreateDraft || {};
+      if (!draft.active) return false;
+      const modal = this.getCharacterCreateModalElement();
+      if (!modal) return false;
+      if (draft.step !== 'class') {
+        const nameInput = typeof modal.querySelector === 'function'
+          ? modal.querySelector('[data-starfall-character-name]')
+          : null;
+        return this.focusCharacterCreateElement(nameInput || modal);
+      }
+      const classButtons = typeof modal.querySelectorAll === 'function'
+        ? Array.from(modal.querySelectorAll('[data-starfall-character-class]') || [])
+        : [];
+      const selected = classButtons.find((button) => button && typeof button.getAttribute === 'function' &&
+        button.getAttribute('data-starfall-character-class') === String(draft.classId || ''));
+      return this.focusCharacterCreateElement(selected || classButtons[0] || modal);
+    }
+
+    openCharacterCreate(slotId, trigger) {
       const slot = this.getCharacterSlot(slotId) || this.getSelectedCharacterSlot();
       if (!slot) return false;
       this.selectedCharacterSlotId = slot.slotId;
       this.syncCharacterSelectPageToSlot(slot.slotId);
+      this.captureCharacterCreateReturnFocus(slot.slotId, trigger);
       this.closeCharacterSelectPopover();
       this.characterCreateDraft = {
         active: true,
@@ -6827,10 +6946,14 @@
     }
 
     cancelCharacterCreate() {
+      if (!(this.characterCreateDraft && this.characterCreateDraft.active)) return false;
+      const returnFocus = this.characterCreateReturnFocus;
       this.characterCreateDraft.active = false;
       this.characterCreateDraft.error = '';
       this.closeCharacterSelectPopover();
       this.renderClassSelect();
+      this.restoreCharacterCreateFocus(returnFocus);
+      return true;
     }
 
     advanceCharacterCreateName() {
@@ -6861,7 +6984,52 @@
         this.renderClassSelect();
         return false;
       }
-      return this.createCharacterFromDraft();
+      this.characterCreateDraft.error = '';
+      this.renderClassSelect();
+      this.focusCharacterCreateClassChoice(this.characterCreateDraft.classId);
+      return true;
+    }
+
+    focusCharacterCreateClassChoice(classId) {
+      const host = this.elements && this.elements.classSelect;
+      if (!host || typeof host.querySelectorAll !== 'function') return false;
+      const selected = Array.from(host.querySelectorAll('[data-starfall-character-class]') || [])
+        .find((button) => button && typeof button.getAttribute === 'function' && button.getAttribute('data-starfall-character-class') === classId);
+      return this.focusCharacterCreateElement(selected);
+    }
+
+    confirmCharacterCreateStep() {
+      const draft = this.characterCreateDraft || {};
+      if (!draft.active) return false;
+      return draft.step === 'class'
+        ? this.createCharacterFromDraft()
+        : this.advanceCharacterCreateName();
+    }
+
+    getCharacterCreateStarterWeapon(classId) {
+      const starterIds = Data.STARTER_ITEMS && Array.isArray(Data.STARTER_ITEMS[classId])
+        ? Data.STARTER_ITEMS[classId]
+        : [];
+      const starterId = String(starterIds[0] || '');
+      return (Data.SHOP_ITEMS || []).find((item) => item && item.id === starterId) || null;
+    }
+
+    formatCharacterCreateStarterStats(item) {
+      const statLabels = {
+        armorBreak: 'Armor Break',
+        crit: 'Critical Chance',
+        critDamage: 'Critical Damage',
+        defense: 'Defense',
+        hp: 'Health',
+        mpMax: 'Resource Capacity',
+        power: 'Power',
+        range: 'Range',
+        resourceGain: 'Resource Gain',
+        speed: 'Speed'
+      };
+      return Object.entries(item && item.stats || {})
+        .map(([key, value]) => `${Number(value) >= 0 ? '+' : ''}${escapeHtml(String(value))} ${escapeHtml(statLabels[key] || key)}`)
+        .join(' · ');
     }
 
     openCharacterSelect() {
@@ -6877,6 +7045,7 @@
       this.selectedCharacterSlotId = this.characterRoster.activeSlotId || this.getFirstOccupiedCharacterSlotId() || getCharacterSlotId(0);
       this.syncCharacterSelectPageToSlot(this.selectedCharacterSlotId);
       this.characterCreateDraft.active = false;
+      this.characterCreateReturnFocus = null;
       this.closeCharacterSelectPopover();
       this.render();
       return true;
@@ -6908,6 +7077,7 @@
       this.selectedCharacterSlotId = slot.slotId;
       this.isCharacterSelectOpen = false;
       this.characterCreateDraft.active = false;
+      this.characterCreateReturnFocus = null;
       this.closeCharacterSelectPopover();
       this.openWindows = [];
       this.isModalOpen = false;
@@ -6943,6 +7113,7 @@
       this.characterRoster.activeSlotId = slot.slotId;
       this.isCharacterSelectOpen = false;
       this.characterCreateDraft.active = false;
+      this.characterCreateReturnFocus = null;
       this.closeCharacterSelectPopover();
       this.resetSkillKeybinds({ forceSave: true, silent: true });
       this.saveActiveCharacter({ silent: true, force: true });
@@ -7000,7 +7171,7 @@
       if (liveSnapshot) this.snapshot = liveSnapshot;
       const player = this.engine && this.engine.state && this.engine.state.player || liveSnapshot && liveSnapshot.state && liveSnapshot.state.player || {};
       if (!player.classId) return false;
-      if (this.isCharacterSelectOpen && !settings.force) return false;
+      if (this.isCharacterSelectOpen) return false;
       const slot = this.getCharacterSlot(this.selectedCharacterSlotId);
       if (!slot) return false;
       if (!shouldSaveNow) {
@@ -8009,6 +8180,61 @@
       return true;
     }
 
+    getCharacterCreateFocusableControls(modal) {
+      if (!modal || typeof modal.querySelectorAll !== 'function') return [];
+      return Array.from(modal.querySelectorAll([
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[href]',
+        '[tabindex]:not([tabindex="-1"])'
+      ].join(', ')) || []).filter((control) => {
+        if (!control || control.hidden) return false;
+        return !(typeof control.getAttribute === 'function' && control.getAttribute('aria-hidden') === 'true');
+      });
+    }
+
+    handleCharacterCreateModalKey(event, isDown) {
+      const draft = this.characterCreateDraft || {};
+      if (!draft.active) return false;
+      const modal = this.getCharacterCreateModalElement();
+      if (!modal) return false;
+      const code = String(event && (event.code || event.key) || '');
+      if (!isDown) return false;
+      if (code === 'Escape') {
+        if (event.preventDefault) event.preventDefault();
+        this.cancelCharacterCreate();
+        return true;
+      }
+      if (code === 'Tab') {
+        const controls = this.getCharacterCreateFocusableControls(modal);
+        if (!controls.length) {
+          if (event.preventDefault) event.preventDefault();
+          this.focusCharacterCreateElement(modal);
+          return true;
+        }
+        const activeElement = event.target || global.document && global.document.activeElement;
+        const activeInsideModal = typeof modal.contains === 'function' && modal.contains(activeElement);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        const next = event.shiftKey
+          ? (!activeInsideModal || activeElement === first ? last : null)
+          : (!activeInsideModal || activeElement === last ? first : null);
+        if (!next) return false;
+        if (event.preventDefault) event.preventDefault();
+        this.focusCharacterCreateElement(next);
+        return true;
+      }
+      if (code !== 'Enter' && code !== 'NumpadEnter') return false;
+      const target = event.target;
+      const isNameInput = !!(target && typeof target.hasAttribute === 'function' && target.hasAttribute('data-starfall-character-name'));
+      if (!isNameInput) return false;
+      if (event.preventDefault) event.preventDefault();
+      if (!event.repeat && !event.isComposing) this.confirmCharacterCreateStep();
+      return true;
+    }
+
     handleKeyboard(event, isDown) {
       if (!event) return;
       if (this.handleConfirmPromptKey(event, isDown)) return;
@@ -8040,6 +8266,7 @@
         this.captureRebind(event);
         return;
       }
+      if (this.handleCharacterCreateModalKey(event, isDown)) return;
       if (this.isCharacterSelectOpen) return;
       if (this.handleMonsterGuideSearchKey(event, isDown)) return;
       if (this.handleAdminCommandInputKey(event, isDown)) return;
@@ -10464,7 +10691,132 @@
       this.assignActionToKey(actionId, code, { replaceActionKeys: true });
     }
 
+    isSupportedTouchControlAction(action) {
+      if (!action) return false;
+      if (action.type === 'skill') return !!action.skillId;
+      return ['moveLeft', 'moveRight', 'jump', 'attack'].includes(String(action.id || ''));
+    }
+
+    setTouchControlVisualState(target, held) {
+      if (!target) return;
+      if (target.classList && typeof target.classList.toggle === 'function') target.classList.toggle('is-held', !!held);
+      if (typeof target.setAttribute === 'function') target.setAttribute('aria-pressed', held ? 'true' : 'false');
+    }
+
+    dispatchTouchControlAction(action, isDown, pointerKey) {
+      const controlAction = action && action.id ? action : this.getBindableAction(action);
+      if (!this.isSupportedTouchControlAction(controlAction) || !this.engine) return false;
+      const down = !!isDown;
+      const key = String(pointerKey || `touch:${controlAction.id}`);
+      if (controlAction.type === 'hold') {
+        if (down) {
+          this.recordControlOnboardingEvent(controlAction);
+          if (controlAction.input === 'up') this.startPortalTransition();
+        }
+        this.engine.setInput(controlAction.input, down);
+        return true;
+      }
+      if (controlAction.action === 'attack') {
+        if (down) this.recordControlOnboardingEvent(controlAction);
+        return this.handleAttackKey(key, down, { repeat: false });
+      }
+      if (controlAction.type === 'skill') {
+        return this.handleSkillKey(controlAction, key, down, { repeat: false });
+      }
+      return false;
+    }
+
+    handleTouchControlPointerDown(event) {
+      const getPointerAction = getInputHelper('getTouchControlPointerAction');
+      if (!getPointerAction) return false;
+      const pointerAction = getPointerAction(event, { root: this.root });
+      if (!pointerAction.handled) return false;
+      const action = this.getBindableAction(pointerAction.actionId);
+      if (!this.isSupportedTouchControlAction(action) || this.isStartScreenOpen || this.isCharacterSelectOpen) return false;
+      this.touchControlPointers = this.touchControlPointers && this.touchControlPointers.set
+        ? this.touchControlPointers
+        : new Map();
+      this.touchControlActionCounts = this.touchControlActionCounts && this.touchControlActionCounts.set
+        ? this.touchControlActionCounts
+        : new Map();
+      if (this.touchControlPointers.has(pointerAction.pointerId)) {
+        this.releaseTouchControlPointer(pointerAction.pointerId);
+      }
+      const previousCount = Number(this.touchControlActionCounts.get(action.id) || 0);
+      this.touchControlPointers.set(pointerAction.pointerId, {
+        action,
+        actionId: action.id,
+        pointerId: pointerAction.pointerId,
+        pointerKey: pointerAction.pointerKey,
+        target: pointerAction.target
+      });
+      this.touchControlActionCounts.set(action.id, previousCount + 1);
+      this.setTouchControlVisualState(pointerAction.target, true);
+      if (action.type !== 'hold' || previousCount === 0) {
+        this.dispatchTouchControlAction(action, true, pointerAction.pointerKey);
+      }
+      if (pointerAction.shouldSetPointerCapture) {
+        try {
+          pointerAction.target.setPointerCapture(Number(event.pointerId));
+        } catch (_) {}
+      }
+      if (pointerAction.shouldPreventDefault && event && event.preventDefault) event.preventDefault();
+      if (pointerAction.shouldFocusCanvas) this.focusCanvas();
+      return true;
+    }
+
+    releaseTouchControlPointer(pointerId, event, options) {
+      const pointers = this.touchControlPointers && this.touchControlPointers.get
+        ? this.touchControlPointers
+        : new Map();
+      const getReleaseAction = getInputHelper('getTouchControlReleaseAction');
+      const releaseAction = getReleaseAction
+        ? getReleaseAction(event || { pointerId }, pointers)
+        : { handled: pointers.has(String(pointerId)), pointerId: String(pointerId), pointer: pointers.get(String(pointerId)) || null };
+      if (!releaseAction.handled || !releaseAction.pointer) return false;
+      const settings = options || {};
+      const pointer = releaseAction.pointer;
+      const action = pointer.action || this.getBindableAction(pointer.actionId);
+      pointers.delete(releaseAction.pointerId);
+      const counts = this.touchControlActionCounts && this.touchControlActionCounts.set
+        ? this.touchControlActionCounts
+        : new Map();
+      const remainingCount = Math.max(0, Number(counts.get(pointer.actionId) || 0) - 1);
+      if (remainingCount) counts.set(pointer.actionId, remainingCount);
+      else counts.delete(pointer.actionId);
+      const targetStillHeld = Array.from(pointers.values()).some((activePointer) => activePointer && activePointer.target === pointer.target);
+      this.setTouchControlVisualState(pointer.target, targetStillHeld);
+      if (!settings.skipDispatch && action && (action.type !== 'hold' || remainingCount === 0)) {
+        this.dispatchTouchControlAction(action, false, pointer.pointerKey);
+      }
+      if (releaseAction.shouldReleasePointerCapture) {
+        try {
+          pointer.target.releasePointerCapture(Number((event && event.pointerId) != null ? event.pointerId : pointerId));
+        } catch (_) {}
+      }
+      return true;
+    }
+
+    clearTouchControlPointers(options) {
+      const pointers = this.touchControlPointers && this.touchControlPointers.get
+        ? this.touchControlPointers
+        : new Map();
+      Array.from(pointers.keys()).forEach((pointerId) => {
+        this.releaseTouchControlPointer(pointerId, { pointerId }, options);
+      });
+      if (pointers.clear) pointers.clear();
+      if (this.touchControlActionCounts && this.touchControlActionCounts.clear) this.touchControlActionCounts.clear();
+      return true;
+    }
+
+    hasActiveTouchControlAction(actionId) {
+      return Number(this.touchControlActionCounts && this.touchControlActionCounts.get
+        ? this.touchControlActionCounts.get(String(actionId || '')) || 0
+        : 0) > 0;
+    }
+
     clearHoldInputs() {
+      this.clearTouchControlPointers({ skipDispatch: true });
       const clearHoldInputsMetadataHelper = getInputHelper('getClearHoldInputsMetadata');
       if (clearHoldInputsMetadataHelper) {
         const metadata = clearHoldInputsMetadataHelper();
@@ -10577,6 +10929,11 @@
     }
 
     handlePointerMove(event) {
+      const pointerId = event && event.pointerId != null ? String(event.pointerId) : '';
+      if (pointerId && this.touchControlPointers && this.touchControlPointers.has(pointerId)) {
+        if (event && event.preventDefault) event.preventDefault();
+        return;
+      }
       if (!this.potentialPromptDomDrag) return;
       const viewportW = typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1280;
       const viewportH = typeof window !== 'undefined' && window.innerHeight ? window.innerHeight : 806;
@@ -10628,6 +10985,7 @@
     }
 
     handlePointerDown(event) {
+      if (this.handleTouchControlPointerDown(event)) return;
       if (this.startPotentialPromptDomDrag(event)) return;
       const plinkoDropPointerDomActionHelper = getPlinkoInteractionHelper('getPlinkoDropPointerDomAction');
       if (plinkoDropPointerDomActionHelper) {
@@ -10712,21 +11070,26 @@
       if (settings.shouldCommitAdminRatePreview) this.commitAdminRatePreviewFromEvent(event);
       if (settings.keepConsumedClick) this.stopPlinkoDropHold({ keepConsumedClick: true });
       else this.stopPlinkoDropHold();
-      this.releaseAttackInput();
+      if (!settings.preserveTouchAttack) this.releaseAttackInput();
       this.stopPotentialPromptDomDrag();
     }
 
     handlePointerUp(event) {
+      if (event && event.pointerId != null) this.releaseTouchControlPointer(String(event.pointerId), event);
       this.applyDomPointerReleaseCleanup(event, {
         shouldCommitAdminRatePreview: true,
-        keepConsumedClick: true
+        keepConsumedClick: true,
+        preserveTouchAttack: this.hasActiveTouchControlAction('attack')
       });
     }
 
-    handlePointerCancel() {
+    handlePointerCancel(event) {
+      if (event && event.pointerId != null) this.releaseTouchControlPointer(String(event.pointerId), event);
+      else this.clearTouchControlPointers();
       this.applyDomPointerReleaseCleanup(null, {
         shouldCommitAdminRatePreview: false,
-        keepConsumedClick: false
+        keepConsumedClick: false,
+        preserveTouchAttack: this.hasActiveTouchControlAction('attack')
       });
     }
 
@@ -11059,9 +11422,9 @@
           } else if (characterSelectAction.type === 'start') {
             this.startSelectedCharacter();
           } else if (characterSelectAction.type === 'openCreate') {
-            this.openCharacterCreate(characterSelectAction.slotId);
+            this.openCharacterCreate(characterSelectAction.slotId, target);
           } else if (characterSelectAction.type === 'confirmCreate') {
-            this.advanceCharacterCreateName();
+            this.confirmCharacterCreateStep();
           } else if (characterSelectAction.type === 'cancelCreate') {
             this.cancelCharacterCreate();
           } else if (characterSelectAction.type === 'cancelDelete') {
@@ -11093,11 +11456,11 @@
         }
         const createSlotId = target.getAttribute('data-starfall-character-create-open');
         if (createSlotId) {
-          this.openCharacterCreate(createSlotId);
+          this.openCharacterCreate(createSlotId, target);
           return;
         }
         if (target.hasAttribute('data-starfall-character-create-confirm')) {
-          this.advanceCharacterCreateName();
+          this.confirmCharacterCreateStep();
           return;
         }
         if (target.hasAttribute('data-starfall-character-create-cancel')) {
@@ -11130,22 +11493,37 @@
         if (panelShellAction && panelShellAction.handled) {
           if (panelShellAction.type === 'toggleCommand') {
             this.toggleCommandPanel();
-            this.focusCanvas();
+            if (!this.isNarrowCommandDeckMode()) this.focusCanvas();
           } else if (panelShellAction.type === 'closePanel') {
             this.closePanel();
           } else if (panelShellAction.type === 'togglePanel') {
             this.togglePanel(panelShellAction.panelId);
+          } else if (panelShellAction.type === 'changeChannel') {
+            this.toggleCommandPanel(false);
+            if (this.engine && this.engine.changeChannel) {
+              this.engine.changeChannel(panelShellAction.channelId);
+              this.readEngineSnapshot();
+            }
           }
           return;
         }
       } else {
         if (target.hasAttribute('data-starfall-command-toggle')) {
           this.toggleCommandPanel();
-          this.focusCanvas();
+          if (!this.isNarrowCommandDeckMode()) this.focusCanvas();
           return;
         }
         if (target.hasAttribute('data-starfall-close')) {
           this.closePanel();
+          return;
+        }
+        const channelId = target.getAttribute('data-starfall-command-channel');
+        if (channelId) {
+          this.toggleCommandPanel(false);
+          if (this.engine && this.engine.changeChannel) {
+            this.engine.changeChannel(channelId);
+            this.readEngineSnapshot();
+          }
           return;
         }
         const openPanelId = target.getAttribute('data-starfall-open-panel');
@@ -11960,7 +12338,10 @@
       if (actionButtonDomActionHelper) {
         const actionButtonAction = actionButtonDomActionHelper(target);
         if (actionButtonAction && actionButtonAction.handled) {
-          if (actionButtonAction.type === 'handleAction') this.handleAction(actionButtonAction.actionId);
+          if (actionButtonAction.type === 'handleAction') {
+            if (target.closest && target.closest('[data-starfall-command-menu]')) this.toggleCommandPanel(false);
+            this.handleAction(actionButtonAction.actionId);
+          }
           this.focusCanvas();
           return;
         }
@@ -11971,6 +12352,7 @@
             this.focusCanvas();
             return;
           }
+          if (target.closest && target.closest('[data-starfall-command-menu]')) this.toggleCommandPanel(false);
           this.handleAction(action);
           this.focusCanvas();
           return;
@@ -12027,6 +12409,10 @@
             this.engine.rankSkill(skillPanelAction.skillId);
           } else if (skillPanelAction.type === 'selectOwner') {
             this.selectSkillOwner(skillPanelAction.ownerId);
+          } else if (skillPanelAction.type === 'unlockSkillModifier' && this.engine.unlockSkillModifier) {
+            this.engine.unlockSkillModifier(skillPanelAction.modifierId);
+          } else if (skillPanelAction.type === 'selectSkillModifier' && this.engine.selectSkillModifier) {
+            this.engine.selectSkillModifier(skillPanelAction.modifierId);
           }
           return;
         }
@@ -12096,6 +12482,31 @@
       } else if (target.hasAttribute('data-starfall-daily-login-claim')) {
         if (this.engine.claimDailyLoginReward) this.engine.claimDailyLoginReward();
         return;
+      }
+      const fractureOpsPanelDomActionHelper = getPanelInteractionHelper('getFractureOpsPanelDomAction');
+      if (fractureOpsPanelDomActionHelper) {
+        const fractureOpsPanelAction = fractureOpsPanelDomActionHelper(target);
+        if (fractureOpsPanelAction && fractureOpsPanelAction.handled) {
+          if (fractureOpsPanelAction.type === 'selectSeasonDirective' && this.engine.selectSeasonDirective) {
+            this.engine.selectSeasonDirective(fractureOpsPanelAction.directiveId);
+          } else if (fractureOpsPanelAction.type === 'claimSeasonReward' && this.engine.claimSeasonReward) {
+            this.engine.claimSeasonReward();
+          }
+          if (this.engine.getSeasonSnapshot) this.snapshot.season = this.engine.getSeasonSnapshot();
+          return;
+        }
+      } else {
+        const directiveId = target.getAttribute('data-starfall-directive-select');
+        if (directiveId && this.engine.selectSeasonDirective) {
+          this.engine.selectSeasonDirective(directiveId);
+          if (this.engine.getSeasonSnapshot) this.snapshot.season = this.engine.getSeasonSnapshot();
+          return;
+        }
+        if (target.hasAttribute('data-starfall-season-claim') && this.engine.claimSeasonReward) {
+          this.engine.claimSeasonReward();
+          if (this.engine.getSeasonSnapshot) this.snapshot.season = this.engine.getSeasonSnapshot();
+          return;
+        }
       }
       const plinkoPanelDomActionHelper = getPlinkoInteractionHelper('getPlinkoPanelDomAction');
       if (plinkoPanelDomActionHelper) {
@@ -15236,12 +15647,22 @@
       if (top) this.closePanel(top);
     }
 
+    isNarrowCommandDeckMode() {
+      if (typeof window === 'undefined') return false;
+      if (typeof window.matchMedia === 'function') return window.matchMedia('(max-width: 700px)').matches;
+      return Number(window.innerWidth || 0) <= 700;
+    }
+
     toggleCommandPanel(forceOpen) {
       this.closeItemContextMenu();
       const commandPanelOpenStateHelper = getPanelInteractionHelper('getCommandPanelOpenState');
-      this.isCommandOpen = commandPanelOpenStateHelper
+      const nextOpen = commandPanelOpenStateHelper
         ? commandPanelOpenStateHelper(forceOpen, this.isCommandOpen)
         : typeof forceOpen === 'boolean' ? forceOpen : !this.isCommandOpen;
+      if (nextOpen && !this.isCommandOpen && typeof document !== 'undefined') {
+        this.commandDeckReturnFocus = document.activeElement || null;
+      }
+      this.isCommandOpen = nextOpen;
       if (this.isCommandOpen) this.clearHoldInputs();
       this.renderCommandPanel();
       this.queueUiRefresh({ domains: ['session'], command: true, draw: true });
@@ -15779,27 +16200,27 @@
         return getTitle(panelId);
       }
       const titles = {
-        character: 'Character',
-        equipment: 'Equipment',
-        partyPanel: 'Party',
-        pet: 'Pet',
-        worldmap: 'World Map',
-        monsters: 'Monster Guide',
-        skills: 'Skill Tree',
-        quests: 'Quests & Trials',
+        character: 'Operative',
+        equipment: 'Loadout',
+        partyPanel: 'Squad',
+        pet: 'Companion',
+        worldmap: 'Starfall Atlas',
+        monsters: 'Archive Index',
+        skills: 'Techniques',
+        quests: 'Assignments',
         inventory: 'Inventory',
-        storage: 'Storage',
-        shop: 'Shop',
-        upgrade: 'Upgrade Station',
-        plinko: 'Starfall Plinko',
-        daily: 'Daily Rewards',
-        cashShop: 'Cash Shop',
-        beta: 'Beta Systems',
-        guide: 'Guide',
-        log: 'Session Log',
+        storage: 'Shared Vault',
+        shop: 'Field Market',
+        upgrade: 'Forge',
+        plinko: 'Signal Drop',
+        daily: 'Beacon Check-In',
+        cashShop: 'Token Exchange',
+        beta: 'Fracture Ops',
+        guide: 'Field Manual',
+        log: 'Field Log',
         keybinds: 'Keybinds',
-        settings: 'Settings',
-        admin: 'Admin Settings',
+        settings: 'System Settings',
+        admin: 'Worldwright Tools',
         worldwright: 'Worldwright Console',
         assetPreview: 'Asset Preview'
       };
@@ -15938,6 +16359,7 @@
         this.stopCharacterSelectPreviewLoop();
         return;
       }
+      this.preloadCharacterSelectPreviewAssets();
       this.characterSelectPage = this.getClampedCharacterSelectPage(this.characterSelectPage);
       const slots = this.characterRoster.slots || [];
       const visibleSlots = this.getVisibleCharacterSelectSlots();
@@ -15972,6 +16394,7 @@
         </div>
       `;
       this.syncCharacterSelectPreviewLoop();
+      this.focusCharacterCreatePrimaryControl();
     }
 
     renderSelectedCharacterSummaryPanel(visibleSlots) {
@@ -16050,7 +16473,7 @@
           ` : ''}
           <span class="project-starfall-character-platform" aria-hidden="true"></span>
           <span class="project-starfall-character-figure">
-            ${character && classData ? `${renderAssetImage(classData.asset, '', artClass)}${shouldPreview ? `<canvas class="project-starfall-character-preview" width="192" height="184" data-starfall-character-preview="${escapeHtml(slot.slotId)}" data-starfall-character-preview-state="${selected ? 'run' : 'idle'}" aria-hidden="true"></canvas>` : ''}` : '<span class="project-starfall-character-silhouette" aria-hidden="true"></span>'}
+            ${character && classData ? `${renderAssetImage(classData.asset, '', artClass)}${shouldPreview ? `<canvas class="project-starfall-character-preview" width="168" height="168" data-starfall-character-preview="${escapeHtml(slot.slotId)}" data-starfall-character-preview-state="${selected ? 'run' : 'idle'}" aria-hidden="true"></canvas>` : ''}` : '<span class="project-starfall-character-silhouette" aria-hidden="true"></span>'}
           </span>
           <span class="project-starfall-character-slot-name">${escapeHtml(character ? character.name : `Empty Slot ${Number(slot.index || 0) + 1}`)}</span>
           <span class="project-starfall-character-slot-meta">${escapeHtml(character ? `Lv ${character.level} ${getClassLabel(character.advancedClassId || character.classId)}` : 'Create Character')}</span>
@@ -16058,29 +16481,41 @@
       `;
     }
 
-    getCharacterSelectPreviewRig(character) {
-      if (!character || !Data.PLAYER_RIGS) return null;
-      const advancedId = normalizeId(character.advancedClassId);
-      const classId = normalizeId(character.classId);
-      const advancedData = advancedId ? Data.ADVANCED_CLASSES[advancedId] : null;
-      const baseClassId = normalizeId(classId || advancedData && advancedData.baseClass);
-      return Data.PLAYER_RIGS[advancedId] || Data.PLAYER_RIGS[baseClassId] || Data.PLAYER_RIGS.fighter || null;
+    getCharacterSelectPreviewAnimation(classData) {
+      return classData && classData.animation || Data.GENERIC_PLAYER_ANIMATION_ASSET || null;
     }
 
-    getCharacterSelectPreviewPayload(character) {
-      return character && character.payload && typeof character.payload === 'object' ? character.payload : {};
+    getCharacterSelectPreviewAssetPaths() {
+      return Array.from(new Set(Object.values(Data.BASE_CLASSES || {})
+        .map((classData) => this.getCharacterSelectPreviewAnimation(classData))
+        .map((animation) => animation && animation.sheet)
+        .filter(Boolean)))
+        .sort();
     }
 
-    getCharacterSelectPreviewEquipment(character) {
-      const payload = this.getCharacterSelectPreviewPayload(character);
-      const equipment = payload.state && payload.state.equipment;
-      return equipment && typeof equipment === 'object' ? equipment : {};
-    }
-
-    getCharacterSelectPreviewPalette(character) {
-      const payload = this.getCharacterSelectPreviewPayload(character);
-      const player = payload.state && payload.state.player || {};
-      return getCharacterLook(player.lookId || character && character.lookId) || {};
+    preloadCharacterSelectPreviewAssets() {
+      const engine = this.engine;
+      if (!engine || typeof engine.preloadAssetPaths !== 'function') return Promise.resolve(false);
+      const assetPaths = this.getCharacterSelectPreviewAssetPaths();
+      const preloadKey = assetPaths.join('|');
+      if (!preloadKey) return Promise.resolve(false);
+      if (this.characterSelectPreviewAssetPreloadKey === preloadKey && this.characterSelectPreviewAssetPreloadPromise) {
+        return this.characterSelectPreviewAssetPreloadPromise;
+      }
+      let preloadRequest;
+      try {
+        preloadRequest = engine.preloadAssetPaths(assetPaths, {
+          label: 'character-select:base-class-previews'
+        });
+      } catch {
+        preloadRequest = Promise.resolve(false);
+      }
+      this.characterSelectPreviewAssetPreloadKey = preloadKey;
+      this.characterSelectPreviewAssetPreloadPromise = Promise.resolve(preloadRequest).then((progress) => {
+        if (this.isCharacterSelectOpen) this.syncCharacterSelectPreviewLoop();
+        return progress;
+      }, () => false);
+      return this.characterSelectPreviewAssetPreloadPromise;
     }
 
     getCharacterSelectPreviewContexts() {
@@ -16090,22 +16525,36 @@
         const selected = this.getCharacterSelectPreviewContext();
         return selected ? [selected] : [];
       }
-      return Array.from(host.querySelectorAll('[data-starfall-character-preview]') || [])
+      return Array.from(host.querySelectorAll('[data-starfall-character-preview], [data-starfall-character-create-preview]') || [])
         .map((canvas) => {
+          const createClassId = canvas && typeof canvas.getAttribute === 'function'
+            ? canvas.getAttribute('data-starfall-character-create-preview')
+            : '';
+          if (createClassId) {
+            const classData = Data.BASE_CLASSES[createClassId];
+            const animation = this.getCharacterSelectPreviewAnimation(classData);
+            if (!canvas || !classData || !animation || typeof canvas.getContext !== 'function') return null;
+            return {
+              canvas,
+              slot: null,
+              character: null,
+              classData,
+              animation,
+              state: canvas.getAttribute('data-starfall-character-preview-state') || 'run'
+            };
+          }
           const slotId = canvas && typeof canvas.getAttribute === 'function' ? canvas.getAttribute('data-starfall-character-preview') : '';
           const slot = this.getCharacterSlot(slotId);
           const character = slot && slot.character;
           const classData = character && (Data.ADVANCED_CLASSES[character.advancedClassId] || Data.BASE_CLASSES[character.classId]);
-          const rig = this.getCharacterSelectPreviewRig(character);
-          if (!canvas || !slot || !character || !classData || !rig || typeof canvas.getContext !== 'function') return null;
+          const animation = this.getCharacterSelectPreviewAnimation(classData);
+          if (!canvas || !slot || !character || !classData || !animation || typeof canvas.getContext !== 'function') return null;
           return {
             canvas,
             slot,
             character,
             classData,
-            rig,
-            equipment: this.getCharacterSelectPreviewEquipment(character),
-            palette: this.getCharacterSelectPreviewPalette(character),
+            animation,
             state: slot.slotId === this.selectedCharacterSlotId ? 'run' : 'idle'
           };
         })
@@ -16118,8 +16567,8 @@
       const selectedSlot = this.getSelectedCharacterSlot();
       const character = selectedSlot && selectedSlot.character;
       const classData = character && (Data.ADVANCED_CLASSES[character.advancedClassId] || Data.BASE_CLASSES[character.classId]);
-      const rig = this.getCharacterSelectPreviewRig(character);
-      if (!selectedSlot || !character || !classData || !rig) return null;
+      const animation = this.getCharacterSelectPreviewAnimation(classData);
+      if (!selectedSlot || !character || !classData || !animation) return null;
       const selector = `[data-starfall-character-preview="${selectedSlot.slotId}"]`;
       const canvas = host.querySelector(selector);
       if (!canvas || typeof canvas.getContext !== 'function') return null;
@@ -16128,9 +16577,7 @@
         slot: selectedSlot,
         character,
         classData,
-        rig,
-        equipment: this.getCharacterSelectPreviewEquipment(character),
-        palette: this.getCharacterSelectPreviewPalette(character),
+        animation,
         state: 'run'
       };
     }
@@ -16182,50 +16629,93 @@
       if (!previews || !previews.length) return false;
       let drewAny = false;
       previews.forEach((preview) => {
-        if (this.drawCharacterSelectRigPreviewFrame(preview)) drewAny = true;
+        if (this.drawCharacterSelectSpritePreviewFrame(preview)) drewAny = true;
       });
       return drewAny;
     }
 
-    drawCharacterSelectRigPreviewFrame(preview) {
-      const Rig = global.ProjectStarfallRig;
-      if (!preview || !Rig || typeof Rig.drawCharacter !== 'function') return false;
+    getCharacterSelectSpriteFrame(animation, state, elapsedSeconds) {
+      if (!animation || !animation.states) return null;
+      const frameDef = animation.states[state] || animation.states.idle;
+      if (!frameDef) return null;
+      const frameCount = Math.max(1, Math.floor(Number(frameDef.frames || 1) || 1));
+      const sequence = Array.isArray(frameDef.sequence) && frameDef.sequence.length
+        ? frameDef.sequence.map((frame) => clamp(Math.floor(Number(frame || 0) || 0), 0, frameCount - 1))
+        : null;
+      const stepCount = sequence ? sequence.length : frameCount;
+      const holds = Array.isArray(frameDef.holds)
+        ? Array.from({ length: stepCount }, (_, index) => Math.max(1, Math.round(Number(frameDef.holds[index]) || 1)))
+        : null;
+      const totalTicks = holds ? holds.reduce((sum, value) => sum + value, 0) : stepCount;
+      const fps = Math.max(1, Number(frameDef.fps || 1) || 1);
+      const rawTick = Math.floor(Math.max(0, Number(elapsedSeconds || 0)) * fps);
+      const tick = frameDef.loop ? rawTick % Math.max(1, totalTicks) : Math.min(totalTicks - 1, rawTick);
+      let stepIndex = Math.min(stepCount - 1, tick);
+      if (holds) {
+        let cursor = 0;
+        stepIndex = holds.findIndex((hold) => {
+          cursor += hold;
+          return tick < cursor;
+        });
+        if (stepIndex < 0) stepIndex = stepCount - 1;
+      }
+      return {
+        frameIndex: sequence ? sequence[stepIndex] : stepIndex,
+        row: Math.max(0, Number(frameDef.row || 0)),
+        frameWidth: Math.max(1, Number(animation.frameWidth || 160)),
+        frameHeight: Math.max(1, Number(animation.frameHeight || animation.frameWidth || 160))
+      };
+    }
+
+    drawCharacterSelectSpritePreviewFrame(preview) {
+      if (!preview || !preview.animation || !preview.animation.sheet) return false;
       const ctx = preview.canvas.getContext('2d');
       if (!ctx) return false;
-      const width = Number(preview.canvas.width || 192);
-      const height = Number(preview.canvas.height || 184);
-      const slotElement = preview.canvas.closest ? preview.canvas.closest('.project-starfall-character-slot') : null;
+      const width = Number(preview.canvas.width || 168);
+      const height = Number(preview.canvas.height || 168);
+      const previewElement = preview.canvas.closest
+        ? preview.canvas.closest('.project-starfall-character-slot, .project-starfall-character-review-art')
+        : null;
       ctx.clearRect(0, 0, width, height);
-      if (!preview.rig) {
-        if (slotElement) slotElement.classList.remove('has-preview-frame');
+      const image = this.engine && typeof this.engine.getAsset === 'function'
+        ? this.engine.getAsset(preview.animation.sheet)
+        : null;
+      if (!image) {
+        if (previewElement) previewElement.classList.remove('has-preview-frame');
         return false;
       }
-      const boxHeight = Math.min(124, Math.max(86, height - 46));
-      const boxWidth = Math.min(72, Math.max(52, Math.round(boxHeight * 0.52)));
-      const actor = {
-        x: Math.round((width - boxWidth) / 2),
-        y: Math.round(height - boxHeight - 12),
-        w: boxWidth,
-        h: boxHeight,
-        facing: 1,
-        animationState: preview.state || 'idle'
-      };
-      const elapsed = preview.state === 'run'
-        ? Math.max(0, Date.now() / 1000 - Number(this.characterSelectPreviewStartedAt || Date.now() / 1000))
-        : 0;
+      const now = Date.now() / 1000;
+      const elapsed = Math.max(0, now - Number(this.characterSelectPreviewStartedAt || now));
+      const frame = this.getCharacterSelectSpriteFrame(preview.animation, preview.state || 'idle', elapsed);
+      if (!frame) {
+        if (previewElement) previewElement.classList.remove('has-preview-frame');
+        return false;
+      }
+      const drawSize = Math.max(1, Math.min(width, height));
+      const drawX = Math.round((width - drawSize) / 2);
+      const drawY = Math.max(0, height - drawSize);
       let drawn = false;
       try {
-        drawn = Rig.drawCharacter(ctx, actor, preview.rig, {
-          state: preview.state || 'idle',
-          elapsed,
-          equipment: preview.equipment || {},
-          palette: preview.palette || {},
-          scale: boxHeight / Math.max(1, Number(preview.rig.height || boxHeight))
-        });
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(
+          image,
+          frame.frameIndex * frame.frameWidth,
+          frame.row * frame.frameHeight,
+          frame.frameWidth,
+          frame.frameHeight,
+          drawX,
+          drawY,
+          drawSize,
+          drawSize
+        );
+        drawn = true;
       } catch {
         drawn = false;
+      } finally {
+        if (typeof ctx.restore === 'function') ctx.restore();
       }
-      if (slotElement) slotElement.classList.toggle('has-preview-frame', !!drawn);
+      if (previewElement) previewElement.classList.toggle('has-preview-frame', !!drawn);
       return !!drawn;
     }
 
@@ -16261,23 +16751,83 @@
       const step = draft.step === 'class' ? 'class' : 'name';
       const error = String(draft.error || '');
       if (step === 'class') {
+        const selectedClass = Data.BASE_CLASSES[draft.classId] || null;
+        const roleProfile = selectedClass && selectedClass.roleProfile || {};
+        const starterWeapon = selectedClass ? this.getCharacterCreateStarterWeapon(selectedClass.id) : null;
+        const starterStats = this.formatCharacterCreateStarterStats(starterWeapon);
+        const resourceMax = Math.max(0, Number(selectedClass && selectedClass.stats && selectedClass.stats.resourceMax || 0));
+        const combatRange = Math.max(0, Number(selectedClass && selectedClass.stats && selectedClass.stats.range || 0));
+        const combatType = selectedClass && selectedClass.weaponType === 'projectile' ? 'Projectile' : 'Melee';
+        const classAccent = selectedClass && selectedClass.resourceColor || '#59d8ff';
         return `
           <div class="project-starfall-character-modal-layer" role="presentation">
-            <section class="project-starfall-character-create-modal is-class-step" role="dialog" aria-modal="true" aria-label="Choose starting class">
+            <section class="project-starfall-character-create-modal is-class-step" data-starfall-character-create-modal tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="starfall-class-picker-title" aria-describedby="starfall-class-picker-help">
               <div class="project-starfall-character-modal-header">
                 <p class="project-starfall-kicker">New Character</p>
-                <h3>${escapeHtml(name || 'Unnamed')}</h3>
+                <h3 id="starfall-class-picker-title">Choose ${escapeHtml(name || 'your character')}'s field role</h3>
+                <p id="starfall-class-picker-help" class="project-starfall-character-command-message">Select a base class to inspect its combat identity and starting kit. Your character is not created until you confirm.</p>
                 ${error ? `<p class="project-starfall-character-error" role="alert">${escapeHtml(error)}</p>` : ''}
               </div>
-              <div class="project-starfall-character-choice-group" aria-label="Starting class">
+              <div class="project-starfall-character-class-picker">
+                <div class="project-starfall-character-choice-group" role="group" aria-label="Starting class">
                 ${Object.values(Data.BASE_CLASSES).map((classData) => `
-                  <button type="button" data-starfall-character-class="${escapeHtml(classData.id)}">
-                    ${renderAssetImage(classData.asset, '', 'project-starfall-character-choice-art project-starfall-class-art')}
-                    <span>${escapeHtml(classData.name)}</span>
+                  <button type="button" class="${classData.id === draft.classId ? 'is-selected' : ''}" data-starfall-character-class="${escapeHtml(classData.id)}" aria-pressed="${classData.id === draft.classId ? 'true' : 'false'}" style="--starfall-class-accent:${escapeHtml(classData.resourceColor || '#59d8ff')}">
+                    <span class="project-starfall-character-choice-art-frame" aria-hidden="true">
+                      ${renderAssetImage(classData.asset, '', 'project-starfall-character-choice-art project-starfall-class-art')}
+                    </span>
+                    <span class="project-starfall-character-choice-copy">
+                      <strong>${escapeHtml(classData.name)}</strong>
+                      <small>${escapeHtml(classData.roleProfile && classData.roleProfile.primary || 'Hybrid')}</small>
+                    </span>
+                    <span class="project-starfall-character-choice-state" aria-hidden="true">${classData.id === draft.classId ? 'Selected' : 'Review'}</span>
                   </button>
                 `).join('')}
+                </div>
+                ${selectedClass ? `
+                  <section class="project-starfall-character-class-review" aria-live="polite" aria-label="${escapeHtml(`${selectedClass.name} class review`)}" style="--starfall-class-accent:${escapeHtml(classAccent)}">
+                    <div class="project-starfall-character-review-stage" aria-hidden="true">
+                      <span class="project-starfall-character-review-platform"></span>
+                      <span class="project-starfall-character-review-art">
+                        ${renderAssetImage(selectedClass.asset, '', 'project-starfall-character-review-fallback')}
+                        <canvas class="project-starfall-character-create-preview" width="260" height="260" data-starfall-character-create-preview="${escapeHtml(selectedClass.id)}" data-starfall-character-preview-state="run"></canvas>
+                      </span>
+                      <span class="project-starfall-character-review-motion">Movement preview</span>
+                    </div>
+                    <div class="project-starfall-character-review-dossier">
+                      <div class="project-starfall-character-review-title">
+                        <p class="project-starfall-kicker">Base Class</p>
+                        <h4>${escapeHtml(selectedClass.name)}</h4>
+                      </div>
+                      <p class="project-starfall-character-review-description">${escapeHtml(selectedClass.description || '')}</p>
+                      <dl class="project-starfall-character-class-facts">
+                        <div><dt>Role</dt><dd>${escapeHtml(roleProfile.primary || 'Hybrid')}</dd></div>
+                        <div><dt>Specialty</dt><dd>${escapeHtml(roleProfile.specialty || roleProfile.secondary || 'Flexible combat')}</dd></div>
+                        <div><dt>Resource</dt><dd>${escapeHtml(selectedClass.resourceName || 'Resource')}${resourceMax ? ` · ${resourceMax} max` : ''}</dd></div>
+                        <div><dt>Combat</dt><dd>${escapeHtml(combatType)}${combatRange ? ` · ${combatRange} range` : ''}</dd></div>
+                      </dl>
+                      <p class="project-starfall-character-role-summary">${escapeHtml(roleProfile.summary || '')}</p>
+                      ${starterWeapon ? `
+                        <div class="project-starfall-character-starter-weapon">
+                          ${starterWeapon.asset ? renderAssetImage(starterWeapon.asset, '', 'project-starfall-character-starter-art') : ''}
+                          <span>
+                            <small>Starter weapon</small>
+                            <strong>${escapeHtml(starterWeapon.name || starterWeapon.id)}</strong>
+                            ${starterStats ? `<span>${starterStats}</span>` : ''}
+                          </span>
+                        </div>
+                      ` : ''}
+                    </div>
+                  </section>
+                ` : `
+                  <section class="project-starfall-character-class-review is-empty" aria-live="polite" aria-label="No starting class selected">
+                    <div class="project-starfall-character-class-review-empty-mark" aria-hidden="true"></div>
+                    <h4>Select a class to review</h4>
+                    <p>Compare field role, specialty, resource loop, combat range, and starter weapon before committing.</p>
+                  </section>
+                `}
               </div>
               <div class="project-starfall-character-actions">
+                <button type="button" data-starfall-character-create-confirm ${selectedClass ? '' : 'disabled'}>${selectedClass ? `Create ${escapeHtml(name || 'Character')} as ${escapeHtml(selectedClass.name)}` : 'Select a class to continue'}</button>
                 <button type="button" data-starfall-character-create-cancel>Cancel</button>
               </div>
             </section>
@@ -16286,7 +16836,7 @@
       }
       return `
         <div class="project-starfall-character-modal-layer" role="presentation">
-          <div class="project-starfall-character-create-modal is-name-step" role="dialog" aria-modal="true" aria-label="Name new character">
+          <div class="project-starfall-character-create-modal is-name-step" data-starfall-character-create-modal tabindex="-1" role="dialog" aria-modal="true" aria-label="Name new character">
             <div class="project-starfall-character-modal-header">
               <p class="project-starfall-kicker">New Character</p>
               <h3>Slot ${escapeHtml(String((this.getCharacterSlot(draft.slotId) || {}).index + 1 || ''))}</h3>
@@ -16381,14 +16931,129 @@
       });
     }
 
+    updateHudStatusAnnouncement(snapshot) {
+      const status = this.hudStatusElement || (this.root && typeof this.root.querySelector === 'function'
+        ? this.root.querySelector('[data-starfall-hud-status]')
+        : null);
+      if (status) this.hudStatusElement = status;
+      const getAnnouncement = getHudRuntimeHelper('getHudStatusAnnouncement');
+      if (!status || !getAnnouncement) return false;
+      const announcement = getAnnouncement(snapshot || {});
+      if (!announcement || announcement.signature === this.lastHudStatusSignature) return false;
+      this.lastHudStatusSignature = announcement.signature;
+      status.textContent = announcement.message || '';
+      return true;
+    }
+
+    getTouchControlSkillActions() {
+      return this.getSkillBindActions().slice(0, 4);
+    }
+
+    syncTouchControlState() {
+      const controls = this.elements && this.elements.touchControls;
+      if (!controls || typeof controls.querySelectorAll !== 'function') return false;
+      const cooldowns = this.snapshot && Array.isArray(this.snapshot.activeCooldowns)
+        ? this.snapshot.activeCooldowns
+        : [];
+      Array.from(controls.querySelectorAll('[data-starfall-touch-skill]')).forEach((button) => {
+        const skillId = String(button.getAttribute('data-starfall-touch-skill') || '');
+        const cooldown = cooldowns.find((entry) => entry && entry.skillId === skillId) || null;
+        const remaining = Math.max(0, Number(cooldown && cooldown.remaining || 0));
+        const duration = Math.max(remaining, Number(cooldown && (cooldown.duration || cooldown.baseCooldown) || 0));
+        const progress = duration > 0 ? clamp(remaining / duration, 0, 1) : 0;
+        const timer = typeof button.querySelector === 'function'
+          ? button.querySelector('[data-starfall-touch-cooldown]')
+          : null;
+        if (button.classList && typeof button.classList.toggle === 'function') button.classList.toggle('is-cooling-down', remaining > 0);
+        if (button.style && typeof button.style.setProperty === 'function') button.style.setProperty('--starfall-touch-cooldown', `${(progress * 100).toFixed(1)}%`);
+        if (timer) {
+          timer.hidden = remaining <= 0;
+          timer.textContent = remaining > 0 ? formatCooldownLabel(remaining) : '';
+        }
+        if (typeof button.setAttribute === 'function') {
+          const baseLabel = button.getAttribute('data-starfall-touch-label') || 'Skill';
+          button.setAttribute('aria-label', remaining > 0 ? `${baseLabel}. Ready in ${formatCooldownLabel(remaining)}.` : baseLabel);
+        }
+      });
+      return true;
+    }
+
+    renderTouchControls(snapshot) {
+      const controls = this.elements && this.elements.touchControls;
+      if (!controls) return false;
+      const source = snapshot || this.getHudRenderSnapshot() || {};
+      const player = source.state && source.state.player || {};
+      const visible = !!player.classId && !this.isStartScreenOpen && !this.isCharacterSelectOpen;
+      controls.hidden = !visible;
+      if (!visible) {
+        if (this.touchControlPointers && this.touchControlPointers.size) this.clearTouchControlPointers();
+        return false;
+      }
+      const skillActions = this.getTouchControlSkillActions();
+      const slots = Array.from({ length: 4 }, (_, index) => skillActions[index] || null);
+      const renderKey = [
+        player.classId || '',
+        player.advancedClassId || '',
+        ...slots.map((action) => action ? `${action.id}:${action.label}` : 'empty')
+      ].join('|');
+      if (this.touchControlsRenderKey !== renderKey) {
+        if (this.touchControlPointers && this.touchControlPointers.size) this.clearTouchControlPointers();
+        this.touchControlsRenderKey = renderKey;
+        const attackAction = this.getBindableAction('attack');
+        controls.setAttribute('role', 'group');
+        controls.setAttribute('aria-label', 'Touch game controls');
+        controls.innerHTML = `
+          <div class="project-starfall-touch-control-heading">
+            <strong>Touch controls</strong>
+            <span>Hold movement and attack - combine controls with multiple fingers</span>
+          </div>
+          <div class="project-starfall-touch-control-layout">
+            <div class="project-starfall-touch-movement" role="group" aria-label="Movement controls">
+              ${[
+                { id: 'moveLeft', glyph: '&#8592;', label: 'Left' },
+                { id: 'jump', glyph: '&#8593;', label: 'Jump' },
+                { id: 'moveRight', glyph: '&#8594;', label: 'Right' }
+              ].map((control) => `
+                <button type="button" class="project-starfall-touch-control project-starfall-touch-control--move" data-starfall-touch-action="${control.id}" data-starfall-touch-label="${control.label}" aria-label="${control.label}" aria-pressed="false">
+                  <b aria-hidden="true">${control.glyph}</b>
+                  <small>${control.label}</small>
+                </button>
+              `).join('')}
+            </div>
+            <div class="project-starfall-touch-combat" role="group" aria-label="Combat controls">
+              <button type="button" class="project-starfall-touch-control project-starfall-touch-control--attack" data-starfall-touch-action="attack" data-starfall-touch-label="Basic attack" aria-label="Basic attack" aria-pressed="false">
+                ${renderActionIconMarkup(attackAction, 'project-starfall-touch-action-icon')}
+                <small>Attack</small>
+              </button>
+              ${slots.map((action, index) => action ? `
+                <button type="button" class="project-starfall-touch-control project-starfall-touch-control--skill" data-starfall-touch-action="${escapeHtml(action.id)}" data-starfall-touch-skill="${escapeHtml(action.skillId)}" data-starfall-touch-label="Skill ${index + 1}: ${escapeHtml(action.label)}" aria-label="Skill ${index + 1}: ${escapeHtml(action.label)}" aria-pressed="false">
+                  ${renderActionIconMarkup(action, 'project-starfall-touch-action-icon')}
+                  <span class="project-starfall-touch-slot" aria-hidden="true">${index + 1}</span>
+                  <span class="project-starfall-touch-cooldown" data-starfall-touch-cooldown hidden></span>
+                </button>
+              ` : `
+                <button type="button" class="project-starfall-touch-control project-starfall-touch-control--skill is-empty" aria-label="Skill slot ${index + 1} is empty" disabled>
+                  <span class="project-starfall-touch-empty" aria-hidden="true">${index + 1}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      this.syncTouchControlState();
+      return true;
+    }
+
     renderHud() {
       const hud = this.elements && this.elements.hud;
       if (!hud) return;
       this.invalidateUiPatchTargetCache();
       const snapshot = this.getHudRenderSnapshot();
+      this.renderTouchControls(snapshot);
       const player = snapshot.state.player;
       if (!player.classId) {
         hud.innerHTML = '<span class="project-starfall-muted">No character selected</span>';
+        this.updateHudStatusAnnouncement(snapshot);
         return;
       }
       const stats = snapshot.stats;
@@ -16399,35 +17064,60 @@
       const onboarding = snapshot.onboarding || {};
       const nextStep = onboarding.hidden ? null : onboarding.nextStep;
       const combatRates = this.getCombatMetricRates();
-      const coarsePointer = typeof global.matchMedia === 'function' && global.matchMedia('(pointer: coarse)').matches;
+      const quickActions = this.getCanvasHudQuickActions();
+      const riftCounterplay = snapshot.mapModifiers && snapshot.mapModifiers.rift && snapshot.mapModifiers.rift.counterplay || {};
+      const activeRiftResponses = Array.isArray(riftCounterplay.active) ? riftCounterplay.active : [];
+      const riftOperationStatus = formatRiftOperationStatus(snapshot.mapModifiers && snapshot.mapModifiers.rift);
       hud.innerHTML = `
-        <div class="project-starfall-hud-main">
+        <section class="project-starfall-hud-main" aria-label="Character status">
           <span class="project-starfall-hud-class">${escapeHtml(className)}</span>
           <span>Lv ${player.level}</span>
           <span data-starfall-currency="coins">${escapeHtml(formatAbbreviatedInteger(player.currency))} coins</span>
-        </div>
+        </section>
         ${this.renderBossEncounterHud()}
-        <div class="project-starfall-meter-group">
+        <section class="project-starfall-meter-group" aria-label="Vitals">
           ${this.renderMeter('HP', player.hp, stats.maxHp, '#ef5b4c', 'hp')}
           ${this.renderMeter('MP', player.mp, stats.maxMp, '#6f8cff', 'mp')}
           ${this.renderMeter(resourceName, player.resource, stats.secondaryResourceMax, resourceColor)}
           ${this.renderMeter('XP', player.xp, xpNeeded, '#d8b74a', 'xp')}
-        </div>
+        </section>
         ${this.renderResourceWidget()}
+        ${riftOperationStatus.active ? `
+          <div class="project-starfall-rift-operation" aria-label="Active Rift operation">
+            <strong>Rift operation</strong>
+            <span>${escapeHtml(riftOperationStatus.headline.replace(/^Rift Operation\s*-\s*/i, ''))}</span>
+          </div>
+        ` : ''}
+        ${activeRiftResponses.length ? `
+          <div class="project-starfall-rift-counterplay" aria-label="Active Rift response">
+            <strong>Rift response active</strong>
+            <span>${escapeHtml(activeRiftResponses.map((entry) => entry.label || entry.id).join(' / '))}</span>
+          </div>
+        ` : ''}
+        <nav class="project-starfall-hud-actions" aria-label="Game shortcuts">
+          ${quickActions.map((action) => `
+            <button type="button" data-starfall-open-panel="${escapeHtml(action.panel)}">
+              <span>${escapeHtml(action.label)}</span>
+              <kbd>${escapeHtml(this.getPrimaryKeyLabel(action.panel))}</kbd>
+            </button>
+          `).join('')}
+          <button type="button" data-starfall-command-toggle aria-expanded="${this.isCommandOpen ? 'true' : 'false'}" aria-controls="project-starfall-command-deck">
+            <span>Command Deck</span>
+            <kbd>${escapeHtml(this.getPrimaryKeyLabel('menu'))}</kbd>
+          </button>
+        </nav>
+        ${this.renderDomCommandDeck()}
         ${nextStep ? `
           <div class="project-starfall-guide-strip">
             <span><strong>Guide ${Number(onboarding.completeCount || 0) + 1}/${Number(onboarding.total || 0)}:</strong> ${escapeHtml(nextStep.title)} - ${escapeHtml(nextStep.summary)}</span>
             <button type="button" data-starfall-dismiss-guide>Hide</button>
           </div>
         ` : ''}
-        ${coarsePointer ? `
-          <div class="project-starfall-guide-strip project-starfall-input-notice" role="note">
-            <span><strong>Keyboard required:</strong> Touch movement controls are not available yet. Use a hardware keyboard or desktop browser.</span>
-          </div>
-        ` : ''}
         ${combatRates.showPanel ? this.renderCombatMetricsPanel(combatRates) : ''}
         ${this.confirmPrompt ? this.renderConfirmPrompt() : ''}
       `;
+      this.renderCommandPanel();
+      this.updateHudStatusAnnouncement(snapshot);
     }
 
 	    renderConfirmPrompt() {
@@ -16458,10 +17148,23 @@
       `;
     }
 
+    renderBossResponseFeedbackMarkup(feedback) {
+      if (!feedback) return '';
+      return '<div class="project-starfall-boss-response is-' + escapeHtml(feedback.tone) +
+        '" style="--boss-response-color:' + escapeHtml(feedback.color) +
+        '" aria-label="' + escapeHtml(feedback.announcement) + '">' +
+        '<span class="project-starfall-boss-response-label">' + escapeHtml(feedback.label) + '</span>' +
+        '<strong>' + escapeHtml(feedback.title) + '</strong>' +
+        '<span>' + escapeHtml(feedback.detail) + '</span>' +
+        '</div>';
+    }
+
     renderBossEncounterHud(snapshot) {
       const source = snapshot || this.getHudRenderSnapshot();
       const boss = source && source.bossEncounter;
       if (!boss || !boss.active) return '';
+      const getResponseFeedback = getHudBossEncounterHelper('getBossResponseFeedbackMetadata');
+      const responseFeedback = getResponseFeedback ? getResponseFeedback(boss) : null;
       const ratio = clamp(Number(boss.hpRatio || 0), 0, 1);
       const phaseLabel = `${Number(boss.phaseIndex || 0) + 1}/${Math.max(1, Number(boss.phaseCount || 1))}`;
       const ticks = Array.from({ length: Math.max(1, Number(boss.phaseCount || 1)) }).map((_, index) => `
@@ -16481,6 +17184,7 @@
             <span>${escapeHtml(boss.phaseDescription || boss.mechanic || '')}</span>
             <span class="project-starfall-boss-hud-ticks">${ticks}</span>
           </div>
+          ${this.renderBossResponseFeedbackMarkup(responseFeedback)}
         </div>
       `;
     }
@@ -16563,11 +17267,89 @@
       `;
     }
 
+    renderDomCommandDeckItem(item) {
+      const entry = item || {};
+      const disabled = !!entry.disabled;
+      const danger = !!entry.danger;
+      const selected = !!entry.selected;
+      const attributes = entry.panel
+        ? `data-starfall-open-panel="${escapeHtml(entry.panel)}"`
+        : entry.action === 'changeChannel'
+          ? `data-starfall-command-channel="${escapeHtml(entry.channelId || '')}"`
+          : `data-starfall-action="${escapeHtml(entry.action || '')}"`;
+      const shortcut = entry.panel ? this.getPrimaryKeyLabel(entry.panel) : '';
+      return `
+        <button type="button" class="project-starfall-command-deck-item ${danger ? 'is-danger' : ''} ${selected ? 'is-selected' : ''}" ${attributes}
+          ${disabled ? 'disabled' : ''} ${selected ? 'aria-current="true"' : ''}>
+          <span>${escapeHtml(entry.label || 'Command')}</span>
+          ${shortcut && shortcut !== 'Unbound' ? `<kbd>${escapeHtml(shortcut)}</kbd>` : ''}
+        </button>
+      `;
+    }
+
+    renderDomCommandDeck() {
+      const interactive = this.isCommandOpen && this.isNarrowCommandDeckMode();
+      const groups = this.getCanvasMenuGroups();
+      const footer = this.getCanvasMenuFooterAction();
+      return `
+        <section id="project-starfall-command-deck" class="project-starfall-command-deck" data-starfall-command-menu
+          aria-label="Command deck" aria-hidden="${interactive ? 'false' : 'true'}" ${interactive ? '' : 'hidden inert'}>
+          <header class="project-starfall-command-deck-header">
+            <div>
+              <span>STARFALL CONTROL</span>
+              <strong>Command Deck</strong>
+            </div>
+            <button type="button" data-starfall-command-toggle aria-expanded="${interactive ? 'true' : 'false'}"
+              aria-controls="project-starfall-command-deck" aria-label="Close command deck">Close</button>
+          </header>
+          <div class="project-starfall-command-deck-groups">
+            ${groups.map((group, index) => `
+              <section class="project-starfall-command-deck-group" aria-labelledby="project-starfall-command-group-${index}">
+                <h3 id="project-starfall-command-group-${index}">${escapeHtml(group.title || 'COMMANDS')}</h3>
+                <div>${(group.items || []).map((item) => this.renderDomCommandDeckItem(item)).join('')}</div>
+              </section>
+            `).join('')}
+          </div>
+          <footer>${this.renderDomCommandDeckItem(footer)}</footer>
+        </section>
+      `;
+    }
+
     renderCommandPanel() {
       if (!this.root || typeof this.root.querySelectorAll !== 'function') return;
+      const interactive = this.isCommandOpen && this.isNarrowCommandDeckMode();
       this.root.querySelectorAll('[data-starfall-command-toggle]').forEach((button) => {
         button.setAttribute('aria-expanded', this.isCommandOpen ? 'true' : 'false');
+        button.setAttribute('aria-controls', 'project-starfall-command-deck');
       });
+      const commandDeck = this.root.querySelector('[data-starfall-command-menu]');
+      const wasInteractive = !!this.commandDeckWasInteractive;
+      this.commandDeckWasInteractive = interactive;
+      if (!commandDeck) return;
+      commandDeck.hidden = !interactive;
+      commandDeck.toggleAttribute('inert', !interactive);
+      commandDeck.setAttribute('aria-hidden', interactive ? 'false' : 'true');
+      if (interactive) {
+        const activeElement = typeof document !== 'undefined' ? document.activeElement : null;
+        const shouldFocus = !wasInteractive || !activeElement || activeElement === document.body || activeElement === this.elements.canvas;
+        if (shouldFocus && typeof window !== 'undefined') {
+          const focusFirstItem = () => {
+            const firstItem = commandDeck.querySelector('[data-starfall-open-panel], [data-starfall-command-channel], [data-starfall-action]');
+            if (firstItem && firstItem.focus) firstItem.focus();
+          };
+          if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(focusFirstItem);
+          else focusFirstItem();
+        }
+      } else if (wasInteractive) {
+        const returnFocus = this.commandDeckReturnFocus && this.commandDeckReturnFocus.isConnected !== false
+          ? this.commandDeckReturnFocus
+          : this.root.querySelector('[data-starfall-command-toggle]');
+        this.commandDeckReturnFocus = null;
+        if (returnFocus && returnFocus.focus && typeof window !== 'undefined') {
+          if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => returnFocus.focus());
+          else returnFocus.focus();
+        }
+      }
     }
 
     setModalHeaderActionsHtml(element, html) {
@@ -16647,23 +17429,27 @@
       if (!body) return;
       this.invalidateUiPatchTargetCache();
       const titles = {
-        character: 'Character',
-        equipment: 'Equipment',
-        partyPanel: 'Party',
-        pet: 'Pet',
-        worldmap: 'World Map',
-        skills: 'Skill Tree',
+        character: 'Operative',
+        equipment: 'Loadout',
+        partyPanel: 'Squad',
+        pet: 'Companion',
+        worldmap: 'Starfall Atlas',
+        monsters: 'Archive Index',
+        skills: 'Techniques',
+        quests: 'Assignments',
         inventory: 'Inventory',
-        storage: 'Shared Storage',
-        shop: 'Shop',
-        upgrade: 'Upgrade Station',
-        plinko: 'Starfall Plinko',
-        cashShop: 'Cash Shop',
-        guide: 'Guide',
-        log: 'Session Log',
+        storage: 'Shared Vault',
+        shop: 'Field Market',
+        upgrade: 'Forge',
+        plinko: 'Signal Drop',
+        daily: 'Beacon Check-In',
+        cashShop: 'Token Exchange',
+        beta: 'Fracture Ops',
+        guide: 'Field Manual',
+        log: 'Field Log',
         keybinds: 'Keybinds',
-        settings: 'Settings',
-        admin: 'Admin Settings',
+        settings: 'System Settings',
+        admin: 'Worldwright Tools',
         worldwright: 'Worldwright Console',
         assetPreview: 'Asset Preview'
       };
@@ -16720,6 +17506,7 @@
       else if (this.activePanel === 'plinko') markup = this.renderPlinkoPanel();
       else if (this.activePanel === 'daily') markup = this.renderDailyLoginPanel();
       else if (this.activePanel === 'cashShop') markup = this.renderCashShopPanel();
+      else if (this.activePanel === 'beta') markup = this.renderFractureOpsPanel();
       else if (this.activePanel === 'guide') markup = this.renderGuidePanel();
       else if (this.activePanel === 'log') markup = this.renderLogPanel();
       else if (this.activePanel === 'keybinds') markup = this.renderKeybindsPanel();
@@ -17190,6 +17977,7 @@
       const skillModifiers = this.snapshot.skillModifiers || { modifiers: [] };
       const mastery = this.snapshot.classMastery || { tracks: [] };
       const targetFarm = this.snapshot.targetFarm || {};
+      const riftOperationStatus = formatRiftOperationStatus(mapModifiers.rift);
       const activeSkillMods = (skillModifiers.modifiers || []).filter((modifier) => modifier.unlocked).slice(0, 4);
       const currentMastery = (mastery.tracks || []).filter((track) => track.current).slice(0, 2);
       return `
@@ -17209,7 +17997,9 @@
         <div class="project-starfall-panel-block">
           <h3>Current Run</h3>
           <p class="project-starfall-muted">${escapeHtml((mapModifiers.active || []).map((modifier) => modifier.name).join(' - ') || 'No field modifiers on this map.')}</p>
-          <p class="project-starfall-muted">Rift tier ${Number(mapModifiers.rift && mapModifiers.rift.tier || 1)} - score ${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.score || 0)}/${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.nextTierScore || 500)}</p>
+          <p class="project-starfall-muted">${escapeHtml(riftOperationStatus.headline)}</p>
+          ${riftOperationStatus.record ? `<p class="project-starfall-muted">${escapeHtml(riftOperationStatus.record)}</p>` : ''}
+          ${riftOperationStatus.reward ? `<p class="project-starfall-muted">${escapeHtml(riftOperationStatus.reward)}</p>` : ''}
           <p class="project-starfall-muted">Target farm: ${escapeHtml(targetFarm.enemyName || 'none')}${targetFarm.active ? ` - streak ${Number(targetFarm.streak || 0)}` : ''}</p>
         </div>
         <div class="project-starfall-panel-block">
@@ -17344,9 +18134,205 @@
       return true;
     }
 
+    getFractureDirectivePlaystyleLabel(value) {
+      const playstyleLabels = {
+        fieldSurvey: 'Field survey',
+        bossBreach: 'Boss breach',
+        dungeonExpedition: 'Dungeon expedition'
+      };
+      return playstyleLabels[value] || formatStatName(value || 'operation');
+    }
+
+    renderFractureObjectiveRows(objectives) {
+      return (objectives || []).map((objective) => {
+        const goal = Math.max(1, Number(objective && (objective.goal || objective.count) || 1));
+        const value = Math.min(goal, Math.max(0, Number(objective && objective.value || 0)));
+        const complete = !!(objective && objective.complete) || value >= goal;
+        const percent = Math.round(value / goal * 100);
+        return `
+          <article class="project-starfall-fracture-objective${complete ? ' is-complete' : ''}">
+            <div>
+              <strong>${escapeHtml(objective && objective.label || 'Operation objective')}</strong>
+              <span>${complete ? 'Complete' : `${formatAbbreviatedInteger(value)}/${formatAbbreviatedInteger(goal)}`}</span>
+            </div>
+            <progress max="${goal}" value="${value}" aria-label="${escapeHtml(objective && objective.label || 'Operation objective')}: ${value} of ${goal}"></progress>
+          </article>
+        `;
+      }).join('');
+    }
+
+    getFractureStabilizationState(season, directive) {
+      const worldDirective = this.snapshot && this.snapshot.worldMap && this.snapshot.worldMap.directive || {};
+      const byArea = season && season.stabilizationByAreaId || {};
+      const persistentAreaId = Object.keys(byArea)
+        .filter((areaId) => Number(byArea[areaId]) > 0)
+        .sort()[0] || '';
+      const areaId = directive && directive.areaId || worldDirective.areaId || persistentAreaId;
+      const rawLevel = areaId && byArea[areaId] != null
+        ? byArea[areaId]
+        : season && season.selectedAreaStabilization != null
+          ? season.selectedAreaStabilization
+          : worldDirective.stabilizationLevel;
+      const rawMax = season && season.stabilizationMax || worldDirective.stabilizationMax || directive && directive.stabilization && directive.stabilization.maxSeals || 3;
+      const max = Math.max(1, Math.floor(Number(rawMax) || 3));
+      const level = Math.min(max, Math.max(0, Math.floor(Number(rawLevel) || 0)));
+      const label = directive && directive.stabilization && directive.stabilization.label
+        || `${formatStatName(areaId || 'Greenroot')} relay stabilization`;
+      return { areaId, label, level, max };
+    }
+
+    renderFractureStabilizationSeals(season, directive) {
+      const { label, level, max } = this.getFractureStabilizationState(season, directive);
+      return `
+        <section class="project-starfall-fracture-stabilization" aria-label="${escapeHtml(`${label}: ${level} of ${max} seals`)}">
+          <div class="project-starfall-fracture-stabilization__copy">
+            <span>Permanent Atlas repair</span>
+            <strong>${escapeHtml(label)}</strong>
+            <small>Visual-only progress. It never increases combat power.</small>
+          </div>
+          <div class="project-starfall-fracture-seals" role="img" aria-label="${level} of ${max} stabilization seals earned">
+            ${Array.from({ length: max }, (_, index) => `<span class="project-starfall-fracture-seal${index < level ? ' is-earned' : ''}" aria-hidden="true">${index + 1}</span>`).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    renderFractureOpsPanel() {
+      const season = this.snapshot && this.snapshot.season || {};
+      const activeSeason = season.activeSeason || null;
+      if (!activeSeason) {
+        return '<div class="project-starfall-panel-block"><p class="project-starfall-muted">Fracture Ops are unavailable for this character.</p></div>';
+      }
+      const choices = Array.isArray(season.directiveChoices) ? season.directiveChoices : [];
+      const selected = season.selectedDirective || choices.find((choice) => choice && choice.selected) || null;
+      const referenceDirective = selected || choices[0] || null;
+      const reward = selected && selected.rewards || referenceDirective && referenceDirective.rewards || activeSeason.rewards || {};
+      const rewardSummary = this.formatRewardSummary(reward);
+      const firstClearReward = season.firstCompletionRewardAvailable && activeSeason.firstCompletionRewards
+        ? this.formatRewardSummary(activeSeason.firstCompletionRewards)
+        : '';
+      const resetMeta = [season.cadenceLabel || 'Weekly operation', season.resetLabel, season.resetScheduleLabel].filter(Boolean).join(' / ');
+      const objectiveCount = (season.objectives || []).length;
+      const completeCount = (season.objectives || []).filter((objective) => objective && objective.complete).length;
+      const status = season.rewardClaimed
+        ? 'Weekly cache claimed'
+        : season.complete
+          ? 'Reward ready'
+          : selected
+            ? 'Operation in progress'
+            : 'Choose one weekly path';
+      const selectionMarkup = selected ? `
+        <section class="project-starfall-fracture-active" aria-label="Selected Fracture Directive">
+          <header>
+            <div>
+              <span class="project-starfall-fracture-badge">Active directive</span>
+              <h3>${escapeHtml(selected.name || 'Fracture Directive')}</h3>
+              <p>${escapeHtml(selected.summary || '')}</p>
+            </div>
+            <dl class="project-starfall-fracture-facts">
+              <div><dt>Approach</dt><dd>${escapeHtml(this.getFractureDirectivePlaystyleLabel(selected.playstyle))}</dd></div>
+              <div><dt>Estimate</dt><dd>${Math.max(1, Math.round(Number(selected.estimatedMinutes || 0)))} min</dd></div>
+              <div><dt>Atlas route</dt><dd>${Math.max(0, (selected.mapIds || []).length)} locations</dd></div>
+            </dl>
+          </header>
+          <div class="project-starfall-fracture-objectives" aria-live="polite">
+            <div class="project-starfall-fracture-objectives__heading">
+              <h4>Weekly objectives</h4>
+              <span>${completeCount}/${objectiveCount} complete</span>
+            </div>
+            ${this.renderFractureObjectiveRows(season.objectives || []) || '<p class="project-starfall-muted">Objective telemetry is loading.</p>'}
+          </div>
+          <footer class="project-starfall-fracture-claim">
+            <div>
+              <strong>${escapeHtml(season.rewardClaimed ? 'Cache secured' : season.complete ? 'Operation complete' : 'Finish every objective')}</strong>
+              <small>${escapeHtml(season.rewardClaimed ? 'This route remains marked on the Atlas until reset.' : `Equal weekly cache: ${rewardSummary}`)}</small>
+            </div>
+            <button type="button" data-starfall-season-claim ${!season.complete || season.rewardClaimed ? 'disabled' : ''}>${season.rewardClaimed ? 'Claimed' : season.complete ? 'Claim weekly cache' : `${completeCount}/${objectiveCount} complete`}</button>
+          </footer>
+        </section>
+      ` : choices.length ? `
+        <section class="project-starfall-fracture-selection" aria-labelledby="starfall-directive-choice-title">
+          <div class="project-starfall-fracture-selection__heading">
+            <div>
+              <span class="project-starfall-fracture-badge">One route / one week</span>
+              <h3 id="starfall-directive-choice-title">Choose your operation</h3>
+            </div>
+            <p>Pick the playstyle you want. Progress locks the route for this cycle.</p>
+          </div>
+          <div class="project-starfall-fracture-choice-grid">
+            ${choices.map((choice) => {
+              const disabled = choice.canSelect === false;
+              const descriptionId = `starfall-directive-${String(choice.id || '').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+              return `
+                <article class="project-starfall-fracture-choice${disabled ? ' is-locked' : ''}">
+                  <div class="project-starfall-fracture-choice__meta">
+                    <span>${escapeHtml(this.getFractureDirectivePlaystyleLabel(choice.playstyle))}</span>
+                    <span>${Math.max(1, Math.round(Number(choice.estimatedMinutes || 0)))} min</span>
+                  </div>
+                  <h4>${escapeHtml(choice.name || 'Fracture Directive')}</h4>
+                  <p id="${escapeHtml(descriptionId)}">${escapeHtml(choice.summary || '')}</p>
+                  <ul>${(choice.objectives || []).map((objective) => `<li>${escapeHtml(objective.label || 'Operation objective')}</li>`).join('')}</ul>
+                  ${choice.lockedReason ? `<small class="project-starfall-fracture-choice__lock">${escapeHtml(choice.lockedReason)}</small>` : ''}
+                  <button type="button" data-starfall-directive-select="${escapeHtml(choice.id || '')}" aria-describedby="${escapeHtml(descriptionId)}" ${disabled ? 'disabled' : ''}>${disabled ? 'Locked' : 'Accept directive'}</button>
+                </article>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      ` : `
+        <section class="project-starfall-fracture-active is-legacy" aria-label="Weekly operation">
+          <header><div><span class="project-starfall-fracture-badge">Weekly operation</span><h3>${escapeHtml(activeSeason.name || 'Fracture Watch')}</h3><p>${escapeHtml(activeSeason.summary || '')}</p></div></header>
+          <div class="project-starfall-fracture-objectives">${this.renderFractureObjectiveRows(season.objectives || [])}</div>
+          <footer class="project-starfall-fracture-claim"><div><strong>${escapeHtml(status)}</strong><small>${escapeHtml(rewardSummary)}</small></div><button type="button" data-starfall-season-claim ${!season.complete || season.rewardClaimed ? 'disabled' : ''}>${season.rewardClaimed ? 'Claimed' : 'Claim weekly cache'}</button></footer>
+        </section>
+      `;
+      return `
+        <div class="project-starfall-fracture-ops">
+          <section class="project-starfall-fracture-hero">
+            <div>
+              <span class="project-starfall-fracture-kicker">Living Atlas / Weekly Directive</span>
+              <h2>${escapeHtml(activeSeason.name || 'Fracture Ops')}</h2>
+              <p>${escapeHtml(activeSeason.summary || 'Stabilize fractured routes through one focused weekly operation.')}</p>
+            </div>
+            <div class="project-starfall-fracture-status"><span>${escapeHtml(status)}</span><small>${escapeHtml(resetMeta)}</small></div>
+          </section>
+          <section class="project-starfall-fracture-reward" aria-label="Equal weekly reward">
+            <div><span>Equal weekly cache</span><strong>${escapeHtml(rewardSummary)}</strong><small>Every directive pays the same. Choose for playstyle, not power.</small></div>
+            ${firstClearReward ? `<div class="project-starfall-fracture-first-clear"><span>First clear prestige</span><strong>${escapeHtml(firstClearReward)}</strong></div>` : ''}
+          </section>
+          ${this.renderFractureStabilizationSeals(season, referenceDirective)}
+          ${selectionMarkup}
+          <section class="project-starfall-fracture-secondary" aria-label="Other progression systems">
+            <div><span>Other systems</span><strong>Continue long-term progression</strong></div>
+            <nav>
+              <button type="button" data-starfall-open-panel="character">Operative &amp; specializations</button>
+              <button type="button" data-starfall-open-panel="shop">Field Market</button>
+              <button type="button" data-starfall-open-panel="cashShop">Token Exchange</button>
+            </nav>
+          </section>
+        </div>
+      `;
+    }
+
     renderWorldMapPanel() {
       const worldMap = this.snapshot.worldMap || {};
       const nodes = worldMap.nodes || [];
+      const season = this.snapshot.season || {};
+      const seasonDirective = season.selectedDirective || null;
+      const directive = worldMap.directive || seasonDirective || null;
+      const directiveMapIds = new Set([].concat(directive && directive.mapIds || []));
+      const isDirectiveNode = (node) => !!(node && (
+        node.directiveRoute === true
+        || directiveMapIds.has(node.mapId)
+      ));
+      const isDirectiveEdge = (edge) => !!(edge && (
+        edge.directiveRoute === true
+        || directiveMapIds.has(edge.fromMapId) && directiveMapIds.has(edge.toMapId)
+      ));
+      const stabilizationSource = (worldMap.areas || []).find((area) => area && (area.stabilized || Number(area.stabilizationLevel || 0) > 0))
+        || nodes.find((node) => node && (node.stabilized || Number(node.stabilizationLevel || 0) > 0))
+        || null;
+      const hasAtlasStabilization = !!stabilizationSource;
       const nodeById = nodes.reduce((map, node) => {
         map[node.mapId] = node;
         return map;
@@ -17374,13 +18360,19 @@
       const markerCode = (node) => node.layoutMarker || (node.dungeon ? 'DG' : node.type === 'town' ? 'T' : '');
       const mapModifiers = this.snapshot.mapModifiers || { active: [], rift: {} };
       const modifierSummary = (mapModifiers.active || []).map((modifier) => modifier.name).join(' - ');
-      const riftSummary = mapModifiers.rift && selected && selected.mapId === 'endlessRift'
-        ? `Endless Rift tier ${Number(mapModifiers.rift.tier || 1)} - score ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`
-        : '';
+      const riftOperationStatus = formatRiftOperationStatus(mapModifiers.rift);
+      const riftSummary = selected && selected.mapId === 'endlessRift' ? riftOperationStatus.headline : '';
       return `
         <div class="project-starfall-panel-block project-starfall-worldmap-panel">
           <h3>World Map</h3>
           <p>${escapeHtml(pathHint || 'Select an area to inspect its physical route.')}</p>
+          ${directive || hasAtlasStabilization ? `
+            <aside class="project-starfall-worldmap-directive${directive ? '' : ' is-stabilization-only'}" aria-label="${directive ? 'Active Fracture Directive' : 'Permanent Atlas stabilization'}">
+              <div><span>${directive ? 'Active Fracture route' : 'Permanent Atlas stabilization'}</span><strong>${escapeHtml(directive && directive.name || stabilizationSource && (stabilizationSource.name || stabilizationSource.areaName || stabilizationSource.region) || 'Stabilized region')}</strong></div>
+              <small>${Math.max(0, Number(directive && directive.stabilizationLevel || stabilizationSource && stabilizationSource.stabilizationLevel || 0))}/${Math.max(1, Number(directive && directive.stabilizationMax || stabilizationSource && stabilizationSource.stabilizationMax || 3))} permanent visual-only seals / no combat power</small>
+              <button type="button" data-starfall-open-panel="beta">View Fracture Ops</button>
+            </aside>
+          ` : ''}
           <div class="project-starfall-worldmap-layout">
             <div class="project-starfall-worldmap-graph" aria-label="Connected regional map">
               ${atlas.asset ? renderAssetImage(atlas.asset, '', 'project-starfall-worldmap-atlas') : ''}
@@ -17388,13 +18380,19 @@
                 ${(worldMap.edges || []).map((edge) => {
                   const path = routePath(edge);
                   if (!path) return '';
-                  return `<path class="project-starfall-worldmap-edge is-${escapeHtml(edge.status || 'open')}" d="${escapeHtml(path)}"></path>`;
+                  return `<path class="project-starfall-worldmap-edge is-${escapeHtml(edge.status || 'open')}${isDirectiveEdge(edge) ? ' is-directive' : ''}${isDirectiveEdge(edge) && Number(directive && directive.stabilizationLevel || 0) > 0 ? ' is-stabilized' : ''}" d="${escapeHtml(path)}"></path>`;
                 }).join('')}
               </svg>
               ${nodes.map((node) => {
                 const showLabel = this.shouldShowWorldMapNodeLabel(node, '', guideHint);
+                const directiveRoute = isDirectiveNode(node);
+                const stabilizationLevel = Math.max(0, Number(node.stabilizationLevel || directive && directive.stabilizationLevel || 0));
+                const stabilizationMax = Math.max(1, Number(node.stabilizationMax || directive && directive.stabilizationMax || 3));
+                const stabilized = !!node.stabilized || stabilizationLevel > 0;
+                const directiveLabel = directiveRoute ? ' Active directive route.' : '';
+                const stabilizationLabel = stabilized ? ` Permanent Atlas stabilization ${stabilizationLevel} of ${stabilizationMax} visual-only seals; no combat power.` : '';
                 return `
-                  <button type="button" class="project-starfall-worldmap-node is-${escapeHtml(node.status || 'available')} is-${escapeHtml(node.dungeon ? 'dungeon' : node.type || 'field')} is-${escapeHtml(node.layoutRole || 'trainingField')}${showLabel ? ' show-label' : ''} label-${escapeHtml(node.labelSide || 'bottom')}" data-starfall-world-map-node="${escapeHtml(node.mapId)}" aria-pressed="${node.selected ? 'true' : 'false'}" aria-label="${escapeHtml(`${node.name} ${node.lockedReason || node.status || ''}`)}" title="${escapeHtml(node.lockedReason || node.name)}" style="--x:${Number(node.x || 0)}%;--y:${Number(node.y || 0)}%;--node-color:${escapeHtml(node.areaAccent || '#7ec8d8')};">
+                  <button type="button" class="project-starfall-worldmap-node is-${escapeHtml(node.status || 'available')} is-${escapeHtml(node.dungeon ? 'dungeon' : node.type || 'field')} is-${escapeHtml(node.layoutRole || 'trainingField')}${directiveRoute ? ' is-directive' : ''}${stabilized ? ' is-stabilized' : ''}${showLabel ? ' show-label' : ''} label-${escapeHtml(node.labelSide || 'bottom')}" data-starfall-world-map-node="${escapeHtml(node.mapId)}" aria-pressed="${node.selected ? 'true' : 'false'}" aria-label="${escapeHtml(`${node.name} ${node.lockedReason || node.status || ''}${directiveLabel}${stabilizationLabel}`)}" title="${escapeHtml(node.lockedReason || directiveRoute && directive && directive.name || stabilized && `Atlas stabilization ${stabilizationLevel}/${stabilizationMax}` || node.name)}" style="--x:${Number(node.x || 0)}%;--y:${Number(node.y || 0)}%;--node-color:${escapeHtml(node.areaAccent || '#7ec8d8')};">
                     <span class="project-starfall-worldmap-node-pin" aria-hidden="true">${escapeHtml(markerCode(node))}</span>
                     <span class="project-starfall-worldmap-node-label">${escapeHtml(node.name)}</span>
                   </button>
@@ -17411,14 +18409,21 @@
                   : '';
                 const status = selected.current ? 'Current location' : selected.lockedReason || selected.status;
                 const respawnLabel = selected.bossRespawning ? `Boss respawns in ${formatCooldownLabel(selected.bossRespawnRemaining)}` : '';
+                const selectedDirectiveRoute = isDirectiveNode(selected);
+                const selectedStabilizationLevel = Math.max(0, Number(selected.stabilizationLevel || directive && directive.stabilizationLevel || 0));
+                const selectedStabilizationMax = Math.max(1, Number(selected.stabilizationMax || directive && directive.stabilizationMax || 3));
+                const selectedStabilized = !!selected.stabilized || selectedStabilizationLevel > 0;
                 return `
                   <strong>${escapeHtml(selected.name)}</strong>
                   <span>${escapeHtml(`${selected.areaName || selected.region} - ${selected.layoutRoleLabel || (selected.dungeon ? 'Dungeon' : selected.type || 'Field')} - ${levelLabel}`)}</span>
                   ${selected.routeStage || selected.mapRoadName ? `<small>${escapeHtml([selected.routeStage, selected.mapRoadName].filter(Boolean).join(' - '))}</small>` : ''}
                   <small>${escapeHtml(status || '')}</small>
+                  ${selectedDirectiveRoute || selectedStabilized ? `<small class="project-starfall-worldmap-detail__directive">${selectedDirectiveRoute ? `Fracture route: ${escapeHtml(directive && directive.name || selected.directiveName || 'Active directive')} / ` : 'Permanent Atlas repair / '}stabilization ${selectedStabilizationLevel}/${selectedStabilizationMax} (visual only, no combat power)</small>` : ''}
                   ${routeSummary ? `<small>${escapeHtml(routeSummary)}</small>` : ''}
                   ${modifierSummary ? `<small>${escapeHtml(`Modifiers: ${modifierSummary}`)}</small>` : ''}
                   ${riftSummary ? `<small>${escapeHtml(riftSummary)}</small>` : ''}
+                  ${riftSummary && riftOperationStatus.record ? `<small>${escapeHtml(riftOperationStatus.record)}</small>` : ''}
+                  ${riftSummary && riftOperationStatus.reward ? `<small>${escapeHtml(riftOperationStatus.reward)}</small>` : ''}
                   ${selected.landmark ? `<small>${escapeHtml(`Landmark: ${selected.landmark}`)}</small>` : ''}
                   ${selected.areaMechanic ? `<small>${escapeHtml(selected.areaMechanic)}</small>` : ''}
                   ${spawnSummary.enemyLabel ? `<small>${escapeHtml(`Mobs: ${spawnSummary.enemyLabel}`)}</small>` : ''}
@@ -17434,6 +18439,38 @@
           </div>
         </div>
       `;
+    }
+
+    renderSkillModifierChoice(modifier) {
+      const descriptionId = 'project-starfall-imprint-' + modifier.id + '-description';
+      const costAmount = Number(modifier.cost && modifier.cost.amount || 0);
+      const buttonLabel = modifier.active ? 'Equipped' : modifier.unlocked ? 'Equip' : modifier.canUnlock ? 'Shape - ' + costAmount + ' RFT' : costAmount + ' RFT';
+      const actionName = modifier.unlocked ? 'data-starfall-skill-modifier-select' : 'data-starfall-skill-modifier-unlock';
+      const disabled = modifier.active || (!modifier.unlocked && !modifier.canUnlock) || (modifier.unlocked && !modifier.canSelect);
+      return [
+        '<article class="project-starfall-imprint ', modifier.active ? 'is-active ' : '', modifier.unlocked ? 'is-unlocked' : 'is-locked', '" role="listitem">',
+        '<div class="project-starfall-imprint-copy">',
+        '<span class="project-starfall-imprint-kicker">', escapeHtml(modifier.paid ? 'Rift path' : 'Core path'), '</span>',
+        '<h4>', escapeHtml(modifier.name), ' <small>', escapeHtml(modifier.skillName), '</small></h4>',
+        '<p id="', escapeHtml(descriptionId), '">', escapeHtml(modifier.summary), '</p>',
+        modifier.lockedReason ? '<small class="project-starfall-imprint-reason">' + escapeHtml(modifier.lockedReason) + '</small>' : '',
+        '</div><button type="button" ', actionName, '="', escapeHtml(modifier.id), '" aria-pressed="', modifier.active ? 'true' : 'false', '" aria-describedby="', escapeHtml(descriptionId), '" aria-label="', escapeHtml(buttonLabel + ': ' + modifier.name), '" ', modifier.lockedReason ? 'title="' + escapeHtml(modifier.lockedReason) + '" ' : '', disabled ? 'disabled' : '', '>', escapeHtml(buttonLabel), '</button></article>'
+      ].join('');
+    }
+
+    renderSkillModifierChoices(ownerId) {
+      const modifiers = ((this.snapshot.skillModifiers && this.snapshot.skillModifiers.modifiers) || [])
+        .filter((modifier) => modifier.skillOwner === ownerId && (modifier.paid || modifier.unlocked));
+      if (!modifiers.length) return '';
+      const splinters = Math.max(0, Number(this.snapshot.state.materials && this.snapshot.state.materials.riftSplinter || 0));
+      return [
+        '<section class="project-starfall-imprints project-starfall-skill-paths" aria-labelledby="project-starfall-imprints-title">',
+        '<header><div><span class="project-starfall-imprints-eyebrow">Level 100 buildcraft</span><h3 id="project-starfall-imprints-title">Rift Imprints</h3></div>',
+        '<strong aria-label="', escapeHtml(splinters + ' Rift Splinters available'), '">', splinters, ' RFT</strong></header>',
+        '<p class="project-starfall-muted">Choose one horizontal style for your signature skill. Shape and switch Imprints in safe zones.</p>',
+        '<div class="project-starfall-imprint-list" role="list">', modifiers.map((modifier) => this.renderSkillModifierChoice(modifier)).join(''), '</div>',
+        '</section>'
+      ].join('');
     }
 
     renderSkillsPanel() {
@@ -17454,9 +18491,6 @@
           </div>
         `;
       });
-      const activeModifiers = ((this.snapshot.skillModifiers && this.snapshot.skillModifiers.modifiers) || [])
-        .filter((modifier) => modifier.unlocked)
-        .slice(0, 4);
       return `
         <div class="project-starfall-tabs" role="tablist" aria-label="Skill class tabs">
           ${owners.map((owner) => {
@@ -17467,11 +18501,7 @@
         </div>
         <div class="project-starfall-skill-scroll" tabindex="0" aria-label="Skill list">
           <p class="project-starfall-muted">Base SP ${Number(player.baseSkillPoints || 0)} - Advanced SP ${Number(player.advancedSkillPoints || 0)}</p>
-          ${activeModifiers.length ? `
-            <div class="project-starfall-skill-paths" aria-label="Unlocked skill modifiers">
-              ${activeModifiers.map((modifier) => `<span><strong>${escapeHtml(modifier.name)}</strong>${escapeHtml(`${modifier.skillName}: ${modifier.summary}`)}</span>`).join('')}
-            </div>
-          ` : ''}
+          ${this.renderSkillModifierChoices(activeOwner)}
           ${groups.join('')}
         </div>
       `;
@@ -23483,17 +24513,17 @@
       const ui = this.getCanvasUiTheme();
       return {
         accent,
-        frame: ui.frame,
-        frameDeep: ui.frameDeep,
-        frameSoft: ui.frameSoft,
-        panel: ui.parchment,
-        panelShade: ui.parchmentDim,
-        panelLine: ui.line,
-        ink: ui.ink,
-        gold: ui.gold,
-        goldSoft: 'rgba(245,207,114,0.34)',
-        goldDim: ui.lineSoft,
-        cyanSoft: ui.cyanSoft
+        frame: '#07111d',
+        frameDeep: '#030912',
+        frameSoft: '#102238',
+        panel: '#0b1827',
+        panelShade: '#07121f',
+        panelLine: 'rgba(116,221,255,0.2)',
+        ink: '#eef9ff',
+        gold: '#f0ae5a',
+        goldSoft: 'rgba(240,174,90,0.2)',
+        goldDim: 'rgba(116,221,255,0.15)',
+        cyanSoft: ui.cyanSoft || 'rgba(116,221,255,0.16)'
       };
     }
 
@@ -23827,7 +24857,7 @@
       const menuBox = hudLayout.menu;
       this.drawCanvasStatusHudFrame(ctx, box, hudLayout.frame, resourceColor);
       this.drawCanvasText(ctx, classData.name || 'Adventurer', contentLeft + 6, box.y + 9, {
-        color: '#fff3cf',
+        color: '#eef9ff',
         font: '950 13px system-ui',
         maxWidth: infoW - 12,
         lineHeight: 15,
@@ -23836,16 +24866,16 @@
       this.drawCanvasHudChip(ctx, contentLeft, hudLayout.chipY, hudLayout.levelW, 20, `Lv ${Number(player.level || 1)}`, {
         active: true,
         accentColor: resourceColor,
-        fill: '#174f8d',
-        stroke: 'rgba(245,207,114,0.48)',
-        color: '#fff8dd'
+        fill: '#123b54',
+        stroke: 'rgba(116,221,255,0.42)',
+        color: '#f4fbff'
       });
       const coinsText = `${formatAbbreviatedInteger(player.currency)} coins`;
       this.drawCanvasHudChip(ctx, hudLayout.coinsX, hudLayout.chipY, hudLayout.coinsW, 20, coinsText, {
         active: true,
-        accentColor: '#d8a531',
-        color: '#fff7df',
-        fill: 'rgba(31,59,82,0.82)',
+        accentColor: '#f0ae5a',
+        color: '#ffe2b7',
+        fill: 'rgba(20,37,53,0.94)',
         font: '900 10px system-ui'
       });
       this.drawCanvasResourceWidget(ctx, hudLayout.resource.x, hudLayout.resource.y, hudLayout.resource.w, hudLayout.resource.h);
@@ -23867,7 +24897,7 @@
         lineHeight: 10
       });
       this.drawCanvasText(ctx, 'Menu', menuBox.x + menuBox.w / 2, menuBox.y + menuBox.h - 13, {
-        color: '#fff7df',
+        color: '#eef9ff',
         font: '900 10px system-ui',
         align: 'center',
         maxWidth: menuBox.w - 10,
@@ -23875,6 +24905,41 @@
         lineHeight: 11
       });
       this.addCanvasRegion({ type: 'menu-action', action: 'menu', x: menuBox.x, y: menuBox.y, w: menuBox.w, h: menuBox.h });
+      const riftCounterplay = snapshot.mapModifiers && snapshot.mapModifiers.rift && snapshot.mapModifiers.rift.counterplay || {};
+      const activeRiftResponses = Array.isArray(riftCounterplay.active) ? riftCounterplay.active : [];
+      const riftOperationStatus = formatRiftOperationStatus(snapshot.mapModifiers && snapshot.mapModifiers.rift);
+      if (riftOperationStatus.active) {
+        const operationLabel = riftOperationStatus.headline.replace(/^Rift Operation\s*-\s*/i, '');
+        const operationW = Math.min(520, Math.max(300, 148 + operationLabel.length * 4.6));
+        const operationX = Math.round((width - operationW) / 2);
+        const operationY = box.y - 30;
+        this.drawRoundRect(ctx, operationX, operationY, operationW, 24, 6, 'rgba(7,20,35,0.96)', 'rgba(244,196,93,0.48)');
+        this.drawCanvasText(ctx, `RIFT OP  ${operationLabel}`, operationX + operationW / 2, operationY + 12, {
+          color: '#ffe08a',
+          font: '900 10px system-ui',
+          align: 'center',
+          baseline: 'middle',
+          maxWidth: operationW - 16,
+          maxLines: 1,
+          lineHeight: 11
+        });
+      }
+      if (activeRiftResponses.length) {
+        const responseLabel = activeRiftResponses.map((entry) => entry.label || entry.id).join(' / ');
+        const responseW = Math.min(360, Math.max(220, 134 + responseLabel.length * 5));
+        const responseX = Math.round((width - responseW) / 2);
+        const responseY = box.y - (riftOperationStatus.active ? 60 : 30);
+        this.drawRoundRect(ctx, responseX, responseY, responseW, 24, 6, 'rgba(5,14,24,0.94)', 'rgba(116,221,255,0.46)');
+        this.drawCanvasText(ctx, `RIFT RESPONSE  ${responseLabel}`, responseX + responseW / 2, responseY + 12, {
+          color: '#b9efff',
+          font: '900 10px system-ui',
+          align: 'center',
+          baseline: 'middle',
+          maxWidth: responseW - 16,
+          maxLines: 1,
+          lineHeight: 11
+        });
+      }
       return box.y;
     }
 
@@ -24169,6 +25234,9 @@
 
 	    drawCanvasWindowsLive(ctx, width, height, snapshot) {
 	      this.snapshot = snapshot || this.snapshot;
+      if (this.snapshot && this.snapshot.bossEncounter && this.snapshot.bossEncounter.active) {
+        this.updateHudStatusAnnouncement(this.snapshot);
+      }
 	      this.canvasHitRegions = [];
 	      this.canvasHitRegionsFromCache = false;
 	      this.setCanvasHudTooltipRegionCacheValue(false);
@@ -25807,13 +26875,13 @@
         const boxH = box.h;
         this.addCanvasRegion({ type: 'station-prompt', action: prompt.promptAction, x, y, w: boxW, h: boxH });
         this.drawCanvasUiPanel(ctx, x, y, boxW, boxH, {
-          fill: CANVAS_UI_THEME.parchmentSoft,
-          stroke: 'rgba(245,207,114,0.42)',
-          radius: 8
+          fill: 'rgba(4,13,23,0.92)',
+          stroke: 'rgba(116,221,255,0.28)',
+          radius: 7
         });
-        this.drawCanvasText(ctx, prompt.title, x + 12, y + 7, { color: '#102033', font: '900 12px system-ui', maxWidth: boxW - 112, lineHeight: 13, maxLines: 1 });
+        this.drawCanvasText(ctx, prompt.title, x + 12, y + 7, { color: '#eef9ff', font: '900 12px system-ui', maxWidth: boxW - 112, lineHeight: 13, maxLines: 1 });
         this.drawCanvasText(ctx, prompt.hint, x + boxW - 12, y + 8, { color: prompt.hintColor, font: '900 11px system-ui', align: 'right', maxWidth: 98, lineHeight: 12 });
-        this.drawCanvasText(ctx, prompt.kindLabel, x + 12, y + 25, { color: '#5f6f7a', font: '10px system-ui', maxWidth: boxW - 24, lineHeight: 11 });
+        this.drawCanvasText(ctx, prompt.kindLabel, x + 12, y + 25, { color: '#b8c8d3', font: '10px system-ui', maxWidth: boxW - 24, lineHeight: 11 });
         return;
       }
       const player = this.snapshot && this.snapshot.state ? this.snapshot.state.player : null;
@@ -25854,13 +26922,13 @@
       }
       this.addCanvasRegion({ type: 'station-prompt', action: promptAction, x, y, w: boxW, h: boxH });
       this.drawCanvasUiPanel(ctx, x, y, boxW, boxH, {
-        fill: CANVAS_UI_THEME.parchmentSoft,
-        stroke: 'rgba(245,207,114,0.42)',
-        radius: 8
+        fill: 'rgba(4,13,23,0.92)',
+        stroke: 'rgba(116,221,255,0.28)',
+        radius: 7
       });
-      this.drawCanvasText(ctx, title, x + 12, y + 7, { color: '#102033', font: '900 12px system-ui', maxWidth: boxW - 112, lineHeight: 13, maxLines: 1 });
-      this.drawCanvasText(ctx, hint, x + boxW - 12, y + 8, { color: portal ? '#2f7dd6' : '#177645', font: '900 11px system-ui', align: 'right', maxWidth: 98, lineHeight: 12 });
-      this.drawCanvasText(ctx, questNpc && questNpc.servicePanelId ? 'Service NPC' : questNpc ? 'Quest NPC' : portal ? 'Portal' : 'Station', x + 12, y + 25, { color: '#5f6f7a', font: '10px system-ui', maxWidth: boxW - 24, lineHeight: 11 });
+      this.drawCanvasText(ctx, title, x + 12, y + 7, { color: '#eef9ff', font: '900 12px system-ui', maxWidth: boxW - 112, lineHeight: 13, maxLines: 1 });
+      this.drawCanvasText(ctx, hint, x + boxW - 12, y + 8, { color: portal ? '#74ddff' : '#8ef0ba', font: '900 11px system-ui', align: 'right', maxWidth: 98, lineHeight: 12 });
+      this.drawCanvasText(ctx, questNpc && questNpc.servicePanelId ? 'Service NPC' : questNpc ? 'Quest NPC' : portal ? 'Portal' : 'Station', x + 12, y + 25, { color: '#b8c8d3', font: '10px system-ui', maxWidth: boxW - 24, lineHeight: 11 });
     }
 
     drawCanvasQuestNpcIcons(ctx, width) {
@@ -26531,20 +27599,17 @@
         const localMapY = pad + titleH;
         const toLocalX = (worldX) => localMapX + clamp(Number(worldX || 0) / worldW, 0, 1) * mapW;
         const toLocalY = (worldY) => localMapY + clamp(Number(worldY || 0) / worldH, 0, 1) * plotH;
-        this.drawCanvasUiWindowFrame(layerCtx, 0, 0, boxW, boxH, pad + titleH - 1, {
-          radius: 9,
-          ornament: 'subtle',
-          shadowBlur: 9,
-          shadowOffsetY: 3
-        });
+        this.drawRoundRect(layerCtx, 0, 0, boxW, boxH, 8, 'rgba(4,13,23,0.92)', 'rgba(116,221,255,0.22)');
+        layerCtx.fillStyle = 'rgba(116,221,255,0.1)';
+        layerCtx.fillRect(pad, pad + titleH - 2, boxW - pad * 2, 1);
         const headerTextX = pad + (box.compact ? 3 : 8);
         const toggleX = boxW - 24;
-        this.drawCanvasText(layerCtx, 'Map', headerTextX, 7, { color: '#fff3cf', font: '900 10px system-ui' });
+        this.drawCanvasText(layerCtx, 'Map', headerTextX, 7, { color: '#eef9ff', font: '900 10px system-ui' });
         const roadLabel = box.compact ? 'M' : [map.mapRoadName || map.name || '', map.layoutRoleLabel || ''].filter(Boolean).join(' - ');
         this.drawCanvasText(layerCtx, roadLabel, toggleX - 6, 7, { color: '#9be7ff', font: '800 9px system-ui', align: 'right', maxWidth: Math.max(44, toggleX - headerTextX - 44), lineHeight: 10 });
-        this.drawRoundRect(layerCtx, toggleX, 5, 16, 13, 5, 'rgba(255,255,255,0.12)', 'rgba(245,207,114,0.24)');
+        this.drawRoundRect(layerCtx, toggleX, 5, 16, 13, 4, 'rgba(116,221,255,0.1)', 'rgba(116,221,255,0.24)');
         this.drawCanvasText(layerCtx, box.compact ? '+' : '-', toggleX + 8, 7, { color: '#ffffff', font: '900 10px system-ui', align: 'center' });
-        this.drawCanvasUiSlot(layerCtx, localMapX, localMapY, mapW, mapH, { variant: 'dark', radius: 6, stroke: 'rgba(89,216,255,0.22)' });
+        this.drawRoundRect(layerCtx, localMapX, localMapY, mapW, mapH, 5, 'rgba(2,8,15,0.82)', 'rgba(116,221,255,0.18)');
         layerCtx.save();
         layerCtx.beginPath();
         layerCtx.rect(localMapX, localMapY, mapW, plotH);
@@ -26838,17 +27903,17 @@
       const y = box.y;
       const h = box.h;
       const rowH = 16;
-      this.drawCanvasUiWindowFrame(ctx, x, y, w, h, box.compact ? h : 28, {
-        radius: 8,
-        ornament: 'subtle',
-        shadowBlur: 12,
-        shadowOffsetY: 4
-      });
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 3;
+      this.drawRoundRect(ctx, x, y, w, h, 8, 'rgba(4,13,23,0.92)', 'rgba(116,221,255,0.22)');
+      ctx.restore();
       this.addCanvasRegion({ type: 'quest-tracker-drag', x, y, w, h });
       if (box.compact) {
-        this.drawCanvasText(ctx, 'Quests', x + 10, y + 8, { color: '#ffffff', font: '900 11px system-ui', maxWidth: w - 54, lineHeight: 12, maxLines: 1 });
+        this.drawCanvasText(ctx, 'Objectives', x + 10, y + 8, { color: '#eef9ff', font: '900 11px system-ui', maxWidth: w - 54, lineHeight: 12, maxLines: 1 });
         this.drawCanvasText(ctx, `${entries.length} tracked`, x + 10, y + 24, { color: '#9be7ff', font: '800 9px system-ui', maxWidth: w - 54, lineHeight: 10, maxLines: 1 });
-        this.drawRoundRect(ctx, x + w - 30, y + 8, 20, 18, 6, 'rgba(255,255,255,0.16)', 'rgba(255,255,255,0.3)');
+        this.drawRoundRect(ctx, x + w - 30, y + 8, 20, 18, 5, 'rgba(116,221,255,0.1)', 'rgba(116,221,255,0.3)');
         this.drawCanvasText(ctx, '+', x + w - 20, y + 11, { color: '#ffffff', font: '900 12px system-ui', align: 'center', maxWidth: 16, lineHeight: 12 });
         this.addCanvasRegion({ type: 'quest-tracker-toggle', x: x + w - 36, y: y + 4, w: 32, h: 28 });
         return;
@@ -26857,8 +27922,8 @@
       ctx.beginPath();
       ctx.rect(x, y, w, h);
       ctx.clip();
-      this.drawCanvasText(ctx, 'Tracked Quests', x + 10, y + 9, { color: '#fff3cf', font: '950 11px system-ui', maxWidth: w - 64, lineHeight: 12, maxLines: 1 });
-      this.drawRoundRect(ctx, x + w - 30, y + 6, 20, 17, 6, 'rgba(255,255,255,0.14)', 'rgba(245,207,114,0.28)');
+      this.drawCanvasText(ctx, 'Tracked Objectives', x + 10, y + 9, { color: '#eef9ff', font: '950 11px system-ui', maxWidth: w - 64, lineHeight: 12, maxLines: 1 });
+      this.drawRoundRect(ctx, x + w - 30, y + 6, 20, 17, 5, 'rgba(116,221,255,0.1)', 'rgba(116,221,255,0.28)');
       this.drawCanvasText(ctx, '-', x + w - 20, y + 8, { color: '#ffffff', font: '900 12px system-ui', align: 'center', maxWidth: 16, lineHeight: 12 });
       this.addCanvasRegion({ type: 'quest-tracker-toggle', x: x + w - 36, y: y + 2, w: 32, h: 28 });
       let cy = y + 30;
@@ -26873,7 +27938,7 @@
         const entryH = 21 + objectives.length * rowH + (selected ? 34 : 0);
         const visibleH = Math.min(entryH, Math.max(0, y + h - entryY));
         if (visibleH <= 0) return;
-        this.drawRoundRect(ctx, x + 6, entryY, w - 12, entryH - 4, 7, selected ? '#eef6ff' : 'rgba(255,255,255,0.62)', selected ? 'rgba(47,125,214,0.5)' : 'rgba(16,32,51,0.08)');
+        this.drawRoundRect(ctx, x + 6, entryY, w - 12, entryH - 4, 6, selected ? 'rgba(18,57,79,0.96)' : 'rgba(10,27,42,0.9)', selected ? 'rgba(116,221,255,0.5)' : 'rgba(116,221,255,0.1)');
         this.addCanvasRegion({
           type: 'quest-guide',
           guideType: entry.guideType,
@@ -26891,20 +27956,20 @@
           w: w - 12,
           h: visibleH
         });
-        this.drawCanvasText(ctx, entry.title, x + 12, cy, { color: '#102033', font: '900 11px system-ui', maxWidth: w - 24, lineHeight: 12, maxLines: 1 });
+        this.drawCanvasText(ctx, entry.title, x + 12, cy, { color: '#eef9ff', font: '900 11px system-ui', maxWidth: w - 24, lineHeight: 12, maxLines: 1 });
         cy += 15;
         objectives.forEach((objective) => {
           const status = Object.prototype.hasOwnProperty.call(objective, 'status')
             ? objective.status
             : objective.complete ? 'Done' : `${formatAbbreviatedInteger(objective.value)}/${formatAbbreviatedInteger(objective.goal)}`;
           const text = `${status ? `${status} ` : ''}${objective.label}`;
-          this.drawCanvasText(ctx, text, x + 14, cy, { color: objective.complete ? '#177645' : '#5f6f7a', font: '10px system-ui', maxWidth: w - 28, lineHeight: 11, maxLines: 1 });
+          this.drawCanvasText(ctx, text, x + 14, cy, { color: objective.complete ? '#8ef0ba' : '#b8c8d3', font: '10px system-ui', maxWidth: w - 28, lineHeight: 11, maxLines: 1 });
           cy += rowH;
         });
         if (selected) {
           const hintY = cy + 1;
           this.drawCanvasText(ctx, guidance.lockedReason || guidance.hint || guidance.objectiveLabel, x + 14, hintY, {
-            color: guidance.lockedReason ? '#9a5b36' : '#2f7dd6',
+            color: guidance.lockedReason ? '#f0ae5a' : '#74ddff',
             font: '850 9px system-ui',
             maxWidth: w - 28,
             lineHeight: 10,
@@ -27765,42 +28830,42 @@
       }
       return [
         {
-          title: 'Character',
+          title: 'OPERATIVE',
           items: [
-            { label: 'Character', panel: 'character', iconId: 'character' },
-            { label: 'Equipment', panel: 'equipment', iconId: 'equipment' },
-            { label: 'Party', panel: 'partyPanel', iconId: 'partyPanel' },
+            { label: 'Operative', panel: 'character', iconId: 'character' },
+            { label: 'Loadout', panel: 'equipment', iconId: 'equipment' },
+            { label: 'Squad', panel: 'partyPanel', iconId: 'partyPanel' },
             { label: 'Inventory', panel: 'inventory', iconId: 'inventory' },
-            { label: 'Skills', panel: 'skills', iconId: 'skills' },
-            { label: 'Quests', panel: 'quests', iconId: 'quests' }
+            { label: 'Techniques', panel: 'skills', iconId: 'skills' },
+            { label: 'Assignments', panel: 'quests', iconId: 'quests' }
           ]
         },
         {
-          title: 'World',
+          title: 'FIELD SYSTEMS',
           items: [
-            { label: 'World Map', panel: 'worldmap', iconId: 'worldmap' },
-            { label: 'Monster Guide', panel: 'monsters', iconId: 'monsters' },
-            { label: 'Shop', panel: 'shop', iconId: 'shop' },
-            { label: 'Upgrade', panel: 'upgrade', iconId: 'upgrade' },
-            { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
-            { label: this.snapshot && this.snapshot.dailyLogin && this.snapshot.dailyLogin.claimable ? 'Daily Reward!' : 'Daily Rewards', panel: 'daily', iconId: 'daily' },
-            { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
-            { label: 'Beta Systems', panel: 'beta', iconId: 'beta' },
-            { label: 'Guide', panel: 'guide', iconId: 'guide' },
-            { label: 'Log', panel: 'log', iconId: 'log' }
+            { label: 'Starfall Atlas', panel: 'worldmap', iconId: 'worldmap' },
+            { label: 'Archive Index', panel: 'monsters', iconId: 'monsters' },
+            { label: 'Field Market', panel: 'shop', iconId: 'shop' },
+            { label: 'Forge', panel: 'upgrade', iconId: 'upgrade' },
+            { label: 'Signal Drop', panel: 'plinko', iconId: 'plinko' },
+            { label: this.snapshot && this.snapshot.dailyLogin && this.snapshot.dailyLogin.claimable ? 'Beacon Ready!' : 'Beacon Check-In', panel: 'daily', iconId: 'daily' },
+            { label: 'Token Exchange', panel: 'cashShop', iconId: 'cashShop' },
+            { label: 'Fracture Ops', panel: 'beta', iconId: 'beta' },
+            { label: 'Field Manual', panel: 'guide', iconId: 'guide' },
+            { label: 'Field Log', panel: 'log', iconId: 'log' }
           ]
         },
         {
-          title: 'Channels',
+          title: 'SIGNAL LINKS',
           items: this.getCanvasChannelMenuItems()
         },
         {
-          title: 'Settings',
+          title: 'COMMAND',
           items: [
-            { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
-            { label: 'Settings', panel: 'settings', iconId: 'settings' },
+            { label: 'Focus Stage', action: 'fullscreen', iconId: 'fullscreen' },
+            { label: 'System Settings', panel: 'settings', iconId: 'settings' },
             { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
-            { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
+            { label: 'Worldwright Tools', panel: 'admin', iconId: 'admin' }
           ]
         }
       ];
@@ -27821,13 +28886,17 @@
           current: index === 0
         }));
       const currentId = channelSnapshot.currentId || (channels.find((channel) => channel.current) || channels[0] || {}).id;
-      return channels.map((channel) => ({
-        label: channel.label || channel.name || channel.id,
-        action: 'changeChannel',
-        channelId: channel.id,
-        iconId: 'worldmap',
-        selected: channel.current || channel.id === currentId
-      }));
+      return channels.map((channel, index) => {
+        const rawLabel = channel.label || channel.name || channel.id;
+        const compactChannelMatch = /^Ch\.\s*(\d+)$/i.exec(String(rawLabel || ''));
+        return {
+          label: compactChannelMatch ? `Signal ${compactChannelMatch[1]}` : rawLabel || `Signal ${index + 1}`,
+          action: 'changeChannel',
+          channelId: channel.id,
+          iconId: 'worldmap',
+          selected: channel.current || channel.id === currentId
+        };
+      });
     }
 
     getCanvasMenuFooterAction() {
@@ -27835,7 +28904,7 @@
       if (getCanvasMenuFooterActionHelper) {
         return getCanvasMenuFooterActionHelper();
       }
-      return { label: 'Logout', action: 'load', iconId: 'logout', danger: true };
+      return { label: 'Return to Observatory', action: 'load', iconId: 'logout', danger: true };
     }
 
     getCanvasHudQuickActions() {
@@ -27943,15 +29012,16 @@
       const image = assetPath && this.engine && this.engine.getAsset ? this.engine.getAsset(assetPath) : null;
       const danger = !!options.danger;
       const hud = !!options.hud;
+      const command = !!options.command;
       const fill = hud
-        ? options.disabled ? '#6f7c88' : options.open ? '#e9f7ff' : '#e8deca'
+        ? options.disabled ? '#52616d' : options.open ? '#dff8ff' : '#c9d8e2'
+        : command ? options.disabled ? 'rgba(54,71,84,0.72)' : danger ? 'rgba(114,43,50,0.72)' : 'rgba(14,48,69,0.92)'
         : options.disabled ? '#d9dfdf' : danger ? '#fff0ea' : '#eef6ff';
       const stroke = hud
-        ? options.open ? 'rgba(47,125,214,0.5)' : 'rgba(16,32,51,0.2)'
+        ? options.open ? 'rgba(116,221,255,0.5)' : 'rgba(116,221,255,0.16)'
+        : command ? danger ? 'rgba(255,139,122,0.42)' : 'rgba(116,221,255,0.3)'
         : danger ? 'rgba(184,50,50,0.28)' : 'rgba(16,32,51,0.16)';
-      this.drawCanvasUiSlot(ctx, x, y, size, size, hud
-        ? { variant: 'dark', stroke: options.open ? 'rgba(89,216,255,0.58)' : 'rgba(245,207,114,0.22)', radius: 6, selected: options.open, star: false }
-        : { fill, stroke, radius: 6, selected: options.open });
+      if (!hud) this.drawCanvasUiSlot(ctx, x, y, size, size, { fill, stroke, radius: 6, selected: options.open });
       if (image) {
         ctx.save();
         ctx.beginPath();
@@ -27963,7 +29033,7 @@
       }
       const label = ACTION_ICONS[iconId] || String(iconId || '?').slice(0, 3).toUpperCase();
       this.drawCanvasText(ctx, label, x + size / 2, y + size / 2, {
-        color: hud ? danger ? '#ff9b8c' : '#fff3cf' : danger ? '#b83232' : '#102033',
+        color: hud || command ? danger ? '#ffad9f' : '#eaf9ff' : danger ? '#b83232' : '#102033',
         font: '900 7px system-ui',
         align: 'center',
         baseline: 'middle',
@@ -27977,17 +29047,22 @@
       const disabled = !!item.disabled;
       const danger = !!item.danger;
       const selected = !!item.selected;
-      const fill = disabled ? '#d9dfdf' : selected ? '#e9f6ff' : danger ? '#fff3ee' : '#fffaf0';
-      const stroke = disabled ? 'rgba(16,32,51,0.14)' : selected ? 'rgba(47,125,214,0.66)' : danger ? 'rgba(184,50,50,0.32)' : 'rgba(16,32,51,0.24)';
+      const fill = disabled
+        ? 'rgba(45,61,73,0.72)'
+        : selected ? 'rgba(25,91,121,0.94)' : danger ? 'rgba(83,30,37,0.8)' : 'rgba(10,35,53,0.9)';
+      const stroke = disabled
+        ? 'rgba(173,195,207,0.14)'
+        : selected ? 'rgba(116,221,255,0.72)' : danger ? 'rgba(255,139,122,0.4)' : 'rgba(116,221,255,0.2)';
       this.drawCanvasUiPanel(ctx, x, y, w, h, { fill, stroke, radius: 7, inner: false });
       const iconSize = Math.min(16, h - 8);
       this.drawCanvasMenuIcon(ctx, this.getCanvasMenuIconId(item), x + 6, y + Math.round((h - iconSize) / 2), iconSize, {
         danger,
-        disabled
+        disabled,
+        command: true
       });
       const shortcut = item.panel ? this.getPrimaryKeyLabel(item.panel) : '';
       const hasShortcut = shortcut && shortcut !== 'Unbound';
-      const textColor = disabled ? '#75818c' : danger ? '#9d2f2f' : '#102033';
+      const textColor = disabled ? '#8296a4' : danger ? '#ffad9f' : '#eaf6fb';
       const labelX = x + 28;
       const rightLabel = hasShortcut ? shortcut : selected ? 'ON' : '';
       const shortcutW = rightLabel ? 34 : 0;
@@ -28001,7 +29076,7 @@
       });
       if (rightLabel) {
         this.drawCanvasText(ctx, rightLabel, x + w - 7, y + h / 2, {
-          color: selected ? '#1765b7' : '#2f7dd6',
+          color: selected ? '#ffe08a' : '#9be7ff',
           font: '900 9px system-ui',
           align: 'right',
           baseline: 'middle',
@@ -28023,9 +29098,9 @@
       this.drawCanvasMenuIcon(ctx, action.iconId, x + 6, y + 6, size - 12, { disabled: false, hud: true, open });
       const shortcut = this.getPrimaryKeyLabel(action.panel);
       if (shortcut && shortcut !== 'Unbound') {
-        this.drawRoundRect(ctx, x + size - 20, y + 3, 17, 12, 4, open ? 'rgba(155,231,255,0.9)' : 'rgba(255,250,232,0.88)', open ? 'rgba(47,125,214,0.32)' : 'rgba(16,32,51,0.16)');
+        this.drawRoundRect(ctx, x + size - 20, y + 3, 17, 12, 4, open ? 'rgba(155,231,255,0.9)' : 'rgba(7,21,34,0.92)', open ? 'rgba(116,221,255,0.38)' : 'rgba(116,221,255,0.22)');
         this.drawCanvasText(ctx, shortcut, x + size - 11.5, y + 9, {
-          color: '#102033',
+          color: open ? '#102033' : '#eef9ff',
           font: '900 7px system-ui',
           align: 'center',
           baseline: 'middle',
@@ -28037,6 +29112,19 @@
       this.addCanvasRegion({ type: 'menu-panel', panelId: action.panel, x, y, w: size, h: size });
     }
 
+    drawCanvasCommandDeckFrame(ctx, x, y, w, h) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,10,20,0.55)';
+      ctx.shadowBlur = 18;
+      ctx.shadowOffsetY = 7;
+      this.drawRoundRect(ctx, x, y, w, h, 10, 'rgba(5,18,31,0.97)', 'rgba(116,221,255,0.38)');
+      ctx.restore();
+      ctx.fillStyle = 'rgba(244,196,93,0.82)';
+      ctx.fillRect(x + 12, y + 1, Math.max(54, Math.round(w * 0.22)), 2);
+      ctx.fillStyle = 'rgba(116,221,255,0.62)';
+      ctx.fillRect(x + 1, y + 12, 2, Math.max(12, h - 24));
+    }
+
     drawCanvasMenu(ctx, width, height, bottomY) {
       const getCanvasMenuLayoutHelper = getHudMenuHelper('getCanvasMenuLayout');
       if (getCanvasMenuLayoutHelper) {
@@ -28044,22 +29132,15 @@
         const footer = this.getCanvasMenuFooterAction();
         const layout = getCanvasMenuLayoutHelper(width, height, bottomY, groups, { footer });
         this.addCanvasRegion({ type: 'menu-shell', x: layout.x, y: layout.y, w: layout.w, h: layout.h });
-        ctx.save();
-        this.drawCanvasUiWindowFrame(ctx, layout.x, layout.y, layout.w, layout.h, 0, {
-          radius: 9,
-          ornament: 'subtle',
-          shadowBlur: 12,
-          shadowOffsetY: 4
-        });
-        ctx.restore();
+        this.drawCanvasCommandDeckFrame(ctx, layout.x, layout.y, layout.w, layout.h);
         layout.groups.forEach((group) => {
-          this.drawCanvasText(ctx, group.title, group.titleX, group.titleY, { color: '#5f6f7a', font: '900 10px system-ui' });
+          this.drawCanvasText(ctx, group.title, group.titleX, group.titleY, { color: '#f4c45d', font: '900 9px system-ui' });
           group.rows.forEach((row) => {
             this.drawCanvasMenuRow(ctx, row.item, row.x, row.y, row.w, row.h);
           });
         });
         ctx.save();
-        ctx.strokeStyle = 'rgba(16,32,51,0.13)';
+        ctx.strokeStyle = 'rgba(116,221,255,0.16)';
         ctx.beginPath();
         ctx.moveTo(layout.separator.x1, layout.separator.y);
         ctx.lineTo(layout.separator.x2, layout.separator.y);
@@ -28084,17 +29165,10 @@
       const x = compactMenu ? Math.round((width - w) / 2) : width - w - 18;
       const y = Math.max(14, bottomLimit - h - 10);
       this.addCanvasRegion({ type: 'menu-shell', x, y, w, h });
-      ctx.save();
-      this.drawCanvasUiWindowFrame(ctx, x, y, w, h, 0, {
-        radius: 9,
-        ornament: 'subtle',
-        shadowBlur: 12,
-        shadowOffsetY: 4
-      });
-      ctx.restore();
+      this.drawCanvasCommandDeckFrame(ctx, x, y, w, h);
       let cy = y + 12;
       groups.forEach((group) => {
-        this.drawCanvasText(ctx, group.title, x + 12, cy, { color: '#5f6f7a', font: '900 10px system-ui' });
+        this.drawCanvasText(ctx, group.title, x + 12, cy, { color: '#f4c45d', font: '900 9px system-ui' });
         cy += 15;
         (group.items || []).forEach((item, index) => {
           const col = index % columns;
@@ -28107,7 +29181,7 @@
       const footerY = y + h - rowH - 12;
       const separatorY = footerY - 7;
       ctx.save();
-      ctx.strokeStyle = 'rgba(16,32,51,0.13)';
+      ctx.strokeStyle = 'rgba(116,221,255,0.16)';
       ctx.beginPath();
       ctx.moveTo(x + 12, separatorY + 0.5);
       ctx.lineTo(x + w - 12, separatorY + 0.5);
@@ -28298,6 +29372,7 @@
       const skillModifiers = this.snapshot.skillModifiers || { modifiers: [] };
       const mastery = this.snapshot.classMastery || { tracks: [] };
       const targetFarm = this.snapshot.targetFarm || {};
+      const riftOperationStatus = formatRiftOperationStatus(mapModifiers.rift);
       let cy = y;
       cy = this.drawCanvasText(ctx, 'Advanced systems are active in combat, rewards, party AI, and dungeon runs.', x, cy, { color: '#5f6f7a', font: '12px system-ui', maxWidth: w, lineHeight: 15 }) + 8;
       const cardW = Math.floor((w - 10) / 2);
@@ -28324,7 +29399,9 @@
       cy += 20;
       const modifierText = (mapModifiers.active || []).map((modifier) => modifier.name).join('  ') || 'No field modifiers on this map.';
       cy = this.drawCanvasText(ctx, `Modifiers: ${modifierText}`, x, cy, { color: '#2f7dd6', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 4;
-      cy = this.drawCanvasText(ctx, `Rift tier ${Number(mapModifiers.rift && mapModifiers.rift.tier || 1)} - score ${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.score || 0)}/${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.nextTierScore || 500)}`, x, cy, { color: '#8856c5', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 4;
+      cy = this.drawCanvasText(ctx, riftOperationStatus.headline, x, cy, { color: '#8856c5', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 4;
+      if (riftOperationStatus.record) cy = this.drawCanvasText(ctx, riftOperationStatus.record, x, cy, { color: '#6f587c', font: '800 9px system-ui', maxWidth: w, lineHeight: 11 }) + 3;
+      if (riftOperationStatus.reward) cy = this.drawCanvasText(ctx, riftOperationStatus.reward, x, cy, { color: '#8a6b24', font: '800 9px system-ui', maxWidth: w, lineHeight: 11 }) + 3;
       cy = this.drawCanvasText(ctx, `Target farm: ${targetFarm.enemyName || 'none'}${targetFarm.active ? ` - streak ${Number(targetFarm.streak || 0)}` : ''}`, x, cy, { color: '#177645', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 12;
       this.drawCanvasText(ctx, 'Build Progress', x, cy, { color: '#102033', font: '900 13px system-ui' });
       cy += 20;
@@ -29112,6 +30189,18 @@
     drawWorldMapCanvas(ctx, x, y, w) {
       const worldMap = this.snapshot.worldMap || { nodes: [], edges: [], pathHint: null };
       const nodes = worldMap.nodes || [];
+      const seasonDirective = this.snapshot.season && this.snapshot.season.selectedDirective || null;
+      const directive = worldMap.directive || seasonDirective || null;
+      const directiveMapIds = new Set([].concat(directive && directive.mapIds || []));
+      const isDirectiveNode = (node) => !!(node && (
+        node.directiveRoute === true
+        || directiveMapIds.has(node.mapId)
+      ));
+      const isDirectiveEdge = (edge) => !!(edge && (
+        edge.directiveRoute === true
+        || directiveMapIds.has(edge.fromMapId) && directiveMapIds.has(edge.toMapId)
+      ));
+      const directiveStabilizationLevel = Math.max(0, Number(directive && directive.stabilizationLevel || 0));
       if (!nodes.length) {
         return this.drawCanvasText(ctx, 'World map data is unavailable.', x, y, { color: '#5f6f7a', font: '14px system-ui' }) - y;
       }
@@ -29127,8 +30216,9 @@
         .join('  ');
       const mapModifiers = this.snapshot.mapModifiers || { active: [], rift: {} };
       const modifierText = (mapModifiers.active || []).map((modifier) => modifier.name).join('  ');
+      const riftOperationStatus = formatRiftOperationStatus(mapModifiers.rift);
       const riftText = mapModifiers.rift && selected && selected.mapId === 'endlessRift'
-        ? `Rift tier ${Number(mapModifiers.rift.tier || 1)} - ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`
+        ? riftOperationStatus.headline
         : '';
       const availableBodyH = Math.max(360, Number(this.currentCanvasPanelBody && this.currentCanvasPanelBody.h || 582));
       const detailH = 136;
@@ -29178,11 +30268,13 @@
         const p1 = pointFor(from);
         const p2 = pointFor(to);
         const locked = edge.status === 'locked';
+        const directiveRoute = isDirectiveEdge(edge);
+        const stabilized = directiveRoute && directiveStabilizationLevel > 0;
         ctx.save();
-        ctx.strokeStyle = edge.currentRoute ? '#9bd7ff' : locked ? 'rgba(25,34,45,0.52)' : edge.completed ? '#bdf48f' : 'rgba(255,247,209,0.82)';
-        ctx.lineWidth = edge.currentRoute ? 4 : edge.completed ? 3 : 2;
-        ctx.shadowColor = edge.currentRoute ? 'rgba(58,160,255,0.7)' : 'rgba(0,0,0,0.32)';
-        ctx.shadowBlur = edge.currentRoute ? 8 : 2;
+        ctx.strokeStyle = edge.currentRoute ? '#9bd7ff' : directiveRoute ? (stabilized ? '#c8f49b' : '#f8d878') : locked ? 'rgba(25,34,45,0.52)' : edge.completed ? '#bdf48f' : 'rgba(255,247,209,0.82)';
+        ctx.lineWidth = edge.currentRoute ? 4 : directiveRoute ? 3.5 : edge.completed ? 3 : 2;
+        ctx.shadowColor = edge.currentRoute ? 'rgba(58,160,255,0.7)' : directiveRoute ? (stabilized ? 'rgba(164,238,118,0.7)' : 'rgba(247,210,114,0.7)') : 'rgba(0,0,0,0.32)';
+        ctx.shadowBlur = edge.currentRoute ? 8 : directiveRoute ? 7 : 2;
         if (locked) ctx.setLineDash([7, 5]);
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
@@ -29195,25 +30287,38 @@
         const point = pointFor(node);
         const radius = node.current || node.selected ? 11 : node.dungeon ? 10 : 8;
         const hitSize = 36;
-        const fill = node.current ? '#eaf7ff' : node.selected ? '#fff3c4' : node.locked ? '#b8b8b0' : node.completed ? '#d6ffcb' : '#ffffff';
+        const directiveRoute = isDirectiveNode(node);
+        const stabilizationLevel = Math.max(0, Number(node.stabilizationLevel || directiveStabilizationLevel));
+        const stabilized = !!node.stabilized || stabilizationLevel > 0;
+        const fill = node.current ? '#eaf7ff' : node.selected ? '#fff3c4' : node.locked ? '#b8b8b0' : stabilized ? '#efffe8' : directiveRoute ? '#fff7d5' : node.completed ? '#d6ffcb' : '#ffffff';
         const roleStroke = node.layoutRole === 'town' ? '#f7d28a'
           : node.layoutRole === 'bossArena' ? '#d87bff'
             : node.layoutRole === 'dungeon' ? '#8f65ff'
               : node.layoutRole === 'deepField' ? '#ffbe55'
                 : node.layoutRole === 'endlessField' ? '#f06bff'
                   : node.areaAccent || '#7ec8d8';
-        const stroke = node.current ? '#69c9ff' : node.selected ? '#ffcf5f' : node.locked ? '#4b5560' : roleStroke;
+        const stroke = node.current ? '#69c9ff' : node.selected ? '#ffcf5f' : node.locked ? '#4b5560' : stabilized ? '#84c75f' : directiveRoute ? '#d7aa38' : roleStroke;
         ctx.save();
-        ctx.shadowColor = node.current || node.selected ? 'rgba(80,190,255,0.7)' : 'rgba(0,0,0,0.34)';
-        ctx.shadowBlur = node.current || node.selected ? 10 : 4;
+        ctx.shadowColor = node.current || node.selected ? 'rgba(80,190,255,0.7)' : stabilized ? 'rgba(132,199,95,0.7)' : directiveRoute ? 'rgba(215,170,56,0.7)' : 'rgba(0,0,0,0.34)';
+        ctx.shadowBlur = node.current || node.selected ? 10 : directiveRoute || stabilized ? 8 : 4;
         ctx.fillStyle = fill;
         ctx.strokeStyle = stroke;
-        ctx.lineWidth = node.current || node.selected ? 3 : 2;
+        ctx.lineWidth = node.current || node.selected ? 3 : directiveRoute || stabilized ? 2.5 : 2;
         ctx.beginPath();
         ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
+        if (directiveRoute || stabilized) {
+          ctx.save();
+          ctx.strokeStyle = stabilized ? 'rgba(181,239,142,0.92)' : 'rgba(247,210,114,0.92)';
+          ctx.lineWidth = 1.5;
+          if (!stabilized) ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, radius + 4, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
         if (node.layoutMarker || node.dungeon || node.type === 'town') {
           this.drawCanvasText(ctx, node.layoutMarker || (node.dungeon ? 'D' : 'T'), point.x, point.y - 4, { color: node.locked ? '#4b5560' : '#102033', font: '900 8px system-ui', align: 'center', maxWidth: 20, lineHeight: 9 });
         }
@@ -29232,9 +30337,10 @@
           type: 'world-map-node',
           mapId: node.mapId,
           tooltipTitle: node.name,
-          tooltipSubtitle: node.lockedReason || (node.current ? 'Current location' : node.completed ? 'Route objective complete' : node.status || 'World map node'),
+          tooltipSubtitle: node.lockedReason || (directiveRoute ? 'Active Fracture route' : stabilized ? 'Permanent Atlas stabilization' : node.current ? 'Current location' : node.completed ? 'Route objective complete' : node.status || 'World map node'),
           tooltipLines: [
             `${node.areaName || node.region || 'Region'} - ${node.layoutRoleLabel || (node.dungeon ? 'Dungeon' : node.type || 'Field')}`,
+            directiveRoute || stabilized ? `${directiveRoute ? directive && directive.name || node.directiveName || 'Fracture Directive' : 'Permanent Atlas repair'} - stabilization ${stabilizationLevel}/${Math.max(1, Number(node.stabilizationMax || directiveStabilizationMax))} - visual only, no combat power` : '',
             node.levelRange && node.levelRange.length ? `Level ${node.levelRange[0]}-${node.levelRange[1]}` : '',
             node.routeStage || node.mapRoadName ? [node.routeStage, node.mapRoadName].filter(Boolean).join(' - ') : '',
             node.lockedReason ? 'Complete the listed requirement to unlock this route.' : 'Click to select this map node.'
@@ -29260,6 +30366,7 @@
       const routeLabel = [selected.routeStage, selected.mapRoadName].filter(Boolean).join(' - ');
       this.drawCanvasText(ctx, [statusText, routeLabel].filter(Boolean).join(' - '), detailTextX, dy + 49, { color: selected.lockedReason ? '#9a5b36' : selected.current ? '#2f7dd6' : '#177645', font: '900 10px system-ui', maxWidth: detailTextW, lineHeight: 12, maxLines: 1 });
       const summaryText = [
+        isDirectiveNode(selected) ? `Fracture: ${directive && directive.name || selected.directiveName || 'active route'} - ${Math.max(0, Number(selected.stabilizationLevel || directiveStabilizationLevel))}/${Math.max(1, Number(selected.stabilizationMax || directiveStabilizationMax))} visual seals` : selected.stabilized || Number(selected.stabilizationLevel || 0) > 0 ? `Atlas repair: ${Math.max(0, Number(selected.stabilizationLevel || 0))}/${Math.max(1, Number(selected.stabilizationMax || 3))} visual-only seals` : '',
         routeSummary ? `Routes: ${routeSummary}` : '',
         modifierText ? `Modifiers: ${modifierText}` : '',
         riftText
@@ -30004,6 +31111,41 @@
       return tabH;
     }
 
+    drawSkillModifierChoicesCanvas(ctx, x, y, w, ownerId) {
+      const modifiers = ((this.snapshot.skillModifiers && this.snapshot.skillModifiers.modifiers) || [])
+        .filter((modifier) => modifier.skillOwner === ownerId && (modifier.paid || modifier.unlocked));
+      if (!modifiers.length) return 0;
+      const splinters = Math.max(0, Number(this.snapshot.state.materials && this.snapshot.state.materials.riftSplinter || 0));
+      const rowH = w < 360 ? 76 : 68;
+      const rowGap = 5;
+      const headerH = 51;
+      const panelH = headerH + modifiers.length * rowH + Math.max(0, modifiers.length - 1) * rowGap + 9;
+      this.drawRoundRect(ctx, x, y, w, panelH, 8, '#f5f0ff', 'rgba(116,78,170,0.32)');
+      this.drawCanvasText(ctx, 'RIFT IMPRINTS', x + 10, y + 8, { color: '#684198', font: '950 9px system-ui', maxWidth: w - 90, maxLines: 1, lineHeight: 10 });
+      this.drawCanvasText(ctx, 'Horizontal signature-skill paths - safe zones only', x + 10, y + 24, { color: '#5f6f7a', font: '800 8px system-ui', maxWidth: w - 90, maxLines: 1, lineHeight: 9 });
+      this.drawCanvasText(ctx, `${splinters} RFT`, x + w - 12, y + 10, { color: '#684198', font: '950 9px system-ui', align: 'right', maxWidth: 72, maxLines: 1, lineHeight: 10 });
+      let rowY = y + headerH;
+      modifiers.forEach((modifier) => {
+        const buttonW = w < 360 ? 72 : 84;
+        const buttonX = x + w - buttonW - 8;
+        const textW = Math.max(120, buttonX - x - 20);
+        const costAmount = Number(modifier.cost && modifier.cost.amount || 0);
+        const buttonLabel = modifier.active ? 'Equipped' : modifier.unlocked ? 'Equip' : modifier.canUnlock ? `Shape ${costAmount}` : `${costAmount} RFT`;
+        const disabled = modifier.active || (!modifier.unlocked && !modifier.canUnlock) || (modifier.unlocked && !modifier.canSelect);
+        this.drawRoundRect(ctx, x + 7, rowY, w - 14, rowH, 6, modifier.active ? '#eef6ff' : 'rgba(255,255,255,0.82)', modifier.active ? 'rgba(47,125,214,0.48)' : 'rgba(16,32,51,0.12)');
+        this.drawCanvasText(ctx, modifier.paid ? 'RIFT PATH' : 'CORE PATH', x + 15, rowY + 7, { color: modifier.paid ? '#684198' : '#2f7dd6', font: '950 7px system-ui', maxWidth: textW, maxLines: 1, lineHeight: 8 });
+        this.drawCanvasText(ctx, `${modifier.name} - ${modifier.skillName}`, x + 15, rowY + 20, { color: '#102033', font: '900 10px system-ui', maxWidth: textW, maxLines: 1, lineHeight: 11 });
+        this.drawCanvasText(ctx, modifier.summary, x + 15, rowY + 36, { color: '#5f6f7a', font: '800 8px system-ui', maxWidth: textW, maxLines: 2, lineHeight: 9 });
+        if (modifier.lockedReason) this.drawCanvasText(ctx, modifier.lockedReason, x + 15, rowY + rowH - 12, { color: '#8a5d27', font: '850 7px system-ui', maxWidth: textW, maxLines: 1, lineHeight: 8 });
+        const region = modifier.unlocked
+          ? { type: 'skill-modifier-select', modifierId: modifier.id }
+          : { type: 'skill-modifier-unlock', modifierId: modifier.id };
+        this.drawCanvasButton(ctx, buttonLabel, buttonX, rowY + Math.floor((rowH - 28) / 2), buttonW, 28, region, disabled);
+        rowY += rowH + rowGap;
+      });
+      return panelH;
+    }
+
     drawSkillsContentCanvas(ctx, x, y, w) {
       const player = this.snapshot.state.player;
       let cy = y;
@@ -30016,6 +31158,8 @@
       const buttonW = w < 360 ? 76 : 88;
       const buttonH = 28;
       cy = this.drawCanvasText(ctx, `Base SP ${Number(player.baseSkillPoints || 0)} - Advanced SP ${Number(player.advancedSkillPoints || 0)}`, x, cy, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w, maxLines: 1, lineHeight: 12 }) + 6;
+      const modifierHeight = this.drawSkillModifierChoicesCanvas(ctx, x, cy, w, activeOwner);
+      if (modifierHeight) cy += modifierHeight + 8;
       const activeOwnerSkills = SKILLS_BY_OWNER[activeOwner] || [];
       activeOwnerSkills.forEach((skill) => {
         const skillState = getSkillUiState(this.snapshot, skill);
@@ -33055,6 +34199,15 @@
         maxWidth: w,
         lineHeight: 13
       }) + 12;
+      const cashShopCadence = [cashShop.cadenceLabel, cashShop.resetScheduleLabel].filter(Boolean).join(' · ');
+      if (cashShopCadence) {
+        cy = this.drawCanvasText(ctx, cashShopCadence, x, cy, {
+          color: '#315e82',
+          font: '800 10px system-ui',
+          maxWidth: w,
+          lineHeight: 12
+        }) + 10;
+      }
       const groups = [
         { title: 'Featured', items: items.filter((item) => item.featured) },
         { title: 'Cosmetics & Effects', items: items.filter((item) => item.kind === 'cosmetic' && !item.featured) },
@@ -33072,9 +34225,123 @@
       return cy - y;
     }
 
+    drawFractureStabilizationCanvas(ctx, season, directive, x, y, w) {
+      const { label, level, max } = this.getFractureStabilizationState(season, directive);
+      const h = 64;
+      this.drawRoundRect(ctx, x, y, w, h, 8, '#edf5ea', 'rgba(74,126,68,0.28)');
+      const sealSize = 22;
+      const sealGap = 6;
+      const sealWidth = max * sealSize + Math.max(0, max - 1) * sealGap;
+      const sealX = x + w - sealWidth - 12;
+      this.drawCanvasText(ctx, 'PERMANENT ATLAS REPAIR', x + 12, y + 9, { color: '#4f7650', font: '900 9px system-ui', maxWidth: Math.max(120, w - sealWidth - 34), lineHeight: 10, maxLines: 1 });
+      this.drawCanvasText(ctx, label, x + 12, y + 25, { color: '#102033', font: '900 11px system-ui', maxWidth: Math.max(120, w - sealWidth - 34), lineHeight: 12, maxLines: 1 });
+      this.drawCanvasText(ctx, 'Visual only - no combat power.', x + 12, y + 43, { color: '#5f6f7a', font: '9px system-ui', maxWidth: Math.max(120, w - sealWidth - 34), lineHeight: 10, maxLines: 1 });
+      for (let index = 0; index < max; index += 1) {
+        const earned = index < level;
+        const sx = sealX + index * (sealSize + sealGap);
+        this.drawRoundRect(ctx, sx, y + 21, sealSize, sealSize, 11, earned ? '#84c75f' : '#f7f4e9', earned ? '#4f8d39' : 'rgba(16,32,51,0.2)');
+        this.drawCanvasText(ctx, String(index + 1), sx + sealSize / 2, y + 27, { color: earned ? '#ffffff' : '#7e8a86', font: '900 9px system-ui', align: 'center', maxWidth: sealSize, lineHeight: 10, maxLines: 1 });
+      }
+      this.addCanvasRegion({
+        type: 'info',
+        tooltipTitle: label,
+        tooltipSubtitle: `${level}/${max} permanent visual seals`,
+        tooltipLines: ['Earn one seal when a completed weekly directive cache is claimed.', 'Stabilization changes Atlas presentation only; it grants no player power.'],
+        x,
+        y,
+        w,
+        h
+      });
+      return h;
+    }
+
+    drawFractureOpsCanvas(ctx, x, y, w) {
+      const season = this.snapshot.season || {};
+      const activeSeason = season.activeSeason || null;
+      if (!activeSeason) {
+        this.drawRoundRect(ctx, x, y, w, 58, 8, '#fbfaf6', 'rgba(16,32,51,0.14)');
+        this.drawCanvasText(ctx, 'Fracture Ops unavailable', x + 12, y + 10, { color: '#102033', font: '900 13px system-ui' });
+        this.drawCanvasText(ctx, 'No weekly operation is active for this character.', x + 12, y + 31, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w - 24, lineHeight: 12 });
+        return 58;
+      }
+      const choices = Array.isArray(season.directiveChoices) ? season.directiveChoices : [];
+      const selected = season.selectedDirective || choices.find((choice) => choice && choice.selected) || null;
+      const referenceDirective = selected || choices[0] || null;
+      const reward = selected && selected.rewards || referenceDirective && referenceDirective.rewards || activeSeason.rewards || {};
+      const objectiveCount = (season.objectives || []).length;
+      const completeCount = (season.objectives || []).filter((objective) => objective && objective.complete).length;
+      const status = season.rewardClaimed ? 'CACHE CLAIMED' : season.complete ? 'REWARD READY' : selected ? 'IN PROGRESS' : 'ROUTE REQUIRED';
+      let cy = y;
+      const heroH = 82;
+      this.drawRoundRect(ctx, x, cy, w, heroH, 9, '#142e48', 'rgba(247,210,114,0.46)');
+      this.drawCanvasText(ctx, 'LIVING ATLAS / WEEKLY DIRECTIVE', x + 12, cy + 10, { color: '#f7d272', font: '900 9px system-ui', maxWidth: w - 124, lineHeight: 10, maxLines: 1 });
+      this.drawCanvasText(ctx, status, x + w - 12, cy + 10, { color: season.complete && !season.rewardClaimed ? '#bdf48f' : '#d7e7f2', font: '900 9px system-ui', align: 'right', maxWidth: 112, lineHeight: 10, maxLines: 1 });
+      this.drawCanvasText(ctx, activeSeason.name || 'Fracture Ops', x + 12, cy + 29, { color: '#ffffff', font: '900 15px system-ui', maxWidth: w - 24, lineHeight: 16, maxLines: 1 });
+      this.drawCanvasText(ctx, activeSeason.summary || 'Stabilize a fractured route through one focused weekly operation.', x + 12, cy + 50, { color: '#c8d8e4', font: '10px system-ui', maxWidth: w - 24, lineHeight: 12, maxLines: 2 });
+      cy += heroH + 8;
+
+      const firstClear = season.firstCompletionRewardAvailable && activeSeason.firstCompletionRewards
+        ? `First clear: ${this.formatRewardSummary(activeSeason.firstCompletionRewards)}`
+        : '';
+      const rewardH = firstClear ? 72 : 58;
+      this.drawRoundRect(ctx, x, cy, w, rewardH, 8, '#fff8df', 'rgba(166,122,30,0.28)');
+      this.drawCanvasText(ctx, 'EQUAL WEEKLY CACHE', x + 12, cy + 9, { color: '#8a6525', font: '900 9px system-ui' });
+      this.drawCanvasText(ctx, this.formatRewardSummary(reward), x + 12, cy + 25, { color: '#102033', font: '900 11px system-ui', maxWidth: w - 24, lineHeight: 12, maxLines: 2 });
+      this.drawCanvasText(ctx, firstClear || 'Every path pays the same - choose for playstyle, not power.', x + 12, cy + rewardH - 17, { color: '#6e6759', font: '9px system-ui', maxWidth: w - 24, lineHeight: 10, maxLines: 1 });
+      cy += rewardH + 8;
+      cy += this.drawFractureStabilizationCanvas(ctx, season, referenceDirective, x, cy, w) + 10;
+
+      if (selected) {
+        const activeH = 82;
+        this.drawRoundRect(ctx, x, cy, w, activeH, 8, '#eef6ff', 'rgba(47,125,214,0.34)');
+        this.drawCanvasText(ctx, 'ACTIVE DIRECTIVE', x + 12, cy + 9, { color: '#2f6da6', font: '900 9px system-ui' });
+        this.drawCanvasText(ctx, selected.name || 'Fracture Directive', x + 12, cy + 25, { color: '#102033', font: '900 13px system-ui', maxWidth: w - 24, lineHeight: 14, maxLines: 1 });
+        this.drawCanvasText(ctx, selected.summary || '', x + 12, cy + 44, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w - 24, lineHeight: 11, maxLines: 2 });
+        this.drawCanvasText(ctx, `${this.getFractureDirectivePlaystyleLabel(selected.playstyle)} / ${Math.max(1, Math.round(Number(selected.estimatedMinutes || 0)))} min / ${(selected.mapIds || []).length} Atlas locations`, x + 12, cy + 67, { color: '#315e82', font: '900 9px system-ui', maxWidth: w - 24, lineHeight: 10, maxLines: 1 });
+        cy += activeH + 10;
+        this.drawCanvasText(ctx, 'WEEKLY OBJECTIVES', x, cy, { color: '#102033', font: '900 11px system-ui' });
+        this.drawCanvasText(ctx, `${completeCount}/${objectiveCount} COMPLETE`, x + w, cy, { color: season.complete ? '#177645' : '#5f6f7a', font: '900 9px system-ui', align: 'right' });
+        cy += 20;
+        cy += this.drawObjectiveRowsCanvas(ctx, season.objectives || [], x, cy, w) + 8;
+        const claimH = 54;
+        this.drawRoundRect(ctx, x, cy, w, claimH, 8, season.complete && !season.rewardClaimed ? '#eff9ef' : '#fbfaf6', 'rgba(16,32,51,0.14)');
+        this.drawCanvasText(ctx, season.rewardClaimed ? 'Cache secured' : season.complete ? 'Operation complete' : 'Finish every objective', x + 12, cy + 10, { color: '#102033', font: '900 11px system-ui', maxWidth: w - 142, lineHeight: 12, maxLines: 1 });
+        this.drawCanvasText(ctx, season.resetLabel || 'Weekly cycle', x + 12, cy + 31, { color: '#5f6f7a', font: '9px system-ui', maxWidth: w - 142, lineHeight: 10, maxLines: 1 });
+        this.drawCanvasButton(ctx, season.rewardClaimed ? 'Claimed' : season.complete ? 'Claim Cache' : `${completeCount}/${objectiveCount} Done`, x + w - 118, cy + 13, 106, 28, { type: 'season-claim' }, !season.complete || season.rewardClaimed);
+        cy += claimH;
+      } else if (choices.length) {
+        this.drawCanvasText(ctx, 'CHOOSE YOUR OPERATION', x, cy, { color: '#102033', font: '900 12px system-ui' });
+        this.drawCanvasText(ctx, 'One route locks when progress begins.', x + w, cy + 1, { color: '#5f6f7a', font: '9px system-ui', align: 'right', maxWidth: w * 0.52, lineHeight: 10, maxLines: 1 });
+        cy += 22;
+        choices.forEach((choice) => {
+          const disabled = choice.canSelect === false;
+          const cardH = 96;
+          this.drawRoundRect(ctx, x, cy, w, cardH, 8, disabled ? '#f1f1ec' : '#ffffff', disabled ? 'rgba(16,32,51,0.1)' : 'rgba(47,125,214,0.24)');
+          this.drawCanvasText(ctx, this.getFractureDirectivePlaystyleLabel(choice.playstyle).toUpperCase(), x + 12, cy + 9, { color: disabled ? '#7f898d' : '#2f6da6', font: '900 8px system-ui', maxWidth: w - 120, lineHeight: 9, maxLines: 1 });
+          this.drawCanvasText(ctx, `${Math.max(1, Math.round(Number(choice.estimatedMinutes || 0)))} MIN`, x + w - 12, cy + 9, { color: '#7f6a3a', font: '900 8px system-ui', align: 'right' });
+          this.drawCanvasText(ctx, choice.name || 'Fracture Directive', x + 12, cy + 24, { color: '#102033', font: '900 12px system-ui', maxWidth: w - 122, lineHeight: 13, maxLines: 1 });
+          this.drawCanvasText(ctx, choice.lockedReason || choice.summary || '', x + 12, cy + 42, { color: choice.lockedReason ? '#9a5b36' : '#5f6f7a', font: '9px system-ui', maxWidth: w - 128, lineHeight: 11, maxLines: 2 });
+          const firstObjective = (choice.objectives || [])[0];
+          this.drawCanvasText(ctx, firstObjective && firstObjective.label || `${(choice.objectives || []).length} operation objective${(choice.objectives || []).length === 1 ? '' : 's'}`, x + 12, cy + 76, { color: '#6f7d86', font: '8px system-ui', maxWidth: w - 128, lineHeight: 9, maxLines: 1 });
+          this.drawCanvasButton(ctx, disabled ? 'Locked' : 'Accept', x + w - 104, cy + 49, 92, 28, { type: 'directive-select', directiveId: choice.id }, disabled);
+          cy += cardH + 8;
+        });
+      } else {
+        this.drawCanvasText(ctx, activeSeason.name || 'Weekly Operation', x, cy, { color: '#102033', font: '900 13px system-ui' });
+        cy += 21;
+        cy += this.drawObjectiveRowsCanvas(ctx, season.objectives || [], x, cy, w) + 8;
+        this.drawCanvasButton(ctx, season.rewardClaimed ? 'Claimed' : 'Claim Cache', x + w - 112, cy, 112, 28, { type: 'season-claim' }, !season.complete || season.rewardClaimed);
+        cy += 36;
+      }
+      return cy - y;
+    }
+
     drawBetaCanvas(ctx, x, y, w) {
       const player = this.snapshot.state.player || {};
-      let cy = y;
+      let cy = y + this.drawFractureOpsCanvas(ctx, x, y, w);
+      cy += 18;
+      cy = this.drawCanvasText(ctx, 'OTHER PROGRESSION SYSTEMS', x, cy, { color: '#6f7d86', font: '900 9px system-ui', maxWidth: w, lineHeight: 10, maxLines: 1 }) + 8;
+      cy = this.drawCanvasText(ctx, 'Specializations, market stock, and cosmetics', x, cy, { color: '#102033', font: '900 13px system-ui', maxWidth: w, lineHeight: 14, maxLines: 1 }) + 10;
       cy = this.drawCanvasText(ctx, `Coins: ${formatAbbreviatedInteger(player.currency)}`, x, cy, { color: '#5f6f7a', font: '12px system-ui', maxWidth: w, lineHeight: 14 }) + 10;
 
       const specializations = this.snapshot.specializations || {};
@@ -33122,12 +34389,19 @@
       });
 
       const season = this.snapshot.season || {};
-      if (season.activeSeason) {
+      if (season.activeSeason && !Array.isArray(season.directiveChoices)) {
         cy += 4;
         cy = this.drawCanvasText(ctx, season.activeSeason.name, x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
         cy = this.drawCanvasText(ctx, season.activeSeason.summary || '', x, cy, { color: '#5f6f7a', font: '11px system-ui', maxWidth: w, lineHeight: 13 }) + 8;
+        const seasonCadence = [season.cadenceLabel, season.resetLabel, season.resetScheduleLabel].filter(Boolean).join(' · ');
+        if (seasonCadence) {
+          cy = this.drawCanvasText(ctx, seasonCadence, x, cy, { color: '#315e82', font: '800 10px system-ui', maxWidth: w, lineHeight: 12 }) + 7;
+        }
         cy += this.drawObjectiveRowsCanvas(ctx, season.objectives || [], x, cy, w) + 6;
-        this.drawCanvasText(ctx, `Reward: ${this.formatRewardSummary(season.activeSeason.rewards)}`, x, cy + 7, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w - 94, lineHeight: 12 });
+        const firstClearReward = season.firstCompletionRewardAvailable && season.activeSeason.firstCompletionRewards
+          ? ` · First clear: ${this.formatRewardSummary(season.activeSeason.firstCompletionRewards)}`
+          : '';
+        this.drawCanvasText(ctx, `Weekly reward: ${this.formatRewardSummary(season.activeSeason.rewards)}${firstClearReward}`, x, cy + 7, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w - 94, lineHeight: 12 });
         this.drawCanvasButton(ctx, season.rewardClaimed ? 'Claimed' : 'Claim', x + w - 76, cy, 64, 26, { type: 'season-claim' }, !season.complete || season.rewardClaimed);
         cy += 38;
       }
@@ -36511,6 +37785,20 @@
       } else {
         if (region.type === 'daily-login-claim' && this.engine.claimDailyLoginReward) this.engine.claimDailyLoginReward();
       }
+      const fractureOpsPanelRegionActionHelper = getPanelInteractionHelper('getFractureOpsPanelRegionAction');
+      const fractureOpsPanelAction = fractureOpsPanelRegionActionHelper
+        ? fractureOpsPanelRegionActionHelper(region)
+        : region.type === 'directive-select'
+          ? { handled: true, type: 'selectSeasonDirective', directiveId: region.directiveId }
+          : region.type === 'season-claim'
+            ? { handled: true, type: 'claimSeasonReward' }
+            : { handled: false, type: '' };
+      if (fractureOpsPanelAction && fractureOpsPanelAction.handled) {
+        if (fractureOpsPanelAction.type === 'selectSeasonDirective' && this.engine.selectSeasonDirective) this.engine.selectSeasonDirective(fractureOpsPanelAction.directiveId);
+        else if (fractureOpsPanelAction.type === 'claimSeasonReward' && this.engine.claimSeasonReward) this.engine.claimSeasonReward();
+        if (this.engine.getSeasonSnapshot) this.snapshot.season = this.engine.getSeasonSnapshot();
+        return;
+      }
       const cashShopPanelRegionActionHelper = getShopPanelHelper('getShopPanelRegionAction');
       if (cashShopPanelRegionActionHelper) {
         const cashShopRegionAction = cashShopPanelRegionActionHelper(region);
@@ -36580,9 +37868,17 @@
       const rankSkillPanelRegionHelper = getSkillStateHelper('getSkillPanelRegionAction');
       if (rankSkillPanelRegionHelper) {
         const skillPanelRegionAction = rankSkillPanelRegionHelper(region);
-        if (skillPanelRegionAction && skillPanelRegionAction.type === 'rankSkill') this.engine.rankSkill(skillPanelRegionAction.skillId);
+        if (skillPanelRegionAction && skillPanelRegionAction.type === 'rankSkill') {
+          this.engine.rankSkill(skillPanelRegionAction.skillId);
+        } else if (skillPanelRegionAction && skillPanelRegionAction.type === 'unlockSkillModifier' && this.engine.unlockSkillModifier) {
+          this.engine.unlockSkillModifier(skillPanelRegionAction.modifierId);
+        } else if (skillPanelRegionAction && skillPanelRegionAction.type === 'selectSkillModifier' && this.engine.selectSkillModifier) {
+          this.engine.selectSkillModifier(skillPanelRegionAction.modifierId);
+        }
       } else {
         if (region.type === 'skill-rank') this.engine.rankSkill(region.skillId);
+        if (region.type === 'skill-modifier-unlock' && this.engine.unlockSkillModifier) this.engine.unlockSkillModifier(region.modifierId);
+        if (region.type === 'skill-modifier-select' && this.engine.selectSkillModifier) this.engine.selectSkillModifier(region.modifierId);
       }
       const statUpgradeRegionActionHelper = getStatHelper('getStatUpgradeRegionAction');
       if (statUpgradeRegionActionHelper) {

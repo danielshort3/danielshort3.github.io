@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Job Application Copilot",
+  "description": "Prepare grounded job-application answers with a local Ollama model and explicit review.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "120",
+  "homepage_url": "https://www.danielshort.me/job-application-copilot",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyN1VMmD2pKXOnhXectfNJbT9VDc22Q6e+9kUQlumeSyvBOaIelBbExyRlYC6S744Uz9R3sBW+2818He4PrQiVEppVIyYQvzfB94u06TCMqLTQno0B7kS4p8qzAjbbtEodjNhusKc1u8Zm3EZim1vMhLtc7EcTOHj8/gkrRAIe5+ZpdoXI46SDSy5WDG6XBo6N6xO3t+r33F/vNkP6xfoT7jMjPTPa6v9q9tuh+XC8dU8t9LRaaCqrQW3AXHrqikyYWgqX08qvDmKaOuuLxoXvMc2nPu5DIg3PK14d4KhJt8SYIkYUlVIFSoPLAKkCIN4qJTseJTItSWfCvNEZJVF5QIDAQAB",
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:11434/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open Job Application Copilot",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "32": "assets/icons/icon-32.png",
+      "48": "assets/icons/icon-48.png",
+      "128": "assets/icons/icon-128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.danielshort.me/tools/job-application-tracker*"
+      ],
+      "js": [
+        "content/tracker-bridge.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; base-uri 'none'; object-src 'none'; frame-src 'none'; script-src 'self'; style-src 'self'; worker-src 'self'; connect-src http://127.0.0.1:11434"
+  }
+}

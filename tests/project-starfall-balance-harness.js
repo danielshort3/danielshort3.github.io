@@ -152,6 +152,18 @@ const FIELD_TTK_TARGETS = Object.freeze({
 });
 
 const BOSS_TTK_TARGET_MINUTES = Object.freeze([6, 12]);
+const GLOBAL_COMBAT_ACTION_DELAY_SECONDS = 0.35;
+const BURN_DAMAGE_PER_POWER_PER_SECOND = 0.12;
+const MARKED_TARGET_DAMAGE_SCALE = 1.22;
+const PACK_MARK_DAMAGE_SCALE = 1.18;
+const FIRE_MAGE_BURNING_BOSS_DAMAGE_SCALE = 1.16;
+
+const TRAP_RUNTIME_PROFILES = Object.freeze({
+  trapper_snare_trap: Object.freeze({ damageScale: 0.58, charges: 2 }),
+  trapper_spike_trap: Object.freeze({ damageScale: 0.96, charges: 1 }),
+  trapper_tripwire: Object.freeze({ damageScale: 1.02, charges: 4 }),
+  trapper_kill_zone: Object.freeze({ damageScale: 1.28, charges: 6 })
+});
 
 const FIELD_ACTIVE_COMBAT_SHARE = Object.freeze({
   early: 0.28,
@@ -201,6 +213,7 @@ const RETENTION_PLAYER_TYPES = Object.freeze([
 ]);
 
 const RETENTION_SEASON_OBJECTIVE_MINUTES = Object.freeze({
+  defeat: 0.35,
   defeatBoss: 10,
   dungeonComplete: 15,
   advancedClass: 20,
@@ -210,6 +223,22 @@ const RETENTION_SEASON_OBJECTIVE_MINUTES = Object.freeze({
   loot: 4,
   defeatEnemy: 5
 });
+
+const FRACTURE_DIRECTIVE_WEEKLY_MINUTES = Object.freeze([60, 90]);
+const FRACTURE_DIRECTIVE_POWER_REWARD_KEYS = Object.freeze(new Set([
+  'permanentstats',
+  'statpoints',
+  'skillpoints',
+  'masterypoints',
+  'xp',
+  'experience',
+  'equipment',
+  'weapon',
+  'weapons',
+  'armor',
+  'riftsplinter',
+  'riftsplinters'
+]));
 
 const ECONOMY_COIN_SINK_TYPES = Object.freeze([
   'vendorEquipment',
@@ -754,6 +783,7 @@ function getSkillTargetFactor(skill, scenario) {
   const id = String(skill.id || '');
   const targeting = skill.targeting || {};
   if (profile.boss) return 1;
+  if (TRAP_RUNTIME_PROFILES[id]) return 1;
   if (targeting.mode === 'chain') {
     const chainTargets = Math.min(targetCount, Math.max(1, Number(targeting.chainTargets || 3)));
     return 1 + (chainTargets - 1) * Number(targeting.chainDamageFalloff || 0.9);
@@ -809,12 +839,62 @@ function getSkillExecutionFactor(skill, scenario) {
   return 1;
 }
 
+function getSkillRuntimeDamageFactor(skill, scenario) {
+  const profile = getScenarioProfile(scenario);
+  const id = String(skill && skill.id || '');
+  const trapProfile = TRAP_RUNTIME_PROFILES[id];
+  if (trapProfile) {
+    return Number(trapProfile.damageScale || 1) * Math.max(1, Number(trapProfile.charges || 1));
+  }
+  if (id === 'trapper_detonate') return 0.78;
+  if (id === 'fire_mage_heat_vent') return 0.98;
+  if (id === 'fire_mage_wildfire') return 0.86 * (profile.boss ? 1.35 : 1);
+  if (id === 'fire_mage_inferno_burst') return 1.15 * (profile.boss ? 1.35 : 1);
+  return 1;
+}
+
+function getRotationActionBudgetScale(data, classId, scenario) {
+  const damagingSkills = getClassRotation(data, classId, scenario)
+    .map((skillId) => getSkill(data, skillId))
+    .filter((skill) => skill && skill.category !== 'passive' && skill.category !== 'mobility' && skill.category !== 'buff');
+  const requestedCastsPerSecond = damagingSkills.reduce((sum, skill) =>
+    sum + 1 / Math.max(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, Number(skill.cooldown || 0.6)), 0);
+  const maximumCastsPerSecond = 1 / GLOBAL_COMBAT_ACTION_DELAY_SECONDS;
+  return requestedCastsPerSecond > maximumCastsPerSecond
+    ? maximumCastsPerSecond / requestedCastsPerSecond
+    : 1;
+}
+
+function estimateClassPeriodicDps(classId, stats, scenario) {
+  if (classId !== 'fireMage') return 0;
+  const profile = getScenarioProfile(scenario);
+  const targetCount = Math.max(1, Number(profile.targets || 1));
+  const burningTargets = profile.boss ? 1 : Math.min(targetCount, profile.clustered ? 5 : 3);
+  const burnMultiplier = 1 + Math.max(0, Number(stats && stats.burnDamage || 0)) / 100;
+  return Math.max(0, Number(stats && stats.power || 0)) * BURN_DAMAGE_PER_POWER_PER_SECOND * burnMultiplier * burningTargets;
+}
+
+function getRotationStatusDamageMultiplier(data, classId, scenario) {
+  const profile = getScenarioProfile(scenario);
+  if (!profile.boss) return 1;
+  const skills = getClassRotation(data, classId, scenario)
+    .map((skillId) => getSkill(data, skillId))
+    .filter(Boolean);
+  const keepsMarkActive = skills.some((skill) => {
+    const id = String(skill.id || '');
+    return !!(skill.targeting && skill.targeting.applyMark) || id.includes('mark') || id === 'duelist_quick_cut' || id === 'beast_archer_companion_strike';
+  });
+  let scale = keepsMarkActive ? MARKED_TARGET_DAMAGE_SCALE : 1;
+  if (classId === 'beastArcher') scale *= PACK_MARK_DAMAGE_SCALE;
+  if (classId === 'fireMage') scale *= FIRE_MAGE_BURNING_BOSS_DAMAGE_SCALE;
+  return scale;
+}
+
 function estimateSkillDps(stats, skill, rank, scenario) {
   if (!skill || skill.category === 'passive' || skill.category === 'mobility' || skill.category === 'buff') return 0;
   const cooldown = Math.max(0.35, Number(skill.cooldown || 0.6));
   const base = getEstimatedSkillBase(stats, skill, rank) * Math.max(0.35, Number(skill.lineDamageScale || 1));
-  const lineTexture = 1 + Math.max(0, Number(skill.lineCount || 1) - 1) * 0.08;
-  return base * lineTexture * getSkillTargetFactor(skill, scenario) * getSkillSuitability(skill, scenario) * getSkillExecutionFactor(skill, scenario) / cooldown;
+  return base * getSkillRuntimeDamageFactor(skill, scenario) * getSkillTargetFactor(skill, scenario) * getSkillSuitability(skill, scenario) * getSkillExecutionFactor(skill, scenario) / cooldown;
 }
 
 function getClassBuffMultiplier(data, classId, scenario) {
@@ -841,18 +921,23 @@ function estimateClassScenarioDps(data, classId, scenario, stats, rank) {
     .map((skillId) => getSkill(data, skillId))
     .filter((skill) => skill && skill.primaryTraining)[0];
   const fillerDps = primary ? estimateSkillDps(stats, primary, rank, scenario) * 0.35 : Math.max(1, Number(stats.power || 1)) * 0.8;
-  return Math.max(1, attackDps + fillerDps) * getScenarioMultiplier(classId, scenario) * getClassBuffMultiplier(data, classId, scenario);
+  const actionBudgetScale = getRotationActionBudgetScale(data, classId, scenario);
+  const periodicDps = estimateClassPeriodicDps(classId, stats, scenario);
+  const statusDamageScale = getRotationStatusDamageMultiplier(data, classId, scenario);
+  return Math.max(1, (attackDps + fillerDps) * actionBudgetScale * statusDamageScale + periodicDps) * getScenarioMultiplier(classId, scenario) * getClassBuffMultiplier(data, classId, scenario);
 }
 
 function estimateCasts(data, classId, scenario) {
   const casts = {};
+  const duration = Math.max(1, Number(scenario.duration || 1));
+  const actionBudgetScale = getRotationActionBudgetScale(data, classId, scenario);
   getClassRotation(data, classId, scenario).forEach((skillId) => {
     const skill = getSkill(data, skillId);
     if (!skill || skill.category === 'passive' || skill.category === 'mobility') return;
     const cooldown = Math.max(0.35, Number(skill.cooldown || 0.6));
     casts[skillId] = skill.roleTags && skill.roleTags.includes('Party')
       ? 1
-      : Math.max(1, Math.floor(Number(scenario.duration || 1) / cooldown));
+      : Math.max(1, Math.floor((duration / cooldown) * actionBudgetScale));
   });
   return casts;
 }
@@ -1176,6 +1261,9 @@ function createEnemyMapDistributionReport(data) {
       mapId: map.id,
       name: map.name,
       level: getBenchmarkLevelFromRange(map.levelRange, 50),
+      levelRange: Array.isArray(map.levelRange) && map.levelRange.length >= 2
+        ? [Number(map.levelRange[0]) || 1, Number(map.levelRange[1]) || Number(map.levelRange[0]) || 1]
+        : [1, 1],
       bossArena,
       isDungeon: !!map.isDungeon,
       enemyCount: enemies.length,
@@ -1189,7 +1277,8 @@ function createEnemyMapDistributionReport(data) {
     };
   });
   const bracketEntries = FIELD_PROGRESSION_BRACKETS.map((bracket) => {
-    const maps = mapEntries.filter((map) => map.level >= bracket.minLevel && map.level <= bracket.maxLevel);
+    const maps = mapEntries.filter((map) =>
+      map.levelRange[0] <= bracket.maxLevel && map.levelRange[1] >= bracket.minLevel);
     const enemyIds = new Set();
     const behaviorIds = new Set();
     const archetypeIds = new Set();
@@ -2618,8 +2707,8 @@ function createBossClearTimeEstimate(data, createProjectStarfallEngine, encounte
   if (hpScale <= 1) issues.push('missingEncounterHpScale');
   if (medianSoloClearMinutes && medianSoloClearMinutes < targetMin) issues.push('medianClearTooFast');
   if (medianSoloClearMinutes && medianSoloClearMinutes > targetMax) issues.push('medianClearTooSlow');
-  if (fastestSoloClearMinutes && fastestSoloClearMinutes < targetMin * 0.65) issues.push('specialistClearTooFast');
-  if (slowestSoloClearMinutes && slowestSoloClearMinutes > targetMax * 1.65) issues.push('floorClearTooSlow');
+  if (fastestSoloClearMinutes && fastestSoloClearMinutes < targetMin * 0.85) issues.push('specialistClearTooFast');
+  if (slowestSoloClearMinutes && slowestSoloClearMinutes > targetMax * (7 / 6)) issues.push('floorClearTooSlow');
   if (!classResults.length) issues.push('missingClassClearTimes');
   return {
     targetMinutes: BOSS_TTK_TARGET_MINUTES.slice(),
@@ -2995,6 +3084,12 @@ function createBossPartyReport(data, createProjectStarfallEngine, options = {}) 
     supportContribution,
     party: {
       recommendedPartySizes: Array.from(new Set((data.DUNGEONS || []).map((dungeon) => Number(dungeon.recommendedPartySize || 0)).filter(Boolean))).sort((a, b) => a - b),
+      hpScaling: {
+        scope: 'futureFullPlayerParty',
+        runtimeApplied: false,
+        prototypeAiExcluded: true,
+        maxPrototypeAllies: 3
+      },
       commandCount: partyCommands.length,
       commandIds: partyCommands.map((command) => command.id),
       loadoutCoverageCount: loadoutCoverage.length,
@@ -3463,6 +3558,254 @@ function estimateSeasonObjectiveMinutes(objective) {
   return count * minutes;
 }
 
+function getStableReportValue(value) {
+  if (Array.isArray(value)) return value.map((entry) => getStableReportValue(entry));
+  if (!value || typeof value !== 'object') return value;
+  return Object.keys(value)
+    .sort()
+    .reduce((result, key) => {
+      result[key] = getStableReportValue(value[key]);
+      return result;
+    }, {});
+}
+
+function getRewardSignature(reward) {
+  return JSON.stringify(getStableReportValue(reward || {}));
+}
+
+function hasMeaningfulRewardValue(value) {
+  if (typeof value === 'number') return Number.isFinite(value) && value > 0;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return value.some((entry) => hasMeaningfulRewardValue(entry));
+  if (value && typeof value === 'object') {
+    return Object.values(value).some((entry) => hasMeaningfulRewardValue(entry));
+  }
+  return false;
+}
+
+function getDirectivePowerRewardPaths(reward, path = [], paths = []) {
+  if (!reward || typeof reward !== 'object') return paths;
+  Object.keys(reward).forEach((key) => {
+    const value = reward[key];
+    const nextPath = path.concat(key);
+    if (FRACTURE_DIRECTIVE_POWER_REWARD_KEYS.has(String(key).toLowerCase()) &&
+      hasMeaningfulRewardValue(value)) {
+      paths.push(nextPath.join('.'));
+    }
+    if (value && typeof value === 'object') getDirectivePowerRewardPaths(value, nextPath, paths);
+  });
+  return paths;
+}
+
+function createFractureDirectiveHealthReport(data) {
+  const directives = Array.isArray(data && data.FRACTURE_DIRECTIVES) ? data.FRACTURE_DIRECTIVES : [];
+  const seasons = Array.isArray(data && data.SEASONS) ? data.SEASONS.filter(Boolean) : [];
+  const seasonsById = new Map(seasons
+    .map((season) => [String(season && season.id || '').trim(), season])
+    .filter(([seasonId]) => seasonId));
+  const activeSeason = seasons.find((season) => season && season.active) || null;
+  const durationEntries = directives.map((directive) => {
+    const modeledMinutes = (directive && directive.objectives || []).reduce((sum, objective) =>
+      sum + estimateSeasonObjectiveMinutes(objective), 0);
+    return {
+      directiveId: String(directive && directive.id || ''),
+      declaredMinutes: roundNumber(Number(directive && directive.estimatedMinutes || 0), 1),
+      modeledMinutes: roundNumber(modeledMinutes, 1)
+    };
+  });
+  const modeledDurations = durationEntries.map((entry) => entry.modeledMinutes);
+  const [targetMinMinutes, targetMaxMinutes] = FRACTURE_DIRECTIVE_WEEKLY_MINUTES;
+  const invalidDurationDirectiveIds = durationEntries
+    .filter((entry) => entry.modeledMinutes < targetMinMinutes || entry.modeledMinutes > targetMaxMinutes)
+    .map((entry) => entry.directiveId);
+  const durationMismatchDirectiveIds = durationEntries
+    .filter((entry) => Math.abs(entry.modeledMinutes - entry.declaredMinutes) >= 0.1)
+    .map((entry) => entry.directiveId);
+
+  const rewardSignatures = directives.map((directive) => getRewardSignature(directive && directive.rewards));
+  const activeSeasonRewardSignature = activeSeason ? getRewardSignature(activeSeason.rewards) : '';
+  const equalAcrossChoices = new Set(rewardSignatures).size <= 1;
+  const matchesActiveSeasonRewards = !activeSeasonRewardSignature ||
+    rewardSignatures.every((signature) => signature === activeSeasonRewardSignature);
+  const unequalRewardDirectiveIds = equalAcrossChoices
+    ? []
+    : directives.map((directive) => String(directive && directive.id || ''));
+  const seasonReferenceEntries = directives.map((directive, index) => {
+    const directiveId = String(directive && directive.id || '');
+    const seasonId = String(directive && directive.seasonId || '').trim();
+    const referencedSeason = seasonId ? seasonsById.get(seasonId) || null : null;
+    return {
+      directiveId,
+      seasonId,
+      valid: !!referencedSeason,
+      rewardMatches: !!referencedSeason &&
+        rewardSignatures[index] === getRewardSignature(referencedSeason.rewards)
+    };
+  });
+  const missingSeasonReferenceDirectiveIds = seasonReferenceEntries
+    .filter((entry) => !entry.seasonId)
+    .map((entry) => entry.directiveId);
+  const invalidSeasonReferences = seasonReferenceEntries
+    .filter((entry) => entry.seasonId && !entry.valid)
+    .map((entry) => ({ directiveId: entry.directiveId, seasonId: entry.seasonId }));
+  const invalidSeasonReferenceDirectiveIds = invalidSeasonReferences.map((entry) => entry.directiveId);
+  const validSeasonReferenceDirectiveCount = seasonReferenceEntries.filter((entry) => entry.valid).length;
+  const referencedSeasonIds = Array.from(new Set(seasonReferenceEntries
+    .filter((entry) => entry.valid)
+    .map((entry) => entry.seasonId))).sort();
+  const referencedRewardMatchDirectiveIds = seasonReferenceEntries
+    .filter((entry) => entry.valid && entry.rewardMatches)
+    .map((entry) => entry.directiveId);
+  const referencedRewardMismatchDirectiveIds = seasonReferenceEntries
+    .filter((entry) => entry.valid && !entry.rewardMatches)
+    .map((entry) => entry.directiveId);
+  const seasonReferencesValid = validSeasonReferenceDirectiveCount === directives.length;
+  const matchesReferencedSeasonRewards = seasonReferencesValid &&
+    referencedRewardMismatchDirectiveIds.length === 0;
+  const powerRewardEntries = directives
+    .map((directive) => ({
+      directiveId: String(directive && directive.id || ''),
+      paths: getDirectivePowerRewardPaths(directive && directive.rewards)
+    }))
+    .filter((entry) => entry.paths.length > 0);
+
+  const playstyleCounts = directives.reduce((counts, directive) => {
+    const playstyle = String(directive && directive.playstyle || '');
+    counts[playstyle] = (counts[playstyle] || 0) + 1;
+    return counts;
+  }, {});
+  const duplicatePlaystyles = Object.keys(playstyleCounts)
+    .filter((playstyle) => !playstyle || playstyleCounts[playstyle] > 1)
+    .map((playstyle) => ({
+      playstyle,
+      count: playstyleCounts[playstyle],
+      directiveIds: directives
+        .filter((directive) => String(directive && directive.playstyle || '') === playstyle)
+        .map((directive) => String(directive && directive.id || ''))
+    }));
+  const uniquePlaystyleCount = Object.keys(playstyleCounts).filter(Boolean).length;
+
+  const knownMapIds = new Set((data && data.MAPS || []).map((map) => String(map && map.id || '')).filter(Boolean));
+  const knownDungeonIds = new Set((data && data.DUNGEONS || []).map((dungeon) => String(dungeon && dungeon.id || '')).filter(Boolean));
+  const knownAreaIds = new Set((data && data.WORLD_AREAS || []).map((area) => String(area && area.id || '')).filter(Boolean));
+  const knownRouteIds = new Set((data && data.WORLD_ROUTES || []).map((route) => String(route && route.id || '')).filter(Boolean));
+  const missingMapReferences = [];
+  const missingDungeonReferences = [];
+  const missingAreaReferences = [];
+  const missingRouteReferences = [];
+  const addMissingReference = (target, directiveId, source, referenceId) => {
+    const id = String(referenceId || '');
+    target.push({ directiveId, source, referenceId: id });
+  };
+  directives.forEach((directive) => {
+    const directiveId = String(directive && directive.id || '');
+    const areaId = String(directive && directive.areaId || '');
+    const routeId = String(directive && directive.routeId || '');
+    if (!knownAreaIds.has(areaId)) addMissingReference(missingAreaReferences, directiveId, 'areaId', areaId);
+    if (!knownRouteIds.has(routeId)) addMissingReference(missingRouteReferences, directiveId, 'routeId', routeId);
+    [
+      ['mapIds', directive && directive.mapIds],
+      ['requiredMapIds', directive && directive.requiredMapIds]
+    ].forEach(([source, ids]) => (ids || []).forEach((mapId) => {
+      if (!knownMapIds.has(String(mapId || ''))) addMissingReference(missingMapReferences, directiveId, source, mapId);
+    }));
+    (directive && directive.requiredDungeonIds || []).forEach((dungeonId) => {
+      if (!knownDungeonIds.has(String(dungeonId || ''))) {
+        addMissingReference(missingDungeonReferences, directiveId, 'requiredDungeonIds', dungeonId);
+      }
+    });
+    (directive && directive.objectives || []).forEach((objective) => {
+      if (objective && objective.mapId && !knownMapIds.has(String(objective.mapId))) {
+        addMissingReference(missingMapReferences, directiveId, 'objective.mapId', objective.mapId);
+      }
+      if (objective && objective.dungeonId && !knownDungeonIds.has(String(objective.dungeonId))) {
+        addMissingReference(missingDungeonReferences, directiveId, 'objective.dungeonId', objective.dungeonId);
+      }
+    });
+  });
+  const directivesWithReferenceGaps = new Set([]
+    .concat(missingMapReferences, missingDungeonReferences, missingAreaReferences, missingRouteReferences)
+    .map((entry) => entry.directiveId));
+
+  const stabilizationLimit = Math.max(1,
+    Math.floor(Number(data && data.FRACTURE_DIRECTIVE_MAX_STABILIZATION || 3) || 3));
+  const nonVisualStabilizationDirectiveIds = [];
+  const uncappedStabilizationDirectiveIds = [];
+  const stabilizationEntries = directives.map((directive) => {
+    const stabilization = directive && directive.stabilization || {};
+    const maxSeals = Number(stabilization.maxSeals);
+    const visualOnly = stabilization.visualOnly === true;
+    const capped = Number.isInteger(maxSeals) && maxSeals > 0 && maxSeals <= stabilizationLimit;
+    const directiveId = String(directive && directive.id || '');
+    if (!visualOnly) nonVisualStabilizationDirectiveIds.push(directiveId);
+    if (!capped) uncappedStabilizationDirectiveIds.push(directiveId);
+    return { directiveId, visualOnly, capped, maxSeals: Number.isFinite(maxSeals) ? maxSeals : 0 };
+  });
+
+  const issueIds = [];
+  if (invalidDurationDirectiveIds.length) issueIds.push('fractureDirectiveDurationOutsideWeeklyTarget');
+  if (missingSeasonReferenceDirectiveIds.length || invalidSeasonReferences.length) {
+    issueIds.push('fractureDirectiveSeasonReferenceGap');
+  }
+  if (!equalAcrossChoices || referencedRewardMismatchDirectiveIds.length) {
+    issueIds.push('fractureDirectiveRewardParityGap');
+  }
+  if (powerRewardEntries.length) issueIds.push('fractureDirectivePowerRewardRisk');
+  if (missingMapReferences.length) issueIds.push('fractureDirectiveMapReferenceGap');
+  if (missingDungeonReferences.length) issueIds.push('fractureDirectiveDungeonReferenceGap');
+  if (missingAreaReferences.length) issueIds.push('fractureDirectiveAreaReferenceGap');
+  if (missingRouteReferences.length) issueIds.push('fractureDirectiveRouteReferenceGap');
+  if (duplicatePlaystyles.length) issueIds.push('fractureDirectivePlaystyleDuplicate');
+  if (nonVisualStabilizationDirectiveIds.length) issueIds.push('fractureDirectiveStabilizationNotVisualOnly');
+  if (uncappedStabilizationDirectiveIds.length) issueIds.push('fractureDirectiveStabilizationUncapped');
+
+  return {
+    weeklyChoiceCount: directives.length,
+    durationTargetMinutes: FRACTURE_DIRECTIVE_WEEKLY_MINUTES.slice(),
+    modeledDurationMinMinutes: modeledDurations.length ? Math.min(...modeledDurations) : 0,
+    modeledDurationMaxMinutes: modeledDurations.length ? Math.max(...modeledDurations) : 0,
+    modeledDurationMedianMinutes: roundNumber(medianNumber(modeledDurations), 1),
+    durationEntries,
+    invalidDurationDirectiveIds,
+    durationMismatchDirectiveIds,
+    rewardParity: equalAcrossChoices && matchesReferencedSeasonRewards,
+    equalRewardsAcrossChoices: equalAcrossChoices,
+    matchesActiveSeasonRewards,
+    matchesReferencedSeasonRewards,
+    rewardSignatureCount: new Set(rewardSignatures).size,
+    unequalRewardDirectiveIds,
+    seasonReferenceEntries,
+    validSeasonReferenceDirectiveCount,
+    referencedSeasonCount: referencedSeasonIds.length,
+    referencedSeasonIds,
+    referencedRewardMatchCount: referencedRewardMatchDirectiveIds.length,
+    referencedRewardMatchDirectiveIds,
+    referencedRewardMismatchDirectiveIds,
+    missingSeasonReferenceDirectiveIds,
+    invalidSeasonReferenceDirectiveIds,
+    invalidSeasonReferences,
+    powerRewardCount: powerRewardEntries.length,
+    powerRewardEntries,
+    uniquePlaystyleCount,
+    playstyleDiversityRatio: directives.length ? roundNumber(uniquePlaystyleCount / directives.length, 3) : 0,
+    duplicatePlaystyles,
+    validReferenceDirectiveCount: Math.max(0, directives.length - directivesWithReferenceGaps.size),
+    missingMapReferences,
+    missingDungeonReferences,
+    missingAreaReferences,
+    missingRouteReferences,
+    stabilizationLimit,
+    visualOnlyStabilizationCount: stabilizationEntries.filter((entry) => entry.visualOnly).length,
+    cappedStabilizationCount: stabilizationEntries.filter((entry) => entry.capped).length,
+    maxStabilizationSeals: Math.max(0, ...stabilizationEntries.map((entry) => entry.maxSeals)),
+    nonVisualStabilizationDirectiveIds,
+    uncappedStabilizationDirectiveIds,
+    issueCount: issueIds.length,
+    issueIds
+  };
+}
+
 function createPlayerTypeCoverageReport(data, categorySet, laneAvailability) {
   const activeSeasonCount = (data.SEASONS || []).filter((season) => season && season.active).length;
   const coverage = {
@@ -3500,6 +3843,7 @@ function createRetentionHealthReport(data) {
       seasonSum + estimateSeasonObjectiveMinutes(objective), 0), 0);
   const activeSeasonObjectiveCount = activeSeasons.reduce((sum, season) =>
     sum + (season.objectives || []).length, 0);
+  const fractureDirectives = createFractureDirectiveHealthReport(data);
   const loginPermanentStats = (data.DAILY_LOGIN_MILESTONES || []).reduce((totals, milestone) =>
     collectRewardPermanentStats(milestone && milestone.reward, totals), {});
   const loginPermanentStatMilestoneCount = (data.DAILY_LOGIN_MILESTONES || []).filter((milestone) =>
@@ -3528,6 +3872,27 @@ function createRetentionHealthReport(data) {
     const tags = item && Array.isArray(item.tags) ? item.tags : [];
     return hasRewardKey(item && item.reward, 'consumables') && !tags.includes('Earnable In Game');
   });
+  const advancedClassIds = Object.keys(data.ADVANCED_CLASSES || {}).sort();
+  const advancedBuildChoices = advancedClassIds.map((classId) => {
+    const signatureSkill = (data.SKILLS || []).find((skill) => skill && skill.owner === classId && skill.primaryTraining);
+    const modifiers = signatureSkill
+      ? (data.SKILL_MODIFIERS || []).filter((modifier) => modifier && modifier.skillId === signatureSkill.id)
+      : [];
+    const baselineModifiers = modifiers.filter((modifier) => modifier.unlockSource !== 'rift');
+    const riftModifiers = modifiers.filter((modifier) => modifier.unlockSource === 'rift' && modifier.unlockCost && modifier.unlockCost.materialId === 'riftSplinter' && Number(modifier.unlockCost.amount || 0) === 24);
+    return {
+      classId,
+      signatureSkillId: signatureSkill && signatureSkill.id || '',
+      baselineModifierCount: baselineModifiers.length,
+      riftModifierCount: riftModifiers.length,
+      covered: !!signatureSkill && baselineModifiers.length > 0 && riftModifiers.length > 0
+    };
+  });
+  const missingAdvancedBuildChoiceClassIds = advancedBuildChoices.filter((entry) => !entry.covered).map((entry) => entry.classId);
+  const riftImprintSinks = (data.SKILL_MODIFIERS || []).filter((modifier) => modifier && modifier.unlockSource === 'rift' && modifier.unlockCost && modifier.unlockCost.materialId === 'riftSplinter' && Number(modifier.unlockCost.amount || 0) > 0);
+  const orphanRewardMaterialIds = (data.MAPS || []).some((map) => map && map.endlessScaling) && !riftImprintSinks.length
+    ? ['riftSplinter']
+    : [];
   const laneAvailability = {
     accomplishments: accomplishments.length > 0,
     monsterGuide: liveMonsterGuideCount > 0,
@@ -3542,6 +3907,7 @@ function createRetentionHealthReport(data) {
     endlessRift: (data.MAPS || []).some((map) => map && map.endlessScaling),
     crafting: accomplishments.some((item) => item && item.category === 'Crafting') || getCollectionCount(data.UPGRADE_AIDES) > 0,
     subclassing: getCollectionCount(data.ADVANCED_CLASSES) > 0 && getCollectionCount(data.SPECIALIZATIONS) > 0,
+    riftImprints: advancedBuildChoices.length > 0 && !missingAdvancedBuildChoiceClassIds.length,
     partyObjectives: getCollectionCount(data.DUNGEON_OBJECTIVES) > 0,
     targetFarms: getCollectionCount(data.TARGET_FARM_TABLES) > 0
   };
@@ -3566,6 +3932,9 @@ function createRetentionHealthReport(data) {
   if (loginPermanentStatMilestoneCount > 3 || Math.max(...Object.values(loginPermanentStats).map((value) => Number(value) || 0), 0) > 50) issues.push('loginPermanentPowerTooHigh');
   if (cashShopPowerItems.length || nonEarnableCashBuffs.length || maxWeeklyCashShopLimit > 3) issues.push('cashShopPowerOrChoreRisk');
   if (activeSeasonRewardPowerRiskCount) issues.push('seasonPermanentPowerRisk');
+  if (missingAdvancedBuildChoiceClassIds.length) issues.push('advancedBuildChoiceCoverageGap');
+  if (orphanRewardMaterialIds.length) issues.push('orphanRewardMaterialSink');
+  fractureDirectives.issueIds.forEach((issueId) => issues.push(issueId));
   return {
     dailyLoginRewardCount: (data.DAILY_LOGIN_REWARDS || []).length,
     dailyLoginMilestoneCount: (data.DAILY_LOGIN_MILESTONES || []).length,
@@ -3574,6 +3943,7 @@ function createRetentionHealthReport(data) {
     activeSeasonCount: activeSeasons.length,
     activeSeasonObjectiveCount,
     estimatedSeasonGoalMinutes,
+    fractureDirectives,
     accomplishmentCount: accomplishments.length,
     accomplishmentCategoryCount: accomplishmentCategories.length,
     accomplishmentTierCount: accomplishmentTiers.length,
@@ -3584,6 +3954,12 @@ function createRetentionHealthReport(data) {
     classMasteryTrackCount: getCollectionCount(data.CLASS_MASTERY_TRACKS),
     rosterTraitCount: getCollectionCount(data.ROSTER_TRAITS),
     rosterSynergyCount: getCollectionCount(data.ROSTER_SYNERGIES),
+    advancedBuildChoiceCoverageCount: advancedBuildChoices.filter((entry) => entry.covered).length,
+    advancedBuildChoices,
+    missingAdvancedBuildChoiceClassIds,
+    riftImprintSinkCount: riftImprintSinks.length,
+    riftImprintCost: riftImprintSinks.length ? Number(riftImprintSinks[0].unlockCost.amount || 0) : 0,
+    orphanRewardMaterialIds,
     dungeonCount: getCollectionCount(data.DUNGEONS),
     dungeonObjectiveCount: getCollectionCount(data.DUNGEON_OBJECTIVES),
     equipmentSetCount: getCollectionCount(data.EQUIPMENT_SETS),
@@ -3914,11 +4290,14 @@ module.exports = {
   createEnemyEcosystemHealthReport,
   createEconomyHealthReport,
   createEquipmentUpgradeReport,
+  createFractureDirectiveHealthReport,
   createLevelCurveReport,
   createMapBalanceReport,
   createMapTuningReport,
   createRetentionHealthReport,
   createSkillSystemHealthReport,
+  estimateClassPeriodicDps,
+  estimateSkillDps,
   getClassRotation,
   getClassResult,
   getBossHpScalingMultiplier,
@@ -3926,6 +4305,7 @@ module.exports = {
   getMapProfile,
   getMapResults,
   getScenarioResults,
+  getSkillRuntimeDamageFactor,
   getTargetLevelMinutes,
   estimateClassScenarioDps,
   runBalanceScenario

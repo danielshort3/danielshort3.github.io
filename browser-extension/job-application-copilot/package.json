@@ -1,0 +1,30 @@
+{
+  "name": "@danielshort/job-application-copilot-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first Job Application Copilot browser extension with encrypted sources and reviewed field filling.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "generate:runtime-icons": "node scripts/generate-runtime-icons.mjs",
+    "package": "npm run package:dev",
+    "package:dev": "npm run build && node scripts/package.mjs --target=dev",
+    "package:store": "npm run build && node scripts/package.mjs --target=store",
+    "validate:store": "node scripts/validate-package.mjs --target=store",
+    "test": "node --test",
+    "verify": "npm test && npm run build",
+    "verify:store": "npm test && npm run package:store && npm run validate:store"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "mammoth": "^1.12.0",
+    "pdfjs-dist": "^6.1.200"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "fake-indexeddb": "^6.2.5",
+    "fflate": "^0.8.3"
+  }
+}

@@ -49,6 +49,10 @@
     { "source": "/contact.html",      "destination": "/pages/contact" },
     { "source": "/privacy",           "destination": "/pages/privacy" },
     { "source": "/privacy.html",      "destination": "/pages/privacy" },
+    { "source": "/job-application-copilot", "destination": "/pages/job-application-copilot" },
+    { "source": "/job-application-copilot.html", "destination": "/pages/job-application-copilot" },
+    { "source": "/job-application-copilot/privacy", "destination": "/pages/job-application-copilot-privacy" },
+    { "source": "/job-application-copilot/privacy.html", "destination": "/pages/job-application-copilot-privacy" },
     { "source": "/search",            "destination": "/pages/search" },
     { "source": "/search.html",       "destination": "/pages/search" },
     { "source": "/sitemap",           "destination": "/pages/sitemap" },
@@ -312,6 +316,30 @@
       ],
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/job-application-copilot",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/job-application-copilot.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/job-application-copilot/privacy",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/job-application-copilot/privacy.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
       ]
     },
     {
@@ -617,13 +645,73 @@
     {
       "source": "/tools/job-application-tracker",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+        }
       ]
     },
     {
       "source": "/tools/job-application-tracker.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+        }
+      ]
+    },
+    {
+      "source": "/pages/job-application-tracker",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+        }
+      ]
+    },
+    {
+      "source": "/pages/job-application-tracker.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; manifest-src 'self'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; worker-src 'self'; child-src 'none'; frame-src 'none'; connect-src 'self' https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com;"
+        }
       ]
     },
     {
@@ -672,7 +760,7 @@
       ]
     },
     {
-      "source": "/:path((?!tools/background-remover$|tools/background-remover\\.html$|pages/background-remover$).*)",
+      "source": "/:path((?!tools/background-remover$|tools/background-remover\\.html$|pages/background-remover$|pages/background-remover\\.html$|tools/job-application-tracker$|tools/job-application-tracker\\.html$|pages/job-application-tracker$|pages/job-application-tracker\\.html$).*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },

@@ -6,19 +6,19 @@
 
   const CLASS_ROLE_PROFILES = Object.freeze({
     fighter: Object.freeze({
-      primary: 'Hybrid',
+      primary: 'Vanguard',
       secondary: 'Melee control',
       specialty: 'Close-range impact',
       summary: 'Reliable melee pressure with short-range control, guard windows, and finishers.'
     }),
     mage: Object.freeze({
-      primary: 'Hybrid',
+      primary: 'Artillery',
       secondary: 'Area setup',
       specialty: 'Spell routing',
       summary: 'Ranged spell pressure with strong setup tools and the safest vertical targeting.'
     }),
     archer: Object.freeze({
-      primary: 'Hybrid',
+      primary: 'Skirmisher',
       secondary: 'Mobile range',
       specialty: 'Marks and spacing',
       summary: 'Mobile ranged pressure that can jump attack and rewards choosing the right target.'

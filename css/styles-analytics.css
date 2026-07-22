@@ -1,0 +1,5 @@
+/* Analytics recruiter-story bundle layered on top of css/styles.css */
+@layer tokens, base, layout, components, utilities, overrides;
+
+@import url("styles-professional.css");
+@import url("components/recruiter-story.css");

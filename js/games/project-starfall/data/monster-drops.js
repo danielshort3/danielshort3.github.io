@@ -53,7 +53,7 @@
   });
 
   const MONSTER_EQUIPMENT_DROP_GROUPS = Object.freeze({
-    training: Object.freeze(['adventurer_cutlass', 'fieldguard_helm', 'trailwoven_gloves']),
+    training: Object.freeze(['adventurer_cutlass', 'birch_wand', 'simple_bow', 'fieldguard_helm', 'trailwoven_gloves']),
     traveler: Object.freeze(['traveler_boots', 'wanderer_charm']),
     focus: Object.freeze(['balanced_focus', 'starglass_staff', 'wanderer_charm', 'channeler_gloves']),
     guard: Object.freeze(['fieldguard_helm', 'bulwark_plate', 'sentinel_greaves']),
@@ -130,6 +130,9 @@
   }
 
   const MONSTER_DROP_POOLS = Object.freeze({
+    glassback: monsterDropPool({ materials: [materialDrop('starGlassChip', 48, { minQuantity: 1, maxQuantity: 2 })], equipment: equipmentDrops('training', 3), cards: cardDrops('forest', 2), currencyWeight: 10 }),
+    riftLantern: monsterDropPool({ materials: [materialDrop('lanternCore', 38), materialDrop('starGlassChip', 14)], equipment: equipmentDrops('focus', 3), cards: cardDrops('forest', 2), currencyWeight: 11 }),
+    faultSkitter: monsterDropPool({ materials: [materialDrop('starGlassChip', 24)], equipment: equipmentDrops('training', 2), cards: cardDrops('forest', 2), currencyWeight: 8 }),
     slimelet: monsterDropPool({ materials: [materialDrop('gelDrop', 48, { minQuantity: 1, maxQuantity: 2 })], equipment: equipmentDrops('training', 3), cards: cardDrops('forest', 3), currencyWeight: 10 }),
     dewSlime: monsterDropPool({ materials: [materialDrop('dewBead', 46), materialDrop('gelDrop', 18, { minQuantity: 1, maxQuantity: 2 })], equipment: equipmentDrops('training', 3), cards: cardDrops('forest', 3), currencyWeight: 10 }),
     mossback: monsterDropPool({ materials: [materialDrop('mossHide', 48)], equipment: equipmentDrops('guard', 3), cards: cardDrops('forest', 4), currencyWeight: 12 }),

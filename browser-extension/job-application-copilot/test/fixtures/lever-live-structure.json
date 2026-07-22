@@ -1,0 +1,34 @@
+{
+  "fixtureVersion": 1,
+  "source": "Sanitized structural capture of a public Lever application",
+  "url": "https://jobs.lever.co/theinformationlab/eaa64bb6-30b9-44bf-a490-3a2ea9754c13/apply",
+  "applicationForm": {
+    "selector": "form.application-form",
+    "tagName": "FORM",
+    "id": "application-form",
+    "className": "application-form",
+    "action": "/theinformationlab/eaa64bb6-30b9-44bf-a490-3a2ea9754c13/apply",
+    "fields": [
+      { "tagName": "INPUT", "type": "text", "name": "name", "label": "Full name" },
+      { "tagName": "INPUT", "type": "email", "name": "email", "label": "Email" },
+      { "tagName": "INPUT", "type": "tel", "name": "phone", "label": "Phone" },
+      { "tagName": "INPUT", "type": "url", "name": "urls[LinkedIn]", "label": "LinkedIn URL" },
+      { "tagName": "TEXTAREA", "name": "salary_expectation", "label": "Salary expectation" },
+      { "tagName": "SELECT", "name": "work_eligibility", "label": "Work eligibility" },
+      { "tagName": "INPUT", "type": "file", "name": "resume", "label": "Resume" },
+      { "tagName": "INPUT", "type": "checkbox", "name": "privacy_consent", "label": "I agree to the privacy notice" },
+      { "tagName": "BUTTON", "type": "submit", "name": "submit", "label": "Submit application" }
+    ]
+  },
+  "auxiliaryForms": [
+    {
+      "selector": "form.job-alert-subscribe",
+      "tagName": "FORM",
+      "id": "job-alert-subscribe",
+      "className": "job-alert subscribe",
+      "fields": [
+        { "tagName": "INPUT", "type": "email", "name": "alert_email", "label": "Job alert email" }
+      ]
+    }
+  ]
+}

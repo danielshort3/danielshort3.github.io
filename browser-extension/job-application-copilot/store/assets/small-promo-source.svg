@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280" role="img" aria-labelledby="title desc">
+  <title id="title">Job Application Copilot promotional tile</title>
+  <desc id="desc">A job application document linked to a source citation and an approved answer.</desc>
+  <defs>
+    <linearGradient id="background" x1="22" y1="18" x2="418" y2="262" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0d2b51"/>
+      <stop offset="1" stop-color="#091f3b"/>
+    </linearGradient>
+    <filter id="cardShadow" x="0" y="0" width="440" height="280" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#010414" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="440" height="280" rx="28" fill="url(#background)"/>
+  <circle cx="392" cy="36" r="96" fill="#005fed" opacity="0.18"/>
+  <circle cx="38" cy="264" r="110" fill="#005fed" opacity="0.12"/>
+  <path d="M161 140C196 140 206 108 241 108" fill="none" stroke="#5aa0ff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M161 140C196 140 206 194 241 194" fill="none" stroke="#5aa0ff" stroke-width="5" stroke-linecap="round"/>
+  <g filter="url(#cardShadow)">
+    <rect x="42" y="42" width="124" height="196" rx="18" fill="#ffffff"/>
+    <path d="M132 42V67C132 76 139 83 148 83H166" fill="#d8e0ea"/>
+    <rect x="64" y="90" width="72" height="12" rx="6" fill="#005fed"/>
+    <rect x="64" y="119" width="78" height="8" rx="4" fill="#b7c3d2"/>
+    <rect x="64" y="141" width="65" height="8" rx="4" fill="#b7c3d2"/>
+    <rect x="64" y="176" width="52" height="8" rx="4" fill="#d97706"/>
+    <rect x="241" y="55" width="157" height="106" rx="18" fill="#ffffff"/>
+    <circle cx="268" cy="84" r="10" fill="#166534"/>
+    <path d="M264 84L267 87L273 80" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="287" y="78" width="83" height="10" rx="5" fill="#091f3b"/>
+    <rect x="263" y="108" width="108" height="7" rx="3.5" fill="#b7c3d2"/>
+    <rect x="263" y="128" width="82" height="7" rx="3.5" fill="#b7c3d2"/>
+    <rect x="241" y="177" width="157" height="61" rx="18" fill="#eef2f7" stroke="#d8e0ea" stroke-width="2"/>
+    <path d="M265 199H283" fill="none" stroke="#d97706" stroke-width="7" stroke-linecap="round"/>
+    <rect x="296" y="195" width="76" height="8" rx="4" fill="#334155"/>
+    <rect x="265" y="214" width="87" height="7" rx="3.5" fill="#94a3b8"/>
+  </g>
+</svg>
+

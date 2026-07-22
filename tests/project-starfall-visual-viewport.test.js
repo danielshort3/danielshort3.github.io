@@ -26,8 +26,8 @@ assert.strictEqual(largeViewport.hudScale, 1.1, 'HUD content scale should remain
 const shopDoors = shopVendors.createTownShopDoorPortals('starfallCrossing');
 assert.deepStrictEqual(
   shopDoors.map((portal) => portal.facadeCell),
-  ['cinderForge', 'rustcoilWorkshop', 'marketAwning', 'astralObservatory'],
-  'each shop category should publish an existing structure-atlas facade'
+  ['lensWorkshop', 'expeditionDepot', 'frontierGate', 'fracturedObservatoryCore'],
+  'each Starfall Crossing shop should publish a Crossing-specific structure-atlas facade'
 );
 
 const publication = mapPublication.createMapPublicationData({
@@ -54,7 +54,7 @@ const publishedMap = publication.attachMapAssets({
 });
 assert.strictEqual(
   publishedMap.questNpcs[0].asset,
-  'img/project-starfall/characters/generic-player.png',
+  'img/project-starfall/characters/generic-player-v4.png',
   'published quest NPCs should use polished existing character art by default'
 );
 
@@ -71,6 +71,8 @@ const rendererCode = fs.readFileSync(path.join(ROOT, 'js/games/project-starfall/
 assert(rendererCode.includes("portal.facadeCell || 'marketAwning'"), 'shop portals should try atlas-backed facades first');
 assert(rendererCode.includes('const npcTexture = this.getTexture(npc.asset)'), 'quest NPCs should try character art first');
 assert(rendererCode.includes('graphics.rect(npc.x + 6'), 'quest NPC procedural fallback should remain available');
+assert(rendererCode.includes("return { color: colorToNumber(palette[0], 0x2f6848), alpha: 1 }"),
+  'Pixi should paint the reserved solid-platform band opaquely so the canvas fallback color cannot show through');
 
 const standardEnemy = { id: 'slimelet', x: 100, y: 200, w: 46, h: 46, data: { behavior: 'melee' } };
 const standardEnemyBox = visuals.createEnemySpriteRenderBox(standardEnemy);
@@ -125,6 +127,10 @@ assert.deepStrictEqual(animationData.ENEMY_ANIMATION_ASSETS.briarStag.states.att
   'six-frame timing accents should map onto compact anticipation, action, and recovery frames');
 
 const engineCode = fs.readFileSync(path.join(ROOT, 'js/games/project-starfall/project-starfall-engine.js'), 'utf8');
+assert(engineCode.includes("return palette[0] || '#2f6848';"),
+  'Canvas should extend the map tone opaquely through the reserved solid-platform band');
+assert(!/getWorldBaseBandFill[\s\S]{0,1200}colorWithAlpha\([^\n]+0\.[0-9]+\)/.test(engineCode),
+  'Canvas world-to-HUD transition should not expose a translucent blank strip');
 assert((engineCode.match(/createEnemySpriteRenderBox\(enemy\)/g) || []).length >= 3,
   'renderer snapshots and Canvas fallback should share the centralized enemy render box');
 assert(engineCode.includes('ENEMY_SPRITE_DRAW_OPTIONS'), 'Canvas enemy animation drawing should use authored registration');

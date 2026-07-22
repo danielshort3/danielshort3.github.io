@@ -1,0 +1,31 @@
+{
+  "fixtureVersion": 1,
+  "source": "Sanitized structural captures of public Workday account-gate and later application steps",
+  "url": "https://example.wd5.myworkdayjobs.com/en-US/careers/job/example/apply/applyManually",
+  "accountGate": {
+    "selector": "[data-automation-id=\"signInForm\"]",
+    "tagName": "FORM",
+    "data-automation-id": "signInForm",
+    "fields": [
+      { "tagName": "INPUT", "type": "email", "name": "username", "label": "Email address" },
+      { "tagName": "INPUT", "type": "password", "name": "password", "label": "Password" },
+      { "tagName": "INPUT", "type": "checkbox", "name": "terms", "label": "I agree to the account terms" },
+      { "tagName": "BUTTON", "type": "submit", "name": "signin", "label": "Sign in" }
+    ]
+  },
+  "applicationForm": {
+    "selector": "[data-automation-id=\"applicationForm\"]",
+    "tagName": "DIV",
+    "data-automation-id": "applicationForm",
+    "fields": [
+      { "tagName": "INPUT", "type": "text", "name": "legalNameSection_firstName", "label": "First name" },
+      { "tagName": "INPUT", "type": "text", "name": "legalNameSection_lastName", "label": "Last name" },
+      { "tagName": "INPUT", "type": "email", "name": "email", "label": "Email" },
+      { "tagName": "INPUT", "type": "text", "name": "website", "label": "Website (robots only)" },
+      { "tagName": "SELECT", "name": "salaryExpectation", "label": "Salary expectation" },
+      { "tagName": "INPUT", "type": "file", "name": "resume", "label": "Resume" },
+      { "tagName": "INPUT", "type": "checkbox", "name": "certification", "label": "I certify that this information is accurate" },
+      { "tagName": "BUTTON", "type": "submit", "name": "next", "label": "Next" }
+    ]
+  }
+}

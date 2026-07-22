@@ -215,10 +215,27 @@ function itemIconFileName(itemId) {
 
 async function validatePlayers(manifest, data) {
   const contract = manifest.contracts.players;
+  const fillPattern = (pattern, familyId) => String(pattern || '').replace('<family-id>', familyId);
   assertArrayEquals(data.PLAYER_ANIMATION_ROWS || [], contract.rows, 'Player animation rows');
   const expectedClassIds = contract.classes.slice().sort();
   const actualClassIds = Object.keys(data.CLASS_FILE_IDS || {}).sort();
   assertArrayEquals(actualClassIds, expectedClassIds, 'Player class IDs');
+  assert(data.PLAYER_ART_VERSION === contract.artVersion,
+    `Player art version should be ${contract.artVersion}`);
+  assertArrayEquals((data.CLASS_FAMILY_IDS || []).slice().sort(), contract.families.slice().sort(), 'Player class families');
+  assertArrayEquals(
+    Object.keys(data.CLASS_BODY_FAMILIES || {}).sort(),
+    Object.keys(contract.classFamilies || {}).sort(),
+    'Player class-family mapping keys'
+  );
+  Object.entries(contract.classFamilies || {}).forEach(([classId, familyId]) => {
+    assert(data.CLASS_BODY_FAMILIES[classId] === familyId,
+      `${classId} data family should match the ${familyId} manifest family`);
+  });
+  assert(data.GENERIC_PLAYER_ASSET === contract.fallbackPortrait,
+    `Generic player portrait should use ${contract.fallbackPortrait}`);
+  assert(data.GENERIC_PLAYER_ANIMATION_ASSET && data.GENERIC_PLAYER_ANIMATION_ASSET.sheet === contract.fallbackAnimation,
+    `Generic player animation should use ${contract.fallbackAnimation}`);
 
   await assertImage(data.GENERIC_PLAYER_ASSET, {
     width: contract.portraitWidth,
@@ -231,22 +248,48 @@ async function validatePlayers(manifest, data) {
     alpha: true
   }, 'Generic player animation sheet');
 
-  for (const [classId, fileId] of Object.entries(data.CLASS_FILE_IDS || {})) {
-    assert(contract.classes.includes(classId), `Manifest missing player class ${classId}`);
-    assertExists(`${contract.sourceFolder}/${fileId}-source.png`, `${classId} player source sheet`);
-    await assertImage(data.CLASS_ASSETS[classId], {
+  const expectedFamilyPortraits = new Set();
+  const expectedFamilySheets = new Set();
+  for (const familyId of contract.families) {
+    const sourceFile = fillPattern(contract.sourcePattern, familyId);
+    const generationSourceFile = fillPattern(contract.generationSourcePattern, familyId);
+    const portraitPath = `${contract.portraitFolder}/${fillPattern(contract.portraitPattern, familyId)}`;
+    const animationPath = `${contract.animationFolder}/${fillPattern(contract.animationPattern, familyId)}`;
+    assertExists(`${contract.sourceFolder}/${generationSourceFile}`, `${familyId} player generation source`);
+    assertExists(`${contract.sourceFolder}/${sourceFile}`, `${familyId} normalized player source sheet`);
+    expectedFamilyPortraits.add(portraitPath);
+    expectedFamilySheets.add(animationPath);
+    await assertImage(portraitPath, {
       width: contract.portraitWidth,
       height: contract.portraitHeight,
       alpha: true
-    }, `${classId} portrait`);
-    const animation = data.PLAYER_ANIMATION_ASSETS[classId];
-    assert(animation && animation.frameWidth === contract.frameSize && animation.frameHeight === contract.frameSize,
-      `${classId} player animation should use ${contract.frameSize}px frames`);
-    await assertImage(animation.sheet, {
+    }, `${familyId} family portrait`);
+    await assertImage(animationPath, {
       width: contract.sheetWidth,
       height: contract.sheetHeight,
       alpha: true
-    }, `${classId} player animation sheet`);
+    }, `${familyId} family animation sheet`);
+  }
+  assert(expectedFamilyPortraits.size === contract.families.length,
+    'Each player family should have one cache-safe portrait');
+  assert(expectedFamilySheets.size === contract.families.length,
+    'Each player family should have one cache-safe animation sheet');
+
+  for (const classId of Object.keys(data.CLASS_FILE_IDS || {})) {
+    assert(contract.classes.includes(classId), `Manifest missing player class ${classId}`);
+    const familyId = contract.classFamilies[classId];
+    assert(contract.families.includes(familyId), `${classId} should map to a declared player family`);
+    const expectedPortrait = `${contract.portraitFolder}/${fillPattern(contract.portraitPattern, familyId)}`;
+    const expectedAnimation = `${contract.animationFolder}/${fillPattern(contract.animationPattern, familyId)}`;
+    assert(data.CLASS_ASSETS[classId] === expectedPortrait,
+      `${classId} portrait should resolve through the ${familyId} family`);
+    const animation = data.PLAYER_ANIMATION_ASSETS[classId];
+    assert(animation && animation.frameWidth === contract.frameSize && animation.frameHeight === contract.frameSize,
+      `${classId} player animation should use ${contract.frameSize}px frames`);
+    assert(animation.sheet === expectedAnimation,
+      `${classId} animation should resolve through the ${familyId} family`);
+    assert(animation === data.PLAYER_FAMILY_ANIMATION_ASSETS[familyId],
+      `${classId} should reuse the ${familyId} animation object for cache-safe decoding`);
   }
 }
 
@@ -285,7 +328,9 @@ async function validateEquipmentAtlases(manifest, data) {
     assert(expectedHeight === (kind === 'bow' ? contract.bowSheetHeight : contract.defaultSheetHeight),
       `${label} equipment atlas manifest height is internally inconsistent`);
 
-    const expectedPath = `${contract.folder}/${visual.fileId}-atlas.png`;
+    const expectedFileName = String(contract.pattern || '<equipment-file-id>-atlas-v2.png')
+      .replace('<equipment-file-id>', visual.fileId);
+    const expectedPath = `${contract.folder}/${expectedFileName}`;
     assert(atlas.sheet === expectedPath, `${label} atlas should use ${expectedPath}`);
     expectedFiles.add(path.basename(expectedPath));
     await assertImage(atlas.sheet, {
@@ -310,7 +355,9 @@ async function validateEquipmentAtlases(manifest, data) {
 
   assert(expectedFiles.size === contract.visualCount,
     `Project Starfall equipment visuals should map to ${contract.visualCount} unique atlas files`);
-  const actualFiles = fs.readdirSync(fullPath(contract.folder)).filter((file) => file.endsWith('-atlas.png')).sort();
+  const actualFiles = fs.readdirSync(fullPath(contract.folder))
+    .filter((file) => /-atlas(?:-v\d+)?\.png$/i.test(file))
+    .sort();
   const missingFiles = Array.from(expectedFiles).filter((file) => !actualFiles.includes(file));
   const unexpectedFiles = actualFiles.filter((file) => !expectedFiles.has(file));
   assert(!missingFiles.length && !unexpectedFiles.length && actualFiles.length === contract.visualCount,
@@ -492,7 +539,7 @@ async function validateMapsAndEnvironment(manifest, data) {
   for (const map of data.MAPS || []) {
     if (!map.asset) continue;
     await assertImage(map.asset, {
-      width: mapContract.width,
+      width: map.backgroundMode === 'panorama' ? mapContract.width * 2 : mapContract.width,
       height: mapContract.height,
       format: mapContract.format
     }, `${map.id} map background`);

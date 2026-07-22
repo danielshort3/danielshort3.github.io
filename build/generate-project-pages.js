@@ -751,6 +751,9 @@ function renderProjectPage(project, options = {}) {
   })();
   const starActions = actions.slice(0, 3).map((a) => normalizeWhitespace(a)).filter(Boolean);
   const starResults = results.slice(0, 3).map((r) => normalizeWhitespace(r)).filter(Boolean);
+  const stackLabel = tools.map((tool) => normalizeWhitespace(tool)).filter(Boolean).join(' ? ') || 'Project-specific tools and methods';
+  const deliveryStatus = normalizeWhitespace(project.deliveryStatus || project.status || '')
+    || (embed ? 'Live interactive demo' : 'Completed case study');
 
   const starSummary = `<section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
@@ -778,6 +781,14 @@ function renderProjectPage(project, options = {}) {
               ${starResults.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n              ')}
             </ul>
           </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Stack</dt>
+          <dd class="project-star-value">${escapeHtml(stackLabel)}</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">${escapeHtml(deliveryStatus)}</dd>
         </div>
       </dl>
     </section>`;
@@ -982,8 +993,8 @@ ${tableauPreconnect}
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        ${demoTabs || projectPreview}
 			        ${starSummary}
+			        ${demoTabs || projectPreview}
         ${safeResources}
 			        ${safeNotes}
 			        ${relatedProjects}

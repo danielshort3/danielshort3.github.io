@@ -24,6 +24,7 @@
   const DataEquipmentSets = (typeof require === 'function' ? require('./equipment-sets.js') : null) || DataModules.equipmentSets || {};
   const DataEquipmentEconomy = (typeof require === 'function' ? require('./equipment-economy.js') : null) || DataModules.equipmentEconomy || {};
   const DataCommerce = (typeof require === 'function' ? require('./commerce.js') : null) || DataModules.commerce || {};
+  const DataFractureDirectives = (typeof require === 'function' ? require('./fracture-directives.js') : null) || DataModules.fractureDirectives || {};
   const DataMapContent = (typeof require === 'function' ? require('./map-content.js') : null) || DataModules.mapContent || {};
   const DataStatUpgrades = (typeof require === 'function' ? require('./stat-upgrades.js') : null) || DataModules.statUpgrades || {};
   const DataRewardContent = (typeof require === 'function' ? require('./reward-content.js') : null) || DataModules.rewardContent || {};
@@ -40,12 +41,17 @@
   const ADVANCED_SKILL_ICON_ROOT = DataAssets.ADVANCED_SKILL_ICON_ROOT;
   const CARD_ICON_ROOT = DataAssets.CARD_ICON_ROOT;
   const GENERIC_PLAYER_ASSET = DataAssets.GENERIC_PLAYER_ASSET;
+  const PLAYER_ART_VERSION = DataAssets.PLAYER_ART_VERSION;
   const EQUIPMENT_ATLAS_ROOT = DataAssets.EQUIPMENT_ATLAS_ROOT;
   const CHARACTER_SLOT_PEDESTAL_ASSET = DataAssets.CHARACTER_SLOT_PEDESTAL_ASSET;
   const LEVEL_CAP = DataAssets.LEVEL_CAP;
   const SPECIALIZATION_LEVEL = DataAssets.SPECIALIZATION_LEVEL;
   const ROSTER_TRAIT_SLOTS = DataAssets.ROSTER_TRAIT_SLOTS;
   const CLASS_FILE_IDS = DataAssets.CLASS_FILE_IDS;
+  const CLASS_FAMILY_IDS = DataAssets.CLASS_FAMILY_IDS;
+  const CLASS_BODY_FAMILIES = DataAssets.CLASS_BODY_FAMILIES;
+  const CLASS_FAMILY_FILE_IDS = DataAssets.CLASS_FAMILY_FILE_IDS;
+  const getClassBodyFamilyId = DataAssets.getClassBodyFamilyId;
   const CLASS_ASSETS = DataAssets.CLASS_ASSETS;
   const CHARACTER_LOOKS = DataAssets.CHARACTER_LOOKS;
   const ENEMY_ASSETS = DataAssets.ENEMY_ASSETS;
@@ -67,6 +73,7 @@
   const ENVIRONMENT_REAR_PROP_KINDS = environmentContentData.ENVIRONMENT_REAR_PROP_KINDS;
   const ENVIRONMENT_FRONT_PROP_KINDS = environmentContentData.ENVIRONMENT_FRONT_PROP_KINDS;
   const ENVIRONMENT_UPPER_FRONT_PROP_KINDS = environmentContentData.ENVIRONMENT_UPPER_FRONT_PROP_KINDS;
+  const ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID = environmentContentData.ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID;
   const ENVIRONMENT_READABILITY_DEFAULTS = environmentContentData.ENVIRONMENT_READABILITY_DEFAULTS;
   const ENVIRONMENT_TERRAIN_STYLE_DEFAULTS = environmentContentData.ENVIRONMENT_TERRAIN_STYLE_DEFAULTS;
   const MAP_ENVIRONMENT_PROFILES = environmentContentData.MAP_ENVIRONMENT_PROFILES;
@@ -80,6 +87,10 @@
     ASSET_ROOT,
     EQUIPMENT_ATLAS_ROOT,
     CLASS_FILE_IDS,
+    CLASS_FAMILY_IDS,
+    CLASS_BODY_FAMILIES,
+    CLASS_FAMILY_FILE_IDS,
+    PLAYER_ART_VERSION,
     CLASS_ASSETS,
     ENEMY_ASSETS
   });
@@ -95,6 +106,7 @@
   const BASIC_ATTACK_FX_ANIMATION_ROWS = actorCombatData.BASIC_ATTACK_FX_ANIMATION_ROWS;
   const ENEMY_COMBAT_FX_ANIMATION_ROWS = actorCombatData.ENEMY_COMBAT_FX_ANIMATION_ROWS;
   const GENERIC_PLAYER_ANIMATION_ASSET = actorCombatData.GENERIC_PLAYER_ANIMATION_ASSET;
+  const PLAYER_FAMILY_ANIMATION_ASSETS = actorCombatData.PLAYER_FAMILY_ANIMATION_ASSETS;
   const PLAYER_ANIMATION_ASSETS = actorCombatData.PLAYER_ANIMATION_ASSETS;
   const EQUIPMENT_VISUALS = actorCombatData.EQUIPMENT_VISUALS;
   const PLAYER_RIGS = actorCombatData.PLAYER_RIGS;
@@ -220,6 +232,10 @@
   const CASH_SHOP_CATEGORIES = DataCommerce.CASH_SHOP_CATEGORIES;
   const CASH_SHOP_ITEMS = DataCommerce.CASH_SHOP_ITEMS;
   const SEASONS = DataCommerce.SEASONS;
+  const FRACTURE_DIRECTIVE_SEASON_ID = DataFractureDirectives.FRACTURE_DIRECTIVE_SEASON_ID;
+  const FRACTURE_DIRECTIVE_MAX_STABILIZATION = DataFractureDirectives.FRACTURE_DIRECTIVE_MAX_STABILIZATION;
+  const FRACTURE_DIRECTIVE_REWARDS = DataFractureDirectives.FRACTURE_DIRECTIVE_REWARDS;
+  const FRACTURE_DIRECTIVES = DataFractureDirectives.FRACTURE_DIRECTIVES;
 
   const DAILY_LOGIN_REWARDS = rewardContentData.DAILY_LOGIN_REWARDS;
   const DAILY_LOGIN_MILESTONES = rewardContentData.DAILY_LOGIN_MILESTONES;
@@ -287,8 +303,13 @@
     ADVANCED_SKILL_ICON_ROOT,
     CARD_ICON_ROOT,
     GENERIC_PLAYER_ASSET,
+    PLAYER_ART_VERSION,
     CHARACTER_SLOT_PEDESTAL_ASSET,
     CLASS_FILE_IDS,
+    CLASS_FAMILY_IDS,
+    CLASS_BODY_FAMILIES,
+    CLASS_FAMILY_FILE_IDS,
+    getClassBodyFamilyId,
     CLASS_ASSETS,
     CHARACTER_LOOKS,
     ENEMY_ASSETS,
@@ -311,6 +332,7 @@
     ENVIRONMENT_REAR_PROP_KINDS,
     ENVIRONMENT_FRONT_PROP_KINDS,
     ENVIRONMENT_UPPER_FRONT_PROP_KINDS,
+    ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID,
     MAP_ENVIRONMENT_PROFILES,
     MAP_TOWN_SCENES,
     MAP_FIELD_COMPOSITIONS,
@@ -336,6 +358,7 @@
     BASIC_ATTACK_FX_ANIMATION_ROWS,
     ENEMY_COMBAT_FX_ANIMATION_ROWS,
     GENERIC_PLAYER_ANIMATION_ASSET,
+    PLAYER_FAMILY_ANIMATION_ASSETS,
     PLAYER_ANIMATION_ASSETS,
     EQUIPMENT_VISUALS,
     PLAYER_RIGS,
@@ -417,6 +440,10 @@
     CASH_SHOP_CATEGORIES,
     CASH_SHOP_ITEMS,
     SEASONS,
+    FRACTURE_DIRECTIVE_SEASON_ID,
+    FRACTURE_DIRECTIVE_MAX_STABILIZATION,
+    FRACTURE_DIRECTIVE_REWARDS,
+    FRACTURE_DIRECTIVES,
     DAILY_LOGIN_REWARDS,
     DAILY_LOGIN_MILESTONES,
     PARTY_AI_LOADOUTS,

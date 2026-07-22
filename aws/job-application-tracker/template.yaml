@@ -446,6 +446,15 @@ Resources:
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'
 
+  ApplicationsCaptureRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/applications/capture'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
   ApplicationsUpdateRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:

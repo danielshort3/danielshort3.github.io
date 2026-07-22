@@ -1355,8 +1355,8 @@
       const zoom = Math.max(1, Number(camera.zoom || 1));
       this.worldLayer.scale.set(zoom, zoom);
       this.worldLayer.position.set(
-        -Math.round(Number(camera.x || 0) * zoom),
-        -Math.round(Number(camera.y || 0) * zoom)
+        -Math.round((Number(camera.x || 0) + Number(camera.effectX || 0)) * zoom),
+        -Math.round((Number(camera.y || 0) + Number(camera.effectY || 0)) * zoom)
       );
     }
 
@@ -1385,6 +1385,25 @@
       const drawWidth = Math.max(1, Math.round(imageWidth * (height / imageHeight)));
       const parallaxX = Number(snapshot.camera && snapshot.camera.x || 0) * MAP_BACKGROUND_PARALLAX;
       const parallaxY = Number(snapshot.camera && snapshot.camera.y || 0) * MAP_BACKGROUND_PARALLAX;
+      if (map.backgroundMode === 'panorama') {
+        const runtime = snapshot.runtime || {};
+        const camera = snapshot.camera || {};
+        const worldWidth = Math.max(width, Number(runtime.worldWidth || width));
+        const cameraMax = Math.max(1, worldWidth - Math.max(1, Number(camera.w || width)));
+        const panoramaTravel = Math.max(0, drawWidth - width);
+        const panoramaProgress = Math.max(0, Math.min(1, Number(camera.x || 0) / cameraMax));
+        const drawX = -Math.round(panoramaTravel * panoramaProgress);
+        const drawY = -Math.round(Math.max(0, parallaxY * 0.16));
+        this.drawTexture('background', texture, drawX, drawY, drawWidth, height + Math.abs(drawY), {
+          anchorX: 0,
+          anchorY: 0
+        });
+        this.backgroundGraphics
+          .rect(0, 0, width, height)
+          .fill({ color: 0x08121f, alpha: 0.08 });
+        this.renderWorldBaseBand(snapshot, width, height, map);
+        return;
+      }
       const tileOffset = -(((parallaxX % drawWidth) + drawWidth) % drawWidth);
       const startX = Math.floor(tileOffset) - MAP_BACKGROUND_TILE_OVERLAP_PX;
       const tileWidth = drawWidth + MAP_BACKGROUND_TILE_OVERLAP_PX * 2;
@@ -1425,13 +1444,15 @@
     getWorldBaseBandStyle(map) {
       const theme = this.getMapThemeId(map);
       const palette = map && map.palette || [];
-      if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) return { color: 0x140a18, alpha: 0.88 };
-      if (theme.includes('frost') || theme.includes('rime') || theme.includes('glacier')) return { color: 0xa3d9f2, alpha: 0.78 };
-      if (theme.includes('astral') || theme.includes('eclipse') || theme.includes('rift') || theme.includes('rune')) return { color: 0x1d1d40, alpha: 0.86 };
-      if (theme.includes('storm')) return { color: 0x2f445c, alpha: 0.82 };
-      if (theme.includes('ruins') || theme.includes('gearworks') || theme.includes('quarry') || theme.includes('rust') || theme.includes('titan') || theme.includes('deepcore')) return { color: 0x4e504e, alpha: 0.84 };
-      if (theme.includes('bandit') || theme.includes('ridge') || theme.includes('duelist') || theme.includes('sniper')) return { color: 0x654a30, alpha: 0.82 };
-      return { color: colorToNumber(palette[0], 0x2f6848), alpha: 0.8 };
+      // This is reserved collision geometry, not an overlay. Keep it opaque so
+      // the canvas fallback color cannot turn the world-to-HUD seam gray.
+      if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) return { color: 0x140a18, alpha: 1 };
+      if (theme.includes('frost') || theme.includes('rime') || theme.includes('glacier')) return { color: 0xa3d9f2, alpha: 1 };
+      if (theme.includes('astral') || theme.includes('eclipse') || theme.includes('rift') || theme.includes('rune')) return { color: 0x1d1d40, alpha: 1 };
+      if (theme.includes('storm')) return { color: 0x2f445c, alpha: 1 };
+      if (theme.includes('ruins') || theme.includes('gearworks') || theme.includes('quarry') || theme.includes('rust') || theme.includes('titan') || theme.includes('deepcore')) return { color: 0x4e504e, alpha: 1 };
+      if (theme.includes('bandit') || theme.includes('ridge') || theme.includes('duelist') || theme.includes('sniper')) return { color: 0x654a30, alpha: 1 };
+      return { color: colorToNumber(palette[0], 0x2f6848), alpha: 1 };
     }
 
     renderWorldBaseBand(snapshot, width, playfieldHeight, map) {
@@ -1471,6 +1492,143 @@
         this.data && this.data.ENVIRONMENT_TERRAIN_STYLE_DEFAULTS || DEFAULT_ENVIRONMENT_TERRAIN_STYLE,
         profile && profile.terrainStyle || {}
       );
+    }
+
+    isEclipseObservatoryDeck(map, profile) {
+      const treatmentId = this.data && this.data.ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID || 'totality-observatory';
+      return !!(map && map.id === 'eclipseThrone' && profile && profile.platformTreatment === treatmentId);
+    }
+
+    getEclipseObservatoryDeckColors(map, platform) {
+      const worldWidth = Math.max(1, Number(map && map.width || 4600));
+      const centerX = Number(platform && platform.x || 0) + Number(platform && platform.w || 0) * 0.5;
+      if (Math.abs(centerX - worldWidth * 0.5) <= 600) {
+        return { primary: 0xc794ff, secondary: 0xffbe55 };
+      }
+      if (centerX < worldWidth * 0.5) {
+        return { primary: 0xffbe55, secondary: 0x7bdff2 };
+      }
+      return { primary: 0x7bdff2, secondary: 0xffbe55 };
+    }
+
+    drawEclipseObservatoryDeckTreatment(graphics, map, platform, index) {
+      const profile = this.getEnvironmentProfile(map);
+      if (!graphics || !platform || !this.isEclipseObservatoryDeck(map, profile)) return false;
+      const x = Number(platform.x || 0);
+      const y = Number(platform.y || 0);
+      const w = Math.max(1, Number(platform.w || 0));
+      const isGround = index === 0 || String(platform.id || '').endsWith('_ground');
+      const colors = this.getEclipseObservatoryDeckColors(map, platform);
+
+      if (isSlopePlatform(platform)) {
+        const rightX = x + w;
+        const rightY = Number(platform.y2 || platform.y || 0);
+        const bodyDepth = 28;
+        const topPad = 4;
+        graphics
+          .moveTo(x, y - topPad)
+          .lineTo(rightX, rightY - topPad)
+          .lineTo(rightX, rightY + bodyDepth)
+          .lineTo(x, y + bodyDepth)
+          .closePath()
+          .fill({ color: 0x080e19, alpha: 0.98 })
+          .moveTo(x + 6, getPlatformSurfaceY(platform, x + 6))
+          .lineTo(rightX - 6, getPlatformSurfaceY(platform, rightX - 6))
+          .stroke({ color: 0x03070d, alpha: 0.92, width: 8 })
+          .moveTo(x + 6, getPlatformSurfaceY(platform, x + 6))
+          .lineTo(rightX - 6, getPlatformSurfaceY(platform, rightX - 6))
+          .stroke({ color: colors.primary, alpha: 0.86, width: 2.5 })
+          .moveTo(x + 10, getPlatformSurfaceY(platform, x + 10) + 8)
+          .lineTo(rightX - 10, getPlatformSurfaceY(platform, rightX - 10) + 8)
+          .stroke({ color: colors.secondary, alpha: 0.48, width: 1.4 });
+
+        for (let nodeX = x + 20; nodeX < rightX - 18; nodeX += 64) {
+          const nextX = Math.min(rightX - 16, nodeX + 46);
+          const nodeY = getPlatformSurfaceY(platform, nodeX);
+          const nextY = getPlatformSurfaceY(platform, nextX);
+          graphics
+            .moveTo(nodeX, nodeY + 8)
+            .lineTo(nodeX, nodeY + bodyDepth - 4)
+            .lineTo(nextX, nextY + 8)
+            .moveTo(nodeX, nodeY + 8)
+            .lineTo(nextX, nextY + bodyDepth - 4)
+            .lineTo(nextX, nextY + 8)
+            .stroke({ color: colors.secondary, alpha: 0.24, width: 1.35 })
+            .circle(nodeX, nodeY + 8, 3.2)
+            .fill({ color: 0x080e19, alpha: 1 })
+            .circle(nodeX, nodeY + 8, 3.2)
+            .stroke({ color: colors.primary, alpha: 0.68, width: 1.2 });
+        }
+
+        graphics
+          .moveTo(x + 2, y - 1)
+          .lineTo(x + 2, y + bodyDepth - 2)
+          .moveTo(rightX - 2, rightY - 1)
+          .lineTo(rightX - 2, rightY + bodyDepth - 2)
+          .stroke({ color: 0xdce8f5, alpha: 0.3, width: 1.2 });
+        return true;
+      }
+
+      const bodyDepth = isGround ? 38 : 24;
+      graphics
+        .rect(x, y + 1, w, bodyDepth)
+        .fill({ color: 0x07101c, alpha: isGround ? 0.78 : 0.86 })
+        .rect(x, y - 6, w, 11)
+        .fill({ color: 0x111b2a, alpha: isGround ? 0.9 : 0.96 })
+        .moveTo(x + 4, y)
+        .lineTo(x + w - 4, y)
+        .stroke({ color: 0x03070d, alpha: 0.9, width: isGround ? 7 : 8 })
+        .moveTo(x + 4, y)
+        .lineTo(x + w - 4, y)
+        .stroke({ color: isGround ? 0xd9c891 : colors.primary, alpha: isGround ? 0.58 : 0.88, width: isGround ? 2 : 2.5 });
+
+      const braceStep = isGround ? 180 : 92;
+      for (let braceX = x + 18; braceX < x + w - 22; braceX += braceStep) {
+        const braceRight = Math.min(x + w - 10, braceX + Math.min(54, braceStep * 0.56));
+        graphics
+          .moveTo(braceX, y + 6)
+          .lineTo(braceX + (braceRight - braceX) * 0.5, y + bodyDepth - 4)
+          .lineTo(braceRight, y + 6)
+          .stroke({ color: colors.secondary, alpha: isGround ? 0.13 : 0.22, width: 1.25 });
+      }
+
+      const guideStep = isGround ? 144 : 76;
+      for (let guideX = x + 18; guideX < x + w - 18; guideX += guideStep) {
+        const guideW = Math.min(isGround ? 76 : 38, x + w - 12 - guideX);
+        if (guideW <= 2) continue;
+        const guideColors = isGround
+          ? this.getEclipseObservatoryDeckColors(map, { x: guideX, w: guideW })
+          : colors;
+        graphics
+          .moveTo(guideX, y + 8)
+          .lineTo(guideX + guideW, y + 8)
+          .stroke({ color: guideColors.primary, alpha: isGround ? 0.46 : 0.58, width: 1.5 });
+        if (!isGround && Math.round((guideX - x) / guideStep) % 2 === 0) {
+          const nodeX = guideX + guideW * 0.5;
+          graphics
+            .circle(nodeX, y + 8, 3.4)
+            .fill({ color: 0x080e19, alpha: 1 })
+            .circle(nodeX, y + 8, 3.4)
+            .stroke({ color: colors.primary, alpha: 0.76, width: 1.2 });
+        }
+      }
+
+      if (isGround) {
+        const worldWidth = Math.max(1, Number(map && map.width || w));
+        [0.25, 0.5, 0.75].forEach((ratio) => {
+          const seamX = worldWidth * ratio;
+          if (seamX <= x + 12 || seamX >= x + w - 12) return;
+          graphics
+            .moveTo(seamX, y - 4)
+            .lineTo(seamX, y + bodyDepth - 5)
+            .stroke({ color: 0xc794ff, alpha: ratio === 0.5 ? 0.42 : 0.24, width: ratio === 0.5 ? 1.8 : 1.2 })
+            .circle(seamX, y + 8, ratio === 0.5 ? 4.2 : 3.2)
+            .fill({ color: 0x080e19, alpha: 1 })
+            .circle(seamX, y + 8, ratio === 0.5 ? 4.2 : 3.2)
+            .stroke({ color: 0xc794ff, alpha: 0.66, width: 1 });
+        });
+      }
+      return true;
     }
 
     getEnvironmentCellList(cellIndex) {
@@ -1553,6 +1711,7 @@
         anchorX: 0,
         anchorY: 0,
         alpha: settings.alpha,
+        tint: settings.tint || profile && profile.tint,
         flipX: !!settings.flip
       });
     }
@@ -2025,6 +2184,11 @@
 
     drawPlatformThemeTrim(graphics, map, platform, index) {
       if (!platform || platform.w <= 80) return;
+      const profile = this.getEnvironmentProfile(map);
+      if (this.isEclipseObservatoryDeck(map, profile)) {
+        this.drawEclipseObservatoryDeckTreatment(graphics, map, platform, index);
+        return;
+      }
       const theme = this.getMapThemeId(map);
       const palette = map && map.palette || [];
       const accent = colorToNumber(palette[2] || palette[1], 0xf3d86d);
@@ -2240,6 +2404,9 @@
 
     drawRampPlatformTerrain(snapshot, map, platform, index, profile, style, seed) {
       if (!isSlopePlatform(platform)) return false;
+      if (this.isEclipseObservatoryDeck(map, profile)) {
+        return this.drawEclipseObservatoryDeckTreatment(this.mapGraphics, map, platform, index);
+      }
       const asset = this.getEnvironmentAsset('ramps', profile);
       const texture = asset && asset.path ? this.getTexture(asset.path) : null;
       if (!asset || !texture) return false;
@@ -2315,6 +2482,61 @@
 
       if (isRectInBounds({ x: left, y: topY, w: right - left, h: layerH }, bounds, 120)) {
         this.drawTerrainSurface(snapshot, profile, cells, isGround, left, topY, right - left, layerH, `${seed}:single`, { overlap: terrainOverlap });
+        if (this.isEclipseObservatoryDeck(map, profile)) {
+          this.drawEclipseObservatoryDeckTreatment(this.mapGraphics, map, platform, index);
+        }
+      }
+    }
+
+    renderBossRoomAmbience(snapshot, layer) {
+      const map = snapshot.map || {};
+      if (map.id !== 'eclipseThrone') return;
+      const runtime = snapshot.runtime || {};
+      const bounds = snapshot.bounds || {};
+      const boss = snapshot.bossEncounter || {};
+      const time = Number(snapshot.nowSec || 0);
+      const centerX = Math.max(Number(snapshot.width || 1) / 2, Number(runtime.worldWidth || snapshot.width || 1) / 2);
+      const centerY = 164;
+      const phaseId = String(boss.phaseId || 'solarCourt');
+      const totality = phaseId === 'totality';
+      const solarColor = totality ? 0xd9c891 : phaseId === 'lunarCourt' ? 0x7bdff2 : 0xffbe55;
+      const lunarColor = totality ? 0x9f91bd : phaseId === 'lunarCourt' ? 0xffbe55 : 0x7bdff2;
+      const graphics = this.mapGraphics;
+      if (layer === 'rear') {
+        if (centerX < Number(bounds.left || 0) - 180 || centerX > Number(bounds.right || 0) + 180) return;
+        const pulse = 0.5 + Math.sin(time * 0.75) * 0.5;
+        graphics
+          .circle(centerX, centerY, 68 + pulse * 4)
+          .fill({ color: 0x0b0f19, alpha: totality ? 0.82 : 0.68 })
+          .circle(centerX, centerY, 92)
+          .stroke({ color: solarColor, alpha: totality ? 0.34 : 0.24, width: 2 })
+          .circle(centerX, centerY, 118)
+          .stroke({ color: lunarColor, alpha: totality ? 0.38 : 0.22, width: 1.5 });
+        [
+          { radius: 92, angle: time * 0.16, color: solarColor },
+          { radius: 118, angle: -time * 0.11, color: lunarColor }
+        ].forEach((ring) => {
+          for (let spoke = 0; spoke < 12; spoke += 1) {
+            const angle = ring.angle + spoke / 12 * Math.PI * 2;
+            graphics
+              .moveTo(centerX + Math.cos(angle) * (ring.radius - 9), centerY + Math.sin(angle) * (ring.radius - 9))
+              .lineTo(centerX + Math.cos(angle) * (ring.radius + 8), centerY + Math.sin(angle) * (ring.radius + 8))
+              .stroke({ color: ring.color, alpha: totality ? 0.42 : 0.26, width: 1.4 });
+          }
+        });
+        return;
+      }
+      const quality = snapshot.visualQuality || {};
+      const particleCount = quality.reduceEffects || quality.level === 'reduced' ? 8 : 16;
+      const left = Number(bounds.left || 0) - 60;
+      const span = Math.max(1, Number(bounds.right || snapshot.width || 1) - left + 60);
+      for (let index = 0; index < particleCount; index += 1) {
+        const x = left + positiveModulo(time * (13 + index % 4 * 3) + seededUnit(`eclipse-ambient:${index}`, 'x') * span, span);
+        const y = 96 + seededUnit(`eclipse-ambient:${index}`, 'y') * Math.max(120, Number(snapshot.playfieldHeight || 640) - 210);
+        const size = index % 3 === 0 ? 2.4 : 1.5;
+        graphics
+          .rect(x - size / 2, y - size / 2, size, size)
+          .fill({ color: index % 2 ? solarColor : lunarColor, alpha: totality ? 0.32 : 0.2 });
       }
     }
 
@@ -2323,6 +2545,7 @@
       const runtime = snapshot.runtime || {};
       const map = snapshot.map || {};
       const bounds = snapshot.bounds || {};
+      this.renderBossRoomAmbience(snapshot, 'rear');
       this.renderTownStructures(snapshot, map, 'rear');
       this.renderFieldCompositionLandmarks(snapshot, map);
       this.renderMapScenery(snapshot, map, 'rear');
@@ -2332,6 +2555,7 @@
       });
       this.renderMapScenery(snapshot, map, 'front');
       this.renderTownStructures(snapshot, map, 'front');
+      this.renderBossRoomAmbience(snapshot, 'front');
       this.renderClimbables(graphics, runtime, map);
       this.renderPortals(graphics, runtime, snapshot);
       this.renderQuestNpcs(graphics, runtime);
@@ -2515,6 +2739,50 @@
       this.renderPortalLabel(graphics, portal, runtime, snapshot, locked, palette[2]);
     }
 
+    renderStarstonePortal(graphics, portal, runtime, snapshot, locked, pulse) {
+      const x = Number(portal.x || 0);
+      const y = Number(portal.y || 0);
+      const w = Math.max(64, Number(portal.w || 88));
+      const h = Math.max(92, Number(portal.h || 120));
+      const cx = x + w / 2;
+      const baseY = y + h;
+      const stone = locked ? 0x394452 : 0x26364a;
+      const edge = locked ? 0x778391 : 0x587086;
+      const light = locked ? 0x8a97a5 : 0x9cebf2;
+      const coreAlpha = locked ? 0.28 : 0.56 + pulse * 0.28;
+      graphics.ellipse(cx, baseY + 2, w * 0.56, 7)
+        .fill({ color: 0x07101e, alpha: 0.48 });
+      [-1, 1].forEach((side) => {
+        const innerX = cx + side * w * 0.17;
+        const outerX = cx + side * w * 0.47;
+        graphics
+          .moveTo(innerX, baseY - 4)
+          .lineTo(outerX, baseY - h * 0.2)
+          .lineTo(cx + side * w * 0.38, baseY - h * 0.72)
+          .lineTo(cx + side * w * 0.18, baseY - h)
+          .lineTo(cx + side * w * 0.08, baseY - h * 0.46)
+          .closePath()
+          .fill({ color: stone, alpha: 0.98 })
+          .stroke({ width: 2, color: edge, alpha: 0.88 });
+        graphics
+          .moveTo(cx + side * w * 0.2, baseY - h * 0.16)
+          .lineTo(cx + side * w * 0.27, baseY - h * 0.48)
+          .lineTo(cx + side * w * 0.2, baseY - h * 0.78)
+          .stroke({ width: 2, color: light, alpha: coreAlpha });
+      });
+      graphics
+        .moveTo(cx, baseY - 10)
+        .lineTo(cx - w * 0.08, baseY - h * 0.28)
+        .lineTo(cx + w * 0.06, baseY - h * 0.52)
+        .lineTo(cx, baseY - h * 0.86)
+        .stroke({ width: 3, color: light, alpha: coreAlpha });
+      graphics.circle(cx, baseY - h * 0.55, 3 + pulse * 2)
+        .fill({ color: 0xffffff, alpha: locked ? 0.24 : 0.52 + pulse * 0.34 });
+      graphics.rect(x + 4, baseY - 7, w - 8, 7)
+        .fill({ color: 0x101a28, alpha: 0.92 });
+      this.renderPortalLabel(graphics, portal, runtime, snapshot, locked, light);
+    }
+
     renderPortals(graphics, runtime, snapshot) {
       const now = Number(snapshot.nowSec || 0);
       (runtime.portals || []).forEach((portal) => {
@@ -2525,6 +2793,10 @@
         const pulse = 0.5 + Math.sin(now * 3.4 + portal.x * 0.01) * 0.5;
         if (portal.shopDoor) {
           this.renderShopDoorPortal(graphics, portal, runtime, snapshot, locked, pulse);
+          return;
+        }
+        if (/starstone/.test(String(portal.portalStyle || '').toLowerCase())) {
+          this.renderStarstonePortal(graphics, portal, runtime, snapshot, locked, pulse);
           return;
         }
         graphics.ellipse(cx, cy, portal.w * 0.42, portal.h * 0.48)
@@ -2635,6 +2907,190 @@
       }
     }
 
+    renderBossHazardEffect(effect, simplified) {
+      const drawState = EngineVisuals.createBossHazardEffectDrawState
+        ? EngineVisuals.createBossHazardEffectDrawState(effect)
+        : null;
+      if (!drawState) return false;
+      const alpha = drawState.alpha;
+      const primary = colorToNumber(drawState.primaryColor, 0xffbe55);
+      const secondary = colorToNumber(drawState.secondaryColor, 0xffffff);
+      const x = drawState.x;
+      const y = drawState.y;
+      const centerY = drawState.centerY;
+      const shape = drawState.shape;
+      const lineAlpha = Math.max(0.42, alpha * 0.94);
+      if (shape === 'lane' || shape === 'charge') {
+        const width = Math.max(120, Number(effect.w || 360));
+        const height = Math.max(16, Number(effect.h || 22));
+        this.drawSolidRect('vfx', x, y - 14 - height / 2, width, height, {
+          tint: primary,
+          alpha: drawState.telegraph ? 0.14 + drawState.urgency * 0.12 : 0.32
+        });
+        this.drawRectOutline('vfx', x, y - 14 - height / 2, width, height, drawState.telegraph ? 2 + drawState.urgency * 2 : 4, {
+          tint: secondary,
+          alpha: lineAlpha
+        });
+        const marks = simplified ? 3 : 6;
+        for (let index = 0; index < marks; index += 1) {
+          const offset = (index + drawState.progress) / marks * width;
+          this.drawLine('vfx', x + offset - 22, y - 14 - height * 0.78, x + offset + 22, y - 14 + height * 0.78, 2, {
+            tint: secondary,
+            alpha: 0.46 * alpha
+          });
+        }
+      } else if (shape === 'wall') {
+        const width = Math.max(40, Number(effect.w || 74));
+        const height = Math.max(90, Number(effect.h || 190));
+        this.drawSolidRect('vfx', x, y, width, height, {
+          tint: primary,
+          alpha: drawState.telegraph ? 0.12 + drawState.urgency * 0.12 : 0.34
+        });
+        this.drawRectOutline('vfx', x, y, width, height, drawState.telegraph ? 2 + drawState.urgency * 2 : 4, {
+          tint: secondary,
+          alpha: lineAlpha
+        });
+      } else if (drawState.family === 'solar') {
+        this.drawShape('vfx', 'glow', x, centerY, drawState.boundaryWidth * 1.16, drawState.boundaryHeight * 1.5, {
+          tint: primary,
+          alpha: simplified ? 0.14 * alpha : 0.24 * alpha
+        });
+        this.drawShape('vfx', 'ring', x, centerY, drawState.boundaryWidth, drawState.boundaryHeight, {
+          tint: primary,
+          alpha: lineAlpha
+        });
+        this.drawShape('vfx', 'ring', x, centerY, drawState.innerWidth, drawState.innerHeight, {
+          tint: secondary,
+          alpha: 0.82 * alpha,
+          rotation: -drawState.rotation * 0.08
+        });
+        const rays = simplified ? 4 : 10;
+        for (let ray = 0; ray < rays; ray += 1) {
+          const angle = ray / rays * Math.PI * 2 + drawState.rotation * 0.18;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          this.drawLine(
+            'vfx',
+            x + cos * drawState.boundaryWidth * 0.36,
+            centerY + sin * drawState.boundaryHeight * 0.36,
+            x + cos * drawState.boundaryWidth * 0.55,
+            centerY + sin * drawState.boundaryHeight * 0.62,
+            2,
+            { tint: secondary, alpha: 0.72 * alpha }
+          );
+        }
+      } else if (drawState.family === 'lunar') {
+        this.drawShape('vfx', 'glow', x, centerY, drawState.boundaryWidth * 1.1, drawState.boundaryHeight * 1.42, {
+          tint: colorToNumber('#514077', 0x514077),
+          alpha: simplified ? 0.14 * alpha : 0.26 * alpha
+        });
+        this.drawShape('vfx', 'ring', x, centerY, drawState.boundaryWidth, drawState.boundaryHeight, {
+          tint: primary,
+          alpha: lineAlpha
+        });
+        this.drawShape('vfx', 'circle', x - drawState.radius * 0.12, centerY, drawState.radius * 0.5, drawState.radius * 0.2, {
+          tint: primary,
+          alpha: 0.42 * alpha
+        });
+        this.drawShape('vfx', 'circle', x - drawState.radius * 0.03, centerY - 2, drawState.radius * 0.44, drawState.radius * 0.18, {
+          tint: colorToNumber('#171a2a', 0x171a2a),
+          alpha: 0.92 * alpha,
+          blendMode: 'normal'
+        });
+        const brackets = simplified ? 2 : 4;
+        for (let bracket = 0; bracket < brackets; bracket += 1) {
+          const direction = bracket % 2 ? 1 : -1;
+          const tier = Math.floor(bracket / 2);
+          const bx = x + direction * drawState.boundaryWidth * (0.27 + tier * 0.1);
+          this.drawLine('vfx', bx, centerY - drawState.boundaryHeight * 0.26, bx - direction * 14, centerY, 2, {
+            tint: secondary,
+            alpha: 0.82 * alpha
+          });
+          this.drawLine('vfx', bx - direction * 14, centerY, bx, centerY + drawState.boundaryHeight * 0.26, 2, {
+            tint: secondary,
+            alpha: 0.82 * alpha
+          });
+        }
+      } else if (drawState.family === 'totality') {
+        this.drawShape('vfx', 'glow', x, centerY, drawState.boundaryWidth * 1.28, drawState.boundaryHeight * 1.7, {
+          tint: secondary,
+          alpha: simplified ? 0.12 * alpha : 0.22 * alpha
+        });
+        this.drawShape('vfx', 'ring', x, centerY, drawState.boundaryWidth * 1.1, drawState.boundaryHeight * 1.18, {
+          tint: secondary,
+          alpha: 0.88 * alpha,
+          rotation: drawState.rotation * 0.08
+        });
+        this.drawShape('vfx', 'glow', x, centerY, drawState.innerWidth, drawState.innerHeight * 1.25, {
+          tint: primary,
+          alpha: simplified ? 0.2 * alpha : 0.34 * alpha
+        });
+        this.drawShape('vfx', 'ring', x, centerY, drawState.innerWidth, drawState.innerHeight, {
+          tint: primary,
+          alpha: Math.max(0.72, alpha),
+          rotation: -drawState.rotation * 0.12
+        });
+        const chevrons = simplified ? 4 : 8;
+        for (let chevron = 0; chevron < chevrons; chevron += 1) {
+          const angle = chevron / chevrons * Math.PI * 2 + drawState.rotation * 0.12;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          this.drawLine(
+            'vfx',
+            x + cos * drawState.boundaryWidth * 0.47,
+            centerY + sin * drawState.boundaryHeight * 0.47,
+            x + cos * drawState.boundaryWidth * 0.34,
+            centerY + sin * drawState.boundaryHeight * 0.34,
+            2,
+            { tint: chevron % 2 ? primary : secondary, alpha: 0.78 * alpha }
+          );
+        }
+      } else if (shape === 'pulse' || shape === 'sigils' || shape === 'circle') {
+        this.drawShape('vfx', 'glow', x, centerY, drawState.boundaryWidth, drawState.boundaryHeight * 1.25, {
+          tint: primary,
+          alpha: simplified ? 0.12 * alpha : 0.22 * alpha
+        });
+        this.drawShape('vfx', 'ring', x, centerY, drawState.boundaryWidth, drawState.boundaryHeight, {
+          tint: secondary,
+          alpha: lineAlpha
+        });
+      } else {
+        const size = drawState.radius * (1.1 + drawState.progress * 0.5);
+        this.drawShape('vfx', 'ring', x, y, size, size, { tint: primary, alpha: lineAlpha });
+        this.drawShape('vfx', 'circle', x, y, Math.max(18, size * 0.2), Math.max(18, size * 0.2), {
+          tint: secondary,
+          alpha: 0.58 * alpha
+        });
+      }
+      const labelX = shape === 'lane' || shape === 'charge' || shape === 'wall'
+        ? x + Math.max(60, Number(effect.w || 120)) / 2
+        : x;
+      const labelY = shape === 'wall'
+        ? y - 22
+        : y - Math.max(42, drawState.radius * 0.3);
+      if (drawState.callout) {
+        this.drawText('damageText', drawState.callout, labelX, labelY, {
+          fontSize: simplified ? 10 : 12,
+          fontWeight: '900',
+          fill: drawState.safeZone ? '#baf7ff' : '#ffffff',
+          stroke: 'rgba(9,31,59,0.94)',
+          strokeWidth: 4,
+          alpha: drawState.labelAlpha
+        });
+      }
+      if (drawState.label && drawState.label !== drawState.callout && !simplified) {
+        this.drawText('damageText', drawState.label, labelX, labelY + 15, {
+          fontSize: 9,
+          fontWeight: '800',
+          fill: drawState.safeZone ? '#7bdff2' : '#ffe2a3',
+          stroke: 'rgba(9,31,59,0.92)',
+          strokeWidth: 3,
+          alpha: drawState.labelAlpha * 0.84
+        });
+      }
+      return true;
+    }
+
     renderWorldEffects(snapshot) {
       const now = Number(snapshot.nowSec || 0);
       const quality = snapshot.visualQuality || {};
@@ -2660,6 +3116,10 @@
         const runeFieldLifeRatio = isRuneFieldEffect ? clamp(ttl / runeFieldDuration, 0, 1) : 0;
         if (isRuneFieldEffect) {
           this.renderRuneFieldGroundVisual(effect, x, y, runeFieldRadius, color, alpha, runeFieldLifeRatio, now, simplified, { pulse: false });
+        }
+        if (type === 'bossHazard') {
+          this.renderBossHazardEffect(effect, simplified);
+          continue;
         }
         if (effect.animationFrame && type !== 'chainLine') {
           const texture = this.getFrameTexture(effect.animationFrame);
@@ -2865,7 +3325,7 @@
         if (!enemy || !enemy.renderBox || !isRectInBounds(enemy.renderBox, bounds, 120)) return;
         const box = enemy.renderBox;
         const alpha = enemy.hp <= 0 ? 0.86 : enemy.telegraph > 0 ? 0.78 : 1;
-        if (!this.renderActorSprite(enemy, box, alpha)) {
+        if (!this.renderFracturedFrontierEnemy(enemy, box, alpha, now) && !this.renderActorSprite(enemy, box, alpha)) {
           this.frameStats.actorFallbacks += 1;
           const color = colorToNumber(enemy.color, 0x7fbe5d);
           if (enemy.behavior === 'flyer') this.drawShape('entities', 'circle', box.x + box.w / 2, box.y + box.h / 2, box.w, box.h, { tint: color, alpha });
@@ -2887,6 +3347,145 @@
           this.drawSolidRect('damage', enemy.x, enemy.y - 12, enemy.w * ratio, 5, { tint: 0xff6b35, alpha: 0.86 });
         }
       });
+    }
+
+    renderFracturedFrontierEnemy(enemy, box, alpha, now) {
+      const id = String(enemy && enemy.id || '');
+      if (id !== 'glassback' && id !== 'riftLantern' && id !== 'faultSkitter') return false;
+      const graphics = this.entityGraphics;
+      const facing = Number(enemy.facing || 1) < 0 ? -1 : 1;
+      const state = String(enemy.animationState || 'idle');
+      const hitKick = state === 'hit' ? -facing * 5 : 0;
+      const centerX = Number(box.x || 0) + Number(box.w || 0) / 2 + hitKick;
+      const baseY = Number(box.y || 0) + Number(box.h || 0);
+      const telegraph = clamp(Number(enemy.telegraph || 0), 0, 1);
+      const pulse = 0.5 + Math.sin(Number(now || 0) * 5.2 + centerX * 0.012) * 0.5;
+
+      if (id === 'glassback') {
+        const bodyW = Math.max(46, Number(box.w || 0) * 0.88);
+        const bodyH = Math.max(32, Number(box.h || 0) * 0.58);
+        const left = centerX - bodyW / 2;
+        const right = centerX + bodyW / 2;
+        const top = baseY - bodyH;
+        const chargeLean = telegraph * 6 * facing;
+        graphics.ellipse(centerX, baseY + 1, bodyW * 0.48, 5)
+          .fill({ color: 0x07101e, alpha: 0.42 * alpha });
+        graphics
+          .moveTo(left + 5, baseY - 7)
+          .lineTo(left + bodyW * 0.18, top + bodyH * 0.3)
+          .lineTo(centerX + chargeLean, top + bodyH * 0.18)
+          .lineTo(right - 3, baseY - 12)
+          .lineTo(right - 12, baseY)
+          .lineTo(left + 13, baseY)
+          .closePath()
+          .fill({ color: 0x283447, alpha })
+          .stroke({ width: 2, color: 0x0b1422, alpha: 0.94 * alpha });
+        const shardColor = telegraph > 0 ? 0xb9fbff : 0x67dce9;
+        [-0.31, -0.05, 0.23].forEach((offset, index) => {
+          const shardX = centerX + bodyW * offset + chargeLean * (0.3 + index * 0.16);
+          const shardTop = top - (index === 1 ? 10 : 2);
+          graphics
+            .moveTo(shardX - 10, top + 13)
+            .lineTo(shardX + (index - 1) * 4, shardTop)
+            .lineTo(shardX + 11, top + 14)
+            .lineTo(shardX + 4, top + 24)
+            .lineTo(shardX - 7, top + 22)
+            .closePath()
+            .fill({ color: index === 1 ? 0x9cebf2 : 0x4ca9bd, alpha: (0.84 + pulse * 0.14) * alpha })
+            .stroke({ width: 1.5, color: 0xe5ffff, alpha: (0.42 + telegraph * 0.5) * alpha });
+        });
+        const eyeX = centerX + facing * bodyW * 0.28;
+        graphics.circle(eyeX, top + bodyH * 0.6, 3.4)
+          .fill({ color: telegraph > 0 ? 0xffffff : 0xf0b468, alpha });
+        graphics
+          .moveTo(centerX - bodyW * 0.26, baseY - 4)
+          .lineTo(centerX - bodyW * 0.2, baseY + 3)
+          .moveTo(centerX + bodyW * 0.2, baseY - 4)
+          .lineTo(centerX + bodyW * 0.26, baseY + 3)
+          .stroke({ width: 4, color: 0x131b28, alpha });
+        if (telegraph > 0) {
+          graphics
+            .moveTo(centerX + facing * bodyW * 0.35, baseY - bodyH * 0.42)
+            .lineTo(centerX + facing * (bodyW * 0.72 + 16), baseY - bodyH * 0.42)
+            .stroke({ width: 3, color: shardColor, alpha: (0.35 + pulse * 0.5) * alpha });
+        }
+        return true;
+      }
+
+      if (id === 'faultSkitter') {
+        const bodyW = Math.max(38, Number(box.w || 0) * 0.78);
+        const bodyH = Math.max(22, Number(box.h || 0) * 0.38);
+        const scuttle = Math.sin(Number(now || 0) * 8.6 + centerX * 0.018);
+        const bodyY = baseY - bodyH * 0.58 + scuttle * 1.5;
+        const lunge = state === 'attack' ? facing * 4 : 0;
+        graphics.ellipse(centerX, baseY + 1, bodyW * 0.5, 4)
+          .fill({ color: 0x07101e, alpha: 0.34 * alpha });
+        [-0.32, 0, 0.32].forEach((offset, index) => {
+          const legX = centerX + bodyW * offset + lunge;
+          const stride = (index % 2 ? -1 : 1) * scuttle * 3;
+          graphics
+            .moveTo(legX, bodyY + bodyH * 0.22)
+            .lineTo(legX + offset * 10 - facing * 2, baseY - 5 + stride)
+            .lineTo(legX + offset * 15, baseY + 1)
+            .stroke({ width: 3, color: 0x172537, alpha: 0.96 * alpha });
+        });
+        graphics
+          .moveTo(centerX - bodyW * 0.48 + lunge, bodyY)
+          .lineTo(centerX - bodyW * 0.18 + lunge, bodyY - bodyH * 0.54)
+          .lineTo(centerX + bodyW * 0.2 + lunge, bodyY - bodyH * 0.48)
+          .lineTo(centerX + bodyW * 0.5 + lunge, bodyY + bodyH * 0.04)
+          .lineTo(centerX + bodyW * 0.22 + lunge, bodyY + bodyH * 0.48)
+          .lineTo(centerX - bodyW * 0.28 + lunge, bodyY + bodyH * 0.46)
+          .closePath()
+          .fill({ color: 0x2b3949, alpha })
+          .stroke({ width: 2, color: 0x0b1422, alpha: 0.94 * alpha });
+        graphics
+          .moveTo(centerX - bodyW * 0.06 + lunge, bodyY - bodyH * 0.42)
+          .lineTo(centerX + bodyW * 0.12 + lunge, bodyY)
+          .lineTo(centerX - bodyW * 0.02 + lunge, bodyY + bodyH * 0.36)
+          .stroke({ width: 3, color: 0x78dfe8, alpha: (0.56 + pulse * 0.34) * alpha });
+        const eyeX = centerX + facing * bodyW * 0.31 + lunge;
+        graphics.circle(eyeX, bodyY - 1, 2.8)
+          .fill({ color: state === 'attack' ? 0xffffff : 0xe9a95c, alpha });
+        return true;
+      }
+
+      const hover = Math.sin(Number(now || 0) * 3.1 + centerX * 0.01) * 4;
+      const coreY = Number(box.y || 0) + Number(box.h || 0) * 0.46 + hover;
+      const radius = Math.max(20, Math.min(Number(box.w || 0), Number(box.h || 0)) * 0.36);
+      graphics.ellipse(centerX, baseY + 4, radius * 0.8, 4)
+        .fill({ color: 0x07101e, alpha: 0.26 * alpha });
+      graphics.circle(centerX, coreY, radius * 1.22)
+        .stroke({ width: 2, color: 0x355468, alpha: (0.44 + pulse * 0.18) * alpha });
+      [-1, 1].forEach((side) => {
+        graphics
+          .moveTo(centerX + side * radius * 0.62, coreY - radius * 0.48)
+          .lineTo(centerX + side * radius * 1.25, coreY - radius * 0.08)
+          .lineTo(centerX + side * radius * 0.7, coreY + radius * 0.28)
+          .closePath()
+          .fill({ color: 0x1b2d42, alpha: 0.94 * alpha })
+          .stroke({ width: 1.5, color: 0x6fc9d4, alpha: 0.62 * alpha });
+      });
+      graphics.circle(centerX, coreY, radius * 0.66)
+        .fill({ color: 0x16263a, alpha })
+        .stroke({ width: 2, color: 0x6fc9d4, alpha: 0.82 * alpha });
+      graphics
+        .moveTo(centerX, coreY - radius * 0.42)
+        .lineTo(centerX + radius * 0.32, coreY)
+        .lineTo(centerX, coreY + radius * 0.42)
+        .lineTo(centerX - radius * 0.32, coreY)
+        .closePath()
+        .fill({ color: telegraph > 0 ? 0xffffff : 0x8debf0, alpha: (0.76 + pulse * 0.22) * alpha });
+      if (telegraph > 0) {
+        const aimX = centerX + facing * (radius * 1.8 + 24);
+        graphics
+          .moveTo(centerX + facing * radius * 0.45, coreY)
+          .lineTo(aimX, coreY)
+          .stroke({ width: 2, color: 0xb9fbff, alpha: (0.3 + pulse * 0.55) * alpha });
+        graphics.circle(aimX, coreY, 4 + pulse * 2)
+          .fill({ color: 0xffffff, alpha: (0.54 + pulse * 0.4) * alpha });
+      }
+      return true;
     }
 
     renderQuestMarker(enemy, guidance, now) {

@@ -14,16 +14,45 @@
 
   const FEATURED_SPAWN_GROUP_PROFILES = Object.freeze({
     greenrootMeadow: Object.freeze([
-      { sectionSuffix: 'starter_pond_loop', label: 'Pond Slimes', enemyWeights: [{ enemyId: 'dewSlime', weight: 6 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 1 }], population: 6, respawnSeconds: 4, leash: 420 },
-      { sectionSuffix: 'moss_lane_extension', label: 'Moss Shelf', enemyWeights: [{ enemyId: 'dewSlime', weight: 5 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 2 }], population: 6, respawnSeconds: 4, leash: 460 },
-      { sectionSuffix: 'canopy_practice', label: 'Canopy Pocket', enemyWeights: [{ enemyId: 'dewSlime', weight: 4 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 2 }, { enemyId: 'mossback', weight: 1 }], population: 6, respawnSeconds: 5, leash: 400 },
-      { sectionSuffix: 'thornpath_gate', label: 'Thornpath Gate', enemyWeights: [{ enemyId: 'dewSlime', weight: 3 }, { enemyId: 'slimelet', weight: 2 }, { enemyId: 'thornSprout', weight: 3 }, { enemyId: 'mossback', weight: 2 }], population: 6, respawnSeconds: 5, leash: 440 }
+      { sectionSuffix: 'arrival_shelf', label: 'Arrival Shelf', enemyWeights: [{ enemyId: 'glassback', weight: 6 }, { enemyId: 'faultSkitter', weight: 3 }], population: 2, respawnSeconds: 6, leash: 380 },
+      { sectionSuffix: 'glass_basin', label: 'Glass Basin', enemyWeights: [{ enemyId: 'glassback', weight: 4 }, { enemyId: 'faultSkitter', weight: 3 }, { enemyId: 'riftLantern', weight: 1 }], population: 3, respawnSeconds: 6, leash: 460 },
+      { sectionSuffix: 'fractured_bridge', label: 'Fractured Bridge', enemyWeights: [{ enemyId: 'glassback', weight: 3 }, { enemyId: 'riftLantern', weight: 3 }, { enemyId: 'faultSkitter', weight: 2 }], population: 3, respawnSeconds: 7, leash: 520 },
+      { sectionSuffix: 'beacon_approach', label: 'Beacon Approach', enemyWeights: [{ enemyId: 'glassback', weight: 2 }, { enemyId: 'riftLantern', weight: 3 }, { enemyId: 'faultSkitter', weight: 2 }], population: 2, respawnSeconds: 7, leash: 420 }
     ]),
     banditRidgeCamp: Object.freeze([
-      { sectionSuffix: 'lower_cutter_lane', label: 'Lower Cutters', enemyWeights: [{ enemyId: 'banditCutter', weight: 8 }, { enemyId: 'briarStag', weight: 2 }], population: 8, respawnSeconds: 4, leash: 520 },
-      { sectionSuffix: 'middle_thrower_camp', label: 'Thrower Camp', enemyWeights: [{ enemyId: 'banditThrower', weight: 7 }, { enemyId: 'banditCutter', weight: 3 }], population: 8, respawnSeconds: 5, leash: 480 },
-      { sectionSuffix: 'high_rope_bridge', label: 'Rope Bridge', enemyWeights: [{ enemyId: 'banditThrower', weight: 6 }, { enemyId: 'vineSnapper', weight: 3 }, { enemyId: 'briarStag', weight: 1 }], population: 8, respawnSeconds: 5, leash: 420 },
-      { sectionSuffix: 'campfire_regroup', label: 'Campfire Regroup', enemyWeights: [{ enemyId: 'banditCutter', weight: 5 }, { enemyId: 'banditThrower', weight: 3 }, { enemyId: 'briarStag', weight: 2 }], population: 6, respawnSeconds: 5, leash: 520 }
+      {
+        sectionSuffix: 'lower_cutter_lane',
+        label: 'Lower Cutters',
+        platformIds: ['bandit_ridge_camp_lower_barricade_lane', 'bandit_ridge_camp_lower_flank'],
+        enemyWeights: [{ enemyId: 'banditCutter', weight: 8 }, { enemyId: 'briarStag', weight: 2 }],
+        population: 10,
+        maxPopulation: 14,
+        partyBonusPerMember: 2,
+        respawnSeconds: 4,
+        leash: 520
+      },
+      {
+        sectionSuffix: 'middle_thrower_camp',
+        label: 'Thrower Camp',
+        platformIds: ['bandit_ridge_camp_thrower_deck', 'bandit_ridge_camp_thrower_perch_west', 'bandit_ridge_camp_thrower_perch_east'],
+        enemyWeights: [{ enemyId: 'banditThrower', weight: 7 }, { enemyId: 'banditCutter', weight: 3 }],
+        population: 10,
+        maxPopulation: 14,
+        partyBonusPerMember: 2,
+        respawnSeconds: 5,
+        leash: 480
+      },
+      {
+        sectionSuffix: 'high_rope_bridge',
+        label: 'Rope Bridge',
+        platformIds: ['bandit_ridge_camp_bridge_approach', 'bandit_ridge_camp_rope_bridge', 'bandit_ridge_camp_bridge_return_lane'],
+        enemyWeights: [{ enemyId: 'banditThrower', weight: 6 }, { enemyId: 'vineSnapper', weight: 3 }, { enemyId: 'briarStag', weight: 1 }],
+        population: 10,
+        maxPopulation: 14,
+        partyBonusPerMember: 2,
+        respawnSeconds: 5,
+        leash: 420
+      }
     ]),
     orebackQuarry: Object.freeze([
       { sectionSuffix: 'ore_cart_lane', label: 'Ore Cart Beetles', enemyWeights: [{ enemyId: 'orebackBeetle', weight: 8 }, { enemyId: 'scrapWarden', weight: 2 }], population: 8, respawnSeconds: 5, leash: 500 },

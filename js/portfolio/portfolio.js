@@ -263,6 +263,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     searchInput,
     itemSingular = 'project',
     itemPlural = 'projects',
+    simplifyProfessional = false,
     slugify = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
     requestRender = () => {}
   } = options;
@@ -328,7 +329,12 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   const summary = document.createElement('section');
   summary.className = 'portfolio-mobile-filter-summary';
   summary.setAttribute('aria-labelledby', sheetSummaryId);
-  summary.innerHTML = `
+  summary.innerHTML = simplifyProfessional ? `
+    <div class="portfolio-mobile-filter-summary__head">
+      <h3 id="${escapeHtml(sheetSummaryId)}">Active filters</h3>
+    </div>
+    <div class="portfolio-mobile-filter-summary__chips" data-portfolio-mobile-active-chips></div>
+  ` : `
     <div class="portfolio-mobile-filter-summary__head">
       <h3 id="${escapeHtml(sheetSummaryId)}">Selected</h3>
       <button type="button" data-portfolio-mobile-clear>Clear all</button>
@@ -602,6 +608,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     const counts = optionCounts();
     const entries = activeEntries();
     const activeCount = entries.length;
+    summary.classList.toggle('is-empty', simplifyProfessional && activeCount === 0);
     syncToggleLabel(activeCount);
     if (statusNode) statusNode.textContent = activeCount ? `${activeCount} active` : 'All';
     if (badgeNode) {
@@ -618,10 +625,14 @@ function setupPortfolioMobileFilterSheet(options = {}) {
           <span>${escapeHtml(entry.label)}</span>
           <span aria-hidden="true">x</span>
         </button>
-      `).join('') : '<span class="portfolio-mobile-filter-summary__empty">None selected</span>';
+      `).join('') : (simplifyProfessional ? '' : '<span class="portfolio-mobile-filter-summary__empty">None selected</span>');
     }
     if (quickHost) {
-      quickHost.innerHTML = quickEntries.map((entry) => {
+      quickHost.innerHTML = quickEntries.filter((entry) => {
+        const count = counts.get(`${entry.groupId}:${entry.value}`) || 0;
+        const active = state.filters[entry.groupId] && state.filters[entry.groupId].has(entry.value);
+        return !simplifyProfessional || count > 0 || active;
+      }).map((entry) => {
         const active = state.filters[entry.groupId] && state.filters[entry.groupId].has(entry.value);
         return `
           <button type="button" class="portfolio-mobile-quick-filter${active ? ' is-active' : ''}" data-portfolio-mobile-quick-filter data-mobile-filter-group="${escapeHtml(entry.groupId)}" data-mobile-filter-value="${escapeHtml(entry.value)}" aria-pressed="${active ? 'true' : 'false'}">
@@ -1644,28 +1655,16 @@ function buildPortfolioWorkbench() {
   const firstAuthoredText = (value) => toList(value)
     .map((item) => String(item || '').replace(/\s+/g, ' ').trim())
     .find(Boolean) || '';
-  const firstAuthoredStatusLabel = (project = {}) => toList(project.resources)
-    .map((resource) => {
-      if (typeof resource === 'string') return resource;
-      return resource && typeof resource === 'object' ? resource.label : '';
-    })
-    .map((label) => String(label || '').replace(/\s+/g, ' ').trim())
-    .find((label) => /\b(?:live|demo|dashboard|report|notebook)\b/i.test(label)) || '';
-  const recruiterScanMarkup = (project = {}) => {
-    if (!isAudienceScopedView) return '';
-    const rows = [
-      ['Outcome', project.cardOutcome || firstAuthoredText(project.results)],
-      ['Contribution', project.cardContribution || firstAuthoredText(project.role) || firstAuthoredText(project.actions)],
-      ['Status', project.cardStatus || firstAuthoredStatusLabel(project)],
-      ['Stack', firstAuthoredText(project.tools)]
-    ].map(([label, value]) => [label, truncate(value, 118)]).filter(([, value]) => value);
-    if (!rows.length) return '';
-    return `
-      <dl class="portfolio-result-scan" aria-label="Recruiter project summary">
-        ${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('')}
-      </dl>
-    `;
-  };
+  const getProfessionalOutcome = (project = {}) => truncate(
+    project.cardOutcome ||
+    firstAuthoredText(project.results) ||
+    project.summary ||
+    project.problem ||
+    project.notes ||
+    project.subtitle ||
+    '',
+    132
+  );
   const filterOptionProjects = isAudienceScopedView ? getVisibleProjects(false) : allProjects;
   const focusOptionLabels = unique(filterOptionProjects.flatMap((project) => getProjectFocuses(project)))
     .sort(prioritySorter(
@@ -1748,7 +1747,10 @@ function buildPortfolioWorkbench() {
   const initialProjectInFullPool = getVisibleProjects(false).some((project) => project.id === initialProjectId);
   const state = {
     filters: Object.fromEntries(filterGroups.map((group) => [group.id, new Set()])),
-    collapsedFilters: Object.fromEntries(filterGroups.map((group) => [group.id, false])),
+    collapsedFilters: Object.fromEntries(filterGroups.map((group) => [
+      group.id,
+      isAudienceScopedView && (group.id === 'stack' || group.id === 'format')
+    ])),
     search: '',
     sort: sortSelect ? sortSelect.value : 'default',
     showAllAudienceProjects: isAudienceScopedView && Boolean(initialProjectId) && !initialProjectInScopedPool && initialProjectInFullPool,
@@ -1766,11 +1768,12 @@ function buildPortfolioWorkbench() {
     filterHost,
     filterGroups,
     state,
-    allItems: filterOptionProjects,
+    allItems: isAudienceScopedView ? allProjects : filterOptionProjects,
     sortSelect,
     searchInput,
     itemSingular,
     itemPlural,
+    simplifyProfessional: isAudienceScopedView,
     slugify,
     requestRender: () => render()
   });
@@ -1785,6 +1788,11 @@ function buildPortfolioWorkbench() {
     filterHost.innerHTML = filterGroups.map((group) => {
       const collapsed = !!state.collapsedFilters[group.id];
       const optionsId = `portfolio-filter-options-${escapeHtml(group.id)}`;
+      const visibleOptions = group.options.filter((option) => {
+        const count = counts.get(`${group.id}:${option.value}`) || 0;
+        return !isAudienceScopedView || count > 0 || state.filters[group.id].has(option.value);
+      });
+      if (!visibleOptions.length) return '';
       return `
       <fieldset class="portfolio-filter-group${collapsed ? ' is-collapsed' : ''}">
         <legend class="portfolio-filter-group__legend">
@@ -1795,7 +1803,7 @@ function buildPortfolioWorkbench() {
         </legend>
         <div class="portfolio-filter-options" id="${optionsId}" aria-hidden="${collapsed ? 'true' : 'false'}">
           <div class="portfolio-filter-options__inner">
-            ${group.options.map((option) => `
+            ${visibleOptions.map((option) => `
               <label class="portfolio-filter-option">
                 <input type="checkbox" name="${escapeHtml(group.id)}" value="${escapeHtml(option.value)}"${state.filters[group.id].has(option.value) ? ' checked' : ''}${collapsed ? ' disabled' : ''}>
                 <span>${escapeHtml(option.label)}</span>
@@ -1914,13 +1922,17 @@ function buildPortfolioWorkbench() {
             <span class="portfolio-result-card__media${project.image ? '' : ' portfolio-result-card__media--icon'}" aria-hidden="true">${renderWorkbenchMedia(project)}</span>
             <div class="portfolio-result-card__body">
               <h2 class="portfolio-result-card__title">${escapeHtml(project.title)}</h2>
-              <p class="portfolio-result-card__summary">${escapeHtml(getSummary(project))}</p>
-              ${chipMarkup(visibleChips, 4)}
-              ${recruiterScanMarkup(project)}
-              <div class="portfolio-result-meta">
-                <span>${calendarIcon}${escapeHtml(projectSignalLabel(project, index, signalPrefix))}</span>
-                <span>${formatIcon}${escapeHtml(getPrimaryFormat(project))}</span>
-              </div>
+              ${isAudienceScopedView ? `
+                <p class="portfolio-result-card__outcome"><span>Outcome</span>${escapeHtml(getProfessionalOutcome(project))}</p>
+                ${chipMarkup(unique([getPrimaryFormat(project), ...toList(project.tools), ...focuses]), 3)}
+              ` : `
+                <p class="portfolio-result-card__summary">${escapeHtml(getSummary(project))}</p>
+                ${chipMarkup(visibleChips, 4)}
+                <div class="portfolio-result-meta">
+                  <span>${calendarIcon}${escapeHtml(projectSignalLabel(project, index, signalPrefix))}</span>
+                  <span>${formatIcon}${escapeHtml(getPrimaryFormat(project))}</span>
+                </div>
+              `}
               <div class="portfolio-result-card__actions">
                 <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="${selected ? 'true' : 'false'}" aria-label="Show details for ${escapeHtml(project.title)}">Details</button>
                 <a class="portfolio-result-card__open" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results" href="${escapeHtml(projectHref)}">View case study ${openArrowIcon}</a>

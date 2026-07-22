@@ -1,0 +1,24 @@
+{
+  "fixtureVersion": 1,
+  "source": "Sanitized structural capture of a public SmartRecruiters one-click application",
+  "url": "https://jobs.smartrecruiters.com/oneclick-ui/company/BoschGroup/publication/f7fcd486-175b-4874-ba5c-df118ebe95fb",
+  "applicationHost": {
+    "selector": "smartrecruiters-application",
+    "tagName": "SMARTRECRUITERS-APPLICATION",
+    "shadowMode": "open",
+    "shadowForm": {
+      "selector": "[data-testid=\"application-form\"]",
+      "tagName": "FORM",
+      "data-testid": "application-form",
+      "fields": [
+        { "tagName": "INPUT", "type": "text", "name": "firstName", "label": "First name" },
+        { "tagName": "INPUT", "type": "text", "name": "lastName", "label": "Last name" },
+        { "tagName": "INPUT", "type": "email", "name": "email", "label": "Email" },
+        { "tagName": "SR-SELECT", "name": "country", "label": "Country" },
+        { "tagName": "INPUT", "type": "file", "name": "resume", "label": "Resume" },
+        { "tagName": "INPUT", "type": "checkbox", "name": "privacy", "label": "I agree to the privacy statement" },
+        { "tagName": "BUTTON", "type": "submit", "name": "submit", "label": "Submit" }
+      ]
+    }
+  }
+}

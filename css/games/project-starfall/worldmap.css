@@ -291,3 +291,587 @@
     margin-top: 4px;
   }
 }
+
+@layer components {
+  .project-starfall-fracture-ops {
+    display: grid;
+    gap: 14px;
+    color: var(--starfall-ink);
+  }
+
+  .project-starfall-fracture-hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+    gap: 20px;
+    align-items: end;
+    overflow: hidden;
+    padding: 22px;
+    border: 1px solid rgba(247, 210, 114, 0.48);
+    border-radius: 12px;
+    background:
+      radial-gradient(circle at 88% 12%, rgba(104, 205, 255, 0.26), transparent 34%),
+      linear-gradient(135deg, #102a44, #183d59 58%, #24566a);
+    box-shadow: 0 16px 34px rgba(16, 32, 51, 0.18);
+    color: #ffffff;
+  }
+
+  .project-starfall-fracture-hero::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    right: -48px;
+    bottom: -84px;
+    width: 230px;
+    height: 230px;
+    border: 1px solid rgba(247, 210, 114, 0.3);
+    border-radius: 50%;
+    box-shadow: 0 0 0 22px rgba(247, 210, 114, 0.06), 0 0 0 48px rgba(105, 201, 255, 0.05);
+  }
+
+  .project-starfall-fracture-hero h2,
+  .project-starfall-fracture-selection h3,
+  .project-starfall-fracture-active h3,
+  .project-starfall-fracture-choice h4,
+  .project-starfall-fracture-objectives h4 {
+    margin: 0;
+  }
+
+  .project-starfall-fracture-hero h2 {
+    margin-top: 5px;
+    font-size: clamp(1.35rem, 2.6vw, 2rem);
+    letter-spacing: -0.025em;
+  }
+
+  .project-starfall-fracture-hero p {
+    max-width: 680px;
+    margin: 8px 0 0;
+    color: rgba(231, 243, 250, 0.82);
+    line-height: 1.55;
+  }
+
+  .project-starfall-fracture-kicker,
+  .project-starfall-fracture-reward span,
+  .project-starfall-fracture-stabilization__copy > span,
+  .project-starfall-fracture-secondary > div > span {
+    color: #f7d272;
+    font-size: 0.68rem;
+    font-weight: 950;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-fracture-status {
+    display: grid;
+    justify-items: end;
+    gap: 5px;
+    min-width: 170px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    background: rgba(7, 20, 34, 0.36);
+    text-align: right;
+  }
+
+  .project-starfall-fracture-status span {
+    color: #dff4ff;
+    font-size: 0.76rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-fracture-status small {
+    color: rgba(231, 243, 250, 0.72);
+  }
+
+  .project-starfall-fracture-reward,
+  .project-starfall-fracture-stabilization,
+  .project-starfall-fracture-active,
+  .project-starfall-fracture-selection {
+    border: 1px solid rgba(16, 32, 51, 0.14);
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(16, 32, 51, 0.08);
+  }
+
+  .project-starfall-fracture-reward {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #fff9e5, #ffffff 68%);
+    border-color: rgba(170, 126, 36, 0.26);
+  }
+
+  .project-starfall-fracture-reward > div,
+  .project-starfall-fracture-stabilization__copy,
+  .project-starfall-fracture-secondary > div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .project-starfall-fracture-reward span {
+    color: #8a6525;
+  }
+
+  .project-starfall-fracture-reward strong,
+  .project-starfall-fracture-stabilization strong,
+  .project-starfall-fracture-secondary strong {
+    font-size: 0.92rem;
+  }
+
+  .project-starfall-fracture-reward small,
+  .project-starfall-fracture-stabilization small,
+  .project-starfall-fracture-secondary span {
+    color: #65727b;
+  }
+
+  .project-starfall-fracture-first-clear {
+    max-width: 260px;
+    padding-left: 16px;
+    border-left: 1px solid rgba(170, 126, 36, 0.24);
+  }
+
+  .project-starfall-fracture-stabilization {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #edf7e9, #ffffff 70%);
+    border-color: rgba(83, 139, 72, 0.26);
+  }
+
+  .project-starfall-fracture-stabilization__copy > span {
+    color: #4f7650;
+  }
+
+  .project-starfall-fracture-seals {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .project-starfall-fracture-seal {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(16, 32, 51, 0.18);
+    border-radius: 50%;
+    background: #f7f4e9;
+    color: #7e8a86;
+    font-size: 0.68rem;
+    font-weight: 950;
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.68);
+  }
+
+  .project-starfall-fracture-seal.is-earned {
+    border-color: #4f8d39;
+    background: #84c75f;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(132, 199, 95, 0.16), inset 0 0 0 3px rgba(255, 255, 255, 0.24);
+  }
+
+  .project-starfall-fracture-active,
+  .project-starfall-fracture-selection {
+    padding: 16px;
+  }
+
+  .project-starfall-fracture-active > header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: start;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(16, 32, 51, 0.1);
+  }
+
+  .project-starfall-fracture-active header p,
+  .project-starfall-fracture-selection__heading p,
+  .project-starfall-fracture-choice p {
+    margin: 7px 0 0;
+    color: #5f6f7a;
+    line-height: 1.48;
+  }
+
+  .project-starfall-fracture-badge {
+    display: inline-flex;
+    margin-bottom: 6px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: #dff0ff;
+    color: #285f91;
+    font-size: 0.62rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-fracture-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(84px, 1fr));
+    gap: 7px;
+    margin: 0;
+  }
+
+  .project-starfall-fracture-facts > div {
+    display: grid;
+    gap: 2px;
+    min-width: 84px;
+    padding: 8px;
+    border: 1px solid rgba(16, 32, 51, 0.1);
+    border-radius: 7px;
+    background: #f7fafc;
+  }
+
+  .project-starfall-fracture-facts dt {
+    color: #71808a;
+    font-size: 0.61rem;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-fracture-facts dd {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-fracture-objectives {
+    display: grid;
+    gap: 8px;
+    padding-top: 14px;
+  }
+
+  .project-starfall-fracture-objectives__heading,
+  .project-starfall-fracture-selection__heading,
+  .project-starfall-fracture-choice__meta,
+  .project-starfall-fracture-objective > div,
+  .project-starfall-fracture-claim {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .project-starfall-fracture-objectives__heading span,
+  .project-starfall-fracture-choice__meta,
+  .project-starfall-fracture-objective span {
+    color: #66757f;
+    font-size: 0.7rem;
+    font-weight: 850;
+  }
+
+  .project-starfall-fracture-objective {
+    display: grid;
+    gap: 7px;
+    padding: 10px;
+    border: 1px solid rgba(16, 32, 51, 0.1);
+    border-radius: 7px;
+    background: #fbfaf6;
+  }
+
+  .project-starfall-fracture-objective.is-complete {
+    border-color: rgba(72, 147, 72, 0.25);
+    background: #eff9ef;
+  }
+
+  .project-starfall-fracture-objective strong {
+    font-size: 0.78rem;
+  }
+
+  .project-starfall-fracture-objective progress {
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 999px;
+    background: #e5eaed;
+  }
+
+  .project-starfall-fracture-objective progress::-webkit-progress-bar {
+    border-radius: 999px;
+    background: #e5eaed;
+  }
+
+  .project-starfall-fracture-objective progress::-webkit-progress-value {
+    border-radius: 999px;
+    background: #4f91d0;
+  }
+
+  .project-starfall-fracture-objective.is-complete progress::-webkit-progress-value {
+    background: #63ad55;
+  }
+
+  .project-starfall-fracture-objective progress::-moz-progress-bar {
+    border-radius: 999px;
+    background: #4f91d0;
+  }
+
+  .project-starfall-fracture-claim {
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid rgba(16, 32, 51, 0.12);
+    border-radius: 8px;
+    background: #f6f9fb;
+  }
+
+  .project-starfall-fracture-claim > div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .project-starfall-fracture-claim small {
+    color: #60707b;
+  }
+
+  .project-starfall-fracture-claim button,
+  .project-starfall-fracture-choice button {
+    min-height: 36px;
+    white-space: nowrap;
+  }
+
+  .project-starfall-fracture-selection__heading {
+    align-items: end;
+    padding-bottom: 14px;
+  }
+
+  .project-starfall-fracture-selection__heading > p {
+    max-width: 350px;
+    text-align: right;
+  }
+
+  .project-starfall-fracture-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+  }
+
+  .project-starfall-fracture-choice {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid rgba(47, 125, 214, 0.2);
+    border-radius: 9px;
+    background: linear-gradient(180deg, #ffffff, #f7fbff);
+    box-shadow: 0 5px 14px rgba(16, 32, 51, 0.06);
+    transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  }
+
+  .project-starfall-fracture-choice:hover:not(.is-locked) {
+    transform: translateY(-2px);
+    border-color: rgba(47, 125, 214, 0.46);
+    box-shadow: 0 10px 22px rgba(16, 32, 51, 0.1);
+  }
+
+  .project-starfall-fracture-choice.is-locked {
+    background: #f1f1ec;
+  }
+
+  .project-starfall-fracture-choice h4 {
+    margin-top: 8px;
+  }
+
+  .project-starfall-fracture-choice ul {
+    display: grid;
+    gap: 5px;
+    margin: 10px 0 13px;
+    padding-left: 18px;
+    color: #465865;
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .project-starfall-fracture-choice button {
+    width: 100%;
+    margin-top: auto;
+  }
+
+  .project-starfall-fracture-choice__lock {
+    display: block;
+    margin: 0 0 10px;
+    color: #9a5b36;
+    line-height: 1.35;
+  }
+
+  .project-starfall-fracture-secondary {
+    display: grid;
+    grid-template-columns: minmax(190px, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 13px 2px 0;
+    border-top: 1px dashed rgba(16, 32, 51, 0.2);
+  }
+
+  .project-starfall-fracture-secondary > div > span {
+    color: #6c7a84;
+  }
+
+  .project-starfall-fracture-secondary nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    justify-content: flex-end;
+  }
+
+  .project-starfall-fracture-secondary button {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+  }
+
+  .project-starfall-worldmap-directive {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 12px;
+    align-items: center;
+    margin: 10px 0 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(182, 135, 39, 0.34);
+    border-radius: 8px;
+    background: linear-gradient(135deg, #fff7d8, #ffffff);
+  }
+
+  .project-starfall-worldmap-directive.is-stabilization-only {
+    border-color: rgba(83, 139, 72, 0.34);
+    background: linear-gradient(135deg, #edf7e9, #ffffff);
+  }
+
+  .project-starfall-worldmap-directive > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .project-starfall-worldmap-directive span {
+    color: #8a6525;
+    font-size: 0.62rem;
+    font-weight: 950;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .project-starfall-worldmap-directive.is-stabilization-only span {
+    color: #4f7650;
+  }
+
+  .project-starfall-worldmap-directive small {
+    color: #61717a;
+    font-weight: 750;
+  }
+
+  .project-starfall-worldmap-edge.is-directive:not(.is-locked) {
+    stroke: #f7d272;
+    stroke-width: 1.08;
+    filter: drop-shadow(0 0 4px rgba(247, 210, 114, 0.72));
+  }
+
+  .project-starfall-worldmap-edge.is-directive.is-stabilized:not(.is-locked) {
+    stroke: #b8ef8e;
+    filter: drop-shadow(0 0 4px rgba(132, 199, 95, 0.72));
+  }
+
+  .project-starfall-worldmap-node.is-directive .project-starfall-worldmap-node-pin {
+    border-color: #d7aa38;
+    background: #fff7d5;
+    box-shadow: 0 0 0 4px rgba(247, 210, 114, 0.18), 0 0 12px rgba(215, 170, 56, 0.48);
+  }
+
+  .project-starfall-worldmap-node.is-stabilized .project-starfall-worldmap-node-pin {
+    border-color: #6eae4e;
+    background: #efffe8;
+    box-shadow: 0 0 0 4px rgba(132, 199, 95, 0.18), 0 0 12px rgba(110, 174, 78, 0.52);
+  }
+
+  .project-starfall-worldmap-node.is-stabilized::after {
+    content: "S";
+    position: absolute;
+    right: -6px;
+    top: -7px;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #4f8d39;
+    border-radius: 50%;
+    background: #84c75f;
+    box-shadow: 0 2px 5px rgba(16, 32, 51, 0.24);
+    color: #ffffff;
+    font-size: 0.47rem;
+    font-weight: 950;
+    text-shadow: none;
+  }
+
+  .project-starfall-worldmap-detail__directive {
+    padding: 5px 7px;
+    border-left: 3px solid #84c75f;
+    border-radius: 4px;
+    background: #edf7e9;
+    color: #355f35;
+    font-weight: 800;
+  }
+
+  @media (max-width: 700px) {
+    .project-starfall-fracture-hero,
+    .project-starfall-fracture-reward,
+    .project-starfall-fracture-stabilization,
+    .project-starfall-fracture-active > header,
+    .project-starfall-fracture-secondary,
+    .project-starfall-worldmap-directive {
+      grid-template-columns: 1fr;
+    }
+
+    .project-starfall-fracture-hero {
+      padding: 17px;
+    }
+
+    .project-starfall-fracture-status {
+      justify-items: start;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .project-starfall-fracture-first-clear {
+      max-width: none;
+      padding: 10px 0 0;
+      border-top: 1px solid rgba(170, 126, 36, 0.24);
+      border-left: 0;
+    }
+
+    .project-starfall-fracture-seals {
+      justify-content: flex-start;
+    }
+
+    .project-starfall-fracture-facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .project-starfall-fracture-selection__heading,
+    .project-starfall-fracture-claim {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .project-starfall-fracture-selection__heading > p {
+      max-width: none;
+      text-align: left;
+    }
+
+    .project-starfall-fracture-choice-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .project-starfall-fracture-secondary nav {
+      justify-content: flex-start;
+    }
+
+    .project-starfall-worldmap-directive button {
+      width: 100%;
+    }
+  }
+}

@@ -165,12 +165,12 @@
     }),
     Object.freeze({
       id: 'greenroot_pathfinder',
-      title: 'Greenroot Pathfinder',
-      summary: 'Push through the first forest route from meadow to ridge.',
+      title: 'Frontier Pathfinder',
+      summary: 'Push through the first expedition route from Starfall Verge to the ridge.',
       category: 'Exploration',
       tier: 'Silver',
       objectives: Object.freeze([
-        Object.freeze({ id: 'greenroot_kills', type: 'defeat', mapId: 'greenrootMeadow', count: 18, label: 'Defeat 18 enemies in Greenroot Meadow' }),
+        Object.freeze({ id: 'greenroot_kills', type: 'defeat', mapId: 'greenrootMeadow', count: 18, label: 'Defeat 18 enemies in Starfall Verge' }),
         Object.freeze({ id: 'thornpath_kills', type: 'defeat', mapId: 'thornpathThicket', count: 24, label: 'Defeat 24 enemies in Thornpath Thicket' }),
         Object.freeze({ id: 'ridge_kills', type: 'defeat', mapId: 'banditRidgeCamp', count: 24, label: 'Defeat 24 enemies in Bandit Ridge Camp' })
       ]),
