@@ -18,13 +18,14 @@
       var(--starfall-stage-viewport-fit-width)
     );
     margin-inline: auto;
-    border: 1px solid rgba(245, 207, 114, 0.42);
-    border-radius: 8px;
+    border: 1px solid rgba(129, 205, 229, 0.34);
+    border-radius: 3px;
     background:
-      linear-gradient(180deg, #1f3b54, #071323);
+      linear-gradient(180deg, #101d2e, #050b14);
     box-shadow:
-      0 18px 46px rgba(0,0,0,0.32),
-      inset 0 0 0 1px rgba(255,255,255,0.06);
+      0 22px 64px rgba(0, 0, 0, 0.46),
+      0 0 0 1px rgba(231, 183, 72, 0.08),
+      inset 0 0 0 1px rgba(255,255,255,0.04);
     overflow: hidden;
     isolation: isolate;
     scroll-margin-block-start: 88px;
@@ -165,7 +166,7 @@
 
     .project-starfall-stage-panel {
       max-width: min(100%, calc(100vw - 16px));
-      border-radius: 4px;
+      border-radius: 2px;
     }
   }
 }

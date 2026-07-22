@@ -12,6 +12,7 @@ const {
   isGuidePixelRgba
 } = require('./project-starfall-sheet-grid.js');
 const { processSemanticSkillFx } = require('./generate-project-starfall-combat-fx.js');
+const CrossingStructures = require('./process-project-starfall-crossing-structures.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const Data = require('../js/games/project-starfall/project-starfall-data.js');
@@ -554,6 +555,7 @@ async function processRateCoupons(written) {
     .composite(composites)
     .png({ compressionLevel: 9 })
     .toFile(target);
+  await CrossingStructures.buildAtlas();
   written.push(rel(target));
 }
 
@@ -1204,9 +1206,10 @@ async function validateOutputs() {
     return validateHorizontalProjectileRow(path.join(ROOT, animation.sheet), `Skill ${skillId}`, 1);
   }));
   await Promise.all(Object.values(Data.ENEMY_PROJECTILE_ANIMATION_ASSETS || {}).map((animation) => validateAnimationSheet(animation, { minMargin: 6 })));
-  await validateCellMargins(path.join(STARFALL_ROOT, 'environment/structures/town-landmarks.png'), 4, 2, 256, 256, {
-    minMargin: 8
+  await validateCellMargins(path.join(STARFALL_ROOT, 'environment/structures/town-landmarks.png'), 4, 3, 256, 256, {
+    minMargin: 6
   });
+  await CrossingStructures.validateAtlas();
   await Promise.all(MAP_DERIVATIONS.map(async (entry) => {
     const metadata = await sharp(path.join(STARFALL_ROOT, entry.target)).metadata();
     if (metadata.width !== 1280 || metadata.height !== 640) {

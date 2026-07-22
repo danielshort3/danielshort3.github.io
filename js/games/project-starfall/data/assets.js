@@ -17,7 +17,8 @@
   const BASE_SKILL_ICON_ROOT = `${ASSET_ROOT}/skills/base`;
   const ADVANCED_SKILL_ICON_ROOT = `${ASSET_ROOT}/skills/advanced`;
   const CARD_ICON_ROOT = `${ASSET_ROOT}/cards/icons`;
-  const GENERIC_PLAYER_ASSET = `${ASSET_ROOT}/characters/generic-player.png`;
+  const GENERIC_PLAYER_ASSET = `${ASSET_ROOT}/characters/generic-player-v4.png`;
+  const PLAYER_ART_VERSION = 'v5';
   const EQUIPMENT_ATLAS_ROOT = `${ASSET_ROOT}/equipment-atlases`;
   const CHARACTER_SLOT_PEDESTAL_ASSET = `${ASSET_ROOT}/ui/character-slot-pedestal.png`;
   const LEVEL_CAP = null;
@@ -39,11 +40,39 @@
     beastArcher: 'beast-archer'
   });
 
+  const CLASS_FAMILY_IDS = Object.freeze(['fighter', 'mage', 'archer']);
+  const CLASS_BODY_FAMILIES = Object.freeze({
+    fighter: 'fighter',
+    guardian: 'fighter',
+    berserker: 'fighter',
+    duelist: 'fighter',
+    mage: 'mage',
+    fireMage: 'mage',
+    runeMage: 'mage',
+    stormMage: 'mage',
+    archer: 'archer',
+    sniper: 'archer',
+    trapper: 'archer',
+    beastArcher: 'archer'
+  });
+
+  const CLASS_FAMILY_FILE_IDS = Object.freeze({
+    fighter: 'fighter',
+    mage: 'mage',
+    archer: 'archer'
+  });
+
+  function getClassBodyFamilyId(classId) {
+    const id = String(classId || '').trim();
+    return CLASS_BODY_FAMILIES[id] || (CLASS_FAMILY_IDS.includes(id) ? id : '');
+  }
+
   const CLASS_ASSETS = Object.freeze(Object.keys(CLASS_FILE_IDS).reduce((assets, classId) => {
-    // The generated class portraits are currently byte-identical. Point every
-    // class at the shared file until class-specific art is authored so the
-    // browser only transfers and decodes one copy.
-    assets[classId] = GENERIC_PLAYER_ASSET;
+    const familyId = getClassBodyFamilyId(classId);
+    const fileId = CLASS_FAMILY_FILE_IDS[familyId];
+    assets[classId] = fileId
+      ? `${ASSET_ROOT}/characters/${fileId}-${PLAYER_ART_VERSION}.png`
+      : GENERIC_PLAYER_ASSET;
     return assets;
   }, {}));
 
@@ -57,6 +86,9 @@
   ]);
 
   const ENEMY_ASSETS = Object.freeze({
+    glassback: `${ASSET_ROOT}/enemies/shardling.png`,
+    riftLantern: `${ASSET_ROOT}/enemies/void-mote.png`,
+    faultSkitter: `${ASSET_ROOT}/enemies/clockbug.png`,
     slimelet: `${ASSET_ROOT}/enemies/slimelet.png`,
     dewSlime: `${ASSET_ROOT}/enemies/dew-slime.png`,
     mossback: `${ASSET_ROOT}/enemies/mossback.png`,
@@ -139,7 +171,7 @@
     rimewardenVault: `${ASSET_ROOT}/maps/rimewarden-vault.webp`,
     stormbreakAerie: `${ASSET_ROOT}/maps/stormbreak-aerie.webp`,
     astralStacks: `${ASSET_ROOT}/maps/astral-stacks.webp`,
-    eclipseThrone: `${ASSET_ROOT}/maps/eclipse-throne.webp`
+    eclipseThrone: `${ASSET_ROOT}/maps/eclipse-throne-v2.webp`
   });
 
   const UI_ASSETS = Object.freeze({
@@ -208,12 +240,17 @@
     ADVANCED_SKILL_ICON_ROOT,
     CARD_ICON_ROOT,
     GENERIC_PLAYER_ASSET,
+    PLAYER_ART_VERSION,
     EQUIPMENT_ATLAS_ROOT,
     CHARACTER_SLOT_PEDESTAL_ASSET,
     LEVEL_CAP,
     SPECIALIZATION_LEVEL,
     ROSTER_TRAIT_SLOTS,
     CLASS_FILE_IDS,
+    CLASS_FAMILY_IDS,
+    CLASS_BODY_FAMILIES,
+    CLASS_FAMILY_FILE_IDS,
+    getClassBodyFamilyId,
     CLASS_ASSETS,
     CHARACTER_LOOKS,
     ENEMY_ASSETS,

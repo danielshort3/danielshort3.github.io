@@ -29,7 +29,10 @@
     Object.entries(source.activeBySkillId || {}).forEach(([skillId, modifierId]) => {
       const skillKey = normalizeId(skillId);
       const modifierKey = normalizeId(modifierId);
-      if (validSkillIds.has(skillKey) && validModifierIds.has(modifierKey)) activeBySkillId[skillKey] = modifierKey;
+      const modifier = getById(data.SKILL_MODIFIERS || [], modifierKey);
+      if (validSkillIds.has(skillKey) && validModifierIds.has(modifierKey) && modifier && modifier.skillId === skillKey) {
+        activeBySkillId[skillKey] = modifierKey;
+      }
     });
     const unlockedModifierIds = Array.isArray(source.unlockedModifierIds)
       ? source.unlockedModifierIds.map(normalizeId).filter((id) => validModifierIds.has(id))
@@ -43,11 +46,97 @@
   function isSkillModifierUnlocked(modifier, player, options) {
     const data = getSkillModifierData(options);
     if (!modifier) return false;
+    if (modifier.unlockSource === 'rift') return false;
     const activePlayer = player || {};
     if (activePlayer.level < Number(modifier.unlockLevel || 1)) return false;
     const skill = getById(data.SKILLS || [], modifier.skillId);
     if (skill && getSkillRank(skill.id, options) <= 0) return false;
     return true;
+  }
+
+  function getSkillModifierUnlockCost(modifier) {
+    const source = modifier && modifier.unlockCost || {};
+    return {
+      materialId: normalizeId(source.materialId),
+      amount: Math.max(0, Math.floor(Number(source.amount || 0) || 0))
+    };
+  }
+
+  function getSkillModifierEligibility(modifier, player, options) {
+    const settings = options || {};
+    const data = getSkillModifierData(settings);
+    const activePlayer = player || {};
+    const skill = modifier ? getById(data.SKILLS || [], modifier.skillId) : null;
+    if (!modifier || !skill) return { ok: false, reason: 'missingModifier', message: 'That Rift Imprint is unavailable.', skill };
+    if (!activePlayer.advancedClassId || skill.owner !== activePlayer.advancedClassId) {
+      return { ok: false, reason: 'wrongAdvancedClass', message: `Only ${skill.owner || 'the matching advanced class'} can use this Imprint.`, skill };
+    }
+    if (Number(activePlayer.level || 1) < Math.max(100, Number(modifier.unlockLevel || 100))) {
+      return { ok: false, reason: 'level', message: 'Reach level 100 to shape Rift Imprints.', skill };
+    }
+    if (getSkillRank(skill.id, settings) <= 0) {
+      return { ok: false, reason: 'skillRank', message: `Rank ${skill.name} before shaping its Imprint.`, skill };
+    }
+    if (!settings.safeZone) return { ok: false, reason: 'safeZone', message: 'Rift Imprints can only be changed in a safe zone.', skill };
+    if (settings.riftActive) return { ok: false, reason: 'activeRift', message: 'Finish or leave the active Rift Operation first.', skill };
+    return { ok: true, reason: '', message: '', skill };
+  }
+
+  function createSkillModifierUnlockPlan(modifier, state, player, options) {
+    const settings = options || {};
+    const current = createSkillModifierState(state, settings);
+    const stored = new Set(current.unlockedModifierIds || []);
+    const eligibility = getSkillModifierEligibility(modifier, player, settings);
+    const cost = getSkillModifierUnlockCost(modifier);
+    const materials = settings.materials || {};
+    const balance = Math.max(0, Math.floor(Number(materials[cost.materialId] || 0) || 0));
+    if (!modifier || modifier.unlockSource !== 'rift' || !cost.materialId || cost.amount <= 0) {
+      return Object.assign({}, eligibility, {
+        ok: false,
+        reason: 'notPurchasable',
+        message: 'This modifier is learned through normal skill progression.',
+        cost,
+        balance,
+        affordable: false
+      });
+    }
+    if (!eligibility.ok) return Object.assign({}, eligibility, { cost, balance, affordable: balance >= cost.amount });
+    if (stored.has(modifier.id)) {
+      return Object.assign({}, eligibility, {
+        ok: false,
+        reason: 'alreadyUnlocked',
+        message: `${modifier.name} is already shaped.`,
+        cost,
+        balance,
+        affordable: true
+      });
+    }
+    if (balance < cost.amount) {
+      return Object.assign({}, eligibility, {
+        ok: false,
+        reason: 'materials',
+        message: `Requires ${cost.amount} Rift Splinters (${balance}/${cost.amount}).`,
+        cost,
+        balance,
+        affordable: false
+      });
+    }
+    return Object.assign({}, eligibility, { cost, balance, affordable: true });
+  }
+
+  function createSkillModifierSelectionPlan(modifier, state, player, unlockedIds, options) {
+    const settings = options || {};
+    const current = createSkillModifierState(state, settings);
+    const unlocked = new Set((unlockedIds || current.unlockedModifierIds || []).map(normalizeId));
+    const eligibility = getSkillModifierEligibility(modifier, player, settings);
+    if (!eligibility.ok) return eligibility;
+    if (!unlocked.has(modifier.id)) {
+      return Object.assign({}, eligibility, { ok: false, reason: 'locked', message: `${modifier.name} is not unlocked.` });
+    }
+    if (current.activeBySkillId && current.activeBySkillId[modifier.skillId] === modifier.id) {
+      return Object.assign({}, eligibility, { ok: false, reason: 'active', message: `${modifier.name} is already active.` });
+    }
+    return eligibility;
   }
 
   function createUnlockedSkillModifierIds(state, player, options) {
@@ -226,6 +315,9 @@
       Math.max(1, Number(activePlayer.level || 1) || 1),
       normalizeId(activePlayer.classId),
       normalizeId(activePlayer.advancedClassId),
+      Math.max(0, Math.floor(Number(options && options.materials && options.materials.riftSplinter || 0) || 0)),
+      options && options.safeZone ? 'safe' : 'field',
+      options && options.riftActive ? 'rift' : 'idle',
       rankKey,
       activeKey,
       (unlockedIds || []).map(normalizeId).filter(Boolean).sort().join(',')
@@ -234,6 +326,7 @@
 
   function createSkillModifierSnapshot(state, unlockedIds, options) {
     const data = getSkillModifierData(options);
+    const settings = options || {};
     const current = createSkillModifierState(state, options);
     const source = data.SKILL_MODIFIERS || [];
     const unlocked = new Set((unlockedIds || []).map(normalizeId));
@@ -256,10 +349,45 @@
       modifiers: source.map((modifier) => {
         const skillId = normalizeId(modifier && modifier.skillId);
         const skill = getById(data.SKILLS || [], skillId);
+        const isUnlocked = unlocked.has(modifier.id);
+        const isActive = !!(skillId && selectedBySkillId[skillId] === modifier.id);
+        const paid = modifier.unlockSource === 'rift';
+        const cost = getSkillModifierUnlockCost(modifier);
+        const unlockPlan = paid && !isUnlocked
+          ? createSkillModifierUnlockPlan(modifier, current, settings.player || {}, settings)
+          : null;
+        const selectPlan = isUnlocked && !isActive
+          ? createSkillModifierSelectionPlan(modifier, current, settings.player || {}, unlockedIds, settings)
+          : null;
+        const actionState = isActive
+          ? 'active'
+          : isUnlocked && selectPlan && selectPlan.ok
+            ? 'select'
+            : !isUnlocked && unlockPlan && unlockPlan.ok
+              ? 'unlock'
+              : 'locked';
+        const lockedReason = actionState === 'locked'
+          ? (unlockPlan && unlockPlan.message || selectPlan && selectPlan.message || '')
+          : '';
         return Object.assign({}, modifier, {
           skillName: skill && skill.name || modifier.skillId,
-          unlocked: unlocked.has(modifier.id),
-          active: !!(skillId && selectedBySkillId[skillId] === modifier.id)
+          skillOwner: skill && skill.owner || '',
+          paid,
+          cost,
+          affordable: paid ? !!(isUnlocked || unlockPlan && unlockPlan.affordable) : true,
+          unlocked: isUnlocked,
+          active: isActive,
+          canUnlock: actionState === 'unlock',
+          canSelect: actionState === 'select',
+          lockedReason,
+          actionState,
+          actionLabel: actionState === 'active'
+            ? 'Active'
+            : actionState === 'select'
+              ? 'Equip'
+              : actionState === 'unlock'
+                ? `Shape - ${cost.amount} Splinters`
+                : 'Locked'
         });
       })
     };
@@ -268,6 +396,10 @@
   const api = {
     createSkillModifierState,
     isSkillModifierUnlocked,
+    getSkillModifierUnlockCost,
+    getSkillModifierEligibility,
+    createSkillModifierUnlockPlan,
+    createSkillModifierSelectionPlan,
     createUnlockedSkillModifierIds,
     getSkillModifierForSkill,
     createSkillModifierDamageScale,

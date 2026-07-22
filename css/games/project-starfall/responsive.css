@@ -396,4 +396,159 @@
       justify-self: start;
     }
   }
+
+  @media (max-width: 700px), (pointer: coarse) {
+    .project-starfall-touch-controls {
+      display: grid;
+    }
+
+    .project-starfall-touch-control {
+      min-height: 52px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .project-starfall-hud {
+      position: static;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-items: stretch;
+      width: auto;
+      height: auto;
+      margin: 10px 0 0;
+      padding: 10px;
+      border: 1px solid rgba(116, 221, 255, 0.18);
+      border-radius: 9px;
+      background: #030a12;
+      overflow: visible;
+      clip: auto;
+      clip-path: none;
+      visibility: visible;
+      pointer-events: auto;
+      white-space: normal;
+    }
+
+    .project-starfall-hud:empty {
+      display: none;
+    }
+
+    .project-starfall-hud-main,
+    .project-starfall-meter-group,
+    .project-starfall-resource-widget,
+    .project-starfall-rift-operation,
+    .project-starfall-rift-counterplay,
+    .project-starfall-hud-actions,
+    .project-starfall-command-deck,
+    .project-starfall-guide-strip,
+    .project-starfall-combat-panel,
+    .project-starfall-boss-hud {
+      grid-column: 1;
+    }
+
+    .project-starfall-rift-operation,
+    .project-starfall-rift-counterplay {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .project-starfall-rift-operation span,
+    .project-starfall-rift-counterplay span {
+      text-align: left;
+    }
+
+    .project-starfall-hud-main {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+    }
+
+    .project-starfall-hud-class {
+      grid-column: auto;
+    }
+
+    .project-starfall-meter {
+      grid-template-columns: minmax(68px, 0.28fr) minmax(0, 1fr);
+    }
+
+    .project-starfall-resource-widget {
+      grid-template-columns: minmax(92px, auto) minmax(0, 1fr);
+    }
+
+    .project-starfall-resource-widget small {
+      grid-column: 1 / -1;
+    }
+
+    .project-starfall-hud-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .project-starfall-hud-actions button,
+    .project-starfall-command-deck button,
+    .project-starfall-guide-strip button,
+    .project-starfall-hud-button {
+      min-height: 44px;
+    }
+
+    .project-starfall-hud-actions button:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .project-starfall-command-deck:not([hidden]) {
+      display: grid;
+    }
+
+    .project-starfall-guide-strip {
+      align-items: stretch;
+    }
+
+    .project-starfall-guide-strip span {
+      align-self: center;
+    }
+
+    .project-starfall-boss-hud-head,
+    .project-starfall-boss-hud-foot {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .project-starfall-boss-hud-head span,
+    .project-starfall-boss-hud-foot span {
+      white-space: normal;
+    }
+
+    .project-starfall-boss-response {
+      grid-template-columns: 1fr;
+    }
+
+    .project-starfall-boss-response span:last-child {
+      text-align: left;
+      white-space: normal;
+    }
+  }
+
+  @media (max-width: 370px) {
+    .project-starfall-command-deck-groups {
+      grid-template-columns: 1fr;
+    }
+
+    .project-starfall-touch-controls {
+      padding-inline: 7px;
+    }
+
+    .project-starfall-touch-control-layout {
+      grid-template-columns: minmax(124px, 0.88fr) minmax(142px, 1.12fr);
+      gap: 6px;
+    }
+
+    .project-starfall-touch-movement,
+    .project-starfall-touch-combat {
+      gap: 4px;
+    }
+
+    .project-starfall-touch-control-heading span {
+      display: none;
+    }
+  }
 }

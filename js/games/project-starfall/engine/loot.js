@@ -1278,18 +1278,48 @@
       }));
   }
 
+  function getMonsterEquipmentDropLevelCap(enemyData, options) {
+    const settings = options || {};
+    const enemy = settings.enemy || enemyData;
+    const actualLevel = Number(enemy && enemy.level);
+    const range = Array.isArray(enemyData && enemyData.levelRange) ? enemyData.levelRange : [];
+    const rangeMax = range.reduce((max, value) => {
+      const level = Number(value);
+      return Number.isFinite(level) ? Math.max(max, level) : max;
+    }, 0);
+    const referenceLevel = Number.isFinite(actualLevel) && actualLevel > 0
+      ? actualLevel
+      : Math.max(1, rangeMax, Number(enemyData && enemyData.level) || 1);
+    const leeway = Math.max(0, Math.floor(Number(settings.equipmentLevelLeeway == null ? 8 : settings.equipmentLevelLeeway) || 0));
+    return Math.max(1, Math.floor(referenceLevel)) + leeway;
+  }
+
   function getMonsterEquipmentTableEntries(enemyData, options) {
     const settings = options || {};
     const getDefinition = typeof settings.getEquipmentDefinition === 'function'
       ? settings.getEquipmentDefinition
       : () => null;
+    const getWeight = typeof settings.getMonsterEquipmentDropWeight === 'function'
+      ? settings.getMonsterEquipmentDropWeight
+      : (entry) => normalizeDropWeight(entry && entry.weight, 1);
+    const matchesPlayerClass = typeof settings.itemMatchesPlayerClass === 'function'
+      ? settings.itemMatchesPlayerClass
+      : () => true;
+    const state = settings.state || null;
+    const player = state && state.player || null;
+    const levelCap = getMonsterEquipmentDropLevelCap(enemyData, settings);
     const config = getMonsterDropPoolConfig(enemyData);
     const equipment = Array.isArray(config && config.equipment) ? config.equipment : [];
     return equipment
-      .filter((entry) => entry && entry.itemId && getDefinition(entry.itemId))
-      .map((entry) => Object.assign({}, entry, {
+      .map((entry) => ({ entry, base: entry && entry.itemId ? getDefinition(entry.itemId) : null }))
+      .filter(({ base }) => {
+        if (!base || Math.max(1, Number(base.level) || 1) > levelCap) return false;
+        if (normalizeId(base.slot) === 'weapon' && player && player.classId && !matchesPlayerClass(base, player)) return false;
+        return true;
+      })
+      .map(({ entry }) => Object.assign({}, entry, {
         type: 'equipment',
-        weight: normalizeDropWeight(entry.weight, 1)
+        weight: normalizeDropWeight(getWeight(entry, state), 1)
       }));
   }
 
@@ -1476,7 +1506,10 @@
       : (targetEnemy) => getMonsterPotionTableEntries(targetEnemy, settings);
     const getEquipmentEntries = typeof settings.getMonsterEquipmentTableEntries === 'function'
       ? settings.getMonsterEquipmentTableEntries
-      : (targetEnemyData) => getMonsterEquipmentTableEntries(targetEnemyData, settings);
+      : (targetEnemyData, targetEnemy, targetState) => getMonsterEquipmentTableEntries(targetEnemyData, Object.assign({}, settings, {
+          enemy: targetEnemy,
+          state: targetState
+        }));
     const getCardEntries = typeof settings.getMonsterCardTableEntries === 'function'
       ? settings.getMonsterCardTableEntries
       : (targetEnemyData) => getMonsterCardTableEntries(targetEnemyData, settings);
@@ -1501,7 +1534,7 @@
     }
     if (hasDrops) {
       tables.push(createTable('potions', 'Potions', getBaseChance('potions', enemyData), getPotionEntries(enemy)));
-      tables.push(createTable('equipment', 'Equipment', getBaseChance('equipment', enemyData), getEquipmentEntries(enemyData)));
+      tables.push(createTable('equipment', 'Equipment', getBaseChance('equipment', enemyData), getEquipmentEntries(enemyData, enemy, state)));
       tables.push(createTable('cards', 'Cards', getBaseChance('cards', enemyData), getCardEntries(enemyData)));
       tables.push(createTable('bonusMaterials', 'Bonus Materials', getBaseChance('bonusMaterials', enemyData), getBonusMaterialEntries(enemyData)));
       tables.push(createTable('plinkoBalls', 'Plinko Balls', getBaseChance('plinkoBalls', enemyData), getPlinkoEntries(enemy)));
@@ -1817,11 +1850,15 @@
           return item;
         };
     const chooseRandomItem = typeof settings.randItem === 'function' ? settings.randItem : weightedItem;
+    const matchesPlayerClass = typeof settings.itemMatchesPlayerClass === 'function'
+      ? settings.itemMatchesPlayerClass
+      : () => true;
     const mutations = Array.isArray(settings.mutations) ? settings.mutations : [];
     const level = Math.max(1, Number(player && player.level) || Number(enemy && enemy.level) || 1);
     const catalog = getCatalog();
     const dropItems = catalog.filter((item) => {
       if (!item || item.level > level + 8) return false;
+      if (normalizeId(item.slot) === 'weapon' && player && player.classId && !matchesPlayerClass(item, player)) return false;
       return true;
     });
     const weightedDropItems = dropItems.map((item) => ({
@@ -1829,7 +1866,7 @@
       weight: getWeight(item, player)
     }));
     const selected = weightedDropItems.length ? chooseWeighted(weightedDropItems) : null;
-    const base = selected && selected.item || catalog[0];
+    const base = selected && selected.item || dropItems[0];
     if (!base) return null;
     const rarityRoll = random();
     let rarity = base.rarity;
@@ -1949,6 +1986,7 @@
     weightedDropTableEntry,
     getMonsterPrimaryEtcEntry,
     getMonsterBonusMaterialEntries,
+    getMonsterEquipmentDropLevelCap,
     getMonsterEquipmentTableEntries,
     getMonsterCardTableEntries,
     getMonsterPotionTableEntries,

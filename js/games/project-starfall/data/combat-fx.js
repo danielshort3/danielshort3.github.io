@@ -17,6 +17,7 @@
     const ENEMIES = Array.isArray(settings.ENEMIES) ? settings.ENEMIES : [];
     const CORE_ANIMATION_ASSETS = settings.CORE_ANIMATION_ASSETS || {};
     const ENEMY_PROJECTILE_ANIMATION_ASSETS = settings.ENEMY_PROJECTILE_ANIMATION_ASSETS || {};
+    const ENEMY_COMBAT_FX_FILE_IDS = settings.ENEMY_COMBAT_FX_FILE_IDS || {};
     const SKILL_FX_ANIMATION_ROWS = settings.SKILL_FX_ANIMATION_ROWS || Object.freeze(['cast', 'projectile', 'impact', 'area']);
     const BASIC_ATTACK_FX_ANIMATION_ROWS = settings.BASIC_ATTACK_FX_ANIMATION_ROWS || Object.freeze(['cast', 'projectile', 'impact', 'trail']);
     const ENEMY_COMBAT_FX_ANIMATION_ROWS = settings.ENEMY_COMBAT_FX_ANIMATION_ROWS || Object.freeze(['telegraph', 'melee', 'projectile', 'buff', 'impact']);
@@ -37,7 +38,11 @@
     }, {}));
 
     const ENEMY_COMBAT_FX_ANIMATION_ASSETS = Object.freeze(ENEMIES.reduce((assets, enemy) => {
-      assets[enemy.id] = makeCombatFxAnimationAsset(toCombatFxFileId(enemy.id), 'enemies', ENEMY_COMBAT_FX_ANIMATION_ROWS);
+      assets[enemy.id] = makeCombatFxAnimationAsset(
+        ENEMY_COMBAT_FX_FILE_IDS[enemy.id] || toCombatFxFileId(enemy.id),
+        'enemies',
+        ENEMY_COMBAT_FX_ANIMATION_ROWS
+      );
       return assets;
     }, {}));
 

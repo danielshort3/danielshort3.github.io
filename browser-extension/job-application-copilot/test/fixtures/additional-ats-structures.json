@@ -1,0 +1,504 @@
+{
+  "cases": [
+    {
+      "id": "icims",
+      "source": "iCIMS",
+      "url": "https://careers.icims.com/jobs/100/application",
+      "selector": "[data-icims-application]",
+      "root": {
+        "selector": "[data-icims-application]",
+        "tagName": "FORM",
+        "id": "icims-application-form",
+        "className": "icims candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "oracle-recruiting",
+      "source": "Oracle Recruiting / Taleo",
+      "url": "https://acme.taleo.net/careersection/apply",
+      "selector": "[data-qa=\"candidate-application\"]",
+      "root": {
+        "selector": "[data-qa=\"candidate-application\"]",
+        "tagName": "FORM",
+        "id": "oracle-recruiting-application-form",
+        "className": "oracle-recruiting candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bamboohr",
+      "source": "BambooHR",
+      "url": "https://acme.bamboohr.com/careers/100/application",
+      "selector": "#applicationForm",
+      "root": {
+        "selector": "#applicationForm",
+        "tagName": "FORM",
+        "id": "bamboohr-application-form",
+        "className": "bamboohr candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "adp",
+      "source": "ADP Recruiting",
+      "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/apply",
+      "selector": "[data-adp-application]",
+      "root": {
+        "selector": "[data-adp-application]",
+        "tagName": "FORM",
+        "id": "adp-application-form",
+        "className": "adp candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ukg",
+      "source": "UKG Recruiting",
+      "url": "https://recruiting.ultipro.com/ACM1000/apply",
+      "selector": "[data-ukg-application]",
+      "root": {
+        "selector": "[data-ukg-application]",
+        "tagName": "FORM",
+        "id": "ukg-application-form",
+        "className": "ukg candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "jobvite",
+      "source": "Jobvite",
+      "url": "https://jobs.jobvite.com/acme/job/100/apply",
+      "selector": "form#jvform",
+      "root": {
+        "selector": "form#jvform",
+        "tagName": "FORM",
+        "id": "jobvite-application-form",
+        "className": "jobvite candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "jazzhr",
+      "source": "JazzHR",
+      "url": "https://acme.applytojob.com/apply/100",
+      "selector": "form#application_form",
+      "root": {
+        "selector": "form#application_form",
+        "tagName": "FORM",
+        "id": "jazzhr-application-form",
+        "className": "jazzhr candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "recruitee",
+      "source": "Recruitee",
+      "url": "https://acme.recruitee.com/o/analyst/c/new",
+      "selector": "[data-recruitee-application]",
+      "root": {
+        "selector": "[data-recruitee-application]",
+        "tagName": "FORM",
+        "id": "recruitee-application-form",
+        "className": "recruitee candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "pinpoint",
+      "source": "Pinpoint",
+      "url": "https://acme.pinpointhq.com/postings/100/applications/new",
+      "selector": "[data-pinpoint-application]",
+      "root": {
+        "selector": "[data-pinpoint-application]",
+        "tagName": "FORM",
+        "id": "pinpoint-application-form",
+        "className": "pinpoint candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "successfactors",
+      "source": "SAP SuccessFactors",
+      "url": "https://career5.successfactors.eu/career/apply",
+      "selector": "[data-successfactors-application]",
+      "root": {
+        "selector": "[data-successfactors-application]",
+        "tagName": "FORM",
+        "id": "successfactors-application-form",
+        "className": "successfactors candidate application",
+        "fields": [
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateFirstName",
+            "label": "First name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "text",
+            "name": "candidateLastName",
+            "label": "Last name"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "email",
+            "name": "candidateEmail",
+            "label": "Email address"
+          },
+          {
+            "tagName": "TEXTAREA",
+            "type": "textarea",
+            "name": "interest",
+            "label": "Why are you interested in this role?"
+          },
+          {
+            "tagName": "INPUT",
+            "type": "file",
+            "name": "resume",
+            "label": "Resume"
+          },
+          {
+            "tagName": "BUTTON",
+            "type": "submit",
+            "name": "submit",
+            "label": "Submit application"
+          }
+        ]
+      }
+    }
+  ]
+}

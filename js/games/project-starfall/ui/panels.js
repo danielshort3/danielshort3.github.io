@@ -20,7 +20,7 @@
   const CANVAS_TILE_LAYER_CACHE_ENTRY_LIMIT = UiPanelCache.CANVAS_TILE_LAYER_CACHE_ENTRY_LIMIT;
   const HUD_REFRESH_DOMAINS = Object.freeze(['hud', 'equipment', 'cards', 'skills', 'party', 'pet', 'settings']);
   const UI_CHANGE_HUD_REFRESH_DOMAINS = Object.freeze(['hud', 'equipment', 'cards', 'skills', 'party', 'pet']);
-  const UI_CHANGE_LAZY_REFRESH_DOMAINS = new Set(['world', 'quests', 'guide', 'monsterGuide', 'debug', 'inventory', 'equipment', 'cards', 'shop', 'party', 'pet', 'daily']);
+  const UI_CHANGE_LAZY_REFRESH_DOMAINS = new Set(['world', 'quests', 'guide', 'monsterGuide', 'debug', 'inventory', 'equipment', 'cards', 'shop', 'party', 'pet', 'daily', 'season']);
   const DOM_ATTACK_ACTION_BUTTON_ATTRIBUTES = Object.freeze([
     'data-starfall-action'
   ]);
@@ -33,6 +33,7 @@
     loaderStatus: '[data-starfall-loader-status]',
     startScreen: '[data-starfall-start-screen]',
     classSelect: '[data-starfall-class-select]',
+    touchControls: '[data-starfall-touch-controls]',
     hud: '[data-starfall-hud]',
     commandMenu: '[data-starfall-command-menu]',
     commandToggle: '[data-starfall-command-toggle]',
@@ -54,6 +55,7 @@
     plinko: 'renderPlinkoPanel',
     daily: 'renderDailyLoginPanel',
     cashShop: 'renderCashShopPanel',
+    beta: 'renderFractureOpsPanel',
     guide: 'renderGuidePanel',
     log: 'renderLogPanel',
     keybinds: 'renderKeybindsPanel',
@@ -61,27 +63,6 @@
     admin: 'renderAdminPanel',
     worldwright: 'renderAdminConsole',
     assetPreview: 'renderAssetPreviewPanel'
-  });
-  const DOM_PANEL_TITLES = Object.freeze({
-    character: 'Character',
-    equipment: 'Equipment',
-    partyPanel: 'Party',
-    pet: 'Pet',
-    worldmap: 'World Map',
-    skills: 'Skill Tree',
-    inventory: 'Inventory',
-    storage: 'Shared Storage',
-    shop: 'Shop',
-    upgrade: 'Upgrade Station',
-    plinko: 'Starfall Plinko',
-    cashShop: 'Cash Shop',
-    guide: 'Guide',
-    log: 'Session Log',
-    keybinds: 'Keybinds',
-    settings: 'Settings',
-    admin: 'Admin Settings',
-    worldwright: 'Worldwright Console',
-    assetPreview: 'Asset Preview'
   });
   const DOM_PANEL_MODAL_CLASS_TOGGLES = Object.freeze([
     Object.freeze({ className: 'is-inventory-modal', panelId: 'inventory' }),
@@ -127,11 +108,12 @@
     if (id === 'character') return ['hud', 'session', 'equipment', 'cards', 'skills'];
     if (id === 'skills') return ['session', 'skills', 'hud'];
     if (id === 'quests') return ['session', 'quests'];
-    if (id === 'worldmap') return ['session', 'world', 'quests'];
+    if (id === 'worldmap') return ['session', 'world', 'quests', 'season'];
     if (id === 'monsters') return ['session', 'monsterGuide', 'guide'];
     if (id === 'partyPanel') return ['session', 'party'];
     if (id === 'pet') return ['session', 'pet', 'inventory'];
     if (id === 'daily') return ['session', 'daily', 'inventory', 'cards', 'shop', 'hud'];
+    if (id === 'beta') return ['session', 'season', 'world', 'quests', 'shop', 'inventory', 'hud'];
     if (id === 'shop' || id === 'cashShop' || id === 'plinko') return ['session', 'shop', 'inventory', 'hud'];
     if (id === 'guide') return ['session', 'guide', 'skills', 'world', 'quests'];
     if (id === 'keybinds' || id === 'settings' || id === 'admin') return ['session', 'settings', 'debug'];
@@ -145,7 +127,7 @@
   function getDomPanelPresentation(panelId) {
     const id = String(panelId || '');
     return {
-      title: DOM_PANEL_TITLES[id] || 'Project Starfall',
+      title: typeof getWindowTitle === 'function' ? getWindowTitle(id) : 'Project Starfall',
       kicker: 'Project Starfall',
       headerActions: id === 'inventory' ? 'inventorySort' : '',
       modalClassToggles: DOM_PANEL_MODAL_CLASS_TOGGLES.map((entry) => ({
@@ -280,6 +262,9 @@
     if (set.has('daily') && typeof source.getDailyLoginSnapshot === 'function') {
       update.dailyLogin = source.getDailyLoginSnapshot();
     }
+    if ((set.has('season') || set.has('shop')) && typeof source.getSeasonSnapshot === 'function') {
+      update.season = source.getSeasonSnapshot();
+    }
     if (set.has('party') && typeof source.getPartySnapshot === 'function') {
       update.party = source.getPartySnapshot();
     }
@@ -370,6 +355,8 @@
       : () => false;
     if (hasAttribute('data-starfall-command-toggle')) return { handled: true, type: 'toggleCommand' };
     if (hasAttribute('data-starfall-close')) return { handled: true, type: 'closePanel' };
+    const channelId = getAttribute('data-starfall-command-channel');
+    if (channelId) return { handled: true, type: 'changeChannel', channelId };
     const panelId = getAttribute('data-starfall-open-panel');
     if (panelId) return { handled: true, type: 'togglePanel', panelId };
     return { handled: false, type: '' };
@@ -386,6 +373,29 @@
   function getDailyPanelRegionAction(region) {
     const source = region || {};
     if (source.type === 'daily-login-claim') return { handled: true, type: 'claimDailyLoginReward' };
+    return { handled: false, type: '' };
+  }
+
+  function getFractureOpsPanelDomAction(target) {
+    const source = target || null;
+    const getAttribute = source && typeof source.getAttribute === 'function'
+      ? (name) => source.getAttribute(name)
+      : () => null;
+    const hasAttribute = source && typeof source.hasAttribute === 'function'
+      ? (name) => source.hasAttribute(name)
+      : () => false;
+    const directiveId = getAttribute('data-starfall-directive-select');
+    if (directiveId) return { handled: true, type: 'selectSeasonDirective', directiveId };
+    if (hasAttribute('data-starfall-season-claim')) return { handled: true, type: 'claimSeasonReward' };
+    return { handled: false, type: '' };
+  }
+
+  function getFractureOpsPanelRegionAction(region) {
+    const source = region || {};
+    if (source.type === 'directive-select' && source.directiveId) {
+      return { handled: true, type: 'selectSeasonDirective', directiveId: source.directiveId };
+    }
+    if (source.type === 'season-claim') return { handled: true, type: 'claimSeasonReward' };
     return { handled: false, type: '' };
   }
 
@@ -488,6 +498,8 @@
       getPanelShellDomAction,
       getDailyPanelDomAction,
       getDailyPanelRegionAction,
+      getFractureOpsPanelDomAction,
+      getFractureOpsPanelRegionAction,
       getActionButtonDomAction,
       getAttackActionButtonTarget,
       getActionButtonPointerDomAction
@@ -538,6 +550,8 @@
     getPanelShellDomAction,
     getDailyPanelDomAction,
     getDailyPanelRegionAction,
+    getFractureOpsPanelDomAction,
+    getFractureOpsPanelRegionAction,
     getActionButtonDomAction,
     getAttackActionButtonTarget,
     getActionButtonPointerDomAction,

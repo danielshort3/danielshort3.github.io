@@ -194,13 +194,40 @@ function printTextReport(report) {
     const retention = report.retention;
     const playerCoverage = retention.playerTypeCoverage || {};
     const cashShop = retention.cashShop || {};
+    const directives = retention.fractureDirectives || {};
     const lanes = (retention.longTermLanes || [])
       .filter((lane) => lane.available)
       .map((lane) => lane.laneId)
       .slice(0, 6)
       .join(', ');
     const missingTypes = (playerCoverage.missingTypeIds || []).join(', ');
-    process.stdout.write('\nRetention and chore health\n');
+    const directiveIssueText = (directives.issueIds || []).join(', ');
+    const directiveSeasonIds = (directives.referencedSeasonIds || []).join(', ') || 'none';
+    const directiveSummaryLines = [
+      'Fracture directives ' + (directives.weeklyChoiceCount || 0) +
+        ' weekly choices, modeled ' + (directives.modeledDurationMinMinutes || 0) + '-' +
+        (directives.modeledDurationMaxMinutes || 0) + 'm (median ' +
+        (directives.modeledDurationMedianMinutes || 0) + 'm), reward parity ' +
+        (directives.rewardParity ? 'yes' : 'no') + ', playstyles ' +
+        (directives.uniquePlaystyleCount || 0) + '/' + (directives.weeklyChoiceCount || 0),
+      'Directive season links ' + (directives.validSeasonReferenceDirectiveCount || 0) + '/' +
+        (directives.weeklyChoiceCount || 0) + ' valid across ' +
+        (directives.referencedSeasonCount || 0) + ' referenced season' +
+        ((directives.referencedSeasonCount || 0) === 1 ? '' : 's') + ' (' + directiveSeasonIds +
+        '), referenced rewards ' + (directives.referencedRewardMatchCount || 0) + '/' +
+        (directives.weeklyChoiceCount || 0) + ' matched, missing ' +
+        (directives.missingSeasonReferenceDirectiveIds || []).length + ', invalid ' +
+        (directives.invalidSeasonReferenceDirectiveIds || []).length,
+      'Directive references ' + (directives.validReferenceDirectiveCount || 0) + '/' +
+        (directives.weeklyChoiceCount || 0) + ' valid, power rewards ' +
+        (directives.powerRewardCount || 0) + ', stabilization visual-only ' +
+        (directives.visualOnlyStabilizationCount || 0) + '/' + (directives.weeklyChoiceCount || 0) +
+        ' and capped ' + (directives.cappedStabilizationCount || 0) + '/' +
+        (directives.weeklyChoiceCount || 0) + ' (max ' +
+        (directives.maxStabilizationSeals || 0) + ' seals), issues ' +
+        (directives.issueCount || 0) + (directiveIssueText ? ' (' + directiveIssueText + ')' : '')
+    ];
+    process.stdout.write('\nRetention and chore health\n' + directiveSummaryLines.join('\n') + '\n');
     process.stdout.write(`Daily rewards ${retention.dailyLoginRewardCount}, milestones ${retention.dailyLoginMilestoneCount}, mandatory checklist ${retention.mandatoryDailyChecklistCount}/${retention.estimatedMandatoryDailyMinutes}m, active season goals ${retention.activeSeasonObjectiveCount}/${retention.estimatedSeasonGoalMinutes}m, issues ${retention.issueCount}\n`);
     process.stdout.write(`Long-term lanes ${retention.longTermLaneCount}, player coverage ${playerCoverage.coveredCount}/${playerCoverage.typeCount}${missingTypes ? ` missing ${missingTypes}` : ''}, examples ${lanes}\n`);
     process.stdout.write(`Accomplishments ${retention.accomplishmentCount} across ${retention.accomplishmentCategoryCount} categories/${retention.accomplishmentTierCount} tiers, monster guide ${retention.liveMonsterGuideCount}, cards ${retention.cardCount}, mastery tracks ${retention.classMasteryTrackCount}, roster ${retention.rosterTraitCount}/${retention.rosterSynergyCount}\n`);

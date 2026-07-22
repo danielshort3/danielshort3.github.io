@@ -239,24 +239,37 @@
     return Object.freeze({ kind: 'chest', cloth: theme.main, trim: theme.light, stitch: theme.accent });
   }
 
+  const STARFRONT_EQUIPMENT_PALETTE = Object.freeze({
+    profile: 'fractured-starfront',
+    darkMetal: '#202a32',
+    metal: '#71808a',
+    trim: '#a9bac4',
+    accent: '#54c9da',
+    ember: '#cf7049'
+  });
+
+  function makeStarfrontEquipmentStyle(style) {
+    return Object.freeze(Object.assign({}, STARFRONT_EQUIPMENT_PALETTE, style || {}));
+  }
+
   const BASE_FIGHTER_RIG_EQUIPMENT_VISUALS = Object.freeze({
-    training_sword: Object.freeze({ kind: 'sword', blade: '#aebec9', shine: '#eaf5ff', grip: '#8f5f39' }),
-    training_wand: Object.freeze({ kind: 'wand', rod: '#8b5f35', glow: '#8bd7ff', gem: '#c6f4ff' }),
-    training_bow: Object.freeze({ kind: 'bow', wood: '#9b6a35', string: '#f1e6ca', arrow: '#efe2a4' }),
-    copper_sword: Object.freeze({ kind: 'sword', blade: '#c8753d', shine: '#ffc179', grip: '#6b3f2c' }),
-    birch_wand: Object.freeze({ kind: 'wand', rod: '#d7bd7a', glow: '#9fffd1', gem: '#ecfff4' }),
-    simple_bow: Object.freeze({ kind: 'bow', wood: '#8a5c2f', string: '#f5efd6', arrow: '#ffe16a' }),
-    iron_sword: Object.freeze({ kind: 'sword', blade: '#dce6ee', shine: '#ffffff', grip: '#565f6c' }),
-    iron_axe: Object.freeze({ kind: 'axe', blade: '#d6e1e8', shine: '#ffffff', grip: '#815334' }),
-    apprentice_staff: Object.freeze({ kind: 'staff', rod: '#724c2f', glow: '#5fa8ff', gem: '#cbe8ff' }),
-    oak_longbow: Object.freeze({ kind: 'bow', wood: '#704826', string: '#fff5d0', arrow: '#ffe16a', long: true }),
-    stitched_vest: Object.freeze({ kind: 'chest', cloth: '#8c5a3a', trim: '#d39a5c', stitch: '#f3d5a0' }),
+    training_sword: makeStarfrontEquipmentStyle({ kind: 'sword', blade: '#71808a', bright: '#b8c8d0', grip: '#34383b', bladeLength: 34, minNeutralExtent: 54, maxNeutralExtent: 75 }),
+    training_wand: makeStarfrontEquipmentStyle({ kind: 'wand', rod: '#34383b', gem: '#a8edf3', glow: '#54c9da', minNeutralExtent: 55, maxNeutralExtent: 75 }),
+    training_bow: makeStarfrontEquipmentStyle({ kind: 'bow', wood: '#465159', string: '#a8edf3', arrow: '#cf7049', minNeutralExtent: 55, maxNeutralExtent: 78 }),
+    copper_sword: makeStarfrontEquipmentStyle({ kind: 'sword', blade: '#a85b3d', bright: '#df9164', grip: '#34383b', bladeLength: 36, minNeutralExtent: 56, maxNeutralExtent: 77 }),
+    birch_wand: makeStarfrontEquipmentStyle({ kind: 'wand', rod: '#465159', gem: '#b8f3e3', glow: '#54c9da', minNeutralExtent: 55, maxNeutralExtent: 75 }),
+    simple_bow: makeStarfrontEquipmentStyle({ kind: 'bow', wood: '#3d4a50', string: '#a8edf3', arrow: '#cf7049', minNeutralExtent: 55, maxNeutralExtent: 78 }),
+    iron_sword: makeStarfrontEquipmentStyle({ kind: 'sword', blade: '#7f8f99', bright: '#c6d4da', grip: '#34383b', bladeLength: 37, minNeutralExtent: 57, maxNeutralExtent: 78 }),
+    iron_axe: makeStarfrontEquipmentStyle({ kind: 'axe', blade: '#7f8f99', bright: '#c6d4da', grip: '#34383b', minNeutralExtent: 74, maxNeutralExtent: 90 }),
+    apprentice_staff: makeStarfrontEquipmentStyle({ kind: 'staff', rod: '#34383b', gem: '#a8edf3', glow: '#54c9da', minNeutralExtent: 82, maxNeutralExtent: 102 }),
+    oak_longbow: makeStarfrontEquipmentStyle({ kind: 'bow', wood: '#3d4a50', string: '#a8edf3', arrow: '#cf7049', long: true, minNeutralExtent: 66, maxNeutralExtent: 90 }),
+    stitched_vest: makeStarfrontEquipmentStyle({ kind: 'chest', cloth: '#3f4b55', trim: '#71808a', minNeutralExtent: 54, maxNeutralExtent: 70 }),
     party_plate: Object.freeze({ kind: 'chest', cloth: '#526f86', trim: '#b7c3ca', stitch: '#68a9ff' }),
     party_robes: Object.freeze({ kind: 'chest', cloth: '#5b62a8', trim: '#b8e6ff', stitch: '#7bdff2' }),
     party_leathers: Object.freeze({ kind: 'chest', cloth: '#4f7b58', trim: '#d5c66a', stitch: '#ffe16a' }),
-    traveler_boots: Object.freeze({ kind: 'boots', leather: '#6f412b', sole: '#2b1d1b', buckle: '#d6a14a' }),
-    fieldguard_helm: Object.freeze({ kind: 'head', trim: '#8da2af', metal: '#b7c3ca', dark: '#445766' }),
-    trailwoven_gloves: Object.freeze({ kind: 'gloves', dark: '#6f412b', metal: '#b7c3ca', edge: '#d6a14a' }),
+    traveler_boots: makeStarfrontEquipmentStyle({ kind: 'boots', leather: '#3f4b55', sole: '#202a32', minNeutralExtent: 25, maxNeutralExtent: 36 }),
+    fieldguard_helm: makeStarfrontEquipmentStyle({ kind: 'head', metal: '#71808a', dark: '#202a32', minNeutralExtent: 38, maxNeutralExtent: 52 }),
+    trailwoven_gloves: makeStarfrontEquipmentStyle({ kind: 'gloves', dark: '#202a32', metal: '#71808a', edge: '#a9bac4', minNeutralExtent: 18, maxNeutralExtent: 30 }),
     plain_ring: Object.freeze({ kind: 'ring', metal: '#f7d879', glow: '#ffe16a' }),
     guardian_tower_shield: Object.freeze({ kind: 'shield', face: '#466d91', trim: '#d5ecff', metal: '#6fa8d9' }),
     berserker_war_grip: Object.freeze({ kind: 'grip', metal: '#a22d36', edge: '#ff6b5e', dark: '#4d1f24' }),
@@ -264,6 +277,11 @@
     rune_etched_focus: Object.freeze({ kind: 'focus', core: '#28c7b7', glow: '#b8fff2', dark: '#146b72' }),
     deadeye_scope: Object.freeze({ kind: 'scope', metal: '#4b5663', lens: '#ffe16a', trim: '#d8c25f' }),
     trap_kit: Object.freeze({ kind: 'kit', leather: '#8a5a36', metal: '#b7c3ca', cord: '#3f2c24' })
+  });
+
+  const EXTRA_STARFRONT_EQUIPMENT_VISUALS = Object.freeze({
+    adventurer_cutlass: makeStarfrontEquipmentStyle({ kind: 'sword', blade: '#71808a', bright: '#b8c8d0', grip: '#34383b', bladeLength: 36, minNeutralExtent: 56, maxNeutralExtent: 77 }),
+    balanced_focus: makeStarfrontEquipmentStyle({ kind: 'staff', rod: '#34383b', gem: '#a8edf3', glow: '#54c9da', minNeutralExtent: 82, maxNeutralExtent: 102 })
   });
 
   function createEquipmentVisualData(options) {
@@ -284,7 +302,7 @@
     const FIGHTER_RIG_EQUIPMENT_VISUALS = Object.freeze(Object.assign({},
       BASE_FIGHTER_RIG_EQUIPMENT_VISUALS,
       EXTRA_EQUIPMENT_VISUAL_CONFIGS.reduce((visuals, config) => {
-        visuals[config.id] = makeFighterRigEquipmentVisual(config);
+        visuals[config.id] = EXTRA_STARFRONT_EQUIPMENT_VISUALS[config.id] || makeFighterRigEquipmentVisual(config);
         return visuals;
       }, {})
     ));

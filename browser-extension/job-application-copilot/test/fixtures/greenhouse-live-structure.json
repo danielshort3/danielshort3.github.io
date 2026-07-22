@@ -1,0 +1,23 @@
+{
+  "fixtureVersion": 1,
+  "source": "Sanitized structural capture of a public Greenhouse application",
+  "url": "https://job-boards.greenhouse.io/acme/jobs/1234567",
+  "applicationForm": {
+    "selector": "form#application-form",
+    "tagName": "FORM",
+    "id": "application-form",
+    "className": "application-form",
+    "action": "https://job-boards.greenhouse.io/acme/jobs/1234567/applications",
+    "fields": [
+      { "tagName": "INPUT", "type": "text", "name": "first_name", "label": "First name" },
+      { "tagName": "INPUT", "type": "text", "name": "last_name", "label": "Last name" },
+      { "tagName": "INPUT", "type": "email", "name": "email", "label": "Email" },
+      { "tagName": "INPUT", "type": "url", "name": "urls[LinkedIn]", "label": "LinkedIn URL" },
+      { "tagName": "TEXTAREA", "name": "motivation", "label": "Why are you interested in this role?" },
+      { "tagName": "SELECT", "name": "sponsorship", "label": "Will you require sponsorship?" },
+      { "tagName": "INPUT", "type": "file", "name": "resume", "label": "Resume" },
+      { "tagName": "INPUT", "type": "checkbox", "name": "privacy", "label": "I agree to the privacy notice" },
+      { "tagName": "BUTTON", "type": "submit", "name": "submit", "label": "Submit application" }
+    ]
+  }
+}

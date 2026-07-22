@@ -1,0 +1,62 @@
+{
+  "url": "https://acme.applicantpro.com/jobs/12345?jobId=12345&utm_source=tracker#apply",
+  "job": {
+    "company": "Acme Analytics",
+    "title": "Senior Data Analyst",
+    "location": "Denver, CO",
+    "source": "ApplicantPro"
+  },
+  "fields": [
+    {
+      "tagName": "INPUT",
+      "type": "text",
+      "name": "first_name",
+      "label": "First name",
+      "riskClass": "F1_VERIFIED"
+    },
+    {
+      "tagName": "INPUT",
+      "type": "email",
+      "name": "email",
+      "label": "Email address",
+      "riskClass": "F1_VERIFIED"
+    },
+    {
+      "tagName": "TEXTAREA",
+      "type": "textarea",
+      "name": "interest",
+      "label": "Why are you interested in this role?",
+      "nearbyText": "Keep your response under 500 words.",
+      "riskClass": "F2_REVIEW"
+    },
+    {
+      "tagName": "INPUT",
+      "type": "number",
+      "name": "salary",
+      "label": "Desired salary",
+      "riskClass": "F2_REVIEW"
+    },
+    {
+      "tagName": "SELECT",
+      "type": "select-one",
+      "name": "gender",
+      "label": "Gender",
+      "options": ["Select", "Female", "Male", "Non-binary"],
+      "riskClass": "F3_SENSITIVE"
+    },
+    {
+      "tagName": "INPUT",
+      "type": "checkbox",
+      "name": "certification",
+      "label": "I certify that these answers are correct",
+      "riskClass": "F4_CONSENT"
+    },
+    {
+      "tagName": "INPUT",
+      "type": "password",
+      "name": "account_password",
+      "label": "Password",
+      "riskClass": "F0_EXCLUDED"
+    }
+  ]
+}

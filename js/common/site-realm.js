@@ -177,16 +177,16 @@
           <div class="nav-dropdown-inner nav-dropdown-inner-simple">
             <div class="nav-dropdown-column nav-dropdown-column-list">
               <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-              <div class="nav-dropdown-list" role="list">
-                <a href="${escapeHtml(resumePath)}" class="nav-dropdown-link" role="listitem" data-resume-home-link="true">
+              <div class="nav-dropdown-list">
+                <a href="${escapeHtml(resumePath)}" class="nav-dropdown-link" data-resume-home-link="true">
                   <span class="nav-dropdown-title">${escapeHtml(audience.resumeNavTitle || 'Resume')}</span>
                   <span class="nav-dropdown-subtitle">${escapeHtml(audience.resumeNavSubtitle || 'View the digital resume')}</span>
                 </a>
-                <a href="${escapeHtml(previewPath)}" class="nav-dropdown-link" role="listitem" data-resume-preview-link="true">
+                <a href="${escapeHtml(previewPath)}" class="nav-dropdown-link" data-resume-preview-link="true">
                   <span class="nav-dropdown-title">Preview PDF</span>
                   <span class="nav-dropdown-subtitle">${escapeHtml(audience.resumePreviewSubtitle || 'Open the PDF preview')}</span>
                 </a>
-                <a href="${escapeHtml(downloadPath)}" class="nav-dropdown-link" role="listitem" download data-resume-download-link="true">
+                <a href="${escapeHtml(downloadPath)}" class="nav-dropdown-link" download data-resume-download-link="true">
                   <span class="nav-dropdown-title">Download Resume</span>
                   <span class="nav-dropdown-subtitle">${escapeHtml(audience.resumeDownloadSubtitle || 'Download the PDF')}</span>
                 </a>
@@ -319,6 +319,57 @@
     footer.dataset.audience = audience.key;
   };
 
+  const applyAudienceContact = (audience) => {
+    if (!audience || normalizeAudience(audience.key) === PERSONAL_MODE || document.body?.dataset.page !== 'contact') return;
+    const key = normalizeAudience(audience.key);
+    if (document.body.dataset.contactAudience === key) return;
+
+    const focusByAudience = {
+      analytics: 'data analytics, BI, and reporting automation',
+      'data-science': 'data science, applied machine learning, and model evaluation',
+      tourism: 'tourism analytics, destination intelligence, and stakeholder reporting'
+    };
+    const focus = focusByAudience[key] || `${audience.label || audience.shortLabel || 'professional'} work`;
+    const shortLabel = audience.shortLabel || audience.label || 'Professional';
+    const hero = document.querySelector('.contact-page .hero');
+    const heading = hero?.querySelector('h1');
+    const tagline = hero?.querySelector('.hero-tagline');
+    const ctaGroup = hero?.querySelector('.cta-group');
+    if (heading) heading.textContent = `Let's Talk ${shortLabel} Roles`;
+    if (tagline) tagline.textContent = `Reach out about ${focus} roles. Include the team, priorities, and timeline; I'll reply with the most relevant work.`;
+
+    if (ctaGroup && !hero.querySelector('[data-professional-contact-links]')) {
+      const proofLinks = document.createElement('nav');
+      proofLinks.className = 'contact-professional-links';
+      proofLinks.dataset.professionalContactLinks = 'true';
+      proofLinks.setAttribute('aria-label', 'Professional proof links');
+      proofLinks.innerHTML = `
+        <a href="${escapeHtml(trimLeadingSlash(audience.portfolioPath || '/portfolio'))}">View matching portfolio</a>
+        <a href="${escapeHtml(trimLeadingSlash(audience.resumePath || ''))}">View matching resume</a>
+      `.trim();
+      ctaGroup.insertAdjacentElement('afterend', proofLinks);
+    }
+
+    const optionsHeading = document.querySelector('#contact-options .contact-options-heading .section-title');
+    const optionsSubtitle = document.querySelector('#contact-options .contact-options-heading .section-subtitle');
+    if (optionsHeading) optionsHeading.textContent = 'Direct Contact';
+    if (optionsSubtitle) optionsSubtitle.textContent = 'Email is fastest. LinkedIn is best for introductions, and GitHub shows implementation detail.';
+    const duplicateMessageCard = document.querySelector('#contact-options .contact-card-recommended');
+    if (duplicateMessageCard) duplicateMessageCard.hidden = true;
+
+    const messageInput = document.getElementById('contact-message');
+    if (messageInput) messageInput.setAttribute('placeholder', 'Share the role, team, priorities, timeline, and any questions.');
+
+    const location = document.getElementById('grand-junction-location');
+    const locationBody = location?.querySelector('.section-subtitle');
+    const mapShell = location?.querySelector('.cms-map-shell');
+    if (locationBody) locationBody.textContent = 'Based in Grand Junction, Colorado and open to remote, hybrid, and Colorado-based opportunities.';
+    if (mapShell) mapShell.hidden = true;
+
+    document.body.classList.add('professional-contact-page');
+    document.body.dataset.contactAudience = key;
+  };
+
   const isInternalHttpUrl = (url) => url && /^https?:$/i.test(url.protocol) && url.origin === window.location.origin;
 
   const withAudienceContext = (href, audienceKey) => {
@@ -398,6 +449,7 @@
     const audience = setDocumentRealm(detectAudience());
     applyAudienceNavigation(audience);
     applyAudienceFooter(audience);
+    applyAudienceContact(audience);
     preserveAudienceContext(audience.key);
     updateSwitches(audience);
     observeAudienceLinks(audience.key);

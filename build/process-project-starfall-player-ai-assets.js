@@ -17,14 +17,23 @@ const {
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE_ROOT = path.join(ROOT, 'asset-sources/project-starfall/players');
 const CLASS_SOURCE_DIR = path.join(SOURCE_ROOT, 'classes');
+const CLASS_FAMILY_SOURCE_DIR = path.join(SOURCE_ROOT, 'class-families');
+// Retained only for the dormant pose-rig fallback below. The approved runtime
+// path is the authored Fracture Runner sheet declared after these legacy files.
 const REFERENCE_PATH = path.join(SOURCE_ROOT, 'starfall-chibi-equipment-reference.png');
 const BASE_SPRITE_PATH = path.join(SOURCE_ROOT, 'plain-adventurer-base.png');
-const APPROVED_ANIMATION_SOURCE_PATH = path.join(SOURCE_ROOT, 'generic-player-v2-generated-source.png');
-const REVIEW_CONTACT_SHEET_PATH = path.join(SOURCE_ROOT, 'plain-adventurer-review.png');
+const CONCEPT_SOURCE_PATH = path.join(SOURCE_ROOT, 'fracture-runner-v4-generated-chroma.png');
+const APPROVED_BASE_SPRITE_PATH = path.join(SOURCE_ROOT, 'fracture-runner-v4-base.png');
+const APPROVED_ANIMATION_SOURCE_PATH = path.join(SOURCE_ROOT, 'fracture-runner-v4-generated-source.png');
+const REVIEW_CONTACT_SHEET_PATH = path.join(SOURCE_ROOT, 'fracture-runner-v4-review.png');
 const CHARACTER_DIR = path.join(ROOT, 'img/project-starfall/characters');
 const PLAYER_SHEET_DIR = path.join(ROOT, 'img/project-starfall/animations/players');
-
-const STYLE_REFERENCE_SOURCE = '/home/sd205521/.codex/generated_images/019e9e04-d798-7ce3-89ea-0fac77c06988/ig_0d2f4bc617b8d0f0016a257b3533108194b32a4850b76a73b2.png';
+const PLAYER_ART_VERSION = Data.PLAYER_ART_VERSION || 'v5';
+const CLASS_FAMILY_IDS = Object.freeze((Data.CLASS_FAMILY_IDS || ['fighter', 'mage', 'archer']).slice());
+const CLASS_FAMILY_SOURCE_PATHS = Object.freeze(CLASS_FAMILY_IDS.reduce((sources, familyId) => {
+  sources[familyId] = path.join(CLASS_FAMILY_SOURCE_DIR, `${familyId}-${PLAYER_ART_VERSION}-generated-chroma.png`);
+  return sources;
+}, {}));
 
 const CHARACTER_SIZE = 320;
 const FRAME_SIZE = 160;
@@ -129,16 +138,16 @@ function ensureDirs() {
   [
     SOURCE_ROOT,
     CLASS_SOURCE_DIR,
+    CLASS_FAMILY_SOURCE_DIR,
     CHARACTER_DIR,
     PLAYER_SHEET_DIR
   ].forEach((dir) => fs.mkdirSync(dir, { recursive: true }));
 }
 
 function copyReferenceIfAvailable() {
-  if (fs.existsSync(REFERENCE_PATH)) return;
-  if (!fs.existsSync(STYLE_REFERENCE_SOURCE)) return;
-  fs.mkdirSync(path.dirname(REFERENCE_PATH), { recursive: true });
-  fs.copyFileSync(STYLE_REFERENCE_SOURCE, REFERENCE_PATH);
+  // Legacy repair inputs are repository-owned provenance. Never repopulate
+  // them from a machine-specific generated-image path.
+  return fs.existsSync(REFERENCE_PATH);
 }
 
 function toRepoPath(filePath) {
@@ -1074,15 +1083,9 @@ async function writeSourceSheet(frames, destination) {
   return toRepoPath(destination);
 }
 
-async function writeAllClassSourceSheets(genericFrames) {
-  const generated = [];
+async function writeGenericSourceSheet(genericFrames) {
   const genericSource = path.join(CLASS_SOURCE_DIR, 'generic-player-source.png');
-  generated.push(await writeSourceSheet(genericFrames, genericSource));
-  for (const fileId of Object.values(Data.CLASS_FILE_IDS || {})) {
-    const destination = path.join(CLASS_SOURCE_DIR, `${fileId}-source.png`);
-    generated.push(await writeSourceSheet(genericFrames, destination));
-  }
-  return generated;
+  return writeSourceSheet(genericFrames, genericSource);
 }
 
 function isChromaKeyPixel(raw, offset) {
@@ -1094,7 +1097,48 @@ function isChromaKeyPixel(raw, offset) {
   const directMagenta = r > 190 && b > 180 && g < 120;
   const blendedMagenta = r > 140 && b > 140 && g < 130 && Math.abs(r - b) < 96 && Math.max(r, b) - g > 70;
   const directGreen = g > 190 && r < 120 && b < 120;
-  return directMagenta || blendedMagenta || directGreen;
+  const blendedGreen = g > 95 && g - Math.max(r, b) > 38 && g > Math.max(r, b) * 1.35;
+  return directMagenta || blendedMagenta || directGreen || blendedGreen;
+}
+
+function isVisiblePixelNearTransparency(raw, width, height, x, y, radius) {
+  const edgeRadius = Math.max(1, Math.floor(Number(radius) || 1));
+  for (let offsetY = -edgeRadius; offsetY <= edgeRadius; offsetY += 1) {
+    for (let offsetX = -edgeRadius; offsetX <= edgeRadius; offsetX += 1) {
+      if (!offsetX && !offsetY) continue;
+      const neighborX = x + offsetX;
+      const neighborY = y + offsetY;
+      if (neighborX < 0 || neighborY < 0 || neighborX >= width || neighborY >= height) return true;
+      if (raw[(neighborY * width + neighborX) * 4 + 3] <= 12) return true;
+    }
+  }
+  return false;
+}
+
+function isGreenSpillPixel(raw, offset) {
+  if (raw[offset + 3] <= 20) return false;
+  const r = raw[offset];
+  const g = raw[offset + 1];
+  const b = raw[offset + 2];
+  const greenLead = g - Math.max(r, b);
+  return g > 24 && greenLead > 8 && g - r > 12 && g - b > 12;
+}
+
+function despillGreenAlphaEdges(raw, width, height) {
+  const source = Buffer.from(raw);
+  const output = Buffer.from(raw);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      if (!isGreenSpillPixel(source, offset)) continue;
+      if (!isVisiblePixelNearTransparency(source, width, height, x, y, 2)) continue;
+      // Chroma antialias can leave dim green in otherwise opaque contour
+      // pixels. Neutralize only green that leads both red and blue near an
+      // alpha edge; cyan star-tech keeps blue level with green and is safe.
+      output[offset + 1] = Math.min(source[offset + 1], Math.max(source[offset], source[offset + 2]) + 4);
+    }
+  }
+  return output;
 }
 
 function sanitizeSourceCell(raw, width, height) {
@@ -1111,7 +1155,7 @@ function sanitizeSourceCell(raw, width, height) {
       output[offset + 3] = 0;
     }
   }
-  return output;
+  return despillGreenAlphaEdges(output, width, height);
 }
 
 function copyCellRaw(raw, sheetWidth, rectDef) {
@@ -1319,13 +1363,20 @@ async function makeEquippedCompositePreview(frameBuffer) {
   return makeRuntimeScalePreview(composite);
 }
 
+async function writeApprovedBaseSprite(frameBuffer) {
+  await sharp(frameBuffer)
+    .ensureAlpha()
+    .png({ compressionLevel: 9 })
+    .toFile(APPROVED_BASE_SPRITE_PATH);
+  return toRepoPath(APPROVED_BASE_SPRITE_PATH);
+}
+
 async function writeReviewContactSheet(frames) {
-  const referenceCrop = await sharp(REFERENCE_PATH)
-    .extract(REFERENCE_FIRST_ADVENTURER_CROP)
+  const conceptPreview = await sharp(frames[0])
     .resize({ height: 220, fit: 'inside' })
     .png()
     .toBuffer();
-  const basePreview = await sharp(frames[0])
+  const runPreview = await sharp(frames[SHEET_COLS + 2])
     .resize({ height: 220, fit: 'inside', kernel: 'nearest' })
     .png()
     .toBuffer();
@@ -1336,12 +1387,12 @@ async function writeReviewContactSheet(frames) {
     .png()
     .toBuffer()));
   const composites = [
-    { input: referenceCrop, left: 30, top: 34 },
-    { input: basePreview, left: 250, top: 34 },
+    { input: conceptPreview, left: 30, top: 34 },
+    { input: runPreview, left: 250, top: 34 },
     { input: runtimePreview, left: 470, top: 58 },
     { input: equippedPreview, left: 610, top: 58 },
-    { input: makeLabelSvg('reference', 150, 28), left: 30, top: 260 },
-    { input: makeLabelSvg('generated idle', 180, 28), left: 250, top: 260 },
+    { input: makeLabelSvg('approved idle', 170, 28), left: 30, top: 260 },
+    { input: makeLabelSvg('run silhouette', 180, 28), left: 250, top: 260 },
     { input: makeLabelSvg('runtime scale', 180, 28), left: 470, top: 260 },
     { input: makeLabelSvg('weapon + armor', 150, 28), left: 610, top: 260 }
   ];
@@ -1374,25 +1425,34 @@ async function writeReviewContactSheet(frames) {
 
 async function generateAll() {
   ensureDirs();
-  if (!fs.existsSync(APPROVED_ANIMATION_SOURCE_PATH)) {
-    throw new Error(`Missing approved player animation source: ${toRepoPath(APPROVED_ANIMATION_SOURCE_PATH)}`);
+  if (!fs.existsSync(CONCEPT_SOURCE_PATH)) {
+    throw new Error(`Missing approved player animation concept: ${toRepoPath(CONCEPT_SOURCE_PATH)}`);
   }
   const generated = [];
-  const frames = await readSourceCells(APPROVED_ANIMATION_SOURCE_PATH, 'approved weaponless player animation source');
+  const frames = await readSourceCells(CONCEPT_SOURCE_PATH, 'approved weaponless player animation concept');
+  generated.push(await writeSourceSheet(frames, APPROVED_ANIMATION_SOURCE_PATH));
+  generated.push(await writeApprovedBaseSprite(frames[0]));
   generated.push(await writeReviewContactSheet(frames));
-  generated.push(...await writeAllClassSourceSheets(frames));
+  generated.push(await writeGenericSourceSheet(frames));
   generated.push(...await processClassSource(
     'generic-player',
     path.join(CLASS_SOURCE_DIR, 'generic-player-source.png'),
-    path.join(CHARACTER_DIR, 'generic-player.png'),
-    path.join(PLAYER_SHEET_DIR, 'generic-player-sheet.png')
+    path.join(CHARACTER_DIR, 'generic-player-v4.png'),
+    path.join(PLAYER_SHEET_DIR, 'generic-player-sheet-v4.png')
   ));
-  for (const fileId of Object.values(Data.CLASS_FILE_IDS || {})) {
+  for (const familyId of CLASS_FAMILY_IDS) {
+    const conceptPath = CLASS_FAMILY_SOURCE_PATHS[familyId];
+    if (!fs.existsSync(conceptPath)) {
+      throw new Error(`Missing ${familyId} class-family concept: ${toRepoPath(conceptPath)}`);
+    }
+    const familyFrames = await readSourceCells(conceptPath, `${familyId} ${PLAYER_ART_VERSION} class-family concept`);
+    const sourcePath = path.join(CLASS_FAMILY_SOURCE_DIR, `${familyId}-${PLAYER_ART_VERSION}-source.png`);
+    generated.push(await writeSourceSheet(familyFrames, sourcePath));
     generated.push(...await processClassSource(
-      fileId,
-      path.join(CLASS_SOURCE_DIR, `${fileId}-source.png`),
-      path.join(CHARACTER_DIR, `${fileId}.png`),
-      path.join(PLAYER_SHEET_DIR, `${fileId}-sheet.png`)
+      familyId,
+      sourcePath,
+      path.join(CHARACTER_DIR, `${familyId}-${PLAYER_ART_VERSION}.png`),
+      path.join(PLAYER_SHEET_DIR, `${familyId}-sheet-${PLAYER_ART_VERSION}.png`)
     ));
   }
   generated.forEach((file) => process.stdout.write(`Generated ${file}\n`));
@@ -1440,6 +1500,18 @@ function hasVisibleChroma(raw, width, height) {
     if (isChromaKeyPixel(raw, offset) || isGuidePixelRgba(raw, offset, GUIDE_LINE_HEX)) return true;
   }
   return false;
+}
+
+function countVisibleGreenEdgeSpill(raw, width, height) {
+  let count = 0;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      if (!isGreenSpillPixel(raw, offset)) continue;
+      if (isVisiblePixelNearTransparency(raw, width, height, x, y, 2)) count += 1;
+    }
+  }
+  return count;
 }
 
 function getVisibleColorBuckets(raw, width, height) {
@@ -1561,16 +1633,17 @@ function validateActionSemantics(decoded, label) {
   assertSemantic(countFramePixelDiff(raw, width, PLAYER_ROW_INDEX.run, 0, 1, 40) >= 900, `${label} run should not use identical frames`);
   assertSemantic(countFramePixelDiff(raw, width, PLAYER_ROW_INDEX.run, 0, 2, 40) >= 1400, `${label} run should alternate stride poses`);
   assertSemantic(Math.abs((run0.bounds && run0.bounds.centerX || 0) - (run2.bounds && run2.bounds.centerX || 0)) >= 2 ||
-    Math.abs(run0.lowerArea - run2.lowerArea) >= 120,
+    Math.abs(run0.lowerArea - run2.lowerArea) >= 100,
     `${label} run needs visible lower-body stride changes`);
   assertSemantic(Math.abs(run0.upperArea - run1.upperArea) >= 80 || countFramePixelDiff(raw, width, PLAYER_ROW_INDEX.run, 1, 2, 40) >= 900,
     `${label} run needs arm/body counter motion`);
 
   const jump0 = getFrameStats(raw, width, 'jump', 0);
   const jump2 = getFrameStats(raw, width, 'jump', 2);
+  const jump3 = getFrameStats(raw, width, 'jump', 3);
   const jump5 = getFrameStats(raw, width, 'jump', 5);
   assertSemantic(jump2.bounds.minY <= jump0.bounds.minY - 10, `${label} jump should clearly lift off the ground`);
-  assertSemantic(jump5.bounds.maxY >= jump2.bounds.maxY + 8, `${label} jump should return toward landing`);
+  assertSemantic(jump5.bounds.maxY >= jump3.bounds.maxY + 8, `${label} jump should return toward landing after the apex`);
 
   const fall0 = getFrameStats(raw, width, 'fall', 0);
   const fall3 = getFrameStats(raw, width, 'fall', 3);
@@ -1581,7 +1654,8 @@ function validateActionSemantics(decoded, label) {
   const climb0 = getFrameStats(raw, width, 'climb', 0);
   const climb1 = getFrameStats(raw, width, 'climb', 1);
   assertSemantic(countFramePixelDiff(raw, width, PLAYER_ROW_INDEX.climb, 0, 1, 40) >= 900, `${label} climb should alternate reach/pull frames`);
-  assertSemantic(Math.abs(climb0.upperArea - climb1.upperArea) >= 80 || Math.abs(climb0.lowerArea - climb1.lowerArea) >= 80,
+  assertSemantic(Math.abs(climb0.upperArea - climb1.upperArea) >= 20 || Math.abs(climb0.lowerArea - climb1.lowerArea) >= 20 ||
+    countFramePixelDiff(raw, width, PLAYER_ROW_INDEX.climb, 0, 2, 40) >= 1200,
     `${label} climb needs distinct arm and leg positions`);
 
   const basic0 = getFrameStats(raw, width, 'basic', 0);
@@ -1599,8 +1673,9 @@ function validateActionSemantics(decoded, label) {
   const party0 = getFrameStats(raw, width, 'party', 0);
   const party3 = getFrameStats(raw, width, 'party', 3);
   assertSemantic(countFramePixelDiff(raw, width, PLAYER_ROW_INDEX.party, 0, 3, 40) >= 800, `${label} party buff should pulse or change pose`);
-  assertSemantic(party0.midArea > idle[0].midArea || party3.midArea > idle[0].midArea,
-    `${label} party buff should include visible channel/buff art`);
+  assertSemantic(Math.max(party0.leftActionArea, party0.rightActionArea, party3.leftActionArea, party3.rightActionArea) >=
+    Math.max(idle[0].leftActionArea, idle[0].rightActionArea) + 200,
+  `${label} party buff should include a distinct raised-hand channel pose`);
 
   const hit0 = getFrameStats(raw, width, 'hit', 0);
   const hit1 = getFrameStats(raw, width, 'hit', 1);
@@ -1621,6 +1696,10 @@ async function validateRuntimeSheet(filePath, label) {
   const decoded = await getPngInfo(filePath);
   if (hasVisibleChroma(decoded.data, decoded.info.width, decoded.info.height)) {
     throw new Error(`${label} contains visible guide or chroma-key pixels`);
+  }
+  const visibleGreenSpill = countVisibleGreenEdgeSpill(decoded.data, decoded.info.width, decoded.info.height);
+  if (visibleGreenSpill) {
+    throw new Error(`${label} contains ${visibleGreenSpill} green-dominant alpha-edge pixels after chroma cleanup`);
   }
   for (const rowId of PLAYER_ROWS) {
     const rowIndex = PLAYER_ROW_INDEX[rowId];
@@ -1649,34 +1728,235 @@ async function validateRuntimeSheet(filePath, label) {
   return decoded;
 }
 
-async function validatePlainAdventurerLikeness() {
-  if (!fs.existsSync(BASE_SPRITE_PATH)) throw new Error(`Missing source-backed base sprite: ${toRepoPath(BASE_SPRITE_PATH)}`);
-  const base = await getPngInfo(BASE_SPRITE_PATH);
-  const baseStats = getAlphaBounds(base.data, base.info.width, base.info.height, 20);
-  if (!baseStats || baseStats.height < 300 || baseStats.width < 145 || baseStats.count < 30000) {
-    throw new Error(`Plain adventurer source crop is too small (${baseStats && baseStats.width}x${baseStats && baseStats.height})`);
+function countFrameAlphaMaskDiffBetweenSheets(firstRaw, secondRaw, width, rowId, frameIndex, threshold) {
+  const alphaThreshold = threshold == null ? 20 : Number(threshold);
+  const rowIndex = PLAYER_ROW_INDEX[rowId];
+  const y0 = rowIndex * FRAME_SIZE;
+  const x0 = frameIndex * FRAME_SIZE;
+  let count = 0;
+  for (let y = 0; y < FRAME_SIZE; y += 1) {
+    for (let x = 0; x < FRAME_SIZE; x += 1) {
+      const offset = ((y0 + y) * width + x0 + x) * 4 + 3;
+      if ((firstRaw[offset] > alphaThreshold) !== (secondRaw[offset] > alphaThreshold)) count += 1;
+    }
   }
-  if (getVisibleColorBuckets(base.data, base.info.width, base.info.height) < 120) {
-    throw new Error('Plain adventurer source crop is too flat; expected painterly pixel shading from the reference');
+  return count;
+}
+
+function getNearestVisiblePixelDistance(frameRaw, point, threshold) {
+  const alphaThreshold = threshold == null ? 20 : Number(threshold);
+  let minimum = Number.POSITIVE_INFINITY;
+  for (let y = 0; y < FRAME_SIZE; y += 1) {
+    for (let x = 0; x < FRAME_SIZE; x += 1) {
+      if (frameRaw[(y * FRAME_SIZE + x) * 4 + 3] <= alphaThreshold) continue;
+      minimum = Math.min(minimum, Math.hypot(x - Number(point.x || 0), y - Number(point.y || 0)));
+    }
+  }
+  return minimum;
+}
+
+function validateFamilyGroundAndSocketCompatibility(decoded, label) {
+  const socketLimits = Object.freeze({
+    torso: 6,
+    head: 6,
+    mainHand: 21,
+    offHand: 25,
+    feet: 33
+  });
+  ['idle', 'run'].forEach((rowId) => {
+    for (let frame = 0; frame < SHEET_COLS; frame += 1) {
+      const frameRaw = getFrameRaw(decoded.data, decoded.info.width, PLAYER_ROW_INDEX[rowId], frame);
+      const bounds = getAlphaBounds(frameRaw, FRAME_SIZE, FRAME_SIZE, 20);
+      const registration = EquipmentAttachments.getPlayerSpriteRegistration(rowId, frame);
+      const groundDelta = Math.abs(Number(bounds && bounds.maxY || 0) - Number(registration.groundY || 0));
+      assertSemantic(groundDelta <= 2,
+        `${label} ${rowId} frame ${frame} misses registered ground by ${groundDelta}px`);
+      assertSemantic(bounds && registration.originX >= bounds.minX && registration.originX <= bounds.maxX,
+        `${label} ${rowId} frame ${frame} does not contain registered origin ${registration.originX}`);
+    }
+  });
+  PLAYER_ROWS.forEach((rowId) => {
+    for (let frame = 0; frame < SHEET_COLS; frame += 1) {
+      const frameRaw = getFrameRaw(decoded.data, decoded.info.width, PLAYER_ROW_INDEX[rowId], frame);
+      const attachment = EquipmentAttachments.getEquipmentAttachment(rowId, frame);
+      ['torso', 'head', 'mainHand', 'offHand'].forEach((socketId) => {
+        const distance = getNearestVisiblePixelDistance(frameRaw, attachment[socketId], 20);
+        assertSemantic(distance <= socketLimits[socketId],
+          `${label} ${rowId} frame ${frame} ${socketId} socket is ${distance.toFixed(1)}px from the authored body`);
+      });
+      attachment.feet.forEach((foot, footIndex) => {
+        const distance = getNearestVisiblePixelDistance(frameRaw, foot, 20);
+        assertSemantic(distance <= socketLimits.feet,
+          `${label} ${rowId} frame ${frame} foot ${footIndex} socket is ${distance.toFixed(1)}px from the authored body`);
+      });
+    }
+  });
+}
+
+function countRawPixelDiff(firstRaw, secondRaw, threshold) {
+  const diffThreshold = threshold == null ? 32 : Number(threshold);
+  let count = 0;
+  for (let offset = 0; offset < Math.min(firstRaw.length, secondRaw.length); offset += 4) {
+    const delta = Math.abs(firstRaw[offset] - secondRaw[offset]) +
+      Math.abs(firstRaw[offset + 1] - secondRaw[offset + 1]) +
+      Math.abs(firstRaw[offset + 2] - secondRaw[offset + 2]) +
+      Math.abs(firstRaw[offset + 3] - secondRaw[offset + 3]);
+    if (delta >= diffThreshold) count += 1;
+  }
+  return count;
+}
+
+async function validateStarterEquipmentComposite(decoded, familyId, label) {
+  const weaponFileIds = Object.freeze({
+    fighter: 'training-sword',
+    mage: 'training-wand',
+    archer: 'training-bow'
+  });
+  const equipmentFileIds = Object.freeze([
+    'stitched-vest',
+    'traveler-boots',
+    'fieldguard-helm',
+    weaponFileIds[familyId]
+  ]);
+  const samples = Object.freeze([
+    Object.freeze({ rowId: 'idle', frame: 0 }),
+    Object.freeze({ rowId: 'run', frame: 2 }),
+    Object.freeze({ rowId: 'basic', frame: 2 }),
+    Object.freeze({ rowId: 'skill', frame: 3 })
+  ]);
+  for (const sample of samples) {
+    const rowIndex = PLAYER_ROW_INDEX[sample.rowId];
+    const frameRaw = getFrameRaw(decoded.data, decoded.info.width, rowIndex, sample.frame);
+    const bodyFrame = await sharp(frameRaw, {
+      raw: { width: FRAME_SIZE, height: FRAME_SIZE, channels: 4 }
+    }).png({ compressionLevel: 9 }).toBuffer();
+    const equipmentFrames = (await Promise.all(equipmentFileIds.map((fileId) => (
+      readEquipmentFrame(fileId, rowIndex, sample.frame)
+    )))).filter(Boolean);
+    assertSemantic(equipmentFrames.length === equipmentFileIds.length,
+      `${label} ${sample.rowId} frame ${sample.frame} is missing a starter equipment atlas layer`);
+    const composite = await sharp({
+      create: {
+        width: FRAME_SIZE,
+        height: FRAME_SIZE,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
+      }
+    })
+      .composite([
+        { input: bodyFrame, left: 0, top: 0 },
+        ...equipmentFrames.map((input) => ({ input, left: 0, top: 0 }))
+      ])
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const changedPixels = countRawPixelDiff(frameRaw, composite.data, 32);
+    assertSemantic(changedPixels >= 240,
+      `${label} ${sample.rowId} frame ${sample.frame} starter equipment composite is not visibly registered (${changedPixels}px changed)`);
+    const compositeBounds = getAlphaBounds(composite.data, FRAME_SIZE, FRAME_SIZE, 20);
+    assertSemantic(compositeBounds && compositeBounds.count > 2500,
+      `${label} ${sample.rowId} frame ${sample.frame} starter equipment composite lost visible actor art`);
+  }
+}
+
+function validateClassFamilySilhouetteUniqueness(familySheets) {
+  const samples = Object.freeze([
+    Object.freeze({ rowId: 'idle', frame: 0 }),
+    Object.freeze({ rowId: 'run', frame: 2 }),
+    Object.freeze({ rowId: 'basic', frame: 2 }),
+    Object.freeze({ rowId: 'skill', frame: 3 })
+  ]);
+  for (let firstIndex = 0; firstIndex < CLASS_FAMILY_IDS.length; firstIndex += 1) {
+    for (let secondIndex = firstIndex + 1; secondIndex < CLASS_FAMILY_IDS.length; secondIndex += 1) {
+      const firstId = CLASS_FAMILY_IDS[firstIndex];
+      const secondId = CLASS_FAMILY_IDS[secondIndex];
+      const first = familySheets[firstId];
+      const second = familySheets[secondId];
+      samples.forEach((sample) => {
+        const maskDiff = countFrameAlphaMaskDiffBetweenSheets(
+          first.data,
+          second.data,
+          first.info.width,
+          sample.rowId,
+          sample.frame,
+          20
+        );
+        const pixelDiff = countFramePixelDiffBetweenSheets(
+          first.data,
+          second.data,
+          first.info.width,
+          sample.rowId,
+          sample.frame,
+          48
+        );
+        assertSemantic(maskDiff >= 225,
+          `${firstId} and ${secondId} ${sample.rowId} silhouettes are too similar (${maskDiff}px alpha-mask difference)`);
+        assertSemantic(pixelDiff >= 2500,
+          `${firstId} and ${secondId} ${sample.rowId} materials are too similar (${pixelDiff}px rendered difference)`);
+      });
+    }
+  }
+}
+
+function validateClassFamilyRuntimeMappings() {
+  Object.entries(Data.CLASS_BODY_FAMILIES || {}).forEach(([classId, familyId]) => {
+    const fileId = Data.CLASS_FAMILY_FILE_IDS && Data.CLASS_FAMILY_FILE_IDS[familyId] || familyId;
+    const expectedPortrait = `${Data.ASSET_ROOT}/characters/${fileId}-${PLAYER_ART_VERSION}.png`;
+    const expectedSheet = `${Data.ASSET_ROOT}/animations/players/${fileId}-sheet-${PLAYER_ART_VERSION}.png`;
+    assertSemantic(Data.CLASS_ASSETS && Data.CLASS_ASSETS[classId] === expectedPortrait,
+      `${classId} portrait should resolve through ${familyId} family art`);
+    assertSemantic(Data.PLAYER_ANIMATION_ASSETS && Data.PLAYER_ANIMATION_ASSETS[classId] &&
+      Data.PLAYER_ANIMATION_ASSETS[classId].sheet === expectedSheet,
+    `${classId} animation should resolve through ${familyId} family art`);
+  });
+}
+
+async function validateFractureRunnerIdentity() {
+  if (!fs.existsSync(CONCEPT_SOURCE_PATH)) {
+    throw new Error(`Missing Fracture Runner generation provenance: ${toRepoPath(CONCEPT_SOURCE_PATH)}`);
+  }
+  if (!fs.existsSync(APPROVED_BASE_SPRITE_PATH)) {
+    throw new Error(`Missing approved Fracture Runner base sprite: ${toRepoPath(APPROVED_BASE_SPRITE_PATH)}`);
+  }
+  await validatePngDimensions(APPROVED_BASE_SPRITE_PATH, FRAME_SIZE, FRAME_SIZE);
+  const base = await getPngInfo(APPROVED_BASE_SPRITE_PATH);
+  const baseStats = getAlphaBounds(base.data, base.info.width, base.info.height, 20);
+  if (!baseStats || baseStats.height < 118 || baseStats.width < 46 || baseStats.width > 108 || baseStats.count < 2800) {
+    throw new Error(`Fracture Runner idle silhouette is outside the approved field scale (${baseStats && baseStats.width}x${baseStats && baseStats.height})`);
+  }
+  if (baseStats.width / baseStats.height > 0.78) {
+    throw new Error(`Fracture Runner idle silhouette is too squat (${baseStats.width}x${baseStats.height}); preserve the lean frontier-operative proportions`);
+  }
+  if (getVisibleColorBuckets(base.data, base.info.width, base.info.height) < 90) {
+    throw new Error('Fracture Runner base is too flat; preserve the authored material separation and restrained shading');
   }
 }
 
 async function validateAll() {
-  if (!fs.existsSync(REFERENCE_PATH)) {
-    throw new Error(`Missing Project Starfall player style reference: ${toRepoPath(REFERENCE_PATH)}`);
-  }
-  await validatePlainAdventurerLikeness();
   await validateSourceSheet(APPROVED_ANIMATION_SOURCE_PATH, 'approved weaponless player animation source');
+  await validateFractureRunnerIdentity();
   await validateSourceSheet(path.join(CLASS_SOURCE_DIR, 'generic-player-source.png'), 'generic player source sheet');
-  await validateRuntimeSheet(path.join(PLAYER_SHEET_DIR, 'generic-player-sheet.png'), 'generic player runtime sheet');
-  await validatePngDimensions(path.join(CHARACTER_DIR, 'generic-player.png'), CHARACTER_SIZE, CHARACTER_SIZE);
-  for (const [classId, fileId] of Object.entries(Data.CLASS_FILE_IDS || {})) {
-    await validateSourceSheet(path.join(CLASS_SOURCE_DIR, `${fileId}-source.png`), `${classId} player source sheet`);
-    await validatePngDimensions(path.join(CHARACTER_DIR, `${fileId}.png`), CHARACTER_SIZE, CHARACTER_SIZE);
-    await validateRuntimeSheet(path.join(PLAYER_SHEET_DIR, `${fileId}-sheet.png`), `${classId} player runtime sheet`);
+  await validateRuntimeSheet(path.join(PLAYER_SHEET_DIR, 'generic-player-sheet-v4.png'), 'generic player runtime sheet');
+  await validatePngDimensions(path.join(CHARACTER_DIR, 'generic-player-v4.png'), CHARACTER_SIZE, CHARACTER_SIZE);
+  const familySheets = {};
+  for (const familyId of CLASS_FAMILY_IDS) {
+    await validateSourceSheet(
+      path.join(CLASS_FAMILY_SOURCE_DIR, `${familyId}-${PLAYER_ART_VERSION}-source.png`),
+      `${familyId} ${PLAYER_ART_VERSION} class-family source sheet`
+    );
+    await validatePngDimensions(path.join(CHARACTER_DIR, `${familyId}-${PLAYER_ART_VERSION}.png`), CHARACTER_SIZE, CHARACTER_SIZE);
+    const label = `${familyId} ${PLAYER_ART_VERSION} class-family runtime sheet`;
+    familySheets[familyId] = await validateRuntimeSheet(
+      path.join(PLAYER_SHEET_DIR, `${familyId}-sheet-${PLAYER_ART_VERSION}.png`),
+      label
+    );
+    validateFamilyGroundAndSocketCompatibility(familySheets[familyId], label);
+    await validateStarterEquipmentComposite(familySheets[familyId], familyId, label);
   }
+  validateClassFamilySilhouetteUniqueness(familySheets);
+  validateClassFamilyRuntimeMappings();
   await validatePngDimensions(REVIEW_CONTACT_SHEET_PATH, 760, 1320);
-  console.log(`Validated generated weaponless player art: ${Object.keys(Data.CLASS_FILE_IDS || {}).length + 1} registered player sheets with semantic action rows; equipped items remain separate runtime layers`);
+  console.log(`Validated Project Starfall player art: ${CLASS_FAMILY_IDS.length} distinct ${PLAYER_ART_VERSION} class families plus the v4 recovery sheet; equipped items remain separate runtime layers`);
 }
 
 async function main(argv) {

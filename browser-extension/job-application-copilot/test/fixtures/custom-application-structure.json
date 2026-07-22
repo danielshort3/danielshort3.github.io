@@ -1,0 +1,56 @@
+{
+  "fixtureVersion": 1,
+  "source": "Synthetic sanitized structure for an unknown custom application",
+  "url": "https://careers.example.test/openings/analytics/apply",
+  "applicationForm": {
+    "selector": "#application-form",
+    "tagName": "FORM",
+    "id": "application-form",
+    "action": "/openings/analytics/apply",
+    "fields": [
+      { "tagName": "INPUT", "type": "text", "name": "candidate_first_name", "label": "First name" },
+      { "tagName": "INPUT", "type": "text", "name": "candidate_last_name", "label": "Last name" },
+      { "tagName": "INPUT", "type": "email", "name": "candidate_email", "label": "Email" },
+      { "tagName": "INPUT", "type": "url", "name": "work_samples", "label": "Work samples URL" },
+      { "tagName": "TEXTAREA", "name": "relevant_experience", "label": "Describe your relevant experience" },
+      { "tagName": "INPUT", "type": "file", "name": "resume", "label": "Resume" },
+      { "tagName": "BUTTON", "type": "submit", "name": "submit", "label": "Submit" }
+    ]
+  },
+  "formlessApplicationRoot": {
+    "selector": "[data-application-form]",
+    "tagName": "DIV",
+    "data-application-form": "",
+    "fields": [
+      { "tagName": "INPUT", "type": "text", "name": "fullName", "label": "Full name" },
+      { "tagName": "INPUT", "type": "email", "name": "email", "label": "Email" },
+      { "tagName": "TEXTAREA", "name": "motivation", "label": "Why are you interested?" }
+    ]
+  },
+  "auxiliaryForms": [
+    {
+      "selector": "form.search-jobs",
+      "tagName": "FORM",
+      "className": "search jobs",
+      "fields": [
+        { "tagName": "INPUT", "type": "search", "name": "query", "label": "Search jobs" }
+      ]
+    },
+    {
+      "selector": "form.referral",
+      "tagName": "FORM",
+      "className": "employee referral",
+      "fields": [
+        { "tagName": "INPUT", "type": "email", "name": "referral_email", "label": "Referral email" }
+      ]
+    },
+    {
+      "selector": "form.newsletter-subscribe",
+      "tagName": "FORM",
+      "className": "newsletter subscribe",
+      "fields": [
+        { "tagName": "INPUT", "type": "email", "name": "newsletter_email", "label": "Email" }
+      ]
+    }
+  ]
+}

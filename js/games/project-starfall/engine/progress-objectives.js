@@ -5,6 +5,15 @@
   const normalizeId = CoreIds.normalizeId || function normalizeIdFallback(value) {
     return String(value || '').trim();
   };
+  const MAP_KILL_QUEST_GROWTH_PER_COMPLETION = 0.1;
+  const MAP_KILL_QUEST_MAX_GROWTH_COMPLETIONS = 5;
+  const MAP_KILL_QUEST_MAX_GOAL_MULTIPLIER = 1.5;
+
+  function normalizeNonNegativeInteger(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    return Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(number)));
+  }
 
   function getObjectiveKey(objective, index) {
     return normalizeId(objective && objective.id) || `${normalizeId(objective && objective.type) || 'objective'}_${index}`;
@@ -277,17 +286,41 @@
     return (data.MAPS || []).reduce((quests, map) => {
       if (!map || map.safeZone) return quests;
       const entry = source[map.id] && typeof source[map.id] === 'object' ? source[map.id] : {};
-      const progress = Math.max(0, Math.floor(Number(entry.progress) || 0));
+      const progress = normalizeNonNegativeInteger(entry.progress);
       const completedAt = Number(entry.completedAt || 0);
       quests[map.id] = {
         active: !!entry.active || progress > 0 || completedAt > 0,
         progress,
-        completions: Math.max(0, Math.floor(Number(entry.completions) || 0)),
+        completions: normalizeNonNegativeInteger(entry.completions),
         completedAt,
         lastCompletedAt: Number(entry.lastCompletedAt || 0)
       };
       return quests;
     }, {});
+  }
+
+  function getMapKillQuestGoalProfile(baseGoal, completions) {
+    const base = Math.max(1, normalizeNonNegativeInteger(baseGoal) || 1);
+    const completionCount = normalizeNonNegativeInteger(completions);
+    const masteryTier = Math.min(MAP_KILL_QUEST_MAX_GROWTH_COMPLETIONS, completionCount);
+    const goalMultiplier = Math.min(
+      MAP_KILL_QUEST_MAX_GOAL_MULTIPLIER,
+      1 + masteryTier * MAP_KILL_QUEST_GROWTH_PER_COMPLETION
+    );
+    return {
+      baseGoal: base,
+      completions: completionCount,
+      masteryTier,
+      maxMasteryTier: MAP_KILL_QUEST_MAX_GROWTH_COMPLETIONS,
+      goalMultiplier,
+      maxGoalMultiplier: MAP_KILL_QUEST_MAX_GOAL_MULTIPLIER,
+      goal: Math.max(1, Math.ceil(base * goalMultiplier - 1e-9)),
+      capped: completionCount >= MAP_KILL_QUEST_MAX_GROWTH_COMPLETIONS
+    };
+  }
+
+  function getMapKillQuestGoal(baseGoal, completions) {
+    return getMapKillQuestGoalProfile(baseGoal, completions).goal;
   }
 
   function createQuestGuideState(value) {
@@ -358,6 +391,8 @@
     applyProgressEventToEntry,
     addObjectiveTypes,
     createMapKillQuestState,
+    getMapKillQuestGoalProfile,
+    getMapKillQuestGoal,
     createQuestGuideState,
     createProgressObjectiveTypeSet,
     createObjectiveTypeEntryMap,

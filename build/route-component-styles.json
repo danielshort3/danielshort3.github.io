@@ -16,6 +16,12 @@
   "/privacy": [
     "css/components/privacy-page.css"
   ],
+  "/job-application-copilot": [
+    "css/components/job-application-copilot-page.css"
+  ],
+  "/job-application-copilot/privacy": [
+    "css/components/job-application-copilot-page.css"
+  ],
   "/games": [
     "css/components/games.css"
   ],

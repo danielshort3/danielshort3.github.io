@@ -371,7 +371,8 @@
     mapTooltipBound: false,
     calendarTooltipBound: false,
 	    weekdayTooltipBound: false,
-	    isResettingEntry: false
+	    isResettingEntry: false,
+    copilotBridgeReady: false
 	  };
 
 	  let authExpiryTimer = null;
@@ -2073,6 +2074,11 @@
     return false;
   };
 
+  const getCopilotBridge = () => {
+    const bridge = window.JobApplicationCopilotBridge;
+    return bridge && typeof bridge === 'object' ? bridge : null;
+  };
+
   const ensureFreshAuth = async () => {
     if (!window.ToolsAuth || typeof window.ToolsAuth.ensureFreshAuth !== 'function') return null;
     try {
@@ -3121,6 +3127,7 @@
 
   const setEntryEditMode = (item) => {
     if (!item) return;
+    if (getCopilotBridge()?.hasPendingCapture?.()) getCopilotBridge().dismiss?.();
     const entryType = getEntryType(item);
     state.editingEntryId = item.applicationId || null;
     state.editingEntry = item;
@@ -3308,6 +3315,9 @@
 	    if (authed) {
 	      closeAuthModal();
 	    }
+      if (state.copilotBridgeReady) {
+        getCopilotBridge()?.setAuthenticated?.(authed);
+      }
 	    startAuthWatcher();
 	  };
 
@@ -3650,6 +3660,13 @@
 
   const saveEntryDraft = () => {
     if (!els.entryForm || state.editingEntryId) return;
+    if (getCopilotBridge()?.hasPendingCapture?.()) {
+      try {
+        localStorage.removeItem(ENTRY_DRAFT_KEY);
+      } catch {}
+      setDraftStatus('Copilot capture is held in memory until saved.');
+      return;
+    }
     const draft = buildEntryDraft();
     if (!hasEntryDraftValues(draft)) {
       try {
@@ -3672,6 +3689,10 @@
   };
 
   const clearEntryDraft = () => {
+    if (state.entryDraftTimer) {
+      window.clearTimeout(state.entryDraftTimer);
+      state.entryDraftTimer = null;
+    }
     try {
       localStorage.removeItem(ENTRY_DRAFT_KEY);
     } catch {}
@@ -3722,6 +3743,56 @@
       draft.postingDateUnknown !== undefined ? draft.postingDateUnknown : true
     );
     setDraftStatus('Draft restored.', 'info');
+  };
+
+  const filterAttachmentsForRetry = (attachments = [], savedAttachments = []) => {
+    const approvedKinds = new Set(['resume', 'cover-letter']);
+    const consumedSavedIndexes = new Set();
+    const pending = [];
+    let skippedCount = 0;
+
+    const readSha256 = (attachment) => {
+      const raw = String(
+        attachment?.sha256
+        || attachment?.checksumSha256
+        || attachment?.file?.sha256
+        || attachment?.file?.checksumSha256
+        || ''
+      ).trim();
+      if (/^[a-f0-9]{64}$/i.test(raw)) return `hex:${raw.toLowerCase()}`;
+      if (/^[A-Za-z0-9_-]{43}$/.test(raw)) return `base64url:${raw}`;
+      return '';
+    };
+
+    for (const attachment of Array.isArray(attachments) ? attachments : []) {
+      const kind = String(attachment?.kind || '').trim().toLowerCase();
+      const filename = String(attachment?.file?.name || attachment?.filename || '').trim();
+      const size = Number(attachment?.file?.size ?? attachment?.size);
+      if (!approvedKinds.has(kind) || !filename || !Number.isSafeInteger(size) || size <= 0) {
+        pending.push(attachment);
+        continue;
+      }
+
+      const candidateHash = readSha256(attachment);
+      const matchIndex = (Array.isArray(savedAttachments) ? savedAttachments : []).findIndex((saved, index) => {
+        if (consumedSavedIndexes.has(index)) return false;
+        const savedKind = String(saved?.kind || '').trim().toLowerCase();
+        const savedFilename = String(saved?.filename || '').trim();
+        const savedSize = Number(saved?.size);
+        if (savedKind !== kind || savedFilename !== filename || savedSize !== size) return false;
+        const savedHash = readSha256(saved);
+        return !(candidateHash && savedHash && candidateHash !== savedHash);
+      });
+
+      if (matchIndex < 0) {
+        pending.push(attachment);
+        continue;
+      }
+      consumedSavedIndexes.add(matchIndex);
+      skippedCount += 1;
+    }
+
+    return { pending, skippedCount };
   };
 
   const uploadAttachment = async (applicationId, attachment) => {
@@ -7085,6 +7156,49 @@
     return convertProspectToApplication(payload, prospectId, statusTarget);
   };
 
+  const initCopilotBridge = () => {
+    const bridge = getCopilotBridge();
+    if (!bridge || typeof bridge.configure !== 'function') return;
+    bridge.configure({
+      onReview: () => {
+        if (!authIsValid(state.auth) || !els.entryForm) return false;
+        state.isResettingEntry = true;
+        els.entryForm.reset();
+        state.isResettingEntry = false;
+        clearCustomFields();
+        clearAttachmentInputs();
+        clearEntryEditMode('', '');
+        setEntryType('application', { preserveStatus: false });
+        resetEntryDateFields('application');
+        clearEntryDraft();
+        const applied = bridge.applyPendingToForm?.() === true;
+        if (!applied) return false;
+        syncUnknownDate(els.postingDateInput, els.postingUnknownInput);
+        activateTab('entry', true);
+        if (els.entryForm && typeof els.entryForm.scrollIntoView === 'function') {
+          els.entryForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        setStatus(els.entryFormStatus, 'Copilot capture loaded for review. Check every field and selected file, then click Save application.', 'info');
+        setDraftStatus('Copilot capture is held in memory until saved.');
+        return true;
+      },
+      onDismiss: ({ wasReviewed } = {}) => {
+        if (!wasReviewed || !els.entryForm) return;
+        state.isResettingEntry = true;
+        els.entryForm.reset();
+        state.isResettingEntry = false;
+        clearCustomFields();
+        clearAttachmentInputs();
+        clearEntryEditMode('Copilot capture dismissed. Nothing was saved.', 'info');
+        setEntryType('application', { preserveStatus: false });
+        resetEntryDateFields('application');
+        clearEntryDraft();
+      }
+    });
+    state.copilotBridgeReady = true;
+    bridge.setAuthenticated?.(authIsValid(state.auth));
+  };
+
   const submitApplication = async (payload, attachments = []) => {
     if (!els.entryFormStatus) return false;
     if (!authIsValid(state.auth)) {
@@ -7093,8 +7207,11 @@
     }
     const editingId = state.editingEntryId;
     const editingItem = state.editingEntry;
-    const existingAttachmentCount = Array.isArray(editingItem?.attachments) ? editingItem.attachments.length : 0;
-    if (!validateAttachmentFiles(attachments, els.entryFormStatus, existingAttachmentCount)) return false;
+    const copilotBridge = getCopilotBridge();
+    const pendingCapture = editingId ? null : copilotBridge?.getPendingCapture?.();
+    const initialAttachments = Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
+    const initialAttachmentPlan = filterAttachmentsForRetry(attachments, initialAttachments);
+    if (!validateAttachmentFiles(initialAttachmentPlan.pending, els.entryFormStatus, initialAttachments.length)) return false;
     try {
       setStatus(els.entryFormStatus, editingId ? 'Updating application...' : 'Saving application...', 'info');
       let applicationId = editingId;
@@ -7111,17 +7228,46 @@
         currentAttachments = Array.isArray(updated?.attachments) ? updated.attachments : currentAttachments;
         currentUpdatedAt = String(updated?.updatedAt || currentUpdatedAt).trim();
       } else {
-        const created = await requestJson('/api/applications', { method: 'POST', body: payload });
+        const captureBody = pendingCapture
+          ? {
+            protocolVersion: 1,
+            captureId: pendingCapture.captureId,
+            company: payload.company,
+            title: payload.title,
+            jobUrl: payload.jobUrl,
+            location: payload.location,
+            source: payload.source,
+            postingDate: payload.postingDate,
+            appliedDate: payload.appliedDate,
+            status: payload.status,
+            tags: payload.tags
+          }
+          : payload;
+        const response = await requestJson(
+          pendingCapture ? '/api/applications/capture' : '/api/applications',
+          { method: 'POST', body: captureBody }
+        );
+        if (pendingCapture && response?.captureId && response.captureId !== pendingCapture.captureId) {
+          throw new Error('The saved capture ID did not match this Copilot handoff.');
+        }
+        const created = pendingCapture && response?.item && typeof response.item === 'object'
+          ? response.item
+          : response;
         applicationId = created?.applicationId;
         currentAttachments = Array.isArray(created?.attachments) ? created.attachments : [];
         currentUpdatedAt = String(created?.updatedAt || '').trim();
+        if (pendingCapture && !applicationId) {
+          throw new Error('The capture endpoint did not return an application ID.');
+        }
       }
+      const attachmentPlan = filterAttachmentsForRetry(attachments, currentAttachments);
+      if (!validateAttachmentFiles(attachmentPlan.pending, els.entryFormStatus, currentAttachments.length)) return false;
       let attachmentError = null;
-      if (attachments.length && applicationId) {
+      if (attachmentPlan.pending.length && applicationId) {
         try {
-          const label = attachments.length === 1 ? 'attachment' : 'attachments';
-          setStatus(els.entryFormStatus, `Uploading ${attachments.length} ${label}...`, 'info');
-          const uploaded = await uploadAttachments(applicationId, attachments, null, els.entryFormStatus);
+          const label = attachmentPlan.pending.length === 1 ? 'attachment' : 'attachments';
+          setStatus(els.entryFormStatus, `Uploading ${attachmentPlan.pending.length} ${label}...`, 'info');
+          const uploaded = await uploadAttachments(applicationId, attachmentPlan.pending, null, els.entryFormStatus);
           const merged = [...currentAttachments, ...uploaded];
           await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
             method: 'PATCH',
@@ -7136,11 +7282,25 @@
       }
       if (attachmentError) {
         console.error('Attachment upload failed', attachmentError);
+        if (pendingCapture) {
+          clearEntryDraft();
+          setDraftStatus('Copilot capture is held in memory until every attachment succeeds.');
+          setStatus(
+            els.entryFormStatus,
+            `Application saved, but attachments failed: ${attachmentError?.message || 'upload failed'}. Keep this form open and retry Save application.`,
+            'error'
+          );
+          await Promise.all([refreshDashboard(), refreshEntries()]);
+          return false;
+        }
         clearEntryEditMode(
           editingId ? 'Updated application, but attachments failed to upload.' : 'Saved application, but attachments failed to upload.',
           'error'
         );
       } else {
+        if (pendingCapture && !await copilotBridge?.complete?.(applicationId)) {
+          throw new Error('The application saved, but the extension acknowledgement could not be sent. Retry Save application.');
+        }
         clearEntryEditMode(
           editingId ? 'Application updated. Refreshing dashboards...' : 'Application saved. Updating dashboards...',
           'success'
@@ -7187,6 +7347,9 @@
       els.entryTypeInputs.forEach((input) => {
         input.addEventListener('change', () => {
           const nextType = input.value;
+          if (nextType === 'prospect' && getCopilotBridge()?.hasPendingCapture?.()) {
+            getCopilotBridge().dismiss?.();
+          }
           if (state.editingEntry && getEntryType(state.editingEntry) !== nextType) {
             clearEntryEditMode('Entry type changed. Start a new entry below.', 'info');
           }
@@ -7201,6 +7364,11 @@
     }
     const handleDraftInput = () => {
       if (state.isResettingEntry) return;
+      if (getCopilotBridge()?.hasPendingCapture?.()) {
+        clearEntryDraft();
+        setDraftStatus('Copilot capture is held in memory until saved.');
+        return;
+      }
       scheduleEntryDraftSave();
     };
     els.entryForm.addEventListener('input', handleDraftInput);
@@ -7351,6 +7519,10 @@
       }
     });
     els.entryForm.addEventListener('reset', () => {
+      if (!state.isResettingEntry && getCopilotBridge()?.hasPendingCapture?.()) {
+        getCopilotBridge().dismiss?.();
+        return;
+      }
       clearAttachmentInputs();
       clearCustomFields();
       const nextType = state.entryType;
@@ -7881,6 +8053,7 @@
 	    initDashboardView();
 	    initDashboardInteractions();
 	    initEntryForm();
+      initCopilotBridge();
 	    initImport();
 	    initProspectImport();
     initEntryList();

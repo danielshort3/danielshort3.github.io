@@ -64,16 +64,16 @@
       radial-gradient(ellipse at 26% 70%, rgba(3, 10, 22, 0.86), rgba(3, 10, 22, 0.58) 26%, rgba(3, 10, 22, 0.12) 58%, transparent 76%),
       linear-gradient(90deg, rgba(5, 12, 28, 0.72), rgba(5, 12, 28, 0.34) 44%, rgba(5, 12, 28, 0.06) 78%),
       linear-gradient(180deg, rgba(8, 18, 34, 0.02), rgba(8, 18, 34, 0.42)),
-      url("../../../img/project-starfall/ui/start-screen.png") center / cover no-repeat,
+      url("../../../img/project-starfall/ui/start-screen.png?v=fractured-observatory-v1") center / cover no-repeat,
       #102033;
     background:
       radial-gradient(ellipse at 26% 70%, rgba(3, 10, 22, 0.86), rgba(3, 10, 22, 0.58) 26%, rgba(3, 10, 22, 0.12) 58%, transparent 76%),
       linear-gradient(90deg, rgba(5, 12, 28, 0.72), rgba(5, 12, 28, 0.34) 44%, rgba(5, 12, 28, 0.06) 78%),
       linear-gradient(180deg, rgba(8, 18, 34, 0.02), rgba(8, 18, 34, 0.42)),
       image-set(
-        url("../../../img/project-starfall/ui/start-screen.avif") type("image/avif"),
-        url("../../../img/project-starfall/ui/start-screen.webp") type("image/webp"),
-        url("../../../img/project-starfall/ui/start-screen.png") type("image/png")
+        url("../../../img/project-starfall/ui/start-screen.avif?v=fractured-observatory-v1") type("image/avif"),
+        url("../../../img/project-starfall/ui/start-screen.webp?v=fractured-observatory-v1") type("image/webp"),
+        url("../../../img/project-starfall/ui/start-screen.png?v=fractured-observatory-v1") type("image/png")
       ) center / cover no-repeat,
       #102033;
     color: #ffffff;

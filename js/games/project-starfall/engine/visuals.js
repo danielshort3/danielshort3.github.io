@@ -296,7 +296,8 @@
   function getWorldEffectPriority(effect) {
     const type = effect && effect.type || '';
     let score = 0;
-    if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
+    if (type === 'telegraph' || (type === 'bossHazard' && effect.telegraph)) score = 1400;
+    else if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
     else if (type === 'recoveryPulse') score = 650;
     else if (type === 'skillImpact' || type === 'shockBurst') score = 500;
     else if (type === 'slash' || type === 'cast' || type === 'arrowRelease') score = 420;
@@ -1045,6 +1046,70 @@
     };
   }
 
+  function createBossHazardEffectDrawState(effect) {
+    if (!effect) return null;
+    const duration = Math.max(0.01, Number(effect.duration || 0.62));
+    const progress = clamp(1 - Number(effect.ttl || 0) / duration, 0, 1);
+    const lifeRatio = clamp(Number(effect.ttl || 0) / duration, 0, 1);
+    const telegraph = !!effect.telegraph;
+    const urgency = progress * progress * (3 - 2 * progress);
+    const alpha = telegraph ? clamp(0.62 + urgency * 0.38, 0, 1) : lifeRatio;
+    const pulse = Math.sin(progress * Math.PI);
+    const radius = Math.max(56, Number(effect.r || 150));
+    const shape = normalizeId(effect.shape) || 'circle';
+    const actionId = normalizeId(effect.actionId);
+    const family = actionId === 'solarFlare'
+      ? 'solar'
+      : actionId === 'lunarMark'
+        ? 'lunar'
+        : actionId === 'eclipseSigils'
+          ? 'totality'
+          : 'standard';
+    const safeZone = effect.hazardPolarity === 'safe' || effect.hitRule === 'outsideRadius';
+    const color = effect.color || '#ffbe55';
+    const accent = effect.accentColor || '#ffffff';
+    const primaryColor = family === 'lunar' || family === 'totality' ? accent : color;
+    const secondaryColor = family === 'lunar' ? '#8f7cff' : family === 'totality' ? color : accent;
+    const boundaryScale = telegraph ? 1.08 - urgency * 0.08 : 0.82 + progress * 0.22;
+    const sectionLabel = String(effect.spatialSectionLabel || '').trim();
+    const label = String(effect.label || '').trim().toUpperCase().slice(0, 24);
+    const callout = sectionLabel
+      ? ((safeZone ? 'SAFE: ' : 'DANGER: ') + sectionLabel.toUpperCase()).slice(0, 32)
+      : safeZone
+        ? 'SAFE ZONE'
+        : label;
+    return {
+      duration,
+      progress,
+      lifeRatio,
+      urgency,
+      alpha,
+      pulse,
+      telegraph,
+      radius,
+      shape,
+      actionId,
+      family,
+      safeZone,
+      color,
+      accent,
+      primaryColor,
+      secondaryColor,
+      x: Number(effect.x || 0),
+      y: Number(effect.y || 0),
+      centerY: Number(effect.y || 0) - 8,
+      boundaryWidth: radius * 2 * boundaryScale,
+      boundaryHeight: Math.max(28, radius * 0.42 * boundaryScale),
+      innerWidth: radius * (safeZone ? 1.5 : 1.05),
+      innerHeight: Math.max(22, radius * (safeZone ? 0.32 : 0.24)),
+      rotation: progress * Math.PI * 2,
+      label,
+      callout,
+      labelAlpha: telegraph ? clamp(0.78 + urgency * 0.22, 0, 1) : alpha,
+      spatialInstruction: String(effect.spatialInstruction || effect.spatialObjective || '').trim()
+    };
+  }
+
   function createRuneFieldTimerBarDrawState(effect, color, lifeRatio, options) {
     if (!effect || Number(effect.ttl || 0) <= 0) return null;
     const settings = options || {};
@@ -1513,6 +1578,7 @@
     createPotentialCubeResultEffectDrawState,
     createPetTeleportEffectDrawState,
     createBossPhaseEffectDrawState,
+    createBossHazardEffectDrawState,
     createRuneFieldTimerBarDrawState,
     createRuneFieldGroundVisualDrawState,
     createShockBurstEffectDrawState,

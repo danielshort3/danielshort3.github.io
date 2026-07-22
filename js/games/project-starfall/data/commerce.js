@@ -32,7 +32,7 @@
     Object.freeze({ id: 'starlit_checkin', name: 'Starlit Check-In', slot: 'aura', icon: 'CHK', cost: 0, dailyReward: true, summary: 'A soft blue aura for players who keep returning to Starfall routes.' }),
     Object.freeze({ id: 'constellation_trail', name: 'Constellation Trail', slot: 'aura', icon: 'CON', cost: 0, dailyReward: true, summary: 'A long-haul attendance aura with small star sparks around movement.' }),
     Object.freeze({ id: 'comet_year_splat', name: 'Comet Year', slot: 'damageSplat', icon: '365', cost: 0, dailyReward: true, summary: 'Prestige comet damage numbers for a full year of claimed daily rewards.', damageSplatStyle: Object.freeze({ id: 'comet_year', variant: 'comet', color: '#f9f0bd', criticalColor: '#ffffff', stroke: 'rgba(30, 42, 78, 0.94)', burstColor: '#7bdff2', accentColor: '#ffbe55', ringColor: '#b785ff', slashColor: '#68a9ff', shardColor: '#fff3cf', secondaryShardColor: '#7bdff2' }) }),
-    Object.freeze({ id: 'founder_spark', name: 'Founder Spark', slot: 'aura', icon: 'FND', cost: 0, summary: 'Season reward cosmetic for clearing the Beta foundation goals.', seasonReward: true })
+    Object.freeze({ id: 'founder_spark', name: 'Founder Spark', slot: 'aura', icon: 'FND', cost: 0, summary: 'First-clear prestige aura for completing Fracture Watch weekly operations.', seasonReward: true })
   ]);
 
   const CASH_SHOP_CATEGORIES = Object.freeze([
@@ -62,15 +62,19 @@
   const SEASONS = Object.freeze([
     Object.freeze({
       id: 'beta_foundations',
-      name: 'Beta Foundations',
+      name: 'Fracture Watch: Weekly Operations',
       active: true,
-      summary: 'Prototype season goals aimed at proving dungeons, loot, and expanded class paths.',
+      cadence: 'weekly',
+      resetDayUtc: 1,
+      resetHourUtc: 0,
+      summary: 'A low-pressure weekly route through field combat, bosses, and dungeons. Progress resets Monday at 00:00 UTC.',
       objectives: Object.freeze([
+        Object.freeze({ id: 'field_patrol', type: 'defeat', count: 60, label: 'Defeat 60 enemies' }),
         Object.freeze({ id: 'field_bosses', type: 'defeatBoss', count: 2, label: 'Defeat 2 bosses' }),
-        Object.freeze({ id: 'dungeon_clears', type: 'dungeonComplete', count: 2, label: 'Clear 2 dungeons' }),
-        Object.freeze({ id: 'advanced_path', type: 'advancedClass', count: 1, label: 'Choose an advanced class' })
+        Object.freeze({ id: 'dungeon_clears', type: 'dungeonComplete', count: 2, label: 'Clear 2 dungeons' })
       ]),
-      rewards: Object.freeze({ currency: 300, starTokens: 180, materials: Object.freeze({ upgradeDust: 10, upgradeCatalyst: 1 }), cosmeticId: 'founder_spark' })
+      rewards: Object.freeze({ currency: 300, starTokens: 180, materials: Object.freeze({ upgradeDust: 10, upgradeCatalyst: 1 }) }),
+      firstCompletionRewards: Object.freeze({ cosmeticId: 'founder_spark' })
     })
   ]);
 

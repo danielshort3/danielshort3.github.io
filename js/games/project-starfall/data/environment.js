@@ -50,12 +50,21 @@
       'beast-archer-trial'
     ]);
 
+    const ENVIRONMENT_ASSET_SOURCE_IDS = Object.freeze({
+      'starfall-crossing': Object.freeze({
+        terrain: 'astral-observatory',
+        props: 'rustcoil-outpost',
+        ramps: 'astral-observatory'
+      })
+    });
+
     function environmentAssetMap(folder) {
       return Object.freeze(ENVIRONMENT_THEME_IDS.reduce((assets, id) => {
         const isProps = folder === 'props';
         const isRamps = folder === 'ramps';
+        const sourceId = ENVIRONMENT_ASSET_SOURCE_IDS[id] && ENVIRONMENT_ASSET_SOURCE_IDS[id][folder] || id;
         assets[id] = Object.freeze({
-          path: `${ASSET_ROOT}/environment/${folder}/${id}.png`,
+          path: `${ASSET_ROOT}/environment/${folder}/${sourceId}.png`,
           cellSize: isRamps ? 128 : 64,
           columns: isProps ? 6 : isRamps ? 4 : 8,
           schema: isRamps ? 'ramps-v1' : folder === 'terrain' ? 'modular-v2' : 'props-v1'
@@ -121,7 +130,11 @@
       stormbreakGate: 4,
       astralObservatory: 5,
       marketAwning: 6,
-      lanternArch: 7
+      lanternArch: 7,
+      fracturedObservatoryCore: 8,
+      expeditionDepot: 9,
+      lensWorkshop: 10,
+      frontierGate: 11
     });
 
     const ENVIRONMENT_REAR_PROP_KINDS = Object.freeze(['tree', 'tall', 'vine', 'crystal', 'sign']);
@@ -161,6 +174,7 @@
     const TERRAIN_STYLE_FROST = Object.freeze({ topHeight: 17, groundTopHeight: 22, platformBodyDepth: 24, groundBodyDepth: 58, overhang: 7, undersideHeight: 11, undersideJitter: 4, detailDensity: 0.1, bodyAlpha: 0.86 });
     const TERRAIN_STYLE_STORM = Object.freeze({ topHeight: 18, platformBodyDepth: 26, groundBodyDepth: 60, overhang: 7, undersideHeight: 12, undersideJitter: 5, detailDensity: 0.1, bodyAlpha: 0.9 });
     const TERRAIN_STYLE_ASTRAL = Object.freeze({ topHeight: 16, platformBodyDepth: 24, groundBodyDepth: 56, overhang: 6, undersideHeight: 10, undersideJitter: 3, detailDensity: 0.08, bodyAlpha: 0.84 });
+    const ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID = 'totality-observatory';
 
     function environmentProfile(config) {
       return Object.freeze(Object.assign({}, config, {
@@ -170,14 +184,38 @@
     }
 
     const MAP_ENVIRONMENT_PROFILES = Object.freeze({
-      starfallCrossing: environmentProfile({ terrain: 'starfall-crossing', props: 'starfall-crossing', density: 0.48, propKinds: ['grass', 'bush', 'flower', 'small', 'crate', 'sign'], terrainStyle: TERRAIN_STYLE_TOWN }),
+      starfallCrossing: environmentProfile({
+        terrain: 'starfall-crossing',
+        props: 'starfall-crossing',
+        ramps: 'starfall-crossing',
+        tint: '#536777',
+        density: 0.36,
+        propKinds: ['rock', 'small', 'tall', 'crate', 'crystal', 'sign', 'glow'],
+        terrainStyle: Object.assign({}, TERRAIN_STYLE_ASTRAL, TERRAIN_STYLE_RUST, { bodyAlpha: 0.9 })
+      }),
       rustcoilOutpost: environmentProfile({ terrain: 'rustcoil-outpost', props: 'rustcoil-outpost', density: 0.46, propKinds: ['rock', 'small', 'tall', 'crate', 'crystal', 'sign'], terrainStyle: Object.assign({}, TERRAIN_STYLE_TOWN, TERRAIN_STYLE_RUST) }),
       cinderRefuge: environmentProfile({ terrain: 'cinder-refuge', props: 'cinder-refuge', density: 0.42, propKinds: ['rock', 'small', 'tall', 'crystal', 'glow', 'crate'], terrainStyle: Object.assign({}, TERRAIN_STYLE_TOWN, TERRAIN_STYLE_CINDER) }),
       frostfenCamp: environmentProfile({ terrain: 'frostfen-camp', props: 'frostfen-camp', density: 0.46, propKinds: ['grass', 'rock', 'crystal', 'small', 'tall', 'sign'], terrainStyle: Object.assign({}, TERRAIN_STYLE_TOWN, TERRAIN_STYLE_FROST) }),
       stormbreakHaven: environmentProfile({ terrain: 'stormbreak-haven', props: 'stormbreak-haven', density: 0.44, propKinds: ['grass', 'bush', 'rock', 'crystal', 'small', 'sign'], terrainStyle: Object.assign({}, TERRAIN_STYLE_TOWN, TERRAIN_STYLE_STORM) }),
       astralObservatory: environmentProfile({ terrain: 'astral-observatory', props: 'astral-observatory', density: 0.42, propKinds: ['crystal', 'tall', 'sign', 'glow', 'rock', 'small'], terrainStyle: Object.assign({}, TERRAIN_STYLE_TOWN, TERRAIN_STYLE_ASTRAL) }),
-      greenrootMeadow: environmentProfile({ terrain: 'greenroot-meadow', props: 'greenroot-meadow', density: 0.62, propKinds: ['grass', 'bush', 'tree', 'flower', 'rock', 'vine'], terrainStyle: TERRAIN_STYLE_FOREST }),
-      thornpathThicket: environmentProfile({ terrain: 'thornpath-thicket', props: 'thornpath-thicket', density: 0.64, propKinds: ['grass', 'bush', 'tree', 'flower', 'vine', 'rock'], terrainStyle: TERRAIN_STYLE_FOREST }),
+      greenrootMeadow: environmentProfile({
+        terrain: 'greenroot-meadow',
+        props: 'greenroot-meadow',
+        ramps: 'greenroot-meadow',
+        tint: '#66788b',
+        density: 0.4,
+        propKinds: ['rock', 'crystal', 'glow', 'small', 'sign'],
+        terrainStyle: Object.assign({}, TERRAIN_STYLE_ASTRAL, { topHeight: 18, groundBodyDepth: 64, bodyAlpha: 0.92 })
+      }),
+      thornpathThicket: environmentProfile({
+        terrain: 'thornpath-thicket',
+        props: 'thornpath-thicket',
+        ramps: 'thornpath-thicket',
+        tint: '#526b68',
+        density: 0.5,
+        propKinds: ['tree', 'vine', 'rock', 'crystal', 'glow', 'sign'],
+        terrainStyle: Object.assign({}, TERRAIN_STYLE_FOREST, TERRAIN_STYLE_ASTRAL, { groundBodyDepth: 64, bodyAlpha: 0.9 })
+      }),
       brambleDepths: environmentProfile({ terrain: 'bramble-depths', props: 'bramble-depths', density: 0.58, propKinds: ['bush', 'tree', 'vine', 'flower', 'rock', 'crystal'], terrainStyle: TERRAIN_STYLE_FOREST }),
       rustcoilRuins: environmentProfile({ terrain: 'rustcoil-ruins', props: 'rustcoil-ruins', density: 0.52, propKinds: ['rock', 'small', 'tall', 'crate', 'crystal', 'sign'], terrainStyle: TERRAIN_STYLE_RUST }),
       gearworksVault: environmentProfile({ terrain: 'gearworks-vault', props: 'gearworks-vault', density: 0.5, propKinds: ['rock', 'small', 'tall', 'crate', 'crystal', 'glow'], terrainStyle: TERRAIN_STYLE_RUST }),
@@ -201,7 +239,24 @@
       rimewardenVault: environmentProfile({ terrain: 'rimewarden-vault', props: 'rimewarden-vault', density: 0.44, propKinds: ['crystal', 'tall', 'rock', 'glow', 'small'], terrainStyle: TERRAIN_STYLE_FROST }),
       stormbreakAerie: environmentProfile({ terrain: 'stormbreak-aerie', props: 'stormbreak-aerie', density: 0.48, propKinds: ['rock', 'crystal', 'tall', 'small', 'glow'], terrainStyle: TERRAIN_STYLE_STORM }),
       astralStacks: environmentProfile({ terrain: 'astral-stacks', props: 'astral-stacks', density: 0.4, propKinds: ['crystal', 'tall', 'sign', 'glow', 'rock'], terrainStyle: TERRAIN_STYLE_ASTRAL }),
-      eclipseThrone: environmentProfile({ terrain: 'eclipse-throne', props: 'eclipse-throne', density: 0.36, propKinds: ['crystal', 'tall', 'glow', 'rock', 'sign'], terrainStyle: TERRAIN_STYLE_ASTRAL }),
+      eclipseThrone: environmentProfile({
+        terrain: 'eclipse-throne',
+        props: 'eclipse-throne',
+        ramps: 'eclipse-throne',
+        platformTreatment: ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID,
+        density: 0.24,
+        propKinds: ['crystal', 'glow', 'rock', 'sign', 'small'],
+        terrainStyle: Object.assign({}, TERRAIN_STYLE_ASTRAL, {
+          topHeight: 14,
+          groundTopHeight: 18,
+          platformBodyDepth: 24,
+          groundBodyDepth: 48,
+          overhang: 5,
+          undersideHeight: 8,
+          detailDensity: 0.04,
+          bodyAlpha: 0.68
+        })
+      }),
       guardian_trial: environmentProfile({ terrain: 'guardian-trial', props: 'guardian-trial', density: 0.42, propKinds: ['rock', 'small', 'tall', 'crate', 'sign', 'glow'], terrainStyle: TERRAIN_STYLE_RUST }),
       berserker_trial: environmentProfile({ terrain: 'berserker-trial', props: 'berserker-trial', density: 0.44, propKinds: ['rock', 'small', 'tall', 'crate', 'crystal', 'glow'], terrainStyle: TERRAIN_STYLE_CINDER }),
       duelist_trial: environmentProfile({ terrain: 'duelist-trial', props: 'duelist-trial', density: 0.46, propKinds: ['grass', 'bush', 'crate', 'sign', 'small', 'rock'], terrainStyle: TERRAIN_STYLE_BANDIT }),
@@ -215,6 +270,7 @@
 
     return Object.freeze({
       ENVIRONMENT_THEME_IDS,
+      ENVIRONMENT_ASSET_SOURCE_IDS,
       ENVIRONMENT_ASSETS,
       ENVIRONMENT_STRUCTURE_ASSETS,
       ENVIRONMENT_TERRAIN_CELLS,
@@ -223,6 +279,7 @@
       ENVIRONMENT_REAR_PROP_KINDS,
       ENVIRONMENT_FRONT_PROP_KINDS,
       ENVIRONMENT_UPPER_FRONT_PROP_KINDS,
+      ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID,
       ENVIRONMENT_READABILITY_DEFAULTS,
       ENVIRONMENT_TERRAIN_STYLE_DEFAULTS,
       MAP_ENVIRONMENT_PROFILES

@@ -59,6 +59,8 @@
     materialItem('blueStarCard', 'Blue Star Card', 'BSC', 'Rare', { assetId: 'blue_star_card', primaryDrop: false, dropLabels: ['Blue Star Card', 'Blue Star Cards'] }),
     materialItem('purpleStarCard', 'Purple Star Card', 'PSC', 'Epic', { assetId: 'purple_star_card', primaryDrop: false, dropLabels: ['Purple Star Card', 'Purple Star Cards'] }),
     materialItem('orangeStarCard', 'Orange Star Card', 'OSC', 'Relic', { assetId: 'orange_star_card', primaryDrop: false, dropLabels: ['Orange Star Card', 'Orange Star Cards'] }),
+    materialItem('starGlassChip', 'Star-glass Chip', 'SGC', 'Common', { assetId: 'rime_shard' }),
+    materialItem('lanternCore', 'Lantern Core', 'LNC', 'Uncommon', { assetId: 'void_dust' }),
     materialItem('gelDrop', 'Gel Drop', 'GD', 'Common', { genericDrop: true }),
     materialItem('oreChunks', 'Ore Chunks', 'OR', 'Common', { genericDrop: true }),
     materialItem('dewBead', 'Dew Bead', 'DEW', 'Common'),

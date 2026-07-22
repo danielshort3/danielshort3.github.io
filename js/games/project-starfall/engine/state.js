@@ -41,9 +41,16 @@
     const completedIds = Array.isArray(source.completedIds)
       ? source.completedIds.map(normalizeId).filter((id) => stepIds.has(id))
       : [];
+    const progressById = {};
+    Object.entries(source.progressById && typeof source.progressById === 'object' ? source.progressById : {}).forEach(([rawId, rawValue]) => {
+      const id = normalizeId(rawId);
+      const value = Math.max(0, Math.floor(Number(rawValue) || 0));
+      if (id && stepIds.has(id) && value > 0 && !completedIds.includes(id)) progressById[id] = value;
+    });
     return {
       hidden: !!source.hidden,
-      completedIds: Array.from(new Set(completedIds))
+      completedIds: Array.from(new Set(completedIds)),
+      progressById
     };
   }
 
@@ -73,10 +80,16 @@
         if (id) completedIds += `${completedIds ? ',' : ''}${id}`;
       });
     }
+    const progressById = Object.entries(source.progressById && typeof source.progressById === 'object' ? source.progressById : {})
+      .map(([id, value]) => `${normalizeId(id)}:${Math.max(0, Math.floor(Number(value) || 0))}`)
+      .filter((entry) => !entry.startsWith(':0'))
+      .sort()
+      .join(',');
     return [
       Number(revisions.session || 0),
       source.hidden ? 1 : 0,
       completedIds,
+      progressById,
       steps.length
     ].join('|');
   }
@@ -84,9 +97,16 @@
   function createOnboardingSnapshot(onboarding, steps) {
     const source = onboarding && typeof onboarding === 'object' ? onboarding : createOnboardingState(null);
     const completed = new Set(source.completedIds || []);
-    const stepSummaries = (steps || []).map((step) => Object.assign({}, step, {
-      complete: completed.has(step.id)
-    }));
+    const progressById = source.progressById && typeof source.progressById === 'object' ? source.progressById : {};
+    const stepSummaries = (steps || []).map((step) => {
+      const goal = Math.max(1, Math.floor(Number(step && step.count || 1) || 1));
+      const complete = completed.has(step.id);
+      return Object.assign({}, step, {
+        complete,
+        progress: complete ? goal : Math.min(goal, Math.max(0, Math.floor(Number(progressById[step.id]) || 0))),
+        goal
+      });
+    });
     return {
       hidden: !!source.hidden,
       completedIds: Array.isArray(source.completedIds) ? source.completedIds.slice() : [],
@@ -100,14 +120,26 @@
   function createOnboardingEventPlan(onboarding, candidates, type, payload) {
     const source = onboarding && typeof onboarding === 'object' ? onboarding : createOnboardingState(null);
     const completed = new Set(source.completedIds || []);
+    const progressById = Object.assign({}, source.progressById && typeof source.progressById === 'object' ? source.progressById : {});
     const matches = (candidates || []).filter((step) =>
       !completed.has(step.id) &&
       onboardingStepMatchesEvent(step, type, payload || {}));
-    if (!matches.length) return { changed: false, completedIds: source.completedIds || [] };
-    matches.forEach((step) => completed.add(step.id));
+    if (!matches.length) return { changed: false, completedIds: source.completedIds || [], progressById };
+    const increment = Math.max(1, Math.floor(Number(payload && payload.count || 1) || 1));
+    matches.forEach((step) => {
+      const goal = Math.max(1, Math.floor(Number(step && step.count || 1) || 1));
+      const progress = Math.min(goal, Math.max(0, Math.floor(Number(progressById[step.id]) || 0)) + increment);
+      if (progress >= goal) {
+        completed.add(step.id);
+        delete progressById[step.id];
+      } else {
+        progressById[step.id] = progress;
+      }
+    });
     return {
       changed: true,
-      completedIds: Array.from(completed)
+      completedIds: Array.from(completed),
+      progressById
     };
   }
 

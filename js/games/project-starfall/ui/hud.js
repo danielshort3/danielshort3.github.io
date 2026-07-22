@@ -111,13 +111,52 @@
     return update;
   }
 
+  function getHudStatusAnnouncement(snapshot, options) {
+    const source = snapshot || {};
+    const settings = options || {};
+    const player = source.state && source.state.player || {};
+    if (!player.classId) {
+      return { signature: 'no-character', message: 'No character selected.' };
+    }
+    const stats = source.stats || {};
+    const classData = source.advancedData || source.classData || {};
+    const maxHp = Math.max(1, Number(stats.maxHp || player.hp || 1));
+    const hpRatio = clamp(Number(player.hp || 0) / maxHp, 0, 1);
+    const healthState = Number(player.hp || 0) <= 0 ? 'defeated' : hpRatio <= 0.25 ? 'critical' : 'stable';
+    const onboarding = source.onboarding || {};
+    const nextStep = onboarding.hidden ? null : onboarding.nextStep;
+    const stepId = nextStep && (nextStep.id || nextStep.panelId || nextStep.title) || '';
+    const riftCounterplay = source.mapModifiers && source.mapModifiers.rift && source.mapModifiers.rift.counterplay || {};
+    const activeRiftResponses = Array.isArray(riftCounterplay.active) ? riftCounterplay.active : [];
+    const activeRiftIds = activeRiftResponses.map((entry) => entry.id || entry.label).filter(Boolean).join(',');
+    const bossFeedback = getBossResponseFeedbackMetadata(source.bossEncounter);
+    const signature = [
+      Number(player.level || 1),
+      healthState,
+      stepId,
+      activeRiftIds,
+      bossFeedback && bossFeedback.announcementKey || ''
+    ].join('|');
+    const className = classData.name || settings.fallbackClassName || 'Adventurer';
+    const parts = [`Level ${Number(player.level || 1)} ${className}.`];
+    if (healthState === 'defeated') parts.push('You have been defeated.');
+    else if (healthState === 'critical') parts.push('Health critical.');
+    if (nextStep && nextStep.title) parts.push(`Current objective: ${nextStep.title}.`);
+    if (activeRiftResponses.length) {
+      parts.push(`Rift response active: ${activeRiftResponses.map((entry) => entry.label || entry.id).join(', ')}.`);
+    }
+    if (bossFeedback && bossFeedback.announcement) parts.push(`Boss response: ${bossFeedback.announcement}`);
+    return { signature, message: parts.join(' ') };
+  }
+
   function createHudRuntimeUiHelpers() {
     return Object.freeze({
       shouldRefreshUiChangeHudSnapshot,
       mergeHudSnapshot,
       getDismissGuideDomAction,
       getHudRegionAction,
-      getWorldDerivedSnapshotUpdate
+      getWorldDerivedSnapshotUpdate,
+      getHudStatusAnnouncement
     });
   }
 
@@ -155,17 +194,17 @@
     const ui = uiTheme || {};
     return {
       accent,
-      frame: ui.frame,
-      frameDeep: ui.frameDeep,
-      frameSoft: ui.frameSoft,
-      panel: ui.parchment,
-      panelShade: ui.parchmentDim,
-      panelLine: ui.line,
-      ink: ui.ink,
-      gold: ui.gold,
-      goldSoft: 'rgba(245,207,114,0.34)',
-      goldDim: ui.lineSoft,
-      cyanSoft: ui.cyanSoft
+      frame: '#07111d',
+      frameDeep: '#030912',
+      frameSoft: '#102238',
+      panel: '#0b1827',
+      panelShade: '#07121f',
+      panelLine: 'rgba(116,221,255,0.2)',
+      ink: '#eef9ff',
+      gold: '#f0ae5a',
+      goldSoft: 'rgba(240,174,90,0.2)',
+      goldDim: 'rgba(116,221,255,0.15)',
+      cyanSoft: ui.cyanSoft || 'rgba(116,221,255,0.16)'
     };
   }
 
@@ -176,15 +215,9 @@
     const px = Math.round(x);
     return {
       rects: [
-        { x: px - 2, y: top + 3, w: 4, h: bottom - top - 6, fill: 'rgba(4,12,22,0.78)' },
-        { x: px - 3, y: top + 8, w: 1, h: bottom - top - 16, fill: 'rgba(245,207,114,0.46)' },
-        { x: px + 2, y: top + 8, w: 1, h: bottom - top - 16, fill: 'rgba(245,207,114,0.46)' },
-        { x: px - 1, y: top + 6, w: 1, h: bottom - top - 12, fill: 'rgba(255,255,255,0.12)' }
+        { x: px, y: top + 5, w: 1, h: bottom - top - 10, fill: 'rgba(116,221,255,0.18)' }
       ],
-      diamonds: [
-        { cx: px, cy: top + 6, radius: 3, fill: 'rgba(216,170,85,0.7)' },
-        { cx: px, cy: bottom - 6, radius: 3, fill: 'rgba(216,170,85,0.7)' }
-      ]
+      diamonds: []
     };
   }
 
@@ -194,68 +227,50 @@
     const panels = [];
     if (frameLayout.infoRight) {
       panels.push({
-        x: box.x + 14,
-        y: box.y + 14,
-        w: Math.max(80, frameLayout.infoRight - box.x - 20),
-        h: box.h - 28,
-        radius: 5,
-        fill: 'rgba(10,28,43,0.48)',
-        stroke: 'rgba(245,207,114,0.14)'
+        x: box.x + 10,
+        y: box.y + 8,
+        w: Math.max(80, frameLayout.infoRight - box.x - 14),
+        h: box.h - 16,
+        radius: 8,
+        fill: 'rgba(5,14,24,0.94)',
+        stroke: 'rgba(116,221,255,0.2)'
+      });
+    }
+    if (frameLayout.infoRight && frameLayout.commandLeft) {
+      panels.push({
+        x: frameLayout.infoRight + 8,
+        y: box.y + 8,
+        w: Math.max(120, frameLayout.commandLeft - frameLayout.infoRight - 16),
+        h: box.h - 16,
+        radius: 8,
+        fill: 'rgba(5,14,24,0.9)',
+        stroke: 'rgba(116,221,255,0.16)'
       });
     }
     if (frameLayout.commandLeft) {
       panels.push({
         x: Math.max(box.x + 16, frameLayout.commandLeft + 8),
-        y: box.y + 14,
-        w: Math.max(72, box.x + box.w - frameLayout.commandLeft - 24),
-        h: box.h - 28,
-        radius: 5,
-        fill: 'rgba(10,28,43,0.38)',
-        stroke: 'rgba(245,207,114,0.12)'
+        y: box.y + 8,
+        w: Math.max(72, box.x + box.w - frameLayout.commandLeft - 18),
+        h: box.h - 16,
+        radius: 8,
+        fill: 'rgba(5,14,24,0.94)',
+        stroke: 'rgba(116,221,255,0.2)'
       });
     }
     return {
       theme,
       shadow: {
-        color: 'rgba(0,0,0,0.42)',
-        blur: 16,
-        offsetY: -3
+        color: 'rgba(0,0,0,0.34)',
+        blur: 10,
+        offsetY: 2
       },
-      shadowRect: {
-        x: box.x + 2,
-        y: box.y + 3,
-        w: box.w - 4,
-        h: box.h - 5,
-        radius: 7,
-        fill: theme.frameDeep,
-        stroke: theme.goldSoft
-      },
-      rects: [
-        { x: box.x + 6, y: box.y + 7, w: box.w - 12, h: box.h - 13, radius: 6, fill: theme.frame, stroke: 'rgba(245,207,114,0.36)' },
-        { x: box.x + 11, y: box.y + 12, w: box.w - 22, h: box.h - 23, radius: 5, fill: 'rgba(6,15,26,0.92)', stroke: 'rgba(245,207,114,0.26)' }
-      ],
-      lines: [
-        { x: box.x + 16, y: box.y + 12, w: box.w - 32, h: 1, fill: 'rgba(255,255,255,0.1)' },
-        { x: box.x + 14, y: box.y + 7, w: box.w - 28, h: 1, fill: 'rgba(245,207,114,0.48)' },
-        { x: box.x + 14, y: box.y + box.h - 10, w: box.w - 28, h: 1, fill: 'rgba(245,207,114,0.38)' }
-      ],
+      shadowRect: null,
+      rects: [],
+      lines: [],
       panels,
-      dividers: [
-        { x: frameLayout.infoRight },
-        { x: frameLayout.commandLeft }
-      ],
-      accents: {
-        x: box.x + 2,
-        y: box.y + 3,
-        w: box.w - 4,
-        h: box.h - 5,
-        options: {
-          gems: box.w >= 560,
-          inset: 10,
-          centerTop: false,
-          centerBottom: box.w >= 500
-        }
-      }
+      dividers: [],
+      accents: null
     };
   }
 
@@ -263,15 +278,15 @@
     const settings = options || {};
     const theme = getCanvasHudTheme(settings.accentColor, uiTheme);
     const active = !!settings.active;
-    const fill = settings.fill || (active ? 'rgba(16,39,59,0.92)' : 'rgba(242,223,189,0.9)');
-    const stroke = settings.stroke || (active ? 'rgba(245,207,114,0.34)' : theme.goldDim);
+    const fill = settings.fill || (active ? 'rgba(17,48,70,0.96)' : 'rgba(8,24,38,0.92)');
+    const stroke = settings.stroke || (active ? colorWithAlpha(theme.accent, 0.46) : theme.panelLine);
     return {
       rect: {
         x,
         y,
         w,
         h,
-        radius: 7,
+        radius: 6,
         fill,
         stroke
       },
@@ -279,7 +294,7 @@
         value: text,
         x: x + w / 2,
         y: y + h / 2,
-        color: settings.color || (active ? '#fff7df' : theme.ink),
+        color: settings.color || (active ? '#f4fbff' : theme.ink),
         font: settings.font || '900 10px system-ui',
         align: 'center',
         baseline: 'middle',
@@ -295,7 +310,6 @@
     const enabled = !!active;
     const accentStroke = colorWithAlpha(theme.accent, 0.58);
     const accentFill = colorWithAlpha(theme.accent, 0.5);
-    const accentCorner = colorWithAlpha(theme.accent, 0.72);
     return {
       shadow: enabled ? {
         color: theme.accent,
@@ -307,44 +321,33 @@
         w,
         h,
         radius: 7,
-        fill: enabled ? '#2b5872' : '#102033',
-        stroke: enabled ? accentStroke : 'rgba(245,207,114,0.42)'
+        fill: enabled ? '#12394f' : '#071522',
+        stroke: enabled ? accentStroke : 'rgba(116,221,255,0.2)'
       },
       inner: {
         x: x + 4,
         y: y + 4,
         w: w - 8,
         h: h - 8,
-        radius: 5,
-        fill: enabled ? 'rgba(89,216,255,0.18)' : 'rgba(0,0,0,0.28)',
-        stroke: 'rgba(255,255,255,0.1)'
+        radius: 4,
+        fill: enabled ? 'rgba(116,221,255,0.14)' : 'rgba(3,10,17,0.74)',
+        stroke: 'rgba(255,255,255,0.06)'
       },
       topLine: {
         x: x + 8,
         y: y + 6,
         w: Math.max(8, w - 16),
         h: 1,
-        fill: enabled ? accentFill : 'rgba(255,255,255,0.14)'
+        fill: enabled ? accentFill : 'rgba(116,221,255,0.12)'
       },
       bottomLine: {
         x: x + 6,
         y: y + h - 7,
         w: Math.max(8, w - 12),
         h: 1,
-        fill: 'rgba(0,0,0,0.32)'
+        fill: 'rgba(0,0,0,0.22)'
       },
-      corners: {
-        x,
-        y,
-        w,
-        h,
-        options: {
-          stroke: enabled ? accentCorner : 'rgba(245,207,114,0.5)',
-          fill: 'rgba(3,10,19,0.86)',
-          pinFill: enabled ? accentCorner : 'rgba(245,207,114,0.46)',
-          pins: w >= 42 && h >= 42
-        }
-      }
+      corners: null
     };
   }
 
@@ -394,15 +397,15 @@
     ctx.shadowColor = frame.shadow.color;
     ctx.shadowBlur = frame.shadow.blur;
     ctx.shadowOffsetY = frame.shadow.offsetY;
-    drawRoundRectEntry(drawRoundRect, frame.shadowRect);
-    ctx.shadowColor = 'transparent';
+    if (frame.shadowRect) drawRoundRectEntry(drawRoundRect, frame.shadowRect);
     frame.rects.forEach((rect) => drawRoundRectEntry(drawRoundRect, rect));
     frame.lines.forEach((line) => drawCanvasFillRectEntry(ctx, line));
     frame.panels.forEach((panel) => drawRoundRectEntry(drawRoundRect, panel));
+    ctx.shadowColor = 'transparent';
     frame.dividers.forEach((divider) => {
       drawCanvasHudDivider(ctx, divider.x, box);
     });
-    drawCanvasUiFrameAccents(frame.accents);
+    if (frame.accents) drawCanvasUiFrameAccents(frame.accents);
     ctx.restore();
     return true;
   }
@@ -434,7 +437,7 @@
     drawRoundRectEntry(drawRoundRect, socket.inner);
     drawCanvasFillRectEntry(ctx, socket.topLine);
     drawCanvasFillRectEntry(ctx, socket.bottomLine);
-    drawCanvasUiSlotCorners(socket.corners);
+    if (socket.corners) drawCanvasUiSlotCorners(socket.corners);
     ctx.restore();
     return true;
   }
@@ -471,8 +474,8 @@
         w: w + 2,
         h: h + 2,
         radius: 6,
-        fill: 'rgba(7,14,24,0.94)',
-        stroke: 'rgba(245,207,114,0.42)'
+        fill: 'rgba(3,9,16,0.94)',
+        stroke: 'rgba(116,221,255,0.18)'
       },
       inner: {
         x: x + 1,
@@ -480,8 +483,8 @@
         w: w - 2,
         h: h - 2,
         radius: 5,
-        fill: 'rgba(0,0,0,0.48)',
-        stroke: 'rgba(255,255,255,0.1)'
+        fill: 'rgba(2,7,13,0.72)',
+        stroke: 'rgba(255,255,255,0.05)'
       },
       clip: {
         x: x + 1,
@@ -502,7 +505,7 @@
         y: y + 1,
         w: Math.max(0, fillW - 2),
         h: Math.max(2, Math.floor(h * 0.32)),
-        fill: 'rgba(255,255,255,0.16)'
+        fill: 'rgba(255,255,255,0.08)'
       },
       edge: {
         x: x + Math.max(1, fillW - 3),
@@ -600,13 +603,205 @@
     });
   }
 
+  const BOSS_RESPONSE_TONE_STYLES = Object.freeze({
+    call: Object.freeze({ color: '#f2c66d', fill: 'rgba(66,45,12,0.9)', stroke: 'rgba(242,198,109,0.52)' }),
+    active: Object.freeze({ color: '#74ddff', fill: 'rgba(8,37,55,0.92)', stroke: 'rgba(116,221,255,0.48)' }),
+    rejected: Object.freeze({ color: '#ffb45f', fill: 'rgba(68,34,10,0.92)', stroke: 'rgba(255,180,95,0.58)' }),
+    failed: Object.freeze({ color: '#ff7777', fill: 'rgba(66,18,24,0.92)', stroke: 'rgba(255,119,119,0.58)' }),
+    success: Object.freeze({ color: '#76e3a8', fill: 'rgba(10,52,39,0.92)', stroke: 'rgba(118,227,168,0.56)' })
+  });
+
+  function trimBossResponseSentence(value) {
+    return String(value || '').trim().replace(/[.!?]+$/, '');
+  }
+
+  function createBossResponseFeedback(tone, label, title, detail, announcementKey, status) {
+    const style = BOSS_RESPONSE_TONE_STYLES[tone] || BOSS_RESPONSE_TONE_STYLES.active;
+    const cleanLabel = trimBossResponseSentence(label);
+    const cleanTitle = trimBossResponseSentence(title);
+    const cleanDetail = trimBossResponseSentence(detail);
+    const announcement = [cleanLabel, cleanTitle, cleanDetail].filter(Boolean).join('. ');
+    return {
+      tone,
+      status: status || tone,
+      label: cleanLabel,
+      title: cleanTitle,
+      detail: cleanDetail,
+      color: style.color,
+      fill: style.fill,
+      stroke: style.stroke,
+      announcementKey: String(announcementKey || ''),
+      announcement: announcement ? `${announcement}.` : ''
+    };
+  }
+
+  function getBossResponseFailureCopy(response) {
+    const source = response || {};
+    const section = source.sectionLabel || 'the called section';
+    const copy = {
+      hazardHit: {
+        title: 'Hazard hit',
+        detail: 'Leave the marked impact before the next call resolves.'
+      },
+      sectionMissed: {
+        title: `Missed ${section}`,
+        detail: `Rotate to ${section} before the next call resolves.`
+      },
+      sectionResponderHit: {
+        title: 'Responder hit',
+        detail: `Reach ${section} without taking the marked hit.`
+      },
+      damageWindowExpired: {
+        title: 'Counter window missed',
+        detail: `Deal direct damage from ${section} during the next expose.`
+      },
+      damageWindowSuperseded: {
+        title: 'Counter window lost',
+        detail: `Reposition to ${section} before the next expose begins.`
+      },
+      projectileHit: {
+        title: 'Volley hit',
+        detail: 'Avoid every tagged projectile on the next volley.'
+      },
+      projectileWindowExpired: {
+        title: 'Dodge window missed',
+        detail: 'Stay clear until every tagged projectile has resolved.'
+      },
+      addsFailedToSpawn: {
+        title: 'Response unavailable',
+        detail: 'The add wave could not form; wait for the next call.'
+      }
+    };
+    return copy[source.failureReason] || {
+      title: 'Response missed',
+      detail: source.instruction || `Reset and prepare for the next ${section} call.`
+    };
+  }
+
+  function getBossResponseFeedbackMetadata(boss) {
+    if (!boss || !boss.active) return null;
+    const response = boss.lastSpatialResponse || null;
+    const responseSection = response && response.sectionLabel || '';
+    const pendingSection = boss.pendingSpatialSectionLabel || '';
+    if (response && response.status === 'pending') {
+      const section = responseSection;
+      const responseId = response.id || response.actionId || 'active';
+      const remaining = Math.max(0, Math.floor(Number(response.remaining || 0)));
+      if (response.lastRejectedReason === 'attackerOutsideSection') {
+        return createBossResponseFeedback(
+          'rejected',
+          'Wrong position',
+          `Attack from ${section || 'the called section'}`,
+          'Move into the called section before the counter window closes.',
+          `response:${responseId}:rejected:outside`,
+          'rejected'
+        );
+      }
+      if (response.lastRejectedReason === 'attackerUnknown') {
+        return createBossResponseFeedback(
+          'rejected',
+          'Direct hit required',
+          'Use player or party damage',
+          `Trigger the counter from ${section || 'the called section'} before the window closes.`,
+          `response:${responseId}:rejected:source`,
+          'rejected'
+        );
+      }
+      if (response.type === 'clearAdds') {
+        return createBossResponseFeedback(
+          'active',
+          'Response active',
+          remaining === 1 ? 'Clear adds - 1 remaining' : `Clear adds - ${remaining} remaining`,
+          response.instruction || 'Defeat the full marked wave.',
+          `response:${responseId}:adds:${remaining}`,
+          'pending'
+        );
+      }
+      if (response.type === 'damageWindow') {
+        return createBossResponseFeedback(
+          'active',
+          'Counter now',
+          section ? `Attack from ${section}` : 'Land direct damage',
+          response.instruction || 'Deal direct damage before the expose closes.',
+          `response:${responseId}:damage`,
+          'pending'
+        );
+      }
+      if (response.type === 'dodgeProjectiles') {
+        return createBossResponseFeedback(
+          response.failed ? 'rejected' : 'active',
+          response.failed ? 'Volley compromised' : 'Response active',
+          remaining === 1 ? 'Dodge volley - 1 projectile remaining' : `Dodge volley - ${remaining} projectiles remaining`,
+          response.failed
+            ? 'A projectile connected; finish the pattern and reset for the next call.'
+            : response.instruction || 'Avoid every tagged projectile.',
+          `response:${responseId}:projectiles:${remaining}:${response.failed ? 'hit' : 'clear'}`,
+          response.failed ? 'rejected' : 'pending'
+        );
+      }
+      return createBossResponseFeedback(
+        'active',
+        'Response active',
+        response.label || section || 'Answer the boss call',
+        response.instruction || 'Complete the marked response.',
+        `response:${responseId}:pending`,
+        'pending'
+      );
+    }
+
+    const pendingType = String(boss.pendingSpatialResponseType || '');
+    if (pendingType) {
+      const section = pendingSection;
+      const callTitles = {
+        avoidHazard: `Move clear${section ? ` - ${section}` : ''}`,
+        reachSection: `Regroup${section ? ` - ${section}` : ''}`,
+        clearAdds: `Adds incoming${section ? ` - ${section}` : ''}`,
+        damageWindow: `Prepare counter${section ? ` - ${section}` : ''}`,
+        dodgeProjectiles: `Dodge volley${section ? ` - ${section}` : ''}`
+      };
+      return createBossResponseFeedback(
+        'call',
+        'Boss call',
+        callTitles[pendingType] || `Respond${section ? ` - ${section}` : ''}`,
+        boss.pendingSpatialInstruction || boss.pendingSpatialResponse || 'Read the marked section and respond.',
+        `call:${boss.pendingActionId || 'action'}:${pendingType}:${section}`,
+        'call'
+      );
+    }
+
+    if (response && response.status === 'success') {
+      return createBossResponseFeedback(
+        'success',
+        'Response cleared',
+        response.label || responseSection || 'Mechanic answered',
+        response.progressAwarded ? 'Spatial Control progress earned. Resume pressure.' : 'Control secured. Resume pressure.',
+        `response:${response.id || response.actionId || 'recent'}:success`,
+        'success'
+      );
+    }
+    if (response && response.status === 'failed') {
+      const failure = getBossResponseFailureCopy(response);
+      return createBossResponseFeedback(
+        'failed',
+        'Response failed',
+        failure.title,
+        failure.detail,
+        `response:${response.id || response.actionId || 'recent'}:failed:${response.failureReason || 'missed'}`,
+        'failed'
+      );
+    }
+    return null;
+  }
+
   function getCanvasBossEncounterHudMetadata(boss, width, options) {
     if (!boss || !boss.active) return null;
     const settings = options || {};
     const w = clamp(Math.round(width * 0.44), 360, 560);
     const x = Math.round((width - w) / 2);
     const y = settings.y != null ? Number(settings.y) : 14;
-    const h = settings.h != null ? Number(settings.h) : 72;
+    const feedback = getBossResponseFeedbackMetadata(boss);
+    const baseH = settings.h != null ? Number(settings.h) : 72;
+    const h = baseH + (feedback ? 44 : 0);
     const ratio = clamp(Number(boss.hpRatio || 0), 0, 1);
     const color = boss.color || '#ffbe55';
     const accent = boss.accentColor || '#ffffff';
@@ -627,6 +822,52 @@
         fill: index <= phaseIndex ? colorWithAlpha(accent, 0.84) : 'rgba(255,255,255,0.18)'
       });
     }
+    const feedbackY = y + 72;
+    const feedbackMetadata = feedback ? Object.assign({}, feedback, {
+      frame: {
+        x: x + 9,
+        y: feedbackY,
+        w: w - 18,
+        h: 36,
+        radius: 7,
+        fill: feedback.fill,
+        stroke: feedback.stroke
+      },
+      rail: { x: x + 9, y: feedbackY + 5, w: 3, h: 26, fill: feedback.color },
+      labelText: {
+        value: feedback.label.toUpperCase(),
+        x: x + 19,
+        y: feedbackY + 10,
+        color: feedback.color,
+        font: '950 9px system-ui',
+        baseline: 'middle',
+        maxWidth: w * 0.4,
+        maxLines: 1,
+        lineHeight: 10
+      },
+      titleText: {
+        value: feedback.title,
+        x: x + 19,
+        y: feedbackY + 25,
+        color: '#ffffff',
+        font: '900 11px system-ui',
+        baseline: 'middle',
+        maxWidth: w * 0.43,
+        maxLines: 1,
+        lineHeight: 12
+      },
+      detailText: {
+        value: feedback.detail,
+        x: x + w - 15,
+        y: feedbackY + 9,
+        color: '#d9e7ef',
+        font: '800 9px system-ui',
+        align: 'right',
+        maxWidth: w * 0.48,
+        maxLines: 2,
+        lineHeight: 11
+      }
+    }) : null;
     return {
       box: { x, y, w, h },
       ratio,
@@ -716,7 +957,8 @@
         maxLines: 1,
         lineHeight: 11
       },
-      ticks
+      ticks,
+      feedback: feedbackMetadata
     };
   }
 
@@ -729,10 +971,11 @@
       ? settings.formatIntegerWithCommas
       : (value) => String(Math.round(Number(value) || 0));
     const clear = !!boss.clear;
+    const feedback = boss.active ? getBossResponseFeedbackMetadata(boss) : null;
     const w = clamp(Math.round(width * 0.42), 340, 520);
     const h = clear ? 126 : 112;
     const x = Math.round((width - w) / 2);
-    const y = clear ? Math.max(92, Math.round(height * 0.18)) : 98;
+    const y = clear ? Math.max(92, Math.round(height * 0.18)) : feedback ? 136 : 98;
     const color = panel.color || boss.color || '#ffbe55';
     const accent = panel.accentColor || boss.accentColor || '#ffffff';
     const title = clear ? 'Boss Cleared' : (boss.bossName || boss.name || 'Boss Encounter');
@@ -842,6 +1085,14 @@
       ctx.fillStyle = tick.fill;
       ctx.fillRect(tick.x, tick.y, tick.w, tick.h);
     });
+    if (hud.feedback) {
+      drawRoundRectEntry(drawRoundRect, hud.feedback.frame);
+      ctx.fillStyle = hud.feedback.rail.fill;
+      ctx.fillRect(hud.feedback.rail.x, hud.feedback.rail.y, hud.feedback.rail.w, hud.feedback.rail.h);
+      drawCanvasTextEntry(drawCanvasText, hud.feedback.labelText);
+      drawCanvasTextEntry(drawCanvasText, hud.feedback.titleText);
+      drawCanvasTextEntry(drawCanvasText, hud.feedback.detailText);
+    }
     ctx.restore();
     return true;
   }
@@ -866,6 +1117,7 @@
 
   function createHudBossEncounterUiHelpers() {
     return Object.freeze({
+      getBossResponseFeedbackMetadata,
       getCanvasBossEncounterHudMetadata,
       getCanvasBossEncounterOverlayMetadata,
       drawCanvasBossEncounterHud,
@@ -1292,13 +1544,17 @@
         current: index === 0
       }));
     const currentId = source.currentId || (channels.find((channel) => channel.current) || channels[0] || {}).id;
-    return channels.map((channel) => ({
-      label: channel.label || channel.name || channel.id,
-      action: 'changeChannel',
-      channelId: channel.id,
-      iconId: 'worldmap',
-      selected: channel.current || channel.id === currentId
-    }));
+    return channels.map((channel, index) => {
+      const rawLabel = channel.label || channel.name || channel.id;
+      const compactChannelMatch = /^Ch\.\s*(\d+)$/i.exec(String(rawLabel || ''));
+      return {
+        label: compactChannelMatch ? `Signal ${compactChannelMatch[1]}` : rawLabel || `Signal ${index + 1}`,
+        action: 'changeChannel',
+        channelId: channel.id,
+        iconId: 'worldmap',
+        selected: channel.current || channel.id === currentId
+      };
+    });
   }
 
   function getCanvasMenuGroups(snapshot, options) {
@@ -1309,49 +1565,49 @@
       : () => getCanvasChannelMenuItems(source.channel || {});
     return [
       {
-        title: 'Character',
+        title: 'OPERATIVE',
         items: [
-          { label: 'Character', panel: 'character', iconId: 'character' },
-          { label: 'Equipment', panel: 'equipment', iconId: 'equipment' },
-          { label: 'Party', panel: 'partyPanel', iconId: 'partyPanel' },
+          { label: 'Operative', panel: 'character', iconId: 'character' },
+          { label: 'Loadout', panel: 'equipment', iconId: 'equipment' },
+          { label: 'Squad', panel: 'partyPanel', iconId: 'partyPanel' },
           { label: 'Inventory', panel: 'inventory', iconId: 'inventory' },
-          { label: 'Skills', panel: 'skills', iconId: 'skills' },
-          { label: 'Quests', panel: 'quests', iconId: 'quests' }
+          { label: 'Techniques', panel: 'skills', iconId: 'skills' },
+          { label: 'Assignments', panel: 'quests', iconId: 'quests' }
         ]
       },
       {
-        title: 'World',
+        title: 'FIELD SYSTEMS',
         items: [
-          { label: 'World Map', panel: 'worldmap', iconId: 'worldmap' },
-          { label: 'Monster Guide', panel: 'monsters', iconId: 'monsters' },
-          { label: 'Shop', panel: 'shop', iconId: 'shop' },
-          { label: 'Upgrade', panel: 'upgrade', iconId: 'upgrade' },
-          { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
-          { label: source.dailyLogin && source.dailyLogin.claimable ? 'Daily Reward!' : 'Daily Rewards', panel: 'daily', iconId: 'daily' },
-          { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
-          { label: 'Beta Systems', panel: 'beta', iconId: 'beta' },
-          { label: 'Guide', panel: 'guide', iconId: 'guide' },
-          { label: 'Log', panel: 'log', iconId: 'log' }
+          { label: 'Starfall Atlas', panel: 'worldmap', iconId: 'worldmap' },
+          { label: 'Archive Index', panel: 'monsters', iconId: 'monsters' },
+          { label: 'Field Market', panel: 'shop', iconId: 'shop' },
+          { label: 'Forge', panel: 'upgrade', iconId: 'upgrade' },
+          { label: 'Signal Drop', panel: 'plinko', iconId: 'plinko' },
+          { label: source.dailyLogin && source.dailyLogin.claimable ? 'Beacon Ready!' : 'Beacon Check-In', panel: 'daily', iconId: 'daily' },
+          { label: 'Token Exchange', panel: 'cashShop', iconId: 'cashShop' },
+          { label: 'Fracture Ops', panel: 'beta', iconId: 'beta' },
+          { label: 'Field Manual', panel: 'guide', iconId: 'guide' },
+          { label: 'Field Log', panel: 'log', iconId: 'log' }
         ]
       },
       {
-        title: 'Channels',
+        title: 'SIGNAL LINKS',
         items: getChannelItems()
       },
       {
-        title: 'Settings',
+        title: 'COMMAND',
         items: [
-          { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
-          { label: 'Settings', panel: 'settings', iconId: 'settings' },
+          { label: 'Focus Stage', action: 'fullscreen', iconId: 'fullscreen' },
+          { label: 'System Settings', panel: 'settings', iconId: 'settings' },
           { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
-          { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
+          { label: 'Worldwright Tools', panel: 'admin', iconId: 'admin' }
         ]
       }
     ];
   }
 
   function getCanvasMenuFooterAction() {
-    return { label: 'Logout', action: 'load', iconId: 'logout', danger: true };
+    return { label: 'Return to Observatory', action: 'load', iconId: 'logout', danger: true };
   }
 
   function getCanvasHudQuickActions(panelIds, options) {
@@ -1729,7 +1985,7 @@
         : questNpc
           ? `${keyLabels.npcTalk || 'Y'} Talk`
           : `${keyLabels.interact || 'F'} Use`,
-      hintColor: portal ? '#2f7dd6' : '#177645',
+      hintColor: portal ? '#74ddff' : '#8ef0ba',
       kindLabel: questNpc && questNpc.servicePanelId ? 'Service NPC' : questNpc ? 'Quest NPC' : portal ? 'Portal' : 'Station',
       target: questNpc || station || portal || null,
       station,
@@ -1776,16 +2032,16 @@
         w: box.w,
         h: box.h,
         options: {
-          fill: settings.fill || 'rgba(255,244,216,0.88)',
-          stroke: settings.stroke || 'rgba(245,207,114,0.42)',
-          radius: 8
+          fill: settings.fill || 'rgba(4,13,23,0.92)',
+          stroke: settings.stroke || 'rgba(116,221,255,0.28)',
+          radius: 7
         }
       },
       titleText: {
         value: prompt.title,
         x: box.x + 12,
         y: box.y + 7,
-        color: '#102033',
+        color: '#eef9ff',
         font: '900 12px system-ui',
         maxWidth: box.w - 112,
         lineHeight: 13,
@@ -1805,7 +2061,7 @@
         value: prompt.kindLabel,
         x: box.x + 12,
         y: box.y + 25,
-        color: '#5f6f7a',
+        color: '#b8c8d3',
         font: '10px system-ui',
         maxWidth: box.w - 24,
         lineHeight: 11
@@ -2401,6 +2657,7 @@
     getDismissGuideDomAction,
     getHudRegionAction,
     getWorldDerivedSnapshotUpdate,
+    getHudStatusAnnouncement,
     createHudRuntimeUiHelpers,
     getCanvasStatusHudBox,
     getCanvasHudTop,
@@ -2417,6 +2674,7 @@
     getCanvasHudMeterMetadata,
     drawCanvasHudMeter,
     createHudChromeUiHelpers,
+    getBossResponseFeedbackMetadata,
     getCanvasBossEncounterHudMetadata,
     getCanvasBossEncounterOverlayMetadata,
     drawCanvasBossEncounterHud,

@@ -19,6 +19,9 @@
   const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
   let prevFocus = null;
   let sending = false;
+  const modalAccessibility = modal && typeof window.createModalAccessibility === 'function'
+    ? window.createModalAccessibility(modal)
+    : null;
   const nameInput = form?.querySelector('#contact-name');
   const emailInput = form?.querySelector('#contact-email');
   const messageInput = form?.querySelector('#contact-message');
@@ -112,7 +115,10 @@
     return message ? `${message}\n\n${label}` : label;
   };
 
-  const focusables = () => content ? content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])') : [];
+  const focusables = () => content
+    ? Array.from(content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])'))
+      .filter((node) => !node.disabled && !node.closest('[hidden], [inert], [aria-hidden="true"]'))
+    : [];
   const trap = (e) => {
     if (e.key !== 'Tab') return;
     const f = focusables();
@@ -237,25 +243,29 @@
     }
   };
 
-  function open(){ if(!modal || !content) return;
+  function open(){ if(!modal || !content || modal.classList.contains('active')) return;
     prepareForm();
     trackContactEvent('contact_modal_open', { page_path: currentPathname() });
     prevFocus = document.activeElement;
+    modalAccessibility?.show();
     modal.classList.add('active');
     document.body.classList.add('modal-open');
     content.setAttribute('tabindex','0');
     content.focus({preventScroll:true});
+    modalAccessibility?.isolateBackground();
     content.addEventListener('keydown', trap);
   }
-  function close(){ if(!modal || !content) return;
+  function close(){ if(!modal || !content || !modal.classList.contains('active')) return;
+    modalAccessibility?.restoreBackground();
     modal.classList.remove('active');
+    modalAccessibility?.hide();
     trackContactEvent('contact_modal_close', { page_path: currentPathname() });
     syncModalOpenState();
     content.removeEventListener('keydown', trap);
-    if (prevFocus && document.contains(prevFocus)) {
-      prevFocus.focus();
+    if (prevFocus && prevFocus !== document.body && document.contains(prevFocus)) {
+      prevFocus.focus({ preventScroll: true });
     } else if (openBtn) {
-      openBtn.focus();
+      openBtn.focus({ preventScroll: true });
     }
   }
   if (typeof window !== 'undefined') {

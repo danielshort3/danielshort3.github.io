@@ -12,9 +12,12 @@ const OUTPUT_DIR = path.join(ROOT, 'img/project-starfall/equipment-atlases');
 const CELL_SIZE = Attachments.ATLAS_CELL_SIZE;
 const ANGLES = Attachments.ATLAS_ANGLE_SETS.weapon;
 const BOW_STATES = Object.freeze(['rest', 'draw', 'release']);
+const ATLAS_VERSION = 'v2';
 const EXPECTED_VISUAL_COUNT = 85;
 const ALPHA_THRESHOLD = 8;
 const MIN_VISIBLE_PIXELS = 8;
+const STARFRONT_PROFILE_ID = 'fractured-starfront';
+const MIN_STARFRONT_PALETTE_COLORS = 4;
 const RECOGNIZED_KINDS = Object.freeze([
   'sword',
   'axe',
@@ -67,6 +70,10 @@ function equipmentColor(item, keys, fallback) {
   return fallback;
 }
 
+function isStarfrontEquipment(item) {
+  return String(item && item.profile || '').trim() === STARFRONT_PROFILE_ID;
+}
+
 function buildEquipmentDefinitions() {
   const visuals = Object.values(Data.EQUIPMENT_VISUALS || {});
   const styles = Data.PLAYER_RIGS && Data.PLAYER_RIGS.fighter && Data.PLAYER_RIGS.fighter.equipmentVisuals || {};
@@ -105,111 +112,181 @@ function buildEquipmentDefinitions() {
 const EQUIPMENT = Object.freeze(buildEquipmentDefinitions());
 
 function drawSword(item) {
-  const blade = equipmentColor(item, ['blade', 'metal'], '#c9d5dd');
-  const bright = equipmentColor(item, ['bright', 'shine', 'edge'], '#f4fbff');
-  const grip = equipmentColor(item, ['grip', 'haft', 'dark'], '#765039');
+  const starfront = isStarfrontEquipment(item);
+  const blade = equipmentColor(item, ['blade', 'metal'], '#82919b');
+  const bright = equipmentColor(item, ['bright', 'shine', 'edge'], '#d7e2e7');
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'shadow'], '#263139');
+  const grip = equipmentColor(item, ['grip', 'haft', 'leather', 'dark'], '#3b3432');
+  const accent = equipmentColor(item, ['accent', 'glow'], starfront ? '#54c9da' : bright);
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : grip);
+  const tip = Math.max(29, Math.min(43, Number(item.bladeLength || (starfront ? 35 : 41))));
+  const half = Math.max(3, Math.min(6, Number(item.bladeHalfWidth || (starfront ? 4 : 5))));
   return group([
-    rect(-37, -4, 18, 8, grip),
-    rect(-22, -9, 6, 18, bright),
-    rect(-17, -6, 50, 12, blade),
-    rect(-12, -4, 40, 3, bright),
-    polygon('33,-6 44,0 33,6', bright)
+    polygon(`-38,0 -34,-6 -29,-5 -29,5 -34,6`, dark),
+    rect(-34, -4, 18, 8, dark),
+    rect(-32, -2, 14, 4, grip),
+    rect(-29, -3, 3, 6, ember),
+    rect(-23, -3, 3, 6, accent),
+    polygon(`-19,-9 -14,-6 -14,6 -19,9 -22,5 -22,-5`, dark),
+    rect(-19, -6, 4, 12, bright),
+    polygon(`-15,${-half - 1} ${tip - 6},${-half} ${tip},0 ${tip - 6},${half} -15,${half + 1}`, dark),
+    polygon(`-13,${-half + 1} ${tip - 7},${-half + 1} ${tip - 2},0 ${tip - 7},${half - 1} -13,${half - 1}`, blade),
+    polygon(`-10,${-half + 1} ${tip - 8},${-half + 1} ${tip - 13},${-half + 3} -10,${-half + 3}`, bright, ' opacity="0.76"'),
+    rect(-9, -1, Math.max(12, tip - 17), 2, accent, ' opacity="0.82"')
   ]);
 }
 
 function drawAxe(item) {
-  const haft = equipmentColor(item, ['haft', 'grip', 'dark'], '#765039');
-  const blade = equipmentColor(item, ['blade', 'metal'], '#c9d5dd');
-  const bright = equipmentColor(item, ['bright', 'shine', 'edge'], '#f4fbff');
+  const starfront = isStarfrontEquipment(item);
+  const haft = equipmentColor(item, ['haft', 'grip', 'leather', 'dark'], '#3b3432');
+  const blade = equipmentColor(item, ['blade', 'metal'], '#82919b');
+  const bright = equipmentColor(item, ['bright', 'shine', 'edge'], '#d7e2e7');
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'shadow'], '#263139');
+  const accent = equipmentColor(item, ['accent', 'glow'], starfront ? '#54c9da' : bright);
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : haft);
   return group([
-    rect(-39, -4, 70, 8, haft),
-    rect(-34, -7, 10, 14, haft),
-    polygon('22,-20 42,-15 47,-5 37,1 22,-3', blade),
-    polygon('24,-20 42,-15 45,-10 24,-12', bright),
-    polygon('22,3 37,-1 47,5 42,15 22,20', blade)
+    rect(-37, -4, 65, 8, dark),
+    rect(-35, -2, 60, 4, haft),
+    rect(-30, -3, 4, 6, ember),
+    rect(15, -4, 6, 8, accent),
+    polygon('17,-19 31,-22 42,-15 45,-5 35,1 18,-3', dark),
+    polygon('20,-16 31,-19 39,-14 41,-7 33,-3 20,-6', blade),
+    polygon('22,-15 31,-18 37,-14 24,-11', bright, ' opacity="0.72"'),
+    polygon('18,3 35,-1 45,5 42,15 31,22 17,19', dark),
+    polygon('20,6 33,3 41,7 38,14 30,18 20,16', blade),
+    polygon('24,6 35,4 39,7 34,9', accent, ' opacity="0.78"'),
+    rect(-39, -6, 7, 12, dark)
   ]);
 }
 
 function drawWand(item, isStaff) {
-  const rod = equipmentColor(item, ['rod', 'haft', 'grip'], '#765039');
-  const gem = equipmentColor(item, ['gem', 'core', 'bright'], '#c6f4ff');
-  const glow = equipmentColor(item, ['glow', 'accent', 'bright'], '#8bd7ff');
-  const start = isStaff ? -43 : -32;
-  const end = isStaff ? 36 : 27;
+  const starfront = isStarfrontEquipment(item);
+  const rod = equipmentColor(item, ['rod', 'haft', 'grip'], '#3b3432');
+  const gem = equipmentColor(item, ['gem', 'core', 'bright'], '#a8edf3');
+  const glow = equipmentColor(item, ['glow', 'accent', 'bright'], '#54c9da');
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'shadow'], '#263139');
+  const metal = equipmentColor(item, ['metal', 'blade', 'trim'], '#7f8f99');
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : rod);
+  const start = isStaff ? -42 : -31;
+  const end = isStaff ? 34 : starfront ? 22 : 27;
+  const headRadius = isStaff ? 12 : starfront ? 9 : 11;
   return group([
-    rect(start, -4, end - start, 8, rod),
-    rect(end - 3, -9, 13, 18, gem),
-    rect(end + 1, -5, 6, 6, '#ffffff', ' opacity="0.72"'),
-    rect(end - 10, -16, 31, 32, glow, ' opacity="0.18"')
+    ellipse(end + 2, 0, headRadius + 3, headRadius + 3, glow, ' opacity="0.09"'),
+    rect(start, -4, end - start, 8, dark),
+    rect(start + 2, -2, end - start - 2, 4, rod),
+    rect(start + 8, -3, 5, 6, ember),
+    rect(end - 10, -4, 6, 8, glow),
+    polygon(`${end - 3},${-headRadius} ${end + headRadius - 2},${-headRadius + 3} ${end + headRadius + 2},0 ${end + headRadius - 2},${headRadius - 3} ${end - 3},${headRadius} ${end - 8},0`, dark),
+    polygon(`${end - 1},${-headRadius + 3} ${end + headRadius - 4},${-headRadius + 5} ${end + headRadius - 1},0 ${end + headRadius - 4},${headRadius - 5} ${end - 1},${headRadius - 3} ${end - 5},0`, metal),
+    polygon(`${end + 1},-5 ${end + 7},0 ${end + 1},5 ${end - 2},0`, gem),
+    rect(end + 1, -4, 3, 4, '#ffffff', ' opacity="0.72"')
   ]);
 }
 
 function drawBow(item, state) {
-  const height = item.long ? 88 : 78;
+  const starfront = isStarfrontEquipment(item);
+  const height = item.long ? 78 : starfront ? 66 : 72;
   const half = height / 2;
-  const wood = equipmentColor(item, ['wood', 'leather', 'haft'], '#8a5c2f');
-  const string = equipmentColor(item, ['string', 'bright', 'trim'], '#f5efd6');
-  const arrow = equipmentColor(item, ['arrow', 'accent', 'bright'], '#ffe16a');
-  const pull = state === 'draw' ? -22 : state === 'release' ? -7 : 0;
-  const arrowStart = state === 'draw' ? -30 : state === 'release' ? -14 : -10;
-  const arrowEnd = state === 'release' ? 45 : 36;
+  const wood = equipmentColor(item, ['wood', 'leather', 'haft'], '#485057');
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'shadow'], '#263139');
+  const metal = equipmentColor(item, ['metal', 'trim'], '#7f8f99');
+  const string = equipmentColor(item, ['string', 'bright', 'trim'], '#a8edf3');
+  const arrow = equipmentColor(item, ['arrow', 'ember', 'warm', 'accent'], '#cf7049');
+  const accent = equipmentColor(item, ['accent', 'glow'], starfront ? '#54c9da' : arrow);
+  const pull = state === 'draw' ? -18 : state === 'release' ? -5 : 5;
+  const arrowStart = state === 'draw' ? -26 : state === 'release' ? -11 : -7;
+  const arrowEnd = state === 'release' ? 39 : 33;
+  const arrowArt = state === 'rest' ? '' : group([
+    rect(arrowStart, -1.5, arrowEnd - arrowStart, 3, metal),
+    polygon(`${arrowEnd},-4 ${arrowEnd + 8},0 ${arrowEnd},4`, arrow),
+    state === 'draw' ? polygon(`${arrowStart},0 ${arrowStart + 7},-5 ${arrowStart + 5},0 ${arrowStart + 7},5`, string) : ''
+  ]);
   return group([
-    linePath(`M 0 ${-half} Q 15 ${-half * 0.58} 10 0 Q 15 ${half * 0.58} 0 ${half}`, wood, 6),
-    linePath(`M 1 ${-half + 2} L ${pull} 0 L 1 ${half - 2}`, string, 2),
-    rect(arrowStart, -2, arrowEnd - arrowStart, 4, arrow, state === 'rest' ? ' opacity="0.74"' : ''),
-    polygon(`${arrowEnd},-5 ${arrowEnd + 9},0 ${arrowEnd},5`, arrow),
-    state === 'draw' ? polygon(`${arrowStart},0 ${arrowStart + 8},-6 ${arrowStart + 6},0 ${arrowStart + 8},6`, string) : ''
+    linePath(`M 0 ${-half} Q 17 ${-half * 0.57} 10 0 Q 17 ${half * 0.57} 0 ${half}`, dark, 8),
+    linePath(`M 1 ${-half + 2} Q 15 ${-half * 0.54} 10 0 Q 15 ${half * 0.54} 1 ${half - 2}`, wood, 4),
+    linePath(`M 2 ${-half + 2} L ${pull} 0 L 2 ${half - 2}`, string, 2),
+    rect(6, -8, 8, 16, dark),
+    rect(8, -6, 4, 12, metal),
+    rect(8, -2, 4, 4, accent),
+    polygon(`-2,${-half + 4} 3,${-half} 5,${-half + 6}`, arrow),
+    polygon(`-2,${half - 4} 3,${half} 5,${half - 6}`, arrow),
+    arrowArt
   ]);
 }
 
 function drawChest(item) {
-  const cloth = equipmentColor(item, ['cloth', 'metal', 'leather', 'core'], '#6d7682');
-  const trim = equipmentColor(item, ['trim', 'edge', 'bright', 'accent'], '#d6a86d');
-  const stitch = equipmentColor(item, ['stitch', 'dark', 'sole'], '#392b2b');
+  const starfront = isStarfrontEquipment(item);
+  const cloth = equipmentColor(item, ['cloth', 'metal', 'leather', 'core'], '#48545e');
+  const trim = equipmentColor(item, ['trim', 'edge', 'bright'], '#84949e');
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'sole'], '#202a32');
+  const accent = equipmentColor(item, ['accent', 'glow', 'stitch'], starfront ? '#54c9da' : trim);
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : trim);
   return group([
-    polygon('-27,-28 -13,-38 -6,-30 6,-30 13,-38 27,-28 22,31 0,39 -22,31', cloth),
-    polygon('-27,-28 -13,-38 -6,-30 -14,-19 -23,-16', trim),
-    polygon('27,-28 13,-38 6,-30 14,-19 23,-16', trim),
-    rect(-3, -25, 6, 57, stitch),
-    rect(-20, 26, 40, 6, trim)
+    polygon('-23,-25 -12,-33 -5,-27 5,-27 12,-33 23,-25 20,23 11,30 0,34 -11,30 -20,23', dark),
+    polygon('-19,-23 -11,-28 -5,-23 -5,25 -11,26 -16,21', cloth),
+    polygon('19,-23 11,-28 5,-23 5,25 11,26 16,21', cloth),
+    polygon('-5,-23 0,-19 5,-23 5,25 0,29 -5,25', trim, ' opacity="0.68"'),
+    polygon('-20,-23 -12,-31 -6,-25 -11,-16 -19,-14', trim),
+    polygon('20,-23 12,-31 6,-25 11,-16 19,-14', trim),
+    linePath('M -13 -10 L -10 20 L 0 27 L 10 20 L 13 -10', accent, 2),
+    rect(-3, 4, 6, 3, ember),
+    rect(-16, 20, 32, 4, dark),
+    rect(-6, 20, 12, 4, trim)
   ]);
 }
 
 function drawBoots(item) {
-  const leather = equipmentColor(item, ['leather', 'cloth', 'metal'], '#6f412b');
-  const sole = equipmentColor(item, ['sole', 'dark', 'edge'], '#2b1d1b');
-  const buckle = equipmentColor(item, ['buckle', 'trim', 'bright'], '#d6a14a');
+  const starfront = isStarfrontEquipment(item);
+  const leather = equipmentColor(item, ['leather', 'cloth', 'metal'], '#48545e');
+  const sole = equipmentColor(item, ['sole', 'darkMetal', 'dark', 'edge'], '#202a32');
+  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#84949e');
+  const accent = equipmentColor(item, ['accent', 'glow', 'buckle'], starfront ? '#54c9da' : metal);
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : leather);
   return group([
-    rect(-12, -28, 23, 45, leather),
-    rect(-14, 12, 35, 10, sole),
-    polygon('-14,17 19,17 26,25 -14,25', sole),
-    rect(-9, -3, 17, 6, buckle)
+    polygon('-9,-18 7,-18 8,2 14,5 17,10 14,14 -9,14 -11,8 -8,1', sole),
+    polygon('-6,-15 5,-15 6,4 12,7 13,10 -6,10 -8,6 -5,0', leather),
+    polygon('-6,-15 5,-15 5,-9 -6,-7', metal, ' opacity="0.72"'),
+    rect(-7, 9, 21, 4, sole),
+    polygon('7,5 12,7 13,10 6,10', metal),
+    rect(-5, -3, 10, 2, accent),
+    rect(-4, -13, 4, 3, ember)
   ]);
 }
 
 function drawHead(item) {
-  const metal = equipmentColor(item, ['metal', 'cloth', 'leather'], '#667481');
-  const dark = equipmentColor(item, ['dark', 'sole', 'stitch'], '#29313a');
-  const trim = equipmentColor(item, ['trim', 'edge', 'bright', 'accent'], '#d3dde5');
+  const starfront = isStarfrontEquipment(item);
+  const metal = equipmentColor(item, ['metal', 'cloth', 'leather'], '#71808a');
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'sole', 'stitch'], '#202a32');
+  const trim = equipmentColor(item, ['trim', 'edge', 'bright'], '#a9bac4');
+  const accent = equipmentColor(item, ['accent', 'glow'], starfront ? '#54c9da' : trim);
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : metal);
   return group([
-    polygon('-35,17 -31,-14 -20,-31 0,-39 20,-31 31,-14 35,17 24,29 -24,29', dark),
-    polygon('-29,12 -25,-12 -16,-25 0,-32 16,-25 25,-12 29,12', metal),
-    rect(-30, 10, 60, 8, trim),
-    rect(-5, -38, 10, 30, trim),
-    polygon('17,-17 34,-8 24,-3', trim)
+    polygon('-23,4 -22,-10 -13,-23 0,-29 13,-23 22,-10 23,4 16,9 -16,9', dark),
+    polygon('-19,0 -18,-9 -10,-19 0,-24 10,-19 18,-9 19,0 13,3 -13,3', metal),
+    polygon('-18,-8 -10,-19 0,-24 0,-16 -12,-8', trim, ' opacity="0.62"'),
+    rect(-18, -1, 36, 4, accent),
+    polygon('-19,2 -12,4 -12,14 -18,18 -21,11', dark),
+    polygon('19,2 12,4 12,14 18,18 21,11', dark),
+    rect(-3, -27, 6, 11, trim),
+    rect(-2, -25, 4, 4, ember)
   ]);
 }
 
 function drawGloves(item, grip) {
-  const dark = equipmentColor(item, ['dark', 'leather', 'cloth'], '#4b3429');
-  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#8b6a52');
-  const edge = equipmentColor(item, ['edge', 'bright', 'buckle'], '#d3dde5');
+  const starfront = isStarfrontEquipment(item);
+  const dark = equipmentColor(item, ['darkMetal', 'dark', 'leather', 'cloth'], '#202a32');
+  const metal = equipmentColor(item, ['metal', 'trim', 'bright'], '#71808a');
+  const edge = equipmentColor(item, ['edge', 'bright'], '#a9bac4');
+  const accent = equipmentColor(item, ['accent', 'glow', 'buckle'], starfront ? '#54c9da' : edge);
+  const ember = equipmentColor(item, ['ember', 'warm'], starfront ? '#cf7049' : metal);
   const cuff = grip ? equipmentColor(item, ['metal', 'cloth'], metal) : dark;
   return group([
-    polygon('-16,-5 -3,-18 13,-13 16,5 5,20 -12,13', dark),
-    polygon('-10,-5 -1,-13 9,-9 10,4 2,12 -8,8', metal),
-    rect(-16, 7, 17, 10, cuff),
-    polygon('8,-13 18,-9 10,-3', edge)
+    polygon('-10,-3 -2,-13 8,-10 11,3 4,12 -8,8', dark),
+    polygon('-6,-3 -1,-9 5,-7 7,2 2,7 -5,5', metal),
+    rect(-10, 5, 11, 7, cuff),
+    rect(-8, 6, 8, 2, accent),
+    polygon('5,-9 12,-6 7,-2', edge),
+    rect(-3, -8, 3, 3, ember)
   ]);
 }
 
@@ -344,6 +421,10 @@ function makeAtlas(item) {
 }
 
 function atlasPath(item) {
+  return path.join(OUTPUT_DIR, `${item.fileId}-atlas-${ATLAS_VERSION}.png`);
+}
+
+function legacyAtlasPath(item) {
   return path.join(OUTPUT_DIR, `${item.fileId}-atlas.png`);
 }
 
@@ -351,6 +432,8 @@ async function writeAtlas(item) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   const destination = atlasPath(item);
   await sharp(makeAtlas(item)).png({ compressionLevel: 9 }).toFile(destination);
+  const legacyPath = legacyAtlasPath(item);
+  if (legacyPath !== destination && fs.existsSync(legacyPath)) fs.unlinkSync(legacyPath);
   return destination;
 }
 
@@ -378,6 +461,86 @@ function cellEdgeHasAlpha(raw, width, row, column) {
   return false;
 }
 
+function parseHexColor(value) {
+  const hex = String(value || '').trim().replace(/^#/, '');
+  if (!/^[0-9a-f]{6}$/i.test(hex)) return null;
+  return {
+    r: Number.parseInt(hex.slice(0, 2), 16),
+    g: Number.parseInt(hex.slice(2, 4), 16),
+    b: Number.parseInt(hex.slice(4, 6), 16)
+  };
+}
+
+function getCellVisualStats(raw, width, row, column) {
+  const x0 = column * CELL_SIZE;
+  const y0 = row * CELL_SIZE;
+  let minX = CELL_SIZE;
+  let minY = CELL_SIZE;
+  let maxX = -1;
+  let maxY = -1;
+  const opaqueColors = new Set();
+  for (let y = 0; y < CELL_SIZE; y += 1) {
+    for (let x = 0; x < CELL_SIZE; x += 1) {
+      const offset = (((y0 + y) * width) + x0 + x) * 4;
+      const alpha = raw[offset + 3];
+      if (alpha <= ALPHA_THRESHOLD) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+      if (alpha >= 240) opaqueColors.add(`${raw[offset]},${raw[offset + 1]},${raw[offset + 2]}`);
+    }
+  }
+  return {
+    bounds: maxX >= minX && maxY >= minY
+      ? { width: maxX - minX + 1, height: maxY - minY + 1 }
+      : null,
+    opaqueColors
+  };
+}
+
+function cellContainsColor(raw, width, row, column, value, tolerance) {
+  const color = parseHexColor(value);
+  if (!color) return false;
+  const delta = Math.max(0, Number(tolerance || 0));
+  const x0 = column * CELL_SIZE;
+  const y0 = row * CELL_SIZE;
+  for (let y = 0; y < CELL_SIZE; y += 1) {
+    for (let x = 0; x < CELL_SIZE; x += 1) {
+      const offset = (((y0 + y) * width) + x0 + x) * 4;
+      if (raw[offset + 3] <= ALPHA_THRESHOLD) continue;
+      if (Math.abs(raw[offset] - color.r) <= delta &&
+        Math.abs(raw[offset + 1] - color.g) <= delta &&
+        Math.abs(raw[offset + 2] - color.b) <= delta) return true;
+    }
+  }
+  return false;
+}
+
+function validateStarfrontArtDirection(item, decoded, angles) {
+  if (!isStarfrontEquipment(item)) return;
+  const neutralColumn = angles.reduce((bestIndex, angle, index) => (
+    Math.abs(Number(angle || 0)) < Math.abs(Number(angles[bestIndex] || 0)) ? index : bestIndex
+  ), 0);
+  const stats = getCellVisualStats(decoded.data, decoded.info.width, 0, neutralColumn);
+  if (!stats.bounds) throw new Error(`${item.id} Starfront profile has no neutral silhouette`);
+  if (stats.opaqueColors.size < MIN_STARFRONT_PALETTE_COLORS) {
+    throw new Error(`${item.id} Starfront profile uses ${stats.opaqueColors.size} opaque colors; expected at least ${MIN_STARFRONT_PALETTE_COLORS}`);
+  }
+  ['accent', 'ember'].forEach((key) => {
+    if (!item[key] || !cellContainsColor(decoded.data, decoded.info.width, 0, neutralColumn, item[key], 3)) {
+      throw new Error(`${item.id} Starfront profile should render its ${key} palette color`);
+    }
+  });
+  const neutralExtent = Math.max(stats.bounds.width, stats.bounds.height);
+  if (item.maxNeutralExtent && neutralExtent > Number(item.maxNeutralExtent)) {
+    throw new Error(`${item.id} neutral silhouette is ${neutralExtent}px; expected no more than ${item.maxNeutralExtent}px`);
+  }
+  if (item.minNeutralExtent && neutralExtent < Number(item.minNeutralExtent)) {
+    throw new Error(`${item.id} neutral silhouette is ${neutralExtent}px; expected at least ${item.minNeutralExtent}px`);
+  }
+}
+
 async function validateAtlas(item) {
   const filePath = atlasPath(item);
   if (!fs.existsSync(filePath)) {
@@ -401,13 +564,14 @@ async function validateAtlas(item) {
       }
     }
   }
+  validateStarfrontArtDirection(item, decoded, angles);
 }
 
 function validateOutputFileCount() {
   const files = fs.existsSync(OUTPUT_DIR)
-    ? fs.readdirSync(OUTPUT_DIR).filter((file) => file.endsWith('-atlas.png'))
+    ? fs.readdirSync(OUTPUT_DIR).filter((file) => /-atlas(?:-v\d+)?\.png$/i.test(file))
     : [];
-  const expected = new Set(EQUIPMENT.map((item) => `${item.fileId}-atlas.png`));
+  const expected = new Set(EQUIPMENT.map((item) => `${item.fileId}-atlas-${ATLAS_VERSION}.png`));
   const unexpected = files.filter((file) => !expected.has(file));
   if (files.length !== EQUIPMENT.length || unexpected.length) {
     throw new Error(`Equipment atlas directory contains ${files.length} atlas PNGs; expected exactly ${EQUIPMENT.length}${unexpected.length ? ` (unexpected: ${unexpected.join(', ')})` : ''}`);
@@ -466,12 +630,15 @@ if (require.main === module) {
 
 module.exports = Object.freeze({
   ANGLES,
+  ATLAS_VERSION,
   BOW_STATES,
   CELL_SIZE,
   EQUIPMENT,
   RECOGNIZED_KINDS,
+  STARFRONT_PROFILE_ID,
   atlasAngles,
   atlasPath,
+  isStarfrontEquipment,
   main,
   makeAtlas,
   validateAtlas

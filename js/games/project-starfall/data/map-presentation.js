@@ -58,18 +58,18 @@
     }
 
       const MAP_LAYOUT_BLUEPRINTS = Object.freeze({
-      starfallCrossing: Object.freeze({ role: 'town', routeStage: 'Town Hub', roadName: 'Crossing Plaza', landmark: 'central meteor plaza', portalPattern: 'serviceHub' }),
+      starfallCrossing: Object.freeze({ role: 'town', routeStage: 'Frontier Hub', roadName: 'Fracture Ring', landmark: 'fractured observatory array', portalPattern: 'serviceHub' }),
       rustcoilOutpost: Object.freeze({ role: 'town', routeStage: 'Town Hub', roadName: 'Outpost Main Street', landmark: 'gear tower', portalPattern: 'serviceHub' }),
       cinderRefuge: Object.freeze({ role: 'town', routeStage: 'Town Hub', roadName: 'Refuge Walk', landmark: 'furnace shelter', portalPattern: 'serviceHub' }),
       frostfenCamp: Object.freeze({ role: 'town', routeStage: 'Town Hub', roadName: 'Camp Line', landmark: 'ice signal post', portalPattern: 'serviceHub' }),
       stormbreakHaven: Object.freeze({ role: 'town', routeStage: 'Town Hub', roadName: 'Haven Span', landmark: 'storm mast', portalPattern: 'serviceHub' }),
       astralObservatory: Object.freeze({ role: 'town', routeStage: 'Town Hub', roadName: 'Observatory Ring', landmark: 'star lens', portalPattern: 'serviceHub' }),
-      greenrootMeadow: Object.freeze({ role: 'starterField', routeStage: 'Outskirts', roadName: 'Greenroot Road I', landmark: 'pond bridges', portalPattern: 'leftReturnRightAdvance' }),
-      thornpathThicket: Object.freeze({ role: 'trainingField', routeStage: 'Training Loop', roadName: 'Greenroot Road II', landmark: 'thorn canopy', portalPattern: 'leftReturnRightAdvance' }),
+      greenrootMeadow: Object.freeze({ role: 'starterField', routeStage: 'First Expedition', roadName: 'Starfall Verge', landmark: 'fractured bridge', portalPattern: 'leftReturnRightAdvance' }),
+      thornpathThicket: Object.freeze({ role: 'trainingField', routeStage: 'Fracture Canopy', roadName: 'Beaconroot Ascent', landmark: 'starstone relay fork', portalPattern: 'leftReturnSplitAdvance' }),
       banditRidgeCamp: Object.freeze({ role: 'deepField', routeStage: 'Deep Route', roadName: 'Greenroot Ridge', landmark: 'bandit lookout', portalPattern: 'leftReturnDungeon' }),
       banditAnimationLab: Object.freeze({ role: 'trainingField', routeStage: 'Admin Lab', roadName: 'Bandit Animation Lab', landmark: 'comparison stands', portalPattern: 'none' }),
       brambleDepths: Object.freeze({ role: 'dungeon', routeStage: 'Dungeon', roadName: 'Bramble Depths', landmark: 'root gate', portalPattern: 'returnPortal' }),
-      rustcoilRuins: Object.freeze({ role: 'trainingField', routeStage: 'Training Loop', roadName: 'Rustcoil Road I', landmark: 'broken gearworks', portalPattern: 'leftReturn' }),
+      rustcoilRuins: Object.freeze({ role: 'trainingField', routeStage: 'Fractured Orrery', roadName: 'Orrery Circuit', landmark: 'warden starcoil', portalPattern: 'leftReturnCircuit' }),
       orebackQuarry: Object.freeze({ role: 'deepField', routeStage: 'Deep Route', roadName: 'Rustcoil Road II', landmark: 'quarry lift', portalPattern: 'leftReturnDungeonAdvance' }),
       gearworksVault: Object.freeze({ role: 'dungeon', routeStage: 'Dungeon', roadName: 'Gearworks Vault', landmark: 'vault lock', portalPattern: 'returnPortal' }),
       cinderHollow: Object.freeze({ role: 'trainingField', routeStage: 'Training Loop', roadName: 'Cinder Road I', landmark: 'ember vents', portalPattern: 'leftReturnDungeon' }),
@@ -209,29 +209,31 @@
     const MAP_TOWN_SCENES = Object.freeze({
       starfallCrossing: createTownScene({
         rearStructures: [
-          { cell: 'starfallGuildHall', x: 92, w: 660, h: 318, footOffset: 4, label: 'Adventurer Hall' },
-          { cell: 'marketAwning', x: 760, w: 410, h: 176, footOffset: 4, label: 'Market Row' },
-          { cell: 'lanternArch', x: 1460, w: 290, h: 206, footOffset: 2, label: 'Class Walk' },
-          { cell: 'marketAwning', x: 2100, w: 460, h: 190, footOffset: 4, label: 'Greenroot Gate Market' },
-          { cell: 'lanternArch', x: 3180, w: 320, h: 218, footOffset: 2, label: 'Greenroot Gate' }
+          { cell: 'fracturedObservatoryCore', x: 48, w: 680, h: 326, footOffset: 4, label: 'Fracture Survey Array' },
+          { cell: 'expeditionDepot', x: 1260, w: 560, h: 286, footOffset: 4, label: 'Repair Gantry' },
+          { cell: 'frontierGate', x: 1854, w: 430, h: 244, footOffset: 2, label: 'Greenroot Frontier Gate' },
+          { cell: 'lensWorkshop', x: 2740, w: 600, h: 292, footOffset: 4, label: 'Beacon Foundry' }
         ],
         stationFacades: [
-          { stationId: 'storage', cell: 'marketAwning', dx: -70, w: 230, h: 118, footOffset: 4 },
-          { stationId: 'shop', cell: 'marketAwning', dx: -74, w: 242, h: 124, footOffset: 4 },
-          { stationId: 'slots', cell: 'marketAwning', dx: -70, w: 226, h: 116, footOffset: 4 },
-          { stationId: 'upgrade', cell: 'lanternArch', dx: -52, w: 198, h: 154, footOffset: 3 },
-          { stationId: 'class', cell: 'starfallGuildHall', dx: -118, w: 306, h: 180, footOffset: 4 }
+          { stationId: 'storage', cell: 'expeditionDepot', dx: -72, w: 188, h: 138, footOffset: 4 },
+          { stationId: 'shop', cell: 'lensWorkshop', dx: -68, w: 184, h: 140, footOffset: 4 },
+          { stationId: 'slots', cell: 'expeditionDepot', dx: -62, w: 178, h: 138, footOffset: 3 },
+          { stationId: 'upgrade', cell: 'lensWorkshop', dx: -72, w: 194, h: 146, footOffset: 4 },
+          { stationId: 'class', cell: 'fracturedObservatoryCore', dx: -110, w: 286, h: 176, footOffset: 4 }
         ],
         streetProps: [
-          { kind: 'sign', x: 280, w: 42, h: 52, footOffset: 2 },
-          { kind: 'flower', x: 610, w: 34, h: 30, footOffset: 0 },
-          { kind: 'crate', x: 1208, w: 48, h: 40, footOffset: 1 },
-          { kind: 'glow', x: 1768, w: 42, h: 34, footOffset: 0 },
-          { kind: 'sign', x: 3000, w: 44, h: 54, footOffset: 2 }
+          { kind: 'sign', x: 250, w: 44, h: 54, footOffset: 2 },
+          { kind: 'crate', x: 830, w: 48, h: 40, footOffset: 1 },
+          { kind: 'crystal', x: 1180, w: 42, h: 50, footOffset: 0 },
+          { kind: 'small', x: 1540, w: 42, h: 38, footOffset: 1 },
+          { kind: 'glow', x: 1870, w: 42, h: 36, footOffset: 0 },
+          { kind: 'glow', x: 2228, w: 42, h: 36, footOffset: 0 },
+          { kind: 'crate', x: 2520, w: 48, h: 40, footOffset: 1 },
+          { kind: 'crystal', x: 3060, w: 42, h: 50, footOffset: 0 }
         ],
         foregroundTrim: [
-          { kind: 'grass', startX: 160, endX: 3500, every: 360, w: 32, h: 18, footOffset: 0 },
-          { kind: 'flower', startX: 420, endX: 3300, every: 620, w: 26, h: 26, footOffset: 0 }
+          { kind: 'rock', startX: 180, endX: 3500, every: 460, w: 34, h: 20, footOffset: 0 },
+          { kind: 'glow', startX: 420, endX: 3360, every: 740, w: 28, h: 20, footOffset: 0 }
         ]
       }),
       rustcoilOutpost: createTownScene({
@@ -329,48 +331,48 @@
     const MAP_FIELD_COMPOSITIONS = Object.freeze({
       greenrootMeadow: createFieldComposition({
         routeSections: [
-          { label: 'Starter Pond Loop', x: 0, w: 1050, tier: 'starter' },
-          { label: 'Moss Lane Extension', x: 1050, w: 1050, tier: 'training' },
-          { label: 'Canopy Practice', x: 2100, w: 1050, tier: 'mobility' },
-          { label: 'Thornpath Gate', x: 3150, w: 1050, tier: 'advance' }
+          { label: 'Arrival Shelf', x: 0, w: 900, tier: 'starter' },
+          { label: 'Glass Basin', x: 900, w: 1050, tier: 'training' },
+          { label: 'Fractured Bridge', x: 1950, w: 1250, tier: 'mobility' },
+          { label: 'Beacon Approach', x: 3200, w: 1000, tier: 'advance' }
         ],
         portalRoles: {
           greenroot_crossing: 'left town return',
           greenroot_thornpath: 'right route advance'
         },
         landmarkBands: [
-          { kind: 'tree', x: 260, w: 680, label: 'Beginner Grove' },
-          { kind: 'glow', x: 520, w: 360, label: 'Starter Pond' },
-          { kind: 'vine', x: 2240, w: 640, label: 'Canopy Shortcut' },
-          { kind: 'sign', x: 3540, w: 360, label: 'Thornpath Sign' }
+          { kind: 'sign', x: 260, w: 520, label: 'Repair Shelf' },
+          { kind: 'crystal', x: 1080, w: 620, label: 'Glass Basin' },
+          { kind: 'glow', x: 2240, w: 760, label: 'Fractured Bridge' },
+          { kind: 'crystal', x: 3540, w: 380, label: 'Frontier Beacon' }
         ],
         spawnZoneLabels: [
-          { label: 'Starter pond', platformTier: 'low' },
-          { label: 'Moss lane', platformTier: 'mid' },
-          { label: 'Canopy practice', platformTier: 'high' },
-          { label: 'Thornpath gate', platformTier: 'advance' }
+          { label: 'Arrival shelf', platformTier: 'low' },
+          { label: 'Glass basin', platformTier: 'mid' },
+          { label: 'Bridge overlook', platformTier: 'high' },
+          { label: 'Beacon approach', platformTier: 'advance' }
         ]
       }),
       thornpathThicket: createFieldComposition({
         routeSections: [
-          { label: 'Meadow Return', x: 0, w: 1700, tier: 'return' },
-          { label: 'Thorn Canopy', x: 1700, w: 3900, tier: 'vertical' },
-          { label: 'Deep Fork', x: 5600, w: 2100, tier: 'advance' }
+          { label: 'Meadow Return', x: 0, w: 1250, tier: 'return' },
+          { label: 'Fracture Canopy', x: 1250, w: 2200, tier: 'vertical' },
+          { label: 'Observatory Fork', x: 3450, w: 1750, tier: 'split-advance' }
         ],
         portalRoles: {
-          thornpath_greenroot: 'left route return',
-          thornpath_bandit: 'deep field advance',
-          thornpath_rustcoil_outpost: 'regional town branch'
+          thornpath_greenroot: 'meadow return gate',
+          thornpath_bandit: 'ridge fracture route',
+          thornpath_rustcoil_outpost: 'observatory relay branch'
         },
         landmarkBands: [
-          { kind: 'vine', x: 860, w: 1200, label: 'Low Vines' },
-          { kind: 'tree', x: 2860, w: 1560, label: 'Thorn Canopy' },
-          { kind: 'sign', x: 6660, w: 520, label: 'Fork Marker' }
+          { kind: 'crystal', x: 220, w: 740, label: 'Starstone Rootfall' },
+          { kind: 'glow', x: 1560, w: 1320, label: 'Suspended Relay' },
+          { kind: 'sign', x: 3780, w: 1080, label: 'Observatory Fork' }
         ],
         spawnZoneLabels: [
-          { label: 'Vine snapper lane', platformTier: 'low' },
-          { label: 'Thorn sprout shelf', platformTier: 'mid' },
-          { label: 'Briar route', platformTier: 'high' }
+          { label: 'Rootfall approach', platformTier: 'low' },
+          { label: 'Relay canopy', platformTier: 'high' },
+          { label: 'Observatory fork', platformTier: 'split' }
         ]
       }),
       brambleDepths: createFieldComposition({
@@ -388,6 +390,26 @@
           { label: 'Root floor', platformTier: 'low' },
           { label: 'Court shelf', platformTier: 'mid' },
           { label: 'Crown approach', platformTier: 'high' }
+        ]
+      }),
+      rustcoilRuins: createFieldComposition({
+        routeSections: [
+          { label: 'Surveyor Yard', x: 0, w: 1500, tier: 'arrival-loop' },
+          { label: 'Coil Switchworks', x: 1500, w: 1900, tier: 'parallel-loop' },
+          { label: 'Warden Gearwell', x: 3400, w: 1800, tier: 'drop-reset' }
+        ],
+        portalRoles: {
+          rustcoil_outpost_return: 'orrery service return'
+        },
+        landmarkBands: [
+          { kind: 'tall', x: 280, w: 980, label: 'Fractured Orrery Yard' },
+          { kind: 'glow', x: 1640, w: 1460, label: 'Coil Switchworks' },
+          { kind: 'crystal', x: 3700, w: 1300, label: 'Warden Starcoil' }
+        ],
+        spawnZoneLabels: [
+          { label: 'Surveyor yard circuit', platformTier: 'low-high' },
+          { label: 'Switchworks loop', platformTier: 'parallel' },
+          { label: 'Warden starcoil reset', platformTier: 'drop-reset' }
         ]
       }),
       gearworksVault: createArenaFieldComposition({
@@ -437,26 +459,26 @@
       }),
       banditRidgeCamp: createFieldComposition({
         routeSections: [
-          { label: 'Lower Cutter Lane', x: 0, w: 1350, tier: 'frontline' },
-          { label: 'Middle Thrower Camp', x: 1350, w: 1350, tier: 'ranged' },
-          { label: 'High Rope Bridge', x: 2700, w: 1350, tier: 'anti-ranged' },
-          { label: 'Campfire Regroup', x: 4050, w: 1350, tier: 'regroup' }
+          { label: 'Lower Cutter Lane', x: 0, w: 1250, tier: 'frontline', encounterMode: 'routine' },
+          { label: 'Middle Thrower Camp', x: 1250, w: 1450, tier: 'ranged', encounterMode: 'routine' },
+          { label: 'High Rope Bridge', x: 2700, w: 1350, tier: 'anti-ranged', encounterMode: 'routine' },
+          { label: 'Campfire Regroup', x: 4050, w: 1350, tier: 'regroup', encounterMode: 'safe-regroup', routinePopulation: 0, safeRadius: 220 }
         ],
         portalRoles: {
           bandit_thornpath: 'ridge return',
           bandit_bramble: 'bramble dungeon gate'
         },
         landmarkBands: [
-          { kind: 'crate', x: 520, w: 700, label: 'Cutter Barricade' },
-          { kind: 'sign', x: 1760, w: 560, label: 'Thrower Camp' },
-          { kind: 'vine', x: 3040, w: 660, label: 'Rope Bridge' },
-          { kind: 'glow', x: 4500, w: 480, label: 'Campfire Regroup' }
+          { kind: 'crate', x: 280, w: 760, label: 'Cutter Barricade' },
+          { kind: 'sign', x: 1450, w: 1050, label: 'Thrower Camp' },
+          { kind: 'vine', x: 2820, w: 1020, label: 'Rope Bridge' },
+          { kind: 'glow', x: 4230, w: 920, label: 'Campfire Regroup' }
         ],
         spawnZoneLabels: [
           { label: 'Cutter lane', platformTier: 'low' },
           { label: 'Thrower camp', platformTier: 'mid' },
           { label: 'Rope bridge', platformTier: 'high' },
-          { label: 'Campfire regroup', platformTier: 'mid' }
+          { label: 'Campfire safe zone', platformTier: 'safe' }
         ]
       }),
       orebackQuarry: createFieldComposition({
@@ -506,6 +528,27 @@
           { label: 'Vent flank', platformTier: 'mid' },
           { label: 'Glass shelf', platformTier: 'high' },
           { label: 'Elite pocket', platformTier: 'peak' }
+        ]
+      }),
+      frostfenOutskirts: createFieldComposition({
+        routeSections: [
+          { label: 'Frozen Marsh', x: 0, w: 1500, tier: 'ice-runway' },
+          { label: 'Rimeglass Shelf', x: 1500, w: 2200, tier: 'split-route' },
+          { label: 'Oracle Grove', x: 3700, w: 1900, tier: 'drop-reset' }
+        ],
+        portalRoles: {
+          frostfen_camp_return: 'frostfen signal-camp return',
+          frostfen_glacier: 'glacier spine relay'
+        },
+        landmarkBands: [
+          { kind: 'rock', x: 220, w: 900, label: 'Frozen Signal Wreck' },
+          { kind: 'crystal', x: 1740, w: 1500, label: 'Rimeglass Shelf' },
+          { kind: 'glow', x: 4020, w: 1180, label: 'Oracle Bloom Grove' }
+        ],
+        spawnZoneLabels: [
+          { label: 'Marsh runway', platformTier: 'low' },
+          { label: 'Rimeglass split', platformTier: 'mid-high' },
+          { label: 'Oracle drop loop', platformTier: 'drop-reset' }
         ]
       }),
       stormbreakCliffs: createFieldComposition({
@@ -665,23 +708,24 @@
         visualIdentityTag: config.visualIdentityTag || 'starlit frontier route',
         spawnSectionModel: config.spawnSectionModel || 'section-local loop pressure',
         partyScaling: config.partyScaling || 'none',
+        runtimeBoundsValidated: !!config.runtimeBoundsValidated,
         priorityRedesign: !!config.priorityRedesign,
         implementationStatus: config.implementationStatus || 'intent-metadata'
       });
     }
 
     const MAP_DESIGN_INTENTS = Object.freeze([
-      { id: 'greenrootMeadow', intendedArchetype: 'A -> F starter lane loop', intendedUseCase: 'solo', routeSummary: 'Clear bottom pond, hop to moss lane, drop back to start, then unlock wider meadow tiers.', partyRoleTarget: 'Keep early Greenroot mostly solo with optional canopy ranged practice.', farmingAbuseRisk: 'low', visualIdentityTag: 'beginner meadow and slime pond', spawnSectionModel: 'pond/moss/canopy starter sections', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
-      { id: 'thornpathThicket', intendedArchetype: 'D vertical canopy with reset loop', intendedUseCase: 'solo/duo', routeSummary: 'Climb vine shelves, clear visible sprout perches, then use drops to reset.', partyRoleTarget: 'Duo split by low/mid/high canopy only after reset drops exist.', farmingAbuseRisk: 'medium', visualIdentityTag: 'thorn canopy fork', spawnSectionModel: 'low vines, mid sprout shelf, high briar route' },
+      { id: 'greenrootMeadow', intendedArchetype: 'guided expedition with optional overlook', intendedUseCase: 'solo', routeSummary: 'Leave the repair shelf, read Glassback charge tells in the basin, take the reward overlook, then cross the fractured bridge toward the beacon.', partyRoleTarget: 'Keep the first route legible for solo onboarding while leaving one elevated split for a duo.', farmingAbuseRisk: 'low', visualIdentityTag: 'fallen starstone frontier', spawnSectionModel: 'arrival/basin/bridge/beacon encounter beats', priorityRedesign: false, implementationStatus: 'fractured-frontier-v1' },
+      { id: 'thornpathThicket', intendedArchetype: 'authored fracture-canopy ascent with drop reset', intendedUseCase: 'solo/duo route split', routeSummary: 'Trace the starstone rootfall, climb the suspended relay canopy, then choose the ridge or observatory branch at the fork.', partyRoleTarget: 'One player controls the lower rootfall while a mobile partner clears relay shelves; both regroup at the fork.', farmingAbuseRisk: 'medium', visualIdentityTag: 'fractured observatory canopy', spawnSectionModel: 'rootfall approach, relay canopy, observatory fork', runtimeBoundsValidated: true, priorityRedesign: false, implementationStatus: 'fracture-canopy-v1' },
       { id: 'brambleDepths', intendedArchetype: 'H/E root dungeon', intendedUseCase: 'boss dungeon', routeSummary: 'Push through root lanes and thorn shelves into the Brambleking gate.', partyRoleTarget: 'Small-party boss prep with healer pod and thorn pod priority.', farmingAbuseRisk: 'medium', visualIdentityTag: 'root court dungeon', spawnSectionModel: 'root floor, thorn shelf, crown approach', implementationStatus: 'arena-skeleton-v1' },
-      { id: 'rustcoilRuins', intendedArchetype: 'C/F industrial terrace', intendedUseCase: 'solo/duo', routeSummary: 'Rotate lower construct lanes, mid sentry catwalks, and upper gear shelves.', partyRoleTarget: 'Duo can split lower armor lane and upper sentry lane.', farmingAbuseRisk: 'medium', visualIdentityTag: 'broken gear ruins', spawnSectionModel: 'lower ratchets, mid sentries, upper wardens' },
+      { id: 'rustcoilRuins', intendedArchetype: 'authored fractured-orrery circuit with drop reset', intendedUseCase: 'solo/duo route circuit', routeSummary: 'Trace the Surveyor Yard orrery, loop both Coil Switchworks catwalks, then climb the Warden Gearwell and drop from the starcoil perch.', partyRoleTarget: 'One player controls the conveyor and return belt while a mobile partner clears the orrery, catwalk, and starcoil tiers.', farmingAbuseRisk: 'medium', visualIdentityTag: 'fractured celestial machinery', spawnSectionModel: 'surveyor yard, coil switchworks, warden gearwell', runtimeBoundsValidated: true, priorityRedesign: true, implementationStatus: 'fractured-orrery-circuit-v1' },
       { id: 'gearworksVault', intendedArchetype: 'H/E armor-check factory arena', intendedUseCase: 'small/full party dungeon', routeSummary: 'Hold lower tanks, control mid sentries, and hit upper gear switches during boss waves.', partyRoleTarget: 'Tank lower lane, ranged sentry duty, support near center switch.', farmingAbuseRisk: 'medium', visualIdentityTag: 'gear vault factory', spawnSectionModel: 'tank lane, sentry catwalk, switch shelf', implementationStatus: 'arena-skeleton-v1' },
       { id: 'cinderHollow', intendedArchetype: 'C/F hazard-lite volcanic route', intendedUseCase: 'solo/duo', routeSummary: 'Use grounded ash lanes and vent shortcuts while avoiding flyer-heavy turns.', partyRoleTarget: 'Duo split ground crawlers from vent/flyer pockets.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'ember vent cave', spawnSectionModel: 'ash floor, lava tick lane, flyer turns', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'emberjawLair', intendedArchetype: 'H/I furnace arena', intendedUseCase: 'boss dungeon', routeSummary: 'Control side vents, cross safe pockets, and answer Emberjaw overheat waves.', partyRoleTarget: 'Small party handles vent adds, safe pocket calls, and boss pressure.', farmingAbuseRisk: 'medium', visualIdentityTag: 'ember furnace lair', spawnSectionModel: 'side vents, mid safe pockets, overheat shelf', implementationStatus: 'arena-skeleton-v1' },
-      { id: 'banditRidgeCamp', intendedArchetype: 'E split-lane party map', intendedUseCase: 'small party', routeSummary: 'Split lower cutter lane, middle thrower camp, and upper rope bridge, then regroup at campfire.', partyRoleTarget: 'Tank lower chokepoints, ranged high throwers, support campfire regroup.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bandit rope-bridge camp', spawnSectionModel: 'lower/middle/high/regroup lane sections', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
+      { id: 'banditRidgeCamp', intendedArchetype: 'E authored split-lane party route', intendedUseCase: 'small party', routeSummary: 'Break the lower barricade, flank the thrower camp, cross the high rope bridge, then regroup safely at the campfire gate.', partyRoleTarget: 'Tank lower chokepoints, flank two-access thrower perches, control the bridge, and recover at the campfire.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bandit rope-bridge camp', spawnSectionModel: 'three explicit combat territories plus zero-routine-population regroup', partyScaling: 'section-count', priorityRedesign: false, implementationStatus: 'authored-ridge-v2' },
       { id: 'orebackQuarry', intendedArchetype: 'E/J material party farm', intendedUseCase: 'small party high-density farming', routeSummary: 'Rotate ore carts, scaffold sentries, healer mushroom pockets, and timed mine events.', partyRoleTarget: 'Tank ore lane, ranged scaffold duty, burst classes clear healer pockets.', farmingAbuseRisk: 'high', visualIdentityTag: 'ore cart quarry', spawnSectionModel: 'ore lane, scaffold, mushroom pocket, event pocket', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'ashglassPass', intendedArchetype: 'G/F dangerous crossing', intendedUseCase: 'exploration dangerous progression', routeSummary: 'Cross the main ashglass bridge, dip into side pockets, and avoid elite glassstorm windows.', partyRoleTarget: 'Duo route with one main bridge player and one side-pocket control player.', farmingAbuseRisk: 'high', visualIdentityTag: 'ashglass bridge crossing', spawnSectionModel: 'bridge, vent pocket, glass shelf, elite side pocket', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
-      { id: 'frostfenOutskirts', intendedArchetype: 'C/E ice solo-duo route', intendedUseCase: 'solo/duo', routeSummary: 'Clear marsh flats, slide across ice shelves, then reset through oracle grove drops.', partyRoleTarget: 'Duo split flats and oracle shelf while keeping support reachable.', farmingAbuseRisk: 'medium', visualIdentityTag: 'frozen marsh camp route', spawnSectionModel: 'marsh flats, ice shelf, oracle grove' },
+      { id: 'frostfenOutskirts', intendedArchetype: 'authored ice runway with shelf split and drop reset', intendedUseCase: 'solo/duo', routeSummary: 'Build speed across the frozen marsh, split across the rimeglass shelf, then drop from the oracle bloom perch into the recovery run.', partyRoleTarget: 'One player controls the low runway while a mobile partner clears the shelf; both can reset through the oracle drop lane.', farmingAbuseRisk: 'medium', visualIdentityTag: 'rimeglass signal marsh', spawnSectionModel: 'frozen runway, rimeglass split, oracle drop loop', runtimeBoundsValidated: true, priorityRedesign: false, implementationStatus: 'frozen-marsh-run-v1' },
       { id: 'glacierSpine', intendedArchetype: 'D/G glacier progression climb', intendedUseCase: 'dangerous progression small party', routeSummary: 'Climb glacier checkpoints, use lifts and one-way drops to rotate sentinel chokepoints.', partyRoleTarget: 'Small party split by height with central lift regroup.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'glacier lift spine', spawnSectionModel: 'lower climb, mid ridge, high ridge, flyer airspace' },
       { id: 'rimewardenSanctum', intendedArchetype: 'H/I frost vault', intendedUseCase: 'full party dungeon', routeSummary: 'Hold lower brutes, reach oracle shelves, and react to lane-locking ice walls.', partyRoleTarget: 'Tank lower lane, ranged oracle/sentinel control, support center safe room.', farmingAbuseRisk: 'medium', visualIdentityTag: 'rime vault sanctum', spawnSectionModel: 'brute lane, oracle shelf, sentinel shelf', implementationStatus: 'arena-skeleton-v1' },
       { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, high harrier airspace, and lightning rod objective.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control on lightning rod.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
@@ -695,7 +739,7 @@
       { id: 'rimewardenVault', intendedArchetype: 'H/I frost vault boss room', intendedUseCase: 'boss full party', routeSummary: 'React to whiteout and ice-wall lane locks while clearing oracle shelves.', partyRoleTarget: 'Frontline lower brutes, ranged oracle shelf, support safe room.', farmingAbuseRisk: 'medium', visualIdentityTag: 'rimewarden ice vault', spawnSectionModel: 'brute lane, oracle shelf, sentinel shelf', implementationStatus: 'arena-skeleton-v1' },
       { id: 'stormbreakAerie', intendedArchetype: 'H/D vertical flying boss room', intendedUseCase: 'boss full party', routeSummary: 'Use wind lanes to reach lightning-rod perches while the Roc controls airspace.', partyRoleTarget: 'Ranged anti-air, melee rod/ram duty, support perch calls.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'storm aerie perches', spawnSectionModel: 'ram lane, rod perch, harrier airspace', implementationStatus: 'arena-skeleton-v1' },
       { id: 'astralStacks', intendedArchetype: 'H/G mirrored archive boss room', intendedUseCase: 'boss', routeSummary: 'Rotate mirrored shelves and rune lanes to satisfy action-memory pressure.', partyRoleTarget: 'Small party splits mirrored stacks and calls memory runes.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'mirrored astral stacks', spawnSectionModel: 'left stacks, right stacks, center rune shelf', implementationStatus: 'arena-skeleton-v1' },
-      { id: 'eclipseThrone', intendedArchetype: 'H/I capstone zone-rotation room', intendedUseCase: 'boss full party', routeSummary: 'Rotate solar and lunar lanes around the central eclipse dais during totality.', partyRoleTarget: 'Full party splits solar/lunar duties and regroups for elite pulse.', farmingAbuseRisk: 'high', visualIdentityTag: 'solar lunar eclipse throne', spawnSectionModel: 'solar lane, lunar lane, eclipse dais, mote shelf', implementationStatus: 'arena-skeleton-v1' }
+      { id: 'eclipseThrone', intendedArchetype: 'H/I capstone zone-rotation room', intendedUseCase: 'boss full party', routeSummary: 'Rotate solar and lunar lanes around the central eclipse dais during totality.', partyRoleTarget: 'Full party splits solar/lunar duties and regroups for elite pulse.', farmingAbuseRisk: 'high', visualIdentityTag: 'fractured observatory totality engine', spawnSectionModel: 'solar lane, lunar lane, eclipse dais, mote shelf', implementationStatus: 'arena-skeleton-v1' }
     ].reduce((intents, config) => {
       intents[config.id] = createDesignIntent(config);
       return intents;
@@ -828,13 +872,21 @@
     });
 
     const MAP_PORTAL_FICTION = Object.freeze({
-      crossing_greenroot: Object.freeze({ roleLabel: 'forest gate preview', portalStyle: 'forest gate' }),
+      crossing_greenroot: Object.freeze({ roleLabel: 'frontier departure gate', portalStyle: 'starstone gate' }),
+      greenroot_crossing: Object.freeze({ roleLabel: 'repair-camp return', portalStyle: 'starstone gate' }),
+      greenroot_thornpath: Object.freeze({ roleLabel: 'distant route beacon', portalStyle: 'starstone beacon' }),
+      thornpath_greenroot: Object.freeze({ roleLabel: 'meadow repair return', portalStyle: 'starstone root gate' }),
+      thornpath_bandit: Object.freeze({ roleLabel: 'ridge fracture route', portalStyle: 'starstone ridge beacon' }),
+      thornpath_rustcoil_outpost: Object.freeze({ roleLabel: 'observatory relay branch', portalStyle: 'starstone relay gate' }),
       rustcoil_outpost_ruins: Object.freeze({ roleLabel: 'broken gear gate', portalStyle: 'gear gate' }),
       rustcoil_outpost_quarry: Object.freeze({ roleLabel: 'mine lift to quarry', portalStyle: 'mine lift' }),
+      rustcoil_outpost_return: Object.freeze({ roleLabel: 'orrery service return', portalStyle: 'gear gate' }),
       cinder_refuge_hollow: Object.freeze({ roleLabel: 'cave vent gate', portalStyle: 'cave vent' }),
       cinder_refuge_ashglass: Object.freeze({ roleLabel: 'locked ashglass bridge', portalStyle: 'ashglass bridge' }),
       frostfen_camp_outskirts: Object.freeze({ roleLabel: 'tundra gate', portalStyle: 'snowfield gate' }),
       frostfen_camp_glacier: Object.freeze({ roleLabel: 'glacier lift', portalStyle: 'glacier lift' }),
+      frostfen_camp_return: Object.freeze({ roleLabel: 'signal-camp return', portalStyle: 'rime relay gate' }),
+      frostfen_glacier: Object.freeze({ roleLabel: 'glacier spine ascent', portalStyle: 'rime relay lift' }),
       stormbreak_haven_cliffs: Object.freeze({ roleLabel: 'storm cliff span', portalStyle: 'cliff span' }),
       stormbreak_haven_observatory: Object.freeze({ roleLabel: 'sky elevator to observatory', portalStyle: 'sky elevator' }),
       astral_observatory_archive: Object.freeze({ roleLabel: 'archive gate', portalStyle: 'archive gate' }),

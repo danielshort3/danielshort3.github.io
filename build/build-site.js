@@ -136,7 +136,7 @@ function main() {
 
     // 2) High-impact image variants (PNG sources -> AVIF/WebP)
     const imagesStep = runNodeScript(path.join('build', 'optimize-site-images.js'), { verbose });
-    logStep('images', imagesStep.durationMs, 'mobile hero + Project Starfall start screen');
+    logStep('images', imagesStep.durationMs, 'responsive homepage heroes + Project Starfall start screen');
 
     // 3) CSS bundle (css/ -> dist/)
     const cssStep = runNodeScript(path.join('build', 'build-css.js'), { verbose });
@@ -146,7 +146,9 @@ function main() {
       ['base', manifest && manifest.file],
       ['home', manifest && manifest.homeFile],
       ['workbench', manifest && manifest.workbenchFile],
-      ['tools', manifest && manifest.toolsFile]
+      ['tools', manifest && manifest.toolsFile],
+      ['professional', manifest && manifest.professionalFile],
+      ['analytics', manifest && manifest.analyticsFile]
     ].filter(([, fileName]) => typeof fileName === 'string');
     const cssDetail = cssOutputs.length
       ? cssOutputs.map(([label, fileName]) => {

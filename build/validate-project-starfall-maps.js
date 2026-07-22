@@ -85,6 +85,11 @@ function validateMap(map) {
     return Math.max(max, rise / Math.max(1, platformW(entry.platform)));
   }, 0);
   const maxSlopesInWindow = countSlopesInWindow(slopes, 1200);
+  const worldWidth = platforms.length ? platformW(platforms[0]) : 0;
+  const fieldComposition = map && map.fieldComposition || {};
+  const routeSections = Array.isArray(fieldComposition.routeSections) ? fieldComposition.routeSections : [];
+  const landmarkBands = Array.isArray(fieldComposition.landmarkBands) ? fieldComposition.landmarkBands : [];
+  const runtimeBoundsValidated = !!(map && map.designIntent && map.designIntent.runtimeBoundsValidated);
   const severeOverlaps = [];
   for (let leftIndex = 1; leftIndex < platforms.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < platforms.length; rightIndex += 1) {
@@ -113,6 +118,68 @@ function validateMap(map) {
   }
   if (platformIds.some((id) => !id) || new Set(platformIds).size !== platformIds.length) {
     issues.push(`${map.id} platform ids must be present and unique.`);
+  }
+  routeSections.forEach((section) => {
+    const left = Number(section && section.x || 0);
+    const width = Number(section && section.w || 0);
+    if (left < 0 || width <= 0 || left + width > worldWidth) {
+      issues.push(`${map.id} route section ${section && section.label || '(unnamed)'} exceeds the ${worldWidth}px runtime width.`);
+    }
+  });
+  landmarkBands.forEach((landmark) => {
+    const left = Number(landmark && landmark.x || 0);
+    const width = Number(landmark && landmark.w || 0);
+    if (left < 0 || width <= 0 || left + width > worldWidth) {
+      issues.push(`${map.id} landmark ${landmark && landmark.label || '(unnamed)'} exceeds the ${worldWidth}px runtime width.`);
+    }
+  });
+  if (runtimeBoundsValidated) {
+    if (!routeSections.length) {
+      issues.push(`${map.id} opts into runtime-bound validation without authored route sections.`);
+    } else {
+      let expectedX = 0;
+      routeSections.slice().sort((left, right) => Number(left.x || 0) - Number(right.x || 0)).forEach((section) => {
+        const sectionX = Number(section && section.x || 0);
+        if (sectionX !== expectedX) {
+          issues.push(`${map.id} route section ${section && section.label || '(unnamed)'} begins at ${sectionX}; expected ${expectedX}.`);
+        }
+        expectedX = sectionX + Number(section && section.w || 0);
+      });
+      if (expectedX !== worldWidth) {
+        issues.push(`${map.id} route sections end at ${expectedX}; runtime width is ${worldWidth}.`);
+      }
+    }
+    platforms.forEach((platform, index) => {
+      if (platformX(platform) < 0 || platformW(platform) <= 0 || platformRight(platform) > worldWidth) {
+        issues.push(`${map.id} platform ${index} exceeds the ${worldWidth}px runtime width.`);
+      }
+    });
+    landmarkBands.forEach((landmark) => {
+      const left = Number(landmark && landmark.x || 0);
+      const right = left + Number(landmark && landmark.w || 0);
+      if (!routeSections.some((section) => left >= Number(section.x || 0) && right <= Number(section.x || 0) + Number(section.w || 0))) {
+        issues.push(`${map.id} landmark ${landmark && landmark.label || '(unnamed)'} crosses an authored route-section boundary.`);
+      }
+    });
+    (map.portals || []).forEach((portal) => {
+      const x = Number(portal && portal.x || 0);
+      const platform = platforms[Number(portal && portal.platformIndex)];
+      if (x < 0 || x > worldWidth) {
+        issues.push(`${map.id} portal ${portal && portal.id || '(unnamed)'} is outside the ${worldWidth}px runtime width.`);
+      }
+      if (!platform) {
+        issues.push(`${map.id} portal ${portal && portal.id || '(unnamed)'} references missing platform ${portal && portal.platformIndex}.`);
+      } else if (x < platformX(platform) || x > platformRight(platform)) {
+        issues.push(`${map.id} portal ${portal && portal.id || '(unnamed)'} is not positioned on platform ${portal.platformIndex}.`);
+      }
+    });
+    (map.climbables || []).forEach((climbable) => {
+      const left = Number(climbable && climbable.x || 0);
+      const right = left + Number(climbable && climbable.w || 0);
+      if (left < 0 || right > worldWidth) {
+        issues.push(`${map.id} climbable ${climbable && climbable.id || '(unnamed)'} exceeds the ${worldWidth}px runtime width.`);
+      }
+    });
   }
   if (slopes.length > budget.maxSlopes) {
     issues.push(`${map.id} uses ${slopes.length} slopes; budget is ${budget.maxSlopes}.`);
@@ -143,6 +210,8 @@ function validateMap(map) {
       issues.push(`${map.id} spawn at x=${spawn.x} is placed on slope platform ${spawn.platformIndex}.`);
     } else if (String(spawn.platformId || '') !== String(platform.id || '')) {
       issues.push(`${map.id} spawn at x=${spawn.x} has stale platformId ${spawn.platformId || '(missing)'}.`);
+    } else if (runtimeBoundsValidated && (Number(spawn.x || 0) < platformX(platform) || Number(spawn.x || 0) > platformRight(platform))) {
+      issues.push(`${map.id} spawn at x=${spawn.x} is not positioned on platform ${spawn.platformIndex}.`);
     }
   });
   if (!map.shopInterior && !map.safeZone && !map.spawnPoints.length) {

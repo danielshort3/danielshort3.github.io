@@ -43,11 +43,7 @@
     },
     "stylesheets": [
       "dist/styles.css",
-      "css/components/work-experience.css",
-      "css/components/certification.css",
-      "css/components/jump-panel.css",
-      "css/components/home-proof.css",
-      "css/components/destination-analytics.css"
+      "dist/styles-professional.css"
     ],
     "headScripts": [
       {

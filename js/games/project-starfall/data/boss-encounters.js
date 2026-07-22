@@ -159,15 +159,18 @@
       color: '#ffbe55',
       accent: '#7bdff2',
       roomAmbient: 'eclipse',
-      mechanic: 'Read solar and lunar safe zones, then split around totality sigils before they collapse.',
-      intro: 'The throne enters eclipse. Solar and lunar stances will alternate safe lanes.',
+      introCombatDelay: 6.1,
+      phaseTransitionDelay: 2.2,
+      resetActionCycleOnPhase: true,
+      mechanic: 'Clear solar and lunar danger zones, then regroup inside the Eclipse Dais when Totality collapses.',
+      intro: 'Solar and lunar marks call danger zones. When Totality begins, regroup on the central Eclipse Dais.',
       clearText: 'Totality fades and the throne releases its light.',
-      summary: 'Solar and lunar stances alternate safe lanes until totality sigils demand coordinated repositioning.',
+      summary: 'Solar and lunar danger calls alternate until Totality demands a coordinated central regroup.',
       adds: Object.freeze(['eclipseDuelist', 'voidMote', 'lumenSentinel']),
       phases: Object.freeze([
         Object.freeze({ id: 'solarCourt', name: 'Solar Court', threshold: 1, description: 'Solar flares expand from the throne while lunar marks choose targets.', actions: Object.freeze(['solarFlare', 'lunarMark']) }),
-        Object.freeze({ id: 'lunarCourt', name: 'Lunar Court', threshold: 0.7, description: 'Lunar safe zones invert as eclipse duelists arrive.', actions: Object.freeze(['lunarMark', 'addWave', 'solarFlare']) }),
-        Object.freeze({ id: 'totality', name: 'Totality', threshold: 0.38, description: 'Totality sigils split the arena before the next solar flare.', actions: Object.freeze(['eclipseSigils', 'solarFlare', 'lunarMark']) })
+        Object.freeze({ id: 'lunarCourt', name: 'Lunar Court', threshold: 0.7, description: 'Lunar danger marks tighten as eclipse duelists arrive.', actions: Object.freeze(['lunarMark', 'addWave', 'solarFlare']) }),
+        Object.freeze({ id: 'totality', name: 'Totality', threshold: 0.38, description: 'Regroup inside the central safe dais before Totality collapses.', actions: Object.freeze(['eclipseSigils', 'solarFlare', 'lunarMark']) })
       ])
     })
   ]);

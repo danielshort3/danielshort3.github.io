@@ -123,20 +123,20 @@ const ATTACHMENTS = Object.freeze({
 
 const PLAYER_FRAME_REGISTRATIONS = Object.freeze({
   idle: Object.freeze([
-    Object.freeze({ originX: 81, groundY: 153, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 80, groundY: 153, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 76, groundY: 151, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 78, groundY: 153, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 79, groundY: 152, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 77, groundY: 153, authoredBodyHeight: 143 })
+    Object.freeze({ originX: 81, groundY: 151, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 80, groundY: 151, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 76, groundY: 149, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 78, groundY: 151, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 79, groundY: 149, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 77, groundY: 151, authoredBodyHeight: 143 })
   ]),
   run: Object.freeze([
-    Object.freeze({ originX: 78, groundY: 149, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 77, groundY: 149, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 75, groundY: 138, authoredBodyHeight: 143 }),
     Object.freeze({ originX: 78, groundY: 144, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 76, groundY: 141, authoredBodyHeight: 143 }),
-    Object.freeze({ originX: 77, groundY: 150, authoredBodyHeight: 143 })
+    Object.freeze({ originX: 77, groundY: 144, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 75, groundY: 143, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 78, groundY: 144, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 76, groundY: 142, authoredBodyHeight: 143 }),
+    Object.freeze({ originX: 77, groundY: 141, authoredBodyHeight: 143 })
   ])
 });
 

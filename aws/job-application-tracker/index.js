@@ -3,7 +3,6 @@ const { once } = require('events');
 const { PassThrough } = require('stream');
 const { Upload } = require('@aws-sdk/lib-storage');
 const { createPresignedPost } = require('@aws-sdk/s3-presigned-post');
-const archiver = require('archiver');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
@@ -73,6 +72,39 @@ const STAGING_TAG_XML = '<Tagging><TagSet><Tag><Key>purpose</Key><Value>staging<
 const MAX_TAG_LENGTH = 36;
 const MAX_CUSTOM_FIELD_KEY_LENGTH = 40;
 const MAX_CUSTOM_FIELD_VALUE_LENGTH = 180;
+const MAX_CAPTURE_BODY_BYTES = 32 * 1024;
+const MAX_CAPTURE_ID_LENGTH = 128;
+const MIN_CAPTURE_ID_LENGTH = 8;
+const CAPTURE_FIELD_LIMITS = Object.freeze({
+  company: 200,
+  title: 200,
+  jobUrl: 2048,
+  location: 240,
+  source: 120,
+  status: 80
+});
+const CAPTURE_ALLOWED_FIELDS = Object.freeze([
+  'captureId',
+  'protocolVersion',
+  'company',
+  'title',
+  'jobUrl',
+  'location',
+  'source',
+  'postingDate',
+  'appliedDate',
+  'status',
+  'tags'
+]);
+const CAPTURE_ALLOWED_FIELD_SET = new Set(CAPTURE_ALLOWED_FIELDS);
+const CAPTURE_ALLOWED_STATUSES = new Set([
+  'Applied',
+  'Screening',
+  'Interview',
+  'Offer',
+  'Rejected',
+  'Withdrawn'
+]);
 
 const INTERVIEW_STATUSES = new Set([
   'screening',
@@ -362,6 +394,188 @@ const normalizeCustomFields = (fields) => {
     count += 1;
   });
   return cleaned;
+};
+
+const parseCaptureBody = (event = {}) => {
+  let rawBody = '';
+  if (event.body && typeof event.body === 'object' && !Buffer.isBuffer(event.body)) {
+    rawBody = JSON.stringify(event.body);
+  } else if (event.isBase64Encoded) {
+    const decoded = Buffer.from(String(event.body || ''), 'base64');
+    if (decoded.length > MAX_CAPTURE_BODY_BYTES) {
+      throw httpError(413, `Capture request body exceeds ${MAX_CAPTURE_BODY_BYTES} bytes.`);
+    }
+    rawBody = decoded.toString('utf8');
+  } else {
+    rawBody = String(event.body || '');
+  }
+
+  if (Buffer.byteLength(rawBody, 'utf8') > MAX_CAPTURE_BODY_BYTES) {
+    throw httpError(413, `Capture request body exceeds ${MAX_CAPTURE_BODY_BYTES} bytes.`);
+  }
+  if (!rawBody.trim()) throw httpError(400, 'Capture request body is required.');
+
+  let payload;
+  try {
+    payload = JSON.parse(rawBody);
+  } catch {
+    throw httpError(400, 'Capture request body must be valid JSON.');
+  }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw httpError(400, 'Capture request body must be a JSON object.');
+  }
+  return payload;
+};
+
+const normalizeCaptureId = (value) => {
+  const captureId = String(value || '').trim();
+  if (
+    captureId.length < MIN_CAPTURE_ID_LENGTH ||
+    captureId.length > MAX_CAPTURE_ID_LENGTH ||
+    !/^[A-Za-z0-9][A-Za-z0-9._:-]*$/.test(captureId)
+  ) {
+    throw httpError(
+      400,
+      `captureId must be ${MIN_CAPTURE_ID_LENGTH}-${MAX_CAPTURE_ID_LENGTH} ASCII letters, numbers, periods, underscores, colons, or hyphens.`
+    );
+  }
+  return captureId;
+};
+
+const normalizeCaptureText = (value, field, { required = false } = {}) => {
+  const normalized = String(value || '').trim();
+  if (required && !normalized) throw httpError(400, `${field} is required.`);
+  const limit = CAPTURE_FIELD_LIMITS[field];
+  if (limit && normalized.length > limit) {
+    throw httpError(400, `${field} must be ${limit} characters or fewer.`);
+  }
+  return normalized;
+};
+
+const normalizeCaptureDate = (value, field, { required = false } = {}) => {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    if (required) throw httpError(400, `${field} is required.`);
+    return '';
+  }
+  const parsed = parseDate(normalized);
+  if (!parsed || formatDate(parsed) !== normalized) {
+    throw httpError(400, `${field} must be a valid YYYY-MM-DD date.`);
+  }
+  return formatDate(parsed);
+};
+
+const normalizeCaptureUrl = (value) => {
+  const raw = String(value || '').trim();
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(raw) && !/^https?:\/\//i.test(raw)) {
+    throw httpError(400, 'jobUrl must use HTTP or HTTPS.');
+  }
+  const normalized = normalizeUrl(raw);
+  if (!normalized) return '';
+  if (normalized.length > CAPTURE_FIELD_LIMITS.jobUrl) {
+    throw httpError(400, `jobUrl must be ${CAPTURE_FIELD_LIMITS.jobUrl} characters or fewer.`);
+  }
+  try {
+    const parsed = new URL(normalized);
+    if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Unsupported protocol');
+    return parsed.toString();
+  } catch {
+    throw httpError(400, 'jobUrl must be a valid HTTP or HTTPS URL.');
+  }
+};
+
+const normalizeCaptureTags = (tags) => {
+  if (tags === undefined) return [];
+  if (!Array.isArray(tags)) throw httpError(400, 'tags must be an array.');
+  if (tags.length > maxTags) throw httpError(400, `tags must contain at most ${maxTags} items.`);
+
+  const seen = new Set();
+  return tags.map((tag, index) => {
+    if (typeof tag !== 'string') throw httpError(400, `tags[${index}] must be a string.`);
+    const normalized = tag.trim();
+    if (!normalized) throw httpError(400, `tags[${index}] must not be empty.`);
+    if (normalized.length > MAX_TAG_LENGTH) {
+      throw httpError(400, `tags[${index}] must be ${MAX_TAG_LENGTH} characters or fewer.`);
+    }
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) throw httpError(400, `tags must not contain duplicates after case-folding: ${normalized}.`);
+    seen.add(key);
+    return normalized;
+  });
+};
+
+const createCaptureApplicationId = (userId, captureId) => {
+  const digest = createHash('sha256')
+    .update(`${String(userId || '')}\n${captureId}`)
+    .digest('hex');
+  return `APP#CAPTURE#${digest}`;
+};
+
+const stableSerialize = (value) => {
+  const canonicalize = (input) => {
+    if (Array.isArray(input)) return input.map(canonicalize);
+    if (!input || typeof input !== 'object') return input;
+    return Object.keys(input)
+      .sort()
+      .reduce((result, key) => {
+        result[key] = canonicalize(input[key]);
+        return result;
+      }, {});
+  };
+  return JSON.stringify(canonicalize(value));
+};
+
+const normalizeCaptureApplicationRequest = (userId, payload = {}) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw httpError(400, 'Capture request body must be a JSON object.');
+  }
+  const unsupportedFields = Object.keys(payload)
+    .filter(field => !CAPTURE_ALLOWED_FIELD_SET.has(field))
+    .sort();
+  if (unsupportedFields.length) {
+    throw httpError(400, `Unsupported capture request field(s): ${unsupportedFields.join(', ')}.`);
+  }
+  if (payload.protocolVersion !== undefined && Number(payload.protocolVersion) !== 1) {
+    throw httpError(400, 'protocolVersion must be 1 when provided.');
+  }
+  const captureId = normalizeCaptureId(payload.captureId);
+  const company = normalizeCaptureText(payload.company, 'company', { required: true });
+  const title = normalizeCaptureText(payload.title, 'title', { required: true });
+  const appliedDate = normalizeCaptureDate(payload.appliedDate, 'appliedDate', { required: true });
+  const statusInput = payload.status === undefined
+    ? 'Applied'
+    : normalizeCaptureText(payload.status, 'status', { required: true });
+  const status = normalizeStatus(statusInput);
+  if (!CAPTURE_ALLOWED_STATUSES.has(status)) {
+    throw httpError(400, `status must be one of: ${Array.from(CAPTURE_ALLOWED_STATUSES).join(', ')}.`);
+  }
+  const jobUrl = normalizeCaptureUrl(payload.jobUrl);
+  const location = normalizeCaptureText(payload.location, 'location');
+  const source = normalizeCaptureText(payload.source, 'source');
+  const postingDate = normalizeCaptureDate(payload.postingDate, 'postingDate');
+  const tags = normalizeCaptureTags(payload.tags);
+
+  const applicationPayload = {
+    company,
+    title,
+    appliedDate,
+    status,
+    jobUrl,
+    location,
+    source,
+    postingDate,
+    tags
+  };
+  const fingerprint = createHash('sha256')
+    .update(stableSerialize({ captureId, ...applicationPayload }))
+    .digest('hex');
+
+  return {
+    captureId,
+    captureFingerprint: fingerprint,
+    applicationId: createCaptureApplicationId(userId, captureId),
+    applicationPayload
+  };
 };
 
 const normalizeViewFilters = (filters) => {
@@ -869,7 +1083,8 @@ const buildExportCsv = (items) => {
   return rows.join('\n');
 };
 
-const handleCreateApplication = async (userId, payload = {}) => {
+const handleCreateApplication = async (userId, payload = {}, options = {}) => {
+  const dynamoClient = options.dynamoClient || dynamo;
   const company = (payload.company || '').toString().trim();
   const title = (payload.title || '').toString().trim();
   const appliedDate = (payload.appliedDate || '').toString().trim();
@@ -904,7 +1119,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
   } else if (status.toLowerCase() === 'applied') {
     statusHistoryDate = formatDate(parsedDate);
   }
-  const applicationId = `APP#${Date.now()}#${randomUUID()}`;
+  const applicationId = options.applicationId || `APP#${Date.now()}#${randomUUID()}`;
   const item = {
     userId,
     applicationId,
@@ -941,7 +1156,12 @@ const handleCreateApplication = async (userId, payload = {}) => {
   if (tags.length) item.tags = tags;
   if (Object.keys(customFields).length) item.customFields = customFields;
   if (attachments.length) item.attachments = attachments;
-  await dynamo.send(new PutCommand({
+  if (options.captureMetadata) {
+    item.captureId = options.captureMetadata.captureId;
+    item.captureFingerprint = options.captureMetadata.captureFingerprint;
+    item.captureSource = 'application-capture-api';
+  }
+  await dynamoClient.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
     Item: item,
     ConditionExpression: 'attribute_not_exists(applicationId)'
@@ -950,7 +1170,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
     try {
       await setAttachmentPurpose(attachments, 'attachment');
     } catch (err) {
-      await dynamo.send(new DeleteCommand({
+      await dynamoClient.send(new DeleteCommand({
         TableName: APPLICATIONS_TABLE,
         Key: { userId, applicationId },
         ConditionExpression: 'attribute_exists(applicationId)'
@@ -961,6 +1181,50 @@ const handleCreateApplication = async (userId, payload = {}) => {
   }
   return item;
 };
+
+const handleCaptureApplication = async (userId, payload = {}, options = {}) => {
+  const dynamoClient = options.dynamoClient || dynamo;
+  const normalized = normalizeCaptureApplicationRequest(userId, payload);
+  try {
+    const item = await handleCreateApplication(userId, normalized.applicationPayload, {
+      applicationId: normalized.applicationId,
+      captureMetadata: {
+        captureId: normalized.captureId,
+        captureFingerprint: normalized.captureFingerprint
+      },
+      dynamoClient
+    });
+    return { item, created: true, captureId: normalized.captureId };
+  } catch (err) {
+    if (err?.name !== 'ConditionalCheckFailedException') throw err;
+  }
+
+  const existing = await dynamoClient.send(new GetCommand({
+    TableName: APPLICATIONS_TABLE,
+    Key: { userId, applicationId: normalized.applicationId },
+    ConsistentRead: true
+  }));
+  const item = existing?.Item;
+  if (
+    item &&
+    (!item.recordType || item.recordType === 'application') &&
+    item.captureId === normalized.captureId &&
+    item.captureFingerprint === normalized.captureFingerprint
+  ) {
+    return { item, created: false, captureId: normalized.captureId };
+  }
+  throw httpError(409, 'captureId is already associated with different application data.');
+};
+
+const buildCaptureApplicationResponse = (result, corsOrigin) => ({
+  statusCode: result.created ? 201 : 200,
+  headers: buildHeaders(corsOrigin),
+  body: JSON.stringify({
+    item: result.item,
+    created: result.created === true,
+    captureId: result.captureId
+  })
+});
 
 const handleCreateProspect = async (userId, payload = {}) => {
   const company = (payload.company || '').toString().trim();
@@ -1573,9 +1837,33 @@ const inspectExportAttachments = async (attachments, metadataBytes = 0) => {
   return { available, missing, signature, attachmentBytes };
 };
 
-const startArchiveUpload = (key, metadata) => {
+const createZipArchive = async (options = {}) => {
+  const { ZipArchive } = await import('archiver');
+  if (typeof ZipArchive !== 'function') {
+    throw new Error('Archiver did not provide the ZipArchive constructor.');
+  }
+  return new ZipArchive(options);
+};
+
+const monitorArchiveCompletion = (archive, outputStream) => new Promise((resolve) => {
+  let settled = false;
+  const finish = (error = null) => {
+    if (settled) return;
+    settled = true;
+    resolve({ error });
+  };
+  archive.on('warning', err => {
+    if (err.code !== 'ENOENT') finish(err);
+  });
+  archive.on('error', finish);
+  outputStream.on('error', finish);
+  outputStream.on('finish', () => finish());
+  outputStream.on('close', () => finish());
+});
+
+const startArchiveUpload = async (key, metadata) => {
   const uploadStream = new PassThrough();
-  const archive = archiver('zip', { zlib: { level: 6 } });
+  const archive = await createZipArchive({ zlib: { level: 6 } });
   archive.pipe(uploadStream);
   const uploader = new Upload({
     client: s3,
@@ -1593,21 +1881,7 @@ const startArchiveUpload = (key, metadata) => {
     () => ({ error: null }),
     error => ({ error })
   );
-  const archiveResult = new Promise((resolve) => {
-    let settled = false;
-    const finish = (error = null) => {
-      if (settled) return;
-      settled = true;
-      resolve({ error });
-    };
-    archive.on('warning', err => {
-      if (err.code !== 'ENOENT') finish(err);
-    });
-    archive.on('error', finish);
-    uploadStream.on('error', finish);
-    uploadStream.on('finish', () => finish());
-    uploadStream.on('close', () => finish());
-  });
+  const archiveResult = monitorArchiveCompletion(archive, uploadStream);
   return { archive, uploadStream, uploader, uploadResult, archiveResult };
 };
 
@@ -1703,7 +1977,7 @@ const handleCreateExport = async (userId, range) => {
     };
   }
   const inputBytes = metadataBytes + inspected.attachmentBytes;
-  const context = startArchiveUpload(key, {
+  const context = await startArchiveUpload(key, {
     totalapplications: String(exportItems.length),
     attachmentsexported: String(inspected.available.length),
     attachmentsmissing: String(inspected.missing.length),
@@ -1776,7 +2050,7 @@ const handleCreateAttachmentZip = async (userId, payload = {}) => {
     };
   }
   const inputBytes = metadataBytes + inspected.attachmentBytes;
-  const context = startArchiveUpload(key, {
+  const context = await startArchiveUpload(key, {
     attachmentsexported: String(inspected.available.length),
     attachmentsmissing: String(inspected.missing.length),
     inputbytes: String(inputBytes)
@@ -2040,6 +2314,15 @@ exports.handler = async (event) => {
       };
     }
 
+    if (
+      routeKey === 'POST /api/applications/capture' ||
+      (method === 'POST' && path === '/api/applications/capture')
+    ) {
+      const payload = parseCaptureBody(event);
+      const result = await handleCaptureApplication(userId, payload);
+      return buildCaptureApplicationResponse(result, corsOrigin);
+    }
+
     if (routeKey === 'POST /api/applications') {
       const payload = parseBody(event);
       const item = await handleCreateApplication(userId, payload);
@@ -2176,4 +2459,16 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: err.message || 'Request failed.' })
     };
   }
+};
+
+exports.__test = {
+  MAX_CAPTURE_BODY_BYTES,
+  buildCaptureApplicationResponse,
+  createZipArchive,
+  createCaptureApplicationId,
+  finishArchiveUpload,
+  handleCaptureApplication,
+  monitorArchiveCompletion,
+  normalizeCaptureApplicationRequest,
+  parseCaptureBody
 };

@@ -150,6 +150,7 @@ function processHtml(html, relPath) {
 
   const isToolsLanding = relPath === 'pages/tools.html';
   const isProjectStarfall = relPath === 'pages/games/project-starfall.html';
+  const isIsolatedCaptureSurface = relPath === 'pages/job-application-tracker.html';
 
   lines.forEach((line) => {
     const trimmed = line.trim();
@@ -200,6 +201,7 @@ function processHtml(html, relPath) {
       || /^<script\s+defer\s+src="js\/privacy\/consent_manager\.js"><\/script>$/i.test(trimmed)
       || isManagedLine(trimmed, 'site-consent')
     ) {
+      if (isIsolatedCaptureSurface) return;
       if (!consentInserted) {
         out.push(`${indent}<script defer src="${managedHrefs.consent}"></script>`);
         consentInserted = true;
@@ -264,10 +266,12 @@ function processHtml(html, relPath) {
 
   let normalized = out;
   const needsShellBundle = /\bclass="[^"]*\bsite-page\b[^"]*"/i.test(html) && /<main\b/i.test(html);
-  const needsConsentBundle = needsShellBundle
-    || !relPath.includes('/')
-    || relPath.startsWith('pages/')
-    || relPath.startsWith('demos/');
+  const needsConsentBundle = !isIsolatedCaptureSurface && (
+    needsShellBundle
+      || !relPath.includes('/')
+      || relPath.startsWith('pages/')
+      || relPath.startsWith('demos/')
+  );
   if (needsShellBundle && !shellInserted) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
   }

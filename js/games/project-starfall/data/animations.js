@@ -6,6 +6,10 @@
     const ASSET_ROOT = settings.ASSET_ROOT || 'img/project-starfall';
     const EQUIPMENT_ATLAS_ROOT = settings.EQUIPMENT_ATLAS_ROOT || `${ASSET_ROOT}/equipment-atlases`;
     const CLASS_FILE_IDS = settings.CLASS_FILE_IDS || {};
+    const CLASS_FAMILY_IDS = settings.CLASS_FAMILY_IDS || ['fighter', 'mage', 'archer'];
+    const CLASS_BODY_FAMILIES = settings.CLASS_BODY_FAMILIES || {};
+    const CLASS_FAMILY_FILE_IDS = settings.CLASS_FAMILY_FILE_IDS || {};
+    const PLAYER_ART_VERSION = settings.PLAYER_ART_VERSION || 'v5';
     const createEquipmentVisualData = settings.createEquipmentVisualData;
 
     const ANIMATION_ROOT = `${ASSET_ROOT}/animations`;
@@ -122,8 +126,10 @@
       });
     }
 
-    function makePlayerAnimationAsset(fileId) {
-      return makeSheetAnimation(`${ANIMATION_ROOT}/players/${fileId}-sheet.png`, PLAYER_ANIMATION_ROWS, PLAYER_ANIMATION_CONFIG);
+    function makePlayerAnimationAsset(fileId, version) {
+      const versionId = String(version || PLAYER_ART_VERSION).trim();
+      const versionSuffix = versionId ? `-${versionId}` : '';
+      return makeSheetAnimation(`${ANIMATION_ROOT}/players/${fileId}-sheet${versionSuffix}.png`, PLAYER_ANIMATION_ROWS, PLAYER_ANIMATION_CONFIG);
     }
 
     const EQUIPMENT_ATLAS_ANGLE_SETS = Object.freeze({
@@ -167,7 +173,7 @@
         ? Object.freeze(['rest', 'draw', 'release'])
         : Object.freeze(['default']);
       return Object.freeze({
-        sheet: `${EQUIPMENT_ATLAS_ROOT}/${fileId}-atlas.png`,
+        sheet: `${EQUIPMENT_ATLAS_ROOT}/${fileId}-atlas-v2.png`,
         frameWidth: 128,
         frameHeight: 128,
         pivotX: 64,
@@ -260,13 +266,17 @@
       return makeSheetAnimation(`${ANIMATION_ROOT}/portals/${fileId}-sheet.png`, ['idle'], PORTAL_ANIMATION_CONFIG);
     }
 
-    const GENERIC_PLAYER_ANIMATION_ASSET = makePlayerAnimationAsset('generic-player');
+    const GENERIC_PLAYER_ANIMATION_ASSET = makePlayerAnimationAsset('generic-player', 'v4');
+
+    const PLAYER_FAMILY_ANIMATION_ASSETS = Object.freeze(CLASS_FAMILY_IDS.reduce((assets, familyId) => {
+      const fileId = CLASS_FAMILY_FILE_IDS[familyId] || familyId;
+      assets[familyId] = makePlayerAnimationAsset(fileId, PLAYER_ART_VERSION);
+      return assets;
+    }, {}));
 
     const PLAYER_ANIMATION_ASSETS = Object.freeze(Object.keys(CLASS_FILE_IDS).reduce((assets, classId) => {
-      // Class sheets currently contain the same pixels. Reuse the generic
-      // definition so one decoded sheet serves every class until unique art
-      // replaces the generated duplicates.
-      assets[classId] = GENERIC_PLAYER_ANIMATION_ASSET;
+      const familyId = CLASS_BODY_FAMILIES[classId] || classId;
+      assets[classId] = PLAYER_FAMILY_ANIMATION_ASSETS[familyId] || GENERIC_PLAYER_ANIMATION_ASSET;
       return assets;
     }, {}));
 
@@ -458,10 +468,18 @@
         idle: { fps: 4, holds: [7, 2, 4, 2, 4, 7] },
         attack: { fps: 12, holds: [4, 2, 1, 1, 2, 5] },
         defeat: { fps: 6, holds: [1, 2, 3, 4, 6, 9] }
+      },
+      eclipseSovereign: {
+        telegraph: { fps: 8, holds: [3, 3, 4] },
+        attack: { fps: 14, holds: [2, 2, 3] },
+        buff: { fps: 12, holds: [3, 2, 4] }
       }
     });
 
     const ENEMY_ANIMATION_FILE_IDS = Object.freeze({
+      glassback: 'shardling',
+      riftLantern: 'void-mote',
+      faultSkitter: 'clockbug',
       slimelet: 'slimelet',
       dewSlime: 'dew-slime',
       mossback: 'mossback',
@@ -511,6 +529,12 @@
       eclipseSovereign: 'eclipse-sovereign',
       rimewarden: 'rimewarden'
     });
+
+    const ENEMY_COMBAT_FX_FILE_IDS = Object.freeze(Object.assign({}, ENEMY_ANIMATION_FILE_IDS, {
+      glassback: 'glassback',
+      riftLantern: 'rift-lantern',
+      faultSkitter: 'fault-skitter'
+    }));
 
     const COMPACT_ENEMY_ANIMATION_FILE_IDS = ENEMY_ANIMATION_FILE_IDS;
 
@@ -606,6 +630,7 @@
       COMBAT_FX_ANIMATION_CONFIG,
       PORTAL_ANIMATION_CONFIG,
       GENERIC_PLAYER_ANIMATION_ASSET,
+      PLAYER_FAMILY_ANIMATION_ASSETS,
       PLAYER_ANIMATION_ASSETS,
       EQUIPMENT_VISUALS,
       FIGHTER_RIG_ANIMATION_STATES,
@@ -615,6 +640,7 @@
       ENEMY_ANIMATION_ROW_HOLDS,
       ENEMY_ANIMATION_TIMING_OVERRIDES,
       ENEMY_ANIMATION_FILE_IDS,
+      ENEMY_COMBAT_FX_FILE_IDS,
       ENEMY_ANIMATION_ASSETS,
       ENEMY_PROJECTILE_ANIMATION_ASSETS,
       ENEMY_ANIMATION_BEHAVIORS,

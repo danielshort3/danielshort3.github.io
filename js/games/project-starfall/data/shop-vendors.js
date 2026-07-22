@@ -8,8 +8,17 @@
     Object.freeze({ id: 'special', label: 'Special Shop', panelLabel: 'Specials', x: 1220, platformIndex: 1, facadeCell: 'astralObservatory', facadeWidth: 154, facadeHeight: 142 })
   ]);
 
+  const TOWN_SHOP_PORTAL_LAYOUTS = Object.freeze({
+    starfallCrossing: Object.freeze({
+      weapon: Object.freeze({ x: 360, platformIndex: 1, facadeCell: 'lensWorkshop', facadeWidth: 174, facadeHeight: 154 }),
+      armor: Object.freeze({ x: 700, platformIndex: 1, facadeCell: 'expeditionDepot', facadeWidth: 174, facadeHeight: 154 }),
+      supply: Object.freeze({ x: 1260, platformIndex: 2, facadeCell: 'frontierGate', facadeWidth: 174, facadeHeight: 154 }),
+      special: Object.freeze({ x: 1600, platformIndex: 2, facadeCell: 'fracturedObservatoryCore', facadeWidth: 174, facadeHeight: 154 })
+    })
+  });
+
   const TOWN_SHOP_THEME_BY_TOWN = Object.freeze({
-    starfallCrossing: Object.freeze({ prefix: 'Crossing', specialName: 'Guild Relics', vendorAccent: '#ffd166', vendorColor: '#5e7d9f' }),
+    starfallCrossing: Object.freeze({ prefix: 'Crossing', specialName: 'Fracture Relics', vendorAccent: '#75e3f0', vendorColor: '#455e73' }),
     rustcoilOutpost: Object.freeze({ prefix: 'Rustcoil', specialName: 'Scrap Exchange', vendorAccent: '#29b3ad', vendorColor: '#7a8592' }),
     cinderRefuge: Object.freeze({ prefix: 'Cinder', specialName: 'Ember Counter', vendorAccent: '#ffcf70', vendorColor: '#9b4835' }),
     frostfenCamp: Object.freeze({ prefix: 'Frostfen', specialName: 'Frost Cache', vendorAccent: '#b7f2ff', vendorColor: '#6386a8' }),
@@ -57,18 +66,22 @@
   }
 
   function createTownShopDoorPortals(townId) {
-    return SHOP_VENDOR_TYPES.map((type) => Object.freeze({
-      id: `${townId}_${type.id}_shop_door`,
-      label: type.label,
-      destinationMapId: getTownShopInteriorMapId(townId, type.id),
-      shopDoor: true,
-      shopVendorType: type.id,
-      facadeCell: type.facadeCell,
-      facadeWidth: type.facadeWidth,
-      facadeHeight: type.facadeHeight,
-      x: type.x,
-      platformIndex: type.platformIndex
-    }));
+    const townLayout = TOWN_SHOP_PORTAL_LAYOUTS[townId] || {};
+    return SHOP_VENDOR_TYPES.map((type) => {
+      const placement = townLayout[type.id] || type;
+      return Object.freeze({
+        id: `${townId}_${type.id}_shop_door`,
+        label: type.label,
+        destinationMapId: getTownShopInteriorMapId(townId, type.id),
+        shopDoor: true,
+        shopVendorType: type.id,
+        facadeCell: placement.facadeCell || type.facadeCell,
+        facadeWidth: placement.facadeWidth || type.facadeWidth,
+        facadeHeight: placement.facadeHeight || type.facadeHeight,
+        x: placement.x,
+        platformIndex: placement.platformIndex
+      });
+    });
   }
 
   function shopEquipment(itemId) {
@@ -216,6 +229,7 @@
   const defaultShopVendorData = createShopVendorData();
   const api = Object.assign({
     SHOP_VENDOR_TYPES,
+    TOWN_SHOP_PORTAL_LAYOUTS,
     TOWN_SHOP_THEME_BY_TOWN,
     createShopVendorData,
     defaultFreezeQuestReward,

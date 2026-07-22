@@ -1,13 +1,86 @@
 (function initProjectStarfallDataMapRules(global) {
   'use strict';
 
+  function createRiftMutation(definition) {
+    const source = definition || {};
+    return Object.freeze({
+      id: source.id,
+      name: source.name,
+      effect: source.effect,
+      danger: Object.freeze(Object.assign({
+        enemyHealthScale: 1,
+        enemyDamageScale: 1,
+        playerResourceCostScale: 1
+      }, source.danger || {})),
+      upside: Object.freeze(Object.assign({
+        playerDamageScale: 1,
+        playerResourceCostScale: 1
+      }, source.upside || {})),
+      counterplay: Object.freeze(Object.assign({
+        id: '',
+        label: '',
+        summary: '',
+        dangerMitigation: 0
+      }, source.counterplay || {})),
+      rewardScale: Math.max(1, Number(source.rewardScale || 1))
+    });
+  }
+
   const MUTATIONS = Object.freeze([
-    Object.freeze({ id: 'echoing', name: 'Echoing', effect: 'Skills have a chance to repeat at reduced power.' }),
-    Object.freeze({ id: 'splintering', name: 'Splintering', effect: 'Attacks can split into smaller secondary hits.' }),
-    Object.freeze({ id: 'guarded', name: 'Guarded', effect: 'Defensive skills grant minor resource.' }),
-    Object.freeze({ id: 'burning', name: 'Burning', effect: 'Attacks can apply burn.' }),
-    Object.freeze({ id: 'focused', name: 'Focused', effect: 'Marks, runes, or weak points last longer.' }),
-    Object.freeze({ id: 'volatile', name: 'Volatile', effect: 'Higher damage but increased resource cost.' })
+    createRiftMutation({
+      id: 'echoing',
+      name: 'Echoing',
+      effect: 'Rift attacks echo as heavier pressure while player offense resonates for bonus damage.',
+      danger: { enemyDamageScale: 1.06 },
+      upside: { playerDamageScale: 1.04 },
+      counterplay: { id: 'interrupt_echo', label: 'Break the Echo', summary: 'Interrupt or stagger dangerous casts before their echo resolves.', dangerMitigation: 0.35 },
+      rewardScale: 1.05
+    }),
+    createRiftMutation({
+      id: 'splintering',
+      name: 'Splintering',
+      effect: 'Splintered enemies are tougher and hit harder, while player attacks gain extra force.',
+      danger: { enemyHealthScale: 1.03, enemyDamageScale: 1.08 },
+      upside: { playerDamageScale: 1.055 },
+      counterplay: { id: 'control_spacing', label: 'Control the Spread', summary: 'Keep packs controlled and fight from clean lanes instead of stacking hazards.', dangerMitigation: 0.3 },
+      rewardScale: 1.065
+    }),
+    createRiftMutation({
+      id: 'guarded',
+      name: 'Guarded',
+      effect: 'Enemies gain durable Rift guards while disciplined players spend less resource.',
+      danger: { enemyHealthScale: 1.12 },
+      upside: { playerResourceCostScale: 0.94 },
+      counterplay: { id: 'break_guard', label: 'Shatter the Guard', summary: 'Use break, armor pressure, and coordinated burst to remove durable targets quickly.', dangerMitigation: 0.4 },
+      rewardScale: 1.06
+    }),
+    createRiftMutation({
+      id: 'burning',
+      name: 'Burning',
+      effect: 'Burning pressure raises incoming danger while empowering committed offense.',
+      danger: { enemyDamageScale: 1.11 },
+      upside: { playerDamageScale: 1.065 },
+      counterplay: { id: 'rotate_hazards', label: 'Rotate the Heat', summary: 'Make a decisive, damage-free combat rotation instead of extending the same trade.', dangerMitigation: 0.35 },
+      rewardScale: 1.075
+    }),
+    createRiftMutation({
+      id: 'focused',
+      name: 'Focused',
+      effect: 'Focused enemies sustain pressure longer while precise players gain efficient damage.',
+      danger: { enemyHealthScale: 1.05, enemyDamageScale: 1.055 },
+      upside: { playerDamageScale: 1.03, playerResourceCostScale: 0.96 },
+      counterplay: { id: 'break_focus', label: 'Break Their Focus', summary: 'Change lanes, stagger priority targets, and deny uninterrupted pressure.', dangerMitigation: 0.3 },
+      rewardScale: 1.065
+    }),
+    createRiftMutation({
+      id: 'volatile',
+      name: 'Volatile',
+      effect: 'Both sides deal more damage, and player skills cost more resource during the surge.',
+      danger: { enemyDamageScale: 1.16, playerResourceCostScale: 1.08 },
+      upside: { playerDamageScale: 1.12 },
+      counterplay: { id: 'burst_window', label: 'Choose the Burst Window', summary: 'Save resource and defensive tools for a short, decisive damage window.', dangerMitigation: 0.25 },
+      rewardScale: 1.1
+    })
   ]);
 
   const MAP_MODIFIERS = Object.freeze([
