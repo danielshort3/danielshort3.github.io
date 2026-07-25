@@ -346,6 +346,9 @@
 
   function getCommandMenuRegionAction(region) {
     const source = region || {};
+    if (source.type === 'menu-page') {
+      return { handled: true, type: 'navigateCommandMenu', pageId: source.pageId };
+    }
     if (source.type === 'menu-panel') {
       return { handled: true, type: 'togglePanel', panelId: source.panelId };
     }
