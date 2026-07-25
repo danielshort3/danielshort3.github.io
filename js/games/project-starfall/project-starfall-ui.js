@@ -15336,6 +15336,38 @@
       }
     }
 
+    flushPendingCanvasInteractionDraw() {
+      const hasQueuedUiDraw = !!(this.pendingUiRefresh && this.pendingUiRefresh.draw);
+      const hasQueuedCanvasDraw = !!(this.pendingRunningCanvasDraw || this.pendingCanvasDrawFrame);
+      if (!hasQueuedUiDraw && !hasQueuedCanvasDraw) return false;
+
+      const cancelScheduledFrame = (frameId) => {
+        if (!frameId || typeof window === 'undefined') return;
+        if (typeof window.cancelAnimationFrame === 'function') window.cancelAnimationFrame(frameId);
+        else if (typeof window.clearTimeout === 'function') window.clearTimeout(frameId);
+      };
+
+      if (hasQueuedUiDraw) {
+        cancelScheduledFrame(this.pendingUiRefreshFrame);
+        this.pendingUiRefreshFrame = 0;
+        this.flushUiRefresh();
+      }
+
+      const shouldDraw = !!(hasQueuedUiDraw || this.pendingRunningCanvasDraw || this.pendingCanvasDrawFrame);
+      if (!shouldDraw || !this.engine || typeof this.engine.draw !== 'function') return false;
+
+      cancelScheduledFrame(this.pendingCanvasDrawFrame);
+      const force = !!(this.pendingCanvasDrawForce || this.pendingRunningCanvasDrawForce);
+      this.pendingCanvasDrawFrame = 0;
+      this.pendingCanvasDrawForce = false;
+      this.pendingRunningCanvasDraw = false;
+      this.pendingRunningCanvasDrawForce = false;
+      this.pendingRunningCanvasDrawFrameId = -1;
+      if (force) this.canvasOverlayLayerCache = null;
+      this.engine.draw();
+      return true;
+    }
+
     requestCanvasDraw(options) {
       const settings = options || {};
       const shouldCoalesce = settings.force ? !!settings.coalesce : settings.coalesce !== false;
@@ -28022,8 +28054,8 @@
       }
       if (disabled) return;
       const region = item.action
-        ? { type: 'menu-action', action: item.action, channelId: item.channelId }
-        : { type: 'menu-panel', panelId: item.panel };
+        ? { type: 'menu-action', action: item.action, channelId: item.channelId, source: 'command-menu' }
+        : { type: 'menu-panel', panelId: item.panel, source: 'command-menu' };
       this.addCanvasRegion({ ...region, x, y, w, h });
     }
 
@@ -28044,7 +28076,7 @@
           lineHeight: 8
         });
       }
-      this.addCanvasRegion({ type: 'menu-panel', panelId: action.panel, x, y, w: size, h: size });
+      this.addCanvasRegion({ type: 'menu-panel', panelId: action.panel, source: 'hud-quick', x, y, w: size, h: size });
     }
 
     drawCanvasMenu(ctx, width, height, bottomY) {
@@ -34617,6 +34649,7 @@
     }
 
     handleCanvasPointerDown(event) {
+      this.flushPendingCanvasInteractionDraw();
       const point = this.getCanvasPoint(event);
       this.canvasPointer = point;
       this.canvasPointerDownX = point.x;
@@ -36045,6 +36078,7 @@
       if (commandMenuRegionActionHelper) {
         const commandMenuRegionAction = commandMenuRegionActionHelper(region);
         if (commandMenuRegionAction && commandMenuRegionAction.handled) {
+          if (region.source === 'command-menu' && !this.isCommandOpen) return;
           if (commandMenuRegionAction.type === 'togglePanel') {
             this.toggleCommandPanel(false);
             this.togglePanel(commandMenuRegionAction.panelId);
@@ -36069,6 +36103,7 @@
           }
         }
       } else {
+        if (region.source === 'command-menu' && !this.isCommandOpen) return;
         if (region.type === 'menu-panel') {
           this.toggleCommandPanel(false);
           this.togglePanel(region.panelId);
