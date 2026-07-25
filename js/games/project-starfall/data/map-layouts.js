@@ -179,6 +179,7 @@
 
   const PRIORITY_FIELD_LAYOUT_IDS = Object.freeze([
     'greenrootMeadow',
+    'thornpathThicket',
     'banditRidgeCamp',
     'orebackQuarry',
     'cinderHollow',

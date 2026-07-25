@@ -280,6 +280,41 @@
       return platforms;
     }
 
+    if (mapId === 'thornpathThicket') {
+      // Keep the playful vertical-canopy identity, but stage the climb as one
+      // readable route: a calm scout apron, two teaching loops, then a safe
+      // fork approach. Overlapping tiers create forgiving vine/drop resets.
+      addSlope(600, lanes.ground, lanes.low, 300);
+      addPlatform(760, lanes.low, 700, 'solidLane');
+      addPlatform(760, lanes.mid, 840, 'solidLane');
+      addSlope(1300, lanes.low, lanes.mid, 300);
+
+      addPlatform(1530, lanes.low, 850, 'solidLane');
+      addPlatform(1660, lanes.mid, 820, 'solidLane');
+      addPlatform(1880, lanes.high, 740, 'solidLane');
+      addSlope(2180, lanes.mid, lanes.high, 300);
+
+      addSlope(2460, lanes.ground, lanes.low, 300);
+      addPlatform(2500, lanes.low, 1000, 'solidLane');
+      addPlatform(2700, lanes.mid, 900, 'solidLane');
+      addPlatform(2920, lanes.high, 800, 'solidLane');
+      addPlatform(3200, lanes.peak, 720, 'solidLane');
+      addSlope(3300, lanes.high, lanes.peak, 300);
+
+      addFlatConnector(3500, lanes.low, 200);
+      addFlatConnector(3680, lanes.mid, 180);
+      addFlatConnector(2680, lanes.high, 160);
+      addFlatConnector(3780, lanes.high, 160);
+      addFlatConnector(3960, lanes.peak, 140);
+
+      addSlope(3580, lanes.ground, lanes.low, 300);
+      addPlatform(3820, lanes.low, 820, 'solidLane');
+      addPlatform(3960, lanes.mid, 760, 'solidLane');
+      addPlatform(4020, lanes.high, 700, 'solidLane');
+      addPlatform(4160, lanes.peak, 620, 'solidLane');
+      return platforms;
+    }
+
     if (mapId === 'banditRidgeCamp') {
       const lowY = lanes.low;
       const midY = lanes.mid + 6;

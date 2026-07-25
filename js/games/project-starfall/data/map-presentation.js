@@ -353,9 +353,10 @@
       }),
       thornpathThicket: createFieldComposition({
         routeSections: [
-          { label: 'Meadow Return', x: 0, w: 1700, tier: 'return' },
-          { label: 'Thorn Canopy', x: 1700, w: 3900, tier: 'vertical' },
-          { label: 'Deep Fork', x: 5600, w: 2100, tier: 'advance' }
+          { label: 'Scout’s Clearing', x: 0, w: 1200, tier: 'arrival' },
+          { label: 'Vine Tangle', x: 1200, w: 1300, tier: 'training' },
+          { label: 'Thorn Canopy', x: 2500, w: 1500, tier: 'vertical' },
+          { label: 'Deep Fork', x: 4000, w: 1200, tier: 'advance' }
         ],
         portalRoles: {
           thornpath_greenroot: 'left route return',
@@ -363,14 +364,16 @@
           thornpath_rustcoil_outpost: 'regional town branch'
         },
         landmarkBands: [
-          { kind: 'vine', x: 860, w: 1200, label: 'Low Vines' },
-          { kind: 'tree', x: 2860, w: 1560, label: 'Thorn Canopy' },
-          { kind: 'sign', x: 6660, w: 520, label: 'Fork Marker' }
+          { kind: 'sign', x: 360, w: 420, anchorX: 560, label: 'Scout Post' },
+          { kind: 'vine', x: 1320, w: 760, anchorX: 1650, label: 'Vine Tangle' },
+          { kind: 'tree', x: 2700, w: 980, anchorX: 3100, label: 'Thorn Canopy' },
+          { kind: 'sign', x: 4440, w: 520, anchorX: 4700, label: 'Fork Marker' }
         ],
         spawnZoneLabels: [
-          { label: 'Vine snapper lane', platformTier: 'low' },
-          { label: 'Thorn sprout shelf', platformTier: 'mid' },
-          { label: 'Briar route', platformTier: 'high' }
+          { label: 'Scout clearing', platformTier: 'low' },
+          { label: 'Vine tangle', platformTier: 'mid' },
+          { label: 'Thorn canopy', platformTier: 'high' },
+          { label: 'Deep fork', platformTier: 'advance' }
         ]
       }),
       brambleDepths: createFieldComposition({
@@ -672,7 +675,7 @@
 
     const MAP_DESIGN_INTENTS = Object.freeze([
       { id: 'greenrootMeadow', intendedArchetype: 'A -> F starter lane loop', intendedUseCase: 'solo', routeSummary: 'Clear the pond pocket, climb the moss shelf, take the canopy shortcut or drop through the recovery loop, then regroup at the Thornpath overlook.', partyRoleTarget: 'Keep early Greenroot mostly solo with optional canopy ranged practice.', farmingAbuseRisk: 'low', visualIdentityTag: 'beginner meadow and slime pond', spawnSectionModel: 'pond/moss/canopy/gate starter sections', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
-      { id: 'thornpathThicket', intendedArchetype: 'D vertical canopy with reset loop', intendedUseCase: 'solo/duo', routeSummary: 'Climb vine shelves, clear visible sprout perches, then use drops to reset.', partyRoleTarget: 'Duo split by low/mid/high canopy only after reset drops exist.', farmingAbuseRisk: 'medium', visualIdentityTag: 'thorn canopy fork', spawnSectionModel: 'low vines, mid sprout shelf, high briar route' },
+      { id: 'thornpathThicket', intendedArchetype: 'D vertical canopy with reset loop', intendedUseCase: 'solo/duo', routeSummary: 'Leave the scout clearing, learn the vine loop, take the high thorn canopy, then regroup on the calm Deep Fork approach.', partyRoleTarget: 'Duo split by low/mid/high canopy with overlapping vine and drop recovery.', farmingAbuseRisk: 'medium', visualIdentityTag: 'thorn canopy fork', spawnSectionModel: 'clearing/tangle/canopy/fork progression', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'brambleDepths', intendedArchetype: 'H/E root dungeon', intendedUseCase: 'boss dungeon', routeSummary: 'Push through root lanes and thorn shelves into the Brambleking gate.', partyRoleTarget: 'Small-party boss prep with healer pod and thorn pod priority.', farmingAbuseRisk: 'medium', visualIdentityTag: 'root court dungeon', spawnSectionModel: 'root floor, thorn shelf, crown approach', implementationStatus: 'arena-skeleton-v1' },
       { id: 'rustcoilRuins', intendedArchetype: 'C/F industrial terrace', intendedUseCase: 'solo/duo', routeSummary: 'Rotate lower construct lanes, mid sentry catwalks, and upper gear shelves.', partyRoleTarget: 'Duo can split lower armor lane and upper sentry lane.', farmingAbuseRisk: 'medium', visualIdentityTag: 'broken gear ruins', spawnSectionModel: 'lower ratchets, mid sentries, upper wardens' },
       { id: 'gearworksVault', intendedArchetype: 'H/E armor-check factory arena', intendedUseCase: 'small/full party dungeon', routeSummary: 'Hold lower tanks, control mid sentries, and hit upper gear switches during boss waves.', partyRoleTarget: 'Tank lower lane, ranged sentry duty, support near center switch.', farmingAbuseRisk: 'medium', visualIdentityTag: 'gear vault factory', spawnSectionModel: 'tank lane, sentry catwalk, switch shelf', implementationStatus: 'arena-skeleton-v1' },

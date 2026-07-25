@@ -19,6 +19,12 @@
       { sectionSuffix: 'canopy_practice', label: 'Canopy Sprouts', enemyWeights: [{ enemyId: 'dewSlime', weight: 4 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 3 }], population: 5, maxPopulation: 5, respawnSeconds: 8, leash: 300, spawnBounds: { minX: 2720, maxX: 3340 } },
       { sectionSuffix: 'thornpath_gate', label: 'Gate Guardians', enemyWeights: [{ enemyId: 'dewSlime', weight: 2 }, { enemyId: 'slimelet', weight: 1 }, { enemyId: 'thornSprout', weight: 3 }, { enemyId: 'mossback', weight: 4 }], population: 5, maxPopulation: 5, respawnSeconds: 9, leash: 340, spawnBounds: { minX: 3500, maxX: 3640 } }
     ]),
+    thornpathThicket: Object.freeze([
+      { sectionSuffix: 'scout_s_clearing', label: 'Scout’s Clearing', enemyWeights: [{ enemyId: 'dewSlime', weight: 4 }, { enemyId: 'mossback', weight: 3 }, { enemyId: 'thornSprout', weight: 3 }], population: 5, maxPopulation: 5, respawnSeconds: 7, leash: 280, spawnBounds: { minX: 760, maxX: 1180 } },
+      { sectionSuffix: 'vine_tangle', label: 'Vine Tangle', enemyWeights: [{ enemyId: 'mossback', weight: 4 }, { enemyId: 'thornSprout', weight: 4 }, { enemyId: 'vineSnapper', weight: 2 }], population: 6, maxPopulation: 6, respawnSeconds: 8, leash: 340, spawnBounds: { minX: 1350, maxX: 2380 } },
+      { sectionSuffix: 'thorn_canopy', label: 'Thorn Canopy', enemyWeights: [{ enemyId: 'thornSprout', weight: 4 }, { enemyId: 'vineSnapper', weight: 4 }, { enemyId: 'briarStag', weight: 2 }], population: 7, maxPopulation: 7, respawnSeconds: 8, leash: 380, spawnBounds: { minX: 2650, maxX: 3900 } },
+      { sectionSuffix: 'deep_fork', label: 'Deep Fork', enemyWeights: [{ enemyId: 'mossback', weight: 3 }, { enemyId: 'vineSnapper', weight: 4 }, { enemyId: 'briarStag', weight: 3 }], population: 6, maxPopulation: 6, respawnSeconds: 9, leash: 360, spawnBounds: { minX: 4060, maxX: 4400 } }
+    ]),
     banditRidgeCamp: Object.freeze([
       { sectionSuffix: 'lower_cutter_lane', label: 'Lower Cutters', enemyWeights: [{ enemyId: 'banditCutter', weight: 8 }, { enemyId: 'briarStag', weight: 2 }], population: 8, respawnSeconds: 4, leash: 520 },
       { sectionSuffix: 'middle_thrower_camp', label: 'Thrower Camp', enemyWeights: [{ enemyId: 'banditThrower', weight: 7 }, { enemyId: 'banditCutter', weight: 3 }], population: 8, respawnSeconds: 5, leash: 480 },
