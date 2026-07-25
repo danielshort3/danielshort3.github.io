@@ -597,8 +597,16 @@
         .filter(Boolean)
         .map((platform) => platform.index);
       const platformIndexSet = new Set(platformIndices);
+      const rawSpawnBounds = source.spawnBounds && typeof source.spawnBounds === 'object' ? source.spawnBounds : {};
+      const spawnMinX = Number(rawSpawnBounds.minX);
+      const spawnMaxX = Number(rawSpawnBounds.maxX);
+      const spawnBounds = Number.isFinite(spawnMinX) && Number.isFinite(spawnMaxX) && spawnMaxX >= spawnMinX
+        ? Object.freeze({ minX: spawnMinX, maxX: spawnMaxX })
+        : null;
       const spawnPointIds = runtimePoints
-        .filter((point) => point && platformIndexSet.has(point.platformIndex))
+        .filter((point) => point &&
+          platformIndexSet.has(point.platformIndex) &&
+          (!spawnBounds || Number(point.x || 0) >= spawnBounds.minX && Number(point.x || 0) <= spawnBounds.maxX))
         .map((point) => point.id);
       const enemyWeights = Object.freeze((source.enemyWeights || source.enemies || [])
         .map((entry) => Object.freeze({
@@ -623,6 +631,7 @@
         partyScaling: normalizeId(source.partyScaling) || 'none',
         maxPopulation: Math.max(population, Math.floor(Number(source.maxPopulation || 0)) || Math.ceil(population * 1.5)),
         partyBonusPerMember: Math.max(0, Math.min(4, Number(source.partyBonusPerMember == null ? 1 : source.partyBonusPerMember) || 0)),
+        spawnBounds,
         actorTraversal: Object.freeze({
           mode: normalizeId(traversal.mode) || 'ground',
           allowLadders: !!traversal.allowLadders,
