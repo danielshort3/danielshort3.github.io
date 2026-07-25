@@ -1281,6 +1281,13 @@
     });
   }
 
+  const CANVAS_MENU_PAGE_IDS = Object.freeze(['root', 'adventure', 'channels', 'settings']);
+
+  function normalizeCanvasMenuPageId(pageId) {
+    const value = String(pageId || 'root');
+    return CANVAS_MENU_PAGE_IDS.includes(value) ? value : 'root';
+  }
+
   function getCanvasChannelMenuItems(channelSnapshot) {
     const source = channelSnapshot || {};
     const channels = Array.isArray(source.channels) && source.channels.length
@@ -1304,53 +1311,87 @@
   function getCanvasMenuGroups(snapshot, options) {
     const source = snapshot || {};
     const settings = options || {};
+    const pageId = normalizeCanvasMenuPageId(settings.pageId);
     const getChannelItems = typeof settings.getCanvasChannelMenuItems === 'function'
       ? settings.getCanvasChannelMenuItems
       : () => getCanvasChannelMenuItems(source.channel || {});
+    if (pageId === 'adventure') {
+      return [
+        {
+          title: 'Gear & Party',
+          items: [
+            { label: 'Equipment', panel: 'equipment', iconId: 'equipment' },
+            { label: 'Party', panel: 'partyPanel', iconId: 'partyPanel' },
+            { label: 'Upgrade', panel: 'upgrade', iconId: 'upgrade' }
+          ]
+        },
+        {
+          title: 'Activities & Shops',
+          items: [
+            { label: 'Monster Guide', panel: 'monsters', iconId: 'monsters' },
+            { label: 'Shop', panel: 'shop', iconId: 'shop' },
+            { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
+            { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
+            { label: 'Beta Systems', panel: 'beta', iconId: 'beta' }
+          ]
+        }
+      ];
+    }
+    if (pageId === 'channels') {
+      return [
+        {
+          title: 'Channels',
+          items: getChannelItems()
+        }
+      ];
+    }
+    if (pageId === 'settings') {
+      return [
+        {
+          title: 'Settings',
+          items: [
+            { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
+            { label: 'Settings', panel: 'settings', iconId: 'settings' },
+            { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
+            { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
+          ]
+        },
+        {
+          title: 'Help',
+          items: [
+            { label: 'Guide', panel: 'guide', iconId: 'guide' },
+            { label: 'Log', panel: 'log', iconId: 'log' }
+          ]
+        }
+      ];
+    }
     return [
       {
-        title: 'Character',
+        title: 'Quick Access',
         items: [
           { label: 'Character', panel: 'character', iconId: 'character' },
-          { label: 'Equipment', panel: 'equipment', iconId: 'equipment' },
-          { label: 'Party', panel: 'partyPanel', iconId: 'partyPanel' },
           { label: 'Inventory', panel: 'inventory', iconId: 'inventory' },
           { label: 'Skills', panel: 'skills', iconId: 'skills' },
-          { label: 'Quests', panel: 'quests', iconId: 'quests' }
-        ]
-      },
-      {
-        title: 'World',
-        items: [
+          { label: 'Quests', panel: 'quests', iconId: 'quests' },
           { label: 'World Map', panel: 'worldmap', iconId: 'worldmap' },
-          { label: 'Monster Guide', panel: 'monsters', iconId: 'monsters' },
-          { label: 'Shop', panel: 'shop', iconId: 'shop' },
-          { label: 'Upgrade', panel: 'upgrade', iconId: 'upgrade' },
-          { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
-          { label: source.dailyLogin && source.dailyLogin.claimable ? 'Daily Reward!' : 'Daily Rewards', panel: 'daily', iconId: 'daily' },
-          { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
-          { label: 'Beta Systems', panel: 'beta', iconId: 'beta' },
-          { label: 'Guide', panel: 'guide', iconId: 'guide' },
-          { label: 'Log', panel: 'log', iconId: 'log' }
+          { label: source.dailyLogin && source.dailyLogin.claimable ? 'Daily Reward!' : 'Daily Rewards', panel: 'daily', iconId: 'daily' }
         ]
       },
       {
-        title: 'Channels',
-        items: getChannelItems()
-      },
-      {
-        title: 'Settings',
+        title: 'More',
         items: [
-          { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
-          { label: 'Settings', panel: 'settings', iconId: 'settings' },
-          { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
-          { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
+          { label: 'Adventure & Gear', pageId: 'adventure', iconId: 'upgrade' },
+          { label: 'Channels', pageId: 'channels', iconId: 'worldmap' },
+          { label: 'Settings & Help', pageId: 'settings', iconId: 'settings' }
         ]
       }
     ];
   }
 
   function getCanvasMenuFooterAction() {
+    if (normalizeCanvasMenuPageId(arguments[0]) !== 'root') {
+      return { label: 'Back to Menu', pageId: 'root', iconId: 'logout', back: true };
+    }
     return { label: 'Logout', action: 'load', iconId: 'logout', danger: true };
   }
 
@@ -1444,6 +1485,7 @@
 
   function createHudMenuUiHelpers() {
     return Object.freeze({
+      normalizeCanvasMenuPageId,
       getCanvasChannelMenuItems,
       getCanvasMenuGroups,
       getCanvasMenuFooterAction,
@@ -1552,6 +1594,7 @@
       player.classId || '',
       player.advancedClassId || '',
       source.commandOpen ? 1 : 0,
+      normalizeCanvasMenuPageId(source.commandMenuPage),
       windows,
       source.overlayModalKey == null ? '' : source.overlayModalKey,
       hoverTarget && hoverTarget.key || '',
@@ -1648,7 +1691,7 @@
     const rowGap = Number(settings.rowGap || 4);
     const columnGap = Number(settings.columnGap || 6);
     const sourceGroups = Array.isArray(groups) ? groups : [];
-    const footer = settings.footer || getCanvasMenuFooterAction();
+    const footer = settings.footer || getCanvasMenuFooterAction(settings.pageId);
     const cellW = Math.floor((w - 24 - columnGap) / columns);
     const groupRowCount = (group) => Math.max(1, Math.ceil((group.items || []).length / columns));
     const contentH = sourceGroups.reduce((sum, group) => sum + 18 + groupRowCount(group) * (rowH + rowGap) + 3, 14) + 12 + rowH + 12;
@@ -2437,6 +2480,7 @@
     getCanvasToastQueueUpdate,
     getCanvasRewardPopupQueueUpdate,
     createHudToastRewardUiHelpers,
+    normalizeCanvasMenuPageId,
     getCanvasChannelMenuItems,
     getCanvasMenuGroups,
     getCanvasMenuFooterAction,

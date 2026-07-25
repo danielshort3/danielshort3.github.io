@@ -4972,6 +4972,7 @@
       this.activePanel = 'keybinds';
       this.isModalOpen = false;
       this.isCommandOpen = false;
+      this.commandMenuPage = 'root';
       this.openWindows = [];
       this.windowState = {};
       this.windowZ = 1;
@@ -8235,6 +8236,7 @@
       if (escapeMenuInputActionHelper) {
         const getEscapeState = (extra) => Object.assign({
           isCommandOpen: !!this.isCommandOpen,
+          commandMenuPage: this.commandMenuPage || 'root',
           hasDropQuantityPrompt: !!this.dropQuantityPrompt,
           hasAdminNumberPrompt: !!this.adminNumberPrompt,
           hasConfirmPrompt: !!this.confirmPrompt,
@@ -8253,6 +8255,10 @@
         }
         if (action.action === 'closeCommandPanel') {
           this.toggleCommandPanel(false);
+          return;
+        }
+        if (action.action === 'backCommandMenuPage') {
+          this.setCommandMenuPage('root');
           return;
         }
         if (action.action === 'cancelDropQuantityPrompt') {
@@ -15247,12 +15253,25 @@
     toggleCommandPanel(forceOpen) {
       this.closeItemContextMenu();
       const commandPanelOpenStateHelper = getPanelInteractionHelper('getCommandPanelOpenState');
+      const wasOpen = !!this.isCommandOpen;
       this.isCommandOpen = commandPanelOpenStateHelper
         ? commandPanelOpenStateHelper(forceOpen, this.isCommandOpen)
         : typeof forceOpen === 'boolean' ? forceOpen : !this.isCommandOpen;
+      if (!this.isCommandOpen || !wasOpen) this.commandMenuPage = 'root';
       if (this.isCommandOpen) this.clearHoldInputs();
       this.renderCommandPanel();
       this.queueUiRefresh({ domains: ['session'], command: true, draw: true });
+    }
+
+    setCommandMenuPage(pageId) {
+      const normalizeCanvasMenuPageIdHelper = getHudMenuHelper('normalizeCanvasMenuPageId');
+      const nextPageId = normalizeCanvasMenuPageIdHelper
+        ? normalizeCanvasMenuPageIdHelper(pageId)
+        : ['root', 'adventure', 'channels', 'settings'].includes(String(pageId || '')) ? String(pageId) : 'root';
+      if (nextPageId === this.commandMenuPage) return false;
+      this.commandMenuPage = nextPageId;
+      this.requestCanvasDraw({ force: true });
+      return true;
     }
 
     focusCanvas() {
@@ -24033,6 +24052,7 @@
 	          openWindows: this.openWindows || [],
 	          windowState: this.windowState || {},
 	          commandOpen: !!this.isCommandOpen,
+	          commandMenuPage: this.commandMenuPage || 'root',
 	          overlayModalKey: this.getOverlayModalSnapshotKey ? this.getOverlayModalSnapshotKey() : '',
 	          canvasHoverTarget: this.canvasHoverTarget,
 	          itemContextMenu: this.itemContextMenu,
@@ -24073,6 +24093,7 @@
 	        player.classId || '',
 	        player.advancedClassId || '',
 	        this.isCommandOpen ? 1 : 0,
+	        this.commandMenuPage || 'root',
 	        windows,
 	        this.getOverlayModalSnapshotKey ? this.getOverlayModalSnapshotKey() : '',
 	        this.canvasHoverTarget && this.canvasHoverTarget.key || '',
@@ -27802,47 +27823,78 @@
       const getCanvasMenuGroupsHelper = getHudMenuHelper('getCanvasMenuGroups');
       if (getCanvasMenuGroupsHelper) {
         return getCanvasMenuGroupsHelper(this.snapshot || {}, {
+          pageId: this.commandMenuPage || 'root',
           getCanvasChannelMenuItems: () => this.getCanvasChannelMenuItems()
         });
       }
+      if (this.commandMenuPage === 'adventure') {
+        return [
+          {
+            title: 'Gear & Party',
+            items: [
+              { label: 'Equipment', panel: 'equipment', iconId: 'equipment' },
+              { label: 'Party', panel: 'partyPanel', iconId: 'partyPanel' },
+              { label: 'Upgrade', panel: 'upgrade', iconId: 'upgrade' }
+            ]
+          },
+          {
+            title: 'Activities & Shops',
+            items: [
+              { label: 'Monster Guide', panel: 'monsters', iconId: 'monsters' },
+              { label: 'Shop', panel: 'shop', iconId: 'shop' },
+              { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
+              { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
+              { label: 'Beta Systems', panel: 'beta', iconId: 'beta' }
+            ]
+          }
+        ];
+      }
+      if (this.commandMenuPage === 'channels') {
+        return [
+          {
+            title: 'Channels',
+            items: this.getCanvasChannelMenuItems()
+          }
+        ];
+      }
+      if (this.commandMenuPage === 'settings') {
+        return [
+          {
+            title: 'Settings',
+            items: [
+              { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
+              { label: 'Settings', panel: 'settings', iconId: 'settings' },
+              { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
+              { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
+            ]
+          },
+          {
+            title: 'Help',
+            items: [
+              { label: 'Guide', panel: 'guide', iconId: 'guide' },
+              { label: 'Log', panel: 'log', iconId: 'log' }
+            ]
+          }
+        ];
+      }
       return [
         {
-          title: 'Character',
+          title: 'Quick Access',
           items: [
             { label: 'Character', panel: 'character', iconId: 'character' },
-            { label: 'Equipment', panel: 'equipment', iconId: 'equipment' },
-            { label: 'Party', panel: 'partyPanel', iconId: 'partyPanel' },
             { label: 'Inventory', panel: 'inventory', iconId: 'inventory' },
             { label: 'Skills', panel: 'skills', iconId: 'skills' },
-            { label: 'Quests', panel: 'quests', iconId: 'quests' }
-          ]
-        },
-        {
-          title: 'World',
-          items: [
+            { label: 'Quests', panel: 'quests', iconId: 'quests' },
             { label: 'World Map', panel: 'worldmap', iconId: 'worldmap' },
-            { label: 'Monster Guide', panel: 'monsters', iconId: 'monsters' },
-            { label: 'Shop', panel: 'shop', iconId: 'shop' },
-            { label: 'Upgrade', panel: 'upgrade', iconId: 'upgrade' },
-            { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
-            { label: this.snapshot && this.snapshot.dailyLogin && this.snapshot.dailyLogin.claimable ? 'Daily Reward!' : 'Daily Rewards', panel: 'daily', iconId: 'daily' },
-            { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
-            { label: 'Beta Systems', panel: 'beta', iconId: 'beta' },
-            { label: 'Guide', panel: 'guide', iconId: 'guide' },
-            { label: 'Log', panel: 'log', iconId: 'log' }
+            { label: this.snapshot && this.snapshot.dailyLogin && this.snapshot.dailyLogin.claimable ? 'Daily Reward!' : 'Daily Rewards', panel: 'daily', iconId: 'daily' }
           ]
         },
         {
-          title: 'Channels',
-          items: this.getCanvasChannelMenuItems()
-        },
-        {
-          title: 'Settings',
+          title: 'More',
           items: [
-            { label: 'Focus / Fullscreen', action: 'fullscreen', iconId: 'fullscreen' },
-            { label: 'Settings', panel: 'settings', iconId: 'settings' },
-            { label: 'Keybinds', panel: 'keybinds', iconId: 'keybinds' },
-            { label: 'Admin Settings', panel: 'admin', iconId: 'admin' }
+            { label: 'Adventure & Gear', pageId: 'adventure', iconId: 'upgrade' },
+            { label: 'Channels', pageId: 'channels', iconId: 'worldmap' },
+            { label: 'Settings & Help', pageId: 'settings', iconId: 'settings' }
           ]
         }
       ];
@@ -27875,7 +27927,10 @@
     getCanvasMenuFooterAction() {
       const getCanvasMenuFooterActionHelper = getHudMenuHelper('getCanvasMenuFooterAction');
       if (getCanvasMenuFooterActionHelper) {
-        return getCanvasMenuFooterActionHelper();
+        return getCanvasMenuFooterActionHelper(this.commandMenuPage || 'root');
+      }
+      if (this.commandMenuPage && this.commandMenuPage !== 'root') {
+        return { label: 'Back to Menu', pageId: 'root', iconId: 'logout', back: true };
       }
       return { label: 'Logout', action: 'load', iconId: 'logout', danger: true };
     }
@@ -28031,8 +28086,8 @@
       const hasShortcut = shortcut && shortcut !== 'Unbound';
       const textColor = disabled ? '#75818c' : danger ? '#9d2f2f' : '#102033';
       const labelX = x + 28;
-      const rightLabel = hasShortcut ? shortcut : selected ? 'ON' : '';
-      const shortcutW = rightLabel ? 34 : 0;
+      const rightLabel = item.pageId ? item.back ? 'BACK' : '>' : hasShortcut ? shortcut : selected ? 'ON' : '';
+      const shortcutW = rightLabel ? item.back ? 42 : 34 : 0;
       this.drawCanvasText(ctx, item.label, labelX, y + h / 2, {
         color: textColor,
         font: '850 10px system-ui',
@@ -28053,9 +28108,11 @@
         });
       }
       if (disabled) return;
-      const region = item.action
-        ? { type: 'menu-action', action: item.action, channelId: item.channelId, source: 'command-menu' }
-        : { type: 'menu-panel', panelId: item.panel, source: 'command-menu' };
+      const region = item.pageId
+        ? { type: 'menu-page', pageId: item.pageId, source: 'command-menu' }
+        : item.action
+          ? { type: 'menu-action', action: item.action, channelId: item.channelId, source: 'command-menu' }
+          : { type: 'menu-panel', panelId: item.panel, source: 'command-menu' };
       this.addCanvasRegion({ ...region, x, y, w, h });
     }
 
@@ -36079,6 +36136,10 @@
         const commandMenuRegionAction = commandMenuRegionActionHelper(region);
         if (commandMenuRegionAction && commandMenuRegionAction.handled) {
           if (region.source === 'command-menu' && !this.isCommandOpen) return;
+          if (commandMenuRegionAction.type === 'navigateCommandMenu') {
+            this.setCommandMenuPage(commandMenuRegionAction.pageId);
+            return;
+          }
           if (commandMenuRegionAction.type === 'togglePanel') {
             this.toggleCommandPanel(false);
             this.togglePanel(commandMenuRegionAction.panelId);
@@ -36104,6 +36165,10 @@
         }
       } else {
         if (region.source === 'command-menu' && !this.isCommandOpen) return;
+        if (region.type === 'menu-page') {
+          this.setCommandMenuPage(region.pageId);
+          return;
+        }
         if (region.type === 'menu-panel') {
           this.toggleCommandPanel(false);
           this.togglePanel(region.panelId);

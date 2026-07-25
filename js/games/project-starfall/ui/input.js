@@ -914,6 +914,9 @@
       action: '',
       needsBlockingState: false
     };
+    if (currentState.isCommandOpen && currentState.commandMenuPage && currentState.commandMenuPage !== 'root') {
+      return Object.assign({}, base, { action: 'backCommandMenuPage' });
+    }
     if (currentState.isCommandOpen) return Object.assign({}, base, { action: 'closeCommandPanel' });
     if (currentState.hasDropQuantityPrompt) return Object.assign({}, base, { action: 'cancelDropQuantityPrompt' });
     if (currentState.hasAdminNumberPrompt) return Object.assign({}, base, { action: 'cancelAdminNumberPrompt' });
