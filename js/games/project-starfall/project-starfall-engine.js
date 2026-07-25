@@ -303,22 +303,6 @@
     return typeof EngineMovement[name] === 'function' ? EngineMovement[name] : null;
   }
 
-  const EngineCombatFeedback = (typeof require === 'function' ? require('./engine/combat-feedback.js') : null) || EngineModules.combatFeedback || {};
-
-  function getEngineCombatFeedbackHelper(name) {
-    return typeof EngineCombatFeedback[name] === 'function' ? EngineCombatFeedback[name] : null;
-  }
-
-  const CREATE_COMBAT_FEEDBACK_STATE = getEngineCombatFeedbackHelper('createCombatFeedbackState') || function createCombatFeedbackStateFallback() {
-    return { hitstopRemainingMs: 0, impulseElapsedMs: 0, impulseDurationMs: 0, impulseStrengthPx: 0, impulseDirection: 1, serial: 0 };
-  };
-  const TRIGGER_BASIC_HIT_FEEDBACK = getEngineCombatFeedbackHelper('triggerBasicHitFeedback');
-  const ADVANCE_COMBAT_FEEDBACK = getEngineCombatFeedbackHelper('advanceCombatFeedback');
-  const GET_CAMERA_IMPULSE_OFFSET = getEngineCombatFeedbackHelper('getCameraImpulseOffset');
-  const CREATE_ENEMY_HIT_REACTION = getEngineCombatFeedbackHelper('createEnemyHitReaction');
-  const GET_ENEMY_HIT_REACTION_STATE = getEngineCombatFeedbackHelper('getEnemyHitReactionState');
-  const APPLY_ENEMY_HIT_REACTION_TO_BOX = getEngineCombatFeedbackHelper('applyEnemyHitReactionToBox');
-
   const EngineVisuals = (typeof require === 'function' ? require('./engine/visuals.js') : null) || EngineModules.visuals || {};
 
   function getEngineVisualHelper(name) {
@@ -334,7 +318,7 @@
     groundY: 154,
     authoredBodyHeight: 143
   }));
-  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: false });
+  const PLAYER_SPRITE_DRAW_OPTIONS = Object.freeze({ registration: PLAYER_SPRITE_REGISTRATION, pixelated: true });
 
   function getPlayerSpriteDrawOptions(animationState, frameDef) {
     const registration = resolvePlayerSpriteRegistration(
@@ -342,7 +326,7 @@
       frameDef && frameDef.frameIndex,
       PLAYER_SPRITE_REGISTRATION
     );
-    return { registration, pixelated: false };
+    return { registration, pixelated: true };
   }
   const ENEMY_SPRITE_REGISTRATION = getEngineVisualValue('ENEMY_SPRITE_REGISTRATION', Object.freeze({
     originX: 64,
@@ -386,12 +370,6 @@
 
   function getEngineMapMechanicHelper(name) {
     return typeof EngineMapMechanics[name] === 'function' ? EngineMapMechanics[name] : null;
-  }
-
-  const EngineRiftCounterplay = (typeof require === 'function' ? require('./engine/rift-counterplay.js') : null) || EngineModules.riftCounterplay || {};
-
-  function getEngineRiftCounterplayHelper(name) {
-    return typeof EngineRiftCounterplay[name] === 'function' ? EngineRiftCounterplay[name] : null;
   }
 
   const EngineMapAnalytics = (typeof require === 'function' ? require('./engine/map-analytics.js') : null) || EngineModules.mapAnalytics || {};
@@ -795,12 +773,6 @@
   const VIEWPORT_HEIGHT_MAX = getEngineViewportValue('VIEWPORT_HEIGHT_MAX', 1080);
   const DEFAULT_WORLD_ZOOM = getEngineViewportValue('DEFAULT_WORLD_ZOOM', 1.32);
   const CAMERA_VERTICAL_ANCHOR = 0.58;
-  const CAMERA_HORIZONTAL_FRAME_ALPHA = 0.08;
-  const CAMERA_VERTICAL_FRAME_ALPHA = 0.1;
-  const JUMP_BUFFER_SECONDS = 0.12;
-  const JUMP_COYOTE_SECONDS = 0.1;
-  const BASIC_ATTACK_MELEE_RELEASE_SECONDS = 0.09;
-  const BASIC_ATTACK_RANGED_RELEASE_SECONDS = 0.13;
   const VIEWPORT_PRESETS = getEngineViewportValue('VIEWPORT_PRESETS', Object.freeze([
     Object.freeze({ id: 'compact', label: 'Compact', width: 1024, height: 704 }),
     Object.freeze({ id: 'standard', label: 'Standard', width: 1280, height: 806 }),
@@ -1020,7 +992,6 @@
   const ENEMY_CHARGE_ACTIVE_SECONDS = 0.95;
   const ENEMY_CHARGE_COOLDOWN_SECONDS = 3.4;
   const ENEMY_CHARGE_SPEED = 430;
-  const RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS = 0.52;
   const ENEMY_WANDER_LEASH_RANGE = 280;
   const ENEMY_WANDER_EDGE_PADDING = 18;
   const ENEMY_WANDER_SPEED_SCALE = 0.42;
@@ -1052,14 +1023,7 @@
   const BASIC_ATTACK_MOVEMENT_LOCK_SECONDS = 0.14;
   const COMBAT_METRICS_ROLLING_WINDOW_SECONDS = getEngineCombatMetricsValue('COMBAT_METRICS_ROLLING_WINDOW_SECONDS', 60);
   const ENEMY_COMBAT_HUD_SECONDS = 3;
-  const ENEMY_MELEE_WINDUP_SECONDS = 0.42;
-  const ENEMY_PROJECTILE_WINDUP_SECONDS = 0.54;
-  const ENEMY_ATTACK_RECOVERY_SECONDS = 0.34;
-  const ENEMY_PROJECTILE_RECOVERY_SECONDS = 0.45;
-  const ENEMY_MELEE_CADENCE_SECONDS = 1.35;
-  const ENEMY_PROJECTILE_CADENCE_SECONDS = 1.8;
-  const ENEMY_FIREBOLT_CADENCE_SECONDS = 2.1;
-  const ENEMY_ATTACK_CANCEL_RECOVERY_SECONDS = 0.28;
+  const ENEMY_CONTACT_DAMAGE_COOLDOWN_SECONDS = 1.35;
   const PLAYER_DAMAGE_INVULNERABLE_SECONDS = 0.72;
   const PLAYER_HIT_KNOCKBACK_X = 210;
   const PLAYER_HIT_KNOCKBACK_Y = 120;
@@ -3928,8 +3892,6 @@
   const CREATE_PROGRESS_ENTRY = getEngineProgressObjectiveHelper('createProgressEntry');
   const CREATE_PROGRESS_STATE = getEngineProgressObjectiveHelper('createProgressState');
   const CREATE_MAP_KILL_QUEST_STATE = getEngineProgressObjectiveHelper('createMapKillQuestState');
-  const GET_MAP_KILL_QUEST_GOAL_PROFILE = getEngineProgressObjectiveHelper('getMapKillQuestGoalProfile');
-  const GET_MAP_KILL_QUEST_GOAL = getEngineProgressObjectiveHelper('getMapKillQuestGoal');
   const CREATE_QUEST_GUIDE_STATE = getEngineProgressObjectiveHelper('createQuestGuideState');
   const ENSURE_PROGRESS_ENTRY = getEngineProgressObjectiveHelper('ensureProgressEntry');
   const OBJECTIVE_MATCHES_EVENT = getEngineProgressObjectiveHelper('objectiveMatchesEvent');
@@ -4030,16 +3992,6 @@
     };
   }
 
-  function normalizeUnderLevelActiveQuest(progress, player) {
-    const state = progress && typeof progress === 'object' ? progress : null;
-    const activeQuest = state ? getById(Data.QUESTS || [], state.activeQuestId) : null;
-    const requiredLevel = Math.max(0, Math.floor(Number(activeQuest && activeQuest.requiredLevel || 0) || 0));
-    const playerLevel = Math.max(1, Math.floor(Number(player && player.level || 1) || 1));
-    if (!activeQuest || !requiredLevel || playerLevel >= requiredLevel) return '';
-    state.activeQuestId = '';
-    return activeQuest.id;
-  }
-
   const CREATE_ROUTE_PROGRESS_STATE = getEngineRouteProgressHelper('createRouteProgressState');
   const GET_WORLD_ROUTE = getEngineRouteProgressHelper('getWorldRoute');
   const GET_ROUTE_FOR_FIELD_MAP = getEngineRouteProgressHelper('getRouteForFieldMap');
@@ -4099,32 +4051,6 @@
       };
       return quests;
     }, {});
-  }
-
-  function getScaledMapKillQuestGoalProfile(baseGoal, completions) {
-    if (GET_MAP_KILL_QUEST_GOAL_PROFILE) {
-      return GET_MAP_KILL_QUEST_GOAL_PROFILE(baseGoal, completions);
-    }
-    const base = Math.max(1, Math.floor(Number(baseGoal) || 1));
-    const completionCount = Math.max(0, Math.floor(Number(completions) || 0));
-    const masteryTier = Math.min(5, completionCount);
-    const goalMultiplier = Math.min(1.5, 1 + masteryTier * 0.1);
-    return {
-      baseGoal: base,
-      completions: completionCount,
-      masteryTier,
-      maxMasteryTier: 5,
-      goalMultiplier,
-      maxGoalMultiplier: 1.5,
-      goal: Math.max(1, Math.ceil(base * goalMultiplier - 1e-9)),
-      capped: completionCount >= 5
-    };
-  }
-
-  function getScaledMapKillQuestGoal(baseGoal, completions) {
-    return GET_MAP_KILL_QUEST_GOAL
-      ? GET_MAP_KILL_QUEST_GOAL(baseGoal, completions)
-      : getScaledMapKillQuestGoalProfile(baseGoal, completions).goal;
   }
 
   function createQuestGuideState(value) {
@@ -4278,33 +4204,13 @@
   const CREATE_MAP_MECHANIC_ENTRY_STATE = getEngineMapMechanicHelper('createMapMechanicEntryState');
   const CREATE_MAP_MECHANIC_STATE = getEngineMapMechanicHelper('createMapMechanicState');
   const CREATE_RIFT_STATE = getEngineMapMechanicHelper('createRiftState');
-  const START_RIFT_OPERATION = getEngineMapMechanicHelper('startRiftOperation');
-  const FINISH_RIFT_OPERATION = getEngineMapMechanicHelper('finishRiftOperation');
   const GET_MAP_MECHANIC_SECTION = getEngineMapMechanicHelper('getMapMechanicSection');
   const GET_MAP_MECHANIC_SECTION_WEIGHT = getEngineMapMechanicHelper('getMapMechanicSectionWeight');
   const GET_MAP_MECHANIC_REWARD_SCALE = getEngineMapMechanicHelper('getMapMechanicRewardScale');
   const CREATE_SCALED_MAP_MECHANIC_REWARD = getEngineMapMechanicHelper('createScaledMapMechanicReward');
   const CREATE_RIFT_MUTATION_IDS = getEngineMapMechanicHelper('createRiftMutationIds');
-  const CREATE_RIFT_RUNTIME_EFFECTS = getEngineMapMechanicHelper('createRiftRuntimeEffects');
   const CREATE_RIFT_SNAPSHOT = getEngineMapMechanicHelper('createRiftSnapshot');
   const CREATE_MAP_MECHANIC_SNAPSHOT = getEngineMapMechanicHelper('createMapMechanicSnapshot');
-  const CREATE_RIFT_COUNTERPLAY_STATE = getEngineRiftCounterplayHelper('createRiftCounterplayState');
-  const GET_ACTIVE_RIFT_COUNTERPLAY_IDS = getEngineRiftCounterplayHelper('getActiveRiftCounterplayIds');
-  const REDUCE_RIFT_COUNTERPLAY = getEngineRiftCounterplayHelper('reduceRiftCounterplay');
-  const CREATE_RIFT_COUNTERPLAY_SNAPSHOT = getEngineRiftCounterplayHelper('createRiftCounterplaySnapshot');
-  const INACTIVE_RIFT_RUNTIME_EFFECTS = Object.freeze({
-    active: false,
-    tier: 1,
-    mutationPotencyScale: 1,
-    mutationIds: Object.freeze([]),
-    mutationEffects: Object.freeze([]),
-    counterplayIds: Object.freeze([]),
-    enemyHealthScale: 1,
-    enemyDamageScale: 1,
-    playerDamageScale: 1,
-    playerResourceCostScale: 1,
-    rewardScale: 1
-  });
 
   function createMapModifierState(value) {
     if (CREATE_MAP_MODIFIER_STATE) {
@@ -4466,9 +4372,9 @@
     };
   }
 
-  function createRiftState(value, options) {
+  function createRiftState(value) {
     if (CREATE_RIFT_STATE) {
-      return CREATE_RIFT_STATE(value, Object.assign({ data: Data }, options || {}));
+      return CREATE_RIFT_STATE(value, { data: Data });
     }
     const source = value && typeof value === 'object' ? value : {};
     const validMutationIds = new Set((Data.MUTATIONS || []).map((mutation) => mutation.id));
@@ -5329,7 +5235,6 @@
 
   const GET_CASH_SHOP_WEEK_ID = getEngineCashShopHelper('getCashShopWeekId');
   const CREATE_CASH_SHOP_STATE = getEngineCashShopHelper('createCashShopState');
-  const SYNC_CASH_SHOP_PURCHASE_WEEK = getEngineCashShopHelper('syncCashShopPurchaseWeek');
   const GET_CASH_SHOP_PURCHASE_COUNT = getEngineCashShopHelper('getCashShopPurchaseCount');
   const GET_CASH_SHOP_SNAPSHOT_CACHE_KEY = getEngineCashShopHelper('getCashShopSnapshotCacheKey');
   const CREATE_CASH_SHOP_SNAPSHOT = getEngineCashShopHelper('createCashShopSnapshot');
@@ -5337,14 +5242,13 @@
     if (GET_CASH_SHOP_WEEK_ID) {
       return GET_CASH_SHOP_WEEK_ID(nowMs);
     }
-    const ms = Number.isFinite(Number(nowMs)) ? Math.max(0, Number(nowMs)) : Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    return Math.floor((ms + 3 * dayMs) / (7 * dayMs));
+    const ms = Number.isFinite(nowMs) ? nowMs : Date.now();
+    return Math.floor(Math.max(0, ms) / (7 * 24 * 60 * 60 * 1000));
   }
 
-  function createCashShopState(value, options) {
+  function createCashShopState(value) {
     if (CREATE_CASH_SHOP_STATE) {
-      return CREATE_CASH_SHOP_STATE(value, { nowMs: options && options.nowMs });
+      return CREATE_CASH_SHOP_STATE(value);
     }
     const source = value && typeof value === 'object' ? value : {};
     const purchasedItemIds = Array.isArray(source.purchasedItemIds)
@@ -5355,56 +5259,22 @@
       const key = normalizeId(itemId);
       if (key) purchaseCounts[key] = Math.max(0, Math.floor(Number(count || 0) || 0));
     });
-    const currentWeekId = getCashShopWeekId(options && options.nowMs);
-    const hasSavedWeekId = Number.isFinite(Number(source.purchaseWeekId));
-    const savedWeekId = hasSavedWeekId ? Math.max(0, Math.floor(Number(source.purchaseWeekId))) : currentWeekId;
-    const savedWeekSchema = Math.max(0, Math.floor(Number(source.purchaseWeekSchema || 0) || 0));
-    const nowMs = Number.isFinite(Number(options && options.nowMs)) ? Number(options.nowMs) : Date.now();
-    const legacyWeekId = Math.floor(Math.max(0, nowMs) / (7 * 24 * 60 * 60 * 1000));
-    const cycleAwareState = savedWeekSchema >= 2;
-    const effectiveWeekId = cycleAwareState ? Math.max(savedWeekId, currentWeekId) : currentWeekId;
-    const preserveCounts = !hasSavedWeekId || (cycleAwareState ? savedWeekId >= currentWeekId : savedWeekId === legacyWeekId);
+    const currentWeekId = getCashShopWeekId();
+    const savedWeekId = Number.isFinite(Number(source.purchaseWeekId)) ? Math.floor(Number(source.purchaseWeekId)) : currentWeekId;
     return {
       starTokens: Math.max(0, Math.floor(Number(source.starTokens || 0) || 0)),
       purchasedItemIds: Array.from(new Set(purchasedItemIds)),
-      purchaseWeekSchema: 2,
-      purchaseWeekId: effectiveWeekId,
-      purchaseCountsByWeek: preserveCounts ? purchaseCounts : {}
+      purchaseWeekId: currentWeekId,
+      purchaseCountsByWeek: savedWeekId === currentWeekId ? purchaseCounts : {}
     };
-  }
-
-  function syncCashShopPurchaseWeek(value, options) {
-    const source = value && typeof value === 'object' ? value : {};
-    if (SYNC_CASH_SHOP_PURCHASE_WEEK) {
-      SYNC_CASH_SHOP_PURCHASE_WEEK(source, { nowMs: options && options.nowMs });
-      return source;
-    }
-    const currentWeekId = getCashShopWeekId(options && options.nowMs);
-    const savedWeekId = Number.isFinite(Number(source.purchaseWeekId))
-      ? Math.max(0, Math.floor(Number(source.purchaseWeekId)))
-      : currentWeekId;
-    if (Math.max(0, Math.floor(Number(source.purchaseWeekSchema || 0) || 0)) < 2) {
-      return createCashShopState(source, options);
-    }
-    if (currentWeekId > savedWeekId) {
-      source.purchaseWeekId = currentWeekId;
-      source.purchaseCountsByWeek = {};
-    } else if (!source.purchaseCountsByWeek || typeof source.purchaseCountsByWeek !== 'object') {
-      source.purchaseCountsByWeek = {};
-    }
-    return source;
   }
 
   const GET_DEFAULT_SEASON_ID = getEngineSeasonHelper('getDefaultSeasonId');
   const CREATE_SEASON_STATE = getEngineSeasonHelper('createSeasonState');
-  const SYNC_SEASON_STATE = getEngineSeasonHelper('syncSeasonState');
   const GET_ACTIVE_SEASON_DATA = getEngineSeasonHelper('getActiveSeasonData');
   const GET_SEASON_OBJECTIVES_BY_TYPE = getEngineSeasonHelper('getSeasonObjectivesByType');
   const CREATE_SEASON_SNAPSHOT = getEngineSeasonHelper('createSeasonSnapshot');
   const CREATE_SEASON_EVENT_PLAN = getEngineSeasonHelper('createSeasonEventPlan');
-  const SELECT_SEASON_DIRECTIVE = getEngineSeasonHelper('selectSeasonDirective');
-  const CREATE_SEASON_STABILIZATION_PLAN = getEngineSeasonHelper('createSeasonStabilizationPlan');
-  const APPLY_SEASON_STABILIZATION_PLAN = getEngineSeasonHelper('applySeasonStabilizationPlan');
   function getDefaultSeasonId() {
     if (GET_DEFAULT_SEASON_ID) {
       return GET_DEFAULT_SEASON_ID({ data: Data });
@@ -5413,9 +5283,9 @@
     return active ? active.id : ((Data.SEASONS || [])[0] || {}).id || '';
   }
 
-  function createSeasonState(value, options) {
+  function createSeasonState(value) {
     if (CREATE_SEASON_STATE) {
-      return CREATE_SEASON_STATE(value, { data: Data, nowMs: options && options.nowMs });
+      return CREATE_SEASON_STATE(value, { data: Data });
     }
     const source = value && typeof value === 'object' ? value : {};
     const objectiveValues = {};
@@ -5431,17 +5301,6 @@
       objectiveValues,
       claimedRewardIds: Array.from(new Set(claimedRewardIds))
     };
-  }
-
-  function syncSeasonState(value, options) {
-    const source = value && typeof value === 'object' ? value : {};
-    const season = GET_ACTIVE_SEASON_DATA
-      ? GET_ACTIVE_SEASON_DATA(source, { data: Data })
-      : getById(Data.SEASONS || [], source.activeSeasonId || getDefaultSeasonId());
-    if (SYNC_SEASON_STATE) {
-      return SYNC_SEASON_STATE(source, season, { data: Data, nowMs: options && options.nowMs });
-    }
-    return createSeasonState(source, options);
   }
 
   const CREATE_DAILY_LOGIN_STATE = getEngineDailyLoginHelper('createDailyLoginState');
@@ -5749,16 +5608,9 @@
     const completedIds = Array.isArray(source.completedIds)
       ? source.completedIds.map(normalizeId).filter((id) => stepIds.has(id))
       : [];
-    const progressById = {};
-    Object.entries(source.progressById && typeof source.progressById === 'object' ? source.progressById : {}).forEach(([rawId, rawValue]) => {
-      const id = normalizeId(rawId);
-      const progress = Math.max(0, Math.floor(Number(rawValue) || 0));
-      if (id && stepIds.has(id) && progress > 0 && !completedIds.includes(id)) progressById[id] = progress;
-    });
     return {
       hidden: !!source.hidden,
-      completedIds: Array.from(new Set(completedIds)),
-      progressById
+      completedIds: Array.from(new Set(completedIds))
     };
   };
 
@@ -5922,9 +5774,11 @@
 
   const ONBOARDING_STEP_MATCHES_EVENT = getEngineStateHelper('onboardingStepMatchesEvent');
   function stepMatchesEvent(step, type, payload) {
+    if (ONBOARDING_STEP_MATCHES_EVENT) {
+      return ONBOARDING_STEP_MATCHES_EVENT(step, type, payload);
+    }
     if (!step || step.event !== type) return false;
     const data = payload || {};
-    if (ONBOARDING_STEP_MATCHES_EVENT && !ONBOARDING_STEP_MATCHES_EVENT(step, type, data)) return false;
     if (step.mapId && step.mapId !== data.mapId) return false;
     if (step.panelId && step.panelId !== data.panelId) return false;
     if (step.stationId && step.stationId !== data.stationId) return false;
@@ -5932,8 +5786,6 @@
     if (step.owner && step.owner !== data.owner) return false;
     if (step.advancedId && step.advancedId !== data.advancedId) return false;
     if (step.dungeonId && step.dungeonId !== data.dungeonId) return false;
-    if (step.enemyId && step.enemyId !== data.enemyId) return false;
-    if (step.questId && step.questId !== data.questId) return false;
     if (step.kind && step.kind !== data.kind) return false;
     return true;
   }
@@ -7229,7 +7081,6 @@
       return getEngineLootHelper('makeDroppedItem')(enemy, player, {
         getEquipmentDropClassWeight,
         getGenericEquipmentDropCatalog,
-        itemMatchesPlayerClass,
         makeItem,
         maybeAssignGearTrait,
         mutations: Data.MUTATIONS || [],
@@ -7240,7 +7091,6 @@
     const level = Math.max(1, Number(player && player.level) || Number(enemy && enemy.level) || 1);
     const dropItems = getGenericEquipmentDropCatalog().filter((item) => {
       if (!item || item.level > level + 8) return false;
-      if (normalizeId(item.slot) === 'weapon' && player && player.classId && !itemMatchesPlayerClass(item, player)) return false;
       return true;
     });
     const weightedDropItems = dropItems.map((item) => ({
@@ -7248,7 +7098,7 @@
       weight: getEquipmentDropClassWeight(item, player)
     }));
     const selected = weightedDropItems.length ? weightedItem(weightedDropItems) : null;
-    const base = selected && selected.item || dropItems[0];
+    const base = selected && selected.item || getGenericEquipmentDropCatalog()[0];
     if (!base) return null;
     const rarityRoll = Math.random();
     let rarity = base.rarity;
@@ -7878,35 +7728,15 @@
       };
 
   const getMonsterEquipmentTableEntries = getEngineLootHelper('getMonsterEquipmentTableEntries')
-    ? (enemyData, enemy, state) => getEngineLootHelper('getMonsterEquipmentTableEntries')(enemyData, {
-        enemy,
-        state,
-        equipmentLevelLeeway: getDropEconomyNumber('equipmentLevelLeeway', 8),
-        getEquipmentDefinition,
-        getMonsterEquipmentDropWeight,
-        itemMatchesPlayerClass
-      })
-    : function getMonsterEquipmentTableEntriesFallback(enemyData, enemy, state) {
+    ? (enemyData) => getEngineLootHelper('getMonsterEquipmentTableEntries')(enemyData, { getEquipmentDefinition })
+    : function getMonsterEquipmentTableEntriesFallback(enemyData) {
         const config = getMonsterDropPoolConfig(enemyData);
         const equipment = Array.isArray(config && config.equipment) ? config.equipment : [];
-        const actualLevel = Number(enemy && enemy.level);
-        const range = Array.isArray(enemyData && enemyData.levelRange) ? enemyData.levelRange : [];
-        const rangeMax = range.reduce((max, value) => Number.isFinite(Number(value)) ? Math.max(max, Number(value)) : max, 0);
-        const referenceLevel = Number.isFinite(actualLevel) && actualLevel > 0
-          ? actualLevel
-          : Math.max(1, rangeMax, Number(enemyData && enemyData.level) || 1);
-        const levelCap = Math.max(1, Math.floor(referenceLevel)) + Math.max(0, Math.floor(getDropEconomyNumber('equipmentLevelLeeway', 8)));
-        const player = state && state.player || null;
         return equipment
-          .map((entry) => ({ entry, base: entry && entry.itemId ? getEquipmentDefinition(entry.itemId) : null }))
-          .filter(({ base }) => {
-            if (!base || Math.max(1, Number(base.level) || 1) > levelCap) return false;
-            if (normalizeId(base.slot) === 'weapon' && player && player.classId && !itemMatchesPlayerClass(base, player)) return false;
-            return true;
-          })
-          .map(({ entry }) => Object.assign({}, entry, {
+          .filter((entry) => entry && entry.itemId && getEquipmentDefinition(entry.itemId))
+          .map((entry) => Object.assign({}, entry, {
             type: 'equipment',
-            weight: normalizeDropWeight(getMonsterEquipmentDropWeight(entry, state), 1)
+            weight: normalizeDropWeight(entry.weight, 1)
           }));
       };
 
@@ -8040,7 +7870,7 @@
         }
         if (hasDrops) {
           tables.push(createMonsterDropTable('potions', 'Potions', getMonsterDropTableBaseChance('potions', enemyData), getMonsterPotionTableEntries(enemy)));
-          tables.push(createMonsterDropTable('equipment', 'Equipment', getMonsterDropTableBaseChance('equipment', enemyData), getMonsterEquipmentTableEntries(enemyData, enemy, state)));
+          tables.push(createMonsterDropTable('equipment', 'Equipment', getMonsterDropTableBaseChance('equipment', enemyData), getMonsterEquipmentTableEntries(enemyData)));
           tables.push(createMonsterDropTable('cards', 'Cards', getMonsterDropTableBaseChance('cards', enemyData), getMonsterCardTableEntries(enemyData)));
           tables.push(createMonsterDropTable('bonusMaterials', 'Bonus Materials', getMonsterDropTableBaseChance('bonusMaterials', enemyData), getMonsterBonusMaterialEntries(enemyData)));
           tables.push(createMonsterDropTable('plinkoBalls', 'Plinko Balls', getMonsterDropTableBaseChance('plinkoBalls', enemyData), getMonsterPlinkoBallTableEntries(enemy)));
@@ -8750,8 +8580,6 @@
   };
   const IS_SKILL_MODIFIER_UNLOCKED = getEngineSkillModifierHelper('isSkillModifierUnlocked');
   const CREATE_UNLOCKED_SKILL_MODIFIER_IDS = getEngineSkillModifierHelper('createUnlockedSkillModifierIds');
-  const CREATE_SKILL_MODIFIER_UNLOCK_PLAN = getEngineSkillModifierHelper('createSkillModifierUnlockPlan');
-  const CREATE_SKILL_MODIFIER_SELECTION_PLAN = getEngineSkillModifierHelper('createSkillModifierSelectionPlan');
   const GET_SKILL_MODIFIER_FOR_SKILL = getEngineSkillModifierHelper('getSkillModifierForSkill');
   const CREATE_SKILL_MODIFIER_DAMAGE_SCALE = getEngineSkillModifierHelper('createSkillModifierDamageScale');
   const GET_SKILL_MODIFIER_SNAPSHOT_SKILL_IDS = getEngineSkillModifierHelper('getSkillModifierSnapshotSkillIds');
@@ -9470,18 +9298,6 @@
     };
   };
 
-  const getFrameRateIndependentRetentionForMovement = getEngineMovementHelper('getFrameRateIndependentRetention') || function getFrameRateIndependentRetentionFallback(retention, delta, referenceFps) {
-    const authoredRetention = clamp(Number(retention || 0), 0, 1);
-    const elapsed = Math.max(0, Number(delta || 0));
-    const authoredFps = Math.max(1, Number(referenceFps || 60));
-    return Math.pow(authoredRetention, elapsed * authoredFps);
-  };
-
-  const getFrameRateIndependentBlendAlphaForMovement = getEngineMovementHelper('getFrameRateIndependentBlendAlpha') || function getFrameRateIndependentBlendAlphaFallback(frameAlpha, delta, referenceFps) {
-    const authoredAlpha = clamp(Number(frameAlpha || 0), 0, 1);
-    return 1 - getFrameRateIndependentRetentionForMovement(1 - authoredAlpha, delta, referenceFps);
-  };
-
   const getHorizontalMovementStepPlanForMovement = getEngineMovementHelper('getHorizontalMovementStepPlan') || function getHorizontalMovementStepPlanFallback(player, stats, direction, delta, movementLocked, movementProfile, options) {
     const settings = options || {};
     let vx = player.vx;
@@ -9498,7 +9314,7 @@
           ? (direction ? movementProfile.activeFriction : movementProfile.idleFriction)
           : (direction ? settings.groundFrictionActive : settings.groundFrictionIdle))
       : settings.airFriction;
-    vx *= getFrameRateIndependentRetentionForMovement(friction, delta, 60);
+    vx *= friction;
     if (!direction && Math.abs(vx) < 2) vx = 0;
     const maxSpeed = stats.speed * (movementProfile ? movementProfile.maxSpeedScale : 1);
     vx = clamp(vx, -maxSpeed, maxSpeed);
@@ -9512,19 +9328,16 @@
   const getJumpMovementActionForMovement = getEngineMovementHelper('getJumpMovementAction') || function getJumpMovementActionFallback(player, input, stats, movementLocked, mobility, options) {
     const controls = input || {};
     const settings = options || {};
-    const jumpRequested = typeof settings.jumpRequested === 'boolean' ? settings.jumpRequested : !!controls.jump;
-    if (!movementLocked && !mobility && jumpRequested && controls.down && player.grounded && !player.dropJumpConsumed) {
+    if (!movementLocked && !mobility && controls.jump && controls.down && player.grounded && !player.dropJumpConsumed) {
       return {
         type: 'drop-through',
-        vy: Math.max(player.vy, settings.dropThroughVy),
-        consumeJumpBuffer: typeof settings.jumpRequested === 'boolean'
+        vy: Math.max(player.vy, settings.dropThroughVy)
       };
     }
-    if (!movementLocked && !mobility && jumpRequested && !controls.down && (player.grounded || settings.coyoteActive)) {
+    if (!movementLocked && !mobility && controls.jump && !controls.down && player.grounded) {
       return {
         type: 'jump',
-        vy: -stats.jump,
-        consumeJumpBuffer: typeof settings.jumpRequested === 'boolean'
+        vy: -stats.jump
       };
     }
     return null;
@@ -10436,14 +10249,6 @@
     return text || String(fallback || 'Adventurer');
   }
 
-  function createPlayerFeelRuntime() {
-    return {
-      jumpBufferUntil: 0,
-      coyoteUntil: 0,
-      lastCancelReason: ''
-    };
-  }
-
   function createPlayer(classId, options) {
     const classData = Data.BASE_CLASSES[classId] || Data.BASE_CLASSES.fighter;
     const settings = options || {};
@@ -10606,8 +10411,6 @@
       this.assets = {};
       this.failedAssets = {};
       this.input = { left: false, right: false, up: false, jump: false, down: false, attack: false, loot: false };
-      this.playerFeel = createPlayerFeelRuntime();
-      this.pendingPlayerAttack = null;
       this.heldSkillIds = new Set();
       this.heldSkillRetryAt = {};
       this.nextHeldLootAt = 0;
@@ -10617,12 +10420,8 @@
       this.passiveRecoveryGateReady = { hp: false, mp: false };
       this.bossIntroSummary = null;
       this.bossClearSummary = null;
-      this.bossSpatialResponseSequence = 0;
-      this.bossSpatialProjectileResponses = new Map();
-      this.lastBossSpatialResponse = null;
       this.activePrototypePartyMembersCache = null;
       this.camera = { x: 0, y: 0 };
-      this.combatFeedback = CREATE_COMBAT_FEEDBACK_STATE();
       this.lastFrame = 0;
       this.framePacingDeadline = 0;
       this.framePacingIntervalMs = 0;
@@ -10725,11 +10524,6 @@
       this.petLootEffectFrameId = -1;
       this.petLootEffectCount = 0;
       this.runtimeSnapshotCache = null;
-      this.riftCounterplayState = CREATE_RIFT_COUNTERPLAY_STATE
-        ? CREATE_RIFT_COUNTERPLAY_STATE({ mapId: this.state.mapId })
-        : { revision: 0, mapId: this.state.mapId, activeUntil: {} };
-      this.riftRuntimeEffectsCache = null;
-      this.activeRiftRuntimeEffectsCache = null;
       this.frameId = 0;
       this.statsRevision = 0;
       const initialStatsCache = getEngineStatsHelper('createEmptyStatsCacheState')
@@ -11080,10 +10874,7 @@
       return this.preloadAssetPaths(assetPaths, Object.assign({ label }, options || {}))
         .then((progress) => this.preloadRendererTextures(assetPaths)
           .then(() => this.prewarmRendererActorFrames(prewarmJobs))
-          .then(() => {
-            this.scheduleAssetRefresh();
-            return progress;
-          }));
+          .then(() => progress));
     }
 
     queueCurrentAssetPreload(label) {
@@ -11335,7 +11126,7 @@
       this.getActivePrototypePartyMembers().forEach((member) => {
         this.addLayeredAnimationStatePrewarmJobs(
           jobs,
-          this.getClassPlayerAnimation(member.classId),
+          Data.GENERIC_PLAYER_ANIMATION_ASSET,
           this.getEquippedVisualLayers(this.getPartyMemberEquipment(member)),
           ['idle', 'run', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'],
           { maxFrames: settings.critical ? 1 : 2 }
@@ -11392,7 +11183,7 @@
         }, new Map()).values());
         this.addLayeredAnimationStatePrewarmJobs(
           jobs,
-          this.getClassPlayerAnimation(member.classId),
+          Data.GENERIC_PLAYER_ANIMATION_ASSET,
           memberVisualLayers,
           ['idle', 'run', 'climb', 'basic', 'skill', 'party', 'hit', 'defeat'],
           { maxFrames: 2 }
@@ -11989,7 +11780,7 @@
         const drawState = getEngineVisualHelper('createAnimationFrameDrawState')(frameDef, x, y, width, height, facing, options);
         if (!drawState) return false;
         ctx.save();
-        if (options && Object.prototype.hasOwnProperty.call(options, 'pixelated')) ctx.imageSmoothingEnabled = !options.pixelated;
+        if (options && options.pixelated) ctx.imageSmoothingEnabled = false;
         ctx.translate(drawState.translateX, drawState.translateY);
         ctx.scale(drawState.scaleX, drawState.scaleY);
         ctx.drawImage(
@@ -12012,7 +11803,7 @@
       const sourceY = Math.max(0, Number(frameDef.row || 0)) * frameHeight;
       const registration = options && options.registration;
       ctx.save();
-      if (options && Object.prototype.hasOwnProperty.call(options, 'pixelated')) ctx.imageSmoothingEnabled = !options.pixelated;
+      if (options && options.pixelated) ctx.imageSmoothingEnabled = false;
       if (registration) {
         const originX = Number.isFinite(Number(registration.originX)) ? Number(registration.originX) : 80;
         const groundY = Number.isFinite(Number(registration.groundY)) ? Number(registration.groundY) : 154;
@@ -12077,15 +11868,6 @@
       const baseId = typeof getPartyBaseClassId === 'function' ? getPartyBaseClassId(id) : '';
       if (baseId && assets[baseId]) return assets[baseId];
       return Data.GENERIC_PLAYER_ANIMATION_ASSET || null;
-    }
-
-    getClassPlayerAsset(classId) {
-      const id = String(classId || '').trim();
-      const assets = Data.CLASS_ASSETS || {};
-      if (id && assets[id]) return assets[id];
-      const baseId = typeof getPartyBaseClassId === 'function' ? getPartyBaseClassId(id) : '';
-      if (baseId && assets[baseId]) return assets[baseId];
-      return Data.GENERIC_PLAYER_ASSET || '';
     }
 
     getPlayerRig() {
@@ -12262,7 +12044,7 @@
       if (!frame || !image) return false;
       return this.drawAnimationFrame(ctx, image, frame, x, y, width, height, facing, {
         registration: registration || PLAYER_SPRITE_REGISTRATION,
-        pixelated: false
+        pixelated: true
       });
     }
 
@@ -13230,7 +13012,6 @@
     setupPerformanceBenchmarkScene(benchmark) {
       const benchmarkMap = createPerformanceBenchmarkMap();
       this.state = this.createPerformanceBenchmarkCharacterState();
-      this.resetPlayerFeelRuntime('performance-benchmark');
       this.runtime = createMapRuntime(benchmarkMap, this.getViewportMetrics());
       this.petRuntime = createPetRuntime();
       this.enemySpatialIndex = null;
@@ -14231,9 +14012,8 @@
     }
 
     toastProgressUpdate(key, message, value, goal, options) {
-      const settings = options || {};
-      if (!this.shouldShowProgressToast(key, value, goal, settings)) return false;
-      this.toast(message, { noEmit: !!settings.noEmit });
+      if (!this.shouldShowProgressToast(key, value, goal, options)) return false;
+      this.toast(message);
       return true;
     }
 
@@ -14260,9 +14040,7 @@
     chooseClass(classId, options) {
       if (!Data.BASE_CLASSES[classId]) return false;
       this.state = createInitialState(classId, options);
-      this.resetPlayerFeelRuntime('class-change');
       this.runtime = createMapRuntime(this.state.mapId, this.getViewportMetrics());
-      this.resetRiftCounterplay(this.state.mapId);
       this.enemies = [];
       this.projectiles = [];
       this.effects = [];
@@ -14277,7 +14055,6 @@
       this.petRuntime = createPetRuntime();
       this.bossIntroSummary = null;
       this.bossClearSummary = null;
-      this.resetBossSpatialResponses();
       this.ensureRuntimeState();
       this.nextHeldLootAt = 0;
       this.equipStarterWeapon();
@@ -14285,10 +14062,6 @@
       this.snapCameraToPlayer();
       this.setActorAnimation(this.state.player, 'idle', 0, { force: true, loop: true });
       this.recordOnboardingEvent('classSelected', { classId }, { silent: true });
-      this.startQuest('first_steps');
-      if (this.getProgressState().activeQuestId === 'first_steps') {
-        this.setQuestGuideTarget('quest', 'first_steps');
-      }
       this.playAudioCue('uiConfirm');
       this.toast(`${this.state.player.name || Data.BASE_CLASSES[classId].name} selected. Starfall Crossing is open.`);
       this.enemySpatialIndex = null;
@@ -14307,44 +14080,16 @@
       this.recalculateVitals();
     }
 
-    ensurePlayerFeelRuntime() {
-      if (!this.playerFeel || typeof this.playerFeel !== 'object') this.playerFeel = createPlayerFeelRuntime();
-      return this.playerFeel;
-    }
-
-    resetPlayerFeelRuntime(reason) {
-      const cancelReason = String(reason || '');
-      this.playerFeel = createPlayerFeelRuntime();
-      this.playerFeel.lastCancelReason = cancelReason;
-      this.pendingPlayerAttack = null;
-      return this.playerFeel;
-    }
-
-    queueJumpInput(time) {
-      const feel = this.ensurePlayerFeelRuntime();
-      const currentTime = Number.isFinite(Number(time)) ? Number(time) : nowSeconds();
-      feel.jumpBufferUntil = currentTime + JUMP_BUFFER_SECONDS;
-      return feel.jumpBufferUntil;
-    }
-
-    consumeJumpInput() {
-      const feel = this.ensurePlayerFeelRuntime();
-      feel.jumpBufferUntil = 0;
-      feel.coyoteUntil = 0;
-    }
-
     setInput(name, value) {
       if (!Object.prototype.hasOwnProperty.call(this.input, name)) return;
-      const nextValue = !!value;
 	      if (name === 'attack' && value && this.isPlayerClimbing()) {
 	        this.input.attack = false;
 	        return;
 	      }
-      if (name === 'jump' && nextValue && !this.input.jump) this.queueJumpInput();
 	      if (name === 'jump' && !value && this.state && this.state.player) {
 	        this.state.player.dropJumpConsumed = false;
 	      }
-      this.input[name] = nextValue;
+	      this.input[name] = !!value;
 	    }
 
     setHeldSkill(skillId, value) {
@@ -14368,82 +14113,6 @@
       if (this.heldSkillIds && this.heldSkillIds.clear) this.heldSkillIds.clear();
       this.heldSkillRetryAt = {};
       this.heldAirborneSkillRetryIds = {};
-    }
-
-    shouldReduceCombatFeedback() {
-      return !!(this.shouldReduceEffects && this.shouldReduceEffects());
-    }
-
-    triggerBasicHitFeedback(enemy, options) {
-      if (!enemy || !TRIGGER_BASIC_HIT_FEEDBACK || !CREATE_ENEMY_HIT_REACTION) return false;
-      const settings = options || {};
-      const feedbackOptions = {
-        critical: !!settings.critical,
-        direction: Number(settings.direction || this.state && this.state.player && this.state.player.facing || 1),
-        reducedEffects: this.shouldReduceCombatFeedback()
-      };
-      this.combatFeedback = TRIGGER_BASIC_HIT_FEEDBACK(this.combatFeedback, feedbackOptions);
-      enemy.basicHitReaction = CREATE_ENEMY_HIT_REACTION(Object.assign({
-        startedAtMs: performanceNowMs()
-      }, feedbackOptions));
-      return true;
-    }
-
-    advanceCombatFeedback(frameMs) {
-      if (!ADVANCE_COMBAT_FEEDBACK) return { state: this.combatFeedback, hitstopConsumedMs: 0, simulationScale: 1 };
-      const frame = ADVANCE_COMBAT_FEEDBACK(this.combatFeedback, frameMs);
-      this.combatFeedback = frame.state;
-      this.holdCombatFeedbackClocks(frame.hitstopConsumedMs);
-      return frame;
-    }
-
-    holdCombatFeedbackClocks(durationMs) {
-      const holdMs = Math.max(0, Number(durationMs || 0));
-      if (!holdMs) return false;
-      const holdSeconds = holdMs / 1000;
-      const player = this.state && this.state.player;
-      const actors = [player].concat(Array.isArray(this.enemies) ? this.enemies : []).filter(Boolean);
-      actors.forEach((actor) => {
-        if (Number.isFinite(Number(actor.animationStartedAt))) actor.animationStartedAt += holdSeconds;
-        if (Number(actor.actionLockUntil || 0) > 0) actor.actionLockUntil += holdSeconds;
-      });
-      if (player) {
-        ['attackTimer', 'combatLockUntil', 'movementLockUntil'].forEach((field) => {
-          if (Number(player[field] || 0) > 0) player[field] += holdSeconds;
-        });
-      }
-      if (this.pendingPlayerAttack && Number(this.pendingPlayerAttack.releaseAt || 0) > 0) {
-        this.pendingPlayerAttack.releaseAt += holdSeconds;
-      }
-      (this.enemies || []).forEach((enemy) => {
-        if (enemy && enemy.basicHitReaction) enemy.basicHitReaction.startedAtMs += holdMs;
-      });
-      return true;
-    }
-
-    getCombatFeedbackCameraOffset() {
-      if (!GET_CAMERA_IMPULSE_OFFSET) return { x: 0, y: 0 };
-      const offset = GET_CAMERA_IMPULSE_OFFSET(this.combatFeedback);
-      return {
-        x: Number.isFinite(Number(offset && offset.x)) ? Number(offset.x) : 0,
-        y: Number.isFinite(Number(offset && offset.y)) ? Number(offset.y) : 0
-      };
-    }
-
-    getEnemyCombatFeedbackRenderState(enemy, timestampMs) {
-      if (!GET_ENEMY_HIT_REACTION_STATE) {
-        return { active: false, translateX: 0, scaleX: 1, scaleY: 1, flashAlpha: 0, progress: 1 };
-      }
-      return GET_ENEMY_HIT_REACTION_STATE(
-        enemy && enemy.basicHitReaction,
-        Number.isFinite(Number(timestampMs)) ? Number(timestampMs) : performanceNowMs()
-      );
-    }
-
-    getEnemyCombatFeedbackRenderBox(enemy, box, timestampMs) {
-      const source = box || createEnemySpriteRenderBox(enemy);
-      if (!APPLY_ENEMY_HIT_REACTION_TO_BOX) return source;
-      return APPLY_ENEMY_HIT_REACTION_TO_BOX(source, this.getEnemyCombatFeedbackRenderState(enemy, timestampMs));
     }
 
     scheduleNextFrame() {
@@ -14497,17 +14166,13 @@
       const targetIntervalMs = this.getTargetFrameIntervalMs();
       const frameMs = this.lastFrame ? Math.max(0, nextTimestamp - this.lastFrame) : targetIntervalMs || 16;
       const delta = this.lastFrame ? clamp(frameMs / 1000, 0.001, 0.033) : clamp(frameMs / 1000, 0.001, 0.033);
-      const feedbackFrame = this.advanceCombatFeedback(frameMs);
-      const simulationDelta = delta * clamp(Number(feedbackFrame.simulationScale || 0), 0, 1);
       this.advanceFramePacingDeadline(nextTimestamp, targetIntervalMs);
       this.lastFrame = nextTimestamp;
       this.frameId += 1;
       this.invalidateFrameStatsCache();
-      this.beginPerformanceFrame(nextTimestamp, frameMs, simulationDelta);
+      this.beginPerformanceFrame(nextTimestamp, frameMs, delta);
       try {
-        if (simulationDelta > 0) {
-          this.profilePerformancePhase('update', 'updateTotal', () => this.update(simulationDelta));
-        }
+        this.profilePerformancePhase('update', 'updateTotal', () => this.update(delta));
         this.profilePerformancePhase('draw', 'drawTotal', () => this.draw());
       } finally {
         this.finishPerformanceFrame();
@@ -14522,10 +14187,8 @@
 	      this.withBatchedChange(() => {
 	        const benchmarkComplete = this.profilePerformancePhase('update', 'benchmark', () => this.updatePerformanceBenchmark(delta));
 	        if (benchmarkComplete) return;
-	        this.profilePerformancePhase('update', 'riftOperation', () => this.updateRiftOperation());
 	        this.profilePerformancePhase('update', 'passiveRegen', () => this.updatePassiveRegen(delta));
 	        this.profilePerformancePhase('update', 'player', () => this.updatePlayer(delta));
-        this.profilePerformancePhase('update', 'playerAttackRelease', () => this.advancePendingBasicAttack());
 	        this.profilePerformancePhase('update', 'heldAttack', () => this.updateHeldAttack());
 	        this.profilePerformancePhase('update', 'heldSkills', () => this.updateHeldSkills());
 	        this.profilePerformancePhase('update', 'heldLoot', () => this.updateHeldLoot());
@@ -14538,7 +14201,7 @@
 	        this.profilePerformancePhase('update', 'chainPulses', () => this.updateChainPulses(delta));
 	        this.profilePerformancePhase('update', 'skillObjects', () => this.updateSkillObjects(delta));
 	        this.profilePerformancePhase('update', 'dungeonRespawns', () => this.updateDungeonBossRespawns());
-        this.profilePerformancePhase('update', 'camera', () => this.updateCamera(delta));
+	        this.profilePerformancePhase('update', 'camera', () => this.updateCamera());
 	        this.profilePerformancePhase('update', 'waves', () => this.updateWaveSpawns());
 	      });
 	    }
@@ -15850,7 +15513,7 @@
     getAdminCommandCatalog() {
       return [
         { id: 'help', name: 'Help', syntax: 'help', example: 'help', description: 'List Worldwright commands.' },
-        { id: 'tp-map', name: 'Teleport Map', syntax: 'tp map <map> [x] [y] [platform]', example: 'tp map banditRidgeCamp', description: 'Move to any map and optionally place the player.' },
+        { id: 'tp-map', name: 'Teleport Map', syntax: 'tp map <map> [x] [y] [platform]', example: 'tp map greenrootMeadow', description: 'Move to any map and optionally place the player.' },
         { id: 'tp-boss', name: 'Teleport Boss', syntax: 'tp boss <boss>', example: 'tp boss eclipseSovereign', description: 'Open a boss room and start its encounter.' },
         { id: 'spawn-enemy', name: 'Spawn Enemy', syntax: 'spawn enemy <enemy> [count] [x] [y] [platform]', example: 'spawn enemy slimelet 3', description: 'Create temporary enemies on the current map.' },
         { id: 'spawn-item', name: 'Spawn Item', syntax: 'spawn item <item> [quantity] [rarity] [upgrade]', example: 'spawn item training_sword 1 Epic 20', description: 'Grant items directly to inventory.' },
@@ -16342,7 +16005,6 @@
     adminResetCooldowns() {
       if (!this.canUseAdminTools()) return this.failAdminCommand('Worldwright Console required.');
       this.ensureRuntimeState();
-      this.cancelPendingBasicAttack('admin-reset');
       const player = this.state.player || {};
       player.skillCooldowns = {};
       player.attackTimer = 0;
@@ -16533,8 +16195,7 @@
           targetTier: hook.targetTier || '',
           label: hook.label || '',
           response: hook.response || '',
-          objective: hook.objective || '',
-          responseCheck: hook.responseCheck ? Object.assign({}, hook.responseCheck) : null
+          objective: hook.objective || ''
         };
       });
       const pending = activeBoss && activeBoss.bossPendingAction || null;
@@ -16553,8 +16214,7 @@
               sectionId: pending.spatialSectionId || '',
               sectionLabel: pending.spatialSectionLabel || '',
               response: pending.spatialResponse || '',
-              objective: pending.spatialObjective || '',
-              responseCheck: pending.spatialResponseCheck ? Object.assign({}, pending.spatialResponseCheck) : null
+              objective: pending.spatialObjective || ''
             }
           : null
       };
@@ -16642,11 +16302,8 @@
         pendingSpatialSectionId: pending && pending.spatialSectionId || '',
         pendingSpatialSectionLabel: pending && pending.spatialSectionLabel || '',
         pendingSpatialResponse: pending && pending.spatialResponse || '',
-        pendingSpatialResponseType: pending && pending.spatialResponseCheck && pending.spatialResponseCheck.type || '',
-        pendingSpatialInstruction: pending && pending.spatialResponseCheck && pending.spatialResponseCheck.label || pending && pending.spatialObjective || '',
         pendingActionProgress: actionProgress,
         telegraphRemaining,
-        lastSpatialResponse: this.getBossSpatialResponseSummary(),
         dropPreview,
         spatialMechanic,
         intro,
@@ -16917,10 +16574,6 @@
         const map = getById(Data.MAPS || [], encounter.mapId);
         const bossData = getById(Data.ENEMIES || [], encounter.bossId);
         if (!map || !bossData) return false;
-        const previousMapId = this.state.mapId;
-        if (normalizeId(previousMapId) === 'endlessRift') {
-          this.finishRiftOperation('exit', { silent: !!(options && options.silent) });
-        }
         this.state.mapId = map.id;
         this.runtime = createMapRuntime(map.id, this.getViewportMetrics());
         this.invalidateRuntimeSnapshotCache();
@@ -16971,7 +16624,7 @@
           boss.maxHp = Math.max(1, Math.round(Number(boss.maxHp || boss.hp || 1) * boss.encounterHpScale));
           boss.hp = boss.maxHp;
         }
-        boss.attackCd = Math.max(1.1, Number(encounter.introCombatDelay || 0));
+        boss.attackCd = 1.1;
         boss.telegraph = 0;
         boss.bossActionIndex = 0;
         boss.bossPhaseIndex = 0;
@@ -16980,10 +16633,6 @@
         this.spawnBossEncounterAdd(encounter, 0, { quiet: true });
         this.spawnBossEncounterAdd(encounter, 1, { quiet: true });
         this.pushBossPhaseEffect(boss, encounter, encounter.phases && encounter.phases[0]);
-        this.beginMapAnalyticsVisit(map.id, { previousMapId });
-        this.pruneRendererMapDerivedCaches(previousMapId);
-        this.maybeSchedulePixiPrewarm({ includeIdle: false, force: true });
-        this.queueCurrentAssetPreload(`boss-entry:${map.id}`);
         this.recordProgressEvent('travel', { mapId: map.id, bossEncounterId: encounter.id });
         this.toast(`${encounter.name || map.name} opened.`, { noEmit: true });
         this.emitUiChange({ domains: ['hud', 'session', 'world', 'quests', 'guide', 'shop', 'party', 'pet', 'debug'], reason: 'bossEncounter', persist: true });
@@ -17224,16 +16873,6 @@
 
     getOnboardingState() {
       this.state.onboarding = createOnboardingState(this.state.onboarding);
-      const claimedQuestIds = this.state.progress && Array.isArray(this.state.progress.claimedQuestIds)
-        ? this.state.progress.claimedQuestIds
-        : [];
-      if (claimedQuestIds.includes('first_steps')) {
-        const completedIds = new Set(this.state.onboarding.completedIds);
-        (Data.ONBOARDING_STEPS || []).forEach((step) => {
-          if (step && step.id) completedIds.add(step.id);
-        });
-        this.state.onboarding.completedIds = Array.from(completedIds);
-      }
       return this.state.onboarding;
     }
 
@@ -17249,9 +16888,14 @@
       progress.completedTrials = progress.completedTrials && typeof progress.completedTrials === 'object' ? progress.completedTrials : {};
       progress.trialInstance = progress.trialInstance && typeof progress.trialInstance === 'object' ? progress.trialInstance : createTrialInstanceState(null);
       state.progress = progress;
-      const season = syncSeasonState(state.season && typeof state.season === 'object' ? state.season : createSeasonState(null));
+      const season = state.season && typeof state.season === 'object' ? state.season : createSeasonState(null);
+      season.activeSeasonId = normalizeId(season.activeSeasonId) || getDefaultSeasonId();
+      season.objectiveValues = season.objectiveValues && typeof season.objectiveValues === 'object' ? season.objectiveValues : {};
+      season.claimedRewardIds = Array.isArray(season.claimedRewardIds) ? season.claimedRewardIds : [];
       state.season = season;
-      const onboarding = createOnboardingState(state.onboarding);
+      const onboarding = state.onboarding && typeof state.onboarding === 'object' ? state.onboarding : createOnboardingState(null);
+      onboarding.completedIds = Array.isArray(onboarding.completedIds) ? onboarding.completedIds : [];
+      onboarding.hidden = !!onboarding.hidden;
       state.onboarding = onboarding;
       const accomplishments = state.accomplishments && typeof state.accomplishments === 'object' ? state.accomplishments : createAccomplishmentState(null);
       accomplishments.accomplishmentProgress = accomplishments.accomplishmentProgress && typeof accomplishments.accomplishmentProgress === 'object'
@@ -17263,7 +16907,9 @@
     }
 
     getOnboardingSnapshotCacheKey() {
-      const onboarding = this.getOnboardingState();
+      const onboarding = this.state.onboarding && typeof this.state.onboarding === 'object'
+        ? this.state.onboarding
+        : this.getOnboardingState();
       if (GET_ONBOARDING_SNAPSHOT_CACHE_KEY) {
         return GET_ONBOARDING_SNAPSHOT_CACHE_KEY(onboarding, {
           revisions: this.overlaySnapshotDomainRevisions || {},
@@ -17278,15 +16924,10 @@
           if (id) completedIds += `${completedIds ? ',' : ''}${id}`;
         });
       }
-      const progressById = Object.entries(onboarding.progressById && typeof onboarding.progressById === 'object' ? onboarding.progressById : {})
-        .map(([id, value]) => `${normalizeId(id)}:${Math.max(0, Math.floor(Number(value) || 0))}`)
-        .sort()
-        .join(',');
       return [
         Number(revisions.session || 0),
         onboarding.hidden ? 1 : 0,
         completedIds,
-        progressById,
         (Data.ONBOARDING_STEPS || []).length
       ].join('|');
     }
@@ -17301,16 +16942,9 @@
         ? CREATE_ONBOARDING_SNAPSHOT(onboarding, Data.ONBOARDING_STEPS || [])
         : (() => {
             const completed = new Set(onboarding.completedIds || []);
-            const progressById = onboarding.progressById && typeof onboarding.progressById === 'object' ? onboarding.progressById : {};
-            const steps = (Data.ONBOARDING_STEPS || []).map((step) => {
-              const goal = Math.max(1, Math.floor(Number(step && step.count || 1) || 1));
-              const complete = completed.has(step.id);
-              return Object.assign({}, step, {
-                complete,
-                progress: complete ? goal : Math.min(goal, Math.max(0, Math.floor(Number(progressById[step.id]) || 0))),
-                goal
-              });
-            });
+            const steps = (Data.ONBOARDING_STEPS || []).map((step) => Object.assign({}, step, {
+              complete: completed.has(step.id)
+            }));
             return {
               hidden: !!onboarding.hidden,
               completedIds: onboarding.completedIds.slice(),
@@ -17334,34 +16968,20 @@
     recordOnboardingEvent(type, payload, options) {
       const settings = options || {};
       const onboarding = settings.onboarding || this.getOnboardingState();
-      const candidates = getOnboardingStepsByEventType(type)
-        .filter((step) => stepMatchesEvent(step, type, payload || {}));
+      const candidates = getOnboardingStepsByEventType(type);
       if (!candidates.length) return false;
       if (CREATE_ONBOARDING_EVENT_PLAN) {
         const plan = CREATE_ONBOARDING_EVENT_PLAN(onboarding, candidates, type, payload || {});
         if (!plan.changed) return false;
         onboarding.completedIds = plan.completedIds;
-        onboarding.progressById = plan.progressById || {};
         if (!settings.silent) this.emitChange();
         return true;
       }
       const completed = new Set(onboarding.completedIds || []);
       const matches = candidates.filter((step) => !completed.has(step.id) && stepMatchesEvent(step, type, payload || {}));
       if (!matches.length) return false;
-      const progressById = Object.assign({}, onboarding.progressById && typeof onboarding.progressById === 'object' ? onboarding.progressById : {});
-      const increment = Math.max(1, Math.floor(Number(payload && payload.count || 1) || 1));
-      matches.forEach((step) => {
-        const goal = Math.max(1, Math.floor(Number(step && step.count || 1) || 1));
-        const progress = Math.min(goal, Math.max(0, Math.floor(Number(progressById[step.id]) || 0)) + increment);
-        if (progress >= goal) {
-          completed.add(step.id);
-          delete progressById[step.id];
-        } else {
-          progressById[step.id] = progress;
-        }
-      });
+      matches.forEach((step) => completed.add(step.id));
       onboarding.completedIds = Array.from(completed);
-      onboarding.progressById = progressById;
       if (!settings.silent) this.emitChange();
       return true;
     }
@@ -19053,10 +18673,6 @@
       const player = this.state && this.state.player || {};
       const guide = context && context.questGuide || {};
       const dungeons = context && context.dungeons || {};
-      const season = this.state && this.state.season || {};
-      const stabilizationSignature = Object.entries(season.stabilizationByAreaId || {})
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(([areaId, count]) => `${areaId}:${Math.max(0, Number(count || 0))}`).join(',');
       return [
         this.getOverlaySnapshotRevisionKey(['world', 'quests', 'hud', 'session']),
         this.state.mapId,
@@ -19066,15 +18682,12 @@
         normalizeId(this.state.session && this.state.session.worldMapSelectedId),
         normalizeId(guide.type),
         normalizeId(guide.id),
-        (dungeons.completedDungeonIds || []).map(normalizeId).join(','),
-        normalizeId(season.cycleId),
-        normalizeId(season.selectedDirectiveId),
-        stabilizationSignature
+        (dungeons.completedDungeonIds || []).map(normalizeId).join(',')
       ].join('|');
     }
 
 	    getWorldMapSnapshot() {
-      const seasonState = this.getSeasonState();
+	      this.ensureRuntimeState();
       const context = {
         dungeons: this.state.dungeons,
         routeState: this.state.routeProgress,
@@ -19089,23 +18702,6 @@
       }
 	      const currentMapId = this.state.mapId;
 	      const selectedMapId = this.getWorldMapTargetId(context);
-      const selectedDirective = getById(
-        this.getSeasonDirectivesForSeason(this.getActiveSeasonData(seasonState)),
-        normalizeId(seasonState.selectedDirectiveId)
-      );
-      const directiveMapIds = new Set(
-        selectedDirective && Array.isArray(selectedDirective.mapIds)
-          ? selectedDirective.mapIds.map(normalizeId).filter(Boolean)
-          : []
-      );
-      const stabilizationByAreaId = seasonState.stabilizationByAreaId
-        && typeof seasonState.stabilizationByAreaId === 'object'
-        ? seasonState.stabilizationByAreaId
-        : {};
-      const stabilizationMax = Math.max(
-        1,
-        Math.floor(Number(Data.FRACTURE_DIRECTIVE_MAX_STABILIZATION || 3) || 3)
-      );
       const pathsFromCurrentMap = this.getWorldMapPathMap(currentMapId, context);
       const path = pathsFromCurrentMap.get(selectedMapId) || null;
       const pathEdgeIds = new Set(path && path.steps ? path.steps.map((step) => step.edgeId) : []);
@@ -19140,12 +18736,6 @@
           partyScaling: group.partyScaling || 'none'
         })) : [];
         const spawnPopulation = spawnGroups.reduce((total, group) => total + group.population, 0);
-        const areaId = area ? area.id : node.areaId || '';
-        const directiveRoute = !!(map && directiveMapIds.has(map.id));
-        const stabilizationLevel = Math.min(
-          stabilizationMax,
-          Math.max(0, Math.floor(Number(stabilizationByAreaId[areaId] || 0) || 0))
-        );
         const spawnCadences = spawnGroups.map((group) => group.respawnSeconds).filter((value) => value > 0);
         const status = map && map.id === currentMapId
           ? 'current'
@@ -19168,7 +18758,7 @@
 	          mapRoadName: map && map.mapRoadName || node.roadName || map && map.name || '',
 	          landmark: map && map.landmark || '',
 	          portalPattern: map && map.portalPattern || '',
-	          areaId,
+	          areaId: area ? area.id : node.areaId || '',
           areaName: area ? area.name : node.region || '',
           areaColor: area ? area.color : '',
           areaAccent: area ? area.accent : '',
@@ -19191,12 +18781,6 @@
           lockedReason,
           completed,
           status,
-          directiveRoute,
-          directiveId: directiveRoute && selectedDirective ? selectedDirective.id : '',
-          directiveName: directiveRoute && selectedDirective ? selectedDirective.name : '',
-          stabilizationLevel,
-          stabilizationMax,
-          stabilized: stabilizationLevel > 0,
           dungeon: !!(map && map.isDungeon),
           dungeonId: dungeon ? dungeon.id : '',
           bossRespawning: !!(dungeonSummary && dungeonSummary.bossRespawning),
@@ -19209,8 +18793,6 @@
         const reverseLock = this.getWorldMapEdgeLockReason(edge, edge.toMapId, context);
         const currentRoute = pathEdgeIds.has(edge.id);
         const completed = this.isWorldMapEdgeCompleted(edge, context);
-        const directiveRoute = directiveMapIds.has(edge.fromMapId)
-          && directiveMapIds.has(edge.toMapId);
         return Object.assign({}, edge, {
           fromMapId: edge.fromMapId,
           toMapId: edge.toMapId,
@@ -19220,8 +18802,6 @@
           open: !forwardLock,
           completed,
           currentRoute,
-          directiveRoute,
-          directiveId: directiveRoute && selectedDirective ? selectedDirective.id : '',
           status: currentRoute ? 'currentRoute' : forwardLock ? 'locked' : completed ? 'completed' : 'open'
         });
       });
@@ -19233,11 +18813,6 @@
         const dungeonNodes = areaNodes.filter((node) => node.dungeon);
         const completedDungeons = dungeonNodes.filter((node) => node.completed).length;
         const selectedInArea = !!(selected && selected.areaId === area.id);
-        const directiveRoute = areaNodes.some((node) => node.directiveRoute);
-        const stabilizationLevel = Math.min(
-          stabilizationMax,
-          Math.max(0, Math.floor(Number(stabilizationByAreaId[area.id] || 0) || 0))
-        );
         const currentInArea = areaNodes.some((node) => node.current);
         const reachableArea = areaNodes.some((node) => !node.locked);
         return Object.assign({}, area, {
@@ -19250,11 +18825,6 @@
           selected: selectedInArea,
           current: currentInArea,
           locked: areaNodes.length > 0 && !reachableArea,
-          directiveRoute,
-          directiveId: directiveRoute && selectedDirective ? selectedDirective.id : '',
-          stabilizationLevel,
-          stabilizationMax,
-          stabilized: stabilizationLevel > 0,
           progressLabel: fieldNodes.length ? `${completedFields}/${fieldNodes.length} fields` : currentInArea ? 'Current hub' : ''
         });
       });
@@ -19263,17 +18833,6 @@
 	        selectedMapId: selected ? selected.mapId : currentMapId,
 	        selectedNode: selected,
         atlas: Data.WORLD_MAP_ATLAS || null,
-        directive: selectedDirective ? {
-          id: selectedDirective.id,
-          name: selectedDirective.name,
-          summary: selectedDirective.summary,
-          playstyle: selectedDirective.playstyle,
-          areaId: selectedDirective.areaId,
-          routeId: selectedDirective.routeId,
-          mapIds: Array.from(directiveMapIds),
-          stabilizationLevel: Math.max(0, Number(stabilizationByAreaId[selectedDirective.areaId] || 0)),
-          stabilizationMax
-        } : null,
         areas,
         nodes,
         edges,
@@ -19329,17 +18888,12 @@
       return Math.max(8, Math.min(60, Math.round(Math.max(waveMax, enemyCount, 8) * (map.isDungeon ? 1 : 1.1))));
     }
 
-    getMapKillQuestGoalProfile(mapId) {
+    getMapKillQuestGoal(mapId) {
       const map = getMapDefinitionById(mapId || this.state.mapId);
-      if (!map || map.safeZone) return null;
+      if (!map || map.safeZone) return 0;
       const state = this.getMapKillQuestState()[map.id] || { completions: 0 };
       const base = this.getMapKillQuestBaseGoal(map);
-      return getScaledMapKillQuestGoalProfile(base, state.completions);
-    }
-
-    getMapKillQuestGoal(mapId) {
-      const profile = this.getMapKillQuestGoalProfile(mapId);
-      return profile ? getScaledMapKillQuestGoal(profile.baseGoal, profile.completions) : 0;
+      return Math.max(1, Math.ceil(base * Math.pow(1.5, Math.max(0, Number(state.completions || 0)))));
     }
 
     getMapEnemyQuestDifficulty(map) {
@@ -19353,14 +18907,12 @@
       if (!map || map.safeZone) return {};
       const settings = options || {};
       const goal = Math.max(1, Math.round(Number(settings.goal || this.getMapKillQuestGoal(map.id)) || 1));
-      const baseGoal = Math.max(1, this.getMapKillQuestBaseGoal(map));
-      const effortScale = clamp(goal / baseGoal, 1, 1.5);
       const level = this.getAverageLevelFromRange(map.levelRange, this.state.player.level || 1);
       const difficulty = this.getMapEnemyQuestDifficulty(map);
       const minutes = Math.max(2, goal * 0.35 * difficulty);
       const baseXpPerMinute = getMonsterXp(level, { expMult: 1 }) * 1.2;
       const rewardXp = this.roundQuestXp(minutes * baseXpPerMinute * clamp(0.85 + (difficulty - 1) * 0.35 + level / 260, 0.75, 2) * 0.45);
-      const rewardCurrency = Math.max(25, Math.round((map.levelRange && map.levelRange[0] || 1) * 6 * effortScale));
+      const rewardCurrency = Math.max(25, Math.round((map.levelRange && map.levelRange[0] || 1) * 6));
       return { xp: rewardXp, currency: rewardCurrency };
     }
 
@@ -19396,7 +18948,6 @@
       const all = this.getMapKillQuestState();
       const state = all[map.id] || { active: false, progress: 0, completions: 0, completedAt: 0, lastCompletedAt: 0 };
       const goal = this.getMapKillQuestGoal(map.id);
-      const goalProfile = this.getMapKillQuestGoalProfile(map.id);
       const complete = Number(state.completedAt || 0) > 0 || Number(state.progress || 0) >= goal;
       const active = !!state.active || complete;
       const owner = this.getMapKillQuestOwner(map.id) || {};
@@ -19422,10 +18973,6 @@
         value: Math.min(goal, Math.max(0, Number(state.progress || 0))),
         goal,
         completions: Math.max(0, Number(state.completions || 0)),
-        masteryTier: goalProfile ? goalProfile.masteryTier : 0,
-        maxMasteryTier: goalProfile ? goalProfile.maxMasteryTier : 0,
-        goalMultiplier: goalProfile ? goalProfile.goalMultiplier : 1,
-        scalingCapped: !!(goalProfile && goalProfile.capped),
         rewardSummary: this.formatMapKillQuestRewardSummary(map),
         objectives: [{
           id: `${map.id}_hunt`,
@@ -19833,21 +19380,6 @@
           return this.buildQuestGuidanceResult(guide.type, guide.id, summary.title, objective, {
             complete: true,
             hint: summary.claimed ? `${summary.title} is complete.` : `Claim ${summary.title}${summary.npcName ? ` from ${summary.npcName}.` : '.'}`
-          });
-        }
-        if (!summary.active && summary.available && summary.npcId) {
-          return this.buildQuestGuidanceResult(guide.type, guide.id, summary.title, {
-            type: 'talk',
-            label: `Accept ${summary.title} from ${summary.npcName || 'the quest giver'}`,
-            complete: false
-          }, {
-            recommendedMapId: summary.mapId,
-            targetEnemyIds: [],
-            targetNpcId: summary.npcId,
-            targetNpcName: summary.npcName,
-            hint: summary.mapId === this.state.mapId
-              ? `Talk to ${summary.npcName || 'the quest giver'} to accept ${summary.title}.`
-              : `Use portals toward ${summary.mapName || 'the quest area'}, then accept ${summary.title} from ${summary.npcName || 'the quest giver'}.`
           });
         }
         return this.getObjectiveGuidance(guide.type, guide.id, summary.title, objective, quest);
@@ -20661,7 +20193,8 @@
       if (definition.type === 'surge-loop') {
         entry.surgeCount += 1;
         entry.surgeActiveUntil = now + 45;
-        this.addRiftOperationScore(Math.max(10, Math.round(Number(definition.eventKillGoal || 1) * 8 * rewardScale)));
+        this.state.rift = createRiftState(this.state.rift);
+        this.state.rift.score += Math.max(10, Math.round(Number(definition.eventKillGoal || 1) * 8 * rewardScale));
       } else if (definition.type === 'party-objective') {
         entry.objectiveCount += 1;
       } else {
@@ -20919,155 +20452,6 @@
       };
     }
 
-    getRiftCounterplayNow() {
-      return nowSeconds();
-    }
-
-    getRiftCounterplayState() {
-      if (CREATE_RIFT_COUNTERPLAY_STATE) {
-        this.riftCounterplayState = CREATE_RIFT_COUNTERPLAY_STATE(this.riftCounterplayState);
-      } else if (!this.riftCounterplayState || typeof this.riftCounterplayState !== 'object') {
-        this.riftCounterplayState = { revision: 0, mapId: this.state.mapId, activeUntil: {} };
-      }
-      return this.riftCounterplayState;
-    }
-
-    getRiftCounterplayAllowedIds() {
-      const mutationIds = this.getRiftMutationIds();
-      return mutationIds.map((mutationId) => {
-        const mutation = getById(Data.MUTATIONS || [], mutationId);
-        return normalizeId(mutation && mutation.counterplay && mutation.counterplay.id);
-      }).filter(Boolean);
-    }
-
-    getActiveRiftCounterplayIds(time) {
-      if (!GET_ACTIVE_RIFT_COUNTERPLAY_IDS) return [];
-      const now = Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow();
-      return GET_ACTIVE_RIFT_COUNTERPLAY_IDS(this.getRiftCounterplayState(), now);
-    }
-
-    invalidateRiftRuntimeEffectsCache() {
-      this.riftRuntimeEffectsCache = null;
-      this.activeRiftRuntimeEffectsCache = null;
-    }
-
-    resetRiftCounterplay(mapId, time) {
-      const now = Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow();
-      if (REDUCE_RIFT_COUNTERPLAY) {
-        this.riftCounterplayState = REDUCE_RIFT_COUNTERPLAY(this.getRiftCounterplayState(), {
-          type: 'reset',
-          mapId: normalizeId(mapId || this.state.mapId),
-          now
-        }).state;
-      } else {
-        this.riftCounterplayState = { revision: 0, mapId: normalizeId(mapId || this.state.mapId), activeUntil: {} };
-      }
-      this.invalidateRiftRuntimeEffectsCache();
-      return this.riftCounterplayState;
-    }
-
-    isRiftCombatPressureActive(time) {
-      if (normalizeId(this.state && this.state.mapId) !== 'endlessRift') return false;
-      const now = Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow();
-      const player = this.state && this.state.player || {};
-      const playerX = Number(player.x || 0) + Number(player.w || 0) / 2;
-      const playerY = Number(player.y || 0) + Number(player.h || 0) / 2;
-      return (this.enemies || []).some((enemy) => {
-        if (!enemy || enemy.hp <= 0 || enemy.defeatedAt) return false;
-        const enemyX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-        const enemyY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
-        return Number(enemy.aggroUntil || 0) > now || Math.hypot(enemyX - playerX, enemyY - playerY) <= 560;
-      });
-    }
-
-    syncLivingRiftEnemiesForCounterplay(previousEffects, nextEffects) {
-      const previous = previousEffects || {};
-      const next = nextEffects || {};
-      let changed = false;
-      (this.enemies || []).forEach((enemy) => {
-        if (!enemy || enemy.hp <= 0 || Number(enemy.riftTier || 0) <= 0) return;
-        const previousHealthScale = Math.max(0.01, Number(enemy.riftAppliedEnemyHealthScale || previous.enemyHealthScale || 1));
-        const nextHealthScale = Math.max(0.01, Number(next.enemyHealthScale || previousHealthScale));
-        if (Math.abs(previousHealthScale - nextHealthScale) > 0.0001) {
-          const healthRatio = Math.max(0, Number(enemy.hp || 0)) / Math.max(1, Number(enemy.maxHp || 1));
-          enemy.maxHp = Math.max(1, Math.round(Number(enemy.maxHp || 1) * nextHealthScale / previousHealthScale));
-          enemy.hp = Math.max(1, Math.min(enemy.maxHp, Math.round(enemy.maxHp * healthRatio)));
-          enemy.riftAppliedEnemyHealthScale = nextHealthScale;
-          changed = true;
-        }
-        const previousDamageScale = Math.max(0.01, Number(enemy.riftAppliedEnemyDamageScale || previous.enemyDamageScale || 1));
-        const nextDamageScale = Math.max(0.01, Number(next.enemyDamageScale || previousDamageScale));
-        if (Math.abs(previousDamageScale - nextDamageScale) > 0.0001) {
-          enemy.damage = Math.max(1, Number(enemy.damage || 1) * nextDamageScale / previousDamageScale);
-          enemy.riftAppliedEnemyDamageScale = nextDamageScale;
-          changed = true;
-        }
-      });
-      return changed;
-    }
-
-    recordRiftCounterplayEvent(event) {
-      const action = event && typeof event === 'object' ? event : {};
-      if (normalizeId(this.state && this.state.mapId) !== 'endlessRift' || !REDUCE_RIFT_COUNTERPLAY) return null;
-      const now = Number.isFinite(Number(action.now)) ? Number(action.now) : this.getRiftCounterplayNow();
-      const previousState = this.getRiftCounterplayState();
-      const previousIds = Object.keys(previousState.activeUntil || {}).filter((id) => Number(previousState.activeUntil[id] || 0) > 0);
-      const result = REDUCE_RIFT_COUNTERPLAY(previousState, Object.assign({}, action, {
-        now,
-        allowedIds: this.getRiftCounterplayAllowedIds()
-      }));
-      this.riftCounterplayState = result.state;
-      const activeIds = this.getActiveRiftCounterplayIds(now);
-      const changed = previousIds.slice().sort().join(',') !== activeIds.slice().sort().join(',');
-      if (changed) {
-        const previousEffects = this.getRiftRuntimeEffects({ counterplayIds: previousIds });
-        this.invalidateRiftRuntimeEffectsCache();
-        const nextEffects = this.getRiftRuntimeEffects({ counterplayIds: activeIds });
-        this.syncLivingRiftEnemiesForCounterplay(previousEffects, nextEffects);
-      }
-      if (result.activatedIds && result.activatedIds.length) {
-        const labels = result.activatedIds.map((id) => {
-          const mutation = (Data.MUTATIONS || []).find((entry) => normalizeId(entry && entry.counterplay && entry.counterplay.id) === id);
-          return mutation && mutation.counterplay && mutation.counterplay.label || id;
-        });
-        this.toast(`Rift counterplay: ${labels.join(' / ')}`, { noEmit: true });
-        this.emitHudChange({ skipOverlayInvalidate: false });
-      } else if (result.expiredIds && result.expiredIds.length) {
-        this.emitHudChange({ skipOverlayInvalidate: false });
-      }
-      return Object.assign({}, result, { activeIds });
-    }
-
-    recordRiftCounterplayMovement(previous, player, time) {
-      if (normalizeId(this.state && this.state.mapId) !== 'endlessRift') return null;
-      const before = previous || {};
-      const current = player || this.state && this.state.player || {};
-      const stats = this.getCachedStatVitals() || this.getStats();
-      const fromPlatformIndex = Number.isFinite(Number(before.platformIndex)) ? Number(before.platformIndex) : -1;
-      const toPlatformIndex = Number.isFinite(Number(current.groundedPlatformIndex)) ? Number(current.groundedPlatformIndex) : -1;
-      const platforms = this.runtime && Array.isArray(this.runtime.platforms) ? this.runtime.platforms : [];
-      const fromPlatform = fromPlatformIndex >= 0 ? platforms[fromPlatformIndex] : null;
-      const toPlatform = toPlatformIndex >= 0 ? platforms[toPlatformIndex] : null;
-      return this.recordRiftCounterplayEvent({
-        type: 'move',
-        now: Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow(),
-        dx: Number(current.x || 0) - Number(before.x || 0),
-        dy: Number(current.y || 0) - Number(before.y || 0),
-        fromPlatformIndex,
-        toPlatformIndex,
-        laneDelta: fromPlatform && toPlatform ? Number(toPlatform.y || 0) - Number(fromPlatform.y || 0) : 0,
-        inCombat: this.isRiftCombatPressureActive(time),
-        resource: Number(current.mp || 0),
-        maxResource: Math.max(1, Number(stats.maxMp || 1))
-      });
-    }
-
-    getRiftCounterplaySnapshot(time) {
-      const now = Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow();
-      if (!CREATE_RIFT_COUNTERPLAY_SNAPSHOT) return { revision: 0, activeIds: [], active: [], progress: {} };
-      return CREATE_RIFT_COUNTERPLAY_SNAPSHOT(this.getRiftCounterplayState(), now);
-    }
-
     getRiftMutationIds() {
       this.state.rift = createRiftState(this.state.rift);
       if (CREATE_RIFT_MUTATION_IDS) {
@@ -21085,283 +20469,42 @@
       return ids;
     }
 
-    getRiftRuntimeEffects(options) {
-      const settings = options || {};
-      const source = this.state.rift && typeof this.state.rift === 'object' ? this.state.rift : {};
-      const hasExplicitCounterplayIds = Object.prototype.hasOwnProperty.call(settings, 'counterplayIds');
-      const counterplayIds = (hasExplicitCounterplayIds && Array.isArray(settings.counterplayIds)
-        ? settings.counterplayIds
-        : this.getActiveRiftCounterplayIds()).map(normalizeId).filter(Boolean);
-      const cacheKey = [
-        Math.max(1, Number(source.tier || 1)),
-        (Array.isArray(source.mutationIds) ? source.mutationIds : []).map(normalizeId).filter(Boolean).join(','),
-        counterplayIds.join(',')
-      ].join('|');
-      if (this.riftRuntimeEffectsCache && this.riftRuntimeEffectsCache.key === cacheKey) {
-        return this.riftRuntimeEffectsCache.value;
-      }
-      this.state.rift = createRiftState(this.state.rift);
-      const mutationIds = this.getRiftMutationIds();
-      let runtimeEffects;
-      if (CREATE_RIFT_RUNTIME_EFFECTS) {
-        runtimeEffects = CREATE_RIFT_RUNTIME_EFFECTS(this.state.rift, mutationIds, Object.assign({ data: Data }, settings, { counterplayIds }));
-      } else {
-        const tier = Math.max(1, Number(this.state.rift.tier || 1));
-        const tierSteps = tier - 1;
-        const potency = 1 + Math.min(1, tierSteps * 0.02);
-        const roundScale = (value) => Math.round(Math.max(0, Number(value || 0)) * 10000) / 10000;
-        let enemyHealthScale = 1 + tierSteps * 0.045;
-        let enemyDamageScale = 1 + tierSteps * 0.03;
-        let playerDamageScale = 1;
-        let playerResourceCostScale = 1;
-        let rewardScale = 1 + tierSteps * 0.035;
-        mutationIds.map((id) => getById(Data.MUTATIONS || [], id)).filter(Boolean).forEach((mutation) => {
-          const getScale = (value, key) => 1 + (Math.max(0.1, Number(value && value[key] || 1)) - 1) * potency;
-          enemyHealthScale *= getScale(mutation.danger, 'enemyHealthScale');
-          enemyDamageScale *= getScale(mutation.danger, 'enemyDamageScale');
-          playerDamageScale *= getScale(mutation.upside, 'playerDamageScale');
-          playerResourceCostScale *= getScale(mutation.danger, 'playerResourceCostScale') * getScale(mutation.upside, 'playerResourceCostScale');
-          rewardScale *= getScale({ rewardScale: mutation.rewardScale }, 'rewardScale');
-        });
-        runtimeEffects = {
-          tier,
-          mutationPotencyScale: roundScale(potency),
-          mutationIds,
-          mutationEffects: [],
-          counterplayIds: counterplayIds.slice(),
-          enemyHealthScale: roundScale(enemyHealthScale),
-          enemyDamageScale: roundScale(enemyDamageScale),
-          playerDamageScale: roundScale(playerDamageScale),
-          playerResourceCostScale: roundScale(clamp(playerResourceCostScale, 0.65, 1.5)),
-          rewardScale: roundScale(rewardScale)
-        };
-      }
-      this.riftRuntimeEffectsCache = { key: cacheKey, value: runtimeEffects };
-      return runtimeEffects;
-    }
-
-    getActiveRiftRuntimeEffects(options) {
-      const map = getMapDefinitionById(this.state.mapId);
-      if (map && (map.id === 'endlessRift' || map.endlessScaling)) {
-        const runtimeEffects = this.getRiftRuntimeEffects(options);
-        const cacheKey = this.riftRuntimeEffectsCache && this.riftRuntimeEffectsCache.key || '';
-        if (!this.activeRiftRuntimeEffectsCache || this.activeRiftRuntimeEffectsCache.key !== cacheKey) {
-          this.activeRiftRuntimeEffectsCache = { key: cacheKey, value: Object.assign({ active: true }, runtimeEffects) };
-        }
-        return this.activeRiftRuntimeEffectsCache.value;
-      }
-      return INACTIVE_RIFT_RUNTIME_EFFECTS;
-    }
-
-    startRiftOperation(options) {
-      const settings = options || {};
-      const nowMs = Number.isFinite(Number(settings.nowMs)) ? Math.max(0, Math.floor(Number(settings.nowMs))) : Date.now();
-      this.state.rift = createRiftState(this.state.rift, { nowMs });
-      if (this.state.rift.active && !settings.force) {
-        return { changed: false, state: this.state.rift };
-      }
-      if (this.state.rift.active) {
-        this.finishRiftOperation('restart', { nowMs, silent: true });
-      }
-      const previousTier = this.state.rift.tier;
-      const previousMutationIds = this.state.rift.mutationIds.slice();
-      if (START_RIFT_OPERATION) {
-        this.state.rift = START_RIFT_OPERATION(this.state.rift, {
-          data: Data,
-          nowMs,
-          durationMs: settings.durationMs,
-          startTier: settings.startTier
-        });
-      } else {
-        const durationMs = Math.max(1000, Math.floor(Number(settings.durationMs || 360000) || 360000));
-        this.state.rift = Object.assign({}, this.state.rift, {
-          operationVersion: 1,
-          active: true,
-          status: 'active',
-          runId: `rift-run-${nowMs}-${Number(this.state.rift.runCount || 0) + 1}`,
-          tier: Math.max(1, Math.floor(Number(settings.startTier || 1) || 1)),
-          score: 0,
-          runScore: 0,
-          kills: 0,
-          mutationIds: [],
-          startedAt: nowMs,
-          endsAt: nowMs + durationMs,
-          durationMs,
-          runCount: Number(this.state.rift.runCount || 0) + 1
-        });
-      }
-      if (settings.preserveSetup) {
-        this.state.rift.tier = Math.max(1, Math.floor(Number(settings.startTier || previousTier || 1) || 1));
-        this.state.rift.mutationIds = previousMutationIds;
-      }
-      const riftMechanic = getMapMechanicDefinitionById('endlessRift');
-      if (riftMechanic && this.state.rift.mapMechanics && this.state.rift.mapMechanics.byMapId) {
-        this.state.rift.mapMechanics.byMapId.endlessRift = createMapMechanicEntryState(riftMechanic);
-      }
-      this.resetRiftCounterplay('endlessRift');
-      this.invalidateRiftRuntimeEffectsCache();
-      if (!settings.silent) {
-        this.toast(`Rift Operation started. Survive ${Math.ceil(this.state.rift.durationMs / 60000)} minutes.`);
-      }
-      return { changed: true, state: this.state.rift };
-    }
-
-    finishRiftOperation(reason, options) {
-      const settings = options || {};
-      const nowMs = Number.isFinite(Number(settings.nowMs)) ? Math.max(0, Math.floor(Number(settings.nowMs))) : Date.now();
-      this.state.rift = createRiftState(this.state.rift, { nowMs });
-      let result;
-      if (FINISH_RIFT_OPERATION) {
-        result = FINISH_RIFT_OPERATION(this.state.rift, reason, { data: Data, nowMs });
-      } else if (this.state.rift.active) {
-        const normalizedReason = normalizeId(reason) || 'exit';
-        const cleared = normalizedReason === 'timeout' || normalizedReason === 'clear';
-        const summary = {
-          runId: this.state.rift.runId,
-          status: cleared ? 'cleared' : normalizedReason === 'death' ? 'failed' : 'ended',
-          reason: normalizedReason,
-          cleared,
-          startedAt: this.state.rift.startedAt,
-          endedAt: nowMs,
-          elapsedMs: Math.max(0, nowMs - this.state.rift.startedAt),
-          tier: this.state.rift.tier,
-          score: this.state.rift.runScore,
-          kills: this.state.rift.kills
-        };
-        result = {
-          changed: true,
-          reward: null,
-          summary,
-          state: Object.assign({}, this.state.rift, {
-            active: false,
-            status: summary.status,
-            runId: '',
-            startedAt: 0,
-            endsAt: 0,
-            lastRun: summary
-          })
-        };
-      } else {
-        result = { changed: false, state: this.state.rift, summary: this.state.rift.lastRun, reward: null };
-      }
-      this.state.rift = result.state;
-      if (!result.changed) return result;
-      this.invalidateRiftRuntimeEffectsCache();
-      if (result.reward) this.awardProgressReward(result.reward);
-      if (!settings.silent) {
-        const summary = result.summary || {};
-        const label = summary.cleared
-          ? `Rift Operation cleared at tier ${summary.tier} with ${formatIntegerWithCommas(summary.score)} score.`
-          : summary.reason === 'death'
-            ? `Rift Operation failed at tier ${summary.tier}.`
-            : `Rift Operation ended at tier ${summary.tier}.`;
-        this.toast(result.reward ? `${label} Weekly first-clear reward earned.` : label);
-      }
-      return result;
-    }
-
-    updateRiftOperation(options) {
-      const settings = options || {};
-      const nowMs = Number.isFinite(Number(settings.nowMs)) ? Math.max(0, Math.floor(Number(settings.nowMs))) : Date.now();
-      this.state.rift = createRiftState(this.state.rift, { nowMs });
-      const inRift = normalizeId(this.state.mapId) === 'endlessRift';
-      if (!inRift) {
-        if (this.state.rift.active) this.finishRiftOperation('exit', { nowMs, silent: true });
-        return false;
-      }
-      if (!this.state.rift.active) {
-        this.startRiftOperation({ nowMs, silent: settings.silent });
-        return true;
-      }
-      if (nowMs < Number(this.state.rift.endsAt || 0)) return false;
-      const result = this.finishRiftOperation('timeout', { nowMs, silent: settings.silent });
-      if (result.changed && settings.teleport !== false) {
-        this.changeMap('starfallCrossing', {
-          silent: true,
-          riftOperationHandled: true,
-          riftExitReason: 'timeout'
-        });
-      }
-      return result.changed;
-    }
-
-    addRiftOperationScore(amount, options) {
-      const settings = options || {};
-      if (normalizeId(this.state.mapId) !== 'endlessRift') return 0;
-      this.state.rift = createRiftState(this.state.rift);
-      if (!this.state.rift.active) {
-        this.startRiftOperation({
-          silent: true,
-          preserveSetup: true,
-          startTier: this.state.rift.tier
-        });
-      }
-      const gain = Math.max(0, Math.floor(Number(amount || 0) || 0));
-      if (!gain) return 0;
-      this.state.rift.score += gain;
-      this.state.rift.runScore += gain;
-      this.state.rift.kills += Math.max(0, Math.floor(Number(settings.kills || 0) || 0));
-      let nextTierScore = Math.max(500, this.state.rift.tier * 500);
-      while (this.state.rift.score >= nextTierScore) {
-        const previousEffects = this.getRiftRuntimeEffects();
-        this.state.rift.score -= nextTierScore;
-        this.state.rift.tier += 1;
-        this.state.rift.bestTier = Math.max(this.state.rift.bestTier, this.state.rift.tier);
-        this.state.rift.personalBestTier = Math.max(this.state.rift.personalBestTier, this.state.rift.tier);
-        this.state.rift.mutationIds = [];
-        this.resetRiftCounterplay('endlessRift');
-        this.syncLivingRiftEnemiesForCounterplay(previousEffects, this.getRiftRuntimeEffects());
-        this.toast(`Rift Operation tier ${this.state.rift.tier}.`);
-        nextTierScore = Math.max(500, this.state.rift.tier * 500);
-      }
-      return gain;
-    }
-
     recordRiftDefeat(enemy, xp, currency) {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.id !== 'endlessRift') return false;
       this.state.rift = createRiftState(this.state.rift);
-      if (!this.state.rift.active) {
-        this.startRiftOperation({
-          silent: true,
-          preserveSetup: true,
-          startTier: this.state.rift.tier
-        });
-      }
-      const affixBonus = (enemy && enemy.eliteAffixIds || []).reduce((sum, affixId) => {
+      const affixBonus = (enemy.eliteAffixIds || []).reduce((sum, affixId) => {
         const affix = getById(Data.ELITE_AFFIXES || [], affixId);
         return sum + Number(affix && affix.riftScoreBonus || 0);
       }, 0);
       const mechanicScale = this.getMapMechanicRewardScale(map.id);
-      const runtimeEffects = this.getRiftRuntimeEffects();
-      const gain = Math.max(1, Math.round((Number(xp || 0) * 0.03 + Number(currency || 0) * 0.4) * (1 + affixBonus) * mechanicScale * runtimeEffects.rewardScale));
-      this.addRiftOperationScore(gain, { kills: 1 });
+      const gain = Math.max(1, Math.round((Number(xp || 0) * 0.03 + Number(currency || 0) * 0.4) * (1 + affixBonus) * mechanicScale));
+      this.state.rift.score += gain;
+      const nextTierScore = Math.max(500, this.state.rift.tier * 500);
+      if (this.state.rift.score >= nextTierScore) {
+        this.state.rift.score -= nextTierScore;
+        this.state.rift.tier += 1;
+        this.state.rift.bestTier = Math.max(this.state.rift.bestTier, this.state.rift.tier);
+        this.state.rift.mutationIds = [];
+        this.toast(`Endless Rift tier ${this.state.rift.tier}.`);
+      }
       return true;
     }
 
-    getRiftSnapshot(options) {
-      const settings = options || {};
-      this.state.rift = createRiftState(this.state.rift, { nowMs: settings.nowMs });
-      const counterplay = this.getRiftCounterplaySnapshot();
+    getRiftSnapshot() {
+      this.state.rift = createRiftState(this.state.rift);
       if (CREATE_RIFT_SNAPSHOT) {
         const mutationIds = this.getRiftMutationIds();
-        return Object.assign(CREATE_RIFT_SNAPSHOT(this.state.rift, mutationIds, {
-          data: Data,
-          counterplayIds: counterplay.activeIds,
-          nowMs: settings.nowMs
-        }), { counterplay });
+        return CREATE_RIFT_SNAPSHOT(this.state.rift, mutationIds, { data: Data });
       }
       const tier = Math.max(1, Number(this.state.rift.tier || 1));
-      const mutationIds = this.getRiftMutationIds();
       return {
         tier,
         bestTier: Math.max(tier, Number(this.state.rift.bestTier || tier)),
         score: Math.max(0, Number(this.state.rift.score || 0)),
         nextTierScore: Math.max(500, tier * 500),
-        mutationIds,
-        mutations: mutationIds.map((id) => getById(Data.MUTATIONS || [], id)).filter(Boolean),
-        runtimeEffects: this.getRiftRuntimeEffects(),
-        counterplay
+        mutationIds: this.getRiftMutationIds(),
+        mutations: this.getRiftMutationIds().map((id) => getById(Data.MUTATIONS || [], id)).filter(Boolean)
       };
     }
 
@@ -21474,7 +20617,6 @@
         });
       }
       if (!modifier) return false;
-      if (modifier.unlockSource === 'rift') return false;
       const player = this.state.player || {};
       if (player.level < Number(modifier.unlockLevel || 1)) return false;
       const skill = getSkillDefinitionById(modifier.skillId);
@@ -21514,79 +20656,6 @@
       });
       this.state.skillModifiers.unlockedModifierIds = Array.from(unlocked);
       return this.state.skillModifiers.unlockedModifierIds.slice();
-    }
-
-    getSkillModifierActionOptions() {
-      const map = getMapDefinitionById(this.state.mapId);
-      return {
-        data: Data,
-        player: this.state.player || {},
-        materials: this.state.materials || {},
-        safeZone: !!(map && map.safeZone),
-        riftActive: !!(this.state.rift && this.state.rift.active),
-        getSkillRank: (skillId) => getRank(this.state, skillId)
-      };
-    }
-
-    unlockSkillModifier(modifierId) {
-      const modifier = getById(Data.SKILL_MODIFIERS || [], modifierId);
-      if (!modifier) {
-        this.toast('That Rift Imprint is unavailable.');
-        return false;
-      }
-      const current = this.ensureSkillModifierState();
-      const actionOptions = this.getSkillModifierActionOptions();
-      const plan = CREATE_SKILL_MODIFIER_UNLOCK_PLAN
-        ? CREATE_SKILL_MODIFIER_UNLOCK_PLAN(modifier, current, this.state.player || {}, actionOptions)
-        : null;
-      if (!plan || !plan.ok) {
-        this.toast(plan && plan.message || 'That Rift Imprint cannot be shaped here.');
-        return false;
-      }
-      const materialId = normalizeId(plan.cost && plan.cost.materialId);
-      const amount = Math.max(0, Math.floor(Number(plan.cost && plan.cost.amount || 0) || 0));
-      const before = Math.max(0, Math.floor(Number(this.state.materials && this.state.materials[materialId] || 0) || 0));
-      if (!materialId || amount <= 0 || before < amount) {
-        this.toast(`Requires ${amount || 24} Rift Splinters.`);
-        return false;
-      }
-      this.state.materials[materialId] = before - amount;
-      current.unlockedModifierIds = Array.from(new Set((current.unlockedModifierIds || []).concat(modifier.id)));
-      current.activeBySkillId[modifier.skillId] = modifier.id;
-      this.skillModifierSnapshotCache = null;
-      this.toast(`${modifier.name} shaped and equipped.`, { noEmit: true });
-      this.emitUiChange({
-        domains: ['hud', 'skills', 'inventory', 'guide'],
-        reason: 'riftImprintUnlock',
-        persist: true
-      });
-      return true;
-    }
-
-    selectSkillModifier(modifierId) {
-      const modifier = getById(Data.SKILL_MODIFIERS || [], modifierId);
-      if (!modifier) {
-        this.toast('That skill modifier is unavailable.');
-        return false;
-      }
-      const current = this.ensureSkillModifierState();
-      const unlockedIds = this.getUnlockedSkillModifierIds();
-      const plan = CREATE_SKILL_MODIFIER_SELECTION_PLAN
-        ? CREATE_SKILL_MODIFIER_SELECTION_PLAN(modifier, current, this.state.player || {}, unlockedIds, this.getSkillModifierActionOptions())
-        : null;
-      if (!plan || !plan.ok) {
-        this.toast(plan && plan.message || 'That skill modifier cannot be equipped here.');
-        return false;
-      }
-      current.activeBySkillId[modifier.skillId] = modifier.id;
-      this.skillModifierSnapshotCache = null;
-      this.toast(`${modifier.name} equipped.`, { noEmit: true });
-      this.emitUiChange({
-        domains: ['hud', 'skills', 'guide'],
-        reason: 'skillModifierSelect',
-        persist: true
-      });
-      return true;
     }
 
     getSkillModifierForSkill(skill) {
@@ -21667,9 +20736,6 @@
           {
             data: Data,
             skillIds,
-            materials: this.state.materials || {},
-            safeZone: !!(getMapDefinitionById(this.state.mapId) && getMapDefinitionById(this.state.mapId).safeZone),
-            riftActive: !!(this.state.rift && this.state.rift.active),
             getSkillRank: (skillId) => getRank(this.state, skillId)
           }
         );
@@ -21701,7 +20767,7 @@
         return cache.value;
       }
       if (CREATE_SKILL_MODIFIER_SNAPSHOT) {
-        const value = CREATE_SKILL_MODIFIER_SNAPSHOT(this.state.skillModifiers, unlockedIds, this.getSkillModifierActionOptions());
+        const value = CREATE_SKILL_MODIFIER_SNAPSHOT(this.state.skillModifiers, unlockedIds, { data: Data });
         this.skillModifierSnapshotCache = { source, length: source.length, key: cacheKey, value };
         return value;
       }
@@ -22728,11 +21794,7 @@
     shouldDeferPassiveOffscreenEnemyUpdate(enemy, index, time, viewBox, player, stride) {
       const updateStride = Math.max(1, Math.floor(Number(stride || 1) || 1));
       if (updateStride <= 1 || !enemy || enemy.hp <= 0 || !enemy.data) return false;
-      if (enemy.data.behavior === 'boss' ||
-        enemy.state === 'charging' ||
-        enemy.state === 'attackRecover' ||
-        enemy.pendingAttack ||
-        enemy.climbing) return false;
+      if (enemy.data.behavior === 'boss' || enemy.state === 'charging' || enemy.climbing) return false;
       if (!enemy.grounded && enemy.data.behavior !== 'flyer' && enemy.data.behavior !== 'turret') return false;
       const now = Number(time || nowSeconds());
       if (Number(enemy.aggroUntil || 0) > now || Number(enemy.hp || 0) < Number(enemy.maxHp || enemy.hp || 0)) return false;
@@ -25118,9 +24180,8 @@
       return value;
     }
 
-    getCashShopState(options) {
+    getCashShopState() {
       this.ensureRuntimeState();
-      this.state.cashShop = syncCashShopPurchaseWeek(this.state.cashShop, options);
       return this.state.cashShop;
     }
 
@@ -25129,7 +24190,11 @@
       if (GET_CASH_SHOP_PURCHASE_COUNT) {
         return GET_CASH_SHOP_PURCHASE_COUNT(itemId, shop);
       }
-      syncCashShopPurchaseWeek(shop);
+      const currentWeekId = getCashShopWeekId();
+      if (Number(shop.purchaseWeekId || 0) !== currentWeekId) {
+        shop.purchaseWeekId = currentWeekId;
+        shop.purchaseCountsByWeek = {};
+      }
       const id = normalizeId(itemId);
       return id ? Math.max(0, Math.floor(Number(shop.purchaseCountsByWeek[id] || 0) || 0)) : 0;
     }
@@ -25149,7 +24214,6 @@
         Data.CASH_SHOP_ITEMS || [],
         (Data.CASH_SHOP_ITEMS || []).length,
         Math.max(0, Math.floor(Number(shop.starTokens || 0) || 0)),
-        Math.floor(Number(shop.purchaseWeekSchema || 0) || 0),
         Math.floor(Number(shop.purchaseWeekId || 0) || 0),
         countKey,
         purchased,
@@ -25157,9 +24221,13 @@
       ];
     }
 
-    getCashShopSnapshot(options) {
-      const settings = options || {};
-      const shop = this.getCashShopState(settings);
+    getCashShopSnapshot() {
+      const shop = this.getCashShopState();
+      const currentWeekId = getCashShopWeekId();
+      if (Number(shop.purchaseWeekId || 0) !== currentWeekId) {
+        shop.purchaseWeekId = currentWeekId;
+        shop.purchaseCountsByWeek = {};
+      }
       const context = { cashShop: shop, cosmetics: this.state.cosmetics };
       const cosmeticSnapshotKey = this.getCosmeticSnapshotCacheKey(context.cosmetics);
       const cacheKey = this.getCashShopSnapshotCacheKey(shop, context.cosmetics, cosmeticSnapshotKey);
@@ -25175,7 +24243,7 @@
       }
       const cosmetics = this.getCosmeticSnapshot(context);
       const value = CREATE_CASH_SHOP_SNAPSHOT
-        ? CREATE_CASH_SHOP_SNAPSHOT(shop, cosmetics, { data: Data, nowMs: settings.nowMs })
+        ? CREATE_CASH_SHOP_SNAPSHOT(shop, cosmetics, { data: Data })
         : (() => {
             const cosmeticById = cosmetics.cosmetics.reduce((map, cosmetic) => {
               map[cosmetic.id] = cosmetic;
@@ -25286,127 +24354,28 @@
       return true;
     }
 
-    getSeasonState(options) {
+    getSeasonState() {
       this.ensureRuntimeState();
-      this.state.season = syncSeasonState(this.state.season, options);
       return this.state.season;
     }
 
-    getActiveSeasonData(seasonState) {
-      const state = seasonState && typeof seasonState === 'object' ? seasonState : this.state.season;
+    getActiveSeasonData() {
       if (GET_ACTIVE_SEASON_DATA) {
-        return GET_ACTIVE_SEASON_DATA(state, { data: Data });
+        return GET_ACTIVE_SEASON_DATA(this.state.season, { data: Data });
       }
-      const season = state && state.activeSeasonId
-        ? getById(Data.SEASONS || [], state.activeSeasonId)
+      const season = this.state.season && this.state.season.activeSeasonId
+        ? getById(Data.SEASONS || [], this.state.season.activeSeasonId)
         : null;
       return season || getById(Data.SEASONS || [], getDefaultSeasonId());
     }
 
-    getSeasonDirectivesForSeason(season) {
-      const seasonId = normalizeId(
-        typeof season === 'string'
-          ? season
-          : season && season.id || this.state.season && this.state.season.activeSeasonId
-      );
-      if (!seasonId) return [];
-      return (Data.FRACTURE_DIRECTIVES || []).filter((directive) =>
-        normalizeId(directive && directive.seasonId) === seasonId);
-    }
-
-    getSeasonDirectiveContext(state, season) {
-      const navigationContext = {
-        routeState: this.getRouteState(),
-        dungeons: this.getDungeonState()
-      };
-      const activeSeason = season || this.getActiveSeasonData(state);
-      const directives = this.getSeasonDirectivesForSeason(activeSeason);
-      const requiredMapIds = Array.from(new Set(directives
-        .flatMap((directive) => directive && directive.requiredMapIds || [])
-        .map(normalizeId)
-        .filter(Boolean)));
-      const requiredDungeonIds = Array.from(new Set(directives
-        .flatMap((directive) => directive && directive.requiredDungeonIds || [])
-        .map(normalizeId)
-        .filter(Boolean)));
-      return {
-        seasonId: normalizeId(activeSeason && activeSeason.id),
-        player: this.state.player,
-        playerLevel: Math.max(0, Math.floor(Number(this.state.player && this.state.player.level || 0) || 0)),
-        unlockedMapIds: requiredMapIds.filter((mapId) =>
-          !this.getMapTravelBlockReason(mapId, navigationContext) || mapId === this.state.mapId),
-        unlockedDungeonIds: requiredDungeonIds.filter((dungeonId) => {
-          const dungeon = getById(Data.DUNGEONS || [], dungeonId);
-          return !!dungeon && !this.getDungeonStartBlockReason(dungeon);
-        })
-      };
-    }
-
-    hasLegacySeasonObjectiveProgress(state, season) {
-      const source = state && typeof state === 'object' ? state : {};
-      const values = source.objectiveValues && typeof source.objectiveValues === 'object'
-        ? source.objectiveValues
-        : {};
-      return (season && season.objectives || []).some((objective, index) =>
-        Math.max(0, Number(values[getObjectiveKey(objective, index)] || 0)) > 0);
-    }
-
-    shouldRequireSeasonDirectiveSelection(state, season) {
-      if (!this.getSeasonDirectivesForSeason(season).length) return false;
-      if (normalizeId(state && state.selectedDirectiveId)) return true;
-      return !this.hasLegacySeasonObjectiveProgress(state, season);
-    }
-
-    getSeasonOperationOptions(state, season, options) {
-      const settings = options || {};
-      return Object.assign({}, settings, this.getSeasonDirectiveContext(state, season), {
-        data: Data,
-        nowMs: settings.nowMs,
-        requireDirectiveSelection: this.shouldRequireSeasonDirectiveSelection(state, season),
-        createObjectiveStatuses: (entry, objectives) => getObjectiveStatuses(entry, objectives)
-      });
-    }
-
-    selectSeasonDirective(directiveId, options) {
-      const settings = options || {};
-      const state = this.getSeasonState(settings);
-      const season = this.getActiveSeasonData(state);
-      if (!SELECT_SEASON_DIRECTIVE || !season) {
-        this.toast('Fracture Directives are unavailable.');
-        return false;
-      }
-      const result = SELECT_SEASON_DIRECTIVE(
-        state,
-        season,
-        directiveId,
-        this.getSeasonOperationOptions(state, season, settings)
-      );
-      if (!result || !result.ok) {
-        this.toast(result && result.lockedReason || 'That directive cannot be selected.');
-        return false;
-      }
-      this.state.season = result.state || state;
-      if (!result.changed) return true;
-      const directiveName = result.directive && result.directive.name || 'Fracture Directive';
-      this.toast(`${directiveName} accepted. Its operation route is now marked on the Atlas.`, { noEmit: true });
-      this.emitUiChange({
-        domains: ['session', 'world', 'hud', 'shop'],
-        reason: 'seasonDirectiveSelect',
-        persist: true
-      });
-      return true;
-    }
-
-    getSeasonSnapshot(options) {
-      const settings = options || {};
-      const state = this.getSeasonState(settings);
-      const season = this.getActiveSeasonData(state);
+    getSeasonSnapshot() {
+      const state = this.getSeasonState();
+      const season = this.getActiveSeasonData();
       if (CREATE_SEASON_SNAPSHOT) {
-        return CREATE_SEASON_SNAPSHOT(
-          state,
-          season,
-          this.getSeasonOperationOptions(state, season, settings)
-        );
+        return CREATE_SEASON_SNAPSHOT(state, season, {
+          createObjectiveStatuses: (entry, objectives) => getObjectiveStatuses(entry, objectives)
+        });
       }
       if (!season) return { activeSeason: null, objectives: [], complete: false, rewardClaimed: false };
       const entry = { objectiveValues: state.objectiveValues || {} };
@@ -25422,21 +24391,15 @@
     recordSeasonEvent(type, payload, options) {
       const settings = options || {};
       if (!this.state.player.classId) return false;
-      const state = syncSeasonState(settings.seasonState || this.getSeasonState(settings), settings);
-      if (!settings.seasonState) this.state.season = state;
-      const season = this.getActiveSeasonData(state);
+      const state = settings.seasonState || this.getSeasonState();
+      const season = this.getActiveSeasonData();
       if (CREATE_SEASON_EVENT_PLAN) {
-        const operationOptions = this.getSeasonOperationOptions(state, season, settings);
-        const plan = CREATE_SEASON_EVENT_PLAN(state, season, type, payload, Object.assign(
-          {},
-          operationOptions,
-          {
-            getSeasonObjectivesByType,
-            matchObjective: objectiveMatchesEvent,
-            getObjectiveKey,
-            getObjectiveGoal
-          }
-        ));
+        const plan = CREATE_SEASON_EVENT_PLAN(state, season, type, payload, {
+          getSeasonObjectivesByType,
+          matchObjective: objectiveMatchesEvent,
+          getObjectiveKey,
+          getObjectiveGoal
+        });
         if (!plan.changed) return false;
         (plan.changes || []).forEach((change) => {
           state.objectiveValues[change.key] = change.next;
@@ -25444,7 +24407,7 @@
         if (!settings.silent) this.emitChange();
         return true;
       }
-      if (!season || Array.isArray(state.claimedCycleIds) && state.claimedCycleIds.includes(state.cycleId)) return false;
+      if (!season || state.claimedRewardIds.includes(season.id) && !(season.objectives || []).length) return false;
       const objectives = getSeasonObjectivesByType(season, type);
       if (!objectives.length) return false;
       let changed = false;
@@ -25463,57 +24426,21 @@
       return changed;
     }
 
-    claimSeasonReward(options) {
-      const settings = options || {};
-      const state = this.getSeasonState(settings);
-      const season = this.getActiveSeasonData(state);
-      const snapshot = this.getSeasonSnapshot(settings);
+    claimSeasonReward() {
+      const state = this.getSeasonState();
+      const season = this.getActiveSeasonData();
+      const snapshot = this.getSeasonSnapshot();
       if (!season || !snapshot.complete) {
         this.toast('Season objectives are not complete.');
         return false;
       }
-      if (snapshot.rewardClaimed) {
-        this.toast('This weekly reward is already claimed.');
+      if (state.claimedRewardIds.includes(season.id)) {
+        this.toast('Season reward is already claimed.');
         return false;
       }
-      state.rewardCountsBySeason = state.rewardCountsBySeason && typeof state.rewardCountsBySeason === 'object'
-        ? state.rewardCountsBySeason
-        : {};
-      const firstCompletion = Math.max(0, Number(state.rewardCountsBySeason[season.id] || 0)) === 0;
-      const stabilizationPlan = CREATE_SEASON_STABILIZATION_PLAN
-        ? CREATE_SEASON_STABILIZATION_PLAN(
-          state,
-          season,
-          this.getSeasonOperationOptions(state, season, settings)
-        )
-        : null;
-      const stabilizationChanged = !!(
-        stabilizationPlan
-        && stabilizationPlan.changed
-        && APPLY_SEASON_STABILIZATION_PLAN
-        && APPLY_SEASON_STABILIZATION_PLAN(state, stabilizationPlan)
-      );
-      if (!Array.isArray(state.claimedCycleIds)) state.claimedCycleIds = [];
-      state.claimedCycleIds.push(state.cycleId);
-      state.claimedCycleIds = Array.from(new Set(state.claimedCycleIds)).slice(-104);
-      if (!Array.isArray(state.claimedRewardIds)) state.claimedRewardIds = [];
-      if (!state.claimedRewardIds.includes(season.id)) state.claimedRewardIds.push(season.id);
-      state.rewardCountsBySeason[season.id] = Math.max(0, Math.floor(Number(state.rewardCountsBySeason[season.id] || 0) || 0)) + 1;
-      state.totalRewardsClaimed = Math.max(0, Math.floor(Number(state.totalRewardsClaimed || 0) || 0)) + 1;
-      state.lastRewardClaimedAt = Number.isFinite(Number(settings.nowMs)) ? Number(settings.nowMs) : Date.now();
+      state.claimedRewardIds.push(season.id);
       this.awardProgressReward(season.rewards);
-      if (firstCompletion && season.firstCompletionRewards) this.awardProgressReward(season.firstCompletionRewards);
-      const prestigeMessage = firstCompletion && season.firstCompletionRewards
-        ? ' First-clear prestige unlocked.'
-        : '';
-      const stabilizationMessage = stabilizationChanged
-        ? ` Atlas stabilization seal ${stabilizationPlan.next}/${stabilizationPlan.maxSeals} recorded.`
-        : stabilizationPlan && stabilizationPlan.reason === 'stabilizationCapped'
-          ? ` Atlas stabilization remains complete at ${stabilizationPlan.maxSeals}/${stabilizationPlan.maxSeals} seals.`
-          : '';
-      this.toast(
-        `${season.name} weekly reward claimed.${prestigeMessage}${stabilizationMessage}`
-      );
+      this.toast(`${season.name} reward claimed.`);
       return true;
     }
 
@@ -26168,35 +25095,6 @@
       return true;
     }
 
-    getAvailableQuestClaimHandoff(quest) {
-      if (!quest) return null;
-      const candidateIds = [];
-      if (quest.id === 'first_steps') candidateIds.push('greenroot_samples');
-      if (quest.nextQuestId) candidateIds.push(quest.nextQuestId);
-      (Data.QUESTS || []).forEach((candidate) => {
-        if (!candidate || candidate.id === quest.id) return;
-        if (this.getQuestRequiredIds(candidate).includes(quest.id)) candidateIds.push(candidate.id);
-      });
-      const seen = new Set();
-      const candidates = candidateIds.map(normalizeId).filter((questId) => {
-        if (!questId || seen.has(questId)) return false;
-        seen.add(questId);
-        return true;
-      }).map((questId) => {
-        const candidate = getById(Data.QUESTS || [], questId);
-        const availability = candidate ? this.getQuestAvailability(candidate.id) : null;
-        return candidate && availability && availability.available && availability.npcId && availability.mapId
-          ? { quest: candidate, availability }
-          : null;
-      }).filter(Boolean);
-      if (!candidates.length) return null;
-      if (quest.id === 'first_steps') return candidates[0];
-      const nextQuestId = normalizeId(quest.nextQuestId);
-      const availableNextQuest = candidates.find((candidate) => candidate.quest.id === nextQuestId);
-      if (availableNextQuest) return availableNextQuest;
-      return candidates.find((candidate) => candidate.availability.mapId === this.state.mapId) || candidates[0];
-    }
-
     claimQuestReward(questId) {
       const quest = getById(Data.QUESTS || [], questId);
       const progress = this.getProgressState();
@@ -26217,14 +25115,9 @@
       this.awardProgressReward(rewards);
       this.recordProgressEvent('questClaim', { questId: quest.id, chainId: quest.chainId || '' }, { audio: false, noEmit: true });
       this.showRewardPopup(`${quest.title} Rewards`, rewards);
-      const handoff = this.getAvailableQuestClaimHandoff(quest);
-      if (handoff) {
-        this.setQuestGuideTarget('quest', handoff.quest.id);
-      } else if (quest.id === 'first_steps') {
-        const mapHunt = this.getMapKillQuestSnapshot('greenrootMeadow');
-        if (mapHunt && mapHunt.npcId) this.setQuestGuideTarget('mapKill', 'greenrootMeadow');
-      }
-      this.toast(`${quest.title} reward claimed.${handoff ? ` ${handoff.quest.title} is available from ${handoff.availability.npcName}.` : ''}`);
+      const nextQuest = quest.nextQuestId ? getById(Data.QUESTS || [], quest.nextQuestId) : null;
+      const nextOwner = nextQuest ? this.getQuestOwnerForQuest(nextQuest.id) : null;
+      this.toast(`${quest.title} reward claimed.${nextQuest && nextOwner ? ` ${nextQuest.title} is available from ${nextOwner.npcName}.` : ''}`);
       return true;
     }
 
@@ -26402,8 +25295,7 @@
           const toastKey = `quest:${quest.id}:${objective.id || 'multiple'}`;
           this.toastProgressUpdate(toastKey, progressToast, change.value, change.goal, {
             bucketCount: 4,
-            cooldownMs: 8000,
-            noEmit: !!settings.noEmit
+            cooldownMs: 8000
           });
         }
         if (this.entryObjectivesComplete('quest', quest, { progress })) this.completeQuest(quest);
@@ -26528,9 +25420,6 @@
     enterClassTrialInstance(trial, options) {
       if (!trial) return false;
       const settings = options || {};
-      if (normalizeId(this.state.mapId) === 'endlessRift') {
-        this.finishRiftOperation('exit', { silent: settings.silent });
-      }
       const existing = this.getTrialInstanceState();
       const progress = this.getProgressState();
       progress.trialInstance = createTrialInstanceState({
@@ -26624,11 +25513,6 @@
         return false;
       }
       if (prompt.questType === 'mapKill') return this.startMapKillQuest(prompt.mapId);
-      const availability = this.getQuestAvailability(prompt.questId);
-      if (!availability.available) {
-        this.toast(availability.lockedReason || `${prompt.title || 'That quest'} is not available yet.`);
-        return false;
-      }
       const started = this.startQuest(prompt.questId);
       if (started && prompt.questId === 'trial_ready') this.startAdvancementTrialFromQuest();
       return started;
@@ -26703,7 +25587,6 @@
           }
           return changed;
         }
-        this.resetBossSpatialResponses();
         this.enemies = [];
         this.projectiles = [];
         this.effects = [];
@@ -26839,7 +25722,6 @@
 
     updatePlayerClimbing(delta, stats, direction, climbable) {
       const player = this.state.player;
-      this.cancelPendingBasicAttack('climb');
       const wasClimbing = !!player.climbing;
       const current = getCurrentClimbableForMovement(climbable, this.runtime.climbables, player.climbableId);
       if (!current) {
@@ -26853,7 +25735,6 @@
         climbLockDuration: 0.18
       });
       if (climbJumpExit) {
-        this.consumeJumpInput();
         player.climbing = climbJumpExit.climbing;
         player.climbMoving = climbJumpExit.climbMoving;
         player.climbableId = climbJumpExit.climbableId;
@@ -26896,17 +25777,6 @@
 
     updatePlayer(delta) {
       const player = this.state.player;
-      const movementTime = nowSeconds();
-      const feel = this.ensurePlayerFeelRuntime();
-      const wasGrounded = !!player.grounded;
-      if (wasGrounded) feel.coyoteUntil = movementTime + JUMP_COYOTE_SECONDS;
-      const jumpRequested = Number(feel.jumpBufferUntil || 0) >= movementTime;
-      const counterplayMovementStart = {
-        x: Number(player.x || 0),
-        y: Number(player.y || 0),
-        platformIndex: Number.isFinite(Number(player.groundedPlatformIndex)) ? Number(player.groundedPlatformIndex) : -1
-      };
-      const counterplayMovementTime = this.getRiftCounterplayNow();
       const stats = this.getCachedStatVitals() || this.getStats();
 	      const movementProfile = this.getCurrentMapMovementProfile();
 	      const movementIntent = getMovementInputIntentForMovement(this.input);
@@ -26925,10 +25795,7 @@
         : false;
       const climbActivation = getClimbActivationPlanForMovement(player, movementLocked, mobility, climbable, verticalIntent, climbMountReady, nowSeconds());
       if (climbActivation.shouldUpdateClimbing) {
-        if (this.updatePlayerClimbing(delta, stats, direction, climbable)) {
-          this.recordRiftCounterplayMovement(counterplayMovementStart, player, counterplayMovementTime);
-          return;
-        }
+        if (this.updatePlayerClimbing(delta, stats, direction, climbable)) return;
       }
       const climbClearState = getClimbClearStatePlanForMovement();
       player.climbing = climbClearState.climbing;
@@ -26961,19 +25828,15 @@
         player.x += horizontalMovement.xDelta;
       }
       const jumpMovement = getJumpMovementActionForMovement(player, this.input, stats, movementLocked, mobility, {
-        dropThroughVy: 90,
-        jumpRequested,
-        coyoteActive: !player.grounded && Number(feel.coyoteUntil || 0) >= movementTime
+        dropThroughVy: 90
       });
       if (jumpMovement && jumpMovement.type === 'drop-through') {
-        if (jumpMovement.consumeJumpBuffer) this.consumeJumpInput();
         this.beginDropThrough(player, LADDER_DROP_REGRAB_LOCK_SECONDS);
         player.climbLockUntil = nowSeconds() + LADDER_DROP_REGRAB_LOCK_SECONDS;
         player.dropJumpConsumed = true;
 	        player.vy = jumpMovement.vy;
 	        player.grounded = false;
 	      } else if (jumpMovement && jumpMovement.type === 'jump') {
-        if (jumpMovement.consumeJumpBuffer) this.consumeJumpInput();
 	        player.vy = jumpMovement.vy;
 	        player.grounded = false;
 	      }
@@ -26985,26 +25848,11 @@
       player.y = verticalMovement.y;
       player.grounded = verticalMovement.grounded;
       this.resolvePlatforms(player);
-      const landed = !wasGrounded && player.grounded;
-      const bufferedAtLanding = Number(feel.jumpBufferUntil || 0) >= nowSeconds();
-      if (landed && bufferedAtLanding) {
-        const landingJump = getJumpMovementActionForMovement(player, this.input, stats, movementLocked, mobility, {
-          dropThroughVy: 90,
-          jumpRequested: true,
-          coyoteActive: false
-        });
-        if (landingJump && landingJump.type === 'jump') {
-          this.consumeJumpInput();
-          player.vy = landingJump.vy;
-          player.grounded = false;
-        }
-      }
       const playerWorldClamp = getWorldXClampPlanForMovement(player, this.runtime.worldWidth);
       player.x = playerWorldClamp.x;
       this.recoverFallenBodyThroughTop(player, { kind: 'player' });
       this.updateActiveStation();
       this.updatePlayerAnimationState();
-      this.recordRiftCounterplayMovement(counterplayMovementStart, player, counterplayMovementTime);
     }
 
     getActiveMobility() {
@@ -27344,10 +26192,6 @@
         this.state.migrations.adminTemporarySpawnWaveReset = true;
       }
       this.state.progress = createProgressState(this.state.progress);
-      const normalizedActiveQuestId = normalizeUnderLevelActiveQuest(this.state.progress, player);
-      if (normalizedActiveQuestId) {
-        this.state.migrations.questRequiredLevelGate = true;
-      }
       this.state.routeProgress = createRouteProgressState(this.state.routeProgress);
       this.state.mapKillQuests = createMapKillQuestState(this.state.mapKillQuests);
       this.state.mapAnalytics = createMapAnalyticsState(this.state.mapAnalytics);
@@ -29131,9 +27975,6 @@
         ? Math.max(180, Number(spawnPoint.y || 300) - 140 + Math.random() * 80)
         : platform ? surfaceY - body.h : 320;
       const mapType = this.getMapModifierType(map);
-      const riftRuntimeEffects = mapType === 'rift'
-        ? this.getActiveRiftRuntimeEffects()
-        : { tier: 0, mutationIds: [], enemyHealthScale: 1, enemyDamageScale: 1 };
       const affixChance = Math.max(0, 0.035 + this.getMapModifierBonus('eliteChanceBonus') + (mapType === 'rift' ? 0.05 : 0));
       const nativeElite = enemyData.id === 'crackedMimic' || enemyData.behavior === 'elite' || enemyData.behavior === 'boss';
       const allowRandomAffixes = !(map && map.safeZone);
@@ -29152,9 +27993,9 @@
         return scale * Number(affix && affix[key] || 1);
       }, 1);
       const baseHp = getMonsterHp(level, enemyData);
-      const hp = Math.max(1, Math.round(baseHp * this.getMapModifierScale('enemyHpScale') * affixScale('hpScale') * riftRuntimeEffects.enemyHealthScale));
+      const hp = Math.max(1, Math.round(baseHp * this.getMapModifierScale('enemyHpScale') * affixScale('hpScale')));
       const defense = Math.max(0, Math.round(getMonsterDefense(level, enemyData) * this.getMapModifierScale('enemyDefenseScale') * affixScale('defenseScale')));
-      const damage = Math.max(1, Math.round(getMonsterDamage(level, enemyData) * this.getMapModifierScale('enemyDamageScale') * affixScale('damageScale') * riftRuntimeEffects.enemyDamageScale));
+      const damage = Math.max(1, Math.round(getMonsterDamage(level, enemyData) * this.getMapModifierScale('enemyDamageScale') * affixScale('damageScale')));
       const speedScale = this.getMapModifierScale('enemySpeedScale') * affixScale('speedScale');
       const attackCooldownScale = affixScale('attackCooldownScale');
       const weakPoint = affixIds.reduce((duration, affixId) => {
@@ -29193,16 +28034,10 @@
         maxHp: hp,
         defense,
         damage,
-        riftTier: Math.max(0, Number(riftRuntimeEffects.tier || 0)),
-        riftMutationIds: (riftRuntimeEffects.mutationIds || []).slice(),
-        riftAppliedEnemyHealthScale: Math.max(0.01, Number(riftRuntimeEffects.enemyHealthScale || 1)),
-        riftAppliedEnemyDamageScale: Math.max(0.01, Number(riftRuntimeEffects.enemyDamageScale || 1)),
         speedScale,
         attackCd: (0.8 + Math.random()) * attackCooldownScale,
         telegraph: 0,
         state: 'idle',
-        pendingAttack: null,
-        attackRecovery: 0,
         chargeAttemptUntil: 0,
         chargeAttemptStartedAt: 0,
         marked: 0,
@@ -30302,194 +29137,17 @@
       };
     }
 
-    wakeEnemyOnContact(enemy, time, characters) {
-      if (!enemy || enemy.hp <= 0 || enemy.aggroTargetKind) return false;
-      const playerTarget = this.getCombatCharacterByTarget('player', 'player', characters);
-      const player = playerTarget && playerTarget.actor;
-      if (!player || !sameCombatLane(player, enemy, 34)) return false;
+    applyEnemyContactDamage(enemy, time) {
+      const player = this.state && this.state.player;
+      if (!enemy || !player || enemy.hp <= 0 || Number(enemy.attackCd || 0) > 0) return false;
+      const now = Number(time || nowSeconds());
+      if (now < Number(player.invulnerableUntil || 0)) return false;
+      if (!sameCombatLane(player, enemy, 34)) return false;
       const contactBox = this.getEnemyContactHitbox(enemy);
       if (!contactBox || !rectsOverlap(this.playerHitbox(), contactBox)) return false;
-      this.setEnemyAggro(enemy, playerTarget, 'contact', ENEMY_ATTACK_AGGRO_SECONDS, Number(time || nowSeconds()));
+      enemy.attackCd = Math.max(Number(enemy.attackCd || 0), ENEMY_CONTACT_DAMAGE_COOLDOWN_SECONDS);
+      this.damagePlayer(enemy.damage, enemy.name, { attacker: enemy });
       return true;
-    }
-
-    getEnemyPendingAttackTarget(enemy, pendingAttack, characters) {
-      const pending = pendingAttack || enemy && enemy.pendingAttack;
-      if (!enemy || !pending) return null;
-      const target = this.getCombatCharacterByTarget(pending.targetKind, pending.targetId, characters);
-      const actor = target && target.actor;
-      if (!actor || (target.kind === 'party' && Number(actor.hp || 0) <= 0)) return null;
-      const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-      const enemyCenterY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
-      const targetCenterX = Number(actor.x || 0) + Number(actor.w || 0) / 2;
-      const targetCenterY = Number(actor.y || 0) + Number(actor.h || 0) / 2;
-      const dx = targetCenterX - enemyCenterX;
-      const dy = targetCenterY - enemyCenterY;
-      if (dx * dx + dy * dy > ENEMY_AGGRO_LEASH_RANGE * ENEMY_AGGRO_LEASH_RANGE) return null;
-      return target;
-    }
-
-    pushEnemyAttackTelegraph(enemy, pendingAttack) {
-      if (!enemy || !pendingAttack) return null;
-      const duration = Math.max(0.01, Number(pendingAttack.windup || 0.01));
-      const facing = Number(pendingAttack.facing || enemy.facing || 1) >= 0 ? 1 : -1;
-      const melee = pendingAttack.kind === 'melee';
-      const width = melee ? Math.max(72, Number(enemy.w || 0) + 38) : Math.max(46, Number(enemy.w || 0) + 24);
-      const height = melee ? 14 : 9;
-      const effect = {
-        type: 'telegraph',
-        x: melee
-          ? (facing > 0 ? Number(enemy.x || 0) + Number(enemy.w || 0) - 8 : Number(enemy.x || 0) - width + 8)
-          : Number(enemy.x || 0) + Number(enemy.w || 0) / 2 - width / 2,
-        y: melee
-          ? Number(enemy.y || 0) + Number(enemy.h || 0) - height
-          : Number(enemy.y || 0) - 13,
-        w: width,
-        h: height,
-        ttl: duration,
-        duration,
-        color: melee ? '#ef5b4c' : '#ffe16a',
-        telegraphKind: melee ? 'melee' : 'projectile',
-        sourceEnemyUid: String(enemy.uid || '')
-      };
-      this.effects.push(effect);
-      return effect;
-    }
-
-    clearEnemyAttackTelegraphs(enemy) {
-      const enemyUid = String(enemy && enemy.uid || '');
-      if (!enemyUid || !Array.isArray(this.effects) || !this.effects.length) return 0;
-      const before = this.effects.length;
-      this.effects = this.effects.filter((effect) =>
-        !(effect && effect.type === 'telegraph' && String(effect.sourceEnemyUid || '') === enemyUid));
-      return before - this.effects.length;
-    }
-
-    beginEnemyAttackWindup(enemy, targetCharacter, options) {
-      const settings = options || {};
-      const target = targetCharacter && targetCharacter.actor;
-      if (!enemy || enemy.hp <= 0 || !target || enemy.pendingAttack) return false;
-      const kind = settings.kind === 'projectile' ? 'projectile' : 'melee';
-      const windup = Math.max(0.01, Number(settings.windup || (kind === 'projectile'
-        ? ENEMY_PROJECTILE_WINDUP_SECONDS
-        : ENEMY_MELEE_WINDUP_SECONDS)));
-      const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-      const targetCenterX = Number(target.x || 0) + Number(target.w || 0) / 2;
-      const facing = targetCenterX >= enemyCenterX ? 1 : -1;
-      enemy.facing = facing;
-      enemy.pendingAttack = {
-        kind,
-        projectileType: kind === 'projectile' ? String(settings.projectileType || 'thorn') : '',
-        targetKind: targetCharacter.kind === 'party' ? 'party' : 'player',
-        targetId: normalizeId(targetCharacter.id || (targetCharacter.kind === 'party' ? '' : 'player')),
-        facing,
-        windup
-      };
-      enemy.telegraph = windup;
-      enemy.attackCd = Math.max(Number(enemy.attackCd || 0), windup);
-      enemy.attackRecovery = 0;
-      enemy.state = kind === 'projectile' ? 'projectileWindup' : 'meleeWindup';
-      enemy.vx = Number(enemy.vx || 0) * 0.2;
-      this.setActorAnimation(enemy, 'telegraph', windup, { force: true, lock: true, loop: false });
-      this.pushEnemyAttackTelegraph(enemy, enemy.pendingAttack);
-      return true;
-    }
-
-    cancelEnemyPendingAttack(enemy, options) {
-      if (!enemy || !enemy.pendingAttack) return false;
-      const settings = options || {};
-      this.clearEnemyAttackTelegraphs(enemy);
-      enemy.pendingAttack = null;
-      enemy.telegraph = 0;
-      enemy.attackRecovery = 0;
-      enemy.state = 'idle';
-      enemy.vx = Number(enemy.vx || 0) * 0.25;
-      enemy.attackCd = Math.max(
-        Number(enemy.attackCd || 0),
-        Number(enemy.staggered || 0) + Number(settings.recovery || ENEMY_ATTACK_CANCEL_RECOVERY_SECONDS)
-      );
-      if (!settings.preserveAnimation && enemy.hp > 0) {
-        enemy.actionLockUntil = 0;
-        this.setActorAnimation(enemy, 'idle', 0, { force: true, loop: true });
-      }
-      return true;
-    }
-
-    isEnemyMeleeImpactTarget(enemy, pendingAttack, targetCharacter) {
-      const target = targetCharacter && targetCharacter.actor;
-      if (!enemy || !pendingAttack || !target || !sameCombatLane(target, enemy, 38)) return false;
-      const facing = Number(pendingAttack.facing || enemy.facing || 1) >= 0 ? 1 : -1;
-      const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-      const targetCenterX = Number(target.x || 0) + Number(target.w || 0) / 2;
-      const forwardDistance = (targetCenterX - enemyCenterX) * facing;
-      const reach = Math.max(64, Number(enemy.w || 0) * 0.72 + Number(target.w || 0) * 0.55);
-      return forwardDistance >= -10 && forwardDistance <= reach;
-    }
-
-    commitEnemyMeleeAttack(enemy, pendingAttack, targetCharacter) {
-      if (!enemy || !pendingAttack) return false;
-      this.clearEnemyAttackTelegraphs(enemy);
-      enemy.pendingAttack = null;
-      enemy.telegraph = 0;
-      enemy.state = 'attackRecover';
-      enemy.attackRecovery = ENEMY_ATTACK_RECOVERY_SECONDS;
-      const completedWindup = Math.max(0, Number(pendingAttack.windup || 0));
-      enemy.attackCd = Math.max(
-        ENEMY_ATTACK_RECOVERY_SECONDS,
-        ENEMY_MELEE_CADENCE_SECONDS - completedWindup
-      );
-      enemy.facing = Number(pendingAttack.facing || enemy.facing || 1) >= 0 ? 1 : -1;
-      enemy.vx = Number(enemy.vx || 0) * 0.18;
-      this.setActorAnimation(enemy, 'attack', ENEMY_ATTACK_RECOVERY_SECONDS, { force: true, lock: true, loop: false });
-      this.effects.push({
-        type: 'slash',
-        x: enemy.x + enemy.w / 2 + enemy.facing * 28,
-        y: enemy.y + 24,
-        r: 34,
-        ttl: 0.24,
-        duration: 0.24,
-        color: '#d97845',
-        facing: enemy.facing,
-        enemyFxId: enemy.id,
-        combatFxState: 'melee'
-      });
-      const hit = this.isEnemyMeleeImpactTarget(enemy, pendingAttack, targetCharacter);
-      if (hit) this.damageCombatCharacter(targetCharacter, enemy.damage, enemy.name, { attacker: enemy });
-      enemy.lastAttackOutcome = hit ? 'hit' : 'whiff';
-      return true;
-    }
-
-    resolveEnemyPendingAttack(enemy, characters) {
-      const pending = enemy && enemy.pendingAttack;
-      if (!pending) return false;
-      if (enemy.hp <= 0 || Number(enemy.staggered || 0) > 0) {
-        this.cancelEnemyPendingAttack(enemy, { preserveAnimation: true });
-        return true;
-      }
-      const target = this.getEnemyPendingAttackTarget(enemy, pending, characters);
-      if (!target) {
-        this.cancelEnemyPendingAttack(enemy);
-        return true;
-      }
-      if (Number(enemy.telegraph || 0) > 0) {
-        enemy.vx = Number(enemy.vx || 0) * 0.55;
-        return true;
-      }
-      if (pending.kind === 'projectile') {
-        this.clearEnemyAttackTelegraphs(enemy);
-        enemy.pendingAttack = null;
-        enemy.telegraph = 0;
-        enemy.state = 'attackRecover';
-        enemy.attackRecovery = ENEMY_PROJECTILE_RECOVERY_SECONDS;
-        enemy.facing = Number(pending.facing || enemy.facing || 1) >= 0 ? 1 : -1;
-        enemy.vx = Number(enemy.vx || 0) * 0.18;
-        this.commitEnemyProjectile(enemy, pending.projectileType, target, {
-          completedWindup: pending.windup
-        });
-        enemy.lastAttackOutcome = 'released';
-        return true;
-      }
-      return this.commitEnemyMeleeAttack(enemy, pending, target);
     }
 
     beginEnemyCharge(enemy, time) {
@@ -30515,68 +29173,19 @@
       return true;
     }
 
-    beginRiftLanternProjectileWindup(enemy, targetCharacter) {
-      const target = targetCharacter && targetCharacter.actor;
-      if (!enemy || enemy.id !== 'riftLantern' || enemy.hp <= 0 || !target) return false;
-      const targetCenterX = Number(target.x || 0) + Number(target.w || 40) / 2;
-      const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
-      enemy.facing = targetCenterX >= enemyCenterX ? 1 : -1;
-      enemy.state = 'riftLanternWindup';
-      enemy.telegraph = RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS;
-      enemy.attackCd = Math.max(Number(enemy.attackCd || 0), RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS);
-      enemy.vx = Number(enemy.vx || 0) * 0.25;
-      this.setActorAnimation(enemy, 'telegraph', RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS, { force: true, lock: true, loop: false });
-      this.effects.push({
-        type: 'telegraph',
-        x: enemy.x - 10,
-        y: enemy.y - 12,
-        w: enemy.w + 20,
-        h: 8,
-        ttl: RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS,
-        duration: RIFT_LANTERN_PROJECTILE_WINDUP_SECONDS,
-        color: '#7bdff2'
-      });
-      return true;
-    }
-
-    cancelRiftLanternProjectileWindup(enemy) {
-      if (!enemy || enemy.state !== 'riftLanternWindup') return false;
-      enemy.state = 'idle';
-      enemy.telegraph = 0;
-      enemy.attackCd = Math.max(Number(enemy.attackCd || 0), 0.35);
-      return true;
-    }
-
-    resolveRiftLanternProjectileWindup(enemy, targetCharacter) {
-      if (!enemy || enemy.id !== 'riftLantern' || enemy.state !== 'riftLanternWindup' || enemy.telegraph > 0) return false;
-      const target = targetCharacter && targetCharacter.actor;
-      const targetAlive = !!target && (targetCharacter.kind !== 'party' || Number(target.hp || 0) > 0);
-      const distance = target ? Math.abs((Number(target.x || 0) + Number(target.w || 40) / 2) - (Number(enemy.x || 0) + Number(enemy.w || 0) / 2)) : Number.POSITIVE_INFINITY;
-      if (enemy.hp <= 0 || !targetAlive || distance > 680) {
-        this.cancelRiftLanternProjectileWindup(enemy);
-        return false;
-      }
-      enemy.state = 'idle';
-      enemy.telegraph = 0;
-      return this.enemyProjectile(enemy, 'firebolt', targetCharacter, { preTelegraphed: true });
-    }
-
     updateEnemies(delta) {
       const player = this.state.player;
       const currentTime = nowSeconds();
 	      const combatCharacters = this.getCombatCharacters();
 	      let burnStats = null;
 	      const enemies = this.enemies || [];
-      const runtimeAtStart = this.runtime;
       this.enemyUpdateSequence = Math.max(0, Math.floor(Number(this.enemyUpdateSequence || 0) || 0)) + 1;
       const passiveOffscreenStride = this.getPassiveOffscreenEnemyUpdateStride(enemies.length);
       const passiveOffscreenViewBox = passiveOffscreenStride > 1 ? this.getPassiveOffscreenEnemyUpdateViewBox() : null;
 	      enemies.forEach((enemy, enemyIndex) => {
-	        if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
 	        const data = enemy.data;
 	        enemy.attackCd = Math.max(0, enemy.attackCd - delta);
 	        enemy.telegraph = Math.max(0, enemy.telegraph - delta);
-          enemy.attackRecovery = Math.max(0, Number(enemy.attackRecovery || 0) - delta);
 	        enemy.marked = Math.max(0, enemy.marked - delta);
         const previousBurning = Math.max(0, Number(enemy.burning || 0));
         enemy.burning = Math.max(0, previousBurning - delta);
@@ -30585,13 +29194,10 @@
         enemy.weakPoint = Math.max(0, Number(enemy.weakPoint || 0) - delta);
         enemy.packMarked = Math.max(0, Number(enemy.packMarked || 0) - delta);
         enemy.runeLinked = Math.max(0, Number(enemy.runeLinked || 0) - delta);
-	        if (enemy.hp <= 0) {
-	          enemy.vx = 0;
-	          enemy.vy = 0;
-	          enemy.telegraph = 0;
-              enemy.pendingAttack = null;
-              enemy.attackRecovery = 0;
-	          if (enemy.state === 'riftLanternWindup') enemy.state = 'idle';
+        if (enemy.hp <= 0) {
+          enemy.vx = 0;
+          enemy.vy = 0;
+          enemy.telegraph = 0;
 	          enemy.chargeAttemptUntil = 0;
 	          enemy.chargeAttemptStartedAt = 0;
 		          this.updateEnemyAnimationState(enemy, currentTime);
@@ -30619,26 +29225,15 @@
         } else {
           enemy.vy += GRAVITY * delta;
         }
-        const pendingAttackHandled = this.resolveEnemyPendingAttack(enemy, combatCharacters);
-        const attackRecovering = !pendingAttackHandled &&
-          enemy.state === 'attackRecover' &&
-          Number(enemy.attackRecovery || 0) > 0;
-        if (!pendingAttackHandled && enemy.state === 'attackRecover' && !attackRecovering) enemy.state = 'idle';
         const targetCharacter = this.getEnemyAggroTarget(enemy, currentTime, combatCharacters);
         const targetActor = targetCharacter && targetCharacter.actor;
         const dx = targetActor ? Number(targetActor.x || 0) - enemy.x : 0;
-        if (targetActor && !pendingAttackHandled && !attackRecovering) enemy.facing = dx >= 0 ? 1 : -1;
+        if (targetActor) enemy.facing = dx >= 0 ? 1 : -1;
         const distance = Math.abs(dx);
         const followingAirRoute = !enemy.grounded && Number(enemy.airRouteUntil || 0) > currentTime;
-        if (pendingAttackHandled || attackRecovering) {
-          enemy.vx *= attackRecovering ? 0.68 : 0.5;
-        } else if (!targetActor) {
+        if (!targetActor) {
           this.stopEnemyCharge(enemy);
-          this.cancelRiftLanternProjectileWindup(enemy);
           this.updateEnemyWander(enemy, delta, speedScale);
-        } else if (enemy.id === 'riftLantern' && enemy.state === 'riftLanternWindup') {
-          enemy.vx *= 0.7;
-          this.resolveRiftLanternProjectileWindup(enemy, targetCharacter);
         } else if (data.behavior === 'turret') {
           enemy.vx = 0;
           if (distance < 620 && enemy.attackCd <= 0) this.enemyProjectile(enemy, 'thorn', targetCharacter);
@@ -30650,10 +29245,7 @@
           if (distance < desired - 40) enemy.vx = -enemy.facing * data.speed * speedScale;
           else if (distance > desired + 40) enemy.vx = enemy.facing * data.speed * speedScale;
           else enemy.vx *= 0.84;
-          if (distance < 620 && enemy.attackCd <= 0) {
-            if (enemy.id === 'riftLantern') this.beginRiftLanternProjectileWindup(enemy, targetCharacter);
-            else this.enemyProjectile(enemy, data.behavior === 'flyer' ? 'firebolt' : 'knife', targetCharacter);
-          }
+          if (distance < 620 && enemy.attackCd <= 0) this.enemyProjectile(enemy, data.behavior === 'flyer' ? 'firebolt' : 'knife', targetCharacter);
         } else if (data.behavior === 'charger' && distance < 520 && enemy.attackCd <= 0) {
           this.beginEnemyCharge(enemy, currentTime);
         } else if (enemy.state === 'charging' && enemy.telegraph <= 0) {
@@ -30676,13 +29268,10 @@
           if (distance < 56 && enemy.attackCd <= 0 && sameCombatLane(targetActor, enemy, 34)) this.enemyMelee(enemy, targetCharacter);
         }
 
-        if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
-        if (!pendingAttackHandled && !attackRecovering && targetActor && data.behavior === 'healer' && enemy.attackCd <= 0) {
+        if (targetActor && data.behavior === 'healer' && enemy.attackCd <= 0) {
           this.healNearby(enemy);
         }
-        if (!pendingAttackHandled && !attackRecovering && targetActor) {
-          this.updateEnemyPlatformJump(enemy, targetActor, speedScale, currentTime, targetCharacter && targetCharacter.platform);
-        }
+        if (targetActor) this.updateEnemyPlatformJump(enemy, targetActor, speedScale, currentTime, targetCharacter && targetCharacter.platform);
 
         enemy.previousY = enemy.y;
         enemy.x += enemy.vx * delta;
@@ -30698,13 +29287,11 @@
 		          return;
 	        }
 	        if (!targetActor) this.clampEnemyWanderPosition(enemy);
-	        this.wakeEnemyOnContact(enemy, currentTime, combatCharacters);
-	        if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
+	        this.applyEnemyContactDamage(enemy, currentTime);
 	        this.updateEnemyStuckState(enemy, delta);
 		        this.updateEnemyAnimationState(enemy, currentTime);
 	      });
 
-      if (this.enemies !== enemies || this.runtime !== runtimeAtStart) return;
       let writeIndex = 0;
       for (let index = 0; index < enemies.length; index += 1) {
         const enemy = enemies[index];
@@ -30921,32 +29508,15 @@
       return { phase: phases[index], index };
     }
 
-    cancelBossPendingActionEffects(enemy, pending) {
-      if (!enemy || !pending || !Array.isArray(this.effects)) return 0;
-      const actionId = normalizeId(pending.actionId);
-      const enemyId = normalizeId(enemy.id);
-      const before = this.effects.length;
-      this.effects = this.effects.filter((effect) => {
-        if (!effect || effect.type !== 'bossHazard' || !effect.telegraph) return true;
-        if (normalizeId(effect.enemyFxId) !== enemyId) return true;
-        return actionId && normalizeId(effect.actionId) !== actionId;
-      });
-      return Math.max(0, before - this.effects.length);
-    }
-
     updateBossEncounterPhase(enemy, encounter) {
       const result = this.getBossEncounterPhase(enemy, encounter);
       const previous = Number(enemy.bossPhaseIndex || 0);
       enemy.bossPhaseIndex = result.index;
       enemy.bossPhaseId = result.phase && result.phase.id || '';
       if (result.index !== previous) {
-        const pending = enemy.bossPendingAction;
-        this.cancelBossPendingActionEffects(enemy, pending);
-        const transitionDelay = Math.max(0, Number(encounter && encounter.phaseTransitionDelay || 0));
-        enemy.attackCd = transitionDelay > 0 ? transitionDelay : Math.min(Number(enemy.attackCd || 0), 0.45);
+        enemy.attackCd = Math.min(Number(enemy.attackCd || 0), 0.45);
         enemy.telegraph = 0;
         enemy.bossPendingAction = null;
-        if (encounter && encounter.resetActionCycleOnPhase) enemy.bossActionIndex = 0;
         enemy.cracked = result.index >= 2 ? enemy.cracked : false;
         this.pushBossPhaseEffect(enemy, encounter, result.phase);
         this.setActorAnimation(enemy, 'buff', 0.72, { force: true, lock: true, loop: false });
@@ -31002,9 +29572,9 @@
         runePages: { shape: 'volley', label: 'RUNE PAGES', telegraph: 0.62, cooldown: 2.6, width: 360, damageScale: 1, color, accent, projectileType: 'firebolt' },
         memorySeal: { shape: 'circle', label: 'MEMORY SEAL', telegraph: 0.86, cooldown: 3, radius: 155, damageScale: 1.08, color, accent },
         mirrorEcho: { shape: 'lane', label: 'MIRROR ECHO', telegraph: 0.72, cooldown: 2.8, width: 460, damageScale: 1.12, color, accent },
-        solarFlare: { shape: 'pulse', label: 'SOLAR FLARE', telegraph: 1.25, cooldown: 3, radius: 230, damageScale: 1.16, hitOrigin: 'target', hazardPolarity: 'danger', color, accent },
-        lunarMark: { shape: 'circle', label: 'LUNAR MARK', telegraph: 1, cooldown: 2.9, radius: 160, damageScale: 1.12, hitOrigin: 'target', hazardPolarity: 'danger', color, accent },
-        eclipseSigils: { shape: 'sigils', label: 'TOTALITY', telegraph: 1.55, cooldown: 3.5, radius: 170, damageScale: 1.22, hitOrigin: 'target', hitRule: 'outsideRadius', hazardPolarity: 'safe', color, accent },
+        solarFlare: { shape: 'pulse', label: 'SOLAR FLARE', telegraph: 0.82, cooldown: 3, radius: 230, damageScale: 1.16, color, accent },
+        lunarMark: { shape: 'circle', label: 'LUNAR MARK', telegraph: 0.78, cooldown: 2.9, radius: 160, damageScale: 1.12, color, accent },
+        eclipseSigils: { shape: 'sigils', label: 'TOTALITY', telegraph: 0.95, cooldown: 3.5, radius: 170, damageScale: 1.22, color, accent },
         addWave: { shape: 'add', label: 'ADD WAVE', telegraph: 0.42, cooldown: 3.2, radius: 150, color, accent }
       };
       const profile = profiles[actionId] || { shape: 'circle', label: String(actionId || 'BOSS'), telegraph: 0.75, cooldown: 2.8, radius: 140, damageScale: 1.05, color, accent };
@@ -31070,9 +29640,7 @@
       const platform = this.getBossSpatialPlatformForSection(section, spatialHook.hook);
       if (!section || !platform) return fallbackTarget;
       const width = Math.max(1, Number(section.w || 0));
-      const rawX = normalizeId(spatialHook.hook.targetAnchor) === 'platformCenter'
-        ? Number(platform.x || 0) + Math.max(1, Number(platform.w || 0)) * 0.5
-        : Number(section.x || 0) + width * 0.5;
+      const rawX = Number(section.x || 0) + width * 0.5;
       const platformLeft = Number(platform.x || 0) + 28;
       const platformRight = Number(platform.x || 0) + Math.max(56, Number(platform.w || 0)) - 28;
       const x = clamp(rawX, Math.min(platformLeft, platformRight), Math.max(platformLeft, platformRight));
@@ -31089,19 +29657,14 @@
     createBossSpatialPayload(spatialHook, target) {
       if (!spatialHook || !spatialHook.definition || !spatialHook.hook) return {};
       const section = target && target.spatialSection || this.getRuntimeBossSpatialSection(spatialHook.hook);
-      const platform = target && target.spatialPlatform || null;
       return {
         spatialMechanicId: spatialHook.definition.id || '',
         spatialMechanicLabel: spatialHook.definition.label || '',
         spatialRole: spatialHook.hook.role || '',
         spatialSectionId: section && section.id || spatialHook.hook.sectionId || '',
         spatialSectionLabel: section && section.label || '',
-        spatialPlatformId: platform && platform.id || '',
-        spatialPlatformIndex: platform && Number.isFinite(Number(platform.index)) ? Number(platform.index) : -1,
-        spatialTargetTier: spatialHook.hook.targetTier || '',
         spatialResponse: spatialHook.hook.response || '',
-        spatialObjective: spatialHook.hook.objective || '',
-        spatialResponseCheck: spatialHook.hook.responseCheck ? Object.assign({}, spatialHook.hook.responseCheck) : null
+        spatialObjective: spatialHook.hook.objective || ''
       };
     }
 
@@ -31113,318 +29676,9 @@
         spatialRole: pending.spatialRole || '',
         spatialSectionId: pending.spatialSectionId || '',
         spatialSectionLabel: pending.spatialSectionLabel || '',
-        spatialResponseType: pending.spatialResponseCheck && pending.spatialResponseCheck.type || '',
         spatialResponse: pending.spatialResponse || '',
-        spatialObjective: pending.spatialObjective || '',
-        spatialInstruction: pending.spatialResponseCheck && pending.spatialResponseCheck.label || pending.spatialObjective || '',
-        hazardPolarity: pending.profile && pending.profile.hazardPolarity || 'danger',
-        hitOrigin: pending.profile && pending.profile.hitOrigin || '',
-        hitRule: pending.profile && pending.profile.hitRule || ''
+        spatialObjective: pending.spatialObjective || ''
       };
-    }
-
-    resetBossSpatialResponses() {
-      this.bossSpatialProjectileResponses = new Map();
-      this.lastBossSpatialResponse = null;
-      return true;
-    }
-
-    createBossSpatialResponseRecord(pending, type) {
-      if (!pending || !pending.spatialMechanicId) return null;
-      const check = pending.spatialResponseCheck || {};
-      this.bossSpatialResponseSequence = Math.max(0, Number(this.bossSpatialResponseSequence || 0)) + 1;
-      const response = {
-        id: `boss-spatial-response-${this.bossSpatialResponseSequence}`,
-        type: type || check.type || '',
-        actionId: pending.actionId || '',
-        label: pending.spatialSectionLabel || pending.spatialMechanicLabel || 'Spatial response',
-        instruction: check.label || pending.spatialObjective || '',
-        sectionId: pending.spatialSectionId || '',
-        sectionLabel: pending.spatialSectionLabel || '',
-        platformId: pending.spatialPlatformId || '',
-        platformIndex: Number.isFinite(Number(pending.spatialPlatformIndex)) ? Number(pending.spatialPlatformIndex) : -1,
-        targetTier: pending.spatialTargetTier || '',
-        requireSection: check.requireSection !== false,
-        mechanicId: pending.spatialMechanicId || '',
-        status: 'pending',
-        createdAt: nowSeconds(),
-        completedAt: 0,
-        failureReason: '',
-        progressAwarded: false,
-        remaining: 0,
-        total: 0,
-        lastRejectedReason: '',
-        lastRejectedAt: 0
-      };
-      this.lastBossSpatialResponse = response;
-      return response;
-    }
-
-    getBossSpatialResponseSummary() {
-      const summary = this.lastBossSpatialResponse;
-      if (!summary) return null;
-      const time = nowSeconds();
-      if (summary.status !== 'pending' && Number(summary.expiresAt || 0) <= time) return null;
-      return Object.assign({}, summary, {
-        remainingSeconds: summary.status === 'pending' && Number(summary.expiresAt || 0) > 0
-          ? Math.max(0, Number(summary.expiresAt || 0) - time)
-          : 0
-      });
-    }
-
-    completeBossSpatialResponse(response) {
-      if (!response || response.status !== 'pending') return false;
-      response.status = 'success';
-      response.completedAt = nowSeconds();
-      response.progressAwarded = this.recordDungeonObjectiveProgress('spatialMechanic', 1);
-      this.lastBossSpatialResponse = Object.assign({}, response, { expiresAt: response.completedAt + 3.2 });
-      if (response.progressAwarded) {
-        this.toast(`Spatial Control: ${response.label} answered.`, { noEmit: true });
-      }
-      return response.progressAwarded;
-    }
-
-    failBossSpatialResponse(response, reason) {
-      if (!response || response.status !== 'pending') return false;
-      response.status = 'failed';
-      response.completedAt = nowSeconds();
-      response.failureReason = reason || 'responseMissed';
-      this.lastBossSpatialResponse = Object.assign({}, response, { expiresAt: response.completedAt + 4.2 });
-      return true;
-    }
-
-    getBossSpatialResponseCharacterKey(character) {
-      if (!character) return '';
-      return `${character.kind || 'player'}:${character.id || 'player'}`;
-    }
-
-    isCombatCharacterInBossSpatialSection(character, pending) {
-      if (!character || !pending || !pending.spatialSectionId) return false;
-      const sections = this.runtime && Array.isArray(this.runtime.spawnSections) ? this.runtime.spawnSections : [];
-      const section = sections.find((entry) => entry && entry.id === pending.spatialSectionId);
-      if (!section) return false;
-      const center = this.getCombatCharacterCenter(character);
-      const sectionLeft = Number(section.x || 0);
-      const sectionRight = sectionLeft + Math.max(1, Number(section.w || 0));
-      if (center.x < sectionLeft || center.x > sectionRight) return false;
-      const platformId = normalizeId(pending.spatialPlatformId);
-      if (!platformId) return true;
-      const actor = character.actor || {};
-      const platform = character.platform || this.getBodyPlatform(actor);
-      return normalizeId(platform && platform.id || actor.groundedPlatformId) === platformId;
-    }
-
-    resolveBossSpatialImmediateResponse(pending, hitTargets) {
-      const check = pending && pending.spatialResponseCheck;
-      if (!check || (check.type !== 'avoidHazard' && check.type !== 'reachSection')) return false;
-      const response = this.createBossSpatialResponseRecord(pending, check.type);
-      if (!response) return false;
-      const hits = Array.isArray(hitTargets) ? hitTargets : [];
-      if (check.type === 'avoidHazard') {
-        return hits.length
-          ? this.failBossSpatialResponse(response, 'hazardHit')
-          : this.completeBossSpatialResponse(response);
-      }
-      const hitKeys = new Set(hits.map((character) => this.getBossSpatialResponseCharacterKey(character)));
-      const responder = this.getCombatCharacters().find((character) => {
-        if (!this.isCombatCharacterInBossSpatialSection(character, pending)) return false;
-        return check.requireNoHit === false || !hitKeys.has(this.getBossSpatialResponseCharacterKey(character));
-      });
-      return responder
-        ? this.completeBossSpatialResponse(response)
-        : this.failBossSpatialResponse(response, hits.length ? 'sectionResponderHit' : 'sectionMissed');
-    }
-
-    beginBossSpatialDamageResponse(enemy, pending) {
-      const check = pending && pending.spatialResponseCheck;
-      if (!enemy || !check || check.type !== 'damageWindow') return null;
-      if (enemy.bossSpatialDamageResponse && enemy.bossSpatialDamageResponse.status === 'pending') {
-        this.failBossSpatialResponse(enemy.bossSpatialDamageResponse, 'damageWindowSuperseded');
-      }
-      const response = this.createBossSpatialResponseRecord(pending, check.type);
-      if (!response) return null;
-      response.expiresAt = nowSeconds() + Math.max(0.5, Number(check.windowSeconds || 2.5));
-      enemy.bossSpatialDamageResponse = response;
-      return response;
-    }
-
-    recordBossSpatialDamageResponse(enemy, amount, source, options) {
-      const response = enemy && enemy.bossSpatialDamageResponse;
-      if (!response || response.status !== 'pending') return false;
-      if (Number(response.expiresAt || 0) < nowSeconds()) {
-        this.failBossSpatialResponse(response, 'damageWindowExpired');
-        enemy.bossSpatialDamageResponse = null;
-        return false;
-      }
-      const settings = options || {};
-      const sourceId = normalizeId(source);
-      if (settings.visualOnly || sourceId === 'burn' || sourceId === 'field' || Number(amount || 0) <= 0) return false;
-      const responder = this.getBossSpatialDamageResponder(settings, source);
-      if (!responder) {
-        response.lastRejectedReason = 'attackerUnknown';
-        response.lastRejectedAt = nowSeconds();
-        this.toastTransient('Counter rejected - use direct player or party damage.', `boss-response-rejected-${response.id}`, {
-          throttleMs: 1800
-        });
-        return false;
-      }
-      if (response.requireSection && !this.isCombatCharacterInBossSpatialSection(responder, {
-        spatialSectionId: response.sectionId,
-        spatialPlatformId: response.platformId
-      })) {
-        response.lastRejectedReason = 'attackerOutsideSection';
-        response.lastRejectedAt = nowSeconds();
-        this.toastTransient(`Counter rejected - attack from ${response.sectionLabel || 'the called section'}.`, `boss-response-rejected-${response.id}`, {
-          throttleMs: 1800
-        });
-        return false;
-      }
-      const changed = this.completeBossSpatialResponse(response);
-      enemy.bossSpatialDamageResponse = null;
-      return changed;
-    }
-
-    getBossSpatialDamageResponder(options, source) {
-      const settings = options || {};
-      const combatCharacters = this.getCombatCharacters();
-      const explicit = settings.attackerCharacter || settings.character || null;
-      if (explicit) {
-        if (explicit.actor) {
-          const liveExplicit = combatCharacters.find((character) => character && (
-            character.actor === explicit.actor ||
-            character.kind === explicit.kind && character.id === explicit.id
-          ));
-          return liveExplicit || explicit;
-        }
-        const explicitMatch = combatCharacters.find((character) => character && character.actor === explicit);
-        if (explicitMatch) return explicitMatch;
-      }
-      const sourceText = String(source || '');
-      const partySource = settings.attackerKind === 'party' || sourceText === 'partyAI' || sourceText === 'partyAssist' || sourceText.startsWith('partySkill:');
-      if (partySource) {
-        return settings.attackerId
-          ? this.getCombatCharacterByTarget('party', settings.attackerId, combatCharacters)
-          : null;
-      }
-      return this.getCombatCharacterByTarget('player', 'player', combatCharacters);
-    }
-
-    pruneBossSpatialDamageResponse(enemy) {
-      const response = enemy && enemy.bossSpatialDamageResponse;
-      if (!response || response.status !== 'pending' || Number(response.expiresAt || 0) > nowSeconds()) return false;
-      this.failBossSpatialResponse(response, 'damageWindowExpired');
-      enemy.bossSpatialDamageResponse = null;
-      return true;
-    }
-
-    beginBossSpatialProjectileResponse(pending, expectedCount) {
-      const check = pending && pending.spatialResponseCheck;
-      const total = Math.max(0, Math.floor(Number(expectedCount || 0)));
-      if (!check || check.type !== 'dodgeProjectiles' || !total) return null;
-      const response = this.createBossSpatialResponseRecord(pending, check.type);
-      if (!response) return null;
-      response.remaining = total;
-      response.total = total;
-      response.failed = false;
-      response.expiresAt = nowSeconds() + Math.max(1, Number(check.windowSeconds || 4));
-      this.bossSpatialProjectileResponses.set(response.id, response);
-      return response;
-    }
-
-    markBossSpatialProjectileHit(projectile) {
-      const responseId = normalizeId(projectile && projectile.bossSpatialResponseId);
-      const response = responseId && this.bossSpatialProjectileResponses.get(responseId);
-      if (!response || response.status !== 'pending') return false;
-      response.failed = true;
-      return true;
-    }
-
-    settleBossSpatialProjectile(projectile) {
-      if (!projectile || projectile.bossSpatialResponseSettled) return false;
-      const responseId = normalizeId(projectile.bossSpatialResponseId);
-      const response = responseId && this.bossSpatialProjectileResponses.get(responseId);
-      projectile.bossSpatialResponseSettled = true;
-      if (!response || response.status !== 'pending') return false;
-      response.remaining = Math.max(0, Number(response.remaining || 0) - 1);
-      if (response.remaining > 0) return false;
-      if (response.failed) this.failBossSpatialResponse(response, 'projectileHit');
-      else this.completeBossSpatialResponse(response);
-      this.bossSpatialProjectileResponses.delete(response.id);
-      return !response.failed;
-    }
-
-    pruneBossSpatialProjectileResponses() {
-      if (!(this.bossSpatialProjectileResponses instanceof Map)) this.bossSpatialProjectileResponses = new Map();
-      const time = nowSeconds();
-      this.bossSpatialProjectileResponses.forEach((response, responseId) => {
-        if (Number(response && response.expiresAt || 0) > time) return;
-        this.failBossSpatialResponse(response, 'projectileWindowExpired');
-        this.bossSpatialProjectileResponses.delete(responseId);
-      });
-    }
-
-    beginBossSpatialAddResponse(pending) {
-      const check = pending && pending.spatialResponseCheck;
-      if (!check || check.type !== 'clearAdds') return null;
-      const response = this.createBossSpatialResponseRecord(pending, check.type);
-      if (!response) return null;
-      response.spawned = 0;
-      response.total = 0;
-      response.remaining = 0;
-      return response;
-    }
-
-    getBossSpatialAddSpawnPoint(response, index) {
-      if (!response || !response.sectionId || !this.runtime) return null;
-      const sections = Array.isArray(this.runtime.spawnSections) ? this.runtime.spawnSections : [];
-      const platforms = Array.isArray(this.runtime.platforms) ? this.runtime.platforms : [];
-      const section = sections.find((entry) => entry && entry.id === response.sectionId);
-      if (!section) return null;
-      let platform = platforms.find((entry) => entry && entry.id === response.platformId) ||
-        platforms.find((entry) => entry && Number(entry.index) === Number(response.platformIndex));
-      const sectionLeft = Number(section.x || 0);
-      const sectionRight = sectionLeft + Math.max(1, Number(section.w || 0));
-      const overlapsSection = (candidate) => {
-        if (!candidate) return false;
-        const left = Number(candidate.x || 0);
-        const right = left + Math.max(1, Number(candidate.w || 0));
-        return Math.min(sectionRight, right) - Math.max(sectionLeft, left) >= 72;
-      };
-      if (!overlapsSection(platform)) {
-        platform = this.getBossSpatialPlatformForSection(section, { targetTier: response.targetTier });
-      }
-      if (!overlapsSection(platform)) return null;
-      const overlapLeft = Math.max(sectionLeft, Number(platform.x || 0));
-      const overlapRight = Math.min(sectionRight, Number(platform.x || 0) + Math.max(1, Number(platform.w || 0)));
-      const minX = overlapLeft + 24;
-      const maxX = Math.max(minX, overlapRight - 78);
-      const fractions = [0.28, 0.72, 0.5, 0.86, 0.14];
-      const fraction = fractions[Math.abs(Math.floor(Number(index || 0))) % fractions.length];
-      const x = clamp(minX + Math.max(0, maxX - minX) * fraction, minX, maxX);
-      return {
-        id: `boss_response_${response.id}_${Math.max(0, Math.floor(Number(index || 0)))}`,
-        x,
-        y: getPlatformSurfaceY(platform, x + 24),
-        platformIndex: Number(platform.index),
-        platformId: platform.id || '',
-        sectionId: section.id,
-        sectionLabel: section.label || response.sectionLabel || '',
-        initial: true,
-        bossSpatialResponseSpawn: true
-      };
-    }
-
-    resolveBossSpatialAddResponse(enemy) {
-      const response = enemy && enemy.bossSpatialResponse;
-      if (!response || response.status !== 'pending') return false;
-      const responseId = normalizeId(response.id);
-      const remaining = (this.enemies || []).filter((candidate) =>
-        candidate && candidate !== enemy && candidate.hp > 0 &&
-        candidate.bossSpatialResponse && normalizeId(candidate.bossSpatialResponse.id) === responseId).length;
-      response.total = Math.max(Number(response.total || 0), Number(response.spawned || 0));
-      response.remaining = remaining;
-      if (remaining > 0) return false;
-      return this.completeBossSpatialResponse(response);
     }
 
     beginBossEncounterAction(enemy, encounter, phase, actionId, targetCharacter) {
@@ -31494,11 +29748,10 @@
       const profile = pending.profile || this.getBossActionProfile(pending.actionId, encounter);
       enemy.bossPendingAction = null;
       this.setActorAnimation(enemy, profile.shape === 'add' || profile.shape === 'expose' ? 'buff' : 'attack', 0.5, { force: true, lock: true, loop: false });
+      if (pending.spatialMechanicId) this.recordDungeonObjectiveProgress('spatialMechanic', 1);
       if (profile.shape === 'add') {
-        const spatialResponse = this.beginBossSpatialAddResponse(pending);
-        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0), { spatialResponse });
-        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0) + 1, { spatialResponse });
-        if (spatialResponse && !spatialResponse.spawned) this.failBossSpatialResponse(spatialResponse, 'addsFailedToSpawn');
+        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0));
+        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0) + 1);
         const effect = { type: 'bossHazard', shape: 'add', label: profile.label, x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h / 2, r: 130, ttl: 0.58, duration: 0.58, color: profile.color, accentColor: profile.accent, variant: profile.variant, mechanicLabel: profile.mechanicLabel, enemyFxId: enemy.id, combatFxState: 'buff' };
         this.effects.push(Object.assign(effect, this.getBossSpatialEffectFields(pending)));
         return;
@@ -31508,12 +29761,9 @@
         enemy.slowed = Math.max(Number(enemy.slowed || 0), 2.5);
         const effect = { type: 'bossHazard', shape: 'expose', label: profile.label, x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h / 2, r: profile.radius || 160, ttl: 0.9, duration: 0.9, color: profile.color, accentColor: profile.accent, variant: profile.variant, mechanicLabel: profile.mechanicLabel, enemyFxId: enemy.id, combatFxState: 'buff' };
         this.effects.push(Object.assign(effect, this.getBossSpatialEffectFields(pending)));
-        this.beginBossSpatialDamageResponse(enemy, pending);
         return;
       }
       if (profile.shape === 'volley') {
-        const projectileResponse = this.beginBossSpatialProjectileResponse(pending, 3);
-        if (projectileResponse) pending.bossSpatialResponseId = projectileResponse.id;
         this.spawnBossProjectile(enemy, pending, profile);
         this.spawnBossProjectile(enemy, Object.assign({}, pending, { targetY: pending.targetY - 30, targetX: pending.targetX + 90 }), profile);
         this.spawnBossProjectile(enemy, Object.assign({}, pending, { targetY: pending.targetY + 24, targetX: pending.targetX - 90 }), profile);
@@ -31545,9 +29795,7 @@
         enemyFxId: enemy.id,
         combatFxState: profile.shape === 'volley' ? 'projectile' : 'impact'
       }, this.getBossSpatialEffectFields(pending)));
-      if (profile.shape === 'volley') return;
-      const hitTargets = this.applyBossHazardDamage(enemy, pending, profile);
-      this.resolveBossSpatialImmediateResponse(pending, hitTargets);
+      this.applyBossHazardDamage(enemy, pending, profile);
     }
 
     spawnBossProjectile(enemy, pending, profile) {
@@ -31557,7 +29805,7 @@
       const dy = Number(pending.targetY || startY) - startY;
       const distance = Math.hypot(dx, dy) || 1;
       const speed = profile.projectileType === 'thorn' ? 265 : 240;
-      const projectile = {
+      this.projectiles.push({
         owner: 'enemy',
         type: profile.projectileType || 'firebolt',
         x: startX,
@@ -31572,11 +29820,8 @@
         enemyFxId: enemy.id,
         sourceEnemyId: enemy.id,
         combatFxState: 'projectile',
-        bossSpatialResponseId: pending.bossSpatialResponseId || '',
         pierce: 0
-      };
-      this.projectiles.push(projectile);
-      return projectile;
+      });
     }
 
     applyBossHazardDamage(enemy, pending, profile) {
@@ -31591,9 +29836,6 @@
         const actor = character.actor;
         const center = this.getCombatCharacterCenter(character);
         const feetY = Number(actor.y || 0) + Number(actor.h || character.h || 70);
-        if (profile.hitRule === 'outsideRadius') {
-          return Math.hypot(center.x - targetX, center.y - Number(pending.targetY || center.y)) > radius;
-        }
         if (profile.shape === 'lane' || profile.shape === 'charge') {
           return center.x >= laneMin && center.x <= laneMax && Math.abs(feetY - platformY) <= 64;
         }
@@ -31604,10 +29846,8 @@
           return Math.abs(center.x - targetX) <= radius || Math.abs(center.x - bossX) <= radius;
         }
         if (profile.shape === 'pulse') {
-          const origin = profile.hitOrigin === 'target'
-            ? { x: targetX, y: Number(pending.targetY || center.y) }
-            : this.enemyCenter(enemy);
-          return Math.hypot(center.x - origin.x, center.y - origin.y) <= radius;
+          const bossCenter = this.enemyCenter(enemy);
+          return Math.hypot(center.x - bossCenter.x, center.y - bossCenter.y) <= radius;
         }
         return Math.hypot(center.x - targetX, center.y - Number(pending.targetY || center.y)) <= radius;
       });
@@ -31620,36 +29860,19 @@
           verticalKnockback: profile.shape === 'lane' || profile.shape === 'charge' ? 120 : 150
         });
       });
-      return hitTargets;
     }
 
     spawnBossEncounterAdd(encounter, index, options) {
       if (!encounter || !Array.isArray(encounter.adds) || !encounter.adds.length) return false;
-      const settings = options || {};
       const enemyId = encounter.adds[Math.abs(Math.floor(Number(index || 0))) % encounter.adds.length];
       const enemyData = getEnemyDefinitionById(enemyId);
       if (!enemyData) return false;
-      const responseSpawn = settings.spatialResponse
-        ? this.getBossSpatialAddSpawnPoint(settings.spatialResponse, index)
-        : null;
-      if (settings.spatialResponse && !responseSpawn) return false;
-      const add = this.createEnemy(
-        enemyData,
-        responseSpawn || this.chooseSpawnPoint(Number(index || 0), { initial: true })
-      );
+      const add = this.createEnemy(enemyData, this.chooseSpawnPoint(Number(index || 0), { initial: true }));
       add.encounterMinion = true;
       add.aggroSource = 'bossEncounter';
-      if (settings.spatialResponse && settings.spatialResponse.status === 'pending') {
-        add.bossSpatialResponse = settings.spatialResponse;
-        add.bossSpatialResponseSectionId = responseSpawn && responseSpawn.sectionId || settings.spatialResponse.sectionId || '';
-        add.bossSpatialResponsePlatformId = responseSpawn && responseSpawn.platformId || settings.spatialResponse.platformId || '';
-        settings.spatialResponse.spawned = Math.max(0, Number(settings.spatialResponse.spawned || 0)) + 1;
-        settings.spatialResponse.total = settings.spatialResponse.spawned;
-        settings.spatialResponse.remaining = settings.spatialResponse.spawned;
-      }
       this.setEnemyAggro(add, this.getCombatCharacterByTarget('player', 'player'), 'bossEncounter', ENEMY_ATTACK_AGGRO_SECONDS * 2);
       this.enemies.push(add);
-      if (!settings.quiet) {
+      if (!(options && options.quiet)) {
         this.effects.push({ type: 'bossHazard', shape: 'add', label: 'ADD', x: add.x + add.w / 2, y: add.y + add.h / 2, r: 68, ttl: 0.45, duration: 0.45, color: encounter.color || '#ffbe55', accentColor: encounter.accent || '#ffffff', variant: encounter.roomAmbient || 'boss', mechanicLabel: encounter.mechanic || '', enemyFxId: add.id, combatFxState: 'buff' });
       }
       return true;
@@ -31701,7 +29924,6 @@
         this.updateGenericBoss(enemy, distance, targetCharacter);
         return;
       }
-      this.pruneBossSpatialDamageResponse(enemy);
       const phase = this.updateBossEncounterPhase(enemy, encounter);
       if (enemy.bossPendingAction) {
         enemy.vx *= 0.76;
@@ -31722,35 +29944,27 @@
     enemyMelee(enemy, targetCharacter) {
       const target = targetCharacter || this.getEnemyAggroTarget(enemy);
       if (!target || !sameCombatLane(target.actor, enemy, 34)) return;
-      return this.beginEnemyAttackWindup(enemy, target, {
-        kind: 'melee',
-        windup: ENEMY_MELEE_WINDUP_SECONDS
+      enemy.attackCd = 1.35;
+      enemy.telegraph = 0.28;
+      this.setActorAnimation(enemy, 'attack', 0.42, { force: true, lock: true, loop: false });
+      this.effects.push({
+        type: 'slash',
+        x: enemy.x + enemy.w / 2 + enemy.facing * 28,
+        y: enemy.y + 24,
+        r: 34,
+        ttl: 0.24,
+        duration: 0.24,
+        color: '#d97845',
+        facing: enemy.facing,
+        enemyFxId: enemy.id,
+        combatFxState: 'melee'
       });
+      this.damageCombatCharacter(target, enemy.damage, enemy.name, { attacker: enemy });
     }
 
-    enemyProjectile(enemy, type, targetCharacter, options) {
-      const settings = options || {};
-      if (!settings.preTelegraphed) {
-        return this.beginEnemyAttackWindup(enemy, targetCharacter, {
-          kind: 'projectile',
-          projectileType: type,
-          windup: ENEMY_PROJECTILE_WINDUP_SECONDS
-        });
-      }
-      return this.commitEnemyProjectile(enemy, type, targetCharacter);
-    }
-
-    commitEnemyProjectile(enemy, type, targetCharacter, options) {
-      if (!enemy || enemy.hp <= 0) return false;
-      const settings = options || {};
-      const baseCadence = type === 'firebolt'
-        ? ENEMY_FIREBOLT_CADENCE_SECONDS
-        : ENEMY_PROJECTILE_CADENCE_SECONDS;
-      const completedWindup = Math.max(0, Number(settings.completedWindup || 0));
-      enemy.attackCd = completedWindup > 0
-        ? Math.max(ENEMY_PROJECTILE_RECOVERY_SECONDS, baseCadence - completedWindup)
-        : baseCadence;
-      enemy.telegraph = 0;
+    enemyProjectile(enemy, type, targetCharacter) {
+      enemy.attackCd = type === 'firebolt' ? 2.1 : 1.8;
+      enemy.telegraph = 0.45;
       this.setActorAnimation(enemy, 'projectile', 0.45, { force: true, lock: true, loop: false });
       const speed = type === 'knife' ? 300 : type === 'firebolt' ? 220 : 240;
       const target = targetCharacter && targetCharacter.actor;
@@ -31794,7 +30008,7 @@
         enemyFxId: enemy.id,
         combatFxState: 'projectile'
       });
-      return true;
+      this.effects.push({ type: 'telegraph', x: enemy.x, y: enemy.y - 10, w: enemy.w, h: 8, ttl: 0.45, color: '#ffe16a' });
     }
 
     healNearby(enemy) {
@@ -31948,7 +30162,6 @@
 
     updateProjectiles(delta) {
       const projectiles = Array.isArray(this.projectiles) ? this.projectiles : (this.projectiles = []);
-      this.pruneBossSpatialProjectileResponses();
       if (!projectiles.length) return;
       const playerBox = this.playerHitbox();
       let spatialIndex = null;
@@ -32015,9 +30228,7 @@
                 critical: damageResult.critical,
                 stats: directStats,
                 attackerCharacter: attacker,
-                aggroContext: playerProjectileAggroContext,
-                basicHitFeedback: !!projectile.basicFxId,
-                feedbackDirection: Math.sign(Number(projectile.vx || 0)) || Number(this.state.player.facing || 1)
+                aggroContext: playerProjectileAggroContext
               });
               if (projectile.applyMark) enemy.marked = 8;
               if (projectile.applyBurn) enemy.burning = 5;
@@ -32045,7 +30256,6 @@
             }
           }
           if (hit) {
-            this.markBossSpatialProjectileHit(projectile);
             this.damageCombatCharacter(hit, projectile.damage, projectile.type, {
               direction: Math.sign(projectile.vx || 0) || 1,
               knockback: projectile.type === 'knife' ? 180 : 160,
@@ -32057,17 +30267,11 @@
         if (projectile.ttl > 0 && projectile.x > -120 && projectile.x < this.runtime.worldWidth + 120) {
           projectiles[writeIndex] = projectile;
           writeIndex += 1;
-        } else {
-          this.settleBossSpatialProjectile(projectile);
         }
       }
       for (let index = initialLength; index < projectiles.length; index += 1) {
         const projectile = projectiles[index];
-        if (!projectile) continue;
-        if (projectile.ttl <= 0 || projectile.x <= -120 || projectile.x >= this.runtime.worldWidth + 120) {
-          this.settleBossSpatialProjectile(projectile);
-          continue;
-        }
+        if (!projectile || projectile.ttl <= 0 || projectile.x <= -120 || projectile.x >= this.runtime.worldWidth + 120) continue;
         projectiles[writeIndex] = projectile;
         writeIndex += 1;
       }
@@ -32691,46 +30895,35 @@
       return reason === 'noClass' || reason === 'airborne';
     }
 
-    cancelPendingBasicAttack(reason) {
-      if (!this.pendingPlayerAttack) return false;
-      const feel = this.ensurePlayerFeelRuntime();
-      feel.lastCancelReason = String(reason || 'cancelled');
-      this.pendingPlayerAttack = null;
-      return true;
-    }
-
-    getBasicAttackReleaseDelay(weaponType, attackCooldown) {
-      const authoredDelay = weaponType === 'melee'
-        ? BASIC_ATTACK_MELEE_RELEASE_SECONDS
-        : BASIC_ATTACK_RANGED_RELEASE_SECONDS;
-      return Math.min(authoredDelay, Math.max(0.04, Number(attackCooldown || 0) * 0.55));
-    }
-
-    advancePendingBasicAttack(time) {
-      const pending = this.pendingPlayerAttack;
-      if (!pending) return false;
-      const currentTime = Number.isFinite(Number(time)) ? Number(time) : nowSeconds();
-      if (currentTime < Number(pending.releaseAt || 0)) return false;
-      this.pendingPlayerAttack = null;
-      const player = this.state && this.state.player;
-      if (!player ||
-        !player.classId ||
-        player.hp <= 0 ||
-        player.climbing ||
-        this.state.mapId !== pending.mapId ||
-        player.classId !== pending.classId) {
-        this.ensurePlayerFeelRuntime().lastCancelReason = 'state-changed';
+    basicAttack(options) {
+      const settings = options || {};
+      const heldInput = !!(this.input && this.input.attack) || !!settings.fromHeldInput;
+      const silent = !!settings.silent || heldInput;
+      if (this.blockClimbingAction('attack', null, { silent })) {
+        if (heldInput && this.input) this.input.attack = false;
         return false;
       }
-      return this.releaseBasicAttack(pending);
-    }
-
-    releaseBasicAttack(pending) {
       const player = this.state.player;
-      const stats = pending.stats;
-      player.facing = pending.facing;
+      const classData = this.getBaseClassData();
+      const time = nowSeconds();
+      const blockReason = this.getBasicAttackBlockReason(player, classData, time);
+      if (blockReason) {
+        if (heldInput && this.shouldClearHeldBasicAttack(blockReason) && this.input) this.input.attack = false;
+        return false;
+      }
+      const stats = this.getStats();
+      const baseCooldown = classData.weaponType === 'melee' ? 0.38 : 0.48;
+      const runeFieldProfile = this.getActiveRuneFieldPlayerProfile();
+      const cooldownMultiplier = runeFieldProfile ? Math.min(1, Math.max(0.55, Number(runeFieldProfile.playerHasteCooldownMultiplier || 1))) : 1;
+      const attackCooldown = baseCooldown * cooldownMultiplier;
+      player.attackTimer = time + attackCooldown;
+      this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, {
+        movementLock: true,
+        movementLockSeconds: BASIC_ATTACK_MOVEMENT_LOCK_SECONDS
+      });
+      this.setActorAnimation(player, 'basic', attackCooldown, { force: true, lock: true, loop: false });
       this.playAudioCue('attack');
-      if (pending.weaponType === 'melee') {
+      if (classData.weaponType === 'melee') {
         const hitbox = {
           x: player.facing > 0 ? player.x + player.w - 4 : player.x - stats.range,
           y: player.y + 12,
@@ -32743,12 +30936,7 @@
           if (!sameCombatLane(player, enemy, 38)) return;
           hits += 1;
           const damageResult = this.rollDamageResult(stats.power, enemy);
-          this.damageEnemy(enemy, damageResult.amount, 'melee', {
-            masteryApplied: true,
-            critical: damageResult.critical,
-            basicHitFeedback: true,
-            feedbackDirection: player.facing
-          });
+          this.damageEnemy(enemy, damageResult.amount, 'melee', { masteryApplied: true, critical: damageResult.critical });
           enemy.vx += player.facing * 130;
         });
         this.gainResource(10 + hits * 4);
@@ -32797,47 +30985,6 @@
         });
         this.gainResource(11);
       }
-      this.emitHudChange({ skipOverlayInvalidate: true });
-      return true;
-    }
-
-    basicAttack(options) {
-      const settings = options || {};
-      const heldInput = !!(this.input && this.input.attack) || !!settings.fromHeldInput;
-      const silent = !!settings.silent || heldInput;
-      if (this.blockClimbingAction('attack', null, { silent })) {
-        if (heldInput && this.input) this.input.attack = false;
-        return false;
-      }
-      const player = this.state.player;
-      const classData = this.getBaseClassData();
-      const time = nowSeconds();
-      const blockReason = this.getBasicAttackBlockReason(player, classData, time);
-      if (blockReason) {
-        if (heldInput && this.shouldClearHeldBasicAttack(blockReason) && this.input) this.input.attack = false;
-        return false;
-      }
-      const stats = this.getStats();
-      const baseCooldown = classData.weaponType === 'melee' ? 0.38 : 0.48;
-      const runeFieldProfile = this.getActiveRuneFieldPlayerProfile();
-      const cooldownMultiplier = runeFieldProfile ? Math.min(1, Math.max(0.55, Number(runeFieldProfile.playerHasteCooldownMultiplier || 1))) : 1;
-      const attackCooldown = baseCooldown * cooldownMultiplier;
-      player.attackTimer = time + attackCooldown;
-      this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, {
-        movementLock: true,
-        movementLockSeconds: BASIC_ATTACK_MOVEMENT_LOCK_SECONDS
-      });
-      this.setActorAnimation(player, 'basic', attackCooldown, { force: true, lock: true, loop: false });
-      const facing = Math.sign(Number(player.facing || 1)) || 1;
-      this.pendingPlayerAttack = {
-        classId: player.classId,
-        mapId: this.state.mapId,
-        weaponType: classData.weaponType,
-        facing,
-        stats,
-        startedAt: time,
-        releaseAt: time + this.getBasicAttackReleaseDelay(classData.weaponType, attackCooldown)
-      };
       this.emitHudChange({ skipOverlayInvalidate: true });
       return true;
     }
@@ -33900,12 +32047,6 @@
       return getSkillResourceCost(skill, rank, modifier, stats || this.getStats());
     }
 
-    getRuntimeSkillResourceCost(skill, rank, modifier, stats) {
-      const baseCost = this.getSkillResourceCost(skill, rank, modifier, stats);
-      const runtimeEffects = this.getActiveRiftRuntimeEffects();
-      return Math.max(0, Math.round(baseCost * runtimeEffects.playerResourceCostScale));
-    }
-
     getSkillCooldownDuration(skill, modifier, stats) {
       return getSkillCooldownDuration(skill, modifier, stats || this.getStats(), {
         mobility: isMobilitySkill(skill)
@@ -34624,7 +32765,7 @@
         }
       }
       const stats = this.getStats();
-      const cost = this.getRuntimeSkillResourceCost(skill, rank, skillModifier, stats);
+      const cost = this.getSkillResourceCost(skill, rank, skillModifier, stats);
       if (cost && player.mp < cost) {
         if (!settings.silent) this.toastSkillBlock(skill, 'MP is too low.', 'mp');
         return false;
@@ -34636,17 +32777,7 @@
           return false;
         }
       }
-      const resourceBeforeSkill = Number(player.mp || 0);
       this.spendPlayerMp(cost, time);
-      this.recordRiftCounterplayEvent({
-        type: 'skill_spent',
-        now: this.getRiftCounterplayNow(),
-        skillId: skill.id,
-        offensive: this.isOffensiveSkill(skill),
-        cost,
-        resourceBefore: resourceBeforeSkill,
-        maxResource: Math.max(1, Number(stats.maxMp || 1))
-      });
       const runeFieldCooldownMultiplier = this.getRuneFieldSkillCooldownMultiplier(skill);
       player.skillCooldowns[skill.id] = time + Math.max(0.25, this.getSkillCooldownDuration(skill, skillModifier, stats) * runeFieldCooldownMultiplier);
       player.skillTimer = player.skillCooldowns[skill.id];
@@ -34903,7 +33034,7 @@
       if (player.partyTimer > time) return false;
       const rank = Math.max(1, getRank(this.state, skill.id));
       const stats = this.getStats();
-      const cost = this.getRuntimeSkillResourceCost(skill, rank, null, stats);
+      const cost = this.getSkillResourceCost(skill, rank, null, stats);
       if (cost && player.mp < cost) {
         this.toast('MP is too low.');
         return false;
@@ -34978,14 +33109,11 @@
         roleBonus *= skillId.includes('aimed') ? 1.22 : skillId.includes('execution') || skillId.includes('perfect') ? 1.35 : 1.12;
       }
       if (owner === 'sniper' && enemy && !this.isBossEnemy(enemy) && (skillId.includes('aimed') || skillId.includes('execution') || skillId.includes('perfect'))) roleBonus *= 0.86;
-      if (owner === 'fireMage' && enemy && this.isBossEnemy(enemy)) {
-        roleBonus *= enemy.burning > 0 || skillId.includes('burning') ? 1.16 : 0.92;
-      }
+      if (owner === 'fireMage' && enemy && this.isBossEnemy(enemy) && !(enemy.burning > 0 || skillId.includes('burning'))) roleBonus *= 0.92;
       if (owner === 'runeMage' && enemy && this.isBossEnemy(enemy) && !(enemy.runeLinked > 0 || enemy.marked > 0)) roleBonus *= 0.9;
       if (owner === 'stormMage' && enemy && this.isBossEnemy(enemy)) roleBonus *= 0.72;
       if (owner === 'trapper' && enemy && !this.isBossEnemy(enemy)) roleBonus *= 1.08;
       if (owner === 'beastArcher' && enemy && this.isBossEnemy(enemy)) roleBonus *= 0.92;
-      roleBonus *= this.getActiveRiftRuntimeEffects().playerDamageScale;
       const bossDamageBonus = enemy && this.isAttunementBossEnemy(enemy) ? this.getAttunementBonusScale(stats, 'bossDamagePercent', ATTUNEMENT_DAMAGE_BONUS_CAP) : 1;
       const eliteDamageBonus = enemy && this.isAttunementEliteEnemy(enemy) ? this.getAttunementBonusScale(stats, 'eliteDamagePercent', ATTUNEMENT_DAMAGE_BONUS_CAP) : 1;
       const executeDamageBonus = enemy && Number(enemy.hp || 0) / Math.max(1, Number(enemy.maxHp || 1)) <= 0.35
@@ -36174,35 +34302,9 @@
       return { isTickDamage, lineCount, lineIndex, isLineStack };
     }
 
-    isRiftEnemyTelegraphing(enemy) {
-      if (!enemy || enemy.hp <= 0) return false;
-      const state = normalizeId(enemy.state);
-      return Number(enemy.telegraph || 0) > 0 ||
-        !!enemy.pendingAttack ||
-        !!enemy.bossPendingAction ||
-        state === 'charging' ||
-        state === 'riftLanternWindup' ||
-        state === 'bossSlam' ||
-        state === 'overheat';
-    }
-
-    interruptRiftEnemyCast(enemy, time) {
-      if (!enemy) return false;
-      const now = Number.isFinite(Number(time)) ? Number(time) : this.getRiftCounterplayNow();
-      if (enemy.pendingAttack) this.cancelEnemyPendingAttack(enemy, { recovery: 1.1 });
-      enemy.telegraph = 0;
-      enemy.bossPendingAction = null;
-      enemy.chargeAttemptUntil = Math.max(Number(enemy.chargeAttemptUntil || 0), now + 1.1);
-      enemy.attackCd = Math.max(Number(enemy.attackCd || 0), 1.1);
-      enemy.staggered = Math.max(Number(enemy.staggered || 0), 0.8);
-      enemy.state = 'idle';
-      return true;
-    }
-
     damageEnemy(enemy, amount, source, options) {
       if (!enemy) return false;
       const settings = options || {};
-      const wasTelegraphing = this.isRiftEnemyTelegraphing(enemy);
       const masteryBonus = settings.masteryApplied ? 0 : this.getMonsterGuideDamageBonus(enemy.id);
       const final = Math.max(1, Math.round((Number(amount) || 1) * (1 + masteryBonus)));
       this.recordCombatDamage(final);
@@ -36229,33 +34331,9 @@
         }
       }
       enemy.hp -= final;
-      this.recordBossSpatialDamageResponse(enemy, final, source, settings);
       this.pushEnemyDamageSplat(enemy, final, source, settings);
       const sourceText = String(source || '');
       const playerDirectHit = !isTickDamage && !settings.visualOnly && settings.attackerKind !== 'party' && sourceText !== 'partyAI' && sourceText !== 'partyAssist' && !sourceText.startsWith('partySkill:');
-      if (playerDirectHit) {
-        const skillId = normalizeId(settings.skillId || (getSkillDefinitionById(sourceText) ? sourceText : ''));
-        const counterplayResult = this.recordRiftCounterplayEvent({
-          type: 'direct_hit',
-          now: this.getRiftCounterplayNow(),
-          enemyKey: normalizeId(enemy.uid || enemy.runtimeId || `${enemy.id}:${Math.round(Number(enemy.x || 0))}`),
-          x: Number(enemy.x || 0) + Number(enemy.w || 0) / 2,
-          platformIndex: Number.isFinite(Number(enemy.groundedPlatformIndex)) ? Number(enemy.groundedPlatformIndex) : -1,
-          damage: final,
-          maxHealth: Math.max(1, Number(enemy.maxHp || 1)),
-          skillId,
-          telegraphing: wasTelegraphing
-        });
-        if (wasTelegraphing && counterplayResult && counterplayResult.activatedIds && counterplayResult.activatedIds.includes('interrupt_echo')) {
-          this.interruptRiftEnemyCast(enemy);
-        }
-      }
-      if (playerDirectHit && settings.basicHitFeedback) {
-        this.triggerBasicHitFeedback(enemy, {
-          critical: !!settings.critical,
-          direction: Number(settings.feedbackDirection || this.state.player.facing || 1)
-        });
-      }
       if (playerDirectHit) this.recoverPlayerOnHit(settings.stats || this.getStats(), settings);
       const time = nowSeconds();
       if (enemy.hp <= 0 && !isTickDamage) enemy.hpBarUntil = Math.max(Number(enemy.hpBarUntil || 0), time + ENEMY_COMBAT_HUD_SECONDS);
@@ -36472,11 +34550,6 @@
       enemy.defeatedAt = nowSeconds();
       enemy.removeAt = enemy.defeatedAt + 0.72;
       enemy.hp = 0;
-      this.clearEnemyAttackTelegraphs(enemy);
-      enemy.pendingAttack = null;
-      enemy.attackRecovery = 0;
-      enemy.telegraph = 0;
-      this.resolveBossSpatialAddResponse(enemy);
       enemy.vx = 0;
       enemy.vy = 0;
       enemy.climbing = false;
@@ -36503,15 +34576,12 @@
         const affix = getById(Data.ELITE_AFFIXES || [], affixId);
         return sum + Number(affix && affix.currencyBonus || 0);
       }, 0);
-      const riftRewardScale = this.getActiveRiftRuntimeEffects().rewardScale;
-      const baseXp = Math.max(1, Math.round(getMonsterXp(enemy.level, enemy.data) *
-        (1 + this.getMapModifierBonus('xpBonus') + affixXpBonus) *
-        this.getAdminRate('xpRate') *
-        this.getRateCouponMultiplier('xp')));
-      const baseCurrency = Math.max(0, Math.round((14 + enemy.level * 4 + (enemy.elite ? 90 : 0)) *
+	      const xp = Math.max(1, Math.round(getMonsterXp(enemy.level, enemy.data) *
+	        (1 + this.getMapModifierBonus('xpBonus') + affixXpBonus) *
+	        this.getAdminRate('xpRate') *
+	        this.getRateCouponMultiplier('xp')));
+      const currency = Math.max(0, Math.round((14 + enemy.level * 4 + (enemy.elite ? 90 : 0)) *
         (1 + this.getMapModifierBonus('currencyBonus') + affixCurrencyBonus)));
-      const xp = Math.max(1, Math.round(baseXp * riftRewardScale));
-      const currency = Math.max(0, Math.round(baseCurrency * riftRewardScale));
       player.xp += xp;
       this.recordCombatXpGain(xp);
       this.notifyRewardToast(`+${formatIntegerWithCommas(xp)} XP`, 'xp');
@@ -36523,7 +34593,7 @@
       this.recordMonsterGuideDefeat(enemy);
       this.recordTargetFarmDefeat(enemy);
       this.recordMapMechanicDefeat(enemy);
-      this.recordRiftDefeat(enemy, baseXp, baseCurrency);
+      this.recordRiftDefeat(enemy, xp, currency);
       this.applyRuneFieldKillRewards(enemy);
       this.addClassMasteryXp(Math.max(3, Number(enemy.level || 1) * 0.35), player.advancedClassId || player.classId);
 	      this.recordProgressEvent('defeat', {
@@ -36657,7 +34727,6 @@
         final -= absorbed;
       }
       if (final > 0) {
-        this.cancelPendingBasicAttack('player-hit');
         this.recordPlayerHpDamage(time);
         this.recordCombatMetric('damageTaken', final + absorbed);
         this.setActorAnimation(player, 'hit', 0.36, { force: true, lock: true, loop: false });
@@ -36673,7 +34742,6 @@
           targetType: 'player'
         });
       } else if (absorbed > 0) {
-        this.cancelPendingBasicAttack('player-hit');
         this.recordCombatMetric('damageTaken', absorbed);
         this.setActorAnimation(player, 'hit', 0.3, { force: true, lock: true, loop: false });
         this.pushDamageSplat(player, absorbed, {
@@ -36687,14 +34755,7 @@
           targetType: 'player'
         });
       }
-      if (final > 0 || absorbed > 0) {
-        this.applyPlayerHitKnockback(options);
-        this.recordRiftCounterplayEvent({
-          type: 'damage_taken',
-          now: this.getRiftCounterplayNow(),
-          amount: final + absorbed
-        });
-      }
+      if (final > 0 || absorbed > 0) this.applyPlayerHitKnockback(options);
       player.invulnerableUntil = Math.max(Number(player.invulnerableUntil || 0), time + PLAYER_DAMAGE_INVULNERABLE_SECONDS);
       if (player.advancedClassId === 'guardian' || player.classId === 'fighter') this.gainResource(final * 0.6 + stats.block);
       let recovered = false;
@@ -36706,7 +34767,7 @@
         player.resource = Math.round(stats.secondaryResourceMax * 0.35);
         player.x = 140;
         player.y = 360;
-        this.changeMap('starfallCrossing', { riftExitReason: 'death' });
+        this.changeMap('starfallCrossing');
         this.playAudioCue('damage', 1.4);
         this.toast(`Recovered at Starfall Crossing after ${source || 'danger'}.`);
       }
@@ -40093,8 +38154,6 @@
         const settings = options || {};
         const previousPlayer = clonePlain(this.state.player);
         this.state.channelId = nextId;
-        this.resetRiftCounterplay(this.state.mapId);
-        this.resetBossSpatialResponses();
         this.runtime = createMapRuntime(this.state.mapId, this.getViewportMetrics());
         this.invalidateRuntimeSnapshotCache();
         this.enemies = [];
@@ -40155,22 +38214,9 @@
         }
         const previousMapId = this.state.mapId;
         const settings = Object.assign({ fromMapId: previousMapId }, options || {});
-        const riftNowMs = Number.isFinite(Number(settings.riftNowMs)) ? Number(settings.riftNowMs) : Date.now();
         this.recordDebugEvent('map', 'change-start', { fromMapId: previousMapId, toMapId: map.id, fromPortalId: settings.fromPortalId || '', entryPortalId: settings.entryPortalId || '' });
-        if (normalizeId(previousMapId) === 'endlessRift' && !settings.riftOperationHandled) {
-          this.finishRiftOperation(settings.riftExitReason || (map.id === 'endlessRift' ? 'restart' : 'exit'), {
-            nowMs: riftNowMs,
-            silent: settings.silent
-          });
-        }
         this.finishMapAnalyticsVisit(map.id);
-        this.resetPlayerFeelRuntime('map-change');
         this.state.mapId = map.id;
-        this.resetRiftCounterplay(map.id);
-        if (map.id === 'endlessRift') {
-          this.startRiftOperation({ nowMs: riftNowMs, force: true, silent: settings.silent });
-        }
-        this.resetBossSpatialResponses();
         this.state.channelId = this.getCurrentChannelId();
         this.runtime = createMapRuntime(map.id, this.getViewportMetrics());
         this.invalidateRuntimeSnapshotCache();
@@ -40264,10 +38310,8 @@
         if (isStorageAvailable()) removeStorageItem(SAVE_KEY);
       } catch {}
       this.state = createInitialState('fighter');
-      this.resetPlayerFeelRuntime('game-reset');
       this.state.player.classId = '';
       this.state.skills = {};
-      this.resetRiftCounterplay(this.state.mapId);
       this.runtime = createMapRuntime(this.state.mapId, this.getViewportMetrics());
       this.invalidateRuntimeSnapshotCache();
       this.enemies = [];
@@ -40279,7 +38323,6 @@
       this.petRuntime = createPetRuntime();
       this.bossIntroSummary = null;
       this.bossClearSummary = null;
-      this.resetBossSpatialResponses();
       this.ensureRuntimeState();
       this.camera.x = 0;
       this.camera.y = 0;
@@ -40303,13 +38346,11 @@
     restore(payload) {
       if (!payload || !payload.state || !payload.state.player) return false;
       this.state = payload.state;
-      this.resetPlayerFeelRuntime('game-restore');
       stripActorAnimationState(this.state.player);
       this.state.channelId = normalizeMapChannelId(this.state.channelId || this.state.session && this.state.session.mapChannelId);
       this.state.player.name = normalizeCharacterName(this.state.player.name, Data.BASE_CLASSES[this.state.player.classId] && Data.BASE_CLASSES[this.state.player.classId].name || 'Adventurer');
       this.state.player.lookId = getCharacterLook(this.state.player.lookId) ? normalizeId(this.state.player.lookId) : getDefaultCharacterLookId();
       this.state.log = Array.isArray(this.state.log) ? this.state.log.slice(0, 10) : [];
-      this.resetRiftCounterplay(this.state.mapId);
       this.loadedSaveData = payload.ui && typeof payload.ui === 'object' ? clonePlain(payload.ui) : null;
       this.runtime = createMapRuntime(this.state.mapId || 'starfallCrossing', this.getViewportMetrics());
       this.invalidateRuntimeSnapshotCache();
@@ -40321,7 +38362,6 @@
       this.petRuntime = createPetRuntime();
       this.bossIntroSummary = null;
       this.bossClearSummary = null;
-      this.resetBossSpatialResponses();
       this.ensureRuntimeState();
       ensureAdminConsoleItem(this.state);
       this.beginMapAnalyticsVisit(this.state.mapId, { preserveCurrent: true });
@@ -40439,10 +38479,6 @@
 
     getOverlaySnapshotCacheKey(settings) {
       const options = this.normalizeOverlaySnapshotOptions(settings);
-      const season = this.state && this.state.season || {};
-      const stabilizationSignature = Object.entries(season.stabilizationByAreaId || {})
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(([areaId, count]) => `${areaId}:${Math.max(0, Number(count || 0))}`).join(',');
       return [
         this.getOverlaySnapshotRevisionKey(this.getOverlaySnapshotCacheDomains(options)),
         this.state.mapId,
@@ -40450,10 +38486,7 @@
         options.openPanels.join(','),
         options.commandOpen ? '1' : '0',
         this.getOverlaySnapshotDataCacheKey(options),
-        options.modalKey,
-        normalizeId(season.cycleId),
-        normalizeId(season.selectedDirectiveId),
-        stabilizationSignature
+        options.modalKey
       ].join('|');
     }
 
@@ -40914,7 +38947,6 @@
 
     createOverlaySnapshot(options) {
       const settings = this.normalizeOverlaySnapshotOptions(options);
-      this.getSeasonState();
       const cacheKey = this.getOverlaySnapshotCacheKey(settings);
       const reusableInventoryKey = this.getOverlaySnapshotReusableInventoryKey(settings);
       const nowMs = performanceNowMs();
@@ -41099,14 +39131,11 @@
       return this.withRuntimeStateBatch(() => this.createOverlaySnapshot(options));
     }
 
-    updateCamera(delta) {
+    updateCamera() {
       const targetX = this.getCameraTargetX(this.state.player);
       const targetY = this.getCameraTargetY(this.state.player);
-      const elapsed = Number.isFinite(Number(delta)) ? Math.max(0, Number(delta)) : 1 / 60;
-      const horizontalAlpha = getFrameRateIndependentBlendAlphaForMovement(CAMERA_HORIZONTAL_FRAME_ALPHA, elapsed, 60);
-      const verticalAlpha = getFrameRateIndependentBlendAlphaForMovement(CAMERA_VERTICAL_FRAME_ALPHA, elapsed, 60);
-      this.camera.x += (targetX - this.camera.x) * horizontalAlpha;
-      this.camera.y += (targetY - this.camera.y) * verticalAlpha;
+      this.camera.x += (targetX - this.camera.x) * 0.08;
+      this.camera.y += (targetY - this.camera.y) * 0.1;
     }
 
     createVisualBudgetStats() {
@@ -41439,8 +39468,7 @@
       }
       const type = effect && effect.type || '';
       let score = 0;
-      if (type === 'telegraph' || (type === 'bossHazard' && effect.telegraph)) score = 1400;
-      else if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
+      if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
       else if (type === 'recoveryPulse') score = 650;
       else if (type === 'skillImpact' || type === 'shockBurst') score = 500;
       else if (type === 'slash' || type === 'cast' || type === 'arrowRelease') score = 420;
@@ -42036,7 +40064,7 @@
         h: Number(player.h || 0),
         facing: Number(player.facing || 1),
         shield: Number(player.shield || 0),
-        asset: this.getClassPlayerAsset(player.advancedClassId || player.classId),
+        asset: Data.GENERIC_PLAYER_ASSET || '',
         classColor: this.skillColor(player.advancedClassId || player.classId),
         rigRender: this.getPlayerRigRenderDescriptor(animationState),
         registration,
@@ -42056,9 +40084,7 @@
       if (enemy.id === 'emberjawGolem') color = '#373037';
       const animation = this.getEnemyAnimation(enemy);
       const animationState = this.getActorAnimationState(enemy, this.deriveEnemyAnimationState(enemy));
-      const feedbackTimestampMs = performanceNowMs();
-      const hitReaction = this.getEnemyCombatFeedbackRenderState(enemy, feedbackTimestampMs);
-      const renderBox = this.getEnemyCombatFeedbackRenderBox(enemy, createEnemySpriteRenderBox(enemy), feedbackTimestampMs);
+      const renderBox = createEnemySpriteRenderBox(enemy);
       return {
         kind: 'enemy',
         id: enemy.id,
@@ -42079,8 +40105,6 @@
         elite: !!enemy.elite,
         color,
         asset: enemy.data.asset || '',
-        animationState,
-        hitReaction,
         animationFrame: this.getRendererAnimationFrame(animation, animationState, enemy),
         renderBox,
         questTarget: !!(questGuidance && questGuidance.active && Array.isArray(questGuidance.targetEnemyIds) && questGuidance.targetEnemyIds.includes(enemy.id))
@@ -42099,7 +40123,6 @@
           return {
             kind: 'party',
             id: member.id || member.templateId || member.classId,
-            classId: member.classId || '',
             name: member.name || '',
             x: Number(member.x || 0),
             y: Number(member.y || 0),
@@ -42108,7 +40131,7 @@
             hp: Number(member.hp || 0),
             maxHp: Number(member.maxHp || member.hp || 1),
             facing: Number(member.facing || 1),
-            asset: this.getClassPlayerAsset(member.classId),
+            asset: Data.GENERIC_PLAYER_ASSET || '',
             classColor: this.skillColor(member.classId),
             rigRender: this.getPartyRigRenderDescriptor(member, animationState, equipment),
             registration,
@@ -42195,12 +40218,9 @@
       const zoom = this.getWorldZoom();
       const worldViewWidth = this.getWorldViewWidth(width);
       const worldViewHeight = this.getWorldViewHeight(playfieldHeight);
-      const cameraImpulse = this.getCombatFeedbackCameraOffset();
       const camera = {
         x: Number(this.camera.x || 0),
         y: Number(this.camera.y || 0),
-        effectX: Number(cameraImpulse.x || 0),
-        effectY: Number(cameraImpulse.y || 0),
         w: worldViewWidth,
         h: worldViewHeight,
         zoom
@@ -42258,7 +40278,6 @@
           id: map.id || runtime.id || '',
           name: map.name || runtime.name || '',
           asset: map.asset || runtime.asset || '',
-          backgroundMode: map.backgroundMode || runtime.backgroundMode || '',
           palette: map.palette || runtime.palette || [],
           environment: map.environment || runtime.environment || null,
           townScene: map.townScene || runtime.townScene || null,
@@ -42268,8 +40287,6 @@
           safeZone: !!(map.safeZone || runtime.safeZone)
         },
         runtime: {
-          worldWidth: Number(runtime.worldWidth || 0),
-          worldHeight: Number(runtime.worldHeight || 0),
           platforms: runtime.platforms || [],
           footholds: runtime.footholds || [],
           trainingRoute: runtime.trainingRoute || null,
@@ -42288,7 +40305,6 @@
         lootDrops: this.getLootRenderSnapshots(worldViewWidth, worldViewHeight),
         worldEffects: worldEffectSnapshots,
         damageSplats,
-        bossEncounter: this.getBossEncounterSnapshot(),
         visualQuality: this.visualQuality || { level: 'normal' },
         questGuidance
       };
@@ -42339,8 +40355,7 @@
       ctx.clip();
       ctx.save();
       ctx.scale(zoom, zoom);
-      const cameraImpulse = this.getCombatFeedbackCameraOffset();
-      ctx.translate(-this.camera.x - cameraImpulse.x, -this.camera.y - cameraImpulse.y);
+      ctx.translate(-this.camera.x, -this.camera.y);
       this.profilePerformancePhase('draw', 'levelUpBurst', () => {
         (visualDrawLists.levelUpBursts || []).forEach((effect) => this.drawEffect(ctx, effect));
       });
@@ -42382,8 +40397,7 @@
       this.profilePerformancePhase('draw', 'worldBaseBand', () => this.drawWorldBaseBand(ctx, width, playfieldHeight, solidBandBottom, map));
       ctx.save();
       ctx.scale(zoom, zoom);
-      const cameraImpulse = this.getCombatFeedbackCameraOffset();
-      ctx.translate(-this.camera.x - cameraImpulse.x, -this.camera.y - cameraImpulse.y);
+      ctx.translate(-this.camera.x, -this.camera.y);
       const worldEffectsToDraw = visualDrawLists.worldEffects || [];
       const dynamicDrawViewBox = this.getCurrentViewBox(width, playfieldHeight, 140);
       const projectilesToDraw = this.getVisibleProjectilesForDraw(dynamicDrawViewBox, this.visibleProjectileDrawBuffer);
@@ -42446,18 +40460,6 @@
         const drawWidth = Math.max(1, Math.round(imageWidth * (drawHeight / Math.max(1, imageHeight))));
         const parallaxX = this.camera.x * MAP_BACKGROUND_PARALLAX;
         const parallaxY = Math.max(0, this.camera.y * MAP_BACKGROUND_PARALLAX);
-        if (map.backgroundMode === 'panorama') {
-          const worldWidth = Math.max(width, Number(this.runtime && this.runtime.worldWidth || width));
-          const cameraMax = Math.max(1, worldWidth - this.getWorldViewWidth(width));
-          const panoramaTravel = Math.max(0, drawWidth - width);
-          const panoramaProgress = clamp(Number(this.camera.x || 0) / cameraMax, 0, 1);
-          const drawX = -Math.round(panoramaTravel * panoramaProgress);
-          const drawY = -Math.round(parallaxY * 0.16);
-          ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight + Math.abs(drawY));
-          ctx.fillStyle = 'rgba(8, 18, 31, 0.08)';
-          ctx.fillRect(0, 0, width, height);
-          return;
-        }
         const tileOffset = -(((parallaxX % drawWidth) + drawWidth) % drawWidth);
         const startX = Math.floor(tileOffset) - MAP_BACKGROUND_TILE_OVERLAP_PX;
         const tileDrawWidth = drawWidth + MAP_BACKGROUND_TILE_OVERLAP_PX * 2;
@@ -42498,15 +40500,13 @@
     getWorldBaseBandFill(map) {
       const theme = this.getMapThemeId(map);
       const palette = map && map.palette || [];
-      // This is reserved collision geometry, not an overlay. Opaque map tones
-      // prevent the pale CSS canvas fallback from bleeding through as gray.
-      if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) return '#140a18';
-      if (theme.includes('frost') || theme.includes('rime') || theme.includes('glacier')) return '#a3d9f2';
-      if (theme.includes('astral') || theme.includes('eclipse') || theme.includes('rift') || theme.includes('rune')) return '#1d1d40';
-      if (theme.includes('storm')) return '#2f445c';
-      if (theme.includes('ruins') || theme.includes('gearworks') || theme.includes('quarry') || theme.includes('rust') || theme.includes('titan') || theme.includes('deepcore')) return '#4e504e';
-      if (theme.includes('bandit') || theme.includes('ridge') || theme.includes('duelist') || theme.includes('sniper')) return '#654a30';
-      return palette[0] || '#2f6848';
+      if (theme.includes('cinder') || theme.includes('ember') || theme.includes('fire')) return 'rgba(20, 10, 24, 0.88)';
+      if (theme.includes('frost') || theme.includes('rime') || theme.includes('glacier')) return 'rgba(163, 217, 242, 0.78)';
+      if (theme.includes('astral') || theme.includes('eclipse') || theme.includes('rift') || theme.includes('rune')) return 'rgba(29, 29, 64, 0.86)';
+      if (theme.includes('storm')) return 'rgba(47, 68, 92, 0.82)';
+      if (theme.includes('ruins') || theme.includes('gearworks') || theme.includes('quarry') || theme.includes('rust') || theme.includes('titan') || theme.includes('deepcore')) return 'rgba(78, 80, 78, 0.84)';
+      if (theme.includes('bandit') || theme.includes('ridge') || theme.includes('duelist') || theme.includes('sniper')) return 'rgba(101, 74, 48, 0.82)';
+      return colorWithAlpha(palette[0] || '#2f6848', 0.8);
     }
 
     drawWorldBaseBand(ctx, width, playfieldHeight, worldHeight, map) {
@@ -42538,178 +40538,6 @@
 
     getEnvironmentTerrainStyle(profile) {
       return Object.assign({}, ENVIRONMENT_TERRAIN_STYLE_DEFAULTS, profile && profile.terrainStyle || {});
-    }
-
-    isEclipseObservatoryDeck(map, profile) {
-      const treatmentId = Data.ECLIPSE_OBSERVATORY_DECK_TREATMENT_ID || 'totality-observatory';
-      return !!(map && map.id === 'eclipseThrone' && profile && profile.platformTreatment === treatmentId);
-    }
-
-    getEclipseObservatoryDeckColors(map, platform) {
-      const worldWidth = Math.max(1, Number(map && map.width || 4600));
-      const centerX = Number(platform && platform.x || 0) + Number(platform && platform.w || 0) * 0.5;
-      if (Math.abs(centerX - worldWidth * 0.5) <= 600) {
-        return { primary: '#c794ff', secondary: '#ffbe55' };
-      }
-      if (centerX < worldWidth * 0.5) {
-        return { primary: '#ffbe55', secondary: '#7bdff2' };
-      }
-      return { primary: '#7bdff2', secondary: '#ffbe55' };
-    }
-
-    drawEclipseObservatoryDeckTreatment(ctx, map, platform, index) {
-      const profile = this.getEnvironmentProfile(map);
-      if (!ctx || !platform || !this.isEclipseObservatoryDeck(map, profile)) return false;
-      const x = Number(platform.x || 0);
-      const y = Number(platform.y || 0);
-      const w = Math.max(1, Number(platform.w || 0));
-      const isGround = index === 0 || String(platform.id || '').endsWith('_ground');
-      const colors = this.getEclipseObservatoryDeckColors(map, platform);
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (isSlopePlatform(platform)) {
-        const rightX = x + w;
-        const rightY = Number(platform.y2 || platform.y || 0);
-        const bodyDepth = 28;
-        const topPad = 4;
-        ctx.fillStyle = colorWithAlpha('#080e19', 0.98);
-        ctx.beginPath();
-        ctx.moveTo(x, y - topPad);
-        ctx.lineTo(rightX, rightY - topPad);
-        ctx.lineTo(rightX, rightY + bodyDepth);
-        ctx.lineTo(x, y + bodyDepth);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.strokeStyle = colorWithAlpha('#03070d', 0.92);
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.moveTo(x + 6, getPlatformSurfaceY(platform, x + 6));
-        ctx.lineTo(rightX - 6, getPlatformSurfaceY(platform, rightX - 6));
-        ctx.stroke();
-        ctx.strokeStyle = colorWithAlpha(colors.primary, 0.86);
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-
-        ctx.strokeStyle = colorWithAlpha(colors.secondary, 0.48);
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.moveTo(x + 10, getPlatformSurfaceY(platform, x + 10) + 8);
-        ctx.lineTo(rightX - 10, getPlatformSurfaceY(platform, rightX - 10) + 8);
-        ctx.stroke();
-
-        for (let nodeX = x + 20; nodeX < rightX - 18; nodeX += 64) {
-          const nextX = Math.min(rightX - 16, nodeX + 46);
-          const nodeY = getPlatformSurfaceY(platform, nodeX);
-          const nextY = getPlatformSurfaceY(platform, nextX);
-          ctx.strokeStyle = colorWithAlpha(colors.secondary, 0.24);
-          ctx.lineWidth = 1.35;
-          ctx.beginPath();
-          ctx.moveTo(nodeX, nodeY + 8);
-          ctx.lineTo(nodeX, nodeY + bodyDepth - 4);
-          ctx.lineTo(nextX, nextY + 8);
-          ctx.moveTo(nodeX, nodeY + 8);
-          ctx.lineTo(nextX, nextY + bodyDepth - 4);
-          ctx.lineTo(nextX, nextY + 8);
-          ctx.stroke();
-          ctx.fillStyle = '#080e19';
-          ctx.beginPath();
-          ctx.arc(nodeX, nodeY + 8, 3.2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = colorWithAlpha(colors.primary, 0.68);
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
-
-        ctx.strokeStyle = colorWithAlpha('#dce8f5', 0.3);
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(x + 2, y - 1);
-        ctx.lineTo(x + 2, y + bodyDepth - 2);
-        ctx.moveTo(rightX - 2, rightY - 1);
-        ctx.lineTo(rightX - 2, rightY + bodyDepth - 2);
-        ctx.stroke();
-        ctx.restore();
-        return true;
-      }
-
-      const bodyDepth = isGround ? 38 : 24;
-      ctx.fillStyle = colorWithAlpha('#07101c', isGround ? 0.78 : 0.86);
-      ctx.fillRect(x, y + 1, w, bodyDepth);
-      ctx.fillStyle = colorWithAlpha('#111b2a', isGround ? 0.9 : 0.96);
-      ctx.fillRect(x, y - 6, w, 11);
-
-      ctx.strokeStyle = colorWithAlpha('#03070d', 0.9);
-      ctx.lineWidth = isGround ? 7 : 8;
-      ctx.beginPath();
-      ctx.moveTo(x + 4, y);
-      ctx.lineTo(x + w - 4, y);
-      ctx.stroke();
-      ctx.strokeStyle = colorWithAlpha(isGround ? '#d9c891' : colors.primary, isGround ? 0.58 : 0.88);
-      ctx.lineWidth = isGround ? 2 : 2.5;
-      ctx.stroke();
-
-      const braceStep = isGround ? 180 : 92;
-      ctx.strokeStyle = colorWithAlpha(colors.secondary, isGround ? 0.13 : 0.22);
-      ctx.lineWidth = 1.25;
-      ctx.beginPath();
-      for (let braceX = x + 18; braceX < x + w - 22; braceX += braceStep) {
-        const braceRight = Math.min(x + w - 10, braceX + Math.min(54, braceStep * 0.56));
-        ctx.moveTo(braceX, y + 6);
-        ctx.lineTo(braceX + (braceRight - braceX) * 0.5, y + bodyDepth - 4);
-        ctx.lineTo(braceRight, y + 6);
-      }
-      ctx.stroke();
-
-      const guideStep = isGround ? 144 : 76;
-      for (let guideX = x + 18; guideX < x + w - 18; guideX += guideStep) {
-        const guideW = Math.min(isGround ? 76 : 38, x + w - 12 - guideX);
-        if (guideW <= 2) continue;
-        const guideColors = isGround
-          ? this.getEclipseObservatoryDeckColors(map, { x: guideX, w: guideW })
-          : colors;
-        ctx.strokeStyle = colorWithAlpha(guideColors.primary, isGround ? 0.46 : 0.58);
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(guideX, y + 8);
-        ctx.lineTo(guideX + guideW, y + 8);
-        ctx.stroke();
-        if (!isGround && Math.round((guideX - x) / guideStep) % 2 === 0) {
-          const nodeX = guideX + guideW * 0.5;
-          ctx.fillStyle = '#080e19';
-          ctx.beginPath();
-          ctx.arc(nodeX, y + 8, 3.4, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = colorWithAlpha(colors.primary, 0.76);
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
-      }
-
-      if (isGround) {
-        const worldWidth = Math.max(1, Number(map && map.width || w));
-        [0.25, 0.5, 0.75].forEach((ratio) => {
-          const seamX = worldWidth * ratio;
-          if (seamX <= x + 12 || seamX >= x + w - 12) return;
-          ctx.strokeStyle = colorWithAlpha('#c794ff', ratio === 0.5 ? 0.42 : 0.24);
-          ctx.lineWidth = ratio === 0.5 ? 1.8 : 1.2;
-          ctx.beginPath();
-          ctx.moveTo(seamX, y - 4);
-          ctx.lineTo(seamX, y + bodyDepth - 5);
-          ctx.stroke();
-          ctx.fillStyle = '#080e19';
-          ctx.beginPath();
-          ctx.arc(seamX, y + 8, ratio === 0.5 ? 4.2 : 3.2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = colorWithAlpha('#c794ff', 0.66);
-          ctx.stroke();
-        });
-      }
-
-      ctx.restore();
-      return true;
     }
 
     getEnvironmentCellList(cellIndex) {
@@ -42908,11 +40736,6 @@
 
     drawPlatformThemeTrim(ctx, map, platform, index) {
       if (!platform || platform.w <= 80) return;
-      const profile = this.getEnvironmentProfile(map);
-      if (this.isEclipseObservatoryDeck(map, profile)) {
-        this.drawEclipseObservatoryDeckTreatment(ctx, map, platform, index);
-        return;
-      }
       const theme = this.getMapThemeId(map);
       const palette = map && map.palette || [];
       const accent = palette[2] || palette[1] || '#f3d86d';
@@ -43141,9 +40964,6 @@
 
     drawRampPlatformTerrain(ctx, map, platform, index, style, seed) {
       const profile = this.getEnvironmentProfile(map);
-      if (this.isEclipseObservatoryDeck(map, profile)) {
-        return this.drawEclipseObservatoryDeckTreatment(ctx, map, platform, index);
-      }
       const asset = this.getEnvironmentAsset('ramps', profile);
       const image = this.getEnvironmentImage('ramps', profile);
       if (!asset || !image || !isSlopePlatform(platform)) return false;
@@ -43276,9 +41096,6 @@
       const terrainOverlap = 10;
 
       this.drawTerrainSurface(ctx, asset, image, ENVIRONMENT_TERRAIN_CELLS, isGround, left, topY, right - left, layerH, `${seed}:single`, { overlap: terrainOverlap });
-      if (this.isEclipseObservatoryDeck(map, profile)) {
-        this.drawEclipseObservatoryDeckTreatment(ctx, map, platform, index);
-      }
     }
 
     getEnvironmentVisibility(profile) {
@@ -43630,9 +41447,7 @@
       const playfieldH = this.getWorldViewHeight();
       const left = this.camera.x - 80;
       const right = this.camera.x + viewportW + 80;
-      const centerX = variant === 'eclipse'
-        ? Math.max(viewportW / 2, Number(this.runtime && this.runtime.worldWidth || viewportW) / 2)
-        : this.camera.x + viewportW / 2;
+      const centerX = this.camera.x + viewportW / 2;
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       if (layer === 'rear') {
@@ -43650,8 +41465,6 @@
         ctx.stroke();
         ctx.setLineDash([]);
         if (variant === 'eclipse') {
-          const solarAngle = time * 0.16;
-          const lunarAngle = -time * 0.11;
           ctx.fillStyle = colorWithAlpha('#ffe16a', 0.32);
           ctx.beginPath();
           ctx.arc(centerX - 26, 128, 54, 0, Math.PI * 2);
@@ -43661,24 +41474,6 @@
           ctx.beginPath();
           ctx.arc(centerX + 2 + Math.sin(time * 0.8) * 8, 126, 56, 0, Math.PI * 2);
           ctx.fill();
-          ctx.globalAlpha = 0.34;
-          [
-            { radius: 92, angle: solarAngle, color: color },
-            { radius: 118, angle: lunarAngle, color: accent }
-          ].forEach((ring) => {
-            ctx.strokeStyle = colorWithAlpha(ring.color, 0.42);
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(centerX, 164, ring.radius, 0, Math.PI * 2);
-            ctx.stroke();
-            for (let spoke = 0; spoke < 12; spoke += 1) {
-              const angle = ring.angle + spoke / 12 * Math.PI * 2;
-              ctx.beginPath();
-              ctx.moveTo(centerX + Math.cos(angle) * (ring.radius - 9), 164 + Math.sin(angle) * (ring.radius - 9));
-              ctx.lineTo(centerX + Math.cos(angle) * (ring.radius + 8), 164 + Math.sin(angle) * (ring.radius + 8));
-              ctx.stroke();
-            }
-          });
         } else if (variant === 'gear') {
           ctx.strokeStyle = colorWithAlpha(accent, 0.28);
           ctx.lineWidth = 4;
@@ -43768,8 +41563,6 @@
           Math.round(platform.y || 0),
           Math.round(platform.w || 0),
           Math.round(platform.h || 0),
-          platform.shape || '',
-          Math.round(platform.y2 || 0),
           platform.terrainVisual && platform.terrainVisual.kind || '',
           (platform.terrainVisual && platform.terrainVisual.segments || []).map((segment) =>
             [Math.round(segment.x || 0), Math.round(segment.w || 0), Math.round(segment.depth || 0)].join(':')
@@ -43789,8 +41582,6 @@
       const environmentKey = [
         profile.terrain || '',
         profile.props || '',
-        profile.ramps || '',
-        profile.platformTreatment || '',
         profile.density || '',
         profile.visibility && profile.visibility.rearDensityScale || '',
         profile.visibility && profile.visibility.frontDensityScale || '',
@@ -44215,10 +42006,7 @@
       const animation = this.getPlayerAnimation();
       const animationFrame = this.getAnimationFrame(animation, animationState, player);
       const animationImage = animationFrame && animation ? this.getAsset(animation.sheet) : null;
-      const playerAsset = this.getClassPlayerAsset(player.advancedClassId || player.classId);
-      const playerImage = this.getAsset(playerAsset) || (playerAsset !== Data.GENERIC_PLAYER_ASSET
-        ? this.getAsset(Data.GENERIC_PLAYER_ASSET)
-        : null);
+      const playerImage = this.getAsset(Data.GENERIC_PLAYER_ASSET);
       const drawX = player.x;
       const drawY = player.y;
       const drawW = player.w;
@@ -44332,10 +42120,7 @@
         actorDrawn = this.drawAnimationFrame(ctx, animationImage, animationFrame, member.x, member.y, member.w, member.h, member.facing, spriteDrawOptions);
       }
       if (!actorDrawn) {
-        const memberAsset = this.getClassPlayerAsset(member.classId);
-        const image = this.getAsset(memberAsset) || (memberAsset !== Data.GENERIC_PLAYER_ASSET
-          ? this.getAsset(Data.GENERIC_PLAYER_ASSET)
-          : null);
+        const image = this.getAsset(Data.GENERIC_PLAYER_ASSET);
         if (image) {
           ctx.save();
           ctx.translate(member.x + member.w / 2, member.y + member.h / 2);
@@ -44522,7 +42307,7 @@
       const animationImage = animationFrame && animation ? this.getAsset(animation.sheet) : null;
       const enemyImage = this.getAsset(enemy.data.asset);
       ctx.fillStyle = enemy.telegraph > 0 ? '#ffe16a' : color;
-      const renderBox = this.getEnemyCombatFeedbackRenderBox(enemy, createEnemySpriteRenderBox(enemy));
+      const renderBox = createEnemySpriteRenderBox(enemy);
       const drawX = renderBox.x;
       const drawY = renderBox.y;
       const drawWidth = renderBox.w;
@@ -44551,10 +42336,10 @@
         ctx.restore();
       } else if (enemy.data.behavior === 'flyer') {
         ctx.beginPath();
-        ctx.ellipse(drawX + drawWidth / 2, drawY + drawHeight / 2, drawWidth / 2, drawHeight / 2, 0, 0, Math.PI * 2);
+        ctx.ellipse(x + enemy.w / 2, y + enemy.h / 2, enemy.w / 2, enemy.h / 2, 0, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+        ctx.fillRect(x, y, enemy.w, enemy.h);
       }
       if (enemy.id === 'emberjawGolem' && !enemyImage) {
         ctx.fillStyle = '#ff6b35';
@@ -46359,16 +44144,13 @@
     }
 
     drawBossHazardEffect(ctx, effect) {
-      const drawState = getEngineVisualHelper('createBossHazardEffectDrawState')
-        ? getEngineVisualHelper('createBossHazardEffectDrawState')(effect)
-        : null;
-      const duration = drawState ? drawState.duration : Math.max(0.01, Number(effect.duration || 0.62));
-      const progress = drawState ? drawState.progress : clamp(1 - Number(effect.ttl || 0) / duration, 0, 1);
-      const alpha = drawState ? drawState.alpha : clamp(Number(effect.ttl || 0) / duration, 0, 1);
-      const color = drawState ? drawState.color : effect.color || '#ffbe55';
-      const accent = drawState ? drawState.accent : effect.accentColor || '#ffffff';
-      const pulse = drawState ? drawState.pulse : Math.sin(progress * Math.PI);
-      const shape = drawState ? drawState.shape : String(effect.shape || 'circle');
+      const duration = Math.max(0.01, Number(effect.duration || 0.62));
+      const progress = clamp(1 - Number(effect.ttl || 0) / duration, 0, 1);
+      const alpha = clamp(Number(effect.ttl || 0) / duration, 0, 1);
+      const color = effect.color || '#ffbe55';
+      const accent = effect.accentColor || '#ffffff';
+      const pulse = Math.sin(progress * Math.PI);
+      const shape = String(effect.shape || 'circle');
       const variant = String(effect.variant || '');
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -46477,96 +44259,6 @@
       } else if (shape === 'pulse' || shape === 'sigils' || shape === 'circle') {
         const radius = Math.max(56, Number(effect.r || 150));
         ctx.translate(Number(effect.x || 0), Number(effect.y || 0) - 28);
-        if (drawState && drawState.family !== 'standard') {
-          const boundaryRadiusX = drawState.boundaryWidth / 2;
-          const boundaryRadiusY = drawState.boundaryHeight / 2;
-          if (drawState.family === 'solar') {
-            ctx.fillStyle = colorWithAlpha(drawState.primaryColor, effect.telegraph ? 0.12 + drawState.urgency * 0.12 : 0.28);
-            ctx.beginPath();
-            ctx.ellipse(0, 20, boundaryRadiusX, boundaryRadiusY, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = colorWithAlpha(drawState.primaryColor, 0.94);
-            ctx.lineWidth = effect.telegraph ? 2 + drawState.urgency * 3 : 5;
-            ctx.beginPath();
-            ctx.ellipse(0, 20, boundaryRadiusX, boundaryRadiusY, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.strokeStyle = colorWithAlpha(drawState.secondaryColor, 0.8);
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.ellipse(0, 20, drawState.innerWidth / 2, drawState.innerHeight / 2, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            for (let ray = 0; ray < 10; ray += 1) {
-              const angle = ray / 10 * Math.PI * 2 + drawState.rotation * 0.18;
-              const x1 = Math.cos(angle) * boundaryRadiusX * 0.72;
-              const y1 = 20 + Math.sin(angle) * boundaryRadiusY * 0.72;
-              const x2 = Math.cos(angle) * boundaryRadiusX * 1.08;
-              const y2 = 20 + Math.sin(angle) * boundaryRadiusY * 1.18;
-              ctx.beginPath();
-              ctx.moveTo(x1, y1);
-              ctx.lineTo(x2, y2);
-              ctx.stroke();
-            }
-          } else if (drawState.family === 'lunar') {
-            ctx.fillStyle = colorWithAlpha('#514077', effect.telegraph ? 0.22 : 0.38);
-            ctx.beginPath();
-            ctx.ellipse(0, 20, boundaryRadiusX, boundaryRadiusY, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = colorWithAlpha(drawState.primaryColor, 0.96);
-            ctx.lineWidth = effect.telegraph ? 2 + drawState.urgency * 2.5 : 5;
-            ctx.beginPath();
-            ctx.ellipse(0, 20, boundaryRadiusX, boundaryRadiusY, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = colorWithAlpha(drawState.primaryColor, 0.34);
-            ctx.beginPath();
-            ctx.ellipse(-radius * 0.12, 20, radius * 0.25, radius * 0.1, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = colorWithAlpha('#171a2a', 0.82);
-            ctx.beginPath();
-            ctx.ellipse(-radius * 0.04, 18, radius * 0.22, radius * 0.09, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.strokeStyle = colorWithAlpha(drawState.secondaryColor, 0.82);
-            ctx.lineWidth = 2;
-            for (let bracket = 0; bracket < 4; bracket += 1) {
-              const direction = bracket % 2 ? 1 : -1;
-              const bx = direction * boundaryRadiusX * (0.54 + Math.floor(bracket / 2) * 0.2);
-              ctx.beginPath();
-              ctx.moveTo(bx, 20 - boundaryRadiusY * 0.52);
-              ctx.lineTo(bx - direction * 14, 20);
-              ctx.lineTo(bx, 20 + boundaryRadiusY * 0.52);
-              ctx.stroke();
-            }
-          } else {
-            ctx.fillStyle = colorWithAlpha('#101827', effect.telegraph ? 0.46 : 0.62);
-            ctx.beginPath();
-            ctx.ellipse(0, 20, boundaryRadiusX * 1.12, boundaryRadiusY * 1.24, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = colorWithAlpha(drawState.secondaryColor, 0.9);
-            ctx.lineWidth = effect.telegraph ? 2 + drawState.urgency * 2 : 5;
-            ctx.beginPath();
-            ctx.ellipse(0, 20, boundaryRadiusX * 1.1, boundaryRadiusY * 1.18, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = colorWithAlpha(drawState.primaryColor, effect.telegraph ? 0.18 + drawState.urgency * 0.12 : 0.4);
-            ctx.beginPath();
-            ctx.ellipse(0, 20, drawState.innerWidth / 2, drawState.innerHeight / 2, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = colorWithAlpha(drawState.primaryColor, 0.98);
-            ctx.lineWidth = effect.telegraph ? 3 + drawState.urgency * 2 : 6;
-            ctx.beginPath();
-            ctx.ellipse(0, 20, drawState.innerWidth / 2, drawState.innerHeight / 2, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            for (let chevron = 0; chevron < 8; chevron += 1) {
-              const angle = chevron / 8 * Math.PI * 2 + drawState.rotation * 0.12;
-              ctx.strokeStyle = colorWithAlpha(chevron % 2 ? drawState.primaryColor : drawState.secondaryColor, 0.76);
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.moveTo(Math.cos(angle) * boundaryRadiusX * 0.94, 20 + Math.sin(angle) * boundaryRadiusY * 0.94);
-              ctx.lineTo(Math.cos(angle) * boundaryRadiusX * 0.68, 20 + Math.sin(angle) * boundaryRadiusY * 0.68);
-              ctx.stroke();
-            }
-          }
-        } else {
         ctx.fillStyle = colorWithAlpha(color, effect.telegraph ? 0.12 + pulse * 0.14 : 0.28);
         ctx.beginPath();
         ctx.ellipse(0, 20, radius * (0.54 + progress * 0.2), radius * 0.22, 0, 0, Math.PI * 2);
@@ -46629,7 +44321,6 @@
             ctx.restore();
           }
         }
-        }
       } else if (shape === 'add' || shape === 'expose') {
         const radius = Math.max(64, Number(effect.r || 120));
         ctx.translate(Number(effect.x || 0), Number(effect.y || 0));
@@ -46666,20 +44357,8 @@
         }
       }
       const label = String(effect.label || '').slice(0, 16);
-      if (drawState && drawState.family !== 'standard' && drawState.callout) {
-        ctx.globalAlpha = drawState.labelAlpha;
-        ctx.fillStyle = drawState.safeZone ? '#baf7ff' : '#ffffff';
-        ctx.font = '950 12px system-ui';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(drawState.callout, Number(effect.x || 0), Number(effect.y || 0) - Math.max(46, drawState.radius * 0.3));
-        if (drawState.label && drawState.label !== drawState.callout) {
-          ctx.globalAlpha = drawState.labelAlpha * 0.82;
-          ctx.font = '850 9px system-ui';
-          ctx.fillText(drawState.label, Number(effect.x || 0), Number(effect.y || 0) - Math.max(32, drawState.radius * 0.2));
-        }
-      } else if (label && (shape === 'lane' || shape === 'charge' || shape === 'wall')) {
-        ctx.globalAlpha = drawState ? drawState.labelAlpha : alpha * 0.88;
+      if (label && (shape === 'lane' || shape === 'charge' || shape === 'wall')) {
+        ctx.globalAlpha = alpha * 0.88;
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 11px system-ui';
         ctx.textAlign = 'center';
