@@ -463,18 +463,6 @@
     };
   }
 
-  function getFrameRateIndependentRetention(retention, delta, referenceFps) {
-    const authoredRetention = clamp(Number(retention || 0), 0, 1);
-    const elapsed = Math.max(0, Number(delta || 0));
-    const authoredFps = Math.max(1, Number(referenceFps || 60));
-    return Math.pow(authoredRetention, elapsed * authoredFps);
-  }
-
-  function getFrameRateIndependentBlendAlpha(frameAlpha, delta, referenceFps) {
-    const authoredAlpha = clamp(Number(frameAlpha || 0), 0, 1);
-    return 1 - getFrameRateIndependentRetention(1 - authoredAlpha, delta, referenceFps);
-  }
-
   function getHorizontalMovementStepPlan(player, stats, direction, delta, movementLocked, movementProfile, options) {
     const settings = options || {};
     let vx = player.vx;
@@ -491,7 +479,7 @@
           ? (direction ? movementProfile.activeFriction : movementProfile.idleFriction)
           : (direction ? settings.groundFrictionActive : settings.groundFrictionIdle))
       : settings.airFriction;
-    vx *= getFrameRateIndependentRetention(friction, delta, 60);
+    vx *= friction;
     if (!direction && Math.abs(vx) < 2) vx = 0;
     const maxSpeed = stats.speed * (movementProfile ? movementProfile.maxSpeedScale : 1);
     vx = clamp(vx, -maxSpeed, maxSpeed);
@@ -505,19 +493,16 @@
   function getJumpMovementAction(player, input, stats, movementLocked, mobility, options) {
     const controls = input || {};
     const settings = options || {};
-    const jumpRequested = typeof settings.jumpRequested === 'boolean' ? settings.jumpRequested : !!controls.jump;
-    if (!movementLocked && !mobility && jumpRequested && controls.down && player.grounded && !player.dropJumpConsumed) {
+    if (!movementLocked && !mobility && controls.jump && controls.down && player.grounded && !player.dropJumpConsumed) {
       return {
         type: 'drop-through',
-        vy: Math.max(player.vy, settings.dropThroughVy),
-        consumeJumpBuffer: typeof settings.jumpRequested === 'boolean'
+        vy: Math.max(player.vy, settings.dropThroughVy)
       };
     }
-    if (!movementLocked && !mobility && jumpRequested && !controls.down && (player.grounded || settings.coyoteActive)) {
+    if (!movementLocked && !mobility && controls.jump && !controls.down && player.grounded) {
       return {
         type: 'jump',
-        vy: -stats.jump,
-        consumeJumpBuffer: typeof settings.jumpRequested === 'boolean'
+        vy: -stats.jump
       };
     }
     return null;
@@ -897,8 +882,6 @@
     getMobilityStepPlan,
     getMobilityMovementPlan,
     getAirDashMomentumMovementPlan,
-    getFrameRateIndependentRetention,
-    getFrameRateIndependentBlendAlpha,
     getHorizontalMovementStepPlan,
     getJumpMovementAction,
     getVerticalMovementStepPlan,

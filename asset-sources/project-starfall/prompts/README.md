@@ -29,11 +29,10 @@ guide grid color inside artwork, chroma key color inside artwork, row labels, co
 ## Player Sheet Template
 
 ```text
-Create an original Project Starfall player family animation source sheet for [FIGHTER, MAGE, OR ARCHER], an athletic adult 2D side-scroller sci-fantasy frontier operative.
-Style: Fractured Starfront Sci-Fantasy, clean cel-shaded 2D game sprite, crisp dark contour, realistic 5.5-to-6-head proportions, readable family silhouette, restrained painterly material detail, charcoal field gear, cyan star-tech seams, ember utility accents, no copied IP.
-Character lock: [HAIR], [FACE VISIBILITY], [FAMILY OUTFIT SILHOUETTE], [ARMOR OR MANTLE PROFILE], [FAMILY COLORS]. Keep anatomy, face, materials, and costume identical in every frame. Keep the body weaponless; weapons, helmets, chest pieces, gloves, boots, jewelry, and specialist gear are separate runtime atlases.
-Registration lock: preserve the approved Fracture Runner feet, torso, head, main-hand, off-hand, and ground sockets in every pose. Fighter shoulder armor and Mage mantle must not hide the hand sockets or extend below the two-pixel ground tolerance.
-Sheet layout: 6 columns x 10 rows, 160px normalized frame target, one centered character per cell, right-facing, transparent-ready, consistent baseline, generous padding, no labels. Use solid #00ffff outer and cell guide lines plus a flat processor-safe chroma background outside the character.
+Create an original Project Starfall player class animation source sheet for [CLASS_NAME], a compact heroic 2D side-scroller fantasy RPG character.
+Style: Starlit Frontier Fantasy, clean cel-shaded 2D game sprite, crisp dark contour outline, compact 3.5 to 4 heads tall proportions, readable silhouette, subtle painterly color, luminous fallen-star magic accents, no copied IP.
+Character lock: [HAIR/HELMET], [FACE VISIBILITY], [OUTFIT], [WEAPON OR FOCUS], [CLASS COLORS], [SIGNATURE ACCESSORY]. Keep these identical in every frame.
+Sheet layout: 6 columns x 10 rows, 160px frame target, one centered character per cell, right-facing, transparent-ready, consistent baseline, generous padding, no labels.
 Rows: idle, run, jump, fall, climb, basic, skill, party, hit, defeat.
 ```
 

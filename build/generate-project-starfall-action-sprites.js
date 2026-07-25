@@ -19,9 +19,8 @@ const ENEMY_DIR = path.join(ROOT, 'img/project-starfall/enemies');
 const ENEMY_SHEET_DIR = path.join(ROOT, 'img/project-starfall/animations/enemies');
 const MAP_DIR = path.join(ROOT, 'img/project-starfall/maps');
 const PORTAL_DIR = path.join(ROOT, 'img/project-starfall/animations/portals');
-const PROCEDURAL_BACKUP_DIR = path.join(ROOT, 'img/project-starfall/backups/procedural');
-const GENERIC_CHARACTER_BACKUP_PATH = path.join(PROCEDURAL_BACKUP_DIR, 'characters/generic-player-v4.png');
-const GENERIC_SHEET_BACKUP_PATH = path.join(PROCEDURAL_BACKUP_DIR, 'animations/players/generic-player-sheet-v4.png');
+const GENERIC_CHARACTER_PATH = path.join(CHARACTER_DIR, 'generic-player.png');
+const GENERIC_SHEET_PATH = path.join(PLAYER_DIR, 'generic-player-sheet.png');
 
 const COLORS = Object.freeze({
   outline: '#13222f',
@@ -3258,11 +3257,11 @@ async function validatePngDimensions(filePath, width, height) {
 
 async function makeGenericPlayerCharacter() {
   const portrait = svg(320, 320, `<g transform="scale(2)">${drawGenericPlayer('idle', 0)}</g>`);
-  return writePng(portrait, GENERIC_CHARACTER_BACKUP_PATH);
+  return writePng(portrait, GENERIC_CHARACTER_PATH);
 }
 
 async function makeGenericPlayerSheet() {
-  return writePng(makeSheet(drawGenericPlayer), GENERIC_SHEET_BACKUP_PATH);
+  return writePng(makeSheet(drawGenericPlayer), GENERIC_SHEET_PATH);
 }
 
 async function makeClassCharacter(variant) {
@@ -3310,18 +3309,9 @@ async function generatePlayerAssets(generated) {
   }
 }
 
-async function generateGenericPlayerBackups(generated) {
-  generated.push(await makeGenericPlayerCharacter());
-  generated.push(await makeGenericPlayerSheet());
-}
-
-async function validateGenericPlayerBackups() {
-  await validatePngDimensions(GENERIC_CHARACTER_BACKUP_PATH, 320, 320);
-  await validatePngDimensions(GENERIC_SHEET_BACKUP_PATH, COLS * FRAME, ROWS.length * FRAME);
-}
-
 async function validatePlayerAssets() {
-  await validateGenericPlayerBackups();
+  await validatePngDimensions(GENERIC_CHARACTER_PATH, 320, 320);
+  await validatePngDimensions(GENERIC_SHEET_PATH, COLS * FRAME, ROWS.length * FRAME);
   for (const variant of CLASS_VARIANTS) {
     await validatePngDimensions(path.join(CHARACTER_DIR, `${variant.fileId}.png`), 320, 320);
     await validatePngDimensions(path.join(PLAYER_DIR, `${variant.fileId}-sheet.png`), COLS * FRAME, ROWS.length * FRAME);
@@ -3330,9 +3320,7 @@ async function validatePlayerAssets() {
 }
 
 async function generateAllAssets(generated) {
-  await generateGenericPlayerBackups(generated);
-  const playerAssetProcessor = require('./process-project-starfall-player-ai-assets.js');
-  await playerAssetProcessor.generateAll();
+  await generatePlayerAssets(generated);
   for (const map of MAP_BACKGROUNDS) {
     generated.push(await makeMapBackground(map));
   }
@@ -3351,14 +3339,7 @@ async function main() {
   }
   if (playerTargets.includes(onlyTarget)) {
     const playerAssetProcessor = require('./process-project-starfall-player-ai-assets.js');
-    if (validateOnly) {
-      await validateGenericPlayerBackups();
-      await playerAssetProcessor.main(['--validate']);
-    } else {
-      await generateGenericPlayerBackups(generated);
-      await playerAssetProcessor.main([]);
-      generated.forEach((file) => process.stdout.write(`Generated ${file}\n`));
-    }
+    await playerAssetProcessor.main(validateOnly ? ['--validate'] : []);
     return;
   }
   if (validateOnly) {
@@ -3368,11 +3349,9 @@ async function main() {
       return;
     }
     if (onlyTarget && !playerTargets.includes(onlyTarget)) {
-      throw new Error(`Targeted validation is only supported for player or equipment assets, received: ${onlyTarget}`);
+      throw new Error(`Validation is only supported for procedural player targets, received: ${onlyTarget}`);
     }
-    await validateGenericPlayerBackups();
-    const playerAssetProcessor = require('./process-project-starfall-player-ai-assets.js');
-    await playerAssetProcessor.validateAll();
+    await validatePlayerAssets();
     return;
   }
   if (onlyTarget === 'portals') {
@@ -3381,6 +3360,8 @@ async function main() {
     const equipmentAtlasGenerator = require('./generate-project-starfall-equipment-atlases.js');
     await equipmentAtlasGenerator.main(['--all']);
     return;
+  } else if (playerTargets.includes(onlyTarget)) {
+    await generatePlayerAssets(generated);
   } else if (onlyTarget === 'maps') {
     for (const map of MAP_BACKGROUNDS) {
       generated.push(await makeMapBackground(map));

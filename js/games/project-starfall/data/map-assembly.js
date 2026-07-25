@@ -28,10 +28,6 @@
   const makePartyPlayClimbables = DataMapBuilders.makePartyPlayClimbables;
   const makePartyPlaySpawnPoints = DataMapBuilders.makePartyPlaySpawnPoints;
   const makeDungeonArenaPlatforms = DataMapBuilders.makeDungeonArenaPlatforms;
-  const makeBanditRidgeCampClimbables = DataMapBuilders.makeBanditRidgeCampClimbables;
-  const makeThornpathFractureCanopyClimbables = DataMapBuilders.makeThornpathFractureCanopyClimbables;
-  const makeFrostfenMarshRunClimbables = DataMapBuilders.makeFrostfenMarshRunClimbables;
-  const makeRustcoilOrreryCircuitClimbables = DataMapBuilders.makeRustcoilOrreryCircuitClimbables;
   const makeFieldPlatforms = DataMapBuilders.makeFieldPlatforms;
   const makeFieldTerrainVisuals = DataMapBuilders.makeFieldTerrainVisuals;
   const makeVerticalFieldClimbables = DataMapBuilders.makeVerticalFieldClimbables;
@@ -145,25 +141,14 @@
       platforms,
       terrainVisuals: makeFieldTerrainVisuals(platforms, map.isDungeon ? 'dungeonArena' : layoutStyle),
       rampConnections: makeRampConnections(map.id, platforms),
-      climbables: map.isDungeon
-        ? makeVerticalFieldClimbables(map.id, platforms, 'dungeonArena')
-        : map.id === 'rustcoilRuins' && makeRustcoilOrreryCircuitClimbables
-          ? makeRustcoilOrreryCircuitClimbables(platforms)
-        : map.id === 'thornpathThicket' && makeThornpathFractureCanopyClimbables
-          ? makeThornpathFractureCanopyClimbables(platforms)
-          : map.id === 'frostfenOutskirts' && makeFrostfenMarshRunClimbables
-            ? makeFrostfenMarshRunClimbables(platforms)
-          : map.id === 'banditRidgeCamp' && makeBanditRidgeCampClimbables
-            ? makeBanditRidgeCampClimbables(platforms)
-            : makeFieldClimbables(map.id, platforms, layoutStyle),
+      climbables: map.isDungeon ? makeVerticalFieldClimbables(map.id, platforms, 'dungeonArena') : makeFieldClimbables(map.id, platforms, layoutStyle),
       spawnPoints: attachStableSpawnPlatformIds(platforms, map.isDungeon ? makePartyPlaySpawnPoints(platforms) : makeFieldSpawnPoints(platforms))
     });
   }
 
   function makeExpandedTrainingMap(config) {
     const layoutStyle = config.layoutStyle || FIELD_LAYOUT_STYLES[config.id] || 'sharedLanes';
-    const compactWorldWidth = Math.max(0, Math.ceil(Number(config.compactWorldWidth || 0) / 100) * 100);
-    const width = compactWorldWidth || (isVerticalFieldLayout(layoutStyle) ? 5200 : 8400);
+    const width = isVerticalFieldLayout(layoutStyle) ? 5200 : 8400;
     const platforms = assignStablePlatformIds(config.id, makeFieldPlatforms(width, layoutStyle, config.id));
     return {
       id: config.id,
@@ -174,7 +159,6 @@
       geometryGenerator: config.geometryGenerator || 'fieldLayout',
       layoutStyle,
       layoutRole: config.layoutRole || (config.endlessScaling ? 'endlessField' : 'trainingField'),
-      compactWorldWidth,
       scaleEnemies: true,
       endlessScaling: !!config.endlessScaling,
       movementProfile: config.movementProfile || '',
@@ -211,7 +195,6 @@
       layoutRole: 'bossArena',
       dungeonId: `boss_${config.bossId}`,
       bossId: config.bossId,
-      backgroundMode: config.backgroundMode || '',
       movementProfile: config.movementProfile || '',
       areaMechanic: config.areaMechanic || '',
       waveMax: config.waveMax || 8,

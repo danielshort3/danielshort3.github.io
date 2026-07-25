@@ -3179,23 +3179,24 @@ Do:
 Avoid:
 
 - Photorealism, muddy dark fantasy, generic procedural-looking shapes, and excessive texture noise.
-- Chibi proportions, oversized anime heads, or tiny unreadable sprite bodies.
+- Realistic adult proportions, grim tactical anatomy, tiny unreadable sprite bodies, or heads so large that equipment and action poses become unclear.
 - Baked text, labels, logos, UI lettering, or watermarks in generated assets.
 - Modern sci-fi UI language that looks disconnected from guilds, runes, portals, and frontier craft.
 
 ## 23.2 Visual Style
 
-Stylized 2D fantasy with clear silhouettes.
+Playful stylized 2D fantasy with clear silhouettes, warm color contrast, rounded forms, and expressive animation.
 
-Avoid a chibi look. Characters can be readable, expressive, and appealing, but should feel distinct from existing cute side-scrolling RPGs.
+Use compact, chibi-inspired adventurer proportions as Project Starfall's canonical character language: roughly 3.5 to 4 heads tall, with readable faces, short energetic limbs, and strong equipment silhouettes. Keep the designs original through Starfall-specific clothing, tools, constellations, creatures, and animation timing rather than copying any external game's characters or assets.
 
-Current prototype direction: characters are simple, blocky, and pixel-readable. The prototype deliberately uses a generic player body and lets equipped items provide most visual identity. This should remain the near-term direction until the equipment-driven system is validated.
+Professional polish does not mean increased realism. Preserve the playful proportions while improving pose clarity, frame-to-frame continuity, anticipation, impact, recovery, secondary motion, and equipment readability. The source-backed chibi adventurer sheet is the near-term body standard; procedural block characters are emergency fallbacks only.
 
 ## 23.3 Character Proportions
 
 Recommended:
 
-- Compact but readable blocky characters.
+- Compact 3.5-to-4-head characters with large, readable expressions.
+- Rounded silhouettes and restrained squash-and-stretch that make movement feel buoyant.
 - Strong weapon silhouettes.
 - Clear armor and equipment overlays.
 - Shared body animation with class and gear variation layered on top.
