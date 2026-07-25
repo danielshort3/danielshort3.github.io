@@ -148,6 +148,31 @@ function validateMap(map) {
   if (!map.shopInterior && !map.safeZone && !map.spawnPoints.length) {
     issues.push(`${map.id} has no spawn points.`);
   }
+  const routeSections = map && map.fieldComposition && Array.isArray(map.fieldComposition.routeSections)
+    ? map.fieldComposition.routeSections
+    : [];
+  const groundRight = platforms[0] ? platformRight(platforms[0]) : 0;
+  routeSections.forEach((section) => {
+    const sectionRight = Number(section && section.x || 0) + Number(section && section.w || 0);
+    if (sectionRight > groundRight) {
+      issues.push(`${map.id} route section ${section && section.label || '(unnamed)'} extends beyond the authored ground.`);
+    }
+  });
+  (map.portals || []).forEach((portal) => {
+    if (!portal || portal.shopDoor) return;
+    const platform = platforms[Number(portal.platformIndex || 0)];
+    if (!platform) {
+      issues.push(`${map.id} portal ${portal.id || '(unnamed)'} references missing platform ${portal.platformIndex}.`);
+      return;
+    }
+    const portalX = Number(portal.x);
+    const portalWidth = Math.max(46, Number(portal.w || 58) || 58);
+    const minX = platformX(platform) + 18;
+    const maxX = platformRight(platform) - portalWidth - 18;
+    if (!Number.isFinite(portalX) || portalX < minX || portalX > maxX) {
+      issues.push(`${map.id} portal ${portal.id || '(unnamed)'} is authored outside platform ${portal.platformIndex || 0}.`);
+    }
+  });
   if (slopes.length > 0 && broadFlats.length < slopes.length * 1.5) {
     warnings.push(`${map.id} has a low broad-flat-to-slope ratio (${broadFlats.length}:${slopes.length}).`);
   }
