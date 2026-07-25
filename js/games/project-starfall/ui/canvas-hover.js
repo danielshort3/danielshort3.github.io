@@ -50,6 +50,15 @@
       ? settings.getInfoHoverTarget
       : getInfoHoverTarget;
 
+    const hudSkillRegion = findHoverRegion((item) => item.type === 'hud-skill');
+    if (hudSkillRegion && hudSkillRegion.skillId) {
+      return {
+        type: 'skill',
+        key: `hudSkill:${hudSkillRegion.skillId}`,
+        sourcePanel: 'hud',
+        skillId: hudSkillRegion.skillId
+      };
+    }
     if (openWindows.includes('skills')) {
       const skillRegion = findHoverRegion((item) => item.type === 'skill-card');
       if (skillRegion && skillRegion.skillId) return { type: 'skill', key: `skill:${skillRegion.skillId}`, sourcePanel: 'skills', skillId: skillRegion.skillId };
@@ -155,6 +164,7 @@
     return [
       windows,
       canvasHitRegionCount,
+      settings.combatBeltKey || '',
       settings.overlayModalKey || '',
       settings.isCommandOpen ? 'command' : '',
       settings.inventorySellSettingsOpen ? 'sellSettings' : '',

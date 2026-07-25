@@ -25,7 +25,12 @@
   }
 
   function isHudTooltipCanvasRegion(region) {
-    return !!region && (region.type === 'hud-buff' || region.type === 'hud-cooldown');
+    return !!region && (
+      region.type === 'hud-buff' ||
+      region.type === 'hud-cooldown' ||
+      region.type === 'hud-skill' ||
+      region.type === 'hud-skill-overflow'
+    );
   }
 
   function getCanvasHudTooltipRegionCacheValue(regions, cache, options) {
