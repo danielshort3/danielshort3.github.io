@@ -1175,6 +1175,15 @@
     return getHudHelper(name);
   }
 
+  const HUD_COMBAT_BELT_UI_HELPERS = createHudHelperGroup('createHudCombatBeltUiHelpers');
+
+  function getHudCombatBeltHelper(name) {
+    if (HUD_COMBAT_BELT_UI_HELPERS && typeof HUD_COMBAT_BELT_UI_HELPERS[name] === 'function') {
+      return HUD_COMBAT_BELT_UI_HELPERS[name];
+    }
+    return getHudHelper(name);
+  }
+
   const HUD_CHROME_UI_HELPERS = createHudHelperGroup('createHudChromeUiHelpers');
 
   function getHudChromeHelper(name) {
@@ -1219,6 +1228,9 @@
   const REWARD_TOAST_BOTTOM_PANEL_GAP = getHudValue('REWARD_TOAST_BOTTOM_PANEL_GAP') || 12;
   const REWARD_TOAST_BACKGROUND = getHudValue('REWARD_TOAST_BACKGROUND') || 'rgba(16,32,51,0.68)';
   const REWARD_TOAST_BORDER = getHudValue('REWARD_TOAST_BORDER') || 'rgba(255,255,255,0.12)';
+  const CANVAS_COMBAT_BELT_MAX_CELLS = getHudValue('CANVAS_COMBAT_BELT_MAX_CELLS') || 6;
+  const CANVAS_COMBAT_BELT_SLOT_SIZE = getHudValue('CANVAS_COMBAT_BELT_SLOT_SIZE') || 36;
+  const CANVAS_COMBAT_BELT_GAP = getHudValue('CANVAS_COMBAT_BELT_GAP') || 4;
   const INVENTORY_DOUBLE_CLICK_MS = getInventoryConfigValue('INVENTORY_DOUBLE_CLICK_MS') || 360;
   const INVENTORY_DOUBLE_CLICK_DISTANCE = getInventoryConfigValue('INVENTORY_DOUBLE_CLICK_DISTANCE') || 8;
   const PLINKO_HOLD_INITIAL_DELAY_MS = getPlinkoValue('PLINKO_HOLD_INITIAL_DELAY_MS') || 300;
@@ -7332,9 +7344,26 @@
     getSkillBindActions() {
       const cache = this.bindActionCache = this.bindActionCache || new Map();
       const cached = cache.get('skills');
+      const snapshot = this.snapshot || {};
+      const state = snapshot.state || {};
+      const player = state.player || {};
+      const ownerIds = new Set([player.classId, player.advancedClassId].filter(Boolean));
+      const snapshotSkills = Array.isArray(snapshot.skills) ? snapshot.skills : [];
+      const ownerKey = Array.from(ownerIds).join('|');
+      const catalogCache = this.skillBindCatalogCache || null;
+      const fallbackCatalog = catalogCache && catalogCache.ownerKey === ownerKey
+        ? catalogCache.skills
+        : Array.from(ownerIds).flatMap((ownerId) => SKILLS_BY_OWNER[ownerId] || []);
+      if (!catalogCache || catalogCache.ownerKey !== ownerKey) {
+        this.skillBindCatalogCache = { ownerKey, skills: fallbackCatalog };
+      }
+      const skillCatalog = snapshotSkills.length ? snapshotSkills : fallbackCatalog;
+      const skillSnapshot = skillCatalog === snapshotSkills
+        ? snapshot
+        : { ...snapshot, skills: skillCatalog };
       const skillBindActionsMetadataHelper = getKeybindingActionCatalogHelper('getSkillBindActionsMetadata');
       if (skillBindActionsMetadataHelper) {
-        const result = skillBindActionsMetadataHelper(this.snapshot, cached, {
+        const result = skillBindActionsMetadataHelper(skillSnapshot, cached, {
           hasEnumerableKeys,
           isPassiveSkill,
           isSkillUnlocked
@@ -7342,9 +7371,6 @@
         cache.set('skills', result.cache);
         return result.actions;
       }
-      const snapshot = this.snapshot || {};
-      const state = snapshot.state || {};
-      const player = state.player || {};
       const ranks = state.skills || {};
       const revisions = snapshot.domainRevisions || {};
       const revisionKey = hasEnumerableKeys(revisions)
@@ -7359,18 +7385,18 @@
           .join(',');
       const key = [
         revisionKey,
-        this.snapshot && this.snapshot.skills || null,
+        skillCatalog,
         player.classId || '',
         player.advancedClassId || '',
         Number(player.baseSkillPoints || 0),
         Number(player.advancedSkillPoints || 0),
         rankKey
       ].join('|');
-      if (cached && cached.key === key && cached.skillsRef === snapshot.skills && cached.ranksRef === ranks && cached.playerRef === player) return cached.actions;
-      const actions = (snapshot.skills || [])
+      if (cached && cached.key === key && cached.skillsRef === skillCatalog && cached.ranksRef === ranks && cached.playerRef === player) return cached.actions;
+      const actions = skillCatalog
         .filter((skill) => Number(ranks[skill.id] || 0) > 0)
         .filter((skill) => !isPassiveSkill(skill))
-        .filter((skill) => isSkillUnlocked(this.snapshot, skill))
+        .filter((skill) => isSkillUnlocked(skillSnapshot, skill))
         .map((skill) => ({
           id: `skill:${skill.id}`,
           label: skill.name,
@@ -7378,7 +7404,7 @@
           skillId: skill.id,
           group: 'Skills'
         }));
-      cache.set('skills', { key, skillsRef: snapshot.skills, ranksRef: ranks, playerRef: player, actions });
+      cache.set('skills', { key, skillsRef: skillCatalog, ranksRef: ranks, playerRef: player, actions });
       return actions;
     }
 
@@ -15450,6 +15476,10 @@
         });
       }
       const findHoverRegion = (filter) => this.findCanvasRegion(position, filter);
+      const hudSkillRegion = findHoverRegion((item) => item.type === 'hud-skill');
+      if (hudSkillRegion && hudSkillRegion.skillId) {
+        return { type: 'skill', key: `hudSkill:${hudSkillRegion.skillId}`, sourcePanel: 'hud', skillId: hudSkillRegion.skillId };
+      }
       if (this.openWindows.includes('skills')) {
         const skillRegion = findHoverRegion((item) => item.type === 'skill-card');
         if (skillRegion && skillRegion.skillId) return { type: 'skill', key: `skill:${skillRegion.skillId}`, sourcePanel: 'skills', skillId: skillRegion.skillId };
@@ -15554,6 +15584,9 @@
           openWindows: this.openWindows,
           windowState: this.windowState,
           canvasHitRegions: this.canvasHitRegions,
+          combatBeltKey: this.getCanvasCombatBeltCacheKey
+            ? this.getCanvasCombatBeltCacheKey(this.snapshot)
+            : '',
           overlayModalKey: this.getOverlayModalSnapshotKey ? this.getOverlayModalSnapshotKey() : '',
           isCommandOpen: this.isCommandOpen,
           inventorySellSettingsOpen: this.inventorySellSettingsOpen,
@@ -15576,6 +15609,9 @@
       return [
         windows,
         this.canvasHitRegions ? this.canvasHitRegions.length : 0,
+        this.getCanvasCombatBeltCacheKey
+          ? this.getCanvasCombatBeltCacheKey(this.snapshot)
+          : '',
         this.getOverlayModalSnapshotKey ? this.getOverlayModalSnapshotKey() : '',
         this.isCommandOpen ? 'command' : '',
         this.inventorySellSettingsOpen ? 'sellSettings' : '',
@@ -21985,7 +22021,12 @@
     isHudTooltipCanvasRegion(region) {
       const isHudTooltipCanvasRegionHelper = getCanvasRegionHelper('isHudTooltipCanvasRegion');
       if (isHudTooltipCanvasRegionHelper) return isHudTooltipCanvasRegionHelper(region);
-      return !!region && (region.type === 'hud-buff' || region.type === 'hud-cooldown');
+      return !!region && (
+        region.type === 'hud-buff' ||
+        region.type === 'hud-cooldown' ||
+        region.type === 'hud-skill' ||
+        region.type === 'hud-skill-overflow'
+      );
     }
 
     setCanvasHudTooltipRegionCacheValue(hasHudTooltipRegions) {
@@ -23877,8 +23918,14 @@
       const resourceColor = classData.resourceColor || '#7bdff2';
       const xpNeeded = getSnapshotNextLevelXp(snapshot);
       const box = this.getCanvasStatusHudBox(width, height);
-      const quickActions = this.getCanvasHudQuickActions();
+      const combatBeltEntries = this.getCanvasCombatBeltEntries(snapshot);
+      const quickActions = combatBeltEntries;
       const hudLayout = this.getCanvasStatusHudLayout(box, quickActions);
+      const combatBelt = this.getCanvasCombatBeltLayout(
+        combatBeltEntries,
+        hudLayout.quickX,
+        hudLayout.menuY
+      );
       const contentLeft = hudLayout.contentLeft;
       const infoW = hudLayout.infoW;
       const hpMeter = hudLayout.meters.hp;
@@ -23913,7 +23960,23 @@
       this.drawCanvasHudMeter(ctx, 'MP', player.mp, stats.maxMp, '#6f8cff', mpMeter.x, mpMeter.y, mpMeter.w, mpMeter.h);
       this.drawCanvasHudMeter(ctx, 'XP', player.xp, xpNeeded, '#d8b74a', xpMeter.x, xpMeter.y, xpMeter.w, xpMeter.h);
       hudLayout.quickButtons.forEach(({ action, x, y, size }) => {
-        this.drawCanvasHudQuickButton(ctx, action, x, y, size);
+        const cell = combatBelt.cells[action.slotIndex] || {
+          ...action,
+          x,
+          y,
+          w: size,
+          h: size,
+          region: action.region ? { ...action.region, x, y, w: size, h: size } : null
+        };
+        this.drawCanvasCombatBeltCell(ctx, cell);
+      });
+      this.drawCanvasText(ctx, 'Combat Skills', combatBelt.x + combatBelt.w / 2, combatBelt.y + combatBelt.h + 4, {
+        color: '#d8c18f',
+        font: '900 8px system-ui',
+        align: 'center',
+        maxWidth: combatBelt.w,
+        maxLines: 1,
+        lineHeight: 9
       });
       this.drawCanvasHudSocket(ctx, menuBox.x, menuBox.y, menuBox.w, menuBox.h, this.isCommandOpen, '#7bdff2');
       const menuAction = this.getBindableAction('menu');
@@ -24045,6 +24108,9 @@
 
 	    getCanvasOverlayCacheKey(width, height, snapshot) {
 	      const state = snapshot && snapshot.state || {};
+	      const combatBeltKey = this.getCanvasCombatBeltCacheKey
+	        ? this.getCanvasCombatBeltCacheKey(snapshot)
+	        : '';
 	      const getCanvasOverlayCacheKeyHelper = getHudOverlayCacheHelper('getCanvasOverlayCacheKey');
 	      if (getCanvasOverlayCacheKeyHelper) {
 	        return getCanvasOverlayCacheKeyHelper(width, height, snapshot, {
@@ -24061,6 +24127,7 @@
 	          minimapState: this.minimapState || {},
 	          questTrackerState: this.questTrackerState || {},
 	          combatMetricsPanelState: this.combatMetricsPanelState || {},
+	          combatBeltKey,
 	          inventorySellSettingsOpen: !!this.inventorySellSettingsOpen,
 	          storageTab: this.storageTab || '',
 	          petPotionPickerKind: this.petPotionPickerKind || '',
@@ -24103,6 +24170,7 @@
 	        `${Math.round(Number(minimap.x || 0))}:${Math.round(Number(minimap.y || 0))}:${minimap.compact ? 1 : 0}`,
 	        `${Math.round(Number(questTracker.x || 0))}:${Math.round(Number(questTracker.y || 0))}:${questTracker.compact ? 1 : 0}`,
 	        `${Math.round(Number(combatMetrics.x || 0))}:${Math.round(Number(combatMetrics.y || 0))}`,
+	        combatBeltKey,
 	        this.inventorySellSettingsOpen ? 1 : 0,
 	        this.storageTab || '',
 	        this.petPotionPickerKind || ''
@@ -27250,7 +27318,11 @@
         ? this.findCanvasRegion(this.canvasPointer, (item) => item.type === 'skill-card')
         : null;
       const skillId = hoverSkillId || skillRegion && skillRegion.skillId || '';
-      if (!skillId || (!this.openWindows.includes('skills') && !this.openWindows.includes('keybinds'))) return;
+      if (!skillId || (
+        hover.sourcePanel !== 'hud' &&
+        !this.openWindows.includes('skills') &&
+        !this.openWindows.includes('keybinds')
+      )) return;
       const skill = getSkillById(skillId);
       if (!skill) return;
       const skillRanksKey = this.getSkillRanksTooltipKey();
@@ -27260,7 +27332,14 @@
       const lines = tooltipData.lines || [];
       const title = lines[0] || skill.name;
       const subtitle = lines[1] || '';
-      const detailLines = lines.slice(2, 5);
+      const keyLabel = hover.sourcePanel === 'hud' ? this.getPrimaryKeyLabel(`skill:${skill.id}`) : '';
+      const hudCastHint = hover.sourcePanel === 'hud'
+        ? keyLabel && keyLabel !== 'Unbound'
+          ? `${keyLabel} or click to cast.`
+          : 'Click to cast. Assign a key in Keybinds when ready.'
+        : '';
+      let detailLines = lines.slice(2, 5);
+      if (hudCastHint) detailLines = [hudCastHint, ...detailLines].slice(0, 4);
       const w = 292;
       const h = 58 + detailLines.length * 15;
       const x = clamp(this.canvasPointer.x + 16, 12, width - w - 12);
@@ -27955,10 +28034,125 @@
         .filter(Boolean);
     }
 
-    getCanvasStatusHudLayout(box, quickActions) {
+    getCanvasCombatBeltOptions(snapshot) {
+      const source = snapshot || this.snapshot || {};
+      return {
+        maxCells: CANVAS_COMBAT_BELT_MAX_CELLS,
+        skillRanks: source.state && source.state.skills || {},
+        formatKeyCode
+      };
+    }
+
+    getCanvasCombatBeltEntries(snapshot) {
+      const source = snapshot || this.snapshot || {};
+      const actions = this.getSkillBindActions();
+      const cooldowns = source.activeCooldowns || [];
+      const getEntries = getHudCombatBeltHelper('getCanvasCombatBeltEntries');
+      if (getEntries) {
+        return getEntries(actions, this.keybinds || {}, cooldowns, this.getCanvasCombatBeltOptions(source));
+      }
+      const ranks = source.state && source.state.skills || {};
+      const entries = actions.map((action) => {
+        const codes = (this.keybinds && this.keybinds[action.id] || []).slice();
+        const cooldown = cooldowns.find((entry) => entry && entry.skillId === action.skillId) || null;
+        return {
+          kind: 'skill',
+          actionId: action.id,
+          skillId: action.skillId,
+          label: action.label,
+          rank: Number(ranks[action.skillId] || 0),
+          bound: codes.length > 0,
+          bindingCodes: codes,
+          keyCode: codes[0] || '',
+          keyLabel: codes.length ? formatKeyCode(codes[0]) : '',
+          cooldown,
+          cooldownRemaining: Math.max(0, Number(cooldown && cooldown.remaining || 0)),
+          ready: !cooldown || Number(cooldown.remaining || 0) <= 0,
+          region: { type: 'hud-skill', skillId: action.skillId, actionId: action.id }
+        };
+      });
+      const ordered = entries.filter((entry) => entry.bound).concat(entries.filter((entry) => !entry.bound));
+      const visible = ordered.length > CANVAS_COMBAT_BELT_MAX_CELLS
+        ? ordered.slice(0, CANVAS_COMBAT_BELT_MAX_CELLS - 1).concat([{
+            kind: 'overflow',
+            id: 'skills-overflow',
+            label: `+${ordered.length - CANVAS_COMBAT_BELT_MAX_CELLS + 1}`,
+            overflowCount: ordered.length - CANVAS_COMBAT_BELT_MAX_CELLS + 1,
+            panelId: 'skills',
+            region: { type: 'hud-skill-overflow', panelId: 'skills' }
+          }])
+        : ordered.slice(0, CANVAS_COMBAT_BELT_MAX_CELLS);
+      while (visible.length < CANVAS_COMBAT_BELT_MAX_CELLS) {
+        visible.push({ kind: 'empty', id: `empty:${visible.length}`, label: '', region: null });
+      }
+      return visible.map((entry, slotIndex) => ({ ...entry, slotIndex }));
+    }
+
+    getCanvasCombatBeltCacheKey(snapshot) {
+      const source = snapshot || this.snapshot || {};
+      const getCacheKey = getHudCombatBeltHelper('getCanvasCombatBeltCacheKey');
+      if (getCacheKey) {
+        return getCacheKey(
+          this.getSkillBindActions(),
+          this.keybinds || {},
+          source.activeCooldowns || [],
+          this.getCanvasCombatBeltOptions(source)
+        );
+      }
+      return JSON.stringify(this.getCanvasCombatBeltEntries(source).map((entry) => [
+        entry.kind,
+        entry.skillId || '',
+        entry.rank == null ? '' : entry.rank,
+        entry.keyCode || '',
+        entry.cooldown && Math.ceil(Math.max(0, Number(entry.cooldown.remaining || 0)) * 4) || 0,
+        entry.overflowCount || 0
+      ]));
+    }
+
+    getCanvasCombatBeltLayout(entries, x, y) {
+      const getLayout = getHudCombatBeltHelper('getCanvasCombatBeltLayout');
+      if (getLayout) {
+        return getLayout(entries, {
+          x,
+          y,
+          maxCells: CANVAS_COMBAT_BELT_MAX_CELLS,
+          slotSize: CANVAS_COMBAT_BELT_SLOT_SIZE,
+          gap: CANVAS_COMBAT_BELT_GAP
+        });
+      }
+      const cells = (entries || []).slice(0, CANVAS_COMBAT_BELT_MAX_CELLS).map((entry, index) => ({
+        ...entry,
+        x: x + index * (CANVAS_COMBAT_BELT_SLOT_SIZE + CANVAS_COMBAT_BELT_GAP),
+        y,
+        w: CANVAS_COMBAT_BELT_SLOT_SIZE,
+        h: CANVAS_COMBAT_BELT_SLOT_SIZE,
+        region: entry.region ? {
+          ...entry.region,
+          x: x + index * (CANVAS_COMBAT_BELT_SLOT_SIZE + CANVAS_COMBAT_BELT_GAP),
+          y,
+          w: CANVAS_COMBAT_BELT_SLOT_SIZE,
+          h: CANVAS_COMBAT_BELT_SLOT_SIZE
+        } : null
+      }));
+      return {
+        x,
+        y,
+        w: CANVAS_COMBAT_BELT_MAX_CELLS * CANVAS_COMBAT_BELT_SLOT_SIZE +
+          (CANVAS_COMBAT_BELT_MAX_CELLS - 1) * CANVAS_COMBAT_BELT_GAP,
+        h: CANVAS_COMBAT_BELT_SLOT_SIZE,
+        cells
+      };
+    }
+
+    getCanvasStatusHudLayout(box, quickActions, options) {
+      const combatBelt = Array.isArray(quickActions) && quickActions.some((entry) => entry && entry.kind);
+      const settings = options || (combatBelt ? {
+        quickSize: CANVAS_COMBAT_BELT_SLOT_SIZE,
+        quickGap: CANVAS_COMBAT_BELT_GAP
+      } : {});
       const getCanvasStatusHudLayoutHelper = getHudMenuHelper('getCanvasStatusHudLayout');
       if (getCanvasStatusHudLayoutHelper) {
-        return getCanvasStatusHudLayoutHelper(box, quickActions);
+        return getCanvasStatusHudLayoutHelper(box, quickActions, settings);
       }
       const pad = 10;
       const menuW = 62;
@@ -27966,8 +28160,8 @@
       const menuX = box.x + box.w - pad - menuW;
       const menuY = box.y + Math.max(10, Math.round((box.h - menuH) / 2));
       const actions = Array.isArray(quickActions) ? quickActions : [];
-      const quickGap = 5;
-      const quickSize = 52;
+      const quickGap = Number(settings.quickGap || 5);
+      const quickSize = Number(settings.quickSize || 52);
       const quickTotalW = actions.length * quickSize + Math.max(0, actions.length - 1) * quickGap;
       const quickX = menuX - (quickTotalW ? quickTotalW + 8 : 0);
       const contentLeft = box.x + pad;
@@ -28114,6 +28308,72 @@
           ? { type: 'menu-action', action: item.action, channelId: item.channelId, source: 'command-menu' }
           : { type: 'menu-panel', panelId: item.panel, source: 'command-menu' };
       this.addCanvasRegion({ ...region, x, y, w, h });
+    }
+
+    drawCanvasCombatBeltCell(ctx, cell) {
+      const entry = cell || {};
+      const x = Number(entry.x || 0);
+      const y = Number(entry.y || 0);
+      const size = Math.max(1, Number(entry.w || entry.h || CANVAS_COMBAT_BELT_SLOT_SIZE));
+      const hovered = entry.kind === 'skill' &&
+        this.canvasHoverTarget &&
+        this.canvasHoverTarget.type === 'skill' &&
+        this.canvasHoverTarget.skillId === entry.skillId;
+      this.drawCanvasHudSocket(ctx, x, y, size, size, hovered, '#7bdff2');
+      if (entry.kind === 'skill' && entry.skillId) {
+        const action = this.getBindableAction(entry.actionId || `skill:${entry.skillId}`) || {
+          id: entry.actionId || `skill:${entry.skillId}`,
+          label: entry.label || entry.skillId,
+          type: 'skill',
+          skillId: entry.skillId
+        };
+        this.drawActionIcon(ctx, action, x + 4, y + 4, Math.max(16, size - 8));
+        const keyLabel = entry.keyLabel || 'USE';
+        const keyW = entry.keyLabel ? Math.min(22, Math.max(15, keyLabel.length * 5 + 7)) : 22;
+        this.drawRoundRect(
+          ctx,
+          x + size - keyW - 2,
+          y + 2,
+          keyW,
+          11,
+          4,
+          entry.keyLabel ? 'rgba(255,250,232,0.92)' : 'rgba(245,207,114,0.94)',
+          entry.keyLabel ? 'rgba(16,32,51,0.18)' : 'rgba(132,82,17,0.42)'
+        );
+        this.drawCanvasText(ctx, keyLabel, x + size - 2 - keyW / 2, y + 7.5, {
+          color: '#102033',
+          font: '950 6px system-ui',
+          align: 'center',
+          baseline: 'middle',
+          maxWidth: keyW - 4,
+          maxLines: 1,
+          lineHeight: 7
+        });
+        if (entry.region) this.addCanvasRegion(entry.region);
+        return;
+      }
+      if (entry.kind === 'overflow') {
+        this.drawCanvasMenuIcon(ctx, 'skills', x + 5, y + 5, Math.max(18, size - 10), { hud: true });
+        this.drawRoundRect(ctx, x + size - 23, y + size - 14, 21, 12, 5, '#f5cf72', 'rgba(132,82,17,0.48)');
+        this.drawCanvasText(ctx, entry.label || `+${Number(entry.overflowCount || 0)}`, x + size - 12.5, y + size - 8, {
+          color: '#102033',
+          font: '950 7px system-ui',
+          align: 'center',
+          baseline: 'middle',
+          maxWidth: 18,
+          maxLines: 1,
+          lineHeight: 8
+        });
+        if (entry.region) {
+          this.addCanvasRegion({
+            ...entry.region,
+            tooltipTitle: `${Number(entry.overflowCount || 0)} more active ${Number(entry.overflowCount || 0) === 1 ? 'skill' : 'skills'}`,
+            tooltipSubtitle: 'Open Skills',
+            tooltipLines: ['Rank, review, cast, or bind the rest of your class kit.'],
+            tooltipAccent: '#d8a531'
+          });
+        }
+      }
     }
 
     drawCanvasHudQuickButton(ctx, action, x, y, size) {
@@ -36202,6 +36462,14 @@
             this.focusCanvas();
             return;
           }
+          if (hudRegionAction.type === 'activateSkill') {
+            this.activateSkillSelection(hudRegionAction.skillId);
+            return;
+          }
+          if (hudRegionAction.type === 'openPanel') {
+            this.togglePanel(hudRegionAction.panelId);
+            return;
+          }
           if (hudRegionAction.type === 'toggleMinimap') this.toggleMinimapCompact();
           else if (hudRegionAction.type === 'toggleQuestTracker') this.toggleQuestTrackerCompact();
         }
@@ -36210,6 +36478,14 @@
           if (region.action === 'portal') this.startPortalTransition();
           else this.handleAction(region.action === 'npcTalk' ? 'npcTalk' : 'interact');
           this.focusCanvas();
+          return;
+        }
+        if (region.type === 'hud-skill' && region.skillId) {
+          this.activateSkillSelection(region.skillId);
+          return;
+        }
+        if (region.type === 'hud-skill-overflow') {
+          this.togglePanel('skills');
           return;
         }
         if (region.type === 'minimap-toggle') this.toggleMinimapCompact();

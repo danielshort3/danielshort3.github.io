@@ -50,6 +50,11 @@
   const REWARD_TOAST_BOTTOM_PANEL_GAP = 12;
   const REWARD_TOAST_BACKGROUND = 'rgba(16,32,51,0.68)';
   const REWARD_TOAST_BORDER = 'rgba(255,255,255,0.12)';
+  const CANVAS_COMBAT_BELT_MAX_CELLS = 6;
+  const CANVAS_COMBAT_BELT_SLOT_SIZE = 36;
+  const CANVAS_COMBAT_BELT_GAP = 4;
+  const CANVAS_COMBAT_BELT_APPROXIMATE_FOOTPRINT = 240;
+  const CANVAS_COMBAT_BELT_COOLDOWN_BUCKET_SECONDS = 0.25;
 
   function shouldRefreshUiChangeHudSnapshot(domains) {
     const set = new Set(domains || []);
@@ -81,7 +86,254 @@
     if (source.type === 'station-prompt') return { handled: true, type: 'stationPrompt', action: source.action };
     if (source.type === 'minimap-toggle') return { handled: true, type: 'toggleMinimap' };
     if (source.type === 'quest-tracker-toggle') return { handled: true, type: 'toggleQuestTracker' };
+    if (source.type === 'hud-skill') {
+      const skillId = String(source.skillId || '').trim();
+      if (skillId) {
+        return {
+          handled: true,
+          type: 'activateSkill',
+          skillId,
+          actionId: String(source.actionId || `skill:${skillId}`)
+        };
+      }
+    }
+    if (source.type === 'hud-skill-overflow') {
+      return { handled: true, type: 'openPanel', panelId: 'skills' };
+    }
     return { handled: false, type: '' };
+  }
+
+  function getCanvasCombatBeltMaxCells(options) {
+    const requested = Number(options && options.maxCells);
+    if (!Number.isFinite(requested)) return CANVAS_COMBAT_BELT_MAX_CELLS;
+    return clamp(Math.floor(requested), 1, CANVAS_COMBAT_BELT_MAX_CELLS);
+  }
+
+  function getCanvasCombatBeltSkillRank(action, skillId, options) {
+    const source = action || {};
+    const settings = options || {};
+    const ranks = settings.skillRanks || settings.ranks || null;
+    if (ranks && Object.prototype.hasOwnProperty.call(ranks, skillId)) {
+      const rank = Number(ranks[skillId]);
+      return Number.isFinite(rank) ? rank : null;
+    }
+    const suppliedRank = source.rank == null ? source.skillRank : source.rank;
+    const rank = Number(suppliedRank);
+    return suppliedRank != null && Number.isFinite(rank) ? rank : null;
+  }
+
+  function getCanvasCombatBeltBindingCodes(keybinds, actionId) {
+    const bindings = keybinds || {};
+    const source = bindings[actionId];
+    const codes = Array.isArray(source) ? source : source == null ? [] : [source];
+    return codes
+      .map((code) => String(code || '').trim())
+      .filter(Boolean);
+  }
+
+  function getCanvasCombatBeltCooldown(cooldowns, skillId) {
+    const source = cooldowns || [];
+    if (Array.isArray(source)) {
+      return source.find((cooldown) => cooldown &&
+        String(cooldown.skillId || cooldown.id || '').trim() === skillId) || null;
+    }
+    if (!Object.prototype.hasOwnProperty.call(source, skillId)) return null;
+    const value = source[skillId];
+    return value && typeof value === 'object' ? value : { skillId, remaining: value };
+  }
+
+  function getCanvasCombatBeltCooldownRemaining(cooldown, options) {
+    const source = cooldown || null;
+    if (!source) return 0;
+    const remaining = Number(source.remaining);
+    if (Number.isFinite(remaining)) return Math.max(0, remaining);
+    const readyAt = Number(source.readyAt);
+    if (!Number.isFinite(readyAt)) return 0;
+    const nowSeconds = Number(options && options.nowSeconds);
+    return Math.max(0, readyAt - (Number.isFinite(nowSeconds) ? nowSeconds : 0));
+  }
+
+  function getCanvasCombatBeltCooldownBucket(remaining) {
+    const value = Math.max(0, Number(remaining) || 0);
+    if (!value) return 0;
+    return Math.ceil((value - Number.EPSILON) / CANVAS_COMBAT_BELT_COOLDOWN_BUCKET_SECONDS);
+  }
+
+  function getCanvasCombatBeltUsableSkills(skillActions, keybinds, cooldowns, options) {
+    const actions = Array.isArray(skillActions) ? skillActions : [];
+    const settings = options || {};
+    const formatKey = typeof settings.formatKeyCode === 'function'
+      ? settings.formatKeyCode
+      : (code) => code;
+    const seenSkillIds = new Set();
+    const usable = [];
+    actions.forEach((action) => {
+      const source = action || {};
+      const skillId = String(source.skillId || '').trim();
+      if (
+        source.type !== 'skill' ||
+        !skillId ||
+        seenSkillIds.has(skillId) ||
+        source.passive === true ||
+        source.isPassive === true ||
+        source.usable === false ||
+        source.unlocked === false ||
+        source.disabled === true ||
+        source.hidden === true
+      ) return;
+      const rank = getCanvasCombatBeltSkillRank(source, skillId, settings);
+      if (rank != null && rank <= 0) return;
+      seenSkillIds.add(skillId);
+      const actionId = String(source.id || `skill:${skillId}`);
+      const bindingCodes = getCanvasCombatBeltBindingCodes(keybinds, actionId);
+      const cooldown = getCanvasCombatBeltCooldown(cooldowns, skillId);
+      const cooldownRemaining = getCanvasCombatBeltCooldownRemaining(cooldown, settings);
+      usable.push({
+        kind: 'skill',
+        actionId,
+        skillId,
+        label: String(source.label || source.name || skillId),
+        rank,
+        bound: bindingCodes.length > 0,
+        bindingCodes,
+        keyCode: bindingCodes[0] || '',
+        keyLabel: bindingCodes.length ? String(formatKey(bindingCodes[0]) || '') : '',
+        cooldown,
+        cooldownRemaining,
+        cooldownBucket: getCanvasCombatBeltCooldownBucket(cooldownRemaining),
+        ready: cooldownRemaining <= 0,
+        region: {
+          type: 'hud-skill',
+          skillId,
+          actionId
+        }
+      });
+    });
+    return usable.filter((entry) => entry.bound).concat(usable.filter((entry) => !entry.bound));
+  }
+
+  function getCanvasCombatBeltEntries(skillActions, keybinds, cooldowns, options) {
+    const maxCells = getCanvasCombatBeltMaxCells(options);
+    const usable = getCanvasCombatBeltUsableSkills(skillActions, keybinds, cooldowns, options);
+    const hasOverflow = usable.length > maxCells;
+    const skillCellCount = hasOverflow ? maxCells - 1 : usable.length;
+    const entries = usable.slice(0, skillCellCount);
+    if (hasOverflow) {
+      const overflowCount = usable.length - skillCellCount;
+      entries.push({
+        kind: 'overflow',
+        id: 'skills-overflow',
+        label: `+${overflowCount}`,
+        overflowCount,
+        panelId: 'skills',
+        region: {
+          type: 'hud-skill-overflow',
+          panelId: 'skills'
+        }
+      });
+    }
+    while (entries.length < maxCells) {
+      entries.push({
+        kind: 'empty',
+        id: `empty:${entries.length}`,
+        label: '',
+        region: null
+      });
+    }
+    return entries.map((entry, slotIndex) => Object.assign({}, entry, { slotIndex }));
+  }
+
+  function getCanvasCombatBeltCacheState(skillActions, keybinds, cooldowns, options) {
+    const maxCells = getCanvasCombatBeltMaxCells(options);
+    const usable = getCanvasCombatBeltUsableSkills(skillActions, keybinds, cooldowns, options);
+    const skills = usable.map((entry) => ({
+      skillId: entry.skillId,
+      rank: entry.rank
+    }));
+    const bindings = usable.map((entry) => ({
+      actionId: entry.actionId,
+      codes: entry.bindingCodes.slice()
+    }));
+    const cooldownsBySkill = usable.map((entry) => ({
+      skillId: entry.skillId,
+      bucket: entry.cooldownBucket
+    }));
+    const skillKey = JSON.stringify(skills);
+    const bindingKey = JSON.stringify(bindings);
+    const cooldownKey = JSON.stringify(cooldownsBySkill);
+    return {
+      key: JSON.stringify([maxCells, skillKey, bindingKey, cooldownKey]),
+      maxCells,
+      skillKey,
+      bindingKey,
+      cooldownKey,
+      cooldownBucketSeconds: CANVAS_COMBAT_BELT_COOLDOWN_BUCKET_SECONDS,
+      skills,
+      bindings,
+      cooldowns: cooldownsBySkill
+    };
+  }
+
+  function getCanvasCombatBeltCacheKey(skillActions, keybinds, cooldowns, options) {
+    return getCanvasCombatBeltCacheState(skillActions, keybinds, cooldowns, options).key;
+  }
+
+  function getCanvasCombatBeltLayout(entries, options) {
+    const settings = options || {};
+    const sourceEntries = Array.isArray(entries) ? entries : [];
+    const maxCells = getCanvasCombatBeltMaxCells(settings);
+    const slotSize = Math.max(1, Number(settings.slotSize) || CANVAS_COMBAT_BELT_SLOT_SIZE);
+    const gap = Math.max(0, Number(settings.gap) || CANVAS_COMBAT_BELT_GAP);
+    const x = Number(settings.x) || 0;
+    const y = Number(settings.y) || 0;
+    const approximateFootprint = Math.max(
+      0,
+      Number(settings.approximateFootprint) || CANVAS_COMBAT_BELT_APPROXIMATE_FOOTPRINT
+    );
+    const width = maxCells * slotSize + Math.max(0, maxCells - 1) * gap;
+    const cells = Array.from({ length: maxCells }, (_, slotIndex) => {
+      const source = sourceEntries[slotIndex] || {
+        kind: 'empty',
+        id: `empty:${slotIndex}`,
+        label: '',
+        region: null
+      };
+      const cellX = x + slotIndex * (slotSize + gap);
+      const region = source.region
+        ? Object.assign({}, source.region, { x: cellX, y, w: slotSize, h: slotSize })
+        : null;
+      return Object.assign({}, source, {
+        slotIndex,
+        x: cellX,
+        y,
+        w: slotSize,
+        h: slotSize,
+        region
+      });
+    });
+    return {
+      x,
+      y,
+      w: width,
+      h: slotSize,
+      maxWidth: width,
+      footprintWidth: width,
+      slotSize,
+      gap,
+      maxCells,
+      approximateFootprint,
+      fitsApproximateFootprint: width <= approximateFootprint,
+      cells
+    };
+  }
+
+  function createHudCombatBeltUiHelpers() {
+    return Object.freeze({
+      getCanvasCombatBeltEntries,
+      getCanvasCombatBeltCacheState,
+      getCanvasCombatBeltCacheKey,
+      getCanvasCombatBeltLayout
+    });
   }
 
   function getWorldDerivedSnapshotUpdate(engine, data, options) {
@@ -1604,6 +1856,7 @@
       `${Math.round(Number(minimap.x || 0))}:${Math.round(Number(minimap.y || 0))}:${minimap.compact ? 1 : 0}`,
       `${Math.round(Number(questTracker.x || 0))}:${Math.round(Number(questTracker.y || 0))}:${questTracker.compact ? 1 : 0}`,
       `${Math.round(Number(combatMetrics.x || 0))}:${Math.round(Number(combatMetrics.y || 0))}`,
+      source.combatBeltKey || '',
       source.inventorySellSettingsOpen ? 1 : 0,
       source.storageTab || '',
       source.petPotionPickerKind || ''
@@ -2440,10 +2693,20 @@
     REWARD_TOAST_BOTTOM_PANEL_GAP,
     REWARD_TOAST_BACKGROUND,
     REWARD_TOAST_BORDER,
+    CANVAS_COMBAT_BELT_MAX_CELLS,
+    CANVAS_COMBAT_BELT_SLOT_SIZE,
+    CANVAS_COMBAT_BELT_GAP,
+    CANVAS_COMBAT_BELT_APPROXIMATE_FOOTPRINT,
+    CANVAS_COMBAT_BELT_COOLDOWN_BUCKET_SECONDS,
     shouldRefreshUiChangeHudSnapshot,
     mergeHudSnapshot,
     getDismissGuideDomAction,
     getHudRegionAction,
+    getCanvasCombatBeltEntries,
+    getCanvasCombatBeltCacheState,
+    getCanvasCombatBeltCacheKey,
+    getCanvasCombatBeltLayout,
+    createHudCombatBeltUiHelpers,
     getWorldDerivedSnapshotUpdate,
     createHudRuntimeUiHelpers,
     getCanvasStatusHudBox,
