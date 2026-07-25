@@ -97,12 +97,17 @@
   }
 
   function assignTownQuestNpcs(questNpcs) {
-    return (questNpcs || []).map((npc, index) => Object.assign({}, npc, {
-      x: Number.isFinite(Number(npc.xOverride)) ? Number(npc.xOverride) : index % 2 ? 2140 : 3000,
-      platformIndex: Number.isFinite(Number(npc.platformIndex)) && Number(npc.platformIndex) > 0
+    return (questNpcs || []).map((npc, index) => {
+      const x = Number.isFinite(Number(npc.xOverride))
+        ? Number(npc.xOverride)
+        : Number.isFinite(Number(npc.x))
+          ? Number(npc.x)
+          : index % 2 ? 2140 : 3000;
+      const platformIndex = Number.isFinite(Number(npc.platformIndex)) && Number(npc.platformIndex) >= 0
         ? Number(npc.platformIndex)
-        : index % 2 ? 5 : 6
-    }));
+        : index % 2 ? 5 : 6;
+      return Object.assign({}, npc, { x, platformIndex });
+    });
   }
 
   function createShopInteriorScene(config) {

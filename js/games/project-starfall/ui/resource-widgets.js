@@ -56,7 +56,7 @@
     fighter: Object.freeze({ type: 'bar', label: 'Momentum', detail: 'Impact resource', segments: 5 }),
     mage: Object.freeze({ type: 'orb', label: 'Energy', detail: 'Spell resource', segments: 5 }),
     archer: Object.freeze({ type: 'pips', label: 'Focus', detail: 'Mark payoff', segments: 5 }),
-    guardian: Object.freeze({ type: 'segments', label: 'Stored Impact', detail: 'Shield segments', segments: 5 }),
+    guardian: Object.freeze({ type: 'segments', label: 'Stored Impact', detail: 'Shield segments', segments: 5, preferMetaLabel: true }),
     berserker: Object.freeze({ type: 'danger', label: 'Rage', detail: 'Low HP increases payoff', segments: 5 }),
     duelist: Object.freeze({ type: 'pips', label: 'Tempo', detail: 'Rhythm windows', segments: 4 }),
     fireMage: Object.freeze({ type: 'heat', label: 'Heat', detail: 'Vent before overheat', segments: 5 }),
@@ -85,11 +85,13 @@
     const classId = player.advancedClassId || player.classId;
     const classData = snapshot.advancedData || snapshot.classData || {};
     const meta = metaByClass[classId] || metaByClass[player.classId] || metaByClass.fighter;
-    const max = Math.max(1, Number(stats.secondaryResourceMax || 1));
-    const value = clamp(Number(player.resource || 0), 0, max);
+    const mechanics = player.classMechanics || {};
+    const max = classId === 'guardian' ? 120 : Math.max(1, Number(stats.secondaryResourceMax || 1));
+    const value = classId === 'guardian'
+      ? clamp(Number(mechanics.guardianImpact || 0), 0, max)
+      : clamp(Number(player.resource || 0), 0, max);
     const ratio = clamp(value / max, 0, 1);
     const objects = Array.isArray(player.activeSkillObjects) ? player.activeSkillObjects : [];
-    const mechanics = player.classMechanics || {};
     const time = Number(settings.nowSeconds == null ? Date.now() / 1000 : settings.nowSeconds);
     const traps = objects.filter((object) => object && object.type === 'trap');
     const runes = objects.filter((object) => object && /rune|glyph|circle/i.test(String(object.skillId || '')));
@@ -126,7 +128,7 @@
     return {
       id: classId,
       type: meta.type,
-      label: classData.resourceName || meta.label,
+      label: meta.preferMetaLabel ? meta.label : classData.resourceName || meta.label,
       detail,
       value,
       max,

@@ -5600,6 +5600,7 @@
   }
 
   const CREATE_ONBOARDING_STATE = getEngineStateHelper('createOnboardingState');
+  const RECONCILE_ONBOARDING_STATE = getEngineStateHelper('reconcileOnboardingState');
   const createOnboardingState = CREATE_ONBOARDING_STATE
     ? (value) => CREATE_ONBOARDING_STATE(value, Data)
     : function createOnboardingStateFallback(value) {
@@ -16872,7 +16873,16 @@
     }
 
     getOnboardingState() {
-      this.state.onboarding = createOnboardingState(this.state.onboarding);
+      const onboarding = createOnboardingState(this.state.onboarding);
+      if (RECONCILE_ONBOARDING_STATE) {
+        this.state.onboarding = RECONCILE_ONBOARDING_STATE(onboarding, this.state.player, Data);
+      } else {
+        const completed = new Set(onboarding.completedIds || []);
+        if (normalizeId(this.state.player && this.state.player.classId)) completed.add('choose_class');
+        if (normalizeId(this.state.player && this.state.player.advancedClassId)) completed.add('choose_advanced');
+        onboarding.completedIds = Array.from(completed);
+        this.state.onboarding = onboarding;
+      }
       return this.state.onboarding;
     }
 
@@ -16893,7 +16903,7 @@
       season.objectiveValues = season.objectiveValues && typeof season.objectiveValues === 'object' ? season.objectiveValues : {};
       season.claimedRewardIds = Array.isArray(season.claimedRewardIds) ? season.claimedRewardIds : [];
       state.season = season;
-      const onboarding = state.onboarding && typeof state.onboarding === 'object' ? state.onboarding : createOnboardingState(null);
+      const onboarding = this.getOnboardingState();
       onboarding.completedIds = Array.isArray(onboarding.completedIds) ? onboarding.completedIds : [];
       onboarding.hidden = !!onboarding.hidden;
       state.onboarding = onboarding;
@@ -16907,9 +16917,7 @@
     }
 
     getOnboardingSnapshotCacheKey() {
-      const onboarding = this.state.onboarding && typeof this.state.onboarding === 'object'
-        ? this.state.onboarding
-        : this.getOnboardingState();
+      const onboarding = this.getOnboardingState();
       if (GET_ONBOARDING_SNAPSHOT_CACHE_KEY) {
         return GET_ONBOARDING_SNAPSHOT_CACHE_KEY(onboarding, {
           revisions: this.overlaySnapshotDomainRevisions || {},
@@ -32482,7 +32490,7 @@
         }
       }
       if (id === 'guardian_impact_guard') {
-        mechanics.guardianImpact = clamp(mechanics.guardianImpact + 30 + rank * 5, 0, 140);
+        mechanics.guardianImpact = clamp(mechanics.guardianImpact + 30 + rank * 5, 0, 120);
         player.shield = Math.max(player.shield, this.getScaledShieldAmount(stats.maxHp * (0.18 + rank * 0.014), stats));
         player.invulnerableUntil = Math.max(player.invulnerableUntil || 0, nowSeconds() + 0.68);
         this.setSkillBuff(skill, 'shieldWall', 3.8 + rank * 0.28);
@@ -32505,14 +32513,14 @@
           const bossGuardBonus = this.isBossEnemy(target) ? 1.18 : 1;
           this.hitRoleTarget(target, skill, power * bossGuardBonus * (1.16 + Math.min(70, stored) / 500), { crack: true, stagger: this.isBossEnemy(target) ? 2.6 : 3.8, slow: 2.6, knockback: 130 });
           player.classMechanics = createClassMechanicsState(player.classMechanics);
-          player.classMechanics.guardianImpact = clamp(player.classMechanics.guardianImpact + 16 + rank * 2.5, 0, 140);
+          player.classMechanics.guardianImpact = clamp(player.classMechanics.guardianImpact + 16 + rank * 2.5, 0, 120);
         }
         return true;
       }
       if (id === 'guardian_retaliation_wave' || id === 'guardian_verdict') {
         const stored = mechanics.guardianImpact;
         if (id === 'guardian_verdict') mechanics.guardianImpact = 0;
-        else mechanics.guardianImpact = clamp(stored + 8 + rank, 0, 140);
+        else mechanics.guardianImpact = clamp(stored + 8 + rank, 0, 120);
         const center = this.getRoleAreaCenter(id === 'guardian_verdict' ? 84 : 132, 0);
         this.roleAreaHit(center.x, center.y, id === 'guardian_verdict' ? 178 : 146 + rank * 4, power * (id === 'guardian_verdict' ? 1.55 + stored / 115 : 1.16 + stored / 480), skill, { crack: true, stagger: 2.6, knockback: 145, resourcePerHit: 4 });
         if (id === 'guardian_verdict') player.shield = Math.max(player.shield, this.getScaledShieldAmount(stats.maxHp * (0.12 + stored / 900), stats));

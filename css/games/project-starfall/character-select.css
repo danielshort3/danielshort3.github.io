@@ -343,11 +343,12 @@
     grid-area: 1 / 1;
     width: 148px;
     height: 168px;
+    display: none;
     image-rendering: pixelated;
   }
 
   .project-starfall-character-slot.has-preview-frame .project-starfall-character-art-fallback {
-    opacity: 0;
+    opacity: 1;
   }
 
   .project-starfall-character-silhouette,

@@ -189,7 +189,8 @@
       addPlatform(midX, midY, widths.mid, 'solidLane');
       addPlatform(highX, highY, widths.high, 'solidLane');
     };
-    const leftLow = Number(skeleton.left || 300);
+    const entryClearance = Math.max(0, Number(skeleton.entryClearance || 0));
+    const leftLow = Math.max(Number(skeleton.left || 300), entryClearance ? entryClearance + 260 : 0);
     const rightLow = Number(skeleton.right || 2400);
     buildBranch(
       leftLow,

@@ -47,6 +47,20 @@
     };
   }
 
+  function reconcileOnboardingState(onboarding, player, data) {
+    const sourceData = data || {};
+    const state = createOnboardingState(onboarding, sourceData);
+    const availableStepIds = new Set((sourceData.ONBOARDING_STEPS || []).map((step) => step.id));
+    const completed = new Set(state.completedIds || []);
+    const playerState = player && typeof player === 'object' ? player : {};
+    if (normalizeId(playerState.classId) && availableStepIds.has('choose_class')) completed.add('choose_class');
+    if (normalizeId(playerState.advancedClassId) && availableStepIds.has('choose_advanced')) completed.add('choose_advanced');
+    return {
+      hidden: state.hidden,
+      completedIds: Array.from(completed)
+    };
+  }
+
   function onboardingStepMatchesEvent(step, type, payload) {
     if (!step || step.event !== type) return false;
     const data = payload || {};
@@ -87,13 +101,39 @@
     const stepSummaries = (steps || []).map((step) => Object.assign({}, step, {
       complete: completed.has(step.id)
     }));
+    const phaseById = new Map();
+    const phases = [];
+    stepSummaries.forEach((step) => {
+      const id = normalizeId(step.phaseId) || 'journey';
+      let phase = phaseById.get(id);
+      if (!phase) {
+        phase = {
+          id,
+          title: normalizeId(step.phaseTitle) || 'Journey',
+          completeCount: 0,
+          total: 0,
+          steps: []
+        };
+        phaseById.set(id, phase);
+        phases.push(phase);
+      }
+      phase.total += 1;
+      if (step.complete) phase.completeCount += 1;
+      phase.steps.push(step);
+    });
+    const nextStep = stepSummaries.find((step) => !step.complete) || null;
+    const activePhase = nextStep
+      ? phaseById.get(normalizeId(nextStep.phaseId) || 'journey') || null
+      : phases[phases.length - 1] || null;
     return {
       hidden: !!source.hidden,
       completedIds: Array.isArray(source.completedIds) ? source.completedIds.slice() : [],
       completeCount: completed.size,
       total: stepSummaries.length,
       steps: stepSummaries,
-      nextStep: stepSummaries.find((step) => !step.complete) || null
+      phases,
+      activePhase,
+      nextStep
     };
   }
 
@@ -158,6 +198,7 @@
     ADMIN_RATE_MAX,
     DEFAULT_ADMIN_SETTINGS,
     createOnboardingState,
+    reconcileOnboardingState,
     onboardingStepMatchesEvent,
     getOnboardingSnapshotCacheKey,
     createOnboardingSnapshot,
