@@ -1913,10 +1913,11 @@
     const mapKillQuest = source.mapKillQuest;
     const onboarding = source.onboarding || {};
     const nextStep = onboarding.hidden ? null : onboarding.nextStep;
+    const activePhase = onboarding.activePhase || {};
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
     const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
     const guideEntry = nextStep ? {
-      title: `Guide ${Number(onboarding.completeCount || 0) + 1}/${Number(onboarding.total || 0)}: ${nextStep.title}`,
+      title: `${activePhase.title || 'Journey'} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}: ${nextStep.title}`,
       guideType: 'guide',
       guideId: nextStep.id || nextStep.panelId || nextStep.title,
       objectives: [{ label: nextStep.summary || 'Continue the guide.', value: 0, goal: 1, complete: false, status: '' }]

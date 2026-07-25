@@ -4397,11 +4397,13 @@
     const classId = player.advancedClassId || player.classId;
     const classData = snapshot.advancedData || snapshot.classData || {};
     const meta = RESOURCE_WIDGET_META[classId] || RESOURCE_WIDGET_META[player.classId] || RESOURCE_WIDGET_META.fighter;
-    const max = Math.max(1, Number(stats.secondaryResourceMax || 1));
-    const value = clamp(Number(player.resource || 0), 0, max);
+    const mechanics = player.classMechanics || {};
+    const max = classId === 'guardian' ? 120 : Math.max(1, Number(stats.secondaryResourceMax || 1));
+    const value = classId === 'guardian'
+      ? clamp(Number(mechanics.guardianImpact || 0), 0, max)
+      : clamp(Number(player.resource || 0), 0, max);
     const ratio = clamp(value / max, 0, 1);
     const objects = Array.isArray(player.activeSkillObjects) ? player.activeSkillObjects : [];
-    const mechanics = player.classMechanics || {};
     const time = Date.now() / 1000;
     const traps = objects.filter((object) => object && object.type === 'trap');
     const runes = objects.filter((object) => object && /rune|glyph|circle/i.test(String(object.skillId || '')));
@@ -4438,7 +4440,7 @@
     return {
       id: classId,
       type: meta.type,
-      label: classData.resourceName || meta.label,
+      label: meta.preferMetaLabel ? meta.label : classData.resourceName || meta.label,
       detail,
       value,
       max,
@@ -6913,6 +6915,12 @@
       this.isModalOpen = false;
       this.persistCharacterRoster({ silent: true });
       this.applyLoadedSaveData();
+      const restoredMapId = normalizeId(this.engine && this.engine.state && this.engine.state.mapId);
+      const restoredMap = getById(Data.MAPS || [], restoredMapId);
+      if (restoredMapId && this.isInitialLoadComplete && this.engine.preloadMapAssets) {
+        this.runMapTransition(restoredMapId, restoredMap && restoredMap.name, () => this.enterActiveCharacter());
+        return true;
+      }
       return this.enterActiveCharacter();
     }
 
@@ -16398,6 +16406,7 @@
       const xpNeeded = getSnapshotNextLevelXp(snapshot);
       const onboarding = snapshot.onboarding || {};
       const nextStep = onboarding.hidden ? null : onboarding.nextStep;
+      const activePhase = onboarding.activePhase || {};
       const combatRates = this.getCombatMetricRates();
       const coarsePointer = typeof global.matchMedia === 'function' && global.matchMedia('(pointer: coarse)').matches;
       hud.innerHTML = `
@@ -16416,7 +16425,7 @@
         ${this.renderResourceWidget()}
         ${nextStep ? `
           <div class="project-starfall-guide-strip">
-            <span><strong>Guide ${Number(onboarding.completeCount || 0) + 1}/${Number(onboarding.total || 0)}:</strong> ${escapeHtml(nextStep.title)} - ${escapeHtml(nextStep.summary)}</span>
+            <span><strong>${escapeHtml(activePhase.title || 'Journey')} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}:</strong> ${escapeHtml(nextStep.title)} - ${escapeHtml(nextStep.summary)}</span>
             <button type="button" data-starfall-dismiss-guide>Hide</button>
           </div>
         ` : ''}
@@ -26732,10 +26741,11 @@
       const mapKillQuest = snapshot.mapKillQuest;
       const onboarding = snapshot.onboarding || {};
       const nextStep = onboarding.hidden ? null : onboarding.nextStep;
+      const activePhase = onboarding.activePhase || {};
       const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
       const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
       const guideEntry = nextStep ? {
-        title: `Guide ${Number(onboarding.completeCount || 0) + 1}/${Number(onboarding.total || 0)}: ${nextStep.title}`,
+        title: `${activePhase.title || 'Journey'} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}: ${nextStep.title}`,
         guideType: 'guide',
         guideId: nextStep.id || nextStep.panelId || nextStep.title,
         objectives: [{ label: nextStep.summary || 'Continue the guide.', value: 0, goal: 1, complete: false, status: '' }]

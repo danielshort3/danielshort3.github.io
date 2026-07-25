@@ -549,7 +549,7 @@ Avoid:
 - Making party buffs mandatory in a rigid meta.
 - Creating dozens of shallow classes before a few deep ones.
 - Making multiple characters mandatory through uncapped passive stacking.
-- Using a chibi visual style that feels too close to existing games.
+- Copying another game's character proportions, facial language, costumes, silhouettes, or sprite treatment; keep Starfall's compact chibi cast original, playful, and readable.
 
 ## 5.3 Distinctive Features
 

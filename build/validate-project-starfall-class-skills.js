@@ -100,8 +100,8 @@ function validateClasses(data) {
       `class ${classId} role profile should include primary, secondary, specialty, and summary`);
     const resource = data.CLASS_RESOURCE_DEFINITIONS[classId];
     assert(resource && resource.classId === classId, `class ${classId} should have a matching resource definition`);
-    assert(resource.label === classData.resourceName,
-      `class ${classId} resource definition label should match class resourceName`);
+    assert(resource.label === (classData.classMechanicName || classData.resourceName),
+      `class ${classId} resource definition label should match its named class mechanic or resource`);
     ['gain', 'spend', 'feedback'].forEach((field) => {
       assert(Array.isArray(resource[field]) && resource[field].length > 0,
         `class ${classId} resource definition should include ${field}`);
