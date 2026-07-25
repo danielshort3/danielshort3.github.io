@@ -329,20 +329,20 @@
     const MAP_FIELD_COMPOSITIONS = Object.freeze({
       greenrootMeadow: createFieldComposition({
         routeSections: [
-          { label: 'Starter Pond Loop', x: 0, w: 1050, tier: 'starter' },
-          { label: 'Moss Lane Extension', x: 1050, w: 1050, tier: 'training' },
-          { label: 'Canopy Practice', x: 2100, w: 1050, tier: 'mobility' },
-          { label: 'Thornpath Gate', x: 3150, w: 1050, tier: 'advance' }
+          { label: 'Starter Pond Loop', x: 0, w: 1700, tier: 'starter' },
+          { label: 'Moss Lane Extension', x: 1700, w: 1000, tier: 'training' },
+          { label: 'Canopy Practice', x: 2700, w: 800, tier: 'mobility' },
+          { label: 'Thornpath Gate', x: 3500, w: 700, tier: 'advance' }
         ],
         portalRoles: {
           greenroot_crossing: 'left town return',
           greenroot_thornpath: 'right route advance'
         },
         landmarkBands: [
-          { kind: 'tree', x: 260, w: 680, label: 'Beginner Grove' },
-          { kind: 'glow', x: 520, w: 360, label: 'Starter Pond' },
-          { kind: 'vine', x: 2240, w: 640, label: 'Canopy Shortcut' },
-          { kind: 'sign', x: 3540, w: 360, label: 'Thornpath Sign' }
+          { kind: 'glow', x: 520, w: 360, anchorX: 720, label: 'Starter Pond' },
+          { kind: 'tree', x: 1700, w: 620, anchorX: 1840, label: 'Moss Grove' },
+          { kind: 'vine', x: 2700, w: 600, anchorX: 2860, label: 'Canopy Shortcut' },
+          { kind: 'sign', x: 3540, w: 360, anchorX: 3820, label: 'Thornpath Sign' }
         ],
         spawnZoneLabels: [
           { label: 'Starter pond', platformTier: 'low' },
@@ -671,7 +671,7 @@
     }
 
     const MAP_DESIGN_INTENTS = Object.freeze([
-      { id: 'greenrootMeadow', intendedArchetype: 'A -> F starter lane loop', intendedUseCase: 'solo', routeSummary: 'Clear bottom pond, hop to moss lane, drop back to start, then unlock wider meadow tiers.', partyRoleTarget: 'Keep early Greenroot mostly solo with optional canopy ranged practice.', farmingAbuseRisk: 'low', visualIdentityTag: 'beginner meadow and slime pond', spawnSectionModel: 'pond/moss/canopy starter sections', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
+      { id: 'greenrootMeadow', intendedArchetype: 'A -> F starter lane loop', intendedUseCase: 'solo', routeSummary: 'Clear the pond pocket, climb the moss shelf, take the canopy shortcut or drop through the recovery loop, then regroup at the Thornpath overlook.', partyRoleTarget: 'Keep early Greenroot mostly solo with optional canopy ranged practice.', farmingAbuseRisk: 'low', visualIdentityTag: 'beginner meadow and slime pond', spawnSectionModel: 'pond/moss/canopy/gate starter sections', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'thornpathThicket', intendedArchetype: 'D vertical canopy with reset loop', intendedUseCase: 'solo/duo', routeSummary: 'Climb vine shelves, clear visible sprout perches, then use drops to reset.', partyRoleTarget: 'Duo split by low/mid/high canopy only after reset drops exist.', farmingAbuseRisk: 'medium', visualIdentityTag: 'thorn canopy fork', spawnSectionModel: 'low vines, mid sprout shelf, high briar route' },
       { id: 'brambleDepths', intendedArchetype: 'H/E root dungeon', intendedUseCase: 'boss dungeon', routeSummary: 'Push through root lanes and thorn shelves into the Brambleking gate.', partyRoleTarget: 'Small-party boss prep with healer pod and thorn pod priority.', farmingAbuseRisk: 'medium', visualIdentityTag: 'root court dungeon', spawnSectionModel: 'root floor, thorn shelf, crown approach', implementationStatus: 'arena-skeleton-v1' },
       { id: 'rustcoilRuins', intendedArchetype: 'C/F industrial terrace', intendedUseCase: 'solo/duo', routeSummary: 'Rotate lower construct lanes, mid sentry catwalks, and upper gear shelves.', partyRoleTarget: 'Duo can split lower armor lane and upper sentry lane.', farmingAbuseRisk: 'medium', visualIdentityTag: 'broken gear ruins', spawnSectionModel: 'lower ratchets, mid sentries, upper wardens' },

@@ -18741,6 +18741,7 @@
           population: Math.max(0, Number(group.population || 0)),
           respawnSeconds: Math.max(0, Number(group.respawnSeconds || 0)),
           leash: Math.max(0, Number(group.leash || 0)),
+          spawnBounds: group.spawnBounds ? Object.assign({}, group.spawnBounds) : null,
           partyScaling: group.partyScaling || 'none'
         })) : [];
         const spawnPopulation = spawnGroups.reduce((total, group) => total + group.population, 0);
@@ -26382,6 +26383,28 @@
       return this.getRuntimeSpawnGroups(map).find((group) => group && group.id === id) || null;
     }
 
+    getSpawnGroupXBounds(group, platform) {
+      if (!platform) return null;
+      const authored = group && group.spawnBounds && typeof group.spawnBounds === 'object'
+        ? group.spawnBounds
+        : null;
+      const platformMin = Number(platform.x || 0) + 20;
+      const platformMax = Number(platform.x || 0) + Math.max(20, Number(platform.w || 0) - 20);
+      const authoredMin = authored ? Number(authored.minX) : platformMin;
+      const authoredMax = authored ? Number(authored.maxX) : platformMax;
+      const minX = Math.max(platformMin, Number.isFinite(authoredMin) ? authoredMin : platformMin);
+      const maxX = Math.min(platformMax, Number.isFinite(authoredMax) ? authoredMax : platformMax);
+      return maxX >= minX ? { minX, maxX } : null;
+    }
+
+    isSpawnInsideGroupBounds(spawn, group, platform) {
+      if (!spawn || !group) return true;
+      const bounds = this.getSpawnGroupXBounds(group, platform || this.getSpawnPointPlatform(spawn));
+      if (!bounds) return false;
+      const x = Number(spawn.x || 0);
+      return x >= bounds.minX && x <= bounds.maxX;
+    }
+
     getSpawnGroupPartySize() {
       if (typeof this.getActivePrototypePartyMembers !== 'function') return 1;
       return 1 + this.getActivePrototypePartyMembers().filter((member) => member && Number(member.hp || 0) > 0).length;
@@ -26803,13 +26826,23 @@
     chooseInitialFieldSpawnPoint(index, reservations, spawnGroup) {
       const group = spawnGroup && typeof spawnGroup === 'object' ? spawnGroup : null;
       const groupPlatformIds = new Set(group && group.platformIds || []);
-      let points = (this.runtime.spawnPoints || []).filter((point) => point && this.runtime.platforms[point.platformIndex] && (!group || groupPlatformIds.has(point.platformId)));
+      let points = (this.runtime.spawnPoints || []).filter((point) => {
+        const platform = point && this.runtime.platforms[point.platformIndex];
+        return point && platform &&
+          (!group || groupPlatformIds.has(point.platformId) && this.isSpawnInsideGroupBounds(point, group, platform));
+      });
       if (group) {
         const generatedPoints = (group.platformIndices || []).flatMap((platformIndex, platformOffset) => {
           const platform = this.runtime.platforms[platformIndex];
           if (!platform) return [];
+          const bounds = this.getSpawnGroupXBounds(group, platform);
+          if (!bounds) return [];
           return [0.14, 0.32, 0.5, 0.68, 0.86].map((ratio, pointOffset) =>
-            this.createSpawnPointOnPlatform(platform, platform.x + platform.w * ratio, `${group.id}_generated_${platformOffset + 1}_${pointOffset + 1}`)
+            this.createSpawnPointOnPlatform(
+              platform,
+              bounds.minX + (bounds.maxX - bounds.minX) * ratio,
+              `${group.id}_generated_${platformOffset + 1}_${pointOffset + 1}`
+            )
           ).filter(Boolean);
         });
         const uniquePoints = new Map();
@@ -26903,6 +26936,7 @@
           platformIndex: platform.index,
           platformId: platform.id
         });
+        if (spawnGroup && !this.isSpawnInsideGroupBounds(candidateSpawn, spawnGroup, platform)) return;
         if (spawnGroup) Object.assign(candidateSpawn, this.decorateSpawnPointWithGroup(candidateSpawn, spawnGroup));
         if (!candidateSpawn.sectionId) {
           const section = this.getRuntimeSpawnSectionForX(candidateSpawn.x);
@@ -26937,6 +26971,20 @@
         const baseX = Number(origin && origin.x || originPlatform.x + originPlatform.w / 2);
         [360, -360, 640, -640, 900, -900, 1220, -1220].forEach((offset, offsetIndex) => {
           addCandidate(this.createSpawnPointOnPlatform(originPlatform, baseX + offset, origin && origin.id), 'offset', 100 + offsetIndex);
+        });
+      }
+      if (spawnGroup) {
+        (spawnGroup.platformIndices || []).forEach((platformIndex, platformOffset) => {
+          const platform = platforms[platformIndex];
+          const bounds = this.getSpawnGroupXBounds(spawnGroup, platform);
+          if (!platform || !bounds) return;
+          [0.14, 0.32, 0.5, 0.68, 0.86].forEach((ratio, pointOffset) => {
+            addCandidate(this.createSpawnPointOnPlatform(
+              platform,
+              bounds.minX + (bounds.maxX - bounds.minX) * ratio,
+              `${spawnGroup.id}_respawn_${platformOffset + 1}_${pointOffset + 1}`
+            ), 'group', 140 + platformOffset * 5 + pointOffset);
+          });
         });
       }
       (runtime.spawnPoints || [])
@@ -41418,10 +41466,14 @@
         const size = this.getEnvironmentPropSize(kind, 'rear', 0, visibility);
         const startX = Math.max(groundPlatform.x + 48, Number(band.x || groundPlatform.x + 48));
         const width = Math.max(120, Number(band.w || 480));
-        const count = clamp(Math.floor(width / 360), 1, 4);
+        const anchorX = Number(band.anchorX);
+        const hasAnchor = Number.isFinite(anchorX);
+        const count = hasAnchor ? 1 : clamp(Math.floor(width / 360), 1, 4);
         for (let index = 0; index < count; index += 1) {
           const seed = `${map.id}:field-landmark:${bandIndex}:${index}`;
-          const x = startX + Math.floor(width * ((index + 0.38 + seededUnit(seed, 'x') * 0.24) / Math.max(1, count)));
+          const x = hasAnchor
+            ? Math.round(anchorX)
+            : startX + Math.floor(width * ((index + 0.38 + seededUnit(seed, 'x') * 0.24) / Math.max(1, count)));
           const scale = 1.12 + seededUnit(seed, 'scale') * 0.34;
           const w = Math.round(size.w * scale);
           const h = Math.round(size.h * scale);

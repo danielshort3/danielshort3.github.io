@@ -253,19 +253,30 @@
     };
 
     if (mapId === 'greenrootMeadow') {
-      const lowY = lanes.low;
-      const midY = lanes.mid + 10;
-      const highY = lanes.high + 20;
-      [
-        { lowX: 320, midX: 580, highX: 840, lowW: 1040, midW: 980, highW: 900 },
-        { lowX: 1520, midX: 1780, highX: 2040, lowW: 1040, midW: 980, highW: 900 },
-        { lowX: 2720, midX: 2980, highX: 3240, lowW: 1100, midW: 1000, highW: 800 }
-      ].forEach((cluster, index) => buildCluster(Object.assign({}, cluster, { lowY, midY, highY }), {
-        rampW: 280,
-        slopePlan: { lowToMid: [0, 2], midToHigh: [1] }
-      }, index));
-      addPlatform(1360, lanes.mid - 52, 260, 'hop');
-      addPlatform(2560, lanes.mid - 52, 260, 'hop');
+      // Preserve the compact, playful meadow while giving its starter route
+      // four authored beats instead of repeating the same three-lane cluster.
+      addSlope(520, lanes.ground, 456, 280);
+      addPlatform(760, 456, 900, 'solidLane');
+      addPlatform(500, 328, 900, 'solidLane');
+      addFlatConnector(1420, 392, 220);
+
+      addSlope(1660, lanes.ground, 456, 300);
+      addPlatform(1960, 456, 720, 'solidLane');
+      addSlope(2560, 456, 328, 300);
+      addPlatform(1960, 328, 720, 'solidLane');
+      addSlope(1960, 328, 200, 300);
+      addPlatform(1500, 200, 880, 'solidLane');
+
+      addPlatform(2380, 200, 120, 'connector');
+      addPlatform(2500, 200, 840, 'solidLane');
+      addPlatform(2700, 456, 640, 'solidLane');
+      addPlatform(3360, 456, 640, 'solidLane');
+      addPlatform(2700, 328, 640, 'solidLane');
+      addPlatform(3360, 328, 640, 'solidLane');
+      addSlope(3300, 456, 328, 300);
+      addSlope(3400, 328, 200, 300);
+      addPlatform(3360, 200, 640, 'solidLane');
+      addFlatConnector(2600, 392, 220);
       return platforms;
     }
 

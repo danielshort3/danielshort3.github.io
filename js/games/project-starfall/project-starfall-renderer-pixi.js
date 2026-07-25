@@ -1959,10 +1959,14 @@
         const size = this.getEnvironmentPropSize(kind, 'rear', 0, visibility);
         const startX = Math.max(groundPlatform.x + 48, Number(band.x || groundPlatform.x + 48));
         const width = Math.max(120, Number(band.w || 480));
-        const count = clamp(Math.floor(width / 360), 1, 4);
+        const anchorX = Number(band.anchorX);
+        const hasAnchor = Number.isFinite(anchorX);
+        const count = hasAnchor ? 1 : clamp(Math.floor(width / 360), 1, 4);
         for (let index = 0; index < count; index += 1) {
           const seed = `${map.id}:field-landmark:${bandIndex}:${index}`;
-          const x = startX + Math.floor(width * ((index + 0.38 + seededUnit(seed, 'x') * 0.24) / Math.max(1, count)));
+          const x = hasAnchor
+            ? Math.round(anchorX)
+            : startX + Math.floor(width * ((index + 0.38 + seededUnit(seed, 'x') * 0.24) / Math.max(1, count)));
           const scale = 1.12 + seededUnit(seed, 'scale') * 0.34;
           const w = Math.round(size.w * scale);
           const h = Math.round(size.h * scale);

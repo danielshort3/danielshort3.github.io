@@ -70,6 +70,7 @@
         name: 'Greenroot Meadow',
         levelRange: [1, 6],
         safeZone: false,
+        scaleEnemies: true,
         geometryMode: 'generated',
         geometryGenerator: 'priorityFieldV2',
         compactWorldWidth: 4200,

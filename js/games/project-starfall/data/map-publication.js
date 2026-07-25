@@ -14,10 +14,10 @@
 
   const FEATURED_SPAWN_GROUP_PROFILES = Object.freeze({
     greenrootMeadow: Object.freeze([
-      { sectionSuffix: 'starter_pond_loop', label: 'Pond Slimes', enemyWeights: [{ enemyId: 'dewSlime', weight: 6 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 1 }], population: 6, respawnSeconds: 4, leash: 420 },
-      { sectionSuffix: 'moss_lane_extension', label: 'Moss Shelf', enemyWeights: [{ enemyId: 'dewSlime', weight: 5 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 2 }], population: 6, respawnSeconds: 4, leash: 460 },
-      { sectionSuffix: 'canopy_practice', label: 'Canopy Pocket', enemyWeights: [{ enemyId: 'dewSlime', weight: 4 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 2 }, { enemyId: 'mossback', weight: 1 }], population: 6, respawnSeconds: 5, leash: 400 },
-      { sectionSuffix: 'thornpath_gate', label: 'Thornpath Gate', enemyWeights: [{ enemyId: 'dewSlime', weight: 3 }, { enemyId: 'slimelet', weight: 2 }, { enemyId: 'thornSprout', weight: 3 }, { enemyId: 'mossback', weight: 2 }], population: 6, respawnSeconds: 5, leash: 440 }
+      { sectionSuffix: 'starter_pond_loop', label: 'Pond Slimelets', enemyWeights: [{ enemyId: 'slimelet', weight: 1 }], population: 4, maxPopulation: 4, respawnSeconds: 7, leash: 240, spawnBounds: { minX: 720, maxX: 1640 } },
+      { sectionSuffix: 'moss_lane_extension', label: 'Dewdrop Shelf', enemyWeights: [{ enemyId: 'dewSlime', weight: 1 }], population: 4, maxPopulation: 4, respawnSeconds: 7, leash: 280, spawnBounds: { minX: 1700, maxX: 2680 } },
+      { sectionSuffix: 'canopy_practice', label: 'Canopy Sprouts', enemyWeights: [{ enemyId: 'dewSlime', weight: 4 }, { enemyId: 'slimelet', weight: 3 }, { enemyId: 'thornSprout', weight: 3 }], population: 5, maxPopulation: 5, respawnSeconds: 8, leash: 300, spawnBounds: { minX: 2720, maxX: 3340 } },
+      { sectionSuffix: 'thornpath_gate', label: 'Gate Guardians', enemyWeights: [{ enemyId: 'dewSlime', weight: 2 }, { enemyId: 'slimelet', weight: 1 }, { enemyId: 'thornSprout', weight: 3 }, { enemyId: 'mossback', weight: 4 }], population: 5, maxPopulation: 5, respawnSeconds: 9, leash: 340, spawnBounds: { minX: 3500, maxX: 3640 } }
     ]),
     banditRidgeCamp: Object.freeze([
       { sectionSuffix: 'lower_cutter_lane', label: 'Lower Cutters', enemyWeights: [{ enemyId: 'banditCutter', weight: 8 }, { enemyId: 'briarStag', weight: 2 }], population: 8, respawnSeconds: 4, leash: 520 },
@@ -148,6 +148,12 @@
       const platformIds = Array.from(new Set(declaredPlatformIds.concat(platformIndices.map((platformIndex) => getPublishedPlatformId(map, platformIndex)))));
       const enemyWeights = normalizeSpawnEnemyWeights(source.enemyWeights || source.enemies, map.enemies);
       if (!platformIds.length || !enemyWeights.length) return null;
+      const rawSpawnBounds = source.spawnBounds && typeof source.spawnBounds === 'object' ? source.spawnBounds : EMPTY_OBJECT;
+      const spawnMinX = Number(rawSpawnBounds.minX);
+      const spawnMaxX = Number(rawSpawnBounds.maxX);
+      const spawnBounds = Number.isFinite(spawnMinX) && Number.isFinite(spawnMaxX) && spawnMaxX >= spawnMinX
+        ? Object.freeze({ minX: spawnMinX, maxX: spawnMaxX })
+        : null;
       return Object.freeze({
         id,
         label: String(source.label || section && section.label || `Spawn Group ${index + 1}`),
@@ -160,6 +166,7 @@
         partyScaling: String(source.partyScaling || map.partyScaling || map.designIntent && map.designIntent.partyScaling || 'none'),
         maxPopulation: Math.max(1, Math.floor(Number(source.maxPopulation || 0)) || Math.ceil(Math.max(1, Number(source.population || 1)) * 1.5)),
         partyBonusPerMember: Math.max(0, Math.min(4, Number(source.partyBonusPerMember == null ? 1 : source.partyBonusPerMember) || 0)),
+        spawnBounds,
         actorTraversal: normalizeActorTraversal(source.actorTraversal)
       });
     }).filter(Boolean);
