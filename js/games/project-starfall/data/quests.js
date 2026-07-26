@@ -55,12 +55,13 @@
           Object.freeze({ id: 'defeat_thorns', type: 'defeat', enemyId: 'thornSprout', count: 2, label: 'Defeat 2 Thorn Sprouts' })
         ]),
         rewards: Object.freeze({ xp: 180, currency: 90, materials: Object.freeze({ upgradeDust: 3, gelDrop: 1 }), statUpgradePoints: 1 }),
-        nextQuestId: 'trial_ready'
+        nextQuestId: 'rustcoil_relay'
       }),
       Object.freeze({
         id: 'trial_ready',
         title: 'Ready for Advancement',
         summary: 'Reach the trial tier and complete any branch trial before choosing an advanced class.',
+        requiredQuestIds: Object.freeze(['field_scout']),
         requiredLevel: 20,
         objectives: Object.freeze([
           Object.freeze({ id: 'reach_20', type: 'level', level: 20, label: 'Reach Level 20' }),
@@ -98,6 +99,7 @@
         title: 'Courier to the Ridge',
         summary: 'Carry Thornpath Scout orders to the Ridge Watch before the bandits settle in.',
         requiredQuestIds: ['field_scout'],
+        requiredLevel: 12,
         objectives: [
           { id: 'thin_vines', type: 'defeat', enemyId: 'vineSnapper', mapId: 'thornpathThicket', count: 3, label: 'Defeat 3 Vine Snappers' },
           { id: 'talk_ridge_watch', type: 'talk', npcId: 'ridge_watch', mapId: 'banditRidgeCamp', count: 1, label: 'Report to Ridge Watch' }
@@ -110,7 +112,7 @@
         title: 'Ridge Cleanup',
         summary: 'Break the bandit camp foothold and recover upgrade supplies from the ridge.',
         requiredQuestIds: ['ridge_courier'],
-        requiredLevel: 18,
+        requiredLevel: 12,
         objectives: [
           { id: 'defeat_cutters', type: 'defeat', enemyId: 'banditCutter', mapId: 'banditRidgeCamp', count: 6, label: 'Defeat 6 Bandit Cutters' },
           { id: 'defeat_throwers', type: 'defeat', enemyId: 'banditThrower', mapId: 'banditRidgeCamp', count: 4, label: 'Defeat 4 Bandit Throwers' },
@@ -136,7 +138,7 @@
         title: 'Rustcoil Relay',
         summary: 'Meet the Rustcoil Surveyor and open a safer path into the construct ruins.',
         requiredQuestIds: ['field_scout'],
-        requiredLevel: 12,
+        requiredLevel: 6,
         objectives: [
           { id: 'talk_surveyor', type: 'talk', npcId: 'ruins_surveyor', mapId: 'rustcoilRuins', count: 1, label: 'Speak with the Rustcoil Surveyor' }
         ],

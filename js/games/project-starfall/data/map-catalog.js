@@ -23,7 +23,7 @@
       makeTownHubMap({
         id: 'rustcoilOutpost',
         name: 'Rustcoil Outpost',
-        levelRange: [12, 34],
+        levelRange: [6, 34],
         palette: ['#8c6b35', '#7a8592', '#29b3ad'],
         purpose: 'Regional town for the Rustcoil Expanse with storage, slot services, and construct-field access.',
         shopName: 'Rustcoil Outfitter',
@@ -125,8 +125,9 @@
       {
         id: 'rustcoilRuins',
         name: 'Rustcoil Ruins',
-        levelRange: [12, 22],
+        levelRange: [6, 20],
         safeZone: false,
+        scaleEnemies: true,
         waveMax: 28,
         waveDelay: 5,
         palette: ['#8c6b35', '#7a8592', '#29b3ad'],
@@ -194,8 +195,9 @@
       {
         id: 'banditRidgeCamp',
         name: 'Bandit Ridge Camp',
-        levelRange: [18, 30],
+        levelRange: [12, 30],
         safeZone: false,
+        scaleEnemies: true,
         geometryMode: 'generated',
         geometryGenerator: 'priorityFieldV2',
         compactWorldWidth: 5400,

@@ -135,14 +135,14 @@ lockedHandoffEngine.toast = (message) => {
 };
 check(lockedHandoffEngine.claimQuestReward('field_scout'),
   'the field scout reward should be claimable before the advancement level gate');
-const lockedTrialAvailability = lockedHandoffEngine.getQuestAvailability('trial_ready');
-check(lockedTrialAvailability.locked &&
-  lockedTrialAvailability.lockedReason === 'Reach Level 20 first.' &&
+const lockedRelayAvailability = lockedHandoffEngine.getQuestAvailability('rustcoil_relay');
+check(lockedRelayAvailability.locked &&
+  lockedRelayAvailability.lockedReason === 'Reach Level 6 first.' &&
   lockedHandoffEngine.state.session.questGuide.type === '' &&
   lockedHandoffMessages.some((message) =>
-    message.includes('Ready for Advancement remains locked: Reach Level 20 first.')) &&
+    message.includes('Rustcoil Relay remains locked: Reach Level 6 first.')) &&
   !lockedHandoffMessages.some((message) =>
-    message.includes('Ready for Advancement is available')),
+    message.includes('Rustcoil Relay is available')),
   'claiming a quest should report its successor level gate instead of falsely calling the quest available');
 
 const concurrentEngine = createQuestEngine();
