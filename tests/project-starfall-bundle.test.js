@@ -51,4 +51,26 @@ const gzipBytes = zlib.gzipSync(bundle, { level: 9 }).length;
 assert(bundle.length < 5 * 1024 * 1024, `Starfall bundle should stay below 5 MiB raw (received ${bundle.length} bytes)`);
 assert(gzipBytes < 1.25 * 1024 * 1024, `Starfall bundle should stay below 1.25 MiB gzip (received ${gzipBytes} bytes)`);
 
+const runtimeProbe = childProcess.execFileSync(process.execPath, ['-e', `
+  global.window = global;
+  global.document = { readyState: 'loading', addEventListener() {} };
+  require(${JSON.stringify(bundlePath)});
+  process.stdout.write(JSON.stringify({
+    mapCount: global.ProjectStarfallData && global.ProjectStarfallData.MAPS && global.ProjectStarfallData.MAPS.length,
+    mapIds: (global.ProjectStarfallData && global.ProjectStarfallData.MAPS || []).map((map) => map.id),
+    hasEngineFactory: typeof global.createProjectStarfallEngine === 'function'
+  }));
+`], {
+  cwd: root,
+  stdio: ['ignore', 'pipe', 'pipe'],
+  maxBuffer: 4 * 1024 * 1024
+}).toString();
+const runtime = JSON.parse(runtimeProbe);
+assert(runtime.mapCount >= 56 &&
+  runtime.mapIds.includes('greenrootMeadow') &&
+  runtime.mapIds.includes('ashglassPass'),
+  'production bundle should assemble the complete playable map catalog before boot');
+assert(runtime.hasEngineFactory,
+  'production bundle should expose the engine factory before boot');
+
 console.log(`Project Starfall bundle tests passed (${bundle.length} raw bytes, ${gzipBytes} gzip bytes).`);

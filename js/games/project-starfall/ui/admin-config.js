@@ -871,6 +871,7 @@
     if (source.type === 'admin-console-restore') return { handled: true, type: 'restore' };
     if (source.type === 'admin-console-close') return { handled: true, type: 'close' };
     if (source.type === 'admin-console-tab') return { handled: true, type: 'setTab', tabId: source.tabId };
+    if (source.type === 'admin-console-command-input') return { handled: true, type: 'editCommand' };
     if (source.type === 'admin-console-command-run') return { handled: true, type: 'runCommand' };
     if (source.type === 'admin-console-command-sample') return { handled: true, type: 'setCommandInput', command: source.command || '' };
     if (source.type === 'admin-console-command-clear') return { handled: true, type: 'clearCommand' };

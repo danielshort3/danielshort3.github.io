@@ -280,4 +280,73 @@ data.CLASS_TRIALS.forEach((trial) => {
     'Rift defeat should publish one consolidated state update');
 }
 
+{
+  const fixture = createFixture('fighter');
+  const { engine } = fixture;
+  const trial = data.CLASS_TRIALS.find((candidate) => candidate.baseClass === 'fighter');
+  check(engine.startClassTrial(trial.id),
+    'Worldwright map-travel fixture should start inside a real advancement trial');
+  const firstObjective = trial.objectives[0];
+  check(engine.recordProgressEvent('defeat', {
+    enemyId: firstObjective.enemyId,
+    mapId: engine.state.mapId
+  }), 'Worldwright map-travel fixture should record partial trial progress');
+
+  const invalidResult = engine.executeAdminCommand('tp map missingMap');
+  check(!invalidResult.ok &&
+    invalidResult.message === 'Map not found: missingMap.' &&
+    engine.getTrialInstanceState().active,
+  'an invalid Worldwright destination should report not found without abandoning the active trial');
+
+  const travelResult = engine.executeAdminCommand('tp map frostfenOutskirts 8289');
+  const trialProgress = engine.getProgressState().trialProgress[trial.id];
+  check(travelResult.ok &&
+    travelResult.message === 'Teleported to Frostfen Outskirts.' &&
+    engine.state.mapId === 'frostfenOutskirts' &&
+    engine.runtime.id === 'frostfenOutskirts',
+  'Worldwright should leave an advancement instance and complete valid map travel');
+  check(!engine.getTrialInstanceState().active &&
+    engine.getProgressState().activeTrialId === trial.id &&
+    !engine.getProgressState().completedTrials[trial.advancedId] &&
+    Number(trialProgress.objectiveValues[firstObjective.id] || 0) === 1,
+  'Worldwright map travel should close only the instance while preserving retry progress and eligibility');
+  check(Math.round(engine.state.player.x) === 8289,
+    'Worldwright map travel should still apply the requested map position after leaving a trial');
+}
+
+{
+  const fixture = createFixture('fighter');
+  const { engine } = fixture;
+  const trial = data.CLASS_TRIALS.find((candidate) => candidate.baseClass === 'fighter');
+  check(engine.startClassTrial(trial.id),
+    'Worldwright boss-travel fixture should start inside a real advancement trial');
+  const trialRuntimeId = engine.runtime.id;
+  const invalidResult = engine.executeAdminCommand('tp boss missingBoss');
+  check(!invalidResult.ok &&
+    invalidResult.message === 'Boss not found: missingBoss.' &&
+    engine.getTrialInstanceState().active &&
+    engine.runtime.id === trialRuntimeId,
+  'an invalid Worldwright boss should leave the active trial runtime intact');
+  engine.state.player.combatLockUntil = Number.MAX_SAFE_INTEGER;
+  engine.state.player.movementLockUntil = Number.MAX_SAFE_INTEGER;
+  engine.state.player.climbing = true;
+  engine.state.player.climbMoving = true;
+  engine.state.player.climbableId = 'trial-rope';
+  const travelResult = engine.executeAdminCommand('tp boss rimewarden');
+  check(travelResult.ok &&
+    travelResult.message === 'Teleported to boss rimewarden.' &&
+    engine.state.mapId === 'rimewardenVault' &&
+    engine.runtime.id === 'rimewardenVault',
+  'Worldwright boss travel should leave an advancement instance and enter the requested encounter');
+  check(!engine.getTrialInstanceState().active &&
+    engine.enemies.some((enemy) => enemy && enemy.id === 'rimewarden'),
+  'Worldwright boss travel should clear stale trial state and spawn the requested boss');
+  check(!engine.state.player.climbing &&
+    !engine.state.player.climbMoving &&
+    !engine.state.player.climbableId &&
+    engine.state.player.combatLockUntil === 0 &&
+    engine.state.player.movementLockUntil === 0,
+  'Worldwright boss travel should clear stale climbing, combat, and movement locks atomically');
+}
+
 console.log(`Project Starfall defeat recovery tests passed: ${checks} checks.`);

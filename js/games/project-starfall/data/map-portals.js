@@ -333,7 +333,7 @@
           destinationMapId: 'glacierSpine',
           routeId: 'frostfen',
           requiredMapId: 'frostfenOutskirts',
-          x: 5080,
+          x: 8280,
           platformIndex: 0,
         }),
       ]),

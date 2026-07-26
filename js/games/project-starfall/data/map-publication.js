@@ -69,6 +69,52 @@
         spawnBounds: { minX: 2900, maxX: 4260 }
       }
     ]),
+    frostfenOutskirts: Object.freeze([
+      {
+        sectionSuffix: 'marsh_flats',
+        label: 'Marsh Flats',
+        enemyWeights: [
+          { enemyId: 'shardling', weight: 5 },
+          { enemyId: 'frostlingScout', weight: 4 },
+          { enemyId: 'rimebackBrute', weight: 1 }
+        ],
+        population: 10,
+        maxPopulation: 10,
+        respawnSeconds: 6,
+        leash: 420,
+        spawnBounds: { minX: 520, maxX: 1500 }
+      },
+      {
+        sectionSuffix: 'ice_shelves',
+        label: 'Ice Shelves',
+        enemyWeights: [
+          { enemyId: 'frostlingScout', weight: 3 },
+          { enemyId: 'snowglareWisp', weight: 4 },
+          { enemyId: 'rimebackBrute', weight: 3 },
+          { enemyId: 'shardling', weight: 1 }
+        ],
+        population: 11,
+        maxPopulation: 11,
+        respawnSeconds: 7,
+        leash: 500,
+        spawnBounds: { minX: 2460, maxX: 5700 }
+      },
+      {
+        sectionSuffix: 'oracle_grove',
+        label: 'Oracle Grove',
+        enemyWeights: [
+          { enemyId: 'icebloomOracle', weight: 5 },
+          { enemyId: 'snowglareWisp', weight: 3 },
+          { enemyId: 'rimebackBrute', weight: 2 },
+          { enemyId: 'frostlingScout', weight: 1 }
+        ],
+        population: 11,
+        maxPopulation: 11,
+        respawnSeconds: 8,
+        leash: 460,
+        spawnBounds: { minX: 6600, maxX: 7480 }
+      }
+    ]),
     stormbreakCliffs: Object.freeze([
       { sectionSuffix: 'low_ram_lane', label: 'Thunder Ram Lane', enemyWeights: [{ enemyId: 'thunderRam', weight: 8 }, { enemyId: 'cloudcallAcolyte', weight: 2 }], population: 9, respawnSeconds: 5, leash: 500 },
       { sectionSuffix: 'mid_archer_bridge', label: 'Archer Bridge', enemyWeights: [{ enemyId: 'stormboundArcher', weight: 7 }, { enemyId: 'cloudcallAcolyte', weight: 3 }], population: 8, respawnSeconds: 5, leash: 440 },
