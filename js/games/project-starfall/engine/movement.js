@@ -617,6 +617,41 @@
     };
   }
 
+  function getDungeonRouteGateXClampPlan(proposedX, bodyWidth, gateX, padding, worldBounds) {
+    const toFiniteNumber = (value, fallback) => {
+      const normalized = Number(value);
+      return Number.isFinite(normalized) ? normalized : fallback;
+    };
+    const normalizedGateX = Number(gateX);
+    const hasFiniteGate = gateX !== null &&
+      gateX !== undefined &&
+      gateX !== '' &&
+      Number.isFinite(normalizedGateX) &&
+      normalizedGateX > 0;
+    const bounds = worldBounds && typeof worldBounds === 'object' ? worldBounds : {};
+    let minX = toFiniteNumber(bounds.minX, -Infinity);
+    let maxX = toFiniteNumber(bounds.maxX, Infinity);
+    if (maxX < minX) {
+      const swap = minX;
+      minX = maxX;
+      maxX = swap;
+    }
+    const normalizedX = clamp(toFiniteNumber(proposedX, 0), minX, maxX);
+    if (!hasFiniteGate) {
+      return {
+        x: normalizedX,
+        blocked: false
+      };
+    }
+    const width = Math.max(0, toFiniteNumber(bodyWidth, 0));
+    const gatePadding = Math.max(0, toFiniteNumber(padding, 0));
+    const gateLimitX = clamp(normalizedGateX - width - gatePadding, minX, maxX);
+    return {
+      x: Math.min(normalizedX, gateLimitX),
+      blocked: normalizedX > gateLimitX
+    };
+  }
+
   function getClimbStepFinalizationPlan(player, worldWidth) {
     const worldClamp = getWorldXClampPlan(player, worldWidth);
     return {
@@ -893,6 +928,7 @@
     getClimbMovementStepPlan,
     getClimbStepDismountEndpoint,
     getWorldXClampPlan,
+    getDungeonRouteGateXClampPlan,
     getClimbStepFinalizationPlan,
     getClimbDismountPlan,
     getClimbDismountStatePlan,
