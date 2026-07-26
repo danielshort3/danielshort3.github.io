@@ -26890,11 +26890,24 @@
       const activePhase = onboarding.activePhase || {};
       const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
       const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
-      const guideEntry = nextStep ? {
+      const mergeFirstStepsTracker = !!(nextStep &&
+        activePhase.id === 'first_steps' &&
+        progress &&
+        progress.activeQuest &&
+        progress.activeQuest.id === 'first_steps');
+      const guideObjective = nextStep ? {
+        id: `onboarding:${nextStep.id || nextStep.panelId || 'next'}`,
+        label: this.getOnboardingStepSummary(nextStep) || 'Continue the guide.',
+        value: 0,
+        goal: 1,
+        complete: false,
+        status: 'Guide'
+      } : null;
+      const guideEntry = nextStep && !mergeFirstStepsTracker ? {
         title: `${activePhase.title || 'Journey'} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}: ${nextStep.title}`,
         guideType: 'guide',
         guideId: nextStep.id || nextStep.panelId || nextStep.title,
-        objectives: [{ label: this.getOnboardingStepSummary(nextStep) || 'Continue the guide.', value: 0, goal: 1, complete: false, status: '' }]
+        objectives: [guideObjective]
       } : null;
       if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
       const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
@@ -26921,10 +26934,20 @@
         guideId: quest.id,
         objectives: [{ label: `Claim from ${quest.npcName || 'quest NPC'}: ${quest.rewardSummary}`, value: 1, goal: 1, complete: true }]
       }));
-      const activeQuest = progress.activeQuest ? Object.assign({}, progress.activeQuest, {
-        guideType: 'quest',
-        guideId: progress.activeQuest.id
-      }) : null;
+      const activeQuest = progress.activeQuest ? (() => {
+        const quest = Object.assign({}, progress.activeQuest, {
+          guideType: 'quest',
+          guideId: progress.activeQuest.id
+        });
+        if (!mergeFirstStepsTracker || !guideObjective) return quest;
+        const objectives = Array.isArray(quest.objectives) ? quest.objectives.slice() : [];
+        quest.objectives = [
+          guideObjective,
+          ...objectives.filter((objective) => !objective.complete),
+          ...objectives.filter((objective) => objective.complete)
+        ];
+        return quest;
+      })() : null;
       const activeTrial = progress.activeTrial ? Object.assign({}, progress.activeTrial, {
         guideType: 'trial',
         guideId: progress.activeTrial.id
@@ -30295,6 +30318,10 @@
         : progress.activeQuest
           ? [progress.activeQuest]
           : [];
+      const activeQuestIds = new Set(activeQuests.map((quest) => quest && quest.id).filter(Boolean));
+      const localHunt = this.snapshot.mapKillQuest && (this.snapshot.mapKillQuest.active || this.snapshot.mapKillQuest.claimable)
+        ? this.snapshot.mapKillQuest
+        : null;
       cy = this.drawCanvasText(ctx, 'Accepted Quests', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
       if (activeQuests.length) {
         activeQuests.forEach((quest) => {
@@ -30320,11 +30347,45 @@
           cy += this.drawObjectiveRowsCanvas(ctx, quest.objectives, x, cy, w) + 8;
         });
       } else {
-        cy = this.drawCanvasText(ctx, 'No accepted quests.', x, cy, { color: '#5f6f7a', font: '12px system-ui' }) + 10;
+        cy = this.drawCanvasText(ctx, localHunt ? 'No accepted story quests.' : 'No accepted quests.', x, cy, { color: '#5f6f7a', font: '12px system-ui' }) + 10;
+      }
+      if (localHunt) {
+        cy += 4;
+        cy = this.drawCanvasText(ctx, 'Local Hunt', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
+        const focused = this.snapshot.questGuidance &&
+          this.snapshot.questGuidance.targetType === 'mapKill' &&
+          this.snapshot.questGuidance.targetId === localHunt.mapId;
+        const statusText = localHunt.claimable
+          ? `Claim from ${localHunt.npcName || 'the local guide'}`
+          : `${formatAbbreviatedInteger(localHunt.value)}/${formatAbbreviatedInteger(localHunt.goal)} defeated`;
+        this.drawRoundRect(ctx, x, cy, w, 64, 7, localHunt.claimable ? '#fff7d8' : focused ? '#eef6ff' : '#fbfaf6', focused ? 'rgba(47,125,214,0.42)' : 'rgba(16,32,51,0.14)');
+        this.drawCanvasText(ctx, localHunt.title, x + 10, cy + 7, { color: '#102033', font: '900 12px system-ui', maxWidth: w - 88, lineHeight: 13 });
+        this.drawCanvasText(ctx, localHunt.rankLabel || 'Hunt', x + w - 10, cy + 7, { color: '#8a6b00', font: '850 9px system-ui', align: 'right', maxWidth: 70, lineHeight: 10, maxLines: 1 });
+        this.drawCanvasText(ctx, statusText, x + 10, cy + 25, { color: localHunt.claimable ? '#177645' : '#5f6f7a', font: '10px system-ui', maxWidth: w - 20, lineHeight: 11 });
+        this.drawCanvasText(ctx, `Reward: ${localHunt.rewardSummary}`, x + 10, cy + 42, { color: '#8a6b00', font: '10px system-ui', maxWidth: w - 20, lineHeight: 11, maxLines: 1 });
+        this.addCanvasRegion({
+          type: 'quest-guide',
+          guideType: 'mapKill',
+          guideId: localHunt.mapId,
+          questId: localHunt.id,
+          tooltipTitle: localHunt.title,
+          tooltipSubtitle: focused ? 'Current HUD focus' : 'Click to focus this hunt',
+          tooltipLines: [
+            localHunt.summary || '',
+            statusText,
+            `Reward: ${localHunt.rewardSummary}`
+          ].filter(Boolean),
+          x,
+          y: cy,
+          w,
+          h: 64
+        });
+        cy += 72;
+        cy += this.drawObjectiveRowsCanvas(ctx, localHunt.objectives, x, cy, w) + 8;
       }
       cy += 4;
       cy = this.drawCanvasText(ctx, 'Quest Chain', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
-      (progress.quests || []).forEach((quest) => {
+      (progress.quests || []).filter((quest) => !activeQuestIds.has(quest && quest.id)).forEach((quest) => {
         this.drawRoundRect(ctx, x, cy, w, 52, 7, quest.claimable ? '#fff7d8' : quest.complete ? '#eff9ef' : quest.active ? '#eef6ff' : '#ffffff', 'rgba(16,32,51,0.14)');
         const statusText = quest.claimable
           ? `Claim from ${quest.npcName || 'quest NPC'}`

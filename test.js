@@ -22637,7 +22637,7 @@ try {
       'Project Starfall local map kill quests should accept through the map NPC prompt');
     const activeHunt = mapHuntEngine.getMapKillQuestSnapshot('greenrootMeadow');
     assert(!mapHuntEngine.recordMapKillQuestDefeat(makeTestEnemy(mapHuntEngine, 'slimelet')) &&
-      mapHuntEngine.state.log.some((entry) => entry === `Map quest progress: Greenroot Meadow Hunt - 1/${activeHunt.goal}`),
+      mapHuntEngine.state.log.some((entry) => entry === `Map quest progress: ${activeHunt.title} - 1/${activeHunt.goal}`),
       'Project Starfall map kill quests should toast paced local hunt progress before completion');
     mapHuntEngine.state.mapKillQuests.greenrootMeadow.progress = activeHunt.goal - 1;
     const mapHuntCurrencyBefore = mapHuntEngine.state.player.currency;
@@ -24161,7 +24161,7 @@ try {
       return originalProgressEnsureRuntimeState();
     };
     assert(!completedAccomplishmentEngine.recordProgressEvent('defeat', {
-      enemyId: 'slimelet',
+      enemyId: 'dewSlime',
       family: 'Ooze',
       mapId: 'greenrootMeadow',
       count: 1

@@ -892,6 +892,11 @@
   const FIELD_RESPAWN_SECTION_MATCH_SCORE = 160;
   const FIELD_RESPAWN_SECTION_MISMATCH_SCORE = 80;
   const WAVE_RESPAWN_BLOCK_RETRY_SECONDS = 2;
+  const MAP_HUNT_RANKS = Object.freeze([
+    Object.freeze({ id: 'scout', label: 'Scout', minCompletions: 0, goalMultiplier: 1 }),
+    Object.freeze({ id: 'ranger', label: 'Ranger', minCompletions: 3, goalMultiplier: 1.25 }),
+    Object.freeze({ id: 'veteran', label: 'Veteran', minCompletions: 10, goalMultiplier: 1.5 })
+  ]);
   const CLIMB_SPEED = 230;
   const LADDER_MOUNT_WIDTH = 88;
   const LADDER_MOUNT_TOLERANCE = 22;
@@ -17443,6 +17448,28 @@
       ].join('|');
     }
 
+    getCurrentMapQuestOwner(questId) {
+      const id = normalizeId(questId);
+      const map = getMapDefinitionById(this.state && this.state.mapId);
+      if (!id || !map) return null;
+      const npc = (map.questNpcs || []).find((candidate) => {
+        const questIds = Array.isArray(candidate && candidate.questIds) ? candidate.questIds : [];
+        return questIds.some((candidateQuestId) => normalizeId(candidateQuestId) === id);
+      });
+      if (!npc) return null;
+      const runtimeNpc = (this.runtime && this.runtime.questNpcs || [])
+        .find((candidate) => candidate && candidate.id === npc.id) || npc;
+      return {
+        questId: id,
+        npcId: npc.id,
+        npcName: npc.name || 'Quest NPC',
+        mapId: map.id,
+        mapName: map.name || '',
+        map,
+        npc: Object.assign({}, runtimeNpc)
+      };
+    }
+
     getQuestOwnerRuntimeNpc(owner) {
       if (!owner || !owner.mapId || !owner.npcId) return owner && owner.npc || null;
       if (owner.mapId === this.state.mapId && this.runtime) {
@@ -17479,8 +17506,18 @@
     getQuestOwnerForQuest(questId) {
       const id = normalizeId(questId);
       if (!id) return null;
-      const owner = this.getQuestOwnerIndex().owners.get(id);
+      const localOwner = this.getCurrentMapQuestOwner(id);
+      const owner = localOwner || this.getQuestOwnerIndex().owners.get(id);
       if (!owner) return null;
+      if (localOwner) {
+        return {
+          npcId: owner.npcId,
+          npcName: owner.npcName,
+          mapId: owner.mapId,
+          mapName: owner.mapName,
+          npc: Object.assign({}, owner.npc)
+        };
+      }
       const cache = this.questOwnerResolvedCache instanceof Map ? this.questOwnerResolvedCache : (this.questOwnerResolvedCache = new Map());
       const cacheKey = this.getQuestOwnerResolvedCacheKey(owner);
       if (cache.has(cacheKey)) return cache.get(cacheKey);
@@ -19253,12 +19290,22 @@
       return Math.max(8, Math.min(60, Math.round(Math.max(waveMax, enemyCount, 8) * (map.isDungeon ? 1 : 1.1))));
     }
 
+    getMapKillQuestRank(completions) {
+      const completedCount = Math.max(0, Math.floor(Number(completions) || 0));
+      let rankIndex = 0;
+      MAP_HUNT_RANKS.forEach((rank, index) => {
+        if (completedCount >= rank.minCompletions) rankIndex = index;
+      });
+      return Object.assign({ rankIndex, maxRank: rankIndex === MAP_HUNT_RANKS.length - 1 }, MAP_HUNT_RANKS[rankIndex]);
+    }
+
     getMapKillQuestGoal(mapId) {
       const map = getMapDefinitionById(mapId || this.state.mapId);
       if (!map || map.safeZone) return 0;
       const state = this.getMapKillQuestState()[map.id] || { completions: 0 };
       const base = this.getMapKillQuestBaseGoal(map);
-      return Math.max(1, Math.ceil(base * Math.pow(1.5, Math.max(0, Number(state.completions || 0)))));
+      const rank = this.getMapKillQuestRank(state.completions);
+      return Math.max(1, Math.ceil(base * rank.goalMultiplier));
     }
 
     getMapEnemyQuestDifficulty(map) {
@@ -19277,7 +19324,10 @@
       const minutes = Math.max(2, goal * 0.35 * difficulty);
       const baseXpPerMinute = getMonsterXp(level, { expMult: 1 }) * 1.2;
       const rewardXp = this.roundQuestXp(minutes * baseXpPerMinute * clamp(0.85 + (difficulty - 1) * 0.35 + level / 260, 0.75, 2) * 0.45);
-      const rewardCurrency = Math.max(25, Math.round((map.levelRange && map.levelRange[0] || 1) * 6));
+      const baseGoal = Math.max(1, this.getMapKillQuestBaseGoal(map));
+      const workloadScale = clamp(goal / baseGoal, 1, MAP_HUNT_RANKS[MAP_HUNT_RANKS.length - 1].goalMultiplier);
+      const baseCurrency = Math.max(25, Math.round((map.levelRange && map.levelRange[0] || 1) * 6));
+      const rewardCurrency = Math.max(25, Math.round(baseCurrency * workloadScale));
       return { xp: rewardXp, currency: rewardCurrency };
     }
 
@@ -19298,13 +19348,38 @@
       return (runtime.questNpcs || [])[0] || null;
     }
 
+    shouldAwardMapKillQuestManual(completionCount) {
+      const completedCount = Math.max(1, Math.floor(Number(completionCount) || 1));
+      if (completedCount === 1) return true;
+      const completedRank = this.getMapKillQuestRank(completedCount - 1);
+      const nextRank = this.getMapKillQuestRank(completedCount);
+      return nextRank.rankIndex > completedRank.rankIndex;
+    }
+
+    getMapKillQuestRewardPlan(map, options) {
+      if (!map || map.safeZone) return { xp: 0, currency: 0, manualId: '', completionCount: 0 };
+      const settings = options || {};
+      const state = this.getMapKillQuestState()[map.id] || { completions: 0 };
+      const completionCount = Math.max(
+        1,
+        Math.floor(Number(settings.completionCount || Math.max(0, Number(state.completions || 0)) + 1) || 1)
+      );
+      const rewards = this.getMapKillQuestRewards(map, { goal: settings.goal });
+      const manualId = this.shouldAwardMapKillQuestManual(completionCount)
+        ? getPreferredSkillManualDropId(this.state)
+        : '';
+      return Object.assign({}, rewards, { manualId, completionCount });
+    }
+
     formatMapKillQuestRewardSummary(map) {
-      const manualId = getPreferredSkillManualDropId(this.state);
+      const plan = this.getMapKillQuestRewardPlan(map);
+      const rewardSummary = this.formatRewardSummary(plan);
+      const manualId = plan.manualId;
       if (manualId) {
         const manual = getConsumableDefinitionById(manualId);
-        return manual ? manual.name : 'Skill Point Manual';
+        return `${rewardSummary} + ${manual ? manual.name : 'Skill Point Manual'}`;
       }
-      return this.formatRewardSummary(this.getMapKillQuestRewards(map));
+      return rewardSummary;
     }
 
     getMapKillQuestSummary(mapId) {
@@ -19313,6 +19388,7 @@
       const all = this.getMapKillQuestState();
       const state = all[map.id] || { active: false, progress: 0, completions: 0, completedAt: 0, lastCompletedAt: 0 };
       const goal = this.getMapKillQuestGoal(map.id);
+      const rank = this.getMapKillQuestRank(state.completions);
       const complete = Number(state.completedAt || 0) > 0 || Number(state.progress || 0) >= goal;
       const active = !!state.active || complete;
       const owner = this.getMapKillQuestOwner(map.id) || {};
@@ -19324,7 +19400,7 @@
         mapName: map.name,
         npcId: owner.id || '',
         npcName: owner.name || '',
-        title: `${map.name} Hunt`,
+        title: `${map.name} ${rank.label} Hunt`,
         summary: `Accept the local hunt, defeat enemies in ${map.name}, then return to ${owner.name || 'the map NPC'} for the reward.`,
         label: `Defeat enemies in ${map.name}`,
         status: complete ? 'claimable' : active ? 'active' : this.state.player.classId ? 'available' : 'locked',
@@ -19338,6 +19414,11 @@
         value: Math.min(goal, Math.max(0, Number(state.progress || 0))),
         goal,
         completions: Math.max(0, Number(state.completions || 0)),
+        rankId: rank.id,
+        rankLabel: rank.label,
+        rankIndex: rank.rankIndex,
+        maxRank: rank.maxRank,
+        goalMultiplier: rank.goalMultiplier,
         rewardSummary: this.formatMapKillQuestRewardSummary(map),
         objectives: [{
           id: `${map.id}_hunt`,
@@ -19894,23 +19975,39 @@
       return cache.value;
     }
 
-    awardMapKillQuestReward(map, completionCount, completedGoal) {
-      const manualId = getPreferredSkillManualDropId(this.state);
-      if (manualId) {
-        this.addStackableInventoryItem('usable', manualId, 1, { source: 'map-hunt' });
-        const manual = getConsumableDefinitionById(manualId);
-        this.toast(`${map.name} hunt milestone ${completionCount}: ${manual ? manual.name : 'SP Manual'} earned.`);
-        return;
-      }
-      const rewards = this.getMapKillQuestRewards(map, { goal: completedGoal });
-      const rewardXp = Math.max(0, Number(rewards.xp || 0));
+    awardMapKillQuestReward(map, completionCount, completedGoal, rewardPlan) {
+      const plan = rewardPlan || this.getMapKillQuestRewardPlan(map, {
+        completionCount,
+        goal: completedGoal
+      });
+      const rewardXp = Math.max(0, Number(plan.xp || 0));
       this.state.player.xp += rewardXp;
       this.recordCombatXpGain(rewardXp);
-      const rewardCurrency = Math.max(0, Number(rewards.currency || 0));
+      const rewardCurrency = Math.max(0, Number(plan.currency || 0));
       this.state.player.currency += rewardCurrency;
       this.recordCombatCurrencyGain(rewardCurrency);
       this.checkLevelUp();
-      this.toast(`${map.name} hunt milestone ${completionCount} complete.`);
+
+      const rewards = { xp: rewardXp, currency: rewardCurrency };
+      const rewardParts = [this.formatRewardSummary(rewards)];
+      const manualId = normalizeId(plan.manualId);
+      let manualGranted = false;
+      if (manualId) {
+        const addResult = this.addStackableInventoryItem('usable', manualId, 1, { source: 'map-hunt' });
+        manualGranted = Number(addResult && addResult.added || 0) > 0;
+        if (manualGranted) {
+          const manual = getConsumableDefinitionById(manualId);
+          rewardParts.push(manual ? manual.name : 'SP Manual');
+        }
+      }
+
+      const completedRank = this.getMapKillQuestRank(Math.max(0, Number(completionCount || 1) - 1));
+      const nextRank = this.getMapKillQuestRank(completionCount);
+      const promotion = nextRank.rankIndex > completedRank.rankIndex
+        ? ` ${nextRank.label} rank unlocked.`
+        : '';
+      this.toast(`${map.name} ${completedRank.label} Hunt complete: ${rewardParts.join(' + ')}.${promotion}`);
+      return Object.assign({}, rewards, manualGranted ? { consumables: { [manualId]: 1 } } : {});
     }
 
     recordMapKillQuestDefeat(enemy) {
@@ -19920,16 +20017,18 @@
       const all = this.getMapKillQuestState();
       const state = all[map.id] || { active: false, progress: 0, completions: 0, completedAt: 0, lastCompletedAt: 0 };
       if (!state.active || Number(state.completedAt || 0) > 0) return false;
+      const rank = this.getMapKillQuestRank(state.completions);
+      const huntTitle = `${map.name} ${rank.label} Hunt`;
       state.progress = Math.min(goal, Math.max(0, Number(state.progress || 0)) + 1);
       const completed = state.progress >= goal;
       if (completed) {
         state.completedAt = Date.now();
         const owner = this.getMapKillQuestOwner(map.id);
-        this.toast(`${map.name} Hunt complete. Claim the reward${owner && owner.name ? ` from ${owner.name}.` : ' from the map NPC.'}`);
+        this.toast(`${huntTitle} complete. Claim the reward${owner && owner.name ? ` from ${owner.name}.` : ' from the map NPC.'}`);
       } else {
         this.toastProgressUpdate(
           `mapKill:${map.id}`,
-          `Map quest progress: ${map.name} Hunt - ${state.progress}/${goal}`,
+          `Map quest progress: ${huntTitle} - ${state.progress}/${goal}`,
           state.progress,
           goal,
           { bucketCount: 4, cooldownMs: 8000 }
@@ -25856,12 +25955,14 @@
       const goal = this.getMapKillQuestGoal(map.id);
       const all = this.getMapKillQuestState();
       const state = all[map.id] || { active: false, progress: 0, completions: 0, completedAt: 0, lastCompletedAt: 0 };
+      const rank = this.getMapKillQuestRank(state.completions);
+      const huntTitle = `${map.name} ${rank.label} Hunt`;
       if (Number(state.completedAt || 0) > 0 || Number(state.progress || 0) >= goal) {
-        this.toast(`${map.name} Hunt is ready to claim.`);
+        this.toast(`${huntTitle} is ready to claim.`);
         return false;
       }
       if (state.active) {
-        this.toast(`${map.name} Hunt is already active.`);
+        this.toast(`${huntTitle} is already active.`);
         return false;
       }
       state.active = true;
@@ -25869,7 +25970,7 @@
       state.completedAt = 0;
       all[map.id] = state;
       this.setQuestGuideTarget('mapKill', map.id);
-      this.toast(`${map.name} Hunt started.`);
+      this.toast(`${huntTitle} started.`);
       return true;
     }
 
@@ -25884,13 +25985,22 @@
         return false;
       }
       const completedGoal = goal;
-      state.completions = Math.max(0, Number(state.completions || 0)) + 1;
+      const completionCount = Math.max(0, Number(state.completions || 0)) + 1;
+      const rewardPlan = this.getMapKillQuestRewardPlan(map, {
+        completionCount,
+        goal: completedGoal
+      });
+      if (rewardPlan.manualId && !this.canAddStackableInventoryItem('usable', rewardPlan.manualId, 1)) {
+        this.toast('Usable inventory is full. Free a slot before claiming the hunt reward.');
+        return false;
+      }
+      state.completions = completionCount;
       state.progress = 0;
       state.active = false;
       state.completedAt = 0;
       state.lastCompletedAt = Date.now();
       all[map.id] = state;
-      this.awardMapKillQuestReward(map, state.completions, completedGoal);
+      this.awardMapKillQuestReward(map, state.completions, completedGoal, rewardPlan);
       return true;
     }
 
@@ -25994,6 +26104,39 @@
       return changed;
     }
 
+    ensureFirstStepsForGreenrootProgress(type, payload, progressState) {
+      const eventType = normalizeId(type);
+      if (eventType !== 'defeat' && eventType !== 'loot') return false;
+      const eventPayload = payload || {};
+      const currentMapId = normalizeId(this.state && this.state.mapId);
+      const eventMapId = normalizeId(eventPayload.mapId);
+      if (currentMapId !== 'greenrootMeadow' || (eventMapId && eventMapId !== currentMapId)) return false;
+      if (eventType === 'defeat' && normalizeId(eventPayload.enemyId) !== 'slimelet') return false;
+
+      const quest = getById(Data.QUESTS || [], 'first_steps');
+      const progress = progressState || this.getProgressState();
+      if (progress.completedQuestIds.includes('first_steps') || progress.claimedQuestIds.includes('first_steps')) return false;
+      if (!quest || !this.getQuestAvailability(quest.id, { progress }).available) return false;
+
+      progress.activeQuestIds = normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId);
+      if (progress.activeQuestIds.includes(quest.id)) return false;
+      progress.activeQuestIds.push(quest.id);
+      ensureProgressEntry(progress, 'quest', quest.id);
+      this.applyProgressEventToEntry('quest', quest, 'level', {
+        level: this.state.player.level
+      }, { progress });
+      this.applyProgressEventToEntry('quest', quest, 'travel', {
+        mapId: currentMapId
+      }, { progress });
+
+      const guide = this.getQuestGuideState();
+      if (!guide.type || (guide.type === 'map' && guide.id === 'greenrootMeadow')) {
+        guide.type = 'quest';
+        guide.id = quest.id;
+      }
+      return true;
+    }
+
     recordProgressEvent(type, payload, options) {
       return this.withRuntimeStateBatch(() => this.recordProgressEventBatched(type, payload, options));
     }
@@ -26012,16 +26155,19 @@
       }
       if (!getProgressObjectiveTypeSet().has(normalizeId(type))) return false;
       const progress = eventState.progress;
-      let changed = false;
+      const firstStepsStarted = this.ensureFirstStepsForGreenrootProgress(type, payload, progress);
+      let changed = firstStepsStarted;
       const activeQuests = this.getActiveQuests({ progress });
       activeQuests.forEach((quest) => {
         if (!quest || progress.completedQuestIds.includes(quest.id)) return;
         const questProgressChanges = [];
         changed = this.applyProgressEventToEntry('quest', quest, type, payload, { changes: questProgressChanges, progress }) || changed;
-        const progressToast = this.formatQuestProgressToast(quest, questProgressChanges);
+        const change = questProgressChanges[0] || {};
+        const objective = change.objective || {};
+        const progressToast = firstStepsStarted && quest.id === 'first_steps' && questProgressChanges.length === 1
+          ? `First Steps started · ${String(objective.label || 'Objective').trim()} ${change.value}/${change.goal}`
+          : this.formatQuestProgressToast(quest, questProgressChanges);
         if (progressToast) {
-          const change = questProgressChanges[0] || {};
-          const objective = change.objective || {};
           const toastKey = `quest:${quest.id}:${objective.id || 'multiple'}`;
           this.toastProgressUpdate(toastKey, progressToast, change.value, change.goal, {
             bucketCount: 4,

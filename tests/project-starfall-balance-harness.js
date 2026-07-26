@@ -190,6 +190,12 @@ const MAP_TUNING_WARNING_THRESHOLDS = Object.freeze({
   partyEfficiencyLowPercent: 115,
   partyEfficiencyFreeFarmPercent: 220
 });
+const MAP_HUNT_COMPLETION_SAMPLES = Object.freeze([0, 1, 2, 3, 10, 20]);
+const MAP_HUNT_HEALTH_THRESHOLDS = Object.freeze({
+  maxGoalGrowthRatio: 1.6,
+  maxXpPerKillSpreadPercent: 25,
+  maxCoinPerKillSpreadPercent: 25
+});
 
 const RETENTION_PLAYER_TYPES = Object.freeze([
   'casual',
@@ -927,6 +933,131 @@ function getFieldMaps(data) {
 function getCombatMaps(data) {
   return (data.MAPS || []).filter((map) =>
     map && !map.safeZone && !map.shopInterior && !map.adminOnly && Array.isArray(map.enemies) && map.enemies.length);
+}
+
+function getMapHuntRateSpreadPercent(values) {
+  const normalized = (values || [])
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  if (!normalized.length) return Infinity;
+  const minimum = Math.min(...normalized);
+  const maximum = Math.max(...normalized);
+  return roundNumber((maximum / minimum - 1) * 100, 1);
+}
+
+function createMapHuntHealthReport(data, createProjectStarfallEngine) {
+  const combatMaps = getCombatMaps(data);
+  const engine = typeof createProjectStarfallEngine === 'function'
+    ? createProjectStarfallEngine(null, data)
+    : null;
+  const supported = !!(engine &&
+    typeof engine.chooseClass === 'function' &&
+    typeof engine.getMapKillQuestState === 'function' &&
+    typeof engine.getMapKillQuestGoal === 'function' &&
+    typeof engine.getMapKillQuestRank === 'function' &&
+    typeof engine.getMapKillQuestRewards === 'function');
+  if (!supported || !engine.chooseClass('fighter', { name: 'Map Hunt Audit' })) {
+    return {
+      mapCount: combatMaps.length,
+      completionSamples: MAP_HUNT_COMPLETION_SAMPLES.slice(),
+      thresholds: Object.assign({}, MAP_HUNT_HEALTH_THRESHOLDS),
+      cappedGoalMapCount: 0,
+      stableVeteranMapCount: 0,
+      stableXpPerKillMapCount: 0,
+      stableCoinPerKillMapCount: 0,
+      maxGoalGrowthRatio: 0,
+      maxXpPerKillSpreadPercent: 0,
+      maxCoinPerKillSpreadPercent: 0,
+      issueCount: 1,
+      issues: [{ mapId: '', issueId: 'mapHuntRuntimeUnavailable' }],
+      maps: []
+    };
+  }
+
+  const questState = engine.getMapKillQuestState();
+  const maps = combatMaps.map((map) => {
+    const previousState = questState[map.id];
+    const samples = MAP_HUNT_COMPLETION_SAMPLES.map((completions) => {
+      questState[map.id] = {
+        active: false,
+        progress: 0,
+        completions,
+        completedAt: 0,
+        lastCompletedAt: 0
+      };
+      const goal = Math.max(1, Number(engine.getMapKillQuestGoal(map.id)) || 1);
+      const rewards = engine.getMapKillQuestRewards(map, { goal }) || {};
+      const rank = engine.getMapKillQuestRank(completions) || {};
+      const xp = Math.max(0, Number(rewards.xp || 0));
+      const coins = Math.max(0, Number(rewards.currency || 0));
+      return {
+        completions,
+        rankId: String(rank.id || ''),
+        rankLabel: String(rank.label || ''),
+        maxRank: !!rank.maxRank,
+        goal,
+        xp,
+        coins,
+        xpPerKill: roundNumber(xp / goal, 2),
+        coinsPerKill: roundNumber(coins / goal, 2)
+      };
+    });
+    if (previousState === undefined) delete questState[map.id];
+    else questState[map.id] = previousState;
+
+    const baseGoal = samples[0].goal;
+    const maxGoal = Math.max(...samples.map((sample) => sample.goal));
+    const veteranSample = samples.find((sample) => sample.completions === 10) || samples[samples.length - 1];
+    const longRunSample = samples.find((sample) => sample.completions === 20) || samples[samples.length - 1];
+    const goalGrowthRatio = roundNumber(maxGoal / Math.max(1, baseGoal), 3);
+    const xpPerKillSpreadPercent = getMapHuntRateSpreadPercent(samples.map((sample) => sample.xpPerKill));
+    const coinPerKillSpreadPercent = getMapHuntRateSpreadPercent(samples.map((sample) => sample.coinsPerKill));
+    const stableVeteran = veteranSample.maxRank &&
+      longRunSample.maxRank &&
+      veteranSample.rankId === longRunSample.rankId &&
+      veteranSample.goal === longRunSample.goal;
+    const cappedGoal = stableVeteran &&
+      longRunSample.goal === maxGoal &&
+      goalGrowthRatio <= MAP_HUNT_HEALTH_THRESHOLDS.maxGoalGrowthRatio;
+    const stableXpPerKill = xpPerKillSpreadPercent <= MAP_HUNT_HEALTH_THRESHOLDS.maxXpPerKillSpreadPercent;
+    const stableCoinPerKill = coinPerKillSpreadPercent <= MAP_HUNT_HEALTH_THRESHOLDS.maxCoinPerKillSpreadPercent;
+    const issueIds = [];
+    if (!cappedGoal) issueIds.push('goalGrowthUncapped');
+    if (!stableXpPerKill) issueIds.push('xpPerKillUnstable');
+    if (!stableCoinPerKill) issueIds.push('coinPerKillUnstable');
+    return {
+      mapId: map.id,
+      name: map.name || map.id,
+      baseGoal,
+      maxGoal,
+      goalGrowthRatio,
+      xpPerKillSpreadPercent,
+      coinPerKillSpreadPercent,
+      cappedGoal,
+      stableVeteran,
+      stableXpPerKill,
+      stableCoinPerKill,
+      issueIds,
+      samples
+    };
+  });
+  const issues = maps.flatMap((map) =>
+    map.issueIds.map((issueId) => ({ mapId: map.mapId, issueId })));
+  return {
+    mapCount: maps.length,
+    completionSamples: MAP_HUNT_COMPLETION_SAMPLES.slice(),
+    thresholds: Object.assign({}, MAP_HUNT_HEALTH_THRESHOLDS),
+    cappedGoalMapCount: maps.filter((map) => map.cappedGoal).length,
+    stableVeteranMapCount: maps.filter((map) => map.stableVeteran).length,
+    stableXpPerKillMapCount: maps.filter((map) => map.stableXpPerKill).length,
+    stableCoinPerKillMapCount: maps.filter((map) => map.stableCoinPerKill).length,
+    maxGoalGrowthRatio: roundNumber(Math.max(...maps.map((map) => map.goalGrowthRatio), 0), 3),
+    maxXpPerKillSpreadPercent: roundNumber(Math.max(...maps.map((map) => map.xpPerKillSpreadPercent), 0), 1),
+    maxCoinPerKillSpreadPercent: roundNumber(Math.max(...maps.map((map) => map.coinPerKillSpreadPercent), 0), 1),
+    issueCount: issues.length,
+    issues,
+    maps
+  };
 }
 
 function getEligibleClassIdsForMap(data, classIds, level) {
@@ -3858,6 +3989,7 @@ function createBalanceReport(data, createProjectStarfallEngine, options = {}) {
     };
   });
   const field = createMapBalanceReport(data, createProjectStarfallEngine, Object.assign({}, options, { classIds }));
+  const mapHunts = createMapHuntHealthReport(data, createProjectStarfallEngine);
   return {
     level: Math.max(1, Math.floor(Number(options.level || 50) || 50)),
     rank: Math.max(1, Math.floor(Number(options.rank || 10) || 10)),
@@ -3869,6 +4001,7 @@ function createBalanceReport(data, createProjectStarfallEngine, options = {}) {
     ],
     scenarios,
     field,
+    mapHunts,
     skillSystem: createSkillSystemHealthReport(data),
     enemyEcosystem: createEnemyEcosystemHealthReport(data),
     damageStatFormula: createDamageStatFormulaReport(data, createProjectStarfallEngine),
@@ -3916,6 +4049,7 @@ module.exports = {
   createEquipmentUpgradeReport,
   createLevelCurveReport,
   createMapBalanceReport,
+  createMapHuntHealthReport,
   createMapTuningReport,
   createRetentionHealthReport,
   createSkillSystemHealthReport,

@@ -2272,17 +2272,24 @@
     const activePhase = onboarding.activePhase || {};
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
     const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
-    const guideEntry = nextStep ? {
+    const mergeFirstStepsTracker = !!(nextStep &&
+      activePhase.id === 'first_steps' &&
+      progress &&
+      progress.activeQuest &&
+      progress.activeQuest.id === 'first_steps');
+    const guideObjective = nextStep ? {
+      id: `onboarding:${nextStep.id || nextStep.panelId || 'next'}`,
+      label: getOnboardingStepSummary(nextStep, settings) || 'Continue the guide.',
+      value: 0,
+      goal: 1,
+      complete: false,
+      status: 'Guide'
+    } : null;
+    const guideEntry = nextStep && !mergeFirstStepsTracker ? {
       title: `${activePhase.title || 'Journey'} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}: ${nextStep.title}`,
       guideType: 'guide',
       guideId: nextStep.id || nextStep.panelId || nextStep.title,
-      objectives: [{
-        label: getOnboardingStepSummary(nextStep, settings) || 'Continue the guide.',
-        value: 0,
-        goal: 1,
-        complete: false,
-        status: ''
-      }]
+      objectives: [guideObjective]
     } : null;
     if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
     const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
@@ -2325,10 +2332,20 @@
       guideId: quest.id,
       objectives: [{ label: `Claim from ${quest.npcName || 'quest NPC'}: ${quest.rewardSummary}`, value: 1, goal: 1, complete: true }]
     }));
-    const activeQuest = progress.activeQuest ? Object.assign({}, progress.activeQuest, {
-      guideType: 'quest',
-      guideId: progress.activeQuest.id
-    }) : null;
+    const activeQuest = progress.activeQuest ? (() => {
+      const quest = Object.assign({}, progress.activeQuest, {
+        guideType: 'quest',
+        guideId: progress.activeQuest.id
+      });
+      if (!mergeFirstStepsTracker || !guideObjective) return quest;
+      const objectives = Array.isArray(quest.objectives) ? quest.objectives.slice() : [];
+      quest.objectives = [
+        guideObjective,
+        ...objectives.filter((objective) => !objective.complete),
+        ...objectives.filter((objective) => objective.complete)
+      ];
+      return quest;
+    })() : null;
     const activeTrial = progress.activeTrial ? Object.assign({}, progress.activeTrial, {
       guideType: 'trial',
       guideId: progress.activeTrial.id
