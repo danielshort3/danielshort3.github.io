@@ -11437,13 +11437,10 @@ try {
 	        riftEngine.getMapMechanicRewardScale('endlessRift') === campedRiftSnapshot.rewardScale,
 	        'Project Starfall Endless Rift should reduce mechanic reward scale when one quadrant is camped repeatedly');
 	      [
-	        'endlessRift_northeast_rift_quadrant',
-	        'endlessRift_southeast_rift_quadrant',
-	        'endlessRift_southwest_rift_quadrant',
-	        'endlessRift_northwest_rift_quadrant',
-	        'endlessRift_northeast_rift_quadrant',
-	        'endlessRift_southeast_rift_quadrant',
-	        'endlessRift_southwest_rift_quadrant'
+	        ...Array(3).fill('endlessRift_southwest_rift_quadrant'),
+	        ...Array(3).fill('endlessRift_northwest_rift_quadrant'),
+	        ...Array(3).fill('endlessRift_northeast_rift_quadrant'),
+	        ...Array(3).fill('endlessRift_southeast_rift_quadrant')
 	      ].forEach((sectionId) => {
 	        assert(riftEngine.recordMapMechanicDefeat(makeMechanicEnemy(riftEngine, sectionId, 'voidMote')),
 	          `Project Starfall Endless Rift should advance surge rotation for ${sectionId}`);

@@ -17305,7 +17305,7 @@
         <div class="project-starfall-panel-block">
           <h3>Current Run</h3>
           <p class="project-starfall-muted">${escapeHtml((mapModifiers.active || []).map((modifier) => modifier.name).join(' - ') || 'No field modifiers on this map.')}</p>
-          <p class="project-starfall-muted">Rift tier ${Number(mapModifiers.rift && mapModifiers.rift.tier || 1)} - score ${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.score || 0)}/${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.nextTierScore || 500)}</p>
+          <p class="project-starfall-muted">Rift tier ${Number(mapModifiers.rift && mapModifiers.rift.tier || 1)} - rotations ${Number(mapModifiers.rift && mapModifiers.rift.rotationsThisTier || 0)}/${Number(mapModifiers.rift && mapModifiers.rift.rotationsRequired || 3)} - stability ${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.score || 0)}/${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.nextTierScore || 500)}</p>
           <p class="project-starfall-muted">Target farm: ${escapeHtml(targetFarm.enemyName || 'none')}${targetFarm.active ? ` - streak ${Number(targetFarm.streak || 0)}` : ''}</p>
         </div>
         <div class="project-starfall-panel-block">
@@ -17471,7 +17471,7 @@
       const mapModifiers = this.snapshot.mapModifiers || { active: [], rift: {} };
       const modifierSummary = (mapModifiers.active || []).map((modifier) => modifier.name).join(' - ');
       const riftSummary = mapModifiers.rift && selected && selected.mapId === 'endlessRift'
-        ? `Endless Rift tier ${Number(mapModifiers.rift.tier || 1)} - score ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`
+        ? `Endless Rift tier ${Number(mapModifiers.rift.tier || 1)} - rotations ${Number(mapModifiers.rift.rotationsThisTier || 0)}/${Number(mapModifiers.rift.rotationsRequired || 3)} - ${mapModifiers.rift.decisionPending ? 'Core decision ready' : `stability ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`}`
         : '';
       return `
         <div class="project-starfall-panel-block project-starfall-worldmap-panel">
@@ -24316,6 +24316,7 @@
 	      this.drawCanvasQuestNpcIcons(ctx, width);
 	      this.drawCanvasMinimap(ctx, width, height, uiBottom);
 	      this.drawCanvasQuestTracker(ctx, width, height, uiBottom);
+	      this.drawCanvasRiftTracker(ctx, width, height, uiBottom);
 	      this.drawCanvasBossEncounterHud(ctx, width);
 	      const previousTileWarmBudget = this.canvasTileLayerWarmBudget;
 	      this.canvasTileLayerWarmBudget = this.getCanvasTileLayerWarmBudget(windows);
@@ -26907,6 +26908,193 @@
       return [guideEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
     }
 
+    getCanvasRiftTrackerBox(width, height, bottomY) {
+      if (!this.engine || !this.engine.state || this.engine.state.mapId !== 'endlessRift') return null;
+      const rift = typeof this.engine.getRiftSnapshot === 'function' ? this.engine.getRiftSnapshot() : null;
+      if (!rift) return null;
+      const w = Math.min(292, Math.max(244, Number(width || 0) * 0.245));
+      const h = rift.decisionPending ? 218 : 188;
+      const maxBottom = Number(bottomY || this.getCanvasUiBottom(width, height, 8));
+      return {
+        x: 16,
+        y: 16,
+        w,
+        h: Math.min(h, Math.max(150, maxBottom - 24)),
+        rift,
+        mechanic: typeof this.engine.getMapMechanicSnapshot === 'function'
+          ? this.engine.getMapMechanicSnapshot('endlessRift')
+          : {}
+      };
+    }
+
+    drawCanvasRiftTracker(ctx, width, height, bottomY) {
+      const box = this.getCanvasRiftTrackerBox(width, height, bottomY);
+      if (!box) return;
+      const { x, y, w, h, rift } = box;
+      const mechanic = box.mechanic || {};
+      const target = Math.max(1, Number(rift.nextTierScore || 500));
+      const score = clamp(Number(rift.score || 0), 0, target);
+      const route = [
+        ['SW', 'endlessRift_southwest_rift_quadrant'],
+        ['NW', 'endlessRift_northwest_rift_quadrant'],
+        ['NE', 'endlessRift_northeast_rift_quadrant'],
+        ['SE', 'endlessRift_southeast_rift_quadrant']
+      ];
+      const completedIds = new Set(mechanic.orderedSectionIds || []);
+      const nextSectionId = mechanic.nextSectionId || route[0][1];
+      const currentSectionKillCount = Math.max(0, Number(mechanic.currentSectionKillCount || 0));
+      const killsPerSection = Math.max(1, Number(mechanic.killsPerSection || 3));
+      const rotations = Math.max(0, Number(rift.rotationsThisTier || 0));
+      const rotationsRequired = Math.max(1, Number(rift.rotationsRequired || 3));
+      const surgeSeconds = Math.max(
+        0,
+        Number(rift.surgeSecondsRemaining || Math.ceil(Number(mechanic.surgeActiveUntil || 0) - Date.now() / 1000))
+      );
+      const mutationNames = (rift.mutations || [])
+        .map((mutation) => mutation && mutation.name)
+        .filter(Boolean)
+        .join(' + ') || 'Unstable';
+      const bounty = rift.unbankedBounty || {};
+      const materialCount = Object.values(bounty.materials || {}).reduce((sum, amount) => sum + Math.max(0, Number(amount || 0)), 0);
+      const bountyLabel = `${formatAbbreviatedInteger(bounty.currency || 0)} coins${materialCount ? ` + ${formatAbbreviatedInteger(materialCount)} shard${materialCount === 1 ? '' : 's'}` : ''}`;
+      const atCore = typeof this.engine.isPlayerAtRiftCore === 'function' && this.engine.isPlayerAtRiftCore();
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(4,8,20,0.5)';
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 5;
+      this.drawRoundRect(ctx, x, y, w, h, 11, 'rgba(18,20,42,0.96)', 'rgba(123,223,242,0.78)');
+      ctx.shadowColor = 'transparent';
+      this.drawRoundRect(ctx, x + 4, y + 4, w - 8, 30, 8, 'rgba(63,35,87,0.88)', 'rgba(240,107,255,0.42)');
+      this.drawCanvasUiGem(ctx, x + 10, y + 11, 12, {
+        fill: '#f06bff',
+        stroke: '#ffe16a'
+      });
+      this.drawCanvasText(ctx, 'ENDLESS RIFT', x + 30, y + 10, {
+        color: '#fff3cf',
+        font: '950 12px system-ui',
+        maxWidth: w - 116,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, `TIER ${formatAbbreviatedInteger(rift.tier || 1)}`, x + w - 12, y + 10, {
+        color: '#9be7ff',
+        font: '950 11px system-ui',
+        align: 'right',
+        maxWidth: 82,
+        maxLines: 1
+      });
+
+      const meterX = x + 12;
+      const meterY = y + 42;
+      const meterW = w - 24;
+      this.drawCanvasText(ctx, `STABILITY ${formatAbbreviatedInteger(score)}/${formatAbbreviatedInteger(target)}`, meterX, meterY, {
+        color: '#d7e7ff',
+        font: '850 9px system-ui',
+        maxWidth: meterW,
+        maxLines: 1
+      });
+      this.drawRoundRect(ctx, meterX, meterY + 14, meterW, 9, 5, 'rgba(4,8,20,0.82)', 'rgba(123,223,242,0.28)');
+      if (score > 0) {
+        const fillW = Math.max(4, (meterW - 2) * score / target);
+        this.drawRoundRect(ctx, meterX + 1, meterY + 15, fillW, 7, 4, '#7bdff2', '');
+      }
+
+      this.drawCanvasText(ctx, 'ROTATE', meterX, y + 71, {
+        color: '#bea6d8',
+        font: '900 9px system-ui',
+        maxWidth: 52,
+        maxLines: 1
+      });
+      const pipGap = 5;
+      const pipW = Math.floor((meterW - 48 - pipGap * 3) / 4);
+      route.forEach(([label, sectionId], index) => {
+        const px = meterX + 48 + index * (pipW + pipGap);
+        const isNext = sectionId === nextSectionId;
+        const complete = mechanic.routeComplete || completedIds.has(sectionId);
+        const pipLabel = isNext && !complete && killsPerSection > 1
+          ? `${label} ${Math.min(currentSectionKillCount, killsPerSection)}/${killsPerSection}`
+          : label;
+        this.drawRoundRect(
+          ctx,
+          px,
+          y + 67,
+          pipW,
+          20,
+          7,
+          complete ? 'rgba(79,198,238,0.24)' : isNext ? 'rgba(240,107,255,0.22)' : 'rgba(255,255,255,0.07)',
+          isNext ? 'rgba(240,107,255,0.88)' : complete ? 'rgba(123,223,242,0.68)' : 'rgba(255,255,255,0.16)'
+        );
+        this.drawCanvasText(ctx, pipLabel, px + pipW / 2, y + 72, {
+          color: isNext ? '#ffd8ff' : complete ? '#bff5ff' : '#8d93ad',
+          font: `950 ${pipLabel.length > 4 ? 7 : 9}px system-ui`,
+          align: 'center',
+          maxWidth: pipW - 4,
+          maxLines: 1
+        });
+      });
+
+      this.drawCanvasText(ctx, `Rotations ${Math.min(rotations, rotationsRequired)}/${rotationsRequired}`, meterX, y + 96, {
+        color: '#fff3cf',
+        font: '900 10px system-ui',
+        maxWidth: meterW * 0.55,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, surgeSeconds > 0 ? `SURGE ${surgeSeconds}s` : 'SURGE AFTER LAP', x + w - 12, y + 96, {
+        color: surgeSeconds > 0 ? '#f6a8ff' : '#8d93ad',
+        font: '900 10px system-ui',
+        align: 'right',
+        maxWidth: meterW * 0.45,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, `Conditions: ${mutationNames}`, meterX, y + 117, {
+        color: '#c7b8db',
+        font: '800 9px system-ui',
+        maxWidth: meterW,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, `Unbanked: ${bountyLabel}`, meterX, y + 135, {
+        color: '#ffe16a',
+        font: '900 10px system-ui',
+        maxWidth: meterW,
+        maxLines: 1
+      });
+
+      const hint = rift.decisionPending
+        ? atCore
+          ? 'Core stable. Push deeper or bank the bounty.'
+          : 'Tier stable. Return to the central Rift Core.'
+        : surgeSeconds > 0
+          ? 'Surge active: elites and stability are boosted.'
+          : `Next: ${route.find((entry) => entry[1] === nextSectionId)?.[0] || 'SW'} quadrant (${Math.min(currentSectionKillCount, killsPerSection)}/${killsPerSection}).`;
+      this.drawCanvasText(ctx, hint, meterX, y + 154, {
+        color: rift.decisionPending ? '#bff5ff' : '#b5bfd5',
+        font: '800 9px system-ui',
+        maxWidth: meterW,
+        lineHeight: 11,
+        maxLines: 2
+      });
+
+      if (rift.decisionPending && h >= 205) {
+        const buttonY = y + h - 36;
+        const buttonW = Math.floor((meterW - 8) / 2);
+        this.drawCanvasButton(ctx, 'PUSH', meterX, buttonY, buttonW, 26, {
+          type: 'rift-push'
+        }, !atCore, {
+          active: atCore,
+          fill: '#5b2b72',
+          stroke: 'rgba(240,107,255,0.82)'
+        });
+        this.drawCanvasButton(ctx, 'BANK', meterX + buttonW + 8, buttonY, buttonW, 26, {
+          type: 'rift-bank'
+        }, !atCore, {
+          active: atCore,
+          fill: '#1d5262',
+          stroke: 'rgba(123,223,242,0.82)'
+        });
+      }
+      ctx.restore();
+    }
+
     getQuestTrackerNaturalHeight(entries, guidance) {
       const getQuestTrackerNaturalHeightHelper = getHudWidgetHelper('getQuestTrackerNaturalHeight');
       if (getQuestTrackerNaturalHeightHelper) {
@@ -26924,12 +27112,20 @@
     getQuestTrackerBox(width, height, bottomY) {
       const getQuestTrackerBoxHelper = getHudWidgetHelper('getQuestTrackerBox');
       if (getQuestTrackerBoxHelper) {
-        return getQuestTrackerBoxHelper(this.snapshot, width, height, bottomY, this.questTrackerState, {
+        const helperBox = getQuestTrackerBoxHelper(this.snapshot, width, height, bottomY, this.questTrackerState, {
           entries: this.getQuestTrackerEntries(),
           guidance: this.snapshot && this.snapshot.questGuidance,
           getCanvasUiBottom: (boxWidth, boxHeight, padding) => this.getCanvasUiBottom(boxWidth, boxHeight, padding),
           formatDungeonRespawnLabel
         });
+        const riftBox = !this.questTrackerState.userPlaced
+          ? this.getCanvasRiftTrackerBox(width, height, bottomY)
+          : null;
+        return riftBox
+          ? Object.assign({}, helperBox, {
+              y: clamp(riftBox.y + riftBox.h + 8, 8, Math.max(8, Number(bottomY || height) - helperBox.h))
+            })
+          : helperBox;
       }
       const entries = this.getQuestTrackerEntries();
       const compact = !!(this.questTrackerState && this.questTrackerState.compact);
@@ -26939,7 +27135,8 @@
       const boxH = compact ? 44 : Math.min(naturalH, Math.max(82, maxBottom - 16 - 8));
       const state = this.questTrackerState || {};
       const defaultX = 16;
-      const defaultY = 16;
+      const riftBox = !state.userPlaced ? this.getCanvasRiftTrackerBox(width, height, bottomY) : null;
+      const defaultY = riftBox ? riftBox.y + riftBox.h + 8 : 16;
       const rawX = state.userPlaced ? Number(state.x || defaultX) : defaultX;
       const rawY = state.userPlaced ? Number(state.y || defaultY) : defaultY;
       return {
@@ -28683,7 +28880,7 @@
       cy += 20;
       const modifierText = (mapModifiers.active || []).map((modifier) => modifier.name).join('  ') || 'No field modifiers on this map.';
       cy = this.drawCanvasText(ctx, `Modifiers: ${modifierText}`, x, cy, { color: '#2f7dd6', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 4;
-      cy = this.drawCanvasText(ctx, `Rift tier ${Number(mapModifiers.rift && mapModifiers.rift.tier || 1)} - score ${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.score || 0)}/${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.nextTierScore || 500)}`, x, cy, { color: '#8856c5', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 4;
+      cy = this.drawCanvasText(ctx, `Rift tier ${Number(mapModifiers.rift && mapModifiers.rift.tier || 1)} - rotations ${Number(mapModifiers.rift && mapModifiers.rift.rotationsThisTier || 0)}/${Number(mapModifiers.rift && mapModifiers.rift.rotationsRequired || 3)} - stability ${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.score || 0)}/${formatAbbreviatedInteger(mapModifiers.rift && mapModifiers.rift.nextTierScore || 500)}`, x, cy, { color: '#8856c5', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 4;
       cy = this.drawCanvasText(ctx, `Target farm: ${targetFarm.enemyName || 'none'}${targetFarm.active ? ` - streak ${Number(targetFarm.streak || 0)}` : ''}`, x, cy, { color: '#177645', font: '850 10px system-ui', maxWidth: w, lineHeight: 12 }) + 12;
       this.drawCanvasText(ctx, 'Build Progress', x, cy, { color: '#102033', font: '900 13px system-ui' });
       cy += 20;
@@ -29487,7 +29684,7 @@
       const mapModifiers = this.snapshot.mapModifiers || { active: [], rift: {} };
       const modifierText = (mapModifiers.active || []).map((modifier) => modifier.name).join('  ');
       const riftText = mapModifiers.rift && selected && selected.mapId === 'endlessRift'
-        ? `Rift tier ${Number(mapModifiers.rift.tier || 1)} - ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`
+        ? `Rift tier ${Number(mapModifiers.rift.tier || 1)} - ${Number(mapModifiers.rift.rotationsThisTier || 0)}/${Number(mapModifiers.rift.rotationsRequired || 3)} rotations${mapModifiers.rift.decisionPending ? ' - Core ready' : ''}`
         : '';
       const availableBodyH = Math.max(360, Number(this.currentCanvasPanelBody && this.currentCanvasPanelBody.h || 582));
       const detailH = 136;
@@ -36348,6 +36545,16 @@
 
     executeCanvasRegion(region) {
       if (!region) return;
+      if (region.type === 'rift-push' || region.type === 'rift-bank') {
+        const method = region.type === 'rift-push' ? 'pushRiftTier' : 'bankRiftRun';
+        if (this.engine && typeof this.engine[method] === 'function') {
+          this.engine[method]();
+          this.readEngineSnapshot();
+          this.requestCanvasDraw({ force: true });
+          this.focusCanvas();
+        }
+        return;
+      }
       const monsterGuideRegionActionHelper = getMonsterGuideHelper('getMonsterGuideRegionAction');
       if (monsterGuideRegionActionHelper) {
         const monsterGuideRegionAction = monsterGuideRegionActionHelper(region, {

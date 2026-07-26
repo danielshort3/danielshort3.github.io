@@ -146,8 +146,8 @@
       source.MAP_ENVIRONMENT_PROFILES && source.MAP_ENVIRONMENT_PROFILES[map.id] ||
       source.MAP_ENVIRONMENT_PROFILES && source.MAP_ENVIRONMENT_PROFILES.greenrootMeadow);
     const assets = source.ENVIRONMENT_ASSETS || {};
-    ['terrain', 'props'].forEach((kind) => {
-      const id = profile && profile[kind];
+    ['terrain', 'props', 'ramps'].forEach((kind) => {
+      const id = profile && (profile[kind] || (kind === 'ramps' ? profile.terrain : ''));
       const asset = id && assets[kind] && assets[kind][id];
       addAssetPath(paths, asset && asset.path);
     });

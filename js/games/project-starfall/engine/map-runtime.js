@@ -131,6 +131,7 @@
         w,
         h: index === 0 ? solidPlatformHeight : getAuthoredPlatformH(platform),
         dropThrough: index > 0,
+        spawnDisabled: !!(!Array.isArray(platform) && platform && platform.spawnDisabled),
         terrainVisual: terrainVisuals[index]
           ? createRuntimeTerrainVisual(terrainVisuals[index], platform)
           : authoredVisual ? createRuntimeTerrainVisual(authoredVisual, platform) : null
@@ -477,6 +478,7 @@
       platform &&
       platform.index > 0 &&
       Number(platform.w || 0) >= 640 &&
+      !platform.spawnDisabled &&
       !isSlopePlatform(platform) &&
       getPlatformVisualKind(platform) !== 'connector'
     );

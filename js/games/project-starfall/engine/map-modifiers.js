@@ -134,6 +134,14 @@
     const stored = Array.isArray(activeByMapId[mapId]) ? activeByMapId[mapId].map(normalizeId).filter(Boolean).join(',') : '';
     const rift = settings.rift && typeof settings.rift === 'object' ? settings.rift : {};
     const mechanicEntry = rift.mapMechanics && rift.mapMechanics.byMapId && rift.mapMechanics.byMapId[mapId] || {};
+    const bounty = rift.unbankedBounty && typeof rift.unbankedBounty === 'object' ? rift.unbankedBounty : {};
+    const serializeCounts = (counts) => Object.entries(counts && typeof counts === 'object' ? counts : {})
+      .map(([id, amount]) => [normalizeId(id), Math.max(0, Number(amount || 0))])
+      .filter(([id, amount]) => id && amount)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([id, amount]) => `${id}:${amount}`)
+      .join(',');
+    const surgeActiveUntil = Math.max(0, Number(mechanicEntry.surgeActiveUntil || 0));
     const revisions = settings.revisions || {};
     return [
       Number(revisions.world || 0),
@@ -143,14 +151,27 @@
       stored,
       Math.max(1, Number(rift.tier || 1) || 1),
       Math.max(1, Number(rift.bestTier || rift.tier || 1) || 1),
+      Math.max(1, Number(rift.bankedTier || 1) || 1),
+      Math.max(1, Number(rift.checkpointTier || 1) || 1),
       Math.max(0, Number(rift.score || 0) || 0),
+      Math.max(0, Number(rift.rotationsThisTier || 0) || 0),
+      rift.decisionPending ? 1 : 0,
+      settings.riftAtCore ? 1 : 0,
+      Math.max(0, Number(bounty.currency || 0) || 0),
+      serializeCounts(bounty.materials),
+      serializeCounts(bounty.consumables),
       Array.isArray(rift.mutationIds) ? rift.mutationIds.map(normalizeId).filter(Boolean).join(',') : '',
       normalizeId(mechanicEntry.activeSectionId),
       Math.round(Number(mechanicEntry.progress || 0) * 100) / 100,
+      Math.max(0, Number(mechanicEntry.cycleKillCount || 0) || 0),
+      Array.isArray(mechanicEntry.orderedSectionIds) ? mechanicEntry.orderedSectionIds.map(normalizeId).filter(Boolean).join(',') : '',
+      mechanicEntry.routeComplete ? 1 : 0,
       Number(mechanicEntry.completedCycles || 0),
       Number(mechanicEntry.eventCount || 0),
       Number(mechanicEntry.objectiveCount || 0),
       Number(mechanicEntry.surgeCount || 0),
+      surgeActiveUntil,
+      surgeActiveUntil > Date.now() / 1000 ? 1 : 0,
       Number(mechanicEntry.antiCampStacks || 0),
       Math.round(Number(mechanicEntry.rewardScale || 1) * 100) / 100
     ].join('|');

@@ -220,17 +220,24 @@
     const lanes = getFieldLaneY(layoutStyle);
     const worldWidth = Math.max(vertical ? 4600 : 4000, Math.ceil(Number(width || 0) / 100) * 100);
     const platforms = [makePlatformDef(0, lanes.ground, worldWidth, 80, { kind: 'ground' })];
-    const addPlatform = (x, y, w, visualKind) => {
+    const addPlatform = (x, y, w, visualKind, options) => {
       const safeX = Math.max(120, Math.round(x));
       const safeW = Math.min(Math.round(w), worldWidth - safeX - 160);
       if (safeW < 120) return;
-      platforms.push(makePlatformDef(safeX, Math.round(y), safeW, visualKind === 'hop' ? 20 : 22, { kind: visualKind || 'solidLane' }));
+      const platform = makePlatformDef(safeX, Math.round(y), safeW, visualKind === 'hop' ? 20 : 22, { kind: visualKind || 'solidLane' });
+      const settings = options && typeof options === 'object' ? options : {};
+      if (settings.id) platform.id = String(settings.id);
+      if (settings.spawnDisabled) platform.spawnDisabled = true;
+      platforms.push(platform);
     };
-    const addSlope = (x, y, y2, w) => {
+    const addSlope = (x, y, y2, w, options) => {
       const safeX = Math.max(120, Math.round(x));
       const safeW = Math.min(Math.round(w), worldWidth - safeX - 160);
       if (safeW < 180) return;
-      platforms.push(makeSlopePlatformDef(safeX, Math.round(y), Math.round(y2), safeW, 24, { kind: 'slope' }));
+      const platform = makeSlopePlatformDef(safeX, Math.round(y), Math.round(y2), safeW, 24, { kind: 'slope' });
+      const settings = options && typeof options === 'object' ? options : {};
+      if (settings.id) platform.id = String(settings.id);
+      platforms.push(platform);
     };
     const addFlatConnector = (x, y, w) => addPlatform(x, y, w || 240, 'connector');
     const buildCluster = (cluster, options, clusterIndex) => {
@@ -391,17 +398,46 @@
     }
 
     if (mapId === 'endlessRift') {
-      [
-        { lowX: 260, midX: 520, highX: 780, lowW: 800, midW: 760, highW: 700 },
-        { lowX: 1460, midX: 1740, highX: 2020, lowW: 820, midW: 760, highW: 700 },
-        { lowX: 2660, midX: 2940, highX: 3220, lowW: 820, midW: 760, highW: 700 },
-        { lowX: 3860, midX: 4100, highX: 4340, lowW: 740, midW: 700, highW: 640 }
-      ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 300,
-        slopePlan: { lowToMid: [1], midToHigh: [] }
-      }, index));
-      addPlatform(2620, lanes.peak, 900, 'solidLane');
-      addPlatform(2380, lanes.sky, 520, 'hop');
+      // Keep the existing playful Rift painting and rune-stair language, but
+      // make the promised four-quadrant loop physically true. The broad lanes
+      // form a ring around a calm central dais; short bridges and forgiving
+      // slopes let every quadrant return to the core without a ground reset.
+      addPlatform(920, lanes.low, 640, 'solidLane', { id: 'endlessRift_sw_outer_low' });
+      addPlatform(1600, lanes.low, 640, 'solidLane', { id: 'endlessRift_sw_inner_low' });
+      addPlatform(1240, lanes.mid, 820, 'solidLane', { id: 'endlessRift_sw_mid' });
+
+      addPlatform(920, lanes.high, 640, 'solidLane', { id: 'endlessRift_nw_outer_high' });
+      addPlatform(1600, lanes.high, 640, 'solidLane', { id: 'endlessRift_nw_inner_high' });
+      addPlatform(1240, lanes.peak, 820, 'solidLane', { id: 'endlessRift_nw_peak' });
+
+      addPlatform(2960, lanes.high, 640, 'solidLane', { id: 'endlessRift_ne_inner_high' });
+      addPlatform(3640, lanes.high, 640, 'solidLane', { id: 'endlessRift_ne_outer_high' });
+      addPlatform(3140, lanes.peak, 820, 'solidLane', { id: 'endlessRift_ne_peak' });
+
+      addPlatform(2960, lanes.low, 640, 'solidLane', { id: 'endlessRift_se_inner_low' });
+      addPlatform(3640, lanes.low, 640, 'solidLane', { id: 'endlessRift_se_outer_low' });
+      addPlatform(3140, lanes.mid, 820, 'solidLane', { id: 'endlessRift_se_mid' });
+
+      addPlatform(2200, lanes.mid, 800, 'island', {
+        id: 'endlessRift_core_dais',
+        spawnDisabled: true
+      });
+      addPlatform(2240, lanes.high, 720, 'solidLane', {
+        id: 'endlessRift_north_ring_bridge',
+        spawnDisabled: true
+      });
+      addPlatform(2240, lanes.low, 720, 'solidLane', {
+        id: 'endlessRift_south_ring_bridge',
+        spawnDisabled: true
+      });
+      addPlatform(2060, lanes.mid, 140, 'connector', { id: 'endlessRift_west_core_spoke' });
+      addPlatform(3000, lanes.mid, 140, 'connector', { id: 'endlessRift_east_core_spoke' });
+
+      addSlope(620, lanes.ground, lanes.low, 300, { id: 'endlessRift_entry_ramp' });
+      addSlope(940, lanes.low, lanes.mid, 300, { id: 'endlessRift_sw_ramp' });
+      addSlope(920, lanes.high, lanes.mid, 320, { id: 'endlessRift_nw_ramp' });
+      addSlope(3660, lanes.mid, lanes.high, 300, { id: 'endlessRift_ne_ramp' });
+      addSlope(3360, lanes.mid, lanes.low, 300, { id: 'endlessRift_se_ramp' });
       return platforms;
     }
 
@@ -540,7 +576,7 @@
 
   function makeVerticalFieldClimbables(prefix, platforms, layoutStyle) {
     const kind = getFieldClimbableKind(layoutStyle);
-    return platforms
+    const climbables = platforms
       .map((platform, topIndex) => ({ platform, topIndex }))
       .filter((entry) => {
         const visualKind = getPlatformDefVisualKind(entry.platform);
@@ -572,6 +608,7 @@
           : null;
       })
       .filter(Boolean);
+    return climbables;
   }
 
   function makeFieldClimbables(prefix, widthOrPlatforms, layoutStyle) {
@@ -609,7 +646,14 @@
   function makeFieldSpawnPoints(platforms) {
     return platforms
       .map((platform, index) => ({ platform, index }))
-      .filter((entry) => entry.index > 0 && getPlatformDefW(entry.platform) >= 640)
+      .filter((entry) => {
+        const visualKind = getPlatformDefVisualKind(entry.platform);
+        return entry.index > 0 &&
+          getPlatformDefW(entry.platform) >= 640 &&
+          !entry.platform.spawnDisabled &&
+          visualKind !== 'connector' &&
+          visualKind !== 'hop';
+      })
       .reduce((points, entry) => {
         const platform = entry.platform;
         const x = getPlatformDefX(platform);

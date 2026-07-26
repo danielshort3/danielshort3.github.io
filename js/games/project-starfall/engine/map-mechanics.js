@@ -67,8 +67,16 @@
     const cycleSectionIds = Array.isArray(source.cycleSectionIds)
       ? source.cycleSectionIds.map((sectionId) => normalizeMapMechanicSectionId(definition, sectionId)).filter(Boolean)
       : [];
+    const orderedSectionIds = Array.isArray(source.orderedSectionIds)
+      ? source.orderedSectionIds.map((sectionId) => normalizeMapMechanicSectionId(definition, sectionId)).filter(Boolean)
+      : [];
     const activeIds = Array.isArray(definition && definition.activeSectionIds) ? definition.activeSectionIds : [];
     const activeSectionIndex = activeIds.findIndex((sectionId) => sectionId === activeSectionId);
+    const nextSectionIndex = clamp(
+      Math.floor(Number(source.nextSectionIndex == null ? orderedSectionIds.length : source.nextSectionIndex) || 0),
+      0,
+      Math.max(0, activeIds.length - 1)
+    );
     return {
       activeSectionId,
       activeSectionIndex: activeSectionIndex >= 0 ? activeSectionIndex : 0,
@@ -84,6 +92,11 @@
       rewardScale: clamp(Number(source.rewardScale || 1) || 1, Number(definition && definition.minimumRewardScale || 0.5), 1),
       sectionHits,
       cycleSectionIds: Array.from(new Set(cycleSectionIds)),
+      cycleKillCount: Math.max(0, Math.floor(Number(source.cycleKillCount || 0) || 0)),
+      currentSectionKillCount: Math.max(0, Math.floor(Number(source.currentSectionKillCount || 0) || 0)),
+      orderedSectionIds: orderedSectionIds.slice(0, activeIds.length),
+      nextSectionIndex,
+      routeComplete: !!source.routeComplete,
       lastCompletedAt: Math.max(0, Number(source.lastCompletedAt || 0))
     };
   }
@@ -103,18 +116,60 @@
     return { byMapId };
   }
 
+  function createRiftBounty(value) {
+    const source = value && typeof value === 'object' ? value : {};
+    const normalizeCounts = (counts) => Object.entries(counts && typeof counts === 'object' ? counts : {}).reduce((result, [id, amount]) => {
+      const key = normalizeId(id);
+      const count = Math.max(0, Math.floor(Number(amount || 0) || 0));
+      if (key && count) result[key] = count;
+      return result;
+    }, {});
+    return {
+      currency: Math.max(0, Math.floor(Number(source.currency || 0) || 0)),
+      materials: normalizeCounts(source.materials),
+      consumables: normalizeCounts(source.consumables)
+    };
+  }
+
+  function mergeRiftBounty(value, reward, scale) {
+    const bounty = createRiftBounty(value);
+    const source = reward && typeof reward === 'object' ? reward : {};
+    const rewardScale = Math.max(0, Number(scale == null ? 1 : scale) || 0);
+    bounty.currency += Math.max(0, Math.round(Number(source.currency || 0) * rewardScale));
+    ['materials', 'consumables'].forEach((kind) => {
+      Object.entries(source[kind] || {}).forEach(([id, amount]) => {
+        const key = normalizeId(id);
+        const count = Math.max(0, Math.round(Number(amount || 0) * rewardScale));
+        if (key && count) bounty[kind][key] = Math.max(0, Number(bounty[kind][key] || 0)) + count;
+      });
+    });
+    return bounty;
+  }
+
+  function getRiftTierScoreTarget(tier) {
+    const level = Math.max(1, Math.floor(Number(tier || 1) || 1));
+    return Math.min(2500, 500 + (level - 1) * 50);
+  }
+
   function createRiftState(value, options) {
     const data = getMapMechanicData(options);
     const source = value && typeof value === 'object' ? value : {};
     const validMutationIds = new Set((data.MUTATIONS || []).map((mutation) => mutation.id));
     const tier = Math.max(1, Math.floor(Number(source.tier || 1) || 1));
+    const bankedTier = Math.max(1, Math.floor(Number(source.bankedTier || tier) || tier));
+    const checkpointTier = Math.max(1, Math.floor(Number(source.checkpointTier || 1) || 1));
     const mutationIds = Array.isArray(source.mutationIds)
       ? source.mutationIds.map(normalizeId).filter((id) => validMutationIds.has(id))
       : [];
     return {
       tier,
-      bestTier: Math.max(tier, Math.floor(Number(source.bestTier || tier) || tier)),
+      bestTier: Math.max(tier, bankedTier, checkpointTier, Math.floor(Number(source.bestTier || tier) || tier)),
+      bankedTier,
+      checkpointTier,
       score: Math.max(0, Math.floor(Number(source.score || 0) || 0)),
+      rotationsThisTier: Math.max(0, Math.floor(Number(source.rotationsThisTier || 0) || 0)),
+      decisionPending: !!source.decisionPending,
+      unbankedBounty: createRiftBounty(source.unbankedBounty || source.bounty),
       mutationIds: Array.from(new Set(mutationIds)).slice(0, 3),
       startedAt: Number(source.startedAt || 0),
       mapMechanics: createMapMechanicState(source.mapMechanics || source.mapMechanicsByMapId, options)
@@ -165,13 +220,67 @@
     if (state.mutationIds.length) return state.mutationIds.slice();
     const mutations = data.MUTATIONS || [];
     const tier = Math.max(1, Number(state.tier || 1));
-    const count = clamp(1 + Math.floor(tier / 12), 1, 3);
+    const count = clamp(1 + Math.floor((tier - 1) / 5), 1, 3);
     const ids = [];
     for (let index = 0; index < count; index += 1) {
       const pick = seededPick(mutations.filter((mutation) => !ids.includes(mutation.id)), `rift:${tier}`, index);
       if (pick && pick.id) ids.push(pick.id);
     }
     return ids;
+  }
+
+  function createRiftPressureProfile(rift, mutationIds, options) {
+    const settings = options || {};
+    const data = getMapMechanicData(settings);
+    const state = createRiftState(Object.assign({}, rift || {}, {
+      tier: settings.tier == null ? rift && rift.tier : settings.tier
+    }), settings);
+    const tier = Math.max(1, Math.floor(Number(state.tier || 1) || 1));
+    const pressure = tier - 1;
+    const ids = Array.isArray(mutationIds)
+      ? mutationIds.map(normalizeId).filter(Boolean)
+      : Array.isArray(settings.mutationIds)
+        ? settings.mutationIds.map(normalizeId).filter(Boolean)
+        : createRiftMutationIds(state, settings);
+    const multipliers = {
+      enemyHpScale: Math.min(2.75, 1 + pressure * 0.075),
+      enemyDamageScale: Math.min(1.85, 1 + pressure * 0.035),
+      enemyDefenseScale: Math.min(1.6, 1 + pressure * 0.015),
+      enemySpeedScale: 1,
+      eliteChanceBonus: Math.min(0.22, pressure * 0.008),
+      scoreScale: Math.min(1.75, 1 + pressure * 0.015),
+      rewardScale: Math.min(1.8, 1 + pressure * 0.02)
+    };
+    ids.forEach((id) => {
+      const mutation = getById(data.MUTATIONS || [], id);
+      if (!mutation) return;
+      ['enemyHpScale', 'enemyDamageScale', 'enemyDefenseScale', 'enemySpeedScale', 'scoreScale', 'rewardScale'].forEach((key) => {
+        multipliers[key] *= Math.max(0.1, Number(mutation[key] || 1) || 1);
+      });
+      multipliers.eliteChanceBonus += Math.max(0, Number(mutation.eliteChanceBonus || 0));
+    });
+    const mechanic = state.mapMechanics && state.mapMechanics.byMapId && state.mapMechanics.byMapId.endlessRift || {};
+    const now = Number(settings.nowSeconds == null ? Date.now() / 1000 : settings.nowSeconds);
+    const surgeActive = settings.surgeActive == null
+      ? Number(mechanic.surgeActiveUntil || 0) > now
+      : !!settings.surgeActive;
+    if (surgeActive) {
+      const definition = data.MAP_MECHANIC_DEFINITIONS && data.MAP_MECHANIC_DEFINITIONS.endlessRift || {};
+      multipliers.eliteChanceBonus += 0.12;
+      multipliers.scoreScale *= Math.max(1, Number(definition.surgeScoreScale || 1.35));
+    }
+    return {
+      tier,
+      mutationIds: ids,
+      surgeActive,
+      enemyHpScale: Number(multipliers.enemyHpScale.toFixed(4)),
+      enemyDamageScale: Number(multipliers.enemyDamageScale.toFixed(4)),
+      enemyDefenseScale: Number(multipliers.enemyDefenseScale.toFixed(4)),
+      enemySpeedScale: Number(multipliers.enemySpeedScale.toFixed(4)),
+      eliteChanceBonus: Number(Math.min(0.5, multipliers.eliteChanceBonus).toFixed(4)),
+      scoreScale: Number(multipliers.scoreScale.toFixed(4)),
+      rewardScale: Number(multipliers.rewardScale.toFixed(4))
+    };
   }
 
   function createRiftSnapshot(rift, mutationIds, options) {
@@ -181,13 +290,28 @@
     const ids = Array.isArray(mutationIds)
       ? mutationIds.map(normalizeId).filter(Boolean)
       : createRiftMutationIds(state, options);
+    const definition = data.MAP_MECHANIC_DEFINITIONS && data.MAP_MECHANIC_DEFINITIONS.endlessRift || {};
+    const rotationsRequired = Math.max(1, Number(definition.rotationsPerTier || 3));
+    const pressure = createRiftPressureProfile(state, ids, options);
+    const mechanic = state.mapMechanics && state.mapMechanics.byMapId && state.mapMechanics.byMapId.endlessRift || {};
+    const now = Number(!options || options.nowSeconds == null ? Date.now() / 1000 : options.nowSeconds);
+    const surgeActiveUntil = Math.max(0, Number(mechanic.surgeActiveUntil || 0));
     return {
       tier,
       bestTier: Math.max(tier, Number(state.bestTier || tier)),
+      bankedTier: Math.max(1, Number(state.bankedTier || tier)),
+      checkpointTier: Math.max(1, Number(state.checkpointTier || 1)),
       score: Math.max(0, Number(state.score || 0)),
-      nextTierScore: Math.max(500, tier * 500),
+      nextTierScore: getRiftTierScoreTarget(tier),
+      rotationsThisTier: Math.max(0, Number(state.rotationsThisTier || 0)),
+      rotationsRequired,
+      decisionPending: !!state.decisionPending,
+      unbankedBounty: createRiftBounty(state.unbankedBounty),
       mutationIds: ids.slice(),
-      mutations: ids.map((id) => getById(data.MUTATIONS || [], id)).filter(Boolean)
+      mutations: ids.map((id) => getById(data.MUTATIONS || [], id)).filter(Boolean),
+      pressure,
+      surgeActiveUntil,
+      surgeSecondsRemaining: Math.max(0, Math.ceil(surgeActiveUntil - now))
     };
   }
 
@@ -224,6 +348,12 @@
       progressPercent: clamp(progress / goal, 0, 1),
       requiredUniqueSections: Math.max(1, Number(definition.requiredUniqueSections || 1)),
       currentUniqueSections: state.cycleSectionIds ? state.cycleSectionIds.length : 0,
+      orderedSectionIds: state.orderedSectionIds ? state.orderedSectionIds.slice() : [],
+      nextSectionId: state.activeSectionId,
+      nextSectionLabel: activeSection && activeSection.label || '',
+      currentSectionKillCount: Math.max(0, Number(state.currentSectionKillCount || 0)),
+      killsPerSection: Math.max(1, Number(definition.killsPerSection || Math.ceil(goal / Math.max(1, (definition.activeSectionIds || []).length)))),
+      routeComplete: !!state.routeComplete,
       completedCycles: Math.max(0, Number(state.completedCycles || 0)),
       eventCount: Math.max(0, Number(state.eventCount || 0)),
       objectiveCount: Math.max(0, Number(state.objectiveCount || 0)),
@@ -249,12 +379,16 @@
     getDefaultMapMechanicSectionId,
     createMapMechanicEntryState,
     createMapMechanicState,
+    createRiftBounty,
+    mergeRiftBounty,
+    getRiftTierScoreTarget,
     createRiftState,
     getMapMechanicSection,
     getMapMechanicSectionWeight,
     getMapMechanicRewardScale,
     createScaledMapMechanicReward,
     createRiftMutationIds,
+    createRiftPressureProfile,
     createRiftSnapshot,
     createMapMechanicSnapshot
   };
