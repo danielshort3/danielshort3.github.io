@@ -173,7 +173,7 @@
         climbables: [{ id: 'cinder_chain_1', x: 1242, y: 316, w: 28, h: 204 }, { id: 'cinder_chain_2', x: 1600, y: 246, w: 28, h: 274 }, { id: 'cinder_chain_3', x: 3390, y: 244, w: 28, h: 276 }, { id: 'cinder_chain_4', x: 5128, y: 242, w: 28, h: 278 }, { id: 'cinder_chain_5', x: 6844, y: 244, w: 28, h: 276 }],
         spawnPoints: [{ x: 470, platformIndex: 1, weight: 2 }, { x: 890, platformIndex: 2, weight: 2 }, { x: 1280, platformIndex: 3, weight: 2 }, { x: 1620, platformIndex: 4, weight: 1 }, { x: 2150, platformIndex: 5, weight: 3 }, { x: 3040, platformIndex: 7, weight: 2 }, { x: 3420, platformIndex: 8, weight: 1 }, { x: 3910, platformIndex: 9, weight: 3 }, { x: 4750, platformIndex: 11, weight: 2 }, { x: 5150, platformIndex: 12, weight: 1 }, { x: 5620, platformIndex: 13, weight: 3 }, { x: 6480, platformIndex: 15, weight: 2 }, { x: 6860, platformIndex: 16, weight: 1 }, { x: 7590, platformIndex: 18, weight: 2 }],
         stations: [],
-        questNpcs: [{ id: 'cinder_pathfinder', name: 'Cinder Pathfinder', x: 4740, platformIndex: 0, questIds: ['emberjaw_lair', 'cinder_samples', 'emberjaw_report'], color: '#9b4835', accent: '#ffcf70' }]
+        questNpcs: [{ id: 'cinder_pathfinder', name: 'Cinder Pathfinder', x: 4740, platformIndex: 0, questIds: ['emberjaw_lair', 'cinder_samples', 'emberjaw_report', 'emberjaw_echo'], color: '#9b4835', accent: '#ffcf70' }]
       },
       {
         id: 'emberjawLair',
@@ -210,7 +210,7 @@
         climbables: [{ id: 'ridge_rope_1', x: 1308, y: 312, w: 28, h: 208 }, { id: 'ridge_rope_2', x: 1708, y: 242, w: 28, h: 278 }, { id: 'ridge_rope_3', x: 3470, y: 242, w: 28, h: 278 }, { id: 'ridge_rope_4', x: 5230, y: 242, w: 28, h: 278 }, { id: 'ridge_rope_5', x: 6968, y: 242, w: 28, h: 278 }],
         spawnPoints: [{ x: 500, platformIndex: 1, weight: 2 }, { x: 930, platformIndex: 2, weight: 2 }, { x: 1340, platformIndex: 3, weight: 2 }, { x: 1720, platformIndex: 4, weight: 2 }, { x: 2260, platformIndex: 5, weight: 3 }, { x: 2710, platformIndex: 6, weight: 2 }, { x: 3100, platformIndex: 7, weight: 2 }, { x: 3500, platformIndex: 8, weight: 2 }, { x: 3990, platformIndex: 9, weight: 3 }, { x: 4850, platformIndex: 11, weight: 2 }, { x: 5250, platformIndex: 12, weight: 2 }, { x: 5720, platformIndex: 13, weight: 3 }, { x: 6600, platformIndex: 15, weight: 2 }, { x: 6980, platformIndex: 16, weight: 2 }, { x: 7580, platformIndex: 18, weight: 2 }],
         stations: [],
-        questNpcs: [{ id: 'ridge_watch', name: 'Ridge Watch', x: 480, platformIndex: 0, questIds: ['ridge_cleanup', 'bramble_crown_report'], color: '#6f5132', accent: '#c3995b' }]
+        questNpcs: [{ id: 'ridge_watch', name: 'Ridge Watch', x: 480, platformIndex: 0, questIds: ['ridge_cleanup', 'bramble_crown_report', 'brambleking_echo'], color: '#6f5132', accent: '#c3995b' }]
       },
       {
         id: 'banditAnimationLab',
@@ -262,7 +262,7 @@
         climbables: [{ id: 'quarry_lift_1', x: 1360, y: 312, w: 30, h: 208 }, { id: 'quarry_lift_2', x: 1780, y: 242, w: 30, h: 278 }, { id: 'quarry_lift_3', x: 3640, y: 242, w: 30, h: 278 }, { id: 'quarry_lift_4', x: 5500, y: 242, w: 30, h: 278 }, { id: 'quarry_lift_5', x: 7360, y: 242, w: 30, h: 278 }],
         spawnPoints: [{ x: 500, platformIndex: 1, weight: 2 }, { x: 960, platformIndex: 2, weight: 2 }, { x: 1400, platformIndex: 3, weight: 2 }, { x: 1800, platformIndex: 4, weight: 1 }, { x: 2350, platformIndex: 5, weight: 3 }, { x: 2830, platformIndex: 6, weight: 2 }, { x: 3260, platformIndex: 7, weight: 2 }, { x: 3660, platformIndex: 8, weight: 1 }, { x: 4180, platformIndex: 9, weight: 3 }, { x: 5100, platformIndex: 11, weight: 2 }, { x: 5520, platformIndex: 12, weight: 1 }, { x: 6070, platformIndex: 13, weight: 3 }, { x: 6980, platformIndex: 15, weight: 2 }, { x: 7380, platformIndex: 16, weight: 1 }, { x: 7900, platformIndex: 18, weight: 2 }],
         stations: [],
-        questNpcs: [{ id: 'quarry_foreman', name: 'Quarry Foreman', x: 520, platformIndex: 0, questIds: ['quarry_contract'], color: '#6b6960', accent: '#62c5a2' }]
+        questNpcs: [{ id: 'quarry_foreman', name: 'Quarry Foreman', x: 520, platformIndex: 0, questIds: ['quarry_contract', 'titan_foundry_echo', 'deepcore_echo'], color: '#6b6960', accent: '#62c5a2' }]
       },
       makeExpandedTrainingMap({
         id: 'ashglassPass',
@@ -297,7 +297,7 @@
         areaMechanic: 'Ice footing rewards planned movement and mobility skills.',
         waveMax: 32,
         waveDelay: 5,
-        questNpcs: [{ id: 'glacier_cartographer', name: 'Glacier Cartographer', x: 520, platformIndex: 0, questIds: ['glacier_cartography', 'rimewarden_sanctum_report'], color: '#2f6fa6', accent: '#eaf8ff' }]
+        questNpcs: [{ id: 'glacier_cartographer', name: 'Glacier Cartographer', x: 520, platformIndex: 0, questIds: ['glacier_cartography', 'rimewarden_sanctum_report', 'rimewarden_echo'], color: '#2f6fa6', accent: '#eaf8ff' }]
       }),
       {
         id: 'rimewardenSanctum',
@@ -326,7 +326,7 @@
         purpose: 'Wind-cut cliff platforms with dense ranged pressure and long mobility lanes.',
         enemies: ['galeHarrier', 'stormboundArcher', 'thunderRam', 'galeHarrier', 'stormboundArcher', 'cloudcallAcolyte', 'thunderRam', 'crackedMimic', 'galeHarrier', 'stormboundArcher', 'thunderRam', 'cloudcallAcolyte', 'galeHarrier', 'stormboundArcher'],
         waveMax: 32,
-        questNpcs: [{ id: 'stormbreak_scout', name: 'Stormbreak Scout', x: 520, platformIndex: 0, questIds: ['stormbreak_rods'], color: '#4f6073', accent: '#ffe16a' }]
+        questNpcs: [{ id: 'stormbreak_scout', name: 'Stormbreak Scout', x: 520, platformIndex: 0, questIds: ['stormbreak_rods', 'stormbreak_echo'], color: '#4f6073', accent: '#ffe16a' }]
       }),
       makeExpandedTrainingMap({
         id: 'astralArchive',
@@ -347,7 +347,7 @@
         enemies: ['eclipseDuelist', 'lumenSentinel', 'voidMote', 'indexScribe', 'eclipseDuelist', 'crackedMimic', 'voidMote', 'lumenSentinel', 'eclipseDuelist', 'indexScribe', 'voidMote', 'lumenSentinel', 'eclipseDuelist', 'voidMote'],
         waveMax: 34,
         waveDelay: 6,
-        questNpcs: [{ id: 'eclipse_envoy', name: 'Eclipse Frontier Envoy', x: 520, platformIndex: 0, questIds: ['eclipse_frontier_patrol'], color: '#1f2330', accent: '#ffbe55' }]
+        questNpcs: [{ id: 'eclipse_envoy', name: 'Eclipse Frontier Envoy', x: 520, platformIndex: 0, questIds: ['eclipse_frontier_patrol', 'eclipse_echo'], color: '#1f2330', accent: '#ffbe55' }]
       }),
       makeExpandedTrainingMap({
         id: 'endlessRift',
