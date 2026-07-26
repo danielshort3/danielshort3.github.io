@@ -16,6 +16,15 @@
     if (buyItemId) return { handled: true, type: 'buyItem', itemId: buyItemId };
     const cashShopItemId = getAttribute('data-starfall-cash-shop-buy');
     if (cashShopItemId) return { handled: true, type: 'buyCashShopItem', itemId: cashShopItemId };
+    const marketListingId = getAttribute('data-starfall-market-buy');
+    if (marketListingId) return { handled: true, type: 'buyMarketListing', listingId: marketListingId };
+    const cosmeticBuyId = getAttribute('data-starfall-cosmetic-buy');
+    if (cosmeticBuyId) return { handled: true, type: 'buyCosmetic', cosmeticId: cosmeticBuyId };
+    const cosmeticEquipId = getAttribute('data-starfall-cosmetic-equip');
+    if (cosmeticEquipId) return { handled: true, type: 'equipCosmetic', cosmeticId: cosmeticEquipId };
+    if (source && typeof source.hasAttribute === 'function' && source.hasAttribute('data-starfall-season-claim')) {
+      return { handled: true, type: 'claimSeasonReward' };
+    }
     return { handled: false, type: '' };
   }
 

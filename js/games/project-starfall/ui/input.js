@@ -157,6 +157,11 @@
     'data-starfall-combine-preservation-cube-fragments',
     'data-starfall-use-skill',
     'data-starfall-use-consumable',
+    'data-starfall-market-buy',
+    'data-starfall-cosmetic-buy',
+    'data-starfall-cosmetic-equip',
+    'data-starfall-season-claim',
+    'data-starfall-specialization',
     'data-starfall-advanced'
   ]);
   const DOM_CLICK_TARGET_SELECTOR = DOM_CLICK_TARGET_ATTRIBUTES

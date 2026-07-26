@@ -41,7 +41,7 @@
     { id: 'daily', label: 'Daily Rewards Popup', type: 'panel', panel: 'daily', defaultKeys: [] },
     { id: 'attunement', label: 'Attunement Popup', type: 'action', action: 'attunement', defaultKeys: ['KeyR'] },
     { id: 'cashShop', label: 'Cash Shop Popup', type: 'panel', panel: 'cashShop', defaultKeys: [] },
-    { id: 'beta', label: 'Beta Systems Popup', type: 'panel', panel: 'beta', defaultKeys: [] },
+    { id: 'beta', label: 'Rewards & Style Popup', type: 'panel', panel: 'beta', defaultKeys: [] },
     { id: 'guide', label: 'Guide Popup', type: 'panel', panel: 'guide', defaultKeys: [] },
     { id: 'log', label: 'Session Log Popup', type: 'panel', panel: 'log', defaultKeys: ['KeyG'] },
     { id: 'save', label: 'Save Character', type: 'action', action: 'save', defaultKeys: ['F6'] },
@@ -219,7 +219,7 @@
     load: 'LOD',
     logout: 'OUT',
     fullscreen: 'FULL',
-    beta: 'BETA',
+    beta: 'STY',
     admin: 'ADM',
     assetPreview: 'AST'
   });

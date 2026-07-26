@@ -54,6 +54,7 @@
     plinko: 'renderPlinkoPanel',
     daily: 'renderDailyLoginPanel',
     cashShop: 'renderCashShopPanel',
+    beta: 'renderRewardsStylePanel',
     guide: 'renderGuidePanel',
     log: 'renderLogPanel',
     keybinds: 'renderKeybindsPanel',
@@ -75,6 +76,7 @@
     upgrade: 'Upgrade Station',
     plinko: 'Starfall Plinko',
     cashShop: 'Cash Shop',
+    beta: 'Rewards & Style',
     guide: 'Guide',
     log: 'Session Log',
     keybinds: 'Keybinds',
@@ -132,6 +134,7 @@
     if (id === 'partyPanel') return ['session', 'party'];
     if (id === 'pet') return ['session', 'pet', 'inventory'];
     if (id === 'daily') return ['session', 'daily', 'inventory', 'cards', 'shop', 'hud'];
+    if (id === 'beta') return ['session', 'shop', 'inventory', 'hud'];
     if (id === 'shop' || id === 'cashShop' || id === 'plinko') return ['session', 'shop', 'inventory', 'hud'];
     if (id === 'guide') return ['session', 'guide', 'skills', 'world', 'quests'];
     if (id === 'keybinds' || id === 'settings' || id === 'admin') return ['session', 'settings', 'debug'];
@@ -273,9 +276,15 @@
     if (set.has('skills') && typeof source.getSkillsSnapshot === 'function') {
       update.skills = source.getSkillsSnapshot();
     }
+    if ((set.has('skills') || set.has('session')) && typeof source.getSpecializationSnapshot === 'function') {
+      update.specializations = source.getSpecializationSnapshot();
+    }
     if (set.has('shop')) {
       if (typeof source.getPlinkoSnapshot === 'function') update.plinko = source.getPlinkoSnapshot();
       if (typeof source.getCashShopSnapshot === 'function') update.cashShop = source.getCashShopSnapshot();
+      if (typeof source.getMarketSnapshot === 'function') update.market = source.getMarketSnapshot();
+      if (typeof source.getCosmeticSnapshot === 'function') update.cosmetics = source.getCosmeticSnapshot();
+      if (typeof source.getSeasonSnapshot === 'function') update.season = source.getSeasonSnapshot();
     }
     if (set.has('daily') && typeof source.getDailyLoginSnapshot === 'function') {
       update.dailyLogin = source.getDailyLoginSnapshot();
