@@ -11,6 +11,37 @@
     const channel = clamp(Math.round((Number(alpha) || 0) * 255), 0, 255);
     return `${value}${channel.toString(16).padStart(2, '0')}`;
   };
+  const QuestUi = (typeof require === 'function' ? require('./quests.js') : null) ||
+    global.ProjectStarfallUiModules && global.ProjectStarfallUiModules.quests ||
+    {};
+  const getWeeklyRouteAssignmentGuide = QuestUi.getWeeklyRouteAssignmentGuide || function getWeeklyRouteAssignmentGuideFallback(assignment) {
+    const source = assignment && typeof assignment === 'object' ? assignment : {};
+    const requestedType = String(source.guideType || '').trim();
+    const guideType = ['mapKill', 'map', 'dungeon'].includes(requestedType)
+      ? requestedType
+      : source.dungeonId
+        ? 'dungeon'
+        : source.mapId
+          ? source.kind === 'mapHunt' ? 'mapKill' : 'map'
+          : '';
+    const guideId = String(
+      source.guideId ||
+      (guideType === 'dungeon' ? source.dungeonId : source.mapId) ||
+      ''
+    ).trim();
+    return {
+      guideType: guideId ? guideType : '',
+      guideId
+    };
+  };
+  const getWeeklyRouteFocusedAssignment = QuestUi.getWeeklyRouteFocusedAssignment || function getWeeklyRouteFocusedAssignmentFallback(assignments, guidance) {
+    const openAssignments = (Array.isArray(assignments) ? assignments : [])
+      .filter((assignment) => assignment && !assignment.complete);
+    if (!openAssignments.length) return null;
+    const assignmentId = String(guidance && guidance.assignmentId || '').trim();
+    return openAssignments.find((assignment) => String(assignment.id || '').trim() === assignmentId) ||
+      openAssignments[0];
+  };
   const UI_CHANGE_HUD_SNAPSHOT_DOMAINS = Object.freeze(['hud', 'equipment', 'cards', 'skills', 'party', 'pet']);
   const HUD_SNAPSHOT_MERGE_KEYS = Object.freeze([
     'stats',
@@ -2585,26 +2616,14 @@
     };
   }
 
-  function getWeeklyStarRouteTrackerEntry(season) {
+  function getWeeklyStarRouteTrackerEntry(season, guidance) {
     const weeklyRoutes = season && season.weeklyRoutes;
     if (!weeklyRoutes || typeof weeklyRoutes !== 'object' || weeklyRoutes.unlocked === false) return null;
     if (weeklyRoutes.complete || weeklyRoutes.rewardGranted) return null;
     const assignments = Array.isArray(weeklyRoutes.assignments) ? weeklyRoutes.assignments.filter(Boolean) : [];
-    const assignment = assignments.find((entry) => !entry.complete);
+    const assignment = getWeeklyRouteFocusedAssignment(assignments, guidance);
     if (!assignment) return null;
-    const requestedGuideType = String(assignment.guideType || '').trim();
-    const guideType = requestedGuideType === 'map' || requestedGuideType === 'dungeon'
-      ? requestedGuideType
-      : assignment.dungeonId
-        ? 'dungeon'
-        : assignment.mapId
-          ? 'map'
-          : '';
-    const guideId = String(
-      assignment.guideId ||
-      (guideType === 'dungeon' ? assignment.dungeonId : assignment.mapId) ||
-      ''
-    ).trim();
+    const { guideType, guideId } = getWeeklyRouteAssignmentGuide(assignment);
     if (!guideType || !guideId) return null;
     const completedByAssignments = assignments.filter((entry) => entry.complete).length;
     const completionCount = Math.max(0, Math.min(
@@ -2645,9 +2664,26 @@
       source.mapModifiers && source.mapModifiers.mapMechanic || source.mapMechanic,
       { nowSeconds: settings.nowSeconds }
     );
-    const weeklyRouteEntry = getWeeklyStarRouteTrackerEntry(source.season);
+    const weeklyRouteEntry = getWeeklyStarRouteTrackerEntry(source.season, source.questGuidance);
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
-    const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
+    const weeklyMapKillMatches = !!(weeklyRouteEntry &&
+      weeklyRouteEntry.guideType === 'mapKill' &&
+      mapKillQuest &&
+      weeklyRouteEntry.guideId === mapKillQuest.mapId &&
+      (mapKillQuest.active || mapKillQuest.claimable));
+    if (weeklyMapKillMatches) {
+      weeklyRouteEntry.objectives = [{
+        label: mapKillQuest.claimable
+          ? `Claim reward from ${mapKillQuest.npcName || 'map NPC'}`
+          : mapKillQuest.label,
+        value: mapKillQuest.value,
+        goal: mapKillQuest.goal,
+        complete: !!mapKillQuest.claimable
+      }];
+    }
+    const showMapKillQuest = mapKillQuest &&
+      (mapKillQuest.active || mapKillQuest.claimable) &&
+      !weeklyMapKillMatches;
     const mergeFirstStepsTracker = !!(nextStep &&
       activePhase.id === 'first_steps' &&
       progress &&
@@ -2740,7 +2776,10 @@
     const guide = guidance || {};
     const introH = guide.active ? 0 : 18;
     return 30 + introH + (entries || []).reduce((sum, entry) => {
-      const selected = guide.active && guide.targetType === entry.guideType && guide.targetId === entry.guideId;
+      const selected = guide.active &&
+        guide.targetType === entry.guideType &&
+        guide.targetId === entry.guideId &&
+        (!entry.assignmentId || guide.assignmentId === entry.assignmentId);
       return sum + 10 + 19 + Math.min(2, (entry.objectives || []).length) * rowH + (selected ? 34 : 0);
     }, 0);
   }

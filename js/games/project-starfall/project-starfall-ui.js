@@ -27492,7 +27492,10 @@
         cy += 18;
       }
       entries.forEach((entry) => {
-        const selected = guidance.active && guidance.targetType === entry.guideType && guidance.targetId === entry.guideId;
+        const selected = guidance.active &&
+          guidance.targetType === entry.guideType &&
+          guidance.targetId === entry.guideId &&
+          (!entry.assignmentId || guidance.assignmentId === entry.assignmentId);
         const objectives = (entry.objectives || []).slice(0, 2);
         const entryY = cy - 4;
         const entryH = 21 + objectives.length * rowH + (selected ? 34 : 0);
@@ -27503,6 +27506,7 @@
           type: 'quest-guide',
           guideType: entry.guideType,
           guideId: entry.guideId,
+          assignmentId: entry.assignmentId || '',
           tooltipTitle: entry.title,
           tooltipSubtitle: selected ? 'Guidance target' : 'Click to guide',
           tooltipLines: (entry.objectives || []).map((objective) => {
@@ -27545,8 +27549,9 @@
     drawObjectiveRowsCanvas(ctx, objectives, x, y, w) {
       let cy = y;
       (objectives || []).forEach((objective) => {
-        const fill = objective.complete ? '#eff9ef' : '#fbfaf6';
-        this.drawRoundRect(ctx, x, cy, w, 30, 7, fill, 'rgba(16,32,51,0.12)');
+        const fill = objective.complete ? '#eff9ef' : objective.focused ? '#eef6ff' : '#fbfaf6';
+        const stroke = objective.focused ? 'rgba(47,125,214,0.48)' : 'rgba(16,32,51,0.12)';
+        this.drawRoundRect(ctx, x, cy, w, 30, 7, fill, stroke);
         this.drawCanvasText(ctx, objective.label, x + 10, cy + 7, { color: '#102033', font: '800 11px system-ui', maxWidth: w - 76, lineHeight: 12 });
         this.drawCanvasText(ctx, objective.complete ? 'Done' : `${formatAbbreviatedInteger(objective.value)}/${formatAbbreviatedInteger(objective.goal)}`, x + w - 10, cy + 8, { color: objective.complete ? '#177645' : '#5f6f7a', font: '900 11px system-ui', align: 'right' });
         this.addCanvasRegion({
@@ -27556,6 +27561,7 @@
           tooltipLines: [
             objective.description || objective.summary || '',
             objective.status || '',
+            objective.focused ? 'Current weekly guidance target.' : '',
             objective.complete ? 'This objective is complete.' : 'Progress this objective through normal play.'
           ].filter(Boolean),
           x,
@@ -30634,7 +30640,10 @@
     drawWeeklyStarRouteCanvas(ctx, x, y, w) {
       const getWeeklyStarRoutePresentation = getQuestHelper('getWeeklyStarRoutePresentation');
       const presentation = getWeeklyStarRoutePresentation
-        ? getWeeklyStarRoutePresentation(this.snapshot.season, { nowMs: Date.now() })
+        ? getWeeklyStarRoutePresentation(this.snapshot.season, {
+            nowMs: Date.now(),
+            guidance: this.snapshot.questGuidance
+          })
         : null;
       if (!presentation) return 0;
       const visibleAssignments = presentation.unlocked ? presentation.visibleAssignments : [];
@@ -37380,14 +37389,28 @@
         const questPanelRegionAction = promptQuestPanelRegionActionHelper(region);
         if (questPanelRegionAction && questPanelRegionAction.phase === 'prompt') {
           if (questPanelRegionAction.type === 'setQuestGuideTarget') {
-            if (this.engine.setQuestGuideTarget) this.engine.setQuestGuideTarget(questPanelRegionAction.guideType, questPanelRegionAction.guideId);
+            if (questPanelRegionAction.assignmentId && this.engine.setWeeklyRouteGuideTarget) {
+              this.engine.setWeeklyRouteGuideTarget(questPanelRegionAction.assignmentId);
+            } else if (this.engine.setQuestGuideTarget) {
+              this.engine.setQuestGuideTarget(
+                questPanelRegionAction.guideType,
+                questPanelRegionAction.guideId,
+                { assignmentId: questPanelRegionAction.assignmentId || '' }
+              );
+            }
           } else if (questPanelRegionAction.type === 'openQuestNpcPrompt') {
             this.openQuestNpcPrompt(questPanelRegionAction.npcId, questPanelRegionAction.questId, questPanelRegionAction.action);
           } else if (questPanelRegionAction.type === 'declineQuestPrompt') this.declineQuestPrompt();
           else if (questPanelRegionAction.type === 'confirmQuestPrompt') this.confirmQuestPrompt();
         }
       } else {
-        if (region.type === 'quest-guide' && this.engine.setQuestGuideTarget) this.engine.setQuestGuideTarget(region.guideType, region.guideId);
+        if (region.type === 'quest-guide' && region.assignmentId && this.engine.setWeeklyRouteGuideTarget) {
+          this.engine.setWeeklyRouteGuideTarget(region.assignmentId);
+        } else if (region.type === 'quest-guide' && this.engine.setQuestGuideTarget) {
+          this.engine.setQuestGuideTarget(region.guideType, region.guideId, {
+            assignmentId: region.assignmentId || ''
+          });
+        }
         if (region.type === 'quest-npc-accept-icon' || region.type === 'quest-npc-reward-icon' || region.type === 'quest-npc-talk-icon' || region.type === 'quest-npc-active-icon') this.openQuestNpcPrompt(region.npcId, region.questId, region.action);
         if (region.type === 'quest-prompt-close') this.declineQuestPrompt();
         if (region.type === 'quest-prompt-accept' || region.type === 'quest-prompt-claim') this.confirmQuestPrompt();

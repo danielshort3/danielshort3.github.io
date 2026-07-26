@@ -205,6 +205,28 @@ staleMenuUi.executeCanvasRegion({ type: 'menu-panel', panelId: 'worldmap', sourc
 check(staleMenuToggleCount === 2,
   'a current command-menu region should keep its normal panel-toggle behavior');
 
+const weeklyGuideUi = Object.create(ProjectStarfallUi.prototype);
+let selectedWeeklyAssignmentId = '';
+Object.assign(weeklyGuideUi, {
+  engine: {
+    setWeeklyRouteGuideTarget(assignmentId) {
+      selectedWeeklyAssignmentId = assignmentId;
+      return true;
+    }
+  },
+  itemContextMenu: null,
+  monsterGuideSearchFocused: false,
+  isCommandOpen: false
+});
+weeklyGuideUi.executeCanvasRegion({
+  type: 'quest-guide',
+  guideType: 'mapKill',
+  guideId: 'greenrootMeadow',
+  assignmentId: 'field_b:mapHunt:greenrootMeadow'
+});
+check(selectedWeeklyAssignmentId === 'field_b:mapHunt:greenrootMeadow',
+  'weekly card and tracker clicks should forward the exact assignment identity to the engine');
+
 const routeGuideEngine = createProjectStarfallEngine(null, global.ProjectStarfallData);
 check(routeGuideEngine.chooseClass('fighter'),
   'minimap route guidance should start from a class-ready game');
