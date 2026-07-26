@@ -7,9 +7,12 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const viewport = require(path.join(ROOT, 'js/games/project-starfall/engine/viewport.js'));
 const visuals = require(path.join(ROOT, 'js/games/project-starfall/engine/visuals.js'));
+const mapRuntime = require(path.join(ROOT, 'js/games/project-starfall/engine/map-runtime.js'));
 const animations = require(path.join(ROOT, 'js/games/project-starfall/data/animations.js'));
 const shopVendors = require(path.join(ROOT, 'js/games/project-starfall/data/shop-vendors.js'));
 const mapPublication = require(path.join(ROOT, 'js/games/project-starfall/data/map-publication.js'));
+const starfallData = require(path.join(ROOT, 'js/games/project-starfall/data/index.js'));
+const { createProjectStarfallEngine } = require(path.join(ROOT, 'js/games/project-starfall/project-starfall-engine.js'));
 
 const largeViewport = viewport.createViewportMetrics({
   video: { viewportPreset: 'large', width: 1600, height: 930, hudScale: 1.1 }
@@ -22,6 +25,103 @@ assert.strictEqual(largeViewport.displayHeight, 930, 'display preference should 
 assert.strictEqual(largeViewport.playfieldHeight, 674, 'logical playfield geometry should not change with a display preset');
 assert.strictEqual(largeViewport.statusHudHeight, 84, 'HUD scaling should not resize world geometry');
 assert.strictEqual(largeViewport.hudScale, 1.1, 'HUD content scale should remain available to presentation code');
+
+function getRuntimePlatformBottom(platform) {
+  const y = Number(platform && platform.y || 0);
+  const y2 = platform && platform.y2 != null ? Number(platform.y2) : y;
+  const surfaceBottom = Math.max(y, y2);
+  return surfaceBottom + Math.max(1, Number(platform && platform.h || 0));
+}
+
+const cameraProbeEngine = createProjectStarfallEngine(null, starfallData);
+let worldHeightContractChecks = 0;
+viewport.VIEWPORT_PRESETS.forEach((preset) => {
+  const settings = {
+    video: {
+      viewportPreset: preset.id,
+      width: preset.width,
+      height: preset.height
+    }
+  };
+  const metrics = viewport.createViewportMetrics(settings);
+  cameraProbeEngine.userSettings = viewport.createUserSettings(settings);
+  starfallData.MAPS.forEach((map) => {
+    const runtime = mapRuntime.createMapRuntime(map.id, metrics, { maps: starfallData.MAPS });
+    const geometryBottom = runtime.platforms.reduce(
+      (bottom, platform) => Math.max(bottom, getRuntimePlatformBottom(platform)),
+      0
+    );
+    const expectedWorldHeight = Math.max(
+      metrics.worldHeight,
+      Number(map.worldHeight || 0),
+      geometryBottom + metrics.solidPlatformHeight
+    );
+    const expectedCameraWorldHeight = Math.max(metrics.worldHeight, geometryBottom);
+    assert.strictEqual(
+      runtime.worldHeight,
+      expectedWorldHeight,
+      `${map.id} should preserve its ${preset.id} simulation and render world height`
+    );
+    assert.strictEqual(
+      runtime.cameraWorldHeight,
+      expectedCameraWorldHeight,
+      `${map.id} should use the viewport or actual platform bottom as its ${preset.id} camera world height`
+    );
+    assert.strictEqual(
+      mapRuntime.resolveRuntimeCameraWorldHeight(metrics, runtime.platforms),
+      expectedCameraWorldHeight,
+      `${map.id} should share the modular camera world-height contract in the ${preset.id} preset`
+    );
+
+    const worldViewHeight = viewport.getWorldViewHeight(metrics.playfieldHeight, viewport.DEFAULT_WORLD_ZOOM);
+    const maxCameraY = Math.max(0, runtime.cameraWorldHeight - worldViewHeight);
+    const projectedGeometryBottom = (geometryBottom - maxCameraY) * viewport.DEFAULT_WORLD_ZOOM;
+    assert(
+      Math.abs(projectedGeometryBottom - metrics.playfieldHeight) < 0.001,
+      `${map.id} should frame its lowest platform at the ${preset.id} playfield bottom without an empty band`
+    );
+    cameraProbeEngine.runtime = runtime;
+    assert(
+      Math.abs(cameraProbeEngine.getCameraTargetY({
+        y: runtime.cameraWorldHeight + worldViewHeight,
+        h: 1
+      }) - maxCameraY) < 0.001,
+      `${map.id} camera clamping should use the geometry-derived ${preset.id} world bottom`
+    );
+
+    const runtimeEntityBottoms = [
+      ...(runtime.climbables || []).map((entry) => Number(entry.y || 0) + Number(entry.h || 0)),
+      ...(runtime.portals || []).map((entry) => Number(entry.y || 0) + Number(entry.h || 0)),
+      ...(runtime.questNpcs || []).map((entry) => Number(entry.y || 0) + Number(entry.h || 0)),
+      ...(runtime.stations || []).map((entry) => Number(entry.y || 0) + Number(entry.h || 0)),
+      ...(runtime.spawnPoints || []).map((entry) => Number(entry.y || 0))
+    ];
+    assert(
+      runtimeEntityBottoms.every((bottom) => bottom <= runtime.cameraWorldHeight),
+      `${map.id} should keep all aligned ${preset.id} runtime entities inside the geometry-derived world bottom`
+    );
+
+    const fallBody = { h: 72, y: 0 };
+    const recoveryThreshold = cameraProbeEngine.getFallRecoveryThreshold(fallBody);
+    assert.strictEqual(
+      recoveryThreshold,
+      runtime.worldHeight + 160,
+      `${map.id} should retain the fall-recovery safety buffer below its ${preset.id} geometry`
+    );
+    fallBody.y = recoveryThreshold;
+    assert.strictEqual(cameraProbeEngine.isBodyBelowMap(fallBody), false,
+      `${map.id} should not recover a body until it passes the ${preset.id} fall threshold`);
+    fallBody.y += 1;
+    assert.strictEqual(cameraProbeEngine.isBodyBelowMap(fallBody), true,
+      `${map.id} should recover a body immediately after it passes the ${preset.id} fall threshold`);
+    worldHeightContractChecks += 1;
+  });
+});
+assert.strictEqual(
+  worldHeightContractChecks,
+  starfallData.MAPS.length * viewport.VIEWPORT_PRESETS.length,
+  'world-height regressions should cover every published map and viewport preset'
+);
 
 const shopDoors = shopVendors.createTownShopDoorPortals('starfallCrossing');
 assert.deepStrictEqual(
@@ -125,9 +225,19 @@ assert.deepStrictEqual(animationData.ENEMY_ANIMATION_ASSETS.briarStag.states.att
   'six-frame timing accents should map onto compact anticipation, action, and recovery frames');
 
 const engineCode = fs.readFileSync(path.join(ROOT, 'js/games/project-starfall/project-starfall-engine.js'), 'utf8');
+const mapRuntimeCode = fs.readFileSync(path.join(ROOT, 'js/games/project-starfall/engine/map-runtime.js'), 'utf8');
 assert((engineCode.match(/createEnemySpriteRenderBox\(enemy\)/g) || []).length >= 3,
   'renderer snapshots and Canvas fallback should share the centralized enemy render box');
 assert(engineCode.includes('ENEMY_SPRITE_DRAW_OPTIONS'), 'Canvas enemy animation drawing should use authored registration');
 assert(rendererCode.includes('? ENEMY_SPRITE_REGISTRATION'), 'Pixi enemy animation drawing should use the same authored registration');
+assert(engineCode.includes('const worldHeight = Math.max(metrics.worldHeight, authoredWorldHeight, lowestPlatformBottom + metrics.solidPlatformHeight);') &&
+  mapRuntimeCode.includes('const worldHeight = Math.max(metrics.worldHeight, authoredWorldHeight, lowestPlatformBottom + metrics.solidPlatformHeight);'),
+  'camera framing should not change the existing simulation, fall, minimap, or terrain-cache world height');
+assert(engineCode.includes('const cameraWorldHeight = resolveRuntimeCameraWorldHeight(metrics, platforms);'),
+  'the monolith fallback should publish a geometry-derived camera world height');
+assert(mapRuntimeCode.includes('const cameraWorldHeight = resolveRuntimeCameraWorldHeight(metrics, platforms);'),
+  'the modular runtime should publish a geometry-derived camera world height');
+assert((engineCode.match(/this\.runtime\.cameraWorldHeight \|\| this\.runtime\.worldHeight/g) || []).length >= 2,
+  'all camera-Y clamps should prefer the geometry-derived camera world height with legacy fallback');
 
 console.log('Project Starfall visual viewport tests passed.');

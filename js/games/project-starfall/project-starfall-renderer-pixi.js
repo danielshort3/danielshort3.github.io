@@ -2345,6 +2345,9 @@
     getClimbableVisualStyle(map, climbable) {
       const theme = this.getMapThemeId(map);
       const id = String(climbable && climbable.id || '').toLowerCase();
+      if (id.includes('rune')) {
+        return { kind: 'rune', rail: 0x7bdff2, railAlpha: 0.76, rung: 0xc794ff, rungAlpha: 0.78 };
+      }
       if (id.includes('stair')) {
         return { kind: 'stair', rail: 0x5c442d, railAlpha: 0.82, rung: 0xf7d28a, rungAlpha: 0.72 };
       }
@@ -2639,6 +2642,325 @@
       }
     }
 
+    renderBossHazardEffect(effect, simplified) {
+      const duration = Math.max(0.01, Number(effect.duration || 0.62));
+      const progress = clamp(1 - Number(effect.ttl || 0) / duration, 0, 1);
+      const lifeAlpha = clamp(Number(effect.ttl || 0) / duration, 0, 1);
+      const pulse = Math.sin(progress * Math.PI);
+      const color = colorToNumber(effect.color, 0xffbe55);
+      const accent = colorToNumber(effect.accentColor, 0xffffff);
+      const shape = String(effect.shape || 'circle');
+      const variant = String(effect.variant || '');
+      const telegraph = !!effect.telegraph;
+      const detailAlpha = simplified ? 0.56 : 0.78;
+      let labelX = Number(effect.x || 0);
+      let labelY = Number(effect.y || 0) - 42;
+
+      if (shape === 'lane' || shape === 'charge') {
+        const x = Number(effect.x || 0);
+        const y = Number(effect.y || 0) - 14;
+        const w = Math.max(120, Number(effect.w || 360));
+        const h = Math.max(16, Number(effect.h || 22));
+        this.drawSolidRect('vfx', x, y - h / 2, w, h, {
+          tint: color,
+          alpha: lifeAlpha * (telegraph ? 0.14 + pulse * 0.12 : 0.28)
+        });
+        this.drawRectOutline('vfx', x, y - h / 2, w, h, telegraph ? 2 : 4, {
+          tint: accent,
+          alpha: lifeAlpha * (telegraph ? 0.72 : 0.92)
+        });
+        const markerCount = simplified ? 3 : 6;
+        for (let index = 0; index < markerCount; index += 1) {
+          const t = (index + progress) / markerCount;
+          const markerX = x + t * w;
+          this.drawLine('vfx', markerX - 22, y - h * 0.72, markerX + 22, y + h * 0.72, 2, {
+            tint: accent,
+            alpha: lifeAlpha * detailAlpha
+          });
+        }
+        if (variant === 'bramble') {
+          const vineCount = simplified ? 2 : 3;
+          for (let vine = 0; vine < vineCount; vine += 1) {
+            let previousX = x;
+            let previousY = y + (vine - 1) * h * 0.55;
+            for (let step = 1; step <= 8; step += 1) {
+              const nextX = x + step / 8 * w;
+              const nextY = y + Math.sin(progress * 6 + step + vine) * h * 0.9 + (vine - 1) * h * 0.55;
+              this.drawLine('vfx', previousX, previousY, nextX, nextY, 2, {
+                tint: 0x8bd47a,
+                alpha: lifeAlpha * 0.72
+              });
+              previousX = nextX;
+              previousY = nextY;
+            }
+          }
+        } else if (variant === 'gear') {
+          const toothCount = simplified ? 4 : 8;
+          for (let tooth = 0; tooth < toothCount; tooth += 1) {
+            this.drawSolidRect('vfx', x + tooth / toothCount * w, y - h * 1.1, 10, h * 2.2, {
+              tint: accent,
+              alpha: lifeAlpha * 0.56
+            });
+          }
+        } else if (variant === 'core') {
+          let previousX = x;
+          let previousY = y + h * 0.7;
+          for (let crack = 1; crack < 7; crack += 1) {
+            const nextX = x + crack / 6 * w;
+            const nextY = y + (crack % 2 ? -h : h) * (0.7 + pulse * 0.4);
+            this.drawLine('vfx', previousX, previousY, nextX, nextY, 2, {
+              tint: accent,
+              alpha: lifeAlpha * 0.7
+            });
+            previousX = nextX;
+            previousY = nextY;
+          }
+        } else if (variant === 'furnace') {
+          const emberCount = simplified ? 4 : 7;
+          for (let ember = 0; ember < emberCount; ember += 1) {
+            this.drawSolidRect('vfx', x + ember / emberCount * w + progress * 18, y - h - ember % 2 * 8, 5, 5, {
+              tint: 0xffd166,
+              alpha: lifeAlpha * 0.7
+            });
+          }
+        } else if (variant === 'storm') {
+          const boltCount = simplified ? 2 : 4;
+          for (let bolt = 0; bolt < boltCount; bolt += 1) {
+            const boltX = x + (bolt + 0.5) / boltCount * w;
+            this.drawLine('vfx', boltX - 12, y - h, boltX + 2, y, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.72
+            });
+            this.drawLine('vfx', boltX + 2, y, boltX - 5, y, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.72
+            });
+            this.drawLine('vfx', boltX - 5, y, boltX + 14, y + h, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.72
+            });
+          }
+        } else if (variant === 'astral' || variant === 'eclipse') {
+          const runeCount = simplified ? 3 : 6;
+          for (let index = 0; index < runeCount; index += 1) {
+            this.drawShape('vfx', 'diamond', x + (index + 0.5) / runeCount * w, y, 11, 11, {
+              tint: variant === 'eclipse' ? 0xffe16a : accent,
+              alpha: lifeAlpha * 0.68,
+              rotation: progress * Math.PI + index
+            });
+          }
+        }
+        labelX = x + w / 2;
+        labelY = y - Math.max(28, h);
+      } else if (shape === 'wall') {
+        const x = Number(effect.x || 0);
+        const y = Number(effect.y || 0);
+        const w = Math.max(40, Number(effect.w || 74));
+        const h = Math.max(90, Number(effect.h || 190));
+        this.drawSolidRect('vfx', x, y, w, h, {
+          tint: color,
+          alpha: lifeAlpha * (telegraph ? 0.12 + pulse * 0.12 : 0.3)
+        });
+        this.drawRectOutline('vfx', x, y, w, h, telegraph ? 2 : 4, {
+          tint: accent,
+          alpha: lifeAlpha * 0.82
+        });
+        const rowCount = simplified ? 3 : 5;
+        for (let index = 0; index < rowCount; index += 1) {
+          const rowY = y + (index + 1) / (rowCount + 1) * h;
+          this.drawLine('vfx', x + 8 + index % 2 * 7, rowY, x + w - 9, rowY, 3, {
+            tint: 0xffffff,
+            alpha: lifeAlpha * 0.42
+          });
+        }
+        if (variant === 'rime') {
+          const shardCount = simplified ? 3 : 5;
+          for (let shard = 0; shard < shardCount; shard += 1) {
+            const shardX = x + 10 + shard % 2 * (w - 20);
+            const shardY = y + (shard + 0.5) / shardCount * h;
+            this.drawLine('vfx', shardX, shardY, x + w / 2, shardY + 18, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.68
+            });
+          }
+        }
+        labelX = x + w / 2;
+        labelY = y - 18;
+      } else if (shape === 'pulse' || shape === 'sigils' || shape === 'circle') {
+        const x = Number(effect.x || 0);
+        const y = Number(effect.y || 0) - 8;
+        const radius = Math.max(56, Number(effect.r || 150));
+        const ringW = radius * (1 + progress * 0.56);
+        const ringH = Math.max(28, radius * 0.4);
+        this.drawShape('vfx', 'glow', x, y, ringW * 1.08, ringH * 1.28, {
+          tint: color,
+          alpha: lifeAlpha * (telegraph ? 0.12 + pulse * 0.11 : 0.26)
+        });
+        this.drawShape('vfx', 'ring', x, y, ringW, ringH, {
+          tint: accent,
+          alpha: lifeAlpha * (telegraph ? 0.72 : 0.92)
+        });
+        const markCount = simplified ? 4 : shape === 'sigils' ? 8 : 5;
+        for (let index = 0; index < markCount; index += 1) {
+          const angle = index / markCount * Math.PI * 2 + progress * Math.PI;
+          this.drawShape('vfx', 'diamond', x + Math.cos(angle) * radius * 0.44, y + Math.sin(angle) * radius * 0.16, 10, 10, {
+            tint: index % 2 ? color : accent,
+            alpha: lifeAlpha * 0.72,
+            rotation: angle
+          });
+        }
+        if (variant === 'storm') {
+          const boltCount = simplified ? 3 : 5;
+          for (let bolt = 0; bolt < boltCount; bolt += 1) {
+            const angle = bolt / boltCount * Math.PI * 2 + progress;
+            const boltX = x + Math.cos(angle) * radius * 0.3;
+            const boltY = y + Math.sin(angle) * radius * 0.12;
+            this.drawLine('vfx', boltX, boltY - 22, boltX + 10, boltY, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.62
+            });
+            this.drawLine('vfx', boltX + 10, boltY, boltX + 2, boltY, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.62
+            });
+            this.drawLine('vfx', boltX + 2, boltY, boltX + 18, boltY + 24, 2, {
+              tint: 0xffffff,
+              alpha: lifeAlpha * 0.62
+            });
+          }
+        } else if (variant === 'eclipse') {
+          this.drawShape('vfx', 'circle', x - radius * 0.16, y, radius * 0.36, radius * 0.36, {
+            tint: 0xffe16a,
+            alpha: lifeAlpha * 0.36
+          });
+          this.drawShape('vfx', 'circle', x - radius * 0.09 + pulse * 4, y, radius * 0.36, radius * 0.36, {
+            tint: 0x1f2330,
+            alpha: lifeAlpha * 0.58
+          });
+        } else if (variant === 'core' || variant === 'furnace') {
+          const crackCount = simplified ? 4 : 6;
+          for (let crack = 0; crack < crackCount; crack += 1) {
+            const angle = crack / crackCount * Math.PI * 2 + progress;
+            this.drawLine(
+              'vfx',
+              x + Math.cos(angle) * radius * 0.16,
+              y + Math.sin(angle) * radius * 0.06,
+              x + Math.cos(angle) * radius * 0.44,
+              y + Math.sin(angle) * radius * 0.18,
+              2,
+              {
+                tint: variant === 'furnace' ? 0xffd166 : accent,
+                alpha: lifeAlpha * 0.55
+              }
+            );
+          }
+        } else if (variant === 'astral') {
+          const runeCount = simplified ? 2 : 4;
+          for (let rune = 0; rune < runeCount; rune += 1) {
+            const angle = progress + rune * Math.PI * 2 / runeCount;
+            this.drawShape(
+              'vfx',
+              'diamond',
+              x + Math.cos(angle) * radius * 0.28,
+              y + Math.sin(angle) * radius * 0.1,
+              12,
+              12,
+              {
+                tint: accent,
+                alpha: lifeAlpha * 0.66,
+                rotation: angle
+              }
+            );
+          }
+        }
+        labelX = x;
+        labelY = y - Math.max(38, radius * 0.24);
+      } else if (shape === 'add' || shape === 'expose') {
+        const x = Number(effect.x || 0);
+        const y = Number(effect.y || 0);
+        const radius = Math.max(64, Number(effect.r || 120));
+        const ringSize = radius * (0.84 + progress * 0.68);
+        this.drawShape('vfx', 'ring', x, y, ringSize, ringSize, {
+          tint: color,
+          alpha: lifeAlpha * (0.62 + pulse * 0.22)
+        });
+        this.drawShape('vfx', 'diamond', x, y, Math.max(14, radius * 0.18), Math.max(14, radius * 0.18), {
+          tint: accent,
+          alpha: lifeAlpha * 0.72,
+          rotation: progress * Math.PI
+        });
+        if (variant === 'bramble') {
+          const thornCount = simplified ? 4 : 8;
+          for (let thorn = 0; thorn < thornCount; thorn += 1) {
+            const angle = thorn / thornCount * Math.PI * 2 + progress;
+            this.drawLine(
+              'vfx',
+              x + Math.cos(angle) * radius * 0.26,
+              y + Math.sin(angle) * radius * 0.26,
+              x + Math.cos(angle) * radius * 0.48,
+              y + Math.sin(angle) * radius * 0.48,
+              2,
+              {
+                tint: 0x8bd47a,
+                alpha: lifeAlpha * 0.62
+              }
+            );
+          }
+        } else if (variant === 'gear') {
+          const toothCount = simplified ? 5 : 10;
+          for (let tooth = 0; tooth < toothCount; tooth += 1) {
+            const angle = tooth / toothCount * Math.PI * 2 + progress * Math.PI;
+            this.drawLine(
+              'vfx',
+              x + Math.cos(angle) * radius * 0.28,
+              y + Math.sin(angle) * radius * 0.28,
+              x + Math.cos(angle) * radius * 0.48,
+              y + Math.sin(angle) * radius * 0.48,
+              2,
+              {
+                tint: accent,
+                alpha: lifeAlpha * 0.72
+              }
+            );
+          }
+        }
+        labelX = x;
+        labelY = y - radius * 0.52;
+      } else {
+        const x = Number(effect.x || 0);
+        const y = Number(effect.y || 0) - 8;
+        const radius = Math.max(52, Math.min(180, Number(effect.r || effect.w || 120)));
+        this.drawShape('vfx', 'glow', x, y, radius * 1.2, Math.max(26, radius * 0.36), {
+          tint: color,
+          alpha: lifeAlpha * (telegraph ? 0.16 + pulse * 0.1 : 0.3)
+        });
+        this.drawShape('vfx', 'ring', x, y, radius, Math.max(24, radius * 0.32), {
+          tint: accent,
+          alpha: lifeAlpha * 0.76
+        });
+        labelX = x;
+        labelY = y - 38;
+      }
+
+      const actionLabel = String(effect.label || '').trim();
+      const sectionLabel = String(effect.spatialSectionLabel || '').trim();
+      const combinedLabel = actionLabel && sectionLabel && !actionLabel.toLowerCase().includes(sectionLabel.toLowerCase())
+        ? `${actionLabel} · ${sectionLabel}`
+        : actionLabel || sectionLabel;
+      if (combinedLabel) {
+        const label = combinedLabel.length > 38 ? `${combinedLabel.slice(0, 37)}…` : combinedLabel;
+        this.drawText('damageText', label, labelX, labelY, {
+          fontSize: 11,
+          fontWeight: '900',
+          fill: '#ffffff',
+          stroke: 'rgba(9,31,59,0.96)',
+          strokeWidth: 4,
+          alpha: Math.max(0.2, lifeAlpha * 0.96)
+        });
+      }
+      return true;
+    }
+
     renderWorldEffects(snapshot) {
       const now = Number(snapshot.nowSec || 0);
       const quality = snapshot.visualQuality || {};
@@ -2664,6 +2986,10 @@
         const runeFieldLifeRatio = isRuneFieldEffect ? clamp(ttl / runeFieldDuration, 0, 1) : 0;
         if (isRuneFieldEffect) {
           this.renderRuneFieldGroundVisual(effect, x, y, runeFieldRadius, color, alpha, runeFieldLifeRatio, now, simplified, { pulse: false });
+        }
+        if (type === 'bossHazard') {
+          this.renderBossHazardEffect(effect, simplified);
+          continue;
         }
         if (effect.animationFrame && type !== 'chainLine') {
           const texture = this.getFrameTexture(effect.animationFrame);
@@ -2868,7 +3194,20 @@
       (snapshot.enemies || []).forEach((enemy) => {
         if (!enemy || !enemy.renderBox || !isRectInBounds(enemy.renderBox, bounds, 120)) return;
         const box = enemy.renderBox;
-        const alpha = enemy.hp <= 0 ? 0.86 : enemy.telegraph > 0 ? 0.78 : 1;
+        const boss = enemy.behavior === 'boss';
+        if (boss && enemy.id === 'astralArchivist') {
+          const centerX = box.x + box.w / 2;
+          const groundY = box.y + box.h - 2;
+          this.drawShape('world', 'glow', centerX, groundY, Math.max(54, box.w * 1.08), 16, {
+            tint: 0x091f3b,
+            alpha: 0.34
+          });
+          this.drawShape('world', 'ring', centerX, groundY, Math.max(48, box.w * 0.9), 12, {
+            tint: 0x64d9c5,
+            alpha: 0.74
+          });
+        }
+        const alpha = enemy.hp <= 0 ? 0.86 : boss ? 1 : enemy.telegraph > 0 ? 0.78 : 1;
         if (!this.renderActorSprite(enemy, box, alpha)) {
           this.frameStats.actorFallbacks += 1;
           const color = colorToNumber(enemy.color, 0x7fbe5d);
