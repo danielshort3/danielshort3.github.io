@@ -22877,10 +22877,15 @@ try {
 	      'Project Starfall should block Rustcoil outpost until Thornpath route progress is complete');
     worldRouteEngine.state.routeProgress.forest.killsByMap.thornpathThicket = 24;
     assert(worldRouteEngine.usePortal('thornpath_rustcoil_outpost') &&
-      worldRouteEngine.state.mapId === 'rustcoilOutpost' &&
-      worldRouteEngine.usePortal('rustcoil_outpost_ruins') &&
+      worldRouteEngine.state.mapId === 'rustcoilOutpost',
+      'Project Starfall should open the safe Rustcoil Outpost after Thornpath route progress');
+    assert(!worldRouteEngine.usePortal('rustcoil_outpost_ruins') &&
+      worldRouteEngine.state.log.some((entry) => entry.includes('Rustcoil Ruins (Lv 6) - Level 6 required.')),
+      'Project Starfall should explain the Rustcoil level gate instead of opening an unsafe field');
+    worldRouteEngine.state.player.level = 6;
+    assert(worldRouteEngine.usePortal('rustcoil_outpost_ruins') &&
       worldRouteEngine.state.mapId === 'rustcoilRuins',
-      'Project Starfall should open Rustcoil through the regional outpost after Thornpath route progress');
+      'Project Starfall should open Rustcoil at its level-6 regional milestone');
     assert(worldRouteEngine.usePortal('rustcoil_outpost_return') &&
       worldRouteEngine.state.mapId === 'rustcoilOutpost',
       'Project Starfall should return from Rustcoil Ruins to Rustcoil Outpost');

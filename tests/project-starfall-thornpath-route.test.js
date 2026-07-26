@@ -52,7 +52,7 @@ check(thornpath.layoutStyle === 'verticalCanopy' &&
   thornpath.compactWorldWidth === 5200,
 'Thornpath should keep its vertical-canopy identity inside a deliberate 5200px route');
 check(thornpath.levelRange.join(',') === '2,6' && thornpath.scaleEnemies === true,
-  'Thornpath should meet normal post-Greenroot characters at a fair scaled level band');
+  'Thornpath should preserve its quick early-game combat band before the first regional field');
 check(thornpath.waveMax === 24,
   'one authored Thornpath circuit should use the 24-enemy Forest Route contract');
 
@@ -205,6 +205,111 @@ check(engine.runtime.portals.every((portal) => {
   const authored = thornpath.portals.find((entry) => entry.id === portal.id);
   return authored && authored.x === portal.x;
 }), 'runtime portal placement should match source instead of silently clamping stale coordinates');
+
+const greenroot = starfallData.MAPS.find((map) => map.id === 'greenrootMeadow');
+const rustcoilOutpost = starfallData.MAPS.find((map) => map.id === 'rustcoilOutpost');
+const rustcoil = starfallData.MAPS.find((map) => map.id === 'rustcoilRuins');
+const banditRidge = starfallData.MAPS.find((map) => map.id === 'banditRidgeCamp');
+const rustcoilPortal = rustcoilOutpost.portals.find((portal) => portal.id === 'rustcoil_outpost_ruins');
+const ridgePortal = thornpath.portals.find((portal) => portal.id === 'thornpath_bandit');
+const rustcoilEdge = starfallData.WORLD_MAP_EDGES.find((edge) => edge.id === 'rustcoil_outpost_ruins');
+const ridgeEdge = starfallData.WORLD_MAP_EDGES.find((edge) => edge.id === 'thornpath_bandit');
+const fieldScoutQuest = starfallData.QUESTS.find((quest) => quest.id === 'field_scout');
+const trialReadyQuest = starfallData.QUESTS.find((quest) => quest.id === 'trial_ready');
+const rustcoilRelayQuest = starfallData.QUESTS.find((quest) => quest.id === 'rustcoil_relay');
+const ridgeCourierQuest = starfallData.QUESTS.find((quest) => quest.id === 'ridge_courier');
+const ridgeCleanupQuest = starfallData.QUESTS.find((quest) => quest.id === 'ridge_cleanup');
+check(greenroot.levelRange[1] >= thornpath.levelRange[0] &&
+  thornpath.levelRange[1] >= rustcoil.levelRange[0] &&
+  rustcoil.levelRange[1] >= banditRidge.levelRange[0],
+'the opening combat maps should use overlapping level bands instead of a level 6 to 12/18 progression hole');
+check(rustcoilOutpost.levelRange[0] === 6 &&
+  rustcoil.levelRange.join(',') === '6,20' &&
+  rustcoil.scaleEnemies === true &&
+  banditRidge.levelRange.join(',') === '12,30' &&
+  banditRidge.scaleEnemies === true,
+'Rustcoil and Bandit Ridge should preserve their maps and enemy rosters while scaling into survivable regional bands');
+check(rustcoilPortal.requiredLevel === 6 &&
+  rustcoilPortal.label === 'Rustcoil Ruins (Lv 6)' &&
+  rustcoilEdge.requiredLevel === 6 &&
+  ridgePortal.requiredLevel === 12 &&
+  ridgePortal.label === 'Bandit Ridge (Lv 12)' &&
+  ridgeEdge.requiredLevel === 12,
+'physical portals and world-map edges should publish the same visible level gates');
+check(fieldScoutQuest.nextQuestId === 'rustcoil_relay' &&
+  trialReadyQuest.requiredQuestIds.includes('field_scout') &&
+  rustcoilRelayQuest.requiredLevel === 6 &&
+  ridgeCourierQuest.requiredLevel === 12 &&
+  ridgeCleanupQuest.requiredLevel === 12,
+'the post-Field-Scout handoff and regional quests should follow the repaired 6 then 12 progression milestones');
+
+const originalRandom = Math.random;
+Math.random = () => 0.5;
+try {
+  const routeEngine = createProjectStarfallEngine(null, starfallData);
+  check(routeEngine.chooseClass('fighter') && routeEngine.changeMap(greenroot.id),
+    'the early-route contract should begin with a playable Fighter in Greenroot');
+  const greenrootEnemies = routeEngine.enemies.filter((enemy) => enemy && enemy.hp > 0);
+  check(greenrootEnemies.length === 18,
+    'the early-route contract should clear the actual 18-enemy Greenroot population');
+  greenrootEnemies.forEach((enemy) => routeEngine.defeatEnemy(enemy));
+  check(routeEngine.usePortal('greenroot_thornpath'),
+    'clearing Greenroot should open the physical Thornpath route');
+  const thornpathEnemies = routeEngine.enemies.filter((enemy) => enemy && enemy.hp > 0);
+  check(thornpathEnemies.length === 24,
+    'the early-route contract should clear the actual 24-enemy Thornpath population');
+  thornpathEnemies.forEach((enemy) => routeEngine.defeatEnemy(enemy));
+  check(routeEngine.state.player.level < 6,
+    'the real opening populations should expose that the character is still below the first regional field band');
+
+  routeEngine.state.progress.claimedQuestIds = Array.from(new Set(
+    routeEngine.state.progress.claimedQuestIds.concat(['first_steps', 'field_scout'])
+  ));
+  const lockedRelay = routeEngine.getQuestAvailability('rustcoil_relay');
+  const lockedCourier = routeEngine.getQuestAvailability('ridge_courier');
+  check(lockedRelay.lockedReason === 'Reach Level 6 first.' &&
+    lockedCourier.lockedReason === 'Reach Level 12 first.',
+  'post-Field-Scout quests should advertise the next safe milestones instead of sending a low-level player to Ridge');
+  check(routeEngine.getPortalBlockReason(routeEngine.runtime.portals.find((portal) => portal.id === 'thornpath_bandit')) === 'Level 12 required.',
+    'Bandit Ridge should remain visibly locked below its survivable entry band');
+  check(routeEngine.usePortal('thornpath_rustcoil_outpost') &&
+    routeEngine.state.mapId === 'rustcoilOutpost' &&
+    routeEngine.getPortalBlockReason(routeEngine.runtime.portals.find((portal) => portal.id === 'rustcoil_outpost_ruins')) === 'Level 6 required.' &&
+    !routeEngine.usePortal('rustcoil_outpost_ruins'),
+  'the safe outpost should remain visitable while Rustcoil combat truthfully blocks an underleveled character');
+
+  routeEngine.state.player.level = 6;
+  check(routeEngine.getQuestAvailability('rustcoil_relay').available &&
+    routeEngine.usePortal('rustcoil_outpost_ruins') &&
+    routeEngine.state.mapId === 'rustcoilRuins',
+  'level 6 should unlock the first regional quest and physical Rustcoil field');
+  check(routeEngine.enemies.length === 28 &&
+    routeEngine.enemies.every((enemy) => enemy.level >= 6 && enemy.level <= 7),
+  'a level-6 Rustcoil arrival should receive the real 28-enemy population scaled to levels 6/7');
+  const scrapWardenData = starfallData.ENEMIES.find((enemy) => enemy.id === 'scrapWarden');
+  const scaledWarden = routeEngine.createEnemy(scrapWardenData, routeEngine.runtime.spawnPoints[0]);
+  check(scaledWarden.level >= 6 && scaledWarden.level <= 7,
+    'Rustcoil scaling should prevent its native level-24 Scrap Warden from becoming an opening difficulty spike');
+
+  check(routeEngine.usePortal('rustcoil_outpost_return') &&
+    routeEngine.usePortal('rustcoil_outpost_thornpath') &&
+    routeEngine.state.mapId === 'thornpathThicket',
+  'the regional bridge should preserve the existing two-way physical route');
+  routeEngine.state.player.level = 12;
+  check(routeEngine.getQuestAvailability('ridge_courier').available &&
+    routeEngine.usePortal('thornpath_bandit') &&
+    routeEngine.state.mapId === 'banditRidgeCamp',
+  'level 12 should align the Ridge courier handoff with the physical Bandit portal');
+  check(routeEngine.enemies.length === 30 &&
+    routeEngine.enemies.every((enemy) => enemy.level >= 12 && enemy.level <= 13),
+  'a level-12 Bandit Ridge arrival should receive its real 30-enemy population at levels 12/13');
+
+  routeEngine.state.progress.claimedQuestIds.push('ridge_courier');
+  check(routeEngine.getQuestAvailability('ridge_cleanup').available,
+    'the Ridge cleanup quest should become available at the same level as its scaled combat field');
+} finally {
+  Math.random = originalRandom;
+}
 
 const mapValidation = validateMap(thornpath);
 check(mapValidation.issues.length === 0 && mapValidation.warnings.length === 0,
