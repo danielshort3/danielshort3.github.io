@@ -13368,7 +13368,10 @@
             this.closePanel(stationPanel);
             return true;
           }
-          if (this.startPortalTransition()) return true;
+          const activeStation = this.engine && this.engine.state && this.engine.state.player
+            ? this.engine.state.player.activeStation
+            : '';
+          if (!activeStation && this.startPortalTransition()) return true;
           result = this.engine.interact({ silent: true });
           if (result && this.engine.lastInteractionOpenedQuestPrompt && this.engine.consumeQuestNpcPrompt) {
             this.setQuestPrompt(this.engine.consumeQuestNpcPrompt());
@@ -16478,6 +16481,18 @@
       });
     }
 
+    getOnboardingStepSummary(step) {
+      const helper = getHudWidgetHelper('getOnboardingStepSummary');
+      if (helper) {
+        return helper(step, {
+          keyLabels: {
+            loot: this.getPrimaryKeyLabel('loot')
+          }
+        });
+      }
+      return String(step && step.summary || '');
+    }
+
     renderHud() {
       const hud = this.elements && this.elements.hud;
       if (!hud) return;
@@ -16495,6 +16510,7 @@
       const xpNeeded = getSnapshotNextLevelXp(snapshot);
       const onboarding = snapshot.onboarding || {};
       const nextStep = onboarding.hidden ? null : onboarding.nextStep;
+      const nextStepSummary = nextStep ? this.getOnboardingStepSummary(nextStep) : '';
       const activePhase = onboarding.activePhase || {};
       const combatRates = this.getCombatMetricRates();
       const coarsePointer = typeof global.matchMedia === 'function' && global.matchMedia('(pointer: coarse)').matches;
@@ -16514,7 +16530,7 @@
         ${this.renderResourceWidget()}
         ${nextStep ? `
           <div class="project-starfall-guide-strip">
-            <span><strong>${escapeHtml(activePhase.title || 'Journey')} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}:</strong> ${escapeHtml(nextStep.title)} - ${escapeHtml(nextStep.summary)}</span>
+            <span><strong>${escapeHtml(activePhase.title || 'Journey')} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}:</strong> ${escapeHtml(nextStep.title)} - ${escapeHtml(nextStepSummary)}</span>
             <button type="button" data-starfall-dismiss-guide>Hide</button>
           </div>
         ` : ''}
@@ -25898,7 +25914,8 @@
           keyLabels: {
             moveUp: this.getPrimaryKeyLabel('moveUp'),
             npcTalk: this.getPrimaryKeyLabel('npcTalk'),
-            interact: this.getPrimaryKeyLabel('interact')
+            interact: this.getPrimaryKeyLabel('interact'),
+            loot: this.getPrimaryKeyLabel('loot')
           }
         });
         if (!prompt) return;
@@ -26857,7 +26874,12 @@
     getQuestTrackerEntries() {
       const getQuestTrackerEntriesHelper = getHudWidgetHelper('getQuestTrackerEntries');
       if (getQuestTrackerEntriesHelper) {
-        return getQuestTrackerEntriesHelper(this.snapshot, { formatDungeonRespawnLabel });
+        return getQuestTrackerEntriesHelper(this.snapshot, {
+          formatDungeonRespawnLabel,
+          keyLabels: {
+            loot: this.getPrimaryKeyLabel('loot')
+          }
+        });
       }
       const snapshot = this.snapshot || {};
       const progress = snapshot.progress;
@@ -26872,7 +26894,7 @@
         title: `${activePhase.title || 'Journey'} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}: ${nextStep.title}`,
         guideType: 'guide',
         guideId: nextStep.id || nextStep.panelId || nextStep.title,
-        objectives: [{ label: nextStep.summary || 'Continue the guide.', value: 0, goal: 1, complete: false, status: '' }]
+        objectives: [{ label: this.getOnboardingStepSummary(nextStep) || 'Continue the guide.', value: 0, goal: 1, complete: false, status: '' }]
       } : null;
       if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
       const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
@@ -36677,7 +36699,12 @@
         if (hudRegionAction && hudRegionAction.handled) {
           if (hudRegionAction.type === 'stationPrompt') {
             if (hudRegionAction.action === 'portal') this.startPortalTransition();
-            else this.handleAction(hudRegionAction.action === 'npcTalk' ? 'npcTalk' : 'interact');
+            else {
+              const actionId = hudRegionAction.action === 'npcTalk' || hudRegionAction.action === 'loot'
+                ? hudRegionAction.action
+                : 'interact';
+              this.handleAction(actionId);
+            }
             this.focusCanvas();
             return;
           }
@@ -36695,7 +36722,12 @@
       } else {
         if (region.type === 'station-prompt') {
           if (region.action === 'portal') this.startPortalTransition();
-          else this.handleAction(region.action === 'npcTalk' ? 'npcTalk' : 'interact');
+          else {
+            const actionId = region.action === 'npcTalk' || region.action === 'loot'
+              ? region.action
+              : 'interact';
+            this.handleAction(actionId);
+          }
           this.focusCanvas();
           return;
         }
