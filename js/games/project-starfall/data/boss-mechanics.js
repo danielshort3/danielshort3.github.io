@@ -39,7 +39,7 @@
       partyRoleHook: 'Frontline clears root lanes, ranged breaks thorn pods, and support calls the court-gate regroup.',
       hooks: {
         rootWave: { sectionId: 'brambleDepths_root_lanes', role: 'lane-lock', targetTier: 'ground', label: 'Root Lane Lock', response: 'Roots lock the root lanes; rotate before the floor closes.', objective: 'Swap lanes through the root lane call.' },
-        thornVolley: { sectionId: 'brambleDepths_ridge_return', role: 'safe-return', targetTier: 'ground', label: 'Ridge Return', response: 'Thorns punish stacking on the return ridge.', objective: 'Reset through the ridge return instead of camping the shelf.' },
+        thornVolley: { sectionId: 'brambleDepths_court_gate', role: 'court-spread', targetTier: 'high', label: 'Court-Gate Volley', response: 'Thorns fan across the court gate and punish stacking beneath the crown.', objective: 'Spread across the court gate before the volley lands.' },
         addWave: { sectionId: 'brambleDepths_court_gate', role: 'root-pod-clear', targetTier: 'high', label: 'Court-Gate Root Pods', response: 'Root pod adds gather at the court gate.', objective: 'Clear the root pod shelf before the boss gate.' },
         vineCage: { sectionId: 'brambleDepths_root_lanes', role: 'cage-break', targetTier: 'ground', label: 'Vine Cage Lane', response: 'Vine cage closes the root lane and opens a brief escape route.', objective: 'Break the cage lane before adds collapse.' },
         crownExpose: { sectionId: 'brambleDepths_court_gate', role: 'burst-window', targetTier: 'high', label: 'Court Gate Burst', response: 'The court gate opens the Crowned Root burst window.', objective: 'Regroup at the court gate for burst damage.' }

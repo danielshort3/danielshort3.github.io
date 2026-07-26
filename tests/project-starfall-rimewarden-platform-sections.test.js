@@ -208,6 +208,42 @@ function run() {
         `${actionId} should prefer the intended side of its authored platform pair`,
         `expected ${expected.platformId}, received ${platform && platform.id || 'none'}`);
     });
+
+    check(engine.enterBossEncounter('rimewarden', { admin: true }) === true,
+      'the add-wave fixture should enter the Rimewarden encounter');
+    const boss = engine.enemies.find((enemy) => enemy.isEncounterBoss && enemy.id === 'rimewarden');
+    const encounter = boss && engine.getBossEncounterForEnemy(boss);
+    const enemiesBeforeAddWave = new Set(engine.enemies.map((enemy) => enemy.uid));
+    if (boss && encounter) {
+      engine.beginBossEncounterAction(
+        boss,
+        encounter,
+        encounter.phases[1],
+        'addWave',
+        engine.getCombatCharacterByTarget('player', 'player')
+      );
+      const pending = boss.bossPendingAction;
+      engine.resolveBossEncounterAction(boss, encounter, pending);
+      const adds = engine.enemies.filter((enemy) =>
+        enemy.encounterMinion && !enemiesBeforeAddWave.has(enemy.uid));
+      check(adds.length === 2,
+        'Rimewarden add wave should spawn two encounter minions',
+        `received ${adds.length}`);
+      adds.forEach((add) => {
+        const platform = engine.runtime.platforms[add.spawnPlatformIndex];
+        check(add.spawnSectionId === EXPECTED_ACTION_SECTIONS.addWave.sectionId &&
+          EXPECTED_SECTION_PLATFORMS[EXPECTED_ACTION_SECTIONS.addWave.sectionId].includes(add.spawnPlatformId),
+        `${add.id} should spawn on an authored Sentinel Shelf platform`,
+        `received ${add.spawnSectionId}/${add.spawnPlatformId}`);
+        check(platform &&
+          add.x >= platform.x &&
+          add.x + add.w <= platform.x + platform.w,
+        `${add.id} should remain fully supported by its selected shelf`,
+        `enemy ${add.x}-${add.x + add.w}, platform ${platform && platform.x}-${platform && platform.x + platform.w}`);
+      });
+    } else {
+      check(false, 'the add-wave fixture should expose Rimewarden and its encounter definition');
+    }
   }
 
   finish();

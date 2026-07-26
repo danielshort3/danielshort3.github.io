@@ -27582,6 +27582,11 @@
         const enemy = this.createEnemy(enemyData, this.chooseDungeonEncounterSpawnPoint(context, slot, index));
         if (context.beat.kind === 'boss') {
           const encounter = this.getBossEncounter(enemy.id);
+          enemy.encounterHpScale = Math.max(1, Number(context.definition.bossHpScale || 1));
+          if (enemy.encounterHpScale > 1) {
+            enemy.maxHp = Math.max(1, Math.round(Number(enemy.maxHp || enemy.hp || 1) * enemy.encounterHpScale));
+            enemy.hp = enemy.maxHp;
+          }
           enemy.isEncounterBoss = true;
           enemy.bossEncounterId = encounter && encounter.id || enemy.id;
           enemy.hostileArmedAt = bossHostileArmedAt;
@@ -31053,12 +31058,14 @@
     createBossSpatialPayload(spatialHook, target) {
       if (!spatialHook || !spatialHook.definition || !spatialHook.hook) return {};
       const section = target && target.spatialSection || this.getRuntimeBossSpatialSection(spatialHook.hook);
+      const platform = target && target.spatialPlatform;
       return {
         spatialMechanicId: spatialHook.definition.id || '',
         spatialMechanicLabel: spatialHook.definition.label || '',
         spatialRole: spatialHook.hook.role || '',
         spatialSectionId: section && section.id || spatialHook.hook.sectionId || '',
         spatialSectionLabel: section && section.label || '',
+        spatialPlatformId: platform && platform.id || '',
         spatialResponse: spatialHook.hook.response || '',
         spatialObjective: spatialHook.hook.objective || ''
       };
@@ -31146,8 +31153,12 @@
       this.setActorAnimation(enemy, profile.shape === 'add' || profile.shape === 'expose' ? 'buff' : 'attack', 0.5, { force: true, lock: true, loop: false });
       if (pending.spatialMechanicId) this.recordDungeonObjectiveProgress('spatialMechanic', 1);
       if (profile.shape === 'add') {
-        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0));
-        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0) + 1);
+        const addOptions = {
+          spatialSectionId: pending.spatialSectionId || '',
+          spatialPlatformId: pending.spatialPlatformId || ''
+        };
+        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0), addOptions);
+        this.spawnBossEncounterAdd(encounter, Number(enemy.bossActionIndex || 0) + 1, addOptions);
         const effect = { type: 'bossHazard', shape: 'add', label: profile.label, x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h / 2, r: 130, ttl: 0.58, duration: 0.58, color: profile.color, accentColor: profile.accent, variant: profile.variant, mechanicLabel: profile.mechanicLabel, enemyFxId: enemy.id, combatFxState: 'buff' };
         this.effects.push(Object.assign(effect, this.getBossSpatialEffectFields(pending)));
         return;
@@ -31258,12 +31269,76 @@
       });
     }
 
+    chooseBossEncounterAddSpawnPoint(sectionId, platformId, index) {
+      const normalizedSectionId = normalizeId(sectionId);
+      const slot = Math.abs(Math.floor(Number(index || 0)));
+      if (!normalizedSectionId) return this.chooseSpawnPoint(slot, { initial: true });
+      const runtime = this.runtime || {};
+      const platforms = Array.isArray(runtime.platforms) ? runtime.platforms : [];
+      const points = (this.runtime && this.runtime.spawnPoints || []).filter((point) =>
+        point &&
+        platforms[point.platformIndex] &&
+        normalizeId(point.sectionId) === normalizedSectionId
+      );
+      const section = (runtime.spawnSections || []).find((entry) =>
+        entry && normalizeId(entry.id) === normalizedSectionId);
+      const preferredPlatformId = normalizeId(platformId);
+      const preferredPlatform = preferredPlatformId
+        ? platforms.find((entry) => entry && normalizeId(entry.id) === preferredPlatformId)
+        : null;
+      const base = points.length
+        ? points[slot % points.length]
+        : preferredPlatform
+          ? {
+              x: Number(section && section.x || 0) + Math.max(1, Number(section && section.w || 0)) / 2,
+              platformIndex: platforms.indexOf(preferredPlatform),
+              platformId: preferredPlatform.id,
+              sectionId: normalizedSectionId,
+              sectionLabel: section && section.label || ''
+            }
+          : null;
+      if (!base) return this.chooseSpawnPoint(slot, { initial: true });
+      const platform = platforms[base.platformIndex] ||
+        platforms.find((entry) => entry && normalizeId(entry.id) === normalizeId(base.platformId));
+      if (!platform) return this.chooseSpawnPoint(slot, { initial: true });
+      const offsets = [-56, 56, -104, 104, 0];
+      const margin = 64;
+      let minX = Number(platform.x || 0) + margin;
+      let maxX = Number(platform.x || 0) + Math.max(margin * 2, Number(platform.w || 0)) - margin;
+      if (section && !(section.platformIds || []).length) {
+        minX = Math.max(minX, Number(section.x || 0) + margin);
+        maxX = Math.min(maxX, Number(section.x || 0) + Math.max(margin * 2, Number(section.w || 0)) - margin);
+      }
+      if (maxX < minX) {
+        minX = Number(platform.x || 0) + margin;
+        maxX = Number(platform.x || 0) + Math.max(margin * 2, Number(platform.w || 0)) - margin;
+      }
+      const baseX = points.length ? Number(base.x || 0) : (minX + maxX) / 2;
+      const x = clamp(
+        baseX + offsets[slot % offsets.length],
+        Math.min(minX, maxX),
+        Math.max(minX, maxX)
+      );
+      return Object.assign({}, base, {
+        x,
+        y: getPlatformSurfaceY(platform, x),
+        platformIndex: platforms.indexOf(platform),
+        platformId: platform.id || base.platformId || '',
+        sectionId: normalizedSectionId,
+        sectionLabel: section && section.label || base.sectionLabel || ''
+      });
+    }
+
     spawnBossEncounterAdd(encounter, index, options) {
       if (!encounter || !Array.isArray(encounter.adds) || !encounter.adds.length) return false;
       const enemyId = encounter.adds[Math.abs(Math.floor(Number(index || 0))) % encounter.adds.length];
       const enemyData = getEnemyDefinitionById(enemyId);
       if (!enemyData) return false;
-      const add = this.createEnemy(enemyData, this.chooseSpawnPoint(Number(index || 0), { initial: true }));
+      const add = this.createEnemy(enemyData, this.chooseBossEncounterAddSpawnPoint(
+        options && options.spatialSectionId,
+        options && options.spatialPlatformId,
+        Number(index || 0)
+      ));
       add.encounterMinion = true;
       add.aggroSource = 'bossEncounter';
       this.setEnemyAggro(add, this.getCombatCharacterByTarget('player', 'player'), 'bossEncounter', ENEMY_ATTACK_AGGRO_SECONDS * 2);
