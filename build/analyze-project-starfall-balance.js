@@ -137,6 +137,13 @@ function printTextReport(report) {
     process.stdout.write(`High-risk farm maps ${tuning.highRiskFarmMapCount}, abuse-control coverage ${abuseControlPercent}%${warningText ? `, warnings: ${warningText}` : ''}\n`);
     if (retentionRisks) process.stdout.write(`Top abandonment risk: ${retentionRisks}\n`);
   }
+  if (report.mapHunts) {
+    const hunts = report.mapHunts;
+    const samples = (hunts.completionSamples || []).join('/');
+    process.stdout.write('\nRepeatable hunt health\n');
+    process.stdout.write(`Combat maps ${hunts.mapCount}, samples ${samples}, capped goals ${hunts.cappedGoalMapCount}/${hunts.mapCount}, stable Veteran ${hunts.stableVeteranMapCount}/${hunts.mapCount}, stable XP/kill ${hunts.stableXpPerKillMapCount}/${hunts.mapCount}, stable coin/kill ${hunts.stableCoinPerKillMapCount}/${hunts.mapCount}, issues ${hunts.issueCount}\n`);
+    process.stdout.write(`Max goal growth ${hunts.maxGoalGrowthRatio}x, XP/kill spread ${hunts.maxXpPerKillSpreadPercent}%, coin/kill spread ${hunts.maxCoinPerKillSpreadPercent}%\n`);
+  }
   if (report.field && report.field.levelCurve) {
     const curve = report.field.levelCurve;
     process.stdout.write('\nLevel curve spike checks\n');
