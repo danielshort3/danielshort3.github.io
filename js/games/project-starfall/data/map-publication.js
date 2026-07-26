@@ -253,6 +253,77 @@
         actorTraversal: { mode: 'air', allowLadders: false, allowRamps: true, stayInTerritory: true }
       }
     ]),
+    eclipseFrontier: Object.freeze([
+      {
+        sectionSuffix: 'solar_outpost',
+        label: 'Solar Sentinels',
+        platformIds: [
+          'eclipse_frontier_solid_lane_01',
+          'eclipse_frontier_solid_lane_02',
+          'eclipse_frontier_solid_lane_03'
+        ],
+        enemyWeights: [
+          { enemyId: 'lumenSentinel', weight: 6 },
+          { enemyId: 'indexScribe', weight: 2 },
+          { enemyId: 'eclipseDuelist', weight: 2 }
+        ],
+        population: 8,
+        maxPopulation: 10,
+        respawnSeconds: 6,
+        leash: 460,
+        spawnBounds: { minX: 320, maxX: 1500 }
+      },
+      {
+        sectionSuffix: 'lunar_outpost',
+        label: 'Lunar Motes',
+        platformIds: [
+          'eclipse_frontier_solid_lane_04',
+          'eclipse_frontier_solid_lane_05',
+          'eclipse_frontier_solid_lane_06'
+        ],
+        enemyWeights: [{ enemyId: 'voidMote', weight: 1 }],
+        population: 7,
+        maxPopulation: 9,
+        respawnSeconds: 6,
+        leash: 460,
+        spawnBounds: { minX: 1720, maxX: 2740 }
+      },
+      {
+        sectionSuffix: 'eclipse_gate',
+        label: 'Gate Duelists',
+        platformIds: [
+          'eclipse_frontier_solid_lane_07',
+          'eclipse_frontier_solid_lane_08',
+          'eclipse_frontier_solid_lane_09'
+        ],
+        enemyWeights: [{ enemyId: 'eclipseDuelist', weight: 1 }],
+        population: 9,
+        maxPopulation: 11,
+        respawnSeconds: 7,
+        leash: 500,
+        spawnBounds: { minX: 2920, maxX: 4060 }
+      },
+      {
+        sectionSuffix: 'elite_pocket',
+        label: 'Totality Elite Pocket',
+        platformIds: [
+          'eclipse_frontier_solid_lane_10',
+          'eclipse_frontier_solid_lane_11',
+          'eclipse_frontier_solid_lane_12'
+        ],
+        enemyWeights: [
+          { enemyId: 'eclipseDuelist', weight: 5 },
+          { enemyId: 'crackedMimic', weight: 2 },
+          { enemyId: 'voidMote', weight: 2 },
+          { enemyId: 'lumenSentinel', weight: 1 }
+        ],
+        population: 10,
+        maxPopulation: 12,
+        respawnSeconds: 9,
+        leash: 540,
+        spawnBounds: { minX: 4290, maxX: 5290 }
+      }
+    ]),
     endlessRift: Object.freeze([
       {
         sectionSuffix: 'southwest_rift_quadrant',

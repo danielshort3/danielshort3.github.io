@@ -1369,6 +1369,8 @@
       getOnboardingStepSummary,
       getMapRouteTrackerEntry,
       getMapMechanicTrackerEntry,
+      getCurrentMapRouteTrackerState,
+      getCurrentMapObjectiveTrackerEntry,
       getStormbreakLightningRodPresentation,
       getQuestTrackerEntries,
       getQuestTrackerNaturalHeight,
@@ -2212,46 +2214,212 @@
 
   function getMapMechanicTrackerEntry(mapMechanic, options) {
     const presentation = getStormbreakLightningRodPhase(mapMechanic, options);
-    if (!presentation) return null;
-    const phase = presentation.phase;
-    const objective = phase === 'ready'
-      ? {
-          label: 'Tune the Lightning Rod',
-          value: 0,
-          goal: 1,
-          complete: false,
-          status: 'Ready'
-        }
-      : phase === 'tuned'
+    if (presentation) {
+      const phase = presentation.phase;
+      const objective = phase === 'ready'
         ? {
-            label: 'Lightning Rod tuned',
-            value: 1,
+            label: 'Tune the Lightning Rod',
+            value: 0,
             goal: 1,
-            complete: true,
-            status: 'Done'
+            complete: false,
+            status: 'Ready'
           }
-        : phase === 'charging'
+        : phase === 'tuned'
           ? {
-              label: 'Build storm charge',
-              value: presentation.progress,
-              goal: presentation.goal,
-              complete: false,
-              status: `${Math.min(presentation.goal, Math.floor(presentation.progress))}/${presentation.goal}`
+              label: 'Lightning Rod tuned',
+              value: 1,
+              goal: 1,
+              complete: true,
+              status: 'Done'
             }
-          : {
-              label: `Charge ${presentation.requiredSections} cliff lanes`,
-              value: presentation.uniqueSections,
-              goal: presentation.requiredSections,
-              complete: false,
-              status: `${Math.min(presentation.requiredSections, presentation.uniqueSections)}/${presentation.requiredSections}`
-            };
+          : phase === 'charging'
+            ? {
+                label: 'Build storm charge',
+                value: presentation.progress,
+                goal: presentation.goal,
+                complete: false,
+                status: `${Math.min(presentation.goal, Math.floor(presentation.progress))}/${presentation.goal}`
+              }
+            : {
+                label: `Charge ${presentation.requiredSections} cliff lanes`,
+                value: presentation.uniqueSections,
+                goal: presentation.requiredSections,
+                complete: false,
+                status: `${Math.min(presentation.requiredSections, presentation.uniqueSections)}/${presentation.requiredSections}`
+              };
+      return {
+        title: 'Stormbreak Rod',
+        guideType: 'map',
+        guideId: String(mapMechanic && mapMechanic.mapId || 'stormbreakCliffs'),
+        phase,
+        objectives: [objective]
+      };
+    }
+
+    const mechanic = mapMechanic && typeof mapMechanic === 'object' ? mapMechanic : null;
+    if (!mechanic || mechanic.active === false || mechanic.type === 'surge-loop') return null;
+    const mapId = String(mechanic.mapId || '').trim();
+    if (!mapId) return null;
+    const progress = getMapMechanicCount(mechanic.progress, 0);
+    const goal = Math.max(1, getMapMechanicCount(mechanic.goal, 1));
+    const requiredSections = Math.max(1, getMapMechanicCount(mechanic.requiredUniqueSections, 1));
+    const currentSections = getMapMechanicCount(mechanic.currentUniqueSections, 0);
+    let phase = 'progress';
+    let objective;
+    if (mechanic.requiredSectionOrder) {
+      const sectionGoal = Math.max(1, getMapMechanicCount(mechanic.killsPerSection, 1));
+      const sectionValue = Math.min(sectionGoal, getMapMechanicCount(mechanic.currentSectionKillCount, 0));
+      const completedSections = getMapMechanicCount(mechanic.orderedSectionIds, 0);
+      phase = 'ordered';
+      objective = {
+        label: `Secure ${mechanic.nextSectionLabel || 'the next patrol section'}`,
+        value: sectionValue,
+        goal: sectionGoal,
+        complete: false,
+        status: `Patrol ${Math.min(requiredSections, completedSections + 1)}/${requiredSections}`
+      };
+    } else if (mechanic.type === 'material-event' && mechanic.activeSectionLabel) {
+      phase = 'active-section';
+      objective = {
+        label: `Clear ${mechanic.activeSectionLabel}`,
+        value: progress,
+        goal,
+        complete: false,
+        status: `${Math.min(goal, Math.floor(progress))}/${goal}`
+      };
+    } else if (currentSections < requiredSections) {
+      phase = 'sections';
+      objective = {
+        label: `Cover ${requiredSections} patrol sections`,
+        value: currentSections,
+        goal: requiredSections,
+        complete: false,
+        status: `${Math.min(requiredSections, currentSections)}/${requiredSections}`
+      };
+    } else {
+      objective = {
+        label: String(mechanic.label || 'Complete the field activity'),
+        value: progress,
+        goal,
+        complete: false,
+        status: `${Math.min(goal, Math.floor(progress))}/${goal}`
+      };
+    }
     return {
-      title: 'Stormbreak Rod',
+      title: String(mechanic.label || 'Field Activity'),
       guideType: 'map',
-      guideId: String(mapMechanic && mapMechanic.mapId || 'stormbreakCliffs'),
+      guideId: mapId,
       phase,
+      mapMechanic: true,
       objectives: [objective]
     };
+  }
+
+  function getCurrentMapRouteTrackerState(snapshot, options) {
+    const source = snapshot || {};
+    const settings = options || {};
+    const mapId = String(
+      source.state && source.state.mapId ||
+      source.map && source.map.id ||
+      ''
+    ).trim();
+    if (!mapId || source.map && source.map.safeZone) return null;
+    const routes = source.routeProgress && Array.isArray(source.routeProgress.routes)
+      ? source.routeProgress.routes
+      : [];
+    const route = routes.find((entry) =>
+      entry && Array.isArray(entry.fields) && entry.fields.some((field) => field && field.mapId === mapId)
+    ) || null;
+    const routeField = route && route.fields.find((field) => field && field.mapId === mapId) || null;
+    const openRouteField = routeField && !routeField.complete ? routeField : null;
+    const mapKillQuest = settings.includeMapKill === false ? null : source.mapKillQuest;
+    const localHunt = mapKillQuest &&
+      mapKillQuest.mapId === mapId &&
+      (mapKillQuest.active || mapKillQuest.claimable)
+      ? mapKillQuest
+      : null;
+    if (!openRouteField && !localHunt) return null;
+    const forwardPortal = openRouteField && Array.isArray(source.portals)
+      ? source.portals.find((portal) =>
+          portal &&
+          !portal.returnPortal &&
+          !portal.bossPortal &&
+          (portal.routeId === route.id || portal.requiredMapId === mapId)
+        ) || null
+      : null;
+    const forwardLabel = String(
+      forwardPortal && (forwardPortal.destinationName || forwardPortal.label) ||
+      ''
+    ).trim();
+    if (localHunt && localHunt.claimable) {
+      return {
+        mergedMapKill: true,
+        objective: {
+          label: `Claim local hunt from ${localHunt.npcName || 'the map NPC'}`,
+          value: 1,
+          goal: 1,
+          complete: true,
+          status: localHunt.rewardSummary || 'Reward ready'
+        }
+      };
+    }
+    if (openRouteField) {
+      const mergedHunt = !!localHunt;
+      return {
+        mergedMapKill: mergedHunt,
+        objective: {
+          label: `${mergedHunt ? 'Hunt + route clearance' : 'Route clearance'}${forwardLabel ? ` · opens ${forwardLabel}` : ''}`,
+          value: Math.max(0, Number(openRouteField.value || 0)),
+          goal: Math.max(1, Number(openRouteField.goal || 1)),
+          complete: false,
+          status: mergedHunt
+            ? `Local hunt ${Math.max(0, Number(localHunt.value || 0))}/${Math.max(1, Number(localHunt.goal || 1))}`
+            : `${openRouteField.mapName || mapId} route gate`
+        }
+      };
+    }
+    return {
+      mergedMapKill: true,
+      objective: {
+        label: localHunt.label || `Defeat enemies in ${localHunt.mapName || mapId}`,
+        value: Math.max(0, Number(localHunt.value || 0)),
+        goal: Math.max(1, Number(localHunt.goal || 1)),
+        complete: false,
+        status: localHunt.rankLabel ? `${localHunt.rankLabel} Hunt` : 'Local hunt'
+      }
+    };
+  }
+
+  function getCurrentMapObjectiveTrackerEntry(snapshot, options) {
+    const source = snapshot || {};
+    const settings = options || {};
+    const mapId = String(
+      source.state && source.state.mapId ||
+      source.map && source.map.id ||
+      ''
+    ).trim();
+    if (!mapId || source.map && source.map.safeZone) return null;
+    const mapMechanic = source.mapModifiers && source.mapModifiers.mapMechanic || source.mapMechanic;
+    const mechanicEntry = getMapMechanicTrackerEntry(mapMechanic, settings);
+    const routeState = getCurrentMapRouteTrackerState(source, settings);
+    if (!mechanicEntry && !routeState) return null;
+    const mapName = String(source.map && source.map.name || source.mapKillQuest && source.mapKillQuest.mapName || mapId);
+    const objectives = [];
+    if (mechanicEntry && mechanicEntry.objectives && mechanicEntry.objectives[0]) {
+      objectives.push(mechanicEntry.objectives[0]);
+    }
+    if (routeState && routeState.objective) objectives.push(routeState.objective);
+    return Object.assign({
+      title: `${mapName} Objectives`,
+      guideType: 'mapKill',
+      guideId: mapId,
+      phase: 'route',
+      objectives
+    }, mechanicEntry || {}, {
+      currentMapObjective: true,
+      mergedMapKill: !!(routeState && routeState.mergedMapKill),
+      objectives: objectives.slice(0, 2)
+    });
   }
 
   function getStationPromptContext(snapshot, options) {
@@ -2660,11 +2828,7 @@
     const nextStep = onboarding.hidden ? null : onboarding.nextStep;
     const activePhase = onboarding.activePhase || {};
     const routeEntry = getMapRouteTrackerEntry(source.questGuidance);
-    const mapMechanicEntry = getMapMechanicTrackerEntry(
-      source.mapModifiers && source.mapModifiers.mapMechanic || source.mapMechanic,
-      { nowSeconds: settings.nowSeconds }
-    );
-    const weeklyRouteEntry = getWeeklyStarRouteTrackerEntry(source.season, source.questGuidance);
+    let weeklyRouteEntry = getWeeklyStarRouteTrackerEntry(source.season, source.questGuidance);
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
     const weeklyMapKillMatches = !!(weeklyRouteEntry &&
       weeklyRouteEntry.guideType === 'mapKill' &&
@@ -2681,9 +2845,25 @@
         complete: !!mapKillQuest.claimable
       }];
     }
+    const currentMapObjectiveEntry = getCurrentMapObjectiveTrackerEntry(source, {
+      nowSeconds: settings.nowSeconds,
+      includeMapKill: !weeklyMapKillMatches
+    });
+    const weeklyMechanicMatches = !!(weeklyRouteEntry &&
+      weeklyRouteEntry.guideType === 'map' &&
+      currentMapObjectiveEntry &&
+      currentMapObjectiveEntry.mapMechanic &&
+      weeklyRouteEntry.guideId === currentMapObjectiveEntry.guideId);
+    if (weeklyMechanicMatches) {
+      currentMapObjectiveEntry.title = `Weekly · ${currentMapObjectiveEntry.title}`;
+      currentMapObjectiveEntry.weeklyRoute = true;
+      currentMapObjectiveEntry.assignmentId = weeklyRouteEntry.assignmentId;
+      weeklyRouteEntry = null;
+    }
     const showMapKillQuest = mapKillQuest &&
       (mapKillQuest.active || mapKillQuest.claimable) &&
-      !weeklyMapKillMatches;
+      !weeklyMapKillMatches &&
+      !(currentMapObjectiveEntry && currentMapObjectiveEntry.mergedMapKill);
     const mergeFirstStepsTracker = !!(nextStep &&
       activePhase.id === 'first_steps' &&
       progress &&
@@ -2706,7 +2886,7 @@
     if (
       !guideEntry &&
       !routeEntry &&
-      !mapMechanicEntry &&
+      !currentMapObjectiveEntry &&
       !weeklyRouteEntry &&
       (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))
     ) return [];
@@ -2768,7 +2948,7 @@
       guideType: 'trial',
       guideId: progress.activeTrial.id
     }) : null;
-    return [guideEntry, routeEntry, mapMechanicEntry, weeklyRouteEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
+    return [guideEntry, routeEntry, currentMapObjectiveEntry, weeklyRouteEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
   }
 
   function getQuestTrackerNaturalHeight(entries, guidance) {
@@ -3285,6 +3465,8 @@
     getStormbreakLightningRodPhase,
     getStormbreakLightningRodPresentation,
     getMapMechanicTrackerEntry,
+    getCurrentMapRouteTrackerState,
+    getCurrentMapObjectiveTrackerEntry,
     getStationPromptContext,
     getStationPromptLayout,
     getStationPromptRenderMetadata,

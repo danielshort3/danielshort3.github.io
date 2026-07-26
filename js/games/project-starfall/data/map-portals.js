@@ -499,7 +499,7 @@
           destinationMapId: 'endlessRift',
           routeId: 'ascension',
           requiredMapId: 'eclipseFrontier',
-          x: 5080,
+          x: 5480,
           platformIndex: 0,
         }),
         Object.freeze({
@@ -510,8 +510,8 @@
           bossPortal: true,
           requiredLevel: 100,
           requiredQuestId: 'eclipse_echo',
-          x: 4550,
-          platformIndex: 26,
+          x: 4650,
+          platformIndex: 34,
         }),
       ]),
       endlessRift: Object.freeze([

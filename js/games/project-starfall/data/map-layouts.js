@@ -101,7 +101,8 @@
   function getFieldZoneAnchors(width, layoutStyle) {
     const worldWidth = Math.max(isVerticalFieldLayout(layoutStyle) ? 4600 : 6200, Math.ceil(Number(width || 0) / 100) * 100);
     const first = 260;
-    const zoneCount = isVerticalFieldLayout(layoutStyle) ? worldWidth >= 6200 ? 4 : 3 : 4;
+    const compactAstralPatrol = layoutStyle === 'astralStack' && worldWidth >= 5600;
+    const zoneCount = isVerticalFieldLayout(layoutStyle) ? worldWidth >= 6200 || compactAstralPatrol ? 4 : 3 : 4;
     const last = Math.max(first, worldWidth - (isVerticalFieldLayout(layoutStyle) ? 1500 : 2020));
     return Array.from({ length: zoneCount }, (_, index) => Math.round(first + (last - first) * index / Math.max(1, zoneCount - 1)));
   }
