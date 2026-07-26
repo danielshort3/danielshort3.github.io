@@ -253,7 +253,7 @@
       shouldSetAttackInput: true,
       attackInput: holding,
       shouldBasicAttack: !!isDown && !wasHolding && !currentState.repeat,
-      basicAttackOptions: { silent: true, fromHeldInput: true }
+      basicAttackOptions: { silent: true, fromHeldInput: true, bufferOnBlock: true }
     };
   }
 
@@ -292,7 +292,8 @@
         heldSkillKeys: nextHeldKeys,
         shouldSetEngineHeldSkill: true,
         engineHeldSkillValue: true,
-        shouldUseSkill: !currentState.repeat
+        shouldUseSkill: !currentState.repeat,
+        skillOptions: { bufferOnBlock: true }
       };
     }
     nextHeldKeys.delete(keyCode);
@@ -383,6 +384,7 @@
       shouldSetAttackInput: handled,
       attackInput: true,
       shouldBasicAttack: handled,
+      basicAttackOptions: { bufferOnBlock: true },
       shouldFocusCanvas: handled,
       shouldPreventDefault: handled
     };
