@@ -133,6 +133,22 @@
     background: linear-gradient(90deg, var(--boss-accent, #ffffff), var(--boss-color, #ffbe55));
   }
 
+  .project-starfall-boss-hud-call {
+    min-width: 0;
+    overflow: hidden;
+    padding: 3px 8px;
+    border: 1px solid var(--boss-accent, rgba(255,255,255,0.34));
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 950;
+    letter-spacing: 0.025em;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .project-starfall-boss-hud-ticks {
     display: inline-flex;
     flex: 0 0 auto;

@@ -183,4 +183,61 @@ check(gdd.includes("keep Starfall's compact chibi cast original, playful, and re
   !gdd.includes('Using a chibi visual style that feels too close'),
   'the design direction should preserve an original playful chibi identity');
 
+const spatialBossHud = hud.getCanvasBossEncounterHudMetadata({
+  active: true,
+  bossName: 'Astral Archivist',
+  hpRatio: 0.74,
+  phaseName: 'Opened Index',
+  phaseIndex: 0,
+  phaseCount: 3,
+  pendingActionLabel: 'MEMORY SEAL',
+  pendingActionProgress: 0.42,
+  pendingSpatialSectionLabel: 'Left Archive Seal',
+  color: '#c794ff',
+  accentColor: '#64d9c5'
+}, 1280);
+check(spatialBossHud &&
+  spatialBossHud.box.h === 90 &&
+  spatialBossHud.actionText.value === 'MEMORY SEAL 42%' &&
+  spatialBossHud.spatialText.value === 'CALL · Left Archive Seal' &&
+  spatialBossHud.spatialBand,
+  'spatial boss calls should add a readable location band without replacing the compact boss HUD');
+
+const standardBossHud = hud.getCanvasBossEncounterHudMetadata({
+  active: true,
+  bossName: 'Brambleking',
+  hpRatio: 1,
+  phaseName: 'Root Court',
+  phaseIndex: 0,
+  phaseCount: 3
+}, 1280);
+check(standardBossHud &&
+  standardBossHud.box.h === 72 &&
+  !standardBossHud.spatialText &&
+  !standardBossHud.spatialBand,
+  'boss encounters without a live spatial call should retain the original compact HUD height');
+
+const pixiRendererSource = read('js/games/project-starfall/project-starfall-renderer-pixi.js');
+check(pixiRendererSource.includes('renderBossHazardEffect(effect, simplified)') &&
+  pixiRendererSource.includes("if (type === 'bossHazard')") &&
+  pixiRendererSource.includes('effect.spatialSectionLabel'),
+  'the active Pixi renderer should preserve authored boss hazard shapes and their spatial labels');
+check(['bramble', 'gear', 'core', 'furnace', 'storm', 'rime', 'astral', 'eclipse']
+  .every((variant) => pixiRendererSource.includes(`variant === '${variant}'`)),
+  'Pixi boss hazards should retain the authored biome motifs already present in the Canvas renderer');
+check(pixiRendererSource.indexOf("id.includes('rune')") < pixiRendererSource.indexOf("id.includes('stair')"),
+  'rune stair identifiers should receive the existing playful Astral palette before generic stair styling');
+check(pixiRendererSource.includes("const boss = enemy.behavior === 'boss';") &&
+  pixiRendererSource.includes("boss && enemy.id === 'astralArchivist'") &&
+  pixiRendererSource.includes("this.drawShape('world', 'ring'") &&
+  pixiRendererSource.includes("boss ? 1 : enemy.telegraph > 0 ? 0.78 : 1"),
+  'the Archivist should keep its encounter-colored ground anchor below hazards without removing normal enemy telegraph fading');
+
+const bossUiSource = read('js/games/project-starfall/project-starfall-ui.js');
+const hudCssSource = read('css/games/project-starfall/hud.css');
+check(bossUiSource.includes('project-starfall-boss-hud-call') &&
+  bossUiSource.indexOf('CALL · ${spatialSectionLabel}') < bossUiSource.indexOf('project-starfall-boss-hud-call') &&
+  hudCssSource.includes('.project-starfall-boss-hud-call'),
+  'the DOM boss HUD should reserve a dedicated location-first band for spatial calls');
+
 console.log(`Project Starfall playful polish checks passed: ${checks}`);

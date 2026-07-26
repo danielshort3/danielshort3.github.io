@@ -10316,6 +10316,23 @@
       .filter(Boolean);
   }
 
+  function resolveRuntimeCameraWorldHeight(metrics, platforms) {
+    if (getEngineMapRuntimeHelper('resolveRuntimeCameraWorldHeight')) {
+      return getEngineMapRuntimeHelper('resolveRuntimeCameraWorldHeight')(metrics, platforms);
+    }
+    const sourceMetrics = metrics || {};
+    const viewportBottom = Math.max(
+      0,
+      Number(sourceMetrics.worldHeight || 0),
+      Number(sourceMetrics.playfieldHeight || 0) + Number(sourceMetrics.solidPlatformHeight || 0)
+    );
+    const geometryBottom = (Array.isArray(platforms) ? platforms : []).reduce(
+      (bottom, platform) => Math.max(bottom, getPlatformBottomY(platform)),
+      0
+    );
+    return Math.max(viewportBottom, geometryBottom);
+  }
+
   function createMapRuntime(mapId, viewport) {
     if (getEngineMapRuntimeHelper('createMapRuntime')) {
       return getEngineMapRuntimeHelper('createMapRuntime')(mapId, viewport, {
@@ -10340,6 +10357,7 @@
     const rampConnections = createRuntimeRampConnections(map, platforms);
     const lowestPlatformBottom = platforms.reduce((bottom, platform) => Math.max(bottom, getPlatformBottomY(platform)), 0);
     const worldHeight = Math.max(metrics.worldHeight, authoredWorldHeight, lowestPlatformBottom + metrics.solidPlatformHeight);
+    const cameraWorldHeight = resolveRuntimeCameraWorldHeight(metrics, platforms);
     const climbables = (map.climbables || []).map((climbable, index) => alignClimbable(Object.assign({}, climbable, {
       y: Number(climbable.y || 0) + geometryYOffset
     }), index, map.id, platforms));
@@ -10370,6 +10388,7 @@
       trialId: normalizeId(map.trialId),
       worldWidth,
       worldHeight,
+      cameraWorldHeight,
       playfieldWidth: metrics.width,
       playfieldHeight: metrics.playfieldHeight,
       solidPlatformHeight: metrics.solidPlatformHeight,
@@ -11715,7 +11734,8 @@
       const actor = player || this.state.player || {};
       const viewportHeight = this.getWorldViewHeight();
       const actorCenterY = Number(actor.y || 0) + Number(actor.h || 0) * 0.5;
-      return clamp(actorCenterY - viewportHeight * CAMERA_VERTICAL_ANCHOR, 0, Math.max(0, Number(this.runtime.worldHeight || 0) - viewportHeight));
+      const cameraWorldHeight = Number(this.runtime.cameraWorldHeight || this.runtime.worldHeight || 0);
+      return clamp(actorCenterY - viewportHeight * CAMERA_VERTICAL_ANCHOR, 0, Math.max(0, cameraWorldHeight - viewportHeight));
     }
 
     snapCameraToPlayer(player) {
@@ -11763,7 +11783,8 @@
       this.runtime = createMapRuntime(this.state.mapId || 'starfallCrossing', next);
       this.shiftRuntimeActorsForPlayfieldDelta(delta);
       this.camera.x = clamp(this.camera.x, 0, Math.max(0, Number(this.runtime.worldWidth || 0) - this.getWorldViewWidth(next.width)));
-      this.camera.y = clamp(this.camera.y, 0, Math.max(0, Number(this.runtime.worldHeight || 0) - this.getWorldViewHeight(next.playfieldHeight)));
+      const cameraWorldHeight = Number(this.runtime.cameraWorldHeight || this.runtime.worldHeight || 0);
+      this.camera.y = clamp(this.camera.y, 0, Math.max(0, cameraWorldHeight - this.getWorldViewHeight(next.playfieldHeight)));
       this.invalidateRuntimeSnapshotCache();
       this.invalidateOverlaySnapshotCache();
     }
@@ -16893,6 +16914,71 @@
       return this.enterBossEncounter(bossId, { admin: true });
     }
 
+    spawnBossEncounterRuntime(encounter, bossData) {
+      const definition = encounter || null;
+      const enemyData = bossData || definition && getById(Data.ENEMIES || [], definition.bossId);
+      if (!definition || !enemyData) return null;
+      const boss = this.createEnemy(enemyData, this.chooseBossSpawnPoint(0));
+      boss.bossEncounterId = definition.id;
+      boss.isEncounterBoss = true;
+      boss.encounterHpScale = Math.max(1, Number(definition.hpScale || 1) || 1);
+      if (boss.encounterHpScale > 1) {
+        boss.maxHp = Math.max(1, Math.round(Number(boss.maxHp || boss.hp || 1) * boss.encounterHpScale));
+        boss.hp = boss.maxHp;
+      }
+      boss.attackCd = 1.1;
+      boss.telegraph = 0;
+      boss.bossActionIndex = 0;
+      boss.bossPhaseIndex = 0;
+      boss.bossPhaseId = definition.phases && definition.phases[0] && definition.phases[0].id || '';
+      this.enemies.push(boss);
+      this.spawnBossEncounterAdd(definition, 0, { quiet: true });
+      this.spawnBossEncounterAdd(definition, 1, { quiet: true });
+      this.pushBossPhaseEffect(boss, definition, definition.phases && definition.phases[0]);
+      return boss;
+    }
+
+    getBossEncounterRunContext(mapValue) {
+      const map = mapValue || getMapDefinitionById(this.state && this.state.mapId);
+      const dungeons = this.getDungeonState();
+      const run = dungeons && dungeons.currentRun;
+      const encounter = run && run.bossEncounterId
+        ? this.getBossEncounter(run.bossEncounterId)
+        : null;
+      const expectedDungeonId = map && encounter
+        ? normalizeId(map.dungeonId || `boss_${encounter.bossId}`)
+        : '';
+      if (!map ||
+        !run ||
+        !encounter ||
+        normalizeId(encounter.mapId) !== normalizeId(map.id) ||
+        normalizeId(run.dungeonId) !== expectedDungeonId) return null;
+      return { map, dungeons, run, encounter, expectedDungeonId };
+    }
+
+    restoreBossEncounterRuntime() {
+      const context = this.getBossEncounterRunContext();
+      if (!context) return false;
+      const { dungeons, run, encounter, expectedDungeonId } = context;
+      if (Number(run.completedAt || 0) > 0 || run.bossDefeated) return true;
+      const bossData = getById(Data.ENEMIES || [], encounter.bossId);
+      if (!bossData) return false;
+      const adminEncounter = !!run.adminEncounter;
+      startBossEncounterRunState(expectedDungeonId, dungeons, encounter.id, adminEncounter);
+      this.resetActorForInstanceTravel();
+      this.placePlayerOnRuntimePlatform(0, 160);
+      this.petRuntime = createPetRuntime();
+      const introStartedAt = nowSeconds();
+      this.bossIntroSummary = {
+        encounterId: encounter.id,
+        createdAt: introStartedAt,
+        expiresAt: introStartedAt + 5.8
+      };
+      this.bossClearSummary = null;
+      this.snapCameraToPlayer();
+      return !!this.spawnBossEncounterRuntime(encounter, bossData);
+    }
+
     enterBossEncounter(encounterId, options) {
       return this.profilePerformancePhase('ui', 'ui:enterBossEncounter', () => this.withBatchedChange(() => {
         if (this.blockClimbingAction('travel')) return false;
@@ -16945,23 +17031,7 @@
         this.snapCameraToPlayer(player);
         const dungeons = this.getDungeonState();
         startBossEncounterRunState(map.dungeonId || `boss_${encounter.bossId}`, dungeons, encounter.id, !!(options && options.admin));
-        const boss = this.createEnemy(bossData, this.chooseBossSpawnPoint(0));
-        boss.bossEncounterId = encounter.id;
-        boss.isEncounterBoss = true;
-        boss.encounterHpScale = Math.max(1, Number(encounter.hpScale || 1) || 1);
-        if (boss.encounterHpScale > 1) {
-          boss.maxHp = Math.max(1, Math.round(Number(boss.maxHp || boss.hp || 1) * boss.encounterHpScale));
-          boss.hp = boss.maxHp;
-        }
-        boss.attackCd = 1.1;
-        boss.telegraph = 0;
-        boss.bossActionIndex = 0;
-        boss.bossPhaseIndex = 0;
-        boss.bossPhaseId = encounter.phases && encounter.phases[0] && encounter.phases[0].id || '';
-        this.enemies.push(boss);
-        this.spawnBossEncounterAdd(encounter, 0, { quiet: true });
-        this.spawnBossEncounterAdd(encounter, 1, { quiet: true });
-        this.pushBossPhaseEffect(boss, encounter, encounter.phases && encounter.phases[0]);
+        this.spawnBossEncounterRuntime(encounter, bossData);
         this.recordProgressEvent('travel', { mapId: map.id, bossEncounterId: encounter.id });
         this.toast(`${encounter.name || map.name} opened.`, { noEmit: true });
         this.emitUiChange({ domains: ['hud', 'session', 'world', 'quests', 'guide', 'shop', 'party', 'pet', 'debug'], reason: 'bossEncounter', persist: true });
@@ -27674,6 +27744,7 @@
     spawnInitialEnemies() {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.safeZone) return;
+      if (this.getBossEncounterRunContext(map)) return;
       if (this.spawnDungeonEncounterBeat(map, { silent: true })) return;
       const spawns = map.enemies || [];
       const bossIds = new Set(this.getDungeonBossIds(map));
@@ -39992,7 +40063,9 @@
       ensureAdminConsoleItem(this.state);
       this.beginMapAnalyticsVisit(this.state.mapId, { preserveCurrent: true });
       this.setActorAnimation(this.state.player, 'idle', 0, { force: true, loop: true });
-      if (!this.restoreTrialInstanceRuntime()) this.spawnInitialEnemies();
+      const restoredTrialInstance = this.restoreTrialInstanceRuntime();
+      const restoredBossEncounter = !restoredTrialInstance && this.restoreBossEncounterRuntime();
+      if (!restoredTrialInstance && !restoredBossEncounter) this.spawnInitialEnemies();
       const restoredRouteGateClamp = this.applyDungeonRouteGateClamp(this.state.player.x, { silent: true });
       this.state.player.x = restoredRouteGateClamp.x;
       this.recalculateVitals();

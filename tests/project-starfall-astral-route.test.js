@@ -356,6 +356,53 @@ check(liveBoss &&
   liveBoss.x + liveBoss.w <= runtimeCenterShelf.x + runtimeCenterShelf.w,
 'portal entry should spawn the live Astral Archivist fully supported by the center rune shelf');
 
+const activeEncounterSave = entryEngine.serialize();
+const restoredEncounterEngine = createProjectStarfallEngine(null, data);
+check(restoredEncounterEngine.restore(activeEncounterSave) === true,
+  'an active Astral Stacks encounter save should restore');
+const restoredLiveBoss = restoredEncounterEngine.enemies.find((enemy) =>
+  enemy.isEncounterBoss && enemy.id === 'astralArchivist' && enemy.hp > 0
+);
+const restoredBossSnapshot = restoredEncounterEngine.getBossEncounterSnapshot();
+const restoredEncounterMinions = restoredEncounterEngine.enemies.filter((enemy) =>
+  enemy.encounterMinion && enemy.hp > 0
+);
+const restoredRun = restoredEncounterEngine.state.dungeons.currentRun;
+check(restoredLiveBoss &&
+  restoredLiveBoss.encounterHpScale === 50 &&
+  restoredLiveBoss.hp === restoredLiveBoss.maxHp &&
+  restoredBossSnapshot.active &&
+  restoredBossSnapshot.id === 'astralArchivist',
+'active restore should restart the full-strength Archivist and restore the encounter HUD contract');
+check(restoredEncounterEngine.enemies.filter((enemy) => enemy.hp > 0).length === 3 &&
+  restoredEncounterMinions.length === 2,
+'active restore should rebuild only the authored boss and two encounter adds');
+check(restoredRun &&
+  restoredRun.bossEncounterId === 'astralArchivist' &&
+  !restoredRun.bossDefeated &&
+  restoredRun.completedAt === 0 &&
+  restoredEncounterEngine.state.player.x === 160,
+'active restore should restart a clean run from the arena entrance');
+
+restoredEncounterEngine.defeatEnemy(restoredLiveBoss);
+check(restoredLiveBoss.defeatedAt > 0 &&
+  restoredEncounterEngine.state.dungeons.currentRun.bossDefeated,
+'the completed-restore fixture should defeat the restored Astral Archivist');
+const completedEncounterSave = restoredEncounterEngine.serialize();
+const completedEncounterEngine = createProjectStarfallEngine(null, data);
+check(completedEncounterEngine.restore(completedEncounterSave) === true,
+  'a completed Astral Stacks encounter save should restore');
+completedEncounterEngine.updateDungeonBossRespawns();
+completedEncounterEngine.spawnEnemiesIfNeeded();
+const completedRun = completedEncounterEngine.state.dungeons.currentRun;
+check(completedRun &&
+  completedRun.bossEncounterId === 'astralArchivist' &&
+  completedRun.bossDefeated &&
+  completedRun.completedAt > 0 &&
+  completedEncounterEngine.enemies.filter((enemy) => enemy.hp > 0).length === 0 &&
+  !completedEncounterEngine.getBossEncounterSnapshot().active,
+'completed restore should preserve the clear and never resurrect a generic reward-bearing Archivist');
+
 const astralEchoSummary = entryEngine.getQuestSummary(getQuest('astral_echo'));
 const travelObjective = astralEchoSummary &&
   astralEchoSummary.objectives.find((objective) => objective.id === 'reach_astral_stacks');

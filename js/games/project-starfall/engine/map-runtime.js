@@ -153,6 +153,20 @@
     };
   }
 
+  function resolveRuntimeCameraWorldHeight(metrics, platforms) {
+    const sourceMetrics = metrics || {};
+    const viewportBottom = Math.max(
+      0,
+      Number(sourceMetrics.worldHeight || 0),
+      Number(sourceMetrics.playfieldHeight || 0) + Number(sourceMetrics.solidPlatformHeight || 0)
+    );
+    const geometryBottom = (Array.isArray(platforms) ? platforms : []).reduce(
+      (bottom, platform) => Math.max(bottom, getPlatformBottomY(platform)),
+      0
+    );
+    return Math.max(viewportBottom, geometryBottom);
+  }
+
   function platformHorizontalGap(a, b) {
     if (!a || !b) return Infinity;
     if (a.x <= b.x + b.w && b.x <= a.x + a.w) return 0;
@@ -683,6 +697,7 @@
     const rampConnections = createRuntimeRampConnections(map, platforms);
     const lowestPlatformBottom = platforms.reduce((bottom, platform) => Math.max(bottom, getPlatformBottomY(platform)), 0);
     const worldHeight = Math.max(metrics.worldHeight, authoredWorldHeight, lowestPlatformBottom + metrics.solidPlatformHeight);
+    const cameraWorldHeight = resolveRuntimeCameraWorldHeight(metrics, platforms);
     const climbables = (map.climbables || []).map((climbable, index) => alignClimbable(Object.assign({}, climbable, {
       y: Number(climbable.y || 0) + geometryYOffset
     }), index, map.id, platforms));
@@ -753,6 +768,7 @@
       trialId: normalizeId(map.trialId),
       worldWidth,
       worldHeight,
+      cameraWorldHeight,
       playfieldWidth: metrics.width,
       playfieldHeight: metrics.playfieldHeight,
       solidPlatformHeight: metrics.solidPlatformHeight,
@@ -782,6 +798,7 @@
     getAuthoredPlatformShape,
     getAuthoredPlatformVisual,
     createRuntimePlatformLayout,
+    resolveRuntimeCameraWorldHeight,
     platformHorizontalGap,
     platformTransferX,
     findSurfacePlatform,

@@ -858,7 +858,9 @@
     const w = clamp(Math.round(width * 0.44), 360, 560);
     const x = Math.round((width - w) / 2);
     const y = settings.y != null ? Number(settings.y) : 14;
-    const h = settings.h != null ? Number(settings.h) : 72;
+    const spatialLabel = String(boss.pendingSpatialSectionLabel || '').trim();
+    const hasSpatialCall = !!(boss.pendingActionLabel && spatialLabel);
+    const h = settings.h != null ? Number(settings.h) : hasSpatialCall ? 90 : 72;
     const ratio = clamp(Number(boss.hpRatio || 0), 0, 1);
     const color = boss.color || '#ffbe55';
     const accent = boss.accentColor || '#ffffff';
@@ -866,7 +868,8 @@
     const phaseIndex = clamp(Math.floor(Number(boss.phaseIndex || 0)), 0, phaseCount - 1);
     const fillW = Math.max(5, Math.round((w - 22) * ratio));
     const phaseText = `${boss.phaseName || 'Phase'} ${phaseIndex + 1}/${phaseCount}`;
-    const actionText = boss.pendingActionLabel ? `${boss.pendingActionLabel} ${(boss.pendingActionProgress * 100).toFixed(0)}%` : boss.mechanic || '';
+    const actionProgress = clamp(Number(boss.pendingActionProgress || 0), 0, 1);
+    const actionText = boss.pendingActionLabel ? `${boss.pendingActionLabel} ${Math.round(actionProgress * 100)}%` : boss.mechanic || '';
     const tickW = Math.max(28, Math.min(62, (w - 30) / phaseCount - 4));
     const tickY = y + 49;
     const ticks = [];
@@ -968,6 +971,27 @@
         maxLines: 1,
         lineHeight: 11
       },
+      spatialBand: hasSpatialCall ? {
+        x: x + 11,
+        y: y + 69,
+        w: w - 22,
+        h: 14,
+        radius: 7,
+        fill: colorWithAlpha(color, 0.2),
+        stroke: colorWithAlpha(accent, 0.34)
+      } : null,
+      spatialText: hasSpatialCall ? {
+        value: `CALL · ${spatialLabel}`,
+        x: x + w / 2,
+        y: y + 76,
+        color: '#ffffff',
+        font: '950 10px system-ui',
+        align: 'center',
+        baseline: 'middle',
+        maxWidth: w - 34,
+        maxLines: 1,
+        lineHeight: 11
+      } : null,
       ticks
     };
   }
@@ -1094,6 +1118,8 @@
       ctx.fillStyle = tick.fill;
       ctx.fillRect(tick.x, tick.y, tick.w, tick.h);
     });
+    drawRoundRectEntry(drawRoundRect, hud.spatialBand);
+    drawCanvasTextEntry(drawCanvasText, hud.spatialText);
     ctx.restore();
     return true;
   }

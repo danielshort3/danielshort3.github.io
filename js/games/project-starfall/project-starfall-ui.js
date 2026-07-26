@@ -16581,7 +16581,12 @@
       const ticks = Array.from({ length: Math.max(1, Number(boss.phaseCount || 1)) }).map((_, index) => `
         <span class="${index <= Number(boss.phaseIndex || 0) ? 'is-active' : ''}" aria-hidden="true"></span>
       `).join('');
-      const action = boss.pendingActionLabel ? ` - ${boss.pendingActionLabel}` : '';
+      const spatialSectionLabel = String(boss.pendingSpatialSectionLabel || '').trim();
+      const pendingActionLabel = String(boss.pendingActionLabel || '').trim();
+      const action = pendingActionLabel && !spatialSectionLabel ? ` - ${pendingActionLabel}` : '';
+      const spatialCall = spatialSectionLabel
+        ? `CALL · ${spatialSectionLabel}${pendingActionLabel ? ` · ${pendingActionLabel}` : ''}`
+        : '';
       return `
         <div class="project-starfall-boss-hud" style="--boss-color:${escapeHtml(boss.color || '#ffbe55')}; --boss-accent:${escapeHtml(boss.accentColor || '#ffffff')};">
           <div class="project-starfall-boss-hud-head">
@@ -16591,6 +16596,7 @@
           <div class="project-starfall-boss-hud-meter" role="meter" aria-label="${escapeHtml(boss.bossName || boss.name || 'Boss')} HP ${Math.round(ratio * 100)}%" aria-valuemin="0" aria-valuemax="${Math.round(Number(boss.maxHp || 1))}" aria-valuenow="${Math.round(Number(boss.hp || 0))}">
             <i style="width:${(ratio * 100).toFixed(2)}%"></i>
           </div>
+          ${spatialCall ? `<div class="project-starfall-boss-hud-call">${escapeHtml(spatialCall)}</div>` : ''}
           <div class="project-starfall-boss-hud-foot">
             <span>${escapeHtml(boss.phaseDescription || boss.mechanic || '')}</span>
             <span class="project-starfall-boss-hud-ticks">${ticks}</span>
