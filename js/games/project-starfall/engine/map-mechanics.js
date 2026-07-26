@@ -369,6 +369,7 @@
       goal,
       progressPercent: clamp(progress / goal, 0, 1),
       requiredUniqueSections: Math.max(1, Number(definition.requiredUniqueSections || 1)),
+      requiredSectionOrder: !!definition.requiredSectionOrder,
       currentUniqueSections: state.cycleSectionIds ? state.cycleSectionIds.length : 0,
       orderedSectionIds: state.orderedSectionIds ? state.orderedSectionIds.slice() : [],
       nextSectionId: state.activeSectionId,

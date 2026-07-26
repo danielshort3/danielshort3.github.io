@@ -21248,6 +21248,7 @@
         goal,
         progressPercent: clamp(progress / goal, 0, 1),
         requiredUniqueSections: Math.max(1, Number(definition.requiredUniqueSections || 1)),
+        requiredSectionOrder: !!definition.requiredSectionOrder,
         currentUniqueSections: entry && entry.cycleSectionIds ? entry.cycleSectionIds.length : 0,
         orderedSectionIds: entry && entry.orderedSectionIds ? entry.orderedSectionIds.slice() : [],
         nextSectionId: entry && entry.activeSectionId || '',
@@ -42047,7 +42048,7 @@
 
       this.profilePerformancePhase('draw', 'overlaySnapshot:panelData', () => {
         const navigationContext = needsWorldMap ? { routeState: this.state.routeProgress, dungeons: this.state.dungeons } : null;
-        snapshot.routeProgress = needsWorldMap ? this.getRouteProgressSnapshot() : { routes: [] };
+        snapshot.routeProgress = this.getRouteProgressSnapshot();
         snapshot.worldMap = needsWorldMap ? this.getWorldMapSnapshot() : { nodes: [], edges: [], pathHint: null };
         snapshot.travel = needsWorldMap ? {
           maps: (Data.MAPS || []).map((map) => ({

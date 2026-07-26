@@ -148,7 +148,9 @@
 
   function makeExpandedTrainingMap(config) {
     const layoutStyle = config.layoutStyle || FIELD_LAYOUT_STYLES[config.id] || 'sharedLanes';
-    const width = isVerticalFieldLayout(layoutStyle) ? 5200 : 8400;
+    const defaultWidth = isVerticalFieldLayout(layoutStyle) ? 5200 : 8400;
+    const compactWorldWidth = Math.max(0, Number(config.compactWorldWidth || 0));
+    const width = compactWorldWidth || defaultWidth;
     const platforms = assignStablePlatformIds(config.id, makeFieldPlatforms(width, layoutStyle, config.id));
     return {
       id: config.id,
@@ -161,6 +163,7 @@
       layoutRole: config.layoutRole || (config.endlessScaling ? 'endlessField' : 'trainingField'),
       scaleEnemies: true,
       endlessScaling: !!config.endlessScaling,
+      compactWorldWidth,
       movementProfile: config.movementProfile || '',
       areaMechanic: config.areaMechanic || '',
       waveMax: config.waveMax || 30,

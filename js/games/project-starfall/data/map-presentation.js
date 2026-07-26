@@ -762,20 +762,61 @@
       }),
       eclipseFrontier: createFieldComposition({
         routeSections: [
-          { label: 'Solar Outpost', x: 0, w: 1300, tier: 'outpost' },
-          { label: 'Lunar Outpost', x: 1300, w: 1300, tier: 'outpost' },
-          { label: 'Eclipse Gate', x: 2600, w: 1300, tier: 'sigil' },
-          { label: 'Elite Pocket', x: 3900, w: 1300, tier: 'elite' }
+          {
+            label: 'Solar Outpost',
+            x: 0,
+            w: 1600,
+            tier: 'solar',
+            platformIds: [
+              'eclipse_frontier_solid_lane_01',
+              'eclipse_frontier_solid_lane_02',
+              'eclipse_frontier_solid_lane_03'
+            ]
+          },
+          {
+            label: 'Lunar Outpost',
+            x: 1600,
+            w: 1200,
+            tier: 'lunar',
+            platformIds: [
+              'eclipse_frontier_solid_lane_04',
+              'eclipse_frontier_solid_lane_05',
+              'eclipse_frontier_solid_lane_06'
+            ]
+          },
+          {
+            label: 'Eclipse Gate',
+            x: 2800,
+            w: 1400,
+            tier: 'sigil',
+            platformIds: [
+              'eclipse_frontier_solid_lane_07',
+              'eclipse_frontier_solid_lane_08',
+              'eclipse_frontier_solid_lane_09'
+            ]
+          },
+          {
+            label: 'Elite Pocket',
+            x: 4200,
+            w: 1400,
+            tier: 'elite',
+            platformIds: [
+              'eclipse_frontier_solid_lane_10',
+              'eclipse_frontier_solid_lane_11',
+              'eclipse_frontier_solid_lane_12'
+            ]
+          }
         ],
         portalRoles: {
           eclipse_archive: 'archive return',
-          eclipse_rift: 'rift advance'
+          eclipse_rift: 'rift advance',
+          frontier_eclipse_throne: 'eclipse echo perch'
         },
         landmarkBands: [
-          { kind: 'glow', x: 420, w: 640, label: 'Solar Outpost' },
-          { kind: 'crystal', x: 1680, w: 640, label: 'Lunar Outpost' },
-          { kind: 'sign', x: 2920, w: 580, label: 'Eclipse Gate' },
-          { kind: 'tall', x: 4200, w: 560, label: 'Elite Pocket' }
+          { kind: 'glow', x: 320, w: 860, label: 'Solar Outpost' },
+          { kind: 'crystal', x: 1720, w: 860, label: 'Lunar Outpost' },
+          { kind: 'sign', x: 3120, w: 860, label: 'Eclipse Gate' },
+          { kind: 'tall', x: 4520, w: 860, label: 'Elite Pocket' }
         ],
         spawnZoneLabels: [
           { label: 'Solar outpost', platformTier: 'low' },
@@ -989,7 +1030,7 @@
       { id: 'rimewardenSanctum', intendedArchetype: 'H/I staged frost-vault route', intendedUseCase: 'full party dungeon', routeSummary: 'Break the Brute Gate, silence the Whiteout Shelf, then challenge the Rimewarden inside the opened Sentinel Shelf.', partyRoleTarget: 'Frontline anchors the grounded gate, ranged clears the oracle and flyer shelf, and support calls ice-wall rotations during the final reveal.', farmingAbuseRisk: 'medium', visualIdentityTag: 'playful frost vault and ice-wall seal', spawnSectionModel: 'brute gate, whiteout shelf, sentinel boss seal', priorityRedesign: true, implementationStatus: 'composition-route-v1' },
       { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, and high harrier airspace before regrouping at the spawn-free lightning rod perch.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control at the lightning rod regroup station.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, spawn-free rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'astralArchive', intendedArchetype: 'C/F room-loop archive', intendedUseCase: 'late solo/duo', routeSummary: 'Loop reading rooms through rune lifts and break line-of-sight shelves.', partyRoleTarget: 'Duo split adjacent rooms and regroup at archive console.', farmingAbuseRisk: 'high', visualIdentityTag: 'rune archive rooms', spawnSectionModel: 'reading room loops and index shelves' },
-      { id: 'eclipseFrontier', intendedArchetype: 'G/J elite frontier', intendedUseCase: 'high-risk farming small party', routeSummary: 'Patrol three outposts, rotate eclipse sigils, and enter capped elite pockets.', partyRoleTarget: 'Small party splits outposts, then regroups for sigil/elite pulses.', farmingAbuseRisk: 'very high', visualIdentityTag: 'eclipse frontier outposts', spawnSectionModel: 'outpost A, outpost B, eclipse gate, elite pocket', partyScaling: 'section-count' },
+      { id: 'eclipseFrontier', intendedArchetype: 'G/J ordered elite frontier', intendedUseCase: 'high-risk farming small party', routeSummary: 'Climb the Solar and Lunar outposts, tune the Eclipse Gate, then break the capped Elite Pocket.', partyRoleTarget: 'Frontliner advances each outpost while ranged and support clear its upper sigil tiers before the group rotates.', farmingAbuseRisk: 'very high', visualIdentityTag: 'playful solar and lunar frontier outposts', spawnSectionModel: 'solar outpost, lunar outpost, eclipse gate, elite pocket', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-mechanic-v1' },
       { id: 'endlessRift', intendedArchetype: 'F/J scaling circular loop', intendedUseCase: 'endgame high-density farming', routeSummary: 'Run the lower-left, upper-left, upper-right, and lower-right Rift quadrants around a safe central core, then Push or Bank after stabilizing the tier.', partyRoleTarget: 'Party rotates the four ring quadrants and regroups at the central Rift Core for tier decisions.', farmingAbuseRisk: 'very high', visualIdentityTag: 'playful unstable rift ring', spawnSectionModel: 'four platform-authored quadrants around a spawn-free core', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'bramblekingCourt', intendedArchetype: 'H/E root boss room', intendedUseCase: 'boss', routeSummary: 'Move between root lanes, destroy thorn pods, and expose the Brambleking crown.', partyRoleTarget: 'Small party splits root floor and pod shelf.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bramble crown court', spawnSectionModel: 'root lane, pod shelf, crown platform', implementationStatus: 'arena-skeleton-v1' },
       { id: 'titanFoundry', intendedArchetype: 'H/E factory boss room', intendedUseCase: 'boss full party', routeSummary: 'Operate armor switches while sentries pressure the upper catwalk.', partyRoleTarget: 'Tank boss floor, ranged sentries, support switch rotation.', farmingAbuseRisk: 'medium', visualIdentityTag: 'titan gear foundry', spawnSectionModel: 'gear floor, armor switches, sentry catwalk', implementationStatus: 'arena-skeleton-v1' },
@@ -1096,6 +1137,32 @@
         reward: { currency: 120, materials: { stormFletching: 5, galeFeather: 3 } },
         rewardAbuseControl: 'Rod charge requires three distinct cliff jobs so one safe lane cannot farm the full objective.',
         partyRoleHook: 'Frontliner holds rams, ranged handles archers and harriers, support regroups at the lightning rod.'
+      }),
+      eclipseFrontier: createMapMechanicDefinition({
+        id: 'eclipse_sigil_patrol',
+        mapId: 'eclipseFrontier',
+        type: 'patrol-loop',
+        label: 'Eclipse Sigil Patrol',
+        summary: 'Clear three guards at each frontier sigil in Solar, Lunar, Gate, and Elite order.',
+        sections: [
+          { id: 'eclipseFrontier_solar_outpost', label: 'Solar Outpost', role: 'solar', weight: 1 },
+          { id: 'eclipseFrontier_lunar_outpost', label: 'Lunar Outpost', role: 'lunar', weight: 1 },
+          { id: 'eclipseFrontier_eclipse_gate', label: 'Eclipse Gate', role: 'sigil', weight: 1.15 },
+          { id: 'eclipseFrontier_elite_pocket', label: 'Elite Pocket', role: 'elite', weight: 1.35 }
+        ],
+        activeSectionIds: ['eclipseFrontier_solar_outpost', 'eclipseFrontier_lunar_outpost', 'eclipseFrontier_eclipse_gate', 'eclipseFrontier_elite_pocket'],
+        objectiveSectionId: 'eclipseFrontier_elite_pocket',
+        regroupSectionId: 'eclipseFrontier_elite_pocket',
+        eventKillGoal: 12,
+        requiredUniqueSections: 4,
+        requiredSectionOrder: true,
+        killsPerSection: 3,
+        repeatWarningThreshold: 13,
+        penaltyPerStack: 0.1,
+        minimumRewardScale: 0.55,
+        reward: { currency: 150, materials: { cubeFragment: 2 } },
+        rewardAbuseControl: 'Only the highlighted sigil advances the patrol; clearing one full outpost pack is safe, while repeated farming beyond it suppresses rewards.',
+        partyRoleHook: 'Frontliner anchors each lower lane while ranged and support clear the upper tiers before the party rotates.'
       }),
       endlessRift: createMapMechanicDefinition({
         id: 'endless_rift_surge',
