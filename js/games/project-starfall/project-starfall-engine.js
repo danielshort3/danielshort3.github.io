@@ -16587,8 +16587,14 @@
     getBossSpatialMechanicSnapshot(encounter, activeBoss) {
       const definition = this.getBossSpatialMechanicDefinition(encounter);
       if (!definition) return null;
-      const hooks = Object.keys(definition.hooks || {}).map((actionId) => {
-        const hook = definition.hooks[actionId] || {};
+      const bossId = normalizeId(encounter && encounter.bossId || activeBoss && activeBoss.id);
+      const hooksByAction = Object.assign(
+        {},
+        definition.hooks || {},
+        definition.bossHooks && definition.bossHooks[bossId] || {}
+      );
+      const hooks = Object.keys(hooksByAction).map((actionId) => {
+        const hook = hooksByAction[actionId] || {};
         const section = this.getRuntimeBossSpatialSection(hook);
         return {
           actionId,
@@ -27733,73 +27739,144 @@
 
     getActiveDungeonRouteGateX(map) {
       const context = this.getDungeonEncounterFlowContext(map);
-      if (!context || context.flow.status === 'complete' || context.beat.kind === 'boss') return 0;
+      if (!context || context.flow.status === 'complete') return 0;
       return Math.max(0, Number(context.beat.gateX || 0));
+    }
+
+    getDungeonRouteEntranceGateX(context, proposedX) {
+      const activeContext = context || null;
+      const configuredX = activeContext && activeContext.flow.status !== 'complete'
+        ? Math.max(0, Number(activeContext.beat.entryGateX || 0))
+        : 0;
+      if (!activeContext || !configuredX) {
+        this.dungeonRouteEntranceGateState = null;
+        return 0;
+      }
+      const key = [
+        activeContext.definition.id,
+        Number(activeContext.run.startedAt || 0),
+        activeContext.beat.id,
+        configuredX
+      ].join(':');
+      let state = this.dungeonRouteEntranceGateState;
+      if (!state || state.key !== key) {
+        state = { key, armed: false };
+        this.dungeonRouteEntranceGateState = state;
+      }
+      const player = this.state && this.state.player;
+      const candidateX = Number.isFinite(Number(proposedX))
+        ? Number(proposedX)
+        : player
+          ? Number(player.x || 0)
+          : 0;
+      if (!state.armed && player && candidateX >= configuredX + 18) state.armed = true;
+      return state.armed ? configuredX : 0;
+    }
+
+    getActiveDungeonRouteGateBounds(map, options) {
+      const settings = options || {};
+      const context = this.getDungeonEncounterFlowContext(map);
+      if (!context || context.flow.status === 'complete') {
+        this.getDungeonRouteEntranceGateX(null);
+        return { minX: 0, maxX: 0, context: null };
+      }
+      return {
+        minX: this.getDungeonRouteEntranceGateX(context, settings.proposedX),
+        maxX: Math.max(
+          0,
+          Number(context.beat.gateX || 0),
+          Number(context.beat.arenaMaxX || 0)
+        ),
+        context
+      };
     }
 
     syncDungeonEncounterRouteGateEffect(context) {
       const activeContext = context || this.getDungeonEncounterFlowContext();
-      const gateX = activeContext && activeContext.flow.status !== 'complete' && activeContext.beat.kind !== 'boss'
-        ? Math.max(0, Number(activeContext.beat.gateX || 0))
+      const maxX = activeContext && activeContext.flow.status !== 'complete'
+        ? Math.max(
+            0,
+            Number(activeContext.beat.gateX || 0),
+            Number(activeContext.beat.arenaMaxX || 0)
+          )
         : 0;
+      const minX = this.getDungeonRouteEntranceGateX(activeContext);
       const runStartedAt = activeContext ? Number(activeContext.run.startedAt || 0) : 0;
       const beatId = activeContext ? activeContext.beat.id : '';
-      let activeEffect = null;
+      const desiredGates = [];
+      if (maxX > 0) desiredGates.push({ role: 'forward', x: maxX });
+      if (minX > 0) desiredGates.push({ role: 'entrance', x: minX });
+      const activeEffects = new Map();
       this.effects = (this.effects || []).filter((effect) => {
         if (!effect || !effect.dungeonRouteGate) return true;
-        const matches = gateX > 0 &&
+        const role = effect.dungeonRouteGateRole || 'forward';
+        const desired = desiredGates.find((gate) => gate.role === role && Number(effect.gateX || 0) === gate.x);
+        const matches = !!desired &&
           normalizeId(effect.dungeonBeatId) === beatId &&
-          Number(effect.dungeonBeatRunStartedAt || 0) === runStartedAt &&
-          Number(effect.gateX || 0) === gateX;
-        if (matches && !activeEffect) {
-          activeEffect = effect;
+          Number(effect.dungeonBeatRunStartedAt || 0) === runStartedAt;
+        if (matches && !activeEffects.has(role)) {
+          activeEffects.set(role, effect);
           return true;
         }
         return false;
       });
-      if (!gateX) return null;
-      if (!activeEffect) {
-        activeEffect = {
-          type: 'telegraph',
-          telegraphKind: 'routeGate',
-          telegraphShape: 'rect',
-          intentLabel: 'ROUTE SEALED',
-          dungeonRouteGate: true,
-          dungeonEncounterFlowId: activeContext.flow.id,
-          dungeonBeatId: beatId,
-          dungeonBeatRunStartedAt: runStartedAt,
-          gateX,
-          x: gateX - 5,
-          y: 58,
-          w: 10,
-          h: Math.max(120, PLAYFIELD_HEIGHT - 108),
-          color: activeContext.map && activeContext.map.palette && activeContext.map.palette[2] || '#7bdff2',
-          duration: 0.7,
-          ttl: 0.7
-        };
-        this.effects.push(activeEffect);
-      } else {
-        activeEffect.ttl = Math.max(Number(activeEffect.ttl || 0), 0.7);
-      }
-      return activeEffect;
+      desiredGates.forEach((gate) => {
+        let activeEffect = activeEffects.get(gate.role);
+        if (!activeEffect) {
+          activeEffect = {
+            type: 'telegraph',
+            telegraphKind: 'routeGate',
+            telegraphShape: 'rect',
+            intentLabel: gate.role === 'entrance' ? 'ROOM SEALED' : 'ROUTE SEALED',
+            dungeonRouteGate: true,
+            dungeonRouteGateRole: gate.role,
+            dungeonEncounterFlowId: activeContext.flow.id,
+            dungeonBeatId: beatId,
+            dungeonBeatRunStartedAt: runStartedAt,
+            gateX: gate.x,
+            x: gate.x - 5,
+            y: 58,
+            w: 10,
+            h: Math.max(120, PLAYFIELD_HEIGHT - 108),
+            color: activeContext.map && activeContext.map.palette &&
+              activeContext.map.palette[gate.role === 'entrance' ? 1 : 2] || '#7bdff2',
+            duration: 0.7,
+            ttl: 0.7
+          };
+          this.effects.push(activeEffect);
+          activeEffects.set(gate.role, activeEffect);
+        } else {
+          activeEffect.ttl = Math.max(Number(activeEffect.ttl || 0), 0.7);
+        }
+      });
+      return activeEffects.get('forward') || activeEffects.get('entrance') || null;
     }
 
     applyDungeonRouteGateClamp(proposedX, options) {
       const settings = options || {};
       const player = this.state && this.state.player;
-      const gateX = this.getActiveDungeonRouteGateX();
-      if (!player || !gateX) return { x: Number(proposedX || 0), blocked: false };
+      if (!player) return { x: Number(proposedX || 0), blocked: false };
+      const gates = this.getActiveDungeonRouteGateBounds(null, { proposedX });
+      if (!gates.minX && !gates.maxX) return { x: Number(proposedX || 0), blocked: false };
       const worldWidth = Math.max(0, Number(this.runtime && this.runtime.worldWidth || 0));
-      const plan = getDungeonRouteGateXClampPlanForMovement(
-        proposedX,
-        player.w,
-        gateX,
-        18,
-        { minX: 10, maxX: Math.max(10, worldWidth - Number(player.w || 0) - 10) }
-      );
-      if (!plan.blocked) return plan;
+      const plan = gates.maxX
+        ? getDungeonRouteGateXClampPlanForMovement(
+            proposedX,
+            player.w,
+            gates.maxX,
+            18,
+            { minX: 10, maxX: Math.max(10, worldWidth - Number(player.w || 0) - 10) }
+          )
+        : { x: Number(proposedX || 0), blocked: false };
+      const entranceMinX = gates.minX > 0 ? gates.minX + 18 : 10;
+      const entranceBlocked = gates.minX > 0 && Number(plan.x || 0) < entranceMinX;
+      const resolvedX = entranceBlocked ? entranceMinX : Number(plan.x || 0);
+      if (!plan.blocked && !entranceBlocked) return { x: resolvedX, blocked: false };
+      plan.x = resolvedX;
+      plan.blocked = true;
       player.x = plan.x;
       if (Number(player.vx || 0) > 0) player.vx = 0;
+      if (entranceBlocked && Number(player.vx || 0) < 0) player.vx = 0;
       player.mobility = null;
       player.airMobilitySkillId = '';
       player.airDashMomentumUntilGround = false;
@@ -27990,6 +28067,7 @@
         nowMs: Date.now()
       });
       if (!result || !result.accepted) return result || null;
+      if (result.advanced) this.purgeDungeonEncounterBeatAdds(context, result.beatId);
       if (result.advanced && !result.complete) this.spawnDungeonEncounterBeat(context.map);
       if (result.advanced) {
         const nextContext = this.getDungeonEncounterFlowContext();
@@ -28000,6 +28078,107 @@
             : 'Route advanced.';
         this.toast(label, { noEmit: true });
       }
+      return result;
+    }
+
+    purgeDungeonEncounterBeatAdds(context, beatId) {
+      const activeContext = context || null;
+      const id = normalizeId(beatId);
+      if (!activeContext || !id) return { enemies: 0, pending: 0 };
+      const runStartedAt = Number(activeContext.run.startedAt || 0);
+      const matchesOwner = (entry) => entry &&
+        entry.dungeonEncounterAdd &&
+        normalizeId(entry.dungeonEncounterParentBeatId) === id &&
+        normalizeId(entry.dungeonEncounterDungeonId) === activeContext.definition.dungeonId &&
+        normalizeId(entry.dungeonEncounterMapId) === activeContext.definition.mapId &&
+        Number(entry.dungeonEncounterRunStartedAt || 0) === runStartedAt;
+      let removedEnemies = 0;
+      this.enemies = (this.enemies || []).filter((entry) => {
+        if (!matchesOwner(entry)) return true;
+        removedEnemies += 1;
+        return false;
+      });
+      const wave = this.getWaveState(activeContext.definition.mapId);
+      let removedPending = 0;
+      if (wave && Array.isArray(wave.pending)) {
+        wave.pending = wave.pending.filter((entry) => {
+          if (!matchesOwner(entry)) return true;
+          removedPending += 1;
+          return false;
+        });
+        if (!wave.pending.length) wave.nextAt = 0;
+      }
+      return { enemies: removedEnemies, pending: removedPending };
+    }
+
+    getDungeonEncounterRouteStationContext(stationId) {
+      const id = normalizeId(stationId);
+      const context = this.getDungeonEncounterFlowContext();
+      if (!id || !context || !Array.isArray(context.definition.beats)) return null;
+      const stationBeat = context.definition.beats.find((beat) =>
+        beat &&
+        beat.kind === 'interaction' &&
+        Array.isArray(beat.stationIds) &&
+        beat.stationIds.includes(id)
+      );
+      if (!stationBeat) return null;
+      return Object.assign({}, context, {
+        stationId: id,
+        stationBeat,
+        active: context.flow.status !== 'complete' && stationBeat.id === context.beat.id,
+        complete: Array.isArray(context.flow.completedInteractionIds) &&
+          context.flow.completedInteractionIds.includes(id)
+      });
+    }
+
+    isDungeonEncounterRouteStation(stationId) {
+      return !!this.getDungeonEncounterRouteStationContext(stationId);
+    }
+
+    advanceDungeonEncounterFlowForInteraction(stationId, options) {
+      const settings = options || {};
+      const context = this.getDungeonEncounterRouteStationContext(stationId);
+      const recordInteraction = getEngineDungeonHelper('recordDungeonEncounterInteraction');
+      if (!context || !recordInteraction) return null;
+      if (!context.active) {
+        if (!settings.silent) {
+          this.toast(context.complete || context.flow.status === 'complete'
+            ? `${context.stationBeat.name} is already complete.`
+            : `${context.stationBeat.name} is not ready yet.`, { noEmit: true });
+        }
+        return {
+          accepted: false,
+          advanced: false,
+          complete: context.flow.status === 'complete',
+          reason: context.complete ? 'duplicate' : 'wrong-beat'
+        };
+      }
+      const result = recordInteraction(context.run, context.stationId, {
+        data: Data,
+        mapId: this.state.mapId,
+        nowMs: Date.now()
+      });
+      if (!result || !result.accepted) return result || null;
+      this.recordProgressEvent('interact', {
+        stationId: context.stationId,
+        mapId: this.state.mapId
+      }, { noEmit: true });
+      if (result.advanced && !result.complete) this.spawnDungeonEncounterBeat(context.map);
+      else this.syncDungeonEncounterRouteGateEffect();
+      if (!settings.silent) {
+        const nextContext = this.getDungeonEncounterFlowContext();
+        const label = result.complete
+          ? 'Expedition route secured.'
+          : result.advanced && nextContext && nextContext.beat
+            ? `${context.stationBeat.name} primed. ${nextContext.beat.name} opened.`
+            : `${context.stationBeat.name} primed.`;
+        this.toast(label, { noEmit: true });
+      }
+      this.emitUiChange({
+        domains: ['hud', 'session', 'quests', 'world'],
+        reason: 'dungeonRouteInteraction',
+        persist: true
+      });
       return result;
     }
 
@@ -28167,6 +28346,12 @@
         spawnPlatformIndex,
         spawnSectionId: normalizeId(enemy.spawnSectionId),
         spawnSectionLabel: String(enemy.spawnSectionLabel || ''),
+        dungeonEncounterAdd: !!enemy.dungeonEncounterAdd,
+        dungeonEncounterFlowId: normalizeId(enemy.dungeonEncounterFlowId),
+        dungeonEncounterParentBeatId: normalizeId(enemy.dungeonEncounterParentBeatId),
+        dungeonEncounterDungeonId: normalizeId(enemy.dungeonEncounterDungeonId),
+        dungeonEncounterMapId: normalizeId(enemy.dungeonEncounterMapId),
+        dungeonEncounterRunStartedAt: Number(enemy.dungeonEncounterRunStartedAt || 0),
         respawnAt: 0
       };
     }
@@ -31467,7 +31652,9 @@
     getBossSpatialActionHook(encounter, actionId) {
       const definition = this.getBossSpatialMechanicDefinition(encounter);
       if (!definition || !definition.hooks) return null;
-      const hook = definition.hooks[normalizeId(actionId)];
+      const bossId = normalizeId(encounter && encounter.bossId || encounter && encounter.id);
+      const bossHooks = definition.bossHooks && definition.bossHooks[bossId] || {};
+      const hook = bossHooks[normalizeId(actionId)] || definition.hooks[normalizeId(actionId)];
       return hook ? { definition, hook } : null;
     }
 
@@ -31825,6 +32012,18 @@
       ));
       add.encounterMinion = true;
       add.aggroSource = 'bossEncounter';
+      const dungeonContext = this.getDungeonEncounterFlowContext();
+      if (dungeonContext &&
+        dungeonContext.beat.kind === 'boss' &&
+        dungeonContext.beat.bossIds.includes(normalizeId(encounter.bossId))) {
+        add.dungeonEncounterAdd = true;
+        add.dungeonEncounterFlowId = dungeonContext.flow.id;
+        add.dungeonEncounterParentBeatId = dungeonContext.beat.id;
+        add.dungeonEncounterDungeonId = dungeonContext.definition.dungeonId;
+        add.dungeonEncounterMapId = dungeonContext.definition.mapId;
+        add.dungeonEncounterRunStartedAt = Number(dungeonContext.run.startedAt || 0);
+        add.preventWaveRespawn = true;
+      }
       this.setEnemyAggro(add, this.getCombatCharacterByTarget('player', 'player'), 'bossEncounter', ENEMY_ATTACK_AGGRO_SECONDS * 2);
       this.enemies.push(add);
       if (!(options && options.quiet)) {
@@ -32881,6 +33080,9 @@
         }
         player.activeStation = station.id;
         const handled = this.interact();
+        if (this.isDungeonEncounterRouteStation(station.id)) {
+          return { handled, panel: false };
+        }
         return { handled, panel: true, panelId: this.lastInteractionPanelId || this.state.session.selectedPanel || '' };
       }
       const portal = this.runtime.portals.find((item) => rectsOverlap(clickBox, item));
@@ -32901,7 +33103,7 @@
       if (this.state.player.activeStation) {
         const activeStationId = this.state.player.activeStation;
         const handled = this.interact();
-        if (activeStationId === 'stormbreak_lightning_rod') {
+        if (activeStationId === 'stormbreak_lightning_rod' || this.isDungeonEncounterRouteStation(activeStationId)) {
           return { handled, panel: false };
         }
         return { handled, panel: true, panelId: this.lastInteractionPanelId || this.state.session.selectedPanel || '' };
@@ -40216,6 +40418,11 @@
         if (!settings.silent) this.toast('No station nearby.');
         return false;
       }
+      const dungeonRouteStation = this.getDungeonEncounterRouteStationContext(station);
+      if (dungeonRouteStation) {
+        const result = this.advanceDungeonEncounterFlowForInteraction(station, settings);
+        return !!(result && result.accepted);
+      }
       const mapMechanicDefinition = this.getMapMechanicDefinition(this.state.mapId);
       const objectiveTarget = getMapMechanicObjectiveTarget(mapMechanicDefinition);
       if (objectiveTarget && objectiveTarget.type === 'station' && normalizeId(station) === objectiveTarget.id) {
@@ -43866,6 +44073,7 @@
         this.runtime.portals.forEach((portal) => this.drawPortal(ctx, portal));
       });
       this.profilePerformancePhase('draw', 'mapGeometry:staticLayer:actors', () => this.drawMapStaticLayer(ctx, map, 'actors'));
+      this.profilePerformancePhase('draw', 'mapGeometry:dungeonRouteStations', () => this.drawDungeonRouteStationEffects(ctx, map));
       this.profilePerformancePhase('draw', 'mapGeometry:mechanicObjective', () => this.drawMapMechanicObjectiveEffect(ctx, map));
     }
 
@@ -43873,6 +44081,10 @@
       this.runtime.stations.forEach((station) => {
         if (station.id === 'stormbreak_lightning_rod') {
           this.drawLightningRodStation(ctx, station);
+          return;
+        }
+        if (station.id === 'gearworks_master_switch') {
+          this.drawGearworksMasterSwitch(ctx, station);
           return;
         }
         const stationImage = this.getAsset(station.asset);
@@ -43895,6 +44107,134 @@
         ctx.textAlign = 'center';
         ctx.fillText(station.name.split(' ')[0], station.x + station.w / 2, station.y - 8);
       });
+    }
+
+    drawGearworksMasterSwitch(ctx, station) {
+      const cx = station.x + station.w / 2;
+      const floorY = station.y + station.h;
+      const gearY = station.y + 18;
+      ctx.save();
+      ctx.fillStyle = 'rgba(18,25,33,0.28)';
+      ctx.beginPath();
+      ctx.ellipse(cx, floorY - 1, 39, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#3f4752';
+      ctx.strokeStyle = '#24303b';
+      ctx.lineWidth = 4;
+      ctx.fillRect(cx - 38, floorY - 22, 76, 22);
+      ctx.strokeRect(cx - 38, floorY - 22, 76, 22);
+      ctx.fillStyle = '#8c6b35';
+      ctx.fillRect(cx - 31, floorY - 17, 62, 9);
+      ctx.fillStyle = '#d8b65c';
+      ctx.fillRect(cx - 25, floorY - 15, 30, 3);
+
+      ctx.translate(cx - 13, gearY);
+      ctx.fillStyle = '#d8b65c';
+      ctx.strokeStyle = '#3a3328';
+      ctx.lineWidth = 3;
+      for (let tooth = 0; tooth < 8; tooth += 1) {
+        ctx.save();
+        ctx.rotate(tooth * Math.PI / 4);
+        ctx.fillRect(-5, -30, 10, 12);
+        ctx.strokeRect(-5, -30, 10, 12);
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#29b3ad';
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#d8fbf7';
+      ctx.beginPath();
+      ctx.arc(-3, -3, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.translate(-cx + 13, -gearY);
+
+      ctx.strokeStyle = '#3a3328';
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx + 18, floorY - 20);
+      ctx.lineTo(cx + 28, station.y - 11);
+      ctx.stroke();
+      ctx.strokeStyle = '#7a8592';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx + 18, floorY - 20);
+      ctx.lineTo(cx + 28, station.y - 11);
+      ctx.stroke();
+      ctx.fillStyle = '#29b3ad';
+      ctx.strokeStyle = '#24303b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx + 28, station.y - 13, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#24303b';
+      ctx.font = '900 11px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('GEAR', cx, station.y - 28);
+      ctx.restore();
+    }
+
+    drawDungeonRouteStationEffects(ctx, map) {
+      if (!map || map.id !== 'gearworksVault') return;
+      const station = (this.runtime.stations || []).find((entry) =>
+        entry && entry.id === 'gearworks_master_switch');
+      const routeStation = station && this.getDungeonEncounterRouteStationContext(station.id);
+      if (!station || !routeStation) return;
+      const phase = routeStation.complete
+        ? 'primed'
+        : routeStation.active
+          ? 'ready'
+          : 'locked';
+      const reducedEffects = this.shouldReduceEffects();
+      const animationTime = reducedEffects ? 0 : nowSeconds();
+      const pulse = reducedEffects ? 0.5 : (Math.sin(animationTime * 5.4) + 1) / 2;
+      const gearX = station.x + station.w / 2 - 13;
+      const gearY = station.y + 18;
+      ctx.save();
+      ctx.lineCap = 'round';
+      if (phase === 'locked') {
+        ctx.globalAlpha = 0.34;
+        ctx.strokeStyle = '#7a8592';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath();
+        ctx.arc(gearX, gearY, 32, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.globalAlpha = phase === 'ready' ? 0.34 + pulse * 0.28 : 0.55;
+        ctx.strokeStyle = phase === 'ready' ? '#8af3e9' : '#f3d97b';
+        ctx.lineWidth = phase === 'ready' ? 4 + pulse * 2 : 5;
+        ctx.beginPath();
+        ctx.arc(gearX, gearY, 32 + (phase === 'ready' ? pulse * 4 : 0), 0, Math.PI * 2);
+        ctx.stroke();
+        if (phase === 'ready') {
+          ctx.fillStyle = '#d8fbf7';
+          for (let spark = 0; spark < 3; spark += 1) {
+            const angle = animationTime * 1.8 + spark * Math.PI * 2 / 3;
+            ctx.beginPath();
+            ctx.arc(gearX + Math.cos(angle) * 39, gearY + Math.sin(angle) * 28, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else {
+          ctx.strokeStyle = '#29b3ad';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(gearX - 10, gearY);
+          ctx.lineTo(gearX - 2, gearY + 8);
+          ctx.lineTo(gearX + 13, gearY - 9);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
     }
 
     drawLightningRodStation(ctx, station) {

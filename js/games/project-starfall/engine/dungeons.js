@@ -14,7 +14,7 @@
   };
 
   const DEFAULT_BOSS_RESPAWN_SECONDS = 30;
-  const DUNGEON_ENCOUNTER_FLOW_VERSION = 1;
+  const DUNGEON_ENCOUNTER_FLOW_VERSION = 2;
   const DEFAULT_DUNGEON_BOSS_INTRO_DELAY_MS = 2600;
   const DUNGEON_MASTERY_VERSION = 1;
   let dungeonRunSequence = 0;
@@ -74,11 +74,17 @@
 
   function normalizeDungeonEncounterBeat(value, index) {
     const source = value && typeof value === 'object' ? value : {};
-    const kind = normalizeId(source.kind || source.type) === 'boss' ? 'boss' : 'combat';
+    const sourceKind = normalizeId(source.kind || source.type);
+    const kind = sourceKind === 'boss'
+      ? 'boss'
+      : sourceKind === 'interaction'
+        ? 'interaction'
+        : 'combat';
     const enemyIds = (Array.isArray(source.enemyIds) ? source.enemyIds : [])
       .map(normalizeId)
       .filter(Boolean);
     const bossIds = normalizeDungeonEncounterIdList(source.bossIds);
+    const stationIds = normalizeDungeonEncounterIdList(source.stationIds);
     return {
       id: normalizeId(source.id) || `beat_${Math.max(0, Number(index || 0)) + 1}`,
       kind,
@@ -86,8 +92,11 @@
       summary: String(source.summary || ''),
       sectionIds: normalizeDungeonEncounterIdList(source.sectionIds),
       spawnGroupIds: normalizeDungeonEncounterIdList(source.spawnGroupIds),
-      enemyIds: kind === 'boss' ? [] : enemyIds,
+      enemyIds: kind === 'combat' ? enemyIds : [],
       bossIds: kind === 'boss' ? bossIds : [],
+      stationIds: kind === 'interaction' ? stationIds : [],
+      entryGateX: Math.max(0, Number(source.entryGateX || 0)),
+      arenaMaxX: Math.max(0, Number(source.arenaMaxX || 0)),
       gateX: Math.max(0, Number(source.gateX || 0))
     };
   }
@@ -98,8 +107,12 @@
       ? dungeon.encounterFlow
       : null;
     if (!source || !Array.isArray(source.beats) || !source.beats.length) return null;
-    const beats = source.beats.map(normalizeDungeonEncounterBeat).filter((beat) =>
-      beat.id && (beat.kind === 'boss' ? beat.bossIds.length : beat.enemyIds.length));
+    const beats = source.beats.map(normalizeDungeonEncounterBeat).filter((beat) => {
+      if (!beat.id) return false;
+      if (beat.kind === 'boss') return beat.bossIds.length > 0;
+      if (beat.kind === 'interaction') return beat.stationIds.length > 0;
+      return beat.enemyIds.length > 0;
+    });
     if (!beats.length) return null;
     return {
       version: DUNGEON_ENCOUNTER_FLOW_VERSION,
@@ -116,7 +129,9 @@
 
   function getDungeonEncounterBeatEnemyIds(beat) {
     if (!beat) return [];
-    return (beat.kind === 'boss' ? beat.bossIds : beat.enemyIds).slice();
+    if (beat.kind === 'boss') return beat.bossIds.slice();
+    if (beat.kind === 'combat') return beat.enemyIds.slice();
+    return [];
   }
 
   function createDungeonEncounterBeatSlots(beat) {
@@ -138,6 +153,9 @@
     const validBeatIds = new Set(beatIds);
     const slots = definition.beats.flatMap(createDungeonEncounterBeatSlots);
     const validSlotIds = new Set(slots.map((slot) => slot.id));
+    const validInteractionIds = new Set(definition.beats
+      .filter((beat) => beat.kind === 'interaction')
+      .flatMap((beat) => beat.stationIds));
     const requestedBeatId = normalizeId(source.activeBeatId);
     const requestedBeatIndex = requestedBeatId && validBeatIds.has(requestedBeatId)
       ? beatIds.indexOf(requestedBeatId)
@@ -159,10 +177,15 @@
     }
     const defeatedSlotIds = normalizeDungeonEncounterIdList(source.defeatedSlotIds)
       .filter((id) => validSlotIds.has(id));
+    const completedInteractionIds = normalizeDungeonEncounterIdList(source.completedInteractionIds)
+      .filter((id) => validInteractionIds.has(id));
     definition.beats.forEach((beat) => {
       if (!completedBeatIds.includes(beat.id)) return;
       createDungeonEncounterBeatSlots(beat).forEach((slot) => {
         if (!defeatedSlotIds.includes(slot.id)) defeatedSlotIds.push(slot.id);
+      });
+      beat.stationIds.forEach((stationId) => {
+        if (!completedInteractionIds.includes(stationId)) completedInteractionIds.push(stationId);
       });
     });
     const complete = beatIds.every((id) => completedBeatIds.includes(id));
@@ -185,12 +208,19 @@
       id: definition.id,
       dungeonId: definition.dungeonId,
       mapId: definition.mapId,
-      status: complete ? 'complete' : activeBeat && activeBeat.kind === 'boss' ? 'boss' : 'active',
+      status: complete
+        ? 'complete'
+        : activeBeat && activeBeat.kind === 'boss'
+          ? 'boss'
+          : activeBeat && activeBeat.kind === 'interaction'
+            ? 'interaction'
+            : 'active',
       activeBeatIndex,
       activeBeatId: activeBeat ? activeBeat.id : '',
       completedBeatIds,
       spawnedBeatIds: normalizeDungeonEncounterIdList(source.spawnedBeatIds).filter((id) => validBeatIds.has(id)),
       defeatedSlotIds,
+      completedInteractionIds,
       startedAt: Math.max(0, Number(source.startedAt || settings.startedAt || 0)),
       beatStartedAt: Math.max(0, Number(source.beatStartedAt || settings.startedAt || 0)),
       bossRevealedAt,
@@ -274,7 +304,11 @@
     const nextBeat = definition.beats[nextBeatIndex];
     flow.activeBeatIndex = nextBeatIndex;
     flow.activeBeatId = nextBeat.id;
-    flow.status = nextBeat.kind === 'boss' ? 'boss' : 'active';
+    flow.status = nextBeat.kind === 'boss'
+      ? 'boss'
+      : nextBeat.kind === 'interaction'
+        ? 'interaction'
+        : 'active';
     flow.beatStartedAt = nowMs;
     if (nextBeat.kind === 'boss') {
       flow.bossRevealedAt = nowMs;
@@ -292,6 +326,89 @@
     };
   }
 
+  function recordDungeonEncounterInteraction(run, stationId, options) {
+    const settings = options || {};
+    const flow = ensureDungeonEncounterFlowRunState(run, settings);
+    const definition = flow ? getDungeonEncounterFlowDefinition(run.dungeonId, settings) : null;
+    const rejected = (reason) => ({
+      accepted: false,
+      advanced: false,
+      complete: false,
+      bossRevealed: false,
+      reason
+    });
+    if (!flow || !definition || flow.status === 'complete' || Number(run.completedAt || 0) > 0) {
+      return rejected('inactive');
+    }
+    const beat = definition.beats[flow.activeBeatIndex];
+    if (!beat || beat.kind !== 'interaction') return rejected('wrong-beat');
+    const id = normalizeId(stationId);
+    if (!id || !beat.stationIds.includes(id)) return rejected('wrong-station');
+    if (settings.mapId && normalizeId(settings.mapId) !== definition.mapId) return rejected('wrong-runtime-map');
+    if (flow.completedInteractionIds.includes(id)) return rejected('duplicate');
+
+    flow.completedInteractionIds.push(id);
+    const beatComplete = beat.stationIds.every((requiredId) => flow.completedInteractionIds.includes(requiredId));
+    if (!beatComplete) {
+      return {
+        accepted: true,
+        advanced: false,
+        complete: false,
+        bossRevealed: false,
+        beatId: beat.id,
+        nextBeatId: beat.id,
+        stationId: id,
+        interacted: beat.stationIds.filter((requiredId) =>
+          flow.completedInteractionIds.includes(requiredId)).length,
+        goal: beat.stationIds.length
+      };
+    }
+
+    if (!flow.completedBeatIds.includes(beat.id)) flow.completedBeatIds.push(beat.id);
+    const nowMs = Number.isFinite(Number(settings.nowMs)) ? Math.max(0, Number(settings.nowMs)) : Date.now();
+    const nextBeatIndex = flow.activeBeatIndex + 1;
+    if (nextBeatIndex >= definition.beats.length) {
+      flow.status = 'complete';
+      flow.completedAt = nowMs;
+      return {
+        accepted: true,
+        advanced: true,
+        complete: true,
+        bossRevealed: false,
+        beatId: beat.id,
+        nextBeatId: '',
+        stationId: id,
+        interacted: beat.stationIds.length,
+        goal: beat.stationIds.length
+      };
+    }
+
+    const nextBeat = definition.beats[nextBeatIndex];
+    flow.activeBeatIndex = nextBeatIndex;
+    flow.activeBeatId = nextBeat.id;
+    flow.status = nextBeat.kind === 'boss'
+      ? 'boss'
+      : nextBeat.kind === 'interaction'
+        ? 'interaction'
+        : 'active';
+    flow.beatStartedAt = nowMs;
+    if (nextBeat.kind === 'boss') {
+      flow.bossRevealedAt = nowMs;
+      flow.bossArmedAt = nowMs + definition.bossIntroDelayMs;
+    }
+    return {
+      accepted: true,
+      advanced: true,
+      complete: false,
+      bossRevealed: nextBeat.kind === 'boss',
+      beatId: beat.id,
+      nextBeatId: nextBeat.id,
+      stationId: id,
+      interacted: beat.stationIds.length,
+      goal: beat.stationIds.length
+    };
+  }
+
   function isDungeonEncounterFlowComplete(dungeonId, run, options) {
     const definition = getDungeonEncounterFlowDefinition(dungeonId, options);
     if (!definition) return true;
@@ -303,7 +420,10 @@
     }));
     if (!flow || flow.status !== 'complete') return false;
     const finalBeat = definition.beats[definition.beats.length - 1];
-    return finalBeat.kind === 'boss' && createDungeonEncounterBeatSlots(finalBeat)
+    if (finalBeat.kind === 'interaction') {
+      return finalBeat.stationIds.every((stationId) => flow.completedInteractionIds.includes(stationId));
+    }
+    return createDungeonEncounterBeatSlots(finalBeat)
       .every((slot) => flow.defeatedSlotIds.includes(slot.id));
   }
 
@@ -332,9 +452,12 @@
     const nowMs = Number.isFinite(Number(settings.nowMs)) ? Math.max(0, Number(settings.nowMs)) : Date.now();
     const defeated = new Set(flow.defeatedSlotIds);
     const completed = new Set(flow.completedBeatIds);
+    const completedInteractions = new Set(flow.completedInteractionIds);
     const beats = definition.beats.map((beat, index) => {
       const slots = createDungeonEncounterBeatSlots(beat);
-      const value = slots.filter((slot) => defeated.has(slot.id)).length;
+      const value = beat.kind === 'interaction'
+        ? beat.stationIds.filter((stationId) => completedInteractions.has(stationId)).length
+        : slots.filter((slot) => defeated.has(slot.id)).length;
       return {
         id: beat.id,
         kind: beat.kind,
@@ -346,9 +469,12 @@
         spawnGroupIds: beat.spawnGroupIds.slice(),
         enemyIds: beat.enemyIds.slice(),
         bossIds: beat.bossIds.slice(),
+        stationIds: beat.stationIds.slice(),
+        entryGateX: beat.entryGateX,
+        arenaMaxX: beat.arenaMaxX,
         gateX: beat.gateX,
         value,
-        goal: slots.length,
+        goal: beat.kind === 'interaction' ? beat.stationIds.length : slots.length,
         complete: completed.has(beat.id),
         active: index === flow.activeBeatIndex && flow.status !== 'complete'
       };
@@ -362,9 +488,11 @@
       ? 'complete'
       : activeBeat && activeBeat.kind === 'boss'
         ? bossIntroActive ? 'boss_intro' : 'boss_active'
-        : 'active';
+        : activeBeat && activeBeat.kind === 'interaction'
+          ? 'interaction'
+          : 'active';
     const completedBeatCount = beats.filter((beat) => beat.complete).length;
-    const activeGateX = flow.status === 'complete' || !activeBeat || activeBeat.kind === 'boss'
+    const activeGateX = flow.status === 'complete' || !activeBeat
       ? 0
       : Math.max(0, Number(activeBeat.gateX || 0));
     const remaining = activeBeat ? Math.max(0, activeBeat.goal - activeBeat.value) : 0;
@@ -374,7 +502,9 @@
         ? `Boss arming in ${Math.max(1, Math.ceil(bossIntroRemainingMs / 1000))}s`
         : activeBeat && activeBeat.kind === 'boss'
           ? `${remaining} boss ${remaining === 1 ? 'target' : 'targets'} remaining`
-          : `${remaining} enemies remaining`;
+          : activeBeat && activeBeat.kind === 'interaction'
+            ? `${remaining} route ${remaining === 1 ? 'objective' : 'objectives'} remaining`
+            : `${remaining} enemies remaining`;
     return {
       version: flow.version,
       id: flow.id,
@@ -389,6 +519,7 @@
       completedBeatCount,
       completedBeatIds: flow.completedBeatIds.slice(),
       defeatedSlotIds: flow.defeatedSlotIds.slice(),
+      completedInteractionIds: flow.completedInteractionIds.slice(),
       activeGateX,
       activeBeat,
       beats,
@@ -1202,7 +1333,10 @@
       snapshot.encounterFlow = Object.assign({}, flow, {
         completedBeatIds: Array.isArray(flow.completedBeatIds) ? flow.completedBeatIds.slice() : [],
         spawnedBeatIds: Array.isArray(flow.spawnedBeatIds) ? flow.spawnedBeatIds.slice() : [],
-        defeatedSlotIds: Array.isArray(flow.defeatedSlotIds) ? flow.defeatedSlotIds.slice() : []
+        defeatedSlotIds: Array.isArray(flow.defeatedSlotIds) ? flow.defeatedSlotIds.slice() : [],
+        completedInteractionIds: Array.isArray(flow.completedInteractionIds)
+          ? flow.completedInteractionIds.slice()
+          : []
       });
     }
     if (run.mastery && typeof run.mastery === 'object') {
@@ -1292,6 +1426,7 @@
     ensureDungeonEncounterFlowRunState,
     markDungeonEncounterBeatSpawned,
     recordDungeonEncounterEnemyDefeat,
+    recordDungeonEncounterInteraction,
     isDungeonEncounterFlowComplete,
     getDungeonEncounterCompletionBlockReason,
     createDungeonEncounterFlowSnapshot,
