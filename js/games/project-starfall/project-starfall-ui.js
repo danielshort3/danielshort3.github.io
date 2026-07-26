@@ -23713,7 +23713,7 @@
       const drawBossOverlays = getHudBossEncounterHelper('drawCanvasBossEncounterOverlays');
       if (!drawBossOverlays) return;
       drawBossOverlays(ctx, boss, width, height, {
-        metadataOptions: { formatIntegerWithCommas },
+        metadataOptions: { formatIntegerWithCommas, formatMetricEta },
         drawRoundRect: (rect) => this.drawRoundRect(ctx, rect.x, rect.y, rect.w, rect.h, rect.radius, rect.fill, rect.stroke),
         drawCanvasText: (text) => this.drawCanvasText(ctx, text.value, text.x, text.y, {
           color: text.color,
@@ -30525,6 +30525,20 @@
       cy = this.drawCanvasText(ctx, 'Dungeons', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
       (dungeonState.dungeons || []).forEach((dungeon) => {
         const disabled = dungeon.active || !!dungeon.lockedReason;
+        const mastery = dungeon.mastery && typeof dungeon.mastery === 'object' ? dungeon.mastery : {};
+        const objectiveTotal = Math.max(0, Math.floor(Number(mastery.objectiveTotal || 0)));
+        const bestObjectiveCount = Math.max(0, Math.min(objectiveTotal, Math.floor(Number(mastery.bestObjectiveCount || 0))));
+        const masteredObjectiveCount = Math.max(0, Math.min(objectiveTotal, Math.floor(Number(mastery.masteredObjectiveCount || 0))));
+        const bestClearSeconds = Math.max(0, Number(mastery.bestClearSeconds || 0));
+        const lastClearSeconds = Math.max(0, Number(mastery.lastClearSeconds || 0));
+        const lastObjectiveCount = Math.max(0, Math.min(objectiveTotal, Math.floor(Number(mastery.lastObjectiveCount || 0))));
+        const masteryLine = dungeon.lockedReason
+          ? ''
+          : mastery.hasRecord
+            ? bestClearSeconds > 0
+              ? `PB ${formatMetricEta(bestClearSeconds)} - ${mastery.rankName || 'Unranked'}${objectiveTotal ? ` ${bestObjectiveCount}/${objectiveTotal}` : ''}`
+              : `${mastery.rankName || 'Unranked'} mastery${objectiveTotal ? ` - Best ${bestObjectiveCount}/${objectiveTotal}` : ''}`
+            : 'No mastery record yet';
         this.drawRoundRect(ctx, x, cy, w, 58, 7, dungeon.complete ? '#fff8e8' : dungeon.active ? '#eef6ff' : '#ffffff', 'rgba(16,32,51,0.14)');
         this.drawCanvasText(ctx, dungeon.name, x + 10, cy + 7, { color: '#102033', font: '850 12px system-ui', maxWidth: w - 94, lineHeight: 13 });
         const respawnLabel = formatDungeonRespawnLabel(dungeon);
@@ -30532,18 +30546,65 @@
           ? `${respawnLabel} - Clears ${dungeon.completionCount}`
           : `Boss: ${dungeon.bossName} - Party ${dungeon.recommendedPartySize} - Clears ${dungeon.completionCount}`);
         this.drawCanvasText(ctx, meta, x + 10, cy + 27, { color: dungeon.lockedReason ? '#9a5b36' : '#5f6f7a', font: '10px system-ui', maxWidth: w - 94, lineHeight: 11 });
+        if (masteryLine) {
+          this.drawCanvasText(ctx, masteryLine, x + 10, cy + 41, {
+            color: '#5f6f7a',
+            font: '850 9px system-ui',
+            maxWidth: w - 94,
+            maxLines: 1,
+            lineHeight: 10
+          });
+        }
+        const requirementParts = [
+          dungeon.levelRequirement ? `Level ${dungeon.levelRequirement}+` : '',
+          dungeon.requiresAdvancedClass ? 'Advanced class required' : ''
+        ].filter(Boolean);
+        const activeObjectiveLines = (dungeon.objectives || []).slice(0, 2).map((objective) => {
+          const value = objective.value == null ? objective.progress : objective.value;
+          const progress = objective.complete
+            ? 'Done'
+            : `${formatAbbreviatedInteger(value)}/${formatAbbreviatedInteger(objective.goal)}`;
+          return `${progress} ${objective.label || objective.name || 'Objective'}`;
+        });
+        const nextTargetLine = mastery.nextRankName && Number(mastery.nextObjectiveCount || 0) > 0
+          ? `Next: ${mastery.nextRankName} at ${formatAbbreviatedInteger(mastery.nextObjectiveCount)}/${formatAbbreviatedInteger(objectiveTotal)} objectives`
+          : mastery.hasRecord
+            ? 'Next: Mastery complete'
+            : 'Next: Complete a dungeon run';
+        const unmasteredObjectiveNames = Array.isArray(mastery.unmasteredObjectiveNames)
+          ? mastery.unmasteredObjectiveNames.filter(Boolean)
+          : [];
+        const unmasteredLine = unmasteredObjectiveNames.length
+          ? `Still open: ${unmasteredObjectiveNames.slice(0, 3).join(', ')}${unmasteredObjectiveNames.length > 3 ? ', ...' : ''}`
+          : mastery.hasRecord && objectiveTotal > 0
+            ? 'All bonus objectives mastered.'
+            : '';
+        const clearRecordLine = mastery.hasRecord && bestClearSeconds > 0
+          ? [
+              `Personal best: ${formatMetricEta(bestClearSeconds)}`,
+              lastClearSeconds > 0
+                ? `Last: ${formatMetricEta(lastClearSeconds)}${objectiveTotal ? ` (${formatAbbreviatedInteger(lastObjectiveCount)}/${formatAbbreviatedInteger(objectiveTotal)})` : ''}`
+                : '',
+              `Clears ${formatAbbreviatedInteger(dungeon.completionCount)}`
+            ].filter(Boolean).join(' - ')
+          : `Personal best: No clear recorded - Clears ${formatAbbreviatedInteger(dungeon.completionCount)}`;
+        const tooltipLines = [
+          dungeon.summary || dungeon.description || '',
+          requirementParts.join(' - '),
+          clearRecordLine,
+          mastery.hasRecord
+            ? `Rank: ${mastery.rankName || 'Unranked'} - Best run ${formatAbbreviatedInteger(bestObjectiveCount)}/${formatAbbreviatedInteger(objectiveTotal)} - Mastered ${formatAbbreviatedInteger(masteredObjectiveCount)}/${formatAbbreviatedInteger(objectiveTotal)}`
+            : `Rank: ${mastery.rankName || 'Unranked'}`,
+          nextTargetLine,
+          unmasteredLine,
+          ...activeObjectiveLines
+        ].filter(Boolean).slice(0, 8);
         this.addCanvasRegion({
           type: 'info',
           dungeonId: dungeon.id,
           tooltipTitle: dungeon.name,
           tooltipSubtitle: meta,
-          tooltipLines: [
-            dungeon.summary || dungeon.description || '',
-            dungeon.levelRequirement ? `Level ${dungeon.levelRequirement}+` : '',
-            dungeon.requiresAdvancedClass ? 'Requires an advanced class.' : '',
-            dungeon.complete ? `Clears: ${formatAbbreviatedInteger(dungeon.completionCount)}` : '',
-            ...(dungeon.objectives || []).slice(0, 4).map((objective) => `${objective.complete ? 'Done' : `${formatAbbreviatedInteger(objective.value)}/${formatAbbreviatedInteger(objective.goal)}`} ${objective.label}`)
-          ].filter(Boolean),
+          tooltipLines,
           x,
           y: cy,
           w,

@@ -16286,7 +16286,16 @@
         this.toast('No matching live enemies.');
         return 0;
       }
-      liveEnemies.forEach((enemy) => this.defeatEnemy(enemy));
+      const activeDungeonRun = this.state.dungeons &&
+        this.state.dungeons.currentRun &&
+        !this.state.dungeons.currentRun.completedAt
+        ? this.state.dungeons.currentRun
+        : null;
+      if (activeDungeonRun) activeDungeonRun.adminEncounter = true;
+      liveEnemies.forEach((enemy) => {
+        enemy.adminDefeated = true;
+        this.defeatEnemy(enemy);
+      });
       this.toast(`Admin defeated ${liveEnemies.length} ${liveEnemies.length === 1 ? 'enemy' : 'enemies'}.`);
       this.emitChange();
       return liveEnemies.length;
@@ -16903,7 +16912,16 @@
         this.toast('No live enemies on this map.');
         return 0;
       }
-      liveEnemies.forEach((enemy) => this.defeatEnemy(enemy));
+      const activeDungeonRun = this.state.dungeons &&
+        this.state.dungeons.currentRun &&
+        !this.state.dungeons.currentRun.completedAt
+        ? this.state.dungeons.currentRun
+        : null;
+      if (activeDungeonRun) activeDungeonRun.adminEncounter = true;
+      liveEnemies.forEach((enemy) => {
+        enemy.adminDefeated = true;
+        this.defeatEnemy(enemy);
+      });
       this.toast(`Admin defeated ${liveEnemies.length} map ${liveEnemies.length === 1 ? 'enemy' : 'enemies'}.`);
       this.emitChange();
       return liveEnemies.length;
@@ -26565,6 +26583,19 @@
       if (!target) return false;
       let dungeons = this.getDungeonState();
       const existingRun = dungeons.currentRun && dungeons.currentRun.dungeonId === target.id ? dungeons.currentRun : null;
+      if (existingRun && existingRun.completedAt) return false;
+      if (existingRun && existingRun.adminEncounter) return false;
+      const masteryRecord = dungeons.masteryByDungeonId &&
+        dungeons.masteryByDungeonId[target.id] &&
+        typeof dungeons.masteryByDungeonId[target.id] === 'object'
+        ? dungeons.masteryByDungeonId[target.id]
+        : null;
+      if (existingRun &&
+        normalizeId(existingRun.runId) &&
+        masteryRecord &&
+        normalizeId(masteryRecord.lastRecordedRunId) === normalizeId(existingRun.runId)) {
+        return false;
+      }
       const getEncounterBlockReason = getEngineDungeonHelper('getDungeonEncounterCompletionBlockReason');
       const encounterBlockReason = getEncounterBlockReason
         ? getEncounterBlockReason(target.id, existingRun, { data: Data })
@@ -26579,7 +26610,24 @@
         dungeons = this.getDungeonState();
       }
       const completedAt = Date.now();
-      completeDungeonRunState(target.id, dungeons, existingRun, completedAt);
+      dungeons = completeDungeonRunState(target.id, dungeons, existingRun, completedAt);
+      const completedRun = dungeons.currentRun && dungeons.currentRun.dungeonId === target.id
+        ? dungeons.currentRun
+        : null;
+      const mastery = completedRun && completedRun.mastery || null;
+      if (enemy && mastery) {
+        enemy.dungeonMasteryScorecard = {
+          rankId: mastery.rankId || '',
+          rankName: mastery.rankName || 'Bronze',
+          clearSeconds: Math.max(0, Number(mastery.clearSeconds || 0)),
+          bestClearSeconds: Math.max(0, Number(mastery.bestClearSeconds || 0)),
+          objectiveCount: Math.max(0, Number(mastery.objectiveCount || 0)),
+          objectiveTotal: Math.max(0, Number(mastery.objectiveTotal || 0)),
+          newRank: !!(mastery.newRankIds && mastery.newRankIds.length),
+          newBestTime: !!mastery.newBestClear,
+          newBestObjectives: !!mastery.newBestObjectives
+        };
+      }
       this.recordProgressEvent('dungeonComplete', {
         dungeonId: target.id,
         bossId: target.bossId,
@@ -26587,12 +26635,26 @@
       });
       this.syncRosterUnlocks({ silent: true });
       this.awardProgressReward(target.rewards);
-      this.toast(`${target.name} cleared. ${enemy ? enemy.name : 'Boss'} defeated.`);
+      if (mastery &&
+        mastery.promotionReward &&
+        Array.isArray(mastery.newRankIds) &&
+        mastery.newRankIds.length &&
+        this.getRewardSummaryParts(mastery.promotionReward).length) {
+        this.awardProgressReward(mastery.promotionReward);
+        this.showRewardPopup(`${target.name}: ${mastery.rankName} Mastery`, mastery.promotionReward);
+      }
+      const scoreLabel = mastery
+        ? `${mastery.rankName} mastery ${mastery.objectiveCount}/${mastery.objectiveTotal}` +
+          (mastery.newRankIds && mastery.newRankIds.length ? ' earned!' : '.') +
+          (mastery.newBestClear ? ' New best time!' : '')
+        : '';
+      this.toast(`${target.name} cleared. ${enemy ? enemy.name : 'Boss'} defeated.${scoreLabel ? ` ${scoreLabel}` : ''}`);
       return true;
     }
 
     completeDungeonForBoss(enemy) {
       if (!enemy || !enemy.data || enemy.data.behavior !== 'boss') return false;
+      if (enemy.adminSpawned || enemy.temporarySpawn || enemy.adminDefeated) return false;
       const map = getById(Data.MAPS || [], this.state.mapId);
       const dungeon = map && map.dungeonId
         ? getById(Data.DUNGEONS || [], map.dungeonId)
@@ -26622,9 +26684,10 @@
       return true;
     }
 
-    recordBossClearSummary(enemy, xp, currency, droppedItems) {
+    recordBossClearSummary(enemy, xp, currency, droppedItems, options) {
       const encounter = this.getBossEncounterForEnemy(enemy);
       if (!encounter) return false;
+      const settings = options || {};
       const dropPreview = this.getBossDropPreview(encounter);
       const drops = (Array.isArray(droppedItems) ? droppedItems : []).slice(0, 5).map((item) => ({
         id: item && item.id || '',
@@ -26645,6 +26708,24 @@
         createdAt: now,
         expiresAt: now + 8.5
       };
+      const scorecard = settings.dungeonCompletionAccepted &&
+        enemy.dungeonMasteryScorecard &&
+        typeof enemy.dungeonMasteryScorecard === 'object'
+        ? enemy.dungeonMasteryScorecard
+        : null;
+      if (scorecard) {
+        this.bossClearSummary.scorecard = {
+          rankId: scorecard.rankId || '',
+          rankName: scorecard.rankName || 'Bronze',
+          clearSeconds: Math.max(0, Number(scorecard.clearSeconds || 0)),
+          bestClearSeconds: Math.max(0, Number(scorecard.bestClearSeconds || 0)),
+          objectiveCount: Math.max(0, Number(scorecard.objectiveCount || 0)),
+          objectiveTotal: Math.max(0, Number(scorecard.objectiveTotal || 0)),
+          newRank: !!scorecard.newRank,
+          newBestTime: !!scorecard.newBestTime,
+          newBestObjectives: !!scorecard.newBestObjectives
+        };
+      }
       this.bossIntroSummary = null;
       return true;
     }
@@ -27652,7 +27733,11 @@
         if (alreadyPresent) return;
         const enemyData = getEnemyDefinitionById(slot.enemyId);
         if (!enemyData) return;
-        const enemy = this.createEnemy(enemyData, this.chooseDungeonEncounterSpawnPoint(context, slot, index));
+        const spawn = this.chooseDungeonEncounterSpawnPoint(context, slot, index);
+        if (context.beat.kind !== 'boss' && context.flow.activeBeatIndex === 0 && index === 0) {
+          spawn.forceElite = true;
+        }
+        const enemy = this.createEnemy(enemyData, spawn);
         if (context.beat.kind === 'boss') {
           const encounter = this.getBossEncounter(enemy.id);
           enemy.encounterHpScale = Math.max(1, Number(context.definition.bossHpScale || 1));
@@ -27757,7 +27842,9 @@
           const fixedSpawn = fixedSpawns[index % fixedSpawns.length];
           const enemyData = getEnemyDefinitionById(fixedSpawn.enemyId || fixedSpawn.id);
           if (!enemyData) break;
-          this.enemies.push(this.createEnemy(enemyData, this.chooseFixedEnemySpawnPoint(fixedSpawn, index)));
+          const spawn = this.chooseFixedEnemySpawnPoint(fixedSpawn, index);
+          if (map.isDungeon && index === 0 && enemyData.behavior !== 'boss') spawn.forceElite = true;
+          this.enemies.push(this.createEnemy(enemyData, spawn));
         }
         return;
       }
@@ -27792,6 +27879,7 @@
         const spawn = initialReservations
           ? this.chooseInitialFieldSpawnPoint(index, initialReservations)
           : this.chooseSpawnPoint(index, { initial: true });
+        if (map.isDungeon && index === 0 && enemyData.behavior !== 'boss') spawn.forceElite = true;
         this.enemies.push(this.createEnemy(enemyData, spawn));
         if (initialReservations) initialReservations.push(spawn);
       }
@@ -29331,7 +29419,10 @@
           (mapType === 'rift' ? 0.05 : 0) +
           Number(riftPressure.eliteChanceBonus || 0)
       );
-      const nativeElite = enemyData.id === 'crackedMimic' || enemyData.behavior === 'elite' || enemyData.behavior === 'boss';
+      const nativeElite = !!spawnPoint.forceElite ||
+        enemyData.id === 'crackedMimic' ||
+        enemyData.behavior === 'elite' ||
+        enemyData.behavior === 'boss';
       const allowRandomAffixes = !(map && map.safeZone);
       const affixIds = [];
       if (nativeElite || (allowRandomAffixes && enemyData.behavior !== 'boss' && Math.random() < affixChance)) {
@@ -31243,7 +31334,9 @@
       const profile = pending.profile || this.getBossActionProfile(pending.actionId, encounter);
       enemy.bossPendingAction = null;
       this.setActorAnimation(enemy, profile.shape === 'add' || profile.shape === 'expose' ? 'buff' : 'attack', 0.5, { force: true, lock: true, loop: false });
-      if (pending.spatialMechanicId) this.recordDungeonObjectiveProgress('spatialMechanic', 1);
+      if (pending.spatialMechanicId && !enemy.adminSpawned && !enemy.temporarySpawn) {
+        this.recordDungeonObjectiveProgress('spatialMechanic', 1);
+      }
       if (profile.shape === 'add') {
         const addOptions = {
           spatialSectionId: pending.spatialSectionId || '',
@@ -36275,17 +36368,26 @@
 	      }, { noEmit: true });
 	      this.recordRouteDefeat(enemy);
 	      this.recordMapKillQuestDefeat(enemy);
-	      if (enemy.elite || (enemy.eliteAffixIds || []).length) this.recordDungeonObjectiveProgress('defeatElite', 1);
-	      if (this.getActiveDungeon() && !(enemy.data && enemy.data.behavior === 'boss')) this.recordDungeonObjectiveProgress('defeatDungeonEnemy', 1);
+        const dungeonObjectiveEligible = !enemy.adminSpawned && !enemy.temporarySpawn && !enemy.adminDefeated;
+	      if (dungeonObjectiveEligible &&
+          !(enemy.data && enemy.data.behavior === 'boss') &&
+          (enemy.elite || (enemy.eliteAffixIds || []).length)) {
+          this.recordDungeonObjectiveProgress('defeatElite', 1);
+        }
+	      if (dungeonObjectiveEligible &&
+          this.getActiveDungeon() &&
+          !(enemy.data && enemy.data.behavior === 'boss')) {
+          this.recordDungeonObjectiveProgress('defeatDungeonEnemy', 1);
+        }
 	      if (enemy.data && enemy.data.behavior === 'boss') {
         this.recordProgressEvent('defeatBoss', {
 	          bossId: enemy.id,
 	          enemyId: enemy.id,
 	          mapId: this.state.mapId
 	        }, { noEmit: true });
-	      }
+      }
       this.advanceDungeonEncounterFlowForDefeat(enemy);
-      this.completeDungeonForBoss(enemy);
+      const dungeonCompletionAccepted = this.completeDungeonForBoss(enemy);
       this.queueWaveReplacement(enemy);
       const lootBatch = this.generateMonsterLootDrops(enemy, player);
       const droppedItems = lootBatch.items || [];
@@ -36294,7 +36396,7 @@
         this.dropLootItem(droppedItems[index], enemy, { index, total: droppedItems.length, skipRuntimeState: true });
       }
       if (enemy.data && enemy.data.behavior === 'boss') {
-        this.recordBossClearSummary(enemy, xp, currency, droppedItems);
+        this.recordBossClearSummary(enemy, xp, currency, droppedItems, { dungeonCompletionAccepted });
       }
       this.recordPartyRewardShare(xp, lootBatch.rollCount);
 	      this.checkLevelUp({ noEmit: true });

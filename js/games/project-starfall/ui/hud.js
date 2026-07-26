@@ -1005,6 +1005,30 @@
       ? settings.formatIntegerWithCommas
       : (value) => String(Math.round(Number(value) || 0));
     const clear = !!boss.clear;
+    const scorecard = clear && panel.scorecard && typeof panel.scorecard === 'object' ? panel.scorecard : null;
+    const formatDuration = typeof settings.formatMetricEta === 'function'
+      ? settings.formatMetricEta
+      : (seconds) => {
+          const totalSeconds = Math.max(0, Math.ceil(Number(seconds) || 0));
+          if (!totalSeconds) return '--';
+          if (totalSeconds < 60) return `${totalSeconds}s`;
+          const minutes = Math.floor(totalSeconds / 60);
+          const remainingSeconds = totalSeconds % 60;
+          return remainingSeconds ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
+        };
+    const scorecardObjectiveCount = scorecard ? Math.max(0, Math.floor(Number(scorecard.objectiveCount || 0))) : 0;
+    const scorecardObjectiveTotal = scorecard ? Math.max(0, Math.floor(Number(scorecard.objectiveTotal || 0))) : 0;
+    const masteryTextValue = scorecard
+      ? [
+          Number(scorecard.clearSeconds || 0) > 0 ? `Clear ${formatDuration(scorecard.clearSeconds)}` : '',
+          Number(scorecard.bestClearSeconds || 0) > 0 ? `PB ${formatDuration(scorecard.bestClearSeconds)}` : '',
+          scorecard.rankName
+            ? `${scorecard.rankName}${scorecardObjectiveTotal ? ` ${Math.min(scorecardObjectiveCount, scorecardObjectiveTotal)}/${scorecardObjectiveTotal}` : ''}`
+            : scorecardObjectiveTotal
+              ? `${Math.min(scorecardObjectiveCount, scorecardObjectiveTotal)}/${scorecardObjectiveTotal} objectives`
+              : ''
+        ].filter(Boolean).join(' - ')
+      : '';
     const w = clamp(Math.round(width * 0.42), 340, 520);
     const h = clear ? 126 : 112;
     const x = Math.round((width - w) / 2);
@@ -1019,7 +1043,7 @@
     const dropText = clear && Array.isArray(panel.drops) && panel.drops.length
       ? panel.drops.map((drop) => `${drop.quantity > 1 ? `${drop.quantity}x ` : ''}${drop.name}`).join(', ')
       : '';
-    return {
+    const overlay = {
       clear,
       box: { x, y, w, h },
       color,
@@ -1058,7 +1082,7 @@
         color: '#f7fbff',
         font: '800 11px system-ui',
         maxWidth: w - 36,
-        maxLines: 2,
+        maxLines: masteryTextValue ? 1 : 2,
         lineHeight: 14
       },
       detailText: {
@@ -1082,6 +1106,19 @@
         lineHeight: 11
       } : null
     };
+    if (masteryTextValue) {
+      overlay.masteryText = {
+        value: masteryTextValue,
+        x: x + 18,
+        y: y + 69,
+        color: accent,
+        font: '900 10px system-ui',
+        maxWidth: w - 36,
+        maxLines: 1,
+        lineHeight: 11
+      };
+    }
+    return overlay;
   }
 
   function drawCanvasTextEntry(drawCanvasText, entry) {
@@ -1136,6 +1173,7 @@
     ctx.fillRect(overlay.stripe.x, overlay.stripe.y, overlay.stripe.w, overlay.stripe.h);
     drawCanvasTextEntry(drawCanvasText, overlay.titleText);
     drawCanvasTextEntry(drawCanvasText, overlay.bodyText);
+    drawCanvasTextEntry(drawCanvasText, overlay.masteryText);
     drawCanvasTextEntry(drawCanvasText, overlay.detailText);
     drawCanvasTextEntry(drawCanvasText, overlay.dropText);
     ctx.restore();
