@@ -30851,19 +30851,37 @@
       const sectionX = Number(section.x || 0);
       const sectionRight = sectionX + Math.max(1, Number(section.w || 0));
       const sectionCenter = sectionX + Math.max(1, Number(section.w || 0)) / 2;
-      const candidates = platforms
-        .filter((platform) => {
+      const authoredPlatformIds = new Set(
+        (Array.isArray(section.platformIds) ? section.platformIds : [])
+          .map(normalizeId)
+          .filter(Boolean)
+      );
+      let candidates = authoredPlatformIds.size
+        ? platforms.filter((platform) => authoredPlatformIds.has(normalizeId(platform && platform.id)))
+        : [];
+      if (!candidates.length) {
+        candidates = platforms.filter((platform) => {
           const left = Number(platform.x || 0);
           const right = left + Math.max(1, Number(platform.w || 0));
           return sectionCenter >= left - 40 && sectionCenter <= right + 40 ||
             Math.min(sectionRight, right) - Math.max(sectionX, left) > 80;
-        })
-        .sort((a, b) => Number(a.y || 0) - Number(b.y || 0));
+        });
+      }
+      candidates.sort((a, b) => Number(a.y || 0) - Number(b.y || 0));
       if (!candidates.length) return null;
       const targetTier = normalizeId(hook && hook.targetTier);
-      if (targetTier === 'high' || targetTier === 'upper' || targetTier === 'air') return candidates[0];
-      if (targetTier === 'mid' || targetTier === 'middle' || targetTier === 'support') return candidates[Math.floor(candidates.length / 2)];
-      return candidates[candidates.length - 1];
+      const selected = targetTier === 'high' || targetTier === 'upper' || targetTier === 'air'
+        ? candidates[0]
+        : targetTier === 'mid' || targetTier === 'middle' || targetTier === 'support'
+          ? candidates[Math.floor(candidates.length / 2)]
+          : candidates[candidates.length - 1];
+      const selectedY = Number(selected.y || 0);
+      const sameTier = candidates.filter((candidate) => Number(candidate.y || 0) === selectedY);
+      return sameTier.sort((a, b) => {
+        const aCenter = Number(a.x || 0) + Math.max(1, Number(a.w || 0)) / 2;
+        const bCenter = Number(b.x || 0) + Math.max(1, Number(b.w || 0)) / 2;
+        return Math.abs(aCenter - sectionCenter) - Math.abs(bCenter - sectionCenter);
+      })[0] || selected;
     }
 
     getBossSpatialActionTargetPoint(enemy, fallbackTarget, spatialHook) {
