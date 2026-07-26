@@ -22,9 +22,40 @@
     Object.freeze({ id: 'break_boss', name: 'Break the Boss', summary: 'Trigger at least one boss break window before the clear.', type: 'bossBreak', goal: 1, reward: Object.freeze({ materials: Object.freeze({ upgradeDust: 2 }) }) }),
     Object.freeze({ id: 'elite_control', name: 'Elite Control', summary: 'Defeat an elite or affixed enemy during the run.', type: 'defeatElite', goal: 1, reward: Object.freeze({ currency: 80 }) }),
     Object.freeze({ id: 'party_survival', name: 'Keep the Party Up', summary: 'Clear with no visible AI ally defeated during the run.', type: 'partySurvival', goal: 1, reward: Object.freeze({ materials: Object.freeze({ upgradeCatalyst: 1 }) }) }),
-    Object.freeze({ id: 'spatial_control', name: 'Spatial Control', summary: 'Answer dungeon boss lane, switch, vent, wall, perch, archive, or zone calls during the run.', type: 'spatialMechanic', goal: 3, reward: Object.freeze({ materials: Object.freeze({ upgradeDust: 2 }), currency: 60 }) }),
+    Object.freeze({ id: 'spatial_control', name: 'Arena Control', summary: 'Weather three dungeon boss lane, switch, vent, wall, perch, archive, or zone calls during the run.', type: 'spatialMechanic', goal: 3, reward: Object.freeze({ materials: Object.freeze({ upgradeDust: 2 }), currency: 60 }) }),
     Object.freeze({ id: 'clear_adds', name: 'Clean Sweep', summary: 'Defeat enough dungeon adds before the boss falls.', type: 'defeatDungeonEnemy', goal: 8, reward: Object.freeze({ materials: Object.freeze({ upgradeDust: 3 }) }) }),
     Object.freeze({ id: 'swift_clear', name: 'Swift Clear', summary: 'Clear the dungeon inside the bonus timer.', type: 'timedClear', goal: 420, reward: Object.freeze({ currency: 150 }) })
+  ]);
+
+  const DUNGEON_MASTERY_RANKS = Object.freeze([
+    Object.freeze({
+      id: 'bronze',
+      name: 'Bronze',
+      minRatio: 0,
+      summary: 'Clear the dungeon and establish a mastery record.',
+      reward: Object.freeze({})
+    }),
+    Object.freeze({
+      id: 'silver',
+      name: 'Silver',
+      minRatio: 0.5,
+      summary: 'Complete at least half of the eligible run objectives.',
+      reward: Object.freeze({ materials: Object.freeze({ upgradeDust: 2 }) })
+    }),
+    Object.freeze({
+      id: 'gold',
+      name: 'Gold',
+      minRatio: 0.8,
+      summary: 'Complete at least four-fifths of the eligible run objectives.',
+      reward: Object.freeze({ materials: Object.freeze({ upgradeCatalyst: 1 }) })
+    }),
+    Object.freeze({
+      id: 'astral',
+      name: 'Astral',
+      minRatio: 1,
+      summary: 'Complete every eligible run objective in one clear.',
+      reward: Object.freeze({ starTokens: 8 })
+    })
   ]);
 
   const ROSTER_SYNERGIES = Object.freeze([
@@ -48,6 +79,7 @@
     return Object.freeze({
       CLASS_MASTERY_TRACKS: createClassMasteryTracks(classFileIds),
       DUNGEON_OBJECTIVES,
+      DUNGEON_MASTERY_RANKS,
       ROSTER_SYNERGIES,
       PARTY_COMMANDS
     });

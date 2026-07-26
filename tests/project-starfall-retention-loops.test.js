@@ -1,6 +1,7 @@
 'use strict';
 
 const data = require('../js/games/project-starfall/data/index.js');
+const dungeonState = require('../js/games/project-starfall/engine/dungeons.js');
 const hud = require('../js/games/project-starfall/ui/hud.js');
 const { createProjectStarfallEngine } = require('../js/games/project-starfall/project-starfall-engine.js');
 
@@ -481,6 +482,321 @@ check(restoredHighState.completions === 137 &&
   restoredHighHunt.maxRank &&
   restoredHighHunt.goal === highGoal,
 'high-completion save/restore should preserve hunt state while keeping the goal capped at Veteran');
+
+// Dungeon mastery should preserve coherent best runs, award bounded promotions, and survive replay/save cycles.
+const dungeonId = 'emberjaw_lair';
+const dungeonObjectiveIds = data.DUNGEON_OBJECTIVES.map((objective) => objective.id);
+const setDungeonObjectiveIds = (run, objectiveIds) => {
+  const completedIds = new Set(objectiveIds);
+  Object.entries(run.objectives || {}).forEach(([objectiveId, objective]) => {
+    const definition = data.DUNGEON_OBJECTIVES.find((entry) => entry.id === objectiveId);
+    const complete = completedIds.has(objectiveId);
+    objective.progress = complete ? Math.max(1, Number(definition && definition.goal || 1)) : 0;
+    objective.complete = complete;
+    objective.failed = !complete;
+  });
+};
+
+check(data.DUNGEON_MASTERY_RANKS.length === 4 &&
+  dungeonState.getDungeonMasteryRank(0, 6, { data }).id === 'bronze' &&
+  dungeonState.getDungeonMasteryRank(2, 6, { data }).id === 'bronze' &&
+  dungeonState.getDungeonMasteryRank(3, 6, { data }).id === 'silver' &&
+  dungeonState.getDungeonMasteryRank(4, 6, { data }).id === 'silver' &&
+  dungeonState.getDungeonMasteryRank(5, 6, { data }).id === 'gold' &&
+  dungeonState.getDungeonMasteryRank(6, 6, { data }).id === 'astral',
+'dungeon mastery should apply the adaptive Bronze, Silver, Gold, and Astral boundaries');
+
+const legacyDungeonState = dungeonState.createDungeonState({
+  completedDungeonIds: [dungeonId],
+  completionCounts: { [dungeonId]: 7 }
+}, { data });
+const legacyMastery = legacyDungeonState.masteryByDungeonId[dungeonId];
+check(legacyDungeonState.masteryVersion === 1 &&
+  legacyMastery &&
+  legacyMastery.bestRankIndex === 0 &&
+  legacyMastery.claimedRankIds.includes('bronze') &&
+  legacyMastery.bestClearMs === 0 &&
+  legacyMastery.bestObjectiveCount === 0,
+'legacy dungeon clears should backfill acknowledged Bronze mastery without inventing time or objective evidence');
+
+const masteryState = dungeonState.createDungeonState(null, { data });
+let masteryRun = dungeonState.startDungeonState(dungeonId, masteryState, false, {
+  data,
+  runId: 'mastery-silver',
+  startedAt: 1000
+});
+setDungeonObjectiveIds(masteryRun, dungeonObjectiveIds.slice(0, 3));
+dungeonState.completeDungeonState(dungeonId, masteryState, {
+  data,
+  existingRun: masteryRun,
+  completedAt: 61000,
+  bossRespawnSeconds: 30
+});
+let masteryRecord = masteryState.masteryByDungeonId[dungeonId];
+let masteryScorecard = masteryState.currentRun.mastery;
+check(masteryState.completionCounts[dungeonId] === 1 &&
+  masteryRecord.bestRankIndex === 1 &&
+  masteryRecord.bestClearMs === 60000 &&
+  masteryRecord.bestObjectiveCount === 3 &&
+  masteryScorecard.rankId === 'silver' &&
+  masteryScorecard.newRankIds.join(',') === 'bronze,silver' &&
+  masteryScorecard.promotionReward.materials.upgradeDust === 2,
+'a three-of-six first clear should establish a 60-second Silver record and only its bounded promotion reward');
+
+dungeonState.completeDungeonState(dungeonId, masteryState, {
+  data,
+  existingRun: masteryState.currentRun,
+  completedAt: 62000,
+  bossRespawnSeconds: 30
+});
+check(masteryState.completionCounts[dungeonId] === 1 &&
+  masteryState.masteryByDungeonId[dungeonId].lastRecordedRunId === 'mastery-silver',
+'repeating completion for the same run should not duplicate clear counts or mastery');
+
+masteryRun = dungeonState.startDungeonState(dungeonId, masteryState, false, {
+  data,
+  runId: 'mastery-gold',
+  startedAt: 100000
+});
+setDungeonObjectiveIds(masteryRun, dungeonObjectiveIds.slice(1, 6));
+dungeonState.completeDungeonState(dungeonId, masteryState, {
+  data,
+  existingRun: masteryRun,
+  completedAt: 190000,
+  bossRespawnSeconds: 30
+});
+masteryRecord = masteryState.masteryByDungeonId[dungeonId];
+masteryScorecard = masteryState.currentRun.mastery;
+check(masteryState.completionCounts[dungeonId] === 2 &&
+  masteryRecord.bestRankIndex === 2 &&
+  masteryRecord.bestObjectiveCount === 5 &&
+  masteryRecord.bestObjectiveIds.length === 5 &&
+  masteryRecord.masteredObjectiveIds.length === 6 &&
+  masteryRecord.bestClearMs === 60000 &&
+  masteryScorecard.newRankIds.join(',') === 'gold' &&
+  masteryScorecard.promotionReward.materials.upgradeCatalyst === 1,
+'a slower five-objective replay should earn Gold, preserve the faster PB, and keep one-run scoring separate from lifetime mastery');
+
+const goldSummary = dungeonState.createDungeonMasterySummary(dungeonId, masteryState, { data });
+check(goldSummary.hasRecord &&
+  goldSummary.rankId === 'gold' &&
+  goldSummary.objectiveTotal === 6 &&
+  goldSummary.bestObjectiveCount === 5 &&
+  goldSummary.masteredObjectiveCount === 6 &&
+  goldSummary.nextRankId === 'astral' &&
+  goldSummary.nextObjectiveCount === 6 &&
+  goldSummary.unmasteredObjectiveNames.length === 0,
+'the dungeon summary should expose the PB, same-run score, lifetime mastery, and next rank target');
+
+masteryRun = dungeonState.startDungeonState(dungeonId, masteryState, false, {
+  data,
+  runId: 'mastery-astral',
+  startedAt: 200000
+});
+setDungeonObjectiveIds(masteryRun, dungeonObjectiveIds);
+dungeonState.completeDungeonState(dungeonId, masteryState, {
+  data,
+  existingRun: masteryRun,
+  completedAt: 245000,
+  bossRespawnSeconds: 30
+});
+masteryRecord = masteryState.masteryByDungeonId[dungeonId];
+masteryScorecard = masteryState.currentRun.mastery;
+check(masteryRecord.bestRankIndex === 3 &&
+  masteryRecord.bestClearMs === 45000 &&
+  masteryRecord.perfectClearCount === 1 &&
+  masteryScorecard.newRankIds.join(',') === 'astral' &&
+  masteryScorecard.promotionReward.starTokens === 8,
+'a faster six-objective clear should earn Astral, update the PB, and award only the final one-time promotion');
+
+const masterySnapshot = dungeonState.createDungeonSnapshotFromState(masteryState, {
+  data,
+  player: { classId: 'fighter', advancedClassId: 'guardian', level: 25 },
+  nowMs: 245000,
+  bossRespawnSeconds: 30
+});
+masterySnapshot.masteryByDungeonId[dungeonId].bestObjectiveIds.length = 0;
+masterySnapshot.dungeons.find((dungeon) => dungeon.id === dungeonId).mastery.masteredObjectiveIds.length = 0;
+check(masteryState.masteryByDungeonId[dungeonId].bestObjectiveIds.length === 6 &&
+  masteryState.masteryByDungeonId[dungeonId].masteredObjectiveIds.length === 6,
+'dungeon mastery snapshots and summaries should deep-clone their objective arrays');
+
+const restoredMasteryEngine = createProjectStarfallEngine(null, data);
+const masterySaveEngine = createEngine();
+masterySaveEngine.state.dungeons = masteryState;
+check(restoredMasteryEngine.restore(masterySaveEngine.serialize()) &&
+  restoredMasteryEngine.getDungeonSnapshot().dungeons.find((dungeon) => dungeon.id === dungeonId).mastery.rankId === 'astral' &&
+  restoredMasteryEngine.state.dungeons.masteryByDungeonId[dungeonId].claimedRankIds.includes('astral'),
+'save and restore should preserve dungeon PBs and claimed mastery promotions');
+
+const adminMasteryState = dungeonState.createDungeonState(null, { data });
+const adminMasteryRun = dungeonState.startDungeonState(dungeonId, adminMasteryState, false, {
+  data,
+  runId: 'admin-mastery',
+  startedAt: 1000
+});
+adminMasteryRun.adminEncounter = true;
+setDungeonObjectiveIds(adminMasteryRun, dungeonObjectiveIds);
+dungeonState.completeDungeonState(dungeonId, adminMasteryState, {
+  data,
+  existingRun: adminMasteryRun,
+  completedAt: 2000,
+  bossRespawnSeconds: 30
+});
+check(!adminMasteryState.masteryByDungeonId[dungeonId] &&
+  adminMasteryState.currentRun.mastery.eligible === false &&
+  adminMasteryState.currentRun.mastery.newRankIds.length === 0,
+'admin encounters should remain available for testing without creating mastery records or promotion rewards');
+
+const objectiveAliases = dungeonState.createDungeonObjectiveSnapshots({
+  break_boss: { progress: 1, complete: true }
+}, { data })[0];
+check(objectiveAliases &&
+  objectiveAliases.name === 'Break the Boss' &&
+  objectiveAliases.label === 'Break the Boss' &&
+  objectiveAliases.progress === 1 &&
+  objectiveAliases.value === 1,
+'dungeon objective snapshots should publish consistent name/label and progress/value aliases for the UI');
+
+const scorecardOverlay = hud.getCanvasBossEncounterOverlayMetadata({
+  clear: {
+    text: 'Emberjaw Lair cleared.',
+    xp: 420,
+    coins: 220,
+    drops: [],
+    scorecard: {
+      rankName: 'Silver',
+      clearSeconds: 60,
+      bestClearSeconds: 55,
+      objectiveCount: 3,
+      objectiveTotal: 6
+    }
+  }
+}, 1280, 806, {
+  formatMetricEta: (seconds) => `${seconds}s`
+});
+const plainClearOverlay = hud.getCanvasBossEncounterOverlayMetadata({
+  clear: { text: 'Boss cleared.', xp: 10, coins: 5, drops: [] }
+}, 1280, 806);
+check(scorecardOverlay &&
+  scorecardOverlay.box.h === 126 &&
+  /Clear 60s/.test(scorecardOverlay.masteryText.value) &&
+  /Silver 3\/6/.test(scorecardOverlay.masteryText.value) &&
+  plainClearOverlay &&
+  plainClearOverlay.box.h === 126 &&
+  !plainClearOverlay.masteryText,
+'the existing 126px boss-clear overlay should add mastery text only for real dungeon scorecards');
+
+const liveDungeonEngine = createEngine();
+liveDungeonEngine.state.player.level = 25;
+check(liveDungeonEngine.changeMap('emberjawLair'),
+  'the dungeon-mastery fixture should enter Emberjaw Lair');
+const guaranteedElite = liveDungeonEngine.enemies.find((enemy) =>
+  enemy &&
+  enemy.data &&
+  enemy.data.behavior !== 'boss' &&
+  enemy.elite);
+check(!!guaranteedElite,
+  'each dungeon run should guarantee a non-boss elite so Elite Control is deliberate instead of boss-credit or pure RNG');
+const liveDungeonBoss = liveDungeonEngine.enemies.find((enemy) =>
+  enemy &&
+  enemy.id === 'emberjawGolem' &&
+  Number(enemy.hp || 0) > 0);
+check(!!liveDungeonBoss, 'the live dungeon-mastery fixture should find Emberjaw');
+if (liveDungeonBoss) liveDungeonEngine.defeatEnemy(liveDungeonBoss);
+check(!liveDungeonEngine.state.dungeons.currentRun.objectives.elite_control.complete,
+  'defeating the dungeon boss itself should no longer auto-complete Elite Control');
+check(liveDungeonEngine.bossClearSummary &&
+  liveDungeonEngine.bossClearSummary.scorecard &&
+  liveDungeonEngine.bossClearSummary.scorecard.rankName === 'Bronze',
+'a real dungeon clear should retain its mastery scorecard through the live boss-clear overlay');
+
+const originalRandom = Math.random;
+let stagedDungeonEngine = null;
+try {
+  Math.random = () => 0.99;
+  stagedDungeonEngine = createEngine();
+  stagedDungeonEngine.state.player.level = 25;
+  check(stagedDungeonEngine.changeMap('brambleDepths'),
+    'the staged dungeon-mastery fixture should enter Bramble Depths');
+  const firstBeatEnemies = stagedDungeonEngine.enemies.filter((enemy) =>
+    enemy &&
+    enemy.dungeonBeatId === 'break_root_gate' &&
+    Number(enemy.hp || 0) > 0);
+  check(firstBeatEnemies.filter((enemy) => enemy.elite).length === 1,
+    'a staged dungeon should guarantee exactly one elite in its opening combat beat');
+  firstBeatEnemies.forEach((enemy) => stagedDungeonEngine.defeatEnemy(enemy));
+  const secondBeatEnemies = stagedDungeonEngine.enemies.filter((enemy) =>
+    enemy &&
+    enemy.dungeonBeatId === 'purge_bramble_seal' &&
+    Number(enemy.hp || 0) > 0);
+  check(secondBeatEnemies.length > 0 && secondBeatEnemies.every((enemy) => !enemy.elite),
+    'later staged beats should not force extra elites and inflate dungeon difficulty or rewards');
+} finally {
+  Math.random = originalRandom;
+}
+
+const guardedCompletionEngine = createEngine();
+const guardedDungeon = data.DUNGEONS.find((dungeon) => dungeon.id === dungeonId);
+guardedCompletionEngine.state.dungeons = dungeonState.createDungeonState(null, { data });
+const guardedRun = dungeonState.startDungeonState(dungeonId, guardedCompletionEngine.state.dungeons, false, {
+  data,
+  runId: 'guarded-completion',
+  startedAt: Date.now() - 60000
+});
+setDungeonObjectiveIds(guardedRun, dungeonObjectiveIds.slice(0, 2));
+const guardedCurrencyBefore = guardedCompletionEngine.state.player.currency;
+check(guardedCompletionEngine.completeDungeon(guardedDungeon, { name: 'Emberjaw Golem' }),
+  'a valid authored dungeon run should complete once');
+const guardedCurrencyAfter = guardedCompletionEngine.state.player.currency;
+const guardedCountAfter = guardedCompletionEngine.state.dungeons.completionCounts[dungeonId];
+check(!guardedCompletionEngine.completeDungeon(guardedDungeon, { name: 'Emberjaw Golem' }) &&
+  guardedCompletionEngine.state.player.currency === guardedCurrencyAfter &&
+  guardedCompletionEngine.state.dungeons.completionCounts[dungeonId] === guardedCountAfter &&
+  guardedCurrencyAfter > guardedCurrencyBefore,
+'a repeated completion call should grant no duplicate base, objective, or mastery rewards');
+const reusedRun = dungeonState.startDungeonState(dungeonId, guardedCompletionEngine.state.dungeons, false, {
+  data,
+  runId: 'guarded-completion',
+  startedAt: Date.now()
+});
+setDungeonObjectiveIds(reusedRun, dungeonObjectiveIds);
+const reusedRunCurrencyBefore = guardedCompletionEngine.state.player.currency;
+check(!guardedCompletionEngine.completeDungeon(guardedDungeon, { name: 'Reused Emberjaw' }) &&
+  guardedCompletionEngine.state.player.currency === reusedRunCurrencyBefore &&
+  !guardedCompletionEngine.state.dungeons.currentRun.completedAt &&
+  guardedCompletionEngine.state.dungeons.completionCounts[dungeonId] === guardedCountAfter,
+'a reused run id should be rejected before objective, base, or mastery rewards are granted');
+check(!guardedCompletionEngine.completeDungeonForBoss({
+  id: guardedDungeon.bossId,
+  name: 'Admin Emberjaw',
+  data: { behavior: 'boss' },
+  adminSpawned: true
+}) &&
+  guardedCompletionEngine.state.dungeons.completionCounts[dungeonId] === guardedCountAfter,
+'an admin-spawned dungeon boss should never grant a real clear');
+
+const adminCommandDungeonEngine = createEngine();
+adminCommandDungeonEngine.state.player.level = 25;
+check(adminCommandDungeonEngine.changeMap('emberjawLair'),
+  'the admin-command mastery fixture should enter Emberjaw Lair');
+const adminCommandDefeatCount = adminCommandDungeonEngine.adminKillEnemies('all');
+check(adminCommandDefeatCount > 0 &&
+  adminCommandDungeonEngine.state.dungeons.currentRun.adminEncounter &&
+  !adminCommandDungeonEngine.state.dungeons.completionCounts[dungeonId] &&
+  !adminCommandDungeonEngine.state.dungeons.masteryByDungeonId[dungeonId],
+'Worldwright kill commands should taint the active run and grant no dungeon clear or mastery');
+
+const adminButtonDungeonEngine = createEngine();
+adminButtonDungeonEngine.state.player.level = 25;
+check(adminButtonDungeonEngine.changeMap('emberjawLair'),
+  'the admin-button mastery fixture should enter Emberjaw Lair');
+const adminButtonDefeatCount = adminButtonDungeonEngine.adminKillAllEnemies();
+check(adminButtonDefeatCount > 0 &&
+  adminButtonDungeonEngine.state.dungeons.currentRun.adminEncounter &&
+  !adminButtonDungeonEngine.state.dungeons.completionCounts[dungeonId] &&
+  !adminButtonDungeonEngine.state.dungeons.masteryByDungeonId[dungeonId],
+'the Worldwright Kill All button should taint the active run and grant no dungeon clear or mastery');
 
 if (failures.length) {
   console.error(`Project Starfall retention-loop checks failed: ${failures.length}/${checks}`);
