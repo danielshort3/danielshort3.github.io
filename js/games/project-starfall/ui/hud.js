@@ -1270,6 +1270,7 @@
       getHudWidgetDragUpdate,
       getHudWidgetReleaseAction,
       getHudWidgetCancelAction,
+      getOnboardingStepSummary,
       getQuestTrackerEntries,
       getQuestTrackerNaturalHeight,
       getQuestTrackerBox
@@ -2007,30 +2008,77 @@
     const stationId = player.activeStation;
     const portalId = player.activePortalId;
     const questNpcId = player.activeQuestNpcId;
-    if (!stationId && !portalId && !questNpcId) return null;
     const station = stationId ? ((source.map && source.map.stations) || []).find((candidate) => candidate.id === stationId) : null;
     const portal = portalId ? (source.portals || []).find((candidate) => candidate.id === portalId) : null;
     const questNpc = questNpcId && source.questNpcs
       ? (source.questNpcs.npcs || []).find((candidate) => candidate.id === questNpcId && ((candidate.iconStates || []).length || candidate.servicePanelId))
       : null;
     const openWindows = settings.openWindows || [];
-    if (openWindows.includes('plinko') && ((stationId === 'plinko') || (questNpc && questNpc.servicePanelId === 'plinko'))) return null;
-    const title = questNpc ? questNpc.name : station ? station.name : portal ? portal.label : '';
-    if (!title) return null;
+    const interaction = questNpc
+      ? {
+          title: questNpc.name,
+          promptAction: 'npcTalk',
+          hint: `${keyLabels.npcTalk || 'Y'} Talk`,
+          hintColor: '#177645',
+          kindLabel: questNpc.servicePanelId ? 'Service NPC' : 'Quest NPC',
+          target: questNpc
+        }
+      : station
+        ? {
+            title: station.name,
+            promptAction: 'interact',
+            hint: `${keyLabels.interact || 'F'} Use`,
+            hintColor: '#177645',
+            kindLabel: 'Station',
+            target: station
+          }
+        : portal
+          ? {
+              title: portal.label,
+              promptAction: 'portal',
+              hint: `${keyLabels.moveUp || 'Up'} Travel`,
+              hintColor: '#2f7dd6',
+              kindLabel: 'Portal',
+              target: portal
+            }
+          : null;
+    if (interaction) {
+      if (openWindows.includes('plinko') && (
+        interaction.target && interaction.target.id === 'plinko' ||
+        interaction.target && interaction.target.servicePanelId === 'plinko'
+      )) return null;
+      return Object.assign(interaction, { station, portal, questNpc });
+    }
+    const onboarding = source.onboarding || {};
+    const nextStep = onboarding.hidden ? null : onboarding.nextStep;
+    if (!nextStep || String(nextStep.id || '') !== 'loot_drop') return null;
+    const loot = source.nearbyLoot && typeof source.nearbyLoot === 'object' ? source.nearbyLoot : null;
+    if (!loot) return null;
+    const lootKey = String(keyLabels.loot || 'Z').trim() || 'Z';
+    const lootUnbound = lootKey.toLowerCase() === 'unbound';
+    const lootItem = loot.item || {};
+    const lootKind = String(lootItem.kind || '').toLowerCase();
+    const showTierAura = lootKind === 'equipment' || lootKind === 'card' || (!lootKind && !!lootItem.slot);
+    const drawSize = showTierAura ? 44 : 58;
+    const drawLift = showTierAura ? 36 : 48;
     return {
-      title,
-      promptAction: portal ? 'portal' : questNpc ? 'npcTalk' : 'interact',
-      hint: portal
-        ? `${keyLabels.moveUp || 'Up'} Travel`
-        : questNpc
-          ? `${keyLabels.npcTalk || 'Y'} Talk`
-          : `${keyLabels.interact || 'F'} Use`,
-      hintColor: portal ? '#2f7dd6' : '#177645',
-      kindLabel: questNpc && questNpc.servicePanelId ? 'Service NPC' : questNpc ? 'Quest NPC' : portal ? 'Portal' : 'Station',
-      target: questNpc || station || portal || null,
-      station,
-      portal,
-      questNpc
+      title: String(lootItem.name || loot.name || 'Dropped item'),
+      promptAction: 'loot',
+      hint: lootUnbound ? 'Click Pick Up' : `${lootKey} Pick Up`,
+      hintColor: '#177645',
+      hintMaxWidth: 112,
+      kindLabel: 'Nearby loot',
+      target: {
+        id: String(loot.uid || ''),
+        x: Number(loot.x || 0) - drawSize / 2,
+        y: Number(loot.y || 0) - drawLift,
+        w: drawSize,
+        h: drawSize
+      },
+      loot,
+      station: null,
+      portal: null,
+      questNpc: null
     };
   }
 
@@ -2057,6 +2105,7 @@
   function getStationPromptRenderMetadata(prompt, box, options) {
     if (!prompt || !box) return null;
     const settings = options || {};
+    const hintMaxWidth = Math.max(98, Number(prompt.hintMaxWidth || 0) || 98);
     return {
       region: {
         type: 'station-prompt',
@@ -2083,7 +2132,7 @@
         y: box.y + 7,
         color: '#102033',
         font: '900 12px system-ui',
-        maxWidth: box.w - 112,
+        maxWidth: box.w - hintMaxWidth - 24,
         lineHeight: 13,
         maxLines: 1
       },
@@ -2094,7 +2143,7 @@
         color: prompt.hintColor,
         font: '900 11px system-ui',
         align: 'right',
-        maxWidth: 98,
+        maxWidth: hintMaxWidth,
         lineHeight: 12
       },
       kindText: {
@@ -2198,6 +2247,17 @@
     });
   }
 
+  function getOnboardingStepSummary(step, options) {
+    const source = step || {};
+    if (String(source.id || '') !== 'loot_drop') return String(source.summary || '');
+    const keyLabels = options && options.keyLabels || {};
+    const lootKey = String(keyLabels.loot || 'Z').trim() || 'Z';
+    if (lootKey.toLowerCase() === 'unbound') {
+      return 'Click the nearby prompt, or bind Loot in Keybinds and hold it near a dropped item to collect coins, gear, or materials.';
+    }
+    return `Hold ${lootKey} near a dropped item to collect coins, gear, or materials.`;
+  }
+
   function getQuestTrackerEntries(snapshot, options) {
     const source = snapshot || {};
     const settings = options || {};
@@ -2216,7 +2276,13 @@
       title: `${activePhase.title || 'Journey'} ${Number(activePhase.completeCount || 0)}/${Number(activePhase.total || onboarding.total || 0)}: ${nextStep.title}`,
       guideType: 'guide',
       guideId: nextStep.id || nextStep.panelId || nextStep.title,
-      objectives: [{ label: nextStep.summary || 'Continue the guide.', value: 0, goal: 1, complete: false, status: '' }]
+      objectives: [{
+        label: getOnboardingStepSummary(nextStep, settings) || 'Continue the guide.',
+        value: 0,
+        goal: 1,
+        complete: false,
+        status: ''
+      }]
     } : null;
     if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
     const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
@@ -2783,6 +2849,7 @@
     getQuestNpcIconEntries,
     getQuestNpcIconRenderMetadata,
     createHudWorldPromptUiHelpers,
+    getOnboardingStepSummary,
     getQuestTrackerEntries,
     getQuestTrackerNaturalHeight,
     getQuestTrackerBox,
