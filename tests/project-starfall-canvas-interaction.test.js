@@ -5,6 +5,7 @@ const assert = require('assert');
 global.ProjectStarfallData = require('../js/games/project-starfall/data/index.js');
 const { createProjectStarfallEngine } = require('../js/games/project-starfall/project-starfall-engine.js');
 const { ProjectStarfallUi } = require('../js/games/project-starfall/project-starfall-ui.js');
+const hud = require('../js/games/project-starfall/ui/hud.js');
 
 let checks = 0;
 function check(condition, message) {
@@ -210,17 +211,56 @@ check(routeGuideEngine.chooseClass('fighter'),
 check(routeGuideEngine.setWorldMapGuideTarget('thornpathThicket'),
   'the world map should establish a multi-hop Thornpath guide');
 const crossingOverlay = routeGuideEngine.getOverlaySnapshot({ openPanels: [] });
+const crossingRouteEntries = hud.getQuestTrackerEntries(crossingOverlay)
+  .filter((entry) => entry.guideType === 'map');
 check(crossingOverlay.worldMap.pathHint === null,
   'closed-panel overlays should retain their lightweight world-map payload');
+check(routeGuideEngine.state.session.questGuide.type === 'map' &&
+  routeGuideEngine.state.session.questGuide.id === 'thornpathThicket' &&
+  crossingOverlay.questGuidance.targetType === 'map' &&
+  crossingOverlay.questGuidance.routeHopCount === 2 &&
+  crossingOverlay.questGuidance.nextRouteLabel === 'Greenroot Gate',
+  'Set Guide should preserve a destination-first route instead of silently converting the field into a hunt');
+check(crossingRouteEntries.length === 1 &&
+  crossingRouteEntries[0].title === 'Route: Thornpath Thicket' &&
+  crossingRouteEntries[0].objectives[0].label === 'Next: Greenroot Gate' &&
+  crossingRouteEntries[0].objectives[0].status === 'Blocked ahead - 2 hops',
+  'a blocked multi-hop destination should remain visible with its reachable first hop and route status');
 check(crossingOverlay.questGuidance.navigationTarget &&
   crossingOverlay.questGuidance.navigationTarget.portalId === 'crossing_greenroot',
   'closed-panel quest guidance should expose the physical first-hop portal');
+check(!routeGuideEngine.getMapKillQuestSnapshot('thornpathThicket').active,
+  'world-map travel guidance should leave the local Thornpath hunt available but inactive');
 check(routeGuideEngine.changeMap('greenrootMeadow'),
   'the route guidance fixture should advance into Greenroot');
 const greenrootOverlay = routeGuideEngine.getOverlaySnapshot({ openPanels: [] });
+const greenrootRouteEntry = hud.getMapRouteTrackerEntry(greenrootOverlay.questGuidance);
 check(greenrootOverlay.questGuidance.navigationTarget &&
   greenrootOverlay.questGuidance.navigationTarget.portalId === 'greenroot_thornpath',
   'closed-panel quest guidance should advance to the next physical route portal');
+check(greenrootOverlay.questGuidance.routeHopCount === 1 &&
+  greenrootRouteEntry &&
+  greenrootRouteEntry.objectives[0].label === 'Next: Thornpath Pass' &&
+  greenrootRouteEntry.objectives[0].status === 'Blocked ahead - 1 hop',
+  'the route tracker should advance its next portal and remaining hop count after travel');
+
+check(routeGuideEngine.changeMap('thornpathThicket'),
+  'the route guidance fixture should reach its selected destination');
+const arrivedOverlay = routeGuideEngine.getOverlaySnapshot({ openPanels: [] });
+check(arrivedOverlay.questGuidance.complete &&
+  arrivedOverlay.questGuidance.onCurrentMap &&
+  hud.getMapRouteTrackerEntry(arrivedOverlay.questGuidance) === null &&
+  !hud.getQuestTrackerEntries(arrivedOverlay).some((entry) => entry.guideType === 'map'),
+  'arrival should complete guidance and remove the standalone route tracker entry');
+
+check(routeGuideEngine.setWorldMapGuideTarget('brambleDepths') &&
+  routeGuideEngine.state.session.questGuide.type === 'map' &&
+  routeGuideEngine.state.session.questGuide.id === 'brambleDepths',
+  'world-map dungeon destinations should use the same predictable travel-guide contract');
+check(routeGuideEngine.setQuestGuideTarget('mapKill', 'thornpathThicket') &&
+  !hud.getQuestTrackerEntries(routeGuideEngine.getOverlaySnapshot({ openPanels: [] }))
+    .some((entry) => entry.guideType === 'map'),
+  'explicit local hunt guidance should not receive a duplicate standalone route row');
 
 const minimapGuideUi = Object.create(ProjectStarfallUi.prototype);
 minimapGuideUi.snapshot = crossingOverlay;

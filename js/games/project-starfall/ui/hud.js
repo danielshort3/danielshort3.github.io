@@ -1335,6 +1335,7 @@
       getHudWidgetReleaseAction,
       getHudWidgetCancelAction,
       getOnboardingStepSummary,
+      getMapRouteTrackerEntry,
       getQuestTrackerEntries,
       getQuestTrackerNaturalHeight,
       getQuestTrackerBox
@@ -2322,6 +2323,40 @@
     return `Hold ${lootKey} near a dropped item to collect coins, gear, or materials.`;
   }
 
+  function getMapRouteTrackerEntry(guidance) {
+    const guide = guidance || {};
+    const isActiveRoute = guide.active &&
+      guide.targetType === 'map' &&
+      guide.targetId &&
+      guide.recommendedMapId &&
+      !guide.complete &&
+      !guide.onCurrentMap;
+    if (!isActiveRoute) return null;
+    const navigationTarget = guide.navigationTarget || {};
+    const destinationName = String(guide.recommendedMapName || guide.sourceTitle || 'Destination');
+    const nextRouteLabel = String(
+      navigationTarget.kind === 'portal' || navigationTarget.kind === 'dungeonPortal'
+        ? navigationTarget.label || guide.nextRouteLabel || ''
+        : guide.nextRouteLabel || navigationTarget.label || ''
+    ).trim();
+    const hopCount = Math.max(0, Math.floor(Number(guide.routeHopCount || 0) || 0));
+    const statusParts = [];
+    if (guide.lockedReason) statusParts.push('Blocked ahead');
+    if (hopCount) statusParts.push(`${hopCount} hop${hopCount === 1 ? '' : 's'}`);
+    return {
+      title: `Route: ${destinationName}`,
+      guideType: 'map',
+      guideId: guide.targetId,
+      objectives: [{
+        label: nextRouteLabel ? `Next: ${nextRouteLabel}` : `Travel toward ${destinationName}`,
+        value: 0,
+        goal: 1,
+        complete: false,
+        status: statusParts.join(' - ') || 'Travel'
+      }]
+    };
+  }
+
   function getQuestTrackerEntries(snapshot, options) {
     const source = snapshot || {};
     const settings = options || {};
@@ -2334,6 +2369,7 @@
     const onboarding = source.onboarding || {};
     const nextStep = onboarding.hidden ? null : onboarding.nextStep;
     const activePhase = onboarding.activePhase || {};
+    const routeEntry = getMapRouteTrackerEntry(source.questGuidance);
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
     const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
     const mergeFirstStepsTracker = !!(nextStep &&
@@ -2355,7 +2391,7 @@
       guideId: nextStep.id || nextStep.panelId || nextStep.title,
       objectives: [guideObjective]
     } : null;
-    if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
+    if (!guideEntry && !routeEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
     const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
     const dungeonEncounterHud = activeDungeon &&
       activeDungeon.encounterFlow && activeDungeon.encounterFlow.hud &&
@@ -2414,7 +2450,7 @@
       guideType: 'trial',
       guideId: progress.activeTrial.id
     }) : null;
-    return [guideEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
+    return [guideEntry, routeEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
   }
 
   function getQuestTrackerNaturalHeight(entries, guidance) {
@@ -2931,6 +2967,7 @@
     getQuestNpcIconRenderMetadata,
     createHudWorldPromptUiHelpers,
     getOnboardingStepSummary,
+    getMapRouteTrackerEntry,
     getQuestTrackerEntries,
     getQuestTrackerNaturalHeight,
     getQuestTrackerBox,

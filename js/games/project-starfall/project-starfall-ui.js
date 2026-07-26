@@ -26935,6 +26935,39 @@
       const onboarding = snapshot.onboarding || {};
       const nextStep = onboarding.hidden ? null : onboarding.nextStep;
       const activePhase = onboarding.activePhase || {};
+      const guidance = snapshot.questGuidance || {};
+      const navigationTarget = guidance.navigationTarget || {};
+      const routeHopCount = Math.max(0, Math.floor(Number(guidance.routeHopCount || 0) || 0));
+      const routeNextLabel = String(
+        navigationTarget.kind === 'portal' || navigationTarget.kind === 'dungeonPortal'
+          ? navigationTarget.label || guidance.nextRouteLabel || ''
+          : guidance.nextRouteLabel || navigationTarget.label || ''
+      ).trim();
+      const routeStatus = [
+        guidance.lockedReason ? 'Blocked ahead' : '',
+        routeHopCount ? `${routeHopCount} hop${routeHopCount === 1 ? '' : 's'}` : ''
+      ].filter(Boolean).join(' - ') || 'Travel';
+      const routeEntry = guidance.active &&
+        guidance.targetType === 'map' &&
+        guidance.targetId &&
+        guidance.recommendedMapId &&
+        !guidance.complete &&
+        !guidance.onCurrentMap
+        ? {
+          title: `Route: ${guidance.recommendedMapName || guidance.sourceTitle || 'Destination'}`,
+          guideType: 'map',
+          guideId: guidance.targetId,
+          objectives: [{
+            label: routeNextLabel
+              ? `Next: ${routeNextLabel}`
+              : `Travel toward ${guidance.recommendedMapName || guidance.sourceTitle || 'the destination'}`,
+            value: 0,
+            goal: 1,
+            complete: false,
+            status: routeStatus
+          }]
+        }
+        : null;
       const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
       const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
       const mergeFirstStepsTracker = !!(nextStep &&
@@ -26956,7 +26989,7 @@
         guideId: nextStep.id || nextStep.panelId || nextStep.title,
         objectives: [guideObjective]
       } : null;
-      if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
+      if (!guideEntry && !routeEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
       const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
       const dungeonEntry = activeDungeon ? {
         title: activeDungeon.name,
@@ -26999,7 +27032,7 @@
         guideType: 'trial',
         guideId: progress.activeTrial.id
       }) : null;
-      return [guideEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
+      return [guideEntry, routeEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
     }
 
     getCanvasRiftTrackerBox(width, height, bottomY) {
