@@ -19363,11 +19363,7 @@
       if (!map) return false;
       this.ensureRuntimeState();
       this.state.session.worldMapSelectedId = map.id;
-      if (map.isDungeon) {
-        const dungeon = getDungeonDefinitionByMapId(map.id);
-        if (dungeon) return this.setQuestGuideTarget('dungeon', dungeon.id);
-      }
-      return this.setQuestGuideTarget(map.safeZone ? 'map' : 'mapKill', map.id);
+      return this.setQuestGuideTarget('map', map.id);
     }
 
     getMapKillQuestState() {
@@ -19589,6 +19585,8 @@
       const recommendedMap = getMapDefinitionById(recommendedMapId);
       const currentMapId = this.state.mapId;
       const path = recommendedMapId && recommendedMapId !== currentMapId ? this.getWorldMapPath(currentMapId, recommendedMapId) : null;
+      const routeSteps = path && Array.isArray(path.steps) ? path.steps : [];
+      const nextRouteStep = routeSteps[0] || null;
       const lockedReason = path && path.lockedReason
         ? path.lockedReason
         : recommendedMapId && recommendedMapId !== currentMapId
@@ -19616,6 +19614,8 @@
         currentMapId,
         onCurrentMap: !recommendedMapId || recommendedMapId === currentMapId,
         canTravel: false,
+        routeHopCount: routeSteps.length,
+        nextRouteLabel: String(nextRouteStep && (nextRouteStep.portalLabel || nextRouteStep.toMapId) || ''),
         lockedReason,
         targetEnemyIds,
         targetNpcId,
@@ -19841,6 +19841,8 @@
           currentMapId: this.state.mapId,
           onCurrentMap: true,
           canTravel: false,
+          routeHopCount: 0,
+          nextRouteLabel: '',
           lockedReason: '',
           targetEnemyIds: [],
           navigationTarget: null,
@@ -19979,6 +19981,8 @@
         currentMapId: this.state.mapId,
         onCurrentMap: true,
         canTravel: false,
+        routeHopCount: 0,
+        nextRouteLabel: '',
         lockedReason: '',
         targetEnemyIds: [],
         navigationTarget: null,
