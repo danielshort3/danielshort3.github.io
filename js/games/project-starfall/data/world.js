@@ -227,6 +227,7 @@
     Object.freeze({ id: 'stormbreak_haven_cliffs', fromMapId: 'stormbreakHaven', toMapId: 'stormbreakCliffs', type: 'field', routeId: 'ascension', portalIds: Object.freeze({ from: 'stormbreak_haven_cliffs', to: 'stormbreak_haven_return' }) }),
     Object.freeze({ id: 'stormbreak_haven_observatory', fromMapId: 'stormbreakHaven', toMapId: 'astralObservatory', type: 'field', routeId: 'ascension', requiredMapId: 'stormbreakCliffs', portalIds: Object.freeze({ from: 'stormbreak_haven_observatory', to: 'astral_observatory_stormbreak' }) }),
     Object.freeze({ id: 'astral_observatory_archive', fromMapId: 'astralObservatory', toMapId: 'astralArchive', type: 'field', routeId: 'ascension', portalIds: Object.freeze({ from: 'astral_observatory_archive', to: 'archive_observatory' }) }),
+    Object.freeze({ id: 'archive_astral_stacks', fromMapId: 'astralArchive', toMapId: 'astralStacks', type: 'dungeon', requiredLevel: 88, portalIds: Object.freeze({ from: 'archive_astral_stacks', to: 'stacks_return' }) }),
     Object.freeze({ id: 'archive_eclipse', fromMapId: 'astralArchive', toMapId: 'eclipseFrontier', type: 'field', routeId: 'ascension', requiredMapId: 'astralArchive', portalIds: Object.freeze({ from: 'archive_eclipse', to: 'eclipse_archive' }) }),
     Object.freeze({ id: 'eclipse_rift', fromMapId: 'eclipseFrontier', toMapId: 'endlessRift', type: 'field', routeId: 'ascension', requiredMapId: 'eclipseFrontier', portalIds: Object.freeze({ from: 'eclipse_rift', to: 'rift_eclipse' }) })
   ]);

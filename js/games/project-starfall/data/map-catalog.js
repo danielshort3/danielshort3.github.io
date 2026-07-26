@@ -334,7 +334,7 @@
         purpose: 'Ancient archive stacks and rune walkways tuned for late-game mobbing practice.',
         enemies: ['indexScribe', 'lumenSentinel', 'voidMote', 'indexScribe', 'lumenSentinel', 'crackedMimic', 'voidMote', 'indexScribe', 'lumenSentinel', 'voidMote', 'indexScribe', 'lumenSentinel', 'voidMote', 'indexScribe'],
         waveMax: 34,
-        questNpcs: [{ id: 'astral_scribe', name: 'Astral Scribe', x: 520, platformIndex: 0, questIds: ['astral_indexing'], color: '#29365f', accent: '#c794ff' }]
+        questNpcs: [{ id: 'astral_scribe', name: 'Astral Scribe', x: 520, platformIndex: 0, questIds: ['astral_indexing', 'astral_echo'], color: '#29365f', accent: '#c794ff' }]
       }),
       makeExpandedTrainingMap({
         id: 'eclipseFrontier',
@@ -425,7 +425,9 @@
         id: 'astralStacks',
         name: 'Astral Stacks',
         bossId: 'astralArchivist',
+        bossSpawnPlatformId: 'astralStacks_center_rune_shelf',
         levelRange: [88, 98],
+        waveMax: 9,
         palette: ['#29365f', '#28c7b7', '#c794ff'],
         purpose: 'Custom boss echo with rune pages, mirrored attacks, and action-memory seals.',
         enemies: ['astralArchivist', 'indexScribe', 'lumenSentinel', 'voidMote', 'cloudcallAcolyte'],

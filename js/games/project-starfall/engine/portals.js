@@ -61,6 +61,13 @@
     return cached.get(normalizeId(mapId)) || null;
   }
 
+  function getBossEncounterDefinition(encounterId, data) {
+    const id = normalizeId(encounterId);
+    return ((data || {}).BOSS_ENCOUNTERS || []).find((encounter) =>
+      encounter && (encounter.id === id || encounter.bossId === id || encounter.mapId === id)
+    ) || null;
+  }
+
   function getRouteState(routeState, options) {
     if (routeState && typeof routeState === 'object') return routeState;
     return RouteProgress.createRouteProgressState
@@ -207,6 +214,9 @@
       const status = field ? createRouteFieldStatus(route, field, routeState, settings) : null;
       if (status && !status.complete) return `${route.name}: clear ${status.mapName} (${status.value}/${status.goal}).`;
     }
+    if (portal.bossEncounterId) {
+      return getBossEncounterDefinition(portal.bossEncounterId, data) ? '' : 'Boss encounter is unavailable.';
+    }
     if (portal.destinationMapId) return createMapTravelBlockReason(portal.destinationMapId, settings);
     return 'Portal destination is unavailable.';
   }
@@ -217,9 +227,10 @@
     const data = getPortalData(settings);
     const destinationMap = getMapDefinitionById(portal.destinationMapId, data);
     const dungeon = getDungeonDefinitionById(portal.dungeonId, data);
+    const bossEncounter = getBossEncounterDefinition(portal.bossEncounterId, data);
     const lockedReason = createPortalBlockReason(portal, settings);
     return Object.assign({}, portal, {
-      destinationName: dungeon ? dungeon.name : destinationMap ? destinationMap.name : '',
+      destinationName: dungeon ? dungeon.name : destinationMap ? destinationMap.name : bossEncounter ? bossEncounter.name : '',
       lockedReason,
       locked: !!lockedReason
     });

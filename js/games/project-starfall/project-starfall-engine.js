@@ -20262,6 +20262,7 @@
         const status = field ? this.getRouteFieldStatus(route, field, context) : null;
         if (status && !status.complete) return `${route.name}: clear ${status.mapName} (${status.value}/${status.goal}).`;
       }
+      if (portal.bossEncounterId) return this.getBossEncounter(portal.bossEncounterId) ? '' : 'Boss encounter is unavailable.';
       if (portal.destinationMapId) return this.getMapTravelBlockReason(portal.destinationMapId, context);
       return 'Portal destination is unavailable.';
     }
@@ -20312,6 +20313,7 @@
         return false;
       }
       const options = { fromMapId: this.state.mapId, fromPortalId: portal.id };
+      if (portal.bossEncounterId) return this.enterBossEncounter(portal.bossEncounterId, options);
       if (portal.dungeonId) return this.startDungeon(portal.dungeonId, options);
       if (portal.destinationMapId) return this.changeMap(portal.destinationMapId, options);
       this.toast('Portal destination is unavailable.');
@@ -28296,6 +28298,24 @@
 
     chooseBossSpawnPoint(index) {
       const points = (this.runtime.spawnPoints || []).filter((point) => point && this.runtime.platforms[point.platformIndex]);
+      const map = getMapDefinitionById(this.state.mapId);
+      const authoredPlatformId = normalizeId(map && map.bossSpawnPlatformId);
+      const authoredPlatform = authoredPlatformId
+        ? (this.runtime.platforms || []).find((platform) => platform && normalizeId(platform.id) === authoredPlatformId)
+        : null;
+      if (authoredPlatform) {
+        const authoredPoint = points.find((point) => point.platformIndex === authoredPlatform.index);
+        const x = authoredPoint
+          ? Number(authoredPoint.x || 0)
+          : Number(authoredPlatform.x || 0) + Number(authoredPlatform.w || 0) / 2;
+        return Object.assign({}, authoredPoint || {}, {
+          x: clamp(x - Number(index || 0) * 120, authoredPlatform.x + 60, authoredPlatform.x + authoredPlatform.w - 80),
+          y: getPlatformSurfaceY(authoredPlatform, x),
+          platformIndex: authoredPlatform.index,
+          platformId: authoredPlatform.id,
+          weight: authoredPoint ? authoredPoint.weight : 1
+        });
+      }
       const sorted = points.length
         ? points.slice().sort((a, b) => b.x - a.x)
         : (this.runtime.platforms || []).map((platform) => ({

@@ -300,12 +300,12 @@
         id: 'stormbreak_rods',
         chainId: 'stormbreak_front',
         title: 'Stormbreak Rods',
-        summary: 'Clear storm packs and recover prism shards to tune the lightning rods.',
+        summary: 'Clear storm packs and recover fresh fletching to tune the lightning rods.',
         requiredQuestIds: ['stormbreak_orders'],
         objectives: [
           { id: 'defeat_harriers', type: 'defeat', enemyId: 'galeHarrier', mapId: 'stormbreakCliffs', count: 7, label: 'Defeat 7 Gale Harriers' },
           { id: 'defeat_archers', type: 'defeat', enemyId: 'stormboundArcher', mapId: 'stormbreakCliffs', count: 6, label: 'Defeat 6 Stormbound Archers' },
-          { id: 'collect_rod_shards', type: 'loot', materialId: 'cubeFragment', count: 2, label: 'Collect 2 Prism Shards' }
+          { id: 'collect_storm_fletching', type: 'loot', materialId: 'stormFletching', count: 6, label: 'Recover 6 Storm Fletching' }
         ],
         rewards: { xp: 2600, currency: 1450, materials: { upgradeCatalyst: 5, cubeFragment: 4 }, consumables: { potential_cube: 2 } }
       }),
@@ -326,12 +326,12 @@
         id: 'astral_indexing',
         chainId: 'astral_front',
         title: 'Astral Indexing',
-        summary: 'Rebuild damaged archive indices by defeating living entries and recovering prism shards.',
+        summary: 'Rebuild damaged archive indices by defeating living entries and recovering their scattered pages.',
         requiredQuestIds: ['astral_liaison'],
         objectives: [
           { id: 'defeat_scribes', type: 'defeat', enemyId: 'indexScribe', mapId: 'astralArchive', count: 8, label: 'Defeat 8 Index Scribes' },
           { id: 'defeat_sentinels', type: 'defeat', enemyId: 'lumenSentinel', mapId: 'astralArchive', count: 6, label: 'Defeat 6 Lumen Sentinels' },
-          { id: 'collect_archive_shards', type: 'loot', materialId: 'cubeFragment', count: 3, label: 'Collect 3 Prism Shards' }
+          { id: 'collect_runic_pages', type: 'loot', materialId: 'runicPage', count: 8, label: 'Recover 8 Runic Pages' }
         ],
         rewards: { xp: 3400, currency: 1900, materials: { cubeFragment: 6, refinementCore: 1 }, consumables: { preservation_cube: 1 } }
       }),

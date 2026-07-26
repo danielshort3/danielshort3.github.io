@@ -556,6 +556,58 @@
           { label: 'Lightning rod', platformTier: 'peak' }
         ]
       }),
+      astralArchive: createFieldComposition({
+        routeSections: [
+          {
+            label: 'Reading Room',
+            x: 0,
+            w: 1700,
+            tier: 'arrival',
+            platformIds: [
+              'astral_archive_solid_lane_01',
+              'astral_archive_solid_lane_02',
+              'astral_archive_solid_lane_03'
+            ]
+          },
+          {
+            label: 'Rune Index',
+            x: 1700,
+            w: 1700,
+            tier: 'training',
+            platformIds: [
+              'astral_archive_solid_lane_04',
+              'astral_archive_solid_lane_05',
+              'astral_archive_solid_lane_06'
+            ]
+          },
+          {
+            label: 'Sealed Annex',
+            x: 3400,
+            w: 1800,
+            tier: 'advance',
+            platformIds: [
+              'astral_archive_solid_lane_07',
+              'astral_archive_solid_lane_08',
+              'astral_archive_solid_lane_09'
+            ]
+          }
+        ],
+        portalRoles: {
+          archive_observatory: 'observatory return',
+          archive_astral_stacks: 'astral echo gate',
+          archive_eclipse: 'eclipse frontier advance'
+        },
+        landmarkBands: [
+          { kind: 'sign', x: 420, w: 900, label: 'Reading Room' },
+          { kind: 'glow', x: 2040, w: 980, label: 'Rune Index' },
+          { kind: 'crystal', x: 3820, w: 920, label: 'Sealed Annex' }
+        ],
+        spawnZoneLabels: [
+          { label: 'Reading room', platformTier: 'low' },
+          { label: 'Rune index', platformTier: 'mid' },
+          { label: 'Sealed annex', platformTier: 'high' }
+        ]
+      }),
       eclipseFrontier: createFieldComposition({
         routeSections: [
           { label: 'Solar Outpost', x: 0, w: 1300, tier: 'outpost' },
@@ -704,9 +756,35 @@
       }),
       astralStacks: createArenaFieldComposition({
         sections: [
-          { label: 'Left Stacks', tier: 'memory', kind: 'sign', platformTier: 'mid' },
-          { label: 'Center Rune Shelf', tier: 'rune', kind: 'glow', platformTier: 'high' },
-          { label: 'Right Stacks', tier: 'mirror', kind: 'crystal', platformTier: 'mid' }
+          {
+            label: 'Left Stacks',
+            tier: 'memory',
+            kind: 'sign',
+            platformTier: 'mid',
+            platformIds: [
+              'astral_stacks_solid_lane_01',
+              'astral_stacks_solid_lane_02',
+              'astral_stacks_solid_lane_03'
+            ]
+          },
+          {
+            label: 'Center Rune Shelf',
+            tier: 'rune',
+            kind: 'glow',
+            platformTier: 'high',
+            platformIds: ['astralStacks_center_rune_shelf']
+          },
+          {
+            label: 'Right Stacks',
+            tier: 'mirror',
+            kind: 'crystal',
+            platformTier: 'mid',
+            platformIds: [
+              'astral_stacks_solid_lane_04',
+              'astral_stacks_solid_lane_05',
+              'astral_stacks_solid_lane_06'
+            ]
+          }
         ]
       }),
       eclipseThrone: createArenaFieldComposition({
