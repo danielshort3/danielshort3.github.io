@@ -2702,8 +2702,8 @@
         if (type === 'telegraph') {
           const w = Math.max(1, Number(effect.w || 0));
           const h = Math.max(1, Number(effect.h || 0));
-          this.drawSolidRect('vfx', x, y, w, h, { tint: 0xff6b35, alpha: simplified ? 0.06 : 0.08 });
-          this.drawRectOutline('vfx', x, y, w, h, 2, { tint: 0xffc857, alpha: simplified ? 0.28 : 0.42 });
+          this.drawSolidRect('vfx', x, y, w, h, { tint: 0xff6b35, alpha: simplified ? 0.12 : 0.14 });
+          this.drawRectOutline('vfx', x, y, w, h, 2, { tint: 0xffc857, alpha: simplified ? 0.55 : 0.62 });
           continue;
         }
         if (type === 'recoveryPulse') {

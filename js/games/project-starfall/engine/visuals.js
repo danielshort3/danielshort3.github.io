@@ -296,7 +296,8 @@
   function getWorldEffectPriority(effect) {
     const type = effect && effect.type || '';
     let score = 0;
-    if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
+    if ((effect && effect.combatCritical) || type === 'telegraph' || type === 'bossHazard') score = 2000;
+    else if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
     else if (type === 'recoveryPulse') score = 650;
     else if (type === 'skillImpact' || type === 'shockBurst') score = 500;
     else if (type === 'slash' || type === 'cast' || type === 'arrowRelease') score = 420;

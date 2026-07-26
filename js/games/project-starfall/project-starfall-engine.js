@@ -992,6 +992,10 @@
   const ENEMY_CHARGE_ACTIVE_SECONDS = 0.95;
   const ENEMY_CHARGE_COOLDOWN_SECONDS = 3.4;
   const ENEMY_CHARGE_SPEED = 430;
+  const ENEMY_MELEE_TELEGRAPH_SECONDS = 0.28;
+  const ENEMY_PROJECTILE_TELEGRAPH_SECONDS = 0.45;
+  const ENEMY_MELEE_WARNING_LENGTH = 96;
+  const ENEMY_PROJECTILE_WARNING_LENGTH = 148;
   const ENEMY_WANDER_LEASH_RANGE = 280;
   const ENEMY_WANDER_EDGE_PADDING = 18;
   const ENEMY_WANDER_SPEED_SCALE = 0.42;
@@ -1019,6 +1023,7 @@
   }))));
   const COMBAT_ACTION_LOCK_SECONDS = 0.1;
   const GLOBAL_COMBAT_ACTION_DELAY_SECONDS = 0.35;
+  const COMBAT_INPUT_BUFFER_SECONDS = 0.12;
   const SKILL_FX_CONTACT_DELAY_SECONDS = 2 / 12;
   const BASIC_ATTACK_MOVEMENT_LOCK_SECONDS = 0.14;
   const COMBAT_METRICS_ROLLING_WINDOW_SECONDS = getEngineCombatMetricsValue('COMBAT_METRICS_ROLLING_WINDOW_SECONDS', 60);
@@ -10557,6 +10562,7 @@
       this.input = { left: false, right: false, up: false, jump: false, down: false, attack: false, loot: false };
       this.heldSkillIds = new Set();
       this.heldSkillRetryAt = {};
+      this.combatInputBuffer = null;
       this.nextHeldLootAt = 0;
       this.petRuntime = createPetRuntime();
       this.passiveRecoveryElapsed = { hp: 0, mp: 0 };
@@ -13003,6 +13009,7 @@
         this.bossIntroSummary = captured.bossIntroSummary ? clonePlain(captured.bossIntroSummary) : null;
         this.bossClearSummary = captured.bossClearSummary ? clonePlain(captured.bossClearSummary) : null;
       }
+      this.combatInputBuffer = null;
       this.enemySpatialIndex = null;
       this.enemySpatialIndexFrameId = 0;
       this.enemySpatialIndexCount = 0;
@@ -14254,10 +14261,67 @@
 	      return true;
 	    }
 
+    queueCombatInput(kind, skillId, queuedAt) {
+      const inputKind = kind === 'skill' ? 'skill' : kind === 'basic' ? 'basic' : '';
+      const id = inputKind === 'skill' ? normalizeId(skillId) : '';
+      if (!inputKind || inputKind === 'skill' && !id) return false;
+      const time = Number.isFinite(Number(queuedAt)) ? Number(queuedAt) : nowSeconds();
+      this.combatInputBuffer = {
+        kind: inputKind,
+        skillId: id,
+        queuedAt: time,
+        expiresAt: time + COMBAT_INPUT_BUFFER_SECONDS
+      };
+      return true;
+    }
+
+    clearCombatInputBuffer() {
+      this.combatInputBuffer = null;
+    }
+
+    updateCombatInputBuffer() {
+      const buffered = this.combatInputBuffer;
+      if (!buffered) return false;
+      const time = nowSeconds();
+      if (time > Number(buffered.expiresAt || 0)) {
+        this.clearCombatInputBuffer();
+        return false;
+      }
+      const player = this.state && this.state.player;
+      if (!player || !player.classId || this.isPlayerClimbing()) {
+        this.clearCombatInputBuffer();
+        return false;
+      }
+      if (buffered.kind === 'basic') {
+        const classData = this.getBaseClassData();
+        const blockReason = this.getBasicAttackBlockReason(player, classData, time);
+        if (blockReason === 'cooldown' || blockReason === 'combatLock') return false;
+        this.clearCombatInputBuffer();
+        if (blockReason) return false;
+        return this.basicAttack({ silent: true, fromCombatBuffer: true });
+      }
+      if (buffered.kind !== 'skill') {
+        this.clearCombatInputBuffer();
+        return false;
+      }
+      const skill = getSkillDefinitionById(buffered.skillId);
+      const rank = skill ? getRank(this.state, skill.id) : 0;
+      if (!skill || !skillUnlocked(this.state, skill) || rank <= 0 || isPassiveSkill(skill)) {
+        this.clearCombatInputBuffer();
+        return false;
+      }
+      if (!isTeleportSkill(skill) && time < Number(player.combatLockUntil || 0)) return false;
+      const cooldowns = player.skillCooldowns && typeof player.skillCooldowns === 'object' ? player.skillCooldowns : {};
+      if (Number(cooldowns[skill.id] || 0) > time) return false;
+      this.clearCombatInputBuffer();
+      return this.useSkill(skill.id, { silent: true, fromCombatBuffer: true });
+    }
+
     clearHeldSkills() {
       if (this.heldSkillIds && this.heldSkillIds.clear) this.heldSkillIds.clear();
       this.heldSkillRetryAt = {};
       this.heldAirborneSkillRetryIds = {};
+      this.clearCombatInputBuffer();
     }
 
     scheduleNextFrame() {
@@ -14334,6 +14398,7 @@
 	        if (benchmarkComplete) return;
 	        this.profilePerformancePhase('update', 'passiveRegen', () => this.updatePassiveRegen(delta));
 	        this.profilePerformancePhase('update', 'player', () => this.updatePlayer(delta));
+	        this.profilePerformancePhase('update', 'combatInputBuffer', () => this.updateCombatInputBuffer());
 	        this.profilePerformancePhase('update', 'heldAttack', () => this.updateHeldAttack());
 	        this.profilePerformancePhase('update', 'heldSkills', () => this.updateHeldSkills());
 	        this.profilePerformancePhase('update', 'heldLoot', () => this.updateHeldLoot());
@@ -28959,6 +29024,7 @@
         speedScale,
         attackCd: (0.8 + Math.random()) * attackCooldownScale,
         telegraph: 0,
+        pendingAttack: null,
         state: 'idle',
         chargeAttemptUntil: 0,
         chargeAttemptStartedAt: 0,
@@ -30123,6 +30189,27 @@
       return armedAt > 0 && currentTime <= armedAt;
     }
 
+    pushEnemyAttackTelegraph(enemy, length, duration, color) {
+      if (!enemy) return null;
+      const facing = Number(enemy.facing || 1) >= 0 ? 1 : -1;
+      const width = Math.max(24, Number(length || 0));
+      const centerX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
+      const effect = {
+        type: 'telegraph',
+        x: facing > 0 ? centerX : centerX - width,
+        y: Number(enemy.y || 0) + Number(enemy.h || 0) - 4,
+        w: width,
+        h: 8,
+        ttl: Math.max(0.05, Number(duration || 0)),
+        duration: Math.max(0.05, Number(duration || 0)),
+        color: color || '#ef5b4c',
+        facing,
+        combatCritical: true
+      };
+      this.effects.push(effect);
+      return effect;
+    }
+
     beginEnemyCharge(enemy, time) {
       if (!enemy) return false;
       const now = Number(time || nowSeconds());
@@ -30132,7 +30219,7 @@
       enemy.chargeAttemptUntil = now + ENEMY_CHARGE_TELEGRAPH_SECONDS + ENEMY_CHARGE_ACTIVE_SECONDS;
       enemy.attackCd = ENEMY_CHARGE_COOLDOWN_SECONDS;
       this.setActorAnimation(enemy, 'telegraph', ENEMY_CHARGE_TELEGRAPH_SECONDS, { force: true, lock: true, loop: false });
-      this.effects.push({ type: 'telegraph', x: enemy.x + enemy.w / 2, y: enemy.y + enemy.h - 4, w: 190, h: 8, ttl: ENEMY_CHARGE_TELEGRAPH_SECONDS, color: '#ef5b4c' });
+      this.pushEnemyAttackTelegraph(enemy, 190, ENEMY_CHARGE_TELEGRAPH_SECONDS, '#ef5b4c');
       return true;
     }
 
@@ -30171,6 +30258,7 @@
           enemy.vx = 0;
           enemy.vy = 0;
           enemy.telegraph = 0;
+          enemy.pendingAttack = null;
 	          enemy.chargeAttemptUntil = 0;
 	          enemy.chargeAttemptStartedAt = 0;
 		          this.updateEnemyAnimationState(enemy, currentTime);
@@ -30180,6 +30268,7 @@
           enemy.vx = 0;
           enemy.vy = 0;
           enemy.telegraph = 0;
+          enemy.pendingAttack = null;
           enemy.chargeAttemptUntil = 0;
           enemy.chargeAttemptStartedAt = 0;
           enemy.state = 'idle';
@@ -30218,12 +30307,17 @@
         if (targetActor) enemy.facing = dx >= 0 ? 1 : -1;
         const distance = Math.abs(dx);
         const followingAirRoute = !enemy.grounded && Number(enemy.airRouteUntil || 0) > currentTime;
-        if (!targetActor) {
+        const hadPendingAttack = !!enemy.pendingAttack;
+        if (hadPendingAttack) {
+          enemy.facing = Number(enemy.pendingAttack.facing || 1) >= 0 ? 1 : -1;
+          enemy.vx = 0;
+          if (enemy.telegraph <= 0) this.resolveEnemyPendingAttack(enemy, enemy.pendingAttack);
+        } else if (!targetActor) {
           this.stopEnemyCharge(enemy);
           this.updateEnemyWander(enemy, delta, speedScale);
         } else if (data.behavior === 'turret') {
           enemy.vx = 0;
-          if (distance < 620 && enemy.attackCd <= 0) this.enemyProjectile(enemy, 'thorn', targetCharacter);
+          if (distance < 620 && enemy.attackCd <= 0) this.beginEnemyProjectile(enemy, 'thorn', targetCharacter);
         } else if (followingAirRoute) {
           enemy.vx = Number(enemy.airRouteVx || 0);
           enemy.facing = enemy.vx >= 0 ? 1 : -1;
@@ -30232,7 +30326,9 @@
           if (distance < desired - 40) enemy.vx = -enemy.facing * data.speed * speedScale;
           else if (distance > desired + 40) enemy.vx = enemy.facing * data.speed * speedScale;
           else enemy.vx *= 0.84;
-          if (distance < 620 && enemy.attackCd <= 0) this.enemyProjectile(enemy, data.behavior === 'flyer' ? 'firebolt' : 'knife', targetCharacter);
+          if (distance < 620 && enemy.attackCd <= 0) {
+            this.beginEnemyProjectile(enemy, data.behavior === 'flyer' ? 'firebolt' : 'knife', targetCharacter);
+          }
         } else if (data.behavior === 'charger' && distance < 520 && enemy.attackCd <= 0) {
           this.beginEnemyCharge(enemy, currentTime);
         } else if (enemy.state === 'charging' && enemy.telegraph <= 0) {
@@ -30252,13 +30348,17 @@
           this.updateBoss(enemy, delta, distance, targetCharacter);
         } else {
           enemy.vx = distance > 44 ? enemy.facing * data.speed * speedScale : 0;
-          if (distance < 56 && enemy.attackCd <= 0 && sameCombatLane(targetActor, enemy, 34)) this.enemyMelee(enemy, targetCharacter);
+          if (distance < 56 && enemy.attackCd <= 0 && sameCombatLane(targetActor, enemy, 34)) {
+            this.beginEnemyMelee(enemy, targetCharacter);
+          }
         }
 
-        if (targetActor && data.behavior === 'healer' && enemy.attackCd <= 0) {
+        if (!hadPendingAttack && targetActor && data.behavior === 'healer' && enemy.attackCd <= 0) {
           this.healNearby(enemy);
         }
-        if (targetActor) this.updateEnemyPlatformJump(enemy, targetActor, speedScale, currentTime, targetCharacter && targetCharacter.platform);
+        if (!hadPendingAttack && targetActor) {
+          this.updateEnemyPlatformJump(enemy, targetActor, speedScale, currentTime, targetCharacter && targetCharacter.platform);
+        }
 
         enemy.previousY = enemy.y;
         enemy.x += enemy.vx * delta;
@@ -30930,42 +31030,71 @@
       this.beginBossEncounterAction(enemy, encounter, phase, actionId, targetCharacter);
     }
 
-    enemyMelee(enemy, targetCharacter) {
+    beginEnemyMelee(enemy, targetCharacter) {
       const target = targetCharacter || this.getEnemyAggroTarget(enemy);
-      if (!target || !sameCombatLane(target.actor, enemy, 34)) return;
+      if (!target || !sameCombatLane(target.actor, enemy, 34)) return false;
       enemy.attackCd = 1.35;
-      enemy.telegraph = 0.28;
-      this.setActorAnimation(enemy, 'attack', 0.42, { force: true, lock: true, loop: false });
-      this.effects.push({
-        type: 'slash',
-        x: enemy.x + enemy.w / 2 + enemy.facing * 28,
-        y: enemy.y + 24,
-        r: 34,
-        ttl: 0.24,
-        duration: 0.24,
-        color: '#d97845',
-        facing: enemy.facing,
-        enemyFxId: enemy.id,
-        combatFxState: 'melee'
-      });
-      this.damageCombatCharacter(target, enemy.damage, enemy.name, { attacker: enemy });
+      enemy.telegraph = ENEMY_MELEE_TELEGRAPH_SECONDS;
+      enemy.pendingAttack = {
+        kind: 'melee',
+        targetKind: target.kind || '',
+        targetId: target.id || '',
+        facing: Number(enemy.facing || 1) >= 0 ? 1 : -1
+      };
+      this.setActorAnimation(enemy, 'telegraph', ENEMY_MELEE_TELEGRAPH_SECONDS, { force: true, lock: true, loop: false });
+      this.pushEnemyAttackTelegraph(enemy, ENEMY_MELEE_WARNING_LENGTH, ENEMY_MELEE_TELEGRAPH_SECONDS, '#d97845');
+      return true;
     }
 
-    enemyProjectile(enemy, type, targetCharacter) {
-      enemy.attackCd = type === 'firebolt' ? 2.1 : 1.8;
-      enemy.telegraph = 0.45;
-      this.setActorAnimation(enemy, 'projectile', 0.45, { force: true, lock: true, loop: false });
+    enemyMelee(enemy, targetCharacter) {
+      if (!this.beginEnemyMelee(enemy, targetCharacter)) return false;
+      return this.resolveEnemyPendingAttack(enemy, enemy.pendingAttack);
+    }
+
+    resolveEnemyPendingAttack(enemy, pendingAttack) {
+      const pending = pendingAttack || enemy && enemy.pendingAttack;
+      if (!enemy || !pending || enemy.hp <= 0) {
+        if (enemy) enemy.pendingAttack = null;
+        return false;
+      }
+      enemy.pendingAttack = null;
+      enemy.telegraph = 0;
+      enemy.facing = Number(pending.facing || 1) >= 0 ? 1 : -1;
+      if (pending.kind === 'melee') {
+        this.setActorAnimation(enemy, 'attack', 0.42, { force: true, lock: true, loop: false });
+        this.effects.push({
+          type: 'slash',
+          x: enemy.x + enemy.w / 2 + enemy.facing * 28,
+          y: enemy.y + 24,
+          r: 34,
+          ttl: 0.24,
+          duration: 0.24,
+          color: '#d97845',
+          facing: enemy.facing,
+          enemyFxId: enemy.id,
+          combatFxState: 'melee'
+        });
+        const target = this.getCombatCharacterByTarget(pending.targetKind, pending.targetId);
+        const inRange = target && Math.abs(Number(target.actor.x || 0) - Number(enemy.x || 0)) < 64;
+        if (inRange && sameCombatLane(target.actor, enemy, 34)) {
+          this.damageCombatCharacter(target, enemy.damage, enemy.name, { attacker: enemy });
+        }
+        return true;
+      }
+      if (pending.kind !== 'projectile') return false;
+      return this.releaseEnemyProjectile(enemy, pending);
+    }
+
+    releaseEnemyProjectile(enemy, pendingAttack) {
+      const pending = pendingAttack || {};
+      const type = pending.type || 'thorn';
       const speed = type === 'knife' ? 300 : type === 'firebolt' ? 220 : 240;
-      const target = targetCharacter && targetCharacter.actor;
-      const targetCenter = target ? {
-        x: Number(target.x || 0) + Number(target.w || 40) / 2,
-        y: Number(target.y || 0) + Number(target.h || 74) * 0.45
-      } : null;
       const startX = enemy.x + enemy.w / 2;
       const startY = enemy.y + enemy.h * 0.45;
-      const dx = targetCenter ? targetCenter.x - startX : enemy.facing;
-      const dy = targetCenter ? targetCenter.y - startY : 0;
+      const dx = Number(pending.targetX == null ? startX + enemy.facing : pending.targetX) - startX;
+      const dy = Number(pending.targetY == null ? startY : pending.targetY) - startY;
       const distance = Math.hypot(dx, dy) || 1;
+      this.setActorAnimation(enemy, 'projectile', 0.45, { force: true, lock: true, loop: false });
       this.projectiles.push({
         owner: 'enemy',
         type,
@@ -30982,8 +31111,8 @@
         sourceEnemyId: enemy.id,
         combatFxState: 'projectile',
         projectileVisualSize: type === 'knife' && enemy.id === 'banditThrower' ? 46 : 0,
-        targetKind: targetCharacter && targetCharacter.kind || '',
-        targetId: targetCharacter && targetCharacter.id || '',
+        targetKind: pending.targetKind || '',
+        targetId: pending.targetId || '',
         pierce: 0
       });
       this.effects.push({
@@ -30997,7 +31126,32 @@
         enemyFxId: enemy.id,
         combatFxState: 'projectile'
       });
-      this.effects.push({ type: 'telegraph', x: enemy.x, y: enemy.y - 10, w: enemy.w, h: 8, ttl: 0.45, color: '#ffe16a' });
+      return true;
+    }
+
+    beginEnemyProjectile(enemy, type, targetCharacter) {
+      const target = targetCharacter || this.getEnemyAggroTarget(enemy);
+      if (!target || !target.actor) return false;
+      enemy.attackCd = type === 'firebolt' ? 2.1 : 1.8;
+      enemy.telegraph = ENEMY_PROJECTILE_TELEGRAPH_SECONDS;
+      const targetCenter = this.getCombatCharacterCenter(target);
+      enemy.pendingAttack = {
+        kind: 'projectile',
+        type,
+        targetKind: target.kind || '',
+        targetId: target.id || '',
+        targetX: targetCenter.x,
+        targetY: Number(target.actor.y || 0) + Number(target.actor.h || 74) * 0.45,
+        facing: Number(enemy.facing || 1) >= 0 ? 1 : -1
+      };
+      this.setActorAnimation(enemy, 'telegraph', ENEMY_PROJECTILE_TELEGRAPH_SECONDS, { force: true, lock: true, loop: false });
+      this.pushEnemyAttackTelegraph(enemy, ENEMY_PROJECTILE_WARNING_LENGTH, ENEMY_PROJECTILE_TELEGRAPH_SECONDS, '#ffe16a');
+      return true;
+    }
+
+    enemyProjectile(enemy, type, targetCharacter) {
+      if (!this.beginEnemyProjectile(enemy, type, targetCharacter)) return false;
+      return this.resolveEnemyPendingAttack(enemy, enemy.pendingAttack);
     }
 
     healNearby(enemy) {
@@ -31897,6 +32051,9 @@
       const time = nowSeconds();
       const blockReason = this.getBasicAttackBlockReason(player, classData, time);
       if (blockReason) {
+        if (settings.bufferOnBlock && (blockReason === 'cooldown' || blockReason === 'combatLock')) {
+          this.queueCombatInput('basic', '', time);
+        }
         if (heldInput && this.shouldClearHeldBasicAttack(blockReason) && this.input) this.input.attack = false;
         return false;
       }
@@ -33730,13 +33887,17 @@
       const teleportSkill = isTeleportSkill(skill);
       const skillModifier = this.getSkillModifierForSkill(skill);
       if (this.blockClimbingAction('skill', { skill }, { silent: !!settings.silent })) return false;
-      if (!teleportSkill && this.blockActionLock('skill', { silent: !!settings.silent })) return false;
+      if (!teleportSkill && this.blockActionLock('skill', { silent: !!settings.silent })) {
+        if (settings.bufferOnBlock) this.queueCombatInput('skill', skill.id);
+        return false;
+      }
       player.skillCooldowns = player.skillCooldowns && typeof player.skillCooldowns === 'object' ? player.skillCooldowns : {};
       let movementPlan = null;
       let chainPlan = null;
       const time = nowSeconds();
       const readyAt = Number(player.skillCooldowns[skill.id] || 0);
       if (readyAt > time) {
+        if (settings.bufferOnBlock) this.queueCombatInput('skill', skill.id, time);
         return false;
       }
       if (this.isMageAirborneProjectileSkill(skill, player)) {
@@ -40490,7 +40651,8 @@
       }
       const type = effect && effect.type || '';
       let score = 0;
-      if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
+      if ((effect && effect.combatCritical) || type === 'telegraph' || type === 'bossHazard') score = 2000;
+      else if (type === 'lootPickup' || type === 'upgradeResult' || type === 'potentialCubeResult') score = 800;
       else if (type === 'recoveryPulse') score = 650;
       else if (type === 'skillImpact' || type === 'shockBurst') score = 500;
       else if (type === 'slash' || type === 'cast' || type === 'arrowRelease') score = 420;
