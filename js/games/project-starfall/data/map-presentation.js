@@ -190,7 +190,8 @@
           label: section.label,
           x: Math.round(section.x != null ? section.x : sectionWidth * index),
           w: Math.round(section.w != null ? section.w : sectionWidth),
-          tier: section.tier || (index === 0 ? 'entry' : index === safeLabels.length - 1 ? 'boss' : 'mechanic')
+          tier: section.tier || (index === 0 ? 'entry' : index === safeLabels.length - 1 ? 'boss' : 'mechanic'),
+          platformIds: Array.isArray(section.platformIds) ? section.platformIds.slice() : []
         })),
         portalRoles: settings.portalRoles || {},
         landmarkBands: safeLabels.map((section, index) => ({
@@ -649,9 +650,27 @@
       }),
       rimewardenVault: createArenaFieldComposition({
         sections: [
-          { label: 'Brute Lane', tier: 'frontline', kind: 'rock', platformTier: 'low' },
-          { label: 'Oracle Shelf', tier: 'support', kind: 'glow', platformTier: 'mid' },
-          { label: 'Sentinel Shelf', tier: 'ranged', kind: 'crystal', platformTier: 'high' }
+          {
+            label: 'Brute Lane',
+            tier: 'frontline',
+            kind: 'rock',
+            platformTier: 'low',
+            platformIds: ['rimewarden_vault_solid_lane_01', 'rimewarden_vault_solid_lane_04']
+          },
+          {
+            label: 'Oracle Shelf',
+            tier: 'support',
+            kind: 'glow',
+            platformTier: 'mid',
+            platformIds: ['rimewarden_vault_solid_lane_02', 'rimewarden_vault_solid_lane_05']
+          },
+          {
+            label: 'Sentinel Shelf',
+            tier: 'ranged',
+            kind: 'crystal',
+            platformTier: 'high',
+            platformIds: ['rimewarden_vault_solid_lane_03', 'rimewarden_vault_solid_lane_06']
+          }
         ]
       }),
       stormbreakAerie: createArenaFieldComposition({
