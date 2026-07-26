@@ -447,13 +447,48 @@
         ],
         portalRoles: { lair_cinder: 'cinder return' }
       }),
-      rimewardenSanctum: createArenaFieldComposition({
-        sections: [
-          { label: 'Brute Lane', tier: 'frontline', kind: 'rock', platformTier: 'low' },
-          { label: 'Oracle Shelf', tier: 'support', kind: 'glow', platformTier: 'mid' },
-          { label: 'Sentinel Shelf', tier: 'ranged', kind: 'crystal', platformTier: 'high' }
+      rimewardenSanctum: createFieldComposition({
+        routeSections: [
+          {
+            label: 'Brute Lane',
+            x: 0,
+            w: 1533,
+            tier: 'frontline',
+            platformIds: [
+              'rimewarden_sanctum_solid_lane_01',
+              'rimewarden_sanctum_solid_lane_02'
+            ]
+          },
+          {
+            label: 'Oracle Shelf',
+            x: 1533,
+            w: 1534,
+            tier: 'support',
+            platformIds: [
+              'rimewarden_sanctum_solid_lane_03',
+              'rimewarden_sanctum_solid_lane_04',
+              'rimewarden_sanctum_solid_lane_06'
+            ]
+          },
+          {
+            label: 'Sentinel Shelf',
+            x: 3067,
+            w: 1533,
+            tier: 'boss',
+            platformIds: ['rimewarden_sanctum_solid_lane_05']
+          }
         ],
-        portalRoles: { sanctum_glacier: 'glacier return' }
+        portalRoles: { sanctum_glacier: 'glacier return' },
+        landmarkBands: [
+          { kind: 'rock', x: 520, w: 760, anchorX: 900, label: 'Brute Gate' },
+          { kind: 'glow', x: 1740, w: 1080, anchorX: 2260, label: 'Whiteout Shelf' },
+          { kind: 'crystal', x: 3180, w: 880, anchorX: 3600, label: 'Rimewarden Seal' }
+        ],
+        spawnZoneLabels: [
+          { label: 'Brute gate', platformTier: 'low' },
+          { label: 'Whiteout shelf', platformTier: 'mid' },
+          { label: 'Rimewarden seal', platformTier: 'high' }
+        ]
       }),
       cinderHollow: createFieldComposition({
         routeSections: [
@@ -951,7 +986,7 @@
       { id: 'ashglassPass', intendedArchetype: 'G/F dangerous crossing', intendedUseCase: 'exploration dangerous progression', routeSummary: 'Cross the main ashglass bridge, dip into side pockets, and avoid elite glassstorm windows.', partyRoleTarget: 'Duo route with one main bridge player and one side-pocket control player.', farmingAbuseRisk: 'high', visualIdentityTag: 'ashglass bridge crossing', spawnSectionModel: 'bridge, vent pocket, glass shelf, elite side pocket', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'frostfenOutskirts', intendedArchetype: 'C/E ice solo-duo route', intendedUseCase: 'solo/duo', routeSummary: 'Clear Marsh Flats, slide across Ice Shelves, then finish through Oracle Grove at Glacier Ascent.', partyRoleTarget: 'Duo split the flats and Oracle Grove while staying within one forward-moving route.', farmingAbuseRisk: 'medium', visualIdentityTag: 'frozen marsh camp route', spawnSectionModel: 'marsh flats, ice shelves, oracle grove', priorityRedesign: true, implementationStatus: 'composition-spawn-v1' },
       { id: 'glacierSpine', intendedArchetype: 'D/G glacier progression climb', intendedUseCase: 'dangerous progression small party', routeSummary: 'Climb glacier checkpoints, use lifts and one-way drops to rotate sentinel chokepoints.', partyRoleTarget: 'Small party split by height with central lift regroup.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'glacier lift spine', spawnSectionModel: 'lower climb, mid ridge, high ridge, flyer airspace' },
-      { id: 'rimewardenSanctum', intendedArchetype: 'H/I frost vault', intendedUseCase: 'full party dungeon', routeSummary: 'Hold lower brutes, reach oracle shelves, and react to lane-locking ice walls.', partyRoleTarget: 'Tank lower lane, ranged oracle/sentinel control, support center safe room.', farmingAbuseRisk: 'medium', visualIdentityTag: 'rime vault sanctum', spawnSectionModel: 'brute lane, oracle shelf, sentinel shelf', implementationStatus: 'arena-skeleton-v1' },
+      { id: 'rimewardenSanctum', intendedArchetype: 'H/I staged frost-vault route', intendedUseCase: 'full party dungeon', routeSummary: 'Break the Brute Gate, silence the Whiteout Shelf, then challenge the Rimewarden inside the opened Sentinel Shelf.', partyRoleTarget: 'Frontline anchors the grounded gate, ranged clears the oracle and flyer shelf, and support calls ice-wall rotations during the final reveal.', farmingAbuseRisk: 'medium', visualIdentityTag: 'playful frost vault and ice-wall seal', spawnSectionModel: 'brute gate, whiteout shelf, sentinel boss seal', priorityRedesign: true, implementationStatus: 'composition-route-v1' },
       { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, and high harrier airspace before regrouping at the spawn-free lightning rod perch.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control at the lightning rod regroup station.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, spawn-free rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'astralArchive', intendedArchetype: 'C/F room-loop archive', intendedUseCase: 'late solo/duo', routeSummary: 'Loop reading rooms through rune lifts and break line-of-sight shelves.', partyRoleTarget: 'Duo split adjacent rooms and regroup at archive console.', farmingAbuseRisk: 'high', visualIdentityTag: 'rune archive rooms', spawnSectionModel: 'reading room loops and index shelves' },
       { id: 'eclipseFrontier', intendedArchetype: 'G/J elite frontier', intendedUseCase: 'high-risk farming small party', routeSummary: 'Patrol three outposts, rotate eclipse sigils, and enter capped elite pockets.', partyRoleTarget: 'Small party splits outposts, then regroups for sigil/elite pulses.', farmingAbuseRisk: 'very high', visualIdentityTag: 'eclipse frontier outposts', spawnSectionModel: 'outpost A, outpost B, eclipse gate, elite pocket', partyScaling: 'section-count' },

@@ -146,6 +146,39 @@
       recommendedPartySize: 4,
       bossId: 'rimewarden',
       requiresAdvancedClass: true,
+      encounterFlow: createEncounterFlow({
+        id: 'rimewarden_sanctum_route',
+        bossIntroDelaySeconds: 2.4,
+        bossHpScale: 4,
+        beats: [
+          {
+            id: 'break_brute_gate',
+            kind: 'combat',
+            name: 'Break the Brute Gate',
+            summary: 'Clear the grounded frost guard and open the climb into the whiteout shelves.',
+            sectionIds: ['rimewardenSanctum_brute_lane'],
+            enemyIds: ['rimebackBrute', 'frostlingScout', 'shardling', 'rimebackBrute'],
+            gateX: 1533
+          },
+          {
+            id: 'silence_whiteout_shelf',
+            kind: 'combat',
+            name: 'Silence the Whiteout Shelf',
+            summary: 'Defeat the Oracle shelf guard before the final ice seal opens.',
+            sectionIds: ['rimewardenSanctum_oracle_shelf'],
+            enemyIds: ['icebloomOracle', 'snowglareWisp', 'glacierSentinel', 'icebloomOracle'],
+            gateX: 3067
+          },
+          {
+            id: 'challenge_rimewarden',
+            kind: 'boss',
+            name: 'Challenge the Rimewarden',
+            summary: 'Enter the Sentinel shelf and break the Rimewarden’s ice-wall control.',
+            sectionIds: ['rimewardenSanctum_sentinel_shelf'],
+            bossIds: ['rimewarden']
+          }
+        ]
+      }),
       rewards: Object.freeze({ xp: 760, currency: 380, materials: Object.freeze({ upgradeDust: 9, upgradeCatalyst: 3, refinementCore: 1 }) })
     })
   ]);
