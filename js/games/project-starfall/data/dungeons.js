@@ -6,6 +6,7 @@
     return Object.freeze({
       id: source.id,
       bossIntroDelaySeconds: Number(source.bossIntroDelaySeconds || 2.6),
+      bossHpScale: Math.max(1, Number(source.bossHpScale || 1) || 1),
       beats: Object.freeze((source.beats || []).map((beat) => Object.freeze({
         id: beat.id,
         kind: beat.kind,
@@ -33,6 +34,7 @@
       encounterFlow: createEncounterFlow({
         id: 'bramble_depths_route',
         bossIntroDelaySeconds: 2.6,
+        bossHpScale: 6,
         beats: [
           {
             id: 'break_root_gate',

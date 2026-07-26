@@ -83,6 +83,8 @@ assert(dungeon && map && definition, 'Bramble Depths should publish a staged rou
 assert.strictEqual(definition.dungeonId, BRAMBLE.dungeonId);
 assert.strictEqual(definition.mapId, BRAMBLE.mapId);
 assert.strictEqual(definition.beats.length, 3);
+assert.strictEqual(definition.bossHpScale, 6,
+  'Brambleking should receive a staged-dungeon HP budget that preserves all three phases');
 assert.deepStrictEqual(definition.beats.map((beat) => beat.kind), ['combat', 'combat', 'boss']);
 assert.deepStrictEqual(definition.beats.map((beat) => beat.sectionIds[0]), BRAMBLE.sectionIds);
 assert.deepStrictEqual(definition.beats.map((beat) => beat.gateX), BRAMBLE.gateXs);
@@ -242,6 +244,11 @@ assert.strictEqual(game.getActiveDungeonRouteGateX(), 0);
 
 const bosses = game.enemies.filter((enemy) => enemy.hp > 0 && BRAMBLE.bossIds.includes(enemy.id));
 assert.strictEqual(bosses.length, 1, 'the final route beat should spawn one Brambleking');
+assert.strictEqual(bosses[0].encounterHpScale, definition.bossHpScale,
+  'the staged Brambleking should apply the route-specific encounter HP scale');
+assert.strictEqual(bosses[0].hp, bosses[0].maxHp);
+assert(bosses[0].maxHp / definition.bossHpScale >= 2500,
+  'the route-specific HP budget should scale the authored boss baseline instead of replacing it');
 assert(bosses.every((enemy) =>
   enemy.dungeonBeatId === definition.beats[2].id &&
   enemy.dungeonBeatDungeonId === BRAMBLE.dungeonId &&
@@ -263,6 +270,27 @@ assert.strictEqual(game.damageEnemy(bosses[0], 9999, 'route-test'), false);
 assert.strictEqual(bosses[0].hp, bossHp,
   'Brambleking should be invulnerable during the intro arm window');
 assert.strictEqual(game.completeDungeon(dungeon), false);
+
+const brambleEncounter = game.getBossEncounterForEnemy(bosses[0]);
+game.beginBossEncounterAction(
+  bosses[0],
+  brambleEncounter,
+  brambleEncounter.phases[0],
+  'thornVolley',
+  game.getCombatCharacterByTarget('player', 'player')
+);
+const thornVolley = bosses[0].bossPendingAction;
+const thornVolleyDistance = Math.hypot(
+  Number(thornVolley.targetX || 0) - (bosses[0].x + bosses[0].w / 2),
+  Number(thornVolley.targetY || 0) - (bosses[0].y + bosses[0].h * 0.42)
+);
+assert.strictEqual(thornVolley.spatialSectionId, 'brambleDepths_court_gate',
+  'the staged thorn volley should pressure the local boss court');
+assert(thornVolleyDistance <= 265 * 3,
+  `the staged thorn volley target should stay inside its ${265 * 3}px projectile range`);
+bosses[0].bossPendingAction = null;
+bosses[0].telegraph = 0;
+bosses[0].state = 'idle';
 
 const courtSection = map.spawnSections.find((section) => section.id === definition.beats[2].sectionIds[0]);
 bosses[0].hostileArmedAt = 0;

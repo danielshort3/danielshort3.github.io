@@ -105,6 +105,7 @@
       dungeonId: normalizeId(dungeon.id),
       mapId: normalizeId(dungeon.mapId),
       bossIntroDelayMs: Math.max(1200, Number(source.bossIntroDelaySeconds || 0) * 1000 || DEFAULT_DUNGEON_BOSS_INTRO_DELAY_MS),
+      bossHpScale: Math.max(1, Number(source.bossHpScale || 1) || 1),
       beats,
       bossBeatIndex: beats.findIndex((beat) => beat.kind === 'boss'),
       preBossBeatCount: beats.filter((beat) => beat.kind !== 'boss').length

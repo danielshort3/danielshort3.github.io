@@ -2293,7 +2293,7 @@ function createMapTuningEntry(data, map, fieldReport, runtimeEngine, rewardLooku
   const worldWidth = getMapWorldWidth(map);
   const waveMax = Math.max(1, Number(map && map.waveMax || 1));
   const waveDelay = Math.max(1, Number(map && map.waveDelay || 1));
-  const routeCycleSeconds = waveMax / Math.max(0.01, killsPerMinute);
+  const routeCycleSeconds = waveMax / Math.max(0.01, killsPerMinute) * 60;
   const spawnDensityPer1000px = runtime.spawnDensityPer1000px ||
     sectionStats.spawnPointCount / Math.max(1, worldWidth / 1000);
   const waveToSpawnPointRatio = waveMax / Math.max(1, sectionStats.spawnPointCount);

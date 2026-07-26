@@ -23305,6 +23305,34 @@ try {
       adminBoss.animationState === 'telegraph' &&
       adminEngine.snapshot().bossEncounter.pendingActionLabel,
       'Project Starfall custom boss encounters should telegraph phase actions with visible spatial boss hazards');
+    const enemiesBeforeEclipseAddWave = new Set(adminEngine.enemies.map((enemy) => enemy.uid));
+    adminEngine.beginBossEncounterAction(
+      adminBoss,
+      eclipseEncounter,
+      eclipseEncounter.phases[1],
+      'addWave',
+      adminEngine.getCombatCharacterByTarget('player', 'player')
+    );
+    const eclipseAddWavePending = adminBoss.bossPendingAction;
+    assert(eclipseAddWavePending &&
+      eclipseAddWavePending.spatialSectionId === 'eclipseThrone_mote_shelf' &&
+      eclipseAddWavePending.spatialPlatformId === 'eclipse_throne_solid_lane_06',
+      'Project Starfall capstone add waves should retain the authored mote shelf and its selected platform');
+    adminEngine.resolveBossEncounterAction(adminBoss, eclipseEncounter, eclipseAddWavePending);
+    const eclipseAdds = adminEngine.enemies.filter((enemy) =>
+      enemy.encounterMinion && !enemiesBeforeEclipseAddWave.has(enemy.uid));
+    const eclipseAddPlatform = adminEngine.runtime.platforms.find((platform) =>
+      platform.id === eclipseAddWavePending.spatialPlatformId);
+    const orderedEclipseAdds = eclipseAdds.slice().sort((a, b) => a.x - b.x);
+    assert(eclipseAdds.length === 2 &&
+      eclipseAddPlatform &&
+      eclipseAdds.every((enemy) =>
+        enemy.spawnSectionId === eclipseAddWavePending.spatialSectionId &&
+        enemy.spawnPlatformId === eclipseAddWavePending.spatialPlatformId &&
+        enemy.x >= eclipseAddPlatform.x &&
+        enemy.x + enemy.w <= eclipseAddPlatform.x + eclipseAddPlatform.w) &&
+      orderedEclipseAdds[0].x + orderedEclipseAdds[0].w <= orderedEclipseAdds[1].x,
+      'Project Starfall capstone add waves should spawn two separated minions fully supported on the authored mote shelf');
     {
       const dungeonSpatialEngine = createProjectStarfallEngine(null, data);
       assert(dungeonSpatialEngine.chooseClass('fighter') && dungeonSpatialEngine.changeMap('gearworksVault'),
@@ -23342,6 +23370,29 @@ try {
       assert(dungeonState.currentRun.objectives.spatial_control.progress === 1 &&
         dungeonSpatialEngine.effects.some((effect) => effect.type === 'bossHazard' && effect.spatialRole === 'switch-core'),
         'Project Starfall resolved dungeon boss spatial hooks should advance Spatial Control objective progress');
+      const enemiesBeforeAddWave = new Set(dungeonSpatialEngine.enemies.map((enemy) => enemy.uid));
+      dungeonSpatialEngine.beginBossEncounterAction(
+        quarryBoss,
+        quarryEncounter,
+        { id: 'testAdds', name: 'Test Adds' },
+        'addWave',
+        dungeonSpatialEngine.getCombatCharacterByTarget('player', 'player')
+      );
+      const addWavePending = quarryBoss.bossPendingAction;
+      assert(addWavePending && addWavePending.spatialSectionId === 'gearworksVault_sentry_catwalk',
+        'Project Starfall add waves should retain their authored spatial section through telegraph resolution');
+      dungeonSpatialEngine.resolveBossEncounterAction(quarryBoss, quarryEncounter, addWavePending);
+      const encounterAdds = dungeonSpatialEngine.enemies.filter((enemy) =>
+        enemy.encounterMinion && !enemiesBeforeAddWave.has(enemy.uid));
+      const addSection = dungeonSpatialEngine.runtime.spawnSections.find((section) =>
+        section.id === addWavePending.spatialSectionId);
+      assert(encounterAdds.length === 2 &&
+        addSection &&
+        encounterAdds.every((enemy) =>
+          enemy.spawnSectionId === addWavePending.spatialSectionId &&
+          enemy.x >= addSection.x &&
+          enemy.x + enemy.w <= addSection.x + addSection.w),
+        'Project Starfall resolved boss add waves should spawn both minions inside the section named by the mechanic');
     }
     adminBoss.hp = Math.floor(adminBoss.maxHp * 0.34);
     adminEngine.updateBossEncounterPhase(adminBoss, adminEngine.getBossEncounter('eclipseSovereign'));
@@ -27207,6 +27258,16 @@ try {
             tuning.abuseControlPresent &&
             !tuning.warningIds.includes('farmingAbuseControlMissing'),
             `Project Starfall ${mapId} should expose high-risk farming abuse controls in the map tuning report`);
+        });
+        ['astralStacks', 'brambleDepths', 'emberjawFurnace'].forEach((mapId) => {
+          const tuning = tuningByMapId.get(mapId);
+          const map = data.MAPS.find((entry) => entry.id === mapId);
+          assert(tuning &&
+            map &&
+            tuning.metrics.routeCycleSeconds >= Number(map.waveDelay || 1) &&
+            tuning.metrics.idleTimePercent === 0 &&
+            !tuning.warningIds.includes('idleTimeHigh'),
+            `Project Starfall ${mapId} tuning should compare route duration and respawn delay in the same time unit`);
         });
         assert(mapTuning.highRiskFarmMapCount >= 3 &&
           mapTuning.highRiskFarmControlCoverage === 1 &&
