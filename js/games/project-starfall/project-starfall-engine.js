@@ -19746,11 +19746,18 @@
             ? [objective.bossId]
             : [];
         const trialInstance = this.getTrialInstanceState();
-        if (trialInstance.active && entryData && entryData.id === trialInstance.trialId) {
+        const trialEntry = entryData && getById(Data.CLASS_TRIALS || [], entryData.id);
+        if (trialEntry) {
+          if (trialInstance.active && trialEntry.id === trialInstance.trialId) {
+            return this.buildQuestGuidanceResult(targetType, targetId, sourceTitle, objective, {
+              recommendedMapId: this.state.mapId,
+              targetEnemyIds: enemyIds,
+              hint: `Marked trial enemies count for ${objective.label}.`
+            });
+          }
           return this.buildQuestGuidanceResult(targetType, targetId, sourceTitle, objective, {
-            recommendedMapId: this.state.mapId,
-            targetEnemyIds: enemyIds,
-            hint: `Marked trial enemies count for ${objective.label}.`
+            targetEnemyIds: [],
+            hint: `Open Quests & Trials, then choose Retry for ${trialEntry.title}.`
           });
         }
         const objectiveMap = objective.mapId || entryData && entryData.mapId || '';
@@ -19796,6 +19803,12 @@
         const trialSummary = activeTrial ? this.getTrialSummary(activeTrial) : null;
         const trialObjective = this.getFirstIncompleteObjective(trialSummary);
         if (activeTrial && trialObjective) {
+          const trialInstance = this.getTrialInstanceState();
+          if (!trialInstance.active || trialInstance.trialId !== activeTrial.id) {
+            return this.buildQuestGuidanceResult(targetType, targetId, sourceTitle, objective, {
+              hint: `Open Quests & Trials, then choose Retry for ${activeTrial.title}.`
+            });
+          }
           const trialGuidance = this.getObjectiveGuidance(targetType, targetId, sourceTitle, trialObjective, activeTrial);
           trialGuidance.objectiveLabel = objective.label;
           trialGuidance.hint = trialGuidance.onCurrentMap
@@ -26286,7 +26299,10 @@
           changed = this.completeQuest(quest) || changed;
         }
       });
-      const trial = getById(Data.CLASS_TRIALS || [], progress.activeTrialId);
+      const trialInstance = this.getTrialInstanceState({ progress });
+      const trial = trialInstance.active && trialInstance.trialId === progress.activeTrialId
+        ? getById(Data.CLASS_TRIALS || [], progress.activeTrialId)
+        : null;
       if (trial && !progress.completedTrials[trial.advancedId]) {
         changed = this.applyProgressEventToEntry('trial', trial, type, payload, { progress }) || changed;
         if (this.entryObjectivesComplete('trial', trial, { progress })) this.completeTrial(trial);
@@ -26317,6 +26333,11 @@
     startAdvancementTrialFromQuest() {
       const progress = this.getProgressState();
       const activeTrial = this.getActiveTrial();
+      const trialInstance = this.getTrialInstanceState({ progress });
+      if (trialInstance.active) {
+        this.toast(`${activeTrial ? activeTrial.title : 'An advancement trial'} is already in progress.`);
+        return false;
+      }
       if (activeTrial && !progress.completedTrials[activeTrial.advancedId]) {
         return this.enterClassTrialInstance(activeTrial, { preserveProgress: true });
       }
@@ -26439,6 +26460,9 @@
       const progress = this.getProgressState();
       const instance = createTrialInstanceState(progress.trialInstance);
       if (!instance.active) return false;
+      if (settings.resetAttempt && instance.trialId) {
+        progress.trialProgress[instance.trialId] = createProgressEntry();
+      }
       progress.trialInstance = createTrialInstanceState(null);
       this.state.mapId = getById(Data.MAPS || [], instance.returnMapId) ? instance.returnMapId : 'starfallCrossing';
       this.runtime = createMapRuntime(this.state.mapId, this.getViewportMetrics());
@@ -26457,7 +26481,7 @@
       this.invalidateLootDropCaches();
       this.spawnInitialEnemies();
       if (!settings.silent) this.toast('Returned to Starfall Crossing.');
-      this.emitChange();
+      if (!settings.noEmit) this.emitChange();
       return true;
     }
 
@@ -26549,6 +26573,12 @@
       const progress = this.getProgressState();
       if (progress.completedTrials[trial.advancedId]) {
         this.toast(`${trial.title} is already complete.`);
+        return false;
+      }
+      const trialInstance = this.getTrialInstanceState({ progress });
+      if (trialInstance.active) {
+        const runningTrial = getById(Data.CLASS_TRIALS || [], trialInstance.trialId);
+        this.toast(`${runningTrial ? runningTrial.title : 'An advancement trial'} is already in progress.`);
         return false;
       }
       progress.activeTrialId = trial.id;
@@ -36553,16 +36583,34 @@
       if (player.hp <= 0) {
         recovered = true;
         this.recordCombatMetric('death', 1);
+        const trialInstance = this.getTrialInstanceState();
+        const diedInTrial = !!trialInstance.active;
+        const activeTrial = diedInTrial ? getById(Data.CLASS_TRIALS || [], trialInstance.trialId) : null;
         const diedInRift = this.state.mapId === 'endlessRift';
-        if (diedInRift) this.failRiftRun({ noEmit: true });
+        if (diedInRift) this.failRiftRun({ silent: true, noEmit: true });
+        if (diedInTrial) {
+          this.returnFromClassTrialInstance({
+            silent: true,
+            resetAttempt: true,
+            noEmit: true
+          });
+        } else {
+          this.changeMap('starfallCrossing', {
+            riftResolved: diedInRift,
+            silent: true,
+            noEmit: true
+          });
+        }
         player.hp = Math.max(1, Math.round(stats.maxHp * 0.45));
         player.mp = Math.round(stats.maxMp * 0.35);
         player.resource = Math.round(stats.secondaryResourceMax * 0.35);
-        player.x = 140;
-        player.y = 360;
-        this.changeMap('starfallCrossing', { riftResolved: diedInRift });
         this.playAudioCue('damage', 1.4);
-        this.toast(`Recovered at Starfall Crossing after ${source || 'danger'}.`);
+        const recoveryMessage = diedInTrial
+          ? `${activeTrial ? activeTrial.title : 'Trial'} attempt reset. Recovered at Starfall Crossing - retry from Quests.`
+          : diedInRift
+            ? 'Rift run fractured. Recovered at Starfall Crossing - unbanked bounty lost.'
+            : `Recovered at Starfall Crossing after ${source || 'danger'}.`;
+        this.toast(recoveryMessage, { noEmit: true });
       }
       if (recovered) this.emitChange();
       else this.emitHudChange({ skipOverlayInvalidate: true });
@@ -40005,7 +40053,7 @@
         const previousMapId = this.state.mapId;
         const settings = Object.assign({ fromMapId: previousMapId }, options || {});
         if (this.isTrialInstanceActive()) {
-          this.toast('Finish the advancement trial before traveling.');
+          if (!settings.silent) this.toast('Finish the advancement trial before traveling.');
           return false;
         }
         let forfeitedRiftBounty = null;
@@ -40075,8 +40123,10 @@
         const mapLoadedMessage = forfeitedCurrency || forfeitedCount
           ? `${map.name} loaded. Unbanked Rift bounty forfeited: ${formatIntegerWithCommas(forfeitedCurrency)} coins${forfeitedCount ? ` and ${formatIntegerWithCommas(forfeitedCount)} items` : ''}.`
           : `${map.name} loaded on ${getMapChannelLabel(this.state.channelId)}.`;
-        this.toast(mapLoadedMessage, { noEmit: true });
-        this.emitUiChange({ domains: ['hud', 'session', 'world', 'quests', 'guide', 'shop', 'party', 'pet', 'debug'], reason: 'mapChange', persist: true });
+        if (!settings.silent) this.toast(mapLoadedMessage, { noEmit: true });
+        if (!settings.noEmit) {
+          this.emitUiChange({ domains: ['hud', 'session', 'world', 'quests', 'guide', 'shop', 'party', 'pet', 'debug'], reason: 'mapChange', persist: true });
+        }
         return true;
       }));
     }

@@ -157,6 +157,42 @@
     return { handled: false, type: '' };
   }
 
+  function getClassTrialActionPresentation(trial, progress, player) {
+    const source = trial || {};
+    const progressState = progress || {};
+    const playerState = player || {};
+    const instance = progressState.trialInstance || {};
+    const complete = !!source.complete;
+    const active = !!source.active;
+    const running = active && !!instance.active && instance.trialId === source.id;
+    const blockedByTrialInstance = !!instance.active && !running;
+    const retryReady = active && !running && !complete;
+    const levelLocked = Number(playerState.level || 1) < Number(source.levelRequirement || 20);
+    const classLocked = !!playerState.advancedClassId;
+    return {
+      running,
+      blockedByTrialInstance,
+      retryReady,
+      disabled: complete || !!instance.active || levelLocked || classLocked,
+      panelHeading: retryReady ? 'Trial Ready to Retry' : 'Active Trial',
+      panelSubtitle: retryReady ? 'Retry available from this panel' : 'Active class trial',
+      statusLabel: complete ? 'Complete' : running ? 'In progress' : retryReady ? 'Ready to retry' : '',
+      buttonLabel: complete ? 'Done' : running ? 'Active' : retryReady ? 'Retry' : 'Start',
+      tooltipTitle: complete
+        ? 'Trial Complete'
+        : running
+          ? 'Trial Active'
+          : retryReady
+            ? `Retry ${source.title || 'class trial'}`
+            : `Start ${source.title || 'class trial'}`,
+      tooltipAction: blockedByTrialInstance
+        ? 'Finish the current class trial before starting another.'
+        : retryReady
+          ? 'Starts a fresh class trial attempt.'
+          : 'Starts the class trial instance.'
+    };
+  }
+
   function getQuestDerivedSnapshotUpdate(engine) {
     const source = engine || {};
     const update = {};
@@ -201,6 +237,7 @@
       getWorldProgressRegionAction,
       getQuestPanelRegionAction,
       getQuestAdventureRegionAction,
+      getClassTrialActionPresentation,
       getQuestDerivedSnapshotUpdate,
       getGuideDerivedSnapshotUpdate
     });
@@ -220,6 +257,7 @@
     getWorldProgressRegionAction,
     getQuestPanelRegionAction,
     getQuestAdventureRegionAction,
+    getClassTrialActionPresentation,
     getQuestDerivedSnapshotUpdate,
     getGuideDerivedSnapshotUpdate
   };
