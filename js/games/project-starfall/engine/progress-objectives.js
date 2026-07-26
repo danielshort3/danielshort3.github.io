@@ -50,6 +50,31 @@
       : createProgressTrialInstanceState;
   }
 
+  function normalizeActiveQuestIds(value, legacyActiveQuestId) {
+    const sourceIds = Array.isArray(value)
+      ? value
+      : normalizeId(legacyActiveQuestId)
+        ? [legacyActiveQuestId]
+        : [];
+    return Array.from(new Set(sourceIds.map(normalizeId).filter(Boolean)));
+  }
+
+  function attachLegacyActiveQuestAccessor(progress) {
+    if (!progress || typeof progress !== 'object') return progress;
+    Object.defineProperty(progress, 'activeQuestId', {
+      configurable: true,
+      enumerable: false,
+      get() {
+        return Array.isArray(this.activeQuestIds) ? normalizeId(this.activeQuestIds[0]) : '';
+      },
+      set(value) {
+        const id = normalizeId(value);
+        this.activeQuestIds = id ? [id] : [];
+      }
+    });
+    return progress;
+  }
+
   function createProgressState(value, options) {
     const createTrialInstanceState = getProgressTrialInstanceStateCreator(options);
     const source = value && typeof value === 'object' ? value : {};
@@ -71,8 +96,11 @@
     const claimedQuestIds = Array.isArray(source.claimedQuestIds)
       ? source.claimedQuestIds.map(normalizeId).filter(Boolean)
       : completedQuestIds;
-    return {
-      activeQuestId: normalizeId(source.activeQuestId),
+    const completedQuestIdSet = new Set(completedQuestIds);
+    const activeQuestIds = normalizeActiveQuestIds(source.activeQuestIds, source.activeQuestId)
+      .filter((id) => !completedQuestIdSet.has(id));
+    return attachLegacyActiveQuestAccessor({
+      activeQuestIds,
       completedQuestIds: Array.from(new Set(completedQuestIds)),
       claimedQuestIds: Array.from(new Set(claimedQuestIds)),
       questProgress,
@@ -80,7 +108,7 @@
       trialProgress,
       completedTrials,
       trialInstance: createTrialInstanceState(source.trialInstance)
-    };
+    });
   }
 
   function getProgressRootKey(kind) {
@@ -351,6 +379,7 @@
     getObjectiveKey,
     getObjectiveGoal,
     createProgressEntry,
+    normalizeActiveQuestIds,
     createProgressState,
     ensureProgressEntry,
     objectiveMatchesEvent,

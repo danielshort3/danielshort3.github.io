@@ -116,6 +116,29 @@ const characterSelectCss = read('css/games/project-starfall/character-select.css
 check(/\.project-starfall-character-preview\s*\{[^}]*display:\s*none;/s.test(characterSelectCss) &&
   /\.project-starfall-character-slot\.has-preview-frame \.project-starfall-character-art-fallback\s*\{[^}]*opacity:\s*1;/s.test(characterSelectCss),
   'character selection should show the existing playful class art instead of the blocky procedural preview');
+check(characterSelectCss.includes('img/project-starfall/maps/starfall-crossing.webp') &&
+  !characterSelectCss.includes('img/project-starfall/ui/character-select-screen.png') &&
+  /\.project-starfall-character-create-modal\s*\{[^}]*box-sizing:\s*border-box;[^}]*overflow-x:\s*hidden;/s.test(characterSelectCss),
+  'character selection should reuse the playful in-game town art and avoid horizontal modal overflow');
+
+const loadingCss = read('css/games/project-starfall/loading.css');
+check(loadingCss.includes('img/project-starfall/maps/starfall-crossing.webp') &&
+  !loadingCss.includes('img/project-starfall/ui/splash-screen.png') &&
+  !loadingCss.includes('img/project-starfall/ui/start-screen.png'),
+  'loading and start screens should transition through the same playful world art as gameplay');
+
+const page = read('pages/games/project-starfall.html');
+check(page.includes('<title>Project Starfall | Daniel Short</title>') &&
+  page.includes('<h1>Project Starfall</h1>') &&
+  page.includes('Choose a compact chibi hero') &&
+  !page.includes('Project Starfall Prototype') &&
+  !page.includes('static browser prototype'),
+  'the public game page should present Starfall as a cohesive playable game rather than a placeholder prototype');
+
+const gamesDirectory = read('content/pages/games.json');
+check(gamesDirectory.includes('"image": "img/project-starfall/maps/starfall-crossing.webp"') &&
+  !gamesDirectory.includes('"image": "img/project-starfall/ui/splash-screen.png"'),
+  'the games directory should preview Starfall with its playful in-game world art');
 
 const gdd = read('project_starfall_gdd_v0_5.md');
 check(gdd.includes("keep Starfall's compact chibi cast original, playful, and readable") &&

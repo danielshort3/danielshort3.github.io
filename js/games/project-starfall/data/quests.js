@@ -61,6 +61,7 @@
         id: 'trial_ready',
         title: 'Ready for Advancement',
         summary: 'Reach the trial tier and complete any branch trial before choosing an advanced class.',
+        requiredLevel: 20,
         objectives: Object.freeze([
           Object.freeze({ id: 'reach_20', type: 'level', level: 20, label: 'Reach Level 20' }),
           Object.freeze({ id: 'complete_trial', type: 'trialComplete', count: 1, label: 'Complete any class trial' })

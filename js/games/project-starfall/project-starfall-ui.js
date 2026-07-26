@@ -30266,27 +30266,37 @@
 
     drawQuestChainCanvas(ctx, x, y, w, progress) {
       let cy = y;
-      const activeQuest = progress.activeQuest;
-      cy = this.drawCanvasText(ctx, 'Active Quest', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
-      if (activeQuest) {
-        this.drawRoundRect(ctx, x, cy, w, 58, 7, '#eef6ff', 'rgba(47,125,214,0.22)');
-        this.drawCanvasText(ctx, activeQuest.title, x + 10, cy + 8, { color: '#102033', font: '900 12px system-ui', maxWidth: w - 20, lineHeight: 13 });
-        this.drawCanvasText(ctx, activeQuest.summary || '', x + 10, cy + 27, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w - 20, lineHeight: 12 });
-        this.addCanvasRegion({
-          type: 'info',
-          questId: activeQuest.id,
-          tooltipTitle: activeQuest.title,
-          tooltipSubtitle: 'Active quest',
-          tooltipLines: [activeQuest.summary || '', activeQuest.rewardSummary ? `Reward: ${activeQuest.rewardSummary}` : '', ...(activeQuest.objectives || []).map((objective) => `${objective.complete ? 'Done' : `${formatAbbreviatedInteger(objective.value)}/${formatAbbreviatedInteger(objective.goal)}`} ${objective.label}`)].filter(Boolean),
-          x,
-          y: cy,
-          w,
-          h: 58
+      const activeQuests = Array.isArray(progress.activeQuests) && progress.activeQuests.length
+        ? progress.activeQuests
+        : progress.activeQuest
+          ? [progress.activeQuest]
+          : [];
+      cy = this.drawCanvasText(ctx, 'Accepted Quests', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
+      if (activeQuests.length) {
+        activeQuests.forEach((quest) => {
+          const focused = !!(progress.activeQuest && progress.activeQuest.id === quest.id);
+          this.drawRoundRect(ctx, x, cy, w, 58, 7, focused ? '#eef6ff' : '#fbfaf6', focused ? 'rgba(47,125,214,0.42)' : 'rgba(16,32,51,0.14)');
+          this.drawCanvasText(ctx, quest.title, x + 10, cy + 8, { color: '#102033', font: '900 12px system-ui', maxWidth: w - 92, lineHeight: 13 });
+          this.drawCanvasText(ctx, focused ? 'Focused' : 'Guide', x + w - 10, cy + 8, { color: focused ? '#2f7dd6' : '#8a6b53', font: '850 9px system-ui', align: 'right', maxWidth: 66, lineHeight: 10, maxLines: 1 });
+          this.drawCanvasText(ctx, quest.summary || '', x + 10, cy + 27, { color: '#5f6f7a', font: '10px system-ui', maxWidth: w - 20, lineHeight: 12 });
+          this.addCanvasRegion({
+            type: 'quest-guide',
+            guideType: 'quest',
+            guideId: quest.id,
+            questId: quest.id,
+            tooltipTitle: quest.title,
+            tooltipSubtitle: focused ? 'Current HUD focus' : 'Click to focus this quest',
+            tooltipLines: [quest.summary || '', quest.rewardSummary ? `Reward: ${quest.rewardSummary}` : '', ...(quest.objectives || []).map((objective) => `${objective.complete ? 'Done' : `${formatAbbreviatedInteger(objective.value)}/${formatAbbreviatedInteger(objective.goal)}`} ${objective.label}`)].filter(Boolean),
+            x,
+            y: cy,
+            w,
+            h: 58
+          });
+          cy += 66;
+          cy += this.drawObjectiveRowsCanvas(ctx, quest.objectives, x, cy, w) + 8;
         });
-        cy += 66;
-        cy += this.drawObjectiveRowsCanvas(ctx, activeQuest.objectives, x, cy, w) + 8;
       } else {
-        cy = this.drawCanvasText(ctx, 'No active quest.', x, cy, { color: '#5f6f7a', font: '12px system-ui' }) + 10;
+        cy = this.drawCanvasText(ctx, 'No accepted quests.', x, cy, { color: '#5f6f7a', font: '12px system-ui' }) + 10;
       }
       cy += 4;
       cy = this.drawCanvasText(ctx, 'Quest Chain', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;

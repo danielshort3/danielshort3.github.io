@@ -10,7 +10,7 @@
       radial-gradient(circle at 50% 21%, rgba(255, 226, 142, 0.18), transparent 30%),
       linear-gradient(180deg, rgba(8, 24, 43, 0.16), rgba(8, 24, 43, 0.38) 64%, rgba(8, 24, 43, 0.62)),
       linear-gradient(90deg, rgba(8, 24, 43, 0.56), rgba(8, 24, 43, 0.14) 48%, rgba(8, 24, 43, 0.42)),
-      url("../../../img/project-starfall/ui/character-select-screen.png") center bottom / cover no-repeat,
+      url("../../../img/project-starfall/maps/starfall-crossing.webp") center bottom / cover no-repeat,
       #102033;
   }
 
@@ -489,11 +489,14 @@
   }
 
   .project-starfall-character-create-modal {
+    box-sizing: border-box;
     display: grid;
     gap: 13px;
     width: min(460px, 100%);
     max-height: min(420px, calc(100% - 24px));
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 16px;
     border: 1px solid rgba(255, 209, 102, 0.42);
     border-radius: 8px;

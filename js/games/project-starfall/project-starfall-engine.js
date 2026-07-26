@@ -3891,6 +3891,7 @@
   const GET_OBJECTIVE_KEY = getEngineProgressObjectiveHelper('getObjectiveKey');
   const GET_OBJECTIVE_GOAL = getEngineProgressObjectiveHelper('getObjectiveGoal');
   const CREATE_PROGRESS_ENTRY = getEngineProgressObjectiveHelper('createProgressEntry');
+  const NORMALIZE_ACTIVE_QUEST_IDS = getEngineProgressObjectiveHelper('normalizeActiveQuestIds');
   const CREATE_PROGRESS_STATE = getEngineProgressObjectiveHelper('createProgressState');
   const CREATE_MAP_KILL_QUEST_STATE = getEngineProgressObjectiveHelper('createMapKillQuestState');
   const CREATE_QUEST_GUIDE_STATE = getEngineProgressObjectiveHelper('createQuestGuideState');
@@ -3934,6 +3935,34 @@
       }, {}),
       completedAt: Number(source.completedAt || 0)
     };
+  }
+
+  function normalizeActiveQuestIds(value, legacyActiveQuestId) {
+    if (NORMALIZE_ACTIVE_QUEST_IDS) {
+      return NORMALIZE_ACTIVE_QUEST_IDS(value, legacyActiveQuestId);
+    }
+    const sourceIds = Array.isArray(value)
+      ? value
+      : normalizeId(legacyActiveQuestId)
+        ? [legacyActiveQuestId]
+        : [];
+    return Array.from(new Set(sourceIds.map(normalizeId).filter(Boolean)));
+  }
+
+  function attachLegacyActiveQuestAccessor(progress) {
+    if (!progress || typeof progress !== 'object') return progress;
+    Object.defineProperty(progress, 'activeQuestId', {
+      configurable: true,
+      enumerable: false,
+      get() {
+        return Array.isArray(this.activeQuestIds) ? normalizeId(this.activeQuestIds[0]) : '';
+      },
+      set(value) {
+        const id = normalizeId(value);
+        this.activeQuestIds = id ? [id] : [];
+      }
+    });
+    return progress;
   }
 
   const CREATE_TRIAL_INSTANCE_STATE = getEngineClassTrialHelper('createTrialInstanceState');
@@ -3981,8 +4010,11 @@
     const claimedQuestIds = Array.isArray(source.claimedQuestIds)
       ? source.claimedQuestIds.map(normalizeId).filter(Boolean)
       : completedQuestIds;
-    return {
-      activeQuestId: normalizeId(source.activeQuestId),
+    const completedQuestIdSet = new Set(completedQuestIds);
+    const activeQuestIds = normalizeActiveQuestIds(source.activeQuestIds, source.activeQuestId)
+      .filter((id) => !completedQuestIdSet.has(id));
+    return attachLegacyActiveQuestAccessor({
+      activeQuestIds,
       completedQuestIds: Array.from(new Set(completedQuestIds)),
       claimedQuestIds: Array.from(new Set(claimedQuestIds)),
       questProgress,
@@ -3990,7 +4022,7 @@
       trialProgress,
       completedTrials,
       trialInstance: createTrialInstanceState(source.trialInstance)
-    };
+    });
   }
 
   const CREATE_ROUTE_PROGRESS_STATE = getEngineRouteProgressHelper('createRouteProgressState');
@@ -16976,9 +17008,12 @@
     getProgressEventRuntimeState() {
       const state = this.state && typeof this.state === 'object' ? this.state : {};
       const progress = state.progress && typeof state.progress === 'object' ? state.progress : createProgressState(null);
-      progress.activeQuestId = normalizeId(progress.activeQuestId);
       progress.completedQuestIds = Array.isArray(progress.completedQuestIds) ? progress.completedQuestIds : [];
       progress.claimedQuestIds = Array.isArray(progress.claimedQuestIds) ? progress.claimedQuestIds : progress.completedQuestIds.slice();
+      const completedQuestIdSet = new Set(progress.completedQuestIds.map(normalizeId).filter(Boolean));
+      progress.activeQuestIds = normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId)
+        .filter((id) => getById(Data.QUESTS || [], id) && !completedQuestIdSet.has(id));
+      attachLegacyActiveQuestAccessor(progress);
       progress.questProgress = progress.questProgress && typeof progress.questProgress === 'object' ? progress.questProgress : {};
       progress.activeTrialId = normalizeId(progress.activeTrialId);
       progress.trialProgress = progress.trialProgress && typeof progress.trialProgress === 'object' ? progress.trialProgress : {};
@@ -17086,9 +17121,21 @@
       return this.state.progress;
     }
 
-    getActiveQuest() {
-      const progress = this.getProgressState();
-      return getById(Data.QUESTS || [], progress.activeQuestId);
+    getActiveQuests(context) {
+      const progress = context && context.progress || this.getProgressState();
+      return normalizeActiveQuestIds(progress && progress.activeQuestIds, progress && progress.activeQuestId)
+        .map((questId) => getById(Data.QUESTS || [], questId))
+        .filter(Boolean);
+    }
+
+    getActiveQuest(context) {
+      const activeQuests = this.getActiveQuests(context);
+      const guide = this.getQuestGuideState();
+      if (guide.type === 'quest') {
+        const focusedQuest = activeQuests.find((quest) => quest.id === guide.id);
+        if (focusedQuest) return focusedQuest;
+      }
+      return activeQuests[0] || null;
     }
 
     getActiveTrial() {
@@ -17264,7 +17311,8 @@
       const owner = this.getQuestOwnerForQuest(questId) || {};
       const completed = !!(quest && progress.completedQuestIds.includes(quest.id));
       const claimed = !!(quest && progress.claimedQuestIds.includes(quest.id));
-      const active = !!(quest && progress.activeQuestId === quest.id);
+      const activeQuestIds = normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId);
+      const active = !!(quest && activeQuestIds.includes(quest.id));
       let status = 'locked';
       let lockedReason = '';
       if (!quest) {
@@ -17277,9 +17325,6 @@
         status = 'complete';
       } else if (active) {
         status = 'active';
-      } else if (progress.activeQuestId) {
-        const activeQuest = getById(Data.QUESTS || [], progress.activeQuestId);
-        lockedReason = `Finish ${activeQuest ? activeQuest.title : 'the active quest'} first.`;
       } else {
         const requiredIds = this.getQuestRequiredIds(quest);
         const missingRequiredId = requiredIds.find((requiredId) => !progress.claimedQuestIds.includes(requiredId));
@@ -17343,32 +17388,43 @@
       return null;
     }
 
-    getQuestNpcTalkState(npc, context) {
-      if (!npc) return null;
+    getQuestNpcTalkStates(npc, context) {
+      if (!npc) return [];
       const progress = context && context.progress || this.getProgressState();
       const snapshotContext = context && context.progress ? context : { progress };
-      const quest = getById(Data.QUESTS || [], progress.activeQuestId);
-      const summary = quest ? this.getQuestSummary(quest, snapshotContext) : null;
-      if (!quest || !summary || summary.complete) return null;
-      const objective = (summary.objectives || []).find((candidate) =>
-        !candidate.complete &&
-        candidate.type === 'talk' &&
-        (!candidate.npcId || candidate.npcId === npc.id) &&
-        (!candidate.mapId || candidate.mapId === npc.mapId));
-      if (!objective) return null;
-      return Object.assign({}, summary, {
-        action: 'talk',
-        icon: '...',
-        iconType: 'talk',
-        questId: quest.id,
-        status: 'active',
-        active: true,
-        npcId: npc.id,
-        npcName: npc.name || 'Quest NPC',
-        mapId: npc.mapId || this.state.mapId,
-        mapName: (getMapDefinitionById(npc.mapId || this.state.mapId) || {}).name || '',
-        objectiveLabel: objective.label || 'Talk'
+      const guide = this.getQuestGuideState();
+      const activeQuests = this.getActiveQuests(snapshotContext).slice().sort((a, b) => {
+        const aFocused = guide.type === 'quest' && guide.id === a.id ? 1 : 0;
+        const bFocused = guide.type === 'quest' && guide.id === b.id ? 1 : 0;
+        return bFocused - aFocused;
       });
+      return activeQuests.map((quest) => {
+        const summary = this.getQuestSummary(quest, snapshotContext);
+        if (!summary || summary.complete) return null;
+        const objective = (summary.objectives || []).find((candidate) =>
+          !candidate.complete &&
+          candidate.type === 'talk' &&
+          (!candidate.npcId || candidate.npcId === npc.id) &&
+          (!candidate.mapId || candidate.mapId === npc.mapId));
+        if (!objective) return null;
+        return Object.assign({}, summary, {
+          action: 'talk',
+          icon: '...',
+          iconType: 'talk',
+          questId: quest.id,
+          status: 'active',
+          active: true,
+          npcId: npc.id,
+          npcName: npc.name || 'Quest NPC',
+          mapId: npc.mapId || this.state.mapId,
+          mapName: (getMapDefinitionById(npc.mapId || this.state.mapId) || {}).name || '',
+          objectiveLabel: objective.label || 'Talk'
+        });
+      }).filter(Boolean);
+    }
+
+    getQuestNpcTalkState(npc, context) {
+      return this.getQuestNpcTalkStates(npc, context)[0] || null;
     }
 
     getQuestNpcReachRect() {
@@ -17430,11 +17486,11 @@
       const mapKill = this.getMapKillQuestOwner(npc.mapId);
       const mapKillSummary = mapKill && mapKill.id === npc.id ? this.getMapKillQuestSummary(npc.mapId) : null;
       if (mapKillSummary) states.push(mapKillSummary);
-      const talkState = this.getQuestNpcTalkState(npc, snapshotContext);
+      const talkStates = this.getQuestNpcTalkStates(npc, snapshotContext);
       const claimable = states
         .filter((state) => state.claimable)
         .map((state) => Object.assign({}, state, { action: 'claim', icon: '?', iconType: 'reward' }));
-      const talk = talkState ? [talkState] : [];
+      const talk = talkStates;
       const active = states
         .filter((state) => state.active && !state.claimable)
         .map((state) => Object.assign({}, state, { action: 'active', icon: '*', iconType: 'active' }));
@@ -17596,7 +17652,7 @@
         Number(player.level || 0),
         normalizeId(player.classId),
         normalizeId(player.advancedClassId),
-        normalizeId(progress && progress.activeQuestId),
+        normalizeActiveQuestIds(progress && progress.activeQuestIds, progress && progress.activeQuestId).join(','),
         normalizeId(progress && progress.activeTrialId),
         (progress && progress.completedQuestIds || []).map(normalizeId).join(','),
         (progress && progress.claimedQuestIds || []).map(normalizeId).join(','),
@@ -17615,11 +17671,18 @@
       }
 	      const context = { progress };
 	      const player = this.state.player;
-	      const activeQuest = getById(Data.QUESTS || [], progress.activeQuestId);
+	      const focusedQuest = this.getActiveQuest(context);
 	      const activeTrial = getById(Data.CLASS_TRIALS || [], progress.activeTrialId);
 	      const quests = (Data.QUESTS || []).map((quest) => this.getQuestSummary(quest, context)).filter(Boolean);
+	      const questSummariesById = new Map(quests.map((quest) => [quest.id, quest]));
+	      const activeQuests = this.getActiveQuests(context)
+	        .map((quest) => questSummariesById.get(quest.id))
+	        .filter(Boolean)
+	        .map((quest) => Object.assign({}, quest, { focused: !!(focusedQuest && focusedQuest.id === quest.id) }));
 	      const snapshot = {
-	        activeQuest: activeQuest ? this.getQuestSummary(activeQuest, context) : null,
+	        activeQuest: focusedQuest ? activeQuests.find((quest) => quest.id === focusedQuest.id) || null : null,
+	        activeQuests,
+	        activeQuestIds: progress.activeQuestIds.slice(),
 	        activeTrial: activeTrial ? this.getTrialSummary(activeTrial, context) : null,
 	        quests,
         trials: (Data.CLASS_TRIALS || [])
@@ -17643,7 +17706,7 @@
       if (this.progressTrackerSnapshotCache && this.progressTrackerSnapshotCache.key === cacheKey) {
         return this.progressTrackerSnapshotCache.value;
       }
-	      const activeQuest = getById(Data.QUESTS || [], progress.activeQuestId);
+	      const activeQuest = this.getActiveQuest({ progress });
 	      const activeTrial = getById(Data.CLASS_TRIALS || [], progress.activeTrialId);
 	      const claimed = new Set((progress.claimedQuestIds || []).map(normalizeId));
 	      const claimableQuests = (progress.completedQuestIds || [])
@@ -17654,6 +17717,8 @@
 	        .filter(Boolean);
 	      const snapshot = {
 	        activeQuest: activeQuest ? this.getQuestSummary(activeQuest) : null,
+	        activeQuests: [],
+	        activeQuestIds: progress.activeQuestIds.slice(),
 	        activeTrial: activeTrial ? this.getTrialSummary(activeTrial) : null,
         quests: [],
         trials: [],
@@ -19548,7 +19613,7 @@
         this.getCurrentChannelId(),
         normalizeId(source.type),
         normalizeId(source.id),
-        normalizeId(progress.activeQuestId),
+        normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId).join(','),
         normalizeId(progress.activeTrialId),
         mapKill.active ? 1 : 0,
         Number(mapKill.progress || 0),
@@ -25514,7 +25579,8 @@
       if (!quest || progress.completedQuestIds.includes(quest.id)) return false;
       progress.completedQuestIds.push(quest.id);
       ensureProgressEntry(progress, 'quest', quest.id).completedAt = Date.now();
-      if (progress.activeQuestId === quest.id) progress.activeQuestId = '';
+      progress.activeQuestIds = normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId)
+        .filter((questId) => questId !== quest.id);
       const owner = this.getQuestOwnerForQuest(quest.id);
       this.toast(`${quest.title} complete. Claim the reward${owner && owner.npcName ? ` from ${owner.npcName}.` : ' in the field.'}`);
       return true;
@@ -25537,12 +25603,20 @@
         return false;
       }
       progress.claimedQuestIds.push(quest.id);
+      progress.activeQuestIds = normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId)
+        .filter((activeQuestId) => activeQuestId !== quest.id);
       this.awardProgressReward(rewards);
       this.recordProgressEvent('questClaim', { questId: quest.id, chainId: quest.chainId || '' }, { audio: false, noEmit: true });
+      const guide = this.getQuestGuideState();
+      if (guide.type === 'quest' && guide.id === quest.id) {
+        const nextQuest = this.getActiveQuest({ progress });
+        guide.type = nextQuest ? 'quest' : '';
+        guide.id = nextQuest ? nextQuest.id : '';
+      }
       this.showRewardPopup(`${quest.title} Rewards`, rewards);
-      const nextQuest = quest.nextQuestId ? getById(Data.QUESTS || [], quest.nextQuestId) : null;
-      const nextOwner = nextQuest ? this.getQuestOwnerForQuest(nextQuest.id) : null;
-      this.toast(`${quest.title} reward claimed.${nextQuest && nextOwner ? ` ${nextQuest.title} is available from ${nextOwner.npcName}.` : ''}`);
+      const unlockedQuest = quest.nextQuestId ? getById(Data.QUESTS || [], quest.nextQuestId) : null;
+      const nextOwner = unlockedQuest ? this.getQuestOwnerForQuest(unlockedQuest.id) : null;
+      this.toast(`${quest.title} reward claimed.${unlockedQuest && nextOwner ? ` ${unlockedQuest.title} is available from ${nextOwner.npcName}.` : ''}`);
       return true;
     }
 
@@ -25709,8 +25783,9 @@
       if (!getProgressObjectiveTypeSet().has(normalizeId(type))) return false;
       const progress = eventState.progress;
       let changed = false;
-      const quest = getById(Data.QUESTS || [], progress.activeQuestId);
-      if (quest && !progress.completedQuestIds.includes(quest.id)) {
+      const activeQuests = this.getActiveQuests({ progress });
+      activeQuests.forEach((quest) => {
+        if (!quest || progress.completedQuestIds.includes(quest.id)) return;
         const questProgressChanges = [];
         changed = this.applyProgressEventToEntry('quest', quest, type, payload, { changes: questProgressChanges, progress }) || changed;
         const progressToast = this.formatQuestProgressToast(quest, questProgressChanges);
@@ -25723,8 +25798,10 @@
             cooldownMs: 8000
           });
         }
-        if (this.entryObjectivesComplete('quest', quest, { progress })) this.completeQuest(quest);
-      }
+        if (this.entryObjectivesComplete('quest', quest, { progress })) {
+          changed = this.completeQuest(quest) || changed;
+        }
+      });
       const trial = getById(Data.CLASS_TRIALS || [], progress.activeTrialId);
       if (trial && !progress.completedTrials[trial.advancedId]) {
         changed = this.applyProgressEventToEntry('trial', trial, type, payload, { progress }) || changed;
@@ -25917,12 +25994,18 @@
         this.toast(`${quest.title} is already complete.`);
         return false;
       }
+      if (availability.active) {
+        this.toast(`${quest.title} is already accepted.`);
+        return false;
+      }
       if (!availability.available) {
         this.toast(availability.lockedReason || `${quest.title} is not available yet.`);
         return false;
       }
-      progress.activeQuestId = quest.id;
+      progress.activeQuestIds = normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId);
+      progress.activeQuestIds.push(quest.id);
       ensureProgressEntry(progress, 'quest', quest.id);
+      this.setQuestGuideTarget('quest', quest.id);
       this.syncProgressEntryWithCurrentState('quest', quest);
       if (this.entryObjectivesComplete('quest', quest)) return this.completeQuest(quest);
       this.toast(`${quest.title} started.`);
