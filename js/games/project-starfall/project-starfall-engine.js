@@ -9571,6 +9571,30 @@
     };
   };
 
+  const getDungeonRouteGateXClampPlanForMovement = getEngineMovementHelper('getDungeonRouteGateXClampPlan') || function getDungeonRouteGateXClampPlanFallback(proposedX, bodyWidth, gateX, padding, worldBounds) {
+    const bounds = worldBounds && typeof worldBounds === 'object' ? worldBounds : {};
+    let minX = Number.isFinite(Number(bounds.minX)) ? Number(bounds.minX) : -Infinity;
+    let maxX = Number.isFinite(Number(bounds.maxX)) ? Number(bounds.maxX) : Infinity;
+    if (maxX < minX) {
+      const swap = minX;
+      minX = maxX;
+      maxX = swap;
+    }
+    const numericX = Number(proposedX);
+    const normalizedX = clamp(Number.isFinite(numericX) ? numericX : 0, minX, maxX);
+    const numericGateX = Number(gateX);
+    if (gateX === null || typeof gateX === 'undefined' || gateX === '' || !Number.isFinite(numericGateX) || numericGateX <= 0) {
+      return { x: normalizedX, blocked: false };
+    }
+    const width = Math.max(0, Number.isFinite(Number(bodyWidth)) ? Number(bodyWidth) : 0);
+    const gatePadding = Math.max(0, Number.isFinite(Number(padding)) ? Number(padding) : 0);
+    const gateLimitX = clamp(numericGateX - width - gatePadding, minX, maxX);
+    return {
+      x: Math.min(normalizedX, gateLimitX),
+      blocked: normalizedX > gateLimitX
+    };
+  };
+
   const getClimbStepFinalizationPlanForMovement = getEngineMovementHelper('getClimbStepFinalizationPlan') || function getClimbStepFinalizationPlanFallback(player, worldWidth) {
     const worldClamp = getWorldXClampPlanForMovement(player, worldWidth);
     return {
@@ -10540,6 +10564,7 @@
       this.passiveRecoveryGateReady = { hp: false, mp: false };
       this.bossIntroSummary = null;
       this.bossClearSummary = null;
+      this.nextDungeonRouteGateToastAt = 0;
       this.activePrototypePartyMembersCache = null;
       this.camera = { x: 0, y: 0 };
       this.lastFrame = 0;
@@ -26092,6 +26117,7 @@
           if (changed) {
             const nextDungeons = this.getDungeonState();
             transitionDungeonMapRunState(dungeon.id, nextDungeons, run);
+            this.spawnDungeonEncounterBeat(map, { silent: true });
           }
           return changed;
         }
@@ -26112,6 +26138,14 @@
       if (!target) return false;
       let dungeons = this.getDungeonState();
       const existingRun = dungeons.currentRun && dungeons.currentRun.dungeonId === target.id ? dungeons.currentRun : null;
+      const getEncounterBlockReason = getEngineDungeonHelper('getDungeonEncounterCompletionBlockReason');
+      const encounterBlockReason = getEncounterBlockReason
+        ? getEncounterBlockReason(target.id, existingRun, { data: Data })
+        : '';
+      if (encounterBlockReason) {
+        this.toast(encounterBlockReason);
+        return false;
+      }
       if (existingRun) {
         this.finalizeDungeonTimedObjectives(existingRun);
         this.awardDungeonObjectiveRewards(existingRun);
@@ -26303,7 +26337,11 @@
         : false;
       const climbActivation = getClimbActivationPlanForMovement(player, movementLocked, mobility, climbable, verticalIntent, climbMountReady, nowSeconds());
       if (climbActivation.shouldUpdateClimbing) {
-        if (this.updatePlayerClimbing(delta, stats, direction, climbable)) return;
+        if (this.updatePlayerClimbing(delta, stats, direction, climbable)) {
+          const climbRouteGateClamp = this.applyDungeonRouteGateClamp(player.x);
+          player.x = climbRouteGateClamp.x;
+          return;
+        }
       }
       const climbClearState = getClimbClearStatePlanForMovement();
       player.climbing = climbClearState.climbing;
@@ -26358,6 +26396,8 @@
       this.resolvePlatforms(player);
       const playerWorldClamp = getWorldXClampPlanForMovement(player, this.runtime.worldWidth);
       player.x = playerWorldClamp.x;
+      const dungeonRouteGateClamp = this.applyDungeonRouteGateClamp(player.x);
+      player.x = dungeonRouteGateClamp.x;
       this.recoverFallenBodyThroughTop(player, { kind: 'player' });
       this.updateActiveStation();
       this.updatePlayerAnimationState();
@@ -26962,6 +27002,290 @@
       return getDungeonBossIdsState(map);
     }
 
+    getDungeonEncounterFlowContext(map) {
+      const currentMap = map || getMapDefinitionById(this.state.mapId);
+      if (!currentMap ||
+        !currentMap.isDungeon ||
+        !currentMap.dungeonId ||
+        normalizeId(currentMap.id) !== normalizeId(this.state.mapId)) return null;
+      const getDefinition = getEngineDungeonHelper('getDungeonEncounterFlowDefinition');
+      const ensureFlow = getEngineDungeonHelper('ensureDungeonEncounterFlowRunState');
+      if (!getDefinition || !ensureFlow) return null;
+      const definition = getDefinition(currentMap.dungeonId, { data: Data });
+      const dungeons = this.getDungeonState();
+      const run = dungeons.currentRun;
+      if (!definition || !run || normalizeId(run.dungeonId) !== normalizeId(currentMap.dungeonId)) return null;
+      if (normalizeId(definition.mapId) !== normalizeId(currentMap.id)) return null;
+      const flow = ensureFlow(run, { data: Data, nowMs: Date.now() });
+      const beat = flow && definition.beats[flow.activeBeatIndex];
+      return flow && beat
+        ? { dungeon: getDungeonDefinitionById(currentMap.dungeonId), definition, dungeons, run, flow, beat, map: currentMap }
+        : null;
+    }
+
+    getActiveDungeonRouteGateX(map) {
+      const context = this.getDungeonEncounterFlowContext(map);
+      if (!context || context.flow.status === 'complete' || context.beat.kind === 'boss') return 0;
+      return Math.max(0, Number(context.beat.gateX || 0));
+    }
+
+    syncDungeonEncounterRouteGateEffect(context) {
+      const activeContext = context || this.getDungeonEncounterFlowContext();
+      const gateX = activeContext && activeContext.flow.status !== 'complete' && activeContext.beat.kind !== 'boss'
+        ? Math.max(0, Number(activeContext.beat.gateX || 0))
+        : 0;
+      const runStartedAt = activeContext ? Number(activeContext.run.startedAt || 0) : 0;
+      const beatId = activeContext ? activeContext.beat.id : '';
+      let activeEffect = null;
+      this.effects = (this.effects || []).filter((effect) => {
+        if (!effect || !effect.dungeonRouteGate) return true;
+        const matches = gateX > 0 &&
+          normalizeId(effect.dungeonBeatId) === beatId &&
+          Number(effect.dungeonBeatRunStartedAt || 0) === runStartedAt &&
+          Number(effect.gateX || 0) === gateX;
+        if (matches && !activeEffect) {
+          activeEffect = effect;
+          return true;
+        }
+        return false;
+      });
+      if (!gateX) return null;
+      if (!activeEffect) {
+        activeEffect = {
+          type: 'telegraph',
+          telegraphKind: 'routeGate',
+          telegraphShape: 'rect',
+          intentLabel: 'ROUTE SEALED',
+          dungeonRouteGate: true,
+          dungeonEncounterFlowId: activeContext.flow.id,
+          dungeonBeatId: beatId,
+          dungeonBeatRunStartedAt: runStartedAt,
+          gateX,
+          x: gateX - 5,
+          y: 58,
+          w: 10,
+          h: Math.max(120, PLAYFIELD_HEIGHT - 108),
+          color: activeContext.map && activeContext.map.palette && activeContext.map.palette[2] || '#7bdff2',
+          duration: 0.7,
+          ttl: 0.7
+        };
+        this.effects.push(activeEffect);
+      } else {
+        activeEffect.ttl = Math.max(Number(activeEffect.ttl || 0), 0.7);
+      }
+      return activeEffect;
+    }
+
+    applyDungeonRouteGateClamp(proposedX, options) {
+      const settings = options || {};
+      const player = this.state && this.state.player;
+      const gateX = this.getActiveDungeonRouteGateX();
+      if (!player || !gateX) return { x: Number(proposedX || 0), blocked: false };
+      const worldWidth = Math.max(0, Number(this.runtime && this.runtime.worldWidth || 0));
+      const plan = getDungeonRouteGateXClampPlanForMovement(
+        proposedX,
+        player.w,
+        gateX,
+        18,
+        { minX: 10, maxX: Math.max(10, worldWidth - Number(player.w || 0) - 10) }
+      );
+      if (!plan.blocked) return plan;
+      player.x = plan.x;
+      if (Number(player.vx || 0) > 0) player.vx = 0;
+      player.mobility = null;
+      player.airMobilitySkillId = '';
+      player.airDashMomentumUntilGround = false;
+      if (player.climbing) {
+        player.climbing = false;
+        player.climbMoving = false;
+        player.climbableId = '';
+      }
+      const time = nowSeconds();
+      if (!settings.silent && time >= Number(this.nextDungeonRouteGateToastAt || 0)) {
+        this.nextDungeonRouteGateToastAt = time + 1.4;
+        this.toast('Route sealed. Clear the active encounter before advancing.', { noEmit: true });
+      }
+      return plan;
+    }
+
+    chooseDungeonEncounterSpawnPoint(context, slot, index) {
+      const beat = context && context.beat;
+      const sectionIds = new Set(beat && beat.sectionIds || []);
+      const spawnGroupIds = new Set(beat && beat.spawnGroupIds || []);
+      const points = (this.runtime && this.runtime.spawnPoints || []).filter((point) => {
+        if (!point || !this.runtime.platforms[point.platformIndex]) return false;
+        if (sectionIds.size && sectionIds.has(normalizeId(point.sectionId))) return true;
+        return spawnGroupIds.size && spawnGroupIds.has(normalizeId(point.spawnGroupId));
+      });
+      const semanticSection = (this.runtime && this.runtime.spawnSections || []).find((section) =>
+        section && sectionIds.has(normalizeId(section.id)));
+      let sectionFallback = null;
+      if (!points.length && semanticSection) {
+        const sectionLeft = clamp(Number(semanticSection.x || 0), 12, Math.max(12, this.runtime.worldWidth - 80));
+        const sectionRight = clamp(
+          sectionLeft + Math.max(80, Number(semanticSection.w || 0)),
+          sectionLeft + 80,
+          Math.max(sectionLeft + 80, this.runtime.worldWidth - 12)
+        );
+        const targetX = clamp(
+          sectionLeft + Math.min(220, Math.max(100, (sectionRight - sectionLeft) * 0.32)) + Math.max(0, Number(index || 0)) * 52,
+          sectionLeft + 36,
+          sectionRight - 36
+        );
+        const sectionPlatforms = (this.runtime.platforms || [])
+          .filter((platform) => platform &&
+            Number(platform.x || 0) < sectionRight &&
+            Number(platform.x || 0) + Number(platform.w || 0) > sectionLeft)
+          .sort((left, right) => {
+            const leftContains = targetX >= Number(left.x || 0) && targetX <= Number(left.x || 0) + Number(left.w || 0);
+            const rightContains = targetX >= Number(right.x || 0) && targetX <= Number(right.x || 0) + Number(right.w || 0);
+            if (leftContains !== rightContains) return leftContains ? -1 : 1;
+            return getPlatformSurfaceY(left, targetX) - getPlatformSurfaceY(right, targetX);
+          });
+        const sectionPlatform = sectionPlatforms[0] || this.runtime.platforms[0];
+        if (sectionPlatform) {
+          const platformLeft = Math.max(sectionLeft + 36, Number(sectionPlatform.x || 0) + 36);
+          const platformRight = Math.min(sectionRight - 36, Number(sectionPlatform.x || 0) + Number(sectionPlatform.w || 0) - 36);
+          const x = clamp(targetX, Math.min(platformLeft, platformRight), Math.max(platformLeft, platformRight));
+          sectionFallback = {
+            id: `${semanticSection.id}_route_fallback`,
+            x,
+            y: getPlatformSurfaceY(sectionPlatform, x),
+            platformIndex: sectionPlatform.index,
+            platformId: sectionPlatform.id,
+            sectionId: semanticSection.id,
+            sectionLabel: semanticSection.label || ''
+          };
+        }
+      }
+      const fallbackPoints = (this.runtime && this.runtime.spawnPoints || [])
+        .filter((point) => point && this.runtime.platforms[point.platformIndex]);
+      let base = null;
+      if (points.length) base = points[Math.max(0, Number(index || 0)) % points.length];
+      else if (sectionFallback) base = sectionFallback;
+      else if (beat && beat.kind === 'boss') base = this.chooseBossSpawnPoint(index);
+      else if (fallbackPoints.length) base = fallbackPoints[Math.max(0, Number(index || 0)) % fallbackPoints.length];
+      else base = this.chooseSpawnPoint(index, { initial: true });
+      const platform = this.runtime.platforms[base.platformIndex] || this.runtime.platforms[0];
+      const baseSection = (this.runtime && this.runtime.spawnSections || []).find((section) =>
+        section && normalizeId(section.id) === normalizeId(base.sectionId)) || semanticSection;
+      const jitter = [0, -48, 48, 86, -86][Math.max(0, Number(index || 0)) % 5];
+      let minX = platform ? platform.x + 36 : 24;
+      let maxX = platform ? platform.x + platform.w - 36 : this.runtime.worldWidth - 80;
+      if (baseSection) {
+        minX = Math.max(minX, Number(baseSection.x || 0) + 36);
+        maxX = Math.min(maxX, Number(baseSection.x || 0) + Number(baseSection.w || 0) - 36);
+      }
+      if (maxX < minX) {
+        const platformCenter = platform
+          ? Number(platform.x || 0) + Number(platform.w || 0) / 2
+          : Number(base.x || minX);
+        minX = clamp(platformCenter, Math.min(minX, maxX), Math.max(minX, maxX));
+        maxX = minX;
+      }
+      const x = clamp(Number(base.x || minX) + jitter, Math.min(minX, maxX), Math.max(minX, maxX));
+      return Object.assign({}, base, {
+        x,
+        y: platform ? getPlatformSurfaceY(platform, x) : Number(base.y || 520),
+        platformIndex: platform ? platform.index : Number(base.platformIndex || 0),
+        platformId: platform ? platform.id : base.platformId,
+        dungeonBeatId: beat.id,
+        dungeonBeatSlotId: slot.id,
+        dungeonBeatDungeonId: context.definition.dungeonId,
+        dungeonBeatMapId: context.definition.mapId,
+        dungeonBeatRunStartedAt: Number(context.run.startedAt || 0),
+        dungeonBeatSectionX: baseSection ? Number(baseSection.x || 0) : 0,
+        dungeonBeatSectionW: baseSection ? Math.max(0, Number(baseSection.w || 0)) : 0,
+        preventWaveRespawn: true
+      });
+    }
+
+    spawnDungeonEncounterBeat(map, options) {
+      const context = this.getDungeonEncounterFlowContext(map);
+      if (!context) return false;
+      this.syncDungeonEncounterRouteGateEffect(context);
+      if (context.flow.status === 'complete' || Number(context.run.completedAt || 0) > 0) return true;
+      const createSlots = getEngineDungeonHelper('createDungeonEncounterBeatSlots');
+      const markSpawned = getEngineDungeonHelper('markDungeonEncounterBeatSpawned');
+      const slots = createSlots ? createSlots(context.beat) : [];
+      const defeatedSlots = new Set(context.flow.defeatedSlotIds || []);
+      const firstReveal = !(context.flow.spawnedBeatIds || []).includes(context.beat.id);
+      const bossIntroCreatedAt = nowSeconds();
+      const bossIntroRemainingSeconds = Math.max(0, (Number(context.flow.bossArmedAt || 0) - Date.now()) / 1000);
+      const bossHostileArmedAt = bossIntroCreatedAt + bossIntroRemainingSeconds;
+      let spawned = 0;
+      const spawnedBosses = [];
+      slots.forEach((slot, index) => {
+        if (!slot || defeatedSlots.has(slot.id)) return;
+        const alreadyPresent = (this.enemies || []).some((enemy) => enemy &&
+          normalizeId(enemy.dungeonBeatSlotId) === slot.id &&
+          normalizeId(enemy.dungeonBeatDungeonId) === context.definition.dungeonId &&
+          Number(enemy.dungeonBeatRunStartedAt || 0) === Number(context.run.startedAt || 0) &&
+          Number(enemy.hp || 0) > 0);
+        if (alreadyPresent) return;
+        const enemyData = getEnemyDefinitionById(slot.enemyId);
+        if (!enemyData) return;
+        const enemy = this.createEnemy(enemyData, this.chooseDungeonEncounterSpawnPoint(context, slot, index));
+        if (context.beat.kind === 'boss') {
+          const encounter = this.getBossEncounter(enemy.id);
+          enemy.isEncounterBoss = true;
+          enemy.bossEncounterId = encounter && encounter.id || enemy.id;
+          enemy.hostileArmedAt = bossHostileArmedAt;
+          enemy.attackCd = Math.max(1.1, Number(encounter && encounter.introCombatDelay || 0));
+          enemy.bossActionIndex = 0;
+          enemy.bossPhaseIndex = 0;
+          enemy.bossPhaseId = encounter && encounter.phases && encounter.phases[0] && encounter.phases[0].id || '';
+          spawnedBosses.push({ enemy, encounter });
+        }
+        this.enemies.push(enemy);
+        spawned += 1;
+      });
+      if (markSpawned) markSpawned(context.run, context.beat.id, { data: Data, nowMs: Date.now() });
+      if (context.beat.kind === 'boss' && spawnedBosses.length) {
+        if (bossHostileArmedAt > nowSeconds()) {
+          this.bossIntroSummary = {
+            encounterId: spawnedBosses[0].encounter && spawnedBosses[0].encounter.id || spawnedBosses[0].enemy.id,
+            createdAt: bossIntroCreatedAt,
+            expiresAt: bossHostileArmedAt,
+            dungeonEncounterFlowId: context.flow.id,
+            dungeonBeatId: context.beat.id
+          };
+        }
+        spawnedBosses.forEach(({ enemy, encounter }) => {
+          if (encounter) this.pushBossPhaseEffect(enemy, encounter, encounter.phases && encounter.phases[0]);
+        });
+      }
+      if (firstReveal && spawned > 0 && !(options && options.silent)) {
+        this.toast(context.beat.kind === 'boss'
+          ? `${context.beat.name}: boss chamber unlocked.`
+          : `${context.beat.name}: ${spawned} hostiles detected.`, { noEmit: true });
+      }
+      return true;
+    }
+
+    advanceDungeonEncounterFlowForDefeat(enemy) {
+      const context = this.getDungeonEncounterFlowContext();
+      const recordDefeat = getEngineDungeonHelper('recordDungeonEncounterEnemyDefeat');
+      if (!context || !recordDefeat || !enemy) return null;
+      const result = recordDefeat(context.run, enemy, {
+        data: Data,
+        mapId: this.state.mapId,
+        nowMs: Date.now()
+      });
+      if (!result || !result.accepted) return result || null;
+      if (result.advanced && !result.complete) this.spawnDungeonEncounterBeat(context.map);
+      if (result.advanced) {
+        const nextContext = this.getDungeonEncounterFlowContext();
+        const label = result.complete
+          ? 'Expedition route secured.'
+          : nextContext && nextContext.beat
+            ? `${nextContext.beat.name} opened.`
+            : 'Route advanced.';
+        this.toast(label, { noEmit: true });
+      }
+      return result;
+    }
+
     refreshDungeonBossRespawnState(dungeonId) {
       const id = normalizeId(dungeonId);
       if (!id) return false;
@@ -26971,6 +27295,10 @@
     updateDungeonBossRespawns() {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || !map.isDungeon || !map.dungeonId) return;
+      if (this.getDungeonEncounterFlowContext(map)) {
+        this.spawnDungeonEncounterBeat(map, { silent: true });
+        return;
+      }
       const dungeon = getDungeonDefinitionById(map.dungeonId);
       if (!dungeon || !this.refreshDungeonBossRespawnState(dungeon.id)) return;
       const bossIds = this.getDungeonBossIds(map);
@@ -26985,6 +27313,7 @@
     spawnInitialEnemies() {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.safeZone) return;
+      if (this.spawnDungeonEncounterBeat(map, { silent: true })) return;
       const spawns = map.enemies || [];
       const bossIds = new Set(this.getDungeonBossIds(map));
       const fixedSpawns = this.getFixedEnemySpawns(map);
@@ -28667,7 +28996,18 @@
         aggroSource: '',
         adminSpawned: !!spawnPoint.adminSpawned,
         temporarySpawn: !!spawnPoint.temporarySpawn || !!spawnPoint.temporary,
-        preventWaveRespawn: !!spawnPoint.preventWaveRespawn || !!spawnPoint.temporarySpawn || !!spawnPoint.temporary || !!spawnPoint.adminSpawned,
+        preventWaveRespawn: !!spawnPoint.preventWaveRespawn ||
+          !!spawnPoint.dungeonBeatId ||
+          !!spawnPoint.temporarySpawn ||
+          !!spawnPoint.temporary ||
+          !!spawnPoint.adminSpawned,
+        dungeonBeatId: normalizeId(spawnPoint.dungeonBeatId),
+        dungeonBeatSlotId: normalizeId(spawnPoint.dungeonBeatSlotId),
+        dungeonBeatDungeonId: normalizeId(spawnPoint.dungeonBeatDungeonId),
+        dungeonBeatMapId: normalizeId(spawnPoint.dungeonBeatMapId),
+        dungeonBeatRunStartedAt: Math.max(0, Number(spawnPoint.dungeonBeatRunStartedAt || 0)),
+        dungeonBeatSectionX: Number(spawnPoint.dungeonBeatSectionX || 0),
+        dungeonBeatSectionW: Math.max(0, Number(spawnPoint.dungeonBeatSectionW || 0)),
         spawnGroupId: normalizeId(spawnPoint.spawnGroupId),
         spawnGroupLabel: String(spawnPoint.spawnGroupLabel || ''),
         spawnPointId: normalizeId(spawnPoint.id || spawnPoint.spawnPointId),
@@ -28687,6 +29027,7 @@
         wanderUntil: nowSeconds() + ENEMY_WANDER_MOVE_MIN_SECONDS + Math.random() * (ENEMY_WANDER_MOVE_MAX_SECONDS - ENEMY_WANDER_MOVE_MIN_SECONDS),
         wanderPauseUntil: 0,
         wanderDirection: Math.random() < 0.5 ? -1 : 1,
+        hostileArmedAt: 0,
         removeAt: 0
       };
       this.recordMonsterGuideSighted(enemy, this.state.mapId);
@@ -29428,8 +29769,15 @@
       const platform = this.getEnemyHomePlatform(enemy) || this.getBodyPlatform(enemy);
       const platformLeft = platform ? platform.x + ENEMY_WANDER_EDGE_PADDING : worldLeft;
       const platformRight = platform ? platform.x + Math.max(ENEMY_WANDER_EDGE_PADDING, platform.w - width - ENEMY_WANDER_EDGE_PADDING) : worldRight;
-      const leftLimit = Math.max(worldLeft, Math.min(platformLeft, platformRight));
-      const rightLimit = Math.min(worldRight, Math.max(platformLeft, platformRight));
+      const routeSectionW = Math.max(0, Number(enemy.dungeonBeatSectionW || 0));
+      const routeSectionLeft = routeSectionW > 0
+        ? Number(enemy.dungeonBeatSectionX || 0) + ENEMY_WANDER_EDGE_PADDING
+        : worldLeft;
+      const routeSectionRight = routeSectionW > 0
+        ? Number(enemy.dungeonBeatSectionX || 0) + routeSectionW - width - ENEMY_WANDER_EDGE_PADDING
+        : worldRight;
+      const leftLimit = Math.max(worldLeft, Math.min(platformLeft, platformRight), Math.min(routeSectionLeft, routeSectionRight));
+      const rightLimit = Math.min(worldRight, Math.max(platformLeft, platformRight), Math.max(routeSectionLeft, routeSectionRight));
       let left = clamp(homeX - leash, leftLimit, rightLimit);
       let right = clamp(homeX + leash, leftLimit, rightLimit);
       if (right - left < Math.min(80, Math.max(0, rightLimit - leftLimit))) {
@@ -29536,6 +29884,30 @@
         enemy.wanderTargetX = enemy.x;
         enemy.wanderPauseUntil = nowSeconds() + ENEMY_WANDER_PAUSE_MIN_SECONDS;
       }
+    }
+
+    clampDungeonEncounterEnemyPosition(enemy) {
+      const sectionW = Math.max(0, Number(enemy && enemy.dungeonBeatSectionW || 0));
+      if (!enemy || !enemy.dungeonBeatId || sectionW <= 0) return false;
+      const sectionX = Number(enemy.dungeonBeatSectionX || 0);
+      const width = Math.max(1, Number(enemy.w || 1));
+      const minX = sectionX + ENEMY_WANDER_EDGE_PADDING;
+      const maxX = sectionX + Math.max(ENEMY_WANDER_EDGE_PADDING, sectionW - width - ENEMY_WANDER_EDGE_PADDING);
+      const before = Number(enemy.x || 0);
+      enemy.x = clamp(before, Math.min(minX, maxX), Math.max(minX, maxX));
+      if (enemy.x === before) return false;
+      if (
+        before < enemy.x && Number(enemy.vx || 0) < 0 ||
+        before > enemy.x && Number(enemy.vx || 0) > 0
+      ) {
+        enemy.vx = 0;
+      }
+      enemy.wanderTargetX = clamp(
+        Number(enemy.wanderTargetX || enemy.x),
+        Math.min(minX, maxX),
+        Math.max(minX, maxX)
+      );
+      return true;
     }
 
     updateEnemyUnreachablePlatformChase(enemy, player, enemyPlatform, speedScale) {
@@ -29734,6 +30106,7 @@
       const player = this.state && this.state.player;
       if (!enemy || !player || enemy.hp <= 0 || Number(enemy.attackCd || 0) > 0) return false;
       const now = Number(time || nowSeconds());
+      if (this.isEnemyHostilityDisarmed(enemy, now)) return false;
       if (now < Number(player.invulnerableUntil || 0)) return false;
       if (!sameCombatLane(player, enemy, 34)) return false;
       const contactBox = this.getEnemyContactHitbox(enemy);
@@ -29741,6 +30114,13 @@
       enemy.attackCd = Math.max(Number(enemy.attackCd || 0), ENEMY_CONTACT_DAMAGE_COOLDOWN_SECONDS);
       this.damagePlayer(enemy.damage, enemy.name, { attacker: enemy });
       return true;
+    }
+
+    isEnemyHostilityDisarmed(enemy, time) {
+      if (!enemy) return false;
+      const armedAt = Math.max(0, Number(enemy.hostileArmedAt || 0));
+      const currentTime = Number.isFinite(Number(time)) ? Number(time) : nowSeconds();
+      return armedAt > 0 && currentTime <= armedAt;
     }
 
     beginEnemyCharge(enemy, time) {
@@ -29796,6 +30176,17 @@
 		          this.updateEnemyAnimationState(enemy, currentTime);
 		          return;
 	        }
+        if (this.isEnemyHostilityDisarmed(enemy, currentTime)) {
+          enemy.vx = 0;
+          enemy.vy = 0;
+          enemy.telegraph = 0;
+          enemy.chargeAttemptUntil = 0;
+          enemy.chargeAttemptStartedAt = 0;
+          enemy.state = 'idle';
+          enemy.bossPendingAction = null;
+          this.updateEnemyAnimationState(enemy, currentTime);
+          return;
+        }
 	        if (previousBurning > 0) {
 	          if (!burnStats) burnStats = this.getStats();
 	          this.applyBurnTick(enemy, Math.min(delta, previousBurning), burnStats);
@@ -29809,10 +30200,13 @@
           passiveOffscreenStride
         )) {
           return;
-        }
+	        }
 	        const controlSpeedScale = Number(enemy.brokenUntil || 0) > currentTime ? 0.18 : enemy.slowed > 0 ? 0.45 : 1;
 	        const speedScale = Math.max(0.08, Number(enemy.speedScale || 1) * controlSpeedScale);
-	        if (this.updateEnemyClimbing(enemy, delta, speedScale)) return;
+	        if (this.updateEnemyClimbing(enemy, delta, speedScale)) {
+          this.clampDungeonEncounterEnemyPosition(enemy);
+          return;
+        }
         if (data.behavior === 'flyer') {
           enemy.y += Math.sin(currentTime * 2 + enemy.x * 0.02) * 18 * delta;
         } else {
@@ -29875,6 +30269,7 @@
         }
         this.resolvePlatforms(enemy);
 	        enemy.x = clamp(enemy.x, 12, this.runtime.worldWidth - enemy.w - 12);
+        this.clampDungeonEncounterEnemyPosition(enemy);
 	        if (this.recoverFallenBodyThroughTop(enemy, { kind: 'enemy' })) {
 		          this.updateEnemyAnimationState(enemy, currentTime);
 		          return;
@@ -29897,6 +30292,7 @@
       this.enemies = enemies;
       const spatialIndex = this.buildEnemySpatialIndex();
       this.separateEnemies(delta, spatialIndex);
+      this.enemies.forEach((enemy) => this.clampDungeonEncounterEnemyPosition(enemy));
       if (this.refreshEnemySpatialIndexCenters(spatialIndex)) this.buildEnemySpatialIndex();
     }
 
@@ -33494,6 +33890,8 @@
           const blinkFallbackState = getSkillMovementBlinkFallbackStatePlanForMovement(player, movementApplication, this.runtime.worldWidth);
           player.x = blinkFallbackState.x;
         }
+        const dungeonRouteGateClamp = this.applyDungeonRouteGateClamp(player.x);
+        player.x = dungeonRouteGateClamp.x;
         const skillMovementInstantVelocityState = getSkillMovementInstantVelocityStatePlanForMovement();
         player.vx = skillMovementInstantVelocityState.vx;
         const skillMovementBlinkEndEffect = getSkillMovementBlinkEndEffectPlanForMovement(player);
@@ -34897,6 +35295,7 @@
 
     damageEnemy(enemy, amount, source, options) {
       if (!enemy) return false;
+      if (this.isEnemyHostilityDisarmed(enemy)) return false;
       const settings = options || {};
       const masteryBonus = settings.masteryApplied ? 0 : this.getMonsterGuideDamageBonus(enemy.id);
       const final = Math.max(1, Math.round((Number(amount) || 1) * (1 + masteryBonus)));
@@ -35211,6 +35610,7 @@
 	          mapId: this.state.mapId
 	        }, { noEmit: true });
 	      }
+      this.advanceDungeonEncounterFlowForDefeat(enemy);
       this.completeDungeonForBoss(enemy);
       this.queueWaveReplacement(enemy);
       const lootBatch = this.generateMonsterLootDrops(enemy, player);
@@ -38987,6 +39387,8 @@
       this.beginMapAnalyticsVisit(this.state.mapId, { preserveCurrent: true });
       this.setActorAnimation(this.state.player, 'idle', 0, { force: true, loop: true });
       if (!this.restoreTrialInstanceRuntime()) this.spawnInitialEnemies();
+      const restoredRouteGateClamp = this.applyDungeonRouteGateClamp(this.state.player.x, { silent: true });
+      this.state.player.x = restoredRouteGateClamp.x;
       this.recalculateVitals();
       this.snapCameraToPlayer();
       this.queueCurrentAssetPreload(`restore:${this.state.mapId || 'map'}`);

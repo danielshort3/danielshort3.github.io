@@ -2220,11 +2220,27 @@
     } : null;
     if (!guideEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
     const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
+    const dungeonEncounterHud = activeDungeon &&
+      activeDungeon.encounterFlow && activeDungeon.encounterFlow.hud &&
+      typeof activeDungeon.encounterFlow.hud === 'object'
+      ? activeDungeon.encounterFlow.hud
+      : null;
+    const dungeonEncounterValue = Number(dungeonEncounterHud && dungeonEncounterHud.value);
+    const dungeonEncounterGoal = Number(dungeonEncounterHud && dungeonEncounterHud.goal);
+    const dungeonEncounterObjective = dungeonEncounterHud ? {
+      label: String(dungeonEncounterHud.label || 'Advance the dungeon route'),
+      value: Number.isFinite(dungeonEncounterValue) ? Math.max(0, dungeonEncounterValue) : 0,
+      goal: Number.isFinite(dungeonEncounterGoal) ? Math.max(1, dungeonEncounterGoal) : 1,
+      complete: !!dungeonEncounterHud.complete,
+      status: String(dungeonEncounterHud.status || '')
+    } : null;
     const dungeonEntry = activeDungeon ? {
-      title: activeDungeon.name,
+      title: dungeonEncounterHud
+        ? String(dungeonEncounterHud.title || activeDungeon.name || 'Dungeon Route')
+        : activeDungeon.name,
       guideType: 'dungeon',
       guideId: activeDungeon.id,
-      objectives: [Object.assign({
+      objectives: dungeonEncounterObjective ? [dungeonEncounterObjective] : [Object.assign({
         label: dungeonRespawnLabel || `Defeat ${activeDungeon.bossName}`,
         value: 0,
         goal: 1,
