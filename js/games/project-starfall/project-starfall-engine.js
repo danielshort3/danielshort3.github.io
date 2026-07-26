@@ -18811,24 +18811,30 @@
     }
 
     getRouteForFieldMap(mapId) {
+      const id = normalizeId(mapId);
+      if (!id) return null;
       if (GET_ROUTE_FOR_FIELD_MAP) {
-        return GET_ROUTE_FOR_FIELD_MAP(mapId, { data: Data });
+        return GET_ROUTE_FOR_FIELD_MAP(id, { data: Data });
       }
-      return (Data.WORLD_ROUTES || []).find((route) => (route.fieldGoals || []).some((field) => field.mapId === mapId)) || null;
+      return (Data.WORLD_ROUTES || []).find((route) => (route.fieldGoals || []).some((field) => field.mapId === id)) || null;
     }
 
     getRouteForBossMap(mapId) {
+      const id = normalizeId(mapId);
+      if (!id) return null;
       if (GET_ROUTE_FOR_BOSS_MAP) {
-        return GET_ROUTE_FOR_BOSS_MAP(mapId, { data: Data });
+        return GET_ROUTE_FOR_BOSS_MAP(id, { data: Data });
       }
-      return (Data.WORLD_ROUTES || []).find((route) => route.bossMapId === mapId) || null;
+      return (Data.WORLD_ROUTES || []).find((route) => route.bossMapId === id) || null;
     }
 
     getRouteForDungeon(dungeonId) {
+      const id = normalizeId(dungeonId);
+      if (!id) return null;
       if (GET_ROUTE_FOR_DUNGEON) {
-        return GET_ROUTE_FOR_DUNGEON(dungeonId, { data: Data });
+        return GET_ROUTE_FOR_DUNGEON(id, { data: Data });
       }
-      return (Data.WORLD_ROUTES || []).find((route) => route.bossDungeonId === dungeonId) || null;
+      return (Data.WORLD_ROUTES || []).find((route) => route.bossDungeonId === id) || null;
     }
 
     getRouteFieldStatus(route, field, context) {
@@ -18938,6 +18944,7 @@
           data: Data,
           currentMapId: this.state.mapId,
           player: this.state.player,
+          progress: context && context.progress || this.getProgressState(),
           routeState: context && context.routeState || this.getRouteState(),
           dungeons: context && context.dungeons || this.getDungeonState(),
           worldMapEdgeLockReasonCache: context && context.worldMapEdgeLockReasonCache
@@ -18984,6 +18991,7 @@
           data: Data,
           currentMapId: this.state.mapId,
           player: this.state.player,
+          progress: context && context.progress || this.getProgressState(),
           routeState: context && context.routeState || this.getRouteState(),
           dungeons: context && context.dungeons || this.getDungeonState(),
           worldMapPathCache: context && context.worldMapPathCache,
@@ -19048,6 +19056,7 @@
           data: Data,
           currentMapId: this.state.mapId,
           player: this.state.player,
+          progress: context && context.progress || this.getProgressState(),
           routeState: context && context.routeState || this.getRouteState(),
           dungeons: context && context.dungeons || this.getDungeonState(),
           worldMapPathCache: context && context.worldMapPathCache,
@@ -19179,6 +19188,7 @@
 	      this.ensureRuntimeState();
       const context = {
         dungeons: this.state.dungeons,
+        progress: this.state.progress,
         routeState: this.state.routeProgress,
         questGuide: this.state.session && this.state.session.questGuide,
         worldMapPathCache: new Map(),
@@ -19705,7 +19715,6 @@
       const guide = guidance || {};
       const portals = (this.runtime && this.runtime.portals || []).filter(Boolean);
       if (!portals.length) return null;
-      const unlocked = (portal) => !this.getPortalBlockReason(portal);
       if (guide.dungeonId) {
         const dungeonPortal = portals.find((portal) => portal.dungeonId === guide.dungeonId);
         if (dungeonPortal) return dungeonPortal;
@@ -19719,16 +19728,8 @@
         }
         const direct = portals.find((portal) => portal.destinationMapId === guide.recommendedMapId);
         if (direct) return direct;
-        const route = this.getRouteForMap(guide.recommendedMapId) || this.getRouteForDungeon(guide.dungeonId);
-        if (route) {
-          const routePortal = portals.find((portal) => portal.routeId === route.id && !portal.returnPortal && (portal.destinationMapId || portal.dungeonId));
-          if (routePortal) return routePortal;
-        }
       }
-      return portals.find((portal) => !portal.returnPortal && unlocked(portal)) ||
-        portals.find((portal) => !portal.returnPortal) ||
-        portals.find((portal) => portal.returnPortal) ||
-        null;
+      return null;
     }
 
     getObjectiveGuidance(targetType, targetId, sourceTitle, objective, entryData) {
@@ -20148,6 +20149,7 @@
           data: Data,
           currentMapId: this.state.mapId,
           player: this.state.player,
+          progress: context && context.progress || this.getProgressState(),
           routeState: context && context.routeState || this.getRouteState(),
           dungeons: context && context.dungeons || this.getDungeonState()
         });
@@ -20326,6 +20328,7 @@
           data: Data,
           currentMapId: this.state.mapId,
           player: this.state.player,
+          progress: context && context.progress || this.getProgressState(),
           routeState: context && context.routeState || this.getRouteState(),
           dungeons: context && context.dungeons || this.getDungeonState()
         });
@@ -20336,6 +20339,15 @@
         if (!(dungeons.completedDungeonIds || []).includes(portal.requiredDungeonId)) {
           const dungeon = getDungeonDefinitionById(portal.requiredDungeonId);
           return `Clear ${dungeon ? dungeon.name : portal.requiredDungeonId} first.`;
+        }
+      }
+      if (portal.requiredQuestId) {
+        const availability = this.getQuestAvailability(
+          portal.requiredQuestId,
+          context && context.progress ? { progress: context.progress } : null
+        );
+        if (!availability.active && !availability.complete && !availability.claimed) {
+          return availability.lockedReason || `Accept ${availability.title || portal.requiredQuestId} first.`;
         }
       }
       if (portal.dungeonId) {
@@ -20363,6 +20375,7 @@
           data: Data,
           currentMapId: this.state.mapId,
           player: this.state.player,
+          progress: context && context.progress || this.getProgressState(),
           routeState: context && context.routeState || this.getRouteState(),
           dungeons: context && context.dungeons || this.getDungeonState()
         });

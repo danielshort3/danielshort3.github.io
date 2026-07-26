@@ -38,18 +38,24 @@
   }
 
   function getRouteForFieldMap(mapId, options) {
+    const id = normalizeId(mapId);
+    if (!id) return null;
     const data = getRouteProgressData(options);
-    return (data.WORLD_ROUTES || []).find((route) => (route.fieldGoals || []).some((field) => field.mapId === mapId)) || null;
+    return (data.WORLD_ROUTES || []).find((route) => (route.fieldGoals || []).some((field) => field.mapId === id)) || null;
   }
 
   function getRouteForBossMap(mapId, options) {
+    const id = normalizeId(mapId);
+    if (!id) return null;
     const data = getRouteProgressData(options);
-    return (data.WORLD_ROUTES || []).find((route) => route.bossMapId === mapId) || null;
+    return (data.WORLD_ROUTES || []).find((route) => route.bossMapId === id) || null;
   }
 
   function getRouteForDungeon(dungeonId, options) {
+    const id = normalizeId(dungeonId);
+    if (!id) return null;
     const data = getRouteProgressData(options);
-    return (data.WORLD_ROUTES || []).find((route) => route.bossDungeonId === dungeonId) || null;
+    return (data.WORLD_ROUTES || []).find((route) => route.bossDungeonId === id) || null;
   }
 
   function getRouteForMap(mapId, options) {

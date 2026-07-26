@@ -82,6 +82,56 @@
       : { completedDungeonIds: [] };
   }
 
+  function getQuestProgressState(progress) {
+    const source = progress && typeof progress === 'object' ? progress : {};
+    const completedQuestIds = Array.isArray(source.completedQuestIds)
+      ? source.completedQuestIds.map(normalizeId).filter(Boolean)
+      : [];
+    const claimedQuestIds = Array.isArray(source.claimedQuestIds)
+      ? source.claimedQuestIds.map(normalizeId).filter(Boolean)
+      : completedQuestIds.slice();
+    const activeQuestIds = Array.isArray(source.activeQuestIds)
+      ? source.activeQuestIds.map(normalizeId).filter(Boolean)
+      : [];
+    const legacyActiveQuestId = normalizeId(source.activeQuestId);
+    if (legacyActiveQuestId && !activeQuestIds.includes(legacyActiveQuestId)) {
+      activeQuestIds.push(legacyActiveQuestId);
+    }
+    return {
+      activeQuestIds,
+      completedQuestIds,
+      claimedQuestIds
+    };
+  }
+
+  function createPortalRequiredQuestBlockReason(portal, options) {
+    const requiredQuestId = normalizeId(portal && portal.requiredQuestId);
+    if (!requiredQuestId) return '';
+    const settings = options || {};
+    const data = getPortalData(settings);
+    const quest = getById(data.QUESTS || [], requiredQuestId);
+    if (!quest) return 'Required quest is unavailable.';
+    const progress = getQuestProgressState(settings.progress);
+    if (progress.activeQuestIds.includes(requiredQuestId) ||
+      progress.completedQuestIds.includes(requiredQuestId) ||
+      progress.claimedQuestIds.includes(requiredQuestId)) return '';
+    const missingRequiredQuestId = (quest.requiredQuestIds || [])
+      .map(normalizeId)
+      .find((questId) => questId && !progress.claimedQuestIds.includes(questId));
+    if (missingRequiredQuestId) {
+      const requiredQuest = getById(data.QUESTS || [], missingRequiredQuestId);
+      const requiredTitle = requiredQuest ? requiredQuest.title : missingRequiredQuestId;
+      return progress.completedQuestIds.includes(missingRequiredQuestId)
+        ? `Claim ${requiredTitle} first.`
+        : `Complete ${requiredTitle} first.`;
+    }
+    const player = settings.player || {};
+    if (Number(quest.requiredLevel || 0) > Number(player.level || 1)) {
+      return `Reach Level ${Number(quest.requiredLevel)} first.`;
+    }
+    return `Accept ${quest.title} first.`;
+  }
+
   function getWorldRoute(routeId, options) {
     if (RouteProgress.getWorldRoute) return RouteProgress.getWorldRoute(routeId, options);
     const data = getPortalData(options);
@@ -90,20 +140,26 @@
 
   function getRouteForFieldMap(mapId, options) {
     if (RouteProgress.getRouteForFieldMap) return RouteProgress.getRouteForFieldMap(mapId, options);
+    const id = normalizeId(mapId);
+    if (!id) return null;
     const data = getPortalData(options);
-    return (data.WORLD_ROUTES || []).find((route) => (route.fieldGoals || []).some((field) => field.mapId === mapId)) || null;
+    return (data.WORLD_ROUTES || []).find((route) => (route.fieldGoals || []).some((field) => field.mapId === id)) || null;
   }
 
   function getRouteForBossMap(mapId, options) {
     if (RouteProgress.getRouteForBossMap) return RouteProgress.getRouteForBossMap(mapId, options);
+    const id = normalizeId(mapId);
+    if (!id) return null;
     const data = getPortalData(options);
-    return (data.WORLD_ROUTES || []).find((route) => route.bossMapId === mapId) || null;
+    return (data.WORLD_ROUTES || []).find((route) => route.bossMapId === id) || null;
   }
 
   function getRouteForDungeon(dungeonId, options) {
     if (RouteProgress.getRouteForDungeon) return RouteProgress.getRouteForDungeon(dungeonId, options);
+    const id = normalizeId(dungeonId);
+    if (!id) return null;
     const data = getPortalData(options);
-    return (data.WORLD_ROUTES || []).find((route) => route.bossDungeonId === dungeonId) || null;
+    return (data.WORLD_ROUTES || []).find((route) => route.bossDungeonId === id) || null;
   }
 
   function createRouteFieldStatus(route, field, routeState, options) {
@@ -200,6 +256,8 @@
         return `Clear ${dungeon ? dungeon.name : portal.requiredDungeonId} first.`;
       }
     }
+    const questReason = createPortalRequiredQuestBlockReason(portal, settings);
+    if (questReason) return questReason;
     const routeState = getRouteState(settings.routeState, settings);
     if (portal.dungeonId) {
       const dungeon = getDungeonDefinitionById(portal.dungeonId, data);
@@ -330,6 +388,7 @@
     DEFAULT_PORTAL_MIN_CENTER_SPACING,
     createRouteBossLockReason,
     createMapTravelBlockReason,
+    createPortalRequiredQuestBlockReason,
     createPortalBlockReason,
     createPortalSummary,
     alignPortal,

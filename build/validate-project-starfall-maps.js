@@ -208,11 +208,148 @@ function validateMap(map) {
   };
 }
 
+function validateWorldGraph(data) {
+  const source = data && typeof data === 'object' ? data : {};
+  const maps = Array.isArray(source.MAPS) ? source.MAPS : [];
+  const edges = Array.isArray(source.WORLD_MAP_EDGES) ? source.WORLD_MAP_EDGES : [];
+  const quests = Array.isArray(source.QUESTS) ? source.QUESTS : [];
+  const encounters = Array.isArray(source.BOSS_ENCOUNTERS) ? source.BOSS_ENCOUNTERS : [];
+  const dungeons = Array.isArray(source.DUNGEONS) ? source.DUNGEONS : [];
+  const issues = [];
+  const mapById = new Map(maps.map((map) => [map.id, map]));
+  const questById = new Map(quests.map((quest) => [quest.id, quest]));
+  const encounterById = new Map(encounters.map((encounter) => [encounter.id, encounter]));
+  const dungeonById = new Map(dungeons.map((dungeon) => [dungeon.id, dungeon]));
+  const edgePortalKeys = new Set();
+  const adjacency = new Map();
+  const getPortal = (mapId, portalId) => {
+    const map = mapById.get(mapId);
+    return map && (map.portals || []).find((portal) => portal && portal.id === portalId) || null;
+  };
+  const addAdjacent = (fromMapId, toMapId) => {
+    if (!adjacency.has(fromMapId)) adjacency.set(fromMapId, []);
+    adjacency.get(fromMapId).push(toMapId);
+  };
+
+  edges.forEach((edge) => {
+    if (!edge || !edge.id) {
+      issues.push('World-map edge is missing an id.');
+      return;
+    }
+    const fromMap = mapById.get(edge.fromMapId);
+    const toMap = mapById.get(edge.toMapId);
+    if (!fromMap || !toMap) {
+      issues.push(`${edge.id} references a missing world-map endpoint.`);
+      return;
+    }
+    addAdjacent(fromMap.id, toMap.id);
+    addAdjacent(toMap.id, fromMap.id);
+    const fromPortalId = edge.portalIds && edge.portalIds.from;
+    const toPortalId = edge.portalIds && edge.portalIds.to;
+    const fromPortal = getPortal(fromMap.id, fromPortalId);
+    const toPortal = getPortal(toMap.id, toPortalId);
+    if (!fromPortal || !toPortal) {
+      issues.push(`${edge.id} must reference existing portals on both endpoint maps.`);
+      return;
+    }
+    edgePortalKeys.add(`${fromMap.id}|${fromPortal.id}`);
+    edgePortalKeys.add(`${toMap.id}|${toPortal.id}`);
+    if (fromPortal.bossEncounterId) {
+      const encounter = encounterById.get(fromPortal.bossEncounterId);
+      if (!encounter || encounter.mapId !== toMap.id) {
+        issues.push(`${edge.id} boss portal must resolve to ${toMap.id}.`);
+      }
+    } else if (fromPortal.dungeonId) {
+      const dungeon = dungeonById.get(fromPortal.dungeonId);
+      if (!dungeon || dungeon.mapId !== toMap.id) {
+        issues.push(`${edge.id} dungeon portal must resolve to ${toMap.id}.`);
+      }
+    } else if (fromPortal.destinationMapId !== toMap.id) {
+      issues.push(`${edge.id} forward portal must travel to ${toMap.id}.`);
+    }
+    if (toPortal.destinationMapId !== fromMap.id || !toPortal.returnPortal) {
+      issues.push(`${edge.id} return portal must travel back to ${fromMap.id}.`);
+    }
+    if (edge.requiredQuestId) {
+      if (!questById.has(edge.requiredQuestId)) {
+        issues.push(`${edge.id} requires missing quest ${edge.requiredQuestId}.`);
+      }
+      if (fromPortal.requiredQuestId !== edge.requiredQuestId) {
+        issues.push(`${edge.id} and ${fromPortal.id} must share the same required quest.`);
+      }
+    }
+  });
+
+  const reachableMapIds = new Set();
+  const queue = mapById.has('starfallCrossing') ? ['starfallCrossing'] : [];
+  queue.forEach((mapId) => reachableMapIds.add(mapId));
+  while (queue.length) {
+    const mapId = queue.shift();
+    (adjacency.get(mapId) || []).forEach((nextMapId) => {
+      if (reachableMapIds.has(nextMapId)) return;
+      reachableMapIds.add(nextMapId);
+      queue.push(nextMapId);
+    });
+  }
+  maps.filter((map) => !map.adminOnly).forEach((map) => {
+    if (!reachableMapIds.has(map.id)) {
+      issues.push(`${map.id} is not reachable from Starfall Crossing through the world graph.`);
+    }
+    (map.portals || []).forEach((portal) => {
+      if (!portal || portal.shopDoor || !(portal.destinationMapId || portal.dungeonId || portal.bossEncounterId)) return;
+      if (!edgePortalKeys.has(`${map.id}|${portal.id}`)) {
+        issues.push(`${map.id}/${portal.id} is a public travel portal missing from the world graph.`);
+      }
+    });
+  });
+
+  const reachableQuestOwners = new Map();
+  maps.forEach((map) => {
+    (map.questNpcs || []).forEach((npc) => {
+      (npc.questIds || []).forEach((questId) => {
+        if (!reachableMapIds.has(map.id)) return;
+        if (!reachableQuestOwners.has(questId)) reachableQuestOwners.set(questId, []);
+        reachableQuestOwners.get(questId).push(`${map.id}/${npc.id}`);
+      });
+    });
+  });
+  quests.forEach((quest) => {
+    if (!(reachableQuestOwners.get(quest.id) || []).length) {
+      issues.push(`${quest.id} has no reachable quest owner.`);
+    }
+    (quest.objectives || []).forEach((objective) => {
+      if (objective.mapId && !reachableMapIds.has(objective.mapId)) {
+        issues.push(`${quest.id}/${objective.id} targets unreachable map ${objective.mapId}.`);
+      }
+      if (objective.type === 'dungeonComplete') {
+        const dungeon = dungeonById.get(objective.dungeonId);
+        if (!dungeon || !reachableMapIds.has(dungeon.mapId)) {
+          issues.push(`${quest.id}/${objective.id} targets an unreachable dungeon.`);
+        }
+      }
+      if (objective.type === 'defeatBoss' && objective.mapId) {
+        const map = mapById.get(objective.mapId);
+        if (!map || !(map.enemies || []).includes(objective.bossId)) {
+          issues.push(`${quest.id}/${objective.id} boss does not spawn on ${objective.mapId}.`);
+        }
+      }
+    });
+  });
+
+  return {
+    ok: issues.length === 0,
+    reachableMapIds: Array.from(reachableMapIds),
+    issues
+  };
+}
+
 function validateProjectStarfallMaps(data, options = {}) {
   const maps = Array.isArray(data && data.MAPS) ? data.MAPS : [];
   const summaries = maps.map(validateMap);
   const issues = summaries.flatMap((summary) => summary.issues);
   const warnings = summaries.flatMap((summary) => summary.warnings);
+  const worldGraph = validateWorldGraph(data);
+  issues.push(...worldGraph.issues);
   const guidePath = path.join(ROOT, 'MAP_AND_LEVEL_DESIGN_GUIDE.md');
   if (!fs.existsSync(guidePath)) {
     issues.push('MAP_AND_LEVEL_DESIGN_GUIDE.md is missing.');
@@ -241,6 +378,7 @@ function validateProjectStarfallMaps(data, options = {}) {
   return {
     ok: issues.length === 0,
     summaries,
+    worldGraph,
     issues,
     warnings: options.includeWarnings === false ? [] : warnings
   };
@@ -281,5 +419,6 @@ if (require.main === module) {
 module.exports = {
   getMapSlopeBudget,
   validateMap,
+  validateWorldGraph,
   validateProjectStarfallMaps
 };
