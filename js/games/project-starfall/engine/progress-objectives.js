@@ -323,7 +323,8 @@
     const type = ['quest', 'trial', 'dungeon', 'mapKill', 'map'].includes(source.type) ? source.type : '';
     return {
       type,
-      id: type ? normalizeId(source.id) : ''
+      id: type ? normalizeId(source.id) : '',
+      assignmentId: type ? normalizeId(source.assignmentId) : ''
     };
   }
 

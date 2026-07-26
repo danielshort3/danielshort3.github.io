@@ -38,12 +38,12 @@
   function getWeeklyRouteAssignmentGuide(assignment) {
     const source = assignment && typeof assignment === 'object' ? assignment : {};
     const requestedType = String(source.guideType || '').trim();
-    const guideType = requestedType === 'map' || requestedType === 'dungeon'
+    const guideType = ['mapKill', 'map', 'dungeon'].includes(requestedType)
       ? requestedType
       : source.dungeonId
         ? 'dungeon'
         : source.mapId
-          ? 'map'
+          ? source.kind === 'mapHunt' ? 'mapKill' : 'map'
           : '';
     const guideId = String(
       source.guideId ||
@@ -54,6 +54,16 @@
       guideType: guideId ? guideType : '',
       guideId
     };
+  }
+
+  function getWeeklyRouteFocusedAssignment(assignments, guidance) {
+    const source = Array.isArray(assignments) ? assignments.filter(Boolean) : [];
+    const openAssignments = source.filter((assignment) => !assignment.complete);
+    if (!openAssignments.length) return null;
+    const guide = guidance && typeof guidance === 'object' ? guidance : {};
+    const assignmentId = String(guide.assignmentId || '').trim();
+    return openAssignments.find((assignment) => String(assignment.id || '').trim() === assignmentId) ||
+      openAssignments[0];
   }
 
   function formatWeeklyRouteResetLabel(weeklyRoutes, options) {
@@ -80,9 +90,14 @@
   function getWeeklyStarRoutePresentation(season, options) {
     const weeklyRoutes = season && season.weeklyRoutes;
     if (!weeklyRoutes || typeof weeklyRoutes !== 'object') return null;
-    const assignments = (Array.isArray(weeklyRoutes.assignments) ? weeklyRoutes.assignments : [])
+    const settings = options || {};
+    const baseAssignments = (Array.isArray(weeklyRoutes.assignments) ? weeklyRoutes.assignments : [])
       .filter(Boolean)
       .map((assignment, index) => Object.assign({ index }, assignment, getWeeklyRouteAssignmentGuide(assignment)));
+    const focusedAssignment = getWeeklyRouteFocusedAssignment(baseAssignments, settings.guidance);
+    const assignments = baseAssignments.map((assignment) => Object.assign({}, assignment, {
+      focused: !!(focusedAssignment && focusedAssignment.id === assignment.id)
+    }));
     const completedByAssignments = assignments.filter((assignment) => assignment.complete).length;
     const completionCount = Math.max(0, Math.min(
       assignments.length,
@@ -99,7 +114,7 @@
     const prioritizedAssignments = complete || rewardGranted
       ? assignments
       : assignments.slice().sort((a, b) => Number(!!a.complete) - Number(!!b.complete) || a.index - b.index);
-    const visibleAssignments = prioritizedAssignments.slice(0, 2);
+    const visibleAssignments = prioritizedAssignments;
     return {
       source: weeklyRoutes,
       unlocked: weeklyRoutes.unlocked !== false,
@@ -117,7 +132,9 @@
       reward: weeklyRoutes.reward || {},
       rewardSummary: String(weeklyRoutes.rewardSummary || ''),
       resetLabel: formatWeeklyRouteResetLabel(weeklyRoutes, options),
-      nextAssignment: assignments.find((assignment) => !assignment.complete) || null
+      nextAssignment: assignments.find((assignment) =>
+        focusedAssignment && assignment.id === focusedAssignment.id
+      ) || assignments.find((assignment) => !assignment.complete) || null
     };
   }
 
@@ -198,7 +215,8 @@
         phase: 'prompt',
         type: 'setQuestGuideTarget',
         guideType: source.guideType,
-        guideId: source.guideId
+        guideId: source.guideId,
+        assignmentId: source.assignmentId
       };
     }
     if (
@@ -321,6 +339,7 @@
       },
       getWorldMapDetailPresentation,
       getWeeklyRouteAssignmentGuide,
+      getWeeklyRouteFocusedAssignment,
       formatWeeklyRouteResetLabel,
       getWeeklyStarRoutePresentation,
       getWorldProgressDomAction,
@@ -344,6 +363,7 @@
     sortAccomplishmentItems,
     getWorldMapDetailPresentation,
     getWeeklyRouteAssignmentGuide,
+    getWeeklyRouteFocusedAssignment,
     formatWeeklyRouteResetLabel,
     getWeeklyStarRoutePresentation,
     getWorldProgressDomAction,

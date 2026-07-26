@@ -4,6 +4,7 @@ const assert = require('assert');
 const data = require('../js/games/project-starfall/data/index.js');
 const weeklyRoutes = require('../js/games/project-starfall/engine/weekly-routes.js');
 const questUi = require('../js/games/project-starfall/ui/quests.js');
+const hud = require('../js/games/project-starfall/ui/hud.js');
 const { createProjectStarfallEngine } = require('../js/games/project-starfall/project-starfall-engine.js');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -837,8 +838,9 @@ check(initializedRuntimeSnapshot.unlocked &&
   initializedRuntimeSnapshot.assignments.length === 4 &&
   initializedRuntimeSnapshot.nextObjectiveId === initializedRuntimeSnapshot.assignments[0].id &&
   initializedRuntimeSnapshot.nextGuide &&
-  initializedRuntimeSnapshot.nextGuide.type === 'map' &&
-  initializedRuntimeSnapshot.nextGuide.id === initializedRuntimeSnapshot.assignments[0].mapId &&
+  initializedRuntimeSnapshot.nextGuide.type === initializedRuntimeSnapshot.assignments[0].guideType &&
+  initializedRuntimeSnapshot.nextGuide.id === initializedRuntimeSnapshot.assignments[0].guideId &&
+  initializedRuntimeSnapshot.nextGuide.assignmentId === initializedRuntimeSnapshot.assignments[0].id &&
   initializedRuntimeSnapshot.rewardSummary === '400 coins, 75 Star Tokens',
 'the unlocked runtime snapshot should expose four guided rows and its exact inventory-independent reward');
 const nestedSeasonSnapshot = integrationEngine.getSeasonSnapshot({ nowMs: WEEK_ONE_MS });
@@ -847,6 +849,98 @@ check(nestedSeasonSnapshot.weeklyRoutes &&
 'the season snapshot should publish the same fixed weekly route state');
 
 const integrationAssignments = initializedRuntimeSnapshot.assignments;
+const secondHuntAssignment = integrationAssignments.find((assignment, index) =>
+  index > 0 && assignment.guideType === 'mapKill'
+);
+const dungeonGuideAssignment = integrationAssignments.find((assignment) =>
+  assignment.guideType === 'dungeon'
+);
+check(secondHuntAssignment && dungeonGuideAssignment,
+  'the weekly card fixture should expose a non-first hunt and a dungeon choice');
+const fullCardPresentation = questUi.getWeeklyStarRoutePresentation({
+  weeklyRoutes: initializedRuntimeSnapshot
+}, {
+  nowMs: WEEK_ONE_MS,
+  guidance: integrationEngine.getQuestGuidanceSnapshot()
+});
+check(fullCardPresentation &&
+  fullCardPresentation.visibleAssignments.length === 4 &&
+  fullCardPresentation.hiddenCount === 0,
+'the weekly card should keep all four 3-of-4 choices visible and selectable');
+const secondHuntAction = questUi.getQuestPanelRegionAction({
+  type: 'quest-guide',
+  guideType: secondHuntAssignment.guideType,
+  guideId: secondHuntAssignment.guideId,
+  assignmentId: secondHuntAssignment.id
+});
+check(secondHuntAction.handled &&
+  secondHuntAction.guideType === 'mapKill' &&
+  secondHuntAction.assignmentId === secondHuntAssignment.id,
+'weekly hunt clicks should preserve hunt semantics and assignment identity');
+
+integrationEngine.state.session.worldMapSelectedId = integrationAssignments[0].mapId;
+check(integrationEngine.setWeeklyRouteGuideTarget(secondHuntAssignment.id, {
+  nowMs: WEEK_ONE_MS
+}), 'a player should be able to focus the non-first weekly hunt');
+const focusedHuntGuidance = integrationEngine.getQuestGuidanceSnapshot();
+const focusedHuntSnapshot = integrationEngine.getWeeklyRouteSnapshot({ nowMs: WEEK_ONE_MS });
+const focusedHuntTracker = hud.getWeeklyStarRouteTrackerEntry({
+  weeklyRoutes: focusedHuntSnapshot
+}, focusedHuntGuidance);
+const focusedHuntPresentation = questUi.getWeeklyStarRoutePresentation({
+  weeklyRoutes: focusedHuntSnapshot
+}, {
+  nowMs: WEEK_ONE_MS,
+  guidance: focusedHuntGuidance
+});
+check(integrationEngine.state.session.questGuide.type === 'mapKill' &&
+  integrationEngine.state.session.questGuide.id === secondHuntAssignment.guideId &&
+  integrationEngine.state.session.questGuide.assignmentId === secondHuntAssignment.id &&
+  focusedHuntGuidance.targetType === 'mapKill' &&
+  focusedHuntGuidance.assignmentId === secondHuntAssignment.id,
+'the focused hunt should remain an end-to-end map-hunt guide instead of degrading into travel');
+check(focusedHuntSnapshot.nextObjectiveId === secondHuntAssignment.id &&
+  focusedHuntSnapshot.nextGuide.type === 'mapKill' &&
+  focusedHuntSnapshot.nextGuide.id === secondHuntAssignment.guideId &&
+  focusedHuntSnapshot.nextGuide.assignmentId === secondHuntAssignment.id &&
+  focusedHuntTracker &&
+  focusedHuntTracker.assignmentId === secondHuntAssignment.id,
+'the weekly snapshot and HUD should honor the exact non-first assignment the player selected');
+check(integrationEngine.getWorldMapSnapshot().selectedMapId === secondHuntAssignment.mapId &&
+  focusedHuntPresentation.visibleAssignments.find((assignment) =>
+    assignment.id === secondHuntAssignment.id
+  ).focused,
+'weekly focus should synchronize the world map and visibly mark the selected card row');
+
+const focusedHuntSave = integrationEngine.serialize();
+const focusedHuntRestoredEngine = createProjectStarfallEngine(null, data);
+focusedHuntRestoredEngine.getWeeklyRouteCandidates = () => createCandidateFixture();
+check(focusedHuntRestoredEngine.restore(focusedHuntSave),
+  'a save with a non-first weekly focus should restore');
+const restoredFocusedHuntSnapshot = focusedHuntRestoredEngine.getWeeklyRouteSnapshot({
+  nowMs: WEEK_ONE_MS
+});
+check(focusedHuntRestoredEngine.state.session.questGuide.assignmentId === secondHuntAssignment.id &&
+  restoredFocusedHuntSnapshot.nextGuide.assignmentId === secondHuntAssignment.id &&
+  focusedHuntRestoredEngine.getQuestGuidanceSnapshot().targetType === 'mapKill',
+'save/restore should retain weekly assignment identity and hunt-specific guidance');
+
+check(integrationEngine.setWeeklyRouteGuideTarget(dungeonGuideAssignment.id, {
+  nowMs: WEEK_ONE_MS
+}), 'a player should be able to focus the non-first weekly dungeon');
+check(integrationEngine.state.session.questGuide.type === 'dungeon' &&
+  integrationEngine.state.session.questGuide.id === dungeonGuideAssignment.guideId &&
+  integrationEngine.state.session.questGuide.assignmentId === dungeonGuideAssignment.id &&
+  integrationEngine.getWorldMapSnapshot().selectedMapId === dungeonGuideAssignment.mapId,
+'dungeon focus should keep its dungeon identity and synchronize the destination map');
+check(integrationEngine.setWorldMapGuideTarget(integrationAssignments[0].mapId) &&
+  integrationEngine.state.session.questGuide.type === 'map' &&
+  integrationEngine.state.session.questGuide.assignmentId === '',
+'generic World Map guidance should remain plain travel and clear weekly focus');
+check(integrationEngine.setWeeklyRouteGuideTarget(secondHuntAssignment.id, {
+  nowMs: WEEK_ONE_MS
+}), 'the completion handoff fixture should restore the selected second hunt');
+
 for (let index = 0; index < 2; index += 1) {
   check(integrationEngine.recordProgressEvent(
     integrationAssignments[index].type,
@@ -860,6 +954,9 @@ check(partialRuntimeSnapshot.completionCount === 2 &&
   !partialRuntimeSnapshot.rewardGranted &&
   partialRuntimeSnapshot.nextObjectiveId === integrationAssignments[2].id,
 'two real progress events should persist partial weekly state and advance guidance');
+check(integrationEngine.state.session.questGuide.assignmentId === integrationAssignments[2].id &&
+  partialRuntimeSnapshot.nextGuide.assignmentId === integrationAssignments[2].id,
+'completing the selected weekly row should advance focus to the first unfinished assignment');
 
 const partialSave = integrationEngine.serialize();
 const partialRestoredEngine = createProjectStarfallEngine(null, data);

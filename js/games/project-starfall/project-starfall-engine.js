@@ -4110,8 +4110,40 @@
     const type = ['quest', 'trial', 'dungeon', 'mapKill', 'map'].includes(source.type) ? source.type : '';
     return {
       type,
-      id: type ? normalizeId(source.id) : ''
+      id: type ? normalizeId(source.id) : '',
+      assignmentId: type ? normalizeId(source.assignmentId) : ''
     };
+  }
+
+  function getWeeklyRouteAssignmentGuideTarget(assignment) {
+    const source = assignment && typeof assignment === 'object' ? assignment : {};
+    const requestedType = normalizeId(source.guideType);
+    const guideType = ['mapKill', 'map', 'dungeon'].includes(requestedType)
+      ? requestedType
+      : source.dungeonId
+        ? 'dungeon'
+        : source.mapId
+          ? source.kind === 'mapHunt' ? 'mapKill' : 'map'
+          : '';
+    const guideId = normalizeId(
+      source.guideId ||
+      (guideType === 'dungeon' ? source.dungeonId || source.targetId : source.mapId || source.targetId)
+    );
+    return {
+      type: guideId ? guideType : '',
+      id: guideId,
+      assignmentId: normalizeId(source.id),
+      mapId: normalizeId(source.mapId)
+    };
+  }
+
+  function getFocusedWeeklyRouteAssignment(assignments, questGuide) {
+    const openAssignments = (Array.isArray(assignments) ? assignments : [])
+      .filter((assignment) => assignment && !assignment.complete);
+    if (!openAssignments.length) return null;
+    const assignmentId = normalizeId(questGuide && questGuide.assignmentId);
+    return openAssignments.find((assignment) => normalizeId(assignment.id) === assignmentId) ||
+      openAssignments[0];
   }
 
   const markMonsterGuideStateNormalized = getEngineMonsterGuideHelper('markMonsterGuideStateNormalized') || function markMonsterGuideStateNormalizedFallback(guide) {
@@ -19275,9 +19307,16 @@
     }
 
     getWorldMapTargetId(context) {
+      const guide = context && context.questGuide || this.getQuestGuideState();
+      if (normalizeId(guide.assignmentId)) {
+        if (guide.type === 'dungeon') {
+          const dungeon = getDungeonDefinitionById(guide.id);
+          if (dungeon && getMapDefinitionById(dungeon.mapId)) return dungeon.mapId;
+        }
+        if ((guide.type === 'map' || guide.type === 'mapKill') && getMapDefinitionById(guide.id)) return guide.id;
+      }
       const selectedId = normalizeId(this.state.session && this.state.session.worldMapSelectedId);
       if (getMapDefinitionById(selectedId)) return selectedId;
-      const guide = context && context.questGuide || this.getQuestGuideState();
       if (guide.type === 'dungeon') {
         const dungeon = getDungeonDefinitionById(guide.id);
         if (dungeon && getMapDefinitionById(dungeon.mapId)) return dungeon.mapId;
@@ -19299,6 +19338,7 @@
         normalizeId(this.state.session && this.state.session.worldMapSelectedId),
         normalizeId(guide.type),
         normalizeId(guide.id),
+        normalizeId(guide.assignmentId),
         (dungeons.completedDungeonIds || []).map(normalizeId).join(',')
       ].join('|');
     }
@@ -19654,15 +19694,17 @@
       if (guide && typeof guide === 'object') {
         const type = ['quest', 'trial', 'dungeon', 'mapKill', 'map'].includes(guide.type) ? guide.type : '';
         const id = type ? normalizeId(guide.id) : '';
-        if (guide.type === type && guide.id === id) return guide;
-        session.questGuide = { type, id };
+        const assignmentId = type ? normalizeId(guide.assignmentId) : '';
+        if (guide.type === type && guide.id === id && guide.assignmentId === assignmentId) return guide;
+        session.questGuide = { type, id, assignmentId };
         return session.questGuide;
       }
       this.ensureRuntimeState();
       return this.state.session.questGuide;
     }
 
-    setQuestGuideTarget(type, id) {
+    setQuestGuideTarget(type, id, options) {
+      const settings = options && typeof options === 'object' ? options : {};
       const guideType = ['quest', 'trial', 'dungeon', 'mapKill', 'map'].includes(type) ? type : '';
       const guideId = normalizeId(id);
       if (!guideType || !guideId) return false;
@@ -19674,11 +19716,63 @@
             ? !!getDungeonDefinitionById(guideId)
             : !!getMapDefinitionById(guideId);
       if (!valid) return false;
-      const guide = this.getQuestGuideState();
-      guide.type = guideType;
-      guide.id = guideId;
-      this.emitUiChange({ domains: ['session', 'quests', 'guide', 'world'], reason: 'questGuideTarget', persist: true });
+      this.ensureRuntimeState();
+      const assignmentId = normalizeId(settings.assignmentId);
+      this.state.session.questGuide = {
+        type: guideType,
+        id: guideId,
+        assignmentId
+      };
+      const requestedMapId = normalizeId(settings.worldMapId);
+      const dungeon = guideType === 'dungeon' ? getDungeonDefinitionById(guideId) : null;
+      const targetMapId = getMapDefinitionById(requestedMapId)
+        ? requestedMapId
+        : guideType === 'map' || guideType === 'mapKill'
+          ? guideId
+          : dungeon
+            ? dungeon.mapId
+            : '';
+      if (getMapDefinitionById(targetMapId)) this.state.session.worldMapSelectedId = targetMapId;
+      if (!settings.noEmit) {
+        this.emitUiChange({
+          domains: ['session', 'quests', 'guide', 'world'],
+          reason: assignmentId ? 'weeklyRouteGuideTarget' : 'questGuideTarget',
+          persist: true
+        });
+      }
       return true;
+    }
+
+    setWeeklyRouteGuideTarget(assignmentId, options) {
+      const settings = options && typeof options === 'object' ? options : {};
+      const targetAssignmentId = normalizeId(assignmentId);
+      if (!targetAssignmentId) return false;
+      const weeklyRoutes = settings.weeklyRoutes && typeof settings.weeklyRoutes === 'object'
+        ? settings.weeklyRoutes
+        : this.getWeeklyRouteSnapshot({ nowMs: settings.nowMs });
+      if (!weeklyRoutes || weeklyRoutes.unlocked === false) return false;
+      const assignment = (Array.isArray(weeklyRoutes.assignments) ? weeklyRoutes.assignments : [])
+        .find((entry) =>
+          entry &&
+          !entry.complete &&
+          normalizeId(entry.id) === targetAssignmentId
+        );
+      if (!assignment) return false;
+      const target = getWeeklyRouteAssignmentGuideTarget(assignment);
+      if (!target.type || !target.id) return false;
+      const dungeon = target.type === 'dungeon' ? getDungeonDefinitionById(target.id) : null;
+      const worldMapId = getMapDefinitionById(target.mapId)
+        ? target.mapId
+        : dungeon && getMapDefinitionById(dungeon.mapId)
+          ? dungeon.mapId
+          : target.type === 'map' || target.type === 'mapKill'
+            ? target.id
+            : '';
+      return this.setQuestGuideTarget(target.type, target.id, {
+        assignmentId: target.assignmentId,
+        worldMapId,
+        noEmit: !!settings.noEmit
+      });
     }
 
     getFirstIncompleteObjective(summary) {
@@ -19698,6 +19792,10 @@
 
     buildQuestGuidanceResult(targetType, targetId, sourceTitle, objective, options) {
       const settings = options || {};
+      const activeGuide = this.getQuestGuideState();
+      const assignmentId = activeGuide.type === targetType && activeGuide.id === targetId
+        ? normalizeId(activeGuide.assignmentId)
+        : '';
       const targetEnemyIds = getNormalizedQuestTargetEnemyIds(settings.targetEnemyIds);
       const targetNpcId = normalizeId(settings.targetNpcId);
       const recommendedMapId = normalizeId(settings.recommendedMapId);
@@ -19723,6 +19821,7 @@
         active: true,
         targetType,
         targetId,
+        assignmentId,
         sourceTitle,
         objectiveType: objective && objective.type || settings.objectiveType || '',
         objectiveLabel: label,
@@ -19964,6 +20063,7 @@
           active: false,
           targetType: '',
           targetId: '',
+          assignmentId: '',
           sourceTitle: '',
           objectiveLabel: '',
           hint: 'Click a quest to guide it.',
@@ -20104,6 +20204,7 @@
         active: false,
         targetType: '',
         targetId: '',
+        assignmentId: '',
         sourceTitle: '',
         objectiveLabel: '',
         hint: 'Click a quest to guide it.',
@@ -20140,6 +20241,7 @@
         this.getCurrentChannelId(),
         normalizeId(source.type),
         normalizeId(source.id),
+        normalizeId(source.assignmentId),
         normalizeActiveQuestIds(progress.activeQuestIds, progress.activeQuestId).join(','),
         normalizeId(progress.activeTrialId),
         mapKill.active ? 1 : 0,
@@ -25729,17 +25831,31 @@
           : 4
       );
       const routeReady = !!snapshot.unlocked && assignments.length >= requiredAssignmentCount;
-      const nextAssignment = assignments.find((assignment) => !assignment.complete) || null;
-      const nextGuideType = nextAssignment && nextAssignment.guideType === 'dungeon'
-        ? 'dungeon'
-        : nextAssignment && nextAssignment.mapId
-          ? 'map'
-          : '';
-      const nextGuideId = nextAssignment
-        ? nextGuideType === 'dungeon'
-          ? normalizeId(nextAssignment.guideId || nextAssignment.dungeonId || nextAssignment.targetId)
-          : normalizeId(nextAssignment.mapId)
-        : '';
+      const guide = this.getQuestGuideState();
+      const nextAssignment = getFocusedWeeklyRouteAssignment(assignments, guide);
+      const focusedAssignmentId = normalizeId(guide.assignmentId);
+      const focusedAssignment = focusedAssignmentId
+        ? assignments.find((assignment) =>
+          assignment &&
+          !assignment.complete &&
+          normalizeId(assignment.id) === focusedAssignmentId
+        )
+        : null;
+      if (focusedAssignmentId && !focusedAssignment) {
+        if (nextAssignment && routeReady) {
+          const nextTarget = getWeeklyRouteAssignmentGuideTarget(nextAssignment);
+          if (nextTarget.type && nextTarget.id) {
+            this.setQuestGuideTarget(nextTarget.type, nextTarget.id, {
+              assignmentId: nextTarget.assignmentId,
+              worldMapId: nextTarget.mapId,
+              noEmit: true
+            });
+          }
+        } else {
+          guide.assignmentId = '';
+        }
+      }
+      const nextGuide = getWeeklyRouteAssignmentGuideTarget(nextAssignment);
       return Object.assign({}, snapshot, {
         unlocked: routeReady,
         permanentlyUnlocked: !!snapshot.unlocked,
@@ -25751,8 +25867,12 @@
         rewardSummary: this.formatRewardSummary(snapshot.reward || {}),
         targetMapIds: Array.from(new Set(assignments.map((assignment) => normalizeId(assignment.mapId)).filter(Boolean))),
         nextObjectiveId: nextAssignment ? nextAssignment.id : '',
-        nextGuide: nextGuideType && nextGuideId
-          ? { type: nextGuideType, id: nextGuideId }
+        nextGuide: nextGuide.type && nextGuide.id
+          ? {
+              type: nextGuide.type,
+              id: nextGuide.id,
+              assignmentId: nextGuide.assignmentId
+            }
           : null
       });
     }
@@ -25785,6 +25905,13 @@
         skipInitialEventCredit: true
       });
       seasonState.weeklyRoutes = plan.state;
+      if (plan.changed && normalizeId(this.getQuestGuideState().assignmentId)) {
+        this.getWeeklyRouteSnapshot({
+          nowMs: settings.nowMs,
+          seasonState,
+          seasonSnapshot
+        });
+      }
       if (plan.rewardGranted && plan.reward) {
         this.awardProgressReward(plan.reward);
         this.showRewardPopup('Weekly Star Route Complete', plan.reward);
@@ -26538,6 +26665,7 @@
           : null;
         guide.type = nextQuest || availableSuccessor ? 'quest' : '';
         guide.id = nextQuest ? nextQuest.id : availableSuccessor ? availableSuccessor.id : '';
+        guide.assignmentId = '';
       }
       this.showRewardPopup(`${quest.title} Rewards`, rewards);
       const handoffText = unlockedQuest && unlockedAvailability
@@ -26741,6 +26869,7 @@
       if (!guide.type || (guide.type === 'map' && guide.id === 'greenrootMeadow')) {
         guide.type = 'quest';
         guide.id = quest.id;
+        guide.assignmentId = '';
       }
       return true;
     }
