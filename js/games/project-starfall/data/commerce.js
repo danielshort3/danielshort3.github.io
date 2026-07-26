@@ -74,12 +74,31 @@
     })
   ]);
 
+  const WEEKLY_STAR_ROUTES_CONFIG = Object.freeze({
+    id: 'weekly_star_routes',
+    name: 'Weekly Star Routes',
+    unlockSeasonId: 'beta_foundations',
+    completionGoal: 3,
+    eventKeyLimit: 32,
+    slots: Object.freeze([
+      Object.freeze({ id: 'field_a', kind: 'mapHunt', eventType: 'mapHuntClaim', fallbackKinds: Object.freeze([]) }),
+      Object.freeze({ id: 'field_b', kind: 'mapHunt', eventType: 'mapHuntClaim', fallbackKinds: Object.freeze([]) }),
+      Object.freeze({ id: 'challenge', kind: 'mapMechanic', eventType: 'mapMechanicComplete', fallbackKinds: Object.freeze(['mapHunt']) }),
+      Object.freeze({ id: 'dungeon', kind: 'dungeon', eventType: 'dungeonComplete', fallbackKinds: Object.freeze(['mapHunt']) })
+    ]),
+    reward: Object.freeze({
+      currency: 400,
+      starTokens: 75
+    })
+  });
+
   const api = {
     MARKET_LISTINGS,
     COSMETICS,
     CASH_SHOP_CATEGORIES,
     CASH_SHOP_ITEMS,
-    SEASONS
+    SEASONS,
+    WEEKLY_STAR_ROUTES_CONFIG
   };
 
   const modules = global.ProjectStarfallDataModules || {};

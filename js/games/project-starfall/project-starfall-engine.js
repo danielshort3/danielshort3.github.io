@@ -215,6 +215,12 @@
     return typeof EngineSeason[name] === 'function' ? EngineSeason[name] : null;
   }
 
+  const EngineWeeklyRoutes = (typeof require === 'function' ? require('./engine/weekly-routes.js') : null) || EngineModules.weeklyRoutes || {};
+
+  function getEngineWeeklyRouteHelper(name) {
+    return typeof EngineWeeklyRoutes[name] === 'function' ? EngineWeeklyRoutes[name] : null;
+  }
+
   const EngineDailyLogin = (typeof require === 'function' ? require('./engine/daily-login.js') : null) || EngineModules.dailyLogin || {};
 
   function getEngineDailyLoginHelper(name) {
@@ -5433,6 +5439,28 @@
   const GET_SEASON_OBJECTIVES_BY_TYPE = getEngineSeasonHelper('getSeasonObjectivesByType');
   const CREATE_SEASON_SNAPSHOT = getEngineSeasonHelper('createSeasonSnapshot');
   const CREATE_SEASON_EVENT_PLAN = getEngineSeasonHelper('createSeasonEventPlan');
+  const CREATE_WEEKLY_ROUTE_STATE = getEngineWeeklyRouteHelper('createWeeklyRouteState');
+  const RECONCILE_WEEKLY_ROUTE_STATE = getEngineWeeklyRouteHelper('reconcileWeeklyRouteState');
+  const CREATE_WEEKLY_ROUTE_EVENT_PLAN = getEngineWeeklyRouteHelper('createWeeklyRouteEventPlan');
+  const CREATE_WEEKLY_ROUTE_SNAPSHOT = getEngineWeeklyRouteHelper('createWeeklyRouteSnapshot');
+
+  function createWeeklyRouteState(value) {
+    if (CREATE_WEEKLY_ROUTE_STATE) {
+      return CREATE_WEEKLY_ROUTE_STATE(value, { config: Data.WEEKLY_STAR_ROUTES_CONFIG });
+    }
+    const source = value && typeof value === 'object' ? value : {};
+    return {
+      version: 1,
+      unlocked: !!source.unlocked,
+      weekStartMs: Math.max(0, Number(source.weekStartMs || 0)),
+      assignments: Array.isArray(source.assignments) ? source.assignments.map((assignment) => clonePlain(assignment)).filter(Boolean) : [],
+      objectiveValues: Object.assign({}, source.objectiveValues || {}),
+      creditedEventKeys: Array.isArray(source.creditedEventKeys) ? source.creditedEventKeys.map(normalizeId).filter(Boolean).slice(-32) : [],
+      rewardGrantedWeekStartMs: Math.max(0, Number(source.rewardGrantedWeekStartMs || 0)),
+      completedWeekCount: Math.max(0, Math.floor(Number(source.completedWeekCount || 0)))
+    };
+  }
+
   function getDefaultSeasonId() {
     if (GET_DEFAULT_SEASON_ID) {
       return GET_DEFAULT_SEASON_ID({ data: Data });
@@ -5442,10 +5470,12 @@
   }
 
   function createSeasonState(value) {
-    if (CREATE_SEASON_STATE) {
-      return CREATE_SEASON_STATE(value, { data: Data });
-    }
     const source = value && typeof value === 'object' ? value : {};
+    if (CREATE_SEASON_STATE) {
+      const state = CREATE_SEASON_STATE(source, { data: Data });
+      state.weeklyRoutes = createWeeklyRouteState(source.weeklyRoutes);
+      return state;
+    }
     const objectiveValues = {};
     Object.entries(source.objectiveValues || {}).forEach(([id, count]) => {
       const key = normalizeId(id);
@@ -5457,8 +5487,40 @@
     return {
       activeSeasonId: normalizeId(source.activeSeasonId) || getDefaultSeasonId(),
       objectiveValues,
-      claimedRewardIds: Array.from(new Set(claimedRewardIds))
+      claimedRewardIds: Array.from(new Set(claimedRewardIds)),
+      weeklyRoutes: createWeeklyRouteState(source.weeklyRoutes)
     };
+  }
+
+  function reconcilePermanentSeasonMilestones(seasonState, player) {
+    const state = seasonState && typeof seasonState === 'object' ? seasonState : null;
+    const character = player && typeof player === 'object' ? player : {};
+    const betaSeasonId = 'beta_foundations';
+    if (!state || normalizeId(state.activeSeasonId) !== betaSeasonId) return state;
+    const season = getById(Data.SEASONS || [], betaSeasonId);
+    const advancedClassId = normalizeId(character.advancedClassId);
+    const baseClassId = normalizeId(character.classId);
+    const advancedClass = advancedClassId && Data.ADVANCED_CLASSES
+      ? Data.ADVANCED_CLASSES[advancedClassId]
+      : null;
+    if (!season || !baseClassId || !advancedClass ||
+      normalizeId(advancedClass.baseClass) !== baseClassId) {
+      return state;
+    }
+    const objective = (season.objectives || []).find((entry) =>
+      entry &&
+      normalizeId(entry.id) === 'advanced_path' &&
+      entry.type === 'advancedClass'
+    );
+    if (!objective) return state;
+    state.objectiveValues = state.objectiveValues && typeof state.objectiveValues === 'object'
+      ? state.objectiveValues
+      : {};
+    state.objectiveValues[objective.id] = Math.max(
+      Math.max(0, Math.floor(Number(state.objectiveValues[objective.id]) || 0)),
+      Math.max(1, Math.floor(Number(objective.count) || 1))
+    );
+    return state;
   }
 
   const CREATE_DAILY_LOGIN_STATE = getEngineDailyLoginHelper('createDailyLoginState');
@@ -17375,6 +17437,9 @@
       season.activeSeasonId = normalizeId(season.activeSeasonId) || getDefaultSeasonId();
       season.objectiveValues = season.objectiveValues && typeof season.objectiveValues === 'object' ? season.objectiveValues : {};
       season.claimedRewardIds = Array.isArray(season.claimedRewardIds) ? season.claimedRewardIds : [];
+      season.weeklyRoutes = season.weeklyRoutes && typeof season.weeklyRoutes === 'object'
+        ? season.weeklyRoutes
+        : createWeeklyRouteState(null);
       state.season = season;
       const onboarding = this.getOnboardingState();
       onboarding.completedIds = Array.isArray(onboarding.completedIds) ? onboarding.completedIds : [];
@@ -20174,6 +20239,7 @@
     recordMapKillQuestDefeat(enemy) {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.safeZone || !enemy) return false;
+      if (enemy.adminSpawned || enemy.temporarySpawn || enemy.adminDefeated) return false;
       const goal = this.getMapKillQuestGoal(map.id);
       const all = this.getMapKillQuestState();
       const state = all[map.id] || { active: false, progress: 0, completions: 0, completedAt: 0, lastCompletedAt: 0 };
@@ -20912,6 +20978,14 @@
       } else {
         this.advanceMapMechanicActiveSection(definition, currentEntry);
       }
+      this.recordProgressEvent('mapMechanicComplete', {
+        mapId: definition.mapId,
+        mapMechanicId: definition.id,
+        mechanicType: definition.type,
+        completedCycles: Math.max(0, Number(currentEntry.completedCycles || 0)),
+        rewardScale,
+        eventKey: `mechanic:${definition.mapId}:${Math.max(0, Number(currentEntry.completedCycles || 0))}`
+      }, { noEmit: true, audio: false });
       if (definition.type === 'surge-loop') {
         const rotationsRequired = Math.max(1, Number(definition.rotationsPerTier || 3));
         const rotations = Math.max(0, Number(this.state.rift.rotationsThisTier || 0));
@@ -20929,6 +21003,7 @@
       const mapId = this.state.mapId;
       const definition = this.getMapMechanicDefinition(mapId);
       if (!definition || !enemy || enemy.data && enemy.data.behavior === 'boss') return false;
+      if (enemy.adminSpawned || enemy.temporarySpawn || enemy.adminDefeated) return false;
       if (definition.type === 'surge-loop') {
         this.state.rift = createRiftState(this.state.rift);
         if (this.state.rift.decisionPending) return false;
@@ -25440,6 +25515,97 @@
       return true;
     }
 
+    getWeeklyRouteCandidates() {
+      const worldMapNodeIds = new Set((Data.WORLD_MAP_NODES || [])
+        .map((node) => normalizeId(node && node.mapId))
+        .filter(Boolean));
+      const playerLevel = Math.max(1, Math.floor(Number(this.state.player && this.state.player.level || 1) || 1));
+      const navigationContext = {
+        routeState: this.getRouteState(),
+        dungeons: this.getDungeonState()
+      };
+      const hasOpenWorldPath = (mapId) => {
+        const path = this.getWorldMapPath('starfallCrossing', mapId, navigationContext);
+        return !!path && !path.lockedReason;
+      };
+      const fieldMaps = (Data.MAPS || []).filter((map) => {
+        if (!map || !worldMapNodeIds.has(map.id)) return false;
+        if (map.safeZone || map.adminOnly || map.isDungeon || map.dungeonId) return false;
+        if (['bossArena', 'trialArena', 'shopInterior', 'town'].includes(normalizeId(map.layoutRole))) return false;
+        if (!Array.isArray(map.enemies) || !map.enemies.length) return false;
+        const recommendedMin = Math.max(1, Number(map.levelRange && map.levelRange[0] || 1));
+        if (recommendedMin > playerLevel + 5) return false;
+        return hasOpenWorldPath(map.id) && !this.getMapTravelBlockReason(map.id, navigationContext);
+      });
+      const field = fieldMaps.map((map) => {
+        const levelRange = Array.isArray(map.levelRange) ? map.levelRange : [];
+        return {
+          kind: 'mapHunt',
+          targetId: map.id,
+          mapId: map.id,
+          label: `${map.name} Hunt`,
+          summary: `Complete the local hunt in ${map.name}.`,
+          guideType: 'mapKill',
+          guideId: map.id,
+          recommendedMin: Math.max(1, Number(levelRange[0] || 1)),
+          recommendedMax: Math.max(1, Number(levelRange[1] || levelRange[0] || playerLevel))
+        };
+      });
+      const fieldByMapId = new Map(fieldMaps.map((map) => [map.id, map]));
+      const mechanic = Object.values(Data.MAP_MECHANIC_DEFINITIONS || {}).map((definition) => {
+        const map = definition && fieldByMapId.get(definition.mapId);
+        if (!definition || !map) return null;
+        const levelRange = Array.isArray(map.levelRange) ? map.levelRange : [];
+        const label = String(definition.label || definition.name || `${map.name} activity`).trim();
+        return {
+          kind: 'mapMechanic',
+          targetId: definition.id,
+          mapId: map.id,
+          label,
+          summary: `Complete one ${label.toLowerCase()} cycle in ${map.name}.`,
+          guideType: 'map',
+          guideId: map.id,
+          recommendedMin: Math.max(1, Number(levelRange[0] || 1)),
+          recommendedMax: Math.max(1, Number(levelRange[1] || levelRange[0] || playerLevel))
+        };
+      }).filter(Boolean);
+      const dungeon = (Data.DUNGEONS || []).map((entry) => {
+        const map = entry && getMapDefinitionById(entry.mapId);
+        if (!entry || !map || !worldMapNodeIds.has(map.id)) return null;
+        if (this.getDungeonStartBlockReason(entry)) return null;
+        if (!hasOpenWorldPath(map.id)) return null;
+        if (this.getMapTravelBlockReason(map.id, navigationContext)) return null;
+        return {
+          kind: 'dungeon',
+          targetId: entry.id,
+          mapId: map.id,
+          dungeonId: entry.id,
+          label: `Clear ${entry.name}`,
+          summary: `Complete one full run of ${entry.name}.`,
+          guideType: 'dungeon',
+          guideId: entry.id,
+          recommendedMin: Math.max(1, Number(entry.levelRequirement || map.levelRange && map.levelRange[0] || 1)),
+          recommendedMax: Math.max(1, Number(map.levelRange && map.levelRange[1] || entry.levelRequirement || playerLevel)),
+          levelRequirement: Math.max(1, Number(entry.levelRequirement || 1))
+        };
+      }).filter(Boolean);
+      const preferRecentContent = (entries, minimumCount, predicate, rankKey) => {
+        const preferred = entries.filter(predicate);
+        if (preferred.length >= minimumCount) return preferred;
+        const selectedIds = new Set(preferred.map((entry) => `${entry.kind}:${entry.targetId}`));
+        const backfill = entries.slice().sort((left, right) => {
+          return Number(right[rankKey] || 0) - Number(left[rankKey] || 0) ||
+            left.targetId.localeCompare(right.targetId);
+        }).filter((entry) => !selectedIds.has(`${entry.kind}:${entry.targetId}`));
+        return preferred.concat(backfill).slice(0, Math.min(entries.length, minimumCount));
+      };
+      return {
+        field: preferRecentContent(field, 4, (entry) => entry.recommendedMax >= playerLevel - 20, 'recommendedMax'),
+        mechanic: preferRecentContent(mechanic, 1, (entry) => entry.recommendedMax >= playerLevel - 20, 'recommendedMax'),
+        dungeon: preferRecentContent(dungeon, 1, (entry) => entry.levelRequirement >= playerLevel - 35, 'levelRequirement')
+      };
+    }
+
     getSeasonState() {
       this.ensureRuntimeState();
       return this.state.season;
@@ -25455,7 +25621,7 @@
       return season || getById(Data.SEASONS || [], getDefaultSeasonId());
     }
 
-    getSeasonSnapshot() {
+    getBaseSeasonSnapshot() {
       const state = this.getSeasonState();
       const season = this.getActiveSeasonData();
       if (CREATE_SEASON_SNAPSHOT) {
@@ -25472,6 +25638,165 @@
         complete: objectives.length > 0 && objectives.every((objective) => objective.complete),
         rewardClaimed: state.claimedRewardIds.includes(season.id)
       };
+    }
+
+    reconcileWeeklyRoute(options) {
+      const settings = options || {};
+      const seasonState = settings.seasonState || this.getSeasonState();
+      const seasonSnapshot = settings.seasonSnapshot || this.getBaseSeasonSnapshot();
+      const candidates = settings.candidates || this.getWeeklyRouteCandidates();
+      if (!RECONCILE_WEEKLY_ROUTE_STATE) {
+        seasonState.weeklyRoutes = createWeeklyRouteState(seasonState.weeklyRoutes);
+        return {
+          state: seasonState.weeklyRoutes,
+          changed: false,
+          initialized: false,
+          rolledOver: false,
+          clockGuarded: false
+        };
+      }
+      const authoredWorldMapIds = new Set((Data.WORLD_MAP_NODES || [])
+        .map((node) => normalizeId(node && node.mapId))
+        .filter(Boolean));
+      const isAssignmentValid = (assignment) => {
+        const kind = normalizeId(assignment && assignment.kind);
+        const targetId = normalizeId(assignment && assignment.targetId);
+        const mapId = normalizeId(assignment && assignment.mapId);
+        if (!kind || !targetId) return false;
+        if (kind === 'mapHunt') {
+          const map = getMapDefinitionById(targetId);
+          return !!(map &&
+            authoredWorldMapIds.has(map.id) &&
+            !map.safeZone &&
+            !map.adminOnly &&
+            !map.isDungeon &&
+            !map.dungeonId &&
+            Array.isArray(map.enemies) &&
+            map.enemies.length);
+        }
+        if (kind === 'mapMechanic') {
+          const definition = Object.values(Data.MAP_MECHANIC_DEFINITIONS || {})
+            .find((entry) => normalizeId(entry && entry.id) === targetId);
+          return !!(definition &&
+            authoredWorldMapIds.has(definition.mapId) &&
+            (!mapId || definition.mapId === mapId));
+        }
+        if (kind === 'dungeon') {
+          const dungeon = getDungeonDefinitionById(targetId);
+          return !!(dungeon &&
+            authoredWorldMapIds.has(dungeon.mapId) &&
+            (!mapId || dungeon.mapId === mapId));
+        }
+        return false;
+      };
+      const reconciliation = RECONCILE_WEEKLY_ROUTE_STATE(seasonState.weeklyRoutes, {
+        config: Data.WEEKLY_STAR_ROUTES_CONFIG,
+        data: Data,
+        nowMs: settings.nowMs,
+        candidates,
+        seasonState,
+        seasonSnapshot,
+        isAssignmentValid
+      });
+      seasonState.weeklyRoutes = reconciliation.state;
+      return reconciliation;
+    }
+
+    getWeeklyRouteSnapshot(options) {
+      const settings = options || {};
+      const reconciliation = this.reconcileWeeklyRoute(settings);
+      const snapshot = CREATE_WEEKLY_ROUTE_SNAPSHOT
+        ? CREATE_WEEKLY_ROUTE_SNAPSHOT(reconciliation.state, {
+          config: Data.WEEKLY_STAR_ROUTES_CONFIG,
+          data: Data,
+          nowMs: settings.nowMs
+        })
+        : {
+          id: 'weekly_star_routes',
+          name: 'Weekly Star Routes',
+          unlocked: false,
+          completionCount: 0,
+          completionGoal: 3,
+          complete: false,
+          rewardGranted: false,
+          assignments: []
+        };
+      const assignments = Array.isArray(snapshot.assignments) ? snapshot.assignments : [];
+      const requiredAssignmentCount = Math.max(
+        snapshot.completionGoal,
+        Array.isArray(Data.WEEKLY_STAR_ROUTES_CONFIG && Data.WEEKLY_STAR_ROUTES_CONFIG.slots)
+          ? Data.WEEKLY_STAR_ROUTES_CONFIG.slots.length
+          : 4
+      );
+      const routeReady = !!snapshot.unlocked && assignments.length >= requiredAssignmentCount;
+      const nextAssignment = assignments.find((assignment) => !assignment.complete) || null;
+      const nextGuideType = nextAssignment && nextAssignment.guideType === 'dungeon'
+        ? 'dungeon'
+        : nextAssignment && nextAssignment.mapId
+          ? 'map'
+          : '';
+      const nextGuideId = nextAssignment
+        ? nextGuideType === 'dungeon'
+          ? normalizeId(nextAssignment.guideId || nextAssignment.dungeonId || nextAssignment.targetId)
+          : normalizeId(nextAssignment.mapId)
+        : '';
+      return Object.assign({}, snapshot, {
+        unlocked: routeReady,
+        permanentlyUnlocked: !!snapshot.unlocked,
+        lockedReason: routeReady
+          ? ''
+          : snapshot.unlocked
+            ? 'Open more connected routes to begin the weekly card.'
+            : 'Complete Beta Foundations to unlock weekly routes.',
+        rewardSummary: this.formatRewardSummary(snapshot.reward || {}),
+        targetMapIds: Array.from(new Set(assignments.map((assignment) => normalizeId(assignment.mapId)).filter(Boolean))),
+        nextObjectiveId: nextAssignment ? nextAssignment.id : '',
+        nextGuide: nextGuideType && nextGuideId
+          ? { type: nextGuideType, id: nextGuideId }
+          : null
+      });
+    }
+
+    getSeasonSnapshot(options) {
+      const settings = options || {};
+      const snapshot = this.getBaseSeasonSnapshot();
+      return Object.assign({}, snapshot, {
+        weeklyRoutes: this.getWeeklyRouteSnapshot({
+          nowMs: settings.nowMs,
+          seasonState: this.getSeasonState(),
+          seasonSnapshot: snapshot
+        })
+      });
+    }
+
+    recordWeeklyRouteEvent(type, payload, options) {
+      const settings = options || {};
+      if (!CREATE_WEEKLY_ROUTE_EVENT_PLAN) return false;
+      const candidates = this.getWeeklyRouteCandidates();
+      const seasonState = this.getSeasonState();
+      const seasonSnapshot = this.getBaseSeasonSnapshot();
+      const plan = CREATE_WEEKLY_ROUTE_EVENT_PLAN(seasonState.weeklyRoutes, type, payload, {
+        config: Data.WEEKLY_STAR_ROUTES_CONFIG,
+        data: Data,
+        nowMs: settings.nowMs,
+        candidates,
+        seasonState,
+        seasonSnapshot,
+        skipInitialEventCredit: true
+      });
+      seasonState.weeklyRoutes = plan.state;
+      if (plan.rewardGranted && plan.reward) {
+        this.awardProgressReward(plan.reward);
+        this.showRewardPopup('Weekly Star Route Complete', plan.reward);
+        this.toast(`Weekly Star Route complete: ${this.formatRewardSummary(plan.reward)}.`, { noEmit: true });
+      } else if (plan.credited && !settings.silent) {
+        this.toast(`Weekly Star Route ${plan.completionCount}/${plan.completionGoal}.`, {
+          noEmit: true,
+          throttleKey: `weekly-route:${plan.assignmentId}`,
+          throttleMs: 1000
+        });
+      }
+      return !!plan.changed;
     }
 
     recordSeasonEvent(type, payload, options) {
@@ -26277,6 +26602,12 @@
       state.completedAt = 0;
       state.lastCompletedAt = Date.now();
       all[map.id] = state;
+      this.recordProgressEvent('mapHuntClaim', {
+        mapId: map.id,
+        completionCount,
+        rankId: this.getMapKillQuestRank(completionCount).id,
+        eventKey: `hunt:${map.id}:${completionCount}`
+      }, { noEmit: true, audio: false });
       this.awardMapKillQuestReward(map, state.completions, completedGoal, rewardPlan);
       return true;
     }
@@ -26421,6 +26752,9 @@
     recordProgressEventBatched(type, payload, options) {
       const settings = options || {};
       if (!this.state.player.classId) return false;
+      const eventType = normalizeId(type);
+      const weeklyRouteEvent = ['mapHuntClaim', 'mapMechanicComplete', 'dungeonComplete'].includes(eventType);
+      if (weeklyRouteEvent) this.ensureRuntimeState();
       const eventState = this.getProgressEventRuntimeState();
       this.recordOnboardingEvent(type, payload, { silent: true, onboarding: eventState.onboarding });
       if (settings.audio !== false) {
@@ -26430,7 +26764,7 @@
         else if (type === 'travel') this.playAudioCue('travel');
         else if (type === 'defeatBoss' || type === 'dungeonComplete') this.playAudioCue('defeat', 1.3);
       }
-      if (!getProgressObjectiveTypeSet().has(normalizeId(type))) return false;
+      if (!getProgressObjectiveTypeSet().has(eventType)) return false;
       const progress = eventState.progress;
       const firstStepsStarted = this.ensureFirstStepsForGreenrootProgress(type, payload, progress);
       let changed = firstStepsStarted;
@@ -26464,6 +26798,13 @@
         if (this.entryObjectivesComplete('trial', trial, { progress })) this.completeTrial(trial);
       }
       changed = this.recordSeasonEvent(type, payload, { silent: true, seasonState: eventState.season }) || changed;
+      if (weeklyRouteEvent) {
+        changed = this.recordWeeklyRouteEvent(type, payload, {
+          silent: !!settings.noEmit,
+          seasonState: eventState.season,
+          nowMs: settings.nowMs
+        }) || changed;
+      }
       changed = this.recordAccomplishmentEvent(type, payload, {
         accomplishments: eventState.accomplishments,
         noEmit: !!settings.noEmit
@@ -26834,7 +27175,14 @@
       this.recordProgressEvent('dungeonComplete', {
         dungeonId: target.id,
         bossId: target.bossId,
-        mapId: target.mapId
+        mapId: target.mapId,
+        runId: normalizeId(completedRun && completedRun.runId),
+        masteryRankId: normalizeId(mastery && mastery.rankId),
+        objectiveCount: Math.max(0, Number(mastery && mastery.objectiveCount || 0)),
+        objectiveTotal: Math.max(0, Number(mastery && mastery.objectiveTotal || 0)),
+        eventKey: normalizeId(completedRun && completedRun.runId)
+          ? `dungeon:${normalizeId(completedRun.runId)}`
+          : ''
       });
       this.syncRosterUnlocks({ silent: true });
       this.awardProgressReward(target.rewards);
@@ -27467,6 +27815,7 @@
       this.state.cosmetics = createCosmeticState(this.state.cosmetics);
       this.state.cashShop = createCashShopState(this.state.cashShop);
       this.state.season = createSeasonState(this.state.season);
+      reconcilePermanentSeasonMilestones(this.state.season, player);
       this.state.dailyLogin = createDailyLoginState(this.state.dailyLogin);
       this.state.party = createPartyState(this.state.party);
       this.state.onboarding = createOnboardingState(this.state.onboarding);
@@ -41090,6 +41439,7 @@
       snapshot.mapKillQuest = this.getMapKillQuestSnapshot();
       snapshot.questGuidance = this.getQuestGuidanceSnapshot();
       snapshot.dungeon = requirements.needsDungeonDetail ? this.getDungeonSnapshot() : this.getDungeonTrackerSnapshot();
+      snapshot.season = this.getSeasonSnapshot();
       refreshState.questTrackerRevision = questRevision;
       this.markOverlaySnapshotFieldFresh(snapshot, 'questTracker', nowMs);
     }
@@ -41483,7 +41833,7 @@
         snapshot.dailyLogin = needsDaily ? this.getDailyLoginSnapshot() : { claimable: false, claimedToday: false, cycleRewards: [], milestones: [] };
         snapshot.cashShop = needsCashShop ? this.getCashShopSnapshot() : { categories: [], items: [], balance: 0, currencyName: 'Star Tokens' };
         snapshot.shopVendor = needsShop ? this.getShopVendorSnapshot() : { activeVendorId: '', vendor: null, entries: [], sell: { weak: { count: 0, coins: 0 }, nonClass: { count: 0, coins: 0 }, items: [] } };
-        snapshot.season = needsBeta ? this.getSeasonSnapshot() : { activeSeason: null };
+        snapshot.season = this.getSeasonSnapshot();
         snapshot.accomplishments = needsQuests ? this.getAccomplishmentSnapshot() : { accomplishments: [], claimableCount: 0 };
       });
 

@@ -35,6 +35,92 @@
 
   const ACCOMPLISHMENT_TIER_ORDER = Object.freeze(['Bronze', 'Silver', 'Gold', 'Relic', 'Mythic']);
 
+  function getWeeklyRouteAssignmentGuide(assignment) {
+    const source = assignment && typeof assignment === 'object' ? assignment : {};
+    const requestedType = String(source.guideType || '').trim();
+    const guideType = requestedType === 'map' || requestedType === 'dungeon'
+      ? requestedType
+      : source.dungeonId
+        ? 'dungeon'
+        : source.mapId
+          ? 'map'
+          : '';
+    const guideId = String(
+      source.guideId ||
+      (guideType === 'dungeon' ? source.dungeonId : source.mapId) ||
+      ''
+    ).trim();
+    return {
+      guideType: guideId ? guideType : '',
+      guideId
+    };
+  }
+
+  function formatWeeklyRouteResetLabel(weeklyRoutes, options) {
+    const source = weeklyRoutes && typeof weeklyRoutes === 'object' ? weeklyRoutes : {};
+    const settings = options || {};
+    const nowMs = Number.isFinite(Number(settings.nowMs)) ? Number(settings.nowMs) : Date.now();
+    const explicitRemaining = Number(source.remainingMs);
+    const resetAt = Number(source.resetAt);
+    const remainingMs = Number.isFinite(explicitRemaining)
+      ? Math.max(0, explicitRemaining)
+      : Number.isFinite(resetAt)
+        ? Math.max(0, resetAt - nowMs)
+        : 0;
+    if (!remainingMs) return resetAt ? 'Reset pending' : 'Weekly reset';
+    const totalMinutes = Math.max(1, Math.ceil(remainingMs / 60000));
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor(totalMinutes % 1440 / 60);
+    const minutes = totalMinutes % 60;
+    if (days) return `Resets in ${days}d${hours ? ` ${hours}h` : ''}`;
+    if (hours) return `Resets in ${hours}h${minutes ? ` ${minutes}m` : ''}`;
+    return `Resets in ${minutes}m`;
+  }
+
+  function getWeeklyStarRoutePresentation(season, options) {
+    const weeklyRoutes = season && season.weeklyRoutes;
+    if (!weeklyRoutes || typeof weeklyRoutes !== 'object') return null;
+    const assignments = (Array.isArray(weeklyRoutes.assignments) ? weeklyRoutes.assignments : [])
+      .filter(Boolean)
+      .map((assignment, index) => Object.assign({ index }, assignment, getWeeklyRouteAssignmentGuide(assignment)));
+    const completedByAssignments = assignments.filter((assignment) => assignment.complete).length;
+    const completionCount = Math.max(0, Math.min(
+      assignments.length,
+      Math.floor(Number.isFinite(Number(weeklyRoutes.completionCount))
+        ? Number(weeklyRoutes.completionCount)
+        : completedByAssignments)
+    ));
+    const completionGoal = Math.max(1, Math.min(
+      assignments.length || 1,
+      Math.floor(Number(weeklyRoutes.completionGoal || Math.min(3, assignments.length || 1)))
+    ));
+    const complete = !!weeklyRoutes.complete || completionCount >= completionGoal;
+    const rewardGranted = !!weeklyRoutes.rewardGranted;
+    const prioritizedAssignments = complete || rewardGranted
+      ? assignments
+      : assignments.slice().sort((a, b) => Number(!!a.complete) - Number(!!b.complete) || a.index - b.index);
+    const visibleAssignments = prioritizedAssignments.slice(0, 2);
+    return {
+      source: weeklyRoutes,
+      unlocked: weeklyRoutes.unlocked !== false,
+      permanentlyUnlocked: !!weeklyRoutes.permanentlyUnlocked,
+      lockedReason: String(weeklyRoutes.lockedReason || ''),
+      weekKey: String(weeklyRoutes.weekKey || ''),
+      assignments,
+      visibleAssignments,
+      hiddenCount: Math.max(0, assignments.length - visibleAssignments.length),
+      completionCount,
+      completionGoal,
+      totalCount: assignments.length,
+      complete,
+      rewardGranted,
+      reward: weeklyRoutes.reward || {},
+      rewardSummary: String(weeklyRoutes.rewardSummary || ''),
+      resetLabel: formatWeeklyRouteResetLabel(weeklyRoutes, options),
+      nextAssignment: assignments.find((assignment) => !assignment.complete) || null
+    };
+  }
+
   function getAccomplishmentCategoryRank(accomplishment, options) {
     const order = options && options.categoryOrder || ACCOMPLISHMENT_CATEGORY_ORDER;
     const index = order.indexOf(accomplishment && accomplishment.category || '');
@@ -202,6 +288,7 @@
     if (typeof source.getMapKillQuestSnapshot === 'function') update.mapKillQuest = source.getMapKillQuestSnapshot();
     if (typeof source.getQuestGuidanceSnapshot === 'function') update.questGuidance = source.getQuestGuidanceSnapshot();
     if (typeof source.getDungeonSnapshot === 'function') update.dungeon = source.getDungeonSnapshot();
+    if (typeof source.getSeasonSnapshot === 'function') update.season = source.getSeasonSnapshot();
     return update;
   }
 
@@ -233,6 +320,9 @@
         return sortAccomplishmentItems(items, getOrderOptions(callOptions));
       },
       getWorldMapDetailPresentation,
+      getWeeklyRouteAssignmentGuide,
+      formatWeeklyRouteResetLabel,
+      getWeeklyStarRoutePresentation,
       getWorldProgressDomAction,
       getWorldProgressRegionAction,
       getQuestPanelRegionAction,
@@ -253,6 +343,9 @@
     getAccomplishmentTierRank,
     sortAccomplishmentItems,
     getWorldMapDetailPresentation,
+    getWeeklyRouteAssignmentGuide,
+    formatWeeklyRouteResetLabel,
+    getWeeklyStarRoutePresentation,
     getWorldProgressDomAction,
     getWorldProgressRegionAction,
     getQuestPanelRegionAction,

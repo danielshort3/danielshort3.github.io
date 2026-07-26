@@ -28,6 +28,7 @@ import '../../js/games/project-starfall/engine/cards.js';
 import '../../js/games/project-starfall/engine/cosmetics.js';
 import '../../js/games/project-starfall/engine/cash-shop.js';
 import '../../js/games/project-starfall/engine/season.js';
+import '../../js/games/project-starfall/engine/weekly-routes.js';
 import '../../js/games/project-starfall/engine/daily-login.js';
 import '../../js/games/project-starfall/engine/party.js';
 import '../../js/games/project-starfall/engine/accomplishments.js';
