@@ -560,27 +560,57 @@
       }),
       endlessRift: createFieldComposition({
         routeSections: [
-          { label: 'Northwest Rift Quadrant', x: 0, w: 1300, tier: 'quadrant' },
-          { label: 'Northeast Rift Quadrant', x: 1300, w: 1300, tier: 'quadrant' },
-          { label: 'Southeast Rift Quadrant', x: 2600, w: 1300, tier: 'quadrant' },
-          { label: 'Southwest Rift Quadrant', x: 3900, w: 900, tier: 'quadrant' },
-          { label: 'Rift Core Regroup', x: 4800, w: 400, tier: 'surge' }
+          {
+            label: 'Southwest Rift Quadrant',
+            x: 920,
+            w: 1320,
+            tier: 'lower-quadrant',
+            platformIds: ['endlessRift_sw_outer_low', 'endlessRift_sw_inner_low', 'endlessRift_sw_mid']
+          },
+          {
+            label: 'Northwest Rift Quadrant',
+            x: 920,
+            w: 1320,
+            tier: 'upper-quadrant',
+            platformIds: ['endlessRift_nw_outer_high', 'endlessRift_nw_inner_high', 'endlessRift_nw_peak']
+          },
+          {
+            label: 'Northeast Rift Quadrant',
+            x: 2960,
+            w: 1320,
+            tier: 'upper-quadrant',
+            platformIds: ['endlessRift_ne_inner_high', 'endlessRift_ne_outer_high', 'endlessRift_ne_peak']
+          },
+          {
+            label: 'Southeast Rift Quadrant',
+            x: 2960,
+            w: 1320,
+            tier: 'lower-quadrant',
+            platformIds: ['endlessRift_se_inner_low', 'endlessRift_se_outer_low', 'endlessRift_se_mid']
+          },
+          {
+            label: 'Rift Core Regroup',
+            x: 2200,
+            w: 800,
+            tier: 'surge',
+            platformIds: ['endlessRift_core_dais']
+          }
         ],
         portalRoles: {
           rift_eclipse: 'eclipse frontier return'
         },
         landmarkBands: [
-          { kind: 'crystal', x: 420, w: 620, label: 'Northwest Rift' },
-          { kind: 'glow', x: 1680, w: 620, label: 'Northeast Rift' },
-          { kind: 'tall', x: 2940, w: 620, label: 'Southeast Rift' },
-          { kind: 'flower', x: 4200, w: 520, label: 'Southwest Rift' },
-          { kind: 'glow', x: 2500, w: 520, label: 'Rift Core' }
+          { kind: 'flower', x: 960, w: 980, anchorX: 1420, label: 'Southwest Rift' },
+          { kind: 'crystal', x: 980, w: 980, anchorX: 1500, label: 'Northwest Rift' },
+          { kind: 'glow', x: 3160, w: 980, anchorX: 3660, label: 'Northeast Rift' },
+          { kind: 'tall', x: 3120, w: 980, anchorX: 3580, label: 'Southeast Rift' },
+          { kind: 'glow', x: 2200, w: 800, anchorX: 2600, label: 'Rift Core' }
         ],
         spawnZoneLabels: [
+          { label: 'Southwest quadrant', platformTier: 'low' },
           { label: 'Northwest quadrant', platformTier: 'high' },
-          { label: 'Northeast quadrant', platformTier: 'mid' },
+          { label: 'Northeast quadrant', platformTier: 'high' },
           { label: 'Southeast quadrant', platformTier: 'low' },
-          { label: 'Southwest quadrant', platformTier: 'mid' },
           { label: 'Surge core', platformTier: 'peak' }
         ]
       }),
@@ -690,7 +720,7 @@
       { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, high harrier airspace, and lightning rod objective.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control on lightning rod.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'astralArchive', intendedArchetype: 'C/F room-loop archive', intendedUseCase: 'late solo/duo', routeSummary: 'Loop reading rooms through rune lifts and break line-of-sight shelves.', partyRoleTarget: 'Duo split adjacent rooms and regroup at archive console.', farmingAbuseRisk: 'high', visualIdentityTag: 'rune archive rooms', spawnSectionModel: 'reading room loops and index shelves' },
       { id: 'eclipseFrontier', intendedArchetype: 'G/J elite frontier', intendedUseCase: 'high-risk farming small party', routeSummary: 'Patrol three outposts, rotate eclipse sigils, and enter capped elite pockets.', partyRoleTarget: 'Small party splits outposts, then regroups for sigil/elite pulses.', farmingAbuseRisk: 'very high', visualIdentityTag: 'eclipse frontier outposts', spawnSectionModel: 'outpost A, outpost B, eclipse gate, elite pocket', partyScaling: 'section-count' },
-      { id: 'endlessRift', intendedArchetype: 'F/J scaling circular loop', intendedUseCase: 'endgame high-density farming', routeSummary: 'Rotate four rift quadrants, respond to surge warnings, and regroup at the core.', partyRoleTarget: 'Party holds quadrants and regroups at rift core during surge events.', farmingAbuseRisk: 'very high', visualIdentityTag: 'unstable rift loop', spawnSectionModel: 'four quadrant loop with surge pocket', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
+      { id: 'endlessRift', intendedArchetype: 'F/J scaling circular loop', intendedUseCase: 'endgame high-density farming', routeSummary: 'Run the lower-left, upper-left, upper-right, and lower-right Rift quadrants around a safe central core, then Push or Bank after stabilizing the tier.', partyRoleTarget: 'Party rotates the four ring quadrants and regroups at the central Rift Core for tier decisions.', farmingAbuseRisk: 'very high', visualIdentityTag: 'playful unstable rift ring', spawnSectionModel: 'four platform-authored quadrants around a spawn-free core', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'bramblekingCourt', intendedArchetype: 'H/E root boss room', intendedUseCase: 'boss', routeSummary: 'Move between root lanes, destroy thorn pods, and expose the Brambleking crown.', partyRoleTarget: 'Small party splits root floor and pod shelf.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bramble crown court', spawnSectionModel: 'root lane, pod shelf, crown platform', implementationStatus: 'arena-skeleton-v1' },
       { id: 'titanFoundry', intendedArchetype: 'H/E factory boss room', intendedUseCase: 'boss full party', routeSummary: 'Operate armor switches while sentries pressure the upper catwalk.', partyRoleTarget: 'Tank boss floor, ranged sentries, support switch rotation.', farmingAbuseRisk: 'medium', visualIdentityTag: 'titan gear foundry', spawnSectionModel: 'gear floor, armor switches, sentry catwalk', implementationStatus: 'arena-skeleton-v1' },
       { id: 'deepcoreCore', intendedArchetype: 'H/E quarry core boss room', intendedUseCase: 'boss full party', routeSummary: 'Split four mining chambers around the central ore core.', partyRoleTarget: 'Full party assigns tank, healer-control, turret, and ore chamber jobs.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'deep quarry core', spawnSectionModel: 'tank chamber, healer lane, turret lane, ore core', implementationStatus: 'arena-skeleton-v1' },
@@ -727,6 +757,12 @@
         regroupSectionId: config.regroupSectionId || '',
         eventKillGoal: Math.max(1, Number(config.eventKillGoal || config.goal || 1)),
         requiredUniqueSections: Math.max(1, Number(config.requiredUniqueSections || 1)),
+        requiredSectionOrder: !!config.requiredSectionOrder,
+        killsPerSection: Math.max(1, Number(config.killsPerSection || 1)),
+        rotationsPerTier: Math.max(1, Number(config.rotationsPerTier || 1)),
+        surgeDurationSeconds: Math.max(1, Number(config.surgeDurationSeconds || 45)),
+        surgeScoreScale: Math.max(1, Number(config.surgeScoreScale || 1)),
+        corePlatformId: config.corePlatformId || '',
         repeatWarningThreshold: Math.max(2, Number(config.repeatWarningThreshold || 4)),
         penaltyPerStack: Math.max(0, Number(config.penaltyPerStack || 0.08)),
         minimumRewardScale: Math.max(0.1, Number(config.minimumRewardScale || 0.65)),
@@ -790,7 +826,7 @@
         mapId: 'endlessRift',
         type: 'surge-loop',
         label: 'Rift Surge Rotation',
-        summary: 'Rotate all four Rift quadrants to trigger surge windows; repeated quadrant camping suppresses Rift score.',
+        summary: 'Circle southwest, northwest, northeast, and southeast to trigger Surge windows, then return to the central Core to Push or Bank a stabilized tier.',
         sections: [
           { id: 'endlessRift_northwest_rift_quadrant', label: 'Northwest Rift Quadrant', role: 'quadrant', weight: 1 },
           { id: 'endlessRift_northeast_rift_quadrant', label: 'Northeast Rift Quadrant', role: 'quadrant', weight: 1 },
@@ -798,17 +834,23 @@
           { id: 'endlessRift_southwest_rift_quadrant', label: 'Southwest Rift Quadrant', role: 'quadrant', weight: 1 },
           { id: 'endlessRift_rift_core_regroup', label: 'Rift Core Regroup', role: 'surge', weight: 1.5 }
         ],
-        activeSectionIds: ['endlessRift_northwest_rift_quadrant', 'endlessRift_northeast_rift_quadrant', 'endlessRift_southeast_rift_quadrant', 'endlessRift_southwest_rift_quadrant'],
+        activeSectionIds: ['endlessRift_southwest_rift_quadrant', 'endlessRift_northwest_rift_quadrant', 'endlessRift_northeast_rift_quadrant', 'endlessRift_southeast_rift_quadrant'],
         objectiveSectionId: 'endlessRift_rift_core_regroup',
         regroupSectionId: 'endlessRift_rift_core_regroup',
         eventKillGoal: 12,
         requiredUniqueSections: 4,
+        requiredSectionOrder: true,
+        killsPerSection: 3,
+        rotationsPerTier: 3,
+        surgeDurationSeconds: 45,
+        surgeScoreScale: 1.35,
+        corePlatformId: 'endlessRift_core_dais',
         repeatWarningThreshold: 4,
         penaltyPerStack: 0.12,
         minimumRewardScale: 0.5,
-        reward: { currency: 180, materials: { riftSplinter: 2, cubeFragment: 3 } },
-        rewardAbuseControl: 'Surge rewards and Rift score scale down when players camp one quadrant instead of rotating all four.',
-        partyRoleHook: 'Party members hold quadrants, then collapse to the Rift Core during surge windows.'
+        reward: { currency: 120, materials: { riftSplinter: 1 } },
+        rewardAbuseControl: 'Each ordered quadrant requires three credited defeats; out-of-order or repeated camping cannot advance the rotation and suppresses rewards.',
+        partyRoleHook: 'Party members rotate the ring quadrants, then collapse to the central Rift Core for the Push-or-Bank decision.'
       })
     });
 
@@ -871,6 +913,7 @@
           x: Math.round(Math.max(0, Number(section.x || 0))),
           w: Math.round(Math.max(1, Number(section.w || worldWidth / sourceSections.length))),
           tier: String(section.tier || ''),
+          platformIds: Object.freeze((section.platformIds || []).map(String).filter(Boolean)),
           spawnModel: designIntent && designIntent.spawnSectionModel || 'section-local loop pressure'
         });
       }));
@@ -878,6 +921,13 @@
 
     function getSpawnSectionForPoint(point, sections) {
       if (!point || !sections || !sections.length) return null;
+      const platformId = String(point.platformId || '');
+      if (platformId) {
+        const authored = sections.find((section) =>
+          Array.isArray(section.platformIds) && section.platformIds.includes(platformId)
+        );
+        if (authored) return authored;
+      }
       const x = Number(point.x || 0);
       return sections.find((section) => x >= section.x && x <= section.x + section.w) ||
         sections.slice().sort((a, b) =>

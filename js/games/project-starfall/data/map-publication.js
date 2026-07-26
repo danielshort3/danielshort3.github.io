@@ -42,6 +42,52 @@
       { sectionSuffix: 'mid_archer_bridge', label: 'Archer Bridge', enemyWeights: [{ enemyId: 'stormboundArcher', weight: 7 }, { enemyId: 'cloudcallAcolyte', weight: 3 }], population: 8, respawnSeconds: 5, leash: 440 },
       { sectionSuffix: 'high_harrier_airspace', label: 'Harrier Airspace', enemyWeights: [{ enemyId: 'galeHarrier', weight: 8 }, { enemyId: 'stormboundArcher', weight: 2 }], population: 9, respawnSeconds: 5, leash: 540, actorTraversal: { mode: 'air', allowLadders: false, allowRamps: true, stayInTerritory: true } },
       { sectionSuffix: 'lightning_rod_objective', label: 'Lightning Rod', enemyWeights: [{ enemyId: 'cloudcallAcolyte', weight: 6 }, { enemyId: 'thunderRam', weight: 3 }, { enemyId: 'crackedMimic', weight: 1 }], population: 6, respawnSeconds: 7, leash: 380 }
+    ]),
+    endlessRift: Object.freeze([
+      {
+        sectionSuffix: 'southwest_rift_quadrant',
+        label: 'Southwest Rift',
+        platformIds: ['endlessRift_sw_outer_low', 'endlessRift_sw_inner_low', 'endlessRift_sw_mid'],
+        enemyWeights: [{ enemyId: 'voidMote', weight: 4 }, { enemyId: 'lumenSentinel', weight: 3 }, { enemyId: 'indexScribe', weight: 2 }],
+        population: 9,
+        maxPopulation: 9,
+        respawnSeconds: 5,
+        leash: 520,
+        spawnBounds: { minX: 940, maxX: 2200 }
+      },
+      {
+        sectionSuffix: 'northwest_rift_quadrant',
+        label: 'Northwest Rift',
+        platformIds: ['endlessRift_nw_outer_high', 'endlessRift_nw_inner_high', 'endlessRift_nw_peak'],
+        enemyWeights: [{ enemyId: 'voidMote', weight: 4 }, { enemyId: 'lumenSentinel', weight: 3 }, { enemyId: 'riftAberration', weight: 2 }],
+        population: 9,
+        maxPopulation: 9,
+        respawnSeconds: 5,
+        leash: 480,
+        spawnBounds: { minX: 940, maxX: 2200 }
+      },
+      {
+        sectionSuffix: 'northeast_rift_quadrant',
+        label: 'Northeast Rift',
+        platformIds: ['endlessRift_ne_inner_high', 'endlessRift_ne_outer_high', 'endlessRift_ne_peak'],
+        enemyWeights: [{ enemyId: 'eclipseDuelist', weight: 4 }, { enemyId: 'indexScribe', weight: 3 }, { enemyId: 'riftAberration', weight: 2 }],
+        population: 9,
+        maxPopulation: 9,
+        respawnSeconds: 5,
+        leash: 480,
+        spawnBounds: { minX: 3000, maxX: 4240 }
+      },
+      {
+        sectionSuffix: 'southeast_rift_quadrant',
+        label: 'Southeast Rift',
+        platformIds: ['endlessRift_se_inner_low', 'endlessRift_se_outer_low', 'endlessRift_se_mid'],
+        enemyWeights: [{ enemyId: 'riftAberration', weight: 4 }, { enemyId: 'eclipseDuelist', weight: 3 }, { enemyId: 'voidMote', weight: 2 }, { enemyId: 'crackedMimic', weight: 1 }],
+        population: 9,
+        maxPopulation: 9,
+        respawnSeconds: 5,
+        leash: 520,
+        spawnBounds: { minX: 3000, maxX: 4240 }
+      }
     ])
   });
 

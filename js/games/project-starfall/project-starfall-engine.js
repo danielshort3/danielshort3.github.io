@@ -2479,6 +2479,7 @@
       platform &&
       platform.index > 0 &&
       Number(platform.w || 0) >= 640 &&
+      !platform.spawnDisabled &&
       !isSlopePlatform(platform) &&
       getPlatformVisualKind(platform) !== 'connector'
     );
@@ -4203,7 +4204,11 @@
   const GET_DEFAULT_MAP_MECHANIC_SECTION_ID = getEngineMapMechanicHelper('getDefaultMapMechanicSectionId');
   const CREATE_MAP_MECHANIC_ENTRY_STATE = getEngineMapMechanicHelper('createMapMechanicEntryState');
   const CREATE_MAP_MECHANIC_STATE = getEngineMapMechanicHelper('createMapMechanicState');
+  const CREATE_RIFT_BOUNTY = getEngineMapMechanicHelper('createRiftBounty');
+  const MERGE_RIFT_BOUNTY = getEngineMapMechanicHelper('mergeRiftBounty');
+  const GET_RIFT_TIER_SCORE_TARGET = getEngineMapMechanicHelper('getRiftTierScoreTarget');
   const CREATE_RIFT_STATE = getEngineMapMechanicHelper('createRiftState');
+  const CREATE_RIFT_PRESSURE_PROFILE = getEngineMapMechanicHelper('createRiftPressureProfile');
   const GET_MAP_MECHANIC_SECTION = getEngineMapMechanicHelper('getMapMechanicSection');
   const GET_MAP_MECHANIC_SECTION_WEIGHT = getEngineMapMechanicHelper('getMapMechanicSectionWeight');
   const GET_MAP_MECHANIC_REWARD_SCALE = getEngineMapMechanicHelper('getMapMechanicRewardScale');
@@ -4279,6 +4284,9 @@
     const cycleSectionIds = Array.isArray(source.cycleSectionIds)
       ? source.cycleSectionIds.map((sectionId) => normalizeMapMechanicSectionId(definition, sectionId)).filter(Boolean)
       : [];
+    const orderedSectionIds = Array.isArray(source.orderedSectionIds)
+      ? source.orderedSectionIds.map((sectionId) => normalizeMapMechanicSectionId(definition, sectionId)).filter(Boolean)
+      : [];
     const activeIds = Array.isArray(definition && definition.activeSectionIds) ? definition.activeSectionIds : [];
     const activeSectionIndex = activeIds.findIndex((sectionId) => sectionId === activeSectionId);
     return {
@@ -4296,6 +4304,14 @@
       rewardScale: clamp(Number(source.rewardScale || 1) || 1, Number(definition && definition.minimumRewardScale || 0.5), 1),
       sectionHits,
       cycleSectionIds: Array.from(new Set(cycleSectionIds)),
+      cycleKillCount: Math.max(0, Math.floor(Number(source.cycleKillCount || 0) || 0)),
+      orderedSectionIds: orderedSectionIds.slice(0, activeIds.length),
+      nextSectionIndex: clamp(
+        Math.floor(Number(source.nextSectionIndex == null ? orderedSectionIds.length : source.nextSectionIndex) || 0),
+        0,
+        Math.max(0, activeIds.length - 1)
+      ),
+      routeComplete: !!source.routeComplete,
       lastCompletedAt: Math.max(0, Number(source.lastCompletedAt || 0))
     };
   }
@@ -4372,6 +4388,44 @@
     };
   }
 
+  function createRiftBounty(value) {
+    if (CREATE_RIFT_BOUNTY) return CREATE_RIFT_BOUNTY(value);
+    const source = value && typeof value === 'object' ? value : {};
+    const normalizeCounts = (counts) => Object.entries(counts && typeof counts === 'object' ? counts : {}).reduce((result, [id, amount]) => {
+      const key = normalizeId(id);
+      const count = Math.max(0, Math.floor(Number(amount || 0) || 0));
+      if (key && count) result[key] = count;
+      return result;
+    }, {});
+    return {
+      currency: Math.max(0, Math.floor(Number(source.currency || 0) || 0)),
+      materials: normalizeCounts(source.materials),
+      consumables: normalizeCounts(source.consumables)
+    };
+  }
+
+  function mergeRiftBounty(value, reward, scale) {
+    if (MERGE_RIFT_BOUNTY) return MERGE_RIFT_BOUNTY(value, reward, scale);
+    const bounty = createRiftBounty(value);
+    const source = reward && typeof reward === 'object' ? reward : {};
+    const rewardScale = Math.max(0, Number(scale == null ? 1 : scale) || 0);
+    bounty.currency += Math.max(0, Math.round(Number(source.currency || 0) * rewardScale));
+    ['materials', 'consumables'].forEach((kind) => {
+      Object.entries(source[kind] || {}).forEach(([id, amount]) => {
+        const key = normalizeId(id);
+        const count = Math.max(0, Math.round(Number(amount || 0) * rewardScale));
+        if (key && count) bounty[kind][key] = Math.max(0, Number(bounty[kind][key] || 0)) + count;
+      });
+    });
+    return bounty;
+  }
+
+  function getRiftTierScoreTarget(tier) {
+    if (GET_RIFT_TIER_SCORE_TARGET) return GET_RIFT_TIER_SCORE_TARGET(tier);
+    const level = Math.max(1, Math.floor(Number(tier || 1) || 1));
+    return Math.min(2500, 500 + (level - 1) * 50);
+  }
+
   function createRiftState(value) {
     if (CREATE_RIFT_STATE) {
       return CREATE_RIFT_STATE(value, { data: Data });
@@ -4379,16 +4433,48 @@
     const source = value && typeof value === 'object' ? value : {};
     const validMutationIds = new Set((Data.MUTATIONS || []).map((mutation) => mutation.id));
     const tier = Math.max(1, Math.floor(Number(source.tier || 1) || 1));
+    const bankedTier = Math.max(1, Math.floor(Number(source.bankedTier || tier) || tier));
+    const checkpointTier = Math.max(1, Math.floor(Number(source.checkpointTier || 1) || 1));
     const mutationIds = Array.isArray(source.mutationIds)
       ? source.mutationIds.map(normalizeId).filter((id) => validMutationIds.has(id))
       : [];
     return {
       tier,
-      bestTier: Math.max(tier, Math.floor(Number(source.bestTier || tier) || tier)),
+      bestTier: Math.max(tier, bankedTier, checkpointTier, Math.floor(Number(source.bestTier || tier) || tier)),
+      bankedTier,
+      checkpointTier,
       score: Math.max(0, Math.floor(Number(source.score || 0) || 0)),
+      rotationsThisTier: Math.max(0, Math.floor(Number(source.rotationsThisTier || 0) || 0)),
+      decisionPending: !!source.decisionPending,
+      unbankedBounty: createRiftBounty(source.unbankedBounty || source.bounty),
       mutationIds: Array.from(new Set(mutationIds)).slice(0, 3),
       startedAt: Number(source.startedAt || 0),
       mapMechanics: createMapMechanicState(source.mapMechanics || source.mapMechanicsByMapId)
+    };
+  }
+
+  function createRiftPressureProfile(rift, mutationIds, options) {
+    const settings = options || {};
+    if (CREATE_RIFT_PRESSURE_PROFILE) {
+      return CREATE_RIFT_PRESSURE_PROFILE(rift, mutationIds, Object.assign({ data: Data }, settings));
+    }
+    const source = createRiftState(Object.assign({}, rift || {}, {
+      tier: settings.tier == null ? rift && rift.tier : settings.tier,
+      mutationIds: Array.isArray(mutationIds) ? mutationIds : settings.mutationIds
+    }));
+    const tier = Math.max(1, Number(source.tier || 1));
+    const pressure = tier - 1;
+    return {
+      tier,
+      mutationIds: Array.isArray(mutationIds) ? mutationIds.slice() : source.mutationIds.slice(),
+      surgeActive: !!settings.surgeActive,
+      enemyHpScale: Math.min(2.75, 1 + pressure * 0.075),
+      enemyDamageScale: Math.min(1.85, 1 + pressure * 0.035),
+      enemyDefenseScale: Math.min(1.6, 1 + pressure * 0.015),
+      enemySpeedScale: 1,
+      eliteChanceBonus: Math.min(0.22, pressure * 0.008),
+      scoreScale: Math.min(1.75, 1 + pressure * 0.015),
+      rewardScale: Math.min(1.8, 1 + pressure * 0.02)
     };
   }
 
@@ -10096,13 +10182,14 @@
       const w = index === 0 ? Math.max(getAuthoredPlatformW(platform), worldWidth - x) : getAuthoredPlatformW(platform);
       const authoredVisual = getAuthoredPlatformVisual(platform);
       const runtimePlatform = {
-        id: `${map.id}_platform_${index}`,
+        id: normalizeId(!Array.isArray(platform) && platform && platform.id) || `${map.id}_platform_${index}`,
         index,
         x,
         y,
         w,
         h: index === 0 ? metrics.solidPlatformHeight : getAuthoredPlatformH(platform),
         dropThrough: index > 0,
+        spawnDisabled: !!(!Array.isArray(platform) && platform && platform.spawnDisabled),
         terrainVisual: terrainVisuals[index]
           ? createRuntimeTerrainVisual(terrainVisuals[index], platform)
           : authoredVisual ? createRuntimeTerrainVisual(authoredVisual, platform) : null
@@ -20191,6 +20278,7 @@
 
     completeMapMechanicCycle(definition, entry) {
       if (!definition || !entry) return false;
+      if (definition.type === 'surge-loop' && this.state.rift && this.state.rift.decisionPending) return false;
       const now = nowSeconds();
       const rewardScale = clamp(
         Number(entry.rewardScale || 1) || 1,
@@ -20201,27 +20289,73 @@
       entry.lastCompletedAt = now;
       if (definition.type === 'surge-loop') {
         entry.surgeCount += 1;
-        entry.surgeActiveUntil = now + 45;
+        entry.surgeActiveUntil = now + Math.max(1, Number(definition.surgeDurationSeconds || 45));
         this.state.rift = createRiftState(this.state.rift);
-        this.state.rift.score += Math.max(10, Math.round(Number(definition.eventKillGoal || 1) * 8 * rewardScale));
+        const target = getRiftTierScoreTarget(this.state.rift.tier);
+        const rotationsRequired = Math.max(1, Number(definition.rotationsPerTier || 3));
+        this.state.rift.score = Math.min(
+          target,
+          this.state.rift.score + Math.ceil(target / rotationsRequired)
+        );
+        this.state.rift.rotationsThisTier += 1;
       } else if (definition.type === 'party-objective') {
         entry.objectiveCount += 1;
       } else {
         entry.eventCount += 1;
       }
       const reward = this.createScaledMapMechanicReward(definition.reward || {}, rewardScale);
-      if (Object.keys(reward).length) this.awardProgressReward(reward);
+      if (definition.type === 'surge-loop') {
+        const pressure = this.getRiftPressureProfile();
+        this.state.rift.unbankedBounty = mergeRiftBounty(
+          this.state.rift.unbankedBounty,
+          reward,
+          pressure.rewardScale
+        );
+        const rotationsRequired = Math.max(1, Number(definition.rotationsPerTier || 3));
+        if (this.state.rift.rotationsThisTier === rotationsRequired && this.state.rift.tier % 3 === 0) {
+          this.state.rift.unbankedBounty = mergeRiftBounty(
+            this.state.rift.unbankedBounty,
+            { materials: { cubeFragment: 1 } },
+            1
+          );
+        }
+        if (this.state.rift.rotationsThisTier >= rotationsRequired &&
+          this.state.rift.score >= getRiftTierScoreTarget(this.state.rift.tier)) {
+          this.state.rift.decisionPending = true;
+        }
+      } else if (Object.keys(reward).length) {
+        this.awardProgressReward(reward);
+      }
       const currentEntry = this.getMapMechanicEntry(definition.mapId) || entry;
       currentEntry.progress = 0;
       currentEntry.cycleSectionIds = [];
+      currentEntry.cycleKillCount = 0;
+      currentEntry.currentSectionKillCount = 0;
+      currentEntry.orderedSectionIds = [];
+      currentEntry.nextSectionIndex = 0;
+      currentEntry.routeComplete = false;
       currentEntry.antiCampStacks = Math.max(0, Math.floor(Number(currentEntry.antiCampStacks || 0) || 0) - 1);
       currentEntry.rewardScale = clamp(
         1 - currentEntry.antiCampStacks * Math.max(0, Number(definition.penaltyPerStack || 0)),
         Number(definition.minimumRewardScale || 0.5),
         1
       );
-      this.advanceMapMechanicActiveSection(definition, currentEntry);
-      this.toastTransient(`${definition.label} complete.`, `map-mechanic:${definition.mapId}`, { throttleMs: 6000 });
+      if (definition.requiredSectionOrder) {
+        currentEntry.activeSectionId = definition.activeSectionIds && definition.activeSectionIds[0] || '';
+        currentEntry.activeSectionIndex = 0;
+      } else {
+        this.advanceMapMechanicActiveSection(definition, currentEntry);
+      }
+      if (definition.type === 'surge-loop') {
+        const rotationsRequired = Math.max(1, Number(definition.rotationsPerTier || 3));
+        const rotations = Math.max(0, Number(this.state.rift.rotationsThisTier || 0));
+        const message = this.state.rift.decisionPending
+          ? 'Rift tier stabilized. Return to the Core to Push or Bank.'
+          : `Rift rotation ${Math.min(rotations, rotationsRequired)}/${rotationsRequired}. Surge score is active.`;
+        this.toastTransient(message, `map-mechanic:${definition.mapId}`, { throttleMs: 1000 });
+      } else {
+        this.toastTransient(`${definition.label} complete.`, `map-mechanic:${definition.mapId}`, { throttleMs: 6000 });
+      }
       return true;
     }
 
@@ -20229,17 +20363,50 @@
       const mapId = this.state.mapId;
       const definition = this.getMapMechanicDefinition(mapId);
       if (!definition || !enemy || enemy.data && enemy.data.behavior === 'boss') return false;
+      if (definition.type === 'surge-loop') {
+        this.state.rift = createRiftState(this.state.rift);
+        if (this.state.rift.decisionPending) return false;
+      }
       const sectionId = normalizeMapMechanicSectionId(definition, enemy.spawnSectionId || enemy.sectionId);
       if (!sectionId) return false;
       const entry = this.getMapMechanicEntry(mapId);
       if (!entry) return false;
       entry.sectionHits[sectionId] = Math.max(0, Number(entry.sectionHits[sectionId] || 0)) + 1;
-      entry.cycleSectionIds = Array.from(new Set((entry.cycleSectionIds || []).concat(sectionId)));
       this.updateMapMechanicAntiCamp(definition, entry, sectionId);
       const activeIds = Array.isArray(definition.activeSectionIds) ? definition.activeSectionIds : [];
+      if (definition.requiredSectionOrder && activeIds.includes(sectionId)) {
+        const nextIndex = clamp(Math.floor(Number(entry.nextSectionIndex || 0) || 0), 0, Math.max(0, activeIds.length - 1));
+        const expectedSectionId = activeIds[nextIndex];
+        if (sectionId === expectedSectionId) {
+          const killsPerSection = Math.max(
+            1,
+            Math.floor(Number(definition.killsPerSection || Math.ceil(Number(definition.eventKillGoal || 1) / Math.max(1, activeIds.length))) || 1)
+          );
+          entry.cycleKillCount = Math.max(0, Number(entry.cycleKillCount || 0)) + 1;
+          entry.currentSectionKillCount = Math.max(0, Number(entry.currentSectionKillCount || 0)) + 1;
+          entry.cycleSectionIds = Array.from(new Set((entry.cycleSectionIds || []).concat(sectionId)));
+          entry.progress = entry.cycleKillCount;
+          if (!entry.routeComplete && entry.currentSectionKillCount >= killsPerSection) {
+            entry.orderedSectionIds = (entry.orderedSectionIds || []).concat(sectionId);
+            entry.currentSectionKillCount = 0;
+            if (nextIndex >= activeIds.length - 1) {
+              entry.routeComplete = true;
+              entry.nextSectionIndex = nextIndex;
+              entry.activeSectionIndex = nextIndex;
+              entry.activeSectionId = activeIds[nextIndex] || '';
+            } else {
+              entry.nextSectionIndex = nextIndex + 1;
+              entry.activeSectionIndex = entry.nextSectionIndex;
+              entry.activeSectionId = activeIds[entry.nextSectionIndex];
+            }
+          }
+        }
+      } else if (!definition.requiredSectionOrder) {
+        entry.cycleSectionIds = Array.from(new Set((entry.cycleSectionIds || []).concat(sectionId)));
+      }
       const activeSectionMatch = definition.type === 'material-event'
         ? sectionId === entry.activeSectionId
-        : activeIds.includes(sectionId);
+        : !definition.requiredSectionOrder && activeIds.includes(sectionId);
       if (activeSectionMatch) {
         const baseWeight = this.getMapMechanicSectionWeight(definition, sectionId);
         const antiAirBonus = definition.type === 'party-objective' && enemy.data && enemy.data.behavior === 'flyer' ? 0.5 : 0;
@@ -20247,7 +20414,9 @@
       }
       const goal = Math.max(1, Number(definition.eventKillGoal || 1));
       const requiredUnique = Math.max(1, Number(definition.requiredUniqueSections || 1));
-      const complete = entry.progress >= goal && (entry.cycleSectionIds || []).length >= requiredUnique;
+      const complete = entry.progress >= goal &&
+        (entry.cycleSectionIds || []).length >= requiredUnique &&
+        (!definition.requiredSectionOrder || entry.routeComplete);
       if (complete) this.completeMapMechanicCycle(definition, entry);
       return true;
     }
@@ -20289,6 +20458,10 @@
         progressPercent: clamp(progress / goal, 0, 1),
         requiredUniqueSections: Math.max(1, Number(definition.requiredUniqueSections || 1)),
         currentUniqueSections: entry && entry.cycleSectionIds ? entry.cycleSectionIds.length : 0,
+        orderedSectionIds: entry && entry.orderedSectionIds ? entry.orderedSectionIds.slice() : [],
+        nextSectionId: entry && entry.activeSectionId || '',
+        nextSectionLabel: activeSection && activeSection.label || '',
+        routeComplete: !!(entry && entry.routeComplete),
         completedCycles: Math.max(0, Number(entry && entry.completedCycles || 0)),
         eventCount: Math.max(0, Number(entry && entry.eventCount || 0)),
         objectiveCount: Math.max(0, Number(entry && entry.objectiveCount || 0)),
@@ -20464,57 +20637,277 @@
     getRiftMutationIds() {
       this.state.rift = createRiftState(this.state.rift);
       if (CREATE_RIFT_MUTATION_IDS) {
-        return CREATE_RIFT_MUTATION_IDS(this.state.rift, { data: Data });
+        const ids = CREATE_RIFT_MUTATION_IDS(this.state.rift, { data: Data });
+        if (!this.state.rift.mutationIds.length && ids.length) this.state.rift.mutationIds = ids.slice();
+        return ids;
       }
       if (this.state.rift.mutationIds.length) return this.state.rift.mutationIds.slice();
       const mutations = Data.MUTATIONS || [];
       const tier = Math.max(1, Number(this.state.rift.tier || 1));
-      const count = clamp(1 + Math.floor(tier / 12), 1, 3);
+      const count = clamp(1 + Math.floor((tier - 1) / 5), 1, 3);
       const ids = [];
       for (let index = 0; index < count; index += 1) {
         const pick = seededPick(mutations.filter((mutation) => !ids.includes(mutation.id)), `rift:${tier}`, index);
         if (pick && pick.id) ids.push(pick.id);
       }
+      this.state.rift.mutationIds = ids.slice();
       return ids;
     }
 
-    recordRiftDefeat(enemy, xp, currency) {
+    getRiftPressureProfile(overrides) {
+      this.state.rift = createRiftState(this.state.rift);
+      const settings = overrides && typeof overrides === 'object' ? overrides : {};
+      const hasMutationOverride = Object.prototype.hasOwnProperty.call(settings, 'mutationIds');
+      const mutationIds = hasMutationOverride
+        ? (Array.isArray(settings.mutationIds) ? settings.mutationIds.map(normalizeId).filter(Boolean) : [])
+        : this.getRiftMutationIds();
+      const profileOptions = {
+        data: Data,
+        tier: settings.tier == null ? this.state.rift.tier : settings.tier,
+        mutationIds,
+        nowSeconds: nowSeconds()
+      };
+      if (Object.prototype.hasOwnProperty.call(settings, 'surgeActive')) {
+        profileOptions.surgeActive = !!settings.surgeActive;
+      }
+      return createRiftPressureProfile(this.state.rift, mutationIds, profileOptions);
+    }
+
+    resetRiftTierProgress(options) {
+      const settings = options || {};
+      this.state.rift = createRiftState(this.state.rift);
+      this.state.rift.score = 0;
+      this.state.rift.rotationsThisTier = 0;
+      this.state.rift.decisionPending = false;
+      this.state.rift.mutationIds = [];
+      if (!settings.preserveBounty) this.state.rift.unbankedBounty = createRiftBounty();
+      const definition = this.getMapMechanicDefinition('endlessRift');
+      const entry = this.getMapMechanicEntry('endlessRift');
+      if (definition && entry) {
+        entry.activeSectionId = definition.activeSectionIds && definition.activeSectionIds[0] || '';
+        entry.activeSectionIndex = 0;
+        entry.progress = 0;
+        entry.cycleKillCount = 0;
+        entry.currentSectionKillCount = 0;
+        entry.cycleSectionIds = [];
+        entry.orderedSectionIds = [];
+        entry.nextSectionIndex = 0;
+        entry.routeComplete = false;
+        entry.surgeActiveUntil = 0;
+        entry.lastSectionId = '';
+        entry.repeatCount = 0;
+        entry.antiCampStacks = 0;
+        entry.rewardScale = 1;
+      }
+      this.mapModifierSnapshotCache = null;
+      return this.state.rift;
+    }
+
+    isPlayerAtRiftCore() {
+      if (this.state.mapId !== 'endlessRift' || !this.runtime) return false;
+      const definition = this.getMapMechanicDefinition('endlessRift');
+      const corePlatformId = normalizeId(definition && definition.corePlatformId);
+      if (!corePlatformId) return false;
+      const core = (this.runtime.platforms || []).find((platform) => platform && platform.id === corePlatformId);
+      const player = this.state.player;
+      if (!core || !player) return false;
+      if (!player.grounded) return false;
+      if (player.groundedPlatformId === corePlatformId || Number(player.groundedPlatformIndex) === Number(core.index)) return true;
+      const centerX = Number(player.x || 0) + Number(player.w || 0) / 2;
+      const feetY = Number(player.y || 0) + Number(player.h || 0);
+      const surfaceY = getPlatformSurfaceY(core, centerX);
+      return centerX >= core.x - 48 &&
+        centerX <= core.x + core.w + 48 &&
+        Math.abs(feetY - surfaceY) <= 72;
+    }
+
+    recordRiftDefeat(enemy) {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.id !== 'endlessRift') return false;
       this.state.rift = createRiftState(this.state.rift);
+      if (this.state.rift.decisionPending) return false;
       const affixBonus = (enemy.eliteAffixIds || []).reduce((sum, affixId) => {
         const affix = getById(Data.ELITE_AFFIXES || [], affixId);
         return sum + Number(affix && affix.riftScoreBonus || 0);
       }, 0);
       const mechanicScale = this.getMapMechanicRewardScale(map.id);
-      const gain = Math.max(1, Math.round((Number(xp || 0) * 0.03 + Number(currency || 0) * 0.4) * (1 + affixBonus) * mechanicScale));
-      this.state.rift.score += gain;
-      const nextTierScore = Math.max(500, this.state.rift.tier * 500);
-      if (this.state.rift.score >= nextTierScore) {
-        this.state.rift.score -= nextTierScore;
-        this.state.rift.tier += 1;
-        this.state.rift.bestTier = Math.max(this.state.rift.bestTier, this.state.rift.tier);
-        this.state.rift.mutationIds = [];
-        this.toast(`Endless Rift tier ${this.state.rift.tier}.`);
+      const pressure = this.getRiftPressureProfile();
+      const elitePoints = enemy && (enemy.elite || (enemy.eliteAffixIds || []).length) ? 3 : 0;
+      const gain = Math.max(1, Math.round((3 + elitePoints + affixBonus * 10) * mechanicScale * pressure.scoreScale));
+      const nextTierScore = getRiftTierScoreTarget(this.state.rift.tier);
+      this.state.rift.score = Math.min(nextTierScore, this.state.rift.score + gain);
+      const definition = this.getMapMechanicDefinition('endlessRift') || {};
+      const rotationsRequired = Math.max(1, Number(definition.rotationsPerTier || 3));
+      if (this.state.rift.rotationsThisTier >= rotationsRequired && this.state.rift.score >= nextTierScore) {
+        this.state.rift.decisionPending = true;
+      }
+      return true;
+    }
+
+    pushRiftTier(options) {
+      const settings = options || {};
+      if (this.state.mapId !== 'endlessRift') return false;
+      this.state.rift = createRiftState(this.state.rift);
+      if (!this.state.rift.decisionPending) {
+        if (!settings.silent) this.toast('Stabilize three Rift rotations before pushing deeper.');
+        return false;
+      }
+      if (!settings.force && !this.isPlayerAtRiftCore()) {
+        if (!settings.silent) this.toast('Return to the Rift Core to push deeper.');
+        return false;
+      }
+      const nextTier = Math.max(1, Number(this.state.rift.tier || 1)) + 1;
+      this.state.rift.tier = nextTier;
+      this.state.rift.bestTier = Math.max(Number(this.state.rift.bestTier || 1), nextTier);
+      if (nextTier % 5 === 0) {
+        this.state.rift.checkpointTier = Math.max(Number(this.state.rift.checkpointTier || 1), nextTier);
+      }
+      this.resetRiftTierProgress({ preserveBounty: true });
+      this.enemies = [];
+      this.spawnInitialEnemies();
+      if (!settings.silent) this.toast(`Rift tier ${nextTier}: pressure rising.`);
+      this.emitUiChange({
+        domains: ['hud', 'session', 'world', 'guide'],
+        reason: 'riftPush',
+        persist: true
+      });
+      return true;
+    }
+
+    bankRiftRun(options) {
+      const settings = options || {};
+      if (this.state.mapId !== 'endlessRift') return false;
+      this.state.rift = createRiftState(this.state.rift);
+      if (!settings.force && !this.state.rift.decisionPending) {
+        if (!settings.silent) this.toast('Stabilize the Rift tier before banking.');
+        return false;
+      }
+      if (!settings.force && !this.isPlayerAtRiftCore()) {
+        if (!settings.silent) this.toast('Return to the Rift Core to bank the bounty.');
+        return false;
+      }
+      const bounty = createRiftBounty(this.state.rift.unbankedBounty);
+      const shouldExit = settings.exit !== false;
+      const destinationMapId = settings.destinationMapId || 'eclipseFrontier';
+      if (shouldExit && !getMapDefinitionById(destinationMapId)) {
+        if (!settings.silent) this.toast('That Rift exit is unavailable. Your bounty is still unbanked.');
+        return false;
+      }
+      if (shouldExit && this.isTrialInstanceActive()) {
+        if (!settings.silent) this.toast('Finish the advancement trial before banking the Rift run.');
+        return false;
+      }
+      const inventoryBlockReason = this.getProgressRewardInventoryBlockReason
+        ? this.getProgressRewardInventoryBlockReason(bounty)
+        : this.canAcceptProgressReward && !this.canAcceptProgressReward(bounty)
+          ? 'Inventory is full.'
+          : '';
+      if (inventoryBlockReason) {
+        if (!settings.silent) this.toast(`Cannot bank the Rift bounty: ${inventoryBlockReason}`);
+        return false;
+      }
+      const riftBeforeBank = createRiftState(this.state.rift);
+      const secureCurrentTier = settings.secureTier === true ||
+        (settings.secureTier !== false && this.state.rift.decisionPending);
+      if (secureCurrentTier) {
+        this.state.rift.bankedTier = Math.max(
+          Number(this.state.rift.bankedTier || 1),
+          Number(this.state.rift.tier || 1)
+        );
+      }
+      this.state.rift.tier = Math.max(1, Number(this.state.rift.bankedTier || 1));
+      this.state.rift.unbankedBounty = createRiftBounty();
+      this.resetRiftTierProgress({ preserveBounty: false });
+      const exited = !shouldExit
+        ? true
+        : this.changeMap(destinationMapId, {
+            riftResolved: true,
+            silent: true
+          });
+      if (!exited) {
+        this.state.rift = riftBeforeBank;
+        this.mapModifierSnapshotCache = null;
+        return false;
+      }
+      if (bounty.currency || Object.keys(bounty.materials).length || Object.keys(bounty.consumables).length) {
+        this.awardProgressReward(bounty);
+      }
+      if (!settings.silent) this.toast(`Rift bounty banked at tier ${this.state.rift.bankedTier}.`);
+      if (!settings.noEmit) {
+        this.emitUiChange({
+          domains: ['hud', 'session', 'world', 'guide', 'inventory'],
+          reason: 'riftBank',
+          persist: true
+        });
+      }
+      return true;
+    }
+
+    failRiftRun(options) {
+      const settings = options || {};
+      this.state.rift = createRiftState(this.state.rift);
+      const bounty = createRiftBounty(this.state.rift.unbankedBounty);
+      const hadRisk = this.state.mapId === 'endlessRift' ||
+        this.state.rift.decisionPending ||
+        this.state.rift.rotationsThisTier > 0 ||
+        this.state.rift.score > 0 ||
+        bounty.currency > 0 ||
+        Object.keys(bounty.materials).length > 0 ||
+        Object.keys(bounty.consumables).length > 0;
+      if (!hadRisk) return false;
+      const restartTier = Math.max(
+        1,
+        Number(this.state.rift.bankedTier || 1),
+        Number(this.state.rift.checkpointTier || 1)
+      );
+      this.state.rift.tier = restartTier;
+      this.resetRiftTierProgress({ preserveBounty: false });
+      if (!settings.silent) {
+        const lost = bounty.currency ? ` ${formatIntegerWithCommas(bounty.currency)} unbanked coins were lost.` : '';
+        this.toast(`Rift run fractured. Restart tier: ${restartTier}.${lost}`);
+      }
+      if (!settings.noEmit) {
+        this.emitUiChange({
+          domains: ['hud', 'session', 'world', 'guide'],
+          reason: 'riftFailure',
+          persist: true
+        });
       }
       return true;
     }
 
     getRiftSnapshot() {
       this.state.rift = createRiftState(this.state.rift);
-      if (CREATE_RIFT_SNAPSHOT) {
-        const mutationIds = this.getRiftMutationIds();
-        return CREATE_RIFT_SNAPSHOT(this.state.rift, mutationIds, { data: Data });
-      }
-      const tier = Math.max(1, Number(this.state.rift.tier || 1));
-      return {
-        tier,
-        bestTier: Math.max(tier, Number(this.state.rift.bestTier || tier)),
-        score: Math.max(0, Number(this.state.rift.score || 0)),
-        nextTierScore: Math.max(500, tier * 500),
-        mutationIds: this.getRiftMutationIds(),
-        mutations: this.getRiftMutationIds().map((id) => getById(Data.MUTATIONS || [], id)).filter(Boolean)
-      };
+      const mutationIds = this.getRiftMutationIds();
+      const now = nowSeconds();
+      const mechanicEntry = this.getMapMechanicEntry('endlessRift') || {};
+      const base = CREATE_RIFT_SNAPSHOT
+        ? CREATE_RIFT_SNAPSHOT(this.state.rift, mutationIds, { data: Data, nowSeconds: now })
+        : {
+            tier: Math.max(1, Number(this.state.rift.tier || 1)),
+            bestTier: Math.max(1, Number(this.state.rift.bestTier || this.state.rift.tier || 1)),
+            bankedTier: Math.max(1, Number(this.state.rift.bankedTier || 1)),
+            checkpointTier: Math.max(1, Number(this.state.rift.checkpointTier || 1)),
+            score: Math.max(0, Number(this.state.rift.score || 0)),
+            nextTierScore: getRiftTierScoreTarget(this.state.rift.tier),
+            rotationsThisTier: Math.max(0, Number(this.state.rift.rotationsThisTier || 0)),
+            rotationsRequired: Math.max(1, Number((this.getMapMechanicDefinition('endlessRift') || {}).rotationsPerTier || 3)),
+            decisionPending: !!this.state.rift.decisionPending,
+            unbankedBounty: createRiftBounty(this.state.rift.unbankedBounty),
+            mutationIds,
+            mutations: mutationIds.map((id) => getById(Data.MUTATIONS || [], id)).filter(Boolean),
+            pressure: this.getRiftPressureProfile()
+          };
+      const atCore = this.isPlayerAtRiftCore();
+      const surgeActiveUntil = Math.max(0, Number(mechanicEntry.surgeActiveUntil || base.surgeActiveUntil || 0));
+      return Object.assign({}, base, {
+        pressure: this.getRiftPressureProfile(),
+        atCore,
+        canPush: !!base.decisionPending && atCore,
+        canBank: !!base.decisionPending && atCore,
+        surgeActiveUntil,
+        surgeSecondsRemaining: Math.max(0, Math.ceil(surgeActiveUntil - now))
+      });
     }
 
     getMapModifierSnapshotCacheKey() {
@@ -20525,6 +20918,7 @@
         this.state.rift = createRiftState(this.state.rift);
       }
       const mapId = normalizeId(this.state.mapId);
+      const riftAtCore = mapId === 'endlessRift' && this.isPlayerAtRiftCore();
       if (GET_MAP_MODIFIER_SNAPSHOT_CACHE_KEY) {
         return GET_MAP_MODIFIER_SNAPSHOT_CACHE_KEY({
           data: Data,
@@ -20532,6 +20926,7 @@
           player: this.state.player,
           mapModifiers: this.state.mapModifiers,
           rift: this.state.rift,
+          riftAtCore,
           revisions: this.overlaySnapshotDomainRevisions || {}
         });
       }
@@ -20539,6 +20934,14 @@
       const stored = Array.isArray(activeByMapId[mapId]) ? activeByMapId[mapId].map(normalizeId).filter(Boolean).join(',') : '';
       const rift = this.state.rift || {};
       const mechanicEntry = rift.mapMechanics && rift.mapMechanics.byMapId && rift.mapMechanics.byMapId[mapId] || {};
+      const bounty = rift.unbankedBounty && typeof rift.unbankedBounty === 'object' ? rift.unbankedBounty : {};
+      const serializeCounts = (counts) => Object.entries(counts && typeof counts === 'object' ? counts : {})
+        .map(([id, amount]) => [normalizeId(id), Math.max(0, Number(amount || 0))])
+        .filter(([id, amount]) => id && amount)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([id, amount]) => `${id}:${amount}`)
+        .join(',');
+      const surgeActiveUntil = Math.max(0, Number(mechanicEntry.surgeActiveUntil || 0));
       const revisions = this.overlaySnapshotDomainRevisions || {};
       return [
         Number(revisions.world || 0),
@@ -20548,14 +20951,27 @@
         stored,
         Math.max(1, Number(rift.tier || 1) || 1),
         Math.max(1, Number(rift.bestTier || rift.tier || 1) || 1),
+        Math.max(1, Number(rift.bankedTier || 1) || 1),
+        Math.max(1, Number(rift.checkpointTier || 1) || 1),
         Math.max(0, Number(rift.score || 0) || 0),
+        Math.max(0, Number(rift.rotationsThisTier || 0) || 0),
+        rift.decisionPending ? 1 : 0,
+        riftAtCore ? 1 : 0,
+        Math.max(0, Number(bounty.currency || 0) || 0),
+        serializeCounts(bounty.materials),
+        serializeCounts(bounty.consumables),
         Array.isArray(rift.mutationIds) ? rift.mutationIds.map(normalizeId).filter(Boolean).join(',') : '',
         normalizeId(mechanicEntry.activeSectionId),
         Math.round(Number(mechanicEntry.progress || 0) * 100) / 100,
+        Math.max(0, Number(mechanicEntry.cycleKillCount || 0) || 0),
+        Array.isArray(mechanicEntry.orderedSectionIds) ? mechanicEntry.orderedSectionIds.map(normalizeId).filter(Boolean).join(',') : '',
+        mechanicEntry.routeComplete ? 1 : 0,
         Number(mechanicEntry.completedCycles || 0),
         Number(mechanicEntry.eventCount || 0),
         Number(mechanicEntry.objectiveCount || 0),
         Number(mechanicEntry.surgeCount || 0),
+        surgeActiveUntil,
+        surgeActiveUntil > nowSeconds() ? 1 : 0,
         Number(mechanicEntry.antiCampStacks || 0),
         Math.round(Number(mechanicEntry.rewardScale || 1) * 100) / 100
       ].join('|');
@@ -28012,6 +28428,20 @@
           level = clamp(Math.max(mapLevelMin, playerLevel + Math.floor(Math.random() * 3) - 1), mapLevelMin, mapLevelMax);
         }
       }
+      const riftPressure = map && map.id === 'endlessRift'
+        ? this.getRiftPressureProfile()
+        : {
+            tier: 1,
+            enemyHpScale: 1,
+            enemyDamageScale: 1,
+            enemyDefenseScale: 1,
+            enemySpeedScale: 1,
+            eliteChanceBonus: 0,
+            rewardScale: 1
+          };
+      if (map && map.id === 'endlessRift') {
+        level += Math.min(30, Math.floor((Math.max(1, Number(riftPressure.tier || 1)) - 1) / 2));
+      }
       const body = enemyData.behavior === 'boss'
         ? enemyData.id === 'stormbreakRoc'
           ? { w: 124, h: 96 }
@@ -28031,7 +28461,13 @@
         ? Math.max(180, Number(spawnPoint.y || 300) - 140 + Math.random() * 80)
         : platform ? surfaceY - body.h : 320;
       const mapType = this.getMapModifierType(map);
-      const affixChance = Math.max(0, 0.035 + this.getMapModifierBonus('eliteChanceBonus') + (mapType === 'rift' ? 0.05 : 0));
+      const affixChance = Math.max(
+        0,
+        0.035 +
+          this.getMapModifierBonus('eliteChanceBonus') +
+          (mapType === 'rift' ? 0.05 : 0) +
+          Number(riftPressure.eliteChanceBonus || 0)
+      );
       const nativeElite = enemyData.id === 'crackedMimic' || enemyData.behavior === 'elite' || enemyData.behavior === 'boss';
       const allowRandomAffixes = !(map && map.safeZone);
       const affixIds = [];
@@ -28049,10 +28485,27 @@
         return scale * Number(affix && affix[key] || 1);
       }, 1);
       const baseHp = getMonsterHp(level, enemyData);
-      const hp = Math.max(1, Math.round(baseHp * this.getMapModifierScale('enemyHpScale') * affixScale('hpScale')));
-      const defense = Math.max(0, Math.round(getMonsterDefense(level, enemyData) * this.getMapModifierScale('enemyDefenseScale') * affixScale('defenseScale')));
-      const damage = Math.max(1, Math.round(getMonsterDamage(level, enemyData) * this.getMapModifierScale('enemyDamageScale') * affixScale('damageScale')));
-      const speedScale = this.getMapModifierScale('enemySpeedScale') * affixScale('speedScale');
+      const hp = Math.max(1, Math.round(
+        baseHp *
+        this.getMapModifierScale('enemyHpScale') *
+        Number(riftPressure.enemyHpScale || 1) *
+        affixScale('hpScale')
+      ));
+      const defense = Math.max(0, Math.round(
+        getMonsterDefense(level, enemyData) *
+        this.getMapModifierScale('enemyDefenseScale') *
+        Number(riftPressure.enemyDefenseScale || 1) *
+        affixScale('defenseScale')
+      ));
+      const damage = Math.max(1, Math.round(
+        getMonsterDamage(level, enemyData) *
+        this.getMapModifierScale('enemyDamageScale') *
+        Number(riftPressure.enemyDamageScale || 1) *
+        affixScale('damageScale')
+      ));
+      const speedScale = this.getMapModifierScale('enemySpeedScale') *
+        Number(riftPressure.enemySpeedScale || 1) *
+        affixScale('speedScale');
       const attackCooldownScale = affixScale('attackCooldownScale');
       const weakPoint = affixIds.reduce((duration, affixId) => {
         const affix = getById(Data.ELITE_AFFIXES || [], affixId);
@@ -28065,6 +28518,7 @@
         name: enemyData.name,
         data: enemyData,
         level,
+        riftTier: map && map.id === 'endlessRift' ? Math.max(1, Number(riftPressure.tier || 1)) : 0,
         x,
         y,
         w: body.w,
@@ -34624,6 +35078,9 @@
         });
       }
       const player = this.state.player;
+      const riftRewardScale = this.state.mapId === 'endlessRift'
+        ? Math.max(1, Number(this.getRiftPressureProfile().rewardScale || 1))
+        : 1;
       const affixXpBonus = (enemy.eliteAffixIds || []).reduce((sum, affixId) => {
         const affix = getById(Data.ELITE_AFFIXES || [], affixId);
         return sum + Number(affix && affix.xpBonus || 0);
@@ -34635,9 +35092,11 @@
 	      const xp = Math.max(1, Math.round(getMonsterXp(enemy.level, enemy.data) *
 	        (1 + this.getMapModifierBonus('xpBonus') + affixXpBonus) *
 	        this.getAdminRate('xpRate') *
-	        this.getRateCouponMultiplier('xp')));
+	        this.getRateCouponMultiplier('xp') *
+          riftRewardScale));
       const currency = Math.max(0, Math.round((14 + enemy.level * 4 + (enemy.elite ? 90 : 0)) *
-        (1 + this.getMapModifierBonus('currencyBonus') + affixCurrencyBonus)));
+        (1 + this.getMapModifierBonus('currencyBonus') + affixCurrencyBonus) *
+        riftRewardScale));
       player.xp += xp;
       this.recordCombatXpGain(xp);
       this.notifyRewardToast(`+${formatIntegerWithCommas(xp)} XP`, 'xp');
@@ -34818,12 +35277,14 @@
       if (player.hp <= 0) {
         recovered = true;
         this.recordCombatMetric('death', 1);
+        const diedInRift = this.state.mapId === 'endlessRift';
+        if (diedInRift) this.failRiftRun({ noEmit: true });
         player.hp = Math.max(1, Math.round(stats.maxHp * 0.45));
         player.mp = Math.round(stats.maxMp * 0.35);
         player.resource = Math.round(stats.secondaryResourceMax * 0.35);
         player.x = 140;
         player.y = 360;
-        this.changeMap('starfallCrossing');
+        this.changeMap('starfallCrossing', { riftResolved: diedInRift });
         this.playAudioCue('damage', 1.4);
         this.toast(`Recovered at Starfall Crossing after ${source || 'danger'}.`);
       }
@@ -38264,15 +38725,26 @@
       return this.profilePerformancePhase('ui', 'ui:changeMap', () => this.withBatchedChange(() => {
         const map = getMapDefinitionById(mapId);
         if (!map) return false;
+        const previousMapId = this.state.mapId;
+        const settings = Object.assign({ fromMapId: previousMapId }, options || {});
         if (this.isTrialInstanceActive()) {
           this.toast('Finish the advancement trial before traveling.');
           return false;
         }
-        const previousMapId = this.state.mapId;
-        const settings = Object.assign({ fromMapId: previousMapId }, options || {});
+        let forfeitedRiftBounty = null;
+        if (previousMapId === 'endlessRift' && map.id !== 'endlessRift' && !settings.riftResolved) {
+          this.state.rift = createRiftState(this.state.rift);
+          forfeitedRiftBounty = createRiftBounty(this.state.rift.unbankedBounty);
+          this.failRiftRun({ silent: true, noEmit: true });
+          settings.riftResolved = true;
+        }
         this.recordDebugEvent('map', 'change-start', { fromMapId: previousMapId, toMapId: map.id, fromPortalId: settings.fromPortalId || '', entryPortalId: settings.entryPortalId || '' });
         this.finishMapAnalyticsVisit(map.id);
         this.state.mapId = map.id;
+        if (map.id === 'endlessRift') {
+          this.state.rift = createRiftState(this.state.rift);
+          if (!this.state.rift.startedAt) this.state.rift.startedAt = nowSeconds();
+        }
         this.state.channelId = this.getCurrentChannelId();
         this.runtime = createMapRuntime(map.id, this.getViewportMetrics());
         this.invalidateRuntimeSnapshotCache();
@@ -38316,7 +38788,16 @@
         this.queueCurrentAssetPreload(`map-change:${map.id}`);
         this.recordProgressEvent('travel', { mapId: map.id, channelId: this.getCurrentChannelId() });
         this.recordDebugEvent('map', 'change-complete', { fromMapId: previousMapId, toMapId: map.id, channelId: this.getCurrentChannelId() });
-        this.toast(`${map.name} loaded on ${getMapChannelLabel(this.state.channelId)}.`, { noEmit: true });
+        const forfeitedMaterialCount = Object.values(forfeitedRiftBounty && forfeitedRiftBounty.materials || {})
+          .reduce((sum, amount) => sum + Math.max(0, Number(amount || 0)), 0);
+        const forfeitedConsumableCount = Object.values(forfeitedRiftBounty && forfeitedRiftBounty.consumables || {})
+          .reduce((sum, amount) => sum + Math.max(0, Number(amount || 0)), 0);
+        const forfeitedCurrency = Math.max(0, Number(forfeitedRiftBounty && forfeitedRiftBounty.currency || 0));
+        const forfeitedCount = forfeitedMaterialCount + forfeitedConsumableCount;
+        const mapLoadedMessage = forfeitedCurrency || forfeitedCount
+          ? `${map.name} loaded. Unbanked Rift bounty forfeited: ${formatIntegerWithCommas(forfeitedCurrency)} coins${forfeitedCount ? ` and ${formatIntegerWithCommas(forfeitedCount)} items` : ''}.`
+          : `${map.name} loaded on ${getMapChannelLabel(this.state.channelId)}.`;
+        this.toast(mapLoadedMessage, { noEmit: true });
         this.emitUiChange({ domains: ['hud', 'session', 'world', 'quests', 'guide', 'shop', 'party', 'pet', 'debug'], reason: 'mapChange', persist: true });
         return true;
       }));

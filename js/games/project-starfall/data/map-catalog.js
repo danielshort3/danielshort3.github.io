@@ -349,7 +349,7 @@
         name: 'Endless Rift',
         levelRange: [100, 100],
         palette: ['#191b2c', '#7bdff2', '#f06bff'],
-        purpose: 'Scaling rift training that follows uncapped player levels after level 100.',
+        purpose: 'Playful endgame ring: rotate four quadrants, ride Surge windows, then Push for harder tiers or Bank the unbanked bounty at the central Core.',
         enemies: ['riftAberration', 'voidMote', 'lumenSentinel', 'eclipseDuelist', 'indexScribe', 'voidMote', 'riftAberration', 'crackedMimic', 'eclipseDuelist', 'voidMote', 'lumenSentinel', 'indexScribe', 'riftAberration', 'voidMote'],
         waveMax: 36,
         waveDelay: 5,

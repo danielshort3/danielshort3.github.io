@@ -2,12 +2,12 @@
   'use strict';
 
   const MUTATIONS = Object.freeze([
-    Object.freeze({ id: 'echoing', name: 'Echoing', effect: 'Skills have a chance to repeat at reduced power.' }),
-    Object.freeze({ id: 'splintering', name: 'Splintering', effect: 'Attacks can split into smaller secondary hits.' }),
-    Object.freeze({ id: 'guarded', name: 'Guarded', effect: 'Defensive skills grant minor resource.' }),
-    Object.freeze({ id: 'burning', name: 'Burning', effect: 'Attacks can apply burn.' }),
-    Object.freeze({ id: 'focused', name: 'Focused', effect: 'Marks, runes, or weak points last longer.' }),
-    Object.freeze({ id: 'volatile', name: 'Volatile', effect: 'Higher damage but increased resource cost.' })
+    Object.freeze({ id: 'echoing', name: 'Echoing', effect: 'Rift packs move 8% faster and grant 12% more stability.', enemySpeedScale: 1.08, scoreScale: 1.12 }),
+    Object.freeze({ id: 'splintering', name: 'Splintering', effect: 'Rift packs gain 10% HP and add 18% more to the unbanked bounty.', enemyHpScale: 1.1, rewardScale: 1.18 }),
+    Object.freeze({ id: 'guarded', name: 'Guarded', effect: 'Rift packs gain 16% defense and grant 12% more stability.', enemyDefenseScale: 1.16, scoreScale: 1.12 }),
+    Object.freeze({ id: 'burning', name: 'Burning', effect: 'Rift packs deal 10% more damage and add 12% more to the unbanked bounty.', enemyDamageScale: 1.1, rewardScale: 1.12 }),
+    Object.freeze({ id: 'focused', name: 'Focused', effect: 'Elite pressure rises by 8% and elites grant 10% more stability.', eliteChanceBonus: 0.08, scoreScale: 1.1 }),
+    Object.freeze({ id: 'volatile', name: 'Volatile', effect: 'Rift packs deal 15% more damage and grant 20% more stability.', enemyDamageScale: 1.15, scoreScale: 1.2 })
   ]);
 
   const MAP_MODIFIERS = Object.freeze([
