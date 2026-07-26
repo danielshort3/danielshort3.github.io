@@ -435,7 +435,13 @@
       }, index));
       addSlope(2380, lanes.high, lanes.peak, 280);
       addPlatform(2660, lanes.peak, 860, 'solidLane');
-      addPlatform(4300, lanes.sky, 620, 'hop');
+      // The Aerie gate should feel like a playful storm lookout, not a portal
+      // floating above an impossible jump. A solid, spawn-free perch lets the
+      // regular storm-stair builder connect it to the final combat lane.
+      addPlatform(4300, lanes.sky, 620, 'solidLane', {
+        id: 'stormbreakCliffs_aerie_perch',
+        spawnDisabled: true
+      });
       addFlatConnector(4320, lanes.highConnector, 240);
       return platforms;
     }
