@@ -16012,18 +16012,26 @@
       if (mode === 'boss') {
         const bossToken = args[1];
         if (!bossToken) return this.failAdminCommand('Usage: tp boss <boss>.');
-        const handled = this.adminTeleportToBoss(bossToken);
-        return handled ? this.createAdminCommandResult(true, `Teleported to boss ${bossToken}.`) : this.failAdminCommand(`Boss not found: ${bossToken}.`);
+        const encounter = this.getBossEncounter(bossToken);
+        if (!encounter) return this.failAdminCommand(`Boss not found: ${bossToken}.`);
+        const handled = this.adminTeleportToBoss(encounter.id);
+        return handled
+          ? this.createAdminCommandResult(true, `Teleported to boss ${encounter.bossId || encounter.id}.`)
+          : this.failAdminCommand(`Could not teleport to boss ${encounter.bossId || encounter.id}.`);
       }
       const offset = mode === 'map' ? 1 : 0;
       const mapToken = args[offset];
       if (!mapToken) return this.failAdminCommand('Usage: tp map <map> [x] [y] [platform].');
-      const handled = this.adminTeleportToMap(mapToken, {
+      const map = this.resolveAdminMap(mapToken);
+      if (!map) return this.failAdminCommand(`Map not found: ${mapToken}.`);
+      const handled = this.adminTeleportToMap(map.id, {
         x: args[offset + 1],
         y: args[offset + 2],
         platformIndex: args[offset + 3]
       });
-      return handled ? this.createAdminCommandResult(true, `Teleported to ${mapToken}.`) : this.failAdminCommand(`Map not found: ${mapToken}.`);
+      return handled
+        ? this.createAdminCommandResult(true, `Teleported to ${map.name || map.id}.`)
+        : this.failAdminCommand(`Could not teleport to ${map.name || map.id}.`);
     }
 
     executeAdminSpawnCommand(args) {
@@ -16233,12 +16241,7 @@
       this.ensureRuntimeState();
       const map = this.resolveAdminMap(mapId);
       if (!map) return false;
-      const player = this.state.player || {};
-      player.climbing = false;
-      player.climbMoving = false;
-      player.climbLockUntil = 0;
-      player.combatLockUntil = 0;
-      player.movementLockUntil = 0;
+      if (!this.prepareAdminTeleport()) return false;
       const changed = this.changeMap(map.id, { silent: true });
       if (!changed) return false;
       const settings = options || {};
@@ -16261,6 +16264,18 @@
       }
       this.toast(`Teleported to ${map.name || map.id}.`);
       this.emitChange();
+      return true;
+    }
+
+    prepareAdminTeleport() {
+      if (this.isTrialInstanceActive() && !this.returnFromClassTrialInstance({ silent: true, noEmit: true })) return false;
+      const player = this.state.player || {};
+      player.climbing = false;
+      player.climbMoving = false;
+      player.climbableId = '';
+      player.climbLockUntil = 0;
+      player.combatLockUntil = 0;
+      player.movementLockUntil = 0;
       return true;
     }
 
@@ -16929,7 +16944,10 @@
 
     adminTeleportToBoss(bossId) {
       if (!this.canUseAdminTools()) return false;
-      return this.enterBossEncounter(bossId, { admin: true });
+      const encounter = this.getBossEncounter(bossId);
+      if (!encounter) return false;
+      if (!this.prepareAdminTeleport()) return false;
+      return this.enterBossEncounter(encounter.id, { admin: true });
     }
 
     spawnBossEncounterRuntime(encounter, bossData) {

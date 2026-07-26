@@ -282,7 +282,7 @@
         enemies: ['shardling', 'frostlingScout', 'snowglareWisp', 'rimebackBrute', 'shardling', 'frostlingScout', 'icebloomOracle', 'snowglareWisp', 'rimebackBrute', 'shardling', 'frostlingScout', 'icebloomOracle'],
         movementProfile: 'ice',
         areaMechanic: 'Ice footing reduces ground acceleration and increases sliding.',
-        waveMax: 31,
+        waveMax: 32,
         waveDelay: 5,
         questNpcs: [{ id: 'frostfen_tracker', name: 'Frostfen Tracker', x: 520, platformIndex: 0, questIds: ['frostfen_field_notes'], color: '#6386a8', accent: '#b7f2ff' }]
       }),

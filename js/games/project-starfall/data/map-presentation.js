@@ -533,6 +533,60 @@
           { label: 'Elite pocket', platformTier: 'peak' }
         ]
       }),
+      frostfenOutskirts: createFieldComposition({
+        routeSections: [
+          {
+            label: 'Marsh Flats',
+            x: 0,
+            w: 2200,
+            tier: 'arrival',
+            platformIds: [
+              'frostfen_outskirts_solid_lane_01',
+              'frostfen_outskirts_solid_lane_02',
+              'frostfen_outskirts_solid_lane_03'
+            ]
+          },
+          {
+            label: 'Ice Shelves',
+            x: 2200,
+            w: 4000,
+            tier: 'mobility',
+            platformIds: [
+              'frostfen_outskirts_solid_lane_04',
+              'frostfen_outskirts_solid_lane_05',
+              'frostfen_outskirts_solid_lane_06',
+              'frostfen_outskirts_solid_lane_07',
+              'frostfen_outskirts_solid_lane_08',
+              'frostfen_outskirts_solid_lane_09'
+            ]
+          },
+          {
+            label: 'Oracle Grove',
+            x: 6200,
+            w: 2200,
+            tier: 'support',
+            platformIds: [
+              'frostfen_outskirts_solid_lane_10',
+              'frostfen_outskirts_solid_lane_11',
+              'frostfen_outskirts_solid_lane_12'
+            ]
+          }
+        ],
+        portalRoles: {
+          frostfen_camp_return: 'left camp return',
+          frostfen_glacier: 'right glacier ascent'
+        },
+        landmarkBands: [
+          { kind: 'tall', x: 1540, w: 520, anchorX: 1760, label: 'Frozen Marsh' },
+          { kind: 'crystal', x: 3500, w: 1040, anchorX: 4020, label: 'Ice Shelves' },
+          { kind: 'glow', x: 7560, w: 620, anchorX: 7920, label: 'Glacier Ascent' }
+        ],
+        spawnZoneLabels: [
+          { label: 'Marsh flats', platformTier: 'low' },
+          { label: 'Ice shelves', platformTier: 'mid' },
+          { label: 'Oracle grove', platformTier: 'high' }
+        ]
+      }),
       stormbreakCliffs: createFieldComposition({
         routeSections: [
           { label: 'Low Ram Lane', x: 0, w: 1300, tier: 'frontline' },
@@ -832,7 +886,7 @@
       { id: 'banditRidgeCamp', intendedArchetype: 'E split-lane party map', intendedUseCase: 'small party', routeSummary: 'Split lower cutter lane, middle thrower camp, and upper rope bridge, then regroup at campfire.', partyRoleTarget: 'Tank lower chokepoints, ranged high throwers, support campfire regroup.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bandit rope-bridge camp', spawnSectionModel: 'lower/middle/high/regroup lane sections', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'orebackQuarry', intendedArchetype: 'E/J material party farm', intendedUseCase: 'small party high-density farming', routeSummary: 'Rotate ore carts, scaffold sentries, healer mushroom pockets, and timed mine events.', partyRoleTarget: 'Tank ore lane, ranged scaffold duty, burst classes clear healer pockets.', farmingAbuseRisk: 'high', visualIdentityTag: 'ore cart quarry', spawnSectionModel: 'ore lane, scaffold, mushroom pocket, event pocket', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'ashglassPass', intendedArchetype: 'G/F dangerous crossing', intendedUseCase: 'exploration dangerous progression', routeSummary: 'Cross the main ashglass bridge, dip into side pockets, and avoid elite glassstorm windows.', partyRoleTarget: 'Duo route with one main bridge player and one side-pocket control player.', farmingAbuseRisk: 'high', visualIdentityTag: 'ashglass bridge crossing', spawnSectionModel: 'bridge, vent pocket, glass shelf, elite side pocket', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
-      { id: 'frostfenOutskirts', intendedArchetype: 'C/E ice solo-duo route', intendedUseCase: 'solo/duo', routeSummary: 'Clear marsh flats, slide across ice shelves, then reset through oracle grove drops.', partyRoleTarget: 'Duo split flats and oracle shelf while keeping support reachable.', farmingAbuseRisk: 'medium', visualIdentityTag: 'frozen marsh camp route', spawnSectionModel: 'marsh flats, ice shelf, oracle grove' },
+      { id: 'frostfenOutskirts', intendedArchetype: 'C/E ice solo-duo route', intendedUseCase: 'solo/duo', routeSummary: 'Clear Marsh Flats, slide across Ice Shelves, then finish through Oracle Grove at Glacier Ascent.', partyRoleTarget: 'Duo split the flats and Oracle Grove while staying within one forward-moving route.', farmingAbuseRisk: 'medium', visualIdentityTag: 'frozen marsh camp route', spawnSectionModel: 'marsh flats, ice shelves, oracle grove', priorityRedesign: true, implementationStatus: 'composition-spawn-v1' },
       { id: 'glacierSpine', intendedArchetype: 'D/G glacier progression climb', intendedUseCase: 'dangerous progression small party', routeSummary: 'Climb glacier checkpoints, use lifts and one-way drops to rotate sentinel chokepoints.', partyRoleTarget: 'Small party split by height with central lift regroup.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'glacier lift spine', spawnSectionModel: 'lower climb, mid ridge, high ridge, flyer airspace' },
       { id: 'rimewardenSanctum', intendedArchetype: 'H/I frost vault', intendedUseCase: 'full party dungeon', routeSummary: 'Hold lower brutes, reach oracle shelves, and react to lane-locking ice walls.', partyRoleTarget: 'Tank lower lane, ranged oracle/sentinel control, support center safe room.', farmingAbuseRisk: 'medium', visualIdentityTag: 'rime vault sanctum', spawnSectionModel: 'brute lane, oracle shelf, sentinel shelf', implementationStatus: 'arena-skeleton-v1' },
       { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, high harrier airspace, and lightning rod objective.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control on lightning rod.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },

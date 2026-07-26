@@ -4997,6 +4997,7 @@
       this.isModalOpen = false;
       this.isCommandOpen = false;
       this.commandMenuPage = 'root';
+      this.adminCommandEditing = false;
       this.openWindows = [];
       this.windowState = {};
       this.windowZ = 1;
@@ -8202,22 +8203,45 @@
         : event && event.target && event.target.closest
           ? event.target.closest(getAdminConfigDomSelectorValue('DOM_ADMIN_COMMAND_INPUT_SELECTOR'))
           : null;
-      if (!target) return false;
-      const code = event.code || '';
       const state = this.adminConsole = this.adminConsole || {};
-      state.commandInput = target.value;
+      const canvasEditing = !!this.adminCommandEditing && !!state.open && state.tab === 'commands';
+      if (!target && !canvasEditing) return false;
+      const code = event.code || '';
+      if (target) state.commandInput = target.value;
       if (getAdminConfigHelper('getAdminCommandInputKeyAction')) {
         const action = getAdminConfigHelper('getAdminCommandInputKeyAction')(event, isDown, state);
-        if (!action || !action.handled) return false;
-        if (action.preventDefault && event.preventDefault) event.preventDefault();
-        if (action.type === 'run') {
-          this.runAdminCommand(target.value);
-        } else if (action.type === 'history') {
-          state.commandHistoryIndex = action.commandHistoryIndex;
-          state.commandInput = action.commandInput;
-          target.value = state.commandInput;
-        } else if (action.type === 'blur' && target.blur) {
-          target.blur();
+        if (action && action.handled) {
+          if (action.preventDefault && event.preventDefault) event.preventDefault();
+          if (action.type === 'run') {
+            this.adminCommandEditing = false;
+            this.runAdminCommand(target ? target.value : state.commandInput);
+          } else if (action.type === 'history') {
+            state.commandHistoryIndex = action.commandHistoryIndex;
+            state.commandInput = action.commandInput;
+            if (target) target.value = state.commandInput;
+            this.requestCanvasDraw();
+          } else if (action.type === 'blur') {
+            if (target && target.blur) target.blur();
+            this.adminCommandEditing = false;
+            this.requestCanvasDraw();
+          }
+          return true;
+        }
+      }
+      if (canvasEditing) {
+        if (!isDown) return true;
+        if (event.preventDefault) event.preventDefault();
+        if (code === 'Backspace') {
+          this.setAdminCommandInput(String(state.commandInput || '').slice(0, -1), { skipRender: true });
+          return true;
+        }
+        if (code === 'Delete') {
+          this.setAdminCommandInput('', { skipRender: true });
+          return true;
+        }
+        const key = String(event.key || '');
+        if (key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          this.setAdminCommandInput(`${state.commandInput || ''}${key}`.slice(0, 160), { skipRender: true });
         }
         return true;
       }
@@ -15273,7 +15297,10 @@
       this.rebindingAction = '';
       const closeId = panelId || this.activePanel;
       if (closeId === 'plinko') this.stopPlinkoDropHold();
-      if (closeId === 'worldwright' && this.adminConsole) this.adminConsole.open = false;
+      if (closeId === 'worldwright') {
+        if (this.adminConsole) this.adminConsole.open = false;
+        this.adminCommandEditing = false;
+      }
       const getClosedWindowState = getCanvasWindowHelper('getClosedWindowState');
       const nextWindowState = getClosedWindowState
         ? getClosedWindowState(this.openWindows, closeId)
@@ -21416,6 +21443,7 @@
       if (control === 'tab') {
         state.tab = value;
         state.pickerControl = '';
+        this.adminCommandEditing = false;
       }
       else if (control === 'itemKind') {
         state.itemKind = value;
@@ -21454,6 +21482,7 @@
 
     openAdminConsole() {
       this.adminConsole.open = true;
+      this.adminCommandEditing = false;
       this.syncAdminConsoleDefaults();
       this.openPanel('worldwright');
       this.renderPanel();
@@ -21463,6 +21492,7 @@
 
     closeAdminConsole() {
       this.adminConsole.open = false;
+      this.adminCommandEditing = false;
       if (this.openWindows && this.openWindows.includes('worldwright')) this.closePanel('worldwright');
       this.renderPanel();
       this.requestCanvasDraw();
@@ -21578,10 +21608,22 @@
       return true;
     }
 
+    startAdminCommandEditing() {
+      const state = this.adminConsole = this.adminConsole || {};
+      if (!state.open || state.tab !== 'commands') return false;
+      this.adminCommandEditing = true;
+      this.isCommandOpen = false;
+      const canvas = this.elements && this.elements.canvas;
+      if (canvas && typeof canvas.focus === 'function') canvas.focus();
+      this.requestCanvasDraw({ force: true });
+      return true;
+    }
+
     runAdminCommand(value) {
       const state = this.adminConsole = this.adminConsole || {};
       const command = String(value != null ? value : state.commandInput || '').trim();
       if (!command || !this.engine || !this.engine.executeAdminCommand) return false;
+      this.adminCommandEditing = false;
       const result = this.engine.executeAdminCommand(command);
       state.commandResult = Object.assign({ command }, result || { ok: false, message: 'Command failed.' });
       state.commandHistory = [{ command, result: state.commandResult.message, ok: !!state.commandResult.ok }]
@@ -34429,8 +34471,9 @@
       if (state.tab === 'commands') {
         const commandText = state.commandInput || 'help';
         cy = this.drawCanvasText(ctx, 'Command', x, cy, { color: '#102033', font: '900 10px system-ui', maxWidth: w, lineHeight: 12, maxLines: 1 }) + 4;
-        this.drawRoundRect(ctx, x, cy, w, 34, 7, '#fbfaf6', 'rgba(16,32,51,0.16)');
-        this.drawCanvasText(ctx, commandText, x + 10, cy + 10, { color: '#102033', font: '850 10px ui-monospace, SFMono-Regular, Menlo, monospace', maxWidth: w - 20, lineHeight: 12, maxLines: 1 });
+        this.drawRoundRect(ctx, x, cy, w, 34, 7, '#fbfaf6', this.adminCommandEditing ? 'rgba(47,125,214,0.88)' : 'rgba(16,32,51,0.16)');
+        this.drawCanvasText(ctx, commandText, x + 10, cy + 10, { color: state.commandInput ? '#102033' : '#73818c', font: '850 10px ui-monospace, SFMono-Regular, Menlo, monospace', maxWidth: w - 20, lineHeight: 12, maxLines: 1 });
+        this.addCanvasRegion({ type: 'admin-console-command-input', x, y: cy, w, h: 34 });
         cy += 44;
         this.drawCanvasButton(ctx, 'Run', x, cy, 58, 28, { type: 'admin-console-command-run' }, false);
         this.drawCanvasButton(ctx, 'Help', x + 66, cy, 58, 28, { type: 'admin-console-command-sample', command: 'help' }, false);
@@ -37174,6 +37217,7 @@
           } else if (adminConsoleAction.type === 'restore') this.runAdminConsoleRestore();
           else if (adminConsoleAction.type === 'close') this.closeAdminConsole();
           else if (adminConsoleAction.type === 'setTab') this.setAdminConsoleControl('tab', adminConsoleAction.tabId);
+          else if (adminConsoleAction.type === 'editCommand') this.startAdminCommandEditing();
           else if (adminConsoleAction.type === 'runCommand') this.runAdminCommand();
           else if (adminConsoleAction.type === 'setCommandInput') this.setAdminCommandInput(adminConsoleAction.command);
           else if (adminConsoleAction.type === 'clearCommand') this.clearAdminCommandHistory();
@@ -37210,6 +37254,7 @@
         if (region.type === 'admin-console-restore') this.runAdminConsoleRestore();
         if (region.type === 'admin-console-close') this.closeAdminConsole();
         if (region.type === 'admin-console-tab') this.setAdminConsoleControl('tab', region.tabId);
+        if (region.type === 'admin-console-command-input') this.startAdminCommandEditing();
         if (region.type === 'admin-console-command-run') this.runAdminCommand();
         if (region.type === 'admin-console-command-sample') this.setAdminCommandInput(region.command || '');
         if (region.type === 'admin-console-command-clear') this.clearAdminCommandHistory();

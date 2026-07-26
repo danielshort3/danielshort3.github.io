@@ -7,6 +7,7 @@ const path = require('path');
 const hud = require('../js/games/project-starfall/ui/hud.js');
 const input = require('../js/games/project-starfall/ui/input.js');
 const panels = require('../js/games/project-starfall/ui/panels.js');
+const adminConfig = require('../js/games/project-starfall/ui/admin-config.js');
 
 global.ProjectStarfallData = require('../js/games/project-starfall/data/index.js');
 const { ProjectStarfallUi } = require('../js/games/project-starfall/project-starfall-ui.js');
@@ -92,6 +93,8 @@ check(rootFooter.action === 'load' && rootFooter.label === 'Logout',
   'the root footer should retain the existing logout action');
 check(subpageFooter.pageId === 'root' && subpageFooter.back === true,
   'secondary pages should replace Logout with an in-menu Back action');
+check(adminConfig.getAdminConsoleRegionAction({ type: 'admin-console-command-input' }).type === 'editCommand',
+  'the Worldwright canvas command field should expose an explicit editing action');
 
 ['root', 'adventure', 'channels', 'settings'].forEach((pageId) => {
   const footer = hud.getCanvasMenuFooterAction(pageId);
@@ -235,5 +238,117 @@ const uiSource = fs.readFileSync(path.join(__dirname, '..', 'js/games/project-st
 check(uiSource.includes("commandMenuPage: this.commandMenuPage || 'root'") &&
   uiSource.includes("this.commandMenuPage || 'root',"),
   'both modular and fallback overlay cache paths should include the active command-menu page');
+
+let focusedAdminCanvas = 0;
+let executedAdminCommand = '';
+const adminCommandUi = Object.create(ProjectStarfallUi.prototype);
+Object.assign(adminCommandUi, {
+  adminConsole: {
+    open: true,
+    tab: 'commands',
+    commandInput: '',
+    commandHistory: [],
+    commandHistoryIndex: -1
+  },
+  adminCommandEditing: false,
+  isCommandOpen: true,
+  isModalOpen: true,
+  activePanel: 'worldwright',
+  openWindows: ['worldwright'],
+  elements: {
+    canvas: {
+      focus() {
+        focusedAdminCanvas += 1;
+      }
+    }
+  },
+  closeItemContextMenu() {},
+  getPanelRefreshDomains() {
+    return [];
+  },
+  renderCommandPanel() {},
+  queueUiRefresh() {},
+  requestCanvasDraw() {},
+  renderPanel() {},
+  refreshAfterAdminConsoleAction() {},
+  engine: {
+    executeAdminCommand(command) {
+      executedAdminCommand = command;
+      return { ok: true, message: 'Teleported.' };
+    }
+  }
+});
+
+check(adminCommandUi.startAdminCommandEditing() &&
+  adminCommandUi.adminCommandEditing &&
+  !adminCommandUi.isCommandOpen &&
+  focusedAdminCanvas === 1,
+  'clicking the Worldwright canvas command field should focus inline editing');
+
+function sendAdminCommandKey(key, code) {
+  let prevented = false;
+  const handled = adminCommandUi.handleAdminCommandInputKey({
+    key,
+    code,
+    preventDefault() {
+      prevented = true;
+    }
+  }, true);
+  check(handled && prevented, `canvas command editing should consume ${code}`);
+}
+
+'tp map frostfenOutskirts 8280'.split('').forEach((key) => {
+  sendAdminCommandKey(key, key === ' ' ? 'Space' : `Key${key.toUpperCase()}`);
+});
+sendAdminCommandKey('Backspace', 'Backspace');
+sendAdminCommandKey('9', 'Digit9');
+sendAdminCommandKey('Enter', 'Enter');
+check(executedAdminCommand === 'tp map frostfenOutskirts 8289' &&
+  !adminCommandUi.adminCommandEditing,
+  'inline Worldwright editing should support text, correction, and Enter-to-run');
+
+const adminCommandRegions = [];
+const adminCommandDrawUi = Object.create(ProjectStarfallUi.prototype);
+Object.assign(adminCommandDrawUi, {
+  adminConsole: {
+    open: true,
+    tab: 'commands',
+    commandInput: ''
+  },
+  adminCommandEditing: false,
+  syncAdminConsoleDefaults() {
+    return { commands: [] };
+  },
+  drawRoundRect() {},
+  drawCanvasText(ctx, text, x, y) {
+    return y + 12;
+  },
+  drawCanvasButton() {},
+  addCanvasRegion(region) {
+    adminCommandRegions.push(region);
+  }
+});
+adminCommandDrawUi.drawAdminConsoleCanvas({}, 20, 20, 420);
+check(adminCommandRegions.some((region) => region.type === 'admin-console-command-input'),
+  'drawing the Worldwright Commands tab should publish a clickable command field');
+
+adminCommandUi.adminConsole.commandInput = '';
+adminCommandUi.startAdminCommandEditing();
+adminCommandUi.elements.canvas = null;
+adminCommandUi.closePanel('worldwright');
+let closedFieldPrevented = false;
+const closedFieldHandled = adminCommandUi.handleAdminCommandInputKey({
+  key: 'x',
+  code: 'KeyX',
+  preventDefault() {
+    closedFieldPrevented = true;
+  }
+}, true);
+check(!adminCommandUi.adminCommandEditing &&
+  !adminCommandUi.adminConsole.open &&
+  !closedFieldHandled &&
+  !closedFieldPrevented &&
+  adminCommandUi.adminConsole.commandInput === '',
+  'closing Worldwright should release canvas command editing back to gameplay');
 
 console.log(`Project Starfall command menu checks passed: ${checks}`);
