@@ -116,10 +116,53 @@
       }
     ]),
     stormbreakCliffs: Object.freeze([
-      { sectionSuffix: 'low_ram_lane', label: 'Thunder Ram Lane', enemyWeights: [{ enemyId: 'thunderRam', weight: 8 }, { enemyId: 'cloudcallAcolyte', weight: 2 }], population: 9, respawnSeconds: 5, leash: 500 },
-      { sectionSuffix: 'mid_archer_bridge', label: 'Archer Bridge', enemyWeights: [{ enemyId: 'stormboundArcher', weight: 7 }, { enemyId: 'cloudcallAcolyte', weight: 3 }], population: 8, respawnSeconds: 5, leash: 440 },
-      { sectionSuffix: 'high_harrier_airspace', label: 'Harrier Airspace', enemyWeights: [{ enemyId: 'galeHarrier', weight: 8 }, { enemyId: 'stormboundArcher', weight: 2 }], population: 9, respawnSeconds: 5, leash: 540, actorTraversal: { mode: 'air', allowLadders: false, allowRamps: true, stayInTerritory: true } },
-      { sectionSuffix: 'lightning_rod_objective', label: 'Lightning Rod', enemyWeights: [{ enemyId: 'cloudcallAcolyte', weight: 6 }, { enemyId: 'thunderRam', weight: 3 }, { enemyId: 'crackedMimic', weight: 1 }], population: 6, respawnSeconds: 7, leash: 380 }
+      {
+        sectionSuffix: 'low_ram_lane',
+        label: 'Thunder Ram Lane',
+        platformIds: [
+          'stormbreak_cliffs_solid_lane_01',
+          'stormbreak_cliffs_solid_lane_02',
+          'stormbreak_cliffs_solid_lane_03'
+        ],
+        enemyWeights: [{ enemyId: 'thunderRam', weight: 8 }, { enemyId: 'cloudcallAcolyte', weight: 2 }],
+        population: 12,
+        maxPopulation: 15,
+        respawnSeconds: 5,
+        leash: 500,
+        spawnBounds: { minX: 520, maxX: 1280 }
+      },
+      {
+        sectionSuffix: 'mid_archer_bridge',
+        label: 'Archer Bridge',
+        platformIds: [
+          'stormbreak_cliffs_solid_lane_04',
+          'stormbreak_cliffs_solid_lane_05',
+          'stormbreak_cliffs_solid_lane_06'
+        ],
+        enemyWeights: [{ enemyId: 'stormboundArcher', weight: 7 }, { enemyId: 'cloudcallAcolyte', weight: 3 }],
+        population: 12,
+        maxPopulation: 15,
+        respawnSeconds: 5,
+        leash: 440,
+        spawnBounds: { minX: 1680, maxX: 2780 }
+      },
+      {
+        sectionSuffix: 'high_harrier_airspace',
+        label: 'Harrier Airspace',
+        platformIds: [
+          'stormbreak_cliffs_solid_lane_07',
+          'stormbreak_cliffs_solid_lane_08',
+          'stormbreak_cliffs_solid_lane_09',
+          'stormbreak_cliffs_solid_lane_10'
+        ],
+        enemyWeights: [{ enemyId: 'galeHarrier', weight: 8 }, { enemyId: 'stormboundArcher', weight: 2 }],
+        population: 12,
+        maxPopulation: 15,
+        respawnSeconds: 5,
+        leash: 540,
+        spawnBounds: { minX: 2880, maxX: 4190 },
+        actorTraversal: { mode: 'air', allowLadders: false, allowRamps: true, stayInTerritory: true }
+      }
     ]),
     endlessRift: Object.freeze([
       {

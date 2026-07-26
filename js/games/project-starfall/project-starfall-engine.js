@@ -4244,6 +4244,8 @@
   const GET_MAP_MECHANIC_DEFINITION_BY_ID = getEngineMapMechanicHelper('getMapMechanicDefinitionById');
   const NORMALIZE_MAP_MECHANIC_SECTION_ID = getEngineMapMechanicHelper('normalizeMapMechanicSectionId');
   const GET_DEFAULT_MAP_MECHANIC_SECTION_ID = getEngineMapMechanicHelper('getDefaultMapMechanicSectionId');
+  const GET_MAP_MECHANIC_OBJECTIVE_TARGET = getEngineMapMechanicHelper('getMapMechanicObjectiveTarget');
+  const IS_MAP_MECHANIC_INTERACTION_GATED = getEngineMapMechanicHelper('isMapMechanicInteractionGated');
   const CREATE_MAP_MECHANIC_ENTRY_STATE = getEngineMapMechanicHelper('createMapMechanicEntryState');
   const CREATE_MAP_MECHANIC_STATE = getEngineMapMechanicHelper('createMapMechanicState');
   const CREATE_RIFT_BOUNTY = getEngineMapMechanicHelper('createRiftBounty');
@@ -4312,6 +4314,32 @@
       (definition.sections && definition.sections[0] && definition.sections[0].id || '');
   }
 
+  function getMapMechanicObjectiveTarget(definition) {
+    if (GET_MAP_MECHANIC_OBJECTIVE_TARGET) {
+      return GET_MAP_MECHANIC_OBJECTIVE_TARGET(definition);
+    }
+    if (!definition || normalizeId(definition.completionMode) !== 'objective-interaction') return null;
+    const stationId = normalizeId(definition.objectiveStationId);
+    if (!stationId) return null;
+    const objectiveSectionId = normalizeMapMechanicSectionId(definition, definition.objectiveSectionId);
+    const objectiveSection = objectiveSectionId &&
+      (definition.sections || []).find((section) => section && section.id === objectiveSectionId) || null;
+    return {
+      type: 'station',
+      id: stationId,
+      label: String(definition.objectiveStationLabel || objectiveSection && objectiveSection.label || 'Objective'),
+      sectionId: objectiveSectionId,
+      sectionLabel: objectiveSection && objectiveSection.label || ''
+    };
+  }
+
+  function isMapMechanicInteractionGated(definition) {
+    if (IS_MAP_MECHANIC_INTERACTION_GATED) {
+      return IS_MAP_MECHANIC_INTERACTION_GATED(definition);
+    }
+    return !!getMapMechanicObjectiveTarget(definition);
+  }
+
   function createMapMechanicEntryState(definition, value) {
     if (CREATE_MAP_MECHANIC_ENTRY_STATE) {
       return CREATE_MAP_MECHANIC_ENTRY_STATE(definition, value);
@@ -4347,6 +4375,7 @@
       sectionHits,
       cycleSectionIds: Array.from(new Set(cycleSectionIds)),
       cycleKillCount: Math.max(0, Math.floor(Number(source.cycleKillCount || 0) || 0)),
+      currentSectionKillCount: Math.max(0, Math.floor(Number(source.currentSectionKillCount || 0) || 0)),
       orderedSectionIds: orderedSectionIds.slice(0, activeIds.length),
       nextSectionIndex: clamp(
         Math.floor(Number(source.nextSectionIndex == null ? orderedSectionIds.length : source.nextSectionIndex) || 0),
@@ -4354,6 +4383,7 @@
         Math.max(0, activeIds.length - 1)
       ),
       routeComplete: !!source.routeComplete,
+      objectiveReady: isMapMechanicInteractionGated(definition) && !!source.objectiveReady,
       lastCompletedAt: Math.max(0, Number(source.lastCompletedAt || 0))
     };
   }
@@ -20799,9 +20829,15 @@
       entry.activeSectionIndex = nextIndex;
     }
 
-    completeMapMechanicCycle(definition, entry) {
+    completeMapMechanicCycle(definition, entry, options) {
       if (!definition || !entry) return false;
       if (definition.type === 'surge-loop' && this.state.rift && this.state.rift.decisionPending) return false;
+      const settings = options || {};
+      const interactionGated = isMapMechanicInteractionGated(definition);
+      if (interactionGated) {
+        if (settings.source !== 'objective-interaction' || !entry.objectiveReady) return false;
+        entry.objectiveReady = false;
+      }
       const now = nowSeconds();
       const rewardScale = clamp(
         Number(entry.rewardScale || 1) || 1,
@@ -20857,6 +20893,7 @@
       currentEntry.orderedSectionIds = [];
       currentEntry.nextSectionIndex = 0;
       currentEntry.routeComplete = false;
+      currentEntry.objectiveReady = false;
       currentEntry.antiCampStacks = Math.max(0, Math.floor(Number(currentEntry.antiCampStacks || 0) || 0) - 1);
       currentEntry.rewardScale = clamp(
         1 - currentEntry.antiCampStacks * Math.max(0, Number(definition.penaltyPerStack || 0)),
@@ -20894,6 +20931,7 @@
       if (!sectionId) return false;
       const entry = this.getMapMechanicEntry(mapId);
       if (!entry) return false;
+      if (isMapMechanicInteractionGated(definition) && entry.objectiveReady) return true;
       entry.sectionHits[sectionId] = Math.max(0, Number(entry.sectionHits[sectionId] || 0)) + 1;
       this.updateMapMechanicAntiCamp(definition, entry, sectionId);
       const activeIds = Array.isArray(definition.activeSectionIds) ? definition.activeSectionIds : [];
@@ -20940,7 +20978,50 @@
       const complete = entry.progress >= goal &&
         (entry.cycleSectionIds || []).length >= requiredUnique &&
         (!definition.requiredSectionOrder || entry.routeComplete);
-      if (complete) this.completeMapMechanicCycle(definition, entry);
+      if (complete) {
+        if (isMapMechanicInteractionGated(definition)) {
+          entry.objectiveReady = true;
+          const target = getMapMechanicObjectiveTarget(definition);
+          this.toastTransient(
+            `${target && target.label || 'Objective'} charged. Regroup and interact to complete it.`,
+            `map-mechanic-ready:${definition.mapId}`,
+            { throttleMs: 1000 }
+          );
+        } else {
+          this.completeMapMechanicCycle(definition, entry);
+        }
+      }
+      return true;
+    }
+
+    tryCompleteMapMechanicObjective(stationId, options) {
+      const settings = options || {};
+      const definition = this.getMapMechanicDefinition(this.state.mapId);
+      const target = getMapMechanicObjectiveTarget(definition);
+      if (!definition || !target || target.type !== 'station' || normalizeId(stationId) !== target.id) return false;
+      this.updateActiveStation();
+      if (normalizeId(this.state.player.activeStation) !== target.id) {
+        if (!settings.silent) this.toast(`Move within reach of the ${target.label} first.`);
+        return false;
+      }
+      const entry = this.getMapMechanicEntry(definition.mapId);
+      if (!entry || !entry.objectiveReady) {
+        if (!settings.silent) this.toast(`${target.label} is not charged yet.`);
+        return false;
+      }
+      if (!this.completeMapMechanicCycle(definition, entry, { source: 'objective-interaction' })) return false;
+      this.recordProgressEvent('interact', {
+        stationId: target.id,
+        mapId: this.state.mapId,
+        mapMechanicId: definition.id
+      }, { noEmit: true });
+      if (!settings.noEmit) {
+        this.emitUiChange({
+          domains: ['hud', 'session', 'world', 'guide', 'inventory'],
+          reason: 'mapMechanicObjective',
+          persist: true
+        });
+      }
       return true;
     }
 
@@ -20961,6 +21042,7 @@
       const regroupSection = this.getMapMechanicSection(definition, definition.regroupSectionId);
       const goal = Math.max(1, Number(definition.eventKillGoal || 1));
       const progress = Math.max(0, Number(entry && entry.progress || 0));
+      const objectiveTarget = getMapMechanicObjectiveTarget(definition);
       return {
         active: true,
         id: definition.id,
@@ -20984,7 +21066,14 @@
         orderedSectionIds: entry && entry.orderedSectionIds ? entry.orderedSectionIds.slice() : [],
         nextSectionId: entry && entry.activeSectionId || '',
         nextSectionLabel: activeSection && activeSection.label || '',
+        currentSectionKillCount: Math.max(0, Number(entry && entry.currentSectionKillCount || 0)),
+        killsPerSection: Math.max(1, Number(definition.killsPerSection || Math.ceil(goal / Math.max(1, (definition.activeSectionIds || []).length)))),
         routeComplete: !!(entry && entry.routeComplete),
+        completionMode: objectiveTarget ? 'objective-interaction' : 'automatic',
+        objectiveReady: !!(entry && entry.objectiveReady),
+        objectiveTarget: objectiveTarget ? Object.assign({}, objectiveTarget) : null,
+        objectiveStationId: objectiveTarget && objectiveTarget.type === 'station' ? objectiveTarget.id : '',
+        objectiveStationLabel: objectiveTarget && objectiveTarget.type === 'station' ? objectiveTarget.label : '',
         completedCycles: Math.max(0, Number(entry && entry.completedCycles || 0)),
         eventCount: Math.max(0, Number(entry && entry.eventCount || 0)),
         objectiveCount: Math.max(0, Number(entry && entry.objectiveCount || 0)),
@@ -21489,6 +21578,7 @@
         Math.max(0, Number(mechanicEntry.cycleKillCount || 0) || 0),
         Array.isArray(mechanicEntry.orderedSectionIds) ? mechanicEntry.orderedSectionIds.map(normalizeId).filter(Boolean).join(',') : '',
         mechanicEntry.routeComplete ? 1 : 0,
+        mechanicEntry.objectiveReady ? 1 : 0,
         Number(mechanicEntry.completedCycles || 0),
         Number(mechanicEntry.eventCount || 0),
         Number(mechanicEntry.objectiveCount || 0),
@@ -22665,6 +22755,49 @@
       };
     }
 
+    getEnemyTerritoryBounds(enemy) {
+      const traversal = enemy && enemy.spawnActorTraversal;
+      const authored = enemy && enemy.spawnGroupBounds;
+      if (!traversal || !traversal.stayInTerritory || !authored || typeof authored !== 'object') return null;
+      const first = Number(authored.minX);
+      const second = Number(authored.maxX);
+      if (!Number.isFinite(first) || !Number.isFinite(second)) return null;
+      return {
+        minX: Math.min(first, second),
+        maxX: Math.max(first, second)
+      };
+    }
+
+    isCombatCharacterInsideEnemyTerritory(enemy, character) {
+      const bounds = this.getEnemyTerritoryBounds(enemy);
+      if (!bounds) return true;
+      if (!character) return false;
+      const actor = character.actor || character;
+      const centerX = Number.isFinite(Number(character.centerX))
+        ? Number(character.centerX)
+        : Number(actor.x || 0) + Number(actor.w || 0) / 2;
+      return centerX >= bounds.minX && centerX <= bounds.maxX;
+    }
+
+    clearEnemyAggroTarget(enemy) {
+      if (!enemy) return;
+      enemy.aggroTargetKind = '';
+      enemy.aggroTargetId = '';
+      enemy.aggroUntil = 0;
+      enemy.aggroSource = '';
+    }
+
+    cancelEnemyPendingAttackOutsideTerritory(enemy, characters) {
+      if (!enemy || !enemy.pendingAttack || !this.getEnemyTerritoryBounds(enemy)) return false;
+      const pending = enemy.pendingAttack;
+      const target = this.getCombatCharacterByTarget(pending.targetKind, pending.targetId, characters);
+      if (this.isCombatCharacterInsideEnemyTerritory(enemy, target)) return false;
+      enemy.pendingAttack = null;
+      enemy.telegraph = 0;
+      enemy.vx = 0;
+      return true;
+    }
+
     getEnemyAggroTarget(enemy, time, characters) {
       if (!enemy || enemy.hp <= 0) return null;
       const now = Number(time || nowSeconds());
@@ -22674,7 +22807,7 @@
         : null;
       const enemyCenterX = Number(enemy.x || 0) + Number(enemy.w || 0) / 2;
       const enemyCenterY = Number(enemy.y || 0) + Number(enemy.h || 0) / 2;
-      if (existing) {
+      if (existing && this.isCombatCharacterInsideEnemyTerritory(enemy, existing)) {
         const targetCenterX = Number.isFinite(Number(existing.centerX))
           ? Number(existing.centerX)
           : Number(existing.x || 0) + Number(existing.w || 0) / 2;
@@ -22685,10 +22818,7 @@
         const dy = enemyCenterY - targetCenterY;
         if (dx * dx + dy * dy <= ENEMY_AGGRO_LEASH_RANGE * ENEMY_AGGRO_LEASH_RANGE) return existing;
       }
-      enemy.aggroTargetKind = '';
-      enemy.aggroTargetId = '';
-      enemy.aggroUntil = 0;
-      enemy.aggroSource = '';
+      this.clearEnemyAggroTarget(enemy);
       const enemyLevel = Math.max(1, Math.floor(Number(enemy.level || 1) || 1));
       let passive = null;
       let passiveDistanceSq = Infinity;
@@ -22696,6 +22826,7 @@
       for (let index = 0; index < combatCharacters.length; index += 1) {
         const character = combatCharacters[index];
         if (!character || enemyLevel <= Number(character.level || 1)) continue;
+        if (!this.isCombatCharacterInsideEnemyTerritory(enemy, character)) continue;
         const centerX = Number.isFinite(Number(character.centerX))
           ? Number(character.centerX)
           : Number(character.x || 0) + Number(character.w || 0) / 2;
@@ -22774,6 +22905,7 @@
 
     setEnemyAggro(enemy, character, source, duration, time) {
       if (!enemy || !character) return false;
+      if (!this.isCombatCharacterInsideEnemyTerritory(enemy, character)) return false;
       const now = Number(time || nowSeconds());
       enemy.aggroTargetKind = character.kind;
       enemy.aggroTargetId = character.id;
@@ -27548,6 +27680,9 @@
         spawnGroupId: group.id,
         spawnGroupLabel: group.label,
         spawnGroupLeash: group.leash,
+        spawnGroupBounds: group.spawnBounds && typeof group.spawnBounds === 'object'
+          ? Object.assign({}, group.spawnBounds)
+          : null,
         spawnActorTraversal: group.actorTraversal,
         sectionId: group.sectionId || spawn.sectionId || '',
         sectionLabel: group.label || spawn.sectionLabel || ''
@@ -28458,6 +28593,10 @@
       const selected = [];
       const remaining = [];
       const reservations = [];
+      const liveReservations = (this.enemies || [])
+        .filter((enemy) => enemy && Number(enemy.hp || 0) > 0 && !Number(enemy.removeAt || 0))
+        .map((enemy) => this.getFieldEnemySpawnPosition(enemy))
+        .filter(Boolean);
       const groupReservations = {};
       const now = nowSeconds();
       pending.forEach((replacement, index) => {
@@ -28477,7 +28616,14 @@
             return;
           }
         }
-        const spawn = this.chooseFieldWaveReplacementSpawnPoint(replacement, index, { wave, reservations, now });
+        const partyTopUp = !!(replacement && replacement.partyTopUp && spawnGroup);
+        const spawn = partyTopUp
+          ? this.chooseInitialFieldSpawnPoint(
+              this.getSpawnGroupAliveCount(spawnGroup.id) + Number(groupReservations[spawnGroup.id] || 0),
+              liveReservations.concat(reservations),
+              spawnGroup
+            )
+          : this.chooseFieldWaveReplacementSpawnPoint(replacement, index, { wave, reservations, now });
         if (!spawn || !this.isFieldRespawnSpawnSafe(spawn)) {
           remaining.push(replacement);
           return;
@@ -28574,13 +28720,70 @@
       if (!wave.nextAt || nextAt < wave.nextAt) wave.nextAt = nextAt;
     }
 
+    queueSpawnGroupPopulationTopUps(map, wave, time) {
+      const groups = this.getRuntimeSpawnGroups(map)
+        .filter((group) => group && group.partyScaling === 'section-count');
+      if (!groups.length || !wave || !Array.isArray(wave.pending)) return 0;
+      const now = Number.isFinite(Number(time)) ? Number(time) : nowSeconds();
+      let queued = 0;
+      groups.forEach((group) => {
+        const groupId = normalizeId(group.id);
+        const alive = this.getSpawnGroupAliveCount(groupId);
+        const regularPending = wave.pending.filter((replacement) =>
+          replacement &&
+          normalizeId(replacement.spawnGroupId) === groupId &&
+          !replacement.partyTopUp
+        ).length;
+        const topUpAllowance = Math.max(
+          0,
+          this.getSpawnGroupPopulationTarget(group) - alive - regularPending
+        );
+        let keptTopUps = 0;
+        wave.pending = wave.pending.filter((replacement) => {
+          if (!replacement ||
+            normalizeId(replacement.spawnGroupId) !== groupId ||
+            !replacement.partyTopUp) return true;
+          if (keptTopUps >= Math.min(1, topUpAllowance)) return false;
+          keptTopUps += 1;
+          return true;
+        });
+        if (!topUpAllowance || keptTopUps) return;
+        const anchor = (group.spawnPointIds || [])
+          .map((spawnPointId) => this.getRuntimeSpawnPointById(spawnPointId))
+          .find(Boolean) || null;
+        const platformIndex = anchor && Number.isFinite(Number(anchor.platformIndex))
+          ? Math.floor(Number(anchor.platformIndex))
+          : Number(group.platformIndices && group.platformIndices[0] || 0);
+        const platform = this.runtime && this.runtime.platforms && this.runtime.platforms[platformIndex];
+        const respawnAt = now + Math.max(1, Number(group.respawnSeconds) || this.getFieldRespawnDelay(map));
+        wave.pending.push({
+          enemyId: this.getSpawnGroupEnemyId(group, alive + regularPending),
+          spawnGroupId: groupId,
+          spawnPointId: normalizeId(anchor && anchor.id),
+          spawnX: Number(anchor && anchor.x || platform && platform.x + platform.w / 2 || 0),
+          spawnY: Number(anchor && anchor.y || 0),
+          spawnPlatformId: normalizeId(anchor && anchor.platformId || platform && platform.id),
+          spawnPlatformIndex: platformIndex,
+          spawnSectionId: normalizeId(group.sectionId),
+          spawnSectionLabel: String(group.label || ''),
+          respawnAt,
+          partyTopUp: true
+        });
+        if (!wave.nextAt || respawnAt < wave.nextAt) wave.nextAt = respawnAt;
+        queued += 1;
+      });
+      if (!wave.pending.length) wave.nextAt = 0;
+      return queued;
+    }
+
     updateWaveSpawns() {
       const map = getMapDefinitionById(this.state.mapId);
       if (!map || map.safeZone) return;
       const wave = this.getWaveState(map.id);
-      if (!wave.firstDefeat || !wave.pending.length) return;
       const now = nowSeconds();
       const trainingRespawns = this.isTrainingRespawnMap(map);
+      if (trainingRespawns) this.queueSpawnGroupPopulationTopUps(map, wave, now);
+      if (!wave.pending.length || !wave.firstDefeat && !trainingRespawns) return;
       const respawnDelay = trainingRespawns ? this.getFieldRespawnDelay(map) : wave.delay;
       if (!wave.nextAt) wave.nextAt = now + respawnDelay;
       if (now < wave.nextAt) return;
@@ -28591,7 +28794,7 @@
           wave.nextAt = this.getNextWaveRespawnAt(wave, respawnDelay);
           return;
         }
-        let spawned = 0;
+        let replacementSpawned = 0;
         batch.forEach((entry) => {
           const spawnGroup = this.getRuntimeSpawnGroupById(entry.replacement && entry.replacement.spawnGroupId, map);
           const enemyId = spawnGroup
@@ -28601,12 +28804,12 @@
           if (!enemyData) return;
           this.enemies.push(this.createEnemy(enemyData, entry.spawn));
           this.addFieldSpawnPressure(wave, entry.spawn, FIELD_RESPAWN_SPAWN_PRESSURE, now);
-          spawned += 1;
+          if (!entry.replacement.partyTopUp) replacementSpawned += 1;
         });
-        wave.spawnedSinceToast = Math.max(0, Number(wave.spawnedSinceToast) || 0) + spawned;
+        wave.spawnedSinceToast = Math.max(0, Number(wave.spawnedSinceToast) || 0) + replacementSpawned;
         wave.nextAt = this.getNextWaveRespawnAt(wave, respawnDelay);
-        if (spawned && !wave.pending.length) {
-          this.toast(`Respawn batch arrived: ${Math.max(spawned, Number(wave.spawnedSinceToast) || spawned)}.`);
+        if (!wave.pending.length && Number(wave.spawnedSinceToast || 0) > 0) {
+          this.toast(`Respawn batch arrived: ${Number(wave.spawnedSinceToast)}.`);
           wave.spawnedSinceToast = 0;
         }
         return;
@@ -29618,6 +29821,9 @@
         dungeonBeatSectionW: Math.max(0, Number(spawnPoint.dungeonBeatSectionW || 0)),
         spawnGroupId: normalizeId(spawnPoint.spawnGroupId),
         spawnGroupLabel: String(spawnPoint.spawnGroupLabel || ''),
+        spawnGroupBounds: spawnPoint.spawnGroupBounds && typeof spawnPoint.spawnGroupBounds === 'object'
+          ? Object.assign({}, spawnPoint.spawnGroupBounds)
+          : null,
         spawnPointId: normalizeId(spawnPoint.id || spawnPoint.spawnPointId),
         spawnX: x,
         spawnY: y,
@@ -30494,6 +30700,26 @@
       }
     }
 
+    clampEnemyTerritoryPosition(enemy) {
+      const bounds = this.getEnemyTerritoryBounds(enemy);
+      if (!bounds) return false;
+      const minX = bounds.minX;
+      const maxX = Math.max(minX, bounds.maxX - Math.max(0, Number(enemy.w || 0)));
+      const before = Number(enemy.x || 0);
+      enemy.x = clamp(before, minX, maxX);
+      enemy.wanderTargetX = clamp(
+        Number.isFinite(Number(enemy.wanderTargetX)) ? Number(enemy.wanderTargetX) : enemy.x,
+        minX,
+        maxX
+      );
+      if (enemy.x === before) return false;
+      enemy.vx = 0;
+      enemy.airRouteVx = 0;
+      enemy.airRouteUntil = 0;
+      this.stopEnemyCharge(enemy, { forceAnimation: true });
+      return true;
+    }
+
     clampDungeonEncounterEnemyPosition(enemy) {
       const sectionW = Math.max(0, Number(enemy && enemy.dungeonBeatSectionW || 0));
       if (!enemy || !enemy.dungeonBeatId || sectionW <= 0) return false;
@@ -30713,6 +30939,7 @@
     applyEnemyContactDamage(enemy, time) {
       const player = this.state && this.state.player;
       if (!enemy || !player || enemy.hp <= 0 || Number(enemy.attackCd || 0) > 0) return false;
+      if (!this.isCombatCharacterInsideEnemyTerritory(enemy, player)) return false;
       const now = Number(time || nowSeconds());
       if (this.isEnemyHostilityDisarmed(enemy, now)) return false;
       if (now < Number(player.invulnerableUntil || 0)) return false;
@@ -30806,6 +31033,7 @@
 		          this.updateEnemyAnimationState(enemy, currentTime);
 		          return;
 	        }
+        this.clampEnemyTerritoryPosition(enemy);
         if (this.isEnemyHostilityDisarmed(enemy, currentTime)) {
           enemy.vx = 0;
           enemy.vy = 0;
@@ -30836,6 +31064,7 @@
 	        const speedScale = Math.max(0.08, Number(enemy.speedScale || 1) * controlSpeedScale);
 	        if (this.updateEnemyClimbing(enemy, delta, speedScale)) {
           this.clampDungeonEncounterEnemyPosition(enemy);
+          this.clampEnemyTerritoryPosition(enemy);
           return;
         }
         if (data.behavior === 'flyer') {
@@ -30843,6 +31072,7 @@
         } else {
           enemy.vy += GRAVITY * delta;
         }
+        this.cancelEnemyPendingAttackOutsideTerritory(enemy, combatCharacters);
         const targetCharacter = this.getEnemyAggroTarget(enemy, currentTime, combatCharacters);
         const targetActor = targetCharacter && targetCharacter.actor;
         const dx = targetActor ? Number(targetActor.x || 0) - enemy.x : 0;
@@ -30912,6 +31142,7 @@
         this.resolvePlatforms(enemy);
 	        enemy.x = clamp(enemy.x, 12, this.runtime.worldWidth - enemy.w - 12);
         this.clampDungeonEncounterEnemyPosition(enemy);
+        this.clampEnemyTerritoryPosition(enemy);
 	        if (this.recoverFallenBodyThroughTop(enemy, { kind: 'enemy' })) {
 		          this.updateEnemyAnimationState(enemy, currentTime);
 		          return;
@@ -30934,7 +31165,10 @@
       this.enemies = enemies;
       const spatialIndex = this.buildEnemySpatialIndex();
       this.separateEnemies(delta, spatialIndex);
-      this.enemies.forEach((enemy) => this.clampDungeonEncounterEnemyPosition(enemy));
+      this.enemies.forEach((enemy) => {
+        this.clampDungeonEncounterEnemyPosition(enemy);
+        this.clampEnemyTerritoryPosition(enemy);
+      });
       if (this.refreshEnemySpatialIndexCenters(spatialIndex)) this.buildEnemySpatialIndex();
     }
 
@@ -31664,7 +31898,9 @@
 
     beginEnemyMelee(enemy, targetCharacter) {
       const target = targetCharacter || this.getEnemyAggroTarget(enemy);
-      if (!target || !sameCombatLane(target.actor, enemy, 34)) return false;
+      if (!target ||
+        !this.isCombatCharacterInsideEnemyTerritory(enemy, target) ||
+        !sameCombatLane(target.actor, enemy, 34)) return false;
       enemy.attackCd = 1.35;
       enemy.telegraph = ENEMY_MELEE_TELEGRAPH_SECONDS;
       enemy.pendingAttack = {
@@ -31687,6 +31923,15 @@
       const pending = pendingAttack || enemy && enemy.pendingAttack;
       if (!enemy || !pending || enemy.hp <= 0) {
         if (enemy) enemy.pendingAttack = null;
+        return false;
+      }
+      const territoryTarget = pending.targetKind
+        ? this.getCombatCharacterByTarget(pending.targetKind, pending.targetId)
+        : null;
+      if (this.getEnemyTerritoryBounds(enemy) &&
+        !this.isCombatCharacterInsideEnemyTerritory(enemy, territoryTarget)) {
+        enemy.pendingAttack = null;
+        enemy.telegraph = 0;
         return false;
       }
       enemy.pendingAttack = null;
@@ -31720,6 +31965,7 @@
     releaseEnemyProjectile(enemy, pendingAttack) {
       const pending = pendingAttack || {};
       const type = pending.type || 'thorn';
+      const territoryBounds = this.getEnemyTerritoryBounds(enemy);
       const speed = type === 'knife' ? 300 : type === 'firebolt' ? 220 : 240;
       const startX = enemy.x + enemy.w / 2;
       const startY = enemy.y + enemy.h * 0.45;
@@ -31745,6 +31991,7 @@
         projectileVisualSize: type === 'knife' && enemy.id === 'banditThrower' ? 46 : 0,
         targetKind: pending.targetKind || '',
         targetId: pending.targetId || '',
+        territoryBounds: territoryBounds ? Object.assign({}, territoryBounds) : null,
         pierce: 0
       });
       this.effects.push({
@@ -31763,7 +32010,7 @@
 
     beginEnemyProjectile(enemy, type, targetCharacter) {
       const target = targetCharacter || this.getEnemyAggroTarget(enemy);
-      if (!target || !target.actor) return false;
+      if (!target || !target.actor || !this.isCombatCharacterInsideEnemyTerritory(enemy, target)) return false;
       enemy.attackCd = type === 'firebolt' ? 2.1 : 1.8;
       enemy.telegraph = ENEMY_PROJECTILE_TELEGRAPH_SECONDS;
       const targetCenter = this.getCombatCharacterCenter(target);
@@ -31976,7 +32223,17 @@
         const moveY = projectile.vy * delta;
         projectile.x += moveX;
         projectile.y += moveY;
-        if (projectile.owner === 'player' && hasEnemyTargets) {
+        const projectileTerritory = projectile.owner === 'enemy' &&
+          projectile.territoryBounds &&
+          typeof projectile.territoryBounds === 'object'
+          ? projectile.territoryBounds
+          : null;
+        const projectileCenterX = Number(projectile.x || 0) + Number(projectile.w || 0) / 2;
+        const outsideProjectileTerritory = projectileTerritory &&
+          (projectileCenterX < Number(projectileTerritory.minX) ||
+            projectileCenterX > Number(projectileTerritory.maxX));
+        if (outsideProjectileTerritory) projectile.ttl = 0;
+        if (projectile.ttl > 0 && projectile.owner === 'player' && hasEnemyTargets) {
           const candidates = this.getProjectileEnemyCandidates(projectile, PROJECTILE_COLLISION_SPATIAL_RADIUS, spatialIndex, projectileEnemyCandidates);
           for (let index = 0; index < candidates.length; index += 1) {
             if (projectile.ttl <= 0) break;
@@ -32012,7 +32269,7 @@
               if (projectile.pierce < 0) projectile.ttl = 0;
             }
           }
-        } else {
+        } else if (projectile.ttl > 0) {
           let hit = null;
           const targets = combatCharacters || (combatCharacters = this.getCombatCharacters());
           const targetKind = projectile.targetKind;
@@ -32021,6 +32278,14 @@
           for (let pass = 0; pass < 2 && !hit; pass += 1) {
             for (let index = 0; index < targets.length; index += 1) {
               const character = targets[index];
+              if (projectileTerritory) {
+                const actor = character.actor || character;
+                const centerX = Number.isFinite(Number(character.centerX))
+                  ? Number(character.centerX)
+                  : Number(actor.x || 0) + Number(actor.w || 0) / 2;
+                if (centerX < Number(projectileTerritory.minX) ||
+                  centerX > Number(projectileTerritory.maxX)) continue;
+              }
               const preferred = matchesTarget(character);
               if (pass === 0 && !preferred) continue;
               if (pass === 1 && (!targetKind || preferred)) continue;
@@ -32602,6 +32867,12 @@
       }
       const station = this.runtime.stations.find((item) => rectsOverlap(clickBox, item));
       if (station) {
+        if (station.id === 'stormbreak_lightning_rod') {
+          this.lastInteractionOpenedPanel = false;
+          this.lastInteractionPanelId = '';
+          const handled = this.tryCompleteMapMechanicObjective(station.id);
+          return { handled, panel: false };
+        }
         const player = this.state.player;
         const reach = { x: player.x - 44, y: player.y - 28, w: player.w + 88, h: player.h + 72 };
         if (!rectsOverlap(reach, station)) {
@@ -32628,7 +32899,11 @@
         return { handled: this.contextAttackEnemy(enemy), panel: false };
       }
       if (this.state.player.activeStation) {
+        const activeStationId = this.state.player.activeStation;
         const handled = this.interact();
+        if (activeStationId === 'stormbreak_lightning_rod') {
+          return { handled, panel: false };
+        }
         return { handled, panel: true, panelId: this.lastInteractionPanelId || this.state.session.selectedPanel || '' };
       }
       if (this.state.player.activePortalId) {
@@ -39941,6 +40216,11 @@
         if (!settings.silent) this.toast('No station nearby.');
         return false;
       }
+      const mapMechanicDefinition = this.getMapMechanicDefinition(this.state.mapId);
+      const objectiveTarget = getMapMechanicObjectiveTarget(mapMechanicDefinition);
+      if (objectiveTarget && objectiveTarget.type === 'station' && normalizeId(station) === objectiveTarget.id) {
+        return this.tryCompleteMapMechanicObjective(station, settings);
+      }
       const panelMap = { shop: 'shop', storage: 'storage', slots: 'inventory', upgrade: 'upgrade', class: 'skills', plinko: 'plinko' };
       this.state.session.selectedPanel = panelMap[station] || 'character';
       this.lastInteractionOpenedPanel = true;
@@ -40910,7 +41190,7 @@
           minimapPartyMembers: this.getMinimapPartySnapshot(),
           markedEnemyCount: this.getMarkedEnemyCount(),
           bossEncounter: this.getBossEncounterSnapshot(),
-          mapModifiers: needsGuideContext ? this.getMapModifierSnapshot() : { active: [], rift: {} },
+          mapModifiers: this.getMapModifierSnapshot(),
           mapAnalytics: this.getMapAnalyticsSnapshot(),
           skillModifiers: needsGuideContext ? this.getSkillModifierSnapshot() : { modifiers: [] },
           classMastery: needsGuideContext ? this.getClassMasterySnapshot() : { tracks: [] },
@@ -43586,10 +43866,15 @@
         this.runtime.portals.forEach((portal) => this.drawPortal(ctx, portal));
       });
       this.profilePerformancePhase('draw', 'mapGeometry:staticLayer:actors', () => this.drawMapStaticLayer(ctx, map, 'actors'));
+      this.profilePerformancePhase('draw', 'mapGeometry:mechanicObjective', () => this.drawMapMechanicObjectiveEffect(ctx, map));
     }
 
     drawMapStations(ctx) {
       this.runtime.stations.forEach((station) => {
+        if (station.id === 'stormbreak_lightning_rod') {
+          this.drawLightningRodStation(ctx, station);
+          return;
+        }
         const stationImage = this.getAsset(station.asset);
         if (stationImage) {
           const drawWidth = station.id === 'upgrade' ? 112 : 124;
@@ -43610,6 +43895,108 @@
         ctx.textAlign = 'center';
         ctx.fillText(station.name.split(' ')[0], station.x + station.w / 2, station.y - 8);
       });
+    }
+
+    drawLightningRodStation(ctx, station) {
+      const cx = station.x + station.w / 2;
+      const floorY = station.y + station.h;
+      const mastTopY = station.y + 9;
+      ctx.save();
+      ctx.fillStyle = 'rgba(9,31,59,0.28)';
+      ctx.beginPath();
+      ctx.ellipse(cx, floorY - 1, 36, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#19365e';
+      ctx.fillRect(cx - 34, floorY - 18, 68, 18);
+      ctx.fillStyle = '#f3c64d';
+      ctx.fillRect(cx - 28, floorY - 14, 56, 8);
+      ctx.fillStyle = '#fff1a8';
+      ctx.fillRect(cx - 22, floorY - 13, 28, 3);
+
+      ctx.strokeStyle = '#19365e';
+      ctx.lineWidth = 11;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx, floorY - 17);
+      ctx.lineTo(cx, mastTopY + 8);
+      ctx.stroke();
+      ctx.strokeStyle = '#78d8f2';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(cx, floorY - 19);
+      ctx.lineTo(cx, mastTopY + 8);
+      ctx.stroke();
+
+      ctx.fillStyle = '#19365e';
+      ctx.beginPath();
+      ctx.arc(cx, mastTopY + 6, 14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff1a8';
+      ctx.beginPath();
+      ctx.arc(cx, mastTopY + 6, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f3c64d';
+      ctx.strokeStyle = '#19365e';
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx + 5, station.y - 18);
+      ctx.lineTo(cx - 12, station.y + 3);
+      ctx.lineTo(cx - 2, station.y + 3);
+      ctx.lineTo(cx - 9, station.y + 22);
+      ctx.lineTo(cx + 14, station.y - 4);
+      ctx.lineTo(cx + 3, station.y - 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#19365e';
+      ctx.font = '900 11px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('ROD', cx, station.y - 24);
+      ctx.restore();
+    }
+
+    drawMapMechanicObjectiveEffect(ctx, map) {
+      if (!map || !this.state || map.id !== this.state.mapId) return;
+      const byMapId = this.state.rift &&
+        this.state.rift.mapMechanics &&
+        this.state.rift.mapMechanics.byMapId;
+      const mechanicEntry = byMapId && byMapId[map.id];
+      if (!mechanicEntry || !mechanicEntry.objectiveReady) return;
+      const stations = this.runtime && Array.isArray(this.runtime.stations) ? this.runtime.stations : [];
+      const station = stations.find((candidate) =>
+        candidate && candidate.id === 'stormbreak_lightning_rod');
+      if (!station) return;
+      const cx = station.x + station.w / 2;
+      const cy = station.y + station.h * 0.38;
+      const reducedEffects = this.shouldReduceEffects();
+      const animationTime = reducedEffects ? 0 : nowSeconds();
+      const pulse = reducedEffects ? 0.5 : (Math.sin(animationTime * 5.2) + 1) / 2;
+      ctx.save();
+      ctx.globalAlpha = 0.42 + pulse * 0.28;
+      ctx.strokeStyle = '#c9f7ff';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 34 + pulse * 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 0.68 + pulse * 0.24;
+      ctx.fillStyle = '#fff1a8';
+      for (let index = 0; index < 3; index += 1) {
+        const angle = animationTime * 1.7 + index * Math.PI * 2 / 3;
+        const radius = 24 + pulse * 7;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#19365e';
+      ctx.font = '900 12px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('READY!', cx, station.y - 38);
+      ctx.restore();
     }
 
     drawQuestNpc(ctx, npc) {

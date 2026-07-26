@@ -175,7 +175,7 @@
       rampConnections: makeRampConnections(config.id, platforms),
       climbables: makeFieldClimbables(config.id, platforms, layoutStyle),
       spawnPoints: attachStableSpawnPlatformIds(platforms, makeFieldSpawnPoints(platforms)),
-      stations: [],
+      stations: config.stations || [],
       questNpcs: config.questNpcs || []
     };
   }

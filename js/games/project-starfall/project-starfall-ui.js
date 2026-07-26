@@ -11,6 +11,7 @@
   const CoreAssets = (typeof require === 'function' ? require('./core/assets.js') : null) || global.ProjectStarfallCore || {};
   const CoreGeometry = (typeof require === 'function' ? require('./core/geometry.js') : null) || global.ProjectStarfallCore || {};
   const UiModules = global.ProjectStarfallUiModules || {};
+  const STORMBREAK_LIGHTNING_ROD_STATION_ID = 'stormbreak_lightning_rod';
 
   function getModuleOwnValue(moduleApi, name) {
     return Object.prototype.hasOwnProperty.call(moduleApi || {}, name) ? moduleApi[name] : null;
@@ -1574,6 +1575,18 @@
         reducedEffects: !!accessibility.reducedEffects,
         damageNumbers: normalizeDamageNumberDensity(accessibility.damageNumbers)
       }
+    };
+  }
+
+  function getLightningRodReadyPulseStyle(nowMs, reducedEffects) {
+    const now = Number(nowMs);
+    const pulse = reducedEffects
+      ? 0.5
+      : (Math.sin((Number.isFinite(now) ? now : 0) / 180) + 1) / 2;
+    return {
+      alpha: 0.58 + pulse * 0.34,
+      radius: 7 + pulse * 2.5,
+      shadowBlur: 5 + pulse * 4
     };
   }
 
@@ -26720,6 +26733,14 @@
       };
     }
 
+    getMinimapLightningRodMarker() {
+      const getPresentation = getHudWidgetHelper('getStormbreakLightningRodPresentation');
+      if (!getPresentation) return null;
+      const presentation = getPresentation(this.snapshot);
+      if (!presentation || !presentation.target) return null;
+      return presentation;
+    }
+
     drawCanvasMinimap(ctx, width, height, bottomY) {
       const snapshot = this.snapshot || {};
       const runtime = snapshot.runtime || {};
@@ -26819,6 +26840,7 @@
           layerCtx.stroke();
         });
         (runtime.stations || []).forEach((station) => {
+          if (station.id === STORMBREAK_LIGHTNING_ROD_STATION_ID) return;
           const sx = toLocalX(station.x + station.w / 2);
           const sy = toLocalY(station.y + station.h / 2);
           layerCtx.fillStyle = '#ffd166';
@@ -26917,6 +26939,63 @@
         }
         ctx.closePath();
         ctx.fill();
+      }
+      const lightningRod = this.getMinimapLightningRodMarker();
+      if (lightningRod) {
+        const currentSettings = normalizeUserSettings(
+          this.snapshot && this.snapshot.settings || this.userSettings
+        );
+        const reducedEffects = !!currentSettings.accessibility.reducedEffects;
+        const target = lightningRod.target;
+        const rodX = toMiniX(Number(target.x || 0) + Number(target.w || 0) / 2);
+        const rodY = toMiniY(Number(target.y || 0) + Number(target.h || 0) / 2);
+        const iconSize = box.compact ? 4.2 : 5;
+        const markerColor = lightningRod.ready
+          ? '#fff3b0'
+          : lightningRod.tuned
+            ? '#8ef0a9'
+            : '#ffd166';
+        ctx.save();
+        if (lightningRod.ready) {
+          const pulseStyle = getLightningRodReadyPulseStyle(
+            reducedEffects ? 0 : getUiNowMs(),
+            reducedEffects
+          );
+          ctx.globalAlpha = pulseStyle.alpha;
+          ctx.strokeStyle = '#7bdff2';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(rodX, rodY, pulseStyle.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+          ctx.shadowColor = '#7bdff2';
+          ctx.shadowBlur = pulseStyle.shadowBlur;
+        }
+        ctx.fillStyle = markerColor;
+        ctx.strokeStyle = '#102033';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(rodX - iconSize * 0.25, rodY - iconSize);
+        ctx.lineTo(rodX + iconSize * 0.72, rodY - iconSize * 0.18);
+        ctx.lineTo(rodX + iconSize * 0.12, rodY + iconSize * 0.02);
+        ctx.lineTo(rodX + iconSize * 0.62, rodY + iconSize * 0.02);
+        ctx.lineTo(rodX - iconSize * 0.52, rodY + iconSize);
+        ctx.lineTo(rodX - iconSize * 0.14, rodY + iconSize * 0.24);
+        ctx.lineTo(rodX - iconSize * 0.72, rodY + iconSize * 0.24);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        if (!box.compact) {
+          this.drawCanvasText(ctx, 'Rod', clamp(rodX, mapX + 17, mapX + mapW - 17), Math.max(mapY + 2, rodY - 13), {
+            color: markerColor,
+            font: '900 7px system-ui',
+            align: 'center',
+            maxWidth: 34,
+            lineHeight: 8,
+            maxLines: 1
+          });
+        }
       }
       const minimapPartyMembers = snapshot.minimapPartyMembers ||
         snapshot.party && snapshot.party.activeMembers ||
@@ -37984,6 +38063,7 @@
     module.exports = {
       ProjectStarfallUi,
       createProjectStarfallUi,
+      getLightningRodReadyPulseStyle,
       KEYBIND_STORAGE_KEY
     };
   }

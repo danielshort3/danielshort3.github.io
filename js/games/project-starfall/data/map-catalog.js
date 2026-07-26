@@ -325,7 +325,13 @@
         palette: ['#4f6073', '#91dbe8', '#ffe16a'],
         purpose: 'Wind-cut cliff platforms with dense ranged pressure and long mobility lanes.',
         enemies: ['galeHarrier', 'stormboundArcher', 'thunderRam', 'galeHarrier', 'stormboundArcher', 'cloudcallAcolyte', 'thunderRam', 'crackedMimic', 'galeHarrier', 'stormboundArcher', 'thunderRam', 'cloudcallAcolyte', 'galeHarrier', 'stormboundArcher'],
-        waveMax: 32,
+        waveMax: 36,
+        stations: [{
+          id: 'stormbreak_lightning_rod',
+          name: 'Lightning Rod',
+          x: 4760,
+          platformIndex: 23
+        }],
         questNpcs: [{ id: 'stormbreak_scout', name: 'Stormbreak Scout', x: 520, platformIndex: 0, questIds: ['stormbreak_rods', 'stormbreak_echo'], color: '#4f6073', accent: '#ffe16a' }]
       }),
       makeExpandedTrainingMap({
