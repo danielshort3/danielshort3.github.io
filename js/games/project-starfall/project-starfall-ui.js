@@ -30523,7 +30523,12 @@
     drawQuestTrialsCanvas(ctx, x, y, w, progress) {
       let cy = y;
       const activeTrial = progress.activeTrial;
-      cy = this.drawCanvasText(ctx, 'Active Trial', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
+      const player = this.snapshot.state.player || {};
+      const getTrialActionPresentation = getQuestHelper('getClassTrialActionPresentation');
+      const activeTrialAction = activeTrial && getTrialActionPresentation
+        ? getTrialActionPresentation(activeTrial, progress, player)
+        : null;
+      cy = this.drawCanvasText(ctx, activeTrialAction && activeTrialAction.panelHeading || 'Active Trial', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
       if (activeTrial) {
         this.drawRoundRect(ctx, x, cy, w, 58, 7, '#eef6ff', 'rgba(47,125,214,0.22)');
         this.drawCanvasText(ctx, activeTrial.title, x + 10, cy + 8, { color: '#102033', font: '900 12px system-ui', maxWidth: w - 20, lineHeight: 13 });
@@ -30532,7 +30537,7 @@
           type: 'info',
           trialId: activeTrial.id,
           tooltipTitle: activeTrial.title,
-          tooltipSubtitle: 'Active class trial',
+          tooltipSubtitle: activeTrialAction && activeTrialAction.panelSubtitle || 'Active class trial',
           tooltipLines: [activeTrial.summary || '', `Reward: unlock ${getClassLabel(activeTrial.advancedId)}`, ...(activeTrial.objectives || []).map((objective) => `${objective.complete ? 'Done' : `${formatAbbreviatedInteger(objective.value)}/${formatAbbreviatedInteger(objective.goal)}`} ${objective.label}`)].filter(Boolean),
           x,
           y: cy,
@@ -30546,19 +30551,31 @@
       }
       cy += 4;
       cy = this.drawCanvasText(ctx, 'Class Trials', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
-      const player = this.snapshot.state.player || {};
       (progress.trials || []).forEach((trial) => {
         const branch = Data.ADVANCED_CLASSES[trial.advancedId] || {};
         const chooseReady = trial.complete && !player.advancedClassId && Number(player.level || 1) >= Number(branch.levelRequirement || trial.levelRequirement || 25);
-        const disabled = trial.complete || trial.active || Number(player.level || 1) < Number(trial.levelRequirement || 20) || !!player.advancedClassId;
+        const trialAction = getTrialActionPresentation
+          ? getTrialActionPresentation(trial, progress, player)
+          : {
+            running: !!trial.active,
+            blockedByTrialInstance: false,
+            retryReady: false,
+            disabled: trial.complete || trial.active || Number(player.level || 1) < Number(trial.levelRequirement || 20) || !!player.advancedClassId,
+            panelHeading: 'Active Trial',
+            panelSubtitle: 'Active class trial',
+            statusLabel: trial.complete ? 'Complete' : trial.active ? 'In progress' : '',
+            buttonLabel: trial.complete ? 'Done' : trial.active ? 'Active' : 'Start',
+            tooltipTitle: trial.active ? 'Trial Active' : trial.complete ? 'Trial Complete' : `Start ${trial.title}`,
+            tooltipAction: 'Starts the class trial instance.'
+          };
         this.drawRoundRect(ctx, x, cy, w, 50, 7, trial.complete ? '#eff9ef' : trial.active ? '#eef6ff' : '#ffffff', 'rgba(16,32,51,0.14)');
         this.drawCanvasText(ctx, trial.title, x + 10, cy + 7, { color: '#102033', font: '850 12px system-ui', maxWidth: w - 94, lineHeight: 13 });
-        this.drawCanvasText(ctx, trial.complete ? 'Complete' : trial.active ? 'Active' : `Lv ${trial.levelRequirement} - ${(Data.MAPS.find((map) => map.id === trial.mapId) || {}).name || trial.mapId}`, x + 10, cy + 27, { color: trial.complete ? '#177645' : '#5f6f7a', font: '10px system-ui', maxWidth: w - 94, lineHeight: 11 });
+        this.drawCanvasText(ctx, trialAction.statusLabel || `Lv ${trial.levelRequirement} - ${(Data.MAPS.find((map) => map.id === trial.mapId) || {}).name || trial.mapId}`, x + 10, cy + 27, { color: trial.complete ? '#177645' : '#5f6f7a', font: '10px system-ui', maxWidth: w - 94, lineHeight: 11 });
         this.addCanvasRegion({
           type: 'info',
           trialId: trial.id,
           tooltipTitle: trial.title,
-          tooltipSubtitle: `${getClassLabel(trial.advancedId)} - ${trial.complete ? 'Complete' : trial.active ? 'Active' : `Level ${trial.levelRequirement}`}`,
+          tooltipSubtitle: `${getClassLabel(trial.advancedId)} - ${trialAction.statusLabel || `Level ${trial.levelRequirement}`}`,
           tooltipLines: [
             trial.summary || '',
             branch.resourceName ? `Resource: ${branch.resourceName}` : '',
@@ -30579,12 +30596,12 @@
             tooltipLines: ['This unlocks the advanced skill batch and resource.']
           }, false);
         } else {
-          this.drawCanvasButton(ctx, trial.complete ? 'Done' : trial.active ? 'Active' : 'Start', x + w - 76, cy + 11, 64, 26, {
+          this.drawCanvasButton(ctx, trialAction.buttonLabel, x + w - 76, cy + 11, 64, 26, {
             type: 'start-trial',
             trialId: trial.id,
-            tooltipTitle: trial.active ? 'Trial Active' : trial.complete ? 'Trial Complete' : `Start ${trial.title}`,
-            tooltipLines: [trial.summary || '', trial.complete ? 'Use an eligible completed trial to choose an advanced class.' : 'Starts the class trial instance.'].filter(Boolean)
-          }, disabled);
+            tooltipTitle: trialAction.tooltipTitle,
+            tooltipLines: [trial.summary || '', trial.complete ? 'Use an eligible completed trial to choose an advanced class.' : trialAction.tooltipAction].filter(Boolean)
+          }, trialAction.disabled);
         }
         cy += 58;
       });
