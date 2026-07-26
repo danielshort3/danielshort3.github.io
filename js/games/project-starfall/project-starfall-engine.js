@@ -10563,6 +10563,8 @@
       this.heldSkillIds = new Set();
       this.heldSkillRetryAt = {};
       this.combatInputBuffer = null;
+      this.pendingPlayerAction = null;
+      this.resolvingPlayerContactAction = false;
       this.nextHeldLootAt = 0;
       this.petRuntime = createPetRuntime();
       this.passiveRecoveryElapsed = { hp: 0, mp: 0 };
@@ -11900,6 +11902,31 @@
       return Math.max(0.01, units.total / fps + loopDelay);
     }
 
+    getPlayerActionContactDelay(state, fallbackSeconds) {
+      const player = this.state && this.state.player || {};
+      const classData = player.advancedClassId && this.data.ADVANCED_CLASSES && this.data.ADVANCED_CLASSES[player.advancedClassId] ||
+        player.classId && this.data.BASE_CLASSES && this.data.BASE_CLASSES[player.classId] ||
+        null;
+      const animation = classData && classData.animation || this.data.GENERIC_PLAYER_ANIMATION_ASSET || null;
+      const frameDef = animation && animation.states && animation.states[state] || null;
+      const contactFrame = Math.max(0, Math.floor(Number(frameDef && frameDef.contactFrame)));
+      const authoredFps = Number(frameDef && frameDef.fps);
+      if (!frameDef || !Number.isFinite(Number(frameDef.contactFrame)) || !Number.isFinite(authoredFps) || authoredFps <= 0) {
+        return Math.max(0, Number(fallbackSeconds || 0));
+      }
+      const fps = Math.max(1, authoredFps);
+      const units = this.getAnimationFrameUnits(frameDef);
+      let contactStep = clamp(contactFrame, 0, Math.max(0, units.stepCount - 1));
+      if (Array.isArray(units.sequence) && units.sequence.length) {
+        const matchingStep = units.sequence.findIndex((frameIndex) => frameIndex >= contactFrame);
+        if (matchingStep >= 0) contactStep = matchingStep;
+      }
+      const contactTicks = units.holds
+        ? units.holds.slice(0, contactStep).reduce((sum, hold) => sum + hold, 0)
+        : contactStep;
+      return Math.max(0, contactTicks / fps);
+    }
+
     getAnimationFrame(animation, state, actor) {
       if (!animation || !animation.states) return null;
       const resolvedState = animation.states[state]
@@ -12229,14 +12256,97 @@
     }
 
     pushPlayerActionEffect(type, options) {
+      return this.pushPlayerActionEffectAtPose(type, this.state.player, options);
+    }
+
+    pushPlayerActionEffectAtPose(type, pose, options) {
       const settings = options || {};
-      const point = this.playerActionPoint(settings.forward, settings.yOffset);
+      const actor = pose || this.state.player;
+      if (!actor) return false;
+      const point = {
+        x: actor.x + actor.w / 2 + actor.facing * Math.max(0, Number(settings.forward) || 0),
+        y: actor.y + Number(settings.yOffset || 0)
+      };
       this.effects.push(Object.assign({}, settings, {
         type,
         x: point.x,
         y: point.y,
-        facing: this.state.player.facing
+        facing: actor.facing
       }));
+      return true;
+    }
+
+    createPlayerCombatPose() {
+      const player = this.state && this.state.player || {};
+      return {
+        x: Number(player.x || 0),
+        y: Number(player.y || 0),
+        w: Math.max(1, Number(player.w || 1)),
+        h: Math.max(1, Number(player.h || 1)),
+        facing: Number(player.facing) < 0 ? -1 : 1
+      };
+    }
+
+    shouldDeferPlayerContact(options) {
+      return !!(options && options.contactSynced === true);
+    }
+
+    queuePendingPlayerAction(action, delaySeconds) {
+      if (!action) return false;
+      const player = this.state && this.state.player;
+      if (!player || !player.classId || player.hp <= 0) return false;
+      if (this.pendingPlayerAction) this.clearPendingPlayerAction();
+      this.pendingPlayerAction = Object.assign({}, action, {
+        classId: player.classId,
+        advancedClassId: player.advancedClassId || '',
+        mapId: this.state.mapId,
+        remainingSeconds: Math.max(0, Number(delaySeconds || 0))
+      });
+      return true;
+    }
+
+    clearPendingPlayerAction() {
+      this.pendingPlayerAction = null;
+      this.resolvingPlayerContactAction = false;
+    }
+
+    updatePendingPlayerAction(delta) {
+      const action = this.pendingPlayerAction;
+      if (!action) return false;
+      const player = this.state && this.state.player;
+      const invalidated = !player ||
+        !player.classId ||
+        player.hp <= 0 ||
+        this.state.mapId !== action.mapId ||
+        player.classId !== action.classId ||
+        (player.advancedClassId || '') !== (action.advancedClassId || '');
+      if (invalidated) {
+        this.clearPendingPlayerAction();
+        return false;
+      }
+      action.remainingSeconds = Math.max(0, Number(action.remainingSeconds || 0) - Math.max(0, Number(delta || 0)));
+      if (action.remainingSeconds > 0) return false;
+      this.pendingPlayerAction = null;
+      const previousContactState = this.resolvingPlayerContactAction;
+      this.resolvingPlayerContactAction = true;
+      let resolved = false;
+      try {
+        if (action.type === 'basic') {
+          resolved = this.resolveBasicAttackContact(action);
+        } else if (action.type === 'skill') {
+          const skill = getSkillDefinitionById(action.skillId);
+          resolved = !!skill && this.resolveSkillEffect(skill, action.rank, action.stats, action.movementPlan, action.chainPlan);
+        }
+      } finally {
+        this.resolvingPlayerContactAction = previousContactState;
+      }
+      if (resolved) this.emitHudChange({ skipOverlayInvalidate: true });
+      return resolved;
+    }
+
+    getSkillFxContactDelay(defaultDelay) {
+      if (this.resolvingPlayerContactAction) return 0;
+      return Math.max(0, Number(defaultDelay || 0));
     }
 
     setChangeHandler(handler) {
@@ -14197,6 +14307,7 @@
       this.projectiles = [];
       this.effects = [];
       this.chainPulses = [];
+      this.clearPendingPlayerAction();
       this.heldSkillIds = new Set();
       this.heldSkillRetryAt = {};
       this.performanceDebug = createPerformanceDebugRuntime();
@@ -14298,7 +14409,7 @@
         if (blockReason === 'cooldown' || blockReason === 'combatLock') return false;
         this.clearCombatInputBuffer();
         if (blockReason) return false;
-        return this.basicAttack({ silent: true, fromCombatBuffer: true });
+        return this.basicAttack({ silent: true, fromCombatBuffer: true, contactSynced: true });
       }
       if (buffered.kind !== 'skill') {
         this.clearCombatInputBuffer();
@@ -14314,7 +14425,7 @@
       const cooldowns = player.skillCooldowns && typeof player.skillCooldowns === 'object' ? player.skillCooldowns : {};
       if (Number(cooldowns[skill.id] || 0) > time) return false;
       this.clearCombatInputBuffer();
-      return this.useSkill(skill.id, { silent: true, fromCombatBuffer: true });
+      return this.useSkill(skill.id, { silent: true, fromCombatBuffer: true, contactSynced: true });
     }
 
     clearHeldSkills() {
@@ -14396,8 +14507,10 @@
 	      this.withBatchedChange(() => {
 	        const benchmarkComplete = this.profilePerformancePhase('update', 'benchmark', () => this.updatePerformanceBenchmark(delta));
 	        if (benchmarkComplete) return;
+	        if (this.pendingPlayerAction && this.state.player.hp <= 0) this.clearPendingPlayerAction();
 	        this.profilePerformancePhase('update', 'passiveRegen', () => this.updatePassiveRegen(delta));
 	        this.profilePerformancePhase('update', 'player', () => this.updatePlayer(delta));
+	        this.profilePerformancePhase('update', 'playerActionContact', () => this.updatePendingPlayerAction(delta));
 	        this.profilePerformancePhase('update', 'combatInputBuffer', () => this.updateCombatInputBuffer());
 	        this.profilePerformancePhase('update', 'heldAttack', () => this.updateHeldAttack());
 	        this.profilePerformancePhase('update', 'heldSkills', () => this.updateHeldSkills());
@@ -16791,6 +16904,7 @@
         this.projectiles = [];
         this.effects = [];
         this.chainPulses = [];
+        this.clearPendingPlayerAction();
         this.pendingQuestNpcPrompt = null;
         this.lastInteractionOpenedQuestPrompt = false;
         const player = this.state.player;
@@ -19626,6 +19740,22 @@
         const quest = getById(Data.QUESTS || [], guide.id);
         const summary = this.getQuestSummary(quest);
         if (!quest || !summary) return this.buildQuestGuidanceResult(guide.type, guide.id, 'Quest', null, { complete: true });
+        if (summary.available && !summary.active) {
+          const npcName = summary.npcName || 'the quest NPC';
+          const map = getMapDefinitionById(summary.mapId);
+          return this.buildQuestGuidanceResult(guide.type, guide.id, summary.title, {
+            type: 'talk',
+            label: `Accept ${summary.title} from ${npcName}`,
+            complete: false
+          }, {
+            recommendedMapId: summary.mapId,
+            targetNpcId: summary.npcId,
+            targetNpcName: npcName,
+            hint: summary.mapId && summary.mapId !== this.state.mapId
+              ? `Use portals toward ${summary.mapName || map && map.name || 'the quest area'}, then talk to ${npcName}.`
+              : `Talk to ${npcName} to accept ${summary.title}.`
+          });
+        }
         const objective = this.getFirstIncompleteObjective(summary);
         if (summary.complete) {
           return this.buildQuestGuidanceResult(guide.type, guide.id, summary.title, objective, {
@@ -25697,16 +25827,26 @@
         .filter((activeQuestId) => activeQuestId !== quest.id);
       this.awardProgressReward(rewards);
       this.recordProgressEvent('questClaim', { questId: quest.id, chainId: quest.chainId || '' }, { audio: false, noEmit: true });
+      const unlockedQuest = quest.nextQuestId ? getById(Data.QUESTS || [], quest.nextQuestId) : null;
+      const unlockedAvailability = unlockedQuest ? this.getQuestAvailability(unlockedQuest.id, { progress }) : null;
       const guide = this.getQuestGuideState();
       if (guide.type === 'quest' && guide.id === quest.id) {
         const nextQuest = this.getActiveQuest({ progress });
-        guide.type = nextQuest ? 'quest' : '';
-        guide.id = nextQuest ? nextQuest.id : '';
+        const availableSuccessor = !nextQuest && unlockedAvailability && unlockedAvailability.available
+          ? unlockedQuest
+          : null;
+        guide.type = nextQuest || availableSuccessor ? 'quest' : '';
+        guide.id = nextQuest ? nextQuest.id : availableSuccessor ? availableSuccessor.id : '';
       }
       this.showRewardPopup(`${quest.title} Rewards`, rewards);
-      const unlockedQuest = quest.nextQuestId ? getById(Data.QUESTS || [], quest.nextQuestId) : null;
-      const nextOwner = unlockedQuest ? this.getQuestOwnerForQuest(unlockedQuest.id) : null;
-      this.toast(`${quest.title} reward claimed.${unlockedQuest && nextOwner ? ` ${unlockedQuest.title} is available from ${nextOwner.npcName}.` : ''}`);
+      const handoffText = unlockedQuest && unlockedAvailability
+        ? unlockedAvailability.available && unlockedAvailability.npcName
+          ? ` ${unlockedQuest.title} is available from ${unlockedAvailability.npcName}.`
+          : unlockedAvailability.lockedReason
+            ? ` ${unlockedQuest.title} remains locked: ${unlockedAvailability.lockedReason}`
+            : ''
+        : '';
+      this.toast(`${quest.title} reward claimed.${handoffText}`);
       return true;
     }
 
@@ -26029,6 +26169,7 @@
       this.projectiles = [];
       this.effects = [];
       this.chainPulses = [];
+      this.clearPendingPlayerAction();
       this.pendingQuestNpcPrompt = null;
       this.lastInteractionOpenedQuestPrompt = false;
       this.resetActorForInstanceTravel();
@@ -26052,6 +26193,7 @@
       this.projectiles = [];
       this.effects = [];
       this.chainPulses = [];
+      this.clearPendingPlayerAction();
       this.pendingQuestNpcPrompt = null;
       this.lastInteractionOpenedQuestPrompt = false;
       this.resetActorForInstanceTravel();
@@ -26190,6 +26332,7 @@
         this.projectiles = [];
         this.effects = [];
         this.chainPulses = [];
+        this.clearPendingPlayerAction();
         this.runtime = createMapRuntime(map.id, this.getViewportMetrics());
         this.placePlayerAtMapEntry(options || {});
         this.spawnInitialEnemies();
@@ -28106,7 +28249,7 @@
         this.input.attack = false;
         return;
       }
-      if (this.input.attack) this.basicAttack({ silent: true, fromHeldInput: true });
+      if (this.input.attack) this.basicAttack({ silent: true, fromHeldInput: true, contactSynced: true });
     }
 
     updateHeldSkills() {
@@ -28138,7 +28281,7 @@
           this.heldAirborneSkillRetryIds[id] = true;
           return;
         }
-        const used = this.useSkill(id, { silent: true, fromHeldInput: true, suppressCombatEmit: true });
+        const used = this.useSkill(id, { silent: true, fromHeldInput: true, suppressCombatEmit: true, contactSynced: true });
         castAttempts += 1;
         const latestCooldowns = player.skillCooldowns && typeof player.skillCooldowns === 'object' ? player.skillCooldowns : cooldowns;
         const nextCooldown = Number(latestCooldowns[id] || 0);
@@ -32022,7 +32165,7 @@
           return false;
         }
       }
-      return this.basicAttack();
+      return this.basicAttack({ contactSynced: true });
     }
 
     getBasicAttackBlockReason(player, classData, time) {
@@ -32036,6 +32179,77 @@
 
     shouldClearHeldBasicAttack(reason) {
       return reason === 'noClass' || reason === 'airborne';
+    }
+
+    resolveBasicAttackContact(action) {
+      const payload = action || {};
+      const player = this.state && this.state.player;
+      const pose = payload.pose || this.createPlayerCombatPose();
+      const stats = payload.stats || this.getStats();
+      if (!player || !player.classId || player.hp <= 0) return false;
+      if (payload.weaponType === 'melee') {
+        const hitbox = {
+          x: pose.facing > 0 ? pose.x + pose.w - 4 : pose.x - stats.range,
+          y: pose.y + 12,
+          w: stats.range,
+          h: 48
+        };
+        let hits = 0;
+        this.enemies.forEach((enemy) => {
+          if (!rectsOverlap(hitbox, enemy)) return;
+          if (!sameCombatLane(pose, enemy, 38)) return;
+          hits += 1;
+          const damageResult = this.rollDamageResult(stats.power, enemy);
+          this.damageEnemy(enemy, damageResult.amount, 'melee', { masteryApplied: true, critical: damageResult.critical });
+          enemy.vx += pose.facing * 130;
+        });
+        this.gainResource(10 + hits * 4);
+        this.pushPlayerActionEffectAtPose('slash', pose, {
+          forward: Math.max(58, stats.range * 0.72),
+          yOffset: 34,
+          r: 50,
+          ttl: 0.24,
+          duration: 0.24,
+          color: '#f25f4c',
+          basicFxId: player.classId,
+          combatFxState: 'trail'
+        });
+        return true;
+      }
+      const projectileType = payload.projectileType || (player.classId === 'mage' ? 'magic' : 'arrow');
+      this.projectiles.push({
+        owner: 'player',
+        type: projectileType,
+        x: pose.x + pose.w / 2,
+        y: pose.y + 26,
+        vx: pose.facing * (projectileType === 'magic' ? 520 : 610),
+        vy: 0,
+        w: projectileType === 'magic' ? 18 : 26,
+        h: 10,
+        damage: this.rollDamage(stats.power, null),
+        ttl: 1.2,
+        totalTtl: 1.2,
+        basicFxId: player.classId,
+        combatFxState: 'projectile',
+        projectileIndex: 0,
+        projectileCount: 1,
+        pierce: 0,
+        homing: true,
+        homingRange: projectileType === 'magic' ? MAGIC_HOMING_RANGE : ARROW_HOMING_RANGE,
+        homingVerticalTolerance: projectileType === 'magic' ? MAGIC_HOMING_VERTICAL_TOLERANCE : ARROW_HOMING_VERTICAL_TOLERANCE,
+        homingTurnRate: projectileType === 'magic' ? MAGIC_HOMING_TURN_RATE : ARROW_HOMING_TURN_RATE
+      });
+      this.pushPlayerActionEffectAtPose(projectileType === 'magic' ? 'cast' : 'arrowRelease', pose, {
+        forward: projectileType === 'magic' ? 38 : 46,
+        yOffset: 26,
+        r: projectileType === 'magic' ? 44 : 38,
+        ttl: 0.36,
+        duration: 0.36,
+        basicFxId: player.classId,
+        combatFxState: 'cast'
+      });
+      this.gainResource(11);
+      return true;
     }
 
     basicAttack(options) {
@@ -32069,67 +32283,17 @@
       });
       this.setActorAnimation(player, 'basic', attackCooldown, { force: true, lock: true, loop: false });
       this.playAudioCue('attack');
-      if (classData.weaponType === 'melee') {
-        const hitbox = {
-          x: player.facing > 0 ? player.x + player.w - 4 : player.x - stats.range,
-          y: player.y + 12,
-          w: stats.range,
-          h: 48
-        };
-        let hits = 0;
-        this.enemies.forEach((enemy) => {
-          if (!rectsOverlap(hitbox, enemy)) return;
-          if (!sameCombatLane(player, enemy, 38)) return;
-          hits += 1;
-          const damageResult = this.rollDamageResult(stats.power, enemy);
-          this.damageEnemy(enemy, damageResult.amount, 'melee', { masteryApplied: true, critical: damageResult.critical });
-          enemy.vx += player.facing * 130;
-        });
-        this.gainResource(10 + hits * 4);
-        this.pushPlayerActionEffect('slash', {
-          forward: Math.max(58, stats.range * 0.72),
-          yOffset: 34,
-          r: 50,
-          ttl: 0.24,
-          duration: 0.24,
-          color: '#f25f4c',
-          basicFxId: player.classId,
-          combatFxState: 'trail'
-        });
+      const action = {
+        type: 'basic',
+        weaponType: classData.weaponType,
+        projectileType: player.classId === 'mage' ? 'magic' : 'arrow',
+        pose: this.createPlayerCombatPose(),
+        stats: Object.assign({}, stats)
+      };
+      if (this.shouldDeferPlayerContact(settings)) {
+        this.queuePendingPlayerAction(action, this.getPlayerActionContactDelay('basic', 2 / 16));
       } else {
-        const projectileType = player.classId === 'mage' ? 'magic' : 'arrow';
-        this.projectiles.push({
-          owner: 'player',
-          type: projectileType,
-          x: player.x + player.w / 2,
-          y: player.y + 26,
-          vx: player.facing * (projectileType === 'magic' ? 520 : 610),
-          vy: 0,
-          w: projectileType === 'magic' ? 18 : 26,
-          h: 10,
-          damage: this.rollDamage(stats.power, null),
-          ttl: 1.2,
-          totalTtl: 1.2,
-          basicFxId: player.classId,
-          combatFxState: 'projectile',
-          projectileIndex: 0,
-          projectileCount: 1,
-          pierce: 0,
-          homing: true,
-          homingRange: projectileType === 'magic' ? MAGIC_HOMING_RANGE : ARROW_HOMING_RANGE,
-          homingVerticalTolerance: projectileType === 'magic' ? MAGIC_HOMING_VERTICAL_TOLERANCE : ARROW_HOMING_VERTICAL_TOLERANCE,
-          homingTurnRate: projectileType === 'magic' ? MAGIC_HOMING_TURN_RATE : ARROW_HOMING_TURN_RATE
-        });
-        this.pushPlayerActionEffect(projectileType === 'magic' ? 'cast' : 'arrowRelease', {
-          forward: projectileType === 'magic' ? 38 : 46,
-          yOffset: 26,
-          r: projectileType === 'magic' ? 44 : 38,
-          ttl: 0.36,
-          duration: 0.36,
-          basicFxId: player.classId,
-          combatFxState: 'cast'
-        });
-        this.gainResource(11);
+        this.resolveBasicAttackContact(action);
       }
       this.emitHudChange({ skipOverlayInvalidate: true });
       return true;
@@ -32833,7 +32997,7 @@
       const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       const activationDelay = Number.isFinite(Number(options.activationDelay))
         ? Math.max(0, Number(options.activationDelay))
-        : SKILL_FX_CONTACT_DELAY_SECONDS;
+        : this.getSkillFxContactDelay(SKILL_FX_CONTACT_DELAY_SECONDS);
       this.pushPlayerActionEffect(type, {
         forward,
         yOffset: Number(options.yOffset || (type === 'cast' ? 28 : 34)),
@@ -32892,7 +33056,7 @@
       const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       const activationDelay = Number.isFinite(Number(options.activationDelay))
         ? Math.max(0, Number(options.activationDelay))
-        : options.projectile ? 0 : SKILL_FX_CONTACT_DELAY_SECONDS;
+        : options.projectile ? 0 : this.getSkillFxContactDelay(SKILL_FX_CONTACT_DELAY_SECONDS);
       this.effects.push({
         type: 'skillImpact',
         skillId: skill.id,
@@ -32925,7 +33089,7 @@
       const ttl = Math.max(0.01, Number(options.ttl || duration) || duration);
       const activationDelay = Number.isFinite(Number(options.activationDelay))
         ? Math.max(0, Number(options.activationDelay))
-        : SKILL_FX_CONTACT_DELAY_SECONDS;
+        : this.getSkillFxContactDelay(SKILL_FX_CONTACT_DELAY_SECONDS);
       this.effects.push({
         type: 'skillArea',
         skillId: skill.id,
@@ -32952,7 +33116,7 @@
       const direction = player.facing || 1;
       const projectileType = targeting.projectileType || (skill.owner === 'archer' || String(skill.id || '').includes('shot') || String(skill.id || '').includes('arrow') ? 'arrow' : 'magic');
       const skillVisual = this.getSkillVisual(skill, projectileType);
-      const count = targeting.multiProjectile ? Math.max(1, Math.min(8, Math.floor(Number(targeting.count || 1) || 1))) : 1;
+      const count = Math.max(1, Math.min(8, Math.floor(Number(targeting.count || 1) || 1)));
       const speed = Math.max(120, Number(targeting.speed || (projectileType === 'arrow' ? 760 : 600)));
       const range = this.getSkillProjectileRange(targeting, rank, stats);
       const baseDamage = this.getSkillBasePower(skill, rank, stats) / count;
@@ -33870,70 +34034,9 @@
       return false;
     }
 
-    useSkill(skillId, options) {
-      const settings = options || {};
-      const skill = getSkillDefinitionById(skillId);
-      const rank = skill ? getRank(this.state, skill.id) : 0;
-      if (!skill || !skillUnlocked(this.state, skill) || rank <= 0) {
-        if (!settings.silent) this.toast('Skill prerequisites are not met.');
-        return false;
-      }
-      const player = this.state.player;
-      if (!player) return false;
-      if (isPassiveSkill(skill)) {
-        if (!settings.silent) this.toast(`${skill.name} is passive.`);
-        return false;
-      }
-      const teleportSkill = isTeleportSkill(skill);
-      const skillModifier = this.getSkillModifierForSkill(skill);
-      if (this.blockClimbingAction('skill', { skill }, { silent: !!settings.silent })) return false;
-      if (!teleportSkill && this.blockActionLock('skill', { silent: !!settings.silent })) {
-        if (settings.bufferOnBlock) this.queueCombatInput('skill', skill.id);
-        return false;
-      }
-      player.skillCooldowns = player.skillCooldowns && typeof player.skillCooldowns === 'object' ? player.skillCooldowns : {};
-      let movementPlan = null;
-      let chainPlan = null;
-      const time = nowSeconds();
-      const readyAt = Number(player.skillCooldowns[skill.id] || 0);
-      if (readyAt > time) {
-        if (settings.bufferOnBlock) this.queueCombatInput('skill', skill.id, time);
-        return false;
-      }
-      if (this.isMageAirborneProjectileSkill(skill, player)) {
-        return false;
-      }
-      if (isMobilitySkill(skill)) {
-        const movementBlockReason = this.getMovementSkillBlockReason(skill, player);
-        if (movementBlockReason) {
-          return false;
-        }
-        movementPlan = this.getMovementSkillPlan(skill, rank);
-        if (movementPlan && movementPlan.blockReason) {
-          if (!settings.silent && !movementPlan.silent) this.toastSkillBlock(skill, movementPlan.blockReason, 'movement-plan');
-          return false;
-        }
-      }
-      const stats = this.getStats();
-      const cost = this.getSkillResourceCost(skill, rank, skillModifier, stats);
-      if (cost && player.mp < cost) {
-        if (!settings.silent) this.toastSkillBlock(skill, 'MP is too low.', 'mp');
-        return false;
-      }
-      if (skill.targeting && skill.targeting.mode === 'chain') {
-        chainPlan = this.getChainSkillPlan(skill, rank, stats);
-        if (!chainPlan.targets.length) {
-          if (!settings.silent) this.toastSkillBlock(skill, 'No enemy in chain range.', 'chain-range');
-          return false;
-        }
-      }
-      this.spendPlayerMp(cost, time);
-      const runeFieldCooldownMultiplier = this.getRuneFieldSkillCooldownMultiplier(skill);
-      player.skillCooldowns[skill.id] = time + Math.max(0.25, this.getSkillCooldownDuration(skill, skillModifier, stats) * runeFieldCooldownMultiplier);
-      player.skillTimer = player.skillCooldowns[skill.id];
-      this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, { movementLock: this.isOffensiveSkill(skill) });
-      this.setActorAnimation(player, 'skill', 0.55, { force: true, lock: true, loop: false });
-
+    resolveSkillEffect(skill, rank, stats, movementPlan, chainPlan) {
+      const player = this.state && this.state.player;
+      if (!player || !skill || player.hp <= 0) return false;
       if (this.tryUseSignatureSkill(skill, rank, stats)) {
         // Signature skills resolve through branch-specific role hooks.
       } else if (isDefensiveSkill(skill)) {
@@ -34006,6 +34109,85 @@
         const radius = skill.roleTags.includes('Mobbing') || skill.type.includes('Area') || skill.type.includes('Finisher') ? 145 : 90;
         const power = this.getSkillBasePower(skill, rank, stats);
         this.areaHit(player.x + player.facing * 96, player.y + 36, radius, power, skill, { channel: skill.type.includes('Finisher') ? 'finisherArea' : 'area' });
+      }
+      return true;
+    }
+
+    useSkill(skillId, options) {
+      const settings = options || {};
+      const skill = getSkillDefinitionById(skillId);
+      const rank = skill ? getRank(this.state, skill.id) : 0;
+      if (!skill || !skillUnlocked(this.state, skill) || rank <= 0) {
+        if (!settings.silent) this.toast('Skill prerequisites are not met.');
+        return false;
+      }
+      const player = this.state.player;
+      if (!player) return false;
+      if (isPassiveSkill(skill)) {
+        if (!settings.silent) this.toast(`${skill.name} is passive.`);
+        return false;
+      }
+      const teleportSkill = isTeleportSkill(skill);
+      const skillModifier = this.getSkillModifierForSkill(skill);
+      if (this.blockClimbingAction('skill', { skill }, { silent: !!settings.silent })) return false;
+      if (!teleportSkill && this.blockActionLock('skill', { silent: !!settings.silent })) {
+        if (settings.bufferOnBlock) this.queueCombatInput('skill', skill.id);
+        return false;
+      }
+      player.skillCooldowns = player.skillCooldowns && typeof player.skillCooldowns === 'object' ? player.skillCooldowns : {};
+      let movementPlan = null;
+      let chainPlan = null;
+      const time = nowSeconds();
+      const readyAt = Number(player.skillCooldowns[skill.id] || 0);
+      if (readyAt > time) {
+        if (settings.bufferOnBlock) this.queueCombatInput('skill', skill.id, time);
+        return false;
+      }
+      if (this.isMageAirborneProjectileSkill(skill, player)) {
+        return false;
+      }
+      if (isMobilitySkill(skill)) {
+        const movementBlockReason = this.getMovementSkillBlockReason(skill, player);
+        if (movementBlockReason) {
+          return false;
+        }
+        movementPlan = this.getMovementSkillPlan(skill, rank);
+        if (movementPlan && movementPlan.blockReason) {
+          if (!settings.silent && !movementPlan.silent) this.toastSkillBlock(skill, movementPlan.blockReason, 'movement-plan');
+          return false;
+        }
+      }
+      const stats = this.getStats();
+      const cost = this.getSkillResourceCost(skill, rank, skillModifier, stats);
+      if (cost && player.mp < cost) {
+        if (!settings.silent) this.toastSkillBlock(skill, 'MP is too low.', 'mp');
+        return false;
+      }
+      if (skill.targeting && skill.targeting.mode === 'chain') {
+        chainPlan = this.getChainSkillPlan(skill, rank, stats);
+        if (!chainPlan.targets.length) {
+          if (!settings.silent) this.toastSkillBlock(skill, 'No enemy in chain range.', 'chain-range');
+          return false;
+        }
+      }
+      this.spendPlayerMp(cost, time);
+      const runeFieldCooldownMultiplier = this.getRuneFieldSkillCooldownMultiplier(skill);
+      player.skillCooldowns[skill.id] = time + Math.max(0.25, this.getSkillCooldownDuration(skill, skillModifier, stats) * runeFieldCooldownMultiplier);
+      player.skillTimer = player.skillCooldowns[skill.id];
+      this.startCombatLock(GLOBAL_COMBAT_ACTION_DELAY_SECONDS, { movementLock: this.isOffensiveSkill(skill) });
+      this.setActorAnimation(player, 'skill', 0.55, { force: true, lock: true, loop: false });
+      const deferContact = this.shouldDeferPlayerContact(settings) && this.isOffensiveSkill(skill);
+      if (deferContact) {
+        this.queuePendingPlayerAction({
+          type: 'skill',
+          skillId: skill.id,
+          rank,
+          stats: Object.assign({}, stats),
+          movementPlan,
+          chainPlan
+        }, this.getPlayerActionContactDelay('skill', SKILL_FX_CONTACT_DELAY_SECONDS));
+      } else {
+        this.resolveSkillEffect(skill, rank, stats, movementPlan, chainPlan);
       }
       this.recordProgressEvent('useSkill', { skillId: skill.id, owner: skill.owner, skillType: skill.type }, {
         noEmit: true
@@ -39321,6 +39503,7 @@
         this.projectiles = [];
         this.effects = [];
         this.chainPulses = [];
+        this.clearPendingPlayerAction();
         this.pendingQuestNpcPrompt = null;
         this.lastInteractionOpenedQuestPrompt = false;
         this.resetActorForInstanceTravel();
@@ -39396,6 +39579,7 @@
         this.projectiles = [];
         this.effects = [];
         this.chainPulses = [];
+        this.clearPendingPlayerAction();
         this.pendingQuestNpcPrompt = null;
         this.lastInteractionOpenedQuestPrompt = false;
         const mapChangeTravelState = getMapChangeTravelStatePlanForMovement(map);
@@ -39499,6 +39683,7 @@
       this.projectiles = [];
       this.effects = [];
       this.chainPulses = [];
+      this.clearPendingPlayerAction();
       this.performanceDebug = createPerformanceDebugRuntime();
       this.nextHeldLootAt = 0;
       this.petRuntime = createPetRuntime();
@@ -39539,6 +39724,7 @@
       this.projectiles = [];
       this.effects = [];
       this.chainPulses = [];
+      this.clearPendingPlayerAction();
       this.performanceDebug = createPerformanceDebugRuntime();
       this.petRuntime = createPetRuntime();
       this.bossIntroSummary = null;

@@ -92,6 +92,59 @@ check(gatedEngine.getQuestAvailability('trial_ready').locked &&
   !gatedEngine.startQuest('trial_ready'),
   'Ready for Advancement should remain unavailable before Level 20');
 
+const handoffEngine = createQuestEngine();
+check(handoffEngine.startQuest('first_steps'),
+  'the first journey quest should start for the handoff regression');
+handoffEngine.state.progress.completedQuestIds.push('first_steps');
+check(handoffEngine.claimQuestReward('first_steps'),
+  'the first journey reward should be claimable in the handoff regression');
+const fieldScoutAvailability = handoffEngine.getQuestAvailability('field_scout');
+const fieldScoutGuidance = handoffEngine.getQuestGuidanceSnapshot();
+check(handoffEngine.state.session.questGuide.type === 'quest' &&
+  handoffEngine.state.session.questGuide.id === 'field_scout' &&
+  fieldScoutAvailability.available &&
+  !fieldScoutAvailability.active &&
+  !handoffEngine.state.progress.activeQuestIds.includes('field_scout'),
+  'claiming the focused first quest should guide its available successor without auto-accepting it');
+check(fieldScoutGuidance.active &&
+  fieldScoutGuidance.targetId === 'field_scout' &&
+  fieldScoutGuidance.objectiveType === 'talk' &&
+  fieldScoutGuidance.recommendedMapId === 'thornpathThicket' &&
+  fieldScoutGuidance.targetNpcId === 'thornpath_scout' &&
+  fieldScoutGuidance.objectiveLabel === 'Accept Thornpath Field Scout from Thornpath Scout',
+  'available successor guidance should route the player to its quest NPC and map');
+
+moveToQuestNpc(handoffEngine, 'thornpathThicket', 'thornpath_scout');
+check(handoffEngine.acceptQuestFromNpc('thornpath_scout', 'field_scout'),
+  'the guided successor should still require explicit NPC acceptance');
+const acceptedFieldScoutGuidance = handoffEngine.getQuestGuidanceSnapshot();
+check(handoffEngine.state.progress.activeQuestIds.includes('field_scout') &&
+  acceptedFieldScoutGuidance.targetId === 'field_scout' &&
+  acceptedFieldScoutGuidance.objectiveType === 'defeat' &&
+  acceptedFieldScoutGuidance.targetEnemyIds.includes('mossback'),
+  'accepting the guided successor should advance guidance from its NPC handoff to its first incomplete objective');
+
+const lockedHandoffEngine = createQuestEngine(3);
+unlockQuests(lockedHandoffEngine, ['first_steps']);
+check(lockedHandoffEngine.startQuest('field_scout'),
+  'the field scout quest should start for the locked-successor regression');
+lockedHandoffEngine.state.progress.completedQuestIds.push('field_scout');
+const lockedHandoffMessages = [];
+lockedHandoffEngine.toast = (message) => {
+  lockedHandoffMessages.push(String(message || ''));
+};
+check(lockedHandoffEngine.claimQuestReward('field_scout'),
+  'the field scout reward should be claimable before the advancement level gate');
+const lockedTrialAvailability = lockedHandoffEngine.getQuestAvailability('trial_ready');
+check(lockedTrialAvailability.locked &&
+  lockedTrialAvailability.lockedReason === 'Reach Level 20 first.' &&
+  lockedHandoffEngine.state.session.questGuide.type === '' &&
+  lockedHandoffMessages.some((message) =>
+    message.includes('Ready for Advancement remains locked: Reach Level 20 first.')) &&
+  !lockedHandoffMessages.some((message) =>
+    message.includes('Ready for Advancement is available')),
+  'claiming a quest should report its successor level gate instead of falsely calling the quest available');
+
 const concurrentEngine = createQuestEngine();
 unlockQuests(concurrentEngine, ['first_steps']);
 check(concurrentEngine.startQuest('field_scout') &&

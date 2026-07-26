@@ -20,7 +20,7 @@
           label: 'Greenroot Gate',
           destinationMapId: 'greenrootMeadow',
           routeId: 'forest',
-          x: 2040,
+          x: 3311,
           platformIndex: 0,
         }),
       ]),

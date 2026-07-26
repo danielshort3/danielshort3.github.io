@@ -27,8 +27,8 @@
       jump: { frames: 6, fps: 10, loop: false, holds: [1, 1, 2, 2, 3, 3] },
       fall: { frames: 6, fps: 8, loop: false, holds: [1, 1, 2, 2, 3, 4] },
       climb: { frames: 6, fps: 8, loop: true },
-      basic: { frames: 6, fps: 16, loop: false },
-      skill: { frames: 6, fps: 12, loop: false },
+      basic: { frames: 6, fps: 16, loop: false, contactFrame: 2 },
+      skill: { frames: 6, fps: 12, loop: false, contactFrame: 2 },
       party: { frames: 6, fps: 12, loop: false },
       hit: { frames: 6, fps: 16, loop: false },
       defeat: { frames: 6, fps: 9, loop: false }
