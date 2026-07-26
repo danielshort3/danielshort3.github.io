@@ -17,7 +17,7 @@
     plinko: 'Starfall Plinko',
     daily: 'Daily Rewards',
     cashShop: 'Cash Shop',
-    beta: 'Beta Systems',
+    beta: 'Rewards & Style',
     guide: 'Guide',
     log: 'Session Log',
     keybinds: 'Keybinds',

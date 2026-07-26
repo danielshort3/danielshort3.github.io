@@ -71,6 +71,38 @@
     return (data.SKILL_MODIFIERS || []).find((modifier) => modifier && modifier.skillId === skill.id && unlocked.has(modifier.id)) || null;
   }
 
+  function mergeSkillModifiers(baseModifier, overlayModifier) {
+    const base = baseModifier && typeof baseModifier === 'object' ? baseModifier : null;
+    const overlay = overlayModifier && typeof overlayModifier === 'object' ? overlayModifier : null;
+    if (!base && !overlay) return null;
+    if (!base) return Object.assign({}, overlay);
+    if (!overlay) return base;
+    const merged = Object.assign({}, base, overlay);
+    [
+      'damageScale',
+      'brokenDamageScale',
+      'markedDamageScale',
+      'breakScale',
+      'cooldownScale',
+      'resourceCostScale'
+    ].forEach((key) => {
+      const baseValue = base[key] == null ? 1 : Number(base[key]);
+      const overlayValue = overlay[key] == null ? 1 : Number(overlay[key]);
+      merged[key] = baseValue * overlayValue;
+    });
+    ['markDuration', 'weakPointDuration', 'burnDuration', 'runeDuration', 'slowDuration'].forEach((key) => {
+      if (base[key] == null && overlay[key] == null) {
+        delete merged[key];
+        return;
+      }
+      merged[key] = Math.max(0, Number(base[key] || 0), Number(overlay[key] || 0));
+    });
+    if (base.extraLines != null || overlay.extraLines != null) {
+      merged.extraLines = Math.max(0, Math.floor(Number(base.extraLines || 0) + Number(overlay.extraLines || 0)));
+    }
+    return merged;
+  }
+
   function createSkillModifierDamageScale(modifier, skill, enemy, options) {
     const settings = options || {};
     const now = Number(settings.nowSeconds || 0);
@@ -270,6 +302,7 @@
     isSkillModifierUnlocked,
     createUnlockedSkillModifierIds,
     getSkillModifierForSkill,
+    mergeSkillModifiers,
     createSkillModifierDamageScale,
     isPassiveSkill,
     isBuffSkill,

@@ -5163,6 +5163,8 @@
   }
 
   const CREATE_SPECIALIZATION_STATE = getEngineSpecializationHelper('createSpecializationState');
+  const GET_ACTIVE_SPECIALIZATION = getEngineSpecializationHelper('getActiveSpecialization');
+  const GET_SPECIALIZATION_SKILL_MODIFIER = getEngineSpecializationHelper('getSpecializationSkillModifier');
   const CREATE_SPECIALIZATION_BONUSES = getEngineSpecializationHelper('createSpecializationBonuses');
   const CREATE_SPECIALIZATION_SNAPSHOT = getEngineSpecializationHelper('createSpecializationSnapshot');
   const GET_SPECIALIZATION_LOCK_REASON = getEngineSpecializationHelper('getSpecializationLockReason');
@@ -8834,6 +8836,7 @@
   const IS_SKILL_MODIFIER_UNLOCKED = getEngineSkillModifierHelper('isSkillModifierUnlocked');
   const CREATE_UNLOCKED_SKILL_MODIFIER_IDS = getEngineSkillModifierHelper('createUnlockedSkillModifierIds');
   const GET_SKILL_MODIFIER_FOR_SKILL = getEngineSkillModifierHelper('getSkillModifierForSkill');
+  const MERGE_SKILL_MODIFIERS = getEngineSkillModifierHelper('mergeSkillModifiers');
   const CREATE_SKILL_MODIFIER_DAMAGE_SCALE = getEngineSkillModifierHelper('createSkillModifierDamageScale');
   const GET_SKILL_MODIFIER_SNAPSHOT_SKILL_IDS = getEngineSkillModifierHelper('getSkillModifierSnapshotSkillIds');
   const GET_SKILL_MODIFIER_SNAPSHOT_CACHE_KEY = getEngineSkillModifierHelper('getSkillModifierSnapshotCacheKey');
@@ -21882,14 +21885,22 @@
     getSkillModifierForSkill(skill) {
       if (!skill || !skill.id) return null;
       const unlockedIds = this.getUnlockedSkillModifierIds();
+      let modifier = null;
       if (GET_SKILL_MODIFIER_FOR_SKILL) {
-        return GET_SKILL_MODIFIER_FOR_SKILL(skill, this.state.skillModifiers, unlockedIds, { data: Data });
+        modifier = GET_SKILL_MODIFIER_FOR_SKILL(skill, this.state.skillModifiers, unlockedIds, { data: Data });
+      } else {
+        const unlocked = new Set(unlockedIds);
+        const activeId = this.state.skillModifiers.activeBySkillId && this.state.skillModifiers.activeBySkillId[skill.id];
+        const active = activeId ? getById(Data.SKILL_MODIFIERS || [], activeId) : null;
+        modifier = active && unlocked.has(active.id)
+          ? active
+          : (Data.SKILL_MODIFIERS || []).find((entry) => entry && entry.skillId === skill.id && unlocked.has(entry.id)) || null;
       }
-      const unlocked = new Set(unlockedIds);
-      const activeId = this.state.skillModifiers.activeBySkillId && this.state.skillModifiers.activeBySkillId[skill.id];
-      const active = activeId ? getById(Data.SKILL_MODIFIERS || [], activeId) : null;
-      if (active && unlocked.has(active.id)) return active;
-      return (Data.SKILL_MODIFIERS || []).find((modifier) => modifier && modifier.skillId === skill.id && unlocked.has(modifier.id)) || null;
+      const specializationModifier = GET_SPECIALIZATION_SKILL_MODIFIER
+        ? GET_SPECIALIZATION_SKILL_MODIFIER(skill, this.state.player || {}, this.getSpecializationState(), { data: Data })
+        : null;
+      if (MERGE_SKILL_MODIFIERS) return MERGE_SKILL_MODIFIERS(modifier, specializationModifier);
+      return specializationModifier ? Object.assign({}, modifier || {}, specializationModifier) : modifier;
     }
 
     getSkillModifierDamageScale(skill, enemy) {
@@ -23664,32 +23675,80 @@
     }
 
     getSpecializationState() {
+      if (this.state && this.state.specializations && typeof this.state.specializations === 'object') {
+        return this.state.specializations;
+      }
       this.ensureRuntimeState();
       return this.state.specializations;
+    }
+
+    getActiveSpecialization() {
+      const player = this.state.player || {};
+      const specializations = this.getSpecializationState();
+      if (GET_ACTIVE_SPECIALIZATION) {
+        return GET_ACTIVE_SPECIALIZATION(player, specializations, { data: Data });
+      }
+      const specializationId = specializations.selectedByAdvancedId && specializations.selectedByAdvancedId[player.advancedClassId];
+      const specialization = getById(Data.SPECIALIZATIONS || [], specializationId);
+      return specialization && specialization.advancedId === player.advancedClassId ? specialization : null;
+    }
+
+    getSpecializationChoiceContext() {
+      const map = getMapDefinitionById(this.state.mapId);
+      const trial = this.getTrialInstanceState();
+      const dungeons = this.getDungeonState();
+      const trialActive = !!(trial && trial.active);
+      const dungeonActive = !!(dungeons && dungeons.activeDungeonId);
+      const riftActive = !!(map && (map.id === 'endlessRift' || map.endlessScaling));
+      return {
+        data: Data,
+        specializations: this.getSpecializationState(),
+        safeZone: !!(map && map.safeZone && !trialActive && !dungeonActive && !riftActive),
+        mapName: map && map.name || '',
+        trialActive,
+        dungeonActive,
+        riftActive,
+        currency: Math.max(0, Number(this.state.player && this.state.player.currency || 0))
+      };
     }
 
     getSpecializationSnapshot() {
       const player = this.state.player;
       const specializations = this.getSpecializationState();
+      const context = this.getSpecializationChoiceContext();
       if (CREATE_SPECIALIZATION_SNAPSHOT) {
-        return CREATE_SPECIALIZATION_SNAPSHOT(player, specializations, { data: Data });
+        return CREATE_SPECIALIZATION_SNAPSHOT(player, specializations, context);
       }
       const selectedByAdvancedId = Object.assign({}, specializations.selectedByAdvancedId || {});
+      const selectedId = selectedByAdvancedId[player.advancedClassId] || '';
+      const selected = getById(Data.SPECIALIZATIONS || [], selectedId);
+      const levelRequirement = Number(Data.SPECIALIZATION_LEVEL || 60);
       return {
-        levelRequirement: Number(Data.SPECIALIZATION_LEVEL || 60),
+        levelRequirement,
+        respecCost: Math.max(0, Number(Data.SPECIALIZATION_RESPEC_COST || 0)),
+        safeZone: context.safeZone,
+        mapName: context.mapName,
         selectedByAdvancedId,
-        selectedId: selectedByAdvancedId[player.advancedClassId] || '',
+        selectedId,
+        selectedName: selected && selected.name || '',
+        selectionPending: !!(player.advancedClassId && Number(player.level || 1) >= levelRequirement && !selectedId),
         specializations: (Data.SPECIALIZATIONS || []).map((specialization) => Object.assign({}, specialization, {
           available: !!(player.advancedClassId && specialization.advancedId === player.advancedClassId),
           selected: selectedByAdvancedId[specialization.advancedId] === specialization.id,
-          lockedReason: this.getSpecializationLockReason(specialization)
+          lockedReason: this.getSpecializationLockReason(specialization),
+          actionLabel: selectedByAdvancedId[specialization.advancedId] === specialization.id
+            ? 'Active'
+            : selectedId
+              ? 'Switch'
+              : 'Choose',
+          choiceCost: 0
         }))
       };
     }
 
     getSpecializationLockReason(specialization) {
       if (GET_SPECIALIZATION_LOCK_REASON) {
-        return GET_SPECIALIZATION_LOCK_REASON(specialization, this.state.player || {}, { data: Data });
+        return GET_SPECIALIZATION_LOCK_REASON(specialization, this.state.player || {}, this.getSpecializationChoiceContext());
       }
       const player = this.state.player || {};
       if (!specialization) return 'Specialization is unavailable.';
@@ -23698,13 +23757,22 @@
       if (player.level < Number(specialization.levelRequirement || Data.SPECIALIZATION_LEVEL || 60)) {
         return `Level ${specialization.levelRequirement || Data.SPECIALIZATION_LEVEL || 60} required.`;
       }
+      const context = this.getSpecializationChoiceContext();
+      if (context.trialActive) return 'Finish the active class trial before choosing a path.';
+      if (context.dungeonActive) return 'Finish or leave the active dungeon before choosing a path.';
+      if (context.riftActive) return 'Bank or end the Rift run before choosing a path.';
+      if (!context.safeZone) return 'Return to a town to choose a path.';
       return '';
     }
 
-    chooseSpecialization(specializationId) {
+    chooseSpecialization(specializationId, options) {
+      const settings = options || {};
       const specialization = getById(Data.SPECIALIZATIONS || [], specializationId);
+      const context = Object.assign({}, this.getSpecializationChoiceContext(), {
+        confirmed: !!settings.confirmed
+      });
       const plan = CREATE_SPECIALIZATION_CHOICE_PLAN
-        ? CREATE_SPECIALIZATION_CHOICE_PLAN(specialization, this.state.player || {}, { data: Data })
+        ? CREATE_SPECIALIZATION_CHOICE_PLAN(specialization, this.state.player || {}, context)
         : null;
       if (plan) {
         if (!plan.ok) {
@@ -23712,9 +23780,16 @@
           return false;
         }
         const specializations = this.getSpecializationState();
+        const cost = Math.max(0, Math.floor(Number(plan.cost || 0) || 0));
+        if (cost) {
+          this.state.player.currency = Math.max(0, Number(this.state.player.currency || 0) - cost);
+          this.recordCombatCurrencySpend(cost, 'specializationRespec');
+        }
         specializations.selectedByAdvancedId[plan.advancedId] = plan.specializationId;
         this.recalculateVitals();
-        this.toast(plan.toast);
+        this.playAudioCue('uiConfirm');
+        this.toast(plan.toast, { noEmit: true });
+        this.emitUiChange({ domains: ['hud', 'skills', 'session'], reason: 'specialization', persist: true });
         return true;
       }
       const lockReason = this.getSpecializationLockReason(specialization);
@@ -23722,10 +23797,16 @@
         this.toast(lockReason);
         return false;
       }
+      if (!settings.confirmed) {
+        this.toast('Confirm this specialization first.');
+        return false;
+      }
       const specializations = this.getSpecializationState();
       specializations.selectedByAdvancedId[specialization.advancedId] = specialization.id;
       this.recalculateVitals();
-      this.toast(`${specialization.name} specialization active.`);
+      this.playAudioCue('uiConfirm');
+      this.toast(`${specialization.name} specialization active.`, { noEmit: true });
+      this.emitUiChange({ domains: ['hud', 'skills', 'session'], reason: 'specialization', persist: true });
       return true;
     }
 
@@ -34689,6 +34770,8 @@
     damageEnemyWithSkillLines(enemy, amount, skill, options) {
       const settings = options || {};
       const stats = this.getStats();
+      const consumesWeakPoint = !!(enemy && Number(enemy.weakPoint || 0) > 0 && skill &&
+        (skill.id === 'sniper_execution_shot' || skill.id === 'sniper_one_perfect_shot'));
       const modifier = skill ? this.getSkillModifierForSkill(skill) : null;
       const extraLines = Math.max(0, Math.floor(Number(modifier && modifier.extraLines || 0) || 0));
       const lineCount = Math.max(1, Math.min(8, Math.floor(Number(settings.lineCount || getSkillLineCount(skill) || 1) || 1) + extraLines));
@@ -34719,6 +34802,7 @@
       }
       this.applySkillHitEffects(skill, enemy, settings.projectile || null);
       this.applySkillModifierHitEffects(skill, enemy);
+      if (consumesWeakPoint) enemy.weakPoint = 0;
       this.applyBossBreakProgress(enemy, adjustedAmount, skill, settings);
     }
 
@@ -34761,7 +34845,8 @@
         mechanics.runeLinkIds = [uid].concat(mechanics.runeLinkIds || []).filter((value, index, list) => value && list.indexOf(value) === index).slice(0, 4);
       }
       if ((id.includes('fire') || id.includes('burn') || targeting.applyBurn) && enemy.burning > 0) {
-        this.spreadBurnFromEnemy(enemy, sourceSkill, 126);
+        const spreadRadius = id === 'fire_mage_wildfire' || id === 'fire_mage_inferno_burst' ? 132 : 126;
+        this.spreadBurnFromEnemy(enemy, sourceSkill, spreadRadius);
       }
     }
 
@@ -35331,7 +35416,6 @@
         this.findEnemiesNear(center.x, center.y, radius, { skill, channel: id === 'fire_mage_inferno_burst' ? 'finisherArea' : 'area' }).forEach((enemy) => {
           const burnBonus = enemy.burning > 0 ? 1.35 : 1;
           this.hitRoleTarget(enemy, skill, power * (id === 'fire_mage_inferno_burst' ? 1.15 : 0.86) * burnBonus, { burn: 6.5, mark: 2.5, knockback: 70 });
-          this.spreadBurnFromEnemy(enemy, skill, 132);
         });
         this.gainResource(id === 'fire_mage_inferno_burst' ? 4 : 16);
         this.pushSkillAreaEffect(skill, center.x, center.y, radius, { ttl: 0.65, duration: 0.65 });
@@ -35431,7 +35515,7 @@
         return true;
       }
       if (id === 'trapper_snare_trap' || id === 'trapper_spike_trap' || id === 'trapper_tripwire' || id === 'trapper_kill_zone') {
-        const trapPower = power * (player.buffs.tacticalField > nowSeconds() ? 1.15 : 1);
+        const trapPower = power;
         this.createTrapObject(skill, rank, stats, {
           radius: id === 'trapper_kill_zone' ? 196 : id === 'trapper_tripwire' ? 136 : id === 'trapper_spike_trap' ? 108 : 96,
           damage: id === 'trapper_snare_trap' ? trapPower * 0.58 : id === 'trapper_kill_zone' ? trapPower * 1.28 : id === 'trapper_tripwire' ? trapPower * 1.02 : trapPower * 0.96,
@@ -37448,6 +37532,7 @@
 	    checkLevelUp(options) {
 	      const settings = options || {};
 	      const player = this.state.player;
+      const previousLevel = Math.max(1, Number(player.level || 1));
       let gained = 0;
       while (player.level < LEVEL_CAP && player.xp >= getLevelXp(player.level)) {
         player.xp -= getLevelXp(player.level);
@@ -37466,7 +37551,13 @@
         player.resource = stats.secondaryResourceMax;
 	        this.recordProgressEvent('level', { level: player.level }, { noEmit: !!settings.noEmit });
         this.pushLevelUpEffect(gained);
-        this.toast(`Level ${player.level}. Skill points available.`);
+        const specializationLevel = Number(Data.SPECIALIZATION_LEVEL || 60);
+        const specializationReady = previousLevel < specializationLevel &&
+          Number(player.level || 1) >= specializationLevel &&
+          !!player.advancedClassId;
+        this.toast(specializationReady
+          ? `Level ${specializationLevel} reached! Specialization ready - return to town and open Character > Class.`
+          : `Level ${player.level}. Skill points available.`);
       }
       if (Number.isFinite(LEVEL_CAP) && player.level >= LEVEL_CAP) {
         player.xp = Math.min(player.xp, Math.max(0, getLevelXp(LEVEL_CAP) - 1));
@@ -41250,6 +41341,8 @@
       const inventoryTab = normalizeInventoryTab(this.state && this.state.session && this.state.session.inventoryTab);
       const inventoryPanelOpen = hasPanel('inventory');
       const needsBeta = hasPanel('beta');
+      const needsRoster = hasPanel('character') || needsBeta;
+      const needsSpecializations = hasPanel('character') || needsBeta || options.commandOpen;
       const needsDaily = hasPanel('daily') || options.commandOpen;
       const needsCashShop = hasPanel('cashShop');
       const needsShop = hasPanel('shop');
@@ -41269,6 +41362,8 @@
         needsPet: hasPanel('pet'),
         needsParty: hasPanel('partyPanel'),
         needsBeta,
+        needsRoster,
+        needsSpecializations,
         needsDaily,
         needsCashShop,
         needsShop,
@@ -41294,6 +41389,8 @@
         requirements.needsPet ? 'pet' : '',
         requirements.needsParty ? 'party' : '',
         requirements.needsBeta ? 'beta' : '',
+        requirements.needsRoster ? 'roster' : '',
+        requirements.needsSpecializations ? 'specializations' : '',
         requirements.needsDaily ? 'daily' : '',
         requirements.needsCashShop ? 'cashShop' : '',
         requirements.needsShop ? 'shop' : '',
@@ -41321,6 +41418,8 @@
       if (requirements.needsMonsterGuide) domains.push('monsterGuide');
       if (requirements.needsPet) domains.push('pet');
       if (requirements.needsParty) domains.push('party');
+      if (requirements.needsRoster) domains.push('skills');
+      if (requirements.needsSpecializations) domains.push('skills', 'world');
       if (requirements.needsDaily) domains.push('daily', 'inventory', 'equipment', 'cards', 'shop');
       if (requirements.needsBeta || requirements.needsCashShop || requirements.needsShop || requirements.needsPlinko) domains.push('shop');
       if (requirements.needsProgressDetail || requirements.needsDungeonDetail || requirements.needsQuests) domains.push('quests');
@@ -41843,6 +41942,8 @@
       const needsPet = requirements.needsPet;
       const needsParty = requirements.needsParty;
       const needsBeta = requirements.needsBeta;
+      const needsRoster = requirements.needsRoster;
+      const needsSpecializations = requirements.needsSpecializations;
       const needsDaily = requirements.needsDaily;
       const needsCashShop = requirements.needsCashShop;
       const needsShop = requirements.needsShop;
@@ -41955,8 +42056,8 @@
           }))
         } : { maps: [] };
         snapshot.party = needsParty ? this.getPartySnapshot() : { members: [], activeMembers: [] };
-        snapshot.roster = needsBeta ? this.getRosterSnapshot() : { traits: [], activeTraitIds: [], slots: 0 };
-        snapshot.specializations = needsBeta ? this.getSpecializationSnapshot() : { options: [] };
+        snapshot.roster = needsRoster ? this.getRosterSnapshot() : { traits: [], activeTraitIds: [], slots: 0 };
+        snapshot.specializations = needsSpecializations ? this.getSpecializationSnapshot() : { specializations: [], selectionPending: false };
         snapshot.market = needsBeta ? this.getMarketSnapshot() : { listings: [] };
         snapshot.cosmetics = needsBeta || needsCashShop ? this.getCosmeticSnapshot() : { cosmetics: [] };
         snapshot.dailyLogin = needsDaily ? this.getDailyLoginSnapshot() : { claimable: false, claimedToday: false, cycleRewards: [], milestones: [] };

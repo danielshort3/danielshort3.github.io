@@ -221,6 +221,8 @@
     const getAttribute = source && typeof source.getAttribute === 'function'
       ? (name) => source.getAttribute(name)
       : () => null;
+    const specializationId = getAttribute('data-starfall-specialization');
+    if (specializationId) return { handled: true, type: 'chooseSpecialization', specializationId };
     const advancedId = getAttribute('data-starfall-advanced');
     if (advancedId) return { handled: true, type: 'chooseAdvancedClass', advancedId };
     return { handled: false, type: '' };

@@ -5555,9 +5555,15 @@
         if (set.has('skills') && typeof this.engine.getSkillsSnapshot === 'function') {
           this.snapshot.skills = this.engine.getSkillsSnapshot();
         }
+        if ((set.has('skills') || set.has('session')) && typeof this.engine.getSpecializationSnapshot === 'function') {
+          this.snapshot.specializations = this.engine.getSpecializationSnapshot();
+        }
         if (set.has('shop')) {
           if (typeof this.engine.getPlinkoSnapshot === 'function') this.snapshot.plinko = this.engine.getPlinkoSnapshot();
           if (typeof this.engine.getCashShopSnapshot === 'function') this.snapshot.cashShop = this.engine.getCashShopSnapshot();
+          if (typeof this.engine.getMarketSnapshot === 'function') this.snapshot.market = this.engine.getMarketSnapshot();
+          if (typeof this.engine.getCosmeticSnapshot === 'function') this.snapshot.cosmetics = this.engine.getCosmeticSnapshot();
+          if (typeof this.engine.getSeasonSnapshot === 'function') this.snapshot.season = this.engine.getSeasonSnapshot();
         }
         if (set.has('daily') && typeof this.engine.getDailyLoginSnapshot === 'function') {
           this.snapshot.dailyLogin = this.engine.getDailyLoginSnapshot();
@@ -9900,6 +9906,40 @@
       });
     }
 
+    openSpecializationChoicePrompt(specializationId) {
+      const specializations = this.snapshot && this.snapshot.specializations || {};
+      const choices = specializations.specializations || [];
+      const specialization = choices.find((entry) => entry && entry.id === specializationId);
+      if (!specialization) {
+        this.showToast('Specialization is unavailable.');
+        return false;
+      }
+      if (specialization.selected) {
+        this.showToast(`${specialization.name} is already active.`);
+        return false;
+      }
+      if (specialization.lockedReason) {
+        this.showToast(specialization.lockedReason);
+        return false;
+      }
+      const current = choices.find((entry) => entry && entry.id === specializations.selectedId);
+      const cost = Math.max(0, Math.floor(Number(specialization.choiceCost || 0) || 0));
+      const transitionLabel = current ? `From ${current.name}.` : '';
+      const costLabel = current
+        ? cost
+          ? `Cost: ${formatAbbreviatedInteger(cost)} coins.`
+          : 'Switching is free while you are in town.'
+        : 'Your first specialization is free.';
+      return this.openConfirmPrompt({
+        id: `specialization:${specialization.id}`,
+        title: current ? `Switch to ${specialization.name}` : `Choose ${specialization.name}`,
+        message: `${transitionLabel} ${costLabel} Tradeoff: ${specialization.tradeoff}`.trim(),
+        confirmLabel: current ? 'Switch Path' : 'Choose Path',
+        onConfirm: () => !!(this.engine && this.engine.chooseSpecialization &&
+          this.engine.chooseSpecialization(specialization.id, { confirmed: true }))
+      });
+    }
+
     confirmReset(onConfirm) {
       return this.openConfirmPrompt({
         id: 'save-reset',
@@ -12147,6 +12187,14 @@
             this.engine.buyItem(shopPanelAction.itemId);
           } else if (shopPanelAction.type === 'buyCashShopItem') {
             if (this.engine.buyCashShopItem) this.engine.buyCashShopItem(shopPanelAction.itemId);
+          } else if (shopPanelAction.type === 'buyMarketListing') {
+            if (this.engine.buyMarketListing) this.engine.buyMarketListing(shopPanelAction.listingId);
+          } else if (shopPanelAction.type === 'buyCosmetic') {
+            if (this.engine.buyCosmetic) this.engine.buyCosmetic(shopPanelAction.cosmeticId);
+          } else if (shopPanelAction.type === 'equipCosmetic') {
+            if (this.engine.equipCosmetic) this.engine.equipCosmetic(shopPanelAction.cosmeticId);
+          } else if (shopPanelAction.type === 'claimSeasonReward') {
+            if (this.engine.claimSeasonReward) this.engine.claimSeasonReward();
           }
           return;
         }
@@ -12174,6 +12222,25 @@
         const cashShopBuyId = target.getAttribute('data-starfall-cash-shop-buy');
         if (cashShopBuyId) {
           if (this.engine.buyCashShopItem) this.engine.buyCashShopItem(cashShopBuyId);
+          return;
+        }
+        const marketListingId = target.getAttribute('data-starfall-market-buy');
+        if (marketListingId) {
+          if (this.engine.buyMarketListing) this.engine.buyMarketListing(marketListingId);
+          return;
+        }
+        const cosmeticBuyId = target.getAttribute('data-starfall-cosmetic-buy');
+        if (cosmeticBuyId) {
+          if (this.engine.buyCosmetic) this.engine.buyCosmetic(cosmeticBuyId);
+          return;
+        }
+        const cosmeticEquipId = target.getAttribute('data-starfall-cosmetic-equip');
+        if (cosmeticEquipId) {
+          if (this.engine.equipCosmetic) this.engine.equipCosmetic(cosmeticEquipId);
+          return;
+        }
+        if (target.hasAttribute('data-starfall-season-claim')) {
+          if (this.engine.claimSeasonReward) this.engine.claimSeasonReward();
           return;
         }
       }
@@ -12568,9 +12635,18 @@
       if (advancedClassHelper) {
         const advancedClassAction = advancedClassHelper(target);
         if (advancedClassAction && advancedClassAction.handled) {
-          this.engine.chooseAdvancedClass(advancedClassAction.advancedId);
+          if (advancedClassAction.type === 'chooseSpecialization') {
+            this.openSpecializationChoicePrompt(advancedClassAction.specializationId);
+          } else {
+            this.engine.chooseAdvancedClass(advancedClassAction.advancedId);
+          }
         }
       } else {
+        const specializationId = target.getAttribute('data-starfall-specialization');
+        if (specializationId) {
+          this.openSpecializationChoicePrompt(specializationId);
+          return;
+        }
         const advancedId = target.getAttribute('data-starfall-advanced');
         if (advancedId) {
           this.engine.chooseAdvancedClass(advancedId);
@@ -15951,7 +16027,7 @@
         plinko: 'Starfall Plinko',
         daily: 'Daily Rewards',
         cashShop: 'Cash Shop',
-        beta: 'Beta Systems',
+        beta: 'Rewards & Style',
         guide: 'Guide',
         log: 'Session Log',
         keybinds: 'Keybinds',
@@ -16947,6 +17023,7 @@
         role,
         advancedChoices,
         masteryTracks,
+        specializations: this.snapshot.specializations || { specializations: [], selectionPending: false },
         classLabel,
         name,
         statUpgrades,
@@ -17111,13 +17188,24 @@
       const selected = context.advancedChoices.find((branch) => branch.id === player.advancedClassId);
       const ready = context.advancedChoices.find((branch) => this.getAdvancedClassStatus(branch, player).chooseReady);
       const next = context.advancedChoices.find((branch) => !selected || branch.id !== selected.id);
-      const summary = selected
+      const specializationState = context.specializations || {};
+      const selectedSpecialization = (specializationState.specializations || []).find((entry) =>
+        entry && entry.id === specializationState.selectedId);
+      const advancedSummary = selected
         ? `${selected.name}: active advanced path.`
         : ready
           ? `${ready.name}: ready to choose.`
           : next
             ? `${next.name}: ${this.getAdvancedClassStatus(next, player).status}.`
             : 'No advanced branch available.';
+      const specializationSummary = selectedSpecialization
+        ? `${selectedSpecialization.name} specialization active.`
+        : specializationState.selectionPending
+          ? 'Level 60 specialization ready in Class.'
+          : selected
+            ? `Specialization unlocks at level ${specializationState.levelRequirement || 60}.`
+            : '';
+      const summary = [advancedSummary, specializationSummary].filter(Boolean).join(' ');
       return this.renderCharacterPanelCard('Advanced Class', 'Class', 'class', `<p class="project-starfall-muted">${escapeHtml(summary)}</p>`, '');
     }
 
@@ -17147,6 +17235,51 @@
                     <strong>${escapeHtml(branch.name)}</strong>
                     <span>${escapeHtml(branch.resourceName)} - ${escapeHtml(status.status)}</span>
                     ${branch.roleProfile ? `<small>${escapeHtml(branch.roleProfile.primary)} - ${escapeHtml(branch.roleProfile.specialty)}</small>` : ''}
+                  </span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    renderCharacterSpecializationPanel(context) {
+      const specializationState = context.specializations || {};
+      const visible = (specializationState.specializations || []).filter((specialization) =>
+        specialization && specialization.available);
+      const levelRequirement = Number(specializationState.levelRequirement || 60);
+      const intro = !context.player.advancedClassId
+        ? 'Choose an advanced class to preview its two specialization paths.'
+        : Number(context.player.level || 1) < levelRequirement
+          ? `Preview both paths now. They unlock at level ${levelRequirement}.`
+          : specializationState.selectedName
+            ? `${specializationState.selectedName} is active. You can switch paths for free while in town.`
+            : specializationState.safeZone
+              ? 'Choose one of two playstyle paths. Your first choice is free.'
+              : 'Return to a town to choose one of two playstyle paths.';
+      return `
+        <section class="project-starfall-panel-block project-starfall-character-progress">
+          <h3>Specialization - Level ${escapeHtml(levelRequirement)}</h3>
+          <p class="project-starfall-muted">${escapeHtml(intro)}</p>
+          <div class="project-starfall-branch-list">
+            ${visible.map((specialization) => {
+              const actionDisabled = !!specialization.lockedReason || specialization.selected;
+              const art = context.currentClass && context.currentClass.asset
+                ? renderAssetImage(context.currentClass.asset, '', 'project-starfall-branch-art')
+                : `<span class="project-starfall-branch-art" aria-hidden="true">${escapeHtml(specialization.badge || 'SPC')}</span>`;
+              const status = specialization.selected
+                ? 'Active'
+                : specialization.lockedReason || specialization.actionLabel || 'Choose';
+              return `
+                <button type="button" data-starfall-specialization="${escapeHtml(specialization.id)}" aria-disabled="${actionDisabled ? 'true' : 'false'}" aria-pressed="${specialization.selected ? 'true' : 'false'}">
+                  ${art}
+                  <span class="project-starfall-branch-copy">
+                    <strong>${escapeHtml(specialization.name)}</strong>
+                    <span>${escapeHtml(`${specialization.role} - ${status}`)}</span>
+                    <small>${escapeHtml(specialization.mechanic)}</small>
+                    <small>Tradeoff: ${escapeHtml(specialization.tradeoff)}</small>
+                    <small>Bonuses: ${escapeHtml(compactStats(specialization.statBonuses || {}, 5))}</small>
                   </span>
                 </button>
               `;
@@ -17188,6 +17321,7 @@
           </div>
         ` : ''}
         ${this.renderCharacterAdvancedPanel(context)}
+        ${this.renderCharacterSpecializationPanel(context)}
       `;
     }
 
@@ -19464,6 +19598,62 @@
           ${cosmetics.map(renderItem).join('')}
           ${buffs.map(renderItem).join('')}
         </div>
+      `;
+    }
+
+    renderRewardsStylePanel() {
+      const player = this.snapshot.state.player || {};
+      const market = this.snapshot.market || { listings: [] };
+      const cosmetics = this.snapshot.cosmetics || { cosmetics: [] };
+      const season = this.snapshot.season || {};
+      const renderMarketListing = (listing) => {
+        const disabled = !!listing.purchased || !!listing.lockedReason ||
+          Number(player.currency || 0) < Number(listing.cost || 0);
+        return `
+          <article class="project-starfall-gear-card">
+            <span class="project-starfall-gear-icon" aria-hidden="true">MKT</span>
+            <span class="project-starfall-gear-card-main">
+              <strong>${escapeHtml(listing.name)}</strong>
+              <small>${escapeHtml(listing.lockedReason || `${formatAbbreviatedInteger(listing.cost || 0)} coins`)}</small>
+              <small>${escapeHtml(this.formatRewardSummary(listing.reward))}</small>
+            </span>
+            <button type="button" data-starfall-market-buy="${escapeHtml(listing.id)}" ${disabled ? 'disabled' : ''}>${listing.purchased ? 'Owned' : 'Buy'}</button>
+          </article>
+        `;
+      };
+      const renderCosmetic = (cosmetic) => {
+        const unlocked = !!cosmetic.unlocked;
+        const disabled = !!cosmetic.equipped || !!(cosmetic.seasonReward && !unlocked) ||
+          (!unlocked && Number(player.currency || 0) < Number(cosmetic.cost || 0));
+        const attribute = unlocked ? 'data-starfall-cosmetic-equip' : 'data-starfall-cosmetic-buy';
+        const label = cosmetic.equipped ? 'Equipped' : unlocked ? 'Equip' : 'Buy';
+        return `
+          <article class="project-starfall-gear-card">
+            <span class="project-starfall-gear-icon" aria-hidden="true">${escapeHtml(cosmetic.icon || 'COS')}</span>
+            <span class="project-starfall-gear-card-main">
+              <strong>${escapeHtml(cosmetic.name)}</strong>
+              <small>${escapeHtml(unlocked ? 'Unlocked' : cosmetic.seasonReward ? 'Season reward' : `${formatAbbreviatedInteger(cosmetic.cost || 0)} coins`)}</small>
+            </span>
+            <button type="button" ${attribute}="${escapeHtml(cosmetic.id)}" ${disabled ? 'disabled' : ''}>${label}</button>
+          </article>
+        `;
+      };
+      const activeSeason = season.activeSeason || null;
+      return `
+        <p class="project-starfall-muted">Coins: ${formatAbbreviatedInteger(player.currency)}. Collect practical unlocks and playful character styles here.</p>
+        <h3>Market</h3>
+        <div class="project-starfall-card-grid">
+          ${(market.listings || []).map(renderMarketListing).join('') || '<p class="project-starfall-muted">No market listings are available.</p>'}
+        </div>
+        <h3>Cosmetics</h3>
+        <div class="project-starfall-card-grid">
+          ${(cosmetics.cosmetics || []).filter((cosmetic) => !cosmetic.cashShopOnly).map(renderCosmetic).join('') || '<p class="project-starfall-muted">No cosmetics are available.</p>'}
+        </div>
+        ${activeSeason ? `
+          <h3>${escapeHtml(activeSeason.name)}</h3>
+          <p class="project-starfall-muted">${escapeHtml(activeSeason.summary || '')}</p>
+          <button type="button" data-starfall-season-claim ${season.complete && !season.rewardClaimed ? '' : 'disabled'}>${season.rewardClaimed ? 'Reward Claimed' : 'Claim Season Reward'}</button>
+        ` : ''}
       `;
     }
 
@@ -28423,7 +28613,7 @@
               { label: 'Shop', panel: 'shop', iconId: 'shop' },
               { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
               { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
-              { label: 'Beta Systems', panel: 'beta', iconId: 'beta' }
+              { label: 'Rewards & Style', panel: 'beta', iconId: 'beta' }
             ]
           }
         ];
@@ -28460,7 +28650,7 @@
         {
           title: 'Quick Access',
           items: [
-            { label: 'Character', panel: 'character', iconId: 'character' },
+            { label: this.snapshot.specializations && this.snapshot.specializations.selectionPending ? 'Character!' : 'Character', panel: 'character', iconId: 'character' },
             { label: 'Inventory', panel: 'inventory', iconId: 'inventory' },
             { label: 'Skills', panel: 'skills', iconId: 'skills' },
             { label: 'Quests', panel: 'quests', iconId: 'quests' },
@@ -29792,6 +29982,124 @@
       return cy - y;
     }
 
+    drawCharacterSpecializationCanvas(ctx, x, y, w, context) {
+      const player = context.player || {};
+      const specializationState = context.specializations || {};
+      const levelRequirement = Number(specializationState.levelRequirement || 60);
+      const visible = (specializationState.specializations || []).filter((specialization) =>
+        specialization && specialization.available);
+      let cy = y;
+      this.drawCanvasText(ctx, `Specialization - Level ${levelRequirement}`, x, cy, { color: '#102033', font: '900 13px system-ui' });
+      cy += 22;
+      const intro = !player.advancedClassId
+        ? 'Choose an advanced class to preview its two paths.'
+        : Number(player.level || 1) < levelRequirement
+          ? `Preview both paths now. They unlock at level ${levelRequirement}.`
+          : specializationState.selectedName
+            ? `${specializationState.selectedName} is active. Switch freely while in town.`
+            : specializationState.safeZone
+              ? 'Choose one of two playstyle paths. Your first choice is free.'
+              : 'Return to a town to choose a path.';
+      cy = this.drawCanvasText(ctx, intro, x, cy, {
+        color: '#5f6f7a',
+        font: '10px system-ui',
+        maxWidth: w,
+        lineHeight: 12,
+        maxLines: 2
+      }) + 8;
+      visible.forEach((specialization) => {
+        const locked = !!specialization.lockedReason;
+        const disabled = locked || specialization.selected;
+        const cardH = 140;
+        const fill = specialization.selected ? '#eef6ff' : locked ? '#fbfaf6' : '#fffaf0';
+        const stroke = specialization.selected ? 'rgba(47,125,214,0.5)' : 'rgba(16,32,51,0.14)';
+        this.drawRoundRect(ctx, x, cy, w, cardH, 8, fill, stroke);
+        this.drawIconBadge(ctx, specialization.badge || 'SPC', x + 10, cy + 10, 42, specialization.selected ? '#d9ebff' : '#f4e8cc');
+        this.drawCanvasText(ctx, specialization.name, x + 62, cy + 8, {
+          color: '#102033',
+          font: '900 12px system-ui',
+          maxWidth: Math.max(90, w - 148),
+          lineHeight: 13,
+          maxLines: 1
+        });
+        this.drawCanvasText(ctx, specialization.role || 'Specialization path', x + 62, cy + 27, {
+          color: specialization.selected ? '#2f7dd6' : '#5f6f7a',
+          font: '850 10px system-ui',
+          maxWidth: Math.max(90, w - 148),
+          lineHeight: 11,
+          maxLines: 1
+        });
+        this.drawCanvasText(ctx, specialization.summary || '', x + 62, cy + 44, {
+          color: '#5f6f7a',
+          font: '9px system-ui',
+          maxWidth: Math.max(90, w - 148),
+          lineHeight: 10,
+          maxLines: 1
+        });
+        this.drawCanvasText(ctx, `Mechanic: ${specialization.mechanic || ''}`, x + 10, cy + 66, {
+          color: '#102033',
+          font: '9px system-ui',
+          maxWidth: w - 20,
+          lineHeight: 11,
+          maxLines: 2
+        });
+        this.drawCanvasText(ctx, `Tradeoff: ${specialization.tradeoff || ''}`, x + 10, cy + 91, {
+          color: '#7a5a37',
+          font: '9px system-ui',
+          maxWidth: w - 20,
+          lineHeight: 11,
+          maxLines: 2
+        });
+        const status = specialization.selected
+          ? 'Active'
+          : specialization.lockedReason || `${specialization.actionLabel || 'Choose'} - ${compactStats(specialization.statBonuses || {}, 4)}`;
+        this.drawCanvasText(ctx, status, x + 10, cy + 119, {
+          color: specialization.selected ? '#177645' : locked ? '#9a5b36' : '#5f6f7a',
+          font: '850 9px system-ui',
+          maxWidth: w - 20,
+          lineHeight: 10,
+          maxLines: 1
+        });
+        this.addCanvasRegion({
+          type: 'info',
+          specializationId: specialization.id,
+          tooltipTitle: specialization.name,
+          tooltipSubtitle: specialization.role || 'Specialization path',
+          tooltipLines: [
+            specialization.summary || '',
+            specialization.mechanic || '',
+            `Tradeoff: ${specialization.tradeoff || ''}`,
+            `Bonuses: ${compactStats(specialization.statBonuses || {}, 6)}`,
+            specialization.selected ? 'This path is active.' : specialization.lockedReason || 'Ready to choose.'
+          ].filter(Boolean),
+          x,
+          y: cy,
+          w,
+          h: cardH
+        });
+        this.drawCanvasButton(
+          ctx,
+          specialization.selected ? 'Active' : specialization.actionLabel || 'Choose',
+          x + w - 76,
+          cy + 14,
+          64,
+          27,
+          { type: 'specialization', specializationId: specialization.id },
+          disabled
+        );
+        cy += cardH + 8;
+      });
+      if (!visible.length) {
+        cy = this.drawCanvasText(ctx, 'No specialization paths are available yet.', x, cy, {
+          color: '#5f6f7a',
+          font: '11px system-ui',
+          maxWidth: w,
+          lineHeight: 13
+        }) + 8;
+      }
+      return cy - y;
+    }
+
     drawCharacterCanvas(ctx, x, y, w) {
       const player = this.snapshot.state.player;
       if (!player.classId) {
@@ -29809,7 +30117,8 @@
         cy += this.drawCharacterMasteryCanvas(ctx, x, cy, w, context) + 16;
         cy += this.drawRosterTraitsCanvas(ctx, x, cy, w);
       } else if (activeTab === 'class') {
-        cy += this.drawCharacterAdvancedCanvas(ctx, x, cy, w, context);
+        cy += this.drawCharacterAdvancedCanvas(ctx, x, cy, w, context) + 16;
+        cy += this.drawCharacterSpecializationCanvas(ctx, x, cy, w, context);
       } else {
         cy += this.drawCharacterOverviewCanvas(ctx, x, cy, w, context);
       }
@@ -34294,23 +34603,6 @@
       let cy = y;
       cy = this.drawCanvasText(ctx, `Coins: ${formatAbbreviatedInteger(player.currency)}`, x, cy, { color: '#5f6f7a', font: '12px system-ui', maxWidth: w, lineHeight: 14 }) + 10;
 
-      const specializations = this.snapshot.specializations || {};
-      cy = this.drawCanvasText(ctx, 'Level 60 Specialization', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
-      const visibleSpecs = (specializations.specializations || []).filter((specialization) => specialization.available || specialization.selected);
-      if (!visibleSpecs.length) {
-        cy = this.drawCanvasText(ctx, 'Choose an advanced class to preview specializations.', x, cy, { color: '#5f6f7a', font: '12px system-ui', maxWidth: w, lineHeight: 14 }) + 10;
-      }
-      visibleSpecs.forEach((specialization) => {
-        const disabled = !!specialization.lockedReason || specialization.selected;
-        this.drawRoundRect(ctx, x, cy, w, 62, 7, specialization.selected ? '#eff9ef' : '#ffffff', 'rgba(16,32,51,0.14)');
-        this.drawCanvasText(ctx, specialization.name, x + 10, cy + 7, { color: '#102033', font: '850 12px system-ui', maxWidth: w - 96, lineHeight: 13 });
-        const detail = specialization.lockedReason || compactStats(specialization.statBonuses || {}, 3);
-        this.drawCanvasText(ctx, detail, x + 10, cy + 25, { color: specialization.lockedReason ? '#9a5b36' : '#5f6f7a', font: '10px system-ui', maxWidth: w - 96, lineHeight: 11 });
-        this.drawCanvasButton(ctx, specialization.selected ? 'Active' : 'Choose', x + w - 76, cy + 17, 64, 28, { type: 'specialization', specializationId: specialization.id }, disabled);
-        cy += 70;
-      });
-
-      cy += 4;
       cy = this.drawCanvasText(ctx, 'Market', x, cy, { color: '#102033', font: '900 13px system-ui' }) + 8;
       (this.snapshot.market && this.snapshot.market.listings || []).forEach((listing) => {
         const disabled = !!listing.lockedReason || player.currency < Number(listing.cost || 0);
@@ -37745,10 +38037,10 @@
       if (specializationSkillPanelRegionHelper) {
         const skillPanelRegionAction = specializationSkillPanelRegionHelper(region);
         if (skillPanelRegionAction && skillPanelRegionAction.type === 'chooseSpecialization' && this.engine.chooseSpecialization) {
-          this.engine.chooseSpecialization(skillPanelRegionAction.specializationId);
+          this.openSpecializationChoicePrompt(skillPanelRegionAction.specializationId);
         }
       } else {
-        if (region.type === 'specialization' && this.engine.chooseSpecialization) this.engine.chooseSpecialization(region.specializationId);
+        if (region.type === 'specialization' && this.engine.chooseSpecialization) this.openSpecializationChoicePrompt(region.specializationId);
       }
       const marketShopPanelRegionActionHelper = getShopPanelHelper('getShopPanelRegionAction');
       if (marketShopPanelRegionActionHelper) {

@@ -1684,7 +1684,7 @@
             { label: 'Shop', panel: 'shop', iconId: 'shop' },
             { label: 'Plinko', panel: 'plinko', iconId: 'plinko' },
             { label: 'Cash Shop', panel: 'cashShop', iconId: 'cashShop' },
-            { label: 'Beta Systems', panel: 'beta', iconId: 'beta' }
+            { label: 'Rewards & Style', panel: 'beta', iconId: 'beta' }
           ]
         }
       ];
@@ -1721,7 +1721,7 @@
       {
         title: 'Quick Access',
         items: [
-          { label: 'Character', panel: 'character', iconId: 'character' },
+          { label: source.specializations && source.specializations.selectionPending ? 'Character!' : 'Character', panel: 'character', iconId: 'character' },
           { label: 'Inventory', panel: 'inventory', iconId: 'inventory' },
           { label: 'Skills', panel: 'skills', iconId: 'skills' },
           { label: 'Quests', panel: 'quests', iconId: 'quests' },
