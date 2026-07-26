@@ -1342,6 +1342,18 @@
   const QUEST_TAB_OPTIONS = getQuestValue('QUEST_TAB_OPTIONS') || Object.freeze([
     { id: 'quests', label: 'Quests' }
   ]);
+  const WORLD_MAP_DETAIL_LAYOUT = getQuestValue('WORLD_MAP_DETAIL_LAYOUT') || Object.freeze({
+    height: 112,
+    buttonWidth: 108,
+    titleFont: '900 16px system-ui',
+    metaFont: '850 12px system-ui',
+    statusFont: '900 12px system-ui',
+    contextFont: '12px system-ui',
+    titleLineHeight: 18,
+    metaLineHeight: 14,
+    statusLineHeight: 14,
+    contextLineHeight: 14
+  });
   const ACCOMPLISHMENT_CATEGORY_ORDER = getQuestValue('ACCOMPLISHMENT_CATEGORY_ORDER') || Object.freeze([]);
   const ACCOMPLISHMENT_TIER_ORDER = getQuestValue('ACCOMPLISHMENT_TIER_ORDER') || Object.freeze([]);
   const QUEST_UI_HELPERS = createQuestHelperGroup(
@@ -15536,7 +15548,12 @@
       }
       if (this.openWindows.includes('worldmap')) {
         const nodeRegion = findHoverRegion((item) => item.type === 'world-map-node');
-        if (nodeRegion && nodeRegion.mapId) return this.getInfoHoverTarget(nodeRegion, {
+        const hasNodeTooltip = !!(nodeRegion && (
+          nodeRegion.tooltipTitle ||
+          nodeRegion.tooltipSubtitle ||
+          nodeRegion.tooltipLines && nodeRegion.tooltipLines.length
+        ));
+        if (nodeRegion && nodeRegion.mapId && hasNodeTooltip) return this.getInfoHoverTarget(nodeRegion, {
           type: 'worldMapNode',
           key: `worldMapNode:${nodeRegion.mapId}`,
           sourcePanel: 'worldmap',
@@ -17473,9 +17490,6 @@
       }, {});
       const atlas = worldMap.atlas || {};
       const selected = worldMap.selectedNode || (worldMap.nodes || []).find((node) => node.current) || null;
-      const routeSummary = ((this.snapshot.routeProgress && this.snapshot.routeProgress.routes) || [])
-        .map((route) => `${route.name}: ${(route.fields || []).filter((field) => field.complete).length}/${(route.fields || []).length} fields`)
-        .join(' - ');
       const guideHint = worldMap.pathHint || {};
       const pathHint = guideHint.nextStep
         ? `${guideHint.nextStep.portalLabel || 'Next portal'} toward ${guideHint.destinationName || 'the selected area'}`
@@ -17493,10 +17507,10 @@
       };
       const markerCode = (node) => node.layoutMarker || (node.dungeon ? 'DG' : node.type === 'town' ? 'T' : '');
       const mapModifiers = this.snapshot.mapModifiers || { active: [], rift: {} };
-      const modifierSummary = (mapModifiers.active || []).map((modifier) => modifier.name).join(' - ');
       const riftSummary = mapModifiers.rift && selected && selected.mapId === 'endlessRift'
         ? `Endless Rift tier ${Number(mapModifiers.rift.tier || 1)} - rotations ${Number(mapModifiers.rift.rotationsThisTier || 0)}/${Number(mapModifiers.rift.rotationsRequired || 3)} - ${mapModifiers.rift.decisionPending ? 'Core decision ready' : `stability ${formatAbbreviatedInteger(mapModifiers.rift.score)}/${formatAbbreviatedInteger(mapModifiers.rift.nextTierScore || 500)}`}`
         : '';
+      const getWorldMapDetailPresentation = getQuestHelper('getWorldMapDetailPresentation');
       return `
         <div class="project-starfall-panel-block project-starfall-worldmap-panel">
           <h3>World Map</h3>
@@ -17523,29 +17537,30 @@
             </div>
             <div class="project-starfall-worldmap-detail">
               ${selected ? (() => {
-                const levelLabel = selected.levelRange && selected.levelRange.length ? `Lv ${selected.levelRange[0]}-${selected.levelRange[1]}` : 'Any level';
                 const spawnSummary = this.getWorldMapSpawnSummary(selected);
-                const route = selected.route;
-                const routeProgress = route && route.fields
-                  ? route.fields.map((field) => `${field.mapName} ${formatAbbreviatedInteger(field.value)}/${formatAbbreviatedInteger(field.goal)}`).join(' - ')
-                  : '';
-                const status = selected.current ? 'Current location' : selected.lockedReason || selected.status;
                 const respawnLabel = selected.bossRespawning ? `Boss respawns in ${formatCooldownLabel(selected.bossRespawnRemaining)}` : '';
+                const contextText = riftSummary ||
+                  respawnLabel ||
+                  (selected.landmark ? `Landmark: ${selected.landmark}` : '') ||
+                  selected.areaMechanic ||
+                  selected.purpose ||
+                  'Travel through a connected portal to reach this area.';
+                const detail = getWorldMapDetailPresentation
+                  ? getWorldMapDetailPresentation(selected, {
+                    statusText: selected.selected && guideHint.lockedReason ? guideHint.lockedReason : '',
+                    contextText
+                  })
+                  : {
+                    title: selected.name,
+                    meta: selected.areaName || selected.region || '',
+                    status: selected.current ? 'Current location' : selected.lockedReason || selected.status || '',
+                    context: contextText
+                  };
                 return `
-                  <strong>${escapeHtml(selected.name)}</strong>
-                  <span>${escapeHtml(`${selected.areaName || selected.region} - ${selected.layoutRoleLabel || (selected.dungeon ? 'Dungeon' : selected.type || 'Field')} - ${levelLabel}`)}</span>
-                  ${selected.routeStage || selected.mapRoadName ? `<small>${escapeHtml([selected.routeStage, selected.mapRoadName].filter(Boolean).join(' - '))}</small>` : ''}
-                  <small>${escapeHtml(status || '')}</small>
-                  ${routeSummary ? `<small>${escapeHtml(routeSummary)}</small>` : ''}
-                  ${modifierSummary ? `<small>${escapeHtml(`Modifiers: ${modifierSummary}`)}</small>` : ''}
-                  ${riftSummary ? `<small>${escapeHtml(riftSummary)}</small>` : ''}
-                  ${selected.landmark ? `<small>${escapeHtml(`Landmark: ${selected.landmark}`)}</small>` : ''}
-                  ${selected.areaMechanic ? `<small>${escapeHtml(selected.areaMechanic)}</small>` : ''}
-                  ${spawnSummary.enemyLabel ? `<small>${escapeHtml(`Mobs: ${spawnSummary.enemyLabel}`)}</small>` : ''}
-                  ${spawnSummary.populationLabel || spawnSummary.respawnLabel ? `<small>${escapeHtml([spawnSummary.populationLabel, spawnSummary.respawnLabel && `respawn ${spawnSummary.respawnLabel}`].filter(Boolean).join(' - '))}</small>` : ''}
-                  ${spawnSummary.dropLabel ? `<small>${escapeHtml(`Known drops: ${spawnSummary.dropLabel}${spawnSummary.dropRateLabel ? ` - ${spawnSummary.dropRateLabel}` : ''}`)}</small>` : ''}
-                  ${routeProgress ? `<small>${escapeHtml(routeProgress)}</small>` : ''}
-                  ${respawnLabel ? `<small>${escapeHtml(respawnLabel)}</small>` : ''}
+                  <strong>${escapeHtml(detail.title)}</strong>
+                  <span>${escapeHtml(detail.meta)}</span>
+                  <small>${escapeHtml(detail.status)}</small>
+                  ${detail.context ? `<small>${escapeHtml(detail.context)}</small>` : ''}
                   <button type="button" data-starfall-world-map-guide="${escapeHtml(selected.mapId)}">Set Guide</button>
                   ${spawnSummary.enemyIds.length ? `<button type="button" data-starfall-world-map-monsters="${escapeHtml(spawnSummary.enemyIds.join(','))}" data-starfall-world-map-name="${escapeHtml(selected.name || '')}">Monster Guide</button>` : ''}
                 `;
@@ -24335,12 +24350,16 @@
 	        : this.openWindows
 	          .map((id) => ({ id, win: this.ensureWindow(id) }))
 	          .sort((a, b) => a.win.z - b.win.z);
+	      const getBackgroundHudVisibility = getCanvasWindowHelper('getCanvasBackgroundHudVisibility');
+	      const backgroundHudVisibility = getBackgroundHudVisibility
+	        ? getBackgroundHudVisibility(windows.map((entry) => entry.id))
+	        : { minimap: true, questTracker: true, riftTracker: true };
 	      const statusBottom = uiBottom - 4;
 	      this.drawCanvasStationPrompt(ctx, width, height, statusBottom);
 	      this.drawCanvasQuestNpcIcons(ctx, width);
-	      this.drawCanvasMinimap(ctx, width, height, uiBottom);
-	      this.drawCanvasQuestTracker(ctx, width, height, uiBottom);
-	      this.drawCanvasRiftTracker(ctx, width, height, uiBottom);
+	      if (backgroundHudVisibility.minimap) this.drawCanvasMinimap(ctx, width, height, uiBottom);
+	      if (backgroundHudVisibility.questTracker) this.drawCanvasQuestTracker(ctx, width, height, uiBottom);
+	      if (backgroundHudVisibility.riftTracker) this.drawCanvasRiftTracker(ctx, width, height, uiBottom);
 	      this.drawCanvasBossEncounterHud(ctx, width);
 	      const previousTileWarmBudget = this.canvasTileLayerWarmBudget;
 	      this.canvasTileLayerWarmBudget = this.getCanvasTileLayerWarmBudget(windows);
@@ -29719,7 +29738,7 @@
 
     getWorldMapLabelBox(node, point, radius, bounds) {
       const labelW = node.current || node.selected ? 118 : 96;
-      const labelH = 17;
+      const labelH = 19;
       const gap = 8;
       const side = String(node.labelSide || 'bottom');
       let lx = point.x - labelW / 2;
@@ -29753,16 +29772,12 @@
         ? `${nextStep.portalLabel || 'Next portal'} leads toward ${pathHint.destinationName || selected.name}.`
         : selected.current ? `${selected.name} is your current location.` : `Select Set Guide to track ${selected.name}.`;
       this.drawCanvasText(ctx, hintText, x, y, { color: pathHint.lockedReason ? '#9a5b36' : '#5f6f7a', font: '13px system-ui', maxWidth: w, lineHeight: 16, maxLines: 1 });
-      const routeSummary = ((this.snapshot.routeProgress && this.snapshot.routeProgress.routes) || [])
-        .map((route) => `${route.name}: ${(route.fields || []).filter((field) => field.complete).length}/${(route.fields || []).length}`)
-        .join('  ');
       const mapModifiers = this.snapshot.mapModifiers || { active: [], rift: {} };
-      const modifierText = (mapModifiers.active || []).map((modifier) => modifier.name).join('  ');
       const riftText = mapModifiers.rift && selected && selected.mapId === 'endlessRift'
         ? `Rift tier ${Number(mapModifiers.rift.tier || 1)} - ${Number(mapModifiers.rift.rotationsThisTier || 0)}/${Number(mapModifiers.rift.rotationsRequired || 3)} rotations${mapModifiers.rift.decisionPending ? ' - Core ready' : ''}`
         : '';
       const availableBodyH = Math.max(360, Number(this.currentCanvasPanelBody && this.currentCanvasPanelBody.h || 582));
-      const detailH = 136;
+      const detailH = WORLD_MAP_DETAIL_LAYOUT.height;
       const graphW = w;
       const graphMaxH = Math.max(260, Math.min(440, availableBodyH - detailH - 34));
       const graphH = clamp(Math.round(graphW * 0.47), Math.min(300, graphMaxH), graphMaxH);
@@ -29822,6 +29837,7 @@
         ctx.stroke();
         ctx.restore();
       });
+      const getWorldMapNodeTooltipMetadata = getCanvasHoverHelper('getWorldMapNodeTooltipMetadata');
       nodes.forEach((node) => {
         const point = pointFor(node);
         const radius = node.current || node.selected ? 11 : node.dungeon ? 10 : 8;
@@ -29857,68 +29873,91 @@
         if (this.shouldShowWorldMapNodeLabel(node, hoveredMapId, pathHint)) {
           const label = this.getWorldMapLabelBox(node, point, radius, graphBounds);
           this.drawRoundRect(ctx, label.x, label.y, label.w, label.h, 5, node.selected ? '#eef6ff' : 'rgba(255,255,255,0.84)', 'rgba(16,32,51,0.16)');
-          this.drawCanvasText(ctx, node.name, label.x + label.w / 2, label.y + 4, { color: node.locked ? '#52606b' : '#102033', font: '900 8px system-ui', align: 'center', maxWidth: label.w - 8, lineHeight: 9, maxLines: 1 });
+          this.drawCanvasText(ctx, node.name, label.x + label.w / 2, label.y + 4, { color: node.locked ? '#52606b' : '#102033', font: '900 9px system-ui', align: 'center', maxWidth: label.w - 8, lineHeight: 10, maxLines: 1 });
         }
-        this.addCanvasRegion({
+        const tooltipMetadata = getWorldMapNodeTooltipMetadata
+          ? getWorldMapNodeTooltipMetadata(node)
+          : node.selected ? {} : {
+            tooltipTitle: node.name,
+            tooltipSubtitle: node.lockedReason || (node.current ? 'Current location' : node.completed ? 'Route objective complete' : node.status || 'World map node'),
+            tooltipLines: [
+              `${node.areaName || node.region || 'Region'} - ${node.layoutRoleLabel || (node.dungeon ? 'Dungeon' : node.type || 'Field')}`,
+              node.levelRange && node.levelRange.length ? `Level ${node.levelRange[0]}-${node.levelRange[1]}` : '',
+              node.routeStage || node.mapRoadName ? [node.routeStage, node.mapRoadName].filter(Boolean).join(' - ') : '',
+              node.lockedReason ? 'Complete the listed requirement to unlock this route.' : 'Click to select this map node.'
+            ].filter(Boolean)
+          };
+        this.addCanvasRegion(Object.assign({
           type: 'world-map-node',
           mapId: node.mapId,
-          tooltipTitle: node.name,
-          tooltipSubtitle: node.lockedReason || (node.current ? 'Current location' : node.completed ? 'Route objective complete' : node.status || 'World map node'),
-          tooltipLines: [
-            `${node.areaName || node.region || 'Region'} - ${node.layoutRoleLabel || (node.dungeon ? 'Dungeon' : node.type || 'Field')}`,
-            node.levelRange && node.levelRange.length ? `Level ${node.levelRange[0]}-${node.levelRange[1]}` : '',
-            node.routeStage || node.mapRoadName ? [node.routeStage, node.mapRoadName].filter(Boolean).join(' - ') : '',
-            node.lockedReason ? 'Complete the listed requirement to unlock this route.' : 'Click to select this map node.'
-          ].filter(Boolean),
           x: point.x - hitSize / 2,
           y: point.y - hitSize / 2,
           w: hitSize,
           h: hitSize
-        });
+        }, tooltipMetadata));
       });
       const spawnSummary = this.getWorldMapSpawnSummary(selected);
-      const route = selected.route;
       let dy = graphY + graphH + 10;
       const detailY = dy;
       this.drawRoundRect(ctx, detailX, detailY, detailW, detailH, 8, '#fbfaf6', 'rgba(16,32,51,0.14)');
       const detailTextX = detailX + 12;
-      const detailButtonW = 108;
+      const detailButtonW = WORLD_MAP_DETAIL_LAYOUT.buttonWidth;
       const detailTextW = Math.max(220, detailW - detailButtonW - 42);
-      this.drawCanvasText(ctx, selected.name, detailTextX, dy + 10, { color: '#102033', font: '900 15px system-ui', maxWidth: detailTextW, lineHeight: 16, maxLines: 1 });
-      const range = selected.levelRange && selected.levelRange.length ? `Lv ${selected.levelRange[0]}-${selected.levelRange[1]}` : 'Any level';
-      this.drawCanvasText(ctx, `${selected.areaName || selected.region || 'Region'} - ${selected.layoutRoleLabel || (selected.dungeon ? 'Dungeon' : selected.type || 'Field')} - ${range}`, detailTextX, dy + 31, { color: '#5f6f7a', font: '850 10px system-ui', maxWidth: detailTextW, lineHeight: 12, maxLines: 1 });
-      const statusText = selected.current ? 'Current location' : selected.lockedReason || (selected.completed ? 'Route objective complete' : 'Available by portal route');
-      const routeLabel = [selected.routeStage, selected.mapRoadName].filter(Boolean).join(' - ');
-      this.drawCanvasText(ctx, [statusText, routeLabel].filter(Boolean).join(' - '), detailTextX, dy + 49, { color: selected.lockedReason ? '#9a5b36' : selected.current ? '#2f7dd6' : '#177645', font: '900 10px system-ui', maxWidth: detailTextW, lineHeight: 12, maxLines: 1 });
-      const summaryText = [
-        routeSummary ? `Routes: ${routeSummary}` : '',
-        modifierText ? `Modifiers: ${modifierText}` : '',
-        riftText
-      ].filter(Boolean).join('  ');
-      if (summaryText) this.drawCanvasText(ctx, summaryText, detailTextX, dy + 64, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailTextW, lineHeight: 10, maxLines: 1 });
-      this.drawCanvasButton(ctx, 'Set Guide', detailX + detailW - 126, detailY + 18, 108, 30, { type: 'world-map-guide', mapId: selected.mapId }, false);
+      const contextText = riftText ||
+        formatDungeonRespawnLabel(selected) ||
+        (selected.landmark ? `Landmark: ${selected.landmark}` : '') ||
+        selected.areaMechanic ||
+        selected.purpose ||
+        'Travel through a connected portal to reach this area.';
+      const getWorldMapDetailPresentation = getQuestHelper('getWorldMapDetailPresentation');
+      const detail = getWorldMapDetailPresentation
+        ? getWorldMapDetailPresentation(selected, {
+          statusText: pathHint.lockedReason && selected.selected ? pathHint.lockedReason : '',
+          contextText
+        })
+        : {
+          title: selected.name,
+          meta: selected.areaName || selected.region || '',
+          status: selected.current ? 'Current location' : selected.lockedReason || '',
+          context: contextText
+        };
+      this.drawCanvasText(ctx, detail.title, detailTextX, dy + 10, {
+        color: '#102033',
+        font: WORLD_MAP_DETAIL_LAYOUT.titleFont,
+        maxWidth: detailTextW,
+        lineHeight: WORLD_MAP_DETAIL_LAYOUT.titleLineHeight,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, detail.meta, detailTextX, dy + 34, {
+        color: '#5f6f7a',
+        font: WORLD_MAP_DETAIL_LAYOUT.metaFont,
+        maxWidth: detailTextW,
+        lineHeight: WORLD_MAP_DETAIL_LAYOUT.metaLineHeight,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, detail.status, detailTextX, dy + 54, {
+        color: (pathHint.lockedReason && selected.selected) || selected.lockedReason ? '#9a5b36' : selected.current ? '#2f7dd6' : '#177645',
+        font: WORLD_MAP_DETAIL_LAYOUT.statusFont,
+        maxWidth: detailTextW,
+        lineHeight: WORLD_MAP_DETAIL_LAYOUT.statusLineHeight,
+        maxLines: 1
+      });
+      if (detail.context) {
+        this.drawCanvasText(ctx, detail.context, detailTextX, dy + 75, {
+          color: '#5f6f7a',
+          font: WORLD_MAP_DETAIL_LAYOUT.contextFont,
+          maxWidth: detailTextW,
+          lineHeight: WORLD_MAP_DETAIL_LAYOUT.contextLineHeight,
+          maxLines: 2
+        });
+      }
+      this.drawCanvasButton(ctx, 'Set Guide', detailX + detailW - 126, detailY + 18, detailButtonW, 32, { type: 'world-map-guide', mapId: selected.mapId }, false);
       if (spawnSummary.enemyIds.length) {
-        this.drawCanvasButton(ctx, 'Monster Guide', detailX + detailW - 126, detailY + 52, 108, 24, {
+        this.drawCanvasButton(ctx, 'Monster Guide', detailX + detailW - 126, detailY + 56, detailButtonW, 28, {
           type: 'world-map-monsters',
           mapName: selected.name || '',
           enemyIds: spawnSummary.enemyIds
         }, false);
-      }
-      const detailLineY = detailY + 78;
-      const detailColGap = 12;
-      const detailColW = Math.floor((detailW - 20 - detailColGap) / 2);
-      const purposeText = pathHint.lockedReason && selected.selected
-        ? pathHint.lockedReason
-        : formatDungeonRespawnLabel(selected) || selected.landmark && `Landmark: ${selected.landmark}` || selected.areaMechanic || selected.purpose || 'Portal route available from connected maps.';
-      this.drawCanvasText(ctx, purposeText, detailX + 10, detailLineY, { color: pathHint.lockedReason && selected.selected ? '#9a5b36' : '#5f6f7a', font: '9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 2 });
-      const enemyText = spawnSummary.enemyLabel ? `Mobs: ${spawnSummary.enemyLabel}` : 'No regular monsters listed.';
-      this.drawCanvasText(ctx, enemyText, detailX + 10 + detailColW + detailColGap, detailLineY, { color: '#102033', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
-      const cadenceText = [spawnSummary.populationLabel, spawnSummary.respawnLabel && `respawn ${spawnSummary.respawnLabel}`].filter(Boolean).join(' - ');
-      if (cadenceText) this.drawCanvasText(ctx, cadenceText, detailX + 10, detailLineY + 25, { color: '#177645', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
-      if (spawnSummary.dropLabel) this.drawCanvasText(ctx, `Drops: ${spawnSummary.dropLabel}${spawnSummary.dropRateLabel ? ` - ${spawnSummary.dropRateLabel}` : ''} - exact odds in Guide`, detailX + 10 + detailColW + detailColGap, detailLineY + 25, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
-      if (route && route.fields && route.fields.length) {
-        const routeText = route.fields.map((field) => `${field.mapName} ${formatAbbreviatedInteger(field.value)}/${formatAbbreviatedInteger(field.goal)}`).join('  ');
-        this.drawCanvasText(ctx, routeText, detailX + 10 + detailColW + detailColGap, detailLineY + 13, { color: '#8a6b53', font: '850 9px system-ui', maxWidth: detailColW, lineHeight: 11, maxLines: 1 });
       }
       return detailY + detailH - y;
     }

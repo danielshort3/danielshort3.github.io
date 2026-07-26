@@ -37,6 +37,26 @@
     });
   }
 
+  function getWorldMapNodeTooltipMetadata(node) {
+    const source = node || {};
+    if (source.selected) return {};
+    return {
+      tooltipTitle: source.name || '',
+      tooltipSubtitle: source.lockedReason ||
+        (source.current
+          ? 'Current location'
+          : source.completed
+            ? 'Route objective complete'
+            : source.status || 'World map node'),
+      tooltipLines: [
+        `${source.areaName || source.region || 'Region'} - ${source.layoutRoleLabel || (source.dungeon ? 'Dungeon' : source.type || 'Field')}`,
+        source.levelRange && source.levelRange.length ? `Level ${source.levelRange[0]}-${source.levelRange[1]}` : '',
+        source.routeStage || source.mapRoadName ? [source.routeStage, source.mapRoadName].filter(Boolean).join(' - ') : '',
+        source.lockedReason ? 'Complete the listed requirement to unlock this route.' : 'Click to select this map node.'
+      ].filter(Boolean)
+    };
+  }
+
   function getCanvasHoverTargetAt(point, options) {
     const settings = options || {};
     const openWindows = Array.isArray(settings.openWindows) ? settings.openWindows : [];
@@ -110,7 +130,12 @@
     }
     if (openWindows.includes('worldmap')) {
       const nodeRegion = findHoverRegion((item) => item.type === 'world-map-node');
-      if (nodeRegion && nodeRegion.mapId) return getInfoTarget(nodeRegion, {
+      const hasNodeTooltip = !!(nodeRegion && (
+        nodeRegion.tooltipTitle ||
+        nodeRegion.tooltipSubtitle ||
+        nodeRegion.tooltipLines && nodeRegion.tooltipLines.length
+      ));
+      if (nodeRegion && nodeRegion.mapId && hasNodeTooltip) return getInfoTarget(nodeRegion, {
         type: 'worldMapNode',
         key: `worldMapNode:${nodeRegion.mapId}`,
         sourcePanel: 'worldmap',
@@ -233,6 +258,7 @@
     return Object.freeze({
       getEmptyCanvasHoverTarget,
       getInfoHoverTarget,
+      getWorldMapNodeTooltipMetadata,
       getCanvasHoverTargetAt,
       getActiveCanvasHoverTooltipRenderer,
       getCanvasHoverRegionCacheKey,
@@ -247,6 +273,7 @@
     createCanvasHoverUiHelpers,
     getEmptyCanvasHoverTarget,
     getInfoHoverTarget,
+    getWorldMapNodeTooltipMetadata,
     getCanvasHoverTargetAt,
     getActiveCanvasHoverTooltipRenderer,
     getCanvasHoverRegionCacheKey,

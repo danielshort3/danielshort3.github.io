@@ -30129,7 +30129,7 @@ try {
       !renderWorldMapCode.includes('project-starfall-worldmap-area') &&
       !renderWorldMapCode.includes('data-starfall-map') &&
       !renderWorldMapCode.includes('data-starfall-dungeon') &&
-      renderWorldMapCode.includes('this.snapshot.routeProgress') &&
+      renderWorldMapCode.includes("getQuestHelper('getWorldMapDetailPresentation')") &&
       uiCode.includes("if (panelId === 'worldmap') return { x: 50, y: 22, w: 980, h: 640 }") &&
       drawWorldMapCode.includes('worldMap.nodes') &&
       drawWorldMapCode.includes('worldMap.edges') &&
@@ -30139,16 +30139,16 @@ try {
       drawWorldMapCode.includes('getWorldMapLabelBox') &&
       drawWorldMapCode.includes('hoveredMapId') &&
       drawWorldMapCode.includes('availableBodyH') &&
-      drawWorldMapCode.includes('const detailH = 136') &&
+      drawWorldMapCode.includes('WORLD_MAP_DETAIL_LAYOUT.height') &&
       !drawWorldMapCode.includes('worldMap.areas') &&
       !drawWorldMapCode.includes("type: 'map'") &&
       !drawWorldMapCode.includes("type: 'start-dungeon'") &&
       drawWorldMapCode.includes('world-map-node') &&
       drawWorldMapCode.includes('world-map-guide') &&
-      drawWorldMapCode.includes('this.snapshot.routeProgress') &&
+      drawWorldMapCode.includes("getQuestHelper('getWorldMapDetailPresentation')") &&
       drawWorldMapCode.includes('lockedReason') &&
-      drawWorldMapCode.includes('selected.layoutRoleLabel') &&
-      drawWorldMapCode.includes('selected.mapRoadName') &&
+      drawWorldMapCode.includes('detail.meta') &&
+      drawWorldMapCode.includes('detail.status') &&
       !drawWorldMapCode.includes('drawMapThumbnailCanvas') &&
       starfallCss.includes('.project-starfall-worldmap-layout') &&
       starfallCss.includes('.project-starfall-worldmap-node.is-deepField') &&

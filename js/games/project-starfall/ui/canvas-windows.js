@@ -103,6 +103,15 @@
       .sort((a, b) => Number(a.win && a.win.z || 0) - Number(b.win && b.win.z || 0));
   }
 
+  function getCanvasBackgroundHudVisibility(panelIds) {
+    const worldMapOpen = (Array.isArray(panelIds) ? panelIds : []).includes('worldmap');
+    return {
+      minimap: !worldMapOpen,
+      questTracker: !worldMapOpen,
+      riftTracker: !worldMapOpen
+    };
+  }
+
   function getTopWindowId(panelIds, windowState) {
     const state = windowState || {};
     const top = (Array.isArray(panelIds) ? panelIds : [])
@@ -269,6 +278,7 @@
       getWindowDefaults,
       getEnsuredWindowState,
       getCanvasWindowDrawEntries,
+      getCanvasBackgroundHudVisibility,
       getTopWindowId,
       getClosedWindowState,
       getRaisedWindowState,
@@ -294,6 +304,7 @@
     getWindowDefaults,
     getEnsuredWindowState,
     getCanvasWindowDrawEntries,
+    getCanvasBackgroundHudVisibility,
     getTopWindowId,
     getClosedWindowState,
     getRaisedWindowState,
