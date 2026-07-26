@@ -173,6 +173,22 @@ function validateMap(map) {
       issues.push(`${map.id} portal ${portal.id || '(unnamed)'} is authored outside platform ${portal.platformIndex || 0}.`);
     }
   });
+  (map.questNpcs || []).forEach((npc) => {
+    if (!npc) return;
+    const platformIndex = Number(npc.platformIndex || 0);
+    const platform = platforms[platformIndex];
+    if (!platform) {
+      issues.push(`${map.id} quest NPC ${npc.id || '(unnamed)'} references missing platform ${npc.platformIndex}.`);
+      return;
+    }
+    const npcX = Number(npc.x);
+    const npcWidth = Math.max(32, Number(npc.w || 38) || 38);
+    const minX = platformX(platform) + 18;
+    const maxX = platformRight(platform) - npcWidth - 18;
+    if (!Number.isFinite(npcX) || npcX < minX || npcX > maxX) {
+      issues.push(`${map.id} quest NPC ${npc.id || '(unnamed)'} is authored outside platform ${platformIndex}.`);
+    }
+  });
   if (slopes.length > 0 && broadFlats.length < slopes.length * 1.5) {
     warnings.push(`${map.id} has a low broad-flat-to-slope ratio (${broadFlats.length}:${slopes.length}).`);
   }

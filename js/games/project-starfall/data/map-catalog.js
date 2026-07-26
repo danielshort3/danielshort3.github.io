@@ -160,16 +160,19 @@
         name: 'Cinder Hollow',
         levelRange: [16, 40],
         safeZone: false,
+        geometryMode: 'generated',
+        geometryGenerator: 'priorityFieldV2',
+        compactWorldWidth: 5200,
         waveMax: 24,
         waveDelay: 6,
         palette: ['#28272d', '#f06b37', '#9b4835'],
         purpose: 'Volcanic cave with ember vents, lava channels, flying spirits, and Emberjaw Golem.',
-        enemies: ['emberWisp', 'ashCrawler', 'lavaTick', 'cinderSpitter', 'emberWisp', 'lavaTick', 'ashCrawler', 'emberWisp', 'cinderSpitter', 'lavaTick', 'ashCrawler', 'emberWisp'],
+        enemies: ['ashCrawler', 'lavaTick', 'cinderSpitter', 'ashCrawler', 'lavaTick', 'cinderSpitter', 'emberWisp', 'emberWisp', 'lavaTick', 'ashCrawler', 'cinderSpitter', 'ashCrawler'],
         platforms: [[0, 520, 7800, 80], [280, 454, 380, 22], [720, 386, 340, 22], [1110, 316, 320, 22], [1480, 246, 280, 22], [1940, 454, 420, 22], [2440, 384, 360, 22], [2860, 314, 330, 22], [3260, 244, 300, 22], [3700, 454, 420, 22], [4180, 386, 340, 22], [4580, 312, 330, 22], [5000, 242, 300, 22], [5440, 454, 400, 22], [5900, 384, 360, 22], [6320, 314, 330, 22], [6720, 244, 300, 22], [7100, 386, 330, 22], [7480, 454, 280, 22]],
         climbables: [{ id: 'cinder_chain_1', x: 1242, y: 316, w: 28, h: 204 }, { id: 'cinder_chain_2', x: 1600, y: 246, w: 28, h: 274 }, { id: 'cinder_chain_3', x: 3390, y: 244, w: 28, h: 276 }, { id: 'cinder_chain_4', x: 5128, y: 242, w: 28, h: 278 }, { id: 'cinder_chain_5', x: 6844, y: 244, w: 28, h: 276 }],
         spawnPoints: [{ x: 470, platformIndex: 1, weight: 2 }, { x: 890, platformIndex: 2, weight: 2 }, { x: 1280, platformIndex: 3, weight: 2 }, { x: 1620, platformIndex: 4, weight: 1 }, { x: 2150, platformIndex: 5, weight: 3 }, { x: 3040, platformIndex: 7, weight: 2 }, { x: 3420, platformIndex: 8, weight: 1 }, { x: 3910, platformIndex: 9, weight: 3 }, { x: 4750, platformIndex: 11, weight: 2 }, { x: 5150, platformIndex: 12, weight: 1 }, { x: 5620, platformIndex: 13, weight: 3 }, { x: 6480, platformIndex: 15, weight: 2 }, { x: 6860, platformIndex: 16, weight: 1 }, { x: 7590, platformIndex: 18, weight: 2 }],
         stations: [],
-        questNpcs: [{ id: 'cinder_pathfinder', name: 'Cinder Pathfinder', x: 7460, platformIndex: 0, questIds: ['emberjaw_lair', 'cinder_samples', 'emberjaw_report'], color: '#9b4835', accent: '#ffcf70' }]
+        questNpcs: [{ id: 'cinder_pathfinder', name: 'Cinder Pathfinder', x: 4740, platformIndex: 0, questIds: ['emberjaw_lair', 'cinder_samples', 'emberjaw_report'], color: '#9b4835', accent: '#ffcf70' }]
       },
       {
         id: 'emberjawLair',

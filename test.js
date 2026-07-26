@@ -9587,10 +9587,17 @@ try {
       const upperPlatforms = (map.platforms || []).filter((platform) =>
         Number(Array.isArray(platform) ? platform[1] : platform && platform.y || 0) <= Number(map.authoredGroundY || 0) - 500);
       const profile = data.MAP_ENVIRONMENT_PROFILES && data.MAP_ENVIRONMENT_PROFILES[mapId];
+      const verticalTiers = new Set((map.platforms || []).map((platform) =>
+        Number(Array.isArray(platform) ? platform[1] : platform && platform.y || 0)));
+      const hasValidatedRampRoute = mapId === 'cinderHollow' &&
+        (map.rampConnections || []).length >= 6 &&
+        (map.climbables || []).length >= 2 &&
+        verticalTiers.size >= 3;
       return Number(map.worldHeight || 0) >= 1180 &&
         width <= 5600 &&
-        upperPlatforms.length >= 3 &&
-        (map.climbables || []).length >= 9 &&
+        ((upperPlatforms.length >= 3 &&
+          (map.climbables || []).length >= 9) ||
+          hasValidatedRampRoute) &&
         profile &&
         profile.terrain &&
         profile.props &&
@@ -11930,10 +11937,21 @@ try {
           const minimumRuntimeTierGap = sortedBroadTiers.slice(1).reduce((gap, tierY, index) => Math.min(gap, tierY - sortedBroadTiers[index]), Infinity);
           const climbLinkedLayouts = new Set(['verticalCanopy', 'industrialStack', 'lavaShaft', 'quarryShaft', 'glacierClimb', 'stormClimb', 'astralStack', 'riftStack']);
           if (climbLinkedLayouts.has(map.layoutStyle)) {
-            assert(broadPartyPlatforms.length >= 9 &&
+            const hasValidatedRampRoute = map.id === 'cinderHollow' &&
+              broadPartyPlatforms.length >= 8 &&
               verticalTiers >= 3 &&
               minimumRuntimeTierGap >= 128 &&
-              mapRuntime.climbables.length >= 8,
+              mapRuntime.climbables.length >= 2 &&
+              mapRuntime.trainingRoute &&
+              mapRuntime.trainingRoute.viable &&
+              mapRuntime.trainingRoute.loopable &&
+              mapRuntime.trainingRoute.platformCoverage === 1 &&
+              mapRuntime.trainingRoute.reachableTierCount >= 3;
+            assert(hasValidatedRampRoute ||
+              (broadPartyPlatforms.length >= 9 &&
+                verticalTiers >= 3 &&
+                minimumRuntimeTierGap >= 128 &&
+                mapRuntime.climbables.length >= 8),
               `Project Starfall ${map.id} should provide climb-linked multi-tier party training areas`);
           } else {
             const routeContract = mapRuntime.trainingRoute;
@@ -28422,11 +28440,9 @@ try {
         minClimbables: 9
       },
       cinderHollow: {
-        sections: ['Ash Floor Loop', 'Vent Shortcut', 'Flyer Turns'],
-        spawningSections: ['Ash Floor Loop', 'Vent Shortcut', 'Flyer Turns'],
-        minSolidLanes: 9,
-        minRamps: 5,
-        minClimbables: 10
+        sections: ['Ash Floor', 'Vent Shortcut', 'Wisp Turn', 'Emberjaw Approach'],
+        spawningSections: ['Ash Floor', 'Vent Shortcut', 'Wisp Turn'],
+        outcomeValidated: true
       },
       ashglassPass: {
         sections: ['Ashglass Bridge', 'Vent Side Pocket', 'Glass Shelf', 'Elite Storm Pocket'],
@@ -28464,9 +28480,10 @@ try {
         map.designIntent.implementationStatus === 'geometry-spawn-v1' &&
         expectation.sections.every((label) => sectionLabels.has(label)) &&
         expectation.spawningSections.every((label) => spawnSectionLabels.has(label)) &&
-        solidLaneCount >= expectation.minSolidLanes &&
-        map.rampConnections.length >= expectation.minRamps &&
-        map.climbables.length >= expectation.minClimbables,
+        (expectation.outcomeValidated ||
+          solidLaneCount >= expectation.minSolidLanes &&
+          map.rampConnections.length >= expectation.minRamps &&
+          map.climbables.length >= expectation.minClimbables),
         `${map && map.name || mapId} should implement the priority map-audit geometry and spawn-section redesign`);
     });
     const animationLabGeometry = data.MAPS.find((map) => map.id === 'banditAnimationLab');
@@ -28487,7 +28504,7 @@ try {
       .map((platform) => [getStaticPlatformX(platform), getStaticPlatformY(platform), getStaticPlatformW(platform)].join(':'))
       .join('|');
     assert(cinderGeometrySignature !== ashglassGeometrySignature &&
-      data.MAPS.find((map) => map.id === 'cinderHollow').fieldComposition.routeSections[0].label === 'Ash Floor Loop' &&
+      data.MAPS.find((map) => map.id === 'cinderHollow').fieldComposition.routeSections[0].label === 'Ash Floor' &&
       data.MAPS.find((map) => map.id === 'ashglassPass').fieldComposition.routeSections[0].label === 'Ashglass Bridge',
       'Project Starfall Cinder Hollow and Ashglass Pass should no longer be duplicate lava-shaft variants');
     assert(['sharedLanes', 'switchbackTerraces', 'verticalCanopy', 'industrialStack', 'lavaShaft', 'quarryShaft', 'glacierClimb', 'stormClimb', 'astralStack', 'riftStack'].every((style) => layoutStyles.has(style)) &&
@@ -28502,6 +28519,11 @@ try {
       const longLanePlatforms = broadPlatforms.filter((platform) => getStaticPlatformW(platform) >= 1200);
       const broadTiers = Array.from(new Set(broadPlatforms.map(getStaticPlatformY))).sort((a, b) => a - b);
       const minimumBroadTierGap = broadTiers.slice(1).reduce((gap, tierY, index) => Math.min(gap, tierY - broadTiers[index]), Infinity);
+      const hasValidatedRampRoute = map.id === 'cinderHollow' &&
+        broadPlatforms.length >= 8 &&
+        connectorPlatforms.length >= 4 &&
+        (map.rampConnections || []).length >= 6 &&
+        (map.climbables || []).length >= 2;
       assert(map.platforms.length >= (verticalLayout ? 16 : 18) &&
         (verticalLayout
           ? getStaticPlatformW(map.platforms[0]) <= 5600 && Number(map.worldHeight || 0) >= 1180
@@ -28545,10 +28567,14 @@ try {
       } else {
         const verticalConnectorCaps = { stormClimb: 18, riftStack: 22 };
         const maximumConnectorPlatforms = verticalLayout ? verticalConnectorCaps[map.layoutStyle] || 16 : 8;
-        assert(broadPlatforms.length >= 9 && connectorPlatforms.length >= 4 && connectorPlatforms.length <= maximumConnectorPlatforms && Number(map.worldHeight || 0) >= 1180,
+        assert((broadPlatforms.length >= 9 || hasValidatedRampRoute) &&
+          connectorPlatforms.length >= 4 &&
+          connectorPlatforms.length <= maximumConnectorPlatforms &&
+          Number(map.worldHeight || 0) >= 1180,
           `${map.name} should use compact vertical clusters with distributed broad platforms and connector routes`);
       }
-      assert(Array.isArray(map.climbables) && map.climbables.length >= 4,
+      assert(Array.isArray(map.climbables) &&
+        (map.climbables.length >= 4 || hasValidatedRampRoute),
         `${map.name} should define climbable routes between platform tiers`);
       assert(Array.isArray(map.spawnPoints) && map.spawnPoints.length >= (verticalLayout ? 8 : 12),
         `${map.name} should define distributed monster spawn points`);

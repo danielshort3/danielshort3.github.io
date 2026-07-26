@@ -37,6 +37,38 @@
       { sectionSuffix: 'mushroom_pocket', label: 'Glowcap Pocket', enemyWeights: [{ enemyId: 'glowcapHealer', weight: 6 }, { enemyId: 'orebackBeetle', weight: 4 }], population: 7, respawnSeconds: 6, leash: 420 },
       { sectionSuffix: 'mine_event_pocket', label: 'Mimic Mine', enemyWeights: [{ enemyId: 'orebackBeetle', weight: 5 }, { enemyId: 'scrapWarden', weight: 3 }, { enemyId: 'crackedMimic', weight: 1 }], population: 4, respawnSeconds: 8, leash: 360 }
     ]),
+    cinderHollow: Object.freeze([
+      {
+        sectionSuffix: 'ash_floor',
+        label: 'Ash Floor',
+        enemyWeights: [{ enemyId: 'ashCrawler', weight: 5 }, { enemyId: 'lavaTick', weight: 4 }, { enemyId: 'cinderSpitter', weight: 1 }],
+        population: 8,
+        maxPopulation: 8,
+        respawnSeconds: 6,
+        leash: 360,
+        spawnBounds: { minX: 620, maxX: 1400 }
+      },
+      {
+        sectionSuffix: 'vent_shortcut',
+        label: 'Vent Shortcut',
+        enemyWeights: [{ enemyId: 'lavaTick', weight: 5 }, { enemyId: 'cinderSpitter', weight: 4 }, { enemyId: 'ashCrawler', weight: 1 }],
+        population: 8,
+        maxPopulation: 8,
+        respawnSeconds: 6,
+        leash: 340,
+        spawnBounds: { minX: 1500, maxX: 2800 }
+      },
+      {
+        sectionSuffix: 'wisp_turn',
+        label: 'Wisp Turn',
+        enemyWeights: [{ enemyId: 'emberWisp', weight: 6 }, { enemyId: 'cinderSpitter', weight: 3 }, { enemyId: 'lavaTick', weight: 1 }],
+        population: 8,
+        maxPopulation: 8,
+        respawnSeconds: 7,
+        leash: 380,
+        spawnBounds: { minX: 2900, maxX: 4260 }
+      }
+    ]),
     stormbreakCliffs: Object.freeze([
       { sectionSuffix: 'low_ram_lane', label: 'Thunder Ram Lane', enemyWeights: [{ enemyId: 'thunderRam', weight: 8 }, { enemyId: 'cloudcallAcolyte', weight: 2 }], population: 9, respawnSeconds: 5, leash: 500 },
       { sectionSuffix: 'mid_archer_bridge', label: 'Archer Bridge', enemyWeights: [{ enemyId: 'stormboundArcher', weight: 7 }, { enemyId: 'cloudcallAcolyte', weight: 3 }], population: 8, respawnSeconds: 5, leash: 440 },

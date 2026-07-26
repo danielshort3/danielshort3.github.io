@@ -228,6 +228,7 @@
       const settings = options && typeof options === 'object' ? options : {};
       if (settings.id) platform.id = String(settings.id);
       if (settings.spawnDisabled) platform.spawnDisabled = true;
+      if (settings.climbableDisabled) platform.climbableDisabled = true;
       platforms.push(platform);
     };
     const addSlope = (x, y, y2, w, options) => {
@@ -352,17 +353,47 @@
     }
 
     if (mapId === 'cinderHollow') {
-      [
-        { lowX: 320, midX: 600, highX: 880, lowW: 860, midW: 760, highW: 700 },
-        { lowX: 1880, midX: 2160, highX: 2460, lowW: 920, midW: 780, highW: 700 },
-        { lowX: 3440, midX: 3740, highX: 4020, lowW: 920, midW: 780, highW: 700 }
-      ].forEach((cluster, index) => buildCluster(cluster, {
-        rampW: 260,
-        slopePlan: { lowToMid: [1], midToHigh: [2] }
-      }, index));
-      addPlatform(1500, lanes.low - 40, 600, 'solidLane');
-      addPlatform(2920, lanes.mid - 54, 620, 'solidLane');
-      addFlatConnector(4680, lanes.highConnector, 230);
+      // Keep the playful lava-shaft silhouette, but make each section teach a
+      // distinct combat lesson. The upper vent shelf is an optional, spawn-free
+      // bypass; the final 940px stays calm for the Pathfinder and Emberjaw gate.
+      addSlope(420, lanes.ground, lanes.low, 300, { id: 'cinderHollow_entry_ramp' });
+      addPlatform(620, lanes.low, 780, 'solidLane', {
+        id: 'cinderHollow_ash_floor_low',
+        climbableDisabled: true
+      });
+      addSlope(900, lanes.low, lanes.mid, 300, { id: 'cinderHollow_ash_ramp' });
+      addPlatform(720, lanes.mid, 680, 'solidLane', {
+        id: 'cinderHollow_ash_overlook',
+        climbableDisabled: true
+      });
+      addFlatConnector(1400, lanes.lowConnector, 180);
+
+      addPlatform(1500, lanes.low, 900, 'solidLane', { id: 'cinderHollow_vent_floor' });
+      addSlope(1740, lanes.low, lanes.mid, 300, { id: 'cinderHollow_vent_ramp' });
+      addPlatform(1740, lanes.mid, 900, 'solidLane', {
+        id: 'cinderHollow_vent_shelf',
+        climbableDisabled: true
+      });
+      addSlope(2040, lanes.mid, lanes.high, 300, { id: 'cinderHollow_vent_bypass_ramp' });
+      addPlatform(2040, lanes.high, 760, 'solidLane', {
+        id: 'cinderHollow_vent_bypass',
+        spawnDisabled: true,
+        climbableDisabled: true
+      });
+      addFlatConnector(2700, lanes.highConnector, 180);
+
+      addSlope(2900, lanes.ground, lanes.low, 300, { id: 'cinderHollow_wisp_entry_ramp' });
+      addPlatform(2900, lanes.low, 900, 'solidLane', {
+        id: 'cinderHollow_wisp_recovery',
+        climbableDisabled: true
+      });
+      addSlope(3300, lanes.low, lanes.mid, 300, { id: 'cinderHollow_wisp_mid_ramp' });
+      addPlatform(3120, lanes.mid, 900, 'solidLane', {
+        id: 'cinderHollow_wisp_turn_mid',
+        climbableDisabled: true
+      });
+      addPlatform(3400, lanes.high, 860, 'solidLane', { id: 'cinderHollow_wisp_turn_high' });
+      addFlatConnector(4140, lanes.highConnector, 180);
       return platforms;
     }
 
@@ -583,6 +614,7 @@
         return entry.topIndex > 0 &&
           getPlatformDefShape(entry.platform) !== 'slope' &&
           getPlatformDefW(entry.platform) >= 500 &&
+          !entry.platform.climbableDisabled &&
           visualKind !== 'connector' &&
           visualKind !== 'hop';
       })
