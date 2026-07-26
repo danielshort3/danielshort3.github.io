@@ -2254,6 +2254,31 @@
             ? `Charge ${Math.min(rodPresentation.goal, Math.floor(rodPresentation.progress))}/${rodPresentation.goal}`
             : `Lanes ${Math.min(rodPresentation.requiredSections, rodPresentation.uniqueSections)}/${rodPresentation.requiredSections}`
       : '';
+    const dungeonEncounterFlow = source.dungeon &&
+      source.dungeon.activeDungeon &&
+      source.dungeon.activeDungeon.encounterFlow;
+    const dungeonStationBeat = station && dungeonEncounterFlow && Array.isArray(dungeonEncounterFlow.beats)
+      ? dungeonEncounterFlow.beats.find((beat) =>
+          beat &&
+          beat.kind === 'interaction' &&
+          Array.isArray(beat.stationIds) &&
+          beat.stationIds.includes(station.id))
+      : null;
+    const dungeonStationComplete = !!(dungeonStationBeat && (
+      dungeonStationBeat.complete ||
+      Array.isArray(dungeonEncounterFlow.completedInteractionIds) &&
+        dungeonEncounterFlow.completedInteractionIds.includes(station.id)
+    ));
+    const dungeonStationReady = !!(dungeonStationBeat &&
+      !dungeonEncounterFlow.complete &&
+      dungeonEncounterFlow.activeBeatId === dungeonStationBeat.id);
+    const dungeonStationHint = dungeonStationBeat
+      ? dungeonStationReady
+        ? `${keyLabels.interact || 'F'} Activate`
+        : dungeonStationComplete
+          ? 'Switch primed'
+          : 'Route locked'
+      : '';
     const openWindows = settings.openWindows || [];
     const interaction = questNpc
       ? {
@@ -2268,14 +2293,25 @@
         ? {
             title: rodPresentation ? rodPresentation.label : station.name,
             promptAction: 'interact',
-            hint: rodPresentation ? rodHint : `${keyLabels.interact || 'F'} Use`,
-            hintColor: rodPresentation && !rodPresentation.ready && !rodPresentation.tuned ? '#9a5b36' : '#177645',
-            hintMaxWidth: rodPresentation ? 118 : 98,
+            hint: rodPresentation
+              ? rodHint
+              : dungeonStationBeat
+                ? dungeonStationHint
+                : `${keyLabels.interact || 'F'} Use`,
+            hintColor: rodPresentation && !rodPresentation.ready && !rodPresentation.tuned ||
+              dungeonStationBeat && !dungeonStationReady && !dungeonStationComplete
+              ? '#9a5b36'
+              : '#177645',
+            hintMaxWidth: rodPresentation || dungeonStationBeat ? 118 : 98,
             kindLabel: rodPresentation
               ? rodPresentation.ready
                 ? 'Storm objective - Ready'
                 : 'Storm objective'
-              : 'Station',
+              : dungeonStationBeat
+                ? dungeonStationReady
+                  ? 'Dungeon objective - Ready'
+                  : 'Dungeon objective'
+                : 'Station',
             target: station
           }
         : portal

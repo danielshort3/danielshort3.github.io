@@ -17,6 +17,13 @@
     }, {}));
   }
 
+  function freezeBossSpatialBossHooks(bossHooks) {
+    return Object.freeze(Object.keys(bossHooks || {}).reduce((entries, bossId) => {
+      entries[bossId] = freezeBossSpatialActionHooks(bossHooks[bossId]);
+      return entries;
+    }, {}));
+  }
+
   function createBossSpatialMechanicDefinition(config) {
     return Object.freeze({
       id: config.id,
@@ -25,7 +32,8 @@
       summary: config.summary,
       rewardAbuseControl: config.rewardAbuseControl || '',
       partyRoleHook: config.partyRoleHook || '',
-      hooks: freezeBossSpatialActionHooks(config.hooks)
+      hooks: freezeBossSpatialActionHooks(config.hooks),
+      bossHooks: freezeBossSpatialBossHooks(config.bossHooks)
     });
   }
 
@@ -64,18 +72,26 @@
       id: 'gearworks_vault_switch_control',
       mapId: 'gearworksVault',
       label: 'Gear Switch Control',
-      summary: 'Tank lane, sentry catwalk, and gear switch shelf calls make the factory dungeon a party-lane assignment.',
-      rewardAbuseControl: 'Switch calls alternate with sentry and tank pressure so AoE camping the floor loses objective value.',
-      partyRoleHook: 'Tank lower armor, ranged clears catwalk sentries, and support rotates gear switches.',
+      summary: 'Titan Assembly calls teach the factory lanes before the party primes the gear switch and enters the Assembly Core.',
+      rewardAbuseControl: 'Titan and Colossus actions stay inside their staged rooms so the sealed switch cannot be cheesed or requested early.',
+      partyRoleHook: 'Frontliners anchor each factory floor while ranged players control the matching catwalk and support calls the gear switch transition.',
+      bossHooks: {
+        clockworkTitan: {
+          addWave: { sectionId: 'gearworksVault_titan_assembly', role: 'sentry-clear', targetTier: 'high', label: 'Titan Catwalk Adds', response: 'Factory adds climb onto the Titan Assembly catwalk.', objective: 'Assign ranged clear before they flood the assembly floor.' }
+        },
+        quarryColossus: {
+          addWave: { sectionId: 'gearworksVault_assembly_core', role: 'sentry-clear', targetTier: 'high', label: 'Core Catwalk Adds', response: 'Factory adds climb onto the Assembly Core catwalk.', objective: 'Assign ranged clear before they flood the core floor.' }
+        }
+      },
       hooks: {
-        gearSlam: { sectionId: 'gearworksVault_tank_lane', role: 'frontline-check', targetTier: 'ground', label: 'Tank Lane Slam', response: 'The lower tank lane takes the gear slam.', objective: 'Hold the tank lane without dragging sentries down.' },
-        gearLane: { sectionId: 'gearworksVault_gear_switch_shelf', role: 'switch-call', targetTier: 'high', label: 'Gear Switch Lane', response: 'The gear switch shelf becomes the safe-response lane.', objective: 'Climb and hit the gear switch before the lane sweeps.' },
-        plateExpose: { sectionId: 'gearworksVault_gear_switch_shelf', role: 'switch-burst', targetTier: 'high', label: 'Open Gear Switch', response: 'A gear switch opens the boss plate window.', objective: 'Regroup on the switch shelf for plate damage.' },
-        overclock: { sectionId: 'gearworksVault_sentry_catwalk', role: 'catwalk-control', targetTier: 'high', label: 'Overclock Catwalk', response: 'Overclock powers the sentry catwalk.', objective: 'Clear catwalk pressure before overclock ends.' },
-        rockfall: { sectionId: 'gearworksVault_sentry_catwalk', role: 'catwalk-shadow', targetTier: 'high', label: 'Falling Gear Shadows', response: 'Loose gears fall across the sentry catwalk.', objective: 'Move ranged players off the catwalk shadow.' },
-        quakeAnchor: { sectionId: 'gearworksVault_tank_lane', role: 'anchor-hold', targetTier: 'ground', label: 'Tank-Lane Anchor', response: 'The tank lane receives the anchor shock.', objective: 'Keep the anchor out of the switch shelf.' },
-        corePulse: { sectionId: 'gearworksVault_gear_switch_shelf', role: 'switch-core', targetTier: 'high', label: 'Gear Switch Pulse', response: 'Gear switches vent the core pulse.', objective: 'Trigger the switch shelf during the pulse window.' },
-        addWave: { sectionId: 'gearworksVault_sentry_catwalk', role: 'sentry-clear', targetTier: 'high', label: 'Sentry Catwalk Adds', response: 'Factory adds climb onto the sentry catwalk.', objective: 'Assign ranged clear before they flood the switch shelf.' }
+        gearSlam: { sectionId: 'gearworksVault_titan_assembly', role: 'frontline-check', targetTier: 'ground', label: 'Titan Floor Slam', response: 'The broad Titan floor marks the gear slam.', objective: 'Hold the assembly floor without dragging pressure onto the catwalk.' },
+        gearLane: { sectionId: 'gearworksVault_titan_assembly', role: 'lane-sweep', targetTier: 'mid', label: 'Titan Gear Lane', response: 'The gear sweep crosses the Titan Assembly.', objective: 'Use the assembly floor and catwalk gap before the sweep closes.' },
+        plateExpose: { sectionId: 'gearworksVault_titan_assembly', role: 'plate-burst', targetTier: 'high', label: 'Titan Plate Window', response: 'The Titan plates open beneath the sentry catwalk.', objective: 'Regroup in the assembly for the short plate-damage window.' },
+        overclock: { sectionId: 'gearworksVault_titan_assembly', role: 'catwalk-control', targetTier: 'high', label: 'Overclock Catwalk', response: 'Overclock powers the Titan Assembly catwalk.', objective: 'Clear catwalk pressure before overclock ends.' },
+        rockfall: { sectionId: 'gearworksVault_assembly_core', role: 'catwalk-shadow', targetTier: 'high', label: 'Core Rockfall Shadows', response: 'Loose ore falls across the Assembly Core catwalk.', objective: 'Move ranged players off the marked core shadow.' },
+        quakeAnchor: { sectionId: 'gearworksVault_assembly_core', role: 'anchor-hold', targetTier: 'ground', label: 'Assembly Core Anchor', response: 'The Assembly Core floor receives the anchor shock.', objective: 'Spread anchors across the broad core floor.' },
+        corePulse: { sectionId: 'gearworksVault_assembly_core', role: 'core-collapse', targetTier: 'high', label: 'Assembly Core Pulse', response: 'The primed gear switch vents the pulse inside the opened core.', objective: 'Collapse beneath the core catwalk during the pulse window.' },
+        addWave: { sectionId: 'gearworksVault_assembly_core', role: 'sentry-clear', targetTier: 'high', label: 'Core Catwalk Adds', response: 'Factory adds climb onto the Assembly Core catwalk.', objective: 'Assign ranged clear before they flood the core floor.' }
       }
     }),
     titanFoundry: createBossSpatialMechanicDefinition({

@@ -23677,11 +23677,11 @@ try {
       );
       assert(quarryBoss.bossPendingAction &&
         quarryBoss.bossPendingAction.spatialMechanicId === 'gearworks_vault_switch_control' &&
-        quarryBoss.bossPendingAction.spatialSectionId === 'gearworksVault_gear_switch_shelf',
+        quarryBoss.bossPendingAction.spatialSectionId === 'gearworksVault_assembly_core',
         'Project Starfall dungeon bosses should use the current dungeon spatial hook instead of only the boss echo map hook');
       dungeonSpatialEngine.resolveBossEncounterAction(quarryBoss, quarryEncounter, quarryBoss.bossPendingAction);
       assert(dungeonState.currentRun.objectives.spatial_control.progress === 1 &&
-        dungeonSpatialEngine.effects.some((effect) => effect.type === 'bossHazard' && effect.spatialRole === 'switch-core'),
+        dungeonSpatialEngine.effects.some((effect) => effect.type === 'bossHazard' && effect.spatialRole === 'core-collapse'),
         'Project Starfall resolved dungeon boss spatial hooks should advance Spatial Control objective progress');
       const enemiesBeforeAddWave = new Set(dungeonSpatialEngine.enemies.map((enemy) => enemy.uid));
       dungeonSpatialEngine.beginBossEncounterAction(
@@ -23692,7 +23692,7 @@ try {
         dungeonSpatialEngine.getCombatCharacterByTarget('player', 'player')
       );
       const addWavePending = quarryBoss.bossPendingAction;
-      assert(addWavePending && addWavePending.spatialSectionId === 'gearworksVault_sentry_catwalk',
+      assert(addWavePending && addWavePending.spatialSectionId === 'gearworksVault_assembly_core',
         'Project Starfall add waves should retain their authored spatial section through telegraph resolution');
       dungeonSpatialEngine.resolveBossEncounterAction(quarryBoss, quarryEncounter, addWavePending);
       const encounterAdds = dungeonSpatialEngine.enemies.filter((enemy) =>
@@ -29002,7 +29002,11 @@ try {
     assert(layoutEngine.chooseClass('fighter'), 'Project Starfall arena skeleton setup should choose fighter');
     const requiredArenaSkeletons = {
       brambleDepths: { skeleton: 'root-lanes', sections: ['Ridge Return', 'Root Lanes', 'Court Gate'] },
-      gearworksVault: { skeleton: 'gear-switch-vault', sections: ['Tank Lane', 'Sentry Catwalk', 'Gear Switch Shelf'] },
+      gearworksVault: {
+        skeleton: 'staged-gearworks-route',
+        sections: ['Intake Tank Lane', 'Titan Assembly', 'Master Gear Switch', 'Assembly Core'],
+        implementationStatus: 'geometry-route-v1'
+      },
       emberjawLair: { skeleton: 'furnace-vents', sections: ['West Vent', 'Safe Pockets', 'Overheat Shelf'] },
       rimewardenSanctum: { skeleton: 'ice-wall-vault', sections: ['Brute Lane', 'Oracle Shelf', 'Sentinel Shelf'] },
       bramblekingCourt: { skeleton: 'crowned-root-court', sections: ['Root Lane', 'Thorn Pod Shelf', 'Crown Platform'] },
@@ -29031,7 +29035,7 @@ try {
         runtimeArena.arenaSkeleton === expectation.skeleton &&
         map.arenaMechanic &&
         map.designIntent &&
-        map.designIntent.implementationStatus === 'arena-skeleton-v1' &&
+        map.designIntent.implementationStatus === (expectation.implementationStatus || 'arena-skeleton-v1') &&
         expectation.sections.every((label) => sectionLabels.has(label)) &&
         !(map.fieldComposition.routeSections || []).some((section) => ['Entry', 'Dungeon', 'Boss Echo', 'Exit'].includes(section.label)) &&
         solidLaneCount === 6 &&

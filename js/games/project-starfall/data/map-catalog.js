@@ -149,12 +149,12 @@
         waveMax: 9,
         waveDelay: 8,
         palette: ['#665b48', '#7a8592', '#29b3ad'],
-        purpose: 'MVP Alpha dungeon: construct gauntlets, armor-break checks, and two heavy boss targets.',
+        purpose: 'Playful brass-and-teal factory route with readable construct lanes, a staged Titan fight, a real gear switch, and a sealed final core.',
         enemies: ['rustRatchet', 'clockbug', 'clockworkTitan', 'coilSentry', 'orebackBeetle', 'quarryColossus', 'scrapWarden', 'clockbug', 'orebackBeetle'],
-        platforms: [[0, 520, 3800, 80], [300, 448, 460, 22], [820, 374, 370, 22], [1260, 300, 340, 22], [1680, 226, 320, 22], [2140, 448, 470, 22], [2680, 374, 380, 22], [3120, 300, 350, 22], [3480, 226, 300, 22]],
-        climbables: [{ id: 'vault_ladder_1', x: 960, y: 374, w: 30, h: 146 }, { id: 'vault_ladder_2', x: 1818, y: 226, w: 30, h: 294 }, { id: 'vault_ladder_3', x: 3260, y: 300, w: 30, h: 220 }],
-        spawnPoints: [{ x: 540, platformIndex: 1, weight: 2 }, { x: 980, platformIndex: 2, weight: 2 }, { x: 1420, platformIndex: 3, weight: 1 }, { x: 1840, platformIndex: 4, weight: 1 }, { x: 2380, platformIndex: 5, weight: 2 }, { x: 2860, platformIndex: 6, weight: 2 }, { x: 3300, platformIndex: 7, weight: 1 }, { x: 3600, platformIndex: 8, weight: 1 }, { x: 1900, platformIndex: 0, weight: 2 }],
-        stations: []
+        platforms: [[0, 520, 4600, 80], [260, 448, 860, 22], [480, 180, 640, 22], [1320, 448, 900, 22], [1470, 310, 760, 22], [2470, 390, 300, 22], [2540, 258, 500, 22], [3130, 448, 1150, 22], [3360, 310, 760, 22]],
+        climbables: [{ id: 'vault_ladder_intake', x: 780, y: 180, w: 30, h: 268 }, { id: 'vault_ladder_titan', x: 1840, y: 310, w: 30, h: 138 }, { id: 'vault_ladder_switch', x: 2780, y: 258, w: 30, h: 262 }, { id: 'vault_ladder_core', x: 3740, y: 310, w: 30, h: 138 }],
+        spawnPoints: [{ x: 690, platformIndex: 1, weight: 3 }, { x: 1770, platformIndex: 3, weight: 3 }, { x: 1850, platformIndex: 4, weight: 1 }, { x: 3705, platformIndex: 7, weight: 3 }, { x: 3740, platformIndex: 8, weight: 1 }],
+        stations: [{ id: 'gearworks_master_switch', name: 'Master Gear Switch', x: 2730, platformIndex: 6 }]
       },
       {
         id: 'cinderHollow',

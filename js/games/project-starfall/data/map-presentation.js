@@ -394,13 +394,50 @@
           { label: 'Crown approach', platformTier: 'high' }
         ]
       }),
-      gearworksVault: createArenaFieldComposition({
-        sections: [
-          { label: 'Tank Lane', tier: 'frontline', kind: 'crate', platformTier: 'low' },
-          { label: 'Sentry Catwalk', tier: 'ranged', kind: 'tall', platformTier: 'mid' },
-          { label: 'Gear Switch Shelf', tier: 'switch', kind: 'crystal', platformTier: 'high' }
+      gearworksVault: createFieldComposition({
+        routeSections: [
+          {
+            label: 'Intake Tank Lane',
+            x: 0,
+            w: 1250,
+            tier: 'frontline',
+            platformIds: ['gearworksVault_intake_lane', 'gearworksVault_intake_catwalk']
+          },
+          {
+            label: 'Titan Assembly',
+            x: 1250,
+            w: 1250,
+            tier: 'miniboss',
+            platformIds: ['gearworksVault_titan_floor', 'gearworksVault_sentry_catwalk']
+          },
+          {
+            label: 'Master Gear Switch',
+            x: 2500,
+            w: 550,
+            tier: 'switch',
+            platformIds: ['gearworksVault_switch_approach', 'gearworksVault_master_switch_shelf']
+          },
+          {
+            label: 'Assembly Core',
+            x: 3050,
+            w: 1550,
+            tier: 'boss',
+            platformIds: ['gearworksVault_core_floor', 'gearworksVault_core_catwalk']
+          }
         ],
-        portalRoles: { vault_quarry: 'quarry return' }
+        portalRoles: { vault_quarry: 'quarry return' },
+        landmarkBands: [
+          { kind: 'crate', x: 380, w: 620, anchorX: 700, label: 'Intake Tanks' },
+          { kind: 'tall', x: 1480, w: 760, anchorX: 1840, label: 'Titan Assembly' },
+          { kind: 'glow', x: 2520, w: 520, anchorX: 2780, label: 'Master Gear Switch' },
+          { kind: 'crystal', x: 3200, w: 1120, anchorX: 3720, label: 'Assembly Core' }
+        ],
+        spawnZoneLabels: [
+          { label: 'Intake constructs', platformTier: 'low' },
+          { label: 'Titan assembly', platformTier: 'mid' },
+          { label: 'Master switch', platformTier: 'high' },
+          { label: 'Assembly core', platformTier: 'boss' }
+        ]
       }),
       emberjawLair: createArenaFieldComposition({
         sections: [
@@ -906,7 +943,7 @@
       { id: 'thornpathThicket', intendedArchetype: 'D vertical canopy with reset loop', intendedUseCase: 'solo/duo', routeSummary: 'Leave the scout clearing, learn the vine loop, take the high thorn canopy, then regroup on the calm Deep Fork approach.', partyRoleTarget: 'Duo split by low/mid/high canopy with overlapping vine and drop recovery.', farmingAbuseRisk: 'medium', visualIdentityTag: 'thorn canopy fork', spawnSectionModel: 'clearing/tangle/canopy/fork progression', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'brambleDepths', intendedArchetype: 'H/E root dungeon', intendedUseCase: 'boss dungeon', routeSummary: 'Push through root lanes and thorn shelves into the Brambleking gate.', partyRoleTarget: 'Small-party boss prep with healer pod and thorn pod priority.', farmingAbuseRisk: 'medium', visualIdentityTag: 'root court dungeon', spawnSectionModel: 'root floor, thorn shelf, crown approach', implementationStatus: 'arena-skeleton-v1' },
       { id: 'rustcoilRuins', intendedArchetype: 'C/F industrial terrace', intendedUseCase: 'solo/duo', routeSummary: 'Rotate lower construct lanes, mid sentry catwalks, and upper gear shelves.', partyRoleTarget: 'Duo can split lower armor lane and upper sentry lane.', farmingAbuseRisk: 'medium', visualIdentityTag: 'broken gear ruins', spawnSectionModel: 'lower ratchets, mid sentries, upper wardens' },
-      { id: 'gearworksVault', intendedArchetype: 'H/E armor-check factory arena', intendedUseCase: 'small/full party dungeon', routeSummary: 'Hold lower tanks, control mid sentries, and hit upper gear switches during boss waves.', partyRoleTarget: 'Tank lower lane, ranged sentry duty, support near center switch.', farmingAbuseRisk: 'medium', visualIdentityTag: 'gear vault factory', spawnSectionModel: 'tank lane, sentry catwalk, switch shelf', implementationStatus: 'arena-skeleton-v1' },
+      { id: 'gearworksVault', intendedArchetype: 'H/E staged armor-check factory route', intendedUseCase: 'small/full party dungeon', routeSummary: 'Clear the intake lane, disable the Clockwork Titan, prime the Master Gear Switch, then break the Quarry Colossus inside the opened Assembly Core.', partyRoleTarget: 'Frontliner anchors the intake lane, ranged controls the Titan catwalk, and support regroups at the spawn-free switch before the core fight.', farmingAbuseRisk: 'medium', visualIdentityTag: 'playful brass and teal gear vault', spawnSectionModel: 'intake lane, Titan assembly, spawn-free gear switch, assembly core', priorityRedesign: true, implementationStatus: 'geometry-route-v1' },
       { id: 'cinderHollow', intendedArchetype: 'C/F hazard-lite volcanic route', intendedUseCase: 'solo/duo', routeSummary: 'Clear the grounded Ash Floor, take the optional Vent Shortcut, control Wisp Turn, then regroup with the Pathfinder before Emberjaw.', partyRoleTarget: 'Duo splits grounded crawlers from vent spitters, then regroups for the focused wisp chamber.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'ember vent cave', spawnSectionModel: 'ash floor, vent shortcut, wisp turn, spawn-free Emberjaw approach', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'emberjawLair', intendedArchetype: 'H/I furnace arena', intendedUseCase: 'boss dungeon', routeSummary: 'Control side vents, cross safe pockets, and answer Emberjaw overheat waves.', partyRoleTarget: 'Small party handles vent adds, safe pocket calls, and boss pressure.', farmingAbuseRisk: 'medium', visualIdentityTag: 'ember furnace lair', spawnSectionModel: 'side vents, mid safe pockets, overheat shelf', implementationStatus: 'arena-skeleton-v1' },
       { id: 'banditRidgeCamp', intendedArchetype: 'E split-lane party map', intendedUseCase: 'small party', routeSummary: 'Split lower cutter lane, middle thrower camp, and upper rope bridge, then regroup at campfire.', partyRoleTarget: 'Tank lower chokepoints, ranged high throwers, support campfire regroup.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bandit rope-bridge camp', spawnSectionModel: 'lower/middle/high/regroup lane sections', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
@@ -1078,6 +1115,11 @@
         serviceTier: 'low',
         serviceRole: 'map_objective',
         serviceSummary: 'Spawn-free regroup and interaction point for the Stormbreak lightning-rod objective.'
+      }),
+      gearworks_master_switch: Object.freeze({
+        serviceTier: 'low',
+        serviceRole: 'dungeon_objective',
+        serviceSummary: 'Spawn-free route switch that opens the Gearworks Assembly Core.'
       })
     });
 

@@ -37,6 +37,41 @@
       { sectionSuffix: 'mushroom_pocket', label: 'Glowcap Pocket', enemyWeights: [{ enemyId: 'glowcapHealer', weight: 6 }, { enemyId: 'orebackBeetle', weight: 4 }], population: 7, respawnSeconds: 6, leash: 420 },
       { sectionSuffix: 'mine_event_pocket', label: 'Mimic Mine', enemyWeights: [{ enemyId: 'orebackBeetle', weight: 5 }, { enemyId: 'scrapWarden', weight: 3 }, { enemyId: 'crackedMimic', weight: 1 }], population: 4, respawnSeconds: 8, leash: 360 }
     ]),
+    gearworksVault: Object.freeze([
+      {
+        sectionSuffix: 'intake_tank_lane',
+        label: 'Intake Constructs',
+        platformIds: ['gearworksVault_intake_lane', 'gearworksVault_intake_catwalk'],
+        enemyWeights: [{ enemyId: 'rustRatchet', weight: 4 }, { enemyId: 'clockbug', weight: 3 }, { enemyId: 'scrapWarden', weight: 2 }, { enemyId: 'coilSentry', weight: 1 }],
+        population: 4,
+        maxPopulation: 4,
+        respawnSeconds: 8,
+        leash: 420,
+        spawnBounds: { minX: 340, maxX: 1060 }
+      },
+      {
+        sectionSuffix: 'titan_assembly',
+        label: 'Titan Assembly',
+        platformIds: ['gearworksVault_titan_floor', 'gearworksVault_sentry_catwalk'],
+        enemyWeights: [{ enemyId: 'coilSentry', weight: 3 }, { enemyId: 'scrapWarden', weight: 2 }, { enemyId: 'clockworkTitan', weight: 1 }],
+        population: 3,
+        maxPopulation: 3,
+        respawnSeconds: 10,
+        leash: 520,
+        spawnBounds: { minX: 1380, maxX: 2180 }
+      },
+      {
+        sectionSuffix: 'assembly_core',
+        label: 'Assembly Core',
+        platformIds: ['gearworksVault_core_floor', 'gearworksVault_core_catwalk'],
+        enemyWeights: [{ enemyId: 'orebackBeetle', weight: 3 }, { enemyId: 'scrapWarden', weight: 2 }, { enemyId: 'quarryColossus', weight: 1 }],
+        population: 2,
+        maxPopulation: 2,
+        respawnSeconds: 12,
+        leash: 620,
+        spawnBounds: { minX: 3200, maxX: 4200 }
+      }
+    ]),
     cinderHollow: Object.freeze([
       {
         sectionSuffix: 'ash_floor',

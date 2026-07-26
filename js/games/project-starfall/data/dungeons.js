@@ -16,6 +16,9 @@
         spawnGroupIds: Object.freeze((beat.spawnGroupIds || []).slice()),
         enemyIds: Object.freeze((beat.enemyIds || []).slice()),
         bossIds: Object.freeze((beat.bossIds || []).slice()),
+        stationIds: Object.freeze((beat.stationIds || []).slice()),
+        entryGateX: Math.max(0, Number(beat.entryGateX || 0)),
+        arenaMaxX: Math.max(0, Number(beat.arenaMaxX || 0)),
         gateX: Math.max(0, Number(beat.gateX || 0))
       })))
     });
@@ -80,13 +83,58 @@
     Object.freeze({
       id: 'gearworks_vault',
       name: 'Gearworks Vault',
-      summary: 'A late prototype dungeon that checks armor break, add control, and boss uptime.',
+      summary: 'A staged brass-and-teal factory route built around lane control, a Titan miniboss, a working gear switch, and a sealed final core.',
       mapId: 'gearworksVault',
       levelRequirement: 35,
       recommendedPartySize: 4,
       bossId: 'quarryColossus',
       bossIds: Object.freeze(['clockworkTitan', 'quarryColossus']),
       requiresAdvancedClass: true,
+      encounterFlow: createEncounterFlow({
+        id: 'gearworks_vault_route',
+        bossIntroDelaySeconds: 2.2,
+        bossHpScale: 5,
+        beats: [
+          {
+            id: 'clear_intake_lane',
+            kind: 'combat',
+            name: 'Clear the Intake Lane',
+            summary: 'Break the first construct crew and open the Titan Assembly.',
+            sectionIds: ['gearworksVault_intake_tank_lane'],
+            enemyIds: ['rustRatchet', 'scrapWarden', 'clockbug', 'coilSentry'],
+            gateX: 1250
+          },
+          {
+            id: 'disable_clockwork_titan',
+            kind: 'boss',
+            name: 'Disable the Clockwork Titan',
+            summary: 'Use the broad assembly floor and catwalk to bring the Titan offline.',
+            sectionIds: ['gearworksVault_titan_assembly'],
+            bossIds: ['clockworkTitan'],
+            entryGateX: 1250,
+            gateX: 2500
+          },
+          {
+            id: 'prime_master_gear',
+            kind: 'interaction',
+            name: 'Prime the Master Gear',
+            summary: 'Climb to the spawn-free switch shelf and open the sealed Assembly Core.',
+            sectionIds: ['gearworksVault_master_gear_switch'],
+            stationIds: ['gearworks_master_switch'],
+            gateX: 3050
+          },
+          {
+            id: 'break_quarry_colossus',
+            kind: 'boss',
+            name: 'Break the Quarry Colossus',
+            summary: 'Enter the opened core and defeat the Quarry Colossus.',
+            sectionIds: ['gearworksVault_assembly_core'],
+            bossIds: ['quarryColossus'],
+            entryGateX: 3050,
+            arenaMaxX: 4600
+          }
+        ]
+      }),
       rewards: Object.freeze({ xp: 620, currency: 320, materials: Object.freeze({ upgradeDust: 8, upgradeCatalyst: 3 }) })
     }),
     Object.freeze({

@@ -134,7 +134,12 @@
   function makePartyPlaySpawnPoints(platforms) {
     return platforms
       .map((platform, index) => ({ platform, index }))
-      .filter((entry) => entry.index > 0 && getPlatformDefW(entry.platform) >= 640)
+      .filter((entry) => entry.index > 0 &&
+        getPlatformDefW(entry.platform) >= 640 &&
+        !entry.platform.spawnDisabled &&
+        getPlatformDefShape(entry.platform) !== 'slope' &&
+        getPlatformDefVisualKind(entry.platform) !== 'connector' &&
+        getPlatformDefVisualKind(entry.platform) !== 'hop')
       .map((entry) => ({
         x: Math.round(getPlatformDefX(entry.platform) + getPlatformDefW(entry.platform) / 2),
         platformIndex: entry.index,
@@ -142,10 +147,37 @@
       }));
   }
 
+  function makeGearworksVaultPlatforms(worldWidth) {
+    const platforms = [];
+    const addPlatform = (id, x, y, w, kind, options) => {
+      const settings = options || {};
+      const platform = makePlatformDef(x, y, w, 22, { kind: kind || 'solidLane' });
+      platform.id = id;
+      if (settings.spawnDisabled) platform.spawnDisabled = true;
+      if (settings.climbableDisabled) platform.climbableDisabled = true;
+      platforms.push(platform);
+    };
+    platforms.push(makePlatformDef(0, TRAINING_LANE_Y.ground, worldWidth, 80, { kind: 'ground' }));
+    addPlatform('gearworksVault_intake_lane', 260, 448, 860, 'solidLane');
+    addPlatform('gearworksVault_intake_catwalk', 480, 180, 640, 'solidLane');
+    addPlatform('gearworksVault_titan_floor', 1320, 448, 900, 'solidLane');
+    addPlatform('gearworksVault_sentry_catwalk', 1470, 310, 760, 'solidLane');
+    addPlatform('gearworksVault_switch_approach', 2470, 390, 300, 'connector', { spawnDisabled: true });
+    addPlatform('gearworksVault_master_switch_shelf', 2540, 258, 500, 'island', { spawnDisabled: true });
+    addPlatform('gearworksVault_core_floor', 3130, 448, 1150, 'solidLane');
+    addPlatform('gearworksVault_core_catwalk', 3360, 310, 760, 'solidLane');
+    platforms.push(makeSlopePlatformDef(160, TRAINING_LANE_Y.ground, 448, 260, 24, { kind: 'slope' }));
+    platforms.push(makeSlopePlatformDef(1160, TRAINING_LANE_Y.ground, 448, 260, 24, { kind: 'slope' }));
+    platforms.push(makeSlopePlatformDef(2300, TRAINING_LANE_Y.ground, 390, 260, 24, { kind: 'slope' }));
+    platforms.push(makeSlopePlatformDef(2940, TRAINING_LANE_Y.ground, 448, 280, 24, { kind: 'slope' }));
+    return platforms;
+  }
+
   function makeDungeonArenaPlatforms(width, mapId) {
     const skeleton = getDungeonArenaSkeleton(mapId);
     if (!skeleton) return null;
     const worldWidth = Math.max(4600, Math.ceil(Number(width || 0) / 100) * 100);
+    if (mapId === 'gearworksVault') return makeGearworksVaultPlatforms(worldWidth);
     const lowY = TRAINING_LANE_Y.low + Number(skeleton.lowShift || 0);
     let midY = TRAINING_LANE_Y.mid + Number(skeleton.midShift || 0);
     let highY = TRAINING_LANE_Y.high + Number(skeleton.highShift || 0);
