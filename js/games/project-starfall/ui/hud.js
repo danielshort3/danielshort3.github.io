@@ -2585,6 +2585,49 @@
     };
   }
 
+  function getWeeklyStarRouteTrackerEntry(season) {
+    const weeklyRoutes = season && season.weeklyRoutes;
+    if (!weeklyRoutes || typeof weeklyRoutes !== 'object' || weeklyRoutes.unlocked === false) return null;
+    if (weeklyRoutes.complete || weeklyRoutes.rewardGranted) return null;
+    const assignments = Array.isArray(weeklyRoutes.assignments) ? weeklyRoutes.assignments.filter(Boolean) : [];
+    const assignment = assignments.find((entry) => !entry.complete);
+    if (!assignment) return null;
+    const requestedGuideType = String(assignment.guideType || '').trim();
+    const guideType = requestedGuideType === 'map' || requestedGuideType === 'dungeon'
+      ? requestedGuideType
+      : assignment.dungeonId
+        ? 'dungeon'
+        : assignment.mapId
+          ? 'map'
+          : '';
+    const guideId = String(
+      assignment.guideId ||
+      (guideType === 'dungeon' ? assignment.dungeonId : assignment.mapId) ||
+      ''
+    ).trim();
+    if (!guideType || !guideId) return null;
+    const completedByAssignments = assignments.filter((entry) => entry.complete).length;
+    const completionCount = Math.max(0, Math.min(
+      assignments.length,
+      Math.floor(Number.isFinite(Number(weeklyRoutes.completionCount))
+        ? Number(weeklyRoutes.completionCount)
+        : completedByAssignments)
+    ));
+    return {
+      title: `Weekly Star Route ${completionCount}/${assignments.length}`,
+      guideType,
+      guideId,
+      weeklyRoute: true,
+      assignmentId: assignment.id || '',
+      objectives: [{
+        label: assignment.label || assignment.summary || 'Complete the weekly assignment',
+        value: Math.max(0, Number(assignment.value || 0)),
+        goal: Math.max(1, Number(assignment.goal || 1)),
+        complete: false
+      }]
+    };
+  }
+
   function getQuestTrackerEntries(snapshot, options) {
     const source = snapshot || {};
     const settings = options || {};
@@ -2602,6 +2645,7 @@
       source.mapModifiers && source.mapModifiers.mapMechanic || source.mapMechanic,
       { nowSeconds: settings.nowSeconds }
     );
+    const weeklyRouteEntry = getWeeklyStarRouteTrackerEntry(source.season);
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
     const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
     const mergeFirstStepsTracker = !!(nextStep &&
@@ -2627,6 +2671,7 @@
       !guideEntry &&
       !routeEntry &&
       !mapMechanicEntry &&
+      !weeklyRouteEntry &&
       (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))
     ) return [];
     const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
@@ -2669,7 +2714,7 @@
       guideId: quest.id,
       objectives: [{ label: `Claim from ${quest.npcName || 'quest NPC'}: ${quest.rewardSummary}`, value: 1, goal: 1, complete: true }]
     }));
-    const activeQuest = progress.activeQuest ? (() => {
+    const activeQuest = progress && progress.activeQuest ? (() => {
       const quest = Object.assign({}, progress.activeQuest, {
         guideType: 'quest',
         guideId: progress.activeQuest.id
@@ -2683,11 +2728,11 @@
       ];
       return quest;
     })() : null;
-    const activeTrial = progress.activeTrial ? Object.assign({}, progress.activeTrial, {
+    const activeTrial = progress && progress.activeTrial ? Object.assign({}, progress.activeTrial, {
       guideType: 'trial',
       guideId: progress.activeTrial.id
     }) : null;
-    return [guideEntry, routeEntry, mapMechanicEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
+    return [guideEntry, routeEntry, mapMechanicEntry, weeklyRouteEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
   }
 
   function getQuestTrackerNaturalHeight(entries, guidance) {
@@ -3209,6 +3254,7 @@
     createHudWorldPromptUiHelpers,
     getOnboardingStepSummary,
     getMapRouteTrackerEntry,
+    getWeeklyStarRouteTrackerEntry,
     getQuestTrackerEntries,
     getQuestTrackerNaturalHeight,
     getQuestTrackerBox,

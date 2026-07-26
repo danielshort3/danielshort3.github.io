@@ -27089,6 +27089,55 @@
           }]
         }
         : null;
+      const weeklyRoutes = snapshot.season && snapshot.season.weeklyRoutes;
+      const weeklyAssignments = weeklyRoutes && Array.isArray(weeklyRoutes.assignments)
+        ? weeklyRoutes.assignments.filter(Boolean)
+        : [];
+      const weeklyAssignment = weeklyAssignments.find((assignment) => !assignment.complete);
+      const weeklyRequestedGuideType = String(weeklyAssignment && weeklyAssignment.guideType || '').trim();
+      const weeklyGuideType = weeklyRequestedGuideType === 'map' || weeklyRequestedGuideType === 'dungeon'
+        ? weeklyRequestedGuideType
+        : weeklyAssignment && weeklyAssignment.dungeonId
+          ? 'dungeon'
+          : weeklyAssignment && weeklyAssignment.mapId
+            ? 'map'
+            : '';
+      const weeklyGuideId = String(
+        weeklyAssignment && (
+          weeklyAssignment.guideId ||
+          (weeklyGuideType === 'dungeon' ? weeklyAssignment.dungeonId : weeklyAssignment.mapId)
+        ) ||
+        ''
+      ).trim();
+      const weeklyCompletionCount = weeklyRoutes
+        ? Math.max(0, Math.min(
+          weeklyAssignments.length,
+          Math.floor(Number.isFinite(Number(weeklyRoutes.completionCount))
+            ? Number(weeklyRoutes.completionCount)
+            : weeklyAssignments.filter((assignment) => assignment.complete).length)
+        ))
+        : 0;
+      const weeklyRouteEntry = weeklyRoutes &&
+        weeklyRoutes.unlocked !== false &&
+        !weeklyRoutes.complete &&
+        !weeklyRoutes.rewardGranted &&
+        weeklyAssignment &&
+        weeklyGuideType &&
+        weeklyGuideId
+        ? {
+            title: `Weekly Star Route ${weeklyCompletionCount}/${weeklyAssignments.length}`,
+            guideType: weeklyGuideType,
+            guideId: weeklyGuideId,
+            weeklyRoute: true,
+            assignmentId: weeklyAssignment.id || '',
+            objectives: [{
+              label: weeklyAssignment.label || weeklyAssignment.summary || 'Complete the weekly assignment',
+              value: Math.max(0, Number(weeklyAssignment.value || 0)),
+              goal: Math.max(1, Number(weeklyAssignment.goal || 1)),
+              complete: false
+            }]
+          }
+        : null;
       const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
       const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
       const mergeFirstStepsTracker = !!(nextStep &&
@@ -27110,7 +27159,7 @@
         guideId: nextStep.id || nextStep.panelId || nextStep.title,
         objectives: [guideObjective]
       } : null;
-      if (!guideEntry && !routeEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
+      if (!guideEntry && !routeEntry && !weeklyRouteEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
       const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
       const dungeonEntry = activeDungeon ? {
         title: activeDungeon.name,
@@ -27135,7 +27184,7 @@
         guideId: quest.id,
         objectives: [{ label: `Claim from ${quest.npcName || 'quest NPC'}: ${quest.rewardSummary}`, value: 1, goal: 1, complete: true }]
       }));
-      const activeQuest = progress.activeQuest ? (() => {
+      const activeQuest = progress && progress.activeQuest ? (() => {
         const quest = Object.assign({}, progress.activeQuest, {
           guideType: 'quest',
           guideId: progress.activeQuest.id
@@ -27149,11 +27198,11 @@
         ];
         return quest;
       })() : null;
-      const activeTrial = progress.activeTrial ? Object.assign({}, progress.activeTrial, {
+      const activeTrial = progress && progress.activeTrial ? Object.assign({}, progress.activeTrial, {
         guideType: 'trial',
         guideId: progress.activeTrial.id
       }) : null;
-      return [guideEntry, routeEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
+      return [guideEntry, routeEntry, weeklyRouteEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
     }
 
     getCanvasRiftTrackerBox(width, height, bottomY) {
@@ -29919,6 +29968,22 @@
       if (!nodes.length) {
         return this.drawCanvasText(ctx, 'World map data is unavailable.', x, y, { color: '#5f6f7a', font: '14px system-ui' }) - y;
       }
+      const weeklyRoutes = this.snapshot.season && this.snapshot.season.weeklyRoutes;
+      const weeklyAssignments = weeklyRoutes &&
+        weeklyRoutes.unlocked !== false &&
+        !weeklyRoutes.complete &&
+        !weeklyRoutes.rewardGranted &&
+        Array.isArray(weeklyRoutes.assignments)
+        ? weeklyRoutes.assignments.filter((assignment) => assignment && !assignment.complete)
+        : [];
+      const weeklyTargetMapIds = weeklyAssignments.reduce((mapIds, assignment) => {
+        if (assignment.mapId) mapIds.add(String(assignment.mapId));
+        if (assignment.dungeonId) {
+          const dungeonNode = nodes.find((node) => node && node.dungeonId === assignment.dungeonId);
+          if (dungeonNode && dungeonNode.mapId) mapIds.add(String(dungeonNode.mapId));
+        }
+        return mapIds;
+      }, new Set());
       const selected = worldMap.selectedNode || nodes.find((node) => node.current) || nodes[0];
       const pathHint = worldMap.pathHint || {};
       const nextStep = pathHint.nextStep;
@@ -29996,6 +30061,7 @@
         const point = pointFor(node);
         const radius = node.current || node.selected ? 11 : node.dungeon ? 10 : 8;
         const hitSize = 36;
+        const weeklyTarget = weeklyTargetMapIds.has(String(node.mapId || ''));
         const fill = node.current ? '#eaf7ff' : node.selected ? '#fff3c4' : node.locked ? '#b8b8b0' : node.completed ? '#d6ffcb' : '#ffffff';
         const roleStroke = node.layoutRole === 'town' ? '#f7d28a'
           : node.layoutRole === 'bossArena' ? '#d87bff'
@@ -30004,6 +30070,22 @@
                 : node.layoutRole === 'endlessField' ? '#f06bff'
                   : node.areaAccent || '#7ec8d8';
         const stroke = node.current ? '#69c9ff' : node.selected ? '#ffcf5f' : node.locked ? '#4b5560' : roleStroke;
+        if (weeklyTarget) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(245,207,114,0.92)';
+          ctx.lineWidth = 2;
+          ctx.shadowColor = 'rgba(245,207,114,0.55)';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, radius + 5, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          this.drawCanvasUiGem(ctx, point.x + radius + 3, point.y - radius - 13, 8, {
+            fill: '#f5cf72',
+            stroke: '#fff3cf',
+            glow: 'rgba(245,207,114,0.55)'
+          });
+        }
         ctx.save();
         ctx.shadowColor = node.current || node.selected ? 'rgba(80,190,255,0.7)' : 'rgba(0,0,0,0.34)';
         ctx.shadowBlur = node.current || node.selected ? 10 : 4;
@@ -30029,7 +30111,7 @@
           this.drawRoundRect(ctx, label.x, label.y, label.w, label.h, 5, node.selected ? '#eef6ff' : 'rgba(255,255,255,0.84)', 'rgba(16,32,51,0.16)');
           this.drawCanvasText(ctx, node.name, label.x + label.w / 2, label.y + 4, { color: node.locked ? '#52606b' : '#102033', font: '900 9px system-ui', align: 'center', maxWidth: label.w - 8, lineHeight: 10, maxLines: 1 });
         }
-        const tooltipMetadata = getWorldMapNodeTooltipMetadata
+        let tooltipMetadata = getWorldMapNodeTooltipMetadata
           ? getWorldMapNodeTooltipMetadata(node)
           : node.selected ? {} : {
             tooltipTitle: node.name,
@@ -30041,6 +30123,17 @@
               node.lockedReason ? 'Complete the listed requirement to unlock this route.' : 'Click to select this map node.'
             ].filter(Boolean)
           };
+        if (weeklyTarget) {
+          const existingTooltipLines = tooltipMetadata && Array.isArray(tooltipMetadata.tooltipLines)
+            ? tooltipMetadata.tooltipLines
+            : [];
+          tooltipMetadata = Object.assign({}, tooltipMetadata, {
+            tooltipLines: [
+              ...existingTooltipLines,
+              'Weekly Star Route assignment'
+            ]
+          });
+        }
         this.addCanvasRegion(Object.assign({
           type: 'world-map-node',
           mapId: node.mapId,
@@ -30057,12 +30150,16 @@
       const detailTextX = detailX + 12;
       const detailButtonW = WORLD_MAP_DETAIL_LAYOUT.buttonWidth;
       const detailTextW = Math.max(220, detailW - detailButtonW - 42);
-      const contextText = riftText ||
+      const selectedWeeklyTarget = weeklyTargetMapIds.has(String(selected && selected.mapId || ''));
+      const locationContextText = riftText ||
         formatDungeonRespawnLabel(selected) ||
         (selected.landmark ? `Landmark: ${selected.landmark}` : '') ||
         selected.areaMechanic ||
         selected.purpose ||
         'Travel through a connected portal to reach this area.';
+      const contextText = selectedWeeklyTarget
+        ? `Weekly Star Route assignment - ${locationContextText}`
+        : locationContextText;
       const getWorldMapDetailPresentation = getQuestHelper('getWorldMapDetailPresentation');
       const detail = getWorldMapDetailPresentation
         ? getWorldMapDetailPresentation(selected, {
@@ -30502,6 +30599,8 @@
       if (activeTab === 'trials') return cy + this.drawQuestTrialsCanvas(ctx, x, cy, w, progress) - y;
       if (activeTab === 'dungeons') return cy + this.drawQuestDungeonsCanvas(ctx, x, cy, w) - y;
       if (activeTab === 'accomplishments') return cy + this.drawAccomplishmentsCanvas(ctx, x, cy, w) - y;
+      const weeklyRouteHeight = this.drawWeeklyStarRouteCanvas(ctx, x, cy, w);
+      if (weeklyRouteHeight) cy += weeklyRouteHeight + 10;
       return cy + this.drawQuestChainCanvas(ctx, x, cy, w, progress) - y;
     }
 
@@ -30530,6 +30629,165 @@
         });
       });
       return tabH;
+    }
+
+    drawWeeklyStarRouteCanvas(ctx, x, y, w) {
+      const getWeeklyStarRoutePresentation = getQuestHelper('getWeeklyStarRoutePresentation');
+      const presentation = getWeeklyStarRoutePresentation
+        ? getWeeklyStarRoutePresentation(this.snapshot.season, { nowMs: Date.now() })
+        : null;
+      if (!presentation) return 0;
+      const visibleAssignments = presentation.unlocked ? presentation.visibleAssignments : [];
+      const hiddenCount = presentation.unlocked ? presentation.hiddenCount : 0;
+      const rowsHeight = visibleAssignments.length * 36;
+      const hiddenHeight = hiddenCount ? 16 : 0;
+      const cardHeight = 84 + rowsHeight + hiddenHeight;
+      const complete = presentation.complete || presentation.rewardGranted;
+      const fill = presentation.unlocked
+        ? complete ? '#eff9ef' : '#fff7d8'
+        : '#f1eee5';
+      const stroke = presentation.unlocked
+        ? complete ? 'rgba(46,123,82,0.32)' : 'rgba(216,183,74,0.45)'
+        : 'rgba(138,107,83,0.28)';
+      const rewardSummary = presentation.rewardSummary || this.formatRewardSummary(presentation.reward);
+      const lockedStatusLabel = presentation.permanentlyUnlocked ? 'Routes needed' : 'Locked';
+      const lockedSummary = presentation.lockedReason || 'Keep progressing to unlock four weekly assignments.';
+      const statusLabel = presentation.rewardGranted
+        ? 'Reward granted'
+        : presentation.complete
+          ? 'Route complete'
+          : `${presentation.completionCount}/${presentation.totalCount || presentation.completionGoal} complete`;
+      const summaryLines = presentation.unlocked
+        ? [
+            `Complete any ${presentation.completionGoal} of ${presentation.totalCount || presentation.completionGoal} assignments.`,
+            `Reward: ${rewardSummary}`,
+            presentation.resetLabel,
+            ...presentation.assignments.map((assignment) => {
+              const progress = assignment.complete
+                ? 'Done'
+                : `${formatAbbreviatedInteger(assignment.value || 0)}/${formatAbbreviatedInteger(assignment.goal || 1)}`;
+              return `${progress} - ${assignment.label || assignment.summary || 'Weekly assignment'}`;
+            })
+          ]
+        : [
+            lockedSummary,
+            presentation.resetLabel
+          ];
+      this.drawRoundRect(ctx, x, y, w, cardHeight, 8, fill, stroke);
+      this.addCanvasRegion({
+        type: 'info',
+        priority: -10,
+        tooltipTitle: 'Weekly Star Route',
+        tooltipSubtitle: presentation.unlocked ? statusLabel : lockedStatusLabel,
+        tooltipLines: summaryLines.filter(Boolean),
+        x,
+        y,
+        w,
+        h: cardHeight
+      });
+      this.drawCanvasUiGem(ctx, x + 10, y + 10, 16, {
+        fill: presentation.unlocked ? '#65bfe6' : '#b8b0a2',
+        stroke: presentation.unlocked ? '#d8b74a' : '#8a7d70',
+        glow: presentation.unlocked ? 'rgba(101,191,230,0.35)' : 'transparent'
+      });
+      this.drawCanvasText(ctx, 'Weekly Star Route', x + 36, y + 8, {
+        color: '#102033',
+        font: '900 13px system-ui',
+        maxWidth: w - 178,
+        lineHeight: 14,
+        maxLines: 1
+      });
+      this.drawCanvasText(ctx, presentation.unlocked ? statusLabel : lockedStatusLabel, x + w - 10, y + 9, {
+        color: complete ? '#177645' : presentation.unlocked ? '#8a6b00' : '#7b7066',
+        font: '900 10px system-ui',
+        align: 'right',
+        maxWidth: 126,
+        lineHeight: 11,
+        maxLines: 1
+      });
+      this.drawCanvasText(
+        ctx,
+        presentation.unlocked
+          ? `Complete any ${presentation.completionGoal} of ${presentation.totalCount || presentation.completionGoal} assignments.`
+          : lockedSummary,
+        x + 36,
+        y + 27,
+        {
+          color: '#5f6f7a',
+          font: '10px system-ui',
+          maxWidth: w - 46,
+          lineHeight: 11,
+          maxLines: 1
+        }
+      );
+      this.drawCanvasText(ctx, presentation.unlocked ? `Reward: ${rewardSummary}` : presentation.resetLabel, x + 10, y + 45, {
+        color: presentation.unlocked ? '#8a6b00' : '#7b7066',
+        font: '850 10px system-ui',
+        maxWidth: w - 20,
+        lineHeight: 11,
+        maxLines: 1
+      });
+      let rowY = y + 62;
+      if (presentation.unlocked) {
+        this.drawObjectiveRowsCanvas(ctx, visibleAssignments, x + 8, rowY, w - 16);
+        visibleAssignments.forEach((assignment, index) => {
+          if (assignment.complete || !assignment.guideType || !assignment.guideId) return;
+          this.addCanvasRegion({
+            type: 'quest-guide',
+            priority: 10,
+            guideType: assignment.guideType,
+            guideId: assignment.guideId,
+            assignmentId: assignment.id || '',
+            tooltipTitle: assignment.label || 'Weekly assignment',
+            tooltipSubtitle: 'Weekly Star Route assignment',
+            tooltipLines: [
+              assignment.summary || '',
+              `${formatAbbreviatedInteger(assignment.value || 0)}/${formatAbbreviatedInteger(assignment.goal || 1)}`,
+              'Click to guide this assignment.'
+            ].filter(Boolean),
+            x: x + 8,
+            y: rowY + index * 36,
+            w: w - 16,
+            h: 30
+          });
+        });
+        rowY += rowsHeight;
+        if (hiddenCount) {
+          const hiddenAssignments = presentation.assignments.filter((assignment) => !visibleAssignments.includes(assignment));
+          this.drawCanvasText(ctx, `+${hiddenCount} more assignment${hiddenCount === 1 ? '' : 's'}`, x + 12, rowY, {
+            color: '#5f6f7a',
+            font: '850 9px system-ui',
+            maxWidth: w - 24,
+            lineHeight: 10,
+            maxLines: 1
+          });
+          this.addCanvasRegion({
+            type: 'info',
+            priority: 5,
+            tooltipTitle: `${hiddenCount} more weekly assignment${hiddenCount === 1 ? '' : 's'}`,
+            tooltipSubtitle: `Complete any ${presentation.completionGoal} this week`,
+            tooltipLines: hiddenAssignments.map((assignment) => {
+              const progress = assignment.complete
+                ? 'Done'
+                : `${formatAbbreviatedInteger(assignment.value || 0)}/${formatAbbreviatedInteger(assignment.goal || 1)}`;
+              return `${progress} - ${assignment.label || assignment.summary || 'Weekly assignment'}`;
+            }),
+            x: x + 8,
+            y: rowY - 2,
+            w: w - 16,
+            h: 16
+          });
+          rowY += hiddenHeight;
+        }
+        this.drawCanvasText(ctx, presentation.resetLabel, x + 10, y + cardHeight - 17, {
+          color: '#7b7066',
+          font: '800 9px system-ui',
+          maxWidth: w - 20,
+          lineHeight: 10,
+          maxLines: 1
+        });
+      }
+      return cardHeight;
     }
 
     drawQuestChainCanvas(ctx, x, y, w, progress) {

@@ -334,6 +334,8 @@
     addObjectiveTypes(types, data.CLASS_TRIALS || []);
     addObjectiveTypes(types, data.SEASONS || []);
     addObjectiveTypes(types, data.ACCOMPLISHMENTS || []);
+    types.add('mapHuntClaim');
+    types.add('mapMechanicComplete');
     return types;
   }
 

@@ -54,6 +54,25 @@
     return Math.round((toMs - fromMs) / DAILY_LOGIN_DAY_MS);
   }
 
+  const WEEKLY_ROUTE_DAY_MS = 24 * 60 * 60 * 1000;
+  const WEEKLY_ROUTE_WEEK_MS = 7 * WEEKLY_ROUTE_DAY_MS;
+
+  function getWeeklyRouteWeekStartMs(nowMs) {
+    const timestamp = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
+    const date = new Date(timestamp);
+    const utcDayStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    const daysSinceMonday = (date.getUTCDay() + 6) % 7;
+    return utcDayStart - daysSinceMonday * WEEKLY_ROUTE_DAY_MS;
+  }
+
+  function getWeeklyRouteWeekKey(nowMs) {
+    return new Date(getWeeklyRouteWeekStartMs(nowMs)).toISOString().slice(0, 10);
+  }
+
+  function getWeeklyRouteResetAt(nowMs) {
+    return getWeeklyRouteWeekStartMs(nowMs) + WEEKLY_ROUTE_WEEK_MS;
+  }
+
   const api = {
     nowMs,
     nowSeconds,
@@ -64,7 +83,12 @@
     getDailyLoginDateKey,
     parseDailyLoginDateKey,
     shiftDailyLoginDateKey,
-    getDailyLoginDayDistance
+    getDailyLoginDayDistance,
+    WEEKLY_ROUTE_DAY_MS,
+    WEEKLY_ROUTE_WEEK_MS,
+    getWeeklyRouteWeekStartMs,
+    getWeeklyRouteWeekKey,
+    getWeeklyRouteResetAt
   };
 
   const core = global.ProjectStarfallCore || {};
