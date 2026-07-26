@@ -1,5 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const {
+  createMapRuntime,
+  getReachablePlatformIndices
+} = require('../js/games/project-starfall/engine/map-runtime.js');
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -67,6 +71,22 @@ function countSlopesInWindow(slopes, windowWidth) {
     maxCount = Math.max(maxCount, count);
   });
   return maxCount;
+}
+
+function validatePortalPlatformReachability(map) {
+  if (!map || map.adminOnly || !Array.isArray(map.platforms) || !map.platforms.length) return [];
+  const runtime = createMapRuntime(map);
+  const reachablePlatformIndices = getReachablePlatformIndices(runtime.platformGraph, 0);
+  return (runtime.portals || [])
+    .filter((portal) =>
+      portal &&
+      !portal.shopDoor &&
+      (portal.destinationMapId || portal.dungeonId || portal.bossEncounterId)
+    )
+    .filter((portal) => !reachablePlatformIndices.has(Number(portal.platformIndex)))
+    .map((portal) =>
+      `${map.id} portal ${portal.id || '(unnamed)'} is stranded on unreachable platform ${portal.platformIndex}.`
+    );
 }
 
 function validateMap(map) {
@@ -173,6 +193,7 @@ function validateMap(map) {
       issues.push(`${map.id} portal ${portal.id || '(unnamed)'} is authored outside platform ${portal.platformIndex || 0}.`);
     }
   });
+  issues.push(...validatePortalPlatformReachability(map));
   (map.questNpcs || []).forEach((npc) => {
     if (!npc) return;
     const platformIndex = Number(npc.platformIndex || 0);
@@ -418,6 +439,7 @@ if (require.main === module) {
 
 module.exports = {
   getMapSlopeBudget,
+  validatePortalPlatformReachability,
   validateMap,
   validateWorldGraph,
   validateProjectStarfallMaps

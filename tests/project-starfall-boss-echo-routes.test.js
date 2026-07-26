@@ -5,6 +5,9 @@ const {
 const {
   validateWorldGraph
 } = require('../build/validate-project-starfall-maps.js');
+const {
+  getReachablePlatformIndices
+} = require('../js/games/project-starfall/engine/map-runtime.js');
 const routeProgress = require('../js/games/project-starfall/engine/route-progress.js');
 
 let checks = 0;
@@ -204,6 +207,21 @@ ECHO_ROUTES.forEach((route) => {
   check(engine.changeMap(route.sourceMapId) === true,
     `${route.questId} gate fixture should enter its source field`);
   const runtimePortal = engine.runtime.portals.find((portal) => portal.id === route.portalId);
+  const reachablePlatformIndices = getReachablePlatformIndices(engine.runtime.platformGraph, 0);
+  check(runtimePortal && reachablePlatformIndices.has(runtimePortal.platformIndex),
+    `${route.portalId} should be physically reachable from its source field route`);
+  if (route.portalId === 'cliffs_stormbreak_aerie') {
+    const portalPlatform = engine.runtime.platforms[runtimePortal.platformIndex];
+    check(portalPlatform &&
+      portalPlatform.id === 'stormbreakCliffs_aerie_perch' &&
+      portalPlatform.spawnDisabled &&
+      engine.runtime.climbables.some((climbable) =>
+        climbable.id.includes('_storm_stair_') &&
+        climbable.x >= portalPlatform.x &&
+        climbable.x <= portalPlatform.x + portalPlatform.w
+      ),
+    'the Stormbreak Aerie gate should use a calm, storm-stair-connected lookout perch');
+  }
   check(runtimePortal &&
     engine.getPortalBlockReason(runtimePortal) === `Level ${route.requiredLevel} required.`,
   `${route.portalId} should enforce its level before other locks`);
