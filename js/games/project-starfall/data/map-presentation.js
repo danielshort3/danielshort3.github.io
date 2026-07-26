@@ -420,23 +420,44 @@
       }),
       cinderHollow: createFieldComposition({
         routeSections: [
-          { label: 'Ash Floor Loop', x: 0, w: 1650, tier: 'grounded' },
-          { label: 'Vent Shortcut', x: 1650, w: 1650, tier: 'shortcut' },
-          { label: 'Flyer Turns', x: 3300, w: 1900, tier: 'anti-air' }
+          {
+            label: 'Ash Floor',
+            x: 0,
+            w: 1450,
+            tier: 'grounded',
+            platformIds: ['cinderHollow_ash_floor_low', 'cinderHollow_ash_overlook']
+          },
+          {
+            label: 'Vent Shortcut',
+            x: 1450,
+            w: 1450,
+            tier: 'shortcut',
+            platformIds: ['cinderHollow_vent_floor', 'cinderHollow_vent_shelf']
+          },
+          {
+            label: 'Wisp Turn',
+            x: 2900,
+            w: 1360,
+            tier: 'anti-air',
+            platformIds: ['cinderHollow_wisp_recovery', 'cinderHollow_wisp_turn_mid', 'cinderHollow_wisp_turn_high']
+          },
+          { label: 'Emberjaw Approach', x: 4260, w: 940, tier: 'regroup', platformIds: [] }
         ],
         portalRoles: {
           cinder_refuge_return: 'left refuge return',
           cinder_emberjaw: 'emberjaw lair gate'
         },
         landmarkBands: [
-          { kind: 'glow', x: 620, w: 860, label: 'Ash Crawler Floor' },
-          { kind: 'crystal', x: 2240, w: 760, label: 'Vent Shortcut' },
-          { kind: 'tall', x: 3940, w: 700, label: 'Wisp Turn' }
+          { kind: 'glow', x: 620, w: 700, label: 'Ash Crawler Floor' },
+          { kind: 'crystal', x: 1760, w: 760, label: 'Vent Shortcut' },
+          { kind: 'tall', x: 3280, w: 760, label: 'Wisp Turn' },
+          { kind: 'rock', x: 4500, w: 520, label: 'Pathfinder Lookout' }
         ],
         spawnZoneLabels: [
           { label: 'Ash floor', platformTier: 'low' },
           { label: 'Vent shortcut', platformTier: 'mid' },
-          { label: 'Flyer turn', platformTier: 'high' }
+          { label: 'Wisp turn', platformTier: 'high' },
+          { label: 'Emberjaw approach', platformTier: 'ground' }
         ]
       }),
       banditRidgeCamp: createFieldComposition({
@@ -728,7 +749,7 @@
       { id: 'brambleDepths', intendedArchetype: 'H/E root dungeon', intendedUseCase: 'boss dungeon', routeSummary: 'Push through root lanes and thorn shelves into the Brambleking gate.', partyRoleTarget: 'Small-party boss prep with healer pod and thorn pod priority.', farmingAbuseRisk: 'medium', visualIdentityTag: 'root court dungeon', spawnSectionModel: 'root floor, thorn shelf, crown approach', implementationStatus: 'arena-skeleton-v1' },
       { id: 'rustcoilRuins', intendedArchetype: 'C/F industrial terrace', intendedUseCase: 'solo/duo', routeSummary: 'Rotate lower construct lanes, mid sentry catwalks, and upper gear shelves.', partyRoleTarget: 'Duo can split lower armor lane and upper sentry lane.', farmingAbuseRisk: 'medium', visualIdentityTag: 'broken gear ruins', spawnSectionModel: 'lower ratchets, mid sentries, upper wardens' },
       { id: 'gearworksVault', intendedArchetype: 'H/E armor-check factory arena', intendedUseCase: 'small/full party dungeon', routeSummary: 'Hold lower tanks, control mid sentries, and hit upper gear switches during boss waves.', partyRoleTarget: 'Tank lower lane, ranged sentry duty, support near center switch.', farmingAbuseRisk: 'medium', visualIdentityTag: 'gear vault factory', spawnSectionModel: 'tank lane, sentry catwalk, switch shelf', implementationStatus: 'arena-skeleton-v1' },
-      { id: 'cinderHollow', intendedArchetype: 'C/F hazard-lite volcanic route', intendedUseCase: 'solo/duo', routeSummary: 'Use grounded ash lanes and vent shortcuts while avoiding flyer-heavy turns.', partyRoleTarget: 'Duo split ground crawlers from vent/flyer pockets.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'ember vent cave', spawnSectionModel: 'ash floor, lava tick lane, flyer turns', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
+      { id: 'cinderHollow', intendedArchetype: 'C/F hazard-lite volcanic route', intendedUseCase: 'solo/duo', routeSummary: 'Clear the grounded Ash Floor, take the optional Vent Shortcut, control Wisp Turn, then regroup with the Pathfinder before Emberjaw.', partyRoleTarget: 'Duo splits grounded crawlers from vent spitters, then regroups for the focused wisp chamber.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'ember vent cave', spawnSectionModel: 'ash floor, vent shortcut, wisp turn, spawn-free Emberjaw approach', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'emberjawLair', intendedArchetype: 'H/I furnace arena', intendedUseCase: 'boss dungeon', routeSummary: 'Control side vents, cross safe pockets, and answer Emberjaw overheat waves.', partyRoleTarget: 'Small party handles vent adds, safe pocket calls, and boss pressure.', farmingAbuseRisk: 'medium', visualIdentityTag: 'ember furnace lair', spawnSectionModel: 'side vents, mid safe pockets, overheat shelf', implementationStatus: 'arena-skeleton-v1' },
       { id: 'banditRidgeCamp', intendedArchetype: 'E split-lane party map', intendedUseCase: 'small party', routeSummary: 'Split lower cutter lane, middle thrower camp, and upper rope bridge, then regroup at campfire.', partyRoleTarget: 'Tank lower chokepoints, ranged high throwers, support campfire regroup.', farmingAbuseRisk: 'medium', visualIdentityTag: 'bandit rope-bridge camp', spawnSectionModel: 'lower/middle/high/regroup lane sections', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'orebackQuarry', intendedArchetype: 'E/J material party farm', intendedUseCase: 'small party high-density farming', routeSummary: 'Rotate ore carts, scaffold sentries, healer mushroom pockets, and timed mine events.', partyRoleTarget: 'Tank ore lane, ranged scaffold duty, burst classes clear healer pockets.', farmingAbuseRisk: 'high', visualIdentityTag: 'ore cart quarry', spawnSectionModel: 'ore lane, scaffold, mushroom pocket, event pocket', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
