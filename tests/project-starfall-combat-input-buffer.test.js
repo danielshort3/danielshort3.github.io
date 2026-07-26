@@ -88,6 +88,8 @@ check(freshAttack.shouldBasicAttack &&
   freshAttack.basicAttackOptions &&
   freshAttack.basicAttackOptions.bufferOnBlock === true,
 'fresh keyboard attacks should opt into the short engine buffer');
+check(freshAttack.basicAttackOptions.contactSynced === true,
+  'fresh keyboard attacks should opt into authored contact timing');
 
 const repeatedAttack = input.getAttackKeyInputMetadata('KeyX', true, {
   heldAttackKeys: freshAttack.heldAttackKeys,
@@ -101,6 +103,8 @@ check(freshSkill.shouldUseSkill &&
   freshSkill.skillOptions &&
   freshSkill.skillOptions.bufferOnBlock === true,
 'fresh keyboard skills should opt into the short engine buffer');
+check(freshSkill.skillOptions.contactSynced === true,
+  'fresh keyboard skills should opt into authored contact timing');
 
 const repeatedSkill = input.getSkillKeyInputMetadata({ skillId: SKILL_ID }, 'Digit1', true, {
   heldSkillKeys: freshSkill.heldSkillKeys,
@@ -121,6 +125,8 @@ check(pointerAttack.shouldBasicAttack &&
   pointerAttack.basicAttackOptions &&
   pointerAttack.basicAttackOptions.bufferOnBlock === true,
 'fresh pointer attacks should opt into the same engine buffer');
+check(pointerAttack.basicAttackOptions.contactSynced === true,
+  'fresh pointer attacks should opt into authored contact timing');
 
 withMockNow(1_000_000, (advanceClock) => {
   const engine = createFighterEngine();

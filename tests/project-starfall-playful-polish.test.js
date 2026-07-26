@@ -65,6 +65,44 @@ check(crossing && crossing.questNpcs.some((npc) => npc.id === 'crossing_trail_gu
 check(greenroot && greenroot.questNpcs.some((npc) => npc.id === 'greenroot_guide' && npc.questIds.includes('first_steps')),
   'Greenroot should retain the First Steps handoff and reward route');
 
+const crossingGateLandmark = crossing.townScene.rearStructures.find((entry) => entry.label === 'Greenroot Gate');
+const crossingGate = crossing.portals.find((portal) => portal.id === 'crossing_greenroot');
+const crossingRouteEngine = createProjectStarfallEngine(null, starfallData);
+crossingRouteEngine.chooseClass('fighter');
+const runtimeCrossingGate = crossingRouteEngine.runtime.portals.find((portal) => portal.id === 'crossing_greenroot');
+const runtimeCrossingNpcs = crossingRouteEngine.runtime.questNpcs;
+const crossingGateCenter = runtimeCrossingGate.x + runtimeCrossingGate.w / 2;
+const crossingGateVisualW = Math.max(96, runtimeCrossingGate.w * 1.82);
+const crossingGateVisualLeft = crossingGateCenter - crossingGateVisualW / 2;
+const crossingGateVisualRight = crossingGateCenter + crossingGateVisualW / 2;
+check(crossingGateLandmark && crossingGate && runtimeCrossingGate &&
+  Math.abs(crossingGateCenter - (crossingGateLandmark.x + crossingGateLandmark.w / 2)) <= 1,
+  'the functional Greenroot Gate should remain centered beneath its authored town arch');
+check(runtimeCrossingNpcs.every((npc) =>
+  npc.x + npc.w <= crossingGateVisualLeft || npc.x >= crossingGateVisualRight
+), 'the Greenroot Gate artwork should remain visually separate from every town NPC');
+
+const crossingPlayer = crossingRouteEngine.state.player;
+crossingPlayer.x = crossingGateCenter - crossingPlayer.w / 2;
+crossingPlayer.y = runtimeCrossingGate.y + runtimeCrossingGate.h - crossingPlayer.h;
+crossingRouteEngine.activeInteractionTargetCache = null;
+const crossingGateTarget = crossingRouteEngine.updateActiveStation();
+check(crossingGateTarget.portalId === 'crossing_greenroot' && !crossingGateTarget.questNpcId,
+  'standing at the Greenroot Gate should activate travel without also targeting a quest NPC');
+const crossingGatePrompt = hud.getStationPromptContext({
+  state: { player: crossingPlayer },
+  map: { stations: crossingRouteEngine.runtime.stations },
+  portals: crossingRouteEngine.runtime.portals,
+  questNpcs: { npcs: runtimeCrossingNpcs }
+}, { keyLabels: { moveUp: 'Up' } });
+check(crossingGatePrompt &&
+  crossingGatePrompt.title === 'Greenroot Gate' &&
+  crossingGatePrompt.promptAction === 'portal' &&
+  crossingGatePrompt.kindLabel === 'Portal' &&
+  crossingGatePrompt.hint === 'Up Travel' &&
+  crossingGatePrompt.target.id === 'crossing_greenroot',
+  'the aligned gate should publish one coherent Greenroot travel prompt');
+
 const assignedNpc = mapTown.assignTownQuestNpcs([{ id: 'placed_guide', x: 560, platformIndex: 0 }])[0];
 check(assignedNpc.x === 560 && assignedNpc.platformIndex === 0,
   'town quest placement should preserve authored ground positions');

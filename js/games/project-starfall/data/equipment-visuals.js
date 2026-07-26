@@ -181,8 +181,8 @@
     jump: Object.freeze({ frames: 2, fps: 10, loop: false, timeline: Object.freeze(['launch', 'tuck']) }),
     fall: Object.freeze({ frames: 2, fps: 8, loop: false, timeline: Object.freeze(['hang', 'brace']) }),
     climb: Object.freeze({ frames: 4, fps: 8, loop: true, timeline: Object.freeze(['reachA', 'pullA', 'reachB', 'pullB']) }),
-    basic: Object.freeze({ frames: 4, fps: 13, loop: false, timeline: Object.freeze(['windup', 'lunge', 'follow', 'recover']) }),
-    skill: Object.freeze({ frames: 4, fps: 11, loop: false, timeline: Object.freeze(['charge', 'cleave', 'impact', 'recover']) }),
+    basic: Object.freeze({ frames: 4, fps: 13, loop: false, contactFrame: 2, timeline: Object.freeze(['windup', 'lunge', 'follow', 'recover']) }),
+    skill: Object.freeze({ frames: 4, fps: 11, loop: false, contactFrame: 2, timeline: Object.freeze(['charge', 'cleave', 'impact', 'recover']) }),
     party: Object.freeze({ frames: 6, fps: 12, loop: false, timeline: Object.freeze(['ready', 'raise', 'flare', 'flare', 'settle', 'settle']) }),
     hit: Object.freeze({ frames: 3, fps: 12, loop: false, timeline: Object.freeze(['recoil', 'recoil', 'settle']) }),
     defeat: Object.freeze({ frames: 4, fps: 8, loop: false, timeline: Object.freeze(['drop', 'down', 'down', 'down']) })

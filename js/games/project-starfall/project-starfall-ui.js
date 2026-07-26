@@ -7861,7 +7861,7 @@
       const holding = this.heldAttackKeys.size > 0;
       this.engine.setInput('attack', holding);
       if (isDown && !wasHolding && !(event && event.repeat) && this.engine.basicAttack) {
-        this.engine.basicAttack({ silent: true, fromHeldInput: true, bufferOnBlock: true });
+        this.engine.basicAttack({ silent: true, fromHeldInput: true, bufferOnBlock: true, contactSynced: true });
       }
       return true;
     }
@@ -7890,7 +7890,7 @@
       if (isDown) {
         this.heldSkillKeys.set(code, action.skillId);
         if (this.engine.setHeldSkill) this.engine.setHeldSkill(action.skillId, true);
-        if (!(event && event.repeat)) this.engine.useSkill(action.skillId, { bufferOnBlock: true });
+        if (!(event && event.repeat)) this.engine.useSkill(action.skillId, { bufferOnBlock: true, contactSynced: true });
         return true;
       }
       this.heldSkillKeys.delete(code);
@@ -9935,13 +9935,13 @@
       if (helper) {
         const skillActivationAction = helper(skillId);
         if (!skillActivationAction.handled || skillActivationAction.type !== 'useSkill' || !this.engine || !this.engine.useSkill) return false;
-        const used = this.engine.useSkill(skillActivationAction.skillId, { bufferOnBlock: true });
+        const used = this.engine.useSkill(skillActivationAction.skillId, { bufferOnBlock: true, contactSynced: true });
         if (skillActivationAction.shouldFocusCanvas) this.focusCanvas();
         return used;
       }
       const id = String(skillId || '');
       if (!id || !this.engine || !this.engine.useSkill) return false;
-      const used = this.engine.useSkill(id, { bufferOnBlock: true });
+      const used = this.engine.useSkill(id, { bufferOnBlock: true, contactSynced: true });
       this.focusCanvas();
       return used;
     }
@@ -10457,7 +10457,7 @@
         return true;
       }
       if (action.type === 'skill') {
-        return this.engine.useSkill(action.skillId);
+        return this.engine.useSkill(action.skillId, { contactSynced: true });
       }
       if (action.type === 'item') {
         return this.activateConsumableItem(action.itemId);
@@ -10735,7 +10735,7 @@
         if (!target || !this.root.contains(target) || target.disabled) return;
       }
       this.engine.setInput('attack', true);
-      this.engine.basicAttack({ bufferOnBlock: true });
+      this.engine.basicAttack({ bufferOnBlock: true, contactSynced: true });
       this.focusCanvas();
       if (event.preventDefault) event.preventDefault();
     }
@@ -13347,7 +13347,7 @@
         }
         if (action === 'fullscreen') return this.toggleFullscreen();
         if (action === 'minimap') return this.toggleMinimapCompact();
-        if (action === 'attack') result = this.engine.basicAttack({ bufferOnBlock: true });
+        if (action === 'attack') result = this.engine.basicAttack({ bufferOnBlock: true, contactSynced: true });
         if (action === 'party') result = this.engine.usePartySkill();
         if (action === 'loot') result = this.engine.lootNearestDrop ? this.engine.lootNearestDrop(100) : this.engine.interact();
         if (action === 'npcTalk') {
