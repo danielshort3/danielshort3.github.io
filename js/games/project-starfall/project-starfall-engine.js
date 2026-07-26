@@ -32325,7 +32325,7 @@
       const margin = 64;
       let minX = Number(platform.x || 0) + margin;
       let maxX = Number(platform.x || 0) + Math.max(margin * 2, Number(platform.w || 0)) - margin;
-      if (section && !(section.platformIds || []).length) {
+      if (section) {
         minX = Math.max(minX, Number(section.x || 0) + margin);
         maxX = Math.min(maxX, Number(section.x || 0) + Math.max(margin * 2, Number(section.w || 0)) - margin);
       }

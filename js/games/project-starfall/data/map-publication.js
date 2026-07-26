@@ -150,6 +150,60 @@
         spawnBounds: { minX: 6600, maxX: 7480 }
       }
     ]),
+    rimewardenSanctum: Object.freeze([
+      {
+        sectionSuffix: 'brute_lane',
+        label: 'Brute Gate Guard',
+        platformIds: [
+          'rimewarden_sanctum_solid_lane_01',
+          'rimewarden_sanctum_solid_lane_02'
+        ],
+        enemyWeights: [
+          { enemyId: 'rimebackBrute', weight: 5 },
+          { enemyId: 'frostlingScout', weight: 3 },
+          { enemyId: 'shardling', weight: 2 }
+        ],
+        population: 4,
+        maxPopulation: 4,
+        respawnSeconds: 9,
+        leash: 360,
+        spawnBounds: { minX: 760, maxX: 1490 }
+      },
+      {
+        sectionSuffix: 'oracle_shelf',
+        label: 'Whiteout Shelf Guard',
+        platformIds: [
+          'rimewarden_sanctum_solid_lane_03',
+          'rimewarden_sanctum_solid_lane_04',
+          'rimewarden_sanctum_solid_lane_06'
+        ],
+        enemyWeights: [
+          { enemyId: 'icebloomOracle', weight: 5 },
+          { enemyId: 'snowglareWisp', weight: 3 },
+          { enemyId: 'glacierSentinel', weight: 2 }
+        ],
+        population: 4,
+        maxPopulation: 4,
+        respawnSeconds: 10,
+        leash: 420,
+        spawnBounds: { minX: 1600, maxX: 3000 }
+      },
+      {
+        sectionSuffix: 'sentinel_shelf',
+        label: 'Sentinel Seal Guard',
+        platformIds: ['rimewarden_sanctum_solid_lane_05'],
+        enemyWeights: [
+          { enemyId: 'glacierSentinel', weight: 5 },
+          { enemyId: 'snowglareWisp', weight: 3 },
+          { enemyId: 'rimebackBrute', weight: 2 }
+        ],
+        population: 1,
+        maxPopulation: 1,
+        respawnSeconds: 12,
+        leash: 360,
+        spawnBounds: { minX: 3100, maxX: 3460 }
+      }
+    ]),
     stormbreakCliffs: Object.freeze([
       {
         sectionSuffix: 'low_ram_lane',
