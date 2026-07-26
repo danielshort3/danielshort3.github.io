@@ -243,7 +243,7 @@ window.DIRECTORY_WORKBENCH = {
       "id": "project-starfall",
       "title": "Project Starfall",
       "subtitle": "Browser Game",
-      "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.",
+      "summary": "Choose a compact chibi hero and journey through playful side-scrolling routes with combat, quests, loot, and long-term progression.",
       "href": "games/project-starfall",
       "type": "Browser Game",
       "category": "Browser Game",
@@ -266,14 +266,14 @@ window.DIRECTORY_WORKBENCH = {
         "Browser Game"
       ],
       "results": [
-        "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems."
+        "Choose a compact chibi hero and journey through playful side-scrolling routes with combat, quests, loot, and long-term progression."
       ],
       "actions": [
         "Focus areas: RPG systems, Loot economy, Progression"
       ],
-      "image": "img/project-starfall/ui/splash-screen.png",
-      "imageWidth": 1672,
-      "imageHeight": 941,
+      "image": "img/project-starfall/maps/starfall-crossing.webp",
+      "imageWidth": 1280,
+      "imageHeight": 704,
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\"></path>\n  <path d=\"M12 7.3v6.1M9.2 10.2h5.6\"></path>\n</svg>",
       "order": 4

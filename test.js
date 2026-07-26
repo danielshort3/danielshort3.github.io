@@ -627,7 +627,7 @@ try {
       'pages/tools.html': 'Browser Tools for Writing, Images &amp; Campaigns | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
       'pages/games.html': 'Browser Games &amp; Interactive Simulations | Daniel Short',
-      'pages/games/project-starfall.html': 'Project Starfall Prototype | Daniel Short',
+      'pages/games/project-starfall.html': 'Project Starfall | Daniel Short',
       'pages/sitemap.html': 'Sitemap | Daniel Short',
       'pages/point-of-view-checker.html': 'Point of View Checker | Daniel Short',
       'pages/oxford-comma-checker.html': 'Oxford Comma Checker | Daniel Short',
@@ -8780,9 +8780,10 @@ try {
       !page.includes('project-starfall-control-panel'),
       'Project Starfall page should not render the old action strips or right-side control panel');
     assert(starfallCss.includes('.project-starfall-canvas-wrap.is-loading #project-starfall-canvas') &&
-      starfallCss.includes('img/project-starfall/ui/splash-screen.png') &&
-      starfallCss.includes('img/project-starfall/ui/start-screen.png') &&
-      starfallCss.includes('img/project-starfall/ui/character-select-screen.png') &&
+      starfallCss.includes('img/project-starfall/maps/starfall-crossing.webp') &&
+      !starfallCss.includes('img/project-starfall/ui/splash-screen.png') &&
+      !starfallCss.includes('img/project-starfall/ui/start-screen.png') &&
+      !starfallCss.includes('img/project-starfall/ui/character-select-screen.png') &&
       starfallCss.includes('img/project-starfall/ui/character-slot-pedestal.png') &&
       starfallCss.includes('.project-starfall-start-screen') &&
       starfallCss.includes('.project-starfall-pixi-stage') &&
@@ -15914,8 +15915,9 @@ try {
         starfallCss.includes('.project-starfall-character-popover') &&
         starfallCss.includes('.project-starfall-character-create-modal') &&
         starfallCss.includes('.project-starfall-character-slot.is-selected::after') &&
-        starfallCss.includes('character-select-screen.png") center bottom / cover no-repeat'),
-        'Project Starfall character selection should align character slots to the lower background platform and use slot badges, popovers, and a create modal');
+        starfallCss.includes('starfall-crossing.webp") center bottom / cover no-repeat') &&
+        starfallCss.includes('overflow-x: hidden'),
+        'Project Starfall character selection should align character slots to the playful town backdrop and keep its create modal free of horizontal overflow');
       assert(ui.selectCharacterSlot('slot_1', { clientX: 240, clientY: 150 }, null) &&
         classSelectElement.innerHTML.includes('project-starfall-character-summary') &&
         classSelectElement.innerHTML.includes('data-starfall-character-start') &&
