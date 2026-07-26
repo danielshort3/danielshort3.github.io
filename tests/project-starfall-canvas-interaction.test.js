@@ -3,6 +3,7 @@
 const assert = require('assert');
 
 global.ProjectStarfallData = require('../js/games/project-starfall/data/index.js');
+const { createProjectStarfallEngine } = require('../js/games/project-starfall/project-starfall-engine.js');
 const { ProjectStarfallUi } = require('../js/games/project-starfall/project-starfall-ui.js');
 
 let checks = 0;
@@ -202,5 +203,45 @@ staleMenuUi.isCommandOpen = true;
 staleMenuUi.executeCanvasRegion({ type: 'menu-panel', panelId: 'worldmap', source: 'command-menu' });
 check(staleMenuToggleCount === 2,
   'a current command-menu region should keep its normal panel-toggle behavior');
+
+const routeGuideEngine = createProjectStarfallEngine(null, global.ProjectStarfallData);
+check(routeGuideEngine.chooseClass('fighter'),
+  'minimap route guidance should start from a class-ready game');
+check(routeGuideEngine.setWorldMapGuideTarget('thornpathThicket'),
+  'the world map should establish a multi-hop Thornpath guide');
+const crossingOverlay = routeGuideEngine.getOverlaySnapshot({ openPanels: [] });
+check(crossingOverlay.worldMap.pathHint === null,
+  'closed-panel overlays should retain their lightweight world-map payload');
+check(crossingOverlay.questGuidance.navigationTarget &&
+  crossingOverlay.questGuidance.navigationTarget.portalId === 'crossing_greenroot',
+  'closed-panel quest guidance should expose the physical first-hop portal');
+check(routeGuideEngine.changeMap('greenrootMeadow'),
+  'the route guidance fixture should advance into Greenroot');
+const greenrootOverlay = routeGuideEngine.getOverlaySnapshot({ openPanels: [] });
+check(greenrootOverlay.questGuidance.navigationTarget &&
+  greenrootOverlay.questGuidance.navigationTarget.portalId === 'greenroot_thornpath',
+  'closed-panel quest guidance should advance to the next physical route portal');
+
+const minimapGuideUi = Object.create(ProjectStarfallUi.prototype);
+minimapGuideUi.snapshot = crossingOverlay;
+check(JSON.stringify(minimapGuideUi.getMinimapPortalGuide()) === JSON.stringify({
+  portalId: 'crossing_greenroot',
+  portalLabel: 'Greenroot Gate',
+  locked: false
+}), 'the minimap should use lightweight quest guidance while the world map is closed');
+minimapGuideUi.snapshot = {
+  questGuidance: { navigationTarget: { kind: 'enemy', label: 'Slimelet' } },
+  worldMap: {
+    pathHint: {
+      nextStep: { portalId: 'fallback_gate', portalLabel: 'Fallback Gate' },
+      lockedReason: 'Level 6 required.'
+    }
+  }
+};
+check(JSON.stringify(minimapGuideUi.getMinimapPortalGuide()) === JSON.stringify({
+  portalId: 'fallback_gate',
+  portalLabel: 'Fallback Gate',
+  locked: true
+}), 'the minimap should retain world-map path fallback and locked-route styling');
 
 console.log(`Project Starfall canvas interaction checks passed: ${checks}`);
