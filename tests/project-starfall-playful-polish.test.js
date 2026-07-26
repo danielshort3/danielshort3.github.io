@@ -13,6 +13,9 @@ const mapTown = require('../js/games/project-starfall/data/map-town.js');
 const engineState = require('../js/games/project-starfall/engine/state.js');
 const { createProjectStarfallEngine } = require('../js/games/project-starfall/project-starfall-engine.js');
 const hud = require('../js/games/project-starfall/ui/hud.js');
+const canvasHover = require('../js/games/project-starfall/ui/canvas-hover.js');
+const canvasWindows = require('../js/games/project-starfall/ui/canvas-windows.js');
+const questUi = require('../js/games/project-starfall/ui/quests.js');
 const resourceWidgets = require('../js/games/project-starfall/ui/resource-widgets.js');
 
 function read(relativePath) {
@@ -239,5 +242,103 @@ check(bossUiSource.includes('project-starfall-boss-hud-call') &&
   bossUiSource.indexOf('CALL · ${spatialSectionLabel}') < bossUiSource.indexOf('project-starfall-boss-hud-call') &&
   hudCssSource.includes('.project-starfall-boss-hud-call'),
   'the DOM boss HUD should reserve a dedicated location-first band for spatial calls');
+
+const standardHudVisibility = canvasWindows.getCanvasBackgroundHudVisibility(['inventory']);
+const worldMapHudVisibility = canvasWindows.getCanvasBackgroundHudVisibility(['worldmap']);
+const stackedWorldMapHudVisibility = canvasWindows.getCanvasBackgroundHudVisibility(['worldmap', 'inventory']);
+const canvasWindowHelpers = canvasWindows.createCanvasWindowUiHelpers();
+const canvasHoverHelpers = canvasHover.createCanvasHoverUiHelpers();
+const questHelpers = questUi.createQuestUiHelpers();
+check(standardHudVisibility.minimap && standardHudVisibility.questTracker && standardHudVisibility.riftTracker,
+  'ordinary windows should preserve the normal background HUD');
+check(!worldMapHudVisibility.minimap && !worldMapHudVisibility.questTracker && !worldMapHudVisibility.riftTracker &&
+  !stackedWorldMapHudVisibility.minimap && !stackedWorldMapHudVisibility.questTracker && !stackedWorldMapHudVisibility.riftTracker,
+  'the world map should remain the dominant window even when another panel is stacked with it');
+check(canvasWindowHelpers.getCanvasBackgroundHudVisibility === canvasWindows.getCanvasBackgroundHudVisibility &&
+  canvasHoverHelpers.getWorldMapNodeTooltipMetadata === canvasHover.getWorldMapNodeTooltipMetadata &&
+  questHelpers.getWorldMapDetailPresentation === questUi.getWorldMapDetailPresentation,
+  'the live UI helper groups should expose the same world-map hierarchy contracts as direct tests');
+
+const selectedMapNode = {
+  selected: true,
+  mapId: 'starfallCrossing',
+  name: 'Starfall Crossing',
+  areaName: 'Starfall Crossing',
+  layoutRoleLabel: 'Town Hub',
+  levelRange: [1, 99],
+  current: true
+};
+const selectedMapRegion = Object.assign({
+  type: 'world-map-node',
+  mapId: selectedMapNode.mapId,
+  x: 0,
+  y: 0,
+  w: 36,
+  h: 36
+}, canvasHover.getWorldMapNodeTooltipMetadata(selectedMapNode));
+const selectedMapHover = canvasHover.getCanvasHoverTargetAt({ x: 18, y: 18 }, {
+  openWindows: ['worldmap'],
+  findHoverRegion: (filter) => filter(selectedMapRegion) ? selectedMapRegion : null
+});
+const selectedMapAction = questUi.getWorldProgressRegionAction(selectedMapRegion);
+check(!Object.prototype.hasOwnProperty.call(selectedMapRegion, 'tooltipTitle') &&
+  selectedMapHover.type === '' &&
+  selectedMapAction.handled &&
+  selectedMapAction.type === 'selectWorldMapNode' &&
+  selectedMapAction.mapId === selectedMapNode.mapId,
+  'a selected map node should keep its click target without repeating the detail card in a tooltip');
+
+const availableMapNode = Object.assign({}, selectedMapNode, {
+  selected: false,
+  current: false,
+  mapId: 'greenrootMeadow',
+  name: 'Greenroot Meadow',
+  areaName: 'Greenroot',
+  layoutRoleLabel: 'Starter Field',
+  levelRange: [1, 8]
+});
+const availableMapRegion = Object.assign({
+  type: 'world-map-node',
+  mapId: availableMapNode.mapId,
+  x: 0,
+  y: 0,
+  w: 36,
+  h: 36
+}, canvasHover.getWorldMapNodeTooltipMetadata(availableMapNode));
+const availableMapHover = canvasHover.getCanvasHoverTargetAt({ x: 18, y: 18 }, {
+  openWindows: ['worldmap'],
+  findHoverRegion: (filter) => filter(availableMapRegion) ? availableMapRegion : null
+});
+check(availableMapRegion.tooltipTitle === 'Greenroot Meadow' &&
+  availableMapHover.type === 'worldMapNode' &&
+  availableMapHover.title === 'Greenroot Meadow',
+  'unselected map nodes should retain concise discovery tooltips');
+
+const worldMapDetail = questUi.getWorldMapDetailPresentation({
+  name: 'Starfall Crossing',
+  areaName: 'Starfall Crossing',
+  layoutRoleLabel: 'Town Hub',
+  levelRange: [1, 99],
+  current: true,
+  routeStage: 'Town Hub',
+  mapRoadName: 'Crossing Plaza',
+  enemyLabel: 'intentionally ignored',
+  dropLabel: 'intentionally ignored'
+}, {
+  contextText: 'Landmark: central meteor plaza'
+});
+const detailFontSizes = [
+  questUi.WORLD_MAP_DETAIL_LAYOUT.metaFont,
+  questUi.WORLD_MAP_DETAIL_LAYOUT.statusFont,
+  questUi.WORLD_MAP_DETAIL_LAYOUT.contextFont
+].map((font) => Number((String(font).match(/(\d+)px/) || [0, 0])[1]));
+check(worldMapDetail.title === 'Starfall Crossing' &&
+  worldMapDetail.meta === 'Starfall Crossing - Town Hub - Lv 1-99' &&
+  worldMapDetail.status === 'Current location - Town Hub - Crossing Plaza' &&
+  worldMapDetail.context === 'Landmark: central meteor plaza',
+  'the selected map card should expose one compact location, level, route-status, and context hierarchy');
+check(questUi.WORLD_MAP_DETAIL_LAYOUT.height <= 120 &&
+  detailFontSizes.every((fontSize) => fontSize >= 12),
+  'the compact map card should reserve readable metadata type instead of stacking tiny analytics rows');
 
 console.log(`Project Starfall playful polish checks passed: ${checks}`);

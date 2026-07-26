@@ -8,6 +8,19 @@
     { id: 'accomplishments', label: 'Accomplishments' }
   ]);
 
+  const WORLD_MAP_DETAIL_LAYOUT = Object.freeze({
+    height: 112,
+    buttonWidth: 108,
+    titleFont: '900 16px system-ui',
+    metaFont: '850 12px system-ui',
+    statusFont: '900 12px system-ui',
+    contextFont: '12px system-ui',
+    titleLineHeight: 18,
+    metaLineHeight: 14,
+    statusLineHeight: 14,
+    contextLineHeight: 14
+  });
+
   const ACCOMPLISHMENT_CATEGORY_ORDER = Object.freeze([
     'Onboarding',
     'Combat',
@@ -48,6 +61,25 @@
         getAccomplishmentTierRank(b && b.accomplishment, settings);
       return tierDelta || Number(a && a.index || 0) - Number(b && b.index || 0);
     });
+  }
+
+  function getWorldMapDetailPresentation(node, options) {
+    const source = node || {};
+    const settings = options || {};
+    const levelRange = Array.isArray(source.levelRange) ? source.levelRange : [];
+    const levelLabel = levelRange.length ? `Lv ${levelRange[0]}-${levelRange[1]}` : 'Any level';
+    const roleLabel = source.layoutRoleLabel || (source.dungeon ? 'Dungeon' : source.type || 'Field');
+    const defaultStatus = source.current
+      ? 'Current location'
+      : source.lockedReason || (source.completed ? 'Route objective complete' : 'Available by portal route');
+    const statusLabel = String(settings.statusText || defaultStatus || '').trim();
+    const routeLabel = [source.routeStage, source.mapRoadName].filter(Boolean).join(' - ');
+    return {
+      title: source.name || 'Unknown area',
+      meta: [source.areaName || source.region || 'Region', roleLabel, levelLabel].filter(Boolean).join(' - '),
+      status: [statusLabel, routeLabel].filter(Boolean).join(' - '),
+      context: String(settings.contextText || '').trim()
+    };
   }
 
   function getWorldProgressDomAction(target) {
@@ -164,6 +196,7 @@
       sortAccomplishmentItems(items, callOptions) {
         return sortAccomplishmentItems(items, getOrderOptions(callOptions));
       },
+      getWorldMapDetailPresentation,
       getWorldProgressDomAction,
       getWorldProgressRegionAction,
       getQuestPanelRegionAction,
@@ -175,12 +208,14 @@
 
   const api = {
     QUEST_TAB_OPTIONS,
+    WORLD_MAP_DETAIL_LAYOUT,
     ACCOMPLISHMENT_CATEGORY_ORDER,
     ACCOMPLISHMENT_TIER_ORDER,
     createQuestUiHelpers,
     getAccomplishmentCategoryRank,
     getAccomplishmentTierRank,
     sortAccomplishmentItems,
+    getWorldMapDetailPresentation,
     getWorldProgressDomAction,
     getWorldProgressRegionAction,
     getQuestPanelRegionAction,
