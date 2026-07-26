@@ -11411,6 +11411,62 @@ try {
 	      const stormEngine = createProjectStarfallEngine(null, data);
 	      assert(stormEngine.chooseClass('archer') && stormEngine.changeMap('stormbreakCliffs'),
 	        'Project Starfall Stormbreak mechanic test should load Stormbreak Cliffs');
+	      const stormOpeningEnemies = new Set(stormEngine.enemies);
+	      const stormWave = stormEngine.getWaveState('stormbreakCliffs');
+	      const getStormGroupCounts = () => Object.fromEntries(
+	        stormEngine.getRuntimeSpawnGroups().map((group) => [
+	          group.id,
+	          stormEngine.getSpawnGroupAliveCount(group.id)
+	        ])
+	      );
+	      assert(stormEngine.enemies.length === 36 &&
+	        Object.values(getStormGroupCounts()).every((count) => count === 12) &&
+	        stormEngine.findPrototypeParty() &&
+	        stormEngine.getSpawnGroupPartySize() === 4,
+	        'Project Starfall Stormbreak party-fill regression should begin at 12 enemies per lane before a live four-player party forms');
+	      const stormFillToasts = [];
+	      stormEngine.onToast = (message) => stormFillToasts.push(message);
+	      stormEngine.updateWaveSpawns();
+	      stormEngine.updateWaveSpawns();
+	      assert(stormEngine.enemies.length === 36 &&
+	        stormWave.pending.length === 3 &&
+	        !stormWave.firstDefeat &&
+	        stormWave.pending.every((replacement) => replacement.partyTopUp) &&
+	        new Set(stormWave.pending.map((replacement) => replacement.spawnGroupId)).size === 3,
+	        'Project Starfall live party scaling should queue one delayed top-up per lane without an immediate spawn burst');
+	      [13, 14, 15].forEach((target, round) => {
+	        stormWave.pending.forEach((replacement) => { replacement.respawnAt = 1; });
+	        stormWave.nextAt = 1;
+	        stormEngine.updateWaveSpawns();
+	        assert(stormEngine.enemies.length === target * 3 &&
+	          Object.values(getStormGroupCounts()).every((count) => count === target) &&
+	          stormWave.pending.length === 0,
+	          `Project Starfall live party scaling round ${round + 1} should reach ${target} enemies in each lane through one bounded batch`);
+	        if (target < 15) {
+	          stormEngine.updateWaveSpawns();
+	          assert(stormEngine.enemies.length === target * 3 &&
+	            stormWave.pending.length === 3 &&
+	            stormWave.pending.every((replacement) => replacement.partyTopUp),
+	            'Project Starfall party top-ups should wait for another lane-bounded respawn interval');
+	        }
+	      });
+	      stormEngine.updateWaveSpawns();
+	      const stormPartyTopUps = stormEngine.enemies.filter((enemy) => !stormOpeningEnemies.has(enemy));
+	      assert(stormEngine.enemies.length === 45 &&
+	        stormWave.pending.length === 0 &&
+	        stormFillToasts.length === 0 &&
+	        stormPartyTopUps.length === 9 &&
+	        stormPartyTopUps.every((enemy) =>
+	          enemy.spawnGroupId &&
+	          enemy.spawnSectionId === enemy.spawnGroupId &&
+	          enemy.spawnPlatformId !== 'stormbreakCliffs_aerie_perch' &&
+	          enemy.spawnGroupBounds &&
+	          enemy.spawnActorTraversal &&
+	          enemy.spawnActorTraversal.stayInTerritory
+	        ),
+	        'Project Starfall four-player scaling should settle at 15 enemies per lane with authored territory metadata and no respawn-toast spam');
+	      const stormCurrencyBefore = Math.max(0, Number(stormEngine.state.player.currency || 0));
+	      const stormFletchingBefore = Math.max(0, Number(stormEngine.state.materials.stormFletching || 0));
 	      [
 	        ['stormbreakCliffs_high_harrier_airspace', 'galeHarrier'],
 	        ['stormbreakCliffs_mid_archer_bridge', 'stormboundArcher'],
@@ -11424,11 +11480,263 @@ try {
 	      const stormSnapshot = stormEngine.getMapModifierSnapshot().mapMechanic;
 	      assert(stormSnapshot &&
 	        stormSnapshot.type === 'party-objective' &&
-	        stormSnapshot.objectiveCount === 1 &&
-	        stormSnapshot.completedCycles === 1 &&
+	        stormSnapshot.completionMode === 'objective-interaction' &&
+	        stormSnapshot.objectiveReady &&
+	        stormSnapshot.objectiveTarget &&
+	        stormSnapshot.objectiveTarget.type === 'station' &&
+	        stormSnapshot.objectiveTarget.id === 'stormbreak_lightning_rod' &&
+	        stormSnapshot.objectiveStationId === 'stormbreak_lightning_rod' &&
+	        stormSnapshot.objectiveCount === 0 &&
+	        stormSnapshot.completedCycles === 0 &&
+	        stormSnapshot.progress >= stormSnapshot.goal &&
 	        stormSnapshot.regroupSectionLabel === 'Lightning Rod Objective' &&
-	        stormSnapshot.sections.some((section) => section.role === 'anti-air' && section.hits >= 2),
-	        'Project Starfall Stormbreak Cliffs should complete a lightning-rod party objective through split lane and anti-air duties');
+	        stormSnapshot.sections.some((section) => section.role === 'anti-air' && section.hits >= 2) &&
+	        Number(stormEngine.state.player.currency || 0) === stormCurrencyBefore &&
+	        Number(stormEngine.state.materials.stormFletching || 0) === stormFletchingBefore,
+	        'Project Starfall Stormbreak Cliffs should charge the lightning rod through split lane and anti-air duties without auto-awarding the objective');
+	      const readyProgress = stormSnapshot.progress;
+	      const readyAntiAirHits = stormSnapshot.sections.find((section) => section.id === 'stormbreakCliffs_high_harrier_airspace').hits;
+	      assert(stormEngine.recordMapMechanicDefeat(makeMechanicEnemy(stormEngine, 'stormbreakCliffs_high_harrier_airspace', 'galeHarrier')),
+	        'Project Starfall Stormbreak defeats should remain accepted while the charged rod awaits interaction');
+	      const frozenStormSnapshot = stormEngine.getMapModifierSnapshot().mapMechanic;
+	      assert(frozenStormSnapshot.objectiveReady &&
+	        frozenStormSnapshot.progress === readyProgress &&
+	        frozenStormSnapshot.sections.find((section) => section.id === 'stormbreakCliffs_high_harrier_airspace').hits === readyAntiAirHits,
+	        'Project Starfall Stormbreak progression should freeze while the Lightning Rod is ready');
+	      const stormReadySave = stormEngine.serialize();
+	      const legacyStormSave = JSON.parse(JSON.stringify(stormReadySave));
+	      const contextOutsideEngine = createProjectStarfallEngine(null, data);
+	      assert(contextOutsideEngine.restore(JSON.parse(JSON.stringify(stormReadySave))),
+	        'Project Starfall Stormbreak context interaction test should restore a charged rod');
+	      const outsideRodStation = contextOutsideEngine.runtime.stations.find((station) => station.id === 'stormbreak_lightning_rod');
+	      const outsidePlayer = contextOutsideEngine.state.player;
+	      outsidePlayer.x = outsideRodStation.x - outsidePlayer.w - 20;
+	      outsidePlayer.y = outsideRodStation.y;
+	      contextOutsideEngine.canvasPointToWorld = () => ({
+	        x: outsideRodStation.x + outsideRodStation.w / 2,
+	        y: outsideRodStation.y + outsideRodStation.h / 2
+	      });
+	      contextOutsideEngine.findLootAtWorldPoint = () => null;
+	      const outsidePanelBefore = contextOutsideEngine.state.session.selectedPanel;
+	      const outsideRodResult = contextOutsideEngine.contextInteractAtCanvasPoint(0, 0);
+	      assert(!outsideRodResult.handled &&
+	        outsideRodResult.panel === false &&
+	        contextOutsideEngine.getMapMechanicSnapshot().objectiveReady &&
+	        contextOutsideEngine.state.session.selectedPanel === outsidePanelBefore &&
+	        !contextOutsideEngine.lastInteractionOpenedPanel,
+	        'Project Starfall Lightning Rod context clicks inside expanded reach but outside physical overlap should not complete or open Character');
+	      outsidePlayer.activeStation = 'stormbreak_lightning_rod';
+	      contextOutsideEngine.canvasPointToWorld = () => ({ x: -1000, y: -1000 });
+	      const missedRodResult = contextOutsideEngine.contextInteractAtCanvasPoint(0, 0);
+	      assert(!missedRodResult.handled &&
+	        missedRodResult.panel === false &&
+	        contextOutsideEngine.getMapMechanicSnapshot().objectiveReady,
+	        'Project Starfall context-click fallback should never open a panel for an active Lightning Rod');
+	      const restoredStormEngine = createProjectStarfallEngine(null, data);
+	      assert(restoredStormEngine.restore(JSON.parse(JSON.stringify(stormReadySave))) &&
+	        restoredStormEngine.getMapModifierSnapshot().mapMechanic.objectiveReady,
+	        'Project Starfall Stormbreak Lightning Rod readiness should survive save and restore');
+	      assert(restoredStormEngine.getOverlaySnapshot({ openPanels: [] }).mapModifiers.mapMechanic.objectiveReady,
+	        'Project Starfall default overlay snapshots should expose Lightning Rod readiness without an open guide panel');
+	      const restoredCurrencyBefore = Math.max(0, Number(restoredStormEngine.state.player.currency || 0));
+	      const restoredFletchingBefore = Math.max(0, Number(restoredStormEngine.state.materials.stormFletching || 0));
+	      restoredStormEngine.state.player.activeStation = 'stormbreak_lightning_rod';
+	      assert(!restoredStormEngine.tryCompleteMapMechanicObjective('stormbreak_lightning_rod', { silent: true }) &&
+	        restoredStormEngine.getMapModifierSnapshot().mapMechanic.objectiveReady &&
+	        Number(restoredStormEngine.state.player.currency || 0) === restoredCurrencyBefore &&
+	        Number(restoredStormEngine.state.materials.stormFletching || 0) === restoredFletchingBefore,
+	        'Project Starfall Stormbreak Lightning Rod should reject a remote station-id completion request');
+	      const lightningRodStation = restoredStormEngine.runtime.stations.find((station) => station.id === 'stormbreak_lightning_rod');
+	      assert(lightningRodStation,
+	        'Project Starfall Stormbreak Lightning Rod interaction test should find the authored objective station');
+	      restoredStormEngine.state.player.x = lightningRodStation.x + lightningRodStation.w / 2 - restoredStormEngine.state.player.w / 2;
+	      restoredStormEngine.state.player.y = lightningRodStation.y;
+	      assert(restoredStormEngine.updateActiveStation().stationId === 'stormbreak_lightning_rod',
+	        'Project Starfall Stormbreak Lightning Rod should become active only within physical interaction range');
+	      restoredStormEngine.canvasPointToWorld = () => ({
+	        x: lightningRodStation.x + lightningRodStation.w / 2,
+	        y: lightningRodStation.y + lightningRodStation.h / 2
+	      });
+	      restoredStormEngine.findLootAtWorldPoint = () => null;
+	      restoredStormEngine.lastInteractionOpenedPanel = true;
+	      restoredStormEngine.lastInteractionPanelId = 'character';
+	      const exactRodResult = restoredStormEngine.contextInteractAtCanvasPoint(0, 0);
+	      assert(exactRodResult.handled &&
+	        exactRodResult.panel === false &&
+	        !restoredStormEngine.lastInteractionOpenedPanel,
+	        'Project Starfall Stormbreak Lightning Rod context clicks should complete on exact overlap without opening a panel');
+	      const stormCompletedSnapshot = restoredStormEngine.getMapModifierSnapshot().mapMechanic;
+	      const restoredCurrencyAfter = Math.max(0, Number(restoredStormEngine.state.player.currency || 0));
+	      const restoredFletchingAfter = Math.max(0, Number(restoredStormEngine.state.materials.stormFletching || 0));
+	      assert(stormCompletedSnapshot &&
+	        !stormCompletedSnapshot.objectiveReady &&
+	        stormCompletedSnapshot.objectiveCount === 1 &&
+	        stormCompletedSnapshot.completedCycles === 1 &&
+	        stormCompletedSnapshot.progress === 0 &&
+	        restoredCurrencyAfter > restoredCurrencyBefore &&
+	        restoredFletchingAfter > restoredFletchingBefore,
+	        'Project Starfall Stormbreak Lightning Rod interaction should consume readiness, award the objective, and reset the cycle');
+	      const stormCompletedOverlay = restoredStormEngine.getOverlaySnapshot({ openPanels: [] }).mapModifiers.mapMechanic;
+	      assert(stormCompletedOverlay &&
+	        !stormCompletedOverlay.objectiveReady &&
+	        stormCompletedOverlay.completedCycles === 1,
+	        'Project Starfall default overlay cache should refresh the Lightning Rod state after interaction completion');
+	      assert(!restoredStormEngine.interact({ silent: true }) &&
+	        restoredStormEngine.getMapModifierSnapshot().mapMechanic.completedCycles === 1 &&
+	        Number(restoredStormEngine.state.player.currency || 0) === restoredCurrencyAfter &&
+	        Number(restoredStormEngine.state.materials.stormFletching || 0) === restoredFletchingAfter,
+	        'Project Starfall Stormbreak Lightning Rod should not complete or reward twice from repeated interaction');
+	      delete legacyStormSave.state.rift.mapMechanics.byMapId.stormbreakCliffs.objectiveReady;
+	      const legacyStormEngine = createProjectStarfallEngine(null, data);
+	      assert(legacyStormEngine.restore(legacyStormSave) &&
+	        !legacyStormEngine.getMapModifierSnapshot().mapMechanic.objectiveReady,
+	        'Project Starfall legacy saves without Lightning Rod readiness should normalize safely to not ready');
+	      legacyStormEngine.state.player.activeStation = 'stormbreak_lightning_rod';
+	      assert(!legacyStormEngine.interact({ silent: true }) &&
+	        legacyStormEngine.getMapModifierSnapshot().mapMechanic.completedCycles === 0,
+	        'Project Starfall legacy saves should not infer a claimable Lightning Rod reward from charged-looking progress alone');
+
+	      const territoryEngine = createProjectStarfallEngine(null, data);
+	      assert(territoryEngine.chooseClass('archer') && territoryEngine.changeMap('stormbreakCliffs'),
+	        'Project Starfall Stormbreak territory regression should load the authored field');
+	      const territoryRod = territoryEngine.runtime.stations.find((station) => station.id === 'stormbreak_lightning_rod');
+	      const highLaneEnemy = territoryEngine.enemies.find((enemy) =>
+	        enemy.spawnGroupId === 'stormbreakCliffs_high_harrier_airspace' &&
+	        enemy.data && enemy.data.behavior === 'flyer');
+	      assert(territoryRod &&
+	        highLaneEnemy &&
+	        highLaneEnemy.spawnActorTraversal &&
+	        highLaneEnemy.spawnActorTraversal.stayInTerritory &&
+	        highLaneEnemy.spawnGroupBounds &&
+	        Number(highLaneEnemy.spawnGroupBounds.maxX) === 4190,
+	        'Project Starfall Stormbreak high-lane enemies should retain their authored territory bounds');
+	      territoryEngine.state.player.x = 4200;
+	      territoryEngine.state.player.y = 300;
+	      territoryEngine.state.player.invulnerableUntil = 0;
+	      highLaneEnemy.x = Number(highLaneEnemy.spawnGroupBounds.maxX);
+	      highLaneEnemy.y = territoryEngine.state.player.y;
+	      highLaneEnemy.attackCd = 0;
+	      highLaneEnemy.hostileArmedAt = 0;
+	      const boundaryContactBox = territoryEngine.getEnemyContactHitbox(highLaneEnemy);
+	      const boundaryPlayerBox = territoryEngine.playerHitbox();
+	      const boundaryBoxesOverlap =
+	        boundaryContactBox.x < boundaryPlayerBox.x + boundaryPlayerBox.w &&
+	        boundaryContactBox.x + boundaryContactBox.w > boundaryPlayerBox.x &&
+	        boundaryContactBox.y < boundaryPlayerBox.y + boundaryPlayerBox.h &&
+	        boundaryContactBox.y + boundaryContactBox.h > boundaryPlayerBox.y;
+	      const boundaryHpBefore = territoryEngine.state.player.hp;
+	      assert(boundaryBoxesOverlap &&
+	        !territoryEngine.applyEnemyContactDamage(highLaneEnemy, Date.now() / 1000) &&
+	        territoryEngine.state.player.hp === boundaryHpBefore &&
+	        territoryEngine.clampEnemyTerritoryPosition(highLaneEnemy) &&
+	        highLaneEnemy.x + highLaneEnemy.w <= Number(highLaneEnemy.spawnGroupBounds.maxX),
+	        'Project Starfall bounded enemies should neither overlap nor deal contact damage across the x=4200 objective boundary');
+	      territoryEngine.state.player.x = territoryRod.x + territoryRod.w / 2 - territoryEngine.state.player.w / 2;
+	      territoryEngine.state.player.y = territoryRod.y;
+	      const playerTarget = territoryEngine.getCombatCharacterByTarget('player', 'player');
+	      assert(playerTarget,
+	        'Project Starfall Stormbreak territory regression should resolve the player at the rod');
+	      highLaneEnemy.x = Number(highLaneEnemy.spawnGroupBounds.maxX) + 310;
+	      highLaneEnemy.y = territoryRod.y;
+	      highLaneEnemy.attackCd = 0;
+	      highLaneEnemy.aggroTargetKind = 'player';
+	      highLaneEnemy.aggroTargetId = 'player';
+	      highLaneEnemy.aggroUntil = Number.MAX_SAFE_INTEGER;
+	      highLaneEnemy.pendingAttack = {
+	        kind: 'projectile',
+	        type: 'firebolt',
+	        targetKind: 'player',
+	        targetId: 'player',
+	        targetX: territoryEngine.state.player.x,
+	        targetY: territoryEngine.state.player.y,
+	        facing: 1
+	      };
+	      highLaneEnemy.telegraph = 0;
+	      territoryEngine.enemies = [highLaneEnemy];
+	      territoryEngine.projectiles = [];
+	      assert(!territoryEngine.setEnemyAggro(highLaneEnemy, playerTarget, 'test', 10),
+	        'Project Starfall bounded enemies should reject aggro targets outside their territory');
+	      territoryEngine.updateEnemies(0.2);
+	      assert(highLaneEnemy.x >= Number(highLaneEnemy.spawnGroupBounds.minX) &&
+	        highLaneEnemy.x + highLaneEnemy.w <= Number(highLaneEnemy.spawnGroupBounds.maxX) &&
+	        !highLaneEnemy.aggroTargetKind &&
+	        !highLaneEnemy.pendingAttack &&
+	        !territoryEngine.projectiles.some((projectile) => projectile.owner === 'enemy'),
+	        'Project Starfall Stormbreak high-lane enemies should stay bounded and never target or projectile the rod perch');
+	      const territoryHpBefore = territoryEngine.state.player.hp;
+	      territoryEngine.projectiles = [{
+	        owner: 'enemy',
+	        type: 'firebolt',
+	        x: Number(highLaneEnemy.spawnGroupBounds.maxX) - 8,
+	        y: territoryEngine.state.player.y,
+	        vx: 900,
+	        vy: 0,
+	        w: 16,
+	        h: 10,
+	        damage: 85,
+	        ttl: 3,
+	        targetKind: 'player',
+	        targetId: 'player',
+	        territoryBounds: Object.assign({}, highLaneEnemy.spawnGroupBounds),
+	        pierce: 0
+	      }];
+	      territoryEngine.updateProjectiles(0.2);
+	      assert(territoryEngine.state.player.hp === territoryHpBefore &&
+	        territoryEngine.projectiles.length === 0,
+	        'Project Starfall bounded enemy projectiles should expire before entering the Lightning Rod territory');
+
+	      const stormMap = data.MAPS.find((map) => map.id === 'stormbreakCliffs');
+	      const originalStormStations = stormEngine.runtime.stations;
+	      const renderedLabels = [];
+	      const renderedFrames = [];
+	      let renderedArcs = [];
+	      const objectiveEffectContext = {
+	        save() {},
+	        restore() {},
+	        beginPath() {},
+	        stroke() {},
+	        fill() {},
+	        arc(...args) { renderedArcs.push(args); },
+	        fillText(text) { renderedLabels.push(text); }
+	      };
+	      let objectiveEffectSnapshotLookups = 0;
+	      legacyStormEngine.getMapMechanicSnapshot = () => {
+	        objectiveEffectSnapshotLookups += 1;
+	        throw new Error('world objective rendering should not normalize mechanic snapshots');
+	      };
+	      legacyStormEngine.drawMapMechanicObjectiveEffect(objectiveEffectContext, stormMap);
+	      assert(objectiveEffectSnapshotLookups === 0 &&
+	        renderedLabels.length === 0 &&
+	        renderedArcs.length === 0,
+	        'Project Starfall unready world objective rendering should exit through cached state without snapshot allocation');
+	      stormEngine.getMapMechanicSnapshot = () => {
+	        objectiveEffectSnapshotLookups += 1;
+	        throw new Error('world objective rendering should not normalize mechanic snapshots');
+	      };
+	      stormEngine.shouldReduceEffects = () => true;
+	      stormEngine.runtime.stations = [{
+	        id: 'future_map_objective',
+	        serviceRole: 'map_objective',
+	        x: 4300,
+	        y: 300,
+	        w: 88,
+	        h: 56
+	      }];
+	      stormEngine.drawMapMechanicObjectiveEffect(objectiveEffectContext, stormMap);
+	      assert(renderedLabels.length === 0 && renderedArcs.length === 0,
+	        'Project Starfall world rod effects should not attach to generic future map-objective stations');
+	      stormEngine.runtime.stations = originalStormStations;
+	      stormEngine.drawMapMechanicObjectiveEffect(objectiveEffectContext, stormMap);
+	      renderedFrames.push(JSON.stringify(renderedArcs));
+	      renderedArcs = [];
+	      stormEngine.drawMapMechanicObjectiveEffect(objectiveEffectContext, stormMap);
+	      renderedFrames.push(JSON.stringify(renderedArcs));
+	      assert(renderedLabels.length === 2 &&
+	        renderedLabels.every((label) => label === 'READY!') &&
+	        renderedFrames.every((frame) => frame !== '[]') &&
+	        renderedFrames[0] === renderedFrames[1] &&
+	        objectiveEffectSnapshotLookups === 0,
+	        'Project Starfall reduced-effects Lightning Rod rendering should be key-agnostic, static, and snapshot-allocation-free');
 
 	      const riftEngine = createProjectStarfallEngine(null, data);
 	      assert(riftEngine.chooseClass('mage') && riftEngine.changeMap('endlessRift'),

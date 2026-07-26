@@ -166,6 +166,7 @@
       Math.max(0, Number(mechanicEntry.cycleKillCount || 0) || 0),
       Array.isArray(mechanicEntry.orderedSectionIds) ? mechanicEntry.orderedSectionIds.map(normalizeId).filter(Boolean).join(',') : '',
       mechanicEntry.routeComplete ? 1 : 0,
+      mechanicEntry.objectiveReady ? 1 : 0,
       Number(mechanicEntry.completedCycles || 0),
       Number(mechanicEntry.eventCount || 0),
       Number(mechanicEntry.objectiveCount || 0),

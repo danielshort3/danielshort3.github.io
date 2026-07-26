@@ -56,6 +56,26 @@
       (definition.sections && definition.sections[0] && definition.sections[0].id || '');
   }
 
+  function getMapMechanicObjectiveTarget(definition) {
+    if (!definition || normalizeId(definition.completionMode) !== 'objective-interaction') return null;
+    const stationId = normalizeId(definition.objectiveStationId);
+    if (!stationId) return null;
+    const objectiveSectionId = normalizeMapMechanicSectionId(definition, definition.objectiveSectionId);
+    const objectiveSection = objectiveSectionId &&
+      (definition.sections || []).find((section) => section && section.id === objectiveSectionId) || null;
+    return {
+      type: 'station',
+      id: stationId,
+      label: String(definition.objectiveStationLabel || objectiveSection && objectiveSection.label || 'Objective'),
+      sectionId: objectiveSectionId,
+      sectionLabel: objectiveSection && objectiveSection.label || ''
+    };
+  }
+
+  function isMapMechanicInteractionGated(definition) {
+    return !!getMapMechanicObjectiveTarget(definition);
+  }
+
   function createMapMechanicEntryState(definition, value) {
     const source = value && typeof value === 'object' ? value : {};
     const activeSectionId = normalizeMapMechanicSectionId(definition, source.activeSectionId) || getDefaultMapMechanicSectionId(definition);
@@ -97,6 +117,7 @@
       orderedSectionIds: orderedSectionIds.slice(0, activeIds.length),
       nextSectionIndex,
       routeComplete: !!source.routeComplete,
+      objectiveReady: isMapMechanicInteractionGated(definition) && !!source.objectiveReady,
       lastCompletedAt: Math.max(0, Number(source.lastCompletedAt || 0))
     };
   }
@@ -328,6 +349,7 @@
     const rewardScale = Number.isFinite(Number(settings.rewardScale))
       ? Number(settings.rewardScale)
       : getMapMechanicRewardScale(state, definition);
+    const objectiveTarget = getMapMechanicObjectiveTarget(definition);
     return {
       active: true,
       id: definition.id,
@@ -354,6 +376,11 @@
       currentSectionKillCount: Math.max(0, Number(state.currentSectionKillCount || 0)),
       killsPerSection: Math.max(1, Number(definition.killsPerSection || Math.ceil(goal / Math.max(1, (definition.activeSectionIds || []).length)))),
       routeComplete: !!state.routeComplete,
+      completionMode: objectiveTarget ? 'objective-interaction' : 'automatic',
+      objectiveReady: !!state.objectiveReady,
+      objectiveTarget: objectiveTarget ? Object.assign({}, objectiveTarget) : null,
+      objectiveStationId: objectiveTarget && objectiveTarget.type === 'station' ? objectiveTarget.id : '',
+      objectiveStationLabel: objectiveTarget && objectiveTarget.type === 'station' ? objectiveTarget.label : '',
       completedCycles: Math.max(0, Number(state.completedCycles || 0)),
       eventCount: Math.max(0, Number(state.eventCount || 0)),
       objectiveCount: Math.max(0, Number(state.objectiveCount || 0)),
@@ -377,6 +404,8 @@
     getMapMechanicDefinitionById,
     normalizeMapMechanicSectionId,
     getDefaultMapMechanicSectionId,
+    getMapMechanicObjectiveTarget,
+    isMapMechanicInteractionGated,
     createMapMechanicEntryState,
     createMapMechanicState,
     createRiftBounty,

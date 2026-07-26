@@ -589,10 +589,36 @@
       }),
       stormbreakCliffs: createFieldComposition({
         routeSections: [
-          { label: 'Low Ram Lane', x: 0, w: 1300, tier: 'frontline' },
-          { label: 'Mid Archer Bridge', x: 1300, w: 1500, tier: 'ranged' },
-          { label: 'High Harrier Airspace', x: 2800, w: 1400, tier: 'anti-air' },
-          { label: 'Lightning Rod Objective', x: 4200, w: 1000, tier: 'support' }
+          {
+            label: 'Low Ram Lane',
+            x: 0,
+            w: 1300,
+            tier: 'frontline',
+            platformIds: ['stormbreak_cliffs_solid_lane_01', 'stormbreak_cliffs_solid_lane_02', 'stormbreak_cliffs_solid_lane_03']
+          },
+          {
+            label: 'Mid Archer Bridge',
+            x: 1300,
+            w: 1500,
+            tier: 'ranged',
+            platformIds: ['stormbreak_cliffs_solid_lane_04', 'stormbreak_cliffs_solid_lane_05', 'stormbreak_cliffs_solid_lane_06']
+          },
+          {
+            label: 'High Harrier Airspace',
+            x: 2800,
+            w: 1400,
+            tier: 'anti-air',
+            platformIds: ['stormbreak_cliffs_solid_lane_07', 'stormbreak_cliffs_solid_lane_08', 'stormbreak_cliffs_solid_lane_09', 'stormbreak_cliffs_solid_lane_10']
+          },
+          {
+            label: 'Lightning Rod Objective',
+            x: 4200,
+            w: 1000,
+            tier: 'support',
+            platformIds: ['stormbreakCliffs_aerie_perch', 'stormbreak_cliffs_connector_07'],
+            stationId: 'stormbreak_lightning_rod',
+            spawnFree: true
+          }
         ],
         portalRoles: {
           stormbreak_haven_return: 'cliff span return'
@@ -601,13 +627,13 @@
           { kind: 'rock', x: 460, w: 720, label: 'Ram Lane' },
           { kind: 'sign', x: 1780, w: 740, label: 'Archer Bridge' },
           { kind: 'tall', x: 3180, w: 760, label: 'Harrier Airspace' },
-          { kind: 'crystal', x: 4420, w: 460, label: 'Lightning Rod' }
+          { kind: 'crystal', x: 4420, w: 460, label: 'Lightning Rod', stationId: 'stormbreak_lightning_rod' }
         ],
         spawnZoneLabels: [
           { label: 'Ram lane', platformTier: 'low' },
           { label: 'Archer bridge', platformTier: 'mid' },
           { label: 'Harrier airspace', platformTier: 'high' },
-          { label: 'Lightning rod', platformTier: 'peak' }
+          { label: 'Lightning rod', platformTier: 'peak', stationId: 'stormbreak_lightning_rod', spawnFree: true }
         ]
       }),
       astralArchive: createFieldComposition({
@@ -889,7 +915,7 @@
       { id: 'frostfenOutskirts', intendedArchetype: 'C/E ice solo-duo route', intendedUseCase: 'solo/duo', routeSummary: 'Clear Marsh Flats, slide across Ice Shelves, then finish through Oracle Grove at Glacier Ascent.', partyRoleTarget: 'Duo split the flats and Oracle Grove while staying within one forward-moving route.', farmingAbuseRisk: 'medium', visualIdentityTag: 'frozen marsh camp route', spawnSectionModel: 'marsh flats, ice shelves, oracle grove', priorityRedesign: true, implementationStatus: 'composition-spawn-v1' },
       { id: 'glacierSpine', intendedArchetype: 'D/G glacier progression climb', intendedUseCase: 'dangerous progression small party', routeSummary: 'Climb glacier checkpoints, use lifts and one-way drops to rotate sentinel chokepoints.', partyRoleTarget: 'Small party split by height with central lift regroup.', farmingAbuseRisk: 'medium-high', visualIdentityTag: 'glacier lift spine', spawnSectionModel: 'lower climb, mid ridge, high ridge, flyer airspace' },
       { id: 'rimewardenSanctum', intendedArchetype: 'H/I frost vault', intendedUseCase: 'full party dungeon', routeSummary: 'Hold lower brutes, reach oracle shelves, and react to lane-locking ice walls.', partyRoleTarget: 'Tank lower lane, ranged oracle/sentinel control, support center safe room.', farmingAbuseRisk: 'medium', visualIdentityTag: 'rime vault sanctum', spawnSectionModel: 'brute lane, oracle shelf, sentinel shelf', implementationStatus: 'arena-skeleton-v1' },
-      { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, high harrier airspace, and lightning rod objective.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control on lightning rod.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
+      { id: 'stormbreakCliffs', intendedArchetype: 'D/E anti-air party field', intendedUseCase: 'small party', routeSummary: 'Clear low ram lane, mid archer bridge, and high harrier airspace before regrouping at the spawn-free lightning rod perch.', partyRoleTarget: 'Frontliner low lane, ranged anti-air, support/control at the lightning rod regroup station.', farmingAbuseRisk: 'high', visualIdentityTag: 'storm mast cliff climb', spawnSectionModel: 'ram lane, archer bridge, harrier airspace, spawn-free rod objective', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
       { id: 'astralArchive', intendedArchetype: 'C/F room-loop archive', intendedUseCase: 'late solo/duo', routeSummary: 'Loop reading rooms through rune lifts and break line-of-sight shelves.', partyRoleTarget: 'Duo split adjacent rooms and regroup at archive console.', farmingAbuseRisk: 'high', visualIdentityTag: 'rune archive rooms', spawnSectionModel: 'reading room loops and index shelves' },
       { id: 'eclipseFrontier', intendedArchetype: 'G/J elite frontier', intendedUseCase: 'high-risk farming small party', routeSummary: 'Patrol three outposts, rotate eclipse sigils, and enter capped elite pockets.', partyRoleTarget: 'Small party splits outposts, then regroups for sigil/elite pulses.', farmingAbuseRisk: 'very high', visualIdentityTag: 'eclipse frontier outposts', spawnSectionModel: 'outpost A, outpost B, eclipse gate, elite pocket', partyScaling: 'section-count' },
       { id: 'endlessRift', intendedArchetype: 'F/J scaling circular loop', intendedUseCase: 'endgame high-density farming', routeSummary: 'Run the lower-left, upper-left, upper-right, and lower-right Rift quadrants around a safe central core, then Push or Bank after stabilizing the tier.', partyRoleTarget: 'Party rotates the four ring quadrants and regroups at the central Rift Core for tier decisions.', farmingAbuseRisk: 'very high', visualIdentityTag: 'playful unstable rift ring', spawnSectionModel: 'four platform-authored quadrants around a spawn-free core', partyScaling: 'section-count', priorityRedesign: true, implementationStatus: 'geometry-spawn-v1' },
@@ -923,6 +949,9 @@
         type: config.type,
         label: config.label,
         summary: config.summary,
+        completionMode: config.completionMode || 'automatic',
+        objectiveStationId: config.objectiveStationId || '',
+        objectiveStationLabel: config.objectiveStationLabel || '',
         sections: freezeMapMechanicSections(config.sections),
         activeSectionIds: Object.freeze((config.activeSectionIds || []).slice()),
         objectiveSectionId: config.objectiveSectionId || '',
@@ -975,6 +1004,9 @@
         type: 'party-objective',
         label: 'Lightning Rod Charge',
         summary: 'Charge the cliff rod by splitting low, mid, and anti-air duties before regrouping at the objective perch.',
+        completionMode: 'objective-interaction',
+        objectiveStationId: 'stormbreak_lightning_rod',
+        objectiveStationLabel: 'Lightning Rod',
         sections: [
           { id: 'stormbreakCliffs_low_ram_lane', label: 'Low Ram Lane', role: 'frontline', weight: 1 },
           { id: 'stormbreakCliffs_mid_archer_bridge', label: 'Mid Archer Bridge', role: 'ranged', weight: 1.5 },
@@ -1041,7 +1073,12 @@
       slots: Object.freeze({ serviceTier: 'medium', serviceRole: 'inventory_expansion', serviceSummary: 'Inventory-slot and account convenience spending.' }),
       upgrade: Object.freeze({ serviceTier: 'medium', serviceRole: 'upgrade_crafting', serviceSummary: 'Gear upgrade and crafting sink.' }),
       plinko: Object.freeze({ serviceTier: 'medium', serviceRole: 'minigame_reward_sink', serviceSummary: 'Mob-earned Plinko-ball reward loop.' }),
-      class: Object.freeze({ serviceTier: 'low', serviceRole: 'class_flavor', serviceSummary: 'Class trials, class supplies, and onboarding flavor.' })
+      class: Object.freeze({ serviceTier: 'low', serviceRole: 'class_flavor', serviceSummary: 'Class trials, class supplies, and onboarding flavor.' }),
+      stormbreak_lightning_rod: Object.freeze({
+        serviceTier: 'low',
+        serviceRole: 'map_objective',
+        serviceSummary: 'Spawn-free regroup and interaction point for the Stormbreak lightning-rod objective.'
+      })
     });
 
     const MAP_PORTAL_FICTION = Object.freeze({

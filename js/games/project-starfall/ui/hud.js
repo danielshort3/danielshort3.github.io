@@ -55,6 +55,7 @@
   const CANVAS_COMBAT_BELT_GAP = 4;
   const CANVAS_COMBAT_BELT_APPROXIMATE_FOOTPRINT = 240;
   const CANVAS_COMBAT_BELT_COOLDOWN_BUCKET_SECONDS = 0.25;
+  const STORMBREAK_LIGHTNING_ROD_STATION_ID = 'stormbreak_lightning_rod';
 
   function shouldRefreshUiChangeHudSnapshot(domains) {
     const set = new Set(domains || []);
@@ -1336,6 +1337,8 @@
       getHudWidgetCancelAction,
       getOnboardingStepSummary,
       getMapRouteTrackerEntry,
+      getMapMechanicTrackerEntry,
+      getStormbreakLightningRodPresentation,
       getQuestTrackerEntries,
       getQuestTrackerNaturalHeight,
       getQuestTrackerBox
@@ -2064,6 +2067,162 @@
     };
   }
 
+  function getMapMechanicCount(value, fallback) {
+    if (Array.isArray(value)) return value.length;
+    const count = Number(value);
+    return Number.isFinite(count) ? Math.max(0, count) : Math.max(0, Number(fallback || 0));
+  }
+
+  function isStormbreakLightningRodStationId(stationId) {
+    return stationId === STORMBREAK_LIGHTNING_ROD_STATION_ID;
+  }
+
+  function getStormbreakLightningRodPhase(mapMechanic, options) {
+    const mechanic = mapMechanic && typeof mapMechanic === 'object' ? mapMechanic : null;
+    if (!mechanic) return null;
+    const settings = options || {};
+    const objectiveTarget = mechanic.objectiveTarget && typeof mechanic.objectiveTarget === 'object'
+      ? mechanic.objectiveTarget
+      : {};
+    const stationId =
+      mechanic.objectiveStationId ||
+      objectiveTarget.id ||
+      (isStormbreakLightningRodStationId(mechanic.id) ? mechanic.id : '');
+    if (!isStormbreakLightningRodStationId(stationId)) return null;
+    const progress = getMapMechanicCount(mechanic.progress, 0);
+    const goal = Math.max(1, getMapMechanicCount(mechanic.goal, 1));
+    const uniqueSections = getMapMechanicCount(
+      mechanic.uniqueSections,
+      getMapMechanicCount(mechanic.currentUniqueSections, 0)
+    );
+    const requiredSections = Math.max(1, getMapMechanicCount(
+      mechanic.requiredSections,
+      getMapMechanicCount(mechanic.requiredUniqueSections, 1)
+    ));
+    const completedCycles = Math.max(
+      getMapMechanicCount(mechanic.completedCycles, 0),
+      getMapMechanicCount(mechanic.objectiveCount, 0)
+    );
+    const lastCompletedAt = Math.max(0, Number(mechanic.lastCompletedAt || 0));
+    const nowSeconds = Number.isFinite(Number(settings.nowSeconds))
+      ? Number(settings.nowSeconds)
+      : Date.now() / 1000;
+    const ready = !!mechanic.objectiveReady;
+    const tuned = !ready &&
+      completedCycles > 0 &&
+      progress <= 0 &&
+      uniqueSections <= 0 &&
+      lastCompletedAt > 0 &&
+      nowSeconds >= lastCompletedAt &&
+      nowSeconds - lastCompletedAt <= 2.6;
+    const phase = ready
+      ? 'ready'
+      : tuned
+        ? 'tuned'
+        : uniqueSections < requiredSections
+          ? 'lanes'
+          : 'charging';
+    return {
+      stationId,
+      label: String(mechanic.objectiveStationLabel || objectiveTarget.label || 'Lightning Rod'),
+      phase,
+      ready,
+      tuned,
+      progress,
+      goal,
+      uniqueSections,
+      requiredSections,
+      completedCycles,
+      lastCompletedAt,
+      objectiveTarget
+    };
+  }
+
+  function getStormbreakLightningRodPresentation(snapshot, options) {
+    const source = snapshot || {};
+    const mapMechanic = source.mapModifiers && source.mapModifiers.mapMechanic ||
+      source.mapMechanic ||
+      null;
+    const phase = getStormbreakLightningRodPhase(mapMechanic, options);
+    if (!phase || !isStormbreakLightningRodStationId(phase.stationId)) return null;
+    const runtimeStations = source.runtime && Array.isArray(source.runtime.stations)
+      ? source.runtime.stations
+      : [];
+    const mapStations = source.map && Array.isArray(source.map.stations)
+      ? source.map.stations
+      : [];
+    const station = runtimeStations.concat(mapStations).find((candidate) => (
+      candidate && candidate.id === phase.stationId
+    )) || null;
+    const objectiveTarget = phase.objectiveTarget || {};
+    const target = station || (
+      Number.isFinite(Number(objectiveTarget.x)) &&
+      Number.isFinite(Number(objectiveTarget.y))
+        ? objectiveTarget
+        : null
+    );
+    return Object.assign({
+      stationId: station && station.id || STORMBREAK_LIGHTNING_ROD_STATION_ID,
+      label: String(station && station.name || objectiveTarget.label || 'Lightning Rod'),
+      phase: 'lanes',
+      ready: false,
+      tuned: false,
+      progress: 0,
+      goal: 8,
+      uniqueSections: 0,
+      requiredSections: 3,
+      completedCycles: 0,
+      objectiveTarget
+    }, phase, {
+      station,
+      target
+    });
+  }
+
+  function getMapMechanicTrackerEntry(mapMechanic, options) {
+    const presentation = getStormbreakLightningRodPhase(mapMechanic, options);
+    if (!presentation) return null;
+    const phase = presentation.phase;
+    const objective = phase === 'ready'
+      ? {
+          label: 'Tune the Lightning Rod',
+          value: 0,
+          goal: 1,
+          complete: false,
+          status: 'Ready'
+        }
+      : phase === 'tuned'
+        ? {
+            label: 'Lightning Rod tuned',
+            value: 1,
+            goal: 1,
+            complete: true,
+            status: 'Done'
+          }
+        : phase === 'charging'
+          ? {
+              label: 'Build storm charge',
+              value: presentation.progress,
+              goal: presentation.goal,
+              complete: false,
+              status: `${Math.min(presentation.goal, Math.floor(presentation.progress))}/${presentation.goal}`
+            }
+          : {
+              label: `Charge ${presentation.requiredSections} cliff lanes`,
+              value: presentation.uniqueSections,
+              goal: presentation.requiredSections,
+              complete: false,
+              status: `${Math.min(presentation.requiredSections, presentation.uniqueSections)}/${presentation.requiredSections}`
+            };
+    return {
+      title: 'Stormbreak Rod',
+      guideType: 'map',
+      guideId: String(mapMechanic && mapMechanic.mapId || 'stormbreakCliffs'),
+      phase,
+      objectives: [objective]
+    };
+  }
+
   function getStationPromptContext(snapshot, options) {
     const source = snapshot || {};
     const settings = options || {};
@@ -2073,11 +2232,28 @@
     const stationId = player.activeStation;
     const portalId = player.activePortalId;
     const questNpcId = player.activeQuestNpcId;
-    const station = stationId ? ((source.map && source.map.stations) || []).find((candidate) => candidate.id === stationId) : null;
+    const runtimeStations = source.runtime && Array.isArray(source.runtime.stations) ? source.runtime.stations : [];
+    const mapStations = source.map && Array.isArray(source.map.stations) ? source.map.stations : [];
+    const station = stationId
+      ? runtimeStations.concat(mapStations).find((candidate) => candidate.id === stationId)
+      : null;
     const portal = portalId ? (source.portals || []).find((candidate) => candidate.id === portalId) : null;
     const questNpc = questNpcId && source.questNpcs
       ? (source.questNpcs.npcs || []).find((candidate) => candidate.id === questNpcId && ((candidate.iconStates || []).length || candidate.servicePanelId))
       : null;
+    const rodPresentation = station &&
+      isStormbreakLightningRodStationId(station.id)
+      ? getStormbreakLightningRodPresentation(source)
+      : null;
+    const rodHint = rodPresentation
+      ? rodPresentation.ready
+        ? `${keyLabels.interact || 'F'} Tune`
+        : rodPresentation.tuned
+          ? 'Rod tuned'
+          : rodPresentation.phase === 'charging'
+            ? `Charge ${Math.min(rodPresentation.goal, Math.floor(rodPresentation.progress))}/${rodPresentation.goal}`
+            : `Lanes ${Math.min(rodPresentation.requiredSections, rodPresentation.uniqueSections)}/${rodPresentation.requiredSections}`
+      : '';
     const openWindows = settings.openWindows || [];
     const interaction = questNpc
       ? {
@@ -2088,13 +2264,18 @@
           kindLabel: questNpc.servicePanelId ? 'Service NPC' : 'Quest NPC',
           target: questNpc
         }
-      : station
+      : station && (!rodPresentation || rodPresentation.ready || !portal)
         ? {
-            title: station.name,
+            title: rodPresentation ? rodPresentation.label : station.name,
             promptAction: 'interact',
-            hint: `${keyLabels.interact || 'F'} Use`,
-            hintColor: '#177645',
-            kindLabel: 'Station',
+            hint: rodPresentation ? rodHint : `${keyLabels.interact || 'F'} Use`,
+            hintColor: rodPresentation && !rodPresentation.ready && !rodPresentation.tuned ? '#9a5b36' : '#177645',
+            hintMaxWidth: rodPresentation ? 118 : 98,
+            kindLabel: rodPresentation
+              ? rodPresentation.ready
+                ? 'Storm objective - Ready'
+                : 'Storm objective'
+              : 'Station',
             target: station
           }
         : portal
@@ -2106,13 +2287,23 @@
               kindLabel: 'Portal',
               target: portal
             }
+          : station && rodPresentation
+            ? {
+                title: rodPresentation.label,
+                promptAction: 'interact',
+                hint: rodHint,
+                hintColor: rodPresentation.tuned ? '#177645' : '#9a5b36',
+                hintMaxWidth: 118,
+                kindLabel: 'Storm objective',
+                target: station
+              }
           : null;
     if (interaction) {
       if (openWindows.includes('plinko') && (
         interaction.target && interaction.target.id === 'plinko' ||
         interaction.target && interaction.target.servicePanelId === 'plinko'
       )) return null;
-      return Object.assign(interaction, { station, portal, questNpc });
+      return Object.assign(interaction, { station, portal, questNpc, rodPresentation });
     }
     const onboarding = source.onboarding || {};
     const nextStep = onboarding.hidden ? null : onboarding.nextStep;
@@ -2304,6 +2495,7 @@
 
   function createHudWorldPromptUiHelpers() {
     return Object.freeze({
+      getStormbreakLightningRodPresentation,
       getStationPromptContext,
       getStationPromptLayout,
       getStationPromptRenderMetadata,
@@ -2370,6 +2562,10 @@
     const nextStep = onboarding.hidden ? null : onboarding.nextStep;
     const activePhase = onboarding.activePhase || {};
     const routeEntry = getMapRouteTrackerEntry(source.questGuidance);
+    const mapMechanicEntry = getMapMechanicTrackerEntry(
+      source.mapModifiers && source.mapModifiers.mapMechanic || source.mapMechanic,
+      { nowSeconds: settings.nowSeconds }
+    );
     const claimableQuests = progress && Array.isArray(progress.claimableQuests) ? progress.claimableQuests.slice(0, 2) : [];
     const showMapKillQuest = mapKillQuest && (mapKillQuest.active || mapKillQuest.claimable);
     const mergeFirstStepsTracker = !!(nextStep &&
@@ -2391,7 +2587,12 @@
       guideId: nextStep.id || nextStep.panelId || nextStep.title,
       objectives: [guideObjective]
     } : null;
-    if (!guideEntry && !routeEntry && (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))) return [];
+    if (
+      !guideEntry &&
+      !routeEntry &&
+      !mapMechanicEntry &&
+      (!progress || (!progress.activeQuest && !progress.activeTrial && !activeDungeon && !showMapKillQuest && !claimableQuests.length))
+    ) return [];
     const dungeonRespawnLabel = formatDungeonRespawnLabel(activeDungeon);
     const dungeonEncounterHud = activeDungeon &&
       activeDungeon.encounterFlow && activeDungeon.encounterFlow.hud &&
@@ -2450,7 +2651,7 @@
       guideType: 'trial',
       guideId: progress.activeTrial.id
     }) : null;
-    return [guideEntry, routeEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
+    return [guideEntry, routeEntry, mapMechanicEntry, ...claimEntries, mapKillEntry, activeQuest, activeTrial, dungeonEntry].filter(Boolean);
   }
 
   function getQuestTrackerNaturalHeight(entries, guidance) {
@@ -2960,6 +3161,10 @@
     createHudOverlayCacheUiHelpers,
     getCanvasMenuIconId,
     getCanvasMenuLayout,
+    isStormbreakLightningRodStationId,
+    getStormbreakLightningRodPhase,
+    getStormbreakLightningRodPresentation,
+    getMapMechanicTrackerEntry,
     getStationPromptContext,
     getStationPromptLayout,
     getStationPromptRenderMetadata,
