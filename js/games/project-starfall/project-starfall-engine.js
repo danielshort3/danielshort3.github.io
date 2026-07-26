@@ -19657,6 +19657,7 @@
         return {
           active: true,
           kind: portal.dungeonId ? 'dungeonPortal' : 'portal',
+          portalId: normalizeId(portal.id),
           x: Number(portal.x || 0) + Number(portal.w || 0) / 2,
           y: Number(portal.y || 0) + Number(portal.h || 0) / 2,
           label: portal.label || guide.recommendedMapName || 'Portal',

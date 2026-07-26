@@ -26639,6 +26639,26 @@
       return true;
     }
 
+    getMinimapPortalGuide() {
+      const snapshot = this.snapshot || {};
+      const navigationTarget = snapshot.questGuidance && snapshot.questGuidance.navigationTarget || null;
+      const targetKind = String(navigationTarget && navigationTarget.kind || '');
+      if (navigationTarget && ['portal', 'dungeonPortal'].includes(targetKind) && navigationTarget.portalId) {
+        return {
+          portalId: normalizeId(navigationTarget.portalId),
+          portalLabel: String(navigationTarget.label || ''),
+          locked: !!navigationTarget.lockedReason
+        };
+      }
+      const nextStep = snapshot.worldMap && snapshot.worldMap.pathHint && snapshot.worldMap.pathHint.nextStep || null;
+      if (!nextStep) return null;
+      return {
+        portalId: normalizeId(nextStep.portalId || nextStep.fromPortalId),
+        portalLabel: String(nextStep.portalLabel || ''),
+        locked: !!(snapshot.worldMap.pathHint && snapshot.worldMap.pathHint.lockedReason)
+      };
+    }
+
     drawCanvasMinimap(ctx, width, height, bottomY) {
       const snapshot = this.snapshot || {};
       const runtime = snapshot.runtime || {};
@@ -26662,9 +26682,10 @@
       const worldH = Math.max(CANVAS_PLAYFIELD_HEIGHT, Number(runtime.worldHeight || CANVAS_STATUS_HUD_Y));
       const toMiniX = (worldX) => mapX + clamp(Number(worldX || 0) / worldW, 0, 1) * mapW;
       const toMiniY = (worldY) => mapY + clamp(Number(worldY || 0) / worldH, 0, 1) * plotH;
-      const nextStep = snapshot.worldMap && snapshot.worldMap.pathHint && snapshot.worldMap.pathHint.nextStep || null;
-      const guidePortalId = normalizeId(nextStep && (nextStep.portalId || nextStep.fromPortalId));
-      const guidePortalLabel = String(nextStep && nextStep.portalLabel || '').trim();
+      const portalGuide = this.getMinimapPortalGuide();
+      const guidePortalId = normalizeId(portalGuide && portalGuide.portalId);
+      const guidePortalLabel = String(portalGuide && portalGuide.portalLabel || '').trim();
+      const guidePortalLocked = !!(portalGuide && portalGuide.locked);
       const staticKey = [
         map.id || '',
         map.name || '',
@@ -26680,6 +26701,7 @@
         (runtime.stations || []).length,
         guidePortalId,
         guidePortalLabel,
+        guidePortalLocked ? 'locked' : 'open',
         (snapshot.portals || []).map((portal) => `${portal.id || ''}:${portal.locked ? 1 : 0}:${portal.bossPortal ? 1 : 0}`).join(',')
       ].join('|');
       const staticLayer = this.getCachedCanvasLayer('minimapStatic', boxW, boxH, staticKey, (layerCtx) => {
@@ -26755,12 +26777,12 @@
           layerCtx.closePath();
           layerCtx.fill();
           if (guided) {
-            layerCtx.strokeStyle = '#fff3b0';
+            layerCtx.strokeStyle = guidePortalLocked ? '#ffd166' : '#fff3b0';
             layerCtx.lineWidth = 1.5;
             layerCtx.beginPath();
             layerCtx.arc(px, py, 7, 0, Math.PI * 2);
             layerCtx.stroke();
-            if (!box.compact) this.drawCanvasText(layerCtx, portal.label || 'Guide', clamp(px, localMapX + 28, localMapX + mapW - 28), Math.max(localMapY + 2, py - 13), { color: '#fff3b0', font: '900 7px system-ui', align: 'center', maxWidth: 58, lineHeight: 8, maxLines: 1 });
+            if (!box.compact) this.drawCanvasText(layerCtx, portal.label || guidePortalLabel || 'Guide', clamp(px, localMapX + 28, localMapX + mapW - 28), Math.max(localMapY + 2, py - 13), { color: guidePortalLocked ? '#ffd166' : '#fff3b0', font: '900 7px system-ui', align: 'center', maxWidth: 58, lineHeight: 8, maxLines: 1 });
           }
         });
         layerCtx.restore();
