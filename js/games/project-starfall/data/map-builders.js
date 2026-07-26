@@ -152,11 +152,15 @@
     midY = Math.min(midY, lowY - MIN_PARTY_TIER_GAP);
     highY = Math.min(highY, midY - MIN_PARTY_TIER_GAP);
     const platforms = [makePlatformDef(0, TRAINING_LANE_Y.ground, worldWidth, 80, { kind: 'ground' })];
-    const addPlatform = (x, y, w, visualKind) => {
+    const addPlatform = (x, y, w, visualKind, options) => {
       const safeX = Math.max(120, Math.round(x));
       const safeW = Math.min(Math.round(w), worldWidth - safeX - 160);
       if (safeW < 120) return;
-      platforms.push(makePlatformDef(safeX, Math.round(y), safeW, visualKind === 'hop' ? 20 : 22, { kind: visualKind || 'solidLane' }));
+      const platform = makePlatformDef(safeX, Math.round(y), safeW, visualKind === 'hop' ? 20 : 22, { kind: visualKind || 'solidLane' });
+      const settings = options && typeof options === 'object' ? options : {};
+      if (settings.id) platform.id = String(settings.id);
+      if (settings.spawnDisabled) platform.spawnDisabled = true;
+      platforms.push(platform);
     };
     const addSlope = (x, y, y2, w) => {
       const safeX = Math.max(120, Math.round(x));
@@ -207,9 +211,17 @@
       'right'
     );
     addPlatform(1880, TRAINING_LANE_Y.lowConnector + Number(skeleton.lowShift || 0) * 0.3, 260, 'connector');
-    addPlatform(1740, TRAINING_LANE_Y.highConnector + Number(skeleton.midShift || 0) * 0.3, 260, 'connector');
-    addPlatform(2240, TRAINING_LANE_Y.highConnector + Number(skeleton.highShift || 0) * 0.3, 260, 'connector');
-    addPlatform(2040, highY - 62, 280, 'hop');
+    if (mapId === 'astralStacks') {
+      // Keep the mirrored stacks silhouette, but turn the decorative center
+      // pieces into one reachable shelf that can carry the rune mechanic.
+      addPlatform(1740, highY, 760, 'island', {
+        id: 'astralStacks_center_rune_shelf'
+      });
+    } else {
+      addPlatform(1740, TRAINING_LANE_Y.highConnector + Number(skeleton.midShift || 0) * 0.3, 260, 'connector');
+      addPlatform(2240, TRAINING_LANE_Y.highConnector + Number(skeleton.highShift || 0) * 0.3, 260, 'connector');
+      addPlatform(2040, highY - 62, 280, 'hop');
+    }
     return platforms;
   }
 
@@ -483,10 +495,15 @@
     const anchors = getFieldZoneAnchors(worldWidth, layoutStyle);
     const lanes = getFieldLaneY(layoutStyle);
     const platforms = [makePlatformDef(0, lanes.ground, worldWidth, 80, { kind: 'ground' })];
-    const addPlatform = (x, y, w, visualKind) => {
+    const addPlatform = (x, y, w, visualKind, options) => {
       const safeX = Math.max(120, Math.round(x));
       const widthLimit = Math.min(Math.round(w), worldWidth - safeX - 180);
-      if (widthLimit >= 120) platforms.push(makePlatformDef(safeX, y, widthLimit, visualKind === 'hop' ? 20 : 22, { kind: visualKind || 'solidLane' }));
+      if (widthLimit < 120) return;
+      const platform = makePlatformDef(safeX, y, widthLimit, visualKind === 'hop' ? 20 : 22, { kind: visualKind || 'solidLane' });
+      const settings = options && typeof options === 'object' ? options : {};
+      if (settings.id) platform.id = String(settings.id);
+      if (settings.spawnDisabled) platform.spawnDisabled = true;
+      platforms.push(platform);
     };
     const addSlope = (x, y, y2, w, visualKind) => {
       const safeX = Math.max(120, Math.round(x));
@@ -521,6 +538,31 @@
         addPlatform(peakX, lanes.peak - lift, geometry.peakW, layoutStyle === 'astralStack' || layoutStyle === 'riftStack' ? 'island' : 'solidLane');
         addPlatform(skyX, lanes.sky - lift, geometry.skyW, 'hop');
       });
+      if (variantKey === 'astralArchive') {
+        // The archive keeps its three playful tower stacks, while two quiet
+        // rune bridges let players loop between them without resetting to
+        // the ground after every room.
+        addPlatform(1340, 846, 302, 'connector', {
+          id: 'astralArchive_west_rune_bridge_01',
+          spawnDisabled: true
+        });
+        addPlatform(1642, 846, 301, 'connector', {
+          id: 'astralArchive_west_rune_bridge_02',
+          spawnDisabled: true
+        });
+        addPlatform(1943, 846, 301, 'connector', {
+          id: 'astralArchive_west_rune_bridge_03',
+          spawnDisabled: true
+        });
+        addPlatform(3389, 666, 254, 'connector', {
+          id: 'astralArchive_east_rune_bridge_01',
+          spawnDisabled: true
+        });
+        addPlatform(3643, 666, 253, 'connector', {
+          id: 'astralArchive_east_rune_bridge_02',
+          spawnDisabled: true
+        });
+      }
       return platforms;
     }
     const variantSeed = getMapGeometrySeed(variantKey || '');

@@ -195,6 +195,7 @@
       layoutRole: 'bossArena',
       dungeonId: `boss_${config.bossId}`,
       bossId: config.bossId,
+      bossSpawnPlatformId: config.bossSpawnPlatformId || '',
       movementProfile: config.movementProfile || '',
       areaMechanic: config.areaMechanic || '',
       waveMax: config.waveMax || 8,

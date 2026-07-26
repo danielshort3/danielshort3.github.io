@@ -413,6 +413,16 @@
           x: 5080,
           platformIndex: 0,
         }),
+        Object.freeze({
+          id: 'archive_astral_stacks',
+          label: 'Astral Stacks',
+          destinationMapId: 'astralStacks',
+          bossEncounterId: 'astralArchivist',
+          bossPortal: true,
+          requiredLevel: 88,
+          x: 4680,
+          platformIndex: 0,
+        }),
       ]),
       eclipseFrontier: Object.freeze([
         Object.freeze({
