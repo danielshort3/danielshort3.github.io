@@ -1352,7 +1352,9 @@
             try {
               const res = await window.ToolsState.getSession({ toolId, sessionId });
               if (res?.session) sessionsOut.push(res.session);
-            } catch {}
+            } catch (err) {
+              console.error(`[tools-account-ui] Failed to fetch session for export ${toolId}:${sessionId}:`, err);
+            }
           }
           downloadTextFile({
             filename: 'tools-sessions.json',
@@ -1390,7 +1392,9 @@
               try {
                 document.dispatchEvent(new CustomEvent('tools:session-deleted', { detail: { source: panelId, toolId, sessionId } }));
               } catch {}
-            } catch {}
+            } catch (err) {
+              console.error(`[tools-account-ui] Failed to delete session ${toolId}:${sessionId}:`, err);
+            }
           }
           state.selected.clear();
           state.selecting = false;
@@ -2768,7 +2772,9 @@
           clearStatusAfter(1500);
           try {
             await window.ToolsState.logActivity({ toolId, type: 'session_load', summary: `Loaded session ${sessionId}` });
-          } catch {}
+          } catch (err) {
+            console.error('[tools-account-ui] Failed to log session load activity:', err);
+          }
         }
       } catch (err) {
         if (err?.status === 404 || err?.status === 410) {

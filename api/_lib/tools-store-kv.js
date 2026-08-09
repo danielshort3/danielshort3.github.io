@@ -112,7 +112,9 @@ async function upsertToolMeta(sub, toolId, updates){
   try {
     const raw = await kvGet(key);
     current = raw ? JSON.parse(raw) : null;
-  } catch {}
+  } catch (err) {
+    console.error('[tools-store-kv] Failed to read tool meta from', key, err);
+  }
 
   const now = Date.now();
   const next = {
@@ -145,7 +147,9 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
       note = normalizeNote(existing?.note);
       tags = normalizeTags(existing?.tags);
       pinned = Boolean(existing?.pinned);
-    } catch {}
+    } catch (err) {
+      console.error('[tools-store-kv] Failed to read existing session', existingKey, err);
+    }
   }
 
   const nextSessionId = sessionId || randomBase64Url(18);
@@ -214,7 +218,9 @@ async function listSessions({ sub, toolId, limit }){
       if (!raw) continue;
       const record = JSON.parse(raw);
       if (record && record.sessionId) records.push(record);
-    } catch {}
+    } catch (err) {
+      console.error('[tools-store-kv] Failed to read session', sessionKey(sub, toolId, sessionId), err);
+    }
   }
   return records;
 }
@@ -288,7 +294,9 @@ async function listActivity({ sub, toolId, limit }){
     try {
       const event = JSON.parse(raw);
       if (event && event.ts) events.push(event);
-    } catch {}
+    } catch (err) {
+      console.error('[tools-store-kv] Failed to parse activity event:', err, String(raw).slice(0, 120));
+    }
   });
   return events;
 }
@@ -322,7 +330,9 @@ async function listRecentSessions(sub, limit){
       if (!raw) continue;
       const record = JSON.parse(raw);
       if (record && record.sessionId) records.push(record);
-    } catch {}
+    } catch (err) {
+      console.error('[tools-store-kv] Failed to read recent session', sessionKey(sub, toolId, sessionId), err);
+    }
   }
   return records;
 }

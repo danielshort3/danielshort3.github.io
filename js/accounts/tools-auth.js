@@ -54,7 +54,8 @@
       const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
       const decoded = atob(normalized.padEnd(normalized.length + (4 - normalized.length % 4) % 4, '='));
       return JSON.parse(decoded);
-    } catch {
+    } catch (err) {
+      console.error('[tools-auth] Failed to parse JWT token:', err);
       return null;
     }
   };
@@ -98,7 +99,8 @@
       const parsed = JSON.parse(raw);
       if (!parsed || (!parsed.idToken && !parsed.sessionOnly)) return null;
       return parsed;
-    } catch {
+    } catch (err) {
+      console.error('[tools-auth] Failed to parse auth from storage key "' + key + '":', err);
       return null;
     }
   };
@@ -583,7 +585,8 @@
         const restored = sessionAuthFromResponse(await res.json());
         if (authIsValid(restored)) saveAuth(restored);
         return authIsValid(restored) ? restored : null;
-      } catch {
+      } catch (err) {
+        console.error('[tools-auth] Failed to restore server session:', err);
         return null;
       }
     }
@@ -594,7 +597,8 @@
     try {
       const refreshed = await refreshTokens(config, current);
       return authIsValid(refreshed) ? refreshed : null;
-    } catch {
+    } catch (err) {
+      console.error('[tools-auth] Token refresh failed, clearing auth:', err);
       clearAuth();
       return null;
     }
