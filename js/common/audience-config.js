@@ -28,6 +28,7 @@
       resumePath: '/resume-analytics',
       resumePreviewPath: '/resume-analytics-pdf',
       resumeDownloadPath: '/documents/Resume-Analytics.pdf',
+      startHere: [],
       featuredProjectIds: [
         'retailStore',
         'targetEmptyPackage',
@@ -54,6 +55,41 @@
       resumePath: '',
       resumePreviewPath: '',
       resumeDownloadPath: '',
+      startHere: [
+        {
+          id: 'handwritingRating',
+          label: 'Featured project',
+          title: 'Handwriting Legibility Scoring',
+          description: 'See how a CNN-based handwriting demo turns digit recognition into a practical legibility score.',
+          href: '/portfolio/handwritingRating',
+          icon: 'pencil',
+          accent: '#155dfc',
+          contentType: 'project',
+          resourceType: 'case_study'
+        },
+        {
+          id: 'project-starfall',
+          label: 'Current game',
+          title: 'Project Starfall',
+          description: 'Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.',
+          href: '/games/project-starfall',
+          icon: 'rocket',
+          accent: '#f97316',
+          contentType: 'game',
+          resourceType: 'game'
+        },
+        {
+          id: 'tools',
+          label: 'Useful tools',
+          title: 'Practical Browser Tools',
+          description: 'Open focused utilities for text, links, media, and repeatable browser workflows.',
+          href: '/tools',
+          icon: 'wrench',
+          accent: '#0798a6',
+          contentType: 'directory',
+          resourceType: 'library'
+        }
+      ],
       featuredProjectIds: [
         'retailStore',
         'chatbotLora',
@@ -80,6 +116,7 @@
       resumePath: '/resume-data-science',
       resumePreviewPath: '/resume-data-science-pdf',
       resumeDownloadPath: '/documents/Resume-Data-Science.pdf',
+      startHere: [],
       featuredProjectIds: [
         'smartSentence',
         'chatbotLora',
@@ -106,6 +143,7 @@
       resumePath: '/resume-tourism',
       resumePreviewPath: '/resume-tourism-pdf',
       resumeDownloadPath: '/documents/Resume-Tourism.pdf',
+      startHere: [],
       featuredProjectIds: [
         'chatbotLora',
         'pizzaDashboard',

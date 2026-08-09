@@ -91,5 +91,8 @@
   ],
   "/tools/ga4-utm-performance": [
     "css/components/ga4-utm-performance.css"
+  ],
+  "/tools/campaign-creative-tracker": [
+    "css/components/campaign-creative-tracker.css"
   ]
 }

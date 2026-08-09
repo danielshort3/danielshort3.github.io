@@ -388,6 +388,52 @@ window.DIRECTORY_WORKBENCH = {
       "order": 7
     },
     {
+      "id": "campaign-creative-tracker",
+      "title": "Campaign Creative Tracker",
+      "subtitle": "Links and campaigns",
+      "summary": "Organize creative families and renditions, apply controlled UTM values, manage optional A/B tests, and prepare campaign handoffs.",
+      "href": "tools/campaign-creative-tracker",
+      "type": "Local Tool",
+      "availability": "Local",
+      "access": "Admin",
+      "category": "Links and campaigns",
+      "tags": [
+        "Local",
+        "Admin",
+        "UTM",
+        "Creative"
+      ],
+      "tools": [
+        "Local",
+        "Admin",
+        "UTM",
+        "Creative"
+      ],
+      "concepts": [
+        "Links and campaigns"
+      ],
+      "formats": [
+        "Local Tool"
+      ],
+      "results": [
+        "Organize creative families and renditions, apply controlled UTM values, manage optional A/B tests, and prepare campaign handoffs."
+      ],
+      "actions": [],
+      "privacy": "Runs in your browser. Creative previews and campaign planning data stay on this device.",
+      "inputs": [
+        "Creative families, rendition files, destinations, controlled UTM values, and testing rules"
+      ],
+      "outputs": [
+        "Validated campaign links, rendition matrix, and export-ready handoff data"
+      ],
+      "iconImage": "img/tools/icons/campaign-creative-tracker.png",
+      "iconHtml": "",
+      "visibility": "admin",
+      "hidden": true,
+      "noindex": true,
+      "order": 8
+    },
+    {
       "id": "image-optimizer",
       "title": "Image Optimizer",
       "subtitle": "Media utilities",
@@ -429,7 +475,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "public",
       "hidden": false,
       "noindex": false,
-      "order": 8
+      "order": 9
     },
     {
       "id": "background-remover",
@@ -473,7 +519,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "public",
       "hidden": false,
       "noindex": false,
-      "order": 9
+      "order": 10
     },
     {
       "id": "screen-recorder",
@@ -517,7 +563,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "public",
       "hidden": false,
       "noindex": false,
-      "order": 10
+      "order": 11
     },
     {
       "id": "job-application-tracker",
@@ -561,7 +607,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "authed",
       "hidden": true,
       "noindex": true,
-      "order": 11
+      "order": 12
     },
     {
       "id": "short-links",
@@ -605,7 +651,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "admin",
       "hidden": true,
       "noindex": true,
-      "order": 12
+      "order": 13
     },
     {
       "id": "ga4-utm-performance",
@@ -651,7 +697,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "admin",
       "hidden": true,
       "noindex": true,
-      "order": 13
+      "order": 14
     },
     {
       "id": "transcribe",
@@ -695,7 +741,7 @@ window.DIRECTORY_WORKBENCH = {
       "visibility": "authed",
       "hidden": true,
       "noindex": true,
-      "order": 14
+      "order": 15
     }
   ]
 };

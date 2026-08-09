@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Campaign Creative Tracker</title>
+  <desc id="desc">Overlapping creative format cards connected by a campaign link.</desc>
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#173d72"/>
+      <stop offset="1" stop-color="#071d3b"/>
+    </linearGradient>
+    <linearGradient id="cobalt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2f7df4"/>
+      <stop offset="1" stop-color="#084dc5"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b8dbff"/>
+      <stop offset="1" stop-color="#edf6ff"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9a24"/>
+      <stop offset="1" stop-color="#ed6500"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#06172e" flood-opacity=".25"/>
+    </filter>
+    <filter id="soft-shadow" x="-40%" y="-40%" width="180%" height="190%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#06172e" flood-opacity=".28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="118" y="28" width="60" height="112" rx="14" fill="url(#navy)"/>
+    <rect x="128" y="41" width="40" height="57" rx="7" fill="url(#sky)"/>
+    <circle cx="158" cy="52" r="5" fill="#ffb13b"/>
+    <path d="M128 84l13-17 8 10 8-8 11 15v14h-40z" fill="#78a9dc"/>
+    <rect x="129" y="108" width="35" height="5" rx="2.5" fill="#d8e6f7"/>
+    <rect x="129" y="119" width="25" height="5" rx="2.5" fill="#7394bd"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="28" y="49" width="128" height="151" rx="19" fill="#fff" stroke="#0d3e82" stroke-width="5"/>
+    <circle cx="44" cy="64" r="4" fill="#0d58d9"/>
+    <rect x="43" y="75" width="98" height="72" rx="10" fill="url(#sky)"/>
+    <circle cx="123" cy="91" r="8" fill="#ffad32"/>
+    <path d="M43 129l20-24 14 14 13-19 19 25 12-13 20 17v18H43z" fill="#7ba9d6"/>
+    <path d="M43 137l24-19 15 11 21-14 19 13 19-10v29H43z" fill="#225a9d" opacity=".72"/>
+    <rect x="43" y="159" width="53" height="7" rx="3.5" fill="#173d72"/>
+    <rect x="43" y="173" width="38" height="6" rx="3" fill="#a8b9cf"/>
+    <rect x="105" y="157" width="36" height="22" rx="8" fill="#e7f0ff" stroke="#b7cceb"/>
+    <path d="M116 168h14m-5-5 5 5-5 5" fill="none" stroke="#0b59d5" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="83" y="145" width="137" height="63" rx="15" fill="#fff" stroke="#0d3e82" stroke-width="5"/>
+    <path d="M98 159h44v35H98a7 7 0 0 1-7-7v-21a7 7 0 0 1 7-7z" fill="url(#cobalt)"/>
+    <circle cx="127" cy="168" r="5" fill="#ffb13b"/>
+    <path d="M91 188l14-14 10 9 8-8 19 13v6H91z" fill="#90bded"/>
+    <rect x="151" y="163" width="46" height="7" rx="3.5" fill="#173d72"/>
+    <rect x="151" y="177" width="34" height="6" rx="3" fill="#9cafc7"/>
+    <circle cx="202" cy="184" r="11" fill="url(#orange)"/>
+    <path d="M197 184h9m-4-4 4 4-4 4" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+  </g>
+
+  <g filter="url(#soft-shadow)" transform="translate(190 99) rotate(-38)">
+    <rect x="-31" y="-13" width="45" height="26" rx="13" fill="none" stroke="#fff" stroke-width="13"/>
+    <rect x="-31" y="-13" width="45" height="26" rx="13" fill="none" stroke="#173d72" stroke-width="8"/>
+    <rect x="-4" y="-13" width="45" height="26" rx="13" fill="none" stroke="#fff" stroke-width="13"/>
+    <rect x="-4" y="-13" width="45" height="26" rx="13" fill="none" stroke="#0b59d5" stroke-width="8"/>
+    <path d="M4 0h11" stroke="#fff" stroke-linecap="round" stroke-width="6"/>
+  </g>
+  <circle cx="218" cy="69" r="9" fill="url(#orange)" filter="url(#soft-shadow)"/>
+  <path d="M218 64v10m-5-5h10" stroke="#fff" stroke-linecap="round" stroke-width="2.5"/>
+</svg>

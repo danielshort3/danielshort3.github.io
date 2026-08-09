@@ -29,7 +29,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/handwriting-rating-demo.html",
+      "url": "https://www.danielshort.me/handwriting-rating-demo",
       "label": "Live Demo"
     },
     {
@@ -73,6 +73,34 @@
     "On a small personal handwriting set, accuracy was ~75.6% (not a benchmark; see notebook).",
     "My wife was right."
   ],
+  "evaluation": {
+    "status": "measured",
+    "goal": "Recognize handwritten digits and use model confidence as one input to a legibility score.",
+    "dataset": "MNIST plus a small personal handwriting set used only as a domain-shift check.",
+    "split": "Standard MNIST training and test datasets: 60,000 training digits and 10,000 test digits.",
+    "baseline": "The first model reached 92.302% accuracy on the MNIST test set.",
+    "metrics": [
+      {
+        "label": "Best MNIST test accuracy",
+        "value": "98.952%",
+        "context": "Model v3, selected from the three notebook architectures."
+      },
+      {
+        "label": "Personal handwriting accuracy",
+        "value": "75.56%",
+        "context": "Small custom set; included as a domain-shift check, not a benchmark."
+      }
+    ],
+    "decision": "Selected model v3 because it produced the highest recorded MNIST test accuracy.",
+    "limitations": [
+      "MNIST is a narrow digit-recognition dataset and does not represent general handwriting legibility.",
+      "The custom handwriting sample is small and its size is not documented in the published result."
+    ],
+    "evidence": {
+      "label": "Evaluation notebook",
+      "url": "documents/Project_8.ipynb"
+    }
+  },
   "order": 7,
   "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark."
 }

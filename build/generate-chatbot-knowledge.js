@@ -389,8 +389,8 @@ function fallbackTextForPath(urlPath) {
   const normalized = normalizePathname(urlPath);
   if (normalized !== '/') return '';
   return [
-    'Daniel Short is a data science and analytics professional who publishes portfolio projects, practical browser tools, and interactive games on this site.',
-    'The homepage routes visitors into the project library, tools directory, games directory, resume, and contact page.',
+    'Daniel Short publishes portfolio projects, practical browser tools, and interactive games on this site.',
+    'The homepage routes visitors into the project library, tools directory, games directory, and contact page.',
     'Featured work includes analytics dashboards, SQL and ETL projects, machine learning experiments, data visualization, and utility tools that run in the browser.'
   ].join(' ');
 }

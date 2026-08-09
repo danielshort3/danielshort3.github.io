@@ -10,6 +10,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
 const outputPath = path.join(root, 'dist', 'shortlinks-destinations.json');
@@ -49,6 +50,12 @@ function extractCanonicalHref(html){
   const flipped = html.match(/<link[^>]*href=["']([^"']+)["'][^>]*rel=["']canonical["'][^>]*>/i);
   if (flipped) return String(flipped[1]).trim();
   return '';
+}
+
+function isNoindex(html){
+  const match = String(html || '').match(/<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["']([^"']*)["'][^>]*>/i)
+    || String(html || '').match(/<meta\b[^>]*\bcontent=["']([^"']*)["'][^>]*\bname=["']robots["'][^>]*>/i);
+  return Boolean(match && /(?:^|[,\s])noindex(?:$|[,\s])/i.test(String(match[1] || '')));
 }
 
 function decodeHtmlEntities(value){
@@ -113,6 +120,7 @@ function loadDemoRoutes(){
     const slug = dest.replace(/^\/demos\//, '');
     const filePath = path.join(root, 'demos', `${slug}.html`);
     const html = readFileSafe(filePath);
+    if (isNoindex(html)) continue;
     const title = normalizeLabel(extractTitle(html)) || slug;
     routes.push({ path: clean, label: title, group: 'Demos' });
   }
@@ -121,6 +129,7 @@ function loadDemoRoutes(){
 }
 
 function buildManifest(){
+  const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const files = [];
   files.push(...listHtmlFiles(root));
   files.push(...listHtmlFiles(path.join(root, 'pages')));
@@ -130,6 +139,7 @@ function buildManifest(){
   files.forEach(filePath => {
     const html = readFileSafe(filePath);
     if (!html) return;
+    if (isNoindex(html)) return;
     const canonical = extractCanonicalHref(html);
     if (!canonical) return;
 
@@ -143,6 +153,7 @@ function buildManifest(){
     if (!pathname) return;
     if (pathname === '/404.html') return;
     if (LEGACY_DESTINATION_ALIASES.has(pathname)) return;
+    if (noindexPathnames.has(normalizePathname(pathname))) return;
 
     const label = normalizeLabel(extractTitle(html)) || pathname;
     const group = classifyGroup(pathname);
@@ -153,6 +164,7 @@ function buildManifest(){
   });
 
   loadDemoRoutes().forEach(route => {
+    if (noindexPathnames.has(normalizePathname(route.path))) return;
     if (!seen.has(route.path)) {
       seen.set(route.path, route);
     }

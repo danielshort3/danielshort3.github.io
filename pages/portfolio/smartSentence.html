@@ -352,7 +352,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python ? AWS ? Docker ? NLP</dd>
+          <dd class="project-star-value">Python · AWS · Docker · NLP</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Status</dt>
@@ -360,7 +360,67 @@
         </div>
       </dl>
     </section>
-			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+        <section class="project-star project-personal-notes" aria-labelledby="smartSentence-personal-notes-title">
+      <h2 class="section-title" id="smartSentence-personal-notes-title">Personal notes</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Why I built it</dt>
+          <dd class="project-star-value">I wanted to find sentences by meaning when the query and source use different words.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">What surprised me</dt>
+          <dd class="project-star-value">Embedding quality was only one tradeoff; model size, cold starts, and serverless cost mattered to whether the demo felt useful.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">What I’d try next</dt>
+          <dd class="project-star-value">I’d publish a repeatable relevance and latency benchmark across the candidate embedding models.</dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-star project-evaluation" aria-labelledby="smartSentence-evaluation-title">
+      <h2 class="section-title" id="smartSentence-evaluation-title">Evaluation &amp; tradeoffs</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Not benchmarked</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Retrieve sentences that are semantically relevant to a query when the wording does not match exactly.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">A fixed Alice’s Adventures in Wonderland corpus from Project Gutenberg.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">The repository includes an exploratory benchmark command over up to 1,000 sentences, but no fixed labeled evaluation split is published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">No keyword-search or labeled-relevance baseline is published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Selected an embedding model by balancing exploratory clustering behavior, model size, and serverless deployment cost.</dd>
+        </div>
+
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Comparative relevance, nDCG, recall-at-k, warm latency, and cold-start latency results have not been published.</li>
+              <li>Silhouette score on unlabeled sentence embeddings would not by itself establish search relevance.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer">Project repository</a></dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
         <div class="project-demo-help">
@@ -398,7 +458,7 @@
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
         <a class="project-link" role="listitem" href="documents/Project_13.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_13.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
       </div>
       </div>
         <div class="project-links-group">
@@ -409,11 +469,11 @@
       </div>
       </div>
     </section>
-			        <section class="project-section" id="notes">
+        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">The live demo uses a fixed Alice in Wonderland corpus and checks endpoint health before enabling queries because cold starts can happen after idle time.</p>
     </section>
-			        <section class="project-section project-related" aria-label="Other projects">
+        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
         <a class="project-card project-related-card" role="listitem" href="portfolio/chatbotLora" aria-label="Open project: Chatbot (LoRA + RAG)">
@@ -544,7 +604,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5f4c6f3f.js"></script>
+  <script defer src="dist/site-shell.da2d9fb1.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

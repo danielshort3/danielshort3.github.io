@@ -40,7 +40,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/sentence-demo.html",
+        "url": "https://www.danielshort.me/sentence-demo",
         "label": "Live Demo"
       },
       {
@@ -77,6 +77,28 @@ window.PROJECTS = [
       "Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.",
       "Kept the site embed usable with warm-up status, inline similarity bars, and an open-in-new-tab fallback for a larger view."
     ],
+    "personalStory": {
+      "why": "I wanted to find sentences by meaning when the query and source use different words.",
+      "surprise": "Embedding quality was only one tradeoff; model size, cold starts, and serverless cost mattered to whether the demo felt useful.",
+      "next": "I’d publish a repeatable relevance and latency benchmark across the candidate embedding models."
+    },
+    "evaluation": {
+      "status": "not-benchmarked",
+      "goal": "Retrieve sentences that are semantically relevant to a query when the wording does not match exactly.",
+      "dataset": "A fixed Alice’s Adventures in Wonderland corpus from Project Gutenberg.",
+      "split": "The repository includes an exploratory benchmark command over up to 1,000 sentences, but no fixed labeled evaluation split is published.",
+      "baseline": "No keyword-search or labeled-relevance baseline is published.",
+      "metrics": [],
+      "decision": "Selected an embedding model by balancing exploratory clustering behavior, model size, and serverless deployment cost.",
+      "limitations": [
+        "Comparative relevance, nDCG, recall-at-k, warm latency, and cold-start latency results have not been published.",
+        "Silhouette score on unlabeled sentence embeddings would not by itself establish search relevance."
+      ],
+      "evidence": {
+        "label": "Project repository",
+        "url": "https://github.com/danielshort3/Smart-Sentence-Finder"
+      }
+    },
     "order": 1
   },
   {
@@ -110,7 +132,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/chatbot-demo.html",
+        "url": "https://www.danielshort.me/chatbot-demo",
         "label": "Live Demo"
       }
     ],
@@ -146,6 +168,28 @@ window.PROJECTS = [
       "Viewers can compare managed-model reliability, streaming responses, and citation behavior against the custom model's cold-start and deployment tradeoffs.",
       "The demo keeps source-grounded answers and citation links while making the model choice transparent through the backend selector."
     ],
+    "personalStory": {
+      "why": "I wanted to compare a custom LoRA deployment with a managed model without giving up grounded answers and citations.",
+      "surprise": "The model was only part of the product: cold starts, health checks, streaming, and citation clarity shaped the experience just as much.",
+      "next": "I’d publish a controlled benchmark for retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency."
+    },
+    "evaluation": {
+      "status": "not-benchmarked",
+      "goal": "Compare source-grounded tourism answers across a managed Bedrock backend and a custom LoRA/SageMaker backend.",
+      "dataset": "Public Visit Grand Junction pages plus a generated tourism question-and-answer set.",
+      "split": "No controlled evaluation split is documented in the published project.",
+      "baseline": "No controlled Bedrock-versus-LoRA quality or latency baseline has been published.",
+      "metrics": [],
+      "decision": "Bedrock remains the default live path; LoRA/SageMaker remains available for architecture and cold-start comparison.",
+      "limitations": [
+        "Retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency have not been published.",
+        "The current demo demonstrates the two architectures; it does not establish that one backend produces better answers."
+      ],
+      "evidence": {
+        "label": "Project repository",
+        "url": "https://github.com/danielshort3/Chatbot-LoRA-RAG"
+      }
+    },
     "order": 2
   },
   {
@@ -183,7 +227,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/shape-demo.html",
+        "url": "https://www.danielshort.me/shape-demo",
         "label": "Live Demo"
       }
     ],
@@ -207,9 +251,26 @@ window.PROJECTS = [
       "Deployed a CPU-only AWS Lambda endpoint so the browser can request predictions."
     ],
     "results": [
-      "High accuracy on a five-shape subset (results vary by split and drawing style): circle, triangle, square, hexagon, and octagon.",
+      "Supports five QuickDraw classes—circle, triangle, square, hexagon, and octagon—but a held-out accuracy result has not yet been published.",
       "Predictions return quickly once the Lambda container is warm; cold starts can take longer."
     ],
+    "evaluation": {
+      "status": "not-benchmarked",
+      "goal": "Classify a browser-drawn shape as one of five supported QuickDraw classes.",
+      "dataset": "Google Quick, Draw! sketches for circle, triangle, square, hexagon, and octagon.",
+      "split": "Train and validation splits were created, but their sizes and sampling procedure are not published.",
+      "baseline": "No simple classifier or majority-class baseline is published.",
+      "metrics": [],
+      "decision": "Deployed the ResNet18 classifier for CPU-only serverless inference in the live demonstration.",
+      "limitations": [
+        "Held-out accuracy, per-class recall, and confusion-matrix results have not been published.",
+        "QuickDraw sketches may not represent drawings made with the website’s canvas and preprocessing pipeline."
+      ],
+      "evidence": {
+        "label": "Project repository",
+        "url": "https://github.com/danielshort3/Shape-Analyzer"
+      }
+    },
     "order": 3,
     "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task."
   },
@@ -300,14 +361,9 @@ window.PROJECTS = [
         "label": "Live Demo"
       },
       {
-        "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_6.pdf",
-        "label": "PDF"
-      },
-      {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_6.ipynb",
-        "label": "Notebook"
+        "url": "https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb",
+        "label": "Current Notebook (GitHub)"
       },
       {
         "icon": "img/icons/website-icon.png",
@@ -339,6 +395,44 @@ window.PROJECTS = [
       "Top driver was the share of ICU beds occupied by COVID patients.",
       "Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days)."
     ],
+    "evaluation": {
+      "status": "measured",
+      "goal": "Flag states at risk of exceeding 90% ICU utilization within the next seven days.",
+      "dataset": "56,853 state-date rows derived from the HHS hospital-capacity time series.",
+      "split": "38,217 rows before 2022-07-01 for training and 18,636 rows from 2022-07-01 onward for time-based evaluation.",
+      "baseline": "No-skill AUROC is 0.500; approximately 4.1% positive prevalence in the evaluation period implies a PR-AUC baseline of about 0.041.",
+      "metrics": [
+        {
+          "label": "AUROC",
+          "value": "0.606",
+          "context": "Time-based evaluation period."
+        },
+        {
+          "label": "PR-AUC",
+          "value": "0.060",
+          "context": "Compared with an approximate prevalence baseline of 0.041."
+        },
+        {
+          "label": "Recall at 75% precision",
+          "value": "0.000",
+          "context": "The model did not identify positives at the stated precision target."
+        },
+        {
+          "label": "Confusion matrix at 0.5",
+          "value": "31 TP / 728 FN",
+          "context": "17,601 true negatives and 276 false positives."
+        }
+      ],
+      "decision": "Treat the output as an exploratory risk-scoring demonstration, not an operational alerting model; performance does not support use at a 75% precision target.",
+      "limitations": [
+        "The post-cutoff evaluation data was also passed to XGBoost for early stopping, so it is not an untouched final holdout.",
+        "The target is highly imbalanced and aggregated at the state level; the model is not a clinical forecast."
+      ],
+      "evidence": {
+        "label": "Current XGBoost notebook",
+        "url": "https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb"
+      }
+    },
     "order": 5,
     "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast."
   },
@@ -376,7 +470,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/target-empty-package-demo.html",
+        "url": "https://www.danielshort.me/target-empty-package-demo",
         "label": "Live Demo"
       }
     ],
@@ -441,7 +535,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/handwriting-rating-demo.html",
+        "url": "https://www.danielshort.me/handwriting-rating-demo",
         "label": "Live Demo"
       },
       {
@@ -485,6 +579,34 @@ window.PROJECTS = [
       "On a small personal handwriting set, accuracy was ~75.6% (not a benchmark; see notebook).",
       "My wife was right."
     ],
+    "evaluation": {
+      "status": "measured",
+      "goal": "Recognize handwritten digits and use model confidence as one input to a legibility score.",
+      "dataset": "MNIST plus a small personal handwriting set used only as a domain-shift check.",
+      "split": "Standard MNIST training and test datasets: 60,000 training digits and 10,000 test digits.",
+      "baseline": "The first model reached 92.302% accuracy on the MNIST test set.",
+      "metrics": [
+        {
+          "label": "Best MNIST test accuracy",
+          "value": "98.952%",
+          "context": "Model v3, selected from the three notebook architectures."
+        },
+        {
+          "label": "Personal handwriting accuracy",
+          "value": "75.56%",
+          "context": "Small custom set; included as a domain-shift check, not a benchmark."
+        }
+      ],
+      "decision": "Selected model v3 because it produced the highest recorded MNIST test accuracy.",
+      "limitations": [
+        "MNIST is a narrow digit-recognition dataset and does not represent general handwriting legibility.",
+        "The custom handwriting sample is small and its size is not documented in the published result."
+      ],
+      "evidence": {
+        "label": "Evaluation notebook",
+        "url": "documents/Project_8.ipynb"
+      }
+    },
     "order": 7,
     "notes": "MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark."
   },
@@ -552,6 +674,34 @@ window.PROJECTS = [
       "Generated new digits by sampling the learned latent space.",
       "Saved the trained model so generation is a quick inference step."
     ],
+    "personalStory": {
+      "why": "I wanted to generate new handwritten digits instead of only recognizing them.",
+      "surprise": "A smooth latent space made generation fast, but MNIST’s narrow style limits how representative the samples are of real handwriting.",
+      "next": "I’d compare latent sizes and add explicit fidelity and diversity evaluation before calling one model better."
+    },
+    "evaluation": {
+      "status": "partial",
+      "goal": "Generate plausible MNIST-style digits by sampling a learned variational latent space.",
+      "dataset": "MNIST: 60,000 training digits and 10,000 test digits.",
+      "split": "The standard MNIST train and test datasets were used; the test loss also selected the saved checkpoint.",
+      "baseline": "Epoch 1 test loss was 107.9880 using the notebook’s binary-cross-entropy plus KL-divergence objective.",
+      "metrics": [
+        {
+          "label": "Best test loss",
+          "value": "93.5655",
+          "context": "Lowest recorded BCE + KL loss across the 100-epoch notebook run."
+        }
+      ],
+      "decision": "Saved the checkpoint with the lowest recorded test loss for the interactive generator.",
+      "limitations": [
+        "The test set was used for checkpoint selection, so it is not an untouched final holdout.",
+        "No FID-style, classifier-based, diversity, or human-quality benchmark is published; generated samples remain a qualitative result."
+      ],
+      "evidence": {
+        "label": "Training notebook",
+        "url": "documents/Project_9.ipynb"
+      }
+    },
     "order": 8,
     "notes": "Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity."
   },
@@ -600,6 +750,23 @@ window.PROJECTS = [
     "results": [
       "Typical runs produce cleaner, more readable output in seconds per page (hardware- and batch-dependent)."
     ],
+    "evaluation": {
+      "status": "partial",
+      "goal": "Remove visible watermarks and upscale low-resolution sheet-music pages while preserving readable notation.",
+      "dataset": "Paired page images used to train the watermark-removal model.",
+      "split": "Dataset size and train, validation, and test partitions are not documented in the published project.",
+      "baseline": "No interpolation-only or image-restoration baseline is published.",
+      "metrics": [],
+      "decision": "Combined a UNet watermark-removal stage with VDSR upscaling in the desktop workflow.",
+      "limitations": [
+        "No held-out image-quality, OCR, staff-line preservation, or reader study result is published.",
+        "Runtime and output quality vary with hardware, batch size, source resolution, and scan quality."
+      ],
+      "evidence": {
+        "label": "Project repository",
+        "url": "https://github.com/danielshort3/Watermark-Remover"
+      }
+    },
     "order": 9,
     "notes": "Designed for low-resolution, watermarked page images; output quality depends on scan quality and staff-line preservation."
   },
@@ -685,7 +852,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/retail-loss-sales-demo.html",
+        "url": "https://www.danielshort.me/retail-loss-sales-demo",
         "label": "Live Demo"
       }
     ],
@@ -718,6 +885,11 @@ window.PROJECTS = [
       "Narrowed broad incident data into a short, explainable list of hotspots worth investigating.",
       "Kept identifiers anonymized so the case study can show the workflow without exposing people or locations."
     ],
+    "personalStory": {
+      "why": "I wanted to turn scattered incident and sales data into a short, explainable list of stores worth investigating.",
+      "surprise": "Raw incident volume was misleading; sales context and normalization changed which stores looked genuinely unusual.",
+      "next": "I’d calibrate alert thresholds against reviewed cases and add drift monitoring so the ranking stays useful over time."
+    },
     "order": 11
   },
   {
@@ -940,7 +1112,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/website-icon.png",
-        "url": "https://www.danielshort.me/nonogram-demo.html",
+        "url": "https://www.danielshort.me/nonogram-demo",
         "label": "Live Demo"
       },
       {
@@ -973,8 +1145,25 @@ window.PROJECTS = [
       "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
     ],
     "results": [
-      "Achieved strong solve rates on held-out 5x5 boards (see GitHub for evaluation details)."
+      "Evaluated on generated 5x5 boards, but the published materials do not yet include a reproducible held-out solve-rate result."
     ],
+    "evaluation": {
+      "status": "not-benchmarked",
+      "goal": "Measure whether the learned policy can complete unseen generated 5x5 Nonogram boards.",
+      "dataset": "Generated 5x5 Nonogram puzzles.",
+      "split": "The project references held-out boards, but split sizes, seeds, and a reproducible evaluation set are not published.",
+      "baseline": "No rule-based, search-based, or random-policy baseline is published.",
+      "metrics": [],
+      "decision": "Retained the hybrid CNN and Transformer policy for the live step-by-step solver demonstration.",
+      "limitations": [
+        "A held-out solve rate with board count, seed, and confidence interval has not been published.",
+        "Results on generated 5x5 boards do not establish performance on larger or human-authored puzzles."
+      ],
+      "evidence": {
+        "label": "Project repository",
+        "url": "https://github.com/danielshort3/Nonogram-Solver"
+      }
+    },
     "order": 15,
     "notes": "The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search."
   },
@@ -1076,6 +1265,11 @@ window.PROJECTS = [
       "Optimized for fast, mobile-friendly pages with a hashed CSS bundle, lazy-loaded media, and minimal JavaScript.",
       "Makes projects easy to share with clean URLs, social previews, and a searchable portfolio."
     ],
+    "personalStory": {
+      "why": "I wanted one fast, mobile-friendly place where projects, tools, games, and professional work were easy to understand and share.",
+      "surprise": "Keeping content, generated pages, clean routes, and deployment output synchronized became as important as the visual design.",
+      "next": "I’d add automated accessibility, broken-link, and Core Web Vitals regression checks to catch quality drift before deployment."
+    },
     "order": 17,
     "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site."
   }

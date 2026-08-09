@@ -349,7 +349,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python ? VAE ? AWS ? Docker</dd>
+          <dd class="project-star-value">Python · VAE · AWS · Docker</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Status</dt>
@@ -357,7 +357,74 @@
         </div>
       </dl>
     </section>
-			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+        <section class="project-star project-personal-notes" aria-labelledby="digitGenerator-personal-notes-title">
+      <h2 class="section-title" id="digitGenerator-personal-notes-title">Personal notes</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Why I built it</dt>
+          <dd class="project-star-value">I wanted to generate new handwritten digits instead of only recognizing them.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">What surprised me</dt>
+          <dd class="project-star-value">A smooth latent space made generation fast, but MNIST’s narrow style limits how representative the samples are of real handwriting.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">What I’d try next</dt>
+          <dd class="project-star-value">I’d compare latent sizes and add explicit fidelity and diversity evaluation before calling one model better.</dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-star project-evaluation" aria-labelledby="digitGenerator-evaluation-title">
+      <h2 class="section-title" id="digitGenerator-evaluation-title">Evaluation &amp; tradeoffs</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Partial evaluation</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Generate plausible MNIST-style digits by sampling a learned variational latent space.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">MNIST: 60,000 training digits and 10,000 test digits.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">The standard MNIST train and test datasets were used; the test loss also selected the saved checkpoint.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">Epoch 1 test loss was 107.9880 using the notebook’s binary-cross-entropy plus KL-divergence objective.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Saved the checkpoint with the lowest recorded test loss for the interactive generator.</dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Metrics</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Best test loss: 93.5655 — Lowest recorded BCE + KL loss across the 100-epoch notebook run.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>The test set was used for checkpoint selection, so it is not an untouched final holdout.</li>
+              <li>No FID-style, classifier-based, diversity, or human-quality benchmark is published; generated samples remain a qualitative result.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="documents/Project_9.ipynb">Training notebook</a></dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
         <div class="project-demo-help">
@@ -400,11 +467,11 @@
       </div>
       </div>
     </section>
-			        <section class="project-section" id="notes">
+        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">Trained on MNIST; generated samples reflect that digit domain rather than real handwriting diversity.</p>
     </section>
-			        <section class="project-section project-related" aria-label="Other projects">
+        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
         <a class="project-card project-related-card" role="listitem" href="portfolio/smartSentence" aria-label="Open project: Smart Sentence Retriever">
@@ -535,7 +602,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5f4c6f3f.js"></script>
+  <script defer src="dist/site-shell.da2d9fb1.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

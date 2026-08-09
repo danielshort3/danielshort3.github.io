@@ -1014,7 +1014,10 @@ function buildPortfolioWorkbenchLegacy() {
       listText(project.concepts),
       listText(project.audiences),
       listText(project.results),
-      listText(project.actions)
+      listText(project.actions),
+      project.personalStory && typeof project.personalStory === 'object'
+        ? Object.values(project.personalStory).join(' ')
+        : ''
     ].join(' '));
     return haystack.includes(normalizeText(term));
   };
@@ -1240,6 +1243,13 @@ function buildPortfolioWorkbenchLegacy() {
     const highlights = resultHighlights.length ? resultHighlights : actionItems;
     const approachItems = resultHighlights.length ? actionItems : [];
     const summary = project.problem || project.notes || project.subtitle || getSummary(project);
+    const personalStoryItems = project.personalStory && typeof project.personalStory === 'object'
+      ? [
+        ['Why I built it', project.personalStory.why],
+        ['What surprised me', project.personalStory.surprise],
+        ['What I’d try next', project.personalStory.next]
+      ].filter(([, value]) => String(value || '').trim())
+      : [];
     inspector.innerHTML = `
       <div class="portfolio-inspector__head">
         <div>
@@ -1266,6 +1276,14 @@ function buildPortfolioWorkbenchLegacy() {
           <h3 class="portfolio-inspector__section-title">Approach</h3>
           <ul class="portfolio-inspector__list">
             ${approachItems.map((item) => `<li>${listIcon}<span>${escapeHtml(item)}</span></li>`).join('')}
+          </ul>
+        </section>
+      ` : ''}
+      ${personalStoryItems.length ? `
+        <section class="portfolio-inspector__section">
+          <h3 class="portfolio-inspector__section-title">Personal notes</h3>
+          <ul class="portfolio-inspector__list">
+            ${personalStoryItems.map(([label, value]) => `<li>${listIcon}<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span></li>`).join('')}
           </ul>
         </section>
       ` : ''}
@@ -1485,6 +1503,10 @@ function buildPortfolioWorkbench() {
     return values ? [values] : [];
   };
   const isAudienceScopedView = !isDirectoryWorkbench && activeAudienceKey !== 'personal';
+  const defaultSortOption = sortSelect ? sortSelect.querySelector('option[value="default"]') : null;
+  if (defaultSortOption && !isDirectoryWorkbench) {
+    defaultSortOption.textContent = isAudienceScopedView ? 'Most relevant' : 'Featured first';
+  }
   const projectMatchesAudienceScope = (project = {}) => {
     if (!isAudienceScopedView) return true;
     if (featuredProjectIdSet.has(project.id)) return true;
@@ -1509,11 +1531,11 @@ function buildPortfolioWorkbench() {
       { value: '95%', label: 'workflow time cut' },
       { value: '10x', label: 'serial tracking coverage' },
       { value: '98%', label: 'anomaly precision' },
-      { value: '+14.13%', label: 'pageviews per user' }
+      { value: '+9.4%', label: 'organic sessions' }
     ],
     tourism: [
       { value: '99%', label: 'faster reporting' },
-      { value: '+23.3%', label: 'listing pageview growth' },
+      { value: '200+', label: 'hours saved annually' },
       { value: '+9.4%', label: 'organic sessions' },
       { value: '10x', label: 'AI referral growth' }
     ]
@@ -1600,7 +1622,10 @@ function buildPortfolioWorkbench() {
       listText(project.concepts),
       listText(project.audiences),
       listText(project.results),
-      listText(project.actions)
+      listText(project.actions),
+      !isAudienceScopedView && project.personalStory && typeof project.personalStory === 'object'
+        ? Object.values(project.personalStory).join(' ')
+        : ''
     ].join(' '));
     return haystack.includes(normalizeText(term));
   };
@@ -1934,7 +1959,7 @@ function buildPortfolioWorkbench() {
                 </div>
               `}
               <div class="portfolio-result-card__actions">
-                <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="${selected ? 'true' : 'false'}" aria-label="Show details for ${escapeHtml(project.title)}">Details</button>
+                <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="${selected ? 'true' : 'false'}" aria-label="Preview summary for ${escapeHtml(project.title)}">Preview summary</button>
                 <a class="portfolio-result-card__open" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results" href="${escapeHtml(projectHref)}">View case study ${openArrowIcon}</a>
               </div>
             </div>
@@ -2036,6 +2061,13 @@ function buildPortfolioWorkbench() {
     const actionItems = toList(project.actions);
     const highlights = resultHighlights.length ? resultHighlights : actionItems;
     const approachItems = resultHighlights.length ? actionItems : [];
+    const personalStoryItems = !isDirectoryWorkbench && !isAudienceScopedView && project.personalStory && typeof project.personalStory === 'object'
+      ? [
+        ['Why I built it', project.personalStory.why],
+        ['What surprised me', project.personalStory.surprise],
+        ['What I’d try next', project.personalStory.next]
+      ].filter(([, value]) => String(value || '').trim())
+      : [];
     inspector.innerHTML = `
       <div class="portfolio-inspector__head">
         <div>
@@ -2062,6 +2094,14 @@ function buildPortfolioWorkbench() {
           <h3 class="portfolio-inspector__section-title">${escapeHtml(approachTitle)}</h3>
           <ul class="portfolio-inspector__list">
             ${approachItems.map((item) => `<li>${listIcon}<span>${escapeHtml(item)}</span></li>`).join('')}
+          </ul>
+        </section>
+      ` : ''}
+      ${personalStoryItems.length ? `
+        <section class="portfolio-inspector__section">
+          <h3 class="portfolio-inspector__section-title">Personal notes</h3>
+          <ul class="portfolio-inspector__list">
+            ${personalStoryItems.map(([label, value]) => `<li>${listIcon}<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span></li>`).join('')}
           </ul>
         </section>
       ` : ''}

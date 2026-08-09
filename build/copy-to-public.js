@@ -34,6 +34,7 @@ const textExtensions = new Set([
   '.yml'
 ]);
 const scanSkipDirs = new Set([
+  '__tests__',
   '.git',
   '.vercel',
   'archive',
@@ -44,8 +45,14 @@ const scanSkipDirs = new Set([
   'documents',
   'img',
   'node_modules',
-  'public'
+  'public',
+  'test',
+  'tests'
 ]);
+
+function isTestSourceFileName(fileName) {
+  return /^test\.[^.]+$/i.test(fileName) || /\.(?:spec|test)\.[^.]+$/i.test(fileName);
+}
 
 function log(msg){
   process.stdout.write(msg + '\n');
@@ -280,6 +287,7 @@ function listTextFilesRecursive(dirPath) {
         return;
       }
       if (!entry.isFile()) return;
+      if (isTestSourceFileName(entry.name)) return;
       const ext = path.extname(entry.name).toLowerCase();
       if (!textExtensions.has(ext)) return;
       files.push(full);
@@ -340,8 +348,7 @@ function collectReferencedDocumentFiles() {
 function copyReferencedDocuments() {
   const relPaths = collectReferencedDocumentFiles();
   if (!relPaths.length) {
-    copyDir(path.join(root, 'documents'), path.join(outDir, 'documents'));
-    log('No referenced documents detected; copied full documents/ directory.');
+    log('No referenced documents detected; skipped documents/ to avoid publishing unreferenced files.');
     return;
   }
 
@@ -499,14 +506,40 @@ function pruneRetiredPublicArtifacts() {
     path.join(outDir, 'pages', 'contributions.html'),
     path.join(outDir, 'pages', 'destination-analytics.html'),
     path.join(outDir, 'admin'),
-    path.join(outDir, 'js', 'contributions')
+    path.join(outDir, 'js', 'contributions'),
+    path.join(outDir, 'dist', 'site-contributions.js'),
+    path.join(outDir, 'documents', 'Resume-Analytics-Custom.pdf'),
+    path.join(outDir, 'documents', 'Resume-Analytics-Custom.docx'),
+    path.join(outDir, 'documents', 'Resume-Data-Science-Custom.pdf'),
+    path.join(outDir, 'documents', 'Resume-Data-Science-Custom.docx'),
+    path.join(outDir, 'documents', 'Resume-Tourism-Custom.pdf'),
+    path.join(outDir, 'documents', 'Resume-Tourism-Custom.docx'),
+    path.join(outDir, 'documents', 'GJ_2025_Budget.pdf'),
+    path.join(outDir, 'documents', 'Leeds_2025_Colorado_Business_Economic_Outlook.pdf'),
+    path.join(outDir, 'documents', 'VGJ_2024_Accomplishments.pdf'),
+    path.join(outDir, 'documents', 'Project_6.pdf'),
+    path.join(outDir, 'documents', 'Project_6.ipynb')
   ];
 
   retiredTargets.forEach((target) => {
-    try {
-      removeWithRetries(target);
-    } catch {}
+    removeWithRetries(target);
   });
+
+  const publicDistDir = path.join(outDir, 'dist');
+  fs.readdirSync(publicDistDir)
+    .filter((fileName) => /^site-contributions\.[0-9a-f]{8}\.js$/i.test(fileName))
+    .forEach((fileName) => removeWithRetries(path.join(publicDistDir, fileName)));
+
+  const publicScriptsManifestPath = path.join(publicDistDir, 'scripts-manifest.json');
+  const publicScriptsManifest = readJson(publicScriptsManifestPath);
+  if (publicScriptsManifest && Object.prototype.hasOwnProperty.call(publicScriptsManifest, 'contributions')) {
+    delete publicScriptsManifest.contributions;
+    fs.writeFileSync(
+      publicScriptsManifestPath,
+      `${JSON.stringify(publicScriptsManifest, null, 2)}\n`,
+      'utf8'
+    );
+  }
 }
 
 function copyCleanUrlAliases() {

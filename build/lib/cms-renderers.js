@@ -877,6 +877,7 @@ function renderHead({ settings, page }) {
   const twitterCreator = String(page.twitterCreator || settings.twitterCreator || twitterSite).trim();
   const ownerName = String(settings.ownerName || settings.siteName || 'Daniel Short').trim();
   const locale = String(page.locale || settings.locale || 'en_US').trim();
+  const isNoindexPage = /(?:^|[,\s])noindex(?:$|[,\s])/i.test(String(page.robots || ''));
   const scripts = Array.isArray(page.headScripts) ? page.headScripts : [];
   const stylesheetLines = (Array.isArray(page.stylesheets) ? page.stylesheets : [])
     .map((href) => `  <link rel="stylesheet" href="${escapeHtml(href)}">`)
@@ -897,6 +898,7 @@ function renderHead({ settings, page }) {
     description ? `  <meta name="description" content="${escapeHtml(description)}">` : '',
     ownerName ? `  <meta name="author" content="${escapeHtml(ownerName)}">` : '',
     page.robots ? `  <meta name="robots" content="${escapeHtml(page.robots)}">` : '',
+    isNoindexPage ? '  <meta name="referrer" content="no-referrer">' : '',
     `  <meta property="og:title" content="${escapeHtml(ogTitle)}">`,
     siteName ? `  <meta property="og:site_name" content="${escapeHtml(siteName)}">` : '',
     locale ? `  <meta property="og:locale" content="${escapeHtml(locale)}">` : '',
@@ -1601,6 +1603,7 @@ function renderAudienceConfigJs(settings, audiences) {
       resumePath: audience.resumePath,
       resumePreviewPath: audience.resumePreviewPath,
       resumeDownloadPath: audience.resumeDownloadPath,
+      startHere: Array.isArray(audience.startHere) ? audience.startHere : [],
       featuredProjectIds: audience.featuredProjectIds,
       portfolioTitle: audience.portfolioTitle,
       portfolioDescription: audience.portfolioDescription,

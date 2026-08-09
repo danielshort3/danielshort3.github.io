@@ -29,7 +29,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/chatbot-demo.html",
+      "url": "https://www.danielshort.me/chatbot-demo",
       "label": "Live Demo"
     }
   ],
@@ -65,5 +65,27 @@
     "Viewers can compare managed-model reliability, streaming responses, and citation behavior against the custom model's cold-start and deployment tradeoffs.",
     "The demo keeps source-grounded answers and citation links while making the model choice transparent through the backend selector."
   ],
+  "personalStory": {
+    "why": "I wanted to compare a custom LoRA deployment with a managed model without giving up grounded answers and citations.",
+    "surprise": "The model was only part of the product: cold starts, health checks, streaming, and citation clarity shaped the experience just as much.",
+    "next": "I’d publish a controlled benchmark for retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency."
+  },
+  "evaluation": {
+    "status": "not-benchmarked",
+    "goal": "Compare source-grounded tourism answers across a managed Bedrock backend and a custom LoRA/SageMaker backend.",
+    "dataset": "Public Visit Grand Junction pages plus a generated tourism question-and-answer set.",
+    "split": "No controlled evaluation split is documented in the published project.",
+    "baseline": "No controlled Bedrock-versus-LoRA quality or latency baseline has been published.",
+    "metrics": [],
+    "decision": "Bedrock remains the default live path; LoRA/SageMaker remains available for architecture and cold-start comparison.",
+    "limitations": [
+      "Retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency have not been published.",
+      "The current demo demonstrates the two architectures; it does not establish that one backend produces better answers."
+    ],
+    "evidence": {
+      "label": "Project repository",
+      "url": "https://github.com/danielshort3/Chatbot-LoRA-RAG"
+    }
+  },
   "order": 2
 }

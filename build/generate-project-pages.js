@@ -614,6 +614,12 @@ function renderProjectPage(project, options = {}) {
   const resources = Array.isArray(project.resources) ? project.resources : [];
   const role = project.role;
   const notes = normalizeWhitespace(project.notes || '');
+  const personalStory = project.personalStory && typeof project.personalStory === 'object' && !Array.isArray(project.personalStory)
+    ? project.personalStory
+    : null;
+  const evaluation = project.evaluation && typeof project.evaluation === 'object' && !Array.isArray(project.evaluation)
+    ? project.evaluation
+    : null;
   const audiences = Array.isArray(project.audiences) ? project.audiences : [];
   const audienceTags = audiences.map((audience) => {
     const key = normalizeWhitespace(audience).toLowerCase();
@@ -751,7 +757,7 @@ function renderProjectPage(project, options = {}) {
   })();
   const starActions = actions.slice(0, 3).map((a) => normalizeWhitespace(a)).filter(Boolean);
   const starResults = results.slice(0, 3).map((r) => normalizeWhitespace(r)).filter(Boolean);
-  const stackLabel = tools.map((tool) => normalizeWhitespace(tool)).filter(Boolean).join(' ? ') || 'Project-specific tools and methods';
+  const stackLabel = tools.map((tool) => normalizeWhitespace(tool)).filter(Boolean).join(' \u00b7 ') || 'Project-specific tools and methods';
   const deliveryStatus = normalizeWhitespace(project.deliveryStatus || project.status || '')
     || (embed ? 'Live interactive demo' : 'Completed case study');
 
@@ -792,6 +798,93 @@ function renderProjectPage(project, options = {}) {
         </div>
       </dl>
     </section>`;
+
+  const renderDefinitionRows = (rows) => rows
+    .filter((row) => row && normalizeWhitespace(row.value || ''))
+    .map((row) => `<div class="project-star-row">
+          <dt class="project-star-label">${escapeHtml(row.label)}</dt>
+          <dd class="project-star-value">${escapeHtml(normalizeWhitespace(row.value))}</dd>
+        </div>`)
+    .join('\n        ');
+
+  const personalStoryRows = personalStory ? [
+    { label: 'Why I built it', value: personalStory.why },
+    { label: 'What surprised me', value: personalStory.surprise },
+    { label: 'What I’d try next', value: personalStory.next }
+  ] : [];
+  const personalNotes = personalStoryRows.some((row) => normalizeWhitespace(row.value || ''))
+    ? `<section class="project-star project-personal-notes" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-personal-notes-title">
+      <h2 class="section-title" id="${escapeHtml(toDomIdSafe(id))}-personal-notes-title">Personal notes</h2>
+      <dl class="project-star-grid">
+        ${renderDefinitionRows(personalStoryRows)}
+      </dl>
+    </section>`
+    : '';
+
+  const evaluationStatusLabels = {
+    measured: 'Measured',
+    partial: 'Partial evaluation',
+    'not-benchmarked': 'Not benchmarked'
+  };
+  const evaluationStatus = evaluation
+    ? normalizeWhitespace(evaluation.status || '').toLowerCase()
+    : '';
+  const evaluationMetrics = evaluation && Array.isArray(evaluation.metrics)
+    ? evaluation.metrics.filter((metric) => metric && typeof metric === 'object' && !Array.isArray(metric))
+    : [];
+  const evaluationLimitations = evaluation && Array.isArray(evaluation.limitations)
+    ? evaluation.limitations.map(normalizeWhitespace).filter(Boolean)
+    : [];
+  const evaluationEvidence = evaluation && evaluation.evidence && typeof evaluation.evidence === 'object' && !Array.isArray(evaluation.evidence)
+    ? evaluation.evidence
+    : null;
+  const evaluationEvidenceUrl = evaluationEvidence ? String(evaluationEvidence.url || '').trim() : '';
+  const evaluationEvidenceLabel = evaluationEvidence
+    ? normalizeWhitespace(evaluationEvidence.label || evaluationEvidenceUrl)
+    : '';
+  const evaluationEvidenceExternal = /^https?:\/\//i.test(evaluationEvidenceUrl);
+  const evaluationRows = evaluation ? [
+    { label: 'Status', value: evaluationStatusLabels[evaluationStatus] || '' },
+    { label: 'Goal', value: evaluation.goal },
+    { label: 'Dataset', value: evaluation.dataset },
+    { label: 'Split', value: evaluation.split },
+    { label: 'Baseline', value: evaluation.baseline },
+    { label: 'Decision', value: evaluation.decision }
+  ] : [];
+  const evaluationDetails = evaluation && evaluationStatusLabels[evaluationStatus]
+    ? `<section class="project-star project-evaluation" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-evaluation-title">
+      <h2 class="section-title" id="${escapeHtml(toDomIdSafe(id))}-evaluation-title">Evaluation &amp; tradeoffs</h2>
+      <dl class="project-star-grid">
+        ${renderDefinitionRows(evaluationRows)}
+${evaluationMetrics.length ? `<div class="project-star-row">
+          <dt class="project-star-label">Metrics</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              ${evaluationMetrics.map((metric) => {
+                const label = normalizeWhitespace(metric.label || 'Metric');
+                const value = normalizeWhitespace(metric.value || '');
+                const context = normalizeWhitespace(metric.context || '');
+                const metricText = [label && value ? `${label}: ${value}` : (label || value), context].filter(Boolean).join(' — ');
+                return `<li>${escapeHtml(metricText)}</li>`;
+              }).join('\n              ')}
+            </ul>
+          </dd>
+        </div>` : ''}
+${evaluationLimitations.length ? `<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              ${evaluationLimitations.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n              ')}
+            </ul>
+          </dd>
+        </div>` : ''}
+${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="${escapeHtml(evaluationEvidenceUrl)}"${evaluationEvidenceExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}>${escapeHtml(evaluationEvidenceLabel)}</a></dd>
+        </div>` : ''}
+      </dl>
+    </section>`
+    : '';
 
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
@@ -934,6 +1027,16 @@ function renderProjectPage(project, options = {}) {
     </section>`
     : '';
 
+  const projectBodySections = [
+    starSummary,
+    personalNotes,
+    evaluationDetails,
+    demoTabs || projectPreview,
+    safeResources,
+    safeNotes,
+    relatedProjects
+  ].filter(Boolean).join('\n        ');
+
   return `<!DOCTYPE html>
 <html lang="en" class="no-js">
 <head>
@@ -993,11 +1096,7 @@ ${tableauPreconnect}
 
 			    <section class="project-body">
 			      <div class="wrapper">
-			        ${starSummary}
-			        ${demoTabs || projectPreview}
-        ${safeResources}
-			        ${safeNotes}
-			        ${relatedProjects}
+			        ${projectBodySections}
 			      </div>
 			    </section>
 			  </main>
@@ -1076,7 +1175,7 @@ function renderPortfolioStaticResults(projects) {
       summary ? `    <p class="portfolio-result-card__summary">${escapeHtml(summary)}</p>` : '',
       chips ? `    ${chips}` : '',
       '    <div class="portfolio-result-card__actions">',
-      `      <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Details are available when JavaScript is enabled">Details</button>`,
+      `      <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Preview summaries are available when JavaScript is enabled">Preview summary</button>`,
       `      <a class="portfolio-result-card__open" href="portfolio/${escapeHtml(encodeURIComponent(id))}" data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>`,
       '    </div>',
       '  </div>',

@@ -15,6 +15,7 @@ const CMS_COLLECTIONS = [
 const CMS_COLLECTION_NAMES = CMS_COLLECTIONS.map((collection) => collection.name);
 const CMS_COLLECTION_SET = new Set(CMS_COLLECTION_NAMES);
 const SITE_DOCUMENT_IDS = ['settings', 'navigation', 'footer'];
+const PROJECT_EVALUATION_STATUSES = new Set(['measured', 'partial', 'not-benchmarked']);
 const MAX_DOCUMENT_BYTES = 360_000;
 
 function getCollectionConfig(value) {
@@ -78,6 +79,46 @@ function assertMatchingStringField(document, field, expected, label) {
   }
 }
 
+function assertStringArray(value, label) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || !item.trim())) {
+    throw createShapeError(`${label} must be an array of non-empty strings`);
+  }
+}
+
+function validateProjectPersonalStory(personalStory, label) {
+  if (personalStory === undefined) return;
+  assertObjectField({ personalStory }, 'personalStory', label);
+  ['why', 'surprise', 'next'].forEach((field) => {
+    assertStringField(personalStory, field, `${label} "personalStory"`);
+  });
+}
+
+function validateProjectEvaluation(evaluation, label) {
+  if (evaluation === undefined) return;
+  assertObjectField({ evaluation }, 'evaluation', label);
+  assertStringField(evaluation, 'status', `${label} "evaluation"`);
+  if (!PROJECT_EVALUATION_STATUSES.has(evaluation.status)) {
+    throw createShapeError(`${label} "evaluation.status" must be measured, partial, or not-benchmarked`);
+  }
+  ['goal', 'dataset', 'split', 'baseline', 'decision'].forEach((field) => {
+    assertStringField(evaluation, field, `${label} "evaluation"`);
+  });
+  assertArrayField(evaluation, 'metrics', `${label} "evaluation"`);
+  evaluation.metrics.forEach((metric, index) => {
+    if (!metric || typeof metric !== 'object' || Array.isArray(metric)) {
+      throw createShapeError(`${label} "evaluation.metrics[${index}]" must be an object`);
+    }
+    ['label', 'value', 'context'].forEach((field) => {
+      assertStringField(metric, field, `${label} "evaluation.metrics[${index}]"`);
+    });
+  });
+  assertStringArray(evaluation.limitations, `${label} "evaluation.limitations"`);
+  assertObjectField(evaluation, 'evidence', `${label} "evaluation"`);
+  ['label', 'url'].forEach((field) => {
+    assertStringField(evaluation.evidence, field, `${label} "evaluation.evidence"`);
+  });
+}
+
 function validateSiteDocumentShape(id, document) {
   if (id === 'settings') {
     ['siteOrigin', 'siteName', 'ownerName', 'email'].forEach((field) => {
@@ -139,6 +180,8 @@ function validateCmsDocumentShape({ collection, id, document }) {
     ['title', 'subtitle', 'image'].forEach((field) => {
       assertStringField(document, field, label);
     });
+    validateProjectPersonalStory(document.personalStory, label);
+    validateProjectEvaluation(document.evaluation, label);
     return;
   }
 

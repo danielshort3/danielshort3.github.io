@@ -287,7 +287,7 @@ function fallbackMainTextForRoute(urlPath) {
   if (normalized !== '/') return '';
   return [
     'Daniel Short personal website with portfolio projects, browser tools, games, and contact information.',
-    'The homepage is an interactive graph that links to projects, tools, games, resume materials, and ways to contact Daniel Short.'
+    'The homepage is an interactive graph that links to projects, tools, games, and ways to contact Daniel Short.'
   ].join(' ');
 }
 

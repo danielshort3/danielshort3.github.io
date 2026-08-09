@@ -580,9 +580,13 @@ function validateVercelAndRobots(vercel) {
     report('robots.txt', `missing Sitemap: ${SITE_ORIGIN}/sitemap.xml`);
   }
 
+  const generalCrawlerRules = robots
+    .split(/\r?\n\s*\r?\n/)
+    .filter((group) => /^\s*User-agent:\s*\*\s*$/im.test(group))
+    .join('\n');
   const disallowMatcher = /^\s*Disallow:\s*([^#\r\n]*)/gim;
   let disallowMatch;
-  while ((disallowMatch = disallowMatcher.exec(robots))) {
+  while ((disallowMatch = disallowMatcher.exec(generalCrawlerRules))) {
     const rule = String(disallowMatch[1] || '').trim().toLowerCase();
     if (/^\/(?:pages|ai|dist\/ai-pages)(?:[/\s*$]|$)/.test(rule)) {
       report('robots.txt', `must not block redirectable/noindex content path: ${rule}`);

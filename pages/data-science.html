@@ -8,7 +8,8 @@
   <link rel="canonical" href="https://www.danielshort.me/data-science">
   <meta name="description" content="Data science portfolio focused on machine learning, NLP, model evaluation, experimentation, and deployment-minded demos.">
   <meta name="author" content="Daniel Short">
-  <meta name="robots" content="noindex, nofollow">
+  <meta name="robots" content="noindex, nofollow, nosnippet, noimageindex">
+  <meta name="referrer" content="no-referrer">
   <meta property="og:title" content="Data Science | Daniel Short">
   <meta property="og:site_name" content="Daniel Short">
   <meta property="og:locale" content="en_US">
@@ -29,7 +30,7 @@
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#091F3B">
   <link rel="stylesheet" href="dist/styles.f8bb2fea.css">
-  <link rel="stylesheet" href="dist/styles-professional.ce606555.css">
+  <link rel="stylesheet" href="dist/styles-professional.73143b4b.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -37,7 +38,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.5f4c6f3f.js"></script>
+  <script defer src="dist/site-shell.da2d9fb1.js"></script>
   <script src="js/common/no-js.js"></script>
 </head>
 <body data-page="data-science" data-audience="data-science" class="site-page audience-page home-pattern-page">
@@ -184,28 +185,61 @@
     </nav>
   </header>
   <main id="main">
-  <section class="hero hero--default">
-        <div class="wrapper">
-          <h1>Data Science, <br>Made Actionable</h1>
+  <section class="hero hero--default professional-hero">
+        <div class="wrapper professional-hero-layout">
+          <div class="professional-hero-copy">
+            <h1>Data Science, <br>Made Actionable</h1>
 
-          <div class="hero-identity">
-            <img class="hero-avatar" src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="(max-width: 768px) 112px, 132px" alt="Portrait of Daniel Short" width="132" height="132" decoding="async" fetchpriority="high">
-            <p class="hero-eyebrow">Daniel Short · Data Science & AI</p>
+            <div class="hero-identity">
+              <img class="hero-avatar" src="img/hero/head-avatar-192.jpg" srcset="img/hero/head-avatar-192.jpg 192w, img/hero/head-avatar-384.jpg 384w" sizes="(max-width: 768px) 112px, 132px" alt="Portrait of Daniel Short" width="132" height="132" decoding="async" fetchpriority="high">
+              <p class="hero-eyebrow">Daniel Short · Data Science & AI</p>
+            </div>
+
+            <p class="hero-tagline">
+              I focus on the modeling side of my portfolio: NLP, computer vision, generative models, evaluation tradeoffs, and the engineering work required to get demos deployed.
+            </p>
+
+            <p class="hero-status">
+              Python · PyTorch · NLP · AWS
+            </p>
+
+            <div class="cta-group">
+              <a href="portfolio?audience=data-science" class="btn-primary hero-cta">Portfolio</a>
+              <a href="resume-data-science" class="btn-secondary hero-cta">Resume</a>
+              <a href="contact?audience=data-science#contact-modal" class="btn-ghost hero-cta" data-contact-modal-link="true">Contact</a>
+            </div>
           </div>
 
-          <p class="hero-tagline">
-            I focus on the modeling side of my portfolio: NLP, computer vision, generative models, evaluation tradeoffs, and the engineering work required to get demos deployed.
-          </p>
-
-          <p class="hero-status">
-            Python · PyTorch · NLP · AWS
-          </p>
-
-          <div class="cta-group">
-            <a href="portfolio?audience=data-science" class="btn-primary hero-cta">Portfolio</a>
-            <a href="resume-data-science" class="btn-secondary hero-cta">Resume</a>
-            <a href="contact?audience=data-science#contact-modal" class="btn-ghost hero-cta" data-contact-modal-link="true">Contact</a>
-          </div>
+          <ul class="professional-hero-proof" aria-label="Selected data science outcomes">
+            <li class="professional-hero-proof-item">
+              <a class="professional-hero-proof-link" href="resume-data-science" aria-label="95% reduction in delivery time. Role context: Randall Reilly, 2023 to 2024.">
+                <strong>95%</strong>
+                <span class="professional-hero-proof-label">Delivery time reduction</span>
+                <span class="professional-hero-proof-source">Role context &middot; Randall Reilly</span>
+              </a>
+            </li>
+            <li class="professional-hero-proof-item">
+              <a class="professional-hero-proof-link" href="resume-data-science" aria-label="10 times broader serial tracking coverage. Role context: Randall Reilly, 2023 to 2024.">
+                <strong>10x</strong>
+                <span class="professional-hero-proof-label">Serial tracking coverage</span>
+                <span class="professional-hero-proof-source">Role context &middot; Randall Reilly</span>
+              </a>
+            </li>
+            <li class="professional-hero-proof-item">
+              <a class="professional-hero-proof-link" href="resume-data-science" aria-label="98% anomaly precision. Role context: Randall Reilly, 2023 to 2024.">
+                <strong>98%</strong>
+                <span class="professional-hero-proof-label">Anomaly precision</span>
+                <span class="professional-hero-proof-source">Role context &middot; Randall Reilly</span>
+              </a>
+            </li>
+            <li class="professional-hero-proof-item">
+              <a class="professional-hero-proof-link" href="#work-experience" aria-label="9.4% year over year growth in organic sessions. Role context: Visit Grand Junction, 2024 to present.">
+                <strong>+9.4%</strong>
+                <span class="professional-hero-proof-label">Organic sessions YoY</span>
+                <span class="professional-hero-proof-source">Role context &middot; Visit Grand Junction</span>
+              </a>
+            </li>
+          </ul>
         </div>
         <a class="chevron-hint scroll-indicator" href="#project-examples" data-smooth-scroll="true">
           <span class="chevron-label">View project examples</span>
@@ -265,31 +299,35 @@
         <div class="wrapper">
           <div class="home-proof-head">
             <h2 id="selected-outcomes-title" class="section-title">Applied Modeling With Measured Impact</h2>
-            <p>The strongest examples here connect modeling work to measurable outcomes: faster data-quality workflows, broader tracking coverage, stronger anomaly detection, and NLP-guided website improvements.</p>
+            <p>The strongest examples here connect modeling work to measurable outcomes: faster data-quality workflows, broader tracking coverage, stronger anomaly detection, and evidence-informed website improvements.</p>
           </div>
           <ul class="home-proof-kpis" aria-label="Selected data science outcomes">
             <li class="home-proof-item">
               <div class="home-proof-card">
                 <span class="home-proof-value">95%</span>
                 <span class="home-proof-label">Cut delivery time by re-platforming R-based quality workflows into a one-click Python app.</span>
+                <a class="home-proof-source" href="resume-data-science">Role context &middot; Randall Reilly, 2023&ndash;2024</a>
               </div>
             </li>
             <li class="home-proof-item">
               <div class="home-proof-card">
                 <span class="home-proof-value">10x</span>
                 <span class="home-proof-label">Expanded serial tracking coverage with decision-tree logic at Randall Reilly.</span>
+                <a class="home-proof-source" href="resume-data-science">Role context &middot; Randall Reilly, 2023&ndash;2024</a>
               </div>
             </li>
             <li class="home-proof-item">
               <div class="home-proof-card">
                 <span class="home-proof-value">98%</span>
                 <span class="home-proof-label">Reached anomaly precision in data-quality detection workflows.</span>
+                <a class="home-proof-source" href="resume-data-science">Role context &middot; Randall Reilly, 2023&ndash;2024</a>
               </div>
             </li>
             <li class="home-proof-item">
               <div class="home-proof-card">
-                <span class="home-proof-value">+14.13%</span>
-                <span class="home-proof-label">Raised VisitGrandJunction.com pageviews per user after NLP-guided site analysis and fix recommendations.</span>
+                <span class="home-proof-value">+9.4%</span>
+                <span class="home-proof-label">Organic sessions YoY after traveler-trend and AI-search research informed content and GEO work.</span>
+                <a class="home-proof-source" href="#work-experience">Role context &middot; Visit Grand Junction, 2024&ndash;present</a>
               </div>
             </li>
           </ul>

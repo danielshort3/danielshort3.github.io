@@ -5,6 +5,8 @@ const vm = require('vm');
 const zlib = require('zlib');
 const childProcess = require('child_process');
 const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
+const runCampaignCreativeTrackerTests = require('./tests/campaign-creative-tracker.test.js');
+const runPortfolioRecommendationTests = require('./tests/portfolio-recommendations.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/qr-code-generator-utils.test.js');
 const runTextCompareCoreTests = require('./tests/text-compare-core.test.js');
 const { validateProjectStarfallClassSkillData } = require('./build/validate-project-starfall-class-skills.js');
@@ -634,6 +636,7 @@ try {
       'pages/ocean-wave-simulation.html': 'Ocean Wave Simulation | Daniel Short',
       'pages/qr-code-generator.html': 'QR Code Generator | Daniel Short',
       'pages/image-optimizer.html': 'Image Optimizer | Daniel Short',
+      'pages/campaign-creative-tracker.html': 'Campaign Creative Tracker | Daniel Short',
       'pages/utm-batch-builder.html': 'UTM Batch Builder | Daniel Short',
       'pages/transcribe.html': 'File Transcriber | Daniel Short',
       'pages/ga4-utm-performance.html': 'GA4 UTM Performance | Daniel Short',
@@ -697,6 +700,7 @@ try {
       'pages/screen-recorder.html',
       'pages/job-application-tracker.html',
       'pages/short-links.html',
+      'pages/campaign-creative-tracker.html',
       'pages/utm-batch-builder.html',
       'pages/ga4-utm-performance.html',
       'pages/transcribe.html'
@@ -705,6 +709,7 @@ try {
       'pages/tools-dashboard.html',
       'pages/job-application-tracker.html',
       'pages/short-links.html',
+      'pages/campaign-creative-tracker.html',
       'pages/ga4-utm-performance.html',
       'pages/transcribe.html'
     ];
@@ -1146,7 +1151,7 @@ try {
     assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
     assert(publicTools.length === 10, 'anonymous tools directory should expose 10 public tools by default');
     assert(accountTools.length === 2, 'signed-in tools directory should include 2 account-only tools');
-    assert(adminTools.length === 2, 'admin tools directory should include 2 admin-only tools');
+    assert(adminTools.length === 3, 'admin tools directory should include 3 admin-only tools');
     assert(toolRecords.some((tool) => tool.slug === 'transcribe' && tool.visibility === 'authed'),
       'File Transcriber should be listed as an account-only tool');
     const sitemap = readFile('sitemap.xml');
@@ -37685,6 +37690,9 @@ try {
     ['/privacy', '/analytics', '/data-science', '/tourism', '/destination-analytics', '/contributions', '/tools/dashboard', '/tools/short-links', '/tools/ga4-utm-performance', '/tools/job-application-tracker', '/tools/transcribe', '/resume-analytics', '/resume-analytics-pdf', '/chatbot-demo'].forEach((url) => {
       assert(!knowledgeUrls.has(url), `chatbot knowledge should exclude ${url}`);
     });
+    assert(!knowledge.chunks.some((chunk) => chunk && chunk.url === '/' &&
+      /professional analytics (?:profile|work)|\/analytics\b/i.test(String(chunk.text || ''))),
+      'chatbot homepage knowledge should not advertise hidden professional entry points');
     assert(knowledge.chunks.every((chunk) => chunk && chunk.id && chunk.url && chunk.title && chunk.text),
       'chatbot knowledge chunks should be citeable');
     const { retrieveKnowledge } = require('./api/_lib/chatbot-knowledge');
@@ -38106,10 +38114,42 @@ try {
       'the build should not maintain crawler-specific content routing logic');
     assert(!fs.existsSync('api/ai-page/[...path].js') && !fs.existsSync('api/ai-page'),
       'AI digest delivery should not add a Vercel serverless function');
-    assert(robots.includes('User-agent: GPTBot') && robots.includes('User-agent: ClaudeBot') && robots.includes('User-agent: PerplexityBot'),
-      'robots.txt should explicitly allow major AI bots');
-    assert(robots.includes('Allow: /ai/') && !/Disallow:\s*\/(?:pages|ai|dist\/ai-pages)\//i.test(robots),
-      'robots.txt should let crawlers reach redirects and noindex directives for noncanonical HTML paths');
+    assert(robots.includes('User-agent: GPTBot') && robots.includes('User-agent: OAI-SearchBot') &&
+      robots.includes('User-agent: ClaudeBot') && robots.includes('User-agent: Claude-SearchBot') &&
+      robots.includes('User-agent: PerplexityBot'),
+      'robots.txt should explicitly address major AI training and search bots');
+    const aiCrawlerRules = robots.split(/User-agent:\s*\*/i)[0] || '';
+    ['ChatGPT-User', 'Claude-User', 'Perplexity-User', 'Meta-ExternalFetcher', 'MistralAI-User'].forEach((agent) => {
+      assert(!aiCrawlerRules.includes(`User-agent: ${agent}`),
+        `${agent} should remain available for recruiter-directed page fetches`);
+    });
+    assert(robots.includes('Allow: /ai/') && !aiCrawlerRules.includes('Disallow: /ai/'),
+      'robots.txt should keep public personal-site AI digests available');
+    [
+      '/analytics',
+      '/data-science',
+      '/tourism',
+      '/resume',
+      '/destination-analytics',
+      '/contributions',
+      '/pages/analytics',
+      '/pages/data-science',
+      '/pages/tourism',
+      '/pages/resume',
+      '/pages/destination-analytics',
+      '/pages/contributions',
+      '/documents/Resume',
+      '/img/resume-previews/',
+      '/js/common/audience-config.js',
+      '/js/common/site-realm.js',
+      '/js/admin/short-links.js',
+      '/dist/site-shell.'
+    ].forEach((route) => {
+      assert(aiCrawlerRules.includes(`Disallow: ${route}`),
+        `AI crawler rules should block professional discovery surface ${route}`);
+    });
+    assert(aiCrawlerRules.includes('Disallow: /*?*mode=*') && aiCrawlerRules.includes('Disallow: /*?*audience=*'),
+      'AI crawler rules should block every professional mode and audience query variant');
     assert(/User-agent:\s*\*[\s\S]*Disallow:\s*\/api\//.test(robots),
       'robots.txt fallback block should hide API routes');
     const generalCrawlerRules = robots.split(/User-agent:\s*\*/i)[1] || '';
@@ -38158,6 +38198,8 @@ try {
     assert(homeDigest.includes('<meta name="robots" content="noindex, follow">'),
       'optional AI digest pages should include a static noindex directive');
     assert(!/<script\b/i.test(homeDigest), 'AI digest pages should not include scripts');
+    assert(!homeDigest.includes('href="/analytics"') && !/professional analytics (?:profile|work)/i.test(homeDigest),
+      'home AI digest should not advertise hidden professional entry points');
     assert(!/<nav\b/i.test(homeDigest), 'AI digest pages should not include nav chrome');
     assert(!/<header\b/i.test(homeDigest) && !/<footer\b/i.test(homeDigest) && !/Source Metadata/.test(homeDigest),
       'AI digest pages should not include visible header/footer/source metadata chrome');
@@ -38347,6 +38389,14 @@ try {
     assert(!devJs.includes('vercel dev') && !devJs.includes('npx --yes vercel'), 'dev server should not launch Vercel CLI');
     assert(copyJs.includes("path.join(outDir, 'admin')") && !/const dirs = \[[^\]]*'admin'/s.test(copyJs),
       'copy-to-public.js should keep admin local-only');
+    assert(copyJs.includes('No referenced documents detected; skipped documents/ to avoid publishing unreferenced files.') &&
+           !copyJs.includes("copyDir(path.join(root, 'documents'), path.join(outDir, 'documents'))"),
+      'copy-to-public.js should fail closed instead of copying all documents when no references are found');
+    assert(copyJs.includes('delete publicScriptsManifest.contributions') &&
+           copyJs.includes('JSON.stringify(publicScriptsManifest, null, 2)'),
+      'copy-to-public.js should remove the retired contributions entry from the public scripts manifest');
+    assert(!/retiredTargets\.forEach\(\(target\) => \{\s*try\s*\{/s.test(copyJs),
+      'copy-to-public.js should surface failures while pruning retired public artifacts');
     ['analytics', 'data-science', 'tourism', 'resume', 'resume-pdf', 'resume-analytics', 'resume-data-science', 'resume-tourism', 'resume-analytics-pdf', 'resume-data-science-pdf', 'resume-tourism-pdf'].forEach((slug) => {
       assert(!copyJs.includes(`path.join(outDir, 'pages', '${slug}.html')`),
         `copy-to-public.js should publish professional route page ${slug}`);
@@ -38642,11 +38692,23 @@ try {
       shortLinksAdmin.includes("batchExpirationModeSelect.value = 'temporary'"),
       'company-share generation should pass company and role context and recommend temporary expiration');
     const destinationPaths = new Set(shortLinksManifest.pages.map((page) => page.path));
-    const destinationLabels = new Map(shortLinksManifest.pages.map((page) => [page.path, page.label]));
-    assert(!destinationPaths.has('/resume') && !destinationPaths.has('/resume-pdf') &&
-      destinationLabels.get('/resume-analytics') === 'Data Analytics Resume' &&
-      destinationLabels.get('/resume-analytics-pdf') === 'Data Analytics Resume PDF',
-      'short-link destination manifest should omit legacy resume aliases and label analytics resume destinations clearly');
+    [
+      '/analytics',
+      '/data-science',
+      '/tourism',
+      '/contributions',
+      '/resume',
+      '/resume-pdf',
+      '/resume-analytics',
+      '/resume-analytics-pdf',
+      '/resume-data-science',
+      '/resume-data-science-pdf',
+      '/resume-tourism',
+      '/resume-tourism-pdf'
+    ].forEach((route) => {
+      assert(!destinationPaths.has(route),
+        `public short-link destination manifest should omit hidden professional route ${route}`);
+    });
 
     const template = setHelpers.buildSetTemplateRecord({
       title: ' Data Analyst Resume ',
@@ -39764,6 +39826,24 @@ try {
         html.includes(`?audience=${audience}`),
         `${file} should preserve its audience on project and contact links before JavaScript runs`);
     });
+    [
+      'pages/analytics.html',
+      'pages/data-science.html',
+      'pages/tourism.html',
+      'pages/resume.html',
+      'pages/resume-pdf.html',
+      'pages/resume-analytics.html',
+      'pages/resume-analytics-pdf.html',
+      'pages/resume-data-science.html',
+      'pages/resume-data-science-pdf.html',
+      'pages/resume-tourism.html',
+      'pages/resume-tourism-pdf.html'
+    ].forEach((file) => {
+      const html = readFile(file);
+      assert(/<meta\s+name="robots"\s+content="[^"]*noindex/i.test(html) &&
+        html.includes('<meta name="referrer" content="no-referrer">'),
+        `${file} should prevent indexing and suppress outbound referrer disclosure`);
+    });
     ['nav-item-portfolio', 'nav-item-tools', 'nav-item-games', 'nav-item-contact'].forEach((className) => {
       assert(headerTemplate.includes(className), `header missing ${className}`);
     });
@@ -40176,6 +40256,7 @@ try {
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/transcribe.html','pages/ga4-utm-performance.html'];
+    toolPages.push('pages/campaign-creative-tracker.html');
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
@@ -40251,6 +40332,7 @@ try {
 
     const toolPageEntryScripts = {
       'pages/background-remover.html': ['js/tools/background-remover.js'],
+      'pages/campaign-creative-tracker.html': ['js/tools/campaign-creative-tracker-core.js', 'js/tools/campaign-creative-tracker.js'],
       'pages/ga4-utm-performance.html': ['js/tools/ga4-utm-performance.js'],
       'pages/image-optimizer.html': ['js/tools/image-optimizer.js'],
       'pages/job-application-tracker.html': ['js/tools/job-application-tracker.js'],
@@ -40533,9 +40615,10 @@ try {
       'homepage graph should render the graph workspace directly without the tab bar or initial guide modal');
     assert(graphCss.includes('.home-graph__halo-dot::before') &&
       graphCss.includes('font-size: .75rem') &&
-      graphCss.includes('homeGraphLineSignal 6.4s linear infinite') &&
-      graphCss.includes('homeGraphDotBreathe 7.2s ease-in-out infinite'),
-      'desktop graph should provide readable labels, 44px halo-dot targets, and calm idle motion');
+      graphCss.includes('homeGraphLineSignal 4.6s linear 1 both') &&
+      graphCss.includes('homeGraphDotBreathe 4.4s ease-in-out 1 both') &&
+      !graphCss.includes('infinite'),
+      'desktop graph should provide readable labels, 44px halo-dot targets, and finite introductory motion');
     assert(mobileDockCss.includes('--mobile-site-dock-height: 80px') &&
       mobileDockCss.includes('--mobile-site-dock-clearance: calc(88px + env(safe-area-inset-bottom, 0px))') &&
       mobileDockCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr)) 64px repeat(2, minmax(0, 1fr))') &&
@@ -40838,6 +40921,10 @@ try {
     assert(copyJs.includes('scanSkipDirs') &&
            copyJs.includes("'archive'"),
            'copy-to-public.js should keep archived local-only experiments out of deploy scans');
+    assert(copyJs.includes('isTestSourceFileName') &&
+           copyJs.includes("'tests'") &&
+           copyJs.includes("'__tests__'"),
+           'copy-to-public.js should not treat test-only document strings as deploy references');
     assert(copyJs.includes("rel === 'img/project-starfall/review'") &&
            copyJs.includes('img/project-starfall') &&
            copyJs.includes('source(?:\\/|$)'),
@@ -41015,6 +41102,9 @@ try {
     const hasGa4UtmTool = rewrites.some(r => r.source === '/tools/ga4-utm-performance' && r.destination === '/pages/ga4-utm-performance');
     const hasGa4UtmToolHtml = rewrites.some(r => r.source === '/tools/ga4-utm-performance.html' && r.destination === '/pages/ga4-utm-performance');
     assert(hasGa4UtmTool && hasGa4UtmToolHtml, 'GA4 UTM tool rewrites missing');
+    const hasCampaignCreativeTracker = rewrites.some(r => r.source === '/tools/campaign-creative-tracker' && r.destination === '/pages/campaign-creative-tracker');
+    const hasCampaignCreativeTrackerHtml = rewrites.some(r => r.source === '/tools/campaign-creative-tracker.html' && r.destination === '/pages/campaign-creative-tracker');
+    assert(hasCampaignCreativeTracker && hasCampaignCreativeTrackerHtml, 'campaign creative tracker rewrites missing');
     const hasSearch = rewrites.some(r => r.source === '/search' && r.destination === '/pages/search');
     const hasSearchHtml = rewrites.some(r => r.source === '/search.html' && r.destination === '/pages/search');
     assert(hasSearch && hasSearchHtml, 'search rewrites missing');
@@ -41135,10 +41225,17 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
     );
-    const hasAudienceNoindex = (audience) => headers.some(h =>
-      h && h.source === '/:path*' &&
+    const hasAudienceNoindex = (source, audience) => headers.some(h =>
+      h && h.source === source &&
       Array.isArray(h.has) &&
       h.has.some(x => x && x.type === 'query' && x.key === 'audience' && x.value === audience) &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
+    );
+    const hasAnyQueryNoindex = (source, key) => headers.some(h =>
+      h && h.source === source &&
+      Array.isArray(h.has) &&
+      h.has.some(x => x && x.type === 'query' && x.key === key && typeof x.value === 'undefined') &&
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex,\s*nofollow/i.test(String(x.value || '')))
     );
@@ -41168,22 +41265,46 @@ try {
     [
       '/documents/Resume.pdf',
       '/documents/Resume-Analytics.pdf',
-      '/documents/Resume-Analytics-Custom.pdf',
       '/documents/Resume-Data-Science.pdf',
-      '/documents/Resume-Data-Science-Custom.pdf',
-      '/documents/Resume-Tourism.pdf',
-      '/documents/Resume-Tourism-Custom.pdf'
+      '/documents/Resume-Tourism.pdf'
     ].forEach((route) => {
       assert(hasNoindexHeaderFor(route), `${route} PDF noindex header missing`);
+    });
+    ['/img/resume-previews/(.*)', '/js/common/audience-config.js', '/js/common/site-realm.js', '/js/admin/short-links.js', '/dist/site-shell(.*)'].forEach((route) => {
+      assert(hasNoindexHeaderFor(route), `${route} professional discovery asset noindex header missing`);
     });
     assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
     ['professional', 'work', 'career', 'analytics'].forEach((mode) => {
       assert(hasProfessionalModeNoindex('/', mode), `${mode} root mode should send a query-scoped noindex, nofollow robots header`);
       assert(hasProfessionalModeNoindex('/:path*', mode), `${mode} mode on non-root routes should send a query-scoped noindex, nofollow robots header`);
     });
-    ['analytics', 'data-science', 'tourism'].forEach((audience) => {
-      assert(hasAudienceNoindex(audience), `${audience} audience query should send a noindex, nofollow robots header`);
+    ['/', '/:path*'].forEach((source) => {
+      assert(hasAnyQueryNoindex(source, 'mode'), `${source} should noindex every mode query value`);
+      assert(hasAnyQueryNoindex(source, 'audience'), `${source} should noindex every audience query value`);
     });
+    ['analytics', 'data-science', 'datascience', 'data_science', 'tourism', 'tourism-analytics'].forEach((audience) => {
+      assert(hasAudienceNoindex('/', audience), `${audience} root audience query should send a noindex, nofollow robots header`);
+      assert(hasAudienceNoindex('/:path*', audience), `${audience} audience query should send a noindex, nofollow robots header`);
+    });
+    [
+      'Resume-Analytics-Custom.pdf',
+      'Resume-Analytics-Custom.docx',
+      'Resume-Data-Science-Custom.pdf',
+      'Resume-Data-Science-Custom.docx',
+      'Resume-Tourism-Custom.pdf',
+      'Resume-Tourism-Custom.docx',
+      'GJ_2025_Budget.pdf',
+      'Leeds_2025_Colorado_Business_Economic_Outlook.pdf',
+      'VGJ_2024_Accomplishments.pdf',
+      'Project_6.pdf',
+      'Project_6.ipynb'
+    ].forEach((fileName) => {
+      assert(!fs.existsSync(path.join('public', 'documents', fileName)),
+        `${fileName} should remain outside the public deployment`);
+    });
+    const publicDistFiles = fs.readdirSync(path.join('public', 'dist'));
+    assert(!publicDistFiles.some((fileName) => /^site-contributions(?:\.[0-9a-f]{8})?\.js$/i.test(fileName)),
+      'retired contributions data bundle should remain outside the public deployment');
   });
 
   section('Search index', () => {
@@ -41208,6 +41329,9 @@ try {
     assert(!urls.has('/tools/job-application-tracker'), 'search index should exclude noindex job application tracker');
     assert(!urls.has('/tools/transcribe'), 'search index should exclude noindex Transcribe tool');
     assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude legacy Transcribe route');
+    const homeSearchEntry = parsed.pages.find((entry) => String(entry && entry.url || '').trim() === '/');
+    assert(homeSearchEntry && !/professional analytics (?:profile|work)|\/analytics\b/i.test(String(homeSearchEntry.content || '')),
+      'search index homepage entry should not advertise hidden professional entry points');
   });
 
   section('Amazon Transcribe tool contracts', () => {
@@ -42619,8 +42743,12 @@ try {
       'pages/resume-tourism.html',
       'pages/resume-tourism-pdf.html'
     ].forEach((file) => {
-      assert(/<meta\s+name="robots"\s+content="noindex, nofollow">/i.test(readFile(file)),
-        `${file} should include static noindex, nofollow metadata`);
+      const robotsMeta = readFile(file).match(/<meta\s+name="robots"\s+content="([^"]+)">/i);
+      const robotsDirectives = new Set(String(robotsMeta?.[1] || '')
+        .split(',')
+        .map((directive) => directive.trim().toLowerCase()));
+      assert(robotsDirectives.has('noindex') && robotsDirectives.has('nofollow'),
+        `${file} should include static noindex and nofollow metadata`);
     });
     const commonScript = readFile('js/common/common.js');
     assert(commonScript.includes('const samePageHashFromHref = (href) =>') &&
@@ -42875,6 +43003,7 @@ try {
 
     ['index.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
+     'pages/campaign-creative-tracker.html',
      'pages/games/probability-engine.html','pages/games/stellar-dogfight.html','pages/games/roulette.html','pages/games/stormbreak.html','demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
@@ -43780,6 +43909,14 @@ try {
            oceanCss.includes('.ocean-wave-select') &&
            oceanCss.includes('env(safe-area-inset-bottom)'),
       'Ocean Wave should style presets, quality controls, and mobile dock clearance');
+  });
+
+  section('Campaign Creative Tracker core', () => {
+    runCampaignCreativeTrackerTests({ assert });
+  });
+
+  section('Personal and professional portfolio recommendations', () => {
+    runPortfolioRecommendationTests({ assert });
   });
 
   section('UTM Batch Builder core', () => {
