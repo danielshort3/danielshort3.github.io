@@ -43,6 +43,23 @@
   "results": [
     "Typical runs produce cleaner, more readable output in seconds per page (hardware- and batch-dependent)."
   ],
+  "evaluation": {
+    "status": "partial",
+    "goal": "Remove visible watermarks and upscale low-resolution sheet-music pages while preserving readable notation.",
+    "dataset": "Paired page images used to train the watermark-removal model.",
+    "split": "Dataset size and train, validation, and test partitions are not documented in the published project.",
+    "baseline": "No interpolation-only or image-restoration baseline is published.",
+    "metrics": [],
+    "decision": "Combined a UNet watermark-removal stage with VDSR upscaling in the desktop workflow.",
+    "limitations": [
+      "No held-out image-quality, OCR, staff-line preservation, or reader study result is published.",
+      "Runtime and output quality vary with hardware, batch size, source resolution, and scan quality."
+    ],
+    "evidence": {
+      "label": "Project repository",
+      "url": "https://github.com/danielshort3/Watermark-Remover"
+    }
+  },
   "order": 9,
   "notes": "Designed for low-resolution, watermarked page images; output quality depends on scan quality and staff-line preservation."
 }

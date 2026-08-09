@@ -17,6 +17,7 @@
     'job-application-tracker': { name: 'Job Application Tracker', href: '/tools/job-application-tracker' },
     'short-links': { name: 'Short Links', href: '/tools/short-links' },
     'utm-batch-builder': { name: 'UTM Batch Builder', href: '/tools/utm-batch-builder' },
+    'campaign-creative-tracker': { name: 'Campaign Creative Tracker', href: '/tools/campaign-creative-tracker' },
     'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },
     'transcribe': { name: 'File Transcriber', href: '/tools/transcribe' },
     'whisper-transcribe-monitor': { name: 'File Transcriber', href: '/tools/transcribe' }

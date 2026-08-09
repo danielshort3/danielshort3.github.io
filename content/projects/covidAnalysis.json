@@ -30,14 +30,9 @@
       "label": "Live Demo"
     },
     {
-      "icon": "img/icons/pdf-icon.png",
-      "url": "documents/Project_6.pdf",
-      "label": "PDF"
-    },
-    {
       "icon": "img/icons/jupyter-icon.png",
-      "url": "documents/Project_6.ipynb",
-      "label": "Notebook"
+      "url": "https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb",
+      "label": "Current Notebook (GitHub)"
     },
     {
       "icon": "img/icons/website-icon.png",
@@ -69,6 +64,44 @@
     "Top driver was the share of ICU beds occupied by COVID patients.",
     "Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days)."
   ],
+  "evaluation": {
+    "status": "measured",
+    "goal": "Flag states at risk of exceeding 90% ICU utilization within the next seven days.",
+    "dataset": "56,853 state-date rows derived from the HHS hospital-capacity time series.",
+    "split": "38,217 rows before 2022-07-01 for training and 18,636 rows from 2022-07-01 onward for time-based evaluation.",
+    "baseline": "No-skill AUROC is 0.500; approximately 4.1% positive prevalence in the evaluation period implies a PR-AUC baseline of about 0.041.",
+    "metrics": [
+      {
+        "label": "AUROC",
+        "value": "0.606",
+        "context": "Time-based evaluation period."
+      },
+      {
+        "label": "PR-AUC",
+        "value": "0.060",
+        "context": "Compared with an approximate prevalence baseline of 0.041."
+      },
+      {
+        "label": "Recall at 75% precision",
+        "value": "0.000",
+        "context": "The model did not identify positives at the stated precision target."
+      },
+      {
+        "label": "Confusion matrix at 0.5",
+        "value": "31 TP / 728 FN",
+        "context": "17,601 true negatives and 276 false positives."
+      }
+    ],
+    "decision": "Treat the output as an exploratory risk-scoring demonstration, not an operational alerting model; performance does not support use at a 75% precision target.",
+    "limitations": [
+      "The post-cutoff evaluation data was also passed to XGBoost for early stopping, so it is not an untouched final holdout.",
+      "The target is highly imbalanced and aggregated at the state level; the model is not a clinical forecast."
+    ],
+    "evidence": {
+      "label": "Current XGBoost notebook",
+      "url": "https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb"
+    }
+  },
   "order": 5,
   "notes": "The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast."
 }

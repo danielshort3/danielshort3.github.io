@@ -38,7 +38,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/sentence-demo.html",
+      "url": "https://www.danielshort.me/sentence-demo",
       "label": "Live Demo"
     },
     {
@@ -75,5 +75,27 @@
     "Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.",
     "Kept the site embed usable with warm-up status, inline similarity bars, and an open-in-new-tab fallback for a larger view."
   ],
+  "personalStory": {
+    "why": "I wanted to find sentences by meaning when the query and source use different words.",
+    "surprise": "Embedding quality was only one tradeoff; model size, cold starts, and serverless cost mattered to whether the demo felt useful.",
+    "next": "I’d publish a repeatable relevance and latency benchmark across the candidate embedding models."
+  },
+  "evaluation": {
+    "status": "not-benchmarked",
+    "goal": "Retrieve sentences that are semantically relevant to a query when the wording does not match exactly.",
+    "dataset": "A fixed Alice’s Adventures in Wonderland corpus from Project Gutenberg.",
+    "split": "The repository includes an exploratory benchmark command over up to 1,000 sentences, but no fixed labeled evaluation split is published.",
+    "baseline": "No keyword-search or labeled-relevance baseline is published.",
+    "metrics": [],
+    "decision": "Selected an embedding model by balancing exploratory clustering behavior, model size, and serverless deployment cost.",
+    "limitations": [
+      "Comparative relevance, nDCG, recall-at-k, warm latency, and cold-start latency results have not been published.",
+      "Silhouette score on unlabeled sentence embeddings would not by itself establish search relevance."
+    ],
+    "evidence": {
+      "label": "Project repository",
+      "url": "https://github.com/danielshort3/Smart-Sentence-Finder"
+    }
+  },
   "order": 1
 }

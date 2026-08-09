@@ -27,7 +27,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/nonogram-demo.html",
+      "url": "https://www.danielshort.me/nonogram-demo",
       "label": "Live Demo"
     },
     {
@@ -60,8 +60,25 @@
     "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
   ],
   "results": [
-    "Achieved strong solve rates on held-out 5x5 boards (see GitHub for evaluation details)."
+    "Evaluated on generated 5x5 boards, but the published materials do not yet include a reproducible held-out solve-rate result."
   ],
+  "evaluation": {
+    "status": "not-benchmarked",
+    "goal": "Measure whether the learned policy can complete unseen generated 5x5 Nonogram boards.",
+    "dataset": "Generated 5x5 Nonogram puzzles.",
+    "split": "The project references held-out boards, but split sizes, seeds, and a reproducible evaluation set are not published.",
+    "baseline": "No rule-based, search-based, or random-policy baseline is published.",
+    "metrics": [],
+    "decision": "Retained the hybrid CNN and Transformer policy for the live step-by-step solver demonstration.",
+    "limitations": [
+      "A held-out solve rate with board count, seed, and confidence interval has not been published.",
+      "Results on generated 5x5 boards do not establish performance on larger or human-authored puzzles."
+    ],
+    "evidence": {
+      "label": "Project repository",
+      "url": "https://github.com/danielshort3/Nonogram-Solver"
+    }
+  },
   "order": 15,
   "notes": "The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search."
 }

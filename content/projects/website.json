@@ -40,6 +40,11 @@
     "Optimized for fast, mobile-friendly pages with a hashed CSS bundle, lazy-loaded media, and minimal JavaScript.",
     "Makes projects easy to share with clean URLs, social previews, and a searchable portfolio."
   ],
+  "personalStory": {
+    "why": "I wanted one fast, mobile-friendly place where projects, tools, games, and professional work were easy to understand and share.",
+    "surprise": "Keeping content, generated pages, clean routes, and deployment output synchronized became as important as the visual design.",
+    "next": "I’d add automated accessibility, broken-link, and Core Web Vitals regression checks to catch quality drift before deployment."
+  },
   "order": 17,
   "notes": "Project pages are generated from structured content with canonical metadata and sitemap updates, so portfolio changes stay consistent across the site."
 }

@@ -1,0 +1,35 @@
+{
+  "slug": "campaign-creative-tracker",
+  "title": "Campaign Creative Tracker",
+  "href": "tools/campaign-creative-tracker",
+  "iconImage": "img/tools/icons/campaign-creative-tracker.png",
+  "categoryId": "tools-marketing",
+  "privacy": "Runs in your browser. Creative previews and campaign planning data stay on this device.",
+  "inputs": [
+    "Creative families, rendition files, destinations, controlled UTM values, and testing rules"
+  ],
+  "outputs": [
+    "Validated campaign links, rendition matrix, and export-ready handoff data"
+  ],
+  "summary": "Organize creative families and renditions, apply controlled UTM values, manage optional A/B tests, and prepare campaign handoffs.",
+  "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"14\" rx=\"2\"></rect><path d=\"M8 9h8M8 13h4\"></path><path d=\"M15 12l3 2-3 2z\"></path></svg>",
+  "pills": [
+    {
+      "label": "Local",
+      "variant": "local"
+    },
+    {
+      "label": "Admin"
+    },
+    {
+      "label": "UTM"
+    },
+    {
+      "label": "Creative"
+    }
+  ],
+  "visibility": "admin",
+  "hidden": true,
+  "order": 3,
+  "noindex": true
+}

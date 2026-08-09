@@ -349,7 +349,7 @@
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python ? AWS</dd>
+          <dd class="project-star-value">Python · AWS</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Status</dt>
@@ -357,7 +357,60 @@
         </div>
       </dl>
     </section>
-			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+        <section class="project-star project-evaluation" aria-labelledby="covidAnalysis-evaluation-title">
+      <h2 class="section-title" id="covidAnalysis-evaluation-title">Evaluation &amp; tradeoffs</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Measured</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Flag states at risk of exceeding 90% ICU utilization within the next seven days.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">56,853 state-date rows derived from the HHS hospital-capacity time series.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">38,217 rows before 2022-07-01 for training and 18,636 rows from 2022-07-01 onward for time-based evaluation.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">No-skill AUROC is 0.500; approximately 4.1% positive prevalence in the evaluation period implies a PR-AUC baseline of about 0.041.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Treat the output as an exploratory risk-scoring demonstration, not an operational alerting model; performance does not support use at a 75% precision target.</dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Metrics</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>AUROC: 0.606 — Time-based evaluation period.</li>
+              <li>PR-AUC: 0.060 — Compared with an approximate prevalence baseline of 0.041.</li>
+              <li>Recall at 75% precision: 0.000 — The model did not identify positives at the stated precision target.</li>
+              <li>Confusion matrix at 0.5: 31 TP / 728 FN — 17,601 true negatives and 276 false positives.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>The post-cutoff evaluation data was also passed to XGBoost for early stopping, so it is not an untouched final holdout.</li>
+              <li>The target is highly imbalanced and aggregated at the state level; the model is not a clinical forecast.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb" target="_blank" rel="noopener noreferrer">Current XGBoost notebook</a></dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
         <div class="project-demo-help">
@@ -394,8 +447,7 @@
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
         <a class="project-link" role="listitem" href="https://www.danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_6.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_6.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Current Notebook (GitHub)</span></a>
       </div>
       </div>
         <div class="project-links-group">
@@ -406,11 +458,11 @@
       </div>
       </div>
     </section>
-			        <section class="project-section" id="notes">
+        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast.</p>
     </section>
-			        <section class="project-section project-related" aria-label="Other projects">
+        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
         <a class="project-card project-related-card" role="listitem" href="portfolio/retailStore" aria-label="Open project: Store-Level Loss &amp; Sales ETL">
@@ -541,7 +593,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5f4c6f3f.js"></script>
+  <script defer src="dist/site-shell.da2d9fb1.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

@@ -343,13 +343,13 @@
           <dt class="project-star-label">Result</dt>
           <dd class="project-star-value">
             <ul class="project-star-list">
-              <li>Achieved strong solve rates on held-out 5x5 boards (see GitHub for evaluation details).</li>
+              <li>Evaluated on generated 5x5 boards, but the published materials do not yet include a reproducible held-out solve-rate result.</li>
             </ul>
           </dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python ? PyTorch ? AWS ? Docker</dd>
+          <dd class="project-star-value">Python · PyTorch · AWS · Docker</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Status</dt>
@@ -357,7 +357,50 @@
         </div>
       </dl>
     </section>
-			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+        <section class="project-star project-evaluation" aria-labelledby="nonogram-evaluation-title">
+      <h2 class="section-title" id="nonogram-evaluation-title">Evaluation &amp; tradeoffs</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Not benchmarked</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Measure whether the learned policy can complete unseen generated 5x5 Nonogram boards.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">Generated 5x5 Nonogram puzzles.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">The project references held-out boards, but split sizes, seeds, and a reproducible evaluation set are not published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">No rule-based, search-based, or random-policy baseline is published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Retained the hybrid CNN and Transformer policy for the live step-by-step solver demonstration.</dd>
+        </div>
+
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>A held-out solve rate with board count, seed, and confidence interval has not been published.</li>
+              <li>Results on generated 5x5 boards do not establish performance on larger or human-authored puzzles.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="https://github.com/danielshort3/Nonogram-Solver" target="_blank" rel="noopener noreferrer">Project repository</a></dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
         <div class="project-demo-help">
@@ -393,18 +436,18 @@
         <h3 class="project-links-group-title">Project Links</h3>
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Nonogram-Solver" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/nonogram-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/nonogram-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
         <a class="project-link" role="listitem" href="documents/Project_4.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_4.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
       </div>
       </div>
       </div>
     </section>
-			        <section class="project-section" id="notes">
+        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">The solver focuses on generated 5x5 puzzles; scaling to larger puzzles would need curriculum learning or search.</p>
     </section>
-			        <section class="project-section project-related" aria-label="Other projects">
+        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
         <a class="project-card project-related-card" role="listitem" href="portfolio/shapeClassifier" aria-label="Open project: Shape Classifier Demo">
@@ -535,7 +578,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5f4c6f3f.js"></script>
+  <script defer src="dist/site-shell.da2d9fb1.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

@@ -344,14 +344,14 @@
           <dt class="project-star-label">Result</dt>
           <dd class="project-star-value">
             <ul class="project-star-list">
-              <li>High accuracy on a five-shape subset (results vary by split and drawing style): circle, triangle, square, hexagon, and octagon.</li>
+              <li>Supports five QuickDraw classes—circle, triangle, square, hexagon, and octagon—but a held-out accuracy result has not yet been published.</li>
               <li>Predictions return quickly once the Lambda container is warm; cold starts can take longer.</li>
             </ul>
           </dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python ? PyTorch ? AWS ? Docker</dd>
+          <dd class="project-star-value">Python · PyTorch · AWS · Docker</dd>
         </div>
         <div class="project-star-row">
           <dt class="project-star-label">Status</dt>
@@ -359,7 +359,50 @@
         </div>
       </dl>
     </section>
-			        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+        <section class="project-star project-evaluation" aria-labelledby="shapeClassifier-evaluation-title">
+      <h2 class="section-title" id="shapeClassifier-evaluation-title">Evaluation &amp; tradeoffs</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Not benchmarked</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Classify a browser-drawn shape as one of five supported QuickDraw classes.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">Google Quick, Draw! sketches for circle, triangle, square, hexagon, and octagon.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">Train and validation splits were created, but their sizes and sampling procedure are not published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">No simple classifier or majority-class baseline is published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Deployed the ResNet18 classifier for CPU-only serverless inference in the live demonstration.</dd>
+        </div>
+
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Held-out accuracy, per-class recall, and confusion-matrix results have not been published.</li>
+              <li>QuickDraw sketches may not represent drawings made with the website’s canvas and preprocessing pipeline.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="https://github.com/danielshort3/Shape-Analyzer" target="_blank" rel="noopener noreferrer">Project repository</a></dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
         <div class="project-demo-help">
@@ -395,7 +438,7 @@
         <h3 class="project-links-group-title">Project Links</h3>
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Shape-Analyzer" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://www.danielshort.me/shape-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/shape-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
       </div>
       </div>
         <div class="project-links-group">
@@ -406,11 +449,11 @@
       </div>
       </div>
     </section>
-			        <section class="project-section" id="notes">
+        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task.</p>
     </section>
-			        <section class="project-section project-related" aria-label="Other projects">
+        <section class="project-section project-related" aria-label="Other projects">
       <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
         <a class="project-card project-related-card" role="listitem" href="portfolio/handwritingRating" aria-label="Open project: Handwriting Legibility Scoring">
@@ -541,7 +584,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5f4c6f3f.js"></script>
+  <script defer src="dist/site-shell.da2d9fb1.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

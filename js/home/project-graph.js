@@ -529,6 +529,8 @@
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+  const usesCoarsePointer = () => Boolean(window.matchMedia?.('(pointer: coarse)').matches);
+
   const toRadians = (degrees) => (degrees * Math.PI) / 180;
 
   const normalizeDegrees = (degrees) => {
@@ -541,6 +543,34 @@
   const getIcon = (type) => ICONS[type] || ICONS.folder;
 
   const getCategoryIcon = (type) => getIcon(type);
+
+  const getStartHereItems = () => {
+    const audience = typeof window.getSiteAudienceConfig === 'function'
+      ? window.getSiteAudienceConfig('personal')
+      : window.SITE_AUDIENCES?.personal;
+    if (!Array.isArray(audience?.startHere)) return [];
+
+    return audience.startHere.filter((entry) => (
+      entry
+      && typeof entry === 'object'
+      && String(entry.title || '').trim()
+      && String(entry.href || '').trim()
+    ));
+  };
+
+  const getStartHereIcon = (entry) => getIcon(entry.icon || ITEM_ICON_BY_ID[entry.id] || 'folder');
+
+  const getStartHereDataAttributes = (entry, surface) => {
+    const contentType = entry.contentType || 'resource';
+    const resourceType = entry.resourceType || contentType;
+    return [
+      'data-content-open="true"',
+      `data-content-id="${escapeHtml(entry.id || entry.href)}"`,
+      `data-content-type="${escapeHtml(contentType)}"`,
+      `data-resource-type="${escapeHtml(resourceType)}"`,
+      `data-source-surface="${escapeHtml(surface)}"`
+    ].join(' ');
+  };
 
   const getLinkIcon = () => (
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7"></path><path d="M9 7h8v8"></path></svg>'
@@ -927,7 +957,10 @@
     return resolveGraphCollisions(layout, metrics);
   };
 
-  const getItemNodeSize = (metrics) => metrics.isCompact ? 28 : metrics.isNarrow ? 34 : 42;
+  const getItemNodeSize = (metrics) => {
+    const size = metrics.isCompact ? 28 : metrics.isNarrow ? 34 : 42;
+    return usesCoarsePointer() ? Math.max(44, size) : size;
+  };
 
   const getItemNodeDimensions = (metrics) => {
     const size = getItemNodeSize(metrics);
@@ -2190,43 +2223,46 @@
   };
 
   const createSiteOverviewHtml = () => {
-    const totals = CATEGORY_ORDER.map((categoryId) => CATEGORIES[categoryId].items.length);
-    const totalItems = totals.reduce((sum, count) => sum + count, 0);
+    const startHereItems = getStartHereItems();
+    const startHereLinks = startHereItems.map((entry) => {
+      const accent = entry.accent || 'var(--home-graph-blue)';
+      return `
+        <li>
+          <a href="${escapeHtml(entry.href)}" style="--accent: ${escapeHtml(accent)}" aria-label="${escapeHtml(`${entry.label || 'Start here'}: ${entry.title}`)}" ${getStartHereDataAttributes(entry, 'home_start_here')}>
+            <span class="home-graph__start-here-icon" aria-hidden="true">${getStartHereIcon(entry)}</span>
+            <span class="home-graph__start-here-copy">
+              <small>${escapeHtml(entry.label || 'Start here')}</small>
+              <strong>${escapeHtml(entry.title)}</strong>
+            </span>
+            <span class="home-graph__start-here-arrow" aria-hidden="true">${getLinkIcon()}</span>
+          </a>
+        </li>
+      `;
+    }).join('');
 
     return `
       <div class="home-graph__inspector-kicker">
-        <span>Preview</span>
+        <span>Start here</span>
       </div>
       <div class="home-graph__inspector-head">
         <span class="home-graph__inspector-icon" style="--accent: var(--home-graph-blue)">${getCategoryIcon('folder')}</span>
         <div>
-          <h2 class="home-graph__inspector-title">Projects, Tools & Games</h2>
+          <h2 class="home-graph__inspector-title">A quick tour</h2>
           <div class="home-graph__inspector-type">
-            <span class="home-graph__pill" style="--accent: var(--home-graph-blue)">ML</span>
-            <span class="home-graph__pill" style="--accent: var(--home-graph-blue)">Data</span>
+            <span class="home-graph__pill" style="--accent: var(--home-graph-blue)">Personal</span>
+            <span class="home-graph__pill" style="--accent: var(--home-graph-blue)">Hands-on</span>
           </div>
         </div>
       </div>
-      <p class="home-graph__summary">Explore machine learning projects, practical browser tools, lightweight games, and experiments through an interactive graph. Select a branch or open a library directly.</p>
-      <div class="home-graph__inspector-section">
-        <h3>Library</h3>
-        <ul class="home-graph__tag-list">
-          <li>${totalItems} total nodes</li>
-          <li>${CATEGORIES.projects.items.length} projects</li>
-          <li>${CATEGORIES.tools.items.length} tools</li>
-          <li>${CATEGORIES.games.items.length} games</li>
-        </ul>
-      </div>
+      <p class="home-graph__summary">Begin with a human-centered machine learning project, the game I am actively building, or a practical browser tool.</p>
       <div class="home-graph__inspector-section home-graph__inspector-section--related">
-        <h3>Branches</h3>
-        <ul class="home-graph__related-list">
-          ${CATEGORY_ORDER.map((categoryId) => `<li><a href="${escapeHtml(CATEGORIES[categoryId].href)}">${escapeHtml(CATEGORIES[categoryId].label)} <span aria-hidden="true">></span></a></li>`).join('')}
+        <h3>Choose a path</h3>
+        <ul class="home-graph__start-here-list">
+          ${startHereLinks}
         </ul>
       </div>
       <div class="home-graph__inspector-section">
-        <a class="home-graph__cta" href="portfolio" data-content-open="true" data-content-id="projects" data-content-type="directory" data-resource-type="library" data-source-surface="home_overview">Open project library ${getLinkIcon()}</a>
-        <a class="home-graph__library-link" href="tools">View tools</a>
-        <a class="home-graph__library-link" href="games">Play games</a>
+        <a class="home-graph__cta" href="/portfolio" data-content-open="true" data-content-id="projects" data-content-type="directory" data-resource-type="library" data-source-surface="home_overview">Browse the full project library ${getLinkIcon()}</a>
       </div>
     `;
   };
@@ -2288,6 +2324,34 @@
       <circle cx="72" cy="17" r="4.8"></circle>
     </svg>
   `;
+
+  const createMobileStartHereHtml = () => {
+    const items = getStartHereItems();
+    if (!items.length) return '';
+
+    return `
+      <section class="home-graph__mobile-start-here" aria-labelledby="home-mobile-start-here-title">
+        <header class="home-graph__mobile-start-here-head">
+          <p>Start here</p>
+          <h2 id="home-mobile-start-here-title">Three ways into the site</h2>
+          <span>Jump into a personal project, the game in active development, or a practical browser tool.</span>
+        </header>
+        <div class="home-graph__mobile-start-here-list">
+          ${items.map((entry) => `
+            <a href="${escapeHtml(entry.href)}" style="--accent: ${escapeHtml(entry.accent || 'var(--home-graph-blue)')}" aria-label="${escapeHtml(`${entry.label || 'Start here'}: ${entry.title}`)}" ${getStartHereDataAttributes(entry, 'home_mobile_start_here')}>
+              <span class="home-graph__mobile-start-here-icon" aria-hidden="true">${getStartHereIcon(entry)}</span>
+              <span class="home-graph__mobile-start-here-copy">
+                <small>${escapeHtml(entry.label || 'Start here')}</small>
+                <strong>${escapeHtml(entry.title)}</strong>
+                <span>${escapeHtml(entry.description || '')}</span>
+              </span>
+              <span class="home-graph__mobile-start-here-arrow" aria-hidden="true">${getLinkIcon()}</span>
+            </a>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  };
 
   const createMobileClassicDeckHtml = () => {
     const createMobileSection = (categoryId, index) => {
@@ -2371,9 +2435,10 @@
               <a href="tools">Tools</a>
               <a href="games">Games</a>
             </div>
-            <a class="home-graph__mobile-hero-scroll" href="#home-mobile-projects-title">Browse featured work ${getLinkIcon()}</a>
+            <a class="home-graph__mobile-hero-scroll" href="#home-mobile-start-here-title">Start here ${getLinkIcon()}</a>
           </div>
         </section>
+        ${createMobileStartHereHtml()}
         ${CATEGORY_ORDER.map(createMobileSection).join('')}
       </div>
     `;

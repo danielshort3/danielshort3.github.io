@@ -38,7 +38,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/retail-loss-sales-demo.html",
+      "url": "https://www.danielshort.me/retail-loss-sales-demo",
       "label": "Live Demo"
     }
   ],
@@ -71,5 +71,10 @@
     "Narrowed broad incident data into a short, explainable list of hotspots worth investigating.",
     "Kept identifiers anonymized so the case study can show the workflow without exposing people or locations."
   ],
+  "personalStory": {
+    "why": "I wanted to turn scattered incident and sales data into a short, explainable list of stores worth investigating.",
+    "surprise": "Raw incident volume was misleading; sales context and normalization changed which stores looked genuinely unusual.",
+    "next": "I’d calibrate alert thresholds against reviewed cases and add drift monitoring so the ranking stays useful over time."
+  },
   "order": 11
 }

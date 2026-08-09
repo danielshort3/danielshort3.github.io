@@ -96,6 +96,8 @@
 
     { "source": "/tools/utm-batch-builder","destination": "/pages/utm-batch-builder" },
     { "source": "/tools/utm-batch-builder.html","destination": "/pages/utm-batch-builder" },
+    { "source": "/tools/campaign-creative-tracker","destination": "/pages/campaign-creative-tracker" },
+    { "source": "/tools/campaign-creative-tracker.html","destination": "/pages/campaign-creative-tracker" },
     { "source": "/tools/ga4-utm-performance","destination": "/pages/ga4-utm-performance" },
     { "source": "/tools/ga4-utm-performance.html","destination": "/pages/ga4-utm-performance" },
     { "source": "/tools/transcribe","destination": "/pages/transcribe" },
@@ -222,6 +224,42 @@
     {
       "source": "/",
       "has": [
+        { "type": "query", "key": "mode" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "mode" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
         { "type": "query", "key": "mode", "value": "professional" }
       ],
       "headers": [
@@ -301,7 +339,25 @@
       ]
     },
     {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
       "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "data-science" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
       "has": [
         { "type": "query", "key": "audience", "value": "data-science" }
       ],
@@ -313,6 +369,69 @@
       "source": "/:path*",
       "has": [
         { "type": "query", "key": "audience", "value": "tourism" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "tourism" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "datascience" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "datascience" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "data_science" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "data_science" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "query", "key": "audience", "value": "tourism-analytics" }
+      ],
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/",
+      "has": [
+        { "type": "query", "key": "audience", "value": "tourism-analytics" }
       ],
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
@@ -487,19 +606,7 @@
       ]
     },
     {
-      "source": "/documents/Resume-Analytics-Custom.pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
       "source": "/documents/Resume-Data-Science.pdf",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
-      ]
-    },
-    {
-      "source": "/documents/Resume-Data-Science-Custom.pdf",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
@@ -511,7 +618,31 @@
       ]
     },
     {
-      "source": "/documents/Resume-Tourism-Custom.pdf",
+      "source": "/img/resume-previews/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noimageindex" }
+      ]
+    },
+    {
+      "source": "/js/common/audience-config.js",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/js/common/site-realm.js",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/js/admin/short-links.js",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/dist/site-shell(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
@@ -614,6 +745,18 @@
     },
     {
       "source": "/tools/dashboard.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/campaign-creative-tracker",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/campaign-creative-tracker.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]

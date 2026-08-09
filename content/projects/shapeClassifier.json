@@ -33,7 +33,7 @@
     },
     {
       "icon": "img/icons/website-icon.png",
-      "url": "https://www.danielshort.me/shape-demo.html",
+      "url": "https://www.danielshort.me/shape-demo",
       "label": "Live Demo"
     }
   ],
@@ -57,9 +57,26 @@
     "Deployed a CPU-only AWS Lambda endpoint so the browser can request predictions."
   ],
   "results": [
-    "High accuracy on a five-shape subset (results vary by split and drawing style): circle, triangle, square, hexagon, and octagon.",
+    "Supports five QuickDraw classes—circle, triangle, square, hexagon, and octagon—but a held-out accuracy result has not yet been published.",
     "Predictions return quickly once the Lambda container is warm; cold starts can take longer."
   ],
+  "evaluation": {
+    "status": "not-benchmarked",
+    "goal": "Classify a browser-drawn shape as one of five supported QuickDraw classes.",
+    "dataset": "Google Quick, Draw! sketches for circle, triangle, square, hexagon, and octagon.",
+    "split": "Train and validation splits were created, but their sizes and sampling procedure are not published.",
+    "baseline": "No simple classifier or majority-class baseline is published.",
+    "metrics": [],
+    "decision": "Deployed the ResNet18 classifier for CPU-only serverless inference in the live demonstration.",
+    "limitations": [
+      "Held-out accuracy, per-class recall, and confusion-matrix results have not been published.",
+      "QuickDraw sketches may not represent drawings made with the website’s canvas and preprocessing pipeline."
+    ],
+    "evidence": {
+      "label": "Project repository",
+      "url": "https://github.com/danielshort3/Shape-Analyzer"
+    }
+  },
   "order": 3,
   "notes": "The live demo runs CPU-only serverless inference on five QuickDraw shape classes, so confidence is scoped to that small drawing task."
 }

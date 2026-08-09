@@ -1,0 +1,18 @@
+﻿{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\clopt\\Documents\\coding"
+      ]
+    },
+    "shell": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\clopt\\.mcp-tools\\shell-server.js"
+      ]
+    }
+  }
+}
