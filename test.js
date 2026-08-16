@@ -41521,6 +41521,17 @@ try {
       transcriptSha256: 'must-not-leak',
       expiresAt: 1_800_000_000
     });
+    const localProviderTags = Array.from(
+      page.matchAll(/<[^>]+\bdata-transcribe-provider-panel="local"[^>]*>/g),
+      (match) => match[0]
+    );
+    const fileInputOpeningTag = page.match(/<input\b[^>]*\bid="transcribe-files"[^>]*>/)?.[0] || '';
+    const addFilesOpeningTag = page.match(/<button\b[^>]*\bid="transcribe-add-files"[^>]*>/)?.[0] || '';
+    const summaryOpeningTag = page.match(/<div\b[^>]*\bid="transcribe-summary"[^>]*>/)?.[0] || '';
+    const costReviewOpeningTag = page.match(/<div\b[^>]*\bid="transcribe-cost-review"[^>]*>/)?.[0] || '';
+    const uploadActionsOpeningTag = page.match(/<div\b[^>]*\bclass="[^"]*transcribe-actions[^"]*"[^>]*\bdata-transcribe-requires-files[^>]*>/)?.[0] || '';
+    const localStatusOpeningTag = page.match(/<div\b[^>]*\bid="transcribe-local-state"[^>]*>/)?.[0] || '';
+    const removeRule = toolCss.match(/\.transcribe-file-remove\{([^}]*)\}/)?.[1] || '';
 
     assert(page.includes('id="transcribe-files"') &&
            page.includes('multiple') &&
@@ -41535,6 +41546,8 @@ try {
     assert(!page.includes('AWS Lambda') && !page.includes('Warming up'),
       'Transcribe page should not mention the old Whisper Lambda warmup flow');
     assert(page.includes('id="transcribe-resume-all"') &&
+           page.includes('id="transcribe-processing-details"') &&
+           page.includes('id="transcribe-details-summary"') &&
            page.includes('id="transcribe-usage-value"') &&
            page.includes('id="transcribe-usage-progress"') &&
            page.includes('aria-describedby="transcribe-usage-tooltip"') &&
@@ -41546,11 +41559,53 @@ try {
            page.includes('id="transcribe-history-transcript"') &&
            page.includes('id="transcribe-notifications"') &&
            page.includes('aria-pressed="false"') &&
-           page.includes('data-tools-account="tool-controls"') &&
+           page.includes('data-transcribe-provider-panel="aws"') &&
+           page.includes('data-transcribe-provider-panel="local"') &&
+           !page.includes('data-tools-account="tool-controls"') &&
            page.includes('data-tools-autosave="false"') &&
            !page.includes('transcribe-status-bar') &&
            !page.includes('id="transcribe-sign-in"'),
-      'Transcribe page should combine usage, private history, and notification controls into the shared account bar without a duplicate status bar');
+      'Transcribe page should keep provider-specific usage, history, and notifications inside its progressive processing details');
+
+    assert(localProviderTags.length >= 3 &&
+           localProviderTags.every((tag) => /\bhidden\b/.test(tag)) &&
+           /\bhidden\b/.test(localStatusOpeningTag) &&
+           toolScript.includes("document.querySelectorAll('[data-transcribe-provider-panel]')") &&
+           toolScript.includes('panel.hidden = !providerMatches || (requiresFiles && !hasFiles);') &&
+           toolScript.includes("localStateEl.setAttribute('aria-live', localActive ? 'polite' : 'off');") &&
+           toolScript.includes('shellEl.dataset.transcribeProvider = state.provider;') &&
+           toolScript.includes("shellEl.dataset.transcribeHasFiles = hasFiles ? 'true' : 'false';") &&
+           toolScript.includes('if (!isAdminUser() || !isLocalProvider() || state.localConfigLoading) return;') &&
+           toolScript.includes('const shouldPreferLocal = state.admin && !wasAdmin') &&
+           toolScript.includes('state.provider = localKnownUnavailable ? PROVIDER_AWS : PROVIDER_LOCAL;') &&
+           toolScript.includes("const serviceName = cleanText(config.service) || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe');") &&
+           toolScript.includes('setText(detailServiceEl, serviceName);') &&
+           toolScript.includes('if (isLocalProvider()) void refreshLocalWorkerStatus();'),
+      'Transcribe provider panels should be exclusive, provider facts should match the active service, Home GPU should be admin-preferred, and inactive health should stay hidden and silent');
+
+    assert(/\bhidden\b/.test(fileInputOpeningTag) &&
+           addFilesOpeningTag.startsWith('<button') &&
+           addFilesOpeningTag.includes('type="button"') &&
+           !page.includes('<label class="transcribe-dropzone"') &&
+           toolScript.includes("addFilesBtn.addEventListener('click'") &&
+           toolScript.includes('fileEl.click();') &&
+           /\bdata-transcribe-requires-files\b/.test(summaryOpeningTag) &&
+           /\bhidden\b/.test(summaryOpeningTag) &&
+           /\bdata-transcribe-requires-files\b/.test(costReviewOpeningTag) &&
+           /\bhidden\b/.test(costReviewOpeningTag) &&
+           /\bhidden\b/.test(uploadActionsOpeningTag) &&
+           !page.includes('No files selected.'),
+      'Transcribe should use a real file-picker button and keep empty batch review/actions out of the initial workflow');
+
+    assert(!toolScript.includes('$0 AWS') &&
+           !toolScript.includes('AWS Transcribe fee: $0.00') &&
+           !toolScript.includes('AWS Transcribe processing fee $0.00') &&
+           !toolScript.includes('AWS was not used') &&
+           !toolScript.includes('AWS will not be used') &&
+           !toolScript.includes('Nothing is sent to AWS') &&
+           !toolScript.includes('not uploaded to AWS') &&
+           !toolScript.includes('Tailscale Funnel'),
+      'Home GPU UI copy should describe the selected workflow without repeating AWS or transport implementation details');
 
     assert(toolScript.includes("const TOOL_ID = 'transcribe'") &&
            toolScript.includes("const API_BASE = '/api/tools/transcribe'") &&
@@ -41610,17 +41665,25 @@ try {
            !isRecoverableItem({ status: 'complete', runToken: 'run' }),
       'Transcribe bulk recovery should select only retry-safe failed or canceled items');
     assert(toolCss.includes('.transcribe-account-tools') &&
-           toolCss.includes('.transcribe-account-tools[hidden]') &&
+           toolCss.includes('.transcribe-details') &&
+           toolCss.includes('#transcribe-run-status:empty') &&
            toolCss.includes('grid-template-columns:repeat(2,minmax(0,1fr))') &&
            !toolCss.includes('.transcribe-status-bar') &&
            toolCss.includes('.transcribe-file-resume') &&
+           /\bwidth:44px;/.test(removeRule) &&
+           /\bheight:44px;/.test(removeRule) &&
+           toolCss.includes('@media (max-width: 860px)') &&
+           toolCss.includes('grid-template-columns:minmax(0,1fr) auto;') &&
+           toolCss.includes('grid-column:2;') &&
+           toolCss.includes('grid-row:1;') &&
+           toolCss.includes('.transcribe-shell[data-transcribe-has-files="true"] .transcribe-dropzone') &&
            toolCss.includes('.transcribe-usage') &&
            toolCss.includes('.transcribe-usage-tooltip') &&
            toolCss.includes('.transcribe-usage:focus .transcribe-usage-tooltip') &&
            toolCss.includes('.transcribe-history-dialog') &&
            toolCss.includes('.transcribe-history-item') &&
            !toolCss.includes('order:10'),
-      'Transcribe account controls, usage, recovery, and history surfaces should use the site-native responsive layout');
+      'Transcribe details, queue actions, usage, recovery, and history surfaces should use the compact site-native responsive layout');
     assert(toolsWorkspaceCss.includes('body[data-tools-layout="text"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="media"]') &&
            toolsWorkspaceCss.includes('body[data-tools-layout="admin"]') &&

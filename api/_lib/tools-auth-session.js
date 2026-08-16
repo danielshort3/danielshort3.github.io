@@ -92,6 +92,10 @@ function normalizeClaim(value, maxLength){
   return String(value || '').trim().slice(0, maxLength);
 }
 
+function isEmailVerifiedClaim(value){
+  return value === true || value === 'true';
+}
+
 function normalizeGroups(value){
   const entries = Array.isArray(value)
     ? value
@@ -118,6 +122,7 @@ function createSessionPayload(claims, nowSeconds = Math.floor(Date.now() / 1000)
     v: 1,
     sub,
     email: normalizeClaim(claims?.email, 320),
+    emailVerified: isEmailVerifiedClaim(claims?.email_verified),
     name: normalizeClaim(claims?.name || claims?.['cognito:username'], 240),
     groups: normalizeGroups(claims?.['cognito:groups'] || claims?.groups),
     iat: nowSeconds,
@@ -178,6 +183,9 @@ function validateSessionPayload(payload, nowSeconds = Math.floor(Date.now() / 10
     v: 1,
     sub: normalizeClaim(payload.sub, 160),
     email: normalizeClaim(payload.email, 320),
+    // Cookies issued before emailVerified was added remain valid for normal
+    // tools use, but fail closed for email-based administrator authorization.
+    emailVerified: payload.emailVerified === true,
     name: normalizeClaim(payload.name, 240),
     groups: normalizeGroups(payload.groups),
     iat: issuedAt,
@@ -251,6 +259,7 @@ function sessionPayloadToClaims(payload){
   return {
     sub: payload.sub,
     email: payload.email,
+    email_verified: payload.emailVerified === true,
     name: payload.name,
     'cognito:groups': payload.groups,
     iat: payload.iat,
@@ -306,6 +315,7 @@ module.exports = {
   DEFAULT_SESSION_TTL_SECONDS,
   MIN_SESSION_TTL_SECONDS,
   MAX_SESSION_TTL_SECONDS,
+  isEmailVerifiedClaim,
   getSessionKeys,
   getSessionTtlSeconds,
   isBearerFallbackEnabled,

@@ -13,6 +13,7 @@ const {
   assertSameOriginRequest,
   authenticateToolsRequest,
   createSessionFromClaims,
+  isEmailVerifiedClaim,
   serializeClearedSessionCookie
 } = require('../tools-auth-session');
 
@@ -20,6 +21,7 @@ function userFromClaims(claims){
   return {
     sub: String(claims?.sub || '').trim(),
     email: String(claims?.email || '').trim(),
+    emailVerified: isEmailVerifiedClaim(claims?.email_verified),
     name: String(claims?.name || claims?.['cognito:username'] || '').trim(),
     groups: Array.isArray(claims?.['cognito:groups'])
       ? claims['cognito:groups'].map((group) => String(group || '').trim()).filter(Boolean)

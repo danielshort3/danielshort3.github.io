@@ -304,6 +304,7 @@
       claims: {
         sub: String(user.sub || '').trim(),
         email: String(user.email || '').trim(),
+        email_verified: user.emailVerified === true || user.emailVerified === 'true',
         name: String(user.name || '').trim(),
         'cognito:groups': Array.isArray(user.groups) ? user.groups : []
       }
@@ -564,8 +565,10 @@
 
     const adminEmails = new Set(getConfiguredAdminEmails());
     if (adminEmails.size) {
+      const claims = getAuthClaims(auth);
+      const emailVerified = claims.email_verified === true || claims.email_verified === 'true';
       const email = String(getUser(auth).email || '').trim().toLowerCase();
-      if (email && adminEmails.has(email)) return true;
+      if (emailVerified && email && adminEmails.has(email)) return true;
     }
 
     return false;

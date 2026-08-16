@@ -776,13 +776,37 @@
     {
       "source": "/tools/transcribe",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: http://127.0.0.1:8765 http://localhost:8765 https://daniel-pc.tail9686c5.ts.net https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+        }
       ]
     },
     {
       "source": "/tools/transcribe.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store, max-age=0" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Permissions-Policy", "value": "accelerometer=(), autoplay=(), camera=(), display-capture=(), geolocation=(), microphone=(), payment=(), usb=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; frame-ancestors 'self'; manifest-src 'self'; script-src-attr 'none'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://tagmanager.google.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; media-src 'self' blob:; script-src 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; script-src-elem 'self' blob: 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://*.googletagmanager.com https://tagmanager.google.com https://www.google-analytics.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com; child-src 'self' blob: https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com; connect-src 'self' blob: http://127.0.0.1:8765 http://localhost:8765 https://daniel-pc.tail9686c5.ts.net https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://cdn.jsdelivr.net https://staticimgly.com https://challenges.cloudflare.com https://job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com https://*.s3.amazonaws.com https://*.s3.us-east-2.amazonaws.com; frame-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com;"
+        }
       ]
     },
     {
@@ -903,7 +927,7 @@
       ]
     },
     {
-      "source": "/:path((?!tools/background-remover$|tools/background-remover\\.html$|pages/background-remover$|pages/background-remover\\.html$|tools/job-application-tracker$|tools/job-application-tracker\\.html$|pages/job-application-tracker$|pages/job-application-tracker\\.html$).*)",
+      "source": "/:path((?!tools/background-remover$|tools/background-remover\\.html$|pages/background-remover$|pages/background-remover\\.html$|tools/job-application-tracker$|tools/job-application-tracker\\.html$|pages/job-application-tracker$|pages/job-application-tracker\\.html$|tools/transcribe$|tools/transcribe\\.html$).*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
