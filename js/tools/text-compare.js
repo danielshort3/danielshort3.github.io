@@ -8,6 +8,7 @@
   const outputEl = $('#textcompare-output');
   const summaryEl = $('#textcompare-summary');
   const clearBtn = $('#textcompare-clear');
+  const exampleBtn = $('#textcompare-example');
   const swapBtn = $('#textcompare-swap');
   const copyBtn = $('#textcompare-copy');
   const copyStatus = $('#textcompare-copy-status');
@@ -40,6 +41,24 @@
   const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
   const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
   const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
+  const ORIGINAL_EXAMPLE = [
+    'Product analytics should be easy to act on.',
+    '',
+    'The onboarding report now highlights new-user activation in the first 24 hours. In January, activation improved from 41% to 57% after we simplified the first-session checklist.',
+    '',
+    'The dashboard includes a weekly friction log with categorized root causes and owner assignments.',
+    '',
+    'Next quarter we will ship cohort-based retention alerts and a support handoff playbook.'
+  ].join('\n');
+  const REVISED_EXAMPLE = [
+    'Product analytics should be operationally actionable.',
+    '',
+    'The onboarding report highlights first-day activation and introduces a 7-day follow-through metric. During January, activation rose from 41% to 59% after we simplified the first-session checklist and removed two optional fields.',
+    '',
+    'Next quarter we will ship cohort retention alerts, ownership routing, and a support handoff playbook.',
+    '',
+    'The dashboard includes a weekly friction log with categorized root causes and owner assignments.'
+  ].join('\n');
   const vendorScriptPromises = new Map();
   const compareRequests = new Map();
   let lastRuns = null;
@@ -850,8 +869,8 @@
     const revisedInput = revisedEl.value || '';
     const originalHasUser = Boolean(originalInput.trim());
     const revisedHasUser = Boolean(revisedInput.trim());
-    const original = (!originalHasUser && !revisedHasUser) ? (originalEl.placeholder || '') : originalInput;
-    const revised = (!originalHasUser && !revisedHasUser) ? (revisedEl.placeholder || '') : revisedInput;
+    const original = originalInput;
+    const revised = revisedInput;
 
     if ((!originalHasUser && revisedHasUser) || (originalHasUser && !revisedHasUser)) {
       summaryEl.textContent = 'Paste both versions to compare.';
@@ -866,7 +885,7 @@
     }
 
     if (!original.trim() && !revised.trim()) {
-      summaryEl.textContent = 'Click Compare to run the built-in example, or paste your own drafts.';
+      summaryEl.textContent = 'Paste two drafts or load the example.';
       setEmpty('Waiting for input.');
       lastRuns = null;
       lastRevisedText = '';
@@ -988,13 +1007,22 @@
     }
   });
 
+  exampleBtn?.addEventListener('click', () => {
+    applyTextToField('original', ORIGINAL_EXAMPLE, { sourceKind: 'text' });
+    applyTextToField('revised', REVISED_EXAMPLE, { sourceKind: 'text' });
+    clearFieldStatuses();
+    summaryEl.textContent = 'Example loaded. Click Compare to review the changes.';
+    setEmpty('Ready to compare.');
+    revisedEl.focus();
+  });
+
   clearBtn?.addEventListener('click', () => {
     latestCompareRequestId += 1;
     originalEl.value = '';
     revisedEl.value = '';
     fields.original.sourceKind = 'text';
     fields.revised.sourceKind = 'text';
-    summaryEl.textContent = 'Click Compare to run the built-in example, or paste your own drafts.';
+    summaryEl.textContent = 'Paste two drafts or load the example.';
     setEmpty('Waiting for input.');
     lastRuns = null;
     lastRevisedText = '';

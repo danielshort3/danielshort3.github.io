@@ -455,9 +455,10 @@
     if (!document.body?.matches('[data-page="analytics"].home-pattern-page')) return;
     const main = document.getElementById('main');
     const panel = document.querySelector('.jump-panel');
-    if (!main || !panel) return;
+    if (!main) return;
 
     groupAnalyticsWorkCardMeta(main);
+    if (!panel) return;
 
     panel.dataset.storyRail = 'true';
     panel.setAttribute('aria-label', 'Explore Daniel Short\'s analytics story');
@@ -607,10 +608,11 @@
     initSmoothScrollLinks();
     sortWorkCardsByRecency();
     updateWorkExperienceSummaries();
+    initResponsiveDisclosures();
     if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
       requestContactModal();
     }
-    if (isPage('portfolio') || (document.body && document.body.matches('.portfolio-workbench-page') && document.querySelector('[data-portfolio-workbench]'))) {
+    if (isPage('portfolio') || isPage('games') || (document.body && document.body.matches('.portfolio-workbench-page') && document.querySelector('[data-portfolio-workbench]'))) {
       ensurePortfolioScripts(document.body.dataset.page || 'portfolio').then(() => {
         run(window.buildPortfolioCarousel);
         run(window.buildPortfolio);
@@ -632,6 +634,7 @@
     initSmoothScrollLinks();
     sortWorkCardsByRecency();
     updateWorkExperienceSummaries();
+    initResponsiveDisclosures();
     if (isPage('home') || document.querySelector('.jump-panel')) {
       initJumpPanelSpy();
     }
@@ -1124,6 +1127,61 @@
         setActiveTab(demoTab, { focus: true });
       });
     });
+  }
+
+  const responsiveDisclosureMedia = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(max-width: 768px)')
+    : null;
+  let responsiveDisclosureMediaBound = false;
+
+  function enhanceWorkExperienceDisclosures(root = document) {
+    $$('.work-card:not([data-work-disclosure-ready="true"])', root).forEach((card) => {
+      const list = card.querySelector(':scope > .work-highlights');
+      const firstItem = list?.querySelector(':scope > li');
+      if (!list || !firstItem) return;
+
+      const primary = document.createElement('p');
+      primary.className = 'work-primary-highlight';
+      primary.textContent = firstItem.textContent.trim();
+      firstItem.remove();
+      list.before(primary);
+
+      if (list.children.length) {
+        const details = document.createElement('details');
+        details.className = 'work-details';
+        details.dataset.projectMobileDisclosure = 'true';
+        const summary = document.createElement('summary');
+        summary.textContent = 'More role highlights';
+        list.before(details);
+        details.append(summary, list);
+      } else {
+        list.remove();
+      }
+      card.dataset.workDisclosureReady = 'true';
+    });
+  }
+
+  function syncResponsiveDisclosures(root = document) {
+    const viewport = responsiveDisclosureMedia?.matches ? 'mobile' : 'desktop';
+    $$('[data-project-mobile-disclosure]', root).forEach((details) => {
+      if (!(details instanceof HTMLDetailsElement)) return;
+      if (details.dataset.responsiveDisclosureViewport === viewport) return;
+      details.open = viewport === 'desktop';
+      details.dataset.responsiveDisclosureViewport = viewport;
+    });
+  }
+
+  function initResponsiveDisclosures(root = document) {
+    enhanceWorkExperienceDisclosures(root);
+    syncResponsiveDisclosures(root);
+    if (responsiveDisclosureMediaBound || !responsiveDisclosureMedia) return;
+    const sync = () => syncResponsiveDisclosures(document);
+    if (typeof responsiveDisclosureMedia.addEventListener === 'function') {
+      responsiveDisclosureMedia.addEventListener('change', sync);
+    } else if (typeof responsiveDisclosureMedia.addListener === 'function') {
+      responsiveDisclosureMedia.addListener(sync);
+    }
+    responsiveDisclosureMediaBound = true;
   }
 
   const setupProfessionalJumpRail = (panel, links) => {
@@ -2138,7 +2196,7 @@
   });
 
   const PROJECT_EMBED_MIN_HEIGHT_PX = 360;
-  const PROJECT_EMBED_MAX_HEIGHT_PX = 5000;
+  const PROJECT_EMBED_MAX_HEIGHT_PX = 960;
   const PROJECT_EMBED_RESIZE_TYPE_RE = /(?:^portfolio-demo:resize$|-demo-resize$)/;
 
   const projectEmbedForFrame = (ifr) => (
@@ -2181,6 +2239,9 @@
     const constrained = Math.min(max, Math.max(min, measured));
     const next = `${constrained}px`;
     const embed = projectEmbedForFrame(ifr);
+    const isCapped = measured > max;
+    ifr.setAttribute('scrolling', isCapped ? 'auto' : 'no');
+    ifr.style.overflow = isCapped ? 'auto' : 'hidden';
     if (ifr.style.height === next && embed?.style?.getPropertyValue('--project-demo-height') === next) return;
     ifr.style.height = next;
     if (embed) embed.style.setProperty('--project-demo-height', next);
@@ -2286,8 +2347,52 @@
     });
   };
 
-  document.addEventListener('DOMContentLoaded', bindProjectEmbedResize);
-  window.addEventListener('load', bindProjectEmbedResize);
+  const projectEmbedMobileMedia = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(max-width: 768px)')
+    : null;
+
+  const syncProjectEmbedLoading = () => {
+    const useLaunchCard = projectEmbedMobileMedia?.matches === true;
+    document.querySelectorAll('.project-embed[data-embed-fit="content"] .project-embed-frame').forEach((ifr) => {
+      const currentSrc = ifr.getAttribute('src');
+      const deferredSrc = ifr.getAttribute('data-src');
+      const embed = projectEmbedForFrame(ifr);
+
+      if (useLaunchCard) {
+        if (currentSrc) ifr.setAttribute('data-src', currentSrc);
+        ifr.removeAttribute('src');
+        ifr.style.removeProperty('height');
+        embed?.style?.removeProperty('--project-demo-height');
+        try { ifr._projectEmbedResizeObserver?.disconnect(); } catch {}
+        ifr._projectEmbedResizeObserver = null;
+        return;
+      }
+
+      if (!currentSrc && deferredSrc) {
+        ifr.setAttribute('src', deferredSrc);
+        ifr.removeAttribute('data-src');
+        requestAnimationFrame(() => {
+          resizeProjectEmbedIframe(ifr);
+          observeProjectEmbedIframe(ifr);
+        });
+      }
+    });
+  };
+
+  const initProjectEmbeds = () => {
+    bindProjectEmbedResize();
+    syncProjectEmbedLoading();
+  };
+
+  document.addEventListener('DOMContentLoaded', initProjectEmbeds);
+  window.addEventListener('load', initProjectEmbeds);
+  if (projectEmbedMobileMedia) {
+    if (typeof projectEmbedMobileMedia.addEventListener === 'function') {
+      projectEmbedMobileMedia.addEventListener('change', syncProjectEmbedLoading);
+    } else if (typeof projectEmbedMobileMedia.addListener === 'function') {
+      projectEmbedMobileMedia.addListener(syncProjectEmbedLoading);
+    }
+  }
   window.addEventListener('message', (event) => {
     if (event.origin && event.origin !== window.location.origin) return;
     const data = event && event.data || {};

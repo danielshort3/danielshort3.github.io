@@ -41,33 +41,11 @@
     }
   ],
   "heroTitle": "Tools",
-  "heroLead": "Focused utilities for writing, campaigns, and media.",
+  "heroLead": "Focused browser utilities for writing, campaigns, and media.",
   "statusLabel": "Local-first",
   "brandPanel": {
-    "signals": [
-      "Local-first",
-      "Writing",
-      "Campaigns",
-      "Media"
-    ],
-    "proofPoints": [
-      {
-        "value": "{{count}}",
-        "label": "public tools"
-      },
-      {
-        "value": "5",
-        "label": "workflow groups"
-      },
-      {
-        "value": "Local",
-        "label": "browser-first"
-      },
-      {
-        "value": "Saved",
-        "label": "session support"
-      }
-    ]
+    "signals": [],
+    "proofPoints": []
   },
   "filter": {
     "placeholder": "Search tools",
@@ -110,6 +88,6 @@
     }
   ],
   "directoryKicker": "Tool catalog",
-  "directoryTitle": "Choose the workflow surface",
-  "directoryDescription": "Grouped by the kind of repeated work each tool is meant to remove."
+  "directoryTitle": "Choose a tool",
+  "directoryDescription": "Search by task or narrow the list by category."
 }

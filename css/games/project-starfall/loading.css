@@ -85,7 +85,10 @@
 
   .project-starfall-start-content {
     position: relative;
+    box-sizing: border-box;
     width: min(520px, 100%);
+    max-width: 100%;
+    min-width: 0;
     margin-bottom: clamp(8px, 4vh, 42px);
     padding: 18px 20px 20px 24px;
     border: 1px solid rgba(245,207,114,0.46);
@@ -153,7 +156,7 @@
 
   .project-starfall-start-actions button {
     min-width: 132px;
-    min-height: 42px;
+    min-height: 44px;
     border: 1px solid rgba(245,207,114,0.54);
     border-radius: 8px;
     background:

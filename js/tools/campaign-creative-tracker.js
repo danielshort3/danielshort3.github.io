@@ -452,6 +452,7 @@
   };
 
   let state = loadState();
+  let mobileLibraryPane = 'families';
 
   const persistState = () => {
     state.campaign.updatedAt = new Date().toISOString();
@@ -625,6 +626,7 @@
 
   const renderRenditionPane = (family) => `
     <section class="ctc-rendition-pane" aria-labelledby="ctc-renditions-title">
+      <button type="button" class="ctc-button ctc-button-ghost ctc-mobile-back" data-ctc-action="show-mobile-families">← Families</button>
       <div class="ctc-pane-heading ctc-pane-heading-main">
         <div>
           <p class="ctc-overline">Selected family</p>
@@ -674,6 +676,7 @@
     const overridden = family.renditions.filter((renditionItem) => renditionItem.overrideEnabled).length;
     return `
       <aside class="ctc-inspector" aria-label="Family link and UTM rules">
+        <button type="button" class="ctc-button ctc-button-ghost ctc-mobile-back" data-ctc-action="show-mobile-renditions">← Renditions</button>
         <div class="ctc-inspector-header">
           <div>
             <h3>Family link &amp; UTM rules</h3>
@@ -816,7 +819,7 @@
   const renderLibrary = () => {
     const family = selectedFamily();
     if (!family) return '<div class="ctc-empty"><h2>No creative families yet</h2><p>Create a family, then import its renditions.</p><button class="ctc-button ctc-button-primary" data-ctc-action="new-family">Create family</button></div>';
-    return `<div class="ctc-library-layout">${renderFamilyRail()}${renderRenditionPane(family)}${renderInspector(family, selectedRendition())}</div>`;
+    return `<div class="ctc-library-layout" data-mobile-pane="${escapeHtml(mobileLibraryPane)}">${renderFamilyRail()}${renderRenditionPane(family)}${renderInspector(family, selectedRendition())}</div>`;
   };
 
   const renderMetric = (value, label, iconName, tone = '') => `
@@ -1367,16 +1370,30 @@
       });
       return;
     }
+    if (action === 'show-mobile-families') {
+      mobileLibraryPane = 'families';
+      render();
+      window.requestAnimationFrame(() => root.querySelector('.ctc-family-card.is-selected')?.focus());
+      return;
+    }
+    if (action === 'show-mobile-renditions') {
+      mobileLibraryPane = 'renditions';
+      render();
+      window.requestAnimationFrame(() => root.querySelector('.ctc-rendition-card.is-selected')?.focus());
+      return;
+    }
     if (action === 'select-family') {
       const family = state.campaign.families.find((item) => item.id === button.dataset.familyId);
       if (!family) return;
       state.ui.selectedFamilyId = family.id;
       state.ui.selectedRenditionId = family.renditions[0]?.id || '';
+      mobileLibraryPane = 'renditions';
       commit(false);
       return;
     }
     if (action === 'select-rendition') {
       state.ui.selectedRenditionId = button.dataset.renditionId || '';
+      mobileLibraryPane = 'inspector';
       commit(false);
       return;
     }

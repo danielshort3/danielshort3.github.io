@@ -10,7 +10,7 @@ The public canonical HTML is authoritative. Optional /ai/ summaries contain the 
 - [Daniel Short | Data Analytics, ML Projects & Web Tools](https://www.danielshort.me/): Personal website for Daniel Short, featuring machine learning projects, analytics work, practical tools, and browser games.
 - [Portfolio](https://www.danielshort.me/portfolio): Project library of data projects, software experiments, tools, and demos by Daniel Short.
 - [Browser Tools for Writing, Images & Campaigns](https://www.danielshort.me/tools): Use free, privacy-conscious browser tools for text comparison, writing cleanup, UTM links, QR codes, image optimization, and screen recording.
-- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
+- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Six playable experiments in probability, progression, and interactive systems.
 - [Contact](https://www.danielshort.me/contact): Send Daniel Short a note about projects, tools, ideas, or questions.
 
 ## Projects
@@ -35,7 +35,7 @@ The public canonical HTML is authoritative. Optional /ai/ summaries contain the 
 
 ## Games
 
-- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Interactive experiments in state, balance, probability, progression, and feedback loops. Each one is playable in the browser.
+- [Browser Games & Interactive Simulations](https://www.danielshort.me/games): Six playable experiments in probability, progression, and interactive systems.
 - [Stellar Dogfight](https://www.danielshort.me/games/stellar-dogfight): Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.
 - [Double-Zero Roulette](https://www.danielshort.me/games/roulette): Run a double-zero table, inspect bet layouts, and track recent-spin distributions over time.
 - [Probability Engine](https://www.danielshort.me/games/probability-engine): Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.

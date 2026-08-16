@@ -26,7 +26,7 @@ const NON_SITEMAP_UTILITY_SOURCES = new Set([
 const DIRECTORY_RESULT_CONTRACTS = [
   { file: 'pages/portfolio.html', pathPrefix: '/portfolio/', label: 'Portfolio' },
   { file: 'pages/tools.html', pathPrefix: '/tools/', label: 'Tools' },
-  { file: 'pages/games.html', pathPrefix: '/games/', label: 'Games' }
+  { file: 'pages/games.html', pathPrefix: '/games/', label: 'Games', containerAttribute: 'data-games-directory' }
 ];
 
 const REQUIRED_ALIAS_REDIRECTS = [
@@ -629,9 +629,10 @@ function validateDirectoryResultAnchors() {
       report(contract.file, 'incomplete HTML document shell');
       return;
     }
-    const container = extractElementWithAttribute(html, 'data-portfolio-results');
+    const containerAttribute = contract.containerAttribute || 'data-portfolio-results';
+    const container = extractElementWithAttribute(html, containerAttribute);
     if (!container) {
-      report(contract.file, 'missing a complete raw HTML [data-portfolio-results] container');
+      report(contract.file, `missing a complete raw HTML [${containerAttribute}] container`);
       return;
     }
 

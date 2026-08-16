@@ -18,6 +18,7 @@
   const outputEl = $('#povcheck-output');
   const clearBtn = $('#povcheck-clear');
 
+  const exampleBtn = $('#povcheck-example');
   const pasteBtn = $('#povcheck-paste');
   const importBtn = $('#povcheck-import');
   const fileInput = $('#povcheck-file');
@@ -71,6 +72,11 @@
   const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
   const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
   const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
+  const POV_EXAMPLE = [
+    'I reviewed the draft and marked the sections I want to revise.',
+    'You can compare the options before you choose a final version.',
+    'They will publish the approved copy after the editor signs off.'
+  ].join('\n\n');
   const vendorScriptPromises = new Map();
 
   const COLOR_STORAGE_KEY = 'povcheck-highlight-colors';
@@ -179,6 +185,7 @@
 
   const setInputBusy = (busy) => {
     const disabled = Boolean(busy);
+    if (exampleBtn) exampleBtn.disabled = disabled;
     if (pasteBtn) pasteBtn.disabled = disabled;
     if (importBtn) importBtn.disabled = disabled;
     if (fileInput) fileInput.disabled = disabled;
@@ -558,7 +565,7 @@
     const raw = textInput.value || '';
     const hasUser = Boolean(raw.trim());
     return {
-      text: hasUser ? raw : (textInput.placeholder || ''),
+      text: raw,
       hasUser
     };
   };
@@ -1945,6 +1952,15 @@
 
   pasteBtn?.addEventListener('click', () => {
     void pasteIntoInput();
+  });
+
+  exampleBtn?.addEventListener('click', () => {
+    textInput.value = POV_EXAMPLE;
+    setInputStatus('Example loaded. Choose Check to analyze.', 'success');
+    setResultsStatus('');
+    resetUI();
+    markSessionDirty();
+    textInput.focus();
   });
 
   importBtn?.addEventListener('click', () => {

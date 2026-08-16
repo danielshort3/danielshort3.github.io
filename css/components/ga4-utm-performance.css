@@ -19,6 +19,14 @@
     padding-top:clamp(1.2rem,3.2vh,1.8rem);
   }
 
+  body[data-page="ga4-utm-performance"] .ga4-report-config{
+    padding-block:clamp(.55rem,1.5vh,.85rem);
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-report-config .ga4-panel-card{
+    box-shadow:0 10px 24px rgba(0,0,0,.18);
+  }
+
   body[data-page="ga4-utm-performance"] .ga4-panel-section[hidden]{
     display:none;
   }

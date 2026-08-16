@@ -115,6 +115,7 @@
 	  }
   a.resume-contact-item{
     text-decoration:none;
+    min-height:44px;
     transition:transform .15s ease, border-color .15s ease, background-color .15s ease;
   }
   a.resume-contact-item:hover{
@@ -458,6 +459,9 @@
     gap:8px;
   }
   .resume-project-title{
+    display:inline-flex;
+    align-items:center;
+    min-height:44px;
     font-weight:700;
     color:var(--text-light);
     text-decoration:none;
@@ -817,9 +821,6 @@
     padding:10px 8px;
     font-size:.9rem;
   }
-  body.resume-pdf-page .resume-actions > :first-child{
-    grid-column:1 / -1;
-  }
   body.resume-page .resume-actions{
     display:grid;
     grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -842,7 +843,7 @@
 }
 
 @media (max-width: 340px){
-  body.resume-page .resume-actions{
+  body:is(.resume-page,.resume-pdf-page) .resume-actions{
     grid-template-columns:1fr;
   }
 }

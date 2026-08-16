@@ -2357,12 +2357,12 @@
     const createMobileSection = (categoryId, index) => {
       const category = CATEGORIES[categoryId];
       const preferredGroup = getPreferredMobileGroup(categoryId);
-      const items = (preferredGroup?.items?.length ? preferredGroup.items : category.items).slice(0, 3);
+      const items = (preferredGroup?.items?.length ? preferredGroup.items : category.items).slice(0, 1);
       const featured = items[0] || category.items[0];
       const sectionTitle = {
-        projects: 'Project Examples',
-        tools: 'Tools I Keep Refining',
-        games: 'Games & Simulations'
+        projects: 'Featured Project',
+        tools: 'Featured Tool',
+        games: 'Featured Game'
       }[categoryId] || category.label;
       const sectionKicker = {
         projects: 'Featured work',
@@ -2370,9 +2370,9 @@
         games: 'Playable systems'
       }[categoryId] || category.singular;
       const sectionSummary = {
-        projects: 'A quick look at machine learning, analytics, and interface-driven project work.',
-        tools: 'Small utilities for text, campaign links, media, and repeated workflow cleanup.',
-        games: 'Lightweight games and simulations built around systems, feedback loops, and interaction design.'
+        projects: 'A recent machine learning, analytics, or interface build.',
+        tools: 'A practical browser utility for repeated work.',
+        games: 'A playable experiment built around interactive systems.'
       }[categoryId] || category.summary;
       const sectionVisual = featured ? ITEM_VISUAL_BY_ID[featured.id] : '';
       const sectionStyle = [
@@ -2435,10 +2435,8 @@
               <a href="tools">Tools</a>
               <a href="games">Games</a>
             </div>
-            <a class="home-graph__mobile-hero-scroll" href="#home-mobile-start-here-title">Start here ${getLinkIcon()}</a>
           </div>
         </section>
-        ${createMobileStartHereHtml()}
         ${CATEGORY_ORDER.map(createMobileSection).join('')}
       </div>
     `;

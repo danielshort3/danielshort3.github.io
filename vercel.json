@@ -195,6 +195,8 @@
     { "source": "/probability-engine.html", "destination": "/games/probability-engine", "permanent": true },
     { "source": "/word-frequency", "destination": "/tools/word-frequency", "permanent": true },
     { "source": "/word-frequency.html", "destination": "/tools/word-frequency", "permanent": true },
+    { "source": "/short-links", "destination": "/tools/short-links", "permanent": true },
+    { "source": "/short-links.html", "destination": "/tools/short-links", "permanent": true },
     { "source": "/oxford-comma-checker", "destination": "/tools/oxford-comma-checker", "permanent": true },
     { "source": "/oxford-comma-checker.html", "destination": "/tools/oxford-comma-checker", "permanent": true },
     { "source": "/nbsp-cleaner", "destination": "/tools/nbsp-cleaner", "permanent": true },

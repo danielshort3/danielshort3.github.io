@@ -3196,7 +3196,9 @@
     const hash = window.location && window.location.hash
       ? window.location.hash.replace('#', '')
       : '';
-    const initial = tabs.buttons.some(button => button.dataset.jobtrackTab === hash) ? hash : defaultTab;
+    const initial = tabs.buttons.some(button => button.dataset.jobtrackTab === hash)
+      ? hash
+      : (authIsValid(state.auth) ? 'entries' : defaultTab);
     activateTab(initial);
     tabs.buttons.forEach((button, index) => {
       button.addEventListener('click', () => activateTab(button.dataset.jobtrackTab, true));
@@ -5974,7 +5976,8 @@
     try {
       stored = localStorage.getItem(ENTRY_VIEW_KEY) || '';
     } catch {}
-    setEntryView(stored || state.entryView);
+    const responsiveDefault = window.matchMedia?.('(max-width: 760px)').matches ? 'cards' : state.entryView;
+    setEntryView(stored || responsiveDefault);
     if (els.entryViewInputs.length) {
       els.entryViewInputs.forEach((input) => {
         input.addEventListener('change', () => setEntryView(input.value));

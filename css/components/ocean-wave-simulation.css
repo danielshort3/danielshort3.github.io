@@ -216,7 +216,7 @@
     gap:8px;
   }
   .ocean-wave-preset{
-    min-height:42px;
+    min-height:44px;
     padding:9px 10px;
     border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
     border-radius:10px;

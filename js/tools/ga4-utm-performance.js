@@ -78,12 +78,18 @@
     if (!buttons.length || !panels.length) return;
 
     const order = buttons
+      .filter((btn) => !btn.hidden)
       .map((btn) => String(btn?.dataset?.ga4Tab || '').trim())
       .filter(Boolean);
     const allowed = new Set(order);
+    const tabAliases = new Map([
+      ['scope', 'utm'],
+      ['filters', 'utm']
+    ]);
 
     const normalizeTabId = (value) => {
-      const id = String(value || '').trim();
+      const rawId = String(value || '').trim();
+      const id = tabAliases.get(rawId) || rawId;
       if (!id) return '';
       return allowed.has(id) ? id : '';
     };
@@ -95,8 +101,8 @@
 
     const renderTabs = (tabId) => {
       buttons.forEach((btn) => {
-        const id = normalizeTabId(btn?.dataset?.ga4Tab);
-        const isActive = id && id === tabId;
+        const id = String(btn?.dataset?.ga4Tab || '').trim();
+        const isActive = !btn.hidden && id && id === tabId;
         btn.classList.toggle('is-active', isActive);
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         btn.tabIndex = isActive ? 0 : -1;
@@ -125,7 +131,7 @@
       }
 
       if (focus) {
-        const btn = buttons.find((b) => normalizeTabId(b?.dataset?.ga4Tab) === id);
+        const btn = buttons.find((b) => !b.hidden && String(b?.dataset?.ga4Tab || '').trim() === id);
         try { btn?.focus({ preventScroll: true }); } catch {}
       }
     };

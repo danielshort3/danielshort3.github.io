@@ -25,15 +25,10 @@
 
   const accessCard = document.querySelector('[data-shortlinks="access-card"]');
   const adminAccessSummaryEl = document.querySelector('[data-shortlinks="admin-access-summary"]');
-  const adminProjectSummaryEl = document.querySelector('[data-shortlinks="admin-project-summary"]');
-  const adminExportSummaryEl = document.querySelector('[data-shortlinks="admin-export-summary"]');
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
   const systemHealthStatusEl = document.querySelector('[data-shortlinks="system-health-status"]');
   const systemHealthSummaryEl = document.querySelector('[data-shortlinks="system-health-summary"]');
   const systemHealthMetaEl = document.querySelector('[data-shortlinks="system-health-meta"]');
-  const projectSyncShortcutButton = document.querySelector('[data-shortlinks="project-sync-shortcut"]');
-  const exportShortcutButton = document.querySelector('[data-shortlinks="export-shortcut"]');
-  const adminToolsEl = document.querySelector('[data-shortlinks="admin-tools"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
   const statusFilterSelect = document.querySelector('[data-shortlinks="status-filter"]');
   const sortSelect = document.querySelector('[data-shortlinks="sort"]');
@@ -1735,34 +1730,6 @@
       hasToken ? 'success' : 'warning'
     );
 
-    const totalProjects = Number.isFinite(Number(projectHealth.total)) ? Number(projectHealth.total) : 0;
-    const missingProjects = Number.isFinite(Number(projectHealth.missing)) ? Number(projectHealth.missing) : 0;
-    const mismatchedProjects = Number.isFinite(Number(projectHealth.mismatched)) ? Number(projectHealth.mismatched) : 0;
-    const projectIssues = missingProjects + mismatchedProjects;
-    const projectSyncChecked = projectHealth.checked === true && canCompareProjectLinks();
-
-    if (!totalProjects) {
-      setAdminBadge(adminProjectSummaryEl, 'Project sync', '');
-    } else if (!projectSyncChecked) {
-      const pending = getProjectSyncPendingCopy();
-      setAdminBadge(adminProjectSummaryEl, 'Project sync', pending.tone);
-    } else {
-      setAdminBadge(
-        adminProjectSummaryEl,
-        projectIssues
-          ? `Project sync (${formatCount(projectIssues)})`
-          : 'Project sync',
-        projectIssues ? 'warning' : 'success'
-      );
-    }
-
-    const mode = exportModeSelect ? String(exportModeSelect.value || '').trim() : EXPORT_MODE_REDIRECTS_ONLY;
-    if (mode === EXPORT_MODE_WITH_CLICKS) {
-      setAdminBadge(adminExportSummaryEl, 'Export', 'info');
-      return;
-    }
-
-    setAdminBadge(adminExportSummaryEl, 'Export', '');
   }
 
   function getAudienceApi(){
@@ -5453,26 +5420,6 @@
   if (exportViewButton) {
     exportViewButton.addEventListener('click', () => {
       exportCurrentView();
-    });
-  }
-
-  if (projectSyncShortcutButton) {
-    projectSyncShortcutButton.addEventListener('click', () => {
-      setActiveMode('projects');
-      if (adminToolsEl && 'open' in adminToolsEl) adminToolsEl.open = true;
-      if (projectsShortcutModeSelect && typeof projectsShortcutModeSelect.focus === 'function') {
-        projectsShortcutModeSelect.focus({ preventScroll: true });
-      }
-    });
-  }
-
-  if (exportShortcutButton) {
-    exportShortcutButton.addEventListener('click', () => {
-      setActiveMode('projects');
-      if (adminToolsEl && 'open' in adminToolsEl) adminToolsEl.open = true;
-      if (exportModeSelect && typeof exportModeSelect.focus === 'function') {
-        exportModeSelect.focus({ preventScroll: true });
-      }
     });
   }
 
