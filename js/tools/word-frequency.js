@@ -7,6 +7,7 @@
   const textInput = $('#wordfreq-text');
   const topInput = $('#wordfreq-top');
   const clearBtn = $('#wordfreq-clear');
+  const exampleBtn = $('#wordfreq-example');
   const resultsList = $('#wordfreq-results');
   const summaryEl = $('#wordfreq-summary');
   const emptyEl = $('#wordfreq-empty');
@@ -109,13 +110,20 @@
     excludeTerms: String(excludeInput.value || '')
   };
 
-  const DEFAULT_SUMMARY = 'Click Analyze to run the built-in example, or paste your own text.';
-  const DEFAULT_EMPTY = 'Click Analyze to run the built-in example.';
+  const WORD_FREQUENCY_EXAMPLE = [
+    'Product analytics should be easy to act on, easy to audit, and easy to repeat.',
+    '',
+    'Activation improved from 41% to 57%, then to 59% in week five. Activation appears in every meeting note because activation is the leading indicator for retention.',
+    '',
+    'Customer success handoff, customer success handoff, and support handoff were repeated across teams. The handoff playbook reduced reopen rate and improved support quality.',
+    '',
+    'Root cause analysis, owner assignment, and follow-up actions should be measured weekly, monthly, and again after release.'
+  ].join('\n');
+  const DEFAULT_SUMMARY = 'Paste text or load the example.';
+  const DEFAULT_EMPTY = 'Waiting for text.';
 
   const getAnalysisSourceText = () => {
-    const userText = normalizeWhitespace(textInput.value || '');
-    if (userText.trim()) return userText;
-    return normalizeWhitespace(textInput.placeholder || '');
+    return normalizeWhitespace(textInput.value || '');
   };
 
   const formatNumber = (n) => Number(n || 0).toLocaleString('en-US');
@@ -1334,6 +1342,15 @@
       reportRunError('processing');
       throw error;
     }
+  });
+
+  exampleBtn?.addEventListener('click', () => {
+    textInput.value = WORD_FREQUENCY_EXAMPLE;
+    textInput.dispatchEvent(new Event('input', { bubbles: true }));
+    setInputStatus('Example loaded. Click Analyze to review the terms.', 'success');
+    renderEmpty('Example loaded. Click Analyze to review the terms.', 'Ready to analyze.');
+    markSessionDirty();
+    textInput.focus();
   });
 
   clearBtn?.addEventListener('click', () => {

@@ -43,8 +43,7 @@
       persistence,
       embedded: configured.embedded === true,
       signInMode: configured.signInMode || 'redirect',
-      showToolsLink: Boolean((toolId && page !== 'short-links') || page === 'tools-dashboard'),
-      showSavedWorkLink: page !== 'tools-dashboard'
+      showToolsLink: Boolean((toolId && page !== 'short-links') || page === 'tools-dashboard')
     };
   };
 
@@ -726,15 +725,13 @@
               </button>
               <div class="tools-account-disclosure" id="tools-account-disclosure" data-tools-account="disclosure" hidden inert>
                 <p class="tools-account-identity" data-tools-account="identity"></p>
-                <a class="tools-account-disclosure-action" data-tools-account="saved-work" href="/tools/dashboard">Saved work</a>
-                <button type="button" class="tools-account-disclosure-action" data-tools-action="open-account">Account &amp; history</button>
+                <button type="button" class="tools-account-disclosure-action" data-tools-action="open-account">Saved work &amp; account</button>
                 <button type="button" class="tools-account-disclosure-action tools-account-disclosure-signout" data-tools-action="sign-out">Sign out</button>
               </div>
             </div>
             <div class="tools-account-embedded-actions" data-tools-account="embedded-actions" hidden>
               <p class="tools-account-identity" data-tools-account="identity"></p>
-              <a class="tools-account-disclosure-action" data-tools-account="saved-work" href="/tools/dashboard">Saved work</a>
-              <button type="button" class="tools-account-disclosure-action" data-tools-action="open-account">Account &amp; history</button>
+              <button type="button" class="tools-account-disclosure-action" data-tools-action="open-account">Saved work &amp; account</button>
               <button type="button" class="tools-account-disclosure-action tools-account-disclosure-signout" data-tools-action="sign-out">Sign out</button>
             </div>
           </div>
@@ -799,10 +796,6 @@
     refs.structureEl?.querySelectorAll('[data-tools-account="identity"]').forEach((el) => {
       el.textContent = identity;
     });
-    refs.structureEl?.querySelectorAll('[data-tools-account="saved-work"]').forEach((el) => {
-      el.toggleAttribute('hidden', !capabilities.showSavedWorkLink);
-    });
-
     const retryable = saveState === 'error';
     const manualSaveVisible = capabilities.persistence === 'manual' && ['dirty', 'saving', 'error'].includes(saveState);
     const autosaveRetryVisible = capabilities.persistence === 'autosave' && retryable;
@@ -2408,8 +2401,6 @@
 
     barEl.addEventListener('click', (event) => {
       const button = event.target.closest('[data-tools-action]');
-      const savedWorkLink = event.target.closest('[data-tools-account="saved-work"]');
-      if (savedWorkLink) disclosureController.close();
       if (!button || button.dataset.toolsAction === 'toggle-account') return;
       const action = button.dataset.toolsAction;
       if (action === 'sign-in') {

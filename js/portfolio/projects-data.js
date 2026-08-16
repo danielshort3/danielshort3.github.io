@@ -1278,7 +1278,5 @@ window.PROJECTS = [
 window.FEATURED_IDS = [
   "retailStore",
   "targetEmptyPackage",
-  "pizzaDashboard",
-  "deliveryTip",
-  "ufoDashboard"
+  "pizzaDashboard"
 ];

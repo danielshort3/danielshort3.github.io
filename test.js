@@ -7,6 +7,7 @@ const childProcess = require('child_process');
 const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
 const runCampaignCreativeTrackerTests = require('./tests/campaign-creative-tracker.test.js');
 const runPortfolioRecommendationTests = require('./tests/portfolio-recommendations.test.js');
+const runResponsiveDensityContractTests = require('./tests/responsive-density-contracts.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/qr-code-generator-utils.test.js');
 const runTextCompareCoreTests = require('./tests/text-compare-core.test.js');
 const { validateProjectStarfallClassSkillData } = require('./build/validate-project-starfall-class-skills.js');
@@ -650,12 +651,14 @@ try {
     });
 
     const contactPageHtml = readFile('pages/contact.html');
-    assert(contactPageHtml.includes('id="grand-junction-location"') &&
-           contactPageHtml.includes('data-google-maps-iframe') &&
-           contactPageHtml.includes('Grand Junction, CO'),
-      'contact page should include the Grand Junction map embed marker');
-    assert(!contactPageHtml.includes('maps/embed/v1/place?key='),
-      'tracked contact page HTML should not contain a committed Google Maps API key');
+    assert(contactPageHtml.includes('id="contact-options"') &&
+           (contactPageHtml.match(/class="contact-card"/g) || []).length === 3 &&
+           (contactPageHtml.match(/id="contact-form-toggle"/g) || []).length === 1 &&
+           contactPageHtml.includes('Grand Junction, Colorado'),
+      'contact page should keep one form entry point plus three concise alternate contact options');
+    assert(!contactPageHtml.includes('data-google-maps-iframe') &&
+           !contactPageHtml.includes('maps/embed/v1/place?key='),
+      'contact page should omit the redundant map embed and any committed Google Maps API key');
 
     const titleConventionPages = [
       ...Object.keys(expectedTitles),
@@ -974,15 +977,15 @@ try {
       toolsHtml.includes('data-directory-workbench="tools"') &&
       toolsHtml.includes('class="portfolio-workbench__filters"') &&
       toolsHtml.includes('class="portfolio-workbench__results"') &&
-      toolsHtml.includes('data-portfolio-inspector'),
-      'tools page should render the shared filter, results, and inspector workbench anatomy');
+      !toolsHtml.includes('data-portfolio-inspector'),
+      'tools page should render compact filter and results columns without an inspector');
     assert(toolsHtml.includes('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"') &&
       toolsHtml.includes('data-directory-brand="tools"') &&
-      toolsHtml.includes('Focused utilities for writing, campaigns, and media.') &&
-      toolsHtml.includes(`<strong data-tools-directory-stat>${publicTools.length}</strong>`) &&
-      toolsHtml.includes('<span data-tools-directory-stat-label>public tools</span>') &&
-      toolsHtml.includes('<span class="is-active">Local-first</span>'),
-      'tools page should render the shared branded workbench header and live directory status');
+      toolsHtml.includes('Focused browser utilities for writing, campaigns, and media.') &&
+      !toolsHtml.includes('data-tools-directory-stat') &&
+      !toolsHtml.includes('portfolio-brand-panel__proof') &&
+      !toolsHtml.includes('portfolio-brand-panel__signals'),
+      'tools page should render a concise branded header without duplicate status and proof clutter');
     const toolsHeaderStart = toolsHtml.indexOf('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"');
     const toolsHeaderEnd = toolsHtml.indexOf('</header>', toolsHeaderStart);
     const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory"');
@@ -990,8 +993,8 @@ try {
       'tools account action should stay compact and inside the branded header');
     assert(toolsHtml.includes('data-portfolio-search') &&
       toolsHtml.includes('placeholder="Search tools"') &&
-      toolsHtml.includes('data-portfolio-sort'),
-      'tools page should provide familiar search and sort controls');
+      !toolsHtml.includes('data-portfolio-sort'),
+      'tools page should provide search without a redundant sort control');
     assert(!catalogJs.includes("if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');"),
       'tools account UI should not force an existing visible h1 offscreen');
     assert(catalogJs.includes("if (page !== 'tools')") &&
@@ -1018,7 +1021,7 @@ try {
     const initialResultsHtml = resultsStart >= 0 && resultsEnd > resultsStart
       ? toolsHtml.slice(resultsStart, resultsEnd)
       : '';
-    assert((initialResultsHtml.match(/class="portfolio-result-card tools-workbench-result"/g) || []).length === publicTools.length &&
+    assert((initialResultsHtml.match(/class="portfolio-result-card tools-workbench-result tools-workbench-result__select"/g) || []).length === publicTools.length &&
       publicTools.every((tool) => initialResultsHtml.includes(`href="${tool.href}"`)),
       'tools page should server-render one crawlable launch card for every public tool');
     assert(!accountTools.some((tool) => initialResultsHtml.includes(`href="${tool.href}"`)) &&
@@ -1026,11 +1029,11 @@ try {
       'tools page should not expose account or admin launch cards in its indexable static results');
     assert(toolsDirectoryData && toolsDirectoryData.kind === 'tools' && toolsDirectoryData.itemPlural === 'tools',
       'generated tools data should declare the shared workbench contract');
-    assert(toolsDirectoryData.filterGroups.map((group) => group.title).join('|') === 'Category|Availability|Access',
-      'tools workbench filters should cover category, availability, and access');
+    assert(toolsDirectoryData.filterGroups.map((group) => group.title).join('|') === 'Category',
+      'tools workbench should keep Category as its only filter');
     assert(toolsDirectoryData.items.length === toolRecords.length &&
       toolsDirectoryData.items.every((tool) => tool.privacy && Array.isArray(tool.inputs) && tool.inputs.length && Array.isArray(tool.outputs) && tool.outputs.length),
-      'each generated tool should provide privacy and input/output inspector details');
+      'each generated tool should retain privacy and input/output metadata for tool behavior');
     assert(toolsDirectoryData.items.filter((tool) => tool.visibility === 'public').length === publicTools.length,
       'generated public tool total should match the source catalog');
     assert(commonJs.includes("tools: 'js/portfolio/tools-directory-data.js'") &&
@@ -1038,10 +1041,10 @@ try {
       'common loader should map Tools to its generated workbench data and shared controller');
     assert(portfolioJs.includes("directoryKind === 'tools'") &&
       portfolioJs.includes('tools-workbench-result__select') &&
-      portfolioJs.includes('tools-workbench-result__open') &&
-      portfolioJs.includes('tools-workbench-inspector__identity') &&
-      portfolioJs.includes("directoryKind !== 'tools'"),
-      'shared workbench controller should provide tool details, direct launch links, a utility inspector, and an unobstructed mobile start state');
+      portfolioJs.includes('data-tool-open') &&
+      portfolioJs.includes('if (!inspector) return;') &&
+      !portfolioJs.includes('data-tool-details aria-pressed='),
+      'shared workbench controller should provide one direct full-card launch path and tolerate the intentionally absent inspector');
     assert(catalogJs.includes("document.querySelector('[data-directory-workbench=\"tools\"]')"),
       'tools account UI should defer workbench visibility and totals to the shared controller');
     assert(directoryJs.includes('window.DIRECTORY_WORKBENCH') && !directoryJs.includes("if (!document.querySelector('.tool-card')) return;"),
@@ -1066,10 +1069,11 @@ try {
       catalogJs.includes('aria-controls="tools-account-disclosure"') &&
       catalogJs.includes('id="tools-account-disclosure"') &&
       catalogJs.includes('hidden inert') &&
-      catalogJs.includes('data-tools-account="saved-work" href="/tools/dashboard"') &&
+      catalogJs.includes('data-tools-action="open-account">Saved work &amp; account</button>') &&
+      !catalogJs.includes('data-tools-account="saved-work" href="/tools/dashboard"') &&
       !catalogJs.includes('role="menu"') &&
       !catalogJs.includes('role="menuitem"'),
-      'tools account bar should expose saved work through an accessible disclosure with native Tab navigation');
+      'tools account bar should consolidate saved work and account controls in an accessible disclosure with native Tab navigation');
     const accountDisclosureCode = catalogJs.slice(
       catalogJs.indexOf('const createDisclosureController'),
       catalogJs.indexOf('const initSessionsPanel')
@@ -1129,12 +1133,11 @@ try {
       toolsCss.includes('.portfolio-brand-panel .tools-account-disclosure {'),
       'Tools directory account options should escape the branded panel without falling behind later content');
     assert(!toolsCss.includes('tools-workbench-header') &&
-      toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr) minmax(310px,390px);') &&
-      toolsCss.includes('.tools-workbench-result.is-selected .tools-workbench-result__open') &&
+      toolsCss.includes('grid-template-columns:minmax(210px,248px) minmax(420px,1fr);') &&
+      !toolsCss.includes('.portfolio-workbench[data-directory-workbench="tools"] .portfolio-inspector') &&
       workbenchCss.includes('--directory-page-accent: var(--category-tools);') &&
-      workbenchCss.includes('--directory-page-accent: var(--category-games);') &&
       workbenchCss.includes('--workbench-accent-ink:'),
-      'directory CSS should share the Project Library treatment with accessible teal and orange themes');
+      'Tools CSS should use a two-column Project Library treatment with an accessible teal theme and no inspector system');
     assert(toolsCss.includes('.portfolio-brand-panel .btn-ghost') &&
       toolsCss.includes('border-color:rgba(255,255,255,.72);') &&
       toolsCss.includes('color:#ffffff;') &&
@@ -1143,9 +1146,9 @@ try {
       'tools workbench account ghost buttons should remain legible at rest, hover, and keyboard focus');
     assert(toolsCss.includes('@media (max-width:820px)') &&
       toolsCss.includes('grid-template-columns:minmax(0,1fr);') &&
-      toolsCss.includes('data-mobile-selection="overlay"') &&
-      toolsCss.includes('bottom:calc(var(--mobile-site-dock-height,112px)'),
-      'tools CSS should preserve compact mobile rows and a dock-aware details drawer');
+      toolsCss.includes('padding:.7rem var(--mobile-page-gutter) calc(var(--mobile-site-dock-clearance,120px) + 1rem);') &&
+      !toolsCss.includes('data-mobile-selection="overlay"'),
+      'tools CSS should preserve compact mobile rows and dock clearance without a details drawer');
     assert(!toolsHtml.includes('More tools soon'), 'tools page should not render placeholder cards');
     assert(!toolsHtml.includes('href="tools/"'), 'tools page should not render empty tool links');
     assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
@@ -1191,9 +1194,9 @@ try {
         assert(initialResultsHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from static results`);
         assert(initialResultsHtml.includes(`href="${href}"`), `${fileName} crawlable link missing from static results`);
         const hrefIndex = initialResultsHtml.indexOf(`href="${href}"`);
-        const articleStart = initialResultsHtml.lastIndexOf('<article', hrefIndex);
-        const articleEnd = initialResultsHtml.indexOf('</article>', hrefIndex);
-        const staticCard = initialResultsHtml.slice(articleStart, articleEnd);
+        const cardStart = initialResultsHtml.lastIndexOf('<a class="portfolio-result-card', hrefIndex);
+        const cardEnd = initialResultsHtml.indexOf('</a>', hrefIndex);
+        const staticCard = initialResultsHtml.slice(cardStart, cardEnd);
         assert(staticCard.includes('data-tools-visibility="public"'), `${fileName} static visibility is missing`);
       } else {
         assert(!initialResultsHtml.includes(`href="${href}"`), `${fileName} restricted route should stay out of indexable static results`);
@@ -38410,8 +38413,6 @@ try {
       'data-shortlinks="admin-tools"',
       'data-shortlinks="access-card"',
       'data-shortlinks="admin-access-summary"',
-      'data-shortlinks="admin-project-summary"',
-      'data-shortlinks="admin-export-summary"',
       'data-shortlinks="auth"',
       'data-shortlinks="remember-token"',
       'data-shortlinks="summary"',
@@ -38462,6 +38463,11 @@ try {
     ].forEach((snippet) => {
       assert(html.includes(snippet), `pages/short-links.html missing expected short-links hook: ${snippet}`);
     });
+    assert(!html.includes('data-shortlinks="admin-project-summary"') &&
+      !html.includes('data-shortlinks="admin-export-summary"') &&
+      !html.includes('data-shortlinks="project-sync-shortcut"') &&
+      !html.includes('data-shortlinks="export-shortcut"'),
+      'short links command bar should omit redundant project-sync and export shortcuts');
     const css = readFile('css/components/short-links.css');
     assert(css.includes('.shortlinks-mode-panel[hidden]'), 'short links CSS should preserve hidden tab panel behavior');
     assert(css.includes('.shortlinks-health-strip'), 'short links CSS should style health metrics');
@@ -38481,6 +38487,8 @@ try {
     assert(html.includes('id="shortlinks-detail-panel"') && html.includes('aria-label="Selected link details"'),
       'short links detail inspector should have a persistent accessible region');
     const adminJs = readFile('js/admin/short-links.js');
+    assert(!adminJs.includes('project-sync-shortcut') && !adminJs.includes('export-shortcut'),
+      'short links JavaScript should not retain removed command-bar shortcut listeners');
     assert(!adminJs.includes('â€¦'),
       'short links status copy should not contain a mojibake ellipsis');
     assert(adminJs.includes('shortlinks_active_mode'), 'short links should remember the active workspace mode');
@@ -38773,53 +38781,65 @@ try {
     const staticResults = projectPageGenerator.renderPortfolioStaticResults(publishedProjects);
     assert((staticResults.match(/<article class="portfolio-result-card portfolio-project-result portfolio-project-result--static" role="listitem"/g) || []).length === publishedProjects.length,
       'no-JS portfolio results should render every published project as a listitem article');
-    assert((staticResults.match(/data-project-details aria-pressed="false" aria-disabled="true" disabled/g) || []).length === publishedProjects.length,
-      'no-JS portfolio articles should label their unavailable details buttons honestly');
+    assert(!staticResults.includes('data-project-details') &&
+      !staticResults.includes('Preview summary') &&
+      !staticResults.includes('<button'),
+      'no-JS portfolio articles should omit unavailable preview controls');
     assert((staticResults.match(/class="portfolio-result-card__open" href="portfolio\//g) || []).length === publishedProjects.length &&
       !staticResults.includes('<a class="portfolio-result-card"'),
       'no-JS portfolio articles should provide one direct case-study link instead of wrapping the whole card in an anchor');
+    assert((staticResults.match(/class="portfolio-result-tags"/g) || []).length <= publishedProjects.length &&
+      !/<span class="portfolio-result-tags">(?:<span>[^<]*<\/span>){3,}/.test(staticResults),
+      'no-JS portfolio articles should keep metadata to at most two chips');
   });
 
   section('Portfolio, games, and tools responsive workbench contracts', () => {
     const portfolioJs = fs.readFileSync('js/portfolio/portfolio.js', 'utf8');
     const workbenchCss = fs.readFileSync('css/components/portfolio-workbench.css', 'utf8');
-    const gamesHtml = fs.readFileSync('pages/games.html', 'utf8');
+    const cmsRenderers = require('./build/lib/cms-renderers.js');
+    const gamesPage = JSON.parse(fs.readFileSync('content/pages/games.json', 'utf8'));
+    const gamesHtml = cmsRenderers.renderGamesDirectoryBody(gamesPage);
 
-    assert(gamesHtml.includes('data-directory-workbench="games"'),
-      'games page should keep the shared directory workbench contract');
-    assert(gamesHtml.includes('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"') &&
-           gamesHtml.includes('data-directory-brand="games"') &&
-           gamesHtml.includes('<h1 id="games-workbench-title">Games and simulations</h1>') &&
-           gamesHtml.includes('Interactive experiments in state, balance, probability, progression, and feedback loops.'),
-      'games page should use the shared branded header with its existing page copy');
-    assert(portfolioJs.includes("directoryKind === 'games' || directoryKind === 'tools'"),
-      'games and tools workbenches should opt into the shared mobile filter sheet');
+    assert(gamesHtml.includes('data-games-directory') &&
+      gamesHtml.includes('class="games-directory__grid" role="list"') &&
+      (gamesHtml.match(/<a class="games-directory-card" role="listitem"/g) || []).length === 6,
+      'games page should render the approved simple six-card directory');
+    assert(!gamesHtml.includes('data-directory-workbench') &&
+      !gamesHtml.includes('data-portfolio-search') &&
+      !gamesHtml.includes('data-portfolio-sort') &&
+      !gamesHtml.includes('data-portfolio-inspector'),
+      'games page should omit the workbench, filters, sort, and inspector');
+    assert(portfolioJs.includes('function hydrateSimpleGamesDirectory()') &&
+      portfolioJs.includes('if (hydrateSimpleGamesDirectory()) return;'),
+      'games directory should receive only lightweight selected-card hydration');
     assert(portfolioJs.includes('<article class="portfolio-result-card portfolio-project-result') &&
       portfolioJs.includes('data-project-details aria-pressed=') &&
-      portfolioJs.includes('class="portfolio-result-card__open"') &&
-      portfolioJs.includes('data-source-surface="portfolio_results"'),
-      'hydrated portfolio results should separate the details button from the direct case-study link inside a listitem article');
+      portfolioJs.includes('aria-label="Quick view for ${escapeHtml(project.title)}">Quick view</button>') &&
+      !portfolioJs.includes('Preview summary for'),
+      'hydrated portfolio results should use a concise Quick view control instead of Preview summary');
     assert(portfolioJs.includes("const detailsButton = event.target.closest('[data-project-details], [data-tool-details], [data-directory-details]')") &&
       portfolioJs.includes("const card = detailsButton.closest('[data-project-id]')") &&
       portfolioJs.includes("card.querySelector('[data-project-details], [data-tool-details]')"),
-      'workbench selection should run only from an explicit details control while direct links navigate independently');
+      'portfolio selection should run only from an explicit Quick view control');
     assert(portfolioJs.includes('const getProfessionalOutcome = (project = {}) => truncate(') &&
       portfolioJs.includes('project.cardOutcome ||') &&
       portfolioJs.includes('firstAuthoredText(project.results) ||') &&
       portfolioJs.includes('class="portfolio-result-card__outcome"') &&
-      portfolioJs.includes("isAudienceScopedView && (group.id === 'stack' || group.id === 'format')") &&
-      portfolioJs.includes('return !isAudienceScopedView || count > 0 || state.filters[group.id].has(option.value);'),
-      'professional portfolio cards should show one authored outcome, hide zero-count filters, and collapse secondary filters while preserving personal cards');
+      portfolioJs.includes("!isDirectoryWorkbench && (group.id === 'stack' || group.id === 'format')") &&
+      portfolioJs.includes('return count > 0 || state.filters[group.id].has(option.value);') &&
+      portfolioJs.includes(': visibleChips, 2)'),
+      'portfolio cards should show one authored outcome, hide zero-count filters, collapse secondary filters, and cap visible chips');
     assert(portfolioJs.includes('class="portfolio-result-card tools-workbench-result') &&
-      portfolioJs.includes('data-tool-details') &&
-      portfolioJs.includes('data-tool-open'),
-      'portfolio card semantics should leave the tools workbench selection and launch controls intact');
+      portfolioJs.includes('tools-workbench-result__select') &&
+      portfolioJs.includes('data-tool-open') &&
+      !portfolioJs.includes('data-tool-details aria-pressed='),
+      'tools workbench cards should be one full-card launch action without a details control');
     assert(portfolioJs.includes("triggerButton.className = 'portfolio-mobile-filter-trigger'") &&
            portfolioJs.includes("backdrop.className = 'portfolio-filter-backdrop'"),
       'mobile filters should expose an external trigger and dismissible backdrop');
     assert(portfolioJs.includes("document.body.classList.toggle('portfolio-filter-sheet-open', nextOpen)") &&
            portfolioJs.includes("root.dataset.mobileSelection === 'overlay'"),
-      'mobile filter state should lock page chrome without changing the games inspector behavior');
+      'mobile filter state should lock page chrome without changing the portfolio Quick view behavior');
     assert(/body\[data-page="portfolio"\] \.portfolio-inspector \{\s*overflow-x: hidden;\s*overflow-y: auto;/.test(workbenchCss),
       'portfolio inspector should override the branded overflow rule and remain scrollable on desktop');
     assert(workbenchCss.includes('min-height: min(240px, 35dvh);') &&
@@ -38832,7 +38852,7 @@ try {
       workbenchCss.includes('.portfolio-result-card__details') &&
       workbenchCss.includes('.portfolio-result-card__open') &&
       /\.portfolio-result-card__details,\s*\.portfolio-result-card__open\s*\{[\s\S]*?min-height:\s*44px;/.test(workbenchCss),
-      'professional portfolio CSS should use document scrolling, compact outcomes, and independent 44px card actions');
+      'professional portfolio CSS should use document scrolling, compact outcomes, and 44px Quick view actions');
     assert(workbenchCss.includes('@media (max-width: 820px)') &&
       workbenchCss.includes('.portfolio-workbench[data-portfolio-audience]:not([data-portfolio-audience="personal"]) .portfolio-workbench__layout {\n      grid-template-columns: minmax(0, 1fr);'),
       'professional portfolio should reset to one full-width column on mobile');
@@ -39850,11 +39870,18 @@ try {
     assert(headerTemplate.indexOf('nav-item-portfolio') < headerTemplate.indexOf('nav-item-tools') &&
       headerTemplate.indexOf('nav-item-tools') < headerTemplate.indexOf('nav-item-games') &&
       headerTemplate.indexOf('nav-item-games') < headerTemplate.indexOf('nav-item-contact'),
-      'header dropdowns should appear in Projects, Tools, Games, Contact order');
+      'header navigation should appear in Projects, Tools, Games, Contact order');
     assert(headerTemplate.includes('id="nav-dropdown-tools"') && headerTemplate.includes('id="nav-dropdown-games"'),
       'header should expose tools and games dropdowns');
-    assert(headerTemplate.includes('class="nav-dropdown nav-dropdown-simple nav-dropdown-contact" id="nav-dropdown-contact"'), 'contact dropdown should use the shared simple dropdown shell');
-    assert((headerTemplate.match(/nav-dropdown-inner nav-dropdown-inner-simple/g) || []).length === 2, 'games and contact dropdowns should use the simple inner structure');
+    const contactNavStart = headerTemplate.indexOf('class="nav-item nav-item-contact"');
+    const contactNavEnd = headerTemplate.indexOf('class="nav-search"', contactNavStart);
+    const contactNavMarkup = headerTemplate.slice(contactNavStart, contactNavEnd);
+    assert(contactNavMarkup.includes('<a href="contact" class="nav-link nav-link-cta">Contact</a>') &&
+      !contactNavMarkup.includes('nav-link-has-menu') &&
+      !contactNavMarkup.includes('nav-dropdown-contact'),
+      'Contact should be a direct link without a dropdown or caret');
+    assert((headerTemplate.match(/nav-dropdown-inner nav-dropdown-inner-simple/g) || []).length === 2,
+      'Tools and Games dropdowns should use the compact simple inner structure');
   });
 
   section('Navigation CSS and mobile layout', () => {
@@ -40077,7 +40104,7 @@ try {
     assert(!/\\.nav-project-rank,\\s*\\n\\s*\\.nav-dropdown-badge/.test(brandOverrideCss), 'portfolio dropdown ranks should not inherit copper badge styling');
     assert(brandOverrideCss.includes('.nav-dropdown-inner-simple') && brandOverrideCss.includes('grid-template-columns: minmax(0, 1fr);'), 'dropdown overrides should normalize simple dropdown inner structure');
     assert(brandOverrideCss.includes('.nav-dropdown-list .nav-dropdown-link + .nav-dropdown-link') && brandOverrideCss.includes('margin-top: 0;'), 'dropdown list rows should use shared gap spacing instead of stacked margins');
-    assert(brandOverrideCss.includes('#nav-dropdown-resume,\n    #nav-dropdown-contact') && brandOverrideCss.includes('width: min(360px, 64vw);'), 'resume and contact dropdowns should share matching desktop width');
+    assert(brandOverrideCss.includes('#nav-dropdown-resume') && brandOverrideCss.includes('width: min(360px, 64vw);'), 'resume dropdown should keep a contained desktop width');
     assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-project-rank') && brandOverrideCss.includes('color: color-mix(in srgb, var(--brand-slate) 82%, var(--brand-midnight) 18%);'), 'portfolio dropdown ranks should use restrained brand-neutral colors');
     assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-footer-inline') && brandOverrideCss.includes('grid-template-columns: 1fr;'), 'portfolio dropdown footer should use a single full-width portfolio link');
     assert(brandOverrideCss.includes('#nav-dropdown-portfolio .nav-dropdown-footer-inline::before') && brandOverrideCss.includes('background: var(--brand-action-copper);'), 'portfolio dropdown footer should use a restrained copper divider accent');
@@ -40097,20 +40124,20 @@ try {
     assert(brandOverrideCss.includes('body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .project-examples-card .overlay') && brandOverrideCss.includes('display: none;'), 'audience project cards should not depend on dark image overlays for readability');
     assert(brandOverrideCss.includes('body[data-tools-layout] #main > .surface-band:nth-of-type(even)') && brandOverrideCss.includes('background: transparent;'), 'tool workspace panels should not inherit alternating gray surface backgrounds');
     assert(toolsCss.includes('.tools-workbench-result') &&
-      toolsCss.includes('min-height:108px;') &&
+      toolsCss.includes('min-height:96px;') &&
       toolsCss.includes('grid-template-columns:64px minmax(0,1fr);') &&
       toolsCss.includes('.portfolio-result-card__summary') &&
       toolsCss.includes('-webkit-line-clamp:unset;'),
       'tools workbench rows should keep compact icons and complete summaries');
-    assert(toolsCss.includes('.tools-workbench-result.is-selected') &&
-      toolsCss.includes('background:color-mix(in srgb,var(--brand-signal-blue) 7%, #ffffff 93%);') &&
-      toolsCss.includes('background:var(--brand-action-copper);'),
-      'tools workbench selection should use a pale signal-blue surface with a copper edge');
+    assert(!toolsCss.includes('.tools-workbench-result.is-selected') &&
+      !toolsCss.includes('.tools-workbench-result__open') &&
+      !toolsCss.includes('.tools-workbench-inspector'),
+      'tools workbench CSS should not retain removed selection, duplicate Open, or inspector systems');
     assert(toolsCss.includes('@media (max-width:820px)') &&
       toolsCss.includes('grid-template-columns:72px minmax(0,1fr);') &&
-      toolsCss.includes('min-height:148px;') &&
-      toolsCss.includes('position:absolute;'),
-      'tools workbench mobile rows should preserve readable launcher content and a direct Open action');
+      toolsCss.includes('min-height:112px;') &&
+      toolsCss.includes('padding:.85rem .9rem .85rem 1rem;'),
+      'tools workbench mobile rows should preserve readable full-card launch content without a separate Open action');
     assert(toolsWorkspaceCss.includes('--tools-shell-width:100%;'), 'tool workspaces should use full mobile shell width');
     assert(toolsAccountCss.includes('.tools-account-structure') &&
       toolsAccountCss.includes('grid-template-areas:"context account extensions";') &&
@@ -40735,7 +40762,7 @@ try {
     assert(portfolioDropdown.includes('Featured Projects'), 'header portfolio dropdown should use project-first wording');
     assert(!portfolioDropdown.includes('Technical depth'), 'portfolio dropdown should not include the technical depth shortcut');
     assert(!portfolioDropdown.includes('Tools'), 'portfolio dropdown should not include tools shortcuts');
-    assert((portfolioDropdown.match(/class="nav-project-card"/g) || []).length === 5, 'portfolio dropdown should keep five featured project links');
+    assert((portfolioDropdown.match(/class="nav-project-card"/g) || []).length === 3, 'portfolio dropdown should keep three focused project links');
     assert((portfolioDropdown.match(/class="nav-dropdown-link nav-dropdown-all"/g) || []).length === 1, 'portfolio dropdown should have one footer portfolio link');
     assert(portfolioDropdown.includes('View all projects'), 'portfolio dropdown should link to the project library');
     assert(portfolioDropdown.includes('Browse the complete project library'), 'portfolio dropdown footer should include descriptive subtext');
@@ -43174,8 +43201,9 @@ try {
       readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-preview"') &&
       readFile('pages/resume-analytics-pdf.html').includes('src="img/resume-previews/resume-analytics-preview.png"') &&
       !readFile('pages/resume-analytics-pdf.html').includes('<iframe') &&
-      readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-fallback"'),
-      'analytics resume and PDF preview routes should use analytics-specific URLs and document names');
+      !readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-fallback"') &&
+      (readFile('pages/resume-analytics-pdf.html').match(/class="btn-(?:primary|secondary)"/g) || []).length === 2,
+      'analytics resume and PDF preview routes should use analytics-specific URLs and two focused actions');
     [
       ['analytics', 'Analytics', 'resume-analytics-preview.png'],
       ['data-science', 'Data-Science', 'resume-data-science-preview.png'],
@@ -44046,6 +44074,10 @@ try {
 
   section('Personal and professional portfolio recommendations', () => {
     runPortfolioRecommendationTests({ assert });
+  });
+
+  section('Responsive density contracts', () => {
+    runResponsiveDensityContractTests({ assert });
   });
 
   section('UTM Batch Builder core', () => {

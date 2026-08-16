@@ -271,6 +271,26 @@
     animation: none;
   }
 
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-primary-highlight {
+    margin:4px 0 0;
+    color:var(--brand-midnight, #091f3b);
+    font-size:.94rem;
+    font-weight:650;
+    line-height:1.5;
+  }
+
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details {
+    margin:0;
+  }
+
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details > summary {
+    display:none;
+  }
+
+  body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details .work-highlights {
+    margin-top:4px;
+  }
+
   .destination-section + .destination-section {
     margin-top: 0;
   }
@@ -292,6 +312,41 @@
     .transfer-map-head .transfer-map-cell {
       font-size: .74rem;
       letter-spacing: .14em;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details > summary {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      min-height:44px;
+      margin-top:4px;
+      padding:8px 0;
+      color:var(--brand-deep-blue, #0145c8);
+      font-size:.86rem;
+      font-weight:750;
+      cursor:pointer;
+      list-style:none;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details > summary::-webkit-details-marker {
+      display:none;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details > summary::after {
+      content:"+";
+      flex:0 0 auto;
+      font-size:1rem;
+    }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-details[open] > summary::after {
+      content:"−";
+    }
+
+    body[data-page="analytics"].home-pattern-page .work-details .work-highlights li:nth-child(n + 3) {
+      display:list-item;
     }
   }
 
@@ -343,5 +398,11 @@
       padding: 12px;
       border-radius: 12px;
     }
+
+    body:is([data-page="analytics"], [data-page="data-science"], [data-page="tourism"]) .work-primary-highlight {
+      font-size:.9rem;
+      line-height:1.45;
+    }
+
   }
 }

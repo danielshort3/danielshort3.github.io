@@ -3327,6 +3327,28 @@
     }
 
     @media (max-height: 760px) {
+      body.is-hangar {
+        height: auto;
+        min-height: var(--viewport-height);
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      body.is-hangar .mission-shell {
+        height: auto;
+        min-height: calc(var(--viewport-height) - (var(--page-pad) * 2));
+        grid-template-rows: auto auto;
+        overflow: visible;
+      }
+
+      body.is-hangar .mission-grid,
+      body.is-hangar .mission-main,
+      body.is-hangar .tab-shell,
+      body.is-hangar .tab-panels {
+        height: auto;
+        overflow: visible;
+      }
+
       .arena-controls {
         right: 10px;
         top: 10px;
@@ -3380,6 +3402,16 @@
 
       .perf-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 769px) and (max-height: 760px) {
+      body.is-hangar {
+        padding-top: calc(var(--nav-height, 72px) + var(--page-pad));
+      }
+
+      body.is-hangar .mission-shell {
+        min-height: calc(var(--viewport-height) - var(--nav-height, 72px) - (var(--page-pad) * 2));
       }
     }
 

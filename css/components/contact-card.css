@@ -91,6 +91,16 @@
     color:var(--text-muted);
     font-size:1rem;
   }
+  body[data-page="contact"] #contact-options .contact-big{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    width:min(880px,100%);
+    margin-inline:auto;
+    padding:0;
+  }
+  body[data-page="contact"] #contact-options .contact-card{
+    min-height:150px;
+    padding:24px;
+  }
   .contact-professional-links{
     display:flex;
     flex-wrap:wrap;
@@ -141,6 +151,32 @@
     .contact-options-heading{
       margin-bottom:18px;
       max-width:100%;
+    }
+    body[data-page="contact"] #contact-options .contact-big{
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    body[data-page="contact"] #contact-options .contact-card{
+      display:grid;
+      grid-template-columns:36px minmax(0,1fr);
+      grid-template-rows:auto auto;
+      column-gap:12px;
+      row-gap:2px;
+      align-items:center;
+      justify-content:stretch;
+      min-height:76px;
+      padding:14px 16px;
+      text-align:left;
+    }
+    body[data-page="contact"] #contact-options .contact-card :is(svg,.icon){
+      grid-column:1;
+      grid-row:1 / span 2;
+      width:30px;
+      height:30px;
+    }
+    body[data-page="contact"] #contact-options .contact-card > span:not(.icon),
+    body[data-page="contact"] #contact-options .contact-card > small{
+      grid-column:2;
     }
     body.professional-contact-page #contact-options .contact-grid{
       grid-template-columns:1fr;

@@ -889,6 +889,26 @@ body.roulette00-page {
   line-height: 1.43;
 }
 
+.roulette00-rules-disclosure {
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 234, 192, 0.18);
+  padding-top: 8px;
+}
+
+.roulette00-rules-disclosure summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: #fff8e7;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.roulette00-rules-disclosure summary:focus-visible {
+  outline: 2px solid #f5c96d;
+  outline-offset: 2px;
+}
+
 .roulette00-rules li + li {
   margin-top: 6px;
 }

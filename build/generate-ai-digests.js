@@ -1259,14 +1259,14 @@ function extractSectionsFromRegion(region) {
     if (normalized) sections.push(normalized);
     current = null;
   };
-  const tokenRe = /<(h[1-6]|p|li|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+  const tokenRe = /<(h[1-6]|summary|p|li|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
   let match;
   while ((match = tokenRe.exec(String(region || '')))) {
     const tag = String(match[1] || '').toLowerCase();
     const text = cleanText(match[3]);
     if (!text || isNoiseText(text)) continue;
 
-    if (/^h[1-6]$/.test(tag)) {
+    if (/^h[1-6]$/.test(tag) || tag === 'summary') {
       if (tag === 'h1') continue;
       pushCurrent();
       current = {
@@ -1274,7 +1274,7 @@ function extractSectionsFromRegion(region) {
         paragraphs: [],
         items: [],
         links: [],
-        level: Math.min(6, Math.max(2, Number(tag.slice(1)) || 2))
+        level: tag === 'summary' ? 2 : Math.min(6, Math.max(2, Number(tag.slice(1)) || 2))
       };
       continue;
     }

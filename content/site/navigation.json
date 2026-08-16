@@ -16,9 +16,7 @@
     "featuredProjectIds": [
       "retailStore",
       "targetEmptyPackage",
-      "pizzaDashboard",
-      "deliveryTip",
-      "ufoDashboard"
+      "pizzaDashboard"
     ],
     "links": [
       {
@@ -32,7 +30,7 @@
     "label": "Tools",
     "href": "tools",
     "header": "Featured Tools",
-    "featuredPerCategory": 2,
+    "featuredPerCategory": 1,
     "links": [
       {
         "title": "View all tools",

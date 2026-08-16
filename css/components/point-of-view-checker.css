@@ -718,6 +718,9 @@
   }
 
   @media (max-width:760px){
+    .povcheck-field-btn{
+      min-height:44px;
+    }
     .povcheck-stat{
       height:auto;
       min-height:300px;

@@ -272,6 +272,10 @@
     opacity: 0.48;
   }
 
+  .ctc-mobile-back {
+    display: none;
+  }
+
   .ctc-icon-button {
     display: inline-grid;
     width: 38px;
@@ -2232,6 +2236,19 @@
     .ctc-inspector {
       display: block;
       padding: 16px;
+    }
+
+    .ctc-mobile-back {
+      display: inline-flex;
+      min-height: 44px;
+      margin-bottom: 12px;
+      padding-inline: 4px;
+    }
+
+    .ctc-library-layout[data-mobile-pane="families"] :is(.ctc-rendition-pane, .ctc-inspector),
+    .ctc-library-layout[data-mobile-pane="renditions"] :is(.ctc-family-pane, .ctc-inspector),
+    .ctc-library-layout[data-mobile-pane="inspector"] :is(.ctc-family-pane, .ctc-rendition-pane) {
+      display: none;
     }
 
     .ctc-override-section {

@@ -141,8 +141,11 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
       assert(html.includes('professional-hero-proof'), `${audienceKey} should render first-viewport proof`);
       values.forEach((value) => assert(html.includes(value), `${audienceKey} proof missing ${value}`));
       assert(countMatches(html, /professional-hero-proof-link/g) >= 4, `${audienceKey} hero proof should expose four links`);
-      assert(countMatches(html, /home-proof-source/g) >= 4, `${audienceKey} outcome cards should expose four context links`);
     });
+    assert(countMatches(source, /home-proof-source/g) >= 4,
+      `${audienceKey} source should retain the authored context links`);
+    assert(countMatches(generated, /home-proof-source/g) === 0,
+      `${audienceKey} rendered page should not repeat hero proof in a second outcome-card section`);
   });
   const homeProofCss = read('css/components/home-proof.css');
   assert(
@@ -201,10 +204,10 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     'portfolio default sorting should use audience-aware labels without changing its value',
   );
   assert(
-    portfolioHtml.includes('Preview summary') &&
-      portfolioJs.includes('Preview summary for') &&
-      !portfolioHtml.includes('>Details</button>'),
-    'portfolio cards should use Preview summary for visible and accessible labels',
+    !portfolioHtml.includes('Preview summary') &&
+      !portfolioJs.includes('Preview summary') &&
+      portfolioJs.includes('aria-label="Quick view for ${escapeHtml(project.title)}">Quick view</button>'),
+    'portfolio cards should remove the wordy Preview summary action and use a concise Quick view control only when JavaScript is available',
   );
   assert(
     portfolioJs.includes('personalStoryItems') &&

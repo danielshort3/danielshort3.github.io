@@ -675,9 +675,10 @@ function renderProjectPage(project, options = {}) {
   const ldJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': [projectLd, breadcrumbsLd] })
     .replace(/</g, '\\u003c');
 
-  const safeTagPills = tags.length
+  const heroTags = tags.slice(0, 4);
+  const safeTagPills = heroTags.length
     ? `<div class="project-tags" role="list">
-      ${tags.map((t) => `<span class="project-tag" role="listitem">${escapeHtml(t)}</span>`).join('\n      ')}
+      ${heroTags.map((t) => `<span class="project-tag" role="listitem">${escapeHtml(t)}</span>`).join('\n      ')}
     </div>`
     : '';
 
@@ -719,20 +720,20 @@ function renderProjectPage(project, options = {}) {
       </div>`);
       }
 
-      return `<section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
+      return `<details class="project-section project-disclosure project-resources" id="links" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title">Links</span></summary>
       <div class="project-links-groups">
         ${groups.join('\n        ')}
       </div>
-    </section>`;
+    </details>`;
     })()
     : '';
 
   const safeNotes = hasNotes
-    ? `<section class="project-section" id="notes">
-      <h2 class="section-title">Notes</h2>
+    ? `<details class="project-section project-disclosure project-notes" id="notes" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title">Notes</span></summary>
       <p class="project-lead">${escapeHtml(notes)}</p>
-    </section>`
+    </details>`
     : '';
 
   const allProjects = Array.isArray(options.projects) ? options.projects : null;
@@ -813,12 +814,12 @@ function renderProjectPage(project, options = {}) {
     { label: 'What I’d try next', value: personalStory.next }
   ] : [];
   const personalNotes = personalStoryRows.some((row) => normalizeWhitespace(row.value || ''))
-    ? `<section class="project-star project-personal-notes" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-personal-notes-title">
-      <h2 class="section-title" id="${escapeHtml(toDomIdSafe(id))}-personal-notes-title">Personal notes</h2>
+    ? `<details class="project-star project-personal-notes project-disclosure" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title" id="${escapeHtml(toDomIdSafe(id))}-personal-notes-title">Personal notes</span></summary>
       <dl class="project-star-grid">
         ${renderDefinitionRows(personalStoryRows)}
       </dl>
-    </section>`
+    </details>`
     : '';
 
   const evaluationStatusLabels = {
@@ -852,8 +853,8 @@ function renderProjectPage(project, options = {}) {
     { label: 'Decision', value: evaluation.decision }
   ] : [];
   const evaluationDetails = evaluation && evaluationStatusLabels[evaluationStatus]
-    ? `<section class="project-star project-evaluation" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-evaluation-title">
-      <h2 class="section-title" id="${escapeHtml(toDomIdSafe(id))}-evaluation-title">Evaluation &amp; tradeoffs</h2>
+    ? `<details class="project-star project-evaluation project-disclosure" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title" id="${escapeHtml(toDomIdSafe(id))}-evaluation-title">Evaluation &amp; tradeoffs</span></summary>
       <dl class="project-star-grid">
         ${renderDefinitionRows(evaluationRows)}
 ${evaluationMetrics.length ? `<div class="project-star-row">
@@ -883,7 +884,7 @@ ${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-r
           <dd class="project-star-value"><a href="${escapeHtml(evaluationEvidenceUrl)}"${evaluationEvidenceExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}>${escapeHtml(evaluationEvidenceLabel)}</a></dd>
         </div>` : ''}
       </dl>
-    </section>`
+    </details>`
     : '';
 
   const renderImageMedia = () => {
@@ -934,6 +935,17 @@ ${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-r
     </div>`;
   };
 
+  const renderDemoLaunchPreview = () => {
+    const img = String(project.image || '').trim();
+    if (!img) return '';
+    const width = Number(project.imageWidth);
+    const height = Number(project.imageHeight);
+    const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+      ? ` width="${width}" height="${height}"`
+      : '';
+    return `<img class="project-demo-launch-image" src="${escapeHtml(img)}" alt="Preview of ${escapeHtml(title)}" loading="lazy" decoding="async"${sizeAttr}>`;
+  };
+
   const renderEmbeddedMedia = (options = {}) => {
     if (!embed) return '';
     const lazy = options && options.lazy === true;
@@ -966,6 +978,9 @@ ${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-r
     const safeId = toDomIdSafe(id);
     const baseId = `project-demo-${safeId}`;
     const tooltipId = `${baseId}-instructions`;
+    const embedFit = resolveEmbedFit(embed);
+    const embedType = String(embed.type || '').trim();
+    const launchHref = embedType === 'iframe' ? String(embed.url || '').trim() : '';
 
     const lead = normalizeWhitespace(demoInstructions?.lead || '');
     const bullets = normalizeTextArray(demoInstructions?.bullets);
@@ -987,7 +1002,17 @@ ${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-r
         </div>`
       : '';
 
-    return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(resolveEmbedFit(embed))}" aria-label="Interactive demo">
+    const mobileLaunch = embedFit === 'content' && launchHref
+      ? `<div class="project-demo-mobile-launch">
+          ${renderDemoLaunchPreview()}
+          <div class="project-demo-launch-copy">
+            <p>Open the standalone demo for the full interactive workspace.</p>
+            <a class="btn-primary" href="${escapeHtml(launchHref)}">Launch demo</a>
+          </div>
+        </div>`
+      : '';
+
+    return `<section class="project-demo-shell" data-demo-fit="${escapeHtml(embedFit)}" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
         ${tooltip}
@@ -996,7 +1021,7 @@ ${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-r
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            ${renderEmbeddedMedia()}
+${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbeddedMedia({ lazy: embedFit === 'content' })}
           </div>
         </section>
       </div>
@@ -1162,7 +1187,7 @@ function renderPortfolioStaticResults(projects) {
       normalizeWhitespace(project.subtitle || ''),
       ...(Array.isArray(project.concepts) ? project.concepts : []),
       ...(Array.isArray(project.tools) ? project.tools : [])
-    ].map(normalizeWhitespace).filter(Boolean))].slice(0, 4);
+    ].map(normalizeWhitespace).filter(Boolean))].slice(0, 2);
     const chips = labels.length
       ? `<span class="portfolio-result-tags">${labels.map((label) => `<span>${escapeHtml(label)}</span>`).join('')}</span>`
       : '';
@@ -1172,10 +1197,9 @@ function renderPortfolioStaticResults(projects) {
       `  <span class="portfolio-result-card__media" aria-hidden="true">${media}</span>`,
       '  <div class="portfolio-result-card__body">',
       `    <h2 class="portfolio-result-card__title">${escapeHtml(title)}</h2>`,
-      summary ? `    <p class="portfolio-result-card__summary">${escapeHtml(summary)}</p>` : '',
+      summary ? `    <p class="portfolio-result-card__outcome"><span>Outcome</span>${escapeHtml(summary)}</p>` : '',
       chips ? `    ${chips}` : '',
       '    <div class="portfolio-result-card__actions">',
-      `      <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="false" aria-disabled="true" disabled title="Preview summaries are available when JavaScript is enabled">Preview summary</button>`,
       `      <a class="portfolio-result-card__open" href="portfolio/${escapeHtml(encodeURIComponent(id))}" data-content-open="true" data-content-id="${escapeHtml(id)}" data-content-type="project" data-resource-type="case_study" data-source-surface="portfolio_results">View case study <span aria-hidden="true">-&gt;</span></a>`,
       '    </div>',
       '  </div>',

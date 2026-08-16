@@ -164,6 +164,12 @@
 }
 
 @layer overrides {
+  @media (min-width: 769px) {
+    .speed-dial {
+      display: none;
+    }
+  }
+
   .speed-dial .btn-icon,
   .speed-dial .btn-icon:is(:hover, :focus-visible, :active),
   .speed-dial .speed-dial__toggle.btn-icon-featured,

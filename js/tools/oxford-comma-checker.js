@@ -15,6 +15,7 @@
   const presentColorInput = $('[data-oxford-color="present"]');
   const absentColorInput = $('[data-oxford-color="absent"]');
   const resetColorsBtn = $('[data-oxford-reset-colors]');
+  const exampleBtn = $('#oxford-example');
   const pasteBtn = $('#oxford-paste');
   const importBtn = $('#oxford-import');
   const fileInput = $('#oxford-file');
@@ -29,6 +30,11 @@
   const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
   const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
   const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
+  const OXFORD_COMMA_EXAMPLE = [
+    'We packed apples, bananas and cherries for the picnic.',
+    'The review covers pricing, positioning, and messaging.',
+    'She thanked her friends, her mentors and her family.'
+  ].join('\n');
   const vendorScriptPromises = new Map();
 
   const markSessionDirty = () => {
@@ -73,6 +79,7 @@
 
   const setInputBusy = (busy) => {
     const state = Boolean(busy);
+    if (exampleBtn) exampleBtn.disabled = state;
     if (pasteBtn) pasteBtn.disabled = state;
     if (importBtn) importBtn.disabled = state;
     if (fileInput) fileInput.disabled = state;
@@ -97,14 +104,7 @@
   const getTextForAnalysis = () => {
     const raw = normalizeInputText(input.value || '');
     input.value = raw;
-    if (raw.trim()) {
-      return { text: raw, isPlaceholder: false };
-    }
-    const placeholder = input.placeholder || '';
-    if (placeholder.trim()) {
-      return { text: placeholder, isPlaceholder: true };
-    }
-    return { text: '', isPlaceholder: false };
+    return { text: raw, isPlaceholder: false };
   };
 
   const getConjunctions = () => conjInputs
@@ -609,6 +609,22 @@
 
   pasteBtn?.addEventListener('click', () => {
     void handlePasteInput();
+  });
+
+  exampleBtn?.addEventListener('click', () => {
+    input.value = OXFORD_COMMA_EXAMPLE;
+    hasRun = false;
+    counts.innerHTML = '';
+    if (resultsList) resultsList.innerHTML = '';
+    summary.textContent = 'Example loaded. Choose Check to analyze.';
+    if (empty) {
+      empty.hidden = false;
+      empty.textContent = 'Ready to analyze.';
+    }
+    output.innerHTML = '<p class="oxford-empty">Ready to analyze.</p>';
+    setInputStatus('Example loaded. Choose Check to analyze.', 'success');
+    markSessionDirty();
+    input.focus();
   });
 
   importBtn?.addEventListener('click', () => {

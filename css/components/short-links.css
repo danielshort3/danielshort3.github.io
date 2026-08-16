@@ -2054,6 +2054,27 @@
     width:min(520px, calc(100vw - 28px));
   }
 
+  .shortlinks-account-statuses{
+    display:grid;
+    gap:4px;
+    margin-bottom:12px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--shortlinks-workbench-border);
+  }
+
+  .shortlinks-account-statuses .shortlinks-command-status{
+    width:100%;
+    min-height:44px;
+  }
+
+  .shortlinks-account-popover .shortlinks-access-popover{
+    position:static;
+    width:100%;
+    margin-top:8px;
+    box-sizing:border-box;
+    box-shadow:none;
+  }
+
   .shortlinks-account-popover .tools-account-dock,
   .shortlinks-account-popover .tools-account-dock-inner{
     width:100%;
@@ -2915,7 +2936,7 @@
       width:100%;
     }
 
-    .shortlinks-command-statuses{
+    .shortlinks-command-statuses:not(.shortlinks-account-statuses){
       display:grid;
       grid-template-columns:repeat(2, minmax(0, 1fr));
     }
@@ -3001,6 +3022,18 @@
       overflow-y:auto;
       overscroll-behavior:contain;
       scrollbar-gutter:stable;
+    }
+
+    body[data-page="short-links"] .shortlinks-account-popover .shortlinks-access-popover{
+      position:static;
+      width:100%;
+      max-height:none;
+      margin-top:8px;
+      padding:12px 0 0;
+      overflow:visible;
+      border-width:1px 0 0;
+      border-radius:0;
+      box-shadow:none;
     }
 
     body[data-page="short-links"] .shortlinks-account-popover :is(

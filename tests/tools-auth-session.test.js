@@ -473,9 +473,10 @@ async function run(){
   [...staticResumePreviewSources, ...staticManagedResumePreviews].forEach((file) => {
     const html = fs.readFileSync(file, 'utf8');
     assert(!/<iframe\b/i.test(html), `${file} should use a static first-page preview instead of a PDF iframe`);
-    assert(html.includes('resume-pdf-preview') && html.includes('Open PDF') && html.includes('Download PDF'),
-      `${file} should include a linked static preview plus open and download actions`);
-    assert(html.includes('resume-pdf-fallback'), `${file} should keep an always-visible PDF fallback link`);
+    assert(html.includes('resume-pdf-preview') && html.includes('View digital resume') && html.includes('Download PDF'),
+      `${file} should include a linked static preview plus two focused resume actions`);
+    assert(!html.includes('>Open PDF</a>') && !html.includes('resume-pdf-fallback'),
+      `${file} should not duplicate the preview link with redundant open and fallback actions`);
   });
   const analyticsPreview = fs.readFileSync('pages/resume-analytics-pdf.html', 'utf8');
   assert(analyticsPreview.includes('src="img/resume-previews/resume-analytics-preview.png"'));

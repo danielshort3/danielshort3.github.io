@@ -39,43 +39,6 @@ window.DIRECTORY_WORKBENCH = {
           "field": "category"
         }
       ]
-    },
-    {
-      "id": "availability",
-      "title": "Availability",
-      "options": [
-        {
-          "value": "cloud",
-          "label": "Cloud",
-          "field": "availability"
-        },
-        {
-          "value": "local",
-          "label": "Local",
-          "field": "availability"
-        }
-      ]
-    },
-    {
-      "id": "access",
-      "title": "Access",
-      "options": [
-        {
-          "value": "account",
-          "label": "Account",
-          "field": "access"
-        },
-        {
-          "value": "admin",
-          "label": "Admin",
-          "field": "access"
-        },
-        {
-          "value": "public",
-          "label": "Public",
-          "field": "access"
-        }
-      ]
     }
   ],
   "items": [

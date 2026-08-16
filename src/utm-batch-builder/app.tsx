@@ -635,15 +635,27 @@ const AccordionSection = ({
   title,
   subtitle,
   defaultOpen = true,
+  mobileDefaultOpen = false,
   children,
 }: {
   title: string;
   subtitle?: string;
   defaultOpen?: boolean;
+  mobileDefaultOpen?: boolean;
   children: React.ReactNode;
 }) => {
+  const [isOpen, setIsOpen] = useState(() => {
+    const isCompactViewport = typeof window !== "undefined"
+      && window.matchMedia("(max-width: 600px)").matches;
+    return isCompactViewport ? mobileDefaultOpen : defaultOpen;
+  });
+
   return (
-    <details className="utmtool-accordion" open={defaultOpen}>
+    <details
+      className="utmtool-accordion"
+      open={isOpen}
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+    >
       <summary className="utmtool-accordion-summary">
         <div className="utmtool-accordion-text">
           <div className="utmtool-accordion-title">{title}</div>
@@ -1898,6 +1910,7 @@ const App = () => {
           title="1) Data sources"
           subtitle="Landing pages + optional CSV mapping."
           defaultOpen
+          mobileDefaultOpen
         >
           <div className="utmtool-card">
             <h3>Base URLs</h3>

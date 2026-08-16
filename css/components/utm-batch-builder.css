@@ -799,6 +799,38 @@
   }
 
   @media (max-width: 600px){
+    .utmtool-shell{
+      padding:10px;
+      border-radius:16px;
+    }
+
+    .utmtool-layout{
+      gap:10px;
+    }
+
+    .utmtool-accordion{
+      border-radius:16px;
+    }
+
+    .utmtool-accordion-summary{
+      min-height:52px;
+      padding:10px 12px;
+    }
+
+    .utmtool-accordion:not([open]) .utmtool-accordion-subtitle{
+      display:none;
+    }
+
+    .utmtool-accordion-body{
+      padding:10px 10px 2px;
+    }
+
+    .utmtool-card{
+      margin-bottom:10px;
+      padding:12px;
+      border-radius:14px;
+    }
+
     .utmtool-csv-upload-row{
       align-items:stretch;
       flex-direction:column;

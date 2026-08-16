@@ -230,33 +230,24 @@ function renderToolsDropdown(toolsNav, toolsPage, tools) {
   if (!toolsNav || toolsNav.enabled === false) return '';
   const categories = sortByOrderThenTitle(Array.isArray(toolsPage && toolsPage.categories) ? toolsPage.categories : []);
   const publicTools = sortByOrderThenTitle((Array.isArray(tools) ? tools : []).filter(isPublicTool));
-  const featuredPerCategory = Math.max(1, Math.min(4, Number(toolsNav.featuredPerCategory) || 2));
-  const groups = categories
-    .map((category) => {
-      const items = publicTools
-        .filter((tool) => String(tool.categoryId || '') === String(category.id || ''))
-        .slice(0, featuredPerCategory);
-      if (!items.length) return '';
-      const links = items
-        .map((tool) => renderDropdownLink({
-          title: tool.title,
-          subtitle: tool.summary,
-          href: toolHref(tool)
-        }, 'nav-dropdown-link nav-dropdown-tool-link'))
-        .join('\n');
-      return [
-        '<div class="nav-dropdown-group">',
-        `  <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(category.title || '')}</div>`,
-        '  <div class="nav-dropdown-list">',
-        indentBlock(links, '    '),
-        '  </div>',
-        '</div>'
-      ].join('\n');
-    })
+  const featuredTools = categories
+    .map((category) => publicTools.find((tool) => String(tool.categoryId || '') === String(category.id || '')))
     .filter(Boolean)
+    .slice(0, 3);
+  if (featuredTools.length < 3) {
+    publicTools.forEach((tool) => {
+      if (featuredTools.length < 3 && !featuredTools.includes(tool)) featuredTools.push(tool);
+    });
+  }
+  const toolLinks = featuredTools
+    .map((tool) => renderDropdownLink({
+      title: tool.title,
+      subtitle: tool.summary,
+      href: toolHref(tool)
+    }, 'nav-dropdown-link nav-dropdown-tool-link'))
     .join('\n');
   const footerLinks = renderDropdownFooterLinks(toolsNav.links, 'nav-dropdown-tools-all');
-  if (!groups && !footerLinks) return '';
+  if (!toolLinks && !footerLinks) return '';
 
   return [
     '        <div class="nav-item nav-item-tools">',
@@ -264,12 +255,17 @@ function renderToolsDropdown(toolsNav, toolsPage, tools) {
     `            ${escapeHtml(toolsNav.label || 'Tools')}`,
     '            <span class="nav-link-caret" aria-hidden="true"></span>',
     '          </a>',
-    '          <div class="nav-dropdown nav-dropdown-directory nav-dropdown-tools" id="nav-dropdown-tools" aria-label="Featured tools">',
-    '            <div class="nav-dropdown-inner nav-dropdown-inner-directory nav-dropdown-inner-tools">',
-    indentBlock(groups, '              '),
-    footerLinks ? '              <div class="nav-dropdown-footer nav-dropdown-footer-inline">' : '',
-    footerLinks ? indentBlock(footerLinks, '                ') : '',
-    footerLinks ? '              </div>' : '',
+    '          <div class="nav-dropdown nav-dropdown-simple nav-dropdown-tools" id="nav-dropdown-tools" aria-label="Featured tools">',
+    '            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-tools">',
+    '              <div class="nav-dropdown-column nav-dropdown-column-list">',
+    `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(toolsNav.header || 'Featured Tools')}</div>`,
+    '                <div class="nav-dropdown-list">',
+    indentBlock(toolLinks, '                  '),
+    '                </div>',
+    footerLinks ? '                <div class="nav-dropdown-footer nav-dropdown-footer-inline">' : '',
+    footerLinks ? indentBlock(footerLinks, '                  ') : '',
+    footerLinks ? '                </div>' : '',
+    '              </div>',
     '            </div>',
     '          </div>',
     '        </div>'
@@ -319,7 +315,7 @@ function optionList(labels, field) {
 
 function renderGamesDropdown(gamesNav, gamesPage) {
   if (!gamesNav || gamesNav.enabled === false) return '';
-  const games = sortByOrderThenTitle(Array.isArray(gamesPage && gamesPage.games) ? gamesPage.games : []);
+  const games = sortByOrderThenTitle(Array.isArray(gamesPage && gamesPage.games) ? gamesPage.games : []).slice(0, 3);
   const gameLinks = games
     .map((game) => renderDropdownLink({
       title: game.title,
@@ -495,17 +491,13 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
   const search = effectiveNavigation.search || {};
   const toolsPage = pagesById && pagesById.tools;
   const gamesPage = pagesById && pagesById.games;
-  const featuredProjectIds = Array.isArray(portfolio.featuredProjectIds) ? portfolio.featuredProjectIds : [];
+  const featuredProjectIds = Array.isArray(portfolio.featuredProjectIds) ? portfolio.featuredProjectIds.slice(0, 3) : [];
   const featuredCards = featuredProjectIds
     .map((id, index) => {
       const project = projectsById && projectsById[id];
       return project ? renderPortfolioProjectCard(project, index + 1, isProfessionalAudience ? audienceKey : '') : '';
     })
     .filter(Boolean)
-    .join('\n');
-
-  const contactLinks = (Array.isArray(contact.links) ? contact.links : [])
-    .map((link) => renderDropdownLink(link, 'nav-dropdown-link'))
     .join('\n');
 
   const resumeLinks = (Array.isArray(resume.links) ? resume.links : [])
@@ -589,20 +581,7 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
       '        </div>'
     ] : []),
     '        <div class="nav-item nav-item-contact">',
-    `          <a href="${escapeHtml(trimLeadingSlash(contact.href || 'contact'))}" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">`,
-    `            ${escapeHtml(contact.label || 'Contact')}`,
-    '            <span class="nav-link-caret" aria-hidden="true"></span>',
-    '          </a>',
-    '          <div class="nav-dropdown nav-dropdown-simple nav-dropdown-contact" id="nav-dropdown-contact" aria-label="Contact options">',
-    '            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-contact">',
-    '              <div class="nav-dropdown-column nav-dropdown-column-list">',
-    `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(contact.header || 'Get in touch')}</div>`,
-    '                <div class="nav-dropdown-list">',
-    indentBlock(contactLinks, '                  '),
-    '                </div>',
-    '              </div>',
-    '            </div>',
-    '          </div>',
+    `          <a href="${escapeHtml(trimLeadingSlash(contact.href || 'contact'))}" class="nav-link nav-link-cta">${escapeHtml(contact.label || 'Contact')}</a>`,
     '        </div>',
     searchFormHtml,
     '      </div>',
@@ -1061,9 +1040,7 @@ function buildToolsDirectoryWorkbenchData(page, tools) {
     stackTitle: 'Tags',
     emptySelectionText: 'Choose a tool to see details.',
     filterGroups: [
-      { id: 'category', title: 'Category', options: optionList(items.map((item) => item.category), 'category') },
-      { id: 'availability', title: 'Availability', options: optionList(items.map((item) => item.availability), 'availability') },
-      { id: 'access', title: 'Access', options: optionList(items.map((item) => item.access), 'access') }
+      { id: 'category', title: 'Category', options: optionList(items.map((item) => item.category), 'category') }
     ].filter((group) => group.options.length),
     items
   };
@@ -1309,14 +1286,15 @@ function renderDirectoryWorkbenchStaticResults(items, kind) {
 
     if (safeKind === 'tools') {
       return [
-        `<article class="portfolio-result-card tools-workbench-result" role="listitem" data-project-id="${escapeHtml(item.id || '')}" data-tools-visibility="public">`,
-        `  <a class="tools-workbench-result__select" href="${escapeHtml(href)}" aria-label="Open ${escapeHtml(title)}">`,
-        `    <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true">${media}</span>`,
-        indentBlock(cardBody, '    '),
-        '  </a>',
-        `  <a class="tools-workbench-result__open" href="${escapeHtml(href)}" aria-label="Open ${escapeHtml(title)}"><span>Open</span><span aria-hidden="true">&rarr;</span></a>`,
-        '</article>'
-      ].join('\n');
+        `<a class="portfolio-result-card tools-workbench-result tools-workbench-result__select" role="listitem" data-project-id="${escapeHtml(item.id || '')}" data-tools-visibility="public" href="${escapeHtml(href)}" aria-label="Open ${escapeHtml(title)}">`,
+        `  <span class="portfolio-result-card__media portfolio-result-card__media--icon" aria-hidden="true">${media}</span>`,
+        '  <span class="portfolio-result-card__body">',
+        `    <span class="portfolio-result-card__title">${escapeHtml(title)}</span>`,
+        summary ? `    <span class="portfolio-result-card__summary">${escapeHtml(summary)}</span>` : '',
+        item.category ? `    <span class="portfolio-chip-row"><span class="portfolio-chip portfolio-chip--accent">${escapeHtml(item.category)}</span></span>` : '',
+        '  </span>',
+        '</a>'
+      ].filter(Boolean).join('\n');
     }
 
     return [
@@ -1422,6 +1400,8 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
   const fallbackHtml = String(options.fallbackHtml || '').trim();
   const initialItemsHtml = String(options.initialItemsHtml || '').trim();
   const initialResultsText = String(options.initialResultsText || `Loading ${itemPlural}...`).trim();
+  const showSort = options.showSort !== false;
+  const showInspector = options.showInspector !== false;
   const supplementalLines = supplementalHtml ? [indentBlock(supplementalHtml, '      ')] : [];
   const fallbackLines = fallbackHtml ? [indentBlock(fallbackHtml, '          ')] : [];
   const initialItemLines = initialItemsHtml ? [indentBlock(initialItemsHtml, '            ')] : [];
@@ -1456,13 +1436,15 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
     `              <h2 id="${escapeHtml(resultsId)}" class="visually-hidden">${escapeHtml(title)} results</h2>`,
     `              <p class="portfolio-results-count" data-portfolio-results-count>${escapeHtml(initialResultsText)}</p>`,
     '            </div>',
-    '            <label class="portfolio-sort-control">',
-    '              <span>Sort by:</span>',
-    `              <select data-portfolio-sort aria-label="Sort ${escapeHtml(itemPlural)}">`,
-    '                <option value="default">Default</option>',
-    '                <option value="title">Alphabetical</option>',
-    '              </select>',
-    '            </label>',
+    ...(showSort ? [
+      '            <label class="portfolio-sort-control">',
+      '              <span>Sort by:</span>',
+      `              <select data-portfolio-sort aria-label="Sort ${escapeHtml(itemPlural)}">`,
+      '                <option value="default">Default</option>',
+      '                <option value="title">Alphabetical</option>',
+      '              </select>',
+      '            </label>'
+    ] : []),
     '          </div>',
     '          <div class="portfolio-search">',
     `            <label class="visually-hidden" for="${escapeHtml(kind)}-search-input">Search ${escapeHtml(itemPlural)}</label>`,
@@ -1474,10 +1456,12 @@ function renderDirectoryWorkbenchBody(page, options = {}) {
     `          <p class="portfolio-empty-state" data-portfolio-empty hidden>No ${escapeHtml(itemPlural)} match those filters.</p>`,
     ...fallbackLines,
     '        </section>',
-    '',
-    `        <aside class="portfolio-inspector" aria-label="Selected ${escapeHtml(itemSingular)} details" aria-live="polite" data-portfolio-inspector>`,
-    `          <div class="portfolio-inspector__loading">Choose a ${escapeHtml(itemSingular)} to see details.</div>`,
-    '        </aside>',
+    ...(showInspector ? [
+      '',
+      `        <aside class="portfolio-inspector" aria-label="Selected ${escapeHtml(itemSingular)} details" aria-live="polite" data-portfolio-inspector>`,
+      `          <div class="portfolio-inspector__loading">Choose a ${escapeHtml(itemSingular)} to see details.</div>`,
+      '        </aside>'
+    ] : []),
     '      </div>',
     '    </div>',
     '  </section>',
@@ -1512,29 +1496,49 @@ function renderToolsDirectoryBody(page, tools) {
     }),
     supplementalHtml: renderToolsResumePanel(page),
     initialResultsText: `${publicCount} tools`,
-    initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'tools')
+    initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'tools'),
+    showSort: false,
+    showInspector: false
   });
 }
 
 function renderGamesDirectoryBody(page) {
   const data = buildGamesDirectoryWorkbenchData(page);
-  const title = page.heroTitle || 'Games';
+  const title = page.heroTitle || 'Games and simulations';
   const titleId = 'games-workbench-title';
-  return renderDirectoryWorkbenchBody(page, {
-    kind: 'games',
-    title,
-    titleId,
-    itemSingular: 'game',
-    itemPlural: 'games',
-    headerHtml: renderDirectoryWorkbenchHeader(page, {
-      kind: 'games',
-      title,
-      titleId,
-      itemCount: data.items.length
-    }),
-    initialResultsText: `${data.items.length} games`,
-    initialItemsHtml: renderDirectoryWorkbenchStaticResults(data.items, 'games')
-  });
+  const cards = data.items.map((game) => {
+    const tags = uniqueLabels(Array.isArray(game.tags) ? game.tags : []).slice(0, 2);
+    const media = game.image
+      ? `<img src="${escapeHtml(game.image)}" alt=""${game.imageWidth ? ` width="${escapeHtml(game.imageWidth)}"` : ''}${game.imageHeight ? ` height="${escapeHtml(game.imageHeight)}"` : ''} loading="lazy" decoding="async">`
+      : `<span class="games-directory-card__icon">${game.iconHtml || ''}</span>`;
+    return [
+      `<a class="games-directory-card" role="listitem" href="${escapeHtml(game.href)}" data-game-id="${escapeHtml(game.id)}" data-content-id="${escapeHtml(game.id)}" data-content-type="game" data-resource-type="game" data-source-surface="games_directory">`,
+      `  <span class="games-directory-card__media" aria-hidden="true">${media}</span>`,
+      '  <div class="games-directory-card__body">',
+      `    <h2 class="games-directory-card__title">${escapeHtml(game.title)}</h2>`,
+      `    <p class="games-directory-card__summary">${escapeHtml(game.summary)}</p>`,
+      tags.length ? `    <div class="games-directory-card__tags">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : '',
+      '    <span class="games-directory-card__action">Play <span aria-hidden="true">&rarr;</span></span>',
+      '  </div>',
+      '</a>'
+    ].filter(Boolean).join('\n');
+  }).join('\n');
+
+  return [
+    '<main id="main" class="games-directory-main">',
+    `  <section class="games-directory" data-games-directory aria-labelledby="${escapeHtml(titleId)}">`,
+    '    <header class="games-directory__header">',
+    `      <p class="games-directory__eyebrow">${escapeHtml(page.heroEyebrow || 'Playable systems')}</p>`,
+    `      <h1 id="${escapeHtml(titleId)}">${escapeHtml(title)}</h1>`,
+    page.heroLead ? `      <p class="games-directory__lead">${escapeHtml(page.heroLead)}</p>` : '',
+    `      <p class="games-directory__count">${escapeHtml(data.items.length)} playable builds</p>`,
+    '    </header>',
+    '    <div class="games-directory__grid" role="list">',
+    indentBlock(cards, '      '),
+    '    </div>',
+    '  </section>',
+    '</main>'
+  ].filter(Boolean).join('\n');
 }
 
 function renderProjectsDataJs(projects, featuredIds) {

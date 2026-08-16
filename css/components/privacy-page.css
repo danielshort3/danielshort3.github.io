@@ -3,10 +3,11 @@
     min-height:calc(100svh - var(--nav-height, 72px));
     padding-top:var(--nav-height, 72px);
     display:grid;
-    align-content:center;
+    align-content:start;
     justify-items:center;
     margin:0;
     padding-inline:24px;
+    padding-bottom:clamp(28px,5vw,56px);
   }
 
   .policy-card{
@@ -18,6 +19,7 @@
     box-shadow:0 10px 24px rgba(44,169,188,.18);
     padding:clamp(18px, 4vw, 32px);
     margin:0 auto 1.5rem;
+    line-height:1.65;
   }
 
   .policy-card h1{
@@ -34,6 +36,8 @@
 
   .policy-section{
     margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid color-mix(in srgb,var(--brand-midnight, #091f3b) 10%, transparent);
   }
 
   .policy-section h2{
@@ -42,6 +46,9 @@
 
   .policy-list{
     padding-left:20px;
+    display:grid;
+    gap:8px;
+    max-width:72ch;
   }
 
   .policy-meta{
@@ -119,8 +126,8 @@
     border:none;
     background:var(--surface-elevated, rgba(255,255,255,0.08));
     color:inherit;
-    width:36px;
-    height:36px;
+    width:44px;
+    height:44px;
     border-radius:50%;
     font-weight:700;
     cursor:pointer;
@@ -154,6 +161,7 @@
     cursor:pointer;
     font-weight:600;
     width:100%;
+    min-height:48px;
   }
 
   #save-privacy-preferences:hover{
@@ -166,6 +174,62 @@
     }
     #save-privacy-preferences{
       width:auto;
+    }
+  }
+
+  @media (max-width: 640px){
+    .policy-page main{
+      padding-inline:0;
+      padding-bottom:calc(var(--mobile-section-y-tight, 1rem) + 4.5rem);
+    }
+
+    .policy-card{
+      width:100%;
+      margin-bottom:12px;
+      padding:var(--mobile-card-pad, 1rem) var(--mobile-page-gutter, 14px);
+      border-width:1px 0;
+      border-radius:0;
+      box-shadow:none;
+    }
+
+    .policy-card h1,
+    .policy-lead{
+      text-align:left;
+    }
+
+    .policy-card h1{
+      font-size:clamp(1.8rem,9vw,2.25rem);
+      line-height:1.12;
+    }
+
+    .policy-section{
+      margin-top:18px;
+      padding-top:18px;
+    }
+
+    .policy-section h2,
+    #prefs-title{
+      font-size:1.22rem;
+      line-height:1.25;
+      scroll-margin-top:calc(var(--nav-height, 72px) + 16px);
+    }
+
+    .policy-list{
+      margin-block:10px 0;
+      padding-left:1.2rem;
+      gap:10px;
+    }
+
+    .pref-option{
+      gap:8px;
+      padding:8px 0;
+      border-inline:0;
+      border-radius:0;
+    }
+
+    .pref-toggle{
+      min-height:48px;
+      padding:10px 12px;
     }
   }
 }
