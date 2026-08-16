@@ -18,6 +18,38 @@
     maxServiceDurationSeconds: 8 * 60 * 60,
     supportedFormats: ['amr', 'flac', 'm4a', 'mp3', 'mp4', 'ogg', 'wav', 'webm']
   };
+  const PROVIDER_AWS = 'aws';
+  const PROVIDER_LOCAL = 'local';
+  const LOCAL_POLL_INTERVAL_MS = 2000;
+  const LOCAL_UPLOAD_RETRIES = 2;
+  const DEFAULT_LOCAL_CHUNK_BYTES = 8 * 1024 * 1024;
+
+  /*
+   * Admin Local GPU integration contract:
+   * - GET /api/tools/transcribe/local-config
+   *   { ok, enabled, configured, service, workerOrigin, chunkBytes,
+   *     maxFilesPerRun, maxFileBytes, maxServiceDurationSeconds,
+   *     minDurationSeconds, supportedFormats, historyStored:false }
+   * - POST /api/tools/transcribe/local-ticket, once per file, with
+   *   { filename, format, contentType, bytes, durationSeconds }
+   *   => { ok, enabled, configured, workerOrigin, chunkBytes, ticket,
+   *        expiresAt, job:{ id, filename, format, contentType, bytes,
+   *        durationSeconds } }
+   * - GET /v1/health is an unauthenticated readiness check. Worker job
+   *   routes receive Authorization: Bearer <ticket>:
+   *   POST /v1/jobs with
+   *     { id, filename, format, contentType, bytes, durationSeconds,
+   *       chunkBytes, chunkCount }
+   *   PUT /v1/jobs/{id}/chunks/{index} with Content-Range and
+   *     X-Chunk-SHA256
+   *   POST /v1/jobs/{id}/complete with { chunkCount }
+   *   GET /v1/jobs/{id}
+   *   POST /v1/jobs/{id}/cancel
+   *   POST /v1/jobs/{id}/ack
+   * - Worker job reads return top-level
+   *   { ok, id, status, stage, progress, filename, error, transcript,
+   *     durationSeconds, coverageStatus }.
+   */
   const VIDEO_FORMATS = new Set(['mp4', 'webm']);
   const POLL_INTERVAL_MS = 5000;
   const POLL_MEDIUM_INTERVAL_MS = 15000;
@@ -40,6 +72,7 @@
     Number(timelineSeconds) - Number(mediaDurationSeconds) >= MP4_TIMELINE_OVERFLOW_SECONDS;
 
   const isRecoverableItem = (item) =>
+    item?.provider !== PROVIDER_LOCAL &&
     ['failed', 'canceled'].includes(String(item?.status || '')) &&
     item?.runErrorType !== 'service' &&
     (Boolean(item?.runToken) || (Boolean(item?.quoteToken) && item?.uploadComplete === true));
@@ -56,10 +89,7 @@
   const processingViewEl = $id('transcribe-processing-view');
   const resultsViewEl = $id('transcribe-results-view');
   const dropzoneEl = $id('transcribe-dropzone');
-  const serviceEl = $id('transcribe-stat-service');
-  const priceEl = $id('transcribe-stat-price');
-  const minimumEl = $id('transcribe-stat-minimum');
-  const acceptedEl = $id('transcribe-stat-accepted');
+  const addFilesBtn = $id('transcribe-add-files');
   const formEl = $id('transcribe-form');
   const fileEl = $id('transcribe-files');
   const summaryEl = $id('transcribe-summary');
@@ -102,11 +132,34 @@
   const historyDeleteBtn = $id('transcribe-history-delete');
   const historyPrivacyEl = $id('transcribe-history-privacy');
   const notificationsBtn = $id('transcribe-notifications');
+  const methodEl = $id('transcribe-method');
+  const methodHelpEl = $id('transcribe-method-help');
+  const methodInputs = Array.from(document.querySelectorAll('input[name="transcribe-provider"]'));
+  const localStateEl = $id('transcribe-local-state');
+  const localStateCopyEl = $id('transcribe-local-state-copy');
+  const localRefreshBtn = $id('transcribe-local-refresh');
+  const providerKickerEl = $id('transcribe-provider-kicker');
+  const uploadCopyEl = $id('transcribe-upload-copy');
+  const costReviewEl = $id('transcribe-cost-review');
+  const approvalCopyEl = $id('transcribe-approval-copy');
+  const processingDetailsEl = $id('transcribe-processing-details');
+  const detailsSummaryEl = $id('transcribe-details-summary');
+  const detailServiceEl = $id('transcribe-stat-service');
+  const detailMinimumEl = $id('transcribe-stat-minimum');
+  const detailPriceEl = $id('transcribe-stat-price');
+  const providerPanels = Array.from(document.querySelectorAll('[data-transcribe-provider-panel]'));
+  const uploadActionsEl = startBtn?.closest('.transcribe-actions') || null;
 
   if (!formEl || !fileEl || !startBtn || !fileRowsEl) return;
 
   const state = {
     config: { ...DEFAULT_CONFIG },
+    provider: PROVIDER_AWS,
+    localConfig: null,
+    localConfigLoading: false,
+    localStatus: 'checking',
+    localStatusMessage: 'Checking Home GPU...',
+    admin: false,
     files: [],
     busy: false,
     canceled: false,
@@ -137,6 +190,22 @@
     }
   };
 
+  const isAdminUser = () => {
+    try {
+      const authApi = window.ToolsAuth;
+      const auth = authApi?.getAuth?.();
+      return Boolean(authApi?.authIsValid?.(auth) && authApi?.isAdmin?.(auth));
+    } catch {
+      return false;
+    }
+  };
+
+  const isLocalProvider = () => state.provider === PROVIDER_LOCAL;
+
+  const activeConfig = () => isLocalProvider()
+    ? (state.localConfig || {})
+    : state.config;
+
   const tokenExpiryMs = (token) => {
     try {
       const body = String(token || '').split('.')[0];
@@ -165,6 +234,7 @@
     const now = Date.now();
     const items = state.files
       .filter((item) => {
+        if (item?.provider === PROVIDER_LOCAL) return false;
         if (['complete', 'partial'].includes(item?.status) || item?.runErrorType === 'service') return false;
         return Boolean(item?.runToken) || (Boolean(item?.quoteToken) && item?.uploadComplete === true);
       })
@@ -183,6 +253,7 @@
           durationSeconds: Math.max(0, Number(item.durationSeconds) || 0),
           billableSeconds: Math.max(0, Number(item.billableSeconds) || 0),
           estimatedCostUsd: Math.max(0, Number(item.estimatedCostUsd) || 0),
+          provider: PROVIDER_AWS,
           runToken,
           quoteToken,
           uploadComplete: item.uploadComplete === true,
@@ -233,6 +304,7 @@
         durationSeconds: Math.max(0, Number(item?.durationSeconds) || 0),
         billableSeconds: Math.max(0, Number(item?.billableSeconds) || 0),
         estimatedCostUsd: Math.max(0, Number(item?.estimatedCostUsd) || 0),
+        provider: PROVIDER_AWS,
         costUsd: 0,
         progress: 0,
         status: 'failed',
@@ -247,7 +319,10 @@
     }).filter(Boolean);
     state.files = restored;
     if (!restored.length) clearActiveRunRecovery();
-    else persistActiveRunRecovery();
+    else {
+      state.provider = PROVIDER_AWS;
+      persistActiveRunRecovery();
+    }
     return restored.length;
   };
 
@@ -310,6 +385,30 @@
     if (!el) return;
     el.textContent = message || '';
     el.dataset.tone = tone || '';
+  };
+
+  const setLocalStatus = (status, message) => {
+    state.localStatus = status || 'offline';
+    state.localStatusMessage = message || '';
+    if (localStateEl) localStateEl.dataset.state = state.localStatus;
+    setText(localStateCopyEl, state.localStatusMessage);
+  };
+
+  const normalizeWorkerOrigin = (value) => {
+    const parsed = new URL(String(value || ''));
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error('The home PC worker address must use HTTP or HTTPS.');
+    }
+    return parsed.origin;
+  };
+
+  const isLoopbackWorkerOrigin = (value) => {
+    try {
+      const hostname = new URL(value).hostname.toLowerCase().replace(/^\[|\]$/g, '');
+      return hostname === 'localhost' || hostname === '::1' || /^127(?:\.\d{1,3}){3}$/.test(hostname);
+    } catch {
+      return false;
+    }
   };
 
   const formatNumber = (value, digits = 2) => {
@@ -426,6 +525,7 @@
     billableSeconds: 0,
     estimatedCostUsd: 0,
     costUsd: 0,
+    provider: state.provider,
     progress: 0,
     status: 'checking',
     skipReason: '',
@@ -433,8 +533,8 @@
   });
 
   const supportedFormats = () => new Set(
-    Array.isArray(state.config.supportedFormats)
-      ? state.config.supportedFormats.map((item) => String(item).toLowerCase())
+    Array.isArray(activeConfig().supportedFormats)
+      ? activeConfig().supportedFormats.map((item) => String(item).toLowerCase())
       : DEFAULT_CONFIG.supportedFormats
   );
 
@@ -675,13 +775,24 @@
     return text || 'Transcription failed.';
   };
 
+  const responseErrorMessage = (data, fallback = '') => {
+    const error = data?.error;
+    if (typeof error === 'string') return cleanText(error) || cleanText(fallback);
+    if (error && typeof error === 'object') {
+      return cleanText(error.message || error.detail || error.code) || cleanText(fallback);
+    }
+    return cleanText(data?.message || fallback);
+  };
+
   const billableSeconds = (durationSeconds) => {
     const duration = Number(durationSeconds);
     if (!Number.isFinite(duration) || duration <= 0) return 0;
+    if (isLocalProvider()) return Math.ceil(duration);
     return Math.max(Number(state.config.minBillableSeconds) || 15, Math.ceil(duration));
   };
 
   const estimatedCost = (durationSeconds) => {
+    if (isLocalProvider()) return 0;
     const cost = billableSeconds(durationSeconds) * Number(state.config.pricePerSecond || DEFAULT_CONFIG.pricePerSecond);
     return Number(cost.toFixed(6));
   };
@@ -706,6 +817,24 @@
   };
 
   const runConfigIsValid = () => {
+    if (isLocalProvider()) {
+      const config = state.localConfig || {};
+      const numericValues = [
+        config.chunkBytes,
+        config.maxFilesPerRun,
+        config.maxFileBytes,
+        config.maxServiceDurationSeconds,
+        config.minDurationSeconds
+      ].map(Number);
+      return isAdminUser() &&
+        config.enabled === true &&
+        config.configured === true &&
+        state.localStatus === 'online' &&
+        Boolean(cleanText(config.workerOrigin)) &&
+        Array.isArray(config.supportedFormats) &&
+        config.supportedFormats.length > 0 &&
+        numericValues.every((value) => Number.isFinite(value) && value > 0);
+    }
     const numericValues = [
       state.config.pricePerSecond,
       state.config.minDurationSeconds,
@@ -719,6 +848,89 @@
       Array.isArray(state.config.supportedFormats) &&
       state.config.supportedFormats.length > 0 &&
       numericValues.every((value) => Number.isFinite(value) && value > 0);
+  };
+
+  const syncProviderUi = () => {
+    const admin = state.admin && isAdminUser();
+    const localActive = admin && isLocalProvider();
+    const hasFiles = state.files.length > 0;
+
+    if (shellEl) {
+      shellEl.dataset.transcribeProvider = state.provider;
+      shellEl.dataset.transcribeHasFiles = hasFiles ? 'true' : 'false';
+    }
+    if (dropzoneEl) dropzoneEl.dataset.compact = hasFiles ? 'true' : 'false';
+
+    providerPanels.forEach((panel) => {
+      const provider = cleanText(panel.dataset.transcribeProviderPanel).toLowerCase();
+      const providerMatches = provider === 'all' || provider === state.provider;
+      const requiresFiles = panel.hasAttribute('data-transcribe-requires-files');
+      panel.hidden = !providerMatches || (requiresFiles && !hasFiles);
+    });
+
+    if (localStateEl) {
+      localStateEl.hidden = !localActive;
+      localStateEl.setAttribute('aria-live', localActive ? 'polite' : 'off');
+      localStateEl.setAttribute('aria-atomic', 'true');
+    }
+    if (localRefreshBtn) {
+      localRefreshBtn.hidden = !localActive || !['offline', 'unavailable'].includes(state.localStatus);
+    }
+    if (usageEl) usageEl.hidden = isLocalProvider();
+    if (historyOpenBtn) {
+      historyOpenBtn.hidden = isLocalProvider() || !authIsReady();
+      historyOpenBtn.disabled = isLocalProvider() || !authIsReady();
+    }
+    if (notificationsBtn) notificationsBtn.hidden = false;
+    if (isLocalProvider() && historyDialogEl?.open) closeHistory();
+
+    setText(detailsSummaryEl, isLocalProvider() ? 'Home GPU' : 'AWS');
+    const config = activeConfig();
+    const minimumSeconds = Math.max(0, Number(config.minDurationSeconds) || DEFAULT_CONFIG.minDurationSeconds);
+    const serviceName = cleanText(config.service) || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe');
+    setText(detailServiceEl, serviceName);
+    setText(detailMinimumEl, minimumSeconds < 60 ? `${Math.round(minimumSeconds)} sec` : formatClock(minimumSeconds));
+    setText(detailPriceEl, `$${Number(state.config.pricePerMinute || DEFAULT_CONFIG.pricePerMinute).toFixed(3)} / min`);
+    if (summaryEl) summaryEl.hidden = !hasFiles;
+    if (costReviewEl) {
+      const reviewProvider = cleanText(costReviewEl.dataset.transcribeProviderPanel).toLowerCase();
+      const reviewMatches = !reviewProvider || reviewProvider === 'all' || reviewProvider === state.provider;
+      costReviewEl.hidden = !hasFiles || !reviewMatches;
+    }
+    if (uploadActionsEl) uploadActionsEl.hidden = !hasFiles;
+  };
+
+  const updateMethodUi = () => {
+    const admin = state.admin && isAdminUser();
+    const locked = state.busy || state.analyzing || state.files.length > 0;
+    if (methodEl) methodEl.hidden = !admin;
+    methodInputs.forEach((input) => {
+      const isLocal = input.value === PROVIDER_LOCAL;
+      const localUnavailable = isLocal && (
+        state.localConfigLoading ||
+        (state.localConfig !== null && (
+          state.localConfig?.enabled !== true ||
+          state.localConfig?.configured !== true
+        ))
+      );
+      input.disabled = !admin || locked || localUnavailable;
+      input.checked = input.value === state.provider;
+    });
+    if (localRefreshBtn) localRefreshBtn.disabled = !admin || state.localConfigLoading || state.busy;
+    setText(methodHelpEl, locked ? 'Remove all files to change the processing method.' : '');
+
+    if (isLocalProvider()) {
+      setText(providerKickerEl, 'Home GPU');
+      setText(uploadCopyEl, 'Add audio or video to process on your home PC.');
+      if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_LOCAL;
+      setText(approvalCopyEl, 'Send these files securely to my home PC for temporary processing.');
+    } else {
+      setText(providerKickerEl, 'Amazon Transcribe');
+      setText(uploadCopyEl, 'Add audio or video, then review the estimate.');
+      if (costReviewEl) costReviewEl.dataset.provider = PROVIDER_AWS;
+      setText(approvalCopyEl, 'Approve the estimated charge shown above.');
+    }
+    syncProviderUi();
   };
 
   const setView = (view) => {
@@ -747,6 +959,7 @@
   const setBusy = (busy) => {
     state.busy = Boolean(busy);
     if (fileEl) fileEl.disabled = state.busy || state.analyzing;
+    if (addFilesBtn) addFilesBtn.disabled = state.busy || state.analyzing;
     if (dropzoneEl) dropzoneEl.dataset.disabled = state.busy || state.analyzing ? 'true' : 'false';
     if (resetBtn) resetBtn.disabled = state.busy || state.analyzing;
     if (newBtn) newBtn.disabled = state.busy || state.analyzing;
@@ -754,6 +967,7 @@
     if (startBtn) {
       startBtn.classList.toggle('is-busy', state.busy);
     }
+    updateMethodUi();
     updateControls();
     updateLayoutState();
   };
@@ -771,25 +985,25 @@
     setText(progressLabelEl, label || 'Progress');
   };
 
-  const updateStats = () => {
-    setText(serviceEl, state.config.service || 'Amazon Transcribe');
-    setText(priceEl, `${formatUsd(state.config.pricePerMinute)} / min`);
-    setText(minimumEl, `${Number(state.config.minDurationSeconds) || 15} sec`);
-    setText(acceptedEl, String(acceptedFiles().length));
-  };
-
   const updateAuthUi = () => {
     if (!window.ToolsAuth) {
-      if (historyOpenBtn) {
-        historyOpenBtn.disabled = true;
-        historyOpenBtn.hidden = true;
+      state.admin = false;
+      if (isLocalProvider() && !state.files.length && !state.busy) {
+        state.provider = PROVIDER_AWS;
       }
+      updateMethodUi();
       renderUsage();
       updateControls();
       return;
     }
 
     const authed = authIsReady();
+    const wasAdmin = state.admin;
+    state.admin = authed && isAdminUser();
+    if (!state.admin && isLocalProvider() && !state.files.length && !state.busy) {
+      state.provider = PROVIDER_AWS;
+      if (approveEl) approveEl.checked = false;
+    }
     const accountSub = authed ? getAuthSub() : '';
     if (state.accountSub !== accountSub) {
       state.accountSub = accountSub;
@@ -804,24 +1018,27 @@
       if (historyDialogEl?.open) closeHistory();
       showHistoryList();
     }
-    if (authed) {
-      if (historyOpenBtn) {
-        historyOpenBtn.disabled = false;
-        historyOpenBtn.hidden = false;
-      }
-    } else {
-      if (historyOpenBtn) {
-        historyOpenBtn.disabled = true;
-        historyOpenBtn.hidden = true;
-      }
+
+    const shouldPreferLocal = state.admin && !wasAdmin && !state.files.length && !state.busy;
+    if (shouldPreferLocal) {
+      const localKnownUnavailable = state.localConfig !== null && (
+        state.localConfig?.enabled !== true || state.localConfig?.configured !== true
+      );
+      state.provider = localKnownUnavailable ? PROVIDER_AWS : PROVIDER_LOCAL;
+      if (approveEl) approveEl.checked = false;
+      if (processingDetailsEl) processingDetailsEl.open = false;
     }
+
+    updateMethodUi();
+    updateSummary();
+    if (shouldPreferLocal && isLocalProvider()) void refreshLocalWorkerStatus();
     renderUsage();
     updateControls();
   };
 
   const updateSummary = () => {
     const totalCount = state.files.length;
-    const readyCount = acceptedFiles().length;
+    const readyCount = state.files.filter((item) => item.status === 'ready').length;
     const skippedCount = state.files.filter((item) => item.status === 'skipped').length;
     const completedCount = completedFiles().length;
     const partialCount = partialFiles().length;
@@ -830,36 +1047,52 @@
     const runCost = finalTotal();
 
     if (!totalCount) {
-      setStatus(summaryEl, 'No files selected.', '');
-      setText(totalEl, 'Estimated total: $0.00');
+      setStatus(summaryEl, '', '');
+      if (summaryEl) summaryEl.hidden = true;
+      setText(totalEl, '');
+      syncProviderUi();
       return;
     }
 
-    const parts = [`${readyCount} ready`, `${skippedCount} skipped`];
-    if (completedCount || partialCount || failedCount) {
-      parts.push(`${completedCount} complete`, `${partialCount} partial`, `${failedCount} failed`);
-    }
+    const parts = [];
+    if (readyCount) parts.push(`${readyCount} ready`);
+    if (skippedCount) parts.push(`${skippedCount} skipped`);
+    if (completedCount) parts.push(`${completedCount} complete`);
+    if (partialCount) parts.push(`${partialCount} partial`);
+    if (failedCount) parts.push(`${failedCount} failed`);
+    if (!parts.length) parts.push(`${totalCount} selected`);
+    if (!isLocalProvider()) parts.push(`${formatUsd(completedCount || partialCount ? runCost : totalCost)} estimated`);
+    if (summaryEl) summaryEl.hidden = false;
     setStatus(
       summaryEl,
-      `${parts.join(' · ')}. Estimated total ${formatUsd(totalCost)}.`,
+      parts.join(' · '),
       skippedCount || partialCount || failedCount ? 'warning' : 'success'
     );
     setText(
       totalEl,
-      completedCount || partialCount
-        ? `Final run total: ${formatUsd(runCost)} · Estimated total: ${formatUsd(totalCost)}`
-        : `Estimated total: ${formatUsd(totalCost)}`
+      isLocalProvider()
+        ? 'Home GPU processing'
+        : completedCount || partialCount
+          ? `Estimated charge: ${formatUsd(runCost)}`
+          : `Estimated charge: ${formatUsd(totalCost)}`
     );
+    syncProviderUi();
   };
 
   const statusLabel = (item) => {
     if (item.status === 'checking') return 'Checking';
     if (item.status === 'skipped') return `Skipped: ${item.skipReason || 'Not eligible'}`;
     if (item.status === 'ready') return 'Ready';
-    if (item.status === 'presigning') return 'Preparing upload';
+    if (item.status === 'presigning') return item.provider === PROVIDER_LOCAL ? 'Requesting secure ticket' : 'Preparing upload';
     if (item.status === 'uploading') return `Uploading ${Math.round((Number(item.progress) || 0) * 100)}%`;
-    if (item.status === 'starting') return 'Starting job';
-    if (item.status === 'transcribing') return 'Transcribing';
+    if (item.status === 'starting') return item.provider === PROVIDER_LOCAL ? 'Starting home PC job' : 'Starting job';
+    if (item.status === 'transcribing') {
+      if (item.provider === PROVIDER_LOCAL && item.localStage) {
+        const progress = Math.round(Math.min(1, Math.max(0, Number(item.localProgress) || 0)) * 100);
+        return `${item.localStage}${progress ? ` ${progress}%` : ''}`;
+      }
+      return 'Transcribing';
+    }
     if (item.status === 'complete') return 'Complete';
     if (item.status === 'partial') {
       const endedAt = Number(item.transcriptEndSeconds);
@@ -892,18 +1125,19 @@
     fileRowsEl.innerHTML = state.files.map((item) => {
       const removable = canRemoveItem(item);
       const resumable = canResumeItem(item);
+      const metadata = [
+        formatBytes(item.bytes),
+        item.extension ? item.extension.toUpperCase() : '',
+        item.durationSeconds ? formatClock(item.durationSeconds) : ''
+      ].filter(Boolean).join(' · ');
+      const showStatus = item.status !== 'ready';
       return `
       <article class="transcribe-file-card" data-tone="${escapeHtml(rowTone(item))}">
         <div class="transcribe-file-main">
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
-          <span class="transcribe-file-meta">${escapeHtml(formatBytes(item.bytes))}${item.extension ? ` · ${escapeHtml(item.extension.toUpperCase())}` : ''}</span>
+          <span class="transcribe-file-meta">${escapeHtml(metadata)}</span>
         </div>
-        <div class="transcribe-file-facts" aria-label="File details">
-          <span>${item.durationSeconds ? escapeHtml(formatClock(item.durationSeconds)) : '--'}</span>
-          <span>${item.billableSeconds ? `${escapeHtml(String(item.billableSeconds))} sec` : '--'}</span>
-          <span>${escapeHtml(formatUsd(item.estimatedCostUsd || 0))}</span>
-        </div>
-        <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
+        ${showStatus ? `<span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>` : ''}
         <div class="transcribe-file-actions">
           ${resumable ? `
             <button
@@ -920,12 +1154,11 @@
             data-id="${escapeHtml(item.id)}"
             aria-label="Remove ${escapeHtml(item.name)} from queue"
             ${removable ? '' : 'disabled'}
-          >X</button>
+          ><span aria-hidden="true">×</span></button>
         </div>
       </article>
     `;
     }).join('');
-    updateStats();
     updateSummary();
     updateControls();
     updateLayoutState();
@@ -943,7 +1176,7 @@
       <article class="transcribe-process-card" data-tone="${escapeHtml(rowTone(item))}">
         <div>
           <span class="transcribe-file-name">${escapeHtml(item.name)}</span>
-          <span class="transcribe-file-meta">${escapeHtml(formatClock(item.durationSeconds))} · ${escapeHtml(formatUsd(item.estimatedCostUsd || item.costUsd || 0))}</span>
+          <span class="transcribe-file-meta">${escapeHtml(formatClock(item.durationSeconds))}</span>
         </div>
         <span class="transcribe-file-status">${escapeHtml(statusLabel(item))}</span>
       </article>
@@ -966,10 +1199,17 @@
       setText(resumeAllBtn, `Resume all ${resumeCount} pending`);
     }
     if (resultsSummaryEl) {
+      const summaryParts = [];
+      if (completedCount) summaryParts.push(`${completedCount} complete`);
+      if (partialCount) summaryParts.push(`${partialCount} partial`);
+      if (failedCount) summaryParts.push(`${failedCount} failed`);
+      if (canceledCount) summaryParts.push(`${canceledCount} canceled`);
+      if (skippedCount) summaryParts.push(`${skippedCount} skipped`);
+      if (!isLocalProvider() && resultItems.length) summaryParts.push(`${formatUsd(finalTotal())} estimated`);
       setText(
         resultsSummaryEl,
         resultItems.length
-          ? `${completedCount} complete · ${partialCount} partial · ${failedCount} failed · ${canceledCount} canceled · ${skippedCount} skipped · Final cost ${formatUsd(finalTotal())}`
+          ? summaryParts.join(' · ')
           : 'Completed transcripts will appear below.'
       );
     }
@@ -983,9 +1223,13 @@
       const isPartial = item.status === 'partial';
       const resumable = canResumeItem(item);
       const status = isComplete
-        ? `Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)} · ${item.billableSeconds || 0} billable sec`
+        ? item.provider === PROVIDER_LOCAL
+          ? 'Completed on Home GPU'
+          : `Estimated charge: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)} · ${item.billableSeconds || 0} billable sec`
         : isPartial
-          ? `${item.error || 'The transcript may have ended before the source media.'} Cost: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)}.`
+          ? item.provider === PROVIDER_LOCAL
+            ? item.error || 'The transcript may have ended before the source media.'
+            : `${item.error || 'The transcript may have ended before the source media.'} Estimated charge: ${formatUsd(item.costUsd || item.estimatedCostUsd || 0)}.`
           : item.error || 'Transcription failed.';
       return `
         <article class="transcribe-result" data-status="${escapeHtml(item.status)}" data-id="${escapeHtml(item.id)}">
@@ -1011,8 +1255,21 @@
   };
 
   const updateControls = () => {
+    updateMethodUi();
     const readyCount = acceptedFiles().filter((item) => item.status === 'ready').length;
     const approved = Boolean(approveEl && approveEl.checked);
+    const localConfigPending = isLocalProvider() && (
+      state.localConfigLoading ||
+      state.localConfig?.enabled !== true ||
+      state.localConfig?.configured !== true
+    );
+    const pickerDisabled = state.busy || state.analyzing || localConfigPending;
+    if (fileEl) fileEl.disabled = pickerDisabled;
+    if (addFilesBtn) addFilesBtn.disabled = pickerDisabled;
+    if (dropzoneEl) {
+      dropzoneEl.dataset.disabled = pickerDisabled ? 'true' : 'false';
+      dropzoneEl.setAttribute('aria-disabled', pickerDisabled ? 'true' : 'false');
+    }
     if (approveEl) approveEl.disabled = state.busy || state.analyzing || readyCount === 0;
     if (startBtn) {
       const ready = authIsReady() && runConfigIsValid() && approved && readyCount > 0;
@@ -1035,7 +1292,7 @@
       data = null;
     }
     if (!res.ok || data?.ok === false) {
-      const err = new Error(data?.error || data?.message || `Request failed (${res.status}).`);
+      const err = new Error(responseErrorMessage(data, `Request failed (${res.status}).`));
       err.status = res.status;
       err.data = data;
       throw err;
@@ -1051,12 +1308,89 @@
     return readJson(res);
   };
 
+  const workerFetchJson = async (workerOrigin, path, ticket = '', options = {}) => {
+    const origin = normalizeWorkerOrigin(workerOrigin);
+    const headers = new Headers(options.headers || {});
+    if (ticket) headers.set('Authorization', `Bearer ${ticket}`);
+    const requestOptions = {
+      ...options,
+      headers,
+      cache: options.cache || 'no-store'
+    };
+    if (isLoopbackWorkerOrigin(origin)) requestOptions.targetAddressSpace = 'loopback';
+    const request = new Request(new URL(path, `${origin}/`), requestOptions);
+    return readJson(await fetch(request));
+  };
+
+  const refreshLocalWorkerStatus = async () => {
+    if (!isAdminUser() || !isLocalProvider() || state.localConfigLoading) return;
+    state.localConfigLoading = true;
+    setLocalStatus('checking', 'Checking Home GPU...');
+    updateMethodUi();
+    const fallbackToAws = (message) => {
+      setLocalStatus('unavailable', message);
+      if (!state.files.length && !state.busy) {
+        state.provider = PROVIDER_AWS;
+        if (approveEl) approveEl.checked = false;
+        if (processingDetailsEl) processingDetailsEl.open = false;
+      }
+    };
+
+    try {
+      let config;
+      try {
+        config = await authFetchJson(`${API_BASE}/local-config`, { method: 'GET' });
+      } catch {
+        setLocalStatus('offline', 'Home GPU availability could not be checked. Check the connection and try again.');
+        return;
+      }
+
+      state.localConfig = { ...config };
+      if (config.enabled !== true || config.configured !== true) {
+        const message = cleanText(config.disabledReason) || (config.enabled !== true
+          ? 'Home GPU processing is disabled.'
+          : 'Home GPU is not configured.');
+        fallbackToAws(message);
+        return;
+      }
+      if (!isLocalProvider()) return;
+
+      let workerOrigin;
+      try {
+        workerOrigin = normalizeWorkerOrigin(config.workerOrigin);
+      } catch {
+        fallbackToAws('Home GPU is not configured correctly.');
+        return;
+      }
+      state.localConfig.workerOrigin = workerOrigin;
+
+      try {
+        const health = await workerFetchJson(workerOrigin, '/v1/health', '', { method: 'GET' });
+        const healthStatus = cleanText(health?.status).toLowerCase();
+        if (health?.ready !== true || ['offline', 'unavailable', 'error', 'failed'].includes(healthStatus)) {
+          throw new Error('Worker is not ready.');
+        }
+        setLocalStatus('online', 'Home GPU is online and ready.');
+      } catch {
+        setLocalStatus('offline', 'Home GPU is offline. Start the worker, then check again.');
+      }
+    } finally {
+      state.localConfigLoading = false;
+      updateMethodUi();
+      updateSummary();
+      updateControls();
+      if (!isLocalProvider()) void loadUsage();
+    }
+  };
+
   const formatUsageLimitUsd = (value) => {
     const amount = Math.max(0, Number(value) || 0);
     return Number.isInteger(amount) ? `$${amount.toFixed(0)}` : formatUsageUsd(amount);
   };
 
   const renderUsage = () => {
+    if (usageEl) usageEl.hidden = isLocalProvider();
+    if (isLocalProvider()) return;
     const configuredLimit = Math.max(0, Number(state.config.dailyCostLimitUsd || 100) || 100);
     const formattedConfiguredLimit = formatUsageLimitUsd(configuredLimit);
     if (!authIsReady()) {
@@ -1064,25 +1398,25 @@
       if (usageProgressEl) {
         usageProgressEl.max = configuredLimit;
         usageProgressEl.value = 0;
-        usageProgressEl.textContent = 'Usage unavailable';
+        usageProgressEl.textContent = 'Reserved budget unavailable';
       }
-      setText(usageTooltipEl, 'Sign in to view your UTC-day usage.');
+      setText(usageTooltipEl, 'Sign in to view today\'s reserved AWS Transcribe safety budget. This is not billed spend.');
       if (usageEl) {
         usageEl.dataset.tone = '';
-        usageEl.setAttribute('aria-label', 'Today\'s transcription usage is available after sign-in');
+        usageEl.setAttribute('aria-label', 'Today\'s reserved AWS Transcribe safety budget is available after sign-in');
       }
       return;
     }
     if (state.usageLoading && !state.usage) {
       setText(usageValueEl, `Loading / ${formattedConfiguredLimit}`);
-      setText(usageTooltipEl, 'Checking today\'s reserved usage...');
-      if (usageEl) usageEl.setAttribute('aria-label', 'Loading today\'s transcription usage');
+      setText(usageTooltipEl, 'Checking today\'s reserved Amazon Transcribe safety budget...');
+      if (usageEl) usageEl.setAttribute('aria-label', 'Loading today\'s reserved AWS Transcribe safety budget');
       return;
     }
     if (!state.usage) {
       setText(usageValueEl, `-- / ${formattedConfiguredLimit}`);
-      setText(usageTooltipEl, 'Usage is temporarily unavailable.');
-      if (usageEl) usageEl.setAttribute('aria-label', 'Today\'s transcription usage is temporarily unavailable');
+      setText(usageTooltipEl, 'The reserved AWS Transcribe safety budget is temporarily unavailable.');
+      if (usageEl) usageEl.setAttribute('aria-label', 'Today\'s reserved AWS Transcribe safety budget is temporarily unavailable');
       return;
     }
     const usedUsd = Math.max(0, Number(state.usage.usedUsd) || 0);
@@ -1094,18 +1428,24 @@
     if (usageProgressEl) {
       usageProgressEl.max = limitUsd || 100;
       usageProgressEl.value = Math.min(usedUsd, limitUsd || usedUsd);
-      usageProgressEl.textContent = `${formatUsageUsd(usedUsd)} of ${formatUsageUsd(limitUsd)}`;
+      usageProgressEl.textContent = `${formatUsageUsd(usedUsd)} reserved of ${formatUsageUsd(limitUsd)}`;
     }
-    const usageDetails = `${formatUsageUsd(remainingUsd)} remaining · ${fileCount} file${fileCount === 1 ? '' : 's'} · ${formatUtcReset(state.usage.resetsAt)}`;
+    const usageDetails = `AWS reserved safety budget: ${formatUsageUsd(remainingUsd)} remaining · ${fileCount} file${fileCount === 1 ? '' : 's'} · ${formatUtcReset(state.usage.resetsAt)} · not billed spend`;
     setText(usageTooltipEl, usageDetails);
     if (usageEl) {
       const ratio = limitUsd > 0 ? usedUsd / limitUsd : 0;
       usageEl.dataset.tone = ratio >= 1 ? 'error' : ratio >= .8 ? 'warning' : '';
-      usageEl.setAttribute('aria-label', `Today\'s transcription usage: ${formattedUsage}`);
+      usageEl.setAttribute('aria-label', `Today\'s reserved AWS Transcribe safety budget: ${formattedUsage}; this is not billed spend`);
     }
   };
 
   const loadUsage = async () => {
+    if (isLocalProvider()) {
+      state.usageRequestId += 1;
+      state.usageLoading = false;
+      renderUsage();
+      return;
+    }
     const sub = getAuthSub();
     const requestId = ++state.usageRequestId;
     if (!sub) {
@@ -1137,7 +1477,7 @@
     const status = String(item?.status || '').toUpperCase() === 'PARTIAL' ? 'Needs review' : 'Complete';
     const cost = Number(item?.costUsd);
     const parts = [status, formatHistoryDate(item?.completedAt)];
-    if (item?.costUsd !== null && item?.costUsd !== undefined && Number.isFinite(cost)) parts.push(formatUsd(cost));
+    if (item?.costUsd !== null && item?.costUsd !== undefined && Number.isFinite(cost)) parts.push(`Est. AWS charge ${formatUsd(cost)}`);
     if (Number(item?.durationSeconds) > 0) parts.push(formatClock(item.durationSeconds));
     return parts.join(' · ');
   };
@@ -1147,7 +1487,7 @@
     if (!state.historyItems.length) {
       historyListEl.innerHTML = state.historyLoading
         ? '<p class="transcribe-empty">Loading transcript history...</p>'
-        : '<p class="transcribe-empty">No saved transcripts yet. New completed transcripts will appear here.</p>';
+        : '<p class="transcribe-empty">No saved transcripts yet. Completed Amazon Transcribe results collected by this browser will appear here.</p>';
     } else {
       historyListEl.innerHTML = state.historyItems.map((item) => `
         <article class="transcribe-history-item">
@@ -1199,6 +1539,7 @@
   };
 
   const loadHistory = async ({ append = false } = {}) => {
+    if (isLocalProvider()) return;
     const sub = getAuthSub();
     if (!sub || state.historyLoading) return;
     const cursor = append ? state.historyNextCursor : '';
@@ -1254,8 +1595,9 @@
   };
 
   const openHistory = () => {
+    if (isLocalProvider()) return;
     if (!authIsReady()) {
-      setStatus(runStatusEl, 'Sign in to view your private transcript history.', 'warning');
+      setStatus(runStatusEl, 'Sign in to view your account\'s AWS transcript history.', 'warning');
       return;
     }
     showHistoryList();
@@ -1399,17 +1741,15 @@
       if (state.config.configured !== true) {
         throw new Error('Transcribe is not fully configured on the server.');
       }
-      updateStats();
       updateSummary();
       if (historyPrivacyEl) {
         const days = Math.max(1, Number(state.config.historyRetentionDays) || 90);
-        setText(historyPrivacyEl, `History stores only the filename and transcript text for ${days} days. Your original media file is not retained here.`);
+        setText(historyPrivacyEl, `Saved AWS transcripts, filenames, and job metadata are retained for ${days} days. Uploaded media is removed after processing; abandoned uploads use the configured S3 lifecycle.`);
       }
       renderUsage();
     } catch (err) {
       setStatus(runStatusEl, err?.message || 'Transcribe configuration is unavailable.', 'warning');
       state.config = { ...DEFAULT_CONFIG, configured: false };
-      updateStats();
       updateControls();
     }
   };
@@ -1484,9 +1824,9 @@
     renderResults();
     setStatus(runStatusEl, `Checking ${newItems.length} added file${newItems.length === 1 ? '' : 's'}...`, '');
 
+    const config = activeConfig();
     const formats = supportedFormats();
     let acceptedCost = estimatedTotal();
-    let acceptedCount = state.files.filter((item) => item.status === 'ready').length;
     let addedAcceptedCount = 0;
 
     for (let i = 0; i < newItems.length; i += 1) {
@@ -1495,9 +1835,9 @@
         renderTable();
         continue;
       }
-      if (countedForRunLimit() >= Number(state.config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
+      if (countedForRunLimit() >= Number(config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun)) {
         item.status = 'skipped';
-        item.skipReason = `Run limit is ${state.config.maxFilesPerRun} files.`;
+        item.skipReason = `Run limit is ${config.maxFilesPerRun || DEFAULT_CONFIG.maxFilesPerRun} files.`;
         renderTable();
         continue;
       }
@@ -1513,9 +1853,9 @@
         renderTable();
         continue;
       }
-      if (item.bytes > Number(state.config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes)) {
+      if (item.bytes > Number(config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes)) {
         item.status = 'skipped';
-        item.skipReason = `File exceeds ${formatBytes(state.config.maxFileBytes)}.`;
+        item.skipReason = `File exceeds ${formatBytes(config.maxFileBytes || DEFAULT_CONFIG.maxFileBytes)}.`;
         renderTable();
         continue;
       }
@@ -1527,15 +1867,18 @@
         renderTable();
         continue;
       }
-      if (item.durationSeconds < Number(state.config.minDurationSeconds || 15)) {
+      if (item.durationSeconds < Number(config.minDurationSeconds || 15)) {
         item.status = 'skipped';
-        item.skipReason = `Under ${state.config.minDurationSeconds || 15} seconds.`;
+        item.skipReason = `Under ${config.minDurationSeconds || 15} seconds.`;
         renderTable();
         continue;
       }
-      if (item.durationSeconds > Number(state.config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds)) {
+      const exceedsServiceDuration = isLocalProvider()
+        ? item.durationSeconds > Number(config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds)
+        : item.durationSeconds > Number(state.config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds);
+      if (exceedsServiceDuration) {
         item.status = 'skipped';
-        item.skipReason = `Exceeds Amazon Transcribe's ${formatClock(state.config.maxServiceDurationSeconds)} media limit.`;
+        item.skipReason = `Exceeds ${(config.service || (isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe'))}'s ${formatClock(config.maxServiceDurationSeconds || DEFAULT_CONFIG.maxServiceDurationSeconds)} media limit.`;
         renderTable();
         continue;
       }
@@ -1557,7 +1900,7 @@
 
       item.billableSeconds = billableSeconds(item.durationSeconds);
       item.estimatedCostUsd = estimatedCost(item.durationSeconds);
-      if (acceptedCost + item.estimatedCostUsd > Number(state.config.maxTotalCostUsd || DEFAULT_CONFIG.maxTotalCostUsd)) {
+      if (!isLocalProvider() && acceptedCost + item.estimatedCostUsd > Number(state.config.maxTotalCostUsd || DEFAULT_CONFIG.maxTotalCostUsd)) {
         item.status = 'skipped';
         item.skipReason = `Total estimate cap is ${formatUsd(state.config.maxTotalCostUsd)}.`;
         renderTable();
@@ -1566,20 +1909,20 @@
 
       item.status = 'ready';
       acceptedCost += item.estimatedCostUsd;
-      acceptedCount += 1;
       addedAcceptedCount += 1;
       renderTable();
     }
 
     state.analyzing = false;
     setBusy(false);
-    setStatus(
-      runStatusEl,
-      addedAcceptedCount
-        ? `Added ${addedAcceptedCount} file${addedAcceptedCount === 1 ? '' : 's'}. ${acceptedCount} ready total.`
-        : 'No newly selected files are eligible for transcription.',
-      addedAcceptedCount ? 'success' : 'warning'
-    );
+    const skippedAddedCount = newItems.filter((item) => item.status === 'skipped').length;
+    if (!addedAcceptedCount) {
+      setStatus(runStatusEl, 'No newly selected files are eligible for transcription.', 'warning');
+    } else if (skippedAddedCount) {
+      setStatus(runStatusEl, `${addedAcceptedCount} added · ${skippedAddedCount} skipped`, 'warning');
+    } else {
+      setStatus(runStatusEl, '', '');
+    }
     renderTable();
     markSessionDirty();
   };
@@ -1824,6 +2167,297 @@
     await pollRun(item, runToken);
   };
 
+  const sha256Hex = async (buffer) => {
+    if (!window.crypto?.subtle) {
+      throw new Error('Secure SHA-256 hashing is unavailable in this browser.');
+    }
+    const digest = await window.crypto.subtle.digest('SHA-256', buffer);
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  const normalizeLocalProgress = (value) => {
+    const progress = Number(value);
+    if (!Number.isFinite(progress) || progress <= 0) return 0;
+    return Math.min(1, progress > 1 ? progress / 100 : progress);
+  };
+
+  const localJobPath = (item, suffix = '') =>
+    `/v1/jobs/${encodeURIComponent(String(item.localJobId || ''))}${suffix}`;
+
+  const acknowledgeLocalItem = async (item) => {
+    if (!item?.localWorkerOrigin || !item?.localJobId || !item?.localTicket) return;
+    try {
+      await workerFetchJson(item.localWorkerOrigin, localJobPath(item, '/ack'), item.localTicket, {
+        method: 'POST'
+      });
+      item.localTicket = '';
+    } catch {}
+  };
+
+  const cancelLocalItem = async (item) => {
+    if (!item?.localWorkerOrigin || !item?.localJobId || !item?.localTicket) return false;
+    try {
+      await workerFetchJson(item.localWorkerOrigin, localJobPath(item, '/cancel'), item.localTicket, {
+        method: 'POST'
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const cancelActiveLocalJobs = async () => {
+    const activeItems = state.files.filter((item) =>
+      item.provider === PROVIDER_LOCAL &&
+      item.localJobId &&
+      item.localTicket &&
+      ['presigning', 'uploading', 'starting', 'transcribing'].includes(String(item.status || '')));
+    if (!activeItems.length) return 0;
+    const results = await Promise.all(activeItems.map(cancelLocalItem));
+    return results.filter(Boolean).length;
+  };
+
+  const uploadLocalChunks = async (item, chunkBytes) => {
+    const safeChunkBytes = Math.max(1, Math.floor(Number(chunkBytes) || DEFAULT_LOCAL_CHUNK_BYTES));
+    const chunkCount = Math.ceil(item.bytes / safeChunkBytes);
+    for (let index = 0; index < chunkCount; index += 1) {
+      if (state.canceled) throw new Error('Canceled.');
+      const start = index * safeChunkBytes;
+      const end = Math.min(item.bytes, start + safeChunkBytes);
+      const chunkBuffer = await item.file.slice(start, end).arrayBuffer();
+      const chunkHash = await sha256Hex(chunkBuffer);
+      let uploaded = false;
+      for (let attempt = 0; attempt <= LOCAL_UPLOAD_RETRIES; attempt += 1) {
+        const controller = new AbortController();
+        state.activeController = controller;
+        try {
+          await workerFetchJson(
+            item.localWorkerOrigin,
+            localJobPath(item, `/chunks/${index}`),
+            item.localTicket,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/octet-stream',
+                'Content-Range': `bytes ${start}-${end - 1}/${item.bytes}`,
+                'X-Chunk-SHA256': chunkHash
+              },
+              body: chunkBuffer,
+              signal: controller.signal
+            }
+          );
+          uploaded = true;
+          break;
+        } catch (err) {
+          if (state.canceled || err?.name === 'AbortError' || attempt >= LOCAL_UPLOAD_RETRIES || !isTransientRunError(err)) {
+            throw err;
+          }
+          await sleep(500 * (2 ** attempt));
+        } finally {
+          if (state.activeController === controller) state.activeController = null;
+        }
+      }
+      if (!uploaded) throw new Error(`Local upload failed on chunk ${index + 1}.`);
+      item.progress = end / item.bytes;
+      renderTable();
+      renderProcessingList();
+      updateProgress({
+        stateName: 'visible',
+        ratio: item.progress,
+        label: `Sending ${item.name} to the home PC (${Math.round(item.progress * 100)}%)`
+      });
+    }
+    return chunkCount;
+  };
+
+  const pollLocalRun = async (item) => {
+    while (!state.canceled) {
+      const controller = new AbortController();
+      state.activeController = controller;
+      let data;
+      try {
+        data = await workerFetchJson(item.localWorkerOrigin, localJobPath(item), item.localTicket, {
+          method: 'GET',
+          signal: controller.signal
+        });
+      } finally {
+        if (state.activeController === controller) state.activeController = null;
+      }
+
+      const status = cleanText(data?.status).toUpperCase();
+      item.localStage = cleanText(data?.stage || (status === 'QUEUED' ? 'Queued on home PC' : 'Transcribing on home PC'));
+      item.localProgress = normalizeLocalProgress(data?.progress);
+      if (['COMPLETED', 'COMPLETE', 'SUCCEEDED', 'DONE'].includes(status)) {
+        item.transcript = String(data?.transcript || '').trim();
+        item.durationSeconds = Number(data?.durationSeconds || item.durationSeconds || 0);
+        item.costUsd = 0;
+        const coverageStatus = cleanText(data?.coverageStatus).toUpperCase();
+        if (['SUSPECTED_EARLY_END', 'PARTIAL', 'INCOMPLETE'].includes(coverageStatus)) {
+          item.status = 'partial';
+          item.runErrorType = 'service';
+          item.error = friendlyTranscribeError(responseErrorMessage(
+            data,
+            'The local transcript may have ended before the source media.'
+          ));
+        } else {
+          item.status = 'complete';
+          item.runErrorType = '';
+          item.error = '';
+        }
+        renderTable();
+        renderProcessingList();
+        renderResults();
+        markSessionDirty();
+        notifyItem(item);
+        await acknowledgeLocalItem(item);
+        return;
+      }
+      if (['FAILED', 'ERROR'].includes(status)) {
+        item.status = 'failed';
+        item.error = friendlyTranscribeError(responseErrorMessage(
+          data,
+          'The home PC worker could not complete this transcription.'
+        ));
+        item.runErrorType = 'service';
+        item.costUsd = 0;
+        renderTable();
+        renderProcessingList();
+        renderResults();
+        markSessionDirty();
+        notifyItem(item);
+        await acknowledgeLocalItem(item);
+        return;
+      }
+      if (['CANCELED', 'CANCELLED'].includes(status)) {
+        item.status = 'canceled';
+        item.error = 'Canceled.';
+        item.runErrorType = 'processing';
+        await acknowledgeLocalItem(item);
+        return;
+      }
+
+      item.status = 'transcribing';
+      item.error = '';
+      renderTable();
+      renderProcessingList();
+      updateProgress({
+        stateName: 'visible',
+        ratio: item.localProgress,
+        label: `${item.localStage}${item.localProgress ? ` (${Math.round(item.localProgress * 100)}%)` : ''}`
+      });
+      await sleep(LOCAL_POLL_INTERVAL_MS);
+    }
+    throw new Error('Canceled.');
+  };
+
+  const runLocalFile = async (item) => {
+    item.status = 'presigning';
+    item.error = '';
+    item.runErrorType = '';
+    item.progress = 0;
+    renderTable();
+    updateProgress({ stateName: 'visible', ratio: 0, label: `Requesting a secure local ticket for ${item.name}...` });
+
+    const ticketController = new AbortController();
+    state.activeController = ticketController;
+    let ticketData;
+    try {
+      ticketData = await authFetchJson(`${API_BASE}/local-ticket`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: item.name,
+          format: item.extension,
+          contentType: item.contentType,
+          bytes: item.bytes,
+          durationSeconds: item.durationSeconds
+        }),
+        signal: ticketController.signal
+      });
+    } finally {
+      if (state.activeController === ticketController) state.activeController = null;
+    }
+    if (state.canceled) throw new Error('Canceled.');
+    if (ticketData?.enabled !== true || ticketData?.configured !== true) {
+      throw new Error('Home GPU processing is not available. The batch was not rerouted.');
+    }
+
+    const job = ticketData?.job && typeof ticketData.job === 'object' ? ticketData.job : {};
+    item.localWorkerOrigin = normalizeWorkerOrigin(ticketData.workerOrigin || state.localConfig?.workerOrigin);
+    item.localTicket = cleanText(ticketData.ticket);
+    item.localJobId = cleanText(job.id);
+    item.localTicketExpiresAt = cleanText(ticketData.expiresAt);
+    const chunkBytes = Math.max(1, Math.floor(Number(ticketData.chunkBytes || state.localConfig?.chunkBytes) || DEFAULT_LOCAL_CHUNK_BYTES));
+    const chunkCount = Math.ceil(item.bytes / chunkBytes);
+    if (!item.localTicket || !item.localJobId) {
+      throw new Error('The website did not return a complete Home GPU job ticket. The batch was not rerouted.');
+    }
+
+    item.status = 'starting';
+    renderTable();
+    const createController = new AbortController();
+    state.activeController = createController;
+    try {
+      await workerFetchJson(item.localWorkerOrigin, '/v1/jobs', item.localTicket, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: item.localJobId,
+          filename: cleanText(job.filename || item.name),
+          format: cleanText(job.format || item.extension),
+          contentType: cleanText(job.contentType || item.contentType),
+          bytes: Number(job.bytes || item.bytes),
+          durationSeconds: Number(job.durationSeconds || item.durationSeconds),
+          chunkBytes,
+          chunkCount
+        }),
+        signal: createController.signal
+      });
+    } finally {
+      if (state.activeController === createController) state.activeController = null;
+    }
+
+    item.status = 'uploading';
+    renderTable();
+    await uploadLocalChunks(item, chunkBytes);
+    if (state.canceled) throw new Error('Canceled.');
+
+    item.status = 'starting';
+    renderTable();
+    updateProgress({ stateName: 'visible', ratio: 1, label: `Finalizing ${item.name} on the home PC...` });
+    const completeController = new AbortController();
+    state.activeController = completeController;
+    try {
+      await workerFetchJson(item.localWorkerOrigin, localJobPath(item, '/complete'), item.localTicket, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chunkCount }),
+        signal: completeController.signal
+      });
+    } finally {
+      if (state.activeController === completeController) state.activeController = null;
+    }
+
+    item.status = 'transcribing';
+    item.localStage = 'Queued on home PC';
+    item.localProgress = 0;
+    renderTable();
+    await pollLocalRun(item);
+  };
+
+  const runSelectedFile = async (item) => {
+    if (item.provider !== PROVIDER_LOCAL) return runFile(item);
+    try {
+      return await runLocalFile(item);
+    } catch (err) {
+      if (!state.canceled && isTransientRunError(err)) {
+        setLocalStatus('offline', 'The Home GPU connection was interrupted. Check the worker before retrying.');
+      }
+      if (!state.canceled) await cancelLocalItem(item);
+      throw err;
+    }
+  };
+
   const resumeQueue = async (items) => {
     const queue = Array.from(items || []).filter(isRecoverableItem);
     if (!queue.length) return;
@@ -1919,8 +2553,20 @@
       return;
     }
 
+    if (isLocalProvider() && !isAdminUser()) {
+      setStatus(runStatusEl, 'Home GPU processing is available only to the signed-in admin.', 'warning');
+      if (reportOutcome) reportRunError('permission');
+      return;
+    }
+
     if (!runConfigIsValid()) {
-      setStatus(runStatusEl, 'Transcription configuration is unavailable. Refresh and try again.', 'warning');
+      setStatus(
+        runStatusEl,
+        isLocalProvider()
+          ? 'Home GPU is offline or unavailable. Check the connection and try again.'
+          : 'Transcription configuration is unavailable. Refresh and try again.',
+        'warning'
+      );
       if (reportOutcome) reportRunError('validation');
       return;
     }
@@ -1932,7 +2578,13 @@
       return;
     }
     if (!approveEl || !approveEl.checked) {
-      setStatus(runStatusEl, 'Review and approve the estimated charge before starting.', 'warning');
+      setStatus(
+        runStatusEl,
+        isLocalProvider()
+          ? 'Confirm that these files can be sent to your home PC.'
+          : 'Review and approve the estimated charge before starting.',
+        'warning'
+      );
       if (reportOutcome) reportRunError('validation');
       return;
     }
@@ -1941,8 +2593,13 @@
     setView('processing');
     setBusy(true);
     renderProcessingList();
-    setStatus(runStatusEl, `Starting ${queue.length} transcription job${queue.length === 1 ? '' : 's'}...`, '');
-    setText(processingCopyEl, `Processing ${queue.length} file${queue.length === 1 ? '' : 's'}. You can leave this tab open while Amazon Transcribe runs.`);
+    setStatus(runStatusEl, `Starting ${queue.length} ${isLocalProvider() ? 'Home GPU ' : ''}transcription job${queue.length === 1 ? '' : 's'}...`, '');
+    setText(
+      processingCopyEl,
+      isLocalProvider()
+        ? `Processing ${queue.length} file${queue.length === 1 ? '' : 's'} on the home PC. Keep this tab open while files upload and transcription runs.`
+        : `Processing ${queue.length} file${queue.length === 1 ? '' : 's'}. Amazon Transcribe continues independently, but keep this tab open so the site can collect the result, clean up the upload, and save history.`
+    );
     updateProgress({ stateName: 'visible', ratio: 0, label: 'Starting batch...' });
 
     for (let i = 0; i < queue.length; i += 1) {
@@ -1951,7 +2608,7 @@
       try {
         setStatus(runStatusEl, `Processing ${i + 1} of ${queue.length}: ${item.name}`, '');
         setText(processingCopyEl, `Processing ${i + 1} of ${queue.length}: ${item.name}`);
-        await runFile(item);
+        await runSelectedFile(item);
         updateProgress({
           stateName: 'visible',
           ratio: (i + 1) / queue.length,
@@ -1991,8 +2648,10 @@
     setView('results');
     updateLayoutState();
     persistActiveRunRecovery();
-    void loadUsage();
-    if (historyDialogEl?.open) void loadHistory();
+    if (!isLocalProvider()) {
+      void loadUsage();
+      if (historyDialogEl?.open) void loadHistory();
+    }
 
     if (reportOutcome) {
       if (state.canceled || canceled) {
@@ -2069,6 +2728,49 @@
   }
   if (historyDeleteBtn) historyDeleteBtn.addEventListener('click', () => void deleteHistoryDetail());
 
+  methodInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      if (!input.checked) return;
+      if (state.files.length || state.busy || state.analyzing) {
+        updateMethodUi();
+        return;
+      }
+      const nextProvider = input.value === PROVIDER_LOCAL ? PROVIDER_LOCAL : PROVIDER_AWS;
+      if (nextProvider === PROVIDER_LOCAL && !isAdminUser()) {
+        state.provider = PROVIDER_AWS;
+        updateMethodUi();
+        return;
+      }
+      state.provider = nextProvider;
+      if (approveEl) approveEl.checked = false;
+      if (processingDetailsEl) processingDetailsEl.open = false;
+      if (isLocalProvider()) {
+        state.usageRequestId += 1;
+        state.usageLoading = false;
+      }
+      updateMethodUi();
+      updateSummary();
+      updateControls();
+      setStatus(runStatusEl, '', '');
+      if (isLocalProvider()) void refreshLocalWorkerStatus();
+      else void loadUsage();
+      markSessionDirty();
+    });
+  });
+
+  if (localRefreshBtn) {
+    localRefreshBtn.addEventListener('click', () => {
+      void refreshLocalWorkerStatus();
+    });
+  }
+
+  if (addFilesBtn) {
+    addFilesBtn.addEventListener('click', () => {
+      if (addFilesBtn.disabled || fileEl.disabled || state.busy || state.analyzing) return;
+      fileEl.click();
+    });
+  }
+
   fileEl.addEventListener('change', () => {
     analyzeSelectedFiles(fileEl.files);
   });
@@ -2078,7 +2780,7 @@
       dropzoneEl.addEventListener(eventName, (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (state.busy || state.analyzing) return;
+        if (fileEl.disabled || state.busy || state.analyzing) return;
         dropzoneEl.dataset.dragging = 'true';
       });
     });
@@ -2091,7 +2793,7 @@
       });
     });
     dropzoneEl.addEventListener('drop', (event) => {
-      if (state.busy || state.analyzing) return;
+      if (fileEl.disabled || state.busy || state.analyzing) return;
       const droppedFiles = event.dataTransfer?.files;
       if (!droppedFiles || !droppedFiles.length) return;
       if (fileEl) fileEl.value = '';
@@ -2115,15 +2817,21 @@
       const removeBtn = event.target.closest('[data-transcribe-file-remove]');
       if (!removeBtn || removeBtn.disabled) return;
       const id = removeBtn.getAttribute('data-id');
-      const item = state.files.find((entry) => entry.id === id);
+      const removedIndex = state.files.findIndex((entry) => entry.id === id);
+      const item = removedIndex >= 0 ? state.files[removedIndex] : null;
       if (!item || !canRemoveItem(item)) return;
       state.files = state.files.filter((entry) => entry.id !== id);
       persistActiveRunRecovery();
       if (approveEl) approveEl.checked = false;
-      setStatus(runStatusEl, `Removed ${item.name} from the queue. Review the updated estimate before starting.`, 'warning');
+      setStatus(runStatusEl, '', '');
       renderTable();
       renderResults();
       markSessionDirty();
+      window.requestAnimationFrame(() => {
+        const removeButtons = Array.from(fileRowsEl.querySelectorAll('[data-transcribe-file-remove]:not(:disabled)'));
+        const nextButton = removeButtons[Math.min(removedIndex, removeButtons.length - 1)] || addFilesBtn;
+        nextButton?.focus();
+      });
     });
   }
 
@@ -2136,9 +2844,19 @@
 
   if (cancelBtn) {
     cancelBtn.addEventListener('click', () => {
+      const localRun = isLocalProvider();
       state.canceled = true;
       abortActive();
-      setStatus(runStatusEl, 'Canceling. Already submitted AWS jobs may still incur cost.', 'warning');
+      if (localRun) {
+        setStatus(runStatusEl, 'Canceling the home PC job.', 'warning');
+        void cancelActiveLocalJobs().then((canceledCount) => {
+          if (canceledCount > 0) {
+            setStatus(runStatusEl, `Cancellation sent to ${canceledCount} home PC job${canceledCount === 1 ? '' : 's'}.`, 'warning');
+          }
+        });
+      } else {
+        setStatus(runStatusEl, 'Canceling. Already submitted AWS jobs may still incur cost.', 'warning');
+      }
       setBusy(false);
       updateProgress({ stateName: 'hidden' });
       persistActiveRunRecovery();
@@ -2183,10 +2901,10 @@
   }
 
   document.addEventListener('tools:auth-changed', () => {
+    const restoredCount = restoreActiveRunRecovery();
     updateAuthUi();
     updateNotificationUi();
     void loadUsage();
-    const restoredCount = restoreActiveRunRecovery();
     if (!restoredCount) return;
     setView('results');
     renderTable();
@@ -2208,14 +2926,19 @@
     const partial = partialFiles();
     const failed = state.files.filter((item) => item.status === 'failed');
     payload.inputs = {
+      Method: isLocalProvider() ? 'Home GPU' : 'Amazon Transcribe',
       Files: `${state.files.length} selected`,
       Accepted: String(accepted.length),
-      Skipped: String(skipped.length),
-      'Estimated total': formatUsd(estimatedTotal())
+      Skipped: String(skipped.length)
     };
+    if (!isLocalProvider()) payload.inputs['Estimated total'] = formatUsd(estimatedTotal());
     payload.outputSummary = completed.length || partial.length || failed.length
-      ? `${completed.length} complete · ${partial.length} partial · ${failed.length} failed · ${formatUsd(finalTotal())} run cost`
-      : 'No transcripts saved in session history.';
+      ? isLocalProvider()
+        ? `${completed.length} complete · ${partial.length} partial · ${failed.length} failed`
+        : `${completed.length} complete · ${partial.length} partial · ${failed.length} failed · ${formatUsd(finalTotal())} estimated AWS charge`
+      : isLocalProvider()
+        ? 'No Home GPU transcripts were produced in this browser session.'
+        : 'No Amazon Transcribe results were collected in this browser session.';
   });
 
   loadConfig().finally(() => {

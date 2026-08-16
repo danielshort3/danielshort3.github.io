@@ -55,6 +55,7 @@ async function run(){
   const claims = {
     sub: 'user-123',
     email: 'person@example.com',
+    email_verified: true,
     name: 'Example Person',
     'cognito:username': 'person',
     'cognito:groups': ['Admin', 'Analyst'],
@@ -64,8 +65,9 @@ async function run(){
   };
   const payload = sessions.createSessionPayload(claims, now);
   assert.strictEqual(payload.exp - payload.iat, 28800);
+  assert.strictEqual(payload.emailVerified, true);
   assert.deepStrictEqual(payload.groups, ['admin', 'analyst']);
-  assert.deepStrictEqual(Object.keys(payload).sort(), ['email', 'exp', 'groups', 'iat', 'name', 'sub', 'v']);
+  assert.deepStrictEqual(Object.keys(payload).sort(), ['email', 'emailVerified', 'exp', 'groups', 'iat', 'name', 'sub', 'v']);
 
   const value = sessions.encryptSessionPayload(payload);
   assert(!value.includes(claims.email));
@@ -74,6 +76,13 @@ async function run(){
 
   const rotatedValue = sessions.encryptSessionPayload(payload, previousKey);
   assert.strictEqual(sessions.decryptSessionPayload(rotatedValue, now).sub, claims.sub);
+
+  const legacyPayload = { ...payload };
+  delete legacyPayload.emailVerified;
+  const legacyValue = sessions.encryptSessionPayload(legacyPayload);
+  const restoredLegacyPayload = sessions.decryptSessionPayload(legacyValue, now);
+  assert.strictEqual(restoredLegacyPayload.emailVerified, false, 'old cookies must fail closed for email authorization');
+  assert.strictEqual(sessions.sessionPayloadToClaims(restoredLegacyPayload).email_verified, false);
 
   process.env.TOOLS_SESSION_SECRETS = crypto.randomBytes(32).toString('base64url');
   assert.throws(() => sessions.decryptSessionPayload(value, now), /Invalid session cookie/);
@@ -117,6 +126,7 @@ async function run(){
   });
   assert.strictEqual(auth.source, 'cookie');
   assert.strictEqual(auth.claims.sub, claims.sub);
+  assert.strictEqual(auth.claims.email_verified, true);
   assert.strictEqual(verifierCalls, 0);
 
   const bearerAuth = await sessions.authenticateToolsRequest({
@@ -249,11 +259,16 @@ async function run(){
   assert.strictEqual(exchangeResponse.headers.pragma, 'no-cache');
   assert(!exchangeResponse.body.includes('exchange-token'));
   assert(!exchangeResponse.body.includes(claims.idToken));
+  assert.strictEqual(JSON.parse(exchangeResponse.body).user.emailVerified, true);
+  assert.strictEqual(authEndpointModule.userFromClaims({ email_verified: false }).emailVerified, false);
+  assert.strictEqual(authEndpointModule.userFromClaims({ email_verified: 'true' }).emailVerified, true);
+  assert.strictEqual(authEndpointModule.userFromClaims({ email_verified: 'TRUE' }).emailVerified, false);
 
   const sessionResponse = createResponse();
   await authHandler({ method: 'GET', headers: {} }, sessionResponse, ['session']);
   assert.strictEqual(sessionResponse.statusCode, 200);
   assert.strictEqual(JSON.parse(sessionResponse.body).source, 'cookie');
+  assert.strictEqual(JSON.parse(sessionResponse.body).user.emailVerified, true);
   assert.strictEqual(sessionResponse.headers['cache-control'], 'no-store');
   assert.strictEqual(sessionResponse.headers.pragma, 'no-cache');
 
@@ -309,7 +324,11 @@ async function run(){
         hash: ''
       },
       history: { replaceState() {} },
-      TOOLS_AUTH_CONFIG: { sessionMode: 'dual' },
+      TOOLS_AUTH_CONFIG: {
+        sessionMode: 'dual',
+        adminGroups: ['admin', 'admins'],
+        adminEmails: ['person@example.com']
+      },
       addEventListener() {}
     },
     document: {
@@ -336,6 +355,26 @@ async function run(){
     clearTimeout
   };
   vm.runInNewContext(client, clientContext, { filename: 'js/accounts/tools-auth.js' });
+  const emailAdminAuth = (verified) => ({
+    sessionOnly: true,
+    expiresAt: Date.now() + 60 * 60 * 1000,
+    claims: {
+      sub: claims.sub,
+      email: claims.email,
+      ...(typeof verified === 'undefined' ? {} : { email_verified: verified })
+    }
+  });
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin(emailAdminAuth()), false);
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin(emailAdminAuth(false)), false);
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin(emailAdminAuth('false')), false);
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin(emailAdminAuth(true)), true);
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin(emailAdminAuth('true')), true);
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin(emailAdminAuth('TRUE')), false);
+  assert.strictEqual(clientContext.window.ToolsAuth.isAdmin({
+    sessionOnly: true,
+    expiresAt: Date.now() + 60 * 60 * 1000,
+    claims: { sub: claims.sub, email_verified: false, 'cognito:groups': ['admin'] }
+  }), true, 'verified group membership should remain sufficient for admin UI');
   await clientContext.window.ToolsAuth.fetchWithAuth('/api/tools/me');
   assert.strictEqual(fetchCalls.length, 1);
   assert.strictEqual(fetchCalls[0].options.headers.get('Authorization'), 'Bearer dual-mode-token');
@@ -355,6 +394,7 @@ async function run(){
         user: {
           sub: claims.sub,
           email: claims.email,
+          emailVerified: true,
           name: claims.name,
           groups: claims['cognito:groups']
         }
@@ -367,6 +407,7 @@ async function run(){
   assert.strictEqual(fetchCalls[0].options.credentials, 'same-origin');
   assert.strictEqual(restoredDualAuth.sessionOnly, true);
   assert.strictEqual(restoredDualAuth.claims.email, claims.email);
+  assert.strictEqual(restoredDualAuth.claims.email_verified, true);
   assert.strictEqual(JSON.parse(authStorage.get('toolsAuth')).sessionOnly, true);
 
   const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));

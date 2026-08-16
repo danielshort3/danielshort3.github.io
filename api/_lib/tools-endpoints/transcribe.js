@@ -27,6 +27,7 @@ const {
 const { resolveAwsCredentials } = require('../aws-credentials');
 const { readJson, sendJson } = require('../tools-api');
 const { authenticateToolsRequest } = require('../tools-auth-session');
+const handleLocalTranscribe = require('../local-transcribe');
 const {
   RUN_STATE,
   deleteTranscriptHistoryMetadata,
@@ -1721,6 +1722,8 @@ async function handleStatus(req, res){
 const handleTranscribe = async (req, res, segments = []) => {
   const action = String(Array.isArray(segments) ? segments[0] : '').trim().toLowerCase();
   if (action === 'config' || !action) return handleConfig(req, res);
+  if (action === 'local-config') return handleLocalTranscribe(req, res, 'config');
+  if (action === 'local-ticket') return handleLocalTranscribe(req, res, 'ticket');
   if (action === 'usage') return handleUsage(req, res);
   if (action === 'history') return handleHistory(req, res);
   if (action === 'presign') return handlePresign(req, res);

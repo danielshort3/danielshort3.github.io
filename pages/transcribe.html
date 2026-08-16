@@ -7,10 +7,10 @@
   <title>File Transcriber | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/tools/transcribe">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Drag in audio or video files, approve estimated Amazon Transcribe costs, and get clean per-file transcripts.">
+  <meta name="description" content="Drag in audio or video files, choose an available processing method, and get clean per-file transcripts.">
   <meta property="og:title" content="File Transcriber | Daniel Short">
   <meta property="og:site_name" content="Daniel Short">
-  <meta property="og:description" content="Transcribe bulk audio or video files with Amazon Transcribe and a clean staged workflow.">
+  <meta property="og:description" content="Transcribe bulk audio or video files with a clean staged workflow.">
   <meta property="og:url" content="https://www.danielshort.me/tools/transcribe">
   <meta property="og:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta property="og:image:width" content="1672">
@@ -20,11 +20,11 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:title" content="File Transcriber | Daniel Short">
-  <meta name="twitter:description" content="Transcribe bulk audio or video files with Amazon Transcribe and a clean staged workflow.">
+  <meta name="twitter:description" content="Transcribe bulk audio or video files with a clean staged workflow.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.f8bb2fea.css">
+  <link rel="stylesheet" href="dist/styles.46047cf6.css">
   <link rel="stylesheet" href="dist/styles-tools.8b85afaf.css">
   <link rel="stylesheet" href="css/components/whisper-transcribe-monitor.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -269,7 +269,7 @@
 
   <section class="hero hero--tools tools-hero">
     <div class="wrapper">
-      <p class="hero-eyebrow">File transcription - upload files, approve the estimate, and download clean transcripts.</p>
+      <p class="hero-eyebrow">Turn audio or video into clean text.</p>
       <h1 class="visually-hidden">File Transcriber</h1>
     </div>
   </section>
@@ -277,19 +277,6 @@
   <div class="tools-account-dock" data-tools-account="dock">
     <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">
       <div class="tools-account-bar" data-tools-account="bar"></div>
-      <div class="transcribe-account-tools" data-tools-account="tool-controls" role="group" aria-label="Transcription usage and controls" hidden>
-        <div class="transcribe-usage" id="transcribe-usage" role="group" tabindex="0" aria-label="Today's transcription usage" aria-describedby="transcribe-usage-tooltip">
-          <div class="transcribe-usage-heading">
-            <span>Usage</span>
-            <strong id="transcribe-usage-value" aria-live="polite">-- / $100</strong>
-            <span class="transcribe-usage-info" aria-hidden="true">i</span>
-          </div>
-          <progress class="visually-hidden" id="transcribe-usage-progress" value="0" max="100">Usage unavailable</progress>
-          <span class="transcribe-usage-tooltip" id="transcribe-usage-tooltip" role="tooltip">Sign in to view your UTC-day usage.</span>
-        </div>
-        <button type="button" class="btn-secondary" id="transcribe-history-open" disabled>History</button>
-        <button type="button" class="btn-secondary" id="transcribe-notifications" aria-pressed="false">Notifications off</button>
-      </div>
     </div>
   </div>
 
@@ -297,62 +284,113 @@
 
     <section class="surface-band tools-section whispermon-section">
       <div class="wrapper whispermon-grid">
-        <article class="whispermon-card whispermon-card-wide transcribe-shell" id="transcribe-shell" data-transcribe-view-state="upload">
+        <article class="whispermon-card whispermon-card-wide transcribe-shell" id="transcribe-shell" data-transcribe-view-state="upload" data-transcribe-provider="aws" data-transcribe-has-files="false">
           <form id="transcribe-form" class="contact-form" novalidate>
             <section class="transcribe-view transcribe-view-upload" id="transcribe-upload-view" data-transcribe-view="upload" aria-labelledby="transcribe-upload-title">
               <div class="transcribe-view-heading">
-                <p class="transcribe-kicker">Amazon Transcribe</p>
+                <p class="transcribe-kicker" id="transcribe-provider-kicker">Amazon Transcribe</p>
                 <h2 id="transcribe-upload-title">Upload files</h2>
-                <p>Drop in audio or video files, add more as needed, review the estimate, then start transcription.</p>
+                <p id="transcribe-upload-copy">Add files, review the batch, and start.</p>
               </div>
 
-              <label class="transcribe-dropzone" id="transcribe-dropzone" for="transcribe-files">
-                <input id="transcribe-files" class="visually-hidden" type="file" accept=".mp3,.mp4,.wav,.flac,.ogg,.webm,.m4a,.amr,audio/*,video/*" multiple>
+              <fieldset class="transcribe-method" id="transcribe-method" hidden>
+                <legend>Process with</legend>
+                <div class="transcribe-method-options" role="radiogroup" aria-describedby="transcribe-method-help">
+                  <label class="transcribe-method-option" data-provider="aws">
+                    <input type="radio" name="transcribe-provider" value="aws" checked>
+                    <span>AWS</span>
+                  </label>
+                  <label class="transcribe-method-option" data-provider="local">
+                    <input type="radio" name="transcribe-provider" value="local" disabled>
+                    <span>Home GPU</span>
+                  </label>
+                </div>
+                <p class="visually-hidden" id="transcribe-method-help">Choose before adding files. The processing method locks for the current batch.</p>
+              </fieldset>
+
+              <div class="transcribe-local-state" id="transcribe-local-state" data-state="checking" data-transcribe-provider-panel="local" role="status" aria-live="polite" hidden>
+                <span class="transcribe-local-state-dot" aria-hidden="true"></span>
+                <span id="transcribe-local-state-copy">Checking home GPU...</span>
+                <button type="button" class="btn-ghost" id="transcribe-local-refresh">Retry</button>
+              </div>
+
+              <details class="transcribe-details" id="transcribe-processing-details">
+                <summary>
+                  <span>Processing details</span>
+                  <span class="transcribe-details-summary" id="transcribe-details-summary">Amazon Transcribe</span>
+                </summary>
+                <div class="transcribe-details-body">
+                  <dl class="transcribe-detail-facts">
+                    <div>
+                      <dt>Service</dt>
+                      <dd id="transcribe-stat-service">Amazon Transcribe</dd>
+                    </div>
+                    <div>
+                      <dt>Minimum</dt>
+                      <dd id="transcribe-stat-minimum">15 sec</dd>
+                    </div>
+                  </dl>
+
+                  <div class="transcribe-provider-details" data-transcribe-provider-panel="aws">
+                    <div class="transcribe-detail-rate">
+                      <span>Rate</span>
+                      <strong id="transcribe-stat-price">$0.006 / min</strong>
+                    </div>
+                    <div class="transcribe-account-tools" role="group" aria-label="AWS transcription controls">
+                      <div class="transcribe-usage" id="transcribe-usage" role="group" tabindex="0" aria-label="Today's reserved AWS Transcribe safety budget" aria-describedby="transcribe-usage-tooltip">
+                        <div class="transcribe-usage-heading">
+                          <span>AWS budget</span>
+                          <strong id="transcribe-usage-value" aria-live="polite">-- / $100</strong>
+                          <span class="transcribe-usage-info" aria-hidden="true">i</span>
+                        </div>
+                        <progress class="visually-hidden" id="transcribe-usage-progress" value="0" max="100">Reserved budget unavailable</progress>
+                        <span class="transcribe-usage-tooltip" id="transcribe-usage-tooltip" role="tooltip">Sign in to view today's reserved AWS Transcribe safety budget.</span>
+                      </div>
+                      <button type="button" class="btn-secondary" id="transcribe-history-open" disabled>AWS history</button>
+                    </div>
+                  </div>
+
+                  <div class="transcribe-provider-details" data-transcribe-provider-panel="local" hidden>
+                    <p>Runs on your home PC. Keep this tab open.</p>
+                  </div>
+
+                  <button type="button" class="btn-secondary transcribe-notifications" id="transcribe-notifications" aria-pressed="false">Notifications off</button>
+                </div>
+              </details>
+
+              <div class="transcribe-dropzone" id="transcribe-dropzone">
+                <input id="transcribe-files" type="file" accept=".mp3,.mp4,.wav,.flac,.ogg,.webm,.m4a,.amr,audio/*,video/*" multiple hidden>
                 <span class="transcribe-dropzone-icon" aria-hidden="true">+</span>
-                <span class="transcribe-dropzone-title">Drop files here</span>
-                <span class="transcribe-dropzone-copy">or choose files to add to this batch</span>
-                <span class="btn-secondary transcribe-dropzone-button">Choose files</span>
-              </label>
-
-              <div class="transcribe-stats" aria-label="Transcription settings">
-                <div class="transcribe-stat">
-                  <div class="transcribe-stat-label">Price</div>
-                  <div class="transcribe-stat-value" id="transcribe-stat-price">$0.006 / min</div>
-                </div>
-                <div class="transcribe-stat">
-                  <div class="transcribe-stat-label">Minimum</div>
-                  <div class="transcribe-stat-value" id="transcribe-stat-minimum">15 sec</div>
-                </div>
-                <div class="transcribe-stat">
-                  <div class="transcribe-stat-label">Ready</div>
-                  <div class="transcribe-stat-value" id="transcribe-stat-accepted">0</div>
-                </div>
-                <div class="transcribe-stat">
-                  <div class="transcribe-stat-label">Service</div>
-                  <div class="transcribe-stat-value" id="transcribe-stat-service">Amazon Transcribe</div>
-                </div>
+                <span class="transcribe-dropzone-copy">
+                  <strong class="transcribe-dropzone-title">Drop files here</strong>
+                  <span id="transcribe-dropzone-copy">Audio or video, up to 10 files.</span>
+                </span>
+                <button type="button" class="btn-secondary transcribe-dropzone-button" id="transcribe-add-files">Choose files</button>
               </div>
 
-              <div class="transcribe-summary" id="transcribe-summary" aria-live="polite">No files selected.</div>
+              <div class="transcribe-batch" id="transcribe-batch-review" data-transcribe-batch>
+                <div class="transcribe-summary" id="transcribe-summary" data-transcribe-requires-files aria-live="polite" hidden></div>
 
-              <div class="transcribe-table-wrap" id="transcribe-table-wrap" hidden>
-                <div class="transcribe-file-list" id="transcribe-file-rows" aria-label="Selected files"></div>
-              </div>
+                <div class="transcribe-table-wrap" id="transcribe-table-wrap" hidden>
+                  <div class="transcribe-file-list" id="transcribe-file-rows" aria-label="Selected files"></div>
+                </div>
 
-              <div class="transcribe-cost-review">
-                <p id="transcribe-total">Estimated total: $0.00</p>
-                <label class="transcribe-approval">
-                  <input id="transcribe-approve" type="checkbox">
-                  <span>I approve the estimated Amazon Transcribe charge shown above.</span>
-                </label>
-              </div>
+                <div class="transcribe-cost-review" id="transcribe-cost-review" data-provider="aws" data-transcribe-requires-files hidden>
+                  <p id="transcribe-total" data-transcribe-provider-panel="aws">Estimated total: $0.00</p>
+                  <p id="transcribe-local-total" data-transcribe-provider-panel="local" hidden>Home GPU processing</p>
+                  <label class="transcribe-approval">
+                    <input id="transcribe-approve" type="checkbox">
+                    <span id="transcribe-approval-copy">I approve the estimated Amazon Transcribe charge.</span>
+                  </label>
+                </div>
 
-              <div class="form-actions transcribe-actions">
-                <button type="submit" class="btn-primary" id="transcribe-start">
-                  <span class="btn-spinner" aria-hidden="true"></span>
-                  <span class="btn-label">Start transcription</span>
-                </button>
-                <button type="button" class="btn-ghost" id="transcribe-reset">Reset</button>
+                <div class="form-actions transcribe-actions" data-transcribe-requires-files hidden>
+                  <button type="submit" class="btn-primary" id="transcribe-start">
+                    <span class="btn-spinner" aria-hidden="true"></span>
+                    <span class="btn-label">Start transcription</span>
+                  </button>
+                  <button type="button" class="btn-ghost" id="transcribe-reset">Reset</button>
+                </div>
               </div>
             </section>
 
@@ -394,13 +432,13 @@
             <div class="transcribe-history-shell">
               <div class="transcribe-history-header">
                 <div>
-                  <p class="transcribe-kicker">Private account history</p>
-                  <h2 id="transcribe-history-title">Previous transcripts</h2>
+                  <p class="transcribe-kicker">Your AWS transcript history</p>
+                  <h2 id="transcribe-history-title">Amazon Transcribe history</h2>
                 </div>
                 <button type="button" class="btn-ghost" id="transcribe-history-close">Close</button>
               </div>
               <p class="transcribe-history-privacy" id="transcribe-history-privacy">
-                History stores only the filename and transcript text. Your original media file is not retained here.
+                AWS history contains transcript text, filenames, and job metadata. Original media uploads are removed after terminal polling; abandoned uploads rely on the configured S3 lifecycle. AWS may retain its service-managed transcript output for up to 90 days. Local GPU media and results remain temporary on the home PC and are not added to AWS history.
               </p>
               <div class="transcribe-history-toolbar">
                 <button type="button" class="btn-secondary" id="transcribe-history-refresh">Refresh</button>
@@ -519,8 +557,8 @@
     </button>
   </div>
   <script defer src="js/tools/whisper-transcribe-monitor.js"></script>
-  <script defer src="dist/site-tools-account.f2aeaaed.js"></script>
-  <script defer src="dist/site-shell.da2d9fb1.js"></script>
+  <script defer src="dist/site-tools-account.2b5ea2ae.js"></script>
+  <script defer src="dist/site-shell.e85d8c83.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>
