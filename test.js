@@ -40371,8 +40371,6 @@ try {
     const personalAudience = readFile('content/audiences/personal.json');
     const graphCss = readFile('css/components/home-project-graph.css');
     const graphJs = readFile('js/home/project-graph.js');
-    const mobileDockCss = readFile('css/components/mobile-site-dock.css');
-    const navigationJs = readFile('js/navigation/navigation.js');
     checkFileContains('index.html', 'home-pattern-page');
     checkFileContains('index.html', 'class="home-graph"');
     checkFileContains('index.html', 'data-home-graph');
@@ -40619,21 +40617,89 @@ try {
       graphCss.includes('homeGraphDotBreathe 4.4s ease-in-out 1 both') &&
       !graphCss.includes('infinite'),
       'desktop graph should provide readable labels, 44px halo-dot targets, and finite introductory motion');
-    assert(mobileDockCss.includes('--mobile-site-dock-height: 80px') &&
-      mobileDockCss.includes('--mobile-site-dock-clearance: calc(88px + env(safe-area-inset-bottom, 0px))') &&
-      mobileDockCss.includes('grid-template-columns: repeat(2, minmax(0, 1fr)) 64px repeat(2, minmax(0, 1fr))') &&
-      mobileDockCss.includes('min-height: 56px') &&
-      mobileDockCss.includes('width: 64px') &&
-      mobileDockCss.includes('height: 64px'),
-      'shared mobile dock should stay compact while preserving 44px or larger navigation targets and matching body clearance');
+  });
+
+  section('Shared mobile dock and compact footer', () => {
+    const mobileDockCss = readFile('css/components/mobile-site-dock.css');
+    const navigationJs = readFile('js/navigation/navigation.js');
+    const footerCss = readFile('css/layout/footer.css');
+    const dockRule = Array.from(
+      mobileDockCss.matchAll(/\.mobile-site-dock\s*\{([^}]*)\}/g),
+      (match) => match[1]
+    ).find((rule) => rule.includes('position: fixed')) || '';
+    const archRule = mobileDockCss.match(/\.mobile-site-dock::after\s*\{([^}]*)\}/)?.[1] || '';
+    const leftGroupRule = mobileDockCss.match(/\.mobile-site-dock__group--left\s*\{([^}]*)\}/)?.[1] || '';
+    const personalRightRule = mobileDockCss.match(/\.mobile-site-dock\[data-mobile-dock-layout="personal"\] \.mobile-site-dock__group--right\s*\{([^}]*)\}/)?.[1] || '';
+    const professionalRightRule = mobileDockCss.match(/\.mobile-site-dock\[data-mobile-dock-layout="professional"\] \.mobile-site-dock__group--right\s*\{([^}]*)\}/)?.[1] || '';
+    const itemRule = mobileDockCss.match(/\.mobile-site-dock__item\s*\{([^}]*)\}/)?.[1] || '';
+    const homeRule = Array.from(
+      mobileDockCss.matchAll(/\.mobile-site-dock__home\s*\{([^}]*)\}/g),
+      (match) => match[1]
+    ).find((rule) => rule.includes('width: 64px;')) || '';
+    const contactLinkRule = mobileDockCss.match(/\.mobile-site-dock__contact-link\s*\{([^}]*)\}/)?.[1] || '';
+    const compactFooterMediaIndex = footerCss.lastIndexOf('@media (max-width: 768px)');
+    const compactFooterCss = compactFooterMediaIndex >= 0 ? footerCss.slice(compactFooterMediaIndex) : '';
+    const compactFooterInnerRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-inner,[\s\S]*?\{([^}]*)\}/)?.[1] || '';
+    const compactFooterBottomRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-bottom\s*\{([^}]*)\}/)?.[1] || '';
+    const compactFooterLinkRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-utility \.footer-link\s*\{([^}]*)\}/)?.[1] || '';
+    const fallbackFooterNavRule = Array.from(
+      footerCss.matchAll(/\.footer\.footer-classic \.footer-nav\s*\{([^}]*)\}/g),
+      (match) => match[1]
+    ).find((rule) => rule.includes('grid-area:nav;')) || '';
+    const leftGroupIndex = navigationJs.indexOf('<div class="mobile-site-dock__group mobile-site-dock__group--left">');
+    const homeIndex = navigationJs.indexOf('${renderDockItem(homeItem)}', leftGroupIndex);
+    const rightGroupIndex = navigationJs.indexOf('<div class="mobile-site-dock__group mobile-site-dock__group--right">');
+
+    assert(navigationJs.includes('const leftItems = items.slice(0, 2);') &&
+      navigationJs.includes('const rightItems = items.slice(3);') &&
+      leftGroupIndex >= 0 &&
+      homeIndex > leftGroupIndex &&
+      rightGroupIndex > homeIndex,
+      'shared mobile dock markup should group two left items, the Home item, and the right-side items into three centered zones');
+    assert(dockRule.includes('grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);') &&
+      leftGroupRule.includes('grid-template-columns: repeat(2, minmax(44px, 1fr));') &&
+      personalRightRule.includes('grid-template-columns: minmax(44px, 1fr) minmax(44px, 1.6fr);') &&
+      professionalRightRule.includes('grid-template-columns: minmax(44px, 1fr);') &&
+      !mobileDockCss.includes('grid-column: 4 / 6;') &&
+      !mobileDockCss.includes('minmax(44px, 1fr) minmax(44px, 1fr) 64px'),
+      'shared mobile dock should use a centered three-zone grid while keeping personal Contact wider and professional Contact full-width');
+    assert(dockRule.includes('--dock-surface: #fff;') &&
+      dockRule.includes('border-top: 1px solid var(--dock-line);') &&
+      dockRule.includes('background: var(--dock-surface);') &&
+      dockRule.includes('box-shadow: var(--dock-shadow);') &&
+      archRule.includes('left: 50%;') &&
+      archRule.includes('transform: translateX(-50%);') &&
+      !mobileDockCss.includes('.mobile-site-dock::before'),
+      'shared mobile dock should use one opaque edge-to-edge surface with its raised Home arch centered on the viewport');
+    assert(mobileDockCss.includes('--mobile-site-dock-height: 80px;') &&
+      mobileDockCss.includes('--mobile-site-dock-clearance: calc(88px + env(safe-area-inset-bottom, 0px));') &&
+      dockRule.includes('height: calc(var(--mobile-site-dock-height) + env(safe-area-inset-bottom, 0px));') &&
+      itemRule.includes('min-height: 56px;') &&
+      homeRule.includes('width: 64px;') &&
+      homeRule.includes('height: 64px;') &&
+      contactLinkRule.includes('min-height: 44px;'),
+      'shared mobile dock should preserve its 80px height, safe-area clearance, and 44px-or-larger navigation targets');
     assert(navigationJs.includes('M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7') &&
       navigationJs.includes('<rect x="3" y="7" width="18" height="13" rx="2.25"></rect>') &&
       !navigationJs.includes('M14.5 5.5a4.8 4.8 0 0 0 4 6.9'),
       'shared mobile dock should use a recognizable toolbox glyph for Tools');
-    assert(mobileDockCss.includes('.mobile-site-dock[data-mobile-dock-layout="personal"]') &&
-      mobileDockCss.includes('grid-template-columns: minmax(44px, 1fr) minmax(44px, 1fr) 64px minmax(44px, 1fr) minmax(80px, 1.6fr)') &&
-      mobileDockCss.includes('.mobile-site-dock[data-mobile-dock-layout="personal"] .mobile-site-dock__contact .mobile-site-dock__item'),
-      'personal mobile dock should make Contact visibly wider than the other outer navigation items');
+    assert(compactFooterCss.includes('body.has-mobile-site-dock .footer.footer-classic .footer-identity,') &&
+      compactFooterCss.includes('body.has-mobile-site-dock .footer.footer-classic .footer-nav{') &&
+      compactFooterCss.includes('display:none;') &&
+      compactFooterInnerRule.includes('grid-template-columns:minmax(0, 1fr);') &&
+      compactFooterInnerRule.includes('grid-template-areas:"bottom";') &&
+      compactFooterInnerRule.includes('gap:0;') &&
+      compactFooterBottomRule.includes('align-items:flex-start;') &&
+      compactFooterBottomRule.includes('flex-direction:column;') &&
+      compactFooterBottomRule.includes('padding-top:0;') &&
+      compactFooterBottomRule.includes('border-top:0;') &&
+      compactFooterLinkRule.includes('min-height:44px;') &&
+      compactFooterLinkRule.includes('padding-block:6px;') &&
+      fallbackFooterNavRule.includes('display:block;'),
+      'dock-aware mobile footer should hide duplicated navigation and retain a compact, accessible utility footer at 768px and below without breaking the no-dock fallback');
+    assert(!footerCss.includes('--footer-mobile-dock-fill') &&
+      !footerCss.includes('body.has-mobile-site-dock .footer.footer-classic::after'),
+      'dock-aware mobile footer should not extend a dark inherited background behind the fixed dock');
   });
 
   section('Project-first public copy', () => {

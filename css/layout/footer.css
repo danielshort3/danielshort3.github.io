@@ -323,21 +323,6 @@
       padding-top:0;
     }
 
-    body.has-mobile-site-dock .footer.footer-classic{
-      --footer-mobile-dock-fill: var(--mobile-site-dock-clearance, calc(120px + env(safe-area-inset-bottom, 0px)));
-      margin-bottom:0;
-    }
-
-    body.has-mobile-site-dock .footer.footer-classic::after{
-      content:"";
-      position:absolute;
-      right:0;
-      bottom:calc(-1 * var(--footer-mobile-dock-fill));
-      left:0;
-      height:var(--footer-mobile-dock-fill);
-      background:inherit;
-      pointer-events:none;
-    }
   }
 
   @media (max-width: 360px){
@@ -352,6 +337,53 @@
 
     .footer.footer-classic .footer-identity-actions{
       gap:.18rem .78rem;
+    }
+  }
+
+  @media (max-width: 768px){
+    body.has-mobile-site-dock .footer.footer-classic{
+      margin-bottom:0;
+      padding:.78rem 0 .72rem;
+      text-align:left;
+    }
+
+    body.has-mobile-site-dock .footer.footer-classic .footer-inner,
+    body.has-mobile-site-dock[data-page="home"].home-pattern-page .footer.footer-classic .footer-inner,
+    body.has-mobile-site-dock[data-page="portfolio"] .footer.footer-classic .footer-inner,
+    body.has-mobile-site-dock.portfolio-workbench-page .footer.footer-classic .footer-inner{
+      grid-template-columns:minmax(0, 1fr);
+      grid-template-areas:"bottom";
+      gap:0;
+    }
+
+    body.has-mobile-site-dock .footer.footer-classic .footer-identity,
+    body.has-mobile-site-dock .footer.footer-classic .footer-nav{
+      display:none;
+    }
+
+    body.has-mobile-site-dock .footer.footer-classic .footer-bottom{
+      align-items:flex-start;
+      flex-direction:column;
+      gap:.25rem;
+      width:100%;
+      padding-top:0;
+      border-top:0;
+    }
+
+    body.has-mobile-site-dock .footer.footer-classic .footer-utility{
+      gap:.3rem .86rem;
+      width:100%;
+    }
+
+    body.has-mobile-site-dock .footer.footer-classic .footer-utility .footer-link{
+      min-height:44px;
+      padding-block:6px;
+    }
+
+    body.has-mobile-site-dock .footer.footer-classic .footer-meta{
+      padding-top:0;
+      text-align:left;
+      white-space:normal;
     }
   }
 }

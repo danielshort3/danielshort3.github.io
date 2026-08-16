@@ -501,6 +501,8 @@
       }
     ];
     const items = isProfessionalAudience ? professionalItems : personalItems;
+    const leftItems = items.slice(0, 2);
+    const rightItems = items.slice(3);
     const contactMenuId = 'mobile-site-contact-menu';
     const contactMenuHtml = `
       <div class="mobile-site-dock__contact-menu" id="${contactMenuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-mobile-contact-menu>
@@ -521,7 +523,7 @@
       </div>
     `;
 
-    const html = items.map((item) => {
+    const renderDockItem = (item) => {
       const activeClass = item.active ? ' is-active' : '';
       const ariaCurrent = item.active ? ' aria-current="page"' : '';
       const contactAttr = item.contact ? ' data-contact-modal-link="true"' : '';
@@ -552,7 +554,16 @@
           <span class="mobile-site-dock__label">${item.label}</span>
         </a>
       `;
-    }).join('');
+    };
+    const html = `
+      <div class="mobile-site-dock__group mobile-site-dock__group--left">
+        ${leftItems.map(renderDockItem).join('')}
+      </div>
+      ${renderDockItem(homeItem)}
+      <div class="mobile-site-dock__group mobile-site-dock__group--right">
+        ${rightItems.map(renderDockItem).join('')}
+      </div>
+    `;
 
     const dock = document.createElement('nav');
     dock.className = 'mobile-site-dock';
