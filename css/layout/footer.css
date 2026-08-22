@@ -338,6 +338,9 @@
     }
   }
 
+}
+
+@layer overrides {
   @media (max-width: 768px){
     body.has-mobile-site-dock .footer.footer-classic{
       margin-bottom:0;

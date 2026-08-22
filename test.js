@@ -40664,6 +40664,13 @@ try {
       (match) => match[1]
     ).find((rule) => rule.includes('width: 64px;')) || '';
     const contactLinkRule = mobileDockCss.match(/\.mobile-site-dock__contact-link\s*\{([^}]*)\}/)?.[1] || '';
+    const hiddenDockRule = mobileDockCss.match(/\.mobile-site-dock\.is-scroll-hidden,[\s\S]*?body\.is-mobile-site-dock-hidden \.mobile-site-dock\s*\{([^}]*)\}/)?.[1] || '';
+    const dockMainClearanceRule = mobileDockCss.match(/body\.has-mobile-site-dock[^\{]*>\s*#main\s*\{([^}]*)\}/)?.[1] || '';
+    const dockBodyRule = mobileDockCss.match(/body\.has-mobile-site-dock\s*\{([^}]*)\}/)?.[1] || '';
+    const reducedMotionDockIndex = mobileDockCss.indexOf('@media (max-width: 768px) and (prefers-reduced-motion: reduce)');
+    const reducedMotionDockCss = reducedMotionDockIndex >= 0
+      ? mobileDockCss.slice(reducedMotionDockIndex, reducedMotionDockIndex + 500)
+      : '';
     const compactFooterMediaIndex = footerCss.lastIndexOf('@media (max-width: 768px)');
     const compactFooterCss = compactFooterMediaIndex >= 0 ? footerCss.slice(compactFooterMediaIndex) : '';
     const compactFooterInnerRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-inner,[\s\S]*?\{([^}]*)\}/)?.[1] || '';
@@ -40676,6 +40683,14 @@ try {
     const leftGroupIndex = navigationJs.indexOf('<div class="mobile-site-dock__group mobile-site-dock__group--left">');
     const homeIndex = navigationJs.indexOf('${renderDockItem(homeItem)}', leftGroupIndex);
     const rightGroupIndex = navigationJs.indexOf('<div class="mobile-site-dock__group mobile-site-dock__group--right">');
+    const dockAutoHideStart = navigationJs.indexOf('function setupMobileDockAutoHide(dock)');
+    const dockAutoHideEnd = navigationJs.indexOf('\n  function setupMobileSiteDock', dockAutoHideStart);
+    const dockAutoHideJs = dockAutoHideStart >= 0 && dockAutoHideEnd > dockAutoHideStart
+      ? navigationJs.slice(dockAutoHideStart, dockAutoHideEnd)
+      : '';
+    const hideThreshold = Number(dockAutoHideJs.match(/DOCK_HIDE_SCROLL_THRESHOLD\s*=\s*(\d+)/)?.[1]);
+    const showThreshold = Number(dockAutoHideJs.match(/DOCK_SHOW_SCROLL_THRESHOLD\s*=\s*(\d+)/)?.[1]);
+    const topRevealOffset = Number(dockAutoHideJs.match(/DOCK_TOP_REVEAL_OFFSET\s*=\s*(\d+)/)?.[1]);
 
     assert(navigationJs.includes('const leftItems = items.slice(0, 2);') &&
       navigationJs.includes('const rightItems = items.slice(3);') &&
@@ -40699,13 +40714,46 @@ try {
       !mobileDockCss.includes('.mobile-site-dock::before'),
       'shared mobile dock should use one opaque edge-to-edge surface with its raised Home arch centered on the viewport');
     assert(mobileDockCss.includes('--mobile-site-dock-height: 80px;') &&
-      mobileDockCss.includes('--mobile-site-dock-clearance: calc(88px + env(safe-area-inset-bottom, 0px));') &&
-      dockRule.includes('height: calc(var(--mobile-site-dock-height) + env(safe-area-inset-bottom, 0px));') &&
+      mobileDockCss.includes('--mobile-site-dock-gap: 8px;') &&
+      mobileDockCss.includes('--mobile-site-dock-safe-bottom: env(safe-area-inset-bottom, 0px);') &&
+      mobileDockCss.includes('--mobile-site-dock-clearance: calc(') &&
+      mobileDockCss.includes('var(--mobile-site-dock-height) +') &&
+      mobileDockCss.includes('var(--mobile-site-dock-gap) +') &&
+      dockRule.includes('height: calc(var(--mobile-site-dock-height) + var(--mobile-site-dock-safe-bottom));') &&
       itemRule.includes('min-height: 56px;') &&
       homeRule.includes('width: 64px;') &&
       homeRule.includes('height: 64px;') &&
       contactLinkRule.includes('min-height: 44px;'),
       'shared mobile dock should preserve its 80px height, safe-area clearance, and 44px-or-larger navigation targets');
+    assert(dockAutoHideJs &&
+      Number.isFinite(hideThreshold) && hideThreshold >= 20 && hideThreshold <= 48 &&
+      Number.isFinite(showThreshold) && showThreshold >= 8 && showThreshold < hideThreshold &&
+      Number.isFinite(topRevealOffset) && topRevealOffset >= 0 && topRevealOffset <= showThreshold &&
+      dockAutoHideJs.includes('const delta = nextScrollY - lastScrollY;') &&
+      dockAutoHideJs.includes('scrollDistance += Math.abs(delta);') &&
+      dockAutoHideJs.includes('scrollDirection > 0 && scrollDistance >= DOCK_HIDE_SCROLL_THRESHOLD') &&
+      dockAutoHideJs.includes('scrollDirection < 0 && scrollDistance >= DOCK_SHOW_SCROLL_THRESHOLD') &&
+      dockAutoHideJs.includes("window.addEventListener('scroll', queueDockVisibility, { passive: true });") &&
+      dockAutoHideJs.includes('window.requestAnimationFrame(syncDockVisibility)'),
+      'mobile dock should use buffered downward hiding and upward/top revealing through one passive, animation-frame scroll loop');
+    assert(dockAutoHideJs.includes("dock.classList.toggle('is-scroll-hidden', hidden);") &&
+      dockAutoHideJs.includes("document.body.classList.toggle('is-mobile-site-dock-hidden', hidden);") &&
+      dockAutoHideJs.includes("dock.dataset.mobileDockHiddenReason = reason;") &&
+      dockAutoHideJs.includes('delete dock.dataset.mobileDockHiddenReason;') &&
+      dockAutoHideJs.includes("hiddenReason = 'scroll';") &&
+      dockAutoHideJs.includes("hiddenReason = 'footer';"),
+      'mobile dock auto-hide should synchronize inspectable dock/body states and distinguish scroll from footer hiding');
+    assert(dockAutoHideJs.includes("document.querySelector('.footer.footer-classic')") &&
+      dockAutoHideJs.includes('new window.IntersectionObserver') &&
+      dockAutoHideJs.includes('entries.some((entry) => entry.isIntersecting)') &&
+      dockAutoHideJs.includes('footerObserver.observe(footer);') &&
+      dockAutoHideJs.includes('footer.getBoundingClientRect()') &&
+      dockAutoHideJs.includes("dock.classList.contains('is-contact-open')") &&
+      dockAutoHideJs.includes('dock.contains(document.activeElement)') &&
+      dockAutoHideJs.includes("dock.addEventListener('focusin', queueDockVisibility);") &&
+      dockAutoHideJs.includes("dock.addEventListener('focusout', queueDockVisibility);") &&
+      navigationJs.includes('queueDockVisibility = setupMobileDockAutoHide(dock);'),
+      'mobile dock should stay hidden over the footer, include a no-observer viewport fallback, and remain available during contact or keyboard interaction');
     assert(navigationJs.includes('M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7') &&
       navigationJs.includes('<rect x="3" y="7" width="18" height="13" rx="2.25"></rect>') &&
       !navigationJs.includes('M14.5 5.5a4.8 4.8 0 0 0 4 6.9'),
@@ -40727,6 +40775,23 @@ try {
     assert(!footerCss.includes('--footer-mobile-dock-fill') &&
       !footerCss.includes('body.has-mobile-site-dock .footer.footer-classic::after'),
       'dock-aware mobile footer should not extend a dark inherited background behind the fixed dock');
+    assert(dockRule.includes('transition:') &&
+      dockRule.includes('transform') &&
+      dockRule.includes('will-change: transform;') &&
+      hiddenDockRule.includes('transform: translate3d(0, calc(100% + 16px), 0);') &&
+      hiddenDockRule.includes('pointer-events: none;') &&
+      hiddenDockRule.includes('visibility: hidden;') &&
+      reducedMotionDockCss.includes('.mobile-site-dock') &&
+      reducedMotionDockCss.includes('transition: none;'),
+      'mobile dock should slide off-canvas without capturing taps and reduce its transition to effectively instant motion when requested');
+    assert(dockBodyRule.includes('padding-bottom: 0;') &&
+      dockMainClearanceRule.includes('margin-bottom: var(--mobile-site-dock-gap);') &&
+      mobileDockCss.includes('--mobile-site-dock-safe-bottom: env(safe-area-inset-bottom, 0px);') &&
+      mobileDockCss.includes('--mobile-site-dock-safe-left: env(safe-area-inset-left, 0px);') &&
+      mobileDockCss.includes('--mobile-site-dock-safe-right: env(safe-area-inset-right, 0px);') &&
+      compactFooterCss.includes('body.has-mobile-site-dock .footer.footer-classic .footer-nav{') &&
+      fallbackFooterNavRule.includes('display:block;'),
+      'mobile dock spacing should sit before the compact footer, preserve full safe-area scroll clearance, and leave the complete footer available when JavaScript does not add the dock class');
   });
 
   section('Project-first public copy', () => {

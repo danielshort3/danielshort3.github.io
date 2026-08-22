@@ -407,6 +407,101 @@
     document.body.classList.add('has-mobile-site-masthead');
   }
 
+  function setupMobileDockAutoHide(dock) {
+    const DOCK_HIDE_SCROLL_THRESHOLD = 28;
+    const DOCK_SHOW_SCROLL_THRESHOLD = 18;
+    const DOCK_TOP_REVEAL_OFFSET = 12;
+    const footer = document.querySelector('.footer.footer-classic')
+      || document.querySelector('body > footer')
+      || document.querySelector('footer');
+    let lastScrollY = Math.max(0, window.scrollY || window.pageYOffset || 0);
+    let scrollDistance = 0;
+    let scrollDirection = 0;
+    let scrollHidden = false;
+    let footerIntersecting = false;
+    let dockVisibilityRaf = null;
+
+    const hasDockInteraction = () => (
+      dock.classList.contains('is-contact-open')
+      || dock.contains(document.activeElement)
+    );
+    const setDockHiddenReason = (reason = '') => {
+      const hidden = Boolean(reason);
+      dock.classList.toggle('is-scroll-hidden', hidden);
+      document.body.classList.toggle('is-mobile-site-dock-hidden', hidden);
+      if (hidden) {
+        dock.dataset.mobileDockHiddenReason = reason;
+      } else {
+        delete dock.dataset.mobileDockHiddenReason;
+      }
+    };
+    const isFooterInViewport = () => {
+      if (!footer) return false;
+      const rect = footer.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight;
+    };
+    const syncDockVisibility = () => {
+      dockVisibilityRaf = null;
+      const nextScrollY = Math.max(0, window.scrollY || window.pageYOffset || 0);
+      const delta = nextScrollY - lastScrollY;
+      lastScrollY = nextScrollY;
+
+      if (nextScrollY <= DOCK_TOP_REVEAL_OFFSET) {
+        scrollHidden = false;
+        scrollDistance = 0;
+        scrollDirection = 0;
+      } else if (Math.abs(delta) >= 1) {
+        const nextDirection = delta > 0 ? 1 : -1;
+        if (nextDirection !== scrollDirection) {
+          scrollDirection = nextDirection;
+          scrollDistance = 0;
+        }
+        scrollDistance += Math.abs(delta);
+        if (scrollDirection > 0 && scrollDistance >= DOCK_HIDE_SCROLL_THRESHOLD) {
+          scrollHidden = true;
+          scrollDistance = 0;
+        } else if (scrollDirection < 0 && scrollDistance >= DOCK_SHOW_SCROLL_THRESHOLD) {
+          scrollHidden = false;
+          scrollDistance = 0;
+        }
+      }
+
+      if (typeof window.IntersectionObserver !== 'function') {
+        footerIntersecting = isFooterInViewport();
+      }
+
+      let hiddenReason = '';
+      if (!hasDockInteraction()) {
+        if (footerIntersecting) {
+          hiddenReason = 'footer';
+        } else if (scrollHidden) {
+          hiddenReason = 'scroll';
+        }
+      }
+      setDockHiddenReason(hiddenReason);
+    };
+    const queueDockVisibility = () => {
+      if (dockVisibilityRaf !== null) return;
+      dockVisibilityRaf = window.requestAnimationFrame(syncDockVisibility);
+    };
+
+    window.addEventListener('scroll', queueDockVisibility, { passive: true });
+    dock.addEventListener('focusin', queueDockVisibility);
+    dock.addEventListener('focusout', queueDockVisibility);
+
+    footerIntersecting = isFooterInViewport();
+    if (footer && typeof window.IntersectionObserver === 'function') {
+      const footerObserver = new window.IntersectionObserver((entries) => {
+        footerIntersecting = entries.some((entry) => entry.isIntersecting);
+        queueDockVisibility();
+      });
+      footerObserver.observe(footer);
+    }
+
+    syncDockVisibility();
+    return queueDockVisibility;
+  }
+
   function setupMobileSiteDock(config){
     if (!document.body || document.querySelector('[data-mobile-site-dock]')) return;
 
@@ -574,6 +669,7 @@
     const contactToggle = dock.querySelector('[data-mobile-contact-options]');
     const contactMenu = dock.querySelector('[data-mobile-contact-menu]');
     const contactActions = [...dock.querySelectorAll('[data-mobile-contact-action]')];
+    let queueDockVisibility = () => {};
     const setContactExpanded = (expanded) => {
       if (!contactToggle || !contactMenu) return;
       const nextExpanded = Boolean(expanded);
@@ -587,6 +683,7 @@
       if (!nextExpanded && contactMenu.contains(document.activeElement)) {
         contactToggle.focus({ preventScroll: true });
       }
+      queueDockVisibility();
     };
     setContactExpanded(false);
 
@@ -620,6 +717,7 @@
     });
     document.body.appendChild(dock);
     document.body.classList.add('has-mobile-site-dock');
+    queueDockVisibility = setupMobileDockAutoHide(dock);
   }
 
   function initNav(){
