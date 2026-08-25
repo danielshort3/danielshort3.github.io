@@ -1162,7 +1162,7 @@
     border: 1px solid color-mix(in srgb, var(--brand-signal-blue) 18%, transparent);
     border-radius: 6px;
     background: color-mix(in srgb, var(--brand-signal-blue) 9%, #ffffff 91%);
-    color: var(--brand-signal-blue);
+    color: var(--brand-midnight);
     padding: 0.3rem 0.62rem;
     font-size: 0.78rem;
     font-weight: 700;

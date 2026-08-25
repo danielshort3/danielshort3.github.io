@@ -118,6 +118,8 @@
     display:inline-flex;
     align-items:center;
     justify-content:flex-start;
+    box-sizing:border-box;
+    min-height:44px;
     padding:0;
     border:none;
     background:none;

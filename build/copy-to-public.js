@@ -37,6 +37,7 @@ const scanSkipDirs = new Set([
   '__tests__',
   '.git',
   '.vercel',
+  '_local',
   'archive',
   'Project Submission',
   'Slot-Machine-v4',
