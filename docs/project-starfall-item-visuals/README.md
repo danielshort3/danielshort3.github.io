@@ -1,10 +1,10 @@
 # Project Starfall Item Visual Workflow
 
-`ITEM_VISUAL_DESIGN_GUIDE.md` is the source of truth for item visual direction. This folder exists so the asset workflow is discoverable from the docs tree and so validation can prove that item visual structure is not just implicit.
+`docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md` is the source of truth for item visual direction. This folder exists so the asset workflow is discoverable from the docs tree and so validation can prove that item visual structure is not just implicit.
 
 ## Active Contract Files
 
-- Guide: `ITEM_VISUAL_DESIGN_GUIDE.md`
+- Guide: `docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md`
 - Manifest: `img/project-starfall/items/item-visual-manifest.json`
 - Prompt templates: `asset-sources/project-starfall/prompts/item-visual-prompts.md`
 - Current audit: `docs/project-starfall-item-visuals/audit.md`

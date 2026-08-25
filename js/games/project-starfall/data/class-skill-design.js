@@ -2,7 +2,7 @@
   'use strict';
 
   const CLASS_SKILL_GUIDE_CONTRACT = Object.freeze({
-    guidePath: 'CLASS_AND_SKILL_DESIGN_GUIDE.md',
+    guidePath: 'docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md',
     runtimeDataFiles: Object.freeze([
       'js/games/project-starfall/data/classes.js',
       'js/games/project-starfall/data/skills.js',

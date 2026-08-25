@@ -1,10 +1,10 @@
 # Project Starfall Asset Sources
 
-This folder contains the source-facing side of the Project Starfall asset pipeline. Treat `ASSET_GENERATION_GUIDE.md` as the human-readable contract and `asset-generation-manifest.json` as the machine-readable contract.
+This folder contains the source-facing side of the Project Starfall asset pipeline. Treat `docs/project-starfall/ASSET_GENERATION_GUIDE.md` as the human-readable contract and `asset-generation-manifest.json` as the machine-readable contract.
 
 ## Authoritative Files
 
-- `ASSET_GENERATION_GUIDE.md` - full project-specific art, prompt, naming, folder, and export guide.
+- `docs/project-starfall/ASSET_GENERATION_GUIDE.md` - full project-specific art, prompt, naming, folder, and export guide.
 - `asset-sources/project-starfall/asset-generation-manifest.json` - validator-readable asset contract.
 - `asset-sources/project-starfall/prompts/README.md` - reusable generation prompt templates.
 - `img/project-starfall/asset-prompts.md` - historical prompt and processor provenance.

@@ -638,7 +638,7 @@ async function validateUiAndStations(manifest, data) {
 }
 
 async function validateManifest() {
-  assertExists('ASSET_GENERATION_GUIDE.md', 'Asset generation guide');
+  assertExists('docs/project-starfall/ASSET_GENERATION_GUIDE.md', 'Asset generation guide');
   assertExists('img/project-starfall/asset-prompts.md', 'Asset prompt provenance');
   assert(fs.existsSync(MANIFEST_PATH), 'Project Starfall asset-generation manifest missing');
   assert(fs.existsSync(DATA_PATH), 'Project Starfall runtime data missing');
@@ -646,7 +646,7 @@ async function validateManifest() {
   const manifest = readJson(MANIFEST_PATH);
   const data = require(DATA_PATH);
   assert(manifest.version === 1, 'Project Starfall asset-generation manifest should be version 1');
-  assert(manifest.guide === 'ASSET_GENERATION_GUIDE.md', 'Manifest should point to ASSET_GENERATION_GUIDE.md');
+  assert(manifest.guide === 'docs/project-starfall/ASSET_GENERATION_GUIDE.md', 'Manifest should point to docs/project-starfall/ASSET_GENERATION_GUIDE.md');
   assert(manifest.promptTemplates === 'asset-sources/project-starfall/prompts/README.md',
     'Manifest should point to source prompt templates');
   assertExists(manifest.promptTemplates, 'Prompt template README');

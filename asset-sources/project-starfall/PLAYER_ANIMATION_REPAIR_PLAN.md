@@ -68,7 +68,7 @@ npm run validate:project-starfall-equipment-atlases
 npm run test:starfall:assets
 npm run validate:project-starfall-assets
 npm run test:starfall:smoke
-node tests/project-starfall-class-identity.test.js
+node tests/project-starfall/project-starfall-class-identity.test.js
 ```
 
 Source review artifacts: `asset-sources/project-starfall/players/class-families/*-v5-generated-chroma.png`. The processor normalizes their variable source dimensions into guided source sheets and exact 960 by 1600 runtime sheets.

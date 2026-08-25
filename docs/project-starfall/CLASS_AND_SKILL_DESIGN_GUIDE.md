@@ -2,7 +2,7 @@
 
 This guide is the working instruction manual for designing, improving, balancing, and implementing Project Starfall's class and skill system.
 
-Primary design authority: `project_starfall_gdd_v0_5.md`.
+Primary design authority: `docs/project-starfall/project_starfall_gdd_v0_5.md`.
 
 Primary implementation authority:
 

@@ -6,7 +6,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const DEFAULT_DATA_PATH = path.join(ROOT, 'js/games/project-starfall/project-starfall-data.js');
-const DEFAULT_GUIDE_PATH = path.join(ROOT, 'CLASS_AND_SKILL_DESIGN_GUIDE.md');
+const DEFAULT_GUIDE_PATH = path.join(ROOT, 'docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md');
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -59,12 +59,12 @@ function validatePrerequisite(skill, prerequisite, skillById) {
 
 function validateGuideContract(data, guideText) {
   const contract = data.CLASS_SKILL_GUIDE_CONTRACT || {};
-  assert(contract.guidePath === 'CLASS_AND_SKILL_DESIGN_GUIDE.md',
-    'Class/skill guide contract should point at CLASS_AND_SKILL_DESIGN_GUIDE.md');
+  assert(contract.guidePath === 'docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md',
+    'Class/skill guide contract should point at docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md');
   assert(guideText.includes('Project Starfall Class and Skill Design Guide'),
-    'CLASS_AND_SKILL_DESIGN_GUIDE.md should be the Project Starfall class and skill guide');
+    'docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md should be the Project Starfall class and skill guide');
   (contract.requiredGuideSections || []).forEach((section) => {
-    assert(guideText.includes(section), `CLASS_AND_SKILL_DESIGN_GUIDE.md missing required section: ${section}`);
+    assert(guideText.includes(section), `docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md missing required section: ${section}`);
   });
   (contract.runtimeDataFiles || []).forEach((filePath) => {
     assert(fs.existsSync(path.join(ROOT, filePath)), `Guide contract data file missing: ${filePath}`);

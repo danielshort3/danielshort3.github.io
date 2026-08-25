@@ -4,7 +4,7 @@ Initial audit notes for the active UI visual iteration goal.
 
 ## References Checked
 
-- `project_starfall_gdd_v0_5.md` sections `0.9 Current Player Guide` and `22. UI / UX Direction`.
+- `project-starfall/project_starfall_gdd_v0_5.md` sections `0.9 Current Player Guide` and `22. UI / UX Direction`.
 - `pages/games/project-starfall.html` for the playable canvas shell.
 - `css/games/project-starfall.css` for Starfall-specific DOM styling.
 - `js/games/project-starfall/project-starfall-ui.js` for DOM and canvas windows, prompts, and hit regions.

@@ -1,6 +1,6 @@
 # Project Starfall Prompt Templates
 
-Use these templates with `ASSET_GENERATION_GUIDE.md`. The guide remains authoritative for full prompts, frame counts, dimensions, and review rules.
+Use these templates with `docs/project-starfall/ASSET_GENERATION_GUIDE.md`. The guide remains authoritative for full prompts, frame counts, dimensions, and review rules.
 
 ## Master Style Prompt
 

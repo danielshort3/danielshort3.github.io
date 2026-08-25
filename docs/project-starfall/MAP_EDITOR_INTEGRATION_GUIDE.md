@@ -4,8 +4,8 @@ This guide defines a practical, project-specific map editor workflow for Project
 
 Primary project files reviewed:
 
-- `project_starfall_gdd_v0_5.md`
-- `MAP_AND_LEVEL_DESIGN_GUIDE.md`
+- `docs/project-starfall/project_starfall_gdd_v0_5.md`
+- `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md`
 - `docs/project-starfall-map-optimization-audit.md`
 - `docs/project-starfall-map-optimization-implementation.md`
 - `img/project-starfall/asset-prompts.md`
@@ -178,7 +178,7 @@ Slopes are gameplay platforms:
 - Rendering: `drawRampPlatformTerrain()` currently routes slope visuals through fallback platform drawing. Ramp atlas assets exist, but the renderer path still relies on fallback slope geometry.
 - Validation: `build/validate-project-starfall-maps.js` enforces slope budgets, max grade, ramp connections, no spawns on slopes, and enough broad flat platforms.
 
-This is a critical editor requirement: every edited slope must be both visual and collision-correct, connected to adjacent platforms, and validated against the slope-density rules in `MAP_AND_LEVEL_DESIGN_GUIDE.md`.
+This is a critical editor requirement: every edited slope must be both visual and collision-correct, connected to adjacent platforms, and validated against the slope-density rules in `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md`.
 
 ### Current Enemies, Items, Hazards, Checkpoints, Spawns, And Exits
 
@@ -1073,7 +1073,7 @@ Place checkpoints:
 
 - Add checkpoint objects with ID, label, platform anchor, facing direction, and camera frame.
 - Mark as future runtime until checkpoint state is implemented.
-- Validate rest-space requirements from `MAP_AND_LEVEL_DESIGN_GUIDE.md`.
+- Validate rest-space requirements from `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md`.
 
 Set map bounds:
 
@@ -2906,7 +2906,7 @@ Draft save can allow these states, but the editor must keep warnings visible.
 
 `build/validate-project-starfall-maps.js` already validates:
 
-- `MAP_AND_LEVEL_DESIGN_GUIDE.md` existence and sections.
+- `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md` existence and sections.
 - Required terrain/ramp/prop/data/runtime paths.
 - Map `layoutRole`.
 - Slope counts.
@@ -3741,8 +3741,8 @@ npm run build
 
 Create or update:
 
-- `MAP_EDITOR_INTEGRATION_GUIDE.md`
-- `MAP_AND_LEVEL_DESIGN_GUIDE.md`
+- `docs/project-starfall/MAP_EDITOR_INTEGRATION_GUIDE.md`
+- `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md`
 - `docs/project-starfall-map-editor-user-guide.md`
 - `docs/project-starfall-map-editor-schema.md`
 - `docs/project-starfall-map-editor-validation.md`
@@ -3820,7 +3820,7 @@ Before a map becomes production content:
 - Portals pass.
 - World route data is reviewed.
 - Map matches GDD tone and biome identity.
-- Map matches `MAP_AND_LEVEL_DESIGN_GUIDE.md`.
+- Map matches `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md`.
 - Playtest from start/checkpoints/portals passes.
 - Screenshots reviewed.
 - `npm test` passes.

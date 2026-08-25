@@ -1,7 +1,7 @@
 {
   "version": 1,
   "name": "Project Starfall Asset Generation Manifest",
-  "guide": "ASSET_GENERATION_GUIDE.md",
+  "guide": "docs/project-starfall/ASSET_GENERATION_GUIDE.md",
   "styleSource": "img/project-starfall/asset-prompts.md",
   "promptTemplates": "asset-sources/project-starfall/prompts/README.md",
   "validationCommand": "npm run validate:project-starfall-assets",
