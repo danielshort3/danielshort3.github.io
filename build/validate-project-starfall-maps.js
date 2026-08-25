@@ -241,9 +241,9 @@ function validateProjectStarfallMaps(data, options = {}) {
   const summaries = maps.map(validateMap);
   const issues = summaries.flatMap((summary) => summary.issues);
   const warnings = summaries.flatMap((summary) => summary.warnings);
-  const guidePath = path.join(ROOT, 'MAP_AND_LEVEL_DESIGN_GUIDE.md');
+  const guidePath = path.join(ROOT, 'docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md');
   if (!fs.existsSync(guidePath)) {
-    issues.push('MAP_AND_LEVEL_DESIGN_GUIDE.md is missing.');
+    issues.push('docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md is missing.');
   } else {
     const guide = fs.readFileSync(guidePath, 'utf8');
     [
@@ -252,7 +252,7 @@ function validateProjectStarfallMaps(data, options = {}) {
       'Before-And-After Improvement Workflow',
       'Final Map Polish Checklist'
     ].forEach((heading) => {
-      if (!guide.includes(heading)) issues.push(`MAP_AND_LEVEL_DESIGN_GUIDE.md is missing guide section: ${heading}.`);
+      if (!guide.includes(heading)) issues.push(`docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md is missing guide section: ${heading}.`);
     });
   }
   [

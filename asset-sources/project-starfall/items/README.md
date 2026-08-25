@@ -20,7 +20,7 @@ Processed runtime sheets belong in:
 img/project-starfall/items/sheets/
 ```
 
-Follow `ITEM_VISUAL_DESIGN_GUIDE.md` and `img/project-starfall/items/item-visual-manifest.json` before creating or importing any item art.
+Follow `docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md` and `img/project-starfall/items/item-visual-manifest.json` before creating or importing any item art.
 
 Source sheet rules:
 

@@ -1,14 +1,14 @@
 # Project Starfall Map Optimization Audit
 
 Evidence inspected:
-- `project_starfall_gdd_v0_5.md`, especially current world, class, combat, and prototype constraints.
+- `project-starfall/project_starfall_gdd_v0_5.md`, especially current world, class, combat, and prototype constraints.
 - `js/games/project-starfall/project-starfall-data.js` for maps, world graph, towns, portals, enemies, layout generators, town scenes, and field compositions.
 - `js/games/project-starfall/project-starfall-engine.js` for runtime map contracts, spawn cadence, initial spawning, wave replacement behavior, and safe respawn logic.
 - `pages/games/project-starfall.html`, `css/games/project-starfall.css`, `js/games/project-starfall/project-starfall-renderer-pixi.js`, and `js/games/project-starfall/project-starfall-ui.js` for the playable canvas shell, Pixi/environment rendering path, UI panels, minimap, combat metrics hooks, and service interaction surface.
 - `test.js` Starfall map assertions for current automated guarantees.
-- `tests/project-starfall-balance-harness.js` for class-vs-map fit, field efficiency, boss mechanic, and party-scaling analysis hooks.
+- `tests/project-starfall/project-starfall-balance-harness.js` for class-vs-map fit, field efficiency, boss mechanic, and party-scaling analysis hooks.
 - `img/project-starfall/maps/` and `img/project-starfall/environment/` for the current map, terrain, ramp, prop, and landmark asset coverage.
-- `all-map-terrain-format-contact-sheet.png` for terrain and region material identity.
+- `project-starfall/all-map-terrain-format-contact-sheet.png` for terrain and region material identity.
 
 Important current-state notes:
 - Most authored map arrays are not the final runtime maps. `applyPartyPlayGeometry()` replaces safe-zone, dungeon, and most field geometry with shared generators.

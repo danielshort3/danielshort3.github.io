@@ -46,7 +46,7 @@ This companion note tracks implementation progress against `docs/project-starfal
   - Astral Stacks: left stacks, center rune shelf, and right stacks.
   - Eclipse Throne: solar lane, eclipse dais, lunar lane, and mote shelf.
 - Exposed `arenaSkeleton` and `arenaMechanic` through runtime snapshots and renderer map metadata for future tuning and UI.
-- Exposed map intent and spawn-section coverage in `tests/project-starfall-balance-harness.js` field reports so tuning output can group maps by intended archetype, use case, party role, farming risk, visual identity, and section coverage.
+- Exposed map intent and spawn-section coverage in `tests/project-starfall/project-starfall-balance-harness.js` field reports so tuning output can group maps by intended archetype, use case, party role, farming risk, visual identity, and section coverage.
 - Added `field.mapTuning` to the balance harness. The report now covers every current non-admin combat map and exposes:
   - kills per minute
   - EXP per minute

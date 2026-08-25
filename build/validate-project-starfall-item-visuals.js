@@ -274,7 +274,7 @@ function validateItemAssets(data, manifest, issues) {
 }
 
 function validatePromptsAndDocs(manifest, issues) {
-  const guidePath = manifest.sourceOfTruth || 'ITEM_VISUAL_DESIGN_GUIDE.md';
+  const guidePath = manifest.sourceOfTruth || 'docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md';
   if (!fileExists(guidePath)) {
     issues.push(`${guidePath} is missing`);
     return;

@@ -1,6 +1,6 @@
 # Project Starfall Item Visual Audit
 
-This audit compares the current repository state against `ITEM_VISUAL_DESIGN_GUIDE.md` and `img/project-starfall/items/item-visual-manifest.json`.
+This audit compares the current repository state against `docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md` and `img/project-starfall/items/item-visual-manifest.json`.
 
 ## Complete and Active
 
@@ -73,6 +73,6 @@ An item visual pass is considered structurally ready when:
 
 - `npm run validate:project-starfall-item-visuals` passes.
 - `npm run test:starfall:assets` passes.
-- New item art follows `ITEM_VISUAL_DESIGN_GUIDE.md`.
+- New item art follows `docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md`.
 - New source art follows the cyan guide-line and chroma-key sheet rules.
 - New data references keep existing item loading and save/load behavior intact.

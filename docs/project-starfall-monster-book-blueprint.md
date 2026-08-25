@@ -5,7 +5,7 @@ This blueprint follows `project-starfall-monster-book-goal.txt` and is grounded 
 - Game data: `js/games/project-starfall/project-starfall-data.js`
 - Runtime/state/loot logic: `js/games/project-starfall/project-starfall-engine.js`
 - Canvas UI: `js/games/project-starfall/project-starfall-ui.js`
-- Product direction: `project_starfall_gdd_v0_5.md`
+- Product direction: `project-starfall/project_starfall_gdd_v0_5.md`
 
 Project Starfall already has a strong start: enemies, maps, drops, boss phases, target farming, and a Monster Guide panel exist. The optimization should evolve that system into a combat-first, collection-second guide that gives useful fighting and farming information early, then rewards long-term mastery with collection visibility, exact odds, lore, cosmetics, and tracking tools.
 

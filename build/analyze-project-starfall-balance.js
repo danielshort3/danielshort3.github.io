@@ -6,7 +6,7 @@ const { createProjectStarfallEngine } = require('../js/games/project-starfall/pr
 const {
   createBalanceReport,
   getScenarioResults
-} = require('../tests/project-starfall-balance-harness.js');
+} = require('../tests/project-starfall/project-starfall-balance-harness.js');
 
 function parseArgs(argv) {
   const options = {};

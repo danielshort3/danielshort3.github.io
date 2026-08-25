@@ -1,6 +1,6 @@
 # Project Starfall Item Visual Prompts
 
-Use these prompts with `ITEM_VISUAL_DESIGN_GUIDE.md` and `img/project-starfall/items/item-visual-manifest.json`. Keep locked traits consistent across all generations: Project Starfall Starlit Frontier Fantasy, strong silhouette, crisp dark contour, upper-left lighting, clean cel-shaded material planes, transparent background, no text, no watermark, no fake UI, no background scene.
+Use these prompts with `docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md` and `img/project-starfall/items/item-visual-manifest.json`. Keep locked traits consistent across all generations: Project Starfall Starlit Frontier Fantasy, strong silhouette, crisp dark contour, upper-left lighting, clean cel-shaded material planes, transparent background, no text, no watermark, no fake UI, no background scene.
 
 ## Master Item Art Prompt
 

@@ -4,7 +4,7 @@ This guide is for designing, cleaning up, and expanding Project Starfall maps so
 
 Primary files reviewed:
 
-- `project_starfall_gdd_v0_5.md`
+- `docs/project-starfall/project_starfall_gdd_v0_5.md`
 - `docs/project-starfall-map-optimization-audit.md`
 - `docs/project-starfall-map-optimization-implementation.md`
 - `img/project-starfall/asset-prompts.md`
@@ -789,7 +789,7 @@ The validator reads the assembled `ProjectStarfallData.MAPS` output, not only th
 
 Validation currently enforces:
 
-- `MAP_AND_LEVEL_DESIGN_GUIDE.md` exists and keeps the required sections.
+- `docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md` exists and keeps the required sections.
 - Required map-design source paths exist.
 - Slope counts stay within role-specific budgets.
 - Slope grade stays at or below 0.72.

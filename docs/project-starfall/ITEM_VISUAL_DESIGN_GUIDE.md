@@ -21,7 +21,7 @@ The manifest is the machine-checkable contract for current icon dimensions, gene
 
 ### Primary Sources Inspected
 
-- `project_starfall_gdd_v0_5.md`: primary source for tone, mechanics, itemization, gear tiers, rarity, art direction, and AI asset standards.
+- `docs/project-starfall/project_starfall_gdd_v0_5.md`: primary source for tone, mechanics, itemization, gear tiers, rarity, art direction, and AI asset standards.
 - `img/project-starfall/asset-prompts.md`: source-of-truth notes for AI source sheets, cyan guide-line grids, chroma-key backgrounds, player/equipment sheets, and current item icon generation batches.
 - `js/games/project-starfall/data/items.js`: authoritative item icon mapping, material items, rarity visuals, item asset root paths, and file-name conversion.
 - `js/games/project-starfall/data/consumables.js`: consumables, potions, rations, coupons, scrolls, skill manuals, Plinko balls, and account/progression utility items.

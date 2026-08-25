@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sourceOfTruth": "ITEM_VISUAL_DESIGN_GUIDE.md",
+  "sourceOfTruth": "docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md",
   "runtime": {
     "inventoryIcon": {
       "width": 64,
@@ -539,8 +539,8 @@
     }
   },
   "review": {
-    "checklistPath": "ITEM_VISUAL_DESIGN_GUIDE.md#15-item-review-checklist",
-    "templatePath": "ITEM_VISUAL_DESIGN_GUIDE.md#16-item-visual-documentation-templates",
+    "checklistPath": "docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md#15-item-review-checklist",
+    "templatePath": "docs/project-starfall/ITEM_VISUAL_DESIGN_GUIDE.md#16-item-visual-documentation-templates",
     "requiredSmallSizes": [64, 48, 34],
     "requiredBackgrounds": ["parchment_inventory", "dark_gameplay"],
     "requiredArtifactChecks": ["no_text", "no_watermark", "no_fake_ui", "no_background_scene", "no_chroma_residue"]

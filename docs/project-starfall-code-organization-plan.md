@@ -21,7 +21,7 @@ Project Starfall already has a recognizable vertical slice:
 - Boot file: `js/games/project-starfall/project-starfall-main.js`
 - Styles: `css/games/project-starfall.css`
 - Asset processors: `build/*project-starfall*.js`
-- Runtime and balance coverage: `test.js`, `tests/project-starfall-balance-harness.js`
+- Runtime and balance coverage: `test.js`, `tests/project-starfall/project-starfall-balance-harness.js`
 
 The macro-architecture is understandable, but the major files have grown into broad catch-all modules. The largest maintainability risks are:
 

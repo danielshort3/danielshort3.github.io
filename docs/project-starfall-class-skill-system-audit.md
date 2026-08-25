@@ -2,11 +2,11 @@
 
 Last updated: 2026-06-19
 
-This audit tracks how the current repository satisfies `CLASS_AND_SKILL_DESIGN_GUIDE.md`.
+This audit tracks how the current repository satisfies `docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md`.
 
 ## Current State
 
-- Guide source of truth: `CLASS_AND_SKILL_DESIGN_GUIDE.md`
+- Guide source of truth: `docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md`
 - Machine-readable design contract: `js/games/project-starfall/data/class-skill-design.js`
 - Runtime class data: `js/games/project-starfall/data/classes.js`
 - Runtime skill data: `js/games/project-starfall/data/skills.js`
