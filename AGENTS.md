@@ -48,6 +48,9 @@ Session metadata:
 ## Build, Test, and Development Commands
 Run `npm run build:css` to compose all `css/styles.css` imports into the hashed bundle. `npm run build:icons` regenerates favicons from `img/ui/logo.png`. `npm run build` runs the CSS build and copies site assets into `public/`. Lightweight project checks live in `npm test`. After any build, open `public/index.html` (or the root files) in a browser or serve `public/` through any static server for validation.
 
+## Workspace Subprojects
+`aws/job-application-tracker` and `browser-extension/job-application-copilot` have their own `package.json` and are run from anywhere via root shortcuts: `npm run test:tracker` (also `build:tracker` → Lambda package), `npm run test:ext` (also `build:ext`, `package:ext`, `package:ext:store`, `verify:extension:store`). The root `npm test` already chains both subproject suites plus `node build/validate-seo.js`.
+
 ## Coding Style & Naming Conventions
 Use 2-space indentation everywhere; HTML attributes stay in double quotes. JavaScript is ES2015+, with camelCase variables/functions, kebab-case filenames, and uppercase constants. End every JS statement with semicolons and keep concise semantic selectors; behavior hooks should rely on data attributes. CSS honors the existing `@layer` order (`tokens` → `base` → `layout` → `components` → `utilities` → `overrides`), so add new component styles under `css/components/` and import them from `css/styles.css`.
 

@@ -4,12 +4,12 @@ const path = require('path');
 const vm = require('vm');
 const zlib = require('zlib');
 const childProcess = require('child_process');
-const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
-const runCampaignCreativeTrackerTests = require('./tests/campaign-creative-tracker.test.js');
-const runPortfolioRecommendationTests = require('./tests/portfolio-recommendations.test.js');
-const runResponsiveDensityContractTests = require('./tests/responsive-density-contracts.test.js');
-const runQrCodeGeneratorUtilsTests = require('./tests/qr-code-generator-utils.test.js');
-const runTextCompareCoreTests = require('./tests/text-compare-core.test.js');
+const runUtmBatchBuilderTests = require('./tests/tools/utm-batch-builder.test.js');
+const runCampaignCreativeTrackerTests = require('./tests/tools/campaign-creative-tracker.test.js');
+const runPortfolioRecommendationTests = require('./tests/site/portfolio-recommendations.test.js');
+const runResponsiveDensityContractTests = require('./tests/site/responsive-density-contracts.test.js');
+const runQrCodeGeneratorUtilsTests = require('./tests/tools/qr-code-generator-utils.test.js');
+const runTextCompareCoreTests = require('./tests/tools/text-compare-core.test.js');
 const { validateProjectStarfallClassSkillData } = require('./build/validate-project-starfall-class-skills.js');
 const { validateProjectStarfallItemVisuals } = require('./build/validate-project-starfall-item-visuals.js');
 const { validateProjectStarfallMaps } = require('./build/validate-project-starfall-maps.js');
@@ -1720,7 +1720,7 @@ try {
     assert(mapDesignValidation.summaries.some((summary) => summary.mapId === 'greenrootMeadow' && summary.slopeCount <= 6) &&
       mapDesignValidation.summaries.some((summary) => summary.mapId === 'endlessRift' && summary.slopeCount <= 8) &&
       mapDesignValidation.summaries.every((summary) => summary.role !== 'bossArena' || summary.slopeCount <= 4),
-      'Project Starfall maps should stay within the slope budgets from MAP_AND_LEVEL_DESIGN_GUIDE.md');
+      'Project Starfall maps should stay within the slope budgets from docs/project-starfall/MAP_AND_LEVEL_DESIGN_GUIDE.md');
     assert(data.BASE_CLASSES && ['fighter', 'mage', 'archer'].every((classId) => data.BASE_CLASSES[classId]) &&
       data.ADVANCED_CLASSES && Object.keys(data.ADVANCED_CLASSES).length >= 9,
       'Project Starfall should define base and advanced classes');
@@ -2932,7 +2932,7 @@ try {
       'Project Starfall class/skill guide contract, resource, status, tooltip, balance, loadout, encounter, and debug metadata should live in the class-skill design module while the compatibility data bundle consumes them');
     {
       const classSkillValidation = validateProjectStarfallClassSkillData(data, {
-        guideText: readFile('CLASS_AND_SKILL_DESIGN_GUIDE.md')
+        guideText: readFile('docs/project-starfall/CLASS_AND_SKILL_DESIGN_GUIDE.md')
       });
       assert(classSkillValidation.ok &&
         classSkillValidation.classCount === 12 &&
@@ -10425,7 +10425,7 @@ try {
       getMapResults,
       getScenarioResults,
       getSkillRuntimeDamageFactor
-    } = require('./tests/project-starfall-balance-harness.js');
+    } = require('./tests/project-starfall/project-starfall-balance-harness.js');
     const runStarfallRuntimeGroup = (name, suite, fn) => {
       if (!shouldRunSuite(suite)) return null;
       console.log(`  • ${name}`);
@@ -40894,13 +40894,19 @@ try {
       'img/brand/07-website-hero-light-version.png',
       'img/brand/07-website-hero-light-version.svg',
       'img/brand/23-hero-general-light.png',
+      'img/brand/23-hero-general-light.avif',
+      'img/brand/23-hero-general-light.webp',
       'img/brand/24-hero-analytics-light.png',
       'img/brand/24-hero-analytics-light.avif',
       'img/brand/24-hero-analytics-light.webp',
       'img/brand/24-hero-analytics-light-960.avif',
       'img/brand/24-hero-analytics-light-960.webp',
       'img/brand/25-hero-data-science-light.png',
+      'img/brand/25-hero-data-science-light.avif',
+      'img/brand/25-hero-data-science-light.webp',
       'img/brand/26-hero-tourism-light.png',
+      'img/brand/26-hero-tourism-light.avif',
+      'img/brand/26-hero-tourism-light.webp',
       'img/brand/27-hero-mobile-light.png',
       'img/brand/27-hero-mobile-light.avif',
       'img/brand/27-hero-mobile-light.webp',
@@ -40934,6 +40940,12 @@ try {
     [
       ['img/brand/27-hero-mobile-light.png', 'img/brand/27-hero-mobile-light.avif'],
       ['img/brand/27-hero-mobile-light.png', 'img/brand/27-hero-mobile-light.webp'],
+      ['img/brand/23-hero-general-light.png', 'img/brand/23-hero-general-light.avif'],
+      ['img/brand/23-hero-general-light.png', 'img/brand/23-hero-general-light.webp'],
+      ['img/brand/25-hero-data-science-light.png', 'img/brand/25-hero-data-science-light.avif'],
+      ['img/brand/25-hero-data-science-light.png', 'img/brand/25-hero-data-science-light.webp'],
+      ['img/brand/26-hero-tourism-light.png', 'img/brand/26-hero-tourism-light.avif'],
+      ['img/brand/26-hero-tourism-light.png', 'img/brand/26-hero-tourism-light.webp'],
       ['img/brand/24-hero-analytics-light.png', 'img/brand/24-hero-analytics-light.avif'],
       ['img/brand/24-hero-analytics-light.png', 'img/brand/24-hero-analytics-light.webp'],
       ['img/brand/24-hero-analytics-light.png', 'img/brand/24-hero-analytics-light-960.avif'],
@@ -40962,6 +40974,12 @@ try {
       'shared mobile hero artwork should prefer AVIF/WebP with its PNG fallback');
     assert(starfallLoadingCss.includes('start-screen.avif') && starfallLoadingCss.includes('start-screen.webp'),
       'Project Starfall start screen should prefer AVIF/WebP with its PNG fallback');
+    assert(brandOverrideCss.includes('23-hero-general-light.avif') && brandOverrideCss.includes('23-hero-general-light.webp'),
+      'general hero artwork should prefer AVIF/WebP with its PNG fallback');
+    assert(brandOverrideCss.includes('25-hero-data-science-light.avif') && brandOverrideCss.includes('25-hero-data-science-light.webp'),
+      'data science hero artwork should prefer AVIF/WebP with its PNG fallback');
+    assert(brandOverrideCss.includes('26-hero-tourism-light.avif') && brandOverrideCss.includes('26-hero-tourism-light.webp'),
+      'tourism hero artwork should prefer AVIF/WebP with its PNG fallback');
     assert(recruiterStoryCss.includes('24-hero-analytics-light.avif') &&
       recruiterStoryCss.includes('24-hero-analytics-light.webp') &&
       recruiterStoryCss.includes('24-hero-analytics-light-960.avif') &&
@@ -42885,6 +42903,7 @@ try {
   section('404 rewrites and portfolio page sections', () => {
     checkFileContains('404.html', 'js/common/404-redirect.js');
     checkFileContains('js/common/404-redirect.js', '/portfolio/${encodeURIComponent(project)}');
+    checkFileContains('js/common/404-redirect.js', "event: 'page_404'");
     checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
     checkFileContains('pages/portfolio.html', 'id="projects"');
     checkFileContains('pages/portfolio.html', 'id="modals"');
