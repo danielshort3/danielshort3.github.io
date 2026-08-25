@@ -29,4 +29,14 @@
       location.replace(`/portfolio${location.search || ''}${location.hash || ''}`);
     }
   } catch (_) {}
+
+  try {
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        event: 'page_404',
+        failed_url: location.href,
+        referrer: document.referrer || ''
+      });
+    }
+  } catch (_) {}
 })();

@@ -3030,7 +3030,7 @@
         categoryEl.style.setProperty('--y', `${pos.y}px`);
         categoryEl.style.setProperty('--accent', category.accent);
         categoryEl.innerHTML = `
-            <div class="home-graph__halo" aria-hidden="true">${buildCategoryDots(categoryId)}</div>
+            <div class="home-graph__halo">${buildCategoryDots(categoryId)}</div>
             <div class="home-graph__category-card">
               <button type="button" class="home-graph__category-button" data-graph-category-button="${escapeHtml(categoryId)}" aria-label="${active ? 'Collapse' : 'Expand'} ${escapeHtml(category.label)}" aria-expanded="${active}" aria-controls="home-graph-layer-host" title="${escapeHtml(category.label)}"></button>
               <span class="home-graph__category-icon" aria-hidden="true">${getCategoryIcon(category.icon)}</span>

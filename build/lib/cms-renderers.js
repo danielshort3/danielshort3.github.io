@@ -529,7 +529,7 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
     '<header id="combined-header-nav">',
     '  <nav class="nav" aria-label="Primary">',
     '    <div class="wrapper nav-wrapper">',
-    `      <a href="${escapeHtml(normalizeRelativeHref(brand.homePath || '/', '/'))}" class="brand" aria-label="Home" data-entry-home-link="true">`,
+    `      <a href="${escapeHtml(normalizeRelativeHref(brand.homePath || '/', '/'))}" class="brand" data-entry-home-link="true">`,
     `        <img src="${escapeHtml(brand.logoSrc || 'img/ui/logo-64.png')}" srcset="${escapeHtml(brand.logoSrcSet || 'img/ui/logo-64.png 1x, img/ui/logo-192.png 3x')}" sizes="${escapeHtml(brand.logoSizes || '64px')}" alt="${escapeHtml(brand.logoAlt || 'DS logo')}" class="brand-logo" decoding="async" loading="eager" width="${escapeHtml(brand.logoWidth || 64)}" height="${escapeHtml(brand.logoHeight || 64)}">`,
     '        <span class="brand-name">',
     `          <span class="brand-title">${escapeHtml(settings.ownerName || 'Daniel Short')}</span>`,

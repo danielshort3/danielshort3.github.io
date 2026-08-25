@@ -32,6 +32,32 @@
     }
   }
 
+  @supports (background-image: image-set(url("../img/brand/23-hero-general-light.webp") type("image/webp"))) {
+    body {
+      --hero-art-layer: image-set(
+        url("../img/brand/23-hero-general-light.avif") type("image/avif"),
+        url("../img/brand/23-hero-general-light.webp") type("image/webp"),
+        url("../img/brand/23-hero-general-light.png") type("image/png")
+      );
+    }
+
+    body:is([data-page="data-science"], [data-audience="data-science"]) {
+      --hero-art-layer: image-set(
+        url("../img/brand/25-hero-data-science-light.avif") type("image/avif"),
+        url("../img/brand/25-hero-data-science-light.webp") type("image/webp"),
+        url("../img/brand/25-hero-data-science-light.png") type("image/png")
+      );
+    }
+
+    body:is([data-page="tourism"], [data-audience="tourism"]) {
+      --hero-art-layer: image-set(
+        url("../img/brand/26-hero-tourism-light.avif") type("image/avif"),
+        url("../img/brand/26-hero-tourism-light.webp") type("image/webp"),
+        url("../img/brand/26-hero-tourism-light.png") type("image/png")
+      );
+    }
+  }
+
   /* Phase 1: shared interaction behavior on safe/shared controls only */
   :is(
     .btn-primary,
