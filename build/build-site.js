@@ -165,15 +165,15 @@ function main() {
     const jsBundles = jsManifest ? Object.values(jsManifest).filter((value) => typeof value === 'string') : [];
     logStep('js', jsStep.durationMs, `dist/ (${jsBundles.length} bundled script${jsBundles.length === 1 ? '' : 's'})`);
 
-    // 5) UTM Batch Builder bundle (src/ -> dist/)
+    // 5) UTM Batch Builder bundle (src/ -> js/tools/)
     const utmStep = runNodeScript(path.join('build', 'build-utm-batch-builder.js'), { verbose });
-    const utmMain = path.join(root, 'dist', 'utm-batch-builder.js');
-    const utmWorker = path.join(root, 'dist', 'utm-batch-builder.worker.js');
+    const utmMain = path.join(root, 'js', 'tools', 'utm-batch-builder.js');
+    const utmWorker = path.join(root, 'js', 'tools', 'utm-batch-builder.worker.js');
     const utmMainStat = safeStat(utmMain);
     const utmWorkerStat = safeStat(utmWorker);
     const utmPieces = [];
-    utmPieces.push(`dist/utm-batch-builder.js${utmMainStat ? ` (${formatBytes(utmMainStat.size)})` : ''}`);
-    utmPieces.push(`dist/utm-batch-builder.worker.js${utmWorkerStat ? ` (${formatBytes(utmWorkerStat.size)})` : ''}`);
+    utmPieces.push(`js/tools/utm-batch-builder.js${utmMainStat ? ` (${formatBytes(utmMainStat.size)})` : ''}`);
+    utmPieces.push(`js/tools/utm-batch-builder.worker.js${utmWorkerStat ? ` (${formatBytes(utmWorkerStat.size)})` : ''}`);
     logStep('utm-batch-builder', utmStep.durationMs, utmPieces.join(', '));
 
     // 6) Project pages (js/portfolio -> pages/portfolio + sitemap.xml)

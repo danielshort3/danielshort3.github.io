@@ -10,7 +10,7 @@ const path = require('path');
 async function run() {
   const esbuild = require('esbuild');
   const root = path.resolve(__dirname, '..');
-  const outdir = path.join(root, 'dist');
+  const outdir = path.join(root, 'js', 'tools');
 
   await esbuild.build({
     entryPoints: {

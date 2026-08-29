@@ -34,12 +34,12 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "documents/Project_8.pdf",
+      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.pdf",
       "label": "PDF"
     },
     {
       "icon": "img/icons/jupyter-icon.png",
-      "url": "documents/Project_8.ipynb",
+      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.ipynb",
       "label": "Notebook"
     },
     {
@@ -98,7 +98,7 @@
     ],
     "evidence": {
       "label": "Evaluation notebook",
-      "url": "documents/Project_8.ipynb"
+      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.ipynb"
     }
   },
   "order": 7,

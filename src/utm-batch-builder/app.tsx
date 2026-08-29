@@ -1403,7 +1403,7 @@ const App = () => {
 
   const startWorker = useCallback(() => {
     if (workerRef.current) return workerRef.current;
-    const worker = new Worker("/dist/utm-batch-builder.worker.js");
+    const worker = new Worker("/js/tools/utm-batch-builder.worker.js");
     workerRef.current = worker;
     worker.addEventListener("message", (event: MessageEvent) => {
       const msg = (event.data || {}) as WorkerResponse;

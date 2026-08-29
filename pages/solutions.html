@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" data-theme-scope="core">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Solutions | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/solutions">
+  <meta name="description" content="Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines.">
+  <meta property="og:title" content="Solutions | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short">
+  <meta property="og:description" content="Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines.">
+  <meta property="og:url" content="https://www.danielshort.me/solutions">
+  <meta property="og:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
+  <meta property="og:image:width" content="1672">
+  <meta property="og:image:height" content="941">
+  <meta property="og:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="twitter:title" content="Solutions | Daniel Short">
+  <meta name="twitter:description" content="Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines.">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
+  <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
+  <meta name="theme-color" content="#091F3B">
+  <style>
+    .solutions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+    .solution-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.1rem 1.2rem; border: 1px solid rgba(9, 31, 59, 0.12); border-radius: 0.75rem; background: #ffffff; text-decoration: none; color: inherit; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+    .solution-card:hover, .solution-card:focus-visible { transform: translateY(-2px); border-color: #93c5fd; box-shadow: 0 8px 24px -12px rgba(9, 31, 59, 0.25); outline: none; }
+    .solution-card h3 { margin: 0; font-size: 1rem; font-weight: 600; color: #091f3b; }
+    .solution-card p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: #475467; }
+    .solution-card-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: auto; padding-top: 0.4rem; }
+    .solution-card-tags i { font-style: normal; font-size: 0.72rem; font-weight: 500; padding: 0.15rem 0.55rem; border-radius: 999px; background: #eff6ff; color: #1d4ed8; }
+    .solutions-steps { margin: 1rem 0 1.5rem 0; padding-left: 1.5rem; display: grid; gap: 0.85rem; color: #334155; }
+    .solutions-steps li { line-height: 1.6; }
+    .solutions-cta { margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  </style>
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.d67b3425.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script src="js/common/no-js.js"></script>
+  <meta property="og:image:type" content="image/png">
+  <meta name="author" content="Daniel Short">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:creator" content="@danielshort3">
+  <script type="application/ld+json" id="site-jsonld">
+    {"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.danielshort.me/#website","url":"https://www.danielshort.me/","name":"Daniel Short","publisher":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/","image":"https://www.danielshort.me/img/hero/head-avatar-384.jpg","sameAs":["https://www.linkedin.com/in/danielshort3/","https://github.com/danielshort3"]},{"@type":"WebPage","@id":"https://www.danielshort.me/solutions#webpage","url":"https://www.danielshort.me/solutions","name":"Solutions | Daniel Short","description":"Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines.","isPartOf":{"@id":"https://www.danielshort.me/#website"},"about":{"@id":"https://www.danielshort.me/#person"},"inLanguage":"en-US","primaryImageOfPage":{"@type":"ImageObject","url":"https://www.danielshort.me/img/brand/07-website-hero-light-version.png"},"breadcrumb":{"@id":"https://www.danielshort.me/solutions#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/solutions#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Solutions","item":"https://www.danielshort.me/solutions"}]}]}
+  </script>
+</head>
+<body data-page="solutions" class="site-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav">
+    <nav class="nav" aria-label="Primary">
+      <div class="wrapper nav-wrapper">
+        <a href="/" class="brand" data-entry-home-link="true">
+          <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="56px" alt="Daniel Short DS logo" class="brand-logo" decoding="async" loading="eager" width="381" height="392">
+          <span class="brand-name">
+            <span class="brand-title">Daniel Short</span>
+          </span>
+        </a>
+        <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+
+          <div class="nav-item nav-item-portfolio">
+            <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
+              Projects
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
+              <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+                <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+                  <div class="nav-dropdown-header" aria-hidden="true">Featured Projects</div>
+                  <div class="nav-project-grid nav-project-stack">
+                    <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore">
+                      <span class="nav-project-rank">#1</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/retailStore.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/retailStore.webm" data-preview-mp4="/img/projects/retailStore.mp4" data-preview-poster="/img/projects/retailStore.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Store-Level Loss &amp; Sales ETL</span>
+                        <span class="nav-dropdown-subtitle">SQL ETL + Anomaly Detection</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora">
+                      <span class="nav-project-rank">#2</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator">
+                      <span class="nav-project-rank">#3</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/digitGenerator.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/digitGenerator.webm" data-preview-mp4="/img/projects/digitGenerator.mp4" data-preview-poster="/img/projects/digitGenerator.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Synthetic Digit Generator</span>
+                        <span class="nav-dropdown-subtitle">Variational Autoencoder</span>
+                      </span>
+                    </a>
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio" class="nav-dropdown-link nav-dropdown-all">
+                      <span class="nav-dropdown-title">View all projects</span>
+                      <span class="nav-dropdown-subtitle">Browse the complete project library</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item nav-item-tools">
+            <a href="tools" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-tools">
+              Tools
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown nav-dropdown-simple nav-dropdown-tools" id="nav-dropdown-tools" aria-label="Featured tools">
+              <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-tools">
+                <div class="nav-dropdown-column nav-dropdown-column-list">
+                  <div class="nav-dropdown-header" aria-hidden="true">Featured Tools</div>
+                  <div class="nav-dropdown-list">
+                    <a href="tools/text-compare" class="nav-dropdown-link nav-dropdown-tool-link">
+                      <span class="nav-dropdown-title">Text Compare</span>
+                      <span class="nav-dropdown-subtitle">Compare two drafts and see insertions, deletions, and replacements highlighted inline.</span>
+                    </a>
+                    <a href="tools/utm-batch-builder" class="nav-dropdown-link nav-dropdown-tool-link">
+                      <span class="nav-dropdown-title">UTM Batch Builder</span>
+                      <span class="nav-dropdown-subtitle">Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.</span>
+                    </a>
+                    <a href="tools/image-optimizer" class="nav-dropdown-link nav-dropdown-tool-link">
+                      <span class="nav-dropdown-title">Image Optimizer</span>
+                      <span class="nav-dropdown-subtitle">Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.</span>
+                    </a>
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="tools" class="nav-dropdown-link nav-dropdown-all nav-dropdown-tools-all">
+                      <span class="nav-dropdown-title">View all tools</span>
+                      <span class="nav-dropdown-subtitle">Browse the complete tool directory</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item nav-item-games">
+            <a href="games" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-games">
+              Games
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown nav-dropdown-simple nav-dropdown-games" id="nav-dropdown-games" aria-label="Browser games">
+              <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-games">
+                <div class="nav-dropdown-column nav-dropdown-column-list">
+                  <div class="nav-dropdown-header" aria-hidden="true">Browser Games</div>
+                  <div class="nav-dropdown-list">
+                    <a href="games/stellar-dogfight" class="nav-dropdown-link nav-dropdown-game-link">
+                      <span class="nav-dropdown-title">Stellar Dogfight</span>
+                      <span class="nav-dropdown-subtitle">Adaptive AI, Upgrade loops, Combat tuning</span>
+                    </a>
+                    <a href="games/roulette" class="nav-dropdown-link nav-dropdown-game-link">
+                      <span class="nav-dropdown-title">Double-Zero Roulette</span>
+                      <span class="nav-dropdown-subtitle">Probability, Distribution tracking, Table state</span>
+                    </a>
+                    <a href="games/probability-engine" class="nav-dropdown-link nav-dropdown-game-link">
+                      <span class="nav-dropdown-title">Probability Engine</span>
+                      <span class="nav-dropdown-subtitle">Simulation, Synergies, Prestige loops</span>
+                    </a>
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="games" class="nav-dropdown-link nav-dropdown-all nav-dropdown-games-all">
+                      <span class="nav-dropdown-title">View all games</span>
+                      <span class="nav-dropdown-subtitle">Open the games directory</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a href="solutions" class="nav-link">Solutions</a>
+          <div class="nav-item nav-item-contact">
+            <a href="contact" class="nav-link nav-link-cta">Contact</a>
+          </div>
+          <form class="nav-search" action="search" method="get" role="search" data-nav-search="collapsed">
+            <label class="visually-hidden" for="nav-search-q">Search site</label>
+            <div class="nav-search-field">
+              <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="Search…">
+              <button class="nav-search-button" type="submit" aria-controls="nav-search-q" aria-expanded="false">
+                <span class="visually-hidden">Search</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-3.5-3.5"></path>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero hero--default alt-band">
+      <div class="wrapper">
+        <h1>Solutions</h1>
+        <p class="hero-tagline">Ways to combine my tools, dashboards, and automation into a working analytics solution — from campaign UTM tracking to end-to-end job pipelines.</p>
+      </div>
+    </section>
+
+
+    <section class="surface-band reveal">
+      <div class="wrapper">
+        <h2 class="section-title">Start from the outcome you need</h2>
+        <p class="section-subtitle">Each solution below is a combination of the tools and projects on this site, wired to answer one real question. Pick the one closest to your problem — every link goes straight to the working artifact.</p>
+        <div class="solutions-grid">
+          
+        <a class="solution-card" href="tools/utm-batch-builder">
+          <h3>Launch a campaign that’s actually measurable</h3>
+          <p>Batch-generate validated UTM links across creative, channel, and audience — then watch them land in the right funnel segment.</p>
+          <span class="solution-card-tags"><i>Marketing</i><i>UTM</i><i>Batch</i></span>
+        </a>
+          
+        <a class="solution-card" href="tools/ga4-utm-performance">
+          <h3>See which campaigns actually convert</h3>
+          <p>Query UTM performance straight from GA4 and export aggregated, shareable CSVs — no Spreadsheet gymnastics.</p>
+          <span class="solution-card-tags"><i>Analytics</i><i>GA4</i><i>Reporting</i></span>
+        </a>
+          
+        <a class="solution-card" href="tools/text-compare">
+          <h3>Cut down messy source material fast</h3>
+          <p>Side-by-side text comparison and clean-up — diff logs, transcripts, or research notes without leaving the browser.</p>
+          <span class="solution-card-tags"><i>Productivity</i><i>Text</i></span>
+        </a>
+          
+        <a class="solution-card" href="tools/word-frequency">
+          <h3>Find the signal inside the noise</h3>
+          <p>Quick frequency and phrasing analysis for transcripts, interview notes, and qualitative feedback.</p>
+          <span class="solution-card-tags"><i>Research</i><i>NLP-lite</i></span>
+        </a>
+          
+        <a class="solution-card" href="portfolio/retailStore">
+          <h3>Prototype a full e-commerce stack</h3>
+          <p>End-to-end retail app — catalog, cart, checkout, and analytics — built to show how data flows between systems.</p>
+          <span class="solution-card-tags"><i>E-commerce</i><i>Full-stack</i></span>
+        </a>
+          
+        <a class="solution-card" href="portfolio/pizzaDashboard">
+          <h3>Make decisions from live data</h3>
+          <p>Operational dashboard: order mix, margins, and throughput in one view, wired to a live source.</p>
+          <span class="solution-card-tags"><i>Dashboards</i><i>BI</i></span>
+        </a>
+          
+        <a class="solution-card" href="portfolio/digitGenerator">
+          <h3>Secure, predictable identifier generation</h3>
+          <p>Deterministic digit and code generation patterns you can reuse for IDs, tracking codes, and test fixtures.</p>
+          <span class="solution-card-tags"><i>Engineering</i><i>IDs</i></span>
+        </a>
+          
+        <a class="solution-card" href="contact">
+          <h3>Want something custom?</h3>
+          <p>If your problem does not fit one of these, describe it — most engagements start with a 30-minute scoping call.</p>
+          <span class="solution-card-tags"><i>Consulting</i></span>
+        </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band reveal">
+      <div class="wrapper">
+        <h2 class="section-title">How the pieces fit together</h2>
+        <p class="section-subtitle">A typical engagement follows four steps:</p>
+        <ol class="solutions-steps">
+          <li><strong>Frame the question.</strong> What decision needs better data? What is the output — a link, a dashboard, an alert?</li>
+          <li><strong>Pick the tools.</strong> Reuse what already exists in the library before building new.</li>
+          <li><strong>Wire the pipeline.</strong> Cognito + DynamoDB + Lambda backends where cloud state matters; pure browser tooling where privacy wins.</li>
+          <li><strong>Prove the loop.</strong> GA4 events → segment → report → decision. If it can’t be reported, it isn’t a solution yet.</li>
+        </ol>
+        <p class="solutions-cta"><a class="btn-primary" href="tools">Browse the tool directory</a> <a class="btn-secondary" href="contact#contact-modal">Start a conversation</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer footer-classic">
+    <div class="wrapper footer-inner">
+      <div class="footer-identity">
+        <section class="footer-identity-panel" data-footer-realm="personal" aria-label="Daniel Short footer summary">
+          <h2 class="footer-identity-name">Daniel Short</h2>
+          <div class="footer-identity-actions">
+            <a href="portfolio" class="footer-link footer-identity-link" data-portfolio-home-link="true">Portfolio</a>
+            <a href="contact#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
+          </div>
+        </section>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <div class="footer-nav-panel" data-footer-realm="personal">
+          <section class="footer-col" aria-labelledby="footer-personal-browse">
+            <h2 class="footer-col-title" id="footer-personal-browse">Browse</h2>
+            <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
+            <a href="solutions" class="footer-link">Solutions</a>
+            <a href="solutions" class="footer-link">Solutions</a>
+            <a href="tools" class="footer-link">Tools</a>
+            <a href="games" class="footer-link">Games</a>
+            <a href="search" class="footer-link">Search</a>
+          </section>
+          <section class="footer-col" aria-labelledby="footer-personal-connect">
+            <h2 class="footer-col-title" id="footer-personal-connect">Connect</h2>
+            <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
+          </section>
+        </div>
+      </nav>
+      <div class="footer-bottom">
+        <nav class="footer-utility" aria-label="Footer utility">
+          <a href="sitemap-pretty" class="footer-link">Sitemap</a>
+          <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
+          <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
+        </nav>
+        <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  <div class="speed-dial" data-speed-dial="true">
+    <div class="speed-dial__tray" data-speed-dial-tray>
+      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
+          <a href="contact#contact-modal" class="speed-dial__action btn-icon speed-dial__action--direct" aria-label="Send a direct message" role="menuitem" data-contact-modal-link="true" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+              <path d="M7 9h10"></path>
+              <path d="M7 13h6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
+          <a href="mailto:daniel@danielshort.me" class="speed-dial__action btn-icon" aria-label="Send Email" role="menuitem" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="M3 7l9 6 9-6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
+          <a href="https://www.linkedin.com/in/danielshort3/" class="speed-dial__action btn-icon" aria-label="View LinkedIn" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="4" cy="4" r="2"></circle>
+              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
+          <a href="https://github.com/danielshort3" class="speed-dial__action btn-icon" aria-label="View GitHub" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+        <path d="M12 8v6"></path>
+        <path d="M9 11h6"></path>
+      </svg>
+    </button>
+  </div>
+  <script defer src="dist/site-shell.1aec15c4.js"></script>
+  <script defer src="dist/site-consent.8416bd25.js"></script>
+</body>
+</html>

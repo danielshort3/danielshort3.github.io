@@ -63,7 +63,7 @@
       overflow-x: hidden;
     }
 
-    #demo-box {
+    #main {
       width: min(1200px, 100%);
       background: var(--surface);
       border: 1px solid var(--surface-accent);
@@ -77,12 +77,12 @@
     }
 
     @supports (height: 100dvh) {
-      #demo-box {
+      #main {
         min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       }
     }
 
-    html[data-embedded="true"] #demo-box {
+    html[data-embedded="true"] #main {
       min-height: 0 !important;
     }
 
@@ -658,7 +658,8 @@
   </script>
 </head>
 <body>
-  <div id="demo-box" role="application" aria-label="Empty package shrink demo">
+<a href="#main" class="skip-link">Skip to main content</a>
+  <div id="main" role="application" aria-label="Empty package shrink demo">
     <header class="card-header">
       <div class="header-copy">
         <h1 class="title">Empty-Package Shrink Explorer</h1>

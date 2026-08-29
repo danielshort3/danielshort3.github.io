@@ -9,7 +9,7 @@
   "contactPath": "/contact?audience=tourism",
   "resumePath": "/resume-tourism",
   "resumePreviewPath": "/resume-tourism-pdf",
-  "resumeDownloadPath": "/documents/Resume-Tourism.pdf",
+  "resumeDownloadPath": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf",
   "featuredProjectIds": [
     "chatbotLora",
     "pizzaDashboard",

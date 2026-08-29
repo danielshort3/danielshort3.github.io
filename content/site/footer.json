@@ -59,21 +59,29 @@
             }
           },
           {
-            "label": "Tools",
-            "href": "tools"
+            "label": "Solutions",
+            "href": "solutions"
           },
-          {
-            "label": "Games",
-            "href": "games"
-          },
-          {
-            "label": "Search",
-            "href": "search"
-          }
-        ]
-      },
-      {
-        "id": "connect",
+        {
+          "label": "Solutions",
+          "href": "solutions"
+        },
+        {
+          "label": "Tools",
+          "href": "tools"
+        },
+        {
+          "label": "Games",
+          "href": "games"
+        },
+        {
+          "label": "Search",
+          "href": "search"
+        }
+      ]
+    },
+    {
+      "id": "connect",
         "title": "Connect",
         "links": [
           {
@@ -179,17 +187,21 @@
       "id": "browse",
       "title": "Browse",
       "links": [
-        {
-          "label": "Portfolio",
-          "href": "portfolio",
-          "dataAttributes": {
-            "data-portfolio-home-link": "true"
-          }
-        },
-        {
-          "label": "Tools",
-          "href": "tools"
-        },
+          {
+            "label": "Portfolio",
+            "href": "portfolio",
+            "dataAttributes": {
+              "data-portfolio-home-link": "true"
+            }
+          },
+          {
+            "label": "Solutions",
+            "href": "solutions"
+          },
+          {
+            "label": "Tools",
+            "href": "tools"
+          },
         {
           "label": "Games",
           "href": "games"

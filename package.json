@@ -14,6 +14,7 @@
     "build:tracker": "npm --prefix aws/job-application-tracker run package:lambda",
     "test:ext": "npm run test:extension",
     "build:ext": "npm run build:extension",
+    "test:analytics": "node build/dev-smoke-run.js",
     "test:chatbot-stream": "node tests/tools/chatbot-stream-proxy.test.js",
     "test:aws-credentials": "node tests/infra/aws-credentials.test.js",
     "test:seo": "node build/validate-seo.js",

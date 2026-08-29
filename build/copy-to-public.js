@@ -12,12 +12,6 @@ const outDir = path.join(root, 'public');
 const cssManifestPath = path.join(root, 'dist', 'styles-manifest.json');
 const jsManifestPath = path.join(root, 'dist', 'scripts-manifest.json');
 const includeStarfallBackups = /^(1|true|yes)$/i.test(String(process.env.PUBLIC_INCLUDE_STARFALL_BACKUPS || '').trim());
-const requiredPublicDocuments = [
-  'documents/Resume.pdf',
-  'documents/Resume-Analytics.pdf',
-  'documents/Resume-Data-Science.pdf',
-  'documents/Resume-Tourism.pdf'
-];
 const textExtensions = new Set([
   '.css',
   '.html',
@@ -160,8 +154,6 @@ function collectDistArtifacts(cssManifest, jsManifest) {
     'styles-analytics.css',
     'styles-manifest.json',
     'scripts-manifest.json',
-    'utm-batch-builder.js',
-    'utm-batch-builder.worker.js',
     'chatbot-knowledge.json',
     'search-index.json',
     'shortlinks-destinations.json'
@@ -191,10 +183,6 @@ function collectDistArtifacts(cssManifest, jsManifest) {
     'site-tools-account.js',
     'site-tools-landing.js'
   ].forEach((fileName) => artifacts.add(fileName));
-
-  if (jsManifest && typeof jsManifest.utmBatchBuilder === 'string') {
-    artifacts.add(jsManifest.utmBatchBuilder);
-  }
 
   return [...artifacts]
     .map((name) => String(name || '').trim())
@@ -301,17 +289,6 @@ function collectReferencedDocumentFiles() {
   const matches = new Set();
   const sources = listTextFilesRecursive(root);
   const matcher = /(?:^|["'(=\s])\/?(documents\/[A-Za-z0-9._\-/%]+)(?=$|["')#?\s<])/g;
-
-  requiredPublicDocuments.forEach((relPath) => {
-    const abs = path.join(root, relPath);
-    let stat;
-    try {
-      stat = fs.statSync(abs);
-    } catch {
-      return;
-    }
-    if (stat.isFile()) matches.add(relPath);
-  });
 
   sources.forEach((filePath) => {
     let body = '';
@@ -572,7 +549,7 @@ function copyStatic(){
   });
 
   // Copy selected root-level static files if present
-  const rootFiles = ['robots.txt', 'sitemap.xml', 'sitemap.xsl', 'llms.txt', 'favicon.ico'];
+  const rootFiles = ['robots.txt', 'sitemap.xml', 'sitemap.xsl', 'llms.txt', 'favicon.ico', 'manifest.json', 'sw.js'];
   rootFiles.forEach(name => {
     const src = path.join(root, name);
     if (fs.existsSync(src)) copyFile(src, path.join(outDir, name));

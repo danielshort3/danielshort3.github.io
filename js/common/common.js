@@ -554,7 +554,7 @@
       ctaActions.classList.add('story-cta-actions');
       const resumeLink = document.createElement('a');
       resumeLink.className = 'btn-secondary';
-      resumeLink.href = 'documents/Resume.pdf';
+      resumeLink.href = 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf';
       resumeLink.textContent = 'Download resume';
       resumeLink.setAttribute('download', 'Daniel-Short-Resume.pdf');
       const linkedInLink = document.createElement('a');

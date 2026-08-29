@@ -46,7 +46,19 @@ Session metadata:
 - Backend support is `PATCH /api/tools/state` (see `api/_lib/tools-endpoints/state.js` and `js/accounts/tools-state.js`).
 
 ## Build, Test, and Development Commands
-Run `npm run build:css` to compose all `css/styles.css` imports into the hashed bundle. `npm run build:icons` regenerates favicons from `img/ui/logo.png`. `npm run build` runs the CSS build and copies site assets into `public/`. Lightweight project checks live in `npm test`. After any build, open `public/index.html` (or the root files) in a browser or serve `public/` through any static server for validation.
+Run `npm run build:css` to compose all `css/styles.css` imports into the hashed bundle. `npm run build:icons` regenerates favicons from `img/ui/logo.png`. `npm run build` runs the CSS build and copies site assets into `public/`. Lightweight project checks live in `npm test`. After any build, open `public/index.html` (or the root files) in a browser or serve `public/` through any static server for validation. CI (`.github/workflows/ci.yml`) runs `npm run build && npm test` on push to `main` and on PRs.
+
+## Dark Mode (scoped, generated)
+Dark mode is **opt-in per page**: a page gets `data-theme-scope="core"` on `<html>` and the browser's `prefers-color-scheme: dark` media query does the rest. The layers:
+- `css/variables.css` — dark token block (flips `--brand-canvas`, `--brand-ink`, etc. inside the scoped media query). This is the correct mechanism; do not delete it.
+- `build/gen-dark-core.cjs` — **source of truth**. Emits `css/components/dark-core.css` (surface-color → dark, text-ink flips, plus a few hand-written overrides). Regenerate with `node build/gen-dark-core.cjs`, then re-run `npm run build:css`.
+- `css/components/dark-core.css` — generated output, imported **last** in `css/styles.css` so it wins over other component rules. Keep it committed; edit the generator, not this file.
+- `css/base/base.css` — sets `color-scheme: dark` on scoped pages so form controls and scrollbars follow.
+
+Enabling dark mode on a page:
+- Static page: `data-theme-scope="core"` on `<html>`.
+- CMS-managed page (home, tools, contact, etc.): `"themeScope": "core"` in the page's `content/…` JSON record; `build/lib/cms-renderers.js` `renderHead` emits the attribute.
+Pages that must stay light (games, demos, tools sub-pages, resume/audience pages) simply do not get the attribute.
 
 ## Workspace Subprojects
 `aws/job-application-tracker` and `browser-extension/job-application-copilot` have their own `package.json` and are run from anywhere via root shortcuts: `npm run test:tracker` (also `build:tracker` → Lambda package), `npm run test:ext` (also `build:ext`, `package:ext`, `package:ext:store`, `verify:extension:store`). The root `npm test` already chains both subproject suites plus `node build/validate-seo.js`.

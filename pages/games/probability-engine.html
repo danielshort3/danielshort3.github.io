@@ -23,7 +23,27 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.3d565811.css">
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.d67b3425.css">
   <link rel="stylesheet" href="css/components/games.css">
   <link rel="stylesheet" href="css/games/probability-engine.css">
   <meta property="og:image:type" content="image/png">
@@ -69,20 +89,20 @@
                         <span class="nav-dropdown-subtitle">SQL ETL + Anomaly Detection</span>
                       </span>
                     </a>
-                    <a href="portfolio/targetEmptyPackage" class="nav-project-card" data-project-id="targetEmptyPackage">
+                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora">
                       <span class="nav-project-rank">#2</span>
-                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/targetEmptyPackage.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/targetEmptyPackage.webm" data-preview-mp4="/img/projects/targetEmptyPackage.mp4" data-preview-poster="/img/projects/targetEmptyPackage.webp"></span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
                       <span class="nav-project-meta">
-                        <span class="nav-dropdown-title">Empty-Package Shrink Dashboard</span>
-                        <span class="nav-dropdown-subtitle">Excel Forecasting &amp; BI</span>
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
                       </span>
                     </a>
-                    <a href="portfolio/pizzaDashboard" class="nav-project-card" data-project-id="pizzaDashboard">
+                    <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator">
                       <span class="nav-project-rank">#3</span>
-                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/pizzaDashboard.webp&#39;);" aria-hidden="true" data-preview-poster="/img/projects/pizzaDashboard.webp"></span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/digitGenerator.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/digitGenerator.webm" data-preview-mp4="/img/projects/digitGenerator.mp4" data-preview-poster="/img/projects/digitGenerator.webp"></span>
                       <span class="nav-project-meta">
-                        <span class="nav-dropdown-title">Pizza Delivery Dashboard</span>
-                        <span class="nav-dropdown-subtitle">Tableau Analytics &amp; Forecasting</span>
+                        <span class="nav-dropdown-title">Synthetic Digit Generator</span>
+                        <span class="nav-dropdown-subtitle">Variational Autoencoder</span>
                       </span>
                     </a>
                   </div>
@@ -162,7 +182,7 @@
               </div>
             </div>
           </div>
-
+          <a href="solutions" class="nav-link">Solutions</a>
           <div class="nav-item nav-item-contact">
             <a href="contact" class="nav-link nav-link-cta">Contact</a>
           </div>
@@ -334,7 +354,7 @@
   </div>
 
   <script defer src="dist/site-consent.8416bd25.js"></script>
-  <script defer src="dist/site-shell.e09a5c8d.js"></script>
+  <script defer src="dist/site-shell.1aec15c4.js"></script>
   <script defer src="/js/games/probability-engine/constants.js"></script>
   <script defer src="/js/games/probability-engine/big.js"></script>
   <script defer src="/js/games/probability-engine/symbols.js"></script>

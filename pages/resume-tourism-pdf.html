@@ -29,7 +29,27 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.3d565811.css">
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.d67b3425.css">
   <link rel="stylesheet" href="css/components/resume.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
@@ -38,7 +58,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.e09a5c8d.js"></script>
+  <script defer src="dist/site-shell.1aec15c4.js"></script>
   <script src="js/common/no-js.js"></script>
 </head>
 <body data-page="resume-tourism-pdf" data-audience="tourism" class="resume-pdf-page site-page">
@@ -123,7 +143,7 @@
                       <span class="nav-dropdown-title">Preview PDF</span>
                       <span class="nav-dropdown-subtitle">Open the PDF preview</span>
                     </a>
-                    <a href="documents/Resume-Tourism.pdf" class="nav-dropdown-link" download data-resume-download-link="true">
+                    <a href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf" class="nav-dropdown-link" download data-resume-download-link="true">
                       <span class="nav-dropdown-title">Download Resume</span>
                       <span class="nav-dropdown-subtitle">Download the PDF</span>
                     </a>
@@ -148,10 +168,10 @@
           <p class="resume-summary">Use this version for tourism, destination, and public-sector analytics roles.</p>
           <div class="resume-actions">
             <a href="resume-tourism" class="btn-secondary">View digital resume</a>
-            <a href="documents/Resume-Tourism.pdf" class="btn-primary" download>Download PDF</a>
+            <a href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf" class="btn-primary" download>Download PDF</a>
           </div>
           <figure class="resume-pdf">
-            <a class="resume-pdf-preview" href="documents/Resume-Tourism.pdf" aria-label="Open the full tourism resume PDF">
+            <a class="resume-pdf-preview" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf" aria-label="Open the full tourism resume PDF">
               <img src="img/resume-previews/resume-tourism-preview.png" alt="First page of Daniel Short's tourism resume" width="1400" height="1812" decoding="async">
             </a>
             <figcaption class="resume-pdf-caption">

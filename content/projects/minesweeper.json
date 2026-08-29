@@ -24,7 +24,7 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf",
+      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf",
       "label": "PDF"
     }
   ],
