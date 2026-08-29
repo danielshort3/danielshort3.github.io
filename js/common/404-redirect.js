@@ -1,6 +1,14 @@
 (() => {
   'use strict';
   try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      canonicalPath = canonicalPath.replace(/^\/pages\//i, '/').replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${window.location.search || ''}${window.location.hash || ''}`);
+      return;
+    }
+
     const path = String(location.pathname || '');
     const params = new URLSearchParams(location.search || '');
     const normalizeProject = (value) => String(value || '').trim().replace(/^\/+|\/+$/g, '');

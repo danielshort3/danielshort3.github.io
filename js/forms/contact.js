@@ -243,7 +243,18 @@
     }
   };
 
-  function open(){ if(!modal || !content || modal.classList.contains('active')) return;
+  const focusDialog = () => {
+    if (!modal?.classList.contains('active') || !content) return;
+    if (!content.contains(document.activeElement)) {
+      content.focus({ preventScroll: true });
+    }
+  };
+  function open(){
+    if (!modal || !content) return;
+    if (modal.classList.contains('active')) {
+      focusDialog();
+      return;
+    }
     prepareForm();
     trackContactEvent('contact_modal_open', { page_path: currentPathname() });
     prevFocus = document.activeElement;
@@ -254,6 +265,7 @@
     content.focus({preventScroll:true});
     modalAccessibility?.isolateBackground();
     content.addEventListener('keydown', trap);
+    window.requestAnimationFrame(focusDialog);
   }
   function close(){ if(!modal || !content || !modal.classList.contains('active')) return;
     modalAccessibility?.restoreBackground();

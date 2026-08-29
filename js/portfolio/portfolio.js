@@ -22,6 +22,42 @@ const getSrStatus = typeof window.getSrStatusNode === 'function'
     })();
 
 const srStatus = () => getSrStatus();
+const createBackgroundIsolation = (target, allowedNodes = []) => {
+  const backgroundState = new Map();
+  const allowed = new Set(allowedNodes.filter(Boolean));
+
+  const isolate = () => {
+    if (!target || backgroundState.size) return;
+    let current = target;
+    while (current && current.parentElement) {
+      const parent = current.parentElement;
+      Array.from(parent.children).forEach((sibling) => {
+        if (sibling === current || allowed.has(sibling) || backgroundState.has(sibling)) return;
+        backgroundState.set(sibling, {
+          ariaHidden: sibling.getAttribute('aria-hidden'),
+          hadInert: sibling.hasAttribute('inert')
+        });
+        sibling.inert = true;
+        sibling.setAttribute('inert', '');
+        sibling.setAttribute('aria-hidden', 'true');
+      });
+      if (parent === document.body) break;
+      current = parent;
+    }
+  };
+
+  const restore = () => {
+    backgroundState.forEach((state, element) => {
+      element.inert = state.hadInert;
+      element.toggleAttribute('inert', state.hadInert);
+      if (state.ariaHidden === null) element.removeAttribute('aria-hidden');
+      else element.setAttribute('aria-hidden', state.ariaHidden);
+    });
+    backgroundState.clear();
+  };
+
+  return { isolate, restore };
+};
 const getImageSizeAttr = (p = {}) => {
   const width = Number(p.imageWidth);
   const height = Number(p.imageHeight);
@@ -309,6 +345,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   triggerButton.dataset.portfolioFilterSheetOpen = 'true';
   triggerButton.setAttribute('aria-controls', filterPanel.id);
   triggerButton.setAttribute('aria-expanded', 'false');
+  triggerButton.setAttribute('aria-haspopup', 'dialog');
   triggerButton.innerHTML = `
     <span class="portfolio-mobile-filter-trigger__label">Filters</span>
     <span class="portfolio-mobile-filter-trigger__status" data-portfolio-mobile-filter-status>All</span>
@@ -324,7 +361,10 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   backdrop.className = 'portfolio-filter-backdrop';
   backdrop.dataset.portfolioFilterSheetClose = 'true';
   backdrop.setAttribute('aria-label', `Close ${itemSingular} filters`);
+  backdrop.setAttribute('aria-hidden', 'true');
+  backdrop.tabIndex = -1;
   root.append(backdrop);
+  const backgroundIsolation = createBackgroundIsolation(filterPanel, [backdrop]);
 
   const summary = document.createElement('section');
   summary.className = 'portfolio-mobile-filter-summary';
@@ -465,6 +505,8 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     root.classList.toggle('is-filter-sheet-open', nextOpen);
     filterPanel.dataset.expanded = nextOpen ? 'true' : 'false';
     if (document.body) document.body.classList.toggle('portfolio-filter-sheet-open', nextOpen);
+    if (nextOpen) backgroundIsolation.isolate();
+    else backgroundIsolation.restore();
     if (!desktopMode) {
       setExpandableHidden(!nextOpen);
       filterPanel.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
@@ -570,7 +612,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   });
 
   if (window.matchMedia) {
-    const desktopQuery = window.matchMedia('(min-width: 821px)');
+    const desktopQuery = window.matchMedia('(min-width: 769px)');
     const syncDialogMode = () => {
       desktopMode = desktopQuery.matches;
       if (desktopQuery.matches) {
@@ -1313,7 +1355,7 @@ function buildPortfolioWorkbenchLegacy() {
     renderSelection();
   };
 
-  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 820px)').matches;
+  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 768px)').matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -1801,6 +1843,21 @@ function buildPortfolioWorkbench() {
     slugify,
     requestRender: () => render()
   });
+  const selectionDialogQuery = window.matchMedia
+    ? window.matchMedia('(max-width: 768px)')
+    : { matches: false };
+  let selectionReturnFocus = null;
+  let selectionReturnProjectId = null;
+  let inspectorBackdrop = null;
+  let inspectorBackgroundIsolation = null;
+  if (mobileSelectionOverlayEnabled && inspector) {
+    if (!inspector.id) inspector.id = `${root.id || 'portfolio'}-project-details`;
+    inspectorBackdrop = document.createElement('div');
+    inspectorBackdrop.className = 'portfolio-inspector-backdrop';
+    inspectorBackdrop.setAttribute('aria-hidden', 'true');
+    root.append(inspectorBackdrop);
+    inspectorBackgroundIsolation = createBackgroundIsolation(inspector, [inspectorBackdrop]);
+  }
 
   const renderFilters = () => {
     const counts = new Map();
@@ -1948,7 +2005,7 @@ function buildPortfolioWorkbench() {
                 ? unique([getPrimaryFormat(project), ...toList(project.tools), ...focuses])
                 : visibleChips, 2)}
               <div class="portfolio-result-card__actions">
-                <button type="button" class="portfolio-result-card__details" data-project-details aria-pressed="${selected ? 'true' : 'false'}" aria-label="Quick view for ${escapeHtml(project.title)}">Quick view</button>
+                <button type="button" class="portfolio-result-card__details" data-project-details aria-controls="${escapeHtml(inspector?.id || '')}" aria-expanded="${selected ? 'true' : 'false'}" aria-haspopup="dialog" aria-label="Quick view for ${escapeHtml(project.title)}">Quick view</button>
               </div>
             </div>
           </article>
@@ -2102,7 +2159,53 @@ function buildPortfolioWorkbench() {
     `;
   };
 
-  const renderSelection = () => {
+  const isMobileSelectionCard = () => root.dataset.mobileSelection === 'overlay' && selectionDialogQuery.matches;
+
+  const syncInspectorDialogState = ({ focusInspector = false } = {}) => {
+    if (!inspector || !mobileSelectionOverlayEnabled) return;
+    const active = Boolean(state.selectedId) && isMobileSelectionCard();
+    document.body?.classList.toggle('portfolio-inspector-open', active);
+    if (active) {
+      const title = inspector.querySelector('.portfolio-inspector__title');
+      if (title) {
+        title.id = `${inspector.id}-title`;
+        inspector.setAttribute('aria-labelledby', title.id);
+      }
+      inspector.setAttribute('role', 'dialog');
+      inspector.setAttribute('aria-modal', 'true');
+      inspector.setAttribute('aria-hidden', 'false');
+      inspector.setAttribute('tabindex', '-1');
+      inspector.removeAttribute('aria-live');
+      inspector.inert = false;
+      inspector.removeAttribute('inert');
+      inspectorBackgroundIsolation?.isolate();
+      if (focusInspector) {
+        window.requestAnimationFrame(() => {
+          const target = inspector.querySelector('[data-portfolio-inspector-close]') || inspector;
+          target.focus({ preventScroll: true });
+        });
+      }
+      return;
+    }
+
+    inspectorBackgroundIsolation?.restore();
+    inspector.removeAttribute('role');
+    inspector.removeAttribute('aria-modal');
+    inspector.removeAttribute('aria-labelledby');
+    inspector.removeAttribute('tabindex');
+    inspector.setAttribute('aria-live', 'polite');
+    if (selectionDialogQuery.matches) {
+      inspector.setAttribute('aria-hidden', 'true');
+      inspector.inert = true;
+      inspector.setAttribute('inert', '');
+    } else {
+      inspector.removeAttribute('aria-hidden');
+      inspector.inert = false;
+      inspector.removeAttribute('inert');
+    }
+  };
+
+  const renderSelection = ({ focusInspector = false } = {}) => {
     const selectedProject = allProjects.find((project) => project.id === state.selectedId);
     root.classList.toggle('has-selected-project', Boolean(selectedProject));
     resultHost.querySelectorAll('[data-project-id]').forEach((card) => {
@@ -2111,19 +2214,36 @@ function buildPortfolioWorkbench() {
       const selectionControl = card.matches('[data-directory-details]')
         ? card
         : card.querySelector('[data-project-details], [data-tool-details]');
-      if (selectionControl) selectionControl.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      if (selectionControl?.matches('[data-project-details]')) {
+        selectionControl.setAttribute('aria-expanded', selected ? 'true' : 'false');
+      } else if (selectionControl) {
+        selectionControl.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      }
     });
     renderInspector(selectedProject);
+    syncInspectorDialogState({ focusInspector });
   };
 
-  const clearSelection = () => {
+  const clearSelection = ({ restoreFocus = true } = {}) => {
     if (!state.selectedId) return;
+    const returnFocus = selectionReturnFocus;
+    const returnProjectId = selectionReturnProjectId || state.selectedId;
     state.selectedId = null;
     pendingSelectionScrollTop = null;
+    selectionReturnFocus = null;
+    selectionReturnProjectId = null;
     renderSelection();
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => {
+        const fallbackCard = Array.from(resultHost.querySelectorAll('[data-project-id]'))
+          .find((card) => card.dataset.projectId === returnProjectId);
+        const target = returnFocus?.isConnected
+          ? returnFocus
+          : fallbackCard?.querySelector('[data-project-details], [data-tool-details], [data-directory-details]');
+        if (target && !target.closest('[inert]')) target.focus({ preventScroll: true });
+      });
+    }
   };
-
-  const isMobileSelectionCard = () => root.dataset.mobileSelection === 'overlay' && window.matchMedia('(max-width: 820px)').matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -2228,6 +2348,37 @@ function buildPortfolioWorkbench() {
       event.preventDefault();
       clearSelection();
     });
+    inspector.addEventListener('keydown', (event) => {
+      if (event.key !== 'Tab' || !state.selectedId || !isMobileSelectionCard()) return;
+      const focusable = Array.from(inspector.querySelectorAll(
+        'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+      )).filter((node) => !node.hidden && node.offsetParent !== null);
+      if (!focusable.length) {
+        event.preventDefault();
+        inspector.focus({ preventScroll: true });
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  if (inspectorBackdrop) {
+    inspectorBackdrop.addEventListener('click', () => clearSelection());
+  }
+
+  const syncSelectionViewportMode = () => syncInspectorDialogState();
+  if (typeof selectionDialogQuery.addEventListener === 'function') {
+    selectionDialogQuery.addEventListener('change', syncSelectionViewportMode);
+  } else if (typeof selectionDialogQuery.addListener === 'function') {
+    selectionDialogQuery.addListener(syncSelectionViewportMode);
   }
 
   document.addEventListener('pointerdown', (event) => {
@@ -2261,8 +2412,15 @@ function buildPortfolioWorkbench() {
     }
     const scrollTop = pendingSelectionScrollTop === null ? resultHost.scrollTop : pendingSelectionScrollTop;
     pendingSelectionScrollTop = null;
+    if (isMobileSelectionCard()) {
+      selectionReturnFocus = detailsButton;
+      selectionReturnProjectId = card.dataset.projectId;
+    } else {
+      selectionReturnFocus = null;
+      selectionReturnProjectId = null;
+    }
     state.selectedId = card.dataset.projectId;
-    renderSelection();
+    renderSelection({ focusInspector: isMobileSelectionCard() });
     restoreResultScroll(scrollTop);
   });
 

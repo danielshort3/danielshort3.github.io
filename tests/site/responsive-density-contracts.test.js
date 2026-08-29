@@ -132,6 +132,46 @@ function runResponsiveDensityContractTests({ assert }) {
       /\.portfolio-sort-control select,\s*\.portfolio-search input\s*\{[^}]*max-width:\s*100%;[^}]*min-width:\s*0;[^}]*min-height:\s*44px;/s.test(workbenchCss),
     'mobile workbench controls should stay inside the viewport and preserve 44px targets',
   );
+  assert(
+    portfolioJs.includes("window.matchMedia('(min-width: 769px)')") &&
+      portfolioJs.includes("window.matchMedia('(max-width: 768px)')") &&
+      workbenchCss.includes('@media (max-width: 768px)') &&
+      portfolioJs.includes('aria-haspopup="dialog"') &&
+      portfolioJs.includes("document.body?.classList.toggle('portfolio-inspector-open', active)") &&
+      portfolioJs.includes('createBackgroundIsolation(inspector, [inspectorBackdrop])'),
+    'mobile filter and Quick view dialogs should share the 768px chrome breakpoint and isolate their background',
+  );
+
+  const baseCss = read('css/base/base.css');
+  const mobileDockCss = read('css/components/mobile-site-dock.css');
+  assert(
+    baseCss.includes('font-size:16px !important;') &&
+      baseCss.includes('input:is(') &&
+      baseCss.includes('select,') &&
+      mobileDockCss.includes('max(14px, env(safe-area-inset-right, 0px))') &&
+      mobileDockCss.includes('max(14px, env(safe-area-inset-left, 0px))') &&
+      /\.mobile-site-masthead__search-input\s*\{[^}]*font-size:\s*1rem;/s.test(mobileDockCss),
+    'mobile form controls should avoid iOS focus zoom and the masthead should honor lateral safe areas',
+  );
+
+  const privacyCss = read('css/privacy.css');
+  const consentJs = read('js/privacy/consent_manager.js');
+  const contactJs = read('js/forms/contact.js');
+  assert(
+    privacyCss.includes('@media (prefers-color-scheme: dark)') &&
+      privacyCss.includes('html[data-theme-scope="core"] #pcz-banner .pcz-card') &&
+      /#pcz-banner \.pcz-btn,\s*#pcz-modal \.pcz-save-preferences\s*\{[^}]*min-height:\s*44px;/s.test(privacyCss) &&
+      /#pcz-banner \.pcz-close\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/s.test(privacyCss) &&
+      /#pcz-modal \.pref-info\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/s.test(privacyCss) &&
+      consentJs.includes('modal._pczRestoreBackground = isolateModalBackground(modal);') &&
+      consentJs.includes('modal._pczReturnFocus = returnFocus;'),
+    'consent surfaces should retain 44px actions, support scoped dark mode, isolate the page, and restore focus',
+  );
+  assert(
+    contactJs.includes('const focusDialog = () => {') &&
+      contactJs.includes('window.requestAnimationFrame(focusDialog);'),
+    'direct contact-modal hashes should move focus into the dialog after it becomes active',
+  );
 
   const starfallLoadingCss = read('css/games/project-starfall/loading.css');
   assert(

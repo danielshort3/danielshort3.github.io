@@ -4,6 +4,9 @@
     "css/components/contact-card.css",
     "css/components/destination-analytics.css"
   ],
+  "/solutions": [
+    "css/components/solutions.css"
+  ],
   "/search": [
     "css/components/search.css"
   ],

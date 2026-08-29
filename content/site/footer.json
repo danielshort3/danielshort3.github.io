@@ -62,26 +62,22 @@
             "label": "Solutions",
             "href": "solutions"
           },
-        {
-          "label": "Solutions",
-          "href": "solutions"
-        },
-        {
-          "label": "Tools",
-          "href": "tools"
-        },
-        {
-          "label": "Games",
-          "href": "games"
-        },
-        {
-          "label": "Search",
-          "href": "search"
-        }
-      ]
-    },
-    {
-      "id": "connect",
+          {
+            "label": "Tools",
+            "href": "tools"
+          },
+          {
+            "label": "Games",
+            "href": "games"
+          },
+          {
+            "label": "Search",
+            "href": "search"
+          }
+        ]
+      },
+      {
+        "id": "connect",
         "title": "Connect",
         "links": [
           {
