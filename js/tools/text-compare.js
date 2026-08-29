@@ -772,13 +772,16 @@
     return String(selected?.value || compareCore.MODES.AUTO);
   };
 
+  const formatSummaryCount = (count, singular, plural = `${singular}s`) =>
+    `${count.toLocaleString('en-US')} ${count === 1 ? singular : plural}`;
+
   const formatCompareSummary = (counts) => {
     if (!counts?.hasChanges) return 'No differences found.';
     const parts = [];
-    if (counts.insertedWords) parts.push(`${counts.insertedWords.toLocaleString('en-US')} inserted words`);
-    if (counts.deletedWords) parts.push(`${counts.deletedWords.toLocaleString('en-US')} deleted words`);
-    if (counts.replacements) parts.push(`${counts.replacements.toLocaleString('en-US')} replacements`);
-    if (counts.movedBlocks) parts.push(`${counts.movedBlocks.toLocaleString('en-US')} moved blocks`);
+    if (counts.insertedWords) parts.push(formatSummaryCount(counts.insertedWords, 'inserted word'));
+    if (counts.deletedWords) parts.push(formatSummaryCount(counts.deletedWords, 'deleted word'));
+    if (counts.replacements) parts.push(formatSummaryCount(counts.replacements, 'replacement'));
+    if (counts.movedBlocks) parts.push(formatSummaryCount(counts.movedBlocks, 'moved block'));
     return `Changes: ${parts.join(' · ')}.`;
   };
 

@@ -1,0 +1,89 @@
+/* Solutions page cards and process list */
+@layer components {
+  .solutions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: var(--space-20);
+    margin-top: var(--space-24);
+  }
+
+  .solution-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-16) var(--space-20);
+    border: 1px solid var(--interactive-border);
+    border-radius: var(--radius-12);
+    background: var(--interactive-bg);
+    color: var(--text-1);
+    text-decoration: none;
+    transition:
+      transform var(--motion-fast) var(--easing-standard),
+      box-shadow var(--motion-fast) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard),
+      background var(--motion-fast) var(--easing-standard);
+  }
+
+  .solution-card:is(:hover, :focus-visible) {
+    transform: translateY(var(--hover-lift));
+    border-color: var(--interactive-border-hover);
+    background: var(--interactive-bg-hover);
+    box-shadow: var(--interactive-shadow-hover);
+  }
+
+  .solution-card:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  .solution-card h3 {
+    margin: 0;
+    color: var(--text-1);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .solution-card p {
+    margin: 0;
+    color: var(--text-2);
+    font-size: .9rem;
+    line-height: 1.5;
+  }
+
+  .solution-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    margin-top: auto;
+    padding-top: var(--space-6);
+  }
+
+  .solution-card-tags i {
+    padding: var(--space-2) var(--space-8);
+    border-radius: 999px;
+    background: var(--cta-blue-soft);
+    color: var(--link);
+    font-size: .72rem;
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  .solutions-steps {
+    display: grid;
+    gap: var(--space-14);
+    margin: var(--space-16) 0 var(--space-24);
+    padding-left: var(--space-24);
+    color: var(--text-2);
+  }
+
+  .solutions-steps li {
+    line-height: 1.6;
+  }
+
+  .solutions-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+    margin-top: var(--space-20);
+  }
+}

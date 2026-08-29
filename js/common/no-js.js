@@ -1,10 +1,20 @@
 (() => {
   'use strict';
   try {
+    if (window.location.hostname === 'danielshort3.github.io') {
+      let canonicalPath = String(window.location.pathname || '/');
+      canonicalPath = canonicalPath.replace(/^\/pages\//i, '/').replace(/\/index\.html$/i, '/');
+      canonicalPath = canonicalPath.replace(/\.html$/i, '') || '/';
+      window.location.replace(`https://www.danielshort.me${canonicalPath}${window.location.search || ''}${window.location.hash || ''}`);
+      return;
+    }
+
     const root = document.documentElement;
     if (!root) return;
     if (root.classList) {
       root.classList.remove('no-js');
+      const authoredThemeScope = root.getAttribute('data-theme-scope') || '';
+      if (authoredThemeScope) root.dataset.authoredThemeScope = authoredThemeScope;
       try {
         const query = new URLSearchParams(window.location.search || '');
         const audience = String(query.get('audience') || '').trim().toLowerCase();
@@ -17,6 +27,12 @@
           || path === '/contact';
         if (sharedAudiencePage && (professionalAudience || legacyProfessionalMode)) {
           root.classList.add('site-realm-query-pending');
+          root.removeAttribute('data-theme-scope');
+          const themeColor = document.querySelector('meta[name="theme-color"]');
+          if (themeColor) {
+            themeColor.dataset.authoredThemeColor = themeColor.getAttribute('content') || '';
+            themeColor.setAttribute('content', '#F9F9FA');
+          }
         }
       } catch {}
       const STORAGE_KEY = 'sitePageTransition';

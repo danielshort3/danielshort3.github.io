@@ -38813,7 +38813,9 @@ try {
       portfolioJs.includes('if (hydrateSimpleGamesDirectory()) return;'),
       'games directory should receive only lightweight selected-card hydration');
     assert(portfolioJs.includes('<article class="portfolio-result-card portfolio-project-result') &&
-      portfolioJs.includes('data-project-details aria-pressed=') &&
+      portfolioJs.includes('data-project-details aria-controls=') &&
+      portfolioJs.includes('aria-haspopup="dialog"') &&
+      portfolioJs.includes('aria-expanded=') &&
       portfolioJs.includes('aria-label="Quick view for ${escapeHtml(project.title)}">Quick view</button>') &&
       !portfolioJs.includes('Preview summary for'),
       'hydrated portfolio results should use a concise Quick view control instead of Preview summary');
@@ -39725,6 +39727,8 @@ try {
     assert(footerPersonalBrowse.includes('href="games"') && footerPersonalBrowse.includes('>Games</a>') &&
       footerPersonalBrowse.includes('href="tools"') && footerPersonalBrowse.includes('>Tools</a>'),
       'personal footer should keep Tools and Games in the Browse group');
+    assert((footerPersonalBrowse.match(/href="solutions"/g) || []).length === 1,
+      'personal footer should include exactly one Solutions link in the Browse group');
     [
       [analyticsFooterTemplate, 'analytics', 'resume-analytics'],
       [dataScienceFooterTemplate, 'data-science', 'resume-data-science'],
@@ -39761,6 +39765,9 @@ try {
         `${file} should include only a personal, professional-route-free footer`);
     });
     const footerContent = JSON.parse(readFile('content/site/footer.json'));
+    const personalBrowseSource = footerContent.navVariants.personal.find((column) => column.id === 'browse');
+    assert(personalBrowseSource && personalBrowseSource.links.filter((link) => link.href === 'solutions').length === 1,
+      'footer content source should include exactly one personal Solutions link');
     assert(!JSON.stringify(footerContent).includes('data-site-realm-switch') &&
       !JSON.stringify(footerContent).includes('/?mode=professional'),
       'footer content source should not retain personal/professional realm switch records');
@@ -39781,12 +39788,24 @@ try {
       });
     });
     const siteRealmScript = readFile('js/common/site-realm.js');
+    const noJsScript = readFile('js/common/no-js.js');
+    const notFoundRedirectScript = readFile('js/common/404-redirect.js');
     const portfolioAudienceScript = readFile('js/portfolio/portfolio.js');
     assert(siteRealmScript.includes('applyAudienceFooter(audience)') &&
       siteRealmScript.includes('audience.contactPath') &&
       siteRealmScript.includes('audience.resumePreviewPath') &&
       siteRealmScript.includes('audience.resumeDownloadPath'),
       'shared professional views should hydrate header, footer, contact, and resume routes from audience config');
+    assert(noJsScript.includes("window.location.hostname === 'danielshort3.github.io'") &&
+      noJsScript.includes('https://www.danielshort.me') &&
+      notFoundRedirectScript.includes("window.location.hostname === 'danielshort3.github.io'") &&
+      notFoundRedirectScript.includes('https://www.danielshort.me'),
+      'legacy GitHub Pages routes should redirect to the canonical Vercel host before relying on ignored build assets');
+    assert(noJsScript.includes("root.dataset.authoredThemeScope = authoredThemeScope") &&
+      noJsScript.includes("root.removeAttribute('data-theme-scope')") &&
+      siteRealmScript.includes("root.removeAttribute('data-theme-scope')") &&
+      siteRealmScript.includes("root.setAttribute('data-theme-scope', root.dataset.authoredThemeScope)"),
+      'shared professional audience routes should stay light while personal routes restore their authored core theme scope');
     assert(siteRealmScript.includes('applyAudienceContact(audience)') &&
       siteRealmScript.includes("document.body.classList.add('professional-contact-page')") &&
       siteRealmScript.includes("optionsHeading.textContent = 'Direct Contact'") &&
@@ -40194,6 +40213,24 @@ try {
     assert(!routeStyles['/tourism'], 'route styles manifest should not include hidden tourism entry');
     assert(!routeStyles['/resume-analytics'], 'route styles manifest should not include hidden resume analytics entry');
     assert(Array.isArray(routeStyles['/search']), 'route styles manifest missing search entry');
+    assert(Array.isArray(routeStyles['/solutions']) && routeStyles['/solutions'].includes('css/components/solutions.css'),
+      'route styles manifest missing Solutions CSS entry');
+    const solutionsHtml = fs.readFileSync('pages/solutions.html', 'utf8');
+    const solutionsCss = fs.readFileSync('css/components/solutions.css', 'utf8');
+    assert(solutionsHtml.includes('css/components/solutions.css') && !solutionsHtml.includes('<style>'),
+      'Solutions should load its route component stylesheet without inline CSS');
+    assert(solutionsCss.includes('var(--interactive-bg)') &&
+      solutionsCss.includes('var(--text-1)') &&
+      solutionsCss.includes('var(--text-2)') &&
+      solutionsCss.includes('var(--cta-blue-soft)'),
+    'Solutions cards should use semantic theme tokens');
+    const pageScaffoldTemplate = fs.readFileSync('build/templates/page.template.html', 'utf8');
+    const toolScaffoldTemplate = fs.readFileSync('build/templates/tool-page.template.html', 'utf8');
+    assert(pageScaffoldTemplate.includes('data-theme-scope="core"'),
+      'page scaffold should opt into the core light/dark theme');
+    assert(toolScaffoldTemplate.includes('data-tools-layout="text"') &&
+      !toolScaffoldTemplate.includes('data-tools-layout="tool"'),
+    'tool scaffold should use a recognized workspace layout');
     assert(Array.isArray(routeStyles['/games/project-starfall']) && routeStyles['/games/project-starfall'].includes('css/games/project-starfall.css'),
       'route styles manifest missing project starfall CSS entry');
     assert(Array.isArray(routeStyles['/games/probability-engine']) && routeStyles['/games/probability-engine'].includes('css/games/probability-engine.css'),
@@ -40384,6 +40421,12 @@ try {
     assert(textCompareHtml.includes('id="textcompare-mode-document"'), 'pages/text-compare.html missing document mode control');
     assert(textCompareHtml.includes('id="textcompare-mode-structured"'), 'pages/text-compare.html missing structured mode control');
     assert(textCompareHtml.includes('id="textcompare-warning"'), 'pages/text-compare.html missing compare warning status');
+    const textCompareScript = readFile('js/tools/text-compare.js');
+    assert(textCompareScript.includes("formatSummaryCount(counts.insertedWords, 'inserted word')") &&
+      textCompareScript.includes("formatSummaryCount(counts.deletedWords, 'deleted word')") &&
+      textCompareScript.includes("formatSummaryCount(counts.replacements, 'replacement')") &&
+      textCompareScript.includes("formatSummaryCount(counts.movedBlocks, 'moved block')"),
+    'Text Compare summary should singularize all one-count result labels');
     assert(fs.existsSync('js/tools/text-compare-worker.js'), 'js/tools/text-compare-worker.js missing');
 
     assert(!readFile('index.html').includes('http-equiv="refresh"'), 'index.html should be a real homepage, not a redirect');

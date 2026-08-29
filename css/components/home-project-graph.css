@@ -3945,6 +3945,31 @@
   }
 }
 
+/*
+ * The compact desktop entry cards below are intentionally unlayered so they
+ * can augment the older graph without changing its cascade. Keep their dark
+ * treatment in the same cascade tier; layered dark-core rules cannot outrank
+ * unlayered author styles.
+ */
+@media (prefers-color-scheme: dark) {
+  html[data-theme-scope="core"] .home-explore-toggle,
+  html[data-theme-scope="core"] .home-start-card,
+  html[data-theme-scope="core"] .home-cta__link {
+    color: var(--text-light, #EDF1F7);
+    background: var(--surface, #121A2A);
+  }
+
+  html[data-theme-scope="core"] .home-start-card__desc,
+  html[data-theme-scope="core"] .home-cta__copy {
+    color: var(--text-muted, #9FB2CC);
+  }
+
+  html[data-theme-scope="core"] .home-cta__link.is-primary,
+  html[data-theme-scope="core"] .home-cta__link.is-primary:is(:hover, :focus-visible) {
+    color: var(--cta-blue-text, #FFFFFF);
+  }
+}
+
 @layer overrides {
   @media (max-width: 768px) {
     body[data-page="home"].home-pattern-page .nav {
