@@ -200,7 +200,7 @@
       portfolioPath: '/portfolio?audience=analytics',
       resumePath: '/resume-analytics',
       resumePreviewPath: '/resume-analytics-pdf',
-      resumeDownloadPath: '/documents/Resume-Analytics.pdf'
+      resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf'
     },
     'data-science': {
       key: 'data-science',
@@ -210,7 +210,7 @@
       portfolioPath: '/portfolio?audience=data-science',
       resumePath: '/resume-data-science',
       resumePreviewPath: '/resume-data-science-pdf',
-      resumeDownloadPath: '/documents/Resume-Data-Science.pdf'
+      resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Data-Science.pdf'
     },
     tourism: {
       key: 'tourism',
@@ -220,7 +220,7 @@
       portfolioPath: '/portfolio?audience=tourism',
       resumePath: '/resume-tourism',
       resumePreviewPath: '/resume-tourism-pdf',
-      resumeDownloadPath: '/documents/Resume-Tourism.pdf'
+      resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf'
     }
   };
   const FALLBACK_AUDIENCE_ORDER = ['personal', 'analytics', 'data-science', 'tourism'];

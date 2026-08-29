@@ -865,9 +865,10 @@ function renderHead({ settings, page }) {
     .map((script) => renderScriptTag(script, '  '))
     .join('\n');
 
+  const themeScope = page.themeScope ? ` data-theme-scope="${escapeHtml(String(page.themeScope))}"` : '';
   return [
     '<!DOCTYPE html>',
-    `<html lang="${escapeHtml(page.lang || 'en')}" class="no-js">`,
+    `<html lang="${escapeHtml(page.lang || 'en')}" class="no-js"${themeScope}>`,
     '<head>',
     '  <meta charset="UTF-8">',
     '  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">',

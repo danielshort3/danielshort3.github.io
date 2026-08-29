@@ -15,8 +15,8 @@
     "header": "Featured Projects",
     "featuredProjectIds": [
       "retailStore",
-      "targetEmptyPackage",
-      "pizzaDashboard"
+      "chatbotLora",
+      "digitGenerator"
     ],
     "links": [
       {
@@ -51,7 +51,12 @@
       }
     ]
   },
-  "primary": [],
+  "primary": [
+    {
+      "label": "Solutions",
+      "href": "solutions"
+    }
+  ],
   "resume": {
     "enabled": false,
     "label": "",

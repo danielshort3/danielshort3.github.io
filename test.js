@@ -38687,7 +38687,7 @@ try {
     assert(shortLinksAdmin.includes("label: 'Data Analytics'") &&
       shortLinksAdmin.includes("resumePath: '/resume-analytics'") &&
       shortLinksAdmin.includes("resumePreviewPath: '/resume-analytics-pdf'") &&
-      shortLinksAdmin.includes("resumeDownloadPath: '/documents/Resume-Analytics.pdf'"),
+      shortLinksAdmin.includes("resumeDownloadPath: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf'"),
       'short links analytics fallbacks should use analytics-specific names and destinations');
     assert((shortLinksAdmin.match(/params\.delete\('mode'\)/g) || []).length >= 3 &&
       shortLinksAdmin.includes("if (audience.key !== 'personal') params.set('audience', audience.key)") &&
@@ -39646,8 +39646,8 @@ try {
       utmBuilderSource.includes('tools:run-cancel'),
     'UTM generation should explicitly distinguish starts, completions, errors, and cancellations');
     const utmBuilderHtml = readFile('pages/utm-batch-builder.html');
-    assert(utmBuilderHtml.includes('<script defer src="dist/utm-batch-builder.js"></script>') &&
-      utmBuilderHtml.indexOf('dist/utm-batch-builder.js') < utmBuilderHtml.indexOf('dist/site-tools-account.'),
+    assert(utmBuilderHtml.includes('<script defer src="js/tools/utm-batch-builder.js"></script>') &&
+      utmBuilderHtml.indexOf('js/tools/utm-batch-builder.js') < utmBuilderHtml.indexOf('site-tools-account.'),
     'UTM Batch Builder should load its generated app before the shared tools account bundle');
 
     const gtmGeneratorCode = readFile('build/gtm/generate-activity-container.js');
@@ -41113,13 +41113,10 @@ try {
            copyJs.includes('data-google-maps-iframe') &&
            copyJs.includes('maps/embed/v1/place'),
            'copy-to-public.js should inject Google Maps Embed API URLs into public output from env or local key file');
-    assert(copyJs.includes('requiredPublicDocuments') &&
-           copyJs.includes('documents/Resume.pdf') &&
-           copyJs.includes('documents/Resume-Analytics.pdf') &&
-           copyJs.includes('documents/Resume-Data-Science.pdf') &&
-           copyJs.includes('documents/Resume-Tourism.pdf'),
-           'copy-to-public.js should always publish the core resume PDFs');
-    const starfallAssetEngine = fs.readFileSync('js/games/project-starfall/engine/assets.js', 'utf8');
+     assert(copyJs.includes('collectReferencedDocumentFiles') &&
+            copyJs.includes('copyReferencedDocuments'),
+            'copy-to-public.js should publish only referenced documents and nothing else');
+     const starfallAssetEngine = fs.readFileSync('js/games/project-starfall/engine/assets.js', 'utf8');
     assert(starfallAssetEngine.includes('source.PRELOAD_ASSET_BACKUPS') &&
            starfallAssetEngine.includes('addAssetPathBackup'),
            'Project Starfall should only preload backup asset URLs when backup publishing is explicitly enabled');
@@ -41245,7 +41242,7 @@ try {
     assert(hasResumeAnalyticsPdf && hasResumeDataSciencePdf && hasResumeTourismPdf, 'professional resume PDF preview rewrites missing');
     assert(redirects.some(r => r.source === '/resume' && r.destination === '/resume-analytics' && r.permanent === true) &&
       redirects.some(r => r.source === '/resume-pdf' && r.destination === '/resume-analytics-pdf' && r.permanent === true) &&
-      redirects.some(r => r.source === '/documents/Resume.pdf' && r.destination === '/documents/Resume-Analytics.pdf' && r.permanent === true),
+      redirects.some(r => r.source === '/documents/Resume.pdf' && r.destination.startsWith('https://danielshort-public-documents') && r.destination.endsWith('/Resume-Analytics.pdf') && r.permanent === true),
       'legacy analytics resume URLs should redirect permanently to analytics-specific URLs');
     const hasDestinationAnalyticsRedirect = redirects.some(r => r.source === '/destination-analytics' && r.destination === '/tourism' && r.permanent === true);
     const hasContributionsRedirect = redirects.some(r => r.source === '/contributions' && r.destination === '/tourism' && r.permanent === true);
@@ -43271,15 +43268,11 @@ try {
     assert(rootContactHtml.includes('id="contact-form-toggle"') &&
       pageContactHtml.includes('id="contact-options"'),
       'Contact page should preserve the message action and connection options after removing the scroll panel');
-    ['Resume.pdf','Resume-Analytics.pdf','Resume-Data-Science.pdf','Resume-Tourism.pdf'].forEach((file) => {
-      assert(fs.existsSync(path.join('documents', file)), `${file} should be restored for the hidden professional realm`);
-      assert(fs.existsSync(path.join('public', 'documents', file)), `${file} should be copied to public documents`);
-    });
-    assert(fs.existsSync('pages/resume-pdf.html'), 'pages resume PDF directory should be generated');
+     assert(fs.existsSync('pages/resume-pdf.html'), 'pages resume PDF directory should be generated');
     checkFileContains('contact.html', 'id="contact-form"');
     checkFileContains('pages/contact.html', 'action="/api/contact"');
     assert(fs.existsSync('api/contact.js'), 'api/contact.js missing');
-    assert(readFile('pages/resume-analytics.html').includes('href="documents/Resume-Analytics.pdf" class="btn-primary" download>Download PDF</a>') &&
+    assert(readFile('pages/resume-analytics.html').includes('href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf" class="btn-primary" download>Download PDF</a>') &&
       readFile('pages/resume-analytics.html').includes('href="resume-analytics-pdf" class="btn-secondary">Preview PDF</a>') &&
       readFile('pages/resume-analytics-pdf.html').includes('href="resume-analytics" class="btn-secondary">View digital resume</a>') &&
       readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-preview"') &&
@@ -43298,7 +43291,7 @@ try {
       const previewPath = `img/resume-previews/${previewFile}`;
       assert(previewHtml.includes('class="resume-pdf-preview"') &&
         previewHtml.includes(`src="${previewPath}"`) &&
-        previewHtml.includes(`href="documents/Resume-${documentLabel}.pdf"`) &&
+        previewHtml.includes(`href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-${documentLabel}.pdf"`) &&
         !previewHtml.includes('<iframe') &&
         resumeContent.includes(previewPath),
         `${slug} PDF wrapper should use a durable generated first-page preview instead of a native iframe`);

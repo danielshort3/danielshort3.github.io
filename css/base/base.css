@@ -11,6 +11,15 @@
     color-scheme: light; /* better native form controls on mobile */
   }
 
+  /* Dark-mode pages opt in with data-theme-scope="core"; let native form
+     controls (inputs, date pickers, scrollbars) render in the dark scheme. */
+  @media (prefers-color-scheme: dark){
+    html[data-theme-scope="core"],
+    html[data-theme-scope="core"] body{
+      color-scheme: dark;
+    }
+  }
+
   body{
     margin:0;padding:0;
     width:100%;max-width:100%;
@@ -20,7 +29,7 @@
     line-height:1.6;-webkit-font-smoothing:antialiased;
     color-scheme: light; /* better native form controls on mobile */
     display:flex;flex-direction:column;min-height:100vh;
-    /* Keep all content below the fixed header */
+    /* Keep all content below the fixed header (--nav-height is measured from .nav, which now includes notch padding) */
     padding-top: var(--nav-height, 72px);
   }
   main{flex:1 0 auto}
@@ -47,5 +56,13 @@
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
     .reveal { opacity: 1 !important; transform: none !important; }
+  }
+
+  /* Touch devices: enlarge icon controls to a 44px tap target (WCAG 2.5.5) */
+  @media (hover:none) and (pointer:coarse){
+    :is(.btn-icon, .nav-search-button, input[type="checkbox"], input[type="radio"]){
+      min-width:44px;min-height:44px;
+    }
+    a, button { touch-action:manipulation; }
   }
 }

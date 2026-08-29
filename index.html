@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en" class="no-js" data-theme-scope="core">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -27,8 +27,28 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/brand/07-website-hero-light-version.png">
   <meta name="twitter:image:alt" content="Daniel Short DS brand mark with an analytics interface background">
   <meta name="theme-color" content="#091F3B">
-  <link rel="stylesheet" href="dist/styles.3d565811.css">
-  <link rel="stylesheet" href="dist/styles-home.df2dbacc.css">
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.d67b3425.css">
+  <link rel="stylesheet" href="dist/styles-home.896fdc19.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -36,7 +56,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.e09a5c8d.js"></script>
+  <script defer src="dist/site-shell.1aec15c4.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <script type="application/ld+json" id="site-jsonld">
@@ -77,20 +97,20 @@
                         <span class="nav-dropdown-subtitle">SQL ETL + Anomaly Detection</span>
                       </span>
                     </a>
-                    <a href="portfolio/targetEmptyPackage" class="nav-project-card" data-project-id="targetEmptyPackage">
+                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora">
                       <span class="nav-project-rank">#2</span>
-                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/targetEmptyPackage.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/targetEmptyPackage.webm" data-preview-mp4="/img/projects/targetEmptyPackage.mp4" data-preview-poster="/img/projects/targetEmptyPackage.webp"></span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
                       <span class="nav-project-meta">
-                        <span class="nav-dropdown-title">Empty-Package Shrink Dashboard</span>
-                        <span class="nav-dropdown-subtitle">Excel Forecasting &amp; BI</span>
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
                       </span>
                     </a>
-                    <a href="portfolio/pizzaDashboard" class="nav-project-card" data-project-id="pizzaDashboard">
+                    <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator">
                       <span class="nav-project-rank">#3</span>
-                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/pizzaDashboard.webp&#39;);" aria-hidden="true" data-preview-poster="/img/projects/pizzaDashboard.webp"></span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/digitGenerator.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/digitGenerator.webm" data-preview-mp4="/img/projects/digitGenerator.mp4" data-preview-poster="/img/projects/digitGenerator.webp"></span>
                       <span class="nav-project-meta">
-                        <span class="nav-dropdown-title">Pizza Delivery Dashboard</span>
-                        <span class="nav-dropdown-subtitle">Tableau Analytics &amp; Forecasting</span>
+                        <span class="nav-dropdown-title">Synthetic Digit Generator</span>
+                        <span class="nav-dropdown-subtitle">Variational Autoencoder</span>
                       </span>
                     </a>
                   </div>
@@ -170,7 +190,7 @@
               </div>
             </div>
           </div>
-
+          <a href="solutions" class="nav-link">Solutions</a>
           <div class="nav-item nav-item-contact">
             <a href="contact" class="nav-link nav-link-cta">Contact</a>
           </div>
@@ -192,7 +212,7 @@
     </nav>
   </header>
   <main id="main">
-  <section class="home-graph" data-home-graph aria-labelledby="home-graph-title"><div class="wrapper home-graph__shell"><header class="home-graph__intro"><div class="home-graph__intro-copy"><h1 id="home-graph-title">Daniel Short</h1><p>I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.</p></div><nav class="home-graph__intro-actions" aria-label="Explore Daniel Short's work"><a class="home-graph__intro-action is-primary" href="portfolio">Projects</a><a class="home-graph__intro-action" href="tools">Tools</a><a class="home-graph__intro-action" href="games">Games</a></nav></header><div class="home-graph__workspace"><div class="home-graph__canvas" data-graph-canvas><div class="home-graph__map" data-graph-map><svg class="home-graph__lines" data-graph-svg aria-hidden="true"></svg><div class="home-graph__status" data-graph-status aria-live="polite">Daniel Short overview active</div><button class="home-graph__center is-active" data-graph-center type="button" aria-label="Daniel Short overview active" aria-pressed="true"><img class="home-graph__center-logo" src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="96" height="96" decoding="async"></button><div data-graph-category-host></div><div id="home-graph-layer-host" data-graph-item-host></div><div class="home-graph__tooltip" data-graph-tooltip role="tooltip" aria-hidden="true"></div><noscript><div class="home-graph__noscript"><p><strong>Start here.</strong> Choose a personal project, the game in active development, or a practical browser tool.</p><div class="home-graph__noscript-links"><a class="btn-primary" href="/portfolio/handwritingRating">Featured project: Handwriting Legibility Scoring</a><a class="btn-secondary" href="/games/project-starfall">Current game: Project Starfall</a><a class="btn-secondary" href="/tools">Useful tools: Practical Browser Tools</a></div></div></noscript></div></div><aside class="home-graph__inspector" data-graph-inspector aria-live="polite"></aside></div></div></section>
+  <section class="home-graph" data-home-graph aria-labelledby="home-graph-title"><div class="wrapper home-graph__shell"><header class="home-graph__intro"><div class="home-graph__intro-copy"><h1 id="home-graph-title">Daniel Short</h1><p>I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.</p><p class="home-graph__intro-status" aria-live="polite"><span class="home-graph__intro-status-dot" aria-hidden="true"></span>Now building Project Starfall &middot; 16 published projects &middot; 10 public tools &middot; 6 games</p></div><nav class="home-graph__intro-actions" aria-label="Explore Daniel Short's work"><a class="home-graph__intro-action is-primary" href="portfolio">Projects</a><a class="home-graph__intro-action" href="tools">Tools</a><a class="home-graph__intro-action" href="games">Games</a></nav><button class="home-explore-toggle" id="home-graph-explore" type="button" aria-expanded="false" aria-controls="home-graph-workspace">Explore the project graph</button><div class="home-start-cards" data-home-start-cards aria-label="Start here"><a class="home-start-card" href="/portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="home_start_here"><span class="home-start-card__label">Featured project</span><span class="home-start-card__title">Handwriting Legibility Scoring</span><span class="home-start-card__desc">See how a CNN-based handwriting demo turns digit recognition into a practical legibility score.</span></a><a class="home-start-card" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_start_here"><span class="home-start-card__label">Current game</span><span class="home-start-card__title">Project Starfall</span><span class="home-start-card__desc">Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.</span></a><a class="home-start-card" href="/tools" data-content-open="true" data-content-id="tools" data-content-type="directory" data-resource-type="library" data-source-surface="home_start_here"><span class="home-start-card__label">Useful tools</span><span class="home-start-card__title">Practical Browser Tools</span><span class="home-start-card__desc">Open focused utilities for text, links, media, and repeatable browser workflows.</span></a></div></header><div class="home-graph__workspace" id="home-graph-workspace"><div class="home-graph__canvas" data-graph-canvas><div class="home-graph__map" data-graph-map><svg class="home-graph__lines" data-graph-svg aria-hidden="true"></svg><div class="home-graph__status" data-graph-status aria-live="polite">Daniel Short overview active</div><button class="home-graph__center is-active" data-graph-center type="button" aria-label="Daniel Short overview active" aria-pressed="true"><img class="home-graph__center-logo" src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="96" height="96" decoding="async"></button><div data-graph-category-host></div><div id="home-graph-layer-host" data-graph-item-host></div><div class="home-graph__tooltip" data-graph-tooltip role="tooltip" aria-hidden="true"></div><noscript><div class="home-graph__noscript"><p><strong>Start here.</strong> Choose a personal project, the game in active development, or a practical browser tool.</p><div class="home-graph__noscript-links"><a class="btn-primary" href="/portfolio/handwritingRating">Featured project: Handwriting Legibility Scoring</a><a class="btn-secondary" href="/games/project-starfall">Current game: Project Starfall</a><a class="btn-secondary" href="/tools">Useful tools: Practical Browser Tools</a></div></div></noscript></div></div><aside class="home-graph__inspector" data-graph-inspector aria-live="polite"></aside></div></div></section><section class="home-cta" aria-label="Next steps"><div class="wrapper home-cta__inner"><p class="home-cta__lead">Ready when you are.</p><p class="home-cta__copy">Browse the full project library, put a browser tool to work, or get in touch to scope a build.</p><div class="home-cta__actions"><a class="home-cta__link is-primary" href="contact">Contact Daniel</a><a class="home-cta__link" href="portfolio">Browse all projects</a></div></div></section>
   </main>
   <footer class="footer footer-classic">
     <div class="wrapper footer-inner">
@@ -210,6 +230,8 @@
           <section class="footer-col" aria-labelledby="footer-personal-browse">
             <h2 class="footer-col-title" id="footer-personal-browse">Browse</h2>
             <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
+            <a href="solutions" class="footer-link">Solutions</a>
+            <a href="solutions" class="footer-link">Solutions</a>
             <a href="tools" class="footer-link">Tools</a>
             <a href="games" class="footer-link">Games</a>
             <a href="search" class="footer-link">Search</a>
@@ -280,7 +302,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-home.9c58f9c1.js"></script>
+  <script defer src="dist/site-home.997cfc70.js"></script>
   <script defer src="dist/site-consent.8416bd25.js"></script>
 </body>
 </html>

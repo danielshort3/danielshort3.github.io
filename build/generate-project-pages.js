@@ -1247,6 +1247,7 @@ function writeSitemap(projects) {
     { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'js/portfolio/projects-data.js' },
     { loc: `${SITE_ORIGIN}/games`, sourceFile: 'content/pages/games.json' },
     { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'content/pages/contact.json' },
+    { loc: `${SITE_ORIGIN}/solutions`, sourceFile: 'pages/solutions.html' },
     { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'js/portfolio/tools-directory-data.js' },
     { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html' },
     { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html' }

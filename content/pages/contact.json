@@ -1,6 +1,7 @@
 {
   "id": "contact",
   "template": "visual-page",
+  "themeScope": "core",
   "outputPath": "pages/contact.html",
   "title": "Contact | Daniel Short",
   "canonicalPath": "/contact",

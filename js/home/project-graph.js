@@ -3409,11 +3409,34 @@
     }
 
     render();
+
+    window.__homeGraphRelayout = () => requestAnimationFrame(render);
+  };
+
+  const bootHomeGraph = () => {
+    initHomeGraph();
+
+    if (window.matchMedia?.('(max-width: 768px)').matches || window.innerWidth <= 768) return;
+
+    const root = $('[data-home-graph]');
+    const exploreButton = $('button.home-explore-toggle');
+    const workspaceEl = $('#home-graph-workspace');
+    if (!root || !exploreButton || !workspaceEl) return;
+
+    root.classList.add('is-graph-collapsed');
+    exploreButton.addEventListener('click', () => {
+      if (root.classList.contains('is-graph-expanded')) return;
+      root.classList.add('is-graph-expanded');
+      root.classList.remove('is-graph-collapsed');
+      exploreButton.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => window.__homeGraphRelayout?.());
+      requestAnimationFrame(() => requestAnimationFrame(() => window.__homeGraphRelayout?.()));
+    });
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initHomeGraph, { once: true });
+    document.addEventListener('DOMContentLoaded', bootHomeGraph, { once: true });
   } else {
-    initHomeGraph();
+    bootHomeGraph();
   }
 })();

@@ -142,7 +142,7 @@ function renderDocumentList(section) {
   const props = section.props || {};
   const documents = Array.isArray(props.documents) && props.documents.length
     ? props.documents
-    : [{ label: 'Document', href: 'documents/Resume.pdf' }];
+    : [{ label: 'Document', href: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf' }];
   const links = documents.map((doc) => {
     return `      <li><a href="${escapeHtml(normalizeHref(doc.href))}">${escapeHtml(doc.label || doc.href || 'Document')}</a></li>`;
   }).join('\n');
@@ -453,7 +453,7 @@ const WIDGETS = [
     label: 'Document List',
     category: 'Assets',
     description: 'List of local documents or downloadable files.',
-    defaultProps: { title: 'Documents', documents: [{ label: 'Resume', href: 'documents/Resume.pdf' }] },
+    defaultProps: { title: 'Documents', documents: [{ label: 'Resume', href: 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf' }] },
     fields: [
       { name: 'title', label: 'Title', type: 'text' },
       { name: 'documents', label: 'Documents', type: 'json' }

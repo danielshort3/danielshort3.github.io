@@ -284,7 +284,7 @@
     bg: '#131B22',
     transparent: false,
     centerMode: 'image',
-    logoDataUrl: 'img/ui/logo.png',
+    logoDataUrl: 'img/ui/logo-512.png',
     logoSizePct: 30,
     logoPaddingPct: 6,
     logoShape: 'circle',

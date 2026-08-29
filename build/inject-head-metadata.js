@@ -385,6 +385,84 @@ function ensureGameSocialMetadata(headInner) {
   return next;
 }
 
+function ensureIosPwaMeta(headInner) {
+  let inner = headInner;
+  const tags = [
+    '  <meta name="mobile-web-app-capable" content="yes">',
+    '  <meta name="apple-mobile-web-app-capable" content="yes">',
+    '  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',
+    '  <meta name="apple-mobile-web-app-title" content="Daniel Short">'
+  ];
+  const marker = 'apple-mobile-web-app-capable';
+  if (new RegExp(marker, 'i').test(inner)) return inner;
+  const closeIndex = inner.lastIndexOf('</head>');
+  const anchor = inner.indexOf('<link rel="manifest"');
+  if (anchor !== -1) {
+    const lineEnd = inner.indexOf('\n', anchor);
+    inner = inner.slice(0, lineEnd) + '\n' + tags.join('\n') + inner.slice(lineEnd);
+  } else if (closeIndex !== -1) {
+    inner = inner.slice(0, closeIndex) + '\n' + tags.join('\n') + inner.slice(closeIndex);
+  }
+  return inner;
+}
+
+function ensurePerformanceAndPwa(headInner) {
+  let inner = String(headInner || '');
+  if (!/<link\b[^>]*\brel="preconnect"/i.test(inner)) {
+    const preconnect = [
+      '  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>',
+      '  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>',
+      '  <link rel="dns-prefetch" href="https://www.googletagmanager.com">',
+      '  <link rel="dns-prefetch" href="https://www.google-analytics.com">'
+    ].join('\n');
+    const closeIndex = inner.lastIndexOf('</head>');
+    let anchorIndex = -1;
+    const marker = '<link rel="stylesheet"';
+    anchorIndex = inner.indexOf(marker);
+    if (anchorIndex !== -1) {
+      const lineStart = inner.lastIndexOf('\n', anchorIndex) + 1;
+      inner = inner.slice(0, lineStart) + preconnect + '\n' + inner.slice(lineStart);
+    } else if (closeIndex !== -1) {
+      inner = inner.slice(0, closeIndex) + '\n' + preconnect + inner.slice(closeIndex);
+    }
+  }
+  if (!/<link\b[^>]*\brel="manifest"/i.test(inner)) {
+    const manifest = '  <link rel="manifest" href="/manifest.json">';
+    const closeIndex = inner.lastIndexOf('</head>');
+    const anchorIndex = inner.indexOf('<link rel="preconnect"');
+    if (anchorIndex !== -1) {
+      const lineStart = inner.lastIndexOf('\n', anchorIndex) + 1;
+      inner = inner.slice(0, lineStart) + manifest + '\n' + inner.slice(lineStart);
+    } else if (closeIndex !== -1) {
+      inner = inner.slice(0, closeIndex) + '\n' + manifest + inner.slice(closeIndex);
+    }
+  }
+  if (!/id="ds-sw-register"/i.test(inner)) {
+    const script = [
+      '  <script id="ds-sw-register">',
+      '  (function () {',
+      '    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;',
+      '    if (new URLSearchParams(window.location.search).has("no_sw")) return;',
+      '    var host = window.location.hostname || "";',
+      '    if (!host || host === "localhost" || /^127\\./.test(host) || /^(\\d{1,3}\\.){3}\\d{1,3}$/.test(host)) return;',
+      '    window.addEventListener("load", function () {',
+      '      navigator.serviceWorker.register("/sw.js").catch(function () {});',
+      '    });',
+      '  })();',
+      '  </script>'
+    ].join('\n');
+    const closeIndex = inner.lastIndexOf('</head>');
+    const anchorIndex = inner.indexOf('<link rel="manifest"');
+    if (anchorIndex !== -1) {
+      const lineStart = inner.lastIndexOf('\n', anchorIndex) + 1;
+      inner = inner.slice(0, lineStart) + script + '\n' + inner.slice(lineStart);
+    } else if (closeIndex !== -1) {
+      inner = inner.slice(0, closeIndex) + '\n' + script + '\n' + inner.slice(closeIndex);
+    }
+  }
+  return inner;
+}
+
 function ensureBaselineMetadata(headInner) {
   const pathname = getHeadPathname(headInner);
   const explicitNoindex = hasNoindexRobotsMeta(headInner);
@@ -866,6 +944,7 @@ function processHtml(html) {
 
   let inner = head.inner;
   inner = replaceManagedStylesheetLinks(inner);
+  inner = ensurePerformanceAndPwa(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');
   inner = dedupeMeta(inner, 'property', 'og:image:type');
@@ -888,6 +967,7 @@ function processHtml(html) {
   inner = ensureToolsStylesheet(inner);
   inner = ensureRouteBundleStylesheet(inner);
   inner = ensureRouteComponentStylesheet(inner);
+  inner = ensureIosPwaMeta(inner);
   inner = ensureToolJsonLd(inner);
   inner = ensureSiteJsonLd(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');

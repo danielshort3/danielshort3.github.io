@@ -2,11 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.danielshort.me/</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/games</loc>
@@ -14,7 +14,11 @@
   </url>
   <url>
     <loc>https://www.danielshort.me/contact</loc>
-    <lastmod>2026-08-16</lastmod>
+    <lastmod>2026-08-28</lastmod>
+  </url>
+  <url>
+    <loc>https://www.danielshort.me/solutions</loc>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/tools</loc>
@@ -22,11 +26,11 @@
   </url>
   <url>
     <loc>https://www.danielshort.me/privacy</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/sitemap</loc>
-    <lastmod>2026-08-24</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
 
   <url>
@@ -97,7 +101,7 @@
 
   <url>
     <loc>https://www.danielshort.me/portfolio/smartSentence</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/chatbotLora</loc>
@@ -117,35 +121,35 @@
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/targetEmptyPackage</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/handwritingRating</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/digitGenerator</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/sheetMusicUpscale</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/deliveryTip</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/retailStore</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/pizza</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/babynames</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/pizzaDashboard</loc>
@@ -153,7 +157,7 @@
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/nonogram</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-08-29</lastmod>
   </url>
   <url>
     <loc>https://www.danielshort.me/portfolio/website</loc>

@@ -10,12 +10,12 @@ window.contributions = [
       { title:'Colorado Business Economic Outlook · 2025',
         role :'Contributions: Pages 122–129 - Data aggregation and analysis',
         link :'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
-        pdf  :'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
+        pdf  :'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
       },
       { title:'Grand Junction City Budget · 2025',
         role :'Contributions: Pages 199–214 - Data aggregation and analysis',
         link :'https://www.gjcity.org/DocumentCenter/View/14655',
-        pdf  :'documents/GJ_2025_Budget.pdf' 
+        pdf  :'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/GJ_2025_Budget.pdf' 
       },
       { title:'Visit Grand Junction Annual Accomplishments · 2025',
         role :'Contributions: Data aggregation and analysis',
@@ -24,7 +24,7 @@ window.contributions = [
       { title:'Visit Grand Junction Annual Accomplishments · 2024',
         role :'Contributions: Data aggregation and analysis',
         link :'https://assets.simpleviewinc.com/simpleview/image/upload/v1/clients/grandjunctionco/Summary_of_Significant_2024_Accomplishments_Projects_and_Outreach_a9cb184f-00d9-41da-b017-f82459876f00.pdf',
-        pdf  :'documents/VGJ_2024_Accomplishments.pdf' 
+        pdf  :'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/VGJ_2024_Accomplishments.pdf' 
       }
     ]
   },

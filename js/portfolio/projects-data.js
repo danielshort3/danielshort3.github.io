@@ -30,12 +30,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_13.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_13.ipynb",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.ipynb",
         "label": "Notebook"
       },
       {
@@ -460,12 +460,12 @@ window.PROJECTS = [
     "resources": [
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_7.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_7.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/excel-icon.png",
-        "url": "documents/Project_7.xlsx",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_7.xlsx",
         "label": "Excel"
       },
       {
@@ -540,12 +540,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_8.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_8.ipynb",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.ipynb",
         "label": "Notebook"
       },
       {
@@ -604,7 +604,7 @@ window.PROJECTS = [
       ],
       "evidence": {
         "label": "Evaluation notebook",
-        "url": "documents/Project_8.ipynb"
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.ipynb"
       }
     },
     "order": 7,
@@ -644,12 +644,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_9.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_9.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_9.ipynb",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_9.ipynb",
         "label": "Notebook"
       }
     ],
@@ -699,7 +699,7 @@ window.PROJECTS = [
       ],
       "evidence": {
         "label": "Training notebook",
-        "url": "documents/Project_9.ipynb"
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_9.ipynb"
       }
     },
     "order": 8,
@@ -732,12 +732,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_10_pdf.zip",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10_pdf.zip",
         "label": "PDFs"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_10.zip",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_10.zip",
         "label": "Notebook"
       }
     ],
@@ -790,12 +790,12 @@ window.PROJECTS = [
     "resources": [
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_11.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_11.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/excel-icon.png",
-        "url": "documents/Project_11.xlsx",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_11.xlsx",
         "label": "Excel"
       }
     ],
@@ -842,12 +842,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_12.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_12.ipynb",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.ipynb",
         "label": "Notebook"
       },
       {
@@ -920,12 +920,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_1.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_1.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/excel-icon.png",
-        "url": "documents/Project_1.xlsx",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_1.xlsx",
         "label": "Excel"
       }
     ],
@@ -987,12 +987,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_2.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_2.pdf",
         "label": "PDFs"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_2.ipynb",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_2.ipynb",
         "label": "Notebook"
       },
       {
@@ -1117,12 +1117,12 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Project_4.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_4.pdf",
         "label": "PDF"
       },
       {
         "icon": "img/icons/jupyter-icon.png",
-        "url": "documents/Project_4.ipynb",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_4.ipynb",
         "label": "Notebook"
       }
     ],
@@ -1193,7 +1193,7 @@ window.PROJECTS = [
       },
       {
         "icon": "img/icons/pdf-icon.png",
-        "url": "documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf",
+        "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf",
         "label": "PDF"
       }
     ],
@@ -1277,6 +1277,6 @@ window.PROJECTS = [
 
 window.FEATURED_IDS = [
   "retailStore",
-  "targetEmptyPackage",
-  "pizzaDashboard"
+  "chatbotLora",
+  "digitGenerator"
 ];

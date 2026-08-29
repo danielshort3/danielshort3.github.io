@@ -47,6 +47,8 @@
     { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
     { "source": "/contact",           "destination": "/pages/contact" },
     { "source": "/contact.html",      "destination": "/pages/contact" },
+    { "source": "/solutions",         "destination": "/pages/solutions" },
+    { "source": "/solutions.html",    "destination": "/pages/solutions" },
     { "source": "/privacy",           "destination": "/pages/privacy" },
     { "source": "/privacy.html",      "destination": "/pages/privacy" },
     { "source": "/job-application-copilot", "destination": "/pages/job-application-copilot" },
@@ -182,7 +184,7 @@
     { "source": "/resume.html", "destination": "/resume-analytics", "permanent": true },
     { "source": "/resume-pdf", "destination": "/resume-analytics-pdf", "permanent": true },
     { "source": "/resume-pdf.html", "destination": "/resume-analytics-pdf", "permanent": true },
-    { "source": "/documents/Resume.pdf", "destination": "/documents/Resume-Analytics.pdf", "permanent": true },
+    { "source": "/documents/Resume.pdf", "destination": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf", "permanent": true },
     { "source": "/index.html", "destination": "/", "permanent": true },
     { "source": "/portfolio/:project.html", "destination": "/portfolio/:project", "permanent": true },
     { "source": "/tools/whisper-transcribe-monitor", "destination": "/tools/transcribe", "permanent": true },
@@ -972,7 +974,7 @@
       ]
     },
     {
-      "source": "/dist/utm-batch-builder(.*).js",
+      "source": "/js/tools/utm-batch-builder(.*).js",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]

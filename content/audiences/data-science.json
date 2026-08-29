@@ -9,7 +9,7 @@
   "contactPath": "/contact?audience=data-science",
   "resumePath": "/resume-data-science",
   "resumePreviewPath": "/resume-data-science-pdf",
-  "resumeDownloadPath": "/documents/Resume-Data-Science.pdf",
+  "resumeDownloadPath": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Data-Science.pdf",
   "featuredProjectIds": [
     "smartSentence",
     "chatbotLora",

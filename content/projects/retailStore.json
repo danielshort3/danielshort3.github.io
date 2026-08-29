@@ -28,12 +28,12 @@
     },
     {
       "icon": "img/icons/pdf-icon.png",
-      "url": "documents/Project_12.pdf",
+      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.pdf",
       "label": "PDF"
     },
     {
       "icon": "img/icons/jupyter-icon.png",
-      "url": "documents/Project_12.ipynb",
+      "url": "https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_12.ipynb",
       "label": "Notebook"
     },
     {
