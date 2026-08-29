@@ -14,61 +14,6 @@
   --pcz-shadow-soft: 0 8px 22px rgba(9, 31, 59, 0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  html[data-theme-scope="core"] {
-    --pcz-bg: #0a0f1a;
-    --pcz-surface: #121a2a;
-    --pcz-surface-soft: #162033;
-    --pcz-fg: #edf1f7;
-    --pcz-muted: #b8c7db;
-    --pcz-accent: #6aa8ff;
-    --pcz-accent-ink: #061b3a;
-    --pcz-link: #8fbcff;
-    --pcz-focus: #f3a84b;
-    --pcz-border: rgba(159, 178, 204, 0.26);
-    --pcz-border-strong: rgba(106, 168, 255, 0.62);
-    --pcz-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
-    --pcz-shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.3);
-  }
-
-  html[data-theme-scope="core"] #pcz-banner .pcz-card,
-  html[data-theme-scope="core"] #pcz-modal .pcz-panel {
-    border-color: var(--pcz-border);
-    background: linear-gradient(180deg, #162033 0%, #121a2a 100%);
-    color: var(--pcz-fg);
-    box-shadow: var(--pcz-shadow);
-  }
-
-  html[data-theme-scope="core"] #pcz-banner .pcz-body,
-  html[data-theme-scope="core"] #pcz-modal :is(.policy-lead, .pcz-helper, .pcz-gpc-notice, .pref-description) {
-    color: var(--pcz-muted);
-  }
-
-  html[data-theme-scope="core"] #pcz-banner .pcz-secondary,
-  html[data-theme-scope="core"] #pcz-banner .pcz-close,
-  html[data-theme-scope="core"] #pcz-modal :is(.pcz-panel-close, .pref-info) {
-    border-color: var(--pcz-border) !important;
-    background: #1b2940 !important;
-    color: var(--pcz-fg) !important;
-  }
-
-  html[data-theme-scope="core"] #pcz-modal :is(.pref-option, .pref-status-row) {
-    border-color: var(--pcz-border);
-    background: linear-gradient(180deg, #162033 0%, #121a2a 100%);
-  }
-
-  html[data-theme-scope="core"] #pcz-modal .pref-toggle:not([aria-pressed="true"]),
-  html[data-theme-scope="core"] #pcz-modal .pref-status-row {
-    background: var(--pcz-surface-soft);
-    color: var(--pcz-fg);
-  }
-
-  html[data-theme-scope="core"] #pcz-modal :is(.pref-toggle:not([aria-pressed="true"]), .pref-status-row) .pref-state {
-    background: #243550;
-    color: var(--pcz-fg);
-  }
-}
-
 body.consent-blocked {
   overflow: hidden;
 }
@@ -160,7 +105,7 @@ body[data-consent-banner="open"] .speed-dial {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px 16px;
   align-items: center;
-  padding: 10px 66px 10px 14px;
+  padding: 10px 52px 10px 14px;
   border: 1px solid var(--pcz-border);
   border-radius: 10px;
   background:
@@ -207,8 +152,8 @@ body[data-consent-banner="open"] .speed-dial {
   position: absolute;
   top: 50%;
   right: 14px;
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -238,7 +183,7 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-btn,
 #pcz-modal .pcz-save-preferences {
-  min-height: 44px;
+  min-height: 38px;
   padding: 8px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -284,10 +229,7 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 #pcz-banner .pcz-inline-link {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  vertical-align: middle;
+  display: inline;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -623,7 +565,7 @@ body[data-consent-banner="open"] .speed-dial {
     grid-template-columns: 1fr;
     align-items: start;
     gap: 8px;
-    padding: 10px 64px 10px 12px;
+    padding: 10px 46px 10px 12px;
     border-radius: 10px;
     box-shadow: 0 10px 24px rgba(9, 31, 59, 0.12);
   }
@@ -633,7 +575,7 @@ body[data-consent-banner="open"] .speed-dial {
   }
 
   #pcz-banner .pcz-btn {
-    min-height: 44px;
+    min-height: 36px;
     padding: 8px 12px;
   }
 }
@@ -650,7 +592,7 @@ body[data-consent-banner="open"] .speed-dial {
   #pcz-banner .pcz-card {
     border-radius: 8px;
     gap: 6px;
-    padding: 8px 58px 8px 10px;
+    padding: 8px 38px 8px 10px;
     border-color: color-mix(in srgb, var(--pcz-accent) 12%, rgba(255, 255, 255, 0.08));
   }
 
@@ -669,17 +611,17 @@ body[data-consent-banner="open"] .speed-dial {
 
   #pcz-banner .pcz-btn {
     width: 100%;
-    min-height: 44px;
+    min-height: 32px;
     padding: 6px 8px;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     justify-content: center;
     text-align: center;
   }
 
   #pcz-banner .pcz-close {
     right: 8px;
-    width: 44px;
-    height: 44px;
+    width: 28px;
+    height: 28px;
   }
 
   #pcz-modal {
@@ -759,9 +701,9 @@ body[data-consent-banner="open"] .speed-dial {
   }
 
   body.has-mobile-site-dock #pcz-banner .pcz-btn {
-    min-height: 44px;
-    padding: 8px 10px;
-    font-size: 0.875rem;
+    min-height: 30px;
+    padding: 5px 8px;
+    font-size: 0.76rem;
   }
 }
 

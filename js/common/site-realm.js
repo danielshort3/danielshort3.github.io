@@ -134,26 +134,6 @@
     const isProfessional = key !== PERSONAL_MODE;
     const mode = isProfessional ? PROFESSIONAL_MODE : PERSONAL_MODE;
     const root = document.documentElement;
-    const authoredThemeScope = String(root.dataset.authoredThemeScope || root.getAttribute('data-theme-scope') || '').trim();
-    const themeColor = document.querySelector('meta[name="theme-color"]');
-
-    if (authoredThemeScope && !root.dataset.authoredThemeScope) {
-      root.dataset.authoredThemeScope = authoredThemeScope;
-    }
-    if (isProfessional) {
-      root.removeAttribute('data-theme-scope');
-      if (themeColor) {
-        if (!themeColor.dataset.authoredThemeColor) {
-          themeColor.dataset.authoredThemeColor = themeColor.getAttribute('content') || '';
-        }
-        themeColor.setAttribute('content', '#F9F9FA');
-      }
-    } else if (root.dataset.authoredThemeScope) {
-      root.setAttribute('data-theme-scope', root.dataset.authoredThemeScope);
-      if (themeColor?.dataset.authoredThemeColor) {
-        themeColor.setAttribute('content', themeColor.dataset.authoredThemeColor);
-      }
-    }
 
     root.classList.toggle('site-realm-professional', isProfessional);
     root.classList.toggle('site-realm-personal', !isProfessional);
