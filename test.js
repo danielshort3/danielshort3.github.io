@@ -39801,11 +39801,9 @@ try {
       notFoundRedirectScript.includes("window.location.hostname === 'danielshort3.github.io'") &&
       notFoundRedirectScript.includes('https://www.danielshort.me'),
       'legacy GitHub Pages routes should redirect to the canonical Vercel host before relying on ignored build assets');
-    assert(noJsScript.includes("root.dataset.authoredThemeScope = authoredThemeScope") &&
-      noJsScript.includes("root.removeAttribute('data-theme-scope')") &&
-      siteRealmScript.includes("root.removeAttribute('data-theme-scope')") &&
-      siteRealmScript.includes("root.setAttribute('data-theme-scope', root.dataset.authoredThemeScope)"),
-      'shared professional audience routes should stay light while personal routes restore their authored core theme scope');
+    assert(!noJsScript.includes('data-theme-scope') &&
+      !siteRealmScript.includes('data-theme-scope'),
+      'shared audience routing should not reintroduce the retired automatic dark theme');
     assert(siteRealmScript.includes('applyAudienceContact(audience)') &&
       siteRealmScript.includes("document.body.classList.add('professional-contact-page')") &&
       siteRealmScript.includes("optionsHeading.textContent = 'Direct Contact'") &&
@@ -39907,7 +39905,7 @@ try {
     const navCss = fs.readFileSync('css/layout/nav.css', 'utf8');
     const navOverrideCss = fs.readFileSync('css/utilities/design-system-overrides.css', 'utf8');
     assert(navCss.includes('--brand-logo-size'), 'nav.css missing brand logo scale variable');
-    assert(navCss.includes('grid-template-columns:repeat(4, minmax(0, 1fr)) auto;'), 'desktop nav should reserve four menu slots plus compact search');
+    assert(navCss.includes('grid-template-columns:repeat(4, minmax(0, 1fr)) auto auto;'), 'desktop nav should reserve four menu slots, Contact, and compact search');
     assert(!navCss.includes('grid-template-columns:repeat(5, minmax(0, 1fr)) auto;'), 'desktop nav should not reserve a removed Home menu slot');
     assert(navCss.includes('.nav-search.nav-search-is-enhanced.is-expanded') && navCss.includes('width:clamp(120px, 9vw, 132px);'), 'header search should expand to a compact desktop input width');
     assert(navCss.includes('.nav-search.nav-search-is-enhanced:not(.is-expanded) .nav-search-input') && navCss.includes('pointer-events:none;'), 'collapsed desktop search input should not intercept pointer events');
@@ -40226,8 +40224,46 @@ try {
     'Solutions cards should use semantic theme tokens');
     const pageScaffoldTemplate = fs.readFileSync('build/templates/page.template.html', 'utf8');
     const toolScaffoldTemplate = fs.readFileSync('build/templates/tool-page.template.html', 'utf8');
-    assert(pageScaffoldTemplate.includes('data-theme-scope="core"'),
-      'page scaffold should opt into the core light/dark theme');
+    const lightOnlySourcePaths = [
+      '404.html',
+      'dshort.html',
+      'index.html',
+      'contact.html',
+      'privacy.html',
+      'sitemap.html',
+      'pages/contact.html',
+      'pages/portfolio.html',
+      'pages/privacy.html',
+      'pages/search.html',
+      'pages/sitemap.html',
+      'pages/sitemap-pretty.html',
+      'pages/solutions.html',
+      'pages/tools.html',
+      'build/build-site.js',
+      'build/lib/cms-renderers.js',
+      'content/audiences/personal.json',
+      'content/pages/contact.json',
+      'content/pages/tools.json',
+      'css/base/base.css',
+      'css/components/home-project-graph.css',
+      'css/privacy.css',
+      'css/styles.css',
+      'css/variables.css',
+      'js/common/no-js.js',
+      'js/common/site-realm.js',
+      'js/privacy/consent_manager.js',
+      'package.json'
+    ];
+    const lightOnlySources = [
+      pageScaffoldTemplate,
+      ...lightOnlySourcePaths.map((file) => fs.readFileSync(file, 'utf8'))
+    ];
+    assert(lightOnlySources.every((source) => !source.includes('data-theme-scope') &&
+      !source.includes('themeScope') &&
+      !/prefers-color-scheme\s*:\s*dark/i.test(source)) &&
+      !fs.existsSync('build/gen-dark-core.cjs') &&
+      !fs.existsSync('css/components/dark-core.css'),
+      'shared site sources and scaffolds should remain light-only');
     assert(toolScaffoldTemplate.includes('data-tools-layout="text"') &&
       !toolScaffoldTemplate.includes('data-tools-layout="tool"'),
     'tool scaffold should use a recognized workspace layout');

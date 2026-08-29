@@ -11,15 +11,6 @@
     color-scheme: light; /* better native form controls on mobile */
   }
 
-  /* Dark-mode pages opt in with data-theme-scope="core"; let native form
-     controls (inputs, date pickers, scrollbars) render in the dark scheme. */
-  @media (prefers-color-scheme: dark){
-    html[data-theme-scope="core"],
-    html[data-theme-scope="core"] body{
-      color-scheme: dark;
-    }
-  }
-
   body{
     margin:0;padding:0;
     width:100%;max-width:100%;
@@ -66,27 +57,4 @@
     a, button { touch-action:manipulation; }
   }
 
-  /* Prevent iOS from zooming the viewport when a compact form control receives
-     focus. Component typography may still change weight, line-height, or color. */
-  @media (max-width:768px){
-    input:not([type]),
-    input:is(
-      [type="text"],
-      [type="search"],
-      [type="email"],
-      [type="url"],
-      [type="tel"],
-      [type="password"],
-      [type="number"],
-      [type="date"],
-      [type="time"],
-      [type="datetime-local"],
-      [type="month"],
-      [type="week"]
-    ),
-    select,
-    textarea{
-      font-size:16px !important;
-    }
-  }
 }

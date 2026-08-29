@@ -58,7 +58,6 @@
   "page": {
     "id": "home",
     "template": "visual-page",
-    "themeScope": "core",
     "outputPath": "index.html",
     "title": "Daniel Short | Data Analytics, ML Projects & Web Tools",
     "canonicalPath": "/",

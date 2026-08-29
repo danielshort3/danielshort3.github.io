@@ -1,7 +1,6 @@
 {
   "id": "tools",
   "template": "tools-directory",
-  "themeScope": "core",
   "outputPath": "pages/tools.html",
   "title": "Browser Tools for Writing, Images & Campaigns | Daniel Short",
   "canonicalPath": "/tools",

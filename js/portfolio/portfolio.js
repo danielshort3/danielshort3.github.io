@@ -612,7 +612,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   });
 
   if (window.matchMedia) {
-    const desktopQuery = window.matchMedia('(min-width: 769px)');
+    const desktopQuery = window.matchMedia('(min-width: 821px)');
     const syncDialogMode = () => {
       desktopMode = desktopQuery.matches;
       if (desktopQuery.matches) {
@@ -1355,7 +1355,7 @@ function buildPortfolioWorkbenchLegacy() {
     renderSelection();
   };
 
-  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 768px)').matches;
+  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 820px)').matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -1844,7 +1844,7 @@ function buildPortfolioWorkbench() {
     requestRender: () => render()
   });
   const selectionDialogQuery = window.matchMedia
-    ? window.matchMedia('(max-width: 768px)')
+    ? window.matchMedia('(max-width: 820px)')
     : { matches: false };
   let selectionReturnFocus = null;
   let selectionReturnProjectId = null;
