@@ -1000,7 +1000,7 @@
     return `https://${trimmed}`;
   };
 
-  const UTM_RESUME_TEMPLATE_PATH = 'documents/Resume.docx';
+  const UTM_RESUME_TEMPLATE_PATH = 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.docx';
   const UTM_BASE_DOMAIN = 'https://www.danielshort.me';
   const SHORTLINKS_ADMIN_TOKEN_STORAGE_KEY = 'shortlinks_admin_token';
   const SHORTLINKS_SETS_API_PATH = '/api/short-links/sets';
