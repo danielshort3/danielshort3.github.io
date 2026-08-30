@@ -1,1 +1,1 @@
-import '../../js/home/project-graph.js';
+import '../../js/home/category-accordion.js';

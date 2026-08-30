@@ -74,7 +74,7 @@
           description: 'Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.',
           href: '/games/project-starfall',
           icon: 'rocket',
-          accent: '#f97316',
+          accent: '#c94b0a',
           contentType: 'game',
           resourceType: 'game'
         },
@@ -85,7 +85,7 @@
           description: 'Open focused utilities for text, links, media, and repeatable browser workflows.',
           href: '/tools',
           icon: 'wrench',
-          accent: '#0798a6',
+          accent: '#087f8c',
           contentType: 'directory',
           resourceType: 'library'
         }

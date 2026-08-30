@@ -349,11 +349,94 @@
       <div class="project-demo-panels">
         <section class="project-demo-panel is-active" data-demo-panel="demo">
           <div class="project-demo-panel-inner">
-            <div class="project-media project-video">
-      <video class="project-video-frame" controls autoplay muted loop playsinline preload="metadata" poster="img/projects/sheetMusicUpscale.png" aria-label="Sheet Music Watermark Removal &amp; Upscale video">
-        <source src="img/projects/sheetMusicUpscale.webm" type="video/webm">
-          <source src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
-      </video>
+            <div class="project-image-comparison" data-project-image-comparison data-comparison-left="33" data-comparison-right="67" data-comparison-minimum-gap="10" style="--comparison-left:33%;--comparison-right:67%;--comparison-aspect:712 / 400;--comparison-full-aspect:1604 / 1231;--comparison-crop-left:52.4938%;--comparison-crop-top:42.2421%;--comparison-crop-width:44.389%;--comparison-crop-height:32.4939%">
+      <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="project-comparison-full-heading-sheetMusicUpscale" aria-describedby="project-comparison-full-description-sheetMusicUpscale">
+        <div class="project-image-comparison-heading">
+          <h3 id="project-comparison-full-heading-sheetMusicUpscale">Full images</h3>
+          <p id="project-comparison-full-description-sheetMusicUpscale">Each pipeline stage is shown in full. The blue outlined area is enlarged in the comparison below.</p>
+        </div>
+        <div class="project-stage-full-grid">
+          <figure class="project-stage-full" data-full-stage>
+          <figcaption class="project-stage-full-caption">
+            <span class="project-stage-full-index" aria-hidden="true">01</span>
+            <span class="project-stage-full-copy"><strong>Original</strong><span class="project-stage-full-description">Low-resolution source with the preview watermark intact.</span></span>
+          </figcaption>
+          <div class="project-stage-full-image-frame">
+            <img class="project-stage-full-image" src="img/projects/sheetMusicUpscale-original-full.webp" alt="Complete original demonstration frame showing the full sheet music page and its four-times magnified watermarked detail." loading="lazy" decoding="async" width="1604" height="1231">
+            <span class="project-stage-full-crop" aria-hidden="true"></span>
+          </div>
+        </figure>
+        <figure class="project-stage-full" data-full-stage>
+          <figcaption class="project-stage-full-caption">
+            <span class="project-stage-full-index" aria-hidden="true">02</span>
+            <span class="project-stage-full-copy"><strong>Watermark removed</strong><span class="project-stage-full-description">UNet output after the watermark-removal pass.</span></span>
+          </figcaption>
+          <div class="project-stage-full-image-frame">
+            <img class="project-stage-full-image" src="img/projects/sheetMusicUpscale-watermark-removed-full.webp" alt="Complete watermark-removal demonstration frame showing the full cleaned sheet music page and its four-times magnified detail." loading="lazy" decoding="async" width="1604" height="1231">
+            <span class="project-stage-full-crop" aria-hidden="true"></span>
+          </div>
+        </figure>
+        <figure class="project-stage-full" data-full-stage>
+          <figcaption class="project-stage-full-caption">
+            <span class="project-stage-full-index" aria-hidden="true">03</span>
+            <span class="project-stage-full-copy"><strong>Upscaled</strong><span class="project-stage-full-description">VDSR output with sharper notation and staff lines.</span></span>
+          </figcaption>
+          <div class="project-stage-full-image-frame">
+            <img class="project-stage-full-image" src="img/projects/sheetMusicUpscale-upscaled-full.webp" alt="Complete upscaled demonstration frame showing the full sheet music page and its sharper four-times magnified detail." loading="lazy" decoding="async" width="1604" height="1231">
+            <span class="project-stage-full-crop" aria-hidden="true"></span>
+          </div>
+        </figure>
+        </div>
+      </section>
+      <section class="project-image-comparison-section project-image-comparison-zoom" aria-labelledby="project-comparison-zoom-heading-sheetMusicUpscale" aria-describedby="project-comparison-zoom-description-sheetMusicUpscale">
+        <div class="project-image-comparison-heading">
+          <h3 id="project-comparison-zoom-heading-sheetMusicUpscale">Zoomed comparison</h3>
+          <p id="project-comparison-zoom-description-sheetMusicUpscale">Inspect the same detail across all three stages.</p>
+        </div>
+        <div class="project-image-comparison-zoom-card">
+          <div class="project-image-comparison-viewport" id="project-comparison-viewport-sheetMusicUpscale" data-comparison-viewport>
+            <figure class="project-stage-slide" data-stage-slide data-stage-label="Original">
+          <img class="project-stage-image" src="img/projects/sheetMusicUpscale-original-comparison.webp" alt="Magnified low-resolution sheet music with a large translucent preview watermark." loading="eager" decoding="async" width="712" height="400" fetchpriority="high">
+          <figcaption class="project-stage-slide-caption"><strong>Original</strong><span>Low-resolution source with the preview watermark intact.</span></figcaption>
+        </figure>
+        <figure class="project-stage-slide" data-stage-slide data-stage-label="Watermark removed">
+          <img class="project-stage-image" src="img/projects/sheetMusicUpscale-watermark-removed-comparison.webp" alt="The same magnified sheet music after the preview watermark was removed." loading="lazy" decoding="async" width="712" height="400">
+          <figcaption class="project-stage-slide-caption"><strong>Watermark removed</strong><span>UNet output after the watermark-removal pass.</span></figcaption>
+        </figure>
+        <figure class="project-stage-slide" data-stage-slide data-stage-label="Upscaled">
+          <img class="project-stage-image" src="img/projects/sheetMusicUpscale-upscaled-comparison.webp" alt="The same magnified sheet music after upscaling sharpened the notation and staff lines." loading="lazy" decoding="async" width="712" height="400">
+          <figcaption class="project-stage-slide-caption"><strong>Upscaled</strong><span>VDSR output with sharper notation and staff lines.</span></figcaption>
+        </figure>
+            <div class="project-image-comparison-divider project-image-comparison-divider-left" data-comparison-divider="left" role="slider" tabindex="0" aria-label="Original / Watermark removed boundary" aria-orientation="horizontal" aria-controls="project-comparison-viewport-sheetMusicUpscale" aria-describedby="project-comparison-instructions-sheetMusicUpscale" aria-valuemin="0" aria-valuemax="57" aria-valuenow="33" aria-valuetext="Original ends at 33%; Watermark removed begins at 33%" data-comparison-before="Original" data-comparison-after="Watermark removed" hidden>
+              <span class="project-image-comparison-handle"><svg viewBox="0 0 24 18" aria-hidden="true" focusable="false">
+              <path d="M9 4 4 9l5 5M15 4l5 5-5 5"></path>
+            </svg></span>
+            </div>
+            <div class="project-image-comparison-divider project-image-comparison-divider-right" data-comparison-divider="right" role="slider" tabindex="0" aria-label="Watermark removed / Upscaled boundary" aria-orientation="horizontal" aria-controls="project-comparison-viewport-sheetMusicUpscale" aria-describedby="project-comparison-instructions-sheetMusicUpscale" aria-valuemin="43" aria-valuemax="100" aria-valuenow="67" aria-valuetext="Watermark removed ends at 67%; Upscaled begins at 67%" data-comparison-before="Watermark removed" data-comparison-after="Upscaled" hidden>
+              <span class="project-image-comparison-handle"><svg viewBox="0 0 24 18" aria-hidden="true" focusable="false">
+              <path d="M9 4 4 9l5 5M15 4l5 5-5 5"></path>
+            </svg></span>
+            </div>
+          </div>
+          <div class="project-image-comparison-controls" data-comparison-controls hidden>
+            <ol class="project-image-comparison-stage-rail" aria-hidden="true">
+              <li title="Original">
+            <span class="project-image-comparison-stage-index">01</span>
+            <span class="project-image-comparison-stage-name">Original</span>
+          </li>
+          <li title="Watermark removed">
+            <span class="project-image-comparison-stage-index">02</span>
+            <span class="project-image-comparison-stage-name">Removed</span>
+          </li>
+          <li title="Upscaled">
+            <span class="project-image-comparison-stage-index">03</span>
+            <span class="project-image-comparison-stage-name">Upscaled</span>
+          </li>
+            </ol>
+            <p class="project-image-comparison-instruction" id="project-comparison-instructions-sheetMusicUpscale">Click or tap the image to move the nearest divider. Drag either divider; it pushes the other when they meet. Use the arrow keys when a divider is focused.</p>
+          </div>
+        </div>
+      </section>
     </div>
           </div>
         </section>
@@ -508,7 +591,11 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.1e10473a.js"></script>
-  <script defer src="dist/site-consent.6cfee337.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script defer src="js/portfolio/project-image-comparison.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>

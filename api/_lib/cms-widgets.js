@@ -383,6 +383,121 @@ function renderLegacyHtml(section) {
   );
 }
 
+const HOME_ACCORDION_ICONS = {
+  about: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg>',
+  projects: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg>',
+  tools: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg>',
+  games: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg>',
+  contact: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg>',
+  arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>'
+};
+
+function homeAccordionIcon(id) {
+  return HOME_ACCORDION_ICONS[id] || HOME_ACCORDION_ICONS.about;
+}
+
+function renderHomeAccordionCard(item, categoryId) {
+  const href = String(item && item.href || '').trim();
+  const tag = href ? 'a' : 'article';
+  const media = item && item.image
+    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.imageAlt || '')}" loading="lazy" decoding="async"${item.imageWidth ? ` width="${escapeHtml(item.imageWidth)}"` : ''}${item.imageHeight ? ` height="${escapeHtml(item.imageHeight)}"` : ''}>`
+    : `<span class="home-accordion__card-glyph" aria-hidden="true">${homeAccordionIcon(item && item.icon || categoryId)}</span>`;
+  const contentType = String(item && item.contentType || '').trim();
+  const contentId = String(item && item.contentId || item && item.id || '').trim();
+  const resourceType = String(item && item.resourceType || contentType || '').trim();
+  const analytics = href && contentType && contentId
+    ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_category_accordion"`
+    : '';
+  const external = Boolean(item && item.external);
+  const linkAttrs = href
+    ? ` href="${escapeHtml(normalizeHref(href))}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}`
+    : '';
+
+  return [
+    '            <li class="home-accordion__card-item">',
+    `              <${tag} class="home-accordion__card"${linkAttrs}>`,
+    `                <span class="home-accordion__card-media">${media}</span>`,
+    '                <span class="home-accordion__card-copy">',
+    item && item.badge ? `                  <span class="home-accordion__card-badge">${escapeHtml(item.badge)}</span>` : '',
+    `                  <strong>${escapeHtml(item && item.title || 'Explore')}</strong>`,
+    item && item.summary ? `                  <span>${escapeHtml(item.summary)}</span>` : '',
+    '                </span>',
+    href ? `                <span class="home-accordion__card-arrow" aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span>` : '',
+    `              </${tag}>`,
+    '            </li>'
+  ].filter(Boolean).join('\n');
+}
+
+function renderHomeAccordion(section) {
+  const props = section.props || {};
+  const categories = Array.isArray(props.categories) ? props.categories : [];
+  const allowedIds = new Set(categories.map((category) => String(category && category.id || '').trim()).filter(Boolean));
+  const defaultPanel = allowedIds.has(String(props.defaultPanel || '').trim())
+    ? String(props.defaultPanel).trim()
+    : (categories[0] && categories[0].id || 'about');
+
+  const panels = categories.map((category) => {
+    const id = String(category && category.id || '').trim();
+    const label = String(category && category.label || id || 'Section').trim();
+    const isActive = id === defaultPanel;
+    const items = Array.isArray(category && category.items) ? category.items : [];
+    const meta = Array.isArray(category && category.meta) ? category.meta : [];
+    const triggerId = `home-accordion-trigger-${id}`;
+    const panelId = `home-accordion-panel-${id}`;
+    const color = String(category && category.color || '#091f3b').trim();
+    const colorEnd = String(category && category.colorEnd || color).trim();
+    const cards = items.map((item) => renderHomeAccordionCard(item, id)).join('\n');
+    const metaHtml = meta.length
+      ? `          <ul class="home-accordion__meta" aria-label="${escapeHtml(label)} highlights">${meta.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>`
+      : '';
+    const cta = category && category.cta && category.cta.href && category.cta.label
+      ? `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`
+      : '';
+
+    return [
+      `    <article class="home-accordion__item home-accordion__item--${escapeHtml(id)}${isActive ? ' is-active' : ''}" data-home-accordion-item="${escapeHtml(id)}" style="--panel-color: ${escapeHtml(color)}; --panel-color-end: ${escapeHtml(colorEnd)};">`,
+      `      <button class="home-accordion__rail" id="${escapeHtml(triggerId)}" type="button" aria-expanded="${isActive}" aria-controls="${escapeHtml(panelId)}" data-home-accordion-trigger="${escapeHtml(id)}">`,
+      `        <span class="home-accordion__rail-icon" aria-hidden="true">${homeAccordionIcon(id)}</span>`,
+      `        <span class="home-accordion__rail-label">${escapeHtml(label)}</span>`,
+      '        <span class="home-accordion__rail-chevron" aria-hidden="true"></span>',
+      '      </button>',
+      `      <section class="home-accordion__panel" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(triggerId)}" data-home-accordion-panel="${escapeHtml(id)}"${isActive ? '' : ' hidden inert'}>`,
+      `        <div class="home-accordion__scroller" data-home-accordion-scroller tabindex="0" aria-label="${escapeHtml(label)} content">`,
+      '          <header class="home-accordion__panel-head">',
+      `            <p class="home-accordion__eyebrow">${escapeHtml(label)}</p>`,
+      '            <div class="home-accordion__title-row">',
+      `              <span class="home-accordion__title-icon" aria-hidden="true">${homeAccordionIcon(id)}</span>`,
+      `              <h2>${escapeHtml(category && category.title || label)}</h2>`,
+      '            </div>',
+      category && category.lead ? `            <p class="home-accordion__lead">${escapeHtml(category.lead)}</p>` : '',
+      '          </header>',
+      metaHtml,
+      cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '',
+      cta,
+      '        </div>',
+      '      </section>',
+      '    </article>'
+    ].filter(Boolean).join('\n');
+  }).join('\n');
+
+  const noScriptLinks = categories
+    .map((category) => category && category.cta && category.cta.href && category.cta.label
+      ? `<a href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)}</a>`
+      : '')
+    .filter(Boolean)
+    .join('');
+
+  return [
+    `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${escapeHtml(defaultPanel)}" aria-labelledby="home-accordion-title">`,
+    `  <h1 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h1>`,
+    '  <div class="home-accordion__shell">',
+    panels,
+    '  </div>',
+    noScriptLinks ? `  <noscript><nav class="home-accordion__noscript" aria-label="Explore the site">${noScriptLinks}</nav></noscript>` : '',
+    '</section>'
+  ].filter(Boolean).join('\n');
+}
+
 const WIDGETS = [
   {
     type: 'hero',
@@ -568,6 +683,23 @@ const WIDGETS = [
       { name: 'caption', label: 'Caption', type: 'text' }
     ],
     render: renderMediaShowcase
+  },
+  {
+    type: 'home-accordion',
+    label: 'Home Category Accordion',
+    category: 'Portfolio',
+    description: 'Personal homepage with five attached expanding category panels.',
+    defaultProps: {
+      accessibleTitle: 'Explore Daniel Short',
+      defaultPanel: 'tools',
+      categories: []
+    },
+    fields: [
+      { name: 'accessibleTitle', label: 'Accessible title', type: 'text' },
+      { name: 'defaultPanel', label: 'Default panel', type: 'text' },
+      { name: 'categories', label: 'Categories', type: 'json' }
+    ],
+    render: renderHomeAccordion
   },
   {
     type: 'legacy-html',

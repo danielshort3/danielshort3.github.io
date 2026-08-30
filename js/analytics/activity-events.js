@@ -81,7 +81,7 @@
   function clickSurface(element) {
     if (!element) return 'unknown';
     if (element.closest('.portfolio-brand-panel')) return 'portfolio_header';
-    if (element.closest('.home-graph')) return 'home_explorer';
+    if (element.closest('.home-accordion')) return 'home_explorer';
     if (element.closest('.contact-card')) return 'contact_card';
     if (element.closest('[data-speed-dial-action], .speed-dial')) return 'speed_dial';
     if (element.closest('.nav-dropdown')) return 'nav_dropdown';
@@ -313,44 +313,15 @@
   }
 
   function trackHomeExplore(target) {
-    const graphRoot = target.closest('[data-home-graph]');
-    if (!graphRoot) return false;
-
-    const introLink = target.closest('.home-graph__intro-action[href]');
-    if (introLink) {
-      const href = String(introLink.getAttribute('href') || '').split(/[?#]/)[0];
-      emit('home_explore_select', {
-        explore_type: 'directory',
-        item_id: safeId(href.split('/').filter(Boolean).pop() || 'home')
-      });
-      return true;
-    }
-
-    const item = target.closest('[data-graph-item], [data-graph-dot-item]');
-    const group = target.closest('[data-graph-group]');
-    const category = target.closest('[data-graph-category-button], [data-graph-category]');
-    if (item) {
-      emit('home_explore_select', {
-        explore_type: 'item',
-        item_id: safeId(item.dataset.itemId || item.dataset.graphDotItem || item.dataset.graphItem)
-      });
-      return true;
-    }
-    if (group) {
-      emit('home_explore_select', {
-        explore_type: 'group',
-        item_id: safeId(group.dataset.groupId || group.dataset.graphGroup)
-      });
-      return true;
-    }
-    if (category) {
-      emit('home_explore_select', {
-        explore_type: 'category',
-        item_id: safeId(category.dataset.graphCategoryButton || category.dataset.graphCategory)
-      });
-      return true;
-    }
-    return false;
+    const accordionRoot = target.closest('[data-home-accordion]');
+    if (!accordionRoot) return false;
+    const category = target.closest('[data-home-accordion-trigger]');
+    if (!category) return false;
+    emit('home_explore_select', {
+      explore_type: 'category',
+      item_id: safeId(category.dataset.homeAccordionTrigger)
+    });
+    return true;
   }
 
   function toolContext() {

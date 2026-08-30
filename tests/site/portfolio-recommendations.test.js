@@ -31,8 +31,8 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   const audienceConfig = read('js/common/audience-config.js');
   const personalSource = read('content/audiences/personal.json');
   const indexHtml = read('index.html');
-  const graphJs = read('js/home/project-graph.js');
-  const graphCss = read('css/components/home-project-graph.css');
+  const accordionJs = read('js/home/category-accordion.js');
+  const accordionCss = read('css/components/home-category-accordion.css');
   startHere.forEach((item) => {
     assert(audienceConfig.includes(`id: '${item.id}'`), `generated audience config missing Start Here item ${item.id}`);
     assert(personalSource.includes(item.href), `personal no-JS source missing Start Here route ${item.href}`);
@@ -40,24 +40,24 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   });
   assert(!personalSource.includes('href=\\"/analytics') && !indexHtml.includes('href="/analytics"'),
     'personal homepage sources should not advertise an unlisted professional route');
-  assert(!graphJs.includes('professional analytics profile') && !graphJs.includes('professional analytics work'),
+  assert(!personalSource.includes('professional analytics profile') && !personalSource.includes('professional analytics work'),
     'personal Start Here copy should not disclose hidden professional entry points');
   assert(
-    graphJs.includes('getStartHereItems') &&
-      graphJs.includes('home-graph__start-here-list') &&
-      graphJs.includes('home-graph__mobile-start-here-list'),
-    'home graph should render the configured Start Here list on desktop and mobile',
+    indexHtml.includes('data-home-accordion-item="about"') &&
+      indexHtml.includes('data-content-id="handwritingRating"') &&
+      indexHtml.includes('data-content-id="project-starfall"') &&
+      indexHtml.includes('href="/tools"'),
+    'home accordion should keep the approved personal starting points in its static panels',
   );
   assert(
-    !/homeGraph(?:Scan|LineSignal|DotBreathe)[^;\n}]*\binfinite\b/.test(graphCss),
-    'home graph scan, line signal, and dot breathing animations should not loop infinitely',
+    !/animation[^;\n}]*\binfinite\b/.test(accordionCss),
+    'home accordion motion should not loop infinitely',
   );
   assert(
-    graphCss.includes('@media (pointer: coarse)') &&
-      graphCss.includes('min-height: 44px') &&
-      graphCss.includes('min-width: 44px') &&
-      graphJs.includes('Math.max(44, size)'),
-    'home graph should preserve 44px coarse-pointer targets in CSS and layout calculations',
+    accordionCss.includes('@media (pointer: coarse)') &&
+      accordionCss.includes('min-height: 44px') &&
+      accordionJs.includes("event.key === 'ArrowDown'"),
+    'home accordion should preserve coarse-pointer targets and keyboard rail navigation',
   );
 
   const storyIds = ['retailStore', 'chatbotLora', 'digitGenerator', 'smartSentence', 'website'];

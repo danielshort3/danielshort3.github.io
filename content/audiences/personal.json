@@ -29,7 +29,7 @@
       "description": "Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.",
       "href": "/games/project-starfall",
       "icon": "rocket",
-      "accent": "#f97316",
+      "accent": "#c94b0a",
       "contentType": "game",
       "resourceType": "game"
     },
@@ -40,7 +40,7 @@
       "description": "Open focused utilities for text, links, media, and repeatable browser workflows.",
       "href": "/tools",
       "icon": "wrench",
-      "accent": "#0798a6",
+      "accent": "#087f8c",
       "contentType": "directory",
       "resourceType": "library"
     }
@@ -85,7 +85,7 @@
     ],
     "bottomScripts": [
       {
-        "src": "js/home/project-graph.js?v=home-graph-20260711-layer-drawer-v1",
+        "src": "dist/site-home.js",
         "defer": true
       },
       {
@@ -98,13 +98,322 @@
     },
     "sections": [
       {
-        "id": "home-project-graph",
-        "type": "legacy-html",
-        "label": "Daniel Short project graph",
+        "id": "home-category-accordion",
+        "type": "home-accordion",
+        "label": "Explore Daniel Short",
         "enabled": true,
-        "variant": "default",
+        "variant": "shallow-wedge",
         "props": {
-          "html": "<section class=\"home-graph\" data-home-graph aria-labelledby=\"home-graph-title\"><div class=\"wrapper home-graph__shell\"><header class=\"home-graph__intro\"><div class=\"home-graph__intro-copy\"><h1 id=\"home-graph-title\">Daniel Short</h1><p>I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.</p><p class=\"home-graph__intro-status\" aria-live=\"polite\"><span class=\"home-graph__intro-status-dot\" aria-hidden=\"true\"></span>Now building Project Starfall &middot; 16 published projects &middot; 10 public tools &middot; 6 games</p></div><nav class=\"home-graph__intro-actions\" aria-label=\"Explore Daniel Short's work\"><a class=\"home-graph__intro-action is-primary\" href=\"portfolio\">Projects</a><a class=\"home-graph__intro-action\" href=\"tools\">Tools</a><a class=\"home-graph__intro-action\" href=\"games\">Games</a></nav><button class=\"home-explore-toggle\" id=\"home-graph-explore\" type=\"button\" aria-expanded=\"false\" aria-controls=\"home-graph-workspace\">Explore the project graph</button><div class=\"home-start-cards\" data-home-start-cards aria-label=\"Start here\"><a class=\"home-start-card\" href=\"/portfolio/handwritingRating\" data-content-open=\"true\" data-content-id=\"handwritingRating\" data-content-type=\"project\" data-resource-type=\"case_study\" data-source-surface=\"home_start_here\"><span class=\"home-start-card__label\">Featured project</span><span class=\"home-start-card__title\">Handwriting Legibility Scoring</span><span class=\"home-start-card__desc\">See how a CNN-based handwriting demo turns digit recognition into a practical legibility score.</span></a><a class=\"home-start-card\" href=\"/games/project-starfall\" data-content-open=\"true\" data-content-id=\"project-starfall\" data-content-type=\"game\" data-resource-type=\"game\" data-source-surface=\"home_start_here\"><span class=\"home-start-card__label\">Current game</span><span class=\"home-start-card__title\">Project Starfall</span><span class=\"home-start-card__desc\">Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.</span></a><a class=\"home-start-card\" href=\"/tools\" data-content-open=\"true\" data-content-id=\"tools\" data-content-type=\"directory\" data-resource-type=\"library\" data-source-surface=\"home_start_here\"><span class=\"home-start-card__label\">Useful tools</span><span class=\"home-start-card__title\">Practical Browser Tools</span><span class=\"home-start-card__desc\">Open focused utilities for text, links, media, and repeatable browser workflows.</span></a></div></header><div class=\"home-graph__workspace\" id=\"home-graph-workspace\"><div class=\"home-graph__canvas\" data-graph-canvas><div class=\"home-graph__map\" data-graph-map><svg class=\"home-graph__lines\" data-graph-svg aria-hidden=\"true\"></svg><div class=\"home-graph__status\" data-graph-status aria-live=\"polite\">Daniel Short overview active</div><button class=\"home-graph__center is-active\" data-graph-center type=\"button\" aria-label=\"Daniel Short overview active\" aria-pressed=\"true\"><img class=\"home-graph__center-logo\" src=\"img/brand/00-ds-logo-master-full-color.svg\" alt=\"\" width=\"96\" height=\"96\" decoding=\"async\"></button><div data-graph-category-host></div><div id=\"home-graph-layer-host\" data-graph-item-host></div><div class=\"home-graph__tooltip\" data-graph-tooltip role=\"tooltip\" aria-hidden=\"true\"></div><noscript><div class=\"home-graph__noscript\"><p><strong>Start here.</strong> Choose a personal project, the game in active development, or a practical browser tool.</p><div class=\"home-graph__noscript-links\"><a class=\"btn-primary\" href=\"/portfolio/handwritingRating\">Featured project: Handwriting Legibility Scoring</a><a class=\"btn-secondary\" href=\"/games/project-starfall\">Current game: Project Starfall</a><a class=\"btn-secondary\" href=\"/tools\">Useful tools: Practical Browser Tools</a></div></div></noscript></div></div><aside class=\"home-graph__inspector\" data-graph-inspector aria-live=\"polite\"></aside></div></div></section><section class=\"home-cta\" aria-label=\"Next steps\"><div class=\"wrapper home-cta__inner\"><p class=\"home-cta__lead\">Ready when you are.</p><p class=\"home-cta__copy\">Browse the full project library, put a browser tool to work, or get in touch to scope a build.</p><div class=\"home-cta__actions\"><a class=\"home-cta__link is-primary\" href=\"contact\">Contact Daniel</a><a class=\"home-cta__link\" href=\"portfolio\">Browse all projects</a></div></div></section>"
+          "accessibleTitle": "Explore Daniel Short",
+          "defaultPanel": "tools",
+          "categories": [
+            {
+              "id": "about",
+              "label": "About",
+              "color": "#091f3b",
+              "colorEnd": "#032b57",
+              "title": "Hi, I’m Daniel.",
+              "lead": "I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.",
+              "meta": [
+                "Based in Grand Junction, Colorado",
+                "Now building Project Starfall"
+              ],
+              "items": [
+                {
+                  "id": "builder",
+                  "title": "Builder of useful interfaces",
+                  "summary": "I like turning complicated ideas into small, understandable things people can actually use.",
+                  "image": "img/hero/head-avatar-384.jpg",
+                  "imageAlt": "Daniel Short",
+                  "imageWidth": 384,
+                  "imageHeight": 384
+                },
+                {
+                  "id": "project-starfall",
+                  "title": "Project Starfall",
+                  "summary": "The evolving action RPG I’m actively building around responsive combat, progression, and handcrafted encounters.",
+                  "href": "/games/project-starfall",
+                  "image": "img/project-starfall/ui/start-screen.webp",
+                  "imageAlt": "Project Starfall title screen",
+                  "contentType": "game",
+                  "contentId": "project-starfall",
+                  "resourceType": "game",
+                  "badge": "Now building"
+                },
+                {
+                  "id": "playground",
+                  "title": "A growing playground",
+                  "summary": "16 published projects · 10 public tools · 6 games",
+                  "icon": "projects"
+                }
+              ],
+              "cta": {
+                "label": "Explore the project library",
+                "href": "/portfolio"
+              }
+            },
+            {
+              "id": "projects",
+              "label": "Projects",
+              "color": "#155dfc",
+              "colorEnd": "#0b4bd4",
+              "title": "Things I’ve made",
+              "lead": "A few projects that started with a real question, curiosity, or problem I wanted to solve.",
+              "meta": [
+                "Machine learning",
+                "Data experiments",
+                "Practical software"
+              ],
+              "items": [
+                {
+                  "id": "handwritingRating",
+                  "title": "Handwriting Legibility Scoring",
+                  "summary": "A CNN-based handwriting demo that classifies drawn digits and scores how legible they appear.",
+                  "href": "/portfolio/handwritingRating",
+                  "image": "img/projects/handwritingRating-640.webp",
+                  "imageAlt": "Handwriting Legibility Scoring project preview",
+                  "contentType": "project",
+                  "contentId": "handwritingRating",
+                  "resourceType": "case_study"
+                },
+                {
+                  "id": "babynames",
+                  "title": "Baby Name Predictor",
+                  "summary": "A personal recommendation model that learns name preferences from labels and historical name trends.",
+                  "href": "/portfolio/babynames",
+                  "image": "img/projects/babynames-640.webp",
+                  "imageAlt": "Baby Name Predictor project preview",
+                  "contentType": "project",
+                  "contentId": "babynames",
+                  "resourceType": "case_study"
+                },
+                {
+                  "id": "sheetMusicUpscale",
+                  "title": "Sheet Music Watermark Removal & Upscale",
+                  "summary": "A UNet and VDSR image pipeline for removing watermarks and upscaling low-resolution sheet music.",
+                  "href": "/portfolio/sheetMusicUpscale",
+                  "image": "img/projects/sheetMusicUpscale-640.webp",
+                  "imageAlt": "Sheet Music Watermark Removal and Upscale project preview",
+                  "contentType": "project",
+                  "contentId": "sheetMusicUpscale",
+                  "resourceType": "case_study"
+                },
+                {
+                  "id": "ufoDashboard",
+                  "title": "UFO Sightings Dashboard",
+                  "summary": "A geospatial Tableau dashboard for exploring sighting reports by location, time, and shape.",
+                  "href": "/portfolio/ufoDashboard",
+                  "image": "img/projects/ufoDashboard-640.webp",
+                  "imageAlt": "UFO Sightings Dashboard project preview",
+                  "contentType": "project",
+                  "contentId": "ufoDashboard",
+                  "resourceType": "case_study"
+                }
+              ],
+              "cta": {
+                "label": "Explore all projects",
+                "href": "/portfolio"
+              }
+            },
+            {
+              "id": "tools",
+              "label": "Tools",
+              "color": "#087f8c",
+              "colorEnd": "#006973",
+              "title": "Useful little utilities",
+              "lead": "Small browser utilities for repeated text, links, media, and recurring workflow tasks.",
+              "meta": [
+                "Runs locally when possible",
+                "No sign-up required"
+              ],
+              "items": [
+                {
+                  "id": "text-compare",
+                  "title": "Text Compare",
+                  "summary": "Compare two passages and spot changes.",
+                  "href": "/tools/text-compare",
+                  "image": "img/tools/icons/text-compare.png",
+                  "imageAlt": "Text Compare icon",
+                  "contentType": "tool",
+                  "contentId": "text-compare",
+                  "resourceType": "tool"
+                },
+                {
+                  "id": "image-optimizer",
+                  "title": "Image Optimizer",
+                  "summary": "Resize and compress images locally.",
+                  "href": "/tools/image-optimizer",
+                  "image": "img/tools/icons/image-optimizer.png",
+                  "imageAlt": "Image Optimizer icon",
+                  "contentType": "tool",
+                  "contentId": "image-optimizer",
+                  "resourceType": "tool"
+                },
+                {
+                  "id": "qr-code-generator",
+                  "title": "QR Code Generator",
+                  "summary": "Turn a link or note into a scannable code.",
+                  "href": "/tools/qr-code-generator",
+                  "image": "img/tools/icons/qr-code-generator.png",
+                  "imageAlt": "QR Code Generator icon",
+                  "contentType": "tool",
+                  "contentId": "qr-code-generator",
+                  "resourceType": "tool"
+                },
+                {
+                  "id": "screen-recorder",
+                  "title": "Screen Recorder",
+                  "summary": "Capture a tab, window, or screen.",
+                  "href": "/tools/screen-recorder",
+                  "image": "img/tools/icons/screen-recorder.png",
+                  "imageAlt": "Screen Recorder icon",
+                  "contentType": "tool",
+                  "contentId": "screen-recorder",
+                  "resourceType": "tool"
+                },
+                {
+                  "id": "word-frequency",
+                  "title": "Word Frequency Analyzer",
+                  "summary": "Paste text, strip stopwords, and see the most frequent words entirely in-browser.",
+                  "href": "/tools/word-frequency",
+                  "image": "img/tools/icons/word-frequency.png",
+                  "imageAlt": "Word Frequency Analyzer icon",
+                  "contentType": "tool",
+                  "contentId": "word-frequency",
+                  "resourceType": "tool"
+                }
+              ],
+              "cta": {
+                "label": "Explore all tools",
+                "href": "/tools"
+              }
+            },
+            {
+              "id": "games",
+              "label": "Games",
+              "color": "#c94b0a",
+              "colorEnd": "#e35d00",
+              "title": "Playable experiments",
+              "lead": "Games and simulations where I explore progression, probability, feedback loops, and feel.",
+              "meta": [
+                "Six playable experiments",
+                "Built for the browser"
+              ],
+              "items": [
+                {
+                  "id": "project-starfall",
+                  "title": "Project Starfall",
+                  "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.",
+                  "href": "/games/project-starfall",
+                  "image": "img/project-starfall/ui/start-screen.webp",
+                  "imageAlt": "Project Starfall title screen",
+                  "contentType": "game",
+                  "contentId": "project-starfall",
+                  "resourceType": "game",
+                  "badge": "Now building"
+                },
+                {
+                  "id": "stormbreak",
+                  "title": "Stormbreak: Idle Olympus",
+                  "summary": "Command Zeus and turn lightning, loot, and offline gains into a compounding idle-action loop.",
+                  "href": "/games/stormbreak",
+                  "image": "img/games/stormbreak/temple-of-ash.webp",
+                  "imageAlt": "Pixel-art Temple of Ash arena from Stormbreak",
+                  "contentType": "game",
+                  "contentId": "stormbreak",
+                  "resourceType": "game"
+                },
+                {
+                  "id": "stellar-dogfight",
+                  "title": "Stellar Dogfight",
+                  "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.",
+                  "href": "/games/stellar-dogfight",
+                  "image": "img/games/stellar-dogfight/raster/background-nebula.png",
+                  "imageAlt": "Stellar Dogfight nebula background",
+                  "contentType": "game",
+                  "contentId": "stellar-dogfight",
+                  "resourceType": "game"
+                },
+                {
+                  "id": "probability-engine",
+                  "title": "Probability Engine",
+                  "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
+                  "href": "/games/probability-engine",
+                  "icon": "games",
+                  "contentType": "game",
+                  "contentId": "probability-engine",
+                  "resourceType": "game"
+                },
+                {
+                  "id": "roulette",
+                  "title": "Double-Zero Roulette",
+                  "summary": "Run a double-zero table and track recent-spin distributions over time.",
+                  "href": "/games/roulette",
+                  "icon": "games",
+                  "contentType": "game",
+                  "contentId": "roulette",
+                  "resourceType": "game"
+                },
+                {
+                  "id": "ocean-wave-simulation",
+                  "title": "Ocean Wave Simulation",
+                  "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
+                  "href": "/games/ocean-wave-simulation",
+                  "icon": "games",
+                  "contentType": "game",
+                  "contentId": "ocean-wave-simulation",
+                  "resourceType": "game"
+                }
+              ],
+              "cta": {
+                "label": "Explore all games",
+                "href": "/games"
+              }
+            },
+            {
+              "id": "contact",
+              "label": "Contact",
+              "color": "#334155",
+              "colorEnd": "#263648",
+              "title": "Say hello",
+              "lead": "Send a note about a project, tool, idea, or question. I’ll reply when I can.",
+              "meta": [
+                "Email is fastest",
+                "Grand Junction, Colorado"
+              ],
+              "items": [
+                {
+                  "id": "contact-form",
+                  "title": "Send a message",
+                  "summary": "Use the short contact form and share what’s on your mind.",
+                  "href": "/contact#contact-modal",
+                  "icon": "contact",
+                  "contentType": "page",
+                  "contentId": "contact",
+                  "resourceType": "contact"
+                },
+                {
+                  "id": "email",
+                  "title": "Email",
+                  "summary": "daniel@danielshort.me",
+                  "href": "mailto:daniel@danielshort.me",
+                  "icon": "contact"
+                },
+                {
+                  "id": "github",
+                  "title": "GitHub",
+                  "summary": "Browse the code behind the projects, tools, and experiments.",
+                  "href": "https://github.com/danielshort3",
+                  "icon": "projects",
+                  "external": true
+                }
+              ],
+              "cta": {
+                "label": "Open the contact page",
+                "href": "/contact"
+              }
+            }
+          ]
         }
       }
     ]

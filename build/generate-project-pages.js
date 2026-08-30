@@ -612,6 +612,85 @@ function renderProjectPage(project, options = {}) {
   const actions = Array.isArray(project.actions) ? project.actions : [];
   const results = Array.isArray(project.results) ? project.results : [];
   const resources = Array.isArray(project.resources) ? project.resources : [];
+  const comparisonSource = project.previewComparison && typeof project.previewComparison === 'object' && !Array.isArray(project.previewComparison)
+    ? project.previewComparison
+    : null;
+  const comparisonStages = comparisonSource && Array.isArray(comparisonSource.stages)
+    ? comparisonSource.stages.map((stage, index) => {
+      const normalizedStage = stage && typeof stage === 'object' ? stage : {};
+      const width = Number(normalizedStage.width);
+      const height = Number(normalizedStage.height);
+      const fullWidth = Number(normalizedStage.fullWidth);
+      const fullHeight = Number(normalizedStage.fullHeight);
+      return {
+        label: normalizeWhitespace(normalizedStage.label || `Stage ${index + 1}`),
+        shortLabel: normalizeWhitespace(normalizedStage.shortLabel || normalizedStage.label || `Stage ${index + 1}`),
+        description: normalizeWhitespace(normalizedStage.description || ''),
+        fullImage: String(normalizedStage.fullImage || '').trim(),
+        fullAlt: normalizeWhitespace(normalizedStage.fullAlt || `${title} full stage ${index + 1}`),
+        fullWidth: Number.isFinite(fullWidth) && fullWidth > 0 ? fullWidth : null,
+        fullHeight: Number.isFinite(fullHeight) && fullHeight > 0 ? fullHeight : null,
+        image: String(normalizedStage.image || '').trim(),
+        alt: normalizeWhitespace(normalizedStage.alt || `${title} stage ${index + 1}`),
+        width: Number.isFinite(width) && width > 0 ? width : null,
+        height: Number.isFinite(height) && height > 0 ? height : null
+      };
+    })
+    : [];
+  const comparisonDimensionsMatch = comparisonStages.length === 3 && comparisonStages.every((stage) => (
+    stage.image && stage.width && stage.height &&
+    stage.width === comparisonStages[0].width &&
+    stage.height === comparisonStages[0].height
+  ));
+  const comparisonFullDimensionsMatch = comparisonStages.length === 3 && comparisonStages.every((stage) => (
+    stage.fullImage && stage.fullWidth && stage.fullHeight &&
+    stage.fullWidth === comparisonStages[0].fullWidth &&
+    stage.fullHeight === comparisonStages[0].fullHeight
+  ));
+  const comparisonLabelsAreUnique = new Set(comparisonStages.map((stage) => stage.label)).size === comparisonStages.length;
+  const comparisonAltsAreUnique = new Set(comparisonStages.map((stage) => stage.alt)).size === comparisonStages.length;
+  const comparisonFullAltsAreUnique = new Set(comparisonStages.map((stage) => stage.fullAlt)).size === comparisonStages.length;
+  const cropSource = comparisonSource && comparisonSource.sourceCrop && typeof comparisonSource.sourceCrop === 'object' && !Array.isArray(comparisonSource.sourceCrop)
+    ? comparisonSource.sourceCrop
+    : null;
+  const cropLeft = Number(cropSource && cropSource.left);
+  const cropTop = Number(cropSource && cropSource.top);
+  const cropWidth = Number(cropSource && cropSource.width);
+  const cropHeight = Number(cropSource && cropSource.height);
+  const sourceCrop = comparisonFullDimensionsMatch &&
+    Number.isFinite(cropLeft) && Number.isFinite(cropTop) && Number.isFinite(cropWidth) && Number.isFinite(cropHeight) &&
+    cropLeft >= 0 && cropTop >= 0 && cropWidth > 0 && cropHeight > 0 &&
+    cropLeft + cropWidth <= comparisonStages[0].fullWidth && cropTop + cropHeight <= comparisonStages[0].fullHeight
+    ? {
+      left: cropLeft / comparisonStages[0].fullWidth * 100,
+      top: cropTop / comparisonStages[0].fullHeight * 100,
+      width: cropWidth / comparisonStages[0].fullWidth * 100,
+      height: cropHeight / comparisonStages[0].fullHeight * 100
+    }
+    : null;
+  const requestedDividers = comparisonSource && Array.isArray(comparisonSource.initialDividers)
+    ? comparisonSource.initialDividers.map(Number)
+    : [];
+  const requestedGap = Number(comparisonSource && comparisonSource.minimumGap);
+  const comparisonGap = Number.isFinite(requestedGap) ? Math.min(30, Math.max(6, requestedGap)) : 10;
+  const comparisonLeft = Number.isFinite(requestedDividers[0]) ? requestedDividers[0] : 33;
+  const comparisonRight = Number.isFinite(requestedDividers[1]) ? requestedDividers[1] : 67;
+  const previewComparison = comparisonSource && comparisonSource.type === 'three-way' &&
+    comparisonDimensionsMatch && comparisonFullDimensionsMatch && comparisonLabelsAreUnique &&
+    comparisonAltsAreUnique && comparisonFullAltsAreUnique &&
+    comparisonLeft > 0 && comparisonRight < 100 && comparisonLeft + comparisonGap <= comparisonRight
+    ? {
+      stages: comparisonStages,
+      left: comparisonLeft,
+      right: comparisonRight,
+      minimumGap: comparisonGap,
+      width: comparisonStages[0].width,
+      height: comparisonStages[0].height,
+      fullWidth: comparisonStages[0].fullWidth,
+      fullHeight: comparisonStages[0].fullHeight,
+      sourceCrop
+    }
+    : null;
   const role = project.role;
   const notes = normalizeWhitespace(project.notes || '');
   const personalStory = project.personalStory && typeof project.personalStory === 'object' && !Array.isArray(project.personalStory)
@@ -639,6 +718,9 @@ function renderProjectPage(project, options = {}) {
     : null;
   const tableauPreconnect = embed && String(embed.type || '').trim() === 'tableau'
     ? '  <link rel="preconnect" href="https://public.tableau.com" crossorigin>\n'
+    : '';
+  const comparisonScript = previewComparison
+    ? '  <script defer src="js/portfolio/project-image-comparison.js"></script>\n'
     : '';
 
   const ogImageWidth = Number(project.imageWidth);
@@ -935,6 +1017,100 @@ ${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-r
     </div>`;
   };
 
+  const renderPreviewComparison = () => {
+    if (!previewComparison) return '';
+
+    const safeId = toDomIdSafe(id);
+    const fullHeadingId = `project-comparison-full-heading-${safeId}`;
+    const fullDescriptionId = `project-comparison-full-description-${safeId}`;
+    const zoomHeadingId = `project-comparison-zoom-heading-${safeId}`;
+    const zoomDescriptionId = `project-comparison-zoom-description-${safeId}`;
+    const viewportId = `project-comparison-viewport-${safeId}`;
+    const instructionsId = `project-comparison-instructions-${safeId}`;
+    const stages = previewComparison.stages;
+    const cropCue = previewComparison.sourceCrop
+      ? '<span class="project-stage-full-crop" aria-hidden="true"></span>'
+      : '';
+    const fullStages = stages.map((stage, index) => {
+      const description = stage.description
+        ? `<span class="project-stage-full-description">${escapeHtml(stage.description)}</span>`
+        : '';
+      return `<figure class="project-stage-full" data-full-stage>
+          <figcaption class="project-stage-full-caption">
+            <span class="project-stage-full-index" aria-hidden="true">0${index + 1}</span>
+            <span class="project-stage-full-copy"><strong>${escapeHtml(stage.label)}</strong>${description}</span>
+          </figcaption>
+          <div class="project-stage-full-image-frame">
+            <img class="project-stage-full-image" src="${escapeHtml(stage.fullImage)}" alt="${escapeHtml(stage.fullAlt)}" loading="lazy" decoding="async" width="${stage.fullWidth}" height="${stage.fullHeight}">
+            ${cropCue}
+          </div>
+        </figure>`;
+    }).join('\n        ');
+    const slides = stages.map((stage, index) => {
+      const loading = index === 0 ? 'eager' : 'lazy';
+      const priority = index === 0 ? ' fetchpriority="high"' : '';
+      const description = stage.description
+        ? `<span>${escapeHtml(stage.description)}</span>`
+        : '';
+      return `<figure class="project-stage-slide" data-stage-slide data-stage-label="${escapeHtml(stage.label)}">
+          <img class="project-stage-image" src="${escapeHtml(stage.image)}" alt="${escapeHtml(stage.alt)}" loading="${loading}" decoding="async" width="${stage.width}" height="${stage.height}"${priority}>
+          <figcaption class="project-stage-slide-caption"><strong>${escapeHtml(stage.label)}</strong>${description}</figcaption>
+        </figure>`;
+    }).join('\n        ');
+    const stageRail = stages.map((stage, index) => `<li title="${escapeHtml(stage.label)}">
+            <span class="project-image-comparison-stage-index">0${index + 1}</span>
+            <span class="project-image-comparison-stage-name">${escapeHtml(stage.shortLabel)}</span>
+          </li>`).join('\n          ');
+    const dividerIcon = `<svg viewBox="0 0 24 18" aria-hidden="true" focusable="false">
+              <path d="M9 4 4 9l5 5M15 4l5 5-5 5"></path>
+            </svg>`;
+    const leftValue = Math.round(previewComparison.left);
+    const rightValue = Math.round(previewComparison.right);
+    const leftMax = Math.round(previewComparison.right - previewComparison.minimumGap);
+    const rightMin = Math.round(previewComparison.left + previewComparison.minimumGap);
+    const cropStyle = previewComparison.sourceCrop
+      ? `;--comparison-crop-left:${Number(previewComparison.sourceCrop.left.toFixed(4))}%;--comparison-crop-top:${Number(previewComparison.sourceCrop.top.toFixed(4))}%;--comparison-crop-width:${Number(previewComparison.sourceCrop.width.toFixed(4))}%;--comparison-crop-height:${Number(previewComparison.sourceCrop.height.toFixed(4))}%`
+      : '';
+    const fullDescription = previewComparison.sourceCrop
+      ? 'Each pipeline stage is shown in full. The blue outlined area is enlarged in the comparison below.'
+      : 'Each pipeline stage is shown in full.';
+
+    return `<div class="project-image-comparison" data-project-image-comparison data-comparison-left="${previewComparison.left}" data-comparison-right="${previewComparison.right}" data-comparison-minimum-gap="${previewComparison.minimumGap}" style="--comparison-left:${previewComparison.left}%;--comparison-right:${previewComparison.right}%;--comparison-aspect:${previewComparison.width} / ${previewComparison.height};--comparison-full-aspect:${previewComparison.fullWidth} / ${previewComparison.fullHeight}${cropStyle}">
+      <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="${escapeHtml(fullHeadingId)}" aria-describedby="${escapeHtml(fullDescriptionId)}">
+        <div class="project-image-comparison-heading">
+          <h3 id="${escapeHtml(fullHeadingId)}">Full images</h3>
+          <p id="${escapeHtml(fullDescriptionId)}">${escapeHtml(fullDescription)}</p>
+        </div>
+        <div class="project-stage-full-grid">
+          ${fullStages}
+        </div>
+      </section>
+      <section class="project-image-comparison-section project-image-comparison-zoom" aria-labelledby="${escapeHtml(zoomHeadingId)}" aria-describedby="${escapeHtml(zoomDescriptionId)}">
+        <div class="project-image-comparison-heading">
+          <h3 id="${escapeHtml(zoomHeadingId)}">Zoomed comparison</h3>
+          <p id="${escapeHtml(zoomDescriptionId)}">Inspect the same detail across all three stages.</p>
+        </div>
+        <div class="project-image-comparison-zoom-card">
+          <div class="project-image-comparison-viewport" id="${escapeHtml(viewportId)}" data-comparison-viewport>
+            ${slides}
+            <div class="project-image-comparison-divider project-image-comparison-divider-left" data-comparison-divider="left" role="slider" tabindex="0" aria-label="${escapeHtml(`${stages[0].label} / ${stages[1].label} boundary`)}" aria-orientation="horizontal" aria-controls="${escapeHtml(viewportId)}" aria-describedby="${escapeHtml(instructionsId)}" aria-valuemin="0" aria-valuemax="${leftMax}" aria-valuenow="${leftValue}" aria-valuetext="${escapeHtml(`${stages[0].label} ends at ${leftValue}%; ${stages[1].label} begins at ${leftValue}%`)}" data-comparison-before="${escapeHtml(stages[0].label)}" data-comparison-after="${escapeHtml(stages[1].label)}" hidden>
+              <span class="project-image-comparison-handle">${dividerIcon}</span>
+            </div>
+            <div class="project-image-comparison-divider project-image-comparison-divider-right" data-comparison-divider="right" role="slider" tabindex="0" aria-label="${escapeHtml(`${stages[1].label} / ${stages[2].label} boundary`)}" aria-orientation="horizontal" aria-controls="${escapeHtml(viewportId)}" aria-describedby="${escapeHtml(instructionsId)}" aria-valuemin="${rightMin}" aria-valuemax="100" aria-valuenow="${rightValue}" aria-valuetext="${escapeHtml(`${stages[1].label} ends at ${rightValue}%; ${stages[2].label} begins at ${rightValue}%`)}" data-comparison-before="${escapeHtml(stages[1].label)}" data-comparison-after="${escapeHtml(stages[2].label)}" hidden>
+              <span class="project-image-comparison-handle">${dividerIcon}</span>
+            </div>
+          </div>
+          <div class="project-image-comparison-controls" data-comparison-controls hidden>
+            <ol class="project-image-comparison-stage-rail" aria-hidden="true">
+              ${stageRail}
+            </ol>
+            <p class="project-image-comparison-instruction" id="${escapeHtml(instructionsId)}">Click or tap the image to move the nearest divider. Drag either divider; it pushes the other when they meet. Use the arrow keys when a divider is focused.</p>
+          </div>
+        </div>
+      </section>
+    </div>`;
+  };
+
   const renderDemoLaunchPreview = () => {
     const img = String(project.image || '').trim();
     if (!img) return '';
@@ -1030,6 +1206,8 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
 
   const media = (() => {
     if (embed) return '';
+    const comparison = renderPreviewComparison();
+    if (comparison) return comparison;
     const video = renderVideoMedia();
     if (video) return video;
     return renderImageMedia();
@@ -1137,7 +1315,7 @@ ${tableauPreconnect}
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
-  <script src="js/privacy/config.js"></script>
+${comparisonScript}  <script src="js/privacy/config.js"></script>
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>

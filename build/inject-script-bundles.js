@@ -186,7 +186,7 @@ function processHtml(html, relPath) {
     }
 
     if (
-      /^<script\s+defer\s+src="js\/home\/project-graph\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
+      /^<script\s+defer\s+src="js\/home\/category-accordion\.js(?:\?[^"']*)?"><\/script>$/i.test(trimmed)
       || isManagedLine(trimmed, 'site-home')
     ) {
       if (relPath === 'index.html' && !homeInserted) {
