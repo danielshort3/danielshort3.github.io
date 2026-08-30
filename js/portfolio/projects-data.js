@@ -714,6 +714,61 @@ window.PROJECTS = [
     "imageHeight": 1230,
     "videoWebm": "img/projects/sheetMusicUpscale.webm",
     "videoMp4": "img/projects/sheetMusicUpscale.mp4",
+    "previewComparison": {
+      "type": "three-way",
+      "initialDividers": [
+        33,
+        67
+      ],
+      "minimumGap": 10,
+      "sourceCrop": {
+        "left": 842,
+        "top": 520,
+        "width": 712,
+        "height": 400
+      },
+      "stages": [
+        {
+          "label": "Original",
+          "shortLabel": "Original",
+          "description": "Low-resolution source with the preview watermark intact.",
+          "fullImage": "img/projects/sheetMusicUpscale-original-full.webp",
+          "fullAlt": "Complete original demonstration frame showing the full sheet music page and its four-times magnified watermarked detail.",
+          "fullWidth": 1604,
+          "fullHeight": 1231,
+          "image": "img/projects/sheetMusicUpscale-original-comparison.webp",
+          "alt": "Magnified low-resolution sheet music with a large translucent preview watermark.",
+          "width": 712,
+          "height": 400
+        },
+        {
+          "label": "Watermark removed",
+          "shortLabel": "Removed",
+          "description": "UNet output after the watermark-removal pass.",
+          "fullImage": "img/projects/sheetMusicUpscale-watermark-removed-full.webp",
+          "fullAlt": "Complete watermark-removal demonstration frame showing the full cleaned sheet music page and its four-times magnified detail.",
+          "fullWidth": 1604,
+          "fullHeight": 1231,
+          "image": "img/projects/sheetMusicUpscale-watermark-removed-comparison.webp",
+          "alt": "The same magnified sheet music after the preview watermark was removed.",
+          "width": 712,
+          "height": 400
+        },
+        {
+          "label": "Upscaled",
+          "shortLabel": "Upscaled",
+          "description": "VDSR output with sharper notation and staff lines.",
+          "fullImage": "img/projects/sheetMusicUpscale-upscaled-full.webp",
+          "fullAlt": "Complete upscaled demonstration frame showing the full sheet music page and its sharper four-times magnified detail.",
+          "fullWidth": 1604,
+          "fullHeight": 1231,
+          "image": "img/projects/sheetMusicUpscale-upscaled-comparison.webp",
+          "alt": "The same magnified sheet music after upscaling sharpened the notation and staff lines.",
+          "width": 712,
+          "height": 400
+        }
+      ]
+    },
     "tools": [
       "Python",
       "Computer Vision"

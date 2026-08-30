@@ -6,6 +6,7 @@ const zlib = require('zlib');
 const childProcess = require('child_process');
 const runUtmBatchBuilderTests = require('./tests/tools/utm-batch-builder.test.js');
 const runCampaignCreativeTrackerTests = require('./tests/tools/campaign-creative-tracker.test.js');
+const runHomeCategoryAccordionTests = require('./tests/site/home-category-accordion.test.js');
 const runPortfolioRecommendationTests = require('./tests/site/portfolio-recommendations.test.js');
 const runResponsiveDensityContractTests = require('./tests/site/responsive-density-contracts.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/tools/qr-code-generator-utils.test.js');
@@ -615,6 +616,151 @@ function evalScript(file, env) {
   return context;
 }
 
+function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 } = {}) {
+  const domReadyHandlers = [];
+  const animationFrames = new Map();
+  let nextAnimationFrame = 1;
+
+  const makeClassList = () => {
+    const values = new Set();
+    return {
+      add: value => values.add(value),
+      remove: value => values.delete(value),
+      contains: value => values.has(value)
+    };
+  };
+
+  const env = createEnv();
+  const makeElement = ({ dataset = {}, hidden = false } = {}) => ({
+    dataset,
+    hidden,
+    attributes: {},
+    handlers: {},
+    classList: makeClassList(),
+    style: {
+      values: {},
+      setProperty(name, value) {
+        this.values[name] = value;
+      }
+    },
+    addEventListener(type, handler) {
+      this.handlers[type] = this.handlers[type] || [];
+      this.handlers[type].push(handler);
+    },
+    setAttribute(name, value) {
+      this.attributes[name] = String(value);
+    },
+    focus() {
+      env.document.activeElement = this;
+    },
+    closest() {
+      return null;
+    }
+  });
+
+  const slides = Array.from({ length: 3 }, () => {
+    const image = {
+      loading: 'lazy',
+      decode: () => Promise.resolve()
+    };
+    return {
+      querySelector: selector => selector === 'img' ? image : null,
+      closest: () => null
+    };
+  });
+  const leftDivider = makeElement({
+    dataset: {
+      comparisonDivider: 'left',
+      comparisonBefore: 'Original',
+      comparisonAfter: 'Watermark removed'
+    },
+    hidden: true
+  });
+  const rightDivider = makeElement({
+    dataset: {
+      comparisonDivider: 'right',
+      comparisonBefore: 'Watermark removed',
+      comparisonAfter: 'Upscaled'
+    },
+    hidden: true
+  });
+
+  [leftDivider, rightDivider].forEach((divider) => {
+    const captures = new Set();
+    divider.setPointerCapture = pointerId => captures.add(pointerId);
+    divider.hasPointerCapture = pointerId => captures.has(pointerId);
+    divider.releasePointerCapture = pointerId => captures.delete(pointerId);
+    divider.closest = selector => selector === '[data-comparison-divider]' ? divider : null;
+  });
+
+  const viewport = makeElement();
+  viewport.getBoundingClientRect = () => ({
+    left: viewportLeft,
+    width
+  });
+  const controls = makeElement({ hidden: true });
+  const comparison = makeElement({
+    dataset: {
+      comparisonLeft: '33',
+      comparisonRight: '67',
+      comparisonMinimumGap: '10'
+    }
+  });
+  comparison.querySelector = (selector) => {
+    if (selector === '[data-comparison-viewport]') return viewport;
+    if (selector === '[data-comparison-controls]') return controls;
+    return null;
+  };
+  comparison.querySelectorAll = (selector) => {
+    if (selector === '[data-stage-slide]') return slides;
+    if (selector === '[data-comparison-divider]') return [leftDivider, rightDivider];
+    return [];
+  };
+
+  env.window.CSS = { supports: () => true };
+  env.window.cancelAnimationFrame = animationFrame => animationFrames.delete(animationFrame);
+  env.window.requestAnimationFrame = (callback) => {
+    const animationFrame = nextAnimationFrame++;
+    animationFrames.set(animationFrame, callback);
+    return animationFrame;
+  };
+  env.document.querySelectorAll = selector => (
+    selector === '[data-project-image-comparison]' ? [comparison] : []
+  );
+  env.document.addEventListener = (type, handler) => {
+    if (type === 'DOMContentLoaded') domReadyHandlers.push(handler);
+  };
+
+  evalScript('js/portfolio/project-image-comparison.js', env);
+  domReadyHandlers.forEach(handler => handler());
+
+  const dispatch = (element, type, event = {}) => {
+    const dispatched = {
+      target: element,
+      currentTarget: element,
+      defaultPrevented: false,
+      preventDefault() {
+        this.defaultPrevented = true;
+      },
+      ...event
+    };
+    (element.handlers[type] || []).forEach(handler => handler(dispatched));
+    return dispatched;
+  };
+  const clientX = percent => viewportLeft + width * percent / 100;
+
+  return {
+    env,
+    comparison,
+    viewport,
+    slides,
+    leftDivider,
+    rightDivider,
+    dispatch,
+    clientX
+  };
+}
+
 try {
   console.log(`Running site contract checks (${activeSuite} suite)...`);
 
@@ -623,7 +769,7 @@ try {
   section('Page shells and required meta', () => {
     checkFileContains('index.html', '<title>Daniel Short | Data Analytics, ML Projects &amp; Web Tools</title>');
     checkFileContains('index.html', '<link rel="canonical" href="https://www.danielshort.me/">');
-    checkFileContains('index.html', '<section class="home-graph"');
+    checkFileContains('index.html', '<section class="home-accordion"');
 
     const expectedTitles = {
       'pages/contact.html': 'Contact | Daniel Short',
@@ -39336,6 +39482,100 @@ try {
           `${file} should render non-embedded media in the standard Project Preview shell`);
       }
     });
+
+    const sheetMusicProject = projectById.get('sheetMusicUpscale');
+    const sheetMusicComparison = sheetMusicProject && sheetMusicProject.previewComparison;
+    assert(sheetMusicComparison && sheetMusicComparison.type === 'three-way' &&
+           Array.isArray(sheetMusicComparison.stages) && sheetMusicComparison.stages.length === 3,
+      'sheetMusicUpscale should define exactly three comparison stages');
+    assert(new Set(sheetMusicComparison.stages.map((stage) => stage.alt)).size === 3,
+      'sheetMusicUpscale comparison stages should have unique alternative text');
+    assert(new Set(sheetMusicComparison.stages.map((stage) => stage.fullAlt)).size === 3,
+      'sheetMusicUpscale full stages should have unique alternative text');
+    assert(sheetMusicComparison.stages.every((stage) => stage.width === 712 && stage.height === 400),
+      'sheetMusicUpscale comparison stages should share the aligned 712x400 crop');
+    assert(sheetMusicComparison.stages.every((stage) => stage.fullWidth === 1604 && stage.fullHeight === 1231),
+      'sheetMusicUpscale full stages should preserve the complete 1604x1231 frames');
+    assert(sheetMusicComparison.sourceCrop &&
+           sheetMusicComparison.sourceCrop.left === 842 && sheetMusicComparison.sourceCrop.top === 520 &&
+           sheetMusicComparison.sourceCrop.width === 712 && sheetMusicComparison.sourceCrop.height === 400,
+      'sheetMusicUpscale should map the zoomed comparison back to its exact full-frame region');
+    sheetMusicComparison.stages.forEach((stage) => {
+      assert(stage.image && fs.existsSync(stage.image), `sheetMusicUpscale comparison asset missing: ${stage.image}`);
+      assert(stage.fullImage && fs.existsSync(stage.fullImage), `sheetMusicUpscale full-stage asset missing: ${stage.fullImage}`);
+    });
+
+    const sheetMusicHtml = fs.readFileSync('pages/portfolio/sheetMusicUpscale.html', 'utf8');
+    const fullStageFigures = sheetMusicHtml.match(/<figure class="project-stage-full"[^>]*data-full-stage[^>]*>/g) || [];
+    const stageFigures = sheetMusicHtml.match(/<figure class="project-stage-slide"[^>]*data-stage-slide[^>]*>/g) || [];
+    const dividerHandles = sheetMusicHtml.match(/data-comparison-divider="(?:left|right)" role="slider"/g) || [];
+    const stageRailLabels = sheetMusicHtml.match(/<span class="project-image-comparison-stage-index">0[1-3]<\/span>/g) || [];
+    const comparisonHooks = sheetMusicHtml.match(/data-project-image-comparison/g) || [];
+    const fullImagesHeadingIndex = sheetMusicHtml.indexOf('>Full images</h3>');
+    const zoomedComparisonHeadingIndex = sheetMusicHtml.indexOf('>Zoomed comparison</h3>');
+    assert(fullStageFigures.length === 3 && fullStageFigures.every((figure) => !/\shidden(?:\s|=|>)/.test(figure)),
+      'sheetMusicUpscale preview should render all three complete stage images without hiding them');
+    assert(fullImagesHeadingIndex >= 0 && zoomedComparisonHeadingIndex > fullImagesHeadingIndex,
+      'sheetMusicUpscale preview should label the full images before the zoomed comparison');
+    assert(stageFigures.length === 3, 'sheetMusicUpscale preview should render exactly three aligned stage figures');
+    assert(stageFigures.every((figure) => !/\shidden(?:\s|=|>)/.test(figure)),
+      'sheetMusicUpscale stage figures should all remain available in the no-JS source');
+    assert(dividerHandles.length === 2 &&
+           sheetMusicHtml.includes('aria-label="Original / Watermark removed boundary"') &&
+           sheetMusicHtml.includes('aria-label="Watermark removed / Upscaled boundary"'),
+      'sheetMusicUpscale preview should render two named slider dividers');
+    assert(stageRailLabels.length === 3 && comparisonHooks.length === 1,
+      'sheetMusicUpscale zoom should render one enhanced comparison with three region labels');
+    assert(sheetMusicHtml.includes('<span class="project-image-comparison-stage-name">Original</span>') &&
+           sheetMusicHtml.includes('<span class="project-image-comparison-stage-name">Removed</span>') &&
+           sheetMusicHtml.includes('<span class="project-image-comparison-stage-name">Upscaled</span>'),
+      'sheetMusicUpscale zoom should use concise visible labels that fit narrow comparison regions');
+    assert(sheetMusicHtml.includes('aria-describedby="project-comparison-zoom-description-sheetMusicUpscale"') &&
+           !sheetMusicHtml.includes('aria-describedby="project-comparison-zoom-description-sheetMusicUpscale project-comparison-instructions-sheetMusicUpscale"'),
+      'sheetMusicUpscale zoom section should not announce hidden enhancement-only instructions');
+    assert(sheetMusicHtml.includes('data-comparison-controls hidden') &&
+           sheetMusicHtml.includes('Click or tap the image to move the nearest divider.') &&
+           sheetMusicHtml.includes('Drag either divider; it pushes the other when they meet.'),
+      'sheetMusicUpscale comparison controls should progressively enhance from the three-image fallback');
+    assert(!sheetMusicHtml.includes('<video class="project-video-frame"'),
+      'sheetMusicUpscale comparison should replace the detail-page autoplay video');
+    assert(sheetMusicHtml.includes('<script defer src="js/portfolio/project-image-comparison.js"></script>'),
+      'sheetMusicUpscale should load the image-comparison enhancement');
+
+    const comparisonJs = fs.readFileSync('js/portfolio/project-image-comparison.js', 'utf8');
+    assert(comparisonJs.includes('initProjectImageComparisons') &&
+           comparisonJs.includes('setPointerCapture') &&
+           comparisonJs.includes("addEventListener('pointercancel'") &&
+           comparisonJs.includes("addEventListener('lostpointercapture'") &&
+           comparisonJs.includes("event.key === 'Home'") &&
+           comparisonJs.includes("event.key === 'End'") &&
+           comparisonJs.includes('right = Math.max(right, left + bounds.gap);') &&
+           comparisonJs.includes('left = Math.min(left, right - bounds.gap);') &&
+           comparisonJs.includes("viewport.addEventListener('click'") &&
+           comparisonJs.includes("event.target.closest?.('[data-comparison-divider]')") &&
+           comparisonJs.includes('Math.abs(requestedValue - left) <= Math.abs(requestedValue - right)') &&
+           comparisonJs.includes('const roundedMinimum = Math.round(range.minimum);') &&
+           comparisonJs.includes('const roundedMaximum = Math.round(range.maximum);') &&
+           comparisonJs.includes("setAttribute('aria-valuetext'"),
+      'project image comparisons should support linked pushing, nearest-divider panel clicks, pointer capture, synchronized keyboard bounds, and dynamic slider text');
+
+    const projectPageCss = fs.readFileSync('css/components/project-page.css', 'utf8');
+    assert(projectPageCss.includes('container-name:comparison-stage;') &&
+           projectPageCss.includes('@container comparison-stage (max-width: 55px)') &&
+           projectPageCss.includes('cursor:pointer;\n    touch-action:pan-y;') &&
+           !projectPageCss.includes('.project-image-comparison-stage-name{\n      display:none;\n    }\n    .project-image-comparison-handle'),
+      'project image comparison should keep stage names responsive and expose a scroll-safe clickable viewport');
+
+    const fallbackVideoProject = projects.find((project) => (
+      project.id !== 'sheetMusicUpscale' && !project.embed && project.videoMp4 && !project.previewComparison
+    ));
+    assert(fallbackVideoProject, 'expected at least one non-staged video project for preview fallback coverage');
+    const fallbackVideoHtml = fs.readFileSync(`pages/portfolio/${fallbackVideoProject.id}.html`, 'utf8');
+    assert(fallbackVideoHtml.includes('<video class="project-video-frame"'),
+      'projects without preview stages should retain the existing video preview fallback');
+    assert(!fallbackVideoHtml.includes('js/portfolio/project-image-comparison.js'),
+      'projects without preview comparisons should not load the comparison enhancement');
+
     assert(!ids.includes('destinationReporting'), 'destinationReporting should not be a published project');
     assert(!fs.existsSync('pages/portfolio/destinationReporting.html'), 'destinationReporting page should be removed');
     assert(!sitemap.includes('https://www.danielshort.me/portfolio/destinationReporting'), 'sitemap.xml should not include destinationReporting');
@@ -39386,6 +39626,125 @@ try {
     noindexPathSet.forEach((pathName) => {
       assert(!sitemap.includes(`https://www.danielshort.me${pathName}`), `sitemap.xml should exclude noindex URL: ${pathName}`);
     });
+  });
+
+  section('Project image comparison interactions', () => {
+    const closeTo = (actual, expected, message) => {
+      assert(Math.abs(actual - expected) < 0.03, `${message}: ${actual} !== ${expected}`);
+    };
+    const value = (harness, side) => Number(harness.comparison.dataset[
+      side === 'left' ? 'comparisonLeft' : 'comparisonRight'
+    ]);
+    const assertAriaValid = (divider, message) => {
+      const minimum = Number(divider.attributes['aria-valuemin']);
+      const current = Number(divider.attributes['aria-valuenow']);
+      const maximum = Number(divider.attributes['aria-valuemax']);
+      assert(minimum <= current && current <= maximum, `${message} ARIA value should remain inside its range`);
+      assert(divider.attributes['aria-valuetext'].includes(`${current}%`),
+        `${message} ARIA text should match its current value`);
+    };
+
+    const desktop = createProjectImageComparisonHarness({ width: 712 });
+    desktop.dispatch(desktop.rightDivider, 'pointerdown', {
+      pointerId: 1,
+      pointerType: 'mouse',
+      button: 0,
+      isPrimary: true,
+      clientX: desktop.clientX(67)
+    });
+    desktop.dispatch(desktop.rightDivider, 'pointermove', {
+      pointerId: 1,
+      clientX: desktop.clientX(25)
+    });
+    desktop.dispatch(desktop.rightDivider, 'pointerup', {
+      pointerId: 1,
+      clientX: desktop.clientX(25)
+    });
+    closeTo(value(desktop, 'right'), 25, 'desktop right divider should follow the pointer');
+    closeTo(value(desktop, 'left'), 15, 'desktop right divider should push the left divider');
+    assert(!desktop.rightDivider.classList.contains('is-dragging'),
+      'desktop right divider should leave its dragging state after pointerup');
+    assertAriaValid(desktop.leftDivider, 'desktop left divider');
+    assertAriaValid(desktop.rightDivider, 'desktop right divider');
+
+    const mobile = createProjectImageComparisonHarness({ width: 261 });
+    mobile.dispatch(mobile.rightDivider, 'pointerdown', {
+      pointerId: 2,
+      pointerType: 'touch',
+      button: 0,
+      isPrimary: true,
+      clientX: mobile.clientX(67)
+    });
+    mobile.dispatch(mobile.rightDivider, 'pointermove', {
+      pointerId: 2,
+      clientX: mobile.clientX(5)
+    });
+    mobile.dispatch(mobile.rightDivider, 'pointerup', {
+      pointerId: 2,
+      clientX: mobile.clientX(5)
+    });
+    const mobileEdge = 22 / 261 * 100;
+    const mobileGap = 44 / 261 * 100;
+    closeTo(value(mobile, 'left'), mobileEdge, 'mobile left divider should stop at its hit-area edge');
+    closeTo(value(mobile, 'right'), mobileEdge + mobileGap, 'mobile right divider should retain its hit-area gap');
+    assertAriaValid(mobile.leftDivider, 'mobile left divider');
+    assertAriaValid(mobile.rightDivider, 'mobile right divider');
+
+    const panel = createProjectImageComparisonHarness({ width: 712, viewportLeft: 100 });
+    const clickPanel = percent => panel.dispatch(panel.viewport, 'click', {
+      button: 0,
+      clientX: panel.clientX(percent),
+      offsetX: 1,
+      target: panel.slides[0]
+    });
+    clickPanel(45);
+    closeTo(value(panel, 'left'), 45, 'panel click should move the nearest left divider');
+    closeTo(value(panel, 'right'), 67, 'left-side panel click should leave the right divider in place');
+    assert(panel.env.document.activeElement === panel.leftDivider,
+      'left-side panel click should focus the left divider');
+
+    clickPanel(60);
+    closeTo(value(panel, 'right'), 60, 'panel click should move the nearest right divider');
+    assert(panel.env.document.activeElement === panel.rightDivider,
+      'right-side panel click should focus the right divider');
+
+    clickPanel(54);
+    closeTo(value(panel, 'right'), 54, 'panel-selected right divider should follow the click');
+    closeTo(value(panel, 'left'), 44, 'panel-selected right divider should push the left divider');
+    assertAriaValid(panel.leftDivider, 'panel left divider');
+    assertAriaValid(panel.rightDivider, 'panel right divider');
+
+    const beforeGuardedClick = [value(panel, 'left'), value(panel, 'right')];
+    panel.dispatch(panel.viewport, 'click', {
+      button: 0,
+      clientX: panel.clientX(80),
+      target: panel.rightDivider
+    });
+    assert(value(panel, 'left') === beforeGuardedClick[0] && value(panel, 'right') === beforeGuardedClick[1],
+      'a click originating from a divider should not also trigger the panel click behavior');
+
+    const keyboard = createProjectImageComparisonHarness({ width: 712 });
+    const rightHome = keyboard.dispatch(keyboard.rightDivider, 'keydown', {
+      key: 'Home',
+      shiftKey: false
+    });
+    closeTo(value(keyboard, 'left'), 22 / 712 * 100, 'right Home key should push the left divider to its edge');
+    closeTo(value(keyboard, 'right'), 22 / 712 * 100 + 10, 'right Home key should retain the configured gap');
+    assert(rightHome.defaultPrevented, 'a handled right-divider key should prevent the browser default');
+    assertAriaValid(keyboard.leftDivider, 'keyboard left divider');
+    assertAriaValid(keyboard.rightDivider, 'keyboard right divider');
+
+    const symmetric = createProjectImageComparisonHarness({ width: 712 });
+    symmetric.dispatch(symmetric.leftDivider, 'keydown', {
+      key: 'End',
+      shiftKey: false
+    });
+    closeTo(value(symmetric, 'left'), 100 - (22 / 712 * 100) - 10,
+      'left End key should reach its global maximum');
+    closeTo(value(symmetric, 'right'), 100 - (22 / 712 * 100),
+      'left End key should push the right divider to its edge');
+    assertAriaValid(symmetric.leftDivider, 'symmetric left divider');
+    assertAriaValid(symmetric.rightDivider, 'symmetric right divider');
   });
 
   section('Analytics helpers and events', () => {
@@ -40180,12 +40539,12 @@ try {
     const analyticsStylesCss = fs.readFileSync('css/styles-analytics.css', 'utf8');
     assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
     assert(stylesCss.includes('@import url("components/home-scroll.css");'), 'styles.css should include shared audience scroll polish');
-    assert(!stylesCss.includes('@import url("components/home-project-graph.css");'),
-      'styles.css should leave the personal homepage graph in its route bundle');
+    assert(!stylesCss.includes('@import url("components/home-category-accordion.css");'),
+      'styles.css should leave the personal homepage accordion in its route bundle');
     assert(!stylesCss.includes('@import url("components/portfolio-workbench.css");'),
       'styles.css should leave directory workbenches in their route bundle');
-    assert(homeStylesCss.includes('@import url("components/home-project-graph.css");'),
-      'styles-home.css should include the personal homepage graph styles');
+    assert(homeStylesCss.includes('@import url("components/home-category-accordion.css");'),
+      'styles-home.css should include the personal homepage accordion styles');
     assert(workbenchStylesCss.includes('@import url("components/portfolio-workbench.css");'),
       'styles-workbench.css should include the directory workbench styles');
     ['work-experience', 'certification', 'jump-panel', 'home-proof', 'destination-analytics'].forEach((name) => {
@@ -40245,7 +40604,7 @@ try {
       'content/pages/contact.json',
       'content/pages/tools.json',
       'css/base/base.css',
-      'css/components/home-project-graph.css',
+      'css/components/home-category-accordion.css',
       'css/privacy.css',
       'css/styles.css',
       'css/variables.css',
@@ -40400,8 +40759,8 @@ try {
     const homeHtml = readFile('index.html');
     assert(homeHtml.includes(`dist/${hashedHomeCss}`) || homeHtml.includes('dist/styles-home.css'),
       'index.html missing home-only stylesheet reference');
-    assert(htmlHasManagedBundle(homeHtml, 'site-home'), 'index.html missing home-only graph bundle');
-    assert(!homeHtml.includes('js/home/project-graph.js'), 'index.html should not load the unbundled home graph script');
+    assert(htmlHasManagedBundle(homeHtml, 'site-home'), 'index.html missing home-only accordion bundle');
+    assert(!homeHtml.includes('js/home/category-accordion.js'), 'index.html should not load the unbundled home accordion script');
     ['pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].forEach((file) => {
       const html = readFile(file);
       assert(html.includes(`dist/${hashedWorkbenchCss}`) || html.includes('dist/styles-workbench.css'),
@@ -40472,257 +40831,8 @@ try {
     checkFileContains('pages/portfolio/nonogram.html', 'css/components/project-page.css');
   });
 
-  section('Personal homepage structure', () => {
-    const html = readFile('index.html');
-    const personalAudience = readFile('content/audiences/personal.json');
-    const graphCss = readFile('css/components/home-project-graph.css');
-    const graphJs = readFile('js/home/project-graph.js');
-    checkFileContains('index.html', 'home-pattern-page');
-    checkFileContains('index.html', 'class="home-graph"');
-    checkFileContains('index.html', 'data-home-graph');
-    checkFileContains('index.html', 'data-graph-center');
-    checkFileContains('index.html', 'data-graph-inspector');
-    assert(html.includes('class="home-graph__intro"') &&
-      html.includes('<h1 id="home-graph-title">Daniel Short</h1>') &&
-      html.includes('class="home-graph__intro-actions"') &&
-      html.includes('href="portfolio">Projects</a>') &&
-      html.includes('href="tools">Tools</a>') &&
-      html.includes('href="games">Games</a>'),
-      'personal homepage should introduce Daniel Short and provide direct Projects, Tools, and Games paths before the desktop graph');
-    checkFileContains('js/home/project-graph.js', "label: 'Projects'");
-    checkFileContains('js/home/project-graph.js', "label: 'Tools'");
-    checkFileContains('js/home/project-graph.js', "label: 'Games'");
-    checkFileContains('js/home/project-graph.js', 'const BRANCH_LAYOUT');
-    checkFileContains('js/home/project-graph.js', 'const ITEM_EXPANSION_LAYOUT');
-    checkFileContains('js/home/project-graph.js', 'const CATEGORY_GROUPS');
-    checkFileContains('js/home/project-graph.js', 'const ITEM_ICON_BY_ID');
-    checkFileContains('js/home/project-graph.js', 'getItemIcon(item, state.active)');
-    checkFileContains('js/home/project-graph.js', 'buildCategoryDots');
-    checkFileContains('js/home/project-graph.js', 'getToggleIcon(active)');
-    assert(!graphJs.includes('getNodeInitial'), 'homepage graph should use themed SVG icons instead of text initials');
-    checkFileContains('js/home/project-graph.js', "id: 'project-starfall'");
-    checkFileContains('js/home/project-graph.js', "id: 'stormbreak'");
-    checkFileContains('js/home/project-graph.js', "id: 'text-compare'");
-    checkFileContains('js/home/project-graph.js', "id: 'chatbotLora'");
-    ['short-links', 'ga4-utm-performance', 'job-application-tracker', 'transcribe'].forEach((toolId) => {
-      assert(!graphJs.includes(`id: '${toolId}'`), `homepage graph should not expose hidden tool ${toolId}`);
-    });
-    checkFileContains('js/home/project-graph.js', 'selectCategory');
-    checkFileContains('js/home/project-graph.js', 'selectInspectorItem');
-    checkFileContains('js/home/project-graph.js', 'restoreInspectorPreview');
-    checkFileContains('js/home/project-graph.js', 'getRelatedItems');
-    checkFileContains('js/home/project-graph.js', 'getItemGroupLabels');
-    checkFileContains('js/home/project-graph.js', 'getItemSearchTokens');
-    checkFileContains('js/home/project-graph.js', 'collapseGraph');
-    checkFileContains('js/home/project-graph.js', 'computeGraphLayout');
-    checkFileContains('js/home/project-graph.js', 'getGraphMetrics');
-    checkFileContains('js/home/project-graph.js', 'getGraphLayout');
-    checkFileContains('js/home/project-graph.js', 'getRadialGraphLayout');
-    checkFileContains('js/home/project-graph.js', 'getGroupedItemLayout');
-    checkFileContains('js/home/project-graph.js', 'getGroupKey');
-    checkFileContains('js/home/project-graph.js', 'parseGroupKey');
-    checkFileContains('js/home/project-graph.js', 'getEdgeAnchorPoint');
-    checkFileContains('js/home/project-graph.js', 'makeEdgeConnectorPath');
-    checkFileContains('js/home/project-graph.js', 'getCategoryLineBox');
-    checkFileContains('js/home/project-graph.js', 'getBranchingItemSlot');
-    checkFileContains('js/home/project-graph.js', 'getBranchingItemPoint');
-    checkFileContains('js/home/project-graph.js', 'createGroupInspectorHtml');
-    checkFileContains('js/home/project-graph.js', 'selectInspectorGroup');
-    checkFileContains('js/home/project-graph.js', 'data-graph-group');
-    checkFileContains('js/home/project-graph.js', 'getCompactGroupedItemLayout');
-    checkFileContains('js/home/project-graph.js', 'getSelectedGroupIdForLayout');
-    checkFileContains('js/home/project-graph.js', 'getGroupedColumnObstacles');
-    checkFileContains('js/home/project-graph.js', 'getSafeGroupedColumnStart');
-    checkFileContains('js/home/project-graph.js', 'getCompactItemPositions');
-    checkFileContains('js/home/project-graph.js', 'getItemNodeSize');
-    checkFileContains('js/home/project-graph.js', 'resolveGraphCollisions');
-    checkFileContains('js/home/project-graph.js', '--x: ${pos.x}px');
-    checkFileContains('js/home/project-graph.js', '--node-size: ${layout.nodeSize}px');
-    checkFileContains('js/home/project-graph.js', '--node-width: ${layout.nodeWidth}px');
-    assert(graphJs.includes('active: null'), 'homepage graph should default to the Daniel Short overview');
-    assert(graphJs.includes("selectedKey: ''") &&
-      graphJs.includes('selectOverview(null)') &&
-      graphJs.includes('updateOverviewState') &&
-      graphJs.includes('state.latestLayout = layout'),
-      'homepage graph should show the site overview by default and draw connectors from stable layout state');
-    assert(!graphJs.includes('setPan') && !graphJs.includes('is-dragging') && !graphJs.includes("addEventListener('pointerdown'"),
-      'homepage graph should not expose manual pan/drag controls');
-    assert(graphCss.includes('touch-action: pan-y') &&
-      graphCss.includes('--home-graph-footer-space') &&
-      graphCss.includes('flex: 1 1 auto') &&
-      graphCss.includes('height: auto') &&
-      graphCss.includes('grid-template-rows: minmax(620px, 68svh) auto') &&
-      graphCss.includes('grid-template-rows: minmax(690px, 72svh) auto') &&
-      graphCss.includes('grid-template-columns: minmax(0, 4fr) minmax(260px, 1fr)') &&
-      graphCss.includes('body[data-page="home"].home-pattern-page #main') &&
-      graphCss.includes('body[data-page="home"].home-pattern-page .footer.footer-classic .footer-nav') &&
-      graphCss.includes('.home-graph__inspector') &&
-      graphCss.includes('.home-pattern-page .speed-dial') &&
-      graphCss.includes('@keyframes homeGraphNodeIn') &&
-      graphCss.includes('@keyframes homeGraphNodeOut') &&
-      graphCss.includes('@media (prefers-reduced-motion: reduce)'),
-      'home graph CSS should cover one-screen desktop fit, scroll-safe mobile behavior, preview panel, animation, and reduced motion');
-    assert(!graphCss.includes('min-height: 920px') &&
-      !graphCss.includes('min-height: 1040px') &&
-      !graphCss.includes('position: fixed'),
-      'homepage graph should fit the visible viewport without a tall draggable board or fixed preview overlay');
-    assert(graphJs.includes('data-graph-dot') &&
-      graphJs.includes('data-graph-dot-category') &&
-      graphJs.includes('data-graph-dot-item') &&
-      graphJs.includes('handleDotPreviewEnter') &&
-      graphJs.includes("addEventListener('mousemove', handleDotPreviewEnter)") &&
-      graphJs.includes('showTooltip(entry.item, dot, { force: true })') &&
-      !graphJs.includes('previewInspectorItem'),
-      'homepage graph should render interactive collapsed item dots with hover tooltips while keeping the inspector selection-driven');
-    assert(graphCss.includes('.home-graph[data-graph-active] .home-graph__category.is-active .home-graph__halo') &&
-      graphCss.includes('grid-template-columns: 44px minmax(0, 1fr) 28px 30px') &&
-      graphCss.includes('width: calc(100% + 92px)') &&
-      graphCss.includes('height: calc(100% + 82px)') &&
-      graphCss.includes('border-radius: 50%') &&
-      graphCss.includes('inset: 0') &&
-      graphCss.includes('pointer-events: auto') &&
-      graphCss.includes('pointer-events: none') &&
-      graphCss.includes('visibility: hidden') &&
-      graphCss.includes('.home-graph__status {\n    display: none;') &&
-      graphCss.includes('.home-graph__category:is(:hover, :focus-within) .home-graph__category-card') &&
-      graphCss.includes('box-sizing: border-box'),
-      'homepage graph should hide the active status badge, hide only the active category count dots, keep plus/minus inside cards, style category hover, allow collapsed dot hover, and fit inspector buttons');
-    assert(graphCss.includes('.home-graph__node.has-label') &&
-      graphCss.includes('width: var(--node-width') &&
-      graphCss.includes('clip: auto') &&
-      graphCss.includes('-webkit-line-clamp: 2') &&
-      graphCss.includes('border-radius: 50%'),
-      'homepage graph item nodes should show wrapped labeled rows on roomy screens and stay compact on constrained screens');
-    assert(graphJs.includes('getDesktopGroupDrawerLayout') &&
-      graphJs.includes('getDrawerNodeSlots') &&
-      graphJs.includes('if (!metrics.isNarrow)') &&
-      graphJs.includes('selectedGroupId: itemLayout.selectedGroupId') &&
-      graphJs.includes('drawer: itemLayout.drawer') &&
-      graphJs.includes('const groupIcon = layout.drawer') &&
-      graphJs.includes('const disclosureAttribute = layout.drawer || layout.metrics.isCompact') &&
-      graphCss.includes('.home-graph__group-drawer') &&
-      graphCss.includes('.home-graph__layer-node'),
-      'homepage graph should use a progressive desktop group drawer while retaining compact responsive layouts');
-    assert(graphJs.includes('createMobileClassicDeckHtml') &&
-      graphJs.includes('mobileDeck.innerHTML = createMobileClassicDeckHtml()') &&
-      graphJs.includes('<h1 id="home-mobile-hero-title">Daniel Short</h1>') &&
-      graphJs.includes('<a href="portfolio">Projects</a>') &&
-      graphJs.includes('<a href="tools">Tools</a>') &&
-      graphJs.includes('<a href="games">Games</a>') &&
-      graphJs.includes("window.matchMedia?.('(max-width: 768px)')") &&
-      graphJs.includes('window.innerWidth <= 768') &&
-      graphCss.includes('.home-graph__mobile-deck') &&
-      graphCss.includes('.home-graph__mobile-classic') &&
-      graphCss.includes('.home-graph__mobile-hero') &&
-      graphCss.includes('.home-graph__mobile-hero h1') &&
-      graphCss.includes('.home-graph__mobile-section-card') &&
-      graphCss.includes('@media (max-width: 768px)') &&
-      !graphCss.includes('@media (max-width: 640px)'),
-      'homepage mobile layout should switch at 768px to a card-first, H1-led Daniel Short introduction with direct library paths and featured content');
-    assert(graphJs.includes('getGroupKey(categoryId, group.id)') &&
-      graphJs.includes('entry.type === \'group\'') &&
-      graphJs.includes('groupPoints.set(entry.groupId') &&
-      graphJs.includes("key: `group:${state.active}:${entry.groupId}`") &&
-      graphJs.includes("key: `drawer:${state.active}:${layout.drawer.groupId}`") &&
-      graphJs.includes("className: 'home-graph__line home-graph__line--drawer is-active'") &&
-      graphJs.includes('getCompactGroupedItemLayout(categoryId, metrics, graphLayout, dimensions, selectedKey)') &&
-      graphJs.includes('selectDesktopDrawerGroup') &&
-      graphJs.includes('updateLayout: usesDesktopDrawer()') &&
-      graphJs.includes('aria-expanded=') &&
-      graphJs.includes('aria-controls=') &&
-      graphJs.includes('aria-controls="home-graph-layer-host"') &&
-      graphJs.includes('focusCategoryControl') &&
-      graphJs.includes('focusGroup: event.detail === 0') &&
-      graphJs.includes("const closeButton = isOverview") &&
-      graphJs.includes('data-graph-drawer') &&
-      graphCss.includes('.home-graph__line--group') &&
-      graphCss.includes('.home-graph__line--drawer') &&
-      graphCss.includes('.home-graph__group-label') &&
-      graphCss.includes('.home-graph__group-icon') &&
-      graphCss.includes('.home-graph__drawer-synapse') &&
-      graphCss.includes('.home-graph__layer-node:focus-visible') &&
-      graphCss.includes('.home-graph__inspector-close:focus-visible') &&
-      graphCss.includes('outline: 3px solid') &&
-      graphCss.includes('@media (min-width: 941px)'),
-      'homepage graph should route the active subcategory into an accessible desktop neural-layer drawer');
-    assert(!graphJs.includes('const stackStep = dimensions.height') &&
-      graphJs.includes('selectedGroup.items.map((item, index)') &&
-      graphJs.includes('getSelectedGroupIdForLayout(categoryId, selectedKey) || groups[0]?.id') &&
-      graphJs.includes("event.target.closest?.('[data-graph-category], [data-graph-group], [data-graph-item]") &&
-      personalAudience.includes('id=\\"home-graph-layer-host\\"') &&
-      personalAudience.includes('home-graph-20260711-layer-drawer-v1'),
-      'homepage graph should reveal only one selected group in the desktop drawer and preserve collapse-safe interaction boundaries');
-    assert(graphJs.includes("map.addEventListener('click'") &&
-      graphJs.includes("center?.addEventListener('click', () => collapseGraph())"),
-      'homepage graph should collapse the active branch from the center logo or empty canvas space');
-    assert(graphJs.includes("event.target.closest('[data-graph-category]')") &&
-      graphJs.includes('selectCategory(categoryEl.dataset.graphCategory)') &&
-      graphCss.includes('.home-graph__category-toggle') &&
-      graphCss.includes('position: relative'),
-      'homepage graph plus/minus chips and category shells should both toggle the branch');
-    assert(graphJs.includes('const title = item.fullTitle || item.title;') &&
-      graphJs.includes('title="${escapeHtml(title)}"') &&
-      graphJs.includes('title="${escapeHtml(category.label)}"'),
-      'homepage graph nodes and category buttons should expose native hover titles');
-    assert(graphJs.includes("addEventListener('pointerover', handleItemPreviewEnter)") &&
-      graphJs.includes("addEventListener('mouseover', handleItemPreviewEnter)") &&
-      graphJs.includes("addEventListener('focusin'") &&
-      graphJs.includes('data-graph-line-key') &&
-      !graphJs.includes("svg.innerHTML = ''") &&
-      graphCss.includes('.home-graph__node:is(:hover, :focus-visible, :focus-within)') &&
-      !graphJs.includes('setTimeout(drawLines'),
-      'homepage graph should expose node tooltip previews above other nodes and avoid delayed line redraw flashes');
-    assert(personalAudience.includes('home-graph__center-logo') &&
-      personalAudience.includes('img/brand/00-ds-logo-master-full-color.svg') &&
-      personalAudience.includes('home-graph__center is-active') &&
-      personalAudience.includes('aria-pressed=\\"true\\"'),
-      'homepage graph should use the main DS logo as the active center node');
-    assert(!html.includes('class="home-graph__tabs"') &&
-      !personalAudience.includes('data-graph-tab') &&
-      !graphCss.includes('.home-graph__tabs') &&
-      !graphCss.includes('.home-graph-help') &&
-      !graphJs.includes('openHelpModal'),
-      'homepage graph should not render the removed tab strip or initial guide modal');
-    assert(!html.includes('Blog') && !html.includes('href="blog"') && !personalAudience.includes('Blog'),
-      'personal homepage should not include a blog page link');
-    assert(!html.includes('tourism intelligence') && !html.includes('Domain</dt><dd>Tourism'),
-      'personal homepage should move away from tourism/professional positioning');
-    assert(!html.includes('id="experiments"'), 'homepage should not render an Experiments section');
-    assert(!html.includes('id="about"'), 'homepage should not render an About section');
-    assert(!html.includes('id="featured-projects"') &&
-      !html.includes('id="tools-preview"') &&
-      !html.includes('id="games-preview"') &&
-      !html.includes('id="contact-preview"'),
-      'homepage should use the interactive graph instead of the prior stacked sections');
-    assert(personalAudience.includes('class=\\"home-graph\\"') &&
-      personalAudience.includes('data-graph-map') &&
-      personalAudience.includes('data-graph-item-host') &&
-      personalAudience.includes('data-graph-inspector'),
-      'personal homepage source should persist the interactive graph shell');
-    assert(!personalAudience.includes('home-hero-panel') && !personalAudience.includes('tourism intelligence'),
-      'personal homepage source should not keep the previous professional hero copy');
-    assert(!html.includes('audience-gateway-hero'), 'homepage should not use audience gateway hero');
-    assert(!html.includes('class="hero-proof-row"'), 'homepage hero should not include the old metric strip');
-    assert(!html.includes('this version'), 'homepage should not mention audience versions');
-    assert(!html.includes('data-cert-modal-open'), 'homepage should not include resume-era certification modal hooks');
-    const workspaceIndex = html.indexOf('class="home-graph__workspace"');
-    assert(!html.includes('class="home-graph__profile"') &&
-      !html.includes('img/hero/head-avatar-192.jpg') &&
-      !personalAudience.includes('home-graph__profile') &&
-      !personalAudience.includes('ML engineer &middot; data builder &middot; problem solver'),
-      'homepage graph should not render the old identity profile panel');
-    assert(workspaceIndex >= 0 &&
-      html.includes('<div class="wrapper home-graph__shell"><header class="home-graph__intro"') &&
-      !html.includes('id="home-graph-help-modal"') &&
-      !html.includes('How this page works') &&
-      !html.includes('data-home-graph-help-close'),
-      'homepage graph should render the graph workspace directly without the tab bar or initial guide modal');
-    assert(graphCss.includes('.home-graph__halo-dot::before') &&
-      graphCss.includes('font-size: .75rem') &&
-      graphCss.includes('homeGraphLineSignal 4.6s linear 1 both') &&
-      graphCss.includes('homeGraphDotBreathe 4.4s ease-in-out 1 both') &&
-      !graphCss.includes('infinite'),
-      'desktop graph should provide readable labels, 44px halo-dot targets, and finite introductory motion');
+  section('Personal homepage category accordion', () => {
+    runHomeCategoryAccordionTests({ assert });
   });
 
   section('Shared mobile dock and compact footer', () => {
@@ -41037,18 +41147,15 @@ try {
     });
 
     const imageOptimizer = readFile('build/optimize-site-images.js');
-    const homeGraphCss = readFile('css/components/home-project-graph.css');
+    const homeAccordionSource = readFile('content/audiences/personal.json');
     const brandOverrideCss = readFile('css/utilities/design-system-overrides.css');
     const starfallLoadingCss = readFile('css/games/project-starfall/loading.css');
     const recruiterStoryCss = readFile('css/components/recruiter-story.css');
-    const homeGraphJs = readFile('js/home/project-graph.js');
     assert(imageOptimizer.includes('sharp') &&
       imageOptimizer.includes('27-hero-mobile-light.png') &&
       imageOptimizer.includes('24-hero-analytics-light.png') &&
       imageOptimizer.includes('start-screen.png'),
       'image optimization build should generate personal, analytics, and Project Starfall variants with Sharp');
-    assert(homeGraphCss.includes('27-hero-mobile-light.avif') && homeGraphCss.includes('27-hero-mobile-light.webp'),
-      'homepage mobile hero should prefer AVIF/WebP with its PNG fallback');
     assert(brandOverrideCss.includes('27-hero-mobile-light.avif') && brandOverrideCss.includes('27-hero-mobile-light.webp'),
       'shared mobile hero artwork should prefer AVIF/WebP with its PNG fallback');
     assert(starfallLoadingCss.includes('start-screen.avif') && starfallLoadingCss.includes('start-screen.webp'),
@@ -41064,8 +41171,8 @@ try {
       recruiterStoryCss.includes('24-hero-analytics-light-960.avif') &&
       recruiterStoryCss.includes('24-hero-analytics-light-960.webp'),
       'analytics hero should use responsive AVIF/WebP artwork with its PNG fallback');
-    assert(homeGraphJs.includes("'project-starfall': '/img/project-starfall/ui/start-screen.webp'"),
-      'homepage Project Starfall preview should use the optimized WebP image');
+    assert(homeAccordionSource.includes('img/project-starfall/ui/start-screen.webp'),
+      'homepage Project Starfall card should use the optimized WebP image');
 
     const generator = fs.readFileSync('build/generate-project-pages.js', 'utf8');
     assert(!generator.includes('project-case-study'), 'project generator should not render removed Key Decisions panel content');
