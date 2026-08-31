@@ -105,7 +105,7 @@
         "variant": "shallow-wedge",
         "props": {
           "accessibleTitle": "Explore Daniel Short",
-          "defaultPanel": "tools",
+          "defaultPanel": "about",
           "categories": [
             {
               "id": "about",
@@ -114,42 +114,157 @@
               "colorEnd": "#032b57",
               "title": "Hi, I’m Daniel.",
               "lead": "I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.",
-              "meta": [
-                "Based in Grand Junction, Colorado",
-                "Now building Project Starfall"
-              ],
-              "items": [
-                {
-                  "id": "builder",
-                  "title": "Builder of useful interfaces",
-                  "summary": "I like turning complicated ideas into small, understandable things people can actually use.",
-                  "image": "img/hero/head-avatar-384.jpg",
-                  "imageAlt": "Daniel Short",
-                  "imageWidth": 384,
-                  "imageHeight": 384
-                },
-                {
-                  "id": "project-starfall",
-                  "title": "Project Starfall",
-                  "summary": "The evolving action RPG I’m actively building around responsive combat, progression, and handcrafted encounters.",
-                  "href": "/games/project-starfall",
-                  "image": "img/project-starfall/ui/start-screen.webp",
-                  "imageAlt": "Project Starfall title screen",
-                  "contentType": "game",
-                  "contentId": "project-starfall",
-                  "resourceType": "game",
-                  "badge": "Now building"
-                },
-                {
-                  "id": "playground",
-                  "title": "A growing playground",
-                  "summary": "16 published projects · 10 public tools · 6 games",
-                  "icon": "projects"
-                }
-              ],
-              "cta": {
-                "label": "Explore the project library",
-                "href": "/portfolio"
+              "context": "Based in Grand Junction, Colorado. Currently building Project Starfall.",
+              "profile": {
+                "image": "img/hero/head-avatar-384.jpg",
+                "imageAlt": "Daniel Short",
+                "imageWidth": 384,
+                "imageHeight": 384
+              },
+              "timeline": {
+                "title": "My path so far",
+                "lead": "A timeline of real milestones in learning and work.",
+                "items": [
+                  {
+                    "id": "target",
+                    "type": "job",
+                    "date": "2022-06",
+                    "endDate": "2023-11",
+                    "title": "Asset Protection Data Analyst",
+                    "subtitle": "Target",
+                    "image": "img/company_logos/target-256.png",
+                    "imageAlt": "Target logo",
+                    "imageWidth": 256,
+                    "imageHeight": 256
+                  },
+                  {
+                    "id": "google-data-analytics",
+                    "type": "certification",
+                    "date": "2023-01-03",
+                    "title": "Google Data Analytics Professional Certificate",
+                    "subtitle": "Google / Coursera",
+                    "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP",
+                    "external": true,
+                    "image": "img/cert_logos/google-48.png",
+                    "imageAlt": "Google logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "ibm-data-analyst",
+                    "type": "certification",
+                    "date": "2023-01-11",
+                    "title": "IBM Data Analyst Professional Certificate",
+                    "subtitle": "IBM / Coursera",
+                    "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA",
+                    "external": true,
+                    "image": "img/cert_logos/ibm-48.png",
+                    "imageAlt": "IBM logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "ibm-machine-learning",
+                    "type": "certification",
+                    "date": "2023-02-12",
+                    "title": "IBM Machine Learning Professional Certificate",
+                    "subtitle": "IBM / Coursera",
+                    "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2",
+                    "external": true,
+                    "image": "img/cert_logos/ibm-48.png",
+                    "imageAlt": "IBM logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "purdue-bs-data-analytics",
+                    "type": "degree",
+                    "date": "2023-05",
+                    "title": "B.S. Data Analytics",
+                    "subtitle": "Purdue University Global",
+                    "href": "https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b",
+                    "external": true,
+                    "image": "img/cert_logos/purdue_global-48.png",
+                    "imageAlt": "Purdue University Global logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "google-advanced-data-analytics",
+                    "type": "certification",
+                    "date": "2023-05-20",
+                    "title": "Google Advanced Data Analytics Professional Certificate",
+                    "subtitle": "Google / Coursera",
+                    "href": "https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS",
+                    "external": true,
+                    "image": "img/cert_logos/google-48.png",
+                    "imageAlt": "Google logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "randall-reilly",
+                    "type": "job",
+                    "date": "2023-11",
+                    "endDate": "2024-01",
+                    "title": "AI Data Quality Analyst",
+                    "subtitle": "Randall Reilly",
+                    "image": "img/company_logos/randall-reilly.png",
+                    "imageAlt": "Randall Reilly logo",
+                    "imageWidth": 200,
+                    "imageHeight": 200
+                  },
+                  {
+                    "id": "visit-grand-junction",
+                    "type": "job",
+                    "date": "2024-02",
+                    "ongoing": true,
+                    "title": "Business Analyst",
+                    "subtitle": "Visit Grand Junction",
+                    "image": "img/company_logos/visit-grand-junction.png",
+                    "imageAlt": "Visit Grand Junction logo",
+                    "imageWidth": 284,
+                    "imageHeight": 225
+                  },
+                  {
+                    "id": "google-analytics",
+                    "type": "certification",
+                    "date": "2024-04-18",
+                    "title": "Google Analytics Certification",
+                    "subtitle": "Google Skillshop",
+                    "href": "https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a",
+                    "external": true,
+                    "image": "img/cert_logos/google-48.png",
+                    "imageAlt": "Google logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "eastern-ms-data-science",
+                    "type": "degree",
+                    "date": "2025-05",
+                    "title": "M.S. Data Science",
+                    "subtitle": "Eastern University",
+                    "image": "img/cert_logos/eastern-48.png",
+                    "imageAlt": "Eastern University logo",
+                    "imageWidth": 48,
+                    "imageHeight": 48
+                  },
+                  {
+                    "id": "project-starfall",
+                    "type": "project",
+                    "current": true,
+                    "title": "Building Project Starfall",
+                    "subtitle": "Currently building",
+                    "summary": "An evolving action RPG built around responsive combat, progression, and handcrafted encounters.",
+                    "href": "/games/project-starfall",
+                    "image": "img/project-starfall/ui/start-screen.webp",
+                    "imageAlt": "Project Starfall title screen",
+                    "contentType": "game",
+                    "contentId": "project-starfall",
+                    "resourceType": "game"
+                  }
+                ]
               }
             },
             {
@@ -166,20 +281,9 @@
               ],
               "items": [
                 {
-                  "id": "handwritingRating",
-                  "title": "Handwriting Legibility Scoring",
-                  "summary": "A CNN-based handwriting demo that classifies drawn digits and scores how legible they appear.",
-                  "href": "/portfolio/handwritingRating",
-                  "image": "img/projects/handwritingRating-640.webp",
-                  "imageAlt": "Handwriting Legibility Scoring project preview",
-                  "contentType": "project",
-                  "contentId": "handwritingRating",
-                  "resourceType": "case_study"
-                },
-                {
                   "id": "babynames",
                   "title": "Baby Name Predictor",
-                  "summary": "A personal recommendation model that learns name preferences from labels and historical name trends.",
+                  "summary": "I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.",
                   "href": "/portfolio/babynames",
                   "image": "img/projects/babynames-640.webp",
                   "imageAlt": "Baby Name Predictor project preview",
@@ -188,9 +292,20 @@
                   "resourceType": "case_study"
                 },
                 {
+                  "id": "handwritingRating",
+                  "title": "Handwriting Legibility Scoring",
+                  "summary": "My wife said my handwriting was hard to read, so I trained a model to give it an objective legibility score.",
+                  "href": "/portfolio/handwritingRating",
+                  "image": "img/projects/handwritingRating-640.webp",
+                  "imageAlt": "Handwriting Legibility Scoring project preview",
+                  "contentType": "project",
+                  "contentId": "handwritingRating",
+                  "resourceType": "case_study"
+                },
+                {
                   "id": "sheetMusicUpscale",
                   "title": "Sheet Music Watermark Removal & Upscale",
-                  "summary": "A UNet and VDSR image pipeline for removing watermarks and upscaling low-resolution sheet music.",
+                  "summary": "I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.",
                   "href": "/portfolio/sheetMusicUpscale",
                   "image": "img/projects/sheetMusicUpscale-640.webp",
                   "imageAlt": "Sheet Music Watermark Removal and Upscale project preview",
@@ -201,7 +316,7 @@
                 {
                   "id": "ufoDashboard",
                   "title": "UFO Sightings Dashboard",
-                  "summary": "A geospatial Tableau dashboard for exploring sighting reports by location, time, and shape.",
+                  "summary": "I wanted to see patterns in UFO reports, so I built a dashboard to explore sightings by place, time, and shape.",
                   "href": "/portfolio/ufoDashboard",
                   "image": "img/projects/ufoDashboard-640.webp",
                   "imageAlt": "UFO Sightings Dashboard project preview",
@@ -211,8 +326,11 @@
                 }
               ],
               "cta": {
-                "label": "Explore all projects",
-                "href": "/portfolio"
+                "label": "View all projects",
+                "href": "/portfolio",
+                "libraryTitle": "Project library",
+                "libraryLead": "A collection of machine learning projects, practical tools, and playful experiments.",
+                "pageLabel": "Open the dedicated project page"
               }
             },
             {
@@ -270,22 +388,14 @@
                   "contentType": "tool",
                   "contentId": "screen-recorder",
                   "resourceType": "tool"
-                },
-                {
-                  "id": "word-frequency",
-                  "title": "Word Frequency Analyzer",
-                  "summary": "Paste text, strip stopwords, and see the most frequent words entirely in-browser.",
-                  "href": "/tools/word-frequency",
-                  "image": "img/tools/icons/word-frequency.png",
-                  "imageAlt": "Word Frequency Analyzer icon",
-                  "contentType": "tool",
-                  "contentId": "word-frequency",
-                  "resourceType": "tool"
                 }
               ],
               "cta": {
-                "label": "Explore all tools",
-                "href": "/tools"
+                "label": "View all tools",
+                "href": "/tools",
+                "libraryTitle": "Tool library",
+                "libraryLead": "The complete collection of small utilities for text, links, media, and recurring workflows.",
+                "pageLabel": "Open the dedicated tools page"
               }
             },
             {
@@ -296,7 +406,7 @@
               "title": "Playable experiments",
               "lead": "Games and simulations where I explore progression, probability, feedback loops, and feel.",
               "meta": [
-                "Six playable experiments",
+                "Four featured experiments",
                 "Built for the browser"
               ],
               "items": [
@@ -310,15 +420,15 @@
                   "contentType": "game",
                   "contentId": "project-starfall",
                   "resourceType": "game",
-                  "badge": "Now building"
+                  "badge": "Now building",
+                  "presentation": "featured"
                 },
                 {
                   "id": "stormbreak",
                   "title": "Stormbreak: Idle Olympus",
                   "summary": "Command Zeus and turn lightning, loot, and offline gains into a compounding idle-action loop.",
                   "href": "/games/stormbreak",
-                  "image": "img/games/stormbreak/temple-of-ash.webp",
-                  "imageAlt": "Pixel-art Temple of Ash arena from Stormbreak",
+                  "icon": "stormbreak",
                   "contentType": "game",
                   "contentId": "stormbreak",
                   "resourceType": "game"
@@ -328,8 +438,7 @@
                   "title": "Stellar Dogfight",
                   "summary": "Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.",
                   "href": "/games/stellar-dogfight",
-                  "image": "img/games/stellar-dogfight/raster/background-nebula.png",
-                  "imageAlt": "Stellar Dogfight nebula background",
+                  "icon": "stellar-dogfight",
                   "contentType": "game",
                   "contentId": "stellar-dogfight",
                   "resourceType": "game"
@@ -339,35 +448,18 @@
                   "title": "Probability Engine",
                   "summary": "Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.",
                   "href": "/games/probability-engine",
-                  "icon": "games",
+                  "icon": "probability",
                   "contentType": "game",
                   "contentId": "probability-engine",
-                  "resourceType": "game"
-                },
-                {
-                  "id": "roulette",
-                  "title": "Double-Zero Roulette",
-                  "summary": "Run a double-zero table and track recent-spin distributions over time.",
-                  "href": "/games/roulette",
-                  "icon": "games",
-                  "contentType": "game",
-                  "contentId": "roulette",
-                  "resourceType": "game"
-                },
-                {
-                  "id": "ocean-wave-simulation",
-                  "title": "Ocean Wave Simulation",
-                  "summary": "Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.",
-                  "href": "/games/ocean-wave-simulation",
-                  "icon": "games",
-                  "contentType": "game",
-                  "contentId": "ocean-wave-simulation",
                   "resourceType": "game"
                 }
               ],
               "cta": {
-                "label": "Explore all games",
-                "href": "/games"
+                "label": "View all games",
+                "href": "/games",
+                "libraryTitle": "Game library",
+                "libraryLead": "All of my browser games and simulations, from action RPG systems to probability experiments.",
+                "pageLabel": "Open the dedicated games page"
               }
             },
             {
@@ -377,17 +469,13 @@
               "colorEnd": "#263648",
               "title": "Say hello",
               "lead": "Send a note about a project, tool, idea, or question. I’ll reply when I can.",
-              "meta": [
-                "Email is fastest",
-                "Grand Junction, Colorado"
-              ],
               "items": [
                 {
                   "id": "contact-form",
                   "title": "Send a message",
                   "summary": "Use the short contact form and share what’s on your mind.",
                   "href": "/contact#contact-modal",
-                  "icon": "contact",
+                  "icon": "message",
                   "contentType": "page",
                   "contentId": "contact",
                   "resourceType": "contact"
@@ -397,21 +485,18 @@
                   "title": "Email",
                   "summary": "daniel@danielshort.me",
                   "href": "mailto:daniel@danielshort.me",
-                  "icon": "contact"
+                  "icon": "email"
                 },
                 {
                   "id": "github",
                   "title": "GitHub",
-                  "summary": "Browse the code behind the projects, tools, and experiments.",
+                  "summary": "github.com/danielshort3",
                   "href": "https://github.com/danielshort3",
-                  "icon": "projects",
-                  "external": true
+                  "icon": "github",
+                  "external": true,
+                  "presentation": "tertiary"
                 }
-              ],
-              "cta": {
-                "label": "Open the contact page",
-                "href": "/contact"
-              }
+              ]
             }
           ]
         }
