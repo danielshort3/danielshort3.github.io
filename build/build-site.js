@@ -138,7 +138,11 @@ function main() {
     const imagesStep = runNodeScript(path.join('build', 'optimize-site-images.js'), { verbose });
     logStep('images', imagesStep.durationMs, 'responsive homepage heroes + Project Starfall start screen');
 
-    // 3) CSS bundle (css/ -> dist/)
+    // 3) Branded homepage library previews (authored WebP cards)
+    const homeVisualsStep = runNodeScript(path.join('build', 'validate-home-library-visuals.js'), { verbose });
+    logStep('home-previews', homeVisualsStep.durationMs, '16 projects + 10 tools + 6 games');
+
+    // 4) CSS bundle (css/ -> dist/)
     const cssStep = runNodeScript(path.join('build', 'build-css.js'), { verbose });
     const cssManifestPath = path.join(root, 'dist', 'styles-manifest.json');
     const manifest = readJson(cssManifestPath);

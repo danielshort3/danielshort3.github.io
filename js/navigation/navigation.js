@@ -990,12 +990,11 @@
     if (!input || !button) return;
     form.__navSearchReady = true;
     const desktopMatcher = window.matchMedia('(min-width: 769px)');
-    const isHomeSearch = document.body?.dataset.page === 'home';
 
     const setExpanded = (expanded, options = {}) => {
       const { focusInput = false, restoreButtonFocus = false } = options;
       const enhanced = Boolean(desktopMatcher.matches);
-      const nextExpanded = enhanced && (isHomeSearch || Boolean(expanded));
+      const nextExpanded = enhanced && Boolean(expanded);
       form.classList.toggle('nav-search-is-enhanced', enhanced);
       form.classList.toggle('is-expanded', nextExpanded);
       form.dataset.navSearch = enhanced ? (nextExpanded ? 'expanded' : 'collapsed') : 'full';
@@ -1015,7 +1014,7 @@
 
     form.addEventListener('submit', (event) => {
       if (!desktopMatcher.matches) return;
-      if (!isHomeSearch && !form.classList.contains('is-expanded')) {
+      if (!form.classList.contains('is-expanded')) {
         event.preventDefault();
         closeActiveDropdowns(null, { forceBlur: true });
         setExpanded(true, { focusInput: true });
@@ -1034,19 +1033,19 @@
     });
 
     form.addEventListener('keydown', (event) => {
-      if (!desktopMatcher.matches || isHomeSearch || event.key !== 'Escape') return;
+      if (!desktopMatcher.matches || event.key !== 'Escape') return;
       if (!form.classList.contains('is-expanded')) return;
       event.preventDefault();
       setExpanded(false, { restoreButtonFocus: true });
     });
 
     document.addEventListener('pointerdown', (event) => {
-      if (!desktopMatcher.matches || isHomeSearch || !form.classList.contains('is-expanded')) return;
+      if (!desktopMatcher.matches || !form.classList.contains('is-expanded')) return;
       if (form.contains(event.target)) return;
       setExpanded(false);
     }, true);
 
-    const syncMode = () => setExpanded(isHomeSearch);
+    const syncMode = () => setExpanded(false);
     if (typeof desktopMatcher.addEventListener === 'function') {
       desktopMatcher.addEventListener('change', syncMode);
     } else if (typeof desktopMatcher.addListener === 'function') {

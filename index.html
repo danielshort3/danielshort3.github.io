@@ -47,8 +47,8 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.26138b1d.css">
-  <link rel="stylesheet" href="dist/styles-home.2d37e1e2.css">
+  <link rel="stylesheet" href="dist/styles.79593621.css">
+  <link rel="stylesheet" href="dist/styles-home.6f897044.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -56,7 +56,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.7dca8053.js"></script>
+  <script defer src="dist/site-shell.dc7312d1.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <script type="application/ld+json" id="site-jsonld">
@@ -212,137 +212,289 @@
     </nav>
   </header>
   <main id="main">
-  <section class="home-accordion" data-cms-section-id="home-category-accordion" data-cms-section-type="home-accordion" data-home-accordion data-default-panel="tools" data-active-panel="tools" aria-labelledby="home-accordion-title">
+  <section class="home-accordion" data-cms-section-id="home-category-accordion" data-cms-section-type="home-accordion" data-home-accordion data-default-panel="about" data-active-panel="about" data-home-view="overview" aria-labelledby="home-accordion-title">
     <h1 class="visually-hidden" id="home-accordion-title">Explore Daniel Short</h1>
     <div class="home-accordion__shell">
-      <article class="home-accordion__item home-accordion__item--about" data-home-accordion-item="about" style="--panel-color: #091f3b; --panel-color-end: #032b57;">
-        <button class="home-accordion__rail" id="home-accordion-trigger-about" type="button" aria-expanded="false" aria-controls="home-accordion-panel-about" data-home-accordion-trigger="about">
-          <span class="home-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
-          <span class="home-accordion__rail-label">About</span>
-          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
-        </button>
-        <section class="home-accordion__panel" id="home-accordion-panel-about" role="region" aria-labelledby="home-accordion-trigger-about" data-home-accordion-panel="about" hidden inert>
-          <div class="home-accordion__scroller" data-home-accordion-scroller tabindex="0" aria-label="About content">
-            <header class="home-accordion__panel-head">
-              <p class="home-accordion__eyebrow">About</p>
-              <div class="home-accordion__title-row">
-                <span class="home-accordion__title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
-                <h2>Hi, I’m Daniel.</h2>
+      <article class="home-accordion__item home-accordion__item--about is-active" data-home-accordion-item="about" aria-labelledby="home-accordion-trigger-about" style="--panel-color: #091f3b; --panel-color-end: #032b57;">
+        <h2 class="home-accordion__heading">
+          <button class="home-accordion__rail" id="home-accordion-trigger-about" type="button" aria-expanded="true" aria-controls="home-accordion-panel-about" aria-disabled="true" data-home-accordion-trigger="about">
+            <span class="home-accordion__rail-icon" data-home-icon="about" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
+            <span class="home-accordion__rail-label">About</span>
+            <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
+        <section class="home-accordion__panel" id="home-accordion-panel-about" role="region" aria-labelledby="home-accordion-trigger-about" data-home-accordion-panel="about">
+          <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="About content">
+            <button class="home-library__back home-library__back--overview" type="button" data-home-library-close="about"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>
+            <header class="home-accordion__panel-head home-accordion__panel-head--profile">
+              <div class="home-accordion__profile-copy">
+                <p class="home-accordion__eyebrow">About</p>
+                <div class="home-accordion__title-row">
+                  <span class="home-accordion__title-icon" data-home-icon="about" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
+                  <h3>Hi, I’m Daniel.</h3>
+                </div>
+                <p class="home-accordion__lead">I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.</p>
+                <p class="home-accordion__context home-accordion__context--profile">Based in Grand Junction, Colorado. Currently building Project Starfall.</p>
               </div>
-              <p class="home-accordion__lead">I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.</p>
+              <figure class="home-accordion__profile-portrait">
+                <img src="img/hero/head-avatar-384.jpg" alt="Daniel Short" loading="eager" decoding="async" width="384" height="384">
+              </figure>
             </header>
-            <ul class="home-accordion__meta" aria-label="About highlights"><li>Based in Grand Junction, Colorado</li><li>Now building Project Starfall</li></ul>
-            <ul class="home-accordion__cards">
-              <li class="home-accordion__card-item">
-                <article class="home-accordion__card">
-                  <span class="home-accordion__card-media"><img src="img/hero/head-avatar-384.jpg" alt="Daniel Short" loading="lazy" decoding="async" width="384" height="384"></span>
-                  <span class="home-accordion__card-copy">
-                    <strong>Builder of useful interfaces</strong>
-                    <span>I like turning complicated ideas into small, understandable things people can actually use.</span>
-                  </span>
-                </article>
-              </li>
-              <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/project-starfall/ui/start-screen.webp" alt="Project Starfall title screen" loading="lazy" decoding="async"></span>
-                  <span class="home-accordion__card-copy">
-                    <span class="home-accordion__card-badge">Now building</span>
-                    <strong>Project Starfall</strong>
-                    <span>The evolving action RPG I’m actively building around responsive combat, progression, and handcrafted encounters.</span>
-                  </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
-                </a>
-              </li>
-              <li class="home-accordion__card-item">
-                <article class="home-accordion__card">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span></span>
-                  <span class="home-accordion__card-copy">
-                    <strong>A growing playground</strong>
-                    <span>16 published projects · 10 public tools · 6 games</span>
-                  </span>
-                </article>
-              </li>
-            </ul>
-            <a class="home-accordion__panel-cta" href="/portfolio">Explore the project library <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+            <section class="home-timeline" data-home-timeline aria-labelledby="home-timeline-about-title">
+              <header class="home-timeline__head">
+                <span class="home-timeline__head-icon" data-home-icon="timeline" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M5 7h7M5 12h11M5 17h8"></path><circle cx="5" cy="7" r="1.5"></circle><circle cx="5" cy="12" r="1.5"></circle><circle cx="5" cy="17" r="1.5"></circle></svg></span>
+                <h4 id="home-timeline-about-title">My path so far</h4>
+                <p>A timeline of real milestones in learning and work.</p>
+              </header>
+              <ol class="home-timeline__list">
+            <li class="home-timeline__item home-timeline__item--job" data-home-timeline-item="target">
+              <div class="home-timeline__date">
+                <time datetime="2022-06">Jun 2022</time> <span class="home-timeline__date-separator">–</span> <time datetime="2023-11">Nov 2023</time>
+              </div>
+              <article class="home-timeline__entry">
+                <span class="home-timeline__media"><img src="img/company_logos/target-256.png" alt="Target logo" loading="lazy" decoding="async" width="256" height="256"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Work</span>
+                  <strong class="home-timeline__title">Asset Protection Data Analyst</strong>
+                  <span class="home-timeline__subtitle">Target</span>
+                </span>
+              </article>
+            </li>
+            <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="google-data-analytics">
+              <div class="home-timeline__date">
+                <time datetime="2023-01-03">Jan 3, 2023</time>
+              </div>
+              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">
+                <span class="home-timeline__media"><img src="img/cert_logos/google-48.png" alt="Google logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Certification</span>
+                  <strong class="home-timeline__title">Google Data Analytics Professional Certificate</strong>
+                  <span class="home-timeline__subtitle">Google / Coursera</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
+              </a>
+            </li>
+            <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="ibm-data-analyst">
+              <div class="home-timeline__date">
+                <time datetime="2023-01-11">Jan 11, 2023</time>
+              </div>
+              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">
+                <span class="home-timeline__media"><img src="img/cert_logos/ibm-48.png" alt="IBM logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Certification</span>
+                  <strong class="home-timeline__title">IBM Data Analyst Professional Certificate</strong>
+                  <span class="home-timeline__subtitle">IBM / Coursera</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
+              </a>
+            </li>
+            <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="ibm-machine-learning">
+              <div class="home-timeline__date">
+                <time datetime="2023-02-12">Feb 12, 2023</time>
+              </div>
+              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">
+                <span class="home-timeline__media"><img src="img/cert_logos/ibm-48.png" alt="IBM logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Certification</span>
+                  <strong class="home-timeline__title">IBM Machine Learning Professional Certificate</strong>
+                  <span class="home-timeline__subtitle">IBM / Coursera</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
+              </a>
+            </li>
+            <li class="home-timeline__item home-timeline__item--degree" data-home-timeline-item="purdue-bs-data-analytics">
+              <div class="home-timeline__date">
+                <time datetime="2023-05">May 2023</time>
+              </div>
+              <a class="home-timeline__entry" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
+                <span class="home-timeline__media"><img src="img/cert_logos/purdue_global-48.png" alt="Purdue University Global logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Degree</span>
+                  <strong class="home-timeline__title">B.S. Data Analytics</strong>
+                  <span class="home-timeline__subtitle">Purdue University Global</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
+              </a>
+            </li>
+            <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="google-advanced-data-analytics">
+              <div class="home-timeline__date">
+                <time datetime="2023-05-20">May 20, 2023</time>
+              </div>
+              <a class="home-timeline__entry" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
+                <span class="home-timeline__media"><img src="img/cert_logos/google-48.png" alt="Google logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Certification</span>
+                  <strong class="home-timeline__title">Google Advanced Data Analytics Professional Certificate</strong>
+                  <span class="home-timeline__subtitle">Google / Coursera</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
+              </a>
+            </li>
+            <li class="home-timeline__item home-timeline__item--job" data-home-timeline-item="randall-reilly">
+              <div class="home-timeline__date">
+                <time datetime="2023-11">Nov 2023</time> <span class="home-timeline__date-separator">–</span> <time datetime="2024-01">Jan 2024</time>
+              </div>
+              <article class="home-timeline__entry">
+                <span class="home-timeline__media"><img src="img/company_logos/randall-reilly.png" alt="Randall Reilly logo" loading="lazy" decoding="async" width="200" height="200"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Work</span>
+                  <strong class="home-timeline__title">AI Data Quality Analyst</strong>
+                  <span class="home-timeline__subtitle">Randall Reilly</span>
+                </span>
+              </article>
+            </li>
+            <li class="home-timeline__item home-timeline__item--job" data-home-timeline-item="visit-grand-junction">
+              <div class="home-timeline__date">
+                <time datetime="2024-02">Feb 2024</time> <span class="home-timeline__date-separator">–</span> <span class="home-timeline__current">Present</span>
+              </div>
+              <article class="home-timeline__entry">
+                <span class="home-timeline__media"><img src="img/company_logos/visit-grand-junction.png" alt="Visit Grand Junction logo" loading="lazy" decoding="async" width="284" height="225"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Work</span>
+                  <strong class="home-timeline__title">Business Analyst</strong>
+                  <span class="home-timeline__subtitle">Visit Grand Junction</span>
+                </span>
+              </article>
+            </li>
+            <li class="home-timeline__item home-timeline__item--certification" data-home-timeline-item="google-analytics">
+              <div class="home-timeline__date">
+                <time datetime="2024-04-18">Apr 18, 2024</time>
+              </div>
+              <a class="home-timeline__entry" href="https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a" target="_blank" rel="noopener noreferrer">
+                <span class="home-timeline__media"><img src="img/cert_logos/google-48.png" alt="Google logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Certification</span>
+                  <strong class="home-timeline__title">Google Analytics Certification</strong>
+                  <span class="home-timeline__subtitle">Google Skillshop</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
+              </a>
+            </li>
+            <li class="home-timeline__item home-timeline__item--degree" data-home-timeline-item="eastern-ms-data-science">
+              <div class="home-timeline__date">
+                <time datetime="2025-05">May 2025</time>
+              </div>
+              <article class="home-timeline__entry">
+                <span class="home-timeline__media"><img src="img/cert_logos/eastern-48.png" alt="Eastern University logo" loading="lazy" decoding="async" width="48" height="48"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Degree</span>
+                  <strong class="home-timeline__title">M.S. Data Science</strong>
+                  <span class="home-timeline__subtitle">Eastern University</span>
+                </span>
+              </article>
+            </li>
+            <li class="home-timeline__item home-timeline__item--project" data-home-timeline-item="project-starfall">
+              <div class="home-timeline__date">
+                <span class="home-timeline__current">Now</span>
+              </div>
+              <a class="home-timeline__entry" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_timeline">
+                <span class="home-timeline__media"><img src="img/project-starfall/ui/start-screen.webp" alt="Project Starfall title screen" loading="lazy" decoding="async"></span>
+                <span class="home-timeline__copy">
+                  <span class="home-timeline__type">Project</span>
+                  <strong class="home-timeline__title">Building Project Starfall</strong>
+                  <span class="home-timeline__subtitle">Currently building</span>
+                  <span class="home-timeline__summary">An evolving action RPG built around responsive combat, progression, and handcrafted encounters.</span>
+                </span>
+                <span class="home-timeline__arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+              </a>
+            </li>
+              </ol>
+            </section>
           </div>
         </section>
       </article>
-      <article class="home-accordion__item home-accordion__item--projects" data-home-accordion-item="projects" style="--panel-color: #155dfc; --panel-color-end: #0b4bd4;">
-        <button class="home-accordion__rail" id="home-accordion-trigger-projects" type="button" aria-expanded="false" aria-controls="home-accordion-panel-projects" data-home-accordion-trigger="projects">
-          <span class="home-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
-          <span class="home-accordion__rail-label">Projects</span>
-          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
-        </button>
+      <article class="home-accordion__item home-accordion__item--projects home-accordion__item--has-library" data-home-accordion-item="projects" aria-labelledby="home-accordion-trigger-projects" style="--panel-color: #155dfc; --panel-color-end: #0b4bd4;">
+        <h2 class="home-accordion__heading">
+          <button class="home-accordion__rail" id="home-accordion-trigger-projects" type="button" aria-expanded="false" aria-controls="home-accordion-panel-projects" data-home-accordion-trigger="projects">
+            <span class="home-accordion__rail-icon" data-home-icon="projects" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
+            <span class="home-accordion__rail-label">Projects</span>
+            <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
         <section class="home-accordion__panel" id="home-accordion-panel-projects" role="region" aria-labelledby="home-accordion-trigger-projects" data-home-accordion-panel="projects" hidden inert>
-          <div class="home-accordion__scroller" data-home-accordion-scroller tabindex="0" aria-label="Projects content">
+          <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="Projects content">
             <header class="home-accordion__panel-head">
               <p class="home-accordion__eyebrow">Projects</p>
               <div class="home-accordion__title-row">
-                <span class="home-accordion__title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
-                <h2>Things I’ve made</h2>
+                <span class="home-accordion__title-icon" data-home-icon="projects" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
+                <h3>Things I’ve made</h3>
               </div>
               <p class="home-accordion__lead">A few projects that started with a real question, curiosity, or problem I wanted to solve.</p>
             </header>
             <ul class="home-accordion__meta" aria-label="Projects highlights"><li>Machine learning</li><li>Data experiments</li><li>Practical software</li></ul>
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/projects/handwritingRating-640.webp" alt="Handwriting Legibility Scoring project preview" loading="lazy" decoding="async"></span>
+                <a class="home-accordion__card" href="/portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/projects/babynames-640.webp" alt="Baby Name Predictor project preview" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
-                    <strong>Handwriting Legibility Scoring</strong>
-                    <span>A CNN-based handwriting demo that classifies drawn digits and scores how legible they appear.</span>
+                    <strong>Baby Name Predictor</strong>
+                    <span>I built a recommendation model to learn my wife’s taste and help us narrow the list when naming our child.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/portfolio/babynames" data-content-open="true" data-content-id="babynames" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/projects/babynames-640.webp" alt="Baby Name Predictor project preview" loading="lazy" decoding="async"></span>
+                <a class="home-accordion__card" href="/portfolio/handwritingRating" data-content-open="true" data-content-id="handwritingRating" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/projects/handwritingRating-640.webp" alt="Handwriting Legibility Scoring project preview" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
-                    <strong>Baby Name Predictor</strong>
-                    <span>A personal recommendation model that learns name preferences from labels and historical name trends.</span>
+                    <strong>Handwriting Legibility Scoring</strong>
+                    <span>My wife said my handwriting was hard to read, so I trained a model to give it an objective legibility score.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/sheetMusicUpscale" data-content-open="true" data-content-id="sheetMusicUpscale" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/projects/sheetMusicUpscale-640.webp" alt="Sheet Music Watermark Removal and Upscale project preview" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/projects/sheetMusicUpscale-640.webp" alt="Sheet Music Watermark Removal and Upscale project preview" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <strong>Sheet Music Watermark Removal &amp; Upscale</strong>
-                    <span>A UNet and VDSR image pipeline for removing watermarks and upscaling low-resolution sheet music.</span>
+                    <span>I wanted cleaner, more readable sheet music, so I built a pipeline to remove watermarks and upscale low-resolution scans.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/portfolio/ufoDashboard" data-content-open="true" data-content-id="ufoDashboard" data-content-type="project" data-resource-type="case_study" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/projects/ufoDashboard-640.webp" alt="UFO Sightings Dashboard project preview" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/projects/ufoDashboard-640.webp" alt="UFO Sightings Dashboard project preview" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <strong>UFO Sightings Dashboard</strong>
-                    <span>A geospatial Tableau dashboard for exploring sighting reports by location, time, and shape.</span>
+                    <span>I wanted to see patterns in UFO reports, so I built a dashboard to explore sightings by place, time, and shape.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta" href="/portfolio">Explore all projects <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+            <button class="home-accordion__panel-cta home-accordion__panel-cta--primary" type="button" aria-controls="home-library-view-projects" aria-expanded="false" data-home-library-open="projects">View all projects <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></button>
+            <section class="home-library" id="home-library-view-projects" data-home-library-view="projects" aria-labelledby="home-library-view-projects-title" hidden inert>
+              <header class="home-library__header">
+                <button class="home-library__back" type="button" data-home-library-close="projects"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>
+                <div class="home-library__heading">
+                  <h3 id="home-library-view-projects-title" data-home-library-heading tabindex="-1">Project library</h3>
+                  <p>A collection of machine learning projects, practical tools, and playful experiments.</p>
+                </div>
+                <a class="home-library__page-link" href="/portfolio">Open the dedicated project page <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+              </header>
+              <p class="visually-hidden"><span data-home-library-count>0</span> Projects items loaded.</p>
+              <ul class="home-library__list" data-home-library-list aria-label="All projects"></ul>
+            </section>
           </div>
         </section>
       </article>
-      <article class="home-accordion__item home-accordion__item--tools is-active" data-home-accordion-item="tools" style="--panel-color: #087f8c; --panel-color-end: #006973;">
-        <button class="home-accordion__rail" id="home-accordion-trigger-tools" type="button" aria-expanded="true" aria-controls="home-accordion-panel-tools" data-home-accordion-trigger="tools">
-          <span class="home-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg></span>
-          <span class="home-accordion__rail-label">Tools</span>
-          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
-        </button>
-        <section class="home-accordion__panel" id="home-accordion-panel-tools" role="region" aria-labelledby="home-accordion-trigger-tools" data-home-accordion-panel="tools">
-          <div class="home-accordion__scroller" data-home-accordion-scroller tabindex="0" aria-label="Tools content">
+      <article class="home-accordion__item home-accordion__item--tools home-accordion__item--has-library" data-home-accordion-item="tools" aria-labelledby="home-accordion-trigger-tools" style="--panel-color: #087f8c; --panel-color-end: #006973;">
+        <h2 class="home-accordion__heading">
+          <button class="home-accordion__rail" id="home-accordion-trigger-tools" type="button" aria-expanded="false" aria-controls="home-accordion-panel-tools" data-home-accordion-trigger="tools">
+            <span class="home-accordion__rail-icon" data-home-icon="tools" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg></span>
+            <span class="home-accordion__rail-label">Tools</span>
+            <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
+        <section class="home-accordion__panel" id="home-accordion-panel-tools" role="region" aria-labelledby="home-accordion-trigger-tools" data-home-accordion-panel="tools" hidden inert>
+          <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="Tools content">
             <header class="home-accordion__panel-head">
               <p class="home-accordion__eyebrow">Tools</p>
               <div class="home-accordion__title-row">
-                <span class="home-accordion__title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg></span>
-                <h2>Useful little utilities</h2>
+                <span class="home-accordion__title-icon" data-home-icon="tools" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg></span>
+                <h3>Useful little utilities</h3>
               </div>
               <p class="home-accordion__lead">Small browser utilities for repeated text, links, media, and recurring workflow tasks.</p>
             </header>
@@ -350,198 +502,195 @@
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/text-compare" data-content-open="true" data-content-id="text-compare" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/tools/icons/text-compare.png" alt="Text Compare icon" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/tools/icons/text-compare.png" alt="Text Compare icon" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <strong>Text Compare</strong>
                     <span>Compare two passages and spot changes.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/image-optimizer" data-content-open="true" data-content-id="image-optimizer" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/tools/icons/image-optimizer.png" alt="Image Optimizer icon" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/tools/icons/image-optimizer.png" alt="Image Optimizer icon" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <strong>Image Optimizer</strong>
                     <span>Resize and compress images locally.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/qr-code-generator" data-content-open="true" data-content-id="qr-code-generator" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/tools/icons/qr-code-generator.png" alt="QR Code Generator icon" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/tools/icons/qr-code-generator.png" alt="QR Code Generator icon" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <strong>QR Code Generator</strong>
                     <span>Turn a link or note into a scannable code.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/tools/screen-recorder" data-content-open="true" data-content-id="screen-recorder" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/tools/icons/screen-recorder.png" alt="Screen Recorder icon" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/tools/icons/screen-recorder.png" alt="Screen Recorder icon" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <strong>Screen Recorder</strong>
                     <span>Capture a tab, window, or screen.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
-                </a>
-              </li>
-              <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/tools/word-frequency" data-content-open="true" data-content-id="word-frequency" data-content-type="tool" data-resource-type="tool" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/tools/icons/word-frequency.png" alt="Word Frequency Analyzer icon" loading="lazy" decoding="async"></span>
-                  <span class="home-accordion__card-copy">
-                    <strong>Word Frequency Analyzer</strong>
-                    <span>Paste text, strip stopwords, and see the most frequent words entirely in-browser.</span>
-                  </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta" href="/tools">Explore all tools <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+            <button class="home-accordion__panel-cta home-accordion__panel-cta--primary" type="button" aria-controls="home-library-view-tools" aria-expanded="false" data-home-library-open="tools">View all tools <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></button>
+            <section class="home-library" id="home-library-view-tools" data-home-library-view="tools" aria-labelledby="home-library-view-tools-title" hidden inert>
+              <header class="home-library__header">
+                <button class="home-library__back" type="button" data-home-library-close="tools"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>
+                <div class="home-library__heading">
+                  <h3 id="home-library-view-tools-title" data-home-library-heading tabindex="-1">Tool library</h3>
+                  <p>The complete collection of small utilities for text, links, media, and recurring workflows.</p>
+                </div>
+                <a class="home-library__page-link" href="/tools">Open the dedicated tools page <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+              </header>
+              <p class="visually-hidden"><span data-home-library-count>0</span> Tools items loaded.</p>
+              <ul class="home-library__list" data-home-library-list aria-label="All tools"></ul>
+            </section>
           </div>
         </section>
       </article>
-      <article class="home-accordion__item home-accordion__item--games" data-home-accordion-item="games" style="--panel-color: #c94b0a; --panel-color-end: #e35d00;">
-        <button class="home-accordion__rail" id="home-accordion-trigger-games" type="button" aria-expanded="false" aria-controls="home-accordion-panel-games" data-home-accordion-trigger="games">
-          <span class="home-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span>
-          <span class="home-accordion__rail-label">Games</span>
-          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
-        </button>
+      <article class="home-accordion__item home-accordion__item--games home-accordion__item--has-library" data-home-accordion-item="games" aria-labelledby="home-accordion-trigger-games" style="--panel-color: #c94b0a; --panel-color-end: #e35d00;">
+        <h2 class="home-accordion__heading">
+          <button class="home-accordion__rail" id="home-accordion-trigger-games" type="button" aria-expanded="false" aria-controls="home-accordion-panel-games" data-home-accordion-trigger="games">
+            <span class="home-accordion__rail-icon" data-home-icon="games" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span>
+            <span class="home-accordion__rail-label">Games</span>
+            <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
         <section class="home-accordion__panel" id="home-accordion-panel-games" role="region" aria-labelledby="home-accordion-trigger-games" data-home-accordion-panel="games" hidden inert>
-          <div class="home-accordion__scroller" data-home-accordion-scroller tabindex="0" aria-label="Games content">
+          <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="Games content">
             <header class="home-accordion__panel-head">
               <p class="home-accordion__eyebrow">Games</p>
               <div class="home-accordion__title-row">
-                <span class="home-accordion__title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span>
-                <h2>Playable experiments</h2>
+                <span class="home-accordion__title-icon" data-home-icon="games" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span>
+                <h3>Playable experiments</h3>
               </div>
               <p class="home-accordion__lead">Games and simulations where I explore progression, probability, feedback loops, and feel.</p>
             </header>
-            <ul class="home-accordion__meta" aria-label="Games highlights"><li>Six playable experiments</li><li>Built for the browser</li></ul>
+            <ul class="home-accordion__meta" aria-label="Games highlights"><li>Four featured experiments</li><li>Built for the browser</li></ul>
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/project-starfall/ui/start-screen.webp" alt="Project Starfall title screen" loading="lazy" decoding="async"></span>
+                <a class="home-accordion__card home-accordion__card--featured" href="/games/project-starfall" data-content-open="true" data-content-id="project-starfall" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
+                  <span class="home-accordion__card-media home-accordion__card-media--image"><img src="img/project-starfall/ui/start-screen.webp" alt="Project Starfall title screen" loading="lazy" decoding="async"></span>
                   <span class="home-accordion__card-copy">
                     <span class="home-accordion__card-badge">Now building</span>
                     <strong>Project Starfall</strong>
                     <span>Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/stormbreak" data-content-open="true" data-content-id="stormbreak" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/games/stormbreak/temple-of-ash.webp" alt="Pixel-art Temple of Ash arena from Stormbreak" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--glyph"><span class="home-accordion__card-glyph" data-home-icon="stormbreak" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13h6l-1 9 9-13h-6z"></path><path d="M4 5h5M15 19h5"></path></svg></span></span>
                   <span class="home-accordion__card-copy">
                     <strong>Stormbreak: Idle Olympus</strong>
                     <span>Command Zeus and turn lightning, loot, and offline gains into a compounding idle-action loop.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/stellar-dogfight" data-content-open="true" data-content-id="stellar-dogfight" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><img src="img/games/stellar-dogfight/raster/background-nebula.png" alt="Stellar Dogfight nebula background" loading="lazy" decoding="async"></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--glyph"><span class="home-accordion__card-glyph" data-home-icon="stellar-dogfight" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z"></path><circle cx="12" cy="12" r="2.2"></circle><path d="M3 5h3M18 19h3"></path></svg></span></span>
                   <span class="home-accordion__card-copy">
                     <strong>Stellar Dogfight</strong>
                     <span>Pilot a nimble fighter, duel adaptive AI opponents, and tune upgrades across repeated combat loops.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/games/probability-engine" data-content-open="true" data-content-id="probability-engine" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--glyph"><span class="home-accordion__card-glyph" data-home-icon="probability" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M9 5v14M15 5v14"></path><circle cx="6" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="18" cy="12" r="1.4"></circle></svg></span></span>
                   <span class="home-accordion__card-copy">
                     <strong>Probability Engine</strong>
                     <span>Construct slot reels, chain synergies, automate a casino floor, and test long-run probability systems.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
-                </a>
-              </li>
-              <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/games/roulette" data-content-open="true" data-content-id="roulette" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span></span>
-                  <span class="home-accordion__card-copy">
-                    <strong>Double-Zero Roulette</strong>
-                    <span>Run a double-zero table and track recent-spin distributions over time.</span>
-                  </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
-                </a>
-              </li>
-              <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="/games/ocean-wave-simulation" data-content-open="true" data-content-id="ocean-wave-simulation" data-content-type="game" data-resource-type="game" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span></span>
-                  <span class="home-accordion__card-copy">
-                    <strong>Ocean Wave Simulation</strong>
-                    <span>Adjust wave, light, and wind parameters in a real-time canvas simulation sandbox.</span>
-                  </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta" href="/games">Explore all games <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+            <button class="home-accordion__panel-cta home-accordion__panel-cta--primary" type="button" aria-controls="home-library-view-games" aria-expanded="false" data-home-library-open="games">View all games <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></button>
+            <section class="home-library" id="home-library-view-games" data-home-library-view="games" aria-labelledby="home-library-view-games-title" hidden inert>
+              <header class="home-library__header">
+                <button class="home-library__back" type="button" data-home-library-close="games"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>
+                <div class="home-library__heading">
+                  <h3 id="home-library-view-games-title" data-home-library-heading tabindex="-1">Game library</h3>
+                  <p>All of my browser games and simulations, from action RPG systems to probability experiments.</p>
+                </div>
+                <a class="home-library__page-link" href="/games">Open the dedicated games page <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
+              </header>
+              <p class="visually-hidden"><span data-home-library-count>0</span> Games items loaded.</p>
+              <ul class="home-library__list" data-home-library-list aria-label="All games"></ul>
+            </section>
           </div>
         </section>
       </article>
-      <article class="home-accordion__item home-accordion__item--contact" data-home-accordion-item="contact" style="--panel-color: #334155; --panel-color-end: #263648;">
-        <button class="home-accordion__rail" id="home-accordion-trigger-contact" type="button" aria-expanded="false" aria-controls="home-accordion-panel-contact" data-home-accordion-trigger="contact">
-          <span class="home-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg></span>
-          <span class="home-accordion__rail-label">Contact</span>
-          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
-        </button>
+      <article class="home-accordion__item home-accordion__item--contact" data-home-accordion-item="contact" aria-labelledby="home-accordion-trigger-contact" style="--panel-color: #334155; --panel-color-end: #263648;">
+        <h2 class="home-accordion__heading">
+          <button class="home-accordion__rail" id="home-accordion-trigger-contact" type="button" aria-expanded="false" aria-controls="home-accordion-panel-contact" data-home-accordion-trigger="contact">
+            <span class="home-accordion__rail-icon" data-home-icon="contact" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg></span>
+            <span class="home-accordion__rail-label">Contact</span>
+            <span class="home-accordion__rail-chevron" aria-hidden="true"></span>
+          </button>
+        </h2>
         <section class="home-accordion__panel" id="home-accordion-panel-contact" role="region" aria-labelledby="home-accordion-trigger-contact" data-home-accordion-panel="contact" hidden inert>
-          <div class="home-accordion__scroller" data-home-accordion-scroller tabindex="0" aria-label="Contact content">
+          <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="Contact content">
+            <button class="home-library__back home-library__back--overview" type="button" data-home-library-close="contact"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>
             <header class="home-accordion__panel-head">
               <p class="home-accordion__eyebrow">Contact</p>
               <div class="home-accordion__title-row">
-                <span class="home-accordion__title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg></span>
-                <h2>Say hello</h2>
+                <span class="home-accordion__title-icon" data-home-icon="contact" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg></span>
+                <h3>Say hello</h3>
               </div>
               <p class="home-accordion__lead">Send a note about a project, tool, idea, or question. I’ll reply when I can.</p>
             </header>
-            <ul class="home-accordion__meta" aria-label="Contact highlights"><li>Email is fastest</li><li>Grand Junction, Colorado</li></ul>
             <ul class="home-accordion__cards">
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="/contact#contact-modal" data-content-open="true" data-content-id="contact" data-content-type="page" data-resource-type="contact" data-source-surface="home_category_accordion">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg></span></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--glyph"><span class="home-accordion__card-glyph" data-home-icon="message" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4z"></path><path d="M22 2 11 13"></path></svg></span></span>
                   <span class="home-accordion__card-copy">
                     <strong>Send a message</strong>
                     <span>Use the short contact form and share what’s on your mind.</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
                 <a class="home-accordion__card" href="mailto:daniel@danielshort.me">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg></span></span>
+                  <span class="home-accordion__card-media home-accordion__card-media--glyph"><span class="home-accordion__card-glyph" data-home-icon="email" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></svg></span></span>
                   <span class="home-accordion__card-copy">
                     <strong>Email</strong>
                     <span>daniel@danielshort.me</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
                 </a>
               </li>
               <li class="home-accordion__card-item">
-                <a class="home-accordion__card" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer">
-                  <span class="home-accordion__card-media"><span class="home-accordion__card-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span></span>
+                <a class="home-accordion__card home-accordion__card--tertiary" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer">
+                  <span class="home-accordion__card-media home-accordion__card-media--glyph"><span class="home-accordion__card-glyph" data-home-icon="github" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="5" r="2"></circle><circle cx="18" cy="5" r="2"></circle><circle cx="12" cy="19" r="2"></circle><path d="M6 7v3c0 2 1.6 3 3.5 3H12M18 7v3c0 2-1.6 3-3.5 3H12M12 13v4"></path></svg></span></span>
                   <span class="home-accordion__card-copy">
                     <strong>GitHub</strong>
-                    <span>Browse the code behind the projects, tools, and experiments.</span>
+                    <span>github.com/danielshort3</span>
                   </span>
-                  <span class="home-accordion__card-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span>
+                  <span class="home-accordion__card-arrow" data-home-icon="external-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg></span>
                 </a>
               </li>
             </ul>
-            <a class="home-accordion__panel-cta" href="/contact">Open the contact page <span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></span></a>
           </div>
         </section>
       </article>
     </div>
-    <noscript><nav class="home-accordion__noscript" aria-label="Explore the site"><a href="/portfolio">Explore the project library</a><a href="/portfolio">Explore all projects</a><a href="/tools">Explore all tools</a><a href="/games">Explore all games</a><a href="/contact">Open the contact page</a></nav></noscript>
+    <noscript><nav class="home-accordion__noscript" aria-label="Explore the site"><a href="/portfolio">View all projects</a><a href="/tools">View all tools</a><a href="/games">View all games</a></nav></noscript>
   </section>
   </main>
   <footer class="footer footer-classic">
@@ -631,7 +780,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-home.c3a6ebd7.js"></script>
+  <script defer src="dist/site-home.b97fbbba.js"></script>
   <script defer src="dist/site-consent.3b3af440.js"></script>
 </body>
 </html>
