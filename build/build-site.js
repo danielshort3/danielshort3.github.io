@@ -84,8 +84,9 @@ function countFilesRecursive(dirPath) {
 
 function runNodeScript(scriptRelPath, options = {}) {
   const scriptPath = path.join(root, scriptRelPath);
+  const scriptArgs = Array.isArray(options.args) ? options.args : [];
   const started = Date.now();
-  const result = spawnSync(process.execPath, [scriptPath], {
+  const result = spawnSync(process.execPath, [scriptPath, ...scriptArgs], {
     cwd: root,
     env: { ...process.env },
     encoding: 'utf8',
@@ -257,6 +258,13 @@ function main() {
     const publicDir = path.join(root, 'public');
     const publicFiles = countFilesRecursive(publicDir);
     logStep('public', publicStep.durationMs, `public/ (${publicFiles} files)`);
+
+    // 18) Deployable homepage previews must exactly match their authored sources
+    const publicHomeVisualsStep = runNodeScript(
+      path.join('build', 'validate-home-library-visuals.js'),
+      { verbose, args: ['--public'] }
+    );
+    logStep('public-previews', publicHomeVisualsStep.durationMs, '32 source/deploy hashes identical');
 
     log(`Done in ${formatDuration(Date.now() - started)}`);
   } catch (err) {

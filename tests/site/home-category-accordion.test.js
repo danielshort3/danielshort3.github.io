@@ -455,19 +455,25 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     "runNodeScript(path.join('build', 'validate-home-library-visuals.js')"
   );
   const publicCopyIndex = buildSite.indexOf("runNodeScript(path.join('build', 'copy-to-public.js')");
+  const publicVisualBuildIndex = buildSite.indexOf("{ verbose, args: ['--public'] }");
   assert(generator.includes('function homeLibraryPreviewAsset(category, id)') &&
     cmsPreviewMappings.every((mapping) => generator.includes(mapping)) &&
     count(generator, /imageAlt: '',/g) >= 3 &&
     visualValidator.includes("const sharp = require('sharp');") &&
     visualValidator.includes('const HOME_LIBRARY_VISUALS = {') &&
+    visualValidator.includes('function validateCatalogMappings()') &&
+    visualValidator.includes('function listPreviewTree(baseDir)') &&
+    visualValidator.includes("validatePreviewTree(publicPreviewRoot, 'public/img/home-previews')") &&
+    visualValidator.includes('validateMatchingHashes(sourceHashes, deployedHashes)') &&
     visualValidator.includes("metadata.width !== 640 || metadata.height !== 360") &&
-    visualValidator.includes("new Set(hashes).size !== hashes.length") &&
-    visualValidator.includes('Validated ${count} generated previews') &&
+    visualValidator.includes("new Set(hashes.values()).size !== hashes.size") &&
+    visualValidator.includes('Validated ${sourceHashes.size} generated previews') &&
     packageJson.scripts?.['validate:home-library-visuals'] === 'node build/validate-home-library-visuals.js' &&
     Boolean(packageJson.devDependencies?.sharp) &&
-    visualBuildIndex >= 0 && publicCopyIndex > visualBuildIndex &&
+    buildSite.includes('const scriptArgs = Array.isArray(options.args) ? options.args : [];') &&
+    visualBuildIndex >= 0 && publicCopyIndex > visualBuildIndex && publicVisualBuildIndex > publicCopyIndex &&
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
-  'CMS generation, static preview validation, package scripts, main build, and public copy should stay integrated');
+  'CMS generation, full-tree validation, package scripts, main build, and hash-identical public copy should stay integrated');
 
   const createLibraryMediaJs = extractFunctionBlock(js, 'function createLibraryMedia');
   assert(createLibraryMediaJs.includes("image.alt = String(item.imageAlt || '')") &&
