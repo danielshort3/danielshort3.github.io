@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>COVID-19 Outbreak Drivers | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/portfolio/covidAnalysis?audience=data-science">
+  <meta name="description" content="Python XGBoost &amp; SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…">
+
+  <meta property="og:title" content="COVID-19 Outbreak Drivers | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short">
+  <meta property="og:description" content="Python XGBoost &amp; SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…">
+  <meta property="og:url" content="https://www.danielshort.me/portfolio/covidAnalysis?audience=data-science">
+  <meta property="og:image" content="https://www.danielshort.me/img/projects/covidAnalysis.png">
+  <meta property="og:image:alt" content="Preview image for COVID-19 Outbreak Drivers">
+  <meta property="og:image:width" content="1446">
+  <meta property="og:image:height" content="1446">
+
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+
+  <meta name="twitter:title" content="COVID-19 Outbreak Drivers | Daniel Short">
+  <meta name="twitter:description" content="Python XGBoost &amp; SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/projects/covidAnalysis.png">
+  <meta name="twitter:image:alt" content="Preview image for COVID-19 Outbreak Drivers">
+  <meta name="theme-color" content="#091F3B">
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.d9e9b99c.css">
+  <link rel="stylesheet" href="css/components/project-page.css">
+  <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+
+
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@500;600&display=swap -->
+  <script src="js/common/no-js.js"></script>
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","@id":"https://www.danielshort.me/portfolio/covidAnalysis#project","name":"COVID-19 Outbreak Drivers","description":"Python XGBoost & SHAP: Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…","url":"https://www.danielshort.me/portfolio/covidAnalysis","image":"https://www.danielshort.me/img/projects/covidAnalysis.png","mainEntityOfPage":{"@id":"https://www.danielshort.me/portfolio/covidAnalysis#webpage"},"creator":{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/"},"keywords":"Analytics, Tourism, Python, AWS"},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/covidAnalysis#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"COVID-19 Outbreak Drivers","item":"https://www.danielshort.me/portfolio/covidAnalysis"}]}]}
+  </script>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="author" content="Daniel Short">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image:type" content="image/png">
+  <meta name="twitter:creator" content="@danielshort3">
+</head>
+<body data-page="project" class="project-page" data-internal-professional-copy="true" data-audience="data-science">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav">
+    <nav class="nav" aria-label="Primary">
+      <div class="wrapper nav-wrapper">
+        <a href="data-science" class="brand" data-entry-home-link="true">
+          <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="56px" alt="Daniel Short DS logo" class="brand-logo" decoding="async" loading="eager" width="381" height="392">
+          <span class="brand-name">
+            <span class="brand-title">Daniel Short</span>
+          </span>
+        </a>
+        <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+          <a href="data-science" class="nav-link" data-professional-home-link="true">Home</a>
+          <div class="nav-item nav-item-portfolio">
+            <a href="portfolio?audience=data-science" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
+              Portfolio
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
+              <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+                <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+                  <div class="nav-dropdown-header" aria-hidden="true">Featured Projects</div>
+                  <div class="nav-project-grid nav-project-stack">
+                    <a href="portfolio/smartSentence?audience=data-science" class="nav-project-card" data-project-id="smartSentence">
+                      <span class="nav-project-rank">#1</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/smartSentence.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/smartSentence.webm" data-preview-mp4="/img/projects/smartSentence.mp4" data-preview-poster="/img/projects/smartSentence.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Smart Sentence Retriever</span>
+                        <span class="nav-dropdown-subtitle">NLP Embeddings &amp; Serverless Retrieval</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/chatbotLora?audience=data-science" class="nav-project-card" data-project-id="chatbotLora">
+                      <span class="nav-project-rank">#2</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/shapeClassifier?audience=data-science" class="nav-project-card" data-project-id="shapeClassifier">
+                      <span class="nav-project-rank">#3</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/shapeClassifier.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/shapeClassifier.webm" data-preview-mp4="/img/projects/shapeClassifier.mp4" data-preview-poster="/img/projects/shapeClassifier.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Shape Classifier Demo</span>
+                        <span class="nav-dropdown-subtitle">Handwritten Shape Recognition</span>
+                      </span>
+                    </a>
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio?audience=data-science" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
+                      <span class="nav-dropdown-title">View full portfolio</span>
+                      <span class="nav-dropdown-subtitle">Browse the complete project library</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <div class="nav-item nav-item-resume">
+            <a href="resume-data-science" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
+              Resume
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="Resume shortcuts">
+              <div class="nav-dropdown-inner nav-dropdown-inner-simple">
+                <div class="nav-dropdown-column nav-dropdown-column-list">
+                  <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+                  <div class="nav-dropdown-list">
+                    <a href="resume-data-science" class="nav-dropdown-link" data-resume-home-link="true">
+                      <span class="nav-dropdown-title">Resume</span>
+                      <span class="nav-dropdown-subtitle">ML, NLP, modeling, and deployment</span>
+                    </a>
+                    <a href="resume-data-science-pdf" class="nav-dropdown-link" data-resume-preview-link="true">
+                      <span class="nav-dropdown-title">Preview PDF</span>
+                      <span class="nav-dropdown-subtitle">Open the PDF preview</span>
+                    </a>
+                    <a href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Data-Science.pdf" class="nav-dropdown-link" download data-resume-download-link="true">
+                      <span class="nav-dropdown-title">Download Resume</span>
+                      <span class="nav-dropdown-subtitle">Download the PDF</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item nav-item-contact">
+            <a href="contact?audience=data-science" class="nav-link nav-link-cta">Contact</a>
+          </div>
+
+        </div>
+      </div>
+    </nav>
+  </header>
+  <nav class="project-pager" aria-label="Project navigation">
+    <div class="wrapper">
+      <a class="project-pager-link project-pager-prev" href="portfolio/ufoDashboard" aria-label="Previous project: UFO Sightings Dashboard">
+        <span class="project-pager-arrow" aria-hidden="true">←</span>
+        <span class="project-pager-text">
+          <span class="project-pager-label">Previous</span>
+          <span class="project-pager-title">UFO Sightings Dashboard</span>
+        </span>
+      </a>
+      <a class="project-pager-link project-pager-next" href="portfolio/targetEmptyPackage" aria-label="Next project: Empty-Package Shrink Dashboard">
+        <span class="project-pager-text">
+          <span class="project-pager-label">Next</span>
+          <span class="project-pager-title">Empty-Package Shrink Dashboard</span>
+        </span>
+        <span class="project-pager-arrow" aria-hidden="true">→</span>
+      </a>
+	    </div>
+	  </nav>
+
+  <main id="main">
+    <section class="project-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Portfolio Project</p>
+        <h1>COVID-19 Outbreak Drivers</h1>
+        <p class="project-subtitle">Python XGBoost &amp; SHAP</p>
+        <div class="cta-group project-cta">
+          <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
+        </div>
+        <div class="project-tags" role="list">
+      <span class="project-tag" role="listitem">Analytics</span>
+      <span class="project-tag" role="listitem">Tourism</span>
+      <span class="project-tag" role="listitem">Python</span>
+      <span class="project-tag" role="listitem">AWS</span>
+    </div>
+		      </div>
+	    </section>
+
+			    <section class="project-body">
+			      <div class="wrapper">
+			        <section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">Owned the end-to-end build, from implementation through the final deliverable.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.</li>
+              <li>Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Used SHAP to highlight the top drivers and embedded an interactive plot in the report.</li>
+              <li>Top driver was the share of ICU beds occupied by COVID patients.</li>
+              <li>Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days).</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Stack</dt>
+          <dd class="project-star-value">Python · AWS</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Live interactive demo</dd>
+        </div>
+      </dl>
+    </section>
+        <details class="project-star project-evaluation project-disclosure" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title" id="covidAnalysis-evaluation-title">Evaluation &amp; tradeoffs</span></summary>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Measured</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Flag states at risk of exceeding 90% ICU utilization within the next seven days.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">56,853 state-date rows derived from the HHS hospital-capacity time series.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">38,217 rows before 2022-07-01 for training and 18,636 rows from 2022-07-01 onward for time-based evaluation.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">No-skill AUROC is 0.500; approximately 4.1% positive prevalence in the evaluation period implies a PR-AUC baseline of about 0.041.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Treat the output as an exploratory risk-scoring demonstration, not an operational alerting model; performance does not support use at a 75% precision target.</dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Metrics</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>AUROC: 0.606 — Time-based evaluation period.</li>
+              <li>PR-AUC: 0.060 — Compared with an approximate prevalence baseline of 0.041.</li>
+              <li>Recall at 75% precision: 0.000 — The model did not identify positives at the stated precision target.</li>
+              <li>Confusion matrix at 0.5: 31 TP / 728 FN — 17,601 true negatives and 276 false positives.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>The post-cutoff evaluation data was also passed to XGBoost for early stopping, so it is not an untouched final holdout.</li>
+              <li>The target is highly imbalanced and aggregated at the state level; the model is not a clinical forecast.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb" target="_blank" rel="noopener noreferrer">Current XGBoost notebook</a></dd>
+        </div>
+      </dl>
+    </details>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-covidAnalysis-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-covidAnalysis-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Explore how ICU breach risk changes over time, and what’s driving it.</p>
+            <ul class="project-demo-tooltip-list">
+        <li>Wait for the status pill to show the demo is ready (cold starts can take a moment).</li>
+        <li>Drag the date slider to move through time.</li>
+        <li>Hover or click a state to see its risk score, top drivers, and recent trend.</li>
+        <li>Use the hotspots list to quickly jump to the highest-risk locations.</li>
+      </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            <div class="project-demo-mobile-launch">
+          <img class="project-demo-launch-image" src="img/projects/covidAnalysis.png" alt="Preview of COVID-19 Outbreak Drivers" loading="lazy" decoding="async" width="1446" height="1446">
+          <div class="project-demo-launch-copy">
+            <p>Open the standalone demo for the full interactive workspace.</p>
+            <a class="btn-primary" href="covid-outbreak-demo">Launch demo</a>
+          </div>
+        </div>
+            <div class="project-media project-embed project-embed-iframe project-embed-covidanalysis" data-project-embed="covidAnalysis" data-embed-fit="content">
+        <iframe class="project-embed-frame" data-src="covid-outbreak-demo.html" title="COVID-19 Outbreak Drivers interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>
+          </div>
+        </section>
+      </div>
+    </section>
+        <details class="project-section project-disclosure project-resources" id="links" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title">Links</span></summary>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis/blob/main/covid_analysis.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Current Notebook (GitHub)</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">HHS Dataset</span></a>
+      </div>
+      </div>
+      </div>
+    </details>
+        <details class="project-section project-disclosure project-notes" id="notes" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title">Notes</span></summary>
+      <p class="project-lead">The model is a 7-day state-level ICU breach risk scorer based on HHS hospital-capacity data, not a clinical forecast.</p>
+    </details>
+        <section class="project-section project-related" aria-label="Other projects">
+      <h2 class="section-title">Other Projects</h2>
+      <div class="project-related-grid" role="list">
+        <a class="project-card project-related-card" role="listitem" href="portfolio/retailStore" aria-label="Open project: Store-Level Loss &amp; Sales ETL">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+          <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
+        </div>
+        <picture>
+      <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
+      <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
+      <img src="img/projects/retailStore.png" alt="Store-Level Loss &amp; Sales ETL" loading="lazy" decoding="async" width="1410" height="1410" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+      </a>
+        <a class="project-card project-related-card" role="listitem" href="portfolio/chatbotLora" aria-label="Open project: Chatbot (LoRA + RAG)">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">Chatbot (LoRA + RAG)</div>
+          <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+        </div>
+        <picture>
+      <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora-960.avif 960w, img/projects/chatbotLora.avif 1280w" type="image/avif">
+      <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora-960.webp 960w, img/projects/chatbotLora.webp 1280w" type="image/webp">
+      <img src="img/projects/chatbotLora.png" alt="Chatbot (LoRA + RAG)" loading="lazy" decoding="async" width="1280" height="720" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+      </a>
+        <a class="project-card project-related-card" role="listitem" href="portfolio/smartSentence" aria-label="Open project: Smart Sentence Retriever">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">Smart Sentence Retriever</div>
+          <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
+        </div>
+        <picture>
+      <source srcset="img/projects/smartSentence-640.avif 640w, img/projects/smartSentence.avif 952w" type="image/avif">
+      <source srcset="img/projects/smartSentence-640.webp 640w, img/projects/smartSentence.webp 952w" type="image/webp">
+      <img src="img/projects/smartSentence.png" alt="Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+      </a>
+      </div>
+    </section>
+			      </div>
+			    </section>
+			  </main>
+
+  <footer class="footer footer-classic">
+    <div class="wrapper footer-inner">
+      <div class="footer-identity">
+        <section class="footer-identity-panel" data-footer-realm="professional" aria-label="Daniel Short footer summary">
+          <h2 class="footer-identity-name">Daniel Short</h2>
+          <p class="footer-identity-summary">Data Science portfolio</p>
+          <div class="footer-identity-actions">
+            <a href="resume-data-science" class="footer-link footer-identity-link" data-resume-home-link="true">Resume</a>
+            <a href="contact?audience=data-science#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
+          </div>
+        </section>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <div class="footer-nav-panel" data-footer-realm="professional">
+          <section class="footer-col" aria-labelledby="footer-professional-work">
+            <h2 class="footer-col-title" id="footer-professional-work">Work</h2>
+            <a href="data-science" class="footer-link">Home</a>
+            <a href="portfolio?audience=data-science" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
+            <a href="resume-data-science" class="footer-link" data-resume-home-link="true">Resume</a>
+          </section>
+          <section class="footer-col" aria-labelledby="footer-professional-connect">
+            <h2 class="footer-col-title" id="footer-professional-connect">Connect</h2>
+            <a href="contact?audience=data-science#contact-modal" class="footer-link" data-contact-modal-link="true">Contact</a>
+            <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
+          </section>
+        </div>
+      </nav>
+      <div class="footer-bottom">
+        <nav class="footer-utility" aria-label="Footer utility">
+          <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
+          <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
+        </nav>
+        <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  <div class="speed-dial" data-speed-dial="true">
+    <div class="speed-dial__tray" data-speed-dial-tray>
+      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
+          <a href="contact?audience=data-science#contact-modal" class="speed-dial__action btn-icon speed-dial__action--direct" aria-label="Send a direct message" role="menuitem" data-contact-modal-link="true" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+              <path d="M7 9h10"></path>
+              <path d="M7 13h6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
+          <a href="mailto:daniel@danielshort.me" class="speed-dial__action btn-icon" aria-label="Send Email" role="menuitem" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="M3 7l9 6 9-6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
+          <a href="https://www.linkedin.com/in/danielshort3/" class="speed-dial__action btn-icon" aria-label="View LinkedIn" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="4" cy="4" r="2"></circle>
+              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
+          <a href="https://github.com/danielshort3" class="speed-dial__action btn-icon" aria-label="View GitHub" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+        <path d="M12 8v6"></path>
+        <path d="M9 11h6"></path>
+      </svg>
+    </button>
+  </div>
+  <script defer src="dist/site-shell.5769f2ac.js"></script>
+  <script defer src="dist/site-consent.3b3af440.js"></script>
+</body>
+</html>

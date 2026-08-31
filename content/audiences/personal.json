@@ -24,7 +24,7 @@
     },
     {
       "id": "project-starfall",
-      "label": "Current game",
+      "label": "Browser game",
       "title": "Project Starfall",
       "description": "Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.",
       "href": "/games/project-starfall",
@@ -114,7 +114,7 @@
               "colorEnd": "#032b57",
               "title": "Hi, I’m Daniel.",
               "lead": "I build machine learning projects, practical browser tools, and playful experiments that make complex ideas easier to use.",
-              "context": "Based in Grand Junction, Colorado. Currently building Project Starfall.",
+              "context": "Based in Grand Junction, Colorado.",
               "profile": {
                 "image": "img/hero/head-avatar-384.jpg",
                 "imageAlt": "Daniel Short",
@@ -249,20 +249,6 @@
                     "imageAlt": "Eastern University logo",
                     "imageWidth": 48,
                     "imageHeight": 48
-                  },
-                  {
-                    "id": "project-starfall",
-                    "type": "project",
-                    "current": true,
-                    "title": "Building Project Starfall",
-                    "subtitle": "Currently building",
-                    "summary": "An evolving action RPG built around responsive combat, progression, and handcrafted encounters.",
-                    "href": "/games/project-starfall",
-                    "image": "img/project-starfall/ui/start-screen.webp",
-                    "imageAlt": "Project Starfall title screen",
-                    "contentType": "game",
-                    "contentId": "project-starfall",
-                    "resourceType": "game"
                   }
                 ]
               }
@@ -274,11 +260,6 @@
               "colorEnd": "#0b4bd4",
               "title": "Things I’ve made",
               "lead": "A few projects that started with a real question, curiosity, or problem I wanted to solve.",
-              "meta": [
-                "Machine learning",
-                "Data experiments",
-                "Practical software"
-              ],
               "items": [
                 {
                   "id": "babynames",
@@ -340,10 +321,6 @@
               "colorEnd": "#006973",
               "title": "Useful little utilities",
               "lead": "Small browser utilities for repeated text, links, media, and recurring workflow tasks.",
-              "meta": [
-                "Runs locally when possible",
-                "No sign-up required"
-              ],
               "items": [
                 {
                   "id": "text-compare",
@@ -405,10 +382,6 @@
               "colorEnd": "#e35d00",
               "title": "Playable experiments",
               "lead": "Games and simulations where I explore progression, probability, feedback loops, and feel.",
-              "meta": [
-                "Four featured experiments",
-                "Built for the browser"
-              ],
               "items": [
                 {
                   "id": "project-starfall",
@@ -420,7 +393,6 @@
                   "contentType": "game",
                   "contentId": "project-starfall",
                   "resourceType": "game",
-                  "badge": "Now building",
                   "presentation": "featured"
                 },
                 {

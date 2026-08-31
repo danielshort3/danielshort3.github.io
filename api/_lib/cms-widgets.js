@@ -419,6 +419,7 @@ function getHomeAccordionIconDefinitions() {
 
 function renderHomeAccordionCard(item, categoryId) {
   const href = String(item && item.href || '').trim();
+  const normalizedHref = href ? normalizeHref(href) : '';
   const tag = href ? 'a' : 'article';
   const iconId = resolveHomeAccordionIconId(item && item.icon || categoryId);
   const presentation = ['featured', 'tertiary'].includes(String(item && item.presentation || '').trim())
@@ -435,8 +436,11 @@ function renderHomeAccordionCard(item, categoryId) {
     ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_category_accordion"`
     : '';
   const external = Boolean(item && item.external);
+  const contactModal = normalizedHref === '/contact#contact-modal'
+    ? ' data-contact-modal-link'
+    : '';
   const linkAttrs = href
-    ? ` href="${escapeHtml(normalizeHref(href))}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}`
+    ? ` href="${escapeHtml(normalizedHref)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}${analytics}${contactModal}`
     : '';
 
   return [
@@ -528,6 +532,7 @@ function renderHomeTimelineItem(item) {
     '            <div class="home-timeline__date">',
     renderHomeTimelineDate(item),
     '            </div>',
+    '            <span class="home-timeline__axis" aria-hidden="true"></span>',
     `            <${tag} class="home-timeline__entry"${linkAttrs}>`,
     `              <span class="home-timeline__media">${media}</span>`,
     '              <span class="home-timeline__copy">',
@@ -555,7 +560,7 @@ function renderHomeTimeline(timeline, categoryId) {
     `              <h4 id="${escapeHtml(headingId)}">${escapeHtml(timeline && timeline.title || 'Timeline')}</h4>`,
     timeline && timeline.lead ? `              <p>${escapeHtml(timeline.lead)}</p>` : '',
     '            </header>',
-    '            <ol class="home-timeline__list">',
+    '            <ol class="home-timeline__list" data-home-timeline-scroller>',
     items.map((item) => renderHomeTimelineItem(item)).join('\n'),
     '            </ol>',
     '          </section>'

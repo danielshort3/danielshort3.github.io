@@ -286,6 +286,7 @@ function main() {
     if (!relPath) return;
     if (relPath === 'public' || relPath.startsWith('public/')) return;
     if (relPath === 'node_modules' || relPath.startsWith('node_modules/')) return;
+    if (relPath.startsWith('pages/professional/')) return;
     if (!relPath.endsWith('.html')) return;
 
     let html;

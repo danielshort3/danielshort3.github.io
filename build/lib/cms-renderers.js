@@ -812,6 +812,40 @@ function renderFooter({ footer, year, audience = null }) {
     })
     .join('\n');
 
+  const speedDialMarkup = [
+    '<div class="speed-dial" data-speed-dial="true">',
+    '  <div class="speed-dial__tray" data-speed-dial-tray>',
+    `    <div class="speed-dial__actions" id="${escapeHtml(speedDial.menuId || 'speed-dial-menu')}" role="menu" aria-label="${escapeHtml(speedDial.menuLabel || 'Contact options')}" aria-hidden="true" data-speed-dial-menu>`,
+    indentBlock(speedDialItems, '      '),
+    '    </div>',
+    '  </div>',
+    `  <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="${escapeHtml(speedDial.menuId || 'speed-dial-menu')}" aria-label="${escapeHtml(speedDial.toggleLabel || 'Open contact options')}" data-speed-dial-toggle>`,
+    indentBlock(renderSvgMarkup('speed-dial-toggle'), '    '),
+    '  </button>',
+    '</div>'
+  ].join('\n');
+
+  if (!isProfessionalAudience) {
+    const compactLinks = Array.isArray(footer.personalCompactLinks)
+      ? footer.personalCompactLinks
+      : [];
+    const renderedCompactLinks = compactLinks
+      .map((link) => renderFooterLink(link))
+      .join('\n');
+
+    return [
+      '<footer class="footer footer-classic footer--personal-compact">',
+      '  <div class="wrapper footer-inner">',
+      `    <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}</p>`,
+      '    <nav class="footer-utility" aria-label="Personal footer">',
+      indentBlock(renderedCompactLinks, '      '),
+      '    </nav>',
+      '  </div>',
+      '</footer>',
+      speedDialMarkup
+    ].join('\n');
+  }
+
   return [
     '<footer class="footer footer-classic">',
     '  <div class="wrapper footer-inner">',
@@ -829,16 +863,7 @@ function renderFooter({ footer, year, audience = null }) {
     '    </div>',
     '  </div>',
     '</footer>',
-    '<div class="speed-dial" data-speed-dial="true">',
-    '  <div class="speed-dial__tray" data-speed-dial-tray>',
-    `    <div class="speed-dial__actions" id="${escapeHtml(speedDial.menuId || 'speed-dial-menu')}" role="menu" aria-label="${escapeHtml(speedDial.menuLabel || 'Contact options')}" aria-hidden="true" data-speed-dial-menu>`,
-    indentBlock(speedDialItems, '      '),
-    '    </div>',
-    '  </div>',
-    `  <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="${escapeHtml(speedDial.menuId || 'speed-dial-menu')}" aria-label="${escapeHtml(speedDial.toggleLabel || 'Open contact options')}" data-speed-dial-toggle>`,
-    indentBlock(renderSvgMarkup('speed-dial-toggle'), '    '),
-    '  </button>',
-    '</div>'
+    speedDialMarkup
   ].join('\n');
 }
 

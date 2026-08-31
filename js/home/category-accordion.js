@@ -16,6 +16,10 @@
     id,
     panel?.querySelector('[data-home-accordion-scroller]') || null
   ]));
+  const timelineScrollerById = new Map([...panelById].map(([id, panel]) => [
+    id,
+    panel?.querySelector('[data-home-timeline-scroller]') || null
+  ]));
   const triggerById = new Map(triggers.map((trigger) => [
     String(trigger.dataset.homeAccordionTrigger || ''),
     trigger
@@ -71,16 +75,27 @@
     return `${libraryMode ? 'library' : 'overview'}:${id}`;
   }
 
+  function panelScrollTarget(id) {
+    if (railLayoutQuery.matches && id === 'about') {
+      return timelineScrollerById.get(id) || scrollerById.get(id);
+    }
+    return scrollerById.get(id);
+  }
+
+  function panelScrollRegions(id) {
+    return [scrollerById.get(id), timelineScrollerById.get(id)].filter(Boolean);
+  }
+
   function saveScrollPosition(id, libraryMode = isLibraryMode) {
     if (!railLayoutQuery.matches || !id) return;
-    const scroller = scrollerById.get(id);
+    const scroller = panelScrollTarget(id);
     if (scroller) scrollPositions.set(scrollPositionKey(id, libraryMode), scroller.scrollTop);
   }
 
   function restoreScrollPosition(id, libraryMode = isLibraryMode) {
     if (!railLayoutQuery.matches || !id) return;
     window.requestAnimationFrame(() => {
-      const scroller = scrollerById.get(id);
+      const scroller = panelScrollTarget(id);
       if (scroller) scroller.scrollTop = scrollPositions.get(scrollPositionKey(id, libraryMode)) || 0;
       scheduleScrollerTabStopUpdate();
     });
@@ -251,15 +266,19 @@
   function updateScrollerTabStops() {
     scrollerTabStopFrame = 0;
     scrollerById.forEach((scroller, id) => {
-      if (!scroller) return;
-      const independentlyScrollable = railLayoutQuery.matches &&
-        id === activeId &&
-        !panelById.get(id)?.hidden &&
-        scroller.scrollHeight > scroller.clientHeight + 1;
+      const timelineScroller = timelineScrollerById.get(id);
+      panelScrollRegions(id).forEach((region) => region.removeAttribute('tabindex'));
+      if (id !== activeId || panelById.get(id)?.hidden) return;
+
+      const scrollTarget = railLayoutQuery.matches
+        ? panelScrollTarget(id)
+        : timelineScroller;
+      if (!scrollTarget) return;
+      const independentlyScrollable = railLayoutQuery.matches
+        ? scrollTarget.scrollHeight > scrollTarget.clientHeight + 1
+        : scrollTarget.scrollWidth > scrollTarget.clientWidth + 1;
       if (independentlyScrollable) {
-        scroller.setAttribute('tabindex', '0');
-      } else {
-        scroller.removeAttribute('tabindex');
+        scrollTarget.setAttribute('tabindex', '0');
       }
     });
   }
@@ -360,6 +379,16 @@
     }, VIEW_TRANSITION_MS);
   }
 
+  function runViewTransition(apply, animate = true) {
+    if (animate && !reducedMotionQuery.matches && typeof document.startViewTransition === 'function') {
+      document.startViewTransition(apply);
+      return;
+    }
+
+    apply();
+    if (animate && !reducedMotionQuery.matches) markViewTransition();
+  }
+
   function applyLibraryMode(nextLibraryMode, options = {}) {
     const next = Boolean(nextLibraryMode);
     if (next === isLibraryMode && options.force !== true) {
@@ -377,12 +406,7 @@
       if (typeof options.afterApply === 'function') options.afterApply();
     };
 
-    if (options.animate !== false && !reducedMotionQuery.matches && typeof document.startViewTransition === 'function') {
-      document.startViewTransition(apply);
-    } else {
-      apply();
-      if (options.animate !== false && !reducedMotionQuery.matches) markViewTransition();
-    }
+    runViewTransition(apply, options.animate !== false);
     return true;
   }
 
@@ -424,9 +448,44 @@
     return requestedId;
   }
 
+  function exitLibraryToPanel(id) {
+    if (!isLibraryMode || !ids.includes(id) || id === activeId) return false;
+    const closingId = activeId;
+    saveScrollPosition(closingId, true);
+    saveDocumentScrollPosition(closingId, true);
+
+    const apply = () => {
+      isLibraryMode = false;
+      root.classList.remove('is-library-mode');
+      root.dataset.homeView = 'overview';
+      activeId = id;
+      root.dataset.activePanel = id;
+      applyPanelState(id, {
+        previousId: closingId,
+        animateOutgoing: false,
+        animateIncoming: false
+      });
+      updateLocation(id, 'push', false);
+      restoreScrollPosition(id, false);
+      restoreDocumentScrollPosition(id, false, 0);
+      revealPanelTrigger(id);
+      root.dispatchEvent(new CustomEvent('home:library-change', {
+        bubbles: true,
+        detail: { category: closingId, expanded: false }
+      }));
+      root.dispatchEvent(new CustomEvent('home:category-change', {
+        bubbles: true,
+        detail: { category: id, view: 'overview' }
+      }));
+    };
+
+    runViewTransition(apply);
+    return true;
+  }
+
   function activatePanelTrigger(id) {
     if (!ids.includes(id)) return false;
-    if (isLibraryMode) return selectPanel(id);
+    if (isLibraryMode) return exitLibraryToPanel(id);
     const isCondensing = id === activeId && id !== defaultPanel;
     const nextId = resolveTriggerTarget(activeId, id, defaultPanel);
     const changed = selectPanel(nextId);
@@ -567,8 +626,8 @@
   root.addEventListener('load', scheduleScrollerTabStopUpdate, true);
   if (typeof window.ResizeObserver === 'function') {
     const scrollerResizeObserver = new window.ResizeObserver(scheduleScrollerTabStopUpdate);
-    scrollerById.forEach((scroller) => {
-      if (scroller) scrollerResizeObserver.observe(scroller);
+    ids.forEach((id) => {
+      panelScrollRegions(id).forEach((region) => scrollerResizeObserver.observe(region));
     });
   }
 
@@ -577,7 +636,7 @@
   const initialPanel = initialHashPanel || (initialLibraryMode && ids.includes('projects') ? 'projects' : defaultPanel);
   activeId = initialPanel;
   root.dataset.activePanel = initialPanel;
-  scrollerById.forEach((scroller) => scroller?.removeAttribute('tabindex'));
+  ids.forEach((id) => panelScrollRegions(id).forEach((region) => region.removeAttribute('tabindex')));
   applyPanelState(initialPanel);
   applyLibraryMode(initialLibraryMode, { animate: false, force: true });
   if (initialHashPanel) {

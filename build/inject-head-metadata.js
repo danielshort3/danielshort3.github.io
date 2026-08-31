@@ -93,12 +93,14 @@ const BASE_STYLESHEET_FALLBACK = 'dist/styles.css';
 const HOME_STYLESHEET_FALLBACK = 'dist/styles-home.css';
 const WORKBENCH_STYLESHEET_FALLBACK = 'dist/styles-workbench.css';
 const TOOLS_STYLESHEET_FALLBACK = 'dist/styles-tools.css';
+const PERSONAL_ACCORDION_STYLESHEET_FALLBACK = 'dist/styles-personal-accordion.css';
 const PROFESSIONAL_STYLESHEET_FALLBACK = 'dist/styles-professional.css';
 const ANALYTICS_STYLESHEET_FALLBACK = 'dist/styles-analytics.css';
 const BASE_STYLESHEET_HREF = resolveManagedStylesheetHref(BASE_STYLESHEET_FALLBACK, CSS_MANIFEST.file);
 const HOME_STYLESHEET_HREF = resolveManagedStylesheetHref(HOME_STYLESHEET_FALLBACK, CSS_MANIFEST.homeFile);
 const WORKBENCH_STYLESHEET_HREF = resolveManagedStylesheetHref(WORKBENCH_STYLESHEET_FALLBACK, CSS_MANIFEST.workbenchFile);
 const TOOLS_STYLESHEET_HREF = resolveManagedStylesheetHref(TOOLS_STYLESHEET_FALLBACK, CSS_MANIFEST.toolsFile);
+const PERSONAL_ACCORDION_STYLESHEET_HREF = resolveManagedStylesheetHref(PERSONAL_ACCORDION_STYLESHEET_FALLBACK, CSS_MANIFEST.personalAccordionFile);
 const PROFESSIONAL_STYLESHEET_HREF = resolveManagedStylesheetHref(PROFESSIONAL_STYLESHEET_FALLBACK, CSS_MANIFEST.professionalFile);
 const ANALYTICS_STYLESHEET_HREF = resolveManagedStylesheetHref(ANALYTICS_STYLESHEET_FALLBACK, CSS_MANIFEST.analyticsFile);
 
@@ -607,6 +609,7 @@ function replaceManagedStylesheetLinks(headInner) {
     .replace(/href="dist\/styles-home(?:\.[0-9a-f]{8})?\.css"/gi, `href="${HOME_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-workbench(?:\.[0-9a-f]{8})?\.css"/gi, `href="${WORKBENCH_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-tools(?:\.[0-9a-f]{8})?\.css"/gi, `href="${TOOLS_STYLESHEET_HREF}"`)
+    .replace(/href="dist\/styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"/gi, `href="${PERSONAL_ACCORDION_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-professional(?:\.[0-9a-f]{8})?\.css"/gi, `href="${PROFESSIONAL_STYLESHEET_HREF}"`)
     .replace(/href="dist\/styles-analytics(?:\.[0-9a-f]{8})?\.css"/gi, `href="${ANALYTICS_STYLESHEET_HREF}"`);
 }
@@ -673,6 +676,13 @@ function ensureRouteComponentStylesheet(headInner) {
     ),
     headInner
   );
+}
+
+function ensurePersonalAccordionStylesheet(headInner, html) {
+  const personalStylesheetPattern = /^\s*<link\b[^>]*href="(?:\/?dist\/)?styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"[^>]*>\s*$/gim;
+  const withoutPersonalStylesheet = String(headInner || '').replace(personalStylesheetPattern, '');
+  if (!/data-personal-accordion-shell/i.test(String(html || ''))) return withoutPersonalStylesheet;
+  return `${withoutPersonalStylesheet.trimEnd()}\n  <link rel="stylesheet" href="${PERSONAL_ACCORDION_STYLESHEET_HREF}">\n`;
 }
 
 function dedupeMeta(headInner, attr, value) {
@@ -967,6 +977,7 @@ function processHtml(html) {
   inner = ensureToolsStylesheet(inner);
   inner = ensureRouteBundleStylesheet(inner);
   inner = ensureRouteComponentStylesheet(inner);
+  inner = ensurePersonalAccordionStylesheet(inner, html);
   inner = ensureIosPwaMeta(inner);
   inner = ensureToolJsonLd(inner);
   inner = ensureSiteJsonLd(inner);

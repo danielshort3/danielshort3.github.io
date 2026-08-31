@@ -12,11 +12,13 @@ const vm = require('vm');
 const childProcess = require('child_process');
 const crypto = require('crypto');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
+const { unwrapPersonalAccordionHtml } = require('./lib/personal-accordion-shell');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
 const outDir = path.join(root, 'pages', 'portfolio');
-const portfolioIndexPath = path.join(root, 'pages', 'portfolio.html');
+const personalPortfolioIndexPath = path.join(root, 'pages', 'portfolio.html');
+const professionalPortfolioIndexPath = path.join(root, 'pages', 'professional', 'analytics', 'portfolio.html');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const sitemapCachePath = path.join(root, 'build', 'cache', 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
@@ -1397,17 +1399,26 @@ function assertCompletePortfolioIndex(html) {
     missing.length ? `missing ${missing.join(', ')}` : '',
     hasPartialTrailingTag ? 'ends with a partial HTML tag' : ''
   ].filter(Boolean).join('; ');
-  throw new Error(`pages/portfolio.html appears truncated (${detail}). Stop active build watchers, restore the complete document, and rebuild.`);
+  throw new Error(`Portfolio index source appears truncated (${detail}). Stop active build watchers, restore the complete document, and rebuild.`);
 }
 
 function syncPortfolioStaticResults(projects) {
-  if (!fs.existsSync(portfolioIndexPath)) return;
-  const html = fs.readFileSync(portfolioIndexPath, 'utf8');
+  if (!fs.existsSync(personalPortfolioIndexPath)) return;
+  const personalHtml = fs.readFileSync(personalPortfolioIndexPath, 'utf8');
+  let portfolioIndexPath = personalPortfolioIndexPath;
+  let html = unwrapPersonalAccordionHtml(personalHtml);
   assertCompletePortfolioIndex(html);
   const start = '<!-- portfolio-static-results:start -->';
   const end = '<!-- portfolio-static-results:end -->';
   const matcher = new RegExp(`${start}[\\s\\S]*?${end}`);
-  if (!matcher.test(html)) return;
+  if (!matcher.test(html)) {
+    const isWrappedLibrary = /data-personal-accordion-shell|\bpersonal-library-main\b/i.test(personalHtml);
+    if (!isWrappedLibrary || !fs.existsSync(professionalPortfolioIndexPath)) return;
+    portfolioIndexPath = professionalPortfolioIndexPath;
+    html = unwrapPersonalAccordionHtml(fs.readFileSync(professionalPortfolioIndexPath, 'utf8'));
+    assertCompletePortfolioIndex(html);
+    if (!matcher.test(html)) return;
+  }
   const results = renderPortfolioStaticResults(projects);
   const indentedResults = results.split('\n').map((line) => `              ${line}`).join('\n');
   const block = `${start}\n${indentedResults}\n              ${end}`;

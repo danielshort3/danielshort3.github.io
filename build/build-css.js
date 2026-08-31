@@ -16,6 +16,7 @@ const entries = [
   { entry: path.join(cssDir, 'styles-home.css'), baseName: 'styles-home', manifestKey: 'homeFile' },
   { entry: path.join(cssDir, 'styles-workbench.css'), baseName: 'styles-workbench', manifestKey: 'workbenchFile' },
   { entry: path.join(cssDir, 'styles-tools.css'), baseName: 'styles-tools', manifestKey: 'toolsFile' },
+  { entry: path.join(cssDir, 'styles-personal-accordion.css'), baseName: 'styles-personal-accordion', manifestKey: 'personalAccordionFile' },
   { entry: path.join(cssDir, 'styles-professional.css'), baseName: 'styles-professional', manifestKey: 'professionalFile' },
   { entry: path.join(cssDir, 'styles-analytics.css'), baseName: 'styles-analytics', manifestKey: 'analyticsFile' }
 ];

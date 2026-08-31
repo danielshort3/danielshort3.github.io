@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Smart Sentence Retriever | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/portfolio/smartSentence?audience=tourism">
+  <meta name="description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.">
+
+  <meta property="og:title" content="Smart Sentence Retriever | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short">
+  <meta property="og:description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.">
+  <meta property="og:url" content="https://www.danielshort.me/portfolio/smartSentence?audience=tourism">
+  <meta property="og:image" content="https://www.danielshort.me/img/projects/smartSentence.png">
+  <meta property="og:image:alt" content="Preview image for Smart Sentence Retriever">
+  <meta property="og:image:width" content="952">
+  <meta property="og:image:height" content="952">
+
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+
+  <meta name="twitter:title" content="Smart Sentence Retriever | Daniel Short">
+  <meta name="twitter:description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/projects/smartSentence.png">
+  <meta name="twitter:image:alt" content="Preview image for Smart Sentence Retriever">
+  <meta name="theme-color" content="#091F3B">
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.d9e9b99c.css">
+  <link rel="stylesheet" href="css/components/project-page.css">
+  <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="img/brand/05-ds-favicon-small-icon.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+
+
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Inter:wght@500;600&display=swap -->
+  <script src="js/common/no-js.js"></script>
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","@id":"https://www.danielshort.me/portfolio/smartSentence#project","name":"Smart Sentence Retriever","description":"NLP Embeddings & Serverless Retrieval: I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.","url":"https://www.danielshort.me/portfolio/smartSentence","image":"https://www.danielshort.me/img/projects/smartSentence.png","mainEntityOfPage":{"@id":"https://www.danielshort.me/portfolio/smartSentence#webpage"},"creator":{"@type":"Person","@id":"https://www.danielshort.me/#person","name":"Daniel Short","url":"https://www.danielshort.me/"},"keywords":"Data Science, Machine Learning, Automation, Python, AWS, Docker, NLP"},{"@type":"BreadcrumbList","@id":"https://www.danielshort.me/portfolio/smartSentence#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://www.danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Smart Sentence Retriever","item":"https://www.danielshort.me/portfolio/smartSentence"}]}]}
+  </script>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="author" content="Daniel Short">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image:type" content="image/png">
+  <meta name="twitter:creator" content="@danielshort3">
+</head>
+<body data-page="project" class="project-page" data-internal-professional-copy="true" data-audience="tourism">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav">
+    <nav class="nav" aria-label="Primary">
+      <div class="wrapper nav-wrapper">
+        <a href="tourism" class="brand" data-entry-home-link="true">
+          <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="56px" alt="Daniel Short DS logo" class="brand-logo" decoding="async" loading="eager" width="381" height="392">
+          <span class="brand-name">
+            <span class="brand-title">Daniel Short</span>
+          </span>
+        </a>
+        <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+          <a href="tourism" class="nav-link" data-professional-home-link="true">Home</a>
+          <div class="nav-item nav-item-portfolio">
+            <a href="portfolio?audience=tourism" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
+              Portfolio
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
+              <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+                <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+                  <div class="nav-dropdown-header" aria-hidden="true">Featured Projects</div>
+                  <div class="nav-project-grid nav-project-stack">
+                    <a href="portfolio/chatbotLora?audience=tourism" class="nav-project-card" data-project-id="chatbotLora">
+                      <span class="nav-project-rank">#1</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/pizzaDashboard?audience=tourism" class="nav-project-card" data-project-id="pizzaDashboard">
+                      <span class="nav-project-rank">#2</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/pizzaDashboard.webp&#39;);" aria-hidden="true" data-preview-poster="/img/projects/pizzaDashboard.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Pizza Delivery Dashboard</span>
+                        <span class="nav-dropdown-subtitle">Tableau Analytics &amp; Forecasting</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/covidAnalysis?audience=tourism" class="nav-project-card" data-project-id="covidAnalysis">
+                      <span class="nav-project-rank">#3</span>
+                      <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/covidAnalysis.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/covidAnalysis.webm" data-preview-mp4="/img/projects/covidAnalysis.mp4" data-preview-poster="/img/projects/covidAnalysis.webp"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">COVID-19 Outbreak Drivers</span>
+                        <span class="nav-dropdown-subtitle">Python XGBoost &amp; SHAP</span>
+                      </span>
+                    </a>
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio?audience=tourism" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
+                      <span class="nav-dropdown-title">View full portfolio</span>
+                      <span class="nav-dropdown-subtitle">Browse the complete project library</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <div class="nav-item nav-item-resume">
+            <a href="resume-tourism" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
+              Resume
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="Resume shortcuts">
+              <div class="nav-dropdown-inner nav-dropdown-inner-simple">
+                <div class="nav-dropdown-column nav-dropdown-column-list">
+                  <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+                  <div class="nav-dropdown-list">
+                    <a href="resume-tourism" class="nav-dropdown-link" data-resume-home-link="true">
+                      <span class="nav-dropdown-title">Resume</span>
+                      <span class="nav-dropdown-subtitle">Destination reporting and stakeholder analytics</span>
+                    </a>
+                    <a href="resume-tourism-pdf" class="nav-dropdown-link" data-resume-preview-link="true">
+                      <span class="nav-dropdown-title">Preview PDF</span>
+                      <span class="nav-dropdown-subtitle">Open the PDF preview</span>
+                    </a>
+                    <a href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Tourism.pdf" class="nav-dropdown-link" download data-resume-download-link="true">
+                      <span class="nav-dropdown-title">Download Resume</span>
+                      <span class="nav-dropdown-subtitle">Download the PDF</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item nav-item-contact">
+            <a href="contact?audience=tourism" class="nav-link nav-link-cta">Contact</a>
+          </div>
+
+        </div>
+      </div>
+    </nav>
+  </header>
+  <nav class="project-pager" aria-label="Project navigation">
+    <div class="wrapper">
+      <a class="project-pager-link project-pager-prev" href="portfolio/website" aria-label="Previous project: danielshort.me">
+        <span class="project-pager-arrow" aria-hidden="true">←</span>
+        <span class="project-pager-text">
+          <span class="project-pager-label">Previous</span>
+          <span class="project-pager-title">danielshort.me</span>
+        </span>
+      </a>
+      <a class="project-pager-link project-pager-next" href="portfolio/chatbotLora" aria-label="Next project: Chatbot (LoRA + RAG)">
+        <span class="project-pager-text">
+          <span class="project-pager-label">Next</span>
+          <span class="project-pager-title">Chatbot (LoRA + RAG)</span>
+        </span>
+        <span class="project-pager-arrow" aria-hidden="true">→</span>
+      </a>
+	    </div>
+	  </nav>
+
+  <main id="main">
+    <section class="project-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Portfolio Project</p>
+        <h1>Smart Sentence Retriever</h1>
+        <p class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</p>
+        <div class="cta-group project-cta">
+          <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
+        </div>
+        <div class="project-tags" role="list">
+      <span class="project-tag" role="listitem">Data Science</span>
+      <span class="project-tag" role="listitem">Machine Learning</span>
+      <span class="project-tag" role="listitem">Automation</span>
+      <span class="project-tag" role="listitem">Python</span>
+    </div>
+		      </div>
+	    </section>
+
+			    <section class="project-body">
+			      <div class="wrapper">
+			        <section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">I wanted a fast way to retrieve sentences that answer a question even when the wording doesn&#39;t match exactly.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">Built the retrieval pipeline, Lambda API, and browser demo end to end.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Cleaned Project Gutenberg text, split it into sentences, and precomputed embeddings for the fixed corpus.</li>
+              <li>Compared several embedding models on a sample subset and balanced clustering quality against model size and serverless deployment cost.</li>
+              <li>Deployed the selected model behind an immutable AWS Lambda alias and a same-origin IAM proxy, with a browser demo that checks `/health` before ranking top-k matches by cosine similarity.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.</li>
+              <li>Kept the site embed usable with warm-up status, inline similarity bars, and an open-in-new-tab fallback for a larger view.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Stack</dt>
+          <dd class="project-star-value">Python · AWS · Docker · NLP</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Live interactive demo</dd>
+        </div>
+      </dl>
+    </section>
+        <details class="project-star project-personal-notes project-disclosure" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title" id="smartSentence-personal-notes-title">Personal notes</span></summary>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Why I built it</dt>
+          <dd class="project-star-value">I wanted to find sentences by meaning when the query and source use different words.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">What surprised me</dt>
+          <dd class="project-star-value">Embedding quality was only one tradeoff; model size, cold starts, and serverless cost mattered to whether the demo felt useful.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">What I’d try next</dt>
+          <dd class="project-star-value">I’d publish a repeatable relevance and latency benchmark across the candidate embedding models.</dd>
+        </div>
+      </dl>
+    </details>
+        <details class="project-star project-evaluation project-disclosure" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title" id="smartSentence-evaluation-title">Evaluation &amp; tradeoffs</span></summary>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Status</dt>
+          <dd class="project-star-value">Not benchmarked</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Goal</dt>
+          <dd class="project-star-value">Retrieve sentences that are semantically relevant to a query when the wording does not match exactly.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Dataset</dt>
+          <dd class="project-star-value">A fixed Alice’s Adventures in Wonderland corpus from Project Gutenberg.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Split</dt>
+          <dd class="project-star-value">The repository includes an exploratory benchmark command over up to 1,000 sentences, but no fixed labeled evaluation split is published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Baseline</dt>
+          <dd class="project-star-value">No keyword-search or labeled-relevance baseline is published.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Decision</dt>
+          <dd class="project-star-value">Selected an embedding model by balancing exploratory clustering behavior, model size, and serverless deployment cost.</dd>
+        </div>
+
+<div class="project-star-row">
+          <dt class="project-star-label">Limitations</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Comparative relevance, nDCG, recall-at-k, warm latency, and cold-start latency results have not been published.</li>
+              <li>Silhouette score on unlabeled sentence embeddings would not by itself establish search relevance.</li>
+            </ul>
+          </dd>
+        </div>
+<div class="project-star-row">
+          <dt class="project-star-label">Evidence</dt>
+          <dd class="project-star-value"><a href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer">Project repository</a></dd>
+        </div>
+      </dl>
+    </details>
+        <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
+      <div class="project-demo-header">
+        <h2 class="section-title project-demo-title">Demo</h2>
+        <div class="project-demo-help">
+          <button class="project-demo-help-trigger" type="button" aria-label="Demo instructions" aria-describedby="project-demo-smartSentence-instructions">
+            <span aria-hidden="true">?</span>
+          </button>
+          <div class="project-demo-tooltip" id="project-demo-smartSentence-instructions" role="tooltip">
+            <p class="project-demo-tooltip-lead">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
+            <ul class="project-demo-tooltip-list">
+        <li>Type a query (a phrase or full sentence).</li>
+        <li>Adjust “Top results” to control how many matches are returned.</li>
+        <li>Click “Find Sentences” and review the ranked semantic matches.</li>
+        <li>If the demo is warming up after idle time, wait for the status to turn ready and try again.</li>
+      </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" data-demo-panel="demo">
+          <div class="project-demo-panel-inner">
+            <div class="project-demo-mobile-launch">
+          <img class="project-demo-launch-image" src="img/projects/smartSentence.png" alt="Preview of Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952">
+          <div class="project-demo-launch-copy">
+            <p>Open the standalone demo for the full interactive workspace.</p>
+            <a class="btn-primary" href="sentence-demo">Launch demo</a>
+          </div>
+        </div>
+            <div class="project-media project-embed project-embed-iframe project-embed-smartsentence" data-project-embed="smartSentence" data-embed-fit="content">
+        <iframe class="project-embed-frame" data-src="sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>
+          </div>
+        </section>
+      </div>
+    </section>
+        <details class="project-section project-disclosure project-resources" id="links" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title">Links</span></summary>
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.pdf" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_13.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://www.gutenberg.org/ebooks/11" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Corpus (Project Gutenberg)</span></a>
+      </div>
+      </div>
+      </div>
+    </details>
+        <details class="project-section project-disclosure project-notes" id="notes" data-project-mobile-disclosure open>
+      <summary class="project-disclosure-summary"><span class="section-title">Notes</span></summary>
+      <p class="project-lead">The live demo uses a fixed Alice in Wonderland corpus and checks endpoint health before enabling queries because cold starts can happen after idle time.</p>
+    </details>
+        <section class="project-section project-related" aria-label="Other projects">
+      <h2 class="section-title">Other Projects</h2>
+      <div class="project-related-grid" role="list">
+        <a class="project-card project-related-card" role="listitem" href="portfolio/chatbotLora" aria-label="Open project: Chatbot (LoRA + RAG)">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">Chatbot (LoRA + RAG)</div>
+          <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+        </div>
+        <picture>
+      <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora-960.avif 960w, img/projects/chatbotLora.avif 1280w" type="image/avif">
+      <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora-960.webp 960w, img/projects/chatbotLora.webp 1280w" type="image/webp">
+      <img src="img/projects/chatbotLora.png" alt="Chatbot (LoRA + RAG)" loading="lazy" decoding="async" width="1280" height="720" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+      </a>
+        <a class="project-card project-related-card" role="listitem" href="portfolio/shapeClassifier" aria-label="Open project: Shape Classifier Demo">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">Shape Classifier Demo</div>
+          <div class="project-subtitle">Handwritten Shape Recognition</div>
+        </div>
+        <picture>
+      <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
+      <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
+      <img src="img/projects/shapeClassifier.png" alt="Shape Classifier Demo" loading="lazy" decoding="async" width="926" height="926" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+      </a>
+        <a class="project-card project-related-card" role="listitem" href="portfolio/handwritingRating" aria-label="Open project: Handwriting Legibility Scoring">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">Handwriting Legibility Scoring</div>
+          <div class="project-subtitle">PyTorch CNN Fine-Tuning</div>
+        </div>
+        <picture>
+      <source srcset="img/projects/handwritingRating-640.avif 640w, img/projects/handwritingRating-960.avif 960w, img/projects/handwritingRating.avif 1138w" type="image/avif">
+      <source srcset="img/projects/handwritingRating-640.webp 640w, img/projects/handwritingRating-960.webp 960w, img/projects/handwritingRating.webp 1138w" type="image/webp">
+      <img src="img/projects/handwritingRating.png" alt="Handwriting Legibility Scoring" loading="lazy" decoding="async" width="1138" height="1138" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+      </a>
+      </div>
+    </section>
+			      </div>
+			    </section>
+			  </main>
+
+  <footer class="footer footer-classic">
+    <div class="wrapper footer-inner">
+      <div class="footer-identity">
+        <section class="footer-identity-panel" data-footer-realm="professional" aria-label="Daniel Short footer summary">
+          <h2 class="footer-identity-name">Daniel Short</h2>
+          <p class="footer-identity-summary">Tourism Analytics portfolio</p>
+          <div class="footer-identity-actions">
+            <a href="resume-tourism" class="footer-link footer-identity-link" data-resume-home-link="true">Resume</a>
+            <a href="contact?audience=tourism#contact-modal" class="footer-link footer-identity-link" data-contact-modal-link="true">Contact</a>
+          </div>
+        </section>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <div class="footer-nav-panel" data-footer-realm="professional">
+          <section class="footer-col" aria-labelledby="footer-professional-work">
+            <h2 class="footer-col-title" id="footer-professional-work">Work</h2>
+            <a href="tourism" class="footer-link">Home</a>
+            <a href="portfolio?audience=tourism" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
+            <a href="resume-tourism" class="footer-link" data-resume-home-link="true">Resume</a>
+          </section>
+          <section class="footer-col" aria-labelledby="footer-professional-connect">
+            <h2 class="footer-col-title" id="footer-professional-connect">Connect</h2>
+            <a href="contact?audience=tourism#contact-modal" class="footer-link" data-contact-modal-link="true">Contact</a>
+            <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
+          </section>
+        </div>
+      </nav>
+      <div class="footer-bottom">
+        <nav class="footer-utility" aria-label="Footer utility">
+          <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
+          <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
+        </nav>
+        <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  <div class="speed-dial" data-speed-dial="true">
+    <div class="speed-dial__tray" data-speed-dial-tray>
+      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
+          <a href="contact?audience=tourism#contact-modal" class="speed-dial__action btn-icon speed-dial__action--direct" aria-label="Send a direct message" role="menuitem" data-contact-modal-link="true" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+              <path d="M7 9h10"></path>
+              <path d="M7 13h6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
+          <a href="mailto:daniel@danielshort.me" class="speed-dial__action btn-icon" aria-label="Send Email" role="menuitem" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="M3 7l9 6 9-6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
+          <a href="https://www.linkedin.com/in/danielshort3/" class="speed-dial__action btn-icon" aria-label="View LinkedIn" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="4" cy="4" r="2"></circle>
+              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
+          <a href="https://github.com/danielshort3" class="speed-dial__action btn-icon" aria-label="View GitHub" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+            <span class="icon icon-github" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+        <path d="M12 8v6"></path>
+        <path d="M9 11h6"></path>
+      </svg>
+    </button>
+  </div>
+  <script defer src="dist/site-shell.5769f2ac.js"></script>
+  <script defer src="dist/site-consent.3b3af440.js"></script>
+</body>
+</html>

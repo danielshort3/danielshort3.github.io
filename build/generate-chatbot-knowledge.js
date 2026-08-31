@@ -528,6 +528,7 @@ function buildKnowledge() {
 
   files.forEach((absPath) => {
     const sourcePath = relFromRoot(absPath);
+    if (sourcePath.startsWith('pages/professional/')) return;
     let html = '';
     try {
       html = fs.readFileSync(absPath, 'utf8');
