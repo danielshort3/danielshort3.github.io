@@ -69,7 +69,7 @@
         },
         {
           id: 'project-starfall',
-          label: 'Current game',
+          label: 'Browser game',
           title: 'Project Starfall',
           description: 'Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.',
           href: '/games/project-starfall',

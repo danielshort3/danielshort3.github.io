@@ -1393,6 +1393,7 @@ function buildDigests() {
   candidates.forEach((absPath) => {
     const relPath = relFromRoot(absPath);
     if (!relPath || relPath.startsWith('public/') || relPath.startsWith('node_modules/')) return;
+    if (relPath.startsWith('pages/professional/')) return;
 
     let html = '';
     try {

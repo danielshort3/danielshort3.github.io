@@ -196,12 +196,15 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   });
 
   const portfolioHtml = read('pages/portfolio.html');
+  const professionalPortfolioHtml = read('pages/professional/analytics/portfolio.html');
   const portfolioJs = read('js/portfolio/portfolio.js');
   assert(
-    portfolioHtml.includes('<option value="default">Featured first</option>') &&
+    !portfolioHtml.includes('<option value="default">Featured first</option>') &&
+      portfolioHtml.includes('data-personal-accordion-shell') &&
+      professionalPortfolioHtml.includes('<option value="default">Featured first</option>') &&
       portfolioJs.includes('Most relevant') &&
       portfolioJs.includes('Featured first'),
-    'portfolio default sorting should use audience-aware labels without changing its value',
+    'professional workbench sorting should keep audience-aware labels while personal uses the direct project library',
   );
   assert(
     !portfolioHtml.includes('Preview summary') &&

@@ -23,10 +23,16 @@ const NON_SITEMAP_UTILITY_SOURCES = new Set([
   'pages/sitemap-pretty.html'
 ]);
 
-const DIRECTORY_RESULT_CONTRACTS = [
-  { file: 'pages/portfolio.html', pathPrefix: '/portfolio/', label: 'Portfolio' },
-  { file: 'pages/tools.html', pathPrefix: '/tools/', label: 'Tools' },
-  { file: 'pages/games.html', pathPrefix: '/games/', label: 'Games', containerAttribute: 'data-games-directory' }
+const PERSONAL_LIBRARY_CONTRACTS = [
+  { file: 'pages/portfolio.html', category: 'projects', pathPrefix: '/portfolio/', label: 'Portfolio' },
+  { file: 'pages/tools.html', category: 'tools', pathPrefix: '/tools/', label: 'Tools' },
+  { file: 'pages/games.html', category: 'games', pathPrefix: '/games/', label: 'Games' }
+];
+
+const PROFESSIONAL_DIRECTORY_RESULT_CONTRACTS = [
+  { file: 'pages/professional/analytics/portfolio.html', pathPrefix: '/portfolio/', label: 'Analytics portfolio' },
+  { file: 'pages/professional/data-science/portfolio.html', pathPrefix: '/portfolio/', label: 'Data science portfolio' },
+  { file: 'pages/professional/tourism/portfolio.html', pathPrefix: '/portfolio/', label: 'Tourism portfolio' }
 ];
 
 const REQUIRED_ALIAS_REDIRECTS = [
@@ -618,33 +624,132 @@ function extractElementWithAttribute(html, attributeName) {
   return '';
 }
 
-function validateDirectoryResultAnchors() {
-  DIRECTORY_RESULT_CONTRACTS.forEach((contract) => {
+function isCompleteHtmlDocument(html) {
+  return (
+    /<\/main>/i.test(html)
+    && /<footer\b[\s\S]*?<\/footer>/i.test(html)
+    && /<\/body>\s*<\/html>\s*$/i.test(html)
+  );
+}
+
+function hasClassToken(attributes, className) {
+  return String(attributes.class || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .includes(className);
+}
+
+function collectOpeningTags(html) {
+  const openingTags = [];
+  const openingTagMatcher = /<([a-z][a-z0-9:-]*)\b([^>]*)>/gi;
+  let openingTagMatch;
+  while ((openingTagMatch = openingTagMatcher.exec(html))) {
+    openingTags.push({
+      name: openingTagMatch[1].toLowerCase(),
+      attributes: parseAttributes(openingTagMatch[2])
+    });
+  }
+  return openingTags;
+}
+
+function canonicalInternalPath(href, pathPrefix) {
+  const value = String(href || '').trim();
+  if (!value.startsWith('/') || value.includes('?') || value.includes('#') || /\.html$/i.test(value)) return '';
+  let url;
+  try {
+    url = new URL(value, `${SITE_ORIGIN}/`);
+  } catch (_) {
+    return '';
+  }
+  if (url.origin !== SITE_ORIGIN || !url.pathname.startsWith(pathPrefix) || value !== url.pathname) return '';
+  return url.pathname;
+}
+
+function validatePersonalLibraryAnchors() {
+  let homeLibraryData = {};
+  try {
+    homeLibraryData = require(path.join(root, 'js', 'home', 'home-library-data.js'));
+  } catch (error) {
+    report('js/home/home-library-data.js', `could not be loaded (${error.code || error.message})`);
+  }
+
+  PERSONAL_LIBRARY_CONTRACTS.forEach((contract) => {
     const html = readRequired(contract.file);
-    if (
-      !/<\/main>/i.test(html)
-      || !/<footer\b[\s\S]*?<\/footer>/i.test(html)
-      || !/<\/body>\s*<\/html>\s*$/i.test(html)
-    ) {
+    if (!isCompleteHtmlDocument(html)) {
       report(contract.file, 'incomplete HTML document shell');
       return;
     }
-    const containerAttribute = contract.containerAttribute || 'data-portfolio-results';
-    const container = extractElementWithAttribute(html, containerAttribute);
+
+    const container = extractElementWithAttribute(html, 'data-personal-accordion-shell');
     if (!container) {
-      report(contract.file, `missing a complete raw HTML [${containerAttribute}] container`);
+      report(contract.file, 'missing a complete personal accordion shell');
+      return;
+    }
+    if (!new RegExp(`data-personal-active-category=["']${contract.category}["']`, 'i').test(container)) {
+      report(contract.file, `personal accordion does not identify ${contract.category} as active`);
+    }
+
+    const expectedItems = homeLibraryData[contract.category] && Array.isArray(homeLibraryData[contract.category].items)
+      ? homeLibraryData[contract.category].items
+      : [];
+    const expectedPaths = expectedItems
+      .map((item) => canonicalInternalPath(item && item.href, contract.pathPrefix))
+      .filter(Boolean);
+    if (!expectedPaths.length) {
+      report(contract.file, `${contract.label} source data has no canonical ${contract.pathPrefix} paths`);
       return;
     }
 
-    const openingTags = [];
-    const openingTagMatcher = /<([a-z][a-z0-9:-]*)\b([^>]*)>/gi;
-    let openingTagMatch;
-    while ((openingTagMatch = openingTagMatcher.exec(container))) {
-      openingTags.push({
-        name: openingTagMatch[1].toLowerCase(),
-        attributes: parseAttributes(openingTagMatch[2])
-      });
+    const cards = collectOpeningTags(container).filter((tag) => (
+      tag.name === 'a' && hasClassToken(tag.attributes, 'home-library__card')
+    ));
+    const cardPaths = cards
+      .map((tag) => canonicalInternalPath(tag.attributes.href, contract.pathPrefix))
+      .filter(Boolean);
+    const uniqueCardPaths = new Set(cardPaths);
+
+    if (cards.length !== expectedPaths.length) {
+      report(contract.file, `${contract.label} library exposes ${cards.length} cards; expected ${expectedPaths.length}`);
     }
+    if (cardPaths.length !== cards.length) {
+      report(contract.file, `${contract.label} library cards must use canonical root-relative ${contract.pathPrefix} hrefs`);
+    }
+    if (uniqueCardPaths.size !== cardPaths.length) {
+      report(contract.file, `${contract.label} library contains duplicate canonical card hrefs`);
+    }
+
+    const missingPaths = expectedPaths.filter((expectedPath) => !uniqueCardPaths.has(expectedPath));
+    const unexpectedPaths = [...uniqueCardPaths].filter((cardPath) => !expectedPaths.includes(cardPath));
+    if (missingPaths.length) {
+      report(contract.file, `${contract.label} library is missing canonical cards: ${missingPaths.join(', ')}`);
+    }
+    if (unexpectedPaths.length) {
+      report(contract.file, `${contract.label} library has unexpected canonical cards: ${unexpectedPaths.join(', ')}`);
+    }
+  });
+}
+
+function validateProfessionalDirectoryResultAnchors() {
+  PROFESSIONAL_DIRECTORY_RESULT_CONTRACTS.forEach((contract) => {
+    const html = readRequired(contract.file);
+    if (!isCompleteHtmlDocument(html)) {
+      report(contract.file, 'incomplete HTML document shell');
+      return;
+    }
+    if (/data-personal-accordion-shell/i.test(html)) {
+      report(contract.file, 'professional workbench must not contain the personal accordion shell');
+    }
+    if (!/data-internal-professional-copy=["']true["']/i.test(html)) {
+      report(contract.file, 'professional workbench is missing its internal-copy marker');
+    }
+
+    const container = extractElementWithAttribute(html, 'data-portfolio-results');
+    if (!container) {
+      report(contract.file, 'missing a complete raw HTML [data-portfolio-results] container');
+      return;
+    }
+
+    const openingTags = collectOpeningTags(container);
 
     const resultItemCount = openingTags.filter((tag) => (
       String(tag.attributes.role || '').toLowerCase() === 'listitem'
@@ -665,12 +770,12 @@ function validateDirectoryResultAnchors() {
     });
 
     if (!resultItemCount) {
-      report(contract.file, `${contract.label} raw results container has no list items`);
+      report(contract.file, `${contract.label} raw workbench has no list items`);
     }
     if (!crawlablePaths.size) {
-      report(contract.file, `${contract.label} raw results container has no crawlable ${contract.pathPrefix} anchors`);
+      report(contract.file, `${contract.label} raw workbench has no crawlable ${contract.pathPrefix} anchors`);
     } else if (crawlablePaths.size < resultItemCount) {
-      report(contract.file, `${contract.label} raw results expose ${resultItemCount} list items but only ${crawlablePaths.size} unique crawlable anchors`);
+      report(contract.file, `${contract.label} raw workbench exposes ${resultItemCount} list items but only ${crawlablePaths.size} unique crawlable anchors`);
     }
   });
 }
@@ -724,7 +829,8 @@ function main() {
   validateUniqueMetadata(metadataRecords, 'description');
   const sitemapSet = validateSitemap(groups, exactNoindexRoutes);
   validateVercelAndRobots(vercel);
-  validateDirectoryResultAnchors();
+  validatePersonalLibraryAnchors();
+  validateProfessionalDirectoryResultAnchors();
 
   if (errors.length) {
     process.stderr.write(`SEO validation failed with ${errors.length} issue(s):\n`);

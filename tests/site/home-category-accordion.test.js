@@ -194,12 +194,14 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'randall-reilly',
     'visit-grand-junction',
     'google-analytics',
-    'eastern-ms-data-science',
-    'project-starfall'
+    'eastern-ms-data-science'
   ];
   assert(about.timeline?.title === 'My path so far' &&
     JSON.stringify(timelineItems.map((item) => item.id)) === JSON.stringify(expectedTimelineIds),
-  'About should carry the approved 11-event personal timeline in chronological narrative order');
+  'About should carry the approved 10-event personal timeline in chronological narrative order');
+  assert(count(html, /class="home-timeline__axis"/g) === timelineItems.length &&
+    html.includes('<ol class="home-timeline__list" data-home-timeline-scroller>'),
+  'each timeline event should render one shared axis aligned with the dedicated timeline scroll region');
   const expectedCertificateDates = {
     'google-data-analytics': '2023-01-03',
     'ibm-data-analyst': '2023-01-11',
@@ -268,11 +270,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'rendered About content should pair its heading with a meaningful, intrinsically sized profile image');
   assert(aboutHtml.includes('<section class="home-timeline" data-home-timeline aria-labelledby="home-timeline-about-title">') &&
     aboutHtml.includes('<h4 id="home-timeline-about-title">My path so far</h4>') &&
-    aboutHtml.includes('<ol class="home-timeline__list">') &&
-    count(aboutHtml, /<li class="home-timeline__item[^>]+data-home-timeline-item=/g) === 11 &&
+    aboutHtml.includes('<ol class="home-timeline__list" data-home-timeline-scroller>') &&
+    count(aboutHtml, /<li class="home-timeline__item[^>]+data-home-timeline-item=/g) === 10 &&
     !aboutHtml.includes('role="list"') &&
     !aboutHtml.includes('role="listitem"'),
-  'rendered About timeline should be a labelled section with a native ordered list of 11 semantic events');
+  'rendered About timeline should be a labelled section with a native ordered list of 10 semantic events');
   Object.entries(expectedCertificateDates).forEach(([id, issueDate]) => {
     const marker = `data-home-timeline-item="${id}"`;
     const markerIndex = aboutHtml.indexOf(marker);
@@ -348,6 +350,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   requiredRoutes.forEach((route) => {
     assert(html.includes(`href="${route}"`), `generated homepage missing approved route ${route}`);
   });
+  assert(/href="\/contact#contact-modal"[^>]*data-contact-modal-link/.test(getItemHtml('contact')),
+    'homepage Send a message card should opt into the shared in-page contact modal');
   ['/tools/word-frequency', '/games/roulette', '/games/ocean-wave-simulation'].forEach((route) => {
     assert(!html.includes(`href="${route}"`), `homepage preview should leave ${route} to its full directory`);
   });
@@ -535,7 +539,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   );
   const mobileLibraryCss = extractBlock(libraryCss, '@media (max-width: 959px), (max-height: 619px)');
   const phoneLibraryCss = extractBlock(libraryCss, '@media (max-width: 768px)');
+  const desktopTimelineCss = extractBlock(timelineCss, '@media (min-width: 960px) and (min-height: 620px)');
   const mobileTimelineCss = extractBlock(timelineCss, '@media (max-width: 959px), (max-height: 619px)');
+  const evenTimelineAxisCss = extractBlock(timelineCss, '.home-timeline__item:nth-child(even) .home-timeline__axis::after');
   assert(css.includes('--home-rail-width: 76px;') &&
     css.includes('--home-active-rail-width: 82px;') &&
     css.includes('--home-panel-motion: 520ms;') &&
@@ -548,12 +554,20 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     css.includes('clip-path: polygon(0 0, 100% 50%, 0 100%);'),
   'desktop overview should smoothly exchange panel width while keeping touching rails, a subtly wider active rail, a 5px frame, and right-facing word notch');
   assert(overviewPanelCss.includes('background: #ffffff;') &&
-    overviewPanelCss.includes('border-radius: 0 0 12px 0;') &&
-    overviewScrollerCss.includes('overflow-y: scroll;') &&
+    overviewPanelCss.includes('border-radius: 0;') &&
+    overviewScrollerCss.includes('overflow-y: auto;') &&
     overviewScrollerCss.includes('overscroll-behavior: contain;') &&
     css.includes('position: sticky;') &&
-    overviewScrollerCss.includes('scrollbar-color:'),
-  'selected panel should stay white with square flush top corners, a sticky heading, and visible contained desktop scroll');
+    overviewScrollerCss.includes('scrollbar-color: var(--home-scrollbar-thumb) var(--home-scrollbar-track);') &&
+    css.includes('.home-accordion:not(.is-library-mode) .home-accordion__item:last-child.is-active .home-accordion__panel') &&
+    css.includes('border-radius: 0 12px 12px 0;'),
+  'selected overview panels should stay white and square, use conditional themed scrolling, and round both outer-right corners only for Contact');
+  assert(css.includes('.home-accordion__panel-head {\n    box-sizing: border-box;') &&
+    css.includes('.home-accordion__context {\n    box-sizing: border-box;') &&
+    css.includes('.home-accordion__meta {\n    box-sizing: border-box;') &&
+    css.includes('.home-accordion__cards {\n    box-sizing: border-box;') &&
+    css.includes('max-inline-size: 100%;'),
+  'all padded panel content should remain inside the scroller width and keep the profile portrait fully visible');
   assert(css.includes('.home-accordion__card-glyph {\n    box-sizing: border-box;'),
     'homepage card glyphs should keep their padding inside the media tile instead of clipping');
   assert(css.includes('@media (max-width: 959px), (max-height: 619px)') &&
@@ -579,7 +593,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     desktopLibraryCss.includes('grid-column: 2;') &&
     desktopLibraryCss.includes('grid-row: 1 / -1;') &&
     desktopLibraryCss.includes('border: 5px solid var(--panel-color);') &&
-    desktopLibraryCss.includes('overflow-y: scroll;'),
+    desktopLibraryCss.includes('border-radius: 0;') &&
+    desktopLibraryCss.includes('.home-accordion.is-library-mode .home-accordion__item:last-child.is-active .home-accordion__panel') &&
+    desktopLibraryCss.includes('overflow-y: auto;'),
   'expanded desktop libraries should use five equal, narrow icon-above-vertical-label tabs beside one 5px-framed, internally scrolling content column');
   assert(mobileLibraryCss.includes('grid-template-columns: repeat(5, minmax(0, 1fr));') &&
     mobileLibraryCss.includes('grid-template-rows: 78px auto;') &&
@@ -602,8 +618,21 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     mobileTimelineCss.includes('scroll-snap-type: inline mandatory;') &&
     mobileTimelineCss.includes('overscroll-behavior-inline: contain;') &&
     mobileTimelineCss.includes('scroll-snap-align: start;') &&
-    mobileTimelineCss.includes('scroll-snap-stop: always;'),
-  'mobile timeline should be a contained horizontal card scroller with explicit snap positions');
+    mobileTimelineCss.includes('scroll-snap-stop: always;') &&
+    mobileTimelineCss.includes('.home-timeline__axis::before') &&
+    mobileTimelineCss.includes('top: 11px;') &&
+    mobileTimelineCss.includes('var(--home-scrollbar-thumb, #334155)'),
+  'mobile timeline should preserve horizontal snapping while sharing an exactly centered, category-themed axis');
+  assert(timelineCss.includes('.home-timeline__axis {') &&
+    timelineCss.includes('grid-column: 2;') &&
+    timelineCss.includes('grid-row: 2;') &&
+    timelineCss.includes('transform: translate(-50%, -50%);') &&
+    evenTimelineAxisCss.includes('right: 0;') &&
+    evenTimelineAxisCss.includes('left: 50%;') &&
+    desktopTimelineCss.includes('overflow-y: hidden;') &&
+    desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__list') &&
+    desktopTimelineCss.includes('overflow-y: auto;'),
+  'desktop timeline axis should share the card row center while the fixed profile and divider sit above the sole vertical list scroller');
   assert(css.includes('@media (pointer: coarse)') &&
     css.includes('min-height: 44px;') &&
     css.includes('@media (prefers-reduced-motion: reduce)') &&
@@ -624,7 +653,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const updateTriggerStateJs = extractFunctionBlock(js, 'function updateTriggerState');
   const updateLibraryVisibilityJs = extractFunctionBlock(js, 'function updateLibraryViewVisibility');
   const applyLibraryModeJs = extractFunctionBlock(js, 'function applyLibraryMode');
+  const runViewTransitionJs = extractFunctionBlock(js, 'function runViewTransition');
   const resolveTriggerTargetJs = extractFunctionBlock(js, 'function resolveTriggerTarget');
+  const exitLibraryToPanelJs = extractFunctionBlock(js, 'function exitLibraryToPanel');
   const activatePanelTriggerJs = extractFunctionBlock(js, 'function activatePanelTrigger');
   const openLibraryJs = extractFunctionBlock(js, 'function openLibrary');
   const closeLibraryJs = extractFunctionBlock(js, 'function closeLibrary');
@@ -653,11 +684,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   ];
   assert(triggerResolutionCases.every(([currentId, requestedId, expectedId]) =>
     triggerResolutionContext.resolveTriggerTarget(currentId, requestedId, 'about') === expectedId) &&
-    activatePanelTriggerJs.includes('if (isLibraryMode) return selectPanel(id);') &&
+    activatePanelTriggerJs.includes('if (isLibraryMode) return exitLibraryToPanel(id);') &&
+    exitLibraryToPanelJs.includes("root.classList.remove('is-library-mode')") &&
+    exitLibraryToPanelJs.includes("root.dataset.homeView = 'overview'") &&
+    exitLibraryToPanelJs.includes("updateLocation(id, 'push', false)") &&
+    exitLibraryToPanelJs.includes('restoreScrollPosition(id, false)') &&
+    exitLibraryToPanelJs.includes("detail: { category: id, view: 'overview' }") &&
     activatePanelTriggerJs.includes('const nextId = resolveTriggerTarget(activeId, id, defaultPanel);') &&
     activatePanelTriggerJs.includes('triggerById.get(defaultPanel)?.focus({ preventScroll: true })') &&
     count(js, /activatePanelTrigger\(String\(trigger\.dataset\.homeAccordionTrigger \|\| ''\)\)/g) === 2,
-  're-activating any expanded non-About overview tab should return to and focus About through both pointer and keyboard controls, while library mode remains explicit');
+  'overview tabs should retain collapse-to-About behavior while a different library rail atomically returns to that category overview and clean URL');
   assert(js.includes("event.key === 'ArrowDown'") &&
     js.includes("event.key === 'ArrowRight'") &&
     js.includes("event.key === 'ArrowUp'") &&
@@ -669,6 +705,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'accordion rails should support directional movement plus Enter and Space activation');
   assert(js.includes('scrollPositions') &&
     js.includes('scroller.scrollTop') &&
+    js.includes('timelineScrollerById') &&
+    js.includes("panel?.querySelector('[data-home-timeline-scroller]')") &&
     js.includes("window.matchMedia('(min-width: 960px) and (min-height: 620px)')") &&
     js.includes('scrollIntoView'),
   'accordion should preserve spacious-rail panel scroll positions and reveal newly opened stacked sections');
@@ -724,10 +762,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(applyLibraryModeJs.includes("root.classList.toggle('is-library-mode', next)") &&
     applyLibraryModeJs.includes("root.dataset.homeView = next ? 'library' : 'overview'") &&
     applyLibraryModeJs.includes("typeof options.afterApply === 'function'") &&
-    applyLibraryModeJs.includes('!reducedMotionQuery.matches') &&
-    applyLibraryModeJs.includes("typeof document.startViewTransition === 'function'") &&
-    applyLibraryModeJs.includes('document.startViewTransition(apply)') &&
-    applyLibraryModeJs.includes('markViewTransition()') &&
+    applyLibraryModeJs.includes('runViewTransition(apply, options.animate !== false)') &&
+    runViewTransitionJs.includes('!reducedMotionQuery.matches') &&
+    runViewTransitionJs.includes("typeof document.startViewTransition === 'function'") &&
+    runViewTransitionJs.includes('document.startViewTransition(apply)') &&
+    runViewTransitionJs.includes('markViewTransition()') &&
     js.includes('const animateIncoming = options.animateIncoming === true && !reducedMotionQuery.matches;'),
   'library and panel transitions should use native or fallback animation only when reduced motion is not requested');
   assert(updateTriggerStateJs.includes("const isNonCollapsible = selected && (triggerId === defaultPanel || isLibraryMode);") &&
@@ -735,10 +774,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     updateTriggerStateJs.includes("trigger.removeAttribute('aria-disabled')") &&
     updateTriggerStateJs.includes("trigger.removeAttribute('aria-current')") &&
     applyLibraryModeJs.includes('updateTriggerState(triggerById.get(activeId), true);') &&
-    js.includes("scroller.setAttribute('tabindex', '0')") &&
-    js.includes("scroller.removeAttribute('tabindex')") &&
-    js.includes('scroller.scrollHeight > scroller.clientHeight + 1'),
-  'only active About and library-mode rails should expose a noncollapsible state, and only independently scrollable rail panels should add a tab stop');
+    js.includes("scrollTarget.setAttribute('tabindex', '0')") &&
+    js.includes("region.removeAttribute('tabindex')") &&
+    js.includes('scrollTarget.scrollHeight > scrollTarget.clientHeight + 1') &&
+    js.includes('scrollTarget.scrollWidth > scrollTarget.clientWidth + 1'),
+  'only active About and library-mode rails should expose a noncollapsible state, and only truly overflowing vertical or horizontal regions should add a tab stop');
   assert(js.includes('const initialLibraryMode = locationRequestsLibrary();') &&
     js.includes('const initialHashPanel = panelIdFromHash();') &&
     js.includes("const initialPanel = initialHashPanel || (initialLibraryMode && ids.includes('projects') ? 'projects' : defaultPanel);") &&
@@ -760,6 +800,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     css.includes('.mobile-site-dock {') &&
     css.includes('display: none !important;'),
   'selected homepage should prevent the shared bottom dock and retain a CSS safety fallback');
+  assert(count(css, /var\(--personal-footer-block-size, 0px\)/g) === 3 &&
+    css.includes('min-height: min(540px, calc(100svh') &&
+    !css.includes('.footer.footer-classic'),
+  'desktop homepage height should reserve the compact personal footer without hiding it');
   assert(activityEvents.includes("target.closest('[data-home-accordion]')") &&
     activityEvents.includes('category.dataset.homeAccordionTrigger'),
   'homepage category changes should remain analytics-visible');

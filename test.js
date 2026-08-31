@@ -7,6 +7,7 @@ const childProcess = require('child_process');
 const runUtmBatchBuilderTests = require('./tests/tools/utm-batch-builder.test.js');
 const runCampaignCreativeTrackerTests = require('./tests/tools/campaign-creative-tracker.test.js');
 const runHomeCategoryAccordionTests = require('./tests/site/home-category-accordion.test.js');
+const runPersonalAccordionShellTests = require('./tests/site/personal-accordion-shell.test.js');
 const runPortfolioRecommendationTests = require('./tests/site/portfolio-recommendations.test.js');
 const runResponsiveDensityContractTests = require('./tests/site/responsive-density-contracts.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/tools/qr-code-generator-utils.test.js');
@@ -544,7 +545,8 @@ function assertBodyShellContract(file, html) {
 }
 
 function assertHeroVariantClasses(file, html) {
-  const heroSections = Array.from(html.matchAll(/<section[^>]*class="([^"]*\bhero\b[^"]*)"/gi));
+  const heroSections = Array.from(html.matchAll(/<section[^>]*class="([^"]*)"/gi))
+    .filter((match) => String(match[1] || '').split(/\s+/).includes('hero'));
   heroSections.forEach((match) => {
     const classNames = String(match[1] || '').trim();
     assert(
@@ -828,10 +830,10 @@ try {
       }
     });
 
-    checkFileContains('pages/games.html', 'href="games/roulette"');
-    checkFileContains('pages/games.html', 'href="games/stellar-dogfight"');
-    checkFileContains('pages/games.html', 'href="games/project-starfall"');
-    checkFileContains('pages/games.html', 'href="games/stormbreak"');
+    checkFileContains('pages/games.html', 'href="/games/roulette"');
+    checkFileContains('pages/games.html', 'href="/games/stellar-dogfight"');
+    checkFileContains('pages/games.html', 'href="/games/project-starfall"');
+    checkFileContains('pages/games.html', 'href="/games/stormbreak"');
     checkFileContains('pages/games/probability-engine.html', '<link rel="canonical" href="https://www.danielshort.me/games/probability-engine">');
     checkFileContains('pages/games/probability-engine.html', '<meta name="description"');
 
@@ -1112,35 +1114,30 @@ try {
     const toolsDirectoryData = toolsDirectoryDataContext.window.DIRECTORY_WORKBENCH;
     const toolsPageRecord = JSON.parse(readFile(path.join('content', 'pages', 'tools.json')));
     const toolRecords = toolFiles.map((fileName) => JSON.parse(readFile(path.join('content', 'tools', fileName))));
+    const homeLibraryTools = require('./js/home/home-library-data.js').tools.items;
     const publicTools = toolRecords.filter((tool) => !tool.hidden && !tool.noindex && (!tool.visibility || tool.visibility === 'public'));
     const accountTools = toolRecords.filter((tool) => tool.visibility === 'authed' || tool.visibility === 'authenticated' || tool.visibility === 'logged-in');
     const adminTools = toolRecords.filter((tool) => tool.visibility === 'admin' || tool.visibility === 'admins');
 
-    assert(toolsHtml.includes('<h1 id="tools-workbench-title">Tools</h1>'), 'tools page should expose the concise Tools h1');
+    assert(toolsHtml.includes('<h1 id="personal-library-title-tools">Tool library</h1>'),
+      'personal tools page should expose the dedicated Tool library h1');
     assert(String(toolsPageRecord.bodyAttributes && toolsPageRecord.bodyAttributes.class || '').includes('portfolio-workbench-page'),
       'tools page should opt into the shared workbench shell');
-    assert(toolsHtml.includes('data-portfolio-workbench') &&
-      toolsHtml.includes('data-directory-workbench="tools"') &&
-      toolsHtml.includes('class="portfolio-workbench__filters"') &&
-      toolsHtml.includes('class="portfolio-workbench__results"') &&
-      !toolsHtml.includes('data-portfolio-inspector'),
-      'tools page should render compact filter and results columns without an inspector');
-    assert(toolsHtml.includes('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"') &&
-      toolsHtml.includes('data-directory-brand="tools"') &&
-      toolsHtml.includes('Focused browser utilities for writing, campaigns, and media.') &&
-      !toolsHtml.includes('data-tools-directory-stat') &&
-      !toolsHtml.includes('portfolio-brand-panel__proof') &&
-      !toolsHtml.includes('portfolio-brand-panel__signals'),
-      'tools page should render a concise branded header without duplicate status and proof clutter');
-    const toolsHeaderStart = toolsHtml.indexOf('class="portfolio-workbench__header portfolio-brand-panel directory-brand-panel"');
-    const toolsHeaderEnd = toolsHtml.indexOf('</header>', toolsHeaderStart);
-    const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory"');
-    assert(toolsHeaderStart >= 0 && toolsAccountDockIndex > toolsHeaderStart && toolsAccountDockIndex < toolsHeaderEnd,
-      'tools account action should stay compact and inside the branded header');
-    assert(toolsHtml.includes('data-portfolio-search') &&
-      toolsHtml.includes('placeholder="Search tools"') &&
-      !toolsHtml.includes('data-portfolio-sort'),
-      'tools page should provide search without a redundant sort control');
+    assert(toolsHtml.includes('data-personal-accordion-shell') &&
+      toolsHtml.includes('data-personal-category="tools"') &&
+      toolsHtml.includes('data-personal-accordion-view="library"') &&
+      toolsHtml.includes('class="home-library personal-library personal-library--tools tools-hero"') &&
+      !toolsHtml.includes('data-portfolio-workbench') &&
+      !toolsHtml.includes('data-directory-workbench="tools"'),
+      'personal tools page should render the five-rail library instead of the legacy workbench');
+    const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory');
+    const toolsLibraryIndex = toolsHtml.indexOf('class="home-library personal-library personal-library--tools tools-hero"');
+    const toolsLibraryEnd = toolsHtml.indexOf('</section>', toolsLibraryIndex);
+    const toolsLibraryHtml = toolsLibraryIndex >= 0 && toolsLibraryEnd > toolsLibraryIndex
+      ? toolsHtml.slice(toolsLibraryIndex, toolsLibraryEnd)
+      : '';
+    assert(toolsAccountDockIndex >= 0 && toolsAccountDockIndex < toolsLibraryIndex,
+      'tools account action should stay compact above the personal library');
     assert(!catalogJs.includes("if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');"),
       'tools account UI should not force an existing visible h1 offscreen');
     assert(catalogJs.includes("if (page !== 'tools')") &&
@@ -1162,17 +1159,12 @@ try {
       !toolsHtml.includes('tools-rail-link') &&
       !toolsHtml.includes('tool-card-details'),
       'tools page should remove the old rail, rationale panel, and hover-card directory');
-    const resultsStart = toolsHtml.indexOf('class="portfolio-results-list"');
-    const resultsEnd = toolsHtml.indexOf('<p class="portfolio-empty-state"', resultsStart);
-    const initialResultsHtml = resultsStart >= 0 && resultsEnd > resultsStart
-      ? toolsHtml.slice(resultsStart, resultsEnd)
-      : '';
-    assert((initialResultsHtml.match(/class="portfolio-result-card tools-workbench-result tools-workbench-result__select"/g) || []).length === publicTools.length &&
-      publicTools.every((tool) => initialResultsHtml.includes(`href="${tool.href}"`)),
-      'tools page should server-render one crawlable launch card for every public tool');
-    assert(!accountTools.some((tool) => initialResultsHtml.includes(`href="${tool.href}"`)) &&
-      !adminTools.some((tool) => initialResultsHtml.includes(`href="${tool.href}"`)),
-      'tools page should not expose account or admin launch cards in its indexable static results');
+    assert((toolsLibraryHtml.match(/class="home-library__card"/g) || []).length === publicTools.length &&
+      publicTools.every((tool) => toolsLibraryHtml.includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`)),
+      'tools page should server-render one crawlable personal-library card for every public tool');
+    assert(!accountTools.some((tool) => toolsLibraryHtml.includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`)) &&
+      !adminTools.some((tool) => toolsLibraryHtml.includes(`href="/${String(tool.href || '').replace(/^\/+/, '')}"`)),
+      'personal tools library should not expose account or admin launch cards');
     assert(toolsDirectoryData && toolsDirectoryData.kind === 'tools' && toolsDirectoryData.itemPlural === 'tools',
       'generated tools data should declare the shared workbench contract');
     assert(toolsDirectoryData.filterGroups.map((group) => group.title).join('|') === 'Category',
@@ -1202,9 +1194,9 @@ try {
     assert(!toolsHtml.includes('class="tool-pill'), 'tools page cards should not render visible tool tag pills');
     assert(!toolsHtml.includes('Public · Local'), 'tools page cards should not render Public/Local kicker text');
     assert(!toolsHtml.includes(`Showing ${publicTools.length} tools.`), 'tools page should not render filter count copy');
-    assert(!toolsHtml.includes('data-tools-resume-action="sign-in"'), 'tools page resume panel should not render a duplicate sign-in action');
-    assert(toolsHtml.includes('data-tools-auth-only'), 'tools page resume panel should be marked as signed-in-only content');
-    assert(!toolsHtml.includes('tools-resume-dashboard-link'), 'tools page resume panel should not render a duplicate dashboard button');
+    assert(!toolsHtml.includes('data-tools-resume-action="sign-in"'), 'tools library should not render a duplicate sign-in action');
+    assert(toolsHtml.includes('data-tools-account="dock"'), 'tools library should retain the shared account dock');
+    assert(!toolsHtml.includes('tools-resume-dashboard-link'), 'tools library should not render a duplicate dashboard button');
     assert(!directoryJs.includes('data-tools-resume-action'), 'tools directory script should not wire duplicate resume sign-in actions');
     assert(directoryJs.includes('hideResumePanel') &&
       !directoryJs.includes('renderResumeSignedOut') &&
@@ -1268,9 +1260,8 @@ try {
       bundledToolsAccountJs.includes('setAttribute("aria-hidden","true")'),
       'bundled tools account UI should include the inert modal behavior used in production pages');
     assert(!directoryJs.includes('data-tools-filter-input'), 'tools directory script should not wire removed search controls');
-    assert(toolsHtml.indexOf('class="tools-resume-panel"') > toolsHeaderEnd &&
-      toolsHtml.indexOf('class="tools-resume-panel"') < toolsHtml.indexOf('class="portfolio-workbench__layout"'),
-      'signed-in resume content should sit between the compact header and the workbench panes');
+    assert(!toolsHtml.includes('class="tools-resume-panel"') && toolsAccountDockIndex < toolsLibraryIndex,
+      'personal tools library should use the account dock without retaining the legacy resume/workbench panel');
     const toolsCss = readFile('css/components/tools.css');
     const workbenchCss = readFile('css/components/portfolio-workbench.css');
     assert(toolsCss.includes('.portfolio-brand-panel {\n    overflow:visible;') &&
@@ -1337,15 +1328,20 @@ try {
       assert(fs.existsSync(tool.iconImage), `${fileName} icon image is missing`);
       const visibility = String(tool.visibility || 'public').trim().toLowerCase();
       if (visibility === 'public') {
-        assert(initialResultsHtml.includes(`src="${tool.iconImage}"`), `${fileName} icon image missing from static results`);
-        assert(initialResultsHtml.includes(`href="${href}"`), `${fileName} crawlable link missing from static results`);
-        const hrefIndex = initialResultsHtml.indexOf(`href="${href}"`);
-        const cardStart = initialResultsHtml.lastIndexOf('<a class="portfolio-result-card', hrefIndex);
-        const cardEnd = initialResultsHtml.indexOf('</a>', hrefIndex);
-        const staticCard = initialResultsHtml.slice(cardStart, cardEnd);
-        assert(staticCard.includes('data-tools-visibility="public"'), `${fileName} static visibility is missing`);
+        const libraryItem = homeLibraryTools.find((item) => item.id === slug);
+        const canonicalHref = `/${href.replace(/^\/+/, '')}`;
+        assert(libraryItem && toolsLibraryHtml.includes(`src="${libraryItem.image}"`),
+          `${fileName} branded preview image missing from the personal library`);
+        assert(toolsLibraryHtml.includes(`href="${canonicalHref}"`), `${fileName} crawlable link missing from personal library`);
+        const hrefIndex = toolsLibraryHtml.indexOf(`href="${canonicalHref}"`);
+        const cardStart = toolsLibraryHtml.lastIndexOf('<a class="home-library__card', hrefIndex);
+        const cardEnd = toolsLibraryHtml.indexOf('</a>', hrefIndex);
+        const staticCard = toolsLibraryHtml.slice(cardStart, cardEnd);
+        assert(staticCard.includes(`data-content-id="${slug}"`) && staticCard.includes('data-content-type="tool"'),
+          `${fileName} personal-library content identity is missing`);
       } else {
-        assert(!initialResultsHtml.includes(`href="${href}"`), `${fileName} restricted route should stay out of indexable static results`);
+        assert(!toolsLibraryHtml.includes(`href="/${href.replace(/^\/+/, '')}"`),
+          `${fileName} restricted route should stay out of indexable personal library`);
       }
       assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
         `${fileName} missing clean URL rewrite`);
@@ -1851,7 +1847,7 @@ try {
     assert(page.indexOf('js/games/project-starfall/data/asset-backup-content.js') < page.indexOf('js/games/project-starfall/data/index.js') &&
       page.indexOf('js/games/project-starfall/data/index.js') < page.indexOf('js/games/project-starfall/project-starfall-data.js'),
       'Project Starfall data index assembly module should load after data content modules and before the compatibility data bundle');
-    assert(gamesPage.includes('href="games/project-starfall"') && gamesPage.includes('Project Starfall'),
+    assert(gamesPage.includes('href="/games/project-starfall"') && gamesPage.includes('Project Starfall'),
       'Games page should include Project Starfall in the public games directory');
     assert(rewrites.some((rule) => rule.source === '/games/project-starfall' && rule.destination === '/pages/games/project-starfall') &&
       rewrites.some((rule) => rule.source === '/games/project-starfall.html' && rule.destination === '/pages/games/project-starfall'),
@@ -8988,7 +8984,7 @@ try {
       starfallCss.includes('.project-starfall-canvas-wrap.is-transition-loader-visible .project-starfall-loading') &&
       starfallCss.includes('prefers-reduced-motion: reduce'),
       'Project Starfall loading CSS should hide the game until asset progress reaches 100%, fade the loader out, and respect reduced motion');
-    assert(gamesPage.includes('href="games/project-starfall"') && gamesPage.includes('Project Starfall'),
+    assert(gamesPage.includes('href="/games/project-starfall"') && gamesPage.includes('Project Starfall'),
       'Games page should include Project Starfall in the public games directory');
     assert(page.includes('js/vendor/pixi.min.js') &&
       page.includes('js/games/project-starfall/project-starfall-renderer-pixi.js') &&
@@ -38920,7 +38916,7 @@ try {
     assert(featured.length, 'FEATURED_IDS missing or empty');
     const html = fs.readFileSync('pages/portfolio.html', 'utf8');
     featured.forEach((id) => {
-      assert(html.includes(`href="portfolio/${id}"`), `pages/portfolio.html missing featured href for ${id}`);
+      assert(html.includes(`href="/portfolio/${id}"`), `pages/portfolio.html missing featured href for ${id}`);
     });
     const projectPageGenerator = require('./build/generate-project-pages.js');
     const publishedProjects = pdata.window.PROJECTS.filter(projectPageGenerator.isPublishedProject);
@@ -40077,17 +40073,26 @@ try {
       footerCss.includes('min-height:44px;') &&
       footerCss.includes('padding-block:6px;'),
       'classic footer links should preserve useful mobile pointer targets');
+    assert(footerCss.includes('--personal-footer-block-size:48px;') &&
+      footerCss.includes('.footer.footer-classic.footer--personal-compact') &&
+      footerCss.includes('flex-direction:column;') &&
+      footerCss.includes('--personal-footer-block-size:76px;'),
+      'compact personal footer should use one desktop row and two compact mobile rows');
     assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
-    assert(footerTemplate.includes('class="footer-identity"') &&
-      footerTemplate.includes('data-footer-realm="personal"') &&
-      !footerTemplate.includes('data-footer-realm="professional"'),
-      'personal footer should render only the personal identity and navigation panels');
-    const footerPersonalBrowse = footerTemplate.slice(footerTemplate.indexOf('id="footer-personal-browse"'), footerTemplate.indexOf('id="footer-personal-connect"'));
-    assert(footerPersonalBrowse.includes('href="games"') && footerPersonalBrowse.includes('>Games</a>') &&
-      footerPersonalBrowse.includes('href="tools"') && footerPersonalBrowse.includes('>Tools</a>'),
-      'personal footer should keep Tools and Games in the Browse group');
-    assert((footerPersonalBrowse.match(/href="solutions"/g) || []).length === 1,
-      'personal footer should include exactly one Solutions link in the Browse group');
+    assert(footerTemplate.includes('footer--personal-compact') &&
+      footerTemplate.includes('aria-label="Personal footer"') &&
+      !footerTemplate.includes('class="footer-identity"') &&
+      !footerTemplate.includes('class="footer-nav"') &&
+      !footerTemplate.includes('data-footer-realm='),
+      'personal footer should render the compact personal-only footer instead of directory columns');
+    ['Email', 'GitHub', 'LinkedIn', 'Privacy', 'Cookie settings'].forEach((label) => {
+      assert(footerTemplate.includes(`>${label}</`), `personal footer should include ${label}`);
+    });
+    assert(footerTemplate.includes('href="mailto:daniel@danielshort.me"') &&
+      footerTemplate.includes('href="https://github.com/danielshort3"') &&
+      footerTemplate.includes('href="https://www.linkedin.com/in/danielshort3/"') &&
+      footerTemplate.includes('href="privacy"'),
+      'personal footer should link to the requested contact, social, and privacy destinations');
     [
       [analyticsFooterTemplate, 'analytics', 'resume-analytics'],
       [dataScienceFooterTemplate, 'data-science', 'resume-data-science'],
@@ -40106,10 +40111,8 @@ try {
       !dataScienceFooterTemplate.includes('href="analytics"') &&
       !tourismFooterTemplate.includes('href="analytics"'),
       'professional footers should not cross-link audience landing pages');
-    assert(footerTemplate.includes('href="contact#contact-modal"') &&
-      footerTemplate.includes('data-contact-modal-link="true"') &&
-      footerTemplate.includes('>Contact</a>'),
-      'footer should keep Contact as a modal trigger');
+    assert(!footerTemplate.includes('>Contact</a>'),
+      'compact personal footer should not duplicate the Contact action or directory navigation');
     assert((footerTemplate.match(/id="privacy-settings-link-footer"/g) || []).length === 1,
       'footer should keep one shared cookie settings control');
     assert(!footerTemplate.includes('data-site-realm-switch'),
@@ -40119,14 +40122,18 @@ try {
     ['index.html', 'pages/contact.html', 'pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].forEach((file) => {
       const footerMatch = readFile(file).match(/<footer\b[\s\S]*?<\/footer>/i);
       const footerHtml = footerMatch ? footerMatch[0] : '';
-      assert(footerHtml && !footerHtml.includes('data-footer-realm="professional"') &&
+      assert(footerHtml && footerHtml.includes('footer--personal-compact') &&
+        !footerHtml.includes('data-footer-realm="professional"') &&
         !/(?:href="(?:\/?(?:analytics|data-science|tourism|resume(?:-|")))|portfolio\?audience=)/i.test(footerHtml),
-        `${file} should include only a personal, professional-route-free footer`);
+        `${file} should include only the compact personal, professional-route-free footer`);
     });
     const footerContent = JSON.parse(readFile('content/site/footer.json'));
-    const personalBrowseSource = footerContent.navVariants.personal.find((column) => column.id === 'browse');
-    assert(personalBrowseSource && personalBrowseSource.links.filter((link) => link.href === 'solutions').length === 1,
-      'footer content source should include exactly one personal Solutions link');
+    const personalCompactLinks = footerContent.personalCompactLinks || [];
+    assert(JSON.stringify(personalCompactLinks.map((link) => link.label)) ===
+      JSON.stringify(['Email', 'GitHub', 'LinkedIn', 'Privacy', 'Cookie settings']),
+      'footer content source should define the compact personal links in display order');
+    assert(personalCompactLinks.find((link) => link.label === 'Cookie settings')?.id === 'privacy-settings-link-footer',
+      'compact personal footer should preserve the shared cookie settings control id');
     assert(!JSON.stringify(footerContent).includes('data-site-realm-switch') &&
       !JSON.stringify(footerContent).includes('/?mode=professional'),
       'footer content source should not retain personal/professional realm switch records');
@@ -40138,6 +40145,24 @@ try {
     assert(footerRenderer.includes('summary ? `  <p class="footer-identity-summary">') &&
       footerRenderer.includes(".filter(Boolean).join('\\n')"),
       'footer renderer should omit the summary element when a realm has no summary');
+    const personalAudienceContent = JSON.parse(readFile('content/audiences/personal.json'));
+    const personalCategories = personalAudienceContent.page.sections
+      .find((section) => section.type === 'home-accordion')?.props?.categories || [];
+    ['projects', 'tools', 'games'].forEach((categoryId) => {
+      const category = personalCategories.find((entry) => entry.id === categoryId);
+      assert(category && !Object.prototype.hasOwnProperty.call(category, 'meta'),
+        `${categoryId} should omit the retired homepage meta chips`);
+    });
+    const starfallStartHere = personalAudienceContent.startHere.find((entry) => entry.id === 'project-starfall');
+    const aboutTimeline = personalCategories.find((entry) => entry.id === 'about')?.timeline?.items || [];
+    const starfallHomeCard = personalCategories.find((entry) => entry.id === 'games')?.items
+      ?.find((entry) => entry.id === 'project-starfall');
+    assert(starfallStartHere?.label === 'Browser game' &&
+      !aboutTimeline.some((entry) => entry.id === 'project-starfall') &&
+      starfallHomeCard && !Object.prototype.hasOwnProperty.call(starfallHomeCard, 'badge'),
+      'personal content should keep Project Starfall playable without presenting it as current development');
+    assert(!/(?:Currently building Project Starfall|Building Project Starfall|Now building|Current game)/i.test(JSON.stringify(personalAudienceContent)),
+      'personal content should remove every retired Project Starfall development-status claim');
     const generatedAudienceConfig = require('./js/common/audience-config.js');
     ['personal', 'analytics', 'data-science', 'tourism'].forEach((audienceKey) => {
       const sourceAudience = JSON.parse(readFile(`content/audiences/${audienceKey}.json`));
@@ -40833,6 +40858,10 @@ try {
 
   section('Personal homepage category accordion', () => {
     runHomeCategoryAccordionTests({ assert });
+  });
+
+  section('Personal accordion route shell', () => {
+    runPersonalAccordionShellTests({ assert });
   });
 
   section('Shared mobile dock and compact footer', () => {
@@ -43087,17 +43116,23 @@ try {
     checkFileContains('404.html', 'js/common/404-redirect.js');
     checkFileContains('js/common/404-redirect.js', '/portfolio/${encodeURIComponent(project)}');
     checkFileContains('js/common/404-redirect.js', "event: 'page_404'");
-    checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
-    checkFileContains('pages/portfolio.html', 'id="projects"');
-    checkFileContains('pages/portfolio.html', 'id="modals"');
-    checkFileContains('pages/portfolio.html', 'id="filters"');
-    checkFileContains('pages/portfolio.html', 'portfolio-library-section');
-    checkFileContains('pages/portfolio.html', 'portfolio-ml-hero');
-    checkFileContains('pages/portfolio.html', 'portfolio-lab-panel');
-    checkFileContains('pages/portfolio.html', 'Project signals');
+    const portfolioHtml = readFile('pages/portfolio.html');
+    const professionalPortfolioHtml = readFile('pages/professional/analytics/portfolio.html');
+    assert(portfolioHtml.includes('data-personal-accordion-shell') &&
+      portfolioHtml.includes('data-personal-category="projects"') &&
+      portfolioHtml.includes('<h1 id="personal-library-title-projects">Project library</h1>') &&
+      (portfolioHtml.match(/class="home-library__card"/g) || []).length === 16,
+      'personal portfolio should expose the five-rail project library with all public projects');
+    ['id="portfolio-carousel"', 'id="projects"', 'id="modals"', 'id="filters"',
+      'portfolio-library-section', 'portfolio-ml-hero', 'portfolio-lab-panel', 'Project signals'].forEach((marker) => {
+      assert(professionalPortfolioHtml.includes(marker),
+        `professional portfolio workbench missing expected text: ${marker}`);
+    });
+    assert(!professionalPortfolioHtml.includes('data-personal-accordion-shell') &&
+      professionalPortfolioHtml.includes('data-audience="analytics"'),
+      'legacy workbench should remain available only through the internal professional audience copy');
     checkFileContains('js/portfolio/portfolio.js', 'project-card-kicker');
     checkFileContains('js/portfolio/portfolio.js', 'project-card-tags');
-    const portfolioHtml = readFile('pages/portfolio.html');
     assert(!portfolioHtml.includes('id="filter-menu"'), 'portfolio page should not include filter menu');
     assert(!portfolioHtml.includes('id="see-more"'), 'portfolio page should not include see-more toggle');
     assert(!portfolioHtml.includes('Which hiring track?'), 'portfolio page should not include audience filter copy');

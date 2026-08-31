@@ -395,13 +395,17 @@
       height: 100%;
       border: 5px solid var(--panel-color);
       border-left: 0;
-      border-radius: 0 0 12px 0;
+      border-radius: 0;
+    }
+
+    .home-accordion.is-library-mode .home-accordion__item:last-child.is-active .home-accordion__panel {
+      border-radius: 0 12px 12px 0;
     }
 
     .home-accordion.is-library-mode .home-accordion__scroller {
       height: 100%;
       overflow-x: hidden;
-      overflow-y: scroll;
+      overflow-y: auto;
     }
 
     .home-accordion.is-library-mode .home-accordion__item:not(.home-accordion__item--has-library).is-active :is(

@@ -32,7 +32,7 @@
 const dom = {
   body: document.body,
   appShell: document.querySelector(".app-shell"),
-  modalBackground: Array.from(document.querySelectorAll("body > .skip-link, body > #combined-header-nav, body > .app-shell")),
+  modalBackground: [],
   stats: document.getElementById("stats"),
   workspaceTablist: document.querySelector(".workspace-tabs"),
   workspaceTabs: Array.from(document.querySelectorAll("[data-workspace-tab]")),
@@ -75,6 +75,10 @@ const dom = {
   offlineSummary: document.getElementById("offline-summary"),
   claimOfflineButton: document.getElementById("claim-offline-button")
 };
+dom.modalBackground = Array.from(new Set([
+  ...document.querySelectorAll("body > .skip-link, body > #combined-header-nav, body > .app-shell, .personal-accordion__rails, .personal-accordion__toolbar, body > .footer, body > .speed-dial"),
+  dom.appShell
+].filter(Boolean)));
 let lastLiveUiRenderAt = 0;
 let deckInsightCacheKey = "";
 let deckInsightCacheValue = null;

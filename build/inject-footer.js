@@ -129,6 +129,25 @@ function replaceFooter(html, footerHtml) {
   return { html: next, changed: next !== html };
 }
 
+function insertMissingPersonalAccordionFooter(html, footerHtml) {
+  if (!html.includes('data-personal-accordion-shell') || /<footer\b/i.test(html)) {
+    return { html, changed: false };
+  }
+
+  const shellEnd = html.indexOf('<!-- personal-accordion-shell:end -->');
+  if (shellEnd === -1) return { html, changed: false };
+  const afterShell = shellEnd + '<!-- personal-accordion-shell:end -->'.length;
+  const scriptOffset = html.slice(afterShell).search(/<script\b/i);
+  const bodyEnd = html.lastIndexOf('</body>');
+  const insertionPoint = scriptOffset === -1 ? bodyEnd : afterShell + scriptOffset;
+  if (insertionPoint < 0) return { html, changed: false };
+
+  const before = html.slice(0, insertionPoint).replace(/[\t ]+$/g, '');
+  const separator = /\r?\n$/.test(before) ? '' : '\n';
+  const next = `${before}${separator}${footerHtml}\n${html.slice(insertionPoint)}`;
+  return { html: next, changed: true };
+}
+
 function main() {
   const footerTemplates = loadFooterTemplates();
 
@@ -151,11 +170,14 @@ function main() {
     const audience = detectAudience(html);
     const footerHtml = footerTemplates.get(audience) || footerTemplates.get('personal');
     const replaced = replaceFooter(html, footerHtml);
-    if (!replaced.changed) {
+    const rendered = replaced.changed
+      ? replaced
+      : insertMissingPersonalAccordionFooter(html, footerHtml);
+    if (!rendered.changed) {
       skipped += 1;
       return;
     }
-    write(relPath, replaced.html);
+    write(relPath, rendered.html);
     updated += 1;
   });
 

@@ -1,0 +1,729 @@
+@layer components {
+  body.personal-accordion-page {
+    color-scheme: light;
+    max-width: 100%;
+    overflow-x: hidden;
+    background: #ffffff;
+  }
+
+  :root:has(body.personal-accordion-page[data-personal-category="about"]),
+  body.personal-accordion-page[data-personal-category="about"] {
+    --personal-scrollbar-color: #091f3b;
+  }
+
+  :root:has(body.personal-accordion-page[data-personal-category="projects"]),
+  body.personal-accordion-page[data-personal-category="projects"] {
+    --personal-scrollbar-color: #155dfc;
+  }
+
+  :root:has(body.personal-accordion-page[data-personal-category="tools"]),
+  body.personal-accordion-page[data-personal-category="tools"] {
+    --personal-scrollbar-color: #087f8c;
+  }
+
+  :root:has(body.personal-accordion-page[data-personal-category="games"]),
+  body.personal-accordion-page[data-personal-category="games"] {
+    --personal-scrollbar-color: #c94b0a;
+  }
+
+  :root:has(body.personal-accordion-page[data-personal-category="contact"]),
+  body.personal-accordion-page[data-personal-category="contact"] {
+    --personal-scrollbar-color: #334155;
+  }
+
+  html:has(body.personal-accordion-page),
+  body.personal-accordion-page {
+    scrollbar-color: var(--personal-scrollbar-color, #091f3b) color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
+    scrollbar-width: thin;
+  }
+
+  html:has(body.personal-accordion-page)::-webkit-scrollbar,
+  body.personal-accordion-page::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  html:has(body.personal-accordion-page)::-webkit-scrollbar-track,
+  body.personal-accordion-page::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
+  }
+
+  html:has(body.personal-accordion-page)::-webkit-scrollbar-thumb,
+  body.personal-accordion-page::-webkit-scrollbar-thumb {
+    border: 2px solid color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
+    border-radius: 999px;
+    background: var(--personal-scrollbar-color, #091f3b);
+  }
+
+  .personal-accordion,
+  .personal-accordion *,
+  .personal-accordion *::before,
+  .personal-accordion *::after {
+    box-sizing: border-box;
+  }
+
+  .personal-accordion {
+    --personal-rail-size: 84px;
+    --personal-mobile-rail-size: 78px;
+    --personal-toolbar-size: 50px;
+    width: 100%;
+    max-width: 100%;
+    min-height: calc(100svh - var(--nav-height, 72px));
+    color: #091f3b;
+    background: #ffffff;
+    isolation: isolate;
+  }
+
+  .personal-accordion__shell {
+    display: grid;
+    grid-template-columns: var(--personal-rail-size) minmax(0, 1fr);
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-height: inherit;
+  }
+
+  .personal-accordion__rails {
+    position: sticky;
+    top: var(--nav-height, 72px);
+    z-index: 8;
+    display: grid;
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+    align-self: start;
+    width: var(--personal-rail-size);
+    height: calc(100svh - var(--nav-height, 72px));
+    min-height: 480px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .personal-accordion__rail {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 7px 5px;
+    border: 0;
+    border-radius: 0;
+    color: #ffffff;
+    background: linear-gradient(180deg, var(--rail-color), var(--rail-color-end));
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    text-decoration: none;
+    box-shadow: inset -1px 0 rgba(255, 255, 255, .12);
+    transition: filter 180ms ease, transform 260ms cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .personal-accordion__rail:not(.is-active) {
+    filter: saturate(.82) brightness(.92);
+  }
+
+  .personal-accordion__rail:is(:hover, :focus-visible) {
+    z-index: 4;
+    color: #ffffff;
+    filter: saturate(1.03) brightness(1.06);
+    outline: 3px solid rgba(255, 255, 255, .92);
+    outline-offset: -4px;
+  }
+
+  .personal-accordion__rail.is-active {
+    z-index: 3;
+    filter: none;
+    box-shadow:
+      inset -1px 0 rgba(255, 255, 255, .2),
+      0 0 0 1px color-mix(in srgb, var(--rail-color) 76%, #ffffff 24%);
+  }
+
+  .personal-accordion__rail-icon {
+    display: grid;
+    flex: 0 0 23px;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+  }
+
+  .personal-accordion__rail-icon svg,
+  .personal-accordion__rail-notch svg,
+  .personal-accordion__back svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .personal-accordion__rail-label {
+    display: block;
+    min-width: 0;
+    color: inherit;
+    font-size: clamp(.64rem, 1.45vh, .72rem);
+    font-weight: 790;
+    letter-spacing: .035em;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .personal-accordion__rail-notch {
+    position: absolute;
+    top: 50%;
+    right: -16px;
+    z-index: 4;
+    width: 17px;
+    height: 31px;
+    background: var(--rail-color);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    pointer-events: none;
+    transform: translateY(-50%);
+  }
+
+  .personal-accordion__panel {
+    position: relative;
+    z-index: 1;
+    grid-column: 2;
+    min-width: 0;
+    max-width: 100%;
+    min-height: inherit;
+    overflow: visible;
+    border: 5px solid var(--panel-color);
+    border-left: 0;
+    border-radius: 0;
+    color: #091f3b;
+    background: #ffffff;
+    scrollbar-color: var(--panel-color) color-mix(in srgb, var(--panel-color) 10%, #ffffff 90%);
+    scrollbar-width: thin;
+  }
+
+  .personal-accordion__panel::-webkit-scrollbar,
+  .personal-accordion__content::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .personal-accordion__panel::-webkit-scrollbar-track,
+  .personal-accordion__content::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--panel-color) 10%, #ffffff 90%);
+  }
+
+  .personal-accordion__panel::-webkit-scrollbar-thumb,
+  .personal-accordion__content::-webkit-scrollbar-thumb {
+    border: 2px solid color-mix(in srgb, var(--panel-color) 10%, #ffffff 90%);
+    border-radius: 999px;
+    background: var(--panel-color);
+  }
+
+  .personal-accordion--contact .personal-accordion__panel {
+    border-radius: 0 12px 12px 0;
+  }
+
+  .personal-accordion__toolbar {
+    position: sticky;
+    top: var(--nav-height, 72px);
+    z-index: 7;
+    display: flex;
+    align-items: center;
+    min-height: var(--personal-toolbar-size);
+    padding: 5px clamp(12px, 2.4vw, 26px);
+    border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 22%, #dce3ec 78%);
+    background: rgba(255, 255, 255, .97);
+    backdrop-filter: blur(10px);
+  }
+
+  .personal-accordion__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 0 11px 0 7px;
+    border: 0;
+    border-radius: 7px;
+    color: color-mix(in srgb, var(--panel-color) 80%, #091f3b 20%);
+    background: transparent;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-size: .8rem;
+    font-weight: 790;
+    line-height: 1.2;
+    text-decoration: none;
+  }
+
+  .personal-accordion__back > span:first-child {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    place-items: center;
+  }
+
+  .personal-accordion__back:is(:hover, :focus-visible) {
+    color: #ffffff;
+    background: var(--panel-color);
+    outline: 3px solid color-mix(in srgb, var(--panel-color) 25%, transparent);
+    outline-offset: 2px;
+  }
+
+  .personal-accordion__content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: calc(100% - var(--personal-toolbar-size));
+    overflow-x: auto;
+    overflow-y: visible;
+    color: inherit;
+    background: #ffffff;
+    scrollbar-color: var(--panel-color) color-mix(in srgb, var(--panel-color) 10%, #ffffff 90%);
+    scrollbar-width: thin;
+  }
+
+  .personal-accordion__content > :is(main, section, nav, div),
+  .personal-accordion__content #main {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .personal-accordion__content > .tools-hero {
+    margin: 0;
+  }
+
+  .personal-accordion__content > .tools-account-dock {
+    max-width: 100%;
+  }
+
+  .personal-library-main {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .personal-library {
+    min-height: 100%;
+  }
+
+  .personal-library .home-library__header {
+    top: var(--nav-height, 72px);
+    z-index: 6;
+  }
+
+  .personal-library.tools-hero {
+    display: block;
+    min-height: 0;
+    margin: 0;
+    padding: 0 clamp(26px, 4vw, 48px) 54px;
+    color: #091f3b;
+    background: #ffffff;
+  }
+
+  .personal-library.tools-hero > .home-library__header {
+    margin: 0;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .personal-library .wrapper {
+    box-sizing: border-box;
+    width: min(100%, 1120px);
+    max-width: 1120px;
+    margin-inline: auto;
+  }
+
+  .personal-library__account {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    border-bottom-color: color-mix(in srgb, var(--panel-color) 20%, #dce3ec 80%);
+    background: #ffffff;
+  }
+
+  .personal-library__initial {
+    display: grid;
+    width: 64px;
+    height: 64px;
+    place-items: center;
+    border: 2px solid currentColor;
+    border-radius: 12px;
+    font-size: 1.55rem;
+    font-weight: 850;
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    .personal-accordion {
+      --personal-rail-size: 100%;
+      min-height: calc(100svh - var(--mobile-site-masthead-height, 62px));
+    }
+
+    .personal-accordion__shell {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-rows: var(--personal-mobile-rail-size) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .personal-accordion__rails {
+      position: sticky;
+      top: var(--mobile-site-masthead-height, 62px);
+      grid-column: 1 / -1;
+      grid-row: 1;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-rows: 1fr;
+      width: 100%;
+      height: var(--personal-mobile-rail-size);
+      min-height: var(--personal-mobile-rail-size);
+    }
+
+    .personal-accordion__rail {
+      flex-direction: column;
+      gap: 5px;
+      min-height: var(--personal-mobile-rail-size);
+      padding: 8px 3px;
+      box-shadow: inset -1px 0 rgba(255, 255, 255, .18);
+    }
+
+    .personal-accordion__rail-label {
+      font-size: clamp(.56rem, 2.2vw, .7rem);
+      writing-mode: horizontal-tb;
+      transform: none;
+    }
+
+    .personal-accordion__rail-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .personal-accordion__rail-notch {
+      top: auto;
+      right: auto;
+      bottom: -12px;
+      left: 50%;
+      width: 25px;
+      height: 13px;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transform: translateX(-50%);
+    }
+
+    .personal-accordion__panel {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      width: 100%;
+      min-height: 0;
+      border-left: 5px solid var(--panel-color);
+      border-radius: 0;
+    }
+
+    .personal-accordion--contact .personal-accordion__panel {
+      border-radius: 0 12px 12px 0;
+    }
+
+    .personal-accordion__toolbar {
+      top: calc(var(--mobile-site-masthead-height, 62px) + var(--personal-mobile-rail-size));
+      min-height: 46px;
+      padding: 3px 10px;
+    }
+
+    .personal-accordion__content {
+      min-height: 0;
+      overflow-x: auto;
+    }
+
+    .personal-library.tools-hero,
+    .personal-library {
+      min-height: 0;
+      padding-right: 14px;
+      padding-bottom: 34px;
+      padding-left: 14px;
+    }
+
+    .personal-library .home-library__header {
+      top: calc(var(--mobile-site-masthead-height, 62px) + var(--personal-mobile-rail-size));
+    }
+
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .personal-accordion__rail,
+    .personal-accordion__back,
+    .home-library__card {
+      transition: none;
+    }
+  }
+}
+
+@layer overrides {
+  body.personal-accordion-page .personal-accordion a {
+    text-decoration: none;
+  }
+
+  body.personal-accordion-page .personal-accordion__rail,
+  body.personal-accordion-page .personal-accordion__rail:is(:hover, :focus-visible) {
+    color: #ffffff;
+  }
+
+  body.personal-accordion-page .personal-accordion__back {
+    color: color-mix(in srgb, var(--panel-color) 80%, #091f3b 20%);
+  }
+
+  body.personal-accordion-page .personal-accordion__back:is(:hover, :focus-visible) {
+    color: #ffffff;
+  }
+
+  body.personal-accordion-page .personal-library a.home-library__card {
+    color: #091f3b;
+  }
+}
+
+/* Legacy workbench and tool bundles include viewport-locked desktop rules.
+   These document-fit pages must use the browser scrollport so the shared
+   library/detail shell, its right edge, and the compact footer stay reachable. */
+body.personal-accordion-page[data-personal-fit="document"] {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 100svh;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+body.personal-accordion-page[data-personal-fit="immersive"] {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+body.personal-accordion-page[data-tools-layout] .personal-accordion__content > #main {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+}
+
+body.personal-accordion-page .footer.footer-classic.footer--personal-compact {
+  min-height: var(--personal-footer-block-size, 48px);
+  margin-top: 0;
+  padding: 0;
+}
+
+/* Game pages ship unlayered styles of their own. These narrowly scoped
+   adapters intentionally remain unlayered so the shared shell can contain
+   each live app without changing the app's internal visual system. */
+body.personal-accordion-page[data-personal-item="project-starfall"] .project-starfall-shell {
+  min-height: 0;
+}
+
+body.personal-accordion-page[data-personal-item="project-starfall"] .project-starfall-shell .wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--starfall-stage-max-width, 1280px);
+  padding-inline: 16px;
+}
+
+body.personal-accordion-page[data-personal-item="project-starfall"] .project-starfall-stage-panel {
+  max-width: 100%;
+}
+
+body.personal-accordion-page[data-personal-item="project-starfall"] .footer.footer--personal-compact .footer-inner {
+  display: flex;
+  max-width: var(--wrapper-max, 1180px);
+  padding-block: 0;
+}
+
+body.personal-accordion-page[data-personal-item="probability-engine"] .personal-accordion__panel,
+body.personal-accordion-page[data-personal-item="probability-engine"] .personal-accordion__content {
+  color: var(--text, #f4f7ff);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, .05), transparent 45%),
+    radial-gradient(circle at 78% 0%, rgba(255, 255, 255, .04), transparent 35%),
+    linear-gradient(160deg, var(--bg-1, #06152d), var(--bg-2, #170c2f));
+}
+
+body.personal-accordion-page[data-personal-item="probability-engine"] :is(
+  .app-shell,
+  #offline-modal
+) :is(h1, h2, h3, h4) {
+  color: var(--text, #f5dfc4);
+}
+
+body.personal-accordion-page:is(
+  [data-personal-item="probability-engine"],
+  [data-personal-item="roulette"],
+  [data-personal-item="stellar-dogfight"]
+) {
+  padding: var(--nav-height, 72px) 0 0;
+}
+
+body.personal-accordion-page[data-personal-item="probability-engine"]:has(#offline-modal:not(.hidden)) .personal-accordion__panel {
+  z-index: 12;
+}
+
+body.personal-accordion-page[data-personal-item="roulette"] {
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 0;
+}
+
+body.personal-accordion-page[data-personal-item="roulette"] .personal-accordion__panel,
+body.personal-accordion-page[data-personal-item="roulette"] .personal-accordion__content {
+  color: #f8f5e9;
+  background:
+    radial-gradient(70% 55% at 50% 0%, rgba(16, 71, 44, .55) 0%, rgba(6, 23, 15, 0) 70%),
+    radial-gradient(95% 120% at 90% 110%, rgba(101, 64, 12, .22) 0%, rgba(8, 16, 13, 0) 65%),
+    linear-gradient(160deg, #040a07 0%, #09170f 48%, #050d09 100%);
+}
+
+body.personal-accordion-page[data-personal-item="roulette"] .personal-accordion__content {
+  padding: clamp(14px, 2.4vw, 24px);
+}
+
+body.personal-accordion-page[data-personal-item="stormbreak"] .personal-accordion__panel,
+body.personal-accordion-page[data-personal-item="stormbreak"] .personal-accordion__content {
+  color: var(--sb-ivory, #f6f0dd);
+  background: var(--sb-night, #07111e);
+}
+
+body.personal-accordion-page[data-personal-item="stormbreak"] .footer {
+  display: block !important;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] {
+  min-height: 100svh;
+  color: #091f3b;
+  background: #ffffff;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion {
+  --personal-stellar-height: calc(100dvh - var(--nav-height, 72px));
+  height: var(--personal-stellar-height);
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__shell,
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__panel {
+  height: 100%;
+  min-height: 0;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__rails {
+  position: static;
+  height: 100%;
+  min-height: 0;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__panel,
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__content {
+  overflow: hidden;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__content {
+  height: calc(100% - var(--personal-toolbar-size));
+  min-height: 0;
+  padding: var(--page-pad, 18px);
+  color: var(--text, #f5f9ff);
+  background: #070b13;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .personal-accordion__content {
+  padding: 0;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .footer--personal-compact {
+  display: none;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-shell {
+  --viewport-height: calc(var(--personal-stellar-height) - var(--personal-toolbar-size) - (var(--page-pad, 18px) * 2));
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--viewport-height);
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .mission-shell {
+  --viewport-height: calc(var(--personal-stellar-height) - var(--personal-toolbar-size));
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar {
+  height: auto;
+  min-height: 100svh;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion {
+  height: auto;
+  min-height: var(--personal-stellar-height);
+  overflow: visible;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__shell,
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__panel,
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__content {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__rails {
+  position: sticky;
+  height: var(--personal-stellar-height);
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .mission-shell {
+  height: auto;
+  min-height: var(--viewport-height);
+  overflow: visible;
+}
+
+@media (max-width: 959px), (max-height: 619px) {
+  body.personal-accordion-page:is(
+    [data-personal-item="probability-engine"],
+    [data-personal-item="roulette"],
+    [data-personal-item="stellar-dogfight"]
+  ) {
+    padding-top: var(--mobile-site-masthead-height, 62px);
+  }
+
+  body.personal-accordion-page[data-personal-item="probability-engine"] .app-shell {
+    padding-top: clamp(12px, 3vw, 20px);
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion {
+    --personal-stellar-height: calc(100dvh - var(--mobile-site-masthead-height, 62px));
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__rails {
+    position: static;
+    height: var(--personal-mobile-rail-size);
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion__panel {
+    height: calc(var(--personal-stellar-height) - var(--personal-mobile-rail-size));
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"] .mission-shell {
+    --viewport-height: calc(var(--personal-stellar-height) - var(--personal-mobile-rail-size) - var(--personal-toolbar-size) - (var(--page-pad, 18px) * 2));
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-playing .mission-shell {
+    --viewport-height: calc(var(--personal-stellar-height) - var(--personal-mobile-rail-size) - var(--personal-toolbar-size));
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__panel,
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__content {
+    height: auto;
+  }
+
+  body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__rails {
+    position: sticky;
+    height: var(--personal-mobile-rail-size);
+  }
+}
+
+@media (max-width: 640px) {
+  body.personal-accordion-page[data-personal-item="project-starfall"] .footer.footer--personal-compact .footer-inner {
+    flex-direction: column;
+  }
+}
