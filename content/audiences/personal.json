@@ -184,10 +184,11 @@
                     "subtitle": "Purdue University Global",
                     "href": "https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b",
                     "external": true,
-                    "image": "img/cert_logos/purdue_global-48.png",
+                    "image": "img/cert_logos/purdue_global.png",
                     "imageAlt": "Purdue University Global logo",
-                    "imageWidth": 48,
-                    "imageHeight": 48
+                    "imageWidth": 137,
+                    "imageHeight": 136,
+                    "imageTone": "dark"
                   },
                   {
                     "id": "google-advanced-data-analytics",

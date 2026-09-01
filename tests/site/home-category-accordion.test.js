@@ -199,9 +199,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(about.timeline?.title === 'My path so far' &&
     JSON.stringify(timelineItems.map((item) => item.id)) === JSON.stringify(expectedTimelineIds),
   'About should carry the approved 10-event personal timeline in chronological narrative order');
+  const purdueTimelineItem = timelineItems.find((item) => item.id === 'purdue-bs-data-analytics');
+  assert(purdueTimelineItem?.image === 'img/cert_logos/purdue_global.png' &&
+    purdueTimelineItem?.imageWidth === 137 &&
+    purdueTimelineItem?.imageHeight === 136 &&
+    purdueTimelineItem?.imageTone === 'dark',
+  'Purdue should use its full-resolution logo and an authored high-contrast plaque treatment');
   assert(count(html, /class="home-timeline__axis"/g) === timelineItems.length &&
+    count(html, /class="home-timeline__dot"/g) === timelineItems.length &&
     html.includes('<ol class="home-timeline__list" data-home-timeline-scroller>'),
-  'each timeline event should render one shared axis aligned with the dedicated timeline scroll region');
+  'each timeline event should render one shared axis and explicit dot aligned with the dedicated timeline scroll region');
   const expectedCertificateDates = {
     'google-data-analytics': '2023-01-03',
     'ibm-data-analyst': '2023-01-11',
@@ -275,6 +282,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !aboutHtml.includes('role="list"') &&
     !aboutHtml.includes('role="listitem"'),
   'rendered About timeline should be a labelled section with a native ordered list of 10 semantic events');
+  assert(/data-home-timeline-item="purdue-bs-data-analytics"[\s\S]*?data-home-timeline-media-tone="dark"><img src="img\/cert_logos\/purdue_global\.png"[^>]+width="137" height="136"/.test(aboutHtml),
+    'rendered Purdue milestone should retain the explicit dark plaque flag and undistorted intrinsic logo dimensions');
   Object.entries(expectedCertificateDates).forEach(([id, issueDate]) => {
     const marker = `data-home-timeline-item="${id}"`;
     const markerIndex = aboutHtml.indexOf(marker);
@@ -619,20 +628,42 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     mobileTimelineCss.includes('overscroll-behavior-inline: contain;') &&
     mobileTimelineCss.includes('scroll-snap-align: start;') &&
     mobileTimelineCss.includes('scroll-snap-stop: always;') &&
-    mobileTimelineCss.includes('.home-timeline__axis::before') &&
+    mobileTimelineCss.includes('.home-timeline__dot') &&
     mobileTimelineCss.includes('top: 11px;') &&
     mobileTimelineCss.includes('var(--home-scrollbar-thumb, #334155)'),
   'mobile timeline should preserve horizontal snapping while sharing an exactly centered, category-themed axis');
   assert(timelineCss.includes('.home-timeline__axis {') &&
     timelineCss.includes('grid-column: 2;') &&
     timelineCss.includes('grid-row: 2;') &&
+    timelineCss.includes('.home-timeline__item::before') &&
+    timelineCss.includes('.home-timeline__item::after') &&
+    timelineCss.includes('height: var(--home-timeline-gap);') &&
+    timelineCss.includes('.home-timeline__item:first-child .home-timeline__axis::before') &&
+    timelineCss.includes('.home-timeline__item:last-child .home-timeline__axis::before') &&
+    timelineCss.includes('.home-timeline__dot {') &&
     timelineCss.includes('transform: translate(-50%, -50%);') &&
     evenTimelineAxisCss.includes('right: 0;') &&
     evenTimelineAxisCss.includes('left: 50%;') &&
     desktopTimelineCss.includes('overflow-y: hidden;') &&
+    desktopTimelineCss.includes('width: 100%;') &&
+    desktopTimelineCss.includes('padding-right: 0;') &&
+    desktopTimelineCss.includes('width: min(100%, var(--home-timeline-readable-width));') &&
     desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__list') &&
     desktopTimelineCss.includes('overflow-y: auto;'),
-  'desktop timeline axis should share the card row center while the fixed profile and divider sit above the sole vertical list scroller');
+  'desktop timeline should connect exact milestone centers across variable rows and gaps while its full-width scrollport keeps readable cards below the fixed profile and divider');
+  assert(timelineCss.includes('.home-timeline__media[data-home-timeline-media-tone="dark"]') &&
+    timelineCss.includes('object-fit: contain;') &&
+    timelineCss.includes('object-position: center;') &&
+    timelineCss.includes('background: #091f3b;'),
+  'timeline logo plaques should preserve aspect ratios and support an explicit high-contrast treatment');
+  const homepageCardCss = extractBlock(css, '.home-accordion__card {');
+  const homepageCardInteractiveCss = extractBlock(css, '.home-accordion__card:is(a):is(:hover, :focus-visible)');
+  const reducedMotionCss = extractBlock(css, '@media (prefers-reduced-motion: reduce)');
+  assert(homepageCardCss.includes('padding-inline-start .18s ease') &&
+    homepageCardInteractiveCss.includes('padding-inline-start: 8px;') &&
+    reducedMotionCss.includes('.home-accordion__card') &&
+    reducedMotionCss.includes('transition: none;'),
+  'main-tab preview cards should gain a subtle smooth left inset on hover and keyboard focus without animating for reduced motion');
   assert(css.includes('@media (pointer: coarse)') &&
     css.includes('min-height: 44px;') &&
     css.includes('@media (prefers-reduced-motion: reduce)') &&

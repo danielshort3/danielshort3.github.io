@@ -517,6 +517,7 @@ function renderHomeTimelineItem(item) {
   const contentType = String(item && item.contentType || '').trim();
   const contentId = String(item && item.contentId || item && item.id || '').trim();
   const resourceType = String(item && item.resourceType || contentType || '').trim();
+  const mediaTone = String(item && item.imageTone || '').trim() === 'dark' ? 'dark' : '';
   const analytics = href && contentType && contentId
     ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_timeline"`
     : '';
@@ -532,9 +533,9 @@ function renderHomeTimelineItem(item) {
     '            <div class="home-timeline__date">',
     renderHomeTimelineDate(item),
     '            </div>',
-    '            <span class="home-timeline__axis" aria-hidden="true"></span>',
+    '            <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>',
     `            <${tag} class="home-timeline__entry"${linkAttrs}>`,
-    `              <span class="home-timeline__media">${media}</span>`,
+    `              <span class="home-timeline__media"${mediaTone ? ` data-home-timeline-media-tone="${mediaTone}"` : ''}>${media}</span>`,
     '              <span class="home-timeline__copy">',
     `                <span class="home-timeline__type">${HOME_TIMELINE_TYPE_LABELS[type]}</span>`,
     `                <strong class="home-timeline__title">${escapeHtml(item && item.title || 'Milestone')}</strong>`,
