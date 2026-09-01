@@ -1,10 +1,14 @@
 @layer components {
   .home-timeline {
     --home-timeline-accent: #091f3b;
+    --home-timeline-gap: 18px;
+    --home-timeline-gutter: clamp(30px, 5vw, 58px);
+    --home-timeline-readable-width: 824px;
+    --home-timeline-spine: #cbd5e1;
     box-sizing: border-box;
     width: min(100%, 940px);
     margin: 0;
-    padding: 20px clamp(30px, 5vw, 58px) 62px;
+    padding: 20px var(--home-timeline-gutter) 62px;
     color: var(--home-ink, #091f3b);
   }
 
@@ -59,7 +63,7 @@
     box-sizing: border-box;
     position: relative;
     display: grid;
-    gap: 18px;
+    gap: var(--home-timeline-gap);
     min-height: 0;
     margin: 0;
     padding: 0;
@@ -89,15 +93,33 @@
     background: var(--home-scrollbar-thumb, #334155);
   }
 
-  .home-timeline__list::before {
+  .home-timeline__item::before {
+    content: "";
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    justify-self: center;
+    width: 2px;
+    background: var(--home-timeline-spine);
+  }
+
+  .home-timeline__item:first-child::before {
+    visibility: hidden;
+  }
+
+  .home-timeline__item::after {
     content: "";
     position: absolute;
-    top: 12px;
-    bottom: 12px;
+    bottom: calc(-1 * var(--home-timeline-gap));
     left: 50%;
     width: 2px;
-    background: #cbd5e1;
+    height: var(--home-timeline-gap);
+    background: var(--home-timeline-spine);
     transform: translateX(-50%);
+  }
+
+  .home-timeline__item:last-child::after {
+    display: none;
   }
 
   .home-timeline__item {
@@ -135,12 +157,35 @@
   }
 
   .home-timeline__axis::before {
-    box-sizing: border-box;
     content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background: var(--home-timeline-spine);
+    transform: translateX(-50%);
+  }
+
+  .home-timeline__item:first-child .home-timeline__axis::before {
+    top: 50%;
+  }
+
+  .home-timeline__item:last-child .home-timeline__axis::before {
+    bottom: 50%;
+  }
+
+  .home-timeline__item:only-child .home-timeline__axis::before {
+    display: none;
+  }
+
+  .home-timeline__dot {
+    box-sizing: border-box;
     position: absolute;
     top: 50%;
     left: 50%;
     z-index: 2;
+    display: block;
     width: 22px;
     height: 22px;
     border: 4px solid #ffffff;
@@ -229,10 +274,11 @@
     width: 52px;
     height: 52px;
     overflow: hidden;
+    padding: 5px;
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--home-timeline-accent) 18%, #cbd5e1 82%);
     border-radius: 8px;
-    background: #ffffff;
+    background: #f8fafc;
   }
 
   .home-timeline__media img {
@@ -240,12 +286,22 @@
     display: block;
     width: 100%;
     height: 100%;
-    padding: 6px;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
+    object-position: center;
+  }
+
+  .home-timeline__media[data-home-timeline-media-tone="dark"] {
+    border-color: #344862;
+    background: #091f3b;
+  }
+
+  .home-timeline__item--project .home-timeline__media {
+    padding: 0;
   }
 
   .home-timeline__item--project .home-timeline__media img {
-    padding: 0;
     object-fit: cover;
   }
 
@@ -321,9 +377,16 @@
       display: grid;
       flex: 1 1 auto;
       grid-template-rows: auto minmax(0, 1fr);
+      width: 100%;
       min-height: 0;
+      padding-right: 0;
       padding-bottom: 0;
       overflow: hidden;
+    }
+
+    .home-accordion__item--about .home-timeline__head,
+    .home-accordion__item--about .home-timeline__item {
+      width: min(100%, var(--home-timeline-readable-width));
     }
 
     .home-accordion__item--about .home-timeline__list {
@@ -337,8 +400,10 @@
 
   @media (max-width: 1100px) and (min-width: 960px) and (min-height: 620px) {
     .home-timeline {
-      padding-right: 28px;
-      padding-left: 28px;
+      --home-timeline-gutter: 28px;
+      --home-timeline-readable-width: 884px;
+      padding-right: 0;
+      padding-left: var(--home-timeline-gutter);
     }
 
     .home-timeline__item {
@@ -392,10 +457,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    .home-timeline__list::before {
-      display: none;
-    }
-
     .home-timeline__list::-webkit-scrollbar-track {
       background: var(--home-scrollbar-track, #eef2f7);
     }
@@ -415,6 +476,12 @@
       scroll-snap-stop: always;
     }
 
+    .home-timeline__item::before,
+    .home-timeline__item::after,
+    .home-timeline__axis::before {
+      display: none;
+    }
+
     .home-timeline__axis {
       position: absolute;
       top: 0;
@@ -425,7 +492,7 @@
       height: 22px;
     }
 
-    .home-timeline__axis::before {
+    .home-timeline__dot {
       top: 11px;
       left: 13px;
     }
