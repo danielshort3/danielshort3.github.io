@@ -137,7 +137,8 @@ function removePersonalBodyAttributes(html) {
       'data-personal-accordion-view',
       'data-personal-category',
       'data-personal-item',
-      'data-personal-fit'
+      'data-personal-fit',
+      'data-personal-chrome'
     ].reduce((tag, name) => removeTagAttribute(tag, name), bodyTag);
     if (/\sdata-audience="personal"/i.test(next)) next = removeTagAttribute(next, 'data-audience');
     return next;
@@ -148,8 +149,17 @@ function stripPersonalStylesheet(html) {
   return String(html || '').replace(/^\s*<link\b[^>]*href="(?:\/?dist\/)?styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"[^>]*>\s*$/gim, '');
 }
 
+function stripLegacyProjectPager(html) {
+  return String(html || '').replace(
+    /<nav\b[^>]*class="[^"]*\bproject-pager\b[^"]*"[^>]*>[\s\S]*?<\/nav>\s*/gi,
+    ''
+  );
+}
+
 function unwrapPersonalAccordionHtml(html) {
   let output = String(html || '');
+  const isProjectWrapper = output.includes(PERSONAL_SHELL_START) &&
+    /<body\b[^>]*\bdata-personal-category="projects"/i.test(output);
   const shellStart = output.indexOf(PERSONAL_SHELL_START);
   const shellEnd = output.indexOf(PERSONAL_SHELL_END);
   if (shellStart !== -1 && shellEnd > shellStart) {
@@ -177,6 +187,7 @@ function unwrapPersonalAccordionHtml(html) {
       .replace(/\r?\n\s*$/, '');
     output = `${output.slice(0, shellStart)}${fragment}\n${output.slice(scriptStart)}`;
   }
+  if (isProjectWrapper) output = stripLegacyProjectPager(output);
   return removePersonalBodyAttributes(output);
 }
 
@@ -203,12 +214,6 @@ function findFragmentRange(html, options = {}) {
     const beforeMain = html.slice(0, main.start);
     const heroMatches = [...beforeMain.matchAll(/<section\b[^>]*class="[^"]*\btools-hero\b[^"]*"[^>]*>/gi)];
     if (heroMatches.length) start = heroMatches[heroMatches.length - 1].index;
-  }
-
-  if (options.includeProjectPager) {
-    const beforeMain = html.slice(0, main.start);
-    const pagerMatches = [...beforeMain.matchAll(/<nav\b[^>]*class="[^"]*\bproject-pager\b[^"]*"[^>]*>/gi)];
-    if (pagerMatches.length) start = pagerMatches[pagerMatches.length - 1].index;
   }
 
   if (options.includePageHero) {
@@ -274,11 +279,14 @@ function renderPersonalAccordionShell(fragment, options = {}) {
 }
 
 function wrapPersonalAccordionHtml(html, options = {}) {
-  const cleanHtml = unwrapPersonalAccordionHtml(html);
+  const category = normalizeCategory(options.category);
+  const unwrappedHtml = unwrapPersonalAccordionHtml(html);
+  const cleanHtml = category === 'projects'
+    ? stripLegacyProjectPager(unwrappedHtml)
+    : unwrappedHtml;
   const range = findFragmentRange(cleanHtml, options);
   const fragment = cleanHtml.slice(range.start, range.end);
   const shell = renderPersonalAccordionShell(fragment, options);
-  const category = normalizeCategory(options.category);
   const bodyAttributes = {
     'data-audience': 'personal',
     'data-personal-accordion-view': options.view === 'library' ? 'library' : 'detail',
@@ -286,6 +294,8 @@ function wrapPersonalAccordionHtml(html, options = {}) {
     'data-personal-item': String(options.itemId || category).trim() || category,
     'data-personal-fit': String(options.fit || 'document').trim() || 'document'
   };
+  const chrome = String(options.chrome || '').trim();
+  if (chrome) bodyAttributes['data-personal-chrome'] = chrome;
   const suffix = cleanHtml.slice(range.end);
   const boundary = suffix && !/^\r?\n/.test(suffix) ? '\n' : '';
   const output = cleanHtml.slice(0, range.start) + shell + boundary + suffix;

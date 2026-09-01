@@ -47,6 +47,14 @@ function homeLibraryPreviewAsset(category, id) {
   return `/img/home-previews/${safeCategory}/${safeId}.webp`;
 }
 
+function projectLibraryPreviewAsset(image) {
+  const normalized = normalizeHomeLibraryAsset(image).replace(/[?#].*$/, '');
+  if (!normalized) return '';
+  const extension = path.posix.extname(normalized);
+  const basename = extension ? normalized.slice(0, -extension.length) : normalized;
+  return `${basename}-640.webp`;
+}
+
 function homeLibraryItem({
   id,
   title,
@@ -82,7 +90,7 @@ function buildHomeLibraryData(content) {
       title: String(project.title || 'Project').trim(),
       summary: String(project.personalStory && project.personalStory.why || project.problem || project.subtitle || '').trim(),
       href: `/portfolio/${encodeURIComponent(String(project.id).trim())}`,
-      image: homeLibraryPreviewAsset('projects', project.id),
+      image: projectLibraryPreviewAsset(project.image),
       imageAlt: '',
       contentType: 'project',
       contentId: project.id,

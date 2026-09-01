@@ -69,7 +69,7 @@
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
 </head>
-<body data-page="project" class="project-page" data-internal-professional-copy="true" data-audience="data-science">
+<body data-page="project" class="project-page project-page--compact" data-internal-professional-copy="true" data-audience="data-science">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -168,46 +168,18 @@
       </div>
     </nav>
   </header>
-  <nav class="project-pager" aria-label="Project navigation">
-    <div class="wrapper">
-      <a class="project-pager-link project-pager-prev" href="portfolio/targetEmptyPackage" aria-label="Previous project: Empty-Package Shrink Dashboard">
-        <span class="project-pager-arrow" aria-hidden="true">←</span>
-        <span class="project-pager-text">
-          <span class="project-pager-label">Previous</span>
-          <span class="project-pager-title">Empty-Package Shrink Dashboard</span>
-        </span>
-      </a>
-      <a class="project-pager-link project-pager-next" href="portfolio/digitGenerator" aria-label="Next project: Synthetic Digit Generator">
-        <span class="project-pager-text">
-          <span class="project-pager-label">Next</span>
-          <span class="project-pager-title">Synthetic Digit Generator</span>
-        </span>
-        <span class="project-pager-arrow" aria-hidden="true">→</span>
-      </a>
-	    </div>
-	  </nav>
 
-  <main id="main">
-    <section class="project-hero">
+  <main id="main" class="project-main project-main--compact">
+    <section class="project-hero project-hero--compact">
       <div class="wrapper">
-        <p class="hero-eyebrow">Portfolio Project</p>
         <h1>Handwriting Legibility Scoring</h1>
         <p class="project-subtitle">PyTorch CNN Fine-Tuning</p>
-        <div class="cta-group project-cta">
-          <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
-        </div>
-        <div class="project-tags" role="list">
-      <span class="project-tag" role="listitem">Data Science</span>
-      <span class="project-tag" role="listitem">Machine Learning</span>
-      <span class="project-tag" role="listitem">Python</span>
-      <span class="project-tag" role="listitem">PyTorch</span>
-    </div>
-		      </div>
-	    </section>
+      </div>
+    </section>
 
-			    <section class="project-body">
-			      <div class="wrapper">
-			        <section class="project-star" aria-label="STAR summary">
+    <section class="project-body project-body--compact">
+      <div class="wrapper">
+        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -238,67 +210,8 @@
             </ul>
           </dd>
         </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python · PyTorch · AWS · Docker · CNN</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Status</dt>
-          <dd class="project-star-value">Live interactive demo</dd>
-        </div>
       </dl>
     </section>
-        <details class="project-star project-evaluation project-disclosure" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title" id="handwritingRating-evaluation-title">Evaluation &amp; tradeoffs</span></summary>
-      <dl class="project-star-grid">
-        <div class="project-star-row">
-          <dt class="project-star-label">Status</dt>
-          <dd class="project-star-value">Measured</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Goal</dt>
-          <dd class="project-star-value">Recognize handwritten digits and use model confidence as one input to a legibility score.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Dataset</dt>
-          <dd class="project-star-value">MNIST plus a small personal handwriting set used only as a domain-shift check.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Split</dt>
-          <dd class="project-star-value">Standard MNIST training and test datasets: 60,000 training digits and 10,000 test digits.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Baseline</dt>
-          <dd class="project-star-value">The first model reached 92.302% accuracy on the MNIST test set.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Decision</dt>
-          <dd class="project-star-value">Selected model v3 because it produced the highest recorded MNIST test accuracy.</dd>
-        </div>
-<div class="project-star-row">
-          <dt class="project-star-label">Metrics</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              <li>Best MNIST test accuracy: 98.952% — Model v3, selected from the three notebook architectures.</li>
-              <li>Personal handwriting accuracy: 75.56% — Small custom set; included as a domain-shift check, not a benchmark.</li>
-            </ul>
-          </dd>
-        </div>
-<div class="project-star-row">
-          <dt class="project-star-label">Limitations</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              <li>MNIST is a narrow digit-recognition dataset and does not represent general handwriting legibility.</li>
-              <li>The custom handwriting sample is small and its size is not documented in the published result.</li>
-            </ul>
-          </dd>
-        </div>
-<div class="project-star-row">
-          <dt class="project-star-label">Evidence</dt>
-          <dd class="project-star-value"><a href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.ipynb" target="_blank" rel="noopener noreferrer">Evaluation notebook</a></dd>
-        </div>
-      </dl>
-    </details>
         <section class="project-demo-shell" data-demo-fit="content" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
@@ -335,74 +248,21 @@
         </section>
       </div>
     </section>
-        <details class="project-section project-disclosure project-resources" id="links" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title">Links</span></summary>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
+        <section class="project-section project-resources project-resources--flat" id="links" aria-labelledby="handwritingRating-links-title">
+      <h2 class="section-title" id="handwritingRating-links-title">Links</h2>
+      <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwriting-Rating" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
         <a class="project-link" role="listitem" href="https://www.danielshort.me/handwriting-rating-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
         <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.pdf" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Project_8.ipynb" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-      </div>
-      </div>
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://www.tensorflow.org/datasets/catalog/mnist" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">MNIST Dataset</span></a>
       </div>
       </div>
-      </div>
-    </details>
-        <details class="project-section project-disclosure project-notes" id="notes" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title">Notes</span></summary>
-      <p class="project-lead">MNIST is the training baseline; the personal handwriting scores are a domain-shift check, not a full handwriting benchmark.</p>
-    </details>
-        <section class="project-section project-related" aria-label="Other projects">
-      <h2 class="section-title">Other Projects</h2>
-      <div class="project-related-grid" role="list">
-        <a class="project-card project-related-card" role="listitem" href="portfolio/shapeClassifier" aria-label="Open project: Shape Classifier Demo">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">Shape Classifier Demo</div>
-          <div class="project-subtitle">Handwritten Shape Recognition</div>
-        </div>
-        <picture>
-      <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
-      <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
-      <img src="img/projects/shapeClassifier.png" alt="Shape Classifier Demo" loading="lazy" decoding="async" width="926" height="926" sizes="(max-width: 960px) 92vw, 320px">
-    </picture>
-      </a>
-        <a class="project-card project-related-card" role="listitem" href="portfolio/nonogram" aria-label="Open project: Nonogram Solver">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">Nonogram Solver</div>
-          <div class="project-subtitle">Reinforcement Learning (RL)</div>
-        </div>
-        <picture>
-      <source srcset="img/projects/nonogram-640.avif 640w, img/projects/nonogram-960.avif 960w, img/projects/nonogram.avif 1228w" type="image/avif">
-      <source srcset="img/projects/nonogram-640.webp 640w, img/projects/nonogram-960.webp 960w, img/projects/nonogram.webp 1228w" type="image/webp">
-      <img src="img/projects/nonogram.png" alt="Nonogram Solver" loading="lazy" decoding="async" width="1228" height="1228" sizes="(max-width: 960px) 92vw, 320px">
-    </picture>
-      </a>
-        <a class="project-card project-related-card" role="listitem" href="portfolio/smartSentence" aria-label="Open project: Smart Sentence Retriever">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">Smart Sentence Retriever</div>
-          <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
-        </div>
-        <picture>
-      <source srcset="img/projects/smartSentence-640.avif 640w, img/projects/smartSentence.avif 952w" type="image/avif">
-      <source srcset="img/projects/smartSentence-640.webp 640w, img/projects/smartSentence.webp 952w" type="image/webp">
-      <img src="img/projects/smartSentence.png" alt="Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952" sizes="(max-width: 960px) 92vw, 320px">
-    </picture>
-      </a>
+    </section>
       </div>
     </section>
-			      </div>
-			    </section>
-			  </main>
+  </main>
 
   <footer class="footer footer-classic">
     <div class="wrapper footer-inner">
@@ -490,7 +350,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5769f2ac.js"></script>
+  <script defer src="dist/site-shell.bfdb805f.js"></script>
   <script defer src="dist/site-consent.3b3af440.js"></script>
 </body>
 </html>

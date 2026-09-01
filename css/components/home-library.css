@@ -210,6 +210,22 @@
     object-position: center;
   }
 
+  :is(
+    .home-library[data-home-library-view="projects"],
+    .personal-library--projects
+  ) :is(.home-library__media--preview, .home-library__media--image) {
+    padding: 8px;
+    background: #f3f6fa;
+  }
+
+  :is(
+    .home-library[data-home-library-view="projects"],
+    .personal-library--projects
+  ) :is(.home-library__media--preview, .home-library__media--image) img {
+    object-fit: contain;
+    object-position: center;
+  }
+
   .home-library__media--glyph {
     padding: 0;
     color: var(--panel-color);
