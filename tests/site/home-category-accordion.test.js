@@ -9,7 +9,9 @@ const {
   resolveHomeAccordionIconId
 } = require('../../api/_lib/cms-widgets');
 const {
-  HOME_LIBRARY_VISUALS
+  GENERATED_HOME_LIBRARY_VISUALS,
+  RETAINED_PROJECT_PREVIEW_IDS,
+  projectLibraryAsset
 } = require('../../build/validate-home-library-visuals');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -383,44 +385,30 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     homeLibraryData.projects.items.every((item) => publishedProjectIds.has(item.id)),
   'homepage project library should remain a complete projection of published project content');
 
-  const expectedProjectMotifs = {
-    smartSentence: 'semantic-retrieval',
-    chatbotLora: 'grounded-chat',
-    shapeClassifier: 'shape-classification',
-    ufoDashboard: 'sighting-report',
-    covidAnalysis: 'hospital-decision-tree',
-    targetEmptyPackage: 'package-anomaly',
-    handwritingRating: 'digit-legibility',
-    digitGenerator: 'synthetic-digit-generation',
-    sheetMusicUpscale: 'music-restoration',
-    deliveryTip: 'delivery-tip-inputs',
-    retailStore: 'retail-etl',
-    pizza: 'pizza-regression-inputs',
-    babynames: 'name-preference-learning',
-    pizzaDashboard: 'delivery-operations-inputs',
-    nonogram: 'nonogram-model',
-    website: 'site-accordion'
-  };
-  const projectVisualEntries = Object.entries(HOME_LIBRARY_VISUALS.projects);
-  const manifestMotifs = projectVisualEntries.map(([, motif]) => motif);
-  assert(projectVisualEntries.length === expectedLibraryCounts.projects &&
-    Object.entries(expectedProjectMotifs).every(([id, motif]) =>
-      HOME_LIBRARY_VISUALS.projects[id] === motif) &&
-    projectVisualEntries.every(([id]) => publishedProjectIds.has(id)),
-  'project preview manifest should explicitly map all 16 published projects to their approved truth-safe concepts');
-  const allManifestMotifs = Object.values(HOME_LIBRARY_VISUALS).flatMap((visuals) => Object.values(visuals));
-  assert(new Set(manifestMotifs).size === expectedLibraryCounts.projects &&
-    allManifestMotifs.length === 32 &&
-    new Set(allManifestMotifs).size === 32 &&
-    Object.entries(HOME_LIBRARY_VISUALS).every(([category, visuals]) =>
+  const publishedProjectsById = new Map(publishedProjects.map((project) => [String(project.id), project]));
+  const projectPreviewPaths = homeLibraryData.projects.items.map((item) => item.image);
+  assert(homeLibraryData.projects.items.every((item) => {
+    const project = publishedProjectsById.get(item.id);
+    return project &&
+      item.image === projectLibraryAsset(project.image) &&
+      item.image === `/img/projects/${item.id}-640.webp` &&
+      item.imageAlt === '';
+  }),
+  'all 16 project library cards should derive their original optimized preview from the canonical project image');
+  const allManifestMotifs = Object.values(GENERATED_HOME_LIBRARY_VISUALS)
+    .flatMap((visuals) => Object.values(visuals));
+  assert(JSON.stringify(Object.keys(GENERATED_HOME_LIBRARY_VISUALS).sort()) === JSON.stringify(['games', 'tools']) &&
+    allManifestMotifs.length === expectedLibraryCounts.tools + expectedLibraryCounts.games &&
+    new Set(allManifestMotifs).size === allManifestMotifs.length &&
+    Object.entries(GENERATED_HOME_LIBRARY_VISUALS).every(([category, visuals]) =>
       JSON.stringify(Object.keys(visuals).sort()) ===
       JSON.stringify(homeLibraryData[category].items.map((item) => item.id).sort())),
-  'every generated homepage preview should retain one unique semantic concept');
+  'every generated tool and game preview should retain one unique semantic concept');
   assert(!fs.existsSync(path.join(ROOT, 'build', 'generate-home-library-visuals.js')) &&
     !fs.existsSync(path.join(ROOT, 'img', 'home-previews', 'sources')),
   'generated preview WebPs should be authoritative static assets without an old screenshot or code-art regeneration path');
 
-  const previewPaths = [];
+  const generatedPreviewPaths = [];
   const previewRoot = path.join(ROOT, 'img', 'home-previews');
   const actualPreviewCategories = fs.readdirSync(previewRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -429,7 +417,14 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(JSON.stringify(actualPreviewCategories) ===
     JSON.stringify(Object.keys(expectedLibraryCounts).sort()),
   'homepage preview root should contain only the exact lowercase projects, tools, and games directories');
-  Object.entries(expectedLibraryCounts).forEach(([category, expectedCount]) => {
+  const retainedProjectPreviewNames = fs.readdirSync(path.join(previewRoot, 'projects')).sort();
+  assert(JSON.stringify(retainedProjectPreviewNames) === JSON.stringify(
+    RETAINED_PROJECT_PREVIEW_IDS.map((id) => `${id}.webp`).sort()) &&
+    homeLibraryData.projects.items.every((item) =>
+      !item.image.startsWith('/img/home-previews/projects/')),
+  'legacy AI project previews should remain available but unused by the project library');
+  Object.entries(GENERATED_HOME_LIBRARY_VISUALS).forEach(([category, visuals]) => {
+    const expectedCount = Object.keys(visuals).length;
     const items = homeLibraryData[category]?.items || [];
     const expectedFileNames = items.map((item) => `${item.id}.webp`).sort();
     const categoryDir = path.join(previewRoot, category);
@@ -437,7 +432,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     const actualFileNames = actualEntries
       .map((entry) => entry.name)
       .sort();
-    items.forEach((item) => previewPaths.push(item.image));
+    items.forEach((item) => generatedPreviewPaths.push(item.image));
     assert(items.length === expectedCount &&
       actualEntries.length === expectedCount &&
       actualEntries.every((entry) => entry.isFile() && entry.name.endsWith('.webp')) &&
@@ -446,21 +441,28 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       JSON.stringify(actualFileNames) === JSON.stringify(expectedFileNames),
     `${category} should map every item to one exact-case, decorative generated WebP asset`);
   });
-  assert(previewPaths.length === 32 && new Set(previewPaths).size === 32,
-    'all 32 homepage library preview paths should be unique');
-  assert(previewPaths.every((previewPath) => {
+  assert(projectPreviewPaths.length === expectedLibraryCounts.projects &&
+    generatedPreviewPaths.length === expectedLibraryCounts.tools + expectedLibraryCounts.games &&
+    new Set([...projectPreviewPaths, ...generatedPreviewPaths]).size === 32,
+  'all 32 homepage library preview paths should remain unique');
+  assert(projectPreviewPaths.every((previewPath) => {
+    const dimensions = readWebpDimensions(previewPath);
+    return dimensions.width === 640 && dimensions.height > 0;
+  }),
+  'every original project library preview should be a valid 640px-wide WebP');
+  assert(generatedPreviewPaths.every((previewPath) => {
     const dimensions = readWebpDimensions(previewPath);
     return dimensions.width === 640 && dimensions.height === 360;
   }),
-  'every homepage library preview should carry exact 640 by 360 WebP metadata');
-  const previewHashes = previewPaths.map((previewPath) => crypto.createHash('sha256')
+  'every generated tool and game preview should carry exact 640 by 360 WebP metadata');
+  const previewHashes = generatedPreviewPaths.map((previewPath) => crypto.createHash('sha256')
     .update(fs.readFileSync(path.join(ROOT, previewPath.replace(/^\/+/, ''))))
     .digest('hex'));
-  assert(new Set(previewHashes).size === 32,
-    'all 32 generated homepage preview files should have unique visual content');
+  assert(new Set(previewHashes).size === generatedPreviewPaths.length,
+    'all 16 generated tool and game preview files should have unique visual content');
 
   const cmsPreviewMappings = [
-    "image: homeLibraryPreviewAsset('projects', project.id)",
+    'image: projectLibraryPreviewAsset(project.image)',
     "image: homeLibraryPreviewAsset('tools', tool.id)",
     "image: homeLibraryPreviewAsset('games', game.id)"
   ];
@@ -470,23 +472,27 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const publicCopyIndex = buildSite.indexOf("runNodeScript(path.join('build', 'copy-to-public.js')");
   const publicVisualBuildIndex = buildSite.indexOf("{ verbose, args: ['--public'] }");
   assert(generator.includes('function homeLibraryPreviewAsset(category, id)') &&
+    generator.includes('function projectLibraryPreviewAsset(image)') &&
     cmsPreviewMappings.every((mapping) => generator.includes(mapping)) &&
     count(generator, /imageAlt: '',/g) >= 3 &&
     visualValidator.includes("const sharp = require('sharp');") &&
-    visualValidator.includes('const HOME_LIBRARY_VISUALS = {') &&
+    visualValidator.includes('const GENERATED_HOME_LIBRARY_VISUALS = {') &&
+    visualValidator.includes('const RETAINED_PROJECT_PREVIEW_IDS = [') &&
+    visualValidator.includes('function projectLibraryAsset(image)') &&
     visualValidator.includes('function validateCatalogMappings()') &&
+    visualValidator.includes('async function validateProjectAssets(baseDir, projects)') &&
     visualValidator.includes('function listPreviewTree(baseDir)') &&
     visualValidator.includes("validatePreviewTree(publicPreviewRoot, 'public/img/home-previews')") &&
     visualValidator.includes('validateMatchingHashes(sourceHashes, deployedHashes)') &&
     visualValidator.includes("metadata.width !== 640 || metadata.height !== 360") &&
     visualValidator.includes("new Set(hashes.values()).size !== hashes.size") &&
-    visualValidator.includes('Validated ${sourceHashes.size} generated previews') &&
+    visualValidator.includes('Validated ${projectSourceHashes.size} original project previews') &&
     packageJson.scripts?.['validate:home-library-visuals'] === 'node build/validate-home-library-visuals.js' &&
     Boolean(packageJson.devDependencies?.sharp) &&
     buildSite.includes('const scriptArgs = Array.isArray(options.args) ? options.args : [];') &&
     visualBuildIndex >= 0 && publicCopyIndex > visualBuildIndex && publicVisualBuildIndex > publicCopyIndex &&
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
-  'CMS generation, full-tree validation, package scripts, main build, and hash-identical public copy should stay integrated');
+  'CMS generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
 
   const createLibraryMediaJs = extractFunctionBlock(js, 'function createLibraryMedia');
   assert(createLibraryMediaJs.includes("image.alt = String(item.imageAlt || '')") &&
@@ -495,6 +501,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     createLibraryMediaJs.includes("image.loading = 'lazy';") &&
     createLibraryMediaJs.includes("image.decoding = 'async';"),
   'library renderer should emit decorative images with intrinsic 640 by 360 dimensions and lazy asynchronous decoding');
+  assert(createLibraryMediaJs.includes("media.classList.add('home-library__media--preview')") &&
+    libraryCss.includes(':is(.home-library__media--preview, .home-library__media--image) {') &&
+    libraryCss.includes(':is(.home-library__media--preview, .home-library__media--image) img {') &&
+    libraryCss.includes('object-fit: contain;'),
+  'project library containment styles should cover the homepage and server-rendered media classes');
   const libraryToolIds = new Set(homeLibraryData.tools.items.map((tool) => tool.id));
   const excludedTools = toolsDirectoryItems.filter((tool) =>
     String(tool.visibility || 'public').toLowerCase() !== 'public' || tool.hidden || tool.noindex);

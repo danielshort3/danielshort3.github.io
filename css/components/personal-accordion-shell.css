@@ -457,6 +457,13 @@
 }
 
 @layer overrides {
+  body.personal-accordion-page[data-personal-chrome="compact"] {
+    --personal-shell-canvas: #f9f9fa;
+    --personal-shell-border: rgba(9, 31, 59, .12);
+    --personal-shell-shadow: 0 16px 40px rgba(9, 31, 59, .12);
+    background: var(--personal-shell-canvas);
+  }
+
   body.personal-accordion-page .personal-accordion a {
     text-decoration: none;
   }
@@ -476,6 +483,300 @@
 
   body.personal-accordion-page .personal-library a.home-library__card {
     color: #091f3b;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] :is(
+    .speed-dial,
+    .mobile-site-dock
+  ) {
+    display: none !important;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero {
+    padding: clamp(1.75rem, 4vh, 2.7rem) 0;
+    border-bottom-color: color-mix(in srgb, #091f3b 10%, transparent);
+    background: #ffffff;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero .wrapper,
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-body > .wrapper {
+    width: min(100%, 1120px);
+    max-width: 1120px;
+    padding-inline: clamp(18px, 3.4vw, 40px);
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero h1 {
+    font-size: clamp(2rem, 4vw, 3.15rem);
+    line-height: 1.04;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero h1::after {
+    width: min(150px, 34vw);
+    margin-top: 10px;
+    background: linear-gradient(90deg, #155dfc 0%, rgba(21, 93, 252, .24) 72%, transparent 100%);
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-body {
+    background: #ffffff;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact :is(
+    .project-star,
+    .project-demo-shell,
+    .project-section,
+    .project-link
+  ) {
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-resources--flat {
+    border: 0;
+    border-top: 1px solid #dce3ec;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-link {
+    border-color: color-mix(in srgb, #155dfc 22%, #cbd5e1 78%);
+    background: #f8fafc;
+  }
+
+  body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-link:is(:hover, :focus-visible) {
+    border-color: #155dfc;
+    background: color-mix(in srgb, #155dfc 5%, #ffffff 95%);
+    box-shadow: none;
+  }
+
+  @media (min-width: 769px) {
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav .wrapper {
+      max-width: min(1500px, calc(100vw - 28px));
+      padding-inline: 28px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] #primary-menu {
+      display: flex;
+      flex: 0 0 220px;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0;
+      min-width: 44px;
+      max-width: 220px;
+      transition: flex-basis .22s ease, max-width .22s ease;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] #primary-menu:has(.nav-search.nav-search-is-enhanced:not(.is-expanded)) {
+      flex-basis: 44px;
+      max-width: 44px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] #primary-menu > :not(.nav-search) {
+      display: none !important;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search {
+      width: 220px;
+      transition: width .22s ease;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search.nav-search-is-enhanced {
+      width: 44px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search.nav-search-is-enhanced.is-expanded {
+      width: 220px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search-input {
+      min-height: 44px;
+      border-radius: 10px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search.nav-search-is-enhanced:not(.is-expanded) .nav-search-input {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search.nav-search-is-enhanced.is-expanded .nav-search-input {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search-button {
+      right: 0;
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
+      border: 1px solid rgba(9, 31, 59, .18);
+      border-radius: 10px;
+      color: #091f3b;
+      background: #ffffff;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .nav-search-button:focus-visible {
+      outline: 3px solid #155dfc;
+      outline-offset: 2px;
+    }
+  }
+
+  @media (min-width: 960px) and (min-height: 620px) {
+    html:has(body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"]) {
+      height: 100svh;
+      overflow: hidden;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] {
+      box-sizing: border-box;
+      height: 100svh;
+      min-height: 100svh;
+      overflow: hidden;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .personal-accordion {
+      box-sizing: border-box;
+      flex: 1 1 auto;
+      width: 100%;
+      min-height: 0;
+      padding: 14px;
+      background: var(--personal-shell-canvas);
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__shell {
+      width: min(1500px, 100%);
+      height: 100%;
+      min-height: 0;
+      margin-inline: auto;
+      overflow: hidden;
+      border: 1px solid var(--personal-shell-border);
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: var(--personal-shell-shadow);
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__rails {
+      position: static;
+      align-self: stretch;
+      height: 100%;
+      min-height: 0;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__toolbar {
+      position: static;
+      flex: 0 0 var(--personal-toolbar-size);
+      min-height: var(--personal-toolbar-size);
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__content {
+      flex: 1 1 auto;
+      height: auto;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-library .home-library__header {
+      top: 0;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .footer.footer-classic.footer--personal-compact {
+      flex: 0 0 var(--personal-footer-block-size, 48px);
+    }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    html:has(body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"]),
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] {
+      height: auto;
+      min-height: 100svh;
+      overflow-x: clip;
+      overflow-y: visible;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .personal-accordion {
+      flex: 0 0 auto;
+      min-height: 0;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__shell {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__panel {
+      display: block;
+      height: auto;
+      overflow: visible;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__content {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      overscroll-behavior: auto;
+      scrollbar-width: none;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__content::-webkit-scrollbar {
+      display: none;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-library .home-library__header {
+      position: static;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body.has-mobile-site-masthead.personal-accordion-page[data-personal-chrome="compact"] {
+      padding-top: var(--mobile-site-masthead-height, 62px) !important;
+    }
+
+    body.has-mobile-site-masthead.personal-accordion-page[data-personal-chrome="compact"] #combined-header-nav {
+      display: none;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero {
+      padding: 22px 0 18px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero .wrapper,
+    body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-body > .wrapper {
+      width: 100%;
+      max-width: 1120px;
+      padding-inline: 14px;
+    }
+
+    body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero h1 {
+      font-size: clamp(1.75rem, 8vw, 2.35rem);
+      line-height: 1.04;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.personal-accordion-page[data-personal-chrome="compact"] :is(
+      #primary-menu,
+      .nav-search,
+      .nav-search-input
+    ) {
+      transition: none;
+    }
   }
 }
 

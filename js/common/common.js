@@ -2384,7 +2384,26 @@
     syncProjectEmbedLoading();
   };
 
+  const resetPersonalProjectDetailScroll = () => {
+    if (window.location.hash) return;
+    if (!document.body.matches(
+      '.personal-accordion-page[data-personal-category="projects"][data-personal-accordion-view="detail"]'
+    )) return;
+    const navigation = typeof window.performance?.getEntriesByType === 'function'
+      ? window.performance.getEntriesByType('navigation')[0]
+      : null;
+    if (navigation?.type === 'back_forward') return;
+    const content = document.querySelector('[data-personal-detail-content]');
+    if (!content) return;
+    content.scrollTop = 0;
+    requestAnimationFrame(() => {
+      content.scrollTop = 0;
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', resetPersonalProjectDetailScroll);
   document.addEventListener('DOMContentLoaded', initProjectEmbeds);
+  window.addEventListener('load', resetPersonalProjectDetailScroll);
   window.addEventListener('load', initProjectEmbeds);
   if (projectEmbedMobileMedia) {
     if (typeof projectEmbedMobileMedia.addEventListener === 'function') {

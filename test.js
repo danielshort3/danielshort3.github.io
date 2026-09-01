@@ -38363,10 +38363,11 @@ try {
 
     const projectDigest = readFile('dist/ai-pages/portfolio/retailStore.html');
     assert(projectDigest.includes('>STAR Summary</h2>') &&
-      projectDigest.includes('>Project Links</h3>') &&
-      projectDigest.includes('>Notes</h2>') &&
-      !projectDigest.includes('>Links</h2>'),
-      'project AI digests should reuse existing project section labels');
+      projectDigest.includes('>Demo</h2>') &&
+      projectDigest.includes('>Links</h2>') &&
+      !projectDigest.includes('>Project Links</h3>') &&
+      !projectDigest.includes('>Notes</h2>'),
+      'project AI digests should mirror the simplified STAR, demo, and flat Links structure');
   });
 
   section('Local CMS contracts', () => {
@@ -39443,27 +39444,33 @@ try {
       checkFileContains(file, '<base href="/">');
       checkFileContains(file, 'data-page="project"');
       checkFileContains(file, '<meta property="og:type" content="article">');
-      checkFileContains(file, 'href="portfolio">Back to Portfolio');
+      assert(!html.includes('Back to Portfolio'), `${file} should not render the legacy portfolio return control`);
       checkFileContains(file, `<link rel="canonical" href="https://www.danielshort.me/portfolio/${id}">`);
       checkFileContains(file, `<meta property="og:url" content="https://www.danielshort.me/portfolio/${id}">`);
       assert(sitemap.includes(`https://www.danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
       const shellIndex = html.indexOf('project-demo-shell');
       const starIndex = html.indexOf('STAR Summary');
       const linksIndex = html.indexOf('id="links"');
-      const notesIndex = html.indexOf('id="notes"');
-      const relatedIndex = html.indexOf('project-related');
       assert(shellIndex >= 0, `${file} should render a standard demo or preview shell`);
       assert(starIndex >= 0 && starIndex < shellIndex, `${file} should place STAR Summary before the demo/preview shell`);
       assert(linksIndex > shellIndex, `${file} should place Links after the demo/preview shell`);
-      assert(notesIndex > linksIndex, `${file} should place Notes after Links`);
-      assert(relatedIndex > notesIndex, `${file} should place Other Projects after Notes`);
-      assert(html.includes('<dt class="project-star-label">Situation</dt>') &&
-             html.includes('<dt class="project-star-label">Task</dt>') &&
-             html.includes('<dt class="project-star-label">Action</dt>') &&
-             html.includes('<dt class="project-star-label">Result</dt>') &&
-             html.includes('<dt class="project-star-label">Stack</dt>') &&
-             html.includes('<dt class="project-star-label">Status</dt>'),
-        `${file} should show problem, contribution, outcomes, stack, and delivery proof before the demo`);
+      const starLabels = Array.from(
+        html.matchAll(/<dt class="project-star-label">([^<]+)<\/dt>/g),
+        (match) => match[1]
+      );
+      assert(JSON.stringify(starLabels) === JSON.stringify(['Situation', 'Task', 'Action', 'Result']),
+        `${file} should render exactly the four STAR fields before the demo`);
+      assert(html.includes('project-resources--flat') &&
+             (html.match(/class="project-links"/g) || []).length === 1,
+        `${file} should render one flat project Links list`);
+      assert(!html.includes('project-pager') &&
+             !html.includes('project-personal-notes') &&
+             !html.includes('project-evaluation') &&
+             !html.includes('id="notes"') &&
+             !html.includes('project-related') &&
+             !html.includes('Portfolio Project') &&
+             !html.includes('class="project-tags"'),
+        `${file} should omit legacy navigation, metadata, notes, evaluation, and related-project sections`);
       if (project && project.embed) {
         assert(html.includes('class="project-demo-header"'), `${file} should show the demo first with a compact header`);
         assert(html.includes('<h2 class="section-title project-demo-title">Demo</h2>'), `${file} should render the Demo heading with the shared portfolio section-title style`);

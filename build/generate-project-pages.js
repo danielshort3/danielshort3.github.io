@@ -300,19 +300,6 @@ function normalizeTextArray(value) {
   return [];
 }
 
-function isDataResource(resource) {
-  if (!resource || typeof resource !== 'object') return false;
-  const explicitType = normalizeWhitespace(resource.type || '').toLowerCase();
-  if (explicitType === 'data' || explicitType === 'dataset') return true;
-  if (explicitType === 'project' || explicitType === 'general') return false;
-
-  const label = normalizeWhitespace(resource.label || '');
-  const url = String(resource.url || '').trim();
-  const haystack = `${label} ${url}`.toLowerCase();
-  const keywords = ['dataset', 'database', 'data source', 'datasource', 'corpus'];
-  return keywords.some((keyword) => haystack.includes(keyword));
-}
-
 function toDomIdSafe(value) {
   return String(value ?? '')
     .trim()
@@ -414,192 +401,7 @@ function loadProjects() {
   return projects;
 }
 
-function renderProjectPager(projects, currentIndex) {
-  if (!Array.isArray(projects) || projects.length < 2) return '';
-  if (!Number.isInteger(currentIndex) || currentIndex < 0 || currentIndex >= projects.length) return '';
-
-  const total = projects.length;
-  const previous = projects[(currentIndex - 1 + total) % total];
-  const next = projects[(currentIndex + 1) % total];
-
-  const renderLink = (project, direction) => {
-    const id = String(project?.id || '').trim();
-    if (!id) return '';
-    const title = normalizeWhitespace(project?.title || id);
-    const href = `portfolio/${encodeURIComponent(id)}`;
-    const label = direction === 'prev' ? 'Previous' : 'Next';
-    const ariaLabel = `${label} project: ${title}`;
-
-    if (direction === 'prev') {
-      return `<a class="project-pager-link project-pager-prev" href="${escapeHtml(href)}" aria-label="${escapeHtml(ariaLabel)}">
-        <span class="project-pager-arrow" aria-hidden="true">←</span>
-        <span class="project-pager-text">
-          <span class="project-pager-label">${label}</span>
-          <span class="project-pager-title">${escapeHtml(title)}</span>
-        </span>
-      </a>`;
-    }
-
-    return `<a class="project-pager-link project-pager-next" href="${escapeHtml(href)}" aria-label="${escapeHtml(ariaLabel)}">
-        <span class="project-pager-text">
-          <span class="project-pager-label">${label}</span>
-          <span class="project-pager-title">${escapeHtml(title)}</span>
-        </span>
-        <span class="project-pager-arrow" aria-hidden="true">→</span>
-      </a>`;
-  };
-
-  const prevMarkup = renderLink(previous, 'prev');
-  const nextMarkup = renderLink(next, 'next');
-
-  return `<nav class="project-pager" aria-label="Project navigation">
-    <div class="wrapper">
-      ${prevMarkup}
-      ${nextMarkup}
-	    </div>
-	  </nav>`;
-}
-
-function getProjectTagSet(project) {
-  const tools = Array.isArray(project?.tools) ? project.tools : [];
-  const concepts = Array.isArray(project?.concepts) ? project.concepts : [];
-  const audiences = Array.isArray(project?.audiences) ? project.audiences : [];
-  const audienceLabels = audiences.map((audience) => {
-    const key = normalizeWhitespace(audience).toLowerCase();
-    if (key === 'data-science') return 'Data Science';
-    if (key === 'analytics') return 'Analytics';
-    if (key === 'tourism') return 'Tourism';
-    return '';
-  }).filter(Boolean);
-  const tags = [...tools, ...concepts, ...audiences, ...audienceLabels]
-    .map((t) => normalizeWhitespace(t).toLowerCase())
-    .filter(Boolean);
-  return new Set(tags);
-}
-
-function renderRelatedProjectMedia(project) {
-  const img = String(project?.image || '').trim();
-  if (!img) return '';
-
-  const title = normalizeWhitespace(project?.title || '');
-  const alt = normalizeWhitespace(project?.imageAlt || title);
-  const width = Number(project?.imageWidth);
-  const height = Number(project?.imageHeight);
-  const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
-    ? ` width="${width}" height="${height}"`
-    : '';
-
-  const match = img.match(/\.(png|jpe?g)$/i);
-  if (!match) {
-    return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${sizeAttr} sizes="(max-width: 960px) 92vw, 320px">`;
-  }
-
-  const base = img.replace(/\.(png|jpe?g)$/i, '');
-  const avif = buildResponsiveSrcset(base, 'avif', width);
-  const webp = buildResponsiveSrcset(base, 'webp', width);
-
-  if (avif || webp) {
-    return `<picture>
-      ${avif ? `<source srcset="${escapeHtml(avif)}" type="image/avif">` : ''}
-      ${webp ? `<source srcset="${escapeHtml(webp)}" type="image/webp">` : ''}
-      <img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${sizeAttr} sizes="(max-width: 960px) 92vw, 320px">
-    </picture>`;
-  }
-
-  return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${sizeAttr} sizes="(max-width: 960px) 92vw, 320px">`;
-}
-
-function selectRelatedProjects(projects, currentIndex, desiredCount) {
-  if (!Array.isArray(projects) || projects.length === 0) return [];
-  const desired = Number.isFinite(desiredCount) ? Math.max(0, Math.floor(desiredCount)) : 0;
-  if (desired <= 0) return [];
-
-  const current = projects[currentIndex];
-  const currentId = String(current?.id || '').trim();
-  if (!current || !currentId) return [];
-
-  const currentTags = getProjectTagSet(current);
-  const scored = projects
-    .map((candidate, index) => {
-      const id = String(candidate?.id || '').trim();
-      if (!candidate || !id) return null;
-      if (index === currentIndex) return null;
-      const tags = getProjectTagSet(candidate);
-      let score = 0;
-      currentTags.forEach((tag) => {
-        if (tags.has(tag)) score += 1;
-      });
-      if (score <= 0) return null;
-      return { project: candidate, index, score };
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.score - a.score || a.index - b.index);
-
-  const selected = [];
-  const usedIds = new Set([currentId]);
-
-  scored.forEach((item) => {
-    if (selected.length >= desired) return;
-    const id = String(item.project?.id || '').trim();
-    if (!id || usedIds.has(id)) return;
-    selected.push(item.project);
-    usedIds.add(id);
-  });
-
-  for (let offset = 1; selected.length < desired; offset++) {
-    const before = currentIndex - offset;
-    const after = currentIndex + offset;
-    const indexes = [before, after].filter((i) => i >= 0 && i < projects.length);
-    if (indexes.length === 0) break;
-    indexes.forEach((idx) => {
-      if (selected.length >= desired) return;
-      const candidate = projects[idx];
-      const id = String(candidate?.id || '').trim();
-      if (!candidate || !id) return;
-      if (usedIds.has(id)) return;
-      selected.push(candidate);
-      usedIds.add(id);
-    });
-  }
-
-  return selected.slice(0, desired);
-}
-
-function renderRelatedProjectsSection(projects, currentIndex) {
-  const related = selectRelatedProjects(projects, currentIndex, 3);
-  if (!related.length) return '';
-
-  const cards = related
-    .map((p) => {
-      const id = String(p?.id || '').trim();
-      if (!id) return '';
-      const title = normalizeWhitespace(p?.title || id);
-      const subtitle = normalizeWhitespace(p?.subtitle || '');
-      const href = `portfolio/${encodeURIComponent(id)}`;
-      const label = `Open project: ${title}`;
-      const safeSubtitle = subtitle ? `<div class="project-subtitle">${escapeHtml(subtitle)}</div>` : '';
-
-      return `<a class="project-card project-related-card" role="listitem" href="${escapeHtml(href)}" aria-label="${escapeHtml(label)}">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">${escapeHtml(title)}</div>
-          ${safeSubtitle}
-        </div>
-        ${renderRelatedProjectMedia(p)}
-      </a>`;
-    })
-    .filter(Boolean)
-    .join('\n        ');
-
-  return `<section class="project-section project-related" aria-label="Other projects">
-      <h2 class="section-title">Other Projects</h2>
-      <div class="project-related-grid" role="list">
-        ${cards}
-      </div>
-    </section>`;
-}
-
-function renderProjectPage(project, options = {}) {
+function renderProjectPage(project) {
   const id = String(project.id || '').trim();
   const title = normalizeWhitespace(project.title || id);
   const subtitle = normalizeWhitespace(project.subtitle || '');
@@ -694,13 +496,6 @@ function renderProjectPage(project, options = {}) {
     }
     : null;
   const role = project.role;
-  const notes = normalizeWhitespace(project.notes || '');
-  const personalStory = project.personalStory && typeof project.personalStory === 'object' && !Array.isArray(project.personalStory)
-    ? project.personalStory
-    : null;
-  const evaluation = project.evaluation && typeof project.evaluation === 'object' && !Array.isArray(project.evaluation)
-    ? project.evaluation
-    : null;
   const audiences = Array.isArray(project.audiences) ? project.audiences : [];
   const audienceTags = audiences.map((audience) => {
     const key = normalizeWhitespace(audience).toLowerCase();
@@ -759,17 +554,9 @@ function renderProjectPage(project, options = {}) {
   const ldJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': [projectLd, breadcrumbsLd] })
     .replace(/</g, '\\u003c');
 
-  const heroTags = tags.slice(0, 4);
-  const safeTagPills = heroTags.length
-    ? `<div class="project-tags" role="list">
-      ${heroTags.map((t) => `<span class="project-tag" role="listitem">${escapeHtml(t)}</span>`).join('\n      ')}
-    </div>`
-    : '';
-
   const safeProblem = normalizeWhitespace(project.problem || '');
 
   const hasResources = resources.length > 0;
-  const hasNotes = Boolean(notes);
 
   const renderResourceCards = (list) => `<div class="project-links" role="list">
         ${list.map((r) => {
@@ -786,47 +573,12 @@ function renderProjectPage(project, options = {}) {
       </div>`;
 
   const safeResources = hasResources
-    ? (() => {
-      const dataResources = resources.filter(isDataResource);
-      const projectResources = resources.filter((resource) => !isDataResource(resource));
-
-      const groups = [];
-      if (projectResources.length) {
-        groups.push(`<div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
-        ${renderResourceCards(projectResources)}
-      </div>`);
-      }
-      if (dataResources.length) {
-        groups.push(`<div class="project-links-group">
-        <h3 class="project-links-group-title">Data Links</h3>
-        ${renderResourceCards(dataResources)}
-      </div>`);
-      }
-
-      return `<details class="project-section project-disclosure project-resources" id="links" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title">Links</span></summary>
-      <div class="project-links-groups">
-        ${groups.join('\n        ')}
+    ? `<section class="project-section project-resources project-resources--flat" id="links" aria-labelledby="${escapeHtml(toDomIdSafe(id))}-links-title">
+      <h2 class="section-title" id="${escapeHtml(toDomIdSafe(id))}-links-title">Links</h2>
+      <div class="project-links-groups project-links-groups--flat">
+        ${renderResourceCards(resources)}
       </div>
-    </details>`;
-    })()
-    : '';
-
-  const safeNotes = hasNotes
-    ? `<details class="project-section project-disclosure project-notes" id="notes" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title">Notes</span></summary>
-      <p class="project-lead">${escapeHtml(notes)}</p>
-    </details>`
-    : '';
-
-  const allProjects = Array.isArray(options.projects) ? options.projects : null;
-  const projectIndex = Number.isInteger(options.index) ? options.index : -1;
-  const projectPager = allProjects && projectIndex >= 0
-    ? renderProjectPager(allProjects, projectIndex)
-    : '';
-  const relatedProjects = allProjects && projectIndex >= 0
-    ? renderRelatedProjectsSection(allProjects, projectIndex)
+    </section>`
     : '';
 
   const ensureSentence = (value) => {
@@ -842,9 +594,6 @@ function renderProjectPage(project, options = {}) {
   })();
   const starActions = actions.slice(0, 3).map((a) => normalizeWhitespace(a)).filter(Boolean);
   const starResults = results.slice(0, 3).map((r) => normalizeWhitespace(r)).filter(Boolean);
-  const stackLabel = tools.map((tool) => normalizeWhitespace(tool)).filter(Boolean).join(' \u00b7 ') || 'Project-specific tools and methods';
-  const deliveryStatus = normalizeWhitespace(project.deliveryStatus || project.status || '')
-    || (embed ? 'Live interactive demo' : 'Completed case study');
 
   const starSummary = `<section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
@@ -873,103 +622,8 @@ function renderProjectPage(project, options = {}) {
             </ul>
           </dd>
         </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">${escapeHtml(stackLabel)}</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Status</dt>
-          <dd class="project-star-value">${escapeHtml(deliveryStatus)}</dd>
-        </div>
       </dl>
     </section>`;
-
-  const renderDefinitionRows = (rows) => rows
-    .filter((row) => row && normalizeWhitespace(row.value || ''))
-    .map((row) => `<div class="project-star-row">
-          <dt class="project-star-label">${escapeHtml(row.label)}</dt>
-          <dd class="project-star-value">${escapeHtml(normalizeWhitespace(row.value))}</dd>
-        </div>`)
-    .join('\n        ');
-
-  const personalStoryRows = personalStory ? [
-    { label: 'Why I built it', value: personalStory.why },
-    { label: 'What surprised me', value: personalStory.surprise },
-    { label: 'What I’d try next', value: personalStory.next }
-  ] : [];
-  const personalNotes = personalStoryRows.some((row) => normalizeWhitespace(row.value || ''))
-    ? `<details class="project-star project-personal-notes project-disclosure" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title" id="${escapeHtml(toDomIdSafe(id))}-personal-notes-title">Personal notes</span></summary>
-      <dl class="project-star-grid">
-        ${renderDefinitionRows(personalStoryRows)}
-      </dl>
-    </details>`
-    : '';
-
-  const evaluationStatusLabels = {
-    measured: 'Measured',
-    partial: 'Partial evaluation',
-    'not-benchmarked': 'Not benchmarked'
-  };
-  const evaluationStatus = evaluation
-    ? normalizeWhitespace(evaluation.status || '').toLowerCase()
-    : '';
-  const evaluationMetrics = evaluation && Array.isArray(evaluation.metrics)
-    ? evaluation.metrics.filter((metric) => metric && typeof metric === 'object' && !Array.isArray(metric))
-    : [];
-  const evaluationLimitations = evaluation && Array.isArray(evaluation.limitations)
-    ? evaluation.limitations.map(normalizeWhitespace).filter(Boolean)
-    : [];
-  const evaluationEvidence = evaluation && evaluation.evidence && typeof evaluation.evidence === 'object' && !Array.isArray(evaluation.evidence)
-    ? evaluation.evidence
-    : null;
-  const evaluationEvidenceUrl = evaluationEvidence ? String(evaluationEvidence.url || '').trim() : '';
-  const evaluationEvidenceLabel = evaluationEvidence
-    ? normalizeWhitespace(evaluationEvidence.label || evaluationEvidenceUrl)
-    : '';
-  const evaluationEvidenceExternal = /^https?:\/\//i.test(evaluationEvidenceUrl);
-  const evaluationRows = evaluation ? [
-    { label: 'Status', value: evaluationStatusLabels[evaluationStatus] || '' },
-    { label: 'Goal', value: evaluation.goal },
-    { label: 'Dataset', value: evaluation.dataset },
-    { label: 'Split', value: evaluation.split },
-    { label: 'Baseline', value: evaluation.baseline },
-    { label: 'Decision', value: evaluation.decision }
-  ] : [];
-  const evaluationDetails = evaluation && evaluationStatusLabels[evaluationStatus]
-    ? `<details class="project-star project-evaluation project-disclosure" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title" id="${escapeHtml(toDomIdSafe(id))}-evaluation-title">Evaluation &amp; tradeoffs</span></summary>
-      <dl class="project-star-grid">
-        ${renderDefinitionRows(evaluationRows)}
-${evaluationMetrics.length ? `<div class="project-star-row">
-          <dt class="project-star-label">Metrics</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              ${evaluationMetrics.map((metric) => {
-                const label = normalizeWhitespace(metric.label || 'Metric');
-                const value = normalizeWhitespace(metric.value || '');
-                const context = normalizeWhitespace(metric.context || '');
-                const metricText = [label && value ? `${label}: ${value}` : (label || value), context].filter(Boolean).join(' — ');
-                return `<li>${escapeHtml(metricText)}</li>`;
-              }).join('\n              ')}
-            </ul>
-          </dd>
-        </div>` : ''}
-${evaluationLimitations.length ? `<div class="project-star-row">
-          <dt class="project-star-label">Limitations</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              ${evaluationLimitations.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n              ')}
-            </ul>
-          </dd>
-        </div>` : ''}
-${evaluationEvidenceUrl && evaluationEvidenceLabel ? `<div class="project-star-row">
-          <dt class="project-star-label">Evidence</dt>
-          <dd class="project-star-value"><a href="${escapeHtml(evaluationEvidenceUrl)}"${evaluationEvidenceExternal ? ' target="_blank" rel="noopener noreferrer"' : ''}>${escapeHtml(evaluationEvidenceLabel)}</a></dd>
-        </div>` : ''}
-      </dl>
-    </details>`
-    : '';
 
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
@@ -1234,12 +888,8 @@ ${mobileLaunch ? `            ${mobileLaunch}\n` : ''}            ${renderEmbedd
 
   const projectBodySections = [
     starSummary,
-    personalNotes,
-    evaluationDetails,
     demoTabs || projectPreview,
-    safeResources,
-    safeNotes,
-    relatedProjects
+    safeResources
   ].filter(Boolean).join('\n        ');
 
   return `<!DOCTYPE html>
@@ -1281,30 +931,24 @@ ${tableauPreconnect}
     ${ldJson}
   </script>
 </head>
-<body data-page="project" class="project-page">
+<body data-page="project" class="project-page project-page--compact">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
-  ${projectPager}
 
-  <main id="main">
-    <section class="project-hero">
+  <main id="main" class="project-main project-main--compact">
+    <section class="project-hero project-hero--compact">
       <div class="wrapper">
-        <p class="hero-eyebrow">Portfolio Project</p>
         <h1>${escapeHtml(title)}</h1>
         ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
-        <div class="cta-group project-cta">
-          <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
-        </div>
-        ${safeTagPills}
-		      </div>
-	    </section>
+      </div>
+    </section>
 
-			    <section class="project-body">
-			      <div class="wrapper">
-			        ${projectBodySections}
-			      </div>
-			    </section>
-			  </main>
+    <section class="project-body project-body--compact">
+      <div class="wrapper">
+        ${projectBodySections}
+      </div>
+    </section>
+  </main>
 
   <footer>
 	    <nav class="privacy-links" aria-label="Privacy shortcuts">
@@ -1340,11 +984,11 @@ function writeProjectPages(projects) {
     });
   } catch (_) {}
 
-  projects.forEach((project, index) => {
+  projects.forEach((project) => {
     const id = String(project.id || '').trim();
     if (!id) throw new Error('Project missing id');
     const outPath = path.join(outDir, `${id}.html`);
-    fs.writeFileSync(outPath, renderProjectPage(project, { projects, index }), 'utf8');
+    fs.writeFileSync(outPath, renderProjectPage(project), 'utf8');
   });
 }
 

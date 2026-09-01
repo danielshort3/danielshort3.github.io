@@ -10,25 +10,7 @@ const root = path.resolve(__dirname, '..');
 const previewRoot = path.join(root, 'img', 'home-previews');
 const publicPreviewRoot = path.join(root, 'public', 'img', 'home-previews');
 
-const HOME_LIBRARY_VISUALS = {
-  projects: {
-    smartSentence: 'semantic-retrieval',
-    chatbotLora: 'grounded-chat',
-    shapeClassifier: 'shape-classification',
-    ufoDashboard: 'sighting-report',
-    covidAnalysis: 'hospital-decision-tree',
-    targetEmptyPackage: 'package-anomaly',
-    handwritingRating: 'digit-legibility',
-    digitGenerator: 'synthetic-digit-generation',
-    sheetMusicUpscale: 'music-restoration',
-    deliveryTip: 'delivery-tip-inputs',
-    retailStore: 'retail-etl',
-    pizza: 'pizza-regression-inputs',
-    babynames: 'name-preference-learning',
-    pizzaDashboard: 'delivery-operations-inputs',
-    nonogram: 'nonogram-model',
-    website: 'site-accordion'
-  },
+const GENERATED_HOME_LIBRARY_VISUALS = {
   tools: {
     'text-compare': 'paired-differences',
     'nbsp-cleaner': 'spacing-cleanup',
@@ -51,6 +33,26 @@ const HOME_LIBRARY_VISUALS = {
   }
 };
 
+// These superseded AI previews stay in the asset tree for history, but library data must not reference them.
+const RETAINED_PROJECT_PREVIEW_IDS = [
+  'smartSentence',
+  'chatbotLora',
+  'shapeClassifier',
+  'ufoDashboard',
+  'covidAnalysis',
+  'targetEmptyPackage',
+  'handwritingRating',
+  'digitGenerator',
+  'sheetMusicUpscale',
+  'deliveryTip',
+  'retailStore',
+  'pizza',
+  'babynames',
+  'pizzaDashboard',
+  'nonogram',
+  'website'
+];
+
 function previewPath(category, id) {
   return path.join(previewRoot, category, `${id}.webp`);
 }
@@ -59,9 +61,35 @@ function normalizedRelativePath(value) {
   return String(value || '').split(path.sep).join('/');
 }
 
+function projectLibraryAsset(image) {
+  const normalized = normalizedRelativePath(String(image || '').trim()).replace(/[?#].*$/, '');
+  if (!normalized || /^(?:[a-z]+:)?\/\//i.test(normalized)) return '';
+  const rooted = normalized.startsWith('/') ? normalized : `/${normalized}`;
+  const extension = path.posix.extname(rooted);
+  const basename = extension ? rooted.slice(0, -extension.length) : rooted;
+  return `${basename}-640.webp`;
+}
+
+function loadPublishedProjects() {
+  const projectsRoot = path.join(root, 'content', 'projects');
+  return fs.readdirSync(projectsRoot)
+    .filter((fileName) => fileName.endsWith('.json'))
+    .map((fileName) => JSON.parse(fs.readFileSync(path.join(projectsRoot, fileName), 'utf8')))
+    .filter((project) => project && project.id && project.published !== false)
+    .sort((left, right) => {
+      const leftOrder = Number.isFinite(Number(left.order)) ? Number(left.order) : Number.MAX_SAFE_INTEGER;
+      const rightOrder = Number.isFinite(Number(right.order)) ? Number(right.order) : Number.MAX_SAFE_INTEGER;
+      return leftOrder - rightOrder || String(left.id).localeCompare(String(right.id));
+    });
+}
+
 function expectedPreviewTree() {
-  const directories = Object.keys(HOME_LIBRARY_VISUALS).sort();
-  const files = directories.flatMap((category) => Object.keys(HOME_LIBRARY_VISUALS[category])
+  const previewInventory = {
+    projects: Object.fromEntries(RETAINED_PROJECT_PREVIEW_IDS.map((id) => [id, true])),
+    ...GENERATED_HOME_LIBRARY_VISUALS
+  };
+  const directories = Object.keys(previewInventory).sort();
+  const files = directories.flatMap((category) => Object.keys(previewInventory[category])
     .map((id) => `${category}/${id}.webp`))
     .sort();
   return { directories, files };
@@ -102,7 +130,25 @@ function validateCatalogMappings() {
   delete require.cache[require.resolve(dataPath)];
   const libraryData = require(dataPath);
 
-  Object.entries(HOME_LIBRARY_VISUALS).forEach(([category, visuals]) => {
+  const projects = loadPublishedProjects();
+  const projectItems = libraryData.projects?.items || [];
+  if (JSON.stringify(projectItems.map((item) => item.id)) !==
+    JSON.stringify(projects.map((project) => String(project.id)))) {
+    throw new Error('Homepage projects preview catalog is out of sync with published project content');
+  }
+  projects.forEach((project) => {
+    const id = String(project.id).trim();
+    const expectedImage = projectLibraryAsset(project.image);
+    if (expectedImage !== `/img/projects/${id}-640.webp`) {
+      throw new Error(`Canonical project image does not derive the expected optimized asset for ${id}`);
+    }
+    const item = projectItems.find((entry) => entry.id === id);
+    if (!item || item.image !== expectedImage || item.imageAlt !== '') {
+      throw new Error(`Unexpected original project preview mapping for projects/${id}`);
+    }
+  });
+
+  Object.entries(GENERATED_HOME_LIBRARY_VISUALS).forEach(([category, visuals]) => {
     const items = libraryData[category]?.items || [];
     const expectedIds = Object.keys(visuals);
     const actualIds = items.map((item) => item.id);
@@ -116,6 +162,33 @@ function validateCatalogMappings() {
       }
     });
   });
+
+  return projects;
+}
+
+async function validateProjectAssetAt(baseDir, project) {
+  const assetPath = projectLibraryAsset(project.image);
+  const filePath = path.join(baseDir, assetPath.replace(/^\/+/, ''));
+  if (!assetPath || !fs.existsSync(filePath)) {
+    throw new Error(`Missing original project preview: ${path.relative(root, filePath)}`);
+  }
+
+  const metadata = await sharp(filePath).metadata();
+  if (metadata.format !== 'webp' || metadata.width !== 640 || !Number(metadata.height)) {
+    throw new Error(`Original project preview must be a 640px-wide WebP: ${path.relative(root, filePath)}`);
+  }
+
+  const buffer = fs.readFileSync(filePath);
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+async function validateProjectAssets(baseDir, projects) {
+  const hashes = new Map();
+  for (const project of projects) {
+    const assetPath = projectLibraryAsset(project.image);
+    hashes.set(assetPath, await validateProjectAssetAt(baseDir, project));
+  }
+  return hashes;
 }
 
 async function validatePreviewAt(baseDir, category, id) {
@@ -146,7 +219,7 @@ async function validatePreviewTree(baseDir, label) {
   }
 
   const hashes = new Map();
-  for (const [category, visuals] of Object.entries(HOME_LIBRARY_VISUALS)) {
+  for (const [category, visuals] of Object.entries(GENERATED_HOME_LIBRARY_VISUALS)) {
     for (const id of Object.keys(visuals)) {
       const relativePath = `${category}/${id}.webp`;
       hashes.set(relativePath, await validatePreviewAt(baseDir, category, id));
@@ -170,17 +243,20 @@ function validateMatchingHashes(sourceHashes, deployedHashes) {
 
 async function main() {
   const validatePublic = process.argv.slice(2).includes('--public');
-  validateCatalogMappings();
+  const projects = validateCatalogMappings();
+  const projectSourceHashes = await validateProjectAssets(root, projects);
   const sourceHashes = await validatePreviewTree(previewRoot, 'img/home-previews');
 
   if (validatePublic) {
+    const projectDeployedHashes = await validateProjectAssets(path.join(root, 'public'), projects);
     const deployedHashes = await validatePreviewTree(publicPreviewRoot, 'public/img/home-previews');
+    validateMatchingHashes(projectSourceHashes, projectDeployedHashes);
     validateMatchingHashes(sourceHashes, deployedHashes);
-    process.stdout.write(`[home-library-visuals] Validated ${sourceHashes.size} source and deployed previews.\n`);
+    process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews and ${sourceHashes.size} source and deployed generated previews.\n`);
     return;
   }
 
-  process.stdout.write(`[home-library-visuals] Validated ${sourceHashes.size} generated previews.\n`);
+  process.stdout.write(`[home-library-visuals] Validated ${projectSourceHashes.size} original project previews and ${sourceHashes.size} generated previews.\n`);
 }
 
 if (require.main === module) {
@@ -191,12 +267,15 @@ if (require.main === module) {
 }
 
 module.exports = {
-  HOME_LIBRARY_VISUALS,
+  GENERATED_HOME_LIBRARY_VISUALS,
+  RETAINED_PROJECT_PREVIEW_IDS,
   expectedPreviewTree,
   listPreviewTree,
   previewPath,
+  projectLibraryAsset,
   validateCatalogMappings,
   validateMatchingHashes,
   validatePreview,
+  validateProjectAssets,
   validatePreviewTree
 };

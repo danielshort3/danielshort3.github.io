@@ -214,9 +214,11 @@ function runResponsiveDensityContractTests({ assert }) {
     'same-origin content demos should defer iframe loading and provide a mobile launch card',
   );
   assert(
-    countMatches(projectPage, /<details\b[^>]*data-project-mobile-disclosure open>/g) >= 4 &&
-      projectPage.includes('class="project-disclosure-summary"'),
-    'secondary project notes, evaluation, links, and notes should render as responsive disclosures',
+    projectPage.includes('class="project-section project-resources project-resources--flat"') &&
+      countMatches(projectPage, /class="project-links"/g) === 1 &&
+      !projectPage.includes('data-project-mobile-disclosure') &&
+      !projectPage.includes('class="project-disclosure-summary"'),
+    'simplified project details should render one flat Links section without legacy disclosures',
   );
 
   const commonJs = read('js/common/common.js');
@@ -225,17 +227,22 @@ function runResponsiveDensityContractTests({ assert }) {
     commonJs.includes("window.matchMedia('(max-width: 768px)')") &&
       commonJs.includes("ifr.removeAttribute('src')") &&
       commonJs.includes("ifr.setAttribute('src', deferredSrc)") &&
-      commonJs.includes('observeProjectEmbedIframe(ifr)') &&
-      commonJs.includes("details.open = viewport === 'desktop'"),
-    'project runtime should unload content iframes on mobile, restore observation on desktop, and sync disclosure state',
+      commonJs.includes('observeProjectEmbedIframe(ifr)'),
+    'project runtime should unload content iframes on mobile and restore observation on desktop',
   );
   assert(
-    /\.project-disclosure-summary\s*\{[^}]*min-height:\s*44px;/s.test(projectCss) &&
-      /@media \(max-width: 768px\)[\s\S]*?\.project-disclosure-summary\s*\{[^}]*min-height:\s*48px;/s.test(projectCss) &&
+    commonJs.includes('const resetPersonalProjectDetailScroll = () => {') &&
+      commonJs.includes("navigation?.type === 'back_forward'") &&
+      commonJs.includes("document.querySelector('[data-personal-detail-content]')") &&
+      commonJs.includes('content.scrollTop = 0;'),
+    'new project navigations should start at the title while browser history can restore an earlier detail position',
+  );
+  assert(
+    /\.project-main--compact \.project-link\s*\{[^}]*min-height:\s*48px;/s.test(projectCss) &&
       projectCss.includes('.project-demo-shell[data-demo-fit="content"] .project-demo-mobile-launch') &&
       projectCss.includes('.project-demo-shell[data-demo-fit="content"] .project-embed') &&
       projectCss.includes('max-height:min(960px, calc(100svh - var(--nav-height, 72px) - 48px));'),
-    'project CSS should expose touch-sized disclosures, swap content embeds for the launch card on mobile, and cap iframe height',
+    'project CSS should keep touch-sized flat links, swap content embeds for the launch card on mobile, and cap iframe height',
   );
 
   const vercelConfig = readJson('vercel.json');

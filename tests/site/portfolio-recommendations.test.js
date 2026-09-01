@@ -167,8 +167,10 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   const projectsData = read('js/portfolio/projects-data.js');
   const projectGenerator = read('build/generate-project-pages.js');
   assert(
-    projectGenerator.includes("join(' \\u00b7 ')") && !projectGenerator.includes("join(' ? ')"),
-    'generated project stack labels should use a middle dot instead of a question mark',
+    !projectGenerator.includes('project-pager') &&
+      !projectGenerator.includes('project-personal-notes') &&
+      !projectGenerator.includes('project-evaluation'),
+    'generated project details should omit pager, personal-notes, and evaluation sections',
   );
   storyIds.forEach((id) => {
     const project = readJson(`content/projects/${id}.json`);
@@ -180,8 +182,8 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     const evaluationIndex = page.indexOf('Evaluation &amp; tradeoffs');
     const demoIndex = page.indexOf('project-demo-shell');
     assert(
-      starIndex >= 0 && evaluationIndex > starIndex && demoIndex > evaluationIndex,
-      `${id} should render STAR, then evaluation, then the demo or preview`,
+      starIndex >= 0 && evaluationIndex === -1 && demoIndex > starIndex,
+      `${id} should render STAR directly before the demo or preview without evaluation metadata`,
     );
   });
   storyIds.forEach((id) => {
@@ -190,8 +192,8 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
     const storyIndex = page.indexOf('Personal notes');
     const demoIndex = page.indexOf('project-demo-shell');
     assert(
-      starIndex >= 0 && storyIndex > starIndex && demoIndex > storyIndex,
-      `${id} should render personal notes after STAR and before the demo or preview`,
+      starIndex >= 0 && storyIndex === -1 && demoIndex > starIndex,
+      `${id} should render STAR directly before the demo or preview without personal notes`,
     );
   });
 

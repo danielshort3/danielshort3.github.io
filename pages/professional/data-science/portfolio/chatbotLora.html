@@ -69,7 +69,7 @@
   <meta property="og:image:type" content="image/png">
   <meta name="twitter:creator" content="@danielshort3">
 </head>
-<body data-page="project" class="project-page" data-internal-professional-copy="true" data-audience="data-science">
+<body data-page="project" class="project-page project-page--compact" data-internal-professional-copy="true" data-audience="data-science">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -168,46 +168,18 @@
       </div>
     </nav>
   </header>
-  <nav class="project-pager" aria-label="Project navigation">
-    <div class="wrapper">
-      <a class="project-pager-link project-pager-prev" href="portfolio/smartSentence" aria-label="Previous project: Smart Sentence Retriever">
-        <span class="project-pager-arrow" aria-hidden="true">←</span>
-        <span class="project-pager-text">
-          <span class="project-pager-label">Previous</span>
-          <span class="project-pager-title">Smart Sentence Retriever</span>
-        </span>
-      </a>
-      <a class="project-pager-link project-pager-next" href="portfolio/shapeClassifier" aria-label="Next project: Shape Classifier Demo">
-        <span class="project-pager-text">
-          <span class="project-pager-label">Next</span>
-          <span class="project-pager-title">Shape Classifier Demo</span>
-        </span>
-        <span class="project-pager-arrow" aria-hidden="true">→</span>
-      </a>
-	    </div>
-	  </nav>
 
-  <main id="main">
-    <section class="project-hero">
+  <main id="main" class="project-main project-main--compact">
+    <section class="project-hero project-hero--compact">
       <div class="wrapper">
-        <p class="hero-eyebrow">Portfolio Project</p>
         <h1>Chatbot (LoRA + RAG)</h1>
         <p class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</p>
-        <div class="cta-group project-cta">
-          <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
-        </div>
-        <div class="project-tags" role="list">
-      <span class="project-tag" role="listitem">Data Science</span>
-      <span class="project-tag" role="listitem">Tourism</span>
-      <span class="project-tag" role="listitem">Machine Learning</span>
-      <span class="project-tag" role="listitem">Automation</span>
-    </div>
-		      </div>
-	    </section>
+      </div>
+    </section>
 
-			    <section class="project-body">
-			      <div class="wrapper">
-			        <section class="project-star" aria-label="STAR summary">
+    <section class="project-body project-body--compact">
+      <div class="wrapper">
+        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -238,76 +210,8 @@
             </ul>
           </dd>
         </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Stack</dt>
-          <dd class="project-star-value">Python · Ollama · AWS · Docker</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Status</dt>
-          <dd class="project-star-value">Live interactive demo</dd>
-        </div>
       </dl>
     </section>
-        <details class="project-star project-personal-notes project-disclosure" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title" id="chatbotLora-personal-notes-title">Personal notes</span></summary>
-      <dl class="project-star-grid">
-        <div class="project-star-row">
-          <dt class="project-star-label">Why I built it</dt>
-          <dd class="project-star-value">I wanted to compare a custom LoRA deployment with a managed model without giving up grounded answers and citations.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">What surprised me</dt>
-          <dd class="project-star-value">The model was only part of the product: cold starts, health checks, streaming, and citation clarity shaped the experience just as much.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">What I’d try next</dt>
-          <dd class="project-star-value">I’d publish a controlled benchmark for retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency.</dd>
-        </div>
-      </dl>
-    </details>
-        <details class="project-star project-evaluation project-disclosure" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title" id="chatbotLora-evaluation-title">Evaluation &amp; tradeoffs</span></summary>
-      <dl class="project-star-grid">
-        <div class="project-star-row">
-          <dt class="project-star-label">Status</dt>
-          <dd class="project-star-value">Not benchmarked</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Goal</dt>
-          <dd class="project-star-value">Compare source-grounded tourism answers across a managed Bedrock backend and a custom LoRA/SageMaker backend.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Dataset</dt>
-          <dd class="project-star-value">Public Visit Grand Junction pages plus a generated tourism question-and-answer set.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Split</dt>
-          <dd class="project-star-value">No controlled evaluation split is documented in the published project.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Baseline</dt>
-          <dd class="project-star-value">No controlled Bedrock-versus-LoRA quality or latency baseline has been published.</dd>
-        </div>
-        <div class="project-star-row">
-          <dt class="project-star-label">Decision</dt>
-          <dd class="project-star-value">Bedrock remains the default live path; LoRA/SageMaker remains available for architecture and cold-start comparison.</dd>
-        </div>
-
-<div class="project-star-row">
-          <dt class="project-star-label">Limitations</dt>
-          <dd class="project-star-value">
-            <ul class="project-star-list">
-              <li>Retrieval hit rate, citation correctness, answer quality, and warm/cold p50 and p95 latency have not been published.</li>
-              <li>The current demo demonstrates the two architectures; it does not establish that one backend produces better answers.</li>
-            </ul>
-          </dd>
-        </div>
-<div class="project-star-row">
-          <dt class="project-star-label">Evidence</dt>
-          <dd class="project-star-value"><a href="https://github.com/danielshort3/Chatbot-LoRA-RAG" target="_blank" rel="noopener noreferrer">Project repository</a></dd>
-        </div>
-      </dl>
-    </details>
         <section class="project-demo-shell" data-demo-fit="viewport" aria-label="Interactive demo">
       <div class="project-demo-header">
         <h2 class="section-title project-demo-title">Demo</h2>
@@ -337,66 +241,18 @@
         </section>
       </div>
     </section>
-        <details class="project-section project-disclosure project-resources" id="links" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title">Links</span></summary>
-      <div class="project-links-groups">
-        <div class="project-links-group">
-        <h3 class="project-links-group-title">Project Links</h3>
+        <section class="project-section project-resources project-resources--flat" id="links" aria-labelledby="chatbotLora-links-title">
+      <h2 class="section-title" id="chatbotLora-links-title">Links</h2>
+      <div class="project-links-groups project-links-groups--flat">
         <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Chatbot-LoRA-RAG" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
         <a class="project-link" role="listitem" href="https://www.danielshort.me/chatbot-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
       </div>
       </div>
-      </div>
-    </details>
-        <details class="project-section project-disclosure project-notes" id="notes" data-project-mobile-disclosure open>
-      <summary class="project-disclosure-summary"><span class="section-title">Notes</span></summary>
-      <p class="project-lead">Uses public Visit Grand Junction pages; retrieval provides citation links, and cold-start checks are part of the deployed demo.</p>
-    </details>
-        <section class="project-section project-related" aria-label="Other projects">
-      <h2 class="section-title">Other Projects</h2>
-      <div class="project-related-grid" role="list">
-        <a class="project-card project-related-card" role="listitem" href="portfolio/smartSentence" aria-label="Open project: Smart Sentence Retriever">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">Smart Sentence Retriever</div>
-          <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
-        </div>
-        <picture>
-      <source srcset="img/projects/smartSentence-640.avif 640w, img/projects/smartSentence.avif 952w" type="image/avif">
-      <source srcset="img/projects/smartSentence-640.webp 640w, img/projects/smartSentence.webp 952w" type="image/webp">
-      <img src="img/projects/smartSentence.png" alt="Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952" sizes="(max-width: 960px) 92vw, 320px">
-    </picture>
-      </a>
-        <a class="project-card project-related-card" role="listitem" href="portfolio/shapeClassifier" aria-label="Open project: Shape Classifier Demo">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">Shape Classifier Demo</div>
-          <div class="project-subtitle">Handwritten Shape Recognition</div>
-        </div>
-        <picture>
-      <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
-      <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
-      <img src="img/projects/shapeClassifier.png" alt="Shape Classifier Demo" loading="lazy" decoding="async" width="926" height="926" sizes="(max-width: 960px) 92vw, 320px">
-    </picture>
-      </a>
-        <a class="project-card project-related-card" role="listitem" href="portfolio/handwritingRating" aria-label="Open project: Handwriting Legibility Scoring">
-        <div class="overlay"></div>
-        <div class="project-text">
-          <div class="project-title">Handwriting Legibility Scoring</div>
-          <div class="project-subtitle">PyTorch CNN Fine-Tuning</div>
-        </div>
-        <picture>
-      <source srcset="img/projects/handwritingRating-640.avif 640w, img/projects/handwritingRating-960.avif 960w, img/projects/handwritingRating.avif 1138w" type="image/avif">
-      <source srcset="img/projects/handwritingRating-640.webp 640w, img/projects/handwritingRating-960.webp 960w, img/projects/handwritingRating.webp 1138w" type="image/webp">
-      <img src="img/projects/handwritingRating.png" alt="Handwriting Legibility Scoring" loading="lazy" decoding="async" width="1138" height="1138" sizes="(max-width: 960px) 92vw, 320px">
-    </picture>
-      </a>
+    </section>
       </div>
     </section>
-			      </div>
-			    </section>
-			  </main>
+  </main>
 
   <footer class="footer footer-classic">
     <div class="wrapper footer-inner">
@@ -484,7 +340,7 @@
       </svg>
     </button>
   </div>
-  <script defer src="dist/site-shell.5769f2ac.js"></script>
+  <script defer src="dist/site-shell.bfdb805f.js"></script>
   <script defer src="dist/site-consent.3b3af440.js"></script>
 </body>
 </html>

@@ -126,7 +126,8 @@ function buildLibraryPage(sourceHtml, category, libraryData) {
   return wrapPersonalAccordionHtml(withLibraryMain, {
     category,
     itemId: `${category}-library`,
-    view: 'library'
+    view: 'library',
+    ...(category === 'projects' ? { fit: 'viewport', chrome: 'compact' } : {})
   });
 }
 
@@ -214,9 +215,10 @@ function buildProjectPages() {
       category: 'projects',
       itemId,
       view: 'detail',
-      backHref: '/portfolio',
-      backLabel: 'Back to project library',
-      includeProjectPager: true
+      fit: 'viewport',
+      chrome: 'compact',
+      backHref: '/?view=library#projects',
+      backLabel: 'Back to project library'
     });
     validateWrappedPage(personal, personalRelPath, 'projects');
     write(personalRelPath, personal);

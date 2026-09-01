@@ -145,6 +145,16 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(count(html, /<main\b/gi) === 1, `${relativePath} should retain one main element`);
     assert(count(html, /<footer\b[^>]*\bfooter--personal-compact\b/gi) === 1,
       `${relativePath} should include one compact personal footer`);
+    if (category === 'projects') {
+      assert(/<body[^>]*data-personal-fit="viewport"/i.test(html) &&
+        /<body[^>]*data-personal-chrome="compact"/i.test(html),
+      `${relativePath} should use the viewport-fit shell and compact personal chrome`);
+      if (relativePath !== 'pages/portfolio.html') {
+        assert(html.includes('href="/?view=library#projects"') && html.includes('Back to project library'),
+          `${relativePath} should return to the expanded homepage project library`);
+        assert(!html.includes('project-pager'), `${relativePath} should omit Previous and Next project navigation`);
+      }
+    }
     assert(/personal-accordion-shell:end -->\r?\n(?:\s*<footer|\s*<script)/i.test(html),
       `${relativePath} should keep footer or script markup newline-separated from the shell`);
     assert(count(html, new RegExp(`href="${managedStylesheet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')) === 1,
