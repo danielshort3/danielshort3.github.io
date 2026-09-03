@@ -83,23 +83,6 @@
       "order": 3
     },
     {
-      "id": "project-starfall",
-      "title": "Project Starfall",
-      "href": "games/project-starfall",
-      "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.",
-      "image": "img/project-starfall/ui/splash-screen.png",
-      "imageWidth": 1672,
-      "imageHeight": 941,
-      "imageAlt": "Project Starfall fantasy action RPG splash screen",
-      "tags": [
-        "RPG systems",
-        "Loot economy",
-        "Progression"
-      ],
-      "iconType": "starfall",
-      "order": 4
-    },
-    {
       "id": "stormbreak",
       "title": "Stormbreak: Idle Olympus",
       "href": "games/stormbreak",
@@ -114,7 +97,7 @@
         "Mythic farming"
       ],
       "iconType": "stormbreak",
-      "order": 5
+      "order": 4
     },
     {
       "id": "ocean-wave-simulation",
@@ -127,7 +110,7 @@
         "Visual systems"
       ],
       "iconType": "ocean",
-      "order": 6
+      "order": 5
     }
   ]
 }

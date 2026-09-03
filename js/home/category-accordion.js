@@ -28,52 +28,65 @@
     String(item.dataset.homeAccordionItem || ''),
     item
   ]));
-  const libraryViewById = new Map([...root.querySelectorAll('[data-home-library-view]')].map((view) => [
-    String(view.dataset.homeLibraryView || ''),
-    view
-  ]));
-  const libraryOpenButtons = [...root.querySelectorAll('[data-home-library-open]')];
-  const libraryCloseButtons = [...root.querySelectorAll('[data-home-library-close]')];
   const ids = [...itemById.keys()].filter(Boolean);
-  const libraryIds = new Set([...libraryViewById.keys()].filter(Boolean));
   const railLayoutQuery = window.matchMedia('(min-width: 960px) and (min-height: 620px)');
   const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const scrollPositions = new Map();
-  const documentScrollPositions = new Map();
   const closeTimers = new Map();
+  const LEGACY_LIBRARY_ROUTES = Object.freeze({
+    projects: '/portfolio',
+    tools: '/tools',
+    games: '/games'
+  });
   const PANEL_TRANSITION_MS = 520;
-  const VIEW_TRANSITION_MS = 440;
   const defaultPanel = ids.includes(root.dataset.defaultPanel)
     ? root.dataset.defaultPanel
     : ids[0];
   let activeId = ids.find((id) => triggerById.get(id)?.getAttribute('aria-expanded') === 'true')
     || defaultPanel;
-  let isLibraryMode = false;
   let scrollerTabStopFrame = 0;
-  let viewTransitionTimer = 0;
 
-  function panelIdFromHash() {
+  function decodedLocationHash() {
     const rawId = String(window.location.hash || '').replace(/^#/, '');
     if (!rawId) return '';
     try {
-      const id = decodeURIComponent(rawId);
-      return ids.includes(id) ? id : '';
+      return decodeURIComponent(rawId);
     } catch (error) {
       return '';
     }
   }
 
-  function locationRequestsLibrary() {
+  function panelIdFromHash() {
+    const id = decodedLocationHash();
+    return ids.includes(id) ? id : '';
+  }
+
+  function normalizeLegacyLibraryLocation() {
+    let url;
     try {
-      return new URL(window.location.href).searchParams.get('view') === 'library';
+      url = new URL(window.location.href);
     } catch (error) {
       return false;
     }
+    if (url.searchParams.get('view') !== 'library') return false;
+
+    const legacyRoute = LEGACY_LIBRARY_ROUTES[decodedLocationHash()];
+    url.searchParams.delete('view');
+    if (legacyRoute) {
+      const remainingQuery = url.searchParams.toString();
+      window.location.replace(`${legacyRoute}${remainingQuery ? `?${remainingQuery}` : ''}`);
+      return true;
+    }
+
+    const nextLocation = `${url.pathname}${url.search}${url.hash}`;
+    const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextLocation !== currentLocation && typeof window.history?.replaceState === 'function') {
+      window.history.replaceState(window.history.state, '', url);
+    }
+    return false;
   }
 
-  function scrollPositionKey(id, libraryMode = isLibraryMode) {
-    return `${libraryMode ? 'library' : 'overview'}:${id}`;
-  }
+  if (normalizeLegacyLibraryLocation()) return;
 
   function panelScrollTarget(id) {
     if (railLayoutQuery.matches && id === 'about') {
@@ -86,34 +99,18 @@
     return [scrollerById.get(id), timelineScrollerById.get(id)].filter(Boolean);
   }
 
-  function saveScrollPosition(id, libraryMode = isLibraryMode) {
+  function saveScrollPosition(id) {
     if (!railLayoutQuery.matches || !id) return;
     const scroller = panelScrollTarget(id);
-    if (scroller) scrollPositions.set(scrollPositionKey(id, libraryMode), scroller.scrollTop);
+    if (scroller) scrollPositions.set(id, scroller.scrollTop);
   }
 
-  function restoreScrollPosition(id, libraryMode = isLibraryMode) {
+  function restoreScrollPosition(id) {
     if (!railLayoutQuery.matches || !id) return;
     window.requestAnimationFrame(() => {
       const scroller = panelScrollTarget(id);
-      if (scroller) scroller.scrollTop = scrollPositions.get(scrollPositionKey(id, libraryMode)) || 0;
+      if (scroller) scroller.scrollTop = scrollPositions.get(id) || 0;
       scheduleScrollerTabStopUpdate();
-    });
-  }
-
-  function saveDocumentScrollPosition(id, libraryMode = isLibraryMode) {
-    if (railLayoutQuery.matches || !id) return;
-    documentScrollPositions.set(scrollPositionKey(id, libraryMode), window.scrollY);
-  }
-
-  function restoreDocumentScrollPosition(id, libraryMode = isLibraryMode, fallback = null) {
-    if (railLayoutQuery.matches || !id) return;
-    const key = scrollPositionKey(id, libraryMode);
-    const hasSavedPosition = documentScrollPositions.has(key);
-    if (!hasSavedPosition && fallback === null) return;
-    const top = hasSavedPosition ? documentScrollPositions.get(key) : fallback;
-    window.requestAnimationFrame(() => {
-      window.scrollTo({ top: Math.max(0, Number(top) || 0), behavior: 'auto' });
     });
   }
 
@@ -121,20 +118,16 @@
     return `#${encodeURIComponent(id)}`;
   }
 
-  function updateLocation(id, mode = 'push', libraryMode = isLibraryMode) {
+  function updateLocation(id, mode = 'push') {
     const url = new URL(window.location.href);
+    url.searchParams.delete('view');
     url.hash = id;
-    if (libraryMode) {
-      url.searchParams.set('view', 'library');
-    } else {
-      url.searchParams.delete('view');
-    }
     const nextLocation = `${url.pathname}${url.search}${url.hash}`;
     const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     if (nextLocation === currentLocation) return;
     const historyMethod = mode === 'replace' ? 'replaceState' : 'pushState';
     if (typeof window.history?.[historyMethod] === 'function') {
-      window.history[historyMethod]({ homePanel: id, homeView: libraryMode ? 'library' : 'overview' }, '', url);
+      window.history[historyMethod]({ homePanel: id }, '', url);
     } else {
       window.location.assign(url.toString());
     }
@@ -143,124 +136,6 @@
   function normalizePanelHash(id) {
     if (!id || !window.location.hash || window.location.hash === canonicalPanelHash(id)) return;
     updateLocation(id, 'replace');
-  }
-
-  function getLibraryData(id) {
-    const data = window.HOME_LIBRARY_DATA && window.HOME_LIBRARY_DATA[id];
-    return data && Array.isArray(data.items) ? data : null;
-  }
-
-  function normalizeLibraryHref(value) {
-    const href = String(value || '').trim();
-    if (!href) return '#';
-    if (/^(?:[a-z][a-z0-9+.-]*:|#)/i.test(href)) return href;
-    return `/${href.replace(/^\/+/, '')}`;
-  }
-
-  function createLibraryArrow() {
-    const wrapper = document.createElement('span');
-    wrapper.className = 'home-library__arrow';
-    wrapper.setAttribute('aria-hidden', 'true');
-    wrapper.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>';
-    return wrapper;
-  }
-
-  function createLibraryMedia(item, categoryId) {
-    const media = document.createElement('span');
-    media.className = 'home-library__media';
-    if (item.image) {
-      const image = document.createElement('img');
-      image.src = normalizeLibraryHref(item.image);
-      image.alt = String(item.imageAlt || '');
-      image.width = 640;
-      image.height = 360;
-      image.loading = 'lazy';
-      image.decoding = 'async';
-      media.classList.add('home-library__media--preview');
-      media.append(image);
-    } else if (item.iconHtml) {
-      media.setAttribute('aria-hidden', 'true');
-      media.classList.add('home-library__media--glyph');
-      media.innerHTML = String(item.iconHtml);
-    } else {
-      media.setAttribute('aria-hidden', 'true');
-      media.classList.add('home-library__media--glyph');
-      const categoryIcon = triggerById.get(categoryId)?.querySelector('svg');
-      if (categoryIcon) media.append(categoryIcon.cloneNode(true));
-    }
-    return media;
-  }
-
-  function createLibraryCard(item, categoryId) {
-    const listItem = document.createElement('li');
-    listItem.className = 'home-library__item';
-    const link = document.createElement('a');
-    link.className = 'home-library__card';
-    link.href = normalizeLibraryHref(item.href);
-    if (item.external) {
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-    }
-    if (item.contentType) link.dataset.contentType = String(item.contentType);
-    if (item.contentId || item.id) link.dataset.contentId = String(item.contentId || item.id);
-    if (item.resourceType || item.contentType) {
-      link.dataset.resourceType = String(item.resourceType || item.contentType);
-    }
-    if (item.contentType && (item.contentId || item.id)) {
-      link.dataset.contentOpen = 'true';
-      link.dataset.sourceSurface = 'home_library';
-    }
-
-    const copy = document.createElement('span');
-    copy.className = 'home-library__copy';
-    const title = document.createElement('strong');
-    title.textContent = String(item.title || 'Explore');
-    copy.append(title);
-    if (item.summary) {
-      const summary = document.createElement('span');
-      summary.textContent = String(item.summary);
-      copy.append(summary);
-    }
-
-    link.append(createLibraryMedia(item, categoryId), copy, createLibraryArrow());
-    listItem.append(link);
-    return listItem;
-  }
-
-  function renderLibrary(id) {
-    const view = libraryViewById.get(id);
-    if (!view || view.dataset.homeLibraryRendered === 'true') return;
-    const list = view.querySelector('[data-home-library-list]');
-    if (!list) return;
-    const data = getLibraryData(id);
-    const itemsForLibrary = data?.items || [];
-    const fragment = document.createDocumentFragment();
-    itemsForLibrary.forEach((item) => fragment.append(createLibraryCard(item, id)));
-    list.replaceChildren(fragment);
-    const count = view.querySelector('[data-home-library-count]');
-    if (count) count.textContent = String(itemsForLibrary.length);
-    view.dataset.homeLibraryRendered = 'true';
-    scheduleScrollerTabStopUpdate();
-  }
-
-  function updateLibraryViewVisibility() {
-    libraryViewById.forEach((view, id) => {
-      const visible = isLibraryMode && id === activeId;
-      if (visible) {
-        renderLibrary(id);
-        view.hidden = false;
-        view.removeAttribute('inert');
-        view.removeAttribute('aria-hidden');
-      } else {
-        view.hidden = true;
-        view.setAttribute('inert', '');
-        view.setAttribute('aria-hidden', 'true');
-      }
-    });
-    libraryOpenButtons.forEach((button) => {
-      const id = String(button.dataset.homeLibraryOpen || '');
-      button.setAttribute('aria-expanded', String(isLibraryMode && activeId === id));
-    });
   }
 
   function updateScrollerTabStops() {
@@ -306,9 +181,8 @@
   function updateTriggerState(trigger, selected) {
     if (!trigger) return;
     const triggerId = String(trigger.dataset.homeAccordionTrigger || '');
-    const isNonCollapsible = selected && (triggerId === defaultPanel || isLibraryMode);
     trigger.setAttribute('aria-expanded', String(selected));
-    if (isNonCollapsible) {
+    if (selected && triggerId === defaultPanel) {
       trigger.setAttribute('aria-disabled', 'true');
     } else {
       trigger.removeAttribute('aria-disabled');
@@ -344,7 +218,6 @@
         itemId === previousId &&
         !panel.hidden &&
         railLayoutQuery.matches &&
-        !isLibraryMode &&
         !reducedMotionQuery.matches;
       if (animateClose) {
         item.classList.add('is-closing');
@@ -356,12 +229,11 @@
         item.classList.remove('is-closing');
       }
     });
-    updateLibraryViewVisibility();
     scheduleScrollerTabStopUpdate();
   }
 
   function revealPanelTrigger(id) {
-    if (railLayoutQuery.matches || isLibraryMode || !id) return;
+    if (railLayoutQuery.matches || !id) return;
     window.requestAnimationFrame(() => {
       triggerById.get(id)?.scrollIntoView({
         behavior: reducedMotionQuery.matches ? 'auto' : 'smooth',
@@ -370,56 +242,12 @@
     });
   }
 
-  function markViewTransition() {
-    if (viewTransitionTimer) window.clearTimeout(viewTransitionTimer);
-    root.classList.add('is-view-changing');
-    viewTransitionTimer = window.setTimeout(() => {
-      root.classList.remove('is-view-changing');
-      viewTransitionTimer = 0;
-    }, VIEW_TRANSITION_MS);
-  }
-
-  function runViewTransition(apply, animate = true) {
-    if (animate && !reducedMotionQuery.matches && typeof document.startViewTransition === 'function') {
-      document.startViewTransition(apply);
-      return;
-    }
-
-    apply();
-    if (animate && !reducedMotionQuery.matches) markViewTransition();
-  }
-
-  function applyLibraryMode(nextLibraryMode, options = {}) {
-    const next = Boolean(nextLibraryMode);
-    if (next === isLibraryMode && options.force !== true) {
-      updateLibraryViewVisibility();
-      return false;
-    }
-
-    const apply = () => {
-      isLibraryMode = next;
-      root.classList.toggle('is-library-mode', next);
-      root.dataset.homeView = next ? 'library' : 'overview';
-      updateLibraryViewVisibility();
-      updateTriggerState(triggerById.get(activeId), true);
-      scheduleScrollerTabStopUpdate();
-      if (typeof options.afterApply === 'function') options.afterApply();
-    };
-
-    runViewTransition(apply, options.animate !== false);
-    return true;
-  }
-
   function selectPanel(id, options = {}) {
     if (!ids.includes(id)) return false;
-    if (id === activeId) {
-      updateLibraryViewVisibility();
-      return false;
-    }
+    if (id === activeId) return false;
 
     const previousId = activeId;
     saveScrollPosition(previousId);
-    saveDocumentScrollPosition(previousId);
     activeId = id;
     root.dataset.activePanel = id;
     applyPanelState(id, {
@@ -432,13 +260,11 @@
       updateLocation(id, options.historyMode || 'push');
     }
     restoreScrollPosition(id);
-    restoreDocumentScrollPosition(id, isLibraryMode, isLibraryMode ? 0 : null);
-
     if (options.reveal !== false) revealPanelTrigger(id);
 
     root.dispatchEvent(new CustomEvent('home:category-change', {
       bubbles: true,
-      detail: { category: id, view: isLibraryMode ? 'library' : 'overview' }
+      detail: { category: id, view: 'overview' }
     }));
     return true;
   }
@@ -448,44 +274,8 @@
     return requestedId;
   }
 
-  function exitLibraryToPanel(id) {
-    if (!isLibraryMode || !ids.includes(id) || id === activeId) return false;
-    const closingId = activeId;
-    saveScrollPosition(closingId, true);
-    saveDocumentScrollPosition(closingId, true);
-
-    const apply = () => {
-      isLibraryMode = false;
-      root.classList.remove('is-library-mode');
-      root.dataset.homeView = 'overview';
-      activeId = id;
-      root.dataset.activePanel = id;
-      applyPanelState(id, {
-        previousId: closingId,
-        animateOutgoing: false,
-        animateIncoming: false
-      });
-      updateLocation(id, 'push', false);
-      restoreScrollPosition(id, false);
-      restoreDocumentScrollPosition(id, false, 0);
-      revealPanelTrigger(id);
-      root.dispatchEvent(new CustomEvent('home:library-change', {
-        bubbles: true,
-        detail: { category: closingId, expanded: false }
-      }));
-      root.dispatchEvent(new CustomEvent('home:category-change', {
-        bubbles: true,
-        detail: { category: id, view: 'overview' }
-      }));
-    };
-
-    runViewTransition(apply);
-    return true;
-  }
-
   function activatePanelTrigger(id) {
     if (!ids.includes(id)) return false;
-    if (isLibraryMode) return exitLibraryToPanel(id);
     const isCondensing = id === activeId && id !== defaultPanel;
     const nextId = resolveTriggerTarget(activeId, id, defaultPanel);
     const changed = selectPanel(nextId);
@@ -502,53 +292,6 @@
     if (index < 0) return;
     const nextIndex = (index + direction + triggers.length) % triggers.length;
     triggers[nextIndex]?.focus();
-  }
-
-  function focusLibraryHeading(id) {
-    window.requestAnimationFrame(() => {
-      libraryViewById.get(id)?.querySelector('[data-home-library-heading]')?.focus({ preventScroll: true });
-    });
-  }
-
-  function openLibrary(id) {
-    if (!libraryIds.has(id)) return;
-    if (id !== activeId) selectPanel(id, { updateHistory: false, reveal: false });
-    saveScrollPosition(id, false);
-    saveDocumentScrollPosition(id, false);
-    renderLibrary(id);
-    applyLibraryMode(true);
-    updateLocation(id, 'push', true);
-    restoreScrollPosition(id, true);
-    restoreDocumentScrollPosition(id, true, 0);
-    focusLibraryHeading(id);
-    root.dispatchEvent(new CustomEvent('home:library-change', {
-      bubbles: true,
-      detail: { category: id, expanded: true }
-    }));
-  }
-
-  function closeLibrary(options = {}) {
-    if (!isLibraryMode) return;
-    const closingId = activeId;
-    const restoreFocus = options.restoreFocus !== false
-      ? () => {
-          window.requestAnimationFrame(() => {
-            const returnTarget = root.querySelector(`[data-home-library-open="${closingId}"]`)
-              || triggerById.get(closingId);
-            returnTarget?.focus({ preventScroll: true });
-          });
-        }
-      : null;
-    saveScrollPosition(closingId, true);
-    saveDocumentScrollPosition(closingId, true);
-    applyLibraryMode(false, { afterApply: restoreFocus });
-    updateLocation(closingId, options.historyMode || 'push', false);
-    restoreScrollPosition(closingId, false);
-    restoreDocumentScrollPosition(closingId, false, 0);
-    root.dispatchEvent(new CustomEvent('home:library-change', {
-      bubbles: true,
-      detail: { category: closingId, expanded: false }
-    }));
   }
 
   triggers.forEach((trigger) => {
@@ -576,29 +319,14 @@
     });
   });
 
-  libraryOpenButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      openLibrary(String(button.dataset.homeLibraryOpen || ''));
-    });
-  });
-
-  libraryCloseButtons.forEach((button) => {
-    button.addEventListener('click', () => closeLibrary());
-  });
-
   function handleLocationChange() {
-    const previousLibraryMode = isLibraryMode;
-    saveDocumentScrollPosition(activeId, previousLibraryMode);
-    const nextLibraryMode = locationRequestsLibrary();
+    if (normalizeLegacyLibraryLocation()) return;
     const hashPanel = panelIdFromHash();
     if (window.location.hash && !hashPanel) return;
-    const nextPanel = hashPanel || (nextLibraryMode && ids.includes('projects') ? 'projects' : defaultPanel);
-    applyLibraryMode(nextLibraryMode, { animate: true });
+    const nextPanel = hashPanel || defaultPanel;
     if (hashPanel) normalizePanelHash(hashPanel);
-    else updateLocation(nextPanel, 'replace', nextLibraryMode);
-    selectPanel(nextPanel, { updateHistory: false, reveal: !nextLibraryMode });
-    updateLibraryViewVisibility();
-    restoreDocumentScrollPosition(nextPanel, nextLibraryMode, nextLibraryMode ? 0 : null);
+    else updateLocation(nextPanel, 'replace');
+    selectPanel(nextPanel, { updateHistory: false, reveal: true });
   }
 
   window.addEventListener('hashchange', handleLocationChange);
@@ -631,21 +359,17 @@
     });
   }
 
-  const initialLibraryMode = locationRequestsLibrary();
   const initialHashPanel = panelIdFromHash();
-  const initialPanel = initialHashPanel || (initialLibraryMode && ids.includes('projects') ? 'projects' : defaultPanel);
+  const initialPanel = initialHashPanel || defaultPanel;
   activeId = initialPanel;
   root.dataset.activePanel = initialPanel;
   ids.forEach((id) => panelScrollRegions(id).forEach((region) => region.removeAttribute('tabindex')));
   applyPanelState(initialPanel);
-  applyLibraryMode(initialLibraryMode, { animate: false, force: true });
   if (initialHashPanel) {
     normalizePanelHash(initialHashPanel);
     revealPanelTrigger(initialHashPanel);
-  } else if (initialLibraryMode) {
-    updateLocation(initialPanel, 'replace', true);
   } else if (!window.location.hash) {
-    updateLocation(initialPanel, 'replace', false);
+    updateLocation(initialPanel, 'replace');
   }
   root.dataset.enhanced = 'true';
 })();

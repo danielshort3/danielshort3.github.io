@@ -141,7 +141,8 @@ function main() {
 
     // 3) Branded homepage library previews (authored WebP cards)
     const homeVisualsStep = runNodeScript(path.join('build', 'validate-home-library-visuals.js'), { verbose });
-    logStep('home-previews', homeVisualsStep.durationMs, '16 projects + 10 tools + 6 games');
+    logStep('home-previews', homeVisualsStep.durationMs,
+      '16 projects + 10 tools + 5 games (1 archived game preview retained)');
 
     // 4) CSS bundle (css/ -> dist/)
     const cssStep = runNodeScript(path.join('build', 'build-css.js'), { verbose });
@@ -190,10 +191,15 @@ function main() {
       : 0;
     logStep('projects', projectsStep.durationMs, `pages/portfolio (${projectPages} pages), sitemap.xml`);
 
-    // Personal library/detail routes share one five-rail accordion shell while
+    // Personal library/detail routes share one isolated-category accordion shell while
     // audience-specific professional copies retain the original workbench.
     const personalAccordionStep = runNodeScript(path.join('build', 'generate-personal-accordion-pages.js'), { verbose });
     logStep('personal-accordion', personalAccordionStep.durationMs, 'personal libraries + detail routes');
+
+    // Canonical standalone demos keep the Projects shell while the real demo
+    // remains an isolated, iframe-only document under /demos/.
+    const projectDemoStep = runNodeScript(path.join('build', 'generate-project-demo-wrappers.js'), { verbose });
+    logStep('project-demos', projectDemoStep.durationMs, '12 themed wrappers + raw iframe guards');
 
     // 7) Search index (sitemap.xml + pages -> dist/)
     const searchIndexStep = runNodeScript(path.join('build', 'generate-search-index.js'), { verbose });
@@ -270,7 +276,8 @@ function main() {
       path.join('build', 'validate-home-library-visuals.js'),
       { verbose, args: ['--public'] }
     );
-    logStep('public-previews', publicHomeVisualsStep.durationMs, '32 source/deploy hashes identical');
+    logStep('public-previews', publicHomeVisualsStep.durationMs,
+      '31 public source/deploy hashes identical; archived preview tree preserved');
 
     log(`Done in ${formatDuration(Date.now() - started)}`);
   } catch (err) {

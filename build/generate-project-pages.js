@@ -13,6 +13,7 @@ const childProcess = require('child_process');
 const crypto = require('crypto');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 const { unwrapPersonalAccordionHtml } = require('./lib/personal-accordion-shell');
+const { toRawProjectDemoUrl } = require('./lib/project-demo-routes');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
@@ -783,7 +784,7 @@ function renderProjectPage(project) {
     const lazy = options && options.lazy === true;
     const type = String(embed.type || '').trim();
     if (type === 'iframe') {
-      const src = String(embed.url || '').trim();
+      const src = toRawProjectDemoUrl(embed.url);
       if (!src) return '';
       const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
       const embedMeta = renderEmbedAttrs(embed, id, 'project-embed-iframe');

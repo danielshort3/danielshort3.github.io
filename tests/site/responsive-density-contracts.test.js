@@ -10,6 +10,8 @@ const countMatches = (value, pattern) => (String(value || '').match(pattern) || 
 function runResponsiveDensityContractTests({ assert }) {
   const cmsRenderers = require('../../build/lib/cms-renderers.js');
   const projectGenerator = require('../../build/generate-project-pages.js');
+  const personalPageGenerator = require('../../build/generate-personal-accordion-pages.js');
+  const personalShell = require('../../build/lib/personal-accordion-shell.js');
 
   const toolsPage = readJson('content/pages/tools.json');
   const tools = fs.readdirSync(path.join(ROOT, 'content', 'tools'))
@@ -35,16 +37,29 @@ function runResponsiveDensityContractTests({ assert }) {
       !toolsBody.includes('tools-workbench-result__open'),
     'Tools should render each public utility as one full-card launch action',
   );
+  assert(
+    personalPageGenerator.INTERNAL_TOOL_PAGE_IDS.every((itemId) => (
+      !toolsBody.includes(`data-project-id="${itemId}"`)
+    )),
+    'Internal and account-reachable tools should receive the shared shell without appearing in the public directory',
+  );
 
   const gamesPage = readJson('content/pages/games.json');
   const gamesData = cmsRenderers.buildGamesDirectoryWorkbenchData(gamesPage);
   const gamesBody = cmsRenderers.renderGamesDirectoryBody(gamesPage);
-  assert(gamesData.items.length === 6, 'Games should keep the approved six playable entries');
+  assert(
+    gamesData.items.length === 5 &&
+      !gamesData.items.some((game) => game.id === 'project-starfall') &&
+      Object.keys(personalPageGenerator.GAME_PAGE_PATHS).length === 5 &&
+      !Object.prototype.hasOwnProperty.call(personalPageGenerator.GAME_PAGE_PATHS, 'project-starfall'),
+    'Games should expose five public entries and keep Project Starfall out of generated routing',
+  );
   assert(
     gamesBody.includes('data-games-directory') &&
       gamesBody.includes('class="games-directory__grid" role="list"') &&
-      countMatches(gamesBody, /<a class="games-directory-card" role="listitem"/g) === 6,
-    'Games should render a simple six-card list with native launch links',
+      countMatches(gamesBody, /<a class="games-directory-card" role="listitem"/g) === 5 &&
+      !gamesBody.includes('project-starfall'),
+    'Games should render a simple five-card list with native launch links',
   );
   assert(
     !gamesBody.includes('data-directory-workbench') &&
@@ -53,6 +68,68 @@ function runResponsiveDensityContractTests({ assert }) {
       !gamesBody.includes('data-portfolio-inspector') &&
       !gamesBody.includes('data-content-open'),
     'Games should not retain workbench controls, an inspector, or intercepted launch links',
+  );
+
+  const shellSample = [
+    '<!doctype html>',
+    '<html><body><main id="main"><h1>Games</h1></main></body></html>',
+  ].join('');
+  const gamesLibraryShell = personalPageGenerator.buildLibraryPage(shellSample, 'games', {
+    games: {
+      items: gamesData.items.map((game) => ({
+        id: game.id,
+        title: game.title,
+        href: game.href,
+      })),
+    },
+  });
+  const gameDetailShell = personalShell.wrapPersonalAccordionHtml(shellSample, {
+    category: 'games',
+    itemId: 'probability-engine',
+    view: 'detail',
+    fit: 'viewport',
+    chrome: 'compact',
+    backHref: '/games',
+    backLabel: 'Back to game library',
+    backCompactLabel: 'Library',
+    backAriaLabel: 'Back to game library',
+  });
+  [gamesLibraryShell, gameDetailShell].forEach((html) => {
+    assert(
+      countMatches(html, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
+        countMatches(html, /class="personal-accordion__toolbar"/g) === 1 &&
+        /class="personal-accordion__rails"[^>]*aria-hidden="true"/i.test(html) &&
+        !/<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b/i.test(html),
+      'canonical personal shells should expose one decorative category marker and one shared context toolbar',
+    );
+  });
+  assert(
+    gamesLibraryShell.includes('href="/#games" aria-label="Back to categories"') &&
+      gamesLibraryShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>') &&
+      gameDetailShell.includes('href="/games" aria-label="Back to game library"') &&
+      gameDetailShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
+    'canonical Games shells should return through categories or the game library without cross-category navigation',
+  );
+  const personalGeneratorSource = read('build/generate-personal-accordion-pages.js');
+  assert(
+    personalGeneratorSource.includes("backHref: '/portfolio'") &&
+      personalGeneratorSource.includes("backHref: '/tools'") &&
+      personalGeneratorSource.includes("backHref: '/games'") &&
+      !personalGeneratorSource.includes("backHref: '/?view=library#projects'"),
+    'generated details should use their canonical project, tool, and game libraries',
+  );
+  const personalShellCss = read('css/components/personal-accordion-shell.css');
+  assert(
+    personalShellCss.includes('--personal-rail-size: 68px;') &&
+      personalShellCss.includes('--personal-toolbar-size: 48px;') &&
+      personalShellCss.includes('--personal-toolbar-size: 60px;') &&
+      personalShellCss.includes('.personal-accordion__rails {\n      display: none;'),
+    'responsive personal shells should use the 68px desktop marker and one 60px mobile context bar',
+  );
+  const homeAccordionCss = read('css/components/home-category-accordion.css');
+  assert(
+    homeAccordionCss.includes('.home-accordion__item.is-active .home-accordion__rail {\n      width: 100%;\n      height: 54px;'),
+    'the active mobile homepage rail should override the desktop rail width and fill the viewport',
   );
 
   const directContactHeader = cmsRenderers.renderHeader({
@@ -207,9 +284,9 @@ function runResponsiveDensityContractTests({ assert }) {
   });
   const projectIframe = projectPage.match(/<iframe\b[^>]*class="project-embed-frame"[^>]*>/)?.[0] || '';
   assert(
-    projectPage.includes('class="project-demo-mobile-launch"') &&
+      projectPage.includes('class="project-demo-mobile-launch"') &&
       projectPage.includes('>Launch demo</a>') &&
-      projectIframe.includes('data-src="sentence-demo.html"') &&
+      projectIframe.includes('data-src="/demos/sentence-demo.html"') &&
       !/\ssrc="/.test(projectIframe),
     'same-origin content demos should defer iframe loading and provide a mobile launch card',
   );

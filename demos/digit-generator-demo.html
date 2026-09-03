@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="auto" data-project-demo-theme="brand">
 <head>
+<!-- project-demo-wrapper-guard:start -->
+<script>
+  (() => {
+    if (window.self === window.top) {
+      window.location.replace("/digit-generator-demo" + window.location.search + window.location.hash);
+    }
+  })();
+</script>
+<!-- project-demo-wrapper-guard:end -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">

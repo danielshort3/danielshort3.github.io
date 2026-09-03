@@ -27,7 +27,6 @@ const GENERATED_HOME_LIBRARY_VISUALS = {
     'stellar-dogfight': 'space-combat-key-art',
     roulette: 'double-zero-roulette',
     'probability-engine': 'probability-branching',
-    'project-starfall': 'fractured-world-key-art',
     stormbreak: 'olympian-storm-key-art',
     'ocean-wave-simulation': 'wave-parameter-study'
   }
@@ -52,6 +51,10 @@ const RETAINED_PROJECT_PREVIEW_IDS = [
   'nonogram',
   'website'
 ];
+
+// Project Starfall is no longer public, but its generated preview remains with
+// the archived source assets and must never re-enter the games catalog.
+const RETAINED_GAME_PREVIEW_IDS = ['project-starfall'];
 
 function previewPath(category, id) {
   return path.join(previewRoot, category, `${id}.webp`);
@@ -86,7 +89,11 @@ function loadPublishedProjects() {
 function expectedPreviewTree() {
   const previewInventory = {
     projects: Object.fromEntries(RETAINED_PROJECT_PREVIEW_IDS.map((id) => [id, true])),
-    ...GENERATED_HOME_LIBRARY_VISUALS
+    ...GENERATED_HOME_LIBRARY_VISUALS,
+    games: {
+      ...GENERATED_HOME_LIBRARY_VISUALS.games,
+      ...Object.fromEntries(RETAINED_GAME_PREVIEW_IDS.map((id) => [id, true]))
+    }
   };
   const directories = Object.keys(previewInventory).sort();
   const files = directories.flatMap((category) => Object.keys(previewInventory[category])
@@ -268,6 +275,7 @@ if (require.main === module) {
 
 module.exports = {
   GENERATED_HOME_LIBRARY_VISUALS,
+  RETAINED_GAME_PREVIEW_IDS,
   RETAINED_PROJECT_PREVIEW_IDS,
   expectedPreviewTree,
   listPreviewTree,

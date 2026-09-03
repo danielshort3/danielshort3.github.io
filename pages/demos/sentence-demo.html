@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Smart Sentence Retriever Demo | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/sentence-demo">
+  <meta name="description" content="Smart Sentence Retriever interactive demo, presented inside Daniel Short&#39;s project library.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#091F3B">
+  <script id="ds-sw-register">
+  (function () {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
+    if (new URLSearchParams(window.location.search).has("no_sw")) return;
+    var host = window.location.hostname || "";
+    if (!host || host === "localhost" || /^127\./.test(host) || /^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return;
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  })();
+  </script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Daniel Short">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
+  <link rel="stylesheet" href="dist/styles.9dbfaf1f.css">
+
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <script src="js/common/no-js.js"></script>
+  <meta name="author" content="Daniel Short">
+
+  <meta name="twitter:description" content="Smart Sentence Retriever interactive demo, presented inside Daniel Short&#39;s project library.">
+  <link rel="stylesheet" href="dist/styles-personal-accordion.b16c04f7.css">
+</head>
+<body class="project-demo-wrapper-page personal-accordion-page" data-page="project-demo" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="sentence-demo" data-personal-fit="viewport" data-personal-chrome="compact">
+  <a href="/sentence-demo#main" class="skip-link">Skip to interactive demo</a>
+<header id="combined-header-nav">
+  <nav class="nav" aria-label="Primary">
+    <div class="wrapper nav-wrapper">
+      <a href="/" class="brand" data-entry-home-link="true">
+        <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="56px" alt="Daniel Short DS logo" class="brand-logo" decoding="async" loading="eager" width="381" height="392">
+        <span class="brand-name">
+          <span class="brand-title">Daniel Short</span>
+        </span>
+      </a>
+      <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
+        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      </button>
+      <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+
+        <div class="nav-item nav-item-portfolio">
+          <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
+            Projects
+            <span class="nav-link-caret" aria-hidden="true"></span>
+          </a>
+          <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
+            <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+              <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+                <div class="nav-dropdown-header" aria-hidden="true">Featured Projects</div>
+                <div class="nav-project-grid nav-project-stack">
+                  <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore">
+                    <span class="nav-project-rank">#1</span>
+                    <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/retailStore.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/retailStore.webm" data-preview-mp4="/img/projects/retailStore.mp4" data-preview-poster="/img/projects/retailStore.webp"></span>
+                    <span class="nav-project-meta">
+                      <span class="nav-dropdown-title">Store-Level Loss &amp; Sales ETL</span>
+                      <span class="nav-dropdown-subtitle">SQL ETL + Anomaly Detection</span>
+                    </span>
+                  </a>
+                  <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora">
+                    <span class="nav-project-rank">#2</span>
+                    <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/chatbotLora.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4" data-preview-poster="/img/projects/chatbotLora.webp"></span>
+                    <span class="nav-project-meta">
+                      <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                      <span class="nav-dropdown-subtitle">RAG Chatbot Fine-Tuned with LoRA</span>
+                    </span>
+                  </a>
+                  <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator">
+                    <span class="nav-project-rank">#3</span>
+                    <span class="nav-project-thumb" style="background-image:url(&#39;/img/projects/digitGenerator.webp&#39;);" aria-hidden="true" data-preview-webm="/img/projects/digitGenerator.webm" data-preview-mp4="/img/projects/digitGenerator.mp4" data-preview-poster="/img/projects/digitGenerator.webp"></span>
+                    <span class="nav-project-meta">
+                      <span class="nav-dropdown-title">Synthetic Digit Generator</span>
+                      <span class="nav-dropdown-subtitle">Variational Autoencoder</span>
+                    </span>
+                  </a>
+                </div>
+                <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                  <a href="portfolio" class="nav-dropdown-link nav-dropdown-all">
+                    <span class="nav-dropdown-title">View all projects</span>
+                    <span class="nav-dropdown-subtitle">Browse the complete project library</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-item nav-item-tools">
+          <a href="tools" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-tools">
+            Tools
+            <span class="nav-link-caret" aria-hidden="true"></span>
+          </a>
+          <div class="nav-dropdown nav-dropdown-simple nav-dropdown-tools" id="nav-dropdown-tools" aria-label="Featured tools">
+            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-tools">
+              <div class="nav-dropdown-column nav-dropdown-column-list">
+                <div class="nav-dropdown-header" aria-hidden="true">Featured Tools</div>
+                <div class="nav-dropdown-list">
+                  <a href="tools/text-compare" class="nav-dropdown-link nav-dropdown-tool-link">
+                    <span class="nav-dropdown-title">Text Compare</span>
+                    <span class="nav-dropdown-subtitle">Compare two drafts and see insertions, deletions, and replacements highlighted inline.</span>
+                  </a>
+                  <a href="tools/utm-batch-builder" class="nav-dropdown-link nav-dropdown-tool-link">
+                    <span class="nav-dropdown-title">UTM Batch Builder</span>
+                    <span class="nav-dropdown-subtitle">Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.</span>
+                  </a>
+                  <a href="tools/image-optimizer" class="nav-dropdown-link nav-dropdown-tool-link">
+                    <span class="nav-dropdown-title">Image Optimizer</span>
+                    <span class="nav-dropdown-subtitle">Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.</span>
+                  </a>
+                </div>
+                <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                  <a href="tools" class="nav-dropdown-link nav-dropdown-all nav-dropdown-tools-all">
+                    <span class="nav-dropdown-title">View all tools</span>
+                    <span class="nav-dropdown-subtitle">Browse the complete tool directory</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="nav-item nav-item-games">
+          <a href="games" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-games">
+            Games
+            <span class="nav-link-caret" aria-hidden="true"></span>
+          </a>
+          <div class="nav-dropdown nav-dropdown-simple nav-dropdown-games" id="nav-dropdown-games" aria-label="Browser games">
+            <div class="nav-dropdown-inner nav-dropdown-inner-simple nav-dropdown-inner-games">
+              <div class="nav-dropdown-column nav-dropdown-column-list">
+                <div class="nav-dropdown-header" aria-hidden="true">Browser Games</div>
+                <div class="nav-dropdown-list">
+                  <a href="games/stellar-dogfight" class="nav-dropdown-link nav-dropdown-game-link">
+                    <span class="nav-dropdown-title">Stellar Dogfight</span>
+                    <span class="nav-dropdown-subtitle">Adaptive AI, Upgrade loops, Combat tuning</span>
+                  </a>
+                  <a href="games/roulette" class="nav-dropdown-link nav-dropdown-game-link">
+                    <span class="nav-dropdown-title">Double-Zero Roulette</span>
+                    <span class="nav-dropdown-subtitle">Probability, Distribution tracking, Table state</span>
+                  </a>
+                  <a href="games/probability-engine" class="nav-dropdown-link nav-dropdown-game-link">
+                    <span class="nav-dropdown-title">Probability Engine</span>
+                    <span class="nav-dropdown-subtitle">Simulation, Synergies, Prestige loops</span>
+                  </a>
+                </div>
+                <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                  <a href="games" class="nav-dropdown-link nav-dropdown-all nav-dropdown-games-all">
+                    <span class="nav-dropdown-title">View all games</span>
+                    <span class="nav-dropdown-subtitle">Open the games directory</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <a href="solutions" class="nav-link">Solutions</a>
+        <div class="nav-item nav-item-contact">
+          <a href="contact" class="nav-link nav-link-cta">Contact</a>
+        </div>
+        <form class="nav-search" action="search" method="get" role="search" data-nav-search="collapsed">
+          <label class="visually-hidden" for="nav-search-q">Search site</label>
+          <div class="nav-search-field">
+            <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="Search…">
+            <button class="nav-search-button" type="submit" aria-controls="nav-search-q" aria-expanded="false">
+              <span class="visually-hidden">Search</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M20 20l-3.5-3.5"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- personal-accordion-shell:start -->
+<section class="personal-accordion personal-accordion--projects personal-accordion--detail" data-personal-accordion-shell data-personal-active-category="projects" style="--panel-color: #155dfc; --panel-color-end: #0b4bd4;">
+  <div class="personal-accordion__shell">
+    <div class="personal-accordion__rails" data-personal-category-marker="projects" aria-hidden="true">
+      <div class="personal-accordion__rail personal-accordion__rail--projects is-active" style="--rail-color: #155dfc; --rail-color-end: #0b4bd4;" data-personal-rail-active="true">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
+        <span class="personal-accordion__rail-label">Projects</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="personal-accordion__panel" data-personal-detail-panel="projects">
+      <div class="personal-accordion__toolbar">
+        <a class="personal-accordion__back" href="/portfolio/smartSentence" aria-label="Back to Smart Sentence Retriever">
+          <span class="personal-accordion__back-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></span>
+          <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">Back to Smart Sentence Retriever</span>
+          <span class="personal-accordion__back-label personal-accordion__back-label--mobile" aria-hidden="true">Project</span>
+        </a>
+        <div class="personal-accordion__context" aria-hidden="true">
+          <span class="personal-accordion__context-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
+          <span class="personal-accordion__context-label">Projects</span>
+        </div>
+      </div>
+      <div class="personal-accordion__content" data-personal-detail-content>
+        <!-- personal-accordion-content:start -->
+<main id="main" class="project-demo-wrapper-main" aria-label="Smart Sentence Retriever interactive demo">
+    <div class="project-demo-wrapper-frame">
+      <iframe id="project-demo-frame-sentence-demo" class="project-demo-wrapper-iframe" src="/demos/sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="eager" allowfullscreen></iframe>
+      <script>
+        (() => {
+          const frame = document.getElementById("project-demo-frame-sentence-demo");
+          const suffix = window.location.search + window.location.hash;
+          if (frame && suffix) frame.src = "/demos/sentence-demo.html" + suffix;
+        })();
+      </script>
+    </div>
+  </main>
+        <!-- personal-accordion-content:end -->
+      </div>
+    </div>
+  </div>
+</section>
+<!-- personal-accordion-shell:end -->
+
+<footer class="footer footer-classic footer--personal-compact">
+  <div class="wrapper footer-inner">
+    <p class="footer-meta">© 2026 Daniel Short</p>
+    <nav class="footer-utility" aria-label="Personal footer">
+      <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
+      <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="privacy" class="footer-link">Privacy</a>
+      <button type="button" class="footer-link" id="privacy-settings-link-footer" aria-haspopup="dialog">Cookie settings</button>
+    </nav>
+  </div>
+</footer>
+<div class="speed-dial" data-speed-dial="true">
+  <div class="speed-dial__tray" data-speed-dial-tray>
+    <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
+      <div class="speed-dial__item">
+        <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
+        <a href="contact#contact-modal" class="speed-dial__action btn-icon speed-dial__action--direct" aria-label="Send a direct message" role="menuitem" data-contact-modal-link="true" data-speed-dial-action>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+            <path d="M7 9h10"></path>
+            <path d="M7 13h6"></path>
+          </svg>
+        </a>
+      </div>
+      <div class="speed-dial__item">
+        <span class="speed-dial__label" aria-hidden="true">Send Email</span>
+        <a href="mailto:daniel@danielshort.me" class="speed-dial__action btn-icon" aria-label="Send Email" role="menuitem" data-speed-dial-action>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+            <path d="M3 7l9 6 9-6"></path>
+          </svg>
+        </a>
+      </div>
+      <div class="speed-dial__item">
+        <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
+        <a href="https://www.linkedin.com/in/danielshort3/" class="speed-dial__action btn-icon" aria-label="View LinkedIn" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+          <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="4" cy="4" r="2"></circle>
+            <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+            <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+          </svg>
+        </a>
+      </div>
+      <div class="speed-dial__item">
+        <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
+        <a href="https://github.com/danielshort3" class="speed-dial__action btn-icon" aria-label="View GitHub" role="menuitem" target="_blank" rel="noopener noreferrer" data-speed-dial-action>
+          <span class="icon icon-github" aria-hidden="true"></span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+      <path d="M12 8v6"></path>
+      <path d="M9 11h6"></path>
+    </svg>
+  </button>
+</div>
+  <script defer src="dist/site-shell.075f812a.js"></script>
+  <script defer src="dist/site-consent.3b3af440.js"></script>
+</body>
+</html>
