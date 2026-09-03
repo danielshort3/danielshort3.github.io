@@ -54,11 +54,6 @@ window.DIRECTORY_WORKBENCH = {
           "field": "tags"
         },
         {
-          "value": "loot-economy",
-          "label": "Loot economy",
-          "field": "tags"
-        },
-        {
           "value": "mythic-farming",
           "label": "Mythic farming",
           "field": "tags"
@@ -79,18 +74,8 @@ window.DIRECTORY_WORKBENCH = {
           "field": "tags"
         },
         {
-          "value": "progression",
-          "label": "Progression",
-          "field": "tags"
-        },
-        {
           "value": "realtime-canvas",
           "label": "Realtime canvas",
-          "field": "tags"
-        },
-        {
-          "value": "rpg-systems",
-          "label": "RPG systems",
           "field": "tags"
         },
         {
@@ -240,45 +225,6 @@ window.DIRECTORY_WORKBENCH = {
       "order": 3
     },
     {
-      "id": "project-starfall",
-      "title": "Project Starfall",
-      "subtitle": "Browser Game",
-      "summary": "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems.",
-      "href": "games/project-starfall",
-      "type": "Browser Game",
-      "category": "Browser Game",
-      "tags": [
-        "RPG systems",
-        "Loot economy",
-        "Progression"
-      ],
-      "tools": [
-        "RPG systems",
-        "Loot economy",
-        "Progression"
-      ],
-      "concepts": [
-        "RPG systems",
-        "Loot economy",
-        "Progression"
-      ],
-      "formats": [
-        "Browser Game"
-      ],
-      "results": [
-        "Choose a class, fight through side-scrolling maps, collect gear, and test RPG progression systems."
-      ],
-      "actions": [
-        "Focus areas: RPG systems, Loot economy, Progression"
-      ],
-      "image": "img/project-starfall/ui/splash-screen.png",
-      "imageWidth": 1672,
-      "imageHeight": 941,
-      "imageResponsive": false,
-      "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\" class=\"icon-fill\" opacity=\".12\"></path>\n  <path d=\"M12 3l2.2 5.1 5.4.5-4.1 3.5 1.2 5.3L12 14.6 7.3 17.4l1.2-5.3-4.1-3.5 5.4-.5L12 3z\"></path>\n  <path d=\"M12 7.3v6.1M9.2 10.2h5.6\"></path>\n</svg>",
-      "order": 4
-    },
-    {
       "id": "stormbreak",
       "title": "Stormbreak: Idle Olympus",
       "subtitle": "Browser Game",
@@ -315,7 +261,7 @@ window.DIRECTORY_WORKBENCH = {
       "imageHeight": 1024,
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <circle cx=\"12\" cy=\"12\" r=\"9\" class=\"icon-fill\" opacity=\".12\"></circle>\n  <path d=\"M18.7 6.1A9 9 0 1 0 19.8 16\"></path>\n  <path d=\"M13.4 2.8 7.8 13h4l-1.2 8.2L17 10.6h-4.1l.5-7.8z\"></path>\n  <path d=\"m18.3 8.2 2.3-1.4M19.2 11.3l2.7.1M18.1 14.2l2.2 1.6\"></path>\n</svg>",
-      "order": 5
+      "order": 4
     },
     {
       "id": "ocean-wave-simulation",
@@ -354,7 +300,7 @@ window.DIRECTORY_WORKBENCH = {
       "imageHeight": null,
       "imageResponsive": false,
       "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\" aria-hidden=\"true\">\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n  <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n  <path d=\"M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n  <path d=\"M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0\"></path>\n</svg>",
-      "order": 6
+      "order": 5
     }
   ]
 };

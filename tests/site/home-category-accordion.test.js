@@ -10,6 +10,7 @@ const {
 } = require('../../api/_lib/cms-widgets');
 const {
   GENERATED_HOME_LIBRARY_VISUALS,
+  RETAINED_GAME_PREVIEW_IDS,
   RETAINED_PROJECT_PREVIEW_IDS,
   projectLibraryAsset
 } = require('../../build/validate-home-library-visuals');
@@ -169,7 +170,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     about: [],
     projects: ['babynames', 'handwritingRating', 'sheetMusicUpscale', 'ufoDashboard'],
     tools: ['text-compare', 'image-optimizer', 'qr-code-generator', 'screen-recorder'],
-    games: ['project-starfall', 'stormbreak', 'stellar-dogfight', 'probability-engine'],
+    games: ['stormbreak', 'stellar-dogfight', 'probability-engine'],
     contact: ['contact-form', 'email', 'github']
   };
   categories.forEach((category) => {
@@ -226,9 +227,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(timelineItems.every((item) => !Object.keys(item)
     .some((key) => /expir|validUntil/i.test(key))),
   'homepage timeline events should not invent certificate expiration or validity dates');
-  assert(games.items[0].presentation === 'featured' && games.items[0].image &&
-    games.items.slice(1).every((item) => item.icon && !item.image),
-  'Games should feature Starfall artwork and use consistent glyph tiles for the remaining previews');
+  assert(games.items.every((item) => item.icon && !item.image) &&
+    !JSON.stringify(games).includes('project-starfall'),
+  'Games should use consistent semantic glyph tiles and exclude inactive Project Starfall content');
   assert(!contact.meta && !contact.cta && contact.items.at(-1).presentation === 'tertiary',
     'Contact should avoid repeated guidance and keep GitHub as a quieter tertiary option');
 
@@ -307,28 +308,24 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(count(html, /<h1\b/g) === 1 && html.includes('id="home-accordion-title"'),
     'homepage should expose one accessible H1');
   [
-    ['projects', '/portfolio', 'View all projects', 'Open the dedicated project page'],
-    ['tools', '/tools', 'View all tools', 'Open the dedicated tools page'],
-    ['games', '/games', 'View all games', 'Open the dedicated games page']
-  ].forEach(([id, href, label, pageLabel]) => {
+    ['projects', '/portfolio', 'View all projects'],
+    ['tools', '/tools', 'View all tools'],
+    ['games', '/games', 'View all games']
+  ].forEach(([id, href, label]) => {
     const itemHtml = getItemHtml(id);
-    const cta = `<button class="home-accordion__panel-cta home-accordion__panel-cta--primary" type="button" aria-controls="home-library-view-${id}" aria-expanded="false" data-home-library-open="${id}">${label}`;
-    const library = `<section class="home-library" id="home-library-view-${id}" data-home-library-view="${id}" aria-labelledby="home-library-view-${id}-title" hidden inert>`;
+    const cta = `<a class="home-accordion__panel-cta" href="${href}">${label}`;
     assert(itemHtml.includes(cta) &&
       itemHtml.indexOf(cta) > itemHtml.indexOf('<ul class="home-accordion__cards">') &&
-      itemHtml.includes(library) &&
-      itemHtml.includes(`data-home-library-close="${id}"`) &&
-      itemHtml.includes(`<h3 id="home-library-view-${id}-title" data-home-library-heading tabindex="-1">`) &&
-      itemHtml.includes(`<a class="home-library__page-link" href="${href}">${pageLabel}`) &&
-      itemHtml.includes(`data-home-library-list aria-label="All ${id}"`),
-    `${id} CTA should open its own initially hidden inline library with back, focus target, list, and dedicated-page link`);
+      !itemHtml.includes('data-home-library') &&
+      !itemHtml.includes('home-library'),
+    `${id} View all control should be a semantic link to its canonical directory without an authored inline library`);
   });
-  assert(count(html, /data-home-library-open=/g) === 3 &&
-    count(html, /data-home-library-view=/g) === 3 &&
-    count(html, /data-home-library-view="[^"]+"[^>]+hidden inert/g) === 3 &&
-    !getItemHtml('about').includes('data-home-library-view=') &&
-    !getItemHtml('contact').includes('data-home-library-view='),
-  'only Projects, Tools, and Games should author inline library disclosure controls and all library views should start inert');
+  assert(!html.includes('data-home-library') &&
+    !html.includes('home-library') &&
+    !html.includes('data-home-view=') &&
+    !html.includes('Back to categories') &&
+    !html.includes('Back to overview'),
+  'homepage markup should contain only the five-category overview without inline-library state or return controls');
   assert(html.includes('<ul class="home-accordion__cards">') &&
     html.includes('<li class="home-accordion__card-item">') &&
     /<a class="home-accordion__card" href="\/tools\/text-compare"/.test(html) &&
@@ -351,7 +348,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     '/tools/image-optimizer',
     '/tools/qr-code-generator',
     '/tools/screen-recorder',
-    '/games/project-starfall',
     '/games/stormbreak',
     '/games/stellar-dogfight',
     '/games/probability-engine',
@@ -373,11 +369,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const expectedLibraryCounts = {
     projects: 16,
     tools: 10,
-    games: 6
+    games: 5
   };
   assert(JSON.stringify(Object.fromEntries(Object.entries(homeLibraryData)
     .map(([id, library]) => [id, library.items?.length || 0]))) === JSON.stringify(expectedLibraryCounts),
-  'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 6 games');
+  'generated HOME_LIBRARY_DATA should expose all 16 projects, 10 public tools, and 5 games');
   const publishedProjectIds = new Set(publishedProjects.map((project) => String(project.id)));
   assert(publishedProjects.length === expectedLibraryCounts.projects &&
     publishedProjects.every((project) => homeLibraryData.projects.items
@@ -426,7 +422,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   Object.entries(GENERATED_HOME_LIBRARY_VISUALS).forEach(([category, visuals]) => {
     const expectedCount = Object.keys(visuals).length;
     const items = homeLibraryData[category]?.items || [];
-    const expectedFileNames = items.map((item) => `${item.id}.webp`).sort();
+    const retainedFileNames = category === 'games'
+      ? RETAINED_GAME_PREVIEW_IDS.map((id) => `${id}.webp`)
+      : [];
+    const expectedFileNames = [
+      ...items.map((item) => `${item.id}.webp`),
+      ...retainedFileNames
+    ].sort();
     const categoryDir = path.join(previewRoot, category);
     const actualEntries = fs.readdirSync(categoryDir, { withFileTypes: true });
     const actualFileNames = actualEntries
@@ -434,7 +436,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
       .sort();
     items.forEach((item) => generatedPreviewPaths.push(item.image));
     assert(items.length === expectedCount &&
-      actualEntries.length === expectedCount &&
+      actualEntries.length === expectedCount + retainedFileNames.length &&
       actualEntries.every((entry) => entry.isFile() && entry.name.endsWith('.webp')) &&
       items.every((item) => item.image === `/img/home-previews/${category}/${item.id}.webp` &&
         item.imageAlt === '') &&
@@ -443,8 +445,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   });
   assert(projectPreviewPaths.length === expectedLibraryCounts.projects &&
     generatedPreviewPaths.length === expectedLibraryCounts.tools + expectedLibraryCounts.games &&
-    new Set([...projectPreviewPaths, ...generatedPreviewPaths]).size === 32,
-  'all 32 homepage library preview paths should remain unique');
+    new Set([...projectPreviewPaths, ...generatedPreviewPaths]).size === 31,
+  'all 31 public library preview paths should remain unique');
   assert(projectPreviewPaths.every((previewPath) => {
     const dimensions = readWebpDimensions(previewPath);
     return dimensions.width === 640 && dimensions.height > 0;
@@ -459,7 +461,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     .update(fs.readFileSync(path.join(ROOT, previewPath.replace(/^\/+/, ''))))
     .digest('hex'));
   assert(new Set(previewHashes).size === generatedPreviewPaths.length,
-    'all 16 generated tool and game preview files should have unique visual content');
+  'all 15 public tool and game preview files should have unique visual content');
 
   const cmsPreviewMappings = [
     'image: projectLibraryPreviewAsset(project.image)',
@@ -477,6 +479,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     count(generator, /imageAlt: '',/g) >= 3 &&
     visualValidator.includes("const sharp = require('sharp');") &&
     visualValidator.includes('const GENERATED_HOME_LIBRARY_VISUALS = {') &&
+    visualValidator.includes("const RETAINED_GAME_PREVIEW_IDS = ['project-starfall'];") &&
     visualValidator.includes('const RETAINED_PROJECT_PREVIEW_IDS = [') &&
     visualValidator.includes('function projectLibraryAsset(image)') &&
     visualValidator.includes('function validateCatalogMappings()') &&
@@ -494,18 +497,11 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
   'CMS generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
 
-  const createLibraryMediaJs = extractFunctionBlock(js, 'function createLibraryMedia');
-  assert(createLibraryMediaJs.includes("image.alt = String(item.imageAlt || '')") &&
-    createLibraryMediaJs.includes('image.width = 640;') &&
-    createLibraryMediaJs.includes('image.height = 360;') &&
-    createLibraryMediaJs.includes("image.loading = 'lazy';") &&
-    createLibraryMediaJs.includes("image.decoding = 'async';"),
-  'library renderer should emit decorative images with intrinsic 640 by 360 dimensions and lazy asynchronous decoding');
-  assert(createLibraryMediaJs.includes("media.classList.add('home-library__media--preview')") &&
-    libraryCss.includes(':is(.home-library__media--preview, .home-library__media--image) {') &&
-    libraryCss.includes(':is(.home-library__media--preview, .home-library__media--image) img {') &&
-    libraryCss.includes('object-fit: contain;'),
-  'project library containment styles should cover the homepage and server-rendered media classes');
+  assert(!js.includes('HOME_LIBRARY_DATA') &&
+    !js.includes('createLibraryMedia') &&
+    !js.includes('createLibraryCard') &&
+    !js.includes('renderLibrary'),
+  'homepage controller should not ship the retired inline-library renderer or its data dependency');
   const libraryToolIds = new Set(homeLibraryData.tools.items.map((tool) => tool.id));
   const excludedTools = toolsDirectoryItems.filter((tool) =>
     String(tool.visibility || 'public').toLowerCase() !== 'public' || tool.hidden || tool.noindex);
@@ -531,118 +527,84 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !fs.existsSync(path.join(ROOT, 'css/components/home-project-graph.css')),
   'retired graph source files should be removed');
 
-  const libraryDataImportIndex = homeEntry.indexOf("import '../../js/home/home-library-data.js';");
   const accordionImportIndex = homeEntry.indexOf("import '../../js/home/category-accordion.js';");
-  assert(libraryDataImportIndex >= 0 && accordionImportIndex > libraryDataImportIndex &&
+  assert(accordionImportIndex >= 0 &&
     homeStyles.includes('@import url("components/home-category-accordion.css");') &&
-    homeStyles.includes('@import url("components/home-library.css");') &&
     sharedStyles.includes('@import url("components/home-timeline.css");'),
-  'homepage bundles should initialize library data before the controller and load accordion, library, and shared timeline styles');
+  'homepage bundles should initialize the overview controller and load its accordion and shared timeline styles');
   assert(personal.page.bottomScripts.some((script) => script.src === 'dist/site-home.js') &&
     !JSON.stringify(personal.page.bottomScripts).includes('project-graph'),
   'managed homepage source should use the stable home bundle without raw graph scripts');
 
   const overviewPanelCss = extractBlock(css, '.home-accordion__panel {');
   const overviewScrollerCss = extractBlock(css, '.home-accordion__scroller {');
-  const desktopLibraryCss = extractBlock(libraryCss, '@media (min-width: 960px) and (min-height: 620px)');
-  const desktopLibraryRailCss = extractBlock(
-    desktopLibraryCss,
-    '.home-accordion.is-library-mode .home-accordion__rail,'
-  );
-  const desktopLibraryRailIconCss = extractBlock(
-    desktopLibraryCss,
-    '.home-accordion.is-library-mode .home-accordion__rail-icon {'
-  );
-  const desktopLibraryRailLabelCss = extractBlock(
-    desktopLibraryCss,
-    '.home-accordion.is-library-mode .home-accordion__rail-label {'
-  );
-  const mobileLibraryCss = extractBlock(libraryCss, '@media (max-width: 959px), (max-height: 619px)');
-  const phoneLibraryCss = extractBlock(libraryCss, '@media (max-width: 768px)');
+  const overviewRailCss = extractBlock(css, '.home-accordion__rail {');
+  const profileImageCss = extractBlock(css, '.home-accordion__profile-portrait img {');
+  const mobileAccordionCss = extractBlock(css, '@media (max-width: 959px), (max-height: 619px)');
   const desktopTimelineCss = extractBlock(timelineCss, '@media (min-width: 960px) and (min-height: 620px)');
   const mobileTimelineCss = extractBlock(timelineCss, '@media (max-width: 959px), (max-height: 619px)');
   const evenTimelineAxisCss = extractBlock(timelineCss, '.home-timeline__item:nth-child(even) .home-timeline__axis::after');
-  assert(css.includes('--home-rail-width: 76px;') &&
-    css.includes('--home-active-rail-width: 82px;') &&
+  assert(css.includes('--home-rail-width: 64px;') &&
+    css.includes('--home-active-rail-width: 68px;') &&
+    css.includes('--home-collapsed-rails-width: 256px;') &&
     css.includes('--home-panel-motion: 520ms;') &&
     css.includes('flex-basis: calc(100% - var(--home-collapsed-rails-width));') &&
     css.includes('@keyframes homeAccordionContentIn') &&
     css.includes('gap: 0;') &&
-    overviewPanelCss.includes('border: 5px solid var(--panel-color);') &&
+    overviewRailCss.includes('background: var(--panel-color);') &&
+    !overviewRailCss.includes('linear-gradient') &&
+    overviewPanelCss.includes('border: 4px solid var(--panel-color);') &&
     overviewPanelCss.includes('border-left: 0;') &&
-    css.includes('right: -15px;') &&
+    css.includes('right: -11px;') &&
+    css.includes('width: 12px;') &&
+    css.includes('height: 22px;') &&
     css.includes('clip-path: polygon(0 0, 100% 50%, 0 100%);'),
-  'desktop overview should smoothly exchange panel width while keeping touching rails, a subtly wider active rail, a 5px frame, and right-facing word notch');
+  'desktop overview should use compact solid 64px rails, a 68px active rail, a 4px frame, and a smaller right-facing notch');
   assert(overviewPanelCss.includes('background: #ffffff;') &&
     overviewPanelCss.includes('border-radius: 0;') &&
     overviewScrollerCss.includes('overflow-y: auto;') &&
     overviewScrollerCss.includes('overscroll-behavior: contain;') &&
     css.includes('position: sticky;') &&
     overviewScrollerCss.includes('scrollbar-color: var(--home-scrollbar-thumb) var(--home-scrollbar-track);') &&
-    css.includes('.home-accordion:not(.is-library-mode) .home-accordion__item:last-child.is-active .home-accordion__panel') &&
+    css.includes('.home-accordion__item:last-child.is-active .home-accordion__panel') &&
     css.includes('border-radius: 0 12px 12px 0;'),
   'selected overview panels should stay white and square, use conditional themed scrolling, and round both outer-right corners only for Contact');
   assert(css.includes('.home-accordion__panel-head {\n    box-sizing: border-box;') &&
     css.includes('.home-accordion__context {\n    box-sizing: border-box;') &&
     css.includes('.home-accordion__meta {\n    box-sizing: border-box;') &&
     css.includes('.home-accordion__cards {\n    box-sizing: border-box;') &&
-    css.includes('max-inline-size: 100%;'),
+    css.includes('max-inline-size: 100%;') &&
+    profileImageCss.includes('object-fit: contain;') &&
+    profileImageCss.includes('object-position: center;'),
   'all padded panel content should remain inside the scroller width and keep the profile portrait fully visible');
   assert(css.includes('.home-accordion__card-glyph {\n    box-sizing: border-box;'),
     'homepage card glyphs should keep their padding inside the media tile instead of clipping');
-  assert(css.includes('@media (max-width: 959px), (max-height: 619px)') &&
-    css.includes('display: block;') &&
-    css.includes('max-height: none;') &&
-    css.includes('overflow: visible;') &&
-    css.includes('clip-path: polygon(0 0, 100% 0, 50% 100%);'),
-  'narrow or short accordion layouts should stack full-width bars, use document scrolling, and point the active notch down');
-  assert(desktopLibraryCss.includes('--home-library-tab-width: 84px;') &&
-    desktopLibraryCss.includes('grid-template-columns: var(--home-library-tab-width) minmax(0, 1fr);') &&
-    desktopLibraryCss.includes('grid-template-rows: repeat(5, minmax(0, 1fr));') &&
-    [1, 2, 3, 4, 5].every((position) => desktopLibraryCss.includes(
-      `.home-accordion__item:nth-child(${position}) .home-accordion__heading {\n      grid-row: ${position};`
-    )) &&
-    desktopLibraryCss.includes('grid-column: 1;') &&
-    desktopLibraryCss.includes('width: var(--home-library-tab-width);') &&
-    desktopLibraryRailCss.includes('flex-direction: column;') &&
-    desktopLibraryRailCss.includes('align-items: center;') &&
-    desktopLibraryRailIconCss.includes('position: static;') &&
-    desktopLibraryRailIconCss.includes('flex: 0 0 22px;') &&
-    desktopLibraryRailLabelCss.includes('writing-mode: vertical-rl;') &&
-    desktopLibraryRailLabelCss.includes('transform: rotate(180deg);') &&
-    desktopLibraryCss.includes('grid-column: 2;') &&
-    desktopLibraryCss.includes('grid-row: 1 / -1;') &&
-    desktopLibraryCss.includes('border: 5px solid var(--panel-color);') &&
-    desktopLibraryCss.includes('border-radius: 0;') &&
-    desktopLibraryCss.includes('.home-accordion.is-library-mode .home-accordion__item:last-child.is-active .home-accordion__panel') &&
-    desktopLibraryCss.includes('overflow-y: auto;'),
-  'expanded desktop libraries should use five equal, narrow icon-above-vertical-label tabs beside one 5px-framed, internally scrolling content column');
-  assert(mobileLibraryCss.includes('grid-template-columns: repeat(5, minmax(0, 1fr));') &&
-    mobileLibraryCss.includes('grid-template-rows: 78px auto;') &&
-    [1, 2, 3, 4, 5].every((position) => mobileLibraryCss.includes(
-      `.home-accordion__item:nth-child(${position}) .home-accordion__heading {\n      grid-column: ${position};`
-    )) &&
-    mobileLibraryCss.includes('writing-mode: horizontal-tb;') &&
-    mobileLibraryCss.includes('grid-column: 1 / -1;') &&
-    mobileLibraryCss.includes('grid-row: 2;') &&
-    mobileLibraryCss.includes('border: 5px solid var(--panel-color);') &&
-    phoneLibraryCss.includes('position: fixed;') &&
-    phoneLibraryCss.includes('top: var(--mobile-site-masthead-height, 62px);') &&
-    phoneLibraryCss.includes('width: 20vw;') &&
-    phoneLibraryCss.includes('left: 80vw;'),
-  'expanded mobile libraries should present five equal-width persistent horizontal tabs above one full-width 5px-framed content row');
+  assert(mobileAccordionCss.includes('display: block;') &&
+    mobileAccordionCss.includes('max-height: none;') &&
+    mobileAccordionCss.includes('overflow: visible;') &&
+    mobileAccordionCss.includes('height: 48px;') &&
+    mobileAccordionCss.includes('min-height: 48px;') &&
+    mobileAccordionCss.includes('height: 54px;') &&
+    mobileAccordionCss.includes('min-height: 54px;') &&
+    mobileAccordionCss.includes('border: 4px solid var(--panel-color);') &&
+    mobileAccordionCss.includes('width: 20px;') &&
+    mobileAccordionCss.includes('height: 10px;') &&
+    mobileAccordionCss.includes('clip-path: polygon(0 0, 100% 0, 50% 100%);'),
+  'narrow or short accordion layouts should stack compact 48px and 54px bars, use document scrolling, and retain the 4px framed panel');
   assert(mobileTimelineCss.includes('grid-auto-flow: column;') &&
-    mobileTimelineCss.includes('grid-auto-columns: minmax(270px, 82vw);') &&
+    mobileTimelineCss.includes('grid-auto-columns: minmax(260px, 82vw);') &&
     mobileTimelineCss.includes('overflow-x: auto;') &&
     mobileTimelineCss.includes('overflow-y: hidden;') &&
     mobileTimelineCss.includes('scroll-snap-type: inline mandatory;') &&
     mobileTimelineCss.includes('overscroll-behavior-inline: contain;') &&
     mobileTimelineCss.includes('scroll-snap-align: start;') &&
     mobileTimelineCss.includes('scroll-snap-stop: always;') &&
+    mobileTimelineCss.includes('scrollbar-width: none;') &&
+    mobileTimelineCss.includes('display: none;') &&
     mobileTimelineCss.includes('.home-timeline__dot') &&
     mobileTimelineCss.includes('top: 11px;') &&
-    mobileTimelineCss.includes('var(--home-scrollbar-thumb, #334155)'),
-  'mobile timeline should preserve horizontal snapping while sharing an exactly centered, category-themed axis');
+    mobileTimelineCss.includes('width: calc(100% + 14px);'),
+  'mobile timeline should preserve horizontal snapping, hide native scrollbars, show the next card, and align connectors through each dot center');
   assert(timelineCss.includes('.home-timeline__axis {') &&
     timelineCss.includes('grid-column: 2;') &&
     timelineCss.includes('grid-row: 2;') &&
@@ -659,6 +621,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     desktopTimelineCss.includes('width: 100%;') &&
     desktopTimelineCss.includes('padding-right: 0;') &&
     desktopTimelineCss.includes('width: min(100%, var(--home-timeline-readable-width));') &&
+    desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__head') &&
+    desktopTimelineCss.includes('flex: 0 0 auto;') &&
     desktopTimelineCss.includes('.home-accordion__item--about .home-timeline__list') &&
     desktopTimelineCss.includes('overflow-y: auto;'),
   'desktop timeline should connect exact milestone centers across variable rows and gaps while its full-width scrollport keeps readable cards below the fixed profile and divider');
@@ -693,14 +657,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const canonicalPanelHashJs = extractFunctionBlock(js, 'function canonicalPanelHash');
   const updateLocationJs = extractFunctionBlock(js, 'function updateLocation');
   const updateTriggerStateJs = extractFunctionBlock(js, 'function updateTriggerState');
-  const updateLibraryVisibilityJs = extractFunctionBlock(js, 'function updateLibraryViewVisibility');
-  const applyLibraryModeJs = extractFunctionBlock(js, 'function applyLibraryMode');
-  const runViewTransitionJs = extractFunctionBlock(js, 'function runViewTransition');
+  const legacyLocationJs = extractFunctionBlock(js, 'function normalizeLegacyLibraryLocation');
   const resolveTriggerTargetJs = extractFunctionBlock(js, 'function resolveTriggerTarget');
-  const exitLibraryToPanelJs = extractFunctionBlock(js, 'function exitLibraryToPanel');
   const activatePanelTriggerJs = extractFunctionBlock(js, 'function activatePanelTrigger');
-  const openLibraryJs = extractFunctionBlock(js, 'function openLibrary');
-  const closeLibraryJs = extractFunctionBlock(js, 'function closeLibrary');
   const handleLocationChangeJs = extractFunctionBlock(js, 'function handleLocationChange');
   assert(js.includes('const closeTimers = new Map();') &&
     js.includes('const PANEL_TRANSITION_MS = 520;') &&
@@ -709,7 +668,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes("panel.setAttribute('inert', '')") &&
     js.includes("panel.removeAttribute('inert')") &&
     js.includes('if (!ids.includes(id)) return false;') &&
-    js.includes('if (id === activeId) {'),
+    js.includes('if (id === activeId) return false;'),
   'accordion controller should animate the outgoing desktop panel, enforce one interactive panel, and keep its low-level selection operation idempotent');
   const triggerResolutionContext = {};
   vm.runInNewContext(
@@ -726,16 +685,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   ];
   assert(triggerResolutionCases.every(([currentId, requestedId, expectedId]) =>
     triggerResolutionContext.resolveTriggerTarget(currentId, requestedId, 'about') === expectedId) &&
-    activatePanelTriggerJs.includes('if (isLibraryMode) return exitLibraryToPanel(id);') &&
-    exitLibraryToPanelJs.includes("root.classList.remove('is-library-mode')") &&
-    exitLibraryToPanelJs.includes("root.dataset.homeView = 'overview'") &&
-    exitLibraryToPanelJs.includes("updateLocation(id, 'push', false)") &&
-    exitLibraryToPanelJs.includes('restoreScrollPosition(id, false)') &&
-    exitLibraryToPanelJs.includes("detail: { category: id, view: 'overview' }") &&
     activatePanelTriggerJs.includes('const nextId = resolveTriggerTarget(activeId, id, defaultPanel);') &&
     activatePanelTriggerJs.includes('triggerById.get(defaultPanel)?.focus({ preventScroll: true })') &&
     count(js, /activatePanelTrigger\(String\(trigger\.dataset\.homeAccordionTrigger \|\| ''\)\)/g) === 2,
-  'overview tabs should retain collapse-to-About behavior while a different library rail atomically returns to that category overview and clean URL');
+  'overview tabs should retain their five-category selection and collapse-to-About behavior');
   assert(js.includes("event.key === 'ArrowDown'") &&
     js.includes("event.key === 'ArrowRight'") &&
     js.includes("event.key === 'ArrowUp'") &&
@@ -754,14 +707,21 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'accordion should preserve spacious-rail panel scroll positions and reveal newly opened stacked sections');
   assert(js.includes('decodeURIComponent(rawId)') &&
     js.includes('catch (error)') &&
-    js.includes("new URL(window.location.href).searchParams.get('view') === 'library'") &&
+    legacyLocationJs.includes("url.searchParams.get('view') !== 'library'") &&
+    js.includes("projects: '/portfolio'") &&
+    js.includes("tools: '/tools'") &&
+    js.includes("games: '/games'") &&
+    legacyLocationJs.includes('window.location.replace(') &&
+    legacyLocationJs.includes("url.searchParams.delete('view')") &&
+    legacyLocationJs.includes('window.history.replaceState(window.history.state') &&
+    handleLocationChangeJs.includes('if (normalizeLegacyLibraryLocation()) return;') &&
     handleLocationChangeJs.includes('if (window.location.hash && !hashPanel) return;') &&
-    handleLocationChangeJs.includes("const nextPanel = hashPanel || (nextLibraryMode && ids.includes('projects') ? 'projects' : defaultPanel);") &&
-    handleLocationChangeJs.includes("else updateLocation(nextPanel, 'replace', nextLibraryMode);") &&
-    handleLocationChangeJs.includes('selectPanel(nextPanel, { updateHistory: false, reveal: !nextLibraryMode })') &&
+    handleLocationChangeJs.includes('const nextPanel = hashPanel || defaultPanel;') &&
+    handleLocationChangeJs.includes("else updateLocation(nextPanel, 'replace');") &&
+    handleLocationChangeJs.includes('selectPanel(nextPanel, { updateHistory: false, reveal: true })') &&
     js.includes("window.addEventListener('hashchange', handleLocationChange)") &&
     js.includes("window.addEventListener('popstate', handleLocationChange)"),
-  'accordion deep links should safely decode tab hashes, preserve unrelated anchors, restore history state, and default query-only library links to Projects');
+  'accordion should preserve hash history, redirect valid legacy library URLs, and strip invalid legacy query state without discarding the hash');
   const canonicalHashContext = {};
   vm.runInNewContext(
     `${canonicalPanelHashJs}\nthis.canonicalPanelHash = canonicalPanelHash;`,
@@ -777,58 +737,29 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(ids.every((id) => canonicalHashContext.canonicalPanelHash(id) === expectedTabHashes[id]) &&
     updateLocationJs.includes('url.hash = id;'),
   'every homepage tab should have a stable, canonical hash URL');
-  assert(updateLocationJs.includes("url.searchParams.set('view', 'library')") &&
-    updateLocationJs.includes("url.searchParams.delete('view')") &&
+  assert(updateLocationJs.includes("url.searchParams.delete('view')") &&
+    !updateLocationJs.includes("url.searchParams.set('view', 'library')") &&
     updateLocationJs.includes("mode === 'replace' ? 'replaceState' : 'pushState'") &&
-    updateLocationJs.includes("homeView: libraryMode ? 'library' : 'overview'") &&
+    updateLocationJs.includes('{ homePanel: id }') &&
     js.includes("updateLocation(id, options.historyMode || 'push')") &&
     js.includes("updateLocation(id, 'replace')"),
-  'explicit category and view selections should preserve a canonical hash/query URL and use push versus replace history deliberately');
-  assert(updateLibraryVisibilityJs.includes('const visible = isLibraryMode && id === activeId;') &&
-    updateLibraryVisibilityJs.includes('view.hidden = false;') &&
-    updateLibraryVisibilityJs.includes("view.removeAttribute('inert')") &&
-    updateLibraryVisibilityJs.includes('view.hidden = true;') &&
-    updateLibraryVisibilityJs.includes("view.setAttribute('inert', '')") &&
-    updateLibraryVisibilityJs.includes("button.setAttribute('aria-expanded', String(isLibraryMode && activeId === id))"),
-  'library visibility should keep only the active inline view interactive and synchronize its disclosure button');
-  assert(openLibraryJs.includes('if (!libraryIds.has(id)) return;') &&
-    openLibraryJs.includes('selectPanel(id, { updateHistory: false, reveal: false })') &&
-    openLibraryJs.includes('renderLibrary(id);') &&
-    openLibraryJs.includes('applyLibraryMode(true);') &&
-    openLibraryJs.includes("updateLocation(id, 'push', true)") &&
-    openLibraryJs.includes('focusLibraryHeading(id);') &&
-    closeLibraryJs.includes('applyLibraryMode(false, { afterApply: restoreFocus });') &&
-    closeLibraryJs.includes("updateLocation(closingId, options.historyMode || 'push', false)") &&
-    closeLibraryJs.includes('returnTarget?.focus({ preventScroll: true })'),
-  'library open and close flows should render inline, push view state, move focus inward, and restore focus on return');
-  assert(applyLibraryModeJs.includes("root.classList.toggle('is-library-mode', next)") &&
-    applyLibraryModeJs.includes("root.dataset.homeView = next ? 'library' : 'overview'") &&
-    applyLibraryModeJs.includes("typeof options.afterApply === 'function'") &&
-    applyLibraryModeJs.includes('runViewTransition(apply, options.animate !== false)') &&
-    runViewTransitionJs.includes('!reducedMotionQuery.matches') &&
-    runViewTransitionJs.includes("typeof document.startViewTransition === 'function'") &&
-    runViewTransitionJs.includes('document.startViewTransition(apply)') &&
-    runViewTransitionJs.includes('markViewTransition()') &&
-    js.includes('const animateIncoming = options.animateIncoming === true && !reducedMotionQuery.matches;'),
-  'library and panel transitions should use native or fallback animation only when reduced motion is not requested');
-  assert(updateTriggerStateJs.includes("const isNonCollapsible = selected && (triggerId === defaultPanel || isLibraryMode);") &&
+  'explicit category selections should preserve a clean canonical hash and use push versus replace history deliberately');
+  assert(!/LibraryMode|libraryOpen|libraryClose|libraryView|documentScrollPositions|startViewTransition/.test(js) &&
+    updateTriggerStateJs.includes('selected && triggerId === defaultPanel') &&
     updateTriggerStateJs.includes("trigger.setAttribute('aria-disabled', 'true')") &&
     updateTriggerStateJs.includes("trigger.removeAttribute('aria-disabled')") &&
     updateTriggerStateJs.includes("trigger.removeAttribute('aria-current')") &&
-    applyLibraryModeJs.includes('updateTriggerState(triggerById.get(activeId), true);') &&
     js.includes("scrollTarget.setAttribute('tabindex', '0')") &&
     js.includes("region.removeAttribute('tabindex')") &&
     js.includes('scrollTarget.scrollHeight > scrollTarget.clientHeight + 1') &&
     js.includes('scrollTarget.scrollWidth > scrollTarget.clientWidth + 1'),
-  'only active About and library-mode rails should expose a noncollapsible state, and only truly overflowing vertical or horizontal regions should add a tab stop');
-  assert(js.includes('const initialLibraryMode = locationRequestsLibrary();') &&
-    js.includes('const initialHashPanel = panelIdFromHash();') &&
-    js.includes("const initialPanel = initialHashPanel || (initialLibraryMode && ids.includes('projects') ? 'projects' : defaultPanel);") &&
-    js.includes('applyLibraryMode(initialLibraryMode, { animate: false, force: true })') &&
-    js.includes("updateLocation(initialPanel, 'replace', true)") &&
-    js.includes("updateLocation(initialPanel, 'replace', false)") &&
+  'only active About should expose a noncollapsible state, and only truly overflowing vertical or horizontal regions should add a tab stop');
+  assert(js.includes('const initialHashPanel = panelIdFromHash();') &&
+    js.includes('const initialPanel = initialHashPanel || defaultPanel;') &&
+    js.includes('if (normalizeLegacyLibraryLocation()) return;') &&
+    js.includes("updateLocation(initialPanel, 'replace')") &&
     js.includes('revealPanelTrigger(initialHashPanel);'),
-  'initial deep links should restore the requested category/library without animation and canonicalize bare overview and query-only library URLs');
+  'initial deep links should restore the requested overview category and canonicalize a bare homepage URL to About');
   assert(!html.includes('data-home-accordion-scroller tabindex="0"') &&
     html.includes('<h3>Hi, I’m Daniel.</h3>'),
   'authored panels should avoid generic scroller tab stops and keep panel titles beneath accordion headings');

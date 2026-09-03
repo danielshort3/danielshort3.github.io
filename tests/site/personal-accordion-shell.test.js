@@ -10,7 +10,10 @@ const {
 } = require('../../build/lib/personal-accordion-shell');
 const {
   GAME_PAGE_PATHS,
-  TOOL_PAGE_IDS
+  INTERNAL_TOOL_PAGE_IDS,
+  TOOL_PAGE_IDS,
+  UTILITY_PAGE_CONFIGS,
+  buildLibraryPage
 } = require('../../build/generate-personal-accordion-pages');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -32,6 +35,12 @@ function getTagAttribute(source, tagPattern, attribute) {
   return new RegExp(`\\s${attribute}="([^"]*)"`, 'i').exec(tag)?.[1] || '';
 }
 
+function getSkipLinkHref(source) {
+  const tag = (String(source || '').match(/<a\b[^>]*>/gi) || [])
+    .find((candidate) => /\sclass="[^"]*\bskip-link\b[^"]*"/i.test(candidate));
+  return tag ? getTagAttribute(tag, /<a\b[^>]*>/i, 'href') : '';
+}
+
 function walkHtml(relativeDir) {
   const start = path.join(ROOT, relativeDir);
   if (!fs.existsSync(start)) return [];
@@ -51,8 +60,9 @@ function walkHtml(relativeDir) {
 function runPersonalAccordionShellTests({ assert }) {
   const sample = [
     '<!doctype html>',
-    '<html><head><link rel="canonical" href="https://www.danielshort.me/contact"></head>',
+    '<html><head><base href="/"><link rel="canonical" href="https://www.danielshort.me/contact"></head>',
     '<body class="contact-page" data-page="contact">',
+    '<a href="#main" class="skip-link">Skip to main content</a>',
     '<header>Header</header>',
     '<main id="main"><h1>Contact</h1></main>',
     '<script src="first.js"></script><script src="second.js"></script>',
@@ -63,22 +73,37 @@ function runPersonalAccordionShellTests({ assert }) {
     itemId: 'contact',
     view: 'detail',
     backHref: '/#contact',
-    backLabel: 'Back to Contact overview'
+    backLabel: 'Back to categories',
+    backCompactLabel: 'Categories',
+    backAriaLabel: 'Back to categories'
   });
   const wrappedAgain = wrapPersonalAccordionHtml(wrapped, {
     category: 'contact',
     itemId: 'contact',
     view: 'detail',
     backHref: '/#contact',
-    backLabel: 'Back to Contact overview'
+    backLabel: 'Back to categories',
+    backCompactLabel: 'Categories',
+    backAriaLabel: 'Back to categories'
   });
   assert(wrappedAgain === wrapped, 'Personal shell wrapping should be idempotent');
+  assert(getSkipLinkHref(wrapped) === '/contact#main',
+  'Personal shell should keep skip links on the current canonical page when a root base URL is present');
   assert(count(wrapped, /<main\b/gi) === 1, 'Personal shell should preserve exactly one main element');
   assert(/<body[^>]*data-page="contact"/i.test(wrapped), 'Personal shell should preserve the original data-page');
   assert(/<body[^>]*data-audience="personal"/i.test(wrapped), 'Personal shell should stamp the personal audience');
-  assert(count(wrapped, /aria-current="page"/g) === 1, 'Personal shell should identify one active rail');
-  assert(wrapped.includes('href="/#contact"') && wrapped.includes('Back to Contact overview'),
-    'Contact detail should return to the homepage Contact overview');
+  assert(count(wrapped, /data-personal-rail-active="true"/g) === 1,
+    'Personal shell should identify one active category marker');
+  assert(count(wrapped, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
+    !/<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b/i.test(wrapped),
+  'Personal shell should render one static, non-link category marker');
+  assert(/class="personal-accordion__rails"[^>]*aria-hidden="true"/i.test(wrapped),
+    'Desktop category marker should be decorative because the page heading carries identity');
+  assert(wrapped.includes('href="/#contact" aria-label="Back to categories"') &&
+    wrapped.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
+    'Contact detail should return to the homepage categories');
+  assert(count(wrapped, /class="personal-accordion__toolbar"/g) === 1,
+    'Personal shell should render one shared desktop toolbar and mobile context bar');
   assert(wrapped.indexOf('first.js') < wrapped.indexOf('second.js'), 'Personal shell should preserve script order');
   assert(/personal-accordion-shell:end -->\r?\n<script src="first\.js">/.test(wrapped),
     'The shell boundary should leave following scripts at the start of a new line');
@@ -103,6 +128,22 @@ function runPersonalAccordionShellTests({ assert }) {
     view: 'detail'
   }), /styles-personal-accordion\.1234abcd\.css/g) === 1,
   'Repeated wrapping should not remove or duplicate the managed personal shell stylesheet');
+
+  const projectLibrary = buildLibraryPage(sample, 'projects', {
+    projects: {
+      items: [{ id: 'sample', title: 'Sample project', href: '/portfolio/sample' }]
+    }
+  });
+  assert(projectLibrary.includes('data-personal-accordion-view="library"') &&
+    projectLibrary.includes('href="/#projects"') &&
+    projectLibrary.includes('aria-label="Back to categories"') &&
+    projectLibrary.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
+  'Project library should include a categories back control targeting the Projects overview');
+  assert(count(projectLibrary, /<h1\b/gi) === 1 &&
+    projectLibrary.includes('<p class="personal-library__meta">1 project</p>') &&
+    !projectLibrary.includes('home-library__page-link') &&
+    !/Open the dedicated [^<]+ page/i.test(projectLibrary),
+  'Canonical library should keep one heading, quiet item count, and no redundant dedicated-page control');
 
   const gameSample = sample.replace(
     '<main id="main"><h1>Contact</h1></main>',
@@ -131,32 +172,102 @@ function runPersonalAccordionShellTests({ assert }) {
     ['pages/games.html', 'games'],
     ['pages/contact.html', 'contact'],
     ...projectPages.map((relativePath) => [relativePath, 'projects']),
-    ...TOOL_PAGE_IDS.map((itemId) => [`pages/${itemId}.html`, 'tools']),
-    ...Object.values(GAME_PAGE_PATHS).map((relativePath) => [relativePath.replace(/\\/g, '/'), 'games'])
+    ...[...TOOL_PAGE_IDS, ...INTERNAL_TOOL_PAGE_IDS].map((itemId) => [`pages/${itemId}.html`, 'tools']),
+    ...Object.values(GAME_PAGE_PATHS).map((relativePath) => [relativePath.replace(/\\/g, '/'), 'games']),
+    ...UTILITY_PAGE_CONFIGS.map((config) => [config.relPath.replace(/\\/g, '/'), config.category])
   ];
   const uniqueManagedPages = Array.from(new Map(managedPages.map((entry) => [entry[0], entry])).values());
-  assert(uniqueManagedPages.length === 36,
-    'The personal shell route sweep should cover four indexes, 16 projects, 10 tools, and six games');
+  const projectDetailPages = new Set(projectPages);
+  const toolDetailPages = new Set(
+    [...TOOL_PAGE_IDS, ...INTERNAL_TOOL_PAGE_IDS].map((itemId) => `pages/${itemId}.html`)
+  );
+  const gameDetailPages = new Set(Object.values(GAME_PAGE_PATHS).map((relativePath) => (
+    relativePath.replace(/\\/g, '/')
+  )));
+  const utilityPages = new Map(UTILITY_PAGE_CONFIGS.map((config) => [
+    config.relPath.replace(/\\/g, '/'),
+    config
+  ]));
+  assert(uniqueManagedPages.length === 49,
+    'The personal shell route sweep should cover four category roots, six utility/fallback pages, 16 projects, 18 tools, and five games');
+  assert(INTERNAL_TOOL_PAGE_IDS.length === 8 &&
+    INTERNAL_TOOL_PAGE_IDS.every((itemId) => !TOOL_PAGE_IDS.includes(itemId)),
+  'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');
+  assert(!Object.prototype.hasOwnProperty.call(GAME_PAGE_PATHS, 'project-starfall'),
+    'Project Starfall should stay out of generated personal game routing');
   uniqueManagedPages.forEach(([relativePath, category]) => {
     const html = read(relativePath);
     assert(html.includes('data-personal-accordion-shell'), `${relativePath} should use the personal shell`);
     assert(html.includes(`data-personal-category="${category}"`), `${relativePath} should activate ${category}`);
-    assert(count(html, /aria-current="page"/g) === 1, `${relativePath} should identify exactly one active rail`);
+    assert(count(html, /data-personal-rail-active="true"/g) === 1,
+      `${relativePath} should identify exactly one active category marker`);
+    assert(count(html, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
+      !/<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b/i.test(html),
+    `${relativePath} should expose one static category marker and no cross-category rail links`);
+    assert(/class="personal-accordion__rails"[^>]*aria-hidden="true"/i.test(html),
+      `${relativePath} should keep its desktop marker out of the accessibility tree`);
+    assert(count(html, /class="personal-accordion__toolbar"/g) === 1,
+      `${relativePath} should render one shared toolbar/context bar`);
     assert(count(html, /<main\b/gi) === 1, `${relativePath} should retain one main element`);
     assert(count(html, /<footer\b[^>]*\bfooter--personal-compact\b/gi) === 1,
       `${relativePath} should include one compact personal footer`);
-    if (category === 'projects') {
+    const isImmersiveGame = relativePath === 'pages/games/stellar-dogfight.html';
+    if (isImmersiveGame) {
+      assert(/<body[^>]*data-personal-fit="immersive"/i.test(html) &&
+        /<body[^>]*data-personal-chrome="compact"/i.test(html),
+      `${relativePath} should retain immersive geometry while using compact personal chrome`);
+    } else {
       assert(/<body[^>]*data-personal-fit="viewport"/i.test(html) &&
         /<body[^>]*data-personal-chrome="compact"/i.test(html),
       `${relativePath} should use the viewport-fit shell and compact personal chrome`);
-      if (relativePath !== 'pages/portfolio.html') {
-        assert(html.includes('href="/?view=library#projects"') && html.includes('Back to project library'),
-          `${relativePath} should return to the expanded homepage project library`);
-        assert(!html.includes('project-pager'), `${relativePath} should omit Previous and Next project navigation`);
-      }
     }
-    assert(/personal-accordion-shell:end -->\r?\n(?:\s*<footer|\s*<script)/i.test(html),
-      `${relativePath} should keep footer or script markup newline-separated from the shell`);
+    if (projectDetailPages.has(relativePath)) {
+      assert(html.includes('href="/portfolio" aria-label="Back to project library"') &&
+        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
+      `${relativePath} should return to the canonical project library with a compact mobile label`);
+      assert(!html.includes('project-pager'), `${relativePath} should omit Previous and Next project navigation`);
+    }
+    const libraryBackTargets = {
+      'pages/portfolio.html': '/#projects',
+      'pages/tools.html': '/#tools',
+      'pages/games.html': '/#games',
+      'pages/contact.html': '/#contact'
+    };
+    if (libraryBackTargets[relativePath]) {
+      assert(html.includes(`href="${libraryBackTargets[relativePath]}" aria-label="Back to categories"`) &&
+        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
+        `${relativePath} should return to its homepage category selector`);
+    }
+    if (utilityPages.has(relativePath)) {
+      const utility = utilityPages.get(relativePath);
+      assert(html.includes(`href="${utility.backHref}" aria-label="Back to categories"`) &&
+        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
+      `${relativePath} should return to its matching homepage category context`);
+    }
+    if (['pages/portfolio.html', 'pages/tools.html', 'pages/games.html'].includes(relativePath)) {
+      assert(count(html, /<h1\b/gi) === 1 &&
+        /<p class="personal-library__meta">\d+ (?:project|tool|game)s?<\/p>/i.test(html) &&
+        !html.includes('home-library__page-link') &&
+        !/Open the dedicated [^<]+ page/i.test(html),
+      `${relativePath} should use one scrollable title, concise lead/count metadata, and no redundant page control`);
+    }
+    if (toolDetailPages.has(relativePath)) {
+      assert(html.includes('href="/tools" aria-label="Back to tool library"') &&
+        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
+        `${relativePath} should return to the tool library before the homepage categories`);
+    }
+    if (gameDetailPages.has(relativePath)) {
+      assert(html.includes('href="/games" aria-label="Back to game library"') &&
+        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
+        `${relativePath} should return to the game library before the homepage categories`);
+    }
+    const canonical = getTagAttribute(html, /<link\b[^>]*\brel="canonical"[^>]*>/i, 'href');
+    const canonicalPath = canonical ? new URL(canonical, 'https://www.danielshort.me').pathname : '';
+    const cleanCanonicalPath = canonicalPath.replace(/\.html$/i, '');
+    assert(cleanCanonicalPath && getSkipLinkHref(html) === `${cleanCanonicalPath}#main`,
+      `${relativePath} should keep its skip link on the current canonical page`);
+    assert(/personal-accordion-shell:end -->\r?\n/i.test(html),
+      `${relativePath} should keep following document markup newline-separated from the shell`);
     assert(count(html, new RegExp(`href="${managedStylesheet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')) === 1,
       `${relativePath} should reference the hashed personal shell stylesheet exactly once`);
     const publicHtml = read(path.join('public', relativePath));
@@ -235,9 +346,33 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(shellCss.includes('html:has(body.personal-accordion-page)') &&
     shellCss.includes('--personal-scrollbar-color'),
   'Document scrollbars should inherit the active category theme');
+  const railRule = /\.personal-accordion__rail\s*\{([\s\S]*?)\n\s*\}/.exec(shellCss)?.[1] || '';
+  assert(shellCss.includes('--personal-rail-size: 68px;') &&
+    shellCss.includes('grid-template-rows: minmax(0, 1fr);') &&
+    railRule.includes('background: var(--rail-color);') &&
+    !railRule.includes('transition:'),
+  'Desktop category marker should be a full-height static 68px solid-color rail');
+  assert(shellCss.includes('--personal-toolbar-size: 48px;') &&
+    shellCss.includes('border: 4px solid var(--panel-color);') &&
+    shellCss.includes('min-height: 44px;'),
+  'Desktop shell should use a four-pixel frame and compact 48px toolbar with a full touch target');
+  assert(shellCss.includes('--personal-toolbar-size: 60px;') &&
+    shellCss.includes('.personal-accordion__rails {\n      display: none;') &&
+    shellCss.includes('.personal-accordion__context {') &&
+    shellCss.includes('background: var(--panel-color);'),
+  'Mobile shell should merge navigation into one 60px category-colored context bar');
+  assert(shellCss.includes('.personal-library .home-library__header {') &&
+    shellCss.includes('position: static;') &&
+    shellCss.includes('.personal-library__meta {'),
+  'Library title, lead, and quiet count should remain in ordinary scrollable content');
+  assert(shellCss.includes('body.personal-accordion-page[data-personal-chrome="compact"] :is(') &&
+    shellCss.includes('.speed-dial,') && shellCss.includes('.mobile-site-dock'),
+  'Compact personal chrome should consistently suppress duplicate floating navigation');
   assert(shellCss.includes('[data-personal-item="probability-engine"] .personal-accordion__content') &&
     shellCss.includes('[data-personal-item="roulette"] .personal-accordion__content'),
   'Dark game adapters should preserve their authored backgrounds inside the white shell system');
+  assert(!shellCss.includes('data-personal-item="project-starfall"'),
+    'Removed Project Starfall routing should not retain dead personal-shell adapters');
 }
 
 module.exports = runPersonalAccordionShellTests;

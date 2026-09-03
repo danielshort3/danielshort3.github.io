@@ -106,7 +106,8 @@ function copyFile(src, dest){
 
 function shouldSkipPublicCopy(absPath) {
   const rel = path.relative(root, absPath).replace(/\\/g, '/');
-  return rel === 'img/project-starfall/review'
+  return rel === 'pages/games/project-starfall.html'
+    || rel === 'img/project-starfall/review'
     || rel.startsWith('img/project-starfall/review/')
     || (!includeStarfallBackups && (rel === 'img/project-starfall/backups' || rel.startsWith('img/project-starfall/backups/')))
     || /^img\/project-starfall\/(?:.+\/)?source(?:\/|$)/.test(rel);
@@ -520,22 +521,6 @@ function pruneRetiredPublicArtifacts() {
   }
 }
 
-function copyCleanUrlAliases() {
-  const aliases = [
-    ['pages/games/project-starfall.html', 'games/project-starfall.html'],
-    ['pages/games/project-starfall.html', 'project-starfall.html']
-  ];
-
-  let copied = 0;
-  aliases.forEach(([sourceRel, aliasRel]) => {
-    const source = path.join(outDir, sourceRel);
-    if (!fs.existsSync(source)) return;
-    copyFile(source, path.join(outDir, aliasRel));
-    copied += 1;
-  });
-  if (copied) log(`Copied ${copied} clean URL alias page(s).`);
-}
-
 function copyStatic(){
   ensureCleanDir(outDir);
   const cssManifest = readJson(cssManifestPath);
@@ -563,7 +548,6 @@ function copyStatic(){
   copyDistArtifacts(cssManifest, jsManifest);
   copyDir(path.join(root, 'dist', 'ai-pages'), path.join(outDir, 'dist', 'ai-pages'));
   pruneRetiredPublicArtifacts();
-  copyCleanUrlAliases();
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {

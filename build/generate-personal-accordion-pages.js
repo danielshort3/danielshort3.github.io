@@ -32,11 +32,65 @@ const TOOL_PAGE_IDS = Object.freeze([
   'screen-recorder'
 ]);
 
+const INTERNAL_TOOL_PAGE_IDS = Object.freeze([
+  'job-application-tracker',
+  'short-links',
+  'campaign-creative-tracker',
+  'ga4-utm-performance',
+  'transcribe',
+  'tools-dashboard',
+  'job-application-copilot',
+  'job-application-copilot-privacy'
+]);
+
+const ALL_TOOL_PAGE_IDS = Object.freeze([
+  ...TOOL_PAGE_IDS,
+  ...INTERNAL_TOOL_PAGE_IDS
+]);
+
+const UTILITY_PAGE_CONFIGS = Object.freeze([
+  Object.freeze({
+    relPath: path.join('pages', 'privacy.html'),
+    itemId: 'privacy',
+    category: 'about',
+    backHref: '/#about'
+  }),
+  Object.freeze({
+    relPath: path.join('pages', 'search.html'),
+    itemId: 'search',
+    category: 'tools',
+    backHref: '/#tools'
+  }),
+  Object.freeze({
+    relPath: path.join('pages', 'sitemap.html'),
+    itemId: 'sitemap',
+    category: 'about',
+    backHref: '/#about'
+  }),
+  Object.freeze({
+    relPath: path.join('pages', 'sitemap-pretty.html'),
+    itemId: 'sitemap-pretty',
+    category: 'about',
+    backHref: '/#about'
+  }),
+  Object.freeze({
+    relPath: path.join('pages', 'solutions.html'),
+    itemId: 'solutions',
+    category: 'projects',
+    backHref: '/#projects'
+  }),
+  Object.freeze({
+    relPath: '404.html',
+    itemId: 'not-found',
+    category: 'about',
+    backHref: '/'
+  })
+]);
+
 const GAME_PAGE_PATHS = Object.freeze({
   'stellar-dogfight': path.join('pages', 'games', 'stellar-dogfight.html'),
   roulette: path.join('pages', 'games', 'roulette.html'),
   'probability-engine': path.join('pages', 'games', 'probability-engine.html'),
-  'project-starfall': path.join('pages', 'games', 'project-starfall.html'),
   stormbreak: path.join('pages', 'games', 'stormbreak.html'),
   'ocean-wave-simulation': path.join('pages', 'ocean-wave-simulation.html')
 });
@@ -127,7 +181,12 @@ function buildLibraryPage(sourceHtml, category, libraryData) {
     category,
     itemId: `${category}-library`,
     view: 'library',
-    ...(category === 'projects' ? { fit: 'viewport', chrome: 'compact' } : {})
+    backHref: `/#${category}`,
+    backLabel: 'Back to categories',
+    backCompactLabel: 'Categories',
+    backAriaLabel: 'Back to categories',
+    fit: 'viewport',
+    chrome: 'compact'
   });
 }
 
@@ -185,8 +244,12 @@ function buildContactPage() {
     category: 'contact',
     itemId: 'contact',
     view: 'detail',
+    fit: 'viewport',
+    chrome: 'compact',
     backHref: '/#contact',
-    backLabel: 'Back to Contact overview'
+    backLabel: 'Back to categories',
+    backCompactLabel: 'Categories',
+    backAriaLabel: 'Back to categories'
   });
   validateWrappedPage(personal, personalRelPath, 'contact');
   write(personalRelPath, personal);
@@ -217,8 +280,10 @@ function buildProjectPages() {
       view: 'detail',
       fit: 'viewport',
       chrome: 'compact',
-      backHref: '/?view=library#projects',
-      backLabel: 'Back to project library'
+      backHref: '/portfolio',
+      backLabel: 'Back to project library',
+      backCompactLabel: 'Library',
+      backAriaLabel: 'Back to project library'
     });
     validateWrappedPage(personal, personalRelPath, 'projects');
     write(personalRelPath, personal);
@@ -227,31 +292,57 @@ function buildProjectPages() {
 }
 
 function buildToolPages() {
-  TOOL_PAGE_IDS.forEach((itemId) => {
+  ALL_TOOL_PAGE_IDS.forEach((itemId) => {
     const relPath = path.join('pages', `${itemId}.html`);
-    if (!exists(relPath)) throw new Error(`Missing public tool page: ${relPath}`);
+    if (!exists(relPath)) throw new Error(`Missing personal tool page: ${relPath}`);
     writeWrapped(relPath, {
       category: 'tools',
       itemId,
       view: 'detail',
+      fit: 'viewport',
+      chrome: 'compact',
       backHref: '/tools',
       backLabel: 'Back to tool library',
+      backCompactLabel: 'Library',
+      backAriaLabel: 'Back to tool library',
       includeToolChrome: true
     });
   });
-  return TOOL_PAGE_IDS.length;
+  return ALL_TOOL_PAGE_IDS.length;
+}
+
+function buildUtilityPages() {
+  UTILITY_PAGE_CONFIGS.forEach((config) => {
+    if (!exists(config.relPath)) throw new Error(`Missing personal utility page: ${config.relPath}`);
+    writeWrapped(config.relPath, {
+      category: config.category,
+      itemId: config.itemId,
+      view: 'detail',
+      fit: 'viewport',
+      chrome: 'compact',
+      backHref: config.backHref,
+      backLabel: 'Back to categories',
+      backCompactLabel: 'Categories',
+      backAriaLabel: 'Back to categories'
+    });
+  });
+  return UTILITY_PAGE_CONFIGS.length;
 }
 
 function buildGamePages() {
   Object.entries(GAME_PAGE_PATHS).forEach(([itemId, relPath]) => {
     if (!exists(relPath)) throw new Error(`Missing game page: ${relPath}`);
+    const isImmersive = itemId === 'stellar-dogfight';
     writeWrapped(relPath, {
       category: 'games',
       itemId,
       view: 'detail',
-      fit: ['stellar-dogfight', 'project-starfall'].includes(itemId) ? 'immersive' : 'document',
+      fit: isImmersive ? 'immersive' : 'viewport',
+      chrome: 'compact',
       backHref: '/games',
-      backLabel: 'Back to games',
+      backLabel: 'Back to game library',
+      backCompactLabel: 'Library',
+      backAriaLabel: 'Back to game library',
       includePageHero: itemId === 'ocean-wave-simulation',
       includeProbabilityShell: itemId === 'probability-engine',
       includeUntilScripts: ['probability-engine', 'roulette'].includes(itemId)
@@ -268,25 +359,30 @@ function main() {
   buildDirectoryIndex(path.join('pages', 'tools.html'), 'tools', libraryData);
   buildDirectoryIndex(path.join('pages', 'games.html'), 'games', libraryData);
   buildContactPage();
+  const utilityCount = buildUtilityPages();
   const projectCount = buildProjectPages();
   const toolCount = buildToolPages();
   const gameCount = buildGamePages();
 
   process.stdout.write(
-    `[personal-accordion] Wrapped 4 personal indexes, ${projectCount} projects, ${toolCount} tools, and ${gameCount} games; three audience-specific portfolio/contact copies remain unwrapped.\n`
+    `[personal-accordion] Wrapped 4 personal category roots, ${utilityCount} utility/fallback pages, ${projectCount} projects, ${toolCount} tools, and ${gameCount} games; three audience-specific portfolio/contact copies remain unwrapped.\n`
   );
 }
 
 if (require.main === module) main();
 
 module.exports = {
+  ALL_TOOL_PAGE_IDS,
   GAME_PAGE_PATHS,
+  INTERNAL_TOOL_PAGE_IDS,
   PROFESSIONAL_AUDIENCES,
   TOOL_PAGE_IDS,
+  UTILITY_PAGE_CONFIGS,
   buildLibraryPage,
   buildPortfolioIndex,
   buildProjectPages,
   buildToolPages,
+  buildUtilityPages,
   buildGamePages,
   main
 };

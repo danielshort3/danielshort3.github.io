@@ -568,31 +568,6 @@ function renderHomeTimeline(timeline, categoryId) {
   ].filter(Boolean).join('\n');
 }
 
-function renderHomeLibraryView(category, categoryId) {
-  const cta = category && category.cta;
-  if (!cta || !cta.href || !['projects', 'tools', 'games'].includes(categoryId)) return '';
-
-  const title = String(cta.libraryTitle || `${category.label || categoryId} library`).trim();
-  const lead = String(cta.libraryLead || category.lead || '').trim();
-  const pageLabel = String(cta.pageLabel || `Open the dedicated ${category.label || categoryId} page`).trim();
-  const viewId = `home-library-view-${categoryId}`;
-  const headingId = `${viewId}-title`;
-  return [
-    `          <section class="home-library" id="${escapeHtml(viewId)}" data-home-library-view="${escapeHtml(categoryId)}" aria-labelledby="${escapeHtml(headingId)}" hidden inert>`,
-    '            <header class="home-library__header">',
-    `              <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(categoryId)}"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>`,
-    '              <div class="home-library__heading">',
-    `                <h3 id="${escapeHtml(headingId)}" data-home-library-heading tabindex="-1">${escapeHtml(title)}</h3>`,
-    lead ? `                <p>${escapeHtml(lead)}</p>` : '',
-    '              </div>',
-    `              <a class="home-library__page-link" href="${escapeHtml(normalizeHref(cta.href))}">${escapeHtml(pageLabel)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`,
-    '            </header>',
-    `            <p class="visually-hidden"><span data-home-library-count>0</span> ${escapeHtml(category.label || categoryId)} items loaded.</p>`,
-    `            <ul class="home-library__list" data-home-library-list aria-label="All ${escapeHtml(String(category.label || categoryId).toLowerCase())}"></ul>`,
-    '          </section>'
-  ].filter(Boolean).join('\n');
-}
-
 function renderHomeAccordion(section) {
   const props = section.props || {};
   const categories = Array.isArray(props.categories) ? props.categories : [];
@@ -612,11 +587,8 @@ function renderHomeAccordion(section) {
     const panelId = `home-accordion-panel-${id}`;
     const categoryIconId = resolveHomeAccordionIconId(id);
     const color = String(category && category.color || '#091f3b').trim();
-    const colorEnd = String(category && category.colorEnd || color).trim();
-    const hasDedicatedPageButton = ['projects', 'tools', 'games'].includes(id);
     const cards = items.map((item) => renderHomeAccordionCard(item, id)).join('\n');
     const timelineHtml = renderHomeTimeline(category && category.timeline, id);
-    const libraryHtml = renderHomeLibraryView(category, id);
     const profile = category && category.profile && category.profile.image
       ? category.profile
       : null;
@@ -627,13 +599,8 @@ function renderHomeAccordion(section) {
       ? `          <p class="home-accordion__context">${escapeHtml(context)}</p>`
       : '';
     const cta = category && category.cta && category.cta.href && category.cta.label
-      ? (hasDedicatedPageButton
-          ? `          <button class="home-accordion__panel-cta home-accordion__panel-cta--primary" type="button" aria-controls="home-library-view-${escapeHtml(id)}" aria-expanded="false" data-home-library-open="${escapeHtml(id)}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></button>`
-          : `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`)
+      ? `          <a class="home-accordion__panel-cta" href="${escapeHtml(normalizeHref(category.cta.href))}">${escapeHtml(category.cta.label)} <span aria-hidden="true">${HOME_ACCORDION_ICONS.arrow}</span></a>`
       : '';
-    const overviewReturn = hasDedicatedPageButton
-      ? ''
-      : `          <button class="home-library__back home-library__back--overview" type="button" data-home-library-close="${escapeHtml(id)}"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>`;
     const panelHeader = profile
       ? [
           '          <header class="home-accordion__panel-head home-accordion__panel-head--profile">',
@@ -663,7 +630,7 @@ function renderHomeAccordion(section) {
         ].filter(Boolean).join('\n');
 
     return [
-      `    <article class="home-accordion__item home-accordion__item--${escapeHtml(id)}${hasDedicatedPageButton ? ' home-accordion__item--has-library' : ''}${isActive ? ' is-active' : ''}" data-home-accordion-item="${escapeHtml(id)}" aria-labelledby="${escapeHtml(triggerId)}" style="--panel-color: ${escapeHtml(color)}; --panel-color-end: ${escapeHtml(colorEnd)};">`,
+      `    <article class="home-accordion__item home-accordion__item--${escapeHtml(id)}${isActive ? ' is-active' : ''}" data-home-accordion-item="${escapeHtml(id)}" aria-labelledby="${escapeHtml(triggerId)}" style="--panel-color: ${escapeHtml(color)};">`,
       '      <h2 class="home-accordion__heading">',
       `        <button class="home-accordion__rail" id="${escapeHtml(triggerId)}" type="button" aria-expanded="${isActive}" aria-controls="${escapeHtml(panelId)}"${isActive ? ' aria-disabled="true"' : ''} data-home-accordion-trigger="${escapeHtml(id)}">`,
       `          <span class="home-accordion__rail-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
@@ -673,14 +640,12 @@ function renderHomeAccordion(section) {
       '      </h2>',
       `      <section class="home-accordion__panel" id="${escapeHtml(panelId)}" role="region" aria-labelledby="${escapeHtml(triggerId)}" data-home-accordion-panel="${escapeHtml(id)}"${isActive ? '' : ' hidden inert'}>`,
       `        <div class="home-accordion__scroller" data-home-accordion-scroller aria-label="${escapeHtml(label)} content">`,
-      overviewReturn,
       panelHeader,
       contextHtml,
       metaHtml,
       cards ? `          <ul class="home-accordion__cards">\n${cards}\n          </ul>` : '',
       timelineHtml,
       cta,
-      libraryHtml,
       '        </div>',
       '      </section>',
       '    </article>'
@@ -695,7 +660,7 @@ function renderHomeAccordion(section) {
     .join('');
 
   return [
-    `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${escapeHtml(defaultPanel)}" data-home-view="overview" aria-labelledby="home-accordion-title">`,
+    `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${escapeHtml(defaultPanel)}" aria-labelledby="home-accordion-title">`,
     `  <h1 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h1>`,
     '  <div class="home-accordion__shell">',
     panels,

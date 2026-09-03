@@ -14,15 +14,13 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   assert(
     JSON.stringify(startHere.map((item) => item.id)) === JSON.stringify([
       'handwritingRating',
-      'project-starfall',
       'tools',
     ]),
-    'personal Start Here should use the approved project, game, and tools entry points',
+    'personal Start Here should use the approved project and tools entry points',
   );
   assert(
     JSON.stringify(startHere.map((item) => item.href)) === JSON.stringify([
       '/portfolio/handwritingRating',
-      '/games/project-starfall',
       '/tools',
     ]),
     'personal Start Here should use stable clean routes',
@@ -45,9 +43,9 @@ module.exports = function runPortfolioRecommendationTests({ assert }) {
   assert(
     indexHtml.includes('data-home-accordion-item="about"') &&
       indexHtml.includes('data-content-id="handwritingRating"') &&
-      indexHtml.includes('data-content-id="project-starfall"') &&
+      !indexHtml.includes('data-content-id="project-starfall"') &&
       indexHtml.includes('href="/tools"'),
-    'home accordion should keep the approved personal starting points in its static panels',
+    'home accordion should keep the approved personal starting points and omit Project Starfall',
   );
   assert(
     !/animation[^;\n}]*\binfinite\b/.test(accordionCss),

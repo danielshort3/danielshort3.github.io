@@ -68,17 +68,6 @@
           resourceType: 'case_study'
         },
         {
-          id: 'project-starfall',
-          label: 'Browser game',
-          title: 'Project Starfall',
-          description: 'Play the evolving action RPG built around responsive combat, progression, and handcrafted encounters.',
-          href: '/games/project-starfall',
-          icon: 'rocket',
-          accent: '#c94b0a',
-          contentType: 'game',
-          resourceType: 'game'
-        },
-        {
           id: 'tools',
           label: 'Useful tools',
           title: 'Practical Browser Tools',

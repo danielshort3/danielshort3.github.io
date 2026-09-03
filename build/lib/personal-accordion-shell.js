@@ -72,20 +72,15 @@ function renderIcon(paths, className = '') {
 
 function renderPersonalRails(activeCategory) {
   const active = normalizeCategory(activeCategory);
+  const category = CATEGORY_CONFIG[active];
   return [
-    '<nav class="personal-accordion__rails" aria-label="Explore Daniel Short">',
-    ...CATEGORY_ORDER.map((id) => {
-      const category = CATEGORY_CONFIG[id];
-      const isActive = id === active;
-      return [
-        `<a class="personal-accordion__rail personal-accordion__rail--${id}${isActive ? ' is-active' : ''}" href="${category.href}" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};"${isActive ? ` data-personal-rail-active="true" aria-current="page" aria-label="${category.label}, current category"` : ''}>`,
-        `  <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
-        `  <span class="personal-accordion__rail-label">${category.label}</span>`,
-        isActive ? '  <span class="personal-accordion__rail-notch" aria-hidden="true"></span>' : '',
-        '</a>'
-      ].filter(Boolean).join('\n');
-    }),
-    '</nav>'
+    `<div class="personal-accordion__rails" data-personal-category-marker="${active}" aria-hidden="true">`,
+    `  <div class="personal-accordion__rail personal-accordion__rail--${active} is-active" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-personal-rail-active="true">`,
+    `    <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
+    `    <span class="personal-accordion__rail-label">${category.label}</span>`,
+    '    <span class="personal-accordion__rail-notch" aria-hidden="true"></span>',
+    '  </div>',
+    '</div>'
   ].join('\n');
 }
 
@@ -154,6 +149,29 @@ function stripLegacyProjectPager(html) {
     /<nav\b[^>]*class="[^"]*\bproject-pager\b[^"]*"[^>]*>[\s\S]*?<\/nav>\s*/gi,
     ''
   );
+}
+
+function normalizeSkipLinkHrefs(html) {
+  const source = String(html || '');
+  const canonicalTag = (source.match(/<link\b[^>]*>/gi) || [])
+    .find((tag) => /\srel="canonical"/i.test(tag));
+  const canonicalHref = canonicalTag && /\shref="([^"]+)"/i.exec(canonicalTag)?.[1];
+  if (!canonicalHref) return source;
+
+  let pathname = '';
+  try {
+    pathname = new URL(canonicalHref, 'https://www.danielshort.me').pathname || '/';
+  } catch (_) {
+    return source;
+  }
+  const localMainHref = `${pathname}#main`;
+
+  return source.replace(/<a\b[^>]*>/gi, (tag) => {
+    if (!/\sclass="[^"]*\bskip-link\b[^"]*"/i.test(tag)) return tag;
+    const hrefMatch = /\shref="([^"]*)"/i.exec(tag);
+    if (!hrefMatch || !/#main$/i.test(hrefMatch[1])) return tag;
+    return setTagAttribute(tag, 'href', localMainHref);
+  });
 }
 
 function unwrapPersonalAccordionHtml(html) {
@@ -249,13 +267,20 @@ function renderPersonalAccordionShell(fragment, options = {}) {
   const itemId = String(options.itemId || categoryId).trim() || categoryId;
   const fit = String(options.fit || 'document').trim() || 'document';
   const backLabel = String(options.backLabel || `Back to ${category.label}`).trim();
+  const backCompactLabel = String(options.backCompactLabel || (isLibrary ? 'Categories' : 'Library')).trim();
+  const backAriaLabel = String(options.backAriaLabel || backLabel).trim();
   const backHref = String(options.backHref || category.libraryHref || category.href).trim();
-  const toolbar = isLibrary ? '' : [
+  const toolbar = [
     '<div class="personal-accordion__toolbar">',
-    `  <a class="personal-accordion__back" href="${escapeHtml(backHref)}">`,
-    `    <span aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>`,
-    `    <span>${escapeHtml(backLabel)}</span>`,
+    `  <a class="personal-accordion__back" href="${escapeHtml(backHref)}" aria-label="${escapeHtml(backAriaLabel)}">`,
+    `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>`,
+    `    <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">${escapeHtml(backLabel)}</span>`,
+    `    <span class="personal-accordion__back-label personal-accordion__back-label--mobile" aria-hidden="true">${escapeHtml(backCompactLabel)}</span>`,
     '  </a>',
+    '  <div class="personal-accordion__context" aria-hidden="true">',
+    `    <span class="personal-accordion__context-icon">${renderIcon(category.icon)}</span>`,
+    `    <span class="personal-accordion__context-label">${escapeHtml(category.label)}</span>`,
+    '  </div>',
     '</div>'
   ].join('\n');
 
@@ -299,7 +324,7 @@ function wrapPersonalAccordionHtml(html, options = {}) {
   const suffix = cleanHtml.slice(range.end);
   const boundary = suffix && !/^\r?\n/.test(suffix) ? '\n' : '';
   const output = cleanHtml.slice(0, range.start) + shell + boundary + suffix;
-  return setBodyAttributes(output, bodyAttributes);
+  return normalizeSkipLinkHrefs(setBodyAttributes(output, bodyAttributes));
 }
 
 function replaceMainHtml(html, mainHtml) {
@@ -344,6 +369,8 @@ function renderPersonalLibraryMain(options = {}) {
   const items = Array.isArray(options.items) ? options.items.filter((item) => item && item.href) : [];
   const title = String(options.title || `${category.label} library`).trim();
   const description = String(options.description || '').trim();
+  const singularLabel = categoryId.replace(/s$/, '');
+  const itemCountLabel = `${items.length} ${items.length === 1 ? singularLabel : categoryId}`;
   const toolsDock = categoryId === 'tools' ? [
     '  <div class="tools-account-dock tools-account-dock--directory personal-library__account" data-tools-account="dock">',
     '    <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
@@ -366,6 +393,7 @@ function renderPersonalLibraryMain(options = {}) {
     '      <div class="home-library__heading wrapper">',
     `        <h1 id="personal-library-title-${categoryId}">${escapeHtml(title)}</h1>`,
     description ? `        <p>${escapeHtml(description)}</p>` : '',
+    `        <p class="personal-library__meta">${escapeHtml(itemCountLabel)}</p>`,
     '      </div>',
     '    </div>',
     `    <ul class="home-library__list wrapper" aria-label="${escapeHtml(category.label)}">`,
@@ -424,6 +452,7 @@ module.exports = {
   findFragmentRange,
   findMainRange,
   markProfessionalInternalHtml,
+  normalizeSkipLinkHrefs,
   renderPersonalAccordionShell,
   renderPersonalLibraryMain,
   renderPersonalRails,

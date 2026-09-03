@@ -63,9 +63,9 @@
   }
 
   .personal-accordion {
-    --personal-rail-size: 84px;
-    --personal-mobile-rail-size: 78px;
-    --personal-toolbar-size: 50px;
+    --personal-rail-size: 68px;
+    --personal-mobile-rail-size: 0px;
+    --personal-toolbar-size: 48px;
     width: 100%;
     max-width: 100%;
     min-height: calc(100svh - var(--nav-height, 72px));
@@ -88,7 +88,7 @@
     top: var(--nav-height, 72px);
     z-index: 8;
     display: grid;
-    grid-template-rows: repeat(5, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
     align-self: start;
     width: var(--personal-rail-size);
     height: calc(100svh - var(--nav-height, 72px));
@@ -112,23 +112,10 @@
     border: 0;
     border-radius: 0;
     color: #ffffff;
-    background: linear-gradient(180deg, var(--rail-color), var(--rail-color-end));
+    background: var(--rail-color);
     font-family: var(--font-ui, "Inter", system-ui, sans-serif);
-    text-decoration: none;
+    user-select: none;
     box-shadow: inset -1px 0 rgba(255, 255, 255, .12);
-    transition: filter 180ms ease, transform 260ms cubic-bezier(.22, 1, .36, 1);
-  }
-
-  .personal-accordion__rail:not(.is-active) {
-    filter: saturate(.82) brightness(.92);
-  }
-
-  .personal-accordion__rail:is(:hover, :focus-visible) {
-    z-index: 4;
-    color: #ffffff;
-    filter: saturate(1.03) brightness(1.06);
-    outline: 3px solid rgba(255, 255, 255, .92);
-    outline-offset: -4px;
   }
 
   .personal-accordion__rail.is-active {
@@ -149,7 +136,8 @@
 
   .personal-accordion__rail-icon svg,
   .personal-accordion__rail-notch svg,
-  .personal-accordion__back svg {
+  .personal-accordion__back svg,
+  .personal-accordion__context-icon svg {
     display: block;
     width: 100%;
     height: 100%;
@@ -195,7 +183,7 @@
     max-width: 100%;
     min-height: inherit;
     overflow: visible;
-    border: 5px solid var(--panel-color);
+    border: 4px solid var(--panel-color);
     border-left: 0;
     border-radius: 0;
     color: #091f3b;
@@ -233,20 +221,22 @@
     display: flex;
     align-items: center;
     min-height: var(--personal-toolbar-size);
-    padding: 5px clamp(12px, 2.4vw, 26px);
+    padding: 2px clamp(10px, 2vw, 22px);
     border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 22%, #dce3ec 78%);
     background: rgba(255, 255, 255, .97);
     backdrop-filter: blur(10px);
   }
 
   .personal-accordion__back {
+    position: relative;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 38px;
-    padding: 0 11px 0 7px;
-    border: 0;
-    border-radius: 7px;
+    min-height: 44px;
+    padding: 0 11px 0 8px;
+    border: 1px solid color-mix(in srgb, var(--panel-color) 58%, #cbd5e1 42%);
+    border-radius: 6px;
     color: color-mix(in srgb, var(--panel-color) 80%, #091f3b 20%);
     background: transparent;
     font-family: var(--font-ui, "Inter", system-ui, sans-serif);
@@ -256,11 +246,31 @@
     text-decoration: none;
   }
 
-  .personal-accordion__back > span:first-child {
+  .personal-accordion__back-icon {
     display: grid;
     width: 19px;
     height: 19px;
     place-items: center;
+  }
+
+  .personal-accordion__back-label--mobile,
+  .personal-accordion__context {
+    display: none;
+  }
+
+  .personal-accordion__context-icon {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+  }
+
+  .personal-accordion__context-label {
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .025em;
+    line-height: 1;
   }
 
   .personal-accordion__back:is(:hover, :focus-visible) {
@@ -310,8 +320,20 @@
   }
 
   .personal-library .home-library__header {
-    top: var(--nav-height, 72px);
+    position: static;
+    top: auto;
     z-index: 6;
+  }
+
+  .personal-library__meta {
+    margin-top: 8px !important;
+    color: #64748b !important;
+    font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    font-size: .72rem !important;
+    font-weight: 700;
+    letter-spacing: .04em;
+    line-height: 1.2;
+    text-transform: uppercase;
   }
 
   .personal-library.tools-hero {
@@ -358,63 +380,27 @@
   @media (max-width: 959px), (max-height: 619px) {
     .personal-accordion {
       --personal-rail-size: 100%;
+      --personal-mobile-rail-size: 0px;
+      --personal-toolbar-size: 60px;
       min-height: calc(100svh - var(--mobile-site-masthead-height, 62px));
     }
 
     .personal-accordion__shell {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      grid-template-rows: var(--personal-mobile-rail-size) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
       align-items: start;
     }
 
     .personal-accordion__rails {
-      position: sticky;
-      top: var(--mobile-site-masthead-height, 62px);
-      grid-column: 1 / -1;
-      grid-row: 1;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      grid-template-rows: 1fr;
-      width: 100%;
-      height: var(--personal-mobile-rail-size);
-      min-height: var(--personal-mobile-rail-size);
-    }
-
-    .personal-accordion__rail {
-      flex-direction: column;
-      gap: 5px;
-      min-height: var(--personal-mobile-rail-size);
-      padding: 8px 3px;
-      box-shadow: inset -1px 0 rgba(255, 255, 255, .18);
-    }
-
-    .personal-accordion__rail-label {
-      font-size: clamp(.56rem, 2.2vw, .7rem);
-      writing-mode: horizontal-tb;
-      transform: none;
-    }
-
-    .personal-accordion__rail-icon {
-      width: 24px;
-      height: 24px;
-    }
-
-    .personal-accordion__rail-notch {
-      top: auto;
-      right: auto;
-      bottom: -12px;
-      left: 50%;
-      width: 25px;
-      height: 13px;
-      clip-path: polygon(0 0, 100% 0, 50% 100%);
-      transform: translateX(-50%);
+      display: none;
     }
 
     .personal-accordion__panel {
       grid-column: 1 / -1;
-      grid-row: 2;
+      grid-row: 1;
       width: 100%;
       min-height: 0;
-      border-left: 5px solid var(--panel-color);
+      border-left: 4px solid var(--panel-color);
       border-radius: 0;
     }
 
@@ -423,9 +409,49 @@
     }
 
     .personal-accordion__toolbar {
-      top: calc(var(--mobile-site-masthead-height, 62px) + var(--personal-mobile-rail-size));
-      min-height: 46px;
-      padding: 3px 10px;
+      top: var(--mobile-site-masthead-height, 62px);
+      min-height: var(--personal-toolbar-size);
+      padding: 4px 8px;
+      border-bottom: 0;
+      color: #ffffff;
+      background: var(--panel-color);
+      backdrop-filter: none;
+    }
+
+    .personal-accordion__back {
+      gap: 5px;
+      min-height: 44px;
+      padding: 0 7px 0 5px;
+      border-color: rgba(255, 255, 255, .42);
+      color: #ffffff;
+      background: rgba(255, 255, 255, .08);
+      font-size: .72rem;
+    }
+
+    .personal-accordion__back:is(:hover, :focus-visible) {
+      color: var(--panel-color);
+      background: #ffffff;
+      outline-color: rgba(255, 255, 255, .58);
+    }
+
+    .personal-accordion__back-label--desktop {
+      display: none;
+    }
+
+    .personal-accordion__back-label--mobile {
+      display: inline;
+    }
+
+    .personal-accordion__context {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #ffffff;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
     }
 
     .personal-accordion__content {
@@ -441,14 +467,9 @@
       padding-left: 14px;
     }
 
-    .personal-library .home-library__header {
-      top: calc(var(--mobile-site-masthead-height, 62px) + var(--personal-mobile-rail-size));
-    }
-
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .personal-accordion__rail,
     .personal-accordion__back,
     .home-library__card {
       transition: none;
@@ -479,6 +500,16 @@
 
   body.personal-accordion-page .personal-accordion__back:is(:hover, :focus-visible) {
     color: #ffffff;
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page .personal-accordion__back {
+      color: #ffffff;
+    }
+
+    body.personal-accordion-page .personal-accordion__back:is(:hover, :focus-visible) {
+      color: var(--panel-color);
+    }
   }
 
   body.personal-accordion-page .personal-library a.home-library__card {
@@ -769,6 +800,51 @@
     }
   }
 
+  body.project-demo-wrapper-page .personal-accordion__content {
+    overflow: hidden !important;
+  }
+
+  body.project-demo-wrapper-page :is(
+    .project-demo-wrapper-main,
+    .project-demo-wrapper-frame
+  ) {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  body.project-demo-wrapper-page .project-demo-wrapper-frame {
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  body.project-demo-wrapper-page .project-demo-wrapper-iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    background: #ffffff;
+  }
+
+  body.project-demo-wrapper-page .project-demo-wrapper-iframe:focus-visible {
+    outline: 3px solid var(--panel-color, #155dfc);
+    outline-offset: -3px;
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.project-demo-wrapper-page :is(
+      .project-demo-wrapper-main,
+      .project-demo-wrapper-frame
+    ) {
+      height: max(560px, calc(100svh - var(--mobile-site-masthead-height, 62px) - var(--personal-toolbar-size, 60px)));
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     body.personal-accordion-page[data-personal-chrome="compact"] :is(
       #primary-menu,
@@ -811,27 +887,6 @@ body.personal-accordion-page .footer.footer-classic.footer--personal-compact {
 /* Game pages ship unlayered styles of their own. These narrowly scoped
    adapters intentionally remain unlayered so the shared shell can contain
    each live app without changing the app's internal visual system. */
-body.personal-accordion-page[data-personal-item="project-starfall"] .project-starfall-shell {
-  min-height: 0;
-}
-
-body.personal-accordion-page[data-personal-item="project-starfall"] .project-starfall-shell .wrapper {
-  box-sizing: border-box;
-  width: 100%;
-  max-width: var(--starfall-stage-max-width, 1280px);
-  padding-inline: 16px;
-}
-
-body.personal-accordion-page[data-personal-item="project-starfall"] .project-starfall-stage-panel {
-  max-width: 100%;
-}
-
-body.personal-accordion-page[data-personal-item="project-starfall"] .footer.footer--personal-compact .footer-inner {
-  display: flex;
-  max-width: var(--wrapper-max, 1180px);
-  padding-block: 0;
-}
-
 body.personal-accordion-page[data-personal-item="probability-engine"] .personal-accordion__panel,
 body.personal-accordion-page[data-personal-item="probability-engine"] .personal-accordion__content {
   color: var(--text, #f4f7ff);
@@ -1020,11 +1075,5 @@ body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .m
   body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion__rails {
     position: sticky;
     height: var(--personal-mobile-rail-size);
-  }
-}
-
-@media (max-width: 640px) {
-  body.personal-accordion-page[data-personal-item="project-starfall"] .footer.footer--personal-compact .footer-inner {
-    flex-direction: column;
   }
 }
