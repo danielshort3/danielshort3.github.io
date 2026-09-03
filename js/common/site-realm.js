@@ -354,7 +354,7 @@
     const optionsHeading = document.querySelector('#contact-options .contact-options-heading .section-title');
     const optionsSubtitle = document.querySelector('#contact-options .contact-options-heading .section-subtitle');
     if (optionsHeading) optionsHeading.textContent = 'Direct Contact';
-    if (optionsSubtitle) optionsSubtitle.textContent = 'Email is fastest. LinkedIn is best for introductions, and GitHub shows implementation detail.';
+    if (optionsSubtitle) optionsSubtitle.textContent = 'Email is fastest, and GitHub shows implementation detail.';
     const duplicateMessageCard = document.querySelector('#contact-options .contact-card-recommended');
     if (duplicateMessageCard) duplicateMessageCard.hidden = true;
 

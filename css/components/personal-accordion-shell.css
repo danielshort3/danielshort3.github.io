@@ -113,9 +113,12 @@
     border-radius: 0;
     color: #ffffff;
     background: var(--rail-color);
+    cursor: pointer;
     font-family: var(--font-ui, "Inter", system-ui, sans-serif);
+    text-decoration: none;
     user-select: none;
     box-shadow: inset -1px 0 rgba(255, 255, 255, .12);
+    transition: filter .18s ease, box-shadow .18s ease;
   }
 
   .personal-accordion__rail.is-active {
@@ -124,6 +127,19 @@
     box-shadow:
       inset -1px 0 rgba(255, 255, 255, .2),
       0 0 0 1px color-mix(in srgb, var(--rail-color) 76%, #ffffff 24%);
+  }
+
+  .personal-accordion__rail:is(:hover, :focus-visible) {
+    filter: brightness(1.07);
+    box-shadow:
+      inset -1px 0 rgba(255, 255, 255, .28),
+      inset 0 0 0 3px rgba(255, 255, 255, .18),
+      0 0 0 1px color-mix(in srgb, var(--rail-color) 70%, #ffffff 30%);
+  }
+
+  .personal-accordion__rail:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: -7px;
   }
 
   .personal-accordion__rail-icon {
@@ -470,6 +486,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .personal-accordion__rail,
     .personal-accordion__back,
     .home-library__card {
       transition: none;

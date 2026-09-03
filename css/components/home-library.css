@@ -299,16 +299,23 @@
   }
 
   .home-accordion__shell,
-  .home-accordion__item.is-active .home-accordion__panel {
-    view-transition-name: home-shell;
+  .personal-accordion__shell {
+    view-transition-name: personal-shell;
   }
 
-  .home-accordion__item.is-active .home-accordion__panel {
-    view-transition-name: home-active-panel;
+  .home-accordion__item.is-active .home-accordion__panel,
+  .personal-accordion__panel {
+    view-transition-name: personal-panel;
   }
 
-  ::view-transition-group(home-shell),
-  ::view-transition-group(home-active-panel) {
+  .home-accordion__item.is-active .home-accordion__rail,
+  .personal-accordion__rails {
+    view-transition-name: personal-rail;
+  }
+
+  ::view-transition-group(personal-shell),
+  ::view-transition-group(personal-panel),
+  ::view-transition-group(personal-rail) {
     animation-duration: 440ms;
     animation-timing-function: cubic-bezier(.22, 1, .36, 1);
   }
@@ -367,7 +374,7 @@
       width: 100%;
       height: 100%;
       padding: 6px 5px;
-      cursor: default;
+      cursor: pointer;
     }
 
     .home-accordion.is-library-mode .home-accordion__rail-icon {
@@ -554,7 +561,7 @@
       border-right: 0;
       color: var(--panel-color);
       background: #ffffff;
-      cursor: default;
+      cursor: pointer;
     }
 
     .home-accordion.is-library-mode .home-accordion__item.is-active .home-accordion__rail {

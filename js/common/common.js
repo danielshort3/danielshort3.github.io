@@ -557,13 +557,7 @@
       resumeLink.href = 'https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume.pdf';
       resumeLink.textContent = 'Download resume';
       resumeLink.setAttribute('download', 'Daniel-Short-Resume.pdf');
-      const linkedInLink = document.createElement('a');
-      linkedInLink.className = 'btn-ghost';
-      linkedInLink.href = 'https://www.linkedin.com/in/danielshort3/';
-      linkedInLink.target = '_blank';
-      linkedInLink.rel = 'noopener noreferrer';
-      linkedInLink.textContent = 'View LinkedIn';
-      ctaActions.append(resumeLink, linkedInLink);
+      ctaActions.append(resumeLink);
       ctaActions.dataset.storyCta = 'true';
     }
 
@@ -2042,16 +2036,6 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="3" y="5" width="18" height="14" rx="2"></rect>
                   <path d="M3 7l9 6 9-6"></path>
-                </svg>
-              </a>
-            </div>
-            <div class="speed-dial__item">
-              <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-              <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-                <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="4" cy="4" r="2"></circle>
-                  <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-                  <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
                 </svg>
               </a>
             </div>

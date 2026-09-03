@@ -2,3 +2,4 @@
 @layer tokens, base, layout, components, utilities, overrides;
 
 @import url("components/home-category-accordion.css");
+@import url("components/home-library.css");

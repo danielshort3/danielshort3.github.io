@@ -111,6 +111,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const copyToPublic = read('build/copy-to-public.js');
   const packageJson = readJson('package.json');
   const navigation = read('js/navigation/navigation.js');
+  const pageTransitionJs = read('js/navigation/page-transitions.js');
+  const pageTransitionCss = read('css/components/page-transitions.css');
+  const noJs = read('js/common/no-js.js');
   const activityEvents = read('js/analytics/activity-events.js');
   const homeLibraryData = require('../../js/home/home-library-data.js');
   const publishedProjects = fs.readdirSync(path.join(ROOT, 'content', 'projects'))
@@ -313,19 +316,23 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     ['games', '/games', 'View all games']
   ].forEach(([id, href, label]) => {
     const itemHtml = getItemHtml(id);
-    const cta = `<a class="home-accordion__panel-cta" href="${href}">${label}`;
-    assert(itemHtml.includes(cta) &&
-      itemHtml.indexOf(cta) > itemHtml.indexOf('<ul class="home-accordion__cards">') &&
-      !itemHtml.includes('data-home-library') &&
-      !itemHtml.includes('home-library'),
-    `${id} View all control should be a semantic link to its canonical directory without an authored inline library`);
+    const ctaMarker = `data-home-library-open="${id}"`;
+    assert(itemHtml.includes(`href="${href}"`) &&
+      itemHtml.includes(ctaMarker) &&
+      itemHtml.includes(`aria-controls="home-library-view-${id}"`) &&
+      itemHtml.indexOf(ctaMarker) > itemHtml.indexOf('<ul class="home-accordion__cards">') &&
+      itemHtml.includes(`data-home-library-view="${id}"`) &&
+      itemHtml.includes('hidden inert') &&
+      itemHtml.includes(`data-home-library-close="${id}"`),
+    `${id} View all link should keep its canonical fallback while exposing an authored in-page library and return control`);
   });
-  assert(!html.includes('data-home-library') &&
-    !html.includes('home-library') &&
-    !html.includes('data-home-view=') &&
+  assert(count(html, /data-home-library-view=/g) === 3 &&
+    count(html, /data-home-library-open=/g) === 3 &&
+    count(html, /data-home-library-close=/g) === 3 &&
+    html.includes('data-home-view="overview"') &&
     !html.includes('Back to categories') &&
-    !html.includes('Back to overview'),
-  'homepage markup should contain only the five-category overview without inline-library state or return controls');
+    html.includes('Back to overview'),
+  'homepage markup should author three progressively enhanced libraries while retaining the five-category overview');
   assert(html.includes('<ul class="home-accordion__cards">') &&
     html.includes('<li class="home-accordion__card-item">') &&
     /<a class="home-accordion__card" href="\/tools\/text-compare"/.test(html) &&
@@ -497,11 +504,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     /const dirs = \[[^\]]*'img'/.test(copyToPublic),
   'CMS generation, project-original validation, generated-preview validation, main build, and hash-identical public copy should stay integrated');
 
-  assert(!js.includes('HOME_LIBRARY_DATA') &&
-    !js.includes('createLibraryMedia') &&
-    !js.includes('createLibraryCard') &&
-    !js.includes('renderLibrary'),
-  'homepage controller should not ship the retired inline-library renderer or its data dependency');
+  assert(js.includes('HOME_LIBRARY_DATA') &&
+    js.includes('createLibraryMedia') &&
+    js.includes('createLibraryCard') &&
+    js.includes('renderLibrary') &&
+    js.includes("link.dataset.personalTransition = 'detail'"),
+  'homepage controller should render the complete library data in place and mark item links for continuous detail navigation');
   const libraryToolIds = new Set(homeLibraryData.tools.items.map((tool) => tool.id));
   const excludedTools = toolsDirectoryItems.filter((tool) =>
     String(tool.visibility || 'public').toLowerCase() !== 'public' || tool.hidden || tool.noindex);
@@ -527,14 +535,44 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     !fs.existsSync(path.join(ROOT, 'css/components/home-project-graph.css')),
   'retired graph source files should be removed');
 
+  const libraryDataImportIndex = homeEntry.indexOf("import '../../js/home/home-library-data.js';");
   const accordionImportIndex = homeEntry.indexOf("import '../../js/home/category-accordion.js';");
-  assert(accordionImportIndex >= 0 &&
+  assert(libraryDataImportIndex >= 0 && accordionImportIndex > libraryDataImportIndex &&
     homeStyles.includes('@import url("components/home-category-accordion.css");') &&
+    homeStyles.includes('@import url("components/home-library.css");') &&
     sharedStyles.includes('@import url("components/home-timeline.css");'),
-  'homepage bundles should initialize the overview controller and load its accordion and shared timeline styles');
+  'homepage bundles should load library data before the controller and include accordion, library, and shared timeline styles');
   assert(personal.page.bottomScripts.some((script) => script.src === 'dist/site-home.js') &&
     !JSON.stringify(personal.page.bottomScripts).includes('project-graph'),
   'managed homepage source should use the stable home bundle without raw graph scripts');
+  const nativeTransitionBranch = pageTransitionJs.indexOf(
+    'if (personalSurfaceNavigation && supportsCrossDocumentViewTransitions())'
+  );
+  const fallbackPreventDefault = pageTransitionJs.indexOf('event.preventDefault();', nativeTransitionBranch);
+  assert(pageTransitionCss.includes('@view-transition {') &&
+    pageTransitionCss.includes('navigation: auto;') &&
+    pageTransitionCss.includes('view-transition-name: site-header;') &&
+    pageTransitionCss.includes('view-transition-name: site-footer;') &&
+    libraryCss.includes('view-transition-name: personal-shell;') &&
+    libraryCss.includes('view-transition-name: personal-panel;') &&
+    libraryCss.includes('view-transition-name: personal-rail;'),
+  'home, library, and detail documents should opt into shared header, footer, shell, panel, and rail view transitions');
+  assert(pageTransitionJs.includes("CSS.supports('view-transition-name: site-shell')") &&
+    pageTransitionJs.includes("'onpageswap' in window") &&
+    pageTransitionJs.includes("'onpagereveal' in window") &&
+    nativeTransitionBranch >= 0 && fallbackPreventDefault > nativeTransitionBranch &&
+    pageTransitionJs.slice(nativeTransitionBranch, fallbackPreventDefault).includes('dispatchNavigationEvent(url);') &&
+    pageTransitionJs.slice(nativeTransitionBranch, fallbackPreventDefault).includes('return;') &&
+    pageTransitionJs.includes("document.addEventListener('pointerover', queueLinkPrefetch") &&
+    pageTransitionJs.includes("document.addEventListener('focusin', queueLinkPrefetch)") &&
+    pageTransitionJs.includes("storePendingNavigation(url, continuous ? 'continuous' : 'fade')") &&
+    pageTransitionJs.includes('startContinuousExit();') &&
+    noJs.includes("payload.mode === 'continuous'") &&
+    noJs.includes("'site-page-transition-continuous-preload'") &&
+    pageTransitionCss.includes('html.site-page-transition-continuous-preload #main') &&
+    pageTransitionCss.includes('opacity: .94;') &&
+    pageTransitionCss.includes('@keyframes page-transition-continuous-in'),
+  'supported personal item links should navigate natively without the blank fade while unsupported browsers retain the fallback and delegated prefetching');
 
   const overviewPanelCss = extractBlock(css, '.home-accordion__panel {');
   const overviewScrollerCss = extractBlock(css, '.home-accordion__scroller {');
@@ -657,9 +695,17 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const canonicalPanelHashJs = extractFunctionBlock(js, 'function canonicalPanelHash');
   const updateLocationJs = extractFunctionBlock(js, 'function updateLocation');
   const updateTriggerStateJs = extractFunctionBlock(js, 'function updateTriggerState');
-  const legacyLocationJs = extractFunctionBlock(js, 'function normalizeLegacyLibraryLocation');
+  const libraryLocationJs = extractFunctionBlock(js, 'function libraryCategoryFromLocation');
+  const updateLibraryVisibilityJs = extractFunctionBlock(js, 'function updateLibraryViewVisibility');
+  const applyLibraryModeJs = extractFunctionBlock(js, 'function applyLibraryMode');
+  const runViewTransitionJs = extractFunctionBlock(js, 'function runViewTransition');
   const resolveTriggerTargetJs = extractFunctionBlock(js, 'function resolveTriggerTarget');
   const activatePanelTriggerJs = extractFunctionBlock(js, 'function activatePanelTrigger');
+  const syncDocumentMetadataJs = extractFunctionBlock(js, 'function syncDocumentMetadata');
+  const focusLibraryHeadingJs = extractFunctionBlock(js, 'function focusLibraryHeading');
+  const focusOverviewReturnJs = extractFunctionBlock(js, 'function focusOverviewReturn');
+  const openLibraryJs = extractFunctionBlock(js, 'function openLibrary');
+  const closeLibraryJs = extractFunctionBlock(js, 'function closeLibrary');
   const handleLocationChangeJs = extractFunctionBlock(js, 'function handleLocationChange');
   assert(js.includes('const closeTimers = new Map();') &&
     js.includes('const PANEL_TRANSITION_MS = 520;') &&
@@ -668,7 +714,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes("panel.setAttribute('inert', '')") &&
     js.includes("panel.removeAttribute('inert')") &&
     js.includes('if (!ids.includes(id)) return false;') &&
-    js.includes('if (id === activeId) return false;'),
+    js.includes('if (id === activeId) {'),
   'accordion controller should animate the outgoing desktop panel, enforce one interactive panel, and keep its low-level selection operation idempotent');
   const triggerResolutionContext = {};
   vm.runInNewContext(
@@ -698,6 +744,18 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes("event.key === 'Enter'") &&
     js.includes("event.key === ' '"),
   'accordion rails should support directional movement plus Enter and Space activation');
+  const homeKeyIndex = js.indexOf("} else if (event.key === 'Home')");
+  const endKeyIndex = js.indexOf("} else if (event.key === 'End')", homeKeyIndex);
+  const activationKeyIndex = js.indexOf("} else if (event.key === 'Enter'", endKeyIndex);
+  const homeKeyJs = homeKeyIndex >= 0 && endKeyIndex > homeKeyIndex
+    ? js.slice(homeKeyIndex, endKeyIndex)
+    : '';
+  const endKeyJs = endKeyIndex >= 0 && activationKeyIndex > endKeyIndex
+    ? js.slice(endKeyIndex, activationKeyIndex)
+    : '';
+  assert(homeKeyJs.includes('isLibraryMode ? triggerById.get(activeId) : triggers[0]') &&
+    endKeyJs.includes('isLibraryMode ? triggerById.get(activeId) : triggers[triggers.length - 1]'),
+  'Home and End should keep focus on the sole visible active rail trigger while a library is expanded');
   assert(js.includes('scrollPositions') &&
     js.includes('scroller.scrollTop') &&
     js.includes('timelineScrollerById') &&
@@ -707,21 +765,54 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'accordion should preserve spacious-rail panel scroll positions and reveal newly opened stacked sections');
   assert(js.includes('decodeURIComponent(rawId)') &&
     js.includes('catch (error)') &&
-    legacyLocationJs.includes("url.searchParams.get('view') !== 'library'") &&
+    libraryLocationJs.includes("url.searchParams.get('view') === 'library'") &&
     js.includes("projects: '/portfolio'") &&
     js.includes("tools: '/tools'") &&
     js.includes("games: '/games'") &&
-    legacyLocationJs.includes('window.location.replace(') &&
-    legacyLocationJs.includes("url.searchParams.delete('view')") &&
-    legacyLocationJs.includes('window.history.replaceState(window.history.state') &&
-    handleLocationChangeJs.includes('if (normalizeLegacyLibraryLocation()) return;') &&
-    handleLocationChangeJs.includes('if (window.location.hash && !hashPanel) return;') &&
-    handleLocationChangeJs.includes('const nextPanel = hashPanel || defaultPanel;') &&
-    handleLocationChangeJs.includes("else updateLocation(nextPanel, 'replace');") &&
-    handleLocationChangeJs.includes('selectPanel(nextPanel, { updateHistory: false, reveal: true })') &&
+    handleLocationChangeJs.includes('const nextLibraryCategory = libraryCategoryFromLocation();') &&
+    handleLocationChangeJs.includes('const nextPanel = nextLibraryCategory || hashPanel || defaultPanel;') &&
+    handleLocationChangeJs.includes('selectPanel(nextPanel, { updateHistory: false, reveal: !nextLibraryMode })') &&
+    handleLocationChangeJs.includes('applyLibraryMode(nextLibraryMode') &&
     js.includes("window.addEventListener('hashchange', handleLocationChange)") &&
     js.includes("window.addEventListener('popstate', handleLocationChange)"),
-  'accordion should preserve hash history, redirect valid legacy library URLs, and strip invalid legacy query state without discarding the hash');
+  'accordion should preserve hash history, recognize canonical library routes, normalize legacy library links, and restore popstate in place');
+  const duplicateLocationGuardIndex = handleLocationChangeJs.indexOf(
+    'if (currentHref === lastHandledLocationHref) return;'
+  );
+  const locationStateGuardIndex = handleLocationChangeJs.indexOf('if (modeChanged || panelChanged) {');
+  const locationScrollSaveIndex = handleLocationChangeJs.indexOf(
+    'saveScrollPosition(activeId, isLibraryMode);'
+  );
+  const locationDocumentSaveIndex = handleLocationChangeJs.indexOf(
+    'saveDocumentScrollPosition(activeId, isLibraryMode);'
+  );
+  const locationStateGuardJs = extractBlock(
+    handleLocationChangeJs,
+    'if (modeChanged || panelChanged)'
+  );
+  assert(js.includes("let lastHandledLocationHref = '';") &&
+    handleLocationChangeJs.includes('const currentHref = window.location.href;') &&
+    handleLocationChangeJs.includes('lastHandledLocationHref = currentHref;') &&
+    handleLocationChangeJs.includes('const modeChanged = nextLibraryMode !== isLibraryMode;') &&
+    handleLocationChangeJs.includes('const panelChanged = nextPanel !== activeId;') &&
+    duplicateLocationGuardIndex >= 0 &&
+    locationStateGuardIndex > duplicateLocationGuardIndex &&
+    locationScrollSaveIndex > locationStateGuardIndex &&
+    locationDocumentSaveIndex > locationStateGuardIndex &&
+    locationStateGuardJs.includes('saveScrollPosition(activeId, isLibraryMode);') &&
+    locationStateGuardJs.includes('saveDocumentScrollPosition(activeId, isLibraryMode);'),
+  'popstate and hashchange should share a location guard and save scroll state only when the active panel or view mode changes');
+  assert(focusLibraryHeadingJs.includes("querySelector('[data-home-library-heading]')") &&
+    focusLibraryHeadingJs.includes('focus({ preventScroll: true })') &&
+    focusOverviewReturnJs.includes('`[data-home-library-open="${id}"]`') &&
+    focusOverviewReturnJs.includes('|| triggerById.get(id)') &&
+    focusOverviewReturnJs.includes('focus({ preventScroll: true })') &&
+    handleLocationChangeJs.includes('afterApply: modeChanged ? restoreLocationState : null') &&
+    handleLocationChangeJs.includes('if (nextLibraryMode) focusLibraryHeading(nextPanel);') &&
+    handleLocationChangeJs.includes('else focusOverviewReturn(nextPanel);') &&
+    applyLibraryModeJs.includes("typeof options.afterApply === 'function'") &&
+    applyLibraryModeJs.includes('options.afterApply();'),
+  'history-driven mode changes should move focus to the visible library heading or the matching overview return control after the view updates');
   const canonicalHashContext = {};
   vm.runInNewContext(
     `${canonicalPanelHashJs}\nthis.canonicalPanelHash = canonicalPanelHash;`,
@@ -737,15 +828,32 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(ids.every((id) => canonicalHashContext.canonicalPanelHash(id) === expectedTabHashes[id]) &&
     updateLocationJs.includes('url.hash = id;'),
   'every homepage tab should have a stable, canonical hash URL');
-  assert(updateLocationJs.includes("url.searchParams.delete('view')") &&
-    !updateLocationJs.includes("url.searchParams.set('view', 'library')") &&
+  assert(updateLocationJs.includes('url.pathname = LIBRARY_ROUTES[id]') &&
+    updateLocationJs.includes("url.pathname = '/'") &&
+    updateLocationJs.includes("url.searchParams.delete('view')") &&
     updateLocationJs.includes("mode === 'replace' ? 'replaceState' : 'pushState'") &&
-    updateLocationJs.includes('{ homePanel: id }') &&
-    js.includes("updateLocation(id, options.historyMode || 'push')") &&
-    js.includes("updateLocation(id, 'replace')"),
-  'explicit category selections should preserve a clean canonical hash and use push versus replace history deliberately');
-  assert(!/LibraryMode|libraryOpen|libraryClose|libraryView|documentScrollPositions|startViewTransition/.test(js) &&
-    updateTriggerStateJs.includes('selected && triggerId === defaultPanel') &&
+    updateLocationJs.includes("homeView: libraryMode ? 'library' : 'overview'") &&
+    openLibraryJs.includes("updateLocation(id, 'push', true)") &&
+    closeLibraryJs.includes("updateLocation(closingId, options.historyMode || 'push', false)"),
+  'library expansion should push canonical dedicated paths while collapse returns to the matching homepage hash');
+  assert(js.includes('const LIBRARY_DOCUMENT_TITLES = Object.freeze({') &&
+    js.includes("const canonicalLink = document.querySelector('link[rel=\"canonical\"]');") &&
+    js.includes('const overviewDocumentMetadata = Object.freeze({') &&
+    js.includes('title: document.title') &&
+    js.includes("canonicalHref: canonicalLink?.getAttribute('href') || ''") &&
+    syncDocumentMetadataJs.includes('document.title = libraryMode && LIBRARY_DOCUMENT_TITLES[id]') &&
+    syncDocumentMetadataJs.includes(': overviewDocumentMetadata.title;') &&
+    syncDocumentMetadataJs.includes("canonicalLink.setAttribute('href', libraryMode && LIBRARY_ROUTES[id]") &&
+    syncDocumentMetadataJs.includes(': overviewDocumentMetadata.canonicalHref);') &&
+    count(applyLibraryModeJs, /syncDocumentMetadata\(activeId, next\);/g) === 2,
+  'inline library URLs should publish their dedicated title and canonical URL, then restore the homepage metadata on overview return');
+  assert(updateLibraryVisibilityJs.includes('visible = isLibraryMode && id === activeId') &&
+    applyLibraryModeJs.includes("root.classList.toggle('is-library-mode', next)") &&
+    runViewTransitionJs.includes("typeof document.startViewTransition === 'function'") &&
+    runViewTransitionJs.includes('!reducedMotionQuery.matches') &&
+    activatePanelTriggerJs.includes('if (isLibraryMode && id === activeId)') &&
+    activatePanelTriggerJs.includes('return closeLibrary({ restoreFocus: false });') &&
+    updateTriggerStateJs.includes('selected && triggerId === defaultPanel && !isLibraryMode') &&
     updateTriggerStateJs.includes("trigger.setAttribute('aria-disabled', 'true')") &&
     updateTriggerStateJs.includes("trigger.removeAttribute('aria-disabled')") &&
     updateTriggerStateJs.includes("trigger.removeAttribute('aria-current')") &&
@@ -753,13 +861,14 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes("region.removeAttribute('tabindex')") &&
     js.includes('scrollTarget.scrollHeight > scrollTarget.clientHeight + 1') &&
     js.includes('scrollTarget.scrollWidth > scrollTarget.clientWidth + 1'),
-  'only active About should expose a noncollapsible state, and only truly overflowing vertical or horizontal regions should add a tab stop');
-  assert(js.includes('const initialHashPanel = panelIdFromHash();') &&
-    js.includes('const initialPanel = initialHashPanel || defaultPanel;') &&
-    js.includes('if (normalizeLegacyLibraryLocation()) return;') &&
-    js.includes("updateLocation(initialPanel, 'replace')") &&
+  'expanded libraries should remain collapsible from their single rail, animate accessibly, and expose tab stops only for real overflow');
+  assert(js.includes('const initialLibraryCategory = libraryCategoryFromLocation();') &&
+    js.includes('const initialPanel = initialLibraryCategory || initialHashPanel || defaultPanel;') &&
+    js.includes('applyLibraryMode(initialLibraryMode, { animate: false, force: true })') &&
+    js.includes("updateLocation(initialPanel, 'replace', true)") &&
+    js.includes("updateLocation(initialPanel, 'replace', false)") &&
     js.includes('revealPanelTrigger(initialHashPanel);'),
-  'initial deep links should restore the requested overview category and canonicalize a bare homepage URL to About');
+  'initial deep links should restore canonical library or overview state without animating first paint');
   assert(!html.includes('data-home-accordion-scroller tabindex="0"') &&
     html.includes('<h3>Hi, I’m Daniel.</h3>'),
   'authored panels should avoid generic scroller tab stops and keep panel titles beneath accordion headings');

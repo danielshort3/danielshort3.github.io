@@ -1855,8 +1855,7 @@
       { label: 'Theme color', path: 'themeColor', placeholder: '#0D1117' },
       { label: 'Google Analytics ID', path: 'analytics.googleAnalyticsId', placeholder: 'G-XXXXXXXXXX' },
       { label: 'Google Tag Manager ID', path: 'analytics.googleTagManagerId', placeholder: 'GTM-XXXXXXX' },
-      { label: 'Facebook Pixel ID', path: 'analytics.facebookPixelId' },
-      { label: 'LinkedIn Partner ID', path: 'analytics.linkedinPartnerId' }
+      { label: 'Facebook Pixel ID', path: 'analytics.facebookPixelId' }
     ].forEach((field) => {
       const options = {
         label: field.label,

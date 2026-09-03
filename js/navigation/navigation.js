@@ -296,19 +296,6 @@
       `
     },
     {
-      label: 'LinkedIn',
-      href: 'https://www.linkedin.com/in/danielshort3/',
-      target: '_blank',
-      rel: 'noopener noreferrer',
-      icon: `
-        <svg class="mobile-site-dock__brand-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="5" cy="5" r="2"></circle>
-          <path d="M3.5 9.5h3v11h-3z"></path>
-          <path d="M10 9.5h2.9v1.8h.1c.6-1.1 1.8-2.1 3.8-2.1 2.9 0 4.7 1.9 4.7 5.7v5.6h-3.1v-5c0-1.7-.6-2.8-2.2-2.8-1.8 0-3.1 1.1-3.1 3.2v4.6H10z"></path>
-        </svg>
-      `
-    },
-    {
       label: 'GitHub',
       href: 'https://github.com/danielshort3',
       target: '_blank',

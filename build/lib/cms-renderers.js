@@ -76,14 +76,6 @@ function renderSvgMarkup(iconType) {
         '  <path d="M3 7l9 6 9-6"></path>',
         '</svg>'
       ].join('\n');
-    case 'linkedin':
-      return [
-        '<svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">',
-        '  <circle cx="4" cy="4" r="2"></circle>',
-        '  <rect x="2" y="9" width="4" height="12" rx="1"></rect>',
-        '  <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>',
-        '</svg>'
-      ].join('\n');
     case 'github':
       return '<span class="icon icon-github" aria-hidden="true"></span>';
     case 'speed-dial-toggle':

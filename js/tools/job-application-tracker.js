@@ -186,8 +186,8 @@
 		  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
 		  const DASHBOARD_VIEW_KEY = 'jobTrackerDashboardView';
 		  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
-  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,tags,followUpDate,followUpNote,customFields,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,referral;remote,2025-01-20,Nudge recruiter after screening,"{\"salary\":\"120k\",\"priority\":\"High\"}",Acme-Resume.pdf;Acme-Cover.pdf';
-  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes,tags,followUpDate,followUpNote,customFields\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week,remote;priority,2025-01-18,Review again Friday,"{\"priority\":\"High\"}"';
+  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,tags,followUpDate,followUpNote,customFields,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,Company site,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,referral;remote,2025-01-20,Nudge recruiter after screening,"{\"salary\":\"120k\",\"priority\":\"High\"}",Acme-Resume.pdf;Acme-Cover.pdf';
+  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes,tags,followUpDate,followUpNote,customFields\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,Company site,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week,remote;priority,2025-01-18,Review again Friday,"{\"priority\":\"High\"}"';
   const PROSPECT_PROMPT_TEMPLATE = [
     'Prompt:',
     'Using reputable sources and live job data, identify data analyst, data scientist, machine learning engineer, research scientist, analytics engineer, or closely related roles that align with my preferences below. Treat the strict criteria as non-negotiable unless otherwise marked.',
@@ -209,7 +209,7 @@
     '',
     '3) Source Requirements (strict)',
     '- Direct from company website or ATS (Workday, Greenhouse, Lever, Taleo, etc.)',
-    '- No job boards such as LinkedIn, Indeed, ZipRecruiter, Glassdoor, or aggregated feeds.',
+    '- No job boards or aggregated feeds.',
     '',
     '4) Location Preferences (flexible but prioritized)',
     '1. Remote (top preference)',
@@ -5631,7 +5631,7 @@
         location: 'Remote - US',
         postingDate: '2025-03-01',
         appliedDate: '2025-03-05',
-        source: 'LinkedIn',
+        source: 'Company site',
         batch: 'March outreach'
       }, { isExample: true });
       els.entryList.appendChild(example);

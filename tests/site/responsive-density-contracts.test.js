@@ -98,9 +98,10 @@ function runResponsiveDensityContractTests({ assert }) {
     assert(
       countMatches(html, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
         countMatches(html, /class="personal-accordion__toolbar"/g) === 1 &&
-        /class="personal-accordion__rails"[^>]*aria-hidden="true"/i.test(html) &&
-        !/<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b/i.test(html),
-      'canonical personal shells should expose one decorative category marker and one shared context toolbar',
+        !/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(html) &&
+        /<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b[^>]*href="\/#games"/i.test(html) &&
+        html.includes('data-personal-transition="collapse"'),
+      'canonical personal shells should expose one actionable category rail and one shared context toolbar',
     );
   });
   assert(

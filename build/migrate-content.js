@@ -352,13 +352,6 @@ function buildNavigation(featuredProjectIds) {
           href: 'mailto:daniel@danielshort.me'
         },
         {
-          title: 'LinkedIn',
-          subtitle: 'linkedin.com/in/danielshort3',
-          href: 'https://www.linkedin.com/in/danielshort3/',
-          target: '_blank',
-          rel: 'noopener noreferrer'
-        },
-        {
           title: 'GitHub',
           subtitle: 'github.com/danielshort3',
           href: 'https://github.com/danielshort3',
@@ -416,12 +409,6 @@ function buildFooter() {
         title: 'Connect',
         links: [
           {
-            label: 'LinkedIn',
-            href: 'https://www.linkedin.com/in/danielshort3/',
-            target: '_blank',
-            rel: 'noopener noreferrer'
-          },
-          {
             label: 'GitHub',
             href: 'https://github.com/danielshort3',
             target: '_blank',
@@ -466,14 +453,6 @@ function buildFooter() {
           href: 'mailto:daniel@danielshort.me',
           ariaLabel: 'Send Email',
           iconType: 'email'
-        },
-        {
-          label: 'View LinkedIn',
-          href: 'https://www.linkedin.com/in/danielshort3/',
-          target: '_blank',
-          rel: 'noopener noreferrer',
-          ariaLabel: 'View LinkedIn',
-          iconType: 'linkedin'
         },
         {
           label: 'View GitHub',

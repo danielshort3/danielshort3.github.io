@@ -53,7 +53,9 @@
           const isFresh = payload && Number.isFinite(payload.ts) && (Date.now() - payload.ts) <= TRANSITION_TTL_MS;
           const matchesCurrent = payload && typeof payload.target === 'string' && payload.target === normalizeTarget(window.location.href);
           if (isFresh && matchesCurrent) {
-            root.classList.add('site-page-transition-preload');
+            root.classList.add(payload.mode === 'continuous'
+              ? 'site-page-transition-continuous-preload'
+              : 'site-page-transition-preload');
           }
         }
       } catch {}

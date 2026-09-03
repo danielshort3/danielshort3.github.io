@@ -102,7 +102,6 @@
   function contactMethod(link) {
     const href = String(link?.getAttribute('href') || '').toLowerCase();
     if (href.startsWith('mailto:')) return 'email';
-    if (href.includes('linkedin.com')) return 'linkedin';
     if (href.includes('github.com')) return 'github';
     return 'message_form';
   }
@@ -554,7 +553,7 @@
     }
 
     const contactLink = target.closest('[data-contact-modal-link], a[href^="mailto:"]');
-    const socialContact = target.closest('.contact-card[href*="linkedin.com"], .contact-card[href*="github.com"], [data-speed-dial-action][href*="linkedin.com"], [data-speed-dial-action][href*="github.com"]');
+    const socialContact = target.closest('.contact-card[href*="github.com"], [data-speed-dial-action][href*="github.com"]');
     const contactTarget = contactLink || socialContact;
     if (contactTarget) {
       emit('contact_intent', {
