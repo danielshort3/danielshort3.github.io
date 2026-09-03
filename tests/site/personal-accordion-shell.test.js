@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const {
+  CATEGORY_CONFIG,
   PERSONAL_CONTENT_END,
   PERSONAL_SHELL_END,
   unwrapPersonalAccordionHtml,
@@ -95,10 +96,12 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(count(wrapped, /data-personal-rail-active="true"/g) === 1,
     'Personal shell should identify one active category marker');
   assert(count(wrapped, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
-    !/<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b/i.test(wrapped),
-  'Personal shell should render one static, non-link category marker');
-  assert(/class="personal-accordion__rails"[^>]*aria-hidden="true"/i.test(wrapped),
-    'Desktop category marker should be decorative because the page heading carries identity');
+    /<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b[^>]*href="\/#contact"[^>]*aria-label="Return to the Contact section on the homepage"/i.test(wrapped) &&
+    wrapped.includes('data-personal-transition="collapse"'),
+  'Personal shell should render one labelled category rail that returns to the matching homepage section');
+  assert(/class="personal-accordion__rails"[^>]*data-personal-category-marker="contact"/i.test(wrapped) &&
+    !/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(wrapped),
+  'Clickable category rail should remain exposed to assistive technology');
   assert(wrapped.includes('href="/#contact" aria-label="Back to categories"') &&
     wrapped.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
     'Contact detail should return to the homepage categories');
@@ -202,10 +205,12 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(count(html, /data-personal-rail-active="true"/g) === 1,
       `${relativePath} should identify exactly one active category marker`);
     assert(count(html, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
-      !/<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b/i.test(html),
-    `${relativePath} should expose one static category marker and no cross-category rail links`);
-    assert(/class="personal-accordion__rails"[^>]*aria-hidden="true"/i.test(html),
-      `${relativePath} should keep its desktop marker out of the accessibility tree`);
+      new RegExp(`<a\\b[^>]*class="[^"]*\\bpersonal-accordion__rail\\b[^>]*href="\\/#${category}"`).test(html) &&
+      html.includes(`aria-label="Return to the ${CATEGORY_CONFIG[category].label} section on the homepage"`) &&
+      html.includes('data-personal-transition="collapse"'),
+    `${relativePath} should expose one actionable category rail and no cross-category rail links`);
+    assert(!/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(html),
+      `${relativePath} should expose its return rail to assistive technology`);
     assert(count(html, /class="personal-accordion__toolbar"/g) === 1,
       `${relativePath} should render one shared toolbar/context bar`);
     assert(count(html, /<main\b/gi) === 1, `${relativePath} should retain one main element`);
@@ -350,8 +355,13 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(shellCss.includes('--personal-rail-size: 68px;') &&
     shellCss.includes('grid-template-rows: minmax(0, 1fr);') &&
     railRule.includes('background: var(--rail-color);') &&
-    !railRule.includes('transition:'),
-  'Desktop category marker should be a full-height static 68px solid-color rail');
+    railRule.includes('cursor: pointer;') &&
+    railRule.includes('transition: filter .18s ease, box-shadow .18s ease;') &&
+    shellCss.includes('.personal-accordion__rail:is(:hover, :focus-visible)') &&
+    shellCss.includes('.personal-accordion__rail:focus-visible') &&
+    shellCss.includes('@media (prefers-reduced-motion: reduce)') &&
+    shellCss.includes('.personal-accordion__rail,'),
+  'Desktop category rail should be a full-height actionable 68px control with restrained motion and visible focus');
   assert(shellCss.includes('--personal-toolbar-size: 48px;') &&
     shellCss.includes('border: 4px solid var(--panel-color);') &&
     shellCss.includes('min-height: 44px;'),

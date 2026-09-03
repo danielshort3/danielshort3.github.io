@@ -14,12 +14,6 @@
       "rel": "noopener noreferrer"
     },
     {
-      "label": "LinkedIn",
-      "href": "https://www.linkedin.com/in/danielshort3/",
-      "target": "_blank",
-      "rel": "noopener noreferrer"
-    },
-    {
       "label": "Privacy",
       "href": "privacy"
     },
@@ -109,12 +103,6 @@
         "title": "Connect",
         "links": [
           {
-            "label": "LinkedIn",
-            "href": "https://www.linkedin.com/in/danielshort3/",
-            "target": "_blank",
-            "rel": "noopener noreferrer"
-          },
-          {
             "label": "GitHub",
             "href": "https://github.com/danielshort3",
             "target": "_blank",
@@ -166,12 +154,6 @@
             "dataAttributes": {
               "data-contact-modal-link": "true"
             }
-          },
-          {
-            "label": "LinkedIn",
-            "href": "https://www.linkedin.com/in/danielshort3/",
-            "target": "_blank",
-            "rel": "noopener noreferrer"
           },
           {
             "label": "GitHub",
@@ -248,12 +230,6 @@
           }
         },
         {
-          "label": "LinkedIn",
-          "href": "https://www.linkedin.com/in/danielshort3/",
-          "target": "_blank",
-          "rel": "noopener noreferrer"
-        },
-        {
           "label": "GitHub",
           "href": "https://github.com/danielshort3",
           "target": "_blank",
@@ -309,14 +285,6 @@
         "href": "mailto:daniel@danielshort.me",
         "ariaLabel": "Send Email",
         "iconType": "email"
-      },
-      {
-        "label": "View LinkedIn",
-        "href": "https://www.linkedin.com/in/danielshort3/",
-        "target": "_blank",
-        "rel": "noopener noreferrer",
-        "ariaLabel": "View LinkedIn",
-        "iconType": "linkedin"
       },
       {
         "label": "View GitHub",

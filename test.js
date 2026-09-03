@@ -802,13 +802,47 @@ try {
 
     const contactPageHtml = readFile('pages/contact.html');
     assert(contactPageHtml.includes('id="contact-options"') &&
-           (contactPageHtml.match(/class="contact-card"/g) || []).length === 3 &&
+           (contactPageHtml.match(/class="contact-card"/g) || []).length === 2 &&
            (contactPageHtml.match(/id="contact-form-toggle"/g) || []).length === 1 &&
            contactPageHtml.includes('Grand Junction, Colorado'),
-      'contact page should keep one form entry point plus three concise alternate contact options');
+      'contact page should keep one form entry point plus email and GitHub contact options');
+    assert(!/linkedin/i.test(contactPageHtml),
+      'contact page should omit the disabled LinkedIn profile');
     assert(!contactPageHtml.includes('data-google-maps-iframe') &&
            !contactPageHtml.includes('maps/embed/v1/place?key='),
       'contact page should omit the redundant map embed and any committed Google Maps API key');
+
+    const retiredSocialProfilePattern = /linkedin(?:\.com)?/i;
+    [
+      'content/site/settings.json',
+      'content/site/navigation.json',
+      'content/site/footer.json',
+      'content/pages/contact.json',
+      'content/pages/resume-directory.json',
+      'content/resumes/analytics.json',
+      'content/resumes/data-science.json',
+      'content/resumes/tourism.json',
+      'build/templates/footer.partial.html',
+      'build/templates/footer.analytics.partial.html',
+      'build/templates/footer.data-science.partial.html',
+      'build/templates/footer.tourism.partial.html',
+      'js/navigation/navigation.js',
+      'js/common/common.js',
+      'js/common/site-realm.js',
+      'api/chatbot.js',
+      'api/_lib/chatbot-knowledge.js'
+    ].forEach((file) => {
+      assert(!retiredSocialProfilePattern.test(readFile(file)),
+        `${file} should omit the disabled LinkedIn profile and related copy`);
+    });
+    const renderedHtmlFiles = [
+      ...fs.readdirSync('.').filter((name) => name.endsWith('.html')),
+      ...listFilesRecursive('pages').filter((name) => name.endsWith('.html'))
+    ];
+    renderedHtmlFiles.forEach((file) => {
+      assert(!retiredSocialProfilePattern.test(readFile(file)),
+        `${file} should not render LinkedIn anywhere on the website`);
+    });
 
     const titleConventionPages = [
       ...Object.keys(expectedTitles),
@@ -38874,7 +38908,7 @@ try {
       defaultDurationUnit: 'days',
       entries: [
         { label: 'Analytics site', destination: '/analytics', enabled: true },
-        { label: 'LinkedIn', destination: 'https://www.linkedin.com/in/danielshort3/', enabled: true }
+        { label: 'GitHub', destination: 'https://github.com/danielshort3', enabled: true }
       ]
     }, null);
 
@@ -40067,6 +40101,16 @@ try {
     const analyticsFooterTemplate = fs.readFileSync('build/templates/footer.analytics.partial.html', 'utf8');
     const dataScienceFooterTemplate = fs.readFileSync('build/templates/footer.data-science.partial.html', 'utf8');
     const tourismFooterTemplate = fs.readFileSync('build/templates/footer.tourism.partial.html', 'utf8');
+    [
+      [footerTemplate, 'personal'],
+      [analyticsFooterTemplate, 'analytics'],
+      [dataScienceFooterTemplate, 'data-science'],
+      [tourismFooterTemplate, 'tourism']
+    ].forEach(([template, audience]) => {
+      const footerMarkup = template.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] || '';
+      assert(footerMarkup && !/linkedin/i.test(template),
+        `${audience} shell should omit the disabled LinkedIn profile everywhere`);
+    });
     assert(headerTemplate.includes('class="brand-logo"'), 'nav markup missing brand-logo');
     assert(headerTemplate.includes('img/brand/00-ds-logo-master-full-color.svg'), 'nav should use approved DS brand logo asset');
     assert(!headerTemplate.includes('ds-decision-path-logo'), 'nav should not use the retired decision-path logo');
@@ -40097,14 +40141,13 @@ try {
       !footerTemplate.includes('class="footer-nav"') &&
       !footerTemplate.includes('data-footer-realm='),
       'personal footer should render the compact personal-only footer instead of directory columns');
-    ['Email', 'GitHub', 'LinkedIn', 'Privacy', 'Cookie settings'].forEach((label) => {
+    ['Email', 'GitHub', 'Privacy', 'Cookie settings'].forEach((label) => {
       assert(footerTemplate.includes(`>${label}</`), `personal footer should include ${label}`);
     });
     assert(footerTemplate.includes('href="mailto:daniel@danielshort.me"') &&
       footerTemplate.includes('href="https://github.com/danielshort3"') &&
-      footerTemplate.includes('href="https://www.linkedin.com/in/danielshort3/"') &&
       footerTemplate.includes('href="privacy"'),
-      'personal footer should link to the requested contact, social, and privacy destinations');
+      'personal footer should link to the requested contact, GitHub, and privacy destinations');
     [
       [analyticsFooterTemplate, 'analytics', 'resume-analytics'],
       [dataScienceFooterTemplate, 'data-science', 'resume-data-science'],
@@ -40142,10 +40185,18 @@ try {
     const footerContent = JSON.parse(readFile('content/site/footer.json'));
     const personalCompactLinks = footerContent.personalCompactLinks || [];
     assert(JSON.stringify(personalCompactLinks.map((link) => link.label)) ===
-      JSON.stringify(['Email', 'GitHub', 'LinkedIn', 'Privacy', 'Cookie settings']),
+      JSON.stringify(['Email', 'GitHub', 'Privacy', 'Cookie settings']),
       'footer content source should define the compact personal links in display order');
     assert(personalCompactLinks.find((link) => link.label === 'Cookie settings')?.id === 'privacy-settings-link-footer',
       'compact personal footer should preserve the shared cookie settings control id');
+    const footerNavigationLabels = [
+      ...(footerContent.columns || []).flatMap((column) => column.links || []),
+      ...Object.values(footerContent.navVariants || {}).flatMap((columns) => (
+        columns.flatMap((column) => column.links || [])
+      ))
+    ].map((link) => link.label);
+    assert(!footerNavigationLabels.includes('LinkedIn') && !/linkedin/i.test(JSON.stringify(footerContent)),
+      'footer content source should omit LinkedIn from navigation and the speed dial');
     assert(!JSON.stringify(footerContent).includes('data-site-realm-switch') &&
       !JSON.stringify(footerContent).includes('/?mode=professional'),
       'footer content source should not retain personal/professional realm switch records');

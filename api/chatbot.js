@@ -487,8 +487,8 @@ function suggestedLinksFromRetrieval(message, retrieval, options = {}) {
   const links = [];
   const seen = new Set();
 
-  if (/\b(contact|email|reach|linkedin|github|message|note)\b/.test(query)) {
-    addSuggestedLink(links, seen, { title: 'Contact Daniel', url: '/contact', reason: 'Use the contact page for email, LinkedIn, GitHub, and direct messages.' });
+  if (/\b(contact|email|reach|github|message|note)\b/.test(query)) {
+    addSuggestedLink(links, seen, { title: 'Contact Daniel', url: '/contact', reason: 'Use the contact page for email, GitHub, and direct messages.' });
   }
   if (/\bportfolio|project|case stud|dashboard|example|work sample\b/.test(query)) {
     addSuggestedLink(links, seen, profile
@@ -538,10 +538,10 @@ function navigationAnswer(message, retrieval, pageContext = {}) {
     messageEcho: String(message || '').slice(0, 120)
   };
 
-  if (/\b(contact|email|reach|linkedin|github|message|note)\b/.test(query)) {
+  if (/\b(contact|email|reach|github|message|note)\b/.test(query)) {
     return {
       ...base,
-      answer: 'Use [Contact Daniel](/contact) for email, LinkedIn, GitHub, and direct message options.'
+      answer: 'Use [Contact Daniel](/contact) for email, GitHub, and direct message options.'
     };
   }
 
@@ -1047,7 +1047,7 @@ function mentionsOffAudience(text, context = {}) {
 
 function followupIntent(text) {
   const value = normalizePrompt(text);
-  if (/\b(contact|email|reach|message|linkedin|github|ask)\b/.test(value)) return 'next-step';
+  if (/\b(contact|email|reach|message|github|ask)\b/.test(value)) return 'next-step';
   if (/\b(experience|background|qualified|qualification)\b/.test(value)) return 'background';
   if (/\b(project|portfolio|case|example|dashboard|workflow|model|work)\b/.test(value)) return 'project-proof';
   if (/\b(skill|skills|sql|python|tableau|machine|tourism|stakeholder|reporting)\b/.test(value)) return 'skills';
@@ -1134,7 +1134,7 @@ function makeFollowups(message, answer, retrieval, pageContext, history = [], su
   };
   const normalizedMessage = normalizePrompt(message);
 
-  if (/\b(contact|email|reach|linkedin|github|message|note)\b/.test(combined)) {
+  if (/\b(contact|email|reach|github|message|note)\b/.test(combined)) {
     add('Which project should I look at first?');
     add('Which tools has Daniel built?');
     add('Which games has Daniel built?');

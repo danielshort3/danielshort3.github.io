@@ -74,12 +74,12 @@ function renderPersonalRails(activeCategory) {
   const active = normalizeCategory(activeCategory);
   const category = CATEGORY_CONFIG[active];
   return [
-    `<div class="personal-accordion__rails" data-personal-category-marker="${active}" aria-hidden="true">`,
-    `  <div class="personal-accordion__rail personal-accordion__rail--${active} is-active" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-personal-rail-active="true">`,
+    `<div class="personal-accordion__rails" data-personal-category-marker="${active}">`,
+    `  <a class="personal-accordion__rail personal-accordion__rail--${active} is-active" href="${category.href}" aria-label="Return to the ${category.label} section on the homepage" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-personal-rail-active="true" data-personal-transition="collapse">`,
     `    <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
     `    <span class="personal-accordion__rail-label">${category.label}</span>`,
     '    <span class="personal-accordion__rail-notch" aria-hidden="true"></span>',
-    '  </div>',
+    '  </a>',
     '</div>'
   ].join('\n');
 }

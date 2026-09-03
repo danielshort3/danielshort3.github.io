@@ -82,7 +82,7 @@ function detectQueryIntent(message) {
   const has = (pattern) => pattern.test(text);
   const grandJunction = text.includes('grand junction') || text.includes('visit grand junction') || has(/\bvgj\b/);
   return {
-    contact: has(/\b(contact|email|hire|reach|linkedin|github|message)\b/),
+    contact: has(/\b(contact|email|hire|reach|github|message)\b/),
     resume: false,
     portfolio: has(/\b(portfolio|project|projects|case study|case studies|dashboard|example|sample|work sample)\b/),
     tools: has(/\b(tool|tools|utility|utilities|editor|cleanup|qr|utm|recorder|optimizer|generator)\b/),

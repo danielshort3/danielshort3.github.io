@@ -1,7 +1,25 @@
+@view-transition {
+  navigation: auto;
+}
+
 @layer components {
   :root {
     --page-transition-fallback-duration: 220ms;
     --page-transition-fallback-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  #combined-header-nav {
+    view-transition-name: site-header;
+  }
+
+  .footer.footer--personal-compact {
+    view-transition-name: site-footer;
+  }
+
+  ::view-transition-group(site-header),
+  ::view-transition-group(site-footer) {
+    animation-duration: 440ms;
+    animation-timing-function: cubic-bezier(.22, 1, .36, 1);
   }
 
   html.site-is-navigating .nav-dropdown,
@@ -13,18 +31,29 @@
 
   html.site-page-transition-preload #main,
   html.site-page-transition-preload .footer,
+  html.site-page-transition-continuous-preload #main,
+  html.site-page-transition-continuous-preload .footer,
   html.site-page-transition-out #main,
   html.site-page-transition-out .footer,
+  html.site-page-transition-continuous-out #main,
+  html.site-page-transition-continuous-out .footer,
   html.site-page-transition-in #main,
-  html.site-page-transition-in .footer {
+  html.site-page-transition-in .footer,
+  html.site-page-transition-continuous-in #main,
+  html.site-page-transition-continuous-in .footer {
     pointer-events: none;
   }
 
   html.site-page-transition-preload #main,
   html.site-page-transition-preload .footer,
+  html.site-page-transition-continuous-preload #main,
+  html.site-page-transition-continuous-preload .footer,
   html.site-page-transition-out #main,
   html.site-page-transition-out .footer,
-  html.site-page-transition-in #main {
+  html.site-page-transition-continuous-out #main,
+  html.site-page-transition-continuous-out .footer,
+  html.site-page-transition-in #main,
+  html.site-page-transition-continuous-in #main {
     will-change: opacity, transform;
   }
 
@@ -32,6 +61,12 @@
   html.site-page-transition-preload .footer {
     opacity: 0;
     transform: translateY(8px);
+  }
+
+  html.site-page-transition-continuous-preload #main,
+  html.site-page-transition-continuous-preload .footer {
+    opacity: .94;
+    transform: translateY(2px) scale(.996);
   }
 
   html.site-page-transition-out #main,
@@ -43,9 +78,23 @@
       transform var(--page-transition-fallback-duration) var(--page-transition-fallback-ease);
   }
 
+  html.site-page-transition-continuous-out #main,
+  html.site-page-transition-continuous-out .footer {
+    opacity: .96;
+    transform: scale(.998);
+    transition:
+      opacity 90ms ease,
+      transform 90ms var(--page-transition-fallback-ease);
+  }
+
   html.site-page-transition-in #main,
   html.site-page-transition-in .footer {
     animation: page-transition-main-in var(--page-transition-fallback-duration) var(--page-transition-fallback-ease) both;
+  }
+
+  html.site-page-transition-continuous-in #main,
+  html.site-page-transition-continuous-in .footer {
+    animation: page-transition-continuous-in var(--page-transition-fallback-duration) var(--page-transition-fallback-ease) both;
   }
 
   @keyframes page-transition-fade-out {
@@ -92,6 +141,18 @@
     }
   }
 
+  @keyframes page-transition-continuous-in {
+    from {
+      opacity: .94;
+      transform: translateY(2px) scale(.996);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :root {
       --page-transition-fallback-duration: 120ms;
@@ -99,14 +160,29 @@
 
     html.site-page-transition-preload #main,
     html.site-page-transition-preload .footer,
+    html.site-page-transition-continuous-preload #main,
+    html.site-page-transition-continuous-preload .footer,
     html.site-page-transition-out #main,
-    html.site-page-transition-out .footer {
+    html.site-page-transition-out .footer,
+    html.site-page-transition-continuous-out #main,
+    html.site-page-transition-continuous-out .footer {
       transform: none;
     }
 
     html.site-page-transition-in #main,
-    html.site-page-transition-in .footer {
+    html.site-page-transition-in .footer,
+    html.site-page-transition-continuous-in #main,
+    html.site-page-transition-continuous-in .footer {
       animation-name: page-transition-fade-in;
+    }
+
+    ::view-transition-group(root),
+    ::view-transition-group(site-header),
+    ::view-transition-group(site-footer),
+    ::view-transition-group(personal-shell),
+    ::view-transition-group(personal-panel),
+    ::view-transition-group(personal-rail) {
+      animation-duration: .01ms;
     }
   }
 }

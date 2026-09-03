@@ -12,6 +12,7 @@
   const FALLBACK_EXIT_REDUCED_MS = 80;
   const FALLBACK_ENTRY_MS = 260;
   const FALLBACK_ENTRY_REDUCED_MS = 120;
+  const CONTINUOUS_EXIT_MS = 90;
   let navigationLocked = false;
   const prefetchedTargets = new Set();
 
@@ -65,6 +66,22 @@
     return normalizeTarget(url) === normalizeTarget(currentUrl);
   };
 
+  const supportsCrossDocumentViewTransitions = () => {
+    try {
+      return typeof CSS !== 'undefined' &&
+        CSS.supports('view-transition-name: site-shell') &&
+        'onpageswap' in window &&
+        'onpagereveal' in window;
+    } catch {
+      return false;
+    }
+  };
+
+  const isPersonalSurfaceNavigation = (link) => Boolean(
+    link?.dataset.personalTransition ||
+    link?.closest('[data-home-accordion], [data-personal-accordion-shell]')
+  );
+
   const getEligibleNavigationUrl = (link) => {
     if (!link || link.dataset.pageTransition === 'false') return null;
     if (link.hasAttribute('download')) return null;
@@ -92,12 +109,13 @@
     }
   };
 
-  const storePendingNavigation = (url) => {
+  const storePendingNavigation = (url, mode = 'fade') => {
     const storage = getStorage();
     if (!storage || !url) return;
     try {
       storage.setItem(STORAGE_KEY, JSON.stringify({
         target: normalizeTarget(url),
+        mode,
         ts: Date.now()
       }));
     } catch {}
@@ -130,8 +148,20 @@
   };
 
   const clearTransitionClasses = () => {
-    document.documentElement.classList.remove('site-is-navigating', 'site-page-transition-out', 'site-page-transition-in');
-    document.body?.classList.remove('site-is-navigating', 'site-page-transition-out', 'site-page-transition-in');
+    document.documentElement.classList.remove(
+      'site-is-navigating',
+      'site-page-transition-out',
+      'site-page-transition-in',
+      'site-page-transition-continuous-out',
+      'site-page-transition-continuous-in'
+    );
+    document.body?.classList.remove(
+      'site-is-navigating',
+      'site-page-transition-out',
+      'site-page-transition-in',
+      'site-page-transition-continuous-out',
+      'site-page-transition-continuous-in'
+    );
   };
 
   const markNavigating = () => {
@@ -160,6 +190,11 @@
     document.body?.classList.add('site-page-transition-out');
   };
 
+  const startContinuousExit = () => {
+    document.documentElement.classList.add('site-page-transition-continuous-out');
+    document.body?.classList.add('site-page-transition-continuous-out');
+  };
+
   const scheduleFallbackEntry = () => {
     document.documentElement.classList.remove('site-page-transition-preload');
     document.documentElement.classList.add('site-page-transition-in');
@@ -171,31 +206,58 @@
     }, cleanupDelay);
   };
 
+  const scheduleContinuousEntry = () => {
+    document.documentElement.classList.remove('site-page-transition-continuous-preload');
+    document.documentElement.classList.add('site-page-transition-continuous-in');
+    document.body?.classList.add('site-page-transition-continuous-in');
+    window.setTimeout(() => {
+      document.documentElement.classList.remove('site-page-transition-continuous-in');
+      document.body?.classList.remove('site-page-transition-continuous-in');
+    }, FALLBACK_ENTRY_MS);
+  };
+
   const hydrateIncomingTransition = () => {
     clearTransitionClasses();
     const pending = consumePendingNavigation();
     if (!pending) {
       document.documentElement.classList.remove('site-page-transition-preload');
+      document.documentElement.classList.remove('site-page-transition-continuous-preload');
       return;
     }
 
     const currentUrl = resolveUrl(window.location.href);
     if (!currentUrl || pending.target !== normalizeTarget(currentUrl)) {
       document.documentElement.classList.remove('site-page-transition-preload');
+      document.documentElement.classList.remove('site-page-transition-continuous-preload');
       return;
     }
     window.requestAnimationFrame(() => {
-      scheduleFallbackEntry();
+      if (pending.mode === 'continuous') scheduleContinuousEntry();
+      else scheduleFallbackEntry();
     });
   };
 
-  const handleNavigation = (url) => {
+  const handleNavigation = (url, options = {}) => {
     if (!url || navigationLocked) return;
 
+    const continuous = options.continuous === true;
     navigationLocked = true;
-    storePendingNavigation(url);
-    markNavigating();
     dispatchNavigationEvent(url);
+    if (continuous && prefersReducedMotion()) {
+      window.location.assign(url.href);
+      return;
+    }
+
+    storePendingNavigation(url, continuous ? 'continuous' : 'fade');
+    markNavigating();
+    if (continuous) {
+      startContinuousExit();
+      window.setTimeout(() => {
+        window.location.assign(url.href);
+      }, CONTINUOUS_EXIT_MS);
+      return;
+    }
+
     startFallbackExit();
     const delay = prefersReducedMotion() ? FALLBACK_EXIT_REDUCED_MS : FALLBACK_EXIT_MS;
     window.setTimeout(() => {
@@ -230,22 +292,16 @@
     }, 0);
   };
 
-  const initHeaderPrefetch = () => {
-    const host = document.getElementById('combined-header-nav');
-    if (!host) return;
-
-    host.querySelectorAll('a[href]').forEach((link) => {
-      if (link.dataset.prefetchBound === 'yes') return;
+  const initNavigationPrefetch = () => {
+    const queueLinkPrefetch = (event) => {
+      const link = event.target?.closest?.('a[href]');
+      if (!link) return;
       const url = getEligibleNavigationUrl(link);
-      if (!url) return;
+      if (url) schedulePrefetch(url);
+    };
 
-      link.dataset.prefetchBound = 'yes';
-      const queuePrefetch = () => {
-        schedulePrefetch(url);
-      };
-      link.addEventListener('pointerenter', queuePrefetch, { once: true });
-      link.addEventListener('focus', queuePrefetch, { once: true });
-    });
+    document.addEventListener('pointerover', queueLinkPrefetch, { passive: true });
+    document.addEventListener('focusin', queueLinkPrefetch);
   };
 
   const initClickInterception = () => {
@@ -260,20 +316,27 @@
       const url = getEligibleNavigationUrl(link);
       if (!url) return;
 
+      const personalSurfaceNavigation = isPersonalSurfaceNavigation(link);
+
+      if (personalSurfaceNavigation && supportsCrossDocumentViewTransitions()) {
+        dispatchNavigationEvent(url);
+        return;
+      }
+
       if (navigationLocked) {
         event.preventDefault();
         return;
       }
 
       event.preventDefault();
-      handleNavigation(url);
+      handleNavigation(url, { continuous: personalSurfaceNavigation });
     });
   };
 
   const init = () => {
     hydrateIncomingTransition();
     initClickInterception();
-    initHeaderPrefetch();
+    initNavigationPrefetch();
   };
 
   if (document.readyState === 'loading') {
@@ -285,6 +348,7 @@
   window.addEventListener('pageshow', (event) => {
     clearTransitionClasses();
     document.documentElement.classList.remove('site-page-transition-preload');
+    document.documentElement.classList.remove('site-page-transition-continuous-preload');
     if (event.persisted) {
       navigationLocked = false;
     }
