@@ -873,6 +873,137 @@
   }
 }
 
+@layer overrides {
+  body.personal-accordion-page[data-personal-category="tools"][data-personal-chrome="compact"] {
+    --personal-shell-canvas: #f4f8f8;
+    --personal-shell-border: color-mix(in srgb, #087f8c 14%, #dce3ec 86%);
+    --personal-shell-shadow: 0 8px 24px rgba(9, 31, 59, .08);
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-accordion {
+    --personal-rail-size: 68px;
+    --personal-toolbar-size: 48px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__panel {
+    border-width: 4px;
+    border-color: #087f8c;
+    background: #ffffff;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__toolbar {
+    min-height: 48px;
+    padding: 2px 24px;
+    border-bottom-color: color-mix(in srgb, #087f8c 16%, #dce3ec 84%);
+    background: #ffffff;
+    backdrop-filter: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__back:is(:hover, :focus-visible) {
+    border-color: #087f8c;
+    background: #087f8c;
+    outline-color: color-mix(in srgb, #087f8c 40%, transparent);
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header {
+    box-sizing: border-box;
+    min-height: 64px;
+    margin: 0;
+    padding: 8px 0;
+    overflow: visible;
+    border-bottom: 1px solid color-mix(in srgb, #087f8c 16%, #dce3ec 84%);
+    background: #ffffff;
+    color: #091f3b;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 8px 16px;
+    width: min(1512px, calc(100% - 48px));
+    max-width: min(1512px, calc(100% - 48px));
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+    width: auto !important;
+    max-width: none !important;
+    margin: 0;
+    color: #091f3b;
+    font-size: clamp(1.1rem, 1.55vw, 1.4rem);
+    line-height: 1.12;
+    letter-spacing: -.018em;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1:focus-visible {
+    outline: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__summary {
+    max-width: 78ch;
+    margin: 0;
+    color: #526174;
+    font-size: .8rem;
+    line-height: 1.35;
+  }
+
+  @media (min-width: 960px) and (min-height: 620px) {
+    body.personal-accordion-page[data-personal-category="tools"][data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__shell {
+      border-radius: 8px;
+      box-shadow: var(--personal-shell-shadow);
+    }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page[data-personal-category="tools"] .personal-accordion {
+      --personal-toolbar-size: 60px;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__toolbar {
+      min-height: 60px;
+      padding: 8px 16px;
+      color: #ffffff;
+      background: #087f8c;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__back:is(:hover, :focus-visible) {
+      color: #087f8c;
+      background: #ffffff;
+      outline-color: rgba(255, 255, 255, .72);
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header {
+      min-height: 60px;
+      padding: 8px 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 10px;
+      width: 100%;
+      max-width: 100%;
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+      font-size: 1.05rem;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__summary {
+      font-size: .75rem;
+    }
+  }
+}
+
 /* Legacy workbench and tool bundles include viewport-locked desktop rules.
    These document-fit pages must use the browser scrollport so the shared
    library/detail shell, its right edge, and the compact footer stay reachable. */
@@ -893,6 +1024,20 @@ body.personal-accordion-page[data-tools-layout] .personal-accordion__content > #
   width: 100%;
   max-width: 100%;
   margin-inline: 0;
+}
+
+body.personal-accordion-page[data-personal-category="tools"][data-tools-layout]:not([data-tools-layout="directory"]) .personal-accordion__content > #main {
+  width: min(1512px, calc(100% - 48px));
+  max-width: min(1512px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+@media (max-width: 959px), (max-height: 619px) {
+  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout]:not([data-tools-layout="directory"]) .personal-accordion__content > #main {
+    width: 100%;
+    max-width: 100%;
+    margin-inline: 0;
+  }
 }
 
 body.personal-accordion-page .footer.footer-classic.footer--personal-compact {

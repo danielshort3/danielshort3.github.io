@@ -1,5 +1,10 @@
 'use strict';
 
+const {
+  renderPersonalLibraryHeader,
+  renderToolsAccountDock
+} = require('../../build/lib/personal-accordion-shell');
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -572,20 +577,25 @@ function renderHomeLibraryView(category, categoryId) {
   const cta = category && category.cta;
   if (!cta || !cta.href || !['projects', 'tools', 'games'].includes(categoryId)) return '';
 
-  const title = String(cta.libraryTitle || `${category.label || categoryId} library`).trim();
-  const lead = String(cta.libraryLead || category.lead || '').trim();
   const viewId = `home-library-view-${categoryId}`;
   const headingId = `${viewId}-title`;
+  const header = renderPersonalLibraryHeader({
+    category: categoryId,
+    itemCount: 0,
+    containerTag: 'header',
+    headingTag: 'h3',
+    headingId,
+    headingFocusable: true,
+    includeBack: true,
+    dynamicCount: true
+  });
+  const account = categoryId === 'tools'
+    ? renderToolsAccountDock('tools-account-dock--directory personal-library__account')
+    : '';
   return [
     `          <section class="home-library" id="${escapeHtml(viewId)}" data-home-library-view="${escapeHtml(categoryId)}" aria-labelledby="${escapeHtml(headingId)}" hidden inert>`,
-    '            <header class="home-library__header">',
-    `              <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(categoryId)}"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"></path></svg></span>Back to overview</button>`,
-    '              <div class="home-library__heading">',
-    `                <h3 id="${escapeHtml(headingId)}" data-home-library-heading tabindex="-1">${escapeHtml(title)}</h3>`,
-    lead ? `                <p>${escapeHtml(lead)}</p>` : '',
-    '              </div>',
-    '            </header>',
-    `            <p class="visually-hidden"><span data-home-library-count>0</span> ${escapeHtml(category.label || categoryId)} items loaded.</p>`,
+    header.split('\n').map((line) => `            ${line}`).join('\n'),
+    account ? account.split('\n').map((line) => `            ${line}`).join('\n') : '',
     `            <ul class="home-library__list" data-home-library-list aria-label="All ${escapeHtml(String(category.label || categoryId).toLowerCase())}"></ul>`,
     '          </section>'
   ].filter(Boolean).join('\n');

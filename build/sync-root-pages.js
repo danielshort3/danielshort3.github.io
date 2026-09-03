@@ -13,6 +13,9 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
+const TRANSIENT_WRITE_ERROR_CODES = new Set(['EACCES', 'EBUSY', 'EPERM', 'UNKNOWN']);
+const WRITE_RETRY_DELAYS_MS = Object.freeze([25, 50, 100, 200, 400, 800]);
+const writeRetrySignal = new Int32Array(new SharedArrayBuffer(4));
 
 const PAIRS = [
   { from: 'pages/contact.html', to: 'contact.html' },
@@ -25,7 +28,18 @@ function read(filePath) {
 }
 
 function write(filePath, contents) {
-  fs.writeFileSync(path.join(root, filePath), contents, 'utf8');
+  const absolutePath = path.join(root, filePath);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      fs.writeFileSync(absolutePath, contents, 'utf8');
+      return;
+    } catch (error) {
+      const canRetry = TRANSIENT_WRITE_ERROR_CODES.has(error && error.code) &&
+        attempt < WRITE_RETRY_DELAYS_MS.length;
+      if (!canRetry) throw error;
+      Atomics.wait(writeRetrySignal, 0, 0, WRITE_RETRY_DELAYS_MS[attempt]);
+    }
+  }
 }
 
 function exists(filePath) {

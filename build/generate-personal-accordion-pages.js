@@ -5,7 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const {
   extractMainHtml,
+  getPersonalLibraryPresentation,
   markProfessionalInternalHtml,
+  preparePersonalToolDetailHtml,
   renderPersonalLibraryMain,
   replaceMainHtml,
   unwrapPersonalAccordionHtml,
@@ -16,6 +18,7 @@ const root = path.resolve(__dirname, '..');
 const pagesDir = path.join(root, 'pages');
 const professionalDir = path.join(pagesDir, 'professional');
 const portfolioDir = path.join(pagesDir, 'portfolio');
+const toolsContentDir = path.join(root, 'content', 'tools');
 const homeLibraryDataPath = path.join(root, 'js', 'home', 'home-library-data.js');
 const PROFESSIONAL_AUDIENCES = Object.freeze(['analytics', 'data-science', 'tourism']);
 
@@ -95,18 +98,21 @@ const GAME_PAGE_PATHS = Object.freeze({
   'ocean-wave-simulation': path.join('pages', 'ocean-wave-simulation.html')
 });
 
-const LIBRARY_COPY = Object.freeze({
-  projects: Object.freeze({
-    title: 'Project library',
-    description: 'Projects and experiments organized around the questions, systems, and practical problems behind them.'
+const TOOL_DETAIL_METADATA = Object.freeze({
+  'tools-dashboard': Object.freeze({
+    title: 'Tools Dashboard',
+    summary: 'Sign in once and manage your saved tool sessions across danielshort.me/tools.',
+    includeAccount: true
   }),
-  tools: Object.freeze({
-    title: 'Tool library',
-    description: 'Focused browser utilities for writing, campaign links, images, and recurring workflow tasks.'
+  'job-application-copilot': Object.freeze({
+    title: 'Job Application Copilot',
+    summary: 'Set up a local-first Chrome extension for grounded job-application answers, explicit review, and controlled field filling.',
+    includeAccount: false
   }),
-  games: Object.freeze({
-    title: 'Games and simulations',
-    description: 'Playable experiments in probability, progression, feedback loops, and interactive systems.'
+  'job-application-copilot-privacy': Object.freeze({
+    title: 'Job Application Copilot Privacy Policy',
+    summary: 'How Job Application Copilot handles local evidence, application-page structure, Ollama requests, encrypted storage, and optional tracker transfers.',
+    includeAccount: false
   })
 });
 
@@ -122,6 +128,50 @@ function write(relPath, contents) {
 
 function exists(relPath) {
   return fs.existsSync(path.join(root, relPath));
+}
+
+function decodeHtmlText(value) {
+  return String(value || '')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&#x27;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&amp;/gi, '&');
+}
+
+function getHtmlAttribute(html, attribute) {
+  const escaped = String(attribute || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  return decodeHtmlText(new RegExp(`\\s${escaped}="([^"]*)"`, 'i').exec(String(html || ''))?.[1] || '');
+}
+
+function getToolDetailMetadata(itemId, sourceHtml) {
+  const id = String(itemId || '').trim();
+  const explicit = TOOL_DETAIL_METADATA[id] || {};
+  const metadataPath = path.join(toolsContentDir, `${id}.json`);
+  let record = {};
+  if (fs.existsSync(metadataPath)) {
+    record = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+  }
+  const bodyTag = /<body\b[^>]*>/i.exec(String(sourceHtml || ''))?.[0] || '';
+  const titleTag = /<title>([\s\S]*?)<\/title>/i.exec(String(sourceHtml || ''))?.[1] || '';
+  const descriptionTag = (String(sourceHtml || '').match(/<meta\b[^>]*\bname="description"[^>]*>/i) || [])[0] || '';
+  const fallbackTitle = decodeHtmlText(titleTag).split('|')[0].trim() || id
+    .split('-')
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ');
+  const title = String(explicit.title || record.title || getHtmlAttribute(bodyTag, 'data-tools-title') || fallbackTitle).trim();
+  const summary = String(
+    explicit.summary ||
+    record.summary ||
+    getHtmlAttribute(descriptionTag, 'content') ||
+    getHtmlAttribute(bodyTag, 'data-tools-eyebrow') ||
+    `${title} browser tool.`
+  ).trim();
+  const includeAccount = typeof explicit.includeAccount === 'boolean'
+    ? explicit.includeAccount
+    : /data-tools-account="(?:dock|bar)"|site-tools-account/i.test(String(sourceHtml || ''));
+  return Object.freeze({ itemId: id, title, summary, includeAccount });
 }
 
 function loadHomeLibraryData() {
@@ -166,25 +216,23 @@ function writeProfessionalCopy(relPath, html, audience) {
 }
 
 function buildLibraryPage(sourceHtml, category, libraryData) {
-  const copy = LIBRARY_COPY[category];
   const items = Array.isArray(libraryData && libraryData[category] && libraryData[category].items)
     ? libraryData[category].items
     : [];
+  const presentation = getPersonalLibraryPresentation(category, items.length);
   const mainHtml = renderPersonalLibraryMain({
     category,
-    items,
-    title: copy.title,
-    description: copy.description
+    items
   });
   const withLibraryMain = replaceMainHtml(sourceHtml, mainHtml);
   return wrapPersonalAccordionHtml(withLibraryMain, {
     category,
     itemId: `${category}-library`,
     view: 'library',
-    backHref: `/#${category}`,
-    backLabel: 'Back to categories',
-    backCompactLabel: 'Categories',
-    backAriaLabel: 'Back to categories',
+    backHref: presentation.backHref,
+    backLabel: presentation.backLabel,
+    backCompactLabel: presentation.backCompactLabel,
+    backAriaLabel: presentation.backAriaLabel,
     fit: 'viewport',
     chrome: 'compact'
   });
@@ -295,7 +343,10 @@ function buildToolPages() {
   ALL_TOOL_PAGE_IDS.forEach((itemId) => {
     const relPath = path.join('pages', `${itemId}.html`);
     if (!exists(relPath)) throw new Error(`Missing personal tool page: ${relPath}`);
-    writeWrapped(relPath, {
+    const source = read(relPath);
+    const metadata = getToolDetailMetadata(itemId, source);
+    const prepared = preparePersonalToolDetailHtml(source, metadata);
+    const wrapped = wrapPersonalAccordionHtml(prepared, {
       category: 'tools',
       itemId,
       view: 'detail',
@@ -305,8 +356,10 @@ function buildToolPages() {
       backLabel: 'Back to tool library',
       backCompactLabel: 'Library',
       backAriaLabel: 'Back to tool library',
-      includeToolChrome: true
+      includePersonalToolHeader: true
     });
+    validateWrappedPage(wrapped, relPath, 'tools');
+    write(relPath, wrapped);
   });
   return ALL_TOOL_PAGE_IDS.length;
 }
@@ -376,6 +429,7 @@ module.exports = {
   GAME_PAGE_PATHS,
   INTERNAL_TOOL_PAGE_IDS,
   PROFESSIONAL_AUDIENCES,
+  TOOL_DETAIL_METADATA,
   TOOL_PAGE_IDS,
   UTILITY_PAGE_CONFIGS,
   buildLibraryPage,
@@ -384,5 +438,6 @@ module.exports = {
   buildToolPages,
   buildUtilityPages,
   buildGamePages,
+  getToolDetailMetadata,
   main
 };

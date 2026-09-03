@@ -105,11 +105,11 @@ function runResponsiveDensityContractTests({ assert }) {
     );
   });
   assert(
-    gamesLibraryShell.includes('href="/#games" aria-label="Back to categories"') &&
-      gamesLibraryShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>') &&
+    gamesLibraryShell.includes('href="/#games" aria-label="Back to homepage"') &&
+      gamesLibraryShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>') &&
       gameDetailShell.includes('href="/games" aria-label="Back to game library"') &&
       gameDetailShell.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
-    'canonical Games shells should return through categories or the game library without cross-category navigation',
+    'canonical Games shells should return through the homepage or game library without cross-category navigation',
   );
   const personalGeneratorSource = read('build/generate-personal-accordion-pages.js');
   assert(

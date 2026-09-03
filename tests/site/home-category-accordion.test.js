@@ -92,6 +92,226 @@ const readWebpDimensions = (relativePath) => {
   throw new Error(`${relativePath} does not contain supported WebP dimensions`);
 };
 
+const createClassList = () => {
+  const values = new Set();
+  return {
+    add(...names) {
+      names.forEach((name) => values.add(name));
+    },
+    remove(...names) {
+      names.forEach((name) => values.delete(name));
+    },
+    contains(name) {
+      return values.has(name);
+    },
+    values
+  };
+};
+
+const runPageTransitionRuntime = (source, options = {}) => {
+  const currentUrl = new URL(options.url || 'https://www.danielshort.me/tools');
+  const assigned = [];
+  const documentListeners = {};
+  const windowListeners = {};
+  const timers = [];
+  const frames = [];
+  const stored = new Map(Object.entries(options.storage || {}));
+  const appended = [];
+  const navigationEvents = [];
+  const htmlClassList = createClassList();
+  const bodyClassList = createClassList();
+  const shell = {};
+  const focusTarget = {
+    attributes: new Map(),
+    focusedWith: null,
+    closest() {
+      return null;
+    },
+    matches() {
+      return false;
+    },
+    hasAttribute(name) {
+      return this.attributes.has(name);
+    },
+    setAttribute(name, value) {
+      this.attributes.set(name, String(value));
+    },
+    removeAttribute(name) {
+      this.attributes.delete(name);
+    },
+    addEventListener() {},
+    focus(focusOptions) {
+      this.focusedWith = focusOptions || null;
+      document.activeElement = this;
+    }
+  };
+  const body = {
+    classList: bodyClassList,
+    dataset: {
+      personalCategory: options.category || 'tools',
+      personalAccordionView: options.view || 'library'
+    }
+  };
+  const document = {
+    activeElement: body,
+    baseURI: currentUrl.href,
+    body,
+    documentElement: { classList: htmlClassList },
+    head: {
+      appendChild(node) {
+        appended.push(node);
+      }
+    },
+    readyState: 'complete',
+    addEventListener(type, listener) {
+      documentListeners[type] = listener;
+    },
+    createElement() {
+      return { dataset: {} };
+    },
+    createEvent() {
+      return { initCustomEvent() {} };
+    },
+    dispatchEvent(event) {
+      navigationEvents.push(event);
+    },
+    querySelector(selector) {
+      if (selector === '[data-home-accordion]') return null;
+      if (selector === '[data-personal-accordion-shell]') return shell;
+      if (options.focusTarget && selector.includes('data-personal-accordion-view')) return focusTarget;
+      return null;
+    }
+  };
+  currentUrl.assign = (href) => assigned.push(String(href));
+  const history = {
+    state: options.historyState || null,
+    replaceState(state) {
+      this.state = state;
+    }
+  };
+  const sessionStorage = {
+    getItem(key) {
+      return stored.has(key) ? stored.get(key) : null;
+    },
+    removeItem(key) {
+      stored.delete(key);
+    },
+    setItem(key, value) {
+      stored.set(key, String(value));
+    }
+  };
+  const window = {
+    document,
+    history,
+    location: currentUrl,
+    performance: {
+      getEntriesByType() {
+        return [{ type: options.navigationType || 'navigate' }];
+      }
+    },
+    sessionStorage,
+    addEventListener(type, listener) {
+      windowListeners[type] = listener;
+    },
+    cancelAnimationFrame() {},
+    clearTimeout() {},
+    matchMedia() {
+      return { matches: Boolean(options.reducedMotion) };
+    },
+    requestAnimationFrame(callback) {
+      frames.push(callback);
+      return frames.length;
+    },
+    setTimeout(callback, delay) {
+      timers.push({ callback, delay });
+      return timers.length;
+    }
+  };
+  if (options.nativeTransitions) {
+    window.onpageswap = null;
+    window.onpagereveal = null;
+  }
+  class RuntimeCustomEvent {
+    constructor(type, init) {
+      this.type = type;
+      this.detail = init?.detail;
+    }
+  }
+  vm.runInNewContext(source, {
+    CSS: { supports: () => Boolean(options.nativeTransitions) },
+    CustomEvent: RuntimeCustomEvent,
+    Date,
+    JSON,
+    Object,
+    Set,
+    URL,
+    document,
+    window
+  });
+
+  const link = {
+    dataset: { personalTransition: 'detail' },
+    closest(selector) {
+      if (selector === 'a[href]') return this;
+      if (selector === '[data-contact-modal-link]') return null;
+      if (selector.includes('[data-home-accordion]')) return shell;
+      return null;
+    },
+    getAttribute(name) {
+      if (name === 'href') return options.href || '/tools/text-compare';
+      if (name === 'target') return '';
+      return null;
+    },
+    hasAttribute() {
+      return false;
+    }
+  };
+  const clickEvent = {
+    altKey: false,
+    button: 0,
+    ctrlKey: false,
+    defaultPrevented: false,
+    metaKey: false,
+    shiftKey: false,
+    target: link,
+    preventDefault() {
+      this.defaultPrevented = true;
+    }
+  };
+  const flushFrames = () => {
+    let safety = 30;
+    while (frames.length && safety > 0) {
+      const frame = frames.shift();
+      frame();
+      safety -= 1;
+    }
+  };
+
+  return {
+    appended,
+    assigned,
+    bodyClassList,
+    click() {
+      documentListeners.click(clickEvent);
+      return clickEvent;
+    },
+    document,
+    focusTarget,
+    flushFrames,
+    flushTimers() {
+      timers.splice(0).forEach(({ callback }) => callback());
+    },
+    history,
+    htmlClassList,
+    navigationEvents,
+    pointerDown() {
+      documentListeners.pointerdown({ target: link });
+    },
+    stored,
+    windowListeners
+  };
+};
+
 module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const personal = readJson('content/audiences/personal.json');
   const section = personal.page.sections.find((entry) => entry.type === 'home-accordion');
@@ -331,7 +551,9 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     count(html, /data-home-library-close=/g) === 3 &&
     html.includes('data-home-view="overview"') &&
     !html.includes('Back to categories') &&
-    html.includes('Back to overview'),
+    html.includes('Back to homepage') &&
+    html.includes('data-personal-tool-account="true"') &&
+    !html.includes('>All tools<'),
   'homepage markup should author three progressively enhanced libraries while retaining the five-category overview');
   assert(html.includes('<ul class="home-accordion__cards">') &&
     html.includes('<li class="home-accordion__card-item">') &&
@@ -537,11 +759,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
 
   const libraryDataImportIndex = homeEntry.indexOf("import '../../js/home/home-library-data.js';");
   const accordionImportIndex = homeEntry.indexOf("import '../../js/home/category-accordion.js';");
+  const toolsLoaderImportIndex = homeEntry.indexOf("import '../../js/accounts/tools-page-loader.js';");
   assert(libraryDataImportIndex >= 0 && accordionImportIndex > libraryDataImportIndex &&
+    toolsLoaderImportIndex > accordionImportIndex &&
     homeStyles.includes('@import url("components/home-category-accordion.css");') &&
     homeStyles.includes('@import url("components/home-library.css");') &&
     sharedStyles.includes('@import url("components/home-timeline.css");'),
-  'homepage bundles should load library data before the controller and include accordion, library, and shared timeline styles');
+  'homepage bundles should load library data before the controller, attach the lazy tools account loader, and include accordion, library, and shared timeline styles');
   assert(personal.page.bottomScripts.some((script) => script.src === 'dist/site-home.js') &&
     !JSON.stringify(personal.page.bottomScripts).includes('project-graph'),
   'managed homepage source should use the stable home bundle without raw graph scripts');
@@ -553,10 +777,13 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     pageTransitionCss.includes('navigation: auto;') &&
     pageTransitionCss.includes('view-transition-name: site-header;') &&
     pageTransitionCss.includes('view-transition-name: site-footer;') &&
+    pageTransitionCss.includes('view-transition-name: personal-shell;') &&
+    pageTransitionCss.includes('view-transition-name: personal-panel;') &&
+    pageTransitionCss.includes('view-transition-name: personal-content;') &&
     libraryCss.includes('view-transition-name: personal-shell;') &&
     libraryCss.includes('view-transition-name: personal-panel;') &&
     libraryCss.includes('view-transition-name: personal-rail;'),
-  'home, library, and detail documents should opt into shared header, footer, shell, panel, and rail view transitions');
+  'home, library, and detail documents should opt into shared header, footer, shell, panel, rail, and content view transitions');
   assert(pageTransitionJs.includes("CSS.supports('view-transition-name: site-shell')") &&
     pageTransitionJs.includes("'onpageswap' in window") &&
     pageTransitionJs.includes("'onpagereveal' in window") &&
@@ -565,14 +792,83 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     pageTransitionJs.slice(nativeTransitionBranch, fallbackPreventDefault).includes('return;') &&
     pageTransitionJs.includes("document.addEventListener('pointerover', queueLinkPrefetch") &&
     pageTransitionJs.includes("document.addEventListener('focusin', queueLinkPrefetch)") &&
+    pageTransitionJs.includes("document.addEventListener('pointerdown'") &&
     pageTransitionJs.includes("storePendingNavigation(url, continuous ? 'continuous' : 'fade')") &&
+    pageTransitionJs.includes('storeArrivalFocus(url);') &&
     pageTransitionJs.includes('startContinuousExit();') &&
     noJs.includes("payload.mode === 'continuous'") &&
     noJs.includes("'site-page-transition-continuous-preload'") &&
-    pageTransitionCss.includes('html.site-page-transition-continuous-preload #main') &&
-    pageTransitionCss.includes('opacity: .94;') &&
+    pageTransitionCss.includes('html.site-page-transition-continuous-preload :is(') &&
+    pageTransitionCss.includes('.home-accordion__item.is-active .home-accordion__scroller') &&
+    pageTransitionCss.includes('.personal-accordion__content') &&
+    !pageTransitionCss.includes('html.site-page-transition-continuous-preload #main') &&
+    pageTransitionCss.includes('background-color: #ffffff;') &&
     pageTransitionCss.includes('@keyframes page-transition-continuous-in'),
-  'supported personal item links should navigate natively without the blank fade while unsupported browsers retain the fallback and delegated prefetching');
+  'personal links should use native transitions when supported and otherwise keep the shared white panel shell visible while content transitions with touch-aware prefetching');
+
+  const nativeRuntime = runPageTransitionRuntime(pageTransitionJs, { nativeTransitions: true });
+  const nativeClick = nativeRuntime.click();
+  assert(!nativeClick.defaultPrevented &&
+    nativeRuntime.assigned.length === 0 &&
+    nativeRuntime.navigationEvents.some((event) => event.type === 'site:navigation-start') &&
+    JSON.parse(nativeRuntime.stored.get('sitePageTransitionFocus')).view === 'detail' &&
+    !nativeRuntime.stored.has('sitePageTransition'),
+  'native cross-document support should leave navigation to the browser while retaining semantic arrival focus');
+
+  const fallbackRuntime = runPageTransitionRuntime(pageTransitionJs);
+  fallbackRuntime.pointerDown();
+  const fallbackClick = fallbackRuntime.click();
+  assert(fallbackClick.defaultPrevented &&
+    fallbackRuntime.appended.some((node) => node.dataset.prefetch === 'page-transition') &&
+    fallbackRuntime.htmlClassList.contains('site-page-transition-continuous-out') &&
+    JSON.parse(fallbackRuntime.stored.get('sitePageTransition')).mode === 'continuous' &&
+    fallbackRuntime.assigned.length === 0,
+  'unsupported browsers should prime personal destinations on pointer down and hold navigation for the continuous fallback exit');
+  fallbackRuntime.flushTimers();
+  assert(fallbackRuntime.assigned[0] === 'https://www.danielshort.me/tools/text-compare',
+    'continuous fallback navigation should assign the intended clean tool URL after its brief exit');
+
+  const reducedRuntime = runPageTransitionRuntime(pageTransitionJs, { reducedMotion: true });
+  const reducedClick = reducedRuntime.click();
+  assert(reducedClick.defaultPrevented &&
+    reducedRuntime.assigned[0] === 'https://www.danielshort.me/tools/text-compare' &&
+    !reducedRuntime.stored.has('sitePageTransition') &&
+    !reducedRuntime.htmlClassList.contains('site-page-transition-continuous-out') &&
+    reducedRuntime.stored.has('sitePageTransitionFocus'),
+  'reduced-motion personal navigation should skip animated fallback classes without losing destination focus intent');
+
+  const focusUrl = 'https://www.danielshort.me/tools/text-compare';
+  const focusRuntime = runPageTransitionRuntime(pageTransitionJs, {
+    url: focusUrl,
+    view: 'detail',
+    focusTarget: true,
+    storage: {
+      sitePageTransitionFocus: JSON.stringify({
+        target: focusUrl,
+        category: 'tools',
+        view: 'detail',
+        ts: Date.now()
+      })
+    }
+  });
+  focusRuntime.flushFrames();
+  assert(focusRuntime.document.activeElement === focusRuntime.focusTarget &&
+    focusRuntime.focusTarget.attributes.get('tabindex') === '-1' &&
+    focusRuntime.focusTarget.focusedWith?.preventScroll === true &&
+    !focusRuntime.stored.has('sitePageTransitionFocus'),
+  'cross-document detail arrival should consume its focus intent and focus the destination heading without scrolling');
+
+  const historyFocusRuntime = runPageTransitionRuntime(pageTransitionJs, {
+    url: 'https://www.danielshort.me/tools',
+    view: 'library',
+    focusTarget: true,
+    navigationType: 'back_forward',
+    historyState: { personalCategory: 'tools', personalView: 'library' }
+  });
+  historyFocusRuntime.flushFrames();
+  assert(historyFocusRuntime.document.activeElement === historyFocusRuntime.focusTarget &&
+    historyFocusRuntime.focusTarget.focusedWith?.preventScroll === true,
+  'history traversal to a standalone library should restore semantic heading focus instead of leaving focus on the body');
 
   const overviewPanelCss = extractBlock(css, '.home-accordion__panel {');
   const overviewScrollerCss = extractBlock(css, '.home-accordion__scroller {');
@@ -832,10 +1128,14 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     updateLocationJs.includes("url.pathname = '/'") &&
     updateLocationJs.includes("url.searchParams.delete('view')") &&
     updateLocationJs.includes("mode === 'replace' ? 'replaceState' : 'pushState'") &&
-    updateLocationJs.includes("homeView: libraryMode ? 'library' : 'overview'") &&
+    updateLocationJs.includes("const view = libraryMode ? 'library' : 'overview';") &&
+    updateLocationJs.includes('personalCategory: id') &&
+    updateLocationJs.includes('personalView: view') &&
+    updateLocationJs.includes('if (nextLocation === currentLocation)') &&
+    updateLocationJs.includes('window.history.replaceState(nextState') &&
     openLibraryJs.includes("updateLocation(id, 'push', true)") &&
     closeLibraryJs.includes("updateLocation(closingId, options.historyMode || 'push', false)"),
-  'library expansion should push canonical dedicated paths while collapse returns to the matching homepage hash');
+  'library expansion should push canonical dedicated paths, preserve semantic history state on reload, and collapse to the matching homepage hash');
   assert(js.includes('const LIBRARY_DOCUMENT_TITLES = Object.freeze({') &&
     js.includes("const canonicalLink = document.querySelector('link[rel=\"canonical\"]');") &&
     js.includes('const overviewDocumentMetadata = Object.freeze({') &&

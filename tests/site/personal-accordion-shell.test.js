@@ -6,6 +6,8 @@ const {
   CATEGORY_CONFIG,
   PERSONAL_CONTENT_END,
   PERSONAL_SHELL_END,
+  preparePersonalToolDetailHtml,
+  renderPersonalLibraryMain,
   unwrapPersonalAccordionHtml,
   wrapPersonalAccordionHtml
 } = require('../../build/lib/personal-accordion-shell');
@@ -14,7 +16,8 @@ const {
   INTERNAL_TOOL_PAGE_IDS,
   TOOL_PAGE_IDS,
   UTILITY_PAGE_CONFIGS,
-  buildLibraryPage
+  buildLibraryPage,
+  getToolDetailMetadata
 } = require('../../build/generate-personal-accordion-pages');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -139,14 +142,63 @@ function runPersonalAccordionShellTests({ assert }) {
   });
   assert(projectLibrary.includes('data-personal-accordion-view="library"') &&
     projectLibrary.includes('href="/#projects"') &&
-    projectLibrary.includes('aria-label="Back to categories"') &&
-    projectLibrary.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
-  'Project library should include a categories back control targeting the Projects overview');
+    projectLibrary.includes('aria-label="Back to homepage"') &&
+    projectLibrary.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>'),
+  'Project library should include a homepage back control targeting the Projects overview');
   assert(count(projectLibrary, /<h1\b/gi) === 1 &&
     projectLibrary.includes('<p class="personal-library__meta">1 project</p>') &&
     !projectLibrary.includes('home-library__page-link') &&
     !/Open the dedicated [^<]+ page/i.test(projectLibrary),
   'Canonical library should keep one heading, quiet item count, and no redundant dedicated-page control');
+
+  const toolsLibrary = renderPersonalLibraryMain({
+    category: 'tools',
+    items: [{ id: 'sample-tool', title: 'Sample tool', summary: 'Sample summary.', href: '/tools/sample-tool' }]
+  });
+  assert(toolsLibrary.includes('<h1 id="personal-library-title-tools">Tool library</h1>') &&
+    toolsLibrary.includes('The complete collection of small utilities for text, links, media, and recurring workflows.') &&
+    toolsLibrary.includes('<p class="personal-library__meta">1 tool</p>') &&
+    !toolsLibrary.includes('personal-library--tools tools-hero') &&
+    toolsLibrary.includes('data-personal-tool-account="true"') &&
+    !toolsLibrary.includes('>All tools<'),
+  'Tool library renderer should share homepage copy, avoid legacy hero semantics, and expose one compact account slot without duplicate navigation');
+
+  const toolSample = sample.replace(
+    '<main id="main"><h1>Contact</h1></main>',
+    '<section class="hero hero--tools tools-hero"><div class="wrapper"><p class="hero-eyebrow">Old tool hero</p><h1 class="visually-hidden">Sample tool</h1></div></section><div class="tools-account-dock" data-tools-account="dock"><div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner"><div class="tools-account-bar" data-tools-account="bar"></div></div></div><main id="main"><section><h2>Tool interface</h2></section></main>'
+  );
+  const toolMetadata = { itemId: 'sample-tool', title: 'Sample tool', summary: 'A focused sample tool.', includeAccount: true };
+  const toolOptions = {
+    category: 'tools',
+    itemId: 'sample-tool',
+    view: 'detail',
+    backHref: '/tools',
+    backLabel: 'Back to tool library',
+    backCompactLabel: 'Library',
+    backAriaLabel: 'Back to tool library',
+    includePersonalToolHeader: true
+  };
+  const preparedTool = preparePersonalToolDetailHtml(toolSample, toolMetadata);
+  const wrappedTool = wrapPersonalAccordionHtml(preparedTool, toolOptions);
+  const wrappedToolAgain = wrapPersonalAccordionHtml(
+    preparePersonalToolDetailHtml(wrappedTool, toolMetadata),
+    toolOptions
+  );
+  assert(wrappedTool === wrappedToolAgain &&
+    count(wrappedTool, /data-personal-tool-header=/g) === 1 &&
+    count(wrappedTool, /<h1\b/gi) === 1 &&
+    !wrappedTool.includes('class="hero hero--tools tools-hero"') &&
+    wrappedTool.includes('data-personal-tool-account="true"') &&
+    wrappedTool.includes('data-personal-tool-account-bar="true"') &&
+    !wrappedTool.includes('>All tools<') &&
+    count(wrappedTool, /<main\b/gi) === 1,
+  'Tool detail preparation should be idempotent and replace legacy chrome with one native title and stable account slot');
+
+  const copilotMetadata = getToolDetailMetadata('job-application-copilot', read('pages/job-application-copilot.html'));
+  assert(copilotMetadata.title === 'Job Application Copilot' &&
+    copilotMetadata.summary.includes('local-first Chrome extension') &&
+    copilotMetadata.includeAccount === false,
+  'Non-catalog tool pages should use explicit metadata and opt out of an unrelated account slot');
 
   const gameSample = sample.replace(
     '<main id="main"><h1>Contact</h1></main>',
@@ -235,13 +287,12 @@ function runPersonalAccordionShellTests({ assert }) {
     const libraryBackTargets = {
       'pages/portfolio.html': '/#projects',
       'pages/tools.html': '/#tools',
-      'pages/games.html': '/#games',
-      'pages/contact.html': '/#contact'
+      'pages/games.html': '/#games'
     };
     if (libraryBackTargets[relativePath]) {
-      assert(html.includes(`href="${libraryBackTargets[relativePath]}" aria-label="Back to categories"`) &&
-        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Categories</span>'),
-        `${relativePath} should return to its homepage category selector`);
+      assert(html.includes(`href="${libraryBackTargets[relativePath]}" aria-label="Back to homepage"`) &&
+        html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Home</span>'),
+        `${relativePath} should return to its homepage category`);
     }
     if (utilityPages.has(relativePath)) {
       const utility = utilityPages.get(relativePath);
@@ -260,6 +311,11 @@ function runPersonalAccordionShellTests({ assert }) {
       assert(html.includes('href="/tools" aria-label="Back to tool library"') &&
         html.includes('personal-accordion__back-label--mobile" aria-hidden="true">Library</span>'),
         `${relativePath} should return to the tool library before the homepage categories`);
+      assert(count(html, /data-personal-tool-header=/g) === 1 &&
+        count(html, /<h1\b/gi) === 1 &&
+        !html.includes('class="hero hero--tools tools-hero"') &&
+        !html.includes('>All tools<'),
+      `${relativePath} should use one shell-native tool title without legacy hero or duplicate account navigation`);
     }
     if (gameDetailPages.has(relativePath)) {
       assert(html.includes('href="/games" aria-label="Back to game library"') &&

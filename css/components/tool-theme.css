@@ -452,3 +452,127 @@
     }
   }
 }
+
+@layer overrides {
+  body.personal-accordion-page[data-personal-category="tools"] {
+    --tool-accent: #087f8c;
+    --tool-accent-strong: #006973;
+    --tool-accent-soft: color-mix(in srgb, #087f8c 12%, transparent);
+    --tool-surface: #ffffff;
+    --tool-surface-strong: #f4f8f8;
+    --primary: #087f8c;
+    --brand-signal-blue: #087f8c;
+    --brand-deep-blue: #006973;
+    --link: #087f8c;
+    --link-hover: #006973;
+    --interactive-border: color-mix(in srgb, #087f8c 24%, transparent);
+    --interactive-border-hover: color-mix(in srgb, #087f8c 42%, transparent);
+    --interactive-bg-hover: color-mix(in srgb, #087f8c 8%, #ffffff 92%);
+    --cta-blue: #087f8c;
+    --cta-blue-hover: #006973;
+    --cta-blue-shadow: none;
+    --cta-blue-shadow-hover: none;
+    --ctc-blue: #087f8c;
+    --ctc-blue-dark: #006973;
+    --ctc-blue-soft: #eef9fa;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    input[type="checkbox"],
+    input[type="radio"],
+    input[type="range"]
+  ) {
+    accent-color: #087f8c;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    .bgtool-hero,
+    .imgopt-hero,
+    .wordfreq-top-panel,
+    .textcompare-top-panel,
+    .povcheck-top-panel,
+    .oxford-top-panel,
+    .nbsp-hero,
+    .ocean-wave-hero,
+    .qrtool-hero,
+    .utmtool-hero,
+    .screenrec-hero
+  ) {
+    border-bottom-color: color-mix(in srgb, #087f8c 16%, #dce3ec 84%);
+    background: #f6fafa;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    .bgtool-step,
+    .imgopt-step,
+    .wordfreq-step,
+    .povcheck-step,
+    .oxford-step,
+    .nbsp-step,
+    .ocean-wave-step,
+    .qrtool-step,
+    .utmtool-step,
+    .screenrec-step
+  ) {
+    border-color: color-mix(in srgb, #087f8c 18%, #dce3ec 82%);
+    border-radius: 8px;
+    background: #f7fbfb;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    .bgtool-step-number,
+    .imgopt-step-number,
+    .wordfreq-step-number,
+    .povcheck-step-number,
+    .oxford-step-number,
+    .nbsp-step-number,
+    .ocean-wave-step-number,
+    .qrtool-step-number,
+    .utmtool-step-number,
+    .screenrec-step-number
+  ) {
+    border-radius: 6px;
+    background: #087f8c;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    .bgtool-card,
+    .imgopt-card,
+    .wordfreq-card,
+    .textcompare-card,
+    .povcheck-card,
+    .oxford-card,
+    .nbsp-card,
+    .ocean-wave-card,
+    .qrtool-card,
+    .screenrec-card,
+    .whispermon-card,
+    .tools-dashboard-card,
+    .tools-dashboard-overview-card,
+    .jobtrack-card,
+    .shortlinks-shell-card,
+    .ga4-panel-card,
+    .ga4-quickstart
+  ) {
+    border-color: color-mix(in srgb, #087f8c 16%, #dce3ec 84%);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    summary,
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+    outline: 3px solid color-mix(in srgb, #087f8c 44%, transparent);
+    outline-offset: 2px;
+  }
+}

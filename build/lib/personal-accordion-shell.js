@@ -4,6 +4,8 @@ const PERSONAL_SHELL_START = '<!-- personal-accordion-shell:start -->';
 const PERSONAL_SHELL_END = '<!-- personal-accordion-shell:end -->';
 const PERSONAL_CONTENT_START = '<!-- personal-accordion-content:start -->';
 const PERSONAL_CONTENT_END = '<!-- personal-accordion-content:end -->';
+const PERSONAL_TOOL_HEADER_START = '<!-- personal-tool-header:start -->';
+const PERSONAL_TOOL_HEADER_END = '<!-- personal-tool-header:end -->';
 
 const CATEGORY_CONFIG = Object.freeze({
   about: Object.freeze({
@@ -48,6 +50,20 @@ const CATEGORY_CONFIG = Object.freeze({
 });
 
 const CATEGORY_ORDER = Object.freeze(['about', 'projects', 'tools', 'games', 'contact']);
+const LIBRARY_PRESENTATION = Object.freeze({
+  projects: Object.freeze({
+    title: 'Project library',
+    summary: 'A collection of machine learning projects, practical tools, and playful experiments.'
+  }),
+  tools: Object.freeze({
+    title: 'Tool library',
+    summary: 'The complete collection of small utilities for text, links, media, and recurring workflows.'
+  }),
+  games: Object.freeze({
+    title: 'Game library',
+    summary: 'All of my browser games and simulations, from action RPG systems to probability experiments.'
+  })
+});
 const ARROW_LEFT = '<path d="m15 18-6-6 6-6"></path>';
 const ARROW_RIGHT = '<path d="m9 5 7 7-7 7"></path>';
 
@@ -66,8 +82,191 @@ function normalizeCategory(value) {
   return key;
 }
 
+function getPersonalLibraryPresentation(categoryValue, itemCount = 0) {
+  const categoryId = normalizeCategory(categoryValue);
+  const category = CATEGORY_CONFIG[categoryId];
+  const library = LIBRARY_PRESENTATION[categoryId] || {};
+  const count = Math.max(0, Number.parseInt(itemCount, 10) || 0);
+  const singularLabel = categoryId.replace(/s$/, '');
+  const countNoun = count === 1 ? singularLabel : categoryId;
+  return Object.freeze({
+    categoryId,
+    title: String(library.title || `${category.label} library`).trim(),
+    summary: String(library.summary || '').trim(),
+    count,
+    countNoun,
+    countLabel: `${count} ${countNoun}`,
+    backHref: category.href,
+    backLabel: 'Back to homepage',
+    backCompactLabel: 'Home',
+    backAriaLabel: 'Back to homepage'
+  });
+}
+
+function renderPersonalLibraryHeader(options = {}) {
+  const presentation = getPersonalLibraryPresentation(options.category, options.itemCount);
+  const containerTag = options.containerTag === 'header' ? 'header' : 'div';
+  const headingTag = options.headingTag === 'h3' ? 'h3' : 'h1';
+  const headingId = String(options.headingId || `personal-library-title-${presentation.categoryId}`).trim();
+  const headingAttributes = [
+    `id="${escapeHtml(headingId)}"`,
+    options.headingFocusable ? 'data-home-library-heading tabindex="-1"' : ''
+  ].filter(Boolean).join(' ');
+  const headingClass = ['home-library__heading', options.wrapper ? 'wrapper' : ''].filter(Boolean).join(' ');
+  const countMarkup = options.dynamicCount
+    ? `<span data-home-library-count>${presentation.count}</span> ${escapeHtml(presentation.countNoun)}`
+    : escapeHtml(presentation.countLabel);
+  const countClass = [
+    'personal-library__meta',
+    options.countVisuallyHidden ? 'visually-hidden' : ''
+  ].filter(Boolean).join(' ');
+  const back = options.includeBack
+    ? `  <button class="home-library__back" type="button" data-home-library-close="${escapeHtml(presentation.categoryId)}"><span aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>${escapeHtml(presentation.backLabel)}</button>`
+    : '';
+
+  return [
+    `<${containerTag} class="home-library__header">`,
+    back,
+    `  <div class="${headingClass}">`,
+    `    <${headingTag} ${headingAttributes}>${escapeHtml(presentation.title)}</${headingTag}>`,
+    presentation.summary ? `    <p>${escapeHtml(presentation.summary)}</p>` : '',
+    `    <p class="${countClass}">${countMarkup}</p>`,
+    '  </div>',
+    `</${containerTag}>`
+  ].filter(Boolean).join('\n');
+}
+
 function renderIcon(paths, className = '') {
   return `<svg${className ? ` class="${escapeHtml(className)}"` : ''} viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+}
+
+function renderToolsAccountBar() {
+  return '<div class="tools-account-bar" data-tools-account="bar" data-personal-tool-account-bar="true"></div>';
+}
+
+function renderToolsAccountDock(className = '') {
+  const classes = ['tools-account-dock', className].filter(Boolean).join(' ');
+  return [
+    `<div class="${escapeHtml(classes)}" data-tools-account="dock" data-personal-tool-account="true">`,
+    '  <div class="tools-account-dock-inner personal-tool-header__account-inner" data-tools-account="dock-inner">',
+    renderToolsAccountBar().split('\n').map((line) => `    ${line}`).join('\n'),
+    '  </div>',
+    '</div>'
+  ].join('\n');
+}
+
+function findElementRangeByClass(html, className, beforeIndex = String(html || '').length) {
+  const source = String(html || '');
+  const classPattern = String(className || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const openingPattern = new RegExp(`<([a-z][a-z0-9:-]*)\\b[^>]*\\sclass="[^"]*\\b${classPattern}\\b[^"]*"[^>]*>`, 'gi');
+  let opening = null;
+  let match;
+  while ((match = openingPattern.exec(source))) {
+    if (match.index >= beforeIndex) break;
+    opening = { index: match.index, end: openingPattern.lastIndex, tagName: match[1] };
+  }
+  if (!opening) return null;
+
+  const tagPattern = new RegExp(`<\\/?${opening.tagName}\\b[^>]*>`, 'gi');
+  tagPattern.lastIndex = opening.index;
+  let depth = 0;
+  while ((match = tagPattern.exec(source))) {
+    if (/^<\//.test(match[0])) {
+      depth -= 1;
+      if (depth === 0) return { start: opening.index, end: tagPattern.lastIndex };
+    } else if (!/\/>$/.test(match[0])) {
+      depth += 1;
+    }
+  }
+  return null;
+}
+
+function hydrateToolsAccountBar(html) {
+  const source = String(html || '');
+  if (!source.includes('data-tools-account="bar"')) return source;
+  return source.replace(/<div\b[^>]*data-tools-account="bar"[^>]*>/i, (tag) => (
+    setTagAttribute(tag, 'data-personal-tool-account-bar', 'true')
+  ));
+}
+
+function demoteMainH1(html) {
+  return String(html || '').replace(/<h1\b([^>]*)>([\s\S]*?)<\/h1>/gi, (match, attributes, contents) => {
+    const markedAttributes = /\bdata-personal-tool-content-title\b/i.test(attributes)
+      ? attributes
+      : `${attributes} data-personal-tool-content-title`;
+    return `<h2${markedAttributes}>${contents}</h2>`;
+  });
+}
+
+function renderPersonalToolHeader(options = {}) {
+  const itemId = String(options.itemId || 'tool').trim() || 'tool';
+  const title = String(options.title || itemId).trim() || itemId;
+  const summary = String(options.summary || '').trim();
+  const extraHtml = hydrateToolsAccountBar(options.extraHtml).replace(
+    /<div\b[^>]*data-tools-account="dock"[^>]*>/i,
+    (tag) => setTagAttribute(tag, 'data-personal-tool-account', 'true')
+  );
+  const hasEmbeddedAccount = /data-tools-account="dock"/i.test(extraHtml);
+  const includeAccount = options.includeAccount !== false;
+  const headerClasses = [
+    'personal-tool-header',
+    'tools-hero',
+    extraHtml ? 'personal-tool-header--with-actions' : '',
+    extraHtml && /\bshortlinks-command-actions\b/i.test(extraHtml) ? 'shortlinks-command-header' : ''
+  ].filter(Boolean).join(' ');
+
+  return [
+    PERSONAL_TOOL_HEADER_START,
+    `<header class="${headerClasses}" data-personal-tool-header="${escapeHtml(itemId)}">`,
+    '  <div class="wrapper personal-tool-header__inner">',
+    '    <div class="personal-tool-header__copy">',
+    `      <h1 id="personal-tool-title-${escapeHtml(itemId)}">${escapeHtml(title)}</h1>`,
+    summary ? `      <p class="personal-tool-header__summary">${escapeHtml(summary)}</p>` : '',
+    '    </div>',
+    includeAccount && !hasEmbeddedAccount
+      ? renderToolsAccountDock('personal-tool-header__account').split('\n').map((line) => `    ${line}`).join('\n')
+      : '',
+    extraHtml ? `    <div class="personal-tool-header__actions">${extraHtml}</div>` : '',
+    '  </div>',
+    '</header>',
+    PERSONAL_TOOL_HEADER_END
+  ].filter(Boolean).join('\n');
+}
+
+function preparePersonalToolDetailHtml(html, options = {}) {
+  const source = unwrapPersonalAccordionHtml(html);
+  const main = findMainRange(source);
+  const beforeMain = source.slice(0, main.start);
+  let chromeStart = main.start;
+  let extraHtml = '';
+
+  const generatedHeaderStart = beforeMain.lastIndexOf(PERSONAL_TOOL_HEADER_START);
+  if (generatedHeaderStart !== -1) {
+    const generatedHeaderEnd = beforeMain.indexOf(PERSONAL_TOOL_HEADER_END, generatedHeaderStart);
+    if (generatedHeaderEnd === -1) throw new Error('Personal tool header markers are incomplete.');
+    const generatedHeader = beforeMain.slice(
+      generatedHeaderStart,
+      generatedHeaderEnd + PERSONAL_TOOL_HEADER_END.length
+    );
+    const actionsRange = findElementRangeByClass(generatedHeader, 'shortlinks-command-actions');
+    if (actionsRange) extraHtml = generatedHeader.slice(actionsRange.start, actionsRange.end);
+    chromeStart = generatedHeaderStart;
+  } else {
+    const legacyHeroRange = findElementRangeByClass(beforeMain, 'tools-hero');
+    if (legacyHeroRange) {
+      const actionsRange = findElementRangeByClass(beforeMain, 'shortlinks-command-actions', legacyHeroRange.end);
+      if (actionsRange && actionsRange.start >= legacyHeroRange.start && actionsRange.end <= legacyHeroRange.end) {
+        extraHtml = beforeMain.slice(actionsRange.start, actionsRange.end);
+      }
+      chromeStart = legacyHeroRange.start;
+    }
+  }
+
+  const mainHtml = demoteMainH1(source.slice(main.start, main.end));
+  const header = renderPersonalToolHeader({ ...options, extraHtml });
+  const suffix = source.slice(main.end);
+  const boundary = suffix && !/^\r?\n/.test(suffix) ? '\n' : '';
+  return `${source.slice(0, chromeStart)}${header}\n${mainHtml}${boundary}${suffix}`;
 }
 
 function renderPersonalRails(activeCategory) {
@@ -228,6 +427,18 @@ function findFragmentRange(html, options = {}) {
   let start = main.start;
   let end = main.end;
 
+  if (options.includePersonalToolHeader) {
+    const beforeMain = html.slice(0, main.start);
+    const headerStart = beforeMain.lastIndexOf(PERSONAL_TOOL_HEADER_START);
+    const headerEnd = headerStart === -1
+      ? -1
+      : beforeMain.indexOf(PERSONAL_TOOL_HEADER_END, headerStart);
+    if (headerStart === -1 || headerEnd === -1) {
+      throw new Error('Personal tool detail is missing its generated compact header.');
+    }
+    start = headerStart;
+  }
+
   if (options.includeToolChrome) {
     const beforeMain = html.slice(0, main.start);
     const heroMatches = [...beforeMain.matchAll(/<section\b[^>]*class="[^"]*\btools-hero\b[^"]*"[^>]*>/gi)];
@@ -367,35 +578,27 @@ function renderPersonalLibraryMain(options = {}) {
   const categoryId = normalizeCategory(options.category);
   const category = CATEGORY_CONFIG[categoryId];
   const items = Array.isArray(options.items) ? options.items.filter((item) => item && item.href) : [];
-  const title = String(options.title || `${category.label} library`).trim();
-  const description = String(options.description || '').trim();
-  const singularLabel = categoryId.replace(/s$/, '');
-  const itemCountLabel = `${items.length} ${items.length === 1 ? singularLabel : categoryId}`;
-  const toolsDock = categoryId === 'tools' ? [
-    '  <div class="tools-account-dock tools-account-dock--directory personal-library__account" data-tools-account="dock">',
-    '    <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">',
-    '      <div class="tools-account-bar" data-tools-account="bar"></div>',
-    '    </div>',
-    '  </div>'
-  ] : [];
+  const header = renderPersonalLibraryHeader({
+    category: categoryId,
+    itemCount: items.length,
+    containerTag: 'div',
+    headingTag: 'h1',
+    wrapper: true
+  });
+  const toolsDock = categoryId === 'tools'
+    ? renderToolsAccountDock('tools-account-dock--directory personal-library__account')
+    : '';
   const libraryClasses = [
     'home-library',
     'personal-library',
-    `personal-library--${categoryId}`,
-    ...(categoryId === 'tools' ? ['tools-hero'] : [])
+    `personal-library--${categoryId}`
   ].join(' ');
 
   return [
     `<main id="main" class="personal-library-main personal-library-main--${categoryId}">`,
-    ...toolsDock,
+    toolsDock ? toolsDock.split('\n').map((line) => `  ${line}`).join('\n') : '',
     `  <section class="${libraryClasses}" aria-labelledby="personal-library-title-${categoryId}">`,
-    '    <div class="home-library__header">',
-    '      <div class="home-library__heading wrapper">',
-    `        <h1 id="personal-library-title-${categoryId}">${escapeHtml(title)}</h1>`,
-    description ? `        <p>${escapeHtml(description)}</p>` : '',
-    `        <p class="personal-library__meta">${escapeHtml(itemCountLabel)}</p>`,
-    '      </div>',
-    '    </div>',
+    header.split('\n').map((line) => `    ${line}`).join('\n'),
     `    <ul class="home-library__list wrapper" aria-label="${escapeHtml(category.label)}">`,
     items.map((item) => renderLibraryCard(item, categoryId)).join('\n'),
     '    </ul>',
@@ -444,18 +647,27 @@ function markProfessionalInternalHtml(html, audience = 'analytics') {
 module.exports = {
   CATEGORY_CONFIG,
   CATEGORY_ORDER,
+  LIBRARY_PRESENTATION,
   PERSONAL_CONTENT_END,
   PERSONAL_CONTENT_START,
   PERSONAL_SHELL_END,
   PERSONAL_SHELL_START,
+  PERSONAL_TOOL_HEADER_END,
+  PERSONAL_TOOL_HEADER_START,
   extractMainHtml,
   findFragmentRange,
   findMainRange,
+  getPersonalLibraryPresentation,
   markProfessionalInternalHtml,
   normalizeSkipLinkHrefs,
+  preparePersonalToolDetailHtml,
   renderPersonalAccordionShell,
+  renderPersonalLibraryHeader,
   renderPersonalLibraryMain,
   renderPersonalRails,
+  renderPersonalToolHeader,
+  renderToolsAccountBar,
+  renderToolsAccountDock,
   replaceMainHtml,
   unwrapPersonalAccordionHtml,
   wrapPersonalAccordionHtml
