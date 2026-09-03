@@ -159,10 +159,31 @@
     }
     const nextLocation = `${url.pathname}${url.search}${url.hash}`;
     const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-    if (nextLocation === currentLocation) return;
+    const view = libraryMode ? 'library' : 'overview';
+    const currentState = window.history?.state && typeof window.history.state === 'object'
+      ? window.history.state
+      : {};
+    const nextState = {
+      ...currentState,
+      homePanel: id,
+      homeView: view,
+      personalCategory: id,
+      personalView: view
+    };
+    if (nextLocation === currentLocation) {
+      const stateMatches = currentState.homePanel === id &&
+        currentState.homeView === view &&
+        currentState.personalCategory === id &&
+        currentState.personalView === view;
+      if (!stateMatches && typeof window.history?.replaceState === 'function') {
+        window.history.replaceState(nextState, '', url);
+      }
+      lastHandledLocationHref = window.location.href;
+      return;
+    }
     const historyMethod = mode === 'replace' ? 'replaceState' : 'pushState';
     if (typeof window.history?.[historyMethod] === 'function') {
-      window.history[historyMethod]({ homePanel: id, homeView: libraryMode ? 'library' : 'overview' }, '', url);
+      window.history[historyMethod](nextState, '', url);
       lastHandledLocationHref = window.location.href;
     } else {
       window.location.assign(url.toString());

@@ -756,3 +756,173 @@
     }
   }
 }
+
+@layer overrides {
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    .personal-library,
+    .personal-library.tools-hero
+  ),
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] {
+    padding: 0 24px 24px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library .home-library__header,
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__header {
+    gap: 12px;
+    padding: 16px 0 12px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library .home-library__heading,
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__heading {
+    gap: 4px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library .home-library__heading :is(h1, h3),
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__heading :is(h1, h3) {
+    font-size: clamp(1.25rem, 1.8vw, 1.625rem);
+    line-height: 1.12;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library .home-library__heading p,
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__heading p {
+    font-size: .875rem;
+    line-height: 1.45;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library--tools :is(
+    .home-library__heading.wrapper,
+    .home-library__list.wrapper
+  ) {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library__meta {
+    margin-top: 2px !important;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library .home-library__heading :is(h1, h3):focus-visible,
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__heading :is(h1, h3):focus-visible {
+    outline: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .home-library__card,
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .home-library__card {
+    border-radius: 6px;
+    box-shadow: none;
+  }
+
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] {
+    position: relative;
+  }
+
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] > .personal-library__account {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    z-index: 9;
+    width: auto;
+    max-width: min(42%, 390px);
+    padding: 0;
+  }
+
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-dock-inner,
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-bar {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-structure {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-trigger {
+    min-block-size: 36px;
+    padding: 6px 10px;
+    border-color: #087f8c;
+    border-radius: 6px;
+    background: #087f8c;
+    color: #ffffff;
+    font-size: .8rem;
+    box-shadow: none;
+  }
+
+  body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost, .tools-account-trigger):is(:hover, :focus-visible) {
+    border-color: #006973;
+    background: #006973;
+    color: #ffffff;
+  }
+
+  @media (min-width: 960px) and (min-height: 620px) {
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) {
+      --home-library-tab-width: 68px;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) .home-accordion__panel {
+      border-width: 4px;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) .home-accordion__item:last-child.is-active .home-accordion__panel {
+      border-radius: 0 8px 8px 0;
+    }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page[data-personal-category="tools"] :is(
+      .personal-library,
+      .personal-library.tools-hero
+    ),
+    body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] {
+      padding: 0 16px 24px;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-library[data-home-library-view="tools"] > .personal-library__account {
+      top: 12px;
+      right: 16px;
+      max-width: 42%;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) .home-accordion__shell {
+      grid-template-rows: 60px auto;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) .home-accordion__item.is-active .home-accordion__heading,
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) :is(
+      .home-accordion__rail,
+      .home-accordion__item.is-active .home-accordion__rail
+    ) {
+      height: 60px;
+      min-height: 60px;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) :is(
+      .home-accordion__rail,
+      .home-accordion__item.is-active .home-accordion__rail
+    ) {
+      gap: 2px;
+      padding: 4px 3px;
+    }
+
+    body[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) .home-accordion__panel {
+      border-width: 4px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body.has-mobile-site-masthead[data-page="home"][data-audience="personal"] .home-accordion.is-library-mode:has(.home-accordion__item--tools.is-active) .home-accordion__shell {
+      grid-template-rows: calc(60px + var(--mobile-site-masthead-height, 62px)) auto;
+    }
+  }
+}

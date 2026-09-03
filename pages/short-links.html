@@ -41,8 +41,8 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.f1e742c6.css">
-  <link rel="stylesheet" href="dist/styles-tools.d2d846c4.css">
+  <link rel="stylesheet" href="dist/styles.92bd4b67.css">
+  <link rel="stylesheet" href="dist/styles-tools.e2d097d2.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -50,7 +50,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script defer src="dist/site-shell.4babb68b.js"></script>
+  <script defer src="dist/site-shell.16a7221e.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="twitter:title" content="Short Links (Admin) | Daniel Short">
   <meta name="twitter:description" content="Private dashboard for managing short redirect links.">
@@ -59,7 +59,7 @@
   <meta name="author" content="Daniel Short">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:creator" content="@danielshort3">
-  <link rel="stylesheet" href="dist/styles-personal-accordion.ef56df52.css">
+  <link rel="stylesheet" href="dist/styles-personal-accordion.f52503b2.css">
 </head>
 <body data-page="short-links" class="short-links-page tools-tool-page site-page personal-accordion-page" data-tools-layout="admin" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="tools" data-personal-item="short-links" data-personal-fit="viewport" data-personal-chrome="compact">
   <a href="/tools/short-links#main" class="skip-link">Skip to main content</a>
@@ -235,15 +235,14 @@
       </div>
       <div class="personal-accordion__content" data-personal-detail-content>
         <!-- personal-accordion-content:start -->
-<section class="hero hero--tools tools-hero shortlinks-command-header">
-    <div class="wrapper shortlinks-hero-content">
-      <div class="shortlinks-hero-copy">
-        <p class="hero-eyebrow" hidden>Short Links</p>
-        <h1>Short Links</h1>
-        <p class="shortlinks-hero-lead">Create clean redirects, manage active links, and keep portfolio shortcuts in sync.</p>
-      </div>
-
-      <div class="shortlinks-command-actions" aria-label="Short links controls">
+<!-- personal-tool-header:start -->
+<header class="personal-tool-header tools-hero personal-tool-header--with-actions shortlinks-command-header" data-personal-tool-header="short-links">
+  <div class="wrapper personal-tool-header__inner">
+    <div class="personal-tool-header__copy">
+      <h1 id="personal-tool-title-short-links">Short Links (Admin)</h1>
+      <p class="personal-tool-header__summary">Create and manage private /go/&lt;slug&gt; redirect links with click counts (requires admin token).</p>
+    </div>
+    <div class="personal-tool-header__actions"><div class="shortlinks-command-actions" aria-label="Short links controls">
         <div class="shortlinks-command-controls">
           <button type="button" class="btn-primary" data-shortlinks="new-link-from-list">New short link</button>
           <details class="shortlinks-account-menu">
@@ -305,19 +304,19 @@
                   </div>
                 </details>
               </div>
-              <div class="tools-account-dock" data-tools-account="dock">
+              <div class="tools-account-dock" data-tools-account="dock" data-personal-tool-account="true">
                 <div class="tools-account-dock-inner" data-tools-account="dock-inner">
-                  <div class="tools-account-bar" data-tools-account="bar"></div>
+                  <div class="tools-account-bar" data-tools-account="bar" data-personal-tool-account-bar="true"></div>
                 </div>
               </div>
             </div>
           </details>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <main id="main">
+      </div></div>
+  </div>
+</header>
+<!-- personal-tool-header:end -->
+<main id="main">
     <section class="surface-band tools-section shortlinks-dashboard-section">
       <div class="shortlinks-app-shell">
         <div data-shortlinks="summary" hidden aria-hidden="true"></div>
@@ -857,7 +856,7 @@
   </div>
   <script defer src="js/tools/tool-share-link.js"></script>
   <script defer src="js/admin/short-links.js"></script>
-  <script defer src="dist/site-tools-account.ae0efdef.js"></script>
+  <script defer src="dist/site-tools-account.08f63085.js"></script>
   <script defer src="dist/site-consent.20903590.js"></script>
 </body>
 </html>

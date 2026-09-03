@@ -747,3 +747,331 @@
     }
   }
 }
+
+/* Campaign Tracker retains one legacy !important hero size. Keep the shared
+   personal-tool title in the same cascade layer so the compact shell wins. */
+@layer components {
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+    font-size: clamp(1.1rem, 1.55vw, 1.4rem) !important;
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+      font-size: 1.05rem !important;
+    }
+  }
+}
+
+@layer overrides {
+  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] {
+    --tools-shell-width: min(1512px, calc(100% - 48px));
+    --tools-shell-gap: 16px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__content,
+  body.personal-accordion-page[data-personal-category="tools"] .personal-library-main--tools {
+    position: relative;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-hero {
+    box-sizing: border-box;
+    min-height: 48px;
+    padding: 6px 0;
+    border-bottom: 1px solid color-mix(in srgb, #087f8c 16%, #dce3ec 84%);
+    background: #ffffff;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-hero .wrapper {
+    width: var(--tools-shell-width);
+    max-width: var(--tools-shell-width);
+    padding-inline: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"]:not([data-tools-layout="directory"]) .tools-hero:not(.personal-tool-header) .wrapper {
+    padding-right: min(42%, 390px);
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header {
+    min-height: 64px;
+    padding: 8px 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 8px 16px;
+    width: var(--tools-shell-width);
+    max-width: var(--tools-shell-width);
+    padding-inline: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
+    width: auto !important;
+    max-width: none !important;
+    margin: 0;
+    color: #091f3b;
+    line-height: 1.12;
+    letter-spacing: -.018em;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1:focus-visible {
+    outline: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__summary {
+    max-width: 78ch;
+    margin: 0;
+    color: #526174;
+    font-size: .8rem;
+    line-height: 1.35;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header .personal-tool-header__account,
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__actions {
+    position: static;
+    align-self: center;
+    width: auto;
+    max-width: min(42vw, 420px);
+    min-width: 0;
+    padding: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-hero .hero-eyebrow {
+    font-size: .72rem;
+    letter-spacing: .08em;
+    line-height: 1.35;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-dock {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-dock-inner {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-bar {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-tools-link,
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-trigger {
+    min-block-size: 36px;
+    padding: 6px 9px;
+    border-radius: 6px;
+    font-size: .8rem;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-tools-link:is(:hover, :focus-visible),
+  body.personal-accordion-page[data-personal-category="tools"] .tools-account-disclosure-action:is(:hover, :focus-visible) {
+    border-color: color-mix(in srgb, #087f8c 38%, #dce3ec 62%);
+    background: color-mix(in srgb, #087f8c 7%, #ffffff 93%);
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] #main > .surface-band > .wrapper {
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    .personal-accordion__content,
+    .textcompare-output,
+    .wordfreq-fulltext,
+    .povcheck-output,
+    .oxford-output,
+    .nbsp-preview,
+    .imgopt-filelist,
+    .jobtrack-table-wrap,
+    .shortlinks-table-wrap,
+    .ga4-table-wrap,
+    .utmtool-table-wrap
+  ) {
+    scrollbar-color: #087f8c color-mix(in srgb, #087f8c 9%, #ffffff 91%);
+  }
+
+  @media (min-width: 960px) and (min-height: 620px) {
+    body.personal-accordion-page[data-personal-category="tools"]:not([data-tools-layout="directory"]) .personal-accordion__content > .tools-account-dock,
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
+      position: absolute;
+      top: 6px;
+      right: 24px;
+      z-index: 9;
+      width: auto;
+      max-width: calc(48% - 24px);
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
+      top: 16px;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library__account + .personal-library .home-library__heading {
+      padding-right: min(42%, 390px);
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="text"] #main {
+      align-items: start;
+      min-height: 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="text"] #main > .surface-band > .wrapper,
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="text"] #main > .surface-band > .wrapper > :is(
+      .textcompare-card,
+      .wordfreq-card,
+      .povcheck-card,
+      .oxford-card,
+      .nbsp-card
+    ) {
+      height: auto;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="text"] :is(
+      .textcompare-input-card,
+      .wordfreq-input-card,
+      .povcheck-input-card,
+      .oxford-input-card,
+      .nbsp-input-card,
+      .textcompare-results-card,
+      .wordfreq-results-card,
+      .povcheck-results-card,
+      .oxford-results-card,
+      .nbsp-results-card
+    ) {
+      max-height: none;
+      overflow: visible;
+      scrollbar-gutter: auto;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] :is(
+      .imgopt-section > .wrapper,
+      .bgtool-section > .wrapper
+    ) {
+      height: auto;
+      grid-template-rows: auto;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] :is(
+      .bgtool-grid,
+      .imgopt-controls-card,
+      .imgopt-results-card,
+      .bgtool-preview-card,
+      .bgtool-results-card,
+      .qrtool-preview-card,
+      .qrtool-controls-card,
+      .qrtool-panel-wrap,
+      .screenrec-controls,
+      .screenrec-preview,
+      .ocean-wave-controls-card,
+      .tools-dashboard-card
+    ) {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      scrollbar-gutter: auto;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] :is(
+      .qrtool-workspace,
+      .screenrec-grid,
+      .ocean-wave-grid,
+      .utmtool-shell
+    ) {
+      min-height: 0;
+    }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] {
+      --mobile-page-gutter: 16px;
+      --tools-shell-width: 100%;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .tools-hero {
+      min-height: 0;
+      padding: 8px 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .tools-hero .wrapper,
+    body.personal-accordion-page[data-personal-category="tools"]:not([data-tools-layout="directory"]) .tools-hero:not(.personal-tool-header) .wrapper {
+      width: 100%;
+      max-width: 100%;
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header {
+      min-height: 60px;
+      padding: 8px 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__inner {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 10px;
+      width: 100%;
+      max-width: 100%;
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__summary {
+      font-size: .75rem;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header .personal-tool-header__account {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      max-width: 42vw;
+      padding: 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__actions {
+      grid-column: 1 / -1;
+      max-width: none;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .tools-account-dock {
+      position: static;
+      width: 100%;
+      max-width: 100%;
+      padding: 8px 16px;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .tools-account-dock-inner {
+      width: 100%;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] #main > .surface-band > .wrapper {
+      padding-right: 16px;
+      padding-left: 16px;
+    }
+  }
+}

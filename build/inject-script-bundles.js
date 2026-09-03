@@ -204,7 +204,7 @@ function processHtml(html, relPath) {
       || isManagedLine(trimmed, 'site-home')
     ) {
       if (relPath === 'index.html' && !homeInserted) {
-        out.push(`${indent}<script defer src="${managedHrefs.home}"></script>`);
+        out.push(`${indent}<script defer src="${managedHrefs.home}" data-tools-account-src="${managedHrefs.toolsAccount}"></script>`);
         homeInserted = true;
       }
       return;
@@ -290,7 +290,10 @@ function processHtml(html, relPath) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
   }
   if (relPath === 'index.html' && !homeInserted) {
-    normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.home}"></script>`);
+    normalized = insertManagedScript(
+      normalized,
+      `<script defer src="${managedHrefs.home}" data-tools-account-src="${managedHrefs.toolsAccount}"></script>`
+    );
   }
   if (needsConsentBundle && !normalized.some((line) => isManagedLine(String(line || '').trim(), 'site-consent'))) {
     normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.consent}"></script>`);
@@ -315,7 +318,10 @@ function processHtml(html, relPath) {
     );
   });
 
-  const needsToolsAccountBundle = /data-tools-account="dock"/i.test(html) || /data-tools-account="dock-inner"/i.test(html);
+  // The homepage owns a lightweight, lazy account loader in the site-home
+  // bundle so opening the Tools library does not eagerly pay for account UI.
+  const needsToolsAccountBundle = relPath !== 'index.html' &&
+    (/data-tools-account="dock"/i.test(html) || /data-tools-account="dock-inner"/i.test(html));
   if (needsToolsAccountBundle && !toolsInserted) {
     const toolsScript = relPath === 'pages/tools.html'
       ? `<script defer src="${managedHrefs.toolsLanding}" data-tools-account-src="${managedHrefs.toolsAccount}"></script>`

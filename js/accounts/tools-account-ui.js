@@ -49,6 +49,25 @@
 
   const $ = (sel, root = document) => root.querySelector(sel);
 
+  const isPersonalAccordionToolsPage = () => {
+    const body = document.body;
+    if (!body) return false;
+
+    const audience = cleanText(body.dataset.audience).toLowerCase();
+    const page = cleanText(body.dataset.page).toLowerCase();
+    const hasInlineToolsAccount = Boolean(document.querySelector(
+      '[data-home-library-view="tools"] [data-tools-account="dock"]'
+    ));
+    if (page === 'home' && audience === 'personal' && hasInlineToolsAccount) return true;
+
+    if (!body.classList?.contains('personal-accordion-page')) return false;
+
+    const category = cleanText(body.dataset.personalCategory).toLowerCase();
+    if (category) return category === 'tools';
+
+    return audience === 'personal' && (page === 'tools' || body.classList.contains('tools-tool-page'));
+  };
+
   const getToolInfo = (toolId) => {
     const known = TOOL_CATALOG[toolId];
     if (known) return known;
@@ -706,6 +725,7 @@
 
   const ensureAccountBarStructure = ({ barEl, capabilities } = {}) => {
     if (!barEl) return null;
+    const suppressToolsContext = capabilities?.suppressToolsContext === true;
     let toolControlsEl = barEl.querySelector('[data-tools-account="tool-controls"]') ||
       barEl.parentElement?.querySelector('[data-tools-account="tool-controls"]') || null;
     let structureEl = barEl.querySelector('[data-tools-account="structure"]');
@@ -713,9 +733,9 @@
     if (!structureEl) {
       barEl.innerHTML = `
         <div class="tools-account-structure" data-tools-account="structure">
-          <nav class="tools-account-context" data-tools-account="context" aria-label="Tool navigation">
+          ${suppressToolsContext ? '' : `<nav class="tools-account-context" data-tools-account="context" aria-label="Tool navigation">
             <a class="tools-account-tools-link" href="/tools"><span aria-hidden="true">←</span><span>All tools</span></a>
-          </nav>
+          </nav>`}
           <div class="tools-account-actions" data-tools-account="actions" role="group" aria-label="Account actions">
             <button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>
             <div class="tools-account-disclosure-root" data-tools-account="disclosure-root" hidden>
@@ -742,6 +762,10 @@
         </div>
       `.trim();
       structureEl = barEl.querySelector('[data-tools-account="structure"]');
+    }
+
+    if (suppressToolsContext) {
+      structureEl?.querySelector('[data-tools-account="context"]')?.remove();
     }
 
     const extensionsEl = structureEl?.querySelector('[data-tools-account="extensions"]') || null;
@@ -2965,9 +2989,14 @@
     const page = String(document.body?.dataset?.page || '').trim();
     const toolId = page && page !== 'tools' ? page : '';
     const root = document.getElementById('main');
+    const personalToolsShell = isPersonalAccordionToolsPage();
 
     const autosaveMode = String(document.body?.dataset?.toolsAutosave || '').trim().toLowerCase();
     const capabilities = getToolAccountCapabilities({ page, toolId, autosaveMode });
+    if (personalToolsShell) {
+      capabilities.showToolsLink = false;
+      capabilities.suppressToolsContext = true;
+    }
     const genericPersistenceEnabled = ['manual', 'autosave'].includes(capabilities.persistence);
 
     const sessionModal = initSessionModal();
@@ -3004,7 +3033,7 @@
     applyToolsAccountVisibility();
     document.addEventListener('tools:auth-changed', applyToolsAccountVisibility);
 
-    if (page !== 'tools') {
+    if (page !== 'tools' && !personalToolsShell) {
       ensureToolsHero({ pageId: page });
     }
 

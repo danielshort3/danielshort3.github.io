@@ -1163,18 +1163,22 @@ try {
     assert(toolsHtml.includes('data-personal-accordion-shell') &&
       toolsHtml.includes('data-personal-category="tools"') &&
       toolsHtml.includes('data-personal-accordion-view="library"') &&
-      toolsHtml.includes('class="home-library personal-library personal-library--tools tools-hero"') &&
+      toolsHtml.includes('class="home-library personal-library personal-library--tools"') &&
+      !toolsHtml.includes('class="home-library personal-library personal-library--tools tools-hero"') &&
       !toolsHtml.includes('data-portfolio-workbench') &&
       !toolsHtml.includes('data-directory-workbench="tools"'),
       'personal tools page should render the isolated-category library instead of the legacy workbench');
     const toolsAccountDockIndex = toolsHtml.indexOf('class="tools-account-dock tools-account-dock--directory');
-    const toolsLibraryIndex = toolsHtml.indexOf('class="home-library personal-library personal-library--tools tools-hero"');
+    const toolsLibraryIndex = toolsHtml.indexOf('class="home-library personal-library personal-library--tools"');
     const toolsLibraryEnd = toolsHtml.indexOf('</section>', toolsLibraryIndex);
     const toolsLibraryHtml = toolsLibraryIndex >= 0 && toolsLibraryEnd > toolsLibraryIndex
       ? toolsHtml.slice(toolsLibraryIndex, toolsLibraryEnd)
       : '';
     assert(toolsAccountDockIndex >= 0 && toolsAccountDockIndex < toolsLibraryIndex,
       'tools account action should stay compact above the personal library');
+    assert(toolsHtml.includes('data-personal-tool-account-bar="true"') &&
+      !toolsHtml.includes('>All tools<'),
+      'tools library account slot should hydrate in place without duplicating library navigation');
     assert(!catalogJs.includes("if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');"),
       'tools account UI should not force an existing visible h1 offscreen');
     assert(catalogJs.includes("if (page !== 'tools')") &&
