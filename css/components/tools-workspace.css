@@ -5,7 +5,9 @@
     body[data-tools-layout="admin"],
     body[data-tools-layout="directory"]
   ){
-    --tools-shell-width:min(1560px, calc(100vw - 36px));
+    --tools-content-gutter:var(--personal-content-gutter, clamp(24px, 2.2vw, 40px));
+    --tools-workspace-width:var(--personal-workspace-width, 1512px);
+    --tools-shell-width:min(var(--tools-workspace-width), calc(100% - var(--tools-content-gutter) - var(--tools-content-gutter)));
     --tools-shell-gap:clamp(14px, 2vw, 22px);
     --tools-shell-top:calc(var(--nav-height, 72px) + 10px);
     --tools-pane-height:calc(100svh - var(--nav-height, 72px) - 118px);
@@ -106,9 +108,11 @@
   body[data-tools-layout="media"] #main,
   body[data-tools-layout="admin"] #main,
   body[data-tools-layout="directory"] #main{
+    box-sizing:border-box;
     width:var(--tools-shell-width);
     max-width:var(--tools-shell-width);
     margin-inline:auto;
+    overflow-x:clip;
   }
 
   @media (min-width: 1100px) and (min-height: 760px){
@@ -764,7 +768,7 @@
 
 @layer overrides {
   body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] {
-    --tools-shell-width: min(1512px, calc(100% - 48px));
+    --tools-shell-width: min(var(--tools-workspace-width), calc(100% - var(--tools-content-gutter) - var(--tools-content-gutter)));
     --tools-shell-gap: 16px;
   }
 
@@ -885,8 +889,8 @@
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-tools-link,
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
   body.personal-accordion-page[data-personal-category="tools"] .tools-account-trigger {
-    min-block-size: 36px;
-    padding: 6px 9px;
+    min-block-size: 44px;
+    padding: 8px 11px;
     border-radius: 6px;
     font-size: .8rem;
   }
@@ -923,10 +927,10 @@
     body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
       position: absolute;
       top: 6px;
-      right: 24px;
+      right: var(--tools-content-gutter);
       z-index: 9;
       width: auto;
-      max-width: calc(48% - 24px);
+      max-width: calc(48% - var(--tools-content-gutter));
     }
 
     body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
@@ -1011,7 +1015,8 @@
 
   @media (max-width: 959px), (max-height: 619px) {
     body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] {
-      --mobile-page-gutter: 16px;
+      --mobile-page-gutter: var(--personal-content-gutter, 16px);
+      --tools-content-gutter: var(--personal-content-gutter, 16px);
       --tools-shell-width: 100%;
     }
 
@@ -1024,8 +1029,8 @@
     body.personal-accordion-page[data-personal-category="tools"]:not([data-tools-layout="directory"]) .tools-hero:not(.personal-tool-header) .wrapper {
       width: 100%;
       max-width: 100%;
-      padding-right: 16px;
-      padding-left: 16px;
+      padding-right: var(--tools-content-gutter);
+      padding-left: var(--tools-content-gutter);
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header {
@@ -1038,8 +1043,8 @@
       gap: 6px 10px;
       width: 100%;
       max-width: 100%;
-      padding-right: 16px;
-      padding-left: 16px;
+      padding-right: var(--tools-content-gutter);
+      padding-left: var(--tools-content-gutter);
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__summary {
@@ -1062,16 +1067,61 @@
       position: static;
       width: 100%;
       max-width: 100%;
-      padding: 8px 16px;
+      padding: 8px var(--tools-content-gutter);
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .tools-account-dock-inner {
       width: 100%;
     }
 
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock {
+      position: absolute;
+      top: 16px;
+      right: var(--tools-content-gutter);
+      z-index: 9;
+      width: auto;
+      max-width: min(42%, 390px);
+      padding: 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library-main--tools > .tools-account-dock .tools-account-dock-inner {
+      width: auto;
+      max-width: 100%;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout="directory"] .personal-library__account + .personal-library .home-library__heading {
+      padding-right: min(42%, 390px);
+    }
+
     body.personal-accordion-page[data-personal-category="tools"] #main > .surface-band > .wrapper {
-      padding-right: 16px;
-      padding-left: 16px;
+      padding-right: var(--tools-content-gutter);
+      padding-left: var(--tools-content-gutter);
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .tools-account-tools-link,
+    body.personal-accordion-page[data-personal-category="tools"] .tools-account-bar :is(.btn-primary, .btn-secondary, .btn-ghost),
+    body.personal-accordion-page[data-personal-category="tools"] .tools-account-trigger,
+    body.personal-accordion-page[data-personal-category="tools"] :is(
+      .textcompare-field-btn,
+      .wordfreq-field-btn,
+      .povcheck-field-btn,
+      .oxford-field-btn,
+      .nbsp-field-btn,
+      .qrtool-mode-btn,
+      .qrtool-tab,
+      .screenrec-test-button,
+      .screenrec-crop-presets-toggle,
+      .screenrec-crop-button,
+      .screenrec-delay-button,
+      .jobtrack-tab,
+      .ga4-tab,
+      .ctc-button,
+      .ctc-icon-button
+    ) {
+      min-width: 44px;
+      min-height: 44px;
+      min-inline-size: 44px;
+      min-block-size: 44px;
     }
   }
 }

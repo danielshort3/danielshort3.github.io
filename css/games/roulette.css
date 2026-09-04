@@ -962,6 +962,14 @@ body.roulette00-page {
   body.roulette00-page.has-mobile-site-masthead {
     padding-top: calc(var(--mobile-site-masthead-height, calc(62px + env(safe-area-inset-top, 0px))) + 12px);
   }
+
+  .roulette00-spin-btn,
+  .roulette00-action,
+  .roulette00-line-tab,
+  .roulette00-bet.is-line {
+    min-height: 44px;
+    min-block-size: 44px;
+  }
 }
 
 @media (max-width: 640px) {

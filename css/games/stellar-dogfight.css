@@ -3627,3 +3627,25 @@
         font-size: 0.6rem;
       }
     }
+
+    @media (max-width: 768px) {
+      body.personal-accordion-page[data-personal-item="stellar-dogfight"] :is(
+        .btn,
+        .tab-btn,
+        .option-btn,
+        .keybind-btn,
+        .panel-disclosure-toggle
+      ) {
+        min-height: 44px;
+        min-block-size: 44px;
+      }
+
+      body.personal-accordion-page[data-personal-item="stellar-dogfight"] :is(
+        .btn-icon-only,
+        .command-drawer .tab-btn
+      ) {
+        width: 44px;
+        min-width: 44px;
+        min-inline-size: 44px;
+      }
+    }

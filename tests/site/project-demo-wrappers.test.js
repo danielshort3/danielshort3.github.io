@@ -30,6 +30,7 @@ function runProjectDemoWrapperTests({ assert }) {
   const definitions = loadProjectDemoDefinitions();
   const rewrites = JSON.parse(read('vercel.json')).rewrites || [];
   const css = read('css/components/personal-accordion-shell.css');
+  const projectCss = read('css/components/project-page.css');
   const buildRunner = read('build/build-site.js');
 
   assert(definitions.length === 12 && PROJECT_DEMO_IDS.length === 12,
@@ -55,6 +56,11 @@ function runProjectDemoWrapperTests({ assert }) {
     assert(wrapperFromSource.includes(`class="project-demo-wrapper-iframe" src="${definition.rawPath}"`) &&
       wrapperFromSource.includes('data-personal-category="projects"'),
     `${wrapperRelativePath} should be reproducible from the authoritative wrapper generator`);
+    assert(wrapperFromSource.includes("window.matchMedia('(max-width: 959px)')") &&
+      wrapperFromSource.includes("frame.addEventListener('load', observeFrame);") &&
+      wrapperFromSource.includes('new FrameResizeObserver(scheduleMeasurement)') &&
+      wrapperFromSource.includes("element.style.removeProperty('height');"),
+    `${wrapperRelativePath} should auto-size its same-origin demo on mobile and restore fixed desktop sizing`);
     assert(count(raw, new RegExp(GUARD_START, 'g')) === 1 &&
       count(raw, new RegExp(GUARD_END, 'g')) === 1 &&
       raw.includes('if (window.self === window.top)') &&
@@ -103,6 +109,15 @@ function runProjectDemoWrapperTests({ assert }) {
     css.includes('body.project-demo-wrapper-page .personal-accordion__content') &&
     css.includes('overflow: hidden !important;'),
   'The personal shell should give wrapper iframes a full, isolated content viewport');
+  assert(css.includes('scrollbar-gutter: stable both-edges;'),
+    'Desktop compact panels should reserve symmetric scrollbar space so return and content axes stay aligned');
+  assert(projectCss.includes('.project-main--compact .project-demo-header{') &&
+    projectCss.includes('.project-main--compact .project-demo-help{') &&
+    projectCss.includes('.project-main--compact .project-demo-tooltip{') &&
+    projectCss.includes('top:calc(50% + 32px);') &&
+    projectCss.includes('left:0;') &&
+    projectCss.includes('width:auto;'),
+  'Mobile project demo help should anchor to the full demo header without clipping either edge');
 }
 
 if (require.main === module) {

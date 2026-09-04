@@ -29,6 +29,7 @@ const managedHrefs = {
   toolsLanding: resolveHref('site-tools-landing.js', manifest.toolsLanding),
   projectStarfall: resolveHref('project-starfall.js', manifest.projectStarfall)
 };
+const SITE_SHELL_BUNDLE_PATTERN = /<script\b[^>]*\bsrc=(["'])\/?dist\/site-shell(?:\.[0-9a-f]{8})?\.js\1[^>]*>\s*<\/script>/gi;
 
 function loadManifest() {
   try {
@@ -120,6 +121,61 @@ function isManagedLine(trimmed, baseName) {
   return new RegExp(`^<script\\s+defer\\s+src="dist\\/${baseName}(?:\\.[0-9a-f]{8})?\\.js"(?:\\s+[^>]*)?><\\/script>$`, 'i').test(trimmed);
 }
 
+function isVisitorFacingSiteDocument(html, relPath = '') {
+  const normalizedPath = String(relPath || '').replace(/\\/g, '/');
+  const isManagedVisitorPath = normalizedPath && (
+    !normalizedPath.includes('/') || normalizedPath.startsWith('pages/')
+  );
+  if (!isManagedVisitorPath || normalizedPath.startsWith('admin/') || normalizedPath.startsWith('demos/')) {
+    return false;
+  }
+
+  const source = String(html || '');
+  return /<html\b/i.test(source) &&
+    /<head\b/i.test(source) &&
+    /<main\b/i.test(source) &&
+    (
+      /<header\b[^>]*\bid=(["'])combined-header-nav\1/i.test(source) ||
+      /\bdata-personal-accordion-shell\b/i.test(source) ||
+      /<body\b[^>]*\bclass=(["'])[^"']*\bsite-page\b[^"']*\1/i.test(source)
+    );
+}
+
+function isSiteShellBundleLine(trimmed) {
+  return /^<script\b[^>]*\bsrc=(["'])\/?dist\/site-shell(?:\.[0-9a-f]{8})?\.js\1[^>]*>\s*<\/script>$/i.test(trimmed);
+}
+
+function ensureSiteShellBundleInHead(lines) {
+  const source = (Array.isArray(lines) ? lines : []).join('\n');
+  const headOpen = /<head\b[^>]*>/i.exec(source);
+  if (!headOpen) return Array.isArray(lines) ? lines.slice() : [];
+  const headStart = headOpen.index + headOpen[0].length;
+  const headEnd = source.indexOf('</head>', headStart);
+  if (headEnd === -1) return Array.isArray(lines) ? lines.slice() : [];
+
+  const canonicalScript = `<script defer src="${managedHrefs.shell}"></script>`;
+  let keptShell = false;
+  let headInner = source.slice(headStart, headEnd).replace(SITE_SHELL_BUNDLE_PATTERN, () => {
+    if (keptShell) return '';
+    keptShell = true;
+    return canonicalScript;
+  });
+
+  if (!keptShell) {
+    const personalStylesheet = /^([ \t]*)<link\b[^>]*href="(?:\/?dist\/)?styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"[^>]*>[ \t]*$/im.exec(headInner);
+    if (personalStylesheet) {
+      const scriptLine = `${personalStylesheet[1]}${canonicalScript}\n`;
+      headInner = headInner.slice(0, personalStylesheet.index) + scriptLine + headInner.slice(personalStylesheet.index);
+    } else {
+      headInner = `${headInner.trimEnd()}\n  ${canonicalScript}\n`;
+    }
+  }
+
+  const beforeHead = source.slice(0, headStart).replace(SITE_SHELL_BUNDLE_PATTERN, '');
+  const afterHead = source.slice(headEnd).replace(SITE_SHELL_BUNDLE_PATTERN, '');
+  return `${beforeHead}${headInner}${afterHead}`.split('\n');
+}
+
 function insertManagedScript(lines, scriptLine) {
   const next = Array.isArray(lines) ? lines.slice() : [];
   const scriptIndex = next.findIndex((line) => /^\s*<script\b/i.test(String(line || '')));
@@ -191,6 +247,7 @@ function processHtml(html, relPath) {
       || /^<script\s+defer\s+src="js\/navigation\/navigation\.js"><\/script>$/i.test(trimmed)
       || /^<script\s+defer\s+src="js\/animations\/animations\.js"><\/script>$/i.test(trimmed)
       || isManagedLine(trimmed, 'site-shell')
+      || isSiteShellBundleLine(trimmed)
     ) {
       if (!shellInserted) {
         out.push(`${indent}<script defer src="${managedHrefs.shell}"></script>`);
@@ -279,7 +336,7 @@ function processHtml(html, relPath) {
   });
 
   let normalized = out;
-  const needsShellBundle = /\bclass="[^"]*\bsite-page\b[^"]*"/i.test(html) && /<main\b/i.test(html);
+  const needsShellBundle = isVisitorFacingSiteDocument(html, relPath);
   const needsConsentBundle = !isIsolatedCaptureSurface && (
     needsShellBundle
       || !relPath.includes('/')
@@ -341,7 +398,11 @@ function processHtml(html, relPath) {
     );
   }
 
-  const next = normalized.join('\n');
+  if (needsShellBundle) {
+    normalized = ensureSiteShellBundleInHead(normalized);
+  }
+
+  const next = normalized.join('\n').replace(/^[ \t]+$/gm, '');
   return { html: next, changed: next !== html };
 }
 
@@ -366,4 +427,10 @@ function main() {
   process.stdout.write(`[inject-script-bundles] Updated ${updated} file(s); skipped ${skipped}.\n`);
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = {
+  ensureSiteShellBundleInHead,
+  isVisitorFacingSiteDocument,
+  processHtml
+};

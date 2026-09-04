@@ -7,7 +7,7 @@
     --home-rail-width: 64px;
     --home-active-rail-width: 68px;
     --home-collapsed-rails-width: 256px;
-    --home-panel-motion: 520ms;
+    --home-panel-motion: var(--personal-transition-duration, 440ms);
     --home-panel-ease: cubic-bezier(.22, 1, .36, 1);
     background: var(--home-canvas);
   }
@@ -22,7 +22,9 @@
   }
 
   .home-accordion__shell {
+    --home-overview-panel-inline-size: calc(100cqi - var(--home-collapsed-rails-width) - var(--home-active-rail-width));
     box-sizing: border-box;
+    container: home-accordion-shell / inline-size;
     display: flex;
     gap: 0;
     width: min(1500px, 100%);
@@ -43,6 +45,7 @@
     flex: 0 0 var(--home-rail-width);
     min-width: 0;
     height: 100%;
+    overflow: hidden;
     transition: flex-basis var(--home-panel-motion) var(--home-panel-ease);
   }
 
@@ -175,8 +178,9 @@
 
   .home-accordion__panel {
     box-sizing: border-box;
-    flex: 1 1 auto;
-    min-width: 0;
+    flex: 0 0 var(--home-overview-panel-inline-size);
+    width: var(--home-overview-panel-inline-size);
+    min-width: var(--home-overview-panel-inline-size);
     height: 100%;
     overflow: hidden;
     border: 4px solid var(--panel-color);
@@ -195,15 +199,6 @@
     overscroll-behavior: contain;
     scrollbar-color: var(--home-scrollbar-thumb) var(--home-scrollbar-track);
     scrollbar-width: thin;
-  }
-
-  .home-accordion[data-enhanced="true"] .home-accordion__item.is-active.is-activating .home-accordion__scroller {
-    animation: homeAccordionContentIn 380ms var(--home-panel-ease) 100ms both;
-  }
-
-  .home-accordion__item.is-closing .home-accordion__scroller {
-    opacity: 0;
-    transition: opacity 180ms ease;
   }
 
   @keyframes homeAccordionContentIn {
@@ -592,6 +587,10 @@
   }
 
   @media (max-width: 959px), (max-height: 619px) {
+    body[data-page="home"].home-pattern-page {
+      --home-panel-motion: 340ms;
+    }
+
     .home-accordion {
       min-height: 0;
       padding: 0;
@@ -614,6 +613,7 @@
       display: block;
       width: 100%;
       height: auto;
+      overflow: visible;
     }
 
     .home-accordion__heading,
@@ -685,7 +685,9 @@
     }
 
     .home-accordion__panel {
+      flex: none;
       width: 100%;
+      min-width: 0;
       height: auto;
       min-height: 0;
       overflow: visible;
@@ -704,6 +706,10 @@
       overflow: visible;
       overscroll-behavior: auto;
       scrollbar-width: none;
+    }
+
+    .home-accordion[data-enhanced="true"]:not(.is-view-changing) .home-accordion__item.is-active.is-activating .home-accordion__scroller {
+      animation: homeAccordionContentIn 240ms var(--home-panel-ease) 80ms both;
     }
 
     .home-accordion__scroller::-webkit-scrollbar {

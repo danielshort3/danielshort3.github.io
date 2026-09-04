@@ -45,6 +45,29 @@ function getSkipLinkHref(source) {
   return tag ? getTagAttribute(tag, /<a\b[^>]*>/i, 'href') : '';
 }
 
+function assertTransitionBootstrap(assert, relativePath, html) {
+  const source = String(html || '');
+  const headEnd = source.search(/<\/head>/i);
+  const bodyStart = source.search(/<body\b/i);
+  const scriptTags = source.match(/<script\b[^>]*><\/script>/gi) || [];
+  const noJsTags = scriptTags.filter((tag) => /\bsrc="(?:\/)?js\/common\/no-js\.js"/i.test(tag));
+  const shellTags = scriptTags.filter((tag) => /\bsrc="(?:\/)?dist\/site-shell\.[^"/]+\.js"/i.test(tag));
+  const noJsIndex = noJsTags.length === 1 ? source.indexOf(noJsTags[0]) : -1;
+  const shellIndex = shellTags.length === 1 ? source.indexOf(shellTags[0]) : -1;
+
+  assert(headEnd >= 0 && bodyStart > headEnd,
+    `${relativePath} should retain a complete head before its body`);
+  assert(noJsTags.length === 1 && noJsIndex >= 0 && noJsIndex < headEnd &&
+    !/\b(?:async|defer|type="module")\b/i.test(noJsTags[0]),
+  `${relativePath} should run one synchronous transition bootstrap in the document head`);
+  assert(shellTags.length === 1 && shellIndex >= 0 && shellIndex < headEnd &&
+    /\bdefer\b/i.test(shellTags[0]),
+  `${relativePath} should load one deferred site shell from the document head`);
+  const stylesheetIndex = source.search(/<link\b[^>]*\brel="stylesheet"[^>]*>/i);
+  assert(stylesheetIndex >= 0 && stylesheetIndex < noJsIndex,
+    `${relativePath} should declare its transition styles before the synchronous preload bootstrap`);
+}
+
 function walkHtml(relativeDir) {
   const start = path.join(ROOT, relativeDir);
   if (!fs.existsSync(start)) return [];
@@ -250,8 +273,11 @@ function runPersonalAccordionShellTests({ assert }) {
   'Account-reachable tools should remain a distinct internal shell list instead of joining the public catalog');
   assert(!Object.prototype.hasOwnProperty.call(GAME_PAGE_PATHS, 'project-starfall'),
     'Project Starfall should stay out of generated personal game routing');
+  assertTransitionBootstrap(assert, 'index.html', read('index.html'));
+  assertTransitionBootstrap(assert, 'public/index.html', read('public/index.html'));
   uniqueManagedPages.forEach(([relativePath, category]) => {
     const html = read(relativePath);
+    assertTransitionBootstrap(assert, relativePath, html);
     assert(html.includes('data-personal-accordion-shell'), `${relativePath} should use the personal shell`);
     assert(html.includes(`data-personal-category="${category}"`), `${relativePath} should activate ${category}`);
     assert(count(html, /data-personal-rail-active="true"/g) === 1,
@@ -332,6 +358,7 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(count(html, new RegExp(`href="${managedStylesheet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')) === 1,
       `${relativePath} should reference the hashed personal shell stylesheet exactly once`);
     const publicHtml = read(path.join('public', relativePath));
+    assertTransitionBootstrap(assert, `public/${relativePath}`, publicHtml);
     assert(count(publicHtml, new RegExp(`href="${managedStylesheet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')) === 1,
       `public/${relativePath} should reference the hashed personal shell stylesheet exactly once`);
   });
@@ -346,6 +373,8 @@ function runPersonalAccordionShellTests({ assert }) {
   professionalFiles.forEach((filePath) => {
     const html = fs.readFileSync(filePath, 'utf8');
     const relativePath = path.relative(ROOT, filePath).replace(/\\/g, '/');
+    assertTransitionBootstrap(assert, relativePath, html);
+    assertTransitionBootstrap(assert, `public/${relativePath}`, read(path.join('public', relativePath)));
     const audience = relativePath.split('/')[2];
     const canonical = getTagAttribute(html, /<link\b[^>]*\brel="canonical"[^>]*>/i, 'href');
     const ogUrl = getTagAttribute(html, /<meta\b[^>]*\bproperty="og:url"[^>]*>/i, 'content');
@@ -418,10 +447,12 @@ function runPersonalAccordionShellTests({ assert }) {
     shellCss.includes('@media (prefers-reduced-motion: reduce)') &&
     shellCss.includes('.personal-accordion__rail,'),
   'Desktop category rail should be a full-height actionable 68px control with restrained motion and visible focus');
-  assert(shellCss.includes('--personal-toolbar-size: 48px;') &&
+  assert(shellCss.includes('--personal-toolbar-size: 60px;') &&
     shellCss.includes('border: 4px solid var(--panel-color);') &&
-    shellCss.includes('min-height: 44px;'),
-  'Desktop shell should use a four-pixel frame and compact 48px toolbar with a full touch target');
+    shellCss.includes('min-height: 44px;') &&
+    shellCss.includes('padding-block: 8px;') &&
+    shellCss.includes('--personal-content-width: 1068px;'),
+  'Desktop shell should use a four-pixel frame and a spaced 60px toolbar aligned to the shared content measure');
   assert(shellCss.includes('--personal-toolbar-size: 60px;') &&
     shellCss.includes('.personal-accordion__rails {\n      display: none;') &&
     shellCss.includes('.personal-accordion__context {') &&
@@ -431,6 +462,10 @@ function runPersonalAccordionShellTests({ assert }) {
     shellCss.includes('position: static;') &&
     shellCss.includes('.personal-library__meta {'),
   'Library title, lead, and quiet count should remain in ordinary scrollable content');
+  assert(shellCss.includes('[data-personal-item="privacy"] .personal-accordion__content > #main') &&
+    shellCss.includes('[data-personal-item="solutions"] .personal-accordion__content > #main > .hero.hero--default') &&
+    shellCss.includes('overflow-x: clip;'),
+  'Wrapped utility pages should shed legacy viewport offsets and keep horizontal overflow inside owned components');
   assert(shellCss.includes('body.personal-accordion-page[data-personal-chrome="compact"] :is(') &&
     shellCss.includes('.speed-dial,') && shellCss.includes('.mobile-site-dock'),
   'Compact personal chrome should consistently suppress duplicate floating navigation');
