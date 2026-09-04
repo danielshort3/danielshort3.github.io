@@ -8,6 +8,10 @@
 
 const fs = require('fs');
 const path = require('path');
+const {
+  finalizePersonalRouteDocument,
+  validatePersonalRouteDocument
+} = require('./lib/personal-accordion-shell');
 
 const root = path.resolve(__dirname, '..');
 const manifestPath = path.join(root, 'dist', 'scripts-manifest.json');
@@ -403,7 +407,9 @@ function processHtml(html, relPath) {
   }
 
   const next = normalized.join('\n').replace(/^[ \t]+$/gm, '');
-  return { html: next, changed: next !== html };
+  const finalized = finalizePersonalRouteDocument(next, { home: relPath === 'index.html' });
+  if (/\bid="site-route-manifest"/i.test(finalized)) validatePersonalRouteDocument(finalized);
+  return { html: finalized, changed: finalized !== html };
 }
 
 function main() {

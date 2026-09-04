@@ -518,7 +518,9 @@ function renderHeader({ settings, navigation, projectsById, pagesById, tools, au
   ].join('\n');
 
   return [
-    '<header id="combined-header-nav">',
+    isProfessionalAudience
+      ? '<header id="combined-header-nav">'
+      : '<header id="combined-header-nav" data-site-shell-header>',
     '  <nav class="nav" aria-label="Primary">',
     '    <div class="wrapper nav-wrapper">',
     `      <a href="${escapeHtml(normalizeRelativeHref(brand.homePath || '/', '/'))}" class="brand" data-entry-home-link="true">`,
@@ -826,7 +828,7 @@ function renderFooter({ footer, year, audience = null }) {
       .join('\n');
 
     return [
-      '<footer class="footer footer-classic footer--personal-compact">',
+      '<footer class="footer footer-classic footer--personal-compact" data-site-shell-footer>',
       '  <div class="wrapper footer-inner">',
       `    <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}</p>`,
       '    <nav class="footer-utility" aria-label="Personal footer">',
@@ -964,13 +966,17 @@ function renderFullPage({ settings, navigation, footer, projectsById, pagesById,
   const bottomScripts = (Array.isArray(page.bottomScripts) ? page.bottomScripts : [])
     .map((script) => renderScriptTag(script, '  '))
     .join('\n');
+  const isPersonalHome = page && page.id === 'home' && page.canonicalPath === '/' &&
+    String(page.bodyAttributes && page.bodyAttributes['data-audience'] || audience && audience.key || '') === 'personal';
 
   return [
     renderHead({ settings, page }),
     renderBodyOpen(page),
     '  <a href="#main" class="skip-link">Skip to main content</a>',
     indentBlock(headerHtml, '  '),
+    isPersonalHome ? '  <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>' : '',
     indentBlock(String(page.bodyHtml || '').trim(), '  '),
+    isPersonalHome ? '  <p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-site-route-announcer></p>' : '',
     indentBlock(footerHtml, '  '),
     bottomScripts,
     '</body>',

@@ -1,5 +1,6 @@
 import '../../js/common/audience-config.js';
 import '../../js/common/site-realm.js';
+import '../../js/navigation/site-route-runtime.js';
 import '../../js/common/common.js';
 import '../../js/common/modal-accessibility.js';
 import '../../js/common/certifications-modal.js';

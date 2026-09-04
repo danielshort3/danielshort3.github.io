@@ -4,15 +4,20 @@ const fs = require('fs');
 const path = require('path');
 const {
   CATEGORY_CONFIG,
+  HARD_NAVIGATION_PATHS,
   PERSONAL_CONTENT_END,
   PERSONAL_SHELL_END,
+  SITE_ROUTE_MANIFEST_VERSION,
+  finalizePersonalRouteDocument,
   preparePersonalToolDetailHtml,
   renderPersonalLibraryMain,
   unwrapPersonalAccordionHtml,
+  validatePersonalRouteDocument,
   wrapPersonalAccordionHtml
 } = require('../../build/lib/personal-accordion-shell');
 const {
   GAME_PAGE_PATHS,
+  HARD_TOOL_PAGE_IDS,
   INTERNAL_TOOL_PAGE_IDS,
   TOOL_PAGE_IDS,
   UTILITY_PAGE_CONFIGS,
@@ -43,6 +48,11 @@ function getSkipLinkHref(source) {
   const tag = (String(source || '').match(/<a\b[^>]*>/gi) || [])
     .find((candidate) => /\sclass="[^"]*\bskip-link\b[^"]*"/i.test(candidate));
   return tag ? getTagAttribute(tag, /<a\b[^>]*>/i, 'href') : '';
+}
+
+function getRouteManifest(source) {
+  const match = /<script\b[^>]*\bid="site-route-manifest"[^>]*>([\s\S]*?)<\/script>/i.exec(String(source || ''));
+  return match ? JSON.parse(match[1]) : null;
 }
 
 function assertTransitionBootstrap(assert, relativePath, html) {
@@ -121,10 +131,11 @@ function runPersonalAccordionShellTests({ assert }) {
   assert(/<body[^>]*data-audience="personal"/i.test(wrapped), 'Personal shell should stamp the personal audience');
   assert(count(wrapped, /data-personal-rail-active="true"/g) === 1,
     'Personal shell should identify one active category marker');
-  assert(count(wrapped, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
+  assert(count(wrapped, /class="personal-accordion__rail(?:\s|")/g) === 5 &&
     /<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b[^>]*href="\/#contact"[^>]*aria-label="Return to the Contact section on the homepage"/i.test(wrapped) &&
-    wrapped.includes('data-personal-transition="collapse"'),
-  'Personal shell should render one labelled category rail that returns to the matching homepage section');
+    wrapped.includes('data-personal-transition="collapse"') &&
+    count(wrapped, /<a\b[^>]*\bdata-site-tab="[^"]+"[^>]*\bhidden\b[^>]*\binert\b/gi) === 4,
+  'Personal shell should preserve five category rail slots while exposing only the active return rail');
   assert(/class="personal-accordion__rails"[^>]*data-personal-category-marker="contact"/i.test(wrapped) &&
     !/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(wrapped),
   'Clickable category rail should remain exposed to assistive technology');
@@ -133,6 +144,24 @@ function runPersonalAccordionShellTests({ assert }) {
     'Contact detail should return to the homepage categories');
   assert(count(wrapped, /class="personal-accordion__toolbar"/g) === 1,
     'Personal shell should render one shared desktop toolbar and mobile context bar');
+  assert(count(wrapped, /data-site-route-content/g) === 1 &&
+    /<section\b[^>]*data-personal-accordion-shell[^>]*data-site-route-content/i.test(wrapped) &&
+    !/<div\b[^>]*data-personal-detail-content[^>]*data-site-route-content/i.test(wrapped) &&
+    count(wrapped, /data-site-route-toolbar/g) === 1 &&
+    count(wrapped, /data-site-route-progress/g) === 1 &&
+    count(wrapped, /data-site-route-announcer/g) === 1,
+  'Personal shell should expose its outer scene as the only atomic route outlet plus one toolbar, progress line, and live announcer');
+  const wrappedManifest = getRouteManifest(wrapped);
+  assert(wrappedManifest && wrappedManifest.version === SITE_ROUTE_MANIFEST_VERSION &&
+    wrappedManifest.id === 'contact:contact' &&
+    wrappedManifest.path === '/contact' &&
+    wrappedManifest.category === 'contact' &&
+    wrappedManifest.view === 'detail' &&
+    wrappedManifest.navigation === 'soft' &&
+    wrappedManifest.module === wrappedManifest.id &&
+    wrappedManifest.scripts.join(',') === '/first.js,/second.js' &&
+    /<body[^>]*data-site-route-id="contact:contact"[^>]*data-site-route-category="contact"[^>]*data-site-route-view="detail"[^>]*data-site-route-navigation="soft"/i.test(wrapped),
+  'Personal shell should publish matching body metadata and a versioned per-document route manifest');
   assert(wrapped.indexOf('first.js') < wrapped.indexOf('second.js'), 'Personal shell should preserve script order');
   assert(/personal-accordion-shell:end -->\r?\n<script src="first\.js">/.test(wrapped),
     'The shell boundary should leave following scripts at the start of a new line');
@@ -149,13 +178,13 @@ function runPersonalAccordionShellTests({ assert }) {
     itemId: 'contact',
     view: 'detail'
   });
-  assert(count(wrappedWithManagedStyle, /styles-personal-accordion\.1234abcd\.css/g) === 1,
+  assert(count(wrappedWithManagedStyle, /<link\b[^>]*styles-personal-accordion\.1234abcd\.css[^>]*>/g) === 1,
     'Ordinary unwrap and rewrap should preserve one existing hashed personal shell stylesheet');
   assert(count(wrapPersonalAccordionHtml(wrappedWithManagedStyle, {
     category: 'contact',
     itemId: 'contact',
     view: 'detail'
-  }), /styles-personal-accordion\.1234abcd\.css/g) === 1,
+  }), /<link\b[^>]*styles-personal-accordion\.1234abcd\.css[^>]*>/g) === 1,
   'Repeated wrapping should not remove or duplicate the managed personal shell stylesheet');
 
   const projectLibrary = buildLibraryPage(sample, 'projects', {
@@ -282,15 +311,34 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(html.includes(`data-personal-category="${category}"`), `${relativePath} should activate ${category}`);
     assert(count(html, /data-personal-rail-active="true"/g) === 1,
       `${relativePath} should identify exactly one active category marker`);
-    assert(count(html, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
+    assert(count(html, /class="personal-accordion__rail(?:\s|")/g) === 5 &&
       new RegExp(`<a\\b[^>]*class="[^"]*\\bpersonal-accordion__rail\\b[^>]*href="\\/#${category}"`).test(html) &&
       html.includes(`aria-label="Return to the ${CATEGORY_CONFIG[category].label} section on the homepage"`) &&
-      html.includes('data-personal-transition="collapse"'),
-    `${relativePath} should expose one actionable category rail and no cross-category rail links`);
+      html.includes('data-personal-transition="collapse"') &&
+      count(html, /<a\b[^>]*\bdata-site-tab="[^"]+"[^>]*\bhidden\b[^>]*\binert\b/gi) === 4,
+    `${relativePath} should retain five stable rail slots while exposing only its active category`);
     assert(!/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(html),
       `${relativePath} should expose its return rail to assistive technology`);
     assert(count(html, /class="personal-accordion__toolbar"/g) === 1,
       `${relativePath} should render one shared toolbar/context bar`);
+    assert(count(html, /data-site-route-content/g) === 1 &&
+      count(html, /data-site-route-toolbar/g) === 1 &&
+      count(html, /data-site-route-progress/g) === 1 &&
+      count(html, /data-site-route-announcer/g) === 1 &&
+      count(html, /data-site-shell-header/g) === 1 &&
+      count(html, /data-site-shell-footer/g) === 1,
+    `${relativePath} should expose one persistent shell and one atomic route surface`);
+    const routeManifest = getRouteManifest(html);
+    const validatedRouteManifest = validatePersonalRouteDocument(html);
+    const expectedItem = getTagAttribute(html, /<body\b[^>]*>/i, 'data-personal-item');
+    assert(routeManifest && routeManifest.version === SITE_ROUTE_MANIFEST_VERSION &&
+      routeManifest.id === `${category}:${expectedItem}` &&
+      routeManifest.category === category &&
+      routeManifest.module === routeManifest.id &&
+      validatedRouteManifest.id === routeManifest.id &&
+      Array.isArray(routeManifest.styles) && routeManifest.styles.length >= 2 &&
+      Array.isArray(routeManifest.scripts) && routeManifest.scripts.length >= 2,
+    `${relativePath} should include complete versioned route metadata and ordered resources`);
     assert(count(html, /<main\b/gi) === 1, `${relativePath} should retain one main element`);
     assert(count(html, /<footer\b[^>]*\bfooter--personal-compact\b/gi) === 1,
       `${relativePath} should include one compact personal footer`);
@@ -342,6 +390,15 @@ function runPersonalAccordionShellTests({ assert }) {
         !html.includes('class="hero hero--tools tools-hero"') &&
         !html.includes('>All tools<'),
       `${relativePath} should use one shell-native tool title without legacy hero or duplicate account navigation`);
+      const toolId = expectedItem;
+      const isHardBoundary = HARD_TOOL_PAGE_IDS.includes(toolId);
+      assert(routeManifest.navigation === (isHardBoundary ? 'hard' : 'soft') &&
+        getTagAttribute(html, /<body\b[^>]*>/i, 'data-site-route-navigation') === (isHardBoundary ? 'hard' : 'soft'),
+      `${relativePath} should classify its security boundary consistently in body and manifest metadata`);
+      if (isHardBoundary) {
+        assert(/<a\b[^>]*href="\/tools"[^>]*data-navigation="hard"/i.test(html),
+          `${relativePath} should force native navigation when leaving its security-header boundary`);
+      }
     }
     if (gameDetailPages.has(relativePath)) {
       assert(html.includes('href="/games" aria-label="Back to game library"') &&
@@ -362,6 +419,54 @@ function runPersonalAccordionShellTests({ assert }) {
     assert(count(publicHtml, new RegExp(`href="${managedStylesheet.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g')) === 1,
       `public/${relativePath} should reference the hashed personal shell stylesheet exactly once`);
   });
+
+  assert(HARD_TOOL_PAGE_IDS.length === 3 &&
+    HARD_TOOL_PAGE_IDS.every((itemId) => HARD_NAVIGATION_PATHS.includes(`/tools/${itemId}`)),
+  'The generator and route manifest should share the three immutable security-header boundaries');
+
+  const homeHtml = read('index.html');
+  const homeManifest = getRouteManifest(homeHtml);
+  assert(homeManifest && homeManifest.id === 'home' && homeManifest.path === '/' &&
+    homeManifest.category === 'about' && homeManifest.view === 'overview' &&
+    homeManifest.navigation === 'soft' && homeManifest.module === 'home' &&
+    count(homeHtml, /data-site-tab="(?:about|projects|tools|games|contact)"/g) === 5 &&
+    count(homeHtml, /data-site-tab-active="true"/g) === 1 &&
+    count(homeHtml, /data-site-route-content/g) === 1 &&
+    count(homeHtml, /data-site-shell-header/g) === 1 &&
+    count(homeHtml, /data-site-shell-footer/g) === 1,
+  'Homepage should expose its five tabs, default About state, persistent chrome, and route manifest');
+  assert(read('build/templates/header.partial.html').includes('data-site-shell-header') &&
+    read('build/templates/footer.partial.html').includes('data-site-shell-footer') &&
+    read('build/lib/cms-renderers.js').includes("'<header id=\"combined-header-nav\" data-site-shell-header>'") &&
+    read('build/lib/cms-renderers.js').includes("'<footer class=\"footer footer-classic footer--personal-compact\" data-site-shell-footer>'"),
+  'CMS rendering and generated personal templates should preserve both persistent chrome hooks');
+
+  const finalizedHome = finalizePersonalRouteDocument(homeHtml, { home: true });
+  assert(count(finalizedHome, /id="site-route-manifest"/g) === 1 &&
+    getRouteManifest(finalizedHome).scripts.some((src) => /^\/dist\/site-home(?:\.[0-9a-f]{8})?\.js$/i.test(src)),
+  'Route-manifest finalization should remain idempotent while refreshing homepage resources');
+  assert(validatePersonalRouteDocument(homeHtml).id === 'home',
+    'The built homepage should pass fail-closed route lifecycle validation');
+  let rejectedInlineScript = false;
+  let rejectedExternalScript = false;
+  let rejectedMissingModule = false;
+  try {
+    validatePersonalRouteDocument(homeHtml.replace('</body>', '<script>window.unclassified = true;</script></body>'));
+  } catch (_) {
+    rejectedInlineScript = true;
+  }
+  try {
+    validatePersonalRouteDocument(homeHtml.replace('</body>', '<script src="/js/unclassified.js"></script></body>'));
+  } catch (_) {
+    rejectedExternalScript = true;
+  }
+  try {
+    validatePersonalRouteDocument(homeHtml.replace('"module":"home"', '"module":""'));
+  } catch (_) {
+    rejectedMissingModule = true;
+  }
+  assert(rejectedInlineScript && rejectedExternalScript && rejectedMissingModule,
+    'Soft-route validation should reject unclassified executable scripts and missing lifecycle modules');
 
   const oceanWaveHtml = read('pages/ocean-wave-simulation.html');
   assert(oceanWaveHtml.indexOf('personal-accordion-content:start') < oceanWaveHtml.indexOf('ocean-wave-hero') &&
@@ -454,10 +559,13 @@ function runPersonalAccordionShellTests({ assert }) {
     shellCss.includes('--personal-content-width: 1068px;'),
   'Desktop shell should use a four-pixel frame and a spaced 60px toolbar aligned to the shared content measure');
   assert(shellCss.includes('--personal-toolbar-size: 60px;') &&
-    shellCss.includes('.personal-accordion__rails {\n      display: none;') &&
+    shellCss.includes('--personal-mobile-rail-size: 48px;') &&
+    shellCss.includes('grid-template-rows: var(--personal-mobile-rail-size) minmax(0, 1fr);') &&
+    shellCss.includes('.personal-accordion__rail[hidden] {\n    display: none !important;') &&
+    shellCss.includes('.personal-accordion__rail-label {\n      font-size: .76rem;') &&
     shellCss.includes('.personal-accordion__context {') &&
-    shellCss.includes('background: var(--panel-color);'),
-  'Mobile shell should merge navigation into one 60px category-colored context bar');
+    shellCss.includes('color: var(--panel-color);'),
+  'Mobile shell should expose one horizontal active rail above a restrained 60px route toolbar');
   assert(shellCss.includes('.personal-library .home-library__header {') &&
     shellCss.includes('position: static;') &&
     shellCss.includes('.personal-library__meta {'),

@@ -1,17 +1,16 @@
 :root {
   --pcz-bg: var(--brand-canvas, #f9f9fa);
-  --pcz-surface: #ffffff;
-  --pcz-surface-soft: color-mix(in srgb, var(--brand-canvas, #f9f9fa) 82%, #ffffff 18%);
+  --pcz-surface: var(--modal-surface, #ffffff);
+  --pcz-surface-soft: var(--surface-accent, color-mix(in srgb, var(--brand-canvas, #f9f9fa) 82%, #ffffff 18%));
   --pcz-fg: var(--brand-midnight, #091f3b);
   --pcz-muted: color-mix(in srgb, var(--brand-slate, #475569) 86%, var(--brand-midnight, #091f3b) 14%);
-  --pcz-accent: var(--brand-signal-blue, #005fed);
+  --pcz-accent: var(--modal-accent, var(--brand-signal-blue, #005fed));
   --pcz-accent-ink: #ffffff;
   --pcz-link: var(--brand-signal-blue, #005fed);
   --pcz-focus: var(--brand-action-copper, #d97706);
-  --pcz-border: color-mix(in srgb, var(--brand-midnight, #091f3b) 14%, transparent);
+  --pcz-border: var(--modal-border, color-mix(in srgb, var(--brand-midnight, #091f3b) 14%, transparent));
   --pcz-border-strong: color-mix(in srgb, var(--brand-signal-blue, #005fed) 40%, var(--brand-midnight, #091f3b) 12%);
-  --pcz-shadow: 0 16px 36px rgba(9, 31, 59, 0.12);
-  --pcz-shadow-soft: 0 8px 22px rgba(9, 31, 59, 0.08);
+  --pcz-shadow: var(--modal-shadow, var(--shadow-lg, 0 24px 56px rgba(9, 31, 59, 0.16)));
 }
 
 body.consent-blocked {
@@ -27,6 +26,13 @@ body.consent-blocked::before {
   opacity: 1 !important;
   pointer-events: auto !important;
   backdrop-filter: blur(4px);
+}
+
+body.consent-blocked:has(#pcz-modal.pcz-visible)::before {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .pcz-hidden {
@@ -50,7 +56,9 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner,
 #pcz-modal {
-  font: 16px/1.5 "Inter", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
+  font-size: 16px;
+  line-height: 1.5;
   color: var(--pcz-fg);
 }
 
@@ -66,7 +74,7 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner :focus-visible,
 #pcz-modal :focus-visible {
-  outline: 3px solid var(--pcz-focus);
+  outline: var(--focus-ring, 3px solid var(--pcz-focus));
   outline-offset: 2px;
 }
 
@@ -176,23 +184,28 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-modal .pcz-panel-close:hover,
 #pcz-modal .pcz-panel-close:focus-visible {
   transform: translateY(-1px);
-  border-color: var(--pcz-border-strong);
-  background: color-mix(in srgb, var(--pcz-accent) 8%, #ffffff 92%);
-  color: var(--pcz-fg);
+  border-color: color-mix(in srgb, var(--modal-accent, var(--pcz-accent)) 32%, var(--modal-border, var(--pcz-border)) 68%);
+  background: color-mix(in srgb, var(--modal-accent, var(--pcz-accent)) 8%, var(--modal-surface, #ffffff) 92%);
+  color: var(--modal-accent, var(--pcz-accent));
 }
 
 #pcz-banner .pcz-btn,
 #pcz-modal .pcz-save-preferences {
   min-height: 38px;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 0.92rem;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
   white-space: nowrap;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  transition:
+    transform var(--motion-base, 220ms) var(--easing-standard, ease),
+    box-shadow var(--motion-base, 220ms) var(--easing-standard, ease),
+    border-color var(--motion-fast, 160ms) var(--easing-standard, ease),
+    background var(--motion-fast, 160ms) var(--easing-standard, ease),
+    color var(--motion-fast, 160ms) var(--easing-standard, ease);
 }
 
 #pcz-banner .pcz-btn:hover,
@@ -204,16 +217,17 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-primary,
 #pcz-modal .pcz-save-preferences {
-  border-color: var(--brand-signal-blue, var(--pcz-accent));
-  background: var(--brand-signal-blue, var(--pcz-accent));
-  color: #ffffff;
-  box-shadow: 0 6px 16px rgba(0, 95, 237, 0.14);
+  border-color: var(--cta-blue, var(--pcz-accent));
+  background: var(--cta-blue-gradient, var(--pcz-accent));
+  color: var(--cta-blue-text, #ffffff);
+  box-shadow: var(--cta-blue-shadow, 0 10px 22px rgba(0, 95, 237, 0.18));
 }
 
 #pcz-banner .pcz-secondary {
-  border-color: color-mix(in srgb, var(--brand-midnight, #091f3b) 16%, transparent);
-  background: #ffffff;
-  color: var(--brand-midnight, var(--pcz-fg));
+  border-color: var(--interactive-border, color-mix(in srgb, var(--brand-midnight, #091f3b) 16%, transparent));
+  background: var(--interactive-bg, #ffffff);
+  color: var(--interactive-text, var(--brand-midnight, var(--pcz-fg)));
+  box-shadow: var(--interactive-shadow-rest, none);
 }
 
 #pcz-banner .pcz-link {
@@ -236,17 +250,18 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-secondary:hover,
 #pcz-banner .pcz-secondary:focus-visible {
-  border-color: color-mix(in srgb, var(--brand-signal-blue, var(--pcz-accent)) 34%, transparent);
-  background: color-mix(in srgb, var(--brand-signal-blue, var(--pcz-accent)) 7%, #ffffff 93%);
+  border-color: var(--interactive-border-hover, color-mix(in srgb, var(--brand-signal-blue, var(--pcz-accent)) 34%, transparent));
+  background: var(--interactive-bg-hover, color-mix(in srgb, var(--brand-signal-blue, var(--pcz-accent)) 7%, #ffffff 93%));
 }
 
 #pcz-banner .pcz-primary:hover,
 #pcz-banner .pcz-primary:focus-visible,
 #pcz-modal .pcz-save-preferences:hover,
 #pcz-modal .pcz-save-preferences:focus-visible {
-  border-color: var(--brand-deep-blue, var(--pcz-accent));
-  background: var(--brand-deep-blue, var(--pcz-accent));
-  color: #ffffff;
+  border-color: var(--cta-blue-hover, var(--brand-deep-blue, var(--pcz-accent)));
+  background: var(--cta-blue-gradient-hover, var(--brand-deep-blue, var(--pcz-accent)));
+  color: var(--cta-blue-text, #ffffff);
+  box-shadow: var(--cta-blue-shadow-hover, 0 16px 30px rgba(0, 95, 237, 0.24));
 }
 
 #pcz-banner .pcz-link:hover,
@@ -266,10 +281,12 @@ body[data-consent-banner="open"] .speed-dial {
     max(18px, env(safe-area-inset-right))
     max(18px, env(safe-area-inset-bottom))
     max(18px, env(safe-area-inset-left));
-  background: rgba(3, 9, 15, 0.72);
+  background: var(--modal-backdrop, rgba(9, 31, 59, 0.58));
+  -webkit-backdrop-filter: var(--modal-backdrop-filter, blur(4px));
+  backdrop-filter: var(--modal-backdrop-filter, blur(4px));
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.28s ease;
+  transition: opacity var(--motion-slow, 320ms) var(--easing-standard, ease);
 }
 
 #pcz-modal.pcz-visible {
@@ -278,22 +295,31 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 #pcz-modal .pcz-panel {
+  --pcz-panel-radius: var(--modal-radius, var(--radius-16, 16px));
+  position: relative;
   width: min(760px, 100%);
   max-height: min(88vh, 920px);
   overflow: auto;
   margin: 0;
   padding: clamp(20px, 2.8vw, 28px);
-  border: 1px solid var(--pcz-border);
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg,
-      #ffffff 0%,
-      color-mix(in srgb, var(--pcz-bg) 74%, #ffffff 26%) 100%);
+  border: 1px solid var(--modal-border, var(--pcz-border));
+  border-radius: var(--pcz-panel-radius);
+  background: var(--modal-surface, #ffffff);
   box-shadow: var(--pcz-shadow);
   outline: none;
-  transform: translateY(26px) scale(0.98);
-  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform: translateY(20px) scale(0.985);
+  transition: transform var(--motion-slow, 320ms) var(--easing-standard, cubic-bezier(0.22, 0.61, 0.36, 1));
   scrollbar-gutter: stable both-edges;
+}
+
+#pcz-modal .pcz-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  border-radius: var(--pcz-panel-radius) var(--pcz-panel-radius) 0 0;
+  background: var(--modal-accent, var(--pcz-accent));
+  pointer-events: none;
 }
 
 #pcz-modal.pcz-visible .pcz-panel {
@@ -312,9 +338,9 @@ body[data-consent-banner="open"] .speed-dial {
 #pcz-modal .pcz-panel-head h2 {
   margin: 0;
   color: var(--pcz-fg);
-  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 #pcz-modal .pcz-panel-close {
@@ -325,11 +351,18 @@ body[data-consent-banner="open"] .speed-dial {
   height: 44px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
-  border-color: color-mix(in srgb, var(--pcz-fg) 12%, transparent);
-  background: color-mix(in srgb, var(--pcz-fg) 4%, #ffffff 96%);
+  border-radius: var(--radius-12, 12px);
+  border-color: var(--border-1, color-mix(in srgb, var(--pcz-fg) 12%, transparent));
+  background: var(--surface-accent, color-mix(in srgb, var(--pcz-fg) 4%, #ffffff 96%));
   color: var(--pcz-muted);
   cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+  transition:
+    transform var(--motion-base, 220ms) var(--easing-standard, ease),
+    border-color var(--motion-fast, 160ms) var(--easing-standard, ease),
+    background var(--motion-fast, 160ms) var(--easing-standard, ease),
+    color var(--motion-fast, 160ms) var(--easing-standard, ease);
 }
 
 #pcz-modal .policy-lead,
@@ -358,12 +391,10 @@ body[data-consent-banner="open"] .speed-dial {
   display: grid;
   gap: 0;
   padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--pcz-fg) 10%, transparent);
-  border-radius: 18px;
-  background: linear-gradient(180deg,
-    #ffffff 0%,
-    color-mix(in srgb, var(--pcz-bg) 64%, #ffffff 36%) 100%);
-  box-shadow: var(--pcz-shadow-soft);
+  border: 1px solid var(--border-1, color-mix(in srgb, var(--pcz-fg) 10%, transparent));
+  border-radius: var(--radius-12, 12px);
+  background: var(--surface-accent, var(--pcz-surface-soft));
+  box-shadow: none;
 }
 
 #pcz-modal .pref-option-head {
@@ -382,28 +413,34 @@ body[data-consent-banner="open"] .speed-dial {
   width: 100%;
   min-height: 60px;
   padding: 13px 15px;
-  border-color: var(--pcz-border);
-  border-radius: 14px;
-  background: var(--pcz-surface-soft);
+  border-color: transparent;
+  border-radius: var(--radius-10, 10px);
+  background: transparent;
   color: var(--pcz-fg);
+  font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
   text-align: left;
 }
 
 #pcz-modal .pref-toggle {
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition:
+    transform var(--motion-base, 220ms) var(--easing-standard, ease),
+    border-color var(--motion-fast, 160ms) var(--easing-standard, ease),
+    background var(--motion-fast, 160ms) var(--easing-standard, ease),
+    color var(--motion-fast, 160ms) var(--easing-standard, ease);
 }
 
 #pcz-modal .pref-toggle:hover,
 #pcz-modal .pref-toggle:focus-visible {
   transform: translateY(-1px);
   border-color: var(--pcz-border-strong);
+  background: var(--interactive-bg, #ffffff);
 }
 
 #pcz-modal .pref-toggle[aria-pressed="true"] {
-  background: linear-gradient(180deg,
+  background: var(--cta-blue-gradient, linear-gradient(180deg,
     var(--pcz-accent) 0%,
-    var(--brand-deep-blue, #0145c8) 100%);
+    var(--brand-deep-blue, #0145c8) 100%));
   color: var(--pcz-accent-ink);
   border-color: transparent;
 }
@@ -423,11 +460,8 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 #pcz-modal .pref-status-row {
-  border: 1px solid color-mix(in srgb, var(--pcz-fg) 9%, transparent);
-  background:
-    linear-gradient(180deg,
-      #ffffff 0%,
-      var(--pcz-surface-soft) 100%);
+  border: 1px solid transparent;
+  background: transparent;
   cursor: default;
 }
 
@@ -435,6 +469,7 @@ body[data-consent-banner="open"] .speed-dial {
   display: grid;
   gap: 4px;
   min-width: 0;
+  font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
 }
 
 #pcz-modal .pref-label {
@@ -442,12 +477,14 @@ body[data-consent-banner="open"] .speed-dial {
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.35;
+  font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
 }
 
 #pcz-modal .pref-helper {
   color: var(--pcz-muted);
   font-size: 0.82rem;
   line-height: 1.45;
+  font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
 }
 
 #pcz-modal .pref-state {
@@ -464,6 +501,7 @@ body[data-consent-banner="open"] .speed-dial {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-family: var(--font-mono, "IBM Plex Mono", Consolas, monospace);
 }
 
 #pcz-modal .pref-toggle:not([aria-pressed="true"]) .pref-state {
@@ -493,7 +531,11 @@ body[data-consent-banner="open"] .speed-dial {
   cursor: pointer;
   font-size: 1rem;
   font-weight: 700;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  transition:
+    transform var(--motion-base, 220ms) var(--easing-standard, ease),
+    border-color var(--motion-fast, 160ms) var(--easing-standard, ease),
+    background var(--motion-fast, 160ms) var(--easing-standard, ease),
+    color var(--motion-fast, 160ms) var(--easing-standard, ease);
 }
 
 #pcz-modal .pref-info:hover,
@@ -537,11 +579,14 @@ body[data-consent-banner="open"] .speed-dial {
   color: var(--pcz-muted);
   font-size: 0.92rem;
   line-height: 1.55;
+  font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
 }
 
 #pcz-modal .pcz-save-preferences {
   width: 100%;
+  min-height: 46px;
   margin-top: 16px;
+  padding: 12px 24px;
   justify-content: center;
 }
 
@@ -639,10 +684,11 @@ body[data-consent-banner="open"] .speed-dial {
   }
 
   #pcz-modal .pcz-panel {
+    --pcz-panel-radius: var(--modal-radius-mobile, var(--radius-12, 12px));
     width: 100%;
     max-height: calc(100svh - var(--pcz-mobile-top-clearance) - 8px);
     padding: 14px;
-    border-radius: 16px;
+    border-radius: var(--pcz-panel-radius);
   }
 
   #pcz-modal .pref-option {

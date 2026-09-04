@@ -1,883 +1,192 @@
-@view-transition {
-  navigation: auto;
-}
-
 @layer components {
   :root {
-    --page-transition-fallback-exit-duration: 180ms;
-    --page-transition-fallback-entry-duration: 220ms;
-    --page-transition-fallback-ease: cubic-bezier(.22, 1, .36, 1);
-    --personal-transition-duration: 440ms;
-    --personal-transition-cover-duration: 168ms;
-    --personal-transition-reveal-duration: 244ms;
-    --personal-transition-content-exit: 120ms;
-    --personal-transition-content-enter: 220ms;
-    --personal-transition-content-delay: 160ms;
-    --personal-transition-ease: cubic-bezier(.22, 1, .36, 1);
+    --site-route-motion: 8px;
+    --site-route-enter-duration: 160ms;
+    --site-route-exit-duration: 72ms;
+    --site-route-ease: cubic-bezier(.22, 1, .36, 1);
   }
 
-  :root:has(body.personal-accordion-page[data-personal-category="about"]) {
-    --site-transition-accent: #091f3b;
+  [data-site-route-content] {
+    min-inline-size: 0;
   }
 
-  :root:has(body.personal-accordion-page[data-personal-category="projects"]) {
-    --site-transition-accent: #155dfc;
+  [data-site-route-content].site-route-content--preparing {
+    opacity: 0;
+    transform: translate3d(var(--site-route-motion), 0, 0);
   }
 
-  :root:has(body.personal-accordion-page[data-personal-category="tools"]) {
-    --site-transition-accent: #087f8c;
+  [data-site-route-content].site-route-content--leaving {
+    opacity: 0;
   }
 
-  :root:has(body.personal-accordion-page[data-personal-category="games"]) {
-    --site-transition-accent: #c94b0a;
+  [data-site-route-content].site-route-content--entering {
+    animation: site-route-content-enter-forward var(--site-route-enter-duration) var(--site-route-ease) both;
   }
 
-  :root:has(body.personal-accordion-page[data-personal-category="contact"]) {
-    --site-transition-accent: #334155;
+  :root[data-site-route-direction="back"] [data-site-route-content].site-route-content--entering {
+    animation-name: site-route-content-enter-back;
   }
 
-  :root[data-site-transition-category="about"] {
-    --site-transition-accent: #091f3b;
+  :root[data-site-route-direction="cross"] [data-site-route-content].site-route-content--entering {
+    animation-name: site-route-content-enter-cross;
   }
 
-  :root[data-site-transition-category="projects"] {
-    --site-transition-accent: #155dfc;
-  }
-
-  :root[data-site-transition-category="tools"] {
-    --site-transition-accent: #087f8c;
-  }
-
-  :root[data-site-transition-category="games"] {
-    --site-transition-accent: #c94b0a;
-  }
-
-  :root[data-site-transition-category="contact"] {
-    --site-transition-accent: #334155;
-  }
-
-  :root[data-site-transition-category="neutral"] {
-    --site-transition-accent: #64748b;
-  }
-
-  #combined-header-nav > .nav {
-    view-transition-name: site-header;
-  }
-
-  @media (max-width: 768px) {
-    #combined-header-nav > .nav {
-      view-transition-name: none;
-    }
-
-    .mobile-site-masthead {
-      view-transition-name: site-header;
-    }
-  }
-
-  .footer.footer--personal-compact {
-    view-transition-name: site-footer;
-  }
-
-  html[data-site-transition-mode="personal"] :is(
-    .home-accordion__shell,
-    .personal-accordion__shell
+  :is(
+    [data-site-route-panel],
+    .personal-accordion__panel,
+    .home-accordion__item.is-active .home-accordion__panel
   ) {
-    view-transition-name: personal-shell;
-  }
-
-  .home-accordion__item.is-active .home-accordion__panel,
-  .personal-accordion__panel {
     position: relative;
   }
 
-  html[data-site-transition-mode="personal"] :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  ) {
-    view-transition-name: personal-panel;
-  }
-
-  html[data-site-transition-mode="personal"] :is(
-    .home-accordion__item.is-active .home-accordion__rail,
-    .personal-accordion__rails
-  ) {
-    view-transition-name: personal-rail;
-  }
-
-  html[data-site-transition-mode="personal"] :is(
-    .home-accordion__item.is-active .home-accordion__scroller,
-    .personal-accordion__content
-  ) {
-    view-transition-name: personal-content;
-  }
-
-  ::view-transition-group(personal-shell),
-  ::view-transition-group(personal-panel),
-  ::view-transition-group(personal-rail),
-  ::view-transition-group(personal-content),
-  ::view-transition-group(personal-veil) {
-    animation-duration: var(--personal-transition-duration);
-    animation-timing-function: var(--personal-transition-ease);
-  }
-
-  ::view-transition-group(personal-shell) {
-    z-index: 1;
-  }
-
-  ::view-transition-group(personal-panel) {
-    z-index: 2;
-  }
-
-  ::view-transition-group(personal-content) {
-    z-index: 3;
-  }
-
-  ::view-transition-group(personal-veil) {
-    z-index: 6;
-  }
-
-  ::view-transition-group(personal-rail) {
-    z-index: 8;
-  }
-
-  :root:has(.home-accordion.is-view-changing)::view-transition-group(personal-shell),
-  :root:has(.home-accordion.is-view-changing)::view-transition-group(personal-panel),
-  :root:has(.home-accordion.is-view-changing)::view-transition-group(personal-content) {
-    animation: none;
-  }
-
-  ::view-transition-group(site-header),
-  ::view-transition-group(site-footer),
-  ::view-transition-old(site-header),
-  ::view-transition-new(site-header),
-  ::view-transition-old(site-footer),
-  ::view-transition-new(site-footer) {
-    animation: none;
-    mix-blend-mode: normal;
-  }
-
-  ::view-transition-group(site-header),
-  ::view-transition-group(site-footer) {
-    z-index: 20;
-  }
-
-  ::view-transition-image-pair(personal-content),
-  ::view-transition-image-pair(personal-veil) {
-    isolation: isolate;
-  }
-
-  ::view-transition-old(personal-shell),
-  ::view-transition-old(personal-panel),
-  ::view-transition-old(personal-rail) {
-    opacity: 0;
-    animation: none;
-    mix-blend-mode: normal;
-  }
-
-  ::view-transition-new(personal-shell),
-  ::view-transition-new(personal-panel),
-  ::view-transition-new(personal-rail) {
-    opacity: 1;
-    animation: none;
-    mix-blend-mode: normal;
-  }
-
-  ::view-transition-old(personal-content),
-  ::view-transition-new(personal-content) {
-    mix-blend-mode: normal;
-  }
-
-  ::view-transition-old(personal-content) {
-    animation: personal-content-old-forward var(--personal-transition-content-exit) ease-out both;
-  }
-
-  ::view-transition-new(personal-content) {
-    animation: personal-content-new-forward var(--personal-transition-content-enter) var(--personal-transition-ease) var(--personal-transition-content-delay) both;
-  }
-
-  :root[data-site-transition-direction="back"]::view-transition-old(personal-content) {
-    animation-name: personal-content-old-back;
-  }
-
-  :root[data-site-transition-direction="back"]::view-transition-new(personal-content) {
-    animation-name: personal-content-new-back;
-  }
-
-  :root:is(
-    [data-site-transition-direction="cross"],
-    [data-site-transition-direction="replace"]
-  )::view-transition-old(personal-content) {
-    animation-name: personal-content-old-cross;
-  }
-
-  :root:is(
-    [data-site-transition-direction="cross"],
-    [data-site-transition-direction="replace"]
-  )::view-transition-new(personal-content) {
-    animation-name: personal-content-new-cross;
-  }
-
-  ::view-transition-old(personal-veil) {
-    animation: personal-veil-native-old 1ms linear var(--personal-transition-cover-duration) both;
-    mix-blend-mode: normal;
-  }
-
-  ::view-transition-new(personal-veil) {
-    animation: personal-veil-reveal-forward var(--personal-transition-reveal-duration) var(--personal-transition-ease) var(--personal-transition-cover-duration) both;
-    mix-blend-mode: normal;
-  }
-
-  :root[data-site-transition-direction="back"]::view-transition-new(personal-veil) {
-    animation-name: personal-veil-reveal-back;
-  }
-
-  :root[data-site-transition-direction="replace"]::view-transition-new(personal-veil) {
-    animation-name: personal-veil-reveal-replace;
-  }
-
-  html:is(.site-is-navigating, [data-site-transition-mode]) .nav-dropdown,
-  html:is(.site-is-navigating, [data-site-transition-mode]) .nav-row,
-  html:is(.site-is-navigating, [data-site-transition-mode]) .burger .bar {
-    transition-duration: 0s !important;
-    animation: none !important;
-  }
-
-  html:is(
-    .site-page-transition-preload,
-    .site-page-transition-native-preload,
-    .site-page-transition-out,
-    .site-page-transition-in,
-    .site-page-transition-continuous-preload,
-    .site-page-transition-continuous-out,
-    .site-page-transition-continuous-in
-  ) #main,
-  .home-accordion:is(.is-view-changing, .is-view-leaving, .is-view-entering) {
-    pointer-events: none;
-  }
-
-  html.site-page-transition-preload #main,
-  html.site-page-transition-out #main,
-  html.site-page-transition-in #main {
-    will-change: opacity, transform;
-  }
-
-  html.site-page-transition-preload #main {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  html.site-page-transition-out #main {
-    opacity: 0;
-    transform: translateY(-8px);
-    transition:
-      opacity var(--page-transition-fallback-exit-duration) ease,
-      transform var(--page-transition-fallback-exit-duration) var(--page-transition-fallback-ease);
-  }
-
-  html.site-page-transition-in #main {
-    animation: page-transition-main-in var(--page-transition-fallback-entry-duration) var(--page-transition-fallback-ease) both;
-  }
-
-  html[data-site-transition-mode="personal"]:is(
-    .site-page-transition-preload,
-    .site-page-transition-out,
-    .site-page-transition-in
-  ) #main {
-    opacity: 1;
-    transform: none;
-    transition: none;
-    animation: none;
-  }
-
-  html[data-site-transition-mode="personal"]:is(
-    .site-page-transition-preload,
-    .site-page-transition-out,
-    .site-page-transition-in,
-    .site-page-transition-continuous-preload,
-    .site-page-transition-continuous-out,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__shell,
-    .personal-accordion__shell,
-    .home-accordion__panel,
-    .personal-accordion__panel
-  ) {
-    background-color: #ffffff;
-  }
-
-  .home-accordion__item.is-active .home-accordion__panel::after,
-  .personal-accordion__panel::after {
-    --site-transition-local-accent: var(--site-transition-accent, var(--panel-color, #091f3b));
-    --site-transition-veil-color: color-mix(in srgb, var(--site-transition-local-accent) 11%, #ffffff 89%);
-    content: "";
-    box-sizing: border-box;
+  .site-route-progress,
+  [data-site-route-progress] {
     position: absolute;
-    inset: var(--site-transition-veil-top, 0) 0 0;
-    z-index: 6;
-    border: 0;
-    border-inline-end: 4px solid var(--site-transition-local-accent);
-    opacity: 0;
-    background: var(--site-transition-veil-color);
+    z-index: 5;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 2px;
+    overflow: hidden;
     pointer-events: none;
-    transform: translate3d(-101%, 0, 0);
-    will-change: opacity, transform;
+    background: color-mix(in srgb, var(--panel-color, #155dfc) 15%, transparent);
   }
 
-  html[data-site-transition-mode="personal"] :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  .home-accordion.is-view-changing .home-accordion__item.is-active .home-accordion__panel::after {
-    view-transition-name: personal-veil;
+  .site-route-progress[hidden],
+  [data-site-route-progress][hidden] {
+    display: none !important;
   }
 
-  .home-accordion.is-view-changing:not(.is-view-leaving, .is-view-entering) .home-accordion__item.is-active .home-accordion__panel::after {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    animation: none;
+  .site-route-progress::before,
+  [data-site-route-progress]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    inline-size: 38%;
+    background: var(--panel-color, #155dfc);
+    transform: translateX(-120%);
+    animation: site-route-progress 900ms ease-in-out infinite;
   }
 
-  .home-accordion__item.is-active .home-accordion__panel::after {
-    --site-transition-veil-top: 0;
-  }
-
-  .personal-accordion__panel::after {
-    --site-transition-veil-top: var(--personal-toolbar-size, 48px);
-  }
-
-  html[data-site-transition-mode="personal"]:not(
-    .site-page-transition-preload,
-    .site-page-transition-in,
-    .site-page-transition-native-preload,
-    .site-page-transition-continuous-preload,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after {
-    opacity: 1;
-    animation: personal-veil-cover-forward var(--personal-transition-cover-duration) var(--personal-transition-ease) both;
-  }
-
-  html[data-site-transition-mode="personal"][data-site-transition-direction="back"]:not(
-    .site-page-transition-preload,
-    .site-page-transition-in,
-    .site-page-transition-native-preload,
-    .site-page-transition-continuous-preload,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after {
-    border-inline-start: 4px solid var(--site-transition-local-accent);
-    border-inline-end: 0;
-    animation-name: personal-veil-cover-back;
-  }
-
-  html[data-site-transition-mode="personal"][data-site-transition-direction="replace"]:not(
-    .site-page-transition-preload,
-    .site-page-transition-in,
-    .site-page-transition-native-preload,
-    .site-page-transition-continuous-preload,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after {
+  .site-route-status {
+    position: fixed;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
     border: 0;
-    animation-name: personal-veil-cover-replace;
   }
 
-  html[data-site-transition-mode="personal"]:is(
-    .site-page-transition-out,
-    .site-page-transition-continuous-out
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-    opacity: 1;
-    animation: personal-veil-cover-forward var(--personal-transition-cover-duration) var(--personal-transition-ease) both;
+  .site-route-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    margin: .75rem clamp(.75rem, 2vw, 1.25rem) 0;
+    padding: .7rem .9rem;
+    border: 1px solid color-mix(in srgb, var(--panel-color, #155dfc) 30%, #d7dee8);
+    border-radius: .65rem;
+    color: #233044;
+    background: #f8fafc;
+    font-size: .875rem;
   }
 
-  html[data-site-transition-mode="personal"]:is(
-    .site-page-transition-preload,
-    .site-page-transition-native-preload,
-    .site-page-transition-continuous-preload
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    animation: none;
+  .site-route-error__retry {
+    min-block-size: 2rem;
+    padding: .35rem .75rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    color: var(--panel-color, #155dfc);
+    background: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
   }
 
-  html[data-site-transition-mode="personal"]:is(
-    .site-page-transition-in,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-    border-inline-start: 4px solid var(--site-transition-local-accent);
-    border-inline-end: 0;
-    opacity: 1;
-    animation: personal-veil-reveal-forward var(--personal-transition-reveal-duration) var(--personal-transition-ease) both;
+  [aria-busy="true"][href],
+  button[aria-busy="true"] {
+    cursor: progress;
   }
 
-  :root[data-site-transition-direction="back"]:is(
-    .site-page-transition-out,
-    .site-page-transition-continuous-out
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  :root[data-site-transition-direction="back"] .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-    border-inline-start: 4px solid var(--site-transition-local-accent);
-    border-inline-end: 0;
-    animation-name: personal-veil-cover-back;
-  }
-
-  .home-accordion.is-library-mode.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-    border-inline-start: 4px solid var(--site-transition-local-accent);
-    border-inline-end: 0;
-    animation-name: personal-veil-cover-back;
-  }
-
-  :root[data-site-transition-direction="back"]:is(
-    .site-page-transition-in,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  :root[data-site-transition-direction="back"] .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-    border-inline-start: 0;
-    border-inline-end: 4px solid var(--site-transition-local-accent);
-    animation-name: personal-veil-reveal-back;
-  }
-
-  .home-accordion:not(.is-library-mode).is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-    border-inline-start: 0;
-    border-inline-end: 4px solid var(--site-transition-local-accent);
-    animation-name: personal-veil-reveal-back;
-  }
-
-  :root[data-site-transition-direction="replace"]:is(
-    .site-page-transition-out,
-    .site-page-transition-continuous-out
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  :root[data-site-transition-direction="replace"] .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-    border: 0;
-    animation-name: personal-veil-cover-replace;
-  }
-
-  :root[data-site-transition-direction="replace"]:is(
-    .site-page-transition-in,
-    .site-page-transition-continuous-in
-  ) :is(
-    .home-accordion__item.is-active .home-accordion__panel,
-    .personal-accordion__panel
-  )::after,
-  :root[data-site-transition-direction="replace"] .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-    border: 0;
-    animation-name: personal-veil-reveal-replace;
+  .home-accordion.is-view-changing {
+    pointer-events: none;
   }
 
   .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-    animation: personal-content-old-forward var(--personal-transition-content-exit) ease-out both;
+    animation: site-home-content-leave var(--site-route-exit-duration) ease-in both;
   }
 
   .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-    animation: personal-content-new-forward var(--personal-transition-content-enter) var(--personal-transition-ease) 80ms both;
+    animation: site-home-content-enter var(--site-route-enter-duration) var(--site-route-ease) both;
   }
 
-  :root[data-site-transition-direction="back"] .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-    animation-name: personal-content-old-back;
+  @keyframes site-route-content-enter-forward {
+    from { opacity: 0; transform: translate3d(var(--site-route-motion), 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
   }
 
-  .home-accordion.is-library-mode.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-    animation-name: personal-content-old-back;
+  @keyframes site-route-content-enter-back {
+    from { opacity: 0; transform: translate3d(calc(var(--site-route-motion) * -1), 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
   }
 
-  :root[data-site-transition-direction="back"] .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-    animation-name: personal-content-new-back;
-  }
-
-  .home-accordion:not(.is-library-mode).is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-    animation-name: personal-content-new-back;
-  }
-
-  :root:is(
-    [data-site-transition-direction="cross"],
-    [data-site-transition-direction="replace"]
-  ) .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-    animation-name: personal-content-old-cross;
-  }
-
-  :root:is(
-    [data-site-transition-direction="cross"],
-    [data-site-transition-direction="replace"]
-  ) .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-    animation-name: personal-content-new-cross;
-  }
-
-  @keyframes page-transition-main-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes personal-content-old-forward {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(-6px); }
-  }
-
-  @keyframes personal-content-new-forward {
-    from { opacity: 0; transform: translateX(6px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  @keyframes personal-content-old-back {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(6px); }
-  }
-
-  @keyframes personal-content-new-back {
-    from { opacity: 0; transform: translateX(-6px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  @keyframes personal-content-old-cross {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-
-  @keyframes personal-content-new-cross {
+  @keyframes site-route-content-enter-cross {
     from { opacity: 0; }
     to { opacity: 1; }
   }
 
-  @keyframes personal-veil-cover-forward {
-    from { opacity: 1; transform: translate3d(-101%, 0, 0); }
+  @keyframes site-home-content-leave {
+    from { opacity: 1; transform: translate3d(0, 0, 0); }
+    to { opacity: 0; transform: translate3d(calc(var(--site-route-motion) * -1), 0, 0); }
+  }
+
+  @keyframes site-home-content-enter {
+    from { opacity: 0; transform: translate3d(var(--site-route-motion), 0, 0); }
     to { opacity: 1; transform: translate3d(0, 0, 0); }
   }
 
-  @keyframes personal-veil-reveal-forward {
-    from { opacity: 1; transform: translate3d(0, 0, 0); }
-    to { opacity: 1; transform: translate3d(101%, 0, 0); }
-  }
-
-  @keyframes personal-veil-cover-back {
-    from { opacity: 1; transform: translate3d(101%, 0, 0); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); }
-  }
-
-  @keyframes personal-veil-reveal-back {
-    from { opacity: 1; transform: translate3d(0, 0, 0); }
-    to { opacity: 1; transform: translate3d(-101%, 0, 0); }
-  }
-
-  @keyframes personal-veil-cover-replace {
-    from { opacity: 0; transform: translate3d(0, 0, 0); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); }
-  }
-
-  @keyframes personal-veil-native-old {
-    from { opacity: 1; }
-    to { opacity: 0; }
-  }
-
-  @keyframes personal-veil-reveal-replace {
-    from { opacity: 1; transform: translate3d(0, 0, 0); }
-    to { opacity: 0; transform: translate3d(0, 0, 0); }
+  @keyframes site-route-progress {
+    0% { transform: translateX(-120%); }
+    55% { transform: translateX(120%); }
+    100% { transform: translateX(300%); }
   }
 
   @media (max-width: 959px), (max-height: 619px) {
     :root {
-      --personal-transition-duration: 340ms;
-      --personal-transition-cover-duration: 132ms;
-      --personal-transition-reveal-duration: 200ms;
-      --personal-transition-content-exit: 100ms;
-      --personal-transition-content-enter: 180ms;
-      --personal-transition-content-delay: 120ms;
+      --site-route-motion: 4px;
     }
 
-    ::view-transition-old(personal-content) {
-      animation-name: personal-content-old-mobile-forward;
+    [data-site-route-content].site-route-content--entering {
+      animation-name: site-route-content-enter-mobile;
     }
 
-    ::view-transition-new(personal-content) {
-      animation-name: personal-content-new-mobile-forward;
+    :root[data-site-route-direction="back"] [data-site-route-content].site-route-content--entering {
+      animation-name: site-route-content-enter-mobile-back;
     }
 
-    :root[data-site-transition-direction="back"]::view-transition-old(personal-content) {
-      animation-name: personal-content-old-mobile-back;
-    }
-
-    :root[data-site-transition-direction="back"]::view-transition-new(personal-content) {
-      animation-name: personal-content-new-mobile-back;
-    }
-
-    ::view-transition-new(personal-veil) {
-      animation-name: personal-veil-reveal-mobile-forward;
-    }
-
-    :root[data-site-transition-direction="back"]::view-transition-new(personal-veil) {
-      animation-name: personal-veil-reveal-mobile-back;
-    }
-
-    :root[data-site-transition-direction="replace"]::view-transition-new(personal-veil) {
-      animation-name: personal-veil-reveal-replace;
-    }
-
-    .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-      animation-name: personal-content-old-mobile-forward;
-    }
-
-    .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-      animation-name: personal-content-new-mobile-forward;
-      animation-delay: 60ms;
-    }
-
-    :root[data-site-transition-direction="back"] .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-      animation-name: personal-content-old-mobile-back;
-    }
-
-    :root[data-site-transition-direction="back"] .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-      animation-name: personal-content-new-mobile-back;
-    }
-
-    .home-accordion.is-library-mode.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-      animation-name: personal-content-old-mobile-back;
-    }
-
-    .home-accordion:not(.is-library-mode).is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-      animation-name: personal-content-new-mobile-back;
-    }
-
-    html[data-site-transition-mode="personal"]:not(
-      .site-page-transition-preload,
-      .site-page-transition-in,
-      .site-page-transition-native-preload,
-      .site-page-transition-continuous-preload,
-      .site-page-transition-continuous-in
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after {
-      border: 0;
-      border-bottom: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-cover-mobile-forward;
-    }
-
-    html[data-site-transition-mode="personal"][data-site-transition-direction="back"]:not(
-      .site-page-transition-preload,
-      .site-page-transition-in,
-      .site-page-transition-native-preload,
-      .site-page-transition-continuous-preload,
-      .site-page-transition-continuous-in
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after {
-      border: 0;
-      border-top: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-cover-mobile-back;
-    }
-
-    html[data-site-transition-mode="personal"][data-site-transition-direction="replace"]:not(
-      .site-page-transition-preload,
-      .site-page-transition-in,
-      .site-page-transition-native-preload,
-      .site-page-transition-continuous-preload,
-      .site-page-transition-continuous-in
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after {
-      border: 0;
-      animation-name: personal-veil-cover-replace;
-    }
-
-    html[data-site-transition-mode="personal"]:is(
-      .site-page-transition-out,
-      .site-page-transition-continuous-out
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after,
-    .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      border-bottom: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-cover-mobile-forward;
-    }
-
-    html[data-site-transition-mode="personal"]:is(
-      .site-page-transition-in,
-      .site-page-transition-continuous-in
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after,
-    .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      border-top: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-reveal-mobile-forward;
-    }
-
-    :root[data-site-transition-direction="back"]:is(
-      .site-page-transition-out,
-      .site-page-transition-continuous-out
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after,
-    :root[data-site-transition-direction="back"] .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      border-top: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-cover-mobile-back;
-    }
-
-    :root[data-site-transition-direction="back"]:is(
-      .site-page-transition-in,
-      .site-page-transition-continuous-in
-    ) :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after,
-    :root[data-site-transition-direction="back"] .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      border-bottom: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-reveal-mobile-back;
-    }
-
-    .home-accordion.is-library-mode.is-view-leaving .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      border-top: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-cover-mobile-back;
-    }
-
-    .home-accordion:not(.is-library-mode).is-view-entering .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      border-bottom: 4px solid var(--site-transition-local-accent);
-      animation-name: personal-veil-reveal-mobile-back;
-    }
-
-    @keyframes personal-content-old-mobile-forward {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(-4px); }
-    }
-
-    @keyframes personal-content-new-mobile-forward {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes personal-content-old-mobile-back {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(4px); }
-    }
-
-    @keyframes personal-content-new-mobile-back {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes personal-veil-cover-mobile-forward {
-      from { opacity: 1; transform: translate3d(0, -101%, 0); }
+    @keyframes site-route-content-enter-mobile {
+      from { opacity: 0; transform: translate3d(0, var(--site-route-motion), 0); }
       to { opacity: 1; transform: translate3d(0, 0, 0); }
     }
 
-    @keyframes personal-veil-reveal-mobile-forward {
-      from { opacity: 1; transform: translate3d(0, 0, 0); }
-      to { opacity: 1; transform: translate3d(0, 101%, 0); }
-    }
-
-    @keyframes personal-veil-cover-mobile-back {
-      from { opacity: 1; transform: translate3d(0, 101%, 0); }
+    @keyframes site-route-content-enter-mobile-back {
+      from { opacity: 0; transform: translate3d(0, calc(var(--site-route-motion) * -1), 0); }
       to { opacity: 1; transform: translate3d(0, 0, 0); }
-    }
-
-    @keyframes personal-veil-reveal-mobile-back {
-      from { opacity: 1; transform: translate3d(0, 0, 0); }
-      to { opacity: 1; transform: translate3d(0, -101%, 0); }
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :root {
-      --page-transition-fallback-exit-duration: 100ms;
-      --page-transition-fallback-entry-duration: 100ms;
-      --personal-transition-duration: .01ms;
-      --personal-transition-cover-duration: .01ms;
-      --personal-transition-reveal-duration: 100ms;
-      --personal-transition-content-exit: .01ms;
-      --personal-transition-content-enter: 100ms;
-      --personal-transition-content-delay: 0ms;
-    }
-
-    html.site-page-transition-preload #main,
-    html.site-page-transition-out #main {
+    [data-site-route-content].site-route-content--entering,
+    [data-site-route-content].site-route-content--preparing,
+    [data-site-route-content].site-route-content--leaving,
+    .home-accordion:is(.is-view-leaving, .is-view-entering) .home-accordion__item.is-active .home-accordion__scroller,
+    .site-route-progress::before,
+    [data-site-route-progress]::before {
+      animation: none !important;
+      opacity: 1;
       transform: none;
     }
-
-    html[data-site-transition-mode="personal"] :is(
-      .home-accordion__item.is-active .home-accordion__panel,
-      .personal-accordion__panel
-    )::after,
-    .home-accordion.is-view-changing .home-accordion__item.is-active .home-accordion__panel::after {
-      border: 0;
-      opacity: 0;
-      transform: none;
-      animation: none;
-    }
-
-    .home-accordion:is(.is-view-leaving, .is-view-entering) .home-accordion__item.is-active .home-accordion__scroller {
-      transform: none;
-      animation-name: personal-content-new-cross;
-      animation-duration: 100ms;
-      animation-delay: 0ms;
-    }
-
-    ::view-transition-group(root),
-    ::view-transition-group(site-header),
-    ::view-transition-group(site-footer),
-    ::view-transition-group(personal-shell),
-    ::view-transition-group(personal-panel),
-    ::view-transition-group(personal-rail),
-    ::view-transition-group(personal-content),
-    ::view-transition-group(personal-veil) {
-      animation-duration: .01ms;
-    }
-
-    ::view-transition-old(personal-content) {
-      animation: none;
-    }
-
-    ::view-transition-new(personal-content) {
-      animation: page-transition-fade-in 100ms ease-out both;
-    }
-
-    ::view-transition-old(personal-veil),
-    ::view-transition-new(personal-veil) {
-      animation: none;
-    }
-  }
-
-  @keyframes page-transition-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
   }
 }

@@ -58,11 +58,10 @@
     canonicalHref: canonicalLink?.getAttribute('href') || ''
   });
   const PANEL_TRANSITION_MS = 440;
-  const VIEW_TRANSITION_MS = 440;
-  const VIEW_EXIT_MS = 176;
-  const VIEW_ENTRY_MS = 244;
-  const COMPACT_VIEW_EXIT_MS = 140;
-  const COMPACT_VIEW_ENTRY_MS = 200;
+  const VIEW_EXIT_MS = 72;
+  const VIEW_ENTRY_MS = 160;
+  const COMPACT_VIEW_EXIT_MS = 64;
+  const COMPACT_VIEW_ENTRY_MS = 140;
   const defaultPanel = ids.includes(root.dataset.defaultPanel)
     ? root.dataset.defaultPanel
     : ids[0];
@@ -494,22 +493,6 @@
       apply();
     };
     pendingViewApply = applyOnce;
-    if (typeof document.startViewTransition === 'function') {
-      try {
-        const transition = document.startViewTransition(applyOnce);
-        if (transition?.finished && typeof transition.finished.finally === 'function') {
-          transition.finished.catch(() => {}).finally(clearViewTransitionState);
-        } else {
-          viewTransitionTimer = window.setTimeout(clearViewTransitionState, VIEW_TRANSITION_MS);
-        }
-        return true;
-      } catch {
-        applyOnce();
-        clearViewTransitionState();
-        return true;
-      }
-    }
-
     const exitDuration = compactTransitionQuery.matches ? COMPACT_VIEW_EXIT_MS : VIEW_EXIT_MS;
     const entryDuration = compactTransitionQuery.matches ? COMPACT_VIEW_ENTRY_MS : VIEW_ENTRY_MS;
     root.classList.add('is-view-leaving');
@@ -713,6 +696,8 @@
 
   function handleLocationChange() {
     const currentHref = window.location.href;
+    const currentPath = window.location.pathname.replace(/\/index\.html$/i, '/').replace(/\/+$/, '') || '/';
+    if (currentPath !== '/' && !Object.values(LIBRARY_ROUTES).includes(currentPath)) return;
     if (viewTransitionLocked) {
       queuedLocationHref = currentHref;
       queuedLocationState = window.history?.state || null;

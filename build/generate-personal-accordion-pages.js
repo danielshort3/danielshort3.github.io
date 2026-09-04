@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const {
+  HARD_NAVIGATION_PATHS,
   extractMainHtml,
   getPersonalLibraryPresentation,
   markProfessionalInternalHtml,
@@ -21,6 +22,9 @@ const portfolioDir = path.join(pagesDir, 'portfolio');
 const toolsContentDir = path.join(root, 'content', 'tools');
 const homeLibraryDataPath = path.join(root, 'js', 'home', 'home-library-data.js');
 const PROFESSIONAL_AUDIENCES = Object.freeze(['analytics', 'data-science', 'tourism']);
+const HARD_TOOL_PAGE_IDS = Object.freeze(HARD_NAVIGATION_PATHS.map((routePath) => (
+  String(routePath || '').split('/').filter(Boolean).pop()
+)));
 
 const TOOL_PAGE_IDS = Object.freeze([
   'text-compare',
@@ -350,6 +354,7 @@ function buildToolPages() {
       category: 'tools',
       itemId,
       view: 'detail',
+      navigation: HARD_TOOL_PAGE_IDS.includes(itemId) ? 'hard' : 'soft',
       fit: 'viewport',
       chrome: 'compact',
       backHref: '/tools',
@@ -427,6 +432,7 @@ if (require.main === module) main();
 module.exports = {
   ALL_TOOL_PAGE_IDS,
   GAME_PAGE_PATHS,
+  HARD_TOOL_PAGE_IDS,
   INTERNAL_TOOL_PAGE_IDS,
   PROFESSIONAL_AUDIENCES,
   TOOL_DETAIL_METADATA,

@@ -670,7 +670,7 @@ function renderHomeAccordion(section) {
     return [
       `    <article class="home-accordion__item home-accordion__item--${escapeHtml(id)}${hasInlineLibrary ? ' home-accordion__item--has-library' : ''}${isActive ? ' is-active' : ''}" data-home-accordion-item="${escapeHtml(id)}" aria-labelledby="${escapeHtml(triggerId)}" style="--panel-color: ${escapeHtml(color)}; --panel-color-end: ${escapeHtml(colorEnd)};">`,
       '      <h2 class="home-accordion__heading">',
-      `        <button class="home-accordion__rail" id="${escapeHtml(triggerId)}" type="button" aria-expanded="${isActive}" aria-controls="${escapeHtml(panelId)}"${isActive ? ' aria-disabled="true"' : ''} data-home-accordion-trigger="${escapeHtml(id)}">`,
+      `        <button class="home-accordion__rail" id="${escapeHtml(triggerId)}" type="button" aria-expanded="${isActive}" aria-controls="${escapeHtml(panelId)}"${isActive ? ' aria-disabled="true"' : ''} data-home-accordion-trigger="${escapeHtml(id)}" data-site-tab="${escapeHtml(id)}" data-site-tab-category="${escapeHtml(id)}"${isActive ? ' data-site-tab-active="true"' : ''}>`,
       `          <span class="home-accordion__rail-icon" data-home-icon="${escapeHtml(categoryIconId)}" aria-hidden="true">${homeAccordionIcon(categoryIconId)}</span>`,
       `          <span class="home-accordion__rail-label">${escapeHtml(label)}</span>`,
       '          <span class="home-accordion__rail-chevron" aria-hidden="true"></span>',
@@ -701,7 +701,7 @@ function renderHomeAccordion(section) {
   return [
     `<section${sectionAttrs(section, 'home-accordion')} data-home-accordion data-default-panel="${escapeHtml(defaultPanel)}" data-active-panel="${escapeHtml(defaultPanel)}" data-home-view="overview" aria-labelledby="home-accordion-title">`,
     `  <h1 class="visually-hidden" id="home-accordion-title">${escapeHtml(props.accessibleTitle || 'Explore Daniel Short')}</h1>`,
-    '  <div class="home-accordion__shell">',
+    '  <div class="home-accordion__shell" data-site-tab-rail data-site-tab-rail-mode="overview">',
     panels,
     '  </div>',
     noScriptLinks ? `  <noscript><nav class="home-accordion__noscript" aria-label="Explore the site">${noScriptLinks}</nav></noscript>` : '',
@@ -976,8 +976,15 @@ function renderVisualPageBody(page) {
     .map((section) => renderSection(section))
     .filter(Boolean)
     .join('\n\n');
-  const mainAttrs = attrsToString((page && page.mainAttributes) || { id: 'main' });
-  return `<main${mainAttrs ? ` ${mainAttrs}` : ''}>\n${body}\n</main>`;
+  const mainAttributes = { ...((page && page.mainAttributes) || { id: 'main' }) };
+  if (page && page.id === 'home' && page.canonicalPath === '/') {
+    mainAttributes['data-site-route-content'] = true;
+  }
+  const mainAttrs = attrsToString(mainAttributes);
+  const routeToolbar = page && page.id === 'home' && page.canonicalPath === '/'
+    ? '  <div data-site-route-toolbar hidden aria-hidden="true"></div>\n'
+    : '';
+  return `<main${mainAttrs ? ` ${mainAttrs}` : ''}>\n${routeToolbar}${body}\n</main>`;
 }
 
 module.exports = {

@@ -1,71 +1,14 @@
 (() => {
   'use strict';
-  if (typeof window !== 'undefined') {
-    if (window.__contactFormInit) return;
-    window.__contactFormInit = true;
-  }
-  const modal = document.getElementById('contact-modal');
-  const content = modal?.querySelector('.modal-content');
-  const openBtn = document.getElementById('contact-form-toggle');
-  const closeBtn = modal?.querySelector('.modal-close');
-  const form = document.getElementById('contact-form');
-  const statusEl = document.getElementById('contact-status');
-  const altContact = document.getElementById('contact-alt');
-  const resetBtn = form?.querySelector('[data-contact-reset]');
-  const submitBtn = form?.querySelector('[type="submit"]');
-  const successPanel = document.getElementById('contact-success');
-  const newMessageBtn = successPanel?.querySelector('[data-contact-new]');
-  const successClass = 'contact-success';
-  const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
-  let prevFocus = null;
-  let sending = false;
-  const modalAccessibility = modal && typeof window.createModalAccessibility === 'function'
-    ? window.createModalAccessibility(modal)
-    : null;
-  const nameInput = form?.querySelector('#contact-name');
-  const emailInput = form?.querySelector('#contact-email');
-  const messageInput = form?.querySelector('#contact-message');
-  const fieldConfigs = [
-    {
-      input: nameInput,
-      indicator: document.getElementById('contact-name-required')
-    },
-    {
-      input: emailInput,
-      indicator: document.getElementById('contact-email-required'),
-      invalidIndicator: '- Check email'
-    },
-    {
-      input: messageInput,
-      indicator: document.getElementById('contact-message-required')
-    }
-  ];
-  fieldConfigs.forEach((config) => {
-    if (config.indicator) {
-      config.defaultIndicator = config.indicator.textContent.trim() || '- Required';
-    }
-  });
+
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
   const MAX_CONTEXT_AGE_MS = 15 * 60 * 1000;
-  const currentPathname = () => {
-    try {
-      return String((window.location && window.location.pathname) || '').trim();
-    } catch {
-      return '';
-    }
-  };
-  const trackContactEvent = (name, params = {}) => {
-    try {
-      if (typeof window.gaEvent === 'function') {
-        window.gaEvent(name, params);
-      }
-    } catch {}
-  };
+  let activeContact = null;
 
+  const query = (root, selector) => root?.querySelector?.(selector) || null;
   const clearStoredContext = () => {
-    try { sessionStorage.removeItem(CONTACT_CONTEXT_KEY); } catch {}
+    try { sessionStorage.removeItem(CONTACT_CONTEXT_KEY); } catch (_) {}
   };
-
   const readStoredContext = () => {
     try {
       const raw = sessionStorage.getItem(CONTACT_CONTEXT_KEY);
@@ -85,26 +28,24 @@
         return null;
       }
       return { url, title, audience };
-    } catch {
+    } catch (_) {
       clearStoredContext();
       return null;
     }
   };
-
   const getPageContext = () => {
     const stored = readStoredContext();
     if (stored) {
       clearStoredContext();
       return stored;
     }
-    const url = (window.location && window.location.href) ? window.location.href.trim() : '';
+    const url = window.location?.href?.trim?.() || '';
     const title = (document.title || '').trim();
     const audience = typeof window.getSiteAudience === 'function'
       ? window.getSiteAudience()
       : String(document.body?.dataset?.audience || 'personal').trim();
     return { url, title, audience };
   };
-
   const appendPageContext = (message = '', context = getPageContext()) => {
     if (!context || (!context.url && !context.title)) return message;
     const audienceLabel = context.audience && context.audience !== 'personal'
@@ -114,220 +55,224 @@
     if (message.includes(label)) return message;
     return message ? `${message}\n\n${label}` : label;
   };
-
-  const focusables = () => content
-    ? Array.from(content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])'))
-      .filter((node) => !node.disabled && !node.closest('[hidden], [inert], [aria-hidden="true"]'))
-    : [];
-  const trap = (e) => {
-    if (e.key !== 'Tab') return;
-    const f = focusables();
-    if (!f.length) return;
-    const first = f[0], last = f[f.length-1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  const trackContactEvent = (name, params = {}) => {
+    try {
+      if (typeof window.gaEvent === 'function') window.gaEvent(name, params);
+    } catch (_) {}
   };
 
-  const setStatus = (message = '', tone = 'info', { focus = false } = {}) => {
-    if (!statusEl) return;
-    statusEl.textContent = message;
-    if (message) {
-      statusEl.dataset.tone = tone;
-      statusEl.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite');
-    } else {
-      delete statusEl.dataset.tone;
-      statusEl.setAttribute('aria-live', 'polite');
-    }
-    if (altContact) {
-      altContact.hidden = !(tone === 'error' && Boolean(message));
-    }
-    if (message && focus) {
-      statusEl.focus({ preventScroll: true });
-    }
-  };
+  const mountContactForm = (root = document) => {
+    const modal = query(root, '#contact-modal');
+    if (!modal) return null;
+    if (activeContact?.modal === modal) return activeContact;
+    activeContact?.dispose();
 
-  const getTrimmedValue = (input) => (input?.value || '').trim();
-  const hasValue = (input) => getTrimmedValue(input).length > 0;
-  const emailIsValid = (input = emailInput) => {
-    if (!input) return false;
-    const value = getTrimmedValue(input);
-    if (!value) return false;
-    if ('validity' in input) return input.validity.valid;
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-  };
-  const updateSubmitState = () => {
-    if (!submitBtn) return;
-    submitBtn.disabled = sending || !endpoint;
-    submitBtn.classList.toggle('is-busy', sending);
-  };
+    if (root !== document) {
+      document.querySelectorAll('#contact-modal[data-contact-modal-injected="true"]').forEach((node) => {
+        if (node !== modal) node.remove();
+      });
+    }
 
-  const showFieldError = (config, { invalid = false } = {}) => {
-    if (!config?.input) return;
-    const field = config.input.closest('.form-field');
-    config.input.setAttribute('aria-invalid', 'true');
-    field && field.classList.add('has-error');
-    if (config.indicator) {
-      const labelText = invalid && config.invalidIndicator ? config.invalidIndicator : config.defaultIndicator || '- Required';
-      config.indicator.textContent = labelText;
-      config.indicator.hidden = false;
-    }
-  };
-  const clearFieldError = (config) => {
-    if (!config?.input) return;
-    const field = config.input.closest('.form-field');
-    config.input.removeAttribute('aria-invalid');
-    field && field.classList.remove('has-error');
-    if (config.indicator) {
-      config.indicator.textContent = config.defaultIndicator || '- Required';
-      config.indicator.hidden = true;
-    }
-  };
-  const validateField = (config) => {
-    if (!config?.input) return true;
-    const value = getTrimmedValue(config.input);
-    if (!value) {
-      showFieldError(config);
-      return false;
-    }
-    if (config.input.type === 'email' && !emailIsValid(config.input)) {
-      showFieldError(config, { invalid: true });
-      return false;
-    }
-    clearFieldError(config);
-    return true;
-  };
-  const validateForm = () => {
-    let firstInvalid = null;
+    const cleanups = [];
+    const listen = (target, type, listener, options) => {
+      if (!target?.addEventListener) return;
+      target.addEventListener(type, listener, options);
+      cleanups.push(() => target.removeEventListener(type, listener, options));
+    };
+    const content = query(modal, '.modal-content');
+    const openBtn = query(root, '#contact-form-toggle') || document.getElementById('contact-form-toggle');
+    const closeBtn = query(modal, '.modal-close');
+    const form = query(modal, '#contact-form');
+    const statusEl = query(modal, '#contact-status');
+    const altContact = query(modal, '#contact-alt');
+    const resetBtn = query(form, '[data-contact-reset]');
+    const submitBtn = query(form, '[type="submit"]');
+    const successPanel = query(modal, '#contact-success');
+    const newMessageBtn = query(successPanel, '[data-contact-new]');
+    const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
+    const nameInput = query(form, '#contact-name');
+    const emailInput = query(form, '#contact-email');
+    const messageInput = query(form, '#contact-message');
+    const fieldConfigs = [
+      { input: nameInput, indicator: query(modal, '#contact-name-required') },
+      { input: emailInput, indicator: query(modal, '#contact-email-required'), invalidIndicator: '- Check email' },
+      { input: messageInput, indicator: query(modal, '#contact-message-required') }
+    ];
+    let prevFocus = null;
+    let sending = false;
+    let submitController = null;
+    let hashOpenTimer = 0;
+    let disposed = false;
+    const modalAccessibility = typeof window.createModalAccessibility === 'function'
+      ? window.createModalAccessibility(modal)
+      : null;
+
     fieldConfigs.forEach((config) => {
-      const valid = validateField(config);
-      if (!valid && !firstInvalid) {
-        firstInvalid = config.input;
-      }
+      if (config.indicator) config.defaultIndicator = config.indicator.textContent.trim() || '- Required';
     });
-    return firstInvalid;
-  };
-
-  const toggleSuccess = (show = false) => {
-    if (!form || !successPanel) return;
-    form.hidden = show;
-    successPanel.hidden = !show;
-    form.setAttribute('aria-hidden', show ? 'true' : 'false');
-    successPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
-    if (modal) {
-      modal.classList.toggle(successClass, show);
-    }
-    if (show) {
-      const body = modal?.querySelector('.modal-body');
-      if (body) body.scrollTop = 0;
-      successPanel.focus();
-    }
-  };
-  const prepareForm = () => {
-    sending = false;
-    form?.setAttribute('aria-busy', 'false');
-    toggleSuccess(false);
-    setStatus('');
-    fieldConfigs.forEach(clearFieldError);
-    updateSubmitState();
-  };
-  const clearInputs = () => {
-    if (!form) return;
-    form.reset();
-    fieldConfigs.forEach(clearFieldError);
-  };
-
-  const syncModalOpenState = () => {
-    if (!document || !document.body) return;
-    if (!document.querySelector('.modal.active')) {
-      document.body.classList.remove('modal-open');
-    }
-  };
-
-  const focusDialog = () => {
-    if (!modal?.classList.contains('active') || !content) return;
-    if (!content.contains(document.activeElement)) {
-      content.focus({ preventScroll: true });
-    }
-  };
-  function open(){
-    if (!modal || !content) return;
-    if (modal.classList.contains('active')) {
-      focusDialog();
-      return;
-    }
-    prepareForm();
-    trackContactEvent('contact_modal_open', { page_path: currentPathname() });
-    prevFocus = document.activeElement;
-    modalAccessibility?.show();
-    modal.classList.add('active');
-    document.body.classList.add('modal-open');
-    content.setAttribute('tabindex','0');
-    content.focus({preventScroll:true});
-    modalAccessibility?.isolateBackground();
-    content.addEventListener('keydown', trap);
-    window.requestAnimationFrame(focusDialog);
-  }
-  function close(){ if(!modal || !content || !modal.classList.contains('active')) return;
-    modalAccessibility?.restoreBackground();
-    modal.classList.remove('active');
-    modalAccessibility?.hide();
-    trackContactEvent('contact_modal_close', { page_path: currentPathname() });
-    syncModalOpenState();
-    content.removeEventListener('keydown', trap);
-    if (prevFocus && prevFocus !== document.body && document.contains(prevFocus)) {
-      prevFocus.focus({ preventScroll: true });
-    } else if (openBtn) {
-      openBtn.focus({ preventScroll: true });
-    }
-  }
-  if (typeof window !== 'undefined') {
-    window.openContactModal = open;
-    window.closeContactModal = close;
-    window.__contactModalReady = Boolean(modal);
-  }
-  const openIfHashMatches = () => {
-    if (!modal) return;
-    if (location.hash === '#contact-modal') {
-      // Slight delay so layout settles before opening
-      setTimeout(() => {
-        if (!modal.classList.contains('active')) open();
-      }, 120);
-    }
-  };
-
-  openBtn && openBtn.addEventListener('click', open);
-  closeBtn && closeBtn.addEventListener('click', close);
-  modal?.querySelectorAll('[data-contact-close]')?.forEach(btn => btn.addEventListener('click', close));
-  modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('active')) close(); });
-  document.addEventListener('click', (event) => {
-    if (event.__contactHandled) return;
-    const trigger = event.target.closest('[data-contact-modal-link]');
-    if (!trigger) return;
-    event.preventDefault();
-    open();
-  });
-  if (form) {
-    form.setAttribute('aria-busy', 'false');
-    updateSubmitState();
-    const handleInput = () => {
+    const currentPathname = () => {
+      try { return String(window.location?.pathname || '').trim(); } catch (_) { return ''; }
+    };
+    const focusables = () => content
+      ? [...content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])')]
+        .filter((node) => !node.disabled && !node.closest('[hidden], [inert], [aria-hidden="true"]'))
+      : [];
+    const trap = (event) => {
+      if (event.key !== 'Tab') return;
+      const nodes = focusables();
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const setStatus = (message = '', tone = 'info', { focus = false } = {}) => {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      if (message) statusEl.dataset.tone = tone;
+      else delete statusEl.dataset.tone;
+      statusEl.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite');
+      if (altContact) altContact.hidden = !(tone === 'error' && Boolean(message));
+      if (message && focus) statusEl.focus({ preventScroll: true });
+    };
+    const trimmed = (input) => (input?.value || '').trim();
+    const emailIsValid = () => {
+      const value = trimmed(emailInput);
+      if (!value) return false;
+      return emailInput && 'validity' in emailInput
+        ? emailInput.validity.valid
+        : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    };
+    const updateSubmitState = () => {
+      if (!submitBtn) return;
+      submitBtn.disabled = sending || !endpoint;
+      submitBtn.classList.toggle('is-busy', sending);
+    };
+    const showFieldError = (config, invalid = false) => {
+      if (!config?.input) return;
+      config.input.setAttribute('aria-invalid', 'true');
+      config.input.closest('.form-field')?.classList.add('has-error');
+      if (config.indicator) {
+        config.indicator.textContent = invalid && config.invalidIndicator
+          ? config.invalidIndicator
+          : config.defaultIndicator || '- Required';
+        config.indicator.hidden = false;
+      }
+    };
+    const clearFieldError = (config) => {
+      if (!config?.input) return;
+      config.input.removeAttribute('aria-invalid');
+      config.input.closest('.form-field')?.classList.remove('has-error');
+      if (config.indicator) {
+        config.indicator.textContent = config.defaultIndicator || '- Required';
+        config.indicator.hidden = true;
+      }
+    };
+    const validateField = (config) => {
+      if (!config?.input) return true;
+      if (!trimmed(config.input)) {
+        showFieldError(config);
+        return false;
+      }
+      if (config.input.type === 'email' && !emailIsValid()) {
+        showFieldError(config, true);
+        return false;
+      }
+      clearFieldError(config);
+      return true;
+    };
+    const validateForm = () => {
+      let firstInvalid = null;
+      fieldConfigs.forEach((config) => {
+        if (!validateField(config) && !firstInvalid) firstInvalid = config.input;
+      });
+      return firstInvalid;
+    };
+    const toggleSuccess = (show = false) => {
+      if (!form || !successPanel) return;
+      form.hidden = show;
+      successPanel.hidden = !show;
+      form.setAttribute('aria-hidden', show ? 'true' : 'false');
+      successPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
+      modal.classList.toggle('contact-success', show);
+      if (show) {
+        const body = query(modal, '.modal-body');
+        if (body) body.scrollTop = 0;
+        successPanel.focus();
+      }
+    };
+    const clearInputs = () => {
+      form?.reset();
+      fieldConfigs.forEach(clearFieldError);
+    };
+    const prepareForm = () => {
+      sending = false;
+      form?.setAttribute('aria-busy', 'false');
+      toggleSuccess(false);
+      setStatus('');
+      fieldConfigs.forEach(clearFieldError);
       updateSubmitState();
     };
-    form.addEventListener('input', handleInput);
-    fieldConfigs.forEach((config) => {
-      config.input?.addEventListener('input', () => {
-        if (config.input?.getAttribute('aria-invalid') === 'true') {
-          validateField(config);
-        }
-      });
-      config.input?.addEventListener('blur', () => validateField(config));
-    });
-    resetBtn?.addEventListener('click', () => {
-      clearInputs();
-      setStatus('');
-      nameInput?.focus();
-    });
-    form.addEventListener('submit', async (event) => {
+    const syncModalOpenState = () => {
+      if (!document.querySelector('.modal.active')) document.body?.classList.remove('modal-open');
+    };
+    const focusDialog = () => {
+      if (!modal.classList.contains('active') || !content || content.contains(document.activeElement)) return;
+      content.focus({ preventScroll: true });
+    };
+    const open = () => {
+      if (!content || disposed) return;
+      if (modal.classList.contains('active')) {
+        focusDialog();
+        return;
+      }
+      prepareForm();
+      trackContactEvent('contact_modal_open', { page_path: currentPathname() });
+      prevFocus = document.activeElement;
+      modalAccessibility?.show();
+      modal.classList.add('active');
+      document.body?.classList.add('modal-open');
+      content.setAttribute('tabindex', '0');
+      content.focus({ preventScroll: true });
+      modalAccessibility?.isolateBackground();
+      content.addEventListener('keydown', trap);
+      window.requestAnimationFrame(focusDialog);
+    };
+    const close = ({ restoreFocus = true } = {}) => {
+      if (!content || !modal.classList.contains('active')) return;
+      modalAccessibility?.restoreBackground();
+      modal.classList.remove('active');
+      modalAccessibility?.hide();
+      trackContactEvent('contact_modal_close', { page_path: currentPathname() });
+      syncModalOpenState();
+      content.removeEventListener('keydown', trap);
+      if (!restoreFocus) return;
+      if (prevFocus && prevFocus !== document.body && document.contains(prevFocus)) {
+        prevFocus.focus({ preventScroll: true });
+      } else {
+        openBtn?.focus({ preventScroll: true });
+      }
+    };
+    const openIfHashMatches = () => {
+      if (window.location.hash !== '#contact-modal') return;
+      if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
+      hashOpenTimer = window.setTimeout(() => {
+        hashOpenTimer = 0;
+        if (!modal.classList.contains('active')) open();
+      }, 120);
+    };
+    const handleEscape = (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('active')) close();
+    };
+    const handleModalClick = (event) => {
+      if (event.target === modal || event.target.closest('[data-contact-close]')) close();
+    };
+    const handleSubmit = async (event) => {
       event.preventDefault();
       if (!window.fetch || sending || !endpoint) return;
       const firstInvalid = validateForm();
@@ -336,7 +281,7 @@
           page_path: currentPathname(),
           field_id: String(firstInvalid.id || '')
         });
-        setStatus('', 'info');
+        setStatus('');
         firstInvalid.focus({ preventScroll: true });
         return;
       }
@@ -345,51 +290,129 @@
       form.setAttribute('aria-busy', 'true');
       setStatus('Sending message…', 'info', { focus: true });
       updateSubmitState();
+      submitController = typeof AbortController === 'function' ? new AbortController() : null;
       try {
         const formData = new FormData(form);
         const pageContext = getPageContext();
         const payload = {
-          name: (formData.get('name') || '').toString().trim(),
-          email: (formData.get('email') || '').toString().trim(),
-          message: appendPageContext((formData.get('message') || '').toString().trim(), pageContext),
+          name: String(formData.get('name') || '').trim(),
+          email: String(formData.get('email') || '').trim(),
+          message: appendPageContext(String(formData.get('message') || '').trim(), pageContext),
           audience: pageContext.audience || 'personal',
           pageUrl: pageContext.url || '',
           pageTitle: pageContext.title || '',
-          company: (formData.get('company') || '').toString().trim()
+          company: String(formData.get('company') || '').trim()
         };
-        const res = await fetch(endpoint, {
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          ...(submitController ? { signal: submitController.signal } : {})
         });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || data.error) {
-          throw new Error(data.error || 'Unable to send message.');
-        }
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.error) throw new Error(data.error || 'Unable to send message.');
+        if (disposed) return;
         clearInputs();
         setStatus('');
         trackContactEvent('contact_form_success', { page_path: currentPathname() });
         toggleSuccess(true);
-      } catch (err) {
-        console.error('Contact form submit failed', err);
+      } catch (error) {
+        if (disposed || submitController?.signal.aborted) return;
+        console.error('Contact form submit failed', error);
         trackContactEvent('contact_form_error', {
           page_path: currentPathname(),
-          reason: String((err && err.message) || 'unknown').slice(0, 120)
+          reason: String(error?.message || 'unknown').slice(0, 120)
         });
-        setStatus(err?.message || 'Something went wrong. Please email me directly.', 'error', { focus: true });
+        setStatus(error?.message || 'Something went wrong. Please email me directly.', 'error', { focus: true });
       } finally {
+        submitController = null;
         sending = false;
-        form.setAttribute('aria-busy', 'false');
-        updateSubmitState();
+        if (!disposed) {
+          form.setAttribute('aria-busy', 'false');
+          updateSubmitState();
+        }
+      }
+    };
+
+    listen(openBtn, 'click', open);
+    listen(closeBtn, 'click', close);
+    listen(modal, 'click', handleModalClick);
+    listen(document, 'keydown', handleEscape);
+    listen(window, 'hashchange', openIfHashMatches);
+    listen(form, 'input', updateSubmitState);
+    fieldConfigs.forEach((config) => {
+      listen(config.input, 'input', () => {
+        if (config.input?.getAttribute('aria-invalid') === 'true') validateField(config);
+      });
+      listen(config.input, 'blur', () => validateField(config));
+    });
+    listen(resetBtn, 'click', () => {
+      clearInputs();
+      setStatus('');
+      nameInput?.focus();
+    });
+    listen(form, 'submit', handleSubmit);
+    listen(newMessageBtn, 'click', () => {
+      toggleSuccess(false);
+      clearInputs();
+      setStatus('');
+      nameInput?.focus();
+    });
+    form?.setAttribute('aria-busy', 'false');
+    updateSubmitState();
+
+    const controller = {
+      modal,
+      open,
+      close,
+      get sending() { return sending; },
+      dispose() {
+        if (disposed) return;
+        if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
+        hashOpenTimer = 0;
+        submitController?.abort();
+        submitController = null;
+        close({ restoreFocus: false });
+        disposed = true;
+        cleanups.splice(0).reverse().forEach((cleanup) => cleanup());
+        if (activeContact === controller) activeContact = null;
+        if (window.openContactModal === open) delete window.openContactModal;
+        if (window.closeContactModal === close) delete window.closeContactModal;
+        window.__contactModalReady = false;
+      }
+    };
+    activeContact = controller;
+    window.openContactModal = open;
+    window.closeContactModal = close;
+    window.__contactModalReady = true;
+    openIfHashMatches();
+    return controller;
+  };
+
+  window.initializeContactModal = (root = document) => mountContactForm(root);
+
+  if (window.SiteRoutes?.register) {
+    window.SiteRoutes.register('contact:contact', {
+      mount(context) {
+        const controller = mountContactForm(context.root);
+        if (controller) context.cleanup(() => controller.dispose());
+      },
+      beforeLeave() {
+        return !activeContact?.sending;
+      },
+      unmount() {
+        activeContact?.dispose();
       }
     });
   }
-  newMessageBtn?.addEventListener('click', () => {
-    toggleSuccess(false);
-    clearInputs();
-    setStatus('');
-    nameInput?.focus();
-  });
-  window.addEventListener('hashchange', openIfHashMatches);
-  openIfHashMatches();
+
+  const initializeDirect = () => {
+    const modal = document.getElementById('contact-modal');
+    if (modal && activeContact?.modal !== modal) mountContactForm(document);
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDirect, { once: true });
+  } else {
+    initializeDirect();
+  }
 })();

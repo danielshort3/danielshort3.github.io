@@ -1,788 +1,1207 @@
 /* ===================================================================
    File: page-transitions.js
-   Purpose: Smooth same-origin page transitions and header prefetching
+   Purpose: Persistent-shell navigation for personal site routes.
 =================================================================== */
 (() => {
   'use strict';
 
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+  const CONTENT_SELECTOR = '[data-site-route-content], [data-personal-detail-content]';
+  const MANIFEST_SELECTOR = 'script#site-route-manifest[data-site-route-manifest]';
+  const SHELL_SELECTOR = '[data-site-persistent-shell], [data-personal-accordion-shell], [data-home-accordion]';
+  const PROGRESS_DELAY_MS = 350;
+  const ROUTE_CACHE_LIMIT = 12;
+  const ROUTE_EVENT = 'site:route-change';
+  const CONTENT_EVENT = 'site:content-updated';
   const NAVIGATION_EVENT = 'site:navigation-start';
-  const STORAGE_KEY = 'sitePageTransition';
-  const ARRIVAL_FOCUS_KEY = 'sitePageTransitionFocus';
-  const TRANSITION_TTL_MS = 30000;
-  const ARRIVAL_FOCUS_TTL_MS = 30000;
-  const FALLBACK_EXIT_MS = 176;
-  const FALLBACK_ENTRY_MS = 244;
-  const COMPACT_FALLBACK_EXIT_MS = 140;
-  const COMPACT_FALLBACK_ENTRY_MS = 200;
-  const NEUTRAL_EXIT_MS = 180;
-  const NEUTRAL_ENTRY_MS = 220;
-  const NATIVE_TRANSITION_SAFETY_MS = 800;
-  const TRANSITION_VIEWS = new Set(['overview', 'library', 'detail']);
-  const TRANSITION_DIRECTIONS = new Set(['forward', 'back', 'cross', 'replace']);
-  const TRANSITION_MODES = new Set(['personal', 'neutral']);
-  const TRANSITION_TRANSPORTS = new Set(['fallback', 'native']);
-  const VIEW_DEPTH = Object.freeze({ overview: 0, library: 1, detail: 2 });
-  let navigationLocked = false;
-  let navigationDepartureObserved = false;
-  let navigationCommitStartedAt = 0;
-  let navigationTarget = '';
-  let incomingTransitionActive = false;
-  const prefetchedTargets = new Set();
-  const PERSONAL_ROUTE_CONFIG = Object.freeze([
-    Object.freeze({ path: '/portfolio', category: 'projects', rootView: 'library' }),
-    Object.freeze({ path: '/tools', category: 'tools', rootView: 'library' }),
-    Object.freeze({ path: '/games', category: 'games', rootView: 'library' }),
-    Object.freeze({ path: '/contact', category: 'contact', rootView: 'detail' }),
-    Object.freeze({ path: '/privacy', category: 'about', rootView: 'detail', exact: true }),
-    Object.freeze({ path: '/sitemap', category: 'about', rootView: 'detail', exact: true }),
-    Object.freeze({ path: '/sitemap-pretty', category: 'about', rootView: 'detail', exact: true }),
-    Object.freeze({ path: '/search', category: 'tools', rootView: 'detail', exact: true }),
-    Object.freeze({ path: '/solutions', category: 'projects', rootView: 'detail', exact: true })
-  ]);
-  const HOME_CATEGORY_IDS = new Set(['about', 'projects', 'tools', 'games', 'contact']);
+  const REQUEST_HEADER = 'X-Site-Route';
+  const ROUTE_VIEWS = new Set(['overview', 'library', 'detail']);
+  const ROUTE_CATEGORIES = new Set(['about', 'projects', 'tools', 'games', 'contact']);
   const PROFESSIONAL_AUDIENCES = new Set(['analytics', 'data-science', 'tourism']);
+  const HARD_BOUNDARY_PATHS = new Set([
+    '/tools/background-remover',
+    '/tools/transcribe',
+    '/tools/job-application-tracker'
+  ]);
+  const PERSISTENT_BODY_CLASSES = new Set([
+    'consent-blocked',
+    'has-mobile-site-dock',
+    'has-mobile-site-masthead',
+    'is-mobile-site-dock-hidden'
+  ]);
+  const ROUTE_DATA_PREFIXES = [
+    'data-site-route-',
+    'data-personal-',
+    'data-tools-',
+    'data-game-'
+  ];
+  const ROUTE_RUNTIME_BODY_ATTRIBUTES = new Set([
+    'data-contact-audience',
+    'data-performance-tier',
+    'data-project-demo-autosize',
+    'data-qrtool-ui-mode',
+    'data-shortlinks-mode'
+  ]);
+  const PERSISTENT_SCRIPT_PATTERNS = [
+    /\/js\/common\/no-js\.js$/i,
+    /\/(?:dist\/)?site-(?:shell|consent|tools-account)(?:[.-]|$)/i,
+    /\/js\/common\/(?:no-js|common|audience-config|site-realm|modal-accessibility|certifications-modal)(?:[.-]|$)/i,
+    /\/js\/navigation\/navigation(?:[.-]|$)/i,
+    /\/js\/animations\/animations(?:[.-]|$)/i,
+    /\/js\/(?:analytics|privacy)\//i
+  ];
 
-  const prefersReducedMotion = () => {
-    try {
-      return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    } catch {
-      return false;
-    }
-  };
+  const routeCache = new Map();
+  const pendingFetches = new Map();
+  const loadedScripts = new Set();
+  let activeNavigation = null;
+  let navigationSequence = 0;
+  let historySequence = 0;
+  let committedHistoryIndex = 0;
+  let committedHistoryState = null;
+  let committedUrl = window.location.href;
+  let restoringVetoedPop = false;
 
-  const resolveUrl = (href) => {
+  Array.from(document.scripts || []).forEach((script) => {
+    if (script.src) loadedScripts.add(normalizeAssetUrl(script.src));
+  });
+
+  function resolveUrl(value, base = document.baseURI || window.location.href) {
     try {
-      return new URL(href, document.baseURI || window.location.href);
-    } catch {
+      return new URL(String(value || ''), base);
+    } catch (_) {
       return null;
     }
-  };
+  }
 
-  const normalizePathname = (pathname) => {
-    let next = String(pathname || '/');
-    next = next.replace(/\/index\.html$/i, '/');
-    next = next.replace(/\.html$/i, '');
-    next = next.replace(/\/+$/, '');
-    if (!next) next = '/';
-    return next;
-  };
+  function normalizePathname(value) {
+    let pathname = String(value || '/');
+    pathname = pathname.replace(/\/index\.html$/i, '/');
+    pathname = pathname.replace(/\.html$/i, '');
+    pathname = pathname.replace(/\/+$/, '');
+    return pathname || '/';
+  }
 
-  const normalizeTarget = (url) => {
+  function normalizeRouteUrl(url) {
     if (!url) return '';
     return `${url.origin}${normalizePathname(url.pathname)}${url.search}`;
-  };
+  }
 
-  const normalizeArrivalTarget = (url) => {
+  function normalizeAssetUrl(value, base) {
+    const url = resolveUrl(value, base);
     if (!url) return '';
-    return `${normalizeTarget(url)}${url.hash || ''}`;
-  };
+    url.hash = '';
+    return url.href;
+  }
 
-  const isProfessionalAudienceUrl = (url) => {
+  function getDocumentAssetBase(scope, routeUrl) {
+    const originBase = routeUrl ? `${routeUrl.origin}/` : document.baseURI || window.location.href;
+    const declared = scope?.querySelector?.('base[href]')?.getAttribute('href');
+    return resolveUrl(declared || '/', originBase)?.href || originBase;
+  }
+
+  function makeAbortError() {
+    try {
+      return new DOMException('Navigation was superseded.', 'AbortError');
+    } catch (_) {
+      const error = new Error('Navigation was superseded.');
+      error.name = 'AbortError';
+      return error;
+    }
+  }
+
+  function isAbortError(error) {
+    return Boolean(error && error.name === 'AbortError');
+  }
+
+  function throwIfAborted(signal) {
+    if (signal?.aborted) throw signal.reason || makeAbortError();
+  }
+
+  function dispatch(name, detail = {}, options = {}) {
+    let event;
+    try {
+      event = new CustomEvent(name, {
+        bubbles: Boolean(options.bubbles),
+        cancelable: Boolean(options.cancelable),
+        detail
+      });
+    } catch (_) {
+      event = document.createEvent('CustomEvent');
+      event.initCustomEvent(name, Boolean(options.bubbles), Boolean(options.cancelable), detail);
+    }
+    document.dispatchEvent(event);
+    return event;
+  }
+
+  function prefersReducedMotion() {
+    try {
+      return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isHardBoundary(url) {
+    return Boolean(url && HARD_BOUNDARY_PATHS.has(normalizePathname(url.pathname)));
+  }
+
+  function isProfessionalAudienceUrl(url) {
     if (!url) return false;
-    const pathname = normalizePathname(url.pathname);
-    if (/^\/(?:analytics|data-science|tourism)(?:\/|$)/.test(pathname)) return true;
-    const audience = String(url.searchParams?.get('audience') || '').trim().toLowerCase();
-    const mode = String(url.searchParams?.get('mode') || '').trim().toLowerCase();
-    return PROFESSIONAL_AUDIENCES.has(audience) || ['professional', 'work', 'career', 'analytics'].includes(mode);
-  };
+    const path = normalizePathname(url.pathname);
+    if (/^\/(?:professional|analytics|data-science|tourism)(?:\/|$)/i.test(path)) return true;
+    const audience = String(url.searchParams.get('audience') || '').trim().toLowerCase();
+    const mode = String(url.searchParams.get('mode') || '').trim().toLowerCase();
+    return PROFESSIONAL_AUDIENCES.has(audience) ||
+      ['professional', 'work', 'career', 'analytics'].includes(mode);
+  }
 
-  const getPersonalRouteIntent = (url) => {
-    if (!url) return null;
-    if (isProfessionalAudienceUrl(url)) return null;
-    const pathname = normalizePathname(url.pathname);
-    if (pathname === '/') {
-      let category = String(url.hash || '').replace(/^#/, '');
+  function getPersonalRouteIntent(url) {
+    if (!url || isProfessionalAudienceUrl(url) || isHardBoundary(url)) return null;
+    const path = normalizePathname(url.pathname);
+    if (/^\/(?:api|admin|documents|demos)(?:\/|$)/i.test(path)) return null;
+
+    if (path === '/') {
+      let category = String(url.hash || '').replace(/^#/, '') || 'about';
       try {
         category = decodeURIComponent(category);
-      } catch {
-        category = '';
+      } catch (_) {
+        category = 'about';
       }
-      if (!category) category = 'about';
-      if (!HOME_CATEGORY_IDS.has(category)) return null;
-      const requestedLibrary = url.searchParams?.get('view') === 'library';
-      const view = requestedLibrary && ['projects', 'tools', 'games'].includes(category)
-        ? 'library'
-        : 'overview';
-      return { category, view };
+      if (!ROUTE_CATEGORIES.has(category)) return null;
+      const library = url.searchParams.get('view') === 'library' &&
+        ['projects', 'tools', 'games'].includes(category);
+      return { category, view: library ? 'library' : 'overview' };
     }
 
-    if (/^\/[a-z0-9-]+-demo$/i.test(pathname)) {
+    if (/^\/[a-z0-9-]+-demo$/i.test(path)) {
       return { category: 'projects', view: 'detail' };
     }
+    if (path === '/portfolio' || path.startsWith('/portfolio/')) {
+      return { category: 'projects', view: path === '/portfolio' ? 'library' : 'detail' };
+    }
+    if (path === '/tools' || path.startsWith('/tools/')) {
+      return { category: 'tools', view: path === '/tools' ? 'library' : 'detail' };
+    }
+    if (path === '/games' || path.startsWith('/games/')) {
+      return { category: 'games', view: path === '/games' ? 'library' : 'detail' };
+    }
+    if (path === '/contact') return { category: 'contact', view: 'detail' };
+    if (path === '/job-application-copilot' || path === '/job-application-copilot/privacy') {
+      return { category: 'tools', view: 'detail' };
+    }
+    if (['/privacy', '/sitemap', '/sitemap-pretty'].includes(path)) {
+      return { category: 'about', view: 'detail' };
+    }
+    if (path === '/search') return { category: 'tools', view: 'detail' };
+    if (path === '/solutions') return { category: 'projects', view: 'detail' };
+    return null;
+  }
 
-    const route = PERSONAL_ROUTE_CONFIG.find((entry) => (
-      pathname === entry.path || (!entry.exact && pathname.startsWith(`${entry.path}/`))
-    ));
-    if (!route) return null;
-    return {
-      category: route.category,
-      view: pathname === route.path ? route.rootView : 'detail'
-    };
-  };
+  function getHomepageHistoryIntent(state) {
+    if (!state || typeof state !== 'object') return null;
+    if (String(state.siteRoute?.id || '').trim() !== 'home') return null;
+    const category = String(state.homePanel || '').trim();
+    const view = String(state.homeView || '').trim();
+    if (!ROUTE_CATEGORIES.has(category) || !['overview', 'library'].includes(view)) return null;
+    if (view === 'library' && !['projects', 'tools', 'games'].includes(category)) return null;
+    return { category, view };
+  }
 
-  const getPathExtension = (url) => {
-    if (!url || !url.pathname) return '';
+  function isDocumentLikeUrl(url) {
+    if (!url || !/^https?:$/i.test(url.protocol) || url.origin !== window.location.origin) return false;
     const segment = url.pathname.split('/').pop() || '';
-    const dotIndex = segment.lastIndexOf('.');
-    if (dotIndex <= 0) return '';
-    return segment.slice(dotIndex + 1).toLowerCase();
-  };
-
-  const isDocumentLikeUrl = (url) => {
-    if (!url || !/^https?:$/i.test(url.protocol)) return false;
-    if (url.origin !== window.location.origin) return false;
-    const extension = getPathExtension(url);
+    const dot = segment.lastIndexOf('.');
+    const extension = dot > 0 ? segment.slice(dot + 1).toLowerCase() : '';
     return !extension || extension === 'html' || extension === 'htm';
-  };
+  }
 
-  const isSameDocumentNavigation = (url) => {
+  function hasBlockingInteractionLayer() {
+    return Boolean(
+      document.fullscreenElement ||
+      document.pointerLockElement ||
+      document.body?.classList.contains('modal-open') ||
+      document.body?.classList.contains('media-viewer-open') ||
+      document.querySelector('dialog[open], .modal.active, [data-tools-account-modal][aria-hidden="false"]')
+    );
+  }
+
+  function readRouteManifest(scope, url, options = {}) {
+    const node = scope?.querySelector?.(MANIFEST_SELECTOR);
+    if (!node) return null;
+    let value;
+    try {
+      value = JSON.parse(node.textContent || '{}');
+    } catch (error) {
+      if (options.strict) throw new Error('The route manifest is not valid JSON.', { cause: error });
+      return null;
+    }
+    if (!value || typeof value !== 'object') return null;
+    const base = getDocumentAssetBase(scope, url);
+    const normalizeList = (items) => {
+      if (!Array.isArray(items)) return [];
+      const unique = new Set();
+      items.forEach((item) => {
+        const normalized = normalizeAssetUrl(item, base);
+        if (normalized) unique.add(normalized);
+      });
+      return Array.from(unique);
+    };
+    const manifest = {
+      version: Number(value.version),
+      id: String(value.id || '').trim(),
+      path: normalizePathname(value.path || url?.pathname || '/'),
+      category: String(value.category || '').trim(),
+      view: String(value.view || '').trim(),
+      navigation: String(value.navigation || '').trim().toLowerCase(),
+      styles: normalizeList(value.styles),
+      scripts: normalizeList(value.scripts),
+      module: String(value.module || '').trim()
+    };
+    if (!options.strict) return manifest;
+    if (manifest.version !== 1 || !manifest.id) throw new Error('The route manifest has an unsupported version or no id.');
+    if (manifest.navigation !== 'soft') throw new Error('The destination is not a soft-navigation route.');
+    if (!ROUTE_CATEGORIES.has(manifest.category) || !ROUTE_VIEWS.has(manifest.view)) {
+      throw new Error('The route manifest has an invalid category or view.');
+    }
+    if (!url || manifest.path !== normalizePathname(url.pathname)) {
+      throw new Error('The route manifest does not match the requested path.');
+    }
+    if (isHardBoundary(url) || isProfessionalAudienceUrl(url)) {
+      throw new Error('The destination requires document navigation.');
+    }
+    return manifest;
+  }
+
+  function isCurrentRouteSoft() {
     const currentUrl = resolveUrl(window.location.href);
-    return normalizeTarget(url) === normalizeTarget(currentUrl);
-  };
+    const manifest = readRouteManifest(document, currentUrl, { strict: false });
+    if (manifest) return manifest.navigation === 'soft' && !isHardBoundary(currentUrl);
+    return Boolean(
+      document.body?.dataset.audience === 'personal' &&
+      document.querySelector(SHELL_SELECTOR) &&
+      document.querySelector(CONTENT_SELECTOR)
+    );
+  }
 
-  const supportsCrossDocumentViewTransitions = () => {
-    try {
-      return typeof CSS !== 'undefined' &&
-        CSS.supports('view-transition-name: site-shell') &&
-        'onpageswap' in window &&
-        'onpagereveal' in window;
-    } catch {
-      return false;
-    }
-  };
-
-  const isPersonalSurfaceNavigation = (link) => Boolean(
-    link?.dataset.personalTransition ||
-    link?.closest('[data-home-accordion], [data-personal-accordion-shell]')
-  );
-
-  const usesCompactTransition = () => {
-    try {
-      return Boolean(window.matchMedia && window.matchMedia('(max-width: 959px), (max-height: 619px)').matches);
-    } catch {
-      return false;
-    }
-  };
-
-  const hasBlockingInteractionLayer = () => Boolean(
-    document.fullscreenElement ||
-    document.pointerLockElement ||
-    document.body?.classList?.contains('modal-open') ||
-    document.body?.classList?.contains('media-viewer-open') ||
-    document.querySelector?.('dialog[open], .modal.active, [data-tools-account-modal][aria-hidden="false"]')
-  );
-
-  const hasActiveSameDocumentTransition = () => Boolean(
-    document.querySelector?.('.home-accordion.is-view-changing')
-  );
-
-  const getEligibleNavigationUrl = (link) => {
-    if (!link || link.dataset.pageTransition === 'false') return null;
+  function getEligibleLinkUrl(link) {
+    if (!link || link.closest('[data-contact-modal-link]')) return null;
     if (link.hasAttribute('download')) return null;
-    if (link.closest('[data-contact-modal-link]')) return null;
-
+    if (link.dataset.navigation === 'hard' || link.closest('[data-navigation="hard"]')) return null;
+    if (link.dataset.pageTransition === 'false') return null;
     const target = String(link.getAttribute('target') || '').trim().toLowerCase();
     if (target && target !== '_self') return null;
-
     const href = String(link.getAttribute('href') || '').trim();
-    if (!href || href.startsWith('#')) return null;
-    if (/^(mailto:|tel:|javascript:)/i.test(href)) return null;
-
+    if (!href || href.startsWith('#') || /^(?:mailto:|tel:|javascript:)/i.test(href)) return null;
     const url = resolveUrl(href);
-    if (!isDocumentLikeUrl(url)) return null;
-    if (isSameDocumentNavigation(url)) return null;
-
+    if (!isDocumentLikeUrl(url) || !getPersonalRouteIntent(url) || !isCurrentRouteSoft()) return null;
+    const current = resolveUrl(window.location.href);
+    if (current && normalizeRouteUrl(current) === normalizeRouteUrl(url)) return null;
     return url;
-  };
+  }
 
-  const getStorage = () => {
-    try {
-      return window.sessionStorage;
-    } catch {
-      return null;
+  function getRouteOutlet(scope) {
+    return scope?.querySelector?.(CONTENT_SELECTOR) || null;
+  }
+
+  function putRouteCache(key, value) {
+    routeCache.delete(key);
+    routeCache.set(key, value);
+    while (routeCache.size > ROUTE_CACHE_LIMIT) {
+      routeCache.delete(routeCache.keys().next().value);
     }
-  };
+  }
 
-  const storeArrivalFocus = (url, intentOverride = null) => {
-    const storage = getStorage();
-    const intent = intentOverride || getPersonalRouteIntent(url);
-    if (!storage || !url || !intent) return;
-    if (!HOME_CATEGORY_IDS.has(intent.category) || !TRANSITION_VIEWS.has(intent.view)) return;
-    try {
-      storage.setItem(ARRIVAL_FOCUS_KEY, JSON.stringify({
-        target: normalizeArrivalTarget(url),
-        category: intent.category,
-        view: intent.view,
-        ts: Date.now()
-      }));
-    } catch {}
-  };
+  function getRouteCache(key) {
+    if (!routeCache.has(key)) return null;
+    const value = routeCache.get(key);
+    routeCache.delete(key);
+    routeCache.set(key, value);
+    return value;
+  }
 
-  const consumeArrivalFocus = () => {
-    const storage = getStorage();
-    if (!storage) return null;
-
-    let raw = null;
-    try {
-      raw = storage.getItem(ARRIVAL_FOCUS_KEY);
-      storage.removeItem(ARRIVAL_FOCUS_KEY);
-    } catch {
-      return null;
-    }
-    if (!raw) return null;
-
-    try {
-      const payload = JSON.parse(raw);
-      if (!payload || typeof payload !== 'object') return null;
-      if (typeof payload.target !== 'string' || typeof payload.category !== 'string') return null;
-      if (!['overview', 'library', 'detail'].includes(payload.view)) return null;
-      if (!Number.isFinite(payload.ts) || (Date.now() - payload.ts) > ARRIVAL_FOCUS_TTL_MS) return null;
-      return payload;
-    } catch {
-      return null;
-    }
-  };
-
-  const currentPersonalState = () => {
-    const routeIntent = getPersonalRouteIntent(resolveUrl(window.location.href));
-    const homeRoot = document.querySelector('[data-home-accordion]');
-    const personalShell = document.querySelector('[data-personal-accordion-shell]');
-    if (!homeRoot && !personalShell) return null;
-    const bodyCategory = String(document.body?.dataset.personalCategory || '').trim();
-    const bodyView = String(document.body?.dataset.personalAccordionView || '').trim();
-    const category = bodyCategory || routeIntent?.category || String(homeRoot?.dataset.activePanel || '').trim();
-    const view = bodyView || routeIntent?.view || String(homeRoot?.dataset.homeView || '').trim();
-    if (!HOME_CATEGORY_IDS.has(category) || !['overview', 'library', 'detail'].includes(view)) return null;
-    return { category, view };
-  };
-
-  const getTransitionDescriptor = (link, url) => {
-    const from = currentPersonalState();
-    let to = getPersonalRouteIntent(url);
-    const personalHint = String(link?.dataset?.personalTransition || '').trim().toLowerCase();
-    if (!to && isPersonalSurfaceNavigation(link) && from) {
-      to = {
-        category: from.category,
-        view: personalHint === 'detail' ? 'detail' : from.view
-      };
-    }
-
-    const mode = from && to ? 'personal' : 'neutral';
-    const category = to?.category || from?.category || 'neutral';
-    let direction = 'replace';
-    if (personalHint === 'collapse') {
-      direction = 'back';
-    } else if (from && to) {
-      if (from.category !== to.category) direction = 'cross';
-      else if (VIEW_DEPTH[to.view] > VIEW_DEPTH[from.view]) direction = 'forward';
-      else if (VIEW_DEPTH[to.view] < VIEW_DEPTH[from.view]) direction = 'back';
-    } else if (to) {
-      direction = 'forward';
-    }
-
-    return Object.freeze({
-      mode,
-      category: HOME_CATEGORY_IDS.has(category) ? category : 'neutral',
-      fromView: from?.view || 'detail',
-      toView: to?.view || 'detail',
-      direction,
-      targetIntent: to
+  function raceWithAbort(promise, signal) {
+    if (!signal) return promise;
+    throwIfAborted(signal);
+    return new Promise((resolve, reject) => {
+      const abort = () => reject(signal.reason || makeAbortError());
+      signal.addEventListener('abort', abort, { once: true });
+      promise.then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
     });
-  };
+  }
 
-  const syncPersonalHistoryState = () => {
-    const semantic = currentPersonalState();
-    if (!semantic || typeof window.history?.replaceState !== 'function') return;
-    const currentState = window.history.state && typeof window.history.state === 'object'
-      ? window.history.state
-      : {};
-    if (currentState.personalCategory === semantic.category && currentState.personalView === semantic.view) return;
+  async function fetchRouteDocument(url, options = {}) {
+    const key = normalizeRouteUrl(url);
+    const cached = getRouteCache(key);
+    if (cached) {
+      try {
+        return parseRouteResponse(cached, url);
+      } catch (error) {
+        routeCache.delete(key);
+        throw error;
+      }
+    }
+
+    let pending = pendingFetches.get(key);
+    if (!pending) {
+      const controller = new AbortController();
+      const abortFromNavigation = () => controller.abort(options.signal?.reason || makeAbortError());
+      options.signal?.addEventListener('abort', abortFromNavigation, { once: true });
+      const promise = fetch(url.href, {
+        cache: options.prefetch ? 'force-cache' : 'default',
+        credentials: 'same-origin',
+        headers: { Accept: 'text/html', [REQUEST_HEADER]: '1' },
+        redirect: 'follow',
+        signal: controller.signal
+      }).then(async (response) => {
+        if (!response.ok) throw new Error(`Route request failed with ${response.status}.`);
+        const responseUrl = resolveUrl(response.url || url.href);
+        if (!responseUrl || responseUrl.origin !== window.location.origin) {
+          throw new Error('Route request left the current origin.');
+        }
+        const type = String(response.headers?.get?.('content-type') || '').toLowerCase();
+        if (type && !type.includes('text/html')) throw new Error('Route response was not HTML.');
+        const html = await response.text();
+        const payload = { html, responseUrl: responseUrl.href };
+        putRouteCache(key, payload);
+        return payload;
+      }).finally(() => {
+        options.signal?.removeEventListener('abort', abortFromNavigation);
+        if (pendingFetches.get(key)?.promise === promise) pendingFetches.delete(key);
+      });
+      pending = { controller, promise };
+      pendingFetches.set(key, pending);
+    }
+    let payload;
+    try {
+      payload = await raceWithAbort(pending.promise, options.signal);
+    } catch (error) {
+      const retryAbortedPending = options.retryAbortedPending !== false &&
+        isAbortError(error) && !options.signal?.aborted;
+      if (!retryAbortedPending) throw error;
+      if (pendingFetches.get(key) === pending) pendingFetches.delete(key);
+      return fetchRouteDocument(url, { ...options, retryAbortedPending: false });
+    }
+    try {
+      return parseRouteResponse(payload, url);
+    } catch (error) {
+      routeCache.delete(key);
+      throw error;
+    }
+  }
+
+  function parseRouteResponse(payload, requestedUrl) {
+    if (!payload || typeof payload.html !== 'string') throw new Error('Route response was empty.');
+    if (typeof DOMParser !== 'function') throw new Error('This browser cannot parse route documents.');
+    const parsed = new DOMParser().parseFromString(payload.html, 'text/html');
+    if (!parsed?.documentElement || parsed.querySelector('parsererror')) {
+      throw new Error('Route response could not be parsed.');
+    }
+    const manifest = readRouteManifest(parsed, requestedUrl, { strict: true });
+    const outlet = getRouteOutlet(parsed);
+    const shell = parsed.querySelector(SHELL_SELECTOR);
+    if (!manifest || !outlet || !shell) throw new Error('Route response is missing its persistent-shell contract.');
+    return { document: parsed, manifest, outlet, url: requestedUrl };
+  }
+
+  function prefetchRoute(url) {
+    if (!url || !isCurrentRouteSoft()) return Promise.resolve(null);
+    return fetchRouteDocument(url, { prefetch: true }).catch(() => null);
+  }
+
+  function isPersistentScript(src) {
+    const url = resolveUrl(src);
+    if (!url) return true;
+    return PERSISTENT_SCRIPT_PATTERNS.some((pattern) => pattern.test(url.pathname));
+  }
+
+  function routeScriptsFor(manifest) {
+    return manifest.scripts.filter((src) => !isPersistentScript(src));
+  }
+
+  function loadScript(src, targetDocument, targetUrl, signal) {
+    const normalized = normalizeAssetUrl(src);
+    if (!normalized) return Promise.resolve();
+    const alreadyPresent = Array.from(document.scripts || []).some((script) =>
+      normalizeAssetUrl(script.getAttribute('src') || script.src) === normalized
+    );
+    if (alreadyPresent) loadedScripts.add(normalized);
+    if (loadedScripts.has(normalized)) return Promise.resolve();
+    throwIfAborted(signal);
+    return new Promise((resolve, reject) => {
+      const source = Array.from(targetDocument.scripts || []).find((node) =>
+        normalizeAssetUrl(node.getAttribute('src') || node.src, getDocumentAssetBase(targetDocument, targetUrl)) === normalized
+      );
+      const script = document.createElement('script');
+      if (source) {
+        Array.from(source.attributes || []).forEach((attribute) => {
+          if (!['src', 'defer', 'async'].includes(attribute.name.toLowerCase())) {
+            script.setAttribute(attribute.name, attribute.value);
+          }
+        });
+      }
+      script.src = normalized;
+      script.async = false;
+      script.dataset.siteRouteScript = 'true';
+      const cleanup = () => signal?.removeEventListener('abort', abort);
+      const abort = () => {
+        script.remove();
+        cleanup();
+        reject(signal.reason || makeAbortError());
+      };
+      script.addEventListener('load', () => {
+        loadedScripts.add(normalized);
+        cleanup();
+        resolve();
+      }, { once: true });
+      script.addEventListener('error', () => {
+        script.remove();
+        cleanup();
+        reject(new Error(`Unable to load route script ${normalized}.`));
+      }, { once: true });
+      signal?.addEventListener('abort', abort, { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadScriptsInOrder(scripts, targetDocument, targetUrl, signal) {
+    for (const src of scripts) await loadScript(src, targetDocument, targetUrl, signal);
+  }
+
+  async function preloadScriptBytes(scripts, signal) {
+    await Promise.all(scripts.map(async (src) => {
+      throwIfAborted(signal);
+      const response = await fetch(src, {
+        cache: 'force-cache',
+        credentials: 'same-origin',
+        signal
+      });
+      if (!response.ok) throw new Error(`Unable to preload route script ${src}.`);
+      await response.arrayBuffer();
+    }));
+  }
+
+  function registeredRouteKey(manifest) {
+    const runtime = window.SiteRoutes;
+    if (!runtime?.get) return '';
+    if (manifest.module && runtime.get(manifest.module)) return manifest.module;
+    if (runtime.get(manifest.id)) return manifest.id;
+    return '';
+  }
+
+  async function prepareRouteScripts(route, signal) {
+    const runtime = window.SiteRoutes;
+    if (!runtime?.mount || !runtime?.get) throw new Error('The route lifecycle runtime is unavailable.');
+    const persistentScripts = route.manifest.scripts.filter((src) => isPersistentScript(src));
+    const scripts = routeScriptsFor(route.manifest);
+    await loadScriptsInOrder(persistentScripts, route.document, route.url, signal);
+    let routeKey = registeredRouteKey(route.manifest);
+
+    if (!routeKey) {
+      if (typeof runtime.ensureLegacyRoute !== 'function') {
+        throw new Error(`Route ${route.manifest.id} has no lifecycle module.`);
+      }
+      runtime.ensureLegacyRoute(route.manifest.id, { scripts });
+      routeKey = registeredRouteKey(route.manifest);
+      if (!routeKey) throw new Error(`Route ${route.manifest.id} could not install a lifecycle adapter.`);
+    }
+    await preloadScriptBytes(scripts, signal);
+    return registeredRouteKey(route.manifest) || routeKey;
+  }
+
+  function findStylesheet(href) {
+    return Array.from(document.querySelectorAll('link[rel~="stylesheet"][href]')).find((link) =>
+      normalizeAssetUrl(link.href || link.getAttribute('href')) === href
+    ) || null;
+  }
+
+  function loadStylesheet(href, targetDocument, signal) {
+    if (findStylesheet(href)) return Promise.resolve({ link: null, added: false });
+    throwIfAborted(signal);
+    return new Promise((resolve, reject) => {
+      const targetLink = Array.from(targetDocument.querySelectorAll('link[rel~="stylesheet"][href]')).find((link) =>
+        normalizeAssetUrl(link.getAttribute('href') || link.href, getDocumentAssetBase(targetDocument)) === href
+      );
+      const link = document.createElement('link');
+      if (targetLink) {
+        Array.from(targetLink.attributes || []).forEach((attribute) => {
+          if (!['href', 'rel'].includes(attribute.name.toLowerCase())) {
+            link.setAttribute(attribute.name, attribute.value);
+          }
+        });
+      }
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.dataset.siteRouteStyle = 'true';
+      const intendedMedia = targetLink?.getAttribute('media');
+      link.dataset.siteRouteMedia = intendedMedia || '';
+      link.media = 'not all';
+      const cleanup = () => signal?.removeEventListener('abort', abort);
+      const abort = () => {
+        link.remove();
+        cleanup();
+        reject(signal.reason || makeAbortError());
+      };
+      link.addEventListener('load', () => {
+        cleanup();
+        resolve({ link, added: true });
+      }, { once: true });
+      link.addEventListener('error', () => {
+        link.remove();
+        cleanup();
+        reject(new Error(`Unable to load route stylesheet ${href}.`));
+      }, { once: true });
+      signal?.addEventListener('abort', abort, { once: true });
+      document.head.appendChild(link);
+    });
+  }
+
+  async function prepareRouteStyles(route, signal) {
+    const loaded = await Promise.all(route.manifest.styles.map((href) =>
+      loadStylesheet(href, route.document, signal)
+    ));
+    return loaded.filter((entry) => entry.added).map((entry) => entry.link);
+  }
+
+  function activatePreparedStyles(links) {
+    links.forEach((link) => {
+      if (!link) return;
+      const media = link.dataset.siteRouteMedia || '';
+      delete link.dataset.siteRouteMedia;
+      if (media) link.media = media;
+      else link.removeAttribute('media');
+    });
+  }
+
+  function retireOldStyles(previousManifest, nextManifest) {
+    if (!previousManifest) return;
+    const keep = new Set(nextManifest.styles);
+    previousManifest.styles.forEach((href) => {
+      if (!keep.has(href)) findStylesheet(href)?.remove();
+    });
+  }
+
+  function syncBody(targetBody) {
+    const body = document.body;
+    if (!body || !targetBody) return;
+    const persistentClasses = Array.from(body.classList).filter((name) => PERSISTENT_BODY_CLASSES.has(name));
+    body.className = Array.from(new Set([...Array.from(targetBody.classList), ...persistentClasses])).join(' ');
+
+    Array.from(body.attributes).forEach((attribute) => {
+      const name = attribute.name.toLowerCase();
+      if (name === 'class' || name === 'data-consent-banner') return;
+      const routeOwned = name === 'data-page' || name === 'data-audience' || ROUTE_RUNTIME_BODY_ATTRIBUTES.has(name) ||
+        ROUTE_DATA_PREFIXES.some((prefix) => name.startsWith(prefix));
+      if (routeOwned && !targetBody.hasAttribute(name)) body.removeAttribute(name);
+    });
+    Array.from(targetBody.attributes).forEach((attribute) => {
+      const name = attribute.name.toLowerCase();
+      if (name !== 'class' && name !== 'data-consent-banner') body.setAttribute(attribute.name, attribute.value);
+    });
+  }
+
+  function syncSingleHeadElement(targetDocument, selector) {
+    const current = document.head.querySelector(selector);
+    const target = targetDocument.head.querySelector(selector);
+    if (!target) {
+      current?.remove();
+      return;
+    }
+    const clone = document.importNode(target, true);
+    if (current) current.replaceWith(clone);
+    else document.head.appendChild(clone);
+  }
+
+  function syncHead(targetDocument, manifestDocument = targetDocument) {
+    document.title = targetDocument.title;
+    if (targetDocument.documentElement.lang) document.documentElement.lang = targetDocument.documentElement.lang;
+    [
+      'link[rel="canonical"]',
+      'meta[name="description"]',
+      'meta[name="robots"]',
+      'meta[name="theme-color"]'
+    ].forEach((selector) => syncSingleHeadElement(targetDocument, selector));
+
+    const multiSelector = 'meta[property^="og:"], meta[name^="twitter:"], script[type="application/ld+json"]:not([data-site-route-manifest])';
+    document.head.querySelectorAll(multiSelector).forEach((node) => node.remove());
+    targetDocument.head.querySelectorAll(multiSelector).forEach((node) => {
+      document.head.appendChild(document.importNode(node, true));
+    });
+
+    const currentManifest = document.querySelector(MANIFEST_SELECTOR);
+    const targetManifest = manifestDocument.querySelector(MANIFEST_SELECTOR);
+    if (currentManifest && targetManifest) currentManifest.textContent = targetManifest.textContent;
+    else if (targetManifest) document.head.appendChild(document.importNode(targetManifest, true));
+  }
+
+  function syncSkipLink(targetDocument) {
+    const current = document.querySelector('[data-site-shell-skip-link], .skip-link');
+    const target = targetDocument.querySelector('[data-site-shell-skip-link], .skip-link');
+    if (!current || !target) return;
+    ['href', 'aria-label'].forEach((name) => {
+      if (target.hasAttribute(name)) current.setAttribute(name, target.getAttribute(name));
+      else current.removeAttribute(name);
+    });
+    current.textContent = target.textContent;
+  }
+
+  function replaceRouteContent(route, metadataDocument = route.document) {
+    const currentOutlet = getRouteOutlet(document);
+    if (!currentOutlet) throw new Error('The current route content outlet is unavailable.');
+    const progress = document.querySelector('[data-site-route-progress]');
+    if (progress && currentOutlet.contains(progress)) currentOutlet.before(progress);
+    syncBody(route.document.body);
+    syncHead(metadataDocument, route.document);
+    syncSkipLink(route.document);
+    const nextOutlet = document.importNode(route.outlet, true);
+    nextOutlet.classList.add('site-route-content--preparing');
+    currentOutlet.replaceWith(nextOutlet);
+    const nextPanel = nextOutlet.matches?.('[data-site-route-panel], .personal-accordion__panel')
+      ? nextOutlet
+      : nextOutlet.querySelector?.('[data-site-route-panel], .personal-accordion__panel, .home-accordion__item.is-active .home-accordion__panel');
+    if (progress && nextPanel) nextPanel.prepend(progress);
+    return nextOutlet;
+  }
+
+  function getScrollOwner(outlet = getRouteOutlet(document)) {
+    if (!outlet) return null;
+    const descendants = Array.from(outlet.querySelectorAll?.(
+      '[data-site-route-scroll], [data-personal-detail-content], [data-home-timeline-scroller], .home-accordion__item.is-active .home-accordion__scroller'
+    ) || []);
+    const candidates = [outlet, ...descendants];
+    for (const node of candidates) {
+      try {
+        const style = window.getComputedStyle?.(node);
+        const scrollsVertically = /(?:auto|scroll)/.test(String(style?.overflowY || '')) && node.scrollHeight > node.clientHeight;
+        const scrollsHorizontally = /(?:auto|scroll)/.test(String(style?.overflowX || '')) && node.scrollWidth > node.clientWidth;
+        if (scrollsVertically || scrollsHorizontally) return node;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  function captureScroll() {
+    const owner = getScrollOwner();
+    return {
+      panelLeft: Number(owner?.scrollLeft || 0),
+      panelTop: Number(owner?.scrollTop || 0),
+      windowX: Number(window.scrollX || window.pageXOffset || 0),
+      windowY: Number(window.scrollY || window.pageYOffset || 0)
+    };
+  }
+
+  function restoreScroll(value, url) {
+    const scroll = value && typeof value === 'object' ? value : {};
+    window.requestAnimationFrame(() => {
+      const hash = String(url?.hash || '').replace(/^#/, '');
+      if (hash) {
+        let id = hash;
+        try { id = decodeURIComponent(hash); } catch (_) {}
+        const target = document.getElementById(id);
+        if (target) {
+          target.scrollIntoView({ block: 'start' });
+          return;
+        }
+      }
+      const owner = getScrollOwner();
+      if (owner) {
+        owner.scrollTop = Number(scroll.panelTop || 0);
+        owner.scrollLeft = Number(scroll.panelLeft || 0);
+      }
+      window.scrollTo(Number(scroll.windowX || 0), Number(scroll.windowY || 0));
+    });
+  }
+
+  function getReturnFocusId(trigger) {
+    if (!trigger) return '';
+    if (trigger.id) return trigger.id;
+    return trigger.closest?.('[data-site-route-focus-key]')?.getAttribute('data-site-route-focus-key') || '';
+  }
+
+  function saveCurrentHistory(returnFocus = '') {
+    if (typeof window.history?.replaceState !== 'function') return;
+    const previous = window.history.state && typeof window.history.state === 'object' ? window.history.state : {};
+    const manifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
     try {
       window.history.replaceState({
-        ...currentState,
-        personalCategory: semantic.category,
-        personalView: semantic.view
-      }, '', window.location.href);
-    } catch {}
-  };
-
-  const getArrivalFocusTarget = (intent) => {
-    if (!intent) return null;
-    const category = HOME_CATEGORY_IDS.has(intent.category) ? intent.category : '';
-    if (intent.view === 'overview' && category) {
-      const homeRoot = document.querySelector('[data-home-accordion]');
-      return homeRoot?.querySelector(`[data-home-library-open="${category}"]`) ||
-        homeRoot?.querySelector(`[data-home-accordion-trigger="${category}"]`) ||
-        null;
-    }
-    if (intent.view === 'library') {
-      return document.querySelector(
-        `[data-home-library-view="${category}"]:not([hidden]) [data-home-library-heading], ` +
-        'body[data-personal-accordion-view="library"] [data-personal-detail-content] h1, ' +
-        'body[data-personal-accordion-view="library"] main h1'
-      );
-    }
-    return document.querySelector(
-      'body[data-personal-accordion-view="detail"] [data-personal-detail-content] h1, ' +
-      'body[data-personal-accordion-view="detail"] main h1'
-    );
-  };
-
-  const focusArrivalTarget = (intent) => {
-    const target = getArrivalFocusTarget(intent);
-    if (!target || target.closest?.('[hidden], [inert], [aria-hidden="true"]')) return false;
-    const alreadyFocusable = typeof target.matches === 'function' &&
-      target.matches('a[href], button, input, select, textarea, [tabindex]');
-    const hadTabIndex = target.hasAttribute?.('tabindex');
-    if (!alreadyFocusable && !hadTabIndex) {
-      target.setAttribute('tabindex', '-1');
-      target.addEventListener?.('blur', () => target.removeAttribute('tabindex'), { once: true });
-    }
-    try {
-      target.focus({ preventScroll: true });
-    } catch {
-      target.focus?.();
-    }
-    return document.activeElement === target || typeof document.activeElement === 'undefined';
-  };
-
-  const scheduleArrivalFocus = (intent, attempt = 0) => {
-    if (!intent || attempt > 120) return;
-    window.requestAnimationFrame(() => {
-      if (!focusArrivalTarget(intent)) scheduleArrivalFocus(intent, attempt + 1);
-    });
-  };
-
-  const consumeArrivalFocusForCurrentPage = () => {
-    const pending = consumeArrivalFocus();
-    const currentUrl = resolveUrl(window.location.href);
-    if (!pending || !currentUrl || pending.target !== normalizeArrivalTarget(currentUrl)) return false;
-    return pending;
-  };
-
-  const focusCurrentPersonalState = () => {
-    const state = window.history?.state;
-    const historyIntent = state && typeof state === 'object'
-      ? { category: state.personalCategory, view: state.personalView }
-      : null;
-    scheduleArrivalFocus(historyIntent || currentPersonalState());
-  };
-
-  const isHistoryTraversal = () => {
-    try {
-      const entries = window.performance?.getEntriesByType?.('navigation') || [];
-      return entries[0]?.type === 'back_forward';
-    } catch {
-      return false;
-    }
-  };
-
-  const storePendingNavigation = (url, descriptor, transport = 'fallback') => {
-    const storage = getStorage();
-    if (!storage || !url || !descriptor) return;
-    try {
-      storage.setItem(STORAGE_KEY, JSON.stringify({
-        target: normalizeTarget(url),
-        mode: TRANSITION_MODES.has(descriptor.mode) ? descriptor.mode : 'neutral',
-        category: HOME_CATEGORY_IDS.has(descriptor.category) ? descriptor.category : 'neutral',
-        fromView: TRANSITION_VIEWS.has(descriptor.fromView) ? descriptor.fromView : 'detail',
-        toView: TRANSITION_VIEWS.has(descriptor.toView) ? descriptor.toView : 'detail',
-        direction: TRANSITION_DIRECTIONS.has(descriptor.direction) ? descriptor.direction : 'replace',
-        transport: TRANSITION_TRANSPORTS.has(transport) ? transport : 'fallback',
-        ts: Date.now()
-      }));
-    } catch {}
-  };
-
-  const consumePendingNavigation = () => {
-    const storage = getStorage();
-    if (!storage) return null;
-
-    let raw = null;
-    try {
-      raw = storage.getItem(STORAGE_KEY);
-      storage.removeItem(STORAGE_KEY);
-    } catch {
-      return null;
-    }
-
-    if (!raw) return null;
-
-    try {
-      const payload = JSON.parse(raw);
-      if (!payload || typeof payload !== 'object') return null;
-      if (typeof payload.target !== 'string') return null;
-      if (!Number.isFinite(payload.ts)) return null;
-      if ((Date.now() - payload.ts) > TRANSITION_TTL_MS) return null;
-      const legacyMode = payload.mode === 'continuous' ? 'personal' : payload.mode === 'fade' ? 'neutral' : payload.mode;
-      return {
-        target: payload.target,
-        mode: TRANSITION_MODES.has(legacyMode) ? legacyMode : 'neutral',
-        category: HOME_CATEGORY_IDS.has(payload.category) ? payload.category : 'neutral',
-        fromView: TRANSITION_VIEWS.has(payload.fromView) ? payload.fromView : 'detail',
-        toView: TRANSITION_VIEWS.has(payload.toView) ? payload.toView : 'detail',
-        direction: TRANSITION_DIRECTIONS.has(payload.direction) ? payload.direction : 'replace',
-        transport: TRANSITION_TRANSPORTS.has(payload.transport) ? payload.transport : 'fallback',
-        ts: payload.ts
-      };
-    } catch {
-      return null;
-    }
-  };
-
-  const transitionNodes = () => [document.documentElement, document.body].filter(Boolean);
-
-  const setTransitionPresentation = (descriptor) => {
-    const mode = TRANSITION_MODES.has(descriptor?.mode) ? descriptor.mode : 'neutral';
-    const category = HOME_CATEGORY_IDS.has(descriptor?.category) ? descriptor.category : 'neutral';
-    const direction = TRANSITION_DIRECTIONS.has(descriptor?.direction) ? descriptor.direction : 'replace';
-    const transport = TRANSITION_TRANSPORTS.has(descriptor?.transport) ? descriptor.transport : 'fallback';
-    transitionNodes().forEach((node) => {
-      node.dataset.siteTransitionMode = mode;
-      node.dataset.siteTransitionCategory = category;
-      node.dataset.siteTransitionDirection = direction;
-      node.dataset.siteTransitionTransport = transport;
-    });
-  };
-
-  const clearTransitionPresentation = () => {
-    transitionNodes().forEach((node) => {
-      delete node.dataset.siteTransitionMode;
-      delete node.dataset.siteTransitionCategory;
-      delete node.dataset.siteTransitionDirection;
-      delete node.dataset.siteTransitionTransport;
-    });
-  };
-
-  const clearTransitionClasses = (options = {}) => {
-    const preservePreload = options.preservePreload === true;
-    document.documentElement.classList.remove(
-      'site-is-navigating',
-      'site-page-transition-out',
-      'site-page-transition-in',
-      'site-page-transition-continuous-out',
-      'site-page-transition-continuous-in',
-      'site-page-transition-native-preload'
-    );
-    if (!preservePreload) {
-      document.documentElement.classList.remove(
-        'site-page-transition-preload',
-        'site-page-transition-continuous-preload'
-      );
-    }
-    document.body?.classList.remove(
-      'site-is-navigating',
-      'site-page-transition-out',
-      'site-page-transition-in',
-      'site-page-transition-continuous-out',
-      'site-page-transition-continuous-in',
-      'site-page-transition-native-preload'
-    );
-    if (!preservePreload) {
-      document.body?.classList.remove(
-        'site-page-transition-preload',
-        'site-page-transition-continuous-preload'
-      );
-    }
-  };
-
-  const markNavigating = () => {
-    document.documentElement.classList.add('site-is-navigating');
-    document.body?.classList.add('site-is-navigating');
-  };
-
-  const dispatchNavigationEvent = (url) => {
-    try {
-      document.dispatchEvent(new CustomEvent(NAVIGATION_EVENT, {
-        detail: {
-          href: url ? url.href : ''
+        ...previous,
+        siteRoute: {
+          ...(previous.siteRoute || {}),
+          category: manifest?.category || previous.siteRoute?.category || '',
+          id: manifest?.id || previous.siteRoute?.id || '',
+          index: Number(previous.siteRoute?.index ?? historySequence),
+          returnFocus: returnFocus || previous.siteRoute?.returnFocus || '',
+          scroll: captureScroll(),
+          url: window.location.href,
+          view: manifest?.view || previous.siteRoute?.view || ''
         }
-      }));
-    } catch {
-      const event = document.createEvent('CustomEvent');
-      event.initCustomEvent(NAVIGATION_EVENT, false, false, {
-        href: url ? url.href : ''
-      });
-      document.dispatchEvent(event);
+      }, '', window.location.href);
+      if (window.location.href === committedUrl) committedHistoryState = window.history.state;
+    } catch (_) {}
+  }
+
+  function pushRouteHistory(url, manifest, targetState = null) {
+    historySequence += 1;
+    const captured = targetState && typeof targetState === 'object' ? targetState : {};
+    const capturedState = { ...captured };
+    delete capturedState.siteRouteProvisional;
+    if (manifest.id !== 'home') {
+      delete capturedState.homePanel;
+      delete capturedState.homeView;
+      delete capturedState.personalCategory;
+      delete capturedState.personalView;
     }
-  };
-
-  const startFallbackExit = () => {
-    document.documentElement.classList.add('site-page-transition-out');
-    document.body?.classList.add('site-page-transition-out');
-  };
-
-  const scheduleFallbackEntry = (pending, onComplete) => {
-    document.documentElement.classList.remove('site-page-transition-preload');
-    document.body?.classList.remove('site-page-transition-preload');
-    document.documentElement.classList.add('site-page-transition-in');
-    document.body?.classList.add('site-page-transition-in');
-    const cleanupDelay = pending.mode === 'personal'
-      ? (usesCompactTransition() ? COMPACT_FALLBACK_ENTRY_MS : FALLBACK_ENTRY_MS)
-      : NEUTRAL_ENTRY_MS;
-    window.setTimeout(() => {
-      document.documentElement.classList.remove('site-page-transition-in');
-      document.body?.classList.remove('site-page-transition-in');
-      clearTransitionPresentation();
-      if (typeof onComplete === 'function') onComplete();
-    }, cleanupDelay);
-  };
-
-  const scheduleNativeEntryCompletion = (onComplete) => {
-    let settled = false;
-    let safetyTimer = 0;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      if (safetyTimer) window.clearTimeout(safetyTimer);
-      document.documentElement.classList.remove('site-page-transition-native-preload');
-      document.body?.classList.remove('site-page-transition-native-preload');
-      clearTransitionPresentation();
-      if (typeof onComplete === 'function') onComplete();
-    };
-    const handleViewTransition = (viewTransition) => {
-      const finished = viewTransition?.finished;
-      if (finished && typeof finished.then === 'function') {
-        Promise.resolve(finished).catch(() => {}).finally(finish);
-        return;
+    window.history.pushState({
+      ...capturedState,
+      siteRoute: {
+        ...(captured.siteRoute || {}),
+        category: manifest.category,
+        id: manifest.id,
+        index: historySequence,
+        scroll: { panelLeft: 0, panelTop: 0, windowX: 0, windowY: 0 },
+        url: url.href,
+        view: manifest.view
       }
-      window.requestAnimationFrame(() => window.requestAnimationFrame(finish));
+    }, '', url.href);
+    committedHistoryIndex = historySequence;
+    committedHistoryState = window.history.state;
+    committedUrl = url.href;
+  }
+
+  function beginProvisionalHistory(url) {
+    const previousUrl = window.location.href;
+    const previousState = window.history.state;
+    window.history.replaceState({
+      ...(previousState && typeof previousState === 'object' ? previousState : {}),
+      siteRouteProvisional: true
+    }, '', url.href);
+    return {
+      active: true,
+      previousState,
+      previousUrl
     };
+  }
 
-    safetyTimer = window.setTimeout(finish, NATIVE_TRANSITION_SAFETY_MS);
-    const revealState = window.__sitePageRevealState;
-    if (revealState?.seen) {
-      handleViewTransition(revealState.viewTransition);
-    } else if (Array.isArray(revealState?.callbacks)) {
-      revealState.callbacks.push(handleViewTransition);
-    } else {
-      window.addEventListener('pagereveal', (event) => {
-        handleViewTransition(event?.viewTransition || null);
-      }, { once: true });
-    }
-  };
+  function restoreProvisionalHistory(provisional) {
+    if (!provisional?.active) return;
+    provisional.active = false;
+    window.history.replaceState(provisional.previousState, '', provisional.previousUrl);
+  }
 
-  const hydrateIncomingTransition = (onComplete) => {
-    clearTransitionClasses({ preservePreload: true });
-    const pending = consumePendingNavigation();
-    if (!pending) {
-      clearTransitionClasses();
-      clearTransitionPresentation();
-      return false;
-    }
+  function acceptPoppedHistory(url, state) {
+    committedHistoryIndex = Number(state?.siteRoute?.index ?? committedHistoryIndex);
+    committedHistoryState = state;
+    committedUrl = url.href;
+  }
 
-    const currentUrl = resolveUrl(window.location.href);
-    if (!currentUrl || pending.target !== normalizeTarget(currentUrl)) {
-      clearTransitionClasses();
-      clearTransitionPresentation();
-      return false;
+  function restoreVetoedPop(targetState) {
+    const targetIndex = Number(targetState?.siteRoute?.index);
+    const delta = committedHistoryIndex - targetIndex;
+    if (Number.isFinite(targetIndex) && delta && typeof window.history.go === 'function') {
+      restoringVetoedPop = true;
+      window.history.go(delta);
+      return;
     }
-    if (prefersReducedMotion()) {
-      clearTransitionClasses();
-      clearTransitionPresentation();
-      return false;
-    }
+    if (committedUrl) window.location.assign(committedUrl);
+  }
 
-    setTransitionPresentation(pending);
-    if (pending.transport === 'native') {
-      document.documentElement.classList.add('site-page-transition-native-preload');
-      document.body?.classList.add('site-page-transition-native-preload');
-      scheduleNativeEntryCompletion(onComplete);
-      return true;
+  function cssEscape(value) {
+    if (window.CSS?.escape) return window.CSS.escape(value);
+    return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+  }
+
+  function focusRouteHeading(navigationType, historyState) {
+    if (navigationType === 'pop') {
+      const returnFocus = String(historyState?.siteRoute?.returnFocus || '');
+      if (returnFocus) {
+        const target = document.getElementById(returnFocus) ||
+          document.querySelector(`[data-site-route-focus-key="${cssEscape(returnFocus)}"]`);
+        if (target) {
+          target.focus({ preventScroll: true });
+          return;
+        }
+      }
     }
-    document.documentElement.classList.add('site-page-transition-preload');
-    document.body?.classList.add('site-page-transition-preload');
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => scheduleFallbackEntry(pending, onComplete));
+    const heading = getRouteOutlet(document)?.querySelector('h1, [role="heading"][aria-level="1"]');
+    if (!heading) return;
+    if (!heading.matches('a[href], button, input, select, textarea, [tabindex]')) {
+      heading.setAttribute('tabindex', '-1');
+      heading.addEventListener('blur', () => heading.removeAttribute('tabindex'), { once: true });
+    }
+    heading.focus({ preventScroll: true });
+  }
+
+  function announce(message) {
+    let status = document.querySelector('[data-site-route-announcer], [data-site-route-status]');
+    if (!status) {
+      status = document.createElement('div');
+      status.className = 'site-route-status';
+      status.dataset.siteRouteAnnouncer = 'true';
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-live', 'polite');
+      document.body.appendChild(status);
+    }
+    status.textContent = '';
+    window.requestAnimationFrame(() => { status.textContent = message; });
+  }
+
+  function getProgressElement() {
+    const panel = document.querySelector('[data-site-route-panel], .personal-accordion__panel, .home-accordion__item.is-active .home-accordion__panel');
+    let progress = document.querySelector('[data-site-route-progress]');
+    if (progress) {
+      if (panel && progress.parentElement !== panel) panel.prepend(progress);
+      return progress;
+    }
+    if (!panel) return null;
+    progress = document.createElement('div');
+    progress.className = 'site-route-progress';
+    progress.dataset.siteRouteProgress = 'true';
+    progress.setAttribute('aria-hidden', 'true');
+    progress.hidden = true;
+    panel.prepend(progress);
+    return progress;
+  }
+
+  function beginNavigationUi(trigger) {
+    const outlet = getRouteOutlet(document);
+    const progress = getProgressElement();
+    const previousBusy = trigger?.getAttribute?.('aria-busy');
+    outlet?.setAttribute('aria-busy', 'true');
+    trigger?.setAttribute?.('aria-busy', 'true');
+    const timer = window.setTimeout(() => {
+      if (progress) progress.hidden = false;
+      document.documentElement.classList.add('site-route-is-loading');
+    }, PROGRESS_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+      if (progress) progress.hidden = true;
+      document.documentElement.classList.remove('site-route-is-loading');
+      getRouteOutlet(document)?.removeAttribute('aria-busy');
+      if (trigger) {
+        if (previousBusy == null) trigger.removeAttribute('aria-busy');
+        else trigger.setAttribute('aria-busy', previousBusy);
+      }
+    };
+  }
+
+  function clearRouteError() {
+    document.querySelector('[data-site-route-error]')?.remove();
+  }
+
+  function showOfflineError(url) {
+    clearRouteError();
+    const outlet = getRouteOutlet(document);
+    if (!outlet) return;
+    const error = document.createElement('div');
+    error.className = 'site-route-error';
+    error.dataset.siteRouteError = 'true';
+    error.setAttribute('role', 'status');
+    const message = document.createElement('span');
+    message.textContent = 'This page is not available offline yet.';
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'site-route-error__retry';
+    retry.textContent = 'Retry';
+    retry.addEventListener('click', () => navigate(url, { trigger: retry }));
+    error.append(message, retry);
+    outlet.parentElement?.insertBefore(error, outlet);
+    retry.focus();
+  }
+
+  function animateOutgoing(outlet, direction) {
+    if (!outlet || prefersReducedMotion() || typeof outlet.animate !== 'function') return Promise.resolve();
+    const motion = window.matchMedia?.('(max-width: 959px), (max-height: 619px)')?.matches ? 4 : 6;
+    const distance = direction === 'back' ? motion : -motion;
+    const animation = outlet.animate([
+      { opacity: 1, transform: 'translate3d(0, 0, 0)' },
+      { opacity: 0, transform: `translate3d(${distance}px, 0, 0)` }
+    ], {
+      duration: 72,
+      easing: 'cubic-bezier(.4, 0, 1, 1)',
+      fill: 'both'
     });
-    return true;
-  };
+    return animation.finished.catch(() => {}).finally(() => {
+      outlet.classList.add('site-route-content--leaving');
+      animation.cancel();
+    });
+  }
 
-  const handleNavigation = (url, descriptor) => {
-    if (!url || navigationLocked) return;
+  function animateIncoming(outlet, direction) {
+    if (!outlet) return;
+    outlet.classList.remove('site-route-content--preparing');
+    if (prefersReducedMotion()) return;
+    document.documentElement.dataset.siteRouteDirection = direction;
+    outlet.classList.remove('site-route-content--entering');
+    void outlet.offsetWidth;
+    outlet.classList.add('site-route-content--entering');
+    const cleanup = () => {
+      outlet.classList.remove('site-route-content--entering');
+      delete document.documentElement.dataset.siteRouteDirection;
+    };
+    outlet.addEventListener('animationend', cleanup, { once: true });
+    window.setTimeout(cleanup, 240);
+  }
 
-    navigationLocked = true;
-    navigationDepartureObserved = false;
-    navigationCommitStartedAt = 0;
-    navigationTarget = normalizeTarget(url);
-    dispatchNavigationEvent(url);
-    const assignTarget = () => {
-      navigationCommitStartedAt = Date.now();
+  function navigationDirection(previousManifest, nextManifest, navigationType) {
+    if (navigationType === 'pop') return 'back';
+    const depth = { overview: 0, library: 1, detail: 2 };
+    if (!previousManifest || previousManifest.category !== nextManifest.category) return 'cross';
+    if (depth[nextManifest.view] < depth[previousManifest.view]) return 'back';
+    return 'forward';
+  }
+
+  function sendVirtualPageview(url) {
+    let consent = null;
+    try { consent = window.consentAPI?.get?.(); } catch (_) {}
+    if (!consent?.analytics) return;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'virtual_page_view',
+      page_location: url.href,
+      page_path: `${url.pathname}${url.search}${url.hash}`,
+      page_title: document.title
+    });
+  }
+
+  function hardNavigate(url) {
+    window.location.assign(url.href);
+  }
+
+  async function navigate(urlLike, options = {}) {
+    const url = urlLike instanceof URL ? urlLike : resolveUrl(urlLike);
+    if (!url) return false;
+    if (!isDocumentLikeUrl(url) || !getPersonalRouteIntent(url) || isHardBoundary(url) || !isCurrentRouteSoft()) {
+      hardNavigate(url);
+      return false;
+    }
+
+    const targetKey = `${normalizeRouteUrl(url)}${url.hash}`;
+    if (activeNavigation?.key === targetKey) return activeNavigation.promise;
+    if (activeNavigation?.committed) {
+      return activeNavigation.promise.then(() => navigate(url, options));
+    }
+    if (activeNavigation) activeNavigation.controller.abort(makeAbortError());
+
+    const controller = new AbortController();
+    const sequence = ++navigationSequence;
+    const finishUi = beginNavigationUi(options.trigger);
+    const previousManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
+    const returnFocus = getReturnFocusId(options.trigger);
+    const navigationType = options.navigationType || 'push';
+    const homepageHistoryIntent = navigationType === 'pop'
+      ? getHomepageHistoryIntent(options.historyState)
+      : null;
+    const documentUrl = homepageHistoryIntent ? resolveUrl('/', url.href) : url;
+    clearRouteError();
+    dispatch(NAVIGATION_EVENT, { href: url.href, navigationType });
+
+    const operation = (async () => {
+      let addedStyles = [];
+      let committed = false;
+      let provisionalHistory = null;
       try {
-        window.location.assign(url.href);
-      } catch {
-        navigationLocked = false;
-        navigationCommitStartedAt = 0;
-        navigationTarget = '';
-        clearTransitionClasses();
-        clearTransitionPresentation();
+        const routePromise = fetchRouteDocument(documentUrl, { signal: controller.signal });
+        const metadataPromise = homepageHistoryIntent && normalizeRouteUrl(documentUrl) !== normalizeRouteUrl(url)
+          ? fetchRouteDocument(url, { signal: controller.signal })
+          : routePromise;
+        const [route, metadataRoute] = await Promise.all([routePromise, metadataPromise]);
+        throwIfAborted(controller.signal);
+        const prepared = await Promise.all([
+          prepareRouteStyles(route, controller.signal),
+          prepareRouteScripts(route, controller.signal)
+        ]);
+        addedStyles = prepared[0];
+        throwIfAborted(controller.signal);
+
+        const runtime = window.SiteRoutes;
+        const canLeave = await runtime.beforeLeave({ navigationType, reason: 'navigate', url });
+        if (canLeave === false) {
+          addedStyles.forEach((link) => link?.remove());
+          if (navigationType === 'pop') restoreVetoedPop(options.historyState);
+          return false;
+        }
+
+        if (navigationType === 'push') saveCurrentHistory(returnFocus);
+        const direction = navigationDirection(previousManifest, route.manifest, navigationType);
+        await animateOutgoing(getRouteOutlet(document), direction);
+        throwIfAborted(controller.signal);
+        await runtime.unmount({ navigationType, reason: 'navigate', url });
+        throwIfAborted(controller.signal);
+
+        activatePreparedStyles(addedStyles);
+        const outlet = replaceRouteContent(route, metadataRoute.document);
+        committed = true;
+        if (activeNavigation?.sequence === sequence) activeNavigation.committed = true;
+        retireOldStyles(previousManifest, route.manifest);
+        const routeKey = registeredRouteKey(route.manifest);
+        if (!routeKey) throw new Error(`Route ${route.manifest.id} lost its lifecycle registration.`);
+        if (navigationType === 'push') provisionalHistory = beginProvisionalHistory(url);
+        await runtime.mount(routeKey, {
+          manifest: route.manifest,
+          navigationType,
+          root: outlet,
+          signal: controller.signal,
+          url
+        });
+        throwIfAborted(controller.signal);
+
+        if (navigationType === 'push') {
+          const targetState = window.history.state;
+          restoreProvisionalHistory(provisionalHistory);
+          pushRouteHistory(url, route.manifest, targetState);
+        } else {
+          acceptPoppedHistory(url, options.historyState);
+        }
+        const historyState = navigationType === 'pop' ? options.historyState : window.history.state;
+        restoreScroll(navigationType === 'pop' ? historyState?.siteRoute?.scroll : null, url);
+        window.requestAnimationFrame(() => focusRouteHeading(navigationType, historyState));
+        animateIncoming(outlet, direction);
+        announce(`${document.title} loaded.`);
+        const detail = {
+          category: route.manifest.category,
+          from: previousManifest?.id || '',
+          id: route.manifest.id,
+          navigationType,
+          to: route.manifest.id,
+          url: url.href,
+          view: route.manifest.view
+        };
+        dispatch(CONTENT_EVENT, detail);
+        dispatch(ROUTE_EVENT, detail);
+        sendVirtualPageview(url);
+        return true;
+      } catch (error) {
+        restoreProvisionalHistory(provisionalHistory);
+        getRouteOutlet(document)?.classList.remove('site-route-content--leaving');
+        if (!committed) addedStyles.forEach((link) => link?.remove());
+        if (!committed && (isAbortError(error) || controller.signal.aborted || sequence !== navigationSequence)) return false;
+        dispatch('site:route-navigation-error', { error, href: url.href });
+        if (committed || navigator.onLine !== false) hardNavigate(url);
+        else {
+          if (navigationType === 'pop') restoreVetoedPop(options.historyState);
+          showOfflineError(url);
+          announce('The requested page is unavailable offline.');
+        }
+        return false;
+      } finally {
+        finishUi();
+        if (activeNavigation?.sequence === sequence) activeNavigation = null;
       }
-    };
-    if (prefersReducedMotion()) {
-      assignTarget();
-      return;
-    }
+    })();
 
-    const fallbackDescriptor = { ...descriptor, transport: 'fallback' };
-    storePendingNavigation(url, fallbackDescriptor, 'fallback');
-    setTransitionPresentation(fallbackDescriptor);
-    markNavigating();
-    startFallbackExit();
-    const delay = descriptor.mode === 'personal'
-      ? (usesCompactTransition() ? COMPACT_FALLBACK_EXIT_MS : FALLBACK_EXIT_MS)
-      : NEUTRAL_EXIT_MS;
-    window.setTimeout(assignTarget, delay);
-  };
+    activeNavigation = { committed: false, controller, key: targetKey, promise: operation, sequence };
+    return operation;
+  }
 
-  const prefetchTarget = (url) => {
+  function schedulePrefetch(url) {
     if (!url) return;
-    const key = normalizeTarget(url);
-    if (!key || prefetchedTargets.has(key)) return;
-    prefetchedTargets.add(key);
+    const run = () => prefetchRoute(url);
+    if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 900 });
+    else window.setTimeout(run, 0);
+  }
 
-    const tag = document.createElement('link');
-    tag.rel = 'prefetch';
-    tag.as = 'document';
-    tag.href = url.href;
-    tag.dataset.prefetch = 'page-transition';
-    document.head?.appendChild(tag);
-  };
+  function initHistory() {
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
+    const state = window.history.state && typeof window.history.state === 'object' ? window.history.state : {};
+    historySequence = Number(state.siteRoute?.index || 0);
+    committedHistoryIndex = historySequence;
+    committedHistoryState = state;
+    committedUrl = window.location.href;
+    if (!state.siteRoute) saveCurrentHistory();
+  }
 
-  const schedulePrefetch = (url) => {
-    if (!url) return;
-    if (typeof window.requestIdleCallback === 'function') {
-      window.requestIdleCallback(() => {
-        prefetchTarget(url);
-      }, { timeout: 1200 });
-      return;
-    }
-    window.setTimeout(() => {
-      prefetchTarget(url);
-    }, 0);
-  };
+  function initNavigation() {
+    initHistory();
 
-  const initNavigationPrefetch = () => {
-    const queueLinkPrefetch = (event) => {
-      const link = event.target?.closest?.('a[href]');
-      if (!link) return;
-      const url = getEligibleNavigationUrl(link);
-      if (url) schedulePrefetch(url);
-    };
-
-    document.addEventListener('pointerover', queueLinkPrefetch, { passive: true });
-    document.addEventListener('focusin', queueLinkPrefetch);
-    document.addEventListener('pointerdown', (event) => {
-      const link = event.target?.closest?.('a[href]');
-      if (!link || !isPersonalSurfaceNavigation(link)) return;
-      const url = getEligibleNavigationUrl(link);
-      if (url) prefetchTarget(url);
-    }, { passive: true });
-  };
-
-  const initClickInterception = () => {
     document.addEventListener('click', (event) => {
       if (event.defaultPrevented || event.__contactHandled) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (typeof event.button === 'number' && event.button !== 0) return;
-
       const link = event.target?.closest?.('a[href]');
       if (!link) return;
-
-      const url = getEligibleNavigationUrl(link);
-      if (!url) return;
-      if (hasBlockingInteractionLayer()) return;
-      if (hasActiveSameDocumentTransition()) {
+      const url = getEligibleLinkUrl(link);
+      if (!url || hasBlockingInteractionLayer()) return;
+      if (document.querySelector('.home-accordion.is-view-changing')) {
         event.preventDefault();
         return;
       }
-
-      const descriptor = getTransitionDescriptor(link, url);
-
-      if (navigationLocked) {
-        event.preventDefault();
-        return;
-      }
-
-      if (prefersReducedMotion()) {
-        event.preventDefault();
-        if (descriptor.targetIntent) storeArrivalFocus(url, descriptor.targetIntent);
-        handleNavigation(url, descriptor);
-        return;
-      }
-
-      if (supportsCrossDocumentViewTransitions()) {
-        navigationLocked = true;
-        navigationDepartureObserved = false;
-        navigationCommitStartedAt = Date.now();
-        navigationTarget = normalizeTarget(url);
-        const nativeDescriptor = { ...descriptor, transport: 'native' };
-        storePendingNavigation(url, nativeDescriptor, 'native');
-        if (descriptor.targetIntent) storeArrivalFocus(url, descriptor.targetIntent);
-        setTransitionPresentation(nativeDescriptor);
-        dispatchNavigationEvent(url);
-        return;
-      }
-
       event.preventDefault();
-      if (descriptor.targetIntent) storeArrivalFocus(url, descriptor.targetIntent);
-      handleNavigation(url, descriptor);
+      navigate(url, { trigger: link });
     });
-  };
 
-  const init = () => {
-    syncPersonalHistoryState();
-    const arrivalIntent = consumeArrivalFocusForCurrentPage();
-    const incomingTransition = hydrateIncomingTransition(() => {
-      incomingTransitionActive = false;
-      navigationLocked = false;
-      if (arrivalIntent) scheduleArrivalFocus(arrivalIntent);
+    document.addEventListener('submit', (event) => {
+      if (event.defaultPrevented) return;
+      const form = event.target?.closest?.('form');
+      if (!form || String(form.method || 'get').toLowerCase() !== 'get') return;
+      if (form.dataset.navigation === 'hard' || form.closest('[data-navigation="hard"]')) return;
+      const action = resolveUrl(form.getAttribute('action') || window.location.href);
+      if (!action) return;
+      action.search = new URLSearchParams(new FormData(form, event.submitter)).toString();
+      if (!isDocumentLikeUrl(action) || !getPersonalRouteIntent(action) || !isCurrentRouteSoft()) return;
+      event.preventDefault();
+      navigate(action, { trigger: event.submitter || form });
     });
-    if (incomingTransition) {
-      incomingTransitionActive = true;
-      navigationLocked = true;
-    }
-    if (!incomingTransition && arrivalIntent) scheduleArrivalFocus(arrivalIntent);
-    if (!incomingTransition && !arrivalIntent && isHistoryTraversal()) focusCurrentPersonalState();
-    initClickInterception();
-    initNavigationPrefetch();
-  };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
-  } else {
-    init();
+    const prefetchFromEvent = (event) => {
+      const link = event.target?.closest?.('a[href]');
+      const url = getEligibleLinkUrl(link);
+      if (url) schedulePrefetch(url);
+    };
+    document.addEventListener('pointerover', prefetchFromEvent, { passive: true });
+    document.addEventListener('focusin', prefetchFromEvent);
+    document.addEventListener('pointerdown', (event) => {
+      const link = event.target?.closest?.('a[href]');
+      const url = getEligibleLinkUrl(link);
+      if (url) prefetchRoute(url);
+    }, { passive: true });
+
+    window.addEventListener('popstate', (event) => {
+      if (restoringVetoedPop) {
+        restoringVetoedPop = false;
+        committedHistoryIndex = Number(event.state?.siteRoute?.index ?? committedHistoryIndex);
+        committedHistoryState = event.state || committedHistoryState;
+        committedUrl = window.location.href;
+        return;
+      }
+      const url = resolveUrl(window.location.href);
+      if (!url || !getPersonalRouteIntent(url) || isHardBoundary(url) || !isCurrentRouteSoft()) return;
+      const currentManifest = readRouteManifest(document, url, { strict: false });
+      if (currentManifest?.id === 'home' && getHomepageHistoryIntent(event.state)) {
+        acceptPoppedHistory(url, event.state);
+        return;
+      }
+      navigate(url, { historyState: event.state, navigationType: 'pop' });
+    });
+
+    window.addEventListener('pagehide', () => {
+      saveCurrentHistory();
+      activeNavigation?.controller.abort(makeAbortError());
+    });
+
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted) return;
+      activeNavigation = null;
+      document.documentElement.classList.remove('site-route-is-loading');
+      const progress = document.querySelector('[data-site-route-progress]');
+      if (progress) progress.hidden = true;
+      restoreScroll(window.history.state?.siteRoute?.scroll, resolveUrl(window.location.href));
+    });
   }
 
-  window.addEventListener('pagehide', () => {
-    navigationDepartureObserved = true;
-  });
-
-  window.addEventListener('focus', () => {
-    if (!navigationLocked || !navigationCommitStartedAt || navigationDepartureObserved) return;
-    window.setTimeout(() => {
-      const currentUrl = resolveUrl(window.location.href);
-      if (!navigationLocked || navigationDepartureObserved || !currentUrl) return;
-      if (navigationTarget && normalizeTarget(currentUrl) === navigationTarget) return;
-      navigationLocked = false;
-      navigationCommitStartedAt = 0;
-      navigationTarget = '';
-      clearTransitionClasses();
-      clearTransitionPresentation();
-    }, 0);
-  });
-
-  window.addEventListener('pageshow', (event) => {
-    if (!incomingTransitionActive) navigationLocked = false;
-    navigationDepartureObserved = false;
-    navigationCommitStartedAt = 0;
-    navigationTarget = '';
-    syncPersonalHistoryState();
-    if (event.persisted) {
-      incomingTransitionActive = false;
-      navigationLocked = false;
-      clearTransitionClasses();
-      clearTransitionPresentation();
-      focusCurrentPersonalState();
+  window.SiteNavigation = Object.freeze({
+    version: 1,
+    hardBoundaryPaths: Object.freeze(Array.from(HARD_BOUNDARY_PATHS)),
+    navigate,
+    prefetch: (value) => {
+      const url = resolveUrl(value);
+      return url && getPersonalRouteIntent(url) ? prefetchRoute(url) : Promise.resolve(null);
     }
   });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavigation, { once: true });
+  } else {
+    initNavigation();
+  }
 })();

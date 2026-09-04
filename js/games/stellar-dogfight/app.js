@@ -1132,6 +1132,7 @@
       let minimapCtx = null;
       let pixiRenderer = null;
       let pixiRendererInitStarted = false;
+      let routeDisposed = false;
       let perfFrameActive = false;
       const effectPools = {
         particles: [],
@@ -2177,7 +2178,7 @@
       }
 
       function setupPixiRenderer() {
-        if (pixiRendererInitStarted || getRendererSetting() !== "pixi") {
+        if (routeDisposed || pixiRendererInitStarted || getRendererSetting() !== "pixi") {
           document.body.classList.remove("is-pixi-renderer");
           state.renderBackend = "canvas";
           return;
@@ -2186,9 +2187,11 @@
         if (!window.PIXI || !factory || typeof factory.createRenderer !== "function") {
           pixiRendererInitStarted = true;
           loadPixiRendererScripts().then(() => {
+            if (routeDisposed) return;
             pixiRendererInitStarted = false;
             setupPixiRenderer();
           }).catch(() => {
+            if (routeDisposed) return;
             pixiRendererInitStarted = false;
             state.renderBackend = "canvas";
             document.body.classList.remove("is-pixi-renderer");
@@ -2197,13 +2200,18 @@
           return;
         }
         pixiRendererInitStarted = true;
-        pixiRenderer = factory.createRenderer({
+        const nextRenderer = factory.createRenderer({
           PIXI: window.PIXI,
           anchorCanvas: dom.canvas,
           artConfig: ART_CONFIG,
           getRenderScale: () => state.renderScale || getRenderScaleDpr()
         });
-        pixiRenderer.init().then((ready) => {
+        pixiRenderer = nextRenderer;
+        nextRenderer.init().then((ready) => {
+          if (routeDisposed || pixiRenderer !== nextRenderer) {
+            nextRenderer.destroy?.();
+            return;
+          }
           if (!ready) {
             state.renderBackend = "canvas";
             pixiRenderer = null;
@@ -2213,6 +2221,8 @@
           resizeCanvas();
           logEvent("Experimental WebGL renderer online.");
         }).catch(() => {
+          nextRenderer.destroy?.();
+          if (routeDisposed || pixiRenderer !== nextRenderer) return;
           state.renderBackend = "canvas";
           document.body.classList.remove("is-pixi-renderer");
           pixiRenderer = null;
@@ -14559,6 +14569,16 @@
       function pick(array) {
         return array[Math.floor(Math.random() * array.length)];
       }
+
+      window.SiteRoutes?.addCleanup?.(() => {
+        routeDisposed = true;
+        pixiRendererInitStarted = false;
+        pixiRenderer?.destroy?.();
+        pixiRenderer = null;
+        state.renderBackend = "canvas";
+        document.body.classList.remove("is-pixi-renderer");
+        delete document.body.dataset.performanceTier;
+      });
 
       init();
     })();

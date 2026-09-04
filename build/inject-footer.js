@@ -18,13 +18,27 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const footerTemplatePath = path.join(root, 'build', 'templates', 'footer.partial.html');
 const FOOTER_AUDIENCES = ['personal', 'analytics', 'data-science', 'tourism'];
+const TRANSIENT_WRITE_ERROR_CODES = new Set(['EACCES', 'EBUSY', 'EPERM', 'UNKNOWN']);
+const WRITE_RETRY_DELAYS_MS = Object.freeze([25, 50, 100, 200, 400, 800]);
+const writeRetrySignal = new Int32Array(new SharedArrayBuffer(4));
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
 }
 
 function write(relPath, contents) {
-  fs.writeFileSync(path.join(root, relPath), contents, 'utf8');
+  const filePath = path.join(root, relPath);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      fs.writeFileSync(filePath, contents, 'utf8');
+      return;
+    } catch (error) {
+      const canRetry = TRANSIENT_WRITE_ERROR_CODES.has(error && error.code) &&
+        attempt < WRITE_RETRY_DELAYS_MS.length;
+      if (!canRetry) throw error;
+      Atomics.wait(writeRetrySignal, 0, 0, WRITE_RETRY_DELAYS_MS[attempt]);
+    }
+  }
 }
 
 function exists(relPath) {

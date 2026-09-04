@@ -32,6 +32,7 @@
       this.overlayGraphics = null;
       this.entityGraphics = null;
       this.screenGraphics = null;
+      this.destroyRequested = false;
     }
 
     async init() {
@@ -61,6 +62,10 @@
         powerPreference: "high-performance",
         preference: "webgl"
       });
+      if (this.destroyRequested) {
+        this.destroy();
+        return false;
+      }
       if (this.app.ticker && typeof this.app.ticker.stop === "function") {
         this.app.ticker.stop();
       }
@@ -603,6 +608,34 @@
         height: this.app && this.app.renderer && this.app.canvas ? this.app.canvas.height : 0,
         resolution: this.resolution
       };
+    }
+
+    destroy() {
+      this.destroyRequested = true;
+      this.ready = false;
+      const app = this.app;
+      const canvas = app?.canvas;
+      if (app?.renderer) {
+        try {
+          app.destroy({ removeView: true }, { children: true, texture: false, textureSource: false });
+        } catch (_) {
+          try { app.destroy(true, { children: true, texture: false }); } catch (_) {}
+        }
+        this.app = null;
+      }
+      canvas?.remove?.();
+      this.textures.clear();
+      this.spritePools = {};
+      this.nebulaSprite = null;
+      this.backgroundGraphics = null;
+      this.worldLayer = null;
+      this.starLayer = null;
+      this.worldGraphics = null;
+      this.vfxGraphics = null;
+      this.overlayGraphics = null;
+      this.entityGraphics = null;
+      this.screenGraphics = null;
+      document.body.classList.remove("is-pixi-renderer");
     }
   }
 
