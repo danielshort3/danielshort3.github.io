@@ -122,10 +122,10 @@ function runResponsiveDensityContractTests({ assert }) {
   const personalShellCss = read('css/components/personal-accordion-shell.css');
   assert(
     personalShellCss.includes('--personal-rail-size: 68px;') &&
-      personalShellCss.includes('--personal-toolbar-size: 48px;') &&
       personalShellCss.includes('--personal-toolbar-size: 60px;') &&
+      !personalShellCss.includes('--personal-toolbar-size: 48px;') &&
       personalShellCss.includes('.personal-accordion__rails {\n      display: none;'),
-    'responsive personal shells should use the 68px desktop marker and one 60px mobile context bar',
+    'responsive personal shells should use the 68px desktop marker and a consistent 60px context bar',
   );
   const homeAccordionCss = read('css/components/home-category-accordion.css');
   assert(
@@ -222,6 +222,20 @@ function runResponsiveDensityContractTests({ assert }) {
 
   const baseCss = read('css/base/base.css');
   const mobileDockCss = read('css/components/mobile-site-dock.css');
+  const designSystemCss = read('css/utilities/design-system-overrides.css');
+  const recruiterStoryCss = read('css/components/recruiter-story.css');
+  const contactCardCss = read('css/components/contact-card.css');
+  const shortLinksCss = read('css/components/short-links.css');
+  const stormbreakCss = read('css/games/stormbreak.css');
+  const toolsWorkspaceCss = read('css/components/tools-workspace.css');
+  const personalAccordionCss = read('css/components/personal-accordion-shell.css');
+  const utmBatchBuilderCss = read('css/components/utm-batch-builder.css');
+  const toolsMobileCss = toolsWorkspaceCss.slice(
+    toolsWorkspaceCss.indexOf('@media (max-width: 959px), (max-height: 619px)'),
+  );
+  const utmMobileCss = utmBatchBuilderCss.slice(
+    utmBatchBuilderCss.indexOf('@media (max-width: 600px)'),
+  );
   assert(
     !baseCss.includes('font-size:16px !important;') &&
       !baseCss.includes('input:is(') &&
@@ -229,6 +243,52 @@ function runResponsiveDensityContractTests({ assert }) {
       mobileDockCss.includes('max(14px, env(safe-area-inset-left, 0px))') &&
       /\.mobile-site-masthead__search-input\s*\{[^}]*font-size:\s*1rem;/s.test(mobileDockCss),
     'shared mobile styles should preserve component typography while the masthead honors lateral safe areas',
+  );
+  assert(
+    /body\.personal-accordion-page\[data-personal-item="short-links"\]\s*\{[^}]*--shortlinks-shell-width:\s*100%;/s.test(shortLinksCss) &&
+      /body\.personal-accordion-page\[data-personal-item="short-links"\]\s+:is\(\s*\.shortlinks-app-shell,\s*\.shortlinks-workspace,\s*\.shortlinks-main-workflow\s*\)\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s.test(shortLinksCss),
+    'Short Links should shrink its nested personal shell to the containing panel width',
+  );
+  assert(
+    /body\.stormbreak-page\.personal-accordion-page\[data-personal-item="stormbreak"\]\s*\{[^}]*overflow-x:\s*clip;[^}]*overflow-y:\s*visible;/s.test(stormbreakCss),
+    'Stormbreak should preserve the personal shell scroll owner while clipping horizontal overflow',
+  );
+  assert(
+    /body\.personal-accordion-page\[data-personal-category="tools"\]\[data-tools-layout="directory"\] \.personal-library-main--tools > \.tools-account-dock\s*\{[^}]*position:\s*absolute;[^}]*top:\s*16px;[^}]*right:\s*var\(--tools-content-gutter\);[^}]*z-index:\s*9;[^}]*width:\s*auto;[^}]*max-width:\s*min\(42%,\s*390px\);[^}]*padding:\s*0;/s.test(toolsMobileCss) &&
+      /body\.personal-accordion-page\[data-personal-category="tools"\]\[data-tools-layout="directory"\] \.personal-library-main--tools > \.tools-account-dock \.tools-account-dock-inner\s*\{[^}]*width:\s*auto;[^}]*max-width:\s*100%;/s.test(toolsMobileCss) &&
+      /body\.personal-accordion-page\[data-personal-category="tools"\]\[data-tools-layout="directory"\] \.personal-library__account \+ \.personal-library \.home-library__heading\s*\{[^}]*padding-right:\s*min\(42%,\s*390px\);/s.test(toolsMobileCss),
+    'the mobile Tools directory should overlay its compact account dock while reserving heading space',
+  );
+  assert(
+    /body\.personal-accordion-page\[data-personal-item="utm-batch-builder"\] #utmtool-exclude-rules\s*\{[^}]*white-space:\s*pre-wrap;[^}]*overflow-wrap:\s*anywhere;/s.test(utmMobileCss),
+    'the mobile UTM exclusion editor should wrap long rules inside the personal shell',
+  );
+  assert(
+    /body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-tools-link,\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-bar :is\(\.btn-primary,\s*\.btn-secondary,\s*\.btn-ghost\),\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-trigger,\s*body\.personal-accordion-page\[data-personal-category="tools"\] :is\(\s*\.textcompare-field-btn,\s*\.wordfreq-field-btn,\s*\.povcheck-field-btn,\s*\.oxford-field-btn,\s*\.nbsp-field-btn,\s*\.qrtool-mode-btn,\s*\.qrtool-tab,\s*\.screenrec-test-button,\s*\.screenrec-crop-presets-toggle,\s*\.screenrec-crop-button,\s*\.screenrec-delay-button,\s*\.jobtrack-tab,\s*\.ga4-tab,\s*\.ctc-button,\s*\.ctc-icon-button\s*\)\s*\{[^}]*min-width:\s*44px;[^}]*min-height:\s*44px;[^}]*min-inline-size:\s*44px;[^}]*min-block-size:\s*44px;/s.test(toolsMobileCss),
+    'mobile tool account actions and compact field controls should keep exact 44px targets',
+  );
+  assert(
+    /body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-tools-link,\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-bar :is\(\.btn-primary,\s*\.btn-secondary,\s*\.btn-ghost\),\s*body\.personal-accordion-page\[data-personal-category="tools"\] \.tools-account-trigger\s*\{[^}]*min-block-size:\s*44px;[^}]*padding:\s*8px 11px;/s.test(toolsWorkspaceCss),
+    'compact desktop tool account actions should retain a full 44px target',
+  );
+  assert(
+    /body\.personal-accordion-page\[data-personal-category="tools"\] :is\(\s*button,\s*summary\[role="button"\],\s*input:not\(\[type="hidden"\]\):not\(\[type="checkbox"\]\):not\(\[type="radio"\]\):not\(\[type="range"\]\):not\(\.visually-hidden\),\s*select\s*\)\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-inline-size:\s*44px;[^}]*min-block-size:\s*44px;/s.test(personalAccordionCss) &&
+      /body\.personal-accordion-page\[data-personal-category="tools"\] \.utmtool-file-input::file-selector-button\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-block-size:\s*44px;/s.test(personalAccordionCss),
+    'mobile personal tool pages should normalize native controls, generated share actions, and file pickers to 44px targets',
+  );
+  assert(
+    /body \.hero\.hero--default > \.wrapper,[\s\S]*?body \.tools-hero > \.wrapper \{[^}]*width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);[^}]*max-width:\s*calc\(100% - \(var\(--mobile-page-gutter\) \* 2\)\);/s.test(designSystemCss) &&
+      /body\[data-page="analytics"\]\.home-pattern-page \.hero\.hero--default > \.wrapper \{[^}]*width:\s*calc\(100% - 28px\);[^}]*max-width:\s*calc\(100% - 28px\) !important;/s.test(recruiterStoryCss),
+    'mobile hero wrappers should calculate their gutters from the containing block instead of the scrollbar-inclusive viewport',
+  );
+  assert(
+    /#certifications \.cert-band-inner \{[^}]*box-sizing:\s*border-box;[^}]*max-width:\s*100% !important;/s.test(recruiterStoryCss),
+    'the analytics certification frame should stay contained while its inner track owns horizontal scrolling',
+  );
+  assert(
+    /\.contact-professional-links a\{[^}]*box-sizing:\s*border-box;[^}]*display:\s*inline-flex;[^}]*min-height:\s*44px;[^}]*padding-inline:\s*10px;/s.test(contactCardCss) &&
+      /\.mobile-site-masthead__brand \{[^}]*box-sizing:\s*border-box;[^}]*min-height:\s*44px;/s.test(mobileDockCss),
+    'professional proof links and the mobile masthead brand should preserve 44px touch targets',
   );
 
   const privacyCss = read('css/privacy.css');
@@ -265,9 +325,15 @@ function runResponsiveDensityContractTests({ assert }) {
       stellarCss.includes('@media (min-width: 769px) and (max-height: 760px)'),
     'Stellar Dogfight should switch its hangar to document scrolling on short viewports while preserving desktop nav clearance',
   );
+  assert(
+    /body\.personal-accordion-page\[data-personal-item="stellar-dogfight"\] :is\([\s\S]*?\.btn,[\s\S]*?\.tab-btn,[\s\S]*?\.option-btn,[\s\S]*?\.keybind-btn,[\s\S]*?\.panel-disclosure-toggle[\s\S]*?\)\s*\{[^}]*min-height:\s*44px;[^}]*min-block-size:\s*44px;/s.test(stellarCss) &&
+      /body\.personal-accordion-page\[data-personal-item="stellar-dogfight"\] :is\([\s\S]*?\.btn-icon-only,[\s\S]*?\.command-drawer \.tab-btn[\s\S]*?\)\s*\{[^}]*width:\s*44px;[^}]*min-width:\s*44px;[^}]*min-inline-size:\s*44px;/s.test(stellarCss),
+    'mobile Stellar Dogfight menu controls should keep 44px targets without resizing the canvas controls',
+  );
 
   const gamesCss = read('css/components/games.css');
   const oceanCss = read('css/components/ocean-wave-simulation.css');
+  const probabilityCss = read('css/games/probability-engine.css');
   const rouletteCss = read('css/games/roulette.css');
   const rouletteHtml = read('pages/games/roulette.html');
   assert(
@@ -276,6 +342,11 @@ function runResponsiveDensityContractTests({ assert }) {
       /\.roulette00-rules-disclosure summary\s*\{[^}]*min-height:\s*44px;/s.test(rouletteCss) &&
       rouletteHtml.includes('<details class="roulette00-rules-disclosure">'),
     'the simplified Games surfaces should retain 44px actions and place secondary roulette rules in a disclosure',
+  );
+  assert(
+    /\.roulette00-spin-btn,\s*\.roulette00-action,\s*\.roulette00-line-tab,\s*\.roulette00-bet\.is-line\s*\{[^}]*min-height:\s*44px;[^}]*min-block-size:\s*44px;/s.test(rouletteCss) &&
+      /body\.personal-accordion-page\[data-personal-item="probability-engine"\] :is\(\s*\.app-shell button,\s*#offline-modal button\s*\)\s*\{[^}]*min-height:\s*44px;[^}]*min-block-size:\s*44px;/s.test(probabilityCss),
+    'mobile Roulette and Probability Engine actions should preserve 44px touch targets',
   );
 
   const smartSentenceProject = readJson('content/projects/smartSentence.json');

@@ -2861,8 +2861,8 @@
     body .project-hero > .wrapper,
     body .games-hero > .wrapper,
     body .tools-hero > .wrapper {
-      width: min(100%, calc(100vw - (var(--mobile-page-gutter) * 2)));
-      max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
+      width: calc(100% - (var(--mobile-page-gutter) * 2));
+      max-width: calc(100% - (var(--mobile-page-gutter) * 2));
       padding-inline: 0;
     }
 

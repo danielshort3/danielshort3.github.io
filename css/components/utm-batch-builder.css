@@ -839,5 +839,10 @@
     .utmtool-csv-upload-row .btn-secondary{
       align-self:flex-start;
     }
+
+    body.personal-accordion-page[data-personal-item="utm-batch-builder"] #utmtool-exclude-rules{
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+    }
   }
 }

@@ -110,6 +110,12 @@
     font-size:.9rem;
   }
   .contact-professional-links a{
+    box-sizing:border-box;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    padding-inline:10px;
     color:var(--brand-deep-blue, var(--primary));
     font-weight:700;
     text-underline-offset:3px;

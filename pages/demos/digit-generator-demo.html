@@ -29,14 +29,15 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.92bd4b67.css">
+  <link rel="stylesheet" href="dist/styles.e4b958aa.css">
 
   <link rel="icon" href="favicon.ico" sizes="any">
   <script src="js/common/no-js.js"></script>
   <meta name="author" content="Daniel Short">
 
   <meta name="twitter:description" content="Synthetic Digit Generator interactive demo, presented inside Daniel Short&#39;s project library.">
-  <link rel="stylesheet" href="dist/styles-personal-accordion.f52503b2.css">
+  <script defer src="dist/site-shell.931cb2da.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.56f41566.css">
 </head>
 <body class="project-demo-wrapper-page personal-accordion-page" data-page="project-demo" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="digit-generator-demo" data-personal-fit="viewport" data-personal-chrome="compact">
   <a href="/digit-generator-demo#main" class="skip-link">Skip to interactive demo</a>
@@ -217,8 +218,119 @@
       <script>
         (() => {
           const frame = document.getElementById("project-demo-frame-digit-generator-demo");
+          const frameContainer = frame ? frame.closest('.project-demo-wrapper-frame') : null;
+          const frameMain = frame ? frame.closest('.project-demo-wrapper-main') : null;
+          const mobileQuery = window.matchMedia('(max-width: 959px)');
           const suffix = window.location.search + window.location.hash;
-          if (frame && suffix) frame.src = "/demos/digit-generator-demo.html" + suffix;
+          let resizeObserver = null;
+          let resizeFrame = 0;
+          let resizeTimers = [];
+          let lastHeight = 0;
+
+          const clearScheduledMeasurements = () => {
+            if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+            resizeFrame = 0;
+            resizeTimers.forEach((timer) => window.clearTimeout(timer));
+            resizeTimers = [];
+          };
+
+          const disconnectObserver = () => {
+            if (resizeObserver) resizeObserver.disconnect();
+            resizeObserver = null;
+          };
+
+          const clearMobileHeight = () => {
+            clearScheduledMeasurements();
+            [frameMain, frameContainer, frame].forEach((element) => {
+              if (element) element.style.removeProperty('height');
+            });
+            document.body.removeAttribute('data-project-demo-autosize');
+            lastHeight = 0;
+          };
+
+          const measureFrame = () => {
+            resizeFrame = 0;
+            if (!frame || !frameContainer || !frameMain || !mobileQuery.matches) return;
+
+            try {
+              const frameDocument = frame.contentDocument;
+              const frameBody = frameDocument && frameDocument.body;
+              const frameRoot = frameDocument && frameDocument.documentElement;
+              if (!frameBody || !frameRoot) return;
+
+              const nextHeight = Math.max(
+                560,
+                frameBody.scrollHeight,
+                frameBody.offsetHeight,
+                frameRoot.scrollHeight,
+                frameRoot.offsetHeight
+              );
+              if (!Number.isFinite(nextHeight) || Math.abs(nextHeight - lastHeight) < 2) return;
+
+              lastHeight = Math.ceil(nextHeight);
+              const height = String(lastHeight) + 'px';
+              frameMain.style.height = height;
+              frameContainer.style.height = height;
+              frame.style.height = height;
+              document.body.setAttribute('data-project-demo-autosize', 'true');
+            } catch (error) {
+              clearMobileHeight();
+            }
+          };
+
+          const scheduleMeasurement = () => {
+            if (!mobileQuery.matches || resizeFrame) return;
+            resizeFrame = window.requestAnimationFrame(measureFrame);
+          };
+
+          const observeFrame = () => {
+            disconnectObserver();
+            clearScheduledMeasurements();
+
+            if (!mobileQuery.matches) {
+              clearMobileHeight();
+              return;
+            }
+
+            try {
+              const frameDocument = frame.contentDocument;
+              const frameBody = frameDocument && frameDocument.body;
+              const frameRoot = frameDocument && frameDocument.documentElement;
+              if (!frameBody || !frameRoot) return;
+
+              const FrameResizeObserver = frame.contentWindow && frame.contentWindow.ResizeObserver;
+              if (FrameResizeObserver) {
+                resizeObserver = new FrameResizeObserver(scheduleMeasurement);
+                resizeObserver.observe(frameBody);
+                resizeObserver.observe(frameRoot);
+              }
+
+              scheduleMeasurement();
+              [120, 500, 1500].forEach((delay) => {
+                resizeTimers.push(window.setTimeout(scheduleMeasurement, delay));
+              });
+            } catch (error) {
+              clearMobileHeight();
+            }
+          };
+
+          const handleViewportChange = () => {
+            if (mobileQuery.matches) observeFrame();
+            else {
+              disconnectObserver();
+              clearMobileHeight();
+            }
+          };
+
+          if (!frame) return;
+          frame.addEventListener('load', observeFrame);
+          if (typeof mobileQuery.addEventListener === 'function') {
+            mobileQuery.addEventListener('change', handleViewportChange);
+          } else {
+            mobileQuery.addListener(handleViewportChange);
+          }
+          if (suffix) frame.src = "/demos/digit-generator-demo.html" + suffix;
+          window.setTimeout(observeFrame, 0);
         })();
       </script>
     </div>
@@ -279,7 +391,7 @@
     </svg>
   </button>
 </div>
-  <script defer src="dist/site-shell.16a7221e.js"></script>
+
   <script defer src="dist/site-consent.20903590.js"></script>
 </body>
 </html>

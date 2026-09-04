@@ -1,8 +1,14 @@
 @layer components {
   body.personal-accordion-page {
+    --personal-content-gutter: clamp(24px, 2.2vw, 40px);
+    --personal-content-width: 1068px;
+    --personal-content-half-width: 534px;
+    --personal-reading-width: 760px;
+    --personal-workspace-width: 1512px;
+    --personal-section-space: clamp(24px, 3vw, 32px);
     color-scheme: light;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;
     background: #ffffff;
   }
 
@@ -65,7 +71,7 @@
   .personal-accordion {
     --personal-rail-size: 68px;
     --personal-mobile-rail-size: 0px;
-    --personal-toolbar-size: 48px;
+    --personal-toolbar-size: 60px;
     width: 100%;
     max-width: 100%;
     min-height: calc(100svh - var(--nav-height, 72px));
@@ -237,7 +243,8 @@
     display: flex;
     align-items: center;
     min-height: var(--personal-toolbar-size);
-    padding: 2px clamp(10px, 2vw, 22px);
+    padding-block: 8px;
+    padding-inline: max(var(--personal-content-gutter), calc(50% - var(--personal-content-half-width)));
     border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 22%, #dce3ec 78%);
     background: rgba(255, 255, 255, .97);
     backdrop-filter: blur(10px);
@@ -260,6 +267,7 @@
     font-weight: 790;
     line-height: 1.2;
     text-decoration: none;
+    transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
   }
 
   .personal-accordion__back-icon {
@@ -301,7 +309,7 @@
     min-width: 0;
     max-width: 100%;
     min-height: calc(100% - var(--personal-toolbar-size));
-    overflow-x: auto;
+    overflow-x: clip;
     overflow-y: visible;
     color: inherit;
     background: #ffffff;
@@ -356,7 +364,7 @@
     display: block;
     min-height: 0;
     margin: 0;
-    padding: 0 clamp(26px, 4vw, 48px) 54px;
+    padding: 0 var(--personal-content-gutter) 48px;
     color: #091f3b;
     background: #ffffff;
   }
@@ -369,8 +377,8 @@
 
   .personal-library .wrapper {
     box-sizing: border-box;
-    width: min(100%, 1120px);
-    max-width: 1120px;
+    width: min(100%, calc(var(--personal-content-width) + var(--personal-content-gutter) + var(--personal-content-gutter)));
+    max-width: calc(var(--personal-content-width) + var(--personal-content-gutter) + var(--personal-content-gutter));
     margin-inline: auto;
   }
 
@@ -427,7 +435,7 @@
     .personal-accordion__toolbar {
       top: var(--mobile-site-masthead-height, 62px);
       min-height: var(--personal-toolbar-size);
-      padding: 4px 8px;
+      padding: 8px var(--personal-content-gutter);
       border-bottom: 0;
       color: #ffffff;
       background: var(--panel-color);
@@ -472,17 +480,34 @@
 
     .personal-accordion__content {
       min-height: 0;
-      overflow-x: auto;
+      overflow-x: clip;
     }
 
     .personal-library.tools-hero,
     .personal-library {
       min-height: 0;
-      padding-right: 14px;
+      padding-right: var(--personal-content-gutter);
       padding-bottom: 34px;
-      padding-left: 14px;
+      padding-left: var(--personal-content-gutter);
     }
 
+    .personal-library .wrapper {
+      padding-inline: 0;
+    }
+
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page {
+      --personal-content-gutter: 16px;
+      --personal-section-space: 24px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    body.personal-accordion-page {
+      --personal-content-gutter: 12px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -548,9 +573,9 @@
 
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero .wrapper,
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-body > .wrapper {
-    width: min(100%, 1120px);
-    max-width: 1120px;
-    padding-inline: clamp(18px, 3.4vw, 40px);
+    width: min(100%, calc(var(--personal-content-width) + var(--personal-content-gutter) + var(--personal-content-gutter)));
+    max-width: calc(var(--personal-content-width) + var(--personal-content-gutter) + var(--personal-content-gutter));
+    padding-inline: var(--personal-content-gutter);
   }
 
   body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero h1 {
@@ -727,9 +752,10 @@
       flex: 1 1 auto;
       height: auto;
       min-height: 0;
-      overflow-x: hidden;
+      overflow-x: clip;
       overflow-y: auto;
       overscroll-behavior: contain;
+      scrollbar-gutter: stable both-edges;
     }
 
     body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-library .home-library__header {
@@ -805,8 +831,8 @@
     body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero .wrapper,
     body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-body > .wrapper {
       width: 100%;
-      max-width: 1120px;
-      padding-inline: 14px;
+      max-width: 100%;
+      padding-inline: var(--personal-content-gutter);
     }
 
     body.personal-accordion-page[data-personal-chrome="compact"] .project-main--compact .project-hero h1 {
@@ -814,6 +840,68 @@
       line-height: 1.04;
       overflow-wrap: break-word;
       text-wrap: balance;
+    }
+  }
+
+  body.personal-accordion-page:is(
+    [data-personal-item="privacy"],
+    [data-personal-item="search"],
+    [data-personal-item="sitemap"],
+    [data-personal-item="sitemap-pretty"],
+    [data-personal-item="solutions"],
+    [data-personal-item="not-found"]
+  ) .personal-accordion__content > #main {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  body.personal-accordion-page[data-personal-item="privacy"] .personal-accordion__content > #main {
+    min-height: 0;
+    padding-top: var(--personal-section-space);
+    padding-right: var(--personal-content-gutter);
+    padding-bottom: var(--personal-section-space);
+    padding-left: var(--personal-content-gutter);
+  }
+
+  body.personal-accordion-page[data-personal-item="privacy"] .policy-card {
+    width: min(100%, var(--personal-reading-width));
+  }
+
+  body.personal-accordion-page[data-personal-item="solutions"] .personal-accordion__content > #main > .hero.hero--default {
+    min-height: 0;
+    margin-bottom: 0;
+    padding-block: clamp(40px, 6vh, 56px);
+  }
+
+  body.personal-accordion-page:is(
+    [data-personal-item="search"],
+    [data-personal-item="sitemap"],
+    [data-personal-item="sitemap-pretty"],
+    [data-personal-item="solutions"]
+  ) .personal-accordion__content > #main > :is(.hero, .surface-band) > .wrapper {
+    box-sizing: border-box;
+    width: min(100%, calc(var(--personal-content-width) + var(--personal-content-gutter) + var(--personal-content-gutter)));
+    max-width: calc(var(--personal-content-width) + var(--personal-content-gutter) + var(--personal-content-gutter));
+    padding-inline: var(--personal-content-gutter);
+  }
+
+  body.personal-accordion-page:is(
+    [data-personal-item="sitemap"],
+    [data-personal-item="sitemap-pretty"]
+  ) .personal-accordion__content > #main > .surface-band:first-child {
+    padding-block: var(--personal-section-space) 40px;
+  }
+
+  body.personal-accordion-page[data-personal-item="not-found"] .personal-accordion__content > #main {
+    min-height: 100%;
+    padding: var(--personal-section-space) var(--personal-content-gutter);
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    body.personal-accordion-page[data-personal-item="solutions"] .personal-accordion__content > #main > .hero.hero--default {
+      padding-block: var(--personal-section-space);
     }
   }
 
@@ -882,7 +970,7 @@
 
   body.personal-accordion-page[data-personal-category="tools"] .personal-accordion {
     --personal-rail-size: 68px;
-    --personal-toolbar-size: 48px;
+    --personal-toolbar-size: 60px;
   }
 
   body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__panel {
@@ -891,12 +979,16 @@
     background: #ffffff;
   }
 
-  body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__toolbar {
-    min-height: 48px;
-    padding: 2px 24px;
+  body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] .personal-accordion__toolbar {
+    min-height: var(--personal-toolbar-size);
+    padding: 8px var(--personal-content-gutter);
     border-bottom-color: color-mix(in srgb, #087f8c 16%, #dce3ec 84%);
     background: #ffffff;
     backdrop-filter: none;
+  }
+
+  body.personal-accordion-page[data-personal-category="games"] .personal-accordion__toolbar {
+    padding-inline: var(--personal-content-gutter);
   }
 
   body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__back:is(:hover, :focus-visible) {
@@ -921,8 +1013,8 @@
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 8px 16px;
-    width: min(1512px, calc(100% - 48px));
-    max-width: min(1512px, calc(100% - 48px));
+    width: min(var(--personal-workspace-width), calc(100% - var(--personal-content-gutter) - var(--personal-content-gutter)));
+    max-width: min(var(--personal-workspace-width), calc(100% - var(--personal-content-gutter) - var(--personal-content-gutter)));
     margin-inline: auto;
     padding-inline: 0;
   }
@@ -967,9 +1059,9 @@
       --personal-toolbar-size: 60px;
     }
 
-    body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__toolbar {
+    body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] .personal-accordion__toolbar {
       min-height: 60px;
-      padding: 8px 16px;
+      padding: 8px var(--personal-content-gutter);
       color: #ffffff;
       background: #087f8c;
     }
@@ -990,8 +1082,8 @@
       gap: 6px 10px;
       width: 100%;
       max-width: 100%;
-      padding-right: 16px;
-      padding-left: 16px;
+      padding-right: var(--personal-content-gutter);
+      padding-left: var(--personal-content-gutter);
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header h1 {
@@ -1027,8 +1119,8 @@ body.personal-accordion-page[data-tools-layout] .personal-accordion__content > #
 }
 
 body.personal-accordion-page[data-personal-category="tools"][data-tools-layout]:not([data-tools-layout="directory"]) .personal-accordion__content > #main {
-  width: min(1512px, calc(100% - 48px));
-  max-width: min(1512px, calc(100% - 48px));
+  width: min(var(--personal-workspace-width), calc(100% - var(--personal-content-gutter) - var(--personal-content-gutter)));
+  max-width: min(var(--personal-workspace-width), calc(100% - var(--personal-content-gutter) - var(--personal-content-gutter)));
   margin-inline: auto;
 }
 
@@ -1037,6 +1129,25 @@ body.personal-accordion-page[data-personal-category="tools"][data-tools-layout]:
     width: 100%;
     max-width: 100%;
     margin-inline: 0;
+  }
+
+  /* Page-specific tool styles intentionally stay compact on desktop. On a
+     touch-sized viewport, normalize only actionable controls so every tool
+     keeps a dependable target without inflating its surrounding cards. */
+  body.personal-accordion-page[data-personal-category="tools"] :is(
+    button,
+    summary[role="button"],
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.visually-hidden),
+    select
+  ) {
+    box-sizing: border-box;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+
+  body.personal-accordion-page[data-personal-category="tools"] .utmtool-file-input::file-selector-button {
+    box-sizing: border-box;
+    min-block-size: 44px;
   }
 }
 

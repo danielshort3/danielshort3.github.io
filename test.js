@@ -7,6 +7,7 @@ const childProcess = require('child_process');
 const runUtmBatchBuilderTests = require('./tests/tools/utm-batch-builder.test.js');
 const runCampaignCreativeTrackerTests = require('./tests/tools/campaign-creative-tracker.test.js');
 const runHomeCategoryAccordionTests = require('./tests/site/home-category-accordion.test.js');
+const runPageTransitionTests = require('./tests/site/page-transitions.test.js');
 const runPersonalAccordionShellTests = require('./tests/site/personal-accordion-shell.test.js');
 const runPersonalThemeContinuityTests = require('./tests/site/personal-theme-continuity.test.js');
 const runProjectDemoWrapperTests = require('./tests/site/project-demo-wrappers.test.js');
@@ -40925,6 +40926,10 @@ try {
 
   section('Personal homepage category accordion', () => {
     runHomeCategoryAccordionTests({ assert });
+  });
+
+  section('Page transition behavior', () => {
+    runPageTransitionTests({ assert });
   });
 
   section('Personal accordion route shell', () => {

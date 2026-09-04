@@ -840,6 +840,14 @@ body::before {
   body.has-mobile-site-dock .app-shell {
     padding-bottom: calc(var(--mobile-site-dock-clearance, calc(88px + env(safe-area-inset-bottom, 0px))) + clamp(12px, 3vw, 20px));
   }
+
+  body.personal-accordion-page[data-personal-item="probability-engine"] :is(
+    .app-shell button,
+    #offline-modal button
+  ) {
+    min-height: 44px;
+    min-block-size: 44px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

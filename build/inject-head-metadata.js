@@ -106,6 +106,8 @@ const TOOLS_STYLESHEET_HREF = resolveManagedStylesheetHref(TOOLS_STYLESHEET_FALL
 const PERSONAL_ACCORDION_STYLESHEET_HREF = resolveManagedStylesheetHref(PERSONAL_ACCORDION_STYLESHEET_FALLBACK, CSS_MANIFEST.personalAccordionFile);
 const PROFESSIONAL_STYLESHEET_HREF = resolveManagedStylesheetHref(PROFESSIONAL_STYLESHEET_FALLBACK, CSS_MANIFEST.professionalFile);
 const ANALYTICS_STYLESHEET_HREF = resolveManagedStylesheetHref(ANALYTICS_STYLESHEET_FALLBACK, CSS_MANIFEST.analyticsFile);
+const EARLY_BOOTSTRAP_SCRIPT = '<script src="js/common/no-js.js"></script>';
+const EARLY_BOOTSTRAP_PATTERN = /<script\b[^>]*\bsrc=(["'])\/?js\/common\/no-js\.js(?:\?[^"']*)?\1[^>]*>\s*<\/script>/gi;
 
 const ROUTE_COMPONENT_STYLES_PATH = path.join(root, 'build', 'route-component-styles.json');
 const ROUTE_COMPONENT_STYLES = Object.freeze(loadRouteComponentStyles());
@@ -282,6 +284,66 @@ function sliceHead(html) {
     closeIndex,
     inner: html.slice(openEnd, closeIndex)
   };
+}
+
+function isVisitorFacingSiteDocument(html, relPath = '') {
+  const normalizedPath = String(relPath || '').replace(/\\/g, '/');
+  const isManagedVisitorPath = normalizedPath && (
+    !normalizedPath.includes('/') || normalizedPath.startsWith('pages/')
+  );
+  if (!isManagedVisitorPath || normalizedPath.startsWith('admin/') || normalizedPath.startsWith('demos/')) {
+    return false;
+  }
+
+  const source = String(html || '');
+  return /<html\b/i.test(source) &&
+    /<head\b/i.test(source) &&
+    /<main\b/i.test(source) &&
+    (
+      /<header\b[^>]*\bid=(["'])combined-header-nav\1/i.test(source) ||
+      /\bdata-personal-accordion-shell\b/i.test(source) ||
+      /<body\b[^>]*\bclass=(["'])[^"']*\bsite-page\b[^"']*\1/i.test(source)
+    );
+}
+
+function ensureHtmlClass(html, className) {
+  return String(html || '').replace(/<html\b[^>]*>/i, (tag) => {
+    const classMatch = /\sclass=(["'])([^"']*)\1/i.exec(tag);
+    if (!classMatch) return tag.replace(/>$/, ` class="${className}">`);
+
+    const classes = classMatch[2].split(/\s+/).filter(Boolean);
+    if (classes.includes(className)) return tag;
+    const nextClasses = [...classes, className].join(' ');
+    return tag.replace(classMatch[0], ` class=${classMatch[1]}${nextClasses}${classMatch[1]}`);
+  });
+}
+
+function normalizeEarlyBootstrap(html) {
+  const source = ensureHtmlClass(html, 'no-js');
+  const head = sliceHead(source);
+  if (!head) return source;
+
+  let keptBootstrap = false;
+  let headInner = head.inner.replace(EARLY_BOOTSTRAP_PATTERN, () => {
+    if (keptBootstrap) return '';
+    keptBootstrap = true;
+    return EARLY_BOOTSTRAP_SCRIPT;
+  });
+
+  if (!keptBootstrap) {
+    const lineBreak = headInner.includes('\r\n') ? '\r\n' : '\n';
+    const personalStylesheet = /^([ \t]*)<link\b[^>]*href="(?:\/?dist\/)?styles-personal-accordion(?:\.[0-9a-f]{8})?\.css"[^>]*>[ \t]*$/im.exec(headInner);
+    if (personalStylesheet) {
+      const scriptLine = `${personalStylesheet[1]}${EARLY_BOOTSTRAP_SCRIPT}${lineBreak}`;
+      headInner = headInner.slice(0, personalStylesheet.index) + scriptLine + headInner.slice(personalStylesheet.index);
+    } else {
+      headInner = `${headInner.trimEnd()}${lineBreak}  ${EARLY_BOOTSTRAP_SCRIPT}${lineBreak}`;
+    }
+  }
+
+  const beforeHead = source.slice(0, head.openEnd).replace(EARLY_BOOTSTRAP_PATTERN, '');
+  const afterHead = source.slice(head.closeIndex).replace(EARLY_BOOTSTRAP_PATTERN, '');
+  return `${beforeHead}${headInner}${afterHead}`;
 }
 
 function hasTag(headInner, re) {
@@ -962,7 +1024,7 @@ function ensureToolJsonLd(headInner) {
   return withoutExisting.trimEnd() + '\n' + block + '\n';
 }
 
-function processHtml(html) {
+function processHtml(html, relPath = '') {
   const head = sliceHead(html);
   if (!head) return { html, changed: false };
 
@@ -1010,9 +1072,12 @@ function processHtml(html) {
   inner = dedupeMeta(inner, 'name', 'twitter:image');
   inner = dedupeMeta(inner, 'name', 'twitter:image:alt');
 
-  const changed = inner !== head.inner;
-  if (!changed) return { html, changed: false };
-  const next = html.slice(0, head.openEnd) + inner + html.slice(head.closeIndex);
+  let next = inner === head.inner
+    ? html
+    : html.slice(0, head.openEnd) + inner + html.slice(head.closeIndex);
+  if (isVisitorFacingSiteDocument(next, relPath)) {
+    next = normalizeEarlyBootstrap(next);
+  }
   return { html: next, changed: next !== html };
 }
 
@@ -1031,7 +1096,7 @@ function main() {
     if (!exists(relPath)) return;
 
     const html = read(relPath);
-    const processed = processHtml(html);
+    const processed = processHtml(html, relPath);
     if (!processed.changed) {
       skipped += 1;
       return;
@@ -1043,4 +1108,10 @@ function main() {
   process.stdout.write(`[inject-head-metadata] Updated ${updated} file(s); skipped ${skipped}.\n`);
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = {
+  isVisitorFacingSiteDocument,
+  normalizeEarlyBootstrap,
+  processHtml
+};

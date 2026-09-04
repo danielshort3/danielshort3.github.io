@@ -980,9 +980,21 @@
       width:44px;
       height:44px;
     }
-    .project-demo-tooltip{
-      width:min(360px, calc(100vw - (var(--mobile-page-gutter, 14px) * 2)));
+    .project-main--compact .project-demo-header{
+      position:relative;
+    }
+    .project-main--compact .project-demo-help{
+      position:static;
+    }
+    .project-main--compact .project-demo-tooltip{
+      top:calc(50% + 32px);
+      right:0;
+      left:0;
+      width:auto;
       padding:13px 14px;
+    }
+    .project-main--compact .project-demo-tooltip::before{
+      right:29px;
     }
     .project-demo-panel-inner{
       gap:12px;
@@ -1197,9 +1209,12 @@
 
   .project-main--compact {
     --project-compact-border: #dce3ec;
+    --project-content-gutter: var(--personal-content-gutter, clamp(24px, 2.2vw, 40px));
+    --project-content-width: var(--personal-content-width, 1068px);
     width: 100%;
     min-width: 0;
     max-width: 100%;
+    overflow-x: clip;
     color: var(--brand-midnight, #091f3b);
     background: #ffffff;
   }
@@ -1221,10 +1236,10 @@
   }
 
   .project-main--compact .project-hero .wrapper {
-    width: min(100%, 1120px);
-    max-width: 1120px;
+    width: min(100%, calc(var(--project-content-width) + var(--project-content-gutter) + var(--project-content-gutter)));
+    max-width: calc(var(--project-content-width) + var(--project-content-gutter) + var(--project-content-gutter));
     gap: 8px;
-    padding-inline: clamp(24px, 3.4vw, 32px);
+    padding-inline: var(--project-content-gutter);
   }
 
   .project-main--compact .project-hero .wrapper > :is(h1, .project-subtitle) {
@@ -1263,10 +1278,10 @@
 
   .project-main--compact .project-body > .wrapper {
     display: grid;
-    width: min(100%, 1120px);
-    max-width: 1120px;
+    width: min(100%, calc(var(--project-content-width) + var(--project-content-gutter) + var(--project-content-gutter)));
+    max-width: calc(var(--project-content-width) + var(--project-content-gutter) + var(--project-content-gutter));
     gap: 16px;
-    padding-inline: clamp(24px, 3.4vw, 32px);
+    padding-inline: var(--project-content-gutter);
   }
 
   .project-main--compact :is(.project-star, .project-demo-shell, .project-section) {
@@ -1434,13 +1449,19 @@
   }
 
   @media (max-width: 768px) {
+    .project-main--compact {
+      --project-content-gutter: var(--personal-content-gutter, 16px);
+    }
+
     .project-main--compact .project-hero {
       padding: 16px 0;
     }
 
     .project-main--compact .project-hero .wrapper,
     .project-main--compact .project-body > .wrapper {
-      padding-inline: 16px;
+      width: 100%;
+      max-width: 100%;
+      padding-inline: var(--project-content-gutter);
     }
 
     .project-main--compact .project-hero h1 {

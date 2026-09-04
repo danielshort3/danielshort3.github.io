@@ -92,223 +92,337 @@ const readWebpDimensions = (relativePath) => {
   throw new Error(`${relativePath} does not contain supported WebP dimensions`);
 };
 
-const createClassList = () => {
-  const values = new Set();
+const createHomeClassList = (initial = []) => {
+  const values = new Set(initial);
   return {
     add(...names) {
       names.forEach((name) => values.add(name));
     },
+    contains(name) {
+      return values.has(name);
+    },
     remove(...names) {
       names.forEach((name) => values.delete(name));
     },
-    contains(name) {
-      return values.has(name);
+    toggle(name, force) {
+      const enabled = typeof force === 'boolean' ? force : !values.has(name);
+      if (enabled) values.add(name);
+      else values.delete(name);
+      return enabled;
     },
     values
   };
 };
 
-const runPageTransitionRuntime = (source, options = {}) => {
-  const currentUrl = new URL(options.url || 'https://www.danielshort.me/tools');
-  const assigned = [];
-  const documentListeners = {};
-  const windowListeners = {};
-  const timers = [];
-  const frames = [];
-  const stored = new Map(Object.entries(options.storage || {}));
-  const appended = [];
-  const navigationEvents = [];
-  const htmlClassList = createClassList();
-  const bodyClassList = createClassList();
-  const shell = {};
-  const focusTarget = {
-    attributes: new Map(),
-    focusedWith: null,
-    closest() {
-      return null;
-    },
-    matches() {
-      return false;
-    },
-    hasAttribute(name) {
-      return this.attributes.has(name);
-    },
-    setAttribute(name, value) {
-      this.attributes.set(name, String(value));
-    },
-    removeAttribute(name) {
-      this.attributes.delete(name);
-    },
-    addEventListener() {},
-    focus(focusOptions) {
-      this.focusedWith = focusOptions || null;
-      document.activeElement = this;
-    }
-  };
-  const body = {
-    classList: bodyClassList,
-    dataset: {
-      personalCategory: options.category || 'tools',
-      personalAccordionView: options.view || 'library'
-    }
-  };
-  const document = {
-    activeElement: body,
-    baseURI: currentUrl.href,
-    body,
-    documentElement: { classList: htmlClassList },
-    head: {
-      appendChild(node) {
-        appended.push(node);
-      }
-    },
-    readyState: 'complete',
+const createHomeElement = (dataset = {}) => {
+  const attributes = new Map();
+  const listeners = new Map();
+  const element = {
+    attributes,
+    children: [],
+    classList: createHomeClassList(),
+    dataset: { ...dataset },
+    hidden: false,
+    scrollHeight: 100,
+    scrollTop: 0,
+    scrollWidth: 100,
+    clientHeight: 200,
+    clientWidth: 200,
     addEventListener(type, listener) {
-      documentListeners[type] = listener;
+      const entries = listeners.get(type) || [];
+      entries.push(listener);
+      listeners.set(type, entries);
     },
-    createElement() {
-      return { dataset: {} };
+    append(...nodes) {
+      this.children.push(...nodes);
     },
-    createEvent() {
-      return { initCustomEvent() {} };
+    appendChild(node) {
+      this.children.push(node);
+      return node;
+    },
+    cloneNode() {
+      return createHomeElement({ ...this.dataset });
     },
     dispatchEvent(event) {
-      navigationEvents.push(event);
+      this.events = this.events || [];
+      this.events.push(event);
+      (listeners.get(event.type) || []).forEach((listener) => listener(event));
+      return true;
+    },
+    fire(type, event = {}) {
+      const runtimeEvent = {
+        altKey: false,
+        button: 0,
+        ctrlKey: false,
+        defaultPrevented: false,
+        metaKey: false,
+        shiftKey: false,
+        preventDefault() {
+          this.defaultPrevented = true;
+        },
+        ...event,
+        type
+      };
+      (listeners.get(type) || []).forEach((listener) => listener(runtimeEvent));
+      return runtimeEvent;
+    },
+    focus(options) {
+      this.focusedWith = options || null;
+    },
+    getAttribute(name) {
+      return attributes.has(name) ? attributes.get(name) : null;
+    },
+    hasAttribute(name) {
+      return attributes.has(name);
     },
     querySelector(selector) {
-      if (selector === '[data-home-accordion]') return null;
-      if (selector === '[data-personal-accordion-shell]') return shell;
-      if (options.focusTarget && selector.includes('data-personal-accordion-view')) return focusTarget;
-      return null;
+      return this.queryOne?.(selector) || null;
+    },
+    querySelectorAll(selector) {
+      return this.queryMany?.(selector) || [];
+    },
+    removeAttribute(name) {
+      attributes.delete(name);
+    },
+    replaceChildren(...nodes) {
+      this.children = nodes;
+    },
+    scrollIntoView() {},
+    setAttribute(name, value) {
+      attributes.set(name, String(value));
     }
   };
-  currentUrl.assign = (href) => assigned.push(String(href));
+  return element;
+};
+
+const runHomeTransitionRuntime = (source, options = {}) => {
+  let now = 0;
+  let nextTimerId = 1;
+  const timers = [];
+  const frames = [];
+  const historyCalls = [];
+  const nativeUpdates = [];
+  const nativeFinishCallbacks = [];
+  const reducedMotionListeners = [];
+  const windowListeners = new Map();
+  const root = createHomeElement({
+    activePanel: 'tools',
+    defaultPanel: 'tools',
+    homeView: 'overview'
+  });
+  const item = createHomeElement({ homeAccordionItem: 'tools' });
+  item.classList.add('is-active');
+  const trigger = createHomeElement({ homeAccordionTrigger: 'tools' });
+  trigger.setAttribute('aria-expanded', 'true');
+  const panel = createHomeElement({ homeAccordionPanel: 'tools' });
+  const scroller = createHomeElement();
+  const libraryView = createHomeElement({
+    homeLibraryRendered: 'true',
+    homeLibraryView: 'tools'
+  });
+  libraryView.hidden = true;
+  const libraryHeading = createHomeElement();
+  const libraryOpen = createHomeElement({ homeLibraryOpen: 'tools' });
+  const libraryClose = createHomeElement({ homeLibraryClose: 'tools' });
+  const canonical = createHomeElement();
+  canonical.setAttribute('href', 'https://www.danielshort.me/');
+  item.queryOne = (selector) => {
+    if (selector === '[data-home-accordion-trigger]') return trigger;
+    if (selector === '[data-home-accordion-panel]') return panel;
+    return null;
+  };
+  panel.queryOne = (selector) => {
+    if (selector === '[data-home-accordion-scroller]') return scroller;
+    return null;
+  };
+  libraryView.queryOne = (selector) => {
+    if (selector === '[data-home-library-heading]') return libraryHeading;
+    return null;
+  };
+  root.queryMany = (selector) => {
+    if (selector === '[data-home-accordion-item]') return [item];
+    if (selector === '[data-home-library-view]') return [libraryView];
+    if (selector === '[data-home-library-open]') return [libraryOpen];
+    if (selector === '[data-home-library-close]') return [libraryClose];
+    return [];
+  };
+  root.queryOne = (selector) => {
+    if (selector === '[data-home-library-open="tools"]') return libraryOpen;
+    if (selector === '[data-home-accordion-trigger="tools"]') return trigger;
+    return null;
+  };
+
+  function setTimeout(callback, delay = 0) {
+    const id = nextTimerId;
+    nextTimerId += 1;
+    timers.push({ callback, cancelled: false, due: now + Math.max(0, Number(delay) || 0), id });
+    return id;
+  }
+
+  function clearTimeout(timerId) {
+    const timer = timers.find((entry) => entry.id === timerId);
+    if (timer) timer.cancelled = true;
+  }
+
+  function advanceNextTimer() {
+    const timer = timers
+      .filter((entry) => !entry.cancelled)
+      .sort((left, right) => left.due - right.due || left.id - right.id)[0];
+    if (!timer) return false;
+    timer.cancelled = true;
+    now = timer.due;
+    timer.callback();
+    return true;
+  }
+
+  function requestAnimationFrame(callback) {
+    const id = nextTimerId;
+    nextTimerId += 1;
+    frames.push({ callback, id });
+    return id;
+  }
+
+  function flushFrames(limit = 40) {
+    let remaining = limit;
+    while (frames.length && remaining > 0) {
+      const pending = frames.splice(0);
+      pending.forEach(({ callback }) => callback(now));
+      remaining -= 1;
+    }
+  }
+
+  let currentUrl = new URL('https://www.danielshort.me/#tools');
+  let runtimeWindow = null;
   const history = {
-    state: options.historyState || null,
-    replaceState(state) {
+    state: null,
+    pushState(state, title, url) {
       this.state = state;
+      currentUrl = new URL(String(url), currentUrl.href);
+      runtimeWindow.location = currentUrl;
+      historyCalls.push({ method: 'pushState', state, url: currentUrl.href });
+    },
+    replaceState(state, title, url) {
+      this.state = state;
+      currentUrl = new URL(String(url), currentUrl.href);
+      runtimeWindow.location = currentUrl;
+      historyCalls.push({ method: 'replaceState', state, url: currentUrl.href });
     }
   };
-  const sessionStorage = {
-    getItem(key) {
-      return stored.has(key) ? stored.get(key) : null;
-    },
-    removeItem(key) {
-      stored.delete(key);
-    },
-    setItem(key, value) {
-      stored.set(key, String(value));
-    }
-  };
-  const window = {
-    document,
-    history,
-    location: currentUrl,
-    performance: {
-      getEntriesByType() {
-        return [{ type: options.navigationType || 'navigate' }];
-      }
-    },
-    sessionStorage,
+  const reducedMotionQuery = {
+    matches: Boolean(options.reducedMotion),
     addEventListener(type, listener) {
-      windowListeners[type] = listener;
+      if (type === 'change') reducedMotionListeners.push(listener);
     },
-    cancelAnimationFrame() {},
-    clearTimeout() {},
-    matchMedia() {
-      return { matches: Boolean(options.reducedMotion) };
+    addListener(listener) {
+      reducedMotionListeners.push(listener);
+    }
+  };
+  const railLayoutQuery = {
+    matches: options.railLayout !== false,
+    addEventListener() {},
+    addListener() {}
+  };
+  const document = {
+    title: 'Daniel Short',
+    createDocumentFragment() {
+      return createHomeElement();
     },
-    requestAnimationFrame(callback) {
-      frames.push(callback);
-      return frames.length;
+    createElement() {
+      return createHomeElement();
     },
-    setTimeout(callback, delay) {
-      timers.push({ callback, delay });
-      return timers.length;
+    querySelector(selector) {
+      if (selector === '[data-home-accordion]') return root;
+      if (selector === 'link[rel="canonical"]') return canonical;
+      return null;
     }
   };
   if (options.nativeTransitions) {
-    window.onpageswap = null;
-    window.onpagereveal = null;
+    document.startViewTransition = (update) => {
+      nativeUpdates.push(update);
+      const finished = {
+        catch() {
+          return this;
+        },
+        finally(callback) {
+          nativeFinishCallbacks.push(callback);
+          return this;
+        }
+      };
+      return { finished };
+    };
   }
+  runtimeWindow = {
+    HOME_LIBRARY_DATA: { tools: { items: [] } },
+    addEventListener(type, listener) {
+      const entries = windowListeners.get(type) || [];
+      entries.push(listener);
+      windowListeners.set(type, entries);
+    },
+    cancelAnimationFrame() {},
+    clearTimeout,
+    history,
+    location: currentUrl,
+    matchMedia(query) {
+      return query.includes('prefers-reduced-motion') ? reducedMotionQuery : railLayoutQuery;
+    },
+    requestAnimationFrame,
+    scrollTo() {},
+    scrollY: 0,
+    setTimeout
+  };
   class RuntimeCustomEvent {
     constructor(type, init) {
-      this.type = type;
+      this.bubbles = Boolean(init?.bubbles);
       this.detail = init?.detail;
+      this.type = type;
     }
   }
   vm.runInNewContext(source, {
-    CSS: { supports: () => Boolean(options.nativeTransitions) },
     CustomEvent: RuntimeCustomEvent,
-    Date,
-    JSON,
+    Map,
+    Math,
+    Number,
     Object,
     Set,
+    String,
     URL,
     document,
-    window
+    window: runtimeWindow
   });
-
-  const link = {
-    dataset: { personalTransition: 'detail' },
-    closest(selector) {
-      if (selector === 'a[href]') return this;
-      if (selector === '[data-contact-modal-link]') return null;
-      if (selector.includes('[data-home-accordion]')) return shell;
-      return null;
-    },
-    getAttribute(name) {
-      if (name === 'href') return options.href || '/tools/text-compare';
-      if (name === 'target') return '';
-      return null;
-    },
-    hasAttribute() {
-      return false;
-    }
-  };
-  const clickEvent = {
-    altKey: false,
-    button: 0,
-    ctrlKey: false,
-    defaultPrevented: false,
-    metaKey: false,
-    shiftKey: false,
-    target: link,
-    preventDefault() {
-      this.defaultPrevented = true;
-    }
-  };
-  const flushFrames = () => {
-    let safety = 30;
-    while (frames.length && safety > 0) {
-      const frame = frames.shift();
-      frame();
-      safety -= 1;
-    }
-  };
+  flushFrames();
+  historyCalls.splice(0);
+  root.events = [];
 
   return {
-    appended,
-    assigned,
-    bodyClassList,
-    click() {
-      documentListeners.click(clickEvent);
-      return clickEvent;
+    advanceNextTimer,
+    finishNativeTransition() {
+      nativeFinishCallbacks.splice(0).forEach((callback) => callback());
     },
-    document,
-    focusTarget,
     flushFrames,
-    flushTimers() {
-      timers.splice(0).forEach(({ callback }) => callback());
+    historyCalls,
+    libraryClose,
+    libraryHeading,
+    libraryOpen,
+    libraryView,
+    nativeUpdates,
+    navigateHistory(href, state) {
+      currentUrl = new URL(href, currentUrl.href);
+      runtimeWindow.location = currentUrl;
+      history.state = state;
+      (windowListeners.get('popstate') || []).forEach((listener) => listener({ state }));
     },
-    history,
-    htmlClassList,
-    navigationEvents,
-    pointerDown() {
-      documentListeners.pointerdown({ target: link });
+    pendingTimerCount() {
+      return timers.filter((entry) => !entry.cancelled).length;
     },
-    stored,
-    windowListeners
+    root,
+    runNativeUpdate() {
+      const update = nativeUpdates.shift();
+      if (update) update();
+    },
+    setReducedMotion(matches) {
+      reducedMotionQuery.matches = Boolean(matches);
+      reducedMotionListeners.forEach((listener) => listener({ matches: reducedMotionQuery.matches }));
+    }
   };
 };
 
@@ -331,9 +445,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const copyToPublic = read('build/copy-to-public.js');
   const packageJson = readJson('package.json');
   const navigation = read('js/navigation/navigation.js');
-  const pageTransitionJs = read('js/navigation/page-transitions.js');
-  const pageTransitionCss = read('css/components/page-transitions.css');
-  const noJs = read('js/common/no-js.js');
   const activityEvents = read('js/analytics/activity-events.js');
   const homeLibraryData = require('../../js/home/home-library-data.js');
   const publishedProjects = fs.readdirSync(path.join(ROOT, 'content', 'projects'))
@@ -769,119 +880,144 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(personal.page.bottomScripts.some((script) => script.src === 'dist/site-home.js') &&
     !JSON.stringify(personal.page.bottomScripts).includes('project-graph'),
   'managed homepage source should use the stable home bundle without raw graph scripts');
-  const nativeTransitionBranch = pageTransitionJs.indexOf(
-    'if (personalSurfaceNavigation && supportsCrossDocumentViewTransitions())'
-  );
-  const fallbackPreventDefault = pageTransitionJs.indexOf('event.preventDefault();', nativeTransitionBranch);
-  assert(pageTransitionCss.includes('@view-transition {') &&
-    pageTransitionCss.includes('navigation: auto;') &&
-    pageTransitionCss.includes('view-transition-name: site-header;') &&
-    pageTransitionCss.includes('view-transition-name: site-footer;') &&
-    pageTransitionCss.includes('view-transition-name: personal-shell;') &&
-    pageTransitionCss.includes('view-transition-name: personal-panel;') &&
-    pageTransitionCss.includes('view-transition-name: personal-content;') &&
-    libraryCss.includes('view-transition-name: personal-shell;') &&
-    libraryCss.includes('view-transition-name: personal-panel;') &&
-    libraryCss.includes('view-transition-name: personal-rail;'),
-  'home, library, and detail documents should opt into shared header, footer, shell, panel, rail, and content view transitions');
-  assert(pageTransitionJs.includes("CSS.supports('view-transition-name: site-shell')") &&
-    pageTransitionJs.includes("'onpageswap' in window") &&
-    pageTransitionJs.includes("'onpagereveal' in window") &&
-    nativeTransitionBranch >= 0 && fallbackPreventDefault > nativeTransitionBranch &&
-    pageTransitionJs.slice(nativeTransitionBranch, fallbackPreventDefault).includes('dispatchNavigationEvent(url);') &&
-    pageTransitionJs.slice(nativeTransitionBranch, fallbackPreventDefault).includes('return;') &&
-    pageTransitionJs.includes("document.addEventListener('pointerover', queueLinkPrefetch") &&
-    pageTransitionJs.includes("document.addEventListener('focusin', queueLinkPrefetch)") &&
-    pageTransitionJs.includes("document.addEventListener('pointerdown'") &&
-    pageTransitionJs.includes("storePendingNavigation(url, continuous ? 'continuous' : 'fade')") &&
-    pageTransitionJs.includes('storeArrivalFocus(url);') &&
-    pageTransitionJs.includes('startContinuousExit();') &&
-    noJs.includes("payload.mode === 'continuous'") &&
-    noJs.includes("'site-page-transition-continuous-preload'") &&
-    pageTransitionCss.includes('html.site-page-transition-continuous-preload :is(') &&
-    pageTransitionCss.includes('.home-accordion__item.is-active .home-accordion__scroller') &&
-    pageTransitionCss.includes('.personal-accordion__content') &&
-    !pageTransitionCss.includes('html.site-page-transition-continuous-preload #main') &&
-    pageTransitionCss.includes('background-color: #ffffff;') &&
-    pageTransitionCss.includes('@keyframes page-transition-continuous-in'),
-  'personal links should use native transitions when supported and otherwise keep the shared white panel shell visible while content transitions with touch-aware prefetching');
 
-  const nativeRuntime = runPageTransitionRuntime(pageTransitionJs, { nativeTransitions: true });
-  const nativeClick = nativeRuntime.click();
-  assert(!nativeClick.defaultPrevented &&
-    nativeRuntime.assigned.length === 0 &&
-    nativeRuntime.navigationEvents.some((event) => event.type === 'site:navigation-start') &&
-    JSON.parse(nativeRuntime.stored.get('sitePageTransitionFocus')).view === 'detail' &&
-    !nativeRuntime.stored.has('sitePageTransition'),
-  'native cross-document support should leave navigation to the browser while retaining semantic arrival focus');
+  const fallbackViewRuntime = runHomeTransitionRuntime(js);
+  const firstOpen = fallbackViewRuntime.libraryOpen.fire('click');
+  assert(firstOpen.defaultPrevented &&
+    fallbackViewRuntime.root.dataset.homeView === 'overview' &&
+    fallbackViewRuntime.libraryView.hidden &&
+    fallbackViewRuntime.root.classList.contains('is-view-leaving') &&
+    !fallbackViewRuntime.root.classList.contains('is-view-entering') &&
+    fallbackViewRuntime.historyCalls.length === 0 &&
+    fallbackViewRuntime.root.events.length === 0,
+  'fallback homepage expansion should preserve the old overview throughout its leaving phase');
+  const pendingTimersAfterOpen = fallbackViewRuntime.pendingTimerCount();
+  fallbackViewRuntime.libraryOpen.fire('click');
+  assert(fallbackViewRuntime.pendingTimerCount() === pendingTimersAfterOpen &&
+    fallbackViewRuntime.historyCalls.length === 0 &&
+    fallbackViewRuntime.root.events.length === 0,
+  'rapid homepage expansion clicks should not queue duplicate swaps, history entries, or events');
+  assert(fallbackViewRuntime.advanceNextTimer() &&
+    fallbackViewRuntime.root.dataset.homeView === 'library' &&
+    !fallbackViewRuntime.libraryView.hidden &&
+    !fallbackViewRuntime.root.classList.contains('is-view-leaving') &&
+    fallbackViewRuntime.root.classList.contains('is-view-entering') &&
+    fallbackViewRuntime.historyCalls.filter((entry) => entry.method === 'pushState').length === 1 &&
+    fallbackViewRuntime.root.events.filter((event) => (
+      event.type === 'home:library-change' && event.detail?.expanded === true
+    )).length === 1,
+  'fallback homepage expansion should swap state, URL, and events together under cover before entering');
+  fallbackViewRuntime.flushFrames();
+  assert(fallbackViewRuntime.advanceNextTimer() &&
+    !fallbackViewRuntime.root.classList.contains('is-view-changing') &&
+    !fallbackViewRuntime.root.classList.contains('is-view-entering'),
+  'fallback homepage expansion should settle and release its transition lock after the entry phase');
 
-  const fallbackRuntime = runPageTransitionRuntime(pageTransitionJs);
-  fallbackRuntime.pointerDown();
-  const fallbackClick = fallbackRuntime.click();
-  assert(fallbackClick.defaultPrevented &&
-    fallbackRuntime.appended.some((node) => node.dataset.prefetch === 'page-transition') &&
-    fallbackRuntime.htmlClassList.contains('site-page-transition-continuous-out') &&
-    JSON.parse(fallbackRuntime.stored.get('sitePageTransition')).mode === 'continuous' &&
-    fallbackRuntime.assigned.length === 0,
-  'unsupported browsers should prime personal destinations on pointer down and hold navigation for the continuous fallback exit');
-  fallbackRuntime.flushTimers();
-  assert(fallbackRuntime.assigned[0] === 'https://www.danielshort.me/tools/text-compare',
-    'continuous fallback navigation should assign the intended clean tool URL after its brief exit');
+  fallbackViewRuntime.libraryClose.fire('click');
+  assert(fallbackViewRuntime.root.dataset.homeView === 'library' &&
+    !fallbackViewRuntime.libraryView.hidden &&
+    fallbackViewRuntime.root.classList.contains('is-view-leaving') &&
+    fallbackViewRuntime.historyCalls.length === 1,
+  'fallback homepage collapse should preserve the old library throughout its leaving phase');
+  assert(fallbackViewRuntime.advanceNextTimer() &&
+    fallbackViewRuntime.root.dataset.homeView === 'overview' &&
+    fallbackViewRuntime.libraryView.hidden &&
+    fallbackViewRuntime.root.classList.contains('is-view-entering') &&
+    fallbackViewRuntime.historyCalls.filter((entry) => entry.method === 'pushState').length === 2 &&
+    fallbackViewRuntime.root.events.filter((event) => (
+      event.type === 'home:library-change' && event.detail?.expanded === false
+    )).length === 1,
+  'fallback homepage collapse should swap state, URL, and events together under cover before entering');
+  fallbackViewRuntime.flushFrames();
+  fallbackViewRuntime.advanceNextTimer();
 
-  const reducedRuntime = runPageTransitionRuntime(pageTransitionJs, { reducedMotion: true });
-  const reducedClick = reducedRuntime.click();
-  assert(reducedClick.defaultPrevented &&
-    reducedRuntime.assigned[0] === 'https://www.danielshort.me/tools/text-compare' &&
-    !reducedRuntime.stored.has('sitePageTransition') &&
-    !reducedRuntime.htmlClassList.contains('site-page-transition-continuous-out') &&
-    reducedRuntime.stored.has('sitePageTransitionFocus'),
-  'reduced-motion personal navigation should skip animated fallback classes without losing destination focus intent');
-
-  const focusUrl = 'https://www.danielshort.me/tools/text-compare';
-  const focusRuntime = runPageTransitionRuntime(pageTransitionJs, {
-    url: focusUrl,
-    view: 'detail',
-    focusTarget: true,
-    storage: {
-      sitePageTransitionFocus: JSON.stringify({
-        target: focusUrl,
-        category: 'tools',
-        view: 'detail',
-        ts: Date.now()
-      })
-    }
+  const historyDuringEntry = runHomeTransitionRuntime(js);
+  historyDuringEntry.libraryOpen.fire('click');
+  historyDuringEntry.advanceNextTimer();
+  historyDuringEntry.navigateHistory('https://www.danielshort.me/#tools', {
+    homePanel: 'tools',
+    homeView: 'overview',
+    personalCategory: 'tools',
+    personalView: 'overview'
   });
-  focusRuntime.flushFrames();
-  assert(focusRuntime.document.activeElement === focusRuntime.focusTarget &&
-    focusRuntime.focusTarget.attributes.get('tabindex') === '-1' &&
-    focusRuntime.focusTarget.focusedWith?.preventScroll === true &&
-    !focusRuntime.stored.has('sitePageTransitionFocus'),
-  'cross-document detail arrival should consume its focus intent and focus the destination heading without scrolling');
+  assert(historyDuringEntry.root.dataset.homeView === 'library' &&
+    historyDuringEntry.root.classList.contains('is-view-entering'),
+  'history traversal during entry should wait for the active visual handoff instead of desynchronizing the panel');
+  historyDuringEntry.advanceNextTimer();
+  historyDuringEntry.flushFrames();
+  assert(historyDuringEntry.root.dataset.homeView === 'library' &&
+    historyDuringEntry.root.classList.contains('is-view-leaving'),
+  'queued history state should begin reconciliation as soon as the active handoff settles');
+  historyDuringEntry.advanceNextTimer();
+  assert(historyDuringEntry.root.dataset.homeView === 'overview' &&
+    historyDuringEntry.libraryView.hidden,
+  'queued history reconciliation should ultimately align the homepage view with the browser URL');
 
-  const historyFocusRuntime = runPageTransitionRuntime(pageTransitionJs, {
-    url: 'https://www.danielshort.me/tools',
-    view: 'library',
-    focusTarget: true,
-    navigationType: 'back_forward',
-    historyState: { personalCategory: 'tools', personalView: 'library' }
-  });
-  historyFocusRuntime.flushFrames();
-  assert(historyFocusRuntime.document.activeElement === historyFocusRuntime.focusTarget &&
-    historyFocusRuntime.focusTarget.focusedWith?.preventScroll === true,
-  'history traversal to a standalone library should restore semantic heading focus instead of leaving focus on the body');
+  const nativeViewRuntime = runHomeTransitionRuntime(js, { nativeTransitions: true });
+  nativeViewRuntime.libraryOpen.fire('click');
+  assert(nativeViewRuntime.nativeUpdates.length === 1 &&
+    nativeViewRuntime.root.dataset.homeView === 'overview' &&
+    nativeViewRuntime.historyCalls.length === 0 &&
+    nativeViewRuntime.root.classList.contains('is-view-changing'),
+  'native same-document transitions should defer the homepage swap to the browser update callback');
+  nativeViewRuntime.runNativeUpdate();
+  assert(nativeViewRuntime.root.dataset.homeView === 'library' &&
+    !nativeViewRuntime.libraryView.hidden &&
+    nativeViewRuntime.historyCalls.filter((entry) => entry.method === 'pushState').length === 1,
+  'native same-document transitions should update visual state and history inside the browser callback');
+  nativeViewRuntime.finishNativeTransition();
+  assert(!nativeViewRuntime.root.classList.contains('is-view-changing'),
+    'native same-document transitions should release their interaction lock when finished');
+
+  const reducedViewRuntime = runHomeTransitionRuntime(js, { reducedMotion: true });
+  reducedViewRuntime.libraryOpen.fire('click');
+  assert(reducedViewRuntime.root.dataset.homeView === 'library' &&
+    !reducedViewRuntime.libraryView.hidden &&
+    reducedViewRuntime.historyCalls.filter((entry) => entry.method === 'pushState').length === 1 &&
+    reducedViewRuntime.pendingTimerCount() === 0 &&
+    !reducedViewRuntime.root.classList.contains('is-view-changing') &&
+    !reducedViewRuntime.root.classList.contains('is-view-leaving') &&
+    !reducedViewRuntime.root.classList.contains('is-view-entering'),
+  'reduced-motion homepage expansion should update synchronously without transition phases');
+
+  const reduceDuringExitRuntime = runHomeTransitionRuntime(js);
+  reduceDuringExitRuntime.libraryOpen.fire('click');
+  reduceDuringExitRuntime.setReducedMotion(true);
+  assert(reduceDuringExitRuntime.root.dataset.homeView === 'library' &&
+    !reduceDuringExitRuntime.libraryView.hidden &&
+    reduceDuringExitRuntime.historyCalls.filter((entry) => entry.method === 'pushState').length === 1 &&
+    reduceDuringExitRuntime.pendingTimerCount() === 0 &&
+    !reduceDuringExitRuntime.root.classList.contains('is-view-changing'),
+  'enabling reduced motion during the leaving phase should complete the requested state change without animation');
 
   const overviewPanelCss = extractBlock(css, '.home-accordion__panel {');
   const overviewScrollerCss = extractBlock(css, '.home-accordion__scroller {');
+  const overviewItemCss = extractBlock(css, '.home-accordion__item {');
+  const overviewShellCss = extractBlock(css, '.home-accordion__shell {');
   const overviewRailCss = extractBlock(css, '.home-accordion__rail {');
   const profileImageCss = extractBlock(css, '.home-accordion__profile-portrait img {');
   const mobileAccordionCss = extractBlock(css, '@media (max-width: 959px), (max-height: 619px)');
+  const timelineRootCss = extractBlock(timelineCss, '.home-timeline {');
+  const timelineHeadCss = extractBlock(timelineCss, '.home-timeline__head {');
+  const timelineAxisCss = extractBlock(timelineCss, '.home-timeline__axis {');
+  const timelineEntryCss = extractBlock(timelineCss, '.home-timeline__entry {');
+  const timelineMediaCss = extractBlock(timelineCss, '.home-timeline__media {');
   const desktopTimelineCss = extractBlock(timelineCss, '@media (min-width: 960px) and (min-height: 620px)');
+  const desktopTimelineListCss = extractBlock(
+    desktopTimelineCss,
+    '.home-accordion__item--about .home-timeline__list {'
+  );
   const mobileTimelineCss = extractBlock(timelineCss, '@media (max-width: 959px), (max-height: 619px)');
+  const mobileTimelineRootCss = extractBlock(mobileTimelineCss, '.home-timeline {');
+  const mobileTimelineHeadCss = extractBlock(mobileTimelineCss, '.home-timeline__head {');
+  const mobileTimelineListCss = extractBlock(mobileTimelineCss, '.home-timeline__list {');
+  const mobileTimelineItemCss = extractBlock(mobileTimelineCss, '.home-timeline__item {');
+  const mobileTimelineEntryCss = extractBlock(mobileTimelineCss, '.home-timeline__entry,');
   const evenTimelineAxisCss = extractBlock(timelineCss, '.home-timeline__item:nth-child(even) .home-timeline__axis::after');
   assert(css.includes('--home-rail-width: 64px;') &&
     css.includes('--home-active-rail-width: 68px;') &&
     css.includes('--home-collapsed-rails-width: 256px;') &&
-    css.includes('--home-panel-motion: 520ms;') &&
+    css.includes('--home-panel-motion: var(--personal-transition-duration, 440ms);') &&
     css.includes('flex-basis: calc(100% - var(--home-collapsed-rails-width));') &&
     css.includes('@keyframes homeAccordionContentIn') &&
     css.includes('gap: 0;') &&
@@ -894,6 +1030,16 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     css.includes('height: 22px;') &&
     css.includes('clip-path: polygon(0 0, 100% 50%, 0 100%);'),
   'desktop overview should use compact solid 64px rails, a 68px active rail, a 4px frame, and a smaller right-facing notch');
+  assert(overviewShellCss.includes('container: home-accordion-shell / inline-size;') &&
+    overviewShellCss.includes('--home-overview-panel-inline-size: calc(100cqi - var(--home-collapsed-rails-width) - var(--home-active-rail-width));') &&
+    overviewItemCss.includes('overflow: hidden;') &&
+    overviewPanelCss.includes('flex: 0 0 var(--home-overview-panel-inline-size);') &&
+    overviewPanelCss.includes('width: var(--home-overview-panel-inline-size);') &&
+    overviewPanelCss.includes('min-width: var(--home-overview-panel-inline-size);') &&
+    !css.includes('.home-accordion__item.is-closing .home-accordion__scroller') &&
+    mobileAccordionCss.includes('overflow: visible;') &&
+    mobileAccordionCss.includes('min-width: 0;'),
+  'desktop overview panels should reveal a settled container-sized surface without content reflow while mobile panels remain in normal flow');
   assert(overviewPanelCss.includes('background: #ffffff;') &&
     overviewPanelCss.includes('border-radius: 0;') &&
     overviewScrollerCss.includes('overflow-y: auto;') &&
@@ -939,6 +1085,29 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     mobileTimelineCss.includes('top: 11px;') &&
     mobileTimelineCss.includes('width: calc(100% + 14px);'),
   'mobile timeline should preserve horizontal snapping, hide native scrollbars, show the next card, and align connectors through each dot center');
+  assert(timelineRootCss.includes('--home-timeline-gap: 10px;') &&
+    timelineRootCss.includes('padding: 14px var(--home-timeline-gutter) 24px;') &&
+    timelineHeadCss.includes('margin-bottom: 12px;') &&
+    timelineHeadCss.includes('padding-top: 14px;') &&
+    timelineAxisCss.includes('min-height: 76px;') &&
+    timelineEntryCss.includes('min-height: 76px;') &&
+    timelineEntryCss.includes('padding: 10px;') &&
+    timelineMediaCss.includes('width: 40px;') &&
+    timelineMediaCss.includes('height: 40px;') &&
+    desktopTimelineListCss.includes('padding-bottom: 24px;') &&
+    !/\n\s*(?:height|max-height)\s*:/.test(timelineEntryCss),
+  'desktop timeline should retain its approved compact gap, cards, media, heading spacing, and scroll tail while allowing long cards to grow');
+  assert(mobileTimelineRootCss.includes('padding: 10px 0 20px;') &&
+    mobileTimelineHeadCss.includes('margin: 0 18px 12px;') &&
+    mobileTimelineHeadCss.includes('padding-top: 16px;') &&
+    mobileTimelineListCss.includes('gap: 14px;') &&
+    mobileTimelineListCss.includes('padding: 0 18px 10px;') &&
+    mobileTimelineItemCss.includes('grid-template-rows: 26px auto;') &&
+    mobileTimelineItemCss.includes('padding-top: 14px;') &&
+    mobileTimelineEntryCss.includes('min-height: 132px;') &&
+    mobileTimelineEntryCss.includes('padding: 12px;') &&
+    !/\n\s*(?:height|max-height)\s*:/.test(mobileTimelineEntryCss),
+  'mobile timeline should retain compact card and section spacing while its auto content row grows for long milestones');
   assert(timelineCss.includes('.home-timeline__axis {') &&
     timelineCss.includes('grid-column: 2;') &&
     timelineCss.includes('grid-row: 2;') &&
@@ -994,7 +1163,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const libraryLocationJs = extractFunctionBlock(js, 'function libraryCategoryFromLocation');
   const updateLibraryVisibilityJs = extractFunctionBlock(js, 'function updateLibraryViewVisibility');
   const applyLibraryModeJs = extractFunctionBlock(js, 'function applyLibraryMode');
-  const runViewTransitionJs = extractFunctionBlock(js, 'function runViewTransition');
   const resolveTriggerTargetJs = extractFunctionBlock(js, 'function resolveTriggerTarget');
   const activatePanelTriggerJs = extractFunctionBlock(js, 'function activatePanelTrigger');
   const syncDocumentMetadataJs = extractFunctionBlock(js, 'function syncDocumentMetadata');
@@ -1004,7 +1172,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const closeLibraryJs = extractFunctionBlock(js, 'function closeLibrary');
   const handleLocationChangeJs = extractFunctionBlock(js, 'function handleLocationChange');
   assert(js.includes('const closeTimers = new Map();') &&
-    js.includes('const PANEL_TRANSITION_MS = 520;') &&
+    /const PANEL_TRANSITION_MS = \d+;/.test(js) &&
     js.includes("item.classList.add('is-closing')") &&
     js.includes('finishClosingPanel(itemId)') &&
     js.includes("panel.setAttribute('inert', '')") &&
@@ -1149,8 +1317,6 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'inline library URLs should publish their dedicated title and canonical URL, then restore the homepage metadata on overview return');
   assert(updateLibraryVisibilityJs.includes('visible = isLibraryMode && id === activeId') &&
     applyLibraryModeJs.includes("root.classList.toggle('is-library-mode', next)") &&
-    runViewTransitionJs.includes("typeof document.startViewTransition === 'function'") &&
-    runViewTransitionJs.includes('!reducedMotionQuery.matches') &&
     activatePanelTriggerJs.includes('if (isLibraryMode && id === activeId)') &&
     activatePanelTriggerJs.includes('return closeLibrary({ restoreFocus: false });') &&
     updateTriggerStateJs.includes('selected && triggerId === defaultPanel && !isLibraryMode') &&

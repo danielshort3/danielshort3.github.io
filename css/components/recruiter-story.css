@@ -1052,8 +1052,8 @@
     }
 
     body[data-page="analytics"].home-pattern-page .hero.hero--default > .wrapper {
-      width: min(100%, calc(100vw - 28px));
-      max-width: calc(100vw - 28px) !important;
+      width: calc(100% - 28px);
+      max-width: calc(100% - 28px) !important;
       min-height: 0;
       padding: 0 4px 0 48px !important;
       align-items: flex-start !important;
@@ -1249,6 +1249,11 @@
       max-width: none !important;
       padding-inline: 52px 14px !important;
       border-inline: 0;
+    }
+
+    body[data-page="analytics"].home-pattern-page #certifications .cert-band-inner {
+      box-sizing: border-box;
+      max-width: 100% !important;
     }
 
     body[data-page="analytics"].home-pattern-page .story-chapter__frame::before,

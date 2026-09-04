@@ -37,6 +37,7 @@
   const ids = [...itemById.keys()].filter(Boolean);
   const libraryIds = new Set([...libraryViewById.keys()].filter(Boolean));
   const railLayoutQuery = window.matchMedia('(min-width: 960px) and (min-height: 620px)');
+  const compactTransitionQuery = window.matchMedia('(max-width: 959px), (max-height: 619px)');
   const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const scrollPositions = new Map();
   const documentScrollPositions = new Map();
@@ -56,8 +57,12 @@
     title: document.title,
     canonicalHref: canonicalLink?.getAttribute('href') || ''
   });
-  const PANEL_TRANSITION_MS = 520;
+  const PANEL_TRANSITION_MS = 440;
   const VIEW_TRANSITION_MS = 440;
+  const VIEW_EXIT_MS = 176;
+  const VIEW_ENTRY_MS = 244;
+  const COMPACT_VIEW_EXIT_MS = 140;
+  const COMPACT_VIEW_ENTRY_MS = 200;
   const defaultPanel = ids.includes(root.dataset.defaultPanel)
     ? root.dataset.defaultPanel
     : ids[0];
@@ -66,6 +71,10 @@
   let isLibraryMode = false;
   let scrollerTabStopFrame = 0;
   let viewTransitionTimer = 0;
+  let viewTransitionLocked = false;
+  let pendingViewApply = null;
+  let queuedLocationHref = '';
+  let queuedLocationState = null;
   let lastHandledLocationHref = '';
 
   function panelIdFromHash() {
@@ -117,13 +126,15 @@
     if (scroller) scrollPositions.set(scrollPositionKey(id, libraryMode), scroller.scrollTop);
   }
 
-  function restoreScrollPosition(id, libraryMode = isLibraryMode) {
+  function restoreScrollPosition(id, libraryMode = isLibraryMode, immediate = false) {
     if (!railLayoutQuery.matches || !id) return;
-    window.requestAnimationFrame(() => {
+    const restore = () => {
       const scroller = panelScrollTarget(id);
       if (scroller) scroller.scrollTop = scrollPositions.get(scrollPositionKey(id, libraryMode)) || 0;
       scheduleScrollerTabStopUpdate();
-    });
+    };
+    if (immediate) restore();
+    else window.requestAnimationFrame(restore);
   }
 
   function saveDocumentScrollPosition(id, libraryMode = isLibraryMode) {
@@ -131,15 +142,17 @@
     documentScrollPositions.set(scrollPositionKey(id, libraryMode), window.scrollY);
   }
 
-  function restoreDocumentScrollPosition(id, libraryMode = isLibraryMode, fallback = null) {
+  function restoreDocumentScrollPosition(id, libraryMode = isLibraryMode, fallback = null, immediate = false) {
     if (railLayoutQuery.matches || !id) return;
     const key = scrollPositionKey(id, libraryMode);
     const hasSavedPosition = documentScrollPositions.has(key);
     if (!hasSavedPosition && fallback === null) return;
     const top = hasSavedPosition ? documentScrollPositions.get(key) : fallback;
-    window.requestAnimationFrame(() => {
+    const restore = () => {
       window.scrollTo({ top: Math.max(0, Number(top) || 0), behavior: 'auto' });
-    });
+    };
+    if (immediate) restore();
+    else window.requestAnimationFrame(restore);
   }
 
   function canonicalPanelHash(id) {
@@ -430,23 +443,85 @@
     });
   }
 
-  function markViewTransition() {
+  function clearViewTransitionState(options = {}) {
     if (viewTransitionTimer) window.clearTimeout(viewTransitionTimer);
-    root.classList.add('is-view-changing');
-    viewTransitionTimer = window.setTimeout(() => {
-      root.classList.remove('is-view-changing');
-      viewTransitionTimer = 0;
-    }, VIEW_TRANSITION_MS);
+    viewTransitionTimer = 0;
+    if (options.completePending === true && typeof pendingViewApply === 'function') {
+      pendingViewApply();
+    }
+    pendingViewApply = null;
+    viewTransitionLocked = false;
+    root.classList.remove('is-view-changing', 'is-view-leaving', 'is-view-entering');
+    [document.documentElement, document.body].filter(Boolean).forEach((node) => {
+      delete node.dataset.siteTransitionMode;
+      delete node.dataset.siteTransitionCategory;
+      delete node.dataset.siteTransitionDirection;
+    });
+    if (queuedLocationHref) {
+      const targetHref = queuedLocationHref;
+      const targetState = queuedLocationState;
+      queuedLocationHref = '';
+      queuedLocationState = null;
+      window.requestAnimationFrame(() => {
+        if (window.location.href !== targetHref && typeof window.history?.replaceState === 'function') {
+          window.history.replaceState(targetState, '', targetHref);
+        }
+        lastHandledLocationHref = '';
+        handleLocationChange();
+      });
+    }
   }
 
-  function runViewTransition(apply, animate = true) {
-    if (animate && !reducedMotionQuery.matches && typeof document.startViewTransition === 'function') {
-      document.startViewTransition(apply);
-      return;
+  function runViewTransition(apply, animate = true, direction = 'replace') {
+    if (!animate || reducedMotionQuery.matches) {
+      apply();
+      return true;
+    }
+    if (viewTransitionLocked) return false;
+
+    viewTransitionLocked = true;
+    [document.documentElement, document.body].filter(Boolean).forEach((node) => {
+      node.dataset.siteTransitionMode = 'personal';
+      node.dataset.siteTransitionCategory = activeId;
+      node.dataset.siteTransitionDirection = direction;
+    });
+    root.classList.add('is-view-changing');
+    let applied = false;
+    const applyOnce = () => {
+      if (applied) return;
+      applied = true;
+      if (pendingViewApply === applyOnce) pendingViewApply = null;
+      apply();
+    };
+    pendingViewApply = applyOnce;
+    if (typeof document.startViewTransition === 'function') {
+      try {
+        const transition = document.startViewTransition(applyOnce);
+        if (transition?.finished && typeof transition.finished.finally === 'function') {
+          transition.finished.catch(() => {}).finally(clearViewTransitionState);
+        } else {
+          viewTransitionTimer = window.setTimeout(clearViewTransitionState, VIEW_TRANSITION_MS);
+        }
+        return true;
+      } catch {
+        applyOnce();
+        clearViewTransitionState();
+        return true;
+      }
     }
 
-    apply();
-    if (animate && !reducedMotionQuery.matches) markViewTransition();
+    const exitDuration = compactTransitionQuery.matches ? COMPACT_VIEW_EXIT_MS : VIEW_EXIT_MS;
+    const entryDuration = compactTransitionQuery.matches ? COMPACT_VIEW_ENTRY_MS : VIEW_ENTRY_MS;
+    root.classList.add('is-view-leaving');
+    viewTransitionTimer = window.setTimeout(() => {
+      viewTransitionTimer = 0;
+      root.classList.remove('is-view-leaving');
+      applyOnce();
+      root.classList.add('is-view-entering');
+      viewTransitionTimer = window.setTimeout(clearViewTransitionState, entryDuration);
+    }, exitDuration);
+
+    return true;
   }
 
   function applyLibraryMode(nextLibraryMode, options = {}) {
@@ -468,8 +543,7 @@
       if (typeof options.afterApply === 'function') options.afterApply();
     };
 
-    runViewTransition(apply, options.animate !== false);
-    return true;
+    return runViewTransition(apply, options.animate !== false, next ? 'forward' : 'back');
   }
 
   function selectPanel(id, options = {}) {
@@ -529,19 +603,21 @@
     saveScrollPosition(id, false);
     saveDocumentScrollPosition(id, false);
     renderLibrary(id);
-    applyLibraryMode(true, {
+    const changed = applyLibraryMode(true, {
       afterApply: () => {
-        restoreScrollPosition(id, true);
-        restoreDocumentScrollPosition(id, true, 0);
+        restoreScrollPosition(id, true, true);
+        restoreDocumentScrollPosition(id, true, 0, true);
         focusLibraryHeading(id);
+        if (!queuedLocationHref) {
+          updateLocation(id, 'push', true);
+          root.dispatchEvent(new CustomEvent('home:library-change', {
+            bubbles: true,
+            detail: { category: id, expanded: true }
+          }));
+        }
       }
     });
-    updateLocation(id, 'push', true);
-    root.dispatchEvent(new CustomEvent('home:library-change', {
-      bubbles: true,
-      detail: { category: id, expanded: true }
-    }));
-    return true;
+    return changed;
   }
 
   function closeLibrary(options = {}) {
@@ -549,23 +625,25 @@
     const closingId = activeId;
     saveScrollPosition(closingId, true);
     saveDocumentScrollPosition(closingId, true);
-    applyLibraryMode(false, {
+    const changed = applyLibraryMode(false, {
       afterApply: () => {
-        restoreScrollPosition(closingId, false);
-        restoreDocumentScrollPosition(closingId, false, 0);
+        restoreScrollPosition(closingId, false, true);
+        restoreDocumentScrollPosition(closingId, false, 0, true);
         if (options.restoreFocus !== false) focusOverviewReturn(closingId);
+        if (!queuedLocationHref) {
+          updateLocation(closingId, options.historyMode || 'push', false);
+          root.dispatchEvent(new CustomEvent('home:library-change', {
+            bubbles: true,
+            detail: { category: closingId, expanded: false }
+          }));
+          root.dispatchEvent(new CustomEvent('home:category-change', {
+            bubbles: true,
+            detail: { category: closingId, view: 'overview' }
+          }));
+        }
       }
     });
-    updateLocation(closingId, options.historyMode || 'push', false);
-    root.dispatchEvent(new CustomEvent('home:library-change', {
-      bubbles: true,
-      detail: { category: closingId, expanded: false }
-    }));
-    root.dispatchEvent(new CustomEvent('home:category-change', {
-      bubbles: true,
-      detail: { category: closingId, view: 'overview' }
-    }));
-    return true;
+    return changed;
   }
 
   function activatePanelTrigger(id) {
@@ -635,6 +713,11 @@
 
   function handleLocationChange() {
     const currentHref = window.location.href;
+    if (viewTransitionLocked) {
+      queuedLocationHref = currentHref;
+      queuedLocationState = window.history?.state || null;
+      return;
+    }
     if (currentHref === lastHandledLocationHref) return;
     lastHandledLocationHref = currentHref;
     const nextLibraryCategory = libraryCategoryFromLocation();
@@ -652,20 +735,20 @@
       selectPanel(nextPanel, { updateHistory: false, reveal: !nextLibraryMode });
     }
     const restoreLocationState = () => {
-      restoreScrollPosition(nextPanel, nextLibraryMode);
-      restoreDocumentScrollPosition(nextPanel, nextLibraryMode, nextLibraryMode ? 0 : null);
+      restoreScrollPosition(nextPanel, nextLibraryMode, true);
+      restoreDocumentScrollPosition(nextPanel, nextLibraryMode, nextLibraryMode ? 0 : null, true);
       if (modeChanged) {
         if (nextLibraryMode) focusLibraryHeading(nextPanel);
         else focusOverviewReturn(nextPanel);
       }
+      if (nextLibraryMode) updateLocation(nextPanel, 'replace', true);
+      if (!nextLibraryMode && hashPanel) normalizePanelHash(hashPanel);
+      else if (!nextLibraryMode && !window.location.hash) updateLocation(nextPanel, 'replace', false);
     };
     applyLibraryMode(nextLibraryMode, {
       animate: modeChanged,
       afterApply: modeChanged ? restoreLocationState : null
     });
-    if (nextLibraryMode) updateLocation(nextPanel, 'replace', true);
-    if (!nextLibraryMode && hashPanel) normalizePanelHash(hashPanel);
-    else if (!nextLibraryMode && !window.location.hash) updateLocation(nextPanel, 'replace', false);
     if (!modeChanged) restoreLocationState();
   }
 
@@ -689,7 +772,10 @@
   }
 
   listenForMediaChange(railLayoutQuery, settleClosingPanels);
-  listenForMediaChange(reducedMotionQuery, settleClosingPanels);
+  listenForMediaChange(reducedMotionQuery, () => {
+    settleClosingPanels();
+    if (reducedMotionQuery.matches) clearViewTransitionState({ completePending: true });
+  });
   window.addEventListener('resize', scheduleScrollerTabStopUpdate);
   root.addEventListener('load', scheduleScrollerTabStopUpdate, true);
   if (typeof window.ResizeObserver === 'function') {

@@ -100,11 +100,13 @@
     }
 
     .mobile-site-masthead__brand {
+      box-sizing: border-box;
       display: flex;
       flex: 0 1 auto;
       align-items: center;
       gap: 10px;
       min-width: 0;
+      min-height: 44px;
       color: #061b3a;
     }
 

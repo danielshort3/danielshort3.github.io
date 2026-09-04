@@ -548,14 +548,14 @@
       destination_section: safeEventId(destinationSection)
     });
     if (!destination) return;
-    event.preventDefault();
     persistSessionState({
-      restoreOpen: true,
-      restoreUntil: Date.now() + NAVIGATION_RESTORE_MS,
-      open: true,
-      expanded: state.expanded === true
+      restoreOpen: false,
+      restoreUntil: 0,
+      open: false,
+      expanded: false
     });
-    window.location.href = destination.href;
+    setOpen(false);
+    link.href = destination.href;
   }
 
   function handleOutsidePointerDown(event) {

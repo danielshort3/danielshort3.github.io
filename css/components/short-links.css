@@ -3054,3 +3054,16 @@
     }
   }
 }
+
+body.personal-accordion-page[data-personal-item="short-links"]{
+  --shortlinks-shell-width:100%;
+}
+
+body.personal-accordion-page[data-personal-item="short-links"] :is(
+  .shortlinks-app-shell,
+  .shortlinks-workspace,
+  .shortlinks-main-workflow
+){
+  min-width:0;
+  max-width:100%;
+}

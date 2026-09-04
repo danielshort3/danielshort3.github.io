@@ -1698,3 +1698,8 @@ kbd {
     background: Highlight;
   }
 }
+
+body.stormbreak-page.personal-accordion-page[data-personal-item="stormbreak"] {
+  overflow-x: clip;
+  overflow-y: visible;
+}
