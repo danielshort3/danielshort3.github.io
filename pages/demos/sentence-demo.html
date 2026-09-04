@@ -29,19 +29,20 @@
   <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
-  <link rel="stylesheet" href="dist/styles.e4b958aa.css">
+  <link rel="stylesheet" href="dist/styles.d5d631d5.css">
 
   <link rel="icon" href="favicon.ico" sizes="any">
   <script src="js/common/no-js.js"></script>
-  <meta name="author" content="Daniel Short">
+<meta name="author" content="Daniel Short">
 
   <meta name="twitter:description" content="Smart Sentence Retriever interactive demo, presented inside Daniel Short&#39;s project library.">
-  <script defer src="dist/site-shell.931cb2da.js"></script>
-  <link rel="stylesheet" href="dist/styles-personal-accordion.56f41566.css">
+  <script defer src="dist/site-shell.4df445ca.js"></script>
+  <link rel="stylesheet" href="dist/styles-personal-accordion.835e48dd.css">
+  <script type="application/json" id="site-route-manifest" data-site-route-manifest data-version="1">{"version":1,"id":"projects:sentence-demo","path":"/sentence-demo","category":"projects","view":"detail","navigation":"soft","styles":["/dist/styles.d5d631d5.css","/dist/styles-personal-accordion.835e48dd.css"],"scripts":["/js/common/no-js.js","/dist/site-shell.4df445ca.js","/js/navigation/project-demo-wrapper.js","/dist/site-consent.48cafebf.js"],"module":"projects:sentence-demo"}</script>
 </head>
-<body class="project-demo-wrapper-page personal-accordion-page" data-page="project-demo" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="sentence-demo" data-personal-fit="viewport" data-personal-chrome="compact">
+<body class="project-demo-wrapper-page personal-accordion-page" data-page="project-demo" data-audience="personal" data-personal-accordion-view="detail" data-personal-category="projects" data-personal-item="sentence-demo" data-personal-fit="viewport" data-site-route-id="projects:sentence-demo" data-site-route-category="projects" data-site-route-view="detail" data-site-route-navigation="soft" data-personal-chrome="compact">
   <a href="/sentence-demo#main" class="skip-link">Skip to interactive demo</a>
-<header id="combined-header-nav">
+<header id="combined-header-nav" data-site-shell-header>
   <nav class="nav" aria-label="Primary">
     <div class="wrapper nav-wrapper">
       <a href="/" class="brand" data-entry-home-link="true">
@@ -189,17 +190,38 @@
 </header>
 
 <!-- personal-accordion-shell:start -->
-<section class="personal-accordion personal-accordion--projects personal-accordion--detail" data-personal-accordion-shell data-personal-active-category="projects" style="--panel-color: #155dfc; --panel-color-end: #0b4bd4;">
+  <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>
+<section class="personal-accordion personal-accordion--projects personal-accordion--detail" data-personal-accordion-shell data-personal-active-category="projects" data-site-route-content style="--panel-color: #155dfc; --panel-color-end: #0b4bd4;">
   <div class="personal-accordion__shell">
-    <div class="personal-accordion__rails" data-personal-category-marker="projects">
-      <a class="personal-accordion__rail personal-accordion__rail--projects is-active" href="/#projects" aria-label="Return to the Projects section on the homepage" style="--rail-color: #155dfc; --rail-color-end: #0b4bd4;" data-personal-rail-active="true" data-personal-transition="collapse">
+    <div class="personal-accordion__rails" data-personal-category-marker="projects" data-site-tab-rail data-site-tab-rail-mode="expanded">
+      <a class="personal-accordion__rail personal-accordion__rail--about" href="/#about" aria-label="Return to the About section on the homepage" style="--rail-color: #091f3b; --rail-color-end: #032b57;" data-site-tab="about" data-site-tab-category="about" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"></circle><path d="M4.5 21c.7-4.1 3.2-6.2 7.5-6.2s6.8 2.1 7.5 6.2"></path></svg></span>
+        <span class="personal-accordion__rail-label">About</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--projects is-active" href="/#projects" aria-label="Return to the Projects section on the homepage" style="--rail-color: #155dfc; --rail-color-end: #0b4bd4;" data-site-tab="projects" data-site-tab-category="projects" aria-current="page" data-personal-rail-active="true" data-site-tab-active="true" data-personal-transition="collapse">
         <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2-2h9v14H3z"></path><path d="M3 9h18"></path></svg></span>
         <span class="personal-accordion__rail-label">Projects</span>
         <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
       </a>
+      <a class="personal-accordion__rail personal-accordion__rail--tools" href="/#tools" aria-label="Return to the Tools section on the homepage" style="--rail-color: #087f8c; --rail-color-end: #006973;" data-site-tab="tools" data-site-tab-category="tools" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.1a5 5 0 0 0-6.8 6.8L3 17.8 6.2 21l4.9-4.9a5 5 0 0 0 6.8-6.8l-3.1 3.1-3.2-3.2z"></path></svg></span>
+        <span class="personal-accordion__rail-label">Tools</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--games" href="/#games" aria-label="Return to the Games section on the homepage" style="--rail-color: #c94b0a; --rail-color-end: #e35d00;" data-site-tab="games" data-site-tab-category="games" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 8h9a5 5 0 0 1 4.7 3.3l1.2 3.6a3.2 3.2 0 0 1-5.3 3.3L15 16H9l-2.1 2.2a3.2 3.2 0 0 1-5.3-3.3l1.2-3.6A5 5 0 0 1 7.5 8z"></path><path d="M7 11v4M5 13h4M16.5 12h.01M19 14h.01"></path></svg></span>
+        <span class="personal-accordion__rail-label">Games</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
+      <a class="personal-accordion__rail personal-accordion__rail--contact" href="/#contact" aria-label="Return to the Contact section on the homepage" style="--rail-color: #334155; --rail-color-end: #263648;" data-site-tab="contact" data-site-tab-category="contact" hidden inert aria-hidden="true" tabindex="-1">
+        <span class="personal-accordion__rail-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8M8 13h5"></path></svg></span>
+        <span class="personal-accordion__rail-label">Contact</span>
+        <span class="personal-accordion__rail-notch" aria-hidden="true"></span>
+      </a>
     </div>
     <div class="personal-accordion__panel" data-personal-detail-panel="projects">
-      <div class="personal-accordion__toolbar">
+      <div class="personal-accordion__toolbar" data-site-route-toolbar>
         <a class="personal-accordion__back" href="/portfolio/smartSentence" aria-label="Back to Smart Sentence Retriever">
           <span class="personal-accordion__back-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></span>
           <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">Back to Smart Sentence Retriever</span>
@@ -214,125 +236,7 @@
         <!-- personal-accordion-content:start -->
 <main id="main" class="project-demo-wrapper-main" aria-label="Smart Sentence Retriever interactive demo">
     <div class="project-demo-wrapper-frame">
-      <iframe id="project-demo-frame-sentence-demo" class="project-demo-wrapper-iframe" src="/demos/sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="eager" allowfullscreen></iframe>
-      <script>
-        (() => {
-          const frame = document.getElementById("project-demo-frame-sentence-demo");
-          const frameContainer = frame ? frame.closest('.project-demo-wrapper-frame') : null;
-          const frameMain = frame ? frame.closest('.project-demo-wrapper-main') : null;
-          const mobileQuery = window.matchMedia('(max-width: 959px)');
-          const suffix = window.location.search + window.location.hash;
-          let resizeObserver = null;
-          let resizeFrame = 0;
-          let resizeTimers = [];
-          let lastHeight = 0;
-
-          const clearScheduledMeasurements = () => {
-            if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
-            resizeFrame = 0;
-            resizeTimers.forEach((timer) => window.clearTimeout(timer));
-            resizeTimers = [];
-          };
-
-          const disconnectObserver = () => {
-            if (resizeObserver) resizeObserver.disconnect();
-            resizeObserver = null;
-          };
-
-          const clearMobileHeight = () => {
-            clearScheduledMeasurements();
-            [frameMain, frameContainer, frame].forEach((element) => {
-              if (element) element.style.removeProperty('height');
-            });
-            document.body.removeAttribute('data-project-demo-autosize');
-            lastHeight = 0;
-          };
-
-          const measureFrame = () => {
-            resizeFrame = 0;
-            if (!frame || !frameContainer || !frameMain || !mobileQuery.matches) return;
-
-            try {
-              const frameDocument = frame.contentDocument;
-              const frameBody = frameDocument && frameDocument.body;
-              const frameRoot = frameDocument && frameDocument.documentElement;
-              if (!frameBody || !frameRoot) return;
-
-              const nextHeight = Math.max(
-                560,
-                frameBody.scrollHeight,
-                frameBody.offsetHeight,
-                frameRoot.scrollHeight,
-                frameRoot.offsetHeight
-              );
-              if (!Number.isFinite(nextHeight) || Math.abs(nextHeight - lastHeight) < 2) return;
-
-              lastHeight = Math.ceil(nextHeight);
-              const height = String(lastHeight) + 'px';
-              frameMain.style.height = height;
-              frameContainer.style.height = height;
-              frame.style.height = height;
-              document.body.setAttribute('data-project-demo-autosize', 'true');
-            } catch (error) {
-              clearMobileHeight();
-            }
-          };
-
-          const scheduleMeasurement = () => {
-            if (!mobileQuery.matches || resizeFrame) return;
-            resizeFrame = window.requestAnimationFrame(measureFrame);
-          };
-
-          const observeFrame = () => {
-            disconnectObserver();
-            clearScheduledMeasurements();
-
-            if (!mobileQuery.matches) {
-              clearMobileHeight();
-              return;
-            }
-
-            try {
-              const frameDocument = frame.contentDocument;
-              const frameBody = frameDocument && frameDocument.body;
-              const frameRoot = frameDocument && frameDocument.documentElement;
-              if (!frameBody || !frameRoot) return;
-
-              const FrameResizeObserver = frame.contentWindow && frame.contentWindow.ResizeObserver;
-              if (FrameResizeObserver) {
-                resizeObserver = new FrameResizeObserver(scheduleMeasurement);
-                resizeObserver.observe(frameBody);
-                resizeObserver.observe(frameRoot);
-              }
-
-              scheduleMeasurement();
-              [120, 500, 1500].forEach((delay) => {
-                resizeTimers.push(window.setTimeout(scheduleMeasurement, delay));
-              });
-            } catch (error) {
-              clearMobileHeight();
-            }
-          };
-
-          const handleViewportChange = () => {
-            if (mobileQuery.matches) observeFrame();
-            else {
-              disconnectObserver();
-              clearMobileHeight();
-            }
-          };
-
-          if (!frame) return;
-          frame.addEventListener('load', observeFrame);
-          if (typeof mobileQuery.addEventListener === 'function') {
-            mobileQuery.addEventListener('change', handleViewportChange);
-          } else {
-            mobileQuery.addListener(handleViewportChange);
-          }
-          if (suffix) frame.src = "/demos/sentence-demo.html" + suffix;
-          window.setTimeout(observeFrame, 0);
-        })();
-      </script>
+      <iframe id="project-demo-frame-sentence-demo" class="project-demo-wrapper-iframe" src="/demos/sentence-demo.html" data-project-demo-src="/demos/sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="eager" allowfullscreen></iframe>
     </div>
   </main>
         <!-- personal-accordion-content:end -->
@@ -340,9 +244,10 @@
     </div>
   </div>
 </section>
+  <p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-site-route-announcer></p>
 <!-- personal-accordion-shell:end -->
 
-<footer class="footer footer-classic footer--personal-compact">
+<footer class="footer footer-classic footer--personal-compact" data-site-shell-footer>
   <div class="wrapper footer-inner">
     <p class="footer-meta">© 2026 Daniel Short</p>
     <nav class="footer-utility" aria-label="Personal footer">
@@ -391,7 +296,8 @@
     </svg>
   </button>
 </div>
+  <script defer src="js/navigation/project-demo-wrapper.js"></script>
 
-  <script defer src="dist/site-consent.20903590.js"></script>
+  <script defer src="dist/site-consent.48cafebf.js"></script>
 </body>
 </html>

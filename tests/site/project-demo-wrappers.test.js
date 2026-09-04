@@ -32,6 +32,7 @@ function runProjectDemoWrapperTests({ assert }) {
   const css = read('css/components/personal-accordion-shell.css');
   const projectCss = read('css/components/project-page.css');
   const buildRunner = read('build/build-site.js');
+  const demoWrapperLifecycle = read('js/navigation/project-demo-wrapper.js');
 
   assert(definitions.length === 12 && PROJECT_DEMO_IDS.length === 12,
     'Project demo continuity should cover all 12 raw demo documents');
@@ -56,10 +57,13 @@ function runProjectDemoWrapperTests({ assert }) {
     assert(wrapperFromSource.includes(`class="project-demo-wrapper-iframe" src="${definition.rawPath}"`) &&
       wrapperFromSource.includes('data-personal-category="projects"'),
     `${wrapperRelativePath} should be reproducible from the authoritative wrapper generator`);
-    assert(wrapperFromSource.includes("window.matchMedia('(max-width: 959px)')") &&
-      wrapperFromSource.includes("frame.addEventListener('load', observeFrame);") &&
-      wrapperFromSource.includes('new FrameResizeObserver(scheduleMeasurement)') &&
-      wrapperFromSource.includes("element.style.removeProperty('height');"),
+    assert(wrapperFromSource.includes('data-project-demo-src=') &&
+      wrapperFromSource.includes('<script defer src="js/navigation/project-demo-wrapper.js"></script>') &&
+      demoWrapperLifecycle.includes("window.matchMedia('(max-width: 959px)')") &&
+      demoWrapperLifecycle.includes("listen(frame, 'load', observeFrame);") &&
+      demoWrapperLifecycle.includes('new FrameResizeObserver(scheduleMeasurement)') &&
+      demoWrapperLifecycle.includes("style?.removeProperty('height')") &&
+      demoWrapperLifecycle.includes('window.SiteRoutes?.addCleanup?.(dispose);'),
     `${wrapperRelativePath} should auto-size its same-origin demo on mobile and restore fixed desktop sizing`);
     assert(count(raw, new RegExp(GUARD_START, 'g')) === 1 &&
       count(raw, new RegExp(GUARD_END, 'g')) === 1 &&
@@ -82,8 +86,9 @@ function runProjectDemoWrapperTests({ assert }) {
       wrapper.includes(`class="project-demo-wrapper-iframe" src="${definition.rawPath}"`) &&
       !wrapper.includes(`class="project-demo-wrapper-iframe" src="${definition.canonicalPath}"`),
     `${wrapperRelativePath} should isolate the raw demo in exactly one non-recursive iframe`);
-    assert(wrapper.includes('const suffix = window.location.search + window.location.hash;') &&
-      wrapper.includes(`frame.src = ${JSON.stringify(definition.rawPath)} + suffix;`),
+    assert(wrapper.includes(`data-project-demo-src="${definition.rawPath}"`) &&
+      wrapper.includes('<script defer src="js/navigation/project-demo-wrapper.js"></script>') &&
+      !wrapper.includes('const suffix = window.location.search + window.location.hash;'),
     `${wrapperRelativePath} should forward canonical query and fragment state into the raw demo`);
     assert(!/<title>[^<]*\bDemo Demo\b/i.test(wrapper),
       `${wrapperRelativePath} should not duplicate Demo in the document title`);

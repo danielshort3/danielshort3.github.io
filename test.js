@@ -621,6 +621,326 @@ function evalScript(file, env) {
   return context;
 }
 
+function runCertificationsModalLifecycleTest(source) {
+  const createListenerTarget = () => {
+    const listeners = new Map();
+    return {
+      addEventListener(type, listener) {
+        const entries = listeners.get(type) || new Set();
+        entries.add(listener);
+        listeners.set(type, entries);
+      },
+      dispatch(type, details = {}) {
+        const event = {
+          defaultPrevented: false,
+          key: '',
+          preventDefault() {
+            this.defaultPrevented = true;
+          },
+          shiftKey: false,
+          target: this,
+          type,
+          ...details
+        };
+        Array.from(listeners.get(type) || []).forEach((listener) => listener(event));
+        return event;
+      },
+      listenerCount(type) {
+        return (listeners.get(type) || new Set()).size;
+      },
+      removeEventListener(type, listener) {
+        listeners.get(type)?.delete(listener);
+      }
+    };
+  };
+  const createClassList = (initial = []) => {
+    const values = new Set(initial);
+    return {
+      add(...names) {
+        names.forEach((name) => values.add(name));
+      },
+      contains(name) {
+        return values.has(name);
+      },
+      remove(...names) {
+        names.forEach((name) => values.delete(name));
+      },
+      toggle(name, force) {
+        const enabled = typeof force === 'boolean' ? force : !values.has(name);
+        if (enabled) values.add(name);
+        else values.delete(name);
+        return enabled;
+      }
+    };
+  };
+
+  let document;
+  const createElement = (name, initialClasses = []) => {
+    const attributes = new Map();
+    const target = createListenerTarget();
+    const element = {
+      ...target,
+      classList: createClassList(initialClasses),
+      disabled: false,
+      focusCount: 0,
+      hidden: false,
+      inert: false,
+      name,
+      closest() {
+        return null;
+      },
+      focus(options) {
+        this.focusCount += 1;
+        this.focusOptions = options || null;
+        document.activeElement = this;
+      },
+      getAttribute(attribute) {
+        return attributes.has(attribute) ? attributes.get(attribute) : null;
+      },
+      hasAttribute(attribute) {
+        return attributes.has(attribute);
+      },
+      querySelector() {
+        return null;
+      },
+      querySelectorAll() {
+        return [];
+      },
+      removeAttribute(attribute) {
+        attributes.delete(attribute);
+      },
+      setAttribute(attribute, value) {
+        attributes.set(attribute, String(value));
+      },
+      toggleAttribute(attribute, force) {
+        if (force) attributes.set(attribute, '');
+        else attributes.delete(attribute);
+      }
+    };
+    return element;
+  };
+
+  const createScene = (name) => {
+    const opener = createElement(`${name}-opener`);
+    const closer = createElement(`${name}-closer`, ['modal-close']);
+    const content = createElement(`${name}-content`, ['modal-content']);
+    const modal = createElement(`${name}-modal`, ['modal']);
+    content.querySelectorAll = () => [closer];
+    modal.querySelector = (selector) => selector === '.modal-content' ? content : null;
+    modal.querySelectorAll = (selector) => selector === '[data-cert-modal-close], .modal-close' ? [closer] : [];
+    const root = {
+      getElementById(id) {
+        return id === 'certifications-modal' ? modal : null;
+      },
+      querySelector(selector) {
+        return selector === '#certifications-modal' ? modal : null;
+      },
+      querySelectorAll(selector) {
+        return selector === '[data-cert-modal-open]' ? [opener] : [];
+      }
+    };
+    return { closer, content, modal, nodes: [opener, closer, content, modal], opener, root };
+  };
+
+  let scene = createScene('initial');
+  const documentTarget = createListenerTarget();
+  const body = createElement('body');
+  const otherModal = createElement('other-modal', ['modal']);
+  document = {
+    ...documentTarget,
+    activeElement: body,
+    body,
+    readyState: 'loading',
+    contains(node) {
+      return node === body || scene.nodes.includes(node);
+    },
+    getElementById(id) {
+      return scene.root.getElementById(id);
+    },
+    querySelector(selector) {
+      if (selector === '.modal.active') {
+        if (scene.modal?.classList.contains('active')) return scene.modal;
+        if (otherModal.classList.contains('active')) return otherModal;
+        return null;
+      }
+      return scene.root.querySelector(selector);
+    },
+    querySelectorAll(selector) {
+      return scene.root.querySelectorAll(selector);
+    }
+  };
+
+  const location = {};
+  const setLocation = (value) => {
+    const url = new URL(value, location.href || 'https://example.test/analytics');
+    location.hash = url.hash;
+    location.href = url.href;
+    location.pathname = url.pathname;
+    location.search = url.search;
+  };
+  setLocation('https://example.test/analytics?audience=recruiter#proof');
+  const historyCalls = [];
+  const history = {
+    replaceState(state, title, next) {
+      historyCalls.push({ next, state, title });
+      setLocation(next);
+    }
+  };
+  const windowTarget = createListenerTarget();
+  const accessibilityRecords = new Map();
+  let accessibilityFactoryCalls = 0;
+  const window = {
+    ...windowTarget,
+    createModalAccessibility(modal) {
+      accessibilityFactoryCalls += 1;
+      const record = { hide: 0, isolate: 0, restore: 0, show: 0 };
+      accessibilityRecords.set(modal, record);
+      const setOpenState = (isOpen) => {
+        modal.hidden = !isOpen;
+        modal.inert = !isOpen;
+        modal.toggleAttribute('inert', !isOpen);
+        modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      };
+      setOpenState(modal.classList.contains('active'));
+      return {
+        hide() {
+          record.hide += 1;
+          setOpenState(false);
+        },
+        isolateBackground() {
+          record.isolate += 1;
+        },
+        restoreBackground() {
+          record.restore += 1;
+        },
+        show() {
+          record.show += 1;
+          setOpenState(true);
+        }
+      };
+    },
+    document,
+    history,
+    location
+  };
+  window.window = window;
+
+  vm.runInNewContext(source, {
+    URL,
+    URLSearchParams,
+    console,
+    document,
+    history,
+    location,
+    window
+  }, { filename: 'js/common/certifications-modal.js' });
+
+  assert(typeof window.initializeCertificationsModal === 'undefined',
+    'certification modal route remounting should not add a public window API');
+  assert(accessibilityFactoryCalls === 0 && document.listenerCount('DOMContentLoaded') === 1,
+    'certification modal should defer direct-page mounting until DOMContentLoaded while the document loads');
+  assert(document.listenerCount('site:route-mounted') === 1 && document.listenerCount('site:content-updated') === 1,
+    'certification modal should listen once for both route-mounted and content-updated remounts');
+  document.dispatch('DOMContentLoaded');
+  assert(accessibilityFactoryCalls === 1,
+    'DOMContentLoaded should mount one certification controller for the initial DOM');
+  document.dispatch('site:route-mounted', { detail: { root: scene.root } });
+  document.dispatch('site:content-updated', { detail: { root: scene.root } });
+  assert(accessibilityFactoryCalls === 1,
+    'repeated lifecycle events should preserve the controller when certification nodes are unchanged');
+
+  const initialScene = scene;
+  document.activeElement = initialScene.opener;
+  const openEvent = initialScene.opener.dispatch('click');
+  assert(openEvent.defaultPrevented && initialScene.modal.classList.contains('active') &&
+    initialScene.modal.hidden === false && initialScene.modal.inert === false &&
+    initialScene.modal.getAttribute('aria-hidden') === 'false' && body.classList.contains('modal-open'),
+  'certification opener should expose the dialog through the shared accessible modal lifecycle');
+  assert(location.href === 'https://example.test/analytics?audience=recruiter&modal=certifications#proof' &&
+    initialScene.content.focusCount === 1,
+  'certification opener should preserve existing URL state and focus the dialog');
+  initialScene.closer.dispatch('click');
+  assert(!initialScene.modal.classList.contains('active') && initialScene.modal.hidden === true &&
+    initialScene.modal.inert === true && initialScene.modal.getAttribute('aria-hidden') === 'true' &&
+    !body.classList.contains('modal-open'),
+  'certification closer should hide and inert the dialog and clear modal body state');
+  assert(location.href === 'https://example.test/analytics?audience=recruiter#proof' && initialScene.opener.focusCount === 1,
+    'certification closer should remove only its URL parameter and restore trigger focus');
+  initialScene.opener.dispatch('click');
+  const callsAfterBackdropReopen = historyCalls.length;
+  initialScene.modal.dispatch('click', { target: initialScene.content });
+  const innerClickStayedOpen = initialScene.modal.classList.contains('active') &&
+    historyCalls.length === callsAfterBackdropReopen;
+  initialScene.modal.dispatch('click', { target: initialScene.modal });
+  assert(innerClickStayedOpen && !initialScene.modal.classList.contains('active') &&
+    historyCalls.length === callsAfterBackdropReopen + 1 && !location.search.includes('modal=certifications'),
+  'certification modal should ignore inner clicks and close only when the click target is its backdrop');
+  initialScene.opener.dispatch('click');
+  document.dispatch('keydown', { key: 'Escape' });
+  assert(!initialScene.modal.classList.contains('active') && initialScene.modal.hidden === true &&
+    initialScene.modal.inert === true && !body.classList.contains('modal-open') &&
+    !location.search.includes('modal=certifications'),
+  'Escape should close the currently mounted certification modal through its accessible lifecycle');
+
+  scene = createScene('route-replacement');
+  const routeScene = scene;
+  document.dispatch('site:route-mounted', { detail: { root: routeScene.root } });
+  assert(accessibilityFactoryCalls === 2,
+    'route-mounted should replace the controller when certification modal nodes change');
+  const callsBeforeDetachedClick = historyCalls.length;
+  initialScene.opener.dispatch('click');
+  assert(historyCalls.length === callsBeforeDetachedClick && !initialScene.modal.classList.contains('active'),
+    'remounting should detach listeners from the replaced certification DOM');
+
+  document.dispatch('site:route-mounted', { detail: { root: routeScene.root } });
+  document.dispatch('site:content-updated', { detail: { root: routeScene.root } });
+  const callsBeforeRouteOpen = historyCalls.length;
+  routeScene.opener.dispatch('click');
+  const routeAccessibility = accessibilityRecords.get(routeScene.modal);
+  assert(historyCalls.length === callsBeforeRouteOpen + 1 && routeAccessibility.isolate === 1,
+    'repeated lifecycle events should not duplicate certification opener listeners');
+  routeScene.closer.dispatch('click');
+
+  scene = createScene('content-replacement');
+  const contentScene = scene;
+  document.dispatch('site:content-updated', { detail: { root: contentScene.root } });
+  assert(accessibilityFactoryCalls === 3,
+    'content-updated should mount the certification controller against the current DOM');
+  const callsBeforeOldRouteClick = historyCalls.length;
+  routeScene.opener.dispatch('click');
+  assert(historyCalls.length === callsBeforeOldRouteClick && !routeScene.modal.classList.contains('active'),
+    'content replacement should dispose listeners owned by the prior certification DOM');
+
+  contentScene.opener.dispatch('click');
+  otherModal.classList.add('active');
+  scene = {
+    modal: null,
+    nodes: [],
+    root: {
+      getElementById() {
+        return null;
+      },
+      querySelector() {
+        return null;
+      },
+      querySelectorAll() {
+        return [];
+      }
+    }
+  };
+  document.dispatch('site:content-updated', { detail: { root: scene.root } });
+  const callsBeforeDisposedClick = historyCalls.length;
+  assert(!contentScene.modal.classList.contains('active') && contentScene.modal.hidden === true &&
+    contentScene.modal.inert === true && body.classList.contains('modal-open'),
+  'disposing an active certification controller should close it without clearing another modal scroll lock');
+  assert(document.listenerCount('keydown') === 0 && window.listenerCount('popstate') === 0 &&
+    window.listenerCount('hashchange') === 0,
+  'disposing the current certification controller should remove its global lifecycle listeners');
+  contentScene.opener.dispatch('click');
+  assert(historyCalls.length === callsBeforeDisposedClick && !contentScene.modal.classList.contains('active'),
+    'a disposed certification controller should not retain opener listeners');
+}
+
 function createProjectImageComparisonHarness({ width = 712, viewportLeft = 100 } = {}) {
   const domReadyHandlers = [];
   const animationFrames = new Map();
@@ -942,7 +1262,7 @@ try {
     ['404.html', 'pages/privacy.html'].forEach((f) => {
       const html = readFile(f);
       const skipIndex = html.indexOf('class="skip-link"');
-      const headerIndex = html.indexOf('<header id="combined-header-nav">');
+      const headerIndex = html.indexOf('<header id="combined-header-nav"');
       assert(skipIndex >= 0 && headerIndex >= 0, `${f} missing skip-link or shared header`);
       assert(skipIndex < headerIndex, `${f} skip-link should appear before shared header`);
     });
@@ -1142,6 +1462,7 @@ try {
     const vercelConfig = JSON.parse(readFile('vercel.json'));
     const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
     const catalogJs = readFile('js/accounts/tools-account-ui.js');
+    const toolsAccountLoaderJs = readFile('js/accounts/tools-page-loader.js');
     const directoryJs = readFile('js/tools/tools-directory.js');
     const commonJs = readFile('js/common/common.js');
     const portfolioJs = readFile('js/portfolio/portfolio.js');
@@ -1287,6 +1608,21 @@ try {
       catalogJs.includes("refs.embeddedActionsEl?.querySelector('a:not([hidden]),button:not([hidden])')") &&
       catalogJs.includes("disclosureController.close({ restoreFocus: !capabilities.embedded })"),
       'account bootstrap and auth transitions should restore dual-mode sessions, resync tool UI, and preserve focus in standard and embedded bars');
+    assert(catalogJs.includes('const initToolsAccountServices = () =>') &&
+      catalogJs.includes("document.addEventListener('site:route-mounted', handleRouteMounted)") &&
+      catalogJs.includes("document.addEventListener('site:route-unmounted', handleRouteUnmounted)") &&
+      catalogJs.includes('window.SiteRoutes.runInScope(route.id, mount)') &&
+      catalogJs.includes('window.SiteRoutes?.addCleanup?.(routeMount.cleanup, route.id)') &&
+      catalogJs.includes("const toolId = Object.prototype.hasOwnProperty.call(TOOL_CATALOG, page) ? page : ''") &&
+      catalogJs.includes('registerCleanup(initToolAutoSave({'),
+    'tools account services should remain shared while route-owned bars, dashboards, restoration, and autosave remount with lifecycle cleanup');
+    assert(toolsAccountLoaderJs.includes("dock.dataset.toolsAccountLoaderReady === 'true'") &&
+      toolsAccountLoaderJs.includes('delete binding.dock.dataset.toolsAccountLoaderReady') &&
+      toolsAccountLoaderJs.includes('window.SiteRoutes?.addCleanup?.(() => releaseBinding(binding), routeId)') &&
+      toolsAccountLoaderJs.includes("document.addEventListener('site:route-mounted', bindCurrentDock)") &&
+      toolsAccountLoaderJs.includes('window.__toolsAccountLoaderController = controller') &&
+      !toolsAccountLoaderJs.includes('window.__toolsAccountLoaderReady'),
+    'tools account lazy loading should be dock-scoped and release its route readiness guard on unmount');
     assert(catalogJs.includes('applyToolsAuthenticatedContentVisibility') &&
       catalogJs.includes('[data-tools-auth-only]'),
       'tools account UI should centrally manage signed-in-only tools content');
@@ -39163,7 +39499,8 @@ try {
       'manual cloud saving should appear only after a tool becomes dirty');
     assert(accountUi.includes("['true', 'on', '1'].includes(normalizedMode)") &&
       accountUi.includes("persistenceMode === 'autosave'") &&
-      accountUi.includes('if (!autosaveEnabled) return;'),
+      accountUi.includes('if (autosaveEnabled) {') &&
+      accountUi.includes('timer = window.setInterval(tick, AUTO_SAVE_MS);'),
       'tool cloud autosave should require an explicit page opt-in');
     assert(accountUi.includes("'ga4-utm-performance': { persistence: 'none' }") &&
       accountUi.includes("'job-application-tracker': { persistence: 'custom' }") &&
@@ -40404,6 +40741,17 @@ try {
     assert(!varsCss.includes('#06B6D4'), 'variables.css should not keep the old cyan palette value');
     assert(varsCss.includes('--mobile-page-gutter:clamp(12px,4vw,18px);'), 'variables.css missing mobile page gutter token');
     assert(varsCss.includes('--mobile-section-y:clamp(1.55rem,5vw,2.25rem);'), 'variables.css missing compact mobile section token');
+    assert(
+      /--modal-backdrop\s*:\s*rgba\(9\s*,\s*31\s*,\s*59\s*,\s*\.58\)\s*;/.test(varsCss) &&
+        /--modal-backdrop-filter\s*:\s*blur\(4px\)\s*;/.test(varsCss) &&
+        /--modal-surface\s*:\s*var\(--surface\)\s*;/.test(varsCss) &&
+        /--modal-border\s*:\s*var\(--border-1\)\s*;/.test(varsCss) &&
+        /--modal-radius\s*:\s*var\(--radius-16\)\s*;/.test(varsCss) &&
+        /--modal-radius-mobile\s*:\s*var\(--radius-12\)\s*;/.test(varsCss) &&
+        /--modal-shadow\s*:\s*var\(--shadow-lg\)\s*;/.test(varsCss) &&
+        /--modal-accent\s*:\s*var\(--brand-signal-blue\)\s*;/.test(varsCss),
+      'variables.css should expose the shared light-site modal shell contract',
+    );
 
     const heroCss = fs.readFileSync('css/components/hero.css', 'utf8');
     assert(!heroCss.includes('var(--secondary)'), 'hero.css still references --secondary');
@@ -40415,6 +40763,17 @@ try {
     const siteShellEntryJs = fs.readFileSync('build/entries/site-shell.entry.js', 'utf8');
     const siteContactEntryJs = fs.readFileSync('build/entries/site-contact.entry.js', 'utf8');
     assert(!modalCss.includes('var(--secondary)'), 'modal.css still references --secondary');
+    assert(
+      /\.modal\s*\{[^}]*background\s*:\s*var\(--modal-backdrop\)\s*;[^}]*backdrop-filter\s*:\s*var\(--modal-backdrop-filter\)\s*;/s.test(modalCss) &&
+        /\.modal-content\s*\{[^}]*background\s*:\s*var\(--modal-surface\)\s*;[^}]*border\s*:\s*1px solid var\(--modal-border\)\s*;[^}]*border-radius\s*:\s*var\(--modal-radius\)\s*;[^}]*box-shadow\s*:\s*var\(--modal-shadow\)\s*;/s.test(modalCss) &&
+        /\.modal-content::before\s*\{[^}]*background\s*:\s*var\(--modal-accent\)/s.test(modalCss),
+      'generic modals should consume the shared backdrop, surface, border, radius, shadow, and accent tokens',
+    );
+    assert(
+      /\.modal-close\s*\{[^}]*width\s*:\s*44px\s*;[^}]*height\s*:\s*44px\s*;/s.test(modalCss) &&
+        /\.modal-close:focus-visible\s*\{[^}]*outline\s*:\s*var\(--focus-ring\)/s.test(modalCss),
+      'generic modal close controls should keep a 44px target and the shared focus ring',
+    );
     assert(modalCss.includes('.contact-form input') && modalCss.includes('.contact-form-status'), 'contact modal form styles missing');
     assert(modalCss.includes('#contact-modal .modal-content') && modalCss.includes('width:calc(100vw - 12px);'), 'contact modal should use compact mobile viewport width');
     assert(modalCss.includes('visibility:hidden;') && modalCss.includes('.modal[hidden]{display:none}'),
@@ -40431,15 +40790,18 @@ try {
       certificationsModalJs.includes('modalAccessibility.isolateBackground()') &&
       contactFormJs.includes('modalAccessibility?.isolateBackground()'),
       'certification and contact dialogs should use the shared accessible modal lifecycle');
+    runCertificationsModalLifecycleTest(certificationsModalJs);
 
     const projectCss = fs.readFileSync('css/components/project-page.css', 'utf8');
     const toolsCss = fs.readFileSync('css/components/tools.css', 'utf8');
     const brandOverrideCss = fs.readFileSync('css/utilities/design-system-overrides.css', 'utf8');
+    const colorFallbackCss = fs.readFileSync('css/utilities/color-fallback.css', 'utf8');
     const toolsWorkspaceCss = fs.readFileSync('css/components/tools-workspace.css', 'utf8');
     const toolsAccountCss = fs.readFileSync('css/components/tools-account.css', 'utf8');
     const siteChatbotCss = fs.readFileSync('css/components/site-chatbot.css', 'utf8');
     const cookieSettingsCss = fs.readFileSync('css/components/cookie-settings.css', 'utf8');
     const privacyCss = fs.readFileSync('css/privacy.css', 'utf8');
+    const consentManagerJs = fs.readFileSync('js/privacy/consent_manager.js', 'utf8');
     const toolThemeCss = fs.readFileSync('css/components/tool-theme.css', 'utf8');
     const contactCardCss = fs.readFileSync('css/components/contact-card.css', 'utf8');
     const homeProofCss = fs.readFileSync('css/components/home-proof.css', 'utf8');
@@ -40618,10 +40980,38 @@ try {
       'tools account bars should use stable responsive regions, reliably hidden disclosures, and touch-sized controls');
     assert(siteChatbotCss.includes('right: calc(100% + 8px);'), 'chatbot launcher tooltip should sit inward with a button gap');
     assert(cookieSettingsCss.includes('left:calc(100% + 8px);'), 'cookie tooltip should sit inward with a button gap');
-    assert(privacyCss.includes('--pcz-surface: #ffffff;'), 'cookie consent popup should use a light readable surface');
+    assert(!brandOverrideCss.includes('.modal-content'), 'generic modal paint should live in modal.css rather than a late utility override');
+    assert(
+      /\.modal\s*\{[^}]*background\s*:\s*var\(--modal-backdrop,[^;]+\)\s*;[^}]*\}/s.test(colorFallbackCss) &&
+        /\.modal-content\s*\{[^}]*box-shadow\s*:\s*var\(--modal-shadow,[^;]+\)\s*;[^}]*\}/s.test(colorFallbackCss) &&
+        !/\.modal\s*\{[^}]*rgba\([^)]*,\s*(?:0?\.72|72%)\)[^}]*\}/s.test(colorFallbackCss),
+      'no-color-mix fallbacks should consume the shared modal backdrop and shadow without restoring the old 72% overlay',
+    );
+    assert(privacyCss.includes('--pcz-surface: var(--modal-surface, #ffffff);'), 'cookie consent popup should share the light modal surface');
     assert(privacyCss.includes('--pcz-fg: var(--brand-midnight, #091f3b);'), 'cookie consent popup should use dark readable foreground text');
     assert(privacyCss.includes('--pcz-link: var(--brand-signal-blue, #005fed);'), 'cookie consent links should use brand blue on light surfaces');
     assert(privacyCss.includes('#pcz-modal .pref-toggle[aria-pressed="true"] .pref-state'), 'cookie consent active preference state should keep readable text on blue buttons');
+    assert(
+      /#pcz-modal\s*\{[^}]*background\s*:\s*var\(--modal-backdrop,[^;]+\)\s*;[^}]*backdrop-filter\s*:\s*var\(--modal-backdrop-filter,[^;]+\)\s*;/s.test(privacyCss) &&
+        /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius,[^;]+\)\s*;[^}]*border\s*:\s*1px solid var\(--modal-border,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;[^}]*background\s*:\s*var\(--modal-surface,[^;]+\)\s*;[^}]*box-shadow\s*:\s*var\(--pcz-shadow\)\s*;/s.test(privacyCss) &&
+        /--pcz-shadow\s*:\s*var\(--modal-shadow,[^;]+\)\s*;/.test(privacyCss),
+      'Cookie Settings should consume the shared modal backdrop, surface, border, radius, and shadow contract',
+    );
+    assert(
+      /#pcz-modal \.pcz-panel-close\s*\{[^}]*width\s*:\s*44px\s*;[^}]*height\s*:\s*44px\s*;/s.test(privacyCss) &&
+        /body\.consent-blocked:has\(#pcz-modal\.pcz-visible\)::before\s*\{[^}]*opacity\s*:\s*0\s*!important\s*;[^}]*pointer-events\s*:\s*none\s*!important\s*;[^}]*backdrop-filter\s*:\s*none\s*;/s.test(privacyCss),
+      'Cookie Settings should keep a 44px close target without stacking the first-run consent backdrop',
+    );
+    assert(
+      consentManagerJs.includes("const CSS_VERSION = 'v12';") &&
+        consentManagerJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
+        consentManagerJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
+        consentManagerJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,16px);position:relative;background:var(--modal-surface,#fff)') &&
+        consentManagerJs.includes('border-radius:var(--pcz-panel-radius);') &&
+        consentManagerJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
+        consentManagerJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
+      'consent critical CSS v12 should mirror the shared shell before privacy.css finishes loading',
+    );
     assert(toolThemeCss.includes('body[data-page="text-compare"]') && toolThemeCss.includes('padding:var(--mobile-card-pad);'), 'tool pages should compact mobile cards');
     assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');
 
@@ -40810,7 +41200,7 @@ try {
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/transcribe.html','pages/ga4-utm-performance.html'];
     toolPages.push('pages/campaign-creative-tracker.html');
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
-      checkFileContains(f, '<header id="combined-header-nav">');
+      checkFileContains(f, '<header id="combined-header-nav"');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, 'name="viewport"');
@@ -43983,6 +44373,7 @@ try {
       'stellar dogfight CSS should include polished cockpit frame and HUD styling');
 
     const runtimeJs = fs.readFileSync('js/games/stellar-dogfight/app.js', 'utf8');
+    const pixiRendererJs = fs.readFileSync('js/games/stellar-dogfight/renderer-pixi.js', 'utf8');
     assert(runtimeJs.includes('const DEFERRED_UI_FLUSH_MS = 220;'),
       'stellar dogfight runtime missing deferred UI flush constant');
     assert(runtimeJs.includes('const DEFERRED_SAVE_FLUSH_MS = 180;'),
@@ -44161,7 +44552,11 @@ try {
            runtimeJs.includes('function buildPixiFrameSnapshot() {') &&
            runtimeJs.includes('getRendererSetting() !== "pixi"') &&
            runtimeJs.includes('function loadPixiRendererScripts() {') &&
-           runtimeJs.includes('state.renderBackend = "pixi";'),
+           runtimeJs.includes('state.renderBackend = "pixi";') &&
+           runtimeJs.includes('window.SiteRoutes?.addCleanup?.(() => {') &&
+           runtimeJs.includes('pixiRenderer?.destroy?.();') &&
+           pixiRendererJs.includes('destroy() {') &&
+           pixiRendererJs.includes('app.destroy({ removeView: true }'),
       'stellar dogfight runtime should keep Pixi/WebGL behind an explicit experimental renderer flag');
     assert(runtimeJs.includes('image.src = definition.src;') &&
            runtimeJs.includes('render_backend,webgl_px_w,webgl_px_h'),

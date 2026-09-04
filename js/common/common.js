@@ -622,7 +622,8 @@
       initProjectDemoTabs();
     }
   });
-  document.addEventListener('site:content-updated', () => {
+  document.addEventListener('site:content-updated', (event) => {
+    const routeRoot = event.detail?.root || document;
     normalizeAudienceSectionOrder();
     prepareAnalyticsStory();
     initSmoothScrollLinks();
@@ -635,6 +636,8 @@
     if (isPage('project')) {
       initProjectDemoTabs();
     }
+    initProjectEmbeds(routeRoot);
+    window.initializeContactModal?.(routeRoot);
   });
   trackContactOrigin();
 
@@ -660,6 +663,7 @@
     wrapper.innerHTML = CONTACT_MODAL_MARKUP.trim();
     const modal = wrapper.firstElementChild;
     if (!modal) return null;
+    modal.dataset.contactModalInjected = 'true';
     document.body.appendChild(modal);
     return modal;
   };
@@ -687,6 +691,9 @@
     const ensured = document.getElementById(CONTACT_MODAL_ID) || ensureContactModal();
     if (!ensured) return;
     const open = () => {
+      if (typeof window.initializeContactModal === 'function') {
+        window.initializeContactModal(ensured.closest('[data-site-route-content], [data-personal-detail-content]') || document);
+      }
       if (typeof window.openContactModal === 'function') {
         window.openContactModal();
         applyContactPrefill(payload);
@@ -699,6 +706,9 @@
         }
       } catch {}
     };
+    if (typeof window.initializeContactModal === 'function') {
+      window.initializeContactModal(ensured.closest('[data-site-route-content], [data-personal-detail-content]') || document);
+    }
     if (window.__contactModalReady) {
       open();
       return;
@@ -1035,9 +1045,11 @@
     if (!shells.length) return;
 
     shells.forEach((shell) => {
+      if (shell.dataset.demoTabsBound === 'yes') return;
       const tabs = $$('[role="tab"]', shell);
       const panels = $$('[role="tabpanel"]', shell);
       if (tabs.length < 2 || panels.length < 2) return;
+      shell.dataset.demoTabsBound = 'yes';
 
       const panelById = new Map(
         panels
@@ -2295,8 +2307,9 @@
     const scheduleResize = () => {
       if (ifr._projectEmbedResizeScheduled) return;
       ifr._projectEmbedResizeScheduled = true;
-      requestAnimationFrame(() => {
+      ifr._projectEmbedResizeFrame = requestAnimationFrame(() => {
         ifr._projectEmbedResizeScheduled = false;
+        ifr._projectEmbedResizeFrame = 0;
         resizeProjectEmbedIframe(ifr);
       });
     };
@@ -2308,8 +2321,8 @@
     scheduleResize();
   };
 
-  const bindProjectEmbedResize = () => {
-    document.querySelectorAll('.project-embed-frame').forEach((ifr) => {
+  const bindProjectEmbedResize = (root = document) => {
+    root.querySelectorAll('.project-embed-frame').forEach((ifr) => {
       if (ifr._resizeBound) return;
       ifr._resizeBound = true;
       if (!shouldAutoResizeProjectEmbed(ifr)) {
@@ -2319,13 +2332,15 @@
       }
       ifr.setAttribute('scrolling', 'no');
       ifr.style.overflow = 'hidden';
-      ifr.addEventListener('load', () => {
+      const handleLoad = () => {
         resizeProjectEmbedIframe(ifr);
-        setTimeout(() => resizeProjectEmbedIframe(ifr), 50);
-        setTimeout(() => resizeProjectEmbedIframe(ifr), 350);
-        setTimeout(() => resizeProjectEmbedIframe(ifr), 1000);
+        ifr._projectEmbedResizeTimers = [50, 350, 1000].map((delay) => (
+          setTimeout(() => resizeProjectEmbedIframe(ifr), delay)
+        ));
         observeProjectEmbedIframe(ifr);
-      });
+      };
+      ifr._projectEmbedLoadHandler = handleLoad;
+      ifr.addEventListener('load', handleLoad);
       resizeProjectEmbedIframe(ifr);
       observeProjectEmbedIframe(ifr);
     });
@@ -2335,9 +2350,9 @@
     ? window.matchMedia('(max-width: 768px)')
     : null;
 
-  const syncProjectEmbedLoading = () => {
+  const syncProjectEmbedLoading = (root = document) => {
     const useLaunchCard = projectEmbedMobileMedia?.matches === true;
-    document.querySelectorAll('.project-embed[data-embed-fit="content"] .project-embed-frame').forEach((ifr) => {
+    root.querySelectorAll('.project-embed[data-embed-fit="content"] .project-embed-frame').forEach((ifr) => {
       const currentSrc = ifr.getAttribute('src');
       const deferredSrc = ifr.getAttribute('data-src');
       const embed = projectEmbedForFrame(ifr);
@@ -2363,9 +2378,26 @@
     });
   };
 
-  const initProjectEmbeds = () => {
-    bindProjectEmbedResize();
-    syncProjectEmbedLoading();
+  const initProjectEmbeds = (root = document) => {
+    bindProjectEmbedResize(root);
+    syncProjectEmbedLoading(root);
+  };
+
+  const cleanupProjectEmbeds = (root = document) => {
+    root.querySelectorAll?.('.project-embed-frame').forEach((ifr) => {
+      try { ifr._projectEmbedResizeObserver?.disconnect(); } catch {}
+      ifr._projectEmbedResizeObserver = null;
+      if (ifr._projectEmbedResizeFrame) cancelAnimationFrame(ifr._projectEmbedResizeFrame);
+      ifr._projectEmbedResizeFrame = 0;
+      ifr._projectEmbedResizeScheduled = false;
+      (ifr._projectEmbedResizeTimers || []).forEach((timer) => clearTimeout(timer));
+      ifr._projectEmbedResizeTimers = [];
+      if (ifr._projectEmbedLoadHandler) {
+        ifr.removeEventListener('load', ifr._projectEmbedLoadHandler);
+      }
+      ifr._projectEmbedLoadHandler = null;
+      ifr._resizeBound = false;
+    });
   };
 
   const resetPersonalProjectDetailScroll = () => {
@@ -2386,14 +2418,14 @@
   };
 
   document.addEventListener('DOMContentLoaded', resetPersonalProjectDetailScroll);
-  document.addEventListener('DOMContentLoaded', initProjectEmbeds);
+  document.addEventListener('DOMContentLoaded', () => initProjectEmbeds());
   window.addEventListener('load', resetPersonalProjectDetailScroll);
-  window.addEventListener('load', initProjectEmbeds);
+  window.addEventListener('load', () => initProjectEmbeds());
   if (projectEmbedMobileMedia) {
     if (typeof projectEmbedMobileMedia.addEventListener === 'function') {
-      projectEmbedMobileMedia.addEventListener('change', syncProjectEmbedLoading);
+      projectEmbedMobileMedia.addEventListener('change', () => syncProjectEmbedLoading());
     } else if (typeof projectEmbedMobileMedia.addListener === 'function') {
-      projectEmbedMobileMedia.addListener(syncProjectEmbedLoading);
+      projectEmbedMobileMedia.addListener(() => syncProjectEmbedLoading());
     }
   }
   window.addEventListener('message', (event) => {
@@ -2416,5 +2448,13 @@
         break;
       }
     }
+  });
+  document.addEventListener('site:route-unmounted', (event) => {
+    if (typeof activeSmoothScrollCancel === 'function') activeSmoothScrollCancel();
+    cleanupProjectEmbeds(event.detail?.root || document);
+  });
+  document.addEventListener('site:route-mounted', (event) => {
+    initCookieSettingsButton();
+    initProjectEmbeds(event.detail?.root || document);
   });
 })();

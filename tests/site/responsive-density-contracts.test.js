@@ -72,7 +72,7 @@ function runResponsiveDensityContractTests({ assert }) {
 
   const shellSample = [
     '<!doctype html>',
-    '<html><body><main id="main"><h1>Games</h1></main></body></html>',
+    '<html><head></head><body><main id="main"><h1>Games</h1></main></body></html>',
   ].join('');
   const gamesLibraryShell = personalPageGenerator.buildLibraryPage(shellSample, 'games', {
     games: {
@@ -96,12 +96,13 @@ function runResponsiveDensityContractTests({ assert }) {
   });
   [gamesLibraryShell, gameDetailShell].forEach((html) => {
     assert(
-      countMatches(html, /class="personal-accordion__rail(?:\s|")/g) === 1 &&
-        countMatches(html, /class="personal-accordion__toolbar"/g) === 1 &&
+      countMatches(html, /class="personal-accordion__rail(?:\s|")/g) === 5 &&
+        countMatches(html, /data-site-tab="[^"]+"[^>]*hidden inert aria-hidden="true"/g) === 4 &&
+        countMatches(html, /class="personal-accordion__toolbar(?:\s|")/g) === 1 &&
         !/class="personal-accordion__rails"[^>]*aria-hidden=/i.test(html) &&
-        /<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b[^>]*href="\/#games"/i.test(html) &&
+        /<a\b[^>]*class="[^"]*\bpersonal-accordion__rail\b[^>]*href="\/#games"[^>]*aria-current="page"/i.test(html) &&
         html.includes('data-personal-transition="collapse"'),
-      'canonical personal shells should expose one actionable category rail and one shared context toolbar',
+      'canonical personal shells should preserve five category rails while exposing only one active rail and one shared context toolbar',
     );
   });
   assert(
@@ -122,10 +123,13 @@ function runResponsiveDensityContractTests({ assert }) {
   const personalShellCss = read('css/components/personal-accordion-shell.css');
   assert(
     personalShellCss.includes('--personal-rail-size: 68px;') &&
+      personalShellCss.includes('--personal-mobile-rail-size: 48px;') &&
       personalShellCss.includes('--personal-toolbar-size: 60px;') &&
       !personalShellCss.includes('--personal-toolbar-size: 48px;') &&
-      personalShellCss.includes('.personal-accordion__rails {\n      display: none;'),
-    'responsive personal shells should use the 68px desktop marker and a consistent 60px context bar',
+      personalShellCss.includes('grid-template-rows: var(--personal-mobile-rail-size) minmax(0, 1fr);') &&
+      personalShellCss.includes('.personal-accordion__rail[hidden] {\n    display: none !important;') &&
+      personalShellCss.includes('writing-mode: horizontal-tb;'),
+    'responsive personal shells should use a 68px desktop marker and one visible 48px horizontal return rail on mobile',
   );
   const homeAccordionCss = read('css/components/home-category-accordion.css');
   assert(
@@ -294,6 +298,46 @@ function runResponsiveDensityContractTests({ assert }) {
   const privacyCss = read('css/privacy.css');
   const consentJs = read('js/privacy/consent_manager.js');
   const contactJs = read('js/forms/contact.js');
+  const variablesCss = read('css/variables.css');
+  const modalCss = read('css/components/modal.css');
+  const modalMobileCss = modalCss.slice(modalCss.lastIndexOf('@media (max-width: 768px)'));
+  const privacyMobileCss = privacyCss.slice(privacyCss.indexOf('@media (max-width: 640px)'));
+  assert(
+    /--modal-radius\s*:\s*var\(--radius-16\)\s*;/.test(variablesCss) &&
+      /--modal-radius-mobile\s*:\s*var\(--radius-12\)\s*;/.test(variablesCss) &&
+      /\.modal-content\s*\{[^}]*border-radius\s*:\s*var\(--modal-radius\)\s*;/s.test(modalCss) &&
+      /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;/s.test(privacyCss) &&
+      /\.modal-content\s*\{[^}]*border-radius\s*:\s*var\(--modal-radius-mobile\)\s*;/s.test(modalMobileCss) &&
+      /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius-mobile,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;/s.test(privacyMobileCss),
+    'generic and Cookie Settings shells should use 16px desktop and 12px mobile radius tokens',
+  );
+  assert(
+    /\.modal-close\s*\{[^}]*width\s*:\s*44px\s*;[^}]*height\s*:\s*44px\s*;/s.test(modalCss) &&
+      /#pcz-modal \.pcz-panel-close\s*\{[^}]*width\s*:\s*44px\s*;[^}]*height\s*:\s*44px\s*;/s.test(privacyCss),
+    'generic and Cookie Settings close controls should preserve 44px targets',
+  );
+  assert(
+    modalMobileCss.includes('--modal-mobile-bottom-clearance: calc(8px + env(safe-area-inset-bottom, 0px));') &&
+      modalMobileCss.includes('max(8px, env(safe-area-inset-right))') &&
+      modalMobileCss.includes('max(8px, env(safe-area-inset-left))') &&
+      /\.modal-content\s*\{[^}]*max-height\s*:\s*calc\(100svh - var\(--modal-mobile-top-clearance\) - var\(--modal-mobile-bottom-clearance\)\)/s.test(modalMobileCss) &&
+      /\.modal-body\s*\{[^}]*overflow-y\s*:\s*auto\s*;/s.test(modalCss) &&
+      privacyMobileCss.includes('max(8px, env(safe-area-inset-right))') &&
+      privacyMobileCss.includes('max(8px, env(safe-area-inset-left))') &&
+      /#pcz-modal \.pcz-panel\s*\{[^}]*max-height\s*:\s*calc\(100svh - var\(--pcz-mobile-top-clearance\) - 8px\)/s.test(privacyMobileCss) &&
+      /#pcz-modal \.pcz-panel\s*\{[^}]*overflow\s*:\s*auto\s*;/s.test(privacyCss),
+    'shared modal shells should retain mobile safe-area clearance and internal scrolling',
+  );
+  assert(
+    /body\.consent-blocked:has\(#pcz-modal\.pcz-visible\)::before\s*\{[^}]*opacity\s*:\s*0\s*!important\s*;[^}]*pointer-events\s*:\s*none\s*!important\s*;[^}]*backdrop-filter\s*:\s*none\s*;/s.test(privacyCss) &&
+      consentJs.includes("const CSS_VERSION = 'v12';") &&
+      consentJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
+      consentJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
+      consentJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,16px);') &&
+      consentJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
+      consentJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
+    'Cookie Settings critical CSS v12 should match the shared shell without stacking the first-run backdrop',
+  );
   assert(
     !privacyCss.includes('@media (prefers-color-scheme: dark)') &&
       !privacyCss.includes('data-theme-scope') &&

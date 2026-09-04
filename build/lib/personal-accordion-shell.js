@@ -6,6 +6,13 @@ const PERSONAL_CONTENT_START = '<!-- personal-accordion-content:start -->';
 const PERSONAL_CONTENT_END = '<!-- personal-accordion-content:end -->';
 const PERSONAL_TOOL_HEADER_START = '<!-- personal-tool-header:start -->';
 const PERSONAL_TOOL_HEADER_END = '<!-- personal-tool-header:end -->';
+const SITE_ROUTE_MANIFEST_ID = 'site-route-manifest';
+const SITE_ROUTE_MANIFEST_VERSION = 1;
+const HARD_NAVIGATION_PATHS = Object.freeze([
+  '/tools/background-remover',
+  '/tools/job-application-tracker',
+  '/tools/transcribe'
+]);
 
 const CATEGORY_CONFIG = Object.freeze({
   about: Object.freeze({
@@ -66,6 +73,239 @@ const LIBRARY_PRESENTATION = Object.freeze({
 });
 const ARROW_LEFT = '<path d="m15 18-6-6 6-6"></path>';
 const ARROW_RIGHT = '<path d="m9 5 7 7-7 7"></path>';
+
+function getTagAttribute(tag, name) {
+  const escapedName = String(name || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const match = new RegExp(`\\s${escapedName}="([^"]*)"`, 'i').exec(String(tag || ''));
+  return match ? match[1] : '';
+}
+
+function normalizeRoutePath(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw, 'https://www.danielshort.me');
+    let pathname = url.pathname || '/';
+    pathname = pathname.replace(/\/index\.html$/i, '/') || '/';
+    pathname = pathname !== '/' ? pathname.replace(/\.html$/i, '').replace(/\/$/, '') : pathname;
+    return pathname || '/';
+  } catch (_) {
+    return '';
+  }
+}
+
+function isHardNavigationPath(value) {
+  return HARD_NAVIGATION_PATHS.includes(normalizeRoutePath(value));
+}
+
+function getCanonicalRoutePath(html, fallbackPath = '') {
+  const canonicalTag = (String(html || '').match(/<link\b[^>]*>/gi) || [])
+    .find((tag) => /\srel="canonical"/i.test(tag));
+  return normalizeRoutePath(getTagAttribute(canonicalTag, 'href')) || normalizeRoutePath(fallbackPath) || '/';
+}
+
+function normalizeResourceHref(value) {
+  const raw = String(value || '').trim();
+  if (!raw || raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
+  try {
+    const url = new URL(raw, 'https://www.danielshort.me/');
+    return url.origin === 'https://www.danielshort.me'
+      ? `${url.pathname}${url.search}`
+      : url.href;
+  } catch (_) {
+    return raw;
+  }
+}
+
+function uniqueDocumentResources(html, tagPattern, attribute) {
+  const seen = new Set();
+  const resources = [];
+  (String(html || '').match(tagPattern) || []).forEach((tag) => {
+    const href = normalizeResourceHref(getTagAttribute(tag, attribute));
+    if (!href || seen.has(href)) return;
+    seen.add(href);
+    resources.push(href);
+  });
+  return resources;
+}
+
+function extractRouteStyles(html) {
+  return uniqueDocumentResources(
+    html,
+    /<link\b(?=[^>]*\srel="stylesheet")[^>]*>/gi,
+    'href'
+  );
+}
+
+function extractRouteScripts(html) {
+  return uniqueDocumentResources(html, /<script\b(?=[^>]*\ssrc=")[^>]*>/gi, 'src');
+}
+
+function escapeJsonForHtml(value) {
+  return JSON.stringify(value)
+    .replace(/&/g, '\\u0026')
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+function removeSiteRouteManifest(html) {
+  return String(html || '').replace(
+    new RegExp(`[\\t ]*<script\\b[^>]*\\bid="${SITE_ROUTE_MANIFEST_ID}"[^>]*>[\\s\\S]*?<\\/script>\\s*`, 'gi'),
+    ''
+  );
+}
+
+function readBodyRouteMetadata(html) {
+  const bodyTag = /<body\b[^>]*>/i.exec(String(html || ''))?.[0] || '';
+  return {
+    id: getTagAttribute(bodyTag, 'data-site-route-id'),
+    category: getTagAttribute(bodyTag, 'data-site-route-category'),
+    view: getTagAttribute(bodyTag, 'data-site-route-view'),
+    navigation: getTagAttribute(bodyTag, 'data-site-route-navigation')
+  };
+}
+
+function renderSiteRouteManifest(html, options = {}) {
+  const bodyMetadata = readBodyRouteMetadata(html);
+  const path = getCanonicalRoutePath(html, options.path);
+  const id = String(options.id || bodyMetadata.id || '').trim();
+  const category = String(options.category || bodyMetadata.category || '').trim();
+  const view = String(options.view || bodyMetadata.view || '').trim();
+  const navigation = isHardNavigationPath(path) || options.navigation === 'hard' || bodyMetadata.navigation === 'hard'
+    ? 'hard'
+    : 'soft';
+  if (!id || !category || !view) {
+    throw new Error('Personal route manifest requires id, category, and view metadata.');
+  }
+  const manifest = {
+    version: SITE_ROUTE_MANIFEST_VERSION,
+    id,
+    path,
+    category,
+    view,
+    navigation,
+    styles: Array.isArray(options.styles) ? options.styles : extractRouteStyles(html),
+    scripts: Array.isArray(options.scripts) ? options.scripts : extractRouteScripts(html),
+    module: String(options.module || id).trim() || id
+  };
+  return `<script type="application/json" id="${SITE_ROUTE_MANIFEST_ID}" data-site-route-manifest data-version="${SITE_ROUTE_MANIFEST_VERSION}">${escapeJsonForHtml(manifest)}</script>`;
+}
+
+function upsertSiteRouteManifest(html, options = {}) {
+  const source = removeSiteRouteManifest(html);
+  const manifest = renderSiteRouteManifest(source, options);
+  if (!/<\/head>/i.test(source)) {
+    throw new Error('Personal route document is missing </head>.');
+  }
+  return source.replace(/<\/head>/i, `  ${manifest}\n</head>`);
+}
+
+function validatePersonalRouteDocument(html) {
+  const source = String(html || '');
+  const manifestTags = source.match(
+    new RegExp(`<script\\b[^>]*\\bid="${SITE_ROUTE_MANIFEST_ID}"[^>]*>[\\s\\S]*?<\\/script>`, 'gi')
+  ) || [];
+  if (manifestTags.length !== 1) {
+    throw new Error(`Personal route document must contain exactly one ${SITE_ROUTE_MANIFEST_ID} manifest.`);
+  }
+
+  const manifestMatch = new RegExp(
+    `<script\\b[^>]*\\bid="${SITE_ROUTE_MANIFEST_ID}"[^>]*>([\\s\\S]*?)<\\/script>`,
+    'i'
+  ).exec(manifestTags[0]);
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestMatch?.[1] || '{}');
+  } catch (error) {
+    throw new Error(`Personal route document has invalid ${SITE_ROUTE_MANIFEST_ID} JSON: ${error.message}`);
+  }
+  if (manifest.navigation !== 'soft') return manifest;
+  if (!String(manifest.module || '').trim()) {
+    throw new Error(`Soft route ${manifest.path || manifest.id || '(unknown)'} is missing a lifecycle module.`);
+  }
+
+  const requiredShellHooks = [
+    'data-site-shell-header',
+    'data-site-shell-footer',
+    'data-site-route-content',
+    'data-site-route-progress',
+    'data-site-route-announcer'
+  ];
+  requiredShellHooks.forEach((hook) => {
+    if (!source.includes(hook)) {
+      throw new Error(`Soft route ${manifest.path || manifest.id} is missing the persistent-shell hook ${hook}.`);
+    }
+  });
+
+  const listedScripts = new Set((Array.isArray(manifest.scripts) ? manifest.scripts : [])
+    .map(normalizeResourceHref));
+  const scriptTags = source.match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || [];
+  scriptTags.forEach((tag) => {
+    if (new RegExp(`\\bid="${SITE_ROUTE_MANIFEST_ID}"`, 'i').test(tag)) return;
+    const src = normalizeResourceHref(getTagAttribute(tag, 'src'));
+    if (src) {
+      if (!listedScripts.has(src)) {
+        throw new Error(`Soft route ${manifest.path || manifest.id} has an unclassified script: ${src}.`);
+      }
+      return;
+    }
+
+    const type = getTagAttribute(tag, 'type').trim().toLowerCase();
+    const executable = !type || type === 'module' || /^(?:text|application)\/(?:java|ecma)script$/.test(type);
+    if (!executable) return;
+    const content = tag.replace(/^<script\b[^>]*>|<\/script>$/gi, '').trim();
+    if (!content) return;
+    if (getTagAttribute(tag, 'id') === 'ds-sw-register') return;
+    throw new Error(`Soft route ${manifest.path || manifest.id} has an unclassified inline executable script.`);
+  });
+  return manifest;
+}
+
+function markHardNavigationLinks(html, forceAll = false) {
+  return String(html || '').replace(/<a\b[^>]*>/gi, (tag) => {
+    const href = getTagAttribute(tag, 'href');
+    return forceAll || isHardNavigationPath(href)
+      ? setTagAttribute(tag, 'data-navigation', 'hard')
+      : tag;
+  });
+}
+
+function markPersistentShellChrome(html) {
+  let output = String(html || '').replace(
+    /<header\b[^>]*\bid="combined-header-nav"[^>]*>/i,
+    (tag) => setTagAttribute(tag, 'data-site-shell-header', true)
+  );
+  output = output.replace(
+    /<footer\b[^>]*\bfooter--personal-compact\b[^>]*>/i,
+    (tag) => setTagAttribute(tag, 'data-site-shell-footer', true)
+  );
+  return output;
+}
+
+function finalizePersonalRouteDocument(html, options = {}) {
+  let output = String(html || '');
+  const isHomepage = options.home === true;
+  const bodyMetadata = readBodyRouteMetadata(output);
+  if (!isHomepage && (!bodyMetadata.id || !bodyMetadata.category || !bodyMetadata.view)) return output;
+
+  const routeOptions = isHomepage
+    ? { id: 'home', category: 'about', view: 'overview', navigation: 'soft', path: '/', module: 'home' }
+    : options;
+  const routePath = getCanonicalRoutePath(output, routeOptions.path);
+  const navigation = isHardNavigationPath(routePath) || routeOptions.navigation === 'hard' ? 'hard' : 'soft';
+  output = output.replace(/<body\b[^>]*>/i, (bodyTag) => {
+    let next = setTagAttribute(bodyTag, 'data-site-route-id', routeOptions.id || bodyMetadata.id);
+    next = setTagAttribute(next, 'data-site-route-category', routeOptions.category || bodyMetadata.category);
+    next = setTagAttribute(next, 'data-site-route-view', routeOptions.view || bodyMetadata.view);
+    next = setTagAttribute(next, 'data-site-route-navigation', navigation);
+    return next;
+  });
+  output = markPersistentShellChrome(markHardNavigationLinks(output, navigation === 'hard'));
+  output = upsertSiteRouteManifest(output, routeOptions);
+  return output;
+}
 
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -271,14 +511,23 @@ function preparePersonalToolDetailHtml(html, options = {}) {
 
 function renderPersonalRails(activeCategory) {
   const active = normalizeCategory(activeCategory);
-  const category = CATEGORY_CONFIG[active];
+  const rails = CATEGORY_ORDER.map((categoryId) => {
+    const category = CATEGORY_CONFIG[categoryId];
+    const isActive = categoryId === active;
+    const stateAttributes = isActive
+      ? 'aria-current="page" data-personal-rail-active="true" data-site-tab-active="true" data-personal-transition="collapse"'
+      : 'hidden inert aria-hidden="true" tabindex="-1"';
+    return [
+      `  <a class="personal-accordion__rail personal-accordion__rail--${categoryId}${isActive ? ' is-active' : ''}" href="${category.href}" aria-label="Return to the ${category.label} section on the homepage" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-site-tab="${categoryId}" data-site-tab-category="${categoryId}" ${stateAttributes}>`,
+      `    <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
+      `    <span class="personal-accordion__rail-label">${category.label}</span>`,
+      '    <span class="personal-accordion__rail-notch" aria-hidden="true"></span>',
+      '  </a>'
+    ].join('\n');
+  });
   return [
-    `<div class="personal-accordion__rails" data-personal-category-marker="${active}">`,
-    `  <a class="personal-accordion__rail personal-accordion__rail--${active} is-active" href="${category.href}" aria-label="Return to the ${category.label} section on the homepage" style="--rail-color: ${category.color}; --rail-color-end: ${category.colorEnd};" data-personal-rail-active="true" data-personal-transition="collapse">`,
-    `    <span class="personal-accordion__rail-icon" aria-hidden="true">${renderIcon(category.icon)}</span>`,
-    `    <span class="personal-accordion__rail-label">${category.label}</span>`,
-    '    <span class="personal-accordion__rail-notch" aria-hidden="true"></span>',
-    '  </a>',
+    `<div class="personal-accordion__rails" data-personal-category-marker="${active}" data-site-tab-rail data-site-tab-rail-mode="expanded">`,
+    rails.join('\n'),
     '</div>'
   ].join('\n');
 }
@@ -332,7 +581,11 @@ function removePersonalBodyAttributes(html) {
       'data-personal-category',
       'data-personal-item',
       'data-personal-fit',
-      'data-personal-chrome'
+      'data-personal-chrome',
+      'data-site-route-id',
+      'data-site-route-category',
+      'data-site-route-view',
+      'data-site-route-navigation'
     ].reduce((tag, name) => removeTagAttribute(tag, name), bodyTag);
     if (/\sdata-audience="personal"/i.test(next)) next = removeTagAttribute(next, 'data-audience');
     return next;
@@ -374,7 +627,7 @@ function normalizeSkipLinkHrefs(html) {
 }
 
 function unwrapPersonalAccordionHtml(html) {
-  let output = String(html || '');
+  let output = removeSiteRouteManifest(String(html || ''));
   const isProjectWrapper = output.includes(PERSONAL_SHELL_START) &&
     /<body\b[^>]*\bdata-personal-category="projects"/i.test(output);
   const shellStart = output.indexOf(PERSONAL_SHELL_START);
@@ -482,7 +735,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
   const backAriaLabel = String(options.backAriaLabel || backLabel).trim();
   const backHref = String(options.backHref || category.libraryHref || category.href).trim();
   const toolbar = [
-    '<div class="personal-accordion__toolbar">',
+    '<div class="personal-accordion__toolbar" data-site-route-toolbar>',
     `  <a class="personal-accordion__back" href="${escapeHtml(backHref)}" aria-label="${escapeHtml(backAriaLabel)}">`,
     `    <span class="personal-accordion__back-icon" aria-hidden="true">${renderIcon(ARROW_LEFT)}</span>`,
     `    <span class="personal-accordion__back-label personal-accordion__back-label--desktop" aria-hidden="true">${escapeHtml(backLabel)}</span>`,
@@ -497,7 +750,8 @@ function renderPersonalAccordionShell(fragment, options = {}) {
 
   return [
     PERSONAL_SHELL_START,
-    `<section class="personal-accordion personal-accordion--${escapeHtml(categoryId)} personal-accordion--${isLibrary ? 'library' : 'detail'}" data-personal-accordion-shell data-personal-active-category="${escapeHtml(categoryId)}" style="--panel-color: ${category.color}; --panel-color-end: ${category.colorEnd};">`,
+    '  <div class="site-route-progress" data-site-route-progress hidden aria-hidden="true"><span class="site-route-progress__bar"></span></div>',
+    `<section class="personal-accordion personal-accordion--${escapeHtml(categoryId)} personal-accordion--${isLibrary ? 'library' : 'detail'}" data-personal-accordion-shell data-personal-active-category="${escapeHtml(categoryId)}" data-site-route-content style="--panel-color: ${category.color}; --panel-color-end: ${category.colorEnd};">`,
     '  <div class="personal-accordion__shell">',
     renderPersonalRails(categoryId).split('\n').map((line) => `    ${line}`).join('\n'),
     `    <div class="personal-accordion__panel" data-personal-detail-panel="${escapeHtml(categoryId)}">`,
@@ -510,6 +764,7 @@ function renderPersonalAccordionShell(fragment, options = {}) {
     '    </div>',
     '  </div>',
     '</section>',
+    '  <p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-site-route-announcer></p>',
     PERSONAL_SHELL_END
   ].filter(Boolean).join('\n');
 }
@@ -528,14 +783,29 @@ function wrapPersonalAccordionHtml(html, options = {}) {
     'data-personal-accordion-view': options.view === 'library' ? 'library' : 'detail',
     'data-personal-category': category,
     'data-personal-item': String(options.itemId || category).trim() || category,
-    'data-personal-fit': String(options.fit || 'document').trim() || 'document'
+    'data-personal-fit': String(options.fit || 'document').trim() || 'document',
+    'data-site-route-id': `${category}:${String(options.itemId || category).trim() || category}`,
+    'data-site-route-category': category,
+    'data-site-route-view': options.view === 'library' ? 'library' : 'detail'
   };
+  const canonicalPath = getCanonicalRoutePath(cleanHtml);
+  bodyAttributes['data-site-route-navigation'] = isHardNavigationPath(canonicalPath) || options.navigation === 'hard'
+    ? 'hard'
+    : 'soft';
   const chrome = String(options.chrome || '').trim();
   if (chrome) bodyAttributes['data-personal-chrome'] = chrome;
   const suffix = cleanHtml.slice(range.end);
   const boundary = suffix && !/^\r?\n/.test(suffix) ? '\n' : '';
   const output = cleanHtml.slice(0, range.start) + shell + boundary + suffix;
-  return normalizeSkipLinkHrefs(setBodyAttributes(output, bodyAttributes));
+  const normalized = normalizeSkipLinkHrefs(setBodyAttributes(output, bodyAttributes));
+  return finalizePersonalRouteDocument(normalized, {
+    id: bodyAttributes['data-site-route-id'],
+    path: canonicalPath,
+    category,
+    view: bodyAttributes['data-site-route-view'],
+    navigation: bodyAttributes['data-site-route-navigation'],
+    module: bodyAttributes['data-site-route-id']
+  });
 }
 
 function replaceMainHtml(html, mainHtml) {
@@ -647,6 +917,7 @@ function markProfessionalInternalHtml(html, audience = 'analytics') {
 module.exports = {
   CATEGORY_CONFIG,
   CATEGORY_ORDER,
+  HARD_NAVIGATION_PATHS,
   LIBRARY_PRESENTATION,
   PERSONAL_CONTENT_END,
   PERSONAL_CONTENT_START,
@@ -654,21 +925,30 @@ module.exports = {
   PERSONAL_SHELL_START,
   PERSONAL_TOOL_HEADER_END,
   PERSONAL_TOOL_HEADER_START,
+  SITE_ROUTE_MANIFEST_ID,
+  SITE_ROUTE_MANIFEST_VERSION,
+  extractRouteScripts,
+  extractRouteStyles,
   extractMainHtml,
+  finalizePersonalRouteDocument,
   findFragmentRange,
   findMainRange,
   getPersonalLibraryPresentation,
   markProfessionalInternalHtml,
+  markHardNavigationLinks,
   normalizeSkipLinkHrefs,
   preparePersonalToolDetailHtml,
   renderPersonalAccordionShell,
   renderPersonalLibraryHeader,
   renderPersonalLibraryMain,
   renderPersonalRails,
+  renderSiteRouteManifest,
   renderPersonalToolHeader,
   renderToolsAccountBar,
   renderToolsAccountDock,
   replaceMainHtml,
+  upsertSiteRouteManifest,
+  validatePersonalRouteDocument,
   unwrapPersonalAccordionHtml,
   wrapPersonalAccordionHtml
 };

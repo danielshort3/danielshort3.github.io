@@ -432,6 +432,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const categories = section?.props?.categories || [];
   const ids = categories.map((category) => category.id);
   const html = renderVisualPageBody(personal.page);
+  const indexHtml = read('index.html');
   const css = read('css/components/home-category-accordion.css');
   const libraryCss = read('css/components/home-library.css');
   const timelineCss = read('css/components/home-timeline.css');
@@ -466,6 +467,20 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     'homepage should open the About panel by default');
   assert(homeAccordionWidget?.defaultProps?.defaultPanel === 'about',
     'new CMS homepage accordion widgets should also default to About');
+  assert(count(html, /data-site-tab="(?:about|projects|tools|games|contact)"/g) === 5 &&
+    count(html, /data-site-tab-active="true"/g) === 1 &&
+    html.includes('data-site-tab-rail data-site-tab-rail-mode="overview"') &&
+    /<main\b[^>]*\bdata-site-route-content\b/i.test(html) &&
+    count(html, /data-site-route-toolbar/g) === 1,
+  'generated homepage markup should expose five stable tab slots, default About, and one complete route scene');
+  assert(count(indexHtml, /data-site-shell-header/g) === 1 &&
+    count(indexHtml, /data-site-shell-footer/g) === 1 &&
+    count(indexHtml, /data-site-route-toolbar/g) === 1 &&
+    count(indexHtml, /data-site-route-progress/g) === 1 &&
+    count(indexHtml, /data-site-route-announcer/g) === 1 &&
+    count(indexHtml, /data-site-route-content/g) === 1 &&
+    count(indexHtml, /id="site-route-manifest"/g) === 1,
+  'built homepage should expose one persistent chrome, route surface, progress line, announcer, and manifest');
   assert(
     JSON.stringify(categories.map((category) => category.color)) === JSON.stringify([
       '#091f3b', '#155dfc', '#087f8c', '#c94b0a', '#334155'
@@ -955,19 +970,20 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
 
   const nativeViewRuntime = runHomeTransitionRuntime(js, { nativeTransitions: true });
   nativeViewRuntime.libraryOpen.fire('click');
-  assert(nativeViewRuntime.nativeUpdates.length === 1 &&
+  assert(nativeViewRuntime.nativeUpdates.length === 0 &&
     nativeViewRuntime.root.dataset.homeView === 'overview' &&
     nativeViewRuntime.historyCalls.length === 0 &&
-    nativeViewRuntime.root.classList.contains('is-view-changing'),
-  'native same-document transitions should defer the homepage swap to the browser update callback');
-  nativeViewRuntime.runNativeUpdate();
+    nativeViewRuntime.root.classList.contains('is-view-changing') &&
+    nativeViewRuntime.root.classList.contains('is-view-leaving'),
+  'homepage transitions should avoid browser snapshot transitions and animate only live content');
+  nativeViewRuntime.advanceNextTimer();
   assert(nativeViewRuntime.root.dataset.homeView === 'library' &&
     !nativeViewRuntime.libraryView.hidden &&
     nativeViewRuntime.historyCalls.filter((entry) => entry.method === 'pushState').length === 1,
-  'native same-document transitions should update visual state and history inside the browser callback');
-  nativeViewRuntime.finishNativeTransition();
+  'the content-only transition should update visual state and history after its short exit phase');
+  nativeViewRuntime.advanceNextTimer();
   assert(!nativeViewRuntime.root.classList.contains('is-view-changing'),
-    'native same-document transitions should release their interaction lock when finished');
+    'the content-only transition should release its interaction lock when finished');
 
   const reducedViewRuntime = runHomeTransitionRuntime(js, { reducedMotion: true });
   reducedViewRuntime.libraryOpen.fire('click');
@@ -1006,6 +1022,10 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const desktopTimelineListCss = extractBlock(
     desktopTimelineCss,
     '.home-accordion__item--about .home-timeline__list {'
+  );
+  const desktopTimelineOverlapCss = extractBlock(
+    desktopTimelineCss,
+    '.home-accordion__item--about .home-timeline__item + .home-timeline__item {'
   );
   const mobileTimelineCss = extractBlock(timelineCss, '@media (max-width: 959px), (max-height: 619px)');
   const mobileTimelineRootCss = extractBlock(mobileTimelineCss, '.home-timeline {');
@@ -1094,9 +1114,12 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     timelineEntryCss.includes('padding: 10px;') &&
     timelineMediaCss.includes('width: 40px;') &&
     timelineMediaCss.includes('height: 40px;') &&
+    desktopTimelineListCss.includes('--home-timeline-stagger-overlap: 44px;') &&
     desktopTimelineListCss.includes('padding-bottom: 24px;') &&
+    desktopTimelineOverlapCss.includes('margin-top: calc(0px - var(--home-timeline-stagger-overlap));') &&
+    !mobileTimelineCss.includes('--home-timeline-stagger-overlap') &&
     !/\n\s*(?:height|max-height)\s*:/.test(timelineEntryCss),
-  'desktop timeline should retain its approved compact gap, cards, media, heading spacing, and scroll tail while allowing long cards to grow');
+  'desktop timeline should retain compact cards while interleaving staggered milestones without changing the mobile carousel');
   assert(mobileTimelineRootCss.includes('padding: 10px 0 20px;') &&
     mobileTimelineHeadCss.includes('margin: 0 18px 12px;') &&
     mobileTimelineHeadCss.includes('padding-top: 16px;') &&
@@ -1233,6 +1256,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
     js.includes("projects: '/portfolio'") &&
     js.includes("tools: '/tools'") &&
     js.includes("games: '/games'") &&
+    handleLocationChangeJs.includes("currentPath !== '/' && !Object.values(LIBRARY_ROUTES).includes(currentPath)") &&
     handleLocationChangeJs.includes('const nextLibraryCategory = libraryCategoryFromLocation();') &&
     handleLocationChangeJs.includes('const nextPanel = nextLibraryCategory || hashPanel || defaultPanel;') &&
     handleLocationChangeJs.includes('selectPanel(nextPanel, { updateHistory: false, reveal: !nextLibraryMode })') &&

@@ -2,7 +2,7 @@
    Never intercepts /api/ or third-party (analytics, GTM) traffic. */
 'use strict';
 
-const VERSION = 'ds-v1';
+const VERSION = 'ds-v2';
 const SHELL = [
   '/',
   '/index.html',
@@ -35,6 +35,18 @@ const SKIP_HOSTS = [
   'dynamodb.us-east-2.amazonaws.com'
 ];
 
+const HARD_DOCUMENT_PATHS = new Set([
+  '/tools/background-remover',
+  '/tools/transcribe',
+  '/tools/job-application-tracker'
+]);
+
+function normalizePathname(value) {
+  let path = String(value || '/');
+  path = path.replace(/\/index\.html$/i, '/').replace(/\.html$/i, '').replace(/\/+$/, '');
+  return path || '/';
+}
+
 function shouldHandle(request) {
   try {
     const url = new URL(request.url);
@@ -42,6 +54,7 @@ function shouldHandle(request) {
     const path = url.pathname;
     if (path.startsWith('/api/')) return false;
     if (path.startsWith('/admin')) return false;
+    if (HARD_DOCUMENT_PATHS.has(normalizePathname(path))) return false;
     if (SKIP.test(request.url)) return false;
     if (SKIP_HOSTS.includes(url.host)) return false;
     return request.method === 'GET';
@@ -50,25 +63,53 @@ function shouldHandle(request) {
   }
 }
 
+function canStore(response) {
+  if (!response || !response.ok || response.type === 'opaque') return false;
+  const cacheControl = String(response.headers.get('cache-control') || '').toLowerCase();
+  return !/(?:^|,)\s*(?:no-store|private)(?:\s|,|$)/.test(cacheControl);
+}
+
+async function cacheSuccessfulResponse(request, response) {
+  if (!canStore(response)) return response;
+  const cache = await caches.open(VERSION);
+  await cache.put(request, response.clone());
+  return response;
+}
+
+async function networkFirstDocument(request, options = {}) {
+  try {
+    const response = await fetch(request);
+    await cacheSuccessfulResponse(request, response).catch(() => {});
+    return response;
+  } catch (error) {
+    const exact = await caches.match(request);
+    if (exact) return exact;
+    if (options.allowRootFallback) {
+      const url = new URL(request.url);
+      if (normalizePathname(url.pathname) === '/') {
+        const root = await caches.match('/index.html');
+        if (root) return root;
+      }
+    }
+    throw error;
+  }
+}
+
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (!shouldHandle(request)) return;
 
-  // HTML documents: network-first, fall back to cache (offline shell).
+  // Router HTML requests use an exact network-first response. Never substitute
+  // the homepage for another route; the router validates each route manifest.
+  if (request.headers.get('X-Site-Route') === '1') {
+    event.respondWith(networkFirstDocument(request));
+    return;
+  }
+
+  // Full document navigations are also network-first. Only the root URL may
+  // use the cached root shell when offline.
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
-          return response;
-        })
-        .catch(() =>
-          caches.match(request).then((cached) =>
-            cached || caches.match('/index.html')
-          )
-        )
-    );
+    event.respondWith(networkFirstDocument(request, { allowRootFallback: true }));
     return;
   }
 

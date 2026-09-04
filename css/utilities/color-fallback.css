@@ -2,9 +2,13 @@
   @supports not (color: color-mix(in srgb, black, white)) {
     .project-metric { background: rgba(0, 95, 237, 0.12); }
     .hero { background: #F9F9FA; }
-    .modal { background: rgba(9, 31, 59, 0.72); }
+    .modal { background: var(--modal-backdrop, rgba(9, 31, 59, 0.58)); }
     .modal-content {
-      box-shadow: 0 10px 28px rgba(9,31,59,0.18), 0 0 0 1px rgba(0,95,237,0.12);
+      box-shadow: var(--modal-shadow, 0 24px 56px rgba(9,31,59,0.16));
+    }
+    .modal-close {
+      background: #EEF2F7;
+      border-color: #CBD5E1;
     }
 
     /* Fallbacks for new tokens using color-mix */

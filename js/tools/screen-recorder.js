@@ -3009,5 +3009,56 @@
     };
   });
 
+  const hasActiveRecording = () => state.recording || state.countdownActive || state.recorders.some((entry) => (
+    entry?.recorder?.state === 'recording' || entry?.recorder?.state === 'paused'
+  ));
+
+  window.addEventListener('beforeunload', (event) => {
+    if (!hasActiveRecording()) return true;
+    event.preventDefault();
+    event.returnValue = '';
+    return false;
+  });
+
+  window.SiteRoutes?.addCleanup?.(() => {
+    cancelCountdown(false);
+    stopTimer();
+    if (state.testTimerId) {
+      clearTimeout(state.testTimerId);
+      state.testTimerId = null;
+    }
+    const activeRecorders = state.recorders.slice();
+    state.recorders = [];
+    state.primaryRecorder = null;
+    state.recording = false;
+    state.paused = false;
+    activeRecorders.forEach((entry) => {
+      try {
+        if (entry.recorder?.state && entry.recorder.state !== 'inactive') entry.recorder.stop();
+      } catch (_) {}
+      entry.chunks = [];
+    });
+    stopTracks(state.recordingStream);
+    cleanupRecordingPipeline();
+    stopTracks(state.stream);
+    state.stream = null;
+    state.captureActive = false;
+    stopMicStream();
+    stopAudioMeter();
+    if (state.audioContext && state.audioContext.state !== 'closed') {
+      state.audioContext.close().catch(() => {});
+    }
+    state.audioContext = null;
+    state.firstFrameJobId += 1;
+    if (state.recordedUrl) URL.revokeObjectURL(state.recordedUrl);
+    state.recordedUrl = null;
+    state.recordedBlob = null;
+    state.downloadUrls.forEach((url) => URL.revokeObjectURL(url));
+    state.downloadUrls = [];
+    state.downloadFiles = [];
+    if (state.downloadZipUrl) URL.revokeObjectURL(state.downloadZipUrl);
+    state.downloadZipUrl = null;
+  });
+
   init();
 })();

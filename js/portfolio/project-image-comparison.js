@@ -14,6 +14,7 @@
   };
 
   function initProjectImageComparisons(root = document) {
+    const initialized = [];
     $$('[data-project-image-comparison]', root).forEach((comparison) => {
       if (comparison.dataset.projectImageComparisonReady === 'true') return;
       if (window.CSS && typeof window.CSS.supports === 'function' && !window.CSS.supports('clip-path', 'inset(0)')) return;
@@ -31,6 +32,8 @@
       let right = readNumber(comparison.dataset.comparisonRight, 67);
       let animationFrame = 0;
       let pendingPointerMove = null;
+      const eventController = typeof AbortController === 'function' ? new AbortController() : null;
+      const listenerOptions = eventController ? { signal: eventController.signal } : undefined;
 
       const getBounds = () => {
         const width = Math.max(viewport.getBoundingClientRect().width, 1);
@@ -138,12 +141,12 @@
           divider.setPointerCapture(event.pointerId);
           focusDivider(divider);
           queuePointerMove(side, event.clientX);
-        });
+        }, listenerOptions);
 
         divider.addEventListener('pointermove', (event) => {
           if (event.pointerId !== activePointerId) return;
           queuePointerMove(side, event.clientX);
-        });
+        }, listenerOptions);
 
         const endPointer = (event) => {
           if (event.pointerId !== activePointerId) return;
@@ -158,13 +161,13 @@
           if (divider.hasPointerCapture(pointerId)) divider.releasePointerCapture(pointerId);
         };
 
-        divider.addEventListener('pointerup', endPointer);
-        divider.addEventListener('pointercancel', endPointer);
+        divider.addEventListener('pointerup', endPointer, listenerOptions);
+        divider.addEventListener('pointercancel', endPointer, listenerOptions);
         divider.addEventListener('lostpointercapture', (event) => {
           if (event.pointerId !== activePointerId) return;
           activePointerId = null;
           divider.classList.remove('is-dragging');
-        });
+        }, listenerOptions);
 
         divider.addEventListener('keydown', (event) => {
           const range = getDividerRange(side);
@@ -182,7 +185,7 @@
 
           event.preventDefault();
           moveDivider(side, nextValue);
-        });
+        }, listenerOptions);
       };
 
       normalizeState();
@@ -205,7 +208,7 @@
 
         moveDivider(side, requestedValue);
         focusDivider(divider);
-      });
+      }, listenerOptions);
       render();
 
       slides.forEach((slide) => {
@@ -224,11 +227,44 @@
         observer.observe(viewport);
         comparison._projectImageComparisonObserver = observer;
       } else {
-        window.addEventListener('resize', handleResize, { passive: true });
+        window.addEventListener('resize', handleResize, eventController
+          ? { passive: true, signal: eventController.signal }
+          : { passive: true });
       }
+
+      comparison._projectImageComparisonCleanup = () => {
+        eventController?.abort();
+        if (animationFrame) window.cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+        pendingPointerMove = null;
+        comparison._projectImageComparisonObserver?.disconnect?.();
+        comparison._projectImageComparisonObserver = null;
+        comparison._projectImageComparisonCleanup = null;
+        comparison.classList.remove('is-enhanced');
+        delete comparison.dataset.projectImageComparisonReady;
+        controls.hidden = true;
+        dividers.forEach((divider) => {
+          divider.hidden = true;
+          divider.classList.remove('is-dragging');
+        });
+      };
+      initialized.push(comparison);
     });
+    return () => initialized.forEach((comparison) => comparison._projectImageComparisonCleanup?.());
   }
 
-  document.addEventListener('DOMContentLoaded', () => initProjectImageComparisons());
-  document.addEventListener('site:content-updated', () => initProjectImageComparisons());
+  window.ProjectImageComparisons = Object.freeze({ mount: initProjectImageComparisons });
+  document.addEventListener('DOMContentLoaded', () => {
+    const dispose = initProjectImageComparisons();
+    window.SiteRoutes?.addCleanup?.(dispose);
+  });
+  document.addEventListener('site:content-updated', (event) => {
+    initProjectImageComparisons(event.detail?.root || document);
+  });
+  if (document.readyState !== 'loading') {
+    const dispose = initProjectImageComparisons(
+      document.querySelector('[data-site-route-content], [data-personal-detail-content]') || document
+    );
+    window.SiteRoutes?.addCleanup?.(dispose);
+  }
 })();
