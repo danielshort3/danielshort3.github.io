@@ -42025,6 +42025,16 @@ try {
       .split(';')
       .map(part => part.trim())
       .find(part => part.startsWith(`${directive} `)) || '';
+    const localTranscribeWorkerOrigin = 'https://daniel-pc.tail9686c5.ts.net:8443';
+    ['/tools/transcribe', '/tools/transcribe.html'].forEach((source) => {
+      const csp = cspHeaderForSource(source);
+      const connectSrc = cspDirective(csp?.value, 'connect-src');
+      assert(connectSrc.split(/\s+/).includes(localTranscribeWorkerOrigin),
+        `${source} CSP should allow the dedicated HTTPS 8443 Home GPU endpoint`);
+    });
+    const envExample = fs.readFileSync('.env.example', 'utf8');
+    assert(envExample.includes(`LOCAL_TRANSCRIBE_WORKER_ORIGIN=${localTranscribeWorkerOrigin}`),
+      '.env.example should point local transcription at the dedicated HTTPS 8443 Funnel origin');
     cspVariants.forEach(([source, header]) => {
       const value = header && header.value;
       const scriptSrc = cspDirective(value, 'script-src');

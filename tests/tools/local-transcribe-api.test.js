@@ -90,6 +90,7 @@ async function run(){
   assert.strictEqual(invalidOrigin.configured, false);
   assert.strictEqual(invalidOrigin.workerOrigin, '');
   assert.strictEqual(internal.normalizeWorkerOrigin('https://gpu.example.test/'), 'https://gpu.example.test');
+  assert.strictEqual(internal.normalizeWorkerOrigin('https://gpu.example.test:8443/'), 'https://gpu.example.test:8443');
   assert.strictEqual(internal.normalizeWorkerOrigin('javascript:alert(1)'), '');
   assert.strictEqual(internal.normalizeWorkerOrigin('http://192.168.1.50:8765'), '');
 
