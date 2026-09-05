@@ -180,12 +180,19 @@
       __mediaViewer._resize = null;
     }
     const content = __mediaViewer.querySelector('.media-viewer-content');
-    if (content) untrapFocus(content);
-    __mediaViewer.classList.remove('active');
-    document.body.classList.remove('media-viewer-open');
-    if (__mediaPrevFocus) {
-      try { __mediaPrevFocus.focus(); } catch {}
-      __mediaPrevFocus = null;
+    const finishClose = () => {
+      if (content) untrapFocus(content);
+      document.body.classList.remove('media-viewer-open');
+      if (__mediaPrevFocus) {
+        try { __mediaPrevFocus.focus({ preventScroll: true }); } catch {}
+        __mediaPrevFocus = null;
+      }
+    };
+    const accessibility = window.createModalAccessibility?.(__mediaViewer);
+    if (accessibility) accessibility.hide({ onFinish: finishClose });
+    else {
+      __mediaViewer.classList.remove('active');
+      finishClose();
     }
     return true;
   }
@@ -253,14 +260,18 @@
     const content = viewer.querySelector('.media-viewer-content');
     content.setAttribute('aria-label', `Expanded view: ${label}`);
     trapFocus(content);
-    __mediaPrevFocus = document.activeElement;
+    if (!viewer.contains(document.activeElement)) __mediaPrevFocus = document.activeElement;
+    const accessibility = window.createModalAccessibility?.(viewer);
+    accessibility?.show();
     viewer.classList.add('active');
     document.body.classList.add('media-viewer-open');
     const closeBtn = viewer.querySelector('.media-viewer-close');
     try { closeBtn.focus({ preventScroll: true }); } catch {}
+    accessibility?.isolateBackground();
   }
 
   function trapFocus(modalEl) {
+    untrapFocus(modalEl);
     const focusables = modalEl.querySelectorAll(
       'a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])'
     );
@@ -434,17 +445,22 @@
   window.activateGifVideo = activateGifVideo;
   window.projectMedia = projectMedia;
 
-  window.closeModal = function(id) {
+  window.closeModal = function(id, options = {}) {
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
     if (!modal) return;
-    modal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-    untrapFocus(modal);
-    if (__modalPrevFocus) {
-      try {
-        __modalPrevFocus.focus();
-      } catch {}
-      __modalPrevFocus = null;
+    const finishClose = () => {
+      untrapFocus(modal.querySelector('.modal-content') || modal);
+      if (__modalPrevFocus && options.restoreFocus !== false) {
+        try { __modalPrevFocus.focus({ preventScroll: true }); } catch {}
+        __modalPrevFocus = null;
+      }
+    };
+    const accessibility = window.createModalAccessibility?.(modal);
+    if (accessibility) accessibility.hide({ onFinish: finishClose, immediate: options.immediate === true });
+    else {
+      modal.classList.remove('active');
+      document.body.classList.remove('modal-open');
+      finishClose();
     }
     window.trackModalClose && window.trackModalClose(id);
     try {
@@ -467,11 +483,14 @@
     if (!modal || !modal.classList || !modal.classList.contains('modal')) return;
     // Count views when a project modal is opened
     window.trackProjectView && window.trackProjectView(id);
-    __modalPrevFocus = document.activeElement;
+    if (!modal.contains(document.activeElement) && !document.activeElement?.closest?.('.modal')) __modalPrevFocus = document.activeElement;
+    const accessibility = window.createModalAccessibility?.(modal);
+    accessibility?.show();
     modal.classList.add('active');
     document.body.classList.add('modal-open');
     const content = modal.querySelector('.modal-content') || modal;
     content.focus({ preventScroll: true });
+    accessibility?.isolateBackground();
     trapFocus(content);
     activateGifVideo(modal, { mode: 'auto' });
 
@@ -719,7 +738,7 @@
       const nextIdx = e.key === 'ArrowRight'
         ? (idx + 1) % window.PROJECTS.length
         : (idx - 1 + window.PROJECTS.length) % window.PROJECTS.length;
-      window.closeModal(id);
+      window.closeModal(id, { restoreFocus: false, immediate: true });
       window.openModal(window.PROJECTS[nextIdx].id);
       e.preventDefault();
     }

@@ -31,8 +31,6 @@
 
 const dom = {
   body: document.body,
-  appShell: document.querySelector(".app-shell"),
-  modalBackground: [],
   stats: document.getElementById("stats"),
   workspaceTablist: document.querySelector(".workspace-tabs"),
   workspaceTabs: Array.from(document.querySelectorAll("[data-workspace-tab]")),
@@ -75,10 +73,6 @@ const dom = {
   offlineSummary: document.getElementById("offline-summary"),
   claimOfflineButton: document.getElementById("claim-offline-button")
 };
-dom.modalBackground = Array.from(new Set([
-  ...document.querySelectorAll("body > .skip-link, body > #combined-header-nav, body > .app-shell, .personal-accordion__rails, .personal-accordion__toolbar, body > .footer, body > .speed-dial"),
-  dom.appShell
-].filter(Boolean)));
 let lastLiveUiRenderAt = 0;
 let deckInsightCacheKey = "";
 let deckInsightCacheValue = null;
@@ -1981,28 +1975,48 @@ function activateWorkspace(name, focusTab = false) {
   }
 }
 
+const offlineModalAccessibility = window.createModalAccessibility(dom.offlineModal);
+const offlineModalPlaceholder = document.createComment("probability-engine-offline-modal");
+let offlineModalDisposed = false;
+
+function restoreOfflineModal() {
+  if (offlineModalPlaceholder.parentNode) offlineModalPlaceholder.replaceWith(dom.offlineModal);
+}
+
+function disposeOfflineModal() {
+  offlineModalDisposed = true;
+  offlineModalAccessibility.dispose();
+  dom.offlineModal.classList.add("hidden");
+  restoreOfflineModal();
+  lastFocusedBeforeOffline = null;
+}
+
+window.SiteRoutes?.addCleanup(disposeOfflineModal);
+
 function openOfflineModal() {
+  if (offlineModalDisposed || dom.offlineModal.classList.contains("active")) return;
   lastFocusedBeforeOffline = document.activeElement instanceof HTMLElement
     ? document.activeElement
     : null;
-  for (const element of dom.modalBackground) {
-    element.setAttribute("inert", "");
-  }
+  // Keep the dialog outside the game's clipped, animated content viewport.
+  dom.offlineModal.before(offlineModalPlaceholder);
+  document.body.appendChild(dom.offlineModal);
   dom.offlineModal.classList.remove("hidden");
-  dom.offlineModal.setAttribute("aria-hidden", "false");
-  window.requestAnimationFrame(() => dom.claimOfflineButton.focus());
+  offlineModalAccessibility.show();
+  dom.claimOfflineButton.focus({ preventScroll: true });
+  offlineModalAccessibility.isolateBackground();
 }
 
 function closeOfflineModal() {
-  dom.offlineModal.classList.add("hidden");
-  dom.offlineModal.setAttribute("aria-hidden", "true");
-  for (const element of dom.modalBackground) {
-    element.removeAttribute("inert");
-  }
-  if (lastFocusedBeforeOffline && lastFocusedBeforeOffline.isConnected) {
-    lastFocusedBeforeOffline.focus();
-  }
-  lastFocusedBeforeOffline = null;
+  if (offlineModalDisposed) return;
+  offlineModalAccessibility.hide({
+    onFinish: () => {
+      dom.offlineModal.classList.add("hidden");
+      restoreOfflineModal();
+      if (lastFocusedBeforeOffline?.isConnected) lastFocusedBeforeOffline.focus({ preventScroll: true });
+      lastFocusedBeforeOffline = null;
+    }
+  });
 }
 
 function validateImportedSave(payload) {

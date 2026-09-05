@@ -1,6 +1,184 @@
 (() => {
   'use strict';
 
+  if (window.SiteFrame?.homeState()) {
+    const frame = window.SiteFrame;
+    const initial = frame.homeState();
+    const items = initial.items;
+    const tabs = frame.tabs();
+    const routes = { projects: '/portfolio', tools: '/tools', games: '/games' };
+    const titles = {
+      projects: 'Data & Machine Learning Portfolio | Daniel Short',
+      tools: 'Browser Tools for Writing, Images & Campaigns | Daniel Short',
+      games: 'Browser Games & Interactive Simulations | Daniel Short'
+    };
+    const positions = new Map();
+    let operation = 0;
+    let disposed = false;
+    const active = () => !disposed && frame.homeState()?.items === items;
+
+    function render(id) {
+      const view = items.get(id)?.querySelector('[data-home-library-view]');
+      if (!view || view.dataset.homeLibraryRendered === 'true') return;
+      const list = view.querySelector('[data-home-library-list]');
+      if (!list) return;
+      const data = window.HOME_LIBRARY_DATA?.[id]?.items || [];
+      const fragment = document.createDocumentFragment();
+      const href = (value) => /^(?:[a-z][a-z0-9+.-]*:|\/|#)/i.test(value || '') ? value : `/${value || ''}`;
+      data.forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = 'home-library__item';
+        const link = document.createElement('a');
+        link.className = 'home-library__card';
+        link.href = href(entry.href);
+        link.dataset.personalTransition = 'detail';
+        if (entry.external) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+        if (entry.contentType) {
+          link.dataset.contentType = entry.contentType;
+          link.dataset.contentOpen = 'true';
+          link.dataset.contentId = entry.contentId || entry.id || '';
+          link.dataset.resourceType = entry.resourceType || entry.contentType;
+          link.dataset.sourceSurface = 'home_library';
+        }
+        const media = document.createElement('span');
+        media.className = `home-library__media home-library__media--${entry.image ? 'preview' : 'glyph'}`;
+        if (entry.image) {
+          const image = document.createElement('img');
+          image.src = href(entry.image);
+          image.alt = entry.imageAlt || '';
+          image.width = 640; image.height = 360; image.loading = 'lazy'; image.decoding = 'async';
+          media.append(image);
+        } else {
+          media.setAttribute('aria-hidden', 'true');
+          if (entry.iconHtml) media.innerHTML = entry.iconHtml;
+          else if (tabs.get(id)?.querySelector('svg')) media.append(tabs.get(id).querySelector('svg').cloneNode(true));
+        }
+        const copy = document.createElement('span');
+        copy.className = 'home-library__copy';
+        const title = document.createElement('strong');
+        title.textContent = entry.title || 'Explore';
+        const summary = document.createElement('span');
+        summary.textContent = entry.summary || '';
+        copy.append(title, summary);
+        const arrow = document.createElement('span');
+        arrow.className = 'home-library__arrow';
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.innerHTML = '<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"></path></svg>';
+        link.append(media, copy, arrow);
+        item.append(link);
+        fragment.append(item);
+      });
+      list.replaceChildren(fragment);
+      const count = view.querySelector('[data-home-library-count]');
+      if (count) count.textContent = String(data.length);
+      view.dataset.homeLibraryRendered = 'true';
+    }
+
+    function headerBottom() {
+      const header = document.querySelector('[data-site-shell-header]');
+      return header && getComputedStyle(header).display !== 'none' ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    }
+
+    async function select(category, view = 'overview', options = {}) {
+      if (!active() || !items.has(category) || (view === 'library' && !routes[category])) return false;
+      const sequence = ++operation;
+      const previous = frame.homeState();
+      if (options.history !== false && previous.category === category && previous.view === view &&
+        frame.root().dataset.frameCategory === category && frame.root().dataset.frameView === view) return false;
+      if (options.history !== false && window.SiteNavigation?.isNavigating?.() && !window.SiteNavigation.cancelPending()) {
+        return window.SiteNavigation.navigate(new URL(view === 'library' ? routes[category] : `/#${category}`, window.location.href));
+      }
+      const owner = frame.viewport();
+      positions.set(`${previous.category}:${previous.view}`, { top: owner.scrollTop, y: window.scrollY });
+      if (view === 'library') render(category);
+      const complete = await frame.showHome(category, view, { animate: options.animate !== false });
+      if (!complete || !active() || sequence !== operation) return false;
+      const url = new URL(view === 'library' ? routes[category] : `/#${category}`, window.location.href);
+      document.title = view === 'library' ? titles[category] : initial.title;
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.href = view === 'library' ? new URL(routes[category], initial.canonical || window.location.origin).href : initial.canonical;
+      const state = { homePanel: category, homeView: view, personalCategory: category, personalView: view };
+      if (options.history !== false) {
+        if (window.SiteNavigation?.recordHome) window.SiteNavigation.recordHome(url, state, options.history === 'replace');
+        else window.history[options.history === 'replace' ? 'replaceState' : 'pushState']({ ...window.history.state, ...state }, '', url);
+      }
+      const saved = positions.get(`${category}:${view}`);
+      owner.scrollTop = saved?.top || 0;
+      if (options.reveal !== false && window.matchMedia('(max-width: 959px), (max-height: 619px)').matches) {
+        const top = window.scrollY + tabs.get(category).getBoundingClientRect().top - headerBottom();
+        window.scrollTo({ top: Math.max(0, saved?.y ?? top), behavior: 'instant' });
+      }
+      if (options.focus !== false) {
+        const target = view === 'library' ? items.get(category).querySelector('[data-home-library-heading]') : tabs.get(category);
+        target?.focus({ preventScroll: true });
+      }
+      frame.root().dispatchEvent(new CustomEvent('home:category-change', { bubbles: true, detail: { category, view } }));
+      frame.root().dispatchEvent(new CustomEvent('home:library-change', { bubbles: true, detail: { category, expanded: view === 'library' } }));
+      return true;
+    }
+
+    function click(event) {
+      if (!active() || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      const state = frame.homeState();
+      const open = event.target.closest('[data-home-library-open]');
+      const close = event.target.closest('[data-home-library-close]');
+      const tab = event.target.closest('.site-frame__tab');
+      if (open) { event.preventDefault(); select(open.dataset.homeLibraryOpen, 'library'); }
+      else if (close) { event.preventDefault(); select(state.category); }
+      else if (tab) {
+        event.preventDefault();
+        const id = tab.dataset.siteTab;
+        const visible = frame.root().dataset;
+        select(visible.frameView === 'overview' && visible.frameCategory === id && id !== 'about' ? 'about' : id);
+      }
+    }
+
+    function keydown(event) {
+      if (!active()) return;
+      const tab = event.target.closest('.site-frame__tab');
+      if (!tab) return;
+      if (event.key === ' ') { event.preventDefault(); tab.click(); return; }
+      const visible = [...tabs.values()].filter((node) => !node.hidden);
+      const index = visible.indexOf(tab);
+      let next;
+      if (['ArrowRight', 'ArrowDown'].includes(event.key)) next = (index + 1) % visible.length;
+      else if (['ArrowLeft', 'ArrowUp'].includes(event.key)) next = (index + visible.length - 1) % visible.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = visible.length - 1;
+      else return;
+      event.preventDefault(); visible[next]?.focus();
+    }
+
+    function locationChanged() {
+      if (!active()) return;
+      const state = window.history.state;
+      if (state?.siteRoute?.id && state.siteRoute.id !== 'home') return;
+      const library = Object.keys(routes).find((id) => routes[id] === window.location.pathname);
+      let hash = window.location.hash.slice(1);
+      try { hash = decodeURIComponent(hash); } catch (_) {}
+      select(library || (items.has(hash) ? hash : state?.homePanel) || 'about', library ? 'library' : 'overview', { history: false, focus: false, reveal: false });
+    }
+
+    frame.root().addEventListener('click', click);
+    frame.root().addEventListener('keydown', keydown);
+    window.addEventListener('popstate', locationChanged);
+    window.addEventListener('hashchange', locationChanged);
+    window.SiteRoutes?.addCleanup(() => {
+      disposed = true; operation += 1;
+      frame.root().removeEventListener('click', click);
+      frame.root().removeEventListener('keydown', keydown);
+      window.removeEventListener('popstate', locationChanged);
+      window.removeEventListener('hashchange', locationChanged);
+    }, 'home');
+    const library = Object.keys(routes).find((id) => routes[id] === window.location.pathname);
+    let hash = window.location.hash.slice(1);
+    try { hash = decodeURIComponent(hash); } catch (_) {}
+    select(library || (items.has(hash) ? hash : 'about'), library || window.location.search.includes('view=library') ? 'library' : 'overview', {
+      animate: false, history: false, focus: false, reveal: false
+    });
+    return;
+  }
+
   const root = document.querySelector('[data-home-accordion]');
   if (!root) return;
 
@@ -42,6 +220,7 @@
   const scrollPositions = new Map();
   const documentScrollPositions = new Map();
   const closeTimers = new Map();
+  const panelMotions = new Map();
   const LIBRARY_ROUTES = Object.freeze({
     projects: '/portfolio',
     tools: '/tools',
@@ -57,7 +236,7 @@
     title: document.title,
     canonicalHref: canonicalLink?.getAttribute('href') || ''
   });
-  const PANEL_TRANSITION_MS = 440;
+  const PANEL_TRANSITION_MS = 320;
   const VIEW_EXIT_MS = 72;
   const VIEW_ENTRY_MS = 160;
   const COMPACT_VIEW_EXIT_MS = 64;
@@ -392,6 +571,7 @@
     const previousId = options.previousId || '';
     const animateOutgoing = options.animateOutgoing === true;
     const animateIncoming = options.animateIncoming === true && !reducedMotionQuery.matches;
+    const compactMotion = !railLayoutQuery.matches && !isLibraryMode && Boolean(window.SiteMotion?.height);
     items.forEach((item) => {
       const itemId = String(item.dataset.homeAccordionItem || '');
       const selected = itemId === id;
@@ -404,26 +584,37 @@
       if (!panel) return;
       if (selected) {
         item.classList.remove('is-closing');
-        panel.hidden = false;
         panel.removeAttribute('inert');
         panel.removeAttribute('aria-hidden');
+        if (compactMotion && animateIncoming) {
+          panelMotions.set(itemId, window.SiteMotion.height(panel, true, { duration: '--motion-slow' }));
+        } else {
+          window.SiteMotion?.finish(panel);
+          panel.hidden = false;
+        }
         return;
       }
 
       panel.setAttribute('inert', '');
       panel.setAttribute('aria-hidden', 'true');
-      const animateClose = animateOutgoing &&
-        itemId === previousId &&
-        !panel.hidden &&
-        railLayoutQuery.matches &&
+      const animateClose = animateOutgoing && !panel.hidden &&
         !isLibraryMode &&
         !reducedMotionQuery.matches;
-      if (animateClose) {
+      if (animateClose && compactMotion) {
+        item.classList.add('is-closing');
+        panelMotions.set(itemId, window.SiteMotion.height(panel, false, {
+          duration: '--motion-slow',
+          onFinish: () => {
+            if (activeId !== itemId) item.classList.remove('is-closing');
+          }
+        }));
+      } else if (animateClose && itemId === previousId && railLayoutQuery.matches) {
         item.classList.add('is-closing');
         closeTimers.set(itemId, window.setTimeout(() => {
           finishClosingPanel(itemId);
-        }, PANEL_TRANSITION_MS));
+        }, window.SiteMotion?.duration(root, '--home-panel-motion', PANEL_TRANSITION_MS) ?? PANEL_TRANSITION_MS));
       } else {
+        window.SiteMotion?.finish(panel);
         panel.hidden = true;
         item.classList.remove('is-closing');
       }
@@ -432,12 +623,28 @@
     scheduleScrollerTabStopUpdate();
   }
 
+  function getVisibleHeaderBottom() {
+    return Math.max(0, ...[...document.querySelectorAll('.mobile-site-masthead, #combined-header-nav .nav')]
+      .map((header) => header.getBoundingClientRect())
+      .filter((rect) => rect.height > 0)
+      .map((rect) => rect.bottom));
+  }
+
   function revealPanelTrigger(id) {
     if (railLayoutQuery.matches || isLibraryMode || !id) return;
-    window.requestAnimationFrame(() => {
-      triggerById.get(id)?.scrollIntoView({
-        behavior: reducedMotionQuery.matches ? 'auto' : 'smooth',
-        block: 'start'
+    Promise.resolve(panelMotions.get(id)).then(() => {
+      if (activeId !== id || railLayoutQuery.matches || isLibraryMode) return;
+      window.requestAnimationFrame(() => {
+        if (activeId !== id) return;
+        const trigger = triggerById.get(id);
+        if (!trigger) return;
+        // Explicit coordinates use the visible header once, without combining
+        // the document's scroll padding with a rail's anchor scroll margin.
+        const top = window.scrollY + trigger.getBoundingClientRect().top - getVisibleHeaderBottom();
+        window.scrollTo({
+          top: Math.max(0, top),
+          behavior: reducedMotionQuery.matches ? 'auto' : 'smooth'
+        });
       });
     });
   }
@@ -493,8 +700,10 @@
       apply();
     };
     pendingViewApply = applyOnce;
-    const exitDuration = compactTransitionQuery.matches ? COMPACT_VIEW_EXIT_MS : VIEW_EXIT_MS;
-    const entryDuration = compactTransitionQuery.matches ? COMPACT_VIEW_ENTRY_MS : VIEW_ENTRY_MS;
+    const exitDuration = window.SiteMotion?.duration(root, '--site-route-exit-duration', VIEW_EXIT_MS)
+      ?? (compactTransitionQuery.matches ? COMPACT_VIEW_EXIT_MS : VIEW_EXIT_MS);
+    const entryDuration = window.SiteMotion?.duration(root, '--site-route-enter-duration', VIEW_ENTRY_MS)
+      ?? (compactTransitionQuery.matches ? COMPACT_VIEW_ENTRY_MS : VIEW_ENTRY_MS);
     root.classList.add('is-view-leaving');
     viewTransitionTimer = window.setTimeout(() => {
       viewTransitionTimer = 0;
@@ -516,6 +725,7 @@
     }
 
     const apply = () => {
+      settleClosingPanels();
       isLibraryMode = next;
       root.classList.toggle('is-library-mode', next);
       root.dataset.homeView = next ? 'library' : 'overview';
@@ -743,6 +953,12 @@
   const settleClosingPanels = () => {
     ids.forEach((id) => {
       clearCloseTimer(id);
+      const panel = panelById.get(id);
+      if (panel) {
+        window.SiteMotion?.finish(panel);
+        panel.hidden = id !== activeId;
+      }
+      panelMotions.delete(id);
       finishClosingPanel(id);
     });
     scheduleScrollerTabStopUpdate();

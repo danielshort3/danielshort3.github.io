@@ -25,8 +25,8 @@
         var(--mobile-site-dock-clearance) +
         var(--mobile-site-dock-stack-height)
       );
-      --mobile-site-dock-motion-duration: .22s;
-      --mobile-site-dock-motion-easing: cubic-bezier(.2, .75, .25, 1);
+      --mobile-site-dock-motion-duration: var(--motion-base);
+      --mobile-site-dock-motion-easing: var(--easing-standard);
     }
 
     .mobile-site-masthead {
@@ -149,13 +149,13 @@
       max-width: min(164px, 42vw);
       margin-left: auto;
       transition:
-        flex-basis .24s ease,
-        max-width .24s ease,
-        width .24s ease;
+        flex-basis var(--motion-base) var(--easing-standard),
+        max-width var(--motion-base) var(--easing-standard),
+        width var(--motion-base) var(--easing-standard);
     }
 
     .mobile-site-masthead__search.is-expanded {
-      flex: 1 1 min(164px, 42vw);
+      flex: 0 0 min(164px, 42vw);
       width: min(164px, 42vw);
     }
 
@@ -177,19 +177,30 @@
       line-height: 1.1;
       opacity: 1;
       transition:
-        opacity .18s ease,
+        opacity var(--motion-fast) var(--easing-standard),
         background-color .2s ease,
         border-color .2s ease,
         box-shadow .2s ease;
     }
 
     .mobile-site-masthead__search:not(.is-expanded) .mobile-site-masthead__search-input {
+      height: 44px;
       opacity: 0;
       pointer-events: none;
     }
 
     .mobile-site-masthead__search-input::placeholder {
       color: rgba(33, 48, 74, .52);
+    }
+
+    @media (max-width: 360px) {
+      .mobile-site-masthead__inner {
+        gap: 8px;
+      }
+
+      .mobile-site-masthead__brand {
+        gap: 8px;
+      }
     }
 
     .mobile-site-masthead__search-input:focus {
@@ -434,7 +445,7 @@
       pointer-events: none;
       transform: none;
       transform-origin: bottom center;
-      transition: visibility 0s linear .24s;
+      transition: visibility 0s linear var(--motion-fast);
       visibility: hidden;
       clip-path: inset(-24px -18px 0 -18px);
     }
@@ -458,9 +469,11 @@
         0 18px 36px rgba(9, 31, 59, .18),
         inset 0 1px 0 rgba(255, 255, 255, .9);
       transform: translateY(calc(100% + 10px));
+      opacity: 0;
       transition:
-        transform .24s ease,
-        visibility 0s linear .24s;
+        transform var(--motion-fast) var(--easing-standard),
+        opacity var(--motion-fast) var(--easing-standard),
+        visibility 0s linear var(--motion-fast);
       visibility: hidden;
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
@@ -474,7 +487,11 @@
 
     .mobile-site-dock.is-contact-open .mobile-site-dock__contact-actions {
       transform: translateY(0);
-      transition: transform .24s ease;
+      opacity: 1;
+      transition:
+        transform var(--motion-base) var(--easing-standard),
+        opacity var(--motion-base) var(--easing-standard),
+        visibility 0s;
       visibility: visible;
     }
 

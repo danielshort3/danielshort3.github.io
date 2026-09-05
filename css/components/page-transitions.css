@@ -2,33 +2,13 @@
   :root {
     --site-route-motion: 8px;
     --site-route-enter-duration: 160ms;
-    --site-route-exit-duration: 72ms;
+    --site-route-exit-duration: 160ms;
     --site-route-ease: cubic-bezier(.22, 1, .36, 1);
+    --site-route-exit-ease: cubic-bezier(.4, 0, 1, 1);
   }
 
   [data-site-route-content] {
     min-inline-size: 0;
-  }
-
-  [data-site-route-content].site-route-content--preparing {
-    opacity: 0;
-    transform: translate3d(var(--site-route-motion), 0, 0);
-  }
-
-  [data-site-route-content].site-route-content--leaving {
-    opacity: 0;
-  }
-
-  [data-site-route-content].site-route-content--entering {
-    animation: site-route-content-enter-forward var(--site-route-enter-duration) var(--site-route-ease) both;
-  }
-
-  :root[data-site-route-direction="back"] [data-site-route-content].site-route-content--entering {
-    animation-name: site-route-content-enter-back;
-  }
-
-  :root[data-site-route-direction="cross"] [data-site-route-content].site-route-content--entering {
-    animation-name: site-route-content-enter-cross;
   }
 
   :is(
@@ -110,83 +90,11 @@
     cursor: progress;
   }
 
-  .home-accordion.is-view-changing {
-    pointer-events: none;
-  }
-
-  .home-accordion.is-view-leaving .home-accordion__item.is-active .home-accordion__scroller {
-    animation: site-home-content-leave var(--site-route-exit-duration) ease-in both;
-  }
-
-  .home-accordion.is-view-entering .home-accordion__item.is-active .home-accordion__scroller {
-    animation: site-home-content-enter var(--site-route-enter-duration) var(--site-route-ease) both;
-  }
-
-  @keyframes site-route-content-enter-forward {
-    from { opacity: 0; transform: translate3d(var(--site-route-motion), 0, 0); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); }
-  }
-
-  @keyframes site-route-content-enter-back {
-    from { opacity: 0; transform: translate3d(calc(var(--site-route-motion) * -1), 0, 0); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); }
-  }
-
-  @keyframes site-route-content-enter-cross {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes site-home-content-leave {
-    from { opacity: 1; transform: translate3d(0, 0, 0); }
-    to { opacity: 0; transform: translate3d(calc(var(--site-route-motion) * -1), 0, 0); }
-  }
-
-  @keyframes site-home-content-enter {
-    from { opacity: 0; transform: translate3d(var(--site-route-motion), 0, 0); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); }
-  }
-
   @keyframes site-route-progress {
-    0% { transform: translateX(-120%); }
-    55% { transform: translateX(120%); }
-    100% { transform: translateX(300%); }
+    from { transform: translateX(-120%); }
+    to { transform: translateX(300%); }
   }
-
-  @media (max-width: 959px), (max-height: 619px) {
-    :root {
-      --site-route-motion: 4px;
-    }
-
-    [data-site-route-content].site-route-content--entering {
-      animation-name: site-route-content-enter-mobile;
-    }
-
-    :root[data-site-route-direction="back"] [data-site-route-content].site-route-content--entering {
-      animation-name: site-route-content-enter-mobile-back;
-    }
-
-    @keyframes site-route-content-enter-mobile {
-      from { opacity: 0; transform: translate3d(0, var(--site-route-motion), 0); }
-      to { opacity: 1; transform: translate3d(0, 0, 0); }
-    }
-
-    @keyframes site-route-content-enter-mobile-back {
-      from { opacity: 0; transform: translate3d(0, calc(var(--site-route-motion) * -1), 0); }
-      to { opacity: 1; transform: translate3d(0, 0, 0); }
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    [data-site-route-content].site-route-content--entering,
-    [data-site-route-content].site-route-content--preparing,
-    [data-site-route-content].site-route-content--leaving,
-    .home-accordion:is(.is-view-leaving, .is-view-entering) .home-accordion__item.is-active .home-accordion__scroller,
-    .site-route-progress::before,
-    [data-site-route-progress]::before {
-      animation: none !important;
-      opacity: 1;
-      transform: none;
-    }
+    [data-site-route-progress]::before { animation: none; }
   }
 }

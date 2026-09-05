@@ -33,6 +33,7 @@ function runProjectDemoWrapperTests({ assert }) {
   const projectCss = read('css/components/project-page.css');
   const buildRunner = read('build/build-site.js');
   const demoWrapperLifecycle = read('js/navigation/project-demo-wrapper.js');
+  const frameCss = read('css/components/site-frame.css');
 
   assert(definitions.length === 12 && PROJECT_DEMO_IDS.length === 12,
     'Project demo continuity should cover all 12 raw demo documents');
@@ -59,12 +60,17 @@ function runProjectDemoWrapperTests({ assert }) {
     `${wrapperRelativePath} should be reproducible from the authoritative wrapper generator`);
     assert(wrapperFromSource.includes('data-project-demo-src=') &&
       wrapperFromSource.includes('<script defer src="js/navigation/project-demo-wrapper.js"></script>') &&
-      demoWrapperLifecycle.includes("window.matchMedia('(max-width: 959px)')") &&
+      demoWrapperLifecycle.includes("window.matchMedia('(max-width: 959px), (max-height: 619px)')") &&
       demoWrapperLifecycle.includes("listen(frame, 'load', observeFrame);") &&
       demoWrapperLifecycle.includes('new FrameResizeObserver(scheduleMeasurement)') &&
       demoWrapperLifecycle.includes("style?.removeProperty('height')") &&
       demoWrapperLifecycle.includes('window.SiteRoutes?.addCleanup?.(dispose);'),
     `${wrapperRelativePath} should auto-size its same-origin demo on mobile and restore fixed desktop sizing`);
+    assert(wrapperFromSource.includes(`data-project-demo-fit="${definition.fit}"`) &&
+      ['content', 'viewport'].includes(definition.fit),
+    `${wrapperRelativePath} should distinguish natural content from bounded chat viewports`);
+    assert(wrapperFromSource.includes(`>${definition.backCompactLabel}</span>`),
+      `${wrapperRelativePath} should use a concise visible return label with a descriptive accessible name`);
     assert(count(raw, new RegExp(GUARD_START, 'g')) === 1 &&
       count(raw, new RegExp(GUARD_END, 'g')) === 1 &&
       raw.includes('if (window.self === window.top)') &&
@@ -114,6 +120,9 @@ function runProjectDemoWrapperTests({ assert }) {
     css.includes('body.project-demo-wrapper-page .personal-accordion__content') &&
     css.includes('overflow: hidden !important;'),
   'The personal shell should give wrapper iframes a full, isolated content viewport');
+  assert(/body\.project-demo-wrapper-page \.site-frame\[data-frame-fit="viewport"\]\[data-frame-compact="false"\] \.site-frame__body\s*\{\s*height: 100%;/.test(frameCss),
+    'The persistent desktop frame must preserve a definite height for demo iframe ancestors');
+  require('./project-demo-sizing.test')({ assert });
   assert(css.includes('scrollbar-gutter: stable both-edges;'),
     'Desktop compact panels should reserve symmetric scrollbar space so return and content axes stay aligned');
   assert(projectCss.includes('.project-main--compact .project-demo-header{') &&

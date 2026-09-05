@@ -84,14 +84,6 @@
       margin: 0;
       max-width: 60ch;
     }
-    .health-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 8px 16px 0;
-    }
     .health-status {
       display: flex;
       align-items: center;
@@ -145,6 +137,7 @@
       align-items: center;
       justify-content: center;
       min-width: 126px;
+      min-height: 44px;
       padding: 10px 14px;
       border-radius: 10px;
       border: 1px solid var(--border);
@@ -157,11 +150,36 @@
       opacity: .6;
       cursor: not-allowed;
     }
-    .section {
-      padding: 18px;
+    .sentence-workspace {
+      display: grid;
+      grid-template-columns: minmax(280px, .8fr) minmax(0, 1.2fr);
+      gap: 32px;
+      padding: 24px;
+      align-items: start;
     }
-    .section + .section {
-      border-top: 1px solid var(--border);
+    .section {
+      min-width: 0;
+    }
+    .example-queries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .example-queries .btn-secondary {
+      min-width: 0;
+      font-size: .85rem;
+      font-weight: 500;
+    }
+    .search-settings {
+      display: grid;
+      gap: 16px;
+    }
+    @media (max-width: 959px) {
+      .sentence-workspace {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        padding: 16px;
+      }
     }
     form {
       display: grid;
@@ -187,6 +205,10 @@
     }
     input::placeholder {
       color: color-mix(in srgb, var(--muted) 80%, #fff 20%);
+    }
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
     .range-row {
       display: grid;
@@ -257,10 +279,11 @@
       gap: 10px;
     }
     .item {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
+      background: var(--surface);
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      padding: 16px 0;
       display: grid;
       gap: 10px;
     }
@@ -277,11 +300,11 @@
     }
     .percent {
       font-weight: 600;
-      color: color-mix(in srgb, var(--accent) 70%, #fff 30%);
+      color: var(--accent);
     }
     .meter {
       position: relative;
-      height: 12px;
+      height: 4px;
       border-radius: 999px;
       overflow: hidden;
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.08));
@@ -308,14 +331,8 @@
       .card-header {
         padding: 14px;
       }
-      .health-row {
-        justify-content: flex-start;
-      }
       .health-actions {
         width: 100%;
-      }
-      .section {
-        padding: 14px;
       }
       .eyebrow-row {
         gap: 8px;
@@ -355,15 +372,12 @@
       .card-header {
         padding: 12px;
       }
-      .section {
-        padding: 12px;
-      }
       .pill {
         font-size: .78rem;
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
@@ -461,16 +475,16 @@
       serverReady = false;
       if (submitBtn) submitBtn.disabled = true;
       if (healthCheckBtn) healthCheckBtn.disabled = true;
-      setHealth('warming', 'Warming up', 'Checking AWS Lambda status...');
+      setHealth('warming', 'Preparing demo', 'Checking the demo connection...');
 
       const run = (async () => {
         try {
           await retryRequest(() => getJson(url), WARM_RETRY_OPTIONS);
           serverReady = true;
-          setHealth('ok', 'Ready', 'AWS Lambda ready.');
+          setHealth('ok', 'Ready', 'Ready to search.');
         } catch (e) {
           serverReady = false;
-          setHealth('err', 'Unavailable', 'Unable to reach AWS Lambda right now.');
+          setHealth('err', 'Unavailable', 'The demo is temporarily unavailable. Try reconnecting.');
           console.error(e);
         } finally {
           if (submitBtn) submitBtn.disabled = !serverReady;
@@ -517,7 +531,7 @@
         if (isRecoverableRequestError(e)) {
           serverReady = false;
           if (submitBtn) submitBtn.disabled = true;
-          setHealth('warming', 'Warming up', 'Server is waking up or temporarily unavailable. Check status and retry.');
+          setHealth('warming', 'Preparing demo', 'Server is waking up or temporarily unavailable. Check status and retry.');
         }
         renderError(getErrorText(e));
       } finally {
@@ -543,7 +557,7 @@
         rank.textContent = `#${idx + 1}`;
         const perc = document.createElement('div');
         perc.className = 'percent';
-        perc.textContent = `${percent.toFixed(1)}%`;
+        perc.textContent = `Similarity ${percent.toFixed(1)}%`;
         meta.append(rank, perc);
         const bar = document.createElement('div');
         bar.className = 'meter';
@@ -580,11 +594,21 @@
       const h = document.createElement('div');
       h.className = 'small';
       h.style.color = 'var(--danger, #e05757)';
-      h.textContent = 'Error';
+      h.textContent = 'Could not complete the search. Reconnect and try again.';
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'btn-secondary';
+      retry.textContent = 'Reconnect demo';
+      retry.addEventListener('click', () => { health(); });
+      const details = document.createElement('details');
+      details.className = 'demo-disclosure';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Error details';
       const pre = document.createElement('pre');
       pre.textContent = String(err);
+      details.append(summary, pre);
       box.appendChild(h);
-      box.appendChild(pre);
+      box.append(retry, details);
       out.appendChild(box);
       notifyResize();
     }
@@ -601,6 +625,12 @@
           health();
         });
       }
+      document.querySelectorAll('[data-query-example]').forEach(button => {
+        button.addEventListener('click', () => {
+          form.query.value = button.dataset.queryExample;
+          form.query.focus();
+        });
+      });
       const topRange = document.getElementById('top');
       const topValue = document.getElementById('top-value');
       if (topRange && topValue) {
@@ -626,42 +656,56 @@
   <div class="card" id="demo-card">
     <header class="card-header">
       <div class="header-copy">
-        <h1 class="title">Smart Sentence Retriever</h1>
+        <h1 class="title">Sentence Search</h1>
         <p class="subtitle">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
       </div>
       <div class="header-actions">
         <div class="health-status" role="status" aria-live="polite">
-          <span id="health" class="health-pill aws-status-badge" data-state="warming">Warming up</span>
-          <span id="health-text" class="health-meta">Checking AWS Lambda status...</span>
-        </div>
-        <div class="health-actions">
-          <button id="health-check" class="btn-secondary" type="button">Check status</button>
+          <span id="health" class="health-pill aws-status-badge" data-state="warming">Preparing demo</span>
         </div>
       </div>
     </header>
-    <div class="section">
+    <div class="sentence-workspace demo-workspace">
+    <section class="section" aria-labelledby="search-heading">
+      <h2 id="search-heading" class="demo-section-label">Describe an idea</h2>
       <form id="form">
         <div>
-          <label for="query">Your query</label>
+          <label for="query">What are you looking for?</label>
           <input id="query" name="query" type="text" placeholder="Example: She wonders about things." data-example-query="She wonders about things." />
-          <div class="small" style="margin-top:8px;">Returns semantic matches from a fixed corpus, not exact keyword hits.</div>
+          <p class="small">Find passages with a similar meaning in Alice in Wonderland.</p>
         </div>
-        <div class="range-row">
+        <div class="example-queries" aria-label="Example searches">
+          <button type="button" class="btn-secondary" data-query-example="She wonders about things.">Curiosity</button>
+          <button type="button" class="btn-secondary" data-query-example="A rabbit is in a hurry.">A hurried rabbit</button>
+          <button type="button" class="btn-secondary" data-query-example="A very strange tea party.">A strange tea party</button>
+        </div>
+        <div class="actions">
+          <button type="submit" name="submitBtn" class="btn">Find Sentences</button>
+        </div>
+        <details class="demo-disclosure">
+          <summary>Search settings and connection</summary>
+          <div class="search-settings">
+          <div class="range-row">
           <div class="range-head">
             <label for="top">Top results</label>
             <span><span id="top-value">5</span> of 20</span>
           </div>
           <input id="top" name="top" type="range" min="1" max="20" step="1" value="5" aria-label="Top results" />
-        </div>
-        <div class="actions">
-          <button type="submit" name="submitBtn" class="btn">Find Sentences</button>
-        </div>
+          </div>
+          <span id="health-text" class="health-meta" role="status" aria-live="polite">Checking the demo connection...</span>
+          <div class="health-actions">
+            <button id="health-check" class="btn-secondary" type="button">Reconnect demo</button>
+          </div>
+          </div>
+        </details>
       </form>
-    </div>
-    <div class="section">
-      <div id="results" class="results">
-        <div class="small">Results will appear here.</div>
+    </section>
+    <section class="section" aria-labelledby="results-heading">
+      <h2 id="results-heading" class="demo-section-label">Matching sentences</h2>
+      <div id="results" class="results" aria-live="polite">
+        <div class="demo-empty-state">Choose an example or describe an idea. Matching passages and their similarity scores will appear here.</div>
       </div>
+    </section>
     </div>
   </div>
   </main>

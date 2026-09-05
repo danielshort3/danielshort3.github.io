@@ -5,6 +5,7 @@
   const MODAL_VALUE = 'certifications';
   const OPEN_SELECTOR = '[data-cert-modal-open]';
   const CLOSE_SELECTOR = '[data-cert-modal-close], .modal-close';
+  const ROUTE_CONTENT_SELECTOR = '[data-site-route-content], [data-personal-detail-content]';
   let activeController = null;
 
   const findWithin = (root, selector) => {
@@ -14,14 +15,19 @@
   };
 
   const currentElements = (root = document) => {
-    const modal = findWithin(root, '#certifications-modal') || document.getElementById('certifications-modal');
+    const belongsToRoot = activeController && (root === document ||
+      activeController.ownerRoot === root || root.contains?.(activeController.ownerRoot));
+    const modal = findWithin(root, '#certifications-modal') || (belongsToRoot ? activeController.modal : null);
     const modalContent = modal?.querySelector('.modal-content');
     let openers = Array.from(document.querySelectorAll(OPEN_SELECTOR));
     if (!openers.length && root !== document && typeof root?.querySelectorAll === 'function') {
       openers = Array.from(root.querySelectorAll(OPEN_SELECTOR));
     }
     const closers = modal ? Array.from(modal.querySelectorAll(CLOSE_SELECTOR)) : [];
-    return { modal, modalContent, openers, closers };
+    const ownerRoot = modal === activeController?.modal ? activeController.ownerRoot : root === document
+      ? modal?.closest(ROUTE_CONTENT_SELECTOR) || document.querySelector(ROUTE_CONTENT_SELECTOR) || document
+      : root;
+    return { modal, modalContent, openers, closers, ownerRoot };
   };
 
   const sameElements = (left, right) => left.length === right.length &&
@@ -51,11 +57,32 @@
     } catch {}
   };
 
-  const createController = ({ modal, modalContent, openers, closers }) => {
-    const modalAccessibility = typeof window.createModalAccessibility === 'function'
-      ? window.createModalAccessibility(modal)
+  const createController = ({ modal, modalContent, openers, closers, ownerRoot }) => {
+    if (typeof window.createModalAccessibility !== 'function') return null;
+    const placeholder = modal.parentElement !== document.body
+      ? document.createComment('certifications-modal')
       : null;
-    if (!modalAccessibility) return null;
+    if (placeholder) {
+      modal.before(placeholder);
+      // Preserve the original dialog while escaping the tab panel's stacking context.
+      document.body.appendChild(modal);
+    }
+    const restorePortal = () => {
+      if (placeholder) {
+        if (placeholder.isConnected) placeholder.replaceWith(modal);
+        else {
+          modal.remove();
+          placeholder.remove();
+        }
+      } else if (ownerRoot !== document) {
+        modal.remove();
+      }
+    };
+    const modalAccessibility = window.createModalAccessibility(modal);
+    if (!modalAccessibility) {
+      restorePortal();
+      return null;
+    }
 
     const cleanup = [];
     const focusableSelectors = 'a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])';
@@ -87,7 +114,7 @@
 
     const openModal = (options = {}) => {
       if (disposed || modal.classList.contains('active')) return;
-      previousFocus = document.activeElement;
+      if (!modal.contains(document.activeElement)) previousFocus = document.activeElement;
       modalAccessibility.show();
       modal.classList.add('active');
       document.body.classList.add('modal-open');
@@ -99,25 +126,22 @@
 
     const closeModal = (options = {}) => {
       if (!modal.classList.contains('active')) return;
-      modalAccessibility.restoreBackground();
-      modal.classList.remove('active');
-      modalAccessibility.hide();
-      if (!document.querySelector('.modal.active')) {
-        document.body.classList.remove('modal-open');
-      }
-      modalContent.removeEventListener('keydown', trapFocus);
-      if (options.restoreFocus !== false) {
-        const focusTarget = previousFocus
-          && previousFocus !== document.body
-          && document.contains(previousFocus)
-          && typeof previousFocus.focus === 'function'
-          ? previousFocus
-          : openers.find((opener) => document.contains(opener));
-        if (focusTarget && typeof focusTarget.focus === 'function') {
-          focusTarget.focus({ preventScroll: true });
+      modalAccessibility.hide({
+        immediate: options.immediate === true,
+        onFinish: () => {
+          modalContent.removeEventListener('keydown', trapFocus);
+          if (options.restoreFocus !== false) {
+            const focusTarget = previousFocus
+              && previousFocus !== document.body
+              && document.contains(previousFocus)
+              && typeof previousFocus.focus === 'function'
+              ? previousFocus
+              : openers.find((opener) => document.contains(opener));
+            focusTarget?.focus({ preventScroll: true });
+          }
+          previousFocus = null;
         }
-      }
-      previousFocus = null;
+      });
       if (!options.skipURL) updateURLState(false);
     };
 
@@ -151,8 +175,9 @@
     listen(window, 'hashchange', syncWithURL);
     syncWithURL();
 
-    return {
+    const controller = {
       modal,
+      ownerRoot,
       matches(elements) {
         return modal === elements.modal &&
           modalContent === elements.modalContent &&
@@ -161,15 +186,25 @@
       },
       dispose() {
         if (disposed) return;
-        closeModal({ skipURL: true, restoreFocus: false });
+        closeModal({ skipURL: true, restoreFocus: false, immediate: true });
+        modalAccessibility.dispose?.();
         disposed = true;
         modalContent.removeEventListener('keydown', trapFocus);
         cleanup.splice(0).forEach((remove) => remove());
+        restorePortal();
+        if (activeController === controller) activeController = null;
       }
     };
+    listen(document, 'site:route-unmounted', (event) => {
+      if (event.detail?.root === ownerRoot) controller.dispose();
+    });
+    return controller;
   };
 
   const mountCertificationsModal = (root = document) => {
+    if (activeController?.ownerRoot !== document && activeController?.ownerRoot?.isConnected === false) {
+      activeController.dispose();
+    }
     const elements = currentElements(root);
     if (!elements.modal || !elements.modalContent || !elements.openers.length) {
       activeController?.dispose();

@@ -566,13 +566,17 @@
       setBannerUiState(true);
       return;
     }
-    if (existingBanner) existingBanner.remove();
+    if (existingBanner) {
+      window.SiteMotion?.cancel(existingBanner);
+      existingBanner.remove();
+    }
     const saved = loadConsent();
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
     setBannerUiState(true);
-    setTimeout(() => banner.classList.add('pcz-visible'), 16);
+    if (window.SiteMotion) window.SiteMotion.presence(banner, true, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false });
+    else banner.classList.add('pcz-visible');
     // Banner is non-blocking; ensure the page isn't stuck in a blocked state.
     try { document.body.classList.remove('consent-blocked'); } catch (err) {}
 
@@ -585,14 +589,11 @@
       if (!banner || banner.dataset.state === 'closing') return;
       banner.dataset.state = 'closing';
       setBannerUiState(false);
-      banner.classList.remove('pcz-visible');
-      banner.classList.add('pcz-exit');
       const cleanup = () => {
         banner.remove();
       };
-      banner.addEventListener('transitionend', cleanup, { once: true });
-      banner.addEventListener('animationend', cleanup, { once: true });
-      setTimeout(cleanup, 450);
+      if (window.SiteMotion) window.SiteMotion.presence(banner, false, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false, onFinish: cleanup });
+      else cleanup();
       try { document.body.classList.remove('consent-blocked'); } catch (err) {}
     };
 
@@ -631,7 +632,15 @@
    * Show the preferences modal and handle focus and save logic.
    */
   function openPreferences(localeStrings, currentState, blocking) {
-    if (document.getElementById('pcz-modal')) return;
+    const existingModal = document.getElementById('pcz-modal');
+    if (existingModal) {
+      if (existingModal.dataset.state === 'closing' && window.SiteMotion) {
+        existingModal.dataset.state = 'open';
+        window.SiteMotion.presence(existingModal, true, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false });
+        existingModal.querySelector('button')?.focus({ preventScroll: true });
+      }
+      return;
+    }
     const returnFocus = document.activeElement && document.activeElement !== document.body
       ? document.activeElement
       : null;
@@ -642,7 +651,8 @@
     document.body.appendChild(modal);
     modal._pczReturnFocus = returnFocus;
     modal._pczRestoreBackground = isolateModalBackground(modal);
-    setTimeout(() => modal.classList.add('pcz-visible'), 16);
+    if (window.SiteMotion) window.SiteMotion.presence(modal, true, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false });
+    else modal.classList.add('pcz-visible');
     const stateOnLabel = localeStrings.stateOn || 'On';
     const stateOffLabel = localeStrings.stateOff || 'Off';
     const focusable = modal.querySelectorAll('input, button');
@@ -731,26 +741,19 @@
   function closePreferences(modal) {
     if (!modal || modal.dataset.state === 'closing') return;
     const returnFocus = modal._pczReturnFocus;
-    if (typeof modal._pczRestoreBackground === 'function') {
-      modal._pczRestoreBackground();
-      modal._pczRestoreBackground = null;
-    }
     modal.dataset.state = 'closing';
-    modal.classList.remove('pcz-visible');
-    modal.classList.add('pcz-exit');
     const cleanup = () => {
-      try { modal.remove(); } catch (err) {}
-    };
-    modal.addEventListener('transitionend', cleanup, { once: true });
-    modal.addEventListener('animationend', cleanup, { once: true });
-    setTimeout(cleanup, 450);
-    window.requestAnimationFrame(function () {
+      if (typeof modal._pczRestoreBackground === 'function') {
+        modal._pczRestoreBackground();
+        modal._pczRestoreBackground = null;
+      }
       const fallback = document.getElementById('pcz-manage');
       const target = returnFocus && returnFocus.isConnected ? returnFocus : fallback;
-      if (target && typeof target.focus === 'function') {
-        target.focus({ preventScroll: true });
-      }
-    });
+      if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
+      try { modal.remove(); } catch (err) {}
+    };
+    if (window.SiteMotion) window.SiteMotion.presence(modal, false, { className: 'pcz-visible', enter: '--motion-slow', exit: '--motion-base', hidden: false, onFinish: cleanup });
+    else cleanup();
   }
 
   /**

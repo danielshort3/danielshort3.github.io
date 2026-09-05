@@ -1,8 +1,11 @@
 (() => {
   'use strict';
+  if (window.SiteContact) return;
 
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
   const MAX_CONTEXT_AGE_MS = 15 * 60 * 1000;
+  const ROUTE_CONTENT_SELECTOR = '[data-site-route-body], [data-site-route-content], [data-personal-detail-content]';
+  const drafts = new Map();
   let activeContact = null;
 
   const query = (root, selector) => root?.querySelector?.(selector) || null;
@@ -62,8 +65,17 @@
   };
 
   const mountContactForm = (root = document) => {
+    if (activeContact?.ownerRoot !== document && activeContact?.ownerRoot?.isConnected === false) {
+      activeContact.dispose();
+    }
     const modal = query(root, '#contact-modal');
-    if (!modal) return null;
+    if (!modal) {
+      // A route mount may run after direct-page initialization has already
+      // moved its dialog out of the route scene and into the shared overlay layer.
+      return activeContact && (activeContact.ownerRoot === root || root.contains?.(activeContact.ownerRoot))
+        ? activeContact
+        : null;
+    }
     if (activeContact?.modal === modal) return activeContact;
     activeContact?.dispose();
 
@@ -81,6 +93,18 @@
     };
     const content = query(modal, '.modal-content');
     const openBtn = query(root, '#contact-form-toggle') || document.getElementById('contact-form-toggle');
+    const ownerRoot = root === document
+      ? modal.closest(ROUTE_CONTENT_SELECTOR) || document.querySelector(ROUTE_CONTENT_SELECTOR) || document
+      : root;
+    const placeholder = modal.parentElement !== document.body
+      ? document.createComment('contact-modal')
+      : null;
+    if (placeholder) {
+      modal.before(placeholder);
+      // Escape the accordion's isolated stacking contexts without recreating
+      // the form, losing entered values, or changing the no-JavaScript markup.
+      document.body.appendChild(modal);
+    }
     const closeBtn = query(modal, '.modal-close');
     const form = query(modal, '#contact-form');
     const statusEl = query(modal, '#contact-status');
@@ -93,6 +117,12 @@
     const nameInput = query(form, '#contact-name');
     const emailInput = query(form, '#contact-email');
     const messageInput = query(form, '#contact-message');
+    const draftKey = String(document.body?.dataset.audience || 'personal');
+    const draftInputs = { name: nameInput, email: emailInput, message: messageInput };
+    const previousDraft = drafts.get(draftKey);
+    if (previousDraft) Object.entries(draftInputs).forEach(([key, input]) => {
+      if (input && !input.value) input.value = previousDraft[key] || '';
+    });
     const fieldConfigs = [
       { input: nameInput, indicator: query(modal, '#contact-name-required') },
       { input: emailInput, indicator: query(modal, '#contact-email-required'), invalidIndicator: '- Check email' },
@@ -195,16 +225,20 @@
     };
     const toggleSuccess = (show = false) => {
       if (!form || !successPanel) return;
-      form.hidden = show;
-      successPanel.hidden = !show;
-      form.setAttribute('aria-hidden', show ? 'true' : 'false');
-      successPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
-      modal.classList.toggle('contact-success', show);
-      if (show) {
-        const body = query(modal, '.modal-body');
-        if (body) body.scrollTop = 0;
-        successPanel.focus();
-      }
+      const body = query(modal, '.modal-body');
+      const update = () => {
+        form.hidden = show;
+        successPanel.hidden = !show;
+        form.setAttribute('aria-hidden', show ? 'true' : 'false');
+        successPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
+        modal.classList.toggle('contact-success', show);
+        if (show) {
+          if (body) body.scrollTop = 0;
+          successPanel.focus();
+        }
+      };
+      if (window.SiteMotion && modal.classList.contains('active')) window.SiteMotion.swap(body, update);
+      else update();
     };
     const clearInputs = () => {
       form?.reset();
@@ -231,9 +265,9 @@
         focusDialog();
         return;
       }
-      prepareForm();
+      if (modal.dataset.motionState !== 'closing') prepareForm();
       trackContactEvent('contact_modal_open', { page_path: currentPathname() });
-      prevFocus = document.activeElement;
+      if (!modal.contains(document.activeElement)) prevFocus = document.activeElement;
       modalAccessibility?.show();
       modal.classList.add('active');
       document.body?.classList.add('modal-open');
@@ -243,19 +277,24 @@
       content.addEventListener('keydown', trap);
       window.requestAnimationFrame(focusDialog);
     };
-    const close = ({ restoreFocus = true } = {}) => {
+    const close = ({ restoreFocus = true, immediate = false } = {}) => {
       if (!content || !modal.classList.contains('active')) return;
-      modalAccessibility?.restoreBackground();
-      modal.classList.remove('active');
-      modalAccessibility?.hide();
       trackContactEvent('contact_modal_close', { page_path: currentPathname() });
-      syncModalOpenState();
-      content.removeEventListener('keydown', trap);
-      if (!restoreFocus) return;
-      if (prevFocus && prevFocus !== document.body && document.contains(prevFocus)) {
-        prevFocus.focus({ preventScroll: true });
-      } else {
-        openBtn?.focus({ preventScroll: true });
+      const onFinish = () => {
+        content.removeEventListener('keydown', trap);
+        if (restoreFocus) {
+          if (prevFocus && prevFocus !== document.body && document.contains(prevFocus)) {
+            prevFocus.focus({ preventScroll: true });
+          } else {
+            openBtn?.focus({ preventScroll: true });
+          }
+        }
+        syncModalOpenState();
+      };
+      if (modalAccessibility) modalAccessibility.hide({ onFinish, immediate });
+      else {
+        modal.classList.remove('active');
+        onFinish();
       }
     };
     const openIfHashMatches = () => {
@@ -338,6 +377,9 @@
     listen(closeBtn, 'click', close);
     listen(modal, 'click', handleModalClick);
     listen(document, 'keydown', handleEscape);
+    listen(document, 'site:route-before-leave', (event) => {
+      if (sending) event.preventDefault();
+    });
     listen(window, 'hashchange', openIfHashMatches);
     listen(form, 'input', updateSubmitState);
     fieldConfigs.forEach((config) => {
@@ -363,18 +405,31 @@
 
     const controller = {
       modal,
+      ownerRoot,
       open,
       close,
       get sending() { return sending; },
       dispose() {
         if (disposed) return;
+        drafts.set(draftKey, Object.fromEntries(Object.entries(draftInputs).map(([key, input]) => [key, input?.value || ''])));
         if (hashOpenTimer) window.clearTimeout(hashOpenTimer);
         hashOpenTimer = 0;
         submitController?.abort();
         submitController = null;
-        close({ restoreFocus: false });
+        close({ restoreFocus: false, immediate: true });
+        modalAccessibility?.dispose();
         disposed = true;
+        content?.removeEventListener('keydown', trap);
         cleanups.splice(0).reverse().forEach((cleanup) => cleanup());
+        if (placeholder) {
+          if (placeholder.isConnected) placeholder.replaceWith(modal);
+          else {
+            modal.remove();
+            placeholder.remove();
+          }
+        } else if (modal.dataset.contactModalInjected === 'true' && ownerRoot !== document) {
+          modal.remove();
+        }
         if (activeContact === controller) activeContact = null;
         if (window.openContactModal === open) delete window.openContactModal;
         if (window.closeContactModal === close) delete window.closeContactModal;
@@ -385,15 +440,24 @@
     window.openContactModal = open;
     window.closeContactModal = close;
     window.__contactModalReady = true;
+    listen(document, 'site:route-unmounted', (event) => {
+      if (event.detail?.root === ownerRoot) controller.dispose();
+    });
     openIfHashMatches();
     return controller;
   };
 
   window.initializeContactModal = (root = document) => mountContactForm(root);
+  window.SiteContact = Object.freeze({
+    mount: mountContactForm,
+    canLeave: () => !activeContact?.sending
+  });
 
   if (window.SiteRoutes?.register) {
     window.SiteRoutes.register('contact:contact', {
+      preload() { return Promise.resolve(); },
       mount(context) {
+        window.SiteContent?.mount(context);
         const controller = mountContactForm(context.root);
         if (controller) context.cleanup(() => controller.dispose());
       },
@@ -407,6 +471,10 @@
   }
 
   const initializeDirect = () => {
+    // Loading this controller for an upcoming route must not initialize a modal
+    // in the outgoing page. Explicit contact requests mount their own controller.
+    const module = document.body?.dataset.siteRouteModule;
+    if (window.SiteRoutes && module && module !== 'contact:contact') return;
     const modal = document.getElementById('contact-modal');
     if (modal && activeContact?.modal !== modal) mountContactForm(document);
   };

@@ -43,22 +43,25 @@
     scrollbar-width: thin;
   }
 
-  html:has(body.personal-accordion-page)::-webkit-scrollbar,
-  body.personal-accordion-page::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
+  /* Touch WebKit needs its native overlay scrollbar to preserve viewport width. */
+  @media (pointer: fine) {
+    html:has(body.personal-accordion-page)::-webkit-scrollbar,
+    body.personal-accordion-page::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
 
-  html:has(body.personal-accordion-page)::-webkit-scrollbar-track,
-  body.personal-accordion-page::-webkit-scrollbar-track {
-    background: color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
-  }
+    html:has(body.personal-accordion-page)::-webkit-scrollbar-track,
+    body.personal-accordion-page::-webkit-scrollbar-track {
+      background: color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
+    }
 
-  html:has(body.personal-accordion-page)::-webkit-scrollbar-thumb,
-  body.personal-accordion-page::-webkit-scrollbar-thumb {
-    border: 2px solid color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
-    border-radius: 999px;
-    background: var(--personal-scrollbar-color, #091f3b);
+    html:has(body.personal-accordion-page)::-webkit-scrollbar-thumb,
+    body.personal-accordion-page::-webkit-scrollbar-thumb {
+      border: 2px solid color-mix(in srgb, var(--personal-scrollbar-color, #091f3b) 10%, #ffffff 90%);
+      border-radius: 999px;
+      background: var(--personal-scrollbar-color, #091f3b);
+    }
   }
 
   .personal-accordion,
@@ -72,12 +75,16 @@
     --personal-rail-size: 68px;
     --personal-mobile-rail-size: 0px;
     --personal-toolbar-size: 60px;
-    width: 100%;
-    max-width: 100%;
-    min-height: calc(100svh - var(--nav-height, 72px));
     color: #091f3b;
     background: #ffffff;
     isolation: isolate;
+  }
+
+  /* The persistent frame owns its outer geometry; legacy shells keep theirs. */
+  .personal-accordion:not(.site-frame) {
+    width: 100%;
+    max-width: 100%;
+    min-height: calc(100svh - var(--nav-height, 72px));
   }
 
   .personal-accordion__shell {
@@ -261,6 +268,8 @@
     align-items: center;
     gap: 8px;
     min-height: 44px;
+    min-width: 0;
+    max-width: 100%;
     padding: 0 11px 0 8px;
     border: 1px solid color-mix(in srgb, var(--panel-color) 58%, #cbd5e1 42%);
     border-radius: 6px;
@@ -270,12 +279,14 @@
     font-size: .8rem;
     font-weight: 790;
     line-height: 1.2;
+    overflow-wrap: anywhere;
     text-decoration: none;
     transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
   }
 
   .personal-accordion__back-icon {
     display: grid;
+    flex: 0 0 19px;
     width: 19px;
     height: 19px;
     place-items: center;
@@ -288,17 +299,20 @@
 
   .personal-accordion__context-icon {
     display: grid;
+    flex: 0 0 22px;
     width: 22px;
     height: 22px;
     place-items: center;
   }
 
   .personal-accordion__context-label {
+    min-width: 0;
     font-family: var(--font-ui, "Inter", system-ui, sans-serif);
     font-size: .78rem;
     font-weight: 800;
     letter-spacing: .025em;
-    line-height: 1;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
   }
 
   .personal-accordion__back:is(:hover, :focus-visible) {
@@ -410,6 +424,9 @@
       --personal-rail-size: 100%;
       --personal-mobile-rail-size: 48px;
       --personal-toolbar-size: 60px;
+    }
+
+    .personal-accordion:not(.site-frame) {
       min-height: calc(100svh - var(--mobile-site-masthead-height, 62px));
     }
 
@@ -478,6 +495,8 @@
 
     .personal-accordion__toolbar {
       top: var(--mobile-site-masthead-height, 62px);
+      flex-wrap: wrap;
+      gap: 8px 12px;
       min-height: var(--personal-toolbar-size);
       padding: 8px var(--personal-content-gutter);
       border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 22%, #dce3ec 78%);
@@ -486,6 +505,7 @@
     }
 
     .personal-accordion__back {
+      flex: 0 1 auto;
       gap: 5px;
       min-height: 44px;
       padding: 0 7px 0 5px;
@@ -510,15 +530,15 @@
     }
 
     .personal-accordion__context {
-      position: absolute;
-      top: 50%;
-      left: 50%;
       display: flex;
+      flex: 0 1 auto;
       align-items: center;
       gap: 7px;
+      min-width: 0;
+      max-width: 100%;
+      margin-inline-start: auto;
       color: var(--panel-color);
       pointer-events: none;
-      transform: translate(-50%, -50%);
     }
 
     .personal-accordion__content {
@@ -749,7 +769,7 @@
       overflow: hidden;
     }
 
-    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .personal-accordion {
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .personal-accordion:not(.site-frame) {
       box-sizing: border-box;
       flex: 1 1 auto;
       width: 100%;
@@ -791,7 +811,8 @@
       min-height: var(--personal-toolbar-size);
     }
 
-    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__content {
+    /* The persistent frame owns its scrollport; only the legacy shell scrolls here. */
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] .personal-accordion__content:not(.site-frame__body) {
       flex: 1 1 auto;
       height: auto;
       min-height: 0;
@@ -819,7 +840,7 @@
       overflow-y: visible;
     }
 
-    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .personal-accordion {
+    body.personal-accordion-page[data-personal-chrome="compact"][data-personal-fit="viewport"] > .personal-accordion:not(.site-frame) {
       flex: 0 0 auto;
       min-height: 0;
       padding: 0;
@@ -991,6 +1012,12 @@
     ) {
       height: max(560px, calc(100svh - var(--mobile-site-masthead-height, 62px) - var(--personal-toolbar-size, 60px)));
     }
+    body.project-demo-wrapper-page .project-demo-wrapper-main:has([data-project-demo-fit="viewport"]) {
+      height: max(400px, calc(100svh - var(--mobile-site-masthead-height, 62px) - var(--personal-toolbar-size, 60px) - var(--personal-mobile-rail-size, 48px) - 8px));
+    }
+    body.project-demo-wrapper-page .project-demo-wrapper-frame:has([data-project-demo-fit="viewport"]) {
+      height: 100%;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1105,14 +1132,14 @@
     body.personal-accordion-page[data-personal-category="tools"][data-tools-layout] .personal-accordion__toolbar {
       min-height: 60px;
       padding: 8px var(--personal-content-gutter);
-      color: #ffffff;
-      background: #087f8c;
+      color: #091f3b;
+      background: #ffffff;
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-accordion__back:is(:hover, :focus-visible) {
-      color: #087f8c;
-      background: #ffffff;
-      outline-color: rgba(255, 255, 255, .72);
+      color: #ffffff;
+      background: #087f8c;
+      outline-color: color-mix(in srgb, #087f8c 40%, transparent);
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header {
@@ -1121,7 +1148,7 @@
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__inner {
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, auto);
       gap: 6px 10px;
       width: 100%;
       max-width: 100%;
@@ -1268,6 +1295,9 @@ body.personal-accordion-page[data-personal-item="stellar-dogfight"] {
 
 body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion {
   --personal-stellar-height: calc(100dvh - var(--nav-height, 72px));
+}
+
+body.personal-accordion-page[data-personal-item="stellar-dogfight"] .personal-accordion:not(.site-frame) {
   height: var(--personal-stellar-height);
   min-height: 0;
   overflow: hidden;
@@ -1324,7 +1354,7 @@ body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar {
   overflow-y: visible;
 }
 
-body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion {
+body.personal-accordion-page[data-personal-item="stellar-dogfight"].is-hangar .personal-accordion:not(.site-frame) {
   height: auto;
   min-height: var(--personal-stellar-height);
   overflow: visible;

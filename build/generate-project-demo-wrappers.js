@@ -77,11 +77,12 @@ function loadProjectDemoDefinitions() {
       canonicalPath,
       canonicalUrl: `${SITE_ORIGIN}${canonicalPath}`,
       rawPath: toRawProjectDemoUrl(demoId),
+      fit: project.embed?.fit === 'viewport' || demoId === 'chatbot-demo' ? 'viewport' : 'content',
       rawFile,
       wrapperFile: path.join(wrapperDir, `${demoId}.html`),
       backHref: isPublished ? `/portfolio/${encodeURIComponent(projectId)}` : '/?view=library#projects',
       backLabel: isPublished ? `Back to ${title}` : 'Back to project library',
-      backCompactLabel: isPublished ? 'Project' : 'Library'
+      backCompactLabel: isPublished ? 'Back to project' : 'Back to library'
     });
   });
 }
@@ -149,7 +150,7 @@ ${header}
 
   <main id="main" class="project-demo-wrapper-main" aria-label="${escapeHtml(definition.title)} interactive demo">
     <div class="project-demo-wrapper-frame">
-      <iframe id="${escapeHtml(frameId)}" class="project-demo-wrapper-iframe" src="${escapeHtml(definition.rawPath)}" data-project-demo-src="${escapeHtml(definition.rawPath)}" title="${escapeHtml(definition.title)} interactive demo" loading="eager" allowfullscreen></iframe>
+      <iframe id="${escapeHtml(frameId)}" class="project-demo-wrapper-iframe" src="${escapeHtml(definition.rawPath)}" data-project-demo-src="${escapeHtml(definition.rawPath)}" data-project-demo-fit="${escapeHtml(definition.fit)}" title="${escapeHtml(definition.title)} interactive demo" loading="eager" allowfullscreen></iframe>
     </div>
   </main>
 
@@ -171,7 +172,7 @@ ${footer}
     fit: 'viewport',
     chrome: 'compact',
     backHref: definition.backHref,
-    backLabel: definition.backLabel,
+    backLabel: definition.backCompactLabel,
     backCompactLabel: definition.backCompactLabel,
     backAriaLabel: definition.backLabel
   });

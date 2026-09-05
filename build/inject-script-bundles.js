@@ -248,6 +248,7 @@ function processHtml(html, relPath) {
 
     if (
       /^<script\s+defer\s+src="js\/common\/common\.js"><\/script>$/i.test(trimmed)
+      || /^<script\s+defer\s+src="js\/common\/motion\.js"><\/script>$/i.test(trimmed)
       || /^<script\s+defer\s+src="js\/navigation\/navigation\.js"><\/script>$/i.test(trimmed)
       || /^<script\s+defer\s+src="js\/animations\/animations\.js"><\/script>$/i.test(trimmed)
       || isManagedLine(trimmed, 'site-shell')

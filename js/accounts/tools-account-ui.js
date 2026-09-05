@@ -51,6 +51,44 @@
 
   const $ = (sel, root = document) => root.querySelector(sel);
 
+  const enhanceAccountDisclosures = (root) => {
+    if (!window.SiteMotion?.height) return;
+    root.querySelectorAll('details.tools-session-details, details.tools-session-advanced, details.tools-session-field, details.tools-sessions-more').forEach((details) => {
+      if (details.dataset.motionDisclosure) return;
+      const summary = details.querySelector(':scope > summary');
+      if (!summary) return;
+      const content = document.createElement('div');
+      content.className = 'tools-disclosure-content';
+      [...details.childNodes].filter((node) => node !== summary).forEach((node) => content.appendChild(node));
+      details.appendChild(content);
+      details.dataset.motionDisclosure = 'true';
+      let expanded = details.open;
+      content.hidden = !expanded;
+      content.inert = !expanded;
+      summary.setAttribute('aria-expanded', String(expanded));
+      summary.addEventListener('click', (event) => {
+        event.preventDefault();
+        expanded = !expanded;
+        if (expanded) details.open = true;
+        if (!expanded && content.contains(document.activeElement)) summary.focus({ preventScroll: true });
+        content.inert = !expanded;
+        summary.setAttribute('aria-expanded', String(expanded));
+        window.SiteMotion.height(content, expanded, {
+          onFinish: () => { details.open = expanded; }
+        });
+      });
+      // Preserve native opening (for example, browser find-in-page) as well.
+      details.addEventListener('toggle', () => {
+        if (details.open === expanded || content.dataset.motionState === 'closing') return;
+        expanded = details.open;
+        window.SiteMotion.cancel(content);
+        content.hidden = !expanded;
+        content.inert = !expanded;
+        summary.setAttribute('aria-expanded', String(expanded));
+      });
+    });
+  };
+
   const isPersonalAccordionToolsPage = () => {
     const body = document.body;
     if (!body) return false;
@@ -103,7 +141,7 @@
   };
 
   const syncModalOpenBodyClass = () => {
-    const hasActiveModal = !!document.querySelector('.modal.active');
+    const hasActiveModal = !!document.querySelector('.modal.active, .modal[data-motion-state="closing"]');
     document.body.classList.toggle('modal-open', hasActiveModal);
   };
 
@@ -129,12 +167,14 @@
 
   const createModalController = ({ modalEl, contentEl }) => {
     let restoreFocusEl = null;
+    const accessibility = window.createModalAccessibility?.(modalEl);
 
-    const isOpen = () => !!modalEl?.classList?.contains('active');
+    const isOpen = () => !!modalEl?.classList?.contains('active') || modalEl?.dataset.motionState === 'closing';
 
     const open = () => {
       const activeEl = document.activeElement;
-      restoreFocusEl = activeEl && activeEl !== document.body && !modalEl.contains(activeEl) ? activeEl : null;
+      if (!modalEl.contains(activeEl)) restoreFocusEl = activeEl && activeEl !== document.body ? activeEl : null;
+      accessibility?.show();
       modalEl.removeAttribute('inert');
       modalEl.classList.add('active');
       modalEl.setAttribute('aria-hidden', 'false');
@@ -142,24 +182,33 @@
       try {
         contentEl?.focus();
       } catch {}
+      accessibility?.isolateBackground();
     };
 
-    const close = ({ restoreFocus = true } = {}) => {
-      modalEl.classList.remove('active');
-      modalEl.setAttribute('aria-hidden', 'true');
-      modalEl.setAttribute('inert', '');
-      syncModalOpenBodyClass();
-
-      if (restoreFocus && restoreFocusEl && document.contains(restoreFocusEl)) {
-        try {
-          restoreFocusEl.focus();
-        } catch {}
+    const close = ({ restoreFocus = true, immediate = false, onFinish: afterClose } = {}) => {
+      if (modalEl.dataset.motionState === 'closing' && !immediate && restoreFocus) return;
+      const onFinish = () => {
+        if (restoreFocus) {
+          const target = restoreFocusEl && document.contains(restoreFocusEl) && !restoreFocusEl.closest('[hidden], [inert]')
+            ? restoreFocusEl : document.querySelector('[data-tools-action="toggle-account"]');
+          try { target?.focus({ preventScroll: true }); } catch {}
+        }
+        restoreFocusEl = null;
+        afterClose?.();
+      };
+      if (accessibility) {
+        accessibility.hide({ onFinish, immediate: immediate || !restoreFocus });
+      } else {
+        modalEl.classList.remove('active');
+        onFinish();
+        modalEl.setAttribute('aria-hidden', 'true');
+        modalEl.setAttribute('inert', '');
+        syncModalOpenBodyClass();
       }
-      restoreFocusEl = null;
     };
 
     const trapFocus = (event) => {
-      if (!isOpen() || event.key !== 'Tab') return false;
+      if ((!isOpen() && modalEl.dataset.motionState !== 'closing') || event.key !== 'Tab') return false;
       const focusable = getFocusableModalElements(modalEl);
       if (!focusable.length) {
         event.preventDefault();
@@ -692,9 +741,11 @@
     const setExpanded = (nextExpanded) => {
       if (!rootEl || !triggerEl || !panelEl) return;
       triggerEl.setAttribute('aria-expanded', String(nextExpanded));
-      panelEl.toggleAttribute('hidden', !nextExpanded);
+      if (!nextExpanded && panelEl.contains(document.activeElement)) triggerEl.focus({ preventScroll: true });
       panelEl.toggleAttribute('inert', !nextExpanded);
       rootEl.classList.toggle('is-open', nextExpanded);
+      if (window.SiteMotion) window.SiteMotion.presence(panelEl, nextExpanded);
+      else panelEl.toggleAttribute('hidden', !nextExpanded);
     };
 
     const isOpen = () => triggerEl?.getAttribute('aria-expanded') === 'true';
@@ -733,6 +784,7 @@
       toggle,
       destroy: () => {
         close();
+        window.SiteMotion?.finish(panelEl);
         triggerEl?.removeEventListener('click', toggle);
         rootEl?.removeEventListener('keydown', handleKeydown);
         rootEl?.removeEventListener('focusout', handleFocusout);
@@ -843,7 +895,9 @@
     const autosaveRetryVisible = capabilities.persistence === 'autosave' && retryable;
     const saveVisible = authed && (manualSaveVisible || autosaveRetryVisible);
     if (refs.saveButton) {
-      refs.saveButton.textContent = saveState === 'saving' ? 'Saving…' : (retryable ? 'Retry save' : 'Save');
+      const saveLabel = saveState === 'saving' ? 'Saving…' : (retryable ? 'Retry save' : 'Save');
+      // Replacing unchanged text during input blur can cancel WebKit's pending tap.
+      if (refs.saveButton.textContent !== saveLabel) refs.saveButton.textContent = saveLabel;
       refs.saveButton.disabled = saveState === 'saving';
       refs.saveButton.toggleAttribute('hidden', !saveVisible);
     }
@@ -1144,6 +1198,7 @@
           <button type="button" class="btn-ghost" data-tools-sessions-action="clear-filters">Clear</button>
         </div>
       `.trim();
+      enhanceAccountDisclosures(controlsEl);
     };
 
     const updateLoadMore = () => {
@@ -1638,7 +1693,10 @@
             totalSessions,
             lastSyncAt: Date.now(),
             nextCursor: data?.sessionsNextCursor,
-            onViewSession,
+            onViewSession: (selection) => {
+              close({ restoreFocus: false, immediate: true });
+              onViewSession?.(selection);
+            },
             onStatus: setStatus,
             onLoadMore: (cursor) => window.ToolsState.listSessions({ limit: 50, cursor })
           });
@@ -1687,9 +1745,8 @@
       refresh().catch((err) => logAsyncError('account-modal:refresh-open', err));
     };
 
-    const close = () => {
-      modalController.close();
-      setStatus('');
+    const close = (options = {}) => {
+      modalController.close({ ...options, onFinish: () => setStatus('') });
     };
 
     modalEl.addEventListener('click', async (event) => {
@@ -1744,7 +1801,7 @@
         const toolId = String(row?.dataset?.sessionTool || '').trim();
         const sessionId = String(row?.dataset?.sessionId || '').trim();
         if (!toolId || !sessionId) return;
-        close();
+        close({ restoreFocus: false, immediate: true });
         if (typeof onViewSession === 'function') onViewSession({ toolId, sessionId });
       }
     });
@@ -2190,6 +2247,7 @@
             </div>
           </details>
         `.trim();
+        enhanceAccountDisclosures(bodyEl);
       }
     };
 
@@ -2224,14 +2282,15 @@
       renderSession(data?.session);
     };
 
-    const close = () => {
-      modalController.close();
-      setStatus('');
-      if (subtitleEl) subtitleEl.textContent = '';
-      if (actionsEl) actionsEl.innerHTML = '';
-      if (bodyEl) bodyEl.innerHTML = '';
-      currentToolId = '';
-      currentSessionId = '';
+    const close = (options = {}) => {
+      modalController.close({ ...options, onFinish: () => {
+        setStatus('');
+        if (subtitleEl) subtitleEl.textContent = '';
+        if (actionsEl) actionsEl.innerHTML = '';
+        if (bodyEl) bodyEl.innerHTML = '';
+        currentToolId = '';
+        currentSessionId = '';
+      } });
     };
 
     modalEl.addEventListener('click', async (event) => {
@@ -2782,6 +2841,11 @@
     return cleanup;
   };
 
+  // Drafts stay in this tab's memory and use the same secret-excluding serializer as saved sessions.
+  const routeDrafts = new Map();
+  const draftOwner = () => String(window.ToolsAuth.getUser?.(window.ToolsAuth.getAuth())?.sub || 'guest');
+  let currentDraftOwner = draftOwner();
+
   const initToolAutoSave = ({ toolId, root, setStatus, setPersistenceState, persistenceMode = 'manual' }) => {
     if (!toolId || !root) return;
 
@@ -2793,9 +2857,23 @@
     let dirty = false;
     let dirtyGeneration = 0;
     let saveInFlight = false;
+    let savePromise = null;
     let isApplying = false;
     let statusClearTimer = 0;
     let disposed = false;
+    const owner = draftOwner();
+    const draftKey = () => `${toolId}:${sessionId}`;
+    const captureSnapshot = () => {
+      const snapshot = buildSnapshot({ toolId, root });
+      const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
+      if (typeof captured?.output !== 'undefined') snapshot.output = captured.output;
+      if (captured?.inputs && typeof captured.inputs === 'object') snapshot.inputs = captured.inputs;
+      return { snapshot, outputSummary: String(captured?.outputSummary || '').trim() };
+    };
+    const rememberDraft = () => {
+      if (owner !== draftOwner()) return;
+      routeDrafts.set(draftKey(), { ...captureSnapshot(), dirty, sessionVersion, owner });
+    };
 
     const updateStatus = (message) => {
       if (statusClearTimer) {
@@ -2817,7 +2895,7 @@
       if (setPersistenceState) setPersistenceState(nextState);
     };
 
-    const applySession = async () => {
+    const applySession = async ({ keepLocal = false } = {}) => {
       const auth = window.ToolsAuth.getAuth();
       if (!window.ToolsAuth.authIsValid(auth) || !sessionId) return;
       const loadGeneration = dirtyGeneration;
@@ -2828,7 +2906,7 @@
         const snapshot = data?.session?.snapshot;
         sessionVersion = Math.max(1, Number(data?.session?.version) || 1);
         if (snapshot && typeof snapshot === 'object') {
-          if (dirtyGeneration !== loadGeneration) {
+          if (keepLocal || dirtyGeneration !== loadGeneration) {
             dirty = true;
             updatePersistence('dirty');
             updateStatus('Session loaded. Your newer changes were kept.');
@@ -2867,13 +2945,12 @@
       }
     };
 
-    const saveSession = async ({ keepalive, source = 'autosave' } = {}) => {
+    const performSessionSave = async ({ keepalive, source = 'autosave' } = {}) => {
       const auth = window.ToolsAuth.getAuth();
-      if (!window.ToolsAuth.authIsValid(auth)) return;
-      if (saveInFlight) return;
+      if (!window.ToolsAuth.authIsValid(auth)) return false;
       if (sessionId && sessionVersion === null) {
         updateStatus('Wait for the saved session to finish loading before saving.');
-        return;
+        return false;
       }
       const saveGeneration = dirtyGeneration;
       let saveFailed = false;
@@ -2882,11 +2959,7 @@
       updateStatus('Saving…');
       const saveAction = sessionId ? 'update' : 'create';
 
-      const snapshot = buildSnapshot({ toolId, root });
-      const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
-      const outputSummary = String(captured?.outputSummary || '').trim();
-      if (typeof captured?.output !== 'undefined') snapshot.output = captured.output;
-      if (captured?.inputs && typeof captured.inputs === 'object') snapshot.inputs = captured.inputs;
+      const { snapshot, outputSummary } = captureSnapshot();
       try {
         const res = await window.ToolsState.saveSession({
           toolId,
@@ -2896,10 +2969,11 @@
           expectedVersion: sessionVersion === null ? undefined : sessionVersion,
           keepalive: !!keepalive
         });
-        if (disposed) return;
+        if (disposed || owner !== draftOwner()) return false;
         const nextSessionId = res?.session?.sessionId ? String(res.session.sessionId) : sessionId;
         sessionVersion = Math.max(1, Number(res?.session?.version) || sessionVersion || 1);
         if (nextSessionId && nextSessionId !== sessionId) {
+          routeDrafts.delete(draftKey());
           sessionId = nextSessionId;
           setActiveSessionId(toolId, sessionId);
           setSessionParam(sessionId);
@@ -2922,7 +2996,7 @@
           });
         }
       } catch (err) {
-        if (disposed) return;
+        if (disposed) return false;
         saveFailed = true;
         dirty = true;
         updatePersistence('error');
@@ -2931,6 +3005,13 @@
         saveInFlight = false;
         if (!disposed && !saveFailed && dirty) updatePersistence('dirty');
       }
+      return !saveFailed;
+    };
+
+    const saveSession = (options = {}) => {
+      if (savePromise) return savePromise;
+      savePromise = performSessionSave(options).finally(() => { savePromise = null; });
+      return savePromise;
     };
 
     const handleSaveSession = (event) => {
@@ -2940,6 +3021,7 @@
 
     const handleNewSession = (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
+      routeDrafts.delete(draftKey());
       sessionId = '';
       sessionVersion = 0;
       dirty = false;
@@ -2949,6 +3031,7 @@
       updateStatus('New session (not saved yet).');
     };
     const handleAccountDataDeleted = () => {
+      routeDrafts.clear();
       sessionId = '';
       sessionVersion = 0;
       dirty = false;
@@ -2968,6 +3051,7 @@
       const detail = event?.detail || {};
       if (String(detail.toolId || '').trim() !== toolId) return;
       if (!sessionId || String(detail.sessionId || '').trim() !== sessionId) return;
+      routeDrafts.delete(draftKey());
       sessionId = '';
       sessionVersion = 0;
       dirty = false;
@@ -3003,7 +3087,23 @@
     setActiveSessionId(toolId, sessionId);
     updatePersistence('clean');
 
-    if (authed) {
+    const localDraft = routeDrafts.get(draftKey());
+    if (localDraft?.owner === owner) {
+      isApplying = true;
+      try {
+        applyToolFields(root, localDraft.snapshot.fields || {});
+        notifySessionApplied({ toolId, root, sessionId, snapshot: localDraft.snapshot });
+      } finally {
+        isApplying = false;
+      }
+      dirty = localDraft.dirty;
+      dirtyGeneration = dirty ? 1 : 0;
+      sessionVersion = localDraft.sessionVersion;
+      updatePersistence(dirty ? 'dirty' : 'clean');
+      if (authed && sessionId && sessionVersion === null) {
+        applySession({ keepLocal: dirty }).catch((err) => logAsyncError('tool-autosave:resume-load', err));
+      }
+    } else if (authed) {
       updateStatus('');
       applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
     } else if (sessionIdFromUrl) {
@@ -3030,8 +3130,9 @@
       document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
-    return () => {
+    const cleanup = () => {
       if (disposed) return;
+      rememberDraft();
       disposed = true;
       if (statusClearTimer) window.clearTimeout(statusClearTimer);
       if (timer) window.clearInterval(timer);
@@ -3047,6 +3148,19 @@
       root.removeEventListener('change', markDirty);
       root.removeEventListener('submit', markDirty);
     };
+    cleanup.beforeLeave = async () => {
+      rememberDraft();
+      if (savePromise) {
+        const saved = await savePromise;
+        if (saved === false) return false;
+      }
+      if (autosaveEnabled && dirty && window.ToolsAuth.authIsValid(window.ToolsAuth.getAuth())) {
+        if (await saveSession({ source: 'page_exit' }) === false) return false;
+      }
+      rememberDraft();
+      return true;
+    };
+    return cleanup;
   };
 
   let sharedServicesPromise = null;
@@ -3130,8 +3244,8 @@
         while (cleanups.length) {
           try { cleanups.pop()(); } catch {}
         }
-        services.accountModal.close();
-        services.sessionModal.close();
+        services.accountModal.close({ restoreFocus: false, immediate: true });
+        services.sessionModal.close({ restoreFocus: false, immediate: true });
         services.accountModal.setHandlers({ signIn: () => {}, signOut: () => {} });
         if (activeRouteMount === routeMount) activeRouteMount = null;
       }
@@ -3207,13 +3321,15 @@
       }
 
       if (toolId && root && genericPersistenceEnabled) {
-        registerCleanup(initToolAutoSave({
+        const persistence = initToolAutoSave({
           toolId,
           root,
           setStatus: accountBar.setStatus,
           setPersistenceState: accountBar.setPersistenceState,
           persistenceMode: capabilities.persistence
-        }));
+        });
+        registerCleanup(persistence);
+        routeMount.beforeLeave = persistence?.beforeLeave;
       }
     };
 
@@ -3240,6 +3356,10 @@
   };
 
   const handleRouteMounted = (event) => syncToolsAccountRoute(event?.detail || {});
+  const handleRouteBeforeLeave = (event) => {
+    if (event?.detail?.id !== activeRouteMount?.id) return;
+    if (activeRouteMount?.beforeLeave) event.detail.waitUntil?.(activeRouteMount.beforeLeave());
+  };
   const handleRouteUnmounted = (event) => {
     routeMountGeneration += 1;
     if (!activeRouteMount || String(event?.detail?.id || '') !== activeRouteMount.id) return;
@@ -3257,7 +3377,16 @@
       sync: syncToolsAccountRoute
     });
     document.addEventListener('site:route-mounted', handleRouteMounted);
+    document.addEventListener('site:route-before-leave', handleRouteBeforeLeave);
     document.addEventListener('site:route-unmounted', handleRouteUnmounted);
+    document.addEventListener('tools:auth-changed', () => {
+      const nextOwner = draftOwner();
+      if (nextOwner === currentDraftOwner) return;
+      routeDrafts.clear();
+      currentDraftOwner = nextOwner;
+      activeRouteMount?.cleanup();
+      syncToolsAccountRoute();
+    });
     syncToolsAccountRoute();
   };
 

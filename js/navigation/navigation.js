@@ -1,13 +1,13 @@
 /* ===================================================================
    File: navigation.js
-   Purpose: Enhances header navigation and handles nav layout
+   Purpose: Enhances the shared brand/search masthead and measures its layout
 =================================================================== */
 (() => {
   'use strict';
   const $  = (s, c=document) => c.querySelector(s);
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const NAVIGATION_EVENT = 'site:navigation-start';
-  const NAV_HEIGHT_FALLBACK = 72;
+  const NAV_HEIGHT_FALLBACK = 60;
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
     '&': '&amp;',
     '<': '&lt;',
@@ -20,54 +20,15 @@
   let navResizeObserver = null;
 
   const measureNavHeight = () => {
-    const nav = document.querySelector('.nav');
-    if (!nav) return NAV_HEIGHT_FALLBACK;
-    const rect = nav.getBoundingClientRect();
-    const height = rect.height || nav.offsetHeight || NAV_HEIGHT_FALLBACK;
-    return Math.max(height, NAV_HEIGHT_FALLBACK);
+    const visibleHeights = $$('.mobile-site-masthead, #combined-header-nav .nav')
+      .map((header) => header.getBoundingClientRect().height)
+      .filter((height) => Number.isFinite(height) && height > 0);
+    return visibleHeights.length ? Math.max(...visibleHeights) : NAV_HEIGHT_FALLBACK;
   };
 
   const setCssNavHeight = (value) => {
     document.documentElement.style.setProperty('--nav-height', `${value}px`);
     window.__navHeight = value;
-  };
-
-  const clampDropdownToViewport = (dropdown) => {
-    if (!dropdown || typeof dropdown.getBoundingClientRect !== 'function') return;
-    dropdown.style.removeProperty('--dropdown-shift');
-    const rect = dropdown.getBoundingClientRect();
-    const viewportWidth = document.documentElement?.clientWidth || window.innerWidth || 0;
-    if (!viewportWidth || !rect?.width) return;
-    const padding = 12;
-    const overflowLeft = Math.max(0, padding - rect.left);
-    const overflowRight = Math.max(0, rect.right - (viewportWidth - padding));
-    let shift = 0;
-    if (overflowLeft > 0) {
-      shift = overflowLeft;
-    } else if (overflowRight > 0) {
-      shift = -overflowRight;
-    }
-    if (shift !== 0) {
-      dropdown.style.setProperty('--dropdown-shift', `${shift}px`);
-    } else {
-      dropdown.style.removeProperty('--dropdown-shift');
-    }
-  };
-
-  const clampDropdownsToViewport = () => {
-    document.querySelectorAll('.nav-dropdown').forEach(clampDropdownToViewport);
-  };
-
-  const updateNavDropdownOffset = () => {
-    const nav = document.querySelector('.nav');
-    if (!nav) return;
-    const row = nav.querySelector('.nav-row');
-    if (!row) return;
-    const navRect = nav.getBoundingClientRect();
-    const rowRect = row.getBoundingClientRect();
-    if (!navRect?.bottom || !rowRect?.bottom) return;
-    const gap = Math.max(0, navRect.bottom - rowRect.bottom);
-    nav.style.setProperty('--nav-bottom-gap', `${gap}px`);
   };
 
   const emitNavHeightChange = (value) => {
@@ -105,8 +66,6 @@
     cachedNavHeight = next;
     setCssNavHeight(next);
     emitNavHeightChange(next);
-    updateNavDropdownOffset();
-    clampDropdownsToViewport();
   }
   function scheduleNavHeightUpdate(){
     if (navHeightRaf !== null) return;
@@ -117,8 +76,8 @@
     });
   }
   function setupNavHeightObservers(){
-    const nav = document.querySelector('.nav');
-    if (!nav) return;
+    const headers = $$('.mobile-site-masthead, #combined-header-nav .nav');
+    if (!headers.length) return;
 
     if (navResizeObserver) {
       try { navResizeObserver.disconnect(); } catch {}
@@ -129,7 +88,7 @@
       navResizeObserver = new ResizeObserver(() => {
         scheduleNavHeightUpdate();
       });
-      navResizeObserver.observe(nav);
+      headers.forEach((header) => navResizeObserver.observe(header));
     }
 
     if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
@@ -141,130 +100,6 @@
     }
   }
 
-  function setupNavPreviewVideos(root){
-    if (!root) return;
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-    if (reduce || !finePointer) return;
-    root.querySelectorAll('.nav-project-card').forEach((card) => {
-      if (card._previewVideoBound) return;
-      const thumb = card.querySelector('.nav-project-thumb');
-      if (!thumb) return;
-
-      const previewPoster = String(thumb.dataset.previewPoster || '').trim();
-      const previewWebm = String(thumb.dataset.previewWebm || '').trim();
-      const previewMp4 = String(thumb.dataset.previewMp4 || '').trim();
-      const previewSources = [];
-      if (previewWebm) previewSources.push({ src: previewWebm, type: 'video/webm' });
-      if (previewMp4) previewSources.push({ src: previewMp4, type: 'video/mp4' });
-
-      let vid = thumb.querySelector('video.nav-project-thumb-media') || null;
-      if (!vid && !previewSources.length) return;
-
-      const ensureVideoElement = () => {
-        if (!vid || !vid.isConnected) {
-          vid = document.createElement('video');
-          vid.className = 'nav-project-thumb-media';
-          vid.muted = true;
-          vid.playsInline = true;
-          vid.loop = true;
-          vid.preload = 'none';
-          vid.setAttribute('muted', '');
-          vid.setAttribute('playsinline', '');
-          if (previewPoster) {
-            vid.setAttribute('poster', previewPoster);
-          }
-          previewSources.forEach((entry) => {
-            const source = document.createElement('source');
-            source.dataset.src = entry.src;
-            source.type = entry.type;
-            vid.appendChild(source);
-          });
-          thumb.appendChild(vid);
-          return vid;
-        }
-
-        if (previewPoster && !vid.getAttribute('poster')) {
-          vid.setAttribute('poster', previewPoster);
-        }
-        if (!vid.querySelector('source[data-src]') && previewSources.length) {
-          previewSources.forEach((entry) => {
-            const source = document.createElement('source');
-            source.dataset.src = entry.src;
-            source.type = entry.type;
-            vid.appendChild(source);
-          });
-        }
-        return vid;
-      };
-
-      const loadSources = () => {
-        const media = ensureVideoElement();
-        if (media.dataset.loaded === 'true') return media;
-        const sources = [...media.querySelectorAll('source[data-src]')];
-        sources.forEach((source) => {
-          if (!source.src && source.dataset.src) {
-            source.src = source.dataset.src;
-          }
-        });
-        media.dataset.loaded = 'true';
-        try { media.load(); } catch {}
-        return media;
-      };
-      const playVideo = () => {
-        const media = loadSources();
-        card.classList.add('is-video-active');
-        try { media.play && media.play().catch(() => {}); } catch {}
-      };
-      const pauseVideo = () => {
-        try { vid?.pause && vid.pause(); } catch {}
-        card.classList.remove('is-video-active');
-      };
-      card._previewVideoBound = true;
-      card.addEventListener('pointerenter', playVideo);
-      card.addEventListener('focusin', playVideo);
-      card.addEventListener('pointerleave', pauseVideo);
-      card.addEventListener('focusout', pauseVideo);
-    });
-  }
-
-  const MOBILE_DOCK_ICONS = {
-    projects: `
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3.5 7.5a2 2 0 0 1 2-2h4.2l1.8 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"></path>
-        <path d="M7.5 13.5h9"></path>
-      </svg>
-    `,
-    tools: `
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"></path>
-        <rect x="3" y="7" width="18" height="13" rx="2.25"></rect>
-        <path d="M3 12.5h18"></path>
-        <path d="M10 12.5v2h4v-2"></path>
-      </svg>
-    `,
-    games: `
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7.2 9h9.6a4.7 4.7 0 0 1 4.5 5.9l-.4 1.7a2.5 2.5 0 0 1-4.2 1.2l-1.5-1.5H8.8l-1.5 1.5a2.5 2.5 0 0 1-4.2-1.2l-.4-1.7A4.7 4.7 0 0 1 7.2 9z"></path>
-        <path d="M8 12v3M6.5 13.5h3M15.7 13h.1M18.2 14.6h.1"></path>
-      </svg>
-    `,
-    resume: `
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M6 3.5h8l4 4v13H6z"></path>
-        <path d="M14 3.5v4h4"></path>
-        <path d="M8.6 12h6.8"></path>
-        <path d="M8.6 15.5h4.9"></path>
-      </svg>
-    `,
-    contact: `
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4.5 6.5h15a1.7 1.7 0 0 1 1.7 1.7v8.6a1.7 1.7 0 0 1-1.7 1.7h-15a1.7 1.7 0 0 1-1.7-1.7V8.2a1.7 1.7 0 0 1 1.7-1.7z"></path>
-        <path d="m4.2 8.4 7.8 5.2 7.8-5.2"></path>
-      </svg>
-    `
-  };
-
   const MOBILE_MASTHEAD_SEARCH_ICON = `
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6.5"></circle>
@@ -272,53 +107,17 @@
     </svg>
   `;
 
-  const MOBILE_CONTACT_LINKS = [
-    {
-      label: 'Message',
-      href: '/contact#contact-modal',
-      icon: `
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 4.5h16a2 2 0 0 1 2 2v8.8a2 2 0 0 1-2 2h-5.1L9 22v-4.7H4a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2z"></path>
-          <path d="M7 9.2h10"></path>
-          <path d="M7 13h6.4"></path>
-        </svg>
-      `,
-      contact: true
-    },
-    {
-      label: 'Email',
-      href: 'mailto:daniel@danielshort.me',
-      icon: `
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3.5" y="6" width="17" height="12" rx="2"></rect>
-          <path d="m4 8 8 5.3L20 8"></path>
-        </svg>
-      `
-    },
-    {
-      label: 'GitHub',
-      href: 'https://github.com/danielshort3',
-      target: '_blank',
-      rel: 'noopener noreferrer',
-      icon: `
-        <svg class="mobile-site-dock__brand-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 2.8a9.2 9.2 0 0 0-2.9 17.9c.46.08.62-.2.62-.44v-1.7c-2.52.54-3.05-1.08-3.05-1.08-.42-1.06-1.02-1.34-1.02-1.34-.84-.58.06-.56.06-.56.93.06 1.42.96 1.42.96.82 1.4 2.16 1 2.7.76.08-.6.32-1 .58-1.24-2.02-.24-4.14-1.02-4.14-4.48 0-1 .36-1.8.94-2.44-.1-.24-.4-1.22.1-2.54 0 0 .78-.24 2.54.94a8.8 8.8 0 0 1 4.62 0c1.76-1.18 2.54-.94 2.54-.94.5 1.32.2 2.3.1 2.54.58.64.94 1.44.94 2.44 0 3.48-2.12 4.24-4.14 4.48.34.3.64.88.64 1.76v2.44c0 .24.16.52.64.44A9.2 9.2 0 0 0 12 2.8z"></path>
-        </svg>
-      `
-    }
-  ];
-
   function setupMobileSiteMasthead(config) {
     if (!document.body || document.querySelector('[data-mobile-site-masthead]')) return;
 
-    const { entryHome, currentPathVariants } = config;
+    const { entryHome, currentPathVariants, activeAudience } = config;
     const isHome = (currentPathVariants || []).includes('/') || document.body?.dataset?.page === 'home';
     const masthead = document.createElement('header');
     masthead.className = `mobile-site-masthead${isHome ? ' mobile-site-masthead--home' : ''}`;
     masthead.dataset.mobileSiteMasthead = '';
     masthead.innerHTML = `
       <div class="mobile-site-masthead__inner">
-        <a class="mobile-site-masthead__brand" href="${escapeHtml(entryHome || '/')}" aria-label="Daniel Short home">
+        <a class="mobile-site-masthead__brand" data-entry-home-link="true" href="${escapeHtml(entryHome || '/')}" aria-label="Daniel Short home">
           <img src="img/brand/00-ds-logo-master-full-color.svg" srcset="img/brand/00-ds-logo-master-full-color.svg 1x" sizes="40px" alt="Daniel Short DS logo" class="mobile-site-masthead__logo" decoding="async" loading="eager" width="381" height="392">
           <span class="mobile-site-masthead__name">
             <span class="mobile-site-masthead__title">Daniel Short</span>
@@ -360,11 +159,14 @@
       searchInput.tabIndex = nextExpanded ? 0 : -1;
       searchInput.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
       if (options.focusInput && nextExpanded) {
-        requestAnimationFrame(() => searchInput.focus());
+        requestAnimationFrame(() => {
+          if (searchForm.classList.contains('is-expanded')) searchInput.focus();
+        });
       }
     };
 
     if (searchForm && searchInput && searchButton) {
+      searchForm.__closeSearch = () => setSearchExpanded(false);
       setSearchExpanded(false);
       searchForm.addEventListener('submit', (event) => {
         if (!searchForm.classList.contains('is-expanded')) {
@@ -390,331 +192,12 @@
       }, true);
     }
 
+    syncSearchAudience(searchForm, activeAudience);
     document.body.appendChild(masthead);
     document.body.classList.add('has-mobile-site-masthead');
   }
 
-  function setupMobileDockAutoHide(dock) {
-    const DOCK_HIDE_SCROLL_THRESHOLD = 28;
-    const DOCK_SHOW_SCROLL_THRESHOLD = 18;
-    const DOCK_TOP_REVEAL_OFFSET = 12;
-    const footer = document.querySelector('.footer.footer-classic')
-      || document.querySelector('body > footer')
-      || document.querySelector('footer');
-    let lastScrollY = Math.max(0, window.scrollY || window.pageYOffset || 0);
-    let scrollDistance = 0;
-    let scrollDirection = 0;
-    let scrollHidden = false;
-    let footerIntersecting = false;
-    let dockVisibilityRaf = null;
-
-    const hasDockInteraction = () => (
-      dock.classList.contains('is-contact-open')
-      || dock.contains(document.activeElement)
-    );
-    const setDockHiddenReason = (reason = '') => {
-      const hidden = Boolean(reason);
-      dock.classList.toggle('is-scroll-hidden', hidden);
-      document.body.classList.toggle('is-mobile-site-dock-hidden', hidden);
-      if (hidden) {
-        dock.dataset.mobileDockHiddenReason = reason;
-      } else {
-        delete dock.dataset.mobileDockHiddenReason;
-      }
-    };
-    const isFooterInViewport = () => {
-      if (!footer) return false;
-      const rect = footer.getBoundingClientRect();
-      return rect.bottom > 0 && rect.top < window.innerHeight;
-    };
-    const syncDockVisibility = () => {
-      dockVisibilityRaf = null;
-      const nextScrollY = Math.max(0, window.scrollY || window.pageYOffset || 0);
-      const delta = nextScrollY - lastScrollY;
-      lastScrollY = nextScrollY;
-
-      if (nextScrollY <= DOCK_TOP_REVEAL_OFFSET) {
-        scrollHidden = false;
-        scrollDistance = 0;
-        scrollDirection = 0;
-      } else if (Math.abs(delta) >= 1) {
-        const nextDirection = delta > 0 ? 1 : -1;
-        if (nextDirection !== scrollDirection) {
-          scrollDirection = nextDirection;
-          scrollDistance = 0;
-        }
-        scrollDistance += Math.abs(delta);
-        if (scrollDirection > 0 && scrollDistance >= DOCK_HIDE_SCROLL_THRESHOLD) {
-          scrollHidden = true;
-          scrollDistance = 0;
-        } else if (scrollDirection < 0 && scrollDistance >= DOCK_SHOW_SCROLL_THRESHOLD) {
-          scrollHidden = false;
-          scrollDistance = 0;
-        }
-      }
-
-      if (typeof window.IntersectionObserver !== 'function') {
-        footerIntersecting = isFooterInViewport();
-      }
-
-      let hiddenReason = '';
-      if (!hasDockInteraction()) {
-        if (footerIntersecting) {
-          hiddenReason = 'footer';
-        } else if (scrollHidden) {
-          hiddenReason = 'scroll';
-        }
-      }
-      setDockHiddenReason(hiddenReason);
-    };
-    const queueDockVisibility = () => {
-      if (dockVisibilityRaf !== null) return;
-      dockVisibilityRaf = window.requestAnimationFrame(syncDockVisibility);
-    };
-
-    window.addEventListener('scroll', queueDockVisibility, { passive: true });
-    dock.addEventListener('focusin', queueDockVisibility);
-    dock.addEventListener('focusout', queueDockVisibility);
-
-    footerIntersecting = isFooterInViewport();
-    if (footer && typeof window.IntersectionObserver === 'function') {
-      const footerObserver = new window.IntersectionObserver((entries) => {
-        footerIntersecting = entries.some((entry) => entry.isIntersecting);
-        queueDockVisibility();
-      });
-      footerObserver.observe(footer);
-    }
-
-    syncDockVisibility();
-    return queueDockVisibility;
-  }
-
-  function setupMobileSiteDock(config){
-    if (!document.body || document.querySelector('[data-mobile-site-dock]')) return;
-    if (document.body.dataset.page === 'home') return;
-
-    const {
-      activeAudience,
-      currentPathVariants,
-      entryHome,
-      normalizePath
-    } = config;
-    const homeHref = entryHome || '/';
-    const portfolioHref = activeAudience?.portfolioPath || '/portfolio';
-    const resumeHref = activeAudience?.resumePath || '/resume';
-    const resumePreviewHref = activeAudience?.resumePreviewPath || '';
-    const isProfessionalAudience = activeAudience?.key && activeAudience.key !== 'personal';
-    const pathSet = new Set(currentPathVariants || []);
-    const isCurrentPath = (...paths) => paths.filter(Boolean).some((path) => pathSet.has(normalizePath(path)));
-    const isCurrentSection = (path) => {
-      const sectionPath = normalizePath(path);
-      return [...pathSet].some((entry) => entry === sectionPath || entry.startsWith(`${sectionPath}/`));
-    };
-    const isHome = isCurrentPath('/', '/index.html', activeAudience?.homePath);
-    const homeItem = {
-      id: 'home',
-      label: 'Home',
-      href: homeHref,
-      home: true,
-      accent: '#155dfc',
-      active: isHome
-    };
-    const personalItems = [
-      {
-        id: 'projects',
-        label: 'Projects',
-        href: portfolioHref,
-        icon: MOBILE_DOCK_ICONS.projects,
-        accent: '#155dfc',
-        active: isCurrentSection('/portfolio')
-      },
-      {
-        id: 'tools',
-        label: 'Tools',
-        href: '/tools',
-        icon: MOBILE_DOCK_ICONS.tools,
-        accent: '#0891b2',
-        active: isCurrentSection('/tools')
-      },
-      homeItem,
-      {
-        id: 'games',
-        label: 'Games',
-        href: '/games',
-        icon: MOBILE_DOCK_ICONS.games,
-        accent: '#f97316',
-        active: isCurrentSection('/games')
-      },
-      {
-        id: 'contact',
-        label: 'Contact',
-        href: '#mobile-contact-options',
-        icon: MOBILE_DOCK_ICONS.contact,
-        accent: '#64748b',
-        active: isCurrentSection('/contact'),
-        contactOptions: true
-      }
-    ];
-    const professionalItems = [
-      {
-        id: 'projects',
-        label: 'Portfolio',
-        href: portfolioHref,
-        icon: MOBILE_DOCK_ICONS.projects,
-        accent: '#155dfc',
-        active: isCurrentSection('/portfolio')
-      },
-      {
-        id: 'resume',
-        label: 'Resume',
-        href: resumeHref,
-        icon: MOBILE_DOCK_ICONS.resume,
-        accent: '#334155',
-        active: isCurrentPath(resumeHref, resumePreviewHref)
-      },
-      homeItem,
-      {
-        id: 'contact',
-        label: 'Contact',
-        href: '#mobile-contact-options',
-        icon: MOBILE_DOCK_ICONS.contact,
-        accent: '#64748b',
-        active: isCurrentSection('/contact'),
-        contactOptions: true
-      }
-    ];
-    const items = isProfessionalAudience ? professionalItems : personalItems;
-    const leftItems = items.slice(0, 2);
-    const rightItems = items.slice(3);
-    const contactMenuId = 'mobile-site-contact-menu';
-    const contactMenuHtml = `
-      <div class="mobile-site-dock__contact-menu" id="${contactMenuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-mobile-contact-menu>
-        <div class="mobile-site-dock__contact-actions">
-          ${MOBILE_CONTACT_LINKS.map((link) => {
-            const target = link.target ? ` target="${escapeHtml(link.target)}"` : '';
-            const rel = link.rel ? ` rel="${escapeHtml(link.rel)}"` : '';
-            const contactAttr = link.contact ? ' data-contact-modal-link="true"' : '';
-            const directClass = link.contact ? ' mobile-site-dock__contact-link--direct' : '';
-            return `
-              <a class="mobile-site-dock__contact-link${directClass}" href="${escapeHtml(link.href)}"${target}${rel}${contactAttr} role="menuitem" data-mobile-contact-action tabindex="-1">
-                <span class="mobile-site-dock__contact-icon" aria-hidden="true">${link.icon}</span>
-                <span class="mobile-site-dock__contact-text">${escapeHtml(link.label)}</span>
-              </a>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-
-    const renderDockItem = (item) => {
-      const activeClass = item.active ? ' is-active' : '';
-      const ariaCurrent = item.active ? ' aria-current="page"' : '';
-      const contactAttr = item.contact ? ' data-contact-modal-link="true"' : '';
-      const dataAttr = ` data-mobile-dock-item="${item.id}"`;
-      const accentStyle = ` style="--dock-accent: ${item.accent}"`;
-      if (item.home) {
-        return `
-          <a class="mobile-site-dock__home${activeClass}" href="${item.href}"${ariaCurrent}${dataAttr}${accentStyle} aria-label="Daniel Short home">
-            <img src="img/brand/00-ds-logo-master-full-color.svg" alt="" width="76" height="76" decoding="async">
-            <span class="visually-hidden">${item.label}</span>
-          </a>
-        `;
-      }
-      if (item.contactOptions) {
-        return `
-          <div class="mobile-site-dock__contact" data-mobile-dock-item="${item.id}"${accentStyle}>
-            ${contactMenuHtml}
-            <button class="mobile-site-dock__item mobile-site-dock__contact-toggle${activeClass}" type="button"${ariaCurrent} aria-expanded="false" aria-haspopup="menu" aria-controls="${contactMenuId}" data-mobile-contact-options>
-              <span class="mobile-site-dock__icon" aria-hidden="true">${item.icon}</span>
-              <span class="mobile-site-dock__label">${item.label}</span>
-            </button>
-          </div>
-        `;
-      }
-      return `
-        <a class="mobile-site-dock__item${activeClass}" href="${item.href}"${ariaCurrent}${contactAttr}${dataAttr}${accentStyle}>
-          <span class="mobile-site-dock__icon" aria-hidden="true">${item.icon}</span>
-          <span class="mobile-site-dock__label">${item.label}</span>
-        </a>
-      `;
-    };
-    const html = `
-      <div class="mobile-site-dock__group mobile-site-dock__group--left">
-        ${leftItems.map(renderDockItem).join('')}
-      </div>
-      ${renderDockItem(homeItem)}
-      <div class="mobile-site-dock__group mobile-site-dock__group--right">
-        ${rightItems.map(renderDockItem).join('')}
-      </div>
-    `;
-
-    const dock = document.createElement('nav');
-    dock.className = 'mobile-site-dock';
-    dock.dataset.mobileSiteDock = '';
-    dock.dataset.mobileDockLayout = isProfessionalAudience ? 'professional' : 'personal';
-    dock.setAttribute('aria-label', 'Mobile primary');
-    dock.innerHTML = html;
-    const contactToggle = dock.querySelector('[data-mobile-contact-options]');
-    const contactMenu = dock.querySelector('[data-mobile-contact-menu]');
-    const contactActions = [...dock.querySelectorAll('[data-mobile-contact-action]')];
-    let queueDockVisibility = () => {};
-    const setContactExpanded = (expanded) => {
-      if (!contactToggle || !contactMenu) return;
-      const nextExpanded = Boolean(expanded);
-      dock.classList.toggle('is-contact-open', nextExpanded);
-      contactToggle.setAttribute('aria-expanded', String(nextExpanded));
-      contactToggle.setAttribute('aria-label', nextExpanded ? 'Close contact options' : 'Open contact options');
-      contactMenu.setAttribute('aria-hidden', String(!nextExpanded));
-      contactActions.forEach((action) => {
-        action.tabIndex = nextExpanded ? 0 : -1;
-      });
-      if (!nextExpanded && contactMenu.contains(document.activeElement)) {
-        contactToggle.focus({ preventScroll: true });
-      }
-      queueDockVisibility();
-    };
-    setContactExpanded(false);
-
-    dock.addEventListener('click', (event) => {
-      const contactOptions = event.target.closest('[data-mobile-contact-options]');
-      if (contactOptions && dock.contains(contactOptions)) {
-        event.preventDefault();
-        setContactExpanded(!dock.classList.contains('is-contact-open'));
-        return;
-      }
-      const contactAction = event.target.closest('[data-mobile-contact-action]');
-      if (contactAction && dock.contains(contactAction)) {
-        setContactExpanded(false);
-        document.dispatchEvent(new CustomEvent(NAVIGATION_EVENT));
-        return;
-      }
-      const link = event.target.closest('a');
-      if (!link || !dock.contains(link)) return;
-      setContactExpanded(false);
-      document.dispatchEvent(new CustomEvent(NAVIGATION_EVENT));
-    });
-    document.addEventListener('click', (event) => {
-      if (!dock.classList.contains('is-contact-open')) return;
-      if (dock.contains(event.target)) return;
-      setContactExpanded(false);
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || !dock.classList.contains('is-contact-open')) return;
-      event.preventDefault();
-      setContactExpanded(false);
-    });
-    document.body.appendChild(dock);
-    document.body.classList.add('has-mobile-site-dock');
-    queueDockVisibility = setupMobileDockAutoHide(dock);
-  }
-
-  function initNav(){
-    const host = $('#combined-header-nav');
-    if (!host) return;
-
-    const nav = host.querySelector('.nav');
-    if (!nav) return;
-
+  function getNavigationContext() {
     const audienceApi = window.SITE_AUDIENCE_CONFIG || null;
     const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
       ? audienceApi.normalizeAudience
@@ -745,12 +228,6 @@
         window.sessionStorage.setItem(key, value);
       } catch {}
     };
-
-    const animate = !readSession('navEntryPlayed');
-    writeSession('navEntryPlayed', 'yes');
-    if (animate) nav.classList.add('animate-entry');
-
-    setupNavPreviewVideos(host);
 
     const normalizePath = (value) => {
       if (!value) return '/';
@@ -796,7 +273,7 @@
     const pathAudience = currentPathVariants
       .map((path) => detectAudienceFromPath(path))
       .find(Boolean);
-    const explicitAudienceCandidates = [bodyAudience, queryAudience, pathAudience].filter(Boolean);
+    const explicitAudienceCandidates = [queryAudience, pathAudience, bodyAudience].filter(Boolean);
     const explicitProfessionalAudience = explicitAudienceCandidates
       .find((audience) => normalizeAudience(audience) !== 'personal');
     const explicitAudience = explicitProfessionalAudience || explicitAudienceCandidates[0] || '';
@@ -812,161 +289,55 @@
     writeSession(AUDIENCE_KEY, activeAudienceKey);
     writeSession(ENTRY_HOME_KEY, entryHome);
 
-    $$('[data-entry-home-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', entryHome);
-    });
-    $$('[data-audience-home-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.homePath || '/');
-    });
-    $$('[data-portfolio-home-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.portfolioPath || '/portfolio');
-    });
-    $$('[data-portfolio-default-link="true"]', host).forEach((link) => {
-      link.setAttribute('href', activeAudience.portfolioAllPath || '/portfolio');
-    });
-    $$('[data-audience-link]', host).forEach((link) => {
-      const audience = getAudience(link.dataset.audienceLink);
-      link.setAttribute('href', audience.homePath || '/');
-      const isActive = normalizeAudience(audience.key) === activeAudienceKey;
-      link.classList.toggle('is-current', isActive);
-      if (isActive) {
-        link.setAttribute('aria-current', 'page');
-      } else {
-        link.removeAttribute('aria-current');
-      }
-    });
+    return { activeAudience, currentPathVariants, entryHome };
+  }
 
-    $$('.nav-link', host).forEach((link) => {
-      const href = link.getAttribute('href');
-      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-      let targetPath = normalizePath(href);
-      const targetNoHtml = targetPath.endsWith('.html')
-        ? normalizePath(targetPath.replace(/\.html$/i, '') || '/')
-        : targetPath;
-      const matchesExact = [currentPath, altCurrentPath].some(p => p === targetPath || p === targetNoHtml);
-      const matchesSection = (() => {
-        if (targetNoHtml === '/portfolio') {
-          return [currentPath, altCurrentPath].some(p => p === '/portfolio' || p === '/portfolio.html' || p.startsWith('/portfolio/'));
-        }
-        if (targetNoHtml === '/tools') {
-          return [currentPath, altCurrentPath].some(p => p === '/tools' || p === '/tools.html' || p.startsWith('/tools/'));
-        }
-        if (targetNoHtml === '/games') {
-          return [currentPath, altCurrentPath].some(p => p === '/games' || p === '/games.html' || p.startsWith('/games/'));
-        }
-        return false;
-      })();
-      const matches = matchesExact || matchesSection;
-      if (matches) {
-        link.classList.add('is-current');
-        link.setAttribute('aria-current','page');
-      } else {
-        link.classList.remove('is-current');
-        link.removeAttribute('aria-current');
-      }
-    });
+  function syncSearchAudience(form, audience) {
+    if (!form || !audience) return;
+    let input = form.querySelector('[data-search-audience]');
+    if (!audience.key || audience.key === 'personal') {
+      if (input) input.remove();
+      return;
+    }
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'audience';
+      input.dataset.searchAudience = '';
+      form.appendChild(input);
+    }
+    input.value = audience.key;
+  }
 
-    setupMobileSiteDock({
-      activeAudience,
-      currentPathVariants,
-      entryHome,
-      normalizePath
+  function syncHeaderContext() {
+    const config = getNavigationContext();
+    const host = $('#combined-header-nav');
+    const masthead = $('[data-mobile-site-masthead]');
+    [host, masthead].filter(Boolean).forEach((header) => {
+      $$('[data-entry-home-link="true"]', header).forEach((link) => link.setAttribute('href', config.entryHome));
+      syncSearchAudience(header.querySelector('form[role="search"]'), config.activeAudience);
     });
-    setupMobileSiteMasthead({
-      activeAudience,
-      currentPathVariants,
-      entryHome
-    });
+    if (host) host.dataset.siteRealmNav = config.activeAudience.key;
+    if (masthead) {
+      masthead.classList.toggle('mobile-site-masthead--home', config.currentPathVariants.includes('/') || document.body?.dataset?.page === 'home');
+    }
+    scheduleNavHeightUpdate();
+    return config;
+  }
 
-    const burger = host.querySelector('#nav-toggle');
-    const menu   = host.querySelector('#primary-menu');
-    let closeMenu = () => {};
-    host.querySelectorAll('.nav-item').forEach(setupDropdown);
+  function initNav() {
+    const host = $('#combined-header-nav');
+    if (!host || !host.querySelector('.nav') || host.dataset.mastheadEnhanced === 'true') return;
+    host.dataset.mastheadEnhanced = 'true';
+    setupMobileSiteMasthead(getNavigationContext());
     setupHeaderSearch(host);
-
-    const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
-    if (hoverMatcher.matches) {
-      host.querySelectorAll('.nav-item').forEach((item) => {
-        item.addEventListener('pointerenter', () => closeActiveDropdowns(item, { forceBlur: true }));
-      });
-    }
-
-    if(burger && menu){
-      let prevFocus = null;
-      let outsideCloseAttached = false;
-      const syncBodyMenuState = (isOpen) => {
-        document.body.classList.toggle('menu-open', Boolean(isOpen));
-      };
-      const trapKeydown = (e) => {
-        if (e.key === 'Escape') {
-          closeMenu();
-          return;
-        }
-        if (e.key !== 'Tab') return;
-        const focusables = menu.querySelectorAll('a,button,[tabindex]:not([tabindex=\"-1\"])');
-        if (!focusables.length) return;
-        const first = focusables[0];
-        const last  = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      };
-
-      closeMenu = ({ restoreFocus = true } = {}) => {
-        if (!menu.classList.contains('open')) return;
-        menu.classList.remove('open');
-        burger.setAttribute('aria-expanded', 'false');
-        syncBodyMenuState(false);
-        document.removeEventListener('keydown', trapKeydown);
-        if (outsideCloseAttached){
-          document.removeEventListener('pointerdown', handleOutsidePointer, true);
-          outsideCloseAttached = false;
-        }
-        if (restoreFocus && prevFocus) {
-          prevFocus.focus();
-        }
-        prevFocus = null;
-      };
-
-      const handleOutsidePointer = (event) => {
-        if (!menu.classList.contains('open')) return;
-        const target = event.target;
-        if (menu.contains(target) || burger.contains(target)) return;
-        closeMenu();
-      };
-
-      const openMenu = () => {
-        if (menu.classList.contains('open')) return;
-        const headerBar = burger.closest('.nav') || host;
-        const headerBottom = headerBar.getBoundingClientRect().bottom;
-        menu.style.top = `${headerBottom}px`;
-        menu.classList.add('open');
-        burger.setAttribute('aria-expanded', 'true');
-        syncBodyMenuState(true);
-        prevFocus = document.activeElement;
-        document.addEventListener('keydown', trapKeydown);
-        if (!outsideCloseAttached){
-          document.addEventListener('pointerdown', handleOutsidePointer, true);
-          outsideCloseAttached = true;
-        }
-        // Focus first nav link for keyboard users
-        const firstLink = menu.querySelector('.nav-link');
-        firstLink && firstLink.focus();
-      };
-
-      burger.addEventListener('click', () => {
-        if (menu.classList.contains('open')) {
-          closeMenu();
-        } else {
-          openMenu();
-        }
-      });
-    }
-
+    syncHeaderContext();
     document.addEventListener(NAVIGATION_EVENT, () => {
-      closeActiveDropdowns(null, { forceBlur: true });
       closeHeaderSearch(host);
-      closeMenu({ restoreFocus: false });
+      const mobileSearch = document.querySelector('.mobile-site-masthead__search');
+      if (mobileSearch && typeof mobileSearch.__closeSearch === 'function') mobileSearch.__closeSearch();
     });
+    document.addEventListener('site:route-change', syncHeaderContext);
   }
 
   function setupHeaderSearch(host) {
@@ -990,8 +361,10 @@
       input.tabIndex = enhanced && !nextExpanded ? -1 : 0;
       input.setAttribute('aria-hidden', enhanced && !nextExpanded ? 'true' : 'false');
       if (focusInput && nextExpanded) {
-        requestAnimationFrame(() => input.focus());
-      } else if (restoreButtonFocus && enhanced && document.activeElement === input) {
+        requestAnimationFrame(() => {
+          if (form.classList.contains('is-expanded')) input.focus();
+        });
+      } else if (restoreButtonFocus && enhanced) {
         button.focus();
       }
     };
@@ -1003,7 +376,6 @@
       if (!desktopMatcher.matches) return;
       if (!form.classList.contains('is-expanded')) {
         event.preventDefault();
-        closeActiveDropdowns(null, { forceBlur: true });
         setExpanded(true, { focusInput: true });
         return;
       }
@@ -1047,70 +419,4 @@
     }
   }
 
-  const closeActiveDropdowns = (excludeItem, options = {}) => {
-    const { forceBlur = false } = options;
-    const activeEl = document.activeElement;
-    document.querySelectorAll('.nav-item.dropdown-open').forEach((openItem) => {
-      if (openItem === excludeItem) return;
-      if (typeof openItem.__closeDropdown === 'function') {
-        openItem.__closeDropdown();
-      } else {
-        openItem.classList.remove('dropdown-open');
-      }
-      if (forceBlur && activeEl && openItem.contains(activeEl) && typeof activeEl.blur === 'function') {
-        activeEl.blur();
-      }
-    });
-  };
-  function setupDropdown(item){
-    if(!item) return;
-    const dropdown = item.querySelector('.nav-dropdown');
-    const trigger = item.querySelector('.nav-link-has-menu');
-    if(!dropdown || !trigger) return;
-    trigger.setAttribute('aria-expanded', 'false');
-    let closeTimer = null;
-    const close = () => {
-      clearTimeout(closeTimer);
-      item.classList.remove('dropdown-open');
-      trigger.setAttribute('aria-expanded', 'false');
-    };
-    item.__closeDropdown = close;
-    const open = () => {
-      clearTimeout(closeTimer);
-      closeActiveDropdowns(item);
-      item.classList.add('dropdown-open');
-      trigger.setAttribute('aria-expanded', 'true');
-    };
-    const scheduleClose = () => {
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => {
-        close();
-      }, 320);
-    };
-    item.addEventListener('focusin', open);
-    item.addEventListener('focusout', (event) => {
-      const next = event.relatedTarget;
-      if(!next || !item.contains(next)){
-        scheduleClose();
-      }
-    });
-    const prefersHover = window.matchMedia('(hover: hover) and (pointer: fine)');
-    if(prefersHover.matches){
-      item.addEventListener('mouseenter', open);
-      item.addEventListener('mouseleave', scheduleClose);
-      dropdown.addEventListener('mouseenter', open);
-      dropdown.addEventListener('mouseleave', scheduleClose);
-    }
-    const onMediaChange = (event) => {
-      if(!event.matches){
-        item.classList.remove('dropdown-open');
-      }
-    };
-    if(typeof prefersHover.addEventListener === 'function'){
-      prefersHover.addEventListener('change', onMediaChange);
-    } else if(typeof prefersHover.addListener === 'function'){
-      prefersHover.addListener(onMediaChange);
-    }
-    updateNavDropdownOffset();
-  }
 })();

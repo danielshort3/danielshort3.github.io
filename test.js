@@ -12,6 +12,14 @@ const runPersonalAccordionShellTests = require('./tests/site/personal-accordion-
 const runPersonalThemeContinuityTests = require('./tests/site/personal-theme-continuity.test.js');
 const runProjectDemoWrapperTests = require('./tests/site/project-demo-wrappers.test.js');
 const runPortfolioRecommendationTests = require('./tests/site/portfolio-recommendations.test.js');
+const runPortfolioMotionTests = require('./tests/site/portfolio-motion.test.js');
+const runAccountDisclosureMotionTests = require('./tests/site/account-disclosure-motion.test.js');
+const runMobileNavigationTests = require('./tests/site/mobile-navigation.test.js');
+const runCompactSiteHeaderTests = require('./tests/site/compact-site-header.test.js');
+const runHeaderBreadcrumbsTests = require('./tests/site/header-breadcrumbs.test.js');
+const runCertificationPortalTests = require('./tests/site/certification-portal.test.js');
+const runSharedThemeShellTests = require('./tests/site/shared-theme-shell.test.js');
+const runMobileContactTests = require('./tests/site/mobile-contact.test.js');
 const runResponsiveDensityContractTests = require('./tests/site/responsive-density-contracts.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/tools/qr-code-generator-utils.test.js');
 const runTextCompareCoreTests = require('./tests/tools/text-compare-core.test.js');
@@ -686,6 +694,9 @@ function runCertificationsModalLifecycleTest(source) {
       hidden: false,
       inert: false,
       name,
+      contains(node) {
+        return node === this || this.querySelectorAll().includes(node);
+      },
       closest() {
         return null;
       },
@@ -728,7 +739,13 @@ function runCertificationsModalLifecycleTest(source) {
     content.querySelectorAll = () => [closer];
     modal.querySelector = (selector) => selector === '.modal-content' ? content : null;
     modal.querySelectorAll = (selector) => selector === '[data-cert-modal-close], .modal-close' ? [closer] : [];
+    modal.contains = (node) => [modal, content, closer].includes(node);
+    Object.defineProperty(modal, 'parentElement', { get: () => document?.body });
+    modal.remove = () => {};
+    modal.isConnected = true;
     const root = {
+      isConnected: true,
+      contains(node) { return [opener, closer, content, modal].includes(node); },
       getElementById(id) {
         return id === 'certifications-modal' ? modal : null;
       },
@@ -793,7 +810,7 @@ function runCertificationsModalLifecycleTest(source) {
     ...windowTarget,
     createModalAccessibility(modal) {
       accessibilityFactoryCalls += 1;
-      const record = { hide: 0, isolate: 0, restore: 0, show: 0 };
+      const record = { hide: 0, isolate: 0, restore: 0, show: 0, finishClose: null };
       accessibilityRecords.set(modal, record);
       const setOpenState = (isOpen) => {
         modal.hidden = !isOpen;
@@ -803,9 +820,19 @@ function runCertificationsModalLifecycleTest(source) {
       };
       setOpenState(modal.classList.contains('active'));
       return {
-        hide() {
+        hide({ onFinish, immediate = false } = {}) {
           record.hide += 1;
-          setOpenState(false);
+          modal.classList.remove('active');
+          const finishClose = () => {
+            if (record.finishClose !== finishClose) return;
+            record.finishClose = null;
+            record.restore += 1;
+            setOpenState(false);
+            onFinish?.();
+            if (!document.querySelector('.modal.active')) body.classList.remove('modal-open');
+          };
+          record.finishClose = finishClose;
+          if (immediate) finishClose();
         },
         isolateBackground() {
           record.isolate += 1;
@@ -815,7 +842,11 @@ function runCertificationsModalLifecycleTest(source) {
         },
         show() {
           record.show += 1;
+          record.finishClose = null;
           setOpenState(true);
+        },
+        dispose() {
+          record.finishClose?.();
         }
       };
     },
@@ -860,6 +891,12 @@ function runCertificationsModalLifecycleTest(source) {
     initialScene.content.focusCount === 1,
   'certification opener should preserve existing URL state and focus the dialog');
   initialScene.closer.dispatch('click');
+  const initialAccessibility = accessibilityRecords.get(initialScene.modal);
+  assert(!initialScene.modal.classList.contains('active') && !initialScene.modal.hidden &&
+    !initialScene.modal.inert && body.classList.contains('modal-open') &&
+    initialScene.content.listenerCount('keydown') === 1 && initialScene.opener.focusCount === 0,
+  'certification closing should keep the dialog rendered, retain its focus trap and scroll lock, and delay focus restoration');
+  initialAccessibility.finishClose();
   assert(!initialScene.modal.classList.contains('active') && initialScene.modal.hidden === true &&
     initialScene.modal.inert === true && initialScene.modal.getAttribute('aria-hidden') === 'true' &&
     !body.classList.contains('modal-open'),
@@ -872,15 +909,31 @@ function runCertificationsModalLifecycleTest(source) {
   const innerClickStayedOpen = initialScene.modal.classList.contains('active') &&
     historyCalls.length === callsAfterBackdropReopen;
   initialScene.modal.dispatch('click', { target: initialScene.modal });
+  initialAccessibility.finishClose();
   assert(innerClickStayedOpen && !initialScene.modal.classList.contains('active') &&
     historyCalls.length === callsAfterBackdropReopen + 1 && !location.search.includes('modal=certifications'),
   'certification modal should ignore inner clicks and close only when the click target is its backdrop');
   initialScene.opener.dispatch('click');
   document.dispatch('keydown', { key: 'Escape' });
+  initialAccessibility.finishClose();
   assert(!initialScene.modal.classList.contains('active') && initialScene.modal.hidden === true &&
     initialScene.modal.inert === true && !body.classList.contains('modal-open') &&
     !location.search.includes('modal=certifications'),
   'Escape should close the currently mounted certification modal through its accessible lifecycle');
+
+  initialScene.opener.dispatch('click');
+  initialScene.closer.dispatch('click');
+  const staleClose = initialAccessibility.finishClose;
+  const focusBeforeReopen = initialScene.opener.focusCount;
+  initialScene.opener.dispatch('click');
+  staleClose();
+  assert(initialScene.modal.classList.contains('active') && !initialScene.modal.hidden &&
+    initialScene.opener.focusCount === focusBeforeReopen && initialScene.content.listenerCount('keydown') === 1,
+  'reopening certifications during exit should cancel stale hiding and preserve one active focus trap');
+  initialScene.closer.dispatch('click');
+  initialAccessibility.finishClose();
+  assert(initialScene.opener.focusCount === focusBeforeReopen + 1 && !initialScene.content.listenerCount('keydown'),
+    'closing a reopened certification dialog should restore its original opener once and remove its trap');
 
   scene = createScene('route-replacement');
   const routeScene = scene;
@@ -900,6 +953,7 @@ function runCertificationsModalLifecycleTest(source) {
   assert(historyCalls.length === callsBeforeRouteOpen + 1 && routeAccessibility.isolate === 1,
     'repeated lifecycle events should not duplicate certification opener listeners');
   routeScene.closer.dispatch('click');
+  routeAccessibility.finishClose();
 
   scene = createScene('content-replacement');
   const contentScene = scene;
@@ -1614,7 +1668,9 @@ try {
       catalogJs.includes('window.SiteRoutes.runInScope(route.id, mount)') &&
       catalogJs.includes('window.SiteRoutes?.addCleanup?.(routeMount.cleanup, route.id)') &&
       catalogJs.includes("const toolId = Object.prototype.hasOwnProperty.call(TOOL_CATALOG, page) ? page : ''") &&
-      catalogJs.includes('registerCleanup(initToolAutoSave({'),
+      catalogJs.includes('const persistence = initToolAutoSave({') &&
+      catalogJs.includes('registerCleanup(persistence)') &&
+      catalogJs.includes('routeMount.beforeLeave = persistence?.beforeLeave'),
     'tools account services should remain shared while route-owned bars, dashboards, restoration, and autosave remount with lifecycle cleanup');
     assert(toolsAccountLoaderJs.includes("dock.dataset.toolsAccountLoaderReady === 'true'") &&
       toolsAccountLoaderJs.includes('delete binding.dock.dataset.toolsAccountLoaderReady') &&
@@ -39033,7 +39089,7 @@ try {
     assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
     assert((html.match(/id="privacy-settings-link-footer"/g) || []).length === 1, 'pages/short-links.html should include one footer cookie settings control');
     assert(!html.includes('data-cookie-settings="true"'), 'pages/short-links.html should not include a floating cookie settings widget');
-    assert((html.match(/data-speed-dial="true"/g) || []).length === 1, 'pages/short-links.html should include one speed dial');
+    assert(!html.includes('data-speed-dial="true"'), 'pages/short-links.html should use tabs without a floating speed dial');
     assert(!html.includes('>Professional site</option>') &&
       html.includes('<option value="analytics" selected>Data Analytics</option>') &&
       html.includes('<option value="professional">Data Analytics project links</option>'),
@@ -39367,7 +39423,8 @@ try {
       'mobile filter state should lock page chrome without changing the portfolio Quick view behavior');
     assert(/body\[data-page="portfolio"\] \.portfolio-inspector \{\s*overflow-x: hidden;\s*overflow-y: auto;/.test(workbenchCss),
       'portfolio inspector should override the branded overflow rule and remain scrollable on desktop');
-    assert(workbenchCss.includes('min-height: min(240px, 35dvh);') &&
+    assert(/\.portfolio-workbench\[data-mobile-filters="true"\] \.portfolio-filter-groups \{\s*flex: 1 1 auto;\s*min-height: 0;/.test(workbenchCss) &&
+           workbenchCss.includes('overflow-y: auto;') &&
            workbenchCss.includes('body.portfolio-filter-sheet-open .mobile-site-dock'),
       'mobile filter sheet should preserve a usable scrolling body and hide the site dock while open');
     assert(workbenchCss.includes('.portfolio-result-card__outcome') &&
@@ -40414,6 +40471,7 @@ try {
       classList: { add() {}, remove() {}, contains() { return true; } },
       dataset: {},
       addEventListener() {},
+      contains() { return false; },
       querySelector(selector) {
         if (selector === '.modal-content') return contentNode;
         if (selector === '.modal-embed iframe') return null;
@@ -40433,7 +40491,7 @@ try {
   });
 
   section('Navigation markup and branding', () => {
-    checkFileContains('build/templates/header.partial.html', 'div id="primary-menu" class="nav-row"');
+    checkFileContains('build/templates/header.partial.html', 'class="nav-search"');
     const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
     const analyticsHeaderTemplate = fs.readFileSync('build/templates/header.analytics.partial.html', 'utf8');
     const dataScienceHeaderTemplate = fs.readFileSync('build/templates/header.data-science.partial.html', 'utf8');
@@ -40478,7 +40536,7 @@ try {
       'compact personal footer should use one desktop row and two compact mobile rows');
     assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
     assert(footerTemplate.includes('footer--personal-compact') &&
-      footerTemplate.includes('aria-label="Personal footer"') &&
+      footerTemplate.includes('aria-label="Footer utility"') &&
       !footerTemplate.includes('class="footer-identity"') &&
       !footerTemplate.includes('class="footer-nav"') &&
       !footerTemplate.includes('data-footer-realm='),
@@ -40490,18 +40548,9 @@ try {
       footerTemplate.includes('href="https://github.com/danielshort3"') &&
       footerTemplate.includes('href="privacy"'),
       'personal footer should link to the requested contact, GitHub, and privacy destinations');
-    [
-      [analyticsFooterTemplate, 'analytics', 'resume-analytics'],
-      [dataScienceFooterTemplate, 'data-science', 'resume-data-science'],
-      [tourismFooterTemplate, 'tourism', 'resume-tourism']
-    ].forEach(([template, homePath, resumePath]) => {
-      assert(template.includes('data-footer-realm="professional"') &&
-        !template.includes('data-footer-realm="personal"') &&
-        template.includes(`href="${homePath}"`) &&
-        template.includes(`href="portfolio?audience=${homePath}"`) &&
-        template.includes(`href="${resumePath}"`) &&
-        template.includes(`href="contact?audience=${homePath}#contact-modal"`),
-        `${homePath} footer should expose only its audience-specific professional links`);
+    [analyticsFooterTemplate, dataScienceFooterTemplate, tourismFooterTemplate].forEach((template) => {
+      assert(template.includes('footer--personal-compact') && !template.includes('class="footer-nav"') && !template.includes('speed-dial'),
+        'all audiences should share the compact utility footer without duplicated navigation');
     });
     assert(!analyticsFooterTemplate.includes('href="data-science"') &&
       !analyticsFooterTemplate.includes('href="tourism"') &&
@@ -40546,10 +40595,6 @@ try {
     assert(!footerTemplate.includes(retiredPersonalFooterSummary) &&
       !JSON.stringify(footerContent).includes(retiredPersonalFooterSummary),
       'personal footer should omit the redundant projects, tools, games, and experiments summary');
-    const footerRenderer = readFile('build/lib/cms-renderers.js');
-    assert(footerRenderer.includes('summary ? `  <p class="footer-identity-summary">') &&
-      footerRenderer.includes(".filter(Boolean).join('\\n')"),
-      'footer renderer should omit the summary element when a realm has no summary');
     const personalAudienceContent = JSON.parse(readFile('content/audiences/personal.json'));
     const personalCategories = personalAudienceContent.page.sections
       .find((section) => section.type === 'home-accordion')?.props?.categories || [];
@@ -40580,11 +40625,8 @@ try {
     const noJsScript = readFile('js/common/no-js.js');
     const notFoundRedirectScript = readFile('js/common/404-redirect.js');
     const portfolioAudienceScript = readFile('js/portfolio/portfolio.js');
-    assert(siteRealmScript.includes('applyAudienceFooter(audience)') &&
-      siteRealmScript.includes('audience.contactPath') &&
-      siteRealmScript.includes('audience.resumePreviewPath') &&
-      siteRealmScript.includes('audience.resumeDownloadPath'),
-      'shared professional views should hydrate header, footer, contact, and resume routes from audience config');
+    assert(siteRealmScript.includes('applyAudienceNavigation(audience)') && siteRealmScript.includes('audience.resumePath'),
+      'shared professional views should keep audience-aware navigation and resume links');
     assert(noJsScript.includes("window.location.hostname === 'danielshort3.github.io'") &&
       noJsScript.includes('https://www.danielshort.me') &&
       notFoundRedirectScript.includes("window.location.hostname === 'danielshort3.github.io'") &&
@@ -40629,14 +40671,8 @@ try {
       [dataScienceHeaderTemplate, 'data-science', 'resume-data-science'],
       [tourismHeaderTemplate, 'tourism', 'resume-tourism']
     ].forEach(([template, audience, resumePath]) => {
-      assert(template.includes(`href="${audience}"`) &&
-        template.includes(`href="portfolio?audience=${audience}"`) &&
-        template.includes(`href="${resumePath}"`) &&
-        template.includes(`href="contact?audience=${audience}"`) &&
-        !template.includes('nav-item-tools') &&
-        !template.includes('nav-item-games') &&
-        !template.includes('class="nav-search"'),
-        `${audience} header should contain only audience-correct professional navigation`);
+      assert(template.includes('class="nav-search"') && template.includes('name="audience" value="' + audience + '"') && !template.includes('nav-dropdown'),
+        audience + ' should share the compact searchable masthead without menu dropdowns');
       ['analytics', 'data-science', 'tourism'].filter((key) => key !== audience).forEach((other) => {
         assert(!template.includes(`audience=${other}`), `${audience} header should not cross-link ${other}`);
       });
@@ -40670,24 +40706,7 @@ try {
         html.includes('<meta name="referrer" content="no-referrer">'),
         `${file} should prevent indexing and suppress outbound referrer disclosure`);
     });
-    ['nav-item-portfolio', 'nav-item-tools', 'nav-item-games', 'nav-item-contact'].forEach((className) => {
-      assert(headerTemplate.includes(className), `header missing ${className}`);
-    });
-    assert(headerTemplate.indexOf('nav-item-portfolio') < headerTemplate.indexOf('nav-item-tools') &&
-      headerTemplate.indexOf('nav-item-tools') < headerTemplate.indexOf('nav-item-games') &&
-      headerTemplate.indexOf('nav-item-games') < headerTemplate.indexOf('nav-item-contact'),
-      'header navigation should appear in Projects, Tools, Games, Contact order');
-    assert(headerTemplate.includes('id="nav-dropdown-tools"') && headerTemplate.includes('id="nav-dropdown-games"'),
-      'header should expose tools and games dropdowns');
-    const contactNavStart = headerTemplate.indexOf('class="nav-item nav-item-contact"');
-    const contactNavEnd = headerTemplate.indexOf('class="nav-search"', contactNavStart);
-    const contactNavMarkup = headerTemplate.slice(contactNavStart, contactNavEnd);
-    assert(contactNavMarkup.includes('<a href="contact" class="nav-link nav-link-cta">Contact</a>') &&
-      !contactNavMarkup.includes('nav-link-has-menu') &&
-      !contactNavMarkup.includes('nav-dropdown-contact'),
-      'Contact should be a direct link without a dropdown or caret');
-    assert((headerTemplate.match(/nav-dropdown-inner nav-dropdown-inner-simple/g) || []).length === 2,
-      'Tools and Games dropdowns should use the compact simple inner structure');
+    assert(!headerTemplate.includes('nav-item-') && !headerTemplate.includes('nav-dropdown'), 'header navigation belongs in the category tabs');
   });
 
   section('Navigation CSS and mobile layout', () => {
@@ -40714,7 +40733,15 @@ try {
     assert(utilCss.includes('--brand-title-size'), 'utilities/layout.css missing mobile brand sizing overrides');
     assert(/flex-direction\s*:\s*column;/.test(utilCss), 'brand mobile stack rule missing');
     assert(utilCss.includes('padding-top:var(--nav-height'), 'page offset for fixed header missing');
-    assert(utilCss.includes('clip-path') && utilCss.includes('.nav-row.open'), 'mobile drawer clip-path reveal missing');
+    const mobileDrawerCss = utilCss.match(/\.nav-row\s*\{([^}]*transform\s*:\s*translate3d\([^}]+)\}/)?.[1] || '';
+    const mobileDrawerOpenCss = utilCss.match(/\.nav-row\.open\s*\{([^}]+)\}/)?.[1] || '';
+    assert(/transform\s*:\s*translate3d\(\s*-50%\s*,\s*-6px\s*,\s*0\s*\)/.test(mobileDrawerCss) &&
+      /opacity\s*:\s*0\s*;/.test(mobileDrawerCss) &&
+      /visibility\s+0s\s+linear\s+var\(--motion-fast\)/.test(mobileDrawerCss) &&
+      /transform\s*:\s*translate3d\(\s*-50%\s*,\s*0\s*,\s*0\s*\)/.test(mobileDrawerOpenCss) &&
+      /opacity\s*:\s*1\s*;/.test(mobileDrawerOpenCss) &&
+      /visibility\s*:\s*visible\s*;/.test(mobileDrawerOpenCss),
+    'mobile drawer should preserve horizontal centering while revealing with vertical translation, opacity, and delayed visibility');
     assert(utilCss.includes('padding-inline:var(--mobile-page-gutter);'), 'mobile wrapper should use compact page gutters');
     assert(utilCss.includes('.nav-search.nav-search-is-enhanced.is-expanded') && utilCss.includes('width:100%;'), 'mobile drawer search should stay full width even with enhanced search classes');
     assert(utilCss.includes('body .surface-band,\n  body .interest-pad'), 'mobile global sections should share compact vertical spacing');
@@ -41322,6 +41349,23 @@ try {
     runPageTransitionTests({ assert });
   });
 
+  section('Shared motion lifecycle', () => {
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/motion.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/route-state.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/probability-offline-modal.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/frame-navigation-transaction.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/frame-wheel.test.js')]);
+    childProcess.execFileSync(process.execPath, [path.join(__dirname, 'tests/site/professional-route-lifecycle.test.js')]);
+    runPortfolioMotionTests({ assert });
+    runAccountDisclosureMotionTests({ assert });
+    runMobileNavigationTests({ assert });
+    runMobileContactTests({ assert });
+    runCompactSiteHeaderTests({ assert });
+    runHeaderBreadcrumbsTests({ assert });
+    runCertificationPortalTests({ assert });
+    runSharedThemeShellTests({ assert });
+  });
+
   section('Personal accordion route shell', () => {
     runPersonalAccordionShellTests({ assert });
   });
@@ -41334,152 +41378,15 @@ try {
     runPersonalThemeContinuityTests({ assert });
   });
 
-  section('Shared mobile dock and compact footer', () => {
-    const mobileDockCss = readFile('css/components/mobile-site-dock.css');
+  section('Tab navigation replaces floating menus', () => {
     const navigationJs = readFile('js/navigation/navigation.js');
-    const footerCss = readFile('css/layout/footer.css');
-    const dockRule = Array.from(
-      mobileDockCss.matchAll(/\.mobile-site-dock\s*\{([^}]*)\}/g),
-      (match) => match[1]
-    ).find((rule) => rule.includes('position: fixed')) || '';
-    const archRule = mobileDockCss.match(/\.mobile-site-dock::after\s*\{([^}]*)\}/)?.[1] || '';
-    const leftGroupRule = mobileDockCss.match(/\.mobile-site-dock__group--left\s*\{([^}]*)\}/)?.[1] || '';
-    const personalRightRule = mobileDockCss.match(/\.mobile-site-dock\[data-mobile-dock-layout="personal"\] \.mobile-site-dock__group--right\s*\{([^}]*)\}/)?.[1] || '';
-    const professionalRightRule = mobileDockCss.match(/\.mobile-site-dock\[data-mobile-dock-layout="professional"\] \.mobile-site-dock__group--right\s*\{([^}]*)\}/)?.[1] || '';
-    const itemRule = mobileDockCss.match(/\.mobile-site-dock__item\s*\{([^}]*)\}/)?.[1] || '';
-    const homeRule = Array.from(
-      mobileDockCss.matchAll(/\.mobile-site-dock__home\s*\{([^}]*)\}/g),
-      (match) => match[1]
-    ).find((rule) => rule.includes('width: 64px;')) || '';
-    const contactLinkRule = mobileDockCss.match(/\.mobile-site-dock__contact-link\s*\{([^}]*)\}/)?.[1] || '';
-    const hiddenDockRule = mobileDockCss.match(/\.mobile-site-dock\.is-scroll-hidden,[\s\S]*?body\.is-mobile-site-dock-hidden \.mobile-site-dock\s*\{([^}]*)\}/)?.[1] || '';
-    const dockMainClearanceRule = mobileDockCss.match(/body\.has-mobile-site-dock[^\{]*>\s*#main\s*\{([^}]*)\}/)?.[1] || '';
-    const dockBodyRule = mobileDockCss.match(/body\.has-mobile-site-dock\s*\{([^}]*)\}/)?.[1] || '';
-    const reducedMotionDockIndex = mobileDockCss.indexOf('@media (max-width: 768px) and (prefers-reduced-motion: reduce)');
-    const reducedMotionDockCss = reducedMotionDockIndex >= 0
-      ? mobileDockCss.slice(reducedMotionDockIndex, reducedMotionDockIndex + 500)
-      : '';
-    const compactFooterMediaIndex = footerCss.lastIndexOf('@media (max-width: 768px)');
-    const compactFooterCss = compactFooterMediaIndex >= 0 ? footerCss.slice(compactFooterMediaIndex) : '';
-    const compactFooterInnerRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-inner,[\s\S]*?\{([^}]*)\}/)?.[1] || '';
-    const compactFooterBottomRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-bottom\s*\{([^}]*)\}/)?.[1] || '';
-    const compactFooterLinkRule = compactFooterCss.match(/body\.has-mobile-site-dock \.footer\.footer-classic \.footer-utility \.footer-link\s*\{([^}]*)\}/)?.[1] || '';
-    const fallbackFooterNavRule = Array.from(
-      footerCss.matchAll(/\.footer\.footer-classic \.footer-nav\s*\{([^}]*)\}/g),
-      (match) => match[1]
-    ).find((rule) => rule.includes('grid-area:nav;')) || '';
-    const leftGroupIndex = navigationJs.indexOf('<div class="mobile-site-dock__group mobile-site-dock__group--left">');
-    const homeIndex = navigationJs.indexOf('${renderDockItem(homeItem)}', leftGroupIndex);
-    const rightGroupIndex = navigationJs.indexOf('<div class="mobile-site-dock__group mobile-site-dock__group--right">');
-    const dockAutoHideStart = navigationJs.indexOf('function setupMobileDockAutoHide(dock)');
-    const dockAutoHideEnd = navigationJs.indexOf('\n  function setupMobileSiteDock', dockAutoHideStart);
-    const dockAutoHideJs = dockAutoHideStart >= 0 && dockAutoHideEnd > dockAutoHideStart
-      ? navigationJs.slice(dockAutoHideStart, dockAutoHideEnd)
-      : '';
-    const hideThreshold = Number(dockAutoHideJs.match(/DOCK_HIDE_SCROLL_THRESHOLD\s*=\s*(\d+)/)?.[1]);
-    const showThreshold = Number(dockAutoHideJs.match(/DOCK_SHOW_SCROLL_THRESHOLD\s*=\s*(\d+)/)?.[1]);
-    const topRevealOffset = Number(dockAutoHideJs.match(/DOCK_TOP_REVEAL_OFFSET\s*=\s*(\d+)/)?.[1]);
-
-    assert(navigationJs.includes('const leftItems = items.slice(0, 2);') &&
-      navigationJs.includes('const rightItems = items.slice(3);') &&
-      leftGroupIndex >= 0 &&
-      homeIndex > leftGroupIndex &&
-      rightGroupIndex > homeIndex,
-      'shared mobile dock markup should group two left items, the Home item, and the right-side items into three centered zones');
-    assert(dockRule.includes('grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);') &&
-      leftGroupRule.includes('grid-template-columns: repeat(2, minmax(44px, 1fr));') &&
-      personalRightRule.includes('grid-template-columns: minmax(44px, 1fr) minmax(44px, 1.6fr);') &&
-      professionalRightRule.includes('grid-template-columns: minmax(44px, 1fr);') &&
-      !mobileDockCss.includes('grid-column: 4 / 6;') &&
-      !mobileDockCss.includes('minmax(44px, 1fr) minmax(44px, 1fr) 64px'),
-      'shared mobile dock should use a centered three-zone grid while keeping personal Contact wider and professional Contact full-width');
-    assert(dockRule.includes('--dock-surface: #fff;') &&
-      dockRule.includes('border-top: 1px solid var(--dock-line);') &&
-      dockRule.includes('background: var(--dock-surface);') &&
-      dockRule.includes('box-shadow: var(--dock-shadow);') &&
-      archRule.includes('left: 50%;') &&
-      archRule.includes('transform: translateX(-50%);') &&
-      !mobileDockCss.includes('.mobile-site-dock::before'),
-      'shared mobile dock should use one opaque edge-to-edge surface with its raised Home arch centered on the viewport');
-    assert(mobileDockCss.includes('--mobile-site-dock-height: 80px;') &&
-      mobileDockCss.includes('--mobile-site-dock-gap: 8px;') &&
-      mobileDockCss.includes('--mobile-site-dock-safe-bottom: env(safe-area-inset-bottom, 0px);') &&
-      mobileDockCss.includes('--mobile-site-dock-clearance: calc(') &&
-      mobileDockCss.includes('var(--mobile-site-dock-height) +') &&
-      mobileDockCss.includes('var(--mobile-site-dock-gap) +') &&
-      dockRule.includes('height: calc(var(--mobile-site-dock-height) + var(--mobile-site-dock-safe-bottom));') &&
-      itemRule.includes('min-height: 56px;') &&
-      homeRule.includes('width: 64px;') &&
-      homeRule.includes('height: 64px;') &&
-      contactLinkRule.includes('min-height: 44px;'),
-      'shared mobile dock should preserve its 80px height, safe-area clearance, and 44px-or-larger navigation targets');
-    assert(dockAutoHideJs &&
-      Number.isFinite(hideThreshold) && hideThreshold >= 20 && hideThreshold <= 48 &&
-      Number.isFinite(showThreshold) && showThreshold >= 8 && showThreshold < hideThreshold &&
-      Number.isFinite(topRevealOffset) && topRevealOffset >= 0 && topRevealOffset <= showThreshold &&
-      dockAutoHideJs.includes('const delta = nextScrollY - lastScrollY;') &&
-      dockAutoHideJs.includes('scrollDistance += Math.abs(delta);') &&
-      dockAutoHideJs.includes('scrollDirection > 0 && scrollDistance >= DOCK_HIDE_SCROLL_THRESHOLD') &&
-      dockAutoHideJs.includes('scrollDirection < 0 && scrollDistance >= DOCK_SHOW_SCROLL_THRESHOLD') &&
-      dockAutoHideJs.includes("window.addEventListener('scroll', queueDockVisibility, { passive: true });") &&
-      dockAutoHideJs.includes('window.requestAnimationFrame(syncDockVisibility)'),
-      'mobile dock should use buffered downward hiding and upward/top revealing through one passive, animation-frame scroll loop');
-    assert(dockAutoHideJs.includes("dock.classList.toggle('is-scroll-hidden', hidden);") &&
-      dockAutoHideJs.includes("document.body.classList.toggle('is-mobile-site-dock-hidden', hidden);") &&
-      dockAutoHideJs.includes("dock.dataset.mobileDockHiddenReason = reason;") &&
-      dockAutoHideJs.includes('delete dock.dataset.mobileDockHiddenReason;') &&
-      dockAutoHideJs.includes("hiddenReason = 'scroll';") &&
-      dockAutoHideJs.includes("hiddenReason = 'footer';"),
-      'mobile dock auto-hide should synchronize inspectable dock/body states and distinguish scroll from footer hiding');
-    assert(dockAutoHideJs.includes("document.querySelector('.footer.footer-classic')") &&
-      dockAutoHideJs.includes('new window.IntersectionObserver') &&
-      dockAutoHideJs.includes('entries.some((entry) => entry.isIntersecting)') &&
-      dockAutoHideJs.includes('footerObserver.observe(footer);') &&
-      dockAutoHideJs.includes('footer.getBoundingClientRect()') &&
-      dockAutoHideJs.includes("dock.classList.contains('is-contact-open')") &&
-      dockAutoHideJs.includes('dock.contains(document.activeElement)') &&
-      dockAutoHideJs.includes("dock.addEventListener('focusin', queueDockVisibility);") &&
-      dockAutoHideJs.includes("dock.addEventListener('focusout', queueDockVisibility);") &&
-      navigationJs.includes('queueDockVisibility = setupMobileDockAutoHide(dock);'),
-      'mobile dock should stay hidden over the footer, include a no-observer viewport fallback, and remain available during contact or keyboard interaction');
-    assert(navigationJs.includes('M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7') &&
-      navigationJs.includes('<rect x="3" y="7" width="18" height="13" rx="2.25"></rect>') &&
-      !navigationJs.includes('M14.5 5.5a4.8 4.8 0 0 0 4 6.9'),
-      'shared mobile dock should use a recognizable toolbox glyph for Tools');
-    assert(compactFooterCss.includes('body.has-mobile-site-dock .footer.footer-classic .footer-identity,') &&
-      compactFooterCss.includes('body.has-mobile-site-dock .footer.footer-classic .footer-nav{') &&
-      compactFooterCss.includes('display:none;') &&
-      compactFooterInnerRule.includes('grid-template-columns:minmax(0, 1fr);') &&
-      compactFooterInnerRule.includes('grid-template-areas:"bottom";') &&
-      compactFooterInnerRule.includes('gap:0;') &&
-      compactFooterBottomRule.includes('align-items:flex-start;') &&
-      compactFooterBottomRule.includes('flex-direction:column;') &&
-      compactFooterBottomRule.includes('padding-top:0;') &&
-      compactFooterBottomRule.includes('border-top:0;') &&
-      compactFooterLinkRule.includes('min-height:44px;') &&
-      compactFooterLinkRule.includes('padding-block:6px;') &&
-      fallbackFooterNavRule.includes('display:block;'),
-      'dock-aware mobile footer should hide duplicated navigation and retain a compact, accessible utility footer at 768px and below without breaking the no-dock fallback');
-    assert(!footerCss.includes('--footer-mobile-dock-fill') &&
-      !footerCss.includes('body.has-mobile-site-dock .footer.footer-classic::after'),
-      'dock-aware mobile footer should not extend a dark inherited background behind the fixed dock');
-    assert(dockRule.includes('transition:') &&
-      dockRule.includes('transform') &&
-      dockRule.includes('will-change: transform;') &&
-      hiddenDockRule.includes('transform: translate3d(0, calc(100% + 16px), 0);') &&
-      hiddenDockRule.includes('pointer-events: none;') &&
-      hiddenDockRule.includes('visibility: hidden;') &&
-      reducedMotionDockCss.includes('.mobile-site-dock') &&
-      reducedMotionDockCss.includes('transition: none;'),
-      'mobile dock should slide off-canvas without capturing taps and reduce its transition to effectively instant motion when requested');
-    assert(dockBodyRule.includes('padding-bottom: 0;') &&
-      dockMainClearanceRule.includes('margin-bottom: var(--mobile-site-dock-gap);') &&
-      mobileDockCss.includes('--mobile-site-dock-safe-bottom: env(safe-area-inset-bottom, 0px);') &&
-      mobileDockCss.includes('--mobile-site-dock-safe-left: env(safe-area-inset-left, 0px);') &&
-      mobileDockCss.includes('--mobile-site-dock-safe-right: env(safe-area-inset-right, 0px);') &&
-      compactFooterCss.includes('body.has-mobile-site-dock .footer.footer-classic .footer-nav{') &&
-      fallbackFooterNavRule.includes('display:block;'),
-      'mobile dock spacing should sit before the compact footer, preserve full safe-area scroll clearance, and leave the complete footer available when JavaScript does not add the dock class');
+    assert(!navigationJs.includes('function setupMobileSiteDock') && !navigationJs.includes('function setupMobileDockAutoHide'),
+      'navigation should not recreate the retired mobile dock');
+    ['personal', 'analytics', 'data-science', 'tourism'].forEach((audience) => {
+      const suffix = audience === 'personal' ? '' : '.' + audience;
+      assert(!readFile('build/templates/footer' + suffix + '.partial.html').includes('speed-dial'),
+        audience + ' footer should not emit a floating contact dropdown');
+    });
   });
 
   section('Project-first public copy', () => {
@@ -41507,18 +41414,7 @@ try {
       });
     });
     const headerHtml = readFile('build/templates/header.partial.html');
-    const portfolioStart = headerHtml.indexOf('id="nav-dropdown-portfolio"');
-    const portfolioEnd = headerHtml.indexOf('<div class="nav-item nav-item-tools"');
-    const portfolioDropdown = portfolioStart >= 0 && portfolioEnd > portfolioStart
-      ? headerHtml.slice(portfolioStart, portfolioEnd)
-      : '';
-    assert(portfolioDropdown.includes('Featured Projects'), 'header portfolio dropdown should use project-first wording');
-    assert(!portfolioDropdown.includes('Technical depth'), 'portfolio dropdown should not include the technical depth shortcut');
-    assert(!portfolioDropdown.includes('Tools'), 'portfolio dropdown should not include tools shortcuts');
-    assert((portfolioDropdown.match(/class="nav-project-card"/g) || []).length === 3, 'portfolio dropdown should keep three focused project links');
-    assert((portfolioDropdown.match(/class="nav-dropdown-link nav-dropdown-all"/g) || []).length === 1, 'portfolio dropdown should have one footer portfolio link');
-    assert(portfolioDropdown.includes('View all projects'), 'portfolio dropdown should link to the project library');
-    assert(portfolioDropdown.includes('Browse the complete project library'), 'portfolio dropdown footer should include descriptive subtext');
+    assert(!headerHtml.includes('nav-dropdown'), 'shared masthead should not contain header dropdown menus');
   });
 
   section('Internal site links stay in the same tab', () => {
@@ -41558,7 +41454,7 @@ try {
       navCode.includes("siteRealm === 'personal' ? 'personal' : ''") &&
       navCode.includes('getAudience(explicitAudience || realmAudience || storedAudience)'),
       'navigation should prefer explicit professional signals and the current site realm before stored audience state');
-    assert(navCode.includes('[data-portfolio-home-link="true"]'), 'navigation missing portfolio home selector');
+    assert(!navCode.includes('function setupDropdown'), 'navigation should not create header dropdowns');
     assert(!navCode.includes('[data-resume-home-link="true"]'), 'navigation should not keep resume home selector');
     assert(!navCode.includes('[data-brand-tagline-primary="true"]'), 'navigation should not update a removed brand tagline hook');
     assert(navCode.includes('setupHeaderSearch(host)'), 'navigation should initialize expandable header search');
@@ -41566,11 +41462,7 @@ try {
     assert(navCode.includes("form.dataset.navSearch = enhanced ? (nextExpanded ? 'expanded' : 'collapsed') : 'full';"), 'navigation should distinguish full mobile search from collapsed desktop search');
     assert(navCode.includes("button.setAttribute('aria-label', enhanced && !nextExpanded ? 'Open search' : 'Search site');"), 'navigation should announce the visible mobile search button correctly');
     assert(navCode.includes('input.tabIndex = enhanced && !nextExpanded ? -1 : 0;'), 'collapsed desktop search input should leave the tab order');
-    assert(headerTemplate.includes('aria-controls="primary-menu"'), 'header missing aria-controls="primary-menu"');
-    assert(headerTemplate.includes('id="primary-menu"'), 'header missing primary-menu');
-    assert(navCode.includes("classList.toggle('menu-open'"), 'burger toggle missing body.menu-open');
-    assert(navCode.includes('aria-expanded'), 'burger missing aria-expanded');
-    assert(navCode.includes('aria-current'), 'active nav link missing aria-current');
+    assert(!headerTemplate.includes('primary-menu') && !headerTemplate.includes('nav-toggle'), 'shared header should not expose a burger menu');
     assert(navCode.includes('getBoundingClientRect'), 'setNavHeight missing measurement');
   });
 
@@ -43313,17 +43205,31 @@ try {
     });
     const pizzaDemo = fs.readFileSync('demos/pizza-tips-demo.html', 'utf8');
     assert(pizzaDemo.includes('class="health-pill aws-status-badge" id="api-status"') &&
-           pizzaDemo.includes('<span class="health-meta">AWS regression model</span>') &&
+           pizzaDemo.includes('data-state="warming" role="status" aria-live="polite">Preparing demo') &&
            !pizzaDemo.includes('<div class="health-row" role="status"'),
-      'pizza tips demo should render AWS status as a compact header badge');
+      'pizza tips demo should render preparation status as a compact live header badge');
     assert(pizzaDemo.includes('<fieldset class="scenario-segment">') &&
-           pizzaDemo.includes('<legend>Estimate Settings</legend>') &&
+           pizzaDemo.includes('<legend>Delivery details</legend>') &&
            pizzaDemo.includes('<legend>Order Details</legend>') &&
            !pizzaDemo.includes('<legend>Delivery Timing</legend>') &&
            !pizzaDemo.includes('<legend>Weather Conditions</legend>') &&
            pizzaDemo.includes('class="inactive-scenario-fields" hidden aria-hidden="true"') &&
            !pizzaDemo.includes('class="inline-fields"'),
       'pizza tips demo should only show labeled segments for active scenario controls');
+    const pizzaScenario = pizzaDemo.slice(pizzaDemo.indexOf('<div class="scenario-column">'), pizzaDemo.indexOf('<div class="panel map-panel">'));
+    assert(pizzaScenario.includes('id="scenario-form"') && pizzaScenario.includes('id="tip-amount"') &&
+           pizzaScenario.indexOf('id="scenario-form"') < pizzaScenario.indexOf('id="tip-amount"'),
+      'pizza tips demo should place the estimate directly after its form in the same workspace column');
+    assert(/<details class="demo-disclosure">\s*<summary>Estimate settings<\/summary>[\s\S]*?id="confidence"[\s\S]*?<\/details>/.test(pizzaScenario) &&
+           /<details class="demo-disclosure">\s*<summary>What contributes to this estimate\?<\/summary>[\s\S]*?id="tip-breakdown"[\s\S]*?<\/details>/.test(pizzaScenario),
+      'pizza tips demo should keep confidence settings and contributing factors in closed disclosures');
+    ['minesweeper', 'nonogram'].forEach((demo) => {
+      const puzzleSource = fs.readFileSync(`demos/${demo}-demo.html`, 'utf8');
+      assert(puzzleSource.indexOf('<div class="board-actions">') < puzzleSource.indexOf('<div class="board-shell"') &&
+             /<details class="demo-disclosure puzzle-details">[\s\S]*?<summary>How it works &amp; solver details<\/summary>[\s\S]*?id="log"[\s\S]*?<\/details>/.test(puzzleSource) &&
+             puzzleSource.includes('class="puzzle-summary" aria-live="polite"'),
+        `${demo} should lead with board controls, keep results visible, and disclose instructions and move history`);
+    });
     assert(!fs.existsSync('img/projects/pizza-tips-regression-demo-bg.png'), 'pizza demo background PNG should be removed');
     assert(!fs.existsSync('img/projects/pizza-tips-regression-demo-bg.webp'), 'pizza demo background WebP should be removed');
     assert(!pizzaDemo.includes('data-demo-background="pizza-tips"'), 'pizza tips demo should not opt into a one-off generated background');
@@ -43364,9 +43270,22 @@ try {
            chatbotHtml.includes('html[data-embedded="true"] body {\n      height: 100dvh;\n      overflow: hidden;') &&
            chatbotHtml.includes('html[data-embedded="true"] .views,\n    html[data-embedded="true"] #regular-view'),
       'embedded chatbot should reset site body offset and fill the iframe without document clipping');
-    assert(chatbotHtml.includes('.view-tabs {\n        display: grid;'), 'chatbot-demo should keep view tabs usable on mobile');
-    assert(chatbotHtml.includes('.view-panel.active {\n        display: grid !important;'), 'chatbot-demo mobile layout should render the active chat surface');
-    assert(chatbotHtml.includes('html[data-embedded="true"] .chat-stage {\n        height: 100%;'), 'embedded chatbot should size the chat stage to the iframe content area');
+    const chatbotSettings = chatbotHtml.slice(chatbotHtml.indexOf('<details class="demo-settings demo-disclosure"'), chatbotHtml.indexOf('</header>', chatbotHtml.indexOf('<details class="demo-settings demo-disclosure"')));
+    assert(chatbotSettings.includes('id="backend-select"') && chatbotSettings.includes('role="tablist"') &&
+           chatbotSettings.includes('id="regular-view-button"') && chatbotSettings.includes('id="popup-view-button"') &&
+           chatbotSettings.includes('id="timer-details"') && chatbotHtml.includes('.demo-settings-panel .view-tabs { display: grid; }'),
+      'chatbot-demo should keep backend, view controls, and connection diagnostics in a closed Settings disclosure');
+    assert(/\.view-panel\.active\s*\{[^}]*display:\s*grid/.test(chatbotHtml),
+      'chatbot-demo should render the active chat surface');
+    assert(/html\[data-embedded="true"\] \.chat-stage\s*\{[^}]*height:\s*100%/.test(chatbotHtml),
+      'embedded chatbot should size the chat stage to the iframe content area');
+    assert((chatbotHtml.match(/<h1\b/g) || []).length === 1 && chatbotHtml.includes('Inputs and responses are saved on AWS.') &&
+           chatbotHtml.includes('.chat-shell--regular { grid-template-rows: minmax(0, 1fr) auto; }') &&
+           /<article class="chat-shell chat-shell--regular"[^>]*>\s*<section class="chat-messages"[^>]*><\/section>\s*<section class="chat-composer">/.test(chatbotHtml),
+      'chatbot-demo should retain one main title, a visible storage notice, and a composer beside the scrollable conversation');
+    assert(chatbotHtml.includes("chatSettings.addEventListener('keydown'") && chatbotHtml.includes("event.key !== 'Escape'") &&
+           chatbotHtml.includes("chatSettings.querySelector('summary').focus();"),
+      'chatbot Settings should dismiss with Escape and return focus to its disclosure');
     assert(projectGenerator.includes('project-embed-${embedProjectId.toLowerCase()}'), 'project generator should add project-specific embed classes');
     assert(projectGenerator.includes('data-project-embed="${escapeHtml(embedProjectId)}"'), 'project generator should mark embeds with project ids');
     assert(projectGenerator.includes('function resolveEmbedFit(embed)') &&
@@ -43404,7 +43323,7 @@ try {
     assert(chatbotHtml.includes('id="qwen-startup-notice"'), 'chatbot-demo should show Qwen cold-start notice when Qwen is selected');
     assert(chatbotHtml.includes('function showQwenStartupNotice()'), 'chatbot-demo missing Qwen startup notice handler');
     assert(chatbotHtml.includes("if (selectedBackendId === 'qwen-sagemaker') showQwenStartupNotice();"), 'chatbot-demo should show the startup notice when switching to Qwen');
-    assert(chatbotHtml.includes('Press Start server and allow up to about five minutes'), 'chatbot-demo Qwen notice should explain cold-start time');
+    assert(chatbotHtml.includes('Press Prepare demo and allow up to ten minutes'), 'chatbot-demo Qwen notice should explain the ten-minute cold-start allowance');
     assert(chatbotHtml.includes('alwaysOn: true'), 'chatbot-demo should treat Bedrock as always live');
     assert(chatbotHtml.includes('streamUrl: DEFAULT_BEDROCK_STREAM_URL') &&
            chatbotHtml.includes('if (streamUrl.origin !== window.location.origin)') &&
@@ -43424,6 +43343,65 @@ try {
            chatbotStreamRoute.includes("require('./_lib/chatbot-stream-proxy')"),
       'chatbot stream proxy should use a pinned alias, bounded response streaming, and IP-based rate limiting');
     assert(chatbotHtml.includes('function submitBedrockStream(ctx, requestId, body, backend, liveNode = null)'), 'chatbot-demo missing Bedrock streaming submit helper');
+    const errorRenderStart = chatbotHtml.indexOf('function renderFailedResponse(');
+    const errorRenderEnd = chatbotHtml.indexOf('function emptyState(', errorRenderStart);
+    assert(errorRenderStart >= 0 && errorRenderEnd > errorRenderStart,
+      'chatbot-demo should provide error rendering and retry helpers');
+    const makeErrorNode = (tagName) => ({
+      tagName,
+      children: [],
+      dataset: {},
+      textContent: '',
+      append(...nodes) { this.children.push(...nodes); },
+      appendChild(node) { this.children.push(node); },
+      replaceChildren(...nodes) { this.children = nodes; },
+      set innerHTML(value) { throw new Error('Raw error HTML must never be parsed'); }
+    });
+    const errorNode = makeErrorNode('article');
+    errorNode.dataset.partialAnswer = 'A partial itinerary';
+    const retryCalls = [];
+    const errorEnv = {
+      document: { createElement: makeErrorNode },
+      describeError: (err) => err.message,
+      serverReady: true,
+      decodeFollowupContext: (button) => JSON.parse(button.dataset.followupContext),
+      handleSubmit: (...args) => retryCalls.push(args)
+    };
+    vm.runInNewContext(chatbotHtml.slice(errorRenderStart, errorRenderEnd), errorEnv);
+    const rawFailure = 'Bedrock stream failed (404): <!DOCTYPE html><img src=x onerror=alert(1)>';
+    const retryContext = { source: 'recommended_followup', topic: 'travel' };
+    errorEnv.renderFailedResponse(errorNode, new Error(rawFailure), 'Plan my first day', retryContext);
+    const errorContent = errorNode.children[1];
+    const retryButton = errorContent.children[1];
+    const errorDetails = errorContent.children[2];
+    assert(errorNode.children[0].textContent === 'A partial itinerary' &&
+           errorContent.children[0].textContent === 'The assistant couldn’t finish that response. Please try again.' &&
+           errorDetails.tagName === 'details' && !errorDetails.open &&
+           errorDetails.children[1].children[0].textContent === rawFailure,
+      'chatbot send errors should retain partial answers, show useful copy, and escape raw diagnostics inside closed details');
+    assert(retryButton.tagName === 'button' && retryButton.type === 'button' &&
+           retryButton.dataset.retryPrompt === 'Plan my first day' &&
+           JSON.stringify(JSON.parse(retryButton.dataset.followupContext)) === JSON.stringify(retryContext),
+      'chatbot errors should offer a retry carrying the original question and follow-up context');
+    const retryCtx = { controller: null };
+    retryButton.closest = () => errorNode;
+    errorEnv.retryFailedResponse(retryCtx, retryButton);
+    assert(retryCalls.length === 1 && retryCalls[0][0] === retryCtx &&
+           retryCalls[0][2].message === errorNode && retryCalls[0][2].prompt === 'Plan my first day' &&
+           JSON.stringify(retryCalls[0][2].followupContext) === JSON.stringify(retryContext),
+      'chatbot retry should reuse the failed assistant message and original request context');
+    retryCtx.controller = {};
+    errorEnv.retryFailedResponse(retryCtx, retryButton);
+    retryCtx.controller = null;
+    errorEnv.serverReady = false;
+    errorEnv.retryFailedResponse(retryCtx, retryButton);
+    assert(retryCalls.length === 1, 'chatbot retry should not interrupt an active request or call a cold backend');
+    assert(chatbotHtml.includes("if (!retry) addMessage(ctx, 'user', prompt);") &&
+           chatbotHtml.includes('if (!retry || ctx.prompt.value.trim() === prompt)') &&
+           chatbotHtml.includes('if (!ctx.prompt.value.trim())') &&
+           chatbotHtml.includes('boundRetryButtons.has(button)'),
+      'chatbot retry should avoid duplicate user messages, preserve newer drafts, and bind cloned view controls');
+
     assert(chatbotHtml.includes("console.log('[chatbot-demo] bedrock:token', text);"), 'chatbot-demo should log Bedrock stream tokens to the console');
     assert(chatbotHtml.includes('renderAssistantAnswer(liveNode, streamedAnswer, liveLinks, {'), 'chatbot-demo should format streamed Bedrock tokens through the markdown renderer immediately');
     assert(chatbotHtml.includes('liveLinks = sourceItems(event);'), 'chatbot-demo should use stream metadata while rendering live source links');
@@ -43443,9 +43421,9 @@ try {
     assert(chatbotHtml.includes('class="server-control"'), 'chatbot-demo server control should live in toolbar');
     assert(!chatbotHtml.includes('id="server-panel"'), 'chatbot-demo should not render a standalone server panel');
     assert(chatbotHtml.includes('<details class="timer-details" id="timer-details">'), 'chatbot-demo timer should reveal details on tap');
-    assert(chatbotHtml.includes('id="server-timer-label"'), 'chatbot-demo radial timer missing label');
-    assert(chatbotHtml.includes('class="timer-ring"'), 'chatbot-demo radial timer missing ring');
-    assert(chatbotHtml.includes('id="server-timer-value"'), 'chatbot-demo radial timer missing counter');
+    assert(chatbotHtml.includes('id="server-timer-label"'), 'chatbot-demo connection countdown missing label');
+    assert(chatbotHtml.includes('font-variant-numeric: tabular-nums;'), 'chatbot-demo connection countdown should use stable-width numerals');
+    assert(chatbotHtml.includes('id="server-timer-value"'), 'chatbot-demo connection countdown missing counter');
     assert(chatbotHtml.includes('id="server-detail-endpoint"'), 'chatbot-demo timer details missing endpoint status');
     assert(chatbotHtml.includes('id="server-detail-instances"'), 'chatbot-demo timer details missing instance counts');
     assert(chatbotHtml.includes('id="server-detail-warm"'), 'chatbot-demo timer details missing warm ETA');
@@ -43453,7 +43431,9 @@ try {
     assert(chatbotHtml.includes('id="server-detail-basis"'), 'chatbot-demo timer details missing timer basis');
     assert(chatbotHtml.includes('function updateTimerDetails(info, basis'), 'chatbot-demo should update AWS timer details from status payloads');
     assert(chatbotHtml.includes('--timer-progress'), 'chatbot-demo radial timer missing progress CSS variable');
-    assert(chatbotHtml.includes('conic-gradient(var(--timer-color) var(--timer-progress)'), 'chatbot-demo radial timer missing conic progress ring');
+    assert(chatbotHtml.includes("serverTimerValue.textContent = active ? formatClock(remaining) : '--';") &&
+           chatbotHtml.includes("serverTimer.setAttribute('aria-label', active ?"),
+      'chatbot-demo should expose the current connection countdown visually and to assistive technology');
     assert(chatbotHtml.includes("serverTimer.style.setProperty('--timer-progress'"), 'chatbot-demo radial timer should update progress dynamically');
     assert(chatbotHtml.includes("label: 'Starts in'"), 'chatbot-demo startup timer should label time until start');
     assert(chatbotHtml.includes("label: 'Shuts off in'"), 'chatbot-demo ready timer should label time until shutoff');
@@ -43500,9 +43480,9 @@ try {
            chatbotHtml.includes('button.dataset.followupContext = JSON.stringify') &&
            chatbotHtml.includes('bindSyncedMessageControls(ctx)'),
       'chatbot demo should rehydrate synced shortcut and follow-up buttons after view switches');
-    assert(chatbotHtml.includes('Plan a Grand Junction first day with Colorado National Monument and downtown'), 'chatbot-demo default prompts should target indexed Colorado National Monument and downtown content from a Grand Junction base');
-    assert(chatbotHtml.includes('Build a Grand Junction weekend with Riverfront Trail, downtown, and local food'), 'chatbot-demo default prompts should target indexed Riverfront Trail, downtown, and restaurant content');
-    assert(chatbotHtml.includes('Create a Grand Junction base-camp day trip to Grand Mesa lakes'), 'chatbot-demo default prompts should target indexed Grand Mesa content from a Grand Junction base');
+    assert(chatbotHtml.includes('Plan my first day in Grand Junction'), 'chatbot-demo should offer a short Grand Junction itinerary starter');
+    assert(chatbotHtml.includes('Suggest a food and riverfront weekend'), 'chatbot-demo should offer a short food and riverfront starter');
+    assert(chatbotHtml.includes('Plan a day trip to Grand Mesa'), 'chatbot-demo should offer a short Grand Mesa starter');
     assert(!chatbotHtml.includes('Plan a red-rock first day in Grand Junction'), 'chatbot-demo should not use older broad default prompts');
     assert(!chatbotHtml.includes('Plan a scenic first day'), 'chatbot-demo should not use generic default prompts');
     assert(!chatbotHtml.includes('Find outdoor ideas'), 'chatbot-demo should not use generic default prompts');
@@ -43520,7 +43500,7 @@ try {
     assert(!vercel.includes('ovodkr9oad.execute-api.us-east-2.amazonaws.com'), 'vercel.json still allows old chatbot API host');
     const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
-    assert(warmSec >= 270, 'chatbot-demo start timeout < measured cold-start estimate');
+    assert(warmSec >= 600, 'chatbot-demo should allow at least 600 seconds for a cold start');
 
     const passiveStart = chatbotHtml.indexOf('async function syncPassiveStatus()');
     const passiveEnd = chatbotHtml.indexOf('function stageMessage', passiveStart);
@@ -43612,7 +43592,7 @@ try {
       assert(professionalPortfolioHtml.includes(marker),
         `professional portfolio workbench missing expected text: ${marker}`);
     });
-    assert(!professionalPortfolioHtml.includes('data-personal-accordion-shell') &&
+    assert(professionalPortfolioHtml.includes('data-personal-accordion-shell') &&
       professionalPortfolioHtml.includes('data-audience="analytics"'),
       'legacy workbench should remain available only through the internal professional audience copy');
     checkFileContains('js/portfolio/portfolio.js', 'project-card-kicker');
@@ -43638,8 +43618,8 @@ try {
     assert(!commonScript.includes('run(window.initSeeMore);'), 'common portfolio init should not run see-more');
 
     checkFileContains('js/common/audience-config.js', "portfolioAllPath: '/portfolio'");
-    checkFileContains('build/templates/header.partial.html', 'href="portfolio"');
-    checkFileContains('index.html', 'href="portfolio"');
+    assert(!readFile('build/templates/header.partial.html').includes('nav-dropdown'), 'the project library should be reached through category tabs');
+    checkFileContains('index.html', 'data-home-accordion-item="projects"');
   });
 
   section('Base hrefs and redirect sanity', () => {
@@ -43708,7 +43688,6 @@ try {
       commonScript.includes("grid.dataset.workOrder = newestFirst ? 'newest-first' : 'oldest-first'"),
       'professional pages should keep proof-first section order and show analytics experience newest-first after dynamic content updates');
     const workExperienceCss = readFile('css/components/work-experience.css');
-    const workSummaryUpdateCalls = commonScript.match(/updateWorkExperienceSummaries\(\);/g) || [];
     assert(commonScript.includes('parseWorkExperienceRange') &&
       commonScript.includes('mergeWorkExperienceIntervals') &&
       commonScript.includes('formatWorkExperienceDuration') &&
@@ -43720,7 +43699,8 @@ try {
       commonScript.includes("label.textContent = ' of professional analytics experience'") &&
       commonScript.includes('summary.dataset.totalMonths = String(totalMonths)') &&
       commonScript.includes("heading.insertAdjacentElement('afterend', summary)") &&
-      workSummaryUpdateCalls.length === 2,
+      commonScript.includes('updateWorkExperienceSummaries(root);') &&
+      commonScript.includes('initializeRouteContent(context.root)'),
       'professional work sections should calculate an inclusive, overlap-safe experience duration while displaying completed years with a plus sign');
     assert(workExperienceCss.includes('.work-experience-summary') &&
       workExperienceCss.includes('.work-experience-summary__value') &&
@@ -43977,9 +43957,9 @@ try {
     checkFileContains('contact.html', 'id="contact-form"');
     checkFileContains('pages/contact.html', 'action="/api/contact"');
     assert(fs.existsSync('api/contact.js'), 'api/contact.js missing');
-    assert(readFile('pages/resume-analytics.html').includes('href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf" class="btn-primary" download>Download PDF</a>') &&
-      readFile('pages/resume-analytics.html').includes('href="resume-analytics-pdf" class="btn-secondary">Preview PDF</a>') &&
-      readFile('pages/resume-analytics-pdf.html').includes('href="resume-analytics" class="btn-secondary">View digital resume</a>') &&
+    assert(readFile('pages/resume-analytics.html').replace(/ data-navigation="hard"/g, '').includes('href="https://danielshort-public-documents-886623862678-us-east-2.s3.us-east-2.amazonaws.com/documents/Resume-Analytics.pdf" class="btn-primary" download>Download PDF</a>') &&
+      readFile('pages/resume-analytics.html').replace(/ data-navigation="hard"/g, '').includes('href="resume-analytics-pdf" class="btn-secondary">Preview PDF</a>') &&
+      readFile('pages/resume-analytics-pdf.html').replace(/ data-navigation="hard"/g, '').includes('href="resume-analytics" class="btn-secondary">View digital resume</a>') &&
       readFile('pages/resume-analytics-pdf.html').includes('class="resume-pdf-preview"') &&
       readFile('pages/resume-analytics-pdf.html').includes('src="img/resume-previews/resume-analytics-preview.png"') &&
       !readFile('pages/resume-analytics-pdf.html').includes('<iframe') &&
@@ -44168,9 +44148,11 @@ try {
     assert(consentCode.includes("const strictState = { necessary: true, analytics: false, functional: false, advertising: false }") &&
       !consentCode.includes('const permissiveState ='),
       'optional cookie categories should remain disabled until an explicit choice');
+    const replaceClosingBanner = consentCode.match(/if\s*\(existingBanner\)\s*\{([\s\S]*?)\}/)?.[1] || '';
     assert(consentCode.includes("existingBanner.dataset.state !== 'closing'") &&
-      consentCode.includes('if (existingBanner) existingBanner.remove();'),
-      'closing preferences should be able to restore a fresh banner without leaving stale consent layout state');
+      /SiteMotion\?\.cancel\(existingBanner\)/.test(replaceClosingBanner) &&
+      replaceClosingBanner.indexOf('cancel(existingBanner)') < replaceClosingBanner.indexOf('existingBanner.remove()'),
+      'closing preferences should cancel a stale banner exit before restoring a fresh banner');
     assert(privacyCss.includes('.pref-option-head'),
       'privacy.css missing aligned preference row layout');
     assert(privacyCss.includes('.pref-disclosure'),

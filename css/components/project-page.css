@@ -814,6 +814,20 @@
   .project-disclosure[open] > .project-disclosure-summary{
     margin-bottom:var(--project-section-title-gap);
   }
+  .project-disclosure[data-disclosure-motion-ready] > .project-disclosure-summary{
+    margin-bottom:0;
+  }
+  .project-disclosure > .site-disclosure-content{
+    display:flow-root;
+  }
+  .project-disclosure > .site-disclosure-content::before{
+    content:"";
+    display:block;
+    height:var(--project-section-title-gap);
+  }
+  .project-disclosure > .site-disclosure-content[hidden]{
+    display:none;
+  }
   .project-disclosure-summary .section-title{
     margin:0;
   }

@@ -479,7 +479,9 @@
     const id = normalizeId(routeId);
     const scope = id ? legacyScopes.get(id) : scopeForCurrentExecution();
     if (scope && !scope.closed) return scope.cleanup.add(callback);
-    if (currentRecord && (!id || currentRecord.id === id)) return currentRecord.cleanup.add(callback);
+    if (currentRecord && (!id || currentRecord.id === id || currentRecord.routeId === id)) {
+      return currentRecord.cleanup.add(callback);
+    }
     return callback;
   };
 
@@ -551,6 +553,11 @@
         const active = createLegacyScope(id, scripts);
         context.cleanup(() => cleanupLegacyScope(active));
         if (context.navigationType === 'load') return;
+        // A retried route may come from a newer build than its registration.
+        // Keep its cleanup scope, but execute only this document's script plan.
+        active.scripts = new Set(Array.isArray(context.manifest?.scripts)
+          ? normalizeScripts(context.manifest.scripts)
+          : scripts);
         for (const src of active.scripts) {
           if (context.signal.aborted) return;
           await loadLegacyScript(active, src);
@@ -569,15 +576,17 @@
     const record = currentRecord;
     if (!record) return true;
     const context = contextWith(record, options);
+    const pending = [];
     const event = emit('site:route-before-leave', {
-      id: record.id,
+      id: record.routeId,
       root: record.context.root,
       url: context.url,
-      navigationType: context.navigationType
+      navigationType: context.navigationType,
+      waitUntil: (operation) => pending.push(Promise.resolve(operation))
     }, { cancelable: true });
-    if (event.defaultPrevented) return false;
-    const result = await callSafely(record.lifecycle?.beforeLeave, context, 'before-leave', record.id);
-    return result !== false;
+    const lifecycleResult = callSafely(record.lifecycle?.beforeLeave, context, 'before-leave', record.routeId);
+    const results = await Promise.all([...pending, lifecycleResult]);
+    return currentRecord === record && !event.defaultPrevented && results.every((result) => result !== false);
   };
 
   const unmountRecord = async (record, options = {}) => {
@@ -601,7 +610,7 @@
     }
 
     emit('site:route-unmounted', {
-      id: record.id,
+      id: record.routeId,
       root: record.context.root,
       url: context.url,
       navigationType: context.navigationType
@@ -610,6 +619,12 @@
       cleanupError = cleanupError || error;
       reportError('legacy-cleanup', record.id, error);
     });
+    if (record.routeId !== record.id) {
+      await cleanupLegacyScope(legacyScopes.get(record.routeId)).catch((error) => {
+        cleanupError = cleanupError || error;
+        reportError('legacy-cleanup', record.routeId, error);
+      });
+    }
     if (hookError) throw hookError;
     if (cleanupError) throw cleanupError;
   };
@@ -647,15 +662,18 @@
       : new URL(String(options.url || window.location.href), window.location.href);
     const navigationType = normalizeId(options.navigationType) || 'load';
     const lifecycle = get(id);
+    const instanceId = normalizeId(options.manifest?.id) || id;
     const record = {
       id,
+      routeId: instanceId,
       lifecycle,
       cleanup,
       controller,
       unmounted: false,
       context: Object.freeze({
         ...options,
-        id,
+        id: instanceId,
+        module: id,
         root,
         url,
         navigationType,
@@ -665,7 +683,7 @@
     };
     currentRecord = record;
 
-    emit('site:route-before-mount', { id, root, url, navigationType });
+    emit('site:route-before-mount', { id: instanceId, root, url, navigationType });
     try {
       const result = await callSafely(lifecycle?.mount, record.context, 'mount', id);
       if (typeof result === 'function') cleanup.add(result);
@@ -674,7 +692,7 @@
         await unmountRecord(record, { reason: 'superseded' });
         return null;
       }
-      emit('site:route-mounted', { id, root, url, navigationType });
+      emit('site:route-mounted', { id: instanceId, root, url, navigationType });
       return record.context;
     } catch (error) {
       if (currentRecord === record) currentRecord = null;

@@ -13,13 +13,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
-  <title>Store-Level Loss &amp; Sales ETL</title>
+  <title>Store loss and sales</title>
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F9F9FA" />
   <link rel="stylesheet" href="dist/styles.css">
   <style>
     :root {
-      --radius-lg: 18px;
+      --radius-lg: 12px;
       --radius-md: 12px;
       --radius-sm: 8px;
       --page-pad: clamp(12px, 3vw, 28px);
@@ -134,8 +134,8 @@
       border-radius: 999px;
       border: 1px solid var(--surface-accent);
       font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       color: var(--muted);
       background: rgba(0, 0, 0, 0.2);
     }
@@ -173,8 +173,8 @@
       padding: 6px 12px;
       border-radius: 999px;
       font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       border: 1px solid var(--surface-accent);
       color: var(--muted);
       background: var(--surface-2);
@@ -220,9 +220,11 @@
       gap: 20px;
       grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
       grid-template-areas:
+        "sales sales"
         "kpi kpi"
-        "sales signals"
-        "incidents signals";
+        "incidents signals"
+        "additional additional";
+      align-items: start;
     }
 
     .panel {
@@ -237,6 +239,7 @@
 
     .panel-title {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
@@ -258,11 +261,15 @@
       padding: 4px 10px;
       border-radius: 999px;
       font-size: 0.68rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       color: var(--muted);
       border: 1px solid var(--surface-accent);
       background: rgba(0, 0, 0, 0.2);
+    }
+
+    .additional-metrics {
+      grid-area: additional;
     }
 
     .kpi-panel {
@@ -275,87 +282,31 @@
       gap: 12px;
     }
 
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card {
-      --kpi-accent: var(--brand-signal-blue, #005fed);
-      position: relative;
-      overflow: hidden;
-      background:
-        linear-gradient(135deg,
-          color-mix(in srgb, var(--kpi-accent) 7%, #ffffff 93%),
-          #ffffff 54%);
-      border: 1px solid color-mix(in srgb, var(--kpi-accent) 20%, var(--surface-accent) 80%);
-      border-radius: var(--radius-sm);
-      padding: 12px 12px 12px 14px;
+    .kpi-card {
+      padding: 12px;
       display: grid;
       gap: 6px;
       align-content: start;
-      min-height: 104px;
-      box-shadow: 0 8px 18px rgba(9, 31, 59, 0.08);
+      border-bottom: 1px solid var(--surface-accent);
     }
 
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 4px;
-      background: var(--kpi-accent);
+    .kpi-label {
+      color: var(--muted);
+      font-size: 0.78rem;
     }
 
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card::after {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto;
-      height: 2px;
-      background: linear-gradient(90deg,
-        color-mix(in srgb, var(--kpi-accent) 82%, #ffffff 18%),
-        color-mix(in srgb, var(--kpi-accent) 18%, transparent));
-    }
-
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card.is-accent {
-      background:
-        linear-gradient(135deg,
-          color-mix(in srgb, var(--kpi-accent) 12%, #ffffff 88%),
-          #ffffff 52%);
-      border-color: color-mix(in srgb, var(--kpi-accent) 38%, transparent);
-    }
-
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="boycott"],
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="empty-package"] {
-      --kpi-accent: var(--brand-action-copper, #d97706);
-    }
-
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="incidents"] {
-      --kpi-accent: var(--brand-risk, #b91c1c);
-    }
-
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-card[data-kpi="shrink"] {
-      --kpi-accent: var(--brand-success, #166534);
-    }
-
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-label {
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: color-mix(in srgb, var(--kpi-accent) 58%, var(--brand-midnight, var(--text)) 42%);
+    .kpi-value {
+      font-size: clamp(1.3rem, 2.4vw, 1.8rem);
       font-weight: 600;
-    }
-
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-value {
-      min-width: 0;
-      font-size: clamp(1.16rem, 2vw, 1.46rem);
-      font-weight: 600;
-      font-family: var(--font-sans, "Inter", system-ui, sans-serif);
-      line-height: 1.18;
-      color: var(--brand-midnight, var(--text));
+      color: var(--text);
       overflow-wrap: anywhere;
     }
 
-    html[data-project-demo-theme="brand"] .kpi-panel .kpi-sub {
+    .kpi-sub {
       font-size: 0.78rem;
       color: var(--muted);
       line-height: 1.4;
     }
-
     .kpi-breakout {
       display: grid;
       gap: 4px;
@@ -389,7 +340,7 @@
     .chart-wrap {
       position: relative;
       width: 100%;
-      height: 240px;
+      height: 280px;
     }
 
     .chart-wrap.small {
@@ -414,8 +365,8 @@
       color: var(--muted);
       padding: 5px 12px;
       font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
       cursor: pointer;
       transition: all 0.2s ease;
     }
@@ -512,8 +463,8 @@
       background: transparent;
       border: none;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      text-transform: none;
+      letter-spacing: normal;
       font-size: 0.68rem;
     }
 
@@ -531,10 +482,11 @@
       main.content {
         grid-template-columns: 1fr;
         grid-template-areas:
-          "kpi"
           "sales"
+          "kpi"
           "incidents"
-          "signals";
+          "signals"
+          "additional";
       }
     }
 
@@ -547,9 +499,6 @@
     @media (max-width: 560px) {
       .kpi-grid {
         grid-template-columns: 1fr;
-      }
-      html[data-project-demo-theme="brand"] .kpi-panel .kpi-card {
-        min-height: 96px;
       }
     }
 
@@ -564,7 +513,7 @@
       }
     }
   </style>
-  <script defer src="dist/site-consent.48cafebf.js"></script>
+  <script defer src="dist/site-consent.33b42e2d.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
@@ -572,85 +521,83 @@
   </script>
 </head>
 <body>
-<a href="#main" class="skip-link">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
   <div id="main" role="application" aria-label="Store loss and sales ETL demo">
     <header class="card-header">
       <div class="header-copy">
-        <h1 class="title">Store-Level Loss &amp; Sales ETL</h1>
-        <p class="subtitle">AWS-backed KPI cockpit for sales, incidents, shrink, and empty-package signals.</p>
+        <h1 class="title">Store loss and sales</h1>
+        <p class="subtitle">Explore monthly sales, compare incident hotspots, and follow shrink trends.</p>
       </div>
       <div class="header-actions">
-        <span class="status-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Loading</span>
+        <span class="status-pill aws-status-badge" id="status-pill" data-state="warming" role="status" aria-live="polite">Preparing demo…</span>
         <span class="pill" id="date-range-pill">Loading dates</span>
         <button class="btn-ghost" id="reset-filters" type="button">Reset view</button>
       </div>
     </header>
 
     <div class="status-row demo-meta-row" role="status" aria-live="polite">
-      <span class="status-meta" id="status-meta">Connecting to AWS...</span>
+      <button class="btn-ghost" id="retry-demo" type="button" hidden>Retry</button>
+      <span class="status-meta" id="status-meta">Loading anonymized data…</span>
       <span class="status-note">All identifiers are anonymized.</span>
     </div>
 
     <main class="content">
-      <section class="panel kpi-panel">
-        <div class="panel-title">
-          <h2>Executive KPIs</h2>
-          <span class="meta-chip" id="kpi-meta">Loading metrics</span>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-card is-accent" data-kpi="sales">
-            <div class="kpi-label">Store Sales (YTD)</div>
-            <div class="kpi-value" id="kpi-sales">--</div>
-            <div class="kpi-sub" id="kpi-sales-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="boycott">
-            <div class="kpi-label">Boycott YoY (May-Jul 23)</div>
-            <div class="kpi-breakout" id="kpi-boycott">--</div>
-            <div class="kpi-sub">Compared to 2022</div>
-          </div>
-          <div class="kpi-card" data-kpi="incidents">
-            <div class="kpi-label">Incidents (Latest Year)</div>
-            <div class="kpi-value" id="kpi-incidents">--</div>
-            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="shrink">
-            <div class="kpi-label">Avg Shrink %</div>
-            <div class="kpi-value" id="kpi-shrink">--</div>
-            <div class="kpi-sub" id="kpi-shrink-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="empty-package">
-            <div class="kpi-label">Empty Package Value</div>
-            <div class="kpi-value" id="kpi-empty">--</div>
-            <div class="kpi-sub">Estimated retail value</div>
-          </div>
-        </div>
-      </section>
-
       <section class="panel sales-panel">
         <div class="panel-title">
-          <h2>Sales Pulse</h2>
-          <div class="tabs" role="tablist" aria-label="Sales metric toggle">
-            <button class="tab-btn is-active" type="button" data-sales-metric="sales">Total</button>
-            <button class="tab-btn" type="button" data-sales-metric="online">Online</button>
-            <button class="tab-btn" type="button" data-sales-metric="driveUp">Drive-up</button>
+          <h2>Monthly sales</h2>
+          <div class="tabs" role="group" aria-label="Sales metric toggle">
+            <button class="tab-btn is-active" type="button" aria-pressed="true" data-sales-metric="sales">Total</button>
+            <button class="tab-btn" type="button" aria-pressed="false" data-sales-metric="online">Online</button>
+            <button class="tab-btn" type="button" aria-pressed="false" data-sales-metric="driveUp">Drive-up</button>
           </div>
         </div>
         <div class="chart-wrap">
           <canvas id="sales-chart" aria-label="Monthly sales trend chart"></canvas>
         </div>
+        <details class="demo-disclosure">
+          <summary>Department breakdown</summary>
+          <div class="demo-disclosure-content">
+            <div class="panel-title">
+              <h3>Top departments</h3>
+              <span class="meta-chip" id="dept-meta">Loading</span>
+            </div>
+            <ul class="list" id="dept-list"></ul>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel kpi-panel">
         <div class="panel-title">
-          <h3>Top Departments</h3>
-          <span class="meta-chip" id="dept-meta">Loading</span>
+          <h2>At a glance</h2>
+          <span class="meta-chip" id="kpi-meta">Loading metrics</span>
         </div>
-        <ul class="list" id="dept-list"></ul>
+        <div class="kpi-grid">
+          <div class="kpi-card is-accent" data-kpi="sales">
+            <div class="kpi-label">Store sales (YTD)</div>
+            <div class="kpi-value" id="kpi-sales">--</div>
+            <div class="kpi-sub" id="kpi-sales-sub">--</div>
+          </div>
+
+          <div class="kpi-card" data-kpi="incidents">
+            <div class="kpi-label">Incidents (latest year)</div>
+            <div class="kpi-value" id="kpi-incidents">--</div>
+            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
+          </div>
+          <div class="kpi-card" data-kpi="shrink">
+            <div class="kpi-label">Average shrink</div>
+            <div class="kpi-value" id="kpi-shrink">--</div>
+            <div class="kpi-sub" id="kpi-shrink-sub">--</div>
+          </div>
+
+        </div>
       </section>
 
       <section class="panel incident-panel">
         <div class="panel-title">
-          <h2>Incident Hotspots</h2>
-          <div class="tabs" role="tablist" aria-label="Incident metric toggle">
-            <button class="tab-btn is-active" type="button" data-incident-metric="incidents">Count</button>
-            <button class="tab-btn" type="button" data-incident-metric="proven">Proven $</button>
+          <h2>Incident hotspots</h2>
+          <div class="tabs" role="group" aria-label="Incident metric toggle">
+            <button class="tab-btn is-active" type="button" aria-pressed="true" data-incident-metric="incidents">Count</button>
+            <button class="tab-btn" type="button" aria-pressed="false" data-incident-metric="proven">Proven $</button>
           </div>
         </div>
         <div class="filter-row">
@@ -662,59 +609,85 @@
         <div class="chart-wrap small">
           <canvas id="incident-chart" aria-label="Incident hotspots chart"></canvas>
         </div>
-        <div class="panel-title">
-          <h3>Top Stores</h3>
-          <span class="meta-chip" id="incident-meta">Loading</span>
-        </div>
-        <div class="table" id="incident-table">
-          <div class="table-row table-header">
-            <div>Store</div>
-            <div>Region</div>
-            <div>Avg Value</div>
+        <details class="demo-disclosure">
+          <summary>Store details and outliers</summary>
+          <div class="demo-disclosure-content">
+            <div class="panel-title">
+              <h3>Top stores</h3>
+              <span class="meta-chip" id="incident-meta">Loading</span>
+            </div>
+            <div class="table" id="incident-table">
+              <div class="table-row table-header">
+                <div>Store</div>
+                <div>Region</div>
+                <div>Avg Value</div>
+              </div>
+            </div>
+            <div class="panel-title">
+              <h3>Outlier signals</h3>
+              <span class="meta-chip" id="outlier-meta">Z-score &gt; 2</span>
+            </div>
+            <ul class="list" id="outlier-list"></ul>
+            <div class="panel-title">
+              <h3>Store format risk</h3>
+              <span class="meta-chip" id="format-meta">Avg incidents per store</span>
+            </div>
+            <ul class="list" id="format-list"></ul>
           </div>
-        </div>
-        <div class="panel-title">
-          <h3>Outlier Signals</h3>
-          <span class="meta-chip" id="outlier-meta">Z-score &gt; 2</span>
-        </div>
-        <ul class="list" id="outlier-list"></ul>
-        <div class="panel-title">
-          <h3>Store Format Risk</h3>
-          <span class="meta-chip" id="format-meta">Avg incidents per store</span>
-        </div>
-        <ul class="list" id="format-list"></ul>
+        </details>
       </section>
 
       <section class="panel signals-panel">
         <div class="signal-block">
           <div class="panel-title">
-            <h2>Shrink Trend</h2>
+            <h2>Shrink trend</h2>
             <span class="meta-chip" id="shrink-meta">Loading</span>
           </div>
           <div class="chart-wrap small">
             <canvas id="shrink-chart" aria-label="Shrink trend chart"></canvas>
           </div>
         </div>
-        <div class="signal-block">
-          <div class="panel-title">
-            <h2>Daily Theft by State</h2>
-            <span class="meta-chip" id="state-meta">Avg per store/day</span>
-          </div>
-          <ul class="list" id="state-list"></ul>
-        </div>
-        <div class="signal-block">
-          <div class="panel-title">
-            <h2>Recovery Signals</h2>
-            <div class="tabs" role="tablist" aria-label="Empty package toggle">
-              <button class="tab-btn is-active" type="button" data-empty-metric="employees">Associates</button>
-              <button class="tab-btn" type="button" data-empty-metric="areas">Areas</button>
-              <button class="tab-btn" type="button" data-empty-metric="conditions">Conditions</button>
+        <details class="demo-disclosure">
+          <summary>Theft and recovery details</summary>
+          <div class="demo-disclosure-content">
+
+            <div class="signal-block">
+              <div class="panel-title">
+                <h2>Daily theft by state</h2>
+                <span class="meta-chip" id="state-meta">Avg per store/day</span>
+              </div>
+              <ul class="list" id="state-list"></ul>
+            </div>
+            <div class="signal-block">
+              <div class="panel-title">
+                <h2>Recovery signals</h2>
+                <div class="tabs" role="group" aria-label="Empty package toggle">
+                  <button class="tab-btn is-active" type="button" aria-pressed="true" data-empty-metric="employees">Associates</button>
+                  <button class="tab-btn" type="button" aria-pressed="false" data-empty-metric="areas">Areas</button>
+                  <button class="tab-btn" type="button" aria-pressed="false" data-empty-metric="conditions">Conditions</button>
+                </div>
+              </div>
+              <ul class="list" id="empty-list"></ul>
+              <p class="empty-note" id="empty-note">Top signals from empty-package recoveries.</p>
             </div>
           </div>
-          <ul class="list" id="empty-list"></ul>
-          <p class="empty-note" id="empty-note">Top signals from empty-package recoveries.</p>
-        </div>
+        </details>
       </section>
+      <details class="demo-disclosure additional-metrics">
+        <summary>Additional sales and recovery metrics</summary>
+        <div class="demo-disclosure-content kpi-grid">
+          <div class="kpi-card" data-kpi="boycott">
+            <div class="kpi-label">Boycott YoY (May–Jul 2023)</div>
+            <div class="kpi-breakout" id="kpi-boycott">--</div>
+            <div class="kpi-sub">Compared to 2022</div>
+          </div>
+          <div class="kpi-card" data-kpi="empty-package">
+            <div class="kpi-label">Empty-package value</div>
+            <div class="kpi-value" id="kpi-empty">--</div>
+            <div class="kpi-sub">Estimated retail value</div>
+          </div>
+        </div>
+      </details>
     </main>
   </div>
 
@@ -794,6 +767,7 @@
 
     function setStatus(stateValue, label, meta) {
       DOM.statusPill.dataset.state = stateValue;
+      document.getElementById("retry-demo").hidden = stateValue !== "err";
       DOM.statusPill.textContent = label;
       if (meta !== undefined) DOM.statusMeta.textContent = meta;
     }
@@ -1260,7 +1234,11 @@
         btn.addEventListener("click", () => {
           const metric = btn.dataset.salesMetric;
           state.salesMetric = metric;
-          DOM.salesButtons.forEach((button) => button.classList.toggle("is-active", button === btn));
+          DOM.salesButtons.forEach((button) => {
+            const active = button === btn;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
           updateSalesChart();
         });
       });
@@ -1269,7 +1247,11 @@
         btn.addEventListener("click", () => {
           const metric = btn.dataset.incidentMetric;
           state.incidentMetric = metric;
-          DOM.incidentButtons.forEach((button) => button.classList.toggle("is-active", button === btn));
+          DOM.incidentButtons.forEach((button) => {
+            const active = button === btn;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
           updateIncidentChart();
         });
       });
@@ -1278,7 +1260,11 @@
         btn.addEventListener("click", () => {
           const metric = btn.dataset.emptyMetric;
           state.emptyMetric = metric;
-          DOM.emptyButtons.forEach((button) => button.classList.toggle("is-active", button === btn));
+          DOM.emptyButtons.forEach((button) => {
+            const active = button === btn;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
           renderEmptySignals();
         });
       });
@@ -1294,9 +1280,21 @@
         state.incidentRegion = "all";
         state.emptyMetric = "employees";
         DOM.incidentRegion.value = "all";
-        DOM.salesButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.salesMetric === "sales"));
-        DOM.incidentButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.incidentMetric === "incidents"));
-        DOM.emptyButtons.forEach((button) => button.classList.toggle("is-active", button.dataset.emptyMetric === "employees"));
+        DOM.salesButtons.forEach((button) => {
+            const active = button.dataset.salesMetric === "sales";
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
+        DOM.incidentButtons.forEach((button) => {
+            const active = button.dataset.incidentMetric === "incidents";
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
+        DOM.emptyButtons.forEach((button) => {
+            const active = button.dataset.emptyMetric === "employees";
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
         updateSalesChart();
         updateIncidentChart();
         renderEmptySignals();
@@ -1308,7 +1306,7 @@
         setStatus("err", "Unavailable", "API endpoint missing");
         return;
       }
-      setStatus("warming", "Connecting", "Fetching AWS data...");
+      setStatus("warming", "Preparing demo…", "Loading anonymized data…");
       try {
         const data = await retryRequest(
           () => getJson(joinUrl(API_URL, "data"), { cache: "no-store" }),
@@ -1333,6 +1331,11 @@
         DOM.dateRangePill.textContent = "--";
       }
     }
+
+    document.getElementById("retry-demo").addEventListener("click", () => window.location.reload());
+    document.querySelectorAll("details.demo-disclosure").forEach((details) => {
+      details.addEventListener("toggle", () => requestAnimationFrame(notifyResize));
+    });
 
     loadData();
   </script>

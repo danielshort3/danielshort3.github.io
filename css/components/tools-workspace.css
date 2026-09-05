@@ -855,6 +855,15 @@
     gap: 8px;
   }
 
+  body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__actions > * {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    min-block-size: 44px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
   body.personal-accordion-page[data-personal-category="tools"] .tools-hero .hero-eyebrow {
     font-size: .72rem;
     letter-spacing: .08em;
@@ -1039,7 +1048,7 @@
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__inner {
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, auto);
       gap: 6px 10px;
       width: 100%;
       max-width: 100%;
@@ -1056,6 +1065,13 @@
       grid-row: 1 / span 2;
       max-width: 42vw;
       padding: 0;
+    }
+
+    body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header .personal-tool-header__account:has(.tools-account-extensions:not([hidden])) {
+      grid-column: 1 / -1;
+      grid-row: auto;
+      width: 100%;
+      max-width: 100%;
     }
 
     body.personal-accordion-page[data-personal-category="tools"] .personal-tool-header__actions {

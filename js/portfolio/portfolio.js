@@ -1,5 +1,51 @@
 /* portfolio.js - Build portfolio UI components. Project data now lives in projects-data.js */
 
+// Keep this query synchronized with the compact workbench rules in portfolio-workbench.css.
+const PORTFOLIO_COMPACT_QUERY = '(max-width: 820px), (max-height: 480px) and (pointer: coarse)';
+const portfolioWorkbenchControllers = new WeakMap();
+const portfolioWorkbenchSnapshots = new Map();
+
+function createPortfolioBindings() {
+  const cleanups = [];
+  const frames = new Set();
+  const timers = new Set();
+  let disposed = false;
+  return {
+    listen(target, type, callback, options) {
+      const listener = function(event) { if (!disposed) return callback.call(this, event); };
+      target?.addEventListener(type, listener, options);
+      cleanups.push(() => target?.removeEventListener(type, listener, options));
+    },
+    media(query, callback) {
+      if (query.addEventListener) this.listen(query, 'change', callback);
+      else if (query.addListener) {
+        const listener = (event) => { if (!disposed) callback(event); };
+        query.addListener(listener);
+        cleanups.push(() => query.removeListener(listener));
+      }
+    },
+    frame(callback) {
+      const id = window.requestAnimationFrame(() => { frames.delete(id); if (!disposed) callback(); });
+      frames.add(id);
+      return id;
+    },
+    timer(callback, delay) {
+      const id = window.setTimeout(() => { timers.delete(id); if (!disposed) callback(); }, delay);
+      timers.add(id);
+      return id;
+    },
+    destroy() {
+      if (disposed) return;
+      disposed = true;
+      cleanups.splice(0).reverse().forEach((cleanup) => cleanup());
+      frames.forEach((id) => window.cancelAnimationFrame(id));
+      timers.forEach((id) => window.clearTimeout(id));
+      frames.clear();
+      timers.clear();
+    }
+  };
+}
+
 const getSrStatus = typeof window.getSrStatusNode === 'function'
   ? window.getSrStatusNode
   : (function () {
@@ -301,11 +347,13 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     itemPlural = 'projects',
     simplifyProfessional = false,
     slugify = (value = '') => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-    requestRender = () => {}
+    requestRender = () => {},
+    bindings = createPortfolioBindings()
   } = options;
   const noop = {
     render() {},
-    syncSortControls() {}
+    syncSortControls() {},
+    destroy() {}
   };
   if (!enabled || !root || !filterHost || !state || !filterGroups.length) return noop;
 
@@ -482,6 +530,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
 
   const expandableNodes = [summary, quickFilters, allFiltersLabel, filterHost, footer];
   let desktopMode = false;
+  let sheetRevision = 0;
   const setExpandableHidden = (hidden) => {
     expandableNodes.forEach((node) => {
       if (node) node.hidden = hidden;
@@ -500,6 +549,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
       : `Open ${itemSingular} filters`);
   };
   const setSheetOpen = (open) => {
+    const revision = ++sheetRevision;
     const wasOpen = root.classList.contains('is-filter-sheet-open');
     const nextOpen = Boolean(open) && !desktopMode;
     root.classList.toggle('is-filter-sheet-open', nextOpen);
@@ -508,23 +558,46 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     if (nextOpen) backgroundIsolation.isolate();
     else backgroundIsolation.restore();
     if (!desktopMode) {
-      setExpandableHidden(!nextOpen);
+      if (nextOpen) setExpandableHidden(false);
+      const finishSheet = () => {
+        if (revision !== sheetRevision || desktopMode) return;
+        setExpandableHidden(!nextOpen);
+      };
+      if (window.SiteMotion) {
+        window.SiteMotion.presence(filterPanel, nextOpen, {
+          hidden: false,
+          enter: '--motion-slow',
+          exit: '--motion-base',
+          onFinish: finishSheet
+        });
+      } else {
+        filterPanel.classList.toggle('is-open', nextOpen);
+        finishSheet();
+      }
       filterPanel.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
       filterPanel.toggleAttribute('inert', !nextOpen);
+    } else {
+      window.SiteMotion?.finish(filterPanel);
+      filterPanel.classList.remove('is-open');
+      filterPanel.hidden = false;
+      setExpandableHidden(false);
     }
     syncToggleLabel();
     if (nextOpen) {
-      window.requestAnimationFrame(() => {
+      bindings.frame(() => {
+        if (revision !== sheetRevision || !root.classList.contains('is-filter-sheet-open')) return;
         const focusTarget = toggleButton || filterPanel.querySelector('.portfolio-filter-option input:not(:disabled), button:not(:disabled), input:not(:disabled), select:not(:disabled)');
         if (focusTarget) focusTarget.focus({ preventScroll: true });
       });
     } else if (wasOpen && !desktopMode) {
-      window.requestAnimationFrame(() => triggerButton.focus({ preventScroll: true }));
+      bindings.frame(() => {
+        if (revision === sheetRevision && !desktopMode) triggerButton.focus({ preventScroll: true });
+      });
     }
   };
 
   if (openButton) {
-    openButton.addEventListener('click', (event) => {
+    bindings.listen(openButton, 'click', (event) => {
       event.stopPropagation();
       setSheetOpen(!root.classList.contains('is-filter-sheet-open'));
     });
@@ -545,7 +618,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
     requestRender();
   };
 
-  root.addEventListener('click', (event) => {
+  bindings.listen(root, 'click', (event) => {
     const openTrigger = event.target.closest('[data-portfolio-filter-sheet-open]');
     if (openTrigger) {
       setSheetOpen(true);
@@ -575,18 +648,18 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   });
 
   if (clearMobileButton) {
-    clearMobileButton.addEventListener('click', clearFilters);
+    bindings.listen(clearMobileButton, 'click', clearFilters);
   }
 
   if (mobileSort) {
-    mobileSort.addEventListener('change', () => {
+    bindings.listen(mobileSort, 'change', () => {
       state.sort = mobileSort.value;
       if (sortSelect) sortSelect.value = mobileSort.value;
       requestRender();
     });
   }
 
-  document.addEventListener('keydown', (event) => {
+  bindings.listen(document, 'keydown', (event) => {
     if (!root.classList.contains('is-filter-sheet-open')) return;
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -612,10 +685,10 @@ function setupPortfolioMobileFilterSheet(options = {}) {
   });
 
   if (window.matchMedia) {
-    const desktopQuery = window.matchMedia('(min-width: 821px)');
+    const compactQuery = window.matchMedia(PORTFOLIO_COMPACT_QUERY);
     const syncDialogMode = () => {
-      desktopMode = desktopQuery.matches;
-      if (desktopQuery.matches) {
+      desktopMode = !compactQuery.matches;
+      if (desktopMode) {
         setSheetOpen(false);
         filterPanel.removeAttribute('role');
         filterPanel.removeAttribute('aria-modal');
@@ -630,11 +703,7 @@ function setupPortfolioMobileFilterSheet(options = {}) {
         setExpandableHidden(!root.classList.contains('is-filter-sheet-open'));
       }
     };
-    if (typeof desktopQuery.addEventListener === 'function') {
-      desktopQuery.addEventListener('change', syncDialogMode);
-    } else if (typeof desktopQuery.addListener === 'function') {
-      desktopQuery.addListener(syncDialogMode);
-    }
+    bindings.media(compactQuery, syncDialogMode);
     syncDialogMode();
   } else {
     setExpandableHidden(true);
@@ -688,7 +757,15 @@ function setupPortfolioMobileFilterSheet(options = {}) {
 
   return {
     render,
-    syncSortControls
+    syncSortControls,
+    destroy() {
+      sheetRevision += 1;
+      window.SiteMotion?.finish(filterPanel);
+      backgroundIsolation.restore();
+      document.body?.classList.remove('portfolio-filter-sheet-open');
+      root.classList.remove('is-filter-sheet-open');
+      bindings.destroy();
+    }
   };
 }
 
@@ -1190,7 +1267,7 @@ function buildPortfolioWorkbenchLegacy() {
             <span class="portfolio-filter-group__chevron" aria-hidden="true"></span>
           </button>
         </legend>
-        <div class="portfolio-filter-options" id="${optionsId}" aria-hidden="${collapsed ? 'true' : 'false'}">
+        <div class="portfolio-filter-options" id="${optionsId}" aria-hidden="${collapsed ? 'true' : 'false'}"${collapsed ? ' hidden inert' : ''}>
           <div class="portfolio-filter-options__inner">
             ${group.options.map((option) => `
               <label class="portfolio-filter-option">
@@ -1214,9 +1291,12 @@ function buildPortfolioWorkbenchLegacy() {
     const group = button.closest('.portfolio-filter-group');
     const options = document.getElementById(button.getAttribute('aria-controls'));
     if (!group || !options) return;
+    if (window.SiteMotion) window.SiteMotion.height(options, !collapsed);
+    else options.hidden = collapsed;
     group.classList.toggle('is-collapsed', collapsed);
     button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     options.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+    options.toggleAttribute('inert', collapsed);
     options.querySelectorAll('input').forEach((input) => {
       input.disabled = collapsed;
     });
@@ -1355,7 +1435,7 @@ function buildPortfolioWorkbenchLegacy() {
     renderSelection();
   };
 
-  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia('(max-width: 820px)').matches;
+  const isMobileSelectionCard = () => root.dataset.mobileFilters === 'true' && window.matchMedia(PORTFOLIO_COMPACT_QUERY).matches;
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
@@ -1477,9 +1557,10 @@ function buildPortfolioWorkbenchLegacy() {
   return true;
 }
 
-function buildPortfolioWorkbench() {
-  const root = document.querySelector('[data-portfolio-workbench]');
-  const directoryConfig = window.DIRECTORY_WORKBENCH && Array.isArray(window.DIRECTORY_WORKBENCH.items)
+function buildPortfolioWorkbench(routeRoot = document, options = {}) {
+  const root = routeRoot.matches?.('[data-portfolio-workbench]') ? routeRoot : routeRoot.querySelector('[data-portfolio-workbench]');
+  if (root && portfolioWorkbenchControllers.has(root)) return true;
+  const directoryConfig = root?.hasAttribute('data-directory-workbench') && window.DIRECTORY_WORKBENCH && Array.isArray(window.DIRECTORY_WORKBENCH.items)
     ? window.DIRECTORY_WORKBENCH
     : null;
   if (!root || (!window.PROJECTS && !directoryConfig)) return false;
@@ -1496,6 +1577,9 @@ function buildPortfolioWorkbench() {
   const isDirectoryWorkbench = Boolean(directoryConfig);
   const directoryKind = isDirectoryWorkbench ? String(directoryConfig.kind || '').trim().toLowerCase() : '';
   if (!filterHost || !resultHost || (!inspector && directoryKind !== 'tools') || !countNode) return false;
+  const bindings = createPortfolioBindings();
+  const originalMarkup = root.innerHTML;
+  const stateKey = options.stateKey || `${window.location.pathname}${window.location.search}`;
 
   const itemSingular = directoryConfig && directoryConfig.itemSingular ? directoryConfig.itemSingular : 'project';
   const itemPlural = directoryConfig && directoryConfig.itemPlural ? directoryConfig.itemPlural : 'projects';
@@ -1823,6 +1907,15 @@ function buildPortfolioWorkbench() {
     showAllAudienceProjects: isAudienceScopedView && Boolean(initialProjectId) && !initialProjectInScopedPool && initialProjectInFullPool,
     selectedId: initialProjectInScopedPool || initialProjectInFullPool ? initialProjectId : null
   };
+  const savedState = portfolioWorkbenchSnapshots.get(stateKey);
+  if (savedState) {
+    Object.assign(state, savedState, {
+      filters: Object.fromEntries(filterGroups.map((group) => [group.id, new Set(savedState.filters[group.id] || [])])),
+      collapsedFilters: { ...state.collapsedFilters, ...savedState.collapsedFilters }
+    });
+    if (searchInput) searchInput.value = state.search;
+    if (sortSelect) sortSelect.value = state.sort;
+  }
   let pendingSelectionScrollTop = null;
   const mobileSelectionOverlayEnabled = !isDirectoryWorkbench && root.id === 'portfolio-workbench';
   const mobileFilterSheetEnabled = mobileSelectionOverlayEnabled
@@ -1840,16 +1933,19 @@ function buildPortfolioWorkbench() {
     itemSingular,
     itemPlural,
     simplifyProfessional: isAudienceScopedView,
+    bindings,
     slugify,
     requestRender: () => render()
   });
   const selectionDialogQuery = window.matchMedia
-    ? window.matchMedia('(max-width: 820px)')
+    ? window.matchMedia(PORTFOLIO_COMPACT_QUERY)
     : { matches: false };
   let selectionReturnFocus = null;
   let selectionReturnProjectId = null;
   let inspectorBackdrop = null;
   let inspectorBackgroundIsolation = null;
+  let inspectorRevision = 0;
+  let renderedInspectorId;
   if (mobileSelectionOverlayEnabled && inspector) {
     if (!inspector.id) inspector.id = `${root.id || 'portfolio'}-project-details`;
     inspectorBackdrop = document.createElement('div');
@@ -1886,7 +1982,7 @@ function buildPortfolioWorkbench() {
             <span class="portfolio-filter-group__chevron" aria-hidden="true"></span>
           </button>
         </legend>
-        <div class="portfolio-filter-options" id="${optionsId}" aria-hidden="${collapsed ? 'true' : 'false'}">
+        <div class="portfolio-filter-options" id="${optionsId}" aria-hidden="${collapsed ? 'true' : 'false'}"${collapsed ? ' hidden inert' : ''}>
           <div class="portfolio-filter-options__inner">
             ${visibleOptions.map((option) => `
               <label class="portfolio-filter-option">
@@ -1910,9 +2006,12 @@ function buildPortfolioWorkbench() {
     const group = button.closest('.portfolio-filter-group');
     const options = document.getElementById(button.getAttribute('aria-controls'));
     if (!group || !options) return;
+    if (window.SiteMotion) window.SiteMotion.height(options, !collapsed);
+    else options.hidden = collapsed;
     group.classList.toggle('is-collapsed', collapsed);
     button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
     options.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+    options.toggleAttribute('inert', collapsed);
     options.querySelectorAll('input').forEach((input) => {
       input.disabled = collapsed;
     });
@@ -2122,40 +2221,42 @@ function buildPortfolioWorkbench() {
         </div>
         <button type="button" class="portfolio-inspector__close" data-portfolio-inspector-close aria-label="Close ${escapeHtml(itemSingular)} details">Close</button>
       </div>
-      <div class="portfolio-inspector__type">${escapeHtml(getPrimaryFormat(project))}</div>
-      <section class="portfolio-inspector__section">
-        <h3 class="portfolio-inspector__section-title">${escapeHtml(summaryTitle)}</h3>
-        <p class="portfolio-inspector__copy">${escapeHtml(summary)}</p>
-      </section>
-      ${highlights.length ? `
+      <div class="portfolio-inspector__body">
+        <div class="portfolio-inspector__type">${escapeHtml(getPrimaryFormat(project))}</div>
         <section class="portfolio-inspector__section">
-          <h3 class="portfolio-inspector__section-title">${escapeHtml(highlightsTitle)}</h3>
-          <ul class="portfolio-inspector__list">
-            ${highlights.map((item) => `<li>${listIcon}<span>${escapeHtml(item)}</span></li>`).join('')}
-          </ul>
+          <h3 class="portfolio-inspector__section-title">${escapeHtml(summaryTitle)}</h3>
+          <p class="portfolio-inspector__copy">${escapeHtml(summary)}</p>
         </section>
-      ` : ''}
-      ${approachItems.length ? `
+        ${highlights.length ? `
+          <section class="portfolio-inspector__section">
+            <h3 class="portfolio-inspector__section-title">${escapeHtml(highlightsTitle)}</h3>
+            <ul class="portfolio-inspector__list">
+              ${highlights.map((item) => `<li>${listIcon}<span>${escapeHtml(item)}</span></li>`).join('')}
+            </ul>
+          </section>
+        ` : ''}
+        ${approachItems.length ? `
+          <section class="portfolio-inspector__section">
+            <h3 class="portfolio-inspector__section-title">${escapeHtml(approachTitle)}</h3>
+            <ul class="portfolio-inspector__list">
+              ${approachItems.map((item) => `<li>${listIcon}<span>${escapeHtml(item)}</span></li>`).join('')}
+            </ul>
+          </section>
+        ` : ''}
+        ${personalStoryItems.length ? `
+          <section class="portfolio-inspector__section">
+            <h3 class="portfolio-inspector__section-title">Personal notes</h3>
+            <ul class="portfolio-inspector__list">
+              ${personalStoryItems.map(([label, value]) => `<li>${listIcon}<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span></li>`).join('')}
+            </ul>
+          </section>
+        ` : ''}
         <section class="portfolio-inspector__section">
-          <h3 class="portfolio-inspector__section-title">${escapeHtml(approachTitle)}</h3>
-          <ul class="portfolio-inspector__list">
-            ${approachItems.map((item) => `<li>${listIcon}<span>${escapeHtml(item)}</span></li>`).join('')}
-          </ul>
+          <h3 class="portfolio-inspector__section-title">${escapeHtml(stackTitle)}</h3>
+          ${chipMarkup(unique([...tools, ...tags, ...focuses]), 12, false)}
         </section>
-      ` : ''}
-      ${personalStoryItems.length ? `
-        <section class="portfolio-inspector__section">
-          <h3 class="portfolio-inspector__section-title">Personal notes</h3>
-          <ul class="portfolio-inspector__list">
-            ${personalStoryItems.map(([label, value]) => `<li>${listIcon}<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span></li>`).join('')}
-          </ul>
-        </section>
-      ` : ''}
-      <section class="portfolio-inspector__section">
-        <h3 class="portfolio-inspector__section-title">${escapeHtml(stackTitle)}</h3>
-        ${chipMarkup(unique([...tools, ...tags, ...focuses]), 12, false)}
-      </section>
-      <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="${escapeHtml(inspectorContentType)}" data-resource-type="${escapeHtml(inspectorResourceType)}" data-source-surface="${escapeHtml(inspectorSourceSurface)}">${escapeHtml(ctaLabel)} <span aria-hidden="true">-&gt;</span></a>
+        <a class="portfolio-inspector__cta" href="${escapeHtml(getProjectHref(project))}" data-content-open="true" data-content-id="${escapeHtml(project.id)}" data-content-type="${escapeHtml(inspectorContentType)}" data-resource-type="${escapeHtml(inspectorResourceType)}" data-source-surface="${escapeHtml(inspectorSourceSurface)}">${escapeHtml(ctaLabel)} <span aria-hidden="true">-&gt;</span></a>
+      </div>
     `;
   };
 
@@ -2180,7 +2281,8 @@ function buildPortfolioWorkbench() {
       inspector.removeAttribute('inert');
       inspectorBackgroundIsolation?.isolate();
       if (focusInspector) {
-        window.requestAnimationFrame(() => {
+        bindings.frame(() => {
+          if (!state.selectedId || !isMobileSelectionCard()) return;
           const target = inspector.querySelector('[data-portfolio-inspector-close]') || inspector;
           target.focus({ preventScroll: true });
         });
@@ -2206,8 +2308,12 @@ function buildPortfolioWorkbench() {
   };
 
   const renderSelection = ({ focusInspector = false } = {}) => {
+    const revision = ++inspectorRevision;
     const selectedProject = allProjects.find((project) => project.id === state.selectedId);
-    root.classList.toggle('has-selected-project', Boolean(selectedProject));
+    const mobileInspector = mobileSelectionOverlayEnabled && isMobileSelectionCard();
+    const closing = mobileInspector && !selectedProject && root.classList.contains('has-selected-project');
+    root.classList.toggle('is-inspector-closing', closing);
+    root.classList.toggle('has-selected-project', Boolean(selectedProject) || closing);
     resultHost.querySelectorAll('[data-project-id]').forEach((card) => {
       const selected = card.dataset.projectId === state.selectedId;
       card.classList.toggle('is-selected', selected);
@@ -2220,7 +2326,52 @@ function buildPortfolioWorkbench() {
         selectionControl.setAttribute('aria-pressed', selected ? 'true' : 'false');
       }
     });
-    renderInspector(selectedProject);
+    if (!inspector) return;
+    const nextInspectorId = selectedProject?.id || null;
+    const updateInspector = () => {
+      renderInspector(selectedProject);
+      renderedInspectorId = nextInspectorId;
+    };
+    if (closing) {
+      const finishClose = () => {
+        if (revision !== inspectorRevision) return;
+        root.classList.remove('has-selected-project', 'is-inspector-closing');
+        updateInspector();
+      };
+      if (window.SiteMotion) {
+        window.SiteMotion.presence(inspector, false, {
+          hidden: false,
+          enter: '--motion-slow',
+          exit: '--motion-base',
+          onFinish: finishClose
+        });
+      } else {
+        inspector.classList.remove('is-open');
+        finishClose();
+      }
+    } else if (mobileInspector && selectedProject && !inspector.classList.contains('is-open')) {
+      updateInspector();
+      if (window.SiteMotion) {
+        window.SiteMotion.presence(inspector, true, {
+          hidden: false,
+          enter: '--motion-slow',
+          exit: '--motion-base'
+        });
+      }
+      else inspector.classList.add('is-open');
+    } else {
+      if (!mobileInspector) {
+        inspector.classList.remove('is-open');
+        inspector.hidden = false;
+      }
+      if (renderedInspectorId !== nextInspectorId) {
+        if (window.SiteMotion && renderedInspectorId !== undefined && (!mobileInspector || selectedProject)) {
+          window.SiteMotion.swap(inspector, updateInspector, { duration: '--motion-fast' });
+        } else {
+          updateInspector();
+        }
+      }
+    }
     syncInspectorDialogState({ focusInspector });
   };
 
@@ -2233,8 +2384,10 @@ function buildPortfolioWorkbench() {
     selectionReturnFocus = null;
     selectionReturnProjectId = null;
     renderSelection();
+    const revision = inspectorRevision;
     if (restoreFocus) {
-      window.requestAnimationFrame(() => {
+      bindings.frame(() => {
+        if (revision !== inspectorRevision || state.selectedId) return;
         const fallbackCard = Array.from(resultHost.querySelectorAll('[data-project-id]'))
           .find((card) => card.dataset.projectId === returnProjectId);
         const target = returnFocus?.isConnected
@@ -2247,9 +2400,9 @@ function buildPortfolioWorkbench() {
 
   const restoreResultScroll = (scrollTop) => {
     resultHost.scrollTop = scrollTop;
-    window.requestAnimationFrame(() => {
+    bindings.frame(() => {
       resultHost.scrollTop = scrollTop;
-      setTimeout(() => {
+      bindings.timer(() => {
         resultHost.scrollTop = scrollTop;
       }, 0);
     });
@@ -2323,7 +2476,7 @@ function buildPortfolioWorkbench() {
     } catch {}
   };
 
-  filterHost.addEventListener('click', (event) => {
+  bindings.listen(filterHost, 'click', (event) => {
     const button = event.target.closest('[data-portfolio-filter-toggle]');
     if (!button) return;
     const groupId = button.dataset.portfolioFilterToggle;
@@ -2331,7 +2484,7 @@ function buildPortfolioWorkbench() {
     setFilterGroupCollapsed(groupId, !state.collapsedFilters[groupId]);
   });
 
-  filterHost.addEventListener('change', (event) => {
+  bindings.listen(filterHost, 'change', (event) => {
     const input = event.target;
     if (!input || input.type !== 'checkbox') return;
     const group = state.filters[input.name];
@@ -2342,13 +2495,13 @@ function buildPortfolioWorkbench() {
   });
 
   if (inspector) {
-    inspector.addEventListener('click', (event) => {
+    bindings.listen(inspector, 'click', (event) => {
       const closeButton = event.target.closest('[data-portfolio-inspector-close]');
       if (!closeButton) return;
       event.preventDefault();
       clearSelection();
     });
-    inspector.addEventListener('keydown', (event) => {
+    bindings.listen(inspector, 'keydown', (event) => {
       if (event.key !== 'Tab' || !state.selectedId || !isMobileSelectionCard()) return;
       const focusable = Array.from(inspector.querySelectorAll(
         'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
@@ -2371,17 +2524,19 @@ function buildPortfolioWorkbench() {
   }
 
   if (inspectorBackdrop) {
-    inspectorBackdrop.addEventListener('click', () => clearSelection());
+    bindings.listen(inspectorBackdrop, 'click', () => clearSelection());
   }
 
-  const syncSelectionViewportMode = () => syncInspectorDialogState();
-  if (typeof selectionDialogQuery.addEventListener === 'function') {
-    selectionDialogQuery.addEventListener('change', syncSelectionViewportMode);
-  } else if (typeof selectionDialogQuery.addListener === 'function') {
-    selectionDialogQuery.addListener(syncSelectionViewportMode);
-  }
+  const syncSelectionViewportMode = () => {
+    inspectorRevision += 1;
+    if (inspector) window.SiteMotion?.finish(inspector);
+    root.classList.remove('is-inspector-closing');
+    root.classList.toggle('has-selected-project', Boolean(state.selectedId));
+    renderSelection();
+  };
+  bindings.media(selectionDialogQuery, syncSelectionViewportMode);
 
-  document.addEventListener('pointerdown', (event) => {
+  bindings.listen(document, 'pointerdown', (event) => {
     if (!state.selectedId || !isMobileSelectionCard()) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -2390,18 +2545,18 @@ function buildPortfolioWorkbench() {
     clearSelection();
   });
 
-  document.addEventListener('keydown', (event) => {
+  bindings.listen(document, 'keydown', (event) => {
     if (event.key !== 'Escape' || !state.selectedId) return;
     if (root.classList.contains('is-filter-sheet-open')) return;
     clearSelection();
   });
 
-  resultHost.addEventListener('pointerdown', (event) => {
+  bindings.listen(resultHost, 'pointerdown', (event) => {
     if (!event.target.closest('[data-project-details], [data-tool-details], [data-directory-details]')) return;
     pendingSelectionScrollTop = resultHost.scrollTop;
   });
 
-  resultHost.addEventListener('click', (event) => {
+  bindings.listen(resultHost, 'click', (event) => {
     const detailsButton = event.target.closest('[data-project-details], [data-tool-details], [data-directory-details]');
     if (!detailsButton) return;
     const card = detailsButton.closest('[data-project-id]');
@@ -2425,21 +2580,21 @@ function buildPortfolioWorkbench() {
   });
 
   if (searchInput) {
-    searchInput.addEventListener('input', () => {
+    bindings.listen(searchInput, 'input', () => {
       state.search = searchInput.value.trim();
       render();
     });
   }
 
   if (sortSelect) {
-    sortSelect.addEventListener('change', () => {
+    bindings.listen(sortSelect, 'change', () => {
       state.sort = sortSelect.value;
       render();
     });
   }
 
   if (clearButton) {
-    clearButton.addEventListener('click', () => {
+    bindings.listen(clearButton, 'click', () => {
       Object.values(state.filters).forEach((set) => set.clear());
       state.search = '';
       if (searchInput) searchInput.value = '';
@@ -2448,19 +2603,47 @@ function buildPortfolioWorkbench() {
   }
 
   if (scopeToggle) {
-    scopeToggle.addEventListener('click', () => {
+    bindings.listen(scopeToggle, 'click', () => {
       state.showAllAudienceProjects = !state.showAllAudienceProjects;
       render();
     });
   }
 
   if (isDirectoryWorkbench && directoryKind === 'tools') {
-    document.addEventListener('tools:auth-changed', render);
-    document.addEventListener('tools:visibility-updated', render);
+    bindings.listen(document, 'tools:auth-changed', render);
+    bindings.listen(document, 'tools:visibility-updated', render);
   }
 
+  const controller = {
+    dispose() {
+      portfolioWorkbenchSnapshots.set(stateKey, {
+        ...state,
+        filters: Object.fromEntries(Object.entries(state.filters).map(([key, values]) => [key, [...values]])),
+        collapsedFilters: { ...state.collapsedFilters }
+      });
+      while (portfolioWorkbenchSnapshots.size > 12) portfolioWorkbenchSnapshots.delete(portfolioWorkbenchSnapshots.keys().next().value);
+      inspectorRevision += 1;
+      window.SiteMotion?.finish(inspector);
+      root.querySelectorAll('[data-portfolio-filter-options]').forEach((node) => window.SiteMotion?.finish(node));
+      inspectorBackgroundIsolation?.restore();
+      mobileFilters.destroy();
+      bindings.destroy();
+      document.body?.classList.remove('portfolio-inspector-open');
+      root.classList.remove('has-selected-project', 'is-inspector-closing');
+      delete root.dataset.mobileSelection;
+      delete root.dataset.mobileFilters;
+      root.innerHTML = originalMarkup;
+      portfolioWorkbenchControllers.delete(root);
+    }
+  };
+  portfolioWorkbenchControllers.set(root, controller);
   render();
   return true;
+}
+
+function disposePortfolioWorkbench(routeRoot = document) {
+  const root = routeRoot.matches?.('[data-portfolio-workbench]') ? routeRoot : routeRoot.querySelector('[data-portfolio-workbench]');
+  if (root) portfolioWorkbenchControllers.get(root)?.dispose();
 }
 
 function hydrateSimpleGamesDirectory() {

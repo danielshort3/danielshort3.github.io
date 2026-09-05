@@ -526,10 +526,12 @@ function copyStatic(){
   const cssManifest = readJson(cssManifestPath);
   const jsManifest = readJson(jsManifestPath);
 
-  // Copy all root-level HTML files
+  // Keep Contact behind its audience-aware rewrites. A root contact.html file
+  // takes precedence over conditional rewrites when Vercel clean URLs are enabled.
   const htmlFiles = listRootHtmlFiles(root);
   htmlFiles.forEach(src => {
     const rel = path.relative(root, src);
+    if (rel === 'contact.html') return;
     copyFile(src, path.join(outDir, rel));
   });
 

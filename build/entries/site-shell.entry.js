@@ -1,9 +1,12 @@
 import '../../js/common/audience-config.js';
 import '../../js/common/site-realm.js';
 import '../../js/navigation/site-route-runtime.js';
+import '../../js/common/motion.js';
 import '../../js/common/common.js';
 import '../../js/common/modal-accessibility.js';
 import '../../js/common/certifications-modal.js';
 import '../../js/navigation/navigation.js';
+import '../../js/navigation/site-frame.js';
 import '../../js/navigation/page-transitions.js';
+import '../../js/navigation/header-breadcrumbs.js';
 import '../../js/animations/animations.js';

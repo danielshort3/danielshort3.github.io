@@ -119,7 +119,7 @@ function extractManagedShellEntryReferences() {
 
   candidates.forEach((filePath) => {
     const html = fs.readFileSync(filePath, 'utf8');
-    if (!html.includes('data-personal-accordion-shell')) return;
+    if (!html.includes('data-personal-accordion-shell') || !/<body\b[^>]*data-audience="personal"/i.test(html)) return;
     const relativePath = toPosix(path.relative(ROOT, filePath));
     references.push({
       target: canonicalUrlForHtml(html).href,

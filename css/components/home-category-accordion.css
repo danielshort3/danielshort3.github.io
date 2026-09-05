@@ -7,12 +7,12 @@
     --home-rail-width: 64px;
     --home-active-rail-width: 68px;
     --home-collapsed-rails-width: 256px;
-    --home-panel-motion: var(--personal-transition-duration, 440ms);
+    --home-panel-motion: var(--motion-slow);
     --home-panel-ease: cubic-bezier(.22, 1, .36, 1);
     background: var(--home-canvas);
   }
 
-  .home-accordion {
+  .home-accordion:not(.site-frame) {
     box-sizing: border-box;
     width: 100%;
     min-height: calc(100svh - var(--nav-height, 60px) - var(--personal-footer-block-size, 0px));
@@ -204,12 +204,12 @@
   @keyframes homeAccordionContentIn {
     from {
       opacity: 0;
-      transform: translateX(10px);
+      transform: translateY(6px);
     }
 
     to {
       opacity: 1;
-      transform: translateX(0);
+      transform: translateY(0);
     }
   }
 
@@ -505,10 +505,12 @@
   }
 
   .home-accordion__panel-cta {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     gap: 10px;
     min-height: 46px;
+    min-width: 0;
     margin: 0 clamp(30px, 5vw, 58px) 54px;
     padding: 0 18px;
     border: 2px solid var(--panel-color);
@@ -519,6 +521,7 @@
     font-family: inherit;
     font-size: .88rem;
     font-weight: 780;
+    overflow-wrap: anywhere;
     text-decoration: none;
   }
 
@@ -588,10 +591,10 @@
 
   @media (max-width: 959px), (max-height: 619px) {
     body[data-page="home"].home-pattern-page {
-      --home-panel-motion: 340ms;
+      --home-panel-motion: var(--motion-slow);
     }
 
-    .home-accordion {
+    .home-accordion:not(.site-frame) {
       min-height: 0;
       padding: 0;
       background: #ffffff;
@@ -633,12 +636,13 @@
       flex-basis: auto;
       justify-content: flex-start;
       scroll-margin-top: var(--mobile-site-masthead-height, 62px);
+      transition: height var(--motion-slow) var(--easing-standard), filter var(--motion-fast) var(--easing-standard);
     }
 
     .home-accordion__item.is-active .home-accordion__rail {
       width: 100%;
       height: 54px;
-      min-height: 54px;
+      min-height: 48px;
     }
 
     .home-accordion__rail::after {
@@ -677,7 +681,7 @@
       border-right: 2px solid currentColor;
       border-bottom: 2px solid currentColor;
       transform: rotate(45deg) translate(-2px, 2px);
-      transition: transform .2s ease;
+      transition: transform var(--motion-base) var(--easing-standard);
     }
 
     .home-accordion__item.is-active .home-accordion__rail-chevron {
@@ -691,13 +695,13 @@
       height: auto;
       min-height: 0;
       overflow: visible;
-      border: 4px solid var(--panel-color);
+      border: 0;
       border-radius: 0;
       background: #ffffff;
     }
 
-    .home-accordion__item.is-closing .home-accordion__panel {
-      display: none;
+    .home-accordion:not(.is-library-mode) .home-accordion__scroller {
+      border: 4px solid var(--panel-color);
     }
 
     .home-accordion__scroller {
@@ -709,7 +713,7 @@
     }
 
     .home-accordion[data-enhanced="true"]:not(.is-view-changing) .home-accordion__item.is-active.is-activating .home-accordion__scroller {
-      animation: homeAccordionContentIn 240ms var(--home-panel-ease) 80ms both;
+      animation: homeAccordionContentIn var(--motion-base) var(--easing-standard) both;
     }
 
     .home-accordion__scroller::-webkit-scrollbar {
@@ -828,6 +832,7 @@
 
     .home-accordion__panel-cta {
       width: calc(100% - 36px);
+      max-width: calc(100% - 36px);
       justify-content: center;
       margin: 6px 18px 22px;
     }
@@ -977,7 +982,7 @@
       gap: 0;
       min-width: 44px;
       max-width: 220px;
-      transition: flex-basis .22s ease, max-width .22s ease;
+      transition: flex-basis var(--motion-base) var(--easing-standard), max-width var(--motion-base) var(--easing-standard);
     }
 
     body[data-page="home"].home-pattern-page #primary-menu:has(.nav-search.nav-search-is-enhanced:not(.is-expanded)) {
@@ -991,7 +996,7 @@
 
     body[data-page="home"].home-pattern-page .nav-search {
       width: 220px;
-      transition: width .22s ease;
+      transition: width var(--motion-base) var(--easing-standard);
     }
 
     body[data-page="home"].home-pattern-page .nav-search.nav-search-is-enhanced {

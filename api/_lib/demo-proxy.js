@@ -24,6 +24,13 @@ const VERCEL_ROUTE_QUERY_KEYS = new Set([
 
 const ENABLED_PROXY_MODES = new Set(['oidc', 'iam', 'private', 'role', 'enabled', 'true']);
 const DISABLED_PROXY_MODES = new Set(['disabled', 'off', 'false']);
+const CONFIGURATION_ERROR_CODES = new Set([
+  'DEMO_PROXY_DISABLED', 'DEMO_PROXY_MODE_INVALID', 'DEMO_PROXY_CONFIG_MISSING',
+  'DEMO_RATE_LIMIT_CONFIG_MISSING', 'DEMO_AWS_AUTH_MISSING',
+  'AWS_AUTH_MODE_INVALID', 'AWS_OIDC_ROLE_INVALID', 'AWS_OIDC_ROLE_MISSING',
+  'AWS_OIDC_AUDIENCE_INVALID', 'AWS_STATIC_CREDENTIALS_INCOMPLETE',
+  'AWS_STATIC_SESSION_TOKEN_MISSING', 'AWS_STATIC_CREDENTIALS_MISSING'
+]);
 const DEMO_STATIC_CREDENTIAL_SETS = Object.freeze([
   Object.freeze({
     name: 'demo',
@@ -695,7 +702,14 @@ async function handleDemoRequest(req, res, segments) {
     config = getRuntimeConfig(process.env, functionArn);
     clients = createClients(config);
   } catch (err) {
-    sendJson(res, err?.statusCode || 503, { ok: false, error: 'Demo proxy is unavailable.' });
+    const code = CONFIGURATION_ERROR_CODES.has(err?.code)
+      ? 'DEMO_PROXY_CONFIGURATION_UNAVAILABLE'
+      : null;
+    sendJson(res, err?.statusCode || 503, {
+      ok: false,
+      error: 'Demo proxy is unavailable.',
+      ...(code ? { code } : {})
+    });
     return;
   }
 

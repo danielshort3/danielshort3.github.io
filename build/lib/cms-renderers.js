@@ -400,464 +400,71 @@ function renderGameIconMarkup(iconType) {
   }
 }
 
-function renderHeader({ settings, navigation, projectsById, pagesById, tools, audience, audienceLabel }) {
+function renderHeader({ settings = {}, navigation = {}, audience = null }) {
   const audienceKey = String(audience && audience.key || 'personal').trim() || 'personal';
-  const isProfessionalAudience = audienceKey !== 'personal';
-  const audienceContactPath = String(audience && audience.contactPath || (isProfessionalAudience
-    ? `/contact?audience=${encodeURIComponent(audienceKey)}`
-    : '/contact'));
-  const baseContact = navigation.contact || {};
-  const professionalExternalContactLinks = (Array.isArray(baseContact.links) ? baseContact.links : [])
-    .filter((link) => /^(?:mailto:|https?:)/i.test(String(link && link.href || '')));
-  const effectiveNavigation = isProfessionalAudience ? {
-    ...navigation,
-    brand: {
-      ...(navigation.brand || {}),
-      homePath: audience.homePath || '/'
-    },
-    portfolio: {
-      ...(navigation.portfolio || {}),
-      label: 'Portfolio',
-      href: audience.portfolioPath || '/portfolio',
-      featuredProjectIds: audience.featuredProjectIds || [],
-      links: [{
-        title: 'View full portfolio',
-        subtitle: 'Browse the complete project library',
-        href: audience.portfolioPath || '/portfolio',
-        dataAttributes: { 'data-portfolio-default-link': 'true' }
-      }]
-    },
-    primary: [{
-      label: 'Home',
-      href: audience.homePath || '/',
-      dataAttributes: { 'data-professional-home-link': 'true' }
-    }],
-    resume: {
-      enabled: Boolean(audience.resumePath),
-      label: audience.resumeNavTitle || 'Resume',
-      href: audience.resumePath || '',
-      ariaLabel: 'Resume shortcuts',
-      header: 'Resume shortcuts',
-      links: [
-        {
-          title: audience.resumeNavTitle || 'Resume',
-          subtitle: audience.resumeNavSubtitle || 'View the digital resume',
-          href: audience.resumePath || '',
-          dataAttributes: { 'data-resume-home-link': 'true' }
-        },
-        {
-          title: 'Preview PDF',
-          subtitle: audience.resumePreviewSubtitle || 'Open the PDF preview',
-          href: audience.resumePreviewPath || '',
-          dataAttributes: { 'data-resume-preview-link': 'true' }
-        },
-        {
-          title: 'Download Resume',
-          subtitle: audience.resumeDownloadSubtitle || 'Download the PDF',
-          href: audience.resumeDownloadPath || '',
-          download: true,
-          dataAttributes: { 'data-resume-download-link': 'true' }
-        }
-      ].filter((link) => link.href)
-    },
-    contact: {
-      ...baseContact,
-      href: audienceContactPath,
-      links: [
-        {
-          title: 'Message about a role',
-          subtitle: `Best for ${audience.label || audience.shortLabel || 'professional'} opportunities`,
-          href: `${audienceContactPath.replace(/#.*$/, '')}#contact-modal`,
-          dataAttributes: { 'data-contact-modal-link': 'true' }
-        },
-        ...professionalExternalContactLinks
-      ]
-    }
-  } : navigation;
-  const brand = effectiveNavigation.brand || {};
-  const portfolio = effectiveNavigation.portfolio || {};
-  const toolsNav = effectiveNavigation.tools || {};
-  const gamesNav = effectiveNavigation.games || {};
-  const resume = effectiveNavigation.resume || {};
-  const contact = effectiveNavigation.contact || {};
-  const search = effectiveNavigation.search || {};
-  const toolsPage = pagesById && pagesById.tools;
-  const gamesPage = pagesById && pagesById.games;
-  const featuredProjectIds = Array.isArray(portfolio.featuredProjectIds) ? portfolio.featuredProjectIds.slice(0, 3) : [];
-  const featuredCards = featuredProjectIds
-    .map((id, index) => {
-      const project = projectsById && projectsById[id];
-      return project ? renderPortfolioProjectCard(project, index + 1, isProfessionalAudience ? audienceKey : '') : '';
-    })
-    .filter(Boolean)
-    .join('\n');
-
-  const resumeLinks = (Array.isArray(resume.links) ? resume.links : [])
-    .map((link) => renderDropdownLink(link, 'nav-dropdown-link'))
-    .join('\n');
-
-  const portfolioFooterLinks = renderDropdownFooterLinks(portfolio.links);
-  const primaryLinks = (Array.isArray(effectiveNavigation.primary) ? effectiveNavigation.primary : [])
-    .filter((link) => link && link.href && link.label)
-    .map((link) => `<a href="${escapeHtml(trimLeadingSlash(link.href || ''))}" class="nav-link"${attrsToString(link.dataAttributes || {})}>${escapeHtml(link.label || '')}</a>`)
-    .join('\n');
-  const resumeEnabled = resume.enabled !== false && (resume.label || resumeLinks);
-  const toolsDropdown = isProfessionalAudience ? '' : renderToolsDropdown(toolsNav, toolsPage, tools);
-  const gamesDropdown = isProfessionalAudience ? '' : renderGamesDropdown(gamesNav, gamesPage);
-  const searchFormHtml = isProfessionalAudience ? '' : [
-    `        <form class="nav-search" action="${escapeHtml(trimLeadingSlash(search.action || 'search'))}" method="get" role="search" data-nav-search="collapsed">`,
-    `          <label class="visually-hidden" for="nav-search-q">${escapeHtml(search.label || 'Search site')}</label>`,
-    '          <div class="nav-search-field">',
-    `            <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="${escapeHtml(search.placeholder || 'Search')}">`,
-    '            <button class="nav-search-button" type="submit" aria-controls="nav-search-q" aria-expanded="false">',
-    '              <span class="visually-hidden">Search</span>',
-    indentBlock(renderSvgMarkup('search'), '              '),
-    '            </button>',
-    '          </div>',
-    '        </form>'
-  ].join('\n');
-
+  const brand = navigation.brand || {};
+  const search = navigation.search || {};
+  const homePath = audienceKey === 'personal' ? (brand.homePath || '/') : (audience.homePath || '/');
   return [
-    isProfessionalAudience
-      ? '<header id="combined-header-nav">'
-      : '<header id="combined-header-nav" data-site-shell-header>',
-    '  <nav class="nav" aria-label="Primary">',
+    '<header id="combined-header-nav" data-site-shell-header>',
+    '  <nav class="nav" aria-label="Site header">',
     '    <div class="wrapper nav-wrapper">',
-    `      <a href="${escapeHtml(normalizeRelativeHref(brand.homePath || '/', '/'))}" class="brand" data-entry-home-link="true">`,
-    `        <img src="${escapeHtml(brand.logoSrc || 'img/ui/logo-64.png')}" srcset="${escapeHtml(brand.logoSrcSet || 'img/ui/logo-64.png 1x, img/ui/logo-192.png 3x')}" sizes="${escapeHtml(brand.logoSizes || '64px')}" alt="${escapeHtml(brand.logoAlt || 'DS logo')}" class="brand-logo" decoding="async" loading="eager" width="${escapeHtml(brand.logoWidth || 64)}" height="${escapeHtml(brand.logoHeight || 64)}">`,
+    `      <a href="${escapeHtml(normalizeRelativeHref(homePath, '/'))}" class="brand" data-entry-home-link="true">`,
+    `        <img src="${escapeHtml(brand.logoSrc || 'img/brand/00-ds-logo-master-full-color.svg')}" srcset="${escapeHtml(brand.logoSrcSet || 'img/brand/00-ds-logo-master-full-color.svg 1x')}" sizes="${escapeHtml(brand.logoSizes || '40px')}" alt="${escapeHtml(brand.logoAlt || 'Daniel Short DS logo')}" class="brand-logo" decoding="async" loading="eager" width="${escapeHtml(brand.logoWidth || 381)}" height="${escapeHtml(brand.logoHeight || 392)}">`,
     '        <span class="brand-name">',
     `          <span class="brand-title">${escapeHtml(settings.ownerName || 'Daniel Short')}</span>`,
     '        </span>',
     '      </a>',
-    '      <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">',
-    '        <span class="bar"></span><span class="bar"></span><span class="bar"></span>',
-    '      </button>',
-    '      <div id="primary-menu" class="nav-row" data-collapsible role="navigation">',
-    isProfessionalAudience && primaryLinks ? indentBlock(primaryLinks, '        ') : '',
-    '        <div class="nav-item nav-item-portfolio">',
-    `          <a href="${escapeHtml(trimLeadingSlash(portfolio.href || 'portfolio'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">`,
-    `            ${escapeHtml(portfolio.label || 'Portfolio')}`,
-    '            <span class="nav-link-caret" aria-hidden="true"></span>',
-    '          </a>',
-    '          <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">',
-    '            <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">',
-    '              <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">',
-    `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(portfolio.header || 'Featured Projects')}</div>`,
-    '                <div class="nav-project-grid nav-project-stack">',
-    indentBlock(featuredCards, '                  '),
-    '                </div>',
-    '                <div class="nav-dropdown-footer nav-dropdown-footer-inline">',
-    indentBlock(portfolioFooterLinks, '                  '),
-    '                </div>',
-    '              </div>',
-    '            </div>',
-    '          </div>',
+    '      <nav class="header-breadcrumbs" aria-label="Breadcrumb" data-header-breadcrumbs hidden>',
+    '        <ol class="header-breadcrumbs__list" data-header-breadcrumb-list></ol>',
+    '      </nav>',
+    `      <form class="nav-search" action="${escapeHtml(trimLeadingSlash(search.action || 'search'))}" method="get" role="search" data-nav-search="collapsed">`,
+    `        <label class="visually-hidden" for="nav-search-q">${escapeHtml(search.label || 'Search site')}</label>`,
+    '        <div class="nav-search-field">',
+    `          <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="${escapeHtml(search.placeholder || 'Search')}" autocomplete="off">`,
+    '          <button class="nav-search-button" type="submit" aria-controls="nav-search-q" aria-expanded="false" aria-label="Open search">',
+    '            <span class="visually-hidden">Search</span>',
+    indentBlock(renderSvgMarkup('search'), '            '),
+    '          </button>',
     '        </div>',
-    toolsDropdown,
-    gamesDropdown,
-    !isProfessionalAudience && primaryLinks ? indentBlock(primaryLinks, '        ') : '',
-    ...(resumeEnabled ? [
-      '        <div class="nav-item nav-item-resume">',
-      `          <a href="${escapeHtml(trimLeadingSlash(resume.href || 'resume'))}" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">`,
-      `            ${escapeHtml(resume.label || 'Resume')}`,
-      '            <span class="nav-link-caret" aria-hidden="true"></span>',
-      '          </a>',
-      `          <div class="nav-dropdown nav-dropdown-simple" id="nav-dropdown-resume" aria-label="${escapeHtml(resume.ariaLabel || 'Resume download')}">`,
-      '            <div class="nav-dropdown-inner nav-dropdown-inner-simple">',
-      '              <div class="nav-dropdown-column nav-dropdown-column-list">',
-      `                <div class="nav-dropdown-header" aria-hidden="true">${escapeHtml(resume.header || 'Resume shortcuts')}</div>`,
-      '                <div class="nav-dropdown-list">',
-      indentBlock(resumeLinks, '                  '),
-      '                </div>',
-      '              </div>',
-      '            </div>',
-      '          </div>',
-      '        </div>'
-    ] : []),
-    '        <div class="nav-item nav-item-contact">',
-    `          <a href="${escapeHtml(trimLeadingSlash(contact.href || 'contact'))}" class="nav-link nav-link-cta">${escapeHtml(contact.label || 'Contact')}</a>`,
-    '        </div>',
-    searchFormHtml,
-    '      </div>',
+    ...(audienceKey === 'personal' ? [] : [`        <input type="hidden" name="audience" value="${escapeHtml(audienceKey)}" data-search-audience>`]),
+    '      </form>',
     '    </div>',
     '  </nav>',
     '</header>'
   ].join('\n');
 }
 
-function renderFooter({ footer, year, audience = null }) {
-  const columns = Array.isArray(footer.columns) ? footer.columns : [];
-  const audienceKey = String(audience && audience.key || 'personal').trim() || 'personal';
-  const isProfessionalAudience = audienceKey !== 'personal';
-  const footerRealm = isProfessionalAudience ? 'professional' : 'personal';
-  const contactPath = String(audience && audience.contactPath || (isProfessionalAudience
-    ? `/contact?audience=${encodeURIComponent(audienceKey)}`
-    : '/contact'));
-  const normalizeVariantMap = (value, valueKey) => {
-    if (Array.isArray(value)) return value;
-    if (!value || typeof value !== 'object') return [];
-    return Object.entries(value).map(([id, config]) => {
-      if (Array.isArray(config)) return { id, [valueKey]: config };
-      return { id, ...(config || {}) };
-    });
-  };
-
-  const inferFooterDataAttributes = (link) => {
-    const inferredDataAttributes = { ...(link.dataAttributes || {}) };
-    const href = String(link.href || '').trim();
-    const label = String(link.label || '').trim().toLowerCase();
-    if (!inferredDataAttributes['data-portfolio-home-link'] && (href === 'portfolio' || href === '/portfolio' || href.startsWith('portfolio?') || label === 'portfolio')) {
-      inferredDataAttributes['data-portfolio-home-link'] = 'true';
-    }
-    if (!inferredDataAttributes['data-resume-home-link'] && (href === 'resume' || href === '/resume' || label === 'resume')) {
-      inferredDataAttributes['data-resume-home-link'] = 'true';
-    }
-    if (!inferredDataAttributes['data-contact-modal-link'] && href.includes('#contact-modal')) {
-      inferredDataAttributes['data-contact-modal-link'] = 'true';
-    }
-    if (!inferredDataAttributes['data-smooth-scroll'] && href.startsWith('#')) {
-      inferredDataAttributes['data-smooth-scroll'] = 'true';
-    }
-    return inferredDataAttributes;
-  };
-
-  const contextualizeFooterLink = (link) => {
-    if (!isProfessionalAudience || !link) return link || {};
-    const dataAttributes = { ...(link.dataAttributes || {}) };
-    const href = String(link.href || '');
-    let nextHref = href;
-    if (dataAttributes['data-portfolio-home-link']) {
-      nextHref = audience.portfolioPath || '/portfolio';
-    } else if (dataAttributes['data-resume-home-link']) {
-      nextHref = audience.resumePath || '';
-    } else if (dataAttributes['data-contact-modal-link'] || href.includes('#contact-modal')) {
-      nextHref = `${contactPath.replace(/#.*$/, '')}#contact-modal`;
-    }
-    return { ...link, href: nextHref, dataAttributes };
-  };
-
-  const renderFooterLink = (sourceLink, className = 'footer-link') => {
-    const link = contextualizeFooterLink(sourceLink);
-    const inferredDataAttributes = inferFooterDataAttributes(link);
-    const href = String(link.href || '').trim();
-    const label = String(link.label || '').trim().toLowerCase();
-    const hrefFallback = href === '/' || label === 'home' ? '/' : '';
-
+function renderFooter({ footer = {}, year }) {
+  const compactLinks = Array.isArray(footer.personalCompactLinks) ? footer.personalCompactLinks : [];
+  const renderedLinks = compactLinks.map((link) => {
+    const commonAttrs = {
+      class: 'footer-link',
+      ...(link.id ? { id: link.id } : {}),
+      ...(link.dataAttributes || {}),
+      ...(link.hidden ? { hidden: true } : {})
+    };
     if (link.type === 'button') {
-      const buttonAttrs = {
-        type: 'button',
-        class: className,
-        ...(link.id ? { id: link.id } : {}),
-        ...(link.ariaHaspopup ? { 'aria-haspopup': link.ariaHaspopup } : {}),
-        ...inferredDataAttributes,
-        ...(link.hidden ? { hidden: true } : {})
-      };
-      return `<button${attrsToString(buttonAttrs)}>${escapeHtml(link.label || '')}</button>`;
+      return `<button${attrsToString({ type: 'button', ...commonAttrs, ...(link.ariaHaspopup ? { 'aria-haspopup': link.ariaHaspopup } : {}) })}>${escapeHtml(link.label || '')}</button>`;
     }
-
     const attrs = {
-      href: normalizeRelativeHref(href, hrefFallback),
-      class: className,
+      href: normalizeRelativeHref(link.href || '', link.href === '/' ? '/' : ''),
+      ...commonAttrs,
       ...(link.target ? { target: link.target } : {}),
       ...(link.rel ? { rel: link.rel } : {}),
-      ...(link.download ? { download: true } : {}),
-      ...(link.hidden ? { hidden: true } : {}),
-      ...inferredDataAttributes
+      ...(link.download ? { download: true } : {})
     };
     return `<a${attrsToString(attrs)}>${escapeHtml(link.label || '')}</a>`;
-  };
-
-  const renderFooterColumn = (column, index, realm = '') => {
-    const realmPrefix = realm ? `${realm}-` : '';
-    const titleId = `footer-${realmPrefix}${String(column.id || index + 1).trim() || index + 1}`;
-    const links = (Array.isArray(column.links) ? column.links : [])
-      .map((link) => renderFooterLink(link))
-      .join('\n');
-
-    return [
-      `<section class="footer-col" aria-labelledby="${escapeHtml(titleId)}">`,
-      `  <h2 class="footer-col-title" id="${escapeHtml(titleId)}">${escapeHtml(column.title || '')}</h2>`,
-      indentBlock(links, '  '),
-      '</section>'
-    ].join('\n');
-  };
-
-  const identityVariants = normalizeVariantMap(footer.identity && footer.identity.variants, 'identity')
-    .filter((variant) => variant && String(variant.id || '').trim());
-  const fallbackIdentity = {
-    id: 'personal',
-    name: footer.copyrightName || 'Daniel Short',
-    summary: 'Projects, tools, games, and experiments.',
-    links: []
-  };
-  const identityBase = identityVariants.find((variant) => variant.id === footerRealm)
-    || identityVariants[0]
-    || fallbackIdentity;
-  const selectedIdentity = isProfessionalAudience
-    ? {
-        ...identityBase,
-        id: 'professional',
-        summary: `${audience.label || audience.shortLabel || 'Professional'} portfolio`,
-        links: [
-          {
-            label: audience.resumeNavTitle || 'Resume',
-            href: audience.resumePath || '',
-            dataAttributes: { 'data-resume-home-link': 'true' }
-          },
-          {
-            label: 'Contact',
-            href: `${contactPath.replace(/#.*$/, '')}#contact-modal`,
-            dataAttributes: { 'data-contact-modal-link': 'true' }
-          }
-        ].filter((link) => link.href)
-      }
-    : { ...identityBase, id: 'personal' };
-  const renderedIdentity = [selectedIdentity].map((variant) => {
-    const realm = footerRealm;
-    const name = variant.name || footer.copyrightName || 'Daniel Short';
-    const eyebrow = String(variant.eyebrow || '').trim();
-    const summary = String(variant.summary || '').trim();
-    const identityLinks = (Array.isArray(variant.links) ? variant.links : [])
-      .map((link) => renderFooterLink(link, 'footer-link footer-identity-link'))
-      .join('\n');
-    return [
-      `<section class="footer-identity-panel" data-footer-realm="${escapeHtml(realm)}" aria-label="${escapeHtml(`${name} footer summary`)}">`,
-      eyebrow ? `  <p class="footer-identity-eyebrow">${escapeHtml(eyebrow)}</p>` : '',
-      `  <h2 class="footer-identity-name">${escapeHtml(name)}</h2>`,
-      summary ? `  <p class="footer-identity-summary">${escapeHtml(summary)}</p>` : '',
-      identityLinks ? `  <div class="footer-identity-actions">\n${indentBlock(identityLinks, '    ')}\n  </div>` : '',
-      '</section>'
-    ].filter(Boolean).join('\n');
   }).join('\n');
-
-  const navVariants = normalizeVariantMap(footer.navVariants, 'columns');
-  const navBase = navVariants.find((variant) => variant.id === footerRealm)
-    || navVariants[0]
-    || { id: 'personal', columns };
-  const baseConnectColumn = (Array.isArray(navBase.columns) ? navBase.columns : columns)
-    .find((column) => column && column.id === 'connect');
-  const selectedNavColumns = isProfessionalAudience
-    ? [
-        {
-          id: 'work',
-          title: 'Work',
-          links: [
-            { label: 'Home', href: audience.homePath || '/' },
-            {
-              label: 'Portfolio',
-              href: audience.portfolioPath || '/portfolio',
-              dataAttributes: { 'data-portfolio-home-link': 'true' }
-            },
-            {
-              label: audience.resumeNavTitle || 'Resume',
-              href: audience.resumePath || '',
-              dataAttributes: { 'data-resume-home-link': 'true' }
-            }
-          ].filter((link) => link.href)
-        },
-        baseConnectColumn || { id: 'connect', title: 'Connect', links: [] }
-      ]
-    : (Array.isArray(navBase.columns) ? navBase.columns : columns);
-  const renderedNavPanels = [{ id: footerRealm, columns: selectedNavColumns }]
-    .map((variant) => {
-      const realm = footerRealm;
-      const variantColumns = Array.isArray(variant.columns) ? variant.columns : columns;
-      return [
-        `<div class="footer-nav-panel" data-footer-realm="${escapeHtml(realm)}">`,
-        indentBlock(variantColumns.map((column, index) => renderFooterColumn(column, index, realm)).join('\n'), '  '),
-        '</div>'
-      ].join('\n');
-    }).join('\n');
-
-  const utilityLinks = Array.isArray(footer.utilityLinks)
-    ? footer.utilityLinks
-    : (columns.find((column) => column && column.id === 'site')?.links || []);
-  const renderedUtilityLinks = utilityLinks
-    .filter((link) => !isProfessionalAudience || String(link.label || '').trim().toLowerCase() !== 'sitemap')
-    .map((link) => renderFooterLink(link))
-    .join('\n');
-
-  const speedDial = footer.speedDial || {};
-  const speedDialItems = (Array.isArray(speedDial.items) ? speedDial.items : [])
-    .map((sourceItem) => {
-      const item = contextualizeFooterLink(sourceItem);
-      const inferredDataAttributes = { ...(item.dataAttributes || {}) };
-      if (!inferredDataAttributes['data-contact-modal-link'] && String(item.href || '').includes('#contact-modal')) {
-        inferredDataAttributes['data-contact-modal-link'] = 'true';
-      }
-      const linkAttrs = {
-        href: trimLeadingSlash(item.href || ''),
-        class: `speed-dial__action btn-icon${item.variant === 'direct' ? ' speed-dial__action--direct' : ''}`,
-        'aria-label': item.ariaLabel || item.label,
-        role: 'menuitem',
-        ...(item.target ? { target: item.target } : {}),
-        ...(item.rel ? { rel: item.rel } : {}),
-        ...inferredDataAttributes,
-        'data-speed-dial-action': true
-      };
-      return [
-        '<div class="speed-dial__item">',
-        `  <span class="speed-dial__label" aria-hidden="true">${escapeHtml(item.label || '')}</span>`,
-        `  <a${attrsToString(linkAttrs)}>`,
-        indentBlock(renderSvgMarkup(item.iconType), '    '),
-        '  </a>',
-        '</div>'
-      ].join('\n');
-    })
-    .join('\n');
-
-  const speedDialMarkup = [
-    '<div class="speed-dial" data-speed-dial="true">',
-    '  <div class="speed-dial__tray" data-speed-dial-tray>',
-    `    <div class="speed-dial__actions" id="${escapeHtml(speedDial.menuId || 'speed-dial-menu')}" role="menu" aria-label="${escapeHtml(speedDial.menuLabel || 'Contact options')}" aria-hidden="true" data-speed-dial-menu>`,
-    indentBlock(speedDialItems, '      '),
-    '    </div>',
-    '  </div>',
-    `  <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="${escapeHtml(speedDial.menuId || 'speed-dial-menu')}" aria-label="${escapeHtml(speedDial.toggleLabel || 'Open contact options')}" data-speed-dial-toggle>`,
-    indentBlock(renderSvgMarkup('speed-dial-toggle'), '    '),
-    '  </button>',
-    '</div>'
-  ].join('\n');
-
-  if (!isProfessionalAudience) {
-    const compactLinks = Array.isArray(footer.personalCompactLinks)
-      ? footer.personalCompactLinks
-      : [];
-    const renderedCompactLinks = compactLinks
-      .map((link) => renderFooterLink(link))
-      .join('\n');
-
-    return [
-      '<footer class="footer footer-classic footer--personal-compact" data-site-shell-footer>',
-      '  <div class="wrapper footer-inner">',
-      `    <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}</p>`,
-      '    <nav class="footer-utility" aria-label="Personal footer">',
-      indentBlock(renderedCompactLinks, '      '),
-      '    </nav>',
-      '  </div>',
-      '</footer>',
-      speedDialMarkup
-    ].join('\n');
-  }
-
   return [
-    '<footer class="footer footer-classic">',
+    '<footer class="footer footer-classic footer--personal-compact" data-site-shell-footer>',
     '  <div class="wrapper footer-inner">',
-    '    <div class="footer-identity">',
-    indentBlock(renderedIdentity, '      '),
-    '    </div>',
-    '    <nav class="footer-nav" aria-label="Footer">',
-    indentBlock(renderedNavPanels, '      '),
+    `    <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}</p>`,
+    '    <nav class="footer-utility" aria-label="Footer utility">',
+    indentBlock(renderedLinks, '      '),
     '    </nav>',
-    '    <div class="footer-bottom">',
-    '      <nav class="footer-utility" aria-label="Footer utility">',
-    indentBlock(renderedUtilityLinks, '        '),
-    '      </nav>',
-    `      <p class="footer-meta">© ${escapeHtml(year)} ${escapeHtml(footer.copyrightName || 'Daniel Short')}. All rights reserved.</p>`,
-    '    </div>',
     '  </div>',
-    '</footer>',
-    speedDialMarkup
+    '</footer>'
   ].join('\n');
 }
 
