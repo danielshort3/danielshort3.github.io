@@ -768,7 +768,7 @@ window.PROJECTS = [
       ],
       "selection": true,
       "credit": "Source: Lord, I Need You, Horn 1–2 in G · PraiseCharts",
-      "creditUrl": "https://www.praisecharts.com/23870",
+      "creditUrl": "https://www.praisecharts.com/songs/details/23870/lord-i-need-you-sheet-music/brass-pack/french-horn-1-2",
       "provenance": {
         "pipeline": "U-Net watermark removal followed by VDSR upscaling",
         "run": "Watermark-Remover-Agent/output/manual/20260409_195930",

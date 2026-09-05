@@ -85,7 +85,7 @@ async function main() {
   assert(html.includes('data-comparison-selection') && html.includes('data-selection-zoom'));
   assert.strictEqual((html.match(/data-full-stage/g) || []).length, 1, 'one original sheet is the region selector');
   assert.strictEqual((html.match(/data-comparison-source=/g) || []).length, 3, 'all native stages participate');
-  assert(html.includes('https://www.praisecharts.com/23870'), 'source attribution remains visible');
+  assert(html.includes('https://www.praisecharts.com/songs/details/23870/lord-i-need-you-sheet-music/brass-pack/french-horn-1-2'), 'source attribution links to the original horn sheet');
   assert.deepStrictEqual(project.previewComparison.stages.map((stage) => [stage.fullWidth, stage.fullHeight]), [[612, 792], [612, 792], [1700, 2200]]);
 
   const h = harness();

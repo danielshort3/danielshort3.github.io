@@ -699,11 +699,12 @@ function renderProjectPage(project) {
       const description = stage.description
         ? `<span class="project-stage-full-description">${escapeHtml(stage.description)}</span>`
         : '';
-      return `<figure class="project-stage-full" data-full-stage>
-          <figcaption class="project-stage-full-caption">
+      const caption = previewComparison.selection ? '' : `<figcaption class="project-stage-full-caption">
             <span class="project-stage-full-index" aria-hidden="true">0${index + 1}</span>
             <span class="project-stage-full-copy"><strong>${escapeHtml(stage.label)}</strong>${description}</span>
-          </figcaption>
+          </figcaption>`;
+      return `<figure class="project-stage-full" data-full-stage>
+          ${caption}
           <div class="project-stage-full-image-frame"${previewComparison.selection ? ' data-comparison-overview' : ''}>
             <img class="project-stage-full-image" src="${escapeHtml(stage.fullImage)}" alt="${escapeHtml(stage.fullAlt)}" loading="lazy" decoding="async" width="${stage.fullWidth}" height="${stage.fullHeight}">
             ${cropCue}
@@ -756,21 +757,20 @@ function renderProjectPage(project) {
       ? `<p class="project-comparison-credit">${previewComparison.creditUrl ? `<a href="${escapeHtml(previewComparison.creditUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(previewComparison.credit)}</a>` : escapeHtml(previewComparison.credit)}</p>`
       : '';
     return `<div class="project-image-comparison${previewComparison.selection ? ' project-image-comparison-selectable' : ''}" data-project-image-comparison${selectionAttributes} data-comparison-left="${previewComparison.left}" data-comparison-right="${previewComparison.right}" data-comparison-minimum-gap="${previewComparison.minimumGap}" style="--comparison-left:${previewComparison.left}%;--comparison-right:${previewComparison.right}%;--comparison-aspect:${previewComparison.width} / ${previewComparison.height};--comparison-full-aspect:${previewComparison.fullWidth} / ${previewComparison.fullHeight}${cropStyle}">
-      <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="${escapeHtml(fullHeadingId)}" aria-describedby="${escapeHtml(fullDescriptionId)}">
+      <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="${escapeHtml(fullHeadingId)}"${previewComparison.selection ? '' : ` aria-describedby="${escapeHtml(fullDescriptionId)}"`}>
         <div class="project-image-comparison-heading">
           <h3 id="${escapeHtml(fullHeadingId)}">${previewComparison.selection ? 'Choose an area' : 'Full images'}</h3>
-          <p id="${escapeHtml(fullDescriptionId)}">${escapeHtml(previewComparison.selection ? 'Explore the original sheet, then compare the same notes through each stage.' : fullDescription)}</p>
+          ${previewComparison.selection ? '' : `<p id="${escapeHtml(fullDescriptionId)}">${escapeHtml(fullDescription)}</p>`}
         </div>
         <div class="project-stage-full-grid">
           ${fullStages}
         </div>
-        ${selectionControls}
-        ${credit}
+        ${previewComparison.selection ? '' : credit}
       </section>
-      <section class="project-image-comparison-section project-image-comparison-zoom" aria-labelledby="${escapeHtml(zoomHeadingId)}" aria-describedby="${escapeHtml(zoomDescriptionId)}">
+      <section class="project-image-comparison-section project-image-comparison-zoom" aria-labelledby="${escapeHtml(zoomHeadingId)}"${previewComparison.selection ? '' : ` aria-describedby="${escapeHtml(zoomDescriptionId)}"`}>
         <div class="project-image-comparison-heading">
           <h3 id="${escapeHtml(zoomHeadingId)}">Zoomed comparison</h3>
-          <p id="${escapeHtml(zoomDescriptionId)}">Inspect the same detail across all three stages.</p>
+          ${previewComparison.selection ? '' : `<p id="${escapeHtml(zoomDescriptionId)}">Inspect the same detail across all three stages.</p>`}
         </div>
         <div class="project-image-comparison-zoom-card">
           <div class="project-image-comparison-viewport" id="${escapeHtml(viewportId)}" data-comparison-viewport>
@@ -790,6 +790,7 @@ function renderProjectPage(project) {
           </div>
         </div>
       </section>
+      ${previewComparison.selection ? `<div class="project-comparison-footer">${selectionControls}${credit}</div>` : ''}
     </div>`;
   };
 

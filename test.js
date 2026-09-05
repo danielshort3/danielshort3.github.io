@@ -39976,9 +39976,9 @@ try {
            sheetMusicHtml.includes('<span class="project-image-comparison-stage-name">Removed</span>') &&
            sheetMusicHtml.includes('<span class="project-image-comparison-stage-name">Upscaled</span>'),
       'sheetMusicUpscale zoom should use concise visible labels that fit narrow comparison regions');
-    assert(sheetMusicHtml.includes('aria-describedby="project-comparison-zoom-description-sheetMusicUpscale"') &&
-           !sheetMusicHtml.includes('aria-describedby="project-comparison-zoom-description-sheetMusicUpscale project-comparison-instructions-sheetMusicUpscale"'),
-      'sheetMusicUpscale zoom section should not announce hidden enhancement-only instructions');
+    assert(!sheetMusicHtml.includes('project-comparison-zoom-description-sheetMusicUpscale') &&
+           !sheetMusicHtml.includes('project-comparison-full-description-sheetMusicUpscale'),
+      'sheetMusicUpscale sections should omit removed descriptions and their ARIA references');
     assert(sheetMusicHtml.includes('data-comparison-controls hidden') &&
            sheetMusicHtml.includes('Click or tap the image to move the nearest divider.') &&
            sheetMusicHtml.includes('Drag either divider; it pushes the other when they meet.'),
