@@ -365,34 +365,7 @@
             min-width: 44px;
         }
 
-        .canvas-toast {
-            position: absolute;
-            left: 50%;
-            bottom: 12px;
-            transform: translate(-50%, 6px);
-            display: grid;
-            gap: 2px;
-            min-width: 140px;
-            max-width: calc(100% - 16px);
-            padding: 6px 10px;
-            border-radius: 10px;
-            border: 1px solid var(--surface-accent);
-            background: color-mix(in srgb, var(--surface) 92%, transparent);
-            box-shadow: var(--shadow-1);
-            text-align: center;
-            font-size: .85rem;
-            font-weight: 600;
-            color: var(--text);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .2s ease, transform .2s ease;
-            z-index: 3;
-        }
 
-        .canvas-toast.show {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
 
         .toolbar {
             display: flex;
@@ -634,9 +607,6 @@
                 font-size: .8rem;
             }
 
-            .canvas-toast {
-                font-size: .75rem;
-            }
         }
   </style>
   <script>
@@ -645,7 +615,7 @@
     }
   </script>
 </head>
-<body>
+<body class="demo-compact-workspace shape-workspace">
 <a href="#main" class="skip-link">Skip to main content</a>
     <script>
         (function () {
@@ -706,10 +676,6 @@
                     <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
                         <i class="fa-solid fa-eraser"></i>
                     </button>
-                    <div id="canvas-toast" class="canvas-toast" role="status" aria-live="polite" aria-atomic="true">
-                        <span class="toast-guess"></span>
-                        <span class="toast-score"></span>
-                    </div>
                 </div>
 
                 <div class="toolbar">
@@ -727,20 +693,19 @@
 
             <!-- Right: result & help -->
             <section class="panel" aria-live="polite">
+              <div class="prediction-summary">
                 <h2 class="demo-section-label">Prediction</h2>
-                <div>
-                    <div class="result-badge" id="result-badge" aria-label="Prediction">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        <!-- text first, then icon (so it shows after the word) -->
-                        <span id="result-shape">Draw a shape to begin</span>
-                        <span id="result-icon" aria-hidden="true"></span>
-                    </div>
+                <div class="result-badge" id="result-badge" aria-label="Prediction">
+                  <i class="fa-solid fa-magnifying-glass-chart"></i>
+                  <span id="result-shape">Draw a shape to begin</span>
+                  <span id="result-icon" aria-hidden="true"></span>
                 </div>
                 <div class="confidence-track" aria-label="Confidence">
-                    <div id="confidence-bar" class="confidence" style="width:0%"></div>
+                  <div id="confidence-bar" class="confidence" style="width:0%"></div>
                 </div>
                 <div id="confidence-text" class="hint">Confidence: –</div>
-                <details class="demo-disclosure">
+              </div>
+              <details class="demo-disclosure">
                     <summary>All shape scores</summary>
                     <div id="shape-score-list" class="shape-score-list" aria-label="Per-shape scores"></div>
                 </details>
@@ -850,9 +815,6 @@
         const eraseBtn = document.getElementById('erase');
         const classifyBtn = document.getElementById('classify');
         const healthPill = document.getElementById('health-pill');
-        const canvasToast = document.getElementById('canvas-toast');
-        const toastGuess = canvasToast?.querySelector('.toast-guess');
-        const toastScore = canvasToast?.querySelector('.toast-score');
 
         const resultBadge = document.getElementById('result-badge');
         const resultShape = document.getElementById('result-shape');
@@ -869,7 +831,6 @@
         let drawing = false;
         let serverReady = false;
         let classifying = false;
-        let toastTimer = null;
 
         const SHAPE_ORDER = [
             { key: 'circle', label: 'Circle' },
@@ -1162,18 +1123,6 @@
             return null;
         }
 
-        function showCanvasToast(label, confidenceValue) {
-            if (!canvasToast || !toastGuess || !toastScore) return;
-            const pct = toPercent(confidenceValue);
-            if (!label) return;
-            toastGuess.textContent = `Guess: ${label}`;
-            toastScore.textContent = pct === null ? 'Confidence: --' : `Confidence: ${Math.round(pct)}%`;
-            canvasToast.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                canvasToast.classList.remove('show');
-            }, 2000);
-        }
 
         function setPredictionUI(text, confidence, iconName = null) {
             resultShape.textContent = text;
@@ -1338,7 +1287,6 @@
 
                 setPredictionUI(`Prediction: ${pretty}`, resolvedConfidence, canonical !== 'unknown' ? canonical : null);
                 renderShapeScores(shapeScores, canonical !== 'unknown' ? canonical : null);
-                showCanvasToast(pretty, resolvedConfidence);
             } catch (err) {
                 setStep('process', 'not-started');
                 setStep('complete', 'not-started');
@@ -1399,6 +1347,6 @@
         // (No ResizeObserver-driven notifyResize() to prevent iframe jitter)
     </script>
     <footer></footer>
-    <script defer src="dist/site-consent.33b42e2d.js"></script>
+    <script defer src="dist/site-consent.5fbd7df8.js"></script>
 </body>
 </html>

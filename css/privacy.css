@@ -56,6 +56,19 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner,
 #pcz-modal {
+  --modal-accent: #091f3b;
+  --modal-radius: 12px;
+  --modal-radius-mobile: 12px;
+  --modal-border: #091f3b;
+  --modal-surface: #ffffff;
+  --pcz-accent: #091f3b;
+  --pcz-link: #091f3b;
+  --cta-blue: #091f3b;
+  --cta-blue-gradient: #091f3b;
+  --cta-blue-hover: #1d3653;
+  --cta-blue-gradient-hover: #1d3653;
+  --cta-blue-shadow: none;
+  --cta-blue-shadow-hover: none;
   font-family: var(--font-sans, "Inter", "Segoe UI", Arial, sans-serif);
   font-size: 16px;
   line-height: 1.5;
@@ -191,9 +204,9 @@ body[data-consent-banner="open"] .speed-dial {
 
 #pcz-banner .pcz-btn,
 #pcz-modal .pcz-save-preferences {
-  min-height: 38px;
+  min-height: 44px;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 0.92rem;
   font-weight: 600;
@@ -302,7 +315,7 @@ body[data-consent-banner="open"] .speed-dial {
   overflow: auto;
   margin: 0;
   padding: clamp(20px, 2.8vw, 28px);
-  border: 1px solid var(--modal-border, var(--pcz-border));
+  border: 4px solid var(--modal-border, var(--pcz-border));
   border-radius: var(--pcz-panel-radius);
   background: var(--modal-surface, #ffffff);
   box-shadow: var(--pcz-shadow);
@@ -313,6 +326,7 @@ body[data-consent-banner="open"] .speed-dial {
 }
 
 #pcz-modal .pcz-panel::before {
+  display: none;
   content: "";
   position: absolute;
   inset: 0 0 auto;

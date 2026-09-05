@@ -83,7 +83,14 @@
     }
     if (source) {
       const icon = source.querySelector('svg');
-      if (icon) link.firstElementChild.replaceChildren(document.importNode(icon, true));
+      if (icon) {
+        const copy = document.importNode(icon, true);
+        // Keep icons legible while their route stylesheet is being prepared.
+        [['width', '24'], ['height', '24'], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '1.9']].forEach(([name, value]) => {
+          if (!copy.hasAttribute(name)) copy.setAttribute(name, value);
+        });
+        link.firstElementChild.replaceChildren(copy);
+      }
       const label = source.querySelector('[class$="rail-label"]');
       if (label) link.children[1].textContent = label.textContent;
       link.href = source.getAttribute('href') || `/#${category}`;
@@ -221,12 +228,14 @@
     return {
       category: frame.dataset.frameCategory,
       audience: frame.dataset.frameAudience,
+      home: frame.dataset.frameHome === 'true',
+      view: frame.dataset.frameView,
       compact: frame.dataset.frameCompact === 'true',
       scroll: { x: window.scrollX, y: window.scrollY },
       host: { ...rect(frame), paddingTop: hostStyle.paddingTop, paddingRight: hostStyle.paddingRight,
         paddingBottom: hostStyle.paddingBottom, paddingLeft: hostStyle.paddingLeft },
       frame: { ...rect(stage), radius: style.borderRadius, borderWidth: style.borderTopWidth, borderColor: style.borderTopColor, shadow: style.boxShadow },
-      panel: rect(panel), slot: rect(slot), tabs: tabRects, children
+      panel: rect(panel), slot: { ...rect(slot), padding: getComputedStyle(slot).padding }, tabs: tabRects, children
     };
   }
 
@@ -317,7 +326,7 @@
     if (!frame) return null;
     const from = options.from || capture();
     const scroll = reserveFlow();
-    geometry?.finish(false);
+    geometry?.finish(false, true);
     clearHold();
     const records = [];
     [frame, stage, panel, slot, canvas].forEach((node) => rememberStyle(records, node));
@@ -388,11 +397,65 @@
     };
   }
 
+  function compactStack(before, after, description) {
+    if (!before.compact || !after.compact || before.audience !== 'personal' || description.audience !== 'personal' ||
+      Math.abs(before.frame.width - after.frame.width) > 1 ||
+      !(before.home && before.view === 'overview' || description.home && description.view === 'overview') ||
+      before.category === description.category && before.view === description.view) return null;
+    const ids = personalOrder.filter((id) => before.tabs.get(id)?.height > 0 || after.tabs.get(id)?.height > 0);
+    const endpoints = (layout) => new Map(ids.map((id) => {
+      const row = layout.tabs.get(id);
+      if (row?.width && row.height) return [id, row];
+      return [id, { x: layout.frame.x, width: layout.frame.width, height: 0,
+        y: personalOrder.indexOf(id) > personalOrder.indexOf(layout.category) ? layout.slot.y + layout.slot.height : layout.frame.y }];
+    }));
+    const first = endpoints(before);
+    const last = endpoints(after);
+    const middle = new Map();
+    let top = after.frame.y + parseFloat(after.frame.borderWidth || 0);
+    ids.forEach((id) => {
+      const first = before.tabs.get(id);
+      const last = after.tabs.get(id);
+      const height = ((first?.width ? first.height : 0) + (last?.width ? last.height : 0)) / 2;
+      middle.set(id, { x: after.frame.x, y: top, width: after.frame.width, height });
+      top += height;
+    });
+    // A retarget can begin halfway through either phase. Locate its actual gap,
+    // rather than assuming the previous requested category already owns it.
+    const oldCategory = ids.reduce((best, id) => {
+      const box = before.tabs.get(id);
+      const previous = before.tabs.get(best);
+      return box?.height > 0 && box.y + box.height <= before.slot.y + 1 &&
+        (!previous || box.y + box.height > previous.y + previous.height) ? id : best;
+    }, null) || before.category;
+    const packedSlot = (id) => {
+      const row = middle.get(id);
+      return { x: after.frame.x, y: row ? row.y + row.height : top, width: after.frame.width, height: 0 };
+    };
+    return { ids, first, last, middle, closing: packedSlot(oldCategory), opening: packedSlot(description.category) };
+  }
+
+  function resolveScrollTarget(layout, requested) {
+    if (!layout.compact) return null;
+    const maximum = Math.max(0, document.body.getBoundingClientRect().bottom + window.scrollY - window.innerHeight);
+    let target = window.scrollY;
+    if (requested?.target?.isConnected) {
+      const margin = parseFloat(getComputedStyle(requested.target).scrollMarginTop || 0) || 0;
+      const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop || 0) || 0;
+      target = requested.target.getBoundingClientRect().top + window.scrollY - Math.max(requested.offset || 0, margin, padding);
+    } else if (Number.isFinite(requested?.top)) target = requested.top;
+    else if (requested?.category) {
+      const row = layout.tabs.get(requested.category);
+      if (row) target = row.y + layout.scroll.y - (requested.offset || 0);
+    }
+    return Math.max(0, Math.min(maximum, target));
+  }
+
   function transitionFrame(description, options) {
     if (!frame || !description) return Promise.resolve(false);
     const before = options.from || capture();
     const scroll = reserveFlow();
-    geometry?.finish(false);
+    geometry?.finish(false, true);
     clearHold();
     desiredTarget = description;
     const visible = configure(description);
@@ -409,43 +472,49 @@
     }
     const after = capture();
     restoreStyles(measuring);
+    const stack = compactStack(before, after, description);
+    const scrollTarget = options.holdHeight == null ? resolveScrollTarget(after, options.scroll) : null;
     const milliseconds = options.animate === false || reducedQuery.matches ? 0 :
       (typeof options.duration === 'number' ? options.duration : duration('--site-frame-geometry-duration', 320));
     if (!milliseconds || !stage.animate) {
       if (options.holdHeight != null) hold({ from: after });
-      else releaseFlow();
+      else releaseFlow(scrollTarget == null ? null : { x: scroll.x, y: scrollTarget });
       updateBoundary();
       return (geometryCompletion = Promise.resolve(true));
     }
     const records = [];
     const animations = [];
-    const pin = (node, first, last) => {
+    const pin = (node, first, last, middle) => {
       rememberStyle(records, node);
       node.hidden = false;
       pinBox(node, last, { x: after.frame.x + parseFloat(after.frame.borderWidth || 0), y: after.frame.y + parseFloat(after.frame.borderWidth || 0) });
-      animations.push(node.animate([
-        {
-          transform: `translate(${first.x - before.frame.x - parseFloat(before.frame.borderWidth || 0) - last.x + after.frame.x + parseFloat(after.frame.borderWidth || 0)}px, ${first.y - before.frame.y - parseFloat(before.frame.borderWidth || 0) - last.y + after.frame.y + parseFloat(after.frame.borderWidth || 0)}px)`,
-          width: `${first.width}px`, height: `${first.height}px`
-        },
-        { transform: 'translate(0, 0)', width: `${last.width}px`, height: `${last.height}px` }
-      ], { duration: milliseconds, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'both' }));
+      const point = (bounds, origin) => ({
+        transform: `translate(${bounds.x - origin.frame.x - parseFloat(origin.frame.borderWidth || 0) - last.x + after.frame.x + parseFloat(after.frame.borderWidth || 0)}px, ${bounds.y - origin.frame.y - parseFloat(origin.frame.borderWidth || 0) - last.y + after.frame.y + parseFloat(after.frame.borderWidth || 0)}px)`,
+        width: `${bounds.width}px`, height: `${bounds.height}px`
+      });
+      const easing = 'cubic-bezier(.22, 1, .36, 1)';
+      const keyframes = middle ? [
+        { ...point(first, before), offset: 0, easing },
+        { ...point(middle, after), offset: .5, easing },
+        { ...point(last, after), offset: 1 }
+      ] : [point(first, before), point(last, after)];
+      animations.push(node.animate(keyframes, { duration: milliseconds, easing: middle ? 'linear' : easing, fill: 'both' }));
     };
     const active = after.tabs.get(description.category) || after.slot;
     const previousTab = before.tabs.get(before.category);
     const previousActive = previousTab?.width > 0 && previousTab?.height > 0 ? previousTab : before.slot;
     const retractingRightTabs = [];
     tabs.forEach((node, id) => {
-      let first = before.tabs.get(id);
+      let first = stack?.first.get(id) || before.tabs.get(id);
       if (!first || (!first.width && !first.height)) {
         first = collapsedTabBounds(before, after, id, previousActive);
       }
-      const last = visible.includes(id) ? after.tabs.get(id) :
-        collapsedTabBounds(after, before, id, active);
+      const last = stack?.last.get(id) || (visible.includes(id) ? after.tabs.get(id) :
+        collapsedTabBounds(after, before, id, active));
       if (!compactQuery.matches && !visible.includes(id) && first.width > 0 && first.x >= before.slot.x + before.slot.width - 1) {
         retractingRightTabs.push(node);
       }
-      if (first.width || first.height || visible.includes(id)) pin(node, first, last);
+      if (first.width || first.height || visible.includes(id)) pin(node, first, last, stack?.middle.get(id));
       const firstChildren = before.children?.get(id);
       const lastChildren = after.children?.get(id);
       if (visible.includes(id) && firstChildren && before.tabs.get(id)?.width) {
@@ -493,9 +562,29 @@
       width: `${Math.max(0, after.slot.width - insetLeft - parseFloat(slotStyle.paddingRight || 0))}px`,
       height: `${Math.max(0, after.slot.height - insetTop - parseFloat(slotStyle.paddingBottom || 0))}px`
     });
+    if (stack) {
+      pinBox(slot, after.slot, { x: after.frame.x, y: after.frame.y });
+      const point = (bounds, origin) => ({
+        transform: `translate(${bounds.x - origin.frame.x - after.slot.x + after.frame.x}px, ${bounds.y - origin.frame.y - after.slot.y + after.frame.y}px)`,
+        width: `${bounds.width}px`, height: `${bounds.height}px`
+      });
+      const easing = 'cubic-bezier(.22, 1, .36, 1)';
+      animations.push(slot.animate([
+        { ...point(before.slot, before), padding: before.slot.padding, offset: 0, easing },
+        { ...point(stack.closing, after), padding: '0px', offset: .5 },
+        { ...point(stack.opening, after), padding: '0px', offset: .5, easing },
+        { ...point(after.slot, after), padding: after.slot.padding, offset: 1 }
+      ], { duration: milliseconds, easing: 'linear', fill: 'both' }));
+    }
     // Keep destination text at its measured width instead of reflowing it on
     // every frame. The outer slot clips to the space between the moving rails.
     const syncSlot = () => {
+      if (stack) {
+        slot.style.setProperty('--frame-slot-border-width', getComputedStyle(slot).padding);
+        updateBoundary();
+        updateLoadingPosition();
+        return;
+      }
       const area = rect(panel);
       let left = area.x;
       let top = area.y;
@@ -526,9 +615,10 @@
       updateLoadingPosition();
     };
     frame.classList.add('site-frame--moving');
-    animations.push(frame.animate([
+    const hostAnimation = frame.animate([
       { height: `${before.host.height}px` }, { height: `${after.host.height}px` }
-    ], { duration: milliseconds, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'both' }));
+    ], { duration: milliseconds, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'both' });
+    animations.push(hostAnimation);
     animations.push(stage.animate([{
       transform: `translate(${before.frame.x + (before.scroll?.x || 0) - after.frame.x - (after.scroll?.x || 0)}px, ${before.frame.y + (before.scroll?.y || 0) - after.frame.y - (after.scroll?.y || 0)}px)`,
       width: `${before.frame.width}px`, height: `${before.frame.height}px`, borderRadius: before.frame.radius,
@@ -539,7 +629,7 @@
     }], {
       duration: milliseconds, easing: 'cubic-bezier(.22, 1, .36, 1)', fill: 'both'
     }));
-    releaseFlow(scroll);
+    if (window.scrollX !== scroll.x || window.scrollY !== scroll.y) window.scrollTo({ left: scroll.x, top: scroll.y, behavior: 'instant' });
     syncSlot();
     const pendingHold = options.holdHeight != null ? { from: before, records: [], refreshing: true } : null;
     if (pendingHold) {
@@ -550,11 +640,24 @@
       let timer;
       let animationFrame;
       let settled = false;
-      const finish = (completed) => {
+      let scrollInterrupted = false;
+      const interruptScroll = () => { scrollInterrupted = true; };
+      if (scrollTarget != null) {
+        window.addEventListener('touchmove', interruptScroll, { passive: true });
+        window.addEventListener('wheel', interruptScroll, { passive: true });
+      }
+      let openContent;
+      const opening = stack ? new Promise((ready) => { openContent = ready; }) : null;
+      const openingTimer = stack ? window.setTimeout(() => openContent(true), milliseconds / 2) : null;
+      const finish = (completed, retainFlow = false) => {
         if (settled) return;
         settled = true;
         window.clearTimeout(timer);
         window.cancelAnimationFrame(animationFrame);
+        window.clearTimeout(openingTimer);
+        window.removeEventListener('touchmove', interruptScroll);
+        window.removeEventListener('wheel', interruptScroll);
+        openContent?.(completed);
         options.signal?.removeEventListener('abort', abort);
         const holdAfter = completed && pendingHold && held === pendingHold ? capture() : null;
         animations.forEach((animation) => animation.cancel());
@@ -563,17 +666,22 @@
         if (geometry?.finish === finish) geometry = null;
         if (held === pendingHold && pendingHold) clearHold();
         if (holdAfter) hold({ from: holdAfter });
+        else if (!retainFlow) releaseFlow(completed && scrollTarget != null && !scrollInterrupted ? { x: scroll.x, y: scrollTarget } : null);
         updateBoundary();
         updateLoadingPosition();
         resolve(completed);
       };
       const tick = () => {
         if (settled) return;
+        if (scrollTarget != null && !scrollInterrupted) {
+          const progress = hostAnimation.effect.getComputedTiming().progress || 0;
+          window.scrollTo({ left: scroll.x, top: scroll.y + (scrollTarget - scroll.y) * progress, behavior: 'instant' });
+        }
         syncSlot();
         animationFrame = window.requestAnimationFrame(tick);
       };
       const abort = () => finish(false);
-      geometry = { finish, target: description };
+      geometry = { finish, target: description, opening };
       animationFrame = window.requestAnimationFrame(tick);
       Promise.all(animations.map((animation) => animation.finished)).then(() => finish(true), () => finish(false));
       timer = window.setTimeout(() => finish(true), milliseconds + 80);
@@ -583,6 +691,9 @@
 
   function wipe(open, options = {}) {
     if (!viewport) return Promise.resolve(true);
+    if (open && geometry?.opening && !options.geometryReady) {
+      return geometry.opening.then((ready) => ready ? wipe(true, { ...options, geometryReady: true }) : false);
+    }
     const first = getComputedStyle(viewport).clipPath;
     wipeMotion?.finish(false);
     wipeClosed = !open;
@@ -692,7 +803,7 @@
 
   function prepareHeldFrame(description, from) {
     const scroll = reserveFlow();
-    geometry?.finish(false);
+    geometry?.finish(false, true);
     clearHold();
     configure(description);
     const target = capture();
@@ -747,7 +858,7 @@
       });
       body.replaceChildren(item);
       if (mounting) { prepareHeldTarget(next, held.refreshing ? capture() : held.from); return true; }
-      const moving = release({ animate: options.animate !== false });
+      const moving = release({ animate: options.animate !== false, scroll: options.scroll });
       await Promise.all([moving, options.animate !== false ? wipe(true) : Promise.resolve(true)]);
       return sequence === localSequence;
     });

@@ -412,34 +412,7 @@
       min-width: 44px;
     }
 
-    .canvas-toast {
-      position: absolute;
-      left: 50%;
-      bottom: 12px;
-      transform: translate(-50%, 6px);
-      display: grid;
-      gap: 2px;
-      min-width: 140px;
-      max-width: calc(100% - 16px);
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
-      box-shadow: var(--shadow-1);
-      text-align: center;
-      font-size: .85rem;
-      font-weight: 600;
-      color: var(--text);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s ease, transform .2s ease;
-      z-index: 3;
-    }
 
-    .canvas-toast.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
 
     .toolbar {
       display: flex;
@@ -642,9 +615,6 @@
         gap: 8px;
       }
 
-      .canvas-toast {
-        font-size: .75rem;
-      }
     }
 
     @media (max-width: 600px) {
@@ -733,7 +703,7 @@
     }
   </script>
 </head>
-<body>
+<body class="demo-compact-workspace handwriting-rating-workspace">
 <a href="#main" class="skip-link">Skip to main content</a>
   <script>
     (function () {
@@ -809,10 +779,6 @@
 	              <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
 	                <i class="fa-solid fa-eraser"></i>
               </button>
-              <div id="canvas-toast" class="canvas-toast" role="status" aria-live="polite" aria-atomic="true">
-                <span class="toast-guess"></span>
-                <span class="toast-score"></span>
-              </div>
             </div>
 	          </div>
 	        </div>
@@ -826,29 +792,28 @@
       </section>
 
 	      <section class="panel" aria-live="polite">
-	        <h2 class="demo-section-label">Legibility result</h2>
-	        <div class="result-badge" id="result-badge" aria-label="Prediction">
-	          <i class="fa-solid fa-pen-nib"></i>
-	          <span id="result-digit">Prediction: --</span>
-	          <span id="result-divider" class="result-divider" aria-hidden="true">•</span>
-	          <span id="result-actual" class="result-actual">Actual: --</span>
-	        </div>
-
-	        <div class="confidence-track" aria-label="Confidence">
-	          <div id="confidence-bar" class="confidence" style="width:0%"></div>
-	        </div>
-	        <div id="confidence-text" class="hint">Confidence: –</div>
-
-	        <div class="score-card">
-	          <div class="score-head">
-	            <span class="score-label">Legibility score</span>
-	            <span id="legibility-value" class="score-value">--</span>
+        <div class="prediction-summary">
+          <h2 class="demo-section-label">Legibility result</h2>
+          <div class="result-badge" id="result-badge" aria-label="Prediction">
+            <i class="fa-solid fa-pen-nib"></i>
+            <span id="result-digit">Prediction: --</span>
+            <span id="result-divider" class="result-divider" aria-hidden="true">•</span>
+            <span id="result-actual" class="result-actual">Actual: --</span>
           </div>
-          <div class="score-track">
-            <div id="legibility-bar" class="score-bar" style="width:0%"></div>
+          <div class="confidence-track" aria-label="Confidence">
+            <div id="confidence-bar" class="confidence" style="width:0%"></div>
+          </div>
+          <div id="confidence-text" class="hint">Confidence: –</div>
+          <div class="score-card">
+            <div class="score-head">
+              <span class="score-label">Legibility score</span>
+              <span id="legibility-value" class="score-value">--</span>
+            </div>
+            <div class="score-track">
+              <div id="legibility-bar" class="score-bar" style="width:0%"></div>
+            </div>
           </div>
         </div>
-
         <details class="demo-disclosure">
           <summary>All digit scores</summary>
           <div id="confidence-list" class="confidence-list" aria-label="Confidence list"></div>
@@ -966,9 +931,6 @@
     const eraseBtn = document.getElementById('erase');
     const rateBtn = document.getElementById('rate');
     const healthPill = document.getElementById('health-pill');
-    const canvasToast = document.getElementById('canvas-toast');
-    const toastGuess = canvasToast?.querySelector('.toast-guess');
-    const toastScore = canvasToast?.querySelector('.toast-score');
 
     const resultBadge = document.getElementById('result-badge');
     const resultDigit = document.getElementById('result-digit');
@@ -993,7 +955,6 @@
     let serverReady = false;
     let scoring = false;
     let warming = false;
-    let toastTimer = null;
 
     function fitCanvasToDisplaySize() {
       const r = canvas.getBoundingClientRect();
@@ -1294,18 +1255,6 @@
       legibilityValue.textContent = pct !== null ? `${Math.round(pct)}%` : '--';
     }
 
-    function showCanvasToast(digit, legibilityValue) {
-      if (!canvasToast || !toastGuess || !toastScore) return;
-      const pct = toPercent(legibilityValue);
-      if (!Number.isFinite(digit) || pct === null) return;
-      toastGuess.textContent = `Guess: ${digit}`;
-      toastScore.textContent = `Legibility: ${Math.round(pct)}%`;
-      canvasToast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        canvasToast.classList.remove('show');
-      }, 2000);
-    }
 
     function setPredictionUI(message, confidences, legibility, digit, actualDigit = null) {
       const stats = getPredictionStats(confidences, legibility, digit, actualDigit);
@@ -1460,7 +1409,6 @@
         setStep('complete', 'done');
 
         const stats = setPredictionUI('Prediction ready', confidences, legibility, digit, currentActualDigit);
-        showCanvasToast(stats.resolvedDigit, stats.legibilityValueSource);
       } catch (err) {
         setStep('score', 'not-started');
         setStep('complete', 'not-started');
@@ -1509,6 +1457,6 @@
     window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
   </script>
   <footer></footer>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
 </body>
 </html>

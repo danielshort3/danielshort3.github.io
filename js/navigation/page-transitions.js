@@ -69,6 +69,9 @@
   let committedUrl = window.location.href;
   let committedSnapshot = null;
   let restoringVetoedPop = false;
+  const shellGeneration = Object.freeze(getShellGeneration(readRouteManifest(document, resolveUrl(window.location.href))));
+  let shellStyleLink = shellGeneration.style ? findStylesheet(shellGeneration.style) : null;
+  const shellStyleMedia = shellStyleLink?.getAttribute('media') || '';
 
   Array.from(document.scripts || []).forEach((script) => {
     if (script.src) loadedScripts.add(scriptIdentity(script.src));
@@ -100,6 +103,42 @@
     if (!url) return '';
     url.hash = '';
     return url.href;
+  }
+
+  function getShellGeneration(manifest) {
+    const find = (values, pattern) => (values || []).find((value) => pattern.test(resolveUrl(value)?.pathname || '')) || '';
+    return {
+      style: find(manifest?.styles, /\/dist\/styles(?:\.[a-f0-9]+)?\.css$/i),
+      script: find(manifest?.scripts, /\/dist\/site-shell(?:\.[a-f0-9]+)?\.js$/i)
+    };
+  }
+
+  function isCompatibleGeneration(manifest) {
+    const target = getShellGeneration(manifest);
+    // Unbundled source documents have no generation pair to compare.
+    if (!shellGeneration.style || !shellGeneration.script) return true;
+    return target.style === shellGeneration.style && target.script === shellGeneration.script;
+  }
+
+  function generationMismatchError() {
+    const error = new Error('The destination belongs to a different site version. Reload to continue.');
+    error.code = 'SITE_ROUTE_GENERATION_MISMATCH';
+    return error;
+  }
+
+  function requireCompatibleGeneration(manifest) {
+    if (!isCompatibleGeneration(manifest)) throw generationMismatchError();
+  }
+
+  function pinShellStyles() {
+    if (!shellGeneration.style) return;
+    shellStyleLink = findStylesheet(shellGeneration.style) || shellStyleLink;
+    if (!shellStyleLink) return;
+    if (!shellStyleLink.isConnected) document.head.appendChild(shellStyleLink);
+    shellStyleLink.disabled = false;
+    if (shellStyleLink.sheet) shellStyleLink.sheet.disabled = false;
+    if (shellStyleMedia) shellStyleLink.media = shellStyleMedia;
+    else shellStyleLink.removeAttribute('media');
   }
 
   function getDocumentAssetBase(scope, routeUrl) {
@@ -347,7 +386,7 @@
 
   async function fetchRouteDocument(url, options = {}) {
     const key = normalizeRouteUrl(url);
-    const cached = getRouteCache(key);
+    const cached = options.cache === 'reload' ? null : getRouteCache(key);
     if (cached) {
       try {
         return parseRouteResponse(cached, url);
@@ -357,7 +396,9 @@
       }
     }
 
-    let pending = pendingFetches.get(key);
+    // Revalidation cannot reuse an older in-flight force-cache request.
+    const pendingKey = options.cache === 'reload' ? `${key}\nreload` : key;
+    let pending = pendingFetches.get(pendingKey);
     if (!pending) {
       const controller = new AbortController();
       const abortFromNavigation = () => controller.abort(options.signal?.reason || makeAbortError());
@@ -382,10 +423,10 @@
         return payload;
       }).finally(() => {
         options.signal?.removeEventListener('abort', abortFromNavigation);
-        if (pendingFetches.get(key)?.promise === promise) pendingFetches.delete(key);
+        if (pendingFetches.get(pendingKey)?.promise === promise) pendingFetches.delete(pendingKey);
       });
       pending = { controller, promise };
-      pendingFetches.set(key, pending);
+      pendingFetches.set(pendingKey, pending);
     }
     let payload;
     try {
@@ -394,7 +435,7 @@
       const retryAbortedPending = options.retryAbortedPending !== false &&
         isAbortError(error) && !options.signal?.aborted;
       if (!retryAbortedPending) throw error;
-      if (pendingFetches.get(key) === pending) pendingFetches.delete(key);
+      if (pendingFetches.get(pendingKey) === pending) pendingFetches.delete(pendingKey);
       return fetchRouteDocument(url, { ...options, retryAbortedPending: false });
     }
     try {
@@ -426,6 +467,12 @@
 
   function prepareRoute(url, options = {}) {
     const key = normalizeRouteUrl(url);
+    pinShellStyles();
+    if (options.cache === 'reload') {
+      preparedRoutes.delete(key);
+      preparedStyleRefs.delete(key);
+      routeCache.delete(key);
+    }
     let prepared = preparedRoutes.get(key);
     if (!prepared) {
       prepared = prepareRouteResources(url, options);
@@ -447,12 +494,30 @@
       preparedRoutes.delete(oldest);
       if (!activeNavigation?.key.startsWith(oldest)) preparedStyleRefs.delete(oldest);
     }
-    return raceWithAbort(prepared, options.signal);
+    return raceWithAbort(prepared.then(async (route) => {
+      // Cached prepared objects also need validation: a successful old CSS load
+      // does not make its document compatible with the running persistent shell.
+      if (!isCompatibleGeneration(route.manifest)) {
+        if (options.cache === 'reload') throw generationMismatchError();
+        return prepareRoute(url, { ...options, cache: 'reload' });
+      }
+      // A bounded cache may outlive an externally detached stylesheet node.
+      const styles = await prepareRouteStyles(route, options.signal);
+      return { ...route, styles };
+    }), options.signal);
   }
 
   async function prepareRouteResources(url, options = {}) {
     const key = normalizeRouteUrl(url);
     const route = await fetchRouteDocument(url, { prefetch: options.prefetch, cache: options.cache });
+    if (!isCompatibleGeneration(route.manifest)) {
+      routeCache.delete(key);
+      preparedStyleRefs.delete(key);
+      if (options.cache === 'reload') throw generationMismatchError();
+      // Keep the pending promise as the shared owner while replacing its stale
+      // document. No caller can observe the incompatible prepared result.
+      return prepareRouteResources(url, { ...options, cache: 'reload' });
+    }
     preparedStyleRefs.set(key, new Set(route.manifest.styles));
     try {
       const [styles] = await Promise.all([prepareRouteStyles(route), prepareRouteScripts(route, undefined, options.cache)]);
@@ -470,6 +535,7 @@
   function prunePreparedStyles() {
     const currentManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
     const keep = new Set(currentManifest?.styles || []);
+    if (shellGeneration.style) keep.add(shellGeneration.style);
     preparedStyleRefs.forEach((styles, key) => {
       if (preparedRoutes.has(key) || activeNavigation?.key.startsWith(key)) styles.forEach((href) => keep.add(href));
       else preparedStyleRefs.delete(key);
@@ -478,7 +544,7 @@
       if (keep.has(href)) return;
       promise.then(({ link }) => {
         const liveManifest = readRouteManifest(document, resolveUrl(window.location.href), { strict: false });
-        const retained = (liveManifest?.styles || []).includes(href) || [...preparedStyleRefs].some(([key, styles]) =>
+        const retained = href === shellGeneration.style || (liveManifest?.styles || []).includes(href) || [...preparedStyleRefs].some(([key, styles]) =>
           (preparedRoutes.has(key) || activeNavigation?.key.startsWith(key)) && styles.has(href)
         );
         if (!retained && styleLoads.get(href) === promise) {
@@ -622,8 +688,23 @@
   }
 
   function loadStylesheet(href, targetDocument, signal) {
-    if (styleLoads.has(href)) return raceWithAbort(styleLoads.get(href), signal);
-    if (findStylesheet(href)) return Promise.resolve({ link: findStylesheet(href), added: false });
+    const cached = styleLoads.get(href);
+    if (cached) return raceWithAbort(cached.then((entry) => {
+      if (entry.link?.isConnected) return entry;
+      if (styleLoads.get(href) === cached) styleLoads.delete(href);
+      return loadStylesheet(href, targetDocument, signal);
+    }), signal);
+    const existing = findStylesheet(href);
+    if (existing?.sheet) {
+      if (!('siteRouteMedia' in existing.dataset)) existing.dataset.siteRouteMedia = existing.getAttribute('media') || '';
+      return Promise.resolve({ link: existing, added: false });
+    }
+    // A failed initial link does not emit another load event when reused.
+    // Replace it so recovery observes a real, successful stylesheet request.
+    if (existing) {
+      existing.remove();
+      if (existing === shellStyleLink) shellStyleLink = null;
+    }
     throwIfAborted(signal);
     const ready = new Promise((resolve, reject) => {
       const targetLink = Array.from(targetDocument.querySelectorAll('link[rel~="stylesheet"][href]')).find((link) =>
@@ -651,6 +732,7 @@
       };
       link.addEventListener('load', () => {
         cleanup();
+        if (href === shellGeneration.style) shellStyleLink = link;
         resolve({ link, added: true });
       }, { once: true });
       link.addEventListener('error', () => {
@@ -662,7 +744,7 @@
       document.head.appendChild(link);
     });
     styleLoads.set(href, ready);
-    ready.catch(() => styleLoads.delete(href));
+    ready.catch(() => { if (styleLoads.get(href) === ready) styleLoads.delete(href); });
     return ready;
   }
 
@@ -676,10 +758,13 @@
   function activatePreparedStyles(links) {
     links.forEach((link) => {
       if (!link) return;
+      link.disabled = false;
+      if (link.sheet) link.sheet.disabled = false;
       const media = link.dataset.siteRouteMedia || '';
       if (media) link.media = media;
       else link.removeAttribute('media');
     });
+    pinShellStyles();
   }
 
   // A nonmatching stylesheet can finish fetching before WebKit attaches its
@@ -687,7 +772,9 @@
   function waitForStylesheetActivation(links, signal) {
     throwIfAborted(signal);
     const attached = () => links.every((link) => !link ||
-      (link.sheet && Array.from(document.styleSheets).includes(link.sheet)));
+      (link.isConnected && !link.disabled && link.sheet && !link.sheet.disabled &&
+        Array.from(document.styleSheets).includes(link.sheet) &&
+        String(link.media || '').trim() === String(link.dataset?.siteRouteMedia || '').trim()));
     if (attached()) return Promise.resolve();
     return new Promise((resolve, reject) => {
       let animationFrame;
@@ -714,7 +801,7 @@
     if (!previousManifest) return;
     const keep = new Set(nextManifest.styles);
     previousManifest.styles.forEach((href) => {
-      if (!keep.has(href)) {
+      if (href !== shellGeneration.style && !keep.has(href)) {
         const link = findStylesheet(href);
         if (link) {
           if (!('siteRouteMedia' in link.dataset)) link.dataset.siteRouteMedia = link.getAttribute('media') || '';
@@ -722,6 +809,7 @@
         }
       }
     });
+    pinShellStyles();
   }
 
   function syncBody(targetBody) {
@@ -855,25 +943,40 @@
     };
   }
 
-  function restoreScroll(value, url) {
+  function getRouteHashTarget(url) {
+    const hash = String(url?.hash || '').replace(/^#/, '');
+    if (!hash) return null;
+    let id = hash;
+    try { id = decodeURIComponent(hash); } catch (_) {}
+    return document.getElementById(id);
+  }
+
+  function getFrameScrollIntent(value, url) {
+    const header = document.querySelector('[data-site-shell-header]');
+    return {
+      top: Number(value?.windowY || 0),
+      target: getRouteHashTarget(url),
+      offset: Math.max(0, header?.getBoundingClientRect().bottom || 0)
+    };
+  }
+
+  function restoreScroll(value, url, options = {}) {
     const scroll = value && typeof value === 'object' ? value : {};
     window.requestAnimationFrame(() => {
-      const hash = String(url?.hash || '').replace(/^#/, '');
-      if (hash) {
-        let id = hash;
-        try { id = decodeURIComponent(hash); } catch (_) {}
-        const target = document.getElementById(id);
-        if (target) {
-          target.scrollIntoView({ block: 'start' });
-          return;
-        }
+      const target = getRouteHashTarget(url);
+      if (target && options.window !== false) {
+        target.scrollIntoView({ block: 'start' });
+        return;
       }
       const owner = getScrollOwner();
       if (owner) {
-        owner.scrollTop = Number(scroll.panelTop || 0);
+        if (target && owner.contains(target) && owner.scrollHeight > owner.clientHeight + 1) {
+          const margin = parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+          owner.scrollTop += target.getBoundingClientRect().top - owner.getBoundingClientRect().top - margin;
+        } else owner.scrollTop = Number(scroll.panelTop || 0);
         owner.scrollLeft = Number(scroll.panelLeft || 0);
       }
-      window.scrollTo(Number(scroll.windowX || 0), Number(scroll.windowY || 0));
+      if (options.window !== false) window.scrollTo(Number(scroll.windowX || 0), Number(scroll.windowY || 0));
     });
   }
 
@@ -1046,7 +1149,7 @@
     document.querySelector('[data-site-route-error]')?.remove();
   }
 
-  function showOfflineError(url, { hardRetry = false } = {}) {
+  function showOfflineError(url, { hardRetry = false, reloadRequired = false } = {}) {
     clearRouteError();
     const outlet = getRouteOutlet(document);
     if (!outlet) return;
@@ -1055,13 +1158,28 @@
     error.dataset.siteRouteError = 'true';
     error.setAttribute('role', 'status');
     const message = document.createElement('span');
-    message.textContent = navigator.onLine === false ? 'This page is not available offline yet.' : 'This page could not be loaded. Please try again.';
+    message.textContent = reloadRequired ? 'The site has been updated. Reload to open this page.' :
+      (navigator.onLine === false ? 'This page is not available offline yet.' : 'This page could not be loaded. Please try again.');
     const retry = document.createElement('button');
     retry.type = 'button';
     retry.className = 'site-route-error__retry';
-    retry.textContent = 'Retry';
-    retry.addEventListener('click', () => {
-      if (hardRetry) hardNavigate(url);
+    retry.textContent = reloadRequired ? 'Reload' : 'Retry';
+    if (reloadRequired) retry.dataset.siteRouteReload = 'true';
+    retry.addEventListener('click', async () => {
+      if (reloadRequired) {
+        if (retry.disabled) return;
+        const sequence = navigationSequence;
+        retry.disabled = true;
+        try {
+          const allowed = await window.SiteRoutes?.beforeLeave({ navigationType: 'reload', reason: 'site-update', url });
+          // A save/confirmation can outlive this prompt or another navigation.
+          if (allowed !== false && error.isConnected && sequence === navigationSequence) hardNavigate(url);
+        } catch (_) {
+          message.textContent = 'Your current page is still open. Please finish saving before reloading.';
+        } finally {
+          retry.disabled = false;
+        }
+      } else if (hardRetry) hardNavigate(url);
       else navigate(url, { trigger: retry });
     });
     error.append(message, retry);
@@ -1161,6 +1279,8 @@
         throwIfAborted(controller.signal);
         if (!ready) frame.setLoading(true);
         const [route, metadataRoute] = await Promise.all([routePromise, metadataPromise]);
+        requireCompatibleGeneration(route.manifest);
+        requireCompatibleGeneration(metadataRoute.manifest);
         addedStyles = route.styles;
         throwIfAborted(controller.signal);
         // Brief stylesheet activation or synchronous mounting should not flash
@@ -1193,7 +1313,9 @@
         });
         throwIfAborted(controller.signal);
         window.clearTimeout(mountLoadingTimer);
-        frame.release();
+        const savedScroll = navigationType === 'pop' ? options.historyState?.siteRoute?.scroll : null;
+        const frameOwnsWindowScroll = Boolean(window.matchMedia?.('(max-width: 959px), (max-height: 619px)').matches);
+        frame.release(frameOwnsWindowScroll ? { scroll: getFrameScrollIntent(savedScroll, url) } : {});
 
         const displayUrl = resolveUrl(window.location.href) || url;
         if (navigationType === 'push') {
@@ -1212,7 +1334,7 @@
         frame.setLoading(false);
         await Promise.all([frame.wipe(true, { signal: controller.signal }), frame.whenSettled()]);
         throwIfAborted(controller.signal);
-        restoreScroll(navigationType === 'pop' ? historyState?.siteRoute?.scroll : null, url);
+        restoreScroll(navigationType === 'pop' ? historyState?.siteRoute?.scroll : null, url, { window: !frameOwnsWindowScroll });
         window.requestAnimationFrame(() => { if (sequence === navigationSequence) focusRouteHeading(navigationType, historyState); });
         announce(`${document.title} loaded.`);
         const detail = {
@@ -1275,8 +1397,9 @@
         }
         if (navigationType === 'pop') restoreVetoedPop(options.historyState);
         frame.setLoading(false);
-        showOfflineError(url, { hardRetry: rollbackFailed });
-        announce('The requested page could not be loaded.');
+        const reloadRequired = error.code === 'SITE_ROUTE_GENERATION_MISMATCH';
+        showOfflineError(url, { hardRetry: rollbackFailed, reloadRequired });
+        announce(reloadRequired ? 'The site has been updated. Reload to open this page.' : 'The requested page could not be loaded.');
         return false;
       } finally {
         window.clearTimeout(mountLoadingTimer);

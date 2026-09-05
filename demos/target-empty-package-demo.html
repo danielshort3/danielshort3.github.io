@@ -586,15 +586,34 @@
         transform: translateY(0);
       }
     }
+    .empty-package-workspace .content { gap: 16px; padding: 16px; }
+    .empty-package-workspace .panel { gap: 12px; padding: 14px; }
+    .empty-package-workspace :is(.exec-panel, .filters-panel, #kpi-panel) { grid-column: 1 / -1; }
+    .empty-package-workspace #trend-panel { grid-column: auto; }
+    .empty-package-workspace .exec-panel .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .empty-package-workspace .kpi-card { padding: 8px; }
+    .empty-package-workspace .filter-note { margin: 0; }
+    .empty-package-workspace .breakdown-list { gap: 8px; }
+    .empty-package-workspace #kpi-panel .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 900px) {
+      .empty-package-workspace .content { grid-template-columns: 1fr; }
+      .empty-package-workspace .exec-panel .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      .empty-package-workspace .content { gap: 12px; padding: 12px; }
+      .empty-package-workspace .filter-grid.primary-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .empty-package-workspace .filter-grid.primary-filters > label:first-child { grid-column: 1 / -1; }
+      .empty-package-workspace .insight-grid { grid-template-columns: 1fr; }
+    }
   </style>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
     }
   </script>
 </head>
-<body>
+<body class="demo-summary-workspace empty-package-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
   <div id="main" role="application" aria-label="Empty package shrink demo">
     <header class="card-header">
@@ -616,20 +635,38 @@
     </div>
 
     <main class="content">
-      <section class="panel" id="trend-panel">
+      <section class="panel exec-panel" id="executive-panel">
         <div class="panel-title">
-          <h2>Quarterly trend</h2>
-          <div class="tabs" role="group" aria-label="Metric toggle">
-            <button class="tab-btn is-active" type="button" data-metric="value" aria-pressed="true">Retail value</button>
-            <button class="tab-btn" type="button" data-metric="count" aria-pressed="false">Incident count</button>
+          <h2>At a glance</h2>
+          <span class="meta-chip" id="kpi-meta">All records</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card is-primary" data-kpi="value">
+            <div class="kpi-label">Recorded retail value</div>
+            <div class="kpi-value" id="kpi-total">--</div>
+            <div class="kpi-sub" id="kpi-total-sub">--</div>
           </div>
+          <div class="kpi-card" data-kpi="average">
+            <div class="kpi-label">Average record value</div>
+            <div class="kpi-value" id="kpi-avg">--</div>
+            <div class="kpi-sub" id="kpi-avg-sub">Per incident</div>
+          </div>
+          <div class="kpi-card" data-kpi="change">
+            <div class="kpi-label">Quarter-over-quarter change</div>
+            <div class="kpi-value" id="kpi-qoq" data-trend="flat">--</div>
+            <div class="kpi-sub" id="kpi-qoq-sub">--</div>
+          </div>
+          <div class="kpi-card" data-kpi="incidents">
+            <div class="kpi-label">Incidents</div>
+            <div class="kpi-value" id="kpi-incidents">--</div>
+            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
+          </div>
+
         </div>
-        <div class="chart-wrap">
-          <svg id="trend-chart" viewBox="0 0 640 220" aria-label="Quarterly trend chart" role="img"></svg>
-        </div>
-        <div class="chart-meta" id="trend-meta">--</div>
+      </section>
+      <section class="panel filters-panel">
         <div class="panel-title">
-          <h3>Filter records</h3>
+          <h2>Filter records</h2>
           <span class="meta-chip" id="filter-meta">Filters</span>
         </div>
         <div class="filter-grid primary-filters">
@@ -671,32 +708,22 @@
 
         <datalist id="department-list"></datalist>
         <datalist id="employee-list"></datalist>
-        <div class="filter-note">Filters update KPIs, trend, and breakdowns. Empty input means all.</div>
+        <div class="filter-note">Values describe recorded merchandise, not cash recovered. Filters apply to every summary and chart.</div>
 
       </section>
-      <section class="panel exec-panel" id="executive-panel">
+      <section class="panel" id="trend-panel">
         <div class="panel-title">
-          <h2>At a glance</h2>
-          <span class="meta-chip" id="kpi-meta">All records</span>
+          <h2>Quarterly trend</h2>
+          <div class="tabs" role="group" aria-label="Metric toggle">
+            <button class="tab-btn is-active" type="button" data-metric="value" aria-pressed="true">Retail value</button>
+            <button class="tab-btn" type="button" data-metric="count" aria-pressed="false">Incident count</button>
+          </div>
         </div>
-        <div class="kpi-grid">
-          <div class="kpi-card is-primary" data-kpi="value">
-            <div class="kpi-label">Recovered value</div>
-            <div class="kpi-value" id="kpi-total">--</div>
-            <div class="kpi-sub" id="kpi-total-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="change">
-            <div class="kpi-label">Quarter-over-quarter change</div>
-            <div class="kpi-value" id="kpi-qoq" data-trend="flat">--</div>
-            <div class="kpi-sub" id="kpi-qoq-sub">--</div>
-          </div>
-          <div class="kpi-card" data-kpi="incidents">
-            <div class="kpi-label">Incidents</div>
-            <div class="kpi-value" id="kpi-incidents">--</div>
-            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
-          </div>
+        <div class="chart-wrap">
+          <svg id="trend-chart" viewBox="0 0 640 220" aria-label="Quarterly trend chart" role="img"></svg>
+        </div>
+        <div class="chart-meta" id="trend-meta">--</div>
 
-        </div>
       </section>
       <section class="panel explorer" id="explorer-panel">
         <div class="panel-title">
@@ -713,15 +740,16 @@
         </div>
         <ul class="breakdown-list" id="breakdown-list"></ul>
 
+
+      </section>
+      <details class="demo-disclosure" id="kpi-panel">
+        <summary>Record details and concentration</summary>
+        <div class="demo-disclosure-content">
         <div class="panel-title">
-          <h3>Priority recoveries</h3>
+          <h3>Highest-value records</h3>
           <span class="meta-chip" id="record-meta">Top 6 by value</span>
         </div>
         <ul class="record-list" id="record-list"></ul>
-      </section>
-      <details class="demo-disclosure" id="kpi-panel">
-        <summary>Concentration and recovery details</summary>
-        <div class="demo-disclosure-content">
           <div class="panel-title">
             <h2>Concentration overview</h2>
             <span class="meta-chip" id="snapshot-meta">All records</span>
@@ -744,18 +772,13 @@
             </div>
           </div>
           <div class="kpi-grid">
-            <div class="kpi-card" data-kpi="average">
-              <div class="kpi-label">Average recovery</div>
-              <div class="kpi-value" id="kpi-avg">--</div>
-              <div class="kpi-sub" id="kpi-avg-sub">Per incident</div>
-            </div>
             <div class="kpi-card" data-kpi="hotspot">
               <div class="kpi-label">Top hotspot</div>
               <div class="kpi-value" id="kpi-hotspot">--</div>
               <div class="kpi-sub" id="kpi-hotspot-sub">--</div>
             </div>
             <div class="kpi-card" data-kpi="largest">
-              <div class="kpi-label">Largest single recovery</div>
+              <div class="kpi-label">Largest recorded value</div>
               <div class="kpi-value" id="kpi-largest">--</div>
               <div class="kpi-sub" id="kpi-largest-sub">--</div>
             </div>
@@ -781,6 +804,8 @@
     const state = {
       rows: [],
       filtered: [],
+      quarterSeries: [],
+      groupedRows: new Map(),
       metric: "value",
       breakdown: "location",
       filters: {
@@ -910,6 +935,9 @@
     }
 
     function groupBy(rows, key) {
+      if (rows === state.filtered && state.groupedRows.has(key)) {
+        return state.groupedRows.get(key);
+      }
       const map = new Map();
       rows.forEach((row) => {
         const value = row[key] || "Unknown";
@@ -918,7 +946,9 @@
         entry.count += 1;
         map.set(value, entry);
       });
-      return Array.from(map.values()).sort((a, b) => b.value - a.value);
+      const grouped = Array.from(map.values()).sort((a, b) => b.value - a.value);
+      if (rows === state.filtered) state.groupedRows.set(key, grouped);
+      return grouped;
     }
 
     function topShare(rows, key, count) {
@@ -930,12 +960,18 @@
     }
 
     function getDateRange(rows) {
-      const dates = rows.map((row) => row.date).filter(Boolean).sort((a, b) => a - b);
-      if (!dates.length) return null;
-      return { start: dates[0], end: dates[dates.length - 1] };
+      let start = null;
+      let end = null;
+      rows.forEach((row) => {
+        if (!row.date) return;
+        if (!start || row.date < start) start = row.date;
+        if (!end || row.date > end) end = row.date;
+      });
+      return start ? { start, end } : null;
     }
 
     function applyFilters() {
+      state.groupedRows.clear();
       const location = state.filters.location;
       const condition = state.filters.condition;
       const department = state.filters.department.trim().toLowerCase();
@@ -974,7 +1010,7 @@
         : "No data";
 
       DOM.kpiAvg.textContent = totalCount ? formatCurrency(avgValue, 2) : "--";
-      DOM.kpiAvgSub.textContent = "Avg per incident";
+      DOM.kpiAvgSub.textContent = "Recorded value per incident";
 
       let qoqText = "--";
       let qoqSub = series.length ? "No prior quarter" : "No data";
@@ -1178,6 +1214,7 @@
     function renderAll() {
       applyFilters();
       const series = buildQuarterSeries(state.filtered);
+      state.quarterSeries = series;
       const range = getDateRange(state.filtered);
       renderExecutiveKpis(series, range);
       renderInsights();
@@ -1273,7 +1310,7 @@
       setStatus("warming", "Preparing demo…", "Fetching demo data...");
       try {
         const data = await retryRequest(
-          () => getJson(joinUrl(API_URL, "data"), { cache: "no-store" }),
+          () => getJson(joinUrl(API_URL, "data"), { cache: "default" }),
           WARM_RETRY_OPTIONS
         );
         state.rows = (data.rows || []).map((row) => ({
@@ -1306,7 +1343,7 @@
           button.classList.toggle("is-active", active);
           button.setAttribute("aria-pressed", String(active));
         });
-        renderAll();
+        renderTrend(state.quarterSeries);
       });
     });
 

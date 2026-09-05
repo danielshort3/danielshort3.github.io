@@ -41020,7 +41020,7 @@ try {
     assert(privacyCss.includes('#pcz-modal .pref-toggle[aria-pressed="true"] .pref-state'), 'cookie consent active preference state should keep readable text on blue buttons');
     assert(
       /#pcz-modal\s*\{[^}]*background\s*:\s*var\(--modal-backdrop,[^;]+\)\s*;[^}]*backdrop-filter\s*:\s*var\(--modal-backdrop-filter,[^;]+\)\s*;/s.test(privacyCss) &&
-        /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius,[^;]+\)\s*;[^}]*border\s*:\s*1px solid var\(--modal-border,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;[^}]*background\s*:\s*var\(--modal-surface,[^;]+\)\s*;[^}]*box-shadow\s*:\s*var\(--pcz-shadow\)\s*;/s.test(privacyCss) &&
+        /#pcz-modal \.pcz-panel\s*\{[^}]*--pcz-panel-radius\s*:\s*var\(--modal-radius,[^;]+\)\s*;[^}]*border\s*:\s*4px solid var\(--modal-border,[^;]+\)\s*;[^}]*border-radius\s*:\s*var\(--pcz-panel-radius\)\s*;[^}]*background\s*:\s*var\(--modal-surface,[^;]+\)\s*;[^}]*box-shadow\s*:\s*var\(--pcz-shadow\)\s*;/s.test(privacyCss) &&
         /--pcz-shadow\s*:\s*var\(--modal-shadow,[^;]+\)\s*;/.test(privacyCss),
       'Cookie Settings should consume the shared modal backdrop, surface, border, radius, and shadow contract',
     );
@@ -41030,14 +41030,14 @@ try {
       'Cookie Settings should keep a 44px close target without stacking the first-run consent backdrop',
     );
     assert(
-      consentManagerJs.includes("const CSS_VERSION = 'v12';") &&
+      consentManagerJs.includes("const CSS_VERSION = 'v13';") &&
         consentManagerJs.includes('#pcz-modal{background:var(--modal-backdrop,rgba(9,31,59,.58))') &&
         consentManagerJs.includes('body.consent-blocked:has(#pcz-modal.pcz-visible):before{opacity:0!important;pointer-events:none!important;') &&
-        consentManagerJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,16px);position:relative;background:var(--modal-surface,#fff)') &&
+        consentManagerJs.includes('#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius,12px);position:relative;background:var(--modal-surface,#fff)') &&
         consentManagerJs.includes('border-radius:var(--pcz-panel-radius);') &&
         consentManagerJs.includes('@media(max-width:640px){#pcz-modal .pcz-panel{--pcz-panel-radius:var(--modal-radius-mobile,12px);}}') &&
         consentManagerJs.includes('#pcz-modal .pcz-panel-close{width:44px;height:44px;border-radius:12px;'),
-      'consent critical CSS v12 should mirror the shared shell before privacy.css finishes loading',
+      'consent critical CSS v13 should mirror the shared shell before privacy.css finishes loading',
     );
     assert(toolThemeCss.includes('body[data-page="text-compare"]') && toolThemeCss.includes('padding:var(--mobile-card-pad);'), 'tool pages should compact mobile cards');
     assert(contactCardCss.includes('.contact-card') && contactCardCss.includes('padding:22px 16px;'), 'contact cards should use compact mobile padding');
@@ -42859,17 +42859,16 @@ try {
     assert(digitDemo.includes('select.grid-number-pill option') &&
            digitDemo.includes('color: var(--text);'),
       'digit number dropdown options should use readable text instead of inheriting the closed pill color');
-    assert(digitDemo.includes('<select id="grid-height-select">') &&
-           digitDemo.includes('--grid-min-height') &&
+    assert(!digitDemo.includes('grid-height-select') &&
+           !digitDemo.includes('--grid-min-height') &&
            digitDemo.includes('function updateGridMetrics()') &&
            digitDemo.includes('function scheduleGridMetricsUpdate()'),
-      'digit demo should expose a visual grid minimum-height setting and resize cell metrics');
-    const digitGridHeightStart = digitDemo.indexOf("gridHeightSelect.addEventListener('change'");
-    const digitGridHeightEnd = digitDemo.indexOf("clusterSelect.addEventListener('change'", digitGridHeightStart);
-    const digitGridHeightHandler = digitDemo.slice(digitGridHeightStart, digitGridHeightEnd);
-    assert(digitGridHeightHandler.includes('setGridMinimumHeight') &&
-           !digitGridHeightHandler.includes('fetchGrid()'),
-      'digit grid height setting should resize locally without requesting new AWS output');
+      'digit demo should size its gallery automatically without exposing layout settings');
+    const digitResizeStart = digitDemo.indexOf('function updateGridMetrics()');
+    const digitResizeEnd = digitDemo.indexOf('function updateGrid(images)', digitResizeStart);
+    assert(!digitDemo.slice(digitResizeStart, digitResizeEnd).includes('fetchGrid()') &&
+           digitDemo.indexOf('class="generation-toolbar"') < digitDemo.indexOf('id="grid"'),
+      'digit gallery should have compact controls and resize without requesting new model output');
 
     const handwritingWarmupStart = handwritingDemo.indexOf('async function warmUpServer({ manual = false } = {})');
     const handwritingWarmupEnd = handwritingDemo.indexOf('async function scoreDigit()', handwritingWarmupStart);
@@ -43217,9 +43216,9 @@ try {
            !pizzaDemo.includes('class="inline-fields"'),
       'pizza tips demo should only show labeled segments for active scenario controls');
     const pizzaScenario = pizzaDemo.slice(pizzaDemo.indexOf('<div class="scenario-column">'), pizzaDemo.indexOf('<div class="panel map-panel">'));
-    assert(pizzaScenario.includes('id="scenario-form"') && pizzaScenario.includes('id="tip-amount"') &&
-           pizzaScenario.indexOf('id="scenario-form"') < pizzaScenario.indexOf('id="tip-amount"'),
-      'pizza tips demo should place the estimate directly after its form in the same workspace column');
+    assert(pizzaDemo.includes('id="estimate-summary"') && pizzaScenario.includes('id="scenario-form"') &&
+           pizzaDemo.indexOf('id="tip-amount"') < pizzaDemo.indexOf('id="scenario-form"'),
+      'pizza tips demo should lead with the estimate before scenario controls');
     assert(/<details class="demo-disclosure">\s*<summary>Estimate settings<\/summary>[\s\S]*?id="confidence"[\s\S]*?<\/details>/.test(pizzaScenario) &&
            /<details class="demo-disclosure">\s*<summary>What contributes to this estimate\?<\/summary>[\s\S]*?id="tip-breakdown"[\s\S]*?<\/details>/.test(pizzaScenario),
       'pizza tips demo should keep confidence settings and contributing factors in closed disclosures');
@@ -43261,7 +43260,7 @@ try {
     assert(chatbotHtml.includes("postJson(backendUrl('/warmup'), {})"), 'chatbot-demo missing warm-up API call');
     assert(chatbotHtml.includes('id="backend-select"'), 'chatbot-demo missing backend selector');
     assert(chatbotHtml.includes('<option value="bedrock">Bedrock</option>'), 'chatbot-demo missing Bedrock backend option');
-    assert(chatbotHtml.includes('<body data-chatbot-template="portfolio" data-mobile-layout="single-surface">'), 'chatbot-demo should identify the portfolio-aligned single-surface template');
+    assert(/<body\b[^>]*data-chatbot-template="portfolio"[^>]*data-mobile-layout="single-surface"/.test(chatbotHtml), 'chatbot-demo should identify the portfolio-aligned single-surface template');
     assert(chatbotHtml.includes('data-project-demo-theme="brand"'), 'chatbot-demo should opt into the shared project demo brand theme');
     assert(chatbotHtml.includes('color-scheme: light;'), 'chatbot-demo should use the brand-light project demo color scheme');
     assert(chatbotHtml.includes('--panel-raised: #ffffff;'), 'chatbot-demo missing raised panel token for brand-light surfaces');

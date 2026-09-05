@@ -508,15 +508,42 @@
         min-width: 0;
       }
     }
+    .pizza-workspace .grid { grid-template-columns: 1fr; gap: 16px; }
+    .pizza-workspace .results { gap: 10px; }
+    .pizza-workspace .results p { margin: 0; }
+    .pizza-workspace .result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .pizza-workspace .result-card { padding: 12px; gap: 6px; background: var(--surface-2); }
+    .pizza-workspace .result-label { text-transform: none; letter-spacing: 0; }
+    .pizza-workspace .panel { border: 0; padding: 0; box-shadow: none; }
+    .pizza-workspace #scenario-form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .pizza-workspace .scenario-segment { border: 0; padding: 0; background: none; }
+    .pizza-workspace .scenario-segment legend { padding: 0; margin-bottom: 10px; font-size: .85rem; }
+    .pizza-workspace .segment-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pizza-workspace #scenario-form > .demo-disclosure,
+    .pizza-workspace #scenario-form > .actions { grid-column: 1 / -1; }
+    .pizza-workspace .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pizza-workspace .actions .btn { width: auto; min-width: 140px; padding: 10px 14px; }
+    .pizza-workspace #confidence { max-width: 180px; }
+    .pizza-workspace #map { height: clamp(240px, 36vw, 400px); margin-top: 12px; }
+    .pizza-workspace #estimate-summary[data-state="stale"] #result-status,
+    .pizza-workspace #estimate-summary[data-state="error"] #result-status { color: var(--danger); }
+    .pizza-workspace [hidden] { display: none !important; }
+    @media (max-width: 700px) {
+      .pizza-workspace #scenario-form { grid-template-columns: 1fr; }
+      .pizza-workspace .result-grid { gap: 8px; }
+      .pizza-workspace .result-meta { font-size: .8rem; line-height: 1.45; }
+      .pizza-workspace .result-label { font-size: .8rem; }
+      .pizza-workspace .map-meta { grid-template-columns: 1fr 1fr; }
+    }
   </style>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute('data-embedded', 'true');
     }
   </script>
 </head>
-<body>
+<body class="demo-summary-workspace pizza-workspace">
 <a href="#main" class="skip-link">Skip to main content</a>
   <script>
     (function () {
@@ -524,6 +551,11 @@
       function calcHeight() {
         var doc = document.documentElement;
         var body = document.body || doc;
+        var main = document.getElementById('main');
+        if (main) {
+          var paddingBottom = parseFloat(getComputedStyle(body).paddingBottom) || 0;
+          return Math.ceil(main.getBoundingClientRect().bottom + window.scrollY + paddingBottom);
+        }
         return Math.ceil(Math.max(
           body.scrollHeight,
           body.offsetHeight,
@@ -540,6 +572,7 @@
       if ('ResizeObserver' in window) {
         var ro = new ResizeObserver(function () { postHeight(); });
         ro.observe(document.documentElement);
+        ro.observe(document.body);
       } else {
         var prev = 0;
         setInterval(function () {
@@ -563,7 +596,25 @@
       </div>
     </header>
 
-    <section class="section">
+    <section class="section results" id="estimate-summary" aria-label="Estimated tip" data-state="loading">
+      <p class="result-meta" id="result-scenario">Example scenario · $35 order at 6:00 PM</p>
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="result-label">Estimated tip</div>
+          <div class="result-value" id="tip-amount">--</div>
+          <div class="result-meta" id="tip-interval">Uncertainty interval: --</div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Of order cost</div>
+          <div class="result-value" id="tip-percent">--</div>
+          <div class="result-meta" id="tip-percent-interval">Uncertainty interval: --</div>
+        </div>
+      </div>
+      <p class="result-meta" id="result-status" role="status" aria-live="polite">Computing the example estimate…</p>
+      <div id="warnings" class="warning"></div>
+    </section>
+
+    <section class="section" aria-label="Explore a delivery scenario">
       <div class="grid">
         <div class="scenario-column">
           <form id="scenario-form" class="panel" autocomplete="off">
@@ -573,6 +624,10 @@
             <fieldset class="scenario-segment">
               <legend>Delivery details</legend>
               <div class="segment-fields">
+                <div class="input-row">
+                  <label for="delivery-city">Delivery city</label>
+                  <select id="delivery-city"></select>
+                </div>
                 <div class="input-row" data-feature="housing">
                   <label for="housing">Housing</label>
                   <select id="housing"></select>
@@ -589,7 +644,7 @@
                 </div>
                 <div class="input-row" data-feature="cost">
                   <label for="cost">Order Cost ($)</label>
-                  <input id="cost" type="number" min="0" step="0.01" />
+                  <input id="cost" type="number" min="0" step="0.01" required />
                 </div>
               </div>
             </fieldset>
@@ -625,50 +680,47 @@
               <summary>Estimate settings</summary>
               <div class="demo-disclosure-content">
                 <div class="input-row">
-                  <label for="confidence">Confidence</label>
+                  <label for="confidence">Uncertainty level</label>
                   <select id="confidence"></select>
                 </div>
+                <p class="result-meta">The interval uses the model's residual error to describe uncertainty around its estimate.</p>
               </div>
             </details>
 
             <div class="actions">
-              <button class="btn" type="submit" id="predict">Estimate Tip</button>
-              <button class="btn secondary" type="button" id="reset">Reset</button>
+              <button class="btn" type="submit" id="predict">Update estimate</button>
+              <button class="btn secondary" type="button" id="reset">Reset example</button>
             </div>
           </form>
-          <section class="results" aria-label="Estimated tip" aria-live="polite">
-            <div class="result-grid">
-              <div class="result-card">
-                <div class="result-label">Estimated tip</div>
-                <div class="result-value" id="tip-amount">--</div>
-                <div class="result-meta" id="tip-interval">Confidence: --</div>
-              </div>
-              <div class="result-card">
-                <div class="result-label">Of order cost</div>
-                <div class="result-value" id="tip-percent">--</div>
-                <div class="result-meta" id="tip-percent-interval">Confidence: --</div>
-              </div>
+          <details class="demo-disclosure">
+            <summary>What contributes to this estimate?</summary>
+            <div class="demo-disclosure-content">
+              <p class="result-meta">These factors describe the displayed estimate. Update the estimate after changing the scenario.</p>
+              <ul class="breakdown-list" id="tip-breakdown"></ul>
             </div>
-            <div id="warnings" class="warning"></div>
-            <details class="demo-disclosure">
-              <summary>What contributes to this estimate?</summary>
-              <div class="demo-disclosure-content">
-                <p class="result-meta">This regression model estimates the tip from the selected delivery scenario. Expand the factors after estimating to see their contribution.</p>
-                <ul class="breakdown-list" id="tip-breakdown"></ul>
-              </div>
-            </details>
-          </section>
+          </details>
         </div>
         <div class="panel map-panel">
-          <h2 class="demo-section-label">Delivery location</h2>
-          <p class="subtitle">Click the map or drag the marker to compare locations.</p>
-          <div id="map" aria-label="Delivery map"></div>
-          <div class="map-meta">
-            <span id="lat-display">Lat: --</span>
-            <span id="lon-display">Lon: --</span>
-            <span id="city-display">City: --</span>
-            <span id="hour-display">Hour: --</span>
-          </div>
+          <details class="demo-disclosure" id="location-details">
+            <summary id="location-label">Explore the delivery map</summary>
+            <div class="demo-disclosure-content">
+              <p class="subtitle">Choose a city above, click the map, or drag the marker. Then update the estimate.</p>
+              <div id="map" aria-label="Delivery map"></div>
+              <div class="map-meta">
+                <span id="lat-display">Lat: --</span>
+                <span id="lon-display">Lon: --</span>
+                <span id="city-display">City: --</span>
+                <span id="hour-display">Hour: --</span>
+              </div>
+              <details class="demo-disclosure" id="heatmap-details">
+                <summary>Compare estimated tips across the area</summary>
+                <div class="demo-disclosure-content">
+                  <p class="result-meta" id="heatmap-status" role="status" aria-live="polite">Open to calculate the map for this scenario.</p>
+                  <button class="btn secondary" id="heatmap-retry" type="button" hidden>Retry map</button>
+                </div>
+              </details>
+            </div>
+          </details>
         </div>
       </div>
     </section>
@@ -749,6 +801,7 @@
     const confidenceSelect = document.getElementById('confidence');
     const costInput = document.getElementById('cost');
     const housingSelect = document.getElementById('housing');
+    const deliveryCitySelect = document.getElementById('delivery-city');
     const orderHourSelect = document.getElementById('order-hour');
     const deliveryInput = document.getElementById('delivery');
     const deliveryNumber = document.getElementById('delivery-number');
@@ -770,10 +823,27 @@
     const tipPercentIntervalEl = document.getElementById('tip-percent-interval');
     const warningsEl = document.getElementById('warnings');
     const tipBreakdownList = document.getElementById('tip-breakdown');
+    const estimateSummary = document.getElementById('estimate-summary');
+    const resultScenario = document.getElementById('result-scenario');
+    const resultStatus = document.getElementById('result-status');
+    const locationDetails = document.getElementById('location-details');
+    const heatmapDetails = document.getElementById('heatmap-details');
+    const heatmapStatus = document.getElementById('heatmap-status');
+    const heatmapRetry = document.getElementById('heatmap-retry');
     let heatLayer = null;
+    let legendEl = null;
     let legendMinEl = null;
     let legendMaxEl = null;
     let serverReady = false;
+    let activeEndpoint = API_URL;
+    let warmupTask = null;
+    let warming = false;
+    let estimatePending = false;
+    let estimateVersion = 0;
+    let heatmapVersion = 0;
+    let lastEstimateKey = '';
+    const heatmapCache = new Map();
+    const pendingHeatmaps = new Map();
 
     function setStatus(state, text) {
       if (!statusEl) return;
@@ -783,7 +853,12 @@
 
     function setServerReady(ready) {
       serverReady = ready;
-      if (predictBtn) predictBtn.disabled = !ready;
+      updateActions();
+    }
+
+    function updateActions() {
+      predictBtn.disabled = warming || estimatePending;
+      predictBtn.textContent = warming ? 'Preparing…' : estimatePending ? 'Estimating…' : 'Update estimate';
     }
 
     function formatCurrency(value) {
@@ -869,6 +944,7 @@
 
     function updateHeatmap(heatmap) {
       if (!heatLayer) return;
+      if (legendEl) legendEl.hidden = !heatmap?.points?.length;
       if (!heatmap || !Array.isArray(heatmap.points) || !heatmap.points.length) {
         heatLayer.setLatLngs([]);
         updateLegend(null, null);
@@ -905,6 +981,20 @@
         opt.textContent = name;
         if (name === DEFAULTS.housing) opt.selected = true;
         housingSelect.appendChild(opt);
+      });
+    }
+
+    function populateCities() {
+      const outside = document.createElement('option');
+      outside.value = '';
+      outside.textContent = 'Choose a delivery city';
+      outside.disabled = true;
+      deliveryCitySelect.appendChild(outside);
+      Object.keys(META.cityCenters || {}).forEach((city) => {
+        const option = document.createElement('option');
+        option.value = city;
+        option.textContent = city;
+        deliveryCitySelect.appendChild(option);
       });
     }
 
@@ -1006,6 +1096,9 @@
       lonDisplay.textContent = `Lon: ${lon.toFixed(5)}`;
       const resolved = resolveCityLocal(lat, lon);
       cityDisplay.textContent = resolved.city ? `City: ${resolved.city}` : 'City: Outside coverage';
+      deliveryCitySelect.value = resolved.city || '';
+      document.getElementById('location-label').textContent = resolved.city
+        ? `Delivery map · ${resolved.city}` : 'Delivery map · Choose a supported location';
       if (ACTIVE_FEATURES.has('orderHour')) {
         hourDisplay.textContent = `Time: ${formatHour(orderHourSelect.value)}`;
       }
@@ -1065,7 +1158,7 @@
       const endpoints = candidates();
       if (!endpoints.length) {
         setStatus('err', 'No endpoint');
-        return;
+        return false;
       }
       const payload = currentPayload(false);
       let lastErr = null;
@@ -1074,18 +1167,20 @@
           await retryRequest(() => healthJson(base, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
           await retryRequest(() => warmupJson(base, payload, { cache: 'no-store' }), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
+          activeEndpoint = base;
           setServerReady(true);
           setStatus('ok', 'Ready');
-          return;
+          return true;
         } catch (err) {
           lastErr = err;
         }
         try {
           await retryRequest(() => postToEndpoint(base, payload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
+          activeEndpoint = base;
           setServerReady(true);
           setStatus('ok', 'Ready');
-          return;
+          return true;
         } catch (err) {
           lastErr = err;
         }
@@ -1093,12 +1188,13 @@
       setServerReady(false);
       setStatus('err', 'Unavailable');
       if (lastErr) console.error(lastErr);
+      return false;
     }
 
-    function applyResponse(result) {
+    function applyResponse(result, payload) {
       const tip = result.predictions?.tip?.value;
       const tipInterval = result.predictions?.tip?.interval;
-      const cost = Number(costInput.value);
+      const cost = payload.cost;
       const hasCost = Number.isFinite(cost) && cost > 0;
       const tipPercent = hasCost && Number.isFinite(tip) ? tip / cost : null;
       const tipPercentInterval = hasCost && tipInterval
@@ -1115,29 +1211,159 @@
       tipAmountEl.textContent = formatCurrency(tip);
       tipPercentEl.textContent = formatPercent(tipPercent);
 
-      if (tipInterval) {
-        tipIntervalEl.textContent = `Confidence ${(tipInterval.level * 100).toFixed(0)}%: ${formatCurrency(tipInterval.low)} to ${formatCurrency(tipInterval.high)}`;
-      }
-      if (tipPercentInterval) {
-        tipPercentIntervalEl.textContent = `Confidence ${(tipPercentInterval.level * 100).toFixed(0)}%: ${formatPercent(tipPercentInterval.low)} to ${formatPercent(tipPercentInterval.high)}`;
-      }
+      tipIntervalEl.textContent = tipInterval
+        ? `${(tipInterval.level * 100).toFixed(0)}% uncertainty interval: ${formatCurrency(tipInterval.low)} to ${formatCurrency(tipInterval.high)}`
+        : 'Uncertainty interval unavailable';
+      tipPercentIntervalEl.textContent = tipPercentInterval
+        ? `${(tipPercentInterval.level * 100).toFixed(0)}% uncertainty interval: ${formatPercent(tipPercentInterval.low)} to ${formatPercent(tipPercentInterval.high)}`
+        : hasCost ? 'Uncertainty interval unavailable' : 'Enter an order cost above $0 to calculate a percentage.';
 
       warningsEl.textContent = (result.warnings || []).join(' ');
 
-      updateHeatmap(result.heatmap);
       renderTipBreakdown(result);
     }
 
+    function scenarioKey(payload = currentPayload()) {
+      return JSON.stringify(payload);
+    }
+
+    function gridKey(payload) {
+      // The grid varies by scenario and bounds, not the selected point or interval level.
+      const { latitude, longitude, confidenceLevel, ...gridScenario } = payload;
+      return JSON.stringify(gridScenario);
+    }
+
+    function markEstimateStale() {
+      estimateVersion += 1;
+      heatmapVersion += 1;
+      estimatePending = false;
+      estimateSummary.dataset.state = lastEstimateKey ? 'stale' : 'empty';
+      resultStatus.textContent = lastEstimateKey
+        ? 'Scenario changed. Update the estimate to refresh these results.'
+        : 'Update the estimate to calculate this scenario.';
+      warningsEl.textContent = '';
+      heatmapStatus.textContent = 'Update the estimate to compare this scenario on the map.';
+      heatmapRetry.hidden = true;
+      updateHeatmap(null);
+      updateActions();
+    }
+
+    async function ensureServerReady() {
+      if (serverReady) return true;
+      if (!warmupTask) {
+        warming = true;
+        updateActions();
+        warmupTask = warmUpServer().finally(() => {
+          warming = false;
+          warmupTask = null;
+          updateActions();
+        });
+      }
+      return warmupTask;
+    }
+
+    async function requestHeatmap() {
+      if (!heatmapDetails.open || !locationDetails.open) return;
+      if (lastEstimateKey !== scenarioKey() || estimateSummary.dataset.state !== 'current') {
+        heatmapStatus.textContent = 'Update the estimate before comparing this scenario.';
+        return;
+      }
+      const payload = currentPayload(true);
+      const key = gridKey(payload);
+      const requestVersion = ++heatmapVersion;
+      heatmapRetry.hidden = true;
+      heatmapStatus.textContent = 'Calculating estimated tips across the area…';
+      try {
+        let heatmap = heatmapCache.get(key);
+        if (!heatmap) {
+          if (!pendingHeatmaps.has(key)) {
+            const request = postToEndpoint(activeEndpoint, payload).then((response) => {
+              if (!response.heatmap || !Array.isArray(response.heatmap.points)) {
+                throw new Error('The map response was incomplete.');
+              }
+              heatmapCache.set(key, response.heatmap);
+              if (heatmapCache.size > 6) heatmapCache.delete(heatmapCache.keys().next().value);
+              return response.heatmap;
+            }).finally(() => pendingHeatmaps.delete(key));
+            pendingHeatmaps.set(key, request);
+          }
+          heatmap = await pendingHeatmaps.get(key);
+        }
+        if (requestVersion !== heatmapVersion || !heatmapDetails.open || !locationDetails.open ||
+            lastEstimateKey !== scenarioKey() || estimateSummary.dataset.state !== 'current') return;
+        updateHeatmap(heatmap);
+        heatmapStatus.textContent = heatmap.points.length
+          ? 'Estimated tips for the current order across supported delivery locations.'
+          : 'No supported delivery locations were returned for this map.';
+      } catch (err) {
+        if (requestVersion !== heatmapVersion) return;
+        updateHeatmap(null);
+        heatmapStatus.textContent = 'The comparison map could not load. Your estimate is still available.';
+        heatmapRetry.hidden = false;
+        console.error(err);
+      }
+    }
+
+    async function requestEstimate({ example = false } = {}) {
+      if (!form.reportValidity()) return;
+      const payload = currentPayload(false);
+      const resolved = resolveCityLocal(payload.latitude, payload.longitude);
+      if (!resolved.city) {
+        warningsEl.textContent = 'Choose a point inside the delivery cities to estimate tips.';
+        return;
+      }
+      const requestVersion = ++estimateVersion;
+      heatmapVersion += 1;
+      updateHeatmap(null);
+      estimatePending = true;
+      estimateSummary.dataset.state = 'loading';
+      resultStatus.textContent = example ? 'Computing the example estimate…' : 'Updating the estimate…';
+      warningsEl.textContent = '';
+      updateActions();
+      try {
+        const ready = await ensureServerReady();
+        if (requestVersion !== estimateVersion) return;
+        if (!ready) throw new Error('The estimator is unavailable. Select Update estimate to retry.');
+        const result = await postToEndpoint(activeEndpoint, payload);
+        if (requestVersion !== estimateVersion || scenarioKey(payload) !== scenarioKey()) return;
+        if (!Number.isFinite(result.predictions?.tip?.value)) {
+          throw new Error('The estimate was incomplete. Select Update estimate to retry.');
+        }
+        applyResponse(result, payload);
+        lastEstimateKey = scenarioKey(payload);
+        estimateSummary.dataset.state = 'current';
+        const description = [formatCurrency(payload.cost) + ' order', result.bucket?.city || resolved.city];
+        if (payload.orderHour !== undefined) description.push(formatHour(payload.orderHour));
+        resultScenario.textContent = `${example ? 'Computed example' : 'Current scenario'} · ${description.join(', ')}`;
+        resultStatus.textContent = 'Estimate updated. Change the scenario below to compare.';
+        setStatus('ok', 'Ready');
+        requestHeatmap();
+      } catch (err) {
+        if (requestVersion !== estimateVersion) return;
+        estimateSummary.dataset.state = 'error';
+        resultStatus.textContent = lastEstimateKey
+          ? 'The estimate could not update. Results still describe the previous scenario.'
+          : 'The example could not load. Select Update estimate to retry.';
+        warningsEl.textContent = String(err.message || err);
+        setStatus('err', 'Retry available');
+        serverReady = false;
+        console.error(err);
+      } finally {
+        if (requestVersion === estimateVersion) {
+          estimatePending = false;
+          updateActions();
+        }
+      }
+    }
+
     populateHours();
+    populateCities();
     populateHousing();
     populateConfidence();
     applyFeatureVisibility();
     setServerReady(false);
     setStatus(API_URL ? 'warming' : 'err', API_URL ? 'Preparing demo…' : 'Unavailable');
     setInputs(DEFAULTS);
-    if (API_URL) {
-      warmUpServer();
-    }
 
     const map = L.map('map', { zoomControl: true });
     const bounds = [
@@ -1146,10 +1372,11 @@
     ];
     map.fitBounds(bounds, { padding: [20, 20] });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const mapTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    });
+    let mapInitialized = false;
 
     heatLayer = L.heatLayer([], {
       radius: 26,
@@ -1166,6 +1393,8 @@
     const legendControl = L.control({ position: 'bottomright' });
     legendControl.onAdd = () => {
       const div = L.DomUtil.create('div', 'heat-legend');
+      legendEl = div;
+      div.hidden = true;
       div.innerHTML = `
         <div class="heat-legend-title">Predicted Tip Hotspots</div>
         <div class="heat-legend-row">
@@ -1181,16 +1410,6 @@
     };
     legendControl.addTo(map);
 
-    if (CITY_BOUNDARIES) {
-      L.geoJSON(CITY_BOUNDARIES, {
-        style: () => ({
-          color: '#005FED',
-          weight: 2,
-          fillOpacity: 0.08
-        })
-      }).addTo(map);
-    }
-
     const marker = L.marker([DEFAULTS.latitude, DEFAULTS.longitude], { draggable: true }).addTo(map);
 
     function setLatLon(lat, lon) {
@@ -1198,7 +1417,15 @@
       lonInput.value = lon.toFixed(6);
       marker.setLatLng([lat, lon]);
       updateMapMeta();
+      markEstimateStale();
     }
+
+    deliveryCitySelect.addEventListener('change', () => {
+      const center = META.cityCenters?.[deliveryCitySelect.value];
+      if (!center) return;
+      setLatLon(center.latitude, center.longitude);
+      map.panTo([center.latitude, center.longitude]);
+    });
 
     map.on('click', (evt) => {
       setLatLon(evt.latlng.lat, evt.latlng.lng);
@@ -1226,47 +1453,53 @@
       syncDeliveryValue();
     });
 
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener('input', markEstimateStale);
+    form.addEventListener('change', markEstimateStale);
+
+    locationDetails.addEventListener('toggle', () => {
+      if (locationDetails.open) {
+        map.invalidateSize();
+        map.fitBounds(bounds, { padding: [20, 20] });
+        if (!mapInitialized) {
+          mapTiles.addTo(map);
+          if (CITY_BOUNDARIES) {
+            L.geoJSON(CITY_BOUNDARIES, {
+              style: () => ({ color: '#005FED', weight: 2, fillOpacity: 0.08 })
+            }).addTo(map);
+          }
+          mapInitialized = true;
+        }
+        requestHeatmap();
+      } else {
+        heatmapVersion += 1;
+        updateHeatmap(null);
+      }
+    });
+
+    heatmapDetails.addEventListener('toggle', () => {
+      if (heatmapDetails.open) {
+        requestHeatmap();
+      } else {
+        heatmapVersion += 1;
+        updateHeatmap(null);
+      }
+    });
+    heatmapRetry.addEventListener('click', requestHeatmap);
+
+    form.addEventListener('submit', (event) => {
       event.preventDefault();
-      if (!API_URL) {
-        setStatus('err', 'Unavailable');
-        return;
-      }
-      if (!serverReady) {
-        setStatus('warming', 'Preparing demo…');
-        return;
-      }
-      const lat = Number(latInput.value);
-      const lon = Number(lonInput.value);
-      const resolved = resolveCityLocal(lat, lon);
-      if (!resolved.city) {
-        setStatus('err', 'Unavailable');
-        warningsEl.textContent = 'Choose a point inside the delivery cities to estimate tips.';
-        return;
-      }
-      try {
-        const result = await postToEndpoint(API_URL, currentPayload(true));
-        applyResponse(result);
-        setStatus('ok', 'Ready');
-      } catch (err) {
-        console.error(err);
-        setStatus('err', 'Error');
-        warningsEl.textContent = String(err.message || err);
-      }
+      requestEstimate();
     });
 
     resetBtn.addEventListener('click', () => {
       setInputs(DEFAULTS);
       setLatLon(DEFAULTS.latitude, DEFAULTS.longitude);
-      warningsEl.textContent = '';
-      updateHeatmap(null);
-      if (tipBreakdownList) {
-        tipBreakdownList.innerHTML = '';
-      }
+      requestEstimate({ example: true });
     });
 
     syncDeliveryValue();
     updateMapMeta();
+    requestEstimate({ example: true });
   </script>
 </body>
 </html>

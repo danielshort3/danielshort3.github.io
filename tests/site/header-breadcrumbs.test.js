@@ -65,7 +65,7 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
     SiteMotion: { duration: () => reducedMotion.matches ? 0 : 160 },
     SiteFrame: { current: () => page.frame || null, root: () => null }
   };
-  const context = vm.createContext({ window, document, URL, getComputedStyle: () => ({ getPropertyValue: () => '' }) });
+  const context = vm.createContext({ window, document, URL, getComputedStyle: () => ({ opacity: '0.5', getPropertyValue: () => '' }) });
   const emit = (name) => (listeners.get(name) || []).forEach((listener) => listener({ type: name }));
   const setPage = (options) => {
     page = { path: '/', category: 'about', view: 'detail', audience: 'personal', id: 'page', ...options };
@@ -152,9 +152,29 @@ module.exports = function runHeaderBreadcrumbsTests({ assert }) {
   expect(['Home', 'Contact'], ['/']);
   assert(animations.every((animation) => animation.options.duration === 160 && animation.frames.every((frame) => !('opacity' in frame))), 'text updates should use the shared duration without flashing or hiding content');
   assert(animations.slice(0, -1).every((animation) => animation.cancelled), 'a rapid committed update should cancel the superseded text animation');
+  setPage({ id: 'home', view: 'overview' });
+  emit('site:route-change');
+  const exit = animations.at(-1);
+  assert(!nav.hidden && nav.inert && list.children.length, 'the departing trail should remain painted but inert during its fade');
+  assert(exit.frames.at(-1).opacity === '0' && exit.options.duration === 160, 'returning home should fade the breadcrumb over 160 ms');
+  setPage({ path: '/tools', category: 'tools', view: 'library' });
+  emit('site:route-change');
+  expect(['Home', 'Tools'], ['/']);
+  assert(exit.cancelled && !nav.inert && animations.at(-1).frames[0].opacity === '0.5', 'rapid reversal should start from the current opacity and enable the new links');
+  exit.onfinish();
+  assert(!nav.hidden && list.children.length === 2, 'a stale fade completion must not hide the new route');
+  setPage({ id: 'home', view: 'overview' });
+  emit('site:route-change');
+  animations.at(-1).onfinish();
+  assert(nav.hidden && !list.children.length, 'the breadcrumb should clear only after its exit has finished');
+  setPage({ path: '/contact', category: 'contact' });
+  emit('site:route-change');
+  setPage({ id: 'home', view: 'overview' });
+  emit('site:route-change');
   reducedMotion.matches = true;
   motionListeners.forEach((listener) => listener());
   assert(animations.at(-1).cancelled, 'enabling reduced motion should settle an active breadcrumb animation');
+  assert(nav.hidden && !list.children.length, 'enabling reduced motion during exit should immediately finish hiding the breadcrumb');
   const animationCount = animations.length;
   setPage({ path: '/tools/example', category: 'tools', heading: 'A <B> & C' });
   emit('site:route-change');

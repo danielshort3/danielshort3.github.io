@@ -511,7 +511,7 @@ function renderHomeTimelineDate(item) {
   return `              ${startHtml}${endHtml ? ` <span class="home-timeline__date-separator">–</span> ${endHtml}` : ''}`;
 }
 
-function renderHomeTimelineItem(item) {
+function renderHomeTimelineItem(item, categoryId) {
   const authoredType = String(item && item.type || '').trim();
   const type = Object.prototype.hasOwnProperty.call(HOME_TIMELINE_TYPE_LABELS, authoredType)
     ? authoredType
@@ -523,6 +523,14 @@ function renderHomeTimelineItem(item) {
   const contentId = String(item && item.contentId || item && item.id || '').trim();
   const resourceType = String(item && item.resourceType || contentType || '').trim();
   const mediaTone = String(item && item.imageTone || '').trim() === 'dark' ? 'dark' : '';
+  const title = String(item && item.title || 'Milestone');
+  const compactTitle = type === 'certification'
+    ? title.replace(/\s+(?:Professional\s+Certificate|Certification|Certificate)$/i, '')
+    : title;
+  const titleHtml = compactTitle !== title
+    ? `<span class="home-timeline__title-full">${escapeHtml(title)}</span><span class="home-timeline__title-compact" aria-hidden="true">${escapeHtml(compactTitle)}</span>`
+    : escapeHtml(title);
+  const dateId = `home-timeline-${categoryId}-${String(item && item.id || '').replace(/[^a-z0-9_-]+/gi, '-')}-date`;
   const analytics = href && contentType && contentId
     ? ` data-content-open="true" data-content-id="${escapeHtml(contentId)}" data-content-type="${escapeHtml(contentType)}" data-resource-type="${escapeHtml(resourceType)}" data-source-surface="home_timeline"`
     : '';
@@ -535,15 +543,15 @@ function renderHomeTimelineItem(item) {
 
   return [
     `          <li class="home-timeline__item home-timeline__item--${escapeHtml(type)}" data-home-timeline-item="${escapeHtml(item && item.id || '')}">`,
-    '            <div class="home-timeline__date">',
+    `            <div class="home-timeline__date" id="${escapeHtml(dateId)}">`,
     renderHomeTimelineDate(item),
     '            </div>',
     '            <span class="home-timeline__axis" aria-hidden="true"><span class="home-timeline__dot"></span></span>',
-    `            <${tag} class="home-timeline__entry"${linkAttrs}>`,
+    `            <${tag} class="home-timeline__entry" aria-describedby="${escapeHtml(dateId)}"${linkAttrs}>`,
     `              <span class="home-timeline__media"${mediaTone ? ` data-home-timeline-media-tone="${mediaTone}"` : ''}>${media}</span>`,
     '              <span class="home-timeline__copy">',
     `                <span class="home-timeline__type">${HOME_TIMELINE_TYPE_LABELS[type]}</span>`,
-    `                <strong class="home-timeline__title">${escapeHtml(item && item.title || 'Milestone')}</strong>`,
+    `                <strong class="home-timeline__title">${titleHtml}</strong>`,
     item && item.subtitle ? `                <span class="home-timeline__subtitle">${escapeHtml(item.subtitle)}</span>` : '',
     item && item.summary ? `                <span class="home-timeline__summary">${escapeHtml(item.summary)}</span>` : '',
     '              </span>',
@@ -558,16 +566,10 @@ function renderHomeTimeline(timeline, categoryId) {
   if (!items.length) return '';
 
   const safeCategoryId = String(categoryId || 'about').trim().replace(/[^a-z0-9_-]+/gi, '-');
-  const headingId = `home-timeline-${safeCategoryId}-title`;
   return [
-    `          <section class="home-timeline" data-home-timeline aria-labelledby="${escapeHtml(headingId)}">`,
-    '            <header class="home-timeline__head">',
-    `              <span class="home-timeline__head-icon" data-home-icon="timeline" aria-hidden="true">${HOME_ACCORDION_ICONS.timeline}</span>`,
-    `              <h4 id="${escapeHtml(headingId)}">${escapeHtml(timeline && timeline.title || 'Timeline')}</h4>`,
-    timeline && timeline.lead ? `              <p>${escapeHtml(timeline.lead)}</p>` : '',
-    '            </header>',
+    '          <section class="home-timeline" data-home-timeline aria-label="Timeline">',
     '            <ol class="home-timeline__list" data-home-timeline-scroller>',
-    items.map((item) => renderHomeTimelineItem(item)).join('\n'),
+    items.map((item) => renderHomeTimelineItem(item, safeCategoryId)).join('\n'),
     '            </ol>',
     '          </section>'
   ].filter(Boolean).join('\n');

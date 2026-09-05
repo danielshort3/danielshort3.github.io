@@ -1,0 +1,71 @@
+@layer overrides {
+  /* Dialog-local colors survive being moved outside the category frame. */
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) {
+    --site-dialog-accent: #091f3b;
+    --modal-accent: var(--site-dialog-accent);
+    --modal-surface: #ffffff;
+    --modal-radius: 12px;
+    --modal-radius-mobile: 12px;
+    --modal-border: var(--site-dialog-accent);
+    --primary: var(--site-dialog-accent);
+    --brand-signal-blue: var(--site-dialog-accent);
+    --interactive-text: var(--site-dialog-accent);
+    --interactive-border: color-mix(in srgb, var(--site-dialog-accent) 35%, #ffffff);
+    --interactive-border-hover: var(--site-dialog-accent);
+    --interactive-bg-hover: color-mix(in srgb, var(--site-dialog-accent) 6%, #ffffff);
+    --focus: var(--site-dialog-accent);
+    --focus-ring: 2px solid var(--site-dialog-accent);
+    --cta-blue: var(--site-dialog-accent);
+    --cta-blue-border: var(--site-dialog-accent);
+    --cta-blue-gradient: var(--site-dialog-accent);
+    --cta-blue-hover: color-mix(in srgb, var(--site-dialog-accent) 85%, #000000);
+    --cta-blue-gradient-hover: var(--cta-blue-hover);
+    --cta-blue-shadow: none;
+    --cta-blue-shadow-hover: none;
+    font-family: var(--font-sans);
+  }
+
+  #contact-modal { --site-dialog-accent: #334155; }
+  :is(.tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal) { --site-dialog-accent: #087f8c; }
+  [data-site-modal="projects"] { --site-dialog-accent: #155dfc; }
+
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) .modal-content {
+    border: 4px solid var(--site-dialog-accent);
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 16px 48px rgba(9, 31, 59, .18);
+    padding: clamp(16px, 3vw, 28px);
+    max-height: min(88dvh, 960px);
+  }
+
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) .modal-content::before { display: none; }
+
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) :is(button, .btn-primary, .btn-ghost, .btn-secondary, select, input:not([type="checkbox"]):not([type="radio"]), textarea) {
+    box-sizing: border-box;
+    min-height: 44px;
+    max-width: 100%;
+    border-radius: 10px;
+    font-family: inherit;
+  }
+
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) .modal-title-strip {
+    padding-top: 4px;
+    padding-bottom: 16px;
+  }
+
+  #contact-modal .modal-body { padding: 18px 0 0; gap: 16px; }
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) :is(.btn-secondary, .btn-ghost) {
+    color: var(--site-dialog-accent);
+    border-color: var(--interactive-border);
+    background: #ffffff;
+  }
+  :is(#contact-modal, #certifications-modal, .tools-account-modal, .tools-session-modal, #jobtrack-entry-modal, #qrtool-destination-modal, #qrtool-shortlinks-modal, .shortlinks-modal, [data-site-modal="projects"]) :is(.btn-secondary, .btn-ghost):is(:hover, :focus-visible) {
+    border-color: var(--site-dialog-accent);
+    background: var(--interactive-bg-hover);
+  }
+  #contact-modal .contact-form { gap: 14px; }
+  #contact-modal .contact-form textarea { min-height: 120px; }
+  #contact-modal .contact-form input:not([type="checkbox"]):not([type="radio"]),
+  #contact-modal .contact-form textarea { background: #ffffff; }
+  #contact-modal .contact-form-success { border-radius: 10px; box-shadow: none; padding: 20px; }
+}

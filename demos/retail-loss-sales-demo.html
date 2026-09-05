@@ -220,8 +220,8 @@
       gap: 20px;
       grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
       grid-template-areas:
-        "sales sales"
         "kpi kpi"
+        "sales sales"
         "incidents signals"
         "additional additional";
       align-items: start;
@@ -482,8 +482,8 @@
       main.content {
         grid-template-columns: 1fr;
         grid-template-areas:
-          "sales"
           "kpi"
+          "sales"
           "incidents"
           "signals"
           "additional";
@@ -512,15 +512,27 @@
         transform: translateY(0);
       }
     }
+    .retail-workspace main.content { gap: 16px; padding: 16px; }
+    .retail-workspace .panel { gap: 12px; padding: 14px; }
+    .retail-workspace .kpi-panel { gap: 8px; }
+    .retail-workspace .kpi-card { padding: 8px; }
+    .retail-workspace .chart-wrap { height: 240px; }
+    .retail-workspace .chart-wrap.small { height: 190px; }
+    @media (max-width: 600px) {
+      .retail-workspace main.content { gap: 12px; padding: 12px; }
+      .retail-workspace .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .retail-workspace .kpi-card:first-child { grid-column: 1 / -1; }
+      .retail-workspace .chart-wrap { height: 210px; }
+    }
   </style>
-  <script defer src="dist/site-consent.33b42e2d.js"></script>
+  <script defer src="dist/site-consent.5fbd7df8.js"></script>
   <script>
     if (window.self !== window.top) {
       document.documentElement.setAttribute("data-embedded", "true");
     }
   </script>
 </head>
-<body>
+<body class="demo-summary-workspace retail-workspace">
   <a href="#main" class="skip-link">Skip to main content</a>
   <div id="main" role="application" aria-label="Store loss and sales ETL demo">
     <header class="card-header">
@@ -542,30 +554,6 @@
     </div>
 
     <main class="content">
-      <section class="panel sales-panel">
-        <div class="panel-title">
-          <h2>Monthly sales</h2>
-          <div class="tabs" role="group" aria-label="Sales metric toggle">
-            <button class="tab-btn is-active" type="button" aria-pressed="true" data-sales-metric="sales">Total</button>
-            <button class="tab-btn" type="button" aria-pressed="false" data-sales-metric="online">Online</button>
-            <button class="tab-btn" type="button" aria-pressed="false" data-sales-metric="driveUp">Drive-up</button>
-          </div>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="sales-chart" aria-label="Monthly sales trend chart"></canvas>
-        </div>
-        <details class="demo-disclosure">
-          <summary>Department breakdown</summary>
-          <div class="demo-disclosure-content">
-            <div class="panel-title">
-              <h3>Top departments</h3>
-              <span class="meta-chip" id="dept-meta">Loading</span>
-            </div>
-            <ul class="list" id="dept-list"></ul>
-          </div>
-        </details>
-      </section>
-
       <section class="panel kpi-panel">
         <div class="panel-title">
           <h2>At a glance</h2>
@@ -590,6 +578,30 @@
           </div>
 
         </div>
+      </section>
+
+      <section class="panel sales-panel">
+        <div class="panel-title">
+          <h2>Monthly sales</h2>
+          <div class="tabs" role="group" aria-label="Sales metric toggle">
+            <button class="tab-btn is-active" type="button" aria-pressed="true" data-sales-metric="sales">Total</button>
+            <button class="tab-btn" type="button" aria-pressed="false" data-sales-metric="online">Online</button>
+            <button class="tab-btn" type="button" aria-pressed="false" data-sales-metric="driveUp">Drive-up</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="sales-chart" aria-label="Monthly sales trend chart"></canvas>
+        </div>
+        <details class="demo-disclosure">
+          <summary>Department breakdown</summary>
+          <div class="demo-disclosure-content">
+            <div class="panel-title">
+              <h3>Top departments</h3>
+              <span class="meta-chip" id="dept-meta">Loading</span>
+            </div>
+            <ul class="list" id="dept-list"></ul>
+          </div>
+        </details>
       </section>
 
       <section class="panel incident-panel">
@@ -1309,7 +1321,7 @@
       setStatus("warming", "Preparing demo…", "Loading anonymized data…");
       try {
         const data = await retryRequest(
-          () => getJson(joinUrl(API_URL, "data"), { cache: "no-store" }),
+          () => getJson(joinUrl(API_URL, "data"), { cache: "default" }),
           WARM_RETRY_OPTIONS
         );
         state.data = data;

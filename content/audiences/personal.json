@@ -111,8 +111,6 @@
                 "imageHeight": 384
               },
               "timeline": {
-                "title": "My path so far",
-                "lead": "A timeline of real milestones in learning and work.",
                 "items": [
                   {
                     "id": "target",

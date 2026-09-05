@@ -95,6 +95,7 @@ function setup() {
     dispatch: (name, detail) => events.push(['event', name, detail]),
     NAVIGATION_EVENT: 'navigation', CONTENT_EVENT: 'content', ROUTE_EVENT: 'route',
     prepareRoute: () => prepared.promise,
+    requireCompatibleGeneration: () => {},
     getRouteOutlet: () => body,
     saveCurrentHistory: () => {},
     captureDocumentMetadata: () => oldDocument,
@@ -148,7 +149,7 @@ function setup() {
     animationFrames.clear();
     callbacks.forEach((callback) => callback());
   };
-  const style = { sheet: null };
+  const style = { sheet: null, isConnected: true };
   let attached = false;
   const stylePending = activation.waitForStylesheetActivation([style]).then(() => { attached = true; });
   style.sheet = {};
@@ -198,6 +199,44 @@ function setup() {
   assert(failed.events.some(([event]) => event === 'retry'));
   assert(!failed.events.some(([event]) => event === 'pageview'), 'failed destinations must not publish a pageview');
   assert(!failed.isHeld(), 'recovery must release layout after restoring the previous controller');
+
+  const changedGeneration = setup();
+  changedGeneration.context.requireCompatibleGeneration = () => {
+    const error = new Error('The destination uses a different shell generation.');
+    error.code = 'SITE_ROUTE_GENERATION_MISMATCH';
+    throw error;
+  };
+  changedGeneration.stylesReady.resolve();
+  const incompatible = changedGeneration.context.navigate(new URL('https://example.test/tools/text-compare'));
+  changedGeneration.prepared.resolve(changedGeneration.route);
+  assert.equal(await incompatible, false);
+  assert(!changedGeneration.events.some(([event]) => event === 'unmount' || event === 'commit'),
+    'an incompatible cached route must not unmount or replace the current controller');
+  assert(changedGeneration.events.some(([event, options]) => event === 'retry' && options.reloadRequired),
+    'an incompatible deployment should preserve the current view and offer explicit Reload');
+
+  for (const navigationType of ['push', 'pop']) {
+    const compact = setup();
+    const frame = compact.context.window.SiteFrame;
+    const release = frame.release;
+    let scrollIntent;
+    let scrollOptions;
+    frame.release = (options) => { scrollIntent = options.scroll; release(); };
+    compact.context.window.matchMedia = () => ({ matches: true });
+    compact.context.getFrameScrollIntent = (value) => ({ top: Number(value?.windowY || 0) });
+    compact.context.restoreScroll = (_, __, options) => { scrollOptions = options; };
+    const navigation = compact.context.navigate(new URL('https://example.test/portfolio/babynames'), {
+      navigationType, historyState: { siteRoute: { scroll: { windowY: 425 } } }
+    });
+    compact.prepared.resolve(compact.route);
+    compact.stylesReady.resolve();
+    compact.mounted.resolve();
+    assert.equal(await navigation, true);
+    assert.equal(scrollIntent.top, navigationType === 'pop' ? 425 : 0,
+      'compact route geometry must receive the destination push or history scroll position');
+    assert.equal(scrollOptions.window, false,
+      'the final restoration must not add a separate window jump after compact frame movement');
+  }
 
   for (const phase of ['cleanup', 'styles', 'mount']) {
     const recovery = setup();

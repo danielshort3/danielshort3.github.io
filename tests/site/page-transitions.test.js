@@ -81,8 +81,8 @@ module.exports = function runPageTransitionTests({ assert }) {
     frame.includes('sequence !== localSequence'),
     'retargeting must use the current geometry and wipe and ignore obsolete local completions');
   assert(router.includes('preceding?.controller.abort') && router.includes('sequence !== navigationSequence') &&
-    router.includes('frame.restore(savedFrame,') && router.includes("retry.textContent = 'Retry'"),
-    'stale navigations must cancel and recoverable failures must restore the previous frame with Retry');
+    router.includes('frame.restore(savedFrame,') && router.includes("reloadRequired ? 'Reload' : 'Retry'"),
+    'stale navigations must cancel and restore the previous frame with Retry or a guarded version Reload');
   assert(router.includes('const baseline = committedSnapshot') && router.includes('savedFrame = baseline?.frame') &&
     router.includes('active.root !== savedFrame.body || active.signal?.aborted') &&
     router.includes('rememberCommittedRoute()') && !router.includes('savedDocument = document.cloneNode(true)'),

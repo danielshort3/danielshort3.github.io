@@ -47,9 +47,9 @@
     "url": "retail-loss-sales-demo.html"
   },
   "demoInstructions": {
-    "lead": "Compare store-level incident signals against sales metrics using tabs and filters.",
+    "lead": "Start with sales, incident count, and shrink summaries; each metric shows its own source period and population.",
     "bullets": [
-      "Pick a region to filter incidents and trends.",
+      "Pick a region to filter the incident chart; the summary statistics retain their stated source populations.",
       "Switch sales metrics (Total, Online, Drive-up) to change the sales view.",
       "Switch incident metrics (Count vs. Proven $) to change the incident view.",
       "Use “Reset view” to return to the default slice."

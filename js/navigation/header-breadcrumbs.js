@@ -77,6 +77,8 @@
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let animation = null;
     let previous = '';
+    let finishExit = null;
+    let revision = 0;
 
     function update(animate = true) {
       const page = readPage();
@@ -84,8 +86,32 @@
       const signature = JSON.stringify([trail, page.hard, page.accent, page.category]);
       if (signature === previous) return;
       previous = signature;
+      const token = ++revision;
+      const returning = Boolean(finishExit);
+      const opacity = returning ? getComputedStyle(list).opacity : '1';
       animation?.cancel();
       animation = null;
+      finishExit = null;
+      const duration = window.SiteMotion?.duration(nav, '--motion-fast', 160) ?? 160;
+      const canAnimate = animate && !reducedMotion.matches && duration > 0 && list.animate && nav.getClientRects().length;
+      if (!trail.length) {
+        const finish = () => {
+          if (token !== revision) return;
+          list.replaceChildren();
+          nav.hidden = true;
+          nav.inert = false;
+          finishExit = null;
+          animation = null;
+        };
+        if (canAnimate && !nav.hidden && list.children.length) {
+          nav.inert = true;
+          finishExit = finish;
+          animation = list.animate([{ opacity }, { opacity: '0' }], { duration, easing: 'ease-out' });
+          animation.onfinish = finish;
+        } else finish();
+        return;
+      }
+      nav.inert = false;
       nav.style.setProperty('--breadcrumb-accent', page.accent || colors[page.category] || colors.about);
       const fragment = document.createDocumentFragment();
       trail.forEach((crumb, index) => {
@@ -112,10 +138,12 @@
       });
       // Replace only after the next trail is complete; never blank the masthead between routes.
       list.replaceChildren(fragment);
-      nav.hidden = !trail.length;
-      const duration = window.SiteMotion?.duration(nav, '--motion-fast', 160) ?? 160;
-      if (animate && trail.length && !reducedMotion.matches && duration > 0 && list.animate && nav.getClientRects().length) {
-        animation = list.animate([{ transform: 'translateY(3px)' }, { transform: 'translateY(0)' }], {
+      nav.hidden = false;
+      if (animate && !reducedMotion.matches && duration > 0 && list.animate && nav.getClientRects().length) {
+        const frames = returning
+          ? [{ opacity }, { opacity: '1' }]
+          : [{ transform: 'translateY(3px)' }, { transform: 'translateY(0)' }];
+        animation = list.animate(frames, {
           duration,
           easing: getComputedStyle(nav).getPropertyValue('--easing-standard').trim() || 'ease-out'
         });
@@ -127,7 +155,7 @@
     // Local home changes commit without entering the document router.
     document.addEventListener('home:category-change', () => update());
     reducedMotion.addEventListener?.('change', () => {
-      if (reducedMotion.matches) { animation?.cancel(); animation = null; }
+      if (reducedMotion.matches) { animation?.cancel(); animation = null; finishExit?.(); }
     });
   }
 
