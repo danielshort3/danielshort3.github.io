@@ -197,6 +197,70 @@
     object-position: center;
   }
 
+  :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
+    --tool-tile-width: 112px;
+    --tool-tile-height: 104px;
+    --tool-tile-radius: 14px;
+    --tool-tile-inset: 82%;
+  }
+
+  :is(.home-library[data-home-library-view="tools"], .personal-library--tools) .home-library__card {
+    grid-template-columns: var(--tool-tile-width) minmax(0, 1fr) 20px;
+    grid-template-rows: auto;
+    min-height: calc(var(--tool-tile-height) + 26px);
+  }
+
+  :is(.home-library[data-home-library-view="tools"], .personal-library--tools) .home-library__media {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+    width: var(--tool-tile-width);
+    height: var(--tool-tile-height);
+    padding: 0;
+    border: 1px solid #dce3ec;
+    border-radius: var(--tool-tile-radius);
+    background: #f8fafc;
+  }
+
+  :is(.home-library[data-home-library-view="tools"], .personal-library--tools) .home-library__media img {
+    min-width: 0;
+    min-height: 0;
+    width: var(--tool-tile-inset);
+    height: var(--tool-tile-inset);
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  @media (min-width: 960px) and (max-width: 1100px) and (min-height: 620px) {
+    :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
+      --tool-tile-width: 94px;
+      --tool-tile-height: 88px;
+    }
+  }
+
+  @media (max-width: 959px), (max-height: 619px) {
+    :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
+      --tool-tile-width: 74px;
+      --tool-tile-height: 74px;
+      --tool-tile-radius: 10px;
+      --tool-tile-inset: 78%;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 959px), (min-width: 769px) and (max-height: 619px) {
+    :is(.home-library[data-home-library-view="tools"], .personal-library--tools) {
+      --tool-tile-width: 96px;
+      --tool-tile-height: 90px;
+      --tool-tile-radius: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    :is(.home-library[data-home-library-view="tools"], .personal-library--tools) .home-library__card {
+      grid-template-columns: var(--tool-tile-width) minmax(0, 1fr) 18px;
+      min-height: calc(var(--tool-tile-height) + 18px);
+    }
+  }
+
   :is(
     .home-library[data-home-library-view="projects"],
     .personal-library--projects

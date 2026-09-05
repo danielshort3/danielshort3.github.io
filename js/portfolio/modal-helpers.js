@@ -96,19 +96,21 @@
     return '';
   }
 
-  function buildResponsiveSrcset(base, ext, width) {
+  function buildResponsiveSrcset(base, ext, width, suffix = '') {
     const fullW = Number(width);
-    if (!Number.isFinite(fullW) || fullW <= 0) return `${base}.${ext}`;
+    if (!Number.isFinite(fullW) || fullW <= 0) return `${base}.${ext}${suffix}`;
     const parts = [];
-    if (fullW > 640) parts.push(`${base}-640.${ext} 640w`);
-    if (fullW > 960) parts.push(`${base}-960.${ext} 960w`);
-    parts.push(`${base}.${ext} ${fullW}w`);
+    if (fullW > 640) parts.push(`${base}-640.${ext}${suffix} 640w`);
+    if (fullW > 960) parts.push(`${base}-960.${ext}${suffix} 960w`);
+    parts.push(`${base}.${ext}${suffix} ${fullW}w`);
     return parts.join(', ');
   }
 
   function buildResponsivePicture(src, alt, options = {}) {
     if (!src) return '';
-    const match = String(src).match(/\.(png|jpe?g)$/i);
+    const imagePath = String(src).replace(/[?#].*$/, '');
+    const suffix = String(src).slice(imagePath.length);
+    const match = imagePath.match(/\.(png|jpe?g)$/i);
 
     const width = Number(options.width);
     const height = Number(options.height);
@@ -124,9 +126,9 @@
       return `<img${cls} src="${src}" alt="${alt || ''}"${loading}${decoding}${draggable}${sizeAttr}${sizes}${fetch}>`;
     }
 
-    const base = src.replace(/\.(png|jpe?g)$/i, '');
-    const avifSrcset = buildResponsiveSrcset(base, 'avif', width);
-    const webpSrcset = buildResponsiveSrcset(base, 'webp', width);
+    const base = imagePath.replace(/\.(png|jpe?g)$/i, '');
+    const avifSrcset = buildResponsiveSrcset(base, 'avif', width, suffix);
+    const webpSrcset = buildResponsiveSrcset(base, 'webp', width, suffix);
     return `<picture${cls}>
       <source srcset="${avifSrcset}" type="image/avif">
       <source srcset="${webpSrcset}" type="image/webp">

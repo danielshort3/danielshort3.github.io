@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const { versionedImageUrl } = require('../../build/lib/versioned-image-url');
 const {
   getHomeAccordionIconDefinitions,
   getWidgetDefinitions,
@@ -50,7 +51,7 @@ const extractFunctionBlock = (source, marker) => {
   return '';
 };
 const readWebpDimensions = (relativePath) => {
-  const diskPath = path.join(ROOT, String(relativePath || '').replace(/^[/\\]+/, ''));
+  const diskPath = path.join(ROOT, String(relativePath || '').replace(/[?#].*$/, '').replace(/^[/\\]+/, ''));
   const buffer = fs.readFileSync(diskPath);
   if (buffer.length < 20 ||
     buffer.toString('ascii', 0, 4) !== 'RIFF' ||
@@ -753,8 +754,8 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   assert(homeLibraryData.projects.items.every((item) => {
     const project = publishedProjectsById.get(item.id);
     return project &&
-      item.image === projectLibraryAsset(project.image) &&
-      item.image === `/img/projects/${item.id}-640.webp` &&
+      item.image === versionedImageUrl(projectLibraryAsset(project.image)) &&
+      item.image === versionedImageUrl(`/img/projects/${item.id}-640.webp`) &&
       item.imageAlt === '';
   }),
   'all 16 project library cards should derive their original optimized preview from the canonical project image');
@@ -773,7 +774,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   const toolsById = new Map(allTools.map((tool) => [tool.slug, tool]));
   const toolIconPaths = homeLibraryData.tools.items.map((item) => item.image);
   assert(homeLibraryData.tools.items.every((item) =>
-    item.image === `/${toolsById.get(item.id)?.iconImage}` && item.imageAlt === ''),
+    item.image === versionedImageUrl(`/${toolsById.get(item.id)?.iconImage}`) && item.imageAlt === ''),
   'every public tool library card should reuse its original canonical PNG icon');
   assert(allTools.length === 15 && allTools.every((tool) => {
     if (tool.iconImage !== `img/tools/icons/${tool.slug}.png`) return false;
@@ -784,7 +785,7 @@ module.exports = function runHomeCategoryAccordionTests({ assert }) {
   'all 15 catalog tools should retain valid original PNG assets without changing public visibility');
   const featuredTools = categories.find((category) => category.id === 'tools').items;
   assert(featuredTools.every((tool) => homeLibraryData.tools.items.some((item) =>
-    item.id === tool.id && item.image === `/${tool.image}`)),
+    item.id === tool.id && item.image === versionedImageUrl(`/${tool.image}`))),
   'View all tools should use the same original icon set as the homepage featured tools');
   assert(!fs.existsSync(path.join(ROOT, 'build', 'generate-home-library-visuals.js')) &&
     !fs.existsSync(path.join(ROOT, 'img', 'home-previews', 'sources')),

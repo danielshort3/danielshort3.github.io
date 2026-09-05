@@ -885,8 +885,9 @@ function renderLibraryCard(item, categoryId) {
   const image = String(item && item.image || '').trim();
   const imageAlt = String(item && item.imageAlt || '').trim();
   const iconHtml = String(item && item.iconHtml || '').trim();
+  const imageDimensions = categoryId === 'tools' ? ' width="256" height="256"' : '';
   const media = image
-    ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(imageAlt)}" loading="lazy" decoding="async">`
+    ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(imageAlt)}"${imageDimensions} loading="lazy" decoding="async">`
     : (iconHtml || `<span class="personal-library__initial" aria-hidden="true">${escapeHtml(title.charAt(0) || '?')}</span>`);
   const mediaType = image ? 'image' : 'glyph';
   const contentType = String(item && item.contentType || categoryId.replace(/s$/, '')).trim();

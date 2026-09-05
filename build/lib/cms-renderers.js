@@ -148,7 +148,7 @@ function projectThumbPath(project) {
   const raw = String(project && project.image ? project.image : '').trim();
   if (!raw) return '';
   if (project.thumbImage) return ensureLeadingSlash(project.thumbImage);
-  return ensureLeadingSlash(raw.replace(/\.(png|jpe?g)$/i, '.webp'));
+  return ensureLeadingSlash(raw.replace(/\.(png|jpe?g)(?=[?#]|$)/i, '.webp'));
 }
 
 function normalizeProjectSubtitle(project) {

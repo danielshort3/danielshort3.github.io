@@ -46,7 +46,10 @@
           const image = document.createElement('img');
           image.src = href(entry.image);
           image.alt = entry.imageAlt || '';
-          image.width = 640; image.height = 360; image.loading = 'lazy'; image.decoding = 'async';
+          image.width = id === 'tools' ? 256 : 640;
+          image.height = id === 'tools' ? 256 : 360;
+          image.loading = 'lazy';
+          image.decoding = 'async';
           media.append(image);
         } else {
           media.setAttribute('aria-hidden', 'true');
@@ -423,8 +426,8 @@
       const image = document.createElement('img');
       image.src = normalizeLibraryHref(item.image);
       image.alt = String(item.imageAlt || '');
-      image.width = 640;
-      image.height = 360;
+      image.width = categoryId === 'tools' ? 256 : 640;
+      image.height = categoryId === 'tools' ? 256 : 360;
       image.loading = 'lazy';
       image.decoding = 'async';
       media.classList.add('home-library__media--preview');

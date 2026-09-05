@@ -14,6 +14,7 @@ const crypto = require('crypto');
 const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 const { unwrapPersonalAccordionHtml } = require('./lib/personal-accordion-shell');
 const { toRawProjectDemoUrl } = require('./lib/project-demo-routes');
+const { versionedImageUrl, versionImageContent } = require('./lib/versioned-image-url');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
@@ -329,22 +330,22 @@ function toAbsoluteUrl(urlOrPath) {
 
 function fileExists(relPath) {
   if (!relPath) return false;
-  return fs.existsSync(path.join(root, relPath));
+  return fs.existsSync(path.join(root, relPath.replace(/[?#].*$/, '')));
 }
 
 function buildResponsiveSrcset(base, ext, width) {
   const fullW = Number(width);
   if (!Number.isFinite(fullW) || fullW <= 0) {
     const candidate = `${base}.${ext}`;
-    return fileExists(candidate) ? candidate : '';
+    return fileExists(candidate) ? versionedImageUrl(candidate) : '';
   }
   const parts = [];
   const w640 = `${base}-640.${ext}`;
-  if (fullW > 640 && fileExists(w640)) parts.push(`${w640} 640w`);
+  if (fullW > 640 && fileExists(w640)) parts.push(`${versionedImageUrl(w640)} 640w`);
   const w960 = `${base}-960.${ext}`;
-  if (fullW > 960 && fileExists(w960)) parts.push(`${w960} 960w`);
+  if (fullW > 960 && fileExists(w960)) parts.push(`${versionedImageUrl(w960)} 960w`);
   const full = `${base}.${ext}`;
-  if (fileExists(full)) parts.push(`${full} ${fullW}w`);
+  if (fileExists(full)) parts.push(`${versionedImageUrl(full)} ${fullW}w`);
   return parts.join(', ');
 }
 
@@ -403,6 +404,7 @@ function loadProjects() {
 }
 
 function renderProjectPage(project) {
+  project = versionImageContent(project);
   const id = String(project.id || '').trim();
   const title = normalizeWhitespace(project.title || id);
   const subtitle = normalizeWhitespace(project.subtitle || '');
@@ -449,8 +451,7 @@ function renderProjectPage(project) {
   ));
   const comparisonFullDimensionsMatch = comparisonStages.length === 3 && comparisonStages.every((stage) => (
     stage.fullImage && stage.fullWidth && stage.fullHeight &&
-    stage.fullWidth === comparisonStages[0].fullWidth &&
-    stage.fullHeight === comparisonStages[0].fullHeight
+    Math.abs(stage.fullWidth / stage.fullHeight - comparisonStages[0].fullWidth / comparisonStages[0].fullHeight) < 0.0001
   ));
   const comparisonLabelsAreUnique = new Set(comparisonStages.map((stage) => stage.label)).size === comparisonStages.length;
   const comparisonAltsAreUnique = new Set(comparisonStages.map((stage) => stage.alt)).size === comparisonStages.length;
@@ -493,7 +494,10 @@ function renderProjectPage(project) {
       height: comparisonStages[0].height,
       fullWidth: comparisonStages[0].fullWidth,
       fullHeight: comparisonStages[0].fullHeight,
-      sourceCrop
+      sourceCrop,
+      selection: comparisonSource.selection === true && !!sourceCrop,
+      credit: normalizeWhitespace(comparisonSource.credit || ''),
+      creditUrl: /^https:\/\//.test(String(comparisonSource.creditUrl || '')) ? String(comparisonSource.creditUrl) : ''
     }
     : null;
   const role = project.role;
@@ -635,12 +639,13 @@ function renderProjectPage(project) {
     const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
       ? ` width="${width}" height="${height}"`
       : '';
-    const match = img.match(/\.(png|jpe?g)$/i);
+    const imagePath = img.replace(/[?#].*$/, '');
+    const match = imagePath.match(/\.(png|jpe?g)$/i);
     if (!match) {
       return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="eager" decoding="async"${sizeAttr} fetchpriority="high">`;
     }
 
-    const base = img.replace(/\.(png|jpe?g)$/i, '');
+    const base = imagePath.replace(/\.(png|jpe?g)$/i, '');
     const avif = buildResponsiveSrcset(base, 'avif', width);
     const webp = buildResponsiveSrcset(base, 'webp', width);
     const sizes = ' sizes="(max-width: 960px) 92vw, 840px"';
@@ -686,9 +691,11 @@ function renderProjectPage(project) {
     const instructionsId = `project-comparison-instructions-${safeId}`;
     const stages = previewComparison.stages;
     const cropCue = previewComparison.sourceCrop
-      ? '<span class="project-stage-full-crop" aria-hidden="true"></span>'
+      ? previewComparison.selection
+        ? `<span class="project-selection-outline" aria-hidden="true"></span><button class="project-stage-full-crop" type="button" data-comparison-selection aria-label="Move selected area" aria-describedby="project-selection-instructions-${escapeHtml(safeId)}" disabled><span class="visually-hidden">Use arrow keys to move the selected area.</span></button>`
+        : '<span class="project-stage-full-crop" aria-hidden="true"></span>'
       : '';
-    const fullStages = stages.map((stage, index) => {
+    const fullStages = (previewComparison.selection ? stages.slice(0, 1) : stages).map((stage, index) => {
       const description = stage.description
         ? `<span class="project-stage-full-description">${escapeHtml(stage.description)}</span>`
         : '';
@@ -697,7 +704,7 @@ function renderProjectPage(project) {
             <span class="project-stage-full-index" aria-hidden="true">0${index + 1}</span>
             <span class="project-stage-full-copy"><strong>${escapeHtml(stage.label)}</strong>${description}</span>
           </figcaption>
-          <div class="project-stage-full-image-frame">
+          <div class="project-stage-full-image-frame"${previewComparison.selection ? ' data-comparison-overview' : ''}>
             <img class="project-stage-full-image" src="${escapeHtml(stage.fullImage)}" alt="${escapeHtml(stage.fullAlt)}" loading="lazy" decoding="async" width="${stage.fullWidth}" height="${stage.fullHeight}">
             ${cropCue}
           </div>
@@ -710,7 +717,7 @@ function renderProjectPage(project) {
         ? `<span>${escapeHtml(stage.description)}</span>`
         : '';
       return `<figure class="project-stage-slide" data-stage-slide data-stage-label="${escapeHtml(stage.label)}">
-          <img class="project-stage-image" src="${escapeHtml(stage.image)}" alt="${escapeHtml(stage.alt)}" loading="${loading}" decoding="async" width="${stage.width}" height="${stage.height}"${priority}>
+          <img class="project-stage-image" src="${escapeHtml(stage.image)}"${previewComparison.selection ? ` data-comparison-source="${escapeHtml(stage.fullImage)}"` : ''} alt="${escapeHtml(stage.alt)}" loading="${loading}" decoding="async" width="${stage.width}" height="${stage.height}"${priority}>
           <figcaption class="project-stage-slide-caption"><strong>${escapeHtml(stage.label)}</strong>${description}</figcaption>
         </figure>`;
     }).join('\n        ');
@@ -732,15 +739,33 @@ function renderProjectPage(project) {
       ? 'Each pipeline stage is shown in full. The blue outlined area is enlarged in the comparison below.'
       : 'Each pipeline stage is shown in full.';
 
-    return `<div class="project-image-comparison" data-project-image-comparison data-comparison-left="${previewComparison.left}" data-comparison-right="${previewComparison.right}" data-comparison-minimum-gap="${previewComparison.minimumGap}" style="--comparison-left:${previewComparison.left}%;--comparison-right:${previewComparison.right}%;--comparison-aspect:${previewComparison.width} / ${previewComparison.height};--comparison-full-aspect:${previewComparison.fullWidth} / ${previewComparison.fullHeight}${cropStyle}">
+    const selectionAttributes = previewComparison.selection
+      ? ` data-comparison-id="${escapeHtml(safeId)}" data-comparison-page-ratio="${previewComparison.fullWidth / previewComparison.fullHeight}" data-comparison-crop="${escapeHtml(JSON.stringify(previewComparison.sourceCrop))}"`
+      : '';
+    const selectionControls = previewComparison.selection
+      ? `<div class="project-selection-controls" data-selection-controls hidden>
+          <label for="project-selection-zoom-${escapeHtml(safeId)}">Zoom <output data-selection-zoom-value>1×</output></label>
+          <input id="project-selection-zoom-${escapeHtml(safeId)}" type="range" min="1" max="6" step="0.05" value="1" data-selection-zoom>
+          <button type="button" class="project-selection-reset" data-selection-reset>Reset</button>
+        </div>
+        <p class="project-selection-instructions" id="project-selection-instructions-${escapeHtml(safeId)}" data-selection-instructions hidden>Tap the sheet to choose an area. Drag the outlined area or use its arrow keys to move it.</p>
+        <p class="project-selection-status" data-selection-status role="status"></p>
+        <button type="button" class="project-selection-reset" data-selection-retry hidden>Retry images</button>`
+      : '';
+    const credit = previewComparison.credit
+      ? `<p class="project-comparison-credit">${previewComparison.creditUrl ? `<a href="${escapeHtml(previewComparison.creditUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(previewComparison.credit)}</a>` : escapeHtml(previewComparison.credit)}</p>`
+      : '';
+    return `<div class="project-image-comparison${previewComparison.selection ? ' project-image-comparison-selectable' : ''}" data-project-image-comparison${selectionAttributes} data-comparison-left="${previewComparison.left}" data-comparison-right="${previewComparison.right}" data-comparison-minimum-gap="${previewComparison.minimumGap}" style="--comparison-left:${previewComparison.left}%;--comparison-right:${previewComparison.right}%;--comparison-aspect:${previewComparison.width} / ${previewComparison.height};--comparison-full-aspect:${previewComparison.fullWidth} / ${previewComparison.fullHeight}${cropStyle}">
       <section class="project-image-comparison-section project-image-comparison-full" aria-labelledby="${escapeHtml(fullHeadingId)}" aria-describedby="${escapeHtml(fullDescriptionId)}">
         <div class="project-image-comparison-heading">
-          <h3 id="${escapeHtml(fullHeadingId)}">Full images</h3>
-          <p id="${escapeHtml(fullDescriptionId)}">${escapeHtml(fullDescription)}</p>
+          <h3 id="${escapeHtml(fullHeadingId)}">${previewComparison.selection ? 'Choose an area' : 'Full images'}</h3>
+          <p id="${escapeHtml(fullDescriptionId)}">${escapeHtml(previewComparison.selection ? 'Explore the original sheet, then compare the same notes through each stage.' : fullDescription)}</p>
         </div>
         <div class="project-stage-full-grid">
           ${fullStages}
         </div>
+        ${selectionControls}
+        ${credit}
       </section>
       <section class="project-image-comparison-section project-image-comparison-zoom" aria-labelledby="${escapeHtml(zoomHeadingId)}" aria-describedby="${escapeHtml(zoomDescriptionId)}">
         <div class="project-image-comparison-heading">
@@ -999,7 +1024,7 @@ function renderPortfolioStaticResults(projects) {
     if (!id) return '';
     const title = normalizeWhitespace(project.title || id);
     const summary = toMetaDescription(project);
-    const image = String(project.image || '').trim();
+    const image = versionedImageUrl(String(project.image || '').trim());
     const width = Number(project.imageWidth);
     const height = Number(project.imageHeight);
     const sizeAttrs = Number.isFinite(width) && width > 0 && Number.isFinite(height) && height > 0
